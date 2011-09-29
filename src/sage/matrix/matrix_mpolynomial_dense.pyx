@@ -40,7 +40,7 @@ from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_
 from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
 
 from sage.libs.singular.decl cimport matrix, ring, intvec, poly, pTakeOutComp1, IDELEMS, rChangeCurrRing, p_Copy
-from sage.libs.singular.decl cimport mpNew, idMatrix2Module, id_Delete, smCallNewBareiss, smCheckDet, smCallDet
+from sage.libs.singular.decl cimport mpNew, idMatrix2Module, id_Delete, smCallBareiss, smCheckDet, smCallDet
 from sage.libs.singular.decl cimport singclap_det, delete
 
 cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
@@ -312,7 +312,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
             # this is actually a sparse implementation
             sig_on()
-            smCallNewBareiss(ii,0,0,res,&iv)
+            smCallBareiss(ii,0,0,res,&iv)
             sig_off()
 
             ivv = iv.ivGetVec()

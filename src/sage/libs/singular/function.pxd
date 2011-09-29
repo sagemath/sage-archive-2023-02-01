@@ -52,7 +52,7 @@ cdef class Converter(SageObject):
     cdef to_python(self, leftv* to_convert)
 
 cdef class BaseCallHandler:
-    cdef leftv* handle_call(self, Converter argument_list)
+    cdef leftv* handle_call(self, Converter argument_list, singular_ring *_ring=?)
     cdef bint free_res(self)
 
 cdef class LibraryCallHandler(BaseCallHandler):

@@ -74,6 +74,8 @@ if m4ri_have_sse2:
 else:
     m4ri_extra_compile_args = []
 
+singular_libs = ['m', 'readline', 'singular', 'givaro', 'ntl', 'gmpxx', 'gmp']
+
 #########################################################
 ### PolyBoRi defines
 #########################################################
@@ -623,44 +625,44 @@ ext_modules = [
 
     Extension('sage.libs.singular.singular',
               sources = ['sage/libs/singular/singular.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'ntl', 'gmpxx', 'gmp'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC + 'singular'],
+              include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     Extension('sage.libs.singular.polynomial',
               sources = ['sage/libs/singular/polynomial.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC + 'singular'],
+              include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     Extension('sage.libs.singular.ring',
               sources = ['sage/libs/singular/ring.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC + 'singular'],
+              include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     Extension('sage.libs.singular.groebner_strategy',
               sources = ['sage/libs/singular/groebner_strategy.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC + 'singular'],
+              include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     Extension('sage.libs.singular.function',
               sources = ['sage/libs/singular/function.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC +'singular'],
+              include_dirs = [SAGE_INC +'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     Extension('sage.libs.singular.option',
               sources = ['sage/libs/singular/option.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC + 'singular'],
+              include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     Extension('sage.libs.symmetrica.symmetrica',
@@ -929,9 +931,9 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_mpolynomial_dense',
               sources = ['sage/matrix/matrix_mpolynomial_dense.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC + 'singular'],
+              include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     #Extension('sage.matrix.matrix_pid_dense',
@@ -1475,16 +1477,16 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC + 'singular'],
+              include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC + 'singular'],
+              include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     Extension('sage.rings.polynomial.multi_polynomial_ring_generic',

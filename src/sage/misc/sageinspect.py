@@ -1356,9 +1356,10 @@ def sage_getsourcelines(obj, is_binary=False):
         sage: I = P*[x,y]
         sage: sage_getsourcelines(P)
         (['cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):\n',
-          "    def __init__(self, base_ring, n, names, order='degrevlex'):\n",
+          '\n',
+          '    def __cinit__(self):\n',
         ...
-          '          M.append(new_MP(self, p_Copy(tempvector,_ring)))\n',
+          '          M.append(new_MP(self, p_Copy(tempvector, _ring)))\n',
           '          return M\n'], ...)
         sage: sage_getsourcelines(I)
         (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
@@ -1453,14 +1454,17 @@ def sage_getsourcelines(obj, is_binary=False):
                 break
     return _extract_source(source_lines, lineno), lineno
 
-def sage_getvariablename(obj, omit_underscore_names=True):
+def sage_getvariablename(self, omit_underscore_names=True):
     """
     Attempt to get the name of a Sage object.
 
     INPUT:
 
-    - ``obj`` - an object
-    - ``omit_underscore_names`` (optional, default True)
+    - ``self`` -- any object.
+
+    - ``omit_underscore_names`` -- boolean, default ``True``.
+
+    OUTPUT:
 
     If the user has assigned an object ``obj`` to a variable name,
     then return that variable name.  If several variables point to
@@ -1487,15 +1491,12 @@ def sage_getvariablename(obj, omit_underscore_names=True):
         sage: sage_getvariablename(random_matrix(ZZ, 60))
         []
     """
-    import gc
+    # first look through variables in stack frames
     result = []
-    for referrer in gc.get_referrers(obj):
-        if isinstance(referrer, dict):
-            for k, v in referrer.iteritems():
-                if v is obj:
-                    if isinstance(k, str):
-                        if (not omit_underscore_names) or not k.startswith('_'):
-                            result.append(k)
+    for frame in inspect.stack():
+        for name, obj in frame[0].f_globals.iteritems():
+            if obj is self:
+                result.append(name)
     if len(result) == 1:
         return result[0]
     else:

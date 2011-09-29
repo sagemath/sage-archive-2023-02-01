@@ -605,7 +605,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(1/2/(x+1))
             \frac{1}{2 \, {\left(x + 1\right)}}
 
-        Check if rational function coefficients without a `numerator()` method
+        Check if rational function coefficients without a ``numerator()`` method
         are printed correctly. #8491::
 
             sage: latex(6.5/x)
@@ -1460,11 +1460,11 @@ cdef class Expression(CommutativeRingElement):
         Return True if this symbolic expression is a constant.
 
         This function is intended to provide an interface to query the internal
-        representation of the expression. In this sense, the word `constant`
+        representation of the expression. In this sense, the word ``constant``
         doesn't reflect the mathematical properties of the expression.
-        Expressions which have no variables may return `False`.
+        Expressions which have no variables may return ``False``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: pi.is_constant()
             True
@@ -1699,7 +1699,7 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(x/x - 1)
             False
 
-        This is called by ``is_zero``::
+        This is called by :meth:`is_zero`::
 
             sage: k = var('k')
             sage: pol = 1/(k-1) - 1/k - 1/k/(k-1)
@@ -2524,15 +2524,16 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-        - ``self`` -- symbolic expression.
-
         - ``exp`` -- something that coerces to a symbolic expressions.
+        - ``ignored`` -- the second argument that should accept a modulus
+          is actually ignored.
 
         OUTPUT:
 
         A symbolic expression.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('x,y')
             (x, y)
             sage: x.__pow__(y)
@@ -6302,12 +6303,12 @@ cdef class Expression(CommutativeRingElement):
 
     def lgamma(self, hold=False):
         """
-        This method is deprecated, please use the `.log_gamma()` function
-        instead.
+        This method is deprecated, please use the ``.log_gamma()`` function instead.
 
         Log gamma function evaluated at self.
 
         EXAMPLES::
+
             sage: x.lgamma()
             doctest:...: DeprecationWarning: The lgamma() function is deprecated. Use log_gamma() instead.
             log_gamma(x)

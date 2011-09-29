@@ -23,7 +23,7 @@ from sage.libs.singular.decl cimport number, ideal
 from sage.libs.singular.decl cimport currRing, rChangeCurrRing
 from sage.libs.singular.decl cimport p_Copy, p_Add_q, p_Neg, pp_Mult_nn, p_GetCoeff, p_IsConstant, p_Cmp, pNext
 from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, p_GetExp, pLDeg
-from sage.libs.singular.decl cimport n_Delete, idInit, fast_map, id_Delete, n_GreaterZero, n_Sub, nInvers
+from sage.libs.singular.decl cimport n_Delete, idInit, fast_map, id_Delete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omFree
 from sage.libs.singular.decl cimport p_GetComp, p_SetComp
 
@@ -32,6 +32,15 @@ from sage.libs.singular.singular cimport sa2si, si2sa, overflow_check
 
 from sage.misc.latex import latex
 
+cdef int singular_polynomial_check(poly *p, ring *r) except -1:
+    """
+    Run consistency checks on ``p``.
+    """
+    while p:
+        if p_GetCoeff(p, r) == NULL:
+            raise ZeroDivisionError("NULL pointer as coefficient.")
+        p = p.next
+    return 0
 
 cdef int singular_polynomial_add(poly **ret, poly *p, poly *q, ring *r):
     """
@@ -143,6 +152,7 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
     cdef ideal *from_id=idInit(1,1)
     from_id.m[0] = p
 
+    rChangeCurrRing(r)
     cdef ideal *res_id = fast_map(from_id, r, to_id, r)
     ret[0] = res_id.m[0]
 
@@ -192,18 +202,18 @@ cdef int singular_polynomial_cmp(poly *p, poly *q, ring *r):
             return 0
         elif p_IsConstant(q,r):
             # compare 0, const
-            return 1-2*n_GreaterZero(p_GetCoeff(q,r), r) # -1: <, 1: > #
+            return 1-2*r.cf.nGreaterZero(p_GetCoeff(q,r)) # -1: <, 1: > #
     elif q == NULL:
         if p_IsConstant(p,r):
             # compare const, 0
-            return -1+2*n_GreaterZero(p_GetCoeff(p,r), r) # -1: <, 1: >
+            return -1+2*r.cf.nGreaterZero(p_GetCoeff(p,r)) # -1: <, 1: >
     #else
 
     while ret==0 and p!=NULL and q!=NULL:
         ret = p_Cmp( p, q, r)
 
         if ret==0:
-            h = n_Sub(p_GetCoeff(p, r),p_GetCoeff(q, r), r)
+            h = r.cf.nSub(p_GetCoeff(p, r),p_GetCoeff(q, r))
             # compare coeffs
             ret = -1+r.cf.nIsZero(h)+2*r.cf.nGreaterZero(h) # -1: <, 0:==, 1: >
             n_Delete(&h, r)
@@ -273,7 +283,7 @@ cdef int singular_polynomial_div_coeff(poly** ret, poly *p, poly *q, ring *r) ex
     if q == NULL:
         raise ZeroDivisionError
     cdef number *n = p_GetCoeff(q, r)
-    n = nInvers(n)
+    n = r.cf.nInvers(n)
     ret[0] = pp_Mult_nn(p, n, r)
     n_Delete(&n, r)
     return 0

@@ -168,9 +168,7 @@ when the system has no solutions over the rationals.
     which is not 1. ::
 
         sage: I.groebner_basis()
-        [-x - y - z, -y^2 - 3*y + z^2 + 3, -y*z + 14329*y + 6653454247350,
-         2*y - 1199*z^3 + 74229*z^2 + 31017*z + 106019, -23*z^3 + 953554642851*z + 2034,
-         19*z^2 + 5357048579, 2*z - 1339262138, 164878]
+        [x + 130433*y + 59079*z, y^2 + 3*y + 17220, y*z + 5*y + 14504, 2*y + 158864, z^2 + 17223, 2*z + 41856, 164878]
 
     Now for each prime `p` dividing this integer 164878, the Groebner
     basis of I modulo `p` will be non-trivial and will thus give a
@@ -190,7 +188,7 @@ when the system has no solutions over the rationals.
     The Groebner basis modulo any product of the prime factors is also non-trivial. ::
 
         sage: I.change_ring(P.change_ring( IntegerModRing(2*7) )).groebner_basis()
-        [x*y + 10, x*z + 13*y + 9, 7*x + 7*y + 7*z, y^2 + 3*y, y*z + y + 2, 2*y + 6, z^2 + 3, 2*z + 10]
+        [x + y + z, y^2 + 3*y, y*z + 11*y + 4, 2*y + 6, z^2 + 3, 2*z + 10]
 
     Modulo any other prime the Groebner basis is trivial so there are
     no other solutions. For example::
@@ -3075,12 +3073,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P.<a,b,c> = PolynomialRing(ZZ,3)
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
             sage: I.groebner_basis()
-            [-b^3 + 23*b*c^2 - 3*b^2 - 5*b*c,
-             2*b*c^2 - 6*c^3 - b^2 - b*c + 2*c^2,
-             42*c^3 + 5*b^2 + 4*b*c - 14*c^2,
-             2*b^2 + 6*b*c + 6*c^2 - b - 2*c,
-             -10*b*c - 12*c^2 + b + 4*c,
-             a + 2*b + 2*c - 1]
+            [b^3 - 23*b*c^2 + 3*b^2 + 5*b*c, 2*b*c^2 - 6*c^3 - b^2 - b*c + 2*c^2,
+             42*c^3 + 5*b^2 + 4*b*c - 14*c^2, 2*b^2 + 6*b*c + 6*c^2 - b - 2*c,
+             10*b*c + 12*c^2 - b - 4*c, a + 2*b + 2*c - 1]
 
         ::
 
@@ -3208,6 +3203,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 else:
                     _gb.append(f)
             gb = _gb
+        elif self.ring().base_ring() is ZZ:
+            if gb[-1].degree() == 0:
+                gb = [f % gb[-1] for f in gb[:-1]] + [gb[-1]]
+
         gb = PolynomialSequence(self.ring(), gb, immutable=True)
         return gb
 

@@ -1742,7 +1742,7 @@ class SingularElement(ExpectElement):
         ::
 
             sage: singular.eval('ring R = integer, (x,y,z),lp')
-            '// ** You are using coefficient rings which are not fields...'
+            '// ** redefining R **'
             sage: I = singular.ideal(['x^2','y*z','z+x'])
             sage: I.sage()  # indirect doctest
             Ideal (x^2, y*z, x + z) of Multivariate Polynomial Ring in x, y, z over Integer Ring
@@ -1921,10 +1921,10 @@ class SingularElement(ExpectElement):
             sage: fs.type()
             'poly'
         """
-        # singular reports //  $varname [index] $type $random
-        p = re.compile("//.*[\w]*.*\[[0-9]*\][ \*]*([a-z]*)")
+        # singular reports // $varname $type $stuff
+        p = re.compile("// [\w]+ (\w+) [\w]*")
         m = p.match(self.parent().eval("type(%s)"%self.name()))
-        return m.group(int(1))
+        return m.group(1)
 
     def __iter__(self):
         """

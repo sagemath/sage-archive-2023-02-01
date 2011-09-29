@@ -98,7 +98,7 @@ from sage.libs.singular.decl cimport p_Add_q, p_SetComp, p_GetComp, pNext, p_Set
 from sage.libs.singular.decl cimport idInit, syStrategy, atSet, atGet, setFlag, FLAG_STD
 
 from sage.libs.singular.option import opt_ctx
-from sage.libs.singular.polynomial cimport singular_vector_maximal_component
+from sage.libs.singular.polynomial cimport singular_vector_maximal_component, singular_polynomial_check
 from sage.libs.singular.singular cimport sa2si, si2sa, si2sa_intvec
 
 from sage.libs.singular.singular import error_messages
@@ -219,7 +219,7 @@ cdef leftv* new_leftv(void *data, res_type):
     res.rtyp = res_type
     return res
 
-cdef free_leftv(leftv * args):
+cdef free_leftv(leftv *args, ring *r = NULL):
     """
     Kills this ``leftv`` and all ``leftv``s in the tail.
 
@@ -227,7 +227,7 @@ cdef free_leftv(leftv * args):
 
     - ``args`` - a list of Singular arguments
     """
-    args.CleanUp()
+    args.CleanUp(r)
     omFreeBin(args, sleftv_bin)
 
 
@@ -408,8 +408,9 @@ cdef class Converter(SageObject):
         return "Singular Converter in %s"%(self._ring)
 
     def __dealloc__(self):
+        cdef ring *r = (<MPolynomialRing_libsingular>self._ring)._ring
         if self.args:
-            free_leftv(self.args)
+            free_leftv(self.args, r)
 
     def __len__(self):
         """
@@ -543,8 +544,7 @@ cdef class Converter(SageObject):
         l = []
 
         for j from 0 <= j < IDELEMS(i):
-            p = self.to_sage_vector_destructive(
-                i.m[j], free_module)
+            p = self.to_sage_vector_destructive(i.m[j], free_module)
             i.m[j]=NULL#save it from getting freed
             l.append( p )
 
@@ -791,7 +791,7 @@ cdef class BaseCallHandler:
     A call handler is an abstraction which hides the details of the
     implementation differences between kernel and library functions.
     """
-    cdef leftv* handle_call(self, Converter argument_list):
+    cdef leftv* handle_call(self, Converter argument_list, ring *_ring=NULL):
         """
         Actual function call.
         """
@@ -825,7 +825,8 @@ cdef class LibraryCallHandler(BaseCallHandler):
         """
         super(LibraryCallHandler, self).__init__()
 
-    cdef leftv* handle_call(self, Converter argument_list):
+    cdef leftv* handle_call(self, Converter argument_list, ring *_ring=NULL):
+        if _ring != currRing: rChangeCurrRing(_ring)
         return iiMake_proc(self.proc_idhdl, NULL, argument_list.args)
 
     cdef bint free_res(self):
@@ -859,7 +860,7 @@ cdef class KernelCallHandler(BaseCallHandler):
         self.cmd_n = cmd_n
         self.arity = arity
 
-    cdef leftv* handle_call(self, Converter argument_list):
+    cdef leftv* handle_call(self, Converter argument_list, ring *_ring=NULL):
         cdef leftv * res
         res = <leftv*> omAllocBin(sleftv_bin)
         res.Init()
@@ -871,12 +872,14 @@ cdef class KernelCallHandler(BaseCallHandler):
 
             if number_of_arguments == 1:
                 arg1 = argument_list.pop_front()
+                if _ring != currRing: rChangeCurrRing(_ring)
                 iiExprArith1(res, arg1, self.cmd_n)
                 free_leftv(arg1)
 
             elif number_of_arguments == 2:
                 arg1 = argument_list.pop_front()
                 arg2 = argument_list.pop_front()
+                if _ring != currRing: rChangeCurrRing(_ring)
                 iiExprArith2(res, arg1, self.cmd_n, arg2, self.cmd_n>255)
                 free_leftv(arg1)
                 free_leftv(arg2)
@@ -885,12 +888,14 @@ cdef class KernelCallHandler(BaseCallHandler):
                 arg1 = argument_list.pop_front()
                 arg2 = argument_list.pop_front()
                 arg3 = argument_list.pop_front()
+                if _ring != currRing: rChangeCurrRing(_ring)
                 iiExprArith3(res, self.cmd_n, arg1, arg2, arg3)
                 free_leftv(arg1)
                 free_leftv(arg2)
                 free_leftv(arg3)
         else:
-          iiExprArithM(res, argument_list.args, self.cmd_n)
+            if _ring != currRing: rChangeCurrRing(_ring)
+            iiExprArithM(res, argument_list.args, self.cmd_n)
 
         return res
 
@@ -1177,8 +1182,7 @@ cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_lib
 
     cdef ring *si_ring = R._ring
 
-    if si_ring != currRing:
-        rChangeCurrRing(si_ring)
+    if si_ring != currRing: rChangeCurrRing(si_ring)
 
     if currRingHdl.data.uring!= currRing:
         currRingHdl.data.uring.ref -= 1
@@ -1199,10 +1203,10 @@ cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_lib
     with opt_ctx: # we are preserving the global options state here
         if signal_handler:
             sig_on()
-            _res = self.call_handler.handle_call(argument_list)
+            _res = self.call_handler.handle_call(argument_list, si_ring)
             sig_off()
         else:
-            _res = self.call_handler.handle_call(argument_list)
+            _res = self.call_handler.handle_call(argument_list, si_ring)
 
     if myynest:
         myynest = 0
@@ -1219,9 +1223,9 @@ cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_lib
     res = argument_list.to_python(_res)
 
     if self.call_handler.free_res():
-        free_leftv(_res)
+        free_leftv(_res, si_ring)
     else:
-        _res.CleanUp()
+        _res.CleanUp(si_ring)
 
     return res
 
@@ -1359,7 +1363,7 @@ def singular_function(name):
         sage: singular_lib('primdec.lib')
         sage: primdecGTZ = singular_function("primdecGTZ")
         sage: primdecGTZ(I)
-        [[[3*y - 8*z - 4, 4*x + 1], [3*y - 8*z - 4, 4*x + 1]]]
+        [[[y - 8/3*z - 4/3, x + 1/4], [y - 8/3*z - 4/3, x + 1/4]]]
         sage: singular_list((1,2,3),3,[1,2,3], ring=P)
         [(1, 2, 3), 3, [1, 2, 3]]
         sage: ringlist=singular_function("ringlist")
@@ -1385,9 +1389,8 @@ def singular_function(name):
         sage: det(intmat, ring=F)
         394
         sage: random = singular_function("random")
-        sage: random(10,2,3, ring =F)
-        [-3 -3 -8]
-        [10  3 10]
+        sage: A = random(10,2,3, ring =F); A.nrows(), max(A.list()) <= 10
+        (2, True)
         sage: P.<x,y,z> = PolynomialRing(QQ)
         sage: M=P**3
         sage: leadcoef = singular_function("leadcoef")
@@ -1418,8 +1421,6 @@ def singular_function(name):
         <Resolution>
         sage: singular_list(resolution)
         [[(-2*y, 2, y + 1, 0), (0, -2, x - 1, 0), (x*y - y, -y + 1, 1, -y), (x^2 + 1, -x - 1, -1, -x)], [(-x - 1, y - 1, 2*x, -2*y)], [(0)]]
-
-
     """
 
     cdef SingularFunction fnc

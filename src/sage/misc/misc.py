@@ -2214,15 +2214,48 @@ class DeprecatedFunctionAlias(object):
             ...     'Sage Version 42.132')
             sage: g.__name__
             'g'
+
+            sage: from sage.misc.misc import deprecated_function_alias
+            sage: class cls(object):
+            ...      def new_meth(self): return 42
+            ...      old_meth = deprecated_function_alias(new_meth,
+            ...            'Sage Version 42.132')
+            ...
+            sage: cls().old_meth.__name__
+            'old_meth'
+
+            sage: cython('\n'.join([
+            ...       r"from sage.misc.misc import deprecated_function_alias",
+            ...       r"cdef class cython_cls(object):",
+            ...       r"    def new_cython_meth(self):",
+            ...       r"        return 1",
+            ...       r"    old_cython_meth = deprecated_function_alias(new_cython_meth, 'Sage 42.132')"
+            ...   ]))
+            ...
+            sage: cython_cls().old_cython_meth.__name__
+            'old_cython_meth'
         """
-        name = None
-        import gc
-        for referrer in gc.get_referrers(self):
-            if isinstance(referrer, dict):
-                for k, v in referrer.iteritems():
-                    if v is self:
-                        name = k
-        return name
+        # first look through variables in stack frames
+        for frame in inspect.stack():
+            for name, obj in frame[0].f_globals.iteritems():
+                if obj is self:
+                    return name
+        # then search object that contains self as method
+        import gc, copy
+        gc.collect()
+        def is_class(gc_ref):
+            if not isinstance(gc_ref, dict):
+                return False
+            is_python_class = '__module__' in gc_ref
+            is_cython_class = '__new__' in gc_ref
+            return is_python_class or is_cython_class
+        for ref in gc.get_referrers(self):
+            if is_class(ref):
+                ref_copy = copy.copy(ref)
+                for key, val in ref_copy.iteritems():
+                    if val is self:
+                        return key
+        raise AttributeError, "The name of this deprecated function can not be determined"
 
     def __call__(self, *args, **kwds):
         """

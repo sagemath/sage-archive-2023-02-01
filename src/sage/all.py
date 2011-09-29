@@ -319,3 +319,10 @@ sage.structure.sage_object.register_unpickle_override('sage.categories.category_
 # Cache the contents of star imports.
 import sage.misc.lazy_import
 sage.misc.lazy_import.save_cache_file()
+
+
+### Debugging for Singular, see trac #10903
+# from sage.libs.singular.ring import poison_currRing
+# sys.settrace(poison_currRing)
+
+

@@ -64,7 +64,7 @@ from sage.libs.singular.decl cimport tHomog, number, IDELEMS, p_Copy, rChangeCur
 from sage.libs.singular.decl cimport idInit, id_Delete, currRing, currQuotient, Sy_bit, OPT_REDSB
 from sage.libs.singular.decl cimport scKBase, poly, testHomog, idSkipZeroes, idRankFreeModule, kStd
 from sage.libs.singular.decl cimport OPT_REDTAIL, singular_options, kInterRed, t_rep_gb, p_GetCoeff
-from sage.libs.singular.decl cimport nInvers, pp_Mult_nn, p_Delete, n_Delete
+from sage.libs.singular.decl cimport pp_Mult_nn, p_Delete, n_Delete
 
 from sage.structure.parent_base cimport ParentWithBase
 
@@ -120,12 +120,11 @@ cdef ideal *sage_ideal_to_singular_ideal(I) except NULL:
     rChangeCurrRing(r);
 
     i = idInit(len(gens),1)
-    for f in gens:
+    for j,f in enumerate(gens):
         if not PY_TYPE_CHECK(f,MPolynomial_libsingular):
             id_Delete(&i, r)
             raise TypeError("All generators must be of type MPolynomial_libsingular.")
         i.m[j] = p_Copy((<MPolynomial_libsingular>f)._poly, r)
-        j+=1
     return i
 
 def kbase_libsingular(I):
@@ -292,7 +291,7 @@ def interred_libsingular(I):
         for j from 0 <= j < IDELEMS(result):
             p = result.m[j]
             n = p_GetCoeff(p,r)
-            n = nInvers(n)
+            n = r.cf.nInvers(n)
             result.m[j] = pp_Mult_nn(p, n, r)
             p_Delete(&p,r)
             n_Delete(&n,r)

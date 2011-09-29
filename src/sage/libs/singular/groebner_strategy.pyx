@@ -127,7 +127,9 @@ cdef class GroebnerStrategy(SageObject):
         initS(i, NULL, self._strat)
 
         cdef int j
-        if R.base_ring().is_field():
+        cdef bint base_ring_is_field = R.base_ring().is_field()
+        if (R._ring != currRing): rChangeCurrRing(R._ring)
+        if base_ring_is_field:
             for j in range(self._strat.sl+1)[::-1]:
                 pNorm(self._strat.S[j])
 

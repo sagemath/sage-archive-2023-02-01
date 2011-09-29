@@ -1284,7 +1284,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
             sage: A.subscheme([x]) + A.subscheme([y^2 - (x^3+1)])
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-            -x^4 + x*y^2 - x
+            x^4 - x*y^2 + x
 
         Saving and loading::
 

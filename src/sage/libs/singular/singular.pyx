@@ -36,8 +36,8 @@ from sage.libs.singular.decl cimport naIsOne, naIsOne, naIsZero, naPar, naInit, 
 from sage.libs.singular.decl cimport napGetCoeff, napGetExpFrom, pNext
 from sage.libs.singular.decl cimport nrzInit, nr2mMapZp, nrnMapGMP
 from sage.libs.singular.decl cimport siInit
-from sage.libs.singular.decl cimport n_Int, n_Init
-from sage.libs.singular.decl cimport rChangeCurrRing
+from sage.libs.singular.decl cimport n_Init
+from sage.libs.singular.decl cimport rChangeCurrRing, currRing
 from sage.libs.singular.decl cimport WerrorS_callback, const_char_ptr
 
 from sage.rings.rational_field import RationalField
@@ -335,16 +335,15 @@ cdef number *sa2si_QQ(Rational r, ring *_ring):
         sage: P(12345678901234567890/23) + 5/2 - 5/2
         12345678901234567890/23
     """
+    if _ring != currRing: rChangeCurrRing(_ring)
     return nlInit2gmp( mpq_numref(r.value), mpq_denref(r.value) )
 
 cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
     """
     """
+    if _ring != currRing: rChangeCurrRing(_ring)
     cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
-    cdef int b
-
-    rChangeCurrRing(_ring)
-    b = - _ring.ch;
+    cdef int b = - _ring.ch
 
     a = naPar(1)
 
@@ -375,11 +374,9 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
 cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
     """
     """
+    if _ring != currRing: rChangeCurrRing(_ring)
     cdef int i
     cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
-
-    rChangeCurrRing(_ring)
-
     cdef GF2X_c rep = GF2E_rep(elem.x)
 
     if GF2X_deg(rep) >= 1:
@@ -415,12 +412,9 @@ cdef number *sa2si_GFqPari(object elem, ring *_ring):
     """
     cdef int i
     cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
-
-    rChangeCurrRing(_ring)
-
     elem = elem._pari_().lift().lift()
 
-
+    if _ring != currRing: rChangeCurrRing(_ring)
     if len(elem) > 1:
         n1 = naInit(0, _ring)
         a = naPar(1)
@@ -454,11 +448,9 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     """
     cdef int i
     cdef number *n1, *n2, *a, *nlCoeff, *naCoeff, *apow1, *apow2
-
-    rChangeCurrRing(_ring)
-
     elem = list(elem)
 
+    if _ring != currRing: rChangeCurrRing(_ring)
     n1 = naInit(0, _ring)
     a = naPar(1)
     apow1 = naInit(1, _ring)
@@ -499,6 +491,7 @@ cdef number *sa2si_ZZ(Integer d, ring *_ring):
         sage: P(12345678901234567890) + 2 - 2
         12345678901234567890
     """
+    if _ring != currRing: rChangeCurrRing(_ring)
     cdef number *n = nrzInit(0, _ring)
     mpz_set(<__mpz_struct*>n, d.value)
     return <number*>n
@@ -540,16 +533,18 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         3
     """
     nr2mModul = d.parent().characteristic()
+    if _ring != currRing: rChangeCurrRing(_ring)
     cdef int _d
     if _ring.ringtype == 1:
         _d = long(d)
         return nr2mMapZp(<number *>_d)
     else:
-        return nrnMapGMP(<number *>(<Integer>Integer(d)).value)
+        lift = d.lift()
+        return nrnMapGMP(<number *>((<Integer>lift).value))
 
 cdef object si2sa(number *n, ring *_ring, object base):
     if PY_TYPE_CHECK(base, FiniteField_prime_modn):
-        return base(n_Int(n, _ring))
+        return base(_ring.cf.n_Int(n, _ring))
 
     elif PY_TYPE_CHECK(base, RationalField):
         return si2sa_QQ(n,_ring)
@@ -571,7 +566,7 @@ cdef object si2sa(number *n, ring *_ring, object base):
 
     elif PY_TYPE_CHECK(base, IntegerModRing_generic):
         if _ring.ringtype == 0:
-            return base(n_Int(n, _ring))
+            return base(_ring.cf.n_Int(n, _ring))
         return si2sa_ZZmod(n, _ring, base)
 
     else:

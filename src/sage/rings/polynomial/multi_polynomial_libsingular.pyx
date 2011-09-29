@@ -36,7 +36,7 @@ The libSINGULAR interface was implemented by
 - Simon King (2011-03): Use a faster way of conversion from the base
   ring.
 
-- Volker Braun (2011-06): Major cleanup, refcount singular rings.
+- Volker Braun (2011-06): Major cleanup, refcount singular rings, bugfixes.
 
 TODO:
 
@@ -176,8 +176,8 @@ from sage.libs.singular.decl cimport (
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
     omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
     pDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
-    p_IsUnit, pInvers, n_IsOne, p_Head, pSubst, idInit, fast_map, id_Delete,
-    pIsHomogeneous, pHomogen, pTotaldegree, singclap_pdivide, singclap_factorize,
+    p_IsUnit, pInvers, p_Head, pSubst, idInit, fast_map, id_Delete,
+    pIsHomogeneous, pHomogen, p_Totaldegree, singclap_pdivide, singclap_factorize,
     delete, idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
     p_LmIsConstant, pTakeOutComp1, singclap_gcd, pp_Mult_qq, p_GetMaxExp,
     pLength, kNF, singclap_isSqrFree, p_Neg, p_Minus_mm_Mult_qq, p_Plus_mm_Mult_qq,
@@ -1558,13 +1558,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         if not <ParentWithBase>self is g._parent:
             g = self._coerce_c(g)
 
-        if(r != currRing): rChangeCurrRing(r)
-
         if not f._poly:
             return self._zero_element
         if not g._poly:
             raise ZeroDivisionError
 
+        if r!=currRing: rChangeCurrRing(r)  # pDivide
         res = pDivide(f._poly, g._poly)
         if coeff:
             if r.ringtype == 0 or r.cf.nDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r)):
@@ -1724,6 +1723,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                    and (<MPolynomial_libsingular>g) \
                    and g.parent() is self \
                    and p_LmDivisibleBy((<MPolynomial_libsingular>g)._poly, m, r):
+                if r!=currRing: rChangeCurrRing(r)  # pDivide
                 flt = pDivide(f._poly, (<MPolynomial_libsingular>g)._poly)
                 #p_SetCoeff(flt, n_Div( p_GetCoeff(f._poly, r) , p_GetCoeff((<MPolynomial_libsingular>g)._poly, r), r), r)
                 p_SetCoeff(flt, n_Init(1, r), r)
@@ -1870,11 +1870,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             singular_ring_delete(self._parent_ring)
             return
         assert self._parent_ring != NULL # the constructor has no way to raise an exception
-
-        ### If you suspect that the poly data was corrupted, then this is a good way to trigger a segfault:
-        rChangeCurrRing(self._parent_ring)
-        p_Normalize(self._poly, self._parent_ring)
-
         p_Delete(&self._poly, self._parent_ring)
         singular_ring_delete(self._parent_ring)
 
@@ -2897,6 +2892,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         cdef bint is_field = self._parent._base.is_field()
         if is_field:
+            if self._parent_ring != currRing: rChangeCurrRing(self._parent_ring) # bug in p_IsUnit
             return bool(p_IsUnit(self._poly, self._parent_ring))
         else:
             return bool(p_IsConstant(self._poly, self._parent_ring) and self.constant_coefficient().is_unit())
@@ -3016,7 +3012,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         _p = p_Head(self._poly, _ring)
         _n = p_GetCoeff(_p, _ring)
 
-        ret = bool((not self._poly.next) and n_IsOne(_n, _ring))
+        ret = bool((not self._poly.next) and _ring.cf.nIsOne(_n))
 
         p_Delete(&_p, _ring)
         return ret
@@ -3132,6 +3128,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     break
                 _f = (<MPolynomial_libsingular>v)._poly
                 if p_IsConstant(_f, _ring):
+                    if(_ring != currRing): rChangeCurrRing(_ring)
                     _p = pSubst(_p, mi, _f)
                 else:
                     need_map = 1
@@ -3154,6 +3151,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     break
                 _f = (<MPolynomial_libsingular>v)._poly
                 if p_IsConstant(_f, _ring):
+                    if(_ring != currRing): rChangeCurrRing(_ring)
                     _p = pSubst(_p, mi, _f)
                 else:
                     if to_id.m[mi-1] != NULL:
@@ -3171,6 +3169,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 from_id=idInit(1,1)
                 from_id.m[0] = _p
 
+                rChangeCurrRing(_ring)
                 res_id = fast_map(from_id, _ring, to_id, _ring)
                 _p = res_id.m[0]
 
@@ -3361,8 +3360,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         zero = k(0)
         coefficients = [zero] * (self.degree() + 1)
 
+        if(r != currRing): rChangeCurrRing(r)
+
         while p:
-            coefficients[pTotaldegree(p, r)] = si2sa(p_GetCoeff(p, r), r, k)
+            coefficients[p_Totaldegree(p, r)] = si2sa(p_GetCoeff(p, r), r, k)
             p = pNext(p)
 
         return R(coefficients)
@@ -3690,6 +3691,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             if _right.is_monomial():
                 p = _self._poly
                 quo = p_ISet(0,r)
+                if r != currRing: rChangeCurrRing(r)   # pDivide
                 while p:
                     if p_DivisibleBy(_right._poly, p, r):
                         temp = pDivide(p, _right._poly)
@@ -3702,6 +3704,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef int count = singular_polynomial_length_bounded(_self._poly,15)
         if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
             sig_on()
+        if r!=currRing: rChangeCurrRing(r)   # singclap_pdivide
         quo = singclap_pdivide( _self._poly, _right._poly )
         if count >= 15:
             sig_off()
@@ -3839,7 +3842,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             from sage.structure.proof.proof import get_flag
             proof = get_flag(proof, "polynomial")
 
-        if(_ring != currRing): rChangeCurrRing(_ring)
+        if _ring!=currRing: rChangeCurrRing(_ring)
 
         if p_IsConstant(self._poly, _ring):
             return self.constant_coefficient().factor()
@@ -3859,7 +3862,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef int count = singular_polynomial_length_bounded(self._poly,5)
         if count >= 5:
             sig_on()
-        I = singclap_factorize ( ptemp, &iv , 0) #delete iv at some point
+        if _ring!=currRing: rChangeCurrRing(_ring)   # singclap_factorize
+        I = singclap_factorize ( ptemp, &iv , 0) #delete iv at some pointa
         if count >= 5:
             sig_off()
 
@@ -3923,6 +3927,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         fI.m[0]= p_Copy(self._poly, r)
 
+        if r!=currRing: rChangeCurrRing(r)  # idLift
         res = idLift(_I, fI, NULL, 0, 0, 0)
         l = []
         for i from 0 <= i < IDELEMS(res):
@@ -3986,7 +3991,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef ring *r = self._parent_ring
         cdef poly *res
 
-        if(r != currRing): rChangeCurrRing(r)
+        if r!=currRing: rChangeCurrRing(r)
 
         if PY_TYPE_CHECK(I, MPolynomialIdeal):
             try:
@@ -4010,6 +4015,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             i+=1
 
         #the second parameter would be qring!
+        if r!=currRing: rChangeCurrRing(r)  # kNF
         res = kNF(_I, NULL, self._poly)
         id_Delete(&_I,r)
         return new_MP(parent,res)
@@ -4122,6 +4128,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             + singular_polynomial_length_bounded(_right._poly,20)
         if count >= 20:
             sig_on()
+        if _ring!=currRing: rChangeCurrRing(_ring)  # singclap_gcd
         _res = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_right._poly, _ring))
         if count >= 20:
             sig_off()
@@ -4158,8 +4165,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef ring *_ring = self._parent_ring
         cdef poly *ret, *prod, *gcd
         cdef MPolynomial_libsingular _g
-        if(_ring != currRing): rChangeCurrRing(_ring)
-
+        if _ring!=currRing: rChangeCurrRing(_ring)
 
         if _ring.ringtype != 0:
             if _ring.ringtype == 4:
@@ -4182,6 +4188,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             + singular_polynomial_length_bounded(_g._poly,20)
         if count >= 20:
             sig_on()
+        if _ring!=currRing: rChangeCurrRing(_ring)  # singclap_gcd
         gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_g._poly, _ring))
         prod = pp_Mult_qq(self._poly, _g._poly, _ring)
         ret = singclap_pdivide(prod , gcd )
@@ -4206,11 +4213,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             False
         """
         cdef ring *_ring = self._parent_ring
-        if(_ring != currRing): rChangeCurrRing(_ring)
 
         if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
             raise NotImplementedError, "is_squarefree of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
 
+        if(_ring != currRing): rChangeCurrRing(_ring)
         return bool(singclap_isSqrFree(self._poly))
 
     @coerce_binop
@@ -4250,7 +4257,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef poly *quo, *rem
         cdef MPolynomialRing_libsingular parent = self._parent
         cdef ring *r = self._parent_ring
-        if(r != currRing): rChangeCurrRing(r)
+        if r!=currRing: rChangeCurrRing(r)
 
         if right.is_zero():
             raise ZeroDivisionError
@@ -4266,6 +4273,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef int count = singular_polynomial_length_bounded(self._poly,15)
         if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
             sig_on()
+        if r!=currRing: rChangeCurrRing(r)   # singclap_pdivide
         quo = singclap_pdivide( self._poly, right._poly )
         rem = p_Add_q(p_Copy(self._poly, r), p_Neg(pp_Mult_qq(right._poly, quo, r), r), r)
         if count >= 15:
@@ -4616,7 +4624,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             + singular_polynomial_length_bounded(other._poly,20)
         if count >= 20:
             sig_on()
-        rt =  singclap_resultant(self._poly, other._poly, (<MPolynomial_libsingular>variable)._poly )
+        if _ring != currRing: rChangeCurrRing(_ring)   # singclap_resultant
+        rt =  singclap_resultant(p_Copy(self._poly, _ring), p_Copy(other._poly, _ring),p_Copy((<MPolynomial_libsingular>variable)._poly, _ring))
         if count >= 20:
             sig_off()
         return new_MP(self._parent, rt)

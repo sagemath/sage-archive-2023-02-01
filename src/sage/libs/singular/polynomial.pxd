@@ -16,6 +16,7 @@ from sage.structure.element cimport RingElement
 
 from sage.libs.singular.decl cimport poly, ring
 
+cdef int singular_polynomial_check(poly *p, ring *r) except -1
 cdef int singular_polynomial_add (poly **ret, poly *p, poly *q, ring *r)
 cdef int singular_polynomial_call (poly **ret, poly *p, ring *r, list args, poly *(*get_element)(object))
 cdef int singular_polynomial_cmp (poly *p, poly *q, ring *r)

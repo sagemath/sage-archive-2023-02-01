@@ -512,6 +512,7 @@ cdef void singular_ring_delete(ring *doomed):
         ring_refcount_dict[r] = refcount-1
         return
 
+    global currRing
     cdef ring *oldRing = currRing
     if currRing == doomed:
         rDelete(doomed)
@@ -521,3 +522,60 @@ cdef void singular_ring_delete(ring *doomed):
         rDelete(doomed)
         rChangeCurrRing(oldRing)
 
+
+
+
+#############################################################################
+# helpers for debugging
+
+cpdef poison_currRing(frame, event, arg):
+    """
+    Poison the ``currRing`` pointer.
+
+    This function sets the ``currRing`` to an illegal value. By
+    setting it as the python debug hook, you can poison the currRing
+    before every evaluated Python command (but not within Cython
+    code).
+
+    INPUT:
+
+    - ``frame``, ``event``, ``arg`` -- the standard arguments for the
+      CPython debugger hook. They are not used.
+
+    OUTPUT:
+
+    Returns itself, which ensures that :func:`poison_currRing` will
+    stay in the debugger hook.
+
+    EXAMPLES::
+
+        sage: previous_trace_func = sys.gettrace()   # None if no debugger running
+        sage: from sage.libs.singular.ring import poison_currRing
+        sage: sys.settrace(poison_currRing)
+        sage: sys.gettrace()
+        <built-in function poison_currRing>
+        sage: sys.settrace(previous_trace_func)  # switch it off again
+    """
+    #print "poisoning currRing"
+    global currRing
+    currRing = <ring*>NULL
+    return poison_currRing
+
+
+cpdef print_currRing():
+    """
+    Print the ``currRing`` pointer.
+
+    EXAMPLES::
+
+        sage: from sage.libs.singular.ring import print_currRing
+        sage: print_currRing()   # random output
+        DEBUG: currRing == 0x7fc6fa6ec480
+
+        sage: from sage.libs.singular.ring import poison_currRing
+        sage: _ = poison_currRing(None, None, None)
+        sage: print_currRing()
+        DEBUG: currRing == 0x0
+    """
+    cdef size_t addr = <size_t>currRing
+    print "DEBUG: currRing == "+str(hex(addr))

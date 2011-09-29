@@ -472,7 +472,7 @@ class FreeAlgebra_generic(Algebra):
         """
         return self.__monoid
 
-    def g_algebra(self, relations, order='degrevlex', check = True):
+    def g_algebra(self, relations, names=None, order='degrevlex', check = True):
         """
         The G-Algebra derived from this algebra by relations.
         By default is assumed, that two variables commute.
@@ -507,7 +507,6 @@ class FreeAlgebra_generic(Algebra):
             -x*y + z
         """
         from sage.matrix.constructor  import Matrix
-        from sage.rings.polynomial.plural import NCPolynomialRing_plural
 
         base_ring=self.base_ring()
         n=self.ngens()
@@ -538,8 +537,9 @@ class FreeAlgebra_generic(Algebra):
             cmat[v2_ind,v1_ind]=c_coef
             if d_poly:
                 dmat[v2_ind,v1_ind]=d_poly
-
-        return NCPolynomialRing_plural(base_ring, n, ",".join([str(g) for g in self.gens()]), c=cmat, d=dmat, order=order, check=check)
+        from sage.rings.polynomial.plural import g_Algebra
+        return g_Algebra(base_ring, cmat, dmat, names = names or self.variable_names(),
+                         order=order, check=check)
 
 
 from sage.misc.cache import Cache

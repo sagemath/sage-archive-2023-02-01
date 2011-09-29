@@ -135,10 +135,95 @@ from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_
 
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport CommutativeRingElement
+from sage.structure.factory import UniqueFactory
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
 from sage.rings.integer_ring import is_IntegerRing, ZZ
 from sage.categories.algebras import Algebras
 from sage.rings.ring import check_default_category
+
+class G_AlgFactory(UniqueFactory):
+    """
+    A factory for the creation of g-algebras as unique parents.
+
+    TESTS::
+
+        sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+        sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+        sage: H is A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y}) # indirect doctest
+        True
+
+    """
+    def create_object(self, version, key, **extra_args):
+        """
+        Create a g-algebra to a given unique key.
+
+        INPUT:
+
+        - key - a 6-tuple, formed by a base ring, a tuple of names, two
+          matrices over a polynomial ring over the base ring with the given
+          variable names, a term order, and a category
+        - extra_args - a dictionary, whose only relevant key is 'check'.
+
+        TEST::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y}) # indirect doctest
+            Noncommutative Multivariate Polynomial Ring in x, y, z over Rational
+            Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+
+        """
+        # key = (base_ring,names, c,d, order, category)
+        # extra args: check
+        base_ring,names,c,d,order,category = key
+        check = extra_args.get('check')
+        return NCPolynomialRing_plural(base_ring, names, c,d, order, category, check)
+    def create_key_and_extra_args(self, base_ring, c,d, names=None, order=None,
+                                 category=None,check=None):
+        """
+        Create a unique key for g-algebras.
+
+        INPUT:
+
+        - ``base_ring`` - a ring
+        - ``c,d`` - two matrices
+        - ``names`` - a tuple or list of names
+        - ``order`` - (optional) term order
+        - ``category`` - (optional) category
+        - ``check`` - optional bool
+
+        TEST::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: H is A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y}) # indirect doctest
+
+        """
+        if names is None:
+            raise ValueError, "The generator names must be provided"
+
+        # Get the number of names:
+        names = tuple(names)
+        n = len(names)
+        order = TermOrder(order or 'degrevlex', n)
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        P = PolynomialRing(base_ring, n, names, order=order)
+        # The names may have been normalised in P:
+        names = P.variable_names()
+        c = c.change_ring(P)
+        c.set_immutable()
+        d = d.change_ring(P)
+        d.set_immutable()
+
+        # Get the correct category
+        category=check_default_category(Algebras(base_ring),category)
+
+        # Extra arg
+        if check is None:
+            return (base_ring,names,c,d,order,category),{}
+        return (base_ring,names,c,d,order,category),{'check':check}
+
+g_Algebra = G_AlgFactory('sage.rings.polynomial.plural.g_Algebra')
 
 cdef class NCPolynomialRing_plural(Ring):
     """
@@ -150,14 +235,12 @@ cdef class NCPolynomialRing_plural(Ring):
         sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
         sage: H._is_category_initialized()
         True
-        sage: H.catego
-        H.categories  H.category
         sage: H.category()
         Category of algebras over Rational Field
+        sage: TestSuite(H).run()
 
     """
-    def __init__(self, base_ring, n, names, c, d, order='degrevlex',
-                 check = True, category=None):
+    def __init__(self, base_ring, names, c, d, order, category, check = True):
         """
         Construct a noncommutative polynomial G-algebra subject to the following conditions:
 
@@ -165,8 +248,7 @@ cdef class NCPolynomialRing_plural(Ring):
 
         - ``base_ring`` - base ring (must be either GF(q), ZZ, ZZ/nZZ,
                           QQ or absolute number field)
-        - ``n`` - number of variables (must be at least 1)
-        - ``names`` - names of ring variables, may be string of list/tupl
+        - ``names`` - a tuple of names of ring variables
         - ``c``, ``d``- upper triangular matrices of coefficients,
           resp. commutative polynomials, satisfying the nondegeneracy
           conditions, which are to be tested if check == True. These
@@ -175,11 +257,8 @@ cdef class NCPolynomialRing_plural(Ring):
             ``self.gen(j)*self.gen(i) == c[i, j] * self.gen(i)*self.gen(j) + d[i, j],``
 
           where ``0 <= i < j < self.ngens()``.
-        - ``order`` - term order (default: ``degrevlex``)
+        - ``order`` - term order
         - ``check`` - check the noncommutative conditions (default: ``True``)
-        - ``category`` - optional category. The resulting ring
-          will belong to that category and to the category of
-          algebras over the base ring.
 
         EXAMPLES::
 
@@ -193,7 +272,7 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: d[0, 1] = 17
 
             sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural
-            sage: P.<x,y,z> = NCPolynomialRing_plural(QQ, 3, c = c, d = d, order='lex')
+            sage: P.<x,y,z> = NCPolynomialRing_plural(QQ, c = c, d = d, order='lex')
 
             sage: P # indirect doctest
             Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y + 17}
@@ -223,20 +302,12 @@ cdef class NCPolynomialRing_plural(Ring):
             Degree reverse lexicographic term order
 
         """
-
+        n = len(names)
         self._relations = None
-        n = int(n)
-        if n < 0:
-            raise ValueError, "Multivariate Polynomial Rings must " + \
-                  "have more than 0 variables."
 
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
-        order = TermOrder(order,n)
-        P = PolynomialRing(base_ring, n, names, order=order)
-
-        self._c = c.change_ring(P)
-        self._d = d.change_ring(P)
+        P = c.base_ring()
+        self._c = c
+        self._d = d
 
         from sage.libs.singular.function import singular_function
         ncalgebra = singular_function('nc_algebra')
@@ -250,8 +321,7 @@ cdef class NCPolynomialRing_plural(Ring):
         self.__ngens = n
         self.__term_order = order
 
-        Ring.__init__(self, base_ring, names,
-                      category=check_default_category(Algebras(base_ring),category))
+        Ring.__init__(self, base_ring, names, category)
         self._populate_coercion_lists_()
 
         #MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
@@ -267,6 +337,23 @@ cdef class NCPolynomialRing_plural(Ring):
             test = sage.libs.singular.ff.nctools__lib.ndcond(ring = self)
             if (len(test) != 1) or (test[0] != 0):
                 raise ValueError, "NDC check failed!"
+
+    def __reduce__(self):
+        """
+        TESTS::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: H is A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            True
+            sage: H is loads(dumps(H))  # indirect doctest
+            True
+
+        """
+        return g_Algebra, (self.base_ring(),self._c,self._d,
+                            self.variable_names(),
+                            self.term_order().name(),
+                            self.category())
 
     def __dealloc__(self):
         r"""
@@ -437,10 +524,9 @@ cdef class NCPolynomialRing_plural(Ring):
                 _p = p_NSet(_n, _ring)
 
         else:
-            raise NotImplementedError("not able to constructor "+repr(element) +
-                                      " of type "+ repr(type(element))) #### ??????
-
-
+            raise NotImplementedError("not able to interprete "+repr(element) +
+                                      " of type "+ repr(type(element)) +
+                                      " as noncommutative polynomial")  ### ??????
         return new_NCP(self,_p)
 
 
@@ -1224,6 +1310,31 @@ cdef class NCPolynomialRing_plural(Ring):
           M.append(new_NCP(self, p_Copy(tempvector,_ring)))
         return M
 
+def unpickle_NCPolynomial_plural(NCPolynomialRing_plural R, d):
+    cdef ring *r = R._ring
+    cdef poly *m, *p
+    cdef int _i, _e
+    p = p_ISet(0,r)
+    rChangeCurrRing(r)
+    for mon,c in d.iteritems():
+        m = p_Init(r)
+        for i,e in mon.sparse_iter():
+            _i = i
+            if _i >= r.N:
+                p_Delete(&p,r)
+                p_Delete(&m,r)
+                raise TypeError, "variable index too big"
+            _e = e
+            if _e <= 0:
+                p_Delete(&p,r)
+                p_Delete(&m,r)
+                raise TypeError, "exponent too small"
+            overflow_check(_e, r)
+            p_SetExp(m, _i+1,_e, r)
+        p_SetCoeff(m, sa2si(c, r), r)
+        p_Setm(m,r)
+        p = p_Add_q(p,m,r)
+    return new_NCP(R,p)
 
 
 cdef class NCPolynomial_plural(RingElement):
@@ -1252,6 +1363,18 @@ cdef class NCPolynomial_plural(RingElement):
             p_Delete(&self._poly, (<NCPolynomialRing_plural>self._parent)._ring)
 
 #    def __call__(self, *x, **kwds): # ?
+
+    def __reduce__(self):
+        """
+        TEST::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: loads(dumps(x*y+2*z+4*x*y*z*x))
+            4*x^2*y*z + 8*x^2*y - 4*x*z^2 + x*y - 8*x*z + 2*z
+
+        """
+        return unpickle_NCPolynomial_plural, (self._parent, self.dict())
 
     # you may have to replicate this boilerplate code in derived classes if you override
     # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html

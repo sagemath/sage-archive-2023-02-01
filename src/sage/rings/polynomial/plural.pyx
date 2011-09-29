@@ -141,6 +141,8 @@ from sage.rings.integer_ring import is_IntegerRing, ZZ
 from sage.categories.algebras import Algebras
 from sage.rings.ring import check_default_category
 
+from sage.rings.polynomial.multi_polynomial_ideal import NCPolynomialIdeal
+
 class G_AlgFactory(UniqueFactory):
     """
     A factory for the creation of g-algebras as unique parents.
@@ -832,8 +834,8 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: P.ideal([x + 2*y + 2*z-1, 2*x*y + 2*y*z-y, x^2 + 2*y^2 + 2*z^2-x])
             Ideal (x + 2*y + 2*z - 1, 2*x*y + 2*y*z - y, x^2 - x + 2*y^2 + 2*z^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y}
         """
-        from sage.rings.polynomial.multi_polynomial_ideal import \
-                NCPolynomialIdeal
+#        from sage.rings.polynomial.multi_polynomial_ideal import \
+#                NCPolynomialIdeal
         coerce = kwds.get('coerce', True)
         if len(gens) == 1:
             gens = gens[0]
@@ -870,39 +872,40 @@ cdef class NCPolynomialRing_plural(Ring):
         ring = singular_function('ring')
         return ring(L, ring=self)
 
-    def quotient(self, I):
-        """
-        Construct quotient ring of ``self`` and the two-sided Groebner basis of `ideal`
-
-        EXAMPLE::
-
-        sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-        sage: H = A.g_algebra(relations={y*x:-x*y},  order='lex')
-        sage: I = H.ideal([H.gen(i) ^2 for i in [0, 1]]).twostd()
-
-        sage: Q = H.quotient(I); Q
-        Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y}
-
-        TESTS::
-
-        check coercion bug::
-        sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-        sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-        sage: rlist = P._ringlist();
-        sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-        sage: H = A.g_algebra(relations={y*x:-x*y},  order='lex')
-        sage: I = H.ideal([H.gen(i) ^2 for i in [0, 1]]).twostd()
-        sage: Q = H.quotient(I); Q
-        Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y}
-        sage: Q.gen(0)^2
-        0
-        sage: Q.gen(1) * Q.gen(0)
-        -x*y
-        """
-        L = self._ringlist()
-        L[3] = I.twostd()
-        W = self._list_to_ring(L)
-        return new_NRing(W, self.base_ring())
+#    def quotient(self, I):
+#        """
+#        Construct quotient ring of ``self`` and the two-sided Groebner basis of `ideal`
+#
+#        EXAMPLE::
+#
+#            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+#            sage: H = A.g_algebra(relations={y*x:-x*y},  order='lex')
+#            sage: I = H.ideal([H.gen(i) ^2 for i in [0, 1]]).twostd()
+#
+#            sage: Q = H.quotient(I); Q
+#            Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y}
+#
+#        TESTS:
+#
+#        check coercion bug::
+#
+#            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+#            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
+#            sage: rlist = P._ringlist();
+#            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+#            sage: H = A.g_algebra(relations={y*x:-x*y},  order='lex')
+#            sage: I = H.ideal([H.gen(i) ^2 for i in [0, 1]]).twostd()
+#            sage: Q = H.quotient(I); Q
+#            Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y}
+#            sage: Q.gen(0)^2
+#            0
+#            sage: Q.gen(1) * Q.gen(0)
+#            -x*y
+#        """
+#        L = self._ringlist()
+#        L[3] = I.twostd()
+#        W = self._list_to_ring(L)
+#        return new_NRing(W, self.base_ring())
 
 
     ### The following methods are handy for implementing Groebner
@@ -1679,6 +1682,66 @@ cdef class NCPolynomial_plural(RingElement):
         cdef poly *p
         singular_polynomial_neg(&p, self._poly, _ring)
         return new_NCP((<NCPolynomialRing_plural>self._parent), p)
+
+    def reduce(self, I):
+        """
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: I = H.ideal([y^2, x^2, z^2-H.one_element()],coerce=False)
+
+        The result of reduction is not the normal form, if one reduces
+        by a list of polynomials::
+
+            sage: (x*z).reduce(I.gens())
+            x*z
+
+        However, if the argument is an ideal, then a normal form (reduction
+        with respect to a two-sided Groebner basis) is returned::
+
+            sage: (x*z).reduce(I)
+            -x
+            sage: I.twostd()
+            Left Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of
+            Noncommutative Multivariate Polynomial Ring in x, y, z over Rational
+            Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+
+        """
+        cdef ideal *_I
+        cdef NCPolynomialRing_plural parent = <NCPolynomialRing_plural>self._parent
+        cdef int i = 0
+        cdef ring *r = parent._ring
+        cdef poly *res
+
+        if(r != currRing): rChangeCurrRing(r)
+
+        if PY_TYPE_CHECK(I, NCPolynomialIdeal):
+            try:
+                strat = I._groebner_strategy()
+                return strat.normal_form(self)
+            except (TypeError, NotImplementedError),msg:
+                pass
+            I = I.gens()
+
+        _I = idInit(len(I),1)
+        for f in I:
+            if not (PY_TYPE_CHECK(f,NCPolynomial_plural) \
+                   and <NCPolynomialRing_plural>(<NCPolynomial_plural>f)._parent is parent):
+                try:
+                    f = parent._coerce_c(f)
+                except TypeError, msg:
+                    id_Delete(&_I,r)
+                    raise TypeError, msg
+
+            _I.m[i] = p_Copy((<NCPolynomial_plural>f)._poly, r)
+            i+=1
+
+        #the second parameter would be qring!
+        res = kNF(_I, NULL, self._poly)
+        id_Delete(&_I,r)
+        return new_NCP(parent,res)
 
     def _repr_(self):
         """

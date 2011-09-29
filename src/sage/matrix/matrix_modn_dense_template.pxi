@@ -89,7 +89,7 @@ cdef inline celement_invert(celement a, celement n):
     Invert the finite field element `a` modulo `n`.
     """
     # This is copied from linbox source linbox/field/modular-float.h
-    # The extended Euclidean algoritm
+    # The extended Euclidean algorithm
     cdef int x_int, y_int, q, tx, ty, temp
     x_int = <int>n
     y_int = <int>a
@@ -183,7 +183,6 @@ cdef inline linbox_echelonize_efd(celement modulus, celement* entries, Py_ssize_
                 ii = j+1
                 break
 
-    # TODO: recover pivots
     del F, A, E, EF
     return r, pivots
 
@@ -2905,56 +2904,6 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         cdef celement *_from = self._entries+(i*self._ncols)
         for j in range(self._ncols):
             to[j] = <mod_int>_from[j]
-
-    # def new_matrix(self, nrows=None, ncols=None, entries=0, coerce=True, copy=True, sparse=None):
-    #     """
-    #     Create a matrix in the parent of this matrix with the given number
-    #     of rows, columns, etc. The default parameters are the same as for
-    #     self.
-
-    #     INPUT:
-
-    #     These three variables get sent to :func:`matrix_space`:
-
-    #     - ``nrows``, ``ncols`` - number of rows and columns in returned
-    #       matrix. If not specified, defaults to ``None`` and will give a
-    #       matrix of the same size as self.
-    #     - ``sparse`` - whether returned matrix is sparse or
-    #       not. Defaults to same value as self.
-
-    #     The remaining three variables (``coerce``, ``entries``, and
-    #     ``copy``) are used by
-    #     :func:`sage.matrix.matrix_space.MatrixSpace` to construct the
-    #     new matrix.
-
-    #     .. warning::
-
-    #        This function called with no arguments returns the zero
-    #        matrix of the same dimension and sparseness of self.
-
-    #     EXAMPLE::
-
-    #         sage: from sage.matrix.matrix_modn_dense_float import Matrix_modn_dense_float
-    #         sage: from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double
-
-    #         sage: K = GF(7)
-    #         sage: MS = MatrixSpace(K,100,100)
-    #         sage: A = Matrix_modn_dense_float(MS, None, False, False)
-    #         sage: B = Matrix_modn_dense_double(MS, None, False, False)
-    #         sage: type(A)
-    #         <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
-    #         sage: type(A.new_matrix())
-    #         <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
-    #         sage: type(B)
-    #         <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
-    #         sage: type(B.new_matrix())
-    #         <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
-    #     """
-    #     MS = self.matrix_space(nrows, ncols, sparse=sparse)
-    #     if sparse:
-    #         return MS(entries=entries, coerce=coerce, copy=copy)
-    #     else:
-    #         return self.__class__(MS, entries, coerce, copy)
 
 cpdef __matrix_from_rows_of_matrices(X):
     """

@@ -1300,6 +1300,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for k in range(n):
             row_list[k] = <mod_int*>sage_malloc(sizeof(mod_int)*nc)
             if row_list[k] == NULL:
+                for i in range(k):
+                    sage_free(row_list[i])
+                sage_free(row_list)
                 raise MemoryError("out of memory allocating multi-modular coefficient list")
 
         sig_on()

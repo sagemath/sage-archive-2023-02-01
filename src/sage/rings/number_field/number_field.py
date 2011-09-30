@@ -1492,15 +1492,39 @@ class NumberField_generic(number_field_base.NumberField):
               To:   Number Field in a with defining polynomial x^4 - 3
               Defn: b |--> a^2
 
-        ::
+        Subfields inherit embeddings::
 
             sage: K.<z> = CyclotomicField(5)
-            sage: K.subfield(z-z^2-z^3+z^4)
-            (Number Field in z0 with defining polynomial x^2 - 5,
-            Ring morphism:
-            From: Number Field in z0 with defining polynomial x^2 - 5
-            To:   Cyclotomic Field of order 5 and degree 4
-            Defn: z0 |--> -2*z^3 - 2*z^2 - 1)
+            sage: L, K_from_L = K.subfield(z-z^2-z^3+z^4)
+            sage: L
+            Number Field in z0 with defining polynomial x^2 - 5
+            sage: CLF_from_K = K.coerce_embedding(); CLF_from_K
+            Generic morphism:
+              From: Cyclotomic Field of order 5 and degree 4
+              To:   Complex Lazy Field
+              Defn: z -> 0.309016994374948? + 0.951056516295154?*I
+            sage: CLF_from_L = L.coerce_embedding(); CLF_from_L
+            Generic morphism:
+              From: Number Field in z0 with defining polynomial x^2 - 5
+              To:   Complex Lazy Field
+              Defn: z0 -> 2.23606797749979? + 0.?e-14*I
+
+        Check transitivity::
+
+            sage: CLF_from_L(L.gen())
+            2.23606797749979? + 0.?e-14*I
+            sage: CLF_from_K(K_from_L(L.gen()))
+            2.23606797749979? + 0.?e-14*I
+
+        If `self` has no specified embedding, then `K` comes with an
+        embedding in `self`::
+
+            sage: K.<a> = NumberField(x^6 - 6*x^4 + 8*x^2 - 1)
+            sage: L.<b>, from_L = K.subfield(a^2)
+            sage: L
+            Number Field in b with defining polynomial x^3 - 6*x^2 + 8*x - 1
+            sage: L.gen_embedding()
+            a^2
 
         You can also view a number field as having a different generator by
         just choosing the input to generate the whole field; for that it is
@@ -1513,7 +1537,13 @@ class NumberField_generic(number_field_base.NumberField):
             name = self.variable_name() + '0'
         beta = self(alpha)
         f = beta.minpoly()
-        K = NumberField(f, names=name)
+        # If self has a specified embedding, K should inherit it
+        if self.coerce_embedding() is not None:
+            emb = self.coerce_embedding()(beta)
+        else:
+            # Otherwise K should at least come with an embedding in self
+            emb = beta
+        K = NumberField(f, names=name, embedding=emb)
         from_K = K.hom([beta])
         return K, from_K
 

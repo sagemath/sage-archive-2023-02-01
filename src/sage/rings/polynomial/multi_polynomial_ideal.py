@@ -899,7 +899,7 @@ class MPolynomialIdeal_singular_repr:
              (Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field,
               Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field)]
 
-            sage: I.complete_primary_decomposition(algorithm = 'gtz')
+            sage: I.primary_decomposition_complete(algorithm = 'gtz')
             [(Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field,
               Ideal (z^3 + 2, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field),
              (Ideal (z^2 + 1, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field,
@@ -947,6 +947,9 @@ class MPolynomialIdeal_singular_repr:
         V = Sequence(V)
         self.__complete_primary_decomposition[algorithm] = V
         return self.__complete_primary_decomposition[algorithm]
+
+    # Seems useful for Tab-Completion
+    primary_decomposition_complete = complete_primary_decomposition
 
     @require_field
     def primary_decomposition(self, algorithm='sy'):

@@ -6,14 +6,14 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-# Apply patches
-
-if [ $UNAME = "Darwin" ]; then
-   # See
-   # http://duriansoftware.com/joe/PSA:-avoiding-the-%22ucontext-routines-are-deprecated%22-error-on-Mac-OS-X-Snow-Leopard.html
-   echo "Patching mach_dep.c -- needed for OS X 10.6"
-   $CP patches/mach_dep.c src/
-fi
+# Apply patches.
+for patch in patches/*.patch; do
+    patch -p0 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
 if [ "$SAGE64" = "yes" ]; then
    echo "64 bit build"

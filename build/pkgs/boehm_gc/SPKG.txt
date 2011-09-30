@@ -27,8 +27,22 @@ None. Sources in src are vanilla.
 
 == Changelog ==
 
+=== boehm_gc-7.2.alpha6.p0 (John Palmieri, Sept 30 2011) ===
+ * #11883: upgrade to version 7.2.alpha6: according to the web site, the
+   previous version "is old enough that you are almost certainly better
+   off going with the much more recent and only somewhat experimental
+   version", namely 7.2.alpha6.
+
+ * Apply a fix so it builds on OS X 10.7 Lion.  Fix taken from the
+   repository
+   https://github.com/ivmai/libatomic_ops/tree/master/src/atomic_ops/sysdeps/gcc,
+   and is mentioned at
+   http://comments.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/4675.
+   (There must be a better description of these patches, but I haven't
+   found it.)
+
 === boehm_gc-7.1.p7 (Mike Hansen, Aug 17th 2010) ===
- * ##9154: boehm_gc (still, still) fails to build on Cygwin
+ * #9154: boehm_gc (still, still) fails to build on Cygwin
    spkg-install tweaked to properly sed the Makefile generated
 
 === boehm_gc-7.1.p6 (David Kirkby, 20th June 2010) ===

@@ -406,13 +406,21 @@ def call(func, *args, **kwargs):
         sage: type(_)
         <type 'sage.rings.real_double.RealDoubleElement'>
 
+    Check that Trac 11885 is fixed::
+
+        sage: a.call(a.ei, 1.0r, parent=float)
+        1.8951178163559366
+
     """
     from mpmath import mp
     orig = mp.prec
     prec = kwargs.pop('prec', orig)
     parent = kwargs.pop('parent', None)
     if parent is not None:
-        prec = parent.prec()
+        try:
+            prec = parent.prec()
+        except AttributeError:
+            pass
     prec2 = prec + 20
     args = sage_to_mpmath(args, prec2)
     kwargs = sage_to_mpmath(kwargs, prec2)

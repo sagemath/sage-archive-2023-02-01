@@ -494,34 +494,6 @@ class ResidueField_generic(Field):
             a
             sage: k(GF(17)(4))
             4
-
-        In the remaining tests, we elaborate a bit more on the difference of
-        coercion and conversion::
-
-            sage: K.<r4> = NumberField(x^4-2)
-            sage: L.<r4> = NumberField(x^4-2, embedding=CDF.0)
-            sage: FK = K.fractional_ideal(K.0)
-            sage: FL = L.fractional_ideal(L.0)
-
-        There is no coercion from the embedded to the unembedded
-        number field. Hence, the two fractional ideals are different.
-        By consequence, the resulting residue fields are different::
-
-            sage: RL = ResidueField(FL)
-            sage: RK = ResidueField(FK)
-            sage: RK == RL
-            False
-
-        Since ``RL`` is defined with the embedded number field ``L``, there
-        is no coercion from the maximal order of ``K`` to ``RL``. However,
-        conversion is possible::
-
-            sage: OK = K.maximal_order()
-            sage: RL.has_coerce_map_from(OK)
-            False
-            sage: RL(OK.1)
-            0
-
         """
         K = OK = self.p.ring()
         if OK.is_field():

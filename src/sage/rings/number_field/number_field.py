@@ -5057,6 +5057,15 @@ class NumberField_absolute(NumberField_generic):
         """
         Coerce a number field element x into this number field.
 
+        Unless `x` is in ``QQ``, this requires ``x.parent()`` and
+        ``self`` to have compatible embeddings: either they both embed
+        in a common field, or there is an embedding of ``x.parent()``
+        into ``self`` or the other way around.  If no compatible
+        embeddings are found and `x` is not in ``QQ``, then raise
+        ``TypeError``.  This guarantees that these conversions respect
+        the field operations and conversions between several fields
+        commute.
+
         REMARK:
 
         The name of this method was chosen for historical reasons.
@@ -5065,16 +5074,6 @@ class NumberField_absolute(NumberField_generic):
         INPUT:
 
         ``x`` -- an element of some number field
-
-        ASSUMPTION:
-
-        ``x`` should be an element of a number field whose underlying
-        polynomial ring allows conversion into the polynomial ring of
-        ``self``.
-
-        Note that it is only tested that there is a method
-        ``x.polynomial()`` yielding an output that can be converted
-        into ``self.polynomial_ring()``.
 
         OUTPUT:
 
@@ -5086,6 +5085,86 @@ class NumberField_absolute(NumberField_generic):
             sage: L.<b> = NumberField(x^2 + 1)
             sage: K._coerce_from_other_number_field(L(2/3))
             2/3
+            sage: L._coerce_from_other_number_field(K(0))
+            0
+            sage: K._coerce_from_other_number_field(b)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert b to Number Field in a with defining polynomial x^3 + 2 (regardless of embeddings)
+
+        Two number fields both containing `i`::
+
+            sage: K.<a> = NumberField(x^4 + 6*x^2 + 1, embedding = CC(-2.4*I))
+            sage: L.<b> = NumberField(x^4 + 8*x^2 + 4, embedding = CC(2.7*I))
+            sage: Ki = 1/2*a^3 + 5/2*a; Ki.minpoly()
+            x^2 + 1
+            sage: L(Ki)
+            -1/4*b^3 - 3/2*b
+            sage: K(L(Ki)) == Ki
+            True
+            sage: Q.<i> = QuadraticField(-1)
+            sage: Q(Ki)
+            i
+            sage: Q(L(Ki))
+            i
+            sage: L( (Ki+2)^1000 )
+            737533628...075020804*b^3 + 442520177...450124824*b + 793311113...453515313
+
+        This fails if we don't specify the embeddings::
+
+            sage: K.<a> = NumberField(x^4 + 6*x^2 + 1)
+            sage: L.<b> = NumberField(x^4 + 8*x^2 + 4)
+            sage: L(1/2*a^3 + 5/2*a)
+            Traceback (most recent call last):
+            ...
+            TypeError: No compatible natural embeddings found for Number Field in b with defining polynomial x^4 + 8*x^2 + 4 and Number Field in a with defining polynomial x^4 + 6*x^2 + 1
+
+        Embeddings can also be `p`-adic::
+
+            sage: F = Qp(73)
+            sage: K.<a> = NumberField(x^4 + 6*x^2 + 1, embedding = F(1290990671961076190983179596556712119))
+            sage: L.<b> = NumberField(x^4 + 8*x^2 + 4, embedding = F(1773398470280167815153042237103591466))
+            sage: L(2*a^3 + 10*a + 3)
+            b^3 + 6*b + 3
+
+        If we take the same non-Galois number field with two different
+        embeddings, conversion fails::
+
+            sage: K.<a> = NumberField(x^3 - 4*x + 1, embedding = 0.254)
+            sage: L.<b> = NumberField(x^3 - 4*x + 1, embedding = 1.86)
+            sage: L(a)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert a to Number Field in b with defining polynomial x^3 - 4*x + 1 (using the specified embeddings)
+
+        Subfields automatically come with an embedding::
+
+            sage: K.<a> = NumberField(x^2 - 5)
+            sage: L.<b>, phi = K.subfield(-a)
+            sage: phi(b)
+            -a
+            sage: K(b)
+            -a
+            sage: L(a)
+            -b
+
+        Below we create two subfields of `K` which both contain `i`.
+        Since `L2` and `L3` both embed in `K`, conversion works::
+
+            sage: K.<z> = NumberField(x^8 - x^4 + 1)
+            sage: i = (x^2+1).roots(ring=K)[0][0]
+            sage: r2 = (x^2-2).roots(ring=K)[0][0]
+            sage: r3 = (x^2-3).roots(ring=K)[0][0]
+            sage: L2.<a2>, phi2 = K.subfield(r2+i)
+            sage: L3.<a3>, phi3 = K.subfield(r3+i)
+            sage: i_in_L2 = L2(i); i_in_L2
+            1/6*a2^3 + 1/6*a2
+            sage: i_in_L3 = L3(i); i_in_L3
+            1/8*a3^3
+            sage: L2(i_in_L3) == i_in_L2
+            True
+            sage: L3(i_in_L2) == i_in_L3
+            True
 
         TESTS:
 
@@ -5098,9 +5177,114 @@ class NumberField_absolute(NumberField_generic):
             sage: F(R) == L   #indirect doctest
             True
 
+        AUTHORS:
+
+        - Jeroen Demeyer (2011-09-30): Trac ticket #11869
+
         """
-        f = self.polynomial_ring()(x.polynomial())
-        return self._element_class(self, f)
+        # Special case for x in QQ.  This is common, so should be fast.
+        xpol = x.polynomial()
+        if xpol.degree() <= 0:
+            return self._element_class(self, xpol[0])
+        # Convert from L to K
+        K = self
+        L = x.parent()
+        # List of candidates for K(x)
+        f = x.minpoly()
+        ys = f.roots(ring=K, multiplicities=False)
+        if not ys:
+            raise ValueError, "Cannot convert %s to %s (regardless of embeddings)"%(x,K)
+
+        # Find embeddings for K and L.  If no embedding is given, simply
+        # take the identity map as "embedding".  This handles the case
+        # where one field is created as subfield of the other.
+        Kgen = K.gen_embedding()
+        if Kgen is None:
+            Kgen = K.gen()
+        KF = Kgen.parent()
+        Lgen = L.gen_embedding()
+        if Lgen is None:
+            Lgen = L.gen()
+        LF = Lgen.parent()
+
+        # Do not use CDF or RDF because of constraints on the
+        # exponent of floating-point numbers
+        from sage.rings.all import RealField, ComplexField
+        CC = ComplexField(53)
+        RR = RealField(53)
+
+        # Find a common field F into which KF and LF both embed.
+        if CC.has_coerce_map_from(KF) and CC.has_coerce_map_from(LF):
+            # We postpone converting Kgen and Lgen to F until we know the
+            # floating-point precision required.
+            F = CC
+        elif KF is LF:
+            F = KF
+        elif KF.has_coerce_map_from(LF):
+            F = KF
+            Lgen = F(Lgen)
+        elif LF.has_coerce_map_from(KF):
+            F = LF
+            Kgen = F(Kgen)
+        else:
+            raise TypeError, "No compatible natural embeddings found for %s and %s"%(KF,LF)
+
+        # Define a function are_roots_equal to determine whether two
+        # roots of f are equal.  A simple a == b does not suffice for
+        # inexact fields because of floating-point errors.
+        if F.is_exact():
+            are_roots_equal = lambda a,b: a == b
+        else:
+            ### Compute a lower bound on the distance between the roots of f.
+            ### This essentially gives the precision to work with.
+
+            # A function
+            # log2abs: F --> RR
+            #          x |-> log2(abs(x))
+            # This should work for all fields F with an absolute value.
+            # The p-adic absolute value goes into QQ, so we need the RR().
+            log2abs = lambda x: RR(F(x).abs()).log2()
+
+            # Compute half Fujiwara's bound on the roots of f
+            n = f.degree()
+            log_half_root_bound = log2abs(f[0]/2)/n
+            for i in range(1,n):
+                bd = log2abs(f[i])/(n-i)
+                if bd > log_half_root_bound:
+                    log_half_root_bound = bd
+            # Twice the bound on the roots of f, in other words an upper
+            # bound for the distance between two roots.
+            log_double_root_bound = log_half_root_bound + 2.0  # 2.0 = log2(4)
+            # Now we compute the minimum distance between two roots of f
+            # using the fact that the discriminant of f is the product of
+            # all root distances.
+            # We use pari to compute the discriminant to work around #11872.
+            log_root_diff = log2abs(pari(f).poldisc())*0.5 - (n*(n-1)*0.5 - 1.0)*log_double_root_bound
+            # Let eps be 1/128 times the minimal root distance.
+            # This implies: If two roots of f are at distance <= eps, then
+            # they are equal.  The factor 128 is arbitrary, it is an extra
+            # safety margin.
+            eps = (log_root_diff - 7.0).exp2()
+            are_roots_equal = lambda a,b: (a-b).abs() <= eps
+            if F is CC:
+                # Adjust the precision of F, sufficient to represent all
+                # the temporaries in the computation with a precision
+                # of eps, plus some extra bits.
+                H = [log_double_root_bound - 1.0]
+                for e in [x] + ys:
+                    H += [log2abs(c) for c in e.polynomial().coefficients()]
+                prec = (max(H) + RR(n+1).log2() - log_root_diff).ceil() + 12 + n
+                F = ComplexField(prec=prec)
+                Kgen = F(Kgen)
+                Lgen = F(Lgen)
+
+        # Embed x and the y's in F
+        emb_x = x.polynomial()(Lgen)
+        for y in ys:
+            emb_y = y.polynomial()(Kgen)
+            if are_roots_equal(emb_x, emb_y):
+                return y
+        raise ValueError, "Cannot convert %s to %s (using the specified embeddings)"%(x,K)
 
     def _coerce_non_number_field_element_in(self, x):
         """
@@ -5292,7 +5476,7 @@ class NumberField_absolute(NumberField_generic):
                             except ValueError: # no embedding found
                                 # there might be one in the alg. completion
                                 return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self, ambient_field.algebraic_closure() if hasattr(ambient_field,'algebraic_closure') else ambient_field)
-                    except (ValueError, TypeError, sage.structure.coerce_exceptions.CoercionException),msg:
+                    except (ValueError, TypeError, NotImplementedError, sage.structure.coerce_exceptions.CoercionException),msg:
                         # no success with the pushout
                         try:
                             return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)

@@ -426,7 +426,7 @@ import sys
 import __builtin__
 
 def cython_import(filename, verbose=False, compile_message=False,
-                 use_cache=False, create_local_c_file=True):
+                 use_cache=False, create_local_c_file=True, **kwds):
     """
     Compile a file containing Cython code, then import and return the
     module.  Raises an ``ImportError`` if anything goes wrong.
@@ -436,6 +436,9 @@ def cython_import(filename, verbose=False, compile_message=False,
     - ``filename`` - a string; name of a file that contains Cython
       code
 
+    See the function :func:`sage.misc.cython.cython` for documentation
+    for the other inputs.
+
     OUTPUT:
 
     - the module that contains the compiled Cython code.
@@ -443,7 +446,8 @@ def cython_import(filename, verbose=False, compile_message=False,
     name, build_dir = sage.misc.cython.cython(filename, verbose=verbose,
                                             compile_message=compile_message,
                                             use_cache=use_cache,
-                                            create_local_c_file=create_local_c_file)
+                                            create_local_c_file=create_local_c_file,
+                                            **kwds)
     sys.path.append(build_dir)
     return __builtin__.__import__(name)
 

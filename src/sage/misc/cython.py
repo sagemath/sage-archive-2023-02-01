@@ -257,6 +257,9 @@ sequence_number = {}
 def cython(filename, verbose=False, compile_message=False,
            use_cache=False, create_local_c_file=False, annotate=True, sage_namespace=True,
            create_local_so_file=False):
+    """
+    TODO: document this function!
+    """
     if not filename.endswith('pyx'):
         print "File (=%s) should have extension .pyx"%filename
 
@@ -627,7 +630,7 @@ def compile_and_load(code):
     file = tmp_filename() + ".pyx"
     open(file,'w').write(code)
     from sage.server.support import cython_import
-    return cython_import(file)
+    return cython_import(file, create_local_c_file=False)
 
 
 TESTS = {

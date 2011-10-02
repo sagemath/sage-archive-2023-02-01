@@ -652,11 +652,16 @@ cdef inline int overflow_check(long e, ring *_ring) except -1:
         OverflowError: Exponent overflow (1073741824).
         sage: P.<x,y> = QQ[]
         sage: y^2^30
-        y^1073741824
+        y^1073741824                                   # 64-bit
+        Traceback (most recent call last):             # 32-bit
+        ...                                            # 32-bit
+        OverflowError: Exponent overflow (1073741824). # 32-bit
+
         sage: x^2^30*x^2^30
         Traceback (most recent call last):
         ...
-        OverflowError: Exponent overflow (2147483648).
+        OverflowError: Exponent overflow (2147483648). # 64-bit
+        OverflowError: Exponent overflow (1073741824). # 32-bit
 
     """
     if unlikely(e > min(max_exponent_size,max(_ring.N,_ring.bitmask))):

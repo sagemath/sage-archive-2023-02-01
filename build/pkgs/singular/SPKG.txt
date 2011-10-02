@@ -13,21 +13,25 @@ GPLv2 or GPLv3
 == PKG Maintainers ==
 
 Martin Albrecht <martinralbrecht@googlemail.com>
+Burcin Erocal <burcin@erocal.org>
 
 == Upstream Contact ==
 
-decker@mathematik.uni-kl.de
+libsingular-devel@mathematik.uni-kl.de
+
 http://www.singular.uni-kl.de/
 
 == Dependencies ==
 
 MPIR, NTL, Termcap, Readline and MPFR
 
+
 == Special Update/Build Instructions ==
+
+See spgk-changes for how to delete unnecessary stuff under src/
+
  Several patches are applied.
  * assert.h: logic seems to be broken on some platforms
- * src/Singular/libparse.cc and src/factory/configure touched
-   to avoid attempts to regenerate these files. (See #9160 and #3158)
  * Minor.h needs to have <time.h> included on Cygwin
 
  Other notes
@@ -44,6 +48,13 @@ MPIR, NTL, Termcap, Readline and MPFR
    was missing, which caused problems on Cygwin (e.g., see #10235)
 
 == ChangeLog ==
+
+=== singular-3-1-3-3.p0 (Volker Braun 2 October 2011) ===
+ * Solaris fixes
+
+=== singular-3-1-3-3 (Martin Albrecht, Burcin Erocal, Volker Braun 28 September 2011) ===
+ * SAGE_DEBUG now builds Singular with lots of checks
+ * new upstream release
 
 === singular-3-1-1-4.p13 (Karl-Dieter Crisman, 12 August 2011) ===
  * Trac #11550: For Cygwin, we need to include time.h in

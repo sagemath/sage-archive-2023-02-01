@@ -1,6 +1,4 @@
 # changes to upstream singular
-find -name CVS | xargs rm -rf CVS
-rm Hannes-Sprueche
 rm -rf ntl
 rm -rf modules
 rm -rf MP

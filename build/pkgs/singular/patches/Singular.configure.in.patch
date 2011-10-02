@@ -1,0 +1,29 @@
+--- src/Singular/configure.in	2011-09-30 12:10:15.000000000 +0200
++++ patches/Singular.configure.in	2011-10-02 15:14:35.682520568 +0200
+@@ -99,7 +99,7 @@
+ 		py_version=`$PYTHON -c "from distutils.sysconfig import *; \
+                         from string import join; \
+                         print join(get_config_vars('VERSION'))"`
+-		if test "$py_version" == "[None]"; then
++		if test "$py_version" = "[None]"; then
+ 			if test -n "$PYTHON_VERSION"; then
+ 				py_version=$PYTHON_VERSION
+ 			else
+@@ -224,7 +224,7 @@
+ 
+         AC_MSG_RESULT([$pythonstaticexists])
+ 
+-        if test "$pythonstaticexists" == yes ; then
++        if test "$pythonstaticexists" = yes ; then
+           AC_DEFINE(HAVE_STATIC_PYTHON)
+           PYTHON_STATIC_LIBS="$PYTHON_LDFLAGS $PYTHON_EXTRA_LIBS"
+           AC_SUBST(PYTHON_STATIC_LIBS)
+@@ -633,7 +633,7 @@
+ PYTHON_PLUGIN="module"
+ PYTHON_LINKAGE="static"
+ 
+-if test "${with_python+set}" == set; then
++if test "${with_python+set}" = set; then
+   case "${with_python}" in
+     yes|static*|dynamic*|shared*|module*|embed*)
+       python_exe_name="python"

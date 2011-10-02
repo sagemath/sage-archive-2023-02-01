@@ -1,5 +1,5 @@
 --- ../src/factory/assert.h	2009-11-02 10:12:22.000000000 +0000
-+++ assert.h	2010-07-10 14:26:29.949490152 +0100
++++ ../src/factory/assert.h	2010-07-10 14:26:29.949490152 +0100
 @@ -127,3 +127,13 @@
  #define PVIRT_CHARCC(msg) = 0
  #endif /* NOASSERT */

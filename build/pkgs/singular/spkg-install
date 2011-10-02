@@ -13,16 +13,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-# The time stamp of src/Singular/libparse.cc (which is the output from 'flex')
-# is a second older than the source file (src/Singular/libparse.l).
-# This is probably a result of building on a shared file system with
-# two computers not exactly syncronised in time. This caused a problem
-# on Solaris, where flex was not installed, but flex would be needed to
-# create create src/Singular/libparse.cc
-touch src/Singular/libparse.cc
-# The same issue with 'configure' which needs
-touch src/factory/configure
-
 # we set LD=ld which is troublesome on OSX. Singular figures out LD by
 # itself pretty well so we unset it here.
 unset LD
@@ -105,27 +95,27 @@ clean_headers()
     rm -rf $SAGE_LOCAL/include/singular
 }
 
-patch()
+apply_patches()
 {
+    pushd $SRC
     # work-around patches
-    cp patches/assert.h src/factory/
+    patch -p2 < ../patches/assert.h.diff
 
     if [ "$UNAME" = "CYGWIN" ]; then
         # Fine to make this patch on any system, because it is code that is only compiled on Windows.
-        cp patches/sing_win.cc src/Singular/
-        cp patches/IntegerProgramming-Makefile.in src/IntegerProgramming/Makefile.in
-        cp patches/Minor.h src/Singular/
+        patch -p2 < ../patches/sing_win.cc.diff
+        patch -p2 < ../patches/IntegerProgramming-Makefile.in.diff
+        patch -p1 < ../patches/Minor.h.patch
     fi
 
-    # parallel build patches
-    cp patches/factory-GNUmakefile.in src/factory/GNUmakefile.in
-    cp patches/Singular-Makefile.in src/Singular/Makefile.in     # Fixes also #11645
-    cp patches/kernel-Makefile.in src/kernel/Makefile.in
-    cp patches/libfac-Makefile.in src/libfac/Makefile.in
-    cp patches/Makefile.in src/Makefile.in
+    patch -p1 < ../patches/Singular.configure.patch
 
-    # OSX with 64bit kernel, see http://trac.sagemath.org/sage_trac/ticket/10739
-    cp patches/singuname.sh src/singuname.sh
+    if [ "x$SAGE_DEBUG" = "xyes" ]; then
+        patch -p1 < ../patches/kernel.Makefile.in.debug.patch
+        patch -p1 < ../patches/Singular.Makefile.in.debug.patch
+    fi
+
+    popd
 }
 
 distclean()
@@ -218,10 +208,6 @@ create_singular_script()
     cd $SAGE_LOCAL/bin
     rm -f Singular singular
 
-    if [ -f Singular-1-0-2 ]; then
-        rm -f Singular-1-0-2   # remove previous version of Singular.
-    fi
-
     # The singular executable is called somewhat randomly depending
     # on platform.  Also, making a symlink doesn't work, since on
     # Windows XP symlinks are sometimes (?) forced to be absolute,
@@ -239,7 +225,7 @@ create_singular_script()
     $CHMOD +x Singular
 
     # Lower case version is convenient.
-    $CP -f Singular singular
+    $CP -p -f Singular singular
 
     $LN -sf Singular sage_singular
 }
@@ -252,21 +238,24 @@ build_libsingular()
         exit 1
     fi
 
-    $MAKE libsingular
+    # we really need DLIBSINGULAR, so we have to rebuild
 
-    if [ $? -ne 0 ]; then
-        echo "Unable to build Singular."
-        exit 1
-    fi
+    OLD_CFLAGS=$CFLAGS
+    export CFLAGS="$CFLAGS -DLIBSINGULAR"
+    OLD_CXXFLAGS=$CXXFLAGS
+    export CXXFLAGS="$CXXFLAGS -DLIBSINGULAR"
 
+    config
+
+    $MAKE clean
     $MAKE install-libsingular
-
-    #cp kernel/kInline.cc $SAGE_LOCAL/include/singular/
 
     if [ $? -ne 0 ]; then
         echo "Unable to install libsingular."
         exit 1
     fi
+    export CFLAGS="$OLD_CFLAGS"
+    export CXXFLAGS="$OLD_CXXFLAGS"
 }
 
 build_factory()
@@ -276,6 +265,7 @@ build_factory()
     $MAKE distclean
 
     ./configure --prefix="$SAGE_LOCAL" \
+                --includedir="$SAGE_LOCAL/include/factory" \
                 --exec-prefix="$SAGE_LOCAL" \
                 --bindir="$SAGE_LOCAL"/bin \
                 --libdir="$SAGE_LOCAL"/lib \
@@ -304,7 +294,7 @@ build_factory()
         exit 1
     fi
 
-    $CP factoryconf.h "$SAGE_LOCAL"/include/
+    $CP -p factoryconf.h "$SAGE_LOCAL"/include/
     if [ $? -ne 0 ]; then
         echo "Error copying factory/factoryconf.h to include directory."
     fi
@@ -357,7 +347,7 @@ build_libfac()
 
 install_docs()
 {
-    cp -p "$SHARED/singular.hlp" "$SHARED/singular.idx" "$SAGE_LOCAL/share/singular/"
+    $CP -p "$SHARED/singular.hlp" "$SHARED/singular.idx" "$SAGE_LOCAL/share/singular/"
     if [ $? -ne 0 ]; then
         echo "Error installing documentation"
         exit 1
@@ -366,7 +356,7 @@ install_docs()
 
 build()
 {
-    for i in clean_headers patch distclean config build_singular build_libsingular build_factory build_libfac create_singular_script install_docs ; do
+    for i in clean_headers apply_patches distclean config build_singular build_libsingular build_factory build_libfac create_singular_script install_docs ; do
     $i
     if [ $? -ne 0 ]; then
         echo "Error building Singular at stage '$i'."

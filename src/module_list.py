@@ -62,17 +62,13 @@ ginac_depends = [SAGE_INC + 'pynac/ginac.h']
 #########################################################
 
 import ast
-m4ri_have_sse2 = False
+m4ri_extra_compile_args = []
 for line in open(SAGE_INC + "m4ri/m4ri_config.h"):
-    if not line.startswith("#define __M4RI_HAVE_SSE2"):
+    if not line.startswith("#define __M4RI_SIMD_CFLAGS"):
         continue
-    m4ri_have_sse2 = bool(ast.literal_eval(line[len("#define __M4RI_HAVE_SSE2"):].strip()))
+    m4ri_sse2_cflags = ast.literal_eval(line[len("#define __M4RI_SIMD_CFLAGS"):].strip())
+    m4ri_extra_compile_args = [flag.strip() for flag in m4ri_sse2_cflags.split(" ") if flag.strip()]
     break
-
-if m4ri_have_sse2:
-    m4ri_extra_compile_args = ['-msse', '-msse2']
-else:
-    m4ri_extra_compile_args = []
 
 singular_libs = ['m', 'readline', 'singular', 'givaro', 'ntl', 'gmpxx', 'gmp']
 

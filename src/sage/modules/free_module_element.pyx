@@ -3383,7 +3383,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: type(vector([-1,0,3,pi]))   # indirect doctest
             <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
 
-        TESTS::
+        TESTS:
 
         Check that #11751 is fixed::
 
@@ -3400,6 +3400,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             ...
             TypeError: element (= [1/x^2]) is not in free module
 
+        ::
 
             sage: L=K^2
             sage: R=L.span([[x,0],[0,1/x]], check=False, already_echelonized=True)
@@ -3408,7 +3409,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: R=L.span([[x,x^2]])
             sage: R.basis()[0][0].parent()
             Univariate Polynomial Ring in x over Rational Field
-
         """
         FreeModuleElement.__init__(self, parent)
         R = self.parent().base_ring()
@@ -3857,10 +3857,9 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v.is_sparse()
             True
 
+        TESTS:
 
-        TESTS::
-
-        Test that 11751 is fixed
+        Test that 11751 is fixed::
 
             sage: K.<x> = QQ[]
             sage: M = FreeModule(K, 1, sparse=True)
@@ -3875,6 +3874,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             ...
             TypeError: element (= {0: 1/x^2}) is not in free module
 
+        ::
 
             sage: L = FreeModule(K, 2, sparse=True)
             sage: R = L.span([{0:x, 1:0}, {0:0, 1:1/x}], check=False, already_echelonized=True)
@@ -3883,7 +3883,6 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: R = L.span([{0:x, 1:x^2}])
             sage: R.basis()[0][0].parent()
             Univariate Polynomial Ring in x over Rational Field
-
         """
         #WARNING: In creation, we do not check that the i pairs satisfy
         #     0 <= i < degree.

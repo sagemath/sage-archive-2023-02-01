@@ -2503,9 +2503,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             [  0 1/4   0]
 
 
-        Show that it also works with other things than integers
-
-        ::
+        It also works with other things than integers::
 
             sage: R.<x>=QQ[]
             sage: L=R^1
@@ -2524,18 +2522,13 @@ class FreeModule_generic_pid(FreeModule_generic):
             [x/(x^3 - 6*x^2 + 11*x - 6)  2/15*x^2 - 17/75*x - 1/75]
             [                         0 x^3 - 11/5*x^2 - 3*x + 4/5]
 
-        Note that the base_ring can make a huge difference. If we just want the answer to be the
-        sub vectorspace over the fraction field of R everything becomes a lot easier.
-
-        ::
+        Note that the ``base_ring`` can make a huge difference. We repeat the previous example over the fraction field of R and get a simpler vector space.::
 
             sage: L2.span([[(x^2+x)/(x^2-3*x+2),1/5],[(x^2+2*x)/(x^2-4*x+3),x]],base_ring=R.fraction_field())
             Vector space of degree 2 and dimension 2 over Fraction Field of Univariate Polynomial Ring in x over Rational Field
             Basis matrix:
             [1 0]
             [0 1]
-
-
         """
         if is_FreeModule(gens):
             gens = gens.gens()

@@ -30,6 +30,9 @@ GF(2^k) for 2 <= k <= 16.
 
 == Releases/Changelog ==
 
+=== libm4rie-20111004 (Martin Albrecht, October 4th, 2011) ===
+ * new upstream release
+
 === libm4rie-20110821 (Martin Albrecht, August 21st, 2011) ===
  * new upstream release in preparation for Sage inclusion
 

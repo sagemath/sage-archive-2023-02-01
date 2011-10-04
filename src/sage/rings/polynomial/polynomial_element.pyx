@@ -2723,6 +2723,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol.factor()
             (t - 2*a^3 + a) * (t - 4/3*a^3 + 2/3*a) * (t - 2/3*a^3 + 1/3*a)
 
+        Test that this factorization really uses ``nffactor()`` internally::
+
+            sage: pari.default("debug", 3)
+            sage: F = pol.factor()
+
+            Entering nffactor:
+            ...
+            sage: pari.default("debug", 0)
+
         Test that ticket #10369 is fixed::
 
             sage: x = polygen(QQ)
@@ -2741,6 +2750,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol.factor()
             x^5 * (x^5 + (4/7*a - 6/7)*x^4 + (9/49*a^2 - 3/7*a + 15/49)*x^3 + (8/343*a^3 - 32/343*a^2 + 40/343*a - 20/343)*x^2 + (5/2401*a^4 - 20/2401*a^3 + 40/2401*a^2 - 5/343*a + 15/2401)*x - 6/16807*a^4 + 12/16807*a^3 - 18/16807*a^2 + 12/16807*a - 6/16807)
 
+        Factoring over a number field over which we cannot factor the
+        discriminant::
+
+            sage: p = next_prime(10^50); q = next_prime(10^51); n = p*q;
+            sage: K.<a> = QuadraticField(p*q)
+            sage: R.<x> = PolynomialRing(K)
+            sage: factor(x^2 + 1)
+            x^2 + 1
+            sage: factor( (x - a) * (x + 2*a) )
+            (x - a) * (x + 2*a)
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
@@ -2840,54 +2859,27 @@ cdef class Polynomial(CommutativeAlgebraElement):
         elif is_NumberField(R):
 
             if R.degree() == 1:
-
                 factors = self.change_ring(QQ).factor()
                 return Factorization([(self._parent(p), e) for p, e in factors], R(factors.unit()))
 
-            if R.defining_polynomial().denominator() == 1:
-                v = [ x._pari_("a") for x in self.list() ]
-                f = pari(v).Polrev()
-                Rpari = R.pari_nf()
-                if (Rpari.variable() != "a"):
-                    Rpari = copy.copy(Rpari)
-                    Rpari[0] = Rpari[0]("a")
-                    Rpari[6] = [ x("a") for x in Rpari[6] ]
+            # Use "a" for the number field variable
+            v = [ c._pari_("a") for c in self.list() ]
+            f = pari(v).Polrev()
+            try:
+                # Try to compute the PARI nf structure with important=False.
+                # This will raise RuntimeError if the computation is too
+                # difficult.  It will raise TypeError if the defining
+                # polynomial is not integral.
+                Rpari = R.pari_nf(important=False).nf_subst("'a")
+                # Factor using nffactor()
                 G = list(Rpari.nffactor(f))
-                # PARI's nffactor() ignores the unit, _factor_pari_helper()
-                # adds back the unit of the factorization.
-                return self._factor_pari_helper(G)
-
-            else:
-
-                Rdenom = R.defining_polynomial().denominator()
-
-                new_Rpoly = (R.defining_polynomial() * Rdenom).change_variable_name("a")
-
-                Rpari, Rdiff = new_Rpoly._pari_().nfinit(3)
-
-                AZ = QQ['z']
-                Raux = NumberField(AZ(Rpari[0]),'alpha')
-
-                S, gSRaux, fRauxS = Raux.change_generator(Raux(Rdiff))
-
-                phi_RS = R.Hom(S)([S.gen(0)])
-                phi_SR = S.Hom(R)([R.gen(0)])
-
-                unit = self.leading_coefficient()
-                temp_f = self * 1/unit
-
-                v = [ gSRaux(phi_RS(x))._pari_("a") for x in temp_f.list() ]
-                f = pari(v).Polrev()
-
-                pari_factors = Rpari.nffactor(f)
-
-                factors = [ ( self.parent([ phi_SR(fRauxS(Raux(pari_factors[0][i][j])))
-                                            for j in range(len(pari_factors[0][i])) ]) ,
-                             int(pari_factors[1][i]) )
-                            for i in range(pari_factors.nrows()) ]
-
-                return Factorization(factors, unit)
-
+            except (RuntimeError, TypeError):
+                # Use factornf() which only needs the defining polynomial
+                # and which does not require an integral polynomial.
+                G = list(f.factornf(R.pari_polynomial("a")))
+            # PARI's nffactor() ignores the unit, _factor_pari_helper()
+            # adds back the unit of the factorization.
+            return self._factor_pari_helper(G)
 
         elif is_RealField(R):
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)

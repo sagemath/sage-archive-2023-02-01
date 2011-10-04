@@ -2614,12 +2614,20 @@ class NumberField_generic(number_field_base.NumberField):
             self.__pari_polynomial = polypari
             return self.__pari_polynomial
 
-    def pari_nf(self):
+    def pari_nf(self, important=True):
         """
         PARI number field corresponding to this field.
 
         This is the number field constructed using nfinit(). This is the same
         as the number field got by doing pari(self) or gp(self).
+
+        INPUT:
+
+        - ``important`` -- (default: True) bool.  If False, raise a
+          ``RuntimeError`` if we need to do a difficult discriminant
+          factorization.  Useful when the PARI nf structure is useful
+          but not strictly required, such as for factoring polynomials
+          over this number field.
 
         EXAMPLES::
 
@@ -2647,12 +2655,19 @@ class NumberField_generic(number_field_base.NumberField):
             ...
             TypeError: Unable to coerce number field defined by non-integral polynomial to PARI.
 
-        We illustrate the maximize_at_primes and assume_disc_small parameters::
+        With ``important=False``, we simply bail out if we cannot
+        easily factor the discriminant::
 
-            sage: p = next_prime(10^40); q = next_prime(p)
+            sage: p = next_prime(10^40); q = next_prime(10^41)
+            sage: K.<a> = NumberField(x^2 - p*q)
+            sage: K.pari_nf(important=False)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Unable to factor discriminant with trial division
 
-        The following would take a very long time without the
-        maximize_at_primes option above::
+        Next, we illustrate the ``maximize_at_primes`` and ``assume_disc_small``
+        parameters of the NumberField contructor. The following would take a
+        very long time without the ``maximize_at_primes`` option::
 
             sage: K.<a> = NumberField(x^2 - p*q, maximize_at_primes=[p])
             sage: K.pari_nf()
@@ -2670,7 +2685,7 @@ class NumberField_generic(number_field_base.NumberField):
             return self.__pari_nf
         except AttributeError:
             f = self.pari_polynomial()
-            self.__pari_nf = pari([f, self._pari_integral_basis()]).nfinit()
+            self.__pari_nf = pari([f, self._pari_integral_basis(important=important)]).nfinit()
             return self.__pari_nf
 
     def pari_zk(self):
@@ -4014,17 +4029,20 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return self.maximal_order(v=v).basis()
 
-    def _pari_integral_basis(self, v=None):
+    def _pari_integral_basis(self, v=None, important=True):
         """
         Internal function returning an integral basis of this number field in
         PARI format.
 
         INPUT:
 
-
-        -  ``v`` - None, a prime, or a list of primes. See the
+        -  ``v`` -- None, a prime, or a list of primes. See the
            documentation for self.maximal_order.
 
+        - ``important`` -- (default:True) bool.  If False, raise a
+          ``RuntimeError`` if we need to do a difficult discriminant
+          factorization.  Useful when the PARI nf structure is useful
+          but not strictly required.
 
         EXAMPLES::
 
@@ -4050,13 +4068,25 @@ class NumberField_generic(number_field_base.NumberField):
         v = self._normalize_prime_list(v)
         try:
             return self._integral_basis_dict[v]
-        except:
+        except (AttributeError, KeyError):
             f = self.pari_polynomial()
-            if len(v) == 0:
-                B = f.nfbasis(1 if self._assume_disc_small else 0)
-            else:
+            if len(v) > 0:
                 m = self._pari_disc_factorization_matrix(v)
                 B = f.nfbasis(fa = m)
+            elif self._assume_disc_small:
+                B = f.nfbasis(1)
+            elif not important:
+                # Trial divide the discriminant
+                m = self.pari_polynomial().poldisc().abs().factor(limit=0)
+                # Since we only need a *squarefree* factorization, we need
+                # trial division up to D^(1/3) instead of D^(1/2).
+                trialdivlimit = pari(pari._primelimit()**3)
+                if all([ p < trialdivlimit or p.isprime() for p in m[0] ]):
+                    B = f.nfbasis(fa = m)
+                else:
+                    raise RuntimeError, "Unable to factor discriminant with trial division"
+            else:
+                B = f.nfbasis()
 
             self._integral_basis_dict[v] = B
             return B
@@ -6637,9 +6667,7 @@ class NumberField_absolute(NumberField_generic):
               To:   Number Field in a0 with defining polynomial x^2 - 1/2*c0 over its base field
               Defn: z |--> a0)
 
-        We can relativize over a really large field.  This requires great care
-        to not factor or do any operation that would trigger a pari nfinit()
-        internally::
+        We can relativize over a really large field::
 
             sage: K.<a> = CyclotomicField(3^3*2^3)
             sage: R = K.relativize(a^(3^2), 't'); R
@@ -6714,8 +6742,7 @@ class NumberField_absolute(NumberField_generic):
         # the generator of the intermediate field.
 
         # this strange step avoids computing an embedding of the base_field L
-        # into self, a computation which triggers a pari nfinit().  Without
-        # this, the relativize done over a huge field above is not feasible.
+        # into self.
         base_hom = L.hom([alpha], self)
         from_M = M.Hom(self)([self.gen()], base_hom=base_hom, check=True)
 
@@ -7744,14 +7771,14 @@ class NumberField_cyclotomic(NumberField_absolute):
             if p % n == 1:
                 return p
 
-    def _pari_integral_basis(self, v=None):
+    def _pari_integral_basis(self, v=None, important=True):
         """
         Internal function returning an integral basis of this number field in
         PARI format.
 
         This field is cyclomotic, so this is a trivial computation, since
-        the power basis on the generator is an integral basis. Thus the v
-        parameter is ignored.
+        the power basis on the generator is an integral basis. Thus the ``v``
+        and ``important`` parameters are ignored.
 
         EXAMPLES::
 

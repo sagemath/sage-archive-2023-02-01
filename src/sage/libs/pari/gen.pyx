@@ -460,13 +460,52 @@ cdef class gen(sage.structure.element.RingElement):
         return self.g
 
     def list(self):
-        if typ(self.g) == t_POL:
-            raise NotImplementedError, \
-                "please report, t_POL.list() is broken, should not be used!"
-        if typ(self.g) == t_SER:
-            raise NotImplementedError, \
-                "please report, t_SER.list() is broken, should not be used!"
-        #return list(self.Vecrev())
+        """
+        Convert self to a list of PARI gens.
+
+        EXAMPLES:
+
+        A PARI vector becomes a Sage list::
+
+            sage: L = pari("vector(10,i,i^2)").list()
+            sage: L
+            [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+            sage: type(L)
+            <type 'list'>
+            sage: type(L[0])
+            <type 'sage.libs.pari.gen.gen'>
+
+        For polynomials, list() behaves as for ordinary Sage polynomials::
+
+            sage: pol = pari("x^3 + 5/3*x"); pol.list()
+            [0, 5/3, 0, 1]
+
+        For power series, we get all coefficients, including leading and
+        trailing zeros::
+
+            sage: R.<x> = LaurentSeriesRing(QQ)
+            sage: s = x^2 + O(x^8)
+            sage: s.list()
+            [1]
+            sage: pari(s).list()
+            [0, 0, 1, 0, 0, 0, 0, 0]
+
+        For matrices, we get a list of columns::
+
+            sage: M = matrix(ZZ,3,2,[1,4,2,5,3,6]); M
+            [1 4]
+            [2 5]
+            [3 6]
+            sage: pari(M).list()
+            [[1, 2, 3]~, [4, 5, 6]~]
+
+        For "scalar" types, we get a 1-element list containing ``self``::
+
+            sage: pari("42").list()
+            [42]
+        """
+        if typ(self.g) == t_POL or typ(self.g) == t_SER:
+            return list(self.Vecrev())
         return list(self.Vec())
 
     def __reduce__(self):
@@ -7515,6 +7554,24 @@ cdef class gen(sage.structure.element.RingElement):
 
     def __call__(self, x):
         return self.eval(x)
+
+    def factornf(self, t):
+        """
+        Factorization of the polynomial ``self`` over the number field
+        defined by the polynomial ``t``.  This does not require that `t`
+        is integral, nor that the discriminant of the number field can be
+        factored.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2 - 1/8)
+            sage: pari(x^2 - 2).factornf(K.pari_polynomial("a"))
+            [x + Mod(-4*a, 8*a^2 - 1), 1; x + Mod(4*a, 8*a^2 - 1), 1]
+        """
+        t0GEN(t)
+        sig_on()
+        return self.new_gen(polfnf(self.g, t0))
 
     def factorpadic(self, p, long r=20, long flag=0):
         """

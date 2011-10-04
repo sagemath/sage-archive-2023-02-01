@@ -53,9 +53,6 @@ from sage.libs.pari.gen import pari
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.rings.integer cimport Integer
 
-cdef extern from "convert.h":
-    cdef void t_INT_to_ZZ(mpz_t value, long *g)
-
 cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False):
     r"""
     List of all primes between start and stop-1, inclusive.  If the

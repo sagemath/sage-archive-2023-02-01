@@ -96,7 +96,6 @@ cdef extern from 'pari/pari.h':
 
 cdef extern from "convert.h":
     void t_FRAC_to_QQ ( mpq_t value, GEN g )
-    void QQ_to_t_FRAC ( GEN *g, mpq_t value )
 
 #########################################################
 
@@ -2737,18 +2736,17 @@ cdef new_matrix_from_pari_GEN(parent, GEN d):
             t_FRAC_to_QQ(B._matrix[i][j], gcoeff(d, i+1, j+1))
     return B
 
-cdef GEN pari_GEN(Matrix_rational_dense B):
-    """
-    EXAMPLES::
+cdef inline GEN pari_GEN(Matrix_rational_dense B):
+    r"""
+    Create the PARI GEN object on the stack defined by the rational
+    matrix B. This is used internally by the function for conversion
+    of matrices to PARI.
 
-        sage: matrix(QQ,2,3,[1..6])._rank_pari()           # indirect doctest
-        2
+    For internal use only; this directly uses the PARI stack.
+    One should call ``sig_on()`` before and ``sig_off()`` after.
     """
-    cdef GEN x,  A = gtomat(zeromat(B._nrows, B._ncols))
-    cdef Py_ssize_t i, j
-    for i in range(B._nrows):
-        for j in range(B._ncols):
-            QQ_to_t_FRAC(&x, B._matrix[i][j])
-            (<GEN>(A[j+1]))[i+1] = <long>x
+    cdef PariInstance P = sage.libs.pari.gen.pari
+    cdef GEN A
+    A = P._new_GEN_from_mpq_t_matrix(B._matrix, B._nrows, B._ncols)
     return A
 

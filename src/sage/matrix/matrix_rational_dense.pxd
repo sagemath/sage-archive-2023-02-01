@@ -28,4 +28,4 @@ cdef class MatrixWindow:
 # fast conversion to pari on the stack
 ################################################################
 ctypedef long* GEN
-cdef GEN pari_GEN(Matrix_rational_dense B)
+cdef inline GEN pari_GEN(Matrix_rational_dense B)

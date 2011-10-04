@@ -194,14 +194,15 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: NumberField(x^2 + 1, 'a').ideal(7).__hash__()
-            -288230376151711715                 # 64-bit
-            -67108835                           # 32-bit
+            -9223372036854775779                # 64-bit
+            -2147483619                         # 32-bit
         """
-        try: return self._hash
-        # At some point in the future (e.g., for relative extensions), we'll likely
-        # have to consider other hashes, like the following.
-        #except AttributeError: self._hash = hash(self.gens())
-        except AttributeError: self._hash = self.pari_hnf().__hash__()
+        try:
+            return self._hash
+        except AttributeError:
+            # At some point in the future (e.g., for relative extensions),
+            # we'll likely have to consider other hashes.
+            self._hash = self.pari_hnf().__hash__()
         return self._hash
 
     def _latex_(self):

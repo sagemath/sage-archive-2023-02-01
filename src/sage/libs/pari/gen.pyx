@@ -15,6 +15,10 @@ AUTHORS:
 - Robert Bradshaw, Jeroen Demeyer, William Stein (2010-08-15):
   Upgrade to PARI 2.4.3 (#9343)
 
+- Jeroen Demeyer (2011-09-27): rewrite various conversion routines
+  (#11611, #11854)
+
+
 EXAMPLES::
 
     sage: pari('5! + 10/x')
@@ -147,6 +151,20 @@ Sage (ticket #9636)::
 
 """
 
+#*****************************************************************************
+#       Copyright (C) 2006,2010 William Stein <wstein@gmail.com>
+#       Copyright (C) ???? Justin Walker
+#       Copyright (C) ???? Gonzalo Tornaria
+#       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2010,2011 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 import sys
 import math
 import types
@@ -161,10 +179,6 @@ from sage.misc.misc_c import is_64_bit
 #include '../../ext/interrupt.pxi'
 include 'pari_err.pxi'
 include '../../ext/stdsage.pxi'
-
-cdef extern from "convert.h":
-    cdef void ZZ_to_t_INT( GEN *g, mpz_t value )
-    cdef void QQ_to_t_FRAC( GEN *g, mpq_t value )
 
 # Make sure we don't use mpz_t_offset before initializing it by
 # putting in a value that's likely to provoke a segmentation fault,
@@ -9081,6 +9095,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Create a new gen from a given MPIR-integer ``value``.
 
+        EXAMPLES::
+
+            sage: pari(42)       # indirect doctest
+            42
+
         TESTS:
 
         Check that the hash of an integer does not depend on existing
@@ -9097,10 +9116,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return self.new_gen(self._new_GEN_from_mpz_t(value))
 
     cdef inline GEN _new_GEN_from_mpz_t(self, mpz_t value):
-        # Create a new PARI GEN from a mpz_t.  For internal use only,
-        # this directly uses the PARI stack.
-        # One should call sig_on() before and sig_off() after.
+        r"""
+        Create a new PARI ``t_INT`` from a ``mpz_t``.
 
+        For internal use only; this directly uses the PARI stack.
+        One should call ``sig_on()`` before and ``sig_off()`` after.
+        """
         cdef unsigned long limbs = mpz_size(value)
 
         cdef GEN z = cgeti(limbs + 2)
@@ -9116,14 +9137,47 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     cdef gen new_gen_from_mpq_t(self, mpq_t value):
         """
+        Create a new gen from a given MPIR-rational ``value``.
+
         EXAMPLES::
-            sage: pari(2/3)       # indirect doctest
-            2/3
+
+            sage: pari(-2/3)
+            -2/3
+            sage: pari(QQ(42))
+            42
+            sage: pari(QQ(42)).type()
+            't_INT'
+            sage: pari(QQ(1/42)).type()
+            't_FRAC'
+
+        TESTS:
+
+        Check that the hash of a rational does not depend on existing
+        garbage on the stack (#11854)::
+
+            sage: foo = pari(2^(32*1024));  # Create large integer to put PARI stack in known state
+            sage: a5 = pari(5/7);
+            sage: foo = pari(0xDEADBEEF * (2^(32*1024)-1)//(2^32 - 1));  # Dirty PARI stack
+            sage: b5 = pari(5/7);
+            sage: a5.__hash__() == b5.__hash__()
+            True
         """
-        cdef GEN z
         sig_on()
-        QQ_to_t_FRAC(&z, value)
-        return self.new_gen(z)
+        return self.new_gen(self._new_GEN_from_mpq_t(value))
+
+    cdef inline GEN _new_GEN_from_mpq_t(self, mpq_t value):
+        r"""
+        Create a new PARI ``t_INT`` or ``t_FRAC`` from a ``mpq_t``.
+
+        For internal use only; this directly uses the PARI stack.
+        One should call ``sig_on()`` before and ``sig_off()`` after.
+        """
+        cdef GEN num = self._new_GEN_from_mpz_t(mpq_numref(value))
+        if mpz_cmpabs_ui(mpq_denref(value), 1) == 0:
+            # Denominator is 1, return the numerator (an integer)
+            return num
+        cdef GEN denom = self._new_GEN_from_mpz_t(mpq_denref(value))
+        return mkfrac(num, denom)
 
     cdef gen new_t_POL_from_int_star(self, int *vals, int length, long varnum):
         """
@@ -9355,32 +9409,44 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             return None
         return self.new_gen(g)
 
-    cdef GEN integer_matrix_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0:
-        """
-        EXAMPLES::
+    cdef GEN _new_GEN_from_mpz_t_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc):
+        r"""
+        Create a new PARI ``t_MAT`` with ``nr`` rows and ``nc`` columns
+        from a ``mpz_t**``.
 
-            sage: matrix(ZZ,2,[1..6])._pari_()   # indirect doctest
-            [1, 2, 3; 4, 5, 6]
-
+        For internal use only; this directly uses the PARI stack.
+        One should call ``sig_on()`` before and ``sig_off()`` after.
         """
-        cdef GEN x,  A = gtomat(zeromat(nr, nc))
+        cdef GEN x
+        cdef GEN A = zeromatcopy(nr, nc)
         cdef Py_ssize_t i, j
         for i in range(nr):
             for j in range(nc):
-                ZZ_to_t_INT(&x, B[i][j])
-                (<GEN>(A[j+1]))[i+1] = <long>x
+                x = self._new_GEN_from_mpz_t(B[i][j])
+                set_gcoeff(A, i+1, j+1, x)  # A[i+1, j+1] = x (using 1-based indexing)
         return A
 
-    cdef GEN integer_matrix_permuted_for_hnf_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0:
-        cdef GEN x,  A = gtomat(zeromat(nc, nr))
+    cdef GEN _new_GEN_from_mpz_t_matrix_rotate90(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc):
+        r"""
+        Create a new PARI ``t_MAT`` with ``nr`` rows and ``nc`` columns
+        from a ``mpz_t**`` and rotate the matrix 90 degrees
+        counterclockwise.  So the resulting matrix will have ``nc`` rows
+        and ``nr`` columns.  This is useful for computing the Hermite
+        Normal Form because Sage and PARI use different definitions.
+
+        For internal use only; this directly uses the PARI stack.
+        One should call ``sig_on()`` before and ``sig_off()`` after.
+        """
+        cdef GEN x
+        cdef GEN A = zeromatcopy(nc, nr)
         cdef Py_ssize_t i, j
         for i in range(nr):
             for j in range(nc):
-                ZZ_to_t_INT(&x, B[i][nc-j-1])
-                (<GEN>(A[i+1]))[j+1] = <long>x
+                x = self._new_GEN_from_mpz_t(B[i][nc-j-1])
+                set_gcoeff(A, j+1, i+1, x)  # A[j+1, i+1] = x (using 1-based indexing)
         return A
 
-    cdef integer_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
+    cdef gen integer_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
         """
         EXAMPLES::
 
@@ -9390,27 +9456,23 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         sig_on()
         cdef GEN g
         if permute_for_hnf:
-            g = self.integer_matrix_permuted_for_hnf_GEN(B, nr, nc)
+            g = self._new_GEN_from_mpz_t_matrix_rotate90(B, nr, nc)
         else:
-            g = self.integer_matrix_GEN(B, nr, nc)
+            g = self._new_GEN_from_mpz_t_matrix(B, nr, nc)
         return self.new_gen(g)
 
-    cdef GEN rational_matrix_GEN(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0:
-        """
-        EXAMPLES::
-
-            sage: matrix(QQ,2,[1..6])._pari_()   # indirect doctest
-            [1, 2, 3; 4, 5, 6]
-        """
-        cdef GEN x,  A = gtomat(zeromat(nr, nc))
+    cdef GEN _new_GEN_from_mpq_t_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
+        cdef GEN x
+        # Allocate zero matrix
+        cdef GEN A = zeromatcopy(nr, nc)
         cdef Py_ssize_t i, j
         for i in range(nr):
             for j in range(nc):
-                QQ_to_t_FRAC(&x, B[i][j])
-                (<GEN>(A[j+1]))[i+1] = <long>x
+                x = self._new_GEN_from_mpq_t(B[i][j])
+                set_gcoeff(A, i+1, j+1, x)  # A[i+1, j+1] = x (using 1-based indexing)
         return A
 
-    cdef rational_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
+    cdef gen rational_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
         """
         EXAMPLES::
 
@@ -9418,7 +9480,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             [1, 2, 3; 4, 5, 6]
         """
         sig_on()
-        cdef GEN g = self.rational_matrix_GEN(B, nr, nc)
+        cdef GEN g = self._new_GEN_from_mpq_t_matrix(B, nr, nc)
         return self.new_gen(g)
 
     cdef _coerce_c_impl(self, x):

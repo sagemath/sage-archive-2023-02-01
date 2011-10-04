@@ -75,7 +75,6 @@ cdef extern from 'pari/pari.h':
     long    rank(GEN x)
 
 cdef extern from "convert.h":
-    void ZZ_to_t_INT ( GEN *g, mpz_t value )
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
 
 #########################################################
@@ -4821,21 +4820,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 0 0]
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
-        cdef GEN x, A = gtomat(zeromat(self._ncols, self._nrows))
-        cdef Py_ssize_t i, j
-        # We make the matrix A got from self by reversing the order of
-        # the columns and transposing.  This is needed since PARI's
-        # hnf does column operations instead of row operations.
-        for i in range(self._nrows):
-            for j in range(self._ncols):
-                ZZ_to_t_INT(&x, self._matrix[i][self._ncols-j-1])
-                (<GEN>(A[i+1]))[j+1] = <long>x
-
-        # Actually compute the HNF using PARI.
+        cdef GEN A
         sig_on()
+        A = P._new_GEN_from_mpz_t_matrix_rotate90(self._matrix, self._nrows, self._ncols)
         cdef GEN H = mathnf0(A, flag)
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
-        P.clear_stack()
+        P.clear_stack()  # This calls sig_off()
         return B
 
 
@@ -4882,23 +4872,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 t_INT_to_ZZ(B._matrix[j][self._ncols-i-1], gcoeff(H, i+1, H_nc-j))
         return B
 
-cdef GEN pari_GEN(Matrix_integer_dense B):
-    """
+cdef inline GEN pari_GEN(Matrix_integer_dense B):
+    r"""
     Create the PARI GEN object on the stack defined by the integer
     matrix B. This is used internally by the function for conversion
     of matrices to PARI.
 
-    EXAMPLES::
-
-        sage: matrix(ZZ,1,[1..4])._pari_()            # implicit doctest
-        Mat([1, 2, 3, 4])
+    For internal use only; this directly uses the PARI stack.
+    One should call ``sig_on()`` before and ``sig_off()`` after.
     """
-    cdef GEN x,  A = gtomat(zeromat(B._nrows, B._ncols))
-    cdef Py_ssize_t i, j
-    for i in range(B._nrows):
-        for j in range(B._ncols):
-            ZZ_to_t_INT(&x, B._matrix[i][j])
-            (<GEN>(A[j+1]))[i+1] = <long>x
+    cdef PariInstance P = sage.libs.pari.gen.pari
+    cdef GEN A
+    A = P._new_GEN_from_mpz_t_matrix(B._matrix, B._nrows, B._ncols)
     return A
 
 

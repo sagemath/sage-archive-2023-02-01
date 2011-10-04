@@ -40,6 +40,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
 cdef void four_dim_det(mpz_t, mpz_t *)
 
 ################################################################
-# fast conversion to pari on the stack
+# fast conversion to PARI on the stack
 ################################################################
-cdef GEN pari_GEN(Matrix_integer_dense B)
+cdef inline GEN pari_GEN(Matrix_integer_dense B)

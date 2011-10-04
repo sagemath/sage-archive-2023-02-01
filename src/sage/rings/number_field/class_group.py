@@ -244,7 +244,7 @@ class FractionalIdealClass(AbelianGroupElement):
         """
         self.__ideal = ideal
         if element is None:
-            element = map(int, ideal._ideal_class_log(proof=parent._proof_flag))
+            element = map(int, ideal.ideal_class_log(proof=parent._proof_flag))
         AbelianGroupElement.__init__(self, parent, element)
 
     def _repr_(self):
@@ -623,7 +623,7 @@ class SFractionalIdealClass(FractionalIdealClass):
         """
         self.__ideal = ideal
         if element is None:
-            element = ideal._S_ideal_class_log(parent.S())
+            element = ideal.S_ideal_class_log(parent.S())
         AbelianGroupElement.__init__(self, parent, element)
 
     def _repr_(self):

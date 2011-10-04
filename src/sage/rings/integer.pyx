@@ -4308,7 +4308,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         from sage.rings.rational_field import QQ
         return QQ(self).is_norm(K, element=element, proof=proof)
 
-    def _bnfisnorm(self, K, certify=True, extra_primes=0):
+    def _bnfisnorm(self, K, proof=True, extra_primes=0):
         r"""
         See ``QQ(self)._bnfisnorm()``.
 
@@ -4321,7 +4321,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             (-zeta7^5 + zeta7^4, 1)    # 32-bit
         """
         from sage.rings.rational_field import QQ
-        return QQ(self)._bnfisnorm(K, certify=certify, extra_primes=extra_primes)
+        return QQ(self)._bnfisnorm(K, proof=proof, extra_primes=extra_primes)
 
 
     def jacobi(self, b):

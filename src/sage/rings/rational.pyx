@@ -1258,7 +1258,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             if b:
                 x = M_to_L(x)
             return b, x
-        a, b = self._bnfisnorm(L, certify=proof)
+        a, b = self._bnfisnorm(L, proof=proof)
         if b == 1:
             assert a.norm() == self
             return True, a
@@ -1268,7 +1268,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         from sage.functions.log import log
         from sage.functions.other import floor
         extra_primes = floor(12*log(abs(M.discriminant()))**2)
-        a, b = self._bnfisnorm(L, certify=proof, extra_primes=extra_primes)
+        a, b = self._bnfisnorm(L, proof=proof, extra_primes=extra_primes)
         if b == 1:
             assert a.norm() == self
             return True, a
@@ -1276,7 +1276,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             raise NotImplementedError, "is_norm is not implemented unconditionally for norms from non-Galois number fields"
         return False, None
 
-    def _bnfisnorm(self, K, certify=True, extra_primes=0):
+    def _bnfisnorm(self, K, proof=True, extra_primes=0):
         r"""
         This gives the output of the PARI function bnfisnorm.
 
@@ -1300,7 +1300,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         INPUT:
 
          - K -- a number field
-         - certify -- whether to certify the output of bnfinit.
+         - proof -- whether to certify the output of bnfinit.
            If false, then correctness of the output depends on GRH.
          - extra_primes -- an integer as explained above
 
@@ -1330,7 +1330,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if not is_NumberField(K):
             raise ValueError, "K must be a NumberField in bnfisnorm"
 
-        a, b = K.pari_bnf(certify=certify).bnfisnorm(self, flag=extra_primes)
+        a, b = K.pari_bnf(proof=proof).bnfisnorm(self, flag=extra_primes)
         return K(a), Rational(b)
 
 

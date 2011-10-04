@@ -872,6 +872,19 @@ cdef class gen(sage.structure.element.RingElement):
         sig_on()
         return self.new_gen(nf_get_zk(nf))
 
+    def bnf_get_no(self):
+        """
+        Returns the class number of ``self``, a "big number field" (``bnf``).
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-65)
+            sage: K.pari_bnf().bnf_get_no()
+            8
+        """
+        sig_on()
+        return self.new_gen(bnf_get_no(self.g))
+
     def bnf_get_cyc(self):
         """
         Returns the structure of the class group of this number field as

@@ -1061,7 +1061,7 @@ class NumberField_relative(NumberField_generic):
         """
         return sage.rings.number_field.number_field_ideal_rel.NumberFieldFractionalIdeal_rel
 
-    def _pari_base_bnf(self, certify=False, units=True):
+    def _pari_base_bnf(self, proof=False, units=True):
         r"""
         Return the PARI bnf (big number field) representation of the
         absolute base field in terms of the pari variable ``y``, suitable
@@ -1071,7 +1071,7 @@ class NumberField_relative(NumberField_generic):
 
         INPUT:
 
-        - ``certify`` (bool, default True) -- if True, certify
+        - ``proof`` (bool, default True) -- if True, certify
           correctness of calculations (not assuming GRH).
 
         EXAMPLES::
@@ -1081,11 +1081,9 @@ class NumberField_relative(NumberField_generic):
             [[;], matrix(0,9), [;], ... 0]
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
-        bnf_in_x = abs_base.pari_bnf(certify=certify, units=units) # this gives a bnf in terms of x
-        x = ZZ['x'].gen()
-        y = ZZ['y'].gen()
-        bnf_in_y = bnf_in_x.subst(x, y) # now we have a bnf structure in terms of y
-        return bnf_in_y
+        # Return a bnf structure in the variable y (the syntax "'y"
+        # in PARI/GP means the variable y, as opposed to its value)
+        return abs_base.pari_bnf(proof, units).nf_subst("'y")
 
     @cached_method
     def _pari_base_nf(self):
@@ -1095,8 +1093,7 @@ class NumberField_relative(NumberField_generic):
         extension by the pari variable ``x``.
 
         In future, all caching will be done by the absolute base
-        field, but for now we work around a PARI bug that makes
-        renamed (substed) nf structures fail in strange ways.
+        field.
 
         EXAMPLES::
 
@@ -1106,12 +1103,9 @@ class NumberField_relative(NumberField_generic):
             [y^2 + 2, [0, 1], -8, 1, ..., [1, 0, 0, -2; 0, 1, 1, 0]]
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
-#         nf_in_x = abs_base.pari_nf() # try to reuse, but this is in terms of x
-#         x = ZZ['x'].gen()
-#         y = ZZ['y'].gen()
-#         nf_in_y = nf_in_x.subst(x, y) # now we have an nf structure in terms of y
-        nf_in_y = QQ['y'](abs_base.polynomial())._pari_().nfinit()
-        return nf_in_y
+        # Return a nf structure in the variable y (the syntax "'y"
+        # in PARI/GP means the variable y, as opposed to its value)
+        return abs_base.pari_nf().nf_subst("'y")
 
     def is_galois(self):
         r"""

@@ -2738,9 +2738,28 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return str(self.pari_nf())
 
-    def pari_bnf(self, certify=False, units=True):
+    def pari_bnf(self, proof=None, units=True):
         """
         PARI big number field corresponding to this field.
+
+        INPUT:
+
+        - ``proof`` -- If False, assume GRH.  If True, run PARI's
+          ``bnfcertify()`` to make sure that the results are correct.
+
+        - ``units`` -- (default: True) If True, insist on having
+          fundamental units.  If False, the units may or may not be
+          computed.
+
+        OUTPUT:
+
+        The PARI ``bnf`` structure of this number field.
+
+        .. warning::
+
+           Even with ``proof=True``, I wouldn't trust this to mean
+           that everything computed involving this number field is
+           actually correct.
 
         EXAMPLES::
 
@@ -2752,53 +2771,31 @@ class NumberField_generic(number_field_base.NumberField):
             [[;], matrix(0,7), [;], ...]
             sage: len(k.pari_nf())
             9
+            sage: k.<a> = NumberField(x^7 + 7); k
+            Number Field in a with defining polynomial x^7 + 7
+            sage: dummy = k.pari_bnf(proof=True)
         """
-        if self.absolute_polynomial().denominator() != 1:
-            raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
+        proof = get_flag(proof, "number_field")
+        # First compute bnf
         try:
-            if certify:
-                self.pari_bnf_certify()
-            return self.__pari_bnf
+            bnf = self.__pari_bnf
         except AttributeError:
+            if self.absolute_polynomial().denominator() != 1:
+                raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
             f = self.pari_polynomial()
             if units:
                 self.__pari_bnf = f.bnfinit(1)
             else:
                 self.__pari_bnf = f.bnfinit()
-            if certify:
-                self.pari_bnf_certify()
-            return self.__pari_bnf
-
-    def pari_bnf_certify(self):
-        """
-        Run the PARI bnfcertify function to ensure the correctness of
-        answers.
-
-        If this function returns True (and doesn't raise a ValueError),
-        then certification succeeded, and results that use the PARI bnf
-        structure with this field are supposed to be correct.
-
-        .. warning::
-
-           I wouldn't trust this to mean that everything computed
-           involving this number field is actually correct.
-
-        EXAMPLES::
-
-            sage: k.<a> = NumberField(x^7 + 7); k
-            Number Field in a with defining polynomial x^7 + 7
-            sage: k.pari_bnf_certify()
-            True
-        """
-        if self.absolute_polynomial().denominator() != 1:
-            raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
-        if not self.__pari_bnf_certified:
-            if self.pari_bnf(certify=False, units=True).bnfcertify() != 1:
+            bnf = self.__pari_bnf
+        # Certify if needed
+        if proof and not getattr(self, "__pari_bnf_certified", False):
+            if bnf.bnfcertify() != 1:
                 raise ValueError, "The result is not correct according to bnfcertify"
             self.__pari_bnf_certified = True
-        return self.__pari_bnf_certified
+        return bnf
 
-    def pari_rnfnorm_data(self, L, certify=True):
+    def pari_rnfnorm_data(self, L, proof=True):
         """
         Return the PARI rnfisnorminit() data corresponding to the
         extension L/self.
@@ -2824,7 +2821,7 @@ class NumberField_generic(number_field_base.NumberField):
         # Substitute the variable y in the defining polynomial of the
         # bnf structure.  The syntax "'y" refers to the *variable* y
         # as opposed to whatever value happens to be assigned to y.
-        Kbnf = self.pari_bnf(certify=certify).nf_subst("'y")
+        Kbnf = self.pari_bnf(proof=proof).nf_subst("'y")
         coeffs = [ a._pari_("y") for a in relpoly.coeffs() ]
         polrel = pari(coeffs).Polrev()
         return Kbnf.rnfisnorminit(polrel)
@@ -3104,7 +3101,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         deg = self.absolute_degree()
 
-        K_pari = self.pari_bnf(certify=proof)
+        K_pari = self.pari_bnf(proof=proof)
         S_pari = [p.pari_prime() for p in S]
 
         result = K_pari.bnfsunit(S_pari)
@@ -3149,8 +3146,8 @@ class NumberField_generic(number_field_base.NumberField):
         S_clgp_gens = self._S_class_group_and_units(S)[1]
         a = len(S_clgp_gens)
         c = self.class_group().ngens()
-        M = [u[0]._ideal_class_log() for u in S_clgp_gens]
-        M += [x._ideal_class_log() for x in S]
+        M = [u[0].ideal_class_log() for u in S_clgp_gens]
+        M += [x.ideal_class_log() for x in S]
         M = matrix(ZZ, M)
         A, Q = M.hermite_form(transformation=True)
         assert A[:c] == 1 and A[c:] == 0

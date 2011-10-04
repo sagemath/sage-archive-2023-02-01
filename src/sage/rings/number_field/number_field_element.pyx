@@ -1064,7 +1064,7 @@ cdef class NumberFieldElement(FieldElement):
         if L.relative_degree() == 1 or self.is_zero():
             return True, L(self)
 
-        a, b = self._rnfisnorm(L, certify=proof)
+        a, b = self._rnfisnorm(L, proof=proof)
         if b == 1:
             assert a.norm(K) == self
             return True, a
@@ -1078,7 +1078,7 @@ cdef class NumberFieldElement(FieldElement):
         from sage.functions.log import log
         from sage.functions.other import floor
         extra_primes = floor(12*log(abs(M.discriminant()))**2)
-        a, b = self._rnfisnorm(L, certify=proof, extra_primes=extra_primes)
+        a, b = self._rnfisnorm(L, proof=proof, extra_primes=extra_primes)
         if b == 1:
             assert a.norm(K) == self
             return True, a
@@ -1087,7 +1087,7 @@ cdef class NumberFieldElement(FieldElement):
             raise NotImplementedError, "is_norm is not implemented unconditionally for norms from non-Galois number fields"
         return False, None
 
-    def _rnfisnorm(self, L, certify=True, extra_primes=0):
+    def _rnfisnorm(self, L, proof=True, extra_primes=0):
         r"""
         Gives the output of the PARI function rnfisnorm.
 
@@ -1112,7 +1112,7 @@ cdef class NumberFieldElement(FieldElement):
         INPUT:
 
          - L -- a relative number field with base field self.parent()
-         - certify -- whether to certify outputs of PARI init functions.
+         - proof -- whether to certify outputs of PARI init functions.
            If false, truth of the output depends on GRH.
          - extra_primes -- an integer as explained above.
 
@@ -1169,7 +1169,7 @@ cdef class NumberFieldElement(FieldElement):
         if (not is_RelativeNumberField(L)) or L.base_field() != K:
             raise ValueError, "L (=%s) must be a relative number field with base field K (=%s) in rnfisnorm" % (L, K)
 
-        rnf_data = K.pari_rnfnorm_data(L, certify=certify)
+        rnf_data = K.pari_rnfnorm_data(L, proof=proof)
         x, q = self._pari_('y').rnfisnorm(rnf_data)
         return L(x), K(q)
 

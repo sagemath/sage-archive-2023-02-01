@@ -401,7 +401,7 @@ class Stock:
         return TimeSeries([x.close for x in self.google(*args, **kwds)])
 
     def load_from_file(self, file):
-        """
+        r"""
         Load historical data from a local csv formatted data file. Note
         that no symbol data is included in Google Finance's csv data.
         The csv file must be formatted in the following way, just as
@@ -466,7 +466,7 @@ class Stock:
 
 
     def _load_from_csv(self, R):
-        """
+        r"""
         EXAMPLES:
 
         This indirectly tests ``_load_from_csv()``::

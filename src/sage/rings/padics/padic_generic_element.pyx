@@ -1028,16 +1028,16 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     cpdef abs(self, prec=None):
         """
-        Returns the p-adic absolute value of self.
+        Return the `p`-adic absolute value of ``self``.
 
-        This is normalized so that the absolute value of p is 1/p.
+        This is normalized so that the absolute value of `p` is `1/p`.
 
-        INPUT::
+        INPUT:
 
-            - prec -- Integer.  The precision of the real field in
-              which the answer is returned.  If None, returns a
-              rational for absolutely unramified fields, or a real
-              with 53 bits of precision if ramified.
+        - ``prec`` -- Integer.  The precision of the real field in which
+          the answer is returned.  If ``None``, returns a rational for
+          absolutely unramified fields, or a real with 53 bits of
+          precision for ramified fields.
 
         EXAMPLES::
 
@@ -1045,5 +1045,39 @@ cdef class pAdicGenericElement(LocalGenericElement):
             1/5
             sage: a.abs(53)
             0.200000000000000
+            sage: Qp(7)(0).abs()
+            0
+            sage: Qp(7)(0).abs(prec=20)
+            0.00000
+
+        An unramified extension::
+
+            sage: R = Zp(5,5)
+            sage: P.<x> = PolynomialRing(R)
+            sage: Z25.<u> = R.ext(x^2 - 3)
+            sage: u.abs()
+            1
+            sage: (u^24-1).abs()
+            1/5
+
+        A ramified extension::
+
+            sage: W.<w> = R.ext(x^5 + 75*x^3 - 15*x^2 + 125*x - 5)
+            sage: w.abs()
+            0.724779663677696
+            sage: W(0).abs()
+            0.000000000000000
         """
-        raise NotImplementedError
+        K = self.parent()
+        if not prec and K.e() > 1:
+            prec = 53
+        if prec:
+            from sage.rings.real_mpfr import RealField
+            if self.is_zero():
+                return RealField(prec).zero()
+            return RealField(prec)(K.prime())**(-self.ordp())
+        else:
+            if self.is_zero():
+                return Rational(0)
+            return Rational(K.prime())**(-self.valuation())
+

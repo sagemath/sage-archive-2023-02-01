@@ -77,30 +77,6 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
         else:
             return 1
 
-    cpdef abs(self, prec=None):
-        """
-        Returns the `p`-adic absolute value of ``self``.
-
-        This is normalized so that the absolute value of `p` is `1/p`.
-
-        INPUT:
-
-        - ``prec`` -- Integer.  The precision of the real field in
-          which the answer is returned.  If ``None``, returns a
-          rational for absolutely unramified fields, or a real with 53
-          bits of precision if ramified.
-
-        EXAMPLES:
-        sage: a = Qp(5)(15); a.abs()
-        1/5
-        sage: a.abs(53)
-        0.200000000000000
-        """
-        if prec is None:
-            return self.prime_pow.prime**(-self.valuation())
-        from sage.rings.real_mpfr import RealField
-        return RealField(prec)(self.prime_pow.prime**(-self.valuation()))
-
     def exp(self):
         r"""
         Compute the `p`-adic exponential of any element of

@@ -210,14 +210,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         INPUT:
 
-        x - a variable of self.
+        - ``x`` -- a variable of self.
 
         EXAMPLE::
 
             sage: P.<x,y,z> = QQ[]
             sage: P.univariate_ring(y)
             Univariate Polynomial Ring in y over Multivariate Polynomial Ring in x, z over Rational Field
-
         """
         return self.remove_var(x)[str(x)]
 

@@ -31,6 +31,9 @@ Apache License, Version 2.0
 
 == Changelog ==
 
+=== cython-0.15.1 (Robert Bradshaw, 3 October 2011, #11761) ===
+ * Upgrade Cython to 0.15.1
+
 === cython-0.14.1.p3 (Robert Bradshaw, 1 March 2011, #10493) ===
  * Upgrade Cython to 0.14.1
  * Disable (broken) temp arg assignments.

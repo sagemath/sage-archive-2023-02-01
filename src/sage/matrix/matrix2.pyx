@@ -4630,7 +4630,9 @@ cdef class Matrix(matrix1.Matrix):
         This method is only applicable to exact matrices.
         The "eigenmatrix" routines for matrices with double-precision
         floating-point entries (``RDF``, ``CDF``) are the best
-        alternative.  There are also "eigenmatrix" routines for
+        alternative.  (Since some platforms return eigenvectors
+        that are the negatives of those given here, this one example
+        is not tested here.)  There are also "eigenmatrix" routines for
         matrices with symbolic entries.  ::
 
             sage: A = matrix(QQ, 3, 3, range(9))
@@ -4645,7 +4647,7 @@ cdef class Matrix(matrix1.Matrix):
             [    13.3484692...                 0                 0]
             [                0    -1.34846922...                 0]
             [                0                 0                 0]
-            sage: eigenvectors = em[1]; eigenvectors
+            sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.440242867...  0.567868371...  0.695493875...]
             [ 0.897878732...  0.278434036... -0.341010658...]
             [ 0.408248290... -0.816496580...  0.408248290...]
@@ -4889,7 +4891,9 @@ cdef class Matrix(matrix1.Matrix):
         This method is only applicable to exact matrices.
         The "eigenmatrix" routines for matrices with double-precision
         floating-point entries (``RDF``, ``CDF``) are the best
-        alternative.  There are also "eigenmatrix" routines for
+        alternative.  (Since some platforms return eigenvectors
+        that are the negatives of those given here, this one example
+        is not tested here.)  There are also "eigenmatrix" routines for
         matrices with symbolic entries.  ::
 
             sage: B = matrix(RR, 3, 3, range(9))
@@ -4904,7 +4908,7 @@ cdef class Matrix(matrix1.Matrix):
             [     13.3484692...                  0                  0]
             [                 0     -1.34846922...                  0]
             [                 0                  0                  0]
-            sage: eigenvectors = em[1]; eigenvectors
+            sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.164763817...  0.799699663...  0.408248290...]
             [ 0.505774475...  0.104205787... -0.816496580...]
             [ 0.846785134... -0.591288087...  0.408248290...]
@@ -5264,6 +5268,29 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 0]
             sage: P*A == D*P
             True
+
+        TESTS:
+
+        For matrices with floating point entries, some platforms will
+        return eigenvectors that are negatives of those returned by the
+        majority of platforms.  This test accounts for that possibility.
+        Running this test independently, without adjusting the eigenvectors
+        could indicate this situation on your hardware.  ::
+
+            sage: A = matrix(QQ, 3, 3, range(9))
+            sage: em = A.change_ring(RDF).eigenmatrix_left()
+            sage: evalues = em[0]; evalues
+            [    13.3484692...                 0                 0]
+            [                0    -1.34846922...                 0]
+            [                0                 0 -6.2265089...e-16]
+            sage: evectors = em[1];
+            sage: for i in range(3):
+            ...       scale = evectors[i,0].sign()
+            ...       evectors.rescale_row(i, scale)
+            sage: evectors
+            [ 0.440242867...  0.567868371...  0.695493875...]
+            [ 0.897878732...  0.278434036... -0.341010658...]
+            [ 0.408248290... -0.816496580...  0.408248290...]
         """
         from sage.misc.flatten import flatten
         evecs = self.eigenvectors_left()
@@ -5330,6 +5357,29 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 0]
             sage: A*P == P*D
             True
+
+        TESTS:
+
+        For matrices with floating point entries, some platforms will
+        return eigenvectors that are negatives of those returned by the
+        majority of platforms.  This test accounts for that possibility.
+        Running this test independently, without adjusting the eigenvectors
+        could indicate this situation on your hardware.  ::
+
+            sage: B = matrix(QQ, 3, 3, range(9))
+            sage: em = B.change_ring(RDF).eigenmatrix_right()
+            sage: evalues = em[0]; evalues
+            [     13.3484692...                  0                  0]
+            [                 0     -1.34846922...                  0]
+            [                 0                  0 -8.86256604...e-16]
+            sage: evectors = em[1];
+            sage: for i in range(3):
+            ...       scale = evectors[0,i].sign()
+            ...       evectors.rescale_col(i, scale)
+            sage: evectors
+            [ 0.164763817...  0.799699663...  0.408248290...]
+            [ 0.505774475...  0.104205787... -0.816496580...]
+            [ 0.846785134... -0.591288087...  0.408248290...]
         """
         D,P=self.transpose().eigenmatrix_left()
         return D,P.transpose()

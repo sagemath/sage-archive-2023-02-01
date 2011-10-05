@@ -135,6 +135,11 @@ default_cflags="" # Spkg defaults that can and might get overridden.
 SAGE_CONF_OPTS=""
 
 
+if [ -z "$CFLAG64" ]; then
+    CFLAG64="-m64" # Only used in this script, no need to export it.
+fi
+
+
 if [ "$SAGE_DEBUG" = yes ]; then
     # Disable optimization, add debug symbols:
     required_cflags="$required_cflags -g -O0"
@@ -205,6 +210,30 @@ case "$UNAME" in
                     "supported on this CPU architecture."
                 # XXX exit 1 ?
             esac
+        fi
+
+        # MPIR fails to build on 32-bit operating systems running on
+        # 64-bit CPUs if CFLAGS happen to contain '-m32' and ABI is
+        # *not* set, so we set it here if necessary:
+        # (Cf. http://groups.google.com/group/mpir-devel/browse_thread/thread/46ccdc5dfc3485cd#)
+        # Note: This code snippet could in principle be moved out of the
+        #       Linux branch, but since we already set ABI for other
+        #       OSs above (and print an according message), it's here.
+        if [ -z "$ABI" ]; then
+            echo "int main(){return 0;}" > foo.c
+            # Build a 64-bit executable:
+            # (Usually succeeds, unless e.g. a 32-bit CPU is explicitly selected by CFLAGS.)
+            $CC $CFLAGS $CFLAG64 -o foo foo.c 2>/dev/null
+            if ! ./foo 2>/dev/null; then
+                # We're on a 32-bit OS which cannot run 64-bit executables.
+                echo "Building a 32-bit version of MPIR"
+                ABI=32
+            else
+                # Setting ABI=64 shouldn't be necessary, but shouldn't hurt either.
+                echo "Building a 64-bit version of MPIR"
+                ABI=64
+            fi
+            rm -f foo foo.c
         fi;;
     CYGWIN)
         # Nothing special performed (yet).

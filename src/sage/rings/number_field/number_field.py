@@ -4078,10 +4078,12 @@ class NumberField_generic(number_field_base.NumberField):
             elif not important:
                 # Trial divide the discriminant
                 m = self.pari_polynomial().poldisc().abs().factor(limit=0)
-                # Since we only need a *squarefree* factorization, we need
-                # trial division up to D^(1/3) instead of D^(1/2).
-                trialdivlimit = pari(pari._primelimit()**3)
-                if all([ p < trialdivlimit or p.isprime() for p in m[0] ]):
+                # Since we only need a *squarefree* factorization for
+                # primes with exponent 1, we need trial division up to D^(1/3)
+                # instead of D^(1/2).
+                trialdivlimit2 = pari(pari._primelimit()**2)
+                trialdivlimit3 = pari(pari._primelimit()**3)
+                if all([ p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p,e in zip(m[0],m[1]) ]):
                     B = f.nfbasis(fa = m)
                 else:
                     raise RuntimeError, "Unable to factor discriminant with trial division"

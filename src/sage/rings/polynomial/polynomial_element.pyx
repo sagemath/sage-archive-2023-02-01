@@ -2751,11 +2751,27 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^5 * (x^5 + (4/7*a - 6/7)*x^4 + (9/49*a^2 - 3/7*a + 15/49)*x^3 + (8/343*a^3 - 32/343*a^2 + 40/343*a - 20/343)*x^2 + (5/2401*a^4 - 20/2401*a^3 + 40/2401*a^2 - 5/343*a + 15/2401)*x - 6/16807*a^4 + 12/16807*a^3 - 18/16807*a^2 + 12/16807*a - 6/16807)
 
         Factoring over a number field over which we cannot factor the
-        discriminant::
+        discriminant by trial division::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^16 - x - 6)
+            sage: R.<x> = PolynomialRing(K)
+            sage: f = (x+a)^50 - (a-1)^50
+            sage: len(factor(f))
+            6
+            sage: factor(K.discriminant())
+            -1 * 3^15 * 23 * 887 * 12583 * 6335047 * 371692813
+
+        Factoring over a number field over which we cannot factor the
+        discriminant and over which `nffactor()` fails::
 
             sage: p = next_prime(10^50); q = next_prime(10^51); n = p*q;
             sage: K.<a> = QuadraticField(p*q)
             sage: R.<x> = PolynomialRing(K)
+            sage: K.pari_polynomial('a').nffactor("x^2+1")
+            Traceback (most recent call last):
+            ...
+            PariError: precision too low (10)
             sage: factor(x^2 + 1)
             x^2 + 1
             sage: factor( (x - a) * (x + 2*a) )
@@ -2832,7 +2848,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             g = M['x']([to_M(x) for x in self.list()])
             F = g.factor()
             S = self.parent()
-            v = [(S([from_M(x) for x in f.list()]), e) for f, e in g.factor()]
+            v = [(S([from_M(x) for x in f.list()]), e) for f, e in F]
             return Factorization(v, from_M(F.unit()))
 
         elif is_FiniteField(R):
@@ -2866,16 +2882,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
             v = [ c._pari_("a") for c in self.list() ]
             f = pari(v).Polrev()
             try:
-                # Try to compute the PARI nf structure with important=False.
-                # This will raise RuntimeError if the computation is too
-                # difficult.  It will raise TypeError if the defining
-                # polynomial is not integral.
-                Rpari = R.pari_nf(important=False).nf_subst("'a")
-                # Factor using nffactor()
+                try:
+                    # Try to compute the PARI nf structure with important=False.
+                    # This will raise RuntimeError if the computation is too
+                    # difficult.  It will raise TypeError if the defining
+                    # polynomial is not integral.
+                    Rpari = R.pari_nf(important=False).nf_subst("'a")
+                except RuntimeError:
+                    # Cannot easily compute the nf structure, use the defining
+                    # polynomial instead.
+                    Rpari = R.pari_polynomial("a")
+                # nffactor() can fail with PariError "precision too low"
                 G = list(Rpari.nffactor(f))
-            except (RuntimeError, TypeError):
-                # Use factornf() which only needs the defining polynomial
-                # and which does not require an integral polynomial.
+            except (PariError, TypeError):
+                # Use factornf() which only needs the defining polynomial,
+                # which does not require an integral polynomial and which
+                # has no problems with floating-point precision.
                 G = list(f.factornf(R.pari_polynomial("a")))
             # PARI's nffactor() ignores the unit, _factor_pari_helper()
             # adds back the unit of the factorization.

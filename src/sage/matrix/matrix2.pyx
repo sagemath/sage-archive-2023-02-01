@@ -5279,10 +5279,10 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = matrix(QQ, 3, 3, range(9))
             sage: em = A.change_ring(RDF).eigenmatrix_left()
-            sage: evalues = em[0]; evalues
+            sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
             [    13.3484692...                 0                 0]
             [                0    -1.34846922...                 0]
-            [                0                 0 -6.2265089...e-16]
+            [                0                 0                 0]
             sage: evectors = em[1];
             sage: for i in range(3):
             ...       scale = evectors[i,0].sign()
@@ -5368,10 +5368,10 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: B = matrix(QQ, 3, 3, range(9))
             sage: em = B.change_ring(RDF).eigenmatrix_right()
-            sage: evalues = em[0]; evalues
+            sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
             [     13.3484692...                  0                  0]
             [                 0     -1.34846922...                  0]
-            [                 0                  0 -8.86256604...e-16]
+            [                 0                  0                  0]
             sage: evectors = em[1];
             sage: for i in range(3):
             ...       scale = evectors[0,i].sign()

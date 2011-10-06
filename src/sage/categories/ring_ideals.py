@@ -12,6 +12,8 @@ Ring ideals
 
 from category_types import Category_ideal
 from sage.misc.cachefunc import cached_method
+from sage.categories.rings import Rings
+_Rings = Rings()
 
 class RingIdeals(Category_ideal):
     """
@@ -51,8 +53,7 @@ class RingIdeals(Category_ideal):
 
             sage: TestSuite(RingIdeals(ZZ)).run()
         """
-        from rings import Rings
-        if R not in Rings():
+        if not R in _Rings:
             raise TypeError, "R (=%s) must be a ring"%R
         Category_ideal.__init__(self, R)
 

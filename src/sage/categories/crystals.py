@@ -12,6 +12,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.cachefunc import CachedFunction
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.latex import latex
 from sage.combinat import ranker
@@ -19,7 +20,7 @@ from sage.combinat.subset import Subsets
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.rings.integer import Integer
 
-class Crystals(Category):
+class Crystals(Category_singleton):
     """
     The category of crystals
 

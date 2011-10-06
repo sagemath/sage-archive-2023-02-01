@@ -9,9 +9,10 @@ Rngs
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 
-class Rngs(Category):
+class Rngs(Category_singleton):
     """
     The category of rngs
     associative rings, not necessarily commutative, and not necessarily with  1

@@ -390,6 +390,20 @@ def _multi_variate(base_ring, names, n, sparse, order):
     return P
 
 class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
+    """
+    Laurent polynomial ring (base class).
+
+    EXAMPLES:
+
+    This base class inherits from :class:`~sage.rings.ring.CommutativeRing`.
+    Since trac ticket #11900, it is also initialised as such::
+
+        sage: R.<x1,x2> = LaurentPolynomialRing(QQ)
+        sage: R.category()
+        Category of commutative rings
+        sage: TestSuite(R).run()
+
+    """
     def __init__(self, R, prepend_string, names):
         """
         EXAMPLES::
@@ -401,7 +415,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         self._n = R.ngens()
         self._R = R
         self._prepend_string = prepend_string
-        ParentWithGens.__init__(self, base=R.base_ring(), names=names)
+        CommutativeRing.__init__(self, R.base_ring(), names=names)
         self._populate_coercion_lists_(element_constructor=self._element_constructor_,
                                        init_no_parent=True)
 
@@ -753,7 +767,8 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
 
             sage: L = LaurentPolynomialRing(QQ,2,'x')
             sage: type(L)
-            <class 'sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomialRing_mpair'>
+            <class
+            'sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomialRing_mpair_with_category'>
             sage: L == loads(dumps(L))
             True
         """

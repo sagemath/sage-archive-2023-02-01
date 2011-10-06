@@ -42,6 +42,17 @@ import sage.rings.padics.padic_base_leaves as padic_base_leaves
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
+from sage.misc.cachefunc import cached_function
+
+from sage.categories.fields import Fields
+_Fields = Fields()
+from sage.categories.unique_factorization_domains import UniqueFactorizationDomains
+_UFD = UniqueFactorizationDomains()
+from sage.categories.integral_domains import IntegralDomains
+_ID = IntegralDomains()
+from sage.categories.commutative_rings import CommutativeRings
+_CommutativeRings = CommutativeRings()
+
 _cache = {}
 
 def PolynomialRing(base_ring, arg1=None, arg2=None,
@@ -528,6 +539,50 @@ def _multi_variate(base_ring, names, n, sparse, order, implementation):
             R = m.MPolynomialRing_polydict(base_ring, n, names, order)
     _save_in_cache(key, R)
     return R
+
+#########################################################
+# Choice of a category
+from sage import categories
+from sage.categories.algebras import Algebras
+from sage.categories.commutative_algebras import CommutativeAlgebras
+from sage.categories.category import JoinCategory
+# Some fixed categories, in order to avoid the function call overhead
+_EuclideanDomains = categories.euclidean_domains.EuclideanDomains()
+_UniqueFactorizationDomains = categories.unique_factorization_domains.UniqueFactorizationDomains()
+_IntegralDomains = categories.integral_domains.IntegralDomains()
+_Rings = category = categories.rings.Rings()
+
+@cached_function
+def polynomial_default_category(base_ring,multivariate):
+    """
+    Choose an appropriate category for a polynomial ring.
+
+    INPUT:
+
+    - ``base_ring``: The ring over which the polynomial ring shall be defined.
+    - ``multivariate``: Will the polynomial ring be multivariate?
+
+    EXAMPLES::
+
+        sage: QQ['t'].category() is Category.join([EuclideanDomains(), CommutativeAlgebras(QQ)])
+        True
+        sage: QQ['s','t'].category() is Category.join([UniqueFactorizationDomains(), CommutativeAlgebras(QQ)])
+        True
+        sage: QQ['s']['t'].category() is Category.join([UniqueFactorizationDomains(), CommutativeAlgebras(QQ['s'])])
+        True
+
+    """
+    if base_ring in _Fields:
+        if multivariate:
+            return JoinCategory((_UniqueFactorizationDomains,CommutativeAlgebras(base_ring)))
+        return JoinCategory((_EuclideanDomains,CommutativeAlgebras(base_ring)))
+    if base_ring in _UFD: #base_ring.is_unique_factorization_domain():
+        return JoinCategory((_UniqueFactorizationDomains,CommutativeAlgebras(base_ring)))
+    if base_ring in _ID: #base_ring.is_integral_domain():
+        return JoinCategory((_IntegralDomains,CommutativeAlgebras(base_ring)))
+    if base_ring in _CommutativeRings: #base_ring.is_commutative():
+        return CommutativeAlgebras(base_ring)
+    return Algebras(base_ring)
 
 def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
     """

@@ -15,10 +15,11 @@ AUTHORS:
 
 
 from category_types import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 from sage.categories.enumerated_sets import EnumeratedSets
 
-class InfiniteEnumeratedSets(Category):
+class InfiniteEnumeratedSets(Category_singleton):
     """
     The category of infinite enumerated sets
 

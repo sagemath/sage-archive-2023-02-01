@@ -11,12 +11,13 @@ Magmas
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.sets_cat import Sets
 from sage.structure.sage_object import have_same_parent
 
-class Magmas(Category):
+class Magmas(Category_singleton):
     """
     The category of (multiplicative) magmas, i.e. sets with a binary
     operation ``*``.
@@ -112,8 +113,30 @@ class Magmas(Category):
             """
             # This should instead register the multiplication to the coercion model
             # But this is not yet implemented in the coercion model
-            if (self.product != self.product_from_element_class_mul) and hasattr(self, "element_class") and hasattr(self.element_class, "_mul_parent"):
-                self.element_class._mul_ = self.element_class._mul_parent
+            #
+            # Trac ticket #11900: The following used to test whether
+            # self.product != self.product_from_element_class_mul. But
+            # that is, of course, a bug. Namely otherwise, if the parent
+            # has an optimized `product` then its elements will *always* use
+            # a slow generic `_mul_`.
+            #
+            # So, in addition, it should be tested whether the element class exists
+            # *and* has a custom _mul_, because in this case it must not be overridden.
+            if (self.product.__func__ == self.product_from_element_class_mul.__func__):
+                return
+            if not (hasattr(self, "element_class") and hasattr(self.element_class, "_mul_parent")):
+                return
+            E = self.element_class
+            if hasattr(E._mul_,'__func__'):
+                try:
+                    el_class_mul = self.category().element_class._mul_.__func__
+                except AttributeError: # abstract method
+                    return
+                if E._mul_.__func__ is el_class_mul:
+                    # self.product is custom, thus, we rely on it
+                    E._mul_ = E._mul_parent
+            else: # E._mul_ has so far been abstract
+                E._mul_ = E._mul_parent
 
         def multiplication_table(self, names='letters', elements=None):
             r"""
@@ -466,4 +489,3 @@ class Magmas(Category):
                 assert(x in self)
                 assert(y in self)
                 return self.retract(self.lift(x) * self.lift(y))
-

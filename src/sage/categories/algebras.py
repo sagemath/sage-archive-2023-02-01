@@ -22,6 +22,7 @@ from sage.categories.cartesian_product import CartesianProductsCategory, cartesi
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.categories.morphism import SetMorphism
+from sage.categories.rings import Rings
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import have_same_parent
 
@@ -116,8 +117,16 @@ class Algebras(Category_over_base_ring):
                 B[word: ]
 
             """
-            # Should be a morphism of Algebras(self.base_ring()), but e.g. QQ is not in Algebras(QQ)
-            from sage.categories.rings import Rings
+            # If self has an attribute _no_generic_basering_coercion
+            # set to True, then this declaration is skipped.
+            # This trick, introduced in #11900, is used in
+            # sage.matrix.matrix_space.py and
+            # sage.rings.polynomial.polynomial_ring.
+            # It will hopefully be refactored into something more
+            # conceptual later on.
+            if getattr(self,'_no_generic_basering_coercion',False):
+                return
+
             base_ring = self.base_ring()
             if base_ring is self:
                 # There are rings that are their own base rings. No need to register that.
@@ -127,6 +136,7 @@ class Algebras(Category_over_base_ring):
                 # has already been registered.
                 return
             mor = None
+            # This could be a morphism of Algebras(self.base_ring()); however, e.g., QQ is not in Algebras(QQ)
             H = Hom(base_ring, self, Rings())
 
             # Idea: There is a generic method "from_base_ring", that just does multiplication with

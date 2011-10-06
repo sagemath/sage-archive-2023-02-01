@@ -9,7 +9,8 @@ class FiniteFieldHomset(RingHomset_generic):
     """
     def __call__(self, im_gens, check=True):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = ZZ[]
             sage: E.<a> = GF(25, modulus = t^2 - 2)
             sage: F.<b> = GF(625)
@@ -61,7 +62,8 @@ class FiniteFieldHomset(RingHomset_generic):
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Hom(GF(4, 'a'), GF(16, 'b'))
             Set of field embeddings from Finite Field in a of size 2^2 to Finite Field in b of size 2^4
             sage: Hom(GF(4, 'a'), GF(4, 'c'))
@@ -78,7 +80,8 @@ class FiniteFieldHomset(RingHomset_generic):
 
     def is_aut(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Hom(GF(4, 'a'), GF(16, 'b')).is_aut()
             False
             sage: Hom(GF(4, 'a'), GF(4, 'c')).is_aut()
@@ -92,7 +95,8 @@ class FiniteFieldHomset(RingHomset_generic):
         """
         Return the order of this set of field homomorphisms.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = GF(125)
             sage: End(K)
             Automorphism group of Finite Field in a of size 5^3
@@ -114,7 +118,8 @@ class FiniteFieldHomset(RingHomset_generic):
         """
         Return a list of all the elements in this set of field homomorphisms.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = GF(25)
             sage: End(K)
             Automorphism group of Finite Field in a of size 5^2
@@ -162,7 +167,8 @@ class FiniteFieldHomset(RingHomset_generic):
 
     def __getitem__(self, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: H = Hom(GF(32, 'a'), GF(1024, 'b'))
             sage: H[1]
             Ring morphism:
@@ -185,7 +191,8 @@ class FiniteFieldHomset(RingHomset_generic):
 
     def index(self, item):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<z> = GF(1024)
             sage: g = End(K)[3]
             sage: End(K).index(g) == 3

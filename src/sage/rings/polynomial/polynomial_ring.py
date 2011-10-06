@@ -16,6 +16,8 @@ AUTHOR:
 
 - Simon King (2011-05): Dense and sparse polynomial rings must not be equal.
 
+- Simon King (2011-10): Choice of categories for polynomial rings.
+
 EXAMPLES:
 
 Creating a polynomial ring injects the variable into the interpreter namespace::
@@ -147,6 +149,7 @@ These may change over time::
 #*****************************************************************************
 
 from sage.structure.element import Element
+from sage.structure.category_object import check_default_category
 import sage.algebras.algebra
 import sage.categories.basic as categories
 import sage.rings.commutative_ring as commutative_ring
@@ -160,6 +163,7 @@ import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing, IntegerRing
 from sage.rings.integer import Integer
 from sage.libs.pari.all import pari_gen
+from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default_category
 
 import sage.misc.latex as latex
 from sage.misc.prandom import randint
@@ -172,10 +176,8 @@ from sage.rings.fraction_field_element import FractionFieldElement
 
 from polynomial_element import PolynomialBaseringInjection
 
-from sage.categories.algebras import Algebras
-from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.commutative_rings import CommutativeRings
-
+_CommutativeRings = CommutativeRings()
 
 import cyclotomic
 
@@ -234,6 +236,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     """
     Univariate polynomial ring over a ring.
     """
+    _no_generic_basering_coercion = True
     def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
         """
         EXAMPLES::
@@ -250,22 +253,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             Join of Category of euclidean domains and Category of commutative algebras over Finite Field of size 7
 
         """
-        R_cat = base_ring.category()
-        if R_cat.is_subcategory(categories.Fields()):
-            category = categories.EuclideanDomains()
-        elif R_cat.is_subcategory(categories.UniqueFactorizationDomains()):
-            category = categories.UniqueFactorizationDomains()
-        elif R_cat.is_subcategory(categories.IntegralDomains()):
-            category = categories.IntegralDomains()
-        elif R_cat.is_subcategory(categories.CommutativeRings()):
-            category = categories.CommutativeRings()
-        else:
-            category = categories.Rings()
-        if R_cat.is_subcategory(categories.CommutativeRings()):
-            category = category.join([category,sage.categories.commutative_algebras.CommutativeAlgebras(base_ring)])
-        else:
-            category = category.join([category,sage.categories.algebras.Algebras(base_ring)])
-
+        # We trust that, if category is given, it is useful and does not need to be joined
+        # with the default category
+        if category is None:
+            category = polynomial_default_category(base_ring,False)
         self.__is_sparse = sparse
         if element_class:
             self._polynomial_class = element_class
@@ -280,15 +271,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
         # tries to provide a conversion from the base ring, if it does not exist.
         # This is for algebras that only do the generic stuff in their initialisation.
-        # But here, we want to use PolynomialBaseringInjection. Hence, we need to
-        # wipe the memory and construct the conversion from scratch.
+        # But the attribute _no_generic_basering_coercion prevents that from happening,
+        # since we want to use PolynomialBaseringInjection.
         sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
         self.__generator = self._polynomial_class(self, [0,1], is_gen=True)
-        base_inject = PolynomialBaseringInjection(base_ring, self)
-        self._unset_coercions_used()
         self._populate_coercion_lists_(
-                coerce_list = [base_inject],
-                convert_list = [list, base_inject],
+                #coerce_list = [base_inject],
+                #convert_list = [list, base_inject],
                 convert_method_name = '_polynomial_')
 
 
@@ -544,12 +533,16 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: Q.base_ring() is P.remove_var(Q.variable_name())
             True
         """
+        # In the first place, handle the base ring
+        base_ring = self.base_ring()
+        if P is base_ring:
+            return PolynomialBaseringInjection(base_ring, self)
         # handle constants that canonically coerce into self.base_ring()
         # first, if possible
         try:
-            connecting = self.base_ring().coerce_map_from(P)
+            connecting = base_ring.coerce_map_from(P)
             if connecting is not None:
-                return self.coerce_map_from(self.base_ring()) * connecting
+                return self.coerce_map_from(base_ring) * connecting
         except TypeError:
             pass
 
@@ -560,8 +553,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 if self.__is_sparse and not P.is_sparse():
                     return False
                 if P.variable_name() == self.variable_name():
-                    if P.base_ring() is self.base_ring() and \
-                            self.base_ring() is ZZ_sage:
+                    if P.base_ring() is base_ring and \
+                            base_ring is ZZ_sage:
                         # We're trying to coerce from FLINT->NTL
                         # or vice versa.  Only allow coercions from
                         # NTL->FLINT, not vice versa.
@@ -574,7 +567,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                         # become useful.
                         if self._implementation_names == ('NTL',):
                             return False
-                    return self.base_ring().has_coerce_map_from(P.base_ring())
+                    return base_ring.has_coerce_map_from(P.base_ring())
         except AttributeError:
             pass
 
@@ -1290,12 +1283,11 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
     Univariate polynomial ring over a commutative ring.
     """
     def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
-        if not (isinstance(base_ring, commutative_ring.CommutativeRing) or base_ring in CommutativeRings()):
-            raise TypeError, "Base ring must be a commutative ring."
-        if category is not None:
-            category = category.join([category, CommutativeAlgebras(base_ring)])
-        else:
-            category = CommutativeAlgebras(base_ring)
+        if base_ring not in _CommutativeRings:
+            raise TypeError, "Base ring %s must be a commutative ring."%repr(base_ring)
+        # We trust that, if a category is given, that it is useful.
+        if category is None:
+            category = polynomial_default_category(base_ring,False)
         PolynomialRing_general.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
 

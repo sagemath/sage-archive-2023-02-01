@@ -12,10 +12,11 @@ Number fields
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 from sage.categories.basic import Fields
 
-class NumberFields(Category):
+class NumberFields(Category_singleton):
     r"""
     The category of number fields.
 

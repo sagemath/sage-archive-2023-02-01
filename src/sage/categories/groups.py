@@ -13,10 +13,11 @@ Groups
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
 
-class Groups(Category):
+class Groups(Category_singleton):
     """
     The category of (multiplicative) groups, i.e. monoids with
     inverses.

@@ -10,10 +10,11 @@ Enumerated Sets
 
 from sage.misc.cachefunc import cached_method
 from category_types import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_cat import EmptySetError
 
-class EnumeratedSets(Category):
+class EnumeratedSets(Category_singleton):
     """
     The category of enumerated sets
 

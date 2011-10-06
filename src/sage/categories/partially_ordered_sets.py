@@ -9,10 +9,11 @@ Partially ordered sets
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.basic import Sets
 from sage.misc.cachefunc import cached_method
 
-class PartiallyOrderedSets(Category):
+class PartiallyOrderedSets(Category_singleton):
     """
     The category of partially ordered sets
 

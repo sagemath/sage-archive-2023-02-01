@@ -9,9 +9,10 @@ Division rings
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 
-class DivisionRings(Category):
+class DivisionRings(Category_singleton):
     """
     The category of division rings
 

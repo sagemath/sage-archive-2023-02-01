@@ -1501,13 +1501,25 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         INPUT:
 
             - copy -- bool, whether returned list is a copy that is
-              safe to change
+              safe to change, is ignored.
 
         EXAMPLES::
 
-            sage: v = vector([1,2/3,8], sparse=True)
-            sage: v.list()
-            [1, 2/3, 8]
+            sage: P.<x,y,z> = QQ[]
+            sage: v = vector([x,y,z], sparse=True)
+            sage: type(v)
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+            sage: a = v.list(); a
+            [x, y, z]
+            sage: a[0] = x*y; v
+            (x, y, z)
+
+        The optional argument ``copy`` is ignored::
+
+            sage: a = v.list(copy=False); a
+            [x, y, z]
+            sage: a[0] = x*y; v
+            (x, y, z)
         """
         cdef Py_ssize_t i
         return [self[i] for i in range(self.degree())]
@@ -3639,19 +3651,18 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
         EXAMPLES::
 
-            sage: v = vector([1,2/3,pi])
+            sage: P.<x,y,z> = QQ[]
+            sage: v = vector([x,y,z])
             sage: type(v)
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
             sage: a = v.list(); a
-            [1, 2/3, pi]
-            sage: a[0] = 20; v
-            (1, 2/3, pi)
+            [x, y, z]
+            sage: a[0] = x*y; v
+            (x, y, z)
             sage: a = v.list(copy=False); a
-            [1, 2/3, pi]
-            sage: a[0] = 20; v
-            (20, 2/3, pi)
-            sage: v
-            (20, 2/3, pi)
+            [x, y, z]
+            sage: a[0] = x*y; v
+            (x*y, y, z)
         """
         if copy:
             return list(self._entries)

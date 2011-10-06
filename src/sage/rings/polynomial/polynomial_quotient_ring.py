@@ -35,6 +35,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
 
+from sage.categories.commutative_algebras import CommutativeAlgebras
 
 from sage.structure.parent_gens import ParentWithGens
 
@@ -216,7 +217,75 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         0
         sage: f(x^2)
         4
+
+    TESTS:
+
+    By trac ticket #11900, polynomial quotient rings use Sage's
+    category framework. They do so in an unusual way: During their
+    initialisation, they are declared to be objects in the category of
+    quotients of commutative algebras over a base ring. However, if it
+    is tested whether a quotient ring is actually a field, the
+    category might be refined, which also includes a change of the
+    class of the quotient ring and its newly created elements.
+
+    Thus, in order to document that this works fine, we go into some detail::
+
+        sage: P.<x> = QQ[]
+        sage: Q = P.quotient(x^2+2)
+        sage: Q.category()
+        Join of Category of commutative algebras over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups
+
+    The test suite passes::
+
+        sage: TestSuite(Q).run()
+
+    We verify that the elements belong to the correct element class.
+    Also, we list the attributes that are provided by the element
+    class of the category, and store the current class of the quotient
+    ring::
+
+        sage: isinstance(Q.an_element(),Q.element_class)
+        True
+        sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
+        ['cartesian_product', 'is_idempotent', 'is_one', 'lift']
+        sage: first_class = Q.__class__
+
+    We try to find out whether `Q` is a field. Indeed it is, and thus its category,
+    including its class and element class, is changed accordingly::
+
+        sage: Q in Fields()
+        True
+        sage: Q.category()
+        Join of Category of commutative algebras over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups and Category of fields
+        sage: first_class == Q.__class__
+        False
+        sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
+        ['cartesian_product', 'gcd', 'is_idempotent', 'is_one', 'lcm', 'lift']
+
+    As one can see, the elements are now inheriting additional methods: lcm and gcd. Even though
+    ``Q.an_element()`` belongs to the old and not to the new element class, it still inherits
+    the new methods from the category of fields::
+
+        sage: isinstance(Q.an_element(),Q.element_class)
+        False
+        sage: Q.an_element().gcd.__module__
+        'sage.categories.fields'
+
+    Since the category has changed, we repeat the test suite. However, we have to skip the test
+    for its elements, since `an_element` has been cached in the previous run of the test suite,
+    and we have already seen that its class is not matching the new element class::
+
+        sage: TestSuite(Q).run(skip=['_test_elements'])
+
+    Newly created elements are fine, though, and their test suite passes::
+
+        sage: TestSuite(Q(x)).run()
+        sage: isinstance(Q(x), Q.element_class)
+        True
+
     """
+    Element = PolynomialQuotientRingElement
+
     def __init__(self, ring, polynomial, name=None):
         if not isinstance(ring, PolynomialRing_commutative):
             raise TypeError, "R must be a univariate polynomial ring."
@@ -227,9 +296,9 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         if polynomial.parent() != ring:
             raise TypeError, "f must have parent R"
 
-        ParentWithGens.__init__(self, ring, names=name)
         self.__ring = ring
         self.__polynomial = polynomial
+        sage.rings.commutative_ring.CommutativeRing.__init__(self, ring, names=name, category=CommutativeAlgebras(ring.base_ring()).Quotients())
 
     def __reduce__(self):
         return PolynomialQuotientRing_generic, (self.__ring, self.__polynomial, self.variable_names())
@@ -282,8 +351,8 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             P = x.parent()
             if P is self:
                 return x
-            return PolynomialQuotientRingElement(self, self.__ring(x.lift()), check=False)
-        return PolynomialQuotientRingElement(
+            return self.element_class(self, self.__ring(x.lift()), check=False)
+        return self.element_class(
                         self, self.__ring(x) , check=True)
 
     def _coerce_map_from_(self, R):
@@ -345,9 +414,34 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         """
         if isinstance(x, PolynomialQuotientRingElement):
             if x.parent() == self:
-                return PolynomialQuotientRingElement(self, self.__ring(x.lift()), check=False)
+                return self.element_class(self, self.__ring(x.lift()), check=False)
         # any ring that coerces to the base ring of this polynomial ring.
         return self._coerce_try(x, [self.polynomial_ring()])
+
+    ############################################
+    ## Methods to make the category framework happy...
+    ##
+
+    retract = _coerce_impl
+    ambient = sage.rings.commutative_ring.CommutativeRing.base
+
+    def lift(self, x):
+        """
+        Return an element of the ambient ring mapping to the given argument.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: Q = P.quotient(x^2+2)
+            sage: Q.lift(Q.0^3)
+            -2*x
+            sage: Q(-2*x)
+            -2*xbar
+            sage: Q.0^3
+            -2*xbar
+
+        """
+        return x.lift()
 
     def __cmp__(self, other):
         """
@@ -435,6 +529,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         from sage.categories.pushout import QuotientFunctor
         return QuotientFunctor([self.modulus()]*self.base(),self.variable_names(),self.is_field()), self.base()
 
+    @cached_method
     def base_ring(self):
         r"""
         Return the base ring of the polynomial ring, of which this ring is
@@ -797,11 +892,11 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
             sage: CG = S.S_class_group([])
             sage: type(CG[0][0][1])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_generic_with_category.element_class'>
             sage: type(CG[0][1])
             <type 'sage.rings.integer.Integer'>
             sage: type(CG[0][2])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_generic_with_category.element_class'>
 
         """
         return self._S_class_group_and_units(tuple(S), proof=proof)[1]
@@ -883,11 +978,11 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
             sage: CG = S.class_group()
             sage: type(CG[0][0][1])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_generic_with_category.element_class'>
             sage: type(CG[0][1])
             <type 'sage.rings.integer.Integer'>
             sage: type(CG[0][2])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_generic_with_category.element_class'>
 
         """
         return self._S_class_group_and_units((), proof=proof)[1]
@@ -941,7 +1036,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
             sage: U = L.S_units([])
             sage: type(U[0][0])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_field_with_category.element_class'>
             sage: type(U[0][1])
             <type 'sage.rings.integer.Integer'>
             sage: type(U[1][1])
@@ -998,7 +1093,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: L.<b> = K['y'].quotient(y^3 + 5)
             sage: U = L.units()
             sage: type(U[0][0])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_field_with_category.element_class'>
             sage: type(U[0][1])
             <type 'sage.rings.integer.Integer'>
             sage: type(U[1][1])
@@ -1281,7 +1376,7 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
             sage: F, g, h = S.field_extension('b')
             Traceback (most recent call last):
             ...
-            AttributeError: 'PolynomialQuotientRing_generic' object has no attribute 'field_extension'
+            AttributeError: 'PolynomialQuotientRing_generic_with_category' object has no attribute 'field_extension'
 
         Over a finite field, the corresponding field extension is not a
         number field::

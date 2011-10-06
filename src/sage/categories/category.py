@@ -38,6 +38,19 @@ of all objects of `O`. For example::
     sage: x = V.gen(1)
     sage: x.category()
     Category of elements of Vector space of dimension 3 over Rational Field
+
+Currently, an object is considered *in* a category as soon as it has a
+category method returning an appropriate value::
+
+    sage: class A:
+    ...     def category(self):
+    ...         return Fields()
+    sage: A() in Rings()
+    True
+
+This feature is deprecated, though. If at all possible, any object in any category
+should be an instance of :class:`CategoryObject`.
+
 """
 
 #*****************************************************************************
@@ -51,12 +64,60 @@ of all objects of `O`. For example::
 
 from sage.misc.abstract_method import abstract_methods_of_class
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, cached_function
 #from sage.misc.misc import attrcall
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.dynamic_class import dynamic_class
+from sage.structure.dynamic_class import dynamic_class_internal
+
+@cached_function
+def _join(categories, as_list):
+    """
+    This is an auxiliary function for :meth:`Category.join`
+
+    NOTE:
+
+    It is used for getting a temporary speed-up at trac ticket #11900.
+    But it is supposed to be replaced by a better solution at trac
+    ticket #11943.
+
+    INPUT:
+
+    - ``categories``: A tuple (no list) of categories.
+    - ``as_list`` (boolean): Whether or not the result should be represented as a list.
+
+    EXAMPLES::
+
+        sage: Category.join((Groups(), CommutativeAdditiveMonoids()))  # indirect doctest
+        Join of Category of groups and Category of commutative additive monoids
+        sage: Category.join((Modules(ZZ), FiniteFields()), as_list=True)
+        [Category of modules over Integer Ring, Category of finite fields]
+
+    """
+    # Since Objects() is the top category, it is the neutral element of join
+    if len(categories) == 0:
+        from objects import Objects
+        return Objects()
+
+    # Ensure associativity by flattening JoinCategory's
+    # Invariant: the super categories of a JoinCategory are not JoinCategories themselves
+    categories = sum( (tuple(category.super_categories()) if isinstance(category, JoinCategory) else (category,)
+                       for category in categories), ())
+
+    # remove redundant categories which are super categories of others
+    result = ()
+    for category in categories:
+        if any(cat.is_subcategory(category) for cat in result):
+            continue
+        result = tuple( cat for cat in result if not category.is_subcategory(cat) ) + (category,)
+    if as_list:
+        return list(result)
+    if len(result) == 1:
+        return result[0]
+    else:
+        return JoinCategory(result)
+
 
 class Category(UniqueRepresentation, SageObject):
     r"""
@@ -344,23 +405,54 @@ class Category(UniqueRepresentation, SageObject):
             sage: C
             Category of SPR
         """
-        if s is None:  # figure out from the type name!
-            t = str(type(self))
-            t = t[t.rfind('.')+1:]
-            s = t[:t.rfind("'")]
-            self.__label = s
-            i = -1
-            while i < len(s)-1:
-                for i in range(len(s)):
-                    if s[i].isupper():
-                        s = s[:i] + " " + s[i].lower() + s[i+1:]
-                        break
-            s = s.lstrip()
-        elif isinstance(s, str):
-            self.__label = s
+        if s is None:
+            return
+        if isinstance(s, str):
+            self._label = s
+            self.__repr_object_names = s
         else:
             raise TypeError, "Argument string must be a string."
-        self.__repr_object_names = s
+
+    @lazy_attribute
+    def _label(self):
+        """
+        A short name of self, obtained from its type.
+
+        EXAMPLES::
+
+            sage: Rings()._label
+            'Rings'
+
+        """
+        t = str(type(self))
+        t = t[t.rfind('.')+1:]
+        return t[:t.rfind("'")]
+
+    @lazy_attribute
+    def __repr_object_names(self):
+        """
+        Determine the name of the objects of this category
+        from its type, if it has not been explicitly given
+        at initialisation.
+
+        EXAMPLES::
+
+            sage: Rings().__repr_object_names
+            'rings'
+            sage: PrincipalIdealDomains().__repr_object_names
+            'principal ideal domains'
+
+            sage: Rings()
+            Category of rings
+        """
+        i = -1
+        s = self._label
+        while i < len(s)-1:
+            for i in range(len(s)):
+                if s[i].isupper():
+                    s = s[:i] + " " + s[i].lower() + s[i+1:]
+                    break
+        return s.lstrip()
 
     def _repr_object_names(self):
         """
@@ -390,7 +482,7 @@ class Category(UniqueRepresentation, SageObject):
         Conventions for short names should be discussed at the level
         of Sage, and only then applied accordingly here.
         """
-        return self.__label
+        return self._label
 
     @classmethod
     def an_instance(cls):
@@ -552,6 +644,33 @@ class Category(UniqueRepresentation, SageObject):
          return category_graph([self])
 
     @cached_method
+    def _all_super_categories_raw(self):
+        """
+        Return all super categories of this category, without removing duplicates.
+
+        TEST::
+
+            sage: Rngs()._all_super_categories_raw()
+            [Category of commutative additive groups,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of additive magmas, Category of sets,
+             Category of sets with partial maps,
+             Category of objects,
+             Category of semigroups,
+             Category of magmas,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of objects]
+
+        """
+        all_categories = []
+        for cat in self.super_categories():
+            all_categories.append(cat)
+            all_categories.extend(cat._all_super_categories_raw())
+        return all_categories
+
+    @cached_method
     def all_super_categories(self, proper = False):
         r"""
         Returns a linear extension (topological sort) of all the
@@ -583,20 +702,9 @@ class Category(UniqueRepresentation, SageObject):
              Category of algebras over Rational Field,
              ...]
         """
-#            done = set()
-        all_categories = []
-        def add_successors(cat): # Factor this out!
-#                if cat in done:
-#                    return;
-#                done.add(cat)
-            for super in cat.super_categories():
-                all_categories.append(super)
-                add_successors(super)
-        add_successors(self)
-        all_categories.reverse()
         done = set()
         linear_extension = []
-        for cat in all_categories:
+        for cat in reversed(self._all_super_categories_raw()):
             if not cat in done:
                 done.add(cat)
                 linear_extension.append(cat)
@@ -637,7 +745,21 @@ class Category(UniqueRepresentation, SageObject):
             sage: type(C)
             <class 'sage.structure.dynamic_class.DynamicMetaclass'>
         """
-        return dynamic_class("%s.parent_class"%self.__class__.__name__,
+        # Remark:
+        # For now, we directly call the underlying function, avoiding the overhead
+        # of using a cached function. The rationale: When this lazy method is called
+        # then we can be sure that the parent class had not been constructed before.
+        # The parent and element classes belong to a category, and they are pickled
+        # as such. Hence, they are rightfully cached as an attribute of a category.
+        #
+        # However, we should try to "unify" parent classes. They should depend on the
+        # super categories, but not on the base (except when the super categories depend
+        # on the base). When that is done, calling the cached function will be needed again.
+        #return dynamic_class("%s.parent_class"%self.__class__.__name__,
+        #                     tuple(cat.parent_class for cat in self.super_categories()),
+        #                     self.ParentMethods,
+        #                     reduction = (getattr, (self, "parent_class")))
+        return dynamic_class_internal.f("%s.parent_class"%self.__class__.__name__,
                              tuple(cat.parent_class for cat in self.super_categories()),
                              self.ParentMethods,
                              reduction = (getattr, (self, "parent_class")))
@@ -654,11 +776,25 @@ class Category(UniqueRepresentation, SageObject):
             sage: type(C)
             <class 'sage.structure.dynamic_class.DynamicMetaclass'>
         """
-        return dynamic_class("%s.element_class"%self.__class__.__name__,
-                             (cat.element_class for cat in self.super_categories()),
+        # Remark:
+        # For now, we directly call the underlying function, avoiding the overhead
+        # of using a cached function. The rationale: When this lazy method is called
+        # then we can be sure that the element class had not been constructed before.
+        # The parent and element classes belong to a category, and they are pickled
+        # as such. Hence, they are rightfully cached as an attribute of a category.
+        #
+        # However, we should try to "unify" element classes. They should depend on the
+        # super categories, but not on the base (except when the super categories depend
+        # on the base). When that is done, calling the cached function will be needed again.
+        #return dynamic_class("%s.element_class"%self.__class__.__name__,
+        #                     (cat.element_class for cat in self.super_categories()),
+        #                     self.ElementMethods,
+        #                     reduction = (getattr, (self, "element_class"))
+        #                     )
+        return dynamic_class_internal.f("%s.element_class"%self.__class__.__name__,
+                             tuple(cat.element_class for cat in self.super_categories()),
                              self.ElementMethods,
-                             reduction = (getattr, (self, "element_class"))
-                             )
+                             reduction = (getattr, (self, "element_class")))
 
     def required_methods(self):
         """
@@ -719,10 +855,27 @@ class Category(UniqueRepresentation, SageObject):
             sage: PoV3.is_subcategory(PoA3)
             False
         """
+        if c is self:
+            return True
         assert(isinstance(c, Category))
-#        print "%s in %s: %s"%(self, c, c in self.all_super_categories())
         if isinstance(c, JoinCategory):
             return all(self.is_subcategory(x) for x in c.super_categories())
+        if isinstance(self, JoinCategory):
+            for cat in self.super_categories():
+                if cat.is_subcategory(c):
+                    return True
+            return False
+        try:
+            cbase = c.base()
+        except (AttributeError, TypeError, NotImplementedError):
+            cbase = None
+        if cbase is not None:
+            try:
+                selfbase = self.base()
+            except (AttributeError, TypeError, NotImplementedError):
+                selfbase = None
+            if selfbase is not cbase:
+                return False
         return c in self.all_super_categories()
 
     def or_subcategory(self, category = None):
@@ -785,6 +938,7 @@ class Category(UniqueRepresentation, SageObject):
         else:
             return any(isinstance(cat, c) for cat in self.all_super_categories())
 
+    @cached_method
     def _meet_(self, other):
         """
         Returns the largest common subcategory of self and other:
@@ -806,6 +960,8 @@ class Category(UniqueRepresentation, SageObject):
             Category of rings
             sage: Groups()._meet_(Rings())
             Category of monoids
+            sage: Algebras(QQ)._meet_(Category.join([Fields(), ModulesWithBasis(QQ)]))
+            Join of Category of rings and Category of vector spaces over Rational Field
 
         Note: abstractly, the category poset is a distributive
         lattice, so this is well defined; however, the subset of those
@@ -832,6 +988,10 @@ class Category(UniqueRepresentation, SageObject):
             return self
         elif self.is_subcategory(other):
             return other
+        elif other.is_subcategory(self):
+            # Useful fast pathway; try:
+            # %time L = EllipticCurve('960d1').prove_BSD()
+            return self
         else:
             return Category.join(self._meet_(sup) for sup in other.super_categories())
 
@@ -918,29 +1078,7 @@ class Category(UniqueRepresentation, SageObject):
             [Category of rings]
 
         """
-        categories = tuple(categories)
-        # Since Objects() is the top category, it is the neutral element of join
-        if len(categories) == 0:
-            from objects import Objects
-            return Objects()
-
-        # Ensure associativity by flattening JoinCategory's
-        # Invariant: the super categories of a JoinCategory are not JoinCategories themselves
-        categories = sum( (tuple(category.super_categories()) if isinstance(category, JoinCategory) else (category,)
-                           for category in categories), ())
-
-        # remove redundant categories which are super categories of others
-        result = ()
-        for category in categories:
-            if any(cat.is_subcategory(category) for cat in result):
-                continue
-            result = tuple( cat for cat in result if not category.is_subcategory(cat) ) + (category,)
-        if as_list:
-            return list(result)
-        if len(result) == 1:
-            return result[0]
-        else:
-            return JoinCategory(result)
+        return _join(tuple(categories), as_list)
 
     def category(self):
         """
@@ -970,7 +1108,7 @@ class Category(UniqueRepresentation, SageObject):
     #
     # DualObjects       = dual.DualObjects
     # Algebras          = algebra_functor.Algebras
-
+    @cached_method
     def hom_category(self):
         """
         Returns the category for homsets between objects this category.
@@ -1213,8 +1351,22 @@ class HomCategory(Category):
         """
         return "hom sets in %s"%self.base_category
 
-#    def construction(self):
-#        return (attrcall("hom_category"), self.base_category)
+    @cached_method
+    def base(self):
+        """
+        If this hom-category is subcategory of a category with a base, return that base.
+
+        EXAMPLES::
+
+            sage: ModulesWithBasis(ZZ).hom_category().base()
+            Integer Ring
+
+        """
+        from sage.categories.category_types import Category_over_base
+        for C in self.all_super_categories():
+            if isinstance(C,Category_over_base):
+                return C.base()
+        raise AttributeError, "This hom category has no base"
 
     @cached_method
     def super_categories(self):

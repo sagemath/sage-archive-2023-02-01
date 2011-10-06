@@ -145,6 +145,17 @@ class CartesianProductsCategory(CovariantConstructionCategory):
         """
         return self
 
+    def base(self):
+        """
+        The base of a cartesian product is the base (usually a ring) of the underlying category.
+
+        EXAMPLES::
+
+            sage: Algebras(ZZ).CartesianProducts().base()
+            Integer Ring
+        """
+        return self.base_category().base()
+
 # This is Category.CartesianProducts
 def CartesianProducts(self):
     """

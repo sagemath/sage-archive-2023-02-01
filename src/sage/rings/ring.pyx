@@ -1,9 +1,19 @@
 """
 Rings
 
-This module provides the abstract base class :class:`Ring` from which all rings
-in Sage are derived, as well as a selection of more specific base classes. The
-class inheritance hierarchy is:
+This module provides the abstract base class :class:`Ring` from which
+all rings in Sage (used to) derive, as well as a selection of more
+specific base classes.
+
+.. warning::
+
+    Those classes, except maybe for the lowest ones like Ring,
+    CommutativeRing, Algebra and CommutativeAlgebra, are being
+    progressively deprecated in favor of the corresponding categories.
+    which are more flexible, in particular with respect to multiple
+    inheritance.
+
+The class inheritance hierarchy is:
 
 - :class:`Ring`
 
@@ -60,11 +70,23 @@ include "../ext/python_bool.pxi"
 import re
 from types import GeneratorType
 
+from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.category_object import check_default_category
 from sage.misc.prandom import randint, randrange
 from sage.categories.rings import Rings
+from sage.categories.commutative_rings import CommutativeRings
+from sage.categories.commutative_algebras import CommutativeAlgebras
+from sage.categories.algebras import Algebras
+from sage.categories.integral_domains import IntegralDomains
+from sage.categories.principal_ideal_domains import PrincipalIdealDomains
+from sage.categories.euclidean_domains import EuclideanDomains
+from sage.categories.fields import Fields
+
+_Rings = Rings()
+_CommutativeRings = CommutativeRings()
+_Fields = Fields()
 
 cdef class Ring(ParentWithGens):
     """
@@ -110,21 +132,27 @@ cdef class Ring(ParentWithGens):
         sage: QQ['x'].category()
         Join of Category of euclidean domains and Category of commutative algebras over Rational Field
         sage: QQ['x','y'].category()
-        Category of commutative algebras over Rational Field
+        Join of Category of unique factorization domains and Category of commutative algebras over Rational Field
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
         Category of algebras over Full MatrixSpace of 2 by 2 dense matrices over Rational Field
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of algebras over mod 2 Steenrod algebra, milnor basis
 
      """
-    # Unfortunately, ParentWithGens inherits from sage.structure.parent_old.Parent.
-    # Its __init__ method does *not* call Parent.__init__, since this would somehow
-    # yield an infinite recursion. But when we call it from here, it works.
-    # This is done in order to ensure that __init_extra__ is called.
     def __init__(self, base, names=None, normalize=True, category = None):
-        from sage.categories.rings import Rings
-        ParentWithGens.__init__(self, base, names=names, normalize=normalize)
-        Parent.__init__(self, category=check_default_category(Rings(),category))
+        # Unfortunately, ParentWithGens inherits from sage.structure.parent_old.Parent.
+        # Its __init__ method does *not* call Parent.__init__, since this would somehow
+        # yield an infinite recursion. But when we call it from here, it works.
+        # This is done in order to ensure that __init_extra__ is called.
+        #
+        # ParentWithGens.__init__(self, base, names=names, normalize=normalize)
+        #
+        # This is a low-level class. For performance, we trust that the category
+        # is fine, if it is provided. If it isn't, we use the category of rings.
+        if category is None:
+            category=_Rings
+        Parent.__init__(self, base=base, names=names, normalize=normalize,
+                        category=category)
 
     def __iter__(self):
         r"""
@@ -352,7 +380,7 @@ cdef class Ring(ParentWithGens):
 
         Since a quotient of the integers is its own base ring, and during
         initialisation of a ring it is tested whether the base ring belongs
-        to the category of rings, the following is an indirec test that the
+        to the category of rings, the following is an indirect test that the
         ``category()`` method of rings returns the category of rings
         even before the initialisation was successful::
 
@@ -369,7 +397,7 @@ cdef class Ring(ParentWithGens):
         # For rings, however, it is strictly needed that self.category()
         # returns (a sub-category of) the category of rings before
         # initialisation has finished.
-        return self._category or Rings()
+        return self._category or _Rings
 
     def ideal(self, *args, **kwds):
         """
@@ -1122,10 +1150,19 @@ cdef class CommutativeRing(Ring):
     Generic commutative ring.
     """
     def __init__(self, base_ring, names=None, normalize=True, category=None):
-        from sage.categories.commutative_rings import CommutativeRings
-        if not (isinstance(base_ring,CommutativeRing) or base_ring in CommutativeRings()):
+        try:
+            if not base_ring.is_commutative():
+                raise TypeError, "base ring %s is no commutative ring"%base_ring
+        except AttributeError:
             raise TypeError, "base ring %s is no commutative ring"%base_ring
-        Ring.__init__(self, base_ring, names=names, normalize=normalize, category=check_default_category(CommutativeRings(), category))
+        # This is a low-level class. For performance, we trust that
+        # the category is fine, if it is provided. If it isn't, we use
+        # the category of commutative rings.
+        if category is None:
+            category=_CommutativeRings
+        Ring.__init__(self, base_ring, names=names, normalize=normalize,
+                      category=category)
+
     def fraction_field(self):
         """
         Return the fraction field of self.
@@ -1427,10 +1464,69 @@ cdef class CommutativeRing(Ring):
 cdef class IntegralDomain(CommutativeRing):
     """
     Generic integral domain class.
+
+    This class is deprecated. Please use the :class:`IntegralDomains`
+    category instead.
     """
+    _default_category = IntegralDomains()
+
     def __init__(self, base_ring, names=None, normalize=True, category=None):
-        from sage.categories.integral_domains import IntegralDomains
-        CommutativeRing.__init__(self,base_ring, names=names, normalize=normalize, category=check_default_category(IntegralDomains(),category))
+        """
+        INPUT:
+
+         - ``category`` -- a category, or None (default: None)
+
+        This method is used by all the abstract subclasses of
+        :class:`IntegralDomain`, like :class:`NoetherianRing`,
+        :class:`PrincipalIdealDomain`, :class:`DedekindDomain`,
+        :class:`EuclideanDomain`, :class:`Field`, ... in order to
+        avoid cascade calls Field.__init__ ->
+        PrincipalIdealDomain.__init__ -> IntegralDomain.__init__ ->
+        ...
+
+        EXAMPLES::
+
+            sage: F = IntegralDomain(QQ)
+            sage: F.category()
+            Category of integral domains
+
+            sage: F = PrincipalIdealDomain(QQ)
+            sage: F.category()
+            Category of principal ideal domains
+
+            sage: F = EuclideanDomain(QQ)
+            sage: F.category()
+            Category of euclidean domains
+
+            sage: F = Field(QQ)
+            sage: F.category()
+            Category of fields
+
+        If a category is specified, then the category is set to the
+        join of that category with the default category::
+
+            sage: F = PrincipalIdealDomain(QQ, category=EnumeratedSets())
+
+        The default value for the category is specified by the class
+        attribute ``default_category``::
+
+            sage: IntegralDomain._default_category
+            Category of integral domains
+
+            sage: PrincipalIdealDomain._default_category
+            Category of principal ideal domains
+
+            sage: EuclideanDomain._default_category
+            Category of euclidean domains
+
+            sage: Field._default_category
+            Category of fields
+
+        """
+        category = check_default_category(self._default_category, category)
+        CommutativeRing.__init__(self, base_ring, names=names, normalize=normalize,
+                                 category=category)
+
     def is_integral_domain(self, proof = True):
         """
         Return True, since this ring is an integral domain.
@@ -1519,8 +1615,10 @@ cdef class NoetherianRing(CommutativeRing):
     A Noetherian ring is a commutative ring in which every ideal is
     finitely generated.
 
-    At present this is not actually used anywhere in the Sage code base
-    (largely because of the lack of multiple inheritance for Cython classes).
+    This class is deprecated, and not actually used anywhere in the
+    Sage code base.  If you think you need it, please create a
+    category :class:`NoetherianRings`, move the code of this class
+    there, and use it instead.
     """
     def is_noetherian(self):
         """
@@ -1544,6 +1642,11 @@ cdef class DedekindDomain(IntegralDomain):
 
     A Dedekind domain is a Noetherian integral domain of Krull
     dimension one that is integrally closed in its field of fractions.
+
+    This class is deprecated, and not actually used anywhere in the
+    Sage code base.  If you think you need it, please create a
+    category :class:`DedekindDomains`, move the code of this class
+    there, and use it instead.
     """
     def krull_dimension(self):
         """
@@ -1660,10 +1763,12 @@ cdef class DedekindDomain(IntegralDomain):
 cdef class PrincipalIdealDomain(IntegralDomain):
     """
     Generic principal ideal domain.
+
+    This class is deprecated. Please use the
+    :class:`PrincipleIdealDomains` category instead.
     """
-    def __init__(self, base_ring, names=None, normalize=True, category=None):
-        from sage.categories.principal_ideal_domains import PrincipalIdealDomains
-        IntegralDomain.__init__(self, base_ring, names=names, normalize=normalize, category=check_default_category(PrincipalIdealDomains(),category))
+    _default_category = PrincipalIdealDomains()
+
     def is_noetherian(self):
         """
         Every principal ideal domain is noetherian, so we return True.
@@ -1800,10 +1905,12 @@ cdef class PrincipalIdealDomain(IntegralDomain):
 cdef class EuclideanDomain(PrincipalIdealDomain):
     """
     Generic Euclidean domain class.
+
+    This class is deprecated. Please use the
+    :class:`EuclideanDomains` category instead.
     """
-    def __init__(self, base_ring, names=None, normalize=True, category=None):
-        from sage.categories.euclidean_domains import EuclideanDomains
-        PrincipalIdealDomain.__init__(self, base_ring, names=names, normalize=normalize, category=check_default_category(EuclideanDomains(),category))
+    _default_category = EuclideanDomains()
+
     def parameter(self):
         """
         Return an element of degree 1.
@@ -1815,6 +1922,8 @@ cdef class EuclideanDomain(PrincipalIdealDomain):
             x
        """
         raise NotImplementedError
+
+cdef dict _is_Field_cache = {}
 
 def is_Field(x):
     """
@@ -1832,15 +1941,26 @@ def is_Field(x):
         sage: is_Field(5)
         False
     """
-    return isinstance(x, Field) or (hasattr(x, 'is_field') and x.is_field())
+    try:
+        result = _is_Field_cache[x]
+    except (TypeError,KeyError):
+        pass
+    # The cached result is not immediately returned, since otherwise
+    # a non-unique parent's category would be refined only once.
+    try:
+        result = isinstance(x, Field) or x.is_field()
+    except AttributeError:
+        result = False
+    _is_Field_cache[x] = result
+    if result:
+        x._refine_category_(_Fields)
+    return result
 
 cdef class Field(PrincipalIdealDomain):
     """
     Generic field
     """
-    def __init__(self, base_ring, names=None, normalize=True, category=None):
-        from sage.categories.fields import Fields
-        PrincipalIdealDomain.__init__(self, base_ring, names=names, normalize=normalize, category=check_default_category(Fields(),category))
+    _default_category = Fields()
 
     def fraction_field(self):
         """
@@ -2022,8 +2142,12 @@ cdef class Algebra(Ring):
     Generic algebra
     """
     def __init__(self, base_ring, names=None, normalize=True, category=None):
-        from sage.categories.algebras import Algebras
-        Ring.__init__(self,base_ring, names=names, normalize=normalize, category=check_default_category(Algebras(base_ring),category))
+        # This is a low-level class. For performance, we trust that the category
+        # is fine, if it is provided. If it isn't, we use the category of Algebras(base_ring).
+        if category is None:
+            category = Algebras(base_ring)
+        Ring.__init__(self,base_ring, names=names, normalize=normalize,
+                      category=category)
 
     def characteristic(self):
         r"""
@@ -2065,11 +2189,18 @@ cdef class CommutativeAlgebra(CommutativeRing):
             ...
             TypeError: base ring must be a commutative ring
         """
-        from sage.categories.commutative_algebras import CommutativeAlgebras
-        from sage.categories.commutative_rings import CommutativeRings
-        if not (isinstance(base_ring, CommutativeRing) or base_ring in CommutativeRings()):
+        # TODO: use the idiom base_ring in CommutativeRings()
+        try:
+            if not base_ring.is_commutative():
+                raise TypeError, "base ring must be a commutative ring"
+        except (AttributeError, NotImplementedError):
             raise TypeError, "base ring must be a commutative ring"
-        CommutativeRing.__init__(self, base_ring, names=names, normalize=normalize, category = check_default_category(CommutativeAlgebras(base_ring),category))
+        # This is a low-level class. For performance, we trust that
+        # the category is fine, if it is provided. If it isn't, we use
+        # the category of commutative algebras.
+        if category is None:
+            category = CommutativeAlgebras(base_ring)
+        CommutativeRing.__init__(self, base_ring, names=names, normalize=normalize, category=category)
 
     def is_commutative(self):
         """
@@ -2100,10 +2231,14 @@ def is_Ring(x):
         sage: from sage.rings.ring import is_Ring
         sage: is_Ring(ZZ)
         True
-    """
-    from sage.categories.rings import Rings
-    return isinstance(x, Ring) or x in Rings()
+        sage: MS = MatrixSpace(QQ,2)
+        sage: is_Ring(MS)
+        True
 
+    """
+    # TODO: use the idiom `x in _Rings` as soon as all rings will be
+    # in the category Rings()
+    return isinstance(x, Ring) or x in _Rings
 
 from sage.structure.parent_gens import _certify_names
 

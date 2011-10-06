@@ -10,9 +10,10 @@ Affine Weyl Groups
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.weyl_groups import WeylGroups
 
-class AffineWeylGroups(Category):
+class AffineWeylGroups(Category_singleton):
 
     @cached_method
     def super_categories(self):

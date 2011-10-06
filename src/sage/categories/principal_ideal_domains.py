@@ -9,9 +9,10 @@ Principal ideal domains
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 
-class PrincipalIdealDomains(Category):
+class PrincipalIdealDomains(Category_singleton):
     """
     The category of (constructive) principal ideal domains
 

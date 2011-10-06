@@ -10,10 +10,11 @@ Classical Crystals
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 
-class ClassicalCrystals(Category):
+class ClassicalCrystals(Category_singleton):
     """
     The category of classical crystals, that is crystals of finite Cartan type.
 

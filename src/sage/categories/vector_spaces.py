@@ -15,6 +15,8 @@ from category_types import Category_module
 from sage.categories.fields import Fields
 from sage.categories.dual import DualObjectsCategory
 from sage.misc.cachefunc import cached_method
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 class VectorSpaces(Category_module):
     """
@@ -29,6 +31,36 @@ class VectorSpaces(Category_module):
         sage: VectorSpaces(QQ).super_categories()
         [Category of modules over Rational Field]
     """
+    @staticmethod
+    def __classcall_private__(cls, K, check=True):
+        """
+        INPUT:
+
+        - `K` -- a field
+        - ``check`` -- a boolean (default: True) whether to check that `K` is a field.
+
+        EXAMPLES::
+
+            sage: VectorSpaces(QQ) is VectorSpaces(QQ, check=False)
+            True
+
+        By default, it is checked that ``K`` is a field::
+
+            sage: VectorSpaces(ZZ)
+            Traceback (most recent call last):
+            ...
+            AssertionError: The base ring must be a field.
+
+        With ``check=False``, the check is disabled, possibly enabling
+        incorrect inputs::
+
+            sage: VectorSpaces(ZZ, check=False)
+            Category of vector spaces over Integer Ring
+        """
+        if check:
+            assert K in _Fields, "The base ring must be a field."
+        return super(VectorSpaces, cls).__classcall__(cls, K)
+
     def __init__(self, K):
         """
         EXAMPLES::
@@ -38,8 +70,7 @@ class VectorSpaces(Category_module):
             sage: VectorSpaces(ZZ)
             Traceback (most recent call last):
             ...
-              assert K in Fields()
-            AssertionError
+            AssertionError: The base ring must be a field.
 
         TESTS::
 
@@ -47,7 +78,6 @@ class VectorSpaces(Category_module):
             sage: TestSuite(C).run()
             sage: TestSuite(VectorSpaces(QQ)).run()
         """
-        assert K in Fields()
         Category_module.__init__(self, K)
 
     def __call__(self, x):

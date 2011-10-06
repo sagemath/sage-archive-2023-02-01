@@ -133,6 +133,8 @@ import sage.rings.arith as arith
 import sage.misc.misc as misc
 import sage.rings.all as rings
 from sage.rings.all import RealField, GF
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 from math import sqrt
 from sage.libs.pari.all import pari
 
@@ -194,7 +196,6 @@ def _splitting_field(f):
         Number Field in b with defining polynomial x^6 - 992*x^4 + 246016*x^2 + 41229056
 
     """
-    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
     from sage.rings.all import QQ
     from sage.misc.flatten import flatten
     # make an integral monic polynomial out of it
@@ -256,8 +257,6 @@ def _division_field(E,p):
 
     Even  _division_field(E,7) works within a few minutes
     """
-    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
     misc.verbose("trying to build the extension by adjoining the %s-torsion poitns"%p,2)
     f = E.division_polynomial(p)
     K = _splitting_field(f)

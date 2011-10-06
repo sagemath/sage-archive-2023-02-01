@@ -11,9 +11,10 @@ Pointed sets
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 
-class PointedSets(Category):
+class PointedSets(Category_singleton):
     """
     The category of pointed sets.
 

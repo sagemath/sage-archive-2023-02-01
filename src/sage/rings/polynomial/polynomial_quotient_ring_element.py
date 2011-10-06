@@ -164,7 +164,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: loads(dumps(2*a^3)) == 2*a^3
             True
         """
-        return PolynomialQuotientRingElement, (self.parent(), self._polynomial, False)
+        return self.__class__, (self.parent(), self._polynomial, False)
 
     def _repr_(self):
         r"""
@@ -207,7 +207,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         R = self.parent()
         prod = self._polynomial * right._polynomial
-        return PolynomialQuotientRingElement(R, prod, check=False)
+        return self.__class__(R, prod, check=False)
 
     def _sub_(self, right):
         """
@@ -222,7 +222,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: int(1) - a
             -a + 1
         """
-        return PolynomialQuotientRingElement(self.parent(),
+        return self.__class__(self.parent(),
                                              self._polynomial - right._polynomial, check=False)
 
     def _add_(self, right):
@@ -238,7 +238,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: int(1) + a
             a + 1
         """
-        return PolynomialQuotientRingElement(self.parent(),
+        return self.__class__(self.parent(),
                                              self._polynomial + right._polynomial, check=False)
 
     def _div_(self, right):
@@ -255,7 +255,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         return self * ~right
 
     def __neg__(self):
-        return PolynomialQuotientRingElement(self.parent(), -self._polynomial)
+        return self.__class__(self.parent(), -self._polynomial)
 
     def __cmp__(self, other):
         """
@@ -297,7 +297,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             raise ZeroDivisionError, \
                "element %s of quotient polynomial ring not invertible"%self
         c = g[0]
-        return PolynomialQuotientRingElement(self.parent(), (~c)*a, check=False)
+        return self.__class__(self.parent(), (~c)*a, check=False)
 
     def __long__(self):
         """

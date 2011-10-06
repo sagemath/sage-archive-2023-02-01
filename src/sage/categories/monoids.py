@@ -15,13 +15,14 @@ Monoids
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.semigroups import Semigroups
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.structure.element import generic_power
 
-class Monoids(Category):
+class Monoids(Category_singleton):
     r"""
     The category of (multiplicative) monoids, i.e. semigroups with a unit.
 

@@ -10,11 +10,11 @@ Additive Magmas
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.structure.sage_object import have_same_parent
 
-class AdditiveMagmas(Category):
+class AdditiveMagmas(Category_singleton):
     """
     The category of additive magmas, i.e. sets with an binary
     operation ``+``.

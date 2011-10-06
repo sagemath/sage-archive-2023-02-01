@@ -9,10 +9,11 @@ Euclidean domains
 #******************************************************************************
 
 from sage.categories.category import Category
-from sage.categories.basic import PrincipalIdealDomains
+from sage.categories.category_singleton import Category_singleton
+from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.cachefunc import cached_method
 
-class EuclideanDomains(Category):
+class EuclideanDomains(Category_singleton):
     """
     The category of euclidean domains
     constructive euclidean domain, i.e. one can divide producing a quotient and a
@@ -41,7 +42,17 @@ class EuclideanDomains(Category):
         return [PrincipalIdealDomains()]
 
     class ParentMethods:
-        pass
+        def is_euclidean_domain(self):
+            """
+            Return True, since this in an object of the category of Euclidean domains.
+
+            EXAMPLES::
+
+                sage: Parent(QQ,category=EuclideanDomains()).is_euclidean_domain()
+                True
+
+            """
+            return True
 
     class ElementMethods:
         pass

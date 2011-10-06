@@ -441,7 +441,7 @@ cdef bint guess_pass_parent(parent, element_constructor):
 
 from sage.categories.category import Category
 from sage.structure.dynamic_class import dynamic_class
-
+Sets_parent_class = Sets().parent_class
 
 cdef class Parent(category_object.CategoryObject):
     """
@@ -500,7 +500,6 @@ cdef class Parent(category_object.CategoryObject):
         # TODO: in the long run, we want to get rid of the element_constructor = argument
         # (element_constructor would always be set by inheritance)
         # Then, all the element_constructor logic should be moved to init_coerce.
-
         CategoryObject.__init__(self, base = base)
         if facade is not None and facade is not False:
             if isinstance(facade, Parent):
@@ -508,7 +507,6 @@ cdef class Parent(category_object.CategoryObject):
             if facade is not True:
                 assert isinstance(facade, tuple)
                 self._facade_for = facade
-            from sage.categories.sets_cat import Sets
             if category is None:
                 category = Sets().Facades()
             else:
@@ -563,10 +561,66 @@ cdef class Parent(category_object.CategoryObject):
             category = self._category # CategoryObject may have done some argument processing
             # Some parent class may readily have their category classes attached
             # TODO: assert that the category is consistent
-            from sage.categories.sets_cat import Sets
-            if not issubclass(self.__class__, Sets().parent_class) and not is_extension_type(self.__class__):
+            if not issubclass(self.__class__, Sets_parent_class) and not is_extension_type(self.__class__):
                 #documentation transfer is handled by dynamic_class
                 self.__class__     = dynamic_class("%s_with_category"%self.__class__.__name__, (self.__class__, category.parent_class, ), doccls=self.__class__)
+
+    def _refine_category_(self, category):
+        """
+        Change the category of ``self`` into a subcategory.
+
+        INPUT:
+
+        - ``category`` -- a category or list or tuple thereof
+
+        The new category is obtained by adjoining ``category`` to the
+        current one.
+
+        .. note:: the class of ``self`` might be replaced by a sub-class.
+
+        .. seealso: :meth:`CategoryObject._refine_category`
+
+        EXAMPLES::
+
+            sage: P.<x,y> = QQ[]
+            sage: Q = P.quotient(x^2+2)
+            sage: Q.category()
+            Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups
+            sage: first_class = Q.__class__
+            sage: Q._refine_category_(Fields())
+            sage: Q.category()
+            Join of Category of subquotients of monoids and Category of quotients of semigroups and Category of fields
+            sage: first_class == Q.__class__
+            False
+            sage: TestSuite(Q).run()
+
+        """
+        if self._category is None:
+            self._init_category_(category)
+            return
+        if category is self._category:
+            return
+        CategoryObject._refine_category_(self, category)
+        category = self._category
+
+        # This substitutes the class of this parent to a subclass
+        # which also subclasses the parent_class of the category.
+        # However, we only do so if we don't have an extension class.
+        if not is_extension_type(self.__class__):
+            # We tested in the very beginning that this parent
+            # had its category initialised. Hence, the class
+            # is already a dynamic class.
+            base = self.__class__.__base__
+            #documentation transfer is handled by dynamic_class
+            self.__class__     = dynamic_class("%s_with_category"%base.__name__,
+                                               (base, category.parent_class, ),
+                                               doccls=base)
+        # If the element class has already been assigned, it
+        # needs to be erased now.
+        try:
+            self.__dict__.__delitem__('element_class')
+        except (AttributeError, KeyError):
+            pass
 
     # This probably should go into Sets().Parent
     @lazy_attribute
@@ -575,9 +629,10 @@ cdef class Parent(category_object.CategoryObject):
         The (default) class for the elements of this parent
 
         FIXME's and design issues:
-         - If self.Element is "trivial enough", should we optimize it away with:
-           self.element_class = dynamic_class("%s.element_class"%self.__class__.__name__, (category.element_class,), self.Element)
-         - This should lookup for Element classes in all super classes
+
+        - If self.Element is "trivial enough", should we optimize it away with:
+          self.element_class = dynamic_class("%s.element_class"%self.__class__.__name__, (category.element_class,), self.Element)
+        - This should lookup for Element classes in all super classes
         """
         try: #if hasattr(self, 'Element'):
             return self.__make_element_class__(self.Element, "%s.element_class"%self.__class__.__name__)
@@ -641,7 +696,6 @@ cdef class Parent(category_object.CategoryObject):
         """
         if self._category is None:
             # COERCE TODO: we shouldn't need this
-            from sage.categories.sets_cat import Sets
             self._category = Sets()
         return self._category
 
@@ -2596,7 +2650,6 @@ cdef class Set_PythonType_class(Set_generic):
             sage: S.category()
             Category of sets
         """
-        from sage.categories.sets_cat import Sets
         Set_generic.__init__(self, element_constructor=theType, category=Sets())
         self._type = theType
 

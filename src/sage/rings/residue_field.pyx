@@ -420,12 +420,12 @@ class ResidueField_generic(Field):
             sage: k.category()
             Category of finite fields
             sage: F.category()
-            Category of finite fields
+            Join of Category of subquotients of monoids and Category of quotients of semigroups and Category of finite fields
 
         TESTS::
 
-            sage: TestSuite(k).run(skip = ["_test_elements", "_test_pickling"]) # see #7929
-            sage: TestSuite(F).run(skip = ["_test_elements", "_test_pickling"]) # see #7929
+            sage: TestSuite(k).run()
+            sage: TestSuite(F).run()
         """
         self.p = p
         # Note: we don't call Parent.__init__ since many residue fields use multiple inheritance and will be calling __init__ via their other superclass.

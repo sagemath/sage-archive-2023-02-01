@@ -92,6 +92,17 @@ class TensorProductsCategory(CovariantConstructionCategory):
         """
         return self
 
+    def base(self):
+        """
+        The base of a tensor product is the base (usually a ring) of the underlying category.
+
+        EXAMPLES::
+
+            sage: ModulesWithBasis(ZZ).TensorProducts().base()
+            Integer Ring
+        """
+        return self.base_category().base()
+
 # This is Category.TensorProducts
 def TensorProducts(self):
     """

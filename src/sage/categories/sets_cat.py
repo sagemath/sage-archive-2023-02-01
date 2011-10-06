@@ -18,6 +18,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_format import LazyFormat
 from sage.categories.category import Category, HomCategory
+from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.subquotients import SubquotientsCategory
@@ -47,7 +48,7 @@ class EmptySetError(ValueError):
     """
     pass
 
-class Sets(Category):
+class Sets(Category_singleton):
     r"""
     The category of sets
 

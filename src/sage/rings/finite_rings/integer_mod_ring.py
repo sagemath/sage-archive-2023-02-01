@@ -161,6 +161,12 @@ def is_IntegerModRing(x):
     """
     return isinstance(x, IntegerModRing_generic)
 
+from sage.categories.commutative_rings import CommutativeRings
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.category import JoinCategory
+default_category = JoinCategory((CommutativeRings(), FiniteEnumeratedSets()))
+ZZ = integer_ring.IntegerRing()
+
 class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     """
     The ring of integers modulo N, with N composite.
@@ -193,38 +199,49 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
         EXAMPLES:
 
-        First we compute with integers modulo `17`.
+        First we compute with integers modulo `29`.
 
         ::
 
-            sage: FF = IntegerModRing(17)
+            sage: FF = IntegerModRing(29)
             sage: FF
-            Ring of integers modulo 17
+            Ring of integers modulo 29
             sage: FF.category()
             Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups and Category of finite enumerated sets
             sage: FF.is_field()
             True
             sage: FF.characteristic()
-            17
+            29
             sage: FF.order()
-            17
+            29
             sage: gens = FF.unit_gens()
             sage: a = gens[0]
             sage: a
-            3
+            2
             sage: a.is_square()
             False
             sage: def pow(i): return a**i
             sage: [pow(i) for i in range(16)]
-            [1, 3, 9, 10, 13, 5, 15, 11, 16, 14, 8, 7, 4, 12, 2, 6]
+            [1, 2, 4, 8, 16, 3, 6, 12, 24, 19, 9, 18, 7, 14, 28, 27]
             sage: TestSuite(FF).run()
 
-        One can force `FF` to be in the category of fields::
+        We have seen above that an integer mod ring is, by default, not
+        initialised as an object in the category of fields. However, one
+        can force it to be. Moreover, testing containment in the category
+        of fields my re-initialise the category of the integer mod ring::
 
-            sage: FF = IntegerModRing(17, category = Fields())
-            sage: FF.category()
-            Join of Category of subquotients of monoids and Category of quotients of semigroups and Category of fields
-            sage: TestSuite(FF).run()
+            sage: F19 = IntegerModRing(19, category = Fields())
+            sage: F19.category().is_subcategory(Fields())
+            True
+            sage: F23 = IntegerModRing(23)
+            sage: F23.category().is_subcategory(Fields())
+            False
+            sage: F23 in Fields()
+            True
+            sage: F23.category().is_subcategory(Fields())
+            True
+            sage: TestSuite(F19).run()
+            sage: TestSuite(F23).run()
 
         Next we compute with the integers modulo `16`.
 
@@ -248,7 +265,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: def powb(i): return b**i
             sage: gp_exp = FF.unit_group_exponent()
             sage: gp_exp
-            16
+            28
             sage: [powa(i) for i in range(15)]
             [1, 15, 1, 15, 1, 15, 1, 15, 1, 15, 1, 15, 1, 15, 1]
             sage: [powb(i) for i in range(15)]
@@ -276,7 +293,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: I.is_prime()
             True
         """
-        ZZ = integer_ring.IntegerRing()
         order = ZZ(order)
         if order <= 0:
             raise ZeroDivisionError, "order must be positive"
@@ -290,6 +306,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
             from sage.categories.category import Category
             category = Category.join([CommutativeRings(), FiniteEnumeratedSets()])
+#            category = default_category
+        # If the category is given then we trust that is it right.
         # Give the generator a 'name' to make quotients work.  The
         # name 'x' is used because it's also used for the ring of
         # integers: see the __init__ method for IntegerRing_class in

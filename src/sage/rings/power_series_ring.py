@@ -436,6 +436,17 @@ def is_PowerSeriesRing(R):
 class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
     """
     A power series ring.
+
+    EXAMPLES:
+
+    This base class inherits from :class:`~sage.rings.ring.CommutativeRing`.
+    Since trac ticket #11900, it is also initialised as such::
+
+        sage: R.<x> = ZZ[[]]
+        sage: R.category()
+        Category of commutative rings
+        sage: TestSuite(R).run()
+
     """
     def __init__(self, base_ring, name=None, default_prec=20, sparse=False,
                  use_lazy_mpoly_ring=False):
@@ -462,7 +473,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
           for it to truncate away higher order terms (this is called
           automatically before printing).
         """
-        ParentWithGens.__init__(self, base_ring, name)
+        commutative_ring.CommutativeRing.__init__(self, base_ring, names=name)
         Nonexact.__init__(self, default_prec)
         R = PolynomialRing(base_ring, name, sparse=sparse)
         self.__poly_ring = R
@@ -517,13 +528,13 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: S = loads(dumps(R)); S
             Power Series Ring in t over Integer Ring
             sage: type(S)
-            <class 'sage.rings.power_series_ring.PowerSeriesRing_domain'>
+            <class 'sage.rings.power_series_ring.PowerSeriesRing_domain_with_category'>
             sage: R.<t> = PowerSeriesRing(QQ, default_prec=10, sparse=True); R
             Sparse Power Series Ring in t over Rational Field
             sage: S = loads(dumps(R)); S
             Sparse Power Series Ring in t over Rational Field
             sage: type(S)
-            <class 'sage.rings.power_series_ring.PowerSeriesRing_over_field'>
+            <class 'sage.rings.power_series_ring.PowerSeriesRing_over_field_with_category'>
         """
         return unpickle_power_series_ring_v0, self.__params
 

@@ -14,6 +14,9 @@ Modules
 from sage.categories.category import HomCategory
 from category_types import Category_module
 from sage.misc.cachefunc import cached_method
+from sage.categories.fields import Fields
+_Fields = Fields()
+from vector_spaces import VectorSpaces
 
 class Modules(Category_module):
     r"""
@@ -110,10 +113,9 @@ class Modules(Category_module):
             sage: TestSuite(C).run()
 
         """
-        from sage.categories.fields import Fields
-        if dispatch and base_ring in Fields():
-            from vector_spaces import VectorSpaces
-            return VectorSpaces(base_ring)
+        if dispatch:
+            if base_ring in _Fields:
+                return VectorSpaces(base_ring, check=False)
         result = super(Modules, cls).__classcall__(cls, base_ring)
         result._reduction[2]['dispatch'] = False
         return result

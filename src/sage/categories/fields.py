@@ -12,9 +12,12 @@ Fields
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton, Category_contains_method_by_parent_class
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.rings.field import is_Field
 
-class Fields(Category):
+class Fields(Category_singleton):
     """
     The category of (commutative) fields, i.e. commutative rings where
     all non-zero elements have multiplicative inverses
@@ -47,6 +50,7 @@ class Fields(Category):
 
             sage: Fields().super_categories()
             [Category of euclidean domains, Category of unique factorization domains, Category of division rings]
+
         """
         from sage.categories.basic import EuclideanDomains, UniqueFactorizationDomains, DivisionRings
         return [EuclideanDomains(), UniqueFactorizationDomains(), DivisionRings()]
@@ -83,11 +87,39 @@ class Fields(Category):
             sage: GR in Fields()
             True
         """
-        from sage.rings.field import is_Field
         try:
-            return super(Fields, self).__contains__(x) or is_Field(x)
+            return self._contains_helper(x) or is_Field(x)
         except:
             return False
+
+    @lazy_class_attribute
+    def _contains_helper(cls):
+        """
+        Helper for containment tests in the category of fields.
+
+        This helper just tests whether the given object's category
+        is already known to be a sub-category of the category of
+        fields. There are, however, rings that are initialised
+        as plain commutative rings and found out to be fields
+        only afterwards. Hence, this helper alone is not enough
+        for a proper containment test.
+
+        TESTS::
+
+            sage: P.<x> = QQ[]
+            sage: Q = P.quotient(x^2+2)
+            sage: Q.category()
+            Join of Category of commutative algebras over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups
+            sage: F = Fields()
+            sage: F._contains_helper(Q)
+            False
+            sage: Q in F  # This changes the category!
+            True
+            sage: F._contains_helper(Q)
+            True
+
+        """
+        return Category_contains_method_by_parent_class(cls())
 
     def _call_(self, x):
         """
@@ -115,6 +147,17 @@ class Fields(Category):
             raise TypeError, "unable to associate a field to %s"%x
 
     class ParentMethods:
+        def is_field(self):
+            """
+            Return True, since this in an object of the category of fields.
+
+            EXAMPLES::
+
+                sage: Parent(QQ,category=Fields()).is_field()
+                True
+
+            """
+            return True
 
         def is_integrally_closed(self):
             r"""

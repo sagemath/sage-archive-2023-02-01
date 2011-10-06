@@ -10,6 +10,7 @@ Weyl Groups
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.coxeter_groups import CoxeterGroups
 import sage.combinat.sf
 from sage.rings.infinity import infinity
@@ -17,7 +18,7 @@ from sage.rings.rational_field import QQ
 
 
 
-class WeylGroups(Category):
+class WeylGroups(Category_singleton):
     r"""
     The category of Weyl groups
 

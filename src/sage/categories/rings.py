@@ -12,10 +12,11 @@ Rings
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from category import HomCategory
 from sage.misc.cachefunc import cached_method
 
-class Rings(Category):
+class Rings(Category_singleton):
     """
     The category of rings
 
@@ -53,8 +54,17 @@ class Rings(Category):
         return [Rngs(), Semirings()]
 
     class ParentMethods:
-        def is_field(self):
-            raise NotImplementedError
+        def is_ring(self):
+            """
+            Return True, since this in an object of the category of rings.
+
+            EXAMPLES::
+
+                sage: Parent(QQ,category=Rings()).is_ring()
+                True
+
+            """
+            return True
 
         def bracket(self, x, y):
             """

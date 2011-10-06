@@ -13,13 +13,14 @@ from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.groups import Groups
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.backtrack import SearchForest
 from sage.combinat.finite_class import FiniteCombinatorialClass
 from sage.misc.flatten import flatten
 
-class CoxeterGroups(Category):
+class CoxeterGroups(Category_singleton):
     r"""
     The category of Coxeter groups.
 

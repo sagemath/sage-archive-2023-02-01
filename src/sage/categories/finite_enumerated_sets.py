@@ -36,6 +36,13 @@ class FiniteEnumeratedSets(Category):
 
         sage: C = FiniteEnumeratedSets()
         sage: TestSuite(C).run()
+
+    TODO:
+
+    :class:`sage.combinat.debruijn_sequence.DeBruijnSequences` should
+    not inherit from this class. If that is solved, then
+    :class:`FiniteEnumeratedSets` shall be turned into a subclass of
+    :class:`~sage.categories.category_singleton.Category_singleton`.
     """
 
     @cached_method

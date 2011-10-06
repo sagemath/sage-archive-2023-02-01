@@ -11,10 +11,11 @@ Commutative additive semigroups
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.additive_magmas import AdditiveMagmas
 from sage.structure.sage_object import have_same_parent
 
-class CommutativeAdditiveSemigroups(Category):
+class CommutativeAdditiveSemigroups(Category_singleton):
     """
     The category of additive abelian semigroups, i.e. sets with an
     associative and abelian operation +.

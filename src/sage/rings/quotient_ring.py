@@ -169,6 +169,13 @@ def is_QuotientRing(x):
     """
     return isinstance(x, QuotientRing_generic)
 
+from sage.categories.rings import Rings
+_Rings = Rings()
+_RingsQuotients = Rings().Quotients()
+from sage.categories.commutative_rings import CommutativeRings
+_CommutativeRingsQuotients = CommutativeRings().Quotients()
+from sage.structure.category_object import check_default_category
+
 class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.parent_gens.ParentWithGens):
     """
     The quotient ring of `R` by the ideal `I`.
@@ -223,21 +230,33 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: R.quotient_ring(x^2 + y^2)
             Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
         """
-        from sage.categories.rings import Rings
-        if R not in Rings():
+        if R not in _Rings:
             raise TypeError, "The first argument must be a ring, but %s is not"%R
         if I not in R.ideal_monoid():
             raise TypeError, "The second argument must be an ideal of the given ring, but %s is not"%I
         self.__R = R
         self.__I = I
         #sage.structure.parent_gens.ParentWithGens.__init__(self, R.base_ring(), names)
-        from sage.structure.category_object import check_default_category
-        from sage.categories.commutative_rings import CommutativeRings
-        if R in CommutativeRings():
-            category = check_default_category(CommutativeRings().Quotients(),category)
-        else:
-            category = check_default_category(Rings().Quotients(),category)
-        commutative_ring.CommutativeRing.__init__(self, R.base_ring(), names=names, category=category)
+        # In future versions, we'd like to consider non-commutative quotients as
+        # well:
+#        try:
+#            commutative = R.is_commutative()
+#        except AttributeError:
+#            commutative = False
+#        if commutative:
+#            category = check_default_category(_CommutativeRingsQuotients,category, False)
+#        else:
+#            category = check_default_category(_RingsQuotients,category, False)
+        ##
+        # Unfortunately, computing the join of categories, which is done in
+        # check_default_category, is very expensive.
+        # However, we don't just want to use the given category without mixing in
+        # some quotient stuff - unless Parent.__init__ was called
+        # previously, in which case the quotient ring stuff is just
+        # a vaste of time. This is the case for FiniteField_prime_modn.
+        if not self._is_category_initialized():
+            category = check_default_category(_CommutativeRingsQuotients,category)
+            commutative_ring.CommutativeRing.__init__(self, R.base_ring(), names=names, category=category)
         # self._populate_coercion_lists_([R]) # we don't want to do this, since subclasses will often implement improved coercion maps.
 
     def construction(self):

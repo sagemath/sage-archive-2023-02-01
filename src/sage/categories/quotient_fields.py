@@ -9,10 +9,11 @@ Quotient fields
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 
-class QuotientFields(Category):
+class QuotientFields(Category_singleton):
     """
     The category of quotient fields over an integral domain
 

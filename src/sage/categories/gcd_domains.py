@@ -9,9 +9,10 @@ Gcd domains
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 
-class GcdDomains(Category):
+class GcdDomains(Category_singleton):
     """
     The category of gcd domains
     domains where gcd can be computed but where there is no guarantee of

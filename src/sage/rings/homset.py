@@ -11,6 +11,8 @@ Space of homomorphisms between two rings
 #*****************************************************************************
 
 from sage.categories.homset import HomsetWithBase
+from sage.categories.rings import Rings
+_Rings = Rings()
 
 import morphism
 import quotient_ring
@@ -27,8 +29,7 @@ def RingHomset(R, S, category = None):
 class RingHomset_generic(HomsetWithBase):
     def __init__(self, R, S, category = None):
         if category is None:
-            from sage.categories.rings import Rings
-            category = Rings()
+            category = _Rings
         HomsetWithBase.__init__(self, R, S, category)
 
     def _repr_(self):

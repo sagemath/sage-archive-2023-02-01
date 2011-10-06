@@ -17,6 +17,8 @@ This is placed in a separate file from categories.py to avoid circular imports
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from category import Category
+from sage.categories.rings import Rings
+_Rings = Rings()
 
 ####################################################################
 #   Different types of categories
@@ -237,7 +239,7 @@ class Category_over_base(Category):
             sage: latex(ModulesWithBasis(QQ))
             \mathbf{ModulesWithBasis}_{\Bold{Q}}
         """
-        return "\\mathbf{%s}_{%s}"%(self._Category__label, latex(self.__base))
+        return "\\mathbf{%s}_{%s}"%(self._label, latex(self.__base))
 
 #    def construction(self):
 #        return (self.__class__, self.__base)
@@ -260,9 +262,7 @@ class Category_over_base(Category):
 #############################################################
 class Category_over_base_ring(Category_over_base):
     def __init__(self, base, name=None):
-        from sage.categories.rings import Rings
-        if base not in Rings():
-            raise TypeError, "base must be a ring"
+        assert base in _Rings, "base must be a ring"
         Category_over_base.__init__(self, base, name)
         self.__base = base
 

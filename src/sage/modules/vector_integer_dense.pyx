@@ -2,9 +2,11 @@
 Vectors with integer entries
 
 AUTHOR:
-    -- William Stein (2007)
 
-EXAMPLES:
+- William Stein (2007)
+
+EXAMPLES::
+
     sage: v = vector(ZZ,[1,2,3,4,5])
     sage: v
     (1, 2, 3, 4, 5)
@@ -21,14 +23,16 @@ EXAMPLES:
     sage: v * v   # dot product.
     55
 
-We make a large zero vector:
+We make a large zero vector::
+
     sage: k = ZZ^100000; k
     Ambient free module of rank 100000 over the principal ideal domain Integer Ring
     sage: v = k(0)
     sage: v[:10]
     (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-TESTS:
+TESTS::
+
     sage: v = vector(ZZ, [1,2,3,4])
     sage: loads(dumps(v)) == v
     True
@@ -51,6 +55,11 @@ from sage.rings.integer cimport Integer
 cimport free_module_element
 
 from free_module_element import vector
+
+cdef inline _Integer_from_mpz(mpz_t e):
+    cdef Integer z = PY_NEW(Integer)
+    mpz_set(z.value, e)
+    return z
 
 cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):
@@ -111,7 +120,8 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(ZZ, [0,0,0,0])
             sage: v == 0
             True
@@ -156,7 +166,8 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         """
         Return the ith entry of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector([1,2,3]); v
             (1, 2, 3)
             sage: v[0]
@@ -181,6 +192,27 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         else:
             mpz_set(z.value, self._entries[i])
             return z
+
+    def list(self,copy=True):
+        """
+        The list of entries of the vector.
+
+        INPUT:
+
+        - ``copy``, ignored optional argument.
+
+        EXAMPLES::
+
+            sage: v = vector([1,2,3,4])
+            sage: a = v.list(copy=False); a
+            [1, 2, 3, 4]
+            sage: a[0] = 0
+            sage: v
+            (1, 2, 3, 4)
+        """
+        cdef int i
+        return [_Integer_from_mpz(self._entries[i]) for i in
+                                  xrange(self._degree)]
 
     def __reduce__(self):
         return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
@@ -210,7 +242,8 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         """
         Dot product of dense vectors over the integers.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(ZZ, [1,2,-3]); w = vector(ZZ,[4,3,2])
             sage: v*w
             4
@@ -232,7 +265,8 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
 
     cpdef Vector _pairwise_product_(self, Vector right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(ZZ, [1,2,-3]); w = vector(ZZ,[4,3,2])
             sage: v.pairwise_product(w)
             (4, 6, -6)
@@ -282,7 +316,8 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         Returns a numerical approximation of self by calling the n()
         method on all of its entries.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(ZZ, [1,2,3])
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
@@ -300,9 +335,11 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         Return \Singular representation of this integer vector.
 
         INPUT:
-            singular -- \Singular interface instance (default: None)
 
-        EXAMPLE:
+        - singular -- \Singular interface instance (default: None)
+
+        EXAMPLES::
+
             sage: A = random_matrix(ZZ,1,3)
             sage: v = A.row(0)
             sage: vs = singular(v); vs

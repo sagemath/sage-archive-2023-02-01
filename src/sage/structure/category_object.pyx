@@ -83,13 +83,15 @@ def guess_category(obj):
     #    return Sets()
     return None # don't want to risk importing stuff...
 
-def check_default_category(default_category, category):
+cpdef inline check_default_category(default_category, category):
+    """
+
+    """
+    ## The resulting category is guaranteed to be
+    ## a sub-category of the default.
     if category is None:
         return default_category
-    else:
-        #assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
-        #return category
-        return default_category.join([default_category,category])
+    return default_category.join([default_category,category])
 
 cdef class CategoryObject(sage_object.SageObject):
     """
@@ -158,6 +160,48 @@ cdef class CategoryObject(sage_object.SageObject):
             else:
                 category = JoinCategory(category)
         self._category = category
+
+    def _refine_category_(self, category):
+        """
+        Changes the category of ``self`` into a subcategory.
+
+        INPUT:
+
+        - ``category`` -- a category or list or tuple thereof
+
+        The new category is obtained by adjoining ``category`` to the
+        current one.
+
+        .. seealso:: :function:`Category.join`
+
+        EXAMPLES::
+
+            sage: P = Parent()
+            sage: P.category()
+            Category of sets
+            sage: P._refine_category_(Magmas())
+            sage: P.category()
+            Category of magmas
+            sage: P._refine_category_(Magmas())
+            sage: P.category()
+            Category of magmas
+            sage: P._refine_category_(EnumeratedSets())
+            sage: P.category()
+            Join of Category of magmas and Category of enumerated sets
+            sage: P._refine_category_([Semigroups(), CommutativeAdditiveSemigroups()])
+            sage: P.category()
+            Join of Category of enumerated sets and Category of semigroups and Category of commutative additive semigroups
+            sage: P._refine_category_((CommutativeAdditiveMonoids(), Monoids()))
+            sage: P.category()
+            Join of Category of enumerated sets and Category of commutative additive monoids and Category of monoids
+
+        """
+        if self._category is None:
+            self._init_category_(category)
+            return
+        if not (type(category) == tuple or type(category) == list):
+            category = [category]
+        self._category = self._category.join([self._category]+list(category))
 
     def _is_category_initialized(self):
         return self._category is not None

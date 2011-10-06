@@ -9,9 +9,10 @@ Unique factorization domains
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 
-class UniqueFactorizationDomains(Category):
+class UniqueFactorizationDomains(Category_singleton):
     """
     The category of unique factorization domains
     constructive unique factorization domains, i.e. where one can constructively
@@ -41,7 +42,17 @@ class UniqueFactorizationDomains(Category):
         return [GcdDomains()]
 
     class ParentMethods:
-        pass
+        def is_unique_factorization_domain(self):
+            """
+            Return True, since this in an object of the category of unique factorization domains.
+
+            EXAMPLES::
+
+                sage: Parent(QQ,category=UniqueFactorizationDomains()).is_unique_factorization_domain()
+                True
+
+            """
+            return True
 
     class ElementMethods:
         # prime?

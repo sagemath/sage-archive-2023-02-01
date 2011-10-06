@@ -13,6 +13,8 @@ Bimodules
 
 from sage.categories.category import Category
 from sage.misc.cachefunc import cached_method
+from sage.categories.rings import Rings
+_Rings = Rings()
 
 #?class Bimodules(Category_over_base_rng, Category_over_base_rng):
 class Bimodules(Category):
@@ -39,9 +41,8 @@ class Bimodules(Category):
             sage: TestSuite(C).run()
         """
         Category.__init__(self, name)
-        from sage.categories.rings import Rings
-        assert left_base  in Rings()
-        assert right_base in Rings()
+        assert left_base  in _Rings, "The left base must be a ring"
+        assert right_base in _Rings, "The right base must be a ring"
         self._left_base_ring = left_base
         self._right_base_ring = right_base
 

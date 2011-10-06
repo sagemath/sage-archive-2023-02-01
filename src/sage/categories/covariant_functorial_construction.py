@@ -44,6 +44,40 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.category import Category
 
+from sage.misc.cachefunc import cached_function
+@cached_function
+def _category_of(cls, category, *args):
+    """
+    This is where we handle the cache for :meth:`CovariantFunctorialConstruction.category_of`.
+
+    INPUT:
+
+    - ``cls`` -- the category class for the functorial construction `F`
+    - ``category`` -- a category `Cat`
+    - ``*args`` -- further arguments for the functor
+
+    OUTPUT: the image category of the functor `F_{Cat}`
+
+    EXAMPLES::
+
+        sage: sage.categories.tensor.TensorProductsCategory.category_of(ModulesWithBasis(QQ)) #indirect doctest
+        Category of tensor products of modules with basis over Rational Field
+
+        sage: sage.categories.algebra_functor.AlgebrasCategory.category_of(FiniteMonoids(), QQ)
+        Category of monoid algebras over Rational Field
+    """
+    #assert cls is getattr(category.__class__, cls._functor_category)
+    # TODO: find a better test
+    # the purpose is to test whether ``category`` overrides the
+    # default functor category
+    # e.g. category.Subquotients != SubquotientsCategory
+    functor_category = getattr(category.__class__, cls._functor_category)
+    if isinstance(functor_category, type) and issubclass(functor_category, Category):
+        return functor_category(category, *args)
+    else:
+        return cls.default_super_categories(category, *args)
+
+
 class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
     r"""
     An abstract class for construction functors `F` (eg `F` = cartesian
@@ -239,7 +273,7 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             return cls
         return getattr(super(category.__class__, category), cls._functor_category)
 
-    @classmethod #cached_function
+    @classmethod #cached_function or cached_method are not available for a classmethod
     def category_of(cls, category, *args):
         """
         This is the main entry point for constructing the category `F_{Cat}`
@@ -261,16 +295,7 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             sage: sage.categories.algebra_functor.AlgebrasCategory.category_of(FiniteMonoids(), QQ)
             Category of monoid algebras over Rational Field
         """
-        #assert cls is getattr(category.__class__, cls._functor_category)
-        # TODO: find a better test
-        # the purpose is to test whether ``category`` overrides the
-        # default functor category
-        # e.g. category.Subquotients != SubquotientsCategory
-        functor_category = getattr(category.__class__, cls._functor_category)
-        if isinstance(functor_category, type) and issubclass(functor_category, Category):
-            return functor_category(category, *args)
-        else:
-            return cls.default_super_categories(category, *args)
+        return _category_of(cls,category,*args)
 
     @classmethod
     def default_super_categories(cls, category, *args):

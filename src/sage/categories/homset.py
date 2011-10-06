@@ -33,22 +33,24 @@ from sage.categories.category import Category
 import morphism
 from sage.structure.parent import Parent, Set_generic
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_function
 import types
 
 _cache = {}
 def Hom(X, Y, category=None):
     """
-    Create the space of homomorphisms from X to Y in the category category.
+    Create the space of homomorphisms from X to Y in the category ``category``.
 
     INPUT:
 
 
-    -  ``X`` - anything
+    - ``X`` -- an object of a category
 
-    -  ``Y`` - anything
+    - ``Y`` -- an object of a category
 
-    -  ``category`` - (optional) category in which the morphisms
-       must be
+    - ``category`` -- a category in which the morphisms must be.
+       (default: the meet of the categories of ``X`` and ``Y``)
+       Both ``X`` and ``Y`` must belong to that category.
 
     OUTPUT: a homset in category
 
@@ -69,6 +71,32 @@ def Hom(X, Y, category=None):
         Set of Morphisms from Ambient free module of rank 1 over the principal ideal domain Integer Ring to Vector space of dimension 1 over Rational Field in Category of modules with basis over Integer Ring
         sage: Hom(FreeModule(QQ,1), FreeModule(ZZ,1))
         Set of Morphisms from Vector space of dimension 1 over Rational Field to Ambient free module of rank 1 over the principal ideal domain Integer Ring in Category of vector spaces over Rational Field
+
+    To illustrate the choice of the category, we consider the
+    following parents as running examples::
+
+        sage: X = ZZ; X
+        Integer Ring
+        sage: Y = SymmetricGroup(3); Y
+        Symmetric group of order 3! as a permutation group
+
+    By default, the smallest category containing both ``X`` and ``Y``,
+    is used::
+
+        sage: Hom(X, Y)
+        Set of Morphisms from Integer Ring to Symmetric group of order 3! as a permutation group in Category of monoids
+
+    Otherwise, if ``category`` is specified, then ``category`` is used,
+    after checking that ``X`` and ``Y`` are indeed in ``category``::
+
+        sage: Hom(X, Y, Magmas())
+        Set of Morphisms from Integer Ring to Symmetric group of order 3! as a permutation group in Category of magmas
+
+        sage: Hom(X, Y, Groups())
+        Traceback (most recent call last):
+        ...
+        TypeError: Integer Ring is not in Category of groups
+
 
     TESTS:
 
@@ -103,6 +131,19 @@ def Hom(X, Y, category=None):
         sage: H2 is Hom(QQ,Q)
         True
 
+    Since trac ticket #11900, the meet of the categories of the given arguments is
+    used to determine the default category of the homset. This can also be a join
+    category, as in the following example::
+
+        sage: PA = Parent(category=Algebras(QQ))
+        sage: PJ = Parent(category=Category.join([Fields(), ModulesWithBasis(QQ)]))
+        sage: Hom(PA,PJ)
+        Set of Homomorphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'>
+        sage: Hom(PA,PJ).category()
+        Join of Category of hom sets in Category of rings and Category of hom sets in Category of modules over Rational Field
+        sage: Hom(PA,PJ, Rngs())
+        Set of Morphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'> in Category of rngs
+
     TODO: design decision: how much of the homset comes from the
     category of X and Y, and how much from the specific X and Y.  In
     particular, do we need several parent classes depending on X and
@@ -110,8 +151,6 @@ def Hom(X, Y, category=None):
     morphism), and of course how the parent calls their constructors.
 
     """
-
-
     # This should use cache_function instead
     # However it breaks somehow the coercion (see e.g. sage -t sage.rings.real_mpfr)
     # To be investigated.
@@ -131,47 +170,17 @@ def Hom(X, Y, category=None):
     except (AttributeError, TypeError):
         pass
 
-#    if category is None or (category is X.category() and category is Y.category()):
-#        try:
-#            H = X._Hom_(Y)
-#        except AttributeError:
-#            pass
-#    import category_types
-
     cat_X = X.category()
     cat_Y = Y.category()
     if category is None:
-        if cat_X.is_subcategory(cat_Y):
-            category = cat_Y
-        elif cat_Y.is_subcategory(cat_X):
-            # NT: this "category is None" test is useless and could be removed
-            # NT: why is there an assymmetry between X and Y?
-            if not (category is None) and not (cat_X is cat_Y):
-                raise ValueError, "No unambiguous category found for Hom from %s to %s."%(X,Y)
-            category = cat_X
-        else:
-            # Search for the lowest common super category
-            subcats_X = cat_X.all_super_categories(proper = True)
-            subcats_Y = set(cat_Y.all_super_categories(proper = True))
-            category = None
-            for c in subcats_X:
-                if c in subcats_Y:
-                    category = c
-                    break
-
-            if category is None:
-                raise TypeError, "No suitable category found for Hom from %s to %s."%(X,Y)
-
+        category = cat_X._meet_(cat_Y)
     elif isinstance(category, Category):
-        if not isinstance(category, Category):
-            raise TypeError, "Argument category (= %s) must be a category."%category
-        if not cat_X.is_subcategory(category) \
-               or not cat_Y.is_subcategory(category):
-            raise TypeError, \
-                  "Argument category (= %s) is incompatible with %s: %s and %s: %s."%(category, X, cat_X, Y, cat_Y)
+        if not cat_X.is_subcategory(category):
+            raise TypeError, "%s is not in %s"%(X, category)
+        if not cat_Y.is_subcategory(category):
+            raise TypeError, "%s is not in %s"%(Y, category)
     else:
         raise TypeError, "Argument category (= %s) must be a category."%category
-
     # Now, as the category may have changed, we try to find the hom set in the cache, again:
     key = (X,Y,category)
     if _cache.has_key(key):

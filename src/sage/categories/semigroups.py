@@ -13,6 +13,7 @@ Semigroups
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
@@ -22,7 +23,7 @@ from sage.misc.misc_c import prod
 from sage.categories.magmas import Magmas
 from sage.structure.element import generic_power
 
-class Semigroups(Category):
+class Semigroups(Category_singleton):
     """
     The category of (multiplicative) semigroups, i.e. sets with an associative
     operation ``*``.

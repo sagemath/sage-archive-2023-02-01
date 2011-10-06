@@ -9,10 +9,11 @@ Partially ordered monoids
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.basic import PartiallyOrderedSets, Monoids
 from sage.misc.cachefunc import cached_method
 
-class PartiallyOrderedMonoids(Category):
+class PartiallyOrderedMonoids(Category_singleton):
     """
     The category of partially ordered monoids, that is partially ordered sets
     which are also monoids, and such that multiplication preserves the

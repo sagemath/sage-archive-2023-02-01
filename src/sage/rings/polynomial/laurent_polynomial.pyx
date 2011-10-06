@@ -53,6 +53,17 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         self._poly = parent.polynomial_ring()(x)
         CommutativeAlgebraElement.__init__(self, parent)
 
+    def __reduce__(self):
+        """
+        TESTS::
+
+            sage: R = LaurentPolynomialRing(QQ,2,'x')
+            sage: R.<x1,x2> = LaurentPolynomialRing(QQ)
+            sage: loads(dumps(x1)) == x1 # indirect doctest
+            True
+        """
+        return self._parent, (self._poly,)
+
     cdef _new_c(self):
         """
         Returns a new Laurent polynomial

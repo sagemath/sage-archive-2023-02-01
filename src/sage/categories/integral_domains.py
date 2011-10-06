@@ -9,9 +9,10 @@ Integral domains
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 
-class IntegralDomains(Category):
+class IntegralDomains(Category_singleton):
     """
     The category of integral domains
     commutative rings with no zero divisors
@@ -40,7 +41,17 @@ class IntegralDomains(Category):
         return [CommutativeRings(), Domains()]
 
     class ParentMethods:
-        pass
+        def is_integral_domain(self):
+            """
+            Return True, since this in an object of the category of integral domains.
+
+            EXAMPLES::
+
+                sage: Parent(QQ,category=IntegralDomains()).is_integral_domain()
+                True
+
+            """
+            return True
 
     class ElementMethods:
         pass

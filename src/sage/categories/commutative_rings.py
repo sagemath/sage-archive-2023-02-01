@@ -12,9 +12,10 @@ Commutative rings
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 
-class CommutativeRings(Category):
+class CommutativeRings(Category_singleton):
     """
     The category of commutative rings
 
@@ -58,7 +59,17 @@ class CommutativeRings(Category):
         return [Rings()]
 
     class ParentMethods:
-        pass
+        def is_commutative(self):
+            """
+            Return True, since commutative rings are commutative.
+
+            EXAMPLES::
+
+                sage: Parent(QQ,category=CommutativeRings()).is_commutative()
+                True
+
+            """
+            return True
 
     class ElementMethods:
         pass

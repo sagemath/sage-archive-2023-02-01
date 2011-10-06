@@ -15,6 +15,8 @@ from sage.misc.latex import latex_variable_name
 import multi_polynomial_element
 import polynomial_ring
 from sage.categories.commutative_rings import CommutativeRings
+_CommutativeRings = CommutativeRings()
+from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default_category
 
 def is_MPolynomialRing(x):
     return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
@@ -50,9 +52,9 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: A1(a) in A2
             True
         """
-        if not (base_ring in CommutativeRings() or isinstance(base_ring,sage.rings.ring.CommutativeRing)):
+        if base_ring not in _CommutativeRings:
             raise TypeError, "The base ring %s is not a commutative ring"%base_ring
-        from sage.categories.commutative_algebras import CommutativeAlgebras
+
         n = int(n)
         if n < 0:
             raise ValueError, "Multivariate Polynomial Rings must " + \
@@ -65,7 +67,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         # It would be a mistake to call ParentWithGens.__init__
         # as well, assigning the names twice.
         #ParentWithGens.__init__(self, base_ring, names)
-        sage.rings.ring.Ring.__init__(self, base_ring, names, category=CommutativeAlgebras(base_ring))
+        sage.rings.ring.Ring.__init__(self, base_ring, names,
+                                      category=polynomial_default_category(base_ring,n>1))
 
     def is_integral_domain(self, proof = True):
         """

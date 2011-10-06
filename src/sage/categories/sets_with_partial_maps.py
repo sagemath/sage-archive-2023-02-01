@@ -11,9 +11,10 @@ SetsWithPartialMaps
 #******************************************************************************
 
 from sage.categories.category import Category, HomCategory
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 
-class SetsWithPartialMaps(Category):
+class SetsWithPartialMaps(Category_singleton):
     """
     The category whose objects are sets and whose morphisms are
     maps that are allowed to raise a ValueError on some inputs.

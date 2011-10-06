@@ -379,7 +379,7 @@ cdef class Map(Element):
             sage: R.<x,y> = QQ[]
             sage: f = R.hom([x+y,x-y],R)
             sage: f.category_for()
-            Category of commutative algebras over Rational Field
+            Join of Category of unique factorization domains and Category of commutative algebras over Rational Field
             sage: f.category()
             Join of Category of hom sets in Category of rings and Category of hom sets in Category of modules over Rational Field
 

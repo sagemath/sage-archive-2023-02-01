@@ -14,6 +14,8 @@ from sage.structure.generators cimport Generators
 # Want circular imports here to define _base as type Parent
 # from sage.structure.parent cimport class Parent
 
+cpdef inline check_default_category(default_category, category)
+
 cdef class CategoryObject(sage_object.SageObject):
 
     cdef _generators

@@ -10,9 +10,10 @@ Domains
 
 from sage.categories.rings import Rings
 from sage.categories.category import Category
+from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 
-class Domains(Category):
+class Domains(Category_singleton):
     """
     The category of domains
 

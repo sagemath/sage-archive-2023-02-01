@@ -80,6 +80,14 @@ class ContinuedFractionField_class(Field):
 
         sage: CFF
         Field of all continued fractions
+
+    The continued fraction field inherits from the base class
+    :class:`sage.rings.ring.Field`. However it was initialised
+    as such only since trac ticket #11900::
+
+        sage: CFF.category()
+        Category of fields
+
     """
     def __init__(self):
         """
@@ -88,7 +96,7 @@ class ContinuedFractionField_class(Field):
             sage: ContinuedFractionField()
             Field of all continued fractions
         """
-        ParentWithGens.__init__(self, self)
+        Field.__init__(self, self)
         self._assign_names(('x'),normalize=False)
 
     def __cmp__(self, right):

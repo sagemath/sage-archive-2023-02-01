@@ -5496,9 +5496,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         H_q = R(10)**bound
         break_cond = 0 #at least one reduction step
         #reduction via LLL
+        M = matrix.MatrixSpace(Z,n)
         while break_cond < 0.9: #as long as the improvement of the new bound in comparison to the old is greater than 10%
             c = R((H_q**n)*10)  #c has to be greater than H_q^n
-            M = matrix.MatrixSpace(Z,n)
             m = copy(M.identity_matrix())
             for i in range(r):
                 m[i, r] = R(c*mw_base_log[i]).round()

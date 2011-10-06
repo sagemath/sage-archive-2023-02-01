@@ -26,6 +26,8 @@ import field
 from sage.structure.parent_gens import ParentWithGens
 from sage.libs.all import pari_gen
 
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 laurent_series = {}
 def LaurentSeriesRing(base_ring, name=None, names=None, sparse=False):
@@ -109,10 +111,14 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         Laurent Series Ring in q over Complex Field with 53 bits of precision
         sage: loads(K.dumps()) == K
         True
+        sage: P = QQ[['x']]
+        sage: F = Frac(P)
+        sage: TestSuite(F).run()
+
     """
 
     def __init__(self, base_ring, name=None, sparse=False):
-        ParentWithGens.__init__(self, base_ring, name)
+        commutative_ring.CommutativeRing.__init__(self, base_ring, names=name, category=_Fields)
         self.__sparse = sparse
 
     def base_extend(self, R):

@@ -11,10 +11,11 @@ Commutative additive monoids
 
 from sage.categories.category import Category
 from sage.misc.cachefunc import cached_method
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
 
 # CHANGE: AbelianMonoid does not inherit any more from Monoids
-class CommutativeAdditiveMonoids(Category):
+class CommutativeAdditiveMonoids(Category_singleton):
     """
     The category of abelian monoids
     semigroups with an additive identity element

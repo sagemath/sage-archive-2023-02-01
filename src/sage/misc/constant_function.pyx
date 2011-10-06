@@ -8,8 +8,9 @@ Constant functions
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.structure.sage_object import SageObject
-class ConstantFunction(SageObject):
+from sage.structure.sage_object cimport SageObject
+cdef class ConstantFunction(SageObject):
+    cdef object _value
     """
     A class for function objects implementing constant functions.
 
@@ -39,7 +40,6 @@ class ConstantFunction(SageObject):
 
     TODO:
 
-    - Make this into a Cython class for speed.
     - Should constant functions have unique representation?
     - Should the number of arguments be specified in the input?
     - Should this go into ``sage.categories.maps``?
@@ -64,10 +64,20 @@ class ConstantFunction(SageObject):
         """
         EXAMPLES::
 
-            sage: ConstantFunction(1)._value
+            sage: ConstantFunction(1)()
             1
         """
         self._value = value
+
+    def __reduce__(self):
+        """
+        TESTS::
+
+            sage: loads(dumps(ConstantFunction(5))) == ConstantFunction(5) # indirect doctest
+            True
+
+        """
+        return ConstantFunction, (self._value,)
 
     def _repr_(self):
         """
@@ -91,7 +101,7 @@ class ConstantFunction(SageObject):
         """
         return self._value
 
-    def __eq__(self, other):
+    def __cmp__(self, other):
         """
         EXAMPLES::
 
@@ -104,4 +114,7 @@ class ConstantFunction(SageObject):
             sage: ConstantFunction(True) == ConstantFunction(1)  # argl!
             True
         """
-        return self.__class__ is other.__class__ and self._value == other._value
+        cdef int c = cmp(self.__class__, other.__class__)
+        if c:
+            return c
+        return cmp(self._value, (<ConstantFunction>other)._value)

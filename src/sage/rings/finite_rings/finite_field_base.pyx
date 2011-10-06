@@ -10,6 +10,7 @@ include "../../ext/stdsage.pxi"
 
 from sage.structure.parent cimport Parent
 from sage.misc.prandom import randrange
+from sage.rings.finite_rings.homset import FiniteFieldHomset
 
 cdef class FiniteFieldIterator:
     r"""
@@ -69,6 +70,8 @@ cdef class FiniteFieldIterator:
         """
         return self
 
+from sage.categories.finite_fields import FiniteFields
+_FiniteFields = FiniteFields()
 cdef class FiniteField(Field):
     def __init__(self, base, names, normalize):
         """
@@ -85,8 +88,7 @@ cdef class FiniteField(Field):
             sage: loads(K.dumps()) == K
             True
         """
-        from sage.categories.finite_fields import FiniteFields
-        Field.__init__(self, base, names, normalize, category=FiniteFields())
+        Field.__init__(self, base, names, normalize, category=_FiniteFields)
 
     def __repr__(self):
         """
@@ -332,7 +334,6 @@ cdef class FiniteField(Field):
             sage: K.Hom(K) # indirect doctest
             Automorphism group of Finite Field in a of size 5^2
         """
-        from sage.rings.finite_rings.homset import FiniteFieldHomset
         return FiniteFieldHomset(self, codomain)
 
     def gen(self):

@@ -913,7 +913,7 @@ class HG:
 
         EXAMPLES::
 
-            sage: hg_sage.diff()
+            sage: hg_sage.diff() # not tested
             cd ... && hg diff    --config pager.pager="LESS='R' less"
 
         To see the changes in this file since revision 10000::
@@ -1829,7 +1829,7 @@ class HG:
 
         EXAMPLES::
 
-            sage: hg_sage.qdiff()
+            sage: hg_sage.qdiff() # not tested
             cd ... && hg qdiff ...
         """
         self('qdiff %s %s %s' % (options, color(), pager()), debug=debug)

@@ -1035,7 +1035,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -0.0319636125...*x^3 - 0.0383269759...*x^2 - 0.0463050900...*x + 0.346479687...
             sage: poly = f*g % m
             sage: # Remove noisy zero terms:
-            sage: parent(poly)([ 0.0 if abs(c)<=2.5e-15 else c for c in poly.coeffs() ])
+            sage: parent(poly)([ 0.0 if abs(c)<=2.7e-15 else c for c in poly.coeffs() ])
             1.0
 
         ALGORITHM: Solve the system as + mt = 1, returning s as the inverse

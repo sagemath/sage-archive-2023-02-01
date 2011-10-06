@@ -13,16 +13,11 @@ OBJS:=$(SOURCES:%.c=%.o)
 
 all: libsymmetrica.a
 
-$(OBJS): %.o: %.c
-	$(CC) -c $(CFLAGS) $<
-
-libsymmetrica.a: $(OBJS)
+libsymmetrica.a: $(OBJS) makefile
 	$(AR) crs $@ $(OBJS)
 	$(RANLIB) $@
 
-test: libsymmetrica.a test.c $(OBJS)
-	$(CC) -c $(CFLAGS) test.c
-	$(CC) -L. test.o $(OBJS) -o $@ -lsymmetrica -lm
-
-
+# Built and run from spkg-check:
+test: test.o libsymmetrica.a makefile
+	$(CC) test.o -o $@ -L. $(LDFLAGS) -lsymmetrica -lm
 

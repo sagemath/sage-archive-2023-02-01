@@ -34,7 +34,7 @@ states that Symmetrica is PUBLIC DOMAIN.
 
 
 == Dependencies ==
- * None
+ * GNU patch (for applying the patches to upstream)
 
 
 == Special Update/Build Instructions ==
@@ -43,8 +43,9 @@ The following patches are applied in spkg-install:
 
  * de.patch (Turn off banner)
  * macro.h.patch (Change some return types, this can be avoided)
- * copy patches/makefile (Fix compiler, inject CFLAGS)
  * sort_sum_rename.patch (rename sort to sym_sort, sum to sym_sum)
+ * We copy over our own Makefile:
+   patches/makefile (Fix compiler, i.e., use $CC, and let it use $CFLAGS.)
 
 Permissions in the upstream tarball are funky, please run
 "chmod 644 src/" after unpacking.
@@ -52,12 +53,22 @@ Permissions in the upstream tarball are funky, please run
 
 == Changelog ==
 
-=== symmetrica-2.0.p6 (Volker Braun, 28st September 2011) ===
- * Change -lm option order in Makefile.
- * removed dist/ directory.
- * src is now the pristine upstream source, patches are applied in
-   spkg-install
- * added spkg-check
+=== symmetrica-2.0.p7 (Leif Leonhardy, October 6th 2011) ===
+ #10719 (Fix linker errors on OpenSUSE 11.2 and Ubuntu 11.10):
+ Additional reviewer changes:
+  * Add more error checks, normalize error messages.
+  * Set up flags in spkg-check as well, as we build the test
+    program there. Also use $MAKE there. Put CFLAG64 into
+    LDFLAGS if appropriate (i.e. SAGE64=yes).
+  * Clean up our Makefile, also use LDFLAGS when linking the test program.
+  * Add GNU patch to the dependencies.
+
+=== symmetrica-2.0.p6 (Volker Braun, 28th September 2011) ===
+ * #10719: Change -lm option order in Makefile.
+ * Removed dist/ directory (obsolete Debian stuff).
+ * src/ is now the pristine upstream source, patches are applied in
+   spkg-install.
+ * Added spkg-check.
 
 === symmetrica-2.0.p5 (David Kirkby, 6th January 2009) ===
  * Allow SAGE64 to work on any platform, not just OS X.

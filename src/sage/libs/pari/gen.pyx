@@ -1540,14 +1540,14 @@ cdef class gen(sage.structure.element.RingElement):
             2147483647
             sage: int(pari(-2^31))
             -2147483648
+            sage: int(pari("Pol(10)"))
+            10
         """
         cdef GEN x
         cdef long lx, *xp
         if  typ(self.g)==t_POL and self.poldegree()<=0:
-            # this is a work around for the case that e.g.
-            # GF(q).random_element() returns zero, which is of type
-            # t_POL(MOD)
-            x = polcoeff0(self.g,0,self.get_var(-1))
+            # Change a constant polynomial to its constant term
+            x = constant_term(self.g)
         else:
             x = self.g
         if typ(x) != t_INT:
@@ -2431,15 +2431,11 @@ cdef class gen(sage.structure.element.RingElement):
 
         INPUT:
 
-
         -  ``x`` - gen
-
 
         OUTPUT:
 
-
         -  ``gen`` - a polynomial
-
 
         EXAMPLES::
 
@@ -2453,9 +2449,7 @@ cdef class gen(sage.structure.element.RingElement):
             4*y^3 + 3*y^2 + 2*y + 1
 
         Note that Polrev does *not* reverse the coefficients of a
-        polynomial!
-
-        ::
+        polynomial! ::
 
             sage: f
             4*x^3 + 3*x^2 + 2*x + 1
@@ -7474,6 +7468,21 @@ cdef class gen(sage.structure.element.RingElement):
         """
         return self.Vec().Polrev()
 
+    def content(self):
+        """
+        Greatest common divisor of all the components of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pari(2*x^2 + 2).content()
+            2
+            sage: pari("4*x^3 - 2*x/3 + 2/5").content()
+            2/15
+        """
+        sig_on()
+        return self.new_gen(content(self.g))
+
     def deriv(self, v=-1):
         sig_on()
         return self.new_gen(deriv(self.g, self.get_var(v)))
@@ -8337,6 +8346,54 @@ cdef class gen(sage.structure.element.RingElement):
         if add_one:
             return P.new_gen(gnextprime(gaddsg(1,self.g)))
         return P.new_gen(gnextprime(self.g))
+
+    def change_variable_name(self, var):
+        """
+        In ``self``, which must be a ``t_POL`` or ``t_SER``, set the
+        variable to ``var``.  If the variable of ``self`` is already
+        ``var``, then return ``self``.
+
+        .. WARNING::
+
+            You should be careful with variable priorities when
+            applying this on a polynomial or series of which the
+            coefficients have polynomial components.  To be safe, only
+            use this function on polynomials with integer or rational
+            coefficients.  For a safer alternative, use :meth:`subst`.
+
+        EXAMPLES::
+
+            sage: f = pari('x^3 + 17*x + 3')
+            sage: f.change_variable_name("y")
+            y^3 + 17*y + 3
+            sage: f = pari('1 + 2*y + O(y^10)')
+            sage: f.change_variable_name("q")
+            1 + 2*q + O(q^10)
+            sage: f.change_variable_name("y") is f
+            True
+
+        In PARI, ``I`` refers to the square root of -1, so it cannot be
+        used as variable name.  Note the difference with :meth:`subst`::
+
+            sage: f = pari('x^2 + 1')
+            sage: f.change_variable_name("I")
+            Traceback (most recent call last):
+            ...
+            PariError:  (5)
+            sage: f.subst("x", "I")
+            0
+        """
+        sig_on()
+        cdef long n = P.get_var(var)
+        sig_off()
+        if varn(self.g) == n:
+            return self
+        if typ(self.g) != t_POL and typ(self.g) != t_SER:
+            raise TypeError, "set_variable() only works for polynomials or power series"
+        # Copy self and then change the variable in place
+        cdef gen newg = P.new_gen_noclear(self.g)
+        setvarn(newg.g, n)
+        return newg
 
     def subst(self, var, z):
         """

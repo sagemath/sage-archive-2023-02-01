@@ -253,13 +253,8 @@ class NumberField_relative(NumberField_generic):
         self.__relative_polynomial = polynomial
         self._element_class = number_field_element.NumberFieldElement_relative
 
-        if check:
-            if not self.pari_relative_polynomial().polisirreducible():
-                # this is *much* faster than
-                # polynomial.is_irreducible() at some point in the
-                # future, is_irreducible should be made faster for
-                # polynomials over number fields -- see ticket #4724
-                raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
+        if check and not self.pari_relative_polynomial().polisirreducible():
+            raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
 
         self.__gens = [None]
 
@@ -1352,9 +1347,13 @@ class NumberField_relative(NumberField_generic):
 
     def pari_polynomial(self, name='x'):
         """
-        PARI polynomial corresponding to the polynomial over the
-        rationals that defines this field as an absolute number field.
-        By default, this is a polynomial in the variable "x".
+        PARI polynomial with integer coefficients corresponding to the
+        polynomial that defines this field as an absolute number field.
+
+        By default, this is a polynomial in the variable "x".  PARI
+        prefers integral polynomials, so we clear the denominator.
+        Therefore, this is NOT the same as simply converting the absolute
+        defining polynomial to PARI.
 
         EXAMPLES::
 
@@ -1367,19 +1366,19 @@ class NumberField_relative(NumberField_generic):
             x^4 + 8*x^2 + 4
             sage: k.relative_polynomial()
             x^2 + 3
+
+        ::
+
+            sage: k.<a, c> = NumberField([x^2 + 1/3, x^2 + 1/4])
+            sage: k.pari_polynomial()
+            144*x^4 + 168*x^2 + 1
+            sage: k.absolute_polynomial()
+            x^4 + 7/6*x^2 + 1/144
         """
         try:
-            if (self.__pari_polynomial_var == name):
-                return self.__pari_polynomial
-            else:
-                self.__pari_polynomial = self.__pari_polynomial(name)
-                self.__pari_polynomial_var = name
-                return self.__pari_polynomial
+            return self.__pari_polynomial.change_variable_name(name)
         except AttributeError:
-            poly = self.absolute_polynomial()
-            with localvars(poly.parent(), name):
-                self.__pari_polynomial = poly._pari_()
-                self.__pari_polynomial_var = name
+            self.__pari_polynomial = self._pari_rnfequation()[0].change_variable_name(name)
             return self.__pari_polynomial
 
     @cached_method
@@ -1423,7 +1422,7 @@ class NumberField_relative(NumberField_generic):
             Interface to the PARI C library
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
-        return QQ['y'](abs_base.polynomial())._pari_()
+        return abs_base.pari_polynomial('y')
 
     def pari_relative_polynomial(self):
         r"""
@@ -1448,11 +1447,8 @@ class NumberField_relative(NumberField_generic):
             sage: l.pari_relative_polynomial()
             Mod(1, y^4 + 1)*x^2 + Mod(y, y^4 + 1)
         """
-        abs_base, _, _ = self.absolute_base_field()
-        g = QQ['y'](abs_base.polynomial())
-        vals = [ QQ['y'](f.polynomial())._pari_().Mod(g) for f in self.relative_polynomial().list() ]
-        f = pari(vals).Polrev()
-        return f
+        vals = [ c._pari_('y') for c in self.relative_polynomial().list() ]
+        return pari(vals).Polrev()
 
     def number_of_roots_of_unity(self):
         """
@@ -1594,8 +1590,17 @@ class NumberField_relative(NumberField_generic):
             Number Field in a with defining polynomial x^2 + 1 over its base field
             sage: k.absolute_polynomial()
             x^6 + 5*x^4 - 2*x^3 + 4*x^2 + 4*x + 1
+
+        ::
+
+            sage: k.<a, c> = NumberField([x^2 + 1/3, x^2 + 1/4])
+            sage: k.absolute_polynomial()
+            x^4 + 7/6*x^2 + 1/144
+            sage: k.relative_polynomial()
+            x^2 + 1/3
         """
-        return QQ['x'](self._pari_rnfequation()[0])
+        paripol = self._pari_rnfequation()[0]
+        return QQ['x'](paripol/paripol.pollead())
 
     def relative_polynomial(self):
         """

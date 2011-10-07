@@ -263,13 +263,23 @@ cdef class NumberFieldElement(FieldElement):
             sage: K(pari("Mod(-5/3*q^2 + 5/3*q - 1/6, q^3 - 999)"))  # Wrong modulus
             Traceback (most recent call last):
             ...
-            ValueError: Coercion of PARI polmod with modulus x^3 - 999 into number field with defining polynomial x^3 - 17 failed
+            TypeError: Coercion of PARI polmod with modulus q^3 - 999 into number field with defining polynomial x^3 - 17 failed
 
         This example illustrates save and load::
 
             sage: K.<a> = NumberField(x^17 - 2)
             sage: s = a^15 - 19*a + 3
             sage: loads(s.dumps()) == s
+            True
+
+        TESTS:
+
+        Test round-trip conversion to PARI and back::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^3 - 1/2*x + 1/3)
+            sage: b = K.random_element()
+            sage: K(pari(b)) == b
             True
         """
         sage.rings.field_element.FieldElement.__init__(self, parent)
@@ -321,9 +331,9 @@ cdef class NumberFieldElement(FieldElement):
                 # since the rnfeltreltoabs() destroys all information about
                 # the number field.
                 if f.type() == "t_POLMOD":
-                    fpol = parent.polynomial_ring()(f.mod())
-                    if fpol != parent.absolute_polynomial():
-                        raise ValueError("Coercion of PARI polmod with modulus %s into number field with defining polynomial %s failed"%(fpol,parent.absolute_polynomial()))
+                    fmod = f.mod()
+                    if fmod != parent.pari_polynomial(fmod.variable()):
+                        raise TypeError("Coercion of PARI polmod with modulus %s into number field with defining polynomial %s failed"%(fmod, parent.pari_polynomial()))
                     f = f.lift()
             else:
                 f = parent.pari_nf().nfbasistoalg_lift(f)
@@ -579,7 +589,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: b._pari_init_('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (26)
+            PariError:  (5)
 
         Fortunately pari_init returns everything in terms of x by
         default::
@@ -3271,7 +3281,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             sage: I._pari_('I')
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError:  (5)
 
         Instead, request the variable be named different for the coercion::
 
@@ -3290,9 +3300,8 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             self.__pari = {}
         if var is None:
             var = self.number_field().variable_name()
-
-        f = self.polynomial()._pari_().subst('x', var)
-        g = self.number_field().pari_polynomial().subst('x', var)
+        f = self.polynomial()._pari_or_constant(var)
+        g = self.number_field().pari_polynomial(var)
         h = f.Mod(g)
         self.__pari[var] = h
         return h
@@ -3605,7 +3614,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: e = pari('Mod(0, x^8 + 1)'); L(e)  # Wrong modulus
             Traceback (most recent call last):
             ...
-            ValueError: Coercion of PARI polmod with modulus x^8 + 1 into number field with defining polynomial x^8 - x^5 + 4*x^4 + x^2 - 2*x + 4 failed
+            TypeError: Coercion of PARI polmod with modulus x^8 + 1 into number field with defining polynomial x^8 - x^5 + 4*x^4 + x^2 - 2*x + 4 failed
 
         We test a relative number field element created "by hand"::
 
@@ -3758,9 +3767,8 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             pass
         except TypeError:
             self.__pari = {}
+        f = self.polynomial()._pari_or_constant(var)
         g = self.parent().pari_polynomial(var)
-        f = self.polynomial()._pari_()
-        f = f.subst('x', var)
         h = f.Mod(g)
         self.__pari[var] = h
         return h
@@ -3880,11 +3888,9 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
                 algorithm = 'pari'
             else:
                 algorithm = 'sage'
-        g = self.polynomial()  # in QQ[x]
         R = QQ[var]
         if algorithm == 'pari':
-            f = self.number_field().pari_polynomial()  # # field is QQ[x]/(f)
-            return R((g._pari_().Mod(f)).charpoly()).change_variable_name(var)
+            return R(self._pari_().charpoly())
         if algorithm == 'sage':
             return R(self.matrix(QQ).charpoly())
 

@@ -1667,7 +1667,7 @@ class AlgebraicGenerator(SageObject):
 
     def pari_field(self):
         if self._pari_field is None:
-            pari_pol = self._field.pari_polynomial().subst('x','y')
+            pari_pol = self._field.pari_polynomial("y")
             self._pari_field = pari_pol.nfinit(1)
         return self._pari_field
 

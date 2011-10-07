@@ -4043,6 +4043,42 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self._pari_with_name(self.parent().variable_name())
 
+    def _pari_or_constant(self, name=None):
+        r"""
+        Convert ``self`` to PARI.  This behaves identical to :meth:`_pari_`
+        or :meth:`_pari_with_name` except for constant polynomials:
+        then the constant is returned instead of a constant polynomial.
+
+        INPUT:
+
+        - ``name`` -- (default: None) Variable name.  If not given, use
+          ``self.parent().variable_name()``.  This argument is irrelevant
+          for constant polynomials.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: pol = 2*x^2 + 7*x - 5
+            sage: pol._pari_or_constant()
+            2*x^2 + 7*x - 5
+            sage: pol._pari_or_constant('a')
+            2*a^2 + 7*a - 5
+            sage: pol = R(7)
+            sage: pol._pari_or_constant()
+            7
+            sage: pol._pari_or_constant().type()
+            't_INT'
+            sage: pol._pari_().type()
+            't_POL'
+            sage: PolynomialRing(IntegerModRing(101), 't')()._pari_or_constant()
+            Mod(0, 101)
+        """
+        if self.is_constant():
+            return self[0]._pari_()
+        if name is None:
+            name = self.parent().variable_name()
+        return self._pari_with_name(name)
+
     def _pari_with_name(self, name):
         r"""
         Return polynomial as a PARI object with topmost variable

@@ -2574,30 +2574,45 @@ class NumberField_generic(number_field_base.NumberField):
 
     def pari_polynomial(self, name='x'):
         """
-        PARI polynomial corresponding to polynomial that defines this
-        field. By default, this is a polynomial in the variable "x".
+        PARI polynomial with integer coefficients corresponding to the
+        polynomial that defines this number field.
+
+        By default, this is a polynomial in the variable "x".  PARI
+        prefers integral polynomials, so we clear the denominator.
+        Therefore, this is NOT the same as simply converting the defining
+        polynomial to PARI.
 
         EXAMPLES::
 
             sage: y = polygen(QQ)
             sage: k.<a> = NumberField(y^2 - 3/2*y + 5/3)
             sage: k.pari_polynomial()
+            6*x^2 - 9*x + 10
+            sage: k.polynomial()._pari_()
             x^2 - 3/2*x + 5/3
             sage: k.pari_polynomial('a')
-            a^2 - 3/2*a + 5/3
+            6*a^2 - 9*a + 10
+
+        This fails with arguments which are not a valid PARI variable name::
+
+            sage: k = QuadraticField(-1)
+            sage: k.pari_polynomial('I')
+            Traceback (most recent call last):
+            ...
+            PariError:  (5)
+            sage: k.pari_polynomial('i')
+            i^2 + 1
+            sage: k.pari_polynomial('theta')
+            Traceback (most recent call last):
+            ...
+            PariError:  (5)
         """
         try:
-            if (self.__pari_polynomial_var == name):
-                return self.__pari_polynomial
-            else:
-                self.__pari_polynomial = self.__pari_polynomial(name)
-                self.__pari_polynomial_var = name
-                return self.__pari_polynomial
+            return self.__pari_polynomial.change_variable_name(name)
         except AttributeError:
-            poly = self.polynomial()
-            with localvars(poly.parent(), name):
-                self.__pari_polynomial = poly._pari_()
-                self.__pari_polynomial_var = name
+            polypari = self.polynomial()._pari_with_name(name)
+            polypari /= polypari.content()   # make polypari integral
+            self.__pari_polynomial = polypari
             return self.__pari_polynomial
 
     def pari_nf(self):
@@ -3575,12 +3590,14 @@ class NumberField_generic(number_field_base.NumberField):
             -2012/11025
             sage: (5*7*3)^2
             11025
+            sage: NumberField(x^2 - 1/2, 'a').discriminant()
+            8
         """
         if v == None:
             try:
                 return self.__disc
             except AttributeError:
-                self.__disc = ZZ(str(self.pari_polynomial().nfdisc()))
+                self.__disc = ZZ(self.pari_polynomial().nfdisc())
                 return self.__disc
         else:
             return QQ(self.trace_pairing(v).det())

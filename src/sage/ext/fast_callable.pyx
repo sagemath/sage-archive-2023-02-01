@@ -1521,9 +1521,11 @@ cpdef get_builtin_functions():
         sage: from sage.ext.fast_callable import get_builtin_functions
         sage: builtins = get_builtin_functions()
         sage: sorted(list(builtins.values()))
-        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
+        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
         sage: builtins[sin]
         'sin'
+        sage: builtins[ln]
+        'log'
     """
     # We delay building builtin_functions to break a circular import
     # between sage.functions and this file.
@@ -1549,6 +1551,7 @@ cpdef get_builtin_functions():
                'asinh', 'acosh', 'atanh', 'exp', 'log'):
         builtin_functions[getattr(func_all, fn)] = fn
     builtin_functions[func_all.abs_symbolic] = 'abs'
+    builtin_functions[func_all.ln] = 'log'
     return builtin_functions
 
 cpdef generate_code(Expression expr, stream):

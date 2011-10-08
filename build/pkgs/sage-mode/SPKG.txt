@@ -4,9 +4,6 @@
 
 sage-mode provides Emacs Lisp that helps you use Sage in GNU Emacs.
 
-'''Warning!'''  This is alpha code.  This might fail horribly and is not (yet)
-easily customizable!
-
 == License ==
 
 Copyright (C) 2007, 2008, 2009, 2010, 2011  Nick Alexander
@@ -35,6 +32,7 @@ Boston, MA 02110-1301, USA.
 == Upstream Contact ==
 
  * Author: Nick Alexander <ncalexander [at] gmail.com>
+ * Bitbucket mercurial repository: [[http://bitbucket.org/ncalexan/sage-mode]]
 
 == Dependencies ==
 
@@ -70,6 +68,9 @@ A basic install might include the following Emacs Lisp in your .emacs:
 === sage-mode-0.7 (Nick Alexander, 2011-10-07) ===
 * Fix a bug reported by Ivan Andrus regarding font-lock and
 triple-quoted strings.
+
+* sage-mode is now hosted on bitbucket for easy viewing and cloning:
+browse to [[http://bitbucket.org/ncalexan/sage-mode]].
 
 === sage-mode-0.6 (Nick Alexander, 2009-05-11) ===
 * `sage-run' no longer waits for a sage: prompt by default.  This can cause

@@ -161,6 +161,8 @@ First internal version.
 
 == Old versions ==
 
+[[attachment:sage-mode-0.6.spkg]]
+
 [[attachment:sage-mode-0.5.4.spkg]]
 
 [[attachment:sage-mode-0.5.2.spkg]]

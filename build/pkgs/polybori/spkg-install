@@ -69,13 +69,13 @@ cd src
 
 echo "Starting build..."
 
-echo "Removing old PolyBoRi install..."
-clean_polybori
-echo "Done removing old PolyBoRi install."
-
 echo "Running build_polybori..."
 build_polybori
 echo "Done build_polybori."
+
+echo "Removing old PolyBoRi install..."
+clean_polybori
+echo "Done removing old PolyBoRi install."
 
 echo "Installing PolyBoRi..."
 install_polybori

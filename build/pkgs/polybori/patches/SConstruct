@@ -117,7 +117,7 @@ if distribute or rpm_generation or deb_generation:
     def DefaultBuild(arg):
         return arg
 
-defaultenv = Environment()
+defaultenv = Environment(ENV = os.environ)
 if defaultenv['PLATFORM'] == "darwin":
     defaultenv['SHCCFLAGS'] += ["-fvisibility=hidden"]
 
@@ -240,7 +240,7 @@ tools =  ["default"]
 
 if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
     def is_gcc():
-        compilerenv = Environment(options = opts)
+        compilerenv = Environment(ENV = os.environ, options = opts)
         return compilerenv['CC']  == 'gcc'
 
     if is_gcc():
@@ -249,7 +249,7 @@ if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
             if arg in tools:
                 tools.remove(arg)
         tools +=  [ 'gcc', 'g++', 'ar']
-        defaultenv = Environment(tools=tools)
+        defaultenv = Environment(ENV = os.environ, tools=tools)
 
 for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
 SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
@@ -272,17 +272,10 @@ opts.Add('CONFFILE', "Dump settings to file, if given", '')
 if not GetOption('clean'):
     tools +=  ["disttar", "doxygen"]
 
-# Get paths an related things from current environment
-# todo: Are these settings sane in any case?
-getenv = dict()
-for key in ['PATH', 'HOME', 'LD_LIBRARY_PATH'] :
-    try:
-        getenv[key] = os.environ[key]
-    except KeyError:
-        pass
-
-
-env = Environment(ENV = getenv, options = opts, tools = tools, toolpath = '.')
+# Get paths and related things from current environment os.environ
+# note: We cannot avoid those due to non-standard system setups,
+#       also we do not know which variables are used in general
+env = Environment(ENV = os.environ, options = opts, tools = tools, toolpath = '.')
 
 if 'dump' in COMMAND_LINE_TARGETS:
   print env.Dump()

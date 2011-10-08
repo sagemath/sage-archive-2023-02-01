@@ -1,5 +1,14 @@
 --- ../src/polybori-0.7/SConstruct	2011-04-27 13:00:31.000000000 +0200
-+++ SConstruct	2011-09-19 23:05:17.000000000 +0200
++++ SConstruct	2011-10-08 21:18:19.720087957 +0200
+@@ -117,7 +117,7 @@
+     def DefaultBuild(arg):
+         return arg
+ 
+-defaultenv = Environment()
++defaultenv = Environment(ENV = os.environ)
+ if defaultenv['PLATFORM'] == "darwin":
+     defaultenv['SHCCFLAGS'] += ["-fvisibility=hidden"]
+     
 @@ -169,6 +169,8 @@
  opts.Add('CXXFLAGS', "C++ compiler flags", "-std=c++98 -ftemplate-depth-100",
           converter = Split)
@@ -9,7 +18,47 @@
  opts.Add('LINKFLAGS', "Linker flags", defaultenv['LINKFLAGS'] + ['-s'])
  opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
  
-@@ -370,9 +372,40 @@
+@@ -238,7 +240,7 @@
+ 
+ if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
+     def is_gcc():
+-        compilerenv = Environment(options = opts)
++        compilerenv = Environment(ENV = os.environ, options = opts)
+         return compilerenv['CC']  == 'gcc'
+     
+     if is_gcc():
+@@ -247,7 +249,7 @@
+             if arg in tools:
+                 tools.remove(arg)
+         tools +=  [ 'gcc', 'g++', 'ar']
+-        defaultenv = Environment(tools=tools)
++        defaultenv = Environment(ENV = os.environ, tools=tools)
+ 
+ for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
+ SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
+@@ -270,17 +272,10 @@
+ if not GetOption('clean'):
+     tools +=  ["disttar", "doxygen"]
+ 
+-# Get paths an related things from current environment
+-# todo: Are these settings sane in any case?
+-getenv = dict()
+-for key in ['PATH', 'HOME', 'LD_LIBRARY_PATH'] :
+-    try:
+-        getenv[key] = os.environ[key]
+-    except KeyError:
+-        pass
+-
+-
+-env = Environment(ENV = getenv, options = opts, tools = tools, toolpath = '.')
++# Get paths and related things from current environment os.environ
++# note: We cannot avoid those due to non-standard system setups,
++#       also we do not know which variables are used in general
++env = Environment(ENV = os.environ, options = opts, tools = tools, toolpath = '.')
+ 
+ if 'dump' in COMMAND_LINE_TARGETS:
+   print env.Dump()
+@@ -370,9 +365,40 @@
  external_m4ri = False
  
  if not env.GetOption('clean'):
@@ -52,7 +101,7 @@
          env.Append(CPPDEFINES=["HAVE_GD"])
  
      if env['FORCE_HASH_MAP']:
-@@ -436,7 +469,7 @@
+@@ -436,7 +462,7 @@
                  print "Tutorial will not be installed"
      external_m4ri = conf.CheckLib('m4ri')
      if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
@@ -61,7 +110,7 @@
          env.Append(CPPDEFINES=["HAVE_GD"])
      if external_m4ri:
         env['LIBS'] += ['m4ri']
-@@ -448,6 +481,8 @@
+@@ -448,6 +474,8 @@
             print "Symlinking to", m4ri_inc, "..."
             os.symlink('.', m4ri_inc)
  
@@ -70,7 +119,7 @@
      env = conf.Finish()
  
  
-@@ -493,6 +528,12 @@
+@@ -493,6 +521,12 @@
  
  env.Append(BUILDERS={'SymLink' : symlinkbld})
  
@@ -83,7 +132,7 @@
  ######################################################################
  # Stuff for building Cudd library
  ######################################################################
-@@ -505,8 +546,7 @@
+@@ -505,8 +539,7 @@
  
  env.Append(LIBPATH=[CuddPath()])
  
@@ -93,7 +142,7 @@
  
  cudd_headers = [ CuddPath(fname) for fname in ['obj/cuddObj.hh', 'util/util.h',
                                                 'cudd/cuddInt.h'] ] 
-@@ -565,9 +605,11 @@
+@@ -565,9 +598,11 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:
      slib = VersionatedSharedLibrary
@@ -108,7 +157,7 @@
  
  libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
  
-@@ -1319,7 +1361,7 @@
+@@ -1319,7 +1354,7 @@
  
      if HAVE_PYTHON_EXTENSION or extern_python_ext:
          cmdline = """$PYTHON -c "import compileall; compileall.compile_dir('"""

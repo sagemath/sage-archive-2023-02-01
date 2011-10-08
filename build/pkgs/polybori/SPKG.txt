@@ -38,6 +38,12 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.7.1.p7 (Alexander Dreyer, 8 October, 2011) ===
+ * #11906: pass environment variables to build environment
+   (backport from 0.8.1)
+ * unused libm4ri sources removed
+ * clean old PolyBoRi install after sucessfully building
+
 === polybori-0.7.1.p6 (Alexander Dreyer, 19 September, 2011) ===
  * #11574: add -msse2 only of __M4RI_HAVE_SSE2 is defined *and* nonzero
 

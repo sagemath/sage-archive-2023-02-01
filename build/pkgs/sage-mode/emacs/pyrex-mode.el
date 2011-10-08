@@ -7,6 +7,7 @@
 ;; buffers.
 
 (require 'python)
+(require 'sage)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.pyx\\'" . pyrex-mode))
@@ -16,7 +17,7 @@
 (add-to-list 'auto-mode-alist '("\\.pxd\\'" . pyrex-mode))
 
 ;;;###autoload
-(define-derived-mode pyrex-mode python-mode "Pyrex"
+(define-derived-mode pyrex-mode sage-mode "Pyrex"
   (set (make-local-variable 'outline-regexp)
        (rx (* space) (or "class" "def" "cdef" "cpdef" "elif" "else" "except" "finally"
 			 "for" "if" "try" "while" "with")
@@ -68,7 +69,8 @@ BOS non-nil means point is known to be at beginning of statement."
   (save-excursion
     (unless bos (python-beginning-of-statement))
     (looking-at (rx (and (or "if" "else" "elif" "while" "for" "def" "cdef" "cpdef"
-			     "class" "try" "except" "finally" "with")
+			     "class" "try" "except" "finally" "with"
+			     "EXAMPLES:" "TESTS:" "INPUT:" "OUTPUT:")
 			 symbol-end)))))
 
 (defadvice python-open-block-statement-p
@@ -76,7 +78,7 @@ BOS non-nil means point is known to be at beginning of statement."
   ;; this strange incantation calls the original python-open-block-statement
   ;; unless we're in a derived mode.  The (setq ad-return-value ...) is how
   ;; one modifies the return value of advised functions.
-  (if (not (pyrex-mode-p))
+  (if (not (or (sage-mode-p) (pyrex-mode-p)))
       ad-do-it
     (setq ad-return-value (apply 'pyrex-open-block-statement-p rest))))
 

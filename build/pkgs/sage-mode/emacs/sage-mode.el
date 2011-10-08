@@ -150,8 +150,8 @@
   (message "Waiting for sage: prompt...")
   (with-current-buffer sage-buffer
     (let* ((sprocess (get-buffer-process sage-buffer))
-	    (success nil)
-	    (timeout 0))
+	   (success nil)
+	   (timeout 0))
       (while (progn
 	       (if (not (eq (process-status sprocess) 'run))
 		   (error "SAGE process has died unexpectedly.")
@@ -345,6 +345,7 @@ Otherwise, `comint-simple-send' just sends STRING plus a newline."
   "Delete output from interpreter since last input, moving it to *sage-output* buffer.
 Does not delete the prompt."
   (interactive)
+  (with-current-buffer sage-buffer
   (let ((proc (get-buffer-process (current-buffer)))
 	(replacement nil)
 	(saved nil)
@@ -375,7 +376,7 @@ Does not delete the prompt."
 	(insert saved))
       ;; and possibly display the output-buffer, either in status bar or onscreen
       (if (with-current-buffer output-buffer (> (point-max) (point-min)))
-	  (display-buffer output-buffer)))))
+	  (display-buffer output-buffer))))))
 
 ;;;_* SAGE process management
 

@@ -628,15 +628,7 @@ and restart a fresh inferior sage in an existing buffer.
 
 \\{sage-mode-map}"
   (setq comment-column 60)
-  (set (make-local-variable 'font-lock-multiline) t)
-  (set (make-local-variable 'font-lock-defaults)
-       `(, (cons
-	    (cons "XXX\\(.*\n\\)*?XXX" font-lock-comment-face)
-	    python-font-lock-keywords)
-	 nil nil nil nil
-	 (font-lock-syntactic-keywords . python-font-lock-syntactic-keywords)
-	 ))
-)
+  (set (make-local-variable 'font-lock-multiline) t))
 
 (defun sage-font-lock ()
   "Install Sage font-lock patterns."

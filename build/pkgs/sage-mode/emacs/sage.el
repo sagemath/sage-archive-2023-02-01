@@ -60,7 +60,6 @@ Additional arguments are added when the command is used by `run-sage' et al."
   :group 'sage
   :type 'string)
 
-;; "import sage_emacs as emacs"
 (defcustom sage-startup-after-prompt-command nil
   "*Send this command to the sage slave each time it is executed by `run-sage', AFTER the first prompt is seen."
   :group 'sage

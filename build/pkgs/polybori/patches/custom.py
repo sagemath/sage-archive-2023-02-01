@@ -1,13 +1,11 @@
 import os
 import sys
 
-# FIXME: Do we really want to *overwrite* the flags (e.g. if set by the user)?
-CCFLAGS=["-O3 -Wno-long-long -Wreturn-type -g -fPIC"]
-#CXXFLAGS=CCFLAGS+["-ftemplate-depth-100 -g -fPIC"]
-CXXFLAGS=CCFLAGS+["-ftemplate-depth-100"]
-
-# FIXME: Should we include LDFLAGS here? (see above)
-if not globals().has_key("LINKFLAGS"): LINKFLAGS=[] # s.t. we can *append* below
+# Adding user flags here
+CFLAGS += " " + os.environ.get('CFLAGS', '')
+CXXFLAGS += " " + os.environ.get('CXXFLAGS', '')
+CCFLAGS += " " + os.environ.get('CPPFLAGS', '')
+LINKFLAGS += os.environ.get('LDFLAGS', '').split()
 
 print "Platform: ", sys.platform
 

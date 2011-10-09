@@ -8,15 +8,13 @@ SAGE_ROOT     = os.path.realpath(os.environ['SAGE_ROOT'])
 location_file = os.path.join(SAGE_ROOT, 'local', 'lib', 'sage-current-location.txt')
 flags_file    = os.path.join(SAGE_ROOT, 'local', 'lib', 'sage-flags.txt')
 
-# The flags we care about recording in the local/lib/sage-flags.txt file
-# In SAGE_FAT_BINARY mode we only require that ['sse', 'sse2', '3d',
-#  'mmx', 'cmov'] be available, and in particular, don't require pni
-#  or ssse3.
 
-try:
-    SAGE_FAT_BINARY = os.environ['SAGE_FAT_BINARY']
-except:
-    SAGE_FAT_BINARY = ""
+# The flags we care about recording in the local/lib/sage-flags.txt file.
+# In SAGE_FAT_BINARY mode we only require that ['sse', 'sse2', '3d',
+# 'mmx', 'cmov'] be available, and in particular, we don't require pni
+# (Prescott New Instructions, including SSE3) or ssse3.
+
+SAGE_FAT_BINARY = os.environ.get('SAGE_FAT_BINARY',"")
 
 if SAGE_FAT_BINARY == "yes":
     FLAGS = ['sse', 'sse2', '3d', 'mmx', 'cmov']
@@ -26,7 +24,7 @@ else:
 
 def write_location_file():
     """
-    Write the location file with the current SAGE_ROOT
+    Write the location file with the current value of ``SAGE_ROOT``.
     """
     # Write new location file.
     O = open(location_file,'w')
@@ -35,7 +33,8 @@ def write_location_file():
 
 def read_location_file():
     """
-    If the location file exists, return the real path contained in it.  Otherwise, return None.
+    If the location file exists, return the real path contained in it.
+    Otherwise return ``None``.
     """
     if os.path.exists(location_file):
         # The install moved and we had written the flags and location files.
@@ -46,18 +45,18 @@ def read_location_file():
     else:
         return None
 
+
 def install_moved():
     """
-    Check whether or not this install of Sage moved.  If it hasn't
-    moved make sure the location and processor flags files are
-    written.
+    Check whether or not this installation of Sage has moved.  If it hasn't
+    moved, make sure the location and processor flags files are written.
 
-    Returns True if location possibly moved, and sets the global
-    OLD_SAGE_ROOT variable to the old SAGE_ROOT path.
+    Return ``True`` if location possibly changed, and set the global
+    ``OLD_SAGE_ROOT`` variable to the old ``SAGE_ROOT`` path.
 
-    Returns False if location has not moved.
+    Return ``False`` if the Sage installation hasn't moved.
     """
-    # Write the flags file if it isn't there.
+    # Write the flags file if it isn't there:
     if not os.path.exists(flags_file):
         f=open(flags_file,'w')
         f.write(get_flags_info())
@@ -73,17 +72,18 @@ def install_moved():
     elif path != SAGE_ROOT:
         # location moved
         global OLD_SAGE_ROOT
-        OLD_SAGE_ROOT=path
+        OLD_SAGE_ROOT = path
         write_location_file()
         return True
     else:
         # path didn't change
         return False
 
+
 def get_flags_info():
     """
-    Return a space-separated string that lists the flags supported by
-    this CPU from /proc/cpuinfo.
+    Return a space-separated string that lists the flags indicating what's
+    supported by this CPU by reading ``/proc/cpuinfo``.
     """
     try:
         r = open('/proc/cpuinfo').read()
@@ -99,17 +99,18 @@ def get_flags_info():
         return ' '.join(set(x for x in r.split() if x in FLAGS))
 
     except IOError:
-        # On a system without /proc/cpuinfo, so don't bother. In
-        # particular, for non Linux systems I have no clue how to get
+        # On a system without /proc/cpuinfo, so don't bother.  In
+        # particular, for non-Linux systems I have no clue how to get
         # the processor flags, and we so far have never ever had any
         # problem with processor flags on such machines.  So we don't
         # bother.
         return ''
 
+
 def check_processor_flags():
     """
     Make sure all processor flags from the build machine are on this machine.
-    If the sage-flags.txt file is missing, don't bother to do this check.
+    If the ``sage-flags.txt`` file is missing, don't bother to do this check.
     """
     if not os.path.exists(flags_file): return
     # We check that the processor flags of the original build are a
@@ -134,25 +135,25 @@ def check_processor_flags():
         print "*"*70
         sys.exit(1)
 
+
 def update_library_files():
     """
-    Run ranlib on the library directory and manually change the path
-    in .la library files.
+    Run ``ranlib`` on all static libraries (``*.a``) in the library directory,
+    and manually change the paths in all of ``libtool``'s ``.la`` library files.
     """
     LIB = os.path.join(os.path.abspath(SAGE_ROOT), 'local', 'lib')
-    # The .a files should be re-ranlib'd
-    os.system('cd "%s"; ranlib *.a 1>/dev/null 2>/dev/null'%LIB)
+    # The .a files should be re-ranlib'd:
+    os.system('cd "%s"; ranlib *.a 1>/dev/null 2>/dev/null' % LIB)
 
-    # The .la files hardcode path info, so we manually fix the path
-    # info
+    # The .la files hardcode path info, so we manually fix the path info:
     for F in os.listdir(LIB):
        if os.path.splitext(F)[1]==".la":
            G = open(os.path.join(LIB,F)).read()
-	   i = G.find('libdir=')
-	   j = i+8 + G[i+8:].find("'")
-	   z = G[i+8:j].strip().strip("'")
- 	   i = z.rfind('local/')
-	   if i != -1:
+           i = G.find('libdir=')
+           j = i+8 + G[i+8:].find("'")
+           z = G[i+8:j].strip().strip("'")
+           i = z.rfind('local/')
+           if i != -1:
                z = z[:i]
                H = G.replace(z, os.path.abspath(SAGE_ROOT) + '/')
                open(os.path.join(LIB, F),'w').write(H)
@@ -160,78 +161,99 @@ def update_library_files():
 
 def initialize_pkgconfig_files():
     """
-    Insert a sage_local variable in each pkg_config file and replace
-    them to make the paths portable.
+    Insert a ``SAGE_ROOT`` variable into each ``pkg-config`` file and replace
+    occurrences of its current value by references to it (``${SAGE_ROOT}``).
+    This way we only have to change the definition of ``SAGE_ROOT`` whenever
+    the Sage installation has moved, i.e., paths have changed.
     """
+    import re
     LIB = os.path.join(os.path.abspath(SAGE_ROOT), 'local', 'lib')
-    PKG = os.path.join(LIB,'pkgconfig')
+    PKG = os.path.join(LIB, 'pkgconfig')
     for name in os.listdir(PKG):
-        filename=os.path.join(PKG,name)
+        filename = os.path.join(PKG, name)
         if os.path.splitext(filename)[1]==".pc":
             with open(filename) as file:
                 config = file.read()
 
+            if re.search("^SAGE_ROOT=", config, re.MULTILINE):
+                # There's already a definition of SAGE_ROOT,
+                # so skip this file. (Cf. #11760).
+                continue
+
             new_config = config.replace(os.path.abspath(SAGE_ROOT), "${SAGE_ROOT}")
-
-            new_config = 'SAGE_ROOT=%s\n'%os.path.abspath(SAGE_ROOT)+new_config
-
+            new_config = 'SAGE_ROOT=%s\n' % os.path.abspath(SAGE_ROOT) + new_config
             with open(filename, 'w') as file:
                 file.write(new_config)
 
 
-
 def update_pkgconfig_files():
     """
-    Change paths in package configuration files.
+    Change / update paths in all ``pkg-config`` (``*.pc``) files pointing into
+    the Sage installation tree, which is necessary whenever Sage has moved.
+    Requires that the files have previously been processed by
+    ``initialize_pkgconfig_files()``, in particular, each of them contains a
+    definition of the variable ``SAGE_ROOT``, since only that is updated here.
     """
     LIB = os.path.join(os.path.abspath(SAGE_ROOT), 'local', 'lib')
-    PKG = os.path.join(LIB,'pkgconfig')
+    PKG = os.path.join(LIB, 'pkgconfig')
     for name in os.listdir(PKG):
-        filename=os.path.join(PKG,name)
+        filename = os.path.join(PKG,name)
         if os.path.splitext(filename)[1]==".pc":
             with open(filename) as file:
                 config = file.read()
 
-            prefix_start=config.find('SAGE_ROOT=')
-            prefix_end=config.find('\n', prefix_start)
-            new_prefix='SAGE_ROOT=%s'%os.path.abspath(SAGE_ROOT)
-            new_config=config[:prefix_start]+new_prefix+config[prefix_end:]
+            prefix_start = config.find('SAGE_ROOT=')
+            if prefix_start==-1:
+                # This should never happen, unless the user modified the file.
+                sys.stderr.write(
+                    "Error: sage_location: update_pkgconfig_files():\n" +
+                    "  File \"%s\" doesn't contain a definition of SAGE_ROOT.\n" %
+                    name + "  Skipping it...\n")
+                sys.stderr.flush()
+                continue
 
+            prefix_end = config.find('\n', prefix_start)
+            new_prefix = 'SAGE_ROOT=%s' % os.path.abspath(SAGE_ROOT)
+            new_config = config[:prefix_start] + new_prefix + config[prefix_end:]
             with open(filename, 'w') as file:
                 file.write(new_config)
 
 
 def remove_files(path, remove_extensions):
     """
-    Walk the tree starting at path and remove all files with
-    extensions in remove_ext.  The extensions in remove_extensions
-    should start with a period, i.e., remove_files(path, ('.pyc',
-    '.pyo')).
+    Walk the tree starting at ``path``, and remove all files with
+    extensions in ``remove_extensions``.
+    The extensions in ``remove_extensions`` should start with a period, i.e.,
+    e.g. use ``remove_files(path, ('.pyc', '.pyo'))``.
     """
     for root, dirs, files in os.walk(path):
         for file in files:
-            filename=os.path.join(root,file)
+            filename = os.path.join(root, file)
             if os.path.splitext(filename)[1] in remove_extensions:
                 try:
                     os.unlink(filename)
                 except OSError, msg:
                     print msg
 
-def __mysig(a,b):
-    raise KeyboardInterrupt, "computation timed out because alarm was set for %s seconds"%__alarm_time
 
-if __name__ ==  '__main__':
+def __mysig(a,b):
+    raise KeyboardInterrupt, "Computation timed out because alarm was set for %s seconds." % __alarm_time
+
+
+if __name__ == '__main__':
 
     check_processor_flags()
+    # Note: install_moved() may also run e.g. initialize_pkgconfig_files().
     if install_moved():
-        print "The Sage install tree may have moved"
-        print "(from %s to %s)"%(OLD_SAGE_ROOT, SAGE_ROOT)
-        print "Changing various hardcoded paths"
-        print "(please wait at most a few minutes)..."
-        print "Do not interrupt this."
-	update_library_files()
+        print "The Sage installation tree may have moved"
+        print "(from %s to %s)." % (OLD_SAGE_ROOT, SAGE_ROOT)
+        print "Changing various hardcoded paths..."
+        print "(Please wait at most a few minutes.)"
+        print "DO NOT INTERRUPT THIS."
+        sys.stdout.flush() # One never knows...
+        update_library_files()
         update_pkgconfig_files()
-        # Compiled python files need to be regenerated, so we remove them
+        # Compiled python files need to be regenerated, so we remove them:
         remove_files(os.path.join(SAGE_ROOT, 'local', 'lib', 'python'),
                      remove_extensions=('.pyc', '.pyo'))
-        print "Done resetting paths"
+        print "Done resetting paths."

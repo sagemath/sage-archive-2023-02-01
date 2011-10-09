@@ -1,5 +1,5 @@
 --- ../src/polybori-0.7/SConstruct	2011-04-27 13:00:31.000000000 +0200
-+++ SConstruct	2011-10-08 21:18:19.720087957 +0200
++++ SConstruct	2011-10-09 22:44:57.806191815 +0200
 @@ -117,7 +117,7 @@
      def DefaultBuild(arg):
          return arg
@@ -101,6 +101,23 @@
          env.Append(CPPDEFINES=["HAVE_GD"])
  
      if env['FORCE_HASH_MAP']:
+@@ -388,12 +414,12 @@
+         
+     extern_python_ext = env['EXTERNAL_PYTHON_EXTENSION']
+     if HAVE_PYTHON_EXTENSION or extern_python_ext:
+-        env.Append(CPPPATH=[pyconf.incdir])
+-        env.Append(LIBPATH=[pyconf.libdir, pyconf.staticlibdir])
++        env.Prepend(CPPPATH=[pyconf.incdir])
++        env.Prepend(LIBPATH=[pyconf.libdir, pyconf.staticlibdir])
+ 
+-        env.Append(CPPPATH=[PBPath('include')])
++        env.Prepend(CPPPATH=[PBPath('include')])
+         env.Append(CPPDEFINES=["PACKED","HAVE_M4RI"])
+-        env.Append(LIBPATH=["polybori","groebner"])
++        env.Prepend(LIBPATH=["polybori","groebner"])
+         env.Prepend(LIBS = ["m"])
+ 
+ 
 @@ -436,7 +462,7 @@
                  print "Tutorial will not be installed"
      external_m4ri = conf.CheckLib('m4ri')
@@ -132,9 +149,12 @@
  ######################################################################
  # Stuff for building Cudd library
  ######################################################################
-@@ -505,8 +539,7 @@
+@@ -503,21 +537,20 @@
+ if not env['PLATFORM'] in ["darwin", "cygwin"] :
+     env.Append(CPPDEFINES=["BSD"])
  
- env.Append(LIBPATH=[CuddPath()])
+-env.Append(LIBPATH=[CuddPath()])
++env.Prepend(LIBPATH=[CuddPath()])
  
 -cudd_resources = [CuddPath('obj/cuddObj.cc')]
 -cudd_resources += glob(CuddPath('util/*.c'))
@@ -142,6 +162,19 @@
  
  cudd_headers = [ CuddPath(fname) for fname in ['obj/cuddObj.hh', 'util/util.h',
                                                 'cudd/cuddInt.h'] ] 
+ 
+-env.Append(CPPPATH = [ CuddPath(fdir) for fdir in ['obj', 'util'] ])
++env.Prepend(CPPPATH = [ CuddPath(fdir) for fdir in ['obj', 'util'] ])
+ 
+ def shared_object(o):
+     return env.SharedObject(o)
+     
+ for fdir in Split("cudd mtr st epd"):
+-    env.Append( CPPPATH=[CuddPath(fdir)] )
++    env.Prepend( CPPPATH=[CuddPath(fdir)] )
+     cudd_resources += glob(CuddPath(fdir, fdir + '*.c'))
+     cudd_headers += [ CuddPath(fdir, fdir +'.h') ]
+ 
 @@ -565,9 +598,11 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:

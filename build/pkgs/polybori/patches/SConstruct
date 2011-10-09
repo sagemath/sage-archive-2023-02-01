@@ -414,12 +414,12 @@ if not env.GetOption('clean'):
 
     extern_python_ext = env['EXTERNAL_PYTHON_EXTENSION']
     if HAVE_PYTHON_EXTENSION or extern_python_ext:
-        env.Append(CPPPATH=[pyconf.incdir])
-        env.Append(LIBPATH=[pyconf.libdir, pyconf.staticlibdir])
+        env.Prepend(CPPPATH=[pyconf.incdir])
+        env.Prepend(LIBPATH=[pyconf.libdir, pyconf.staticlibdir])
 
-        env.Append(CPPPATH=[PBPath('include')])
+        env.Prepend(CPPPATH=[PBPath('include')])
         env.Append(CPPDEFINES=["PACKED","HAVE_M4RI"])
-        env.Append(LIBPATH=["polybori","groebner"])
+        env.Prepend(LIBPATH=["polybori","groebner"])
         env.Prepend(LIBS = ["m"])
 
 
@@ -537,20 +537,20 @@ env.Append(CPPDEFINES=["HAVE_IEEE_754"])
 if not env['PLATFORM'] in ["darwin", "cygwin"] :
     env.Append(CPPDEFINES=["BSD"])
 
-env.Append(LIBPATH=[CuddPath()])
+env.Prepend(LIBPATH=[CuddPath()])
 
 cudd_resources = glob(CuddPath('util/*.c'))
 
 cudd_headers = [ CuddPath(fname) for fname in ['obj/cuddObj.hh', 'util/util.h',
                                                'cudd/cuddInt.h'] ]
 
-env.Append(CPPPATH = [ CuddPath(fdir) for fdir in ['obj', 'util'] ])
+env.Prepend(CPPPATH = [ CuddPath(fdir) for fdir in ['obj', 'util'] ])
 
 def shared_object(o):
     return env.SharedObject(o)
 
 for fdir in Split("cudd mtr st epd"):
-    env.Append( CPPPATH=[CuddPath(fdir)] )
+    env.Prepend( CPPPATH=[CuddPath(fdir)] )
     cudd_resources += glob(CuddPath(fdir, fdir + '*.c'))
     cudd_headers += [ CuddPath(fdir, fdir +'.h') ]
 

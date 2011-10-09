@@ -6,6 +6,8 @@ CFLAGS += " " + os.environ.get('CFLAGS', '')
 CXXFLAGS += " " + os.environ.get('CXXFLAGS', '')
 CCFLAGS += " " + os.environ.get('CPPFLAGS', '')
 LINKFLAGS += os.environ.get('LDFLAGS', '').split()
+GD_LIBS+=["png12","z"]
+
 
 print "Platform: ", sys.platform
 

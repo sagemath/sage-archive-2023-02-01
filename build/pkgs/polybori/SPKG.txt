@@ -37,13 +37,42 @@ reference implementation for Gröbner basis computation.
  * libz         (accomplished because e.g. libpng depends on it)
 
 == Special Update/Build Instructions ==
-
  * Delete M4RI source tree, because it is a standard Sage package, see #9472
  * Since we replace the original boost-based python bindings by a cython-based
    interface,  pyroot/PyPolyBoRi.py needs to be patched accordingling.
  * Consequently the PolyBoRi spkg has at least patch level p0.
 
 == Releases ==
+
+=== polybori-0.8.0.p2 (Alexander Dreyer, 9 October, 2011) ===
+ * merging with polybori-0.7.1.p7.spkg
+
+=== polybori-0.8.0.p1 (Alexander Dreyer, 28 September, 2011) ===
+ * improved detection of libM4RI flags (backport from upcoming 0.8.1)
+
+=== polybori-0.8.0.p0 (Alexander Dreyer, 8 September, 2011) ===
+ * Updating sources to PolyBoRi's release 0.8.0
+
+=== polybori-0.8-rc.p3 (Alexander Dreyer, 2 September, 2011) ===
+ * Updating sources to rc5 and merged with preliminary polybori-0.7.1.p5.spkg
+
+=== polybori-0.8-rc.p2 (Alexander Dreyer, 17 August, 2011) ===
+ * Updating sources to rc3 and merged with official polybori-0.7.1.p4.spkg
+
+=== polybori-0.8-rc.p1 (Alexander Dreyer, 15 August, 2011) ===
+ * Updating sources to recent release candidate rc2 of PolyBoRi 0.8
+
+=== polybori-0.8-rc.p0 (Alexander Dreyer, 10 August, 2011) ===
+ * Updating sources to release candidate of PolyBoRi 0.8
+
+=== polybori-0.8-alpha.p3 (Alexander Dreyer, 5 August, 2011) ===
+ * Removing workaround for missing default constructors from sources
+
+=== polybori-0.8-alpha.p2 (Alexander Dreyer, 4 August, 2011) ===
+ * Updating sources to PolyBoRi 0.8 alpha1
+
+=== polybori-0.8-alpha.p1 (Alexander Dreyer, 15 July, 2011) ===
+ * First working Version of the PolyBoRi 0.8 spkg
 
 === polybori-0.7.1.p7 (Alexander Dreyer, 8 October, 2011) ===
  * #11906: pass environment variables to build environment

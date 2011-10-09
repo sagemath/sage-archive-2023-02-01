@@ -1,24 +1,15 @@
---- ../src/polybori-0.7/SConstruct	2011-04-27 13:00:31.000000000 +0200
-+++ SConstruct	2011-10-09 22:44:57.806191815 +0200
-@@ -117,7 +117,7 @@
+--- ../src/polybori-0.8.0/SConstruct	2011-09-07 22:25:22.000000000 +0200
++++ SConstruct	2011-10-09 23:47:57.930299775 +0200
+@@ -126,7 +126,7 @@
      def DefaultBuild(arg):
          return arg
  
 -defaultenv = Environment()
 +defaultenv = Environment(ENV = os.environ)
- if defaultenv['PLATFORM'] == "darwin":
-     defaultenv['SHCCFLAGS'] += ["-fvisibility=hidden"]
-     
-@@ -169,6 +169,8 @@
- opts.Add('CXXFLAGS', "C++ compiler flags", "-std=c++98 -ftemplate-depth-100",
-          converter = Split)
  
-+opts.Add('M4RI_CFLAGS', "C compiler flags for M4RI", converter = Split) 
-+
- opts.Add('LINKFLAGS', "Linker flags", defaultenv['LINKFLAGS'] + ['-s'])
- opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
- 
-@@ -238,7 +240,7 @@
+ # See also: http://trac.sagemath.org/sage_trac/ticket/9872 and #6437
+ def detect_linker(env):
+@@ -318,7 +318,7 @@
  
  if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
      def is_gcc():
@@ -27,7 +18,7 @@
          return compilerenv['CC']  == 'gcc'
      
      if is_gcc():
-@@ -247,7 +249,7 @@
+@@ -327,7 +327,7 @@
              if arg in tools:
                  tools.remove(arg)
          tools +=  [ 'gcc', 'g++', 'ar']
@@ -35,13 +26,13 @@
 +        defaultenv = Environment(ENV = os.environ, tools=tools)
  
  for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
- SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
-@@ -270,17 +272,10 @@
- if not GetOption('clean'):
-     tools +=  ["disttar", "doxygen"]
+ SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX PLATFORM"""):
+@@ -351,17 +351,10 @@
+ 
+ tools +=  ["disttar", "doxygen"]
  
 -# Get paths an related things from current environment
--# todo: Are these settings sane in any case?
+-# note: we cannot avoid those due to non-standard system setups
 -getenv = dict()
 -for key in ['PATH', 'HOME', 'LD_LIBRARY_PATH'] :
 -    try:
@@ -58,144 +49,13 @@
  
  if 'dump' in COMMAND_LINE_TARGETS:
    print env.Dump()
-@@ -370,9 +365,40 @@
- external_m4ri = False
- 
- if not env.GetOption('clean'):
--    conf = Configure(env)
-+    def GuessM4RIFlags(context):
-+        context.Message('Guessing m4ri compile flags... ')
-+        test_src =  """
-+        #include <m4ri/%s>
-+        #include <stdio.h>
-+        int main(int argc, char **argv) {
-+          /* we test for some possible current and future configurations */
-+          %s
-+          return 0;
-+        }
-+        """  %  \
-+        ("%s", ''.join(["""
-+        #if defined(__M4RI_HAVE_%(macro)s)
-+          if (__M4RI_HAVE_%(macro)s)
-+            printf("-m%(option)s ");
-+        #endif""" % \
-+        dict(macro=opt.replace('.','_').upper(), option=opt) for opt in \
-+            Split("sse sse2 sse3 sse4 sse4.1 sse4.2 sse4a ssse3 mmx 3dnow") ]) )
-+        (result, values) = context.TryRun(test_src % "m4ri_config.h", '.c')
-+	if result != 1:
-+            (result, values) = context.TryRun(test_src % "config.h", '.c')
-+
-+        result = (result == 1)
-+        if result:
-+            context.Display(values)
-+            env.Append(M4RI_CFLAGS=Split(values))
-+
-+        context.Result(result)
-+        return result
-+
-+    conf = Configure(env, custom_tests = {'GuessM4RIFlags': GuessM4RIFlags})
-+
-     if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
--        env.Append(LIBS=["gd"])
-+        env.Append(LIBS=["gd","png12","z"])
-         env.Append(CPPDEFINES=["HAVE_GD"])
- 
-     if env['FORCE_HASH_MAP']:
-@@ -388,12 +414,12 @@
-         
-     extern_python_ext = env['EXTERNAL_PYTHON_EXTENSION']
-     if HAVE_PYTHON_EXTENSION or extern_python_ext:
--        env.Append(CPPPATH=[pyconf.incdir])
--        env.Append(LIBPATH=[pyconf.libdir, pyconf.staticlibdir])
-+        env.Prepend(CPPPATH=[pyconf.incdir])
-+        env.Prepend(LIBPATH=[pyconf.libdir, pyconf.staticlibdir])
- 
--        env.Append(CPPPATH=[PBPath('include')])
-+        env.Prepend(CPPPATH=[PBPath('include')])
-         env.Append(CPPDEFINES=["PACKED","HAVE_M4RI"])
--        env.Append(LIBPATH=["polybori","groebner"])
-+        env.Prepend(LIBPATH=["polybori","groebner"])
-         env.Prepend(LIBS = ["m"])
- 
- 
-@@ -436,7 +462,7 @@
-                 print "Tutorial will not be installed"
-     external_m4ri = conf.CheckLib('m4ri')
-     if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
--        env.Append(LIBS=["gd"])
-+        env.Append(LIBS=["gd","png12","z"])
-         env.Append(CPPDEFINES=["HAVE_GD"])
-     if external_m4ri:
-        env['LIBS'] += ['m4ri']
-@@ -448,6 +474,8 @@
-            print "Symlinking to", m4ri_inc, "..."
-            os.symlink('.', m4ri_inc)
- 
-+    conf.GuessM4RIFlags()
-+
-     env = conf.Finish()
- 
- 
-@@ -493,6 +521,12 @@
- 
- env.Append(BUILDERS={'SymLink' : symlinkbld})
- 
-+env.Append(CCFLAGS="$M4RI_CFLAGS")
-+env.Append(CXXFLAGS="$M4RI_CFLAGS")
-+env.Append(SHCCFLAGS="$M4RI_CFLAGS")
-+env.Append(SHCXXFLAGS="$M4RI_CFLAGS")
-+
-+
- ######################################################################
- # Stuff for building Cudd library
- ######################################################################
-@@ -503,21 +537,20 @@
- if not env['PLATFORM'] in ["darwin", "cygwin"] :
-     env.Append(CPPDEFINES=["BSD"])
- 
--env.Append(LIBPATH=[CuddPath()])
-+env.Prepend(LIBPATH=[CuddPath()])
- 
--cudd_resources = [CuddPath('obj/cuddObj.cc')]
--cudd_resources += glob(CuddPath('util/*.c'))
-+cudd_resources = glob(CuddPath('util/*.c'))
- 
- cudd_headers = [ CuddPath(fname) for fname in ['obj/cuddObj.hh', 'util/util.h',
-                                                'cudd/cuddInt.h'] ] 
- 
--env.Append(CPPPATH = [ CuddPath(fdir) for fdir in ['obj', 'util'] ])
-+env.Prepend(CPPPATH = [ CuddPath(fdir) for fdir in ['obj', 'util'] ])
- 
- def shared_object(o):
-     return env.SharedObject(o)
-     
- for fdir in Split("cudd mtr st epd"):
--    env.Append( CPPPATH=[CuddPath(fdir)] )
-+    env.Prepend( CPPPATH=[CuddPath(fdir)] )
-     cudd_resources += glob(CuddPath(fdir, fdir + '*.c'))
-     cudd_headers += [ CuddPath(fdir, fdir +'.h') ]
- 
-@@ -565,9 +598,11 @@
- slib = env.SharedLibrary
- if env['SHLIBVERSIONING']:
-     slib = VersionatedSharedLibrary
--#if env['PLATFORM']=="darwin":
--#    slib=env.LoadableModule
--
-+# since "slib = VersionatedSharedLibrary" is broken on OSX 10.4 we use the 
-+# following. We are currently not using shared libraries anyway due to
-+# bugs in the deallocation of the various PolyBoRi libraries
-+if env['PLATFORM']=="darwin":
-+    slib=env.LoadableModule
- 
- libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
- 
-@@ -1319,7 +1354,7 @@
- 
-     if HAVE_PYTHON_EXTENSION or extern_python_ext:
-         cmdline = """$PYTHON -c "import compileall; compileall.compile_dir('"""
--        cmdline += InstPyPath() + """', ddir = ''); """ 
-+        cmdline += InstPyPath('polybori') + """', ddir = ''); """ 
-         cmdline += """compileall.compile_dir('"""+ InstPath(GUIPath())
-         cmdline += """', ddir='')" """
-         FinalizeNonExecs(env.Command([file.path + 'c' for file in pyfiles],
+@@ -529,7 +522,8 @@
+         }
+         """  %  \
+         ("%s", ''.join(["""
+-        #if defined(__M4RI_HAVE_%(macro)s) || defined(HAVE_%(macro)s )
++        #if (defined(__M4RI_HAVE_%(macro)s) && (__M4RI_HAVE_%(macro)s)) || \
++          defined(HAVE_%(macro)s)
+           printf("-m%(option)s ");
+         #endif""" % \
+         dict(macro=opt.replace('.','_').upper(), option=opt) for opt in \

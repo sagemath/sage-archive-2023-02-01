@@ -1,6 +1,8 @@
 import os
 import sys
 
+if not globals().has_key("LINKFLAGS"): LINKFLAGS=[] # s.th. we can *append* below
+
 # Adding user flags here
 CFLAGS += " " + os.environ.get('CFLAGS', '')
 CXXFLAGS += " " + os.environ.get('CXXFLAGS', '')

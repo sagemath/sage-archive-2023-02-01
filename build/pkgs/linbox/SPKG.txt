@@ -23,6 +23,12 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.6.p5 (Martin Albrecht, October 10th, 2011) ===
+ * removed spkg-rebuild
+ * removed spkg-debian and the dist directory
+ * removed "linbox" from .hgignore
+ * added patch for file file patches/commentator.C
+
 === linbox-1.1.6.p4 (Martin Albrecht, August 23rd, 2011) ===
  * add NonZeroRandIter to modular-float.h (fixed in 1.1.7)
 

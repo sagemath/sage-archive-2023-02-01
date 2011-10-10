@@ -1,3 +1,0 @@
-debian/tmp/usr/lib/liblinboxwrap.*a usr/lib
-debian/tmp/usr/lib/*.so usr/lib
-debian/tmp/usr/include/* usr/include

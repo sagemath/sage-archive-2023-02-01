@@ -1833,16 +1833,13 @@ def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
     EXAMPLES::
 
         sage: P.<x,y> = PolynomialRing(QQ)
-        sage: loads(dumps(P)) == P # indirect doctest
+        sage: loads(dumps(P)) is P # indirect doctest
         True
     """
-    from sage.rings.polynomial.polynomial_ring_constructor import _get_from_cache
-    key = (base_ring,  tuple(names), len(names), False, term_order)
-    R = _get_from_cache(key)
-    if not R is None:
-        return R
-
-    return MPolynomialRing_libsingular(base_ring, len(names), names, term_order)
+    from sage.rings.polynomial.polynomial_ring_constructor import _multi_variate
+    # If libsingular would be replaced by a different implementation in future
+    # sage version, the unpickled ring will belong the new implementation.
+    return _multi_variate(base_ring, tuple(names), len(names), False, term_order, None)
 
 cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolynomial):
     """

@@ -86,7 +86,8 @@ class ScatterPlot(GraphicPrimitive):
              ('marker', 'What shape to plot the points.'),
              ('markersize', 'the size of the markers.'),
              ('rgbcolor', 'The color as an RGB tuple.'),
-             ('zorder', 'The layer level in which to draw.')]
+             ('zorder', 'The layer level in which to draw.'),
+             ('clip', 'Whether or not to clip.')]
         """
         return {'markersize': 'the size of the markers.',
                 'marker': 'What shape to plot the points.',
@@ -95,7 +96,8 @@ class ScatterPlot(GraphicPrimitive):
                 'hue':'The color given as a hue.',
                 'facecolor':'The color of the marker face.',
                 'edgecolor':'The color of the marker border.',
-                'zorder':'The layer level in which to draw.'}
+                'zorder':'The layer level in which to draw.',
+                'clip': 'Whether or not to clip.'}
 
     def _repr_(self):
         """
@@ -126,9 +128,14 @@ class ScatterPlot(GraphicPrimitive):
         """
         from matplotlib.pyplot import scatter
         options = self.options()
-        subplot.scatter(self.xdata, self.ydata, alpha=options['alpha'], zorder=options['zorder'], marker=options['marker'],s=options['markersize'],facecolors=options['facecolor'], edgecolors=options['edgecolor'])
+        p = subplot.scatter(self.xdata, self.ydata, alpha=options['alpha'],
+                zorder=options['zorder'], marker=options['marker'],
+                s=options['markersize'], facecolors=options['facecolor'],
+                edgecolors=options['edgecolor'], clip_on=options['clip'])
+        if not options['clip']:
+            self._bbox_extra_artists=[p]
 
-@options(alpha=1, markersize=50, marker='o', zorder=5, facecolor='#fec7b8', edgecolor='black', aspect_ratio='automatic')
+@options(alpha=1, markersize=50, marker='o', zorder=5, facecolor='#fec7b8', edgecolor='black', clip=True, aspect_ratio='automatic')
 def scatter_plot(datalist, **options):
     """
     Returns a Graphics object of a scatter plot containing all points in

@@ -237,9 +237,12 @@ class GraphPlot(SageObject):
         if not isinstance(vertex_colors, dict):
             voptions['facecolor'] = vertex_colors
             if self._arcdigraph:
-                self._plot_components['vertices'] = [circle(center, self._vertex_radius, fill=True, facecolor=vertex_colors) for center in self._pos.values()]
+                self._plot_components['vertices'] = [circle(center,
+                    self._vertex_radius, fill=True, facecolor=vertex_colors)
+                    for center in self._pos.values()]
             else:
-                self._plot_components['vertices'] = scatter_plot(self._pos.values(), **voptions)
+                self._plot_components['vertices'] = scatter_plot(
+                    self._pos.values(), clip=False, **voptions)
         else:
             # Color list must be ordered:
             pos = []
@@ -260,15 +263,19 @@ class GraphPlot(SageObject):
                 colors+=[c]*len(leftovers)
 
             if self._arcdigraph:
-                self._plot_components['vertices'] = [circle(pos[i], self._vertex_radius, fill=True, facecolor=colors[i]) for i in range(len(pos))]
+                self._plot_components['vertices'] = [circle(pos[i],
+                    self._vertex_radius, fill=True, facecolor=colors[i])
+                    for i in range(len(pos))]
             else:
-                self._plot_components['vertices'] = scatter_plot(pos, facecolor=colors, **voptions)
+                self._plot_components['vertices'] = scatter_plot(pos,
+                    facecolor=colors, clip=False, **voptions)
 
         if self._options['vertex_labels']:
             self._plot_components['vertex_labels'] = []
             # TODO: allow text options
             for v in self._nodelist:
-                self._plot_components['vertex_labels'].append(text(str(v), self._pos[v], rgbcolor=(0,0,0), zorder=8))
+                self._plot_components['vertex_labels'].append(text(str(v),
+                    self._pos[v], rgbcolor=(0,0,0), zorder=8))
 
     def set_edges(self, **edge_options):
         """

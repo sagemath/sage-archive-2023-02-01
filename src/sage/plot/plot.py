@@ -465,6 +465,7 @@ class Graphics(SageObject):
         self.__axes_width = 0.8
         self.__objects = []
         self._extra_kwds = {}
+        self.__bbox_extra_artists = []
 
     def set_aspect_ratio(self, ratio):
         """
@@ -1977,6 +1978,8 @@ class Graphics(SageObject):
         #add all the primitives to the subplot
         for g in self.__objects:
             g._render_on_subplot(subplot)
+            if hasattr(g, '_bbox_extra_artists'):
+                self.__bbox_extra_artists.extend(g._bbox_extra_artists)
 
         #add the legend if requested
         if show_legend is None:
@@ -2481,7 +2484,8 @@ class Graphics(SageObject):
             #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
             if fig_tight is True:
                 figure.savefig(filename, dpi=dpi, bbox_inches='tight',
-                           transparent=transparent)
+                    bbox_extra_artists=self.__bbox_extra_artists,
+                    transparent=transparent)
             else:
                 figure.savefig(filename, dpi=dpi,
                            transparent=transparent)

@@ -101,7 +101,8 @@ class Text(GraphicPrimitive):
                 'rotation': 'how to rotate the text: angle in degrees, vertical, horizontal',
                 'vertical_alignment': 'how to align vertically: top, center, bottom',
                 'horizontal_alignment':'how to align horizontally: left, center, right',
-                'zorder':'The layer level in which to draw'}
+                'zorder':'The layer level in which to draw',
+                'clip': 'Whether to clip or not.'}
 
     def _plot3d_options(self, options=None):
         """
@@ -177,11 +178,14 @@ class Text(GraphicPrimitive):
                 opts['rotation'] = options['rotation']
             else:
                 opts['rotation'] = float(options['rotation'])
-        subplot.text(self.x, self.y, self.string, **opts)
+        p=subplot.text(self.x, self.y, self.string, clip_on=options['clip'], **opts)
+        if not options['clip']:
+            self._bbox_extra_artists=[p]
+
 
 @rename_keyword(color='rgbcolor')
 @options(fontsize=10, rgbcolor=(0,0,1), horizontal_alignment='center',
-         vertical_alignment='center', axis_coords=False)
+         vertical_alignment='center', axis_coords=False, clip=False)
 def text(string, xy, **options):
     r"""
     Returns a 2D text graphics object at the point `(x,y)`.

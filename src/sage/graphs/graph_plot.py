@@ -238,7 +238,7 @@ class GraphPlot(SageObject):
             voptions['facecolor'] = vertex_colors
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(center,
-                    self._vertex_radius, fill=True, facecolor=vertex_colors)
+                    self._vertex_radius, fill=True, facecolor=vertex_colors, clip=False)
                     for center in self._pos.values()]
             else:
                 self._plot_components['vertices'] = scatter_plot(
@@ -264,7 +264,7 @@ class GraphPlot(SageObject):
 
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(pos[i],
-                    self._vertex_radius, fill=True, facecolor=colors[i])
+                    self._vertex_radius, fill=True, facecolor=colors[i], clip=False)
                     for i in range(len(pos))]
             else:
                 self._plot_components['vertices'] = scatter_plot(pos,

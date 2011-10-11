@@ -116,7 +116,8 @@ class Circle(GraphicPrimitive):
                 'rgbcolor':'The color (edge and face) as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'zorder':'2D only: The layer level in which to draw',
-                'linestyle':"2D only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
+                'linestyle':"2D only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'.",
+                'clip': 'Whether or not to clip the circle.'}
 
     def _repr_(self):
         """
@@ -138,7 +139,9 @@ class Circle(GraphicPrimitive):
         """
         import matplotlib.patches as patches
         options = self.options()
-        p = patches.Circle((float(self.x), float(self.y)), float(self.r))
+        p = patches.Circle((float(self.x), float(self.y)), float(self.r), clip_on=options['clip'])
+        if not options['clip']:
+            self._bbox_extra_artists=[p]
         p.set_linewidth(float(options['thickness']))
         p.set_fill(options['fill'])
         a = float(options['alpha'])
@@ -210,7 +213,8 @@ class Circle(GraphicPrimitive):
             return Line(xdata, ydata, options).plot3d().translate((0,0,z))
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid', zorder=5, legend_label=None)
+@options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid',
+         zorder=5, legend_label=None, clip=True)
 def circle(center, radius, **options):
     """
     Return a circle at a point center = `(x,y)` (or `(x,y,z)` and

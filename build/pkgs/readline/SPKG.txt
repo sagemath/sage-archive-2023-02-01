@@ -25,17 +25,26 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
 == Dependencies ==
 
- * None
+ * GNU patch
 
 == Special Update/Build Instructions ==
 
  * Deleted some files from the doc directory from the standard distro,
    since it took tons of space; didn't delete anything else.
  * Work around some MacOSX dynamic lib flags
+* TODO: When we add self-tests, we may have to set up variables like
+   CFLAGS in spkg-check.
 
 == Changelog ==
 
-== readline-6.1 (David Kirkby, 11th November 2010) ==
+=== readline-6.2.p0 (John Palmieri, 30 Sept 2011) ===
+ * Update to version 6.2.
+ * Fix for Mac OS X 10.7 Lion.  This fix is taken from
+   https://trac.macports.org/browser/trunk/dports/devel/readline/files/patch-shobj-conf.diff
+ * spkg-install: Turn off all hacks and fixes for Arch Linux and OpenSuSE.
+ * Use 'patch' to install the patches.
+
+=== readline-6.1 (David Kirkby, 11th November 2010) ===
  * Update to latest version #9523
  * Removed a hack for Arch Linux, as this is no longer needed
    with the latest readline (see #9523)

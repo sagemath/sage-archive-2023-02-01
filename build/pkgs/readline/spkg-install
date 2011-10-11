@@ -1,20 +1,17 @@
 #!/usr/bin/env bash
-###########################################
-## Readline 6.1
-###########################################
 
-if [ -z "$SAGE_LOCAL" ]; then
+if [[ -z $SAGE_LOCAL ]]; then
     echo "SAGE_LOCAL undefined ... exiting"
     echo "Maybe run 'sage -sh'?"
     exit 1
 fi
 
-if [ "x$CFLAG64" = x ] ; then
+if [[ -z $CFLAG64 ]] ; then
    CFLAG64=-m64
 fi
 
 # Compile for 64-bit if SAGE64 is set to 'yes'
-if [ "x$SAGE64" = xyes ] ; then
+if [[ $SAGE64 = yes ]] ; then
    echo "Building a 64-bit version of Readline"
    CFLAGS="$CFLAGS $CFLAG64"
    CPPFLAGS="$CPPFLAGS $CFLAG64"
@@ -22,10 +19,10 @@ if [ "x$SAGE64" = xyes ] ; then
    LDFLAGS="$LDFLAGS $CFLAG64"
 fi
 
-if [ "x$SAGE_DEBUG" = "xyes" ] ; then
+if [[ $SAGE_DEBUG = yes ]] ; then
    CFLAGS="$CFLAGS -g -O0"
 else
-   CFLAGS="$CFLAGS -g -O2"
+   CFLAGS="-g -O2 $CFLAGS"
 fi
 
 # These are all used by GNU to specify compilers.
@@ -47,10 +44,6 @@ export LDFLAGS
 # End of pretty general spkg-install file.
 # Now do the specific things needed for this package (Readline)
 
-echo "Deleting old readline headers and libs..."
-rm -rf "$SAGE_LOCAL"/include/readline/
-rm -rf "$SAGE_LOCAL"/lib/libreadline.*
-
 # OVERWRITE_READLINE=false; export OVERWRITE_READLINE
 
 # First we check for OpenSUSE 11.x, since there bash is linked dynamically with a
@@ -60,9 +53,11 @@ rm -rf "$SAGE_LOCAL"/lib/libreadline.*
 
 if [ -f /etc/SuSE-release ]; then
     echo "OpenSuSE detected"
+    # #11882: bypass this test for OpenSuSE.
+    #
     # Note that "-q" doesn't work with Solaris' non-POSIX grep
     # in the default path, but we're certainly on Linux here:
-    if grep -q 11\\. /etc/SuSE-release 2>/dev/null; then
+    if false && grep -q 11\\. /etc/SuSE-release 2>/dev/null; then
         echo "OpenSuSE 11 detected"
         if [ -d /usr/include/readline/ ]; then
             echo "The development version of libreadline is installed -> copying"
@@ -98,15 +93,19 @@ if [ -f /etc/SuSE-release ]; then
             # OVERWRITE_READLINE="true"; export OVERWRITE_READLINE
         fi
     else
-        echo "... but not OpenSuSE 11 -> building Sage's version of libreadline."
+	# echo "... but not OpenSuSE 11 -> building Sage's version of libreadline."
+	echo "Building Sage's version of readline 6.2 anyway..."
     fi
 fi
 
+# #11882: bypass this test for Arch Linux.
+#
 # We also check for Arch Linux, since it crashes with "undefined symbol: PC".
 # If anyone knows a better way to fix this, please do.
-
 if [ -f /etc/arch-release ]; then
     echo "Arch Linux detected"
+fi
+if false && [ -f /etc/arch-release ]; then
     if [ -f "/lib/libreadline.so.6" ]; then
         echo "Copying over system's libreadline (version 6.x)."
         cp -af /lib/libreadline.so.6* "$SAGE_LOCAL"/lib
@@ -133,14 +132,15 @@ if [ -f /etc/arch-release ]; then
     fi
 fi
 
-
-cp patches/shobj-conf src/support/
-if [ $? -ne 0 ]; then
-    echo "Error copying patch over."
-    exit 1
-fi
-
 cd src/
+
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
 ./configure --prefix="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then
@@ -151,6 +151,14 @@ fi
 $MAKE
 if [ $? -ne 0 ]; then
     echo "Error building readline."
+    exit 1
+fi
+
+echo "'make' was successful.  Deleting old readline headers and libs"
+echo "before running 'make install'..."
+rm -rf "$SAGE_LOCAL"/include/readline/ "$SAGE_LOCAL"/lib/libreadline.*
+if [ $? -ne 0 ]; then
+    echo "Error removing old version of readline."
     exit 1
 fi
 
@@ -166,7 +174,7 @@ elif [ "$UNAME" = "CYGWIN" ]; then
   # It is of course very lame that readline names the file .dll.a, but that's what it does.
   DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.dll.a
 elif [ "$UNAME" = "OpenBSD" ]; then
-  DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.so.6.1  # Untested. David Kirkby, 11th November 2010
+  DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.so.6.2  # Untested. David Kirkby, 11th November 2010
 elif [ "$UNAME" = "FreeBSD" ]; then
   DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.so.6
 elif [ "$UNAME" = "HP-UX" ]; then

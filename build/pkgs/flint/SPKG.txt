@@ -36,9 +36,15 @@ GPL V2+
 
 == Changelog ==
 
+=== flint-1.5.0.p10 (Leif Leonhardy, October 11th 2011) ===
+  * #9858: Add an upstream patch from FLINT 1.5.2 to make FLINT's test suite
+    build (when `SAGE_CHECK=yes`) with MPIR 1.3.x, 2.x (cf. #8664) and GMP 5.x.
+    The patch just substitutes deprecated random functions in one file
+    (`fmpz-test.c`) which have been removed from the mentioned GMP / MPIR
+    versions.
+
 === flint-1.5.0.p9 (Karl-Dieter Crisman, Dima Pasechnik, 25 August 2011) ===
   * Fix DOS file endings introduced in p7 which made patch fail on some systems
-
 
 === flint-1.5.0.p8 (Karl-Dieter Crisman, 12th July 2011) ===
   * Enable both libflint.dll and .so on Cygwin (see Trac 11547).

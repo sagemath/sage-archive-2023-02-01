@@ -190,8 +190,13 @@ if [ "$SAGE_STARTUP_FILE" = "" ]; then
 fi
 
 if [ -d "$SAGE_ROOT/local/lib/python" ]; then
-    PYTHONPATH="$SAGE_PATH:$SAGE_ROOT/local/lib/python"   && export PYTHONPATH
-    PYTHONHOME="$SAGE_ROOT/local" && export PYTHONHOME
+    PYTHONPATH="$SAGE_ROOT/local/lib/python"
+    if [ -n "$SAGE_PATH" ]; then
+        PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
+    fi
+    PYTHONHOME="$SAGE_ROOT/local"
+    export PYTHONPATH
+    export PYTHONHOME
 fi
 
 if [ -z "${SAGE_ORIG_LD_LIBRARY_PATH_SET}" ]; then

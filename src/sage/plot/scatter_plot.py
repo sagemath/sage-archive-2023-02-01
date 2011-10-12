@@ -80,14 +80,14 @@ class ScatterPlot(GraphicPrimitive):
             sage: from sage.plot.scatter_plot import ScatterPlot
             sage: list(sorted(ScatterPlot([-1,2], [17,4], {})._allowed_options().iteritems()))
             [('alpha', 'How transparent the marker border is.'),
-             ('edgecolor', 'The color of the marker border.'),
-             ('facecolor', 'The color of the marker face.'),
-             ('hue', 'The color given as a hue.'),
-             ('marker', 'What shape to plot the points.'),
-             ('markersize', 'the size of the markers.'),
-             ('rgbcolor', 'The color as an RGB tuple.'),
-             ('zorder', 'The layer level in which to draw.'),
-             ('clip', 'Whether or not to clip.')]
+            ('clip', 'Whether or not to clip.'),
+            ('edgecolor', 'The color of the marker border.'),
+            ('facecolor', 'The color of the marker face.'),
+            ('hue', 'The color given as a hue.'),
+            ('marker', 'What shape to plot the points.'),
+            ('markersize', 'the size of the markers.'),
+            ('rgbcolor', 'The color as an RGB tuple.'),
+            ('zorder', 'The layer level in which to draw.')]
         """
         return {'markersize': 'the size of the markers.',
                 'marker': 'What shape to plot the points.',

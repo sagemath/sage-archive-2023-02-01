@@ -122,16 +122,10 @@ class Text(GraphicPrimitive):
             options = dict(self.options())
         options_3d = {}
         # TODO: figure out how to implement rather than ignore
-        if 'fontsize' in options:
-            del options['fontsize']
-        if 'vertical_alignment' in options:
-            del options['vertical_alignment']
-        if 'horizontal_alignment' in options:
-            del options['horizontal_alignment']
-        if 'axis_coords' in options:
-            del options['axis_coords']
-        if 'rotation' in options:
-            del options['rotation']
+        for s in ['axis_coords', 'clip', 'fontsize', 'horizontal_alignment',
+                'rotation', 'vertical_alignment' ]:
+            if s in options:
+                del options[s]
         options_3d.update(GraphicPrimitive._plot3d_options(self, options))
         return options_3d
 

@@ -195,11 +195,11 @@ class Circle(GraphicPrimitive):
         """
         options = dict(self.options())
         fill = options['fill']
-        del options['fill']
-        del options['linestyle']
-        del options['edgecolor']
-        del options['facecolor']
-        del options['zorder']
+        for s in ['clip', 'edgecolor', 'facecolor', 'fill', 'linestyle',
+                'zorder']:
+            if s in options:
+                del options[s]
+
         n = 50
         dt = float(2*pi/n)
         x, y, r = self.x, self.y, self.r

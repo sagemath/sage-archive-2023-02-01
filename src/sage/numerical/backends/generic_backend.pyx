@@ -26,6 +26,7 @@ AUTHORS:
 
 
 cdef class GenericBackend:
+
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=True, integer=False, obj=0.0, name=None) except -1:
         """
         Add a variable.

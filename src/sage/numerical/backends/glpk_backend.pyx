@@ -16,6 +16,7 @@ AUTHORS:
 from sage.numerical.mip import MIPSolverException
 
 cdef class GLPKBackend(GenericBackend):
+
     def __cinit__(self, maximization = True):
         """
         Constructor
@@ -25,7 +26,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
         """
         self.lp = glp_create_prob()
-        self.iocp = new_c_glp_iocp()
+        self.iocp = <c_glp_iocp* > sage_malloc(sizeof(c_glp_iocp))
         glp_init_iocp(self.iocp)
         self.iocp.presolve = GLP_ON
         self.set_verbosity(0)
@@ -1071,3 +1072,4 @@ cdef class GLPKBackend(GenericBackend):
         Destructor
         """
         glp_delete_prob(self.lp)
+        sage_free(self.iocp)

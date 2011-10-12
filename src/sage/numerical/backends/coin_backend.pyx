@@ -20,7 +20,7 @@ cdef class CoinBackend(GenericBackend):
 
     def __cinit__(self, maximization = True):
 
-        self.si = new_c_OsiCbcSolverInterface();
+        self.si = new c_OsiCbcSolverInterface(NULL)
         # stuff related to the loglevel
         cdef c_CbcModel * model
         model = self.si.getModelPtr()
@@ -34,6 +34,12 @@ cdef class CoinBackend(GenericBackend):
             self.set_sense(+1)
         else:
             self.set_sense(-1)
+
+    def __dealloc__(self):
+        r"""
+        Destructor function
+        """
+        del self.si
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
@@ -981,7 +987,7 @@ cdef class CoinBackend(GenericBackend):
         """
         cdef CoinBackend p = CoinBackend(maximization = (1 if self.is_maximization() else -1))
 
-        p.si = new2_c_OsiCbcSolverInterface(<OsiSolverInterface *> self.si)
+        p.si = new c_OsiCbcSolverInterface(<OsiSolverInterface *> self.si)
 
         return p
 

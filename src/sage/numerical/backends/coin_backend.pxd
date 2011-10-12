@@ -98,9 +98,9 @@ cdef extern from "../../local/include/coin/OsiCbcSolverInterface.hpp":
          void addRow (c_CoinPackedVector vec, double rowlb, double rowub)
          c_CoinPackedMatrix * getMatrixByRow()
          c_OsiCbcSolverInterface * c_OsiCbcSolverInterface(OsiSolverInterface * solver)
-     c_OsiCbcSolverInterface *new_c_OsiCbcSolverInterface "new OsiCbcSolverInterface" ()
-     c_OsiCbcSolverInterface * new2_c_OsiCbcSolverInterface "new OsiCbcSolverInterface" (OsiSolverInterface * solver)
-     void del_OsiCbcSolverInterface "delete" (c_OsiCbcSolverInterface *)
+     #c_OsiCbcSolverInterface *new_c_OsiCbcSolverInterface "new OsiCbcSolverInterface" ()
+     #c_OsiCbcSolverInterface * new2_c_OsiCbcSolverInterface "new OsiCbcSolverInterface" (OsiSolverInterface * solver)
+     #void del_OsiCbcSolverInterface "delete" (c_OsiCbcSolverInterface *)
 
 cdef class CoinBackend(GenericBackend):
     cdef c_OsiCbcSolverInterface * si

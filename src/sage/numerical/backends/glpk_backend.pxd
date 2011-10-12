@@ -26,6 +26,7 @@ cdef extern from "../../../local/include/glpk.h":
          int fp_heur
          int mir_cuts
      c_glp_iocp * new_c_glp_iocp "new glp_iocp" ()
+     #void del_c_glp_iocp "del glp_iocp" ()
      void glp_init_iocp(c_glp_iocp *)
      c_glp_prob * glp_create_prob()
      void glp_set_prob_name(c_glp_prob *, char *)

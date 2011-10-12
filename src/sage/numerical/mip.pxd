@@ -5,6 +5,7 @@ cdef extern from *:
     cdef int INTEGER = 0
 
 from sage.numerical.backends.generic_backend cimport GenericBackend
+
 cdef class MIPVariable
 cdef class MixedIntegerLinearProgram
 

@@ -6703,6 +6703,16 @@ class GenericGraph(GenericGraph_pyx):
         `Wikipedia article on connectivity
         <http://en.wikipedia.org/wiki/Connectivity_(graph_theory)>`_.
 
+        .. NOTE::
+
+            When the graph is a directed graph, this method actually computes
+            the *strong* connectivity, (i.e. a directed graph is strongly
+            `k`-connected if there are `k` disjoint paths between any two
+            vertices `u, v`). If you do not want to consider strong
+            connectivity, the best is probably to convert your ``DiGraph``
+            object to a ``Graph`` object, and compute the connectivity of this
+            other graph.
+
         INPUT:
 
         - ``value_only`` -- boolean (default: ``True``)
@@ -6782,7 +6792,7 @@ class GenericGraph(GenericGraph_pyx):
            True
 
         When ``value_only = True``, this function is optimized for small
-        connexity values and does not need to build a linear program.
+        connectivity values and does not need to build a linear program.
 
         It is the case for connected graphs which are not
         connected ::
@@ -6797,7 +6807,7 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.edge_connectivity()
            1.0
 
-        For directed graphs, the strong connexity is tested
+        For directed graphs, the strong connectivity is tested
         through the dedicated function ::
 
            sage: g = digraphs.ButterflyGraph(3)
@@ -6914,15 +6924,29 @@ class GenericGraph(GenericGraph_pyx):
         `Wikipedia article on connectivity
         <http://en.wikipedia.org/wiki/Connectivity_(graph_theory)>`_.
 
-        INPUT:
+        .. NOTE::
 
+            * When the graph is a directed graph, this method actually computes
+              the *strong* connectivity, (i.e. a directed graph is strongly
+              `k`-connected if there are `k` disjoint paths between any two
+              vertices `u, v`). If you do not want to consider strong
+              connectivity, the best is probably to convert your ``DiGraph``
+              object to a ``Graph`` object, and compute the connectivity of this
+              other graph.
+
+            * By convention, a complete graph on `n` vertices is `n-1`
+              connected. In this case, no certificate can be given as there is
+              no pair of vertices split by a cut of size `k-1`. For this reason,
+              the certificates returned in this situation are empty.
+
+        INPUT:
 
         - ``value_only`` -- boolean (default: ``True``)
 
           - When set to ``True`` (default), only the value is returned.
 
-          - When set to ``False`` , both the value and a minimum edge cut
-            are returned.
+          - When set to ``False`` , both the value and a minimum vertex cut are
+            returned.
 
         - ``sets`` -- boolean (default: ``False``)
 
@@ -6950,7 +6974,7 @@ class GenericGraph(GenericGraph_pyx):
            3
 
         In a grid, the vertex connectivity is equal to the
-        minimum degree, in which case one of the two sets it
+        minimum degree, in which case one of the two sets is
         of cardinality `1`::
 
            sage: g = graphs.GridGraph([ 3,3 ])
@@ -6968,7 +6992,7 @@ class GenericGraph(GenericGraph_pyx):
            True
 
         When ``value_only = True``, this function is optimized for small
-        connexity values and does not need to build a linear program.
+        connectivity values and does not need to build a linear program.
 
         It is the case for connected graphs which are not
         connected::
@@ -6983,21 +7007,31 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.vertex_connectivity()
            1.0
 
-        For directed graphs, the strong connexity is tested
+        For directed graphs, the strong connectivity is tested
         through the dedicated function::
 
            sage: g = digraphs.ButterflyGraph(3)
            sage: g.vertex_connectivity()
            0.0
 
+        A complete graph on `10` vertices is `9`-connected::
+
+           sage: g = graphs.CompleteGraph(10)
+           sage: g.vertex_connectivity()
+           9
         """
         g=self
 
-        if g.is_clique():
-            raise ValueError("There can be no vertex cut in a complete graph.")
-
         if sets:
             value_only=False
+
+        if g.is_clique():
+            if value_only:
+                return g.order()-1
+            elif not sets:
+                return g.order()-1, []
+            else:
+                return g.order()-1, [], [[],[]]
 
         if value_only:
             if self.is_directed():

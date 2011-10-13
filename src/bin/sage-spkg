@@ -428,13 +428,14 @@ else
 fi
 
 
-echo "Making Sage/Python scripts relocatable..."
-
-cd "$SAGE_LOCAL"/bin
-./sage-make_relative
+# 'sage-make_relative' is currently a Python script.
+# Only run it if Sage's Python is already installed (cf. #9992):
+if [[ -x "$SAGE_LOCAL"/bin/python ]]; then
+    echo "Making Sage/Python scripts relocatable..."
+    cd "$SAGE_LOCAL"/bin
+    ./sage-make_relative
+fi
 
 echo "Finished installing $PKG_NAME.spkg"
 
-# It's OK if the above fails -- in fact it will until Python
-# itself gets installed. That's fine.
 exit 0

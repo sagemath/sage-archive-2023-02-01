@@ -791,22 +791,24 @@ install() {
    fi
    for PKG in "$@"
    do
-       echo "Calling sage-spkg on $PKG"
-       PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
-       PKG_NAME=`basename "$PKG_NAME"`
-       case $PKG in
-	   /*)
-	       sage-spkg $OPT "$PKG" 2>&1 | (trap "" SIGINT; tee -a ../install.log "$SAGE_LOGS/$PKG_NAME".log)
-	   ;;
-	   *)
-	       sage-spkg $OPT "$CUR/$PKG" 2>&1 | (trap "" SIGINT; tee -a ../install.log "$SAGE_LOGS/$PKG_NAME".log)
-	   ;;
-       esac
-
-       if [ $? -ne 0 ]; then
-          exit 1
-       fi
-       shift
+	echo "Calling sage-spkg on '$PKG'"
+	PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
+	PKG_NAME=`basename "$PKG_NAME"`
+	case "$PKG" in
+	    /*) PKG_PATH="$PKG";;
+	    *) PKG_PATH="$CUR/$PKG";;
+	esac
+	# Could use ./pipestatus here, but using an absolute path is safer:
+	# (We'll have to change it anyway in case 'pipestatus' one day moves.)
+	"$SAGE_ROOT"/spkg/pipestatus \
+	    "sage-spkg $OPT '$PKG_PATH' 2>&1" \
+	    "(trap '' SIGINT; tee -a '$SAGE_ROOT'/install.log '$SAGE_LOGS/$PKG_NAME'.log)"
+	# Do not try to install further packages (if any) if one failed:
+	if [[ $? -ne 0 ]]; then
+	    echo >&2 "Error: Failed to install package '$PKG_NAME'."
+	    exit 1
+	fi
+	shift
    done
    exit $?
 }

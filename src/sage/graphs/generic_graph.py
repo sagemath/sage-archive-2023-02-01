@@ -13740,7 +13740,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         self.plot3d(bgcolor=bgcolor, vertex_colors=vertex_colors,
                     edge_colors=edge_colors, vertex_size=vertex_size, engine=engine,
-                    edge_size=edge_size, edge_size2=edge_size2,
+                    edge_size=edge_size, edge_size2=edge_size2, pos3d=pos3d,
                     color_by_label=color_by_label, **kwds).show()
 
     def _keys_for_vertices(self):

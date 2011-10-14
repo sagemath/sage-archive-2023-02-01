@@ -32,13 +32,21 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
  * Deleted some files from the doc directory from the standard distro,
    since it took tons of space; didn't delete anything else.
  * Work around some MacOSX dynamic lib flags
-* TODO: When we add self-tests, we may have to set up variables like
-   CFLAGS in spkg-check.
+ * When self-tests are added upstream, we may have to set up
+   variables like CFLAGS in the script spkg-check: imitate the
+   settings in spkg-install.
+ * In #11882, we turned off the fixes for Arch Linux and OpenSuSE by
+   changing various tests in spkg-install from "if ..." to "if false
+   && ...".  When Arch Linux or OpenSuSE are updated, modified
+   versions of these tests may need to be reinstated.
 
 == Changelog ==
 
+=== readline-6.2.p1 (John Palmieri, 14 Oct 2011) ===
+ * Add some notes to SPKG.txt (trac #11882).
+
 === readline-6.2.p0 (John Palmieri, 30 Sept 2011) ===
- * Update to version 6.2.
+ * Update to version 6.2 (trac #11882).
  * Fix for Mac OS X 10.7 Lion.  This fix is taken from
    https://trac.macports.org/browser/trunk/dports/devel/readline/files/patch-shobj-conf.diff
  * spkg-install: Turn off all hacks and fixes for Arch Linux and OpenSuSE.

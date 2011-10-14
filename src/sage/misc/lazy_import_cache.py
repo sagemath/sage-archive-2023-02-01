@@ -18,7 +18,15 @@ def get_cache_file():
         sage: from sage.misc.misc import branch_current_hg
         sage: branch_current_hg() in get_cache_file()
         True
+
+    It shouldn't matter whether DOT_SAGE ends with a slash::
+
+        sage: OLD = DOT_SAGE
+        sage: os.environ['DOT_SAGE'] = '/tmp'
+        sage: get_cache_file().startswith('/tmp/')
+        True
+        sage: os.environ['DOT_SAGE'] = OLD
     """
-    return "%s%s-lazy_import_cache.pickle" % (
-        os.environ['DOT_SAGE'],
-        os.path.realpath(os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage')).replace(os.sep, '_'))
+    mangled = os.path.realpath(os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage')).replace(os.sep, '_')
+    return os.path.join(os.environ['DOT_SAGE'],
+                        "%s-lazy_import_cache.pickle" % mangled)

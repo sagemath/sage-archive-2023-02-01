@@ -590,7 +590,7 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
             return self._galois_closure # work around a silly error
 
         vecs = [pari(g.list()).Vecsmall() for g in self._elts]
-        v = self._ambient._pari_data.galoisfixedfield(vecs, flag = 2, y = 1)
+        v = self._ambient._pari_data.galoisfixedfield(vecs)
         x = self._galois_closure(v[1])
         return self._galois_closure.subfield(x)
 

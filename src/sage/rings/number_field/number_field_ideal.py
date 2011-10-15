@@ -560,7 +560,7 @@ class NumberFieldIdeal(Ideal_generic):
         except AttributeError:
             nf = self.number_field().pari_nf()
             self.__pari_hnf = nf.idealhnf(0)
-            hnflist = [ nf.idealhnf(x.polynomial()) for x in self.gens() ]
+            hnflist = [ nf.idealhnf(x) for x in self.gens() ]
             for ideal in hnflist:
                 self.__pari_hnf = nf.idealadd(self.__pari_hnf, ideal)
             return self.__pari_hnf

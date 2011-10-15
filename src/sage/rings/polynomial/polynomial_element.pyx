@@ -2848,7 +2848,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if is_IntegerModRing(R) or is_IntegerRing(R) or is_RationalField(R):
 
             try:
-                G = list(self._pari_with_name('x').factor())
+                G = list(self._pari_with_name().factor())
             except PariError:
                 raise NotImplementedError
 
@@ -2889,34 +2889,33 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 factors = self.change_ring(QQ).factor()
                 return Factorization([(self._parent(p), e) for p, e in factors], R(factors.unit()))
 
-            # Use "a" for the number field variable
-            v = [ c._pari_("a") for c in self.list() ]
-            f = pari(v).Polrev()
+            # Convert the polynomial we want to factor to PARI
+            f = self._pari_with_name()
             try:
                 try:
                     # Try to compute the PARI nf structure with important=False.
                     # This will raise RuntimeError if the computation is too
                     # difficult.  It will raise TypeError if the defining
                     # polynomial is not integral.
-                    Rpari = R.pari_nf(important=False).nf_subst("'a")
+                    Rpari = R.pari_nf(important=False)
                 except RuntimeError:
                     # Cannot easily compute the nf structure, use the defining
                     # polynomial instead.
-                    Rpari = R.pari_polynomial("a")
+                    Rpari = R.pari_polynomial("y")
                 # nffactor() can fail with PariError "precision too low"
                 G = list(Rpari.nffactor(f))
             except (PariError, TypeError):
                 # Use factornf() which only needs the defining polynomial,
                 # which does not require an integral polynomial and which
                 # has no problems with floating-point precision.
-                G = list(f.factornf(R.pari_polynomial("a")))
+                G = list(f.factornf(R.pari_polynomial("y")))
             # PARI's nffactor() ignores the unit, _factor_pari_helper()
             # adds back the unit of the factorization.
             return self._factor_pari_helper(G)
 
         elif is_RealField(R):
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)
-            G = list(self._pari_with_name('x').factor())
+            G = list(self._pari_with_name().factor())
 
         elif sage.rings.complex_double.is_ComplexDoubleField(R):
             unit = self.leading_coefficient()
@@ -2966,12 +2965,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # otherwise PARI will factor over RR.
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)
             if self.leading_coefficient() != R.gen():
-                G = list((pari(R.gen())*self._pari_with_name('x')).factor())
+                G = list((pari(R.gen())*self._pari_with_name()).factor())
             else:
-                G = self._pari_with_name('x').factor()
+                G = self._pari_with_name().factor()
 
         #elif padic_field.is_pAdicField(R):
-        #    G = list(self._pari_with_name('x').factorpadic(R.prime(), R.prec()))
+        #    G = list(self._pari_with_name().factorpadic(R.prime(), R.prec()))
 
         if G is None:
             raise NotImplementedError
@@ -4016,6 +4015,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pari(f)
             2/3*x^2 + a*x
 
+        Polynomials over a number field work, provided that the variable is
+        called 'x'::
+
+            sage: x = polygen(QQ)
+            sage: K.<b> = NumberField(x^2 + x + 1)
+            sage: R.<x> = PolynomialRing(K)
+            sage: pol = (b + x)^3; pol
+            x^3 + 3*b*x^2 + (-3*b - 3)*x + 1
+            sage: pari(pol)
+            Mod(1, y^2 + y + 1)*x^3 + Mod(3*y, y^2 + y + 1)*x^2 + Mod(-3*y - 3, y^2 + y + 1)*x + Mod(1, y^2 + y + 1)
+
         TESTS:
 
         Unfortunately, variable names matter::
@@ -4104,12 +4114,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
             name = self.parent().variable_name()
         return self._pari_with_name(name)
 
-    def _pari_with_name(self, name):
+    def _pari_with_name(self, name='x'):
         r"""
         Return polynomial as a PARI object with topmost variable
-        ``name``.
+        ``name``.  By default, use 'x' for the variable name.
 
         For internal use only.
+
+        EXAMPLES:
+
+            sage: R.<a> = PolynomialRing(ZZ)
+            sage: (2*a^2 + a)._pari_with_name()
+            2*x^2 + x
+            sage: (2*a^2 + a)._pari_with_name('y')
+            2*y^2 + y
         """
         vals = [x._pari_() for x in self.list()]
         return pari(vals).Polrev(name)

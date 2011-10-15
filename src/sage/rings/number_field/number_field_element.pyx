@@ -254,6 +254,10 @@ cdef class NumberFieldElement(FieldElement):
             5/3
             sage: K(pari("[3/2, -5, 0]~"))    # Uses Z-basis
             -5/3*a^2 + 5/3*a - 1/6
+
+        From a PARI polynomial or ``POLMOD``, note that the variable
+        name does not matter::
+
             sage: K(pari("-5/3*q^2 + 5/3*q - 1/6"))
             -5/3*a^2 + 5/3*a - 1/6
             sage: K(pari("Mod(-5/3*q^2 + 5/3*q - 1/6, q^3 - 17)"))
@@ -541,41 +545,128 @@ cdef class NumberFieldElement(FieldElement):
         s = self._repr_()
         return s.replace(str(self.parent().gen()), 'GeneratorsOfField(%s)[1]'%sage.interfaces.gap.gap(self.parent()).name())
 
-
-    def _pari_(self, var='x'):
+    def _pari_(self, name='y'):
         r"""
-        Convert self to a PARI element.
+        Return PARI representation of self.
 
-        EXAMPLE::
-
-            sage: K.<a> = NumberField(x^3 + 2)
-            sage: (a + 2)._pari_()
-            Mod(x + 2, x^3 + 2)
-            sage: L.<b> = K.extension(x^2 + 2)
-            sage: (b + a)._pari_()
-            Mod(24/101*x^5 - 9/101*x^4 + 160/101*x^3 - 156/101*x^2 + 397/101*x + 364/101, x^6 + 6*x^4 - 4*x^3 + 12*x^2 + 24*x + 12)
-        """
-        raise NotImplementedError, "NumberFieldElement sub-classes must override _pari_"
-
-    def _pari_init_(self, var='x'):
-        """
-        Return PARI/GP string representation of self. This is used for
-        converting this number field element to PARI/GP. The returned
-        string defines a pari Mod in the variable is var, which is by
-        default 'x' - not the name of the generator of the number field.
+        The returned element is a PARI ``POLMOD`` in the variable
+        ``name``, which is by default 'y' - not the name of the generator
+        of the number field.
 
         INPUT:
 
+        -  ``name`` -- (default: 'y') the PARI variable name used.
 
-        -  ``var`` - (default: 'x') the variable of the pari
-           Mod.
+        EXAMPLES::
 
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K(1)._pari_()
+            Mod(1, y^3 + 2)
+            sage: (a + 2)._pari_()
+            Mod(y + 2, y^3 + 2)
+            sage: L.<b> = K.extension(x^2 + 2)
+            sage: (b + a)._pari_()
+            Mod(24/101*y^5 - 9/101*y^4 + 160/101*y^3 - 156/101*y^2 + 397/101*y + 364/101, y^6 + 6*y^4 - 4*y^3 + 12*y^2 + 24*y + 12)
+
+        ::
+
+            sage: k.<j> = QuadraticField(-1)
+            sage: j._pari_('j')
+            Mod(j, j^2 + 1)
+            sage: pari(j)
+            Mod(y, y^2 + 1)
+
+        By default the variable name is 'y'. This allows 'x' to be used
+        as polynomial variable::
+
+            sage: P.<a> = PolynomialRing(QQ)
+            sage: K.<b> = NumberField(a^2 + 1)
+            sage: R.<x> = PolynomialRing(K)
+            sage: pari(b*x)
+            Mod(y, y^2 + 1)*x
+
+        In PARI many variable names are reserved, for example ``theta``
+        and ``I``::
+
+            sage: R.<theta> = PolynomialRing(QQ)
+            sage: K.<theta> = NumberField(theta^2 + 1)
+            sage: theta._pari_('theta')
+            Traceback (most recent call last):
+            ...
+            PariError:  (5)
+            sage: theta._pari_()
+            Mod(y, y^2 + 1)
+            sage: k.<I> = QuadraticField(-1)
+            sage: I._pari_('I')
+            Traceback (most recent call last):
+            ...
+            PariError:  (5)
+
+        Instead, request the variable be named different for the coercion::
+
+            sage: pari(I)
+            Mod(y, y^2 + 1)
+            sage: I._pari_('i')
+            Mod(i, i^2 + 1)
+            sage: I._pari_('II')
+            Mod(II, II^2 + 1)
+
+        Examples with relative number fields, which always yield an
+        *absolute* representation of the element::
+
+            sage: y = QQ['y'].gen()
+            sage: k.<j> = NumberField([y^2 - 7, y^3 - 2])
+            sage: pari(j)
+            Mod(42/5515*y^5 - 9/11030*y^4 - 196/1103*y^3 + 273/5515*y^2 + 10281/5515*y + 4459/11030, y^6 - 21*y^4 + 4*y^3 + 147*y^2 + 84*y - 339)
+            sage: j^2
+            7
+            sage: pari(j)^2
+            Mod(7, y^6 - 21*y^4 + 4*y^3 + 147*y^2 + 84*y - 339)
+            sage: (j^2)._pari_('x')
+            Mod(7, x^6 - 21*x^4 + 4*x^3 + 147*x^2 + 84*x - 339)
+
+        A tower of three number fields::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2 + 2)
+            sage: L.<b> = NumberField(polygen(K)^2 + a)
+            sage: M.<c> = NumberField(polygen(L)^3 + b)
+            sage: L(b)._pari_()
+            Mod(y, y^4 + 2)
+            sage: M(b)._pari_('c')
+            Mod(-c^3, c^12 + 2)
+            sage: c._pari_('c')
+            Mod(c, c^12 + 2)
+        """
+        try:
+            return self.__pari[name]
+        except KeyError:
+            pass
+        except TypeError:
+            self.__pari = {}
+        f = self.polynomial()._pari_or_constant(name)
+        g = self.number_field().pari_polynomial(name)
+        h = f.Mod(g)
+        self.__pari[name] = h
+        return h
+
+    def _pari_init_(self, name='y'):
+        """
+        Return PARI/GP string representation of self.
+
+        The returned string defines a PARI ``POLMOD`` in the variable
+        ``name``, which is by default 'y' - not the name of the generator
+        of the number field.
+
+        INPUT:
+
+        -  ``name`` -- (default: 'y') the PARI variable name used.
 
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^5 - x - 1)
             sage: ((1 + 1/3*a)^4)._pari_init_()
-            'Mod(1/81*x^4 + 4/27*x^3 + 2/3*x^2 + 4/3*x + 1, x^5 - x - 1)'
+            'Mod(1/81*y^4 + 4/27*y^3 + 2/3*y^2 + 4/3*y + 1, y^5 - y - 1)'
             sage: ((1 + 1/3*a)^4)._pari_init_('a')
             'Mod(1/81*a^4 + 4/27*a^3 + 2/3*a^2 + 4/3*a + 1, a^5 - a - 1)'
 
@@ -591,13 +682,13 @@ cdef class NumberFieldElement(FieldElement):
             ...
             PariError:  (5)
 
-        Fortunately pari_init returns everything in terms of x by
+        Fortunately pari_init returns everything in terms of y by
         default::
 
             sage: pari(b)
-            Mod(-8/27*x^3 + 2/3*x^2 - 1/2*x + 1/8, x^5 - x - 1)
+            Mod(-8/27*y^3 + 2/3*y^2 - 1/2*y + 1/8, y^5 - y - 1)
         """
-        return repr(self._pari_(var=var))
+        return repr(self._pari_(name=name))
 
     def __getitem__(self, n):
         """
@@ -1170,7 +1261,7 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError, "L (=%s) must be a relative number field with base field K (=%s) in rnfisnorm" % (L, K)
 
         rnf_data = K.pari_rnfnorm_data(L, proof=proof)
-        x, q = self._pari_('y').rnfisnorm(rnf_data)
+        x, q = self._pari_().rnfisnorm(rnf_data)
         return L(x), K(q)
 
     def _mpfr_(self, R):
@@ -3249,65 +3340,6 @@ cdef class NumberFieldElement(FieldElement):
 
 cdef class NumberFieldElement_absolute(NumberFieldElement):
 
-    def _pari_(self, var='x'):
-        """
-        Return PARI C-library object corresponding to self.
-
-        EXAMPLES::
-
-            sage: k.<j> = QuadraticField(-1)
-            sage: j._pari_('j')
-            Mod(j, j^2 + 1)
-            sage: pari(j)
-            Mod(x, x^2 + 1)
-
-        ::
-
-            sage: y = QQ['y'].gen()
-            sage: k.<j> = NumberField(y^3 - 2)
-            sage: pari(j)
-            Mod(x, x^3 - 2)
-
-        By default the variable name is 'x', since in PARI many variable
-        names are reserved::
-
-            sage: theta = polygen(QQ, 'theta')
-            sage: M.<theta> = NumberField(theta^2 + 1)
-            sage: pari(theta)
-            Mod(x, x^2 + 1)
-
-        If you try do coerce a generator called I to PARI, hell may break
-        loose::
-
-            sage: k.<I> = QuadraticField(-1)
-            sage: I._pari_('I')
-            Traceback (most recent call last):
-            ...
-            PariError:  (5)
-
-        Instead, request the variable be named different for the coercion::
-
-            sage: pari(I)
-            Mod(x, x^2 + 1)
-            sage: I._pari_('i')
-            Mod(i, i^2 + 1)
-            sage: I._pari_('II')
-            Mod(II, II^2 + 1)
-        """
-        try:
-            return self.__pari[var]
-        except KeyError:
-            pass
-        except TypeError:
-            self.__pari = {}
-        if var is None:
-            var = self.number_field().variable_name()
-        f = self.polynomial()._pari_or_constant(var)
-        g = self.number_field().pari_polynomial(var)
-        h = f.Mod(g)
-        self.__pari[var] = h
-        return h
-
     def _magma_init_(self, magma):
         """
         Return Magma version of this number field element.
@@ -3606,7 +3638,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: x = polygen(K)
             sage: L.<b> = NumberField(x^4 + a*x + 2)
             sage: e = pari(a*b); e
-            Mod(-x^4 - 2, x^8 - x^5 + 4*x^4 + x^2 - 2*x + 4)
+            Mod(-y^4 - 2, y^8 - y^5 + 4*y^4 + y^2 - 2*y + 4)
             sage: L(e)  # Conversion from PARI absolute number field element
             a*b
             sage: e = L.pari_rnf().rnfeltabstorel(e); e
@@ -3705,75 +3737,6 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         # Compute representation of self in terms of relative vector space.
         R = K.base_field()[var]
         return R(self.list())
-
-    def _pari_(self, var='x'):
-        """
-        Return PARI C-library object corresponding to self.
-
-        EXAMPLES:
-
-        By default the variable name is 'x', since in PARI many
-        variable names are reserved.
-
-        ::
-
-            sage: y = QQ['y'].gen()
-            sage: k.<j> = NumberField([y^2 - 7, y^3 - 2])
-            sage: pari(j)
-            Mod(42/5515*x^5 - 9/11030*x^4 - 196/1103*x^3 + 273/5515*x^2 + 10281/5515*x + 4459/11030, x^6 - 21*x^4 + 4*x^3 + 147*x^2 + 84*x - 339)
-            sage: j^2
-            7
-            sage: pari(j)^2
-            Mod(7, x^6 - 21*x^4 + 4*x^3 + 147*x^2 + 84*x - 339)
-            sage: (j^2)._pari_('y')
-            Mod(7, y^6 - 21*y^4 + 4*y^3 + 147*y^2 + 84*y - 339)
-
-            sage: K.<a> = NumberField(x^2 + 2, 'a')
-            sage: K(1)._pari_()
-            Mod(1, x^2 + 2)
-            sage: K(1)._pari_('t')
-            Mod(1, t^2 + 2)
-
-            sage: K.gen()._pari_()
-            Mod(x, x^2 + 2)
-            sage: K.gen()._pari_('t')
-            Mod(t, t^2 + 2)
-
-            At this time all elements, even relative elements, are
-            represented as absolute polynomials:
-
-            sage: K.<a> = NumberField(x^2 + 2, 'a')
-            sage: L.<b> = NumberField(K['x'].0^2 + a, 'b')
-            sage: L(1)._pari_()
-            Mod(1, x^4 + 2)
-            sage: L(1)._pari_('t')
-            Mod(1, t^4 + 2)
-            sage: L.gen()._pari_()
-            Mod(x, x^4 + 2)
-            sage: L.gen()._pari_('t')
-            Mod(t, t^4 + 2)
-
-            sage: M.<c> = NumberField(L['x'].0^3 + b, 'c')
-            sage: M(1)._pari_()
-            Mod(1, x^12 + 2)
-            sage: M(1)._pari_('t')
-            Mod(1, t^12 + 2)
-            sage: M.gen()._pari_()
-            Mod(x, x^12 + 2)
-            sage: M.gen()._pari_('t')
-            Mod(t, t^12 + 2)
-        """
-        try:
-            return self.__pari[var]
-        except KeyError:
-            pass
-        except TypeError:
-            self.__pari = {}
-        f = self.polynomial()._pari_or_constant(var)
-        g = self.parent().pari_polynomial(var)
-        h = f.Mod(g)
-        self.__pari[var] = h
-        return h
 
     def _repr_(self):
         r"""

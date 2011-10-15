@@ -55,6 +55,8 @@ TESTS::
     sage: y = polygen(QQ,'y'); K.<beta> = NumberField([y^3 - 3, y^2 - 2])
     sage: K(y^10)
     27*beta0
+    sage: beta^10
+    27*beta0
 """
 
 #*****************************************************************************
@@ -1081,9 +1083,7 @@ class NumberField_relative(NumberField_generic):
             [[;], matrix(0,9), [;], ... 0]
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
-        # Return a bnf structure in the variable y (the syntax "'y"
-        # in PARI/GP means the variable y, as opposed to its value)
-        return abs_base.pari_bnf(proof, units).nf_subst("'y")
+        return abs_base.pari_bnf(proof, units)
 
     @cached_method
     def _pari_base_nf(self):
@@ -1103,9 +1103,7 @@ class NumberField_relative(NumberField_generic):
             [y^2 + 2, [0, 1], -8, 1, ..., [1, 0, 0, -2; 0, 1, 1, 0]]
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
-        # Return a nf structure in the variable y (the syntax "'y"
-        # in PARI/GP means the variable y, as opposed to its value)
-        return abs_base.pari_nf().nf_subst("'y")
+        return abs_base.pari_nf()
 
     def is_galois(self):
         r"""
@@ -1441,8 +1439,7 @@ class NumberField_relative(NumberField_generic):
             sage: l.pari_relative_polynomial()
             Mod(1, y^4 + 1)*x^2 + Mod(y, y^4 + 1)
         """
-        vals = [ c._pari_('y') for c in self.relative_polynomial().list() ]
-        return pari(vals).Polrev()
+        return self.relative_polynomial()._pari_with_name()
 
     def number_of_roots_of_unity(self):
         """

@@ -641,6 +641,9 @@ class MiniCremonaDatabase(SQLDatabase):
                     F._set_modular_degree(c[3])
                 F._set_gens(eval(c[4]))
                 F.db_extra = list(c[5:])
+            elif c[1] == 0:
+                # we know the rank is 0, so the gens are empty
+                F._set_gens([])
             return F
         except StopIteration:
             if N < self.largest_conductor():

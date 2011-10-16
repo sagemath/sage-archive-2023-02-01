@@ -3595,7 +3595,7 @@ class Graph(GenericGraph):
         from sage.graphs.cliquer import max_clique
         return max_clique(self)
 
-    def clique_number(self, algorithm="cliquer", cliques=None):
+    def clique_number(self, algorithm="Cliquer", cliques=None):
         r"""
         Returns the order of the largest clique of the graph (the clique
         number).
@@ -3607,15 +3607,20 @@ class Graph(GenericGraph):
 
         INPUT:
 
-         - ``algorithm`` - either ``cliquer`` or ``networkx``
+        - ``algorithm`` -- the algorithm to be used :
 
-           - ``cliquer`` - This wraps the C program Cliquer [NisOst2003]_.
+           - If ``algorithm = "Cliquer"`` - This wraps the C program Cliquer [NisOst2003]_.
 
-           - ``networkx`` - This function is based on NetworkX's implementation
+           - If ``algorithm = "networkx"`` - This function is based on NetworkX's implementation
              of the Bron and Kerbosch Algorithm [BroKer1973]_.
 
-         - ``cliques`` - an optional list of cliques that can be input if
-           already computed. Ignored unless ``algorithm=='networkx'``.
+           - If ``algorithm = "MILP"``, the problem is solved through a Mixed
+             Integer Linear Program.
+
+             (see :class:`MixedIntegerLinearProgram <sage.numerical.mip>`)
+
+        - ``cliques`` - an optional list of cliques that can be input if
+          already computed. Ignored unless ``algorithm=="networkx"``.
 
         ALGORITHM:
 
@@ -3630,15 +3635,23 @@ class Graph(GenericGraph):
             sage: G.show(figsize=[2,2])
             sage: G.clique_number()
             3
+
+        TESTS::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.clique_number(algorithm="MILP")
+            2
         """
-        if algorithm=="cliquer":
+        if algorithm=="Cliquer":
             from sage.graphs.cliquer import clique_number
             return clique_number(self)
         elif algorithm=="networkx":
             import networkx
             return networkx.graph_clique_number(self.networkx_graph(copy=False),cliques)
+        elif algorithm == "MILP":
+            return len(self.complement().independent_set(algorithm = algorithm))
         else:
-            raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
+            raise NotImplementedError("Only 'networkx' 'MILP' and 'Cliquer' are supported.")
 
     def cliques_number_of(self, vertices=None, cliques=None):
         """

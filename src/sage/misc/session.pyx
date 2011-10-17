@@ -267,7 +267,7 @@ def save_session(name='sage_session', verbose=False):
     Something similar happens for cython-defined functions.::
 
         sage: g = cython_lambda('double x', 'x*x + 1.5')
-        sage: save_session('tmp_f', verbose=True)
+        sage: save_session(tmp_f, verbose=True)
         Saving...
         Not saving g: g is a function, method, class or type
         ...

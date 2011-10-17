@@ -298,9 +298,12 @@ sage_setup() {
         cat "$SAGE_LOCAL/bin/sage-banner"
     fi
 
-    # Check to see if the whole Sage install tree has moved.
-    # If so, change various hardcoded paths.
-    sage-location || exit $?
+    # Check to see if the whole Sage install tree has moved.  If so,
+    # change various hardcoded paths.  Skip this if we don't have write
+    # access to $SAGE_LOCAL (e.g. when running as a different user).
+    if [ -w "$SAGE_LOCAL" ]; then
+        sage-location || exit $?
+    fi
 
     export IPYTHONDIR="$DOT_SAGE/ipython"
     export IPYTHONRC="ipythonrc"
@@ -795,6 +798,8 @@ if [ "$1" = '-t' -o "$1" = '-bt' ]; then
       touch "$DOT_SAGE"/init.sage
    fi
    shift
+   SAGE_BANNER="no"
+   sage_setup
    sage-test "$@"
    exit $?
 fi
@@ -808,6 +813,8 @@ if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
       touch "$DOT_SAGE"/init.sage
    fi
    shift
+   SAGE_BANNER="no"
+   sage_setup
    sage-ptest "$@"
    exit $?
 fi
@@ -817,12 +824,16 @@ if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
       build_sage
    fi
    shift
+   SAGE_BANNER="no"
+   sage_setup
    sage-test-new "$@"
    exit $?
 fi
 
 if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
    shift
+   SAGE_BANNER="no"
+   sage_setup
    sage-maketest "$@"
    exit $?
 fi
@@ -919,12 +930,11 @@ fi
 
 if [ "$1" = '-info' -o "$1" = '--info' ]; then
     shift
-    # If there are no further arguments, simply list all installed
-    # packages.
-    if [ $# -eq 0 ]; then
-        exec sage-spkg
-    fi
-    install --info "$@"
+    for PKG in "$@"
+    do
+        sage-spkg --info "$PKG" || exit $?
+    done
+    exit 0
 fi
 
 if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then
@@ -985,7 +995,7 @@ if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
     # People often move the Sage install right before doing the upgrade, so it's
     # important to fix any path hardcoding issues first, or certain library
     # links will fail.
-    sage-location
+    sage-location || exit $?
 
     # Run sage-upgrade twice since when installing sage-scripts and a
     # running script changes, it gets confused and exits with an error.

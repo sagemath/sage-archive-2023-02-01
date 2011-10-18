@@ -95,6 +95,7 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import inspect
 from sage.misc.abstract_method import abstract_method, abstract_methods_of_class
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method, cached_function
@@ -104,7 +105,7 @@ from sage.misc.unknown import Unknown
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.dynamic_class import dynamic_class_internal
+from sage.structure.dynamic_class import dynamic_class
 
 from weakref import WeakValueDictionary
 _join_cache = WeakValueDictionary()
@@ -345,15 +346,20 @@ class Category(UniqueRepresentation, SageObject):
     same super_categories. For example, Algebras(QQ) has
     VectorSpaces(QQ) as super category, whereas Algebras(ZZ) only has
     Modules(ZZ) as super category. In particular, the constructed
-    parent_class and element_class will differ (inheriting, or not,
-    methods specific for vector spaces). On the other hand, caching
-    ensures that two identical hierarchy of classes are built only
-    once::
+    parent class and element class will differ (inheriting, or not,
+    methods specific for vector spaces)::
 
-        # TODO: redo the same with Algebras
-        # and show the mro for Algebras(QQ) w.r.t Algebras(ZZ)
-        # 2009/03/11: this feature is temporarily broken, due to the current work around for pickling
-        sage: Coalgebras(QQ).parent_class is Coalgebras(FractionField(QQ[x])).parent_class # todo: not implemented
+        sage: Algebras(QQ).parent_class is Algebras(ZZ).parent_class
+        False
+        sage: issubclass(Algebras(QQ).parent_class, VectorSpaces(QQ).parent_class)
+        True
+
+    On the other hand, identical hierarchies of classes are,
+    preferably, built only once (e.g. for categories over a base ring)::
+
+        sage: Algebras(GF(5)).parent_class is Algebras(GF(7)).parent_class
+        True
+        sage: Coalgebras(QQ).parent_class is Coalgebras(FractionField(QQ[x])).parent_class
         True
 
     We now construct a parent in the usual way::
@@ -430,8 +436,8 @@ class Category(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - s -- A string giving the name of this category.  If None,
-          the name is determined from the name of the class.
+        - ``s`` -- A string giving the name of this category.
+          If None, the name is determined from the name of the class.
 
         EXAMPLES::
 
@@ -645,10 +651,16 @@ class Category(UniqueRepresentation, SageObject):
         ``self``; this is the first test that is done in
         :meth:`is_subcategory`.
 
-        This default implementation tests whether the parent class
-        of ``category`` is a subclass of the parent class of ``self``.
-        Currently (as of trac ticket #11900) this is a complete
-        subcategory test. But this will change with trac ticket #11935.
+        This default implementation tests whether the parent class of
+        ``category`` is a subclass of the parent class of ``self``.
+        This is most of the time a complete subcategory test.
+
+        .. warning::
+
+            This test is incomplete for categories in
+            :class:`CategoryWithParameters`, as introduced by
+            :trac:`11935`. This method is therefore overwritten by
+            :meth:`~sage.categories.category.CategoryWithParameters._subcategory_hook_`.
 
         EXAMPLE::
 
@@ -1020,6 +1032,123 @@ class Category(UniqueRepresentation, SageObject):
         """
         pass
 
+    def _make_named_class(self, name, method_provider, cache=False, picklable=True):
+        """
+        Construction of the parent/element/... class of self.
+
+        INPUT:
+
+        - ``name`` -- a string; the name of the class as an attribute of ``self``.
+          E.g. "parent_class"
+        - ``method_provider`` -- a string; the name of an attribute of
+          ``self`` that provides methods for the new class (in
+          addition to those coming from the super categories).
+          E.g. "ParentMethods"
+        - ``cache`` -- a boolean or ``ignore_reduction`` (default: False)
+          (passed down to dynamic_class; for internal use only)
+        - ``picklable`` -- a boolean (default: True)
+
+        ASSUMPTION:
+
+        It is assumed that this method is only called from a lazy
+        attribute whose name coincides with the given ``name``
+
+        OUTPUT:
+
+        A dynamic class with bases given by the corresponding named
+        classes of ``self``'s super_categories and methods taken from
+        the class ``getattr(self,method_provider)``.
+
+        .. NOTE::
+
+            In this default implementation, the reduction data of the
+            named class makes it depend on ``self``. Since the result
+            is going to be stored in a lazy attribute of ``self``
+            anyway, we may as well disable the caching in
+            ``dynamic_class`` (hence the default value ``cache=False``).
+
+            :class:`CategoryWithParameters` overrides this method so
+            that the same parent/element/... classes can be shared
+            between closely related categories.
+
+        .. SEEALSO:: :meth:`CategoryWithParameters._make_named_class`
+
+        EXAMPLES::
+
+            sage: PC = Rings()._make_named_class("parent_class", "ParentMethods"); PC
+            <class 'sage.categories.rings.Rings.parent_class'>
+            sage: type(PC)
+            <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+            sage: PC.__bases__
+            (<class 'sage.categories.rngs.Rngs.parent_class'>, <class 'sage.categories.semirings.Semirings.parent_class'>)
+
+        Note that, by default, the result is not cached::
+
+            sage: PC is Rings()._make_named_class("parent_class", "ParentMethods")
+            False
+
+        Indeed this method is only meant to construct lazy attributes
+        like ``parent_class`` which already handle this caching::
+
+            sage: Rings().parent_class
+            <class 'sage.categories.rings.Rings.parent_class'>
+
+        Reduction for pickling also assumes the existence of this lazy
+        attribute::
+
+            sage: PC._reduction
+            (<built-in function getattr>, (Category of rings, 'parent_class'))
+            sage: loads(dumps(PC)) is Rings().parent_class
+            True
+
+        TESTS::
+
+            sage: class A: pass
+            sage: class BrokenCategory(Category):
+            ...       def super_categories(self): return []
+            ...       ParentMethods = 1
+            ...       class ElementMethods(A):
+            ...           pass
+            ...       class MorphismMethods(object):
+            ...           pass
+            sage: C = BrokenCategory()
+            sage: C._make_named_class("parent_class",   "ParentMethods")
+            Traceback (most recent call last):
+            ...
+            AssertionError: BrokenCategory.ParentMethods should be a class
+            sage: C._make_named_class("element_class",  "ElementMethods")
+            doctest:...: UserWarning: BrokenCategory.ElementMethods should not have a super class
+            <class '__main__.BrokenCategory.element_class'>
+            sage: C._make_named_class("morphism_class", "MorphismMethods")
+            <class '__main__.BrokenCategory.morphism_class'>
+        """
+        cls = self.__class__
+        class_name = "%s.%s"%(cls.__name__, name)
+        method_provider_cls = getattr(self, method_provider, None)
+        if method_provider_cls is None:
+            # If the category provides no XXXMethods class,
+            # point to the documentation of the category itself
+            doccls = cls
+        else:
+            # Otherwise, check XXXMethods
+            assert inspect.isclass(method_provider_cls),\
+                "%s.%s should be a class"%(cls.__name__, method_provider)
+            mro = inspect.getmro(method_provider_cls)
+            if len(mro) > 2 or (len(mro) == 2 and mro[1] is not object):
+                from warnings import warn
+                warn("%s.%s should not have a super class"%(cls.__name__, method_provider))
+            # and point the documentation to it
+            doccls = method_provider_cls
+        if picklable:
+            reduction = (getattr, (self, name))
+        else:
+            reduction = None
+        return dynamic_class(class_name,
+                             tuple(getattr(cat,name) for cat in self._super_categories),
+                             method_provider_cls, prepend_cls_bases = False, doccls = doccls,
+                             reduction = reduction, cache = cache)
+
+
     @lazy_attribute
     def parent_class(self):
         """
@@ -1031,25 +1160,29 @@ class Category(UniqueRepresentation, SageObject):
             <class 'sage.categories.algebras.Algebras.parent_class'>
             sage: type(C)
             <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+
+        By :trac:`11935`, some categories share their parent
+        classes. For example, the parent class of an algebra only
+        depends on the category of the base ring. A typical example is
+        the category of algebras over a finite field versus algebras
+        over a non-field::
+
+            sage: Algebras(GF(7)).parent_class is Algebras(GF(5)).parent_class
+            True
+            sage: Algebras(QQ).parent_class is Algebras(ZZ).parent_class
+            False
+            sage: Algebras(ZZ['t']).parent_class is Algebras(ZZ['t','x']).parent_class
+            True
+
+        See :class:`CategoryWithParameters` for an abstract base class for
+        categories that depend on parameters, even though the parent
+        and element classes only depend on the parent or element
+        classes of its super categories. It is used in
+        :class:`~sage.categories.bimodules.Bimodules`,
+        :class:`~sage.categories.category_types.Category_over_base` and
+        :class:`sage.categories.category.JoinCategory`.
         """
-        # Remark:
-        # For now, we directly call the underlying function, avoiding the overhead
-        # of using a cached function. The rationale: When this lazy method is called
-        # then we can be sure that the parent class had not been constructed before.
-        # The parent and element classes belong to a category, and they are pickled
-        # as such. Hence, they are rightfully cached as an attribute of a category.
-        #
-        # However, we should try to "unify" parent classes. They should depend on the
-        # super categories, but not on the base (except when the super categories depend
-        # on the base). When that is done, calling the cached function will be needed again.
-        #return dynamic_class("%s.parent_class"%self.__class__.__name__,
-        #                     tuple(cat.parent_class for cat in self.super_categories),
-        #                     self.ParentMethods,
-        #                     reduction = (getattr, (self, "parent_class")))
-        return dynamic_class_internal.f("%s.parent_class"%self.__class__.__name__,
-                             tuple(cat.parent_class for cat in self._super_categories),
-                             self.ParentMethods,
-                             reduction = (getattr, (self, "parent_class")))
+        return self._make_named_class('parent_class', 'ParentMethods')
 
     @lazy_attribute
     def element_class(self):
@@ -1062,26 +1195,23 @@ class Category(UniqueRepresentation, SageObject):
             <class 'sage.categories.algebras.Algebras.element_class'>
             sage: type(C)
             <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+
+        By :trac:`11935`, some categories share their element
+        classes. For example, the element class of an algebra only
+        depends on the category of the base. A typical example is the
+        category of algebras over a field versus algebras over a
+        non-field::
+
+            sage: Algebras(GF(5)).element_class is Algebras(GF(3)).element_class
+            True
+            sage: Algebras(QQ).element_class is Algebras(ZZ).element_class
+            False
+            sage: Algebras(ZZ['t']).element_class is Algebras(ZZ['t','x']).element_class
+            True
+
+        .. SEEALSO:: :meth:`parent_class`
         """
-        # Remark:
-        # For now, we directly call the underlying function, avoiding the overhead
-        # of using a cached function. The rationale: When this lazy method is called
-        # then we can be sure that the element class had not been constructed before.
-        # The parent and element classes belong to a category, and they are pickled
-        # as such. Hence, they are rightfully cached as an attribute of a category.
-        #
-        # However, we should try to "unify" element classes. They should depend on the
-        # super categories, but not on the base (except when the super categories depend
-        # on the base). When that is done, calling the cached function will be needed again.
-        #return dynamic_class("%s.element_class"%self.__class__.__name__,
-        #                     (cat.element_class for cat in self.super_categories),
-        #                     self.ElementMethods,
-        #                     reduction = (getattr, (self, "element_class"))
-        #                     )
-        return dynamic_class_internal.f("%s.element_class"%self.__class__.__name__,
-                             tuple(cat.element_class for cat in self._super_categories),
-                             self.ElementMethods,
-                             reduction = (getattr, (self, "element_class")))
+        return self._make_named_class('element_class', 'ElementMethods')
 
     def required_methods(self):
         """
@@ -1611,11 +1741,207 @@ class HomCategory(Category):
         return []
 
 
+##############################################################################
+# Parametrized categories whose parent/element class depend only on
+# the super categories
+##############################################################################
+
+class CategoryWithParameters(Category):
+    """
+    A parametrized category whose parent/element classes depend only on its super categories
+
+    Many categories in Sage are parametrized, like ``C=Algebras(K)``
+    which takes a base ring as parameter. In many cases, however, the
+    operations provided by ``C`` in the parent class and element class
+    depend only on the super categories of ``C``. For example, the
+    vector space operations are provided if and only if ``K`` is a
+    field, since ``VectorSpaces(K)`` is a super category of ``C`` only
+    in that case. In such cases, and as an optimization (see :trac:`11935`),
+    we want to use the same parent and element class for all fields.
+    This is the purpose of this abstract class.
+
+    Currently, :class:`~sage.categories.category.JoinCategory`,
+    :class:`~sage.categories.category_types.Category_over_base` and
+    :class:`~sage.categories.bimodules.Bimodules` inherit from this
+    class.
+
+    EXAMPLES::
+
+        sage: C1 = Algebras(GF(5))
+        sage: C2 = Algebras(GF(3))
+        sage: C3 = Algebras(ZZ)
+        sage: from sage.categories.category import CategoryWithParameters
+        sage: isinstance(C1, CategoryWithParameters)
+        True
+        sage: C1.parent_class is C2.parent_class
+        True
+        sage: C1.parent_class is C3.parent_class
+        False
+
+    """
+    def _make_named_class(self, name, method_provider, cache = False, **options):
+        """
+        Return the parent/element/... class of ``self``.
+
+        INPUT:
+
+        - ``name`` -- a string; the name of the class as an attribute of ``self``
+        - ``method_provider`` -- a string; the name of an attribute of
+          ``self`` that provides methods for the new class (in
+          addition to what comes from the super categories).
+
+        ASSUMPTION:
+
+        It is assumed that this method is only called from a lazy
+        attribute whose name coincides with the given ``name``
+
+        OUTPUT:
+
+        A dynamic class that has the corresponding named classes of
+        the super categories of ``self`` as bases and contains the
+        methods provided by ``getattr(self,method_provider)``.
+
+        .. NOTE::
+
+            This method overrides :meth:`Category._make_named_class`
+            so that the returned class *only* depends on the
+            corresponding named classes of the super categories and on
+            the provided methods. This allows for sharing the named
+            classes across closely related categories providing the
+            same code to their parents, elements and so on.
+
+        EXAMPLES::
+
+        The categories of bimodules over the fields ``CC`` or ``QQ``
+        provide the same methods to their parents and elements::
+
+            sage: Bimodules(ZZ,RR).parent_class is Bimodules(ZZ,RDF).parent_class #indirect doctest
+            True
+            sage: Bimodules(CC,ZZ).element_class is Bimodules(RR,ZZ).element_class
+            True
+
+        On the other hand, modules over a field have more methods than
+        modules over a ring::
+
+            sage: Modules(GF(3)).parent_class is Modules(ZZ).parent_class
+            False
+            sage: Modules(GF(3)).element_class is Modules(ZZ).element_class
+            False
+
+        One could possibly share those classes, but this is not
+        currently the case::
+
+            sage: Modules(GF(3)).parent_class is Modules(GF(2^3,'x')).parent_class
+            False
+
+        This is because those two fields do not have the exact same category::
+
+            sage: GF(3).category()
+            Join of Category of subquotients of monoids and Category of quotients of semigroups and Category of finite fields
+            sage: GF(2^3,'x').category()
+            Category of finite fields
+
+        Some other cases where one could potentially share those classes::
+
+            sage: Modules(GF(3),dispatch=False).parent_class  is Modules(ZZ).parent_class
+            False
+            sage: Modules(GF(3),dispatch=False).element_class is Modules(ZZ).element_class
+            False
+
+        TESTS::
+
+            sage: PC = Algebras(QQ).parent_class; PC   # indirect doctest
+            <class 'sage.categories.algebras.Algebras.parent_class'>
+            sage: type(PC)
+            <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+            sage: PC.__bases__
+            (<class 'sage.categories.rings.Rings.parent_class'>,
+             <class 'sage.categories.vector_spaces.VectorSpaces.parent_class'>)
+            sage: loads(dumps(PC)) is PC
+            True
+        """
+        cls = self.__class__
+        key = (cls, name, self._make_named_class_key(name))
+        try:
+            return self._make_named_class_cache[key]
+        except KeyError:
+            pass
+        result = Category._make_named_class(self, name, method_provider,
+                                            cache=cache, **options)
+        self._make_named_class_cache[key] = result
+        return result
+
+
+    @abstract_method
+    def _make_named_class_key(self, name):
+        r"""
+        Return what the element/parent/... class depend on.
+
+        INPUT:
+
+        - ``name`` -- a string; the name of the class as an attribute of ``self``
+
+        .. SEEALSO::
+
+            - :meth:`_make_named_class`
+            - :meth:`sage.categories.category_types.Category_over_base._make_named_class_key`
+            - :meth:`sage.categories.bimodules.Bimodules._make_named_class_key`
+            - :meth:`JoinCategory._make_named_class_key`
+
+        EXAMPLES:
+
+        The parent class of an algebra depends only on the category of the base ring::
+
+            sage: Algebras(ZZ)._make_named_class_key("parent_class")
+            Category of euclidean domains
+
+        The morphism class of a bimodule depends only on the category
+        of the left and right base rings::
+
+            sage: Bimodules(QQ, ZZ)._make_named_class_key("morphism_class")
+            (Category of quotient fields, Category of euclidean domains)
+
+        The element class of a join category depends only on the
+        element class of its super categories::
+
+            sage: Category.join([Groups(), Posets()])._make_named_class_key("element_class")
+            (<class 'sage.categories.groups.Groups.element_class'>,
+             <class 'sage.categories.posets.Posets.element_class'>)
+        """
+
+    _make_named_class_cache = dict()
+
+    def _subcategory_hook_(self, C):
+        """
+        A quick but partial test whether ``C`` is a subcategory of ``self``
+
+        INPUT:
+
+        - ``C`` -- a category
+
+        OUTPUT:
+
+        - ``False``, if ``C.parent_class`` is not a subclass of
+          ``self.parent_class``, and :obj:`~sage.misc.unknown.Unknown`
+          otherwise.
+
+        EXAMPLES::
+
+            sage: Bimodules(QQ,QQ)._subcategory_hook_(Modules(QQ))
+            Unknown
+            sage: Bimodules(QQ,QQ)._subcategory_hook_(Rings())
+            False
+        """
+        if not issubclass(C.parent_class, self.parent_class):
+            return False
+        return Unknown
+
+
 #############################################################
 # Join of several categories
 #############################################################
 
-class JoinCategory(Category):
+class JoinCategory(CategoryWithParameters):
     """
     A class for joins of several categories. Do not use directly;
     see Category.join instead.
@@ -1629,6 +1955,19 @@ class JoinCategory(Category):
         [Category of groups, Category of commutative additive monoids]
         sage: J.all_super_categories(proper=True)
         [Category of groups, Category of monoids, Category of semigroups, Category of magmas, Category of commutative additive monoids, Category of commutative additive semigroups, Category of additive magmas, Category of sets, Category of sets with partial maps, Category of objects]
+
+    By :trac:`11935`, join categories and categories over base
+    rings inherit from :class:`CategoryWithParameters`. This allows
+    for sharing parent and element classes between similar
+    categories. For example, since polynomial rings belong to a join
+    category and since the underlying implementation is the same for
+    all finite fields, we have::
+
+        sage: GF(3)['x'].category()
+        Join of Category of euclidean domains and Category of commutative algebras over Finite Field of size 3
+        sage: type(GF(3)['x']) is type(GF(5)['z'])
+        True
+
     """
 
     def __init__(self, super_categories, **kwds):
@@ -1658,6 +1997,32 @@ class JoinCategory(Category):
         else:
             Category.__init__(self)
         self._super_categories = list(super_categories)
+
+    def _make_named_class_key(self, name):
+        r"""
+        Return what the element/parent/... classes depend on.
+
+        Since :trac:`11935`, the element/parent classes of a join
+        category over base only depend on the element/parent class of
+        its super categories
+
+        .. SEEALSO::
+
+            - :meth:`CategoryWithParameters`
+            - :meth:`CategoryWithParameters._make_named_class_key`
+
+        EXAMPLES::
+
+            sage: Modules(ZZ)._make_named_class_key('element_class')
+            Category of euclidean domains
+            sage: Modules(QQ)._make_named_class_key('parent_class')
+            Category of quotient fields
+            sage: Schemes(Spec(ZZ))._make_named_class_key('parent_class')
+            Category of Schemes
+            sage: ModularAbelianVarieties(QQ)._make_named_class_key('parent_class')
+            Category of quotient fields
+        """
+        return tuple(getattr(cat, name) for cat in self._super_categories)
 
     def super_categories(self):
         """
@@ -1691,6 +2056,23 @@ class JoinCategory(Category):
             True
         """
         return all(category.is_subcategory(X) for X in self._super_categories)
+
+    def is_subcategory(self, C):
+        """
+        Tell whether this join category is subcategory of another category `C`.
+
+        EXAMPLES::
+
+            sage: Category.join([Rings(),Modules(QQ)]).is_subcategory(Category.join([Rngs(),Bimodules(QQ,QQ)]))
+            True
+
+        """
+        if C is self:
+            return True
+        hook = C._subcategory_hook_(self)
+        if hook is Unknown:
+            return any(X.is_subcategory(C) for X in self._super_categories)
+        return hook
 
     def _repr_(self):
         """

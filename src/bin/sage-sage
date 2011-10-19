@@ -258,7 +258,7 @@ sage_setup() {
     fi
 
     # Check to see if the whole Sage install tree has moved.
-    # If so, regenerate .pyc files.
+    # If so, change various hardcoded paths.
     "$SAGE_ROOT/local/bin/"sage-location
     if [ $? -ne 0 ]; then
         exit 1
@@ -920,22 +920,25 @@ fi
 #fi
 
 if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
+    shift
+
     # People often move the Sage install right before doing the upgrade, so it's
     # important to fix any path hardcoding issues first, or certain library
     # links will fail.
-    "$SAGE_ROOT/local/bin/"sage-location
+    sage-location
 
-    # Do it twice since when installing sage-scripts and a running
-    # script changes, it gets confused and exits with an error.
+    # Run sage-upgrade twice since when installing sage-scripts and a
+    # running script changes, it gets confused and exits with an error.
     # Running again (with the script replaced) then fixes the problem.
-    # Run from a temporary copy of sage-sage
-    shift
     sage-upgrade "$@"
-    if [ $? = 2 ]; then   # this exit codes means the user elected not to do the upgrade at all.
-        exit $?
+    if [ $? -eq 2 ]; then   # this exit code means the user elected not to do the upgrade at all.
+        exit 2
     fi
     echo "Double checking that all packages have been installed."
-    sage-upgrade "$@"
+    sage-upgrade "$@" || exit $?
+
+    # Check that Sage still works
+    sage-starts
     exit $?
 fi
 

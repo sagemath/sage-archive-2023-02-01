@@ -1,16 +1,22 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-sage-location
-
-if [ $? -ne 0 ]; then
-   echo "Problem with sage location or flags."
-   exit 1
+# Run this test from SAGE_ROOT.
+# If SAGE_ROOT is not defined (this will be the case when called from
+# the top-level Makefile), assume the current directory is SAGE_ROOT.
+if [ -n "$SAGE_ROOT" ]; then
+    cd "$SAGE_ROOT"
 fi
 
+echo
 echo "Testing that Sage starts..."
-sage -c "print 'Yes, Sage starts.'"
+spkg/pipestatus "./sage -c \"print 'Yes, Sage starts.'\" 2>&1" "tee -a start.log"
 
 if [ $? -ne 0 ]; then
-    echo "Sage failed to startup."
+    echo >&2 "Sage failed to start up."
+    echo >&2 "Please email sage-devel (http://groups.google.com/group/sage-devel)"
+    echo >&2 "explaining the problem and send the log file"
+    echo >&2 "  `pwd`/start.log"
+    echo >&2 "Describe your computer, operating system, etc."
+    rm local/lib/sage-started.txt 2>/dev/null
     exit 1
 fi

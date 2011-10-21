@@ -3569,9 +3569,21 @@ class Graph(GenericGraph):
         from sage.graphs.cliquer import all_max_clique
         return sorted(all_max_clique(self))
 
-    def clique_maximum(self):
+    def clique_maximum(self,  algorithm="Cliquer"):
         """
         Returns the vertex set of a maximal order complete subgraph.
+
+        INPUT:
+
+        - ``algorithm`` -- the algorithm to be used :
+
+           - If ``algorithm = "Cliquer"`` (default) - This wraps the C program
+             Cliquer [NisOst2003]_.
+
+           - If ``algorithm = "MILP"``, the problem is solved through a Mixed
+             Integer Linear Program.
+
+             (see :class:`MixedIntegerLinearProgram <sage.numerical.mip>`)
 
         .. NOTE::
 
@@ -3582,7 +3594,9 @@ class Graph(GenericGraph):
 
         This function is based on Cliquer [NisOst2003]_.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Using Cliquer (default)::
 
             sage: C=graphs.PetersenGraph()
             sage: C.clique_maximum()
@@ -3591,9 +3605,27 @@ class Graph(GenericGraph):
             sage: C.clique_maximum()
             [1, 2, 3, 4]
 
+        Through a Linear Program::
+
+            sage: len(C.clique_maximum(algorithm = "MILP"))
+            4
+
+        TESTS:
+
+        Wrong algorithm::
+
+            sage: C.clique_maximum(algorithm = "BFS")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only 'MILP' and 'Cliquer' are supported.
         """
-        from sage.graphs.cliquer import max_clique
-        return max_clique(self)
+        if algorithm=="Cliquer":
+            from sage.graphs.cliquer import max_clique
+            return max_clique(self)
+        elif algorithm == "MILP":
+            return self.complement().independent_set(algorithm = algorithm)
+        else:
+            raise NotImplementedError("Only 'MILP' and 'Cliquer' are supported.")
 
     def clique_number(self, algorithm="Cliquer", cliques=None):
         r"""

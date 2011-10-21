@@ -2923,6 +2923,22 @@ cdef class Search_iterator:
             sage: g = graphs.PetersenGraph()
             sage: list(g.breadth_first_search(0))
             [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
+
+        TEST:
+
+        A vertex which does not belong to the graph::
+
+            sage: list(g.breadth_first_search(-9))
+            Traceback (most recent call last):
+            ...
+            ValueError: The given vertex is not an element of the graph !
+
+        An empty graph::
+
+            sage: list(Graph().breadth_first_search(''))
+            Traceback (most recent call last):
+            ...
+            ValueError: The given vertex is not an element of the graph !
         """
         self.graph = graph
         self.direction = direction
@@ -2930,10 +2946,15 @@ cdef class Search_iterator:
         bitset_init(self.seen, (<CGraph>self.graph._cg).active_vertices.size)
         bitset_set_first_n(self.seen, 0)
 
-        self.stack = [get_vertex(v,
+        cdef int v_id = get_vertex(v,
                                  self.graph.vertex_ints,
                                  self.graph.vertex_labels,
-                                 self.graph._cg)]
+                                 self.graph._cg)
+
+        if v_id == -1:
+            raise ValueError("The given vertex is not an element of the graph !")
+
+        self.stack = [v_id]
 
         if not self.graph.directed:
             ignore_direction = False

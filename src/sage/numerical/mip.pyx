@@ -388,43 +388,105 @@ cdef class MixedIntegerLinearProgram:
     def constraints(self, indices = None):
         r"""
         Returns a list of constraints, as 3-tuples.
-        If `n` is `None`, this returns all constraints.
-        If `n` is an integer, this is similar (but not equivalent) to ``self.constraint(n)``.
-        If `n` is a list of integers, this is equivalent to ``[self.constraint
-        The first entry in each tuple is the lower bound;
-        the second entry is a pair ``(indices, coeffs)``
-        (see ``row`` for details); and
-        the third entry is the upper bound.
 
-        EXAMPLE::
+        INPUT:
+
+        - ``indices`` -- select which constraint(s) to return
+
+            - If ``indices = None``, the method returns the list of all the
+              constraints.
+
+            - If ``indices`` is an integer `i`, the method returns constraint
+              `i`.
+
+            - If ``indices`` is a list of integers, the method returns the list
+              of the corresponding constraints.
+
+        OUTPUT:
+
+        Each constraint is returned as a triple ``lower_bound, (indices,
+        coefficients), upper_bound``.  For each of those entries, the
+        corresponding linear function is the one associating to variable
+        ``indices[i]`` the coefficient ``coefficients[i]``, and `0` to all the
+        others.
+
+        ``lower_bound`` and ``upper_bound`` are numerical values.
+
+        EXAMPLE:
+
+        First, let us define a small LP::
+
             sage: p = MixedIntegerLinearProgram()
             sage: p.add_constraint(p[0] - p[2], min = 1, max = 4)
             sage: p.add_constraint(p[0] - 2*p[1], min = 1)
-            sage: p.constraints()
+
+        To obtain the list of all constraints::
+
+            sage: p.constraints()          # not tested
             [(1.0, ([1, 0], [-1.0, 1.0]), 4.0), (1.0, ([2, 0], [-2.0, 1.0]), None)]
-            sage: p.constraints(0)
-            [(1.0, ([1, 0], [-1.0, 1.0]), 4.0)]
-            sage: p.constraints([1])
+
+        Or constraint `0` only::
+
+            sage: p.constraints(0)         # not tested
+            (1.0, ([1, 0], [-1.0, 1.0]), 4.0)
+
+        A list of constraints containing only `1`::
+
+            sage: p.constraints([1])       # not tested
             [(1.0, ([2, 0], [-2.0, 1.0]), None)]
+
+
+        TESTS:
+
+        As the ordering of the variables in each constraint depends on the
+        solver used, we define a short function reordering it before it is
+        printed. The output would look the same without this function applied::
+
+            sage: def reorder_constraint((lb,(ind,coef),ub)):
+            ...     d = dict(zip(ind, coef))
+            ...     ind.sort()
+            ...     return (lb, (ind, [d[i] for i in ind]), ub)
+
+        Running the examples from above, reordering applied::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.add_constraint(p[0] - p[2], min = 1, max = 4)
+            sage: p.add_constraint(p[0] - 2*p[1], min = 1)
+            sage: sorted(map(reorder_constraint,p.constraints()))
+            [(1.0, ([0, 1], [1.0, -1.0]), 4.0), (1.0, ([0, 2], [1.0, -2.0]), None)]
+            sage: reorder_constraint(p.constraints(0))
+            (1.0, ([0, 1], [1.0, -1.0]), 4.0)
+            sage: sorted(map(reorder_constraint,p.constraints([1])))
+            [(1.0, ([0, 2], [1.0, -2.0]), None)]
+
         """
+        from sage.rings.integer import Integer as Integer
         cdef int i
         cdef str s
         cdef GenericBackend b = self._backend
 
-        from sage.rings.integer import Integer as Integer
-
         result = list()
-        if indices == None:
-          indices = xrange(b.nrows())
-        elif isinstance(indices, int) or isinstance(indices, Integer):
-            indices = [indices]
-        elif not isinstance(indices, list):
-          raise TypeError, "constraints() requires a list of integers, though it will accommodate None or an integer."
-        for i in indices:
-          lb, ub = b.row_bounds(i)
-          result.append((lb, b.row(i), ub))
 
-        return result
+        # If indices == None, we actually want to return all constraints
+        if indices == None:
+          indices = range(b.nrows())
+
+        # Only one constraint
+        if isinstance(indices, int) or isinstance(indices, Integer):
+            lb, ub = b.row_bounds(indices)
+            return (lb, b.row(indices), ub)
+
+        # List of constraints
+        elif isinstance(indices, list):
+            for i in indices:
+                lb, ub = b.row_bounds(i)
+                result.append((lb, b.row(i), ub))
+
+            return result
+
+        # Weird Input
+        else:
+          raise ValueError, "constraints() requires a list of integers, though it will accommodate None or an integer."
 
     def show(self):
         r"""

@@ -43,6 +43,27 @@ no_version()
         echo "no version"
     fi
 }
+
+# This is for printing an error message if something went wrong.  It
+# takes a single argument which should probably be "make" (if the
+# error occurred while building) or "make check" (if the error
+# occurred while running self tests).
+error_msg()
+{
+    echo "sage: An error occurred while testing $PKG_NAME.
+Please email sage-devel (http://groups.google.com/group/sage-devel)
+explaining the problem and including the relevant part of the log file
+  $SAGE_ROOT/spkg/log/$PKG_NAME.log.
+Describe your computer, operating system, etc.
+If you want to try to fix the problem yourself, *don't* just cd to
+`pwd` and type '$1' or whatever is appropriate.
+Instead, the following commands setup all environment variables
+correctly and load a subshell for you to debug the error:
+(cd '`pwd`' && '$SAGE_ROOT/sage' -sh)
+When you are done debugging, you can type \"exit\" to leave the
+subshell."
+}
+
 # The following sets environment variables for building
 # packages.  (Using dot suggested by W. Cheung.)
 
@@ -381,18 +402,7 @@ if [ $? -eq 0 ]; then
             echo "Error testing package ** $PKG_NAME **"
             echo "*************************************"
             rm -f $SAGE_ROOT/spkg/installed/$PKG_NAME
-            echo "sage: An error occurred while testing $PKG_NAME"
-            echo "Please email sage-devel (http://groups.google.com/group/sage-devel)"
-            echo "explaining the problem and send the relevant part of the log file"
-            echo "  $SAGE_ROOT/install.log."
-            echo "Describe your computer, operating system, etc."
-            echo "If you want to try to fix the problem yourself, *don't* just cd to"
-            echo "`pwd` and type 'make check' or whatever is appropriate."
-            echo "Instead, the following commands setup all environment variables"
-            echo "correctly and load a subshell for you to debug the error:"
-            echo "(cd '`pwd`' && '$SAGE_ROOT/sage' -sh)"
-            echo "When you are done debugging, you can type \"exit\" to leave the"
-            echo "subshell."
+            error_msg "make check"
             exit 1
         else
             echo "TEST SUITE: passed" >> "$INSTALLED/$PKG_NAME"
@@ -414,18 +424,7 @@ if [ $? -eq 0 ]; then
     fi
 
 else
-    echo "sage: An error occurred while installing $PKG_NAME"
-    echo "Please email sage-devel (http://groups.google.com/group/sage-devel)"
-    echo "explaining the problem and send the relevant part of the log file"
-    echo "  $SAGE_ROOT/install.log."
-    echo "Describe your computer, operating system, etc."
-    echo "If you want to try to fix the problem yourself, *don't* just cd to"
-    echo "`pwd` and type 'make' or whatever is appropriate."
-    echo "Instead, the following commands setup all environment variables"
-    echo "correctly and load a subshell for you to debug the error:"
-    echo "(cd '`pwd`' && '$SAGE_ROOT/sage' -sh)"
-    echo "When you are done debugging, you can type \"exit\" to leave the"
-    echo "subshell."
+    error_msg "make"
     exit 1
 fi
 

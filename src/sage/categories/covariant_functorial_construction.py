@@ -354,8 +354,15 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             sage: sage.categories.algebra_functor.AlgebrasCategory.default_super_categories(FiniteMonoids(), QQ)
             Category of monoid algebras over Rational Field
         """
-        return Category.join([getattr(cat, cls._functor_category)(*args) for cat in category.super_categories()])
+        return Category.join([getattr(cat, cls._functor_category)(*args) for cat in category._super_categories])
 
+    def is_subcategory(self, C):
+        """
+        .. todo:: doctests + explain why this method is needed
+        """
+        if C is self:
+            return True
+        return any(X.is_subcategory(C) for X in self._super_categories)
 
     def __init__(self, category, *args):
         """
@@ -363,14 +370,15 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
 
             sage: from sage.categories.covariant_functorial_construction import CovariantConstructionCategory
             sage: class FooBars(CovariantConstructionCategory):
-            ...       pass
-            sage: C = FooBars(ModulesWithBasis(QQ))
+            ...       _functor_category = "FooBars"
+            sage: Category.FooBars = lambda self: FooBars.category_of(self)
+            sage: C = FooBars(ModulesWithBasis(ZZ))
             sage: C
-            Category of foo bars of modules with basis over Rational Field
+            Category of foo bars of modules with basis over Integer Ring
             sage: C.base_category()
-            Category of modules with basis over Rational Field
+            Category of modules with basis over Integer Ring
             sage: latex(C)
-            \mathbf{FooBars}(\mathbf{ModulesWithBasis}_{\Bold{Q}})
+            \mathbf{FooBars}(\mathbf{ModulesWithBasis}_{\Bold{Z}})
             sage: import __main__; __main__.FooBars = FooBars # Fake FooBars being defined in a python module
             sage: TestSuite(C).run()
         """
@@ -409,7 +417,6 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         """
         return []
 
-    @cached_method
     def super_categories(self):
         """
         Returns the super categories of a construction category

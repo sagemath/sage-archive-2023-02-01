@@ -31,7 +31,6 @@ class EuclideanDomains(Category_singleton):
         sage: TestSuite(EuclideanDomains()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

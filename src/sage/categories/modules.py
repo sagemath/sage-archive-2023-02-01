@@ -14,6 +14,7 @@ Modules
 from sage.categories.category import HomCategory
 from category_types import Category_module
 from sage.misc.cachefunc import cached_method
+from sage.categories.bimodules import Bimodules
 from sage.categories.fields import Fields
 _Fields = Fields()
 from vector_spaces import VectorSpaces
@@ -120,7 +121,6 @@ class Modules(Category_module):
         result._reduction[2]['dispatch'] = False
         return result
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -136,7 +136,6 @@ class Modules(Category_module):
             [Category of modules over Rational Field]
         """
         R = self.base_ring()
-        from sage.categories.bimodules import Bimodules
         return [Bimodules(R,R)]
 
     class ParentMethods:

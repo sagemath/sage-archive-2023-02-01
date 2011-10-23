@@ -32,7 +32,6 @@ class Domains(Category_singleton):
         sage: TestSuite(Domains()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

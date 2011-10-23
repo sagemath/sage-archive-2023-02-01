@@ -12,6 +12,7 @@ Matrix algebras
 
 from category_types import Category_over_base_ring
 from sage.misc.cachefunc import cached_method
+from algebras import Algebras
 
 class MatrixAlgebras(Category_over_base_ring):
     """
@@ -27,7 +28,6 @@ class MatrixAlgebras(Category_over_base_ring):
         sage: TestSuite(MatrixAlgebras(ZZ)).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -35,6 +35,5 @@ class MatrixAlgebras(Category_over_base_ring):
             sage: MatrixAlgebras(QQ).super_categories()
             [Category of algebras over Rational Field]
         """
-        from algebras import Algebras
         R = self.base_ring()
         return [Algebras(R)]

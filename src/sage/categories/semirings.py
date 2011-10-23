@@ -10,6 +10,8 @@ Semirings
 
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
+from sage.categories.commutative_additive_monoids import CommutativeAdditiveMonoids
+from sage.categories.monoids import Monoids
 from sage.misc.cachefunc import cached_method
 
 class Semirings(Category_singleton):
@@ -36,7 +38,6 @@ class Semirings(Category_singleton):
         sage: TestSuite(Semirings()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -44,8 +45,6 @@ class Semirings(Category_singleton):
             sage: Semirings().super_categories()
             [Category of commutative additive monoids, Category of monoids]
         """
-        from sage.categories.commutative_additive_monoids import CommutativeAdditiveMonoids
-        from sage.categories.monoids import Monoids
         return [CommutativeAdditiveMonoids(), Monoids()]
 
     class ParentMethods:

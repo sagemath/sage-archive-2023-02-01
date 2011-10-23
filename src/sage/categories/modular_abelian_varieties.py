@@ -12,6 +12,7 @@ Modular abelian varieties
 
 from category_types import Category_over_base
 from sage.misc.cachefunc import cached_method
+from sets_cat import Sets
 
 class ModularAbelianVarieties(Category_over_base):
     """
@@ -49,7 +50,6 @@ class ModularAbelianVarieties(Category_over_base):
         """
         return self.base()
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -57,5 +57,4 @@ class ModularAbelianVarieties(Category_over_base):
             sage: ModularAbelianVarieties(QQ).super_categories()
             [Category of sets]
         """
-        from sets_cat import Sets
         return [Sets()] # FIXME

@@ -13,6 +13,9 @@ Bimodules
 
 from sage.categories.category import Category
 from sage.misc.cachefunc import cached_method
+from sage.categories.left_modules import LeftModules
+from sage.categories.right_modules import RightModules
+
 from sage.categories.rings import Rings
 _Rings = Rings()
 
@@ -103,7 +106,6 @@ class Bimodules(Category):
         from sage.misc.latex import latex
         return "{%s}_{%s}_{%s}"%(Category._latex_(self), latex(self._left_base_ring), latex(self._right_base_ring))
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -113,8 +115,6 @@ class Bimodules(Category):
         """
         R = self.left_base_ring()
         S = self.right_base_ring()
-        from sage.categories.left_modules import LeftModules
-        from sage.categories.right_modules import RightModules
         return [LeftModules(R), RightModules(S)]
 
     class ParentMethods:

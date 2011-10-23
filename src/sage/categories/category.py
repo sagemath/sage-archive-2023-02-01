@@ -98,6 +98,8 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
 from sage.misc.abstract_method import abstract_method, abstract_methods_of_class
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.c3 import C3_algorithm
+from sage.misc.unknown import Unknown
 #from sage.misc.misc import attrcall
 
 from sage.structure.sage_object import SageObject
@@ -135,7 +137,7 @@ def _join(categories, as_list):
 
     # Ensure associativity by flattening JoinCategory's
     # Invariant: the super categories of a JoinCategory are not JoinCategories themselves
-    categories = sum( (tuple(category.super_categories()) if isinstance(category, JoinCategory) else (category,)
+    categories = sum( (tuple(category._super_categories) if isinstance(category, JoinCategory) else (category,)
                        for category in categories), ())
 
     # remove redundant categories which are super categories of others
@@ -228,7 +230,6 @@ class Category(UniqueRepresentation, SageObject):
         sage: from sage.categories.all import Category
         sage: from sage.misc.lazy_attribute import lazy_attribute
         sage: class As (Category):
-        ...       @cached_method
         ...       def super_categories(self):
         ...           return []
         ...
@@ -238,7 +239,6 @@ class Category(UniqueRepresentation, SageObject):
         ...           f = fA
         ...
         sage: class Bs (Category):
-        ...       @cached_method
         ...       def super_categories(self):
         ...           return [As()]
         ...
@@ -247,7 +247,6 @@ class Category(UniqueRepresentation, SageObject):
         ...               return "B"
         ...
         sage: class Cs (Category):
-        ...       @cached_method
         ...       def super_categories(self):
         ...           return [As()]
         ...
@@ -257,7 +256,6 @@ class Category(UniqueRepresentation, SageObject):
         ...           f = fC
         ...
         sage: class Ds (Category):
-        ...       @cached_method
         ...       def super_categories(self):
         ...           return [Bs(),Cs()]
         ...
@@ -275,7 +273,7 @@ class Category(UniqueRepresentation, SageObject):
         True
 
     We construct a parent in the category Ds() (that is an instance of
-    Ds().parent_class, and check that it has access to all the
+    Ds().parent_class), and check that it has access to all the
     methods provided by all the categories, with the appropriate
     inheritance order.
     ::
@@ -426,7 +424,6 @@ class Category(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: class SemiprimitiveRings(Category):
-            ...       @cached_method
             ...       def super_categories(self):
             ...           return [Rings()]
             ...
@@ -610,6 +607,44 @@ class Category(UniqueRepresentation, SageObject):
 #         """
 #         return hash(self.__category) # Any reason not to use id?
 
+    def _subcategory_hook_(self, category):
+        """
+        Quick subcategory check.
+
+        INPUT:
+
+        - ``category`` -- a category
+
+        OUTPUT:
+
+        - ``True``, if ``category`` is a subcategory of ``self``.
+        - ``False``, if ``category`` is not a subcategory of ``self``.
+        - ``Unknown``, if a quick check was not enough to determine
+          whether ``category`` is a subcategory of ``self`` or not.
+
+        The aim of this method is to offer a framework to add cheap
+        tests for subcategories. When doing
+        ``category.is_subcategory(self)`` (note the reverse order of
+        ``self`` and ``category``), this method is usually called
+        first.  Only if it returns ``Unknown``, :meth:`is_subcategory`
+        will build the list of super categories of ``category``.
+
+        This method need not to handle the case where ``category`` is
+        ``self``; this is the first test that is done in
+        :meth:`is_subcategory`.
+
+        This default implementation tests whether the parent class
+        of ``category`` is a subclass of the parent class of ``self``.
+        Currently (as of trac ticket #11900) this is a complete
+        subcategory test. But this will change with trac ticket #11935.
+
+        EXAMPLE::
+
+            sage: Rings()._subcategory_hook_(Rings())
+            True
+        """
+        return issubclass(category.parent_class, self.parent_class)
+
     def __contains__(self, x):
         """
         Membership testing
@@ -721,7 +756,9 @@ class Category(UniqueRepresentation, SageObject):
     @abstract_method
     def super_categories(self):
         """
-        Returns the immediate super categories of ``self``
+        Returns the *immediate* super categories of ``self``
+
+        Every category should implement this method.
 
         EXAMPLES::
 
@@ -729,50 +766,134 @@ class Category(UniqueRepresentation, SageObject):
             [Category of monoids]
             sage: Objects().super_categories()
             []
+
+        .. note::
+
+            Mathematically speaking, the order of the super categories
+            should be irrelevant. However, in practice, this order
+            influences the result of :meth:`all_super_categories`, and
+            accordingly of the method resolution order for parent and
+            element classes. Namely, since ticket 11943, Sage uses the
+            same `C3` algorithm for determining the order on the list
+            of *all* super categories as Python is using for the
+            method resolution order of new style classes.
+
+        .. note::
+
+            Whenever speed matters, developers are advised to use the
+            lazy attribute :meth:`_super_categories` instead of
+            calling this method.
         """
 
-    @cached_method
-    def _all_super_categories_raw(self):
-        """
-        Return all super categories of this category, without removing duplicates.
+    @lazy_attribute
+    def _all_super_categories(self):
+        r"""
+        All the super categories of this category, including this category.
 
-        TEST::
+        Since :trac:`11943`, the order of super categories is
+        determined by Python's method resolution order C3 algorithm.
 
-            sage: Rngs()._all_super_categories_raw()
-            [Category of commutative additive groups,
+        .. seealso:: :meth:`all_super_categories`
+
+        .. note:: this attribute is likely to eventually become a tuple.
+
+        EXAMPLES::
+
+            sage: C = Rings(); C
+            Category of rings
+            sage: C._all_super_categories
+            [Category of rings,
+             Category of rngs,
+             Category of commutative additive groups,
+             Category of semirings,
              Category of commutative additive monoids,
              Category of commutative additive semigroups,
-             Category of additive magmas, Category of sets,
-             Category of sets with partial maps,
-             Category of objects,
+             Category of additive magmas,
+             Category of monoids,
              Category of semigroups,
              Category of magmas,
              Category of sets,
              Category of sets with partial maps,
              Category of objects]
-
         """
-        all_categories = []
-        for cat in self.super_categories():
-            all_categories.append(cat)
-            all_categories.extend(cat._all_super_categories_raw())
-        return all_categories
+        return C3_algorithm(self,'_super_categories','_all_super_categories',False)
 
-    @cached_method
-    def all_super_categories(self, proper = False):
+    @lazy_attribute
+    def _all_super_categories_proper(self):
         r"""
-        Returns a linear extension (topological sort) of all the
-        (proper) super categories of this category, and cache the
-        result.
+        All the proper super categories of this category.
+
+        Since :trac:`11943`, the order of super categories is
+        determined by Python's method resolution order C3 algorithm.
+
+        .. seealso:: :meth:`all_super_categories`
+
+        .. note:: this attribute is likely to eventually become a tuple.
+
+        EXAMPLES::
+
+            sage: C = Rings(); C
+            Category of rings
+            sage: C._all_super_categories_proper
+            [Category of rngs,
+             Category of commutative additive groups,
+             Category of semirings,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of additive magmas,
+             Category of monoids,
+             Category of semigroups,
+             Category of magmas,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of objects]
+        """
+        return self._all_super_categories[1:]
+
+    @lazy_attribute
+    def _set_of_super_categories(self):
+        """
+        The frozen set of all proper super categories of this category.
+
+        .. note:: this is used for speeding up category containment tests.
+
+        .. seealso:: :meth:`all_super_categories`
+
+        EXAMPLES::
+
+            sage: Groups()._set_of_super_categories
+            frozenset([...])
+            sage: sorted(Groups()._set_of_super_categories, key=repr)
+            [Category of magmas, Category of monoids, Category of objects, Category of semigroups,
+             Category of sets, Category of sets with partial maps]
+
+        TESTS::
+
+            sage: C = HopfAlgebrasWithBasis(GF(7))
+            sage: C._set_of_super_categories == frozenset(C._all_super_categories_proper)
+            True
+        """
+        return frozenset(self._all_super_categories_proper)
+
+    def all_super_categories(self, proper=False):
+        """
+        Returns the list of all super categories of this category.
 
         INPUT:
 
-         - ``proper``: a boolean; defaults to False.  Whether to exclude this category.
+         - ``proper`` -- a boolean (default: ``False``); whether to exclude this category.
 
-        FIXME:
+        Since :trac:`11943`, the order of super categories is
+        determined by Python's method resolution order C3 algorithm.
 
-        - make sure that this is compatible with the python algorithm
-          for method resolution and make it O(n+m)
+        .. note::
+
+            Whenever speed matters, the developers are advised to use
+            instead the lazy attributes :meth:`_all_super_categories`,
+            :meth:`_all_super_categories_proper`, or
+            :meth:`_set_of_all_super_categories`, as
+            appropriate. Simply because lazy attributes are much
+            faster than any method.
 
         EXAMPLES::
 
@@ -806,18 +927,67 @@ class Category(UniqueRepresentation, SageObject):
              Category of sets,
              Category of sets with partial maps,
              Category of objects]
+
+            sage: Sets().all_super_categories()
+            [Category of sets, Category of sets with partial maps, Category of objects]
+            sage: Sets().all_super_categories(proper=True)
+            [Category of sets with partial maps, Category of objects]
+            sage: Sets().all_super_categories() is Sets()._all_super_categories
+            True
+            sage: Sets().all_super_categories(proper=True) is Sets()._all_super_categories_proper
+            True
+
         """
-        done = set()
-        linear_extension = []
-        for cat in reversed(self._all_super_categories_raw()):
-            if not cat in done:
-                done.add(cat)
-                linear_extension.append(cat)
-        linear_extension.reverse()
         if proper:
-            return linear_extension
-        else:
-            return [self] + linear_extension
+            return self._all_super_categories_proper
+        return self._all_super_categories
+
+    @lazy_attribute
+    def _super_categories(self):
+        """
+        The immediate super categories of this category.
+
+        This lazy attributes caches the result of the mandatory method
+        :meth:`super_categories` for speed.
+
+        Whenever speed matters, developers are advised to use this
+        lazy attribute rather than calling :meth:`super_categories`.
+
+        .. note:: this attribute is likely to eventually become a tuple.
+
+        EXAMPLES::
+
+            sage: Rings()._super_categories
+            [Category of rngs, Category of semirings]
+        """
+        return self.super_categories()
+
+    def _test_category_graph(self, **options):
+        """
+        Check that the category graph matches with Python's method resolution order
+
+        .. note::
+
+            By :trac:`11943`, the list of categories returned by
+            :meth:`all_super_categories` is supposed to match with the
+            method resolution order of the parent and element
+            classes. This method checks this.
+
+        .. todo:: currently, this won't work for hom categories.
+
+        EXAMPLES::
+
+            sage: C = HopfAlgebrasWithBasis(QQ)
+            sage: C.parent_class.mro() == [X.parent_class for X in C._all_super_categories] + [object]
+            True
+            sage: C.element_class.mro() == [X.element_class for X in C._all_super_categories] + [object]
+            True
+            sage: TestSuite(C).run()    # indirect doctest
+
+        """
+        tester = self._tester(**options)
+        tester.assert_(self.parent_class.mro() == [C.parent_class for C in self._all_super_categories] + [object])
+        tester.assert_(self.element_class.mro() == [C.element_class for C in self._all_super_categories] + [object])
 
 #    def construction(self):
 #        return (self.__class__,)
@@ -861,11 +1031,11 @@ class Category(UniqueRepresentation, SageObject):
         # super categories, but not on the base (except when the super categories depend
         # on the base). When that is done, calling the cached function will be needed again.
         #return dynamic_class("%s.parent_class"%self.__class__.__name__,
-        #                     tuple(cat.parent_class for cat in self.super_categories()),
+        #                     tuple(cat.parent_class for cat in self.super_categories),
         #                     self.ParentMethods,
         #                     reduction = (getattr, (self, "parent_class")))
         return dynamic_class_internal.f("%s.parent_class"%self.__class__.__name__,
-                             tuple(cat.parent_class for cat in self.super_categories()),
+                             tuple(cat.parent_class for cat in self._super_categories),
                              self.ParentMethods,
                              reduction = (getattr, (self, "parent_class")))
 
@@ -892,12 +1062,12 @@ class Category(UniqueRepresentation, SageObject):
         # super categories, but not on the base (except when the super categories depend
         # on the base). When that is done, calling the cached function will be needed again.
         #return dynamic_class("%s.element_class"%self.__class__.__name__,
-        #                     (cat.element_class for cat in self.super_categories()),
+        #                     (cat.element_class for cat in self.super_categories),
         #                     self.ElementMethods,
         #                     reduction = (getattr, (self, "element_class"))
         #                     )
         return dynamic_class_internal.f("%s.element_class"%self.__class__.__name__,
-                             tuple(cat.element_class for cat in self.super_categories()),
+                             tuple(cat.element_class for cat in self._super_categories),
                              self.ElementMethods,
                              reduction = (getattr, (self, "element_class")))
 
@@ -917,7 +1087,6 @@ class Category(UniqueRepresentation, SageObject):
 
 
     # Operations on the lattice of categories
-    @cached_method
     def is_subcategory(self, c):
         """
         Returns True if self is naturally embedded as a subcategory of c.
@@ -962,26 +1131,10 @@ class Category(UniqueRepresentation, SageObject):
         """
         if c is self:
             return True
-        assert(isinstance(c, Category))
-        if isinstance(c, JoinCategory):
-            return all(self.is_subcategory(x) for x in c.super_categories())
-        if isinstance(self, JoinCategory):
-            for cat in self.super_categories():
-                if cat.is_subcategory(c):
-                    return True
-            return False
-        try:
-            cbase = c.base()
-        except (AttributeError, TypeError, NotImplementedError):
-            cbase = None
-        if cbase is not None:
-            try:
-                selfbase = self.base()
-            except (AttributeError, TypeError, NotImplementedError):
-                selfbase = None
-            if selfbase is not cbase:
-                return False
-        return c in self.all_super_categories()
+        subcat_hook = c._subcategory_hook_(self)
+        if subcat_hook is Unknown:
+            return c in self._set_of_super_categories
+        return subcat_hook
 
     def or_subcategory(self, category = None):
         """
@@ -1041,7 +1194,7 @@ class Category(UniqueRepresentation, SageObject):
         if isinstance(c, Category):
             return self.is_subcategory(c)
         else:
-            return any(isinstance(cat, c) for cat in self.all_super_categories())
+            return any(isinstance(cat, c) for cat in self._all_super_categories)
 
     @cached_method
     def _meet_(self, other):
@@ -1098,7 +1251,7 @@ class Category(UniqueRepresentation, SageObject):
             # %time L = EllipticCurve('960d1').prove_BSD()
             return self
         else:
-            return Category.join(self._meet_(sup) for sup in other.super_categories())
+            return Category.join(self._meet_(sup) for sup in other._super_categories)
 
     @staticmethod
     def meet(categories):
@@ -1146,7 +1299,7 @@ class Category(UniqueRepresentation, SageObject):
             Join of Category of groups and Category of commutative additive monoids
             sage: J.super_categories()
             [Category of groups, Category of commutative additive monoids]
-            sage: J.all_super_categories(proper = True)
+            sage: J.all_super_categories(proper=True)
             [Category of groups,
              Category of monoids,
              Category of semigroups,
@@ -1235,7 +1388,7 @@ class Category(UniqueRepresentation, SageObject):
         try: #if hasattr(self, "HomCategory"):
             return self.HomCategory(self)
         except AttributeError:
-            return Category.join((category.hom_category() for category in self.super_categories()))
+            return Category.join((category.hom_category() for category in self._super_categories))
 
     def example(self, *args, **keywords):
         """
@@ -1365,8 +1518,11 @@ class HomCategory(Category):
     """
     An abstract base class for all categories of homsets
 
-    The hierarchy of homset categories is built in parallel to that of
-    their base categories (which is plain wrong!!!)
+    .. todo::
+
+        Get a consistent hierarchy of homset categories. Currently, it
+        is built in parallel to that of their base categories (which
+        is plain wrong!!!)
 
     """
     def __init__(self, category, name=None):
@@ -1377,11 +1533,14 @@ class HomCategory(Category):
          - ``category`` -- the category whose Homsets are the objects of this category.
          - ``name`` -- An optional name for this category.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We need to skip one test, since the hierarchy of hom categories isn't
+        consistent yet::
 
             sage: C = sage.categories.category.HomCategory(Rings()); C
             Category of hom sets in Category of rings
-            sage: TestSuite(C).run()
+            sage: TestSuite(C).run(skip=['_test_category_graph'])
         """
         Category.__init__(self, name)
         self.base_category = category
@@ -1409,12 +1568,11 @@ class HomCategory(Category):
 
         """
         from sage.categories.category_types import Category_over_base
-        for C in self.all_super_categories():
+        for C in self._all_super_categories_proper:
             if isinstance(C,Category_over_base):
                 return C.base()
         raise AttributeError, "This hom category has no base"
 
-    @cached_method
     def super_categories(self):
         """
         Returns the immediate super categories, as per :meth:`Category.super_categories`.
@@ -1426,7 +1584,7 @@ class HomCategory(Category):
         """
         return Category.join(self.extra_super_categories() +
                              [category.hom_category()
-                              for category in self.base_category.super_categories()],
+                              for category in self.base_category._super_categories],
                              as_list=True)
     @cached_method
     def extra_super_categories(self):
@@ -1458,7 +1616,7 @@ class JoinCategory(Category):
         Join of Category of groups and Category of commutative additive monoids
         sage: J.super_categories()
         [Category of groups, Category of commutative additive monoids]
-        sage: J.all_super_categories(proper = True)
+        sage: J.all_super_categories(proper=True)
         [Category of groups, Category of monoids, Category of semigroups, Category of magmas, Category of commutative additive monoids, Category of commutative additive semigroups, Category of additive magmas, Category of sets, Category of sets with partial maps, Category of objects]
     """
 
@@ -1480,6 +1638,7 @@ class JoinCategory(Category):
             sage: C = JoinCategory((Groups(), CommutativeAdditiveMonoids())); C
             Join of Category of groups and Category of commutative additive monoids
             sage: TestSuite(C).run()
+
         """
         assert(len(super_categories) >= 2)
         assert(all(not isinstance(category, JoinCategory) for category in super_categories))
@@ -1501,6 +1660,27 @@ class JoinCategory(Category):
         """
         return self._super_categories
 
+    def _subcategory_hook_(self, category):
+        """
+        Returns whether ``category`` is a subcategory of this join category
+
+        INPUT:
+
+        - ``category`` -- a category.
+
+        .. note::
+
+            ``category`` is a sub-category of this join category if
+            and only if it is a sub-category of all super categories
+            of this join category.
+
+        EXAMPLE::
+
+            sage: QQ['x'].category().is_subcategory(Category.join([Rings(), VectorSpaces(QQ)]))  # indirect doctest
+            True
+        """
+        return all(category.is_subcategory(X) for X in self._super_categories)
+
     def _repr_(self):
         """
         Print representation.
@@ -1517,10 +1697,10 @@ class JoinCategory(Category):
             sage: Category.join((Sets().Facades(), Groups()))
             Category of facade groups
         """
-        categories = self.super_categories()
+        categories = self._super_categories
         from sets_cat import Sets
         if len(categories) == 2 and Sets().Facades() in categories:
             categories = list(categories)
             categories.remove(Sets().Facades())
             return "Category of facade %s"%(categories[0]._repr_object_names())
-        return "Join of %s"%(" and ".join(str(cat) for cat in self.super_categories()))
+        return "Join of %s"%(" and ".join(str(cat) for cat in categories))

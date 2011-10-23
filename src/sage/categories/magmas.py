@@ -34,13 +34,8 @@ class Magmas(Category_singleton):
     TESTS::
 
         sage: C = Magmas()
-        sage: TestSuite(C).run(verbose=True)
-        running ._test_category() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_pickling() . . . pass
-
+        sage: TestSuite(C).run()
     """
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

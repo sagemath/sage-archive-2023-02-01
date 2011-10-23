@@ -35,7 +35,6 @@ class AdditiveMagmas(Category_singleton):
 
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

@@ -13,6 +13,7 @@ SetsWithPartialMaps
 from sage.categories.category import Category, HomCategory
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
+from objects import Objects
 
 class SetsWithPartialMaps(Category_singleton):
     """
@@ -41,7 +42,6 @@ class SetsWithPartialMaps(Category_singleton):
     #    import sage.sets.all
     #    return sage.sets.all.Set(X, pt)
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -49,7 +49,6 @@ class SetsWithPartialMaps(Category_singleton):
             sage: SetsWithPartialMaps().super_categories()
             [Category of objects]
         """
-        from objects import Objects
         return [Objects()]
 
     class HomCategory(HomCategory):

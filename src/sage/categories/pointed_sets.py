@@ -13,6 +13,7 @@ Pointed sets
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
+from sets_cat import Sets
 
 class PointedSets(Category_singleton):
     """
@@ -31,7 +32,6 @@ class PointedSets(Category_singleton):
     #    import sage.sets.all
     #    return sage.sets.all.Set(X, pt)
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -39,5 +39,4 @@ class PointedSets(Category_singleton):
             sage: PointedSets().super_categories()
             [Category of sets]
         """
-        from sets_cat import Sets
         return [Sets()] # ???

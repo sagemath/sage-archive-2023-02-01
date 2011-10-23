@@ -34,7 +34,6 @@ class Groups(Category_singleton):
         sage: TestSuite(Groups()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -344,7 +343,36 @@ class Groups(Category_singleton):
                 [Category of hopf algebras with basis over Rational Field, Category of monoid algebras over Rational Field]
 
                 sage: Groups().example().algebra(ZZ).categories()
-                [Category of group algebras over Integer Ring, Category of hopf algebras with basis over Integer Ring, Category of bialgebras with basis over Integer Ring, Category of coalgebras with basis over Integer Ring, Category of hopf algebras over Integer Ring, Category of bialgebras over Integer Ring, Category of coalgebras over Integer Ring, Category of monoid algebras over Integer Ring, Category of semigroup algebras over Integer Ring, Category of algebras with basis over Integer Ring, Category of algebras over Integer Ring, Category of rings, Category of rngs, Category of semirings, Category of monoids, Category of semigroups, Category of magmas, Category of set algebras over Integer Ring, Category of modules with basis over Integer Ring, Category of modules over Integer Ring, Category of bimodules over Integer Ring on the left and Integer Ring on the right, Category of left modules over Integer Ring, Category of right modules over Integer Ring, Category of commutative additive groups, Category of commutative additive monoids, Category of commutative additive semigroups, Category of additive magmas, Category of sets, Category of sets with partial maps, Category of objects]
+                [Category of group algebras over Integer Ring,
+                 Category of hopf algebras with basis over Integer Ring,
+                 Category of bialgebras with basis over Integer Ring,
+                 Category of monoid algebras over Integer Ring,
+                 Category of semigroup algebras over Integer Ring,
+                 Category of algebras with basis over Integer Ring,
+                 Category of coalgebras with basis over Integer Ring,
+                 Category of set algebras over Integer Ring,
+                 Category of modules with basis over Integer Ring,
+                 Category of hopf algebras over Integer Ring,
+                 Category of bialgebras over Integer Ring,
+                 Category of algebras over Integer Ring,
+                 Category of rings,
+                 Category of rngs,
+                 Category of coalgebras over Integer Ring,
+                 Category of modules over Integer Ring,
+                 Category of bimodules over Integer Ring on the left and Integer Ring on the right,
+                 Category of left modules over Integer Ring,
+                 Category of right modules over Integer Ring,
+                 Category of commutative additive groups,
+                 Category of semirings,
+                 Category of commutative additive monoids,
+                 Category of commutative additive semigroups,
+                 Category of additive magmas,
+                 Category of monoids,
+                 Category of semigroups,
+                 Category of magmas,
+                 Category of sets,
+                 Category of sets with partial maps,
+                 Category of objects]
             """
             from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
             return [HopfAlgebrasWithBasis(self.base_ring())]

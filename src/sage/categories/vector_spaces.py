@@ -110,7 +110,6 @@ class VectorSpaces(Category_module):
         """
         return self.base_ring()
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

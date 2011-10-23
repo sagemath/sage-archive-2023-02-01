@@ -12,6 +12,8 @@ AlgebraIdeals
 
 from sage.misc.cachefunc import cached_method
 from category_types import Category_ideal
+from algebra_modules import AlgebraModules
+from commutative_algebras import CommutativeAlgebras
 
 class AlgebraIdeals(Category_ideal):
     """
@@ -58,14 +60,26 @@ class AlgebraIdeals(Category_ideal):
         """
         return self.ambient()
 
-    @cached_method
     def super_categories(self):
         """
+        The category of algebra modules should be a super category of this category.
+
+        However, since algebra modules are currently only available over commutative rings,
+        we have to omit it if our ring is non-commutative.
+
         EXAMPLES::
 
             sage: AlgebraIdeals(QQ[x]).super_categories()
             [Category of algebra modules over Univariate Polynomial Ring in x over Rational Field]
+            sage: C = AlgebraIdeals(FreeAlgebra(QQ,2,'a,b'))
+            sage: C.super_categories()
+            []
+
         """
-        from algebra_modules import AlgebraModules
         R = self.algebra()
-        return [AlgebraModules(R)]
+        try:
+            if R.is_commutative():
+                return [AlgebraModules(R)]
+        except (AttributeError,NotImplementedError):
+            pass
+        return []

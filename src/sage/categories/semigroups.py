@@ -42,11 +42,11 @@ class Semigroups(Category_singleton):
         sage: C = Semigroups()
         sage: TestSuite(C).run(verbose=True)
         running ._test_category() . . . pass
+        running ._test_category_graph() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
 
     """
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

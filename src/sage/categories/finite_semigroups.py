@@ -44,6 +44,7 @@ class FiniteSemigroups(Category):
         sage: C = FiniteSemigroups()
         sage: TestSuite(C).run(verbose = True)
         running ._test_category() . . . pass
+        running ._test_category_graph() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
 

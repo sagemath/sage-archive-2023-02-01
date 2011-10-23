@@ -32,7 +32,6 @@ class CommutativeAdditiveGroups(AbelianCategory):
         sage: TestSuite(CommutativeAdditiveGroups()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

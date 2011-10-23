@@ -13,6 +13,7 @@ Hecke modules
 from sage.categories.category_types import Category_module
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import HomCategory
+from sage.categories.all import ModulesWithBasis
 
 class HeckeModules(Category_module):
     r"""
@@ -73,7 +74,6 @@ class HeckeModules(Category_module):
             raise TypeError, "R (=%s) must be a commutative ring"%R
         Category_module.__init__(self, R, "Hecke modules")
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -81,7 +81,6 @@ class HeckeModules(Category_module):
             sage: HeckeModules(QQ).super_categories()
             [Category of modules with basis over Rational Field]
         """
-        from sage.categories.all import ModulesWithBasis
         R = self.base_ring()
         return [ModulesWithBasis(R)]
 

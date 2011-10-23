@@ -11,6 +11,8 @@ Integral domains
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
+from sage.categories.commutative_rings import CommutativeRings
+from sage.categories.domains import Domains
 
 class IntegralDomains(Category_singleton):
     """
@@ -29,7 +31,6 @@ class IntegralDomains(Category_singleton):
         sage: TestSuite(IntegralDomains()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -37,7 +38,6 @@ class IntegralDomains(Category_singleton):
             sage: IntegralDomains().super_categories()
             [Category of commutative rings, Category of domains]
         """
-        from sage.categories.basic import CommutativeRings, Domains
         return [CommutativeRings(), Domains()]
 
     class ParentMethods:

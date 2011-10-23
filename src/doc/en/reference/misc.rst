@@ -8,6 +8,7 @@ Miscellaneous
 
    sage/misc/abstract_method
    sage/misc/cachefunc
+   sage/misc/c3
    sage/misc/decorators
    sage/misc/classgraph
    sage/misc/dev_tools

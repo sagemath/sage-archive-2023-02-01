@@ -96,7 +96,6 @@ class CoxeterGroups(Category_singleton):
         running ._test_some_elements() . . . pass
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

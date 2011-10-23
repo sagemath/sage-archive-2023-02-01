@@ -29,7 +29,6 @@ class Bialgebras(Category_over_base_ring):
         sage: TestSuite(Bialgebras(ZZ)).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

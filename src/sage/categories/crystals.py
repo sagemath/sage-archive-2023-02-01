@@ -82,7 +82,6 @@ class Crystals(Category_singleton):
         running ._test_stembridge_local_axioms() . . . pass
     """
 
-    @cached_method
     def super_categories(self):
         r"""
         EXAMPLES::

@@ -22,6 +22,7 @@ from sage.categories.cartesian_product import CartesianProductsCategory, cartesi
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.categories.morphism import SetMorphism
+from sage.categories.modules import Modules
 from sage.categories.rings import Rings
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import have_same_parent
@@ -66,7 +67,6 @@ class Algebras(Category_over_base_ring):
         from sage.rings.ring import Algebra
         return isinstance(x, Algebra) and x.base_ring() == self.base_ring()
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -75,8 +75,6 @@ class Algebras(Category_over_base_ring):
             [Category of rings, Category of modules over Integer Ring]
         """
         R = self.base_ring()
-        from sage.categories.rings import Rings
-        from sage.categories.modules import Modules
         return [Rings(), Modules(R)]
 
     class ParentMethods: # (Algebra):  # Eventually, the content of Algebra should be moved here

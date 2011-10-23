@@ -34,7 +34,6 @@ class CommutativeAdditiveMonoids(Category_singleton):
         sage: TestSuite(CommutativeAdditiveMonoids()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

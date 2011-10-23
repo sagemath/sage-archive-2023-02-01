@@ -12,6 +12,7 @@ G-Sets
 
 from sage.categories.category import Category
 from sage.misc.cachefunc import cached_method
+from sets_cat import Sets
 
 #############################################################
 # GSets
@@ -51,7 +52,6 @@ class GSets(Category):
     #def construction(self):
     #    return (self.__class__, self.__G)
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -59,7 +59,6 @@ class GSets(Category):
             sage: GSets(SymmetricGroup(8)).super_categories()
             [Category of sets]
         """
-        from sets_cat import Sets
         return [Sets()]
 
     @classmethod

@@ -13,6 +13,7 @@ Schemes
 from sage.categories.category import Category, HomCategory
 from sage.categories.category_types import Category_over_base
 from sage.misc.cachefunc import cached_method
+from sets_cat import Sets
 
 def Schemes(X=None):
     """
@@ -57,7 +58,6 @@ class Schemes_abstract(Category):
         """
         Category.__init__(self, "Schemes")
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -65,7 +65,6 @@ class Schemes_abstract(Category):
             sage: Schemes().super_categories()
             [Category of sets]
         """
-        from sets_cat import Sets
         return [Sets()]
 
     def _call_(self, x):
@@ -203,7 +202,6 @@ class Schemes_over_base(Category_over_base):
         """
         return self.base()
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

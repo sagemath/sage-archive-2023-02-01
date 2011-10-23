@@ -11,6 +11,8 @@ Rngs
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
+from commutative_additive_groups import CommutativeAdditiveGroups
+from semigroups import Semigroups
 
 class Rngs(Category_singleton):
     """
@@ -31,7 +33,6 @@ class Rngs(Category_singleton):
         sage: TestSuite(Rngs()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -39,8 +40,6 @@ class Rngs(Category_singleton):
             sage: Rngs().super_categories()
             [Category of commutative additive groups, Category of semigroups]
         """
-        from commutative_additive_groups import CommutativeAdditiveGroups
-        from semigroups import Semigroups
         return [CommutativeAdditiveGroups(), Semigroups()]
 
     class ParentMethods:

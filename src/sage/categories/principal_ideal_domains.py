@@ -11,6 +11,7 @@ Principal ideal domains
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
+from sage.categories.unique_factorization_domains import UniqueFactorizationDomains
 
 class PrincipalIdealDomains(Category_singleton):
     """
@@ -36,7 +37,6 @@ class PrincipalIdealDomains(Category_singleton):
         sage: TestSuite(PrincipalIdealDomains()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -44,7 +44,6 @@ class PrincipalIdealDomains(Category_singleton):
             sage: PrincipalIdealDomains().super_categories()
             [Category of unique factorization domains]
         """
-        from sage.categories.basic import UniqueFactorizationDomains
         return [UniqueFactorizationDomains()]
 
     class ParentMethods:

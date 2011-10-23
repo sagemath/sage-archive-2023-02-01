@@ -11,6 +11,8 @@ Rings
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.categories.rngs import Rngs
+from sage.categories.semirings import Semirings
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from category import HomCategory
@@ -42,7 +44,6 @@ class Rings(Category_singleton):
        in the category ``Algebras(P)``.
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -50,8 +51,6 @@ class Rings(Category_singleton):
             sage: Rings().super_categories()
             [Category of rngs, Category of semirings]
         """
-        from sage.categories.rngs import Rngs
-        from sage.categories.semirings import Semirings
         return [Rngs(), Semirings()]
 
     class ParentMethods:

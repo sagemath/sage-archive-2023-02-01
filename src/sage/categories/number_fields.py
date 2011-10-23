@@ -55,7 +55,6 @@ class NumberFields(Category_singleton):
         sage: TestSuite(NumberFields()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

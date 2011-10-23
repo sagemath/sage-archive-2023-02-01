@@ -13,6 +13,10 @@ Fields
 
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton, Category_contains_method_by_parent_class
+from sage.categories.euclidean_domains import EuclideanDomains
+from sage.categories.unique_factorization_domains import UniqueFactorizationDomains
+from sage.categories.division_rings import DivisionRings
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.rings.field import is_Field
@@ -43,7 +47,6 @@ class Fields(Category_singleton):
         sage: TestSuite(Fields()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -52,7 +55,6 @@ class Fields(Category_singleton):
             [Category of euclidean domains, Category of unique factorization domains, Category of division rings]
 
         """
-        from sage.categories.basic import EuclideanDomains, UniqueFactorizationDomains, DivisionRings
         return [EuclideanDomains(), UniqueFactorizationDomains(), DivisionRings()]
 
     def __contains__(self, x):

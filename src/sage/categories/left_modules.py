@@ -10,6 +10,7 @@ Left modules
 
 from category_types import Category_over_base_ring
 from sage.misc.cachefunc import cached_method
+from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 
 #?class LeftModules(Category_over_base_rng):
 class LeftModules(Category_over_base_ring):
@@ -30,7 +31,6 @@ class LeftModules(Category_over_base_ring):
         sage: TestSuite(LeftModules(ZZ)).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -38,7 +38,6 @@ class LeftModules(Category_over_base_ring):
             sage: LeftModules(QQ).super_categories()
             [Category of commutative additive groups]
         """
-        from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
         return [CommutativeAdditiveGroups()]
 
     class ParentMethods:

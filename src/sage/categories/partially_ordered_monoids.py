@@ -33,7 +33,6 @@ class PartiallyOrderedMonoids(Category_singleton):
         sage: TestSuite(PartiallyOrderedMonoids()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

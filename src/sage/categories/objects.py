@@ -38,7 +38,6 @@ class Objects(Category):
         sage: TestSuite(Objects()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

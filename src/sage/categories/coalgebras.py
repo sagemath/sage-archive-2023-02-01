@@ -45,7 +45,6 @@ class Coalgebras(Category_over_base_ring):
 
         sage: TestSuite(Coalgebras(ZZ)).run()
     """
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

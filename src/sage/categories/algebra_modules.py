@@ -12,6 +12,7 @@ Algebra modules
 
 from sage.misc.cachefunc import cached_method
 from category_types import Category_module
+from modules import Modules
 
 class AlgebraModules(Category_module):
     """
@@ -77,7 +78,6 @@ class AlgebraModules(Category_module):
         """
         return self.base_ring()
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -86,5 +86,4 @@ class AlgebraModules(Category_module):
             [Category of modules over Univariate Polynomial Ring in x over Rational Field]
         """
         R = self.algebra()
-        from modules import Modules
         return [Modules(R)]

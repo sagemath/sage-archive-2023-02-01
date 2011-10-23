@@ -31,7 +31,6 @@ class DivisionRings(Category_singleton):
         sage: TestSuite(DivisionRings()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

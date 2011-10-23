@@ -157,7 +157,6 @@ class Sets(Category_singleton):
 
     """
 
-    @cached_method
     def super_categories(self):
         r"""
         We include SetsWithPartialMaps between Sets and Objects so that we

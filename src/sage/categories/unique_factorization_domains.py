@@ -11,6 +11,7 @@ Unique factorization domains
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
+from sage.categories.gcd_domains import GcdDomains
 
 class UniqueFactorizationDomains(Category_singleton):
     """
@@ -30,7 +31,6 @@ class UniqueFactorizationDomains(Category_singleton):
         sage: TestSuite(UniqueFactorizationDomains()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -38,7 +38,6 @@ class UniqueFactorizationDomains(Category_singleton):
             sage: UniqueFactorizationDomains().super_categories()
             [Category of gcd domains]
         """
-        from sage.categories.gcd_domains import GcdDomains
         return [GcdDomains()]
 
     class ParentMethods:

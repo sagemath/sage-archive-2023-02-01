@@ -11,6 +11,7 @@ Gcd domains
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
+from sage.categories.integral_domains import IntegralDomains
 
 class GcdDomains(Category_singleton):
     """
@@ -30,7 +31,6 @@ class GcdDomains(Category_singleton):
         sage: TestSuite(GcdDomains()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -38,7 +38,6 @@ class GcdDomains(Category_singleton):
             sage: GcdDomains().super_categories()
             [Category of integral domains]
         """
-        from sage.categories.integral_domains import IntegralDomains
         return [IntegralDomains()]
 
     class ParentMethods:

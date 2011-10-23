@@ -12,6 +12,7 @@ Commutative algebra ideals
 
 from sage.misc.cachefunc import cached_method
 from category_types import Category_ideal, Category_in_ambient
+from algebra_ideals import AlgebraIdeals
 
 class CommutativeAlgebraIdeals(Category_ideal):
     """
@@ -66,7 +67,6 @@ class CommutativeAlgebraIdeals(Category_ideal):
         """
         return self.ambient()
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -74,6 +74,5 @@ class CommutativeAlgebraIdeals(Category_ideal):
             sage: CommutativeAlgebraIdeals(QQ[x]).super_categories()
             [Category of algebra ideals in Univariate Polynomial Ring in x over Rational Field]
         """
-        from algebra_ideals import AlgebraIdeals
         R = self.algebra()
         return [AlgebraIdeals(R)]

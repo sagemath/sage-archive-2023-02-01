@@ -13,6 +13,7 @@ Commutative ring ideals
 from sage.misc.cachefunc import cached_method
 from category_types import Category_ideal
 from sage.categories.commutative_rings import CommutativeRings
+from ring_ideals import RingIdeals
 
 class CommutativeRingIdeals(Category_ideal):
     """
@@ -45,7 +46,6 @@ class CommutativeRingIdeals(Category_ideal):
             raise TypeError, "R (=%s) must be a commutative ring"%R
         Category_ideal.__init__(self, R)
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -53,6 +53,5 @@ class CommutativeRingIdeals(Category_ideal):
             sage: CommutativeRingIdeals(ZZ).super_categories()
             [Category of ring ideals in Integer Ring]
         """
-        from ring_ideals import RingIdeals
         R = self.ring()
         return [RingIdeals(R)]

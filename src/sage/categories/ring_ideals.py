@@ -12,6 +12,7 @@ Ring ideals
 
 from category_types import Category_ideal
 from sage.misc.cachefunc import cached_method
+from modules import Modules
 from sage.categories.rings import Rings
 _Rings = Rings()
 
@@ -57,7 +58,6 @@ class RingIdeals(Category_ideal):
             raise TypeError, "R (=%s) must be a ring"%R
         Category_ideal.__init__(self, R)
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -67,6 +67,5 @@ class RingIdeals(Category_ideal):
             sage: RingIdeals(QQ).super_categories()
             [Category of vector spaces over Rational Field]
         """
-        from modules import Modules
         R = self.ring()
         return [Modules(R)]

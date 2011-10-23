@@ -32,7 +32,6 @@ class HopfAlgebras(Category_over_base_ring):
         sage: TestSuite(HopfAlgebras(ZZ)).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::

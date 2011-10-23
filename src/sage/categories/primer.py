@@ -546,13 +546,13 @@ Functorial constructions
      Category of algebras over Rational Field,
      Category of rings,
      Category of rngs,
-     Category of semirings,
      Category of vector spaces over Rational Field,
      Category of modules over Rational Field,
      Category of bimodules over Rational Field on the left and Rational Field on the right,
      Category of left modules over Rational Field,
      Category of right modules over Rational Field,
      Category of commutative additive groups,
+     Category of semirings,
      Category of commutative additive monoids,
      Category of commutative additive semigroups,
      Category of additive magmas,
@@ -613,16 +613,47 @@ Wrapup:
 Writing a new category
 ----------------------
 
-Each category should come with a good example, in sage.categories.examples.
+Each category `C` **must** be provided with a method ``C.super_categories()``
+and *can* be provided with a method ``C._subcategory_hook_(D)``. Also, it
+may be needed to insert `C` into the output of the ``super_categories()`` method
+of some other category. This determines the position of `C` in the category graph.
 
-The order between super categories should not be mathematically
-relevant (otherwise this usually means the category hierarchy is
-wrong). On the other hand, it should be consistent, to help Python
-build the method resolution order for the generated classes (it always
-respects inheritance, and tries to respect the order of the bases).
+A category *may* provide methods that can be used by all its objects,
+respectively by all elements of its objects.
 
-The current convention is to order them lexicographically w.r.t. the
-following criterions:
+Each category *should* come with a good example, in :mod:`sage.categories.examples`.
+
+Inserting the new category into the category graph
+..................................................
+
+``C.super_categories()``  must return a list of categories, namely
+the *immediate* super categories of `C`. The generic method
+``C.all_super_categories()`` will recursively determine the list
+of *all* super categories of `C`, by using the so-called C3 algorithm,
+that is also used for the method resolution order of new-style classes
+in Python (see trac ticket #11943).
+
+Of course, if you know that your new category `C` is an immediate
+super category of some existing category `D`, then you should modify
+`D`'s ``super_categories`` method so that `C` is included.
+
+The order between the super categories does influence the inheritance
+of methods for parents and elements. Namely, if `P` is an object in
+the category `C` and if `C_1` and `C_2` are both super categories of
+`C` defining some method ``foo``, then `P` will use `C_1`'s version of
+``foo`` only if `C_1` appears in ``C.all_super_categories()`` before
+`C_2`. This is an *implementation detail*: the order between super
+categories should not be mathematically relevant, and code should not
+rely on any specific order, as it it subject to later change.
+
+Also, the C3 algorithm will only be able to determine a consistent order
+on the list of all super categories if the orders on the different lists
+of *immediate* super categories is sane. See :func:`sage.misc.c3.C3_algorithm`
+and :meth:`sage.categories.category.Category.all_super_categories` for examples.
+
+It is thus useful to follow certain conventions when ordering the
+immediate super categories. The current convention is to order them
+lexicographically w.r.t. the following criteria:
 
  - Graded... or Finite dimensional... first
  - ...WithBasis first
@@ -652,10 +683,6 @@ This gives the following order::
      Category of algebras over Rational Field,
      Category of rings,
      Category of rngs,
-     Category of semirings,
-     Category of monoids,
-     Category of semigroups,
-     Category of magmas,
      Category of coalgebras over Rational Field,
      Category of vector spaces over Rational Field,
      Category of modules over Rational Field,
@@ -663,14 +690,72 @@ This gives the following order::
      Category of left modules over Rational Field,
      Category of right modules over Rational Field,
      Category of commutative additive groups,
+     Category of semirings,
      Category of commutative additive monoids,
      Category of commutative additive semigroups,
      Category of additive magmas,
+     Category of monoids,
+     Category of semigroups,
+     Category of magmas,
      Category of sets,
      Category of sets with partial maps,
      Category of objects]
 
-Todo: any better convention? Maybe we should further specify that subcategories of Modules() go first?
+Subcategory hook (advanced optimization feature)
+................................................
+
+The default implementation of the method ``C.is_subcategory(D)`` is to
+look up whether `D` appears in ``C.all_super_categories()``. However,
+building the list of all the super categories of `C` is an expensive
+operation that is sometimes best avoided. For example, if both `C` and
+`D` are categories defined over a base, but the bases differ, then one
+knows right away that they can not be subcategories of each other.
+
+When such a short-path is known, one can implement a method
+``_subcategory_hook_``. ``C.is_subcategory(D)`` first calls
+``D._subcategory_hook_(C)``. If this returns ``Unknown``, then
+``C.is_subcategory(D)`` tries to find ``D`` in
+``C.all_super_categories()``. Otherwise, ``C.is_subcategory(D)``
+returns the result of ``D._subcategory_hook_(C)``.
+
+By default, ``D._subcategory_hook_(C)`` tests
+``issubclass(C.parent_class,D.parent_class)``, which is very often
+giving the right answer::
+
+    sage: Rings()._subcategory_hook_(Algebras(QQ))
+    True
+    sage: HopfAlgebras(QQ)._subcategory_hook_(Algebras(QQ))
+    False
+    sage: Algebras(QQ)._subcategory_hook_(HopfAlgebras(QQ))
+    True
+
+Methods for objects and elements
+................................
+
+Different objects of the same category share some algebraic features, and
+very often these features can be encoded in a method, in a generic way.
+For example, for every commutative additive monoid, it makes sense to ask
+for the sum of a list of elements. Sage's category framework allows to
+provide a generic implementation for all objects of a category.
+
+If you want to provide your new category with generic methods for objects
+(or elements of objects), then you simply add an attribute called
+``ParentMethods`` (or ``ElementMethods``) carrying a class. The methods
+of that class will automatically become methods of the objects (or the
+elements). For instance::
+
+    sage: P.<x,y> = ZZ[]
+    sage: P.sum([x,y,1])
+    x + y + 1
+    sage: P.sum.__module__
+    'sage.categories.commutative_additive_monoids'
+    sage: P.sum.__func__ is CommutativeAdditiveMonoids().ParentMethods.sum.__func__
+    True
+
+We recommend to study the code of one example::
+
+    sage: C = CommutativeAdditiveMonoids()
+    sage: C??                               # not tested
 
 Caveats
 -------

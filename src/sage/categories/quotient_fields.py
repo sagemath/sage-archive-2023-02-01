@@ -12,6 +12,7 @@ from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
+from sage.categories.fields import Fields
 
 class QuotientFields(Category_singleton):
     """
@@ -29,7 +30,6 @@ class QuotientFields(Category_singleton):
         sage: TestSuite(QuotientFields()).run()
     """
 
-    @cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -37,7 +37,6 @@ class QuotientFields(Category_singleton):
             sage: QuotientFields().super_categories()
             [Category of fields]
         """
-        from sage.categories.fields import Fields
         return [Fields()]
 
     class ParentMethods:

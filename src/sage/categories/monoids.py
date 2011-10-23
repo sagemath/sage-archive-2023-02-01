@@ -46,7 +46,6 @@ class Monoids(Category_singleton):
         sage: TestSuite(C).run()
 
     """
-    @cached_method
     def super_categories(self):
         """
         Returns a list of the immediate super categories of ``self``.

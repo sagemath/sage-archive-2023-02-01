@@ -1059,6 +1059,9 @@ ext_modules = [
     Extension('sage.misc.cython_c',
               sources = ['sage/misc/cython_c.pyx']),
 
+    Extension('sage.misc.c3',
+              sources = ['sage/misc/c3.pyx']),
+
     Extension('sage.misc.derivative',
               sources = ['sage/misc/derivative.pyx']),
 

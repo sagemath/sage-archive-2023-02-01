@@ -988,11 +988,9 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: complex(I)
-	    1j
+            1j
             sage: complex(erf(3*I))
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to simplify to complex approximation
+            (1.0000000000000002+1629.8673238578601j)
         """
         try:
             return self._eval_self(complex)
@@ -2927,38 +2925,39 @@ cdef class Expression(CommutativeRingElement):
             sage: taylor(a*log(z), z, 2, 3)
             1/24*(z - 2)^3*a - 1/8*(z - 2)^2*a + 1/2*(z - 2)*a + a*log(2)
 
-   	::
+        ::
 
             sage: taylor(sqrt (sin(x) + a*x + 1), x, 0, 3)
             1/48*(3*a^3 + 9*a^2 + 9*a - 1)*x^3 - 1/8*(a^2 + 2*a + 1)*x^2 + 1/2*(a + 1)*x + 1
 
-   	::
+        ::
 
             sage: taylor (sqrt (x + 1), x, 0, 5)
             7/256*x^5 - 5/128*x^4 + 1/16*x^3 - 1/8*x^2 + 1/2*x + 1
 
-   	::
+        ::
 
             sage: taylor (1/log (x + 1), x, 0, 3)
             -19/720*x^3 + 1/24*x^2 - 1/12*x + 1/x + 1/2
 
-   	::
+        ::
 
             sage: taylor (cos(x) - sec(x), x, 0, 5)
             -1/6*x^4 - x^2
 
-   	::
+        ::
 
             sage: taylor ((cos(x) - sec(x))^3, x, 0, 9)
             -1/2*x^8 - x^6
 
-   	::
+        ::
 
             sage: taylor (1/(cos(x) - sec(x))^3, x, 0, 5)
             -15377/7983360*x^4 - 6767/604800*x^2 + 11/120/x^2 + 1/2/x^4 - 1/x^6 - 347/15120
 
+        TESTS:
 
-        Ticket #7472 fixed (Taylor polynomial in more variables) ::
+        Check that ticket #7472 is fixed (Taylor polynomial in more variables)::
 
             sage: x,y=var('x y'); taylor(x*y^3,(x,1),(y,1),4)
             (y - 1)^3*(x - 1) + (y - 1)^3 + 3*(y - 1)^2*(x - 1) + 3*(y - 1)^2 + 3*(y - 1)*(x - 1) + x + 3*y - 3
@@ -7548,7 +7547,7 @@ cdef class Expression(CommutativeRingElement):
         -  ``multiplicities`` - bool (default: False); if True,
            return corresponding multiplicities.  This keyword is
            incompatible with ``to_poly_solve=True`` and does not make
-	   any sense when solving inequality.
+           any sense when solving inequality.
 
         -  ``solution_dict`` - bool (default: False); if True or non-zero,
            return a list of dictionaries containing solutions. Not used
@@ -7562,7 +7561,7 @@ cdef class Expression(CommutativeRingElement):
            Maxima's ``to_poly_solver`` package to search for more possible
            solutions, but possibly encounter approximate solutions.
            This keyword is incompatible with ``multiplicities=True``
-	   and is not used when solving inequality. Setting ``to_poly_solve``
+           and is not used when solving inequality. Setting ``to_poly_solve``
            to 'force' (string) omits Maxima's solve command (usefull when
            some solution of trigonometric equations are lost).
 
@@ -7610,7 +7609,7 @@ cdef class Expression(CommutativeRingElement):
             sage: solve(Q*sqrt(Q^2 + 2) - 1, Q)
             [Q == 1/sqrt(Q^2 + 2)]
             sage: solve(Q*sqrt(Q^2 + 2) - 1, Q, to_poly_solve=True)
-			[Q == 1/sqrt(-sqrt(2) + 1), Q == 1/sqrt(sqrt(2) + 1)]
+            [Q == 1/sqrt(-sqrt(2) + 1), Q == 1/sqrt(sqrt(2) + 1)]
 
         In some cases there may be infinitely many solutions indexed
         by a dummy variable.  If it begins with ``z``, it is implicitly

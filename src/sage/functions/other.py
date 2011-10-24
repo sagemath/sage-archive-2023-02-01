@@ -28,11 +28,12 @@ class Function_erf(BuiltinFunction):
     _eval_ = BuiltinFunction._eval_default
     def __init__(self):
         r"""
-        The error function, defined as
+        The error function, defined for real values as
         `\text{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt`.
+        This function is also defined for complex values, via analytic
+        continuation.
 
-        Sage currently only implements the error function (via a call to
-        PARI) when the input is real.
+        Sage implements the error function via the ``erfc()`` function in PARI.
 
         EXAMPLES::
 
@@ -42,14 +43,6 @@ class Function_erf(BuiltinFunction):
             0.995322265018953
             sage: loads(dumps(erf))
             erf
-
-        The following fails because we haven't implemented
-        erf yet for complex values::
-
-            sage: complex(erf(3*I))
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to simplify to complex approximation
 
         TESTS:
 
@@ -61,24 +54,32 @@ class Function_erf(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}")
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent):
         """
         EXAMPLES::
 
             sage: erf(2).n()
             0.995322265018953
-            sage: erf(2).n(150)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: erf not implemented for precision higher than 53
+            sage: erf(2).n(200)
+            0.99532226501895273416206925636725292861089179704006007673835
+            sage: erf(pi - 1/2*I).n(100)
+            1.0000111669099367825726058952 + 1.6332655417638522934072124548e-6*I
+
+        TESTS:
+
+        Check that PARI/GP through the GP interface gives the same answer::
+
+            sage: gp.set_real_precision(59)  # random
+            38
+            sage: print gp.eval("1 - erfc(1)"); print erf(1).n(200);
+            0.84270079294971486934122063508260925929606699796630290845994
+            0.84270079294971486934122063508260925929606699796630290845994
         """
         try:
             prec = parent.prec()
         except AttributeError: # not a Sage parent
             prec = 0
-        if prec > 53:
-            raise NotImplementedError, "erf not implemented for precision higher than 53"
-        return parent(1 - pari(float(x)).erfc())
+        return parent(1) - parent(pari(x).erfc(prec))
 
     def _derivative_(self, x, diff_param=None):
         """

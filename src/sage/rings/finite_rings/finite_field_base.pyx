@@ -412,39 +412,60 @@ cdef class FiniteField(Field):
 
     def multiplicative_generator(self):
         """
-        Return a generator for the multiplicative group of this field.
+        Return a primitive element of this finite field, i.e. a generator
+        of the multiplicative group.
 
-        This generator might change from one version of Sage to
-        another.
+        You can use ``self.multiplicative_generator()`` or
+        ``self.primitive_element()``, these mean the same thing.
+
+        .. WARNING::
+
+           This generator might change from one version of Sage to another.
 
         EXAMPLES::
 
             sage: k = GF(997)
             sage: k.multiplicative_generator()
             7
-            sage: k = GF(11^3, name='a')
-            sage: k.multiplicative_generator()
+            sage: k.<a> = GF(11^3)
+            sage: k.primitive_element()
             a
+            sage: k.<b> = GF(19^32)
+            sage: k.multiplicative_generator()
+            b + 5
+
+        TESTS:
+
+        Check that large characteristics work (Trac #11946)::
+
+            sage: p = 10^20 + 39
+            sage: x = polygen(GF(p))
+            sage: K.<a> = GF(p^2, modulus=x^2+1)
+            sage: K.multiplicative_generator()
+            a + 12
         """
         from sage.rings.arith import primitive_root
 
         if self.__multiplicative_generator is not None:
             return self.__multiplicative_generator
-        else:
-            if self.degree() == 1:
-                self.__multiplicative_generator = self(primitive_root(self.order()))
-                return self.__multiplicative_generator
-            n = self.order() - 1
-            a = self.gen(0)
-            if a.multiplicative_order() == n:
+        if self.degree() == 1:
+            self.__multiplicative_generator = self(primitive_root(self.order()))
+            return self.__multiplicative_generator
+        n = self.order() - 1
+        g = self.gen(0)
+        # We check whether x+g is a multiplicative generator, where
+        # x runs through the finite field.
+        # This has the advantage that g is the first element we try,
+        # so we always get g as generator if possible.  Second, the
+        # PARI finite field iterator gives all the constant elements
+        # first, so we try g+(constant) before anything else.
+        for x in self:
+            a = g+x
+            if a != 0 and a.multiplicative_order() == n:
                 self.__multiplicative_generator = a
                 return a
-            for a in self:
-                if a == 0:
-                    continue
-                if a.multiplicative_order() == n:
-                    self.__multiplicative_generator = a
-                    return a
+
+    primitive_element = multiplicative_generator
 
     def ngens(self):
         """

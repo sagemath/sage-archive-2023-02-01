@@ -778,8 +778,8 @@ def unpickle_Cache_givaro(parent, p, k, modulus, rep, cache):
 
 cdef class FiniteField_givaro_iterator:
     """
-    Iterator over FiniteField_givaro elements of degree 1. We iterate
-    over fields of higher degree using the VectorSpace iterator.
+    Iterator over :class:`FiniteField_givaro` elements.  We iterate
+    multiplicatively, as powers of a fixed internal generator.
 
     EXAMPLES::
 

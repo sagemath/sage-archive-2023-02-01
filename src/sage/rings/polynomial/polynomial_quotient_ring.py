@@ -465,6 +465,39 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         """
         return self.__ring.base_ring()
 
+    def cardinality(self):
+        """
+        Return the number of elements of this quotient ring.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: R.quo(1).cardinality()
+            1
+            sage: R.quo(x^3-2).cardinality()
+            +Infinity
+
+        ::
+
+            sage: R.<x> = GF(9,'a')[]
+            sage: R.quo(2*x^3+x+1).cardinality()
+            729
+            sage: GF(9,'a').extension(2*x^3+x+1).cardinality()
+            729
+            sage: R.quo(2).cardinality()
+            1
+        """
+        if not self.is_finite():
+            from sage.rings.infinity import Infinity
+            return Infinity
+        f = self.modulus()
+        # Two cases where the quotient is finite (see is_finite())
+        # 1) R[x]/(1)
+        if f.degree() == 0:
+            return 1
+        # 2) F[x]/(f) where F is finite
+        return self.base_ring().cardinality() ** f.degree()
+
     def characteristic(self):
         """
         Return the characteristic of this quotient ring.

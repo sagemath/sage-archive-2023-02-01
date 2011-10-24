@@ -114,11 +114,10 @@ cdef class MixedIntegerLinearProgram:
         <http://www.coin-or.org>`_ web site.
 
       - CPLEX (``solver="CPLEX"``). See the `CPLEX
-        <http://www.ilog.com/products/cplex/>`_ web site.  An interface to
-        CPLEX is not yet implemented.
+        <http://www.ilog.com/products/cplex/>`_ web site.
 
-        ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
-        ``"CPLEX"``, or ``None``.
+      - GUROBI (``solver="GUROBI"``). See the `GUROBI <http://www.gurobi.com/>`_
+          web site.
 
       - If ``solver=None`` (default), the default solver is used (see
         ``default_mip_solver`` method.
@@ -171,9 +170,11 @@ cdef class MixedIntegerLinearProgram:
             <http://www.ilog.com/products/cplex/>`_ web site.  An interface to
             CPLEX is not yet implemented.
 
-            ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
-            ``"CPLEX"``, or ``None``. If ``solver=None`` (default), the default
-            solver is used (see ``default_mip_solver`` method.
+          - GUROBI (``solver="GUROBI"``). See the `GUROBI
+            <http://www.gurobi.com/>`_ web site.
+
+          -If ``solver=None`` (default), the default solver is used (see
+           ``default_mip_solver`` method.
 
         - ``maximization``
 
@@ -188,7 +189,6 @@ cdef class MixedIntegerLinearProgram:
         .. SEEALSO::
 
         - :meth:`default_mip_solver` -- Returns/Sets the default MIP solver.
-
 
         EXAMPLE::
 
@@ -792,7 +792,6 @@ cdef class MixedIntegerLinearProgram:
             sage: p.solve()
             0.0
         """
-
         cdef list values = []
 
         # If the objective is None, or a constant, we want to remember
@@ -811,6 +810,7 @@ cdef class MixedIntegerLinearProgram:
 
         for i in range(self._backend.ncols()):
             values.append(f.get(i,0))
+
 
         self._backend.set_objective(values)
 

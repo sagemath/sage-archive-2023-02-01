@@ -790,10 +790,12 @@ def default_mip_solver(solver = None):
 
         - CPLEX (``solver="CPLEX"``). See the
           `CPLEX <http://www.ilog.com/products/cplex/>`_ web site.
-          An interface to CPLEX is not yet implemented.
+
+        - GUROBI (``solver="GUROBI"``). See the `GUROBI
+          <http://www.gurobi.com/>`_ web site.
 
         ``solver`` should then be equal to one of ``"GLPK"``,
-        ``"Coin"``, ``"CPLEX"``.
+        ``"Coin"``, ``"CPLEX"``, or ``"GUROBI"``.
 
         - If ``solver=None`` (default), the current default solver's name is
           returned.
@@ -814,7 +816,7 @@ def default_mip_solver(solver = None):
         sage: default_mip_solver("Yeahhhhhhhhhhh")
         Traceback (most recent call last):
         ...
-        ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX' or None.
+        ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'GUROBI' or None.
         sage: default_mip_solver(former_solver)
     """
     global default_solver
@@ -825,7 +827,7 @@ def default_mip_solver(solver = None):
             return default_solver
 
         else:
-            for s in ["CPLEX", "Coin", "GLPK"]:
+            for s in ["CPLEX", "GUROBI", "Coin", "GLPK"]:
                 try:
                     default_mip_solver(s)
                     return s
@@ -846,11 +848,18 @@ def default_mip_solver(solver = None):
         except ImportError:
             raise ValueError("COIN is not available. Please refer to the documentation to install it.")
 
+    elif solver == "GUROBI":
+        try:
+            from sage.numerical.backends.gurobi_backend import GurobiBackend
+            default_solver = solver
+        except ImportError:
+            raise ValueError("Gurobi is not available. Please refer to the documentation to install it.")
+
     elif solver == "GLPK":
         default_solver = solver
 
     else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX' or None.")
+        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'GUROBI' or None.")
 
 cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
     """
@@ -858,7 +867,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
 
     INPUT:
 
-    - ``solver`` -- 3 solvers should be available through this class:
+    - ``solver`` -- 4 solvers should be available through this class:
 
         - GLPK (``solver="GLPK"``). See the `GLPK
           <http://www.gnu.org/software/glpk/>`_ web site.
@@ -868,11 +877,13 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
 
         - CPLEX (``solver="CPLEX"``). See the
           `CPLEX <http://www.ilog.com/products/cplex/>`_ web site.
-          An interface to CPLEX is not yet implemented.
+
+        - GUROBI (``solver="GUROBI"``). See the `GUROBI
+          <http://www.gurobi.com/>`_ web site.
 
         ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
-        ``"CPLEX"``, or ``None``. If ``solver=None`` (default), the default
-        solver is used (see ``default_mip_solver`` method.
+        ``"CPLEX"``, ``"GUROBI"``, or ``None``. If ``solver=None`` (default),
+        the default solver is used (see ``default_mip_solver`` method.
 
     - ``constraint_generation`` (boolean) -- whether the solver
       returned is to be used for constraint/variable generation. As
@@ -895,7 +906,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
         solver = default_mip_solver()
 
         # We do not want to use Coin for constraint_generation. It just does not
-        # work with it.
+        # work
         if solver == "Coin" and constraint_generation:
             solver = "GLPK"
 
@@ -911,7 +922,11 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
         from sage.numerical.backends.cplex_backend import CPLEXBackend
         return CPLEXBackend()
 
+    elif solver == "GUROBI":
+        from sage.numerical.backends.gurobi_backend import GurobiBackend
+        return GurobiBackend()
+
     else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX' or None (in which case the default one is used).")
+        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'GUROBI' or None (in which case the default one is used).")
 
 

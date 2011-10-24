@@ -462,42 +462,74 @@ following libraries are currently supported:
   <http://www-01.ibm.com/software/integration/optimization/cplex/>`_:
   A solver from `ILOG <http://www.ilog.com/>`_
 
-  Proprietary and closed source, but free for researchers and students.
+  Proprietary, but free for researchers and students.
 
 * `GLPK <http://www.gnu.org/software/glpk/>`_: A solver from `GNU
   <http://www.gnu.org/>`_
 
   Licensed under the GPLv3. This solver is installed by default with Sage.
 
+* `GUROBI <http://www.gurobi.com/>`_
 
-Installing CPLEX
-----------------
+  Proprietary, but free for researchers and students.
 
-ILOG's CPLEX being proprietary, you must be in possession of several
-files to use it through Sage:
 
-* A valid license file.
-* A compiled version of the CPLEX library (usually named ``libcplex.a``).
-* The header file ``cplex.h``.
+Using CPLEX or GUROBI through Sage
+----------------------------------
 
-The license file path must be set the value of the environment
-variable ``ILOG_LICENSE_FILE``. For example, you can write::
+ILOG's CPLEX and GUROBI being proprietary softwares, you must be in possession
+of several files to use it through Sage. In each case, the **expected** (it may
+change !) filename is joined.
 
-    export ILOG_LICENSE_FILE=/path/to/the/license/ilog/ilm/access_1.ilm
+* A valid license file
+    * CPLEX : a ``.ilm`` file
+    * GUROBI : a ``.lic`` file
 
-at the end of your ``.bashrc`` file.
+* A compiled version of the library
+    * CPLEX : ``libcplex.a``
+    * GUROBI : ``libgurobi45.so``
 
-As Sage also needs the files ``libcplex.a`` and ``cplex.h``, the
-easiest way is to create symbolic links to these files in the
-appropriate directories:
+* The library file
+    * CPLEX : ``cplex.h``
+    * GUROBI : ``gurobi_c.h``
 
-* ``libcplex.a`` -- in ``SAGE_ROOT/local/lib/``, type::
+The environment variable defining the licence's path must also be set when
+running Sage. You can append to your ``.bashrc`` file one of the following :
 
-    ln -s /path/to/lib/libcplex.a .
+    * For CPLEX ::
 
-* ``cplex.h`` -- in ``SAGE_ROOT/local/include/``, type::
+        export ILOG_LICENSE_FILE=/path/to/the/license/ilog/ilm/access_1.ilm
 
-    ln -s /path/to/include/cplex.h .
+    * For GUROBI ::
+
+        export GRB_LICENSE_FILE=/path/to/the/license/gurobi.lic
+
+
+As Sage also needs the files library and header files the easiest way is to
+create symbolic links to these files in the appropriate directories:
+
+* For CPLEX:
+    * ``libcplex.a`` -- in ``SAGE_ROOT/local/lib/``, type::
+
+        ln -s /path/to/lib/libcplex.a .
+
+    * ``cplex.h`` -- in ``SAGE_ROOT/local/include/``, type::
+
+        ln -s /path/to/include/cplex.h .
+
+* For GUROBI
+
+    * ``libgurobi45.so`` -- in ``SAGE_ROOT/local/lib/``, type::
+
+        ln -s /path/to/lib/libgurobi45.so libgurobi.so
+
+    * ``gurobi_c.h`` -- in ``SAGE_ROOT/local/include/``, type::
+
+        ln -s /path/to/include/gurobi_c.h .
+
+**It is very important that the names of the symbolic links in Sage's folders**
+** be precisely as indicated. If the names differ, Sage will not notice that**
+**the files are present**
 
 Once this is done, Sage is to be asked to notice the changes by calling::
 

@@ -1759,6 +1759,17 @@ ext_modules = [
 from sage.misc.package import is_package_installed
 
 
+if (os.path.isfile(SAGE_INC + "gurobi_c.h") and
+    os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")):
+    ext_modules.append(
+        Extension("sage.numerical.backends.gurobi_backend",
+                  ["sage/numerical/backends/gurobi_backend.pyx"],
+                  include_dirs = [SAGE_INC, "sage/c_lib/include/"],
+                  language = 'c',
+                  libraries = ["csage", "stdc++", "gurobi"])
+        )
+
+
 if (os.path.isfile(SAGE_INC + "cplex.h") and
     os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a")):
     ext_modules.append(

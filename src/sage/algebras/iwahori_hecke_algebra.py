@@ -365,7 +365,8 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         that case, the algebra generators are also invertible and this
         method returns their inverses.
 
-        EXAMPLES ::
+        EXAMPLES::
+
             sage: P.<q> = PolynomialRing(QQ)
             sage: F = Frac(P)
             sage: H = IwahoriHeckeAlgebraT("A2",q,base_ring=F)

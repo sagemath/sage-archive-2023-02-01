@@ -173,7 +173,7 @@ class CoxeterGroups(Category_singleton):
             r"""
             INPUT:
 
-             - ``word`` - a list (or iterable) of elements of ``self.index_set()``
+            - ``word`` - a list (or iterable) of elements of ``self.index_set()``
 
             Returns the group element corresponding to the given
             word. Namely, if ``word`` is `[i_1,i_2,\ldots,i_k]`, then
@@ -238,6 +238,7 @@ class CoxeterGroups(Category_singleton):
         def simple_reflection(self, i):
             """
             INPUT:
+
             - ``i`` - an element from the index set.
 
             Returns the simple reflection `s_i`
@@ -318,7 +319,8 @@ class CoxeterGroups(Category_singleton):
         def simple_projection(self, i, side = 'right', toward_max = True):
             r"""
             INPUT:
-             - ``i`` - an element of the index set of self
+
+            - ``i`` - an element of the index set of self
 
             Returns the simple projection `\pi_i` (or `\overline\pi_i` if toward_max is False).
 
@@ -360,9 +362,11 @@ class CoxeterGroups(Category_singleton):
         def simple_projections(self, side = 'right', toward_max = True):
             r"""
             INPUT:
-             - ``self`` - a Coxeter group `W`
-             - ``side`` - 'left' or 'right' (default: 'right')
-             - ``toward_max`` - a boolean (default: True) specifying the direction of the projection
+
+            - ``self`` - a Coxeter group `W`
+            - ``side`` - 'left' or 'right' (default: 'right')
+            - ``toward_max`` - a boolean (default: True) specifying
+              the direction of the projection
 
             Returns the simple projections of `W`, as a family.
 
@@ -593,10 +597,11 @@ class CoxeterGroups(Category_singleton):
         def descents(self, side = 'right', index_set=None, positive=False):
             """
             INPUT:
-             - ``index_set`` - a subset (as a list or iterable) of the nodes of the dynkin diagram;
-               (default: all of them)
-             - ``side`` - 'left' or 'right' (default: 'right')
-             - ``positive`` - a boolean (default: ``False``)
+
+            - ``index_set`` - a subset (as a list or iterable) of the nodes of the dynkin diagram;
+              (default: all of them)
+            - ``side`` - 'left' or 'right' (default: 'right')
+            - ``positive`` - a boolean (default: ``False``)
 
             Returns the descents of self, as a list of elements of the
             index_set.
@@ -750,8 +755,9 @@ class CoxeterGroups(Category_singleton):
         def coset_representative(self, index_set, side = 'right'):
             r"""
             INPUT:
-             - ``index_set`` - a subset (or iterable) of the nodes of the dynkin diagram
-             - ``side`` - 'left' or 'right'
+
+            - ``index_set`` - a subset (or iterable) of the nodes of the dynkin diagram
+            - ``side`` - 'left' or 'right'
 
             Returns the unique shortest element of the coxeter group
             $W$ which is in the same left (resp. right) coset as
@@ -796,9 +802,11 @@ class CoxeterGroups(Category_singleton):
         def apply_simple_projection(self, i, side = 'right', toward_max = True):
             r"""
             INPUT:
-             - ``i`` - an element of the index set of the Coxeter group
-             - ``side`` - 'left' or 'right' (default: 'right')
-             - ``toward_max`` - a boolean (default: True) specifying the direction of the projection
+
+            - ``i`` - an element of the index set of the Coxeter group
+            - ``side`` - 'left' or 'right' (default: 'right')
+            - ``toward_max`` - a boolean (default: True) specifying
+              the direction of the projection
 
             Returns the result of the application of the simple
             projection `\pi_i` (resp. `\overline\pi_i`) on self.
@@ -882,8 +890,9 @@ class CoxeterGroups(Category_singleton):
         def apply_simple_reflections(self, word, side = 'right'):
             """
             INPUT:
-             - "word": A sequence of indices of Coxeter generators
-             - "side": Indicates multiplying from left or right
+
+            - "word": A sequence of indices of Coxeter generators
+            - "side": Indicates multiplying from left or right
 
             Returns the result of the (left/right) multiplication of
             word to self.  self is not changed.
@@ -1079,7 +1088,7 @@ class CoxeterGroups(Category_singleton):
 
             INPUT:
 
-             - other - an element of the same Coxeter group
+            - other - an element of the same Coxeter group
 
             OUTPUT: a boolean
 
@@ -1148,8 +1157,8 @@ class CoxeterGroups(Category_singleton):
 
             INPUT:
 
-             - other - an element of the same Coxeter group
-             - side - 'left' or 'right'  (default: 'right')
+            - other - an element of the same Coxeter group
+            - side - 'left' or 'right'  (default: 'right')
 
             OUTPUT: a boolean
 
@@ -1215,9 +1224,9 @@ class CoxeterGroups(Category_singleton):
 
             INPUT:
 
-             - side - 'left' or 'right'  (default: 'right')
-             - positive - a boolean (default: False)
-             - index_set - a list of indices or None
+            - side - 'left' or 'right'  (default: 'right')
+            - positive - a boolean (default: False)
+            - index_set - a list of indices or None
 
             OUTPUT: a list
 
@@ -1258,8 +1267,8 @@ class CoxeterGroups(Category_singleton):
 
             INPUT:
 
-             - side - 'left' or 'right' (default: 'right')
-             - index_set - a list of indices or None
+            - side - 'left' or 'right' (default: 'right')
+            - index_set - a list of indices or None
 
             OUTPUT: a list
 
@@ -1293,8 +1302,8 @@ class CoxeterGroups(Category_singleton):
 
             INPUT:
 
-             - side - 'left' or 'right' (default: 'right')
-             - index_set - a list of indices or None
+            - side - 'left' or 'right' (default: 'right')
+            - index_set - a list of indices or None
 
             OUTPUT: a list
 

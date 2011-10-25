@@ -283,6 +283,7 @@ def dynamic_class_internal(name, bases, cls = None, reduction = None, doccls = N
         True
 
     We check that instrospection works reasonably::
+
         sage: import inspect
         sage: inspect.getfile(Foo2)
         '.../sage/structure/dynamic_class.pyc'

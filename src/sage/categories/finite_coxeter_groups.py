@@ -107,8 +107,8 @@ class FiniteCoxeterGroups(Category):
 
             INPUT:
 
-             - ``index_set`` - a subset (as a list or iterable) of the nodes of the dynkin diagram;
-               (default: all of them)
+            - ``index_set`` - a subset (as a list or iterable) of the
+              nodes of the dynkin diagram; (default: all of them)
 
             Returns the longest element of ``self``, or of the
             parabolic subgroup corresponding to the given index_set.
@@ -177,10 +177,10 @@ class FiniteCoxeterGroups(Category):
 
             TODO:
 
-             - Use the symmetric group in the examples (for nicer
-               output), and print the edges for a stronger test.
-             - The constructed poset should be lazy, in order to
-               handle large / infinite Coxeter groups.
+            - Use the symmetric group in the examples (for nicer
+              output), and print the edges for a stronger test.
+            - The constructed poset should be lazy, in order to
+              handle large / infinite Coxeter groups.
             """
             from sage.combinat.posets.posets import Poset
             covers = tuple([u, v] for v in self for u in v.bruhat_lower_covers() )
@@ -191,7 +191,7 @@ class FiniteCoxeterGroups(Category):
             """
             INPUT:
 
-             - ``side`` -- "left" or "right" (default: "right")
+            - ``side`` -- "left" or "right" (default: "right")
 
             Returns the left (resp. right) poset for weak order.  In
             this poset, `u` is smaller than `v` if some reduced word
@@ -236,10 +236,10 @@ class FiniteCoxeterGroups(Category):
 
             TODO:
 
-             - Use the symmetric group in the examples (for nicer
-               output), and print the edges for a stronger test.
-             - The constructed poset should be lazy, in order to
-               handle large / infinite Coxeter groups.
+            - Use the symmetric group in the examples (for nicer
+              output), and print the edges for a stronger test.
+            - The constructed poset should be lazy, in order to
+              handle large / infinite Coxeter groups.
 
             """
             from sage.combinat.posets.posets import Poset

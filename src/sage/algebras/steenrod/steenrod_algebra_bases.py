@@ -5,6 +5,7 @@ AUTHORS:
 
 - John H. Palmieri (2008-07-30): version 0.9
 - John H. Palmieri (2010-06-30): version 1.0
+- Simon King (2011-10-25): Fix the use of cached functions
 
 This package defines functions for computing various bases of the
 Steenrod algebra, and for converting between the Milnor basis and
@@ -47,16 +48,11 @@ The main functions provided here are
 
 - :func:`steenrod_algebra_basis`.  This computes a tuple representing
   basis elements for the Steenrod algebra in a given degree, at a
-  given prime, with respect to a given basis.  Note: the work is done
-  by the function :func:`steenrod_algebra_basis_` (note trailing
-  underscore), while :func:`steenrod_algebra_basis` is just a version
-  of this which automatically caches its results.
+  given prime, with respect to a given basis. It is a cached function.
 
 - :func:`convert_to_milnor_matrix`.  This returns the change-of-basis
-  matrix, in a given degree, from any basis to the Milnor basis.  As
-  with the previous function, the work is actually done by
-  :func:`convert_to_milnor_matrix_`, and then
-  :func:`convert_to_milnor_matrix` is the cached version.
+  matrix, in a given degree, from any basis to the Milnor basis. It is
+  a cached function.
 
 - :func:`convert_from_milnor_matrix`.  This returns the inverse of the
   previous matrix.
@@ -93,10 +89,10 @@ In the file :file:`steenrod_algebra_misc.py`:
 
 In this file :file:`steenrod_algebra_bases.py`:
 
-- add appropriate lines to :func:`steenrod_algebra_basis_`.
+- add appropriate lines to :func:`steenrod_algebra_basis`.
 
 - add a function to compute the basis in a given dimension (to be
-  called by :func:`steenrod_algebra_basis_`).
+  called by :func:`steenrod_algebra_basis`).
 
 - modify :func:`steenrod_basis_error_check` so it checks the new
   basis.
@@ -127,9 +123,10 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
 
-from sage.misc.cachefunc import CachedFunction
+from sage.misc.cachefunc import cached_function
 
-def convert_to_milnor_matrix_(n, basis, p=2):
+@cached_function
+def convert_to_milnor_matrix(n, basis, p=2):
     r"""
     Change-of-basis matrix, 'basis' to Milnor, in dimension
     `n`, at the prime `p`.
@@ -137,13 +134,12 @@ def convert_to_milnor_matrix_(n, basis, p=2):
     INPUT:
 
     - ``n`` - non-negative integer, the dimension
-
     - ``basis`` - string, the basis from which to convert
-
     - ``p`` - positive prime number (optional, default 2)
 
-    OUTPUT: ``matrix`` - change-of-basis matrix, a square matrix over
-    GF(p)
+    OUTPUT:
+
+    ``matrix`` - change-of-basis matrix, a square matrix over ``GF(p)``
 
     .. note::
 
@@ -202,8 +198,6 @@ def convert_to_milnor_matrix_(n, basis, p=2):
             rows = rows + [entry]
     d = len(milnor_base)
     return matrix(GF(p),d,d,rows)
-
-convert_to_milnor_matrix = CachedFunction(convert_to_milnor_matrix_)
 
 def convert_from_milnor_matrix(n, basis, p=2):
     r"""
@@ -276,30 +270,28 @@ def convert_from_milnor_matrix(n, basis, p=2):
     else:
         return mat
 
-def steenrod_algebra_basis_(n, basis='milnor', p=2, **kwds):
+@cached_function
+def steenrod_algebra_basis(n, basis='milnor', p=2, **kwds):
     r"""
     Basis for the Steenrod algebra in degree `n`.
 
     INPUT:
 
     - ``n`` - non-negative integer
-
-    - ``basis`` - string, which basis to use (optional, default =
-      'milnor')
-
+    - ``basis`` - string, which basis to use (optional, default = 'milnor')
     - ``p`` - positive prime number (optional, default = 2)
-
     - ``profile`` - profile function (optional, default None).  This
       is just passed on to the functions :func:`milnor_basis` and
       :func:`pst_basis`.
-
     - ``truncation_type`` - truncation type, either 0 or Infinity
       (optional, default Infinity if no profile function is specified,
       0 otherwise).  This is just passed on to the function
       :func:`milnor_basis`.
 
-    OUTPUT: tuple of objects representing basis elements for the
-    Steenrod algebra in dimension n
+    OUTPUT:
+
+    Tuple of objects representing basis elements for the Steenrod algebra
+    in dimension n.
 
     .. note::
 
@@ -403,8 +395,6 @@ def steenrod_algebra_basis_(n, basis='milnor', p=2, **kwds):
         return arnonC_basis(n)
     else:
         raise ValueError, "Unknown basis: %s at the prime %s" % (basis, p)
-
-steenrod_algebra_basis = CachedFunction(steenrod_algebra_basis_)
 
 # helper functions for producing bases
 
@@ -1133,6 +1123,9 @@ def steenrod_basis_error_check(dim, p):
     """
     import sage.misc.misc as misc
 
+    # Apparently, in this test function, we don't want to benefit from caching.
+    # Hence, the uncached version of steenrod_algebra_basis and of
+    # convert_to-milnor_matrix are used.
     if p == 2:
         bases = ('adem','woody', 'woodz', 'wall', 'arnona', 'arnonc',
                  'pst_rlex', 'pst_llex', 'pst_deg', 'pst_revz',
@@ -1145,13 +1138,11 @@ def steenrod_basis_error_check(dim, p):
     for i in range(dim):
         if i % 5 == 0:
             misc.verbose("up to dimension %s"%i)
-        milnor_dim = len(steenrod_algebra_basis_(i,'milnor',p=p))
+        milnor_dim = len(steenrod_algebra_basis.f(i,'milnor',p=p))
         for B in bases:
-            # use steenrod_algebra_basis_, the uncached version
-            if milnor_dim != len(steenrod_algebra_basis_(i,B,p)):
+            if milnor_dim != len(steenrod_algebra_basis.f(i,B,p)):
                 print "problem with milnor/" + B + " in dimension ", i
-            # use convert_to_milnor_matrix_, the uncached version
-            mat = convert_to_milnor_matrix_(i,B,p)
+            mat = convert_to_milnor_matrix.f(i,B,p)
             if mat.nrows() != 0 and not mat.is_invertible():
                 print "%s invertibility problem in dim %s at p=%s" % (B, i, p)
 
@@ -1167,9 +1158,9 @@ def steenrod_basis_error_check(dim, p):
         if i % 5 == 0:
             misc.verbose("up to dimension %s"%i)
         for pro in profiles:
-            milnor_dim = len(steenrod_algebra_basis_(i,'milnor',p=p,profile=pro))
+            milnor_dim = len(steenrod_algebra_basis.f(i,'milnor',p=p,profile=pro))
             for B in bases:
-                if milnor_dim != len(steenrod_algebra_basis_(i,B,p,profile=pro)):
+                if milnor_dim != len(steenrod_algebra_basis.f(i,B,p,profile=pro)):
                     print "problem with milnor/%s in dimension %s with profile %s"%(B, i, pro)
 
     misc.verbose("done checking with profiles")

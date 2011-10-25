@@ -7,6 +7,7 @@ AUTHORS:
   multiplication.
 - John H. Palmieri (2010-06-30: version 1.0) multiplication of
   Serre-Cartan basis elements using the Adem relations.
+  - Simon King (2011-10-25): Fix the use of cached functions.
 
 .. rubric:: Milnor multiplication, `p=2`
 
@@ -207,7 +208,7 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
 
-from sage.misc.cachefunc import CachedFunction
+from sage.misc.cachefunc import cached_function
 
 # Milnor, p=2
 
@@ -220,7 +221,9 @@ def milnor_multiplication(r,s):
     - r - tuple of non-negative integers
     - s - tuple of non-negative integers
 
-    OUTPUT: Dictionary of terms of the form (tuple: coeff), where
+    OUTPUT:
+
+    Dictionary of terms of the form (tuple: coeff), where
     'tuple' is a tuple of non-negative integers and 'coeff' is 1.
 
     This computes Milnor matrices for the product of $\text{Sq}(r)$
@@ -330,8 +333,9 @@ def multinomial(list):
 
     - list - list of integers
 
-    OUTPUT: None if the multinomial coefficient is 0, or sum of list
-    if it is 1
+    OUTPUT:
+
+    None if the multinomial coefficient is 0, or sum of list if it is 1
 
     Given the input $[n_1, n_2, n_3, ...]$, this computes the
     multinomial coefficient $(n_1 + n_2 + n_3 + ...)! / (n_1! n_2!
@@ -387,9 +391,10 @@ def milnor_multiplication_odd(m1,m2,p):
     - m2 - pair of tuples (f,s), same format as m1
     - p - odd prime number
 
-    OUTPUT: Dictionary of terms of the form (tuple: coeff), where
-    'tuple' is a pair of tuples, as for r and s, and 'coeff' is an
-    integer mod p.
+    OUTPUT:
+
+    Dictionary of terms of the form (tuple: coeff), where 'tuple' is
+    a pair of tuples, as for r and s, and 'coeff' is an integer mod p.
 
     This computes the product of the Milnor basis elements
     $Q_{e_1} Q_{e_2} ... P(r_1, r_2, ...)$ and
@@ -573,7 +578,9 @@ def multinomial_odd(list,p):
     - list - list of integers
     - p - a prime number
 
-    OUTPUT: Associated multinomial coefficient, mod p
+    OUTPUT:
+
+    Associated multinomial coefficient, mod p
 
     Given the input $[n_1, n_2, n_3, ...]$, this computes the
     multinomial coefficient $(n_1 + n_2 + n_3 + ...)! / (n_1! n_2!
@@ -637,7 +644,9 @@ def binomial_mod2(n,k):
 
     - `n`, `k` - integers
 
-    OUTPUT: `n` choose `k`, mod 2
+    OUTPUT:
+
+    `n` choose `k`, mod 2
 
     EXAMPLES::
 
@@ -667,7 +676,9 @@ def binomial_modp(n,k,p):
     - `n`, `k` - integers
     - `p` - prime number
 
-    OUTPUT: `n` choose `k`, mod `p`
+    OUTPUT:
+
+    `n` choose `k`, mod `p`
 
     EXAMPLES::
 
@@ -681,7 +692,8 @@ def binomial_modp(n,k,p):
         return 0
     return multinomial_odd([n-k, k], p)
 
-def adem_(a, b, c=0, p=2):
+@cached_function
+def adem(a, b, c=0, p=2):
     r"""
     The mod `p` Adem relations
 
@@ -691,7 +703,9 @@ def adem_(a, b, c=0, p=2):
       to either `P^a P^b` or (if `c` present) to `P^a \beta^b P^c`
     - `p` - positive prime number (optional, default 2)
 
-    OUTPUT: a dictionary representing the mod `p` Adem relations
+    OUTPUT:
+
+    a dictionary representing the mod `p` Adem relations
     applied to `P^a P^b` or (if `c` present) to `P^a \beta^b P^c`.
 
     .. note::
@@ -817,9 +831,8 @@ def adem_(a, b, c=0, p=2):
                     result[(0,A+B-j,1,j,0)] = coeff
     return result
 
-adem = CachedFunction(adem_)
-
-def make_mono_admissible_(mono, p=2):
+@cached_function
+def make_mono_admissible(mono, p=2):
     r"""
     Given a tuple ``mono``, view it as a product of Steenrod
     operations, and return a dictionary giving data equivalent to
@@ -838,7 +851,9 @@ def make_mono_admissible_(mono, p=2):
     - ``mono`` - a tuple of non-negative integers
     - `p` - prime number, optional (default 2)
 
-    OUTPUT: Dictionary of terms of the form (tuple: coeff), where
+    OUTPUT:
+
+    Dictionary of terms of the form (tuple: coeff), where
     'tuple' is an admissible tuple of non-negative integers and
     'coeff' is its coefficient.  This corresponds to a linear
     combination of admissible monomials.  When `p` is odd, each tuple
@@ -851,11 +866,13 @@ def make_mono_admissible_(mono, p=2):
        \beta^{e_1} \mathcal{P}^{i_2} \beta^{e_2} \mathcal{P}^{i_2} ...
        \mathcal{P}^{i_k} \beta^{e_k}
 
-    ALGORITHM: Given `(i_1, i_2, i_3, ...)`, apply the Adem relations
-    to the first pair (or triple when `p` is odd) where the sequence
-    is inadmissible, and then apply this function recursively to each
-    of the resulting tuples `(i_1, ..., i_{j-1}, NEW, i_{j+2}, ...)`,
-    keeping track of the coefficients.
+    ALGORITHM:
+
+    Given `(i_1, i_2, i_3, ...)`, apply the Adem relations to the first
+    pair (or triple when `p` is odd) where the sequence is inadmissible,
+    and then apply this function recursively to each of the resulting
+    tuples `(i_1, ..., i_{j-1}, NEW, i_{j+2}, ...)`, keeping track of
+    the coefficients.
 
     .. note::
 
@@ -934,5 +951,3 @@ def make_mono_admissible_(mono, p=2):
                 else:
                     ans[m] = y[x] * new[m]
     return ans
-
-make_mono_admissible = CachedFunction(make_mono_admissible_)

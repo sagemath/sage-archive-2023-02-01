@@ -1040,7 +1040,7 @@ cdef class ElementWithCachedMethod(Element):
         ... "cdef class MyParent(Parent):",
         ... "    Element = MyElement"]
         sage: cython('\n'.join(cython_code))
-        sage: cython_code = ["from sage.all import cached_method, cached_in_parent_method, Category",
+        sage: cython_code = ["from sage.all import cached_method, cached_in_parent_method, Category, Objects",
         ... "class MyCategory(Category):",
         ... "    @cached_method",
         ... "    def super_categories(self):",
@@ -1137,7 +1137,7 @@ cdef class ElementWithCachedMethod(Element):
             ... "from sage.structure.parent cimport Parent",
             ... "cdef class MyParent(Parent):",
             ... "    Element = MyElement",
-            ... "from sage.all import cached_method, lazy_attribute, Category",
+            ... "from sage.all import cached_method, lazy_attribute, Category, Objects",
             ... "class MyCategory(Category):",
             ... "    @cached_method",
             ... "    def super_categories(self):",

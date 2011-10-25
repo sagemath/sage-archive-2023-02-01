@@ -861,7 +861,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         r"""
         Return mod `p` splitting data for this quaternion algebra at
         the unramified prime `p`.  This is `2\times 2`
-        matrices `I`, `J`, ``K`` over the finite field `\GF{p}` such that if
+        matrices `I`, `J`, `K` over the finite field `\GF{p}` such that if
         the quaternion algebra has generators `i, j, k`, then `I^2 =
         i^2`, `J^2 = j^2`, `IJ=K` and `IJ=-JI`.
 
@@ -2185,16 +2185,16 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
         INPUT:
 
-            - `p` -- prime number (see below)
+        - `p` -- prime number (see below)
 
-            - `alpha` -- (default: None) element of quaternion algebra,
-              which can be used to parameterize the order of the
-              ideals `J`.  More precisely the `J`'s are the right annihilators
-              of `(1,0) \alpha^i` for `i=0,1,2,...,p`
+        - `alpha` -- (default: None) element of quaternion algebra,
+          which can be used to parameterize the order of the
+          ideals `J`.  More precisely the `J`'s are the right annihilators
+          of `(1,0) \alpha^i` for `i=0,1,2,...,p`
 
         OUTPUT:
 
-            - list of right ideals
+        - list of right ideals
 
         .. note::
 

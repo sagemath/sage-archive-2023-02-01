@@ -188,7 +188,7 @@ class FiniteSemigroups(Category):
             Two elements $u$ and $v$ of a monoid are in the same $J$-class
             if $u$ divides $v$ and $v$ divides $u$.
 
-            OUTPUT::
+            OUTPUT:
 
              All the $J$-classes of self, as a list of lists.
 
@@ -205,7 +205,7 @@ class FiniteSemigroups(Category):
             r"""
             Returns all the idempotents of self, grouped by J-class.
 
-            OUTPUT::
+            OUTPUT:
 
              a list of lists.
 

@@ -75,7 +75,7 @@ By trac ticket #11115, even if a parent does not allow attribute
 assignment, it can inherit a cached method from the parent class of a
 category (previously, the cache would have been broken)::
 
-    sage: cython_code = ["from sage.all import cached_method, cached_in_parent_method, Category",
+    sage: cython_code = ["from sage.all import cached_method, cached_in_parent_method, Category, Objects",
     ... "class MyCategory(Category):",
     ... "    @cached_method",
     ... "    def super_categories(self):",
@@ -474,7 +474,7 @@ cdef class CachedFunction(object):
                     filename = filename[len(SAGE_ROOT+'/devel/sage/'):]
                 elif 'site-packages/' in filename:
                     filename = filename.split('site-packages/',1)[1]
-                file_info = "File: %s (starting at line %d)"%(filename,sourcelines[1])
+                file_info = "File: %s (starting at line %d)\n"%(filename,sourcelines[1])
                 doc = file_info+(f.func_doc or '')
             else:
                 doc = f.func_doc

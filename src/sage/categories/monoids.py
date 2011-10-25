@@ -65,11 +65,11 @@ class Monoids(Category_singleton):
             r"""
             Returns the one of the monoid, that is the unique neutral element for `*`.
 
-            .. note:
+            .. note::
 
                The default implementation is to coerce `1` into self.
                It is recommended to override this method because the
-               coercion from the integers::
+               coercion from the integers:
 
                 - is not always meaningful (except for `1`);
                 - often uses ``self.one()``.

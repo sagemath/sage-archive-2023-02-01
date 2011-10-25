@@ -47,4 +47,4 @@ Miscellaneous
    sage/misc/classcall_metaclass
    sage/misc/sage_unittest
    sage/misc/randstate
-
+   sage/misc/cython

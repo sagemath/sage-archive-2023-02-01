@@ -2,9 +2,10 @@
 Cython -- C-Extensions for Python
 
 AUTHORS:
-    -- William Stein (2006-01-18): initial version
-    -- William Stein (2007-07-28): update from sagex to cython
-    -- Martin Albrecht & William Stein (2011-08): cfile & cargs
+
+- William Stein (2006-01-18): initial version
+- William Stein (2007-07-28): update from sagex to cython
+- Martin Albrecht & William Stein (2011-08): cfile & cargs
 """
 
 #*****************************************************************************
@@ -21,6 +22,19 @@ from misc import SPYX_TMP, SAGE_ROOT, SAGE_LOCAL
 from sage.misc.misc import UNAME
 
 def cblas():
+    """
+    Return the name of the cblas library on this system.  If the
+    environment variable :envvar:`$SAGE_CBLAS` is set, just return its
+    value.  If not, return 'cblas' if :file:`/usr/lib/libcblas.so`
+    or :file:`/usr/lib/libcblas.dylib` exists, return 'blas' if
+    :file:`/usr/lib/libblas.dll.a` exists, and return 'gslcblas'
+    otherwise.
+
+    EXAMPLES::
+
+        sage: sage.misc.cython.cblas() # random -- depends on OS, etc.
+        'cblas'
+    """
     if os.environ.has_key('SAGE_CBLAS'):
         return os.environ['SAGE_CBLAS']
     elif os.path.exists('/usr/lib/libcblas.dylib') or \
@@ -39,6 +53,15 @@ def cblas():
 # We should be using the Accelerate FrameWork on OS X, but that requires
 # some magic due to distutils having ridden on the short bus :)
 def atlas():
+    """
+    Returns the name of the ATLAS library to use.  On Darwin or
+    Cygwin, this is 'blas', and otherwise it is 'atlas'.
+
+    EXAMPLES::
+
+        sage: sage.misc.cython.atlas() # random -- depends on OS
+        'atlas'
+    """
     if UNAME == "Darwin" or "CYGWIN" in UNAME:
         return 'blas'
     else:
@@ -59,14 +82,15 @@ standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'curvesntl', \
 offset = 0
 
 def parse_keywords(kwd, s):
-    """
+    r"""
     Given a keyword kwd and a string s, return a list of all arguments
     on the same line as that keyword in s, as well as a new copy of
     s in which each occurrence of kwd is in a comment. If a comment
     already occurs on the line containing kwd, no words after the #
     are added to the list.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.misc.cython.parse_keywords('clib', " clib foo bar baz\n #cinclude bar\n")
         (['foo', 'bar', 'baz'], ' #clib foo bar baz\n #cinclude bar\n')
 
@@ -106,6 +130,23 @@ def parse_keywords(kwd, s):
     return v, s
 
 def environ_parse(s):
+    r"""
+    Given a string s, find each substring of the form '\$ABC'.  If the
+    environment variable :envvar:`ABC` is set, replace '\$ABC' with its
+    value and move on to the next such substring.  If it is not set,
+    stop parsing there.
+
+    EXAMPLES::
+
+        sage: from sage.misc.cython import environ_parse
+        sage: environ_parse('$SAGE_ROOT') == SAGE_ROOT
+        True
+        sage: environ_parse('$THIS_IS_NOT_DEFINED_ANYWHERE')
+        '$THIS_IS_NOT_DEFINED_ANYWHERE'
+        sage: os.environ['DEFINE_THIS'] = 'hello'
+        sage: environ_parse('$DEFINE_THIS/$THIS_IS_NOT_DEFINED_ANYWHERE/$DEFINE_THIS')
+        'hello/$THIS_IS_NOT_DEFINED_ANYWHERE/$DEFINE_THIS'
+    """
     i = s.find('$')
     if i == -1:
         return s
@@ -122,14 +163,15 @@ def environ_parse(s):
     return environ_parse(s)
 
 def pyx_preparse(s):
-    """
+    r"""
     Preparse a pyx file
-      * include cdefs.pxi, interrupt.pxi, stdsage.pxi
-      * parse clang pragma (c or c++)
-      * parse clib pragma (additional libraries to link in)
-      * parse cinclude (additional include directories)
-      * parse cfile (additional files to be included)
-      * parse cargs (additional parameters passed to the compiler)
+
+    * include cdefs.pxi, interrupt.pxi, stdsage.pxi
+    * parse clang pragma (c or c++)
+    * parse clib pragma (additional libraries to link in)
+    * parse cinclude (additional include directories)
+    * parse cfile (additional files to be included)
+    * parse cargs (additional parameters passed to the compiler)
 
     The pragmas:
 
@@ -149,10 +191,10 @@ def pyx_preparse(s):
 
     - ``cargs`` - additional parameters passed to the compiler
 
-    OUTPUT:
-       preamble, libs, includes, language, files, args
+    OUTPUT: preamble, libs, includes, language, files, args
 
-    EXAMPLE:
+    EXAMPLES::
+
         sage: from sage.misc.cython import pyx_preparse
         sage: pyx_preparse("")
         ('\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n\ninclude "cdefs.pxi"\n',
@@ -258,7 +300,42 @@ def cython(filename, verbose=False, compile_message=False,
            use_cache=False, create_local_c_file=False, annotate=True, sage_namespace=True,
            create_local_so_file=False):
     """
-    TODO: document this function!
+    Compile a Cython file.  This converts a Cython file to a C (or C++
+    file), and then compiles that.  The .c file and the .so file are
+    created in a temporary directory.
+
+    INPUTS:
+
+    - ``filename`` - the name of the file to be compiled.  Should end
+      with 'pyx'.
+
+    - ``verbose`` (bool, default False) - if True, print debugging
+      information.
+
+    - ``compile_message`` (bool, default False) - if True, print
+      'Compiling <filename>...'
+
+    - ``use_cache`` (bool, default False) - if True, check the
+      temporary build directory to see if there is already a
+      corresponding .so file.  If so, and if the .so file is newer
+      than the Cython file, don't recompile, just reuse the .so file.
+
+    - ``create_local_c_file`` (bool, default False) - if True, save a
+      copy of the .c file in the current directory.
+
+    - ``annotate`` (bool, default True) - if True, create an html file
+      which annotates the conversion from .pyx to .c.  By default this
+      is only created in the temporary directory, but if
+      ``create_local_c_file`` is also True, then save a copy of the
+      .html file in the current directory.
+
+    - ``sage_namespace`` (bool, default True) - if True, import
+      ``sage.all``.
+
+    - ``create_local_so_file`` (bool, default False) - if True, save a
+      copy of the compiled .so file in the current directory.
+
+    TODO: doctests
     """
     if not filename.endswith('pyx'):
         print "File (=%s) should have extension .pyx"%filename
@@ -461,6 +538,20 @@ setup(ext_modules = ext_modules,
 
 
 def subtract_from_line_numbers(s, n):
+    r"""
+    Given a string ``s`` and an integer ``n``, for any line of ``s``
+    which has the form 'text:NUM:text' subtract ``n`` from NUM and
+    return 'text:(NUM-n):text'.  Return other lines of ``s`` without
+    change.
+
+    EXAMPLES::
+
+        sage: from sage.misc.cython import subtract_from_line_numbers
+        sage: subtract_from_line_numbers('hello:1234:hello', 3)
+        'hello:1231:hello\n'
+        sage: subtract_from_line_numbers('text:123\nhello:1234:', 3)
+        'text:123\nhello:1231:\n'
+    """
     ans = []
     for X in s.split('\n'):
         i = X.find(':')
@@ -486,28 +577,32 @@ def cython_lambda(vars, expr,
     WARNING: This implementation is not well tested.
 
     INPUT:
-        vars -- list of pairs (variable name, c-data type), where
-                the variable names and data types are strings.
-            OR -- a string such as
-                         'double x, int y, int z'
-        expr -- an expression involving the vars and constants;
-                You can access objects defined in the current
-                module scope globals() using sagobject_name.
-                See the examples below.
+
+    - ``vars`` - list of pairs (variable name, c-data type), where
+      the variable names and data types are strings, OR a string such
+      as 'double x, int y, int z'
+
+    - ``expr`` - an expression involving the vars and constants; you
+      can access objects defined in the current module scope globals()
+      using sagobject_name.  See the examples below.
 
     EXAMPLES:
+
     We create a Lambda function in pure Python (using the r to make sure the 3.2
-    is viewed as a Python float):
+    is viewed as a Python float)::
+
         sage: f = lambda x,y: x*x + y*y + x + y + 17r*x + 3.2r
 
-    We make the same Lambda function, but in a compiled form.
+    We make the same Lambda function, but in a compiled form. ::
+
         sage: g = cython_lambda('double x, double y', 'x*x + y*y + x + y + 17*x + 3.2')  # optional -- gcc
         sage: g(2,3)                                                                     # optional -- gcc
         55.200000000000003
         sage: g(0,0)                                                                     # optional -- gcc
         3.2000000000000002
 
-    We access a global function and variable.
+    We access a global function and variable. ::
+
         sage: a = 25
         sage: f = cython_lambda('double x', 'sage.math.sin(x) + sage.a')                 # optional -- gcc
         sage: f(10)                                                                      # optional -- gcc
@@ -550,25 +645,26 @@ def cython_create_local_so(filename):
     Compile filename and make it available as a loadable shared object file.
 
     INPUT:
-        filename -- string: a Cython (formerly SageX) (.spyx) file
 
-    OUTPUT:
-        None
+    - ``filename`` - string: a Cython (formerly SageX) (.spyx) file
 
-    EFFECT:
-        A compiled, python "importable" loadable shared object file is created.
+    OUTPUT: None
 
-    NOTE:
+    EFFECT: A compiled, python "importable" loadable shared object file is created.
+
+    .. note::
+
         Shared object files are {NOT} reloadable. The intent is for
         imports in other scripts. A possible development cycle might
         go thus:
 
-            - Attach a .spyx file
-            - Interactively test and edit it to your satisfaction
-            - Use cython_create_local_so to create the shared object file
-            - Import the .so file in other scripts
+        - Attach a .spyx file
+        - Interactively test and edit it to your satisfaction
+        - Use cython_create_local_so to create the shared object file
+        - Import the .so file in other scripts
 
-    EXAMPLE:
+    EXAMPLES::
+
         sage: curdir = os.path.abspath(os.curdir)
         sage: dir = tmp_dir(); os.chdir(dir)
         sage: f = file('hello.spyx', 'w')
@@ -584,7 +680,8 @@ def cython_create_local_so(filename):
         sage: os.chdir(curdir)
 
     AUTHORS:
-        -- David Fu (2008-04-09): initial version
+
+    - David Fu (2008-04-09): initial version
     """
     cython(filename, compile_message=True, use_cache=False, create_local_so_file=True)
 
@@ -595,6 +692,16 @@ def sanitize(f):
 
     This means that the characters are all alphanumeric or _'s and
     doesn't begin with a numeral.
+
+    EXAMPLES::
+
+        sage: from sage.misc.cython import sanitize
+        sage: sanitize('abc')
+        'abc'
+        sage: sanitize('abc/def')
+        'abc_def'
+        sage: sanitize('123/def-hij/file.py')
+        '_123_def_hij_file_py'
     """
     s = ''
     if f[0].isdigit():
@@ -608,17 +715,14 @@ def sanitize(f):
 
 
 def compile_and_load(code):
-    """
+    r"""
     INPUT:
 
-        - ``code`` -- string containing code that could be in a .pyx
-          file that is attached or put in a %cython block in the
-          notebook.
+    - ``code`` -- string containing code that could be in a .pyx file
+      that is attached or put in a %cython block in the notebook.
 
-    OUTPUT:
-
-        - a module, which results from compiling the given code and
-          importing it
+    OUTPUT: a module, which results from compiling the given code and
+    importing it
 
     EXAMPLES::
 
@@ -668,10 +772,10 @@ def import_test(name):
     Cython programs.
 
     INPUT:
-        - ``name`` -- string; name of a key to the TESTS dictionary above
 
-    OUTPUT:
-        - a module, which results from compiling the given code and importing it
+    - ``name`` -- string; name of a key to the TESTS dictionary above
+
+    OUTPUT: a module, which results from compiling the given code and importing it
 
     EXAMPLES::
 

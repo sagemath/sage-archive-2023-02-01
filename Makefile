@@ -43,7 +43,13 @@ all: start doc  # indirectly depends on build
 #	test -x $@ # or make it executable if it exists; sanity check only anyway
 
 build: $(PIPE)
-	cd spkg && "../$(PIPE)" "./install all 2>&1" "tee -a ../install.log"
+	cd spkg && \
+	"../$(PIPE)" \
+		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
+		"tee -a ../install.log"
+
+build-serial: SAGE_PARALLEL_SPKG_BUILD = no
+build-serial: build
 
 # Start Sage if the file local/lib/sage-started.txt does not exist
 # (i.e. when we just installed Sage for the first time)
@@ -160,7 +166,8 @@ install:
 	cd $(DESTDIR)/bin/; ./sage -c
 
 
-.PHONY: all build start doc doc-html doc-html-jsmath doc-pdf \
+.PHONY: all build build-serial start \
+	doc doc-html doc-html-jsmath doc-pdf \
 	doc-clean clean	distclean \
 	test check testoptional testlong ptest ptestall ptestlong \
 	install testall ptestoptional

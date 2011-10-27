@@ -24,3 +24,4 @@ sage-python
 Makefile.old
 VERSION.txt
 ^spkg-install$
+spkg/parallel_make.cfg

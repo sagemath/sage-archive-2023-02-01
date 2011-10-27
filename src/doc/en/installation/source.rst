@@ -338,14 +338,16 @@ spaces in its name will also fail.
    a day to build Sage. If the build is successful, you will not see
    the word ERROR in the last 3-4 lines of output.
 
-   If the build of Sage fails, then type the following from the directory
+   Each component of Sage has its own build log, saved in
+   ``SAGE_ROOT/spkg/logs``.  In particular,
+   if the build of Sage fails, then you can type the following from the directory
    where you typed ``make``.
 
    ::
 
-            grep "An error occurred" spkg/logs/*
+            grep -li "An error" spkg/logs/*
 
-   then paste the contents of the log file(s) with errors to the Sage
+   Then paste the contents of the log file(s) with errors to the Sage
    support newsgroup http://groups.google.com/group/sage-support
    If the log files are very large (and many are), then don't paste
    the whole file, but make sure to include any error messages.
@@ -550,25 +552,44 @@ Environment variables
 ---------------------
 
 Sage uses several environment variables to control its build process.
-Most users won't need to use any of these: the build process just
-works on many platforms.  Building Sage involves building about 100
-packages, each of which has its own compilation instructions.
+Most users won't need to set any of these: the build process just
+works on many platforms.  (Note though that setting :envvar:`MAKE`, as
+described below, can significantly speed up the process.)  Building
+Sage involves building about 100 packages, each of which has its own
+compilation instructions.
 
 Here are some of the more commonly used variables affecting the build
 process:
 
-- :envvar:`MAKE` - one common setting for this variable when building
-  Sage is ``export MAKE='make -jNUM'`` to tell the "make" program to
-  run NUM jobs in parallel when building individual packages.  (Not
-  all packages support this, but the ones for which this could be
-  problematic should automatically disable it.)
+- :envvar:`MAKE` - one useful setting for this variable when building
+  Sage is ``MAKE='make -jNUM'`` to tell the "make" program to
+  run NUM jobs in parallel when building.  Some people advise using
+  more jobs than there are CPU cores, at least if the system is not
+  heavily loaded and has plenty of RAM; for example, a good setting
+  for NUM might be between 1 and 1.5 times the number of cores.  In
+  addition, the "-l" option sets a load limit: ``MAKE='make -j4
+  -l5.5``, for example, tells "make" to try to use four jobs, but to
+  not start more than one job if the system load average is above 5.5.
+  See the manual page for GNU make: `Command-line options
+  <http://www.gnu.org/software/make/manual/make.html#Options-Summary>`_
+  and `Parallel building
+  <http://www.gnu.org/software/make/manual/make.html#Parallel>`_.
+
+  .. warning::
+
+     Some users on single-core OS X machines have reported problems
+     when building Sage with ``MAKE='make -jNUM'`` with NUM greater
+     than one.
+
+- :envvar:`SAGE_PARALLEL_SPKG_BUILD` - if this is set to "no", then
+  build spkgs serially rather than in parallel.  If this is "no", then
+  each spkg may still take advantage of the setting of :envvar:`MAKE`
+  to build using multiple jobs, but the spkgs will be built one at a
+  time.  Alternatively, run "make build-serial" which sets this
+  environment variable for you.
 
 - :envvar:`SAGE_CHECK` - if this is set to "yes", then during the
   build process, run the test suite for each package which has one.
-
-- :envvar:`SAGE_PARALLEL_SPKG_BUILD` - set this to "yes" to build
-  multiple packages in parallel.  This only has an effect if
-  :envvar:`MAKE` is also set to run several jobs in parallel.
 
 - :envvar:`SAGE64` - Set this to "yes" to build a 64-bit binary on platforms
   which default to 32-bit, even though they can build 64-bit binaries.
@@ -881,7 +902,22 @@ System-wide install
    processes. You can also omit ``long`` to skip tests which take a long
    time.
 
+Some common problems
+--------------------
 
+ATLAS
+~~~~~
+
+Sometimes the ATLAS spkg can fail to build.  Some things to check for:
+
+- Make sure that CPU throttling mode (= power-saving mode) is turned off
+  when building ATLAS.
+
+- Also, the ATLAS build can fail if the system load is too high, and in
+  particular this has been known to happen when building with
+  ``MAKE='make -jNUM'`` with NUM large.  If this happens, just try
+  running "make" again.  If "make" fails after five or six attempts,
+  report your problem to the sage-devel mailing list.
 
 Special Notes
 -------------

@@ -9,6 +9,14 @@ SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
 INSTALL = $(SAGE_ROOT)/spkg/pipestatus
 
 ###############################################################################
+# The file parallel_make.cfg is either empty (build in parallel) or
+# contains ".NOTPARALLEL:" (build serially).  This file is written
+# by spkg/install.  This setting has no effect on sub-makes -- it
+# only determines whether more than one spkg may be built at a time.
+###############################################################################
+include $(SAGE_ROOT)/spkg/parallel_make.cfg
+
+###############################################################################
 # The base system; required in order to run sage-spkg
 ###############################################################################
 BASE = $(INST)/$(PREREQ) $(INST)/$(DIR) $(INST)/$(SAGE_BZIP2)

@@ -428,43 +428,48 @@ export ZODB
 ZNPOLY=`$newest zn_poly`
 export ZNPOLY
 
+# If the user (or the Makefile) has set SAGE_PARALLEL_SPKG_BUILD=no,
+# then turn off parallel building by writing .NOTPARALLEL to
+# spkg/standard/parallel_make.cfg.  Otherwise clear that file.
+if [[ ${SAGE_PARALLEL_SPKG_BUILD:-yes} = no ]]; then
+    # Disable just building multiple packages at the same time; individual
+    # spkgs still get built in parallel if they support it and '--jobs'
+    # in $MAKE is greater than one (and at all specified):
+    echo ".NOTPARALLEL:" > "$SAGE_ROOT"/spkg/parallel_make.cfg
+else
+    # Create an (almost) empty file, s.t. including it from spkg/standard/deps
+    # doesn't raise an error, thereby also invalidating any previous setting:
+    echo > "$SAGE_ROOT"/spkg/parallel_make.cfg
+fi
 
 # Skip the rest if nothing to do (i.e., to [re]build):
-# Note that we should use $MAKE here, but we currently don't use
-# it further below either unless SAGE_PARALLEL_SPKG_BUILD=yes, which
-# I consider a "bug". -- Leif Leonhardy
-# If "make" doesn't understand the -q option, it should exit with a
-# non-zero status which is not a problem.
-if make -q -f standard/deps $1; then
+# If "make" doesn't understand the -q option (although we require
+# GNU make, which supports it), it should exit with a non-zero status
+# which is not a problem.
+if ${MAKE:-make} -q -f standard/deps $1; then
     echo "Nothing to (re)build / all up-to-date."
     exit 0
 fi
 
-
 # Dump environment for debugging purposes:
 echo "*** ALL ENVIRONMENT VARIABLES BEFORE BUILD: ***"
-env
+env | sort
 echo "***********************************************"
-
 
 ###############################################################################
 # NOW do the actual build:
 ###############################################################################
-if [ "$SAGE_PARALLEL_SPKG_BUILD" = "yes" ] && [ -n "$MAKE" ]; then
-    time $MAKE -f standard/deps $1
-else
-    time make -f standard/deps $1
-fi
+time ${MAKE:-make} -f standard/deps $1
 
-# added by Burcin Erocal, see trac #6295.
+# Added by Burcin Erocal, see trac #6295:
 if [ $? -ne 0 ]; then
-    echo "Error building Sage."
+    echo >&2 "Error building Sage."
     exit 1
 fi
 
 cd "$SAGE_ROOT"
 
-# Rename makefile to Makefile (see #10156)
+# Rename makefile to Makefile (see #10156):
 if [ -f makefile ]; then
     mv makefile Makefile
     if [ $? -ne 0 ]; then
@@ -473,18 +478,23 @@ if [ -f makefile ]; then
     fi
 fi
 
-# build succeeded
-if [ "$1" = "all" ]; then
-    echo "To install gap, gp, singular, etc., scripts"
-    echo "in a standard bin directory, start sage and"
-    echo "type something like"
-    echo "   sage: install_scripts('/usr/local/bin')"
-    echo "at the Sage command prompt."
-    echo ""
-    echo "To build the documentation, run"
-    echo "   make doc"
-    echo ""
-fi
-
+# Build succeeded.
 echo "Sage build/upgrade complete!"
 
+if [ "$1" = "all" ]; then
+    echo
+    echo "To install small scripts to directly run Sage's versions of GAP,"
+    echo "the PARI/GP interpreter, Maxima, or Singular etc. (by typing e.g."
+    echo "just 'gap' or 'gp') into a standard 'bin' directory, start Sage"
+    echo "by typing 'sage' (or './sage') and enter something like"
+    echo
+    echo "    install_scripts('/usr/local/bin')"
+    echo
+    echo "at the Sage command prompt ('sage:')."
+    echo
+    echo "If you issued 'make', 'make all', or a similar command, then the"
+    echo "HTML version of the documentation will be built right now."
+    echo "Otherwise, if you want to (re)build the HTML documentation,"
+    echo "run 'make doc'.  To build the PDF version, run 'make doc-pdf'."
+    echo
+fi

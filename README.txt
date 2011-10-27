@@ -168,21 +168,23 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
    installed when you install the programs listed above.
 
 3. Extract the Sage source tarball and cd into a directory with no
-   spaces in it. If you have a machine with 4 processors, say, type the
-   following to configure the build script to perform a parallel
+   spaces in it. If you have a machine with 4 processors, say, type
+   the following to configure the build script to perform a parallel
    compilation of Sage using 4 jobs:
 
        export MAKE="make -j4"
 
-   By default the above will only parallelize a small part of the build
-   process. To make the spkg build part of the installation process
-   parallel do:
+   (With 4 processors, you might also consider "-j5" or "-j6" --
+   building with more jobs than CPU cores can speed things up.)
+   You might in addition pass a "-l" flag to "make": this
+   sets a load limit, so for example if you execute
 
-       export SAGE_PARALLEL_SPKG_BUILD="yes"
+       export MAKE="make -j4 -l5.5"
 
-   The amount of processors used for the building of the spkg's is
-   determined by what you assigned to MAKE. So the above is useless if
-   you did export MAKE="make -j1".
+   then "make" won't start more than one job at a time if the system
+   load average is above 5.5.  See
+   http://www.gnu.org/software/make/manual/make.html#Options-Summary
+   and http://www.gnu.org/software/make/manual/make.html#Parallel.
 
    If you want to run the test suite for each individual spkg as it is
    installed, type:
@@ -242,6 +244,26 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
 10. OPTIONAL: It is recommended that you have both LaTeX and the
     ImageMagick tools (e.g. the "convert" command) installed since some
     plotting functionality benefits from it.
+
+
+PROBLEMS
+--------
+
+If you have problems building Sage, check the Sage Installation Guide,
+and also note the following.  Each separate component of Sage is
+contained in an spkg; these are stored in spkg/standard/.  As each one
+is built, a build log is stored in spkg/logs/, so you can browse these
+to find error messages.  If an spkg fails to build, the whole build
+process will stop soon after, so check the most recent log files
+first, or run
+
+   grep -li "An error" spkg/logs/*
+
+from the top-level Sage directory to find log files with error
+messages in them.  Send (a small part of) the relevant log file to the
+sage-devel mailing list, making sure to include at least some of the
+error messages; probably someone there will have some helpful
+suggestions.
 
 
 SUPPORTED COMPILERS

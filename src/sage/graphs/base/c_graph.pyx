@@ -2669,6 +2669,24 @@ class CGraphBackend(GenericGraphBackend):
             * Else, returns a pair ``(False, cycle)`` where ``cycle`` is a list
               of vertices representing a circuit in the graph.
 
+        ALGORITHM:
+
+        We pick a vertex at random, think hard and find out that that if we are
+        to remove the vertex from the graph we must remove all of its
+        out-neighbors in the first place. So we put all of its out-neighbours in
+        a stack, and repeat the same procedure with the vertex on top of the
+        stack (when a vertex on top of the stack has no out-neighbors, we remove
+        it immediately). Of course, for each vertex we only add its outneighbors
+        to the end of the stack once : if for some reason the previous algorithm
+        leads us to do it twice, it means we have found a circuit.
+
+        We keep track of the vertices whose out-neighborhood has been added to
+        the stack once with a variable named ``tried``.
+
+        There is no reason why the graph should be empty at the end of this
+        procedure, so we run it again on the remaining vertices until none are
+        left or a circuit is found.
+
         .. NOTE::
 
             The graph is assumed to be directed. An exception is raised if it is
@@ -2722,11 +2740,6 @@ class CGraphBackend(GenericGraphBackend):
         if not self._directed:
             raise ValueError("The graph should be directed !")
 
-        # Vertices that have already been seen
-        cdef bitset_t seen
-        bitset_init(seen, (<CGraph>self._cg).active_vertices.size)
-        bitset_set_first_n(seen, 0)
-
         # Activated vertices
         cdef bitset_t activated
         bitset_init(activated, (<CGraph>self._cg).active_vertices.size)
@@ -2757,45 +2770,46 @@ class CGraphBackend(GenericGraphBackend):
                 continue
 
             stack = [v]
-            bitset_add(seen, v)
 
             # For as long as some vertices are to be visited
             while stack:
 
                 # We take the last one (depth-first search)
-                u = stack.pop(-1)
+                u = stack[-1]
 
-                # If we never tried it, we put it at the end of the stack again,
-                # but remember we tried it once.
-                if bitset_not_in(tried, u):
-                    bitset_add(tried, u)
-                    bitset_add(seen, u)
-                    stack.append(u)
-
-                # If we tried all the path starting from this vertex already, it
-                # means it leads to no circuit. We can remove it, and go to the
-                # next one
-                else:
-                    ordering.insert(0, vertex_label(u, self.vertex_ints, self.vertex_labels, self._cg))
-                    bitset_discard(seen, u)
-                    bitset_discard(activated, u)
+                # This vertex may have been deactivated since we added it.
+                if bitset_not_in(activated, u):
+                    stack.pop(-1)
                     continue
 
-                # For each out-neighbor of the current vertex
+                # If we tried this vertex already, it means that all of its
+                # out-neighbors have been de-activated already, for we put them
+                # *after* u in the stack.
+                if bitset_in(tried, u):
+                    ordering.insert(0, vertex_label(u, self.vertex_ints, self.vertex_labels, self._cg))
+                    bitset_discard(tried, u)
+                    bitset_discard(activated, u)
+                    stack.pop(-1)
+                    continue
+
+
+                # If we never tried it, now is the time to do it. We also must
+                # remember it
+                bitset_add(tried, u)
+
+                # We append its out-neighbours to the stack.
                 for uu in self._cg.out_neighbors(u):
 
                     # If we have found a new vertex, we put it at the end of the
                     # stack. We ignored de-activated vertices.
-                    if bitset_not_in(seen, uu):
+                    if bitset_not_in(tried, uu):
                         if bitset_in(activated, uu):
                             parent[uu] = u
                             stack.append(uu)
 
-                    # If we have already met this vertex, it means we have
-                    # found a circuit !
+                    # If we have already met this vertex, it means we have found
+                    # a circuit !
                     else:
-
-                        bitset_free(seen)
                         bitset_free(activated)
                         bitset_free(tried)
 
@@ -2814,18 +2828,7 @@ class CGraphBackend(GenericGraphBackend):
                         cycle.reverse()
                         return (False, cycle)
 
-            # Each time we have explored all the descendants of a vertex v and
-            # met no circuit, we de-activate all these vertices, as we know we
-            # do not need them anyway.
-            for v in (<CGraph>self._cg).verts():
-                if bitset_in(seen, v):
-                    bitset_discard(seen, v)
-                    bitset_discard(activated, v)
-                    bitset_add(tried, v)
-
-
         # No Cycle... Good news ! Let's return it.
-        bitset_free(seen)
         bitset_free(activated)
         bitset_free(tried)
 

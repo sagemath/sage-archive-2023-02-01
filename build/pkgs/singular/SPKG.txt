@@ -23,8 +23,7 @@ http://www.singular.uni-kl.de/
 
 == Dependencies ==
 
-MPIR, NTL, Termcap, Readline and MPFR
-
+GNU patch, MPIR, NTL, Termcap, Readline and MPFR
 
 == Special Update/Build Instructions ==
 
@@ -49,12 +48,21 @@ See spgk-changes for how to delete unnecessary stuff under src/
 
 == ChangeLog ==
 
-=== singular-3-1-3-3.p0 (Volker Braun 2 October 2011) ===
- * Solaris fixes
+=== singular-3-1-3-3.p1 (Jeroen Demeyer, 10 October 2011) ===
+ * Trac #10903: Add a patch os_x_ppc.patch to fix building on OS X PPC.
+ * Make all patches apply at -p1 level and apply some patches for Cygwin
+   on all systems for consistency.
+ * Remove unused files in patches/: Singular.configure, Singular.configure.in,
+   Singular.configure.in.patch
+ * Exit when `patch` fails.  We do not print an error message, patch is
+   verbose enough by itself.
 
-=== singular-3-1-3-3 (Martin Albrecht, Burcin Erocal, Volker Braun 28 September 2011) ===
+=== singular-3-1-3-3.p0 (Volker Braun, 2 October 2011) ===
+ * Trac #10903: Solaris fixes
+
+=== singular-3-1-3-3 (Martin Albrecht, Burcin Erocal, Volker Braun, 28 September 2011) ===
+ * Trac #10903: new upstream release
  * SAGE_DEBUG now builds Singular with lots of checks
- * new upstream release
 
 === singular-3-1-1-4.p13 (Karl-Dieter Crisman, 12 August 2011) ===
  * Trac #11550: For Cygwin, we need to include time.h in

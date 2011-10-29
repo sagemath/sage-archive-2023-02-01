@@ -1,5 +1,5 @@
---- ../src/Singular/sing_win.cc	2009-11-02 10:12:22.000000000 +0000
-+++ sing_win.cc	2010-07-15 17:16:26.000000000 +0100
+--- src/Singular/sing_win.cc	2009-11-02 10:12:22.000000000 +0000
++++ src/Singular/sing_win.cc	2010-07-15 17:16:26.000000000 +0100
 @@ -38,7 +38,12 @@
     link.pszMsgTitle =  NULL ;
     link.pszWindow =    NULL ;

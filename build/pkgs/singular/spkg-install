@@ -98,22 +98,23 @@ clean_headers()
 apply_patches()
 {
     pushd $SRC
-    # work-around patches
-    patch -p2 < ../patches/assert.h.diff
+
+    patches="assert.h.diff sing_win.cc.diff Minor.h.patch os_x_ppc.patch Singular.configure.patch"
 
     if [ "$UNAME" = "CYGWIN" ]; then
-        # Fine to make this patch on any system, because it is code that is only compiled on Windows.
-        patch -p2 < ../patches/sing_win.cc.diff
-        patch -p2 < ../patches/IntegerProgramming-Makefile.in.diff
-        patch -p1 < ../patches/Minor.h.patch
+        patches="$patches IntegerProgramming-Makefile.in.diff"
     fi
-
-    patch -p1 < ../patches/Singular.configure.patch
 
     if [ "x$SAGE_DEBUG" = "xyes" ]; then
-        patch -p1 < ../patches/kernel.Makefile.in.debug.patch
-        patch -p1 < ../patches/Singular.Makefile.in.debug.patch
+        patches="$patches kernel.Makefile.in.debug.patch Singular.Makefile.in.debug.patch"
     fi
+
+    for patch in $patches; do
+        if ! patch -p1 <../patches/$patch; then
+            echo >&2 "Error: patch $patch failed to apply."
+            exit 1
+        fi
+    done
 
     popd
 }

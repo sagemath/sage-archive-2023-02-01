@@ -99,7 +99,7 @@ LGPL V2+
 === ecm-6.3 (Mike Hansen, August 16th, 2010) ===
  * #5847: Update GMP-ECM to 6.3
 
-=== ecm-6.2.1.p1 (Jaap Spies, Jan 25th, 2010) ===
+=== ecm-6.2.1.p2 (Jaap Spies, Jan 25th, 2010) ===
  * Made SAGE64="yes" work also for Open Solaris 64 bit
  * Removed Michael Mabshoff as maintainer
 

@@ -84,7 +84,7 @@ source code.  To build it, type::
     sage -docbuild reference <format>
 
 where ``<repo-name>`` is the name of the repository you are using, and
-``<format`` is "html", "pdf", or any other supported format (as listed
+``<format>`` is "html", "pdf", or any other supported format (as listed
 when you run ``sage -docbuild -help``).
 
 

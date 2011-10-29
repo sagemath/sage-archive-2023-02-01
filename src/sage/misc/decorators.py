@@ -109,6 +109,18 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         4
         sage: t.g.__doc__
         'My little method'
+
+    The bug described in #11734 is fixed::
+
+        sage: def square(f):
+        ...     @sage_wraps(f)
+        ...     def new_f(x):
+        ...         return f(x)*f(x)
+        ...     return new_f
+        sage: f = lambda x:x^2
+        sage: g = square(f)
+        sage: g(3) # this line used to fail for some people if these command were manually entered on the sage prompt
+        81
     """
     #TRAC 9919: Workaround for bug in @update_wrapper when used with
     #non-function callables.
@@ -122,8 +134,7 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         #The attribute _sage_argspec_() is read by Sphinx if present and used
         #as the argspec of the function instead of using reflection.
         from sageinspect import sage_getargspec
-        argspec = sage_getargspec(wrapped)
-        wrapper._sage_argspec_ = lambda: argspec
+        wrapper._sage_argspec_ = lambda: sage_getargspec(wrapped)
         return wrapper
     return f
 

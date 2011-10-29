@@ -9584,7 +9584,7 @@ class GenericGraph(GenericGraph_pyx):
                 vertices.append(v)
         return self.subgraph(vertices=vertices, inplace=inplace)
 
-    def is_chordal(self, certificate = False):
+    def is_chordal(self, certificate = False, algorithm = "B"):
         r"""
         Tests whether the given graph is chordal.
 
@@ -9625,6 +9625,12 @@ class GenericGraph(GenericGraph_pyx):
                   ``Hole`` (a ``Graph`` object) is an induced subgraph of
                   ``self`` isomorphic to a hole.
 
+        - ``algorithm`` -- Two algorithms are available for this method (see
+          next section), which can be selected by setting ``algorithm = "A"`` or
+          ``algorithm = "B"`` (default). While they will agree on whether the
+          given graph is chordal, they can not be expected to return the same
+          certificates.
+
         ALGORITHM:
 
         This algorithm works through computing a Lex BFS on the graph, then
@@ -9634,11 +9640,18 @@ class GenericGraph(GenericGraph_pyx):
 
         This problem can be solved in `O(m)` [Rose75]_ ( where `m` is the number
         of edges in the graph ) but this implementation is not linear because of
-        the complexity of Lex BFS. Improving Lex BFS to linear complexity would
-        make this algorithm linear.
+        the complexity of Lex BFS.
 
-        The complexity of this algorithm is equal to the complexity of the
-        implementation of Lex BFS.
+        .. NOTE::
+
+            Because of a past bug (#11735, #11961), the first implementation
+            (algorithm A) of this method sometimes returned as certificates
+            subgraphs which were **not** holes. Since then, this bug has been
+            fixed and the values are now double-checked before being returned,
+            so that the algorithm only returns correct values or raises an
+            exception. In the case where an exception is raised, the user is
+            advised to switch to the other algorithm. And to **please** report
+            the bug :-)
 
         EXAMPLES:
 
@@ -9732,15 +9745,24 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return all( gg.is_chordal() for gg in self.connected_components_subgraphs() )
 
-        peo,t_peo = self.lex_BFS(tree=True)
-
+        hole = None
         g = self.copy()
-        peo.reverse()
 
-        # Iteratively removing vertices and checking everything is fine.
-        for v in peo:
+        # Algorithms
+        #
+        # They find the perfect elimination ordering or produce a hole
 
-            if t_peo.out_degree(v)>0:
+        if algorithm == "A":
+
+            peo,t_peo = self.lex_BFS(tree=True)
+            peo.reverse()
+
+            # Iteratively removing vertices and checking everything is fine.
+            for v in peo:
+
+                if t_peo.out_degree(v) == 0:
+                    g.delete_vertex(v)
+                    continue
 
                 x = t_peo.neighbor_out_iterator(v).next()
                 S = self.neighbors(x)+[x]
@@ -9768,18 +9790,77 @@ class GenericGraph(GenericGraph_pyx):
 
                         hole = self.subgraph([v] + g.shortest_path(x,y))
 
-                        # There was a bug there once, so it's better to check the
-                        # answer is valid, especally when it is so cheap ;-)
-
-                        if hole.order() <= 3 or not hole.is_regular(k=2):
-                            raise Exception("The graph is not chordal, and something went wrong in the computation of the certificate. Please report this bug, providing the graph if possible !")
-
-                        return (False, hole)
+                        # End of the algorithm
+                        break
                     else:
                         return False
 
-            g.delete_vertex(v)
+                g.delete_vertex(v)
 
+        elif algorithm == "B":
+
+            peo,t_peo = self.lex_BFS(reverse=True, tree=True)
+
+            # Remembering the (closed) neighborhoods of each vertex
+            neighbors_subsets = dict([(v,self.neighbors(v)+[v]) for v in g])
+            pos_in_peo = dict(zip(peo, range(self.order())))
+
+            # Iteratively removing vertices and checking everything is fine.
+            for v in reversed(peo):
+
+                if (t_peo.out_degree(v)>0 and
+                    not frozenset([v1 for v1 in g.neighbors(v) if pos_in_peo[v1] > pos_in_peo[v]]).issubset(
+                        neighbors_subsets[t_peo.neighbor_out_iterator(v).next()])):
+
+                    # Do we need to return a hole ?
+                    if certificate:
+
+                        # In this case, let us take two nonadjacent neighbors of
+                        # v. In order to do so, we pick a vertex y which is a
+                        # neighbor of v but is not adjacent to x, which we know
+                        # exists by the test written two lines above.
+                        max_tup = (-1, 0)
+                        nb1 = [u for u in g.neighbors(v) if pos_in_peo[u] > pos_in_peo[v]]
+                        for xi in nb1:
+                            for yi in nb1:
+                                if not yi in neighbors_subsets[xi]:
+                                    new_tup = (pos_in_peo[xi], pos_in_peo[yi])
+                                    if max_tup < new_tup:
+                                        max_tup = new_tup
+                                        x, y = xi, yi
+
+                        # Our hole is v + (a shortest path between x and y not
+                        # containing v or any of its neighbors).
+
+                        #g.delete_vertices([vv for vv in g.vertices() if pos_in_peo[vv] < pos_in_peo[v]])
+
+                        g.delete_vertices([vv for vv in g.neighbors(v) if vv != y and vv != x])
+                        g.delete_vertex(v)
+
+                        hole = self.subgraph([v] + g.shortest_path(x,y))
+
+                        # End of the algorithm
+                        break
+                    else:
+                        return False
+
+
+        # Returning values
+        # ----------------
+
+        # 1- The graph is not chordal
+
+        if not hole is None:
+            # There was a bug there once, so it's better to check the
+            # answer is valid, especally when it is so cheap ;-)
+
+            if hole.order() <= 3 or not hole.is_regular(k=2):
+                raise Exception("The graph is not chordal, and something went wrong in the computation of the certificate. Please report this bug, providing the graph if possible !")
+
+            return (False, hole)
+
+
+        # 2- The graph is chordal
         if certificate:
             return True, peo
 

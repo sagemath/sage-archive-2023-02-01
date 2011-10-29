@@ -54,13 +54,6 @@ if sys.version_info[:2] < (2, 5):
 
 ###################################################################
 
-#Import twisted.persisted.styles in order to allow things like
-#modules to be pickles
-
-import twisted.persisted.styles
-
-###################################################################
-
 # We have to set this here so urllib, etc. can detect it.
 import sage.server.notebook.gnutls_socket_ssl
 sage.server.notebook.gnutls_socket_ssl.require_SSL()

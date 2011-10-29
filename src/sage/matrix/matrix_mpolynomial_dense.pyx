@@ -149,7 +149,14 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         EXAMPLES:
 
             sage: matrix([PolynomialRing(GF(2),2,'x').gen()]).pivots()
-            [0]
+            (0,)
+            sage: K = QQ['x,y']
+            sage: x, y = K.gens()
+            sage: m = matrix(K, [(-x, 1, y, x - y), (-x*y, y, y^2 - 1, x*y - y^2 + x), (-x*y + x, y - 1, y^2 - y - 2, x*y - y^2 + x + y)])
+            sage: m.pivots()
+            (0, 2)
+            sage: m.rank()
+            2
         """
         x = self.fetch('pivots')
         if not x is None: return x

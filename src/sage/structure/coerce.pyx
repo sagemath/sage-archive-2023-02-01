@@ -283,6 +283,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Enables (or disables) recording of the exceptions suppressed during
         arithmetic.
 
+        Each time that record_exceptions is called (either enabling or disabling
+        the record), the exception_stack is cleared.
+
         TESTS::
 
             sage: cm = sage.structure.element.get_coercion_model()

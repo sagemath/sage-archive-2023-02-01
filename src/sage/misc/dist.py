@@ -19,6 +19,7 @@ def install_scripts(directory=None, ignore_existing=False):
     - 'mwrank' runs mwrank
     - 'R' runs R
     - 'singular' runs Singular
+    - 'sqlite3' runs SQLite version 3
     - 'kash' runs Kash if it is installed (Kash is an optional Sage
       package)
     - 'M2' runs Macaulay2 if it is installed (Macaulay2 is an
@@ -107,7 +108,7 @@ def install_scripts(directory=None, ignore_existing=False):
     PATH = os.pathsep.join([d for d in PATH if not
                             os.path.samefile(d, SAGE_BIN)])
     for cmd in ['gap', 'gp', 'hg', 'ipython', 'maxima',
-              'mwrank', 'R', 'singular', 'M2', 'kash']:
+              'mwrank', 'R', 'singular', 'sqlite3', 'M2', 'kash']:
         print "Checking that Sage has the command '%s' installed" % cmd
         # Check to see if Sage includes cmd.
         cmd_inside_sage = have_program(cmd, path=SAGE_BIN)

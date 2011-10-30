@@ -12,17 +12,22 @@ We test the following command line options:
 --gp
 -h
 --help
+--hg
 --ipython
 --kash
 --lisp
+--maxima
 --min
 --mwrank
 --optional
 --python
 -q
+--R
 --root
+--scons
 --sh
 --singular
+--sqlite3
 --standard
 --startuptime
 -v
@@ -303,6 +308,14 @@ def test_executable(args, input="", timeout=50.0):
 
         sage: (out, err, ret) = test_executable(["sage", "--scons", "--version"])
         sage: out.find("SCons") >= 0
+        True
+        sage: err
+        ''
+        sage: ret
+        0
+
+        sage: (out, err, ret) = test_executable(["sage", "--sqlite3", "--version"])
+        sage: out.startswith("3.")
         True
         sage: err
         ''

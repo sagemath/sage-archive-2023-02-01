@@ -855,27 +855,22 @@ System-wide install
 ~~~~~~~~~~~~~~~~~~~
 
 #. After you build Sage, you may optionally copy or move the entire
-   build tree to ``/usr/local``.
+   build tree to ``/usr/local`` or another location.  If you do this,
+   then you must run ``./sage`` once so that various hard-coded
+   locations will get updated.  For this reason, it might be easier to
+   simply build Sage in its final location.
 
-#. There are some initial files that have to be created the first time
-   Sage is run. Try starting up Sage once as root (or, to be
-   more thorough, try ``make test`` as root to run all the standard test
-   code). You can stop the tests by pressing ``ctrl-z`` followed by
-   typing ``kill %1`` (assuming you had no other jobs in the
-   background of that shell).
+#. Make a copy of the ``sage`` script in ``/usr/local/bin``::
 
-#. Make a copy of the ``sage`` script in ``/usr/local/bin``:
+       cp /usr/local/sage-4.7.3/sage /usr/local/bin/
 
-   ::
+   and edit the file ``/usr/local/sage-4.7.3/sage``: ``SAGE_ROOT`` should
+   be set to the directory where Sage is installed, for example
+   ``/usr/local/sage-4.7.3``.
 
-       cp /usr/local/sage-4.7/sage /usr/local/bin/
+#. Make sure that all files in the Sage tree are readable by all::
 
-   Make sure that all files in ``/usr/local/sage-4.7`` are readable by
-   all:
-
-   ::
-
-       chmod a+rX -R /usr/local/sage-4.7
+       chmod a+rX -R /usr/local/sage-4.7.3
 
 
 Special Notes

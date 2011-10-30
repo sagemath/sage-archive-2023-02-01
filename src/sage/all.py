@@ -300,12 +300,6 @@ sage.misc.displayhook.install()
 
 from sage.ext.interactive_constructors_c import inject_on, inject_off
 
-# Set a new random number seed as the very last thing
-# (so that printing initial_seed() and using that seed
-# in set_random_seed() will result in the same sequence you got at
-# Sage startup).
-
-set_random_seed()
 sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Objects', Objects)
@@ -326,3 +320,41 @@ sage.misc.lazy_import.save_cache_file()
 # sys.settrace(poison_currRing)
 
 
+# Write a file indicating that Sage was started up successfully.
+def _write_started_file():
+    """
+    Write a ``sage-started.txt`` file if it does not exist.  The
+    contents of this file do not matter, only its existence.
+
+    The non-existence of this file will be used as a trigger to run
+    ``sage-starts`` during the Sage build.
+
+    TESTS:
+
+    Check that the file exists when Sage is running::
+
+        sage: started_file = os.path.join(SAGE_ROOT, 'local', 'lib', 'sage-started.txt')
+        sage: os.path.isfile(started_file)
+        True
+    """
+    started_file = os.path.join(SAGE_ROOT, 'local', 'lib', 'sage-started.txt')
+    # Do nothing if the file already exists
+    if os.path.isfile(started_file):
+        return
+
+    # Current time with a resolution of 1 second
+    import datetime
+    t = datetime.datetime.now().replace(microsecond=0)
+
+    O = open(started_file, 'w')
+    O.write("Sage %s was started at %s\n"%(sage.version.version, t))
+    O.close()
+
+_write_started_file()
+
+
+# Set a new random number seed as the very last thing
+# (so that printing initial_seed() and using that seed
+# in set_random_seed() will result in the same sequence you got at
+# Sage startup).
+set_random_seed()

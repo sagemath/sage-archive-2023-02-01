@@ -43,6 +43,10 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-2.1.3.p6 (Jeroen Demeyer, October 11th, 2011) ===
+ * #11896: Do not set ABI at all when the compiler does not support
+   $CFLAG32 nor $CFLAG64 (by default set to '-m32' resp. '-m64').
+
 === mpir-2.1.3.p5 (Leif Leonhardy, October 5th, 2011) ===
  * #11896: Set ABI=32 on 32-bit (Linux) systems that run on 64-bit
    processors since otherwise the build might fail with a bunch of

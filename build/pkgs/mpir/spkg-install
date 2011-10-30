@@ -135,6 +135,9 @@ default_cflags="" # Spkg defaults that can and might get overridden.
 SAGE_CONF_OPTS=""
 
 
+if [ -z "$CFLAG32" ]; then
+    CFLAG32="-m32" # Only used in this script, no need to export it.
+fi
 if [ -z "$CFLAG64" ]; then
     CFLAG64="-m64" # Only used in this script, no need to export it.
 fi
@@ -221,17 +224,21 @@ case "$UNAME" in
         #       OSs above (and print an according message), it's here.
         if [ -z "$ABI" ]; then
             echo "int main(){return 0;}" > foo.c
-            # Build a 64-bit executable:
+            # Try building and running a 64-bit executable
             # (Usually succeeds, unless e.g. a 32-bit CPU is explicitly selected by CFLAGS.)
-            $CC $CFLAGS $CFLAG64 -o foo foo.c 2>/dev/null
-            if ! ./foo 2>/dev/null; then
+            if $CC $CFLAGS $CFLAG64 -o foo foo.c 2>/dev/null && ./foo 2>/dev/null; then
+                # We can run 64-bit executables.
+                # Setting ABI=64 shouldn't be necessary, but shouldn't hurt either.
+                echo "Building a 64-bit version of MPIR"
+                ABI=64
+            elif $CC $CFLAGS $CFLAG32 -o foo foo.c 2>/dev/null && ./foo 2>/dev/null; then
                 # We're on a 32-bit OS which cannot run 64-bit executables.
                 echo "Building a 32-bit version of MPIR"
                 ABI=32
             else
-                # Setting ABI=64 shouldn't be necessary, but shouldn't hurt either.
-                echo "Building a 64-bit version of MPIR"
-                ABI=64
+                # It seems the compiler does not support -m32 nor -m64,
+                # do not set ABI at all.
+                echo "Your compiler does not support '$CFLAG32' nor '$CFLAG64'.  Leaving ABI unset."
             fi
             rm -f foo foo.c
         fi;;

@@ -36,13 +36,17 @@ Install the current version of the spkg, and copy the new files into a new
 folder. Then run
 
 {{{
-sage: C = sage.databases.cremona.LargeCremonaDatabase('cremona',False,True)
+sage: C = sage.databases.cremona.LargeCremonaDatabase('cremona',False)
 sage: C._init_from_ftpdata('path/to/said/folder',0)
 }}}
 
 This method is much faster, but won't include any potential fixes old entries.
 
 == Changelog ==
+
+=== database_cremona_ellcurve-20111029 (R. Andrew Ohana, 29 October 2011 ===
+ * Updated the tables to include all conductors up to 200000
+ * Fixed a mistake in update instructions
 
 === database_cremona_ellcurve-20110915 (R. Andrew Ohana, 15 September 2011) ===
  * Updated the tables to include all conductors up to 190000

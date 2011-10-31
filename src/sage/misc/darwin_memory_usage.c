@@ -1,7 +1,6 @@
 
 #if defined(__APPLE__)
 
-#include <mach/task_info.h>
 #include <mach/host_info.h>
 #include <mach/mach_host.h>
 #include <mach/shared_region.h>

@@ -76,32 +76,37 @@ def get_memory_usage(t=None):
     - ``Linux`` - Returns float number (in megabytes)
 
     - ``OS X`` - Returns float number (in megabytes) that matches
-      VSIZE column of 'top'
+      VSIZE column of ``top``
 
     - ``Solaris or OpenSolaris`` - Returns float number (in megabytes)
-      that matches RSS column of 'prstat'. Depending on the memory
-      usage, 'prstat' will output the data in KB, MB or GB. In each
+      that matches RSS column of ``prstat``. Depending on the memory
+      usage, ``prstat`` will output the data in KB, MB or GB. In each
       case, the value returned by this function will always be in MB.
 
     - ``other`` - not implemented for any other operating systems
 
-    EXAMPLES:
+    EXAMPLES::
 
-    We test that memory usage doesn't change instantly::
+        sage: t = get_memory_usage(); t  # random
+        873.98046875
+
+    We test that memory usage doesn't change instantly.  Hopefully,
+    re-using the variable `t` means no additional memory will be
+    allocated::
 
         sage: t = get_memory_usage()
-        sage: get_memory_usage(t)          # amount of memory more than when we defined t.
+        sage: get_memory_usage(t)
         0.0
 
-    NOTES:
+    .. NOTE::
 
-    - Currently, :func:`get_memory_usage` calls 'prstat' on Solaris
-      and OpenSolaris to get the data it requires. In the long term, a
-      better solution would be to use Solaris system calls.
+        * Currently, :func:`get_memory_usage` calls ``prstat`` on Solaris
+          and OpenSolaris to get the data it requires. In the long term, a
+          better solution would be to use Solaris system calls.
 
-    - In some instances, 'top' may be used on OS X. This may break if
-      the memory usage is greater than 9999 MB. However, normally
-      'top' is not used on OS X.
+        * In some instances, ``top`` may be used on OS X. This may break
+          if the memory usage is greater than 9999 MB. However, normally
+          ``top`` is not used on OS X.
     """
     U = os.uname()[0].lower()
     if U == 'linux':

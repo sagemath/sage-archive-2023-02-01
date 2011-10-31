@@ -747,12 +747,11 @@ if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
    if [ "$1" = '-btp' ]; then
       build_sage || exit $?
    fi
-   cd "$CUR"
-   sage-starts
    if ! [  -f  "$DOT_SAGE"/init.sage ]; then
       echo >&2 "init.sage does not exist ... creating"
       touch "$DOT_SAGE"/init.sage
    fi
+   cd "$CUR"
    shift
    sage-ptest "$@"
    exit $?

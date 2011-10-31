@@ -43,6 +43,9 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-2.1.3.p7 (Leif Leonhardy, October 30th, 2011) ===
+ * #11964: Use ABI=mode64 instead of ABI=64 on Linux PPC64.
+
 === mpir-2.1.3.p6 (Jeroen Demeyer, October 11th, 2011) ===
  * #11896: Do not set ABI at all when the compiler does not support
    $CFLAG32 nor $CFLAG64 (by default set to '-m32' resp. '-m64').

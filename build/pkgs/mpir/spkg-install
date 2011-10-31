@@ -157,17 +157,17 @@ fi
 case "$UNAME" in
     SunOS)
         if [ "$SAGE64" = "yes" ]; then
-            echo "Building a 64-bit version of MPIR"
+            echo "Building a 64-bit version of MPIR."
             ABI=64
         else
-            echo "Building a 32-bit version of MPIR"
+            echo "Building a 32-bit version of MPIR."
             ABI=32
         fi;;
     Darwin)
         if [ "$SAGE64" = "yes" ]; then
             # Note that we do not support 64-bit builds on PPC at all,
             # so we don't special-case on the architecture here.
-            echo "Building a 64-bit version of MPIR"
+            echo "Building a 64-bit version of MPIR."
             ABI=64
         else
             # Do not set ABI=32 on OS X 10.6 (Darwin 10) and later, since
@@ -224,20 +224,24 @@ case "$UNAME" in
         #       OSs above (and print an according message), it's here.
         if [ -z "$ABI" ]; then
             echo "int main(){return 0;}" > foo.c
-            # Try building and running a 64-bit executable
-            # (Usually succeeds, unless e.g. a 32-bit CPU is explicitly selected by CFLAGS.)
+            # Try building and running a 64-bit executable:
+            # (Building usually succeeds even on 32-bit systems, unless e.g. a 32-bit
+	    # CPU is explicitly selected by CFLAGS, while running does not.)
             if $CC $CFLAGS $CFLAG64 -o foo foo.c 2>/dev/null && ./foo 2>/dev/null; then
                 # We can run 64-bit executables.
                 # Setting ABI=64 shouldn't be necessary, but shouldn't hurt either.
-                echo "Building a 64-bit version of MPIR"
-                ABI=64
+                echo "Building a 64-bit version of MPIR."
+                case "`uname -m`" in
+                    ppc64) ABI=mode64;;
+                    *)     ABI=64
+                esac
             elif $CC $CFLAGS $CFLAG32 -o foo foo.c 2>/dev/null && ./foo 2>/dev/null; then
                 # We're on a 32-bit OS which cannot run 64-bit executables.
-                echo "Building a 32-bit version of MPIR"
+                echo "Building a 32-bit version of MPIR."
                 ABI=32
             else
-                # It seems the compiler does not support -m32 nor -m64,
-                # do not set ABI at all.
+                # It seems the compiler does not support -m32 nor -m64 (e.g.
+                # GCC on Itanium rejects both); do not set ABI at all.
                 echo "Your compiler does not support '$CFLAG32' nor '$CFLAG64'.  Leaving ABI unset."
             fi
             rm -f foo foo.c

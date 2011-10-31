@@ -49,6 +49,18 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-11.1.2.git.20111030 (William Stein, 30th October 2011) ===
+  * Upgraded for trac 11884.   I got this by using
+
+       git clone git://ecls.git.sourceforge.net/gitroot/ecls/ecl
+       rm -rf src
+       mv ecl src
+       cd ecl; rm -rf .git*    # remove saved 20MB
+
+    I'm calling it 11.1.2.git so that the version number still sorts
+    correctly, and since one could view this as a snapshot of what
+    will be 11.1.2 eventually.
+
 === ecl-11.1.1.p3 (Karl-Dieter Crisman, 27th June 2011) ===
   * Two more fixes for Cygwin from upstream, fixing
     double inclusion of fenv.h in h/impl/math_fenv.h and

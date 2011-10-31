@@ -32,6 +32,9 @@ COPYING.
 
 == Changelog ==
 
+=== maxima-5.23.2.p1 (William Stein, 31 October 2011) ===
+ * Trac #11966: Modification so that Sage will build on Lion.
+
 === maxima-5.23.2.p0 (Jeroen Demeyer, 18 May 2011) ===
  * Trac #11348: Add infodir.patch to use the correct "infodir" when
    relocating the Sage install tree.

@@ -8,8 +8,6 @@
 # to run various types of test suites, and to remove parts of the build etc.
 
 # TODO:
-#   * Consistently do "./sage -b" before running tests, and *before*
-#     building/updating the documentation.
 #   * Shorten description of NUM_THREADS below?
 
 # NUM_THREADS is the number of threads to use for parallel testing (and
@@ -36,17 +34,12 @@ PIPE = spkg/pipestatus
 
 all: start doc  # indirectly depends on build
 
-# $(PIPE):
-#	# We could generate it here if it doesn't exist, or a specific version
-#	# depending on the shell (version), or even redefine $(PIPE) here.
-#	# The following would require $(PIPE) to be a phony target:
-#	test -x $@ # or make it executable if it exists; sanity check only anyway
-
-build: $(PIPE)
+build:
 	cd spkg && \
 	"../$(PIPE)" \
 		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
 		"tee -a ../install.log"
+	./sage -b
 
 build-serial: SAGE_PARALLEL_SPKG_BUILD = no
 build-serial: build
@@ -60,22 +53,22 @@ start: build
 # the PDF version. To do so, you need to build both the HTML and PDF versions.
 # To have the HTML version link to the PDF version, do
 #
-# $ ./sage -docbuild all html
-# $ ./sage -docbuild all pdf
+# $ ./sage --docbuild all html
+# $ ./sage --docbuild all pdf
 #
 # For more information on the docbuild utility, do
 #
-# $ ./sage -docbuild -H
+# $ ./sage --docbuild -H
 doc: doc-html
 
-doc-html: build # (already) indirectly depends on $(PIPE)
-	$(PIPE) "./sage -docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
+doc-html: build
+	$(PIPE) "./sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
 
-doc-html-jsmath: build # (already) indirectly depends on $(PIPE)
-	$(PIPE) "./sage -docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
+doc-html-jsmath: build
+	$(PIPE) "./sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
 
-doc-pdf: build # (already) indirectly depends on $(PIPE)
-	$(PIPE) "./sage -docbuild all pdf $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a docpdf.log"
+doc-pdf: build
+	$(PIPE) "./sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a docpdf.log"
 
 doc-clean:
 	@echo "Deleting devel/sage/doc/output..."
@@ -120,35 +113,51 @@ text-expand:
 text-collapse:
 	./spkg/base/text-collapse
 
-TESTPRELIMS = . local/bin/sage-env && sage-starts &&
+TESTPRELIMS = local/bin/sage-starts
 TESTDIRS = devel/sage/doc/common devel/sage/doc/de devel/sage/doc/en devel/sage/doc/fr devel/sage/doc/ru devel/sage/sage
 
 test: all # i.e. build and (HTML) doc
-	@# $(TESTPRELIMS) (also) puts sage-maketest into the path
-	$(TESTPRELIMS) sage-maketest
+	$(TESTPRELIMS)
+	. local/bin/sage-env && sage-maketest
 
 check: test
 
-testall: all # i.e. build and (HTML) doc, and also indirectly $(PIPE)
-	./sage -b
-	$(PIPE) "$(TESTPRELIMS) ./sage -t -sagenb -optional $(TESTDIRS) 2>&1" "tee -a testall.log"
+testall: all # i.e. build and doc
+	$(TESTPRELIMS)
+	$(PIPE) "./sage -t --sagenb --optional $(TESTDIRS) 2>&1" "tee -a testall.log"
 
-testlong: all # i.e. build and (HTML) doc, and also indirectly $(PIPE)
-	./sage -b
-	$(PIPE) "$(TESTPRELIMS) ./sage -t -sagenb -long $(TESTDIRS) 2>&1" "tee -a testlong.log"
+testlong: all # i.e. build and doc
+	$(TESTPRELIMS)
+	$(PIPE) "./sage -t --sagenb --long $(TESTDIRS) 2>&1" "tee -a testlong.log"
 
-ptest: all # i.e. build and (HTML) doc, and also indirectly $(PIPE)
-	$(PIPE) "$(TESTPRELIMS) ./sage -tp $(NUM_THREADS) -sagenb $(TESTDIRS) 2>&1" "tee -a ptest.log"
+testalllong: all # i.e. build and doc
+	$(TESTPRELIMS)
+	$(PIPE) "./sage -t --sagenb --optional --long $(TESTDIRS) 2>&1" "tee -a testalllong.log"
 
-ptestall: all # i.e. build and (HTML) doc, and also indirectly $(PIPE)
-	$(PIPE) "$(TESTPRELIMS) ./sage -tp $(NUM_THREADS) -sagenb -optional $(TESTDIRS) 2>&1" "tee -a ptestall.log"
+ptest: all # i.e. build and doc
+	$(TESTPRELIMS)
+	$(PIPE) "./sage -tp $(NUM_THREADS) --sagenb $(TESTDIRS) 2>&1" "tee -a ptest.log"
 
-ptestlong: all # i.e. build and (HTML) doc, and also indirectly $(PIPE)
-	$(PIPE) "$(TESTPRELIMS) ./sage -tp $(NUM_THREADS) -sagenb -long $(TESTDIRS) 2>&1" "tee -a ptestlong.log"
+ptestall: all # i.e. build and doc
+	$(TESTPRELIMS)
+	$(PIPE) "./sage -tp $(NUM_THREADS) --sagenb --optional $(TESTDIRS) 2>&1" "tee -a ptestall.log"
+
+ptestlong: all # i.e. build and doc
+	$(TESTPRELIMS)
+	$(PIPE) "./sage -tp $(NUM_THREADS) --sagenb --long $(TESTDIRS) 2>&1" "tee -a ptestlong.log"
+
+ptestalllong: all # i.e. build and doc
+	$(TESTPRELIMS)
+	$(PIPE) "./sage -tp $(NUM_THREADS) --sagenb --optional --long $(TESTDIRS) 2>&1" "tee -a ptestalllong.log"
+
 
 testoptional: testall # just an alias
 
+testoptionallong: testalllong # just an alias
+
 ptestoptional: ptestall # just an alias
+
+ptestoptionallong: ptestalllong # just an alias
 
 
 install:
@@ -166,8 +175,8 @@ install:
 	cd $(DESTDIR)/bin/; ./sage -c
 
 
-.PHONY: all build build-serial start \
+.PHONY: all build build-serial start install \
 	doc doc-html doc-html-jsmath doc-pdf \
 	doc-clean clean	distclean \
-	test check testoptional testlong ptest ptestall ptestlong \
-	install testall ptestoptional
+	test check testoptional testall testlong testoptionallong testallong \
+	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong

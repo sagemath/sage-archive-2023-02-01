@@ -197,9 +197,8 @@ first_try = True
 try:
     os.makedirs(GAP_DIR)
     open('%s/gap/README.txt'%DOT_SAGE, 'w').write("It is OK to delete all these cache files.  They will be recreated as needed.")
-except OSError as err:
-    import errno
-    if not err.errno == errno.EEXIST:
+except OSError:
+    if not os.path.isdir(GAP_DIR):
         raise
 
 gap_cmd = "gap -r"

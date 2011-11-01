@@ -48,15 +48,19 @@ LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
 
 def sage_makedirs(dir):
     """
-    Like os.makedirs combined with "mkdir -p": try to create a directory,
-    and also create all intermediate directories as necessary.  If the
-    directory already exists, exit silently. Raise other errors (like
-    permission errors) normally.
+    Python version of ``mkdir -p``: try to create a directory, and also
+    create all intermediate directories as necessary.  Succeed silently
+    if the directory already exists (unlike ``os.makedirs()``).
+    Raise other errors (like permission errors) normally.
 
     EXAMPLES::
 
         sage: from sage.misc.misc import sage_makedirs
         sage: sage_makedirs(DOT_SAGE) # no output
+
+    The following fails because we are trying to create a directory in
+    place of an ordinary file (the main Sage executable)::
+
         sage: sage_executable = os.path.join(SAGE_ROOT, 'sage')
         sage: sage_makedirs(sage_executable)
         Traceback (most recent call last):
@@ -69,7 +73,6 @@ def sage_makedirs(dir):
         if not os.path.isdir(dir):
             raise
 
-sage_makedirs(SAGE_ROOT)
 
 try:
     SAGE_URL = os.environ["SAGE_URL"]

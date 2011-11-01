@@ -1078,11 +1078,11 @@ class FileCache:
             sage: FC[((),())]
             1
         """
+        from sage.misc.misc import sage_makedirs
         if len(dir) == 0 or dir[-1] != '/':
             dir += '/'
         self._dir = dir
-        if not os.path.exists(dir):
-            os.mkdir(dir)
+        sage_makedirs(dir)
 
         self._prefix = prefix + '-'
 

@@ -27,8 +27,8 @@ PATH = misc.SAGE_ROOT + "/db"
 USE_DB = False
 
 def path():
-    if not os.path.exists(PATH):
-        os.mkdir(PATH)
+    from sage.misc.misc import sage_makedirs
+    sage_makedirs(PATH)
 
 def save(x, filename, bzip2=False, gzip=False):
     """

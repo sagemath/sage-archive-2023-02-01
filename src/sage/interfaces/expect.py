@@ -400,14 +400,14 @@ If this all works, you can then make calls like:
             return False
 
     def _start(self, alt_message=None, block_during_init=True):
+        from sage.misc.misc import sage_makedirs
         self.quit()  # in case one is already running
         global failed_to_start
 
         self._session_number += 1
         current_path = os.path.abspath('.')
         dir = self.__path
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+        sage_makedirs(dir)
         os.chdir(dir)
 
         #If the 'SAGE_PEXPECT_LOG' environment variable is set and
@@ -416,8 +416,7 @@ If this all works, you can then make calls like:
         if self.__logfile is None and 'SAGE_PEXPECT_LOG' in os.environ:
             from sage.misc.all import DOT_SAGE
             logs = '%s/pexpect_logs'%DOT_SAGE
-            if not os.path.exists(logs):
-                os.mkdir(logs)
+            sage_makedirs(logs)
 
             filename = '%s/%s-%s-%s-%s.log'%(logs, self.name(), os.getpid(), id(self), self._session_number)
             self.__logfile = open(filename, 'w')

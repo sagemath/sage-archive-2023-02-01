@@ -82,12 +82,12 @@ class Log:
     instantiate are derived from this one.
     """
     def __init__(self, dir=None, debug=False, viewer=None):
+        from sage.misc.misc import sage_makedirs
         if dir is None:
             dir = misc.DOT_SAGE + 'log'
         self._time = time.strftime('%Y-%m-%d-%H%M%S')
         dir = os.path.join(os.path.abspath(dir), 'log-' + self._time)
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+        sage_makedirs(dir)
         self._debug = debug
         self._n = 0
         self._dir = dir

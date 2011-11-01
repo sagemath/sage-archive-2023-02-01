@@ -51,10 +51,10 @@ class func_persist:
     definition to cache values it computes to disk.
     """
     def __init__(self, f, dir='func_persist'):
+        from sage.misc.misc import sage_makedirs
         self.__func = f
         self.__dir  = dir
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+        sage_makedirs(dir)
         self.__doc__ = '%s%s%s'%(\
             f.func_name,
             inspect.formatargspec(*inspect.getargs(f.func_code)),

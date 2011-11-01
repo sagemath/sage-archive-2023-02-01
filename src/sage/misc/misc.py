@@ -46,8 +46,30 @@ HOSTNAME = socket.gethostname().replace('-','_').replace('/','_').replace('\\','
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
 
-if not os.path.exists(SAGE_ROOT):
-    os.makedirs(SAGE_ROOT)
+def sage_makedirs(dir):
+    """
+    Like os.makedirs combined with "mkdir -p": try to create a directory,
+    and also create all intermediate directories as necessary.  If the
+    directory already exists, exit silently. Raise other errors (like
+    permission errors) normally.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import sage_makedirs
+        sage: sage_makedirs(DOT_SAGE) # no output
+        sage: sage_executable = os.path.join(SAGE_ROOT, 'sage')
+        sage: sage_makedirs(sage_executable)
+        Traceback (most recent call last):
+        ...
+        OSError: ...
+    """
+    try:
+        os.makedirs(dir)
+    except OSError:
+        if not os.path.isdir(dir):
+            raise
+
+sage_makedirs(SAGE_ROOT)
 
 try:
     SAGE_URL = os.environ["SAGE_URL"]
@@ -93,8 +115,7 @@ if ' ' in DOT_SAGE:
 #   2. Check to see if the permissions on DOT_SAGE are
 #      sufficiently restrictive.  If not, we change them.
 
-if not os.path.exists(DOT_SAGE):
-    os.makedirs(DOT_SAGE)
+sage_makedirs(DOT_SAGE)
 
 _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
 _desired_mode = 040700     # drwx------
@@ -110,12 +131,8 @@ if _mode != _desired_mode:
 # "historical reasons"...
 
 SAGE_TMP='%s/temp/%s/%s/'%(DOT_SAGE, HOSTNAME, os.getpid())
-if not os.path.exists(SAGE_TMP):
-    try:
-        os.makedirs(SAGE_TMP)
-    except OSError, msg:
-        print msg
-        raise OSError, " ** Error trying to create the Sage tmp directory in your home directory.  A possible cause of this might be that you built or upgraded Sage after typing 'su'.  You probably need to delete the directory $HOME/.sage."
+
+sage_makedirs(SAGE_TMP)
 
 SAGE_DATA = '%s/data/'%SAGE_ROOT
 SAGE_EXTCODE = '%s/data/extcode/'%SAGE_ROOT
@@ -133,12 +150,10 @@ def delete_tmpfiles():
         pass
 
 SAGE_TMP_INTERFACE='%s/interface/'%SAGE_TMP
-if not os.path.exists(SAGE_TMP_INTERFACE):
-    os.makedirs(SAGE_TMP_INTERFACE)
+sage_makedirs(SAGE_TMP_INTERFACE)
 
 SAGE_DB = '%s/db'%DOT_SAGE
-if not os.path.exists(SAGE_DB):
-    os.makedirs(SAGE_DB)
+sage_makedirs(SAGE_DB)
 
 
 #################################################################

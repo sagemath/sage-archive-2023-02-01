@@ -287,12 +287,12 @@ class Database(_uniq):
         return X
 
     def dump_as_dict(self, filename, keys):
+        from sage.misc.misc import sage_makedirs
         X = self.as_dict(keys)
         print "Dumping %s..."%filename
         s = cPickle.dumps(X,2)
         dir = "%s/pickles/"%SAGE_DATA
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+        sage_makedirs(dir)
         open("%s/%s"%(dir,filename), "w").write(s)
 
     def dump_as_dict_intervals(self, basename, Nstart, Nstop, length):

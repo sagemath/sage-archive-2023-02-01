@@ -4,7 +4,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.arith import GCD
 import sage.misc.db as db
-from sage.misc.misc import SAGE_ROOT
+from sage.misc.misc import SAGE_ROOT, sage_makedirs
 
 # TODO:
 # I messed up and now self.d is i and self.i is d,
@@ -12,8 +12,7 @@ from sage.misc.misc import SAGE_ROOT
 
 
 PATH = SAGE_ROOT + "/src/tables/modular/gamma0/db/"
-if not os.path.exists(PATH):
-    os.makedirs(PATH)
+sage_makedirs(PATH)
 
 class ModularForm:
     def __init__(self, N, d, i, Wq, r, charpolys, disc):

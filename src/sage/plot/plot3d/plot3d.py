@@ -171,7 +171,7 @@ class _Coordinates(object):
             sage: T.to_cartesian(f, [x, y])
             (x + y, x - y, 2*x + y)
             sage: [h(1,2) for h in T.to_cartesian(lambda x,y: 2*x+y)]
-            [3, -1, 4]
+            [3.0, -1.0, 4.0]
 
         We try to return a function having the same variable names as
         the function passed in::
@@ -208,9 +208,26 @@ class _Coordinates(object):
             sage: inspect.getargspec(t1)
             ArgSpec(args=['u', 'v'], varargs=None, keywords=None, defaults=None)
             sage: [h(1,2) for h in T.to_cartesian(operator.mul)]
-            [3, -1, 2]
+            [3.0, -1.0, 2.0]
             sage: [h(u=1,v=2) for h in T.to_cartesian(operator.mul)]
-            [3, -1, 2]
+            [3.0, -1.0, 2.0]
+
+        The output of the function `func` is coerced to a float when
+        it is evaluated if the function is something like a lambda or
+        python callable. This takes care of situations like f returning a
+        singleton numpy array, for example.
+
+            sage: from numpy import array
+            sage: v_phi=array([ 0.,  1.57079637,  3.14159274, 4.71238911,  6.28318548])
+            sage: v_theta=array([ 0.,  0.78539819,  1.57079637,  2.35619456,  3.14159274])
+            sage: m_r=array([[ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422],
+            ... [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
+            ... [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422],
+            ... [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
+            ... [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422]])
+            sage: import scipy.interpolate
+            sage: f=scipy.interpolate.RectBivariateSpline(v_phi,v_theta,m_r)
+            sage: spherical_plot3d(f,(0,2*pi),(0,pi))
 
         """
         from sage.symbolic.expression import is_Expression
@@ -244,9 +261,9 @@ class _Coordinates(object):
                 # We use eval so that the lambda function has the same
                 # variable names as the original function
                 ll="""lambda {x},{y}: t.subs({{
-                    dep_var_dummy: func({x}, {y}),
-                    indep_var_dummies[0]: {x},
-                    indep_var_dummies[1]: {y}
+                    dep_var_dummy: float(func({x}, {y})),
+                    indep_var_dummies[0]: float({x}),
+                    indep_var_dummies[1]: float({y})
                 }})""".format(x=params[0], y=params[1])
                 return eval(ll,dict(t=t, func=func, dep_var_dummy=dep_var_dummy,
                                     indep_var_dummies=indep_var_dummies))
@@ -351,7 +368,7 @@ class _ArbitraryCoordinates(_Coordinates):
             sage: T.to_cartesian(f, [x, y])
             (x + y, x - y, 2*x + y)
             sage: [h(1,2) for h in T.to_cartesian(lambda x,y: 2*x+y)]
-            [3, -1, 4]
+            [3.0, -1.0, 4.0]
         """
         self.dep_var = str(dep_var)
         self.indep_vars = [str(i) for i in indep_vars]

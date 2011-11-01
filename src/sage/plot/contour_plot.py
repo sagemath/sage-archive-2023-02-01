@@ -196,9 +196,9 @@ class ContourPlot(GraphicPrimitive):
             from matplotlib import colorbar
             cax,kwds=colorbar.make_axes(subplot,**colorbar_options)
             if CSF is None:
-                cb=colorbar.Colorbar(cax,CS, **colorbar_options)
+                cb=colorbar.Colorbar(cax,CS, **kwds)
             else:
-                cb=colorbar.Colorbar(cax,CSF, **colorbar_options)
+                cb=colorbar.Colorbar(cax,CSF, **kwds)
                 cb.add_lines(CS)
 
 @suboptions('colorbar', orientation='vertical', format=None, spacing=None)

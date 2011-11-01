@@ -129,6 +129,8 @@ class MatrixPlot(GraphicPrimitive):
                         a list of colors, or an instance of a
                         matplotlib Colormap. Type: import matplotlib.cm; matplotlib.cm.datad.keys()
                         for available colormap names.""",
+                'colorbar': "Include a colorbar indicating the levels (dense matrices only)",
+                'colorbar_options': "a dictionary of options for colorbars",
                 'zorder':"The layer level in which to draw",
                 'marker':"The marker for sparse plots",
                 'markersize':"The marker size for sparse plots",
@@ -198,7 +200,8 @@ class MatrixPlot(GraphicPrimitive):
         if hasattr(self.xy_data_array, 'tocoo'):
             # Sparse matrix -- use spy
             opts=options.copy()
-            for opt in ['vmin', 'vmax', 'norm', 'origin','subdivisions','subdivision_options']:
+            for opt in ['vmin', 'vmax', 'norm', 'origin','subdivisions','subdivision_options',
+                        'colorbar','colorbar_options']:
                 del opts[opt]
             if origin=='lower':
                 subplot.spy(self.xy_data_array.tocsr()[::-1], **opts)
@@ -208,16 +211,27 @@ class MatrixPlot(GraphicPrimitive):
             opts = dict(cmap=cmap, interpolation='nearest', aspect='equal',
                       norm=norm, vmin=options['vmin'], vmax=options['vmax'],
                       origin=origin,zorder=options.get('zorder',None))
-            subplot.imshow(self.xy_data_array, **opts)
+            image=subplot.imshow(self.xy_data_array, **opts)
+
+            if options.get('colorbar', False):
+                colorbar_options = options['colorbar_options']
+                from matplotlib import colorbar
+                cax,kwds=colorbar.make_axes(subplot,**colorbar_options)
+                cb=colorbar.Colorbar(cax,image, **kwds)
+
         if origin=='upper':
             subplot.xaxis.tick_top()
         elif origin=='lower':
             subplot.xaxis.tick_bottom()
 
+
+
+
+@suboptions('colorbar', orientation='vertical', format=None)
 @suboptions('subdivision',boundaries=None, style=None)
 @options(cmap='gray',marker='.',frame=True, axes=False, norm=None,
          vmin=None, vmax=None, origin='upper',ticks_integer=True,
-         subdivisions=False)
+         subdivisions=False, colorbar=False)
 def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
@@ -244,6 +258,18 @@ def matrix_plot(mat, **options):
       or an instance of a matplotlib Colormap.
       Type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
       for available colormap names.
+
+    - ``colorbar`` -- boolean (default: False) Show a colorbar or not (dense matrices only).
+
+      The following options are to adjust the style and placement of
+      colorbars.  They have no effect if a colorbar is not shown.
+
+      - ``colorbar_orientation`` -- string (default: 'vertical'),
+        controls placement of the colorbar, can be either 'vertical'
+        or 'horizontal'
+
+      - ``colorbar_format`` -- a format string, this is used to format
+        the colorbar labels.
 
     - ``norm`` - If None (default), the value range is scaled to the interval
       [0,1].  If 'value', then the actual value is used with no
@@ -287,14 +313,14 @@ def matrix_plot(mat, **options):
     ``vmin`` and ``vmax`` parameters (values outside the range are
     clipped).  The two plots below are now distinguished::
 
-        sage: P = matrix_plot(matrix(2,[1,1,3,3]), vmin=0, vmax=3)
-        sage: Q = matrix_plot(matrix(2,[2,2,3,3]), vmin=0, vmax=3)
+        sage: P = matrix_plot(matrix(2,[1,1,3,3]), vmin=0, vmax=3, colorbar=True)
+        sage: Q = matrix_plot(matrix(2,[2,2,3,3]), vmin=0, vmax=3, colorbar=True)
         sage: P; Q
 
     We can also specify a norm function of 'value', which means that
     there is no scaling performed::
 
-        sage: matrix_plot(random_matrix(ZZ,10)*.05, norm='value')
+        sage: matrix_plot(random_matrix(ZZ,10)*.05, norm='value', colorbar=True)
 
     Matrix subdivisions can be plotted as well::
 
@@ -322,6 +348,15 @@ def matrix_plot(mat, **options):
     It also works if you lift it to the polynomial ring::
 
         sage: matrix_plot(m.change_ring(GF(389)['x']), cmap='Oranges')
+
+    We have several options for colorbars::
+
+        sage: matrix_plot(random_matrix(RDF, 50), colorbar=True, colorbar_orientation='horizontal')
+
+    ::
+
+        sage: matrix_plot(random_matrix(RDF, 50), colorbar=True, colorbar_format='%.3f')
+
 
     Here we plot a random sparse matrix::
 

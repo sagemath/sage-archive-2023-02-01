@@ -30,26 +30,32 @@ def running_total(L, start=None):
     Returns a list where the i-th entry is the sum of all entries up to (and including) i.
 
     INPUT:
-        L     -- the list
-        start -- (optional) a default start value
 
-    EXAMPLES:
+    - ``L`` -- the list
+
+    - ``start`` -- (optional) a default start value
+
+    EXAMPLES::
+
         sage: running_total(range(5))
         [0, 1, 3, 6, 10]
         sage: running_total("abcdef")
         ['a', 'ab', 'abc', 'abcd', 'abcde', 'abcdef']
+        sage: running_total("abcdef", start="%")
+        ['%a', '%ab', '%abc', '%abcd', '%abcde', '%abcdef']
         sage: running_total([1..10], start=100)
         [101, 103, 106, 110, 115, 121, 128, 136, 145, 155]
+        sage: running_total([])
+        []
     """
-    cdef bint first = 1
-    running = None
+    running = []
+    total = start
     for x in L:
-        if first:
-            total = L[0] if start is None else L[0]+start
-            running = [total]
-            first = 0
-            continue
-        total += x
+        if total is None:
+            # This is the first entry
+            total = x
+        else:
+            total += x
         PyList_Append(running, total)
     return running
 

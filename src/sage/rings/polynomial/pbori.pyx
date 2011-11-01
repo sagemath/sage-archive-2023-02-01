@@ -627,7 +627,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: I.groebner_basis()
             [1]
         """
-        msg = None
         cdef BooleanPolynomial p
         # we check for other PolyBoRi types first since this conversion
         # is used by the PolyBoRi python code often
@@ -752,7 +751,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             ...
             TypeError: cannot convert polynomial z*x^2 + 5*y^3 to Boolean PolynomialRing in x, y: name z not defined
         """
-        msg = None
         cdef int i
 
         try:

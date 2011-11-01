@@ -739,8 +739,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if action is not None:
                 return (<Action>action)._call_(x, y)
 
+        xy = None
         try:
-            xy = None
             xy = self.canonical_coercion(x,y)
             return PyObject_CallObject(op, xy)
         except TypeError, err:

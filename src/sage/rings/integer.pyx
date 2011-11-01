@@ -4152,11 +4152,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Returns ``True`` if ``self`` is prime.
 
+        INPUT:
+
+        - ``proof`` -- If False, use a strong pseudo-primality test.
+          If True, use a provable primality test.  If unset, use the
+          default arithmetic proof flag.
+
         .. note::
 
            Integer primes are by definition *positive*! This is
            different than Magma, but the same as in PARI. See also the
-           :meth:`.is_irreducible` method.
+           :meth:`is_irreducible()` method.
 
         EXAMPLES::
 
@@ -4173,6 +4179,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.is_prime()
             False
             sage: z.is_irreducible()
+            True
+
+        ::
+
+            sage: z = 10^80 + 129
+            sage: z.is_prime(proof=False)
+            True
+            sage: z.is_prime(proof=True)
             True
 
         IMPLEMENTATION: Calls the PARI ``isprime`` function.

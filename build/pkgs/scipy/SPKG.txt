@@ -26,20 +26,27 @@ BSD terms. See http://www.scipy.org/License_Compatibility
  * Python, which in Sage has numerous dependencies
  * Numpy
  * Fortran
+ * GNU patch
 
 == Special Update/Build Instructions ==
- * None
+ * Make sure the patches still apply.
+   The ones added in the scipy-0.9.p0 spkg (#11886) were all taken from
+   (unstable) upstream, so can presumably be removed once we upgrade to
+   a new stable version.
 
 == Changelog ==
 
-== scipy-0.9.p0 (John Palmieri, 30 Sept 2011) ==
+=== scipy-0.9.p1 (Leif Leonhardy, November 1st 2011) ===
+ * #11886: Reviewer changes (mostly cosmetic).
+
+=== scipy-0.9.p0 (John Palmieri, 30 Sept 2011) ===
  * #11886: get scipy to build on OS X 10.7 Lion, using the patches from
    https://github.com/scipy/scipy/commit/effa6f68f8ada57b79864852b609ff06d2527306
 
-== scipy-0.9 (F. Bissey; 16 March 2011) ===
+=== scipy-0.9 (F. Bissey; 16 March 2011) ===
  * updated the source to 0.9.0. No patches needed.
 
-== scipy-0.8 (S. Reiterer, F. Bissey, D. Kirkby, J. H. Palmieri; 14 October 2010) ===
+=== scipy-0.8 (S. Reiterer, F. Bissey, D. Kirkby, J. H. Palmieri; 14 October 2010) ===
  * #9808 Upgrade to scipy 0.8.
  * Deleted outdated patches
  * spkg install changed by F. Bissey, because g95 makes trouble on OS X.

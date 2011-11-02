@@ -121,7 +121,39 @@ def random_quadraticform_with_conditions(R, n, condition_list=[], rand_arg_list=
     ## Return the quadratic form
     return Q
 
-def random_ternaryqf(rand_arg_list):
+def random_ternaryqf(rand_arg_list = []):
+    """
+    Create a random ternary quadratic form.
+
+    The last (and optional) argument ``rand_arg_list`` is a list of at most 3
+    elements which is passed (as at most 3 separate variables) into the method
+    ``R.random_element()``.
+
+    INPUT:
+
+    - ``rand_arg_list`` -- a list of at most 3 arguments which can be taken by
+      ``R.random_element()``.
+
+    OUTPUT:
+
+    A ternary quadratic form.
+
+    EXAMPLES::
+
+        sage: random_ternaryqf()  ##RANDOM
+        Ternary quadratic form with integer coefficients:
+        [1 1 4]
+        [-1 1 -1]
+        sage: random_ternaryqf([-1, 2])  ##RANDOM
+        Ternary quadratic form with integer coefficients:
+        [1 0 1]
+        [-1 -1 -1]
+        sage: random_ternaryqf([-10, 10, "uniform"])  ##RANDOM
+        Ternary quadratic form with integer coefficients:
+        [7 -8 2]
+        [0 3 -6]
+    """
+
 
     R = ZZ
     n = 6
@@ -140,6 +172,26 @@ def random_ternaryqf(rand_arg_list):
 
 
 def random_ternaryqf_with_conditions(condition_list=[], rand_arg_list=[]):
+    """
+    Create a random ternary quadratic form satisfying a list of boolean
+    (i.e. True/False) conditions.
+
+    The conditions `c` appearing in the list must be boolean functions which
+    can be called either as ``Q.c()`` or ``c(Q)``, where ``Q`` is the random
+    ternary quadratic form.
+
+    The last (and optional) argument ``rand_arg_list`` is a list of at most 3
+    elements which is passed (as at most 3 separate variables) into the method
+    ``R.random_element()``.
+
+    EXAMPLES::
+
+        sage: Q = random_ternaryqf_with_conditions([TernaryQF.is_positive_definite], [-5, 5])
+        sage: Q    ## RANDOM
+        Ternary quadratic form with integer coefficients:
+        [3 4 2]
+        [2 -2 -1]
+    """
 
     Q = random_ternaryqf(rand_arg_list)
     Done_Flag = True

@@ -7,21 +7,36 @@ from sage.rings.finite_rings.integer_mod import mod
 from sage.misc.prandom import randint
 from sage.rings.arith import xgcd,gcd
 from sage.functions.other import ceil, floor
-from math import sqrt
 from __builtin__ import max
 
 
 
 def red_mfact(a,b):
+    """
+    Auxiliar function for reduction that finds the reduction factor of a, b integers.
+
+    INPUT:
+        - a, b integers
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.ternary import red_mfact
+        sage: red_mfact(0, 3)
+        0
+        sage: red_mfact(-5, 100)
+        9
+
+    """
 
     if a:
-      return((-b+abs(a))//(2*a))
+      return (-b + abs(a))//(2*a)
     else:
       return 0
 
 def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
-
-
     """
     Find the coefficients of the equivalent unique reduced ternary form according to the conditions
     of Dickson's "Studies in the Theory of Numbers", pp164-171, and the tranformation matrix.
@@ -223,7 +238,6 @@ def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
     return((a1,a2,a3,a23,a13,a12),M)
 
 def _reduced_ternary_form_eisenstein_without_matrix(a1, a2, a3, a23, a13, a12):
-
     """
     Find the coefficients of the equivalent unique reduced ternary form according to the conditions
     of Dickson's "Studies in the Theory of Numbers", pp164-171.
@@ -393,7 +407,6 @@ def _reduced_ternary_form_eisenstein_without_matrix(a1, a2, a3, a23, a13, a12):
 
 
 def primitivize(long long v0, long long v1, long long v2, p):
-
     """
     Given a 3-tuple v not singular mod p, it returns a primitive 3-tuple version of v mod p.
 
@@ -416,7 +429,6 @@ def primitivize(long long v0, long long v1, long long v2, p):
         return 1, 0, 0
 
 def evaluate(a, b, c, r, s, t, v):
-
     """
     Function to evaluate the ternary quadratic form (a, b, c, r, s, t) in a 3-tuple v.
 
@@ -435,7 +447,6 @@ def evaluate(a, b, c, r, s, t, v):
     return a*v[0]**2+b*v[1]**2+c*v[2]**2+r*v[2]*v[1]+s*v[2]*v[0]+t*v[1]*v[0]
 
 def _find_zeros_mod_p_2(a, b, c, r, s, t):
-
     """
     Function to find the zeros mod 2 of a ternary quadratic form.
 
@@ -471,7 +482,6 @@ def _find_zeros_mod_p_2(a, b, c, r, s, t):
     return zeros
 
 def pseudorandom_primitive_zero_mod_p(a, b, c, r, s, t, p):
-
     """
     Find a zero of the form (a, b, 1) of the ternary quadratic form given by the coefficients (a, b, c, r, s, t)
     mod p, where p is a odd prime that doesn't divides the discriminant.
@@ -507,7 +517,6 @@ def pseudorandom_primitive_zero_mod_p(a, b, c, r, s, t, p):
                 return z%p, (r1*z+r2)%p, 1
 
 def _find_zeros_mod_p_odd(long long a, long long b, long long c, long long r, long long s, long long t, long long p, v):
-
     """
     Find the zeros mod p, where p is an odd prime, of a ternary quadratic form given by it's coefficients and a given zero of the form v.
     The prime p doesn't divides the discriminant of the form.
@@ -578,7 +587,6 @@ def _find_zeros_mod_p_odd(long long a, long long b, long long c, long long r, lo
 
 
 def _find_zeros_mod_p(a, b, c, r, s, t, p):
-
     """
     Finds the zeros mod p of the ternary quadratic form given by the coefficients (a, b, c, r, s, t), where p is
     a prime that doesn't divides the discriminant of the form.
@@ -610,7 +618,6 @@ def _find_zeros_mod_p(a, b, c, r, s, t, p):
 
 
 def _find_all_ternary_qf_by_level_disc(long long N, long long d):
-
     """
     Find the coefficients of all the reduced ternary quadratic forms given it's discriminant d and level N.
     If N|4d and d|N^2, then it may be some forms with that discriminant and level.
@@ -680,7 +687,7 @@ def _find_all_ternary_qf_by_level_disc(long long N, long long d):
     while a<=a_max:
 
         [g,u,v]=xgcd(4*a,m)
-        g1=ZZ(sqrt(ZZ(g).squarefree_part()*g))
+        g1=(ZZ(g).squarefree_part()*g).sqrtrem()[0]
         t=0
         while t<=a:
 
@@ -756,7 +763,6 @@ def _find_all_ternary_qf_by_level_disc(long long N, long long d):
 
 
 def _find_a_ternary_qf_by_level_disc(long long N, long long d):
-
     """
     Find the coefficients of a reduced ternary quadratic form given it's discriminant d and level N.
     If N|4d and d|N^2, then it may be a form with that discriminant and level.
@@ -822,7 +828,7 @@ def _find_a_ternary_qf_by_level_disc(long long N, long long d):
     while a<=a_max:
 
         [g,u,v]=xgcd(4*a,m)
-        g1=ZZ(sqrt(ZZ(g).squarefree_part()*g))
+        g1=(ZZ(g).squarefree_part()*g).sqrtrem()[0]
         t=0
         while t<=a:
 
@@ -897,7 +903,6 @@ def _find_a_ternary_qf_by_level_disc(long long N, long long d):
 
 
 def extend(v):
-
     """
     Return the coefficients of a matrix M such that M has determinant gcd(v) and the first column is v.
 
@@ -933,7 +938,6 @@ def extend(v):
 
 
 def _find_p_neighbor_from_vec(a, b, c, r, s, t, p, v, mat = False):
-
     """
     Finds the coefficients of the reduced equivalent of the p-neighbor
     of the ternary quadratic given by Q = (a, b, c, r, s, t)  form associated
@@ -1042,7 +1046,6 @@ def _find_p_neighbor_from_vec(a, b, c, r, s, t, p, v, mat = False):
 
 
 def _basic_lemma_vec(a, b, c, r, s, t, n):
-
     """
     Find a vector v such that the ternary quadratic form given by (a, b, c, r, s, t) evaluated at v is
     coprime with n a prime or 1.
@@ -1079,7 +1082,6 @@ def _basic_lemma_vec(a, b, c, r, s, t, n):
     raise ValueError, "not primitive form"
 
 def _basic_lemma(a, b, c, r, s, t, n):
-
     """
     Finds a number represented by the ternary quadratic form given by the coefficients (a, b, c, r, s, t)
     and coprime to the prime n.

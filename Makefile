@@ -90,7 +90,9 @@ text-collapse:
 	./spkg/bin/text-collapse
 
 TESTPRELIMS = local/bin/sage-starts
-TESTDIRS = devel/sage/doc/common devel/sage/doc/de devel/sage/doc/en devel/sage/doc/fr devel/sage/doc/ru devel/sage/sage
+# The [a-z][a-z] matches all directories whose names consist of two
+# lower-case letters, to match the language directories.
+TESTDIRS = devel/sage/doc/common devel/sage/doc/[a-z][a-z] devel/sage/sage
 
 test: all # i.e. build and doc
 	$(TESTPRELIMS)

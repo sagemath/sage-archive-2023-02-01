@@ -958,21 +958,39 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         return (self in self.parent().gens())
 
-    def map_coefficients(self, f):
+    def map_coefficients(self, f, new_base_ring=None):
         """
         Returns a new element of ``self.parent()`` obtained by applying
         the function f to all of the coefficients of self.
+
+        If ``new_base_ring=S`` is given, the new element returned has
+        coefficients in the base ring ``S``.
 
         EXAMPLES::
 
             sage: k.<a> = GF(9); R.<x,y> = k[];  f = x*a + 2*x^3*y*a + a
             sage: f.map_coefficients(lambda a : a + 1)
             (-a + 1)*x^3*y + (a + 1)*x + (a + 1)
+
+            sage: R.<r> = GF(9); S.<s> = GF(81)
+            sage: h = Hom(R,S)[0]; h
+            Ring morphism:
+              From: Finite Field in r of size 3^2
+              To:   Finite Field in s of size 3^4
+              Defn: r |--> 2*s^3 + 2*s^2 + 1
+            sage: T.<X,Y> = R[]
+            sage: f = r*X+Y
+            sage: f.map_coefficients(h,S)
+            (-s^3 - s^2 + 1)*X + Y
+
         """
-        P = self.parent()
+        if new_base_ring == None:
+            P = self.parent()
+        else:
+            P = self.parent().change_ring(new_base_ring)
         R = P.base_ring()
         d = dict([(n,R(f(c))) for n, c in self.dict().iteritems()])
-        return P( d )
+        return P(d)
 
     def _norm_over_nonprime_finite_field(self):
         """

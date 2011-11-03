@@ -862,15 +862,25 @@ System-wide install
 
 #. Make a copy of the ``sage`` script in ``/usr/local/bin``::
 
-       cp /usr/local/sage-4.7.3/sage /usr/local/bin/
+       cp /usr/local/sage-4.8/sage /usr/local/bin/
 
-   and edit the file ``/usr/local/sage-4.7.3/sage``: ``SAGE_ROOT`` should
-   be set to the directory where Sage is installed, for example
-   ``/usr/local/sage-4.7.3``.
+   and edit the file ``/usr/local/bin/sage``: ``SAGE_ROOT`` should be
+   set to the directory where Sage is installed, for example
+   ``/usr/local/sage-4.8``. It is recommended not to edit the original
+   file ``/usr/local/sage-4.8/sage``, only the copy.
 
 #. Make sure that all files in the Sage tree are readable by all::
 
-       chmod a+rX -R /usr/local/sage-4.7.3
+       chmod a+rX -R /usr/local/sage-4.8
+
+#. Optionally, you can test Sage by running::
+
+       make testlong
+
+   or ``make ptestlong`` which tests files in parallel using multiple
+   processes. You can also omit ``long`` to skip tests which take a long
+   time.
+
 
 
 Special Notes
@@ -897,4 +907,4 @@ Special Notes
   :ref:`installation in a multiuser environment
   <sagetex_installation_multiuser>`.
 
-  **This page was last updated in June 2011**
+  **This page was last updated in November 2011**

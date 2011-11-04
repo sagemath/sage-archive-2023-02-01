@@ -38,16 +38,40 @@ Website: http://ecls.sourceforge.net/
  * boehm_gc
 
 == Special Update/Build Instructions ==
- * Delete the contents of the src/msvc directory
- * Delete the contents of the src/contrib/encodings/
- * TODO - Add the ECL test suite, and an spkg-check file to run it.
- * Note, the way we configure Sage, CXX and CXXFLAGS are unused.
+ * Note: deleting the following directories saves space: without doing
+   this, the spkg can grow from under 2.5 megabytes to almost 7
+   megabytes.
+ * Remove the directory src/msvc/
+ * Remove the directory src/src/gc_unstable/
+ * Remove the directory src/src/libffi/
+ * Remove most of the contents of the src/src/gmp directory:
+   everything except install.sh, config.*, and configfsf.*
+ * Build with --enable-unicode=no, and hence it is safe to:
+   - Remove the directory src/contrib/encodings/
+   - Remove the directory src/contrib/unicode/
+   (Building with --enable-unicode=yes, the default in the latest ECL
+   source, leads to problems with some strings in the Sage-Maxima-ECL
+   interface.)
+ * Note: the way we configure Sage, CXX and CXXFLAGS are unused.
  * Do NOT quote SAGE_LOCAL when setting CPPFLAGS and/or LDFLAGS,
    in spkg-install as this caused the build to break. See
    http://trac.sagemath.org/sage_trac/ticket/10187#comment:117
-
+ * TODO: Add the ECL test suite, and an spkg-check file to run it.
+ * TODO: Make ECL use Sage's Boehm GC on MacOS X as well (but perhaps
+   put some changes from ECL's into Sage's Boehm GC), then remove
+   the src/src/gc directory, too.
 
 == Changelog ==
+
+=== ecl-11.1.2.git.20111030.p0 (John H. Palmieri, 4 November 2011) ===
+  * Trac #11884.  General clean-up: remove unneeded patches,
+    remove some source files (as described above in "Special
+    Update/Build Instructions"), echo error messages to stderr, etc.
+  * Check the error code when running 'patch' in spkg-install.
+  * Run configure with the option "--enable-unicode=no" -- this was
+    the default in previous versions of ECL, and using the new default
+    of "yes" causes problems with some strings.
+  * Run configure with the option "--with-gmp-prefix=$SAGE_LOCAL".
 
 === ecl-11.1.2.git.20111030 (William Stein, 30th October 2011) ===
   * Upgraded for trac 11884.   I got this by using

@@ -1,87 +1,114 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [[ -z "$SAGE_LOCAL" ]]; then
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
-CUR=`pwd`
-
-cd src/
-
-# Apply patches
-for patch in ../patches/*.patch; do
-        patch -p1 <$patch || exit 1
-done
-
-
-MAKE="$MAKE -j1"  # force sequential build (1 job)
-
 check_error() {
-    if [ $? -ne 0 ]; then
-	echo "***********************************************************"
-        echo $1
-	echo "***********************************************************"
-        exit 1
+    if [[ $? -ne 0 ]]; then
+	echo >&2 "***********************************************************"
+	echo >&2 "Error:" $@
+	echo >&2 "***********************************************************"
+	exit 1
     fi
 }
 
+# We don't have to set up CFLAGS etc., since these are taken from ECL
+# (i.e., ECL uses the ones that were specified when ECL was built).
+
+MAKE="$MAKE -j1"  # force sequential build (1 job)
+
+CUR=`pwd`
+
+
+cd src/
+
+# Apply patches:
+echo "Applying patches (if any)..."
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    check_error "Patch '$patch' failed to apply."
+done
+
+
+echo
+echo "Now configuring Maxima..."
 ./configure --prefix="$SAGE_LOCAL" --enable-ecl
 check_error "Failed to configure Maxima."
 
-# Touching html and info file to avoid to regenerate them.
-# This must be done after configuration since the timestamp need
+# Touching html and info files to avoid to regenerate them.
+# This must be done after configuration since the timestamps need
 # to be later than include-maxima.texi which is generated at
-# configuration time
+# configuration time:
 for i in doc/info/*.html ; do
-   touch "${i}"
+    touch "${i}"
 done
 touch doc/info/maxima.info*
 
-if [ `uname` = "Darwin" ]; then
-   echo "Now building maxima; this takes a few minutes"
-   echo "Since we're using OS X and there is a very weird"
-   echo "bug with buffered output while building maxima,"
-   echo "you will not be able to see the output of the build"
-   echo "as it occurs.  Don't worry, the build process did"
-   echo "not hang."
-   $MAKE >> "$CUR"/output.log  2>> "$CUR"/error.log
-else
-   $MAKE
-fi
-check_error "Failed to make Maxima."
 
+echo
+if [[ "$UNAME" = "Darwin" ]]; then
+    echo "Now building Maxima; this takes a few minutes."
+    echo "Since we're on MacOS X and there is a very weird"
+    echo "bug with buffered output while building Maxima,"
+    echo "you will not be able to see the output of the build"
+    echo "as it occurs.  Don't worry, the build process doesn't"
+    echo "not hang."
+    $MAKE >> "$CUR"/output.log  2>> "$CUR"/error.log
+else
+    echo "Now building Maxima..."
+    $MAKE
+fi
+check_error "Failed to build Maxima."
+
+
+echo
+echo "Now installing Maxima..."
 $MAKE install
 check_error "Failed to install Maxima."
 
-echo "creating wrapper script with disabled readline"
-echo '#!/bin/sh' > "$SAGE_LOCAL"/bin/maxima-noreadline
-echo 'SAGE_CLISP_DISABLE_READLINE_HACK="yes"; export SAGE_CLISP_DISABLE_READLINE_HACK' >> "$SAGE_LOCAL"/bin/maxima-noreadline
-echo 'exec "$SAGE_LOCAL"/bin/maxima "$@"' >> "$SAGE_LOCAL"/bin/maxima-noreadline
+
+echo
+echo "Creating wrapper script with disabled readline..."
+cat >"$SAGE_LOCAL"/bin/maxima-noreadline <<-"EOF"
+	#!/usr/bin/env bash
+	if [[ -z "$SAGE_LOCAL" ]]; then
+	    echo >&2 "Error: This script has to be run from within the Sage environment,"
+	    echo >&2 "       for example from a Sage subshell."
+	    exit 1
+	fi
+	SAGE_CLISP_DISABLE_READLINE_HACK="yes"
+	export SAGE_CLISP_DISABLE_READLINE_HACK
+	exec "$SAGE_LOCAL"/bin/maxima "$@"
+EOF
 chmod 755 "$SAGE_LOCAL"/bin/maxima-noreadline
 
-if [ -f "$DOT_SAGE/maxima_commandlist_cache.sobj" ]; then
-   echo "Deleting Maxima commandlist cache. It will be recreated at the next start of Sage"
-   rm -f "$DOT_SAGE"/maxima_commandlist_cache.sobj
+if [[ -f "$DOT_SAGE/maxima_commandlist_cache.sobj" ]]; then
+    echo
+    echo "Deleting Maxima commandlist cache."
+    echo "It will be recreated at the next start of Sage."
+    rm -f "$DOT_SAGE"/maxima_commandlist_cache.sobj
 fi
 
-#build maxima as a lisp library
-#and install it in the ecl library directory
 
-cd src
-echo "building Maxima as an ecl library"
-mkdir ./lisp-cache
+# Build Maxima as a Lisp library
+# and install it into ECL's library directory:
+echo
+echo "Now building Maxima as an ECL library..."
+cd "$CUR"/src/src &&
+mkdir -p ./lisp-cache &&
 ecl \
   -eval '(require `asdf)' \
   -eval '(setf asdf::*user-cache* (truename "./lisp-cache"))' \
   -eval '(load "maxima-build.lisp")' \
   -eval '(asdf:make-build :maxima :type :fasl :move-here ".")' \
   -eval '(quit)'
+check_error "Failed to build Maxima as an ECL library."
+
 ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
 echo
-echo "installing Maxima library as $ECLLIB/maxima.fas"
-cp maxima.fasb "$ECLLIB/maxima.fas"
-check_error "Failed to install maxima.fasb as a library"
-cd ..
-
+echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
+cp -f maxima.fasb "$ECLLIB/maxima.fas"
+check_error "Failed to install '`pwd`/maxima.fasb' as '$ECLLIB/maxima.fas'."

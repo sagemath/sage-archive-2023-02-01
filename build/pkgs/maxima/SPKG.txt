@@ -23,14 +23,31 @@ COPYING.
 
 == SPKG Maintainers ==
 
+ * TBD
 
 == Upstream Contact ==
 
- * the Maxima mailing list - see http://maxima.sourceforge.net/maximalist.html
+ * The Maxima mailing list - see http://maxima.sourceforge.net/maximalist.html
 
 == Special Update/Build Instructions ==
 
+ * Make sure the patches still apply cleanly.
+
+ * TODO:
+   Is the `spkg-dist` script still needed, i.e., does anybody run
+   this after upgrading the upstream source tree?
+   (It deletes the stuff in some language directories, `src/doc/info/*/`,
+   and creates dummy `Makefile.in`s, but apparently nobody has run it on
+   the recent Maxima spkgs.)
+
 == Changelog ==
+
+=== maxima-5.23.2.p2 (Leif Leonhardy, November 3rd 2011) ===
+ * Trac #11966: Modification so that Sage will build on Lion.
+   Actually the new patch isn't specific to MacOS X 10.7 / Lion,
+   but necessary when building with the new ECL version from git
+   (ecl-11.1.2.git.20111030.spkg, see #11884).
+ * Reviewer changes: Clean up `spkg-install`.
 
 === maxima-5.23.2.p1 (William Stein, 31 October 2011) ===
  * Trac #11966: Modification so that Sage will build on Lion.

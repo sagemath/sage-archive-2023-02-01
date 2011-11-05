@@ -8,6 +8,7 @@ from graph_bundle import GraphBundle
 import graph_list as graphs_list
 import sage.graphs.generic_graph_pyx
 import sage.graphs.generic_graph
+import sage.graphs.graph_decompositions
 import sage.graphs.graph
 import sage.graphs.digraph
 import graph_coloring

@@ -47,5 +47,7 @@ Libraries of algorithms
    sage/graphs/spanning_tree
    sage/graphs/pq_trees
    sage/graphs/matchpoly
+   sage/graphs/graph_decompositions/vertex_separation
    sage/graphs/graph_latex
    sage/graphs/graph_list
+

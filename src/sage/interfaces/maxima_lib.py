@@ -85,7 +85,7 @@ ecl_eval("(defvar *MAXIMA-LANG-SUBDIR* NIL)")
 ecl_eval("(set-locale-subdir)")
 ecl_eval("(set-pathnames)")
 ecl_eval("(defun add-lineinfo (x) x)")
-ecl_eval('(defun principal nil (error "Divergent Integral"))')
+ecl_eval('(defun principal nil (cond ($noprincipal (diverg)) ((not pcprntd) (merror "Divergent Integral"))))')
 ecl_eval("(setf $errormsg nil)")
 
 # the following is a direct adaption of the definition of "retrieve"

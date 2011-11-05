@@ -9,6 +9,8 @@ fi
 
 echo
 echo "Testing that Sage starts..."
+version=spkg/standard/VERSION.txt
+echo "[`date +'%Y-%m-%d %H:%M:%S'`] `cat $version 2>/dev/null`" | tee -a start.log
 spkg/pipestatus "./sage -c \"print 'Yes, Sage starts.'\" 2>&1" "tee -a start.log"
 
 if [ $? -ne 0 ]; then

@@ -686,15 +686,22 @@ class TermOrder(SageObject):
                     singular_str = []
                     macaulay2_str = []
 
+                    length_pattern  = re.compile("\(([0-9]+)\)$") # match with parenthesized block length at end
                     for block in block_names:
                         try:
-                            length_pattern  = re.compile("\(([0-9]+)\)$") # match with parenthesized block length at end
-                            block_name, block_length, _ = re.split(length_pattern,block)
+                            block_name, block_length, _ = re.split(length_pattern,block.strip())
                             block_length = int(block_length)
-                            blocks.append( TermOrder(block_name,block_length,force=force) )
-                        except:
-                            raise TypeError, "%s is not a valid term order"%(name,)
-                        length += block_length
+                            assert( block_length > 0)
+
+                            blocks.append( TermOrder(block_name, block_length, force=force) )
+                            name_str.append("%s(%d)"%(block_name, block_length))
+                            singular_str.append("%s(%d)"%(singular_name_mapping.get(block_name, block_name), block_length))
+                            macaulay2_str.append("%s => %d"%(macaulay2_name_mapping.get(block_name, block_name), block_length))
+                            length += block_length
+                        except ValueError:
+                            block_name = block.strip()
+                            if block_name.lower() != "c":
+                                raise TypeError, "%s is not a valid term ordering (wrong part: '%s')"%(name, block)
 
                     if n != 0 and length != n:
                         raise TypeError, "Term order length does not match the number of generators"

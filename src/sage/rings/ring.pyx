@@ -1328,6 +1328,25 @@ cdef class Ring(ParentWithGens):
             if not x.is_zero():
                 return x
 
+    def ideal_monoid(self):
+        """
+        Return the monoid of ideals of this ring.
+
+        EXAMPLES::
+
+            sage: ZZ.ideal_monoid()
+            Monoid of ideals of Integer Ring
+            sage: R.<x>=QQ[]; R.ideal_monoid()
+            Monoid of ideals of Univariate Polynomial Ring in x over Rational Field
+        """
+        if self.__ideal_monoid is not None:
+            return self.__ideal_monoid
+        else:
+            from sage.rings.ideal_monoid import IdealMonoid
+            M = IdealMonoid(self)
+            self.__ideal_monoid = M
+            return M
+
 cdef class CommutativeRing(Ring):
     """
     Generic commutative ring.

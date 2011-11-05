@@ -148,6 +148,22 @@ cdef extern from "libsingular.h":
         bint (*nGreaterZero)(number* a)
         void (*nPower)(number* a, int i, number* * result)
 
+    # polynomials
+
+    ctypedef struct poly "polyrec":
+        poly *next
+
+    # ideals
+
+    ctypedef struct ideal "sip_sideal":
+        poly **m # gens array
+        long rank # rank of module, 1 for ideals
+        int nrows # always 1
+        int ncols # number of gens
+
+    # polynomial procs
+    ctypedef struct p_Procs_s "p_Procs_s":
+        pass
     # rings
 
     ctypedef struct ring "ip_sring":
@@ -160,6 +176,9 @@ cdef extern from "libsingular.h":
         int  CanShortOut # control printing capabilities
         number *minpoly # minpoly for base extension field
         char **names # variable names
+        p_Procs_s *p_Procs #polxnomial procs
+        ideal *qideal #quotient ideal
+
         char **parameter # parameter names
         ring *algring # base extension field
         short N # number of variables
@@ -198,10 +217,7 @@ cdef extern from "libsingular.h":
         ringorder_Ws
         ringorder_L
 
-    # polynomials
 
-    ctypedef struct poly "polyrec":
-        poly *next
 
     # groebner basis options
 
@@ -961,6 +977,35 @@ cdef extern from "prCopy.h":
     poly *prCopyR(poly *p, ring *r, ring *dest_r)
 
     cdef int LANG_TOP
+
+# Non-commutative functions
+    ctypedef enum nc_type:
+      nc_error # Something's gone wrong!
+      nc_general # yx=q xy+...
+      nc_skew # yx=q xy
+      nc_comm # yx= xy
+      nc_lie,  # yx=xy+...
+      nc_undef, # for internal reasons */
+      nc_exterior #
+
+
+cdef extern from "gring.h":
+    void ncRingType(ring *, nc_type)
+    nc_type ncRingType_get "ncRingType" (ring *)
+    int nc_CallPlural(matrix* CC, matrix* DD, poly* CN, poly* DN, ring* r)
+    bint nc_SetupQuotient(ring *, ring *, bint)
+
+cdef extern from "sca.h":
+    void sca_p_ProcsSet(ring *, p_Procs_s *)
+    void scaFirstAltVar(ring *, int)
+    void scaLastAltVar(ring *, int)
+
+cdef extern from "ring.h":
+    bint rIsPluralRing(ring* r)
+    void rPrint "rWrite"(ring* r)
+    char* rOrderingString "rOrdStr"(ring* r)
+#    void rDebugPrint(ring* r)
+    void pDebugPrint "p_DebugPrint" (poly*p, ring* r)
 
 cdef extern from "stairc.h":
     # Computes the monomial basis for R[x]/I

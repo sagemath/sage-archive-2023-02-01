@@ -187,6 +187,8 @@ from sage.structure.sequence import Sequence
 from sage.structure.parent_gens import ParentWithGens
 from sage.misc.cachefunc import cached_method
 
+from warnings import warn
+
 ###############################################################################
 #
 # Constructor functions
@@ -317,6 +319,10 @@ class FreeModuleFactory(UniqueFactory):
         sage: FreeModule(ZZ,2,inner_product_matrix=[[1,2],[3,4]]).inner_product_matrix()
         [1 2]
         [3 4]
+
+    .. todo:: Refactor modules such that it only counts what category the base
+    ring belongs to, but not what is its Python class.
+
     """
     def create_key(self, base_ring, rank, sparse=False, inner_product_matrix=None):
         """
@@ -351,28 +357,37 @@ class FreeModuleFactory(UniqueFactory):
             raise TypeError, "Argument sparse (= %s) must be True or False" % sparse
 
         if not (hasattr(base_ring,'is_commutative') and base_ring.is_commutative()):
-            raise TypeError, "The base_ring must be a commutative ring."
+            warn("""You are constructing a free module
+over a noncommutative ring. Sage does not have a concept
+of left/right and both sided modules, so be careful.
+It's also not guaranteed that all multiplications are
+done from the right side.""")
 
-        if not sparse and isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
-            return RealDoubleVectorSpace_class(rank)
+        #            raise TypeError, "The base_ring must be a commutative ring."
 
-        elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
-            return ComplexDoubleVectorSpace_class(rank)
+        try:
+            if not sparse and isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
+                return RealDoubleVectorSpace_class(rank)
 
-        elif base_ring.is_field():
-            return FreeModule_ambient_field(base_ring, rank, sparse=sparse)
+            elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
+                return ComplexDoubleVectorSpace_class(rank)
 
-        elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
-            return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
+            elif base_ring.is_field():
+                return FreeModule_ambient_field(base_ring, rank, sparse=sparse)
 
-        elif isinstance(base_ring, sage.rings.number_field.order.Order) \
-            and base_ring.is_maximal() and base_ring.class_number() == 1:
+            elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
                 return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
-        elif isinstance(base_ring, integral_domain.IntegralDomain) or base_ring.is_integral_domain():
-            return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
+            elif isinstance(base_ring, sage.rings.number_field.order.Order) \
+                and base_ring.is_maximal() and base_ring.class_number() == 1:
+                return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
-        else:
+            elif isinstance(base_ring, integral_domain.IntegralDomain) or base_ring.is_integral_domain():
+                return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
+
+            else:
+                return FreeModule_ambient(base_ring, rank, sparse=sparse)
+        except NotImplementedError:
             return FreeModule_ambient(base_ring, rank, sparse=sparse)
 
 
@@ -563,8 +578,12 @@ class FreeModule_generic(module.Module_old):
             Category of modules with basis over Integer Ring
 
         """
-        if not isinstance(base_ring, commutative_ring.CommutativeRing):
-            raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
+        if not base_ring.is_commutative():
+            warn("""You are constructing a free module
+over a noncommutative ring. Sage does not have a concept
+of left/right and both sided modules, so be careful.
+It's also not guaranteed that all multiplications are
+done from the right side.""")
         rank = sage.rings.integer.Integer(rank)
         if rank < 0:
             raise ValueError, "rank (=%s) must be nonnegative"%rank

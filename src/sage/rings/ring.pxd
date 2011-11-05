@@ -5,8 +5,8 @@ cdef class Ring(ParentWithGens):
     cdef public object _one_element
     cdef public object _zero_ideal
     cdef public object _unit_ideal
-    cdef _an_element_c_impl(self)
     cdef public object __ideal_monoid
+    cdef _an_element_c_impl(self)
 
 cdef class CommutativeRing(Ring):
     cdef public object __fraction_field

@@ -66,7 +66,6 @@ from sage.algebras.free_algebra_element import FreeAlgebraElement
 
 import sage.structure.parent_gens
 
-
 def FreeAlgebra(R, n, names):
     """
     Return the free algebra over the ring `R` on `n`
@@ -74,15 +73,13 @@ def FreeAlgebra(R, n, names):
 
     INPUT:
 
-
     -  ``R`` - ring
-
     -  ``n`` - integer
-
     -  ``names`` - string or list/tuple of n strings
 
+    OUTPUT:
 
-    OUTPUT: a free algebra
+    A free algebra.
 
     EXAMPLES::
 
@@ -110,7 +107,6 @@ def FreeAlgebra(R, n, names):
         True
 
     Free algebras commute with their base ring.
-
     ::
 
         sage: K.<a,b> = FreeAlgebra(QQ,2)
@@ -166,14 +162,18 @@ class FreeAlgebra_generic(Algebra):
     Element = FreeAlgebraElement
     def __init__(self, R, n, names):
         """
+        The free algebra on `n` generators over a base ring.
+
         INPUT:
 
-
         -  ``R`` - ring
-
         -  ``n`` - an integer
-
         -  ``names`` - generator names
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ, 3); F # indirect doctet
+            Free Algebra on 3 generators (x, y, z) over Rational Field
         """
         if not isinstance(R, Ring):
             raise TypeError, "Argument R must be a ring."
@@ -254,7 +254,7 @@ class FreeAlgebra_generic(Algebra):
             sage: print F  # indirect doctest
             Free Algebra on 3 generators (x0, x1, x2) over Rational Field
             sage: F.rename('QQ<<x0,x1,x2>>')
-            sage: print F
+            sage: print F #indirect doctest
             QQ<<x0,x1,x2>>
             sage: FreeAlgebra(ZZ,1,['a'])
             Free Algebra on 1 generators (a,) over Integer Ring
@@ -315,7 +315,7 @@ class FreeAlgebra_generic(Algebra):
 
         ::
 
-            sage: F._coerce_(x*y)
+            sage: F._coerce_(x*y) # indirect doctest
             x*y
 
         Elements of the integers coerce in, since there is a coerce map
@@ -421,12 +421,28 @@ class FreeAlgebra_generic(Algebra):
 
     def quotient(self, mons, mats, names):
         """
-        Returns a quotient algebra defined via the action of a free algebra
+        Returns a quotient algebra.
+
+        The quotient algebra is defined via the action of a free algebra
         A on a (finitely generated) free module. The input for the quotient
         algebra is a list of monomials (in the underlying monoid for A)
         which form a free basis for the module of A, and a list of
         matrices, which give the action of the free generators of A on this
         monomial basis.
+
+        EXAMPLE:
+
+        Here is the quaternion algebra defined in terms of three generators::
+
+            sage: n = 3
+            sage: A = FreeAlgebra(QQ,n,'i')
+            sage: F = A.monoid()
+            sage: i, j, k = F.gens()
+            sage: mons = [ F(1), i, j, k ]
+            sage: M = MatrixSpace(QQ,4)
+            sage: mats = [M([0,1,0,0, -1,0,0,0, 0,0,0,-1, 0,0,1,0]),  M([0,0,1,0, 0,0,0,1, -1,0,0,0, 0,-1,0,0]),  M([0,0,0,1, 0,0,-1,0, 0,1,0,0, -1,0,0,0]) ]
+            sage: H.<i,j,k> = A.quotient(mons, mats); H
+            Free algebra quotient on 3 generators ('i', 'j', 'k') and dimension 4 over Rational Field
         """
         import free_algebra_quotient
         return free_algebra_quotient.FreeAlgebraQuotient(self, mons, mats, names)
@@ -455,6 +471,75 @@ class FreeAlgebra_generic(Algebra):
             Free monoid on 3 generators (x, y, z)
         """
         return self.__monoid
+
+    def g_algebra(self, relations, order='degrevlex', check = True):
+        """
+        The G-Algebra derived from this algebra by relations.
+        By default is assumed, that two variables commute.
+
+        TODO:
+
+        - Coercion doesn't work yet, there is some cheating about assumptions
+        - The optional argument ``check`` controls checking the degeneracy
+          conditions. Furthermore, the default values interfere with
+          non-degeneracy conditions.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z>=FreeAlgebra(QQ,3)
+            sage: G=A.g_algebra({y*x:-x*y})
+            sage: (x,y,z)=G.gens()
+            sage: x*y
+            x*y
+            sage: y*x
+            -x*y
+            sage: z*x
+            x*z
+            sage: (x,y,z)=A.gens()
+            sage: G=A.g_algebra({y*x:-x*y+1})
+            sage: (x,y,z)=G.gens()
+            sage: y*x
+            -x*y + 1
+            sage: (x,y,z)=A.gens()
+            sage: G=A.g_algebra({y*x:-x*y+z})
+            sage: (x,y,z)=G.gens()
+            sage: y*x
+            -x*y + z
+        """
+        from sage.matrix.constructor  import Matrix
+        from sage.rings.polynomial.plural import NCPolynomialRing_plural
+
+        base_ring=self.base_ring()
+        n=self.ngens()
+        cmat=Matrix(base_ring,n)
+        dmat=Matrix(self,n)
+        for i in xrange(n):
+            for j in xrange(i+1,n):
+                cmat[i,j]=1
+        for (to_commute,commuted) in relations.iteritems():
+            #This is dirty, coercion is broken
+            assert isinstance(to_commute,FreeAlgebraElement), to_commute.__class__
+            assert isinstance(commuted,FreeAlgebraElement), commuted
+            ((v1,e1),(v2,e2))=list(list(to_commute)[0][1])
+            assert e1==1
+            assert e2==1
+            assert v1>v2
+            c_coef=None
+            d_poly=None
+            for (c,m) in commuted:
+                if list(m)==[(v2,1),(v1,1)]:
+                    c_coef=c
+                    #buggy coercion workaround
+                    d_poly=commuted-self(c)*self(m)
+                    break
+            assert not c_coef is None,list(m)
+            v2_ind = self.gens().index(v2)
+            v1_ind = self.gens().index(v1)
+            cmat[v2_ind,v1_ind]=c_coef
+            if d_poly:
+                dmat[v2_ind,v1_ind]=d_poly
+
+        return NCPolynomialRing_plural(base_ring, n, ",".join([str(g) for g in self.gens()]), c=cmat, d=dmat, order=order, check=check)
 
 
 from sage.misc.cache import Cache

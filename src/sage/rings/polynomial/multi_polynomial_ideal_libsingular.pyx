@@ -65,15 +65,19 @@ from sage.libs.singular.decl cimport idInit, id_Delete, currRing, currQuotient, 
 from sage.libs.singular.decl cimport scKBase, poly, testHomog, idSkipZeroes, idRankFreeModule, kStd
 from sage.libs.singular.decl cimport OPT_REDTAIL, singular_options, kInterRed, t_rep_gb, p_GetCoeff
 from sage.libs.singular.decl cimport pp_Mult_nn, p_Delete, n_Delete
+from sage.libs.singular.decl cimport rIsPluralRing
 
 from sage.structure.parent_base cimport ParentWithBase
 
 from sage.rings.polynomial.multi_polynomial_libsingular cimport new_MP
+from sage.rings.polynomial.plural cimport new_NCP
 
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
 from sage.structure.sequence import Sequence
+
+from sage.rings.polynomial.plural cimport NCPolynomialRing_plural, NCPolynomial_plural
 
 cdef object singular_ideal_to_sage_sequence(ideal *i, ring *r, object parent):
     """
@@ -88,12 +92,18 @@ cdef object singular_ideal_to_sage_sequence(ideal *i, ring *r, object parent):
     """
     cdef int j
     cdef MPolynomial_libsingular p
+    cdef NCPolynomial_plural p_nc
 
     l = []
 
-    for j from 0 <= j < IDELEMS(i):
-        p = new_MP(parent, p_Copy(i.m[j], r))
-        l.append( p )
+    if rIsPluralRing(r):
+        for j from 0 <= j < IDELEMS(i):
+            p_nc = new_NCP(parent, p_Copy(i.m[j], r))
+            l.append( p_nc )
+    else:
+        for j from 0 <= j < IDELEMS(i):
+            p = new_MP(parent, p_Copy(i.m[j], r))
+            l.append( p )
 
     return Sequence(l, check=False, immutable=True)
 
@@ -113,18 +123,24 @@ cdef ideal *sage_ideal_to_singular_ideal(I) except NULL:
     cdef ideal *i
     cdef int j = 0
 
-    if not PY_TYPE_CHECK(R,MPolynomialRing_libsingular):
+    if PY_TYPE_CHECK(R,MPolynomialRing_libsingular):
+        r = (<MPolynomialRing_libsingular>R)._ring
+    elif PY_TYPE_CHECK(R, NCPolynomialRing_plural):
+        r = (<NCPolynomialRing_plural>R)._ring
+    else:
         raise TypeError("Ring must be of type 'MPolynomialRing_libsingular'")
 
-    r = (<MPolynomialRing_libsingular>R)._ring
     rChangeCurrRing(r);
 
     i = idInit(len(gens),1)
     for j,f in enumerate(gens):
-        if not PY_TYPE_CHECK(f,MPolynomial_libsingular):
+        if PY_TYPE_CHECK(f,MPolynomial_libsingular):
+            i.m[j] = p_Copy((<MPolynomial_libsingular>f)._poly, r)
+        elif PY_TYPE_CHECK(f, NCPolynomial_plural):
+            i.m[j] = p_Copy((<NCPolynomial_plural>f)._poly, r)
+        else:
             id_Delete(&i, r)
             raise TypeError("All generators must be of type MPolynomial_libsingular.")
-        i.m[j] = p_Copy((<MPolynomial_libsingular>f)._poly, r)
     return i
 
 def kbase_libsingular(I):

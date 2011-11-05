@@ -1520,6 +1520,13 @@ ext_modules = [
               include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
+    Extension('sage.rings.polynomial.plural',
+              sources = ['sage/rings/polynomial/plural.pyx'],
+              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
+              language="c++",
+              include_dirs = [SAGE_ROOT +'/local/include/singular'],
+              depends = [SAGE_ROOT + "/local/include/libsingular.h"]),
+
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
               libraries = singular_libs,

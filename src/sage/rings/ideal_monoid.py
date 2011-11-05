@@ -47,8 +47,6 @@ class IdealMonoid_c(Parent):
             sage: M = sage.rings.ideal_monoid.IdealMonoid(R); M # indirect doctest
             Monoid of ideals of Number Field in a with defining polynomial x^2 + 23
         """
-        if not is_CommutativeRing(R):
-            raise TypeError, "R must be a commutative ring"
         self.__R = R
         Parent.__init__(self, base = sage.rings.integer_ring.ZZ, category = Monoids())
         self._populate_coercion_lists_()

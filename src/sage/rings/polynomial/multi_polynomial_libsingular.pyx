@@ -2135,7 +2135,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         EXAMPLES::
 
             sage: P.<x,y,z>=PolynomialRing(QQ,3)
-            sage: 3/2*x + 1/2*y + 1
+            sage: 3/2*x + 1/2*y + 1 #indirect doctest
             3/2*x + 1/2*y + 1
         """
         cdef ring *r = (<MPolynomial_libsingular>left)._parent_ring
@@ -2151,7 +2151,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         EXAMPLES::
 
             sage: P.<x,y,z>=PolynomialRing(QQ,3)
-            sage: 3/2*x - 1/2*y - 1
+            sage: 3/2*x - 1/2*y - 1 #indirect doctest
             3/2*x - 1/2*y - 1
         """
         cdef ring *_ring = (<MPolynomial_libsingular>left)._parent_ring
@@ -2168,7 +2168,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         EXAMPLES::
 
             sage: P.<x,y,z>=PolynomialRing(QQ,3)
-            sage: 3/2*x
+            sage: 3/2*x # indirect doctest
             3/2*x
         """
 
@@ -2180,7 +2180,19 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         return new_MP((<MPolynomial_libsingular>self)._parent, _p)
 
     cpdef ModuleElement _lmul_(self, RingElement right):
-        # all currently implemented rings are commutative
+        """
+        Multiply left and right.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z>=PolynomialRing(QQ,3)
+            sage: (3/2*x - 1/2*y - 1) * (3/2) # indirect doctest
+            9/4*x - 3/4*y - 3/2
+        """
+        # Note that the argument to _rmul_ and _lmul_ is an
+        # element of the base ring.
+        # All currently implemented base rings are commutative,
+        # So, calling _rmul_ is the correct thing to do.
         return self._rmul_(right)
 
     cpdef RingElement _mul_(left, RingElement right):
@@ -2190,7 +2202,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         EXAMPLES::
 
             sage: P.<x,y,z>=PolynomialRing(QQ,3)
-            sage: (3/2*x - 1/2*y - 1) * (3/2*x + 1/2*y + 1)
+            sage: (3/2*x - 1/2*y - 1) * (3/2*x + 1/2*y + 1) # indirect doctest
             9/4*x^2 - 1/4*y^2 - y - 1
 
             sage: P.<x,y> = PolynomialRing(QQ,order='lex')
@@ -2213,7 +2225,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         EXAMPLES::
 
             sage: R.<x,y>=PolynomialRing(QQ,2)
-            sage: f = (x + y)/3
+            sage: f = (x + y)/3 # indirect doctest
             sage: f.parent()
             Multivariate Polynomial Ring in x, y over Rational Field
 
@@ -2390,7 +2402,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: P.<x,y,z> = QQ[]
             sage: f = - 1*x^2*y - 25/27 * y^3 - z^2
-            sage: latex(f)
+            sage: latex(f)  # indirect doctest
             - x^{2} y - \frac{25}{27} y^{3} - z^{2}
         """
         cdef ring *_ring = self._parent_ring
@@ -4417,7 +4429,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         EXAMPLES::
 
             sage: R.<x,y> = PolynomialRing(GF(7), 2)
-            sage: f = (x^3 + 2*y^2*x)^7; f
+            sage: f = (x^3 + 2*y^2*x)^7; f          # indirect doctest
             x^21 + 2*x^7*y^14
 
             sage: h = macaulay2(f); h               # optional

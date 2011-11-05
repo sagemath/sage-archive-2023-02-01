@@ -19,20 +19,24 @@ from sage.libs.singular.decl cimport leftv, idhdl, syStrategy, matrix, poly, ide
 from sage.libs.singular.decl cimport ring as singular_ring
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular, MPolynomial_libsingular
 
+cdef poly* access_singular_poly(p) except <poly*> -1
+cdef singular_ring* access_singular_ring(r) except <singular_ring*> -1
+
 cdef class RingWrap:
     cdef singular_ring *_ring
 
 cdef class Resolution:
     cdef syStrategy *_resolution
-    cdef MPolynomialRing_libsingular base_ring
+    cdef object base_ring
 
 cdef class Converter(SageObject):
     cdef leftv *args
-    cdef MPolynomialRing_libsingular _ring
+    cdef object _sage_ring
+    cdef singular_ring* _singular_ring
     cdef leftv* pop_front(self) except NULL
     cdef leftv * _append_leftv(self, leftv *v)
     cdef leftv * _append(self, void* data, int res_type)
-    cdef leftv * append_polynomial(self, MPolynomial_libsingular p) except NULL
+    cdef leftv * append_polynomial(self, p) except NULL
     cdef leftv * append_ideal(self,  i) except NULL
     cdef leftv * append_number(self, n) except NULL
     cdef leftv * append_int(self, n) except NULL
@@ -43,7 +47,7 @@ cdef class Converter(SageObject):
     cdef leftv * append_intvec(self, v) except NULL
     cdef leftv * append_list(self, l) except NULL
     cdef leftv * append_matrix(self, a) except NULL
-    cdef leftv * append_ring(self, MPolynomialRing_libsingular r) except NULL
+    cdef leftv * append_ring(self, r) except NULL
     cdef leftv * append_module(self, m) except NULL
     cdef to_sage_integer_matrix(self, intvec *mat)
     cdef object to_sage_module_element_sequence_destructive(self, ideal *i)
@@ -69,7 +73,7 @@ cdef class SingularFunction(SageObject):
 
     cdef BaseCallHandler get_call_handler(self)
     cdef bint function_exists(self)
-    cdef MPolynomialRing_libsingular common_ring(self, tuple args, ring=?)
+    cdef common_ring(self, tuple args, ring=?)
 
 cdef class SingularLibraryFunction(SingularFunction):
     pass
@@ -78,4 +82,4 @@ cdef class SingularKernelFunction(SingularFunction):
     pass
 
 # the most direct function call interface
-cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_libsingular R, bint signal_handler=?, object attributes=?)
+cdef inline call_function(SingularFunction self, tuple args, object R, bint signal_handler=?, object attributes=?)

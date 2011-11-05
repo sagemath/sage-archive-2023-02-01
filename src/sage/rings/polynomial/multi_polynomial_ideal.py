@@ -239,6 +239,7 @@ from sage.interfaces.all import (singular as singular_default,
 from sage.interfaces.expect import StdOutContext
 
 from sage.rings.ideal import Ideal_generic
+from sage.rings.noncommutative_ideals import Ideal_nc
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 
@@ -429,7 +430,7 @@ def singular_standard_options(func):
         sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
         sage: J = sage.rings.ideal.Cyclic(P).homogenize()
         sage: from sage.misc.sageinspect import sage_getsource
-        sage: "buchberger" in sage_getsource(J.interreduced_basis)
+        sage: "buchberger" in sage_getsource(J.interreduced_basis) #indirect doctest
         True
 
     The following tests against a bug that was fixed in trac ticket #11298::
@@ -645,8 +646,8 @@ class MPolynomialIdeal_magma_repr:
         EXAMPLES::
 
             sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
-            sage: I = sage.rings.ideal.Cyclic(R,4)
-            sage: magma(I)                                          # optional - magma
+            sage: I = sage.rings.ideal.Cyclic(R,4) # indirect doctest
+            sage: magma(I)    # optional - magma
             Ideal of Polynomial ring of rank 10 over GF(127)
             Order: Graded Reverse Lexicographical
             Variables: a, b, c, d, e, f, g, h, i, j
@@ -728,7 +729,122 @@ class MPolynomialIdeal_magma_repr:
         B = PolynomialSequence([R(e) for e in mgb], R, immutable=True)
         return B
 
-class MPolynomialIdeal_singular_repr:
+class MPolynomialIdeal_singular_base_repr:
+    @require_field
+    def syzygy_module(self):
+        r"""
+        Computes the first syzygy (i.e., the module of relations of the
+        given generators) of the ideal.
+
+        EXAMPLE::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = 2*x^2 + y
+            sage: g = y
+            sage: h = 2*f + g
+            sage: I = Ideal([f,g,h])
+            sage: M = I.syzygy_module(); M
+            [       -2        -1         1]
+            [       -y 2*x^2 + y         0]
+            sage: G = vector(I.gens())
+            sage: M*G
+            (0, 0)
+
+        ALGORITHM: Uses Singular's syz command
+        """
+        import sage.libs.singular
+        syz = sage.libs.singular.ff.syz
+        from sage.matrix.constructor import matrix
+
+        #return self._singular_().syz().transpose().sage_matrix(self.ring())
+        S = syz(self)
+        return matrix(self.ring(), S)
+
+    @libsingular_standard_options
+    def _groebner_basis_libsingular(self, algorithm="groebner", *args, **kwds):
+        """
+        Return the reduced Groebner basis of this ideal. If the
+        Groebner basis for this ideal has been calculated before the
+        cached Groebner basis is returned regardless of the requested
+        algorithm.
+
+        INPUT:
+
+        -  ``algorithm`` - see below for available algorithms
+        - ``redsb`` - return a reduced Groebner basis (default: ``True``)
+        - ``red_tail`` - perform tail reduction (default: ``True``)
+
+        ALGORITHMS:
+
+        'groebner'
+            Singular's heuristic script (default)
+
+        'std'
+            Buchberger's algorithm
+
+        'slimgb'
+            the *SlimGB* algorithm
+
+        'stdhilb'
+            Hilbert Basis driven Groebner basis
+
+        'stdfglm'
+            Buchberger and FGLM
+
+        EXAMPLES:
+
+        We compute a Groebner basis of 'cyclic 4' relative to
+        lexicographic ordering. ::
+
+            sage: R.<a,b,c,d> = PolynomialRing(QQ, 4, order='lex')
+            sage: I = sage.rings.ideal.Cyclic(R,4); I
+            Ideal (a + b + c + d, a*b + a*d + b*c + c*d, a*b*c + a*b*d
+            + a*c*d + b*c*d, a*b*c*d - 1) of Multivariate Polynomial
+            Ring in a, b, c, d over Rational Field
+
+        ::
+
+            sage: I._groebner_basis_libsingular()
+            [c^2*d^6 - c^2*d^2 - d^4 + 1, c^3*d^2 + c^2*d^3 - c - d,
+            b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
+            b^2 + 2*b*d + d^2, a + b + c + d]
+
+        ALGORITHM:
+
+        Uses libSINGULAR.
+        """
+        from sage.rings.polynomial.multi_polynomial_ideal_libsingular import std_libsingular, slimgb_libsingular
+        from sage.libs.singular import singular_function
+        from sage.libs.singular.option import opt
+
+        import sage.libs.singular
+        groebner = sage.libs.singular.ff.groebner
+
+        if get_verbose()>=2:
+            opt['prot'] = True
+        for name,value in kwds.iteritems():
+            if value is not None:
+                opt[name] = value
+
+        T = self.ring().term_order()
+
+        if algorithm == "std":
+            S = std_libsingular(self)
+        elif algorithm == "slimgb":
+            S = slimgb_libsingular(self)
+        elif algorithm == "groebner":
+            S = groebner(self)
+        else:
+            try:
+                fnc = singular_function(algorithm)
+                S = fnc(self)
+            except NameError:
+                raise NameError("Algorithm '%s' unknown"%algorithm)
+        return S
+
+
+class MPolynomialIdeal_singular_repr(
+        MPolynomialIdeal_singular_base_repr):
     """
     An ideal in a multivariate polynomial ring, which has an
     underlying Singular ring associated to it.
@@ -1524,88 +1640,6 @@ class MPolynomialIdeal_singular_repr:
             print "Highest degree reached during computation: %2d."%log_parser.max_deg
         return S
 
-    @libsingular_standard_options
-    def _groebner_basis_libsingular(self, algorithm="groebner", *args, **kwds):
-        """
-        Return the reduced Groebner basis of this ideal. If the
-        Groebner basis for this ideal has been calculated before the
-        cached Groebner basis is returned regardless of the requested
-        algorithm.
-
-        INPUT:
-
-        -  ``algorithm`` - see below for available algorithms
-        - ``redsb`` - return a reduced Groebner basis (default: ``True``)
-        - ``red_tail`` - perform tail reduction (default: ``True``)
-
-        ALGORITHMS:
-
-        'groebner'
-            Singular's heuristic script (default)
-
-        'std'
-            Buchberger's algorithm
-
-        'slimgb'
-            the *SlimGB* algorithm
-
-        'stdhilb'
-            Hilbert Basis driven Groebner basis
-
-        'stdfglm'
-            Buchberger and FGLM
-
-        EXAMPLES:
-
-        We compute a Groebner basis of 'cyclic 4' relative to
-        lexicographic ordering. ::
-
-            sage: R.<a,b,c,d> = PolynomialRing(QQ, 4, order='lex')
-            sage: I = sage.rings.ideal.Cyclic(R,4); I
-            Ideal (a + b + c + d, a*b + a*d + b*c + c*d, a*b*c + a*b*d
-            + a*c*d + b*c*d, a*b*c*d - 1) of Multivariate Polynomial
-            Ring in a, b, c, d over Rational Field
-
-        ::
-
-            sage: I._groebner_basis_libsingular()
-            [c^2*d^6 - c^2*d^2 - d^4 + 1, c^3*d^2 + c^2*d^3 - c - d,
-            b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
-            b^2 + 2*b*d + d^2, a + b + c + d]
-
-        ALGORITHM:
-
-        Uses libSINGULAR.
-        """
-        from sage.rings.polynomial.multi_polynomial_ideal_libsingular import std_libsingular, slimgb_libsingular
-        from sage.libs.singular import singular_function
-        from sage.libs.singular.option import opt
-
-        import sage.libs.singular
-        groebner = sage.libs.singular.ff.groebner
-
-        if get_verbose()>=2:
-            opt['prot'] = True
-        for name,value in kwds.iteritems():
-            if value is not None:
-                opt[name] = value
-
-        T = self.ring().term_order()
-
-        if algorithm == "std":
-            S = std_libsingular(self)
-        elif algorithm == "slimgb":
-            S = slimgb_libsingular(self)
-        elif algorithm == "groebner":
-            S = groebner(self)
-        else:
-            try:
-                fnc = singular_function(algorithm)
-                S = fnc(self)
-            except NameError:
-                raise NameError("Algorithm '%s' unknown"%algorithm)
-        return S
-
     @require_field
     def genus(self):
         """
@@ -1666,6 +1700,7 @@ class MPolynomialIdeal_singular_repr:
             False
         """
         R = self.ring()
+
         if not isinstance(other, MPolynomialIdeal_singular_repr) or other.ring() != R:
             raise ValueError, "other must be an ideal in the ring of self, but it isn't."
 
@@ -2578,7 +2613,7 @@ class MPolynomialIdeal_singular_repr:
 
             sage: R.<x,y,z> = PolynomialRing(QQ)
             sage: I = R.ideal(x^2-2*x*z+5, x*y^2+y*z+1, 3*y^2-8*x*z)
-            sage: I.normal_basis()
+            sage: I.normal_basis() #indirect doctest
             [z^2, y*z, x*z, z, x*y, y, x, 1]
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import kbase_libsingular
@@ -2634,6 +2669,12 @@ class MPolynomialIdeal_macaulay2_repr:
     def _macaulay2_(self, macaulay2=None):
         """
         Return Macaulay2 ideal corresponding to this ideal.
+    EXAMPLES::
+
+        sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4)
+        sage: I = ideal(x*y-z^2, y^2-w^2)  #indirect doctest
+        sage: macaulay2(I) # optional - macaulay2
+        Ideal (x*y - z^2, y^2 - w^2) of Multivariate Polynomial Ring in x, y, z, w over Integer Ring
         """
         if macaulay2 is None: macaulay2 = macaulay2_default
         try:
@@ -2714,6 +2755,217 @@ class MPolynomialIdeal_macaulay2_repr:
         k = M2('(%r) %% %s'%(f, I.name()))
         R = self.ring()
         return R(k)
+
+class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
+    def __init__(self, ring, gens, coerce=True, side = "left"):
+        r"""
+        Creates a non-commutative polynomial ideal.
+
+        INPUT:
+
+        - ``ring`` - the g-algebra to which this ideal belongs
+        - ``gens`` - the generators of this ideal
+        - ``coerce`` (optional - default True) - generators are
+          coerced into the ring before creating the ideal
+        - ``side`` - optional string, either "left" (default)
+          or "twosided"; defines whether this ideal is left
+          of two-sided.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: H.inject_variables()
+            Defining x, y, z
+            sage: I = H.ideal([y^2, x^2, z^2-H.one_element()],coerce=False) # indirect doctest
+            sage: I
+            Left Ideal (y^2, x^2, z^2 - 1) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            sage: H.ideal([y^2, x^2, z^2-H.one_element()], side="twosided")
+            Twosided Ideal (y^2, x^2, z^2 - 1) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            sage: H.ideal([y^2, x^2, z^2-H.one_element()], side="right")
+            Traceback (most recent call last):
+            ...
+            ValueError: Only left and two-sided ideals are allowed.
+
+        """
+        if side == "right":
+            raise ValueError, "Only left and two-sided ideals are allowed."
+        Ideal_nc.__init__(self, ring, gens, coerce=coerce, side=side)
+
+    def __call_singular(self, cmd, arg = None):
+        """
+        Internal function for calling a Singular function.
+
+        INPUT:
+
+        - ``cmd`` - string, representing a Singular function
+        - ``arg`` (Default: None) - arguments for which cmd is called
+
+        OUTPUT:
+
+        - result of the Singular function call
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: H.inject_variables()
+            Defining x, y, z
+            sage: id = H.ideal(x + y, y + z)
+            sage: id.std()  # indirect doctest
+            Left Ideal (z, y, x) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+        """
+        from sage.libs.singular.function import singular_function
+        fun = singular_function(cmd)
+        if arg is None:
+             return fun(self, ring=self.ring())
+
+        return fun(self, arg, ring=self.ring())
+
+    @cached_method
+    def std(self):
+        r"""
+        Computes a GB of the ideal. It is two-sided if and only if the ideal is two-sided.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: H.inject_variables()
+            Defining x, y, z
+            sage: I = H.ideal([y^2, x^2, z^2-H.one_element()],coerce=False)
+            sage: I.std()
+            Left Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+
+        If the ideal is a left ideal, then std returns a left
+        Groebner basis. But if it is a two-sided ideal, then
+        the output of std and :meth:`twostd` coincide::
+
+            sage: JL = H.ideal([x^3, y^3, z^3 - 4*z])
+            sage: JL
+            Left Ideal (x^3, y^3, z^3 - 4*z) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            sage: JL.std()
+            Left Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, 2*x*y*z - z^2 - 2*z, y^3, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            sage: JT = H.ideal([x^3, y^3, z^3 - 4*z], side='twosided')
+            sage: JT
+            Twosided Ideal (x^3, y^3, z^3 - 4*z) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            sage: JT.std()
+            Twosided Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, y^2*z - 2*y^2, 2*x*y*z - z^2 - 2*z, x^2*z + 2*x^2, y^3, x*y^2 - y*z, x^2*y - x*z - 2*x, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            sage: JT.std() == JL.twostd()
+            True
+
+        ALGORITHM: Uses Singular's std command
+        """
+        if self.side()  == 'twosided':
+            return self.twostd()
+        return self.ring().ideal( self.__call_singular('std'), side=self.side())
+#        return self.__call_singular('std')
+
+    @cached_method
+    def twostd(self):
+        r"""
+        Computes a two-sided GB of the ideal (even if it is a left ideal).
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: H.inject_variables()
+            Defining x, y, z
+            sage: I = H.ideal([y^2, x^2, z^2-H.one_element()],coerce=False)
+            sage: I.twostd()
+            Twosided Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field...
+
+        ALGORITHM: Uses Singular's twostd command
+        """
+        return self.ring().ideal( self.__call_singular('twostd'), side='twosided')
+#        return self.__call_singular('twostd')
+
+#    def syz(self):
+#        return self.__call_singular('syz')
+
+    @require_field
+    def syzygy_module(self):
+        r"""
+        Computes the first syzygy (i.e., the module of relations of the
+        given generators) of the ideal.
+
+        NOTE:
+
+        Only left syzygies can be computed. So, even if the ideal is
+        two-sided, then the syzygies are only one-sided. In that case,
+        a warning is printed.
+
+        EXAMPLE::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: H.inject_variables()
+            Defining x, y, z
+            sage: I = H.ideal([y^2, x^2, z^2-H.one_element()],coerce=False)
+            sage: G = vector(I.gens()); G
+            d...: UserWarning: You are constructing a free module
+            over a noncommutative ring. Sage does not have a concept
+            of left/right and both sided modules, so be careful.
+            It's also not guaranteed that all multiplications are
+            done from the right side.
+            d...: UserWarning: You are constructing a free module
+            over a noncommutative ring. Sage does not have a concept
+            of left/right and both sided modules, so be careful.
+            It's also not guaranteed that all multiplications are
+            done from the right side.
+            (y^2, x^2, z^2 - 1)
+            sage: M = I.syzygy_module(); M
+            [                                                                         -z^2 - 8*z - 15                                                                                        0                                                                                      y^2]
+            [                                                                                       0                                                                          -z^2 + 8*z - 15                                                                                      x^2]
+            [                                                              x^2*z^2 + 8*x^2*z + 15*x^2                                                              -y^2*z^2 + 8*y^2*z - 15*y^2                                                                   -4*x*y*z + 2*z^2 + 2*z]
+            [                 x^2*y*z^2 + 9*x^2*y*z - 6*x*z^3 + 20*x^2*y - 72*x*z^2 - 282*x*z - 360*x                                                              -y^3*z^2 + 7*y^3*z - 12*y^3                                                                                  6*y*z^2]
+            [                                                              x^3*z^2 + 7*x^3*z + 12*x^3                 -x*y^2*z^2 + 9*x*y^2*z - 4*y*z^3 - 20*x*y^2 + 52*y*z^2 - 224*y*z + 320*y                                                                                 -6*x*z^2]
+            [  x^2*y^2*z + 4*x^2*y^2 - 8*x*y*z^2 - 48*x*y*z + 12*z^3 - 64*x*y + 108*z^2 + 312*z + 288                                                                           -y^4*z + 4*y^4                                                                                        0]
+            [                                                  2*x^3*y*z + 8*x^3*y + 9*x^2*z + 27*x^2                                   -2*x*y^3*z + 8*x*y^3 - 12*y^2*z^2 + 99*y^2*z - 195*y^2                                                                -36*x*y*z + 24*z^2 + 18*z]
+            [                                                  2*x^3*y*z + 8*x^3*y + 9*x^2*z + 27*x^2                                   -2*x*y^3*z + 8*x*y^3 - 12*y^2*z^2 + 99*y^2*z - 195*y^2                                                                -36*x*y*z + 24*z^2 + 18*z]
+            [                                                                           x^4*z + 4*x^4    -x^2*y^2*z + 4*x^2*y^2 - 4*x*y*z^2 + 32*x*y*z - 6*z^3 - 64*x*y + 66*z^2 - 240*z + 288                                                                                        0]
+            [x^3*y^2*z + 4*x^3*y^2 + 18*x^2*y*z - 36*x*z^3 + 66*x^2*y - 432*x*z^2 - 1656*x*z - 2052*x                                      -x*y^4*z + 4*x*y^4 - 8*y^3*z^2 + 62*y^3*z - 114*y^3                                                                        48*y*z^2 - 36*y*z]
+
+            sage: M*G
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+        ALGORITHM: Uses Singular's syz command
+        """
+        if self.side() == 'twosided':
+            warn("The result of this Syzygy computation is one-sided (left)!")
+        import sage.libs.singular
+        syz = sage.libs.singular.ff.syz
+        from sage.matrix.constructor import matrix
+
+        #return self._singular_().syz().transpose().sage_matrix(self.ring())
+        S = syz(self)
+        return matrix(self.ring(), S)
+
+
+    def res(self, length):
+        r"""
+        Computes the resoltuion up to a given length of the ideal.
+
+        NOTE:
+
+        Only left syzygies can be computed. So, even if the ideal is
+        two-sided, then the resolution is only one-sided. In that case,
+        a warning is printed.
+
+        EXAMPLE::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: H.inject_variables()
+            Defining x, y, z
+            sage: I = H.ideal([y^2, x^2, z^2-H.one_element()],coerce=False)
+            sage: I.res(3)
+            <Resolution>
+        """
+        if self.side() == 'twosided':
+            warn("The resulting resolution is one-sided (left)!")
+        return self.__call_singular('res', length)
 
 
 class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \

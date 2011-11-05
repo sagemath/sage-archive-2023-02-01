@@ -328,7 +328,8 @@ fi
 #####################################################################
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-    cat "$SAGE_LOCAL/bin/sage-banner" | grep -i "version" | sed "s/\| //" | sed "s/ *\|//"
+    sed -n -e '/Version/s/^[ |]\{1,\}//;/Version/s/[ |]\{1,\}$//p' \
+        "$SAGE_LOCAL"/bin/sage-banner
     exit $?
 fi
 

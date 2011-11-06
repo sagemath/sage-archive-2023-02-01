@@ -223,7 +223,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             return
 
         elif isinstance(x, pari_gen):
-            x = [Integer(w) for w in x.Vecrev()]
+            x = [Integer(w) for w in x.list()]
             check = False
 
         elif isinstance(x, ntl_ZZX):    # coercion from ntl.pyx object

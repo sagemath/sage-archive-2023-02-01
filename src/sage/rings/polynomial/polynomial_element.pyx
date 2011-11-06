@@ -5956,7 +5956,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             x = self._dict_to_list(x, R.zero_element())
 
         elif isinstance(x, pari_gen):
-            x = [R(w, **kwds) for w in x.Vecrev()]
+            x = [R(w, **kwds) for w in x.list()]
             check = 0
         elif not isinstance(x, list):
             # We trust that the element constructors do not send x=0

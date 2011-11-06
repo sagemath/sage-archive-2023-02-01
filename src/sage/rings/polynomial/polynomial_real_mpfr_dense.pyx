@@ -90,7 +90,7 @@ cdef class PolynomialRealDense(Polynomial):
                 c[i] = a
             x = c
         elif isinstance(x, pari_gen):
-            x = [self._base_ring(w) for w in x.Vecrev()]
+            x = [self._base_ring(w) for w in x.list()]
         elif not isinstance(x, list):
             sig_on()
             try:

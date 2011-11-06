@@ -123,7 +123,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             return
 
         elif isinstance(x, pari_gen):
-            x = [ZZ(w) for w in x.Vecrev()]
+            x = [ZZ(w) for w in x.list()]
             check = False
 
         elif isinstance(x, FractionFieldElement) and \

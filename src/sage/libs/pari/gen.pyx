@@ -482,15 +482,20 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pol = pari("x^3 + 5/3*x"); pol.list()
             [0, 5/3, 0, 1]
 
-        For power series, we get all coefficients, including leading and
-        trailing zeros::
+        For power series or laurent series, we get all coefficients starting
+        from the lowest degree term.  This includes trailing zeros::
 
             sage: R.<x> = LaurentSeriesRing(QQ)
             sage: s = x^2 + O(x^8)
             sage: s.list()
             [1]
             sage: pari(s).list()
-            [0, 0, 1, 0, 0, 0, 0, 0]
+            [1, 0, 0, 0, 0, 0]
+            sage: s = x^-2 + O(x^0)
+            sage: s.list()
+            [1]
+            sage: pari(s).list()
+            [1, 0]
 
         For matrices, we get a list of columns::
 
@@ -506,7 +511,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari("42").list()
             [42]
         """
-        if typ(self.g) == t_POL or typ(self.g) == t_SER:
+        if typ(self.g) == t_POL:
             return list(self.Vecrev())
         return list(self.Vec())
 
@@ -2239,37 +2244,20 @@ cdef class gen(sage.structure.element.RingElement):
     # 2: CONVERSIONS and similar elementary functions
     ###########################################
 
-
-    def Col(gen x):
+    def Col(gen x, long n = 0):
         """
-        Col(x): Transforms the object x into a column vector.
-
-        The vector will have only one component, except in the following
-        cases:
-
-        - When x is a vector or a quadratic form, the resulting vector
-          is the initial object considered as a column vector.
-
-        - When x is a matrix, the resulting vector is the column of
-          row vectors comprising the matrix.
-
-        - When x is a character string, the result is a column of
-          individual characters.
-
-        - When x is a polynomial, the coefficients of the vector start
-          with the leading coefficient of the polynomial.
-
-        - When x is a power series, only the significant coefficients
-          are taken into account, but this time by increasing order of
-          degree.
+        Transform the object `x` into a column vector with minimal size `|n|`.
 
         INPUT:
 
+        - ``x`` -- gen
 
-        -  ``x`` - gen
+        - ``n`` -- Make the column vector of minimal length `|n|`. If `n > 0`,
+          append zeros; if `n < 0`, prepend zeros.
 
+        OUTPUT:
 
-        OUTPUT: gen
+        A PARI column vector (type ``t_COL``)
 
         EXAMPLES::
 
@@ -2281,13 +2269,80 @@ cdef class gen(sage.structure.element.RingElement):
             [[1, 2], [3, 4]]~
             sage: pari('"Sage"').Col()
             ["S", "a", "g", "e"]~
-            sage: pari('3*x^3 + x').Col()
+            sage: pari('x + 3*x^3').Col()
             [3, 0, 1, 0]~
             sage: pari('x + 3*x^3 + O(x^5)').Col()
             [1, 0, 3, 0]~
+
+        We demonstate the `n` argument::
+
+            sage: pari([1,2,3,4]).Col(2)
+            [1, 2, 3, 4]~
+            sage: pari([1,2,3,4]).Col(-2)
+            [1, 2, 3, 4]~
+            sage: pari([1,2,3,4]).Col(6)
+            [1, 2, 3, 4, 0, 0]~
+            sage: pari([1,2,3,4]).Col(-6)
+            [0, 0, 1, 2, 3, 4]~
+
+        See also :meth:`Vec` (create a row vector) for more examples
+        and :meth:`Colrev` (create a column in reversed order).
         """
         sig_on()
-        return P.new_gen(gtocol(x.g))
+        return P.new_gen(_Vec_append(gtocol(x.g), gen_0, n))
+
+    def Colrev(gen x, long n = 0):
+        """
+        Transform the object `x` into a column vector with minimal size `|n|`.
+        The order of the resulting vector is reversed compared to :meth:`Col`.
+
+        INPUT:
+
+        - ``x`` -- gen
+
+        - ``n`` -- Make the vector of minimal length `|n|`. If `n > 0`,
+          prepend zeros; if `n < 0`, append zeros.
+
+        OUTPUT:
+
+        A PARI column vector (type ``t_COL``)
+
+        EXAMPLES::
+
+            sage: pari(1.5).Colrev()
+            [1.50000000000000]~
+            sage: pari([1,2,3,4]).Colrev()
+            [4, 3, 2, 1]~
+            sage: pari('[1,2; 3,4]').Colrev()
+            [[3, 4], [1, 2]]~
+            sage: pari('x + 3*x^3').Colrev()
+            [0, 1, 0, 3]~
+
+        We demonstate the `n` argument::
+
+            sage: pari([1,2,3,4]).Colrev(2)
+            [4, 3, 2, 1]~
+            sage: pari([1,2,3,4]).Colrev(-2)
+            [4, 3, 2, 1]~
+            sage: pari([1,2,3,4]).Colrev(6)
+            [0, 0, 4, 3, 2, 1]~
+            sage: pari([1,2,3,4]).Colrev(-6)
+            [4, 3, 2, 1, 0, 0]~
+        """
+        sig_on()
+        # Create a non-reversed column vector
+        cdef GEN v = _Vec_append(gtocol(x.g), gen_0, n)
+        # Reverse it in-place
+        cdef GEN L = v + 1
+        cdef GEN R = v + (lg(v)-1)
+        cdef long t
+        while (L < R):
+            t = L[0]
+            L[0] = R[0]
+            R[0] = t
+            L += 1
+            R -= 1
+        return P.new_gen(v)
 
     def List(gen x):
         """
@@ -2803,21 +2858,20 @@ cdef class gen(sage.structure.element.RingElement):
     def printtex(gen x):
         return x.Strtex()
 
-    def Vec(gen x):
+    def Vec(gen x, long n = 0):
         """
-        Vec(x): Transforms the object x into a vector.
+        Transform the object `x` into a vector with minimal size `|n|`.
 
         INPUT:
 
+        - ``x`` -- gen
 
-        -  ``x`` - gen
-
+        - ``n`` -- Make the vector of minimal length `|n|`. If `n > 0`,
+          append zeros; if `n < 0`, prepend zeros.
 
         OUTPUT:
 
-
-        -  ``gen`` - of PARI type t_VEC
-
+        A PARI vector (type ``t_VEC``)
 
         EXAMPLES::
 
@@ -2829,30 +2883,54 @@ cdef class gen(sage.structure.element.RingElement):
             [1, 0, 3, -2]
             sage: pari([1,2,3]).Vec()
             [1, 2, 3]
-            sage: pari('ab').Vec()
-            [1, 0]
+            sage: pari('[1, 2; 3, 4]').Vec()
+            [[1, 3]~, [2, 4]~]
+            sage: pari('"Sage"').Vec()
+            ["S", "a", "g", "e"]
+            sage: pari('2*x^2 + 3*x^3 + O(x^5)').Vec()
+            [2, 3, 0]
+            sage: pari('2*x^-2 + 3*x^3 + O(x^5)').Vec()
+            [2, 0, 0, 0, 0, 3, 0]
+
+        Note the different term ordering for polynomials and series::
+
+            sage: pari('1 + x + 3*x^3 + O(x^5)').Vec()
+            [1, 1, 0, 3, 0]
+            sage: pari('1 + x + 3*x^3').Vec()
+            [3, 0, 1, 1]
+
+        We demonstate the `n` argument::
+
+            sage: pari([1,2,3,4]).Vec(2)
+            [1, 2, 3, 4]
+            sage: pari([1,2,3,4]).Vec(-2)
+            [1, 2, 3, 4]
+            sage: pari([1,2,3,4]).Vec(6)
+            [1, 2, 3, 4, 0, 0]
+            sage: pari([1,2,3,4]).Vec(-6)
+            [0, 0, 1, 2, 3, 4]
+
+        See also :meth:`Col` (create a column vector) and :meth:`Vecrev`
+        (create a vector in reversed order).
         """
         sig_on()
-        return P.new_gen(gtovec(x.g))
+        return P.new_gen(_Vec_append(gtovec(x.g), gen_0, n))
 
-    def Vecrev(gen x):
+    def Vecrev(gen x, long n = 0):
         """
-        Vecrev(x): Transforms the object x into a vector. Identical to
-        Vec(x) except when x is - a polynomial, this is the reverse of Vec.
-        - a power series, this includes low-order zero coefficients. - a
-        Laurent series, raises an exception
+        Transform the object `x` into a vector with minimal size `|n|`.
+        The order of the resulting vector is reversed compared to :meth:`Vec`.
 
         INPUT:
 
+        - ``x`` -- gen
 
-        -  ``x`` - gen
-
+        - ``n`` -- Make the vector of minimal length `|n|`. If `n > 0`,
+          prepend zeros; if `n < 0`, append zeros.
 
         OUTPUT:
 
-
-        -  ``gen`` - of PARI type t_VEC
-
+        A PARI vector (type ``t_VEC``)
 
         EXAMPLES::
 
@@ -2863,62 +2941,42 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x^3 + 3*x - 2').Vecrev()
             [-2, 3, 0, 1]
             sage: pari([1, 2, 3]).Vecrev()
-            [1, 2, 3]
+            [3, 2, 1]
             sage: pari('Col([1, 2, 3])').Vecrev()
-            [1, 2, 3]
+            [3, 2, 1]
             sage: pari('[1, 2; 3, 4]').Vecrev()
-            [[1, 3]~, [2, 4]~]
-            sage: pari('ab').Vecrev()
-            [0, 1]
-            sage: pari('x^2 + 3*x^3 + O(x^5)').Vecrev()
-            [0, 0, 1, 3, 0]
-            sage: pari('x^-2 + 3*x^3 + O(x^5)').Vecrev()
-            Traceback (most recent call last):
-            ...
-            ValueError: Vecrev() is not defined for Laurent series
-        """
-        cdef long lx, vx, i
-        cdef GEN y
-        sig_on()
-        if typ(x.g) == t_POL:
-            lx = lg(x.g)
-            y = cgetg(lx-1, t_VEC)
-            for i from 1 <= i <= lx-2:
-                # no need to copy, since new_gen will deep copy
-                set_gel(y,i, gel(x.g,i+1))
-            return P.new_gen(y)
-        elif typ(x.g) == t_SER:
-            lx = lg(x.g)
-            vx = valp(x.g)
-            if vx < 0:
-                sig_off()
-                raise ValueError, "Vecrev() is not defined for Laurent series"
-            y = cgetg(vx+lx-1, t_VEC)
-            for i from 1 <= i <= vx:
-                set_gel(y,i, gen_0)
-            for i from 1 <= i <= lx-2:
-                # no need to copy, since new_gen will deep copy
-                set_gel(y,vx+i, gel(x.g,i+1))
-            return P.new_gen(y)
-        else:
-            sig_off()
-            return x.Vec()
+            [[2, 4]~, [1, 3]~]
+            sage: pari('"Sage"').Vecrev()
+            ["e", "g", "a", "S"]
 
-    def Vecsmall(gen x):
+        We demonstate the `n` argument::
+
+            sage: pari([1,2,3,4]).Vecrev(2)
+            [4, 3, 2, 1]
+            sage: pari([1,2,3,4]).Vecrev(-2)
+            [4, 3, 2, 1]
+            sage: pari([1,2,3,4]).Vecrev(6)
+            [0, 0, 4, 3, 2, 1]
+            sage: pari([1,2,3,4]).Vecrev(-6)
+            [4, 3, 2, 1, 0, 0]
         """
-        Vecsmall(x): transforms the object x into a t_VECSMALL.
+        sig_on()
+        return P.new_gen(_Vec_append(gtovecrev(x.g), gen_0, -n))
+
+    def Vecsmall(gen x, long n = 0):
+        """
+        Transform the object `x` into a ``t_VECSMALL`` with minimal size `|n|`.
 
         INPUT:
 
+        - ``x`` -- gen
 
-        -  ``x`` - gen
-
+        - ``n`` -- Make the vector of minimal length `|n|`. If `n > 0`,
+          append zeros; if `n < 0`, prepend zeros.
 
         OUTPUT:
 
-
-        -  ``gen`` - PARI t_VECSMALL
-
+        A PARI vector of small integers (type ``t_VECSMALL``)
 
         EXAMPLES::
 
@@ -2928,9 +2986,24 @@ cdef class gen(sage.structure.element.RingElement):
             Vecsmall([83, 97, 103, 101])
             sage: pari(1234).Vecsmall()
             Vecsmall([1234])
+            sage: pari('x^2 + 2*x + 3').Vecsmall()
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type (11)
+
+        We demonstate the `n` argument::
+
+            sage: pari([1,2,3]).Vecsmall(2)
+            Vecsmall([1, 2, 3])
+            sage: pari([1,2,3]).Vecsmall(-2)
+            Vecsmall([1, 2, 3])
+            sage: pari([1,2,3]).Vecsmall(6)
+            Vecsmall([1, 2, 3, 0, 0, 0])
+            sage: pari([1,2,3]).Vecsmall(-6)
+            Vecsmall([0, 0, 0, 1, 2, 3])
         """
         sig_on()
-        return P.new_gen(gtovecsmall(x.g))
+        return P.new_gen(_Vec_append(gtovecsmall(x.g), <GEN>0, n))
 
     def binary(gen x):
         """
@@ -10201,6 +10274,50 @@ cdef gen _new_gen (GEN x):
     y = PY_NEW(gen)
     y.init(h, address)
     return y
+
+cdef GEN _Vec_append(GEN v, GEN a, long n):
+    """
+    This implements appending zeros (or another constant GEN ``a``) to
+    the result of :meth:`Vec` and similar functions.
+
+    This is a shallow function, copying ``a`` and entries of ``v`` to
+    the result.  The result is simply stored on the PARI stack.
+
+    INPUT:
+
+    - ``v`` -- GEN of type ``t_VEC`` or ``t_COL``
+
+    - ``a`` -- GEN which will be used for the added entries.
+      Normally, this would be ``gen_0``.
+
+    - ``n`` -- Make the vector of minimal length `|n|`. If `n > 0`,
+      append zeros; if `n < 0`, prepend zeros.
+
+    OUTPUT:
+
+    A GEN of the same type as ``v``.
+    """
+    cdef long lenv = lg(v)-1
+    cdef GEN w
+    cdef long i
+    # Do we need to extend the vector with zeros?
+    if n > lenv:
+        w = cgetg(n+1, typ(v))
+        for i from 1 <= i <= lenv:
+            set_gel(w, i, gel(v, i))
+        for i from 1 <= i <= n-lenv:
+            set_gel(w, i+lenv, a)
+        return w
+    elif n < -lenv:
+        n = -n  # Make n positive
+        w = cgetg(n+1, typ(v))
+        for i from 1 <= i <= lenv:
+            set_gel(w, i+(n-lenv), gel(v, i))
+        for i from 1 <= i <= n-lenv:
+            set_gel(w, i, a)
+        return w
+    else:
+        return v
 
 
 #######################

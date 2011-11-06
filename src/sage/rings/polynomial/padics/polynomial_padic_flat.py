@@ -45,7 +45,7 @@ class Polynomial_padic_flat(Polynomial_generic_dense):
             Polynomial_generic_dense.__init__(self, parent, x, absprec = m)
             return
         elif isinstance(x, pari_gen):
-            x = [R(w) for w in x.Vecrev()]
+            x = [R(w) for w in x.list()]
         else:
             x = [R(x)]
         if absprec is None:

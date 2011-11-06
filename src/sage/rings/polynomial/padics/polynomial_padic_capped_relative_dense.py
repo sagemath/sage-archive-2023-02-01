@@ -95,7 +95,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
                 v[i] = z
             x = v
         elif isinstance(x, pari_gen):
-            x = [parentbr(w) for w in x.Vecrev()]
+            x = [parentbr(w) for w in x.list()]
             check = False
         #The default behavior if we haven't already figured out what the type is is to assume it coerces into the base_ring as a constant polynomial
         elif not isinstance(x, list):

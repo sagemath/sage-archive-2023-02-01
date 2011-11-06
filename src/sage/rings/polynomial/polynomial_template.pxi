@@ -163,7 +163,7 @@ cdef class Polynomial_template(Polynomial):
 
         elif PY_TYPE_CHECK(x, pari_gen):
             k = (<Polynomial_template>self)._parent.base_ring()
-            x = [k(w) for w in x.Vecrev()]
+            x = [k(w) for w in x.list()]
             self.__class__.__init__(self, parent, x, check=True, is_gen=False, construct=construct)
         elif PY_TYPE_CHECK(x, Polynomial):
             k = (<Polynomial_template>self)._parent.base_ring()

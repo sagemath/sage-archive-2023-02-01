@@ -249,7 +249,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         elif PY_TYPE_CHECK(x, pari_gen):
             k = self._parent.base_ring()
-            x = [k(w) for w in x.Vecrev()]
+            x = [k(w) for w in x.list()]
             Polynomial_rational_flint.__init__(self, parent, x, check=True, \
                                              is_gen=False, construct=construct)
 

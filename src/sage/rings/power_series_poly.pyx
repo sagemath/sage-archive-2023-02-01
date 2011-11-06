@@ -872,7 +872,7 @@ cdef class PowerSeries_poly(PowerSeries):
         try:
             f2 = f._pari_()
             g = f2.serreverse()
-            return PowerSeries_poly(f.parent(),g.Vecrev(),out_prec)
+            return PowerSeries_poly(f.parent(), g.Vec(-out_prec), out_prec)
         except (TypeError,ValueError,AttributeError,PariError):
             # if pari fails, continue with Lagrange inversion
             from sage.misc.all import verbose

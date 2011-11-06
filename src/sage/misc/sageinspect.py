@@ -85,7 +85,7 @@ Cython functions::
     '.../rational.pyx'
 
     sage: sage_getdoc(sage.rings.rational.make_rational).lstrip()
-    "Make a rational number ..."
+    'Make a rational number ...'
 
     sage: sage_getsource(sage.rings.rational.make_rational, True)[4:]
     'make_rational(s):...'
@@ -99,7 +99,7 @@ Python functions::
     '.../sageinspect.py'
 
     sage: sage_getdoc(sage.misc.sageinspect.sage_getfile).lstrip()
-    "Get the full file name associated to ``obj`` as a string..."
+    'Get the full file name associated to "obj" as a string...'
 
     sage: sage_getsource(sage.misc.sageinspect.sage_getfile)[4:]
     'sage_getfile(obj):...'

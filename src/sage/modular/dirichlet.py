@@ -503,16 +503,17 @@ class DirichletCharacter(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: G.<a,b> = DirichletGroup(16)
-            sage: latex(b) # indirect doctest
-            Dirichlet character modulo 16 of conductor 16 mapping $15 \mapsto 1, 5 \mapsto \zeta_{4}$
+            sage: latex(b)  # indirect doctest
+            \hbox{Dirichlet character modulo } 16 \hbox{ of conductor } 16 \hbox{ mapping } 15 \mapsto 1,\ 5 \mapsto \zeta_{4}
         """
         from sage.misc.latex import latex
         mapst = ''
         for i in range(len(self.values_on_gens())):
             if i != 0:
-                mapst += ', '
+                mapst += r',\ '
             mapst += latex(self.parent().unit_gens()[i]) + ' \mapsto ' + latex(self.values_on_gens()[i])
-        return r'Dirichlet character modulo %s of conductor %s mapping $%s$'%(self.modulus(), self.conductor(), mapst)
+        return r'\hbox{Dirichlet character modulo } %s \hbox{ of conductor } %s \hbox{ mapping } %s' \
+                 % (self.modulus(), self.conductor(), mapst)
 
     def base_ring(self):
         """

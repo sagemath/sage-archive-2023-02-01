@@ -289,6 +289,7 @@ pygmentize
 rst.*\.py
 sphinx-build
 sphinx-quickstart
+sphinx-apidoc
 ncadoctest.pyc
 2to3
 ecl

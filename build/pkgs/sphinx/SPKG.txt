@@ -33,36 +33,57 @@ Home Page: http://sphinx.pocoo.org,
 
 == Special Update/Build Instructions ==
 
-Here is a description of patches on top of Sphinx 1.0.4:
+ * Make sure to update the Sphinx version number in the file
+   patches/sphinx-build.
 
- * patches/autodoc.patch: This patches src/sphinx/ext/autodoc.py. This
-   adds an option to Sphinx to provide a function to get the argspecs of
-   built-in functions.
+ * Here is a description of patches on top of Sphinx 1.1.2:
 
- * patches/environment.patch: This patches the file src/sphinx/environment.py.
-   Patching it should prevent Sphinx from rebuilding documentation that
-   is already built.
+   - patches/autodoc.patch: This patches
+     src/sphinx/ext/autodoc.py. This adds an option to Sphinx to
+     provide a function to get the argspecs of built-in functions.
 
- * patches/highlighting.patch: This patches the file
-   src/sphinx/highlighting.py. The patch should allow Sphinx to
-   recognize the Sage prompt "sage:" the same way it recognizes the
-   ">>>" from Python.
+   - patches/environment.patch: This patches the file
+     src/sphinx/environment.py.  Patching it should prevent Sphinx
+     from rebuilding documentation that is already built.
 
- * patches/pngmath.patch: This replaces \usepackage[utf8x]{inputenc}
-   by \usepackage[utf8]{inputenc} in the LaTeX preamble for building
-   images in the HTML documentation.  This change is done because some
-   LaTeX installations have only utf8, not utf8x (utf8x adds support for
-   much more Unicode characters, but these are not needed to typeset the
-   mathematics in the Sage documentation).
+   - patches/highlighting.patch: This patches the file
+     src/sphinx/highlighting.py. The patch should allow Sphinx to
+     recognize the Sage prompt "sage:" the same way it recognizes the
+     ">>>" from Python.
 
- * patches/Makefile.patch: This patches the file
-   src/sphinx/texinputs/Makefile to increase the save size stack to
-   50,000 and increase the pool size stack to 4,000,000. These
-   increased stack sizes should be sufficient for LaTeX to handle the
-   huge index of the Sage reference manual when building the PDF
-   version of that manual.
+   - patches/pngmath.patch: This replaces \usepackage[utf8x]{inputenc}
+     by \usepackage[utf8]{inputenc} in the LaTeX preamble for building
+     images in the HTML documentation.  This change is done because
+     some LaTeX installations have only utf8, not utf8x (utf8x adds
+     support for much more Unicode characters, but these are not
+     needed to typeset the mathematics in the Sage documentation).
+
+   - patches/Makefile.patch: This patches the file
+     src/sphinx/texinputs/Makefile to increase the save size stack to
+     50,000 and increase the pool size stack to 4,000,000. These
+     increased stack sizes should be sufficient for LaTeX to handle
+     the huge index of the Sage reference manual when building the PDF
+     version of that manual.
+
+ * To do: autogenerate the file sage_autodoc.py from
+   src/sphinx/ext/autodoc.py.  sage_autodoc.py is currently in
+   SAGE_ROOT/devel/sage/doc/common and is tracked in the Sage library
+   repository, and as a result, it is now somewhat out-of-synch with
+   autodoc.py.  Instead we could do the following: in spkg-install,
+
+     cp sphinx/ext/autodoc.py sphinx/ext/sage_autodoc.py
+
+   Then patch sage_autodoc.py in place.  This would require modifying
+   devel/sage/doc/common/conf.py: 'extensions' would use
+   'sphinx.ext.sage_autodoc' instead of 'sage_autodoc'.
 
 == Changelog ==
+
+=== sphinx-1.1.2.p0 (John Palmieri, November 5th 2011) ===
+ * #10620: Upgrade to Sphinx 1.1.2.  Also minor editing of SPKG.txt.
+
+=== sphinx-1.0.8.p0 (John Palmieri, September 23rd 2011) ===
+ * #10620: Upgrade to Sphinx 1.0.8.
 
 === sphinx-1.0.4.p8 (Leif Leonhardy, August 17th 2011) ===
  * #11665: Don't delete previously built Sage documentation (in

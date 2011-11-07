@@ -567,6 +567,13 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         2*pi
         sage: a.simplify_full().simplify_trig()
         1
+
+    Maxima uses Cauchy Principal Value calculations to
+    integrate certain convergent integrals.  Here we test
+    that this does not raise an error message (see #11987)::
+
+        sage: integrate(sin(x)*sin(x/3)/x^2, x, 0, oo)
+        1/6*pi
     """
     if isinstance(v, (list, tuple)) and a is None and b is None:
         if len(v)==1: # bare variable in a tuple

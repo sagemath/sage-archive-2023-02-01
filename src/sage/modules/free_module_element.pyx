@@ -811,6 +811,29 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         self._degree = parent.degree()
         self._is_mutable = 1
 
+    def _giac_init_(self):
+        """
+        EXAMPLES::
+
+            sage: v = vector(ZZ, 4, range(4))               #optional - giac
+            sage: giac(v)+v                                #optional -  giac
+            [0,2,4,6]
+
+        ::
+
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])          #optional
+            sage: giac(v)                                  #optional
+            [2/3,0,5/4]
+
+        ::
+
+            sage: P.<x> = ZZ[]                                       #optional
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) #optional
+            sage: giac(v)                                           #optional
+            [x^2+2,2*x+1,-2*x^2+4*x]
+        """
+        return self.list()
+
     def _magma_init_(self, magma):
         r"""
         Convert self to Magma.

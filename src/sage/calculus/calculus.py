@@ -416,6 +416,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
       - 'maxima' - use Maxima (the default)
       - 'maple' - (optional) use Maple
       - 'mathematica' - (optional) use Mathematica
+      - 'giac' - (optional) use Giac
 
     EXAMPLES::
 
@@ -513,6 +514,11 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'mathematica')     # optional  -- requires mathematica
         pi*coth(pi)
 
+    An example of this summation with Giac::
+
+        sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')           # optional -- requires giac
+        -(pi*e^(-2*pi) - pi*e^(2*pi))/(e^(-2*pi) + e^(2*pi) - 2)
+
     Use Maple as a backend for summation::
 
         sage: symbolic_sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional  -- requires maple
@@ -566,6 +572,15 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
             result = maple(sum).simplify()
         except TypeError:
             raise ValueError, "Maple cannot make sense of: %s" % sum
+        return result.sage()
+
+    elif algorithm == 'giac':
+        sum = "sum(%s, %s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (expression, v, a, b)])
+        from sage.interfaces.giac import giac
+        try:
+            result = giac(sum)
+        except TypeError:
+            raise ValueError, "Giac cannot make sense of: %s" % sum
         return result.sage()
 
     else:

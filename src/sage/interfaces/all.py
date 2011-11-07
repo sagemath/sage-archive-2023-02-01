@@ -9,6 +9,7 @@ from gap import gap, gap_reset_workspace, gap_console, gap_version, is_GapElemen
 from gap3 import gap3, gap3_console, gap3_version, Gap3
 from genus2reduction import genus2reduction, Genus2reduction
 from gfan import gfan,  Gfan
+from giac import giac, giac_console, Giac
 from gp import gp, gp_console, gp_version, is_GpElement, Gp
 from gnuplot import gnuplot, gnuplot_console
 from kash import  kash, kash_console, kash_version, is_KashElement, Kash
@@ -39,7 +40,7 @@ from lie import lie, lie_console, LiE
 from r import r, r_console, R, r_version, is_RElement
 from read_data import read_data
 
-interfaces = ['gap', 'gap3', 'gp', 'mathematica', 'gnuplot', \
+interfaces = ['gap', 'gap3', 'giac', 'gp', 'mathematica', 'gnuplot', \
               'kash', 'magma', 'macaulay2', 'maple', 'maxima', \
               'mathematica', 'mwrank', 'octave', 'r', \
               'singular', 'sage0', 'sage']

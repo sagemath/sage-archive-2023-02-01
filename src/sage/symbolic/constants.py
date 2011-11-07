@@ -534,7 +534,7 @@ class Pi(Constant):
             <mi>&pi;</mi>
 
         """
-        conversions = dict(axiom='%pi', maxima='%pi', gp='Pi', kash='PI',
+        conversions = dict(axiom='%pi', maxima='%pi', giac='pi', gp='Pi', kash='PI',
                            mathematica='Pi', matlab='pi', maple='pi',
                            octave='pi', pari='Pi', pynac='Pi')
         Constant.__init__(self, name, conversions=conversions,
@@ -749,7 +749,7 @@ class GoldenRatio(Constant):
         conversions = dict(mathematica='(1+Sqrt[5])/2', gp='(1+sqrt(5))/2',
                            maple='(1+sqrt(5))/2', maxima='(1+sqrt(5))/2',
                            pari='(1+sqrt(5))/2', octave='(1+sqrt(5))/2',
-                           kash='(1+Sqrt(5))/2')
+                           kash='(1+Sqrt(5))/2', giac='(1+sqrt(5))/2')
         Constant.__init__(self, name, conversions=conversions,
                           latex=r'\phi', domain='positive')
 

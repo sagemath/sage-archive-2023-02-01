@@ -140,6 +140,32 @@ cdef class Matrix(matrix0.Matrix):
         # otherwise the result would not be a gap matrix
         return '[%s]*One(%s)'%(','.join(v),sage.interfaces.gap.gap(self.base_ring()).name())
 
+    def _giac_init_(self):
+        """
+        Return a Giac string representation of this matrix.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ,2,range(4))             #optional
+            sage: giac(M)                              #optional (indirect doctest)
+            [[0,1],[2,3]]
+
+        ::
+
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])    #optional
+            sage: giac(M)                                      #optional
+            [[1,2,3],[4/3,5/3,3/2],[7,8,9]]
+
+        ::
+
+            sage: P.<x> = ZZ[]                          #optional
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) #optional
+            sage: giac(M)                             #optional
+            [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]]
+        """
+        s = str(self.rows()).replace('(','[').replace(')',']')
+        return "(%s)"%(s)
+
     def _maxima_init_(self):
         """
         Return a string representation of this matrix in Maxima.

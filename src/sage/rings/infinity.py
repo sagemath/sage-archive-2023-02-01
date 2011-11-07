@@ -228,6 +228,15 @@ class AnInfinity:
         """
         return self._sign_char + "Infinity"
 
+    def _giac_init_(self):
+        """
+        TESTS::
+
+            sage: [x._repr_() for x in [unsigned_infinity, oo, -oo]]
+            ['Infinity', '+Infinity', '-Infinity']
+        """
+        return self._sign_char + "infinity"
+
     def _maxima_init_(self):
         """
         TESTS::

@@ -509,6 +509,17 @@ cdef class SageObject:
         I = sage.interfaces.fricas.fricas
         return self._interface_init_(I)
 
+    def _giac_(self, G=None):
+        if G is None:
+            import sage.interfaces.giac
+            G = sage.interfaces.giac.giac
+        return self._interface_(G)
+
+    def _giac_init_(self):
+        import sage.interfaces.giac
+        I = sage.interfaces.giac.giac
+        return self._interface_init_(I)
+
     def _maxima_(self, G=None):
         if G is None:
             import sage.interfaces.maxima

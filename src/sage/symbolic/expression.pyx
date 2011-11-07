@@ -8572,6 +8572,8 @@ cdef class Expression(CommutativeRingElement):
 
                 - 'mathematica' - (optional) use Mathematica
 
+     		- 'giac' - (optional) use Giac
+
 
         EXAMPLES::
 
@@ -8663,6 +8665,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (1/(1+k^2)).sum(k, -oo, oo, algorithm = 'mathematica')     # optional  -- requires mathematica
             pi*coth(pi)
+
+	Use Giac to perform this summation::
+
+            sage: (sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')).factor()       # optional  -- requires giac
+            (e^(2*pi) + 1)*pi/((e^pi - 1)*(e^pi + 1))
 
         Use Maple as a backend for summation::
 

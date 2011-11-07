@@ -16,8 +16,12 @@ print "Using SAGE Server %s"%PKG_SERVER
 url = "%(SERVER)s/%(REPO)s/list"%{'SERVER': PKG_SERVER, 'REPO': sys.argv[1]}
 
 file = "%s/tmp/list"%SAGE_ROOT
-if not os.path.exists("%s/tmp"%SAGE_ROOT):
-     os.makedirs("%s/tmp"%SAGE_ROOT)
+SAGE_ROOT_TMP="%s/tmp"%SAGE_ROOT
+try:
+    os.makedirs(SAGE_ROOT_TMP)
+except OSError:
+    if not os.path.isdir(SAGE_ROOT_TMP):
+        raise
 
 try:
      installed = set(os.listdir("%s/installed/"%SPKG_ROOT))

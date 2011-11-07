@@ -24,8 +24,11 @@ HOSTNAME = socket.gethostname().replace('-','_').replace('/','_').replace('\\','
 
 DOT_SAGE = os.environ['DOT_SAGE']
 tmp = '%s/temp/%s/'%(DOT_SAGE, HOSTNAME)
-if not os.path.exists(tmp):
+try:
     os.makedirs(tmp)
+except OSError:
+    if not os.path.isdir(tmp):
+        raise
 
 def is_running(pid):
     """

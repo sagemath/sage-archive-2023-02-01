@@ -748,8 +748,11 @@ def test_file(file, library_code):
             cmd = "valgrind --tool=exp-omega " + SAGE_OMEGA_FLAGS + cmd
 
         VALGRIND = os.path.join(DOT_SAGE, 'valgrind')
-        if not os.path.exists(VALGRIND):
-          os.makedirs(VALGRIND)
+        try:
+            os.makedirs(VALGRIND)
+        except OSError:
+            if not os.path.isdir(VALGRIND):
+                raise
 
         tm = time.time()
         try:

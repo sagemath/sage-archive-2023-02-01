@@ -157,8 +157,11 @@ def get_all_patches(patch_ls, directory=None, overwrite=False):
         directory = misc.tmp_dir('release')
     else:
         directory = os.path.abspath(directory)
-        if not os.path.exists(directory):
+        try:
             os.makedirs(directory)
+        except OSError:
+            if not os.path.isdir(directory):
+                raise
 
     os.chdir(directory)
     print "Fetching patches and storing in %s:"%directory
@@ -745,8 +748,11 @@ if __name__ == '__main__':
 
     if options.directory:
         directory = os.path.abspath(options.directory)
-        if not os.path.exists(directory):
+        try:
             os.makedirs(directory)
+        except OSError:
+            if not os.path.isdir(directory):
+                raise
 
     # Returns the first known doctest option that the argument is a prefix of.
     test_type = reduce(lambda x,y: x or y,

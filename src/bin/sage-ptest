@@ -371,9 +371,16 @@ for gr in range(0,numglobaliteration):
     # Should TMP be a subdirectory of tempfile.gettempdir() rather than SAGE_TESTDIR?
     TMP = os.path.join(SAGE_TESTDIR, '%s-%s' % (HOSTNAME, os.getpid()))
     TMP = os.path.abspath(TMP)
-    if os.path.exists(TMP):
-        shutil.rmtree(TMP)
-    os.makedirs(TMP)
+    try:
+        os.makedirs(TMP)
+    except OSError:
+        # If TMP already exists, remove it and re-create it
+        if os.path.isdir(TMP):
+            shutil.rmtree(TMP)
+            os.makedirs(TMP)
+        else:
+            raise
+
     # Add rwx permissions for user to TMP:
     os.chmod(TMP, os.stat(TMP)[0] | stat.S_IRWXU)
     os.environ['SAGE_TESTDIR'] = TMP

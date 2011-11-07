@@ -33,8 +33,11 @@ except KeyError:
 if 'SAGE_TESTDIR' not in os.environ:
     os.environ['SAGE_TESTDIR'] = os.path.join(SAGE_ROOT, "tmp")
 TMP = os.path.join(os.environ['SAGE_TESTDIR'], "tmp")
-if not os.path.exists(TMP):
+try:
     os.makedirs(TMP)
+except OSError:
+    if not os.path.isdir(TMP):
+        raise
 
 def sage_test_command(f):
     g = abspath(f)

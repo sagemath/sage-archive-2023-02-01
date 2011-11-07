@@ -1195,9 +1195,7 @@ def lift_to_sl2z_int(int c, int d, int N):
     `c=c'` (mod `N`) and `d=d'` (mod `N`).
 
     INPUT:
-
-
-    -  ``c,d,N`` - integers such that `\gcd(c,d,N)=1`.
+        -  ``c,d,N`` - integers such that `\gcd(c,d,N)=1`.
 
     EXAMPLES::
 
@@ -1245,7 +1243,10 @@ def lift_to_sl2z_int(int c, int d, int N):
         m = m / g
     d = d + N*m
     g = arith_int.c_xgcd_int(c, d, &z1, &z2)
-    # assert g==1
+
+    if g != 1:
+        raise ValueError, "input must have gcd 1"
+
     return [z2, -z1, c, d]
 
 def lift_to_sl2z_llong(llong c, llong d, int N):
@@ -1259,9 +1260,7 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
     and `d=d'` (mod `N`).
 
     INPUT:
-
-
-    -  ``c,d,N`` - integers such that `\gcd(c,d,N)=1`.
+        -  ``c,d,N`` - integers such that `\gcd(c,d,N)=1`.
 
     EXAMPLES::
 
@@ -1309,7 +1308,10 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
         m = m / g
     d = d + N*m
     g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
-    # assert g==1
+
+    if g != 1:
+        raise ValueError, "input must have gcd 1"
+
     return [z2, -z1, c, d]
 
 def lift_to_sl2z(c, d, N):
@@ -1319,25 +1321,36 @@ def lift_to_sl2z(c, d, N):
     `c,d` modulo `N`.
 
     INPUT:
-
-
-    -  ``c,d,N`` - integers such that `\gcd(c,d,N)=1`.
+        -  ``c,d,N`` - Python ints or longs such that `\gcd(c,d,N)=1`.
 
     EXAMPLES::
 
         sage: lift_to_sl2z(2,3,6)
         [1, 1, 2, 3]
+        sage: lift_to_sl2z(2,3,6000000)
+        [1L, 1L, 2L, 3L]
+
+    You will get a ValueError exception if the input is invalid.  Note
+    that here gcd(15,6,24)=3::
+
         sage: lift_to_sl2z(15,6,24)
-        [-2, -17, 15, 126]
-        sage: lift_to_sl2z(15,6,2400000)
-        [-2L, -320001L, 15L, 2400006L]
+        Traceback (most recent call last):
+        ...
+        ValueError: input must have gcd 1
+
+    This function is not implemented except for N at most 2**31::
+
+        sage: lift_to_sl2z(1,1,2^32)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: N too large
     """
     if N <= 46340:
         return lift_to_sl2z_int(c,d,N)
     elif N <= 2147483647:
         return lift_to_sl2z_llong(c,d,N)
     else:
-        raise OverflowError, "N too large"
+        raise NotImplementedError, "N too large"
 
 
 def _make_p1list(n):

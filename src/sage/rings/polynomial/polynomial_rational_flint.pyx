@@ -1447,8 +1447,14 @@ cdef class Polynomial_rational_flint(Polynomial):
         if not self.is_irreducible():
             raise ValueError, "The polynomial must be irreducible"
 
-        if self.degree() > 11 and algorithm=='pari':
+        if self.degree() > 11 and algorithm == 'pari':
             algorithm = 'kash'
+
+        if self.degree() > 23 and algorithm == 'kash':
+            raise NotImplementedError, "Galois group computation is " + \
+                "supported for degrees up to 11 using Pari, or up to 23 " + \
+                "if the optional package KASH is installed.  Try " + \
+                "algorithm='magma' if you have magma."
 
         if algorithm == 'pari':
             G = self._pari_().Polrev().polgalois()
@@ -1472,7 +1478,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                     "computation of Galois groups of fields of degree " +
                     "bigger than 11 is not yet implemented.  Try installing " +
                     "the optional free (closed source) KASH package, which " +
-                    "supports larger degrees, or use algorithm='magma' if " +
+                    "supports degrees up to 23, or use algorithm='magma' if " +
                     "you have magma.")
 
         elif algorithm == 'magma':

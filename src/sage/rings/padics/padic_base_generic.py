@@ -325,7 +325,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
         INPUT:
 
-        - ``point_count`` -- the maximum number or points to plot,
+        - ``max_points`` -- the maximum number or points to plot,
           which controls the depth of recursion (default 2500)
 
         - ``**args`` -- color, size, etc. that are passed to the

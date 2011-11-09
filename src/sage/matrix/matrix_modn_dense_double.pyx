@@ -131,7 +131,11 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
             sage: a*a
             4337773
         """
-        self._matrix[i][j] = <double>(<IntegerMod_int>x).ivalue
+        # note that INTEGER_MOD_INT32_LIMIT is ceil(sqrt(2^31-1)) < 2^23
+        if (<Matrix_modn_dense_template>self).p <= INTEGER_MOD_INT32_LIMIT:
+            self._matrix[i][j] = <double>(<IntegerMod_int>x).ivalue
+        else:
+            self._matrix[i][j] = <double>(<IntegerMod_int64>x).ivalue
 
     cdef IntegerMod_abstract get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         r"""

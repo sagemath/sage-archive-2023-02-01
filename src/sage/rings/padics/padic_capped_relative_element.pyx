@@ -755,6 +755,22 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 self.relprec = 0
             self._normalized = 1
 
+    def _is_normalized(self):
+        """
+        Returns whether this element is currently normalized.
+
+        EXAMPLES::
+
+            sage: R = Zp(5); a = R(4); b = R(6); c = a + b
+            sage: c._is_normalized()
+            False
+            sage: c
+            2*5 + O(5^20)
+            sage: c._is_normalized()
+            True
+        """
+        return self._normalized
+
     def __dealloc__(pAdicCappedRelativeElement self):
         """
         Deallocation.
@@ -1114,7 +1130,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: a//b # indirect doctest
             9 + 9*19 + O(19^2)
         """
-        if self.parent() is not right.parent():
+        if not PY_TYPE_CHECK(right, Element) or self.parent() is not right.parent():
             right = pAdicCappedRelativeElement(self.parent(), right)
         return self._floordiv_c_impl(right)
 
@@ -1945,6 +1961,10 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
           is 'simple' or 'smallest', and elements of self.parent() if lift_mode is
           'teichmuller'.
 
+        NOTE:
+
+        Use slice operators to get a particular range.
+
         EXAMPLES::
 
             sage: R = Zp(7,6); a = R(12837162817); a
@@ -1977,13 +1997,20 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             3 + 4*7 + O(7^2),
             3 + O(7)]
 
-        NOTE:
+        TESTS:
 
-        Use slice operators to get a particular range.
+        Check to see that #10292 is resolved.
 
+            sage: E = EllipticCurve('37a')
+            sage: R = E.padic_regulator(7)
+            sage: R._is_normalized()
+            False
+            sage: len(R.list())
+            19
         """
         cdef Integer ordp, zeron
         cdef pAdicCappedRelativeElement zero
+        self._normalize()
         if mpz_sgn(self.unit) <= 0:
             return []
         if lift_mode == 'teichmuller':

@@ -1254,6 +1254,22 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 else:
                     self.relprec = -self.relprec
 
+    def _is_normalized(self):
+        """
+        Returns whether this element is currently normalized.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(125); b = 5*a + 4; c = 10*a^2 + 6; d = b + c
+            sage: d._is_normalized()
+            False
+            sage: d
+            (2*a^2 + a + 2)*5 + O(5^20)
+            sage: d._is_normalized()
+            True
+        """
+        return self.relprec >= 0
+
     cdef int _internal_lshift(self, long shift) except -1:
         """
         Multiplies ``self.unit`` by ``x^shift``.

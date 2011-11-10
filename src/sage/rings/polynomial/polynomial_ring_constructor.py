@@ -648,14 +648,12 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
         n = len(names)
 
     from sage.rings.polynomial.term_order import TermOrder
-    from sage.rings.polynomial.pbori import set_cring
 
     order = TermOrder(order, n)
 
     key = ("pbori", names, n, order)
     R = _get_from_cache(key)
     if not R is None:
-        set_cring(R)
         return R
 
     from sage.rings.polynomial.pbori import BooleanPolynomialRing

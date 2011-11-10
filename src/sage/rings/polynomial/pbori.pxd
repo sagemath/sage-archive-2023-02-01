@@ -7,7 +7,7 @@ from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.structure.element cimport MonoidElement
 
 #explicit is better than implicit
-from sage.libs.polybori.decl cimport PBPoly, PBRing, PBDD, PBNavigator, \
+from sage.libs.polybori.decl cimport PBPoly, PBRing, PBNavigator, \
     PBPolyVector, PBPolyVectorIter, PBSet, PBMonom,  PBMonomVarIter, PBMonomIter, \
     PBPolyIter, PBSetIter, PBRedStrategy, PBGBStrategy, PBFglmStrategy, PBVar
 
@@ -32,9 +32,6 @@ cdef class BooleSet:
 
 cdef class CCuddNavigator:
     cdef PBNavigator _pbnav
-
-# cdef class DD:
-#     cdef PBDD _pbdd
 
 cdef class BooleanMonomial(MonoidElement):
     cdef PBMonom _pbmonom
@@ -72,7 +69,8 @@ cdef class ReductionStrategy:
     cdef BooleanPolynomialRing _parent
 
 cdef class GroebnerStrategy:
-    cdef PBGBStrategy _strat
+    cdef PBGBStrategy* _strat
+    cdef PBRefCounter _count
     cdef BooleanPolynomialRing _parent
     cdef public ReductionStrategy reduction_strategy
 
@@ -90,13 +88,22 @@ cdef class BooleanPolynomialVectorIterator:
     cdef PBPolyVectorIter _iter
     cdef PBPolyVectorIter _end
 
-cdef class VariableBlock_base:
+cdef class VariableBlock:
     cdef BooleanPolynomialRing _ring
-    cdef int size
-    cdef int start_index
-    cdef int offset
+    cdef PBVarBlock* _block
     cdef public object __name__
 
-#cdef class BooleVariable:
-#    cdef PBVar _pbvar
+cdef class BooleConstant:
+    cdef PBConstant _pbconst
 
+cdef class VariableFactory:
+    cdef BooleanPolynomialRing _ring
+    cdef PBVarFactory _factory
+
+cdef class MonomialFactory:
+    cdef BooleanPolynomialRing _ring
+    cdef PBMonomFactory _factory
+
+cdef class PolynomialFactory:
+    cdef BooleanPolynomialRing _ring
+    cdef PBPolyFactory _factory

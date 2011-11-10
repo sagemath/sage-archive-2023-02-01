@@ -1587,11 +1587,8 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
-              libraries=(['polybori','pboriCudd', 'groebner', 'gd', 'png12', 'm4ri']),
-              include_dirs = [SAGE_INC + 'cudd',
-                              SAGE_INC + 'polybori',
-                              SAGE_INC + 'polybori/groebner',
-                              "sage/libs/polybori"],
+              libraries=['polybori', 'polybori_groebner', 'gd', 'png12', 'm4ri'],
+              include_dirs = [SAGE_INC, "sage/libs/polybori"],
               depends = [SAGE_INC + "polybori/polybori.h", SAGE_INC + 'm4ri/m4ri.h'],
               extra_compile_args = polybori_extra_compile_args + m4ri_extra_compile_args,
               language = 'c++'),

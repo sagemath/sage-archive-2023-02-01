@@ -966,15 +966,13 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         """
         from polybori.ll import ll_encode
         from polybori.ll import ll_red_nf_redsb
-        from sage.rings.polynomial.pbori import set_cring, BooleanPolynomialRing
+        from sage.rings.polynomial.pbori import BooleanPolynomialRing
         from sage.misc.misc import get_verbose
 
         R = self.ring()
 
         if not isinstance(R, BooleanPolynomialRing):
             raise NotImplementedError("Only BooleanPolynomialRing's are supported.")
-
-        set_cring(R)
 
         F = self
 
@@ -1061,7 +1059,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             return GroebnerStrategy(self.ideal())
         else:
             from sage.rings.polynomial.pbori import GroebnerStrategy
-            g = GroebnerStrategy()
+            g = GroebnerStrategy(R)
             for p in self:
                 g.add_as_you_wish(p)
             g.reduction_strategy.opt_red_tail=True

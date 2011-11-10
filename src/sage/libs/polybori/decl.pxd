@@ -1,3 +1,5 @@
+
+
 cdef extern from "pb_wrap.h":
     ctypedef struct std_string "std::string":
         char *(* c_str)()
@@ -35,16 +37,7 @@ cdef extern from "pb_wrap.h":
 
     ctypedef struct PBRing "BoolePolyRing"
 
-    ctypedef struct PBDD "BooleSet":
-        bint (* emptiness)()
-        PBNavigator (* navigation)()
-        PBDD (* subset0)(int idx)
-        PBDD (* subset1)(int idx)
-        PBDD (* unite)(PBDD rhs)
-        PBRing (* ring)()
-
     # non-allocating versions
-    void PBDD_destruct "Destruct<CDDInterface<CTypes::dd_base> >"(PBDD *mem)
 
     ctypedef struct PBBlockIter "COrderingBase::block_iterator":
         int (* value "operator*")()
@@ -56,29 +49,37 @@ cdef extern from "pb_wrap.h":
     ctypedef struct PBOrdering "COrderingBase":
         int (*getOrderCode)()
         int (*getBaseOrderCode)()
+        void (*appendBlock)(int nextBlockStartIndex)
         PBBlockIter (*blockBegin)()
         PBBlockIter (*blockEnd)()
         int (*lastBlockStart)()
+        bint isDegreeOrder()
 
-    ctypedef struct PBSet "BooleSet"
-    ctypedef struct PBPoly "BoolePolynomial"
+    ctypedef struct PBSet "DefaultRinged<BooleSet>"
+    ctypedef struct PBPoly "DefaultRinged<BoolePolynomial>"
+
+    ctypedef struct PBVar "DefaultRinged<BooleVariable>":
+        int (* index "index")()
+        bint (* is_equal "operator==")(PBVar right)
 
     ctypedef struct PBRing "BoolePolyRing":
-        int (* nVariables)()
-        PBDD (* variable)(int n)
-        void (*activate)()
-        PBOrdering (*ordering)()
-        int (*hash)()
-        void (*setVariableName) (int idx, char *varname)
-        char* (*getVariableName)(int idx)
-        PBRing (*clone)()
-        PBPoly (*coerce)(PBPoly rhs)
+        int (* nVariables )()
+        PBVar (* variable )(int n)
+        PBOrdering (*ordering )()
+        void (*appendBlock "ordering().appendBlock")(int nextBlockStartIndex)
+        void (*changeOrdering  )(int)
+        int (*hash )()
+        void (*setVariableName ) (int idx, char *varname)
+        char* (*getVariableName )(int idx)
+        PBRing (*clone )()
+        PBPoly (*coerce )(PBPoly rhs)
+        PBPoly (*zero )()
+        PBPoly (*one )()
 
-    void pbenv_changeOrdering "BooleEnv::changeOrdering"(int c)
-    int  pbenv_getOrderCode "BooleEnv::getOrderCode"()
-    bint pbenv_isDegreeOrder "BooleEnv::ordering().isDegreeOrder"()
-    void pbenv_set "BooleEnv::set"(PBRing ring)
-    PBRing pbenv_ring "BooleEnv::ring"()
+    cdef cppclass PBVarBlock "VariableBlock":
+        PBVarBlock(int size, int start_index, int offset, bint reverse,\
+                       PBRing r)
+        PBVar operator()(int index)
 
     ctypedef struct PBMonomIter "BooleMonomial::const_iterator":
         int (* value "operator*")()
@@ -89,18 +90,6 @@ cdef extern from "pb_wrap.h":
     void PBMonomIter_destruct "Destruct<BooleMonomial::const_iterator>" \
             (PBMonomIter *mem)
 
-    ctypedef struct PBVar "BooleVariable":
-        int (* index)()
-        bint (* is_equal "operator==")(PBVar right)
-
-    PBVar* PBVar_construct_int "Construct_p<BooleVariable, int>" \
-        (void *mem, int ind)
-
-    PBVar* PBVar_construct_int_ring "Construct_pp<BooleVariable, int, BoolePolyRing>" \
-        (void *mem, int ind, PBRing ring)
-
-    PBVar* PBVar_construct_pbvar "Construct_p<BooleVariable, BooleVariable>" \
-        (void *mem, PBVar v)
 
     ctypedef struct PBMonomVarIter "BooleMonomial::variable_iterator":
         PBVar (* value "operator*")()
@@ -110,7 +99,7 @@ cdef extern from "pb_wrap.h":
     void PBMonomVarIter_destruct "Destruct<BooleMonomial::variable_iterator>" \
             (PBMonomVarIter *mem)
 
-    ctypedef struct PBMonom "BooleMonomial":
+    ctypedef struct PBMonom "DefaultRinged<BooleMonomial>":
         bint (* reducibleBy)(PBMonom rhs)
         int (* deg)()
         int (* hash)()
@@ -124,33 +113,32 @@ cdef extern from "pb_wrap.h":
         PBMonomIter (* end)()
         PBMonomVarIter (*variableBegin)()
         PBMonomVarIter (*variableEnd)()
-        void (* imul "operator*=")(PBMonom right)
-        void (* idiv "operator/=")(PBMonom right)
+        void (* imul  "operator*=")(PBMonom right)
+        void (* idiv  "operator/=")(PBMonom right)
         PBNavigator (* navigation)()
         PBMonom (* GCD)(PBMonom rhs)
         PBRing (* ring)()
 
     object PBMonom_to_str "_to_PyString<BooleMonomial>"(PBMonom *p)
 
-    # non-allocating versions
-    PBMonom* PBMonom_construct "Construct<BooleMonomial>"(void *mem)
-    PBMonom* PBMonom_construct_pbmonom \
-            "Construct_p<BooleMonomial, BooleMonomial>" (void *mem, PBMonom m)
-    PBMonom* PBMonom_construct_pbvar \
-            "Construct_p<BooleMonomial, BooleVariable>" (void *mem, PBVar m)
-
-    void PBMonom_destruct "Destruct<BooleMonomial>"(PBMonom *mem)
+    # Wrapping constructors
+    PBMonom PBMonom_Constructor "BooleMonomial" (PBRing r)
+    PBMonom PBMonom_Constructor_var "BooleMonomial" (PBVar m)
 
     ctypedef struct PBSetIter "BooleSet::const_iterator":
         PBMonom (* value "operator*")()
         int (* next "operator++")()
         bint (* equal)(PBSetIter rhs)
 
-    PBSetIter* PBSetIter_construct \
-            "Construct<BooleSet::const_iterator>"(PBSetIter *mem)
+    PBSetIter* PBSetIter_construct_begin \
+            "construct_bset_begin" (PBSetIter *mem, PBSet)
+
+    PBSetIter* PBSetIter_construct_end \
+            "construct_bset_end" (PBSetIter *mem, PBSet)
+
     void PBSetIter_destruct "Destruct<BooleSet::const_iterator>"(PBSetIter *mem)
 
-    ctypedef struct PBSet "BooleSet":
+    ctypedef struct PBSet "DefaultRinged<BooleSet>":
         bint (* owns)(PBMonom val)
         int (* nNodes)()
         int (* nSupport)()
@@ -178,16 +166,11 @@ cdef extern from "pb_wrap.h":
     object PBSet_to_str "_to_PyString<BooleSet>"(PBSet *p)
 
     # non-allocating versions
-    PBSet* PBSet_construct "Construct<BooleSet>"(void* mem)
-    PBSet* PBSet_construct_pbset \
-            "Construct_p<BooleSet, BooleSet>" (void* mem, PBSet d)
-    PBSet* PBSet_construct_pbnav \
-            "Construct_pp<BooleSet, CCuddNavigator, BoolePolyRing>" \
-            (void* mem, PBNavigator d, PBRing r)
-    PBSet* PBSet_construct_indsetset \
-            "Construct_pppp<BooleSet, int, CCuddNavigator, CCuddNavigator, BoolePolyRing>" \
-            (void* mem, int ind, PBNavigator a, PBNavigator b, PBRing r)
-    void PBSet_destruct "Destruct<BooleSet>"(PBSet *mem)
+    PBSet PBSet_Constructor_ring "BooleSet"(PBRing r)
+    PBSet PBSet_Constructor_poly "BooleSet"(PBPoly p)
+    PBSet PBSet_Constructor_nav "BooleSet" (PBNavigator d, PBRing r)
+    PBSet PBSet_Constructor_indsetset "BooleSet" \
+            (int ind, PBNavigator a, PBNavigator b, PBRing r)
 
 
     ctypedef struct PBPolyIter "BoolePolynomial::ordered_iterator":
@@ -197,7 +180,7 @@ cdef extern from "pb_wrap.h":
 
     void PBPolyIter_destruct "Destruct<BoolePolynomial::ordered_iterator>"(PBPolyIter *mem)
 
-    ctypedef struct PBPoly "BoolePolynomial":
+    ctypedef struct PBPoly "DefaultRinged<BoolePolynomial>":
         int (* deg)()
         int (* leadDeg)()
         int (* lexLeadDeg)()
@@ -212,6 +195,8 @@ cdef extern from "pb_wrap.h":
         bint (* isOne)()
         bint (* isConstant)()
         bint (* isSingleton)()
+        bint (* isPair)()
+        bint (* isSingletonOrPair)()
         bint (* hasConstantPart)()
         bint (* firstReducibleBy)(PBPoly rhs)
         PBMonom (* lead)()
@@ -219,49 +204,37 @@ cdef extern from "pb_wrap.h":
         PBMonom (* firstTerm)()
         PBMonom (* usedVariables)()
         PBPoly (* gradedPart)(int d)
-        PBDD (* diagram)()
+        PBSet (* diagram)()
         PBSet (* set)()
         PBSet (* leadDivisors)()
         PBNavigator (* navigation)()
         PBPolyIter (* orderedBegin)()
         PBPolyIter (* orderedEnd)()
-        void (* iadd "operator+=")(PBPoly right)
-        void (* iadd_PBMonom "operator+=")(PBMonom right)
-        void (* imul "operator*=")(PBPoly right)
-        void (* imul_monom "operator*=")(PBMonom right)
-        bint (* is_equal "operator==")(PBPoly right)
+        void (* iadd  "operator+=")(PBPoly right)
+        void (* iadd_PBMonom  "operator+=")(PBMonom right)
+        void (* imul  "operator*=")(PBPoly right)
+        void (* imul_monom  "operator*=")(PBMonom right)
+        void (* idiv  "operator/=")(PBPoly right)
+        void (* idiv_monom  "operator/=")(PBMonom right)
+        bint (* is_equal  "operator==")(PBPoly right)
 
     PBSet pb_zeros "zeros" (PBPoly p, PBSet s)
     PBPoly pb_spoly "spoly" (PBPoly p, PBPoly r)
 
     PBPoly pb_map_every_x_to_x_plus_one "map_every_x_to_x_plus_one" (PBPoly)
 
-    # non-allocating versions
-    PBRing* PBRing_construct \
-            "Construct_ppp<BoolePolyRing, BoolePolyRing::size_type, BoolePolyRing::ordercode_type, bool> " (void *mem, int nvars, int order, bint make_active)
+    # construction
+    PBVar PBVar_Constructor "BooleVariable" (int idx, PBRing r)
+    PBRing PBRing_Constructor "BoolePolyRing" (int nvars, int order)
 
-    PBRing* PBRing_construct_pbring \
-            "Construct_p<BoolePolyRing, BoolePolyRing> " (void *mem, PBRing other)
+    # construction
+    PBPoly PBPoly_Constructor_ring "BoolePolynomial"(PBRing r)
+    PBPoly PBPoly_Constructor_set "BoolePolynomial" (PBSet d)
+    PBPoly PBPoly_Constructor_monom "BoolePolynomial" (PBMonom d)
+    PBPoly PBPoly_Constructor_var "BoolePolynomial" (PBVar d)
+    PBPoly PBPoly_Constructor_int_ring "BoolePolynomial" (int d, PBRing r)
 
-    void PBRing_destruct "Destruct<BoolePolyRing>"(PBRing *mem)
-
-    # non-allocating versions
-    PBPoly* PBPoly_construct "Construct<BoolePolynomial>"(void *mem)
-    PBPoly* PBPoly_construct_dd \
-            "Construct_p<BoolePolynomial, BoolePolyRing::dd_type>" \
-            (void *mem, PBDD d)
-    PBPoly* PBPoly_construct_pbset \
-            "Construct_p<BoolePolynomial, BooleSet>" (void *mem, PBSet d)
-    PBPoly* PBPoly_construct_pbpoly \
-            "Construct_p<BoolePolynomial, BoolePolynomial>" \
-            (void *mem, PBPoly d)
-    PBPoly* PBPoly_construct_pbmonom \
-            "Construct_p<BoolePolynomial, BooleMonomial>" (void *mem, PBMonom d)
-    PBPoly* PBPoly_construct_int \
-            "Construct_p<BoolePolynomial, int>" (void *mem, int d)
-    void PBPoly_destruct "Destruct<BoolePolynomial>"(PBPoly *mem)
-
-    object PBPoly_to_str "_to_PyString<BoolePolynomial>"(PBPoly *p)
+    object PBPoly_to_str "_to_PyString<DefaultRinged<BoolePolynomial> >"(PBPoly *p)
 
     ctypedef struct PBPolyVectorIter \
             "std::vector<BoolePolynomial>::iterator ":
@@ -312,14 +285,18 @@ cdef extern from "pb_wrap.h":
         int (* size)()
         PBPolyEntry (* get "operator[]")(int)
 
-    ctypedef struct PBFglmStrategy "FGLMStrategy":
-        PBPolyVector (* main)()
+    ctypedef struct PBFglmStrategy "WrappedPtr<FGLMStrategy>":
+        PBPolyVector (* main "operator->()->main")()
 
-    ctypedef struct PBGBStrategy "GroebnerStrategy":
+    PBFglmStrategy PBFglmStrategy_Constructor "WrappedPtr<FGLMStrategy>" \
+        (PBRing from_ring, PBRing to_ring, PBPolyVector vec)
+
+    cdef cppclass PBGBStrategy "GroebnerStrategy":
+        PBGBStrategy(PBRing)
         bint reduceByTailReduced
         PBRedStrategy generators
 
-        bint enabledLog
+        bint enabledLog "enabledLog"
         unsigned int reductionSteps
         int normalForms
         int currentDegree
@@ -354,9 +331,9 @@ cdef extern from "pb_wrap.h":
         void (* addAsYouWish)(PBPoly)
         void (* symmGB_F2)()
         void (* llReduceAll)()
-        void (* cleanTopByChainCriterion "pairs.cleanTopByChainCriterion")()
-        int (* nGenerators "generators.size")()
-        int (* npairs "pairs.queue.size")()
+        void (* cleanTopByChainCriterion  "pairs.cleanTopByChainCriterion")()
+        int (* nGenerators  "generators.size")()
+        int (* npairs  "pairs.queue.size")()
         int (* suggestPluginVariable)()
         PBPoly (* nextSpoly)()
         PBPoly (* nf)(PBPoly p)
@@ -364,6 +341,11 @@ cdef extern from "pb_wrap.h":
         PBPolyVector (* minimalize)()
         PBPolyVector (* minimalizeAndTailReduce)()
         PBPolyVector (* faugereStepDense)(PBPolyVector v)
+        bint (* generators_leadingTerms_owns  "generators.leadingTerms.owns")(PBMonom term)
+
+    PBGBStrategy PBGBStrategy_Constructor "WrappedPtr<GroebnerStrategy>" \
+        (PBRing r)
+
 
     int (* pairs_top_sugar)(PBGBStrategy strat)
     PBPolyVector (* someNextDegreeSpolys)(PBGBStrategy strat, int n)
@@ -376,35 +358,27 @@ cdef extern from "pb_wrap.h":
     PBPoly GB_get_ith_gen "get_ith_gen" (PBGBStrategy strat, int i)
 
     # non-allocating versions
-    PBGBStrategy* PBGBStrategy_construct "Construct<GroebnerStrategy>"(void *mem)
+    PBGBStrategy* PBGBStrategy_construct_ring \
+         "Construct_p<GroebnerStrategy, BoolePolyRing>"(void *mem, PBRing r)
+
     PBGBStrategy* PBGBStrategy_construct_gbstrategy \
             "Construct_p<GroebnerStrategy, GroebnerStrategy>" \
             (void *mem, PBGBStrategy strat)
-    PBPoly* PBPoly_construct_dd \
-            "Construct_p<BoolePolynomial, BoolePolyRing::dd_type>" \
-            (void *mem, PBDD d)
     void PBGBStrategy_destruct "Destruct<GroebnerStrategy>"(PBGBStrategy *mem)
-
-
-    PBRedStrategy* PBRedStrategy_construct "Construct<ReductionStrategy>"(void *mem)
-    PBRedStrategy* PBRedStrategy_construct_redstrategy \
-            "Construct_p<ReductionStrategy, ReductionStrategy>" \
-            (void *mem, PBRedStrategy strat)
-    void PBRedStrategy_destruct "Destruct<ReductionStrategy>"(PBRedStrategy *mem)
 
     PBFglmStrategy* PBFglmStrategy_construct "Construct_ppp<FGLMStrategy, BoolePolyRing, BoolePolyRing, PolynomialVector>"(void *mem, PBRing from_ring, PBRing to_ring, PBPolyVector vec)
     void PBFglmStrategy_destruct "Destruct<FGLMStrategy>"(PBFglmStrategy *mem)
 
 
-   # allocating versions
+    # allocating versions
 
-    PBRedStrategy* PBRedStrategy_new "New<ReductionStrategy>"()
+    PBRedStrategy* PBRedStrategy_new "New_p<ReductionStrategy, BoolePolyRing>"(PBRing)
     void PBRedStrategy_delete "Delete<ReductionStrategy>"(PBRedStrategy *mem)
 
-    PBRing get_current_ring "BooleEnv::ring"()
+    # Additional routines
 
     PBPoly pb_add_up_polynomials "add_up_polynomials" \
-            (PBPolyVector v)
+            (PBPolyVector v, PBPoly p)
 
     PBPoly pb_nf3 "nf3" (PBRedStrategy strat, PBPoly p, PBMonom m)
 
@@ -420,7 +394,7 @@ cdef extern from "pb_wrap.h":
 
     PBSet pb_mod_var_set "mod_var_set" (PBSet a, PBSet v)
 
-    PBPoly pb_mult_fast_sim "mult_fast_sim" (PBPolyVector v)
+    PBPoly pb_mult_fast_sim "mult_fast_sim" (PBPolyVector v, PBRing r)
 
     #int pb_select1 "select1" (GBStrategy s, PBMonom m)
 
@@ -445,8 +419,6 @@ cdef extern from "pb_wrap.h":
 
     PBPoly pb_substitute_variables "substitute_variables<BoolePolyRing, std::vector<BoolePolynomial>, BoolePolynomial>" (PBRing ring, PBPolyVector vec, PBPoly poly)
 
-    void pb_append_block "BooleEnv::appendBlock" (int ind)
-
     void pb_set_variable_name "BooleEnv::setVariableName" \
         (int idx, char *varname)
 
@@ -461,3 +433,36 @@ cdef extern from "pb_wrap.h":
     void m4ri_destroy_all_codes()
 
     void PBPolyVector_set(PBPolyVector v, int i, PBPoly p)
+
+
+    ctypedef struct PBConstant "struct BooleConstant":
+        bint is_zero()
+        bint is_one()
+        bint is_constant()
+        int deg()
+
+    PBConstant* PBConstant_construct "Construct_p<BooleConstant, int>" \
+        (void* mem, int val)
+
+    ctypedef struct PBVarFactory "DefaultRinged<VariableFactory>":
+        PBVar (* call "operator()")(int index)
+
+    ctypedef struct PBMonomFactory "DefaultRinged<MonomialFactory>":
+       PBMonom (* call "operator()")()
+
+    ctypedef struct PBPolyFactory "DefaultRinged<PolynomialFactory>":
+        PBPoly (* call_int "operator()")(int)
+        PBPoly (* call_poly "operator()")(PBPoly)
+        PBPoly (* call_monom "operator()")(PBMonom)
+
+    PBVarFactory PBVarFactory_Constructor "VariableFactory" (PBRing r)
+    PBMonomFactory PBMonomFactory_Constructor "MonomialFactory" (PBRing r)
+    PBPolyFactory PBPolyFactory_Constructor "PolynomialFactory" (PBRing r)
+
+    long* init_counter "new long" (int)
+    void kill_counter "Destruct<long>" (long*)
+
+    ctypedef struct PBRefCounter:
+        bint (* released) ()
+
+    PBRefCounter PBRefCounter_Constructor "PBRefCounter" ()

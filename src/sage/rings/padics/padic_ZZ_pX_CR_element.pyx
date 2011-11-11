@@ -3309,10 +3309,22 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             (6*a^2 + 2*a + 1) + (5*a + 3)*7 + (5*a + 5)*7^2 + (4*a^2 + 4*a + 2)*7^3 + (2*a + 1)*7^4 + O(7^5)
             sage: b^343 == b
             True
+
+        TESTS:
+
+        We check that #8239 is resolved::
+
+            sage: K.<a> = Qq(25)
+            sage: K.teichmuller(K(2/5))
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot set negative valuation element to Teichmuller representative.
         """
         self._normalize()
         if self.ordp > 0:
             self._set_exact_zero()
+        elif self.ordp < 0:
+            raise ValueError, "cannot set negative valuation element to Teichmuller representative."
         elif self.relprec == 0:
             raise ValueError, "not enough precision known"
         else:

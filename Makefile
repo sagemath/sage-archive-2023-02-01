@@ -91,6 +91,8 @@ distclean: clean
 	rm -f install.log
 	rm -f dochtml.log docpdf.log
 	rm -f test.log testall.log testlong.log ptest.log ptestlong.log
+	rm -f start.log
+	rm -f spkg/parallel_make.cfg
 	rm -rf data
 	rm -rf dist
 	rm -rf devel
@@ -99,7 +101,6 @@ distclean: clean
 	rm -rf sage-python
 	rm -rf spkg/build
 	rm -rf spkg/archive
-	rm -rf ipython
 	rm -rf matplotlibrc
 	rm -rf tmp
 	rm -f .BUILDSTART

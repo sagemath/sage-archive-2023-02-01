@@ -1210,9 +1210,9 @@ def random_prime(n, proof=None, lbound=2):
         if lbound == 3 or n <= 2*lbound - 2:
         # check for Betrand's postulate (proved by Chebyshev)
             if lbound < 25 or n <= 6*lbound/5:
-            # see J. Nagura, Proc. Japan Acad. 28, (1952). 177Ð181.
+            # see J. Nagura, Proc. Japan Acad. 28, (1952). 177-181.
                 if lbound < 2010760 or n <= 16598*lbound/16597:
-                # see L. Schoenfeld, Math. Comp. 30 (1976), no. 134, 337Ð360.
+                # see L. Schoenfeld, Math. Comp. 30 (1976), no. 134, 337-360.
                     if proof:
                         smallest_prime = ZZ(lbound-1).next_prime()
                     else:

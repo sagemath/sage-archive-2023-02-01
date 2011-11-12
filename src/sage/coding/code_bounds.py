@@ -431,9 +431,44 @@ def gv_info_rate(n,delta,q):
 
 def entropy(x,q):
     """
-    Computes the entropy on the q-ary symmetric channel.
+    Computes the entropy at `x` on the `q`-ary symmetric channel.
+
+    INPUT:
+
+    - ``x`` - real number in the interval `[0, 1]`.
+
+    - ``q`` - integer greater than 1. This is the base of the logarithm.
+
+    EXAMPLES::
+
+        sage: entropy(0, 2)
+        0
+        sage: entropy(1/5,4)
+        -1/5*log(1/5)/log(4) - 4/5*log(4/5)/log(4) + 1/5*log(3)/log(4)
+        sage: entropy(1, 3)
+        log(2)/log(3)
+
+    Check that values not within the limits are properly handled::
+
+        sage: entropy(1.1, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The entropy function is defined only for x in the interval [0, 1]
+        sage: entropy(1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The value q must be an integer greater than 1
     """
-    q = ZZ(q)
+    if x < 0 or x > 1:
+        raise ValueError("The entropy function is defined only for x in the"
+                " interval [0, 1]")
+    q = ZZ(q)   # This will error out if q is not an integer
+    if q < 2:   # Here we check that q is actually at least 2
+        raise ValueError("The value q must be an integer greater than 1")
+    if x == 0:
+        return 0
+    if x == 1:
+        return log(q-1,q)
     H = x*log(q-1,q)-x*log(x,q)-(1-x)*log(1-x,q)
     return H
 

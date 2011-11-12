@@ -7,28 +7,6 @@
 # See below for targets to build the documentation in other formats,
 # to run various types of test suites, and to remove parts of the build etc.
 
-# TODO:
-#   * Shorten description of NUM_THREADS below?
-
-# NUM_THREADS is the number of threads to use for parallel testing (and
-# sometime in the future, parallel building).  If this is 0, then it
-# will be set to the number of processors, with a default maximum of 8
-# -- see sage-ptest.
-#
-# The detection of number of processors might not be reliable on some
-# platforms. On a Sun SPARC T5240 (t2.math), the number of processors
-# reported by multiprocessing.cpu_count() might not correspond to the
-# actual number of processors. See ticket #6283.
-# Python's multiprocessing.cpu_count() actually returns the number of
-# *hardware threads*, which is >= number of cores.
-#
-# WARNING: if your machine has <= 8 cpus (according to cpu_count() and
-# you *don't* want to use that many threads for parallel doctesting,
-# change the value of NUM_THREADS to a (sensible) positive integer. If
-# cpu_count() reports > 8, then if NUM_THREADS is 0, only 8 threads will
-# be used. The default value is zero.
-NUM_THREADS = 0 # 0 interpreted as min(8, multiprocessing.cpu_count())
-
 PIPE = spkg/pipestatus
 
 
@@ -137,19 +115,19 @@ testalllong: all # i.e. build and doc
 
 ptest: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -tp $(NUM_THREADS) --sagenb $(TESTDIRS) 2>&1" "tee -a ptest.log"
+	$(PIPE) "./sage -tp --sagenb $(TESTDIRS) 2>&1" "tee -a ptest.log"
 
 ptestall: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -tp $(NUM_THREADS) --sagenb --optional $(TESTDIRS) 2>&1" "tee -a ptestall.log"
+	$(PIPE) "./sage -tp --sagenb --optional $(TESTDIRS) 2>&1" "tee -a ptestall.log"
 
 ptestlong: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -tp $(NUM_THREADS) --sagenb --long $(TESTDIRS) 2>&1" "tee -a ptestlong.log"
+	$(PIPE) "./sage -tp --sagenb --long $(TESTDIRS) 2>&1" "tee -a ptestlong.log"
 
 ptestalllong: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -tp $(NUM_THREADS) --sagenb --optional --long $(TESTDIRS) 2>&1" "tee -a ptestalllong.log"
+	$(PIPE) "./sage -tp --sagenb --optional --long $(TESTDIRS) 2>&1" "tee -a ptestalllong.log"
 
 
 testoptional: testall # just an alias

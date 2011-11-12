@@ -89,26 +89,7 @@ print "Copying over documentation output..."
 copy_dtree('sage/doc/output', branch + '/doc/output')
 
 print "Building " + branch + "..."
-try:
-    if os.environ["SAGE_PBUILD"] == "yes":
-	print "Pbuild is currently broken -- defaulting to serial build."
-        # print "Copying clibsage"
-	# cmd = 'cp -r sage/c_lib/libcsage.so %s/c_lib/'%branch
-	#
-	# print cmd
-	# if os.system(cmd):
-    	#	print "Error copying clibsage"
-    	#	sys.exit(1)
-        # cmd = 'ln -snf "sage-%s" sage' % sys.argv[1]
-        # print cmd
-        # if os.system(cmd):
-        #     print "Error building SAGE"
-        # cmd = 'sage -b'
-        cmd = 'sage -b %s'%sys.argv[1]
-    else:
-	cmd = 'sage -b %s'%sys.argv[1]
-except:
-   cmd = 'sage -b %s'%sys.argv[1]
+cmd = 'sage -b %s'%sys.argv[1]
 print cmd
 if os.system(cmd):
     print "Error building Sage"

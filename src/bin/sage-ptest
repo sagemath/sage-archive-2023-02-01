@@ -1,5 +1,19 @@
 #!/usr/bin/env python
 
+# Usage: sage -tp N <options> <files>
+#
+# <options> may include
+#      --long                include lines with the phrase 'long time'
+#      --verbose             debugging output during the test
+#      --optional            also test all #optional examples
+#      --only-optional <tag1,...,tagn>    only run tests including one
+#                                         of the #optional tags
+#      --randorder[=seed]    randomize order of tests
+#
+# This runs doctests on <files> in parallel using N threads.  If N is
+# zero or omitted, set N to the value of the environment variable
+# SAGE_NUM_THREADS_PARALLEL, which is set in sage-env.
+
 from __future__ import with_statement
 import os
 import sys
@@ -12,6 +26,27 @@ import subprocess
 import multiprocessing
 import socket
 import stat
+import re
+
+def usage():
+    print """Usage: sage -tp N <options> <files>
+
+<options> may include
+     --long                include lines with the phrase 'long time'
+     --verbose             debugging output during the test
+     --optional            also test all #optional examples
+     --only-optional <tag1,...,tagn>    only run tests including one
+                                        of the #optional tags
+     --randorder[=seed]    randomize order of tests
+
+This runs doctests on <files> in parallel using N threads.  If N is
+zero or omitted, try to use a sensible default number of threads: if
+the '-j' flag of the environment variable 'MAKE' or 'MAKEFLAGS' is set,
+use that setting. Otherwise, use min(8, number of CPU cores)."""
+
+if len(sys.argv) == 1:
+    usage()
+    exit(1)
 
 SAGE_ROOT = os.path.realpath(os.environ['SAGE_ROOT'])
 SAGE_SITE = os.path.realpath(os.path.join(os.environ['SAGE_LOCAL'],
@@ -266,20 +301,17 @@ def populatefilelist(filelist):
     filemutex.release()
     return 0
 
-
 for gr in range(0,numglobaliteration):
     argv = sys.argv
     opts = ' '.join([X for X in argv if X[0] == '-'])
     argv = [X for X in argv if X[0] != '-']
 
     try:
-        # FIXME: Nice, but <NUMTHREADS> should immediately follow '-tp' etc.,
-        #        i.e., be the next argument. We might have file or directory
-        #        names that properly convert to an int...
         numthreads = int(argv[1])
         infiles = argv[2:]
-    except ValueError: # can't convert first arg to an integer: arg was probably omitted
-        numthreads = 1
+    except ValueError:
+        # can't convert first arg to an integer: arg was probably omitted
+        numthreads = 0
         infiles = argv[1:]
 
     if '-sagenb' in opts:
@@ -298,32 +330,17 @@ for gr in range(0,numglobaliteration):
     verbose = ('-verbose' in opts or '--verbose' in opts)
 
     if numthreads == 0:
-        # Set numthreads to be the number of processors, with a default
-        # maximum of 8.
-        #
-        # The detection of number of processors might not be reliable on some
-        # platforms. On a Sun SPARC T5240 (t2.math), the reported number of
-        # processors might not correspond to the actual number of processors.
-        # See tickets #6283, #7011, and the file SAGE_ROOT/Makefile.
-        #
-        # WARNING: If cpu_count() below reports <= 8 for your machine
-        # and you *don't* want to use all the cores/processors on your
-        # system for parallel doctesting, use a (sensible) positive
-        # integer.
-        #
-        # If cpu_count() reports > 8 and you want to use that many
-        # threads, you must manually specify the number of threads.
         try:
-            numthreads = min(8, multiprocessing.cpu_count())
-        except NotImplementedError:
+            numthreads = int(os.environ['SAGE_NUM_THREADS_PARALLEL'])
+        except KeyError:
             numthreads = 1
 
     if numthreads < 1 or len(infiles) == 0:
         if numthreads < 1:
-            print "Usage: sage -tp <numthreads> <files or directories>: <numthreads> must be positive."
+            print "Usage: sage -tp <numthreads> <files or directories>: <numthreads> must be non-negative."
         else:
             print "Usage: sage -tp <numthreads> <files or directories>: no files or directories specified."
-        print "For more information, type 'sage -advanced'."
+        print "For more information, type 'sage --advanced'."
         sys.exit(1)
 
     infiles.sort()

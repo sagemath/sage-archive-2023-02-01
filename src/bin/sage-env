@@ -338,10 +338,6 @@ if [ "$MV" = "" ]; then
     MV="mv"  && export MV
 fi
 
-if [ "$MAKE" = "" ]; then
-    MAKE="make"         && export MAKE
-fi
-
 if [ "$RANLIB" = "" ]; then
     RANLIB="ranlib"  && export RANLIB
 fi
@@ -362,16 +358,36 @@ if [ "$TOUCH" = "" ]; then
     TOUCH="touch"  && export TOUCH
 fi
 
-if [ "$MAKEFLAGS" != "" ]; then
-    MFLAGS="$MAKEFLAGS"  && export MFLAGS
-fi
-
 if [ "$UNAME" = "CYGWIN" ]; then
     PATH="$PATH:$SAGE_LOCAL/lib" && export PATH
 fi
 
 # See trac 7186 -- this is needed if ecl is moved
 ECLDIR="$SAGE_LOCAL/lib/ecl/" && export ECLDIR
+
+# Handle parallel building/testing/...
+# See Trac Ticket #12016
+# First, figure out the right values for SAGE_NUM_THREADS (default
+# number of threads) and SAGE_NUM_THREADS_PARALLEL (default number of
+# threads when parallel execution is asked explicitly).
+sage_num_threads_array=(`sage-num-threads.py 2>/dev/null || echo 1 2 1`)
+SAGE_NUM_THREADS=${sage_num_threads_array[0]}
+SAGE_NUM_THREADS_PARALLEL=${sage_num_threads_array[1]}
+export SAGE_NUM_THREADS
+export SAGE_NUM_THREADS_PARALLEL
+
+if [ "$MAKE" = "" ]; then
+    MAKE="make"
+fi
+
+# If MAKEFLAGS exists, assume it got set by make.
+# Therefore, remove all flags from $MAKE
+if [ "${MAKEFLAGS-__unset__}" != "__unset__" ]; then
+    MAKE=`echo "$MAKE" | sed 's/ .*//'`
+fi
+
+export MAKE
+
 
 # Export variable names.
 export SHAREDFLAGS

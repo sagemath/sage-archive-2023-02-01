@@ -68,10 +68,21 @@ When you are done debugging, you can type "exit" to leave the subshell.
 MESSAGE
 }
 
-# The following sets environment variables for building
-# packages.  (Using dot suggested by W. Cheung.)
+# Handle -n, -t, -q options for recursive make
+# See Trac #12016.
+if echo "$MAKE $MAKEFLAGS -$MAKEFLAGS" |grep '[ ]-[A-Za-z]*[qnt]' >/dev/null; then
+    if echo "$MAKE $MAKEFLAGS -$MAKEFLAGS" |grep '[ ]-[A-Za-z]*q' >/dev/null; then
+        # Pretend the target is *not* up-to-date
+        exit 1
+    else
+        exit 0
+    fi
+fi
 
-. "$SAGE_ROOT/local/bin/sage-env" # *returns* non-zero value on errors rather than exiting
+# The following sets environment variables for building packages.
+# Since this is sourced, it returns a non-zero value on errors rather
+# than exiting.  Using dot suggested by W. Cheung.
+. "$SAGE_ROOT/local/bin/sage-env"
 
 if [ $? -ne 0 ]; then
     echo "Error setting environment variables by running \"$SAGE_ROOT/local/bin/sage-env\";"
@@ -328,10 +339,6 @@ if [ ! -f spkg-install ]; then
 fi
 
 chmod +x spkg-install
-
-# this is just wrong... (so don't do it)
-#echo "TOUCHING"
-#touch * */* */*/* */*/*/* 1>/dev/null 2>/dev/null
 
 echo "****************************************************"
 echo "Host system"

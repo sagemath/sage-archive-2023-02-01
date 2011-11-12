@@ -835,20 +835,14 @@ class LinearCode(module.Module_old):
 
             sage: C = HammingCode(3,GF(2))
             sage: [list(c) for c in C if c.hamming_weight() < 4]
-            [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1, 1], [0, 1, 0, 0, 1, 0, 1],
-            [0, 0, 1, 0, 1, 1, 0], [1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0],
-            [0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 1, 0, 0, 1]]
+            [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1, 1],
+             [0, 1, 0, 0, 1, 0, 1], [0, 0, 1, 0, 1, 1, 0],
+             [1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0],
+             [0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 1, 0, 0, 1]]
         """
-        n = self.length()
-        k = self.dimension()
-        F = self.base_ring()
-        Cs,p = self.standard_form()
-        Gs = Cs.gen_mat()
-        V = VectorSpace(F,k)
-        MS = MatrixSpace(F,n,n)
-        perm_mat = MS(p.matrix().rows())**(-1)
-        for v in V:
-            yield (v*Gs)*perm_mat
+        from sage.modules.finite_submodule_iter import \
+                                                FiniteFieldsubspace_iterator
+        return FiniteFieldsubspace_iterator(self.gen_mat())
 
     def ambient_space(self):
         r"""
@@ -1855,7 +1849,7 @@ class LinearCode(module.Module_old):
             (1, 0, 1, 0, 1, 0, 1)
             True
         """
-        return self.gen_mat().row_space().list()
+        return list(self.__iter__())
 
     def _magma_init_(self, magma):
         r"""

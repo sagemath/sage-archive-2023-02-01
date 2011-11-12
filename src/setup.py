@@ -195,17 +195,6 @@ for m in ext_modules:
 ###### Parallel Cython execution
 #############################################
 
-def execute_list_of_commands_in_serial(command_list):
-    """
-    INPUT:
-        command_list -- a list of commands, each given as a pair
-           of the form [command, argument].
-
-    OUTPUT:
-        the given list of commands are all executed in serial
-    """
-    process_command_results(f(v) for f,v in command_list)
-
 def run_command(cmd):
     """
     INPUT:
@@ -229,20 +218,21 @@ def apply_pair(p):
 
 def execute_list_of_commands_in_parallel(command_list, nthreads):
     """
-    INPUT:
-        command_list -- a list of pairs, consisting of a
-             function to call and its argument
-        nthreads -- integer; number of threads to use
+    Execute the given list of commands, possibly in parallel, using
+    ``nthreads`` threads.  Terminates ``setup.py`` with an exit code
+    of 1 if an error occurs in any subcommand.
 
-    OUTPUT:
-        Executes the given list of commands, possibly in parallel,
-        using nthreads threads.  Terminates setup.py with an exit code of 1
-        if an error occurs in any subcommand.
+    INPUT:
+
+    - ``command_list`` -- a list of commands, each given as a pair of
+       the form ``[function, argument]`` of a function to call and its
+       argument
+
+    - ``nthreads`` -- integer; number of threads to use
 
     WARNING: commands are run roughly in order, but of course successive
     commands may be run at the same time.
     """
-    print "Execute %s commands (using %s threads)"%(len(command_list), min(len(command_list),nthreads))
     from multiprocessing import Pool
     import twisted.persisted.styles #doing this import will allow instancemethods to be pickable
     p = Pool(nthreads)
@@ -259,76 +249,43 @@ def process_command_results(result_values):
     if error:
         sys.exit(1)
 
-def number_of_threads():
-    """
-    Try to determine the number of threads one can run at once on this
-    system (e.g., the number of cores).  If successful return that
-    number.  Otherwise return 0 to indicate failure.
-
-    OUTPUT:
-        int
-    """
-    try:
-        from multiprocessing import cpu_count
-        n = cpu_count()
-        if n>0:
-            return n
-    except NotImplementedError: # unsupported OS
-        pass
-
-    try:  # solaris fix
-        n = int(os.popen2("sysctl -n hw.ncpu")[1].read().strip())
-        if n>0:
-            return n
-    except ValueError:
-        pass
-
-    return 1
-
 def execute_list_of_commands(command_list):
     """
     INPUT:
-        command_list -- a list of strings or pairs
+
+    - ``command_list`` -- a list of strings or pairs
+
     OUTPUT:
-        For each entry in command_list, we attempt to run the command.
-        If it is a string, we call os.system. If it is a pair [f, v],
-        we call f(v). On machines with more than 1 cpu the commands
-        are run in parallel.
+
+    For each entry in command_list, we attempt to run the command.
+    If it is a string, we call ``os.system()``. If it is a pair [f, v],
+    we call f(v).
+
+    If the environment variable :envvar:`SAGE_NUM_THREADS` is set, use
+    that many threads.
     """
     t = time.time()
-    cpu_count = number_of_threads()  # try hard to determine the actual cpu count
-    assert(cpu_count>=1)
-    nthreads = 0  # number of threads to use; zero means don't know
-
-    if os.environ.has_key('MAKE'):  # user-supplied number of threads takes precedence
-        MAKE = os.environ['MAKE']
-        # from the manpage: If there is more than one -j option, the last one is effective.
-        pos = MAKE.rfind(' -j')
-        if pos>=0:
-            try:
-                if MAKE[pos+3] == '=':   # make -j=N is the same as make -jN
-                    pos += 1
-                nthreads = int(MAKE[pos+3:].split()[0])
-            except IndexError, ValueError:
-                # make -j without number means unlimited threads
-                nthreads = 2*cpu_count
-
-    if nthreads==0:
-        nthreads = cpu_count
-
-    if nthreads > 2*cpu_count:  # sanity check
-        print "Warning: The number of threads ("+str(nthreads)+") seems impossibly large."
-        nthreads = min(nthreads, cpu_count)
-        print "I reduced it to "+str(nthreads)+"."
+    # Determine the number of threads from the environment variable
+    # SAGE_NUM_THREADS, which is set automatically by sage-env
+    try:
+        nthreads = int(os.environ['SAGE_NUM_THREADS'])
+    except KeyError:
+        nthreads = 1
 
     # normalize the command_list to handle strings correctly
     command_list = [ [run_command, x] if isinstance(x, str) else x for x in command_list ]
 
-    if nthreads > 1:
-        execute_list_of_commands_in_parallel(command_list, nthreads)
-    else:
-        execute_list_of_commands_in_serial(command_list)
-    print "Time to execute %s commands: %s seconds"%(len(command_list), time.time() - t)
+    # No need for more threads than there are commands
+    nthreads = min(len(command_list), nthreads)
+
+    def plural(n,noun):
+        if n == 1:
+            return "1 %s"%noun
+        return "%i %ss"%(n,noun)
+
+    print "Executing %s (using %s)"%(plural(len(command_list),"command"), plural(nthreads,"thread"))
+    execute_list_of_commands_in_parallel(command_list, nthreads)
+    print "Time to execute %s: %s seconds"%(plural(len(command_list),"command"), time.time() - t)
 
 
 ########################################################################

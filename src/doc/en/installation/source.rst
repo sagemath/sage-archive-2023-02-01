@@ -572,6 +572,15 @@ process:
      when building Sage with ``MAKE='make -jNUM'`` with NUM greater
      than one.
 
+- :envvar:`SAGE_NUM_THREADS` - if this is set to a number, then when
+  building the documentation, parallel doctesting, or running ``sage
+  -b``, use this many threads.  If this is not set, then determine the
+  number of threads using the value of the :envvar:`MAKE` (see above)
+  or :envvar:`MAKEFLAGS` environment variables.  If none of these
+  specifies a number of jobs, use 1 thread (except for parallel
+  testing: there we use a default of the number of CPU cores, with a
+  maximum of 8 and a minimum of 2).
+
 - :envvar:`SAGE_PARALLEL_SPKG_BUILD` - if this is set to "no", then
   build spkgs serially rather than in parallel.  If this is "no", then
   each spkg may still take advantage of the setting of :envvar:`MAKE`

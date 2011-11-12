@@ -3,6 +3,7 @@
 (^|/)\._\.DS_Store$
 sage-README-osx.txt
 ~$
+\.rej$
 \.pyc$
 .hgignore~
 data

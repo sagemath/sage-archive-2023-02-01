@@ -2412,7 +2412,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         return  singular_polynomial_str_with_changed_varnames(self._poly, self._parent_ring, varnames)
 
-    def degree(self, MPolynomial_libsingular x=None):
+    def degree(self, MPolynomial_libsingular x=None, int std_grading=False):
         """
         Return the maximal degree of this polynomial in ``x``, where
         ``x`` must be one of the generators for the parent of this
@@ -2423,6 +2423,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         - ``x`` - multivariate polynomial (a generator of the parent of
           self) If x is not specified (or is ``None``), return the total
           degree, which is the maximum degree of any monomial.
+          Note that a matrix term ordering alters the grading
+          of the generators of the ring; see the tests below.
+          To avoid this behavior, use either ``exponents()``
+          for the exponents themselves, or the optional argument ``std_grading=False``.
 
         OUTPUT:
             integer
@@ -2448,11 +2452,29 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P(1).degree(x)
             0
 
+        With a matrix term ordering, the grading of the generators
+        is determined by the first row of the matrix.
+        This affects the behavior of `degree()` when no variable is specified.
+        To evaluate the degree with a standard grading,
+        use the optional argument ``std_grading=True``.
+
+            sage: tord = TermOrder(matrix([3,0,1,1,1,0,1,0,0]))
+            sage: R.<x,y,z> = PolynomialRing(QQ,'x',3,order=tord)
+            sage: (x^3*y+x*z^4).degree()
+            9
+            sage: (x^3*y+x*z^4).degree(std_grading=True)
+            5
+            sage: x.degree(x), y.degree(y), z.degree(z)
+            (1, 1, 1)
+
         """
         cdef ring *r = self._parent_ring
         cdef poly *p = self._poly
         if not x:
-            return singular_polynomial_deg(p,NULL,r)
+            if not std_grading:
+                return singular_polynomial_deg(p,NULL,r)
+            else:
+                return self.total_degree(std_grading=True)
 
         # TODO: we can do this faster
         if not x in self._parent.gens():
@@ -2460,7 +2482,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return singular_polynomial_deg(p, x._poly, r)
 
-    def total_degree(self):
+    def total_degree(self, int std_grading=False):
         """
         Return the total degree of ``self``, which is the maximum degree
         of all monomials in ``self``.
@@ -2494,10 +2516,30 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             -1
             sage: R(1).total_degree()
             0
+
+        With a matrix term ordering, the grading changes.
+        To evaluate the total degree using the standard grading,
+        use the optional argument``std_grading=True``.
+
+            sage: tord=TermOrder(matrix([3,0,1,1,1,0,1,0,0]))
+            sage: R.<x,y,z> = PolynomialRing(QQ,'x',3,order=tord)
+            sage: (x^2*y).total_degree()
+            6
+            sage: (x^2*y).total_degree(std_grading=True)
+            3
         """
+        cdef int i, result
         cdef poly *p = self._poly
         cdef ring *r = self._parent_ring
-        return singular_polynomial_deg(p, NULL, r)
+
+        if not std_grading:
+            return singular_polynomial_deg(p,NULL,r)
+        else:
+            result = 0
+            while p:
+                result = max(result, sum([p_GetExp(p,i,r) for i in xrange(1,r.N+1)]))
+                p = pNext(p)
+            return result
 
     def degrees(self):
         """

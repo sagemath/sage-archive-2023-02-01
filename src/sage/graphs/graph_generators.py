@@ -287,7 +287,8 @@ class GraphGenerators():
       all subgraphs of the relevant kind (for ``augment='edges'`` or
       ``augment='vertices'``) of a graph with the property also
       possess the property will there be no missing graphs.  (The
-      ``property`` argument is ignored if ``deg_seq`` is specified.)
+      ``property`` argument is ignored if ``degree_sequence`` is
+      specified.)
 
     - ``augment`` -- (default: ``'edges'``) possible values:
 
@@ -311,7 +312,7 @@ class GraphGenerators():
 
     - ``size`` -- (default: ``None``) the size of the graph to be generated.
 
-    - ``deg_seq`` -- (default: ``None``) a sequence of non-negative integers,
+    - ``degree_sequence`` -- (default: ``None``) a sequence of non-negative integers,
       or ``None``. If specified, the generated graphs will have these
       integers for degrees. In this case, property and size are both
       ignored.
@@ -466,19 +467,19 @@ class GraphGenerators():
     http://oeis.org/classic/A002851)::
 
         sage: for i in [4,6,8]:
-        ...       print i, len([g for g in graphs(i, deg_seq=[3]*i) if g.is_connected()])
+        ...       print i, len([g for g in graphs(i, degree_sequence=[3]*i) if g.is_connected()])
         4 1
         6 2
         8 5
         sage: for i in [4,6,8]:                                                                          # long time
-        ...       print i, len([g for g in graphs(i,augment='vertices',deg_seq=[3]*i) if g.is_connected()]) # long time
+        ...       print i, len([g for g in graphs(i,augment='vertices',degree_sequence=[3]*i) if g.is_connected()]) # long time
         4 1
         6 2
         8 5
 
     ::
 
-        sage: print 10, len([g for g in graphs(10,deg_seq=[3]*10) if g.is_connected()]) # not tested
+        sage: print 10, len([g for g in graphs(10,degree_sequence=[3]*10) if g.is_connected()]) # not tested
         10 19
 
     REFERENCE:
@@ -6383,7 +6384,7 @@ class GraphGenerators():
 ###########################################################################
 
     def __call__(self, vertices=None, property=lambda x: True, augment='edges',
-        size=None, deg_seq=None, loops=False, implementation='c_graph',
+        size=None, deg_seq=None, degree_sequence=None, loops=False, implementation='c_graph',
         sparse=True):
         """
         Accesses the generator of isomorphism class representatives.
@@ -6430,18 +6431,25 @@ class GraphGenerators():
           pages 306-324.
         """
         from sage.graphs.all import Graph
+        from sage.misc.misc import deprecation
         if deg_seq is not None:
+            deprecation("The argument name deg_seq is deprecated. It will be "
+                        "removed in a future release of Sage. So, please use "
+                        "degree_sequence instead.")
+        if degree_sequence is None:
+            degree_sequence=deg_seq
+        if degree_sequence is not None:
             if vertices is None:
                 raise NotImplementedError
-            if len(deg_seq) != vertices or sum(deg_seq)%2 or sum(deg_seq) > vertices*(vertices-1):
+            if len(degree_sequence) != vertices or sum(degree_sequence)%2 or sum(degree_sequence) > vertices*(vertices-1):
                 raise ValueError("Invalid degree sequence.")
-            deg_seq = sorted(deg_seq)
+            degree_sequence = sorted(degree_sequence)
             if augment == 'edges':
-                property = lambda x: all([deg_seq[i] >= d for i,d in enumerate(sorted(x.degree()))])
-                extra_property = lambda x: deg_seq == sorted(x.degree())
+                property = lambda x: all([degree_sequence[i] >= d for i,d in enumerate(sorted(x.degree()))])
+                extra_property = lambda x: degree_sequence == sorted(x.degree())
             else:
-                property = lambda x: all([deg_seq[i] >= d for i,d in enumerate(sorted(x.degree() + [0]*(vertices-x.num_verts()) ))])
-                extra_property = lambda x: x.num_verts() == vertices and deg_seq == sorted(x.degree())
+                property = lambda x: all([degree_sequence[i] >= d for i,d in enumerate(sorted(x.degree() + [0]*(vertices-x.num_verts()) ))])
+                extra_property = lambda x: x.num_verts() == vertices and degree_sequence == sorted(x.degree())
         elif size is not None:
             extra_property = lambda x: x.size() == size
         else:
@@ -6854,7 +6862,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
 
     -  ``property`` - check before traversing below g.
 
-    -  ``deg_seq`` - specify a degree sequence to try to
+    -  ``degree_sequence`` - specify a degree sequence to try to
        obtain.
 
 

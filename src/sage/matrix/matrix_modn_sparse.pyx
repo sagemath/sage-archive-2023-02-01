@@ -181,6 +181,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         cdef void** X
 
+        if entries is None:
+            return
+
         if isinstance(entries, dict):
             # Sparse input format.
             R = self._base_ring

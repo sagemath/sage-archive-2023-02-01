@@ -154,7 +154,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         """
         cdef int i
         z = None
-        if entries == 0:
+        if (entries is None) or (entries == 0):
             pass
         elif isinstance(entries, list):
             # This code could be made much faster using Cython, etc.

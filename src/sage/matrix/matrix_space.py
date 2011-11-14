@@ -397,6 +397,13 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             True
             sage: mat2 = mat.change_ring(QQ); mat2.is_mutable()
             True
+
+        TESTS:
+
+            Ensure that trac 12020 is fixed::
+
+                sage: A = MatrixSpace(CyclotomicField(4),60,30)(0)
+                sage: B = A.augment(A)
         """
         if entries is None or entries == 0:
             if self._copy_zero: # faster to copy than to create a new one.

@@ -376,6 +376,9 @@ See the files ``matrix_template.pxd`` and
        * set_unsafe(self, size_t i, size_t j, x) -- doesn't do bounds or any other checks; assumes x is in self._base_ring
        * get_unsafe(self, size_t i, size_t j) -- doesn't do checks
        * __richcmp__    -- always the same (I don't know why its needed -- bug in PYREX).
+
+    Note that the __init__ function must construct the all zero matrix if ``entries == None``.
+
     *********** LEVEL 2  **********
 
     IMPORTANT (and *highly* recommended):

@@ -333,6 +333,15 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         (<class 'sage.rings.qqbar.AlgebraicNumber'>, [-1.618033988749895?, -0.618033988749895?*I, 1.618033988749895?*I, 0.618033988749895?])
         sage: rts = complex_roots(p, retval='algebraic_real'); type(rts[0][0]), rts
         (<class 'sage.rings.qqbar.AlgebraicReal'>, [(-1.618033988749895?, 1), (0.618033988749895?, 1)])
+
+    TESTS::
+
+    Verify that trac 12026 is fixed::
+
+        sage: f = matrix(QQ, 8, lambda i, j: 1/(i + j + 1)).charpoly()
+        sage: from sage.rings.polynomial.complex_roots import complex_roots
+        sage: len(complex_roots(f))
+        8
     """
 
     if skip_squarefree:
@@ -351,6 +360,14 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         for (factor, exp) in factors:
             cfac = CCX(factor)
             rts = cfac.roots(multiplicities=False)
+            # Make sure the number of roots we found is the degree. If
+            # we don't find that many roots, it's because the
+            # precision isn't big enough and though the (possibly
+            # exact) polynomial "factor" is squarefree, it is not
+            # squarefree as an element of CCX.
+            if len(rts) < factor.degree():
+                ok = False
+                break
             irts = interval_roots(factor, rts, max(prec, min_prec))
             if irts is None:
                 ok = False

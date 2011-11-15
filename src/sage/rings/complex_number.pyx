@@ -113,6 +113,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_init2(x.__im, self._prec)
         return x
 
+    def __cinit__(self, parent=None, real=None, imag=None):
+        self._prec = -1
+
     def __init__(self, parent, real, imag=None):
         r"""
         Initialize ``ComplexNumber`` instance.
@@ -163,8 +166,20 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
 
     def  __dealloc__(self):
-        mpfr_clear(self.__re)
-        mpfr_clear(self.__im)
+        """
+        TESTS:
+
+        Check that #12038 is resolved::
+
+            sage: from sage.rings.complex_number import ComplexNumber as CN
+            sage: coerce(CN, 1+I)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() takes at least 2 positional arguments (1 given)
+        """
+        if self._prec != -1:
+            mpfr_clear(self.__re)
+            mpfr_clear(self.__im)
 
     def _interface_init_(self, I=None):
         """

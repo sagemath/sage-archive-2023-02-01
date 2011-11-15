@@ -130,6 +130,9 @@ AUTHORS:
 
 
 include "../ext/stdsage.pxi"
+include "../ext/python_list.pxi"
+include "../ext/python_int.pxi"
+include "../ext/python_ref.pxi"
 
 import sage
 from sage.structure.element cimport Element
@@ -1421,6 +1424,46 @@ cdef class ClonableIntArray(ClonableElement):
             3
         """
         return self._len
+
+    def __iter__(self):
+        """
+        Iterate over the items of self.
+
+        EXAMPLE::
+
+            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: I = IncreasingIntArrays()(range(5))
+            sage: I == range(5)
+            False
+            sage: list(I) == range(5)  # indirect doctest
+            True
+        """
+        return self.list().__iter__()
+
+    cpdef inline list list(self):
+        """
+        Convert self into a Python list.
+
+        EXAMPLE::
+
+            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: I = IncreasingIntArrays()(range(5))
+            sage: I == range(5)
+            False
+            sage: I.list() == range(5)
+            True
+            sage: I = IncreasingIntArrays()(range(1000))
+            sage: I.list() == range(1000)
+            True
+        """
+        cdef int i
+        cdef list L = <list> PyList_New(self._len)
+        cdef object o
+        for  i from 0<=i<self._len:
+            o = PyInt_FromLong(self._list[i])
+            Py_INCREF(o)
+            PyList_SET_ITEM(L, i, o)
+        return L
 
     def __getitem__(self, key):
         """

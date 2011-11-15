@@ -55,3 +55,4 @@ cdef class ClonableIntArray(ClonableElement):
     cpdef inline _setitem(self, int item, value)
     cpdef int index(self, int item) except -1
     cpdef long int _hash_(self) except 0
+    cpdef inline list list(self)

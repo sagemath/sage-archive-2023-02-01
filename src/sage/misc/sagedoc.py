@@ -695,7 +695,7 @@ You can build this with 'sage -docbuild %s html'.""" % s
     # done with preparation; ready to start search
     for dirpath, dirs, files in os.walk(os.path.join(base_path, module)):
         for f in files:
-            if re.search("\.(" + "|".join(exts) + ")$", f):
+            if not f.startswith('.') and re.search("\.(" + "|".join(exts) + ")$", f):
                 filename = os.path.join(dirpath, f)
                 if re.search(path_re, filename):
                     if multiline:

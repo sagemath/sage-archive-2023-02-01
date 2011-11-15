@@ -15,8 +15,8 @@ AUTHORS:
 - Robert Bradshaw, Jeroen Demeyer, William Stein (2010-08-15):
   Upgrade to PARI 2.4.3 (#9343)
 
-- Jeroen Demeyer (2011-09-27): rewrite various conversion routines
-  (#11611, #11854)
+- Jeroen Demeyer (2011-11-12): rewrite various conversion routines
+  (#11611, #11854, #11952)
 
 
 EXAMPLES::
@@ -176,9 +176,11 @@ from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.misc.misc_c import is_64_bit
 
-#include '../../ext/interrupt.pxi'
 include 'pari_err.pxi'
 include '../../ext/stdsage.pxi'
+
+cdef extern from "mpz_pylong.h":
+    cdef int mpz_set_pylong(mpz_t dst, src) except -1
 
 # Make sure we don't use mpz_t_offset before initializing it by
 # putting in a value that's likely to provoke a segmentation fault,
@@ -9410,58 +9412,13 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         ::
 
             sage: a = pari(1); a, a.type()
-                   (1, 't_INT')
-                   sage: a = pari(1/2); a, a.type()
-                   (1/2, 't_FRAC')
-                   sage: a = pari(1/2); a, a.type()
-                   (1/2, 't_FRAC')
+            (1, 't_INT')
+            sage: a = pari(1/2); a, a.type()
+            (1/2, 't_FRAC')
+            sage: a = pari(1/2); a, a.type()
+            (1/2, 't_FRAC')
 
-        Conversion from reals uses the real's own precision, here 53 bits
-        (the default)::
-
-            sage: a = pari(1.2); a, a.type(), a.precision()
-            (1.20000000000000, 't_REAL', 4) # 32-bit
-            (1.20000000000000, 't_REAL', 3) # 64-bit
-
-        We get the same answer if we use strings instead of reals::
-
-            sage: a = pari('1.2'); a, a.type(), a.precision()
-            (1.20000000000000, 't_REAL', 4) # 32-bit
-            (1.20000000000000, 't_REAL', 3) # 64-bit
-
-        Conversion from matrices is supported , but not from vectors; use
-        lists instead::
-
-            sage: a = pari(matrix(2,3,[1,2,3,4,5,6])); a, a.type()
-            ([1, 2, 3; 4, 5, 6], 't_MAT')
-
-        ::
-
-            sage: v = vector([1.2,3.4,5.6])
-            sage: v.pari()
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'sage.modules.free_module_element.FreeModuleElement_generic_dense' object has no attribute 'pari'
-            sage: b = pari(list(v)); b,b.type()
-            ([1.20000000000000, 3.40000000000000, 5.60000000000000], 't_VEC')
-
-        Some commands are just executed without returning a value::
-
-            sage: pari("dummy = 0; kill(dummy)")
-            sage: type(pari("dummy = 0; kill(dummy)"))
-            <type 'NoneType'>
-
-        Some more exotic examples::
-
-            sage: K.<a>=NumberField(x^3-2)
-            sage: pari(K)
-            [x^3 - 2, [1, 1], -108, 1, [[1, 1.25992104989487, 1.58740105196820; 1, -0.629960524947437 - 1.09112363597172*I, -0.793700525984100 + 1.37472963699860*I], [1, 1.25992104989487, 1.58740105196820; 1, -1.72108416091916, 0.581029111014503; 1, 0.461163111024285, -2.16843016298270], [1, 1, 2; 1, -2, 1; 1, 0, -2], [3, 0, 0; 0, 0, 6; 0, 6, 0], [6, 0, 0; 0, 6, 0; 0, 0, 3], [2, 0, 0; 0, 0, 1; 0, 1, 0], [2, [0, 0, 2; 1, 0, 0; 0, 1, 0]]], [1.25992104989487, -0.629960524947437 - 1.09112363597172*I], [1, x, x^2], [1, 0, 0; 0, 1, 0; 0, 0, 1], [1, 0, 0, 0, 0, 2, 0, 2, 0; 0, 1, 0, 1, 0, 0, 0, 0, 2; 0, 0, 1, 0, 1, 0, 1, 0, 0]]
-
-        ::
-
-            sage: E = EllipticCurve('37a1')
-            sage: pari(E)
-            [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, [0.837565435283323, 0.269594436405445, -1.10715987168877]~, 2.99345864623196, -2.45138938198679*I, 0.942638555913623, 1.32703057887968*I, 7.33813274078958]
+        See :func:`pari` for more examples.
         """
         cdef int length, i
         cdef gen v
@@ -9474,19 +9431,40 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             return self.new_gen_from_mpz_t(<void *>s + mpz_t_offset)
         elif PyObject_HasAttrString(s, "_pari_"):
             return s._pari_()
-        elif isinstance(s, (types.ListType, types.XRangeType,
+
+        # Check basic Python types
+        if PyInt_Check(s):
+            sig_on()
+            return self.new_gen(stoi(PyInt_AS_LONG(s)))
+        if PyBool_Check(s):
+            return self.PARI_ONE if s else self.PARI_ZERO
+        cdef mpz_t mpz_int
+        cdef GEN g
+        if PyLong_Check(s):
+            sig_on()
+            mpz_init(mpz_int)
+            mpz_set_pylong(mpz_int, s)
+            g = self._new_GEN_from_mpz_t(mpz_int)
+            mpz_clear(mpz_int)
+            return self.new_gen(g)
+        if PyFloat_Check(s):
+            sig_on()
+            return self.new_gen(dbltor(PyFloat_AS_DOUBLE(s)))
+        if PyComplex_Check(s):
+            sig_on()
+            g = cgetg(3, t_COMPLEX)
+            set_gel(g, 1, dbltor(PyComplex_RealAsDouble(s)))
+            set_gel(g, 2, dbltor(PyComplex_ImagAsDouble(s)))
+            return self.new_gen(g)
+
+        if isinstance(s, (types.ListType, types.XRangeType,
                             types.TupleType, types.GeneratorType)):
             length = len(s)
             v = self._empty_vector(length)
             for i from 0 <= i < length:
                 v[i] = self(s[i])
             return v
-        elif PyObject_TypeCheck(s, bool):
-            if s:
-                return self.PARI_ONE
-            return self.PARI_ZERO
 
-        cdef GEN g
         t = str(s)
         sig_str('evaluating PARI string')
         g = gp_read_str(t)

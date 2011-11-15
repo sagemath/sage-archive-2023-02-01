@@ -454,20 +454,21 @@ class Lseries_ell(SageObject):
                $L(E,1)$ produced by \code{E.lseries().at1}.
         \end{enumerate}
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: E = EllipticCurve('37a')
             sage: E.lseries().deriv_at1()
-            (0.305986660899342, 0.000800351433106958)
+            (0.305986660898516, 0.000800351433106958)
             sage: E.lseries().deriv_at1(100)
-            (0.305999773834879, 1.52437502288740e-45)
+            (0.305999773834052, 1.52437502288740e-45)
             sage: E.lseries().deriv_at1(1000)
-            (0.305999773834879, 0.000000000000000)
+            (0.305999773834052, 0.000000000000000)
         """
         if self.__E.root_number() == 1: return 0
         k = int(k)
         sqrtN = float(self.__E.conductor().sqrt())
         if k == 0: k = int(ceil(sqrtN))
-        an = self.__E.anlist(k)           # list of C ints
+        an = self.__E.anlist(k)           # list of Sage Integers
         # Compute z = e^(-2pi/sqrt(N))
         pi = 3.14159265358979323846
         v = transcendental.exponential_integral_1(2*pi/sqrtN, k)

@@ -334,7 +334,7 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
         sage: rts = complex_roots(p, retval='algebraic_real'); type(rts[0][0]), rts
         (<class 'sage.rings.qqbar.AlgebraicReal'>, [(-1.618033988749895?, 1), (0.618033988749895?, 1)])
 
-    TESTS::
+    TESTS:
 
     Verify that trac 12026 is fixed::
 

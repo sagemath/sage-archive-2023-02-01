@@ -400,10 +400,14 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
         TESTS:
 
-            Ensure that trac 12020 is fixed::
+        Ensure that trac 12020 is fixed::
 
-                sage: A = MatrixSpace(CyclotomicField(4),60,30)(0)
-                sage: B = A.augment(A)
+            sage: x = polygen(QQ)
+            sage: for R in [ZZ, QQ, RealField(100), ComplexField(100), RDF, CDF, SR, GF(2), GF(11), GF(2^8,'a'), GF(3^19,'a'), NumberField(x^3+2,'a'), CyclotomicField(4), PolynomialRing(QQ,'x'), PolynomialRing(CC,2,'x')]:
+            ...       A = MatrixSpace(R,60,30,sparse=False)(0)
+            ...       B = A.augment(A)
+            ...       A = MatrixSpace(R,60,30,sparse=True)(0)
+            ...       B = A.augment(A)
         """
         if entries is None or entries == 0:
             if self._copy_zero: # faster to copy than to create a new one.

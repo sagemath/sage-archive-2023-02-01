@@ -117,19 +117,27 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     #def __dealloc__(self):
     #    pass
 
-    def __init__(self, parent, entries, copy, coerce):
+    def __init__(self, parent, entries=None, copy=True, coerce=True):
         """
         Initialize a newly created cyclotomic matrix.
 
         INPUT:
-            parent -- a matrix space over a cyclotomic field
-            entries -- a list of entries or scalar
-            coerce -- bool; if true entries are coerced to base ring
-            copy -- bool; ignored due to underlying data structure
+
+        - ``parent`` -- a matrix space over a cyclotomic field
+
+        - ``entries`` -- a list of entries or scalar
+
+        - ``coerce`` -- boolean; if true entries are coerced to base
+          ring
+
+        - ``copy`` -- boolean; ignored due to underlying data
+          structure
 
         EXAMPLES:
-        This function is called implicitly when you create new cyclotomic
-        dense matrices.
+
+        This function is called implicitly when you create new
+        cyclotomic dense matrices::
+
             sage: W.<a> = CyclotomicField(100)
             sage: A = matrix(2, 3, [1, 1/a, 1-a,a, -2/3*a, a^19])
             sage: A
@@ -137,13 +145,15 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [                        a                    -2/3*a                      a^19]
             sage: TestSuite(A).run()
 
-        TESTS:
+        TESTS::
+
             sage: matrix(W, 2, 1, a)
             Traceback (most recent call last):
             ...
             TypeError: nonzero scalar matrix must be square
 
-        We call __init__ explicitly below.
+        We call __init__ explicitly below::
+
             sage: from sage.matrix.matrix_cyclo_dense import Matrix_cyclo_dense
             sage: A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, MatrixSpace(CyclotomicField(3),2), [0,1,2,3], True, True)
             sage: A.__init__(MatrixSpace(CyclotomicField(3),2), [0,1,2,3], True, True)

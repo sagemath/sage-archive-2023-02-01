@@ -361,14 +361,6 @@ cdef class LaurentSeries(AlgebraElement):
             -10/3
             sage: f[-9]
             0
-        """
-        return self.__u[i-self.__n]
-
-    def __getslice__(self, i, j):
-        """
-        EXAMPLES::
-
-            sage: R.<t> = LaurentSeriesRing(QQ)
             sage: f = -5/t^(10) + 1/3 + t + t^2 - 10/3*t^3 + O(t^5); f
             -5*t^-10 + 1/3 + t + t^2 - 10/3*t^3 + O(t^5)
             sage: f[-10:2]
@@ -376,10 +368,18 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f[0:]
             1/3 + t + t^2 - 10/3*t^3 + O(t^5)
         """
-        if j > self.__u.degree():
-            j = self.__u.degree()
-        f = self.__u[i-self.__n:j-self.__n]
-        return LaurentSeries(self._parent, f, self.__n)
+        if isinstance(i, slice):
+            start, stop, step = i.start, i.stop, i.step
+            if start is None:
+                start = 0
+            if step is None:
+                step = 1
+            if stop > self.__u.degree() or stop is None:
+                stop = self.__u.degree()
+            f = self.__u[start-self.__n:stop-self.__n:step]
+            return LaurentSeries(self._parent, f, self.__n)
+        else:
+            return self.__u[i-self.__n]
 
     def __iter__(self):
         """

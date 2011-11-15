@@ -3,6 +3,14 @@
 include '../ext/stdsage.pxi'
 
 cdef class GSLDoubleArray:
+    r"""
+    EXAMPLES::
+        sage: a = WaveletTransform(128,'daubechies',4)
+        sage: for i in range(1, 11):
+        ...    a[i] = 1
+        sage: a[:6:2]
+        [0.0, 1.0, 1.0]
+    """
     def __init__(self, size_t n, size_t stride = 1, data = None):
         cdef int i
 
@@ -22,10 +30,6 @@ cdef class GSLDoubleArray:
     def __len__(self):
         return self.n
 
-    def __getslice__(self, i, j):
-        # Todo -- make this actually fast.
-        return list(self)[i:j]
-
     def __repr__(self):
         return str(list(self))
 
@@ -35,7 +39,12 @@ cdef class GSLDoubleArray:
             raise IndexError
         self.data[i] = x
 
-    def __getitem__(self, size_t i):
-        if i < 0 or i >= self.n:
-            raise IndexError
-        return self.data[i]
+    def __getitem__(self, i):
+        if isinstance(i, slice):
+            start, stop, step = i.indices(len(self))
+            # TODO -- make this actually fast.
+            return list(self)[start:stop:step]
+        else:
+            if i < 0 or i >= self.n:
+                raise IndexError
+            return self.data[i]

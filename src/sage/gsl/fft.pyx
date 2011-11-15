@@ -33,11 +33,13 @@ from sage.rings.complex_number import ComplexNumber
 
 def FastFourierTransform(size, base_ring=None):
     """
-    EXAMPLES:
+    EXAMPLES::
         sage: a = FastFourierTransform(128)
         sage: for i in range(1, 11):
         ...    a[i] = 1
         ...    a[128-i] = 1
+        sage: a[:6:2]
+        [(0.0, 0.0), (1.0, 0.0), (1.0, 0.0)]
         sage: a.plot().show(ymin=0)
         sage: a.forward_transform()
         sage: a.plot().show()
@@ -75,16 +77,14 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         else:
             self.data[2*i] = xy
 
-    def __getitem__(self, size_t i):
-        if i < 0 or i >= self.n:
-            raise IndexError
-        cdef int j
-        j = 2*i
-        return self.data[2*i], self.data[2*i+1]
-
-    def __getslice__(self, Py_ssize_t i, Py_ssize_t j):
-        # Todo -- make this actually fast.
-        return list(self)[i:j]
+    def __getitem__(self, i):
+        if isinstance(i, slice):
+            start, stop, step = i.indices(self.n)
+            return list(self)[start:stop:step]
+        else:
+            if i < 0 or i >= self.n:
+                raise IndexError
+            return self.data[2*i], self.data[2*i+1]
 
     def __repr__(self):
         return str(list(self))

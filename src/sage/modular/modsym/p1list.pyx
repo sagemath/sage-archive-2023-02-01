@@ -769,7 +769,7 @@ cdef class P1List:
 
     def __getitem__(self, n):
         """
-        Standard indexing function for the class P1List.
+        Standard indexing/slicing function for the class P1List.
 
         EXAMPLES::
 
@@ -780,20 +780,14 @@ cdef class P1List:
             ...
             (2, 3),
             (4, 1)]
-        """
-        return self.__list[n]
-
-    def __getslice__(self,  Py_ssize_t n,  Py_ssize_t m):
-        """
-        Standard slicing function for the class P1List.
-
-        EXAMPLES::
-
-            sage: L = P1List(8)
             sage: L[4:8] # indirect doctest
             [(1, 3), (1, 4), (1, 5), (1, 6)]
         """
-        return self.__list[n:m]
+        if isinstance(n, slice):
+            start, stop, step = n.indices(len(self))
+            return self.__list[start:stop:step]
+        else:
+            return self.__list[n]
 
     def __len__(self):
         """

@@ -308,7 +308,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return Polynomial_integer_dense_flint, \
                (self.parent(), self.list(), False, self.is_gen())
 
-    def __getitem__(self, long n):
+    def __getitem__(self, n):
         r"""
         Returns coefficient of x^n, or zero if n is negative.
 
@@ -326,19 +326,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             0
             sage: f[-1]
             0
-        """
-        cdef Integer z = PY_NEW(Integer)
-        if n < 0 or n > fmpz_poly_degree(self.__poly):
-            return z
-        else:
-            fmpz_poly_get_coeff_mpz(z.value, self.__poly, n)
-            return z
-
-    def __getslice__(self, long i, long j):
-        r"""
-        EXAMPLES::
-
-            sage: R.<x> = PolynomialRing(ZZ)
             sage: f = 1 + x + 2*x^2 + 3*x^3 + 4*x^4 + 5*x^5
             sage: f[2:4]
             3*x^3 + 2*x^2
@@ -348,11 +335,21 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             5*x^5 + 4*x^4
         """
         cdef long k
-        i = max(0, i)
-        j = min(j, self.degree()+1)
-        v = [self[k] for k from i <= k < j]
-        P = self.parent()
-        return P([0] * int(i) + v)
+        cdef Integer z = PY_NEW(Integer)
+        if isinstance(n, slice):
+            start = max(0, n.start)
+            stop = n.stop
+            if stop is None or stop > self.degree()+1:
+                stop = self.degree() + 1
+            v = [self[k] for k from start <= k < stop]
+            P = self.parent()
+            return P([0] * int(start) + v)
+        else:
+            if n < 0 or n > fmpz_poly_degree(self.__poly):
+                return z
+            else:
+                fmpz_poly_get_coeff_mpz(z.value, self.__poly, n)
+                return z
 
     def _repr(self, name=None, bint latex=False):
         """

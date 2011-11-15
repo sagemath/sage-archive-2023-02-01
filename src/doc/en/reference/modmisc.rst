@@ -19,6 +19,7 @@ Miscellaneous Modular-Form-Related Modules
    sage/modular/etaproducts
    sage/modular/overconvergent/weightspace
    sage/modular/overconvergent/genus0
+   sage/modular/overconvergent/hecke_series
    sage/modular/ssmod/ssmod
    sage/modular/quatalg/brandt
 

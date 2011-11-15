@@ -81,12 +81,12 @@ We draw a circle and a curve::
 
     sage: circle((1,1), 1) + plot(x^2, (x,0,5))
 
-Notice that the above circle is not round, because the aspect ratio
-of the coordinate system is not 1:1. The
-``aspect_ratio`` option to show allows us to fix
-this::
+Notice that the aspect ratio of the above plot makes the plot very tall because
+the plot adopts the default aspect ratio of the circle (to make the circle appear
+like a circle).  We can change the aspect ratio to be what we normally expect for a plot
+by explicitly asking for an 'automatic' aspect ratio::
 
-    sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), aspect_ratio=1)
+    sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), aspect_ratio='automatic')
 
 The aspect ratio describes the apparently height/width ratio of a unit square.  If you want the vertical units to be twice as big as the horizontal units, specify an aspect ratio of 2::
 
@@ -169,7 +169,7 @@ the first few zeros::
 
 Many concentric circles shrinking toward the origin::
 
-    sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0]), aspect_ratio=1)
+    sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0]))
 
 Here is a pretty graph::
 
@@ -454,7 +454,6 @@ class Graphics(SageObject):
 
             sage: G = Graphics()
         """
-        self.__aspect_ratio = 1.0
         self.__fontsize = 10
         self.__show_axes = True
         self.__show_legend = False
@@ -479,28 +478,32 @@ class Graphics(SageObject):
         -  ``ratio`` - a positive real number or 'automatic'
 
 
-        EXAMPLES: We create a plot of a circle, and it doesn't look quite
-        round::
+        EXAMPLES: We create a plot of the upper half of a circle, but it
+        doesn't look round because the aspect ratio is off::
 
-            sage: P = circle((1,1), 1); P
+            sage: P = plot(sqrt(1-x^2),(x,-1,1)); P
 
         So we set the aspect ratio and now it is round::
 
             sage: P.set_aspect_ratio(1)
+            sage: P.aspect_ratio()
+            1.0
             sage: P
 
         Note that the aspect ratio is inherited upon addition (which takes
         the max of aspect ratios of objects whose aspect ratio has been
         set)::
 
-            sage: P + circle((0,0), 0.5)           # still square
+            sage: P + plot(sqrt(4-x^2),(x,-2,2))
 
         In the following example, both plots produce a circle that looks
         twice as tall as wide::
 
             sage: Q = circle((0,0), 0.5); Q.set_aspect_ratio(2)
-            sage: P + Q
-            sage: Q + P
+            sage: (P + Q).aspect_ratio(); P+Q
+            2.0
+            sage: (Q + P).aspect_ratio(); Q+P
+            2.0
         """
         if ratio != 'auto' and ratio != 'automatic':
             ratio = float(ratio)
@@ -508,7 +511,7 @@ class Graphics(SageObject):
                 raise ValueError, "the aspect ratio must be positive or 'automatic'"
         else:
             ratio = 'automatic'
-        self.__aspect_ratio = ratio
+        self._extra_kwds['aspect_ratio'] = ratio
 
     def aspect_ratio(self):
         """
@@ -530,7 +533,7 @@ class Graphics(SageObject):
             sage: P.aspect_ratio()
             'automatic'
         """
-        return self.__aspect_ratio
+        return self._extra_kwds.get('aspect_ratio',1.0)
 
     def legend(self, show=None):
         r"""
@@ -1273,6 +1276,12 @@ class Graphics(SageObject):
 
             sage: (g1 + g2)._extra_kwds=={'aspect_ratio': 'automatic', 'frame': True}
             True
+            sage: g1.set_aspect_ratio(2)
+            sage: (g1+g2).aspect_ratio()
+            2.0
+            sage: g2.set_aspect_ratio(3)
+            sage: (g1+g2).aspect_ratio()
+            3.0
         """
         if isinstance(other, int) and other == 0:
             return self
@@ -1283,15 +1292,15 @@ class Graphics(SageObject):
             raise TypeError, "other (=%s) must be a Graphics objects"%other
         g = Graphics()
         g.__objects = self.__objects + other.__objects
-        if self.__aspect_ratio=='automatic':
-            g.__aspect_ratio=other.__aspect_ratio
-        elif other.__aspect_ratio=='automatic':
-            g.__aspect_ratio=self.__aspect_ratio
-        else:
-            g.__aspect_ratio = max(self.__aspect_ratio, other.__aspect_ratio)
         g.__show_legend = self.__show_legend or other.__show_legend
         g._extra_kwds.update(self._extra_kwds)
         g._extra_kwds.update(other._extra_kwds)
+        if self.aspect_ratio()=='automatic':
+            g.set_aspect_ratio(other.aspect_ratio())
+        elif other.aspect_ratio()=='automatic':
+            g.set_aspect_ratio(self.aspect_ratio())
+        else:
+            g.set_aspect_ratio( max(self.aspect_ratio(), other.aspect_ratio()))
         return g
 
     def add_primitive(self, primitive):
@@ -1419,9 +1428,9 @@ class Graphics(SageObject):
           dimensions corresponding to ``figsize``.
 
         - ``aspect_ratio`` - the perceived height divided by the
-          perceived width. If the aspect ratio is set to ``1``, circles
+          perceived width. For example, if the aspect ratio is set to ``1``, circles
           will look round and a unit square will appear to have sides
-          of equal length. If the aspect ratio is set ``2``, vertical units will be
+          of equal length, and if the aspect ratio is set ``2``, vertical units will be
           twice as long as horizontal units, so a unit square will be twice as
           high as it is wide.  If set to ``'automatic'``, the aspect ratio
           is determined by ``figsize`` and the picture fills the figure.

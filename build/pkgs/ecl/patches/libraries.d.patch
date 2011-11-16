@@ -1,5 +1,6 @@
---- src/src/c/ffi/libraries.d	2011-10-30 08:19:45.000000000 -0700
-+++ src/src/c/ffi/libraries.d	2011-11-04 09:56:13.000000000 -0700
+diff -r -u src/src/c/ffi/libraries.d src.patched/src/c/ffi/libraries.d
+--- src/src/c/ffi/libraries.d	2011-11-07 21:16:18.000000000 +0100
++++ src.patched/src/c/ffi/libraries.d	2011-11-15 11:13:42.000000000 +0100
 @@ -70,6 +70,7 @@
  #endif /* ENABLE_DLOPEN */
  #include <ecl/ecl-inl.h>
@@ -8,3 +9,4 @@
  
  cl_object
  ecl_make_codeblock()
+Only in src.patched/src/c/ffi: libraries.d.orig

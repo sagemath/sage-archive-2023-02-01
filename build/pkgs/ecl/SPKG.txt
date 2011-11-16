@@ -38,20 +38,22 @@ Website: http://ecls.sourceforge.net/
  * boehm_gc
 
 == Special Update/Build Instructions ==
- * Note: deleting the following directories saves space: without doing
+ * Deleting the following directories saves space: without doing
    this, the spkg can grow from under 2.5 megabytes to almost 7
-   megabytes.
- * Remove the directory src/msvc/
- * Remove the directory src/src/gc_unstable/
- * Remove the directory src/src/libffi/
- * Remove most of the contents of the src/src/gmp directory:
-   everything except install.sh, config.*, and configfsf.*
- * Build with --enable-unicode=no, and hence it is safe to:
-   - Remove the directory src/contrib/encodings/
-   - Remove the directory src/contrib/unicode/
-   (Building with --enable-unicode=yes, the default in the latest ECL
+   megabytes.  Deleting these files is done automatically by the
+   `spkg-make` script.
+   - The directory src/msvc/
+   - The directory src/src/gc-unstable
+   - The directory src/src/libffi
+   - Most of the contents of the src/src/gmp directory:
+     everything except install-sh, config.*, configfsf.*
+   - The directory src/contrib/encodings/
+   - The directory src/contrib/unicode/
+ * The directories src/contrib/encodings/ and src/contrib/unicode/ may
+   be removed because we build with --enable-unicode=no.
+   Building with --enable-unicode=yes, the default in the latest ECL
    source, leads to problems with some strings in the Sage-Maxima-ECL
-   interface.)
+   interface.
  * Note: the way we configure Sage, CXX and CXXFLAGS are unused.
  * Do NOT quote SAGE_LOCAL when setting CPPFLAGS and/or LDFLAGS,
    in spkg-install as this caused the build to break. See
@@ -62,6 +64,11 @@ Website: http://ecls.sourceforge.net/
    the src/src/gc directory, too.
 
 == Changelog ==
+
+=== ecl-11.1.2.cvs20111115.p0 (Jeroen Demeyer, 15 November 2011) ===
+  * Trac #11884.  Use the CVS snapshot from 2011-11-15, which also
+    works on Mac OS X 10.4 PPC.
+  * Add file spkg-make to re-create the src/ tree using CVS.
 
 === ecl-11.1.2.git.20111030.p0 (John H. Palmieri, 4 November 2011) ===
   * Trac #11884.  General clean-up: remove unneeded patches,

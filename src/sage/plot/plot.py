@@ -3586,23 +3586,31 @@ def polar_plot(funcs, *args, **kwds):
 @options(aspect_ratio='automatic')
 def list_plot(data, plotjoined=False, **kwargs):
     r"""
-    ``list_plot`` takes either a single list of data, a list of tuples,
+    ``list_plot`` takes either a list of numbers, a list of tuples,
     or a dictionary and plots the corresponding points.
 
-    If given a single list of data, ``list_plot`` forms a list of tuples
-    `(i,di)` where `i` goes from 0 to `{\rm len}(data)-1` and `di` is
-    the `i^{th}` data value, and puts points at those tuple values.
+    If given a list of numbers (that is, not a list of tuples or lists),
+    ``list_plot`` forms a list of tuples `(i, x_i)` where `i` goes from
+    0 to ``len(data)-1`` and `x_i` is the `i`-th data value, and puts
+    points at those tuple values.
 
-    ``list_plot`` also takes a list of tuples `(dxi, dyi)` where `dxi`
-    is the `i^{th}` data representing the `x`-value, and `dyi` is the
-    `i^{th}` `y`-value. If ``plotjoined=True`` , then a line spanning
-    all the data is drawn instead.
+    ``list_plot`` will plot a list of complex numbers in the obvious
+    way; any numbers for which
+    :func:`CC()<sage.rings.complex_field.ComplexField>` makes sense will
+    work.
+
+    ``list_plot`` also takes a list of tuples `(x_i, y_i)` where `x_i`
+    and `y_i` are the `i`-th values representing the `x`- and
+    `y`-values, respectively.
 
     If given a dictionary, ``list_plot`` interprets the keys as
     `x`-values and the values as `y`-values.
 
-    It is possible to pass empty dictionaries, lists, or tuples to list_plot.
-    Doing so will plot nothing (returning an unchanged plot).
+    The ``plotjoined=True`` option tells ``list_plot`` to plot a line
+    joining all the data.
+
+    It is possible to pass empty dictionaries, lists, or tuples to
+    list_plot. Doing so will plot nothing (returning an empty plot).
 
     EXAMPLES::
 
@@ -3616,6 +3624,22 @@ def list_plot(data, plotjoined=False, **kwargs):
     This gives all the random points joined in a purple line::
 
         sage: list_plot(r, plotjoined=True, color='purple')
+
+    Plot a list of complex numbers::
+
+        sage: list_plot([1, I, pi + I/2, CC(.25, .25)])
+
+        sage: list_plot([exp(I*theta) for theta in [0, .2..pi]])
+
+    Note that if your list of complex numbers are all actually real,
+    they get plotted as real values, so this
+
+    ::
+
+        sage: list_plot([CDF(1), CDF(1/2), CDF(1/3)])
+
+    is the same as ``list_plot([1, 1/2, 1/3])`` -- it produces a plot of
+    the points `(0,1)`, `(1,1/2)`, and `(2,1/3)`.
 
     If you have separate lists of `x` values and `y` values which you
     want to plot against each other, use the ``zip`` command to make a
@@ -3660,15 +3684,28 @@ def list_plot(data, plotjoined=False, **kwargs):
             list_data = list(data.iteritems())
         return list_plot(list_data, plotjoined=plotjoined, **kwargs)
     if not isinstance(data[0], (list, tuple)):
-        data = zip(range(len(data)),data)
+        data = zip(range(len(data)), data)
     if isinstance(plotjoined, (list, tuple)):
         raise TypeError, "The second argument 'plotjoined' should be boolean (True or False).  If you meant to plot two lists 'x' and 'y' against each other, use 'list_plot(zip(x,y))'."
-    if plotjoined:
-        P = line(data, **kwargs)
-    else:
-        P = point(data, **kwargs)
-    return P
-
+    try:
+        if plotjoined:
+            return line(data, **kwargs)
+        else:
+            return point(data, **kwargs)
+    except (TypeError, IndexError):
+        # Assume we have complex-valued input and plot real and imaginary parts.
+        # Need to catch IndexError because if data is, say, [(0, 1), (1, I)],
+        # point3d() throws an IndexError on the (0,1) before it ever
+        # gets to (1, I).
+        from sage.rings.complex_field import ComplexField
+        CC = ComplexField()
+        # if we get here, we already did "zip(range(len(data)), data)",
+        # so look at z[1] in inner list
+        data = [(z.real(), z.imag()) for z in [CC(z[1]) for z in data]]
+        if plotjoined:
+            return line(data, **kwargs)
+        else:
+            return point(data, **kwargs)
 
 def to_float_list(v):
     """

@@ -17,5 +17,6 @@ Symbolic Calculus
    sage/calculus/wester
    sage/calculus/desolvers
    sage/gsl/ode
+   sage/gsl/integration
    sage/calculus/riemann
    sage/calculus/interpolators

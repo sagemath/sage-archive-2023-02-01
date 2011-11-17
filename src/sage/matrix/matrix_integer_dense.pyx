@@ -2652,6 +2652,24 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: matrix(ZZ, 0, 3).LLL()
             []
 
+            sage: M = matrix(ZZ, [[1,2,3],[31,41,51],[101,201,301]])
+            sage: A = M.LLL()
+            sage: A
+            [ 0  0  0]
+            [-1  0  1]
+            [ 1  1  1]
+            sage: B = M.LLL(algorithm='NTL:LLL')
+            sage: C = M.LLL(algorithm='NTL:LLL', fp=None)
+            sage: D = M.LLL(algorithm='NTL:LLL', fp='fp')
+            sage: F = M.LLL(algorithm='NTL:LLL', fp='xd')
+            sage: G = M.LLL(algorithm='NTL:LLL', fp='rr')
+            sage: A == B == C == D == F == G
+            True
+            sage: H = M.LLL(algorithm='NTL:LLL', fp='qd')
+            Traceback (most recent call last):
+            ...
+            TypeError: algorithm NTL:LLL_QD not supported
+
         ALGORITHM: Uses the NTL library by Victor Shoup or fpLLL library by
         Damien Stehle depending on the chosen algorithm.
 
@@ -2686,7 +2704,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             elif fp == 'xd':
                 algorithm = 'NTL:LLL_XD'
             elif fp == 'rr':
-                algorithn = 'NTL:LLL_RR'
+                algorithm = 'NTL:LLL_RR'
         elif algorithm == 'fpLLL:heuristic':
             if fp == None:
                 raise TypeError("if 'fpLLL:heuristic' is chosen, a floating point number implementation must be chosen")

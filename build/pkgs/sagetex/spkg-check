@@ -19,7 +19,7 @@ typeset()
 
 checkdotsage()
 {
-    sage $1.sage
+    sage $1.sagetex.sage
     if [ $? -ne 0 ]
     then
         echo "Error running Sage on $1.sage!"

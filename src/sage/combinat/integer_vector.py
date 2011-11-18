@@ -259,7 +259,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             sage: from sage.combinat.integer_vector import gale_ryser_theorem
             sage: p1 = [2,2,1]
             sage: p2 = [2,2,1]
-            sage: print gale_ryser_theorem(p1, p2)
+            sage: print gale_ryser_theorem(p1, p2)     # not tested
             [1 1 0]
             [1 0 1]
             [0 1 0]
@@ -295,7 +295,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             [0 0 0 0 0 0]
             sage: p1 = [3,3,2,1]
             sage: p2 = [3,2,2,1,1]
-            sage: print gale_ryser_theorem(p1, p2, algorithm="gale")
+            sage: print gale_ryser_theorem(p1, p2, algorithm="gale")  # not tested
             [1 1 1 0 0]
             [1 1 0 0 1]
             [1 0 1 0 0]

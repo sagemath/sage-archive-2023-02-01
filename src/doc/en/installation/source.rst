@@ -33,7 +33,7 @@ for the list of platforms on which Sage is supported and the level of support
 for these systems. You will also find details about `ports <http://en.wikipedia.org/wiki/Computer_port_%28software%29>`_
 to other operating systems or processors which may be taking place.
 
-Assumptions: You have a computer with about 2.5 GB of free
+Assumptions: You have a computer with at least 3 GB of free
 disk space running one of the supported version of an
 operating system listed at
 http://wiki.sagemath.org/SupportedPlatforms
@@ -268,8 +268,8 @@ in which you build: several of Sage's components will not build if
 there are spaces in the path.  Running Sage from a directory with
 spaces in its name will also fail.
 
-#. Go to http://www.sagemath.org/download-source.html , select a mirror,
-   and download the file sage-\*.tar.
+#. Go to http://www.sagemath.org/download-source.html, select a mirror,
+   and download the file ``sage-x.y.z.tar``.
 
    This tarfile contains the source code for Sage and the source for
    all programs on which Sage depends. Download it into a subdirectory
@@ -345,7 +345,7 @@ spaces in its name will also fail.
 
    ::
 
-            grep -li "An error" spkg/logs/*
+            grep -li "^Error installing" spkg/logs/*
 
    Then paste the contents of the log file(s) with errors to the Sage
    support newsgroup http://groups.google.com/group/sage-support
@@ -479,10 +479,17 @@ spaces in its name will also fail.
 #. Optional: Different possibilities to make using Sage a little
    easier:
 
+   - Make a symbolic link from ``/usr/local/bin/sage`` (or another
+     directory in your :envvar:`PATH`) to ``$SAGE_ROOT/sage``::
 
-   -  Copy ``$SAGE_ROOT/sage`` to a location in your ``PATH``. If you do
-      this, make sure you edit the line with the ``....``'s at the top of
-      the ``sage`` script.
+         ln -s /path/to/sage-x.y.z/sage /usr/local/bin/sage
+
+     Now simply typing ``sage`` should be sufficient to run Sage.
+
+   - Copy ``$SAGE_ROOT/sage`` to a location in your ``PATH``. If you do
+     this, make sure you edit the line ``#SAGE_ROOT=/path/to/sage-version``
+     at the top of the copied ``sage`` script. It is best to edit only
+     the copy, not the original.
 
    -  For KDE users, create a bash script {sage} containing the lines
 
@@ -497,27 +504,11 @@ spaces in its name will also fail.
       the Application tab of the Properties of the icon, which you get my
       right clicking the mouse on the icon).
 
-   -  For bash shell users, type ``echo $PATH`` and
-      ``cp sage <your-path-dir>`` into one of these directories, or else
-      add this ``bin`` directory to your ``PATH`` variable, e.g., if you use
-      the bash shell, add the line
-
-      ::
-
-          PATH="<sage-home-dir>/bin":$PATH
-          export PATH
-
-      in your .bashrc file (if it exists; if not, make one). After doing
-      this and logging out and in again, typing ``sage`` at a shell prompt
-      should start Sage.
-
    - On Linux and OS X systems, you can make an alias to ``$SAGE_ROOT/sage``.
      For example, put something similar to the following line in your
-     ``.bashrc`` file:
+     ``.bashrc`` file::
 
-     ::
-
-         alias 'sage'='/home/username/sage-3.1.2/sage'
+         alias 'sage'='/home/username/sage-4.8/sage'
 
      Having done so, quit your terminal emulator and restart it again.
      Now typing ``sage`` within your terminal emulator should start
@@ -881,14 +872,18 @@ System-wide install
    locations will get updated.  For this reason, it might be easier to
    simply build Sage in its final location.
 
-#. Make a copy of the ``sage`` script in ``/usr/local/bin``::
+#. Make a symbolic link to the ``sage`` script in ``/usr/local/bin``::
 
-       cp /usr/local/sage-4.8/sage /usr/local/bin/
+       ln -s /path/to/sage-x.y.z/sage /usr/local/bin/sage
+
+   Alternatively, copy the Sage script::
+
+       cp /path/to/sage-x.y.z/sage /usr/local/bin/sage
 
    and edit the file ``/usr/local/bin/sage``: ``SAGE_ROOT`` should be
-   set to the directory where Sage is installed, for example
-   ``/usr/local/sage-4.8``. It is recommended not to edit the original
-   file ``/usr/local/sage-4.8/sage``, only the copy.
+   set to the directory ``/path/to/sage-x.y.z/`` where Sage is
+   installed.  It is recommended not to edit the original ``sage``
+   script, only the copy in ``/usr/local/bin/sage``.
 
 #. Make sure that all files in the Sage tree are readable by all::
 

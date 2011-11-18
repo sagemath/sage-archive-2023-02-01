@@ -14,7 +14,7 @@ pre-built binaries.
 
 Assumptions: You have a computer with at least 2 GB of free
 disk space and the operating system is Linux (32-bit or 64-bit) or
-OS X (10.5.x).
+OS X (10.4 or later).
 
 Highly Recommended: It is highly recommended that you have LaTeX
 installed.  If you want to view animations, you should install either
@@ -22,57 +22,43 @@ ImageMagick or ffmpeg.  ImageMagick or dvipng is also used for
 displaying some LaTeX output in the Sage notebook.
 
 Download the latest binary tarball from
-http://www.sagemath.org/download.html . For example, it might be
+http://www.sagemath.org/download.html. For example, it might be
 called ``sage-x.y.z-x86_64-Linux.tgz``. Unpack it on your computer
-in a directory which you have permission to read and write:
+in a directory which you have permission to read and write::
 
-::
-
-        tar zxvf sage-x.y.z-x86_64-Linux.tgz
+    tar zxvf sage-x.y.z-x86_64-Linux.tgz
 
 You can move the resulting directory ``sage-x.y.z-x86_64-Linux``
-anywhere and still run ``sage`` from it, as long as the full path name
+anywhere and still run ``./sage`` from it, as long as the full path name
 has **no spaces** in it.  You can also copy the file ``sage`` from
 that directory and put it anywhere, e.g., ``/usr/local/bin/``, but
-then you have to edit the ``SAGE_ROOT="....."`` line at the top of
-that file, replacing the dots with the path to the Sage directory
-``sage-x.y.z-x86_64-Linux``.  As long as ``/usr/local/bin`` is in your
+then you have to edit the ``#SAGE_ROOT=/path/to/sage-version`` line
+at the top of the copied file ``/usr/local/bin/sage``
+(you should not edit the original ``sage`` executable).
+The variable ``SAGE_ROOT`` should point to the directory
+``sage-x.y.z-x86_64-Linux`` of the extracted Sage tarball.
+As long as ``/usr/local/bin`` is in your
 ``$PATH``, you can then type ``sage`` from the command line to run
 Sage.  Another approach is to create a symbolic link, say
-``/usr/local/share/sage``, pointing to ``sage-x.y.z-x86_64-Linux`` ::
+``/usr/local/bin/sage``, pointing to ``sage-x.y.z-x86_64-Linux`` ::
 
-    ln -s /.../path_to/.../sage-x.y.z-x86_64-Linux /usr/local/share/sage
+    ln -s /path/to/sage-x.y.z-x86_64-Linux/sage /usr/local/bin/sage
 
-Then put ``/usr/local/share/sage`` in your ``$PATH``.  If you do this,
-you can type ``sage`` from the command line to run Sage.  Also, if you
-install a different version of Sage, you just have to delete the old
-link and create one from the new directory to
-``/usr/local/share/sage``.
-
-Finally, you can also combine these two approaches, copying ``sage``
-to ``/usr/local/bin/``, creating a link ``/usr/local/share/sage``
-pointing to ``sage-x.y.z-x86_64-Linux``, and editing
-the file ``/usr/local/bin/sage``: change the line ::
-
-  SAGE_ROOT="....."
-
-to ::
-
-  SAGE_ROOT="/usr/local/share/sage"
-
+With this approach, there is no need to edit ``/usr/local/bin/sage``,
+the ``SAGE_ROOT`` path will be discovered automatically thanks to the
+symbolic link.
 When you want to install a new version of Sage, just delete the old
-link and create a new one; you shouldn't have to replace or modify the
-file ``/usr/local/bin/sage``.
+link and create a new one.
 
-The first time you run Sage, and any time you move the Sage directory
-or create a link as above, you may see a message saying
+Any time you move the Sage directory, you may see a message like
 
 ::
 
-   The Sage install tree may have moved.
-   Regenerating Python.pyo and .pyc files that hardcode the install PATH
-   (please wait at most a few minutes)...
-   Do not interrupt this.
+    The Sage installation tree may have moved
+    (from /foo to /bar).
+    Changing various hardcoded paths...
+    (Please wait at most a few minutes.)
+    DO NOT INTERRUPT THIS.
 
 We currently distribute ``.dmg`` files for OS X 10.4.x and 10.5.x. But
 we would like to make Sage more of a native application. Work for that

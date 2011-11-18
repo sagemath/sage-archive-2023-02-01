@@ -329,6 +329,9 @@ ext_modules = [
               sources = ['sage/graphs/generic_graph_pyx.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.graphs.distances_all_pairs',
+              sources = ['sage/graphs/distances_all_pairs.pyx']),
+
     Extension('sage.graphs.modular_decomposition.modular_decomposition',
               sources = ['sage/graphs/modular_decomposition/modular_decomposition.pyx'],
               depends = ['sage/graphs/modular_decomposition/src/dm.c',

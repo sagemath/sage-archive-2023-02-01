@@ -100,7 +100,7 @@ out-neighbors have been evaluated by the algrithm.
 .. NOTE::
 
     Because of its current implementation, this algorithm only works on graphs
-    on less than 32 vertices. This can be changed to 54 if necessary, but 32
+    on less than 32 vertices. This can be changed to 64 if necessary, but 32
     vertices already require 4GB of memory.
 
 **Lower bound on the vertex separation**
@@ -141,7 +141,7 @@ include 'fast_digraph.pyx'
 
 def lower_bound(G):
     r"""
-    Returns a lower bound on the vertex separation of `D`
+    Returns a lower bound on the vertex separation of `G`
 
     INPUT:
 
@@ -181,13 +181,16 @@ def lower_bound(G):
     if not isinstance(G, DiGraph):
         raise ValueError("The parameter must be a DiGraph.")
 
+    if G.order() >= 32:
+        raise ValueError("The graph can have at most 31 vertices.")
+
     cdef FastDigraph FD = FastDigraph(G)
     cdef int * g = FD.graph
     cdef int n = FD.n
 
     # minimums[i] is means to store the value of c'_{i+1}
     minimums = <char *> sage_malloc(sizeof(char)* n)
-    cdef int i
+    cdef unsigned int i
 
     # They are initialized to n
     for 0<= i< n:
@@ -196,7 +199,7 @@ def lower_bound(G):
     cdef char tmp, tmp_count
 
     # We go through all sets
-    for 1<= i< (1<<n):
+    for 1<= i< <unsigned int> (1<<n):
         tmp_count = <char> popcount(i)
         tmp = <char> compute_out_neighborhood_cardinality(FD, i)
 
@@ -320,6 +323,9 @@ def vertex_separation(G, verbose = False):
     if not isinstance(G, DiGraph):
         raise ValueError("The parameter must be a DiGraph.")
 
+    if G.order() >= 32:
+        raise ValueError("The graph should have at most 31 vertices !")
+
     cdef FastDigraph g = FastDigraph(G)
 
     if verbose:
@@ -328,9 +334,13 @@ def vertex_separation(G, verbose = False):
 
     _sig_on
 
-    cdef char * neighborhoods = <char *> sage_malloc((1<<g.n))
+    cdef unsigned int mem = 1 << g.n
+    cdef char * neighborhoods = <char *> sage_malloc(mem)
 
-    memset(neighborhoods, <char> -1, (1<<g.n))
+    if neighborhoods == NULL:
+        raise MemoryError("Error allocating memory. I just tried to allocate "+str(mem>>10)+"MB, could that be too much ?")
+
+    memset(neighborhoods, <char> -1, mem)
 
     cdef int i,j , k
     for 0 <= k <g.n:

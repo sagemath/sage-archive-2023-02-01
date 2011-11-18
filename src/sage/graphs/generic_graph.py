@@ -10376,6 +10376,14 @@ class GenericGraph(GenericGraph_pyx):
 
         A doubly indexed dictionary
 
+        .. NOTE::
+
+           There is a Cython version of this method that is usually
+           much faster for large graphs, as most of the time is
+           actually spent building the final double
+           dictionary. Everything on the subject is to be found in the
+           :mod:`~sage.graphs.distances_all_pairs` module.
+
         EXAMPLE:
 
         The Petersen Graph::
@@ -10398,11 +10406,11 @@ class GenericGraph(GenericGraph_pyx):
                 algorithm = "BFS"
 
         if algorithm == "BFS":
-            from sage.graphs.base.c_graph import all_pairs_shortest_path_BFS
-            return all_pairs_shortest_path_BFS(self)[0]
+            from sage.graphs.distances_all_pairs import distances_all_pairs
+            return distances_all_pairs(self)
 
         elif algorithm == "Floyd-Warshall":
-            from sage.graphs.base.c_graph import floyd_warshall
+            from sage.graphs.distances_all_pairs import floyd_warshall
             return floyd_warshall(self,paths = False, distances = True)
 
         else:
@@ -10453,6 +10461,14 @@ class GenericGraph(GenericGraph_pyx):
             {0: +Infinity, 1: +Infinity}
         """
         if v is None:
+            if dist_dict is None:
+                from sage.graphs.distances_all_pairs import eccentricity
+
+                if with_labels:
+                    return dict(zip(self.vertices(), eccentricity(self)))
+                else:
+                    return eccentricity(self)
+
             v = self.vertices()
         elif not isinstance(v, list):
             v = [v]
@@ -10559,13 +10575,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.EmptyGraph()
             sage: G.diameter()
             0
+
         """
-        e = self.eccentricity()
-        if not isinstance(e, list):
-            e = [e]
-        if len(e) == 0:
+
+        if self.order() > 0:
+            return max(self.eccentricity())
+        else:
             return 0
-        return max(e)
 
     def distance_graph(self, dist):
         r"""
@@ -11106,19 +11122,18 @@ class GenericGraph(GenericGraph_pyx):
 
     def shortest_paths(self, u, by_weight=False, cutoff=None):
         """
-        Returns a dictionary d of shortest paths d[v] from u to v, for each
-        vertex v connected by a path from u.
+        Returns a dictionary associating to each vertex v a shortest path from u
+        to v, if it exists.
 
         INPUT:
-
 
         -  ``by_weight`` - if False, uses a breadth first
            search. If True, uses Dijkstra's algorithm to find the shortest
            paths by weight.
 
-        -  ``cutoff`` - integer depth to stop search. Ignored
-           if by_weight is True.
+        -  ``cutoff`` - integer depth to stop search.
 
+           (ignored if ``by_weight == True``)
 
         EXAMPLES::
 
@@ -11140,8 +11155,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_paths(0, by_weight=True)
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 1, 2, 3], 4: [0, 4]}
         """
-        import networkx
+
         if by_weight:
+            import networkx
             return networkx.single_source_dijkstra_path(self.networkx_graph(copy=False), u)
         else:
             try:
@@ -11161,12 +11177,6 @@ class GenericGraph(GenericGraph_pyx):
            search. If True, takes edge weightings into account, using
            Dijkstra's algorithm.
 
-        -  ``weight_sums`` - if False, returns the number of
-           edges in each path. If True, returns the sum of the weights of
-           these edges. Default behavior is to have the same value as
-           by_weight.
-
-
         EXAMPLES::
 
             sage: D = graphs.DodecahedralGraph()
@@ -11177,10 +11187,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_path_lengths(0, by_weight=True)
             {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}
         """
-        if weight_sums is None:
-            weight_sums = by_weight
         paths = self.shortest_paths(u, by_weight)
-        if weight_sums:
+        if by_weight:
             weights = {}
             for v in paths:
                 wt = 0
@@ -11251,6 +11259,14 @@ class GenericGraph(GenericGraph_pyx):
             1, or equivalently the length of a path is its number of
             edges). Besides, they do not deal with graphs larger than 65536
             vertices (which already represents 16GB of ram).
+
+        .. NOTE::
+
+           There is a Cython version of this method that is usually
+           much faster for large graphs, as most of the time is
+           actually spent building the final double
+           dictionary. Everything on the subject is to be found in the
+           :mod:`~sage.graphs.distances_all_pairs` module.
 
         EXAMPLES::
 
@@ -11344,11 +11360,11 @@ class GenericGraph(GenericGraph_pyx):
                 algorithm = "Floyd-Warshall-Python"
 
         if algorithm == "BFS":
-            from sage.graphs.base.c_graph import all_pairs_shortest_path_BFS
-            return all_pairs_shortest_path_BFS(self)
+            from sage.graphs.distances_all_pairs import distances_and_predecessors_all_pairs
+            return distances_and_predecessors_all_pairs(self)
 
         elif algorithm == "Floyd-Warshall-Cython":
-            from sage.graphs.base.c_graph import floyd_warshall
+            from sage.graphs.distances_all_pairs import floyd_warshall
             return floyd_warshall(self, distances = True)
 
         elif algorithm != "Floyd-Warshall-Python":

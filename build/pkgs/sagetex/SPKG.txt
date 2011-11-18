@@ -68,6 +68,12 @@ downloading this spkg.
 
 == Changelog ==
 
+=== sagetex-2.3.1.p1 (Dan Drake, 18 Nov 2011) ===
+
+ * Comment out tkz-berge and other TikZ stuff from example file; don't
+   distribute tkz-* with SageTeX; fix spkg-check so that we can actually
+   run and pass checks on this spkg. See #11583.
+
 === sagetex-2.3.1 (Dan Drake, 27 May 2011) ===
 
  * Include various fixes; see #10146. This now installs the PDFs of the

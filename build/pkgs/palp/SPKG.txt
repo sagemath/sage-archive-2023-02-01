@@ -42,6 +42,10 @@ facet enumeration compares well with existing packages.
 
 == Change log ==
 
+=== palp-2.0.p0 (Volker Braun, 19th November 2011) ===
+ * Update to new upstream version
+ * Now building multiple versions for different ambient dimensions
+
 === palp-1.1.p3 (David Kirkby, 24th May 2010) ===
  * #9025 Add compiler option -m64 if the variable SAGE64 is set to
    "yes". The flag is added by 'sed'.

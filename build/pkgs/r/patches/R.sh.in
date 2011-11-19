@@ -26,7 +26,7 @@ if test "${R_HOME_DIR}" = "@prefix@/@LIBnn@/R"; then
   esac
 fi
 
-# HACK for Sage to avoid hardcoding.  NOthing
+# HACK for Sage to avoid hardcoding. Nothing
 # else has been changed in this file.
 #R_HOME_DIR="${SAGE_LOCAL}/lib/R/"
 #SAGEHACK#
@@ -61,6 +61,7 @@ Options:
   -h, --help            Print short help message and exit
   --version             Print version info and exit
   --encoding=ENC        Specify encoding to be used for stdin
+  --encoding ENC
   RHOME			Print path to R home directory and exit
   --save                Do save workspace at the end of the session
   --no-save             Don't save it
@@ -74,10 +75,6 @@ Options:
   --vanilla		Combine --no-save, --no-restore, --no-site-file,
 			--no-init-file and --no-environ
   --no-readline         Don't use readline for command-line editing
-  --min-vsize=N         Set vector heap min to N bytes; '4M' = 4 MegaB
-  --max-vsize=N         Set vector heap max to N bytes;
-  --min-nsize=N         Set min number of cons cells to N
-  --max-nsize=N         Set max number of cons cells to N
   --max-ppsize=N        Set max size of protect stack to N
   -q, --quiet           Don't print startup message
   --silent              Same as --quiet
@@ -86,11 +83,14 @@ Options:
   --verbose             Print more information about progress
   -d, --debugger=NAME   Run R through debugger NAME
   --debugger-args=ARGS  Pass ARGS as arguments to the debugger
-  -g, --gui=TYPE	Use TYPE as GUI; possible values are 'X11'
-			(default) and 'Tk'.
+  -g TYPE, --gui=TYPE	Use TYPE as GUI; possible values are 'X11' (default)
+			and 'Tk'.
   --arch=NAME		Specify a sub-architecture
   --args                Skip the rest of the command line
-  -f, --file=FILE       Take input from 'FILE'
+  -f FILE, --file=FILE  Take input from 'FILE'
+  -e EXPR               Execute 'EXPR' and exit
+
+FILE may contain spaces but not shell metacharacers.
 
 Commands:
   BATCH			Run R in batch mode
@@ -103,9 +103,9 @@ Commands:
   LINK			Front-end for creating executable programs
   Rprof			Post-process R profiling files
   Rdconv		Convert Rd format to various other formats
-  Rd2dvi		Convert Rd format to DVI/PDF
+  Rd2dvi		Convert Rd format to DVI
+  Rd2pdf		Convert Rd format to PDF
   Rd2txt		Convert Rd format to pretty text
-  Sd2Rd			Convert S documentation to Rd format
   Stangle		Extract S/R code from Sweave documentation
   Sweave		Process Sweave documentation
   Rdiff			Diff R output ignoring headers etc
@@ -116,17 +116,10 @@ Commands:
 Please use 'R CMD command --help' to obtain further information about
 the usage of 'command'.
 
+Options --arch, --no-environ, --no-init-file, --no-site-file and --vanilla
+can be placed between R and CMD, to apply to R processes run by 'command'
+
 Report bugs to <r-bugs@r-project.org>."
-
-### We also have this in compiled code -> use that one to always be in sync
-# version="R REPLACE_BY_VERSION.
-# Copyright (C) REPLACE_BY_YEAR R Development Core Team
-
-# R is free software and comes with ABSOLUTELY NO WARRANTY.
-# You are welcome to redistribute it under the terms of the GNU
-# General Public License.  For more information about these matters,
-# see http://www.gnu.org/copyleft/gpl.html."
-
 
 ## some systems have a more portable sed, e.g. /usr/xpg4/bin/sed on Solaris,
 ## so make sure that is used.
@@ -150,7 +143,7 @@ while test -n "${1}"; do
     CMD)
       shift;
       export R_ARCH
-      . ${R_HOME}/etc${R_ARCH}/ldpaths
+      . "${R_HOME}/etc${R_ARCH}/ldpaths"
       exec sh "${R_HOME}/bin/Rcmd" @OSF_SH_BUG@ ;;
     -g|--gui)
       if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
@@ -178,9 +171,6 @@ while test -n "${1}"; do
       debugger_args=`echo "${1}" | ${SED} -e 's/[^=]*=//'` ;;
     -h|--help)
       echo "${usage}"; exit 0 ;;
-## use the version in compiled code to always be in sync
-#    --version)
-#      echo "${version}"; exit 0 ;;
     --args)
       break ;;
     --arch)
@@ -190,10 +180,18 @@ while test -n "${1}"; do
       else
         error "option '${1}' requires an argument"
       fi
+      ## check sub-architecture here for a better error message
+      if ! test -d ${R_HOME}/etc${R_ARCH}; then
+        error "sub-architecture '${1}' is not installed"
+      fi
       ;;
     --arch=*)
       r_arch=`echo "${1}" | ${SED} -e 's/[^=]*=//'`
       R_ARCH="/${r_arch}"
+      ## check sub-architecture here for a better error message
+      if ! test -d ${R_HOME}/etc${R_ARCH}; then
+        error "sub-architecture '${r_arch}' is not installed"
+      fi
       ;;
     -e)
       if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
@@ -203,13 +201,45 @@ while test -n "${1}"; do
       fi
       args="${args} -e $a"
       ;;
+    -f)
+      if test -n "`echo ${2} | ${SED} 's/^-.*//'`"; then
+	a=`echo "${2}" | ${SED} -e 's/ /~+~/g'`; shift
+      else
+	error "option '${1}' requires an argument"
+      fi
+      args="${args} -f $a"
+      ;;
+    --file=*)
+      a=`echo "${1}" | ${SED} -e 's/[^=]*=//' | ${SED} -e 's/ /~+~/g'`
+      args="${args} --file=$a"
+      ;;
+    --no-environ)
+      export R_ENVIRON=''
+      export R_ENVIRON_USER=''
+      args="${args} ${1}"
+      ;;
+    --no-site-file)
+      export R_PROFILE=''
+      args="${args} ${1}"
+      ;;
+    --no-init-file)
+      export R_PROFILE_USER=''
+      args="${args} ${1}"
+      ;;
+    --vanilla)
+      export R_ENVIRON=''
+      export R_ENVIRON_USER=''
+      export R_PROFILE=''
+      export R_PROFILE_USER=''
+      args="${args} ${1}"
+      ;;
     *)
       args="${args} ${1}" ;;
   esac
   shift
 done
 
-. ${R_HOME}/etc${R_ARCH}/ldpaths
+. "${R_HOME}/etc${R_ARCH}/ldpaths"
 
 R_binary="${R_HOME}/bin/exec${R_ARCH}/R"
 export R_ARCH

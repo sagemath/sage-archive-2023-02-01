@@ -59,8 +59,11 @@ cp $CP_OPT local data "$TMP"/
 if [ -d devel/sage-main ]; then
    echo "Copying Sage library over"
    mkdir "$TMP"/devel/
-   cp -L $CP_OPT devel/sagenb-main "$TMP"/devel/sagenb-main
-   cp -L $CP_OPT devel/sage-main "$TMP"/devel/sage-main
+   # The currently active branch will become the default branch in
+   # the bdisted tarball.  We need the -L option, otherwise "cp" would
+   # simply copy the symbolic link.
+   cp $CP_OPT -L devel/sagenb "$TMP"/devel/sagenb-main
+   cp $CP_OPT -L devel/sage "$TMP"/devel/sage-main
    cd "$TMP"/devel
    ln -s sage-main sage
    ln -s sagenb-main sagenb
@@ -127,7 +130,7 @@ if [ "$UNAME" = "Darwin" ]; then
         fi
 
         echo 'Copying Sage.app'
-        cp -L $CP_OPT "$SAGE_ROOT/data/extcode/sage/ext/mac-app/build/$CONFIGURATION/Sage.app" ./Sage.app
+        cp $CP_OPT -L "$SAGE_ROOT/data/extcode/sage/ext/mac-app/build/$CONFIGURATION/Sage.app" ./Sage.app
         # Info.plist is a binary plist, so convert it for processing with sed.
         # I would just change it to be an xml plist, but xcode changes it back.
         plutil -convert xml1 ./Sage.app/Contents/Info.plist

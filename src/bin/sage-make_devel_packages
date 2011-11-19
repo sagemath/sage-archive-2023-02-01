@@ -42,8 +42,8 @@ DESTINATION=`pwd`
 PKG="$DESTINATION"
 
 # NEW SAGE SOURCE PACKAGE
-if [ -d "$SAGE_ROOT"/devel/sage-main ]; then
-   cd "$SAGE_ROOT"/devel/sage-main
+if [ -d "$SAGE_ROOT"/devel/sage ]; then
+   cd "$SAGE_ROOT"/devel/sage
    hg diff
    hg status
    hg tag "$SAGE_VERSION"

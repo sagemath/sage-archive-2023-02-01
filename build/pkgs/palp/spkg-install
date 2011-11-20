@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Move over the GNU makefile to the the file 'Makefile'.
+# Move over the GNU makefile to the file 'Makefile'.
 # If SAGE64 is set to yes, add an '-m64' using 'sed'
 
 if [ "x$SAGE64" = xyes ] ; then
@@ -31,7 +31,7 @@ for dim in 4 5 6 11; do
 	exit 1
     fi
 
-    for file in poly class cws nef; do
+    for file in poly class cws nef mori; do
 	install ${file}.x "$SAGE_LOCAL"/bin/${file}-${dim}d.x
 	if [ $? -ne 0 ]; then
 	    echo "Error installing PALP."
@@ -42,7 +42,7 @@ done
 
 # symlinks for the default dimension
 cd "$SAGE_LOCAL"/bin
-for file in poly class cws nef; do
+for file in poly class cws nef mori; do
     ln -sf ${file}-6d.x ${file}.x
 done
 

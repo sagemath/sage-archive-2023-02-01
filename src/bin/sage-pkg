@@ -91,7 +91,7 @@ Proceeding anyway..."""
     else:
         spkg_txt = "File is missing"
 
-    p = Popen("cd %s; sage --hg diff" % dir, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen("cd '%s' && hg diff" % dir, shell=True, stdout=PIPE, stderr=PIPE)
     std_out, std_err = p.communicate()
     if len(std_err) != 0:
         hgrepo_txt = "Error reading repository"

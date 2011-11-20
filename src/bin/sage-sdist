@@ -84,7 +84,7 @@ hg tag "$SAGE_VERSION"
 hg commit -m "$SAGE_VERSION"
 
 echo "Copying root repository..."
-"$SAGE_ROOT"/sage --hg clone --pull . "$TMP"
+hg clone --pull . "$TMP"
 
 if [ $? -ne 0 ]; then
     echo "Error copying Sage root repository."

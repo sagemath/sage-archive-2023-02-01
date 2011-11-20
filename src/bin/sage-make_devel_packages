@@ -145,7 +145,7 @@ mkdir "$ROOT_REPO"
 cd "$ROOT_REPO"
 
 echo "Copying root repository..."
-"$SAGE_ROOT"/sage --hg clone --pull "$SAGE_ROOT" .
+hg clone --pull "$SAGE_ROOT" .
 
 if [ $? -ne 0 ]; then
     echo "Error copying Sage root repository."

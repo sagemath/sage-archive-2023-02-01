@@ -7,7 +7,7 @@ print "that have not yet been commited using 'hg_sage.commit()'."
 
 os.chdir('%s/devel/sage'%os.environ['SAGE_ROOT'])
 
-v = os.popen('sage -hg status').read()
+v = os.popen('hg status').read()
 print v
 F = []
 for X in v.split('\n'):

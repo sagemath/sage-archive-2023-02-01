@@ -542,6 +542,9 @@ fi
 if [ "$1" = '-hg'  -o "$1" = '--hg' ]; then
     cd "$CUR"
     shift
+    # Disable HGPLAIN, so we use all user defaults
+    # (both in $SAGE_LOCAL/etc/mercurial and $HOME/.hgrc)
+    unset HGPLAIN
     "$SAGE_LOCAL/bin/hg" "$@"
     exit $?
 fi

@@ -2,8 +2,9 @@
 Free algebra quotient elements
 
 AUTHORS:
+    - William Stein (2011-11-19): improved doctest coverage to 100%
+    - David Kohel (2005-09): initial version
 
-- David Kohel (2005-09)
 """
 
 from __future__ import with_statement
@@ -33,16 +34,41 @@ from sage.algebras.free_algebra_element import FreeAlgebraElement
 from sage.structure.parent_gens import localvars
 
 def is_FreeAlgebraQuotientElement(x):
+    """
+    EXAMPLES::
+
+        sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
+        sage: sage.algebras.free_algebra_quotient_element.is_FreeAlgebraQuotientElement(i)
+        True
+
+    Of course this is testing the data type::
+
+        sage: sage.algebras.free_algebra_quotient_element.is_FreeAlgebraQuotientElement(1)
+        False
+        sage: sage.algebras.free_algebra_quotient_element.is_FreeAlgebraQuotientElement(H(1))
+        True
+    """
     return isinstance(x, FreeAlgebraQuotientElement)
 
 class FreeAlgebraQuotientElement(AlgebraElement):
     def __init__(self, A, x):
         """
         Create the element x of the FreeAlgebraQuotient A.
-        """
-        if isinstance(x, FreeAlgebraQuotientElement) and x.parent() is A:
-            return x
 
+        EXAMPLES::
+
+            sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(ZZ)
+            sage: sage.algebras.free_algebra_quotient.FreeAlgebraQuotientElement(H, i)
+            i
+            sage: a = sage.algebras.free_algebra_quotient.FreeAlgebraQuotientElement(H, 1); a
+            1
+            sage: a in H
+            True
+
+        TESTS::
+
+            sage: TestSuite(i).run()
+        """
         AlgebraElement.__init__(self, A)
         Q = self.parent()
 
@@ -94,6 +120,13 @@ class FreeAlgebraQuotientElement(AlgebraElement):
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
     def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(ZZ)
+            sage: i._repr_()
+            'i'
+        """
         Q = self.parent()
         M = Q.monoid()
         with localvars(M, Q.variable_names()):
@@ -106,6 +139,13 @@ class FreeAlgebraQuotientElement(AlgebraElement):
                 return x
 
     def _latex_(self):
+        """
+        EXAMPLES::
+
+            sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
+            sage: ((2/3)*i - j)._latex_()
+            '\\frac{2}{3}i + \\left(-1\\right)j'
+        """
         Q = self.parent()
         M = Q.monoid()
         with localvars(M, Q.variable_names()):
@@ -118,29 +158,98 @@ class FreeAlgebraQuotientElement(AlgebraElement):
                 return x
 
     def vector(self):
+        """
+        Return underlying vector representation of this element.
+
+        EXAMPLES::
+
+            sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
+            sage: ((2/3)*i - j).vector()
+            (0, 2/3, -1, 0)
+        """
         return self.__vector
 
     def __cmp__(self, right):
-        return cmp(self.vector(),right.vector())
+        """
+        Compare two quotient algebra elements; done by comparing the
+        underlying vector representatives.
+
+        EXAMPLES::
+
+            sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
+            sage: cmp(i,j)
+            1
+            sage: cmp(j,i)
+            -1
+            sage: cmp(i,i)
+            0
+            sage: i == 1
+            False
+            sage: i + j == j + i
+            True
+        """
+        return cmp(self.vector(), right.vector())
 
     def __neg__(self):
+        """
+        Return negative of self.
+
+        EXAMPLES::
+
+            sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
+            sage: -i
+            -i
+            sage: -(2/3*i - 3/7*j + k)
+            -2/3*i + 3/7*j - k
+        """
         y = self.parent()(0)
         y.__vector = -self.__vector
         return y
 
     def _add_(self, y):
+        """
+        EXAMPLES::
+
+            sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
+            sage: 2/3*i + 4*j + k
+            2/3*i + 4*j + k
+        """
         A = self.parent()
         z = A(0)
         z.__vector = self.__vector + y.__vector
         return z
 
     def _sub_(self, y):
+        """
+        EXAMPLES::
+
+            sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
+            sage: 2/3*i - 4*j
+            2/3*i - 4*j
+            sage: a = 2/3*i - 4*j; a
+            2/3*i - 4*j
+            sage: a - a
+            0
+        """
         A = self.parent()
         z = A(0)
         z.__vector = self.__vector - y.__vector
         return z
 
     def _mul_(self, y):
+        """
+        EXAMPLES::
+
+            sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
+            sage: a = (5 + 2*i - 3/5*j + 17*k); a*(a+10)
+            -5459/25 + 40*i - 12*j + 340*k
+
+        Double check that the above is actually right::
+
+            sage: R.<i,j,k> = QuaternionAlgebra(QQ,-1,-1)
+            sage: a = (5 + 2*i - 3/5*j + 17*k); a*(a+10)
+            -5459/25 + 40*i - 12*j + 340*k
+        """
         A = self.parent()
         def monomial_product(X,w,m):
             mats = X._FreeAlgebraQuotient__matrix_action
@@ -158,9 +267,27 @@ class FreeAlgebraQuotientElement(AlgebraElement):
         return z
 
     def _rmul_(self, c):
+        """
+        EXAMPLES::
+
+            sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
+            sage: 3 * (-1+i-2*j+k)
+            -3 + 3*i - 6*j + 3*k
+            sage: (-1+i-2*j+k)._rmul_(3)
+            -3 + 3*i - 6*j + 3*k
+        """
         return self.parent([c*a for a in self.__vector])
 
     def _lmul_(self, c):
+        """
+        EXAMPLES::
+
+            sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
+            sage: (-1+i-2*j+k) * 3
+            -3 + 3*i - 6*j + 3*k
+            sage: (-1+i-2*j+k)._lmul_(3)
+            -3 + 3*i - 6*j + 3*k
+        """
         return self.parent([a*c for a in self.__vector])
 
 

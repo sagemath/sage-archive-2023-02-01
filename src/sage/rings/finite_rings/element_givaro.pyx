@@ -21,7 +21,7 @@ EXAMPLES::
     sage: k = GF(5^2,'c'); type(k)
     <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro_with_category'>
     sage: k = GF(2^16,'c'); type(k)
-    <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2e'>
+    <class 'sage.rings.finite_rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e_with_category'>
     sage: k = GF(3^16,'c'); type(k)
     <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
 

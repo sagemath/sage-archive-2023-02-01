@@ -46,6 +46,7 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
 from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
+from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 from sage.libs.pari.all import pari
 
 from sage.structure.parent_base cimport ParentWithBase
@@ -168,7 +169,7 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
         z = <napoly*>pNext(<poly*>z)
     return (<FFgivE>cache._zero_element)._new_c(ret)
 
-cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, FiniteField_ntl_gf2e base):
+cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache):
     """
     TESTS::
 
@@ -186,13 +187,13 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, FiniteField_ntl_gf2e base)
     cdef FFgf2eE ret
 
     if naIsZero(n):
-        return base._zero_element
+        return cache._zero_element
     elif naIsOne(n):
-        return base._one_element
+        return cache._one_element
     z = (<lnumber*>n).z
 
-    a = base.gen()
-    ret = base._zero_element
+    a = cache._gen
+    ret = cache._zero_element
 
     while z:
         c = <long>napGetCoeff(z)
@@ -559,7 +560,7 @@ cdef object si2sa(number *n, ring *_ring, object base):
         return si2sa_GFqPari(n, _ring, base)
 
     elif PY_TYPE_CHECK(base, FiniteField_ntl_gf2e):
-        return si2sa_GFqNTLGF2E(n, _ring, base)
+        return si2sa_GFqNTLGF2E(n, _ring, <Cache_ntl_gf2e>base._cache)
 
     elif PY_TYPE_CHECK(base, NumberField) and base.is_absolute():
         return si2sa_NF(n, _ring, base)

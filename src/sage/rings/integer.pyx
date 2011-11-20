@@ -619,6 +619,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer tmp
         cdef char* xs
         cdef int paritype
+        cdef Py_ssize_t j
+        cdef object otmp
 
         cdef Element lift
 
@@ -703,6 +705,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
                 b = the_integer_ring(base)
+                if b == 2: # we use a faster method
+                    for j from 0 <= j < len(x):
+                        otmp = x[j]
+                        if not PY_TYPE_CHECK(otmp, Integer):
+                            # should probably also have fast code for Python ints...
+                            otmp = Integer(otmp)
+                        if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
+                            mpz_setbit(self.value, j)
+                        elif mpz_sgn((<Integer>otmp).value) != 0:
+                            # one of the entries was something other than 0 or 1.
+                            break
+                    else:
+                        return
                 tmp = the_integer_ring(0)
                 for i in range(len(x)):
                     tmp += the_integer_ring(x[i])*b**i

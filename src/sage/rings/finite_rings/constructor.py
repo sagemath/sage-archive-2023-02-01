@@ -23,7 +23,7 @@ order `q >= 2^{16}` are internally represented as
 polynomials over smaller finite prime fields. If the
 characteristic of such a field is 2 then NTL is used internally to
 represent the field
-(``sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2e``).
+(``sage.rings.finite_rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e``).
 In all other case the PARI C library is used
 (``sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari``).
 
@@ -63,7 +63,7 @@ EXAMPLES::
 ::
 
     sage: k = GF(2^16,'c'); type(k)
-    <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2e'>
+    <class 'sage.rings.finite_rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e_with_category'>
 
 ::
 
@@ -453,7 +453,7 @@ class FiniteFieldFactory(UniqueFactory):
                     K = FiniteField_givaro(order, name, modulus, cache=elem_cache,**kwds)
                 else:
                     if order % 2 == 0 and (impl is None or impl == 'ntl'):
-                        from element_ntl_gf2e import FiniteField_ntl_gf2e
+                        from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
                         K = FiniteField_ntl_gf2e(order, name, modulus, **kwds)
                     else:
                         from finite_field_ext_pari import FiniteField_ext_pari
@@ -491,7 +491,7 @@ class FiniteFieldFactory(UniqueFactory):
             elif isinstance(K, FiniteField_givaro):
                 impl = 'givaro'
             else:
-                from element_ntl_gf2e import FiniteField_ntl_gf2e
+                from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
                 from finite_field_ext_pari import FiniteField_ext_pari
                 if isinstance(K, FiniteField_ntl_gf2e):
                     impl = 'ntl'

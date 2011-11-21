@@ -11,19 +11,22 @@ Simple manipulations; numbers and vectors
 The simplest data structure in R is the numeric vector which
 consists of an ordered collection of numbers.  To create a
 vector named $x$ using the R interface in Sage, you pass the
-R interpreter object a list or tuple of numbers.
+R interpreter object a list or tuple of numbers::
+
     sage: x = r([10.4,5.6,3.1,6.4,21.7]); x
     [1] 10.4  5.6  3.1  6.4 21.7
 
 You can invert elements of a vector x in R by using the
-invert operator or by doing 1/x.
+invert operator or by doing 1/x::
+
     sage: ~x
     [1] 0.09615385 0.17857143 0.32258065 0.15625000 0.04608295
     sage: 1/x
     [1] 0.09615385 0.17857143 0.32258065 0.15625000 0.04608295
 
 The following assignment creates a vector $y$ with 11 entries which
-consists of two copies of $x$ with a 0 in between.
+consists of two copies of $x$ with a 0 in between::
+
     sage: y = r([x,0,x]); y
     [1] 10.4  5.6  3.1  6.4 21.7  0.0 10.4  5.6  3.1  6.4 21.7
 
@@ -31,23 +34,25 @@ Vector Arithmetic
 
 The following command generates a new vector $v$ of length 11 constructed
 by adding together (element by element) $2x$ repeated 2.2 times, $y$
-repeated just once, and 1 repeated 11 times.
+repeated just once, and 1 repeated 11 times::
+
     sage: v = 2*x+y+1; v
     [1] 32.2 17.8 10.3 20.2 66.1 21.8 22.6 12.8 16.9 50.8 43.5
 
 One can compute the sum of the elements of an R vector in the following
-two ways:
+two ways::
+
     sage: sum(x)
     [1] 47.2
     sage: x.sum()
     [1] 47.2
 
-One can calculate the sample variance of a list of numbers:
+One can calculate the sample variance of a list of numbers::
+
     sage: ((x-x.mean())^2/(x.length()-1)).sum()
     [1] 53.853
     sage: x.var()
     [1] 53.853
-
 
     sage: x.sort()
     [1] 3.1  5.6  6.4 10.4 21.7
@@ -58,21 +63,20 @@ One can calculate the sample variance of a list of numbers:
     sage: x
     [1] 10.4  5.6  3.1  6.4 21.7
 
-
-
     sage: r(-17).sqrt()
     [1] NaN
     sage: r('-17+0i').sqrt()
     [1] 0+4.123106i
 
-Generating Regular Sequences
+Generating an arithmetic sequence::
 
     sage: r('1:10')
     [1] 1  2  3  4  5  6  7  8  9 10
 
 Because 'from' is a keyword in Python, it can't be used
 as a keyword argument.  Instead, 'from_' can be passed, and
-R will recognize it as the correct thing.
+R will recognize it as the correct thing::
+
     sage: r.seq(length=10, from_=-1, by=.2)
     [1] -1.0 -0.8 -0.6 -0.4 -0.2  0.0  0.2  0.4  0.6  0.8
 
@@ -84,7 +88,8 @@ R will recognize it as the correct thing.
     sage: x.rep(each=2)
     [1] 10.4 10.4  5.6  5.6  3.1  3.1  6.4  6.4 21.7 21.7
 
-Missing Values
+Missing Values::
+
     sage: na = r('NA')
     sage: z = r([1,2,3,na])
     sage: z
@@ -114,20 +119,19 @@ Missing Values
     [1] FALSE
 
 
-Character Vectors
+Character Vectors::
 
     sage: labs = r.paste('c("X","Y")', '1:10', sep='""'); labs
     [1] "X1"  "Y2"  "X3"  "Y4"  "X5"  "Y6"  "X7"  "Y8"  "X9"  "Y10"
 
 
-Index vectors; selecting and modifying subsets of a data set
+Index vectors; selecting and modifying subsets of a data set::
 
     sage: na = r('NA')
     sage: x = r([10.4,5.6,3.1,6.4,21.7,na]); x
     [1] 10.4  5.6  3.1  6.4 21.7   NA
     sage: x['!is.na(self)']
     [1] 10.4  5.6  3.1  6.4 21.7
-
 
     sage: x = r([10.4,5.6,3.1,6.4,21.7,na]); x
     [1] 10.4  5.6  3.1  6.4 21.7   NA
@@ -138,7 +142,7 @@ Index vectors; selecting and modifying subsets of a data set
     sage: (x+1)['(!is.na(self)) & self>0']
     [1] 11.4  4.1  0.5 22.7
 
-Distributions
+Distributions::
 
     sage: r.options(width="60");
     $width
@@ -163,13 +167,13 @@ Distributions
     [57] 0.013582969 0.010420935 0.007915452 0.005952532
     [61] 0.004431848
 
-Convert R Data Structures to Python/Sage
+Convert R Data Structures to Python/Sage::
 
     sage: rr = r.dnorm(r.seq(-3,3,0.1))
     sage: sum(rr._sage_())
-    9.9772125168981081
+    9.97721251689810...
 
-Or you get a dictionary to be able to access all the information.
+Or you get a dictionary to be able to access all the information::
 
     sage: rs = r.summary(r.c(1,4,3,4,3,2,5,1))
     sage: rs
@@ -181,7 +185,7 @@ Or you get a dictionary to be able to access all the information.
       sage: d['_Names']
       ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.']
       sage: d['_r_class']
-      'table'
+      ['summaryDefault', 'table']
 
 It is also possible to access the plotting capabilities of R
 through Sage.  For more information see the documentation of
@@ -447,33 +451,36 @@ class R(Expect):
 
 
     def _quit_string(self):
-        """
+        r"""
         Return the string that when typed into R causes the R
         interpreter to exit.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r._quit_string()
             'quit(save="no")'
         """
         return 'quit(save="no")'
 
     def _read_in_file_command(self, filename):
-        """
-        Returns the R command (as a string) to read in a file named
+        r"""
+        Return the R command (as a string) to read in a file named
         filename into the R interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: r._read_in_file_command('file.txt')
-            'source(file=file("file.txt",open="r"))'
+            'file=file("file.txt",open="r")\nsource(file)'
         """
-        return 'source(file=file("%s",open="r"))'%filename
+        return 'file=file("%s",open="r")\nsource(file)'%filename
 
     def read(self, filename):
-        """
-        Reads filename into the R interpreter by calling R's source function on a
+        r"""
+        Read filename into the R interpreter by calling R's source function on a
         read-only file connection.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
             sage: f.write('a <- 2+2\n')
@@ -526,14 +533,16 @@ class R(Expect):
 
     def version(self):
         """
-        Returns the version of R currently running.
+        Return the version of R currently running.
 
         OUTPUT:
-            tuple of ints; string
 
-        EXAMPLES:
+        tuple of ints; string
+
+        EXAMPLES::
+
             sage: r.version()
-            ((2, 10, 1), 'R version 2.10.1 (2009-12-14)')
+            ((2, 14, 0), 'R version 2.14.0 (2011-10-31)')
         """
         major_re = re.compile('^major\s*(\d.*?)$', re.M)
         minor_re = re.compile('^minor\s*(\d.*?)$', re.M)
@@ -1652,7 +1661,7 @@ class RElement(ExpectElement):
             sage: list(sorted(d.items()))
             [('DATA', [1, 1.75, 3, 2.875, 4, 5]),
              ('_Names', ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.']),
-             ('_r_class', 'table')]
+             ('_r_class', ['summaryDefault', 'table'])]
         """
         self._check_valid()
         P = self.parent()
@@ -1698,7 +1707,7 @@ class RElement(ExpectElement):
         exp = rel_re_param.sub(self._subs_dots, exp)
 
         # Rename class since it is a Python keyword
-        exp = re.sub(' class = "', ' _r_class = "',exp)
+        exp = re.sub(' class = ', ' _r_class = ',exp)
 
         # Change 'structure' to '_r_structure'
         # TODO: check that we are outside of quotes ""
@@ -1945,9 +1954,12 @@ def r_console():
 
 def r_version():
     """
-    EXAMPLES:
+    Return the R version.
+
+    EXAMPLES::
+
         sage: r.version()
-        ((2, 10, 1), 'R version 2.10.1 (2009-12-14)')
+        ((2, 14, 0), 'R version 2.14.0 (2011-10-31)')
     """
     return r.version()
 

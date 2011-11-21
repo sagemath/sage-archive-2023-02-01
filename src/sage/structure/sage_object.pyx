@@ -1050,7 +1050,13 @@ def picklejar(obj, dir=None):
 
         sage: import os
         sage: os.chmod(dir, 0000)
-        sage: sage.structure.sage_object.picklejar(1, dir + '/noaccess')
+        sage: try:
+        ...   uid = os.getuid()
+        ... except AttributeError:
+        ...    uid = -1
+        sage: if uid==0:
+        ...     raise OSError('You must not run the doctests as root, geez!')
+        ... else: sage.structure.sage_object.picklejar(1, dir + '/noaccess')
         Traceback (most recent call last):
         ...
         OSError: ...

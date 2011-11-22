@@ -599,6 +599,12 @@ def implicit_plot(f, xrange, yrange, **options):
     ::
 
         sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50)
+
+    When making a filled implicit plot using a python function rather than a
+    symbolic expression the user should increase the number of plot points to
+    avoid artefacts::
+
+        sage: implicit_plot(lambda x,y: x^2+y^2-2, (x,-3,3), (y,-3,3), fill=True, plot_points=500)
     """
     from sage.symbolic.expression import is_SymbolicEquation
     if is_SymbolicEquation(f):
@@ -611,7 +617,24 @@ def implicit_plot(f, xrange, yrange, **options):
     if 'color' in options:
         options['cmap']=[options.pop('color', None)]
 
-    return contour_plot(f, xrange, yrange, linewidths=linewidths, linestyles=linestyles, **options)
+    if options['fill'] is True:
+        options.pop('fill')
+        options.pop('contours',None)
+        options.pop('cmap',None)
+        from sage.symbolic.expression import is_Expression
+        if not is_Expression(f):
+            return region_plot(lambda x,y: f(x,y)<0, xrange, yrange,
+                               borderwidth=linewidths, borderstyle=linestyles,
+                               **options)
+        else:
+            return region_plot(f<0, xrange, yrange, borderwidth=linewidths,
+                               borderstyle=linestyles, **options)
+    elif options['fill'] is False:
+        return contour_plot(f, xrange, yrange, linewidths=linewidths,
+                            linestyles=linestyles, **options)
+    else:
+        raise ValueError("fill=%s is not supported" % options['fill'])
+
 
 @options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None)
 def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth,**options):

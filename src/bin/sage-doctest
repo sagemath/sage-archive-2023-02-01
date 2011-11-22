@@ -80,11 +80,11 @@ else:
 tmpfiles = [] # list of temporary files to be deleted if doctesting succeeds
 
 def delete_tmpfiles():
-    try:
-        for f in tmpfiles:
+    for f in tmpfiles:
+        try:
             os.remove(f)
-    except OSError:
-        pass
+        except OSError:
+            pass
 
 ######################################################
 # Set environment variables
@@ -526,6 +526,19 @@ def check_with_tolerance(expected, actual, epsilon, rel_or_abs=None):
 
         elif ext in ['.py', '.sage']:
 
+            # For non-libary files, we need two different Python
+            # files: one which contains the original Python code,
+            # which we import, and one which contains the doctesting
+            # framework.  First for FILE.py or FILE.sage, we replace
+            # FILE with FILE_PID.  Then for FILE.sage, the imported
+            # file is the preparsed version, so call that
+            # FILE_PID_preparsed.py.  For FILE.py, the imported
+            # version is just a copy of the original file, called
+            # FILE_PID_orig.py.  The file containing doctesting
+            # framework will be FILE_PID.py; this gets run through the
+            # actual doctesting procedure by the 'test_file' function
+            # below.
+
             root_name = os.path.basename(root_name)
             target_name = "%s_%d" % (root_name, os.getpid()) # like 'root_name', but unique
             target_base = os.path.join(SAGE_TESTDIR, target_name) # like 'target_name' but with full path
@@ -540,17 +553,22 @@ def check_with_tolerance(expected, actual, epsilon, rel_or_abs=None):
                 os.system("cp '%s' %s.sage" % (file_name, target_base))
                 # Now create SAGE_TESTDIR/<target_name>.py:
                 os.system("sage -preparse %s.sage" % target_base)
+                os.system("mv '%s'.py %s_preparsed.py" % (target_base, target_base))
                 tmpfiles.append(target_base + ".sage")
+                s += "\nfrom %s_preparsed import *\n\n" % target_name
+                tmpfiles.append(target_base + "_preparsed.py") # preparsed version of original
+                tmpfiles.append(target_base + "_preparsed.pyc") # compiled version
             else:
                 # TODO: instead of copying the file, add its source
                 # directory to PYTHONPATH.  We would also have to
                 # import from 'name' instead of 'target_name'.
-                os.system("cp '%s' %s.py" % (file_name, target_base))
+                os.system("cp '%s' %s_orig.py" % (file_name, target_base))
+                s += "\nfrom %s_orig import *\n\n" % target_name
+                tmpfiles.append(target_base + "_orig.py") # copied original
+                tmpfiles.append(target_base + "_orig.pyc") # compiled version
 
-            s += "from %s import *\n\n" % target_name
-
-            tmpfiles.append(target_base + ".py") # preparsed or copied original
-            tmpfiles.append(target_base + ".pyc") # compiled version of it
+            tmpfiles.append(target_base + ".py") # file with doctesting framework
+            tmpfiles.append(target_base + ".pyc") # compiled version
 
     # Prefix/suffix for all doctests replacing the starting/ending """
     doc_prefix = 'r""">>> set_random_seed(0L)\n\n>>> change_warning_output(sys.stdout)\n\n'

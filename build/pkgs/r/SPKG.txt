@@ -26,7 +26,7 @@
 == Changelog ==
 
 === r-2.14.0.p0 (Volker Braun, 19th November 2011) ===
- * #12057: upgrade to new upstram version
+ * #12057: upgrade to new upstream version
 
 === r-2.10.1.p4 (Leif Leonhardy, September 25th 2010) ===
  * #10016: Don't call "sage -f" on the included Rpy spkg, instead call

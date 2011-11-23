@@ -132,13 +132,13 @@ More precisely, the directory should contain the following:
   create such a script since it helps isolate bugs in upstream
   packages
 
-- ``patches/``: this directory contains patched versions of upstream
-  source files under ``src/``. Each file requiring changes
+- ``patches/``: this directory contains patches to
+  source files in ``src/``. Each file requiring changes
   (e.g. ``foo.c``) must have a diff against the original file
   (e.g. ``foo.c.patch``) for easy rebases against new upstream source
-  releases. Updated files should be copied into the right place under
-  ``src/`` at the start of ``spkg-install``. Please document all
-  patches in ``SPKG.txt``, i.e. what they do, if they are platform
+  releases. Patches to files in ``src/`` should be applied in
+  ``spkg-install``, and all patches must be documented in
+  ``SPKG.txt``, i.e. what they do, if they are platform
   specific, if they should be pushed upstream, etc. To ensure that all
   patched versions of upstream source files under ``src/`` are under
   revision control, the whole directory ``patches/`` must be under
@@ -184,13 +184,23 @@ place after doing any build that is necessary.  Here is a template::
 
        #!/usr/bin/env bash
 
-       if [ "x$SAGE_LOCAL" = x ]; then
+       if [[ -z "$SAGE_LOCAL" ]]; then
           echo "SAGE_LOCAL undefined ... exiting"
-          echo "Maybe run 'sage -sh'?"
+          echo "Maybe run 'sage --sh'?"
           exit 1
        fi
 
        cd src
+
+       # Apply patches.  See SPKG.txt for information about what each patch
+       # does.
+       for patch in ../patches/*.patch; do
+           patch -p1 <"$patch"
+           if [ $? -ne 0 ]; then
+               echo >&2 "Error applying '$patch'"
+               exit 1
+           fi
+       done
 
        ./configure --prefix="$SAGE_LOCAL"
        if [ $? -ne 0 ]; then
@@ -210,21 +220,21 @@ place after doing any build that is necessary.  Here is a template::
           exit 1
        fi
 
-       if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
+       if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]] ; then
           # Before trying to build the documentation, check if any
-	  # needed programs are present. In the example below, we
-	  # check for 'latex', but this will depend on the package.
-	  # Some packages may need no extra tools installed, others
-	  # may require some.  We use 'command -v' for testing this,
-	  # and not 'which' since 'which' is not portable, whereas
-	  # 'command -v' is defined by POSIX.
+          # needed programs are present. In the example below, we
+          # check for 'latex', but this will depend on the package.
+          # Some packages may need no extra tools installed, others
+          # may require some.  We use 'command -v' for testing this,
+          # and not 'which' since 'which' is not portable, whereas
+          # 'command -v' is defined by POSIX.
 
-	  # if [ `command -v latex` ] ; then
-	  #    echo "Good, latex was found, so building the documentation"
-	  # else
-	  #    echo "Sorry, can't build the documentation for PACKAGE_NAME as latex is not installed"
-	  #    exit 1
-	  # fi
+          # if [ `command -v latex` ] ; then
+          #    echo "Good, latex was found, so building the documentation"
+          # else
+          #    echo "Sorry, can't build the documentation for PACKAGE_NAME as latex is not installed"
+          #    exit 1
+          # fi
 
 
           # make the documentation in a package-specific way
@@ -242,7 +252,7 @@ place after doing any build that is necessary.  Here is a template::
        fi
 
 
-Note that the first line is ``/usr/bin/env bash``; this is important
+Note that the first line is ``#!/usr/bin/env bash``; this is important
 for portability.  Next, the script checks that ``SAGE_LOCAL`` is
 defined to make sure that the Sage environment has been set.  After
 this, the script may simply run ``cd src`` and then call either
@@ -250,10 +260,10 @@ this, the script may simply run ``cd src`` and then call either
 ``./configure && make && make install``, or something else along these
 lines.
 
-Often, though, it can be more complicated. For example, it is often
-necessary to apply the patches from the ``patches`` directory. Also,
+Sometimes, though, it can be more complicated. For example, you might need
+to apply the patches from the ``patches`` directory in a particular order. Also,
 you should first build (e.g. with ``python setup.py build``,  exiting
-if there is an error, before installing (e.g. with ``python setup.py
+if there is an error), before installing (e.g. with ``python setup.py
 install``). In this way, you would not overwrite a working older
 version with a non-working newer version of the spkg.
 
@@ -306,16 +316,16 @@ When the directory (say, ``mypackage-0.1``) is ready, the command
 
 ::
 
-    sage -pkg mypackage-0.1
+    sage --pkg mypackage-0.1
 
 will create the file ``mypackage-0.1.spkg``.  As noted above, this
-creates a compressed tar file. Running ``sage -pkg_nc mypackage-0.1``
+creates a compressed tar file. Running ``sage --pkg_nc mypackage-0.1``
 creates an uncompressed tar file.
 
 When your spkg is ready, you should post about it on ``sage-devel``.
 If people there think it is a good idea, then post a link to the spkg
 on the Sage trac server (see :ref:`chapter-trac`) so it can be
-refereed.  Do not post the spkg itself to the trac server. You only
+refereed.  Do not post the spkg itself to the trac server: you only
 need to provide a link to your spkg.  If your spkg gets a positive
 review, it might be included into the core Sage library, or it might
 become an optional download from the Sage website, so anybody can
@@ -323,26 +333,15 @@ automatically install it by typing ``sage -i mypackage-version.spkg``.
 
 .. note::
 
-   There are usually a number of things to do for all spkgs:
+   For any spkg:
 
    - Make sure that the hg repository contains every file outside the
      ``src`` directory, and that these are all up-to-date and committed
      into the repository.
 
-   - Ensure that ``make install`` is non-parallel, i.e. do
-     ``export MAKE=make``.
-
    - Include an ``spkg-check`` file if possible (see `trac ticket #299`_).
 
-   - Include md5sums for spkgs (see `trac ticket #329`_).
-
-   - Set ``LDFLAGS`` on Mac OS X (see `trac ticket #3349`_).
-
    .. _trac ticket #299: http://trac.sagemath.org/sage_trac/ticket/299
-
-   .. _trac ticket #329: http://trac.sagemath.org/sage_trac/ticket/329
-
-   .. _trac ticket #3349: http://trac.sagemath.org/sage_trac/ticket/3349
 
 .. note::
 
@@ -358,6 +357,16 @@ automatically install it by typing ``sage -i mypackage-version.spkg``.
            echo "Failed to find boehm_gc.  Please install the boehm_gc spkg"
            exit 1
        fi
+
+   - If your package is intended to be a standard Sage spkg, then you
+     should make sure that any dependencies for your package are
+     recorded in the makefile ``SAGE_ROOT/spkg/standard/deps``.  Also
+     add lines for your package to the script
+     ``SAGE_ROOT/spkg/install``.  For example, the relevant lines for
+     the readline package are ::
+
+       READLINE=`$newest readline`
+       export READLINE
 
    - *Caveat*: Do not just copy to e.g. ``SAGE_ROOT/local/lib/gap*/``
      since that will copy your package to the lib directory of the old
@@ -382,5 +391,5 @@ self-contained as possible.
 #. An spkg must not modify an existing source file in the Sage
    library.
 #. Do not allow an spkg to modify another spkg. One spkg can depend on
-   other spkg. You need to first test for the existence of the
+   other spkg -- see above. You need to first test for the existence of the
    prerequisite spkg before installing an spkg that depends on it.

@@ -40,7 +40,7 @@ The variable ``SAGE_ROOT`` should point to the directory
 As long as ``/usr/local/bin`` is in your
 ``$PATH``, you can then type ``sage`` from the command line to run
 Sage.  Another approach is to create a symbolic link, say
-``/usr/local/bin/sage``, pointing to ``sage-x.y.z-x86_64-Linux`` ::
+``/usr/local/bin/sage``, pointing to ``sage-x.y.z-x86_64-Linux/sage`` ::
 
     ln -s /path/to/sage-x.y.z-x86_64-Linux/sage /usr/local/bin/sage
 
@@ -60,7 +60,7 @@ Any time you move the Sage directory, you may see a message like
     (Please wait at most a few minutes.)
     DO NOT INTERRUPT THIS.
 
-We currently distribute ``.dmg`` files for OS X 10.4.x and 10.5.x. But
+We currently distribute ``.dmg`` files for OS X 10.4.x and 10.6.x. But
 we would like to make Sage more of a native application. Work for that
 is ongoing, but help is always welcome.
 

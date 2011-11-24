@@ -1903,15 +1903,15 @@ cdef class Expression(CommutativeRingElement):
         assured that if True or False is returned (and proof is False) then
         the answer is correct.
 
-        INPUT::
+        INPUT:
 
-           ntests -- (default 20) the number of iterations to run
-           domain -- (optional) the domain from which to draw the random values
-                     defaults to CIF for equality testing and RIF for
-                     order testing
-           proof --  (default True) if False and the domain is an interval field,
-                     regard overlapping (potentially equal) intervals as equal,
-                     and return True if all tests succeeded.
+        - ``ntests`` -- (default ``20``) the number of iterations to run
+        - ``domain`` -- (optional) the domain from which to draw the random
+          values defaults to ``CIF`` for equality testing and ``RIF`` for
+          order testing
+        - ``proof`` -- (default ``True``) if ``False`` and the domain is an
+          interval field, regard overlapping (potentially equal) intervals as
+          equal, and return ``True`` if all tests succeeded.
 
         OUTPUT:
 
@@ -3087,7 +3087,7 @@ cdef class Expression(CommutativeRingElement):
             sage: a.expand('right')
             (16*x - 13)^2 == 9/2*x^2 + 15*x + 25/2
 
-        TESTS:
+        TESTS::
 
             sage: var('x,y')
             (x, y)
@@ -3872,7 +3872,8 @@ cdef class Expression(CommutativeRingElement):
             sage: a.operator()
             D[0](f)
 
-        TESTS:
+        TESTS::
+
             sage: (x <= y).operator()
             <built-in function le>
             sage: (x == y).operator()
@@ -4551,7 +4552,7 @@ cdef class Expression(CommutativeRingElement):
 
         .. warning::
 
-           This is different from meth:`poly` which is used to rewrite
+           This is different from :meth:`poly` which is used to rewrite
            self as a polynomial in terms of one of the variables.
 
         INPUT:
@@ -5191,7 +5192,10 @@ cdef class Expression(CommutativeRingElement):
 
     def sqrt(self, hold=False):
         """
-        EXAMPLES:
+        Return the square root of this expression
+
+        EXAMPLES::
+
             sage: var('x, y')
             (x, y)
             sage: SR(2).sqrt()
@@ -6161,7 +6165,8 @@ cdef class Expression(CommutativeRingElement):
 
         A symbolic expression.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('x, y')
             (x, y)
             sage: SR(5).factorial()
@@ -6188,7 +6193,6 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a = SR(5).factorial(hold=True); a.simplify()
             120
-
         """
         cdef GEx x
         try:
@@ -6206,7 +6210,8 @@ cdef class Expression(CommutativeRingElement):
 
         A symbolic expression.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: var('x, y')
             (x, y)
             sage: SR(5).binomial(SR(3))
@@ -6240,6 +6245,7 @@ cdef class Expression(CommutativeRingElement):
         TESTS:
 
         Check if we handle zero correctly (#8561)::
+
             sage: x.binomial(0)
             1
             sage: SR(0).binomial(0)
@@ -6395,7 +6401,6 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: log_gamma() got an unexpected keyword argument 'hold'
-
         """
         cdef GEx x
         try:
@@ -6453,11 +6458,50 @@ cdef class Expression(CommutativeRingElement):
         """
         return self.parent()(self._maxima_().combine())
 
-    def numerator(self):
+    def normalize(self):
         """
-        Returns the numerator of this symbolic expression.  If the
-        expression is not a quotient, then this will return the
-        expression itself.
+        Return this expression normalized as a fraction
+
+        .. SEEALSO:
+
+            :meth:`numerator`, :meth:`denominator`,
+            :meth:`numerator_denominator`, :meth:`combine`
+
+        EXAMPLES::
+
+            sage: var('x, y, a, b, c')
+            (x, y, a, b, c)
+            sage: g = x + y/(x + 2)
+            sage: g.normalize()
+            (x^2 + 2*x + y)/(x + 2)
+
+            sage: f = x*(x-1)/(x^2 - 7) + y^2/(x^2-7) + 1/(x+1) + b/a + c/a
+            sage: f.normalize()
+            (a*x^3 + a*x*y^2 + b*x^3 + c*x^3 + a*x^2 + a*y^2 + b*x^2 + c*x^2 - a*x - 7*b*x - 7*c*x - 7*a - 7*b - 7*c)/((x + 1)*(x^2 - 7)*a)
+
+        ALGORITHM: Uses GiNaC.
+
+        """
+        return new_Expression_from_GEx(self._parent, self._gobj.normal())
+
+    def numerator(self, bint normalize = True):
+        """
+        Returns the numerator of this symbolic expression
+
+        INPUT:
+
+        - ``normalize`` -- (default: ``True``) a boolean.
+
+        If ``normalize`` is ``True``, the expression is first normalized to
+        have it as a fraction before getting the numerator.
+
+        If ``normalize`` is ``False``, the expression is kept and if it is not
+        a quotient, then this will return the expression itself.
+
+        .. SEEALSO::
+
+            :meth:`normalize`, :meth:`denominator`,
+            :meth:`numerator_denominator`, :meth:`combine`
 
         EXAMPLES::
 
@@ -6468,39 +6512,252 @@ cdef class Expression(CommutativeRingElement):
             x
             sage: f.denominator()
             x^2 - y
+            sage: f.numerator(normalize=False)
+            x
+            sage: f.denominator(normalize=False)
+            x^2 - y
 
             sage: y = var('y')
             sage: g = x + y/(x + 2); g
             x + y/(x + 2)
             sage: g.numerator()
-            x + y/(x + 2)
+            x^2 + 2*x + y
             sage: g.denominator()
+            x + 2
+            sage: g.numerator(normalize=False)
+            x + y/(x + 2)
+            sage: g.denominator(normalize=False)
             1
 
-        """
-        return self.parent()(self._maxima_().num())
+        TESTS::
 
-    def denominator(self):
+            sage: ((x+y)^2/(x-y)^3*x^3).numerator(normalize=False)
+            (x + y)^2*x^3
+            sage: ((x+y)^2*x^3).numerator(normalize=False)
+            (x + y)^2*x^3
+            sage: (y/x^3).numerator(normalize=False)
+            y
+            sage: t = y/x^3/(x+y)^(1/2); t
+            y/(sqrt(x + y)*x^3)
+            sage: t.numerator(normalize=False)
+            y
+            sage: (1/x^3).numerator(normalize=False)
+            1
+            sage: (x^3).numerator(normalize=False)
+            x^3
+            sage: (y*x^sin(x)).numerator(normalize=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: self is not a rational expression
         """
-        Returns the denominator of this symbolic expression.  If the
-        expression is not a quotient, then this will just return 1.
+        cdef GExVector vec
+        cdef GEx oper, power
+        if normalize:
+            return new_Expression_from_GEx(self._parent, self._gobj.numer())
+        elif is_a_mul(self._gobj):
+            for i from 0 <= i < self._gobj.nops():
+                oper = self._gobj.op(i)
+                if not is_a_power(oper):
+                    vec.push_back(oper)
+                else:
+                    power = oper.op(1)
+                    if not is_a_numeric(power):
+                        raise TypeError, "self is not a rational expression"
+                    elif ex_to_numeric(power).is_positive():
+                        vec.push_back(oper)
+            return new_Expression_from_GEx(self._parent,
+                                           g_mul_construct(vec, True))
+        elif is_a_power(self._gobj):
+            power = self._gobj.op(1)
+            if is_a_numeric(power) and ex_to_numeric(power).is_negative():
+                return self._parent.one()
+        return self
+
+    def denominator(self, bint normalize=True):
+        """
+        Returns the denominator of this symbolic expression
+
+        INPUT:
+
+        - ``normalize`` -- (default: ``True``) a boolean.
+
+        If ``normalize`` is ``True``, the expression is first normalized to
+        have it as a fraction before getting the denominator.
+
+        If ``normalize`` is ``False``, the expression is kept and if it is not
+        a quotient, then this will just return 1.
+
+        .. SEEALSO::
+
+            :meth:`normalize`, :meth:`numerator`,
+            :meth:`numerator_denominator`, :meth:`combine`
 
         EXAMPLES::
 
             sage: x, y, z, theta = var('x, y, z, theta')
             sage: f = (sqrt(x) + sqrt(y) + sqrt(z))/(x^10 - y^10 - sqrt(theta))
+            sage: f.numerator()
+            sqrt(x) + sqrt(y) + sqrt(z)
             sage: f.denominator()
+            -sqrt(theta) + x^10 - y^10
+
+            sage: f.numerator(normalize=False)
+            -(sqrt(x) + sqrt(y) + sqrt(z))
+            sage: f.denominator(normalize=False)
             sqrt(theta) - x^10 + y^10
 
             sage: y = var('y')
             sage: g = x + y/(x + 2); g
             x + y/(x + 2)
-            sage: g.numerator()
+            sage: g.numerator(normalize=False)
             x + y/(x + 2)
-            sage: g.denominator()
+            sage: g.denominator(normalize=False)
             1
+
+        TESTS::
+
+            sage: ((x+y)^2/(x-y)^3*x^3).denominator(normalize=False)
+            (x - y)^3
+            sage: ((x+y)^2*x^3).denominator(normalize=False)
+            1
+            sage: (y/x^3).denominator(normalize=False)
+            x^3
+            sage: t = y/x^3/(x+y)^(1/2); t
+            y/(sqrt(x + y)*x^3)
+            sage: t.denominator(normalize=False)
+            sqrt(x + y)*x^3
+            sage: (1/x^3).denominator(normalize=False)
+            x^3
+            sage: (x^3).denominator(normalize=False)
+            1
+            sage: (y*x^sin(x)).denominator(normalize=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: self is not a rational expression
         """
-        return self.parent()(self._maxima_().denom())
+        cdef GExVector vec
+        cdef GEx oper, ex, power
+        if normalize:
+            return new_Expression_from_GEx(self._parent, self._gobj.denom())
+        elif is_a_mul(self._gobj):
+            for i from 0 <= i < self._gobj.nops():
+                oper = self._gobj.op(i)
+                if is_a_power(oper):
+                    ex = oper.op(0)
+                    power = oper.op(1)
+                    if not is_a_numeric(power):
+                        raise TypeError, "self is not a rational expression"
+                    elif ex_to_numeric(power).is_negative():
+                        vec.push_back(g_pow(ex, g_abs(power)))
+            return new_Expression_from_GEx(self._parent,
+                                           g_mul_construct(vec, False))
+        elif is_a_power(self._gobj):
+            power = self._gobj.op(1)
+            if is_a_numeric(power) and ex_to_numeric(power).is_negative():
+                return new_Expression_from_GEx(self._parent,
+                        g_pow(self._gobj.op(0), g_abs(power)))
+
+        return self._parent.one()
+
+    def numerator_denominator(self, bint normalize=True):
+        """
+        Returns the numerator and the denominator of this symbolic expression
+
+        INPUT:
+
+        - ``normalize`` -- (default: ``True``) a boolean.
+
+        If ``normalize`` is ``True``, the expression is first normalized to
+        have it as a fraction before getting the numerator and denominator.
+
+        If ``normalize`` is ``False``, the expression is kept and if it is not
+        a quotient, then this will return the expression itself together with
+        1.
+
+        .. SEEALSO::
+
+            :meth:`normalize`, :meth:`numerator`, :meth:`denominator`,
+            :meth:`combine`
+
+        EXAMPLE::
+
+            sage: x, y, a = var("x y a")
+            sage: ((x+y)^2/(x-y)^3*x^3).numerator_denominator()
+            ((x + y)^2*x^3, (x - y)^3)
+
+            sage: ((x+y)^2/(x-y)^3*x^3).numerator_denominator(False)
+            ((x + y)^2*x^3, (x - y)^3)
+
+            sage: g = x + y/(x + 2)
+            sage: g.numerator_denominator()
+            (x^2 + 2*x + y, x + 2)
+            sage: g.numerator_denominator(normalize=False)
+            (x + y/(x + 2), 1)
+
+            sage: g = x^2*(x + 2)
+            sage: g.numerator_denominator()
+            ((x + 2)*x^2, 1)
+            sage: g.numerator_denominator(normalize=False)
+            ((x + 2)*x^2, 1)
+
+        TESTS::
+
+            sage: ((x+y)^2/(x-y)^3*x^3).numerator_denominator(normalize=False)
+            ((x + y)^2*x^3, (x - y)^3)
+            sage: ((x+y)^2*x^3).numerator_denominator(normalize=False)
+            ((x + y)^2*x^3, 1)
+            sage: (y/x^3).numerator_denominator(normalize=False)
+            (y, x^3)
+            sage: t = y/x^3/(x+y)^(1/2); t
+            y/(sqrt(x + y)*x^3)
+            sage: t.numerator_denominator(normalize=False)
+            (y, sqrt(x + y)*x^3)
+            sage: (1/x^3).numerator_denominator(normalize=False)
+            (1, x^3)
+            sage: (x^3).numerator_denominator(normalize=False)
+            (x^3, 1)
+            sage: (y*x^sin(x)).numerator_denominator(normalize=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: self is not a rational expression
+        """
+        cdef GExVector vecnumer, vecdenom
+        cdef GEx oper, ex, power
+        cdef GNumeric power_num
+        if normalize:
+            ex = self._gobj.numer_denom()
+            return (new_Expression_from_GEx(self._parent, ex.op(0)),
+                    new_Expression_from_GEx(self._parent, ex.op(1)))
+        elif is_a_mul(self._gobj):
+            for i from 0 <= i < self._gobj.nops():
+                oper = self._gobj.op(i)
+                if is_a_power(oper):   # oper = ex^power
+                    ex = oper.op(0)
+                    power = oper.op(1)
+                    if not is_a_numeric(power):
+                        raise TypeError, "self is not a rational expression"
+                    elif is_a_numeric(power):
+                        power_num = ex_to_numeric(power)
+                        if power_num.is_positive():
+                            vecnumer.push_back(oper)
+                        else:
+                            vecdenom.push_back(g_pow(ex, g_abs(power)))
+                else:
+                    vecnumer.push_back(oper)
+            return (new_Expression_from_GEx(self._parent,
+                                            g_mul_construct(vecnumer, False)),
+                    new_Expression_from_GEx(self._parent,
+                                            g_mul_construct(vecdenom, False)))
+        elif is_a_power(self._gobj):
+            power = self._gobj.op(1)
+            if is_a_numeric(power) and ex_to_numeric(power).is_positive():
+                return (self, self._parent.one())
+            else:
+                return (self._parent.one(),
+                        new_Expression_from_GEx(self._parent,
+                               g_pow(self._gobj.op(0), g_abs(power))))
+        else:
+            return (self, self._parent.one())
 
     def partial_fraction(self, var=None):
         r"""
@@ -6932,9 +7189,9 @@ cdef class Expression(CommutativeRingElement):
         Simplifies symbolic expression, which can contain logs.
 
         Recursively scans the expression self, transforming
-        subexpressions of the form a1*log(b1) + a2*log(b2) + c into
-        log(b1^a1 * b2^a2) + c and simplifies inside logarithm. User
-        can specify, which conditions must satisfy a1 and a2 to use
+        subexpressions of the form `a1 \log(b1) + a2 \log(b2) + c` into
+        `\log( b1^{a1} b2^{a2} ) + c` and simplifies inside logarithm. User
+        can specify, which conditions must satisfy `a1` and `a2` to use
         this transformation in optional parameter ``algorithm``.
 
         INPUT:
@@ -6942,8 +7199,8 @@ cdef class Expression(CommutativeRingElement):
         - ``self`` - expression to be simplified
 
         - ``algorithm`` - (default: None) optional, governs the condition
-          on a1 and a2 which must be satisfied to contract expression
-          a1*log(b1) + a2*log(b2). Values are
+          on `a1` and `a2` which must be satisfied to contract expression
+          `a1 \log(b1) + a2 \log(b2)`. Values are
 
           - None (use Maxima default, integers),
 
@@ -7328,8 +7585,9 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-            - `self` -- the symbolic expression converting from
-            - `target` -- (default None) the symbolic expression converting to
+            - ``self`` -- the symbolic expression converting from
+            - ``target`` -- (default None) the symbolic expression
+                         converting to
 
         OUTPUT:
 

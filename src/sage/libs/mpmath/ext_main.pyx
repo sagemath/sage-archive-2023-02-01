@@ -826,6 +826,7 @@ cdef class Context:
         MPF_clear(&tim)
         MPF_clear(&ure)
         MPF_clear(&uim)
+        MPF_clear(&tmp)
         if styp == 1:
             rr = PY_NEW(mpf)
             MPF_set(&rr.value, &sre)

@@ -1464,6 +1464,7 @@ def cos_sin_fixed(Integer x, int prec, pi2=None):
     sv = PY_NEW(Integer)
     mpfr_get_z(cv.value, cf, GMP_RNDN)
     mpfr_get_z(sv.value, sf, GMP_RNDN)
+    mpfr_clear(t)
     mpfr_clear(cf)
     mpfr_clear(sf)
     return cv, sv

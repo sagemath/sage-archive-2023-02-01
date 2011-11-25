@@ -65,6 +65,10 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-11.1.2.cvs20111120.p0 (Jeroen Demeyer, 24 November 2011) ===
+  * Trac #11884.  Use the CVS snapshot from 2011-11-20.  This is needed
+    to make Maxima (and other ECL libraries) compile on OS X 10.4.
+
 === ecl-11.1.2.cvs20111115.p0 (Jeroen Demeyer, 15 November 2011) ===
   * Trac #11884.  Use the CVS snapshot from 2011-11-15, which also
     works on Mac OS X 10.4 PPC.

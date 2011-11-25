@@ -24,7 +24,7 @@ set -e
 rm -rf src ecl
 
 # Download CVS sources
-ECLVERSION=-D20111115
+ECLVERSION=-D20111120
 cvs -z3 -d:pserver:anonymous@ecls.cvs.sourceforge.net:/cvsroot/ecls checkout $ECLVERSION ecl
 mv ecl src
 

@@ -38,4 +38,5 @@ recursive-include doc/en/reference/media *
 recursive-include doc/en/thematic_tutorials/media *
 recursive-include doc/common/static *
 recursive-include doc/common/themes *
+prune doc/output
 include sage/ext/mac-app/README

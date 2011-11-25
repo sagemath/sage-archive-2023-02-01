@@ -48,7 +48,7 @@ Finite Field in x of size 3^2
 sage: p = R(x+1); R2(p)
 Traceback (most recent call last):
 ...
-NotImplementedError
+TypeError: unable to coerce from a finite field other than the prime subfield
 sage: rational_reconstruction(411,1000)
 -13/17
 sage: rational_reconstruction(409,1000)

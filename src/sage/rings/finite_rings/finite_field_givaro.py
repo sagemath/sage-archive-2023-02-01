@@ -327,7 +327,7 @@ class FiniteField_givaro(FiniteField):
             sage: F81(F9.gen())
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            TypeError: unable to coerce from a finite field other than the prime subfield
         """
         return self._cache.element_from_data(e)
 
@@ -353,7 +353,8 @@ class FiniteField_givaro(FiniteField):
                     return True
                 elif self.degree() % R.degree() == 0:
                     # This is where we *would* do coercion from one nontrivial finite field to another...
-                    raise NotImplementedError
+                    # We use this error message for backward compatibility until #8335 is finished
+                    raise TypeError, "unable to coerce from a finite field other than the prime subfield"
 
     def gen(self, n=0):
         r"""

@@ -7,7 +7,6 @@ CUR=`pwd`
 TARGET="$SAGE_ROOT/local/bin/"
 
 if [ -d "$TARGET"/.hg ]; then
-
     # Merge the repositories, rather than overwrite changes
     # that the user may have made.
    cd "$TARGET"
@@ -16,12 +15,9 @@ if [ -d "$TARGET"/.hg ]; then
    hg merge tip
    hg ci -m "Check-in during upgrade of Sage."
    hg update
-
 else
-
     # Initial install.  Just copy all the files over.
-    cp -r sage-*  *doctest.py SbuildHack.pm .hg* ipy_profile_sage.py "$TARGET"
-
+    cp -pR sage-*  *doctest.py SbuildHack.pm .hg* ipy_profile_sage.py "$TARGET"
 fi
 
 # Create an appropriate hgrc file for the target
@@ -29,13 +25,3 @@ cat > "$TARGET/.hg/hgrc" <<"HEREDOC"
 [diff]
 git = true
 HEREDOC
-
-# Finally, make sure some symbolic links exist.
-cd "$CUR"
-
-# I think these below should moved to the relevant spkg's.
-# -- William Stein (2007-10-04)
-cd "$TARGET"
-ln -sf python sage.bin
-ln -sf Singular sage_singular
-ln -sf gp sage_pari

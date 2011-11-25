@@ -225,10 +225,8 @@ zeoreplay.py
 zeoserverlog.py
 zeoup.py
 zodbload.py
-sage.bin
 sage_fortran
 sage_fortran.bin
-sage_pari
 f2c
 f2py
 g95

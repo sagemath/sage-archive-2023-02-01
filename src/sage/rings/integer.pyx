@@ -1051,10 +1051,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         ::
 
             sage: big = 10^5000000
-            sage: s = big.str()                 # long time (> 20 seconds)
-            sage: len(s)                        # long time (depends on above defn of s)
+            sage: s = big.str()       # long time (> 20 seconds)
+            sage: len(s)              # long time (depends on above defn of s)
             5000001
-            sage: s[:10]                        # long time (depends on above defn of s)
+            sage: s[:10]              # long time (depends on above defn of s)
             '1000000000'
         """
         if base < 2 or base > 36:
@@ -2320,12 +2320,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_divisible_2exp_p(_m.value,m_log2):
             # Here, m is a power of 2 and the correct answer is found
             # by a log 2 approximation.
-            guess = n_log2/m_log2 # truncating division
+            guess = n_log2/m_log2  # truncating division
         elif n_log2/(m_log2+1) == n_log2/m_log2:
             # In this case, we have an upper bound and lower bound which
             # give the same answer, thus, the correct answer.
             guess = n_log2/m_log2
-        elif m_log2 < 8: # i.e. m<256
+        elif m_log2 < 8:  # i.e. m<256
             # if the base m is at most 256, we can use mpz_sizeinbase
             # to get the following guess which is either the exact
             # log, or 1+ the exact log
@@ -4461,7 +4461,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def radical(self, *args, **kwds):
         r"""
-        Return the product of the prime divisors of self.  Computing
+        Return the product of the prime divisors of self. Computing
         the radical of zero gives an error.
 
         EXAMPLES::

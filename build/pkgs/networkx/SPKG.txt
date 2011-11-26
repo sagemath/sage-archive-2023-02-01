@@ -28,6 +28,11 @@ See http://networkx.lanl.gov/
 
 == Changelog ==
 
+=== networkx-1.2.p2 (Dima Pasechnik, November 26, 2011) ===
+
+* removed symbolic links to work around tar bugs on Cygwin
+
+
 === networkx-1.2.p1 (Ben Edwards, August 10, 2010) ===
 
 * Patches small readwrite which allows for the reading of gml

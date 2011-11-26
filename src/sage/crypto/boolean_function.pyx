@@ -53,7 +53,7 @@ cdef inline unsigned int hamming_weight_int(unsigned int x):
     return x>>24
 
 cdef walsh_hadamard(long *f, int ldn):
-    """
+    r"""
     The Walsh Hadamard transform is an orthogonal transform equivalent
     to a multidimensional discrete Fourier transform of size 2x2x...x2.
     It can be defined by the following formula:
@@ -107,7 +107,7 @@ cdef long yellow_code(unsigned long a):
     return r
 
 cdef reed_muller(unsigned long *f, int ldn):
-    """
+    r"""
     The Reed Muller transform (also known as binary Moebius transform)
     is an orthogonal transform. For a function `f` defined by
 
@@ -152,15 +152,15 @@ cdef class BooleanFunction(SageObject):
 
     We can construct a Boolean Function from either:
 
-        - an integer - the result is the zero function with ``x`` variables;
-        - a list - it is expected to be the truth table of the
-          result. Therefore it must be of length a power of 2, and its
-          elements are interpreted as Booleans;
-        - a string - representing the truth table in hexadecimal;
-        - a Boolean polynomial - the result is the corresponding Boolean function;
-        - a polynomial P over an extension of GF(2) - the result is
-          the Boolean function with truth table ``( Tr(P(x)) for x in
-          GF(2^k) )``
+    - an integer - the result is the zero function with ``x`` variables;
+    - a list - it is expected to be the truth table of the
+      result. Therefore it must be of length a power of 2, and its
+      elements are interpreted as Booleans;
+    - a string - representing the truth table in hexadecimal;
+    - a Boolean polynomial - the result is the corresponding Boolean function;
+    - a polynomial P over an extension of GF(2) - the result is
+      the Boolean function with truth table ``( Tr(P(x)) for x in
+      GF(2^k) )``
 
     EXAMPLES:
 
@@ -845,8 +845,7 @@ cdef class BooleanFunction(SageObject):
         return self.correlation_immunity()
 
     def autocorrelation(self):
-        """
-
+        r"""
         Return the autocorrelation fo the function, defined by
 
         .. math:: \Delta_f(j) = \sum_{i\in\{0,1\}^n} (-1)^{f(i)\oplus f(i\oplus j)}.
@@ -927,17 +926,19 @@ cdef class BooleanFunction(SageObject):
         return self._sum_of_square_indicator
 
     def annihilator(self,d, dim = False):
-        """
-        Return (if it exists) an annihilator of the boolean function of degree at most `d`, that is a Boolean polynomial `g` such that
+        r"""
+        Return (if it exists) an annihilator of the boolean function of
+        degree at most `d`, that is a Boolean polynomial `g` such that
 
-        .. math:
+        .. math::
 
             f(x)g(x) = 0 \forall x.
 
         INPUT:
 
-        - d   - an integer;
-        - dim - a Boolean (default: False), if True, returns also the dimension of the annihilator vector space.
+        - ``d`` -- an integer;
+        - ``dim`` -- a Boolean (default: False), if True, return also
+          the dimension of the annihilator vector space.
 
         EXAMPLES::
 

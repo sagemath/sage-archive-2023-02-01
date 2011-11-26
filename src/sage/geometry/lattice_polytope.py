@@ -994,6 +994,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             f.close()
             os.remove(fn)
         else:
+            if _palp_dimension is not None:
+                dot = command.find(".")
+                command = (command[:dot] + "-%dd" % _palp_dimension +
+                           command[dot:])
             p = subprocess.Popen(command, shell=True, bufsize=2048,
                                  stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE,
@@ -3983,6 +3987,8 @@ def _create_octahedron(dim):
 
 _octahedrons = dict()       # Dictionary for storing created octahedrons
 
+_palp_dimension = None
+
 def _palp(command, polytopes, reduce_dimension=False):
     r"""
     Run ``command`` on vertices of given
@@ -4024,6 +4030,9 @@ def _palp(command, polytopes, reduce_dimension=False):
         sage: f.close()
         sage: os.remove(result_name)
     """
+    if _palp_dimension is not None:
+        dot = command.find(".")
+        command = command[:dot] + "-%dd" % _palp_dimension + command[dot:]
     input_file_name = tmp_filename()
     input_file = open(input_file_name, "w")
     for p in polytopes:
@@ -4840,6 +4849,61 @@ def sage_matrix_to_maxima(m):
     return maxima("matrix("+",".join(str(v.list()) for v in m.rows())+")")
 
 
+def set_palp_dimension(d):
+    r"""
+    Set the dimension for PALP calls to ``d``.
+
+    INPUT:
+
+    - ``d`` -- an integer from the list [4,5,6,11] or ``None``.
+
+    OUTPUT:
+
+    - none.
+
+    PALP has many hard-coded limits, which must be specified before
+    compilation, one of them is dimension. Sage includes several versions with
+    different dimension settings (which may also affect other limits and enable
+    certain features of PALP). You can change the version which will be used by
+    calling this function. Such a change is not done automatically for each
+    polytope based on its dimension, since depending on what you are doing it
+    may be necessary to use dimensions higher than that of the input polytope.
+
+    EXAMPLES:
+
+    By default, it is not possible to create the 7-dimensional simplex with
+    vertices at the basis of the 8-dimensional space::
+
+        sage: LatticePolytope(identity_matrix(8))
+        Traceback (most recent call last):
+        ...
+        ValueError: Error executing "poly.x -fv" for the given polytope!
+        Polytope: A lattice polytope: 7-dimensional, 8 vertices.
+        Vertices:
+        [ 0 -1 -1 -1 -1 -1 -1 -1]
+        [ 0  1  0  0  0  0  0  0]
+        [ 0  0  1  0  0  0  0  0]
+        [ 0  0  0  1  0  0  0  0]
+        [ 0  0  0  0  1  0  0  0]
+        [ 0  0  0  0  0  1  0  0]
+        [ 0  0  0  0  0  0  1  0]
+        Output:
+        increase POLY_Dmax!
+
+    However, we can work with this polytope by changing PALP dimension to 11::
+
+        sage: lattice_polytope.set_palp_dimension(11)
+        sage: LatticePolytope(identity_matrix(8))
+        A lattice polytope: 7-dimensional, 8 vertices.
+
+    Let's go back to default settings::
+
+        sage: lattice_polytope.set_palp_dimension(None)
+    """
+    global _palp_dimension
+    _palp_dimension = d
+
+
 def skip_palp_matrix(data, n=1):
     r"""
     Skip matrix data in a file.
@@ -4865,7 +4929,20 @@ def skip_palp_matrix(data, n=1):
         sage: result_name = lattice_polytope._palp("poly.x -fe", [o2, o3])
         sage: f = open(result_name)
         sage: f.readlines()
-        ['4 2  Vertices of P-dual <-> Equations of P\n', '  -1   1\n', '   1   1\n', '  -1  -1\n', '   1  -1\n', '8 3  Vertices of P-dual <-> Equations of P\n', '  -1  -1   1\n', '   1  -1   1\n', '  -1   1   1\n', '   1   1   1\n', '  -1  -1  -1\n', '   1  -1  -1\n', '  -1   1  -1\n', '   1   1  -1\n']
+        ['4 2  Vertices of P-dual <-> Equations of P\n',
+         '  -1   1\n',
+         '   1   1\n',
+         '  -1  -1\n',
+         '   1  -1\n',
+         '8 3  Vertices of P-dual <-> Equations of P\n',
+         '  -1  -1   1\n',
+         '   1  -1   1\n',
+         '  -1   1   1\n',
+         '   1   1   1\n',
+         '  -1  -1  -1\n',
+         '   1  -1  -1\n',
+         '  -1   1  -1\n',
+         '   1   1  -1\n']
         sage: f.close()
         sage: f = open(result_name)
         sage: lattice_polytope.skip_palp_matrix(f)

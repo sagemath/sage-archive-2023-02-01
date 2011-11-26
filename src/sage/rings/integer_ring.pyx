@@ -280,12 +280,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         raise TypeError, 'len() of unsized object'
 
     def _div(self, integer.Integer left, integer.Integer right):
-        cdef rational.Rational x
-        x = PY_NEW(rational.Rational)
-        if mpz_cmp_si(right.value, 0) == 0:
+        cdef rational.Rational x = PY_NEW(rational.Rational)
+        if mpz_sgn(right.value) == 0:
             raise ZeroDivisionError, 'Rational division by zero'
-        mpq_set_num(x.value, left.value)
-        mpq_set_den(x.value, right.value)
+        mpz_set(mpq_numref(x.value), left.value)
+        mpz_set(mpq_denref(x.value), right.value)
         mpq_canonicalize(x.value)
         return x
 

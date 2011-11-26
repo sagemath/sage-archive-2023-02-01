@@ -2441,8 +2441,9 @@ def odd_part(n):
         sage: odd_part(factorial(31))
         122529844256906551386796875
     """
-    n = ZZ(n)
-    return n._shift_helper(n.valuation(2), -1)
+    if not isinstance(n, integer.Integer):
+        n = ZZ(n)
+    return n.odd_part()
 
 def prime_to_m_part(n,m):
     """

@@ -3145,9 +3145,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
 
         Moreover for all algorithms, computing a certain value of an
-        `L`-function "uses a heuristic method that discerns when
+        `L`-function 'uses a heuristic method that discerns when
         the real-number approximation to the modular degree is within
-        epsilon [=0.01 for algorithm="sympow"] of the same integer for 3
+        epsilon [=0.01 for algorithm='sympow'] of the same integer for 3
         consecutive trials (which occur maybe every 25000 coefficients or
         so). Probably it could just round at some point. For rigour, you
         would need to bound the tail by assuming (essentially) that all the
@@ -3156,7 +3156,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         that it doesn't do the sum in 1-2-3-4 order; it uses
         1-2-4-8--3-6-12-24-9-18- (Euler product style) instead, and so you
         have to guess ahead of time at what point to curtail this
-        expansion." (Quote from an email of Mark Watkins.)
+        expansion.' (Quote from an email of Mark Watkins.)
 
         .. note::
 
@@ -4362,7 +4362,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def manin_constant(self):
         r"""
-        Return the Manin constant of this elliptic curve.
+        Return the Manin constant of this elliptic curve. If `\phi: X_0(N) \to E` is the modular
+        parametrization of minimal degree, then the Manin constant `c` is defined to be the rational
+        number `c` such that `\phi^*(\omega_E) = c\cdot \omega_f` where `\omega_E` is a Neron differential and `\omega_f = f(q) dq/q` is the differential on `X_0(N)` corresponding to the
+        newform `f` attached to the isogeny class of `E`.
+
+        It is known that the Manin constant is an integer. It is conjectured that in each class there is at least one, more precisely the so-called strong Weil curve or `X_0(N)`-optimal curve, that has Manin constant `1`.
 
         OUTPUT:
 
@@ -4377,40 +4382,62 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve('11a1').manin_constant()
             1
             sage: EllipticCurve('11a2').manin_constant()
-            5
+            1
             sage: EllipticCurve('11a3').manin_constant()
             5
 
         Check that it works even if the curve is non-minimal::
 
-            sage: EllipticCurve('11a1').short_weierstrass_model().manin_constant()
-            1
+            sage: EllipticCurve('11a3').change_weierstrass_model([1/35,0,0,0]).manin_constant()
+            5
 
-        An example where the isogeny class is large, so it's not completely
-        trivial to find the minimal degree of an isogeny to the optimal curve::
+        Rather complicated examples (see #12080) ::
 
-            sage: [EllipticCurve('210b%s'%i).manin_constant() for i in [1..8]]
-            [1, 2, 3, 4, 4, 6, 12, 12]
+            sage: [ EllipticCurve('27a%s'%i).manin_constant() for i in [1,2,3,4]]
+            [1, 1, 3, 3]
+            sage: [ EllipticCurve('80b%s'%i).manin_constant() for i in [1,2,3,4]]
+            [1, 2, 1, 2]
 
-        Make sure the special case 990h is treated correctly, i.e., that 990h3 has
-        Manin constant 1::
-
-            sage: [EllipticCurve('990h%s'%i).manin_constant() for i in [1..4]]
-            [3, 6, 1, 2]
-
-        This plots helps you see that the above Manin constants are
-        right.  Note that the vertex labels are 0-based unlike the
-        Cremona isogeny labels::
-
-            sage: EllipticCurve('210b1').isogeny_graph().plot(edge_labels=True)
         """
-        label = self.cremona_label()
-        optimal = self.optimal_curve()
-        if optimal == self:
-            return Integer(1)
-        L, v = self._shortest_paths()
-        i = L.index(optimal)
-        return v[i]
+        from sage.databases.cremona import CremonaDatabase
+
+        if self.conductor() > CremonaDatabase().largest_conductor():
+            raise NotImplementedError, "The Manin constant can only be evaluated for curves in Cremona's tables. If you have not done so, you may wish to install the optional large database."
+
+        E = self.minimal_model()
+        C = self.optimal_curve()
+        _, m = C.isogeny_class()
+        ma = max(max(x) for x in m)
+        OmC = C.period_lattice().basis()
+        OmE = E.period_lattice().basis()
+        q_plus = QQ(gp.bestappr(OmE[0]/OmC[0],ma+1) )
+        n_plus = q_plus.numerator()
+
+        cinf_E = E.real_components()
+        cinf_C = C.real_components()
+        OmC_minus = OmC[1].imag()
+        if cinf_C == 1:
+            OmC_minus *= 2
+        OmE_minus = OmE[1].imag()
+        if cinf_E == 1:
+            OmE_minus *= 2
+        q_minus = QQ(gp.bestappr(OmE_minus/OmC_minus, ma+1))
+        n_minus = q_minus.numerator()
+        n = ZZ(n_minus * n_plus)
+
+        if cinf_C == cinf_E:
+            return n
+        # otherwise they have different number of connected component and we have to adjust for this
+        elif cinf_C > cinf_E:
+            if ZZ(n_plus) % 2 == 0 and ZZ(n_minus) % 2 == 0:
+                return n // 2
+            else:
+                return n
+        else: #if cinf_C < cinf_E:
+            if q_plus.denominator() % 2 == 0 and q_minus.denominator() % 2 == 0:
+                return n
+            else:
+                return n*2
 
     def _shortest_paths(self):
         r"""
@@ -4486,8 +4513,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # to the optimal curve.
         v = [deg for num, deg in v.iteritems() if deg]  # get just the degrees
         return arith.LCM(v)
-
-
 
     ##########################################################
     # Galois Representations

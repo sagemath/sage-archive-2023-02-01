@@ -420,7 +420,7 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.23.2'
+            '5.24.0'
         """
         return maxima_version()
 
@@ -2355,7 +2355,7 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima_abstract import maxima_version
         sage: maxima_version()
-        '5.23.2'
+        '5.24.0'
     """
     return os.popen('maxima --version').read().split()[-1]
 
@@ -2367,7 +2367,7 @@ def maxima_console():
 
         sage: from sage.interfaces.maxima_abstract import maxima_console
         sage: maxima_console()                    # not tested
-        Maxima 5.23.2 http://maxima.sourceforge.net
+        Maxima 5.24.0 http://maxima.sourceforge.net
         ...
     """
     os.system('maxima')

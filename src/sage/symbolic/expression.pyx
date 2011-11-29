@@ -1225,7 +1225,7 @@ cdef class Expression(CommutativeRingElement):
             sage: v,c = var('v,c')
             sage: assume(c != 0)
             sage: integral((1+v^2/c^2)^3/(1-v^2/c^2)^(3/2),v)
-            -75/8*sqrt(c^2)*arcsin(sqrt(c^2)*v/c^2) - 17/8*v^3/(sqrt(-v^2/c^2 + 1)*c^2) - 1/4*v^5/(sqrt(-v^2/c^2 + 1)*c^4) + 83/8*v/sqrt(-v^2/c^2 + 1)
+	    -17/8*v^3/(sqrt(-v^2/c^2 + 1)*c^2) - 1/4*v^5/(sqrt(-v^2/c^2 + 1)*c^4) + 83/8*v/sqrt(-v^2/c^2 + 1) - 75/8*arcsin(v/(c^2*sqrt(c^(-2))))/sqrt(c^(-2))
             sage: forget()
         """
         from sage.symbolic.assumptions import _assumptions

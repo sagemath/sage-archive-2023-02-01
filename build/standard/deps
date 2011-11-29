@@ -173,7 +173,7 @@ $(INST)/$(CLIQUER): $(BASE) $(INST)/$(PATCH)
 $(INST)/$(TERMCAP): $(BASE) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(TERMCAP) 2>&1" "tee -a $(SAGE_LOGS)/$(TERMCAP).log"
 
-$(INST)/$(READLINE): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(READLINE): $(BASE) $(INST)/$(PATCH) $(INST)/$(TERMCAP)
 	$(INSTALL) "$(SAGE_SPKG) $(READLINE) 2>&1" "tee -a $(SAGE_LOGS)/$(READLINE).log"
 
 $(INST)/$(ICONV): $(BASE) $(INST)/$(PATCH)
@@ -195,7 +195,7 @@ $(INST)/$(GRAPHS): $(BASE) $(INST)/$(PATCH)
 $(INST)/$(GLPK): $(BASE) $(INST)/$(MPIR) $(INST)/$(ZLIB) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(GLPK) 2>&1" "tee -a $(SAGE_LOGS)/$(GLPK).log"
 
-$(INST)/$(PYTHON): $(BASE) $(INST)/$(ZLIB) $(INST)/$(TERMCAP) \
+$(INST)/$(PYTHON): $(BASE) $(INST)/$(ZLIB) \
 		   $(INST)/$(READLINE) $(INST)/$(SQLITE) \
 		   $(INST)/$(GNUTLS) $(INST)/$(LIBPNG) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(PYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(PYTHON).log"
@@ -215,7 +215,7 @@ $(INST)/$(NTL): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
 $(INST)/$(FPLLL): $(BASE) $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(FPLLL) 2>&1" "tee -a $(SAGE_LOGS)/$(FPLLL).log"
 
-$(INST)/$(PARI): $(BASE) $(INST)/$(TERMCAP) $(INST)/$(READLINE) \
+$(INST)/$(PARI): $(BASE) $(INST)/$(READLINE) \
 		 $(INST)/$(MPIR) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(PARI) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI).log"
 
@@ -268,7 +268,7 @@ $(INST)/$(SYMMETRICA): $(BASE) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(SYMMETRICA) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMMETRICA).log"
 
 # GAP requires Sage so that gap_reset_workspace works:
-$(INST)/$(GAP): $(BASE) $(INST)/$(TERMCAP) $(INST)/$(READLINE) $(INST)/$(SAGE) $(INST)/$(PATCH)
+$(INST)/$(GAP): $(BASE) $(INST)/$(READLINE) $(INST)/$(SAGE) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(GAP) 2>&1" "tee -a $(SAGE_LOGS)/$(GAP).log"
 
 $(INST)/$(IPYTHON): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
@@ -310,7 +310,7 @@ $(INST)/$(MOIN): $(BASE) $(INST)/$(PYTHON) $(INST)/$(EXTCODE) \
 		 $(INST)/$(SAGENB) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(MOIN) 2>&1" "tee -a $(SAGE_LOGS)/$(MOIN).log"
 
-$(INST)/$(SQLITE): $(BASE) $(INST)/$(TERMCAP) $(INST)/$(READLINE) $(INST)/$(PATCH)
+$(INST)/$(SQLITE): $(BASE) $(INST)/$(READLINE) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(SQLITE) 2>&1" "tee -a $(SAGE_LOGS)/$(SQLITE).log"
 
 $(INST)/$(MERCURIAL): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
@@ -328,7 +328,7 @@ $(INST)/$(SETUPTOOLS): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(SETUPTOOLS) 2>&1" "tee -a $(SAGE_LOGS)/$(SETUPTOOLS).log"
 
 $(INST)/$(SINGULAR): $(BASE) $(INST)/$(MPIR) $(INST)/$(NTL) \
-		     $(INST)/$(TERMCAP) $(INST)/$(READLINE) $(INST)/$(MPFR)  $(INST)/$(PATCH)
+		     $(INST)/$(READLINE) $(INST)/$(MPFR)  $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(SINGULAR) 2>&1" "tee -a $(SAGE_LOGS)/$(SINGULAR).log"
 
 $(INST)/$(PYCRYPTO): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
@@ -371,7 +371,7 @@ $(INST)/$(ECM): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
 $(INST)/$(RATPOINTS): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(RATPOINTS) 2>&1" "tee -a $(SAGE_LOGS)/$(RATPOINTS).log"
 
-$(INST)/$(ECL): $(BASE) $(INST)/$(MPIR) $(INST)/$(TERMCAP) \
+$(INST)/$(ECL): $(BASE) $(INST)/$(MPIR) \
 		$(INST)/$(READLINE) $(INST)/$(BOEHM_GC) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(ECL) 2>&1" "tee -a $(SAGE_LOGS)/$(ECL).log"
 

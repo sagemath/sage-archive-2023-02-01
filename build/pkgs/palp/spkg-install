@@ -25,7 +25,7 @@ for dim in 4 5 6 11; do
 
     sed "s/^#define\s*POLY_Dmax.*/#define POLY_Dmax $dim/" Global.h-template > Global.h
 
-    make
+    $MAKE
     if [ $? -ne 0 ]; then
 	echo "Error building PALP."
 	exit 1
@@ -38,6 +38,14 @@ for dim in 4 5 6 11; do
 	    exit 1
 	fi
     done
+
+    # the next step is important to avert races on older file systems
+    # for example, ext3 has 1-second timestamp granularity!
+    $MAKE cleanall
+    if [ $? -ne 0 ]; then
+	echo "Error building PALP."
+	exit 1
+    fi
 done
 
 # symlinks for the default dimension

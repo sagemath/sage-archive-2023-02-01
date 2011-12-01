@@ -16,18 +16,9 @@ else
   mv -f src/GNUmakefile src/Makefile
 fi
 
-# HACK: work around nested function compile error
-# This is a GNU C extension that needs to be enabled explicitly at least on OSX
+# Remove some dead code that uses a GNU C extension that breaks on OSX
 # see http://trac.sagemath.org/sage_trac/ticket/12055#comment:31
-if [ "$UNAME" = "Darwin" ]; then
-    mv -f src/Makefile src/Makefile-backup
-    sed 's/^CFLAGS=/CFLAGS=-fnested-functions /g' src/Makefile-backup > src/Makefile
-    if [ $? -ne 0 ]; then
-	echo "Error patching PALP."
-	exit 1
-    fi
-    rm src/Makefile-backup
-fi
+cp -p patches/Polynf.c src/Polynf.c
 
 cd src
 mv Global.h Global.h-template

@@ -6,6 +6,10 @@
 if [ "x$SAGE64" = xyes ] ; then
   echo "Creating a 64-bit version of PALP"
   sed 's/^CFLAGS=/CFLAGS=-m64 /g' src/GNUmakefile > src/Makefile
+  if [ $? -ne 0 ]; then
+      echo "Error patching PALP."
+      exit 1
+  fi
   # We must delete src/GNUmakefile, otherwise that gets used in preference to Makefile.
   rm src/GNUmakefile
 else
@@ -15,13 +19,14 @@ fi
 # HACK: work around nested function compile error
 # This is a GNU C extension that needs to be enabled explicitly at least on OSX
 # see http://trac.sagemath.org/sage_trac/ticket/12055#comment:31
-mv -f src/Makefile src/Makefile-backup
-sed 's/^CFLAGS=/CFLAGS=-fnested-functions /g' src/Makefile-backup > src/Makefile
-rm src/Makefile-backup
-
-if [ $? -ne 0 ]; then
-    echo "Error patching PALP."
-    exit 1
+if [ "$UNAME" = "Darwin" ]; then
+    mv -f src/Makefile src/Makefile-backup
+    sed 's/^CFLAGS=/CFLAGS=-fnested-functions /g' src/Makefile-backup > src/Makefile
+    if [ $? -ne 0 ]; then
+	echo "Error patching PALP."
+	exit 1
+    fi
+    rm src/Makefile-backup
 fi
 
 cd src

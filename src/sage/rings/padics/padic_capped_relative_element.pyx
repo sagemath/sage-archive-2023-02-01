@@ -1961,9 +1961,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
           is 'simple' or 'smallest', and elements of self.parent() if lift_mode is
           'teichmuller'.
 
-        NOTE:
+        .. NOTE::
 
-        Use slice operators to get a particular range.
+            Use slice operators to get a particular range.
 
         EXAMPLES::
 
@@ -1999,7 +1999,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         TESTS:
 
-        Check to see that #10292 is resolved.
+        Check to see that #10292 is resolved::
 
             sage: E = EllipticCurve('37a')
             sage: R = E.padic_regulator(7)

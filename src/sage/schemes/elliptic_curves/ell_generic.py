@@ -2836,15 +2836,25 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         self._pari_curve = pari(list(self.a_invariants())).ellinit()
         return self._pari_curve
 
-    # This alias is defined so that pari(E) returns exactly the same
-    # as E.pari_curve().  Without it, pari(E) would call the default
-    # _pari_() as defined in sage.structure.sage_object.pyx, which
-    # in turn calls pari(s) where s=E._pari_init_(), as defined in
-    # ell_generic.py, which is just an ellinit() string of the form
-    # 'ellinit([a1,a2,a3,a4,a6])'.  This way gives better control over
-    # the precision of the returned PARI curve: pari(E) will return a
-    # PARI elliptic curve with the highest precision computed by any
-    # previous call to E.pari_curve(), or 53 bits by default if that
-    # function has not previously been called.
-    _pari_ = pari_curve
+    # This method is defined so that pari(E) returns exactly the same
+    # as E.pari_curve().  This works even for classes that inherit from
+    # EllipticCurve_generic, such as EllipticCurve_rational_field.
+    def _pari_(self):
+        """
+        Return the PARI curve corresponding to this elliptic curve
+        with the default precision of 64 bits.
 
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: pari(E)
+            [0, -1, 1, -10, -20, -4, -20, -79, -21, 496, 20008, -161051, -122023936/161051, [4.34630815820539, -1.67315407910270 + 1.32084892226908*I, -1.67315407910270 - 1.32084892226908*I]~, ...]
+            sage: E.pari_curve(prec=64)
+            [0, -1, 1, -10, -20, -4, -20, -79, -21, 496, 20008, -161051, -122023936/161051, [4.34630815820539, -1.67315407910270 + 1.32084892226908*I, -1.67315407910270 - 1.32084892226908*I]~, ...]
+
+        Over a finite field::
+
+            sage: EllipticCurve(GF(2), [0,0,1,1,1])._pari_()
+            [Mod(0, 2), Mod(0, 2), Mod(1, 2), Mod(1, 2), Mod(1, 2), Mod(0, 2), Mod(0, 2), Mod(1, 2), Mod(1, 2), Mod(0, 2), Mod(0, 2), Mod(1, 2), Mod(0, 2), 0, 0, 0, 0, 0, 0]
+        """
+        return self.pari_curve()

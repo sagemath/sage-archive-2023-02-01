@@ -122,6 +122,13 @@ class Animation(SageObject):
             sage: kwds = a._combine_kwds(kwds1, kwds2)
             sage: list(sorted(kwds.items()))
             [('a', 1), ('b', 3), ('xmax', 5), ('xmin', 0)]
+
+        Test that the bug reported in ticket #12107 has been fixed::
+
+            sage: kwds3 = {}
+            sage: kwds4 = {'b':3, 'xmin':0, 'xmax':4}
+            sage: a._combine_kwds(kwds3, kwds4)['xmin']
+            0
         """
         new_kwds = {}
 
@@ -132,7 +139,7 @@ class Animation(SageObject):
         for name in ['xmin', 'xmax', 'ymin', 'ymax']:
             values = [v for v in [kwds.get(name, None) for kwds in kwds_tuple] if v is not None]
             if values:
-                new_kwds[name] = getattr(__builtin__, name[1:])(*values)
+                new_kwds[name] = getattr(__builtin__, name[1:])(values)
         return new_kwds
 
 

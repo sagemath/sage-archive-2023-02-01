@@ -4690,6 +4690,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             [1.0621, 1.0621, 1.0622, 1.0621]
             sage: check(RealField(200)(e), 4)
             [1.2840254166877414840734205680624364583362808652814630892175, 1.2840254166877414840734205680624364583362808652814630892175, 1.2840254166877414840734205680624364583362808652814630892176, 1.2840254166877414840734205680624364583362808652814630892175]
+
+        Check that #12105 is fixed::
+
+            sage: RealField(53)(0.05).nth_root(7 * 10^8)
+            0.999999995720382
         """
         if n <= 0:
             raise ValueError, "n must be positive"
@@ -4706,7 +4711,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         cdef RealField_class fld = <RealField_class>self._parent
 
-        if algorithm == 0 and fld.__prec * n < 10000:
+        if algorithm == 0 and n <= 10000 / fld.__prec:
             # This is a rough estimate for when it is probably
             # faster to call mpfr directly.  (This is a pretty
             # good estimate on one particular machine, a

@@ -187,6 +187,8 @@ usage_advanced() {
     echo "  -merge              -- run Sage's automatic merge and test script"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
+    echo "  -rsyncdist VER      -- build an rsyncable source distribution of Sage (you"
+    echo "                         must first run sage -sdist VER for this to work)"
     echo "  -sdist VER          -- build a source distribution of Sage"
 
     echo
@@ -886,6 +888,15 @@ if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then
        exit 1
    fi
    sage-sdist $2 "$SAGE_ROOT"
+   exit $?
+fi
+
+if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
+   if [ $# -ne 2 ]; then
+       echo >&2 "** MISSING VERSION NUMBER! **"
+       exit 1
+   fi
+   sage-rsyncdist $2
    exit $?
 fi
 

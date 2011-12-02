@@ -170,20 +170,6 @@ echo "Now installing the contained Rpy ($RPY_VER) spkg..."
 # it is present in any case (installed by spkg/base/dir-0.1-install)
 # and the environment is already set up:
 
-# sage -f "$RPY_VER".spkg # EVIL
-
-# Sanity check, should never happen:
-if [ ! -x "$SAGE_LOCAL/bin/sage-spkg" ]; then
-    echo "Error: Fatal dependency error:"
-    echo "    $SAGE_LOCAL/bin/sage-spkg"
-    echp "does not (yet) exist (or isn't executable):"
-    ls -l "$SAGE_LOCAL/bin/sage-spkg"
-    echo "Please report this to one of the Google groups"
-    echo "    sage-devel or sage-release."
-    echo "Error installing Rpy, which is part of the R spkg."
-    exit 1
-fi
-
 # Avoid trouble with pipestatus and spaces in the spkg's pathname:
 export RPY_PKG=$CUR/$RPY_VER.spkg
 

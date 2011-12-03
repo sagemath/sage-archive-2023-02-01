@@ -27,6 +27,10 @@ None. Sources in src are vanilla.
 
 == Changelog ==
 
+=== boehm_gc-7.2.alpha6.p1 (John Palmieri, Dec 2 2011) ===
+ * #11883: fix upgrading from old versions of Sage.  This requires
+   unsetting RM if it's set to 'rm'.
+
 === boehm_gc-7.2.alpha6.p0 (John Palmieri, Sept 30 2011) ===
  * #11883: upgrade to version 7.2.alpha6: according to the web site, the
    previous version "is old enough that you are almost certainly better

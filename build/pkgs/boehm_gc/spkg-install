@@ -24,6 +24,14 @@ fi
 
 cd src
 
+# In order to allow upgrades from older versions of Sage (4.7 or
+# earlier), we should not set $RM to "rm".  See
+# http://trac.sagemath.org/sage_trac/ticket/3537,
+# http://trac.sagemath.org/sage_trac/ticket/11883#comment:13.
+if [ "$RM" = 'rm' ]; then
+   unset RM
+fi
+
 ./configure --prefix=$SAGE_LOCAL --enable-large-config
 
 # See ticket #7336.  We want to set THREADDLLIBS to be nothing.

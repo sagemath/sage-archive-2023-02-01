@@ -3076,13 +3076,39 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: hash(int(n))
             -920384
             sage: n = -920390823904823094890238490238484; n.__hash__()
-            -873977844         # 32-bit
+            -873977844            # 32-bit
             6874330978542788722   # 64-bit
             sage: hash(long(n))
             -873977844            # 32-bit
             6874330978542788722   # 64-bit
 
-        These tests come from trac #4957.
+        TESTS::
+
+            sage: hash(0)
+            0
+            sage: hash(-1)
+            -2
+            sage: n = 2^31 + 2^63 + 2^95 + 2^127 + 2^128*(2^32-2)
+            sage: hash(n) == hash(long(n))
+            True
+            sage: hash(n-1) == hash(long(n-1))
+            True
+            sage: hash(-n) == hash(long(-n))
+            True
+            sage: hash(1-n) == hash(long(1-n))
+            True
+            sage: n = 2^63 + 2^127 + 2^191 + 2^255 + 2^256*(2^64-2)
+            sage: hash(n) == hash(long(n))
+            True
+            sage: hash(n-1) == hash(long(n-1))
+            True
+            sage: hash(-n) == hash(long(-n))
+            True
+            sage: hash(1-n) == hash(long(1-n))
+            True
+
+        These tests come from Trac #4957:
+
             sage: n = 2^31 + 2^13
             sage: hash(n)
             -2147475456               # 32-bit

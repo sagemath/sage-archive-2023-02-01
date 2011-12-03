@@ -177,65 +177,7 @@ mpn_set_pylong (mp_ptr up, mp_size_t un, digit *digits, py_size_t size)
 
 /* Hashing functions */
 
-#define LONG_BIT_SHIFT  (8*sizeof(long) - SHIFT)
-
-/*
- * for an mpz, this number has to be multiplied by the sign
- * also remember to catch -1 and map it to -2 !
- */
-long
-mpn_pythonhash (mp_ptr up, mp_size_t un)
-{
-  mp_limb_t n1, n0;
-  mp_size_t i;
-  int bit_pos;
-  long x = 0;
-
-  /* input length 0 is special ! */
-  if (un == 0) return 0;
-
-  i = un - 1;
-  n1 = up[i];
-  {
-    unsigned long bits;
-    bits = mpn_sizebits(up, un) + SHIFT - 1;
-    bits -= bits % SHIFT;
-    /* position of the MSW in base 2^SHIFT, counted from the MSW in
-     * the GMP representation (in base 2^GMP_NUMB_BITS)
-     */
-    bit_pos = bits - i * GMP_NUMB_BITS;
-  }
-
-  for (;;)
-    {
-      while (bit_pos >= 0)
-        {
-          /* Force a native long #-bits (32 or 64) circular shift */
-          x = ((x << SHIFT) & ~MASK) | ((x >> LONG_BIT_SHIFT) & MASK);
-	  /* Shifting to the right by more than wordsize bits
-             actually shifts by (wordsize % 32) bits -- which is
-             *not* the intended behavior here. */
-	  if (bit_pos <= 8*sizeof(mp_limb_t))
-            x += (n1 >> bit_pos) & MASK;
-          bit_pos -= SHIFT;
-        }
-      i--;
-      if (i < 0)
-        break;
-      n0 = (n1 << -bit_pos) & MASK;
-      n1 = up[i];
-      bit_pos += GMP_NUMB_BITS;
-      /* Force a native long #-bits (32 or 64) circular shift */
-      x = ((x << SHIFT) & ~MASK) | ((x >> LONG_BIT_SHIFT) & MASK);
-      x += n0 | (n1 >> bit_pos);
-      bit_pos -= SHIFT;
-    }
-
-  return x;
-}
-
-#if 0
-/* This is a *very* bad hash...
+/* This is a bad hash...
  * If we decide to give up pylong compatibility, we should research to
  * find a decent (but fast) hash
  *
@@ -244,14 +186,24 @@ mpn_pythonhash (mp_ptr up, mp_size_t un)
  * <http://www.azillionmonkeys.com/qed/hash.html>
  * <http://burtleburtle.net/bob/hash/doobs.html>
  */
+/*
+ * for an mpz, this number has to be multiplied by the sign
+ * also remember to catch -1 and map it to -2 !
+ */
 long
-mpn_fasthash (mp_ptr up, mp_size_t un)
+mpn_pythonhash (mp_ptr up, mp_size_t un)
 {
-  long x=0;
-  int i=un;
-  while (i)
-    x^=up[--i];
-  return x;
+    /* Simply add all limbs */
+    mp_limb_t h = 0;
+    mp_limb_t h0;
+    mp_size_t i;
+    for (i = 0; i < un; i++)
+    {
+        h0 = h;
+        h += up[i];
+        /* Add 1 on overflow */
+        if (h < h0) h++;
+    }
+    return h;
 }
 
-#endif

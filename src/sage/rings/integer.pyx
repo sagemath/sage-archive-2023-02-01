@@ -4002,7 +4002,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         if b % 2 == 1: # an odd power of |n|, and thus self is a power of n
                             return 1
                         else:
-                            return 1
+                            return 0
                     else: # |self| is not a power of |n|, so self cannot be a power of n
                         mpz_clear(u)
                         return 0
@@ -4057,6 +4057,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(1).is_power_of(8)
             True
             sage: Integer(-8).is_power_of(2)
+            False
+            sage: Integer(-81).is_power_of(-3)
             False
 
         .. note::

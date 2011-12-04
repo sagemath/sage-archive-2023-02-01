@@ -1778,18 +1778,32 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: g = DiGraph({0:[2], 1:[3], 2:[0,1], 3:[2]}); g.is_eulerian()
             True
+            sage: g = DiGraph({0:[1], 1:[2], 2:[0], 3:[]}); g.is_eulerian()
+            True
+            sage: g = Graph([(1,2), (2,3), (3,1), (4,5), (5,6), (6,4)]); g.is_eulerian()
+            False
+            sage: g = Graph({0:[], 1:[], 2:[], 3:[]}); g.is_eulerian()
+            True
         """
-        if not self.is_connected():
-            return False
+
+        # unconnected graph can still be eulerian if all components
+        # up to one doesn't contain any edge
+        nontrivial_components = 0
+        for cc in self.connected_components():
+            if len(cc) > 1:
+                nontrivial_components += 1
+            if nontrivial_components > 1:
+                return False
+
         if self._directed:
-            for i in self.vertex_iterator():
+            for v in self.vertex_iterator():
                 # loops don't matter since they count in both the in and out degree.
-                if self.in_degree(i) != self.out_degree(i):
+                if self.in_degree(v) != self.out_degree(v):
                     return False
         else:
-            for i in self.degree_iterator():
+            for deg in self.degree_iterator():
                 # loops don't matter since they add an even number to the degree
-                if i % 2 != 0:
+                if deg % 2 != 0:
                     return False
         return True
 

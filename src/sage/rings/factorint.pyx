@@ -24,6 +24,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.fast_arith import prime_range
 from sage.structure.factorization_integer import IntegerFactorization
 from math import floor
+from sage.misc.superseded import deprecated_function_alias
 
 cdef extern from "limits.h":
     long LONG_MAX
@@ -103,36 +104,7 @@ cpdef aurifeuillian(n, m, F=None):
     Fm = R(F.sqrt()*R(-1/m*tmp).exp()).round()
     return [Fm, Integer(round(F//Fm))]
 
-cpdef base_exponent(n):
-    r"""
-    Returns base and prime exponent of `n` if `n` is power.
-    Otherwise return `n, 1`.
-
-    INPUT:
-
-    - ``n`` - integer
-
-    OUTPUT:
-
-    - ``base, exp`` - where ``n = base^exp`` and ``exp`` is prime or 1
-
-    EXAMPLES:
-        sage: from sage.rings.factorint import base_exponent
-        sage: base_exponent(101**29)
-        (101, 29)
-        sage: base_exponent(0)
-        (0, 1)
-        sage: base_exponent(-4)
-        (-4, 1)
-        sage: base_exponent(-27)
-        (-3, 3)
-    """
-    if n != 0:
-        for p in prime_range(2 if n > 0 else 3,int(abs(n).log(2)+1)):
-            tmp = n.nth_root(p,truncate_mode=1)
-            if tmp[1]:
-                return tmp[0], p
-    return n,1
+base_exponent = deprecated_function_alias(12116, lambda n: n.perfect_power())
 
 cpdef factor_aurifeuillian(n):
     r"""
@@ -173,10 +145,7 @@ cpdef factor_aurifeuillian(n):
     cdef int exp = 1
     for x in [-1, 1]:
         b = n + x
-        while b.is_power():
-            tmp = base_exponent(b)
-            b = tmp[0]
-            exp *= tmp[1]
+        b, exp = b.perfect_power()
         if exp > 1:
             if not b.is_prime():
                 continue

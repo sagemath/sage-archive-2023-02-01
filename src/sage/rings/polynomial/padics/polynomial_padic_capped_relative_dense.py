@@ -396,44 +396,50 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
     def __getitem__(self, n):
         """
-        Returns the coefficient of x^n
+        Returns the coefficient of x^n if `n` is an integer,
+        returns the monomials of self of degree in slice `n` if `n` is a slice.
 
-        EXAMPLES:
+        EXAMPLES::
+
         sage: K = Qp(13,7)
         sage: R.<t> = K[]
         sage: a = 13^7*t^3 + K(169,4)*t - 13^4
         sage: a[1]
         13^2 + O(13^4)
-        """
-        if n >= len(self._relprecs):
-            return self.base_ring()(0)
-        if not self._list is None:
-            return self._list[n]
-        return self.base_ring()(self.base_ring().prime_pow(self._valbase) * self._poly[n], absprec = self._valbase + self._relprecs[n])
-
-    def __getslice__(self, i, j):
-        """
-        EXAMPLES:
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: a = 13^7*t^3 + K(169,4)*t - 13^4
         sage: a[1:2]
         (13^2 + O(13^4))*t
         """
-        if i < 0:
-            i = len(self._relprecs) + i
-            if i < 0:
-                raise IndexError, "list index out of range"
-        if j > len(self._relprecs):
-            j = len(self._relprecs)
-        elif j < 0:
-            j = len(self._relprecs) + j
-            if j < 0:
-                raise IndexError, "list index out of range"
-        if i >= j:
-            return Polynomial_padic_capped_relative_dense(self.parent(), [])
+        if isinstance(n, slice):
+            start, stop = n.start, n.stop
+            if start is None:
+                start = 0
+            elif start < 0:
+                start = len(self._relprecs) + start
+                if start < 0:
+                    raise IndexError("list index out of range")
+            if stop > len(self._relprecs) or stop is None:
+                stop = len(self._relprecs)
+            elif stop < 0:
+                stop = len(self._relprecs) + stop
+                if stop < 0:
+                    raise IndexError("list index out of range")
+            if start >= stop:
+                return Polynomial_padic_capped_relative_dense(self.parent(), [])
+            else:
+                return Polynomial_padic_capped_relative_dense(self.parent(),
+                    (self._poly[start:stop], self._valbase,
+                    [infinity]*start + self._relprecs[start:stop], False,
+                    None if self._valaddeds is None else [infinity]*start
+                    + self._valaddeds[start:stop],
+                    None if self._list is None else [self.base_ring()(0)]
+                    * start + self._list[start:stop]), construct = True)
         else:
-            return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly[i:j], self._valbase, [infinity]*i + self._relprecs[i:j], False, None if self._valaddeds is None else [infinity]*i + self._valaddeds[i:j], None if self._list is None else [self.base_ring()(0)] * i + self._list[i:j]), construct = True)
+            if n >= len(self._relprecs):
+                return self.base_ring()(0)
+            if not self._list is None:
+                return self._list[n]
+            return self.base_ring()(self.base_ring().prime_pow(self._valbase)
+                * self._poly[n], absprec = self._valbase + self._relprecs[n])
 
     def _add_(self, right):
         """

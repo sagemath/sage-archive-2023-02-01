@@ -3471,7 +3471,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
     def __getitem__(self, i):
         """
-        Return the `i^{th}` decomposition factor of self.
+        Returns the `i^{th}` decomposition factor of self
+        or returns the slice `i` of decompositions of self.
 
         EXAMPLES::
 
@@ -3488,15 +3489,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Simple abelian subvariety 389c(1,389) of dimension 3 of J0(389)
             sage: J[-1]
             Simple abelian subvariety 389e(1,389) of dimension 20 of J0(389)
-        """
-        return self.decomposition()[i]
-
-    def __getslice__(self, i, j):
-        """
-        The slice i:j of decompositions of self.
-
-        EXAMPLES::
-
             sage: J = J0(125); J.decomposition()
             [
             Simple abelian subvariety 125a(1,125) of dimension 2 of J0(125),
@@ -3509,8 +3501,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Simple abelian subvariety 125b(1,125) of dimension 2 of J0(125)
             ]
         """
-        return self.decomposition()[i:j]
-
+        return self.decomposition()[i]
 
 
 class ModularAbelianVariety(ModularAbelianVariety_abstract):

@@ -366,13 +366,15 @@ cdef class Polynomial_rational_flint(Polynomial):
         mpz_set_si(deg.value, fmpq_poly_degree(self.__poly))
         return deg
 
-    def __getitem__(self, long n):
+    def __getitem__(self, n):
         """
-        Returns the `n`th coefficient of self.
+        Returns coefficient of the monomial of degree `n` if `n` is an integer,
+        returns the monomials of self of degree in slice `n` if `n` is a slice.
 
         INPUT:
 
         - ``n`` - Degree of the monomial whose coefficient is to be returned
+                  or a slice.
 
         EXAMPLES::
 
@@ -380,37 +382,22 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f = 1 + t + t^2/2 + t^3/3 + t^4/4
             sage: f[-1], f[0], f[3], f[5]            # indirect doctest
             (0, 1, 1/3, 0)
-        """
-        cdef Rational z = PY_NEW(Rational)
-        if 0 <= n and n < fmpq_poly_length(self.__poly):
-            fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
-        return z
-
-    def __getslice__(self, long i, long j):
-        """
-        Returns the subpolynomial of self from the `i`th to the `j`th
-        coefficient, where the lower bound is inclusive and the upper bound
-        is exclusive.
-
-        INPUT:
-
-        - ``i`` - Lower index for the slice
-        - ``j`` - Upper index for the slice
-
-        EXAMPLES::
-
-            sage: R.<t> = QQ[]
-            sage: f = 1 + t + t^2/2 + t^3/3 + t^4/4
             sage: f[1:3]                             # indirect doctest
             1/2*t^2 + t
         """
+        cdef Rational z = PY_NEW(Rational)
         cdef Polynomial_rational_flint res = self._new()
         cdef bint do_sig = _do_sig(self.__poly)
-
-        if do_sig: sig_on()
-        fmpq_poly_getslice(res.__poly, self.__poly, i, j)
-        if do_sig: sig_off()
-        return res
+        if isinstance(n, slice):
+            start, stop, step = n.indices(len(list(self)))
+            if do_sig: sig_on()
+            fmpq_poly_getslice(res.__poly, self.__poly, start, stop)
+            if do_sig: sig_off()
+            return res
+        else:
+            if 0 <= n and n < fmpq_poly_length(self.__poly):
+                fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
+            return z
 
     cpdef _unsafe_mutate(self, unsigned long n, value):
         """

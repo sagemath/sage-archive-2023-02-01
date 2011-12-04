@@ -281,9 +281,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return Polynomial_integer_dense_ntl, \
                (self.parent(), self.list(), False, self.is_gen())
 
-    def __getitem__(self, long n):
+    def __getitem__(self, n):
         r"""
-        Returns coefficient of `x^n`, or zero if n is negative.
+        Returns coefficient of the monomial of degree `n` if `n` is an integer,
+        returns the monomials of self of degree in slice `n` if `n` is a slice.
 
         EXAMPLES::
 
@@ -299,21 +300,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             0
             sage: f[-1]
             0
-        """
-        cdef Integer z = PY_NEW(Integer)
-        if n < 0 or n > ZZX_deg(self.__poly):
-            return z
-        else:
-            # Note that the NTL documentation blesses this direct access of the "rep" member in ZZX.txt.
-            #  Check the "Miscellany" section.
-            ZZ_to_mpz(&z.value, &self.__poly.rep.elts()[n])
-            return z
-
-    def __getslice__(self, long i, long j):
-        r"""
-        EXAMPLES::
-
-            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
             sage: f = 1 + x + 2*x^2 + 3*x^3 + 4*x^4 + 5*x^5
             sage: f[2:4]
             3*x^3 + 2*x^2
@@ -322,12 +308,24 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f[4:100]
             5*x^5 + 4*x^4
         """
+        cdef Integer z = PY_NEW(Integer)
         cdef long k
-        i = max(0, i)
-        j = min(j, self.degree()+1)
-        v = [self[k] for k from i <= k < j]
-        P = self.parent()
-        return P([0] * int(i) + v)
+        if isinstance(n, slice):
+            start, stop = n.start, n.stop
+            if stop > self.degree() + 1 or stop is None:
+                stop = self.degree() + 1
+            start = max(0, start)
+            v = [self[k] for k from start <= k < stop]
+            P = self.parent()
+            return P([0] * int(start) + v)
+        else:
+            if n < 0 or n > ZZX_deg(self.__poly):
+                return z
+            else:
+                # Note that the NTL documentation blesses this direct access of the "rep" member in ZZX.txt.
+                #  Check the "Miscellany" section.
+                ZZ_to_mpz(&z.value, &self.__poly.rep.elts()[n])
+            return z
 
     def _repr(self, name=None, bint latex=False):
         """

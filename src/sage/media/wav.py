@@ -312,10 +312,18 @@ class Wave(SageObject):
 
         return list_plot(points, plotjoined=plotjoined, **kwds)
 
-    # returns the ith frame of data in the wave, in the form of a string
     def __getitem__(self, i):
-        n = i*self._width
-        return self._bytes[n:n+self._width]
+        """
+        Returns the `i`-th frame of data in the wave, in the form of a string,
+        if `i` is an integer.
+        Returns a slice of self if `i` is a slice.
+        """
+        if isinstance(i, slice):
+            start, stop, step = i.indices(self._nframes)
+            return self._copy(start, stop)
+        else:
+            n = i*self._width
+            return self._bytes[n:n+self._width]
 
     def slice_seconds(self, start, stop):
         """
@@ -332,9 +340,6 @@ class Wave(SageObject):
         start = int(start*self.getframerate())
         stop = int(stop*self.getframerate())
         return self[start:stop]
-
-    def __getslice__(self, start, stop):
-        return self._copy(start, stop)
 
     # start and stop are frame numbers
     def _copy(self, start, stop):

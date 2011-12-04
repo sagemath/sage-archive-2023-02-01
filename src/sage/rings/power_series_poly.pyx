@@ -328,12 +328,8 @@ cdef class PowerSeries_poly(PowerSeries):
         elif n > self.__f.degree():
             if self._prec > n:
                 return self.base_ring()(0)
-            #elif isinstance(n, slice):
-                # It makes no sense that this is needed and that
-                # __getslice__ isn't just called by default...
-            #    return self.__getslice__(slice[0],slice[1])
             else:
-                raise IndexError, "coefficient not known"
+                raise IndexError("coefficient not known")
         return self.__f[n]
 
     def __iter__(self):

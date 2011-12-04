@@ -291,7 +291,8 @@ class Polynomial_generic_sparse(Polynomial):
 
     def __getitem__(self,n):
         """
-        Return the n-th coefficient of this polynomial.
+        Return the `n`-th coefficient of this polynomial if `n` is an integer,
+        returns the monomials of self of degree in slice `n` if `n` is a slice.
 
         Negative indexes are allowed and always return 0 (so you can
         view the polynomial as embedding Laurent series).
@@ -308,15 +309,6 @@ class Polynomial_generic_sparse(Polynomial):
             0.0
             sage: f[-1]
             0.0
-        """
-        if not self.__coeffs.has_key(n):
-            return self.base_ring()(0)
-        return self.__coeffs[n]
-
-    def __getslice__(self, i, j):
-        """
-        EXAMPLES::
-
             sage: R.<x> = PolynomialRing(RealField(19), sparse=True)
             sage: f = (2-3.5*x)^3; f
             -42.875*x^3 + 73.500*x^2 - 42.000*x + 8.0000
@@ -327,15 +319,23 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f[2:]
             -42.875*x^3 + 73.500*x^2
         """
-        if i < 0:
-            i = 0
-        v = {}
-        x = self.__coeffs
-        for k in x.keys():
-            if i <= k and k < j:
-                v[k] = x[k]
-        P = self.parent()
-        return P(v)
+        if isinstance(n, slice):
+            start, stop = n.start, n.stop
+            if start < 0:
+                start = 0
+            if stop is None:
+                stop = len(self.__coeffs) + 1
+            v = {}
+            x = self.__coeffs
+            for k in x.keys():
+                if start <= k and k < stop:
+                    v[k] = x[k]
+            P = self.parent()
+            return P(v)
+        else:
+            if not self.__coeffs.has_key(n):
+                return self.base_ring()(0)
+            return self.__coeffs[n]
 
     def _unsafe_mutate(self, n, value):
         r"""

@@ -220,15 +220,26 @@ class SteinWatkinsAllData:
     def __getitem__(self, N):
         """
         Return the curves of conductor N in this table. (Very slow!)
+        Return all data about curves between the given levels in this
+        database file.
         """
         X = []
-        for C in self:
-            M = C.conductor
-            if M == N:
-                X.append(C)
-            elif M > N:
-                return X
-        return X
+        if isinstance(N, slice):
+            min_level, max_level, step = N.indices(len(list(self)))
+            for C in self:
+                M = C.conductor
+                if M >= min_level and M <= max_level:
+                    X.append(C)
+                elif M > max_level:
+                    return X
+        else:
+            for C in self:
+                M = C.conductor
+                if M == N:
+                    X.append(C)
+                elif M > N:
+                    return X
+            return X
 
     def iter_levels(self):
         """
@@ -253,19 +264,6 @@ class SteinWatkinsAllData:
             else:
                 C.append(E)
         yield C
-
-    def __getslice__(self, min_level, max_level):
-        """
-        Return all data about curves between the given levels in this
-        database file.
-        """
-        X = []
-        for C in self:
-            M = C.conductor
-            if M >= min_level and M <= max_level:
-                X.append(C)
-            elif M > max_level:
-                return X
 
 
 class SteinWatkinsPrimeData(SteinWatkinsAllData):

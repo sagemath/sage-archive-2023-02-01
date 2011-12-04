@@ -145,21 +145,13 @@ class Animation(SageObject):
 
     def __getitem__(self, i):
         """
-        Get a frame from an animation.
+        Get a frame from an animation or
+        slice this animation returning a subanimation.
 
         EXAMPLES::
 
             sage: a = animate([x, x^2, x^3, x^4])
             sage: a[2].show()       # optional -- ImageMagick
-        """
-        return self.__frames[i]
-
-    def __getslice__(self, *args):
-        """
-        Slice this animation returning a subanimation.
-
-        EXAMPLES::
-
             sage: a = animate([circle((i,-i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
             ...               xmin=0,ymin=-2,xmax=2,ymax=0,figsize=[2,2])
             sage: a
@@ -169,7 +161,10 @@ class Animation(SageObject):
             Animation with 4 frames
             sage: a[3:7].show() # optional -- ImageMagick
         """
-        return Animation(self.__frames.__getslice__(*args), **self.__kwds)
+        if isinstance(i, slice):
+            return Animation(self.__frames[i], **self.__kwds)
+        else:
+            return self.__frames[i]
 
     def _repr_(self):
         """

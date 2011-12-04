@@ -323,7 +323,9 @@ class ModularForm_abstract(ModuleElement):
 
     def __getitem__(self, n):
         """
-        Return the `q^n` coefficient of the `q`-expansion of self.
+        Returns the `q^n` coefficient of the `q`-expansion of self or
+        returns a list containing the `q^i` coefficients of self
+        where `i` is in slice `n`.
 
         EXAMPLES::
 
@@ -332,31 +334,20 @@ class ModularForm_abstract(ModuleElement):
             zeta8^3 - 5*zeta8^2 - 2*zeta8 + 10
             sage: f[30]
             -2*zeta8^3 - 17*zeta8^2 + 4*zeta8 + 29
-        """
-        return self.q_expansion(n+1)[int(n)]
-
-    def __getslice__(self, i, j):
-        """
-        Return a list containing the `q^i` through `q^j` coefficients of self.
-
-        EXAMPLES::
-
-            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
             sage: f[10:15]
             [zeta8^3 - 5*zeta8^2 - 2*zeta8 + 10,
             -zeta8^3 + 11,
             -2*zeta8^3 - 6*zeta8^2 + 3*zeta8 + 9,
             12,
             2*zeta8^3 - 7*zeta8^2 + zeta8 + 14]
-
-            sage: f.__getslice__(10,15)
-            [zeta8^3 - 5*zeta8^2 - 2*zeta8 + 10,
-            -zeta8^3 + 11,
-            -2*zeta8^3 - 6*zeta8^2 + 3*zeta8 + 9,
-            12,
-            2*zeta8^3 - 7*zeta8^2 + zeta8 + 14]
         """
-        return self.q_expansion(j+1).list()[int(i):int(j)]
+        if isinstance(n, slice):
+            if n.stop is None:
+                return self.q_expansion().list()[n]
+            else:
+                return self.q_expansion(n.stop+1).list()[n]
+        else:
+            return self.q_expansion(n+1)[int(n)]
 
     def padded_list(self, n):
         """

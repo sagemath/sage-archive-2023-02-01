@@ -1,6 +1,16 @@
---- src/Makefile.pre.in	2009-09-24 12:22:45.000000000 -0700
-+++ patches/Makefile.pre.in	2010-05-25 15:29:26.000000000 -0700
-@@ -57,7 +57,7 @@
+diff -r -u src/Makefile.pre.in src.patched/Makefile.pre.in
+--- src/Makefile.pre.in	2010-05-26 00:40:33.000000000 +0200
++++ src.patched/Makefile.pre.in	2011-11-30 13:55:40.000000000 +0100
+@@ -49,15 +49,14 @@
+ INSTALL_DATA=	@INSTALL_DATA@
+ # Shared libraries must be installed with executable mode on some systems;
+ # rather than figuring out exactly which, we always give them executable mode.
+-# Also, making them read-only seems to be a good idea...
+-INSTALL_SHARED= ${INSTALL} -m 555
++INSTALL_SHARED= ${INSTALL} -m 755
+ 
+ MAKESETUP=      $(srcdir)/Modules/makesetup
+ 
  # Compiler options
  OPT=		@OPT@
  BASECFLAGS=	@BASECFLAGS@
@@ -9,7 +19,7 @@
  # Both CPPFLAGS and LDFLAGS need to contain the shell's value for setup.py to
  # be able to build extension modules using the directories specified in the
  # environment variables
-@@ -86,8 +86,8 @@
+@@ -86,8 +85,8 @@
  datarootdir=    @datarootdir@
  
  # Expanded directories
@@ -20,7 +30,7 @@
  MANDIR=		@mandir@
  INCLUDEDIR=	@includedir@
  CONFINCLUDEDIR=	$(exec_prefix)/include
-@@ -394,8 +394,8 @@
+@@ -394,8 +393,8 @@
  # Build the shared modules
  sharedmods: $(BUILDPYTHON)
  	@case $$MAKEFLAGS in \
@@ -31,7 +41,7 @@
  	esac
  
  # Build static library
-@@ -1051,6 +1051,7 @@
+@@ -1051,6 +1050,7 @@
  # install (which includes python-config) happy.
  frameworkinstallmaclib:
  	ln -fs "../../../$(PYTHONFRAMEWORK)" "$(DESTDIR)$(prefix)/lib/python$(VERSION)/config/libpython$(VERSION).a"
@@ -39,10 +49,3 @@
  	cd Mac && $(MAKE) installmacsubtree DESTDIR="$(DESTDIR)"
  
  # This installs the IDE, the Launcher and other apps into /Applications
-@@ -1215,4 +1216,4 @@
- .PHONY: frameworkaltinstallunixtools recheck autoconf clean clobber distclean 
- .PHONY: smelly funny patchcheck
- 
--# IF YOU PUT ANYTHING HERE IT WILL GO AWAY
-+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY
-\ No newline at end of file

@@ -61,9 +61,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-cp patches/Makefile.pre.in src/Makefile.pre.in
+( cd src && patch -p1 <../patches/Makefile.pre.in.patch )
 if [ $? -ne 0 ]; then
-    echo >&2 "Error copying patched Makefile.pre.in"
+    echo >&2 "Error patching Makefile.pre.in"
     exit 1
 fi
 
@@ -203,12 +203,11 @@ build()
         exit 1
     fi
 
-    # running 'make install' in parallel is a bad, bad idea
-    # FIXME: The proper way to disable parallel make is to use
-    #        $MAKE -j1 ... (We rely on GNU make anyway).
-    MAKE=make; export MAKE
-    # the "-i" is crucial, esp. in the case of a major upgrade
-    make -i install
+    # Running 'make install' in parallel is a bad idea, so we use
+    # only 1 job.
+    # The "-i" option to ignore errors is crucial, especially in the
+    # case of a major upgrade.
+    $MAKE -i -j1 install
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing Python."
         exit 1
@@ -238,16 +237,11 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Sleeping for three seconds so that parallel 'make install' catches up
-# with the following test.
-# XXX We have disabled parallel 'make install' above, but never mind.
-echo "Sleeping for three seconds before testing python"
-sleep 3
-
 # Make sure extension modules were built correctly.
 # All these modules are important and if any one
 # fails to build, Sage will not work.
 
+echo "Testing importing of various modules..."
 import_errors=false
 for module in math hashlib crypt ; do
    "$SAGE_LOCAL/bin/python" -c "import $module"
@@ -263,7 +257,7 @@ done
 if $import_errors; then
     echo >&2 "Error: One or more modules failed to import."
     # Check if we are on Debian or one of its derivatives:
-    if command -v dpkg && ! command -v dpkg-architecture >/dev/null; then
+    if { command -v dpkg && ! command -v dpkg-architecture; } >/dev/null; then
         echo >&2 "You may have to install 'dpkg-architecture'"
         echo >&2 "which is part of the Debian package 'dpkg-dev'."
         echo >&2 "Try installing it by typing"

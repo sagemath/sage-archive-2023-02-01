@@ -34,7 +34,10 @@ http://www.python.org/community/
 
 == Dependencies ==
 
- * GNU patch (shipped with Sage)
+ * GNU patch
+ * readline
+ * libpng
+ * SQLite
 
 == Special Update/Build Instructions ==
 
@@ -42,11 +45,8 @@ http://www.python.org/community/
    new spkg. Once we support Windows we will likely need to add them
    back in.
  * We used to block parallel MAKE, but extensive testing [make -j64]
-   showed that there is no longer any problem. The problem was the a
-   parallel 'make install' causes trouble.
-   TODO: Parallel 'make install' isn't disabled properly. See comment
-   in 'spkg-install'. (We should use '$MAKE -j1 ...' instead since we
-   rely on GNU make -- inofficially? -- elsewhere anyway.)
+   showed that there is no longer any problem. The problem is with
+   parallel 'make install', which remains disabled.
  * There are two fixes that can be removed once we update to a
    Python newer than 2.6.4: the readline-spacebug.patch below, and
    the 'unset DISTUTILS_DEBUG' in spkg-install.
@@ -69,9 +69,11 @@ http://www.python.org/community/
    extension problem.
  * sdist.py.patch: Make sure that sdist copies over the .hg directory.
  * socket.py.patch: Work around an SSL issue.
- * Makefile.pre.in.patch:  Fixes http://bugs.python.org/issue1628484
-   This was merged upstream for Python 2.6.6 and 2.7.
- * socketmodule.c Makes sure some things are defined before trying to compile
+ * Makefile.pre.in.patch: Fixes http://bugs.python.org/issue1628484
+   This was merged upstream for Python 2.6.6 and 2.7.  Also changes
+   permission of installed libraries to 0755 (like any other library)
+   instead of 0555.
+ * socketmodule.c: Makes sure some things are defined before trying to compile
    them. This was to work around a failure of _socket to build on OpenSolaris.
    see  http://bugs.python.org/issue8852 and Sage trac #9041 and #9022
  * setup.py.multiarch.patch: Library search dir is expanded on Debian
@@ -81,6 +83,11 @@ http://www.python.org/community/
    when we upgrade to that. But the patch then won't apply anymore anyway.)
 
 == Changelog ==
+
+=== python-2.6.4.p12 (Jeroen Demeyer, 3 December 2011) ===
+ * #12096: properly disable parallel make install by using the "-j1"
+   option to $MAKE.
+ * Install libraries writable, with permission 0755 instead of 0555.
 
 === python-2.6.4.p11 (Jan Medlock and Leif Leonhardy, July 5th, 2011) ===
  * #11447, #11243: crypt also fails to build on Debian Unstable.  This

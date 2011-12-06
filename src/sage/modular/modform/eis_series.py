@@ -340,10 +340,16 @@ def eisenstein_series_lseries(weight, prec=53,
 
        sage: L = eisenstein_series_lseries(16)
        sage: L(1)
-       -0.291657724743873
+       -0.291657724743874
        sage: L = eisenstein_series_lseries(20)
        sage: L(2)
-       -5.02355351645987
+       -5.02355351645998
+
+    Now with higher precision::
+
+        sage: L = eisenstein_series_lseries(20, prec=200)
+        sage: L(2)
+        -5.0235535164599797471968418348135050804419155747868718371029
     """
     f = eisenstein_series_qexp(weight,prec)
     from sage.lfunctions.all import Dokchitser
@@ -353,9 +359,12 @@ def eisenstein_series_lseries(weight, prec=53,
     L = Dokchitser(conductor = 1,
                    gammaV = [0,1],
                    weight = j,
-                   eps = (-1)**Integer((j/2)),
+                   eps = (-1)**Integer(j/2),
                    poles = [j],
-                   residues = [(-1)**Integer((j/2))*(float(pi))**(0.5)*bernoulli(j)/j],
+                   # Using a string for residues is a hack but it works well
+                   # since this will make PARI/GP compute sqrt(pi) with the
+                   # right precision.
+                   residues = '[sqrt(Pi)*(%s)]'%((-1)**Integer(j/2)*bernoulli(j)/j),
                    prec = prec)
 
     s = 'coeff = %s;'%f.list()

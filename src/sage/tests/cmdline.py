@@ -267,6 +267,12 @@ def test_executable(args, input="", timeout=50.0):
         sage: ret
         0
 
+    Check that ``sage-make_relative`` did its job.  We test it on the
+    ``ipython`` script::
+
+        sage: open(os.path.join(SAGE_ROOT, "local", "bin", "ipython")).readline()
+        '#!/usr/bin/env python\n'
+
     Test GP using the ``-f`` option which prevents the reading of a ``.gprc``
     configuration file::
 

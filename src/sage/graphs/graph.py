@@ -1622,9 +1622,9 @@ class Graph(GenericGraph):
         Return a list of edges forming an eulerian circuit if one exists.
         Otherwise return False.
 
-        This is implemented using Fleury's algorithm. This could be
-        extended to find eulerian paths too (check for existence and make
-        sure you start on an odd-degree vertex if one exists).
+        This is implemented using Hierholzer's algorithm.
+        This could be extended to find eulerian paths too (check for existence
+        and make sure you start on an odd-degree vertex if one exists).
 
         INPUT:
 
@@ -1643,52 +1643,68 @@ class Graph(GenericGraph):
 
             sage: g=graphs.CycleGraph(5);
             sage: g.eulerian_circuit()
-            [(0, 1, None), (1, 2, None), (2, 3, None), (3, 4, None), (4, 0, None)]
+            [(0, 4, None), (4, 3, None), (3, 2, None), (2, 1, None), (1, 0, None)]
             sage: g.eulerian_circuit(labels=False)
-            [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
+            [(0, 4), (4, 3), (3, 2), (2, 1), (1, 0)]
             sage: g = graphs.CompleteGraph(7)
             sage: edges, vertices = g.eulerian_circuit(return_vertices=True)
             sage: vertices
-            [0, 1, 2, 0, 3, 1, 4, 0, 5, 1, 6, 2, 3, 4, 2, 5, 3, 6, 4, 5, 6, 0]
+            [0, 6, 5, 4, 6, 3, 5, 2, 4, 3, 2, 6, 1, 5, 0, 4, 1, 3, 0, 2, 1, 0]
             sage: graphs.CompleteGraph(4).eulerian_circuit()
             False
+            sage: g = Graph({0: [], 1: [2], 2: [3], 3: [1], 4: []}); g.eulerian_circuit(labels=False)
+            [(1, 3), (3, 2), (2, 1)]
+            sage: Graph({'H': ['G','L','L','D'], 'L': ['G','D']}).eulerian_circuit(labels=False)
+            [('H', 'D'), ('D', 'L'), ('L', 'G'), ('G', 'H'), ('H', 'L'), ('L', 'H')]
+            sage: Graph({0: [0, 1, 1, 1, 1]}).eulerian_circuit(labels=False)
+            [(0, 1), (1, 0), (0, 1), (1, 0), (0, 0)]
         """
         if not self.is_eulerian():
             return False
 
-        edge_list = []
-        vertex_list = []
+        edges = []
+        vertices = []
+
+        # we'll remove edges as we go, so let's preserve the graph structure
         from copy import copy
         g = copy(self)
 
-        # Get first vertex
-        v = g.vertex_iterator().next()
-        vertex_list.append(v)
-        while g.size()>0:
-            for e in g.edges_incident(v, labels=labels):
-                g.delete_edge(e)
-                if g.is_connected():
-                    break
-                else:
-                    g.add_edge(e)
+        # get the first vertex with degree>0
+        start_vertex = None
+        for v in g.vertex_iterator():
+            if g.degree(v) != 0:
+                start_vertex = v
+                break
+
+        # trivial case of empty graph
+        if start_vertex == None:
+            return ([], []) if return_vertices else []
+
+        # (where to return?, what was the way?)
+        stack = [ (start_vertex, None) ]
+
+        while len(stack) != 0:
+            v, e = stack.pop()
+
+            if g.degree(v) == 0:
+                vertices.append(v)
+                if e != None:
+                    edges.append(e if labels else (e[0], e[1]))
             else:
-                # Our only choice is a cut edge
-                g.delete_edge(e)
-                g.delete_vertex(v)
-            # the following code is here so that we don't rely the
-            # order of vertices in the edge tuple.
-            if v == e[0]:
-                v = e[1]
-            else:
-                v = e[0]
-                e = (e[1], e[0]) + e[2:]
-            edge_list.append(e)
-            vertex_list.append(v)
+                next_edge = g.edge_iterator(v).next()
+                if next_edge[0] == v:
+                    next_edge = (next_edge[1], next_edge[0], next_edge[2])
+                next_vertex = next_edge[0]
+
+                stack.append((v, e))
+                stack.append((next_vertex, next_edge))
+
+                g.delete_edge(next_edge)
 
         if return_vertices:
-            return edge_list, vertex_list
+            return edges, vertices
         else:
-            return edge_list
+            return edges
 
     def is_line_graph(self, certificate = False):
         r"""

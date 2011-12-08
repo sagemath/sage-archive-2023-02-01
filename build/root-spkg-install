@@ -15,9 +15,9 @@ CUR=`pwd`
 TARGET="$SAGE_ROOT"
 
 cd "$TARGET"
-# see if there is a valid Mercurial repository in $SAGE_ROOT
-hg verify 1>/dev/null 2>/dev/null
-if [ $? -eq 0 ]; then  # valid repo
+
+# Check whether there is a valid Mercurial repository in $SAGE_ROOT
+if [ -d .hg ]; then
 
     # Merge the repository, rather than overwrite changes that the
     # user may have made.

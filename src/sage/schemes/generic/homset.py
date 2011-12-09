@@ -156,11 +156,38 @@ class SchemeHomset_affine_coordinates(SchemeHomset_coordinates):
         return morphism.SchemeMorphism_affine_coordinates(self, v)
 
     def points(self, B=0):
+        r"""
+        Return the set of points given by coordinate tuples with coordinates
+        in the base ring.
+
+        INPUT:
+
+        - ``B`` -- an integer.
+
+        OUTPUT:
+
+        - If the base ring is a finite field: the set of points given by
+          coordinate tuples.
+
+        - If the base ring is `\QQ` or `\ZZ`: the subset of points whose
+          coordinates have height ``B`` or less.
+
+        EXAMPLES: The bug reported at #11526 is fixed::
+
+            sage: R = ZZ
+            sage: A.<x,y> = R[]
+            sage: I = A.ideal(x^2-y^2-1)
+            sage: V = AffineSpace(R,2)
+            sage: X = V.subscheme(I)
+            sage: M = X(R)
+            sage: M.points(1)
+            [(-1, 0), (1, 0)]
+        """
         try:
             R = self.value_ring()
         except TypeError:
             raise TypeError, "Domain of argument must be of the form Spec(S)."
-        if is_RationalField(R) or R == Z:
+        if is_RationalField(R) or R == ZZ:
             if not B > 0:
                 raise TypeError, "A positive bound B (= %s) must be specified."%B
             from sage.schemes.generic.rational_point import enum_affine_rational_field
@@ -219,7 +246,7 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
             R = self.value_ring()
         except TypeError:
             raise TypeError, "Domain of argument must be of the form Spec(S)."
-        if R == Z:
+        if R == ZZ:
             if not B > 0:
                 raise TypeError, "A positive bound B (= %s) must be specified."%B
             from sage.schemes.generic.rational_points import enum_projective_rational_field

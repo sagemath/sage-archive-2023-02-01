@@ -147,19 +147,28 @@ fi
 # to tty).  Solution:
 trap '' TTOU
 
-# A reasonably sophisticated test is performed in a configure
-# script, which checks compilers exist, their version numbers,
-# the fact GNU and non-GNU compilers are not mixed etc.
+# Only run configure if the tarfile exists.  Unfortunately, sage-update
+# does not update the base packages and we cannot retro-actively change
+# that in earlier versions.  So the only thing to do is to skip this
+# test.
+if ! [ -f "../base/$TARGET.tar" ]; then
+    echo >&2 "The file 'spkg/base/$TARGET.tar' does not exist."
+    echo >&2 "Most likely, this is because you upgraded from an old version of Sage."
+    echo >&2 "Since this package only does some checks, it should be okay to continue"
+    echo >&2 "without it.  Skipping prerequisite checks..."
+else
+    tar xf "../base/$TARGET.tar"
 
-tar xvf "../base/$TARGET.tar"
-cd "$TARGET"
+    # A reasonably sophisticated test is performed in a configure
+    # script, which checks compilers exist, their version numbers,
+    # the fact GNU and non-GNU compilers are not mixed etc.
+    cd "$TARGET" && ./configure
 
-./configure
-
-if [ $? -ne 0 ]; then
-    echo " ERROR: You do not have all of the prerequisites needed"
-    echo " to build Sage from source.  See the errors above."
-    exit 1
+    if [ $? -ne 0 ]; then
+        echo >&2 "You do not have all of the prerequisites needed to build Sage"
+        echo >&2 "from source.  See the errors above."
+        exit 1
+    fi
 fi
 
 echo `pwd` | grep " "

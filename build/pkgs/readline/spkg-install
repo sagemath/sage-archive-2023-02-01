@@ -142,7 +142,7 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-./configure --prefix="$SAGE_LOCAL"
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
 if [ $? -ne 0 ]; then
   echo "Error configuring readline."
   exit 1

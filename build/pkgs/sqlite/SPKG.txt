@@ -6,6 +6,9 @@ serverless, zero-configuration, transactional SQL database engine.
 == Upstream contact ==
  * URL: http://www.sqlite.org
 
+=== sqlite-3.7.5.p0 (Simon King, 10th December 2011) ===
+ * #12131: Use --libdir, to make this package work on openSUSE
+
 === sqlite-3.7.5 (David Kirkby, 6th April 2011) ===
  * Updated to the latest upstream release.
    http://www.sqlite.org/sqlite-autoconf-3070500.tar.gz

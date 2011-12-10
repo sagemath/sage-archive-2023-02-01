@@ -67,7 +67,7 @@ echo "                      CPPFLAGS=$CPPFLAGS"
 
 set +e
 
-./configure --prefix="$SAGE_LOCAL"
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
 
 if [ $? -ne 0 ]; then
     echo "Error configuring sqlite"

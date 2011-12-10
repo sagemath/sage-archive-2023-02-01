@@ -431,23 +431,11 @@ fi
 # Now install MPIR:
 ###############################################################################
 
-$MAKE install
+# Serial make since parallel is broken (#12139).
+$MAKE -j1 install
 if [ $? -ne 0 ]; then
+    echo >&2 "Error installing MPIR."
     if [ "$UNAME" != "CYGWIN" ]; then  # On Cygwin an error is not fatal.
-        echo "Error installing MPIR."
-        # XXX This should be a temporary "solution":
-        echo ""
-        echo "If you see a message like:"
-        cat <<EOF
-    cp: cannot stat 'mpir.h': No such file or directory
-    make[6]: *** [install-data-hook] Error 1
-    make[6]: Leaving directory ...
-    make[5]: *** [install-data-am] Error 2
-    make[5]: *** Waiting for unfinished jobs....
-EOF
-        echo "above, this is just due to a rare race condition."
-        echo "Please simply rerun 'make' (or 'sage -i ...')."
-        echo ""
         exit 1
     fi
 fi
@@ -460,6 +448,3 @@ echo "you can rebuild all packages depending on MPIR by typing:"
 echo "    cd $SAGE_ROOT"
 echo "    env SAGE_UPGRADING=yes make"
 echo "but note that this will usually take quite a lot of time."
-
-# All errors catched above, on Cygwin we ignore the last:
-exit 0

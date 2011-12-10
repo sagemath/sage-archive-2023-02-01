@@ -32,7 +32,7 @@ if [ "$RM" = 'rm' ]; then
    unset RM
 fi
 
-./configure --prefix=$SAGE_LOCAL --enable-large-config
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-large-config
 
 # See ticket #7336.  We want to set THREADDLLIBS to be nothing.
 # Rather than hacking the configure.ac file to do the right thing on

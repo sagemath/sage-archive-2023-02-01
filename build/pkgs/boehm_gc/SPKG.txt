@@ -27,6 +27,9 @@ None. Sources in src are vanilla.
 
 == Changelog ==
 
+=== boehm_gc-7.2.alpha6.p2 (Simon King, Dec 10 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE
+
 === boehm_gc-7.2.alpha6.p1 (John Palmieri, Dec 2 2011) ===
  * #11883: fix upgrading from old versions of Sage.  This requires
    unsetting RM if it's set to 'rm'.

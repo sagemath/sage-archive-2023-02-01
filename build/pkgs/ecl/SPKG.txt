@@ -65,6 +65,9 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-11.1.2.cvs20111120.p1 (Simon King, 10 December 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
 === ecl-11.1.2.cvs20111120.p0 (Jeroen Demeyer, 24 November 2011) ===
   * Trac #11884.  Use the CVS snapshot from 2011-11-20.  This is needed
     to make Maxima (and other ECL libraries) compile on OS X 10.4.

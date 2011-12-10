@@ -42,6 +42,9 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
 == Changelog ==
 
+=== readline-6.2.p2 (Volker Braun, 10 Dec 2011) ===
+ * Add configure --libdir (trac #12131).
+
 === readline-6.2.p1 (John Palmieri, 14 Oct 2011) ===
  * Add some notes to SPKG.txt (trac #11882).
 

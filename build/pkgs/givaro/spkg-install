@@ -30,7 +30,7 @@ CXXFLAGS="$CXXFLAGS -fPIC -I\"$SAGE_LOCAL/include\""
 export CFLAGS
 export CXXFLAGS
 
-./configure --prefix=$SAGE_LOCAL --with-gmp="$SAGE_LOCAL/" --enable-shared
+./configure --prefix=$SAGE_LOCAL --libdir="$SAGE_LOCAL/lib" --with-gmp="$SAGE_LOCAL/" --enable-shared
 
 if [ $? -ne 0 ]; then
     echo "Error configuring givaro"

@@ -23,6 +23,9 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.6.p6 (Simon King, December 10th, 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
 === linbox-1.1.6.p5 (Martin Albrecht, October 10th, 2011) ===
  * removed spkg-rebuild
  * removed spkg-debian and the dist directory

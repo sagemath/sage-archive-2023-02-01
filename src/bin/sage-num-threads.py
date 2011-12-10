@@ -40,10 +40,12 @@ def number_of_cores():
         pass
 
     try:  # Solaris fix
-        n = int(os.popen2("sysctl -n hw.ncpu")[1].read().strip())
+        from subprocess import Popen, PIPE
+        p = Popen(['sysctl','-n','hw.ncpu'], stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
+        n = int(p.stdout.read().strip())
         if n > 0:
             return n
-    except ValueError:
+    except (ValueError, OSError):
         pass
 
     return 1
@@ -84,7 +86,7 @@ def parse_jobs_from_MAKE(MAKE, unlimited=999999):
 
     # Next, find the value of -l
     # If it is specified, use this as an upper bound on j
-    (l,num) = re.subn(r'^(.* )?(-l *|--load-average(=(?=[0-9])| +))([0-9.]*)( .*?)?$', r'\4', MAKE, count=1)
+    (l,num) = re.subn(r'^(.* )?(-l *|--(load-average|max-load)(=(?=[0-9])| +))([0-9.]*)( .*?)?$', r'\5', MAKE, count=1)
     if num < 1:
         # No replacement done, i.e. no -l option found
         pass

@@ -95,7 +95,7 @@ build()
          EXTRA="--disable-static --enable-shared"
     fi
 
-    ./configure --prefix=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL \
+    ./configure --prefix=$SAGE_LOCAL --libdir="$SAGE_LOCAL/lib" --with-gmp=$SAGE_LOCAL \
                  CFLAGS="$CFLAGS $SHAREDFLAGS -O2" CXX="$CXX" \
                  CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS" \
                  GMP_PREFIX="$SAGE_LOCAL" $EXTRA

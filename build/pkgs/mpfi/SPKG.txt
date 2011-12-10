@@ -10,6 +10,9 @@ PACKAGE MAINTAINER: Carl Witty (cwitty@newtonlabs.com)?
 
 == Changelog==
 
+=== mpfi-1.3.4-cvs20071125.p9 (Simon King, December 10th, 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
 === mpfi-1.3.4-cvs20071125.p8 (Jaap Spies, January 26th, 2010) ===
  * Make 64 bit Open Solaris work
 

@@ -17,7 +17,7 @@ fi
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL" --with-mpfr-dir="$SAGE_LOCAL" --with-gmp-dir="$SAGE_LOCAL"
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-mpfr-dir="$SAGE_LOCAL" --with-gmp-dir="$SAGE_LOCAL"
 
 if [ $? -ne 0 ]; then
     echo "Error configuring mpfi"

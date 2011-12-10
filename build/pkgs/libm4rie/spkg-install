@@ -50,7 +50,7 @@ export LDFLAGS
 # build M4RIE
 
 cd $ROOT_DIR/m4rie/
-$ROOT_DIR/m4rie/configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG
+$ROOT_DIR/m4rie/configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $ENABLE_DEBUG
 
 if [ $? -ne 0 ]; then
     echo "Error configuring libm4rie"

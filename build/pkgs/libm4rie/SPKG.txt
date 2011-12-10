@@ -30,6 +30,9 @@ GF(2^k) for 2 <= k <= 16.
 
 == Releases/Changelog ==
 
+=== libm4rie-20111004.p0 (Simon King, December 10th, 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
 === libm4rie-20111004 (Martin Albrecht, October 4th, 2011) ===
  * new upstream release
 

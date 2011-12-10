@@ -84,6 +84,9 @@ http://www.python.org/community/
 
 == Changelog ==
 
+=== python-2.6.4.p13 (Simon King, 10 December 2011) ===
+ * #12131: use --libdir, to make the package work on openSUSE.
+
 === python-2.6.4.p12 (Jeroen Demeyer, 3 December 2011) ===
  * #12096: properly disable parallel make install by using the "-j1"
    option to $MAKE.

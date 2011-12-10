@@ -170,24 +170,24 @@ build()
         if [ "x$SAGE64" = xyes ]; then
             echo "64 bit OSX build enabled"
             OPT="-g -O3 -m64 -Wall -Wstrict-prototypes"; export OPT
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" \
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
 	    --enable-unicode=ucs4 --with-gcc="gcc -m64" --disable-toolbox-glue
         else
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  \
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
 	    --enable-unicode=ucs4 --disable-toolbox-glue
         fi
     elif [ `uname` = "SunOS" ]; then
         if [ "x$SAGE64" = xyes ]; then
             echo "64 bit Open Solaris build enabled"
             OPT="-g -O3 -m64 -Wall -Wstrict-prototypes"; export OPT
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  \
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  --libdir="$SAGE_LOCAL/lib" \
             --enable-unicode=ucs4 --with-gcc="gcc -m64"
         else
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  \
+            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  --libdir="$SAGE_LOCAL/lib" \
             --enable-unicode=ucs4
         fi
     else
-        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  --enable-unicode=ucs4 \
+        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"  --enable-unicode=ucs4 \
             CC="$CC $CFLAGS" CXX="$CXX $CXXFLAGS"
     fi
 

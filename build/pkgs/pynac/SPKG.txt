@@ -32,6 +32,9 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.3.p0 (Simon King, December 10, 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
 === pynac-0.2.3 (Burcin Erocal, May 31, 2011) ===
  * Fix tests for custom evaluation functions defined in Python to use
    bitwise and (Sage issue #9240)

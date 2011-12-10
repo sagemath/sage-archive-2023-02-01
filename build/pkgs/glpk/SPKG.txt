@@ -41,6 +41,9 @@ http://www.gnu.org/software/glpk/#maintainer
 
 == Changelog ==
 
+=== glpk-4.44.p0 (Simon King, 10th December 2011) ==
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
 == glpk-4.44 (Nathann Cohen, 5th July 2010) ==
 
  * Removed the patch/ directory which was only useful for backward

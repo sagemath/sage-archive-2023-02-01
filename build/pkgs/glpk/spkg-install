@@ -39,7 +39,7 @@ fi
 
 cd src
 
-./configure --prefix=$SAGE_LOCAL --with-gmp --with-zlib --disable-static
+./configure --prefix=$SAGE_LOCAL --libdir="$SAGE_LOCAL/lib" --with-gmp --with-zlib --disable-static
 
 if [ $? -ne 0 ]; then
     echo "An error occurred whilst configuring GLPK"

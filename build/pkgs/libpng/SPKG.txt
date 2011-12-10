@@ -36,6 +36,9 @@ This spkg provides dependencies for
 
 == Changelog ==
 
+=== libpng-1.2.35.p4 (Simon King, 10th December 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
 === libpng-1.2.35.p3 (David Kirkby 1st April 2011) ===
  * Remove the erronous file '.#spkg-install' in the root
    directory of the package.

@@ -23,7 +23,7 @@ CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 export CPPFLAGS
 
 
-./configure --prefix="$SAGE_LOCAL" --enable-shared=yes
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-shared=yes
 if [ $? -ne 0 ]; then
     echo "Error configuring libpng"
     exit 1

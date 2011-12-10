@@ -35,7 +35,7 @@ done
 
 echo
 echo "Now configuring Maxima..."
-./configure --prefix="$SAGE_LOCAL" --enable-ecl
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-ecl
 check_error "Failed to configure Maxima."
 
 # Touching html and info files to avoid to regenerate them.

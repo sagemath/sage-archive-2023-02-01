@@ -42,6 +42,9 @@ COPYING.
 
 == Changelog ==
 
+=== maxima-5.23.2.p3 (Simon King, December 10th, 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
 === maxima-5.23.2.p2 (Leif Leonhardy, November 3rd 2011) ===
  * Trac #11966: Modification so that Sage will build on Lion.
    Actually the new patch isn't specific to MacOS X 10.7 / Lion,

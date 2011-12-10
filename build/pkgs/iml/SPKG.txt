@@ -38,7 +38,8 @@ The following build instructions by William Stein might be incomplete and/or out
 
 == Changelog ==
 
-Provide a changelog of the spkg here.
+=== iml-1.0.1.p14 (Simon King, 10th December 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
 
 === iml-1.0.1.p13 (David Kirkby, 22nd June, 2010) ===
  * #9309 Add an spkg-check file for the IML library. There are only

@@ -25,6 +25,9 @@
 
 == Changelog ==
 
+=== r-2.14.0.p1 (Simon King, 10 Dec 2011) ===
+ * #12131: use --libdir, to make the package work on openSUSE
+
 === r-2.14.0.p0 (Volker Braun, 19th November 2011) ===
  * #12057: upgrade to new upstream version
 

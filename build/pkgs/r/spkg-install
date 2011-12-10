@@ -106,19 +106,19 @@ fi
 
 if [ `uname` = "Darwin" ]; then
      echo "Configuring R for OSX"
-    ./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" $OSXFW
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" $OSXFW
 else
      echo "Configuring R with ATLAS"
      if [ "x$SAGE_FAT_BINARY" = xyes ] ; then
-      ./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" --with-ICU=no
+      ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" --with-ICU=no
      else
-      ./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" $SUN_FLAGS
+      ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" $SUN_FLAGS
      fi
 fi
 
 if [ $? -ne 0 ]; then
      echo "Configuring R with fallback options"
-    ./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL" $OSXFW $SUN_FLAGS
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL" $OSXFW $SUN_FLAGS
 fi
 
 if [ $? -ne 0 ]; then

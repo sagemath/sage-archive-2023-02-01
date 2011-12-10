@@ -22,6 +22,9 @@ Website: http://perso.ens-lyon.fr/damien.stehle/english.html
 
 == Changelog ==
 
+=== libfplll-3.0.12.p2 (Simon King, 10th December 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
 === libfplll-3.0.12.p1 (David Kirkby and Willem Jan Palenstijn, 14th July 2010) ===
  * #7864 "libfplll tries to link 64-bit objects to 32-bit libstdc++.so"
    Since setting CFLAGS and CXXFLAGS to include the compiler option -m64

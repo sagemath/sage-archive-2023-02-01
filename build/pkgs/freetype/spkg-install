@@ -13,7 +13,7 @@ fi
 
 cd src
 
-GNUMAKE=${MAKE} ./configure --prefix="$SAGE_LOCAL"
+GNUMAKE=${MAKE} ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
 
 if [ $? -ne 0 ]; then
     exit 1;

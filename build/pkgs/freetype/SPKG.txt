@@ -3,6 +3,9 @@ MAINTAINER:
 
 == Releases ==
 
+=== freetype-2.3.5.p4 (Simon King, December 11th 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE
+
 === freetype-2.3.5.p3 (Mitesh Patel, October 21st 2010) ===
  * #9221, #9896: Increase the patch level to force reinstallation when
     upgrading to Sage 4.6.  This works around a problem with moved

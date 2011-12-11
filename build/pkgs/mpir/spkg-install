@@ -132,7 +132,7 @@ unset PYTHON
 user_cflags=$CFLAGS # Save them. 'sage-env' sets CC, but not CFLAGS.
 required_cflags="" # Additional mandatory settings required by Sage, accumulated below.
 default_cflags="" # Spkg defaults that can and might get overridden.
-SAGE_CONF_OPTS=""
+SAGE_CONF_OPTS=--libdir="$SAGE_LOCAL/lib"
 
 
 if [ -z "$CFLAG32" ]; then

@@ -42,6 +42,9 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-2.1.3.p9 (Simon King, 11 December 2011) ===
+ * #12131: Use --libdir, so that the package works on openSUSE
+
 === mpir-2.1.3.p8 (Jeroen Demeyer, 10 December 2011) ===
  * #12139: Disable parallel "make install".
 

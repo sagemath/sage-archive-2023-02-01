@@ -42,7 +42,7 @@ export RM="rm -f"
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL"
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
 
 if [ $? -ne 0 ]; then
     echo "Error configuring GSL"

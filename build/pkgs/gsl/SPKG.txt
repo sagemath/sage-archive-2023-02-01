@@ -50,6 +50,9 @@ GSL mailing lists:
 
 == Changelog ==
 
+=== gsl-1.15.p0 (Simon King, 11th December 2011) ===
+ * #12131: Use --libdir, to make this package work on openSUSE
+
 === gsl-1.15 (David Kirkby, 20th May 2011) ===
  * #11357 Update to the latest version of GSL from the one currently in Sage
    which was the previous version.

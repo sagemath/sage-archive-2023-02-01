@@ -53,6 +53,9 @@ LGPL V2+
 
 == Changelog ==
 
+=== ecm-6.3.p3 (Simon King, December 11th, 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
 === ecm-6.3.p2 (Leif Leonhardy, November 25th, 2010) ===
  * #5847: Apply another patch from upstream to 'configure.in' to fix com-
    pilation on 32-bit x86 processors supporting SSE2. (Also #10252.)

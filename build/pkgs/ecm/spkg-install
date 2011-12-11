@@ -186,7 +186,7 @@ SAGE_CONF_OPTS=""
 echo ""
 if [ -z "$ECM_EXTRA_OPTS" ]; then
     echo "Configuring GMP-ECM with the following options:"
-    echo "    --prefix=\"$SAGE_LOCAL\" --with-gmp=\"$SAGE_LOCAL\"" \
+    echo "    --prefix=\"$SAGE_LOCAL\" --libdir=\"$SAGE_LOCAL/lib\" --with-gmp=\"$SAGE_LOCAL\"" \
         "$SAGE_CONF_OPTS"
     echo "You can set ECM_EXTRA_OPTS to pass additional parameters,"
     echo "e.g. \"--enable-shared\" to also build a *shared* library,"
@@ -196,12 +196,12 @@ else
         "ECM_EXTRA_OPTS:"
     echo "    $ECM_EXTRA_OPTS"
     echo "Configuring ECM with the following options:"
-    echo "    --prefix=\"$SAGE_LOCAL\" --with-gmp=\"$SAGE_LOCAL\"" \
+    echo "    --prefix=\"$SAGE_LOCAL\" --libdir=\"$SAGE_LOCAL/lib\" --with-gmp=\"$SAGE_LOCAL\"" \
         "$SAGE_CONF_OPTS $ECM_EXTRA_OPTS"
 fi
 echo ""
 
-./configure --prefix="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-gmp="$SAGE_LOCAL" \
     $SAGE_CONF_OPTS $ECM_EXTRA_OPTS
 if [ $? -ne 0 ]; then
     echo "Error configuring GMP-ECM."

@@ -722,7 +722,7 @@ class BipartiteGraph(Graph):
         - ``u`` -- the tail of an edge.
 
         - ``v`` -- (default: ``None``) the head of an edge. If ``v=None``, then
-          attempt to add the edge ``(u, u)``.
+          attempt to understand ``u`` as a edge tuple.
 
         - ``label`` -- (default: ``None``) the label of the edge ``(u, v)``.
 
@@ -735,8 +735,13 @@ class BipartiteGraph(Graph):
         - ``G.add_edge((1, 2, 'label'))``
         - ``G.add_edges([(1, 2, 'label')])``
 
-        See ``Graph.add_edge`` for more detail.  This method simply checks
-        that the edge endpoints are in different partitions.
+        See ``Graph.add_edge`` for more detail.
+
+        This method simply checks that the edge endpoints are in different
+        partitions. If a new vertex is to be created, it will be added
+        to the proper partition. If both vertices are created, the first
+        one will be added to the left partition, the second to the right
+        partition.
 
         TEST::
 
@@ -747,6 +752,11 @@ class BipartiteGraph(Graph):
             Traceback (most recent call last):
             ...
             RuntimeError: Edge vertices must lie in different partitions.
+            sage: bg.add_edge(0,3); list(bg.right)
+            [1, 3]
+            sage: bg.add_edge(5,6); 5 in bg.left; 6 in bg.right
+            True
+            True
         """
         # logic for getting endpoints copied from generic_graph.py
         if label is None:
@@ -764,6 +774,12 @@ class BipartiteGraph(Graph):
         if self.left.issuperset((u, v)) or self.right.issuperset((u, v)):
             raise RuntimeError(
                 "Edge vertices must lie in different partitions.")
+
+        # automatically decide partitions for the newly created vertices
+        if u not in self:
+            self.add_vertex(u, left=(v in self.right or v not in self), right=(v in self.left))
+        if v not in self:
+            self.add_vertex(v, left=(u in self.right), right=(u in self.left))
 
         # add the edge
         Graph.add_edge(self, u, v, label)

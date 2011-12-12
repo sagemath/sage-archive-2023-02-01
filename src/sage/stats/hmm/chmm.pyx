@@ -461,12 +461,18 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
     cdef double probability_of(self, int state, double observation):
         """
-        Return the probability b_j(o) of seeing the given observation
-        given that we're in the given state j (=state).
+        Return a useful continuous analogue of "the probability b_j(o)"
+        of seeing the given observation given that we're in the given
+        state j (=state).
 
-        This is a continuous probability, so this really returns a
-        number p such that the probability of a value in the interval
-        [o,o+d] is p*d.
+        The distribution is a normal distribution, and we're asking
+        about the probability of a particular point being observed;
+        the probability of a particular point is 0, which is not
+        useful.  Thus we instead consider the limit p = prob([o,o+d])/d
+        as d goes to 0.  There is a simple closed form formula for p,
+        derived in the source code.  Note that p can be bigger than 1;
+        for example, if we set observation=mean in the closed formula
+        we get p=1/(sqrt(2*pi)*std), so p>1 when std<1/sqrt(2*pi).
 
         INPUT:
 
@@ -482,14 +488,29 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         #                 std = self.B._values[2*state+1]
         #     return 1/(sqrt2pi*std) * \
         #             exp(-(observation-mean)*(observation-mean)/(2*std*std))
+        #
+        # Here is how to use Sage to verify that the above formula computes
+        # the limit claimed above:
+        #
+        # var('x,d,obs,mean,std')
+        # n = 1/sqrt(2*pi*std^2) * exp(-(x-mean)^2/(2*std^2))
+        # assume(std>0); assume(d>0)
+        # m = n.integrate(x,obs,obs+d)/d
+        # p = SR(m.limit(d=0).simplify_full())
+        # q = 1/(sqrt(2*pi)*std) * exp(-(obs-mean)*(obs-mean)/(2*std*std))
+        # bool(p==q)  # outputs True
 
         cdef double x = observation - self.B._values[2*state] # observation - mean
         return self.prob._values[2*state] * exp(x*x*self.prob._values[2*state+1])
 
     def log_likelihood(self, obs):
         """
-        Return the logarithm of the probability that this model
-        produced the given observation sequence.
+        Return the logarithm of a continuous analogue of the
+        probability that this model produced the given observation
+        sequence.
+
+        Note that the "continuous analogue of the probability" above can
+        be bigger than 1, hence the logarithm can be positive.
 
         INPUT:
 
@@ -535,7 +556,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         """
         cdef Py_ssize_t i, j, t, T = len(obs)
 
-        # The running some of the log probabilities
+        # The running sum of the log probabilities
         cdef double log_probability = 0, sum, a
 
         cdef TimeSeries alpha  = TimeSeries(self.N), \
@@ -806,7 +827,8 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
                     xi._values[t*N*N+i*N+j] /= sum
         return xi
 
-    def baum_welch(self, obs, int max_iter=500, double log_likelihood_cutoff=1e-4, double eps=1e-12, bint fix_emissions=False):
+    def baum_welch(self, obs, int max_iter=500, double log_likelihood_cutoff=1e-4,
+                   double min_sd=0.01, bint fix_emissions=False, bint v=False):
         """
         Given an observation sequence obs, improve this HMM using the
         Baum-Welch algorithm to increase the probability of observing obs.
@@ -823,9 +845,9 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
               the last iteration required to continue. Relative value
               to log likelihood.
 
-            - eps -- very small positive float (default: 1e-12); used
-              during the iteration to replace numbers, e.g., standard
-              deviations that are 0 but are not allowed to be 0.
+            - min_sd -- positive float (default: 0.01); when
+              reestimating, the standard deviation of emissions is not
+              allowed to be less than min_sd.
 
             - fix_emissions -- bool (default: False); if True, do not
               change emissions when updating
@@ -841,17 +863,26 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             sage: m.log_likelihood([-2,-1,.1,0.1])
             -8.858282215986275
             sage: m.baum_welch([-2,-1,.1,0.1])
-            (22.164539478647512, 8)
+            (4.534646052182663, 7)
             sage: m.log_likelihood([-2,-1,.1,0.1])
-            22.164539478647512
+            4.534646052182663
             sage: m
             Gaussian Hidden Markov Model with 2 States
             Transition matrix:
-            [              1.0 1.99514384486e-21]
-            [   0.499999997782    0.500000002218]
+            [   0.999999999243 7.56983939444e-10]
+            [   0.499984627912    0.500015372088]
             Emission parameters:
-            [(0.09999999999..., 1.48492424379e-06), (-1.4999999929, 0.500000010249)]
+            [(0.1, 0.01), (-1.49995081476, 0.50007105049)]
             Initial probabilities: [0.0000, 1.0000]
+
+        We illustrate bounding the standard deviation below.  Note that above we had
+        different emission parameters when the min_sd was the default of 0.01::
+
+            sage: m = hmm.GaussianHiddenMarkovModel([[.1,.9],[.5,.5]], [(1,.5), (-1,3)], [.1,.9])
+            sage: m.baum_welch([-2,-1,.1,0.1], min_sd=1)
+            (-4.07939572755..., 32)
+            sage: m.emission_parameters()
+            [(-0.2663018798..., 1.0), (-1.99850979..., 1.0)]
 
         We watch the log likelihoods of the model converge, step by step::
 
@@ -898,12 +929,10 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
         # Re-estimation
         while True:
-
             # Reestimate
             for i in range(N):
-                if not gamma._values[0*N+i]:
-                    gamma._values[0*N+i] = eps
-                elif not isfinite(gamma._values[0*N+i]):
+                if not isfinite(gamma._values[0*N+i]):
+                    # Before raising an error, leave self in a valid state.
                     util.normalize_probability_TimeSeries(self.pi, 0, self.pi._length)
                     raise RuntimeError, "impossible to compute gamma during reestimation"
                 self.pi._values[i] = gamma._values[0*N+i]
@@ -945,8 +974,8 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
                     self.B._values[2*i] = numerator_mean / denominator_B
                     # restimated standard deviation
                     self.B._values[2*i+1] = sqrt(numerator_std / denominator_B)
-                    if not self.B._values[2*i+1]:
-                        self.B._values[2*i+1] = eps
+                    if self.B._values[2*i+1] < min_sd:
+                        self.B._values[2*i+1] = min_sd
                     self.probability_init()
 
             n_iterations += 1
@@ -954,6 +983,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
             # Initialization for next iteration
             alpha, scale, log_probability0 = self._forward_scale_all(_obs)
+
             if not isfinite(log_probability0): break
             log_probability = log_probability0
             beta = self._backward_scale_all(_obs, scale)
@@ -1271,7 +1301,8 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
 
         return mixed_gamma
 
-    def baum_welch(self, obs, int max_iter=1000, double log_likelihood_cutoff=1e-12, double eps=1e-12, bint fix_emissions=False):
+    def baum_welch(self, obs, int max_iter=1000, double log_likelihood_cutoff=1e-12,
+                   double min_sd=0.01, bint fix_emissions=False):
         """
         Given an observation sequence obs, improve this HMM using the
         Baum-Welch algorithm to increase the probability of observing obs.
@@ -1285,9 +1316,9 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
               the minimal improvement in likelihood with respect to
               the last iteration required to continue. Relative value
               to log likelihood.
-            - eps -- very small positive float (default: 1e-12); used
-              during the iteration to replace numbers, e.g., standard
-              deviations that are 0 but are not allowed to be 0.
+            - min_sd -- positive float (default: 0.01); when
+              reestimating, the standard deviation of emissions is not
+              allowed to be less than min_sd.
             - fix_emissions -- bool (default: False); if True, do not
               change emissions when updating
 
@@ -1304,9 +1335,9 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             sage: m.log_likelihood(v)
             -8.31408655939536...
             sage: m.baum_welch(v)
-            (2.1890506868230..., 15)
+            (2.18905068682..., 15)
             sage: m.log_likelihood(v)
-            2.1890506868230...
+            2.18905068682...
             sage: m
             Gaussian Mixture Hidden Markov Model with 2 States
             Transition matrix:
@@ -1316,12 +1347,21 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             [0.500161629343*N(-0.812298726239,0.173329026744) + 0.499838370657*N(0.982433690378,0.029719932009), 1.0*N(0.503260056832,0.145881515324)]
             Initial probabilities: [0.0000, 1.0000]
 
+        We illustrate bounding the standard deviation below.  Note that above we had
+        different emission parameters when the min_sd was the default of 0.01::
+
+            sage: m = hmm.GaussianMixtureHiddenMarkovModel([[.9,.1],[.4,.6]], [[(.4,(0,1)), (.6,(1,0.1))],[(1,(0,1))]], [.7,.3])
+            sage: m.baum_welch(v, min_sd=1)
+            (-12.617885761692..., 1000)
+            sage: m.emission_parameters()
+            [0.503545634447*N(0.200166509595,1.0) + 0.496454365553*N(0.200166509595,1.0), 1.0*N(0.0543433426535,1.0)]
+
         We illustrate fixing all emissions::
 
             sage: m = hmm.GaussianMixtureHiddenMarkovModel([[.9,.1],[.4,.6]], [[(.4,(0,1)), (.6,(1,0.1))],[(1,(0,1))]], [.7,.3])
             sage: set_random_seed(0); v = m.sample(10)
             sage: m.baum_welch(v, fix_emissions=True)
-            (-7.58656858997889..., 36)
+            (-7.58656858997..., 36)
             sage: m.emission_parameters()
             [0.4*N(0.0,1.0) + 0.6*N(1.0,0.1), 1.0*N(0.0,1.0)]
         """
@@ -1354,9 +1394,8 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
 
             # Reestimate frequency of state i in time t=0
             for i in range(N):
-                if not gamma._values[0*N+i]:
-                    gamma._values[0*N+i] = eps
-                elif not isnormal(gamma._values[0*N+i]):
+                if not isfinite(gamma._values[0*N+i]):
+                    # Before raising an error, leave self in a valid state.
                     util.normalize_probability_TimeSeries(self.pi, 0, self.pi._length)
                     raise RuntimeError, "impossible to compute gamma during reestimation"
                 self.pi._values[i] = gamma._values[0*N+i]
@@ -1411,6 +1450,8 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
                                      (_obs._values[t] - mu)*(_obs._values[t] - mu)
 
                         new_std = sqrt(numer / denom)
+                        if new_std < min_sd:
+                            new_std = min_sd
 
                         # Compute re-estimated weighting coefficient
                         new_c = denom

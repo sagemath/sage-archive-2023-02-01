@@ -327,13 +327,17 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         return s
 
 
-    def generate_sequence(self, Py_ssize_t length):
+    def generate_sequence(self, Py_ssize_t length, starting_state=None):
         """
         Return a sample of the given length from this HMM.
 
         INPUT:
 
             - length -- positive integer
+            - starting_state -- int (or None); if specified then generate
+              a sequence using this model starting with the given state
+              instead of the initial probabilities to determine the
+              starting state.
 
         OUTPUT:
 
@@ -356,6 +360,11 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
             sage: set_random_seed(23);  m.generate_sequence(2)
             ([0.6501, -2.0151], [0, 1])
+
+        Force a starting state of 1 even though as we saw above it would be 0::
+
+            sage: set_random_seed(23);  m.generate_sequence(2, starting_state=1)
+            ([-3.1491, -1.0244], [1, 1])
 
         Verify numerically that the starting state is 0 with probability about 0.1::
 
@@ -382,14 +391,19 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         # Choose the starting state.
         # See the remark in hmm.pyx about how this should get
         # replaced by some general fast discrete distribution code.
-        r = rstate.c_rand_double()
-        accum = 0
-        for i in range(self.N):
-            if r < self.pi._values[i] + accum:
-                q = i
-                break
-            else:
-                accum += self.pi._values[i]
+        if starting_state is None:
+            r = rstate.c_rand_double()
+            accum = 0
+            for i in range(self.N):
+                if r < self.pi._values[i] + accum:
+                    q = i
+                    break
+                else:
+                    accum += self.pi._values[i]
+        else:
+            q = starting_state
+            if q < 0 or q>= self.N:
+                raise ValueError, "starting state must be between 0 and %s"%(self.N-1)
 
         states._values[0] = q
         obs._values[0] = self.random_sample(q, rstate)

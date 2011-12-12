@@ -145,7 +145,7 @@ cdef class HiddenMarkovModel:
         from sage.graphs.all import DiGraph
         return DiGraph(m, weighted=True)
 
-    def sample(self, Py_ssize_t length, number=None):
+    def sample(self, Py_ssize_t length, number=None, starting_state=None):
         """
         Return number samples from this HMM of given length.
 
@@ -153,6 +153,10 @@ cdef class HiddenMarkovModel:
 
             - ``length`` -- positive integer
             - ``number`` -- (default: None) if given, compute list of this many sample sequences
+            - ``starting_state`` -- int (or None); if specified then generate
+              a sequence using this model starting with the given state
+              instead of the initial probabilities to determine the
+              starting state.
 
         OUTPUT:
 
@@ -178,12 +182,17 @@ cdef class HiddenMarkovModel:
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,0.5],[0.1,0.9]], [[1,0],[0,1]], [0,1], ['up', 'down'])
             sage: a.sample(10)
             ['down', 'up', 'down', 'down', 'down', 'down', 'up', 'up', 'up', 'up']
+
+        Force a starting state::
+
+            sage: set_random_seed(0); a.sample(10, starting_state=0)
+            ['up', 'up', 'down', 'down', 'down', 'down', 'up', 'up', 'up', 'up']
         """
         if number is None:
-            return self.generate_sequence(length)[0]
+            return self.generate_sequence(length, starting_state=starting_state)[0]
 
         cdef Py_ssize_t i
-        return [self.generate_sequence(length)[0] for i in range(number)]
+        return [self.generate_sequence(length, starting_state=starting_state)[0] for i in range(number)]
 
 
     #########################################################
@@ -652,13 +661,18 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         # Termination
         return log_probability
 
-    def generate_sequence(self, Py_ssize_t length):
+    def generate_sequence(self, Py_ssize_t length, starting_state=None):
         """
         Return a sample of the given length from this HMM.
 
         INPUT:
 
             - ``length`` -- positive integer
+            - ``starting_state`` -- int (or None); if specified then generate
+              a sequence using this model starting with the given state
+              instead of the initial probabilities to determine the
+              starting state.
+
 
         OUTPUT:
 
@@ -683,6 +697,11 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.5,0.5],[0.1,0.9]], [[1,0],[0,1]], [0,1], ['up', 'down'])
             sage: a.generate_sequence(5)
             (['down', 'up', 'down', 'down', 'down'], [1, 0, 1, 1, 1])
+
+        Specify the starting state::
+
+            sage: set_random_seed(0); a.generate_sequence(5, starting_state=0)
+            (['up', 'up', 'down', 'down', 'down'], [0, 0, 1, 1, 1])
         """
         if length < 0:
             raise ValueError, "length must be nonnegative"
@@ -715,12 +734,17 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         #    http://www.gnu.org/software/gsl/manual/html_node/General-Discrete-Distributions.html
 
         # Choose initial state:
-        accum = 0
-        for i in range(self.N):
-            if r < self.pi._values[i] + accum:
-                q = i
-            else:
-                accum += self.pi._values[i]
+        if starting_state is None:
+            accum = 0
+            for i in range(self.N):
+                if r < self.pi._values[i] + accum:
+                    q = i
+                else:
+                    accum += self.pi._values[i]
+        else:
+            q = starting_state
+            if q < 0 or q >= self.N:
+                raise ValueError, "starting state must be between 0 and %s"%(self.N-1)
 
         states._values[0] = q
         # Generate a symbol from state q

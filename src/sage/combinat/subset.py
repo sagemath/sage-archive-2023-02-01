@@ -91,6 +91,9 @@ def Subsets(s, k=None, submultiset=False):
         SubMultiset of [1, 2, 2, 3] of size 3
         sage: S.list()
         [[1, 2, 2], [1, 2, 3], [2, 2, 3]]
+
+        sage: S = Subsets(['a','b','a','b'], 2, submultiset=True); S.list()
+        [['a', 'a'], ['a', 'b'], ['b', 'b']]
     """
     if k is not None:
         k=Integer(k)
@@ -623,11 +626,13 @@ class SubMultiset_s(CombinatorialClass):
             12
         """
         CombinatorialClass.__init__(self, category=FiniteEnumeratedSets())
-        s = list(s)
+
+        s = sorted(list(s))
         indices = list(sorted(Set([s.index(a) for a in s])))
         multiplicities = [len([a for a in s if a == s[i]])
                           for i in indices]
-        self._s = sorted(s)
+
+        self._s = s
         self._indices = indices
         self._multiplicities = multiplicities
 

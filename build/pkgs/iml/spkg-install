@@ -19,7 +19,7 @@ cd src
 if [ -f "$SAGE_LOCAL"/lib/libatlas.so ]; then
     ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-shared --with-gmp-include="$SAGE_LOCAL"/include --with-gmp-lib="$SAGE_LOCAL"/lib --with-atlas-include="$SAGE_LOCAL"/include --with-atlas-lib="$SAGE_LOCAL"/lib
 else
-    ./configure --prefix="$SAGE_LOCAL" --libdir="SAGE_LOCAL/lib" --enable-shared --with-gmp-include="$SAGE_LOCAL"/include --with-gmp-lib="$SAGE_LOCAL"/lib --with-atlas-include="`pwd`" --with-atlas-lib=/usr/lib/
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-shared --with-gmp-include="$SAGE_LOCAL"/include --with-gmp-lib="$SAGE_LOCAL"/lib --with-atlas-include="`pwd`" --with-atlas-lib=/usr/lib/
 fi
 
 if [ $? -ne 0 ]; then

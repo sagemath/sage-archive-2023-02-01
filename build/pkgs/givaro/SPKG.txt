@@ -21,7 +21,7 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 
 == Changelog ==
 
-=== givaro-3.2.13rc2.p3 (Simon King, Dec 10th, 2011) ===
+=== givaro-3.2.13.rc1.p3 (Simon King, Dec 10th, 2011) ===
  * #12131: Use --libdir, to make the package work on openSUSE.
 
 === givaro-3.2.13rc1.p2 (John Palmieri, June 27th, 2010) ===

@@ -10354,7 +10354,7 @@ class GenericGraph(GenericGraph_pyx):
 
             * If ``k`` is an integer, returns a pair ``(ordering, core)``, where
               ``core`` is the list of vertices in the `k`-core of ``self``, and
-              ``ordering`` is an elimination order for the others vertices such
+              ``ordering`` is an elimination order for the other vertices such
               that each vertex is of degree strictly less than `k` when it is to
               be eliminated from the graph.
 

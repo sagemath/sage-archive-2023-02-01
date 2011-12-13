@@ -150,6 +150,7 @@ cdef extern from "math.h":
     double sqrt_double "sqrt"(double)
     cdef double log_c "log" (double)
     cdef double ceil_c "ceil" (double)
+    int isnan(double)
 
 cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -877,8 +878,28 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, flist)])
             True
+
+        Verify that trac 12149 was fixed (and the fix is consistent
+        with Python ints)::
+
+            sage: a = int(1); b = 1; n = float('nan')
+            sage: a == n
+            False
+            sage: a == n, b == n
+            (False, False)
+            sage: a != n, b != n, n != b
+            (True, True, True)
+            sage: a < n, b < n, n > b
+            (False, False, False)
+            sage: a > n, b > n, n < b
+            (False, False, False)
+            sage: a <= n, b <= n, n >= b
+            (False, False, False)
+            sage: a >= n, b >= n, n <= b
+            (False, False, False)
         """
         cdef int c
+        cdef double d
         if PY_TYPE_CHECK(left, Integer):
             if PY_TYPE_CHECK(right, Integer):
                 c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
@@ -888,9 +909,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_set_pylong(mpz_tmp, right)
                 c = mpz_cmp((<Integer>left).value, mpz_tmp)
             elif PyFloat_CheckExact(right):
-                c = mpz_cmp_d((<Integer>left).value, PyFloat_AsDouble(right))
+                d = PyFloat_AsDouble(right)
+                if isnan(d): return op == 3
+                c = mpz_cmp_d((<Integer>left).value, d)
             else:
                 return (<sage.structure.element.Element>left)._richcmp(right, op)
+
         else: # right is an Integer
             if PyInt_CheckExact(left):
                 c = -mpz_cmp_si((<Integer>right).value, PyInt_AS_LONG(left))
@@ -898,7 +922,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_set_pylong(mpz_tmp, left)
                 c = mpz_cmp(mpz_tmp, (<Integer>right).value)
             elif PyFloat_CheckExact(left):
-                c = -mpz_cmp_d((<Integer>right).value, PyFloat_AsDouble(left))
+                d = PyFloat_AsDouble(left)
+                if isnan(d): return op == 3
+                c = -mpz_cmp_d((<Integer>right).value, d)
             else:
                 return (<sage.structure.element.Element>left)._richcmp(right, op)
         return (<sage.structure.element.Element>left)._rich_to_bool(op, c)

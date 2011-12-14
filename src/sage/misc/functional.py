@@ -604,6 +604,12 @@ def symbolic_sum(expression, *args, **kwds):
         sage: sum(2^(-k)/(k*(k+1)), k, 1, oo)
         -log(2) + 1
 
+    Another binomial identity (trac #7952)::
+
+        sage: t,k,i = var('t,k,i')
+        sage: sum(binomial(i+t,t),i,0,k)
+        binomial(k + t + 1, t + 1)
+
     Summing a hypergeometric term::
 
         sage: sum(binomial(n, k) * factorial(k) / factorial(n+1+k), k, 0, n)

@@ -60,7 +60,7 @@ class SageTimeitResult():
         TypeError: * wants int
 
     """
-    def __init__(self, stats):
+    def __init__(self, stats, series=None):
         r"""
         Construction of a timing result.
 
@@ -72,8 +72,12 @@ class SageTimeitResult():
             sage: from sage.misc.sage_timeit import SageTimeitResult
             sage: SageTimeitResult( (3, 5, int(8), pi, 'ms') )
             3 loops, best of 5: 3.1415927 ms per loop
+            sage: s = SageTimeitResult( (3, 5, int(8), pi, 'ms'), [1.0,1.1,0.5])
+            sage: s.series
+            [1.00000000000000, 1.10000000000000, 0.500000000000000]
         """
         self.stats = stats
+        self.series = series if not None else []
 
     def __repr__(self):
         r"""
@@ -131,10 +135,24 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
         sage: sage_timeit('a^2', globals(), number=50)                            # random output
         '50 loops, best of 3: 4.26 us per loop'
 
-    It's usually better to use the ``timeit`` object, usually::
+    If you only want to see the timing and not have access to additional
+    information, just use the ``timeit`` object::
 
         sage: timeit('10^2', number=50)
         50 loops, best of 3: ... per loop
+
+    Using sage_timeit gives you more information though::
+
+        sage: s = sage_timeit('10^2', globals(), repeat=1000)
+        sage: len(s.series)
+        1000
+        sage: mean(s.series)   # random output
+        3.1298141479492283e-07
+        sage: min(s.series)    # random output
+        2.9258728027343752e-07
+        sage: t = stats.TimeSeries(s.series)
+        sage: t.scale(10^6).plot_histogram(bins=20,figsize=[12,6], ymax=2)
+
 
     The input expression can contain newlines (but doctests cannot, so
     we use ``os.linesep`` here)::
@@ -218,7 +236,8 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
                 if timer.timeit(number) >= 0.2:
                     break
 
-        best = min(timer.repeat(repeat, number)) / number
+        series = [s/number for s in timer.repeat(repeat, number)]
+        best = min(series)
 
     finally:
         sys.stdout.close()
@@ -234,4 +253,4 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     else:
         order = 3
     stats = (number, repeat, precision, best * scaling[order], units[order])
-    return SageTimeitResult(stats)
+    return SageTimeitResult(stats,series=series)

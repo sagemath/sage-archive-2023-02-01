@@ -644,6 +644,12 @@ def solve(f, *args, **kwds):
         []
         sage: solve((x==1,x==-1),x,solution_dict=1)
         []
+
+    This inequality holds for any real ``x`` (trac #8078)::
+
+        sage: solve(x^4+2>0,x)
+        [x < +Infinity]
+
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression

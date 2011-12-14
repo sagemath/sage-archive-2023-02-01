@@ -563,6 +563,16 @@ class SympyConverter(Converter):
 
         sage: sympy.sympify(x) # indirect doctest
         x
+
+    TESTS:
+
+    Make sure we can convert I (trac #6424)::
+
+        sage: bool(I._sympy_() == I)
+        True
+        sage: (x+I)._sympy_()
+        x + I
+
     """
     def pyobject(self, ex, obj):
         """
@@ -593,7 +603,7 @@ class SympyConverter(Converter):
         """
         import sympy
         operator = arithmetic_operators[operator]
-        ops = [self(a) for a in ex.operands()]
+        ops = [sympy.sympify(self(a)) for a in ex.operands()]
         if operator == "+":
             return sympy.Add(*ops)
         elif operator == "*":

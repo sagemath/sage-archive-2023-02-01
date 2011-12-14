@@ -1953,9 +1953,17 @@ exponent %s: the length of the word (%s) times the exponent \
         r"""
         Returns the defect of self.
 
-        The *defect* of a finite word `w` is given by
-        `D(w)=|w|+1-|PAL(w)|`, where `PAL(w)` denotes the set of palindromic
-        factors of `w` (including the empty word). See [1].
+        The *defect* of a finite word `w` is given by the difference between
+        the maximum number of possible palindromic factors in a word of length
+        `|w|` and the actual number of palindromic factors contained in `w`.
+        An optional parameter ``f`` can be given. In that case,
+        the f-palindromic (or pseudopalindromic, or theta-palindromic) defect
+        of `w` is returned. The defect is given by `D(w)=|w|+1-g(w)-|PAL(w)|`,
+        where `PAL(w)` denotes the set of f-palindromic factors of `w`
+        (including the empty word) and `g(w) = the number of pairs {a, f(a)}
+        such that a is a letter, a is not equal to f(a), and a or f(a)
+        occurs in w`. See [1] for usual palindromes (i.e., for ``f`` not given
+        or equal to the identity) and [2] for f-palindromes.
 
         INPUT:
 
@@ -1987,8 +1995,20 @@ exponent %s: the length of the word (%s) times the exponent \
         ::
 
             sage: f = WordMorphism('a->b,b->a')
+
+            sage: Word('ab').defect(f)
+            0
             sage: Word('abbabaabbaababba').defect(f)
-            4
+            3
+
+        ::
+
+            sage: f = WordMorphism('a->b,b->a,c->c')
+
+            sage: Word('cabc').defect(f)
+            0
+            sage: Word('abcaab').defect(f)
+            2
 
         REFERENCES:
 
@@ -1997,14 +2017,33 @@ exponent %s: the length of the word (%s) times the exponent \
             D. Perrin, Eds, Combinatorics on Words with Applications,
             International Journal of Foundation of Computer Science, Vol. 15,
             No. 2 (2004) 293--306.
+
+        -   [2] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
+            Sci. 412 (2011) 1111--1121
         """
-        return self.length()+1-len(self.palindromes(f=f))
+
+        g_w = 0
+        if f==None:
+            pass #no need to construct the identity
+        else:
+            if not f.is_involution():
+                raise ValueError, "f must be an involution"
+            letters_counted = set()
+            for x in self.factor_set(1):
+                if f(x) != x: #we need only non f-palindromic letters
+                    if not set([x]).issubset(letters_counted): #have we seen this letters
+                        letters_counted.add(x) #remember the couple {x,f(x)}
+                        letters_counted.add(f(x))
+                        g_w +=1 #and count it
+
+        return self.length()+1-g_w-len(self.palindromes(f=f))
 
     def is_full(self, f=None):
         r"""
         Returns True if self has defect 0, and False otherwise.
 
-        A word is *full* if its defect is zero (see [1]).
+        A word is *full* (or *rich*) if its defect is zero (see [1]).
+        If ``f`` is given, then the f-palindromic defect is used (see [2]).
 
         INPUT:
 
@@ -2040,6 +2079,14 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w.is_full()
             True
             sage: w.is_full(f)
+            True
+
+        ::
+
+            sage: f = WordMorphism('a->b,b->a')
+            sage: Word('abab').is_full(f)
+            True
+            sage: Word('abba').is_full(f)
             False
 
         REFERENCES:
@@ -2049,8 +2096,16 @@ exponent %s: the length of the word (%s) times the exponent \
             D. Perrin, Eds, Combinatorics on Words with Applications,
             International Journal of Foundation of Computer Science, Vol. 15,
             No. 2 (2004) 293--306.
+
+        -   [2]  E. Pelantová and Š. Starosta, Infinite words rich and almost rich
+            in generalized palindromes, in: G. Mauri, A. Leporati (Eds.),
+            Developments in Language Theory, volume 6795 of Lecture Notes
+            in Computer Science, Springer-Verlag, Berlin, Heidelberg, 2011,
+            pp. 406--416
         """
         return self.defect(f=f) == 0
+
+    is_rich = is_full
 
     def palindromic_closure(self, side='right', f=None):
         r"""

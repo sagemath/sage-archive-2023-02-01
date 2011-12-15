@@ -2188,14 +2188,20 @@ class RationalPolyhedralFan(IntegralRayCollection,
             self._is_simplicial = all(cone.is_simplicial() for cone in self)
         return self._is_simplicial
 
-    def is_smooth(self):
+    def is_smooth(self, codim=None):
         r"""
         Check if ``self`` is smooth.
 
-        A rational polyhedral fan is **smooth** if all of its cones are,
-        i.e. primitive vectors along generating rays of every cone form a part
-        of an *integral* basis of the ambient space.
-        (In this case the corresponding toric variety is smooth.)
+        A rational polyhedral fan is **smooth** if all of its cones
+        are, i.e. primitive vectors along generating rays of every
+        cone form a part of an *integral* basis of the ambient
+        space. In this case the corresponding toric variety is smooth.
+
+        A `n`-dimensional fan is smooth up to a given codimension `d`
+        if all cones of codimension `\geq d` are smooth, that is, all
+        cones of dimension `\leq n-d` are smooth. In this case the
+        singular set of the corresponding toric variety is of
+        dimension `< d`.
 
         OUTPUT:
 
@@ -2214,11 +2220,19 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan = NormalFan(lattice_polytope.octahedron(2))
             sage: fan.is_smooth()
             False
+            sage: fan.is_smooth(codim=1)
+            True
             sage: fan.generating_cone(0).rays()
             (N(-1, 1), N(-1, -1))
             sage: fan.generating_cone(0).ray_matrix().det()
             2
         """
+        if not codim is None:
+            for d in range(codim, self.lattice_dim()+1):
+                if not all(cone.is_smooth() for cone in self(codim=d)):
+                    return False
+            return True
+
         if "_is_smooth" not in self.__dict__:
             self._is_smooth = all(cone.is_smooth() for cone in self)
         return self._is_smooth

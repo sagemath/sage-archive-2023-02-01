@@ -236,7 +236,7 @@ import sys
 from sage.geometry.cone import Cone, is_Cone
 from sage.geometry.fan import Fan
 from sage.matrix.all import matrix
-from sage.misc.all import latex, prod, uniq
+from sage.misc.all import latex, prod, uniq, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
 from sage.rings.all import PolynomialRing, ZZ, QQ, is_Field
@@ -1086,6 +1086,34 @@ class ToricVariety_field(AmbientSpace):
             self.base_ring().inject_variables(scope, verbose)
         except AttributeError:
             pass
+
+    @cached_method
+    def dimension_singularities(self):
+        r"""
+        Return the dimension of the singular set.
+
+        OUTPUT:
+
+        Integer. The dimension of the singular set of the toric
+        variety. Often the singular set is a reducible subvariety, and
+        this method will return the dimension of the
+        largest-dimensional component.
+
+        Returns -1 if the toric variety is smooth.
+
+        EXAMPLES::
+
+            sage: toric_varieties.P4_11169().dimension_singularities()
+            1
+            sage: toric_varieties.Conifold().dimension_singularities()
+            0
+            sage: toric_varieties.P2().dimension_singularities()
+            -1
+        """
+        for codim in range(0,self.dimension()+1):
+            if any(not cone.is_smooth() for cone in self.fan(codim)):
+                return self.dimension() - codim
+        return -1
 
     def is_homogeneous(self, polynomial):
         r"""

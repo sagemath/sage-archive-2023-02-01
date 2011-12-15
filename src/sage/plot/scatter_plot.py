@@ -150,7 +150,18 @@ def scatter_plot(datalist, **options):
 
     - ``markersize`` -- default: 50
 
-    - ``marker`` -- default: ``'o'``
+    - ``marker``  - The style of the markers (default ``"o"``), which is one of
+       - ``"None"`` or ``" "`` or ``""`` (nothing)
+       - ``","`` (pixel), ``"."`` (point)
+       - ``"_"`` (horizontal line), ``"|"`` (vertical line)
+       - ``"o"`` (circle), ``"p"`` (pentagon), ``"s"`` (square), ``"x"`` (x), ``"+"`` (plus), ``"*"`` (star)
+       - ``"D"`` (diamond), ``"d"`` (thin diamond)
+       - ``"H"`` (hexagon), ``"h"`` (alternative hexagon)
+       - ``"<"`` (triangle left), ``">"`` (triangle right), ``"^"`` (triangle up), ``"v"`` (triangle down)
+       - ``"1"`` (tri down), ``"2"`` (tri up), ``"3"`` (tri left), ``"4"`` (tri right)
+       - ``0`` (tick left), ``1`` (tick right), ``2`` (tick up), ``3`` (tick down)
+       - ``4`` (caret left), ``5`` (caret right), ``6`` (caret up), ``7`` (caret down)
+       - ``"$...$"`` (math TeX string)
 
     - ``facecolor`` -- default: ``'#fec7b8'``
 

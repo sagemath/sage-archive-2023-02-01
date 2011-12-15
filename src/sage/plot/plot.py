@@ -2503,6 +2503,10 @@ class Graphics(SageObject):
             figure.set_canvas(FigureCanvasAgg(figure))
             # this messes up the aspect ratio!
             #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
+
+            # tight_layout adjusts the *subplot* parameters so ticks aren't cut off, etc.
+            figure.tight_layout()
+
             if fig_tight is True:
                 figure.savefig(filename, dpi=dpi, bbox_inches='tight',
                     bbox_extra_artists=self.__bbox_extra_artists,

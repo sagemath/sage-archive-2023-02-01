@@ -194,7 +194,7 @@ class ContourPlot(GraphicPrimitive):
         if options.get('colorbar', False):
             colorbar_options = options['colorbar_options']
             from matplotlib import colorbar
-            cax,kwds=colorbar.make_axes(subplot,**colorbar_options)
+            cax,kwds=colorbar.make_axes_gridspec(subplot,**colorbar_options)
             if CSF is None:
                 cb=colorbar.Colorbar(cax,CS, **kwds)
             else:
@@ -278,7 +278,8 @@ def contour_plot(f, xrange, yrange, **options):
       - ``label_fmt`` -- a format string (default: "%1.2f"), this is
         used to get the label text from the level.  This can also be a
         dictionary with the contour levels as keys and corresponding
-        text string labels as values.
+        text string labels as values.  It can also be any callable which
+        returns a string when called with a numeric contour level.
 
     - ``colorbar`` -- boolean (default: False) Show a colorbar or not.
 
@@ -385,6 +386,13 @@ def contour_plot(f, xrange, yrange, **options):
 
         sage: P=contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv',labels=True,\
         ...    contours=[-4,0,4],  label_fmt={-4:"low", 0:"medium", 4: "hi"}, label_colors='black')
+        sage: P
+
+    ::
+
+        sage: P=contour_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi), fill=False, cmap='hsv',labels=True,\
+        ...    contours=[-4,0,4],  label_fmt=lambda x: "$z=%s$"%x, label_colors='black', label_inline=True, \
+        ...    label_fontsize=12)
         sage: P
 
     ::
@@ -698,6 +706,9 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
         sage: s,t=var('s,t')
         sage: region_plot(s>0,(t,-2,2),(s,-2,2))
+
+    ::
+
         sage: region_plot(s>0,(s,-2,2),(t,-2,2))
 
     """

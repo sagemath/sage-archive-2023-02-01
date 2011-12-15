@@ -2543,6 +2543,280 @@ class RationalPolyhedralFan(IntegralRayCollection,
                                for i in range(0, self.nrays()) ]) )
         return ring.ideal(gens)
 
+    def oriented_boundary(self, cone):
+        r"""
+        Return the facets bounding ``cone`` with their induced
+        orientation.
+
+        INPUT:
+
+        - ``cone`` -- a cone of the fan or the whole fan.
+
+        OUTPUT:
+
+        The boundary cones of ``cone`` as a formal linear combination
+        of cones with coefficients `\pm 1`. Each summand is a facet of
+        ``cone`` and the coefficient indicates whether their (chosen)
+        orientation argrees or disagrees with the "outward normal
+        first" boundary orientation. Note that the orientation of any
+        individial cone is arbitrary. This method once and for all
+        picks orientations for all cones and then computes the
+        boundaries relative to that chosen orientation.
+
+        If ``cone`` is the fan itself, the generating cones with their
+        orientation relative to the ambient space are returned.
+
+        See :meth:`complex` for the associated chain complex. If you
+        do not require the orientation, use :meth:`cone.facets()
+        <sage.geometry.cone.ConvexRationalPolyhedralCone.facets>`
+        instead.
+
+        EXAMPLES::
+
+            sage: fan = toric_varieties.P(3).fan()
+            sage: cone = fan(2)[0]
+            sage: bdry = fan.oriented_boundary(cone);  bdry
+            1-d cone of Rational polyhedral fan in 3-d lattice N
+            - 1-d cone of Rational polyhedral fan in 3-d lattice N
+            sage: bdry[0]
+            (1, 1-d cone of Rational polyhedral fan in 3-d lattice N)
+            sage: bdry[1]
+            (-1, 1-d cone of Rational polyhedral fan in 3-d lattice N)
+            sage: fan.oriented_boundary(bdry[0][1])
+            -0-d cone of Rational polyhedral fan in 3-d lattice N
+            sage: fan.oriented_boundary(bdry[1][1])
+            -0-d cone of Rational polyhedral fan in 3-d lattice N
+
+        If you pass the fan itself, this method returns the
+        orientation of the generating cones which is determined by the
+        order of the rays in :meth:`cone.ray_basis()
+        <sage.geometry.cone.IntegralRayCollection.ray_basis>` ::
+
+            sage: fan.oriented_boundary(fan)
+            -3-d cone of Rational polyhedral fan in 3-d lattice N
+            + 3-d cone of Rational polyhedral fan in 3-d lattice N
+            - 3-d cone of Rational polyhedral fan in 3-d lattice N
+            + 3-d cone of Rational polyhedral fan in 3-d lattice N
+            sage: [ matrix(cone.ray_basis()).det() for cone in fan.generating_cones() ]
+            [-1, 1, -1, 1]
+
+        A non-full dimensional fan::
+
+            sage: cone = Cone([(4,5)])
+            sage: fan = Fan([cone])
+            sage: fan.oriented_boundary(cone)
+            0-d cone of Rational polyhedral fan in 2-d lattice N
+            sage: fan.oriented_boundary(fan)
+            1-d cone of Rational polyhedral fan in 2-d lattice N
+
+        TESTS::
+
+            sage: fan = toric_varieties.P2().fan()
+            sage: trivial_cone = fan(0)[0]
+            sage: fan.oriented_boundary(trivial_cone)
+            0
+        """
+        if not cone is self:
+            cone = self.embed(cone)
+        if '_oriented_boundary' in self.__dict__:
+            return self._oriented_boundary[cone]
+
+        # Fix (arbitrary) orientations of the generating cones. Induced
+        # by ambient space orientation for full-dimensional cones
+        from sage.structure.formal_sum import FormalSum
+        def sign(x):
+            assert x != 0
+            if x>0: return +1
+            else: return -1
+        N_QQ = self.lattice().base_extend(QQ)
+        dim = self.lattice_dim()
+        outward_vectors = dict()
+        generating_cones = []
+        for c in self.generating_cones():
+            if c.dim()==dim:
+                outward_v = []
+            else:
+                Q = N_QQ.quotient(c.rays())
+                outward_v = [ Q.lift(q) for q in Q.gens() ]
+
+            outward_vectors[c] = outward_v
+            orientation = sign(matrix(outward_v + list(c.ray_basis())).det())
+            generating_cones.append(tuple([orientation, c]))
+        boundaries = {self:FormalSum(generating_cones)}
+
+        # The orientation of each facet is arbitrary, but the
+        # partititon of the boundary in positively and negatively
+        # oriented facets is not.
+        for d in range(dim, -1, -1):
+            for c in self(d):
+                c_boundary = []
+                c_matrix = matrix(outward_vectors[c] + list(c.ray_basis()))
+                c_matrix_inv = c_matrix.inverse()
+                for facet in c.facets():
+                    outward_ray_indices = set(c.ambient_ray_indices()) \
+                              .difference(set(facet.ambient_ray_indices()))
+                    outward_vector = - sum(self.ray(i) for i in outward_ray_indices)
+                    outward_vectors[facet] = [outward_vector] + outward_vectors[c]
+                    facet_matrix = matrix(outward_vectors[facet] + list(facet.ray_basis()))
+                    orientation = sign((c_matrix_inv * facet_matrix).det())
+                    c_boundary.append(tuple([orientation, facet]))
+                boundaries[c] = FormalSum(c_boundary)
+
+        self._oriented_boundary = boundaries
+        return boundaries[cone]
+
+    def complex(self, base_ring=ZZ, extended=False):
+        r"""
+        Return the chain complex of the fan.
+
+        To a `d`-dimensional fan `\Sigma`, one can canonically
+        associate a chain complex `K^\bullet`
+
+        .. math::
+
+            0 \longrightarrow
+            \ZZ^{\Sigma(d)} \longrightarrow
+            \ZZ^{\Sigma(d-1)} \longrightarrow
+            \cdots \longrightarrow
+            \ZZ^{\Sigma(0)} \longrightarrow
+            0
+
+        where the leftmost non-zero entry is in degree `0` and the
+        rightmost entry in degree `d`. See [Klyachko], eq. (3.2). This
+        complex computes the homology of `|\Sigma|\subset N_\RR` with
+        arbitrary support,
+
+        .. math::
+
+            H_i(K) = H_{d-i}(|\Sigma|, \ZZ)_{\text{non-cpct}}
+
+        For a complete fan, this is just the non-compactly supported
+        homology of `\RR^d`. In this case, `H_0(K)=\ZZ` and `0` in all
+        non-zero degrees.
+
+        For a complete fan, there is an extended chain complex
+
+        .. math::
+
+            0 \longrightarrow
+            \ZZ \longrightarrow
+            \ZZ^{\Sigma(d)} \longrightarrow
+            \ZZ^{\Sigma(d-1)} \longrightarrow
+            \cdots \longrightarrow
+            \ZZ^{\Sigma(0)} \longrightarrow
+            0
+
+        where we take the first `\ZZ` term to be in degree -1. This
+        complex is an exact sequence, that is, all homology groups
+        vanish.
+
+        The orientation of each cone is chosen as in
+        :meth:`oriented_boundary`.
+
+        INPUT:
+
+        - ``extended`` -- Boolean (default:False). Whether to
+          construct the extended complex, that is, including the
+          `\ZZ`-term at degree -1 or not.
+
+        - ``base_ring`` -- A ring (default: ``ZZ``). The ring to use
+          instead of `\ZZ`.
+
+        OUTPUT:
+
+        The complex associated to the fan as a :class:`ChainComplex
+        <sage.homology.chain_complex.ChainComplex>`. Raises a
+        ``ValueError`` if the extended complex is requested for a
+        non-complete fan.
+
+        EXAMPLES::
+
+            sage: fan = toric_varieties.P(3).fan()
+            sage: K_normal = fan.complex(); K_normal
+            Chain complex with at most 4 nonzero terms over Integer Ring
+            sage: K_normal.homology()
+            {0: Z, 1: 0, 2: 0, 3: 0}
+            sage: K_extended = fan.complex(extended=True); K_extended
+            Chain complex with at most 5 nonzero terms over Integer Ring
+            sage: K_extended.homology()
+            {0: 0, 1: 0, 2: 0, 3: 0, -1: 0}
+
+        Homology computations are much faster over `\QQ` if you don't
+        care about the torsion coefficients::
+
+            sage: toric_varieties.P2_123().fan().complex(extended=True, base_ring=QQ)
+            Chain complex with at most 4 nonzero terms over Rational Field
+            sage: _.homology()
+            {0: Vector space of dimension 0 over Rational Field,
+             1: Vector space of dimension 0 over Rational Field,
+             2: Vector space of dimension 0 over Rational Field,
+             -1: Vector space of dimension 0 over Rational Field}
+
+        The extended complex is only defined for complete fans::
+
+            sage: fan = Fan([ Cone([(1,0)]) ])
+            sage: fan.is_complete()
+            False
+            sage: fan.complex(extended=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: The extended complex is only defined for complete fans!
+
+        The definition of the complex does not refer to the ambient
+        space of the fan, so it does not distinguish a fan from the
+        same fan embedded in a subspace::
+
+            sage: K1 = Fan([Cone([(-1,)]), Cone([(1,)])]).complex()
+            sage: K2 = Fan([Cone([(-1,0,0)]), Cone([(1,0,0)])]).complex()
+            sage: K1 == K2
+            True
+
+        Things get more complicated for non-complete fans::
+
+            sage: fan = Fan([Cone([(1,1,1)]),
+            ...              Cone([(1,0,0),(0,1,0)]),
+            ...              Cone([(-1,0,0),(0,-1,0),(0,0,-1)])])
+            sage: fan.complex().homology()
+            {0: 0, 1: 0, 2: Z x Z, 3: 0}
+            sage: fan = Fan([Cone([(1,0,0),(0,1,0)]),
+            ...              Cone([(-1,0,0),(0,-1,0),(0,0,-1)])])
+            sage: fan.complex().homology()
+            {0: 0, 1: 0, 2: Z, 3: 0}
+            sage: fan = Fan([Cone([(-1,0,0),(0,-1,0),(0,0,-1)])])
+            sage: fan.complex().homology()
+            {0: 0, 1: 0, 2: 0, 3: 0}
+
+        REFERENCES:
+
+        ..  [Klyachko]
+            A. A. Klyachko,
+            Equivariant Bundles on Toral Varieties.
+            Mathematics of the USSR - Izvestiya 35 (1990), 337-375.
+        """
+        dim = self.dim()
+        delta = dict()
+        for degree in range(1, dim+1):
+            m = matrix(base_ring, len(self(degree-1)), len(self(degree)), base_ring.zero())
+            for i, cone in enumerate(self(degree)):
+                boundary = self.oriented_boundary(cone)
+                for orientation, d_cone in boundary:
+                    m[self(degree-1).index(d_cone), i] = orientation
+            delta[dim-degree] = m
+
+        from sage.homology.chain_complex import ChainComplex
+        if not extended:
+            return ChainComplex(delta, base_ring=base_ring)
+
+        # add the extra entry for the extended complex
+        if not self.is_complete():
+            raise ValueError('The extended complex is only defined for complete fans!')
+        extension = matrix(base_ring, len(self(dim)), 1, base_ring.zero())
+        generating_cones = self.oriented_boundary(self)
+        for orientation, d_cone in generating_cones:
+            extension[self(dim).index(d_cone), 0] = orientation
+        delta[-1] = extension
+        return ChainComplex(delta, base_ring=base_ring)
+
 
 def discard_faces(cones):
     r"""

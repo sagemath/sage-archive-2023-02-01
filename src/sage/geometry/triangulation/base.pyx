@@ -629,7 +629,7 @@ cdef class ConnectedTriangulationsIterator(SageObject):
       triangulation as
 
         * A
-          :class:`~sage.geometry.triangulation.point_configuration.Triangulation`
+          :class:`~sage.geometry.triangulation.element.Triangulation`
           object, or
 
         * an iterable of iterables specifying the vertices of the simplices, or
@@ -651,7 +651,7 @@ cdef class ConnectedTriangulationsIterator(SageObject):
     An iterator. The generated values are tuples of
     integers, which encode simplices of the triangulation. The output
     is a suitable input to
-    :class:`~sage.geometry.triangulation.point_configuration.Triangulation`.
+    :class:`~sage.geometry.triangulation.element.Triangulation`.
 
     EXAMPLES::
 
@@ -673,7 +673,7 @@ cdef class ConnectedTriangulationsIterator(SageObject):
 
     You can reconstruct the triangulation from the compressed output via::
 
-        sage: from sage.geometry.triangulation.point_configuration import Triangulation
+        sage: from sage.geometry.triangulation.element import Triangulation
         sage: Triangulation((2, 3, 4, 5), p)
         (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>)
 

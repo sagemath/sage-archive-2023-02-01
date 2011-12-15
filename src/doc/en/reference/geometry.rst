@@ -22,3 +22,5 @@ polytopes and polyhedra (with rational or numerical coordinates).
 
    sage/geometry/triangulation/point_configuration
    sage/geometry/triangulation/base
+   sage/geometry/triangulation/element
+

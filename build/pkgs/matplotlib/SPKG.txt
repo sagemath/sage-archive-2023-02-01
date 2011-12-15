@@ -76,6 +76,10 @@ The patches are applied during the build process.
    a message showing what MPLCONFIGDIR will be set to, using the
    command from sage-env, so this should provide a check.
 
+ * NOTE: To drastically cut down on spkg size, we delete the internal testing images.
+   To do this, after extracting the source and putting it in src/, remove the contents of
+   src/lib/matplotlib/tests/baseline_images/*
+
 == Changelog ==
 
 See Mercurial Changelog for details.  Older spkg updates are noted below.

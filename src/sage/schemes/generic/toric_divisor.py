@@ -120,9 +120,9 @@ sheaf, if `D` is not Cartier) `\mathcal{O}(D)`. Its sections are::
     sage: H = P2.divisor(0); H
     V(x)
     sage: H.sections()
-    (M(0, 0), M(-1, 0), M(-1, 1))
+    (M(-1, 0), M(-1, 1), M(0, 0))
     sage: H.sections_monomials()
-    (x, z, y)
+    (z, y, x)
 
 Note that the space of sections is always spanned by
 monomials. Therefore, we can grade the sections (as homogeneous
@@ -1284,7 +1284,7 @@ class ToricDivisor_generic(Divisor_generic):
             [A vertex at (1, -1), A vertex at (0, 1), A vertex at (1, 0),
              A vertex at (-1, 1), A vertex at (-1, -1)]
             sage: P_antiK.integral_points()
-            [(1, -1), (0, 1), (1, 0), (-1, 1), (-1, -1), (-1, 0), (0, -1), (0, 0)]
+            ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0))
 
         Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
@@ -1321,15 +1321,15 @@ class ToricDivisor_generic(Divisor_generic):
              An inequality (0, 0, -1) x + 1 >= 0, An inequality (0, 1, 2) x + 1 >= 0,
              An inequality (0, 1, 3) x + 1 >= 0, An inequality (1, 0, 4) x + 1 >= 0]
             sage: P_D.integral_points()
-            [(1, 1, 1), (1, -3, 1), (-5, 1, 1), (-5, -3, 1), (0, 1, 1),
-             (-1, 1, 1), (-2, 1, 1), (-3, 1, 1), (-4, 1, 1), (1, 0, 1),
-             (0, 0, 1), (-1, 0, 1), (-2, 0, 1), (-3, 0, 1), (-4, 0, 1),
-             (-5, 0, 1), (1, -1, 1), (0, -1, 1), (-1, -1, 1), (-2, -1, 1),
-             (-3, -1, 1), (-4, -1, 1), (-5, -1, 1), (1, -2, 1), (0, -2, 1),
-             (-1, -2, 1), (-2, -2, 1), (-3, -2, 1), (-4, -2, 1), (-5, -2, 1),
-             (0, -3, 1), (-1, -3, 1), (-2, -3, 1), (-3, -3, 1), (-4, -3, 1),
-             (1, 1, 0), (0, 1, 0), (-1, 1, 0), (1, 0, 0), (0, 0, 0), (-1, 0, 0),
-             (1, -1, 0), (0, -1, 0), (-1, -1, 0)]
+            ((-1, -1, 0), (0, -1, 0), (1, -1, 0), (-1, 0, 0), (0, 0, 0),
+             (1, 0, 0), (-1, 1, 0), (0, 1, 0), (1, 1, 0), (-5, -3, 1),
+             (-4, -3, 1), (-3, -3, 1), (-2, -3, 1), (-1, -3, 1), (0, -3, 1),
+             (1, -3, 1), (-5, -2, 1), (-4, -2, 1), (-3, -2, 1), (-2, -2, 1),
+             (-1, -2, 1), (0, -2, 1), (1, -2, 1), (-5, -1, 1), (-4, -1, 1),
+             (-3, -1, 1), (-2, -1, 1), (-1, -1, 1), (0, -1, 1), (1, -1, 1),
+             (-5, 0, 1), (-4, 0, 1), (-3, 0, 1), (-2, 0, 1), (-1, 0, 1),
+             (0, 0, 1), (1, 0, 1), (-5, 1, 1), (-4, 1, 1), (-3, 1, 1),
+             (-2, 1, 1), (-1, 1, 1), (0, 1, 1), (1, 1, 1))
         """
         try:
             return self._polyhedron
@@ -1358,11 +1358,11 @@ class ToricDivisor_generic(Divisor_generic):
             sage: P2.fan().nrays()
             3
             sage: P2.divisor(0).sections()
-            (M(0, 0), M(-1, 0), M(-1, 1))
+            (M(-1, 0), M(-1, 1), M(0, 0))
             sage: P2.divisor(1).sections()
-            (M(0, 0), M(0, -1), M(1, -1))
+            (M(0, -1), M(0, 0), M(1, -1))
             sage: P2.divisor(2).sections()
-            (M(0, 1), M(1, 0), M(0, 0))
+            (M(0, 0), M(0, 1), M(1, 0))
 
         The divisor can be non-nef yet still have sections::
 
@@ -1406,11 +1406,11 @@ class ToricDivisor_generic(Divisor_generic):
             sage: P2.fan().nrays()
             3
             sage: P2.divisor(0).sections_monomials()
-            (x, z, y)
+            (z, y, x)
             sage: P2.divisor(1).sections_monomials()
-            (y, z, x)
+            (z, y, x)
             sage: P2.divisor(2).sections_monomials()
-            (y, x, z)
+            (z, y, x)
 
         From [CoxTutorial]_ page 38::
 
@@ -1421,11 +1421,11 @@ class ToricDivisor_generic(Divisor_generic):
             sage: dP7 = ToricVariety( FaceFan(lp), 'x1, x2, x3, x4, x5')
             sage: AK = -dP7.K()
             sage: AK.sections()
-            (M(-1, 1), M(1, 1), M(1, -1), M(0, -1),
-             M(-1, 0), M(1, 0), M(0, 0), M(0, 1))
+            (M(-1, 0), M(-1, 1), M(0, -1), M(0, 0),
+             M(0, 1), M(1, -1), M(1, 0), M(1, 1))
             sage: AK.sections_monomials()
-            (x2*x3^2*x4^2, x1^2*x2^3*x3^2, x1^2*x2*x5^2, x1*x4*x5^2,
-             x3*x4^2*x5, x1^2*x2^2*x3*x5, x1*x2*x3*x4*x5, x1*x2^2*x3^2*x4)
+            (x3*x4^2*x5, x2*x3^2*x4^2, x1*x4*x5^2, x1*x2*x3*x4*x5,
+             x1*x2^2*x3^2*x4, x1^2*x2*x5^2, x1^2*x2^2*x3*x5, x1^2*x2^3*x3^2)
 
         REFERENCES:
 
@@ -1803,7 +1803,7 @@ class ToricDivisor_generic(Divisor_generic):
             sage: D6 = dP6.divisor(5)
             sage: D = -D3 + 2*D5 - D6
             sage: D.cohomology_support()
-            (M(2, 0), M(1, 0), M(0, 0), M(1, 1))
+            (M(0, 0), M(1, 0), M(2, 0), M(1, 1))
         """
         X = self.parent().scheme()
         M = X.fan().dual_lattice()

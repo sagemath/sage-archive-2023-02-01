@@ -189,7 +189,7 @@ from sage.structure.coerce import parent
 from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
     Linear_Expression, ray as PPL_ray, point as PPL_point, \
     Poly_Con_Relation
-from sage.combinat.cartesian_product import CartesianProduct
+from sage.geometry.integral_points import parallelotope_points
 
 
 def is_Cone(x):
@@ -3499,9 +3499,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 gens.update(cone.semigroup_generators())
             return tuple(gens)
 
-        if self.is_trivial():
-            return tuple()
-        gens = list(parallelotope_points(self.rays())) + list(self.rays())
+        gens = list(parallelotope_points(self.rays(), N)) + list(self.rays())
         gens = filter(lambda v:gcd(v)==1, gens)
         return tuple(gens)
 
@@ -3680,95 +3678,4 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         return vector(ZZ, p.get_values(x))
 
-
-
-#################################################################
-def parallelotope_points(spanning_points):
-    r"""
-    Return integral points in the parallelotope spanned by a the
-    rays.
-
-    See :meth:`~ConvexRationalPolyhedralCone.semigroup_generators` for a description of the
-    algorithm.
-
-    INPUT:
-
-    - ``spanning_points`` -- a non-empty list of linearly independent
-      rays (`\ZZ`-vectors or :class:`toric lattice
-      <sage.geometry.toric_lattice.ToricLatticeFactory>` elements),
-      not necessarily primitive lattice points.
-
-    OUTPUT:
-
-    The tuple of all lattice points in the half-open parallelotope
-    spanned by the rays `r_i`,
-
-    .. math::
-
-        \mathop{par}(\{r_i\}) =
-        \sum_{0\leq a_i < 1} a_i r_i
-
-    By half-open parallelotope, we mean that the
-    points in the facets not meeting the origin are omitted.
-
-    EXAMPLES:
-
-    Note how the points on the outward-facing factes are omitted::
-
-        sage: from sage.geometry.cone import parallelotope_points
-        sage: rays = map(vector, [(2,0), (0,2)])
-        sage: parallelotope_points(rays)
-        ((0, 0), (1, 0), (0, 1), (1, 1))
-
-    The rays can also be toric lattice points::
-
-        sage: rays = map(ToricLattice(2), [(2,0), (0,2)])
-        sage: parallelotope_points(rays)
-        (N(0, 0), N(1, 0), N(0, 1), N(1, 1))
-
-    A non-smooth cone::
-
-        sage: c = Cone([ (1,0), (1,2) ])
-        sage: parallelotope_points(c.rays())
-        (N(0, 0), N(1, 1))
-
-    A ``ValueError`` is raised if the ``spanning_points`` are not
-    linearly independent::
-
-        sage: rays = map(ToricLattice(2), [(1,1)]*2)
-        sage: parallelotope_points(rays)
-        Traceback (most recent call last):
-        ...
-        ValueError: The spanning points are not linearly independent!
-    """
-    N = spanning_points[0].parent()  # this is why there needs to be at least one ray
-
-    # compute points in the open parallelotope, see [BrunsKoch]
-    R = matrix(spanning_points).transpose()
-    D,U,V = R.smith_form()
-    e = D.diagonal()          # the elementary divisors
-    d = prod(e)               # the determinant
-    if d==0:
-        raise ValueError('The spanning points are not linearly independent!')
-    u = U.inverse().columns() # generators for gp(semigroup)
-    gens = []
-
-    # "inverse" of the ray matrix as far as possible over ZZ
-    # R*Rinv == diagonal_matrix([d]*D.ncols() + [0]*(D.nrows()-D.ncols()))
-    # If R is full rank, this is Rinv = matrix(ZZ, R.inverse() * d)
-    Dinv = D.transpose()
-    for i in range(0,D.ncols()):
-        Dinv[i,i] = d/D[i,i]
-    Rinv = V * Dinv * U
-
-    for b in CartesianProduct(*[ range(0,i) for i in e ]):
-        # this is our generator modulo the lattice spanned by the rays
-        gen_mod_rays = sum( b_i*u_i for b_i, u_i in zip(b,u) )
-        q_times_d = Rinv * gen_mod_rays
-        q_times_d = vector(ZZ,[ q_i % d  for q_i in q_times_d ])
-        gen = N(R*q_times_d / d)
-        gen.set_immutable()
-        gens.append(gen)
-    assert(len(gens) == d)
-    return tuple(gens)
 

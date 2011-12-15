@@ -118,7 +118,7 @@ from sage.structure.sequence import Sequence
 from sage.categories.objects import Objects
 
 from subprocess import Popen, PIPE
-from sage.misc.all import tmp_filename
+from sage.misc.all import tmp_filename, cached_method, prod
 from sage.misc.functional import norm
 from sage.misc.package import is_package_installed
 
@@ -1205,6 +1205,10 @@ class Vertex(Vrepresentation):
     def _repr_(self):
         """
         Returns a string representation of the vertex.
+
+        OUTPUT:
+
+        String.
 
         TESTS::
 
@@ -4646,101 +4650,72 @@ class Polyhedron(SageObject):
         """
         if not self.is_compact():
             raise ValueError, 'Can only enumerate points in a compact polyhedron.'
-
         lp = self.lattice_polytope(True)
-
         # remove cached values to get accurate timings
         try:
             del lp._points
             del lp._npoints
         except AttributeError:
             pass
-
         if self.is_lattice_polytope():
             return lp.points().columns()
-
         points = filter(lambda p: self.contains(p),
                         lp.points().columns())
         return points
 
-    def _integral_points_lattice_simplex(self, vertices=None):
+    @cached_method
+    def bounding_box(self, integral=False):
         r"""
-        Return the integral points in a lattice simplex.
+        Return the coordinates of a rectangular box containing the non-empty polytope.
 
         INPUT:
 
-        - ``vertices`` -- ``None`` (default) or a list of
-          integers. The indices of vertices that span the simplex
-          under consideration. By default, it is assumed that the
-          polytope itself is a simplex and all vertices are used.
+        - ``integral`` -- Boolean (default: ``False``). Whether to
+          only allow integral coordinates in the bounding box.
 
         OUTPUT:
 
-        A tuple containing the integral point coordinates as `\ZZ`-vectors.
+        A pair of tuples ``(box_min, box_max)`` where ``box_min`` are
+        the coordinates of a point bounding the coordinates of the
+        polytope from below and ``box_max`` bounds the coordinates
+        from above.
 
         EXAMPLES::
 
-            sage: simplex = Polyhedron([(1,2,3), (2,3,7), (-2,-3,-11)])
-            sage: simplex._integral_points_lattice_simplex()
-            ((-2, -3, -11), (0, 0, -2), (1, 2, 3), (2, 3, 7))
-
-        The simplex need not be full-dimensional::
-
-            sage: simplex = Polyhedron([(1,2,3,5), (2,3,7,5), (-2,-3,-11,5)])
-            sage: simplex._integral_points_lattice_simplex()
-            ((-2, -3, -11, 5), (0, 0, -2, 5), (1, 2, 3, 5), (2, 3, 7, 5))
-
-            sage: point = Polyhedron([(2,3,7)])
-            sage: point._integral_points_lattice_simplex()
-            ((2, 3, 7),)
-
-        TESTS::
-
-            sage: v = [(1,0,7,-1), (-2,-2,4,-3), (-1,-1,-1,4), (2,9,0,-5), (-2,-1,5,1)]
-            sage: simplex = Polyhedron(v); simplex
-            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices.
-            sage: len(simplex._integral_points_lattice_simplex())
-            49
-
-            sage: v = [(4,-1,-1,-1), (-1,4,-1,-1), (-1,-1,4,-1), (-1,-1,-1,4), (-1,-1,-1,-1)]
-            sage: P4mirror = Polyhedron(v)
-            sage: len( P4mirror._integral_points_lattice_simplex() )
-            126
+            sage: Polyhedron([ (1/3,2/3), (2/3, 1/3) ]).bounding_box()
+            ((1/3, 1/3), (2/3, 2/3))
+            sage: Polyhedron([ (1/3,2/3), (2/3, 1/3) ]).bounding_box(integral=True)
+            ((0, 0), (1, 1))
+            sage: polytopes.buckyball().bounding_box()
+            ((-1059/1309, -1059/1309, -1059/1309), (1059/1309, 1059/1309, 1059/1309))
         """
-        if not vertices:
-            assert self.is_simplex() and self.is_lattice_polytope()
-            vertices = [ vector(ZZ, v) for v in self.Vrepresentation() ]
-        else:
-            vertices = [ vector(ZZ, self.Vrepresentation(i)) for i in vertices ]
+        box_min = []
+        box_max = []
+        if self.n_vertices==0:
+            raise ValueError('Empty polytope is not allowed')
+        for i in range(0,self.ambient_dim()):
+            coords = [ v[i] for v in self.Vrep_generator() ]
+            max_coord = max(coords)
+            min_coord = min(coords)
+            if integral:
+                box_max.append(ceil(max_coord))
+                box_min.append(floor(min_coord))
+            else:
+                box_max.append(max_coord)
+                box_min.append(min_coord)
+        return (tuple(box_min), tuple(box_max))
 
-        origin = vertices.pop()
-        origin.set_immutable()
-        if len(vertices)==0:
-            return tuple([origin])
-        rays = [ v-origin for v in vertices ]
-
-        # Find equation Ax<=b that cuts out simplex from parallelotope
-        R = matrix(rays)
-        if R.is_square():
-            b = 1
-            A = R.solve_right(vector([1]*len(rays)))
-        else:
-            b = 1
-            RRt = R * R.transpose()
-            A = RRt.solve_right(vector([1]*len(rays))) * R
-
-        from sage.geometry.cone import parallelotope_points
-        gens = list(parallelotope_points(rays)) + list(rays)
-        gens = [ origin+x for x in
-                 list(parallelotope_points(rays)) + list(rays)
-                 if A*x<=b ]
-        for x in gens:
-            x.set_immutable()
-        return tuple(gens)
-
-    def integral_points(self):
+    def integral_points(self, threshold=100000):
         r"""
         Return the integral points in the polyhedron.
+
+        Uses either the naive algorithm (iterate over a rectangular
+        bounding box) or triangulation + Smith form.
+
+        INPUT:
+
+        - ``threshold`` -- integer (default: 100000). Use the naive
+          algorith as long as the bounding box is smaller than this.
 
         OUTPUT:
 
@@ -4750,41 +4725,81 @@ class Polyhedron(SageObject):
         EXAMPLES::
 
             sage: Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)]).integral_points()
-            ((0, 1), (1, 0), (0, 0), (1, 1), (-1, -1))
+            ((-1, -1), (0, 0), (0, 1), (1, 0), (1, 1))
 
-        Finally, 3-d reflexive polytope number 4078::
+            sage: simplex = Polyhedron([(1,2,3), (2,3,7), (-2,-3,-11)])
+            sage: simplex.integral_points()
+            ((-2, -3, -11), (0, 0, -2), (1, 2, 3), (2, 3, 7))
+
+        The polyhedron need not be full-dimensional::
+
+            sage: simplex = Polyhedron([(1,2,3,5), (2,3,7,5), (-2,-3,-11,5)])
+            sage: simplex.integral_points()
+            ((-2, -3, -11, 5), (0, 0, -2, 5), (1, 2, 3, 5), (2, 3, 7, 5))
+
+            sage: point = Polyhedron([(2,3,7)])
+            sage: point.integral_points()
+            ((2, 3, 7),)
+
+            sage: empty = Polyhedron()
+            sage: empty.integral_points()
+            ()
+
+        Here is a simplex where the naive algorithm of running over
+        all points in a rectangular bounding box no longer works fast
+        enough::
+
+            sage: v = [(1,0,7,-1), (-2,-2,4,-3), (-1,-1,-1,4), (2,9,0,-5), (-2,-1,5,1)]
+            sage: simplex = Polyhedron(v); simplex
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices.
+            sage: len(simplex.integral_points())
+            49
+
+        Finally, the 3-d reflexive polytope number 4078::
 
             sage: v = [(1,0,0), (0,1,0), (0,0,1), (0,0,-1), (0,-2,1),
             ...        (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
-            sage: pts1 = set(Polyhedron(v).integral_points())    # Sage's own code
-            sage: pts2 = LatticePolytope(v).points().columns()   # PALP
-            sage: for p in pts2:
-            ...       p.set_immutable()
-            sage: pts2 = set(pts2)
-            sage: pts1 == pts2
+            sage: P = Polyhedron(v)
+            sage: pts1 = P.integral_points()                     # Sage's own code
+            sage: all(P.contains(p) for p in pts1)
             True
-
-        TODO: profile and make faster::
+            sage: pts2 = LatticePolytope(v).points().columns()   # PALP
+            sage: for p in pts1: p.set_immutable()
+            sage: for p in pts2: p.set_immutable()
+            sage: set(pts1) == set(pts2)
+            True
 
             sage: timeit('Polyhedron(v).integral_points()')   # random output
             sage: timeit('LatticePolytope(v).points()')       # random output
         """
         if not self.is_compact():
             raise ValueError('Can only enumerate points in a compact polyhedron.')
-        if not self.is_lattice_polytope():
-            raise NotImplementedError('Only implemented for polyhedra with integral vertices')
+        if self.n_vertices() == 0:
+            return tuple()
 
+        # for small bounding boxes, it is faster to naively iterate over the points of the box
+        box_min, box_max = self.bounding_box(integral=True)
+        box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
+        if  not self.is_lattice_polytope() or \
+                (self.is_simplex() and box_points<1000) or \
+                box_points<threshold:
+            from sage.geometry.integral_points import rectangular_box_points
+            return rectangular_box_points(box_min, box_max, self)
+
+        # for more complicate polytopes, triangulate & use smith normal form
+        from sage.geometry.integral_points import simplex_points
         if self.is_simplex():
-            points = self._integral_points_lattice_simplex()
-        else:
-            triangulation = self.triangulate()
-            points = set()
-            for simplex in triangulation:
-                points.update(self._integral_points_lattice_simplex(simplex))
-            points = tuple(points)
-
+            return simplex_points(self.Vrepresentation())
+        triangulation = self.triangulate()
+        points = set()
+        for simplex in triangulation:
+            triang_vertices = [ self.Vrepresentation(i) for i in simplex ]
+            new_points = simplex_points(triang_vertices)
+            for p in new_points:
+                p.set_immutable()
+            points.update(new_points)
         # assert all(self.contains(p) for p in points)   # slow
-        return points
+        return tuple(points)
 
     def combinatorial_automorphism_group(self):
         """

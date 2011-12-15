@@ -300,6 +300,9 @@ ext_modules = [
                sources = ['sage/geometry/toric_lattice_element.pyx'],
                libraries=['gmp']),
 
+     Extension('sage.geometry.integral_points',
+               sources = ['sage/geometry/integral_points.pyx']),
+
      Extension('sage.geometry.triangulation.base',
                sources = ['sage/geometry/triangulation/functions.cc',
                           'sage/geometry/triangulation/data.cc',

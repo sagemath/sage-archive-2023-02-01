@@ -372,9 +372,21 @@ latex_table = {types.NoneType: None_function,
 
 class LatexExpr(str):
     """
-    A class for LaTeX expressions, i.e. the result of a :func:`latex`
-    call.  A ``LatexExpr`` can also be generated directly from a string.
-    This string is then pretty-printed (see :func:`pretty_print`) as-is.
+    A class for LaTeX expressions.
+
+    Normally, objects of this class are created by a :func:`latex` call. It is
+    also possible to generate :class:`LatexExpr` directly from a string, which
+    must contain a valid LaTeX code for typesetting in math mode. Strings are
+    wrapped into verbatim environment for typeset output, while LaTeX
+    expressions are left as-is (see :func:`pretty_print`).
+
+    INPUT:
+
+    - anything convertible to a string of valid math mode LaTeX code.
+
+    OUTPUT:
+
+    - :class:`LatexExpr` wrapping the string representation of the input.
 
     EXAMPLES::
 
@@ -1680,7 +1692,7 @@ class JSMath:
             sage: JSMath().eval(type(3), mode='inline')
             <html>...\verb|&lt;type|\phantom{x}\verb|'sage.rings.integer.Integer'&gt;|</span></html>
         """
-        # Now get a regular LaTeX representation of x...
+        # Get a regular LaTeX representation of x...
         x = latex(x)
         # ... and make it suitable for jsMath, which has issues with < and >.
         x = x.replace('<', '&lt;').replace('>', '&gt;')

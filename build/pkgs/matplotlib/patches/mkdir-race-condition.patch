@@ -1,0 +1,100 @@
+diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py
+index fa4d008..4b4d393 100644
+--- a/lib/matplotlib/__init__.py
++++ b/lib/matplotlib/__init__.py
+@@ -101,7 +101,7 @@ from __future__ import generators
+ 
+ __version__  = '1.1.0'
+ 
+-import os, re, shutil, subprocess, sys, warnings
++import os, re, shutil, subprocess, sys, warnings, errno
+ import distutils.sysconfig
+ import distutils.version
+ 
+@@ -470,7 +470,13 @@ def _get_configdir():
+         if not _is_writable_dir(h):
+             raise RuntimeError("Failed to create %s/.matplotlib; consider setting MPLCONFIGDIR to a writable directory for matplotlib configuration data"%h)
+ 
+-        os.mkdir(p)
++        try:
++            os.mkdir(p)
++        except OSError as e:
++            if e.errno == errno.EEXIST:
++                pass
++            else:
++                raise
+ 
+     return p
+ get_configdir = verbose.wrap('CONFIGDIR=%s', _get_configdir, always=False)
+diff --git a/lib/matplotlib/finance.py b/lib/matplotlib/finance.py
+index 08b8f9a..e9d7102 100644
+--- a/lib/matplotlib/finance.py
++++ b/lib/matplotlib/finance.py
+@@ -4,7 +4,7 @@ financial data.   User contributions welcome!
+ 
+ """
+ #from __future__ import division
+-import os, warnings
++import os, warnings, errno
+ from urllib2 import urlopen
+ 
+ try:
+@@ -182,8 +182,13 @@ def fetch_historical_yahoo(ticker, date1, date2, cachename=None,dividends=False)
+         fh = file(cachename)
+         verbose.report('Using cachefile %s for %s'%(cachename, ticker))
+     else:
+-        if not os.path.isdir(cachedir):
++        try:
+             os.mkdir(cachedir)
++        except OSError as e:
++            if e.errno == errno.EEXIST:
++                pass
++            else:
++                raise
+         urlfh = urlopen(url)
+ 
+         fh = file(cachename, 'w')
+diff --git a/lib/matplotlib/texmanager.py b/lib/matplotlib/texmanager.py
+index 93f85f1..72fe26d 100644
+--- a/lib/matplotlib/texmanager.py
++++ b/lib/matplotlib/texmanager.py
+@@ -33,7 +33,7 @@ or include these two lines in your script::
+ 
+ """
+ 
+-import copy, glob, os, shutil, sys, warnings
++import copy, glob, os, shutil, sys, warnings, errno
+ from subprocess import Popen, PIPE, STDOUT
+ 
+ try:
+@@ -88,8 +88,13 @@ class TexManager:
+ WARNING: found a TeX cache dir in the deprecated location "%s".
+   Moving it to the new default location "%s"."""%(oldcache, texcache)
+         shutil.move(oldcache, texcache)
+-    if not os.path.exists(texcache):
++    try:
+         os.mkdir(texcache)
++    except OSError as e:
++        if e.errno == errno.EEXIST:
++            pass
++        else:
++            raise
+ 
+     _dvipng_hack_alpha = None
+     #_dvipng_hack_alpha = dvipng_hack_alpha()
+@@ -130,8 +135,14 @@ WARNING: found a TeX cache dir in the deprecated location "%s".
+ 
+     def __init__(self):
+ 
+-        if not os.path.isdir(self.texcache):
++        try:
+             os.mkdir(self.texcache)
++        except OSError as e:
++            if e.errno == errno.EEXIST:
++                pass
++            else:
++                raise
++
+         ff = rcParams['font.family'].lower()
+         if ff in self.font_families:
+             self.font_family = ff

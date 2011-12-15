@@ -1,6 +1,6 @@
---- src/setupext.py	2010-07-06 18:41:55.000000000 -0700
-+++ src/setupext.py	2011-08-13 15:59:41.000000000 -0700
-@@ -538,7 +538,17 @@
+--- src/setupext.py	2011-10-06 09:50:23.000000000 -0500
++++ src/setupext.py	2011-12-14 22:42:14.000000000 -0600
+@@ -559,7 +559,17 @@
      module.include_dirs.append(numpy.get_include())
  
  def add_png_flags(module):

@@ -47,11 +47,12 @@ The patches are applied during the build process.
    of libpng, as above; otherwise it uses libpng, which is the
    behavior before the patch. See Sage trac #4774 and #11686.
 
- * __init__.py.patch, finance.py.patch, texmanager.py.patch: instead
+ * mkdir-race-condition.patch: instead
    of "if not.os.path.exists(DIR): os.mkdir(DIR)", do "try
    os.mkdir(DIR)" and then catch the error if the directory already
    exists.  This is safer in general, and should avoid problems if two
-   doctests try to create the directory at the same time.
+   doctests try to create the directory at the same time.  These patches
+   have been submitted upstream at https://github.com/matplotlib/matplotlib/pull/629
 
  * NOTE: as of matplotlib-1.0.0 and Sage 4.6, Sage does not use
    $HOME/.matplotlib (or whatever the user has set in MPLCONFIGDIR).
@@ -76,6 +77,8 @@ The patches are applied during the build process.
    command from sage-env, so this should provide a check.
 
 == Changelog ==
+
+See Mercurial Changelog for details.  Older spkg updates are noted below.
 
 === matplotlib-1.0.1.p0 (John Palmieri, 17 Aug 2011) ===
  * Patch __init__.py, finance.py, and texmanager.py to avoid race

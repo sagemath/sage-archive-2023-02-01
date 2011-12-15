@@ -15230,6 +15230,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: C.automorphism_group(orbits=True, return_group=False)
             [['000', '001', '010', '011', '100', '101', '110', '111']]
 
+        TESTS:
+
+        We get a KeyError when given an invalid partition (trac #6087)::
+
+            sage: g=graphs.CubeGraph(3)
+            sage: g.relabel()
+            sage: g.automorphism_group(partition=[[0,1,2],[3,4,5]])
+            Traceback (most recent call last):
+            ...
+            KeyError: 6
+
         """
         from sage.groups.perm_gps.partn_ref.refinement_graphs import perm_group_elt, search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup

@@ -18,24 +18,27 @@ more details.
 
 Finding a single triangulation and listing all connected
 triangulations is implemented natively in this package. However, for
-more advanced options [TOPCOM]_ needs to be installed. You can find an
-experimental spkg at http://trac.sagemath.org/sage_trac/ticket/8169
+more advanced options [TOPCOM]_ needs to be installed. It is available
+as an optional package for Sage, and you can install it with the
+command::
 
-NOTE:
+    sage: install_package('TOPCOM')     # not tested
 
-TOPCOM and the internal algorithms tend to enumerate triangulations in
-a different order. This is why we always explicitly specify the engine
-as ``engine='TOPCOM'`` or ``engine='internal'`` in the doctests. In
-your own applications, you do not need to specify the engine. By
-default, TOPCOM is used if it is available and the internal algorithms
-are used otherwise.
+.. note::
+
+    TOPCOM and the internal algorithms tend to enumerate
+    triangulations in a different order. This is why we always
+    explicitly specify the engine as ``engine='TOPCOM'`` or
+    ``engine='internal'`` in the doctests. In your own applications,
+    you do not need to specify the engine. By default, TOPCOM is used
+    if it is available and the internal algorithms are used otherwise.
 
 EXAMPLES:
 
 First, we select the internal implementation for enumerating
 triangulations::
 
-   sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
+    sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
 
 A 2-dimensional point configuration::
 
@@ -100,7 +103,9 @@ removed before passing the data to TOPCOM which cannot handle it::
     sage: pc.dim()
     3
     sage: pc.triangulate()
-    (<0,1,2,3>, <1,2,3,4>, <2,3,4,5>, <3,4,5,6>)
+    (<0,1,2,6>, <0,1,3,6>, <0,2,3,6>, <1,2,4,6>, <1,3,4,6>, <2,3,5,6>, <2,4,5,6>)
+    sage: _ in pc.triangulations()
+    True
     sage: len( pc.triangulations_list() )
     26
 
@@ -133,6 +138,9 @@ AUTHORS:
     - Volker Braun: Cythonized parts of it, added a C++ implementation
       of the bistellar flip algorithm to enumerate all connected
       triangulations.
+
+    - Volker Braun 2011: switched the triangulate() method to the
+      placing triangulation (faster).
 """
 
 ########################################################################
@@ -156,6 +164,7 @@ AUTHORS:
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
+from sage.misc.cachefunc import cached_method
 
 from sage.combinat.combination import Combinations
 from sage.rings.all import QQ, ZZ
@@ -282,23 +291,27 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: pc1 is pc2   # indirect doctest
             True
         """
-        if isinstance(points, PointConfiguration):
+        if isinstance(points, PointConfiguration_base):
+            pc = points
             points = tuple( p.projective() for p in points )
             projective = True
+            defined_affine = pc.is_affine()
         elif projective:
             points = tuple( tuple(p) for p in points )
+            defined_affine = False
         else:
             points = tuple( tuple(p)+(1,) for p in points )
+            defined_affine = True
         if star!=None and star not in ZZ:
             star_point = tuple(star)
             if len(star_point)<len(points[0]):
                 star_point = tuple(star)+(1,)
             star = points.index(star_point)
         return super(PointConfiguration, cls)\
-            .__classcall__(cls, points, connected, fine, regular, star)
+            .__classcall__(cls, points, connected, fine, regular, star, defined_affine)
 
 
-    def __init__(self, points, connected, fine, regular, star):
+    def __init__(self, points, connected, fine, regular, star, defined_affine):
         """
         Initialize a :class:`PointConfiguration` object.
 
@@ -331,7 +344,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         assert star==None or star in ZZ, 'Unknown value: fine='+str(star)
         self._star = star
 
-        PointConfiguration_base.__init__(self, points)
+        PointConfiguration_base.__init__(self, points, defined_affine)
 
 
     @classmethod
@@ -413,9 +426,19 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: p = PointConfiguration([[0, 1], [0, 0], [1, 0], [1,1]])
             sage: loads(p.dumps()) is p
             True
+
+            sage: p = PointConfiguration([[0, 1, 1], [0, 0, 1], [1, 0, 1], [1,1, 1]], projective=True)
+            sage: loads(p.dumps()) is p
+            True
         """
-        points = tuple( p.projective() for p in self )
-        return (PointConfiguration, (points, True, self._connected, self._fine, self._regular, self._star))
+        if self.is_affine():
+            points = tuple( p.affine() for p in self )
+            return (PointConfiguration, (points, False,
+                                         self._connected, self._fine, self._regular, self._star))
+        else:
+            points = tuple( p.projective() for p in self )
+            return (PointConfiguration, (points, True,
+                                         self._connected, self._fine, self._regular, self._star))
 
 
     def an_element(self):
@@ -479,12 +502,23 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         TESTS::
 
-            sage: p = PointConfiguration([[1, 1, 1], [-1, 1, 1], [1, -1, 1], [-1, -1, 1], [1, 1, -1], [-1, 1, -1], [1, -1, -1], [-1, -1, -1], [0, 0, 0]])
+            sage: p = PointConfiguration([[1,1,1],[-1,1,1],[1,-1,1],[-1,-1,1],[1,1,-1],
+            ...                           [-1,1,-1],[1,-1,-1],[-1,-1,-1],[0,0,0]])
             sage: p._repr_()
-            'A point configuration in QQ^3 consisting of 9 points. The triangulations of this point configuration are assumed to be connected, not necessarily fine, not necessarily regular.'
+            'A point configuration in QQ^3 consisting of 9 points. The triangulations
+            of this point configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular.'
+
+            sage: PointConfiguration([[1, 1, 1], [-1, 1, 1], [1, -1, 1], [-1, -1, 1]], projective=True)
+            A point configuration in P(QQ^3) consisting of 4 points. The triangulations
+            of this point configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular.
         """
         s = 'A point configuration'
-        s += ' in QQ^'+str(self.ambient_dim())
+        if self.is_affine():
+            s += ' in QQ^'+str(self.ambient_dim())
+        else:
+            s += ' in P(QQ^'+str(self.ambient_dim()+1)+')'
         if len(self)==1:
             s += ' consisting of '+str(len(self))+' point. '
         else:
@@ -1020,7 +1054,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 pass
 
         if self._connected and not self._fine and self._regular!=False and self._star==None:
-            return self.lexicographic_triangulation()
+            return self.placing_triangulation()
 
         try:
             return self.triangulations(verbose).next()
@@ -1077,8 +1111,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         integers while lists etc. are indexed by nonnegative
         integers. The indexing of the permutation group is chosen to
         be shifted by ``+1``. That is, the transposition ``(i,j)`` in
-        the permutation group corresponds to exchange of `self[i-1]``
-        and `self[j-1]`.
+        the permutation group corresponds to exchange of ``self[i-1]``
+        and ``self[j-1]``.
 
         EXAMPLES::
 
@@ -1242,7 +1276,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         OUTPUT:
 
-        * If a simplex was passed as an argument: n!*(volume of the simplex simp).
+        * If a simplex was passed as an argument: n!*(volume of ``simplex``).
 
         * Without argument: n!*(the total volume of the convex hull).
 
@@ -1258,24 +1292,25 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             1
 
         The square can be triangulated into two minimal simplices, so
-        in the "integral" normalization ts volume equals two::
+        in the "integral" normalization its volume equals two::
 
             sage: p.volume()
             2
 
-        NOTES:
+        .. note::
 
-        We need to have n!*(volume of the simplex) to ensure that
-        the volume is an integer.  Essentially, this normalizes things so that
-        the volume of the standard n-simplex is 1.  See [GKZ]_ page 182.
+            We return n!*(metric volume of the simplex) to ensure that
+            the volume is an integer.  Essentially, this normalizes
+            things so that the volume of the standard n-simplex is 1.
+            See [GKZ]_ page 182.
         """
         if (simplex==None):
             return sum([ self.volume(s) for s in self.triangulate() ])
 
         #Form a matrix whose columns are the points of simplex
         #with the first point of simplex shifted to the origin.
-        v = [ vector(self.point(i).reduced_affine()) for i in simplex ]
-        m = matrix([ v_i - v[0] for v_i in v[1:] ]).transpose()
+        v = [ self.point(i).reduced_affine_vector() for i in simplex ]
+        m = matrix([ v_i - v[0] for v_i in v[1:] ])
         return abs(m.det())
 
 
@@ -1466,7 +1501,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         OUTPUT:
 
-        A tuple of all circuits with `C_- = ` ``negative``.
+        A tuple of all circuits with `C_-` = ``negative``.
 
         EXAMPLE::
 
@@ -1617,5 +1652,347 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         triangulation = [ tuple(I.difference(t)) for t in triangulation ]
 
         return self(triangulation)
+
+
+    @cached_method
+    def distance_affine(self, x, y):
+        r"""
+        Returns the distance between two points.
+
+        The distance function used in this method is `d_{aff}(x,y)^2`,
+        the square of the usual affine distance function
+
+        .. math::
+
+            d_{aff}(x,y) = |x-y|
+
+        INPUT:
+
+        - ``x``, ``y`` -- two points of the point configuration.
+
+        OUTPUT:
+
+        The metric distance-square `d_{aff}(x,y)^2`. Note that this
+        distance lies in the same field as the entries of ``x``,
+        ``y``. That is, the distance of rational points will be
+        rational and so on.
+
+        EXAMPLES::
+
+            sage: pc = PointConfiguration([(0,0),(1,0),(2,1),(1,2),(0,1)])
+            sage: [ pc.distance_affine(pc.point(0), p) for p in pc.points() ]
+            [0, 1, 5, 5, 1]
+        """
+        self._assert_is_affine()
+        d = 0
+        for xi, yi in zip(x.projective(), y.projective()):
+            d += (xi-yi)**2
+        return d
+
+
+    @cached_method
+    def distance_FS(self, x, y):
+        r"""
+        Returns the distance between two points.
+
+        The distance function used in this method is `1-\cos
+        d_{FS}(x,y)^2`, where `d_{FS}` is the Fubini-Study distance of
+        projective points. Recall the Fubini-Studi distance function
+
+        .. math::
+
+            d_{FS}(x,y) = \arccos \sqrt{ \frac{(x\cdot y)^2}{|x|^2 |y|^2} }
+
+        INPUT:
+
+        - ``x``, ``y`` -- two points of the point configuration.
+
+        OUTPUT:
+
+        The distance `1-\cos d_{FS}(x,y)^2`. Note that this distance
+        lies in the same field as the entries of ``x``, ``y``. That
+        is, the distance of rational points will be rational and so
+        on.
+
+        EXAMPLES::
+
+            sage: pc = PointConfiguration([(0,0),(1,0),(2,1),(1,2),(0,1)])
+            sage: [ pc.distance_FS(pc.point(0), p) for p in pc.points() ]
+            [0, 1/2, 5/6, 5/6, 1/2]
+        """
+        x2 = y2 = xy = 0
+        for xi, yi in zip(x.projective(), y.projective()):
+            x2 += xi*xi
+            y2 += yi*yi
+            xy += xi*yi
+        return 1-xy*xy/(x2*y2)
+
+
+    @cached_method
+    def distance(self, x, y):
+        """
+        Returns the distance between two points.
+
+        INPUT:
+
+        - ``x``, ``y`` -- two points of the point configuration.
+
+        OUTPUT:
+
+        The distance between ``x`` and ``y``, measured either with
+        :meth:`distance_affine` or :meth:`distance_FS` depending on
+        whether the point configuration is defined by affine or
+        projective points. These are related, but not equal to the
+        usual flat and Fubini-Study distance.
+
+        EXAMPLES::
+
+            sage: pc = PointConfiguration([(0,0),(1,0),(2,1),(1,2),(0,1)])
+            sage: [ pc.distance(pc.point(0), p) for p in pc.points() ]
+            [0, 1, 5, 5, 1]
+
+            sage: pc = PointConfiguration([(0,0,1),(1,0,1),(2,1,1),(1,2,1),(0,1,1)], projective=True)
+            sage: [ pc.distance(pc.point(0), p) for p in pc.points() ]
+            [0, 1/2, 5/6, 5/6, 1/2]
+        """
+        if self.is_affine():
+            return self.distance_affine(x,y)
+        else:
+            return self.distance_FS(x,y)
+
+
+    def farthest_point(self, points, among=None):
+        """
+        Return the point with the most distance from ``points``.
+
+        INPUT:
+
+        - ``points`` -- a list of points.
+
+        - ``among`` -- a list of points or ``None`` (default). The set
+          of points from which to pick the farthest one. By default,
+          all points of the configuration are considered.
+
+        OUTPUT:
+
+        A :class:`~sage.geometry.triangulation.base.Point` with
+        largest minimal distance from all given ``points``.
+
+        EXAMPLES::
+
+            sage: pc = PointConfiguration([(0,0),(1,0),(1,1),(0,1)])
+            sage: pc.farthest_point([ pc.point(0) ])
+            P(1, 1)
+        """
+        if len(points)==0:
+            return self.point(0)
+        if among is None:
+            among = self.points()
+        p_max = None
+        for p in among:
+            if p in points:
+                continue
+            if p_max is None:
+                p_max = p
+                d_max = min(self.distance(p,q) for q in points)
+                continue
+            d = min(self.distance(p,q) for q in points)
+            if d>d_max:
+                p_max = p
+        return p_max
+
+
+    def contained_simplex(self, large=True, initial_point=None):
+        """
+        Return a simplex contained in the point configuration.
+
+        INPUT:
+
+        - ``large`` -- boolean. Whether to attempt to return a large
+          simplex.
+
+        - ``initial_point`` -- a
+          :class:`~sage.geometry.triangulation.base.Point` or ``None``
+          (default). A specific point to start with when picking the
+          simplex vertices.
+
+        OUTPUT:
+
+        A tuple of points that span a simplex of dimension
+        :meth:`dim`. If ``large==True``, the simplex is constructed by
+        sucessively picking the farthest point. This will ensure that
+        the simplex is not unneccessarily small, but will in general
+        not return a maximal simplex.
+
+        EXAMPLES::
+
+            sage: pc = PointConfiguration([(0,0),(1,0),(2,1),(1,1),(0,1)])
+            sage: pc.contained_simplex()
+            (P(0, 1), P(2, 1), P(1, 0))
+            sage: pc.contained_simplex(large=False)
+            (P(0, 1), P(1, 1), P(1, 0))
+            sage: pc.contained_simplex(initial_point=pc.point(0))
+            (P(0, 0), P(1, 1), P(1, 0))
+
+            sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
+            sage: pc.contained_simplex()
+            (P(-1, -1), P(1, 1), P(0, 1))
+
+        TESTS::
+
+            sage: pc = PointConfiguration([[0,0],[0,1],[1,0]])
+            sage: pc.contained_simplex()
+            (P(1, 0), P(0, 1), P(0, 0))
+            sage: pc = PointConfiguration([[0,0],[0,1]])
+            sage: pc.contained_simplex()
+            (P(0, 1), P(0, 0))
+            sage: pc = PointConfiguration([[0,0]])
+            sage: pc.contained_simplex()
+            (P(0, 0),)
+            sage: pc = PointConfiguration([])
+            sage: pc.contained_simplex()
+            ()
+        """
+        self._assert_is_affine()
+        if self.n_points()==0:
+            return tuple()
+        points = list(self.points())
+        if initial_point is None:
+            origin = points.pop()
+        else:
+            origin = initial_point
+            points.remove(origin)
+        vertices = [origin]
+        edges = []
+        while len(vertices) <= self.dim():
+            if large:
+                p = self.farthest_point(vertices, points)
+                points.remove(p)
+            else:
+                p = points.pop()
+            edge = p.reduced_affine_vector()-origin.reduced_affine_vector()
+            if len(edges)>0 and (ker * edge).is_zero():
+                continue
+            vertices.append(p)
+            edges.append(edge)
+            ker = matrix(edges).right_kernel().matrix()
+        return tuple(vertices)
+
+
+    def placing_triangulation(self, point_order=None):
+        r"""
+        Construct the placing (pushing) triangulation.
+
+        INPUT:
+
+        - ``point_order`` -- list of points or integers. The order in
+          which the points are to be placed.
+
+        OUTPUT:
+
+        A :class:`~sage.geometry.triangulation.triangulation.Triangulation`.
+
+        EXAMPLES::
+
+            sage: pc = PointConfiguration([(0,0),(1,0),(2,1),(1,2),(0,1)])
+            sage: pc.placing_triangulation()
+            (<0,1,2>, <0,2,4>, <2,3,4>)
+
+            sage: U=matrix([
+            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ...   ])
+            sage: p = PointConfiguration(U.columns())
+            sage: triangulation = p.placing_triangulation();  triangulation
+            (<0,2,3,4,6,7>, <0,2,3,4,6,12>, <0,2,3,4,7,13>, <0,2,3,4,12,13>,
+             <0,2,3,6,7,13>, <0,2,3,6,12,13>, <0,2,4,6,7,13>, <0,2,4,6,12,13>,
+             <0,3,4,6,7,12>, <0,3,4,7,12,13>, <0,3,6,7,12,13>, <0,4,6,7,12,13>,
+             <1,3,4,5,6,12>, <1,3,4,6,11,12>, <1,3,4,7,11,13>, <1,3,4,11,12,13>,
+             <1,3,6,7,11,13>, <1,3,6,11,12,13>, <1,4,6,7,11,13>, <1,4,6,11,12,13>,
+             <3,4,6,7,11,12>, <3,4,7,11,12,13>, <3,6,7,11,12,13>, <4,6,7,11,12,13>)
+            sage: sum(p.volume(t) for t in triangulation)
+            42
+        """
+        facet_normals = dict()
+        def facets_of_simplex(simplex):
+            """
+            Return the facets of the simplex and store the normals in facet_normals
+            """
+            simplex = list(simplex)
+            origin = simplex[0]
+            rest = simplex[1:]
+            span = matrix([ origin.reduced_affine_vector()-p.reduced_affine_vector()
+                            for p in rest ])
+            # span.inverse() linearly transforms the simplex into the unit simplex
+            normals = span.inverse().columns()
+            facets = []
+            # The facets incident to the chosen vertex "origin"
+            for opposing_vertex, normal in zip(rest, normals):
+                facet = frozenset([origin] + [ p for p in rest if p is not opposing_vertex ])
+                facets.append(facet)
+                normal.set_immutable()
+                facet_normals[facet] = normal
+            # The remaining facet that is not incident to "origin"
+            facet = frozenset(rest)
+            normal = -sum(normals)
+            normal.set_immutable()
+            facet_normals[facet] = normal
+            facets.append(facet)
+            return set(facets)
+
+        # input verification
+        self._assert_is_affine()
+        if point_order is None:
+            point_order = list(self.points())
+        elif isinstance(point_order[0], Point):
+            point_order = list(point_order)
+            assert all(p.point_configuration()==self for p in point_order)
+        else:
+            point_order = [ self.point(i) for i in point_order ]
+        assert all(p in self.points() for p in point_order)
+
+        # construct the initial simplex
+        simplices = [ frozenset(self.contained_simplex()) ]
+        for s in simplices[0]:
+            try:
+                point_order.remove(s)
+            except ValueError:
+                pass
+        facets = facets_of_simplex(simplices[0])
+
+        # successively place the remaining points
+        for point in point_order:
+            # identify visible facets
+            visible_facets = []
+            for facet in facets:
+                origin = iter(facet).next()
+                normal = facet_normals[facet]
+                v = point.reduced_affine_vector() - origin.reduced_affine_vector()
+                if v*normal>0:
+                    visible_facets.append(facet)
+
+            # construct simplices over each visible facet
+            new_facets = set()
+            for facet in visible_facets:
+                simplex = frozenset(list(facet) + [point])
+                # print 'simplex', simplex
+                simplices.append(simplex)
+                for facet in facets_of_simplex(simplex):
+                    if facet in visible_facets: continue
+                    if facet in new_facets:
+                        new_facets.remove(facet)
+                        continue
+                    new_facets.add(facet)
+            facets.difference_update(visible_facets)
+            facets.update(new_facets)
+
+        # construct the triangulation
+        triangulation = [ [p.index() for p in simplex] for simplex in simplices ]
+        return self(triangulation)
+
+    pushing_triangulation = placing_triangulation
 
 

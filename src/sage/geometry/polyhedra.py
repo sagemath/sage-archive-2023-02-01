@@ -3509,13 +3509,13 @@ class Polyhedron(SageObject):
             sage: cube = polytopes.n_cube(3)
             sage: triangulation = cube.triangulate(engine='internal') # to make doctest independent of TOPCOM
             sage: triangulation
-            (<0,1,2,4>, <1,2,3,4>, <1,3,4,5>, <2,3,4,6>, <3,4,5,6>, <3,5,6,7>)
+            (<0,1,2,7>, <0,1,4,7>, <0,2,4,7>, <1,2,3,7>, <1,4,5,7>, <2,4,6,7>)
             sage: simplex_indices = triangulation[0]; simplex_indices
-            (0, 1, 2, 4)
+            (0, 1, 2, 7)
             sage: simplex_vertices = [ cube.Vrepresentation(i) for i in simplex_indices ]
             sage: simplex_vertices
             [A vertex at (1, 1, 1), A vertex at (-1, 1, 1),
-             A vertex at (1, -1, 1), A vertex at (1, 1, -1)]
+             A vertex at (1, -1, 1), A vertex at (-1, -1, -1)]
             sage: Polyhedron(simplex_vertices)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices.
         """

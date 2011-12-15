@@ -24,6 +24,7 @@ from sage.structure.parent cimport Parent
 from sage.categories.sets_cat import Sets
 from sage.matrix.constructor import matrix
 from sage.misc.misc import uniq
+from sage.misc.cachefunc import cached_method
 
 from functions cimport binomial
 from triangulations cimport \
@@ -48,6 +49,9 @@ cdef class Point(SageObject):
 
     INPUT:
 
+    - ``point_configuration`` -- :class:`PointConfiguration_base`. The
+      point configuration to which the point belongs.
+
     - ``i`` -- integer. The index of the point in the point
       configuration.
 
@@ -60,28 +64,58 @@ cdef class Point(SageObject):
 
     EXAMPLES::
 
+        sage: pc = PointConfiguration([(0,0)])
         sage: from sage.geometry.triangulation.base import Point
-        sage: Point(123, (0,0,1), (0,0), (0,))
+        sage: Point(pc, 123, (0,0,1), (0,0), ())
         P(0, 0)
     """
 
     cdef int _index
     cdef tuple _projective, _affine, _reduced_affine
+    cdef object _point_configuration
+    cdef object _reduced_affine_vector, _reduced_projective_vector
 
-    def __init__(self, i, projective, affine, reduced):
+
+    def __init__(self, point_configuration, i, projective, affine, reduced):
         r"""
         Construct a :class:`Point`.
 
         EXAMPLES::
 
+            sage: pc = PointConfiguration([(0,0)])
             sage: from sage.geometry.triangulation.base import Point
-            sage: Point(123, (0,0,1), (0,0), (0,))   # indirect doctest
+            sage: Point(pc, 123, (0,0,1), (0,0), ())   # indirect doctest
             P(0, 0)
         """
         self._index = i
         self._projective = tuple(projective)
         self._affine = tuple(affine)
         self._reduced_affine = tuple(reduced)
+        self._point_configuration = point_configuration
+        V = point_configuration.reduced_affine_vector_space()
+        self._reduced_affine_vector = V(self._reduced_affine)
+        P = point_configuration.reduced_projective_vector_space()
+        self._reduced_projective_vector = P(self.reduced_projective())
+
+
+    cpdef point_configuration(self):
+        r"""
+        Return the point configuration to which the point belongs.
+
+        OUTPUT:
+
+        A :class:`~sage.geometry.triangulation.point_configuration.PointConfiguration`.
+
+        EXAMPLES:
+
+            sage: pc = PointConfiguration([ (0,0), (1,0), (0,1) ])
+            sage: p = pc.point(0)
+            sage: p is pc.point(0)
+            True
+            sage: p.point_configuration() is pc
+            True
+        """
+        return self._point_configuration
 
 
     def __iter__(self):
@@ -90,8 +124,9 @@ cdef class Point(SageObject):
 
         EXAMPLES::
 
+            sage: pc = PointConfiguration([(0,0)])
             sage: from sage.geometry.triangulation.base import Point
-            sage: p = Point(123, (1,2,1), (3,4), (5,))
+            sage: p = Point(pc, 123, (1,2,1), (3,4), ())
             sage: list(p)  # indirect doctest
             [3, 4]
         """
@@ -104,8 +139,9 @@ cdef class Point(SageObject):
 
         EXAMPLES::
 
+            sage: pc = PointConfiguration([(0,0)])
             sage: from sage.geometry.triangulation.base import Point
-            sage: p = Point(123, (1,2,1), (3,4), (5,))
+            sage: p = Point(pc, 123, (1,2,1), (3,4), ())
             sage: len(p)
             2
             sage: p.__len__()
@@ -133,6 +169,10 @@ cdef class Point(SageObject):
         r"""
         Return the projective coordinates of the point in the ambient space.
 
+        OUTPUT:
+
+        A tuple containing the coordinates.
+
         EXAMPLES::
 
             sage: pc = PointConfiguration([[10, 0, 1], [10, 0, 0], [10, 2, 3]])
@@ -146,6 +186,8 @@ cdef class Point(SageObject):
             (2, 2)
             sage: p.reduced_projective()
             (2, 2, 1)
+            sage: p.reduced_affine_vector()
+            (2, 2)
         """
         return self._projective
 
@@ -154,6 +196,10 @@ cdef class Point(SageObject):
         r"""
         Return the affine coordinates of the point in the ambient space.
 
+        OUTPUT:
+
+        A tuple containing the coordinates.
+
         EXAMPLES::
 
             sage: pc = PointConfiguration([[10, 0, 1], [10, 0, 0], [10, 2, 3]])
@@ -167,6 +213,8 @@ cdef class Point(SageObject):
             (2, 2)
             sage: p.reduced_projective()
             (2, 2, 1)
+            sage: p.reduced_affine_vector()
+            (2, 2)
         """
         return self._affine
 
@@ -176,6 +224,10 @@ cdef class Point(SageObject):
         Return the affine coordinates of the point on the hyperplane
         spanned by the point configuration.
 
+        OUTPUT:
+
+        A tuple containing the coordinates.
+
         EXAMPLES::
 
             sage: pc = PointConfiguration([[10, 0, 1], [10, 0, 0], [10, 2, 3]])
@@ -189,6 +241,8 @@ cdef class Point(SageObject):
             (2, 2)
             sage: p.reduced_projective()
             (2, 2, 1)
+            sage: p.reduced_affine_vector()
+            (2, 2)
         """
         return self._reduced_affine
 
@@ -198,6 +252,10 @@ cdef class Point(SageObject):
         Return the projective coordinates of the point on the hyperplane
         spanned by the point configuration.
 
+        OUTPUT:
+
+        A tuple containing the coordinates.
+
         EXAMPLES::
 
             sage: pc = PointConfiguration([[10, 0, 1], [10, 0, 0], [10, 2, 3]])
@@ -211,18 +269,83 @@ cdef class Point(SageObject):
             (2, 2)
             sage: p.reduced_projective()
             (2, 2, 1)
+            sage: p.reduced_affine_vector()
+            (2, 2)
         """
         return tuple(self._reduced_affine)+(1,)
+
+
+    cpdef reduced_affine_vector(self):
+        """
+        Return the affine coordinates of the point on the hyperplane
+        spanned by the point configuration.
+
+        OUTPUT:
+
+        A tuple containing the coordinates.
+
+        EXAMPLES::
+
+            sage: pc = PointConfiguration([[10, 0, 1], [10, 0, 0], [10, 2, 3]])
+            sage: p = pc.point(2); p
+            P(10, 2, 3)
+            sage: p.affine()
+            (10, 2, 3)
+            sage: p.projective()
+            (10, 2, 3, 1)
+            sage: p.reduced_affine()
+            (2, 2)
+            sage: p.reduced_projective()
+            (2, 2, 1)
+            sage: p.reduced_affine_vector()
+            (2, 2)
+        """
+        return self._reduced_affine_vector
+
+
+    cpdef reduced_projective_vector(self):
+        """
+        Return the affine coordinates of the point on the hyperplane
+        spanned by the point configuration.
+
+        OUTPUT:
+
+        A tuple containing the coordinates.
+
+        EXAMPLES::
+
+            sage: pc = PointConfiguration([[10, 0, 1], [10, 0, 0], [10, 2, 3]])
+            sage: p = pc.point(2); p
+            P(10, 2, 3)
+            sage: p.affine()
+            (10, 2, 3)
+            sage: p.projective()
+            (10, 2, 3, 1)
+            sage: p.reduced_affine()
+            (2, 2)
+            sage: p.reduced_projective()
+            (2, 2, 1)
+            sage: p.reduced_affine_vector()
+            (2, 2)
+            sage: type(p.reduced_affine_vector())
+            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+        """
+        return self._reduced_projective_vector
 
 
     cpdef _repr_(self):
         """
         Return a string representation of the point.
 
+        OUTPUT:
+
+        String.
+
         EXAMPLES::
 
+            sage: pc = PointConfiguration([[10, 0, 1], [10, 0, 0]])
             sage: from sage.geometry.triangulation.base import Point
-            sage: p = Point(123, (0,0,1), (0,0), (0,))
+            sage: p = Point(pc, 123, (0,0,1), (0,0), (0,))
             sage: p._repr_()
             'P(0, 0)'
         """
@@ -242,7 +365,7 @@ cdef class PointConfiguration_base(Parent):
         :class:`~sage.geometry.triangulation.point_configuration.PointConfiguration`.
     """
 
-    def __init__(self, points):
+    def __init__(self, points, defined_affine):
         r"""
         Construct a :class:`PointConfiguration_base`.
 
@@ -251,20 +374,28 @@ cdef class PointConfiguration_base(Parent):
         - ``points`` -- a tuple of tuples of projective coordinates
           with ``1`` as the final coordinate.
 
+        - ``defined_affine`` -- Boolean. Whether the point
+          configuration is defined as a configuration of affine (as
+          opposed to projective) points.
+
         TESTS::
 
             sage: from sage.geometry.triangulation.base import PointConfiguration_base
-            sage: PointConfiguration_base(((1,2,1),(2,3,1),(3,4,1)))  # indirect doctest
+            sage: PointConfiguration_base(((1,2,1),(2,3,1),(3,4,1)), False)  # indirect doctest
             <type 'sage.geometry.triangulation.base.PointConfiguration_base'>
         """
         Parent.__init__(self, category = Sets())
         self._init_points(points)
+        self._is_affine = defined_affine
 
 
-    cpdef tuple _pts
-    cpdef int _ambient_dim
-    cpdef int _dim
-    cpdef object _base_ring
+    cdef tuple _pts
+    cdef int _ambient_dim
+    cdef int _dim
+    cdef object _base_ring
+    cdef bint _is_affine
+    cdef object _reduced_affine_vector_space, _reduced_projective_vector_space
+
 
     cdef _init_points(self, tuple projective_points):
         """
@@ -316,10 +447,56 @@ cdef class PointConfiguration_base(Parent):
             red = matrix([ red.row(i) for i in red.pivot_rows()])
         else:
             red = matrix(0,1)
+        self._dim = red.nrows()
 
-        self._pts = tuple([ Point(i, proj.column(i), aff.column(i), red.column(i))
+        from sage.modules.free_module import VectorSpace
+        self._reduced_affine_vector_space = VectorSpace(self._base_ring.fraction_field(), self._dim)
+        self._reduced_projective_vector_space = VectorSpace(self._base_ring.fraction_field(), self._dim+1)
+        self._pts = tuple([ Point(self, i, proj.column(i), aff.column(i), red.column(i))
                            for i in range(0,n) ])
-        self._dim = len(self._pts[0].reduced_affine())
+
+
+    cpdef reduced_affine_vector_space(self):
+        """
+        Return the vector space that contains the affine points.
+
+        OUTPUT:
+
+        A vector space over the fraction field of :meth:`base_ring`.
+
+        EXAMPLES::
+
+            sage: p = PointConfiguration([[0,0,0], [1,2,3]])
+            sage: p.base_ring()
+            Integer Ring
+            sage: p.reduced_affine_vector_space()
+            Vector space of dimension 1 over Rational Field
+            sage: p.reduced_projective_vector_space()
+            Vector space of dimension 2 over Rational Field
+        """
+        return self._reduced_affine_vector_space
+
+
+    cpdef reduced_projective_vector_space(self):
+        """
+        Return the vector space that is spanned by the homogeneous
+        coordinates.
+
+        OUTPUT:
+
+        A vector space over the fraction field of :meth:`base_ring`.
+
+        EXAMPLES::
+
+            sage: p = PointConfiguration([[0,0,0], [1,2,3]])
+            sage: p.base_ring()
+            Integer Ring
+            sage: p.reduced_affine_vector_space()
+            Vector space of dimension 1 over Rational Field
+            sage: p.reduced_projective_vector_space()
+            Vector space of dimension 2 over Rational Field
+        """
+        return self._reduced_projective_vector_space
 
 
     cpdef ambient_dim(self):
@@ -331,7 +508,7 @@ cdef class PointConfiguration_base(Parent):
 
         EXAMPLES::
 
-            sage: p = PointConfiguration([[0,0,0]]);
+            sage: p = PointConfiguration([[0,0,0]])
             sage: p.ambient_dim()
             3
             sage: p.dim()
@@ -349,7 +526,7 @@ cdef class PointConfiguration_base(Parent):
 
         EXAMPLES::
 
-            sage: p = PointConfiguration([[0,0,0]]);
+            sage: p = PointConfiguration([[0,0,0]])
             sage: p.ambient_dim()
             3
             sage: p.dim()
@@ -369,19 +546,60 @@ cdef class PointConfiguration_base(Parent):
 
         EXAMPLES::
 
-            sage: p = PointConfiguration([(0,0)]);
+            sage: p = PointConfiguration([(0,0)])
             sage: p.base_ring()
             Integer Ring
 
-            sage: p = PointConfiguration([(1/2,3)]);
+            sage: p = PointConfiguration([(1/2,3)])
             sage: p.base_ring()
             Rational Field
 
-            sage: p = PointConfiguration([(0.2, 5)]);
+            sage: p = PointConfiguration([(0.2, 5)])
             sage: p.base_ring()
             Real Field with 53 bits of precision
         """
         return self._base_ring
+
+
+    cpdef bint is_affine(self):
+        """
+        Whether the configuration is defined by affine points.
+
+        OUTPUT:
+
+        Boolean. If true, the homogeneous coordinates all have `1` as
+        their last entry.
+
+        EXAMPLES::
+
+            sage: p = PointConfiguration([(0.2, 5), (3, 0.1)])
+            sage: p.is_affine()
+            True
+
+            sage: p = PointConfiguration([(0.2, 5, 1), (3, 0.1, 1)], projective=True)
+            sage: p.is_affine()
+            False
+        """
+        return self._is_affine
+
+
+    def _assert_is_affine(self):
+        """
+        Raise a ``ValueError`` if the point configuration is not
+        defined by affine points.
+
+        EXAMPLES::
+
+            sage: p = PointConfiguration([(0.2, 5), (3, 0.1)])
+            sage: p._assert_is_affine()
+            sage: p = PointConfiguration([(0.2, 5, 1), (3, 0.1, 1)], projective=True)
+            sage: p._assert_is_affine()
+            Traceback (most recent call last):
+            ...
+            ValueError: The point configuration contains projective points.
+        """
+        if not self.is_affine():
+            raise ValueError('The point configuration contains projective points.')
 
 
     def __getitem__(self, i):
@@ -400,7 +618,7 @@ cdef class PointConfiguration_base(Parent):
 
         EXAMPLES::
 
-            sage: p = PointConfiguration([[1,0], [2,3], [3,2]]);
+            sage: p = PointConfiguration([[1,0], [2,3], [3,2]])
             sage: [ p[i] for i in range(0,p.n_points()) ]
             [P(1, 0), P(2, 3), P(3, 2)]
             sage: list(p)

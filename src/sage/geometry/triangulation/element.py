@@ -12,6 +12,8 @@ never have to construct a :class:`Triangulation` object directly.
 
 EXAMPLES::
 
+    sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
+
     sage: p = [[0,-1,-1],[0,0,1],[0,1,0], [1,-1,-1],[1,0,1],[1,1,0]]
     sage: points = PointConfiguration(p)
     sage: triang = points.triangulate()
@@ -439,6 +441,8 @@ class Triangulation(Element):
 
             sage: p = PointConfiguration([[0,0],[1,0],[2,1],[1,2],[0,1]])
             sage: p.triangulate().gkz_phi()
+            (3, 1, 5, 2, 4)
+            sage: p.lexicographic_triangulation().gkz_phi()
             (1, 3, 4, 2, 5)
 
         NOTE:
@@ -564,9 +568,14 @@ class Triangulation(Element):
         EXAMPLES::
 
             sage: p = polytopes.cuboctahedron()
-            sage: sc = p.triangulate().simplicial_complex()
+            sage: sc = p.triangulate(engine='internal').simplicial_complex()
             sage: sc
-            Simplicial complex with 12 vertices and 16 facets
+            Simplicial complex with 12 vertices and 17 facets
+
+        Any convex set is contractable, so its reduced homology groups vanish::
+
+            sage: sc.homology()
+            {0: 0, 1: 0, 2: 0, 3: 0}
         """
         from sage.homology.simplicial_complex import SimplicialComplex
         from sage.misc.all import flatten

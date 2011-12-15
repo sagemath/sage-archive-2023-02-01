@@ -351,6 +351,15 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: S = PolynomialRing(R, x)
             sage: S(x)
             x
+
+        Throw a TypeError if any of the coefficients cannot be coerced
+        into the base ring (trac #6777)::
+
+            sage: RealField(300)['x']( [ 1, ComplexField(300).gen(), 0 ])
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert x (='1.00...00*I') to real number.
+
         """
         C = self._polynomial_class
         if isinstance(x, list):

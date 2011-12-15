@@ -7,22 +7,14 @@ in a mathematical mode (the exact mode depends on circumstances).
 """
 
 #*****************************************************************************
-#
-#   Sage
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 EMBEDDED_MODE = False
 
@@ -380,27 +372,37 @@ latex_table = {types.NoneType: None_function,
 
 class LatexExpr(str):
     """
-    LaTeX expression.  This is a string.
+    A class for LaTeX expressions, i.e. the result of a :func:`latex`
+    call.  A ``LatexExpr`` can also be generated directly from a string.
+    This string is then pretty-printed (see :func:`pretty_print`) as-is.
 
     EXAMPLES::
 
-        sage: from sage.misc.latex import LatexExpr
-        sage: LatexExpr(3)
-        3
-        sage: LatexExpr(False)
-        False
-        sage: LatexExpr(pi)
-        pi
-        sage: LatexExpr(3.14)
-        3.14000000000000
-        sage: LatexExpr("abc")
-        abc
+        sage: latex(x^20 + 1)
+        x^{20} + 1
+        sage: LatexExpr(r"\frac{x^2 + 1}{x - 2}")
+        \frac{x^2 + 1}{x - 2}
+
+    ``LatexExpr`` simply converts to string without doing anything
+    extra, it does *not* call :func:`latex`::
+
+        sage: latex(ZZ)
+        \Bold{Z}
+        sage: LatexExpr(ZZ)
+        Integer Ring
+
+    The result of :func:`latex` is of type ``LatexExpr``::
+
+        sage: L = latex(x^20 + 1)
+        sage: L
+        x^{20} + 1
+        sage: type(L)
+        <class 'sage.misc.latex.LatexExpr'>
     """
     def __repr__(self):
         """
         EXAMPLES::
 
-            sage: from sage.misc.latex import LatexExpr
             sage: LatexExpr("abc").__repr__()
             'abc'
         """
@@ -410,9 +412,8 @@ class LatexExpr(str):
         """
         EXAMPLES::
 
-            sage: from sage.misc.latex import LatexExpr
-            sage: LatexExpr("abc")._latex_()
-            'abc'
+            sage: latex(LatexExpr("abc"))
+            abc
         """
         return str(self)
 
@@ -1679,10 +1680,6 @@ class JSMath:
             sage: JSMath().eval(type(3), mode='inline')
             <html>...\verb|&lt;type|\phantom{x}\verb|'sage.rings.integer.Integer'&gt;|</span></html>
         """
-        # If x is already a LaTeX expression, i.e. the output of latex(blah),
-        # we will treat it as a string, so that we can see the code itself.
-        if isinstance(x, LatexExpr):
-            x = str(x)
         # Now get a regular LaTeX representation of x...
         x = latex(x)
         # ... and make it suitable for jsMath, which has issues with < and >.
@@ -1875,15 +1872,12 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
         'pdf'
 
     """
-    if isinstance(objects, LatexExpr):
-        s = str(objects)
+    if tightpage == True:
+        latex_options = {'extra_preamble':'\\usepackage[tightpage,active]{preview}\\PreviewEnvironment{page}',
+                         'math_left':'\\begin{page}$', 'math_right':'$\\end{page}'}
     else:
-        if tightpage == True:
-            latex_options = {'extra_preamble':'\\usepackage[tightpage,active]{preview}\\PreviewEnvironment{page}',
-                             'math_left':'\\begin{page}$', 'math_right':'$\\end{page}'}
-        else:
-            latex_options = {}
-        s = _latex_file_(objects, title=title, sep=sep, tiny=tiny, debug=debug, **latex_options)
+        latex_options = {}
+    s = _latex_file_(objects, title=title, sep=sep, tiny=tiny, debug=debug, **latex_options)
     # notebook
     if EMBEDDED_MODE and viewer is None:
         jsMath_okay = True
@@ -2130,16 +2124,20 @@ def pretty_print (object):
 
     INPUT:
 
-    - ``object`` - a Sage object
+    - ``object`` -- a Sage object
 
-    This function is used in the notebook when the ``Typeset`` button is
+    This function is used in the notebook when the "Typeset" button is
     checked.
 
     EXAMPLES::
 
-        sage: from sage.misc.latex import pretty_print
         sage: pretty_print(ZZ)  # indirect doctest
         <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}</span></html>
+
+    To typeset LaTeX code as-is, use :class:`LatexExpr`::
+
+        sage: pretty_print(LatexExpr(r"\frac{x^2 + 1}{x - 2}"))
+        <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{x^2 + 1}{x - 2}</span></html>
     """
     if object is None:
         return

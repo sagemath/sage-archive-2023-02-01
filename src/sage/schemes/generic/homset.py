@@ -14,9 +14,10 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.rational_field import is_RationalField
 from sage.rings.morphism import is_RingHomomorphism
+
 import spec
 import morphism
-
+from sage.schemes.generic.toric_morphism import SchemeMorphism_toric_coordinates_field
 
 
 
@@ -353,5 +354,5 @@ class SchemeHomset_toric_coordinates_field(SchemeHomset_coordinates):
         try:
             return X._point_class(X, arg)
         except AttributeError:  # should be very rare
-            return morphism.SchemeMorphism_toric_coordinates_field(self, arg)
+            return SchemeMorphism_toric_coordinates_field(self, arg)
 

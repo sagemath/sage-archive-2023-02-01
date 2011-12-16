@@ -23,12 +23,6 @@ from sage.rings.all import (IntegerRing, is_CommutativeRing,
                             ZZ, is_RingHomomorphism, GF, PowerSeriesRing,
                             Rationals)
 
-import homset
-
-import morphism
-
-import spec
-
 def is_Scheme(x):
     """
     Return True if `x` is a scheme.
@@ -43,6 +37,7 @@ def is_Scheme(x):
         True
     """
     return isinstance(x, Scheme)
+
 
 # If a derived class sets any of the properties, _base_scheme, _base_ring,
 # or _base_morphism, it will determine the others.  If none are set,
@@ -59,14 +54,16 @@ class Scheme(Parent):
             sage: I = (x^2 - y^2)*R
             sage: RmodI = R.quotient(I)
             sage: X = Spec(RmodI)
-            sage: TestSuite(X).run(skip = ["_test_an_element", "_test_elements", "_test_some_elements", "_test_category"]) # See #7946
+            sage: TestSuite(X).run(skip = ["_test_an_element", "_test_elements",
+            ...                            "_test_some_elements", "_test_category"]) # See #7946
 
         A scheme is in the category of all schemes over the base scheme of self::
 
             sage: ProjectiveSpace(4, QQ).category()
             Category of schemes over Spectrum of Rational Field
         """
-        if spec.is_Spec(X):
+        from sage.schemes.generic.spec import is_Spec
+        if is_Spec(X):
             self._base_ring = X.coordinate_ring()
             base = self._base_ring
         else:
@@ -78,7 +75,8 @@ class Scheme(Parent):
         if category is None:
             category = default_category
         else:
-            assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
+            assert category.is_subcategory(default_category), \
+                "%s is not a subcategory of %s"%(category, default_category)
 
         Parent.__init__(self, base, category = category)
 
@@ -203,11 +201,12 @@ class Scheme(Parent):
         S = args[0]
         if is_CommutativeRing(S):
             return self.point_homset(S)
-        elif is_Scheme(S):
+        if is_Scheme(S):
             return S.Hom(self)
-        elif isinstance(S, (list, tuple)):
+        from sage.schemes.generic.morphism import SchemeMorphism_coordinates
+        if isinstance(S, (list, tuple)):
             args = S
-        elif isinstance(S, morphism.SchemeMorphism_coordinates):
+        elif isinstance(S, SchemeMorphism_coordinates):
             if S.codomain() == self:
                 return S
         else:
@@ -341,14 +340,15 @@ class Scheme(Parent):
         try:
             return self._base_scheme
         except AttributeError:
+            from sage.schemes.generic.spec import Spec, SpecZ
             if hasattr(self, '_base_morphism'):
                 self._base_scheme = self._base_morphism.codomain()
             elif hasattr(self, '_base_ring'):
                 import spec
-                self._base_scheme = spec.Spec(self._base_ring)
+                self._base_scheme = Spec(self._base_ring)
             else:
                 import spec
-                self._base_scheme = spec.SpecZ
+                self._base_scheme = SpecZ
             return self._base_scheme
 
     def base_morphism(self):
@@ -378,13 +378,14 @@ class Scheme(Parent):
             return self._base_morphism
         except AttributeError:
             from sage.categories.schemes import Schemes
+            from sage.schemes.generic.spec import Spec, SpecZ
             SCH = Schemes()
             if hasattr(self, '_base_scheme'):
                 self._base_morphism = self.Hom(self._base_scheme, category=SCH).natural_map()
             elif hasattr(self, '_base_ring'):
-                self._base_morphism = self.Hom(spec.Spec(self._base_ring), category=SCH).natural_map()
+                self._base_morphism = self.Hom(Spec(self._base_ring), category=SCH).natural_map()
             else:
-                self._base_morphism = self.Hom(spec.SpecZ, category=SCH).natural_map()
+                self._base_morphism = self.Hom(SpecZ, category=SCH).natural_map()
             return self._base_morphism
 
     structure_morphism = base_morphism
@@ -456,7 +457,8 @@ class Scheme(Parent):
             Scheme endomorphism of Spectrum of Rational Field
               Defn: Identity map
         """
-        return morphism.SchemeMorphism_id(self)
+        from sage.schemes.generic.morphism import SchemeMorphism_id
+        return SchemeMorphism_id(self)
 
     def hom(self, x, Y=None, check=True):
         """
@@ -492,7 +494,8 @@ class Scheme(Parent):
             sage: S._Hom_(P)
             Set of points of Projective Space of dimension 3 over Integer Ring defined over Integer Ring
         """
-        return homset.SchemeHomset(self, Y, category=category, check=check)
+        from sage.schemes.generic.homset import SchemeHomset
+        return SchemeHomset(self, Y, category=category, check=check)
 
     point_set = point_homset
 

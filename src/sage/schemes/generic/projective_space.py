@@ -70,18 +70,14 @@ from sage.rings.all import (PolynomialRing,
                             ZZ)
 
 from sage.misc.all import latex
+from sage.structure.parent_gens import normalize_names
+from sage.rings.arith import gcd
+from sage.combinat.tuple import Tuples
 
+from ambient_space import AmbientSpace
 import homset
 import morphism
 
-import ambient_space
-import affine_space
-
-from sage.structure.parent_gens import normalize_names
-
-from sage.rings.arith import gcd
-
-from sage.combinat.tuple import Tuples
 
 def is_ProjectiveSpace(x):
     r"""
@@ -168,7 +164,7 @@ def ProjectiveSpace(n, R=None, names='x'):
     else:
         raise TypeError, "R (=%s) must be a commutative ring"%R
 
-class ProjectiveSpace_ring(ambient_space.AmbientSpace):
+class ProjectiveSpace_ring(AmbientSpace):
     """
     Projective space of dimension `n` over the ring
     `R`.
@@ -201,7 +197,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             Projective Space of dimension 3 over 5-adic Ring with capped relative precision 20
         """
         names = normalize_names(n+1, names)
-        ambient_space.AmbientSpace.__init__(self, n, R)
+        AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
 
     def ngens(self):
@@ -545,7 +541,8 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             self.__affine_patches = {}
         except KeyError:
             pass
-        AA = affine_space.AffineSpace(n, self.base_ring(), names='x')
+        from sage.schemes.generic.affine_space import AffineSpace
+        AA = AffineSpace(n, self.base_ring(), names='x')
         AA._default_embedding_index = i
         phi = AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA

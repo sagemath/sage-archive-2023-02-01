@@ -46,8 +46,8 @@ from sage.misc.search import search
 from sage.rings.all import ZZ
 from sage.structure.formal_sum import FormalSum
 
-from affine_space import is_AffineSpace
 from morphism import is_SchemeMorphism
+from affine_space import is_AffineSpace
 from projective_space import is_ProjectiveSpace
 
 

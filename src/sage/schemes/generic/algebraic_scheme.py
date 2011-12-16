@@ -2092,7 +2092,8 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
               Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
                     [z2 : z1 : z2 : z3]
         """
-        return morphism.SchemeMorphism_on_points_toric_variety(*args, **kwds)
+        from sage.schemes.generic.toric_morphism import SchemeMorphism_on_points_toric_variety
+        return SchemeMorphism_on_points_toric_variety(*args, **kwds)
 
     def affine_patch(self, i):
         r"""

@@ -20,20 +20,14 @@ from sage.rings.all import (
     Integer)
 
 from sage.misc.all import latex
+from sage.structure.parent_gens import normalize_names
 
-import algebraic_scheme
-
-import ambient_space
-
+from scheme import AffineScheme
+from ambient_space import AmbientSpace
 import homset
-
 import morphism
 
-import projective_space
 
-import scheme
-
-from sage.structure.parent_gens import normalize_names
 
 def is_AffineSpace(x):
     r"""
@@ -110,7 +104,7 @@ def AffineSpace(n, R=None, names='x'):
             raise TypeError, "You must specify the variables names of the coordinate ring."
     return AffineSpace_generic(n, R, names)
 
-class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
+class AffineSpace_generic(AmbientSpace, AffineScheme):
     """
     Affine space of dimension `n` over the ring `R`.
 
@@ -166,7 +160,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             Affine Space of dimension 3 over 5-adic Ring with capped relative precision 20
         """
         names = normalize_names(n, names)
-        ambient_space.AmbientSpace.__init__(self, n, R)
+        AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
 
     def __iter__(self):
@@ -554,7 +548,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         except KeyError:
             pass
         if PP is None:
-            PP = projective_space.ProjectiveSpace(n, self.base_ring())
+            from sage.schemes.generic.projective_space import ProjectiveSpace
+            PP = ProjectiveSpace(n, self.base_ring())
         R = self.coordinate_ring()
         v = list(R.gens())
         if n < 0 or n >self.dimension_relative():
@@ -609,4 +604,5 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: X.dimension()
             0
         """
-        return algebraic_scheme.AlgebraicScheme_subscheme_affine(self, X)
+        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
+        return AlgebraicScheme_subscheme_affine(self, X)

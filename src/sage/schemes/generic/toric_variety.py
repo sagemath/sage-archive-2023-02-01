@@ -233,6 +233,7 @@ implementing them on your own as a patch for inclusion!
 
 import sys
 
+from sage.functions.all import factorial
 from sage.geometry.cone import Cone, is_Cone
 from sage.geometry.fan import Fan
 from sage.matrix.all import matrix
@@ -245,12 +246,9 @@ from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.generic.homset import (SchemeHomset_coordinates,
                                          SchemeHomset_toric_coordinates_field)
-from sage.schemes.generic.morphism import (SchemeMorphism_on_points_toric_variety,
-                                           SchemeMorphism_toric_coordinates_field,
-                                           SchemeMorphism_coordinates,
-                                           SchemeMorphism_on_points,
-                                           is_SchemeMorphism)
-from sage.functions.all import factorial
+from sage.schemes.generic.toric_morphism import (SchemeMorphism_on_points_toric_variety,
+                                                 SchemeMorphism_toric_coordinates_field)
+
 
 
 # Default prefix for indexed coordinates

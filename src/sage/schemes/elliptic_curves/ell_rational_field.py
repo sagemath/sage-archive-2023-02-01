@@ -2825,7 +2825,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def period_lattice(self, embedding=None):
         r"""
-        Returns the period lattice of the elliptic curve.
+        Returns the period lattice of the elliptic curve with respect to
+        the differential `dx/(2y + a_1x + a_3)`.
 
         INPUT:
 

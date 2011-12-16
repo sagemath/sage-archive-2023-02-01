@@ -1807,7 +1807,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def period_lattice(self, embedding):
         r"""
-        Returns the period lattice of the elliptic curve for the given embedding of its base field.
+        Returns the period lattice of the elliptic curve for the given
+        embedding of its base field with respect to the differential
+        `dx/(2y + a_1x + a_3)`.
 
         INPUT:
 

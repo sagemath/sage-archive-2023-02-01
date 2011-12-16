@@ -4247,6 +4247,11 @@ class GraphGenerators():
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
             sage: G.show() # long time
+
+        Trac ticket #12155::
+
+            sage: graphs.CompleteBipartiteGraph(5,6).complement()
+            complement(Complete bipartite graph): Graph on 11 vertices
         """
         pos_dict = {}
         c1 = 1 # scaling factor for top row
@@ -4272,9 +4277,9 @@ class GraphGenerators():
             y = 0
             pos_dict[i] = (x,y)
         import networkx
-        import sage.graphs.bipartite_graph as bipartite_graph
+        from sage.graphs.graph import Graph
         G = networkx.complete_bipartite_graph(n1,n2)
-        return bipartite_graph.BipartiteGraph(G, pos=pos_dict, name="Complete bipartite graph")
+        return Graph(G, pos=pos_dict, name="Complete bipartite graph")
 
     def CompleteMultipartiteGraph(self, l):
         r"""
@@ -5167,6 +5172,10 @@ class GraphGenerators():
             ...
             ValueError: Parameter p is a probability, and so should be a real value between 0 and 1
 
+        Trac ticket #12155::
+
+            sage: graphs.RandomBipartite(5,6,.2).complement()
+            complement(Random bipartite graph of size 5+6 with edge probability 0.200000000000000): Graph on 11 vertices
         """
         if not (p>=0 and p<=1):
             raise ValueError, "Parameter p is a probability, and so should be a real value between 0 and 1"
@@ -5174,18 +5183,29 @@ class GraphGenerators():
             raise ValueError, "n1 and n2 should be integers strictly greater than 0"
 
         from numpy.random import uniform
-        import sage.graphs.bipartite_graph as bipartite_graph
         from sage.graphs.all import Graph
 
-        g=Graph()
+        g=Graph(name="Random bipartite graph of size "+str(n1) +"+"+str(n2)+" with edge probability "+str(p))
 
         S1=[(0,i) for i in range(n1)]
         S2=[(1,i) for i in range(n2)]
         g.add_vertices(S1)
         g.add_vertices(S2)
-        [g.add_edge((0,v),(1,w)) for v in range(n1) for w in range(n2) if uniform()<=p]
 
-        return bipartite_graph.BipartiteGraph(g,[S1,S2],name="Random bipartite graph of size "+str(n1) +"+"+str(n2)+" with edge probability "+str(p))
+        for w in range(n2):
+            for v in range(n1):
+                if uniform()<=p :
+                    g.add_edge((0,v),(1,w))
+
+        pos = {}
+        for i in range(n1):
+            pos[(0,i)] = (0, i/(n1-1.0))
+        for i in range(n2):
+            pos[(1,i)] = (1, i/(n2-1.0))
+
+        g.set_pos(pos)
+
+        return g
 
     def RandomGNM(self, n, m, dense=False, seed=None):
         """
@@ -6259,9 +6279,17 @@ class GraphGenerators():
             Traceback (most recent call last):
             ...
             ValueError: There exists no bipartite graph corresponding to the given degree sequences
+
+        TESTS:
+
+        Trac ticket #12155::
+
+            sage: graphs.DegreeSequenceBipartite([2,2,2,2,2],[5,5]).complement()
+            complement(): Graph on 7 vertices
         """
 
         from sage.combinat.integer_vector import gale_ryser_theorem
+        from sage.graphs.graph import Graph
         from sage.graphs.bipartite_graph import BipartiteGraph
 
         s1 = sorted(s1, reverse = True)
@@ -6272,7 +6300,7 @@ class GraphGenerators():
         if m is False:
             raise ValueError("There exists no bipartite graph corresponding to the given degree sequences")
         else:
-            return BipartiteGraph(m)
+            return Graph(BipartiteGraph(m))
 
     def DegreeSequenceConfigurationModel(self, deg_sequence, seed=None):
         """

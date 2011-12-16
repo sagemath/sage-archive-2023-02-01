@@ -374,6 +374,21 @@ cdef class PowerSeries_poly(PowerSeries):
             x^2 + O(x^3)
             sage: f+g
             x^2 + O(x^3)
+
+        TESTS:
+
+        In the past this could die with EXC_BAD_ACCESS (trac #8029)::
+
+            sage: A.<x> = RR['x']
+            sage: B.<t> = PowerSeriesRing(A)
+            sage: 1. + O(t)
+            1.00000000000000 + O(t)
+            sage: 1. + O(t^2)
+            1.00000000000000 + O(t^2)
+            sage: 1. + O(t^3)
+            1.00000000000000 + O(t^3)
+            sage: 1. + O(t^4)
+            1.00000000000000 + O(t^4)
         """
         cdef PowerSeries_poly right = <PowerSeries_poly>right_m
         return PowerSeries_poly(self._parent, self.__f + right.__f, \

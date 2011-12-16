@@ -550,7 +550,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
 
-        trac # 7935::
+        trac #7935::
 
             sage: K.<a> = NumberField(x^2-38)
             sage: E = EllipticCurve([a,1/2])
@@ -565,12 +565,18 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 = x^3 + 2*x + (1/2*s+1/2) over Number Field in s with defining polynomial x^2 - 5
 
+        trac #12151::
+
+            sage: K.<v> = NumberField(x^2 + 161*x - 150)
+            sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
+            sage: E.global_integral_model()
+            Elliptic Curve defined by y^2 + (33872485050625*v-31078224284250)*x*y + (2020602604156076340058146664245468750000*v-1871778534673615560803175189398437500000)*y = x^3 + (6933305282258321342920781250*v-6422644400723486559914062500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
         """
         K = self.base_field()
         ai = self.a_invariants()
         for a in ai:
             if not a.is_integral():
-               for P, _ in K.ideal(a.denominator()).factor():
+               for P, _ in a.denominator_ideal().factor():
                    pi = K.uniformizer(P,'positive')
                    e  = min([(ai[i].valuation(P)/[1,2,3,4,6][i]) for i in range(5)]).floor()
                    ai = [ai[i]/pi**(e*[1,2,3,4,6][i]) for i in range(5)]

@@ -22,11 +22,13 @@ Schemes
    sage/schemes/generic/toric_divisor
    sage/schemes/generic/toric_chow_group
    sage/schemes/generic/toric_ideal
+   sage/schemes/generic/toric_morphism
    sage/schemes/generic/algebraic_scheme
    sage/schemes/generic/hypersurface
 
    sage/schemes/generic/homset
    sage/schemes/generic/morphism
+   sage/schemes/generic/toric_morphism
    sage/schemes/generic/divisor
 
    sage/schemes/generic/rational_point

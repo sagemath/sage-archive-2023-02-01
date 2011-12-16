@@ -245,8 +245,6 @@ from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.generic.homset import SchemeHomset_points_toric_field
-from sage.schemes.generic.toric_morphism import (SchemeMorphism_polynomial_toric_variety,
-                                                 SchemeMorphism_point_toric_field)
 
 
 
@@ -706,39 +704,34 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1._point_class(P1xP1, [1,2,3,4])
             [1 : 2 : 3 : 4]
         """
+        from sage.schemes.generic.toric_morphism import SchemeMorphism_point_toric_field
         return SchemeMorphism_point_toric_field(*args, **kwds)
 
-    def _morphism_class(self, *args, **kwds):
+    def _homset_class(self, *args, **kwds):
         r"""
-        Construct a morphism determined by action on points of ``self``.
+        Return the homset between two toric varieties.
 
         INPUT:
 
-        - same as for
-          :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_toric_variety`.
+        Same as :class:`sage.schemes.generic.homset.SchemeHomset_generic`.
 
-        OUPUT:
+        OUTPUT:
 
-        :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_toric_variety`.
+        A :class:`sage.schemes.generic.toric_homset.SchemeHomset_toric_variety`.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
-            sage: P1xP1.inject_variables()
-            Defining z0, z1, z2, z3
-            sage: P1 = P1xP1.subscheme(z0-z2)
-            sage: H = P1xP1.Hom(P1)
-            sage: P1xP1._morphism_class(H, [z0,z1,z0,z3])
-            Scheme morphism:
-              From: 2-d toric variety covered by 4 affine patches
-              To:   Closed subscheme of 2-d toric variety
-              covered by 4 affine patches defined by:
-              z0 - z2
-              Defn: Defined on coordinates by sending
-                    [z0 : z1 : z2 : z3] to [z0 : z1 : z0 : z3]
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: hom_set = P1xP1.Hom(P1);  hom_set
+            Set of morphisms
+             From: 2-d CPR-Fano toric variety covered by 4 affine patches
+             To:   1-d CPR-Fano toric variety covered by 2 affine patches
+            sage: type(hom_set)
+            <class 'sage.schemes.generic.toric_homset.SchemeHomset_toric_variety_with_category'>
         """
-        return SchemeMorphism_polynomial_toric_variety(*args, **kwds)
+        from sage.schemes.generic.toric_homset import SchemeHomset_toric_variety
+        return SchemeHomset_toric_variety(*args, **kwds)
 
     def _repr_(self):
         r"""
@@ -960,10 +953,17 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1.coordinate_ring()
             Multivariate Polynomial Ring in z0, z1, z2, z3
             over Rational Field
+
+        TESTS::
+
+            sage: R = toric_varieties.A1().coordinate_ring();  R
+            Multivariate Polynomial Ring in z over Rational Field
+            sage: type(R)
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
         """
         if "_coordinate_ring" not in self.__dict__:
-            self._coordinate_ring = PolynomialRing(self.base_ring(),
-                                                   self.variable_names())
+            names = self.variable_names()
+            self._coordinate_ring = PolynomialRing(self.base_ring(), len(names), names)
         return self._coordinate_ring
 
     def embedding_morphism(self):
@@ -1148,13 +1148,36 @@ class ToricVariety_field(AmbientSpace):
             False
             sage: P1xP1.is_homogeneous(1)
             True
+
+        Note that by homogeneous, we mean well-defined with respect to
+        the homogeneous rescalings. So a polynomial that you would
+        usually not call homogeneous can be homogeneous if there are
+        no homogeneous rescalings, for example::
+
+            sage: A1.<z> = toric_varieties.A1()
+            sage: A1.is_homogeneous(z^3+z^7)
+            True
+
+        Finally, the degree group is really the Chow group
+        `A_{d-1}(X)` and can contain torsion. For example, take
+        `\CC^2/\ZZ_2`. Here, the Chow group is `A_{d-1}(\CC^2/\ZZ_2) =
+        \ZZ_2` and distinguishes even-degree homogeneous polynomials
+        from odd-degree homogeneous polynomials::
+
+            sage: A2_Z2.<x,y> = toric_varieties.A2_Z2()
+            sage: A2_Z2.is_homogeneous(x+y+x^3+y^5+x^3*y^4)
+            True
+            sage: A2_Z2.is_homogeneous(x^2+x*y+y^4+(x*y)^5+x^4*y^4)
+            True
+            sage: A2_Z2.is_homogeneous(x+y^2)
+            False
         """
-        if "_relation_matrix" not in self.__dict__:
-            m = self.fan().ray_matrix().transpose().kernel().matrix()
-            # We ignore degrees of torus factor coordinates
-            m = m.augment(matrix(m.nrows(), self._torus_factor_dim))
-            self._relation_matrix = m
-        relation_matrix = self._relation_matrix
+        if '_homogeneous_degrees_group' not in self.__dict__:
+            fan = self.fan()
+            from sage.modules.free_module import FreeModule
+            degrees_group = FreeModule(ZZ, fan.nrays()).quotient(fan.ray_matrix().rows())
+            self._homogeneous_degrees_group = degrees_group
+        degrees_group = self._homogeneous_degrees_group
         S = self.coordinate_ring()
         try:
             polynomial = S(polynomial)
@@ -1164,9 +1187,9 @@ class ToricVariety_field(AmbientSpace):
         monomials = polynomial.monomials()
         if not monomials:
             return True
-        degree = relation_matrix * vector(monomials[0].degrees())
+        degree = degrees_group(vector(ZZ,monomials[0].degrees()))
         for monomial in monomials:
-            if relation_matrix * vector(monomial.degrees()) != degree:
+            if degrees_group(vector(ZZ,monomial.degrees())) != degree:
                 return False
         return True
 

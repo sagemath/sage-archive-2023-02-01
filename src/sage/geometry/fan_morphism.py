@@ -801,13 +801,22 @@ class FanMorphism(FreeModuleMorphism):
                                  "domain fan is not contained in a single "
                                  "cone of the codomain fan!" % n)
 
-    def codomain_fan(self):
+    def codomain_fan(self, dim=None, codim=None):
         r"""
         Return the codomain fan of ``self``.
 
+        INPUT:
+
+        - ``dim`` -- dimension of the requested cones;
+
+        - ``codim`` -- codimension of the requested cones.
+
         OUTPUT:
 
-        - a :class:`fan <sage.geometry.fan.RationalPolyhedralFan>`.
+        - :class:`rational polyhedral fan
+          <sage.geometry.fan.RationalPolyhedralFan>` if no parameters were
+          given, :class:`tuple` of :class:`cones
+          <sage.geometry.cone.ConvexRationalPolyhedralCone>` otherwise.
 
         EXAMPLES::
 
@@ -820,15 +829,24 @@ class FanMorphism(FreeModuleMorphism):
             sage: fm.codomain_fan() is quadrant
             True
         """
-        return self._codomain_fan
+        return self._codomain_fan(dim=dim, codim=codim)
 
-    def domain_fan(self):
+    def domain_fan(self, dim=None, codim=None):
         r"""
         Return the codomain fan of ``self``.
 
+        INPUT:
+
+        - ``dim`` -- dimension of the requested cones;
+
+        - ``codim`` -- codimension of the requested cones.
+
         OUTPUT:
 
-        - a :class:`fan <sage.geometry.fan.RationalPolyhedralFan>`.
+        - :class:`rational polyhedral fan
+          <sage.geometry.fan.RationalPolyhedralFan>` if no parameters were
+          given, :class:`tuple` of :class:`cones
+          <sage.geometry.cone.ConvexRationalPolyhedralCone>` otherwise.
 
         EXAMPLES::
 
@@ -841,7 +859,7 @@ class FanMorphism(FreeModuleMorphism):
             sage: fm.domain_fan() is quadrant_bl
             True
         """
-        return self._domain_fan
+        return self._domain_fan(dim=dim, codim=codim)
 
     def image_cone(self, cone):
         r"""

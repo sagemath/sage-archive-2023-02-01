@@ -9403,23 +9403,27 @@ class GenericGraph(GenericGraph_pyx):
              sage: g = graphs.PetersenGraph()
              sage: h1 = g.subgraph_search(graphs.PathGraph(5)); h1
              Subgraph of (Petersen graph): Graph on 5 vertices
-             sage: h1.vertices()
+             sage: h1.vertices(); h1.edges(labels=False)
              [0, 1, 2, 3, 4]
+             [(0, 1), (1, 2), (2, 3), (3, 4)]
              sage: I1 = g.subgraph_search(graphs.PathGraph(5), induced=True); I1
              Subgraph of (Petersen graph): Graph on 5 vertices
-             sage: I1.vertices()
+             sage: I1.vertices(); I1.edges(labels=False)
              [0, 1, 2, 3, 8]
+             [(0, 1), (1, 2), (2, 3), (3, 8)]
 
         It also contains the claw `K_{1,3}`::
 
              sage: h2 = g.subgraph_search(graphs.ClawGraph()); h2
              Subgraph of (Petersen graph): Graph on 4 vertices
-             sage: h2.vertices()
+             sage: h2.vertices(); h2.edges(labels=False)
              [0, 1, 4, 5]
+             [(0, 1), (0, 4), (0, 5)]
              sage: I2 = g.subgraph_search(graphs.ClawGraph(), induced=True); I2
              Subgraph of (Petersen graph): Graph on 4 vertices
-             sage: I2.vertices()
+             sage: I2.vertices(); I2.edges(labels=False)
              [0, 1, 4, 5]
+             [(0, 1), (0, 4), (0, 5)]
 
         Of course the induced copies are isomorphic to the graphs we were
         looking for::
@@ -9446,6 +9450,22 @@ class GenericGraph(GenericGraph_pyx):
              Graph on 0 vertices
              sage: g.subgraph_search(graphs.EmptyGraph(), induced=True)
              Graph on 0 vertices
+
+        The subgraph may just have edges missing::
+
+            sage: k3=graphs.CompleteGraph(3); p3=graphs.PathGraph(3)
+            sage: k3.relabel(list('abc'))
+            sage: s=k3.subgraph_search(p3)
+            sage: s.edges(labels=False)
+            [('a', 'b'), ('b', 'c')]
+
+        Of course, `P_3` is not an induced subgraph of `K_3`, though::
+
+            sage: k3=graphs.CompleteGraph(3); p3=graphs.PathGraph(3)
+            sage: k3.relabel(list('abc'))
+            sage: k3.subgraph_search(p3, induced=True) is None
+            True
+
         """
         from sage.graphs.generic_graph_pyx import SubgraphSearch
         from sage.graphs.graph_generators import GraphGenerators
@@ -9455,7 +9475,12 @@ class GenericGraph(GenericGraph_pyx):
         S = SubgraphSearch(self, G, induced = induced)
 
         for g in S:
-            return self.subgraph(g)
+            if induced:
+                return self.subgraph(g)
+            else:
+                Gcopy=G.copy()
+                Gcopy.relabel(g)
+                return self.subgraph(vertices=Gcopy.vertices(), edges=Gcopy.edges())
 
         return None
 

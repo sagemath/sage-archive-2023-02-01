@@ -50,9 +50,12 @@ From clean upstream sources:
 
 == Changelog ==
 
-=== cddlib-094f.p9 (Karl-Dieter Crisman, 1st July 2011) ===
+=== cddlib-094f.p10 (Karl-Dieter Crisman, 1st July 2011) ===
  * Changed to hard links so that the package would build on Cygwin
    See Trac 11245
+
+=== cddlib-094f.p9 (Simon King, 10th Dec 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
 
 === cddlib-094f.p8 (Volker Braun, 21th Sept 2010) ===
  * Add command line option to cdd_both_reps to optionally skip

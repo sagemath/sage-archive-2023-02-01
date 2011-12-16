@@ -35,16 +35,28 @@ class Function_erf(BuiltinFunction):
 
         Sage implements the error function via the ``erfc()`` function in PARI.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We can evaluate the error function at varying precisions::
 
             sage: erf(2)
             erf(2)
             sage: erf(2).n()
             0.995322265018953
-            sage: loads(dumps(erf))
-            erf
+            sage: erf(2).n(200)
+            0.99532226501895273416206925636725292861089179704006007673835
+
+        Complex values can be evaluated as well::
+
+            sage: erf(3*I).n()
+            1.00000000000000 + 1629.86732385786*I
 
         TESTS:
+
+        Test pickling::
+
+            sage: loads(dumps(erf))
+            erf
 
         Check if conversion from maxima elements work::
 

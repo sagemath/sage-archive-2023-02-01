@@ -7547,21 +7547,21 @@ cdef class Expression(CommutativeRingElement):
         -  ``multiplicities`` - bool (default: False); if True,
            return corresponding multiplicities.  This keyword is
            incompatible with ``to_poly_solve=True`` and does not make
-           any sense when solving inequality.
+           any sense when solving an inequality.
 
         -  ``solution_dict`` - bool (default: False); if True or non-zero,
            return a list of dictionaries containing solutions. Not used
-           when solving inequality.
+           when solving an inequality.
 
         -  ``explicit_solutions`` - bool (default: False); require that
            all roots be explicit rather than implicit. Not used
-           when solving inequality.
+           when solving an inequality.
 
         -  ``to_poly_solve`` - bool (default: False) or string; use
            Maxima's ``to_poly_solver`` package to search for more possible
            solutions, but possibly encounter approximate solutions.
            This keyword is incompatible with ``multiplicities=True``
-           and is not used when solving inequality. Setting ``to_poly_solve``
+           and is not used when solving an inequality. Setting ``to_poly_solve``
            to 'force' (string) omits Maxima's solve command (usefull when
            some solution of trigonometric equations are lost).
 

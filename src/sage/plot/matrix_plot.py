@@ -261,8 +261,8 @@ def matrix_plot(mat, **options):
 
     - ``colorbar`` -- boolean (default: False) Show a colorbar or not (dense matrices only).
 
-      The following options are to adjust the style and placement of
-      colorbars.  They have no effect if a colorbar is not shown.
+      The following options are used to adjust the style and placement
+      of colorbars.  They have no effect if a colorbar is not shown.
 
       - ``colorbar_orientation`` -- string (default: 'vertical'),
         controls placement of the colorbar, can be either 'vertical'
@@ -270,6 +270,10 @@ def matrix_plot(mat, **options):
 
       - ``colorbar_format`` -- a format string, this is used to format
         the colorbar labels.
+
+      - ``colorbar_options`` -- a dictionary of options for the matplotlib
+        colorbar API.  Documentation for the :mod:`matplotlib.colorbar` module
+        has details.
 
     - ``norm`` - If None (default), the value range is scaled to the interval
       [0,1].  If 'value', then the actual value is used with no
@@ -286,9 +290,15 @@ def matrix_plot(mat, **options):
 
     - ``subdivisions`` - If True, plot the subdivisions of the matrix as lines.
 
-    - ``subdivision_boundaries`` - a list of lists in the form ``[row_subdivisions, column_subdivisions]``, which specifies the row and column subdivisions to use.  If not specified, defaults to the matrix subdivisions
+    - ``subdivision_boundaries`` - a list of lists in the form
+      ``[row_subdivisions, column_subdivisions]``, which specifies
+      the row and column subdivisions to use.  If not specified,
+      defaults to the matrix subdivisions
 
-    - ``subdivision_style`` - a dictionary of properties passed on to the :func:`~sage.plot.line.line2d` command for plotting subdivisions.  If this is a two-element list or tuple, then it specifies the styles of row and column divisions, respectively.
+    - ``subdivision_style`` - a dictionary of properties passed
+      on to the :func:`~sage.plot.line.line2d` command for plotting
+      subdivisions.  If this is a two-element list or tuple, then it
+      specifies the styles of row and column divisions, respectively.
 
     EXAMPLES:
 
@@ -328,7 +338,8 @@ def matrix_plot(mat, **options):
         sage: m.subdivide([2,4],[6,8])
         sage: matrix_plot(m, subdivisions=True, subdivision_style=dict(color='red',thickness=3))
 
-    You can also specify your own subdivisions and separate styles for row or column subdivisions::
+    You can also specify your own subdivisions and separate styles
+    for row or column subdivisions::
 
         sage: m=random_matrix(RR,10)
         sage: matrix_plot(m, subdivisions=True, subdivision_boundaries=[[2,4],[6,8]], subdivision_style=[dict(color='red',thickness=3),dict(linestyle='--',thickness=6)])
@@ -357,6 +368,14 @@ def matrix_plot(mat, **options):
 
         sage: matrix_plot(random_matrix(RDF, 50), colorbar=True, colorbar_format='%.3f')
 
+    The length of a color bar and the length of the adjacent
+    matrix plot dimension may be quite different.  This example
+    shows how to adjust the length of the colorbar by passing a
+    dictionary of options to the matplotlib colorbar routines.  ::
+
+        sage: m = random_matrix(ZZ, 40, 80, x=-10, y=10)
+        sage: m.plot(colorbar=True, colorbar_orientation='vertical',
+        ...          colorbar_options={'shrink':0.50})
 
     Here we plot a random sparse matrix::
 

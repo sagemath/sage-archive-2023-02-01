@@ -133,6 +133,7 @@ Families of graphs
 - :meth:`FuzzyBallGraph <GraphGenerators.FuzzyBallGraph>`
 - :meth:`GeneralizedPetersenGraph <GraphGenerators.GeneralizedPetersenGraph>`
 - :meth:`HanoiTowerGraph <GraphGenerators.HanoiTowerGraph>`
+
 - :meth:`HyperStarGraph <GraphGenerators.HyperStarGraph>`
 - :meth:`KneserGraph <GraphGenerators.KneserGraph>`
 - :meth:`LCFGraph <GraphGenerators.LCFGraph>`
@@ -1489,6 +1490,56 @@ class GraphGenerators():
                 H.relabel(mapping)
 
         return H
+
+    def HararyGraph( self, k, n ):
+        r"""
+        Returns the Harary graph on `n` vertices and connectivity `k`,
+        where `2 \leq k < n`.
+
+        A `k`-connected graph `G` on `n` vertices requires the minimum
+        degree `\delta(G)\geq k`, so the minimum number of edges `G`
+        should have is `\lceil kn/2\rceil`. Harary graphs achieve this
+        lower bound, that is, Harary graphs are minimal `k`-connected
+        graphs on `n` vertices.
+
+        The construction provided uses the method CirculantGraph.  For
+        more details, see the book D. B. West, Introduction to Graph
+        Theory, 2nd Edition, Prentice Hall, 2001, p. 150--151; or the
+        `MathWorld article on Harary graphs
+        <http://mathworld.wolfram.com/HararyGraph.html>`_.
+
+
+        EXAMPLES:
+
+        Harary graphs `H_{k,n}`
+           sage: h=graphs.HararyGraph(5,9);h
+           Harary graph 5, 9: Graph on 9 vertices
+           sage: h.order()
+           9
+           sage: h.size()
+           23
+           sage: h.vertex_connectivity()
+           5
+        """
+
+        if not k>=2:
+            raise ValueError, "Connectivity parameter k should be at least 2."
+        if not n>k:
+            raise ValueError, "Number of vertices n should be greater than k."
+
+        if k%2==0:
+            G=self.CirculantGraph( n, range(1,k/2+1))
+        else:
+            if n%2==0:
+                G=self.CirculantGraph( n, range(1,(k-1)/2+1))
+                for i in range(n):
+                    G.add_edge( i, (i+n/2)%n )
+            else:
+                G=self.HararyGraph( k-1, n )
+                for i in range((n-1)/2+1):
+                    G.add_edge( i, (i+(n-1)/2)%n )
+        G.name('Harary graph {0}, {1}'.format(k,n))
+        return G
 
     def HouseGraph(self):
         """

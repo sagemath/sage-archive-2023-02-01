@@ -1427,7 +1427,9 @@ exponent %s: the length of the word (%s) times the exponent \
         INPUT:
 
         -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+           be callable on letters as well as words (e.g. WordMorphism). The
+           default value corresponds to usual palindromes, i.e., `f` equal to
+           the identity.
 
         EXAMPLES::
 
@@ -1689,12 +1691,17 @@ exponent %s: the length of the word (%s) times the exponent \
         and lacunas of self (see [1] and [2]).
 
         Note that a word `w` has at most `|w| + 1` different palindromic factors
-        (see [3]).
+        (see [3]). For `f`-palindromes (or pseudopalidromes or theta-palindromes),
+        the maximum number of `f`-palindromic factors is `|w|+1-g_f(w)`, where
+        `g_f(w)` is the number of pairs `\{a, f(a)\}` such that `a` is a letter,
+        `a` is not equal to `f(a)`, and `a` or `f(a)` occurs in `w`, see [4].
 
         INPUT:
 
         -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+           be callable on letters as well as words (e.g. WordMorphism). The
+           default value corresponds to usual palindromes, i.e., `f` equal to
+           the identity.
 
         OUTPUT:
 
@@ -1739,6 +1746,8 @@ exponent %s: the length of the word (%s) times the exponent \
         -   [3] X. Droubay, J. Justin, G. Pirillo, Episturmian words and
             some constructions of de Luca and Rauzy, Theoret. Comput. Sci.
             255 (2001) 539--553.
+        -   [4] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
+            Sci. 412 (2011) 1111--1121
         """
         #Initialize the results of computations
         palindromes = set()
@@ -1818,13 +1827,15 @@ exponent %s: the length of the word (%s) times the exponent \
         r"""
         Returns the list of all the lacunas of self.
 
-        A *lacuna* is a position in a word where the longest palindromic
+        A *lacuna* is a position in a word where the longest (`f`-)palindromic
         suffix is not unioccurrent (see [1]).
 
         INPUT:
 
         -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+           be callable on letters as well as words (e.g. WordMorphism). The
+           default value corresponds to usual palindromes, i.e., `f` equal to
+           the identity.
 
         OUTPUT:
 
@@ -1851,16 +1862,18 @@ exponent %s: the length of the word (%s) times the exponent \
 
     def lengths_unioccurrent_lps(self, f=None):
         r"""
-        Returns the list of the lengths of the unioccurrent longest palindromic
-        suffixes (lps) for each non-empty prefix of self. No unioccurrent lps
-        are indicated by None.
+        Returns the list of the lengths of the unioccurrent longest
+        (`f`)-palindromic suffixes (lps) for each non-empty prefix of self. No
+        unioccurrent lps are indicated by None.
 
         It corresponds to the function `H_w` defined in [1] and [2].
 
         INPUT:
 
         -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+           be callable on letters as well as words (e.g. WordMorphism). The
+           default value corresponds to usual palindromes, i.e., `f` equal to
+           the identity.
 
         OUTPUT:
 
@@ -1957,23 +1970,26 @@ exponent %s: the length of the word (%s) times the exponent \
         the maximum number of possible palindromic factors in a word of length
         `|w|` and the actual number of palindromic factors contained in `w`.
         It is well known that the maximum number of palindromic factors in `w`
-        is `|w|+1` (NEED REFERENCE).
+        is `|w|+1` (see [3]).
 
         An optional involution on letters ``f`` can be given. In that case, the
         *f-palindromic defect* (or *pseudopalindromic defect*, or
-        *theta-palindromic defect*) of `w` is returned which is the
+        *theta-palindromic defect*) of `w` is returned. It is a
         generalization of defect to f-palindromes. More precisely, the defect is
-        `D(w)=|w|+1-g_f(w)-|PAL(w)|`, where `PAL(w)` denotes the set of
+        `D(w)=|w|+1-g_f(w)-|PAL_f(w)|`, where `PAL_f(w)` denotes the set of
         f-palindromic factors of `w` (including the empty word) and `g_f(w)` is
-        the number of pairs `\{a, f(a)\}` such that a is a letter, a is not
-        equal to f(a), and a or f(a) occurs in w. See [1] for usual palindromes
-        (i.e., for ``f`` not given or equal to the identity) and [2] for
-        f-palindromes.
+        the number of pairs `\{a, f(a)\}` such that `a` is a letter, `a` is not
+        equal to `f(a)`, and `a` or `f(a)` occurs in `w`. In the case of usual
+        palindromes (i.e., for ``f`` not given or equal to the identity),
+        `g_f(w) = 0` for all `w`. See [2] for usual palindromes and [4]
+        for f-palindromes.
 
         INPUT:
 
         -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+           be callable on letters as well as words (e.g. WordMorphism). The
+           default value corresponds to usual palindromes, i.e., `f` equal to
+           the identity.
 
         OUTPUT:
 
@@ -1987,7 +2003,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word('abcacba').defect()
             1
 
-        It is known that Sturmian words (NEED REFERENCE) have no defect::
+        It is known that Sturmian words (see [3]) have zero defect::
 
             sage: words.FibonacciWord()[:100].defect()
             0
@@ -2000,8 +2016,9 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w[110:140].defect()
             0
 
-        It is even conjectured that the defect of a substitutive word is either
-        `0` or infinite (NEED REFERENCE)::
+        It is even conjectured that the defect of an aperiodic word which is
+        a fixed point of a primitive morphism is either `0` or infinite
+        (see [1])::
 
             sage: w = words.ThueMorseWord()
             sage: w[:50].defect()
@@ -2011,8 +2028,9 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w[:300].defect()
             52
 
-        For generalized defect with an involution, some letter may fail to be
-        palindromes! This is the reason for the modification of the definition::
+        For generalized defect with an involution different from the identity,
+        there is always a letter which is not a palindrome! This is the reason
+        for the modification of the definition::
 
             sage: f = WordMorphism('a->b,b->a')
             sage: Word('a').defect(f)
@@ -2047,13 +2065,21 @@ exponent %s: the length of the word (%s) times the exponent \
 
         REFERENCES:
 
-        -   [1] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the Palindromic
+        -   [1] A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
+            Combinatorial properties of f -palindromes in the Thue-Morse
+            sequence. Pure Math. Appl., 19(2-3):39--52, 2008.
+
+        -   [2] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the Palindromic
             Complexity of Infinite Words, in J. Berstel, J. Karhumaki,
             D. Perrin, Eds, Combinatorics on Words with Applications,
             International Journal of Foundation of Computer Science, Vol. 15,
             No. 2 (2004) 293--306.
 
-        -   [2] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
+        -   [3] X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
+            constructions of de Luca and Rauzy, Theoret. Comput. Sci. 255,
+            (2001), no. 1--2, 539--553.
+
+        -   [4] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
             Sci. 412 (2011) 1111--1121
         """
         g_w = 0
@@ -2125,6 +2151,15 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word('abba').is_full(f)
             False
 
+        A simple example of an infinite word full of f-palindromes::
+
+            sage: p = WordMorphism({0:'abc',1:'ab'})
+            sage: f = WordMorphism('a->b,b->a,c->c')
+            sage: p(words.FibonacciWord()[:50]).is_full(f)
+            True
+            sage: p(words.FibonacciWord()[:150]).is_full(f)
+            True
+
         REFERENCES:
 
         -   [1] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the Palindromic
@@ -2133,7 +2168,7 @@ exponent %s: the length of the word (%s) times the exponent \
             International Journal of Foundation of Computer Science, Vol. 15,
             No. 2 (2004) 293--306.
 
-        -   [2]  E. Pelantová and Š. Starosta, Infinite words rich and almost rich
+        -   [2] E. Pelantová, Š. Starosta, Infinite words rich and almost rich
             in generalized palindromes, in: G. Mauri, A. Leporati (Eds.),
             Developments in Language Theory, volume 6795 of Lecture Notes
             in Computer Science, Springer-Verlag, Berlin, Heidelberg, 2011,

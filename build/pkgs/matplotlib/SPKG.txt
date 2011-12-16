@@ -82,7 +82,20 @@ The patches are applied during the build process.
 
 == Changelog ==
 
-See Mercurial Changelog for details.  Older spkg updates are noted below.
+=== matplotlib-1.1.0 (Jason Grout, 15 Dec 2011) ===
+ * Update matplotlib to 1.1.0.  See Sage trac #11915.
+
+ * Replace the three __init__.py.patch, finance.py.patch, and
+   texmanager.py.patch patches with one consolidated
+   mkdir-race-condition.patch (which also updates the exceptions to
+   use 2.6, 2.7, 3.x style exceptions).  This patch has been submitted
+   upstream now.
+
+ * Rebase setupext.py.patch file
+
+ * Deleted the src/lib/matplotlib/tests/baseline_images/* test images
+   to conserve lots of space, and noted this in the special
+   instructions above.
 
 === matplotlib-1.0.1.p0 (John Palmieri, 17 Aug 2011) ===
  * Patch __init__.py, finance.py, and texmanager.py to avoid race

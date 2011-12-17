@@ -199,7 +199,7 @@ class SL2Z_class(Gamma0_class):
         c = ZZ.random_element(1-bound, bound, *args, **kwds)
         d = ZZ.random_element(1-bound, bound, *args, **kwds)
         if gcd(c,d) != 1: # try again
-            return self.random_element(bound)
+            return self.random_element(bound, *args, **kwds)
         else:
             a,b,c,d = lift_to_sl2z(c,d,0)
             whi = bound
@@ -218,7 +218,7 @@ class SL2Z_class(Gamma0_class):
                 whi = min(whi, ((bound + b)/ZZ(-d)).ceil())
                 wlo = min(wlo, ((bound - b)/ZZ(-d)).ceil())
 
-            w = ZZ.random_element(1-wlo, whi)
+            w = ZZ.random_element(1-wlo, whi, *args, **kwds)
             a += c*w
             b += d*w
             return self([a,b,c,d])

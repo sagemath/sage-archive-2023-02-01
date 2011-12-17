@@ -411,6 +411,19 @@ class LatexExpr(str):
         sage: type(L)
         <class 'sage.misc.latex.LatexExpr'>
     """
+    def __add__(self, other):
+        r"""
+        Add two instances of LatexExpr.
+
+        EXAMPLES::
+
+            sage: o = LatexExpr(r"\Delta\neq") + LatexExpr(r"\frac{x}2"); o
+            \Delta\neq \frac{x}2
+            sage: type(o)
+            <class 'sage.misc.latex.LatexExpr'>
+        """
+        return LatexExpr(str(self) + ' ' + str(other))
+
     def __repr__(self):
         """
         EXAMPLES::

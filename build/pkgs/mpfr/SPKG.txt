@@ -47,6 +47,9 @@ on sun4v machines.
 === mpfr-2.4.2.p0 (Simon King, December 10th, 2010) ===
  * #12131: Use --libdir, to make the package work on openSUSE.
 
+=== mpfr-3.1.0 (Mike Hansen, December 17th, 2011) ===
+ * #11666: Upgrade MPFR to 3.1.0
+
 === mpfr-2.4.2 (Mike Hansen, February 16th, 2010) ===
  * #8261: Upgrade MPFR to 2.4.2.
 

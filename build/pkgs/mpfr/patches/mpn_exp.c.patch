@@ -1,8 +1,8 @@
---- mpn_exp.c.orig	Fri Feb 20 01:43:17 2009
-+++ mpn_exp.c	Thu Jul 16 17:25:20 2009
-@@ -71,7 +71,18 @@
+--- ../src/src/mpn_exp.c	2011-10-03 09:17:09.000000000 +0100
++++ mpn_exp.c	2011-12-17 09:57:30.000000000 +0000
+@@ -70,7 +70,18 @@
    /* allocate space for A and set it to B */
-   c = (mp_limb_t*) MPFR_TMP_ALLOC(2 * n * BYTES_PER_MP_LIMB);
+   c = MPFR_TMP_LIMBS_ALLOC (2 * n);
    a [n - 1] = B;
 -  MPN_ZERO (a, n - 1);
 +  /* The following couple of lines work around a bug seen so far only on
@@ -18,5 +18,5 @@
 +    MPN_ZERO (a, n - 1);
 +
    /* initial exponent for A: invariant is A = {a, n} * 2^f */
-   f = h - (n - 1) * BITS_PER_MP_LIMB;
+   f = h - (n - 1) * GMP_NUMB_BITS;
  

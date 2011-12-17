@@ -1970,7 +1970,7 @@ exponent %s: the length of the word (%s) times the exponent \
         the maximum number of possible palindromic factors in a word of length
         `|w|` and the actual number of palindromic factors contained in `w`.
         It is well known that the maximum number of palindromic factors in `w`
-        is `|w|+1` (see [3]).
+        is `|w|+1` (see [DJP01]_).
 
         An optional involution on letters ``f`` can be given. In that case, the
         *f-palindromic defect* (or *pseudopalindromic defect*, or
@@ -1981,7 +1981,7 @@ exponent %s: the length of the word (%s) times the exponent \
         the number of pairs `\{a, f(a)\}` such that `a` is a letter, `a` is not
         equal to `f(a)`, and `a` or `f(a)` occurs in `w`. In the case of usual
         palindromes (i.e., for ``f`` not given or equal to the identity),
-        `g_f(w) = 0` for all `w`. See [2] for usual palindromes and [4]
+        `g_f(w) = 0` for all `w`. See [BHNR04]_ for usual palindromes and [Sta11]_
         for f-palindromes.
 
         INPUT:
@@ -2003,7 +2003,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word('abcacba').defect()
             1
 
-        It is known that Sturmian words (see [3]) have zero defect::
+        It is known that Sturmian words (see [DJP01]_) have zero defect::
 
             sage: words.FibonacciWord()[:100].defect()
             0
@@ -2018,7 +2018,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
         It is even conjectured that the defect of an aperiodic word which is
         a fixed point of a primitive morphism is either `0` or infinite
-        (see [1])::
+        (see [BBGL08]_)::
 
             sage: w = words.ThueMorseWord()
             sage: w[:50].defect()
@@ -2065,22 +2065,22 @@ exponent %s: the length of the word (%s) times the exponent \
 
         REFERENCES:
 
-        -   [1] A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
-            Combinatorial properties of f -palindromes in the Thue-Morse
-            sequence. Pure Math. Appl., 19(2-3):39--52, 2008.
+        .. [BBGL08] A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
+           Combinatorial properties of f -palindromes in the Thue-Morse
+           sequence. Pure Math. Appl., 19(2-3):39--52, 2008.
 
-        -   [2] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the Palindromic
-            Complexity of Infinite Words, in J. Berstel, J. Karhumaki,
-            D. Perrin, Eds, Combinatorics on Words with Applications,
-            International Journal of Foundation of Computer Science, Vol. 15,
-            No. 2 (2004) 293--306.
+        .. [BHNR04] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the
+           Palindromic Complexity of Infinite Words, in J. Berstel, J.
+           Karhumaki, D. Perrin, Eds, Combinatorics on Words with Applications,
+           International Journal of Foundation of Computer Science, Vol. 15,
+           No. 2 (2004) 293--306.
 
-        -   [3] X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
-            constructions of de Luca and Rauzy, Theoret. Comput. Sci. 255,
-            (2001), no. 1--2, 539--553.
+        .. [DJP01] X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
+           constructions of de Luca and Rauzy, Theoret. Comput. Sci. 255,
+           (2001), no. 1--2, 539--553.
 
-        -   [4] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
-            Sci. 412 (2011) 1111--1121
+        .. [Sta11] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
+           Sci. 412 (2011) 1111--1121
         """
         g_w = 0
         if f is not None:

@@ -1956,14 +1956,19 @@ exponent %s: the length of the word (%s) times the exponent \
         The *defect* of a finite word `w` is given by the difference between
         the maximum number of possible palindromic factors in a word of length
         `|w|` and the actual number of palindromic factors contained in `w`.
-        An optional parameter ``f`` can be given. In that case,
-        the f-palindromic (or pseudopalindromic, or theta-palindromic) defect
-        of `w` is returned. The defect is given by `D(w)=|w|+1-g(w)-|PAL(w)|`,
-        where `PAL(w)` denotes the set of f-palindromic factors of `w`
-        (including the empty word) and `g(w) = the number of pairs {a, f(a)}
-        such that a is a letter, a is not equal to f(a), and a or f(a)
-        occurs in w`. See [1] for usual palindromes (i.e., for ``f`` not given
-        or equal to the identity) and [2] for f-palindromes.
+        It is well known that the maximum number of palindromic factors in `w`
+        is `|w|+1` (NEED REFERENCE).
+
+        An optional involution on letters ``f`` can be given. In that case, the
+        *f-palindromic defect* (or *pseudopalindromic defect*, or
+        *theta-palindromic defect*) of `w` is returned which is the
+        generalization of defect to f-palindromes. More precisely, the defect is
+        `D(w)=|w|+1-g_f(w)-|PAL(w)|`, where `PAL(w)` denotes the set of
+        f-palindromic factors of `w` (including the empty word) and `g_f(w)` is
+        the number of pairs `\{a, f(a)\}` such that a is a letter, a is not
+        equal to f(a), and a or f(a) occurs in w. See [1] for usual palindromes
+        (i.e., for ``f`` not given or equal to the identity) and [2] for
+        f-palindromes.
 
         INPUT:
 
@@ -1977,10 +1982,58 @@ exponent %s: the length of the word (%s) times the exponent \
 
         EXAMPLES::
 
-            sage: words.ThueMorseWord()[:100].defect()
-            16
+            sage: Word('ara').defect()
+            0
+            sage: Word('abcacba').defect()
+            1
+
+        It is known that Sturmian words (NEED REFERENCE) have no defect::
+
             sage: words.FibonacciWord()[:100].defect()
             0
+
+            sage: sa = WordMorphism('a->ab,b->b')
+            sage: sb = WordMorphism('a->a,b->ba')
+            sage: w = (sa*sb*sb*sa*sa*sa*sb).fixed_point('a')
+            sage: w[:30].defect()
+            0
+            sage: w[110:140].defect()
+            0
+
+        It is even conjectured that the defect of a substitutive word is either
+        `0` or infinite (NEED REFERENCE)::
+
+            sage: w = words.ThueMorseWord()
+            sage: w[:50].defect()
+            12
+            sage: w[:100].defect()
+            16
+            sage: w[:300].defect()
+            52
+
+        For generalized defect with an involution, some letter may fail to be
+        palindromes! This is the reason for the modification of the definition::
+
+            sage: f = WordMorphism('a->b,b->a')
+            sage: Word('a').defect(f)
+            0
+            sage: Word('ab').defect(f)
+            0
+            sage: Word('aa').defect(f)
+            1
+            sage: Word('abbabaabbaababba').defect(f)
+            3
+
+        ::
+
+            sage: f = WordMorphism('a->b,b->a,c->c')
+            sage: Word('cabc').defect(f)
+            0
+            sage: Word('abcaab').defect(f)
+            2
+
+        Other examples::
+
             sage: Word('000000000000').defect()
             0
             sage: Word('011010011001').defect()
@@ -1990,24 +2043,6 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word().defect()
             0
             sage: Word('abbabaabbaababba').defect()
-            2
-
-        ::
-
-            sage: f = WordMorphism('a->b,b->a')
-
-            sage: Word('ab').defect(f)
-            0
-            sage: Word('abbabaabbaababba').defect(f)
-            3
-
-        ::
-
-            sage: f = WordMorphism('a->b,b->a,c->c')
-
-            sage: Word('cabc').defect(f)
-            0
-            sage: Word('abcaab').defect(f)
             2
 
         REFERENCES:
@@ -2021,20 +2056,21 @@ exponent %s: the length of the word (%s) times the exponent \
         -   [2] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
             Sci. 412 (2011) 1111--1121
         """
-
         g_w = 0
-        if f==None:
-            pass #no need to construct the identity
-        else:
+        if f is not None:
+            from sage.combinat.words.morphism import WordMorphism
+            if not isinstance(f, WordMorphism):
+                f = WordMorphism(f)
             if not f.is_involution():
                 raise ValueError, "f must be an involution"
-            letters_counted = set()
-            for x in self.factor_set(1):
-                if f(x) != x: #we need only non f-palindromic letters
-                    if not set([x]).issubset(letters_counted): #have we seen this letters
-                        letters_counted.add(x) #remember the couple {x,f(x)}
-                        letters_counted.add(f(x))
-                        g_w +=1 #and count it
+            D = f.domain()
+            A = set(map(D,set(self)))
+            while A:
+                x = A.pop()
+                if f(x) != x: # count only non f-palindromic letters
+                    if f(x) in A:
+                        A.remove(f(x))
+                    g_w +=1
 
         return self.length()+1-g_w-len(self.palindromes(f=f))
 

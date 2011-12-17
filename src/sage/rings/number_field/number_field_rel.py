@@ -427,6 +427,16 @@ class NumberField_relative(NumberField_generic):
             Number Field in a with defining polynomial x^4 + 3 over its base field
             sage: K.gens()
             (a, b)
+
+        TESTS:
+
+        Trivial extensions work like non-trivial ones (trac #2220)::
+
+            sage: NumberField([x^2 - 3, x], 'a').gens()
+            (a0, 0)
+            sage: NumberField([x, x^2 - 3], 'a').gens()
+            (0, a1)
+
         """
         return self.__gens
 

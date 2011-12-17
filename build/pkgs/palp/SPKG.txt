@@ -45,6 +45,8 @@ facet enumeration compares well with existing packages.
 === palp-2.0.p0 (Volker Braun, 19th November 2011) ===
  * Update to new upstream version
  * Now building multiple versions for different ambient dimensions
+ * Patched Polynf.c and MoriCone.c that do not use nested functions
+   (private communication with Harald Skarke)
 
 === palp-1.1.p3 (David Kirkby, 24th May 2010) ===
  * #9025 Add compiler option -m64 if the variable SAGE64 is set to

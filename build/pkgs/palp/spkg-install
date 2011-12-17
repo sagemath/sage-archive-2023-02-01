@@ -16,9 +16,9 @@ else
   mv -f src/GNUmakefile src/Makefile
 fi
 
-# Remove some dead code that uses a GNU C extension that breaks on OSX
-# see http://trac.sagemath.org/sage_trac/ticket/12055#comment:31
+# Updated files that I got from Harald Skarke
 cp -p patches/Polynf.c src/Polynf.c
+cp -p patches/MoriCone.c src/MoriCone.c
 
 cd src
 mv Global.h Global.h-template

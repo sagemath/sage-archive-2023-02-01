@@ -134,6 +134,60 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             P = PolynomialRing(K, var)
             return (P(f),P(h))
 
+    def is_singular(self):
+        r"""
+        Returns False, because hyperelliptic curves are smooth projective
+        curves, as checked on construction.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: H = HyperellipticCurve(x^5+1)
+            sage: H.is_singular()
+            False
+
+        A hyperelliptic curve with genus at least 2 always has a singularity at
+        infinity when viewed as a *plane* projective curve. This can be seen in
+        the following example.::
+
+            sage: R.<x> = QQ[]
+            sage: H = HyperellipticCurve(x^5+2)
+            sage: set_verbose(None)
+            sage: H.is_singular()
+            False
+            sage: from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_generic
+            sage: ProjectiveCurve_generic.is_singular(H)
+            True
+        """
+        return False
+
+    def is_smooth(self):
+        r"""
+        Returns True, because hyperelliptic curves are smooth projective
+        curves, as checked on construction.
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(13)[]
+            sage: H = HyperellipticCurve(x^8+1)
+            sage: H.is_smooth()
+            True
+
+        A hyperelliptic curve with genus at least 2 always has a singularity at
+        infinity when viewed as a *plane* projective curve. This can be seen in
+        the following example.::
+
+            sage: R.<x> = GF(27, 'a')[]
+            sage: H = HyperellipticCurve(x^10+2)
+            sage: set_verbose(None)
+            sage: H.is_smooth()
+            True
+            sage: from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_generic
+            sage: ProjectiveCurve_generic.is_smooth(H)
+            False
+        """
+        return True
+
     def lift_x(self, x, all=False):
         f, h = self._hyperelliptic_polynomials
         x += self.base_ring()(0)

@@ -44,10 +44,10 @@ cdef class Matrix:
             5 x 5 Cremona matrix over Rational Field
             sage: print t.str()
             [ 3  0  0  0  0]
-            [ 0  0  0  1  1]
-            [ 0 -1 -1 -1  0]
-            [ 1  0 -1 -1 -1]
-            [ 0  1  1  0  0]
+            [-1 -1  0  0 -1]
+            [ 1  1  0  1  1]
+            [-1  1  1 -1  0]
+            [ 0 -1  0  0  0]
         """
         return "%s x %s Cremona matrix over Rational Field"%(self.nrows(), self.ncols())
 

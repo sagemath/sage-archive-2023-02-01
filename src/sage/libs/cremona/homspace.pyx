@@ -28,7 +28,7 @@ cdef class ModularSymbols:
             sage: CremonaModularSymbols(123, sign=1, cuspidal=True)
             Cremona Cuspidal Modular Symbols space of dimension 13 for Gamma_0(123) of weight 2 with sign 1
             sage: CremonaModularSymbols(123, sign=-1, cuspidal=True)
-            Cremona Cuspidal Modular Symbols space of dimension 12 for Gamma_0(123) of weight 2 with sign -1
+            Cremona Cuspidal Modular Symbols space of dimension 13 for Gamma_0(123) of weight 2 with sign -1
             sage: CremonaModularSymbols(123, sign=0, cuspidal=True)
             Cremona Cuspidal Modular Symbols space of dimension 26 for Gamma_0(123) of weight 2 with sign 0
             sage: CremonaModularSymbols(123, sign=0, cuspidal=False)
@@ -88,7 +88,10 @@ cdef class ModularSymbols:
             sage: M.dimension()
             156
         """
-        return self.H.h1dim()
+        if self.is_cuspidal():
+           return self.H.h1cuspdim()
+        else:
+           return self.H.h1dim()
 
     def number_of_cusps(self):
         r"""
@@ -169,18 +172,18 @@ cdef class ModularSymbols:
             5 x 5 Cremona matrix over Rational Field
             sage: print t.str()
             [ 3  0  0  0  0]
-            [ 0 -1  1  0  0]
-            [ 0  1 -1  0  0]
-            [ 1 -1  0 -1  1]
-            [ 1  0  1  1 -1]
+            [-1 -1  1  1  0]
+            [ 0  0 -1  0  1]
+            [-1  1  0 -1 -1]
+            [ 0  0  1  0 -1]
             sage: t.charpoly().factor()
             (x - 3) * x^2 * (x + 2)^2
             sage: print M.hecke_matrix(2, dual=True).str()
-            [ 3  0  0  1  1]
-            [ 0 -1  1 -1  0]
+            [ 3 -1  0 -1  0]
+            [ 0 -1  0  1  0]
             [ 0  1 -1  0  1]
-            [ 0  0  0 -1  1]
-            [ 0  0  0  1 -1]
+            [ 0  1  0 -1  0]
+            [ 0  0  1 -1 -1]
             sage: w = M.hecke_matrix(37); w
             5 x 5 Cremona matrix over Rational Field
             sage: w.charpoly().factor()

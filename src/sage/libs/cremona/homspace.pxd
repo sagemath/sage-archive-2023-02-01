@@ -21,6 +21,7 @@ cdef extern from "eclib/homspace.h":
 
         # member functions
         int (* h1dim)()
+        int (* h1cuspdim)()
         mat (* heckeop)(long p, int dual, int display)
         long (* h1ncusps)()
 
@@ -36,5 +37,4 @@ cdef class ModularSymbols:
 ##     cpdef int dimension(self)
 ##     cpdef int sign(self)
 ##     cpdef bint is_cuspidal(self)
-
 

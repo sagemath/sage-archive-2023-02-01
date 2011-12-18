@@ -21,13 +21,13 @@ cdef class ECModularSymbol:
 
         sage: from sage.libs.cremona.newforms import ECModularSymbol
         sage: E = EllipticCurve('11a')
-        sage: M = ECModularSymbol(E); M
+        sage: M = ECModularSymbol(E,1); M
         Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
         sage: [M(1/i) for i in range(1,11)]
         [0, 2, 1, -1, -2, -2, -1, 1, 2, 0]
 
     """
-    def __init__(self,E):
+    def __init__(self, E, sign=1):
         """
         Construct the modular symbol.
 
@@ -75,9 +75,10 @@ cdef class ECModularSymbol:
         N = getconductor(CR[0])
         n = I2int(N)
         self.n = n
+        self.sign = sign
 
-        self.nfs = new_newforms(n,1,0,0)
-        self.nfs.createfromcurve(CR[0])
+        self.nfs = new_newforms(n,0)
+        self.nfs.createfromcurve(sign,CR[0])
         self._E = E
         sig_off()
 
@@ -96,7 +97,7 @@ cdef class ECModularSymbol:
             sage: M = ECModularSymbol(E); M
             Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
         """
-        return "Modular symbol with sign 1 over Rational Field attached to %s"%self._E
+        return "Modular symbol with sign %s over Rational Field attached to %s"%(self.sign, self._E)
 
     def __call__(self, r):
         """

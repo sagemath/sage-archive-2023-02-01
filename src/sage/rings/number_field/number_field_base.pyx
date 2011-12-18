@@ -184,14 +184,27 @@ cdef class NumberField(Field):
             sage: K.class_number()
             2
 
+        We compute the Minkowski bound for `\QQ[\sqrt{2}+\sqrt{3}]`::
+
+            sage: K.<y,z> = NumberField([x^2-2, x^2-3])
+            sage: L.<w> = QQ[sqrt(2) + sqrt(3)]
+            sage: B = K.minkowski_bound(); B
+            9/2
+            sage: int(B)
+            4
+            sage: B == L.minkowski_bound()
+            True
+            sage: K.class_number()
+            1
+
         The bound of course also works for the rational numbers::
 
             sage: QQ.minkowski_bound()
             1
         """
         _, s = self.signature()
-        n = self.degree()
-        d = self.discriminant().abs().sqrt()
+        n = self.absolute_degree()
+        d = self.absolute_discriminant().abs().sqrt()
         from sage.symbolic.constants import pi
         if s > 0:
             return d * (4/pi)**s * n.factorial() / (n**n)

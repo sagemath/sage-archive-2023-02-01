@@ -433,6 +433,28 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return sage.rings.integer.Integer(1)
 
+    def absolute_discriminant(self):
+        """
+        Return the discriminant, which is 1.
+
+        EXAMPLES::
+
+            sage: QQ.absolute_discriminant()
+            1
+        """
+        return self.discriminant()
+
+    def relative_discriminant(self):
+        """
+        Return the discriminant, which is 1.
+
+        EXAMPLES::
+
+            sage: QQ.relative_discriminant()
+            1
+        """
+        return self.discriminant()
+
     def class_number(self):
         """
         Return the class number of the field of rational numbers, which is

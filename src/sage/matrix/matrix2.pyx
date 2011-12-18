@@ -3763,8 +3763,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: B.column_space()
             Vector space of degree 2 and dimension 2 over Complex Field with 53 bits of precision
             Basis matrix:
-            [1.00000000000000                0]
-            [               0 1.00000000000000]
+            [ 1.00000000000000 0.000000000000000]
+            [0.000000000000000  1.00000000000000]
         """
         return self.column_module()
 
@@ -4664,9 +4664,9 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: em = A.change_ring(RDF).eigenmatrix_left()
             sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(2e-15)
-            [    13.3484692...                 0                 0]
-            [                0    -1.34846922...                 0]
-            [                0                 0                 0]
+            [ 13.3484692283            0.0            0.0]
+            [           0.0 -1.34846922835            0.0]
+            [           0.0            0.0            0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.440242867...  0.567868371...  0.695493875...]
             [ 0.897878732...  0.278434036... -0.341010658...]
@@ -4925,9 +4925,9 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: em = B.change_ring(RDF).eigenmatrix_right()
             sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(1e-15)
-            [     13.3484692...                  0                  0]
-            [                 0     -1.34846922...                  0]
-            [                 0                  0                  0]
+            [ 13.3484692283            0.0            0.0]
+            [           0.0 -1.34846922835            0.0]
+            [           0.0            0.0            0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.164763817...  0.799699663...  0.408248290...]
             [ 0.505774475...  0.104205787... -0.816496580...]
@@ -5300,9 +5300,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = matrix(QQ, 3, 3, range(9))
             sage: em = A.change_ring(RDF).eigenmatrix_left()
             sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
-            [    13.3484692...                 0                 0]
-            [                0    -1.34846922...                 0]
-            [                0                 0                 0]
+            [ 13.3484692283            0.0            0.0]
+            [           0.0 -1.34846922835            0.0]
+            [           0.0            0.0            0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
             ...       scale = evectors[i,0].sign()
@@ -5389,9 +5389,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = matrix(QQ, 3, 3, range(9))
             sage: em = B.change_ring(RDF).eigenmatrix_right()
             sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
-            [     13.3484692...                  0                  0]
-            [                 0     -1.34846922...                  0]
-            [                 0                  0                  0]
+            [ 13.3484692283            0.0            0.0]
+            [           0.0 -1.34846922835            0.0]
+            [           0.0            0.0            0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
             ...       scale = evectors[0,i].sign()
@@ -9368,7 +9368,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: ( r - r.conjugate().transpose() ).norm(1) < 1e-30
             True
             sage: L = r.cholesky_decomposition(); L
-            [          1.0             0]
+            [          1.0           0.0]
             [        2.0*I 1.41421356237]
             sage: ( r - L*L.conjugate().transpose() ).norm(1) < 1e-30
             True
@@ -9411,11 +9411,11 @@ cdef class Matrix(matrix1.Matrix):
             sage: ( m - m.conjugate().transpose() ).norm(1) < 1e-50
             True
             sage: L = m.cholesky_decomposition(); L.change_ring(CDF)
-            [                      2.00870926089                                   0                                   0                                   0                                   0                                   0]
-            [  0.825730396261 - 0.599366189511*I                       2.03802923221                                   0                                   0                                   0                                   0]
-            [ -0.137091748475 + 0.195438618996*I    0.20761467212 - 0.145606613292*I                       1.38750721467                                   0                                   0                                   0]
-            [  0.321609099528 + 0.898225453828*I -0.477666770113 + 0.0346666053769*I  -0.416429223553 - 0.094835914364*I                       1.65839194165                                   0                                   0]
-            [   0.576980839012 - 1.17091282993*I   0.232362216253 - 0.318581071175*I   0.880672963687 - 0.692440838276*I  -0.920603548686 + 0.566479149373*I                      0.992988116915                                   0]
+            [                      2.00870926089                                 0.0                                 0.0                                 0.0                                 0.0                                 0.0]
+            [  0.825730396261 - 0.599366189511*I                       2.03802923221                                 0.0                                 0.0                                 0.0                                 0.0]
+            [ -0.137091748475 + 0.195438618996*I    0.20761467212 - 0.145606613292*I                       1.38750721467                                 0.0                                 0.0                                 0.0]
+            [  0.321609099528 + 0.898225453828*I -0.477666770113 + 0.0346666053769*I  -0.416429223553 - 0.094835914364*I                       1.65839194165                                 0.0                                 0.0]
+            [   0.576980839012 - 1.17091282993*I   0.232362216253 - 0.318581071175*I   0.880672963687 - 0.692440838276*I  -0.920603548686 + 0.566479149373*I                      0.992988116915                                 0.0]
             [ -0.537261143636 - 0.686091014267*I   0.591339766401 + 0.158450627525*I  -0.561877938537 + 0.106470627954*I  -0.871217053358 + 0.176042897482*I  0.0516893015902 + 0.656402869037*I                      0.902427551681]
             sage: ( m - L*L.conjugate().transpose() ).norm(1) < 1e-20
             True
@@ -9430,13 +9430,13 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: r = matrix(CDF, 2, 2, [ 1, -2*I, 2*I, 0 ]); r
             [   1.0 -2.0*I]
-            [ 2.0*I      0]
+            [ 2.0*I    0.0]
             sage: r.eigenvalues()
             [2.56155281281, -1.56155281281]
             sage: ( r - r.conjugate().transpose() ).norm(1) < 1e-30
             True
             sage: L = r.cholesky_decomposition(); L
-            [  1.0     0]
+            [  1.0   0.0]
             [2.0*I 2.0*I]
             sage: L*L.conjugate().transpose()
             [   1.0 -2.0*I]
@@ -10100,7 +10100,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = matrix(CDF, [[1+I,1],[0,2*I]])
             sage: A.conjugate()
             [1.0 - 1.0*I         1.0]
-            [          0      -2.0*I]
+            [        0.0      -2.0*I]
 
         A matrix over a not-totally-real number field::
 

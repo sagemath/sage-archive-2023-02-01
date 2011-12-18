@@ -93,7 +93,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         sage: p.factor()
         (x + 1) * (x^2 - x + 1)
         sage: z^2 - z + 1
-        0
+        0.000000000000000
 
     This example involves a `p`-adic number::
 
@@ -4979,7 +4979,7 @@ def sort_complex_numbers_for_display(nums):
         ...                       RDF.random_element()))
         sage: shuffle(nums)
         sage: sort_c(nums)
-        [0, 1.0, 2.0, -2.862406201e-11 - 0.708874026302*I, 2.2108362707e-11 - 0.436810529675*I, 1.00000000001 - 0.758765473764*I, 0.999999999976 - 0.723896589334*I, 1.99999999999 - 0.456080101207*I, 1.99999999999 + 0.609083628313*I]
+        [0.0, 1.0, 2.0, -2.862406201e-11 - 0.708874026302*I, 2.2108362707e-11 - 0.436810529675*I, 1.00000000001 - 0.758765473764*I, 0.999999999976 - 0.723896589334*I, 1.99999999999 - 0.456080101207*I, 1.99999999999 + 0.609083628313*I]
     """
     if len(nums) == 0:
         return nums

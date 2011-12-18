@@ -59,7 +59,7 @@ class Lseries_ell(SageObject):
             sage: L.taylor_series(series_prec=3)      # random nearly 0 constant and linear terms
             -2.69129566562797e-23 + (1.52514901968783e-23)*z + 0.759316500288427*z^2 + O(z^3)
             sage: L.taylor_series(series_prec=3)[2:]
-            0.759316500288427*z^2 + O(z^3)
+            0.000000000000000 + 0.000000000000000*z + 0.759316500288427*z^2 + O(z^3)
         """
         D = self.dokchitser(prec)
         return D.taylor_series(a, series_prec, var)
@@ -491,7 +491,7 @@ class Lseries_ell(SageObject):
             sage: E = EllipticCurve([1,2,3,4,5])
             sage: L = E.lseries()
             sage: L(1)
-            0
+            0.000000000000000
             sage: L(1.1)
             0.285491007678148
             sage: L(1.1 + I)

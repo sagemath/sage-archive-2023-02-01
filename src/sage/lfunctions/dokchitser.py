@@ -98,7 +98,7 @@ class Dokchitser(SageObject):
         sage: L = E.lseries().dokchitser(); L
         Dokchitser L-function associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         sage: L(1)
-        0
+        0.000000000000000
         sage: L.derivative(1)
         0.305999773834052
         sage: L.derivative(1,2)
@@ -106,7 +106,7 @@ class Dokchitser(SageObject):
         sage: L.num_coeffs()
         48
         sage: L.taylor_series(1,4)
-        0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + O(z^4)
+        0.000000000000000 + 0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + O(z^4)
         sage: L.check_functional_equation()
         6.11218974800000e-18                            # 32-bit
         6.04442711160669e-18                            # 64-bit
@@ -382,7 +382,7 @@ class Dokchitser(SageObject):
             sage: E = EllipticCurve('5077a')
             sage: L = E.lseries().dokchitser(100)
             sage: L(1)
-            0
+            0.00000000000000000000000000000
             sage: L(1+I)
             -1.3085436607849493358323930438 + 0.81298000036784359634835412129*I
         """
@@ -474,7 +474,7 @@ class Dokchitser(SageObject):
             sage: E = EllipticCurve('37a')
             sage: L = E.lseries().dokchitser()
             sage: L.taylor_series(1)
-            0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + 0.0161066468496401*z^4 + 0.0185955175398802*z^5 + O(z^6)
+            0.000000000000000 + 0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + 0.0161066468496401*z^4 + 0.0185955175398802*z^5 + O(z^6)
 
         We compute a Taylor series where each coefficient is to high
         precision.

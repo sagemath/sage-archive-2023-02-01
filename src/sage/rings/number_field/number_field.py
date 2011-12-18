@@ -7816,7 +7816,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: phi(K.0^3)
             1.0
             sage: phi(K.0^3 - 1)
-            0
+            0.00
             sage: phi(K.0^3 + 7)
             8.0
         """

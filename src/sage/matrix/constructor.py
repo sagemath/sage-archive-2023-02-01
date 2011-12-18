@@ -1071,9 +1071,9 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         [ 0.922346867410064  0.000000000000000  0.000000000000000 -0.940316454178921]
 
         sage: A = random_matrix(ComplexField(32), 3, density=0.8, sparse=True); A
-        [                           0  0.399739209 + 0.909948633*I                            0]
+        [                 0.000000000  0.399739209 + 0.909948633*I                  0.000000000]
         [-0.361911424 - 0.455087671*I -0.687810605 + 0.460619713*I  0.625520058 - 0.360952012*I]
-        [                           0                            0 -0.162196416 - 0.193242896*I]
+        [                 0.000000000                  0.000000000     62196416 - 0.193242896*I]
         sage: A.is_sparse()
         True
 
@@ -1358,9 +1358,9 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         sage: entries = numpy.array([2.0+j, 8.1, 3.4+2.6*j]); entries
         array([ 2.0+1.j ,  8.1+0.j ,  3.4+2.6j])
         sage: A = diagonal_matrix(entries); A
-        [2.0 + 1.0*I           0           0]
-        [          0         8.1           0]
-        [          0           0 3.4 + 2.6*I]
+        [2.0 + 1.0*I         0.0         0.0]
+        [        0.0         8.1         0.0]
+        [        0.0         0.0 3.4 + 2.6*I]
         sage: A.parent()
         Full MatrixSpace of 3 by 3 sparse matrices over Complex Double Field
 

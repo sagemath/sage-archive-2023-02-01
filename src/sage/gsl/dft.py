@@ -522,8 +522,8 @@ class IndexedSequence(SageObject):
             sage: A = [RR(1) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: t = s.fft(); t
-            Indexed sequence: [5.00000000000000, 0, 0, 0, 0]
-             indexed by [0, 1, 2, 3, 4]
+            Indexed sequence: [5.00000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000]
+                indexed by [0, 1, 2, 3, 4]
         """
         F = self.base_ring()   ## elements must be coercible into RR
         J = self.index_object()   ## must be = range(N)
@@ -548,8 +548,8 @@ class IndexedSequence(SageObject):
             sage: A = [RR(1) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: t = s.fft(); t
-            Indexed sequence: [5.00000000000000, 0, 0, 0, 0]
-               indexed by [0, 1, 2, 3, 4]
+            Indexed sequence: [5.00000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000]
+                indexed by [0, 1, 2, 3, 4]
             sage: t.ifft()
             Indexed sequence: [1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000]
                 indexed by [0, 1, 2, 3, 4]

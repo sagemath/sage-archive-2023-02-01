@@ -301,7 +301,7 @@ class NumericalEigenforms(SageObject):
             EXAMPLES::
 
                 sage: numerical_eigenforms(61)._easy_vector() # indirect doctest
-                (1.0, 1.0, 0, 0, 0)
+                (1.0, 1.0, 0.0, 0.0, 0.0)
             """
             R = M.rows()
             v = [len(support(r, delta)) for r in R]

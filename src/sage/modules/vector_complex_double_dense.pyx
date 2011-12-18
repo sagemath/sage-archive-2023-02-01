@@ -20,7 +20,7 @@ TESTS::
 
     sage: v = vector(CDF, [2, 2])
     sage: v - v
-    (0, 0)
+    (0.0, 0.0)
     sage: (v - v).norm()
     0.0
 

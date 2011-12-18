@@ -187,9 +187,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [3.0 4.0 5.0]
             [6.0 7.0 8.0]
             sage: matrix(CDF,3,3,2)
-            [2.0   0   0]
-            [  0 2.0   0]
-            [  0   0 2.0]
+            [2.0 0.0 0.0]
+            [0.0 2.0 0.0]
+            [0.0 0.0 2.0]
 
         TESTS::
 
@@ -210,19 +210,19 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: matrix(CDF,3,0)
             []
             sage: matrix(CDF,3,3,0)
-            [0 0 0]
-            [0 0 0]
-            [0 0 0]
+            [0.0 0.0 0.0]
+            [0.0 0.0 0.0]
+            [0.0 0.0 0.0]
             sage: matrix(CDF,3,3,1)
-            [1.0   0   0]
-            [  0 1.0   0]
-            [  0   0 1.0]
+            [1.0 0.0 0.0]
+            [0.0 1.0 0.0]
+            [0.0 0.0 1.0]
             sage: matrix(CDF,3,3,range(9))
-            [  0 1.0 2.0]
+            [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             [6.0 7.0 8.0]
             sage: matrix(CDF,2,2,[CDF(1+I)*j for j in range(4)])
-            [          0 1.0 + 1.0*I]
+            [        0.0 1.0 + 1.0*I]
             [2.0 + 2.0*I 3.0 + 3.0*I]
         """
         cdef Py_ssize_t i,j
@@ -643,7 +643,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         And over the complex numbers.  ::
 
             sage: B = matrix(CDF, 3, [x + x^2*I for x in range(9)]); B
-            [           0  1.0 + 1.0*I  2.0 + 4.0*I]
+            [         0.0  1.0 + 1.0*I  2.0 + 4.0*I]
             [ 3.0 + 9.0*I 4.0 + 16.0*I 5.0 + 25.0*I]
             [6.0 + 36.0*I 7.0 + 49.0*I 8.0 + 64.0*I]
             sage: B.condition()
@@ -2001,7 +2001,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: m.log_determinant()
             0.0
             sage: m = matrix(CDF,2,2,range(4)); m
-            [  0 1.0]
+            [0.0 1.0]
             [2.0 3.0]
             sage: RDF(log(abs(m.determinant())))
             0.69314718056
@@ -2956,17 +2956,17 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A = matrix(CDF, 4, 4, range(16)) + matrix(CDF, 4, 4, [x^3*I for x in range(0, 16)])
             sage: Q, T = A.schur()
             sage: (Q*Q.conjugate().transpose()).zero_at(1.0e-12)
-            [1.0   0   0   0]
-            [  0 1.0   0   0]
-            [  0   0 1.0   0]
-            [  0   0   0 1.0]
+            [1.0 0.0 0.0 0.0]
+            [0.0 1.0 0.0 0.0]
+            [0.0 0.0 1.0 0.0]
+            [0.0 0.0 0.0 1.0]
             sage: all([T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i)])
             True
             sage: (Q*T*Q.conjugate().transpose()-A).zero_at(1.0e-11)
-            [0 0 0 0]
-            [0 0 0 0]
-            [0 0 0 0]
-            [0 0 0 0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
             sage: eigenvalues = [T[i,i] for i in range(4)]; eigenvalues
             [30.733... + 4648.541...*I, -0.184... - 159.057...*I, -0.523... + 11.158...*I, -0.025... - 0.642...*I]
             sage: A.eigenvalues()
@@ -2981,19 +2981,19 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A = matrix(RDF, 4, 4, [x^3 for x in range(16)])
             sage: Q, T = A.schur(base_ring=CDF)
             sage: (Q*Q.conjugate().transpose()).zero_at(1.0e-12)
-            [1.0   0   0   0]
-            [  0 1.0   0   0]
-            [  0   0 1.0   0]
-            [  0   0   0 1.0]
+            [1.0 0.0 0.0 0.0]
+            [0.0 1.0 0.0 0.0]
+            [0.0 0.0 1.0 0.0]
+            [0.0 0.0 0.0 1.0]
             sage: T.parent()
             Full MatrixSpace of 4 by 4 dense matrices over Complex Double Field
             sage: all([T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i)])
             True
             sage: (Q*T*Q.conjugate().transpose()-A).zero_at(1.0e-11)
-            [0 0 0 0]
-            [0 0 0 0]
-            [0 0 0 0]
-            [0 0 0 0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
 
         Now totally over the reals.  But with complex eigenvalues, the
         similar matrix may not be upper-triangular. But "at worst" there
@@ -3058,8 +3058,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 0.5  1.5]
             [-0.5  0.5]
             sage: (Q*T*Q.conjugate().transpose()-B).zero_at(1.0e-11)
-            [0 0]
-            [0 0]
+            [0.0 0.0]
+            [0.0 0.0]
 
         A Hermitian matrix has real eigenvalues, so the similar matrix
         will be upper-triangular.  Furthermore, a Hermitian matrix is
@@ -3079,15 +3079,15 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [       0.0        0.0  35.039344        0.0]
             [       0.0        0.0        0.0    3.11168]
             sage: (Q*Q.conjugate().transpose()).zero_at(1.0e-12)
-            [1.0   0   0   0]
-            [  0 1.0   0   0]
-            [  0   0 1.0   0]
-            [  0   0   0 1.0]
+            [1.0 0.0 0.0 0.0]
+            [0.0 1.0 0.0 0.0]
+            [0.0 0.0 1.0 0.0]
+            [0.0 0.0 0.0 1.0]
             sage: (Q*T*Q.conjugate().transpose()-A).zero_at(1.0e-11)
-            [0 0 0 0]
-            [0 0 0 0]
-            [0 0 0 0]
-            [0 0 0 0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
 
         Similarly, a real symmetric matrix has only real eigenvalues,
         and there is an orthonormal basis composed of eigenvectors of
@@ -3287,7 +3287,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: numpy.array(m).dtype
             dtype('float64')
             sage: m = matrix(CDF, 2, range(6)); m
-            [  0 1.0 2.0]
+            [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: numpy.array(m)
             array([[ 0.+0.j,  1.+0.j,  2.+0.j],
@@ -3480,13 +3480,13 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: a=matrix([[1, 1e-4r, 1+1e-100jr], [1e-8+3j, 0, 1e-58r]])
             sage: a
             [           1.0         0.0001 1.0 + 1e-100*I]
-            [ 1e-08 + 3.0*I              0          1e-58]
+            [ 1e-08 + 3.0*I            0.0          1e-58]
             sage: a.zero_at(1e-50)
             [          1.0        0.0001           1.0]
-            [1e-08 + 3.0*I             0             0]
+            [1e-08 + 3.0*I           0.0           0.0]
             sage: a.zero_at(1e-4)
-            [  1.0     0   1.0]
-            [3.0*I     0     0]
+            [  1.0   0.0   1.0]
+            [3.0*I   0.0   0.0]
 
 
 

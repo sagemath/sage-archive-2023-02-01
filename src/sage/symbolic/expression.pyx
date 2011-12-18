@@ -954,7 +954,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ComplexField(100)((-1)^(1/10))
             0.95105651629515357211643933338 + 0.30901699437494742410229341718*I
             sage: CC(x*sin(0))
-            0
+            0.000000000000000
         """
         return self._eval_self(R)
 

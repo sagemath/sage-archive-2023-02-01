@@ -1339,7 +1339,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(-2).sqrt(all=True)
             [1.41421356237*I, -1.41421356237*I]
             sage: CDF(0).sqrt(all=True)
-            [0]
+            [0.0]
         """
         z = self._new_c(gsl_complex_sqrt(self._complex))
         if all:
@@ -1905,7 +1905,7 @@ cdef class ComplexDoubleElement(FieldElement):
         ::
 
             sage: CDF(0,10^15).eta()
-            0
+            0.0
             sage: CDF(10^15,0.1).eta()     # slightly random-ish arch dependent output
             -0.121339721991 - 0.19619461894*I
 
@@ -2063,11 +2063,11 @@ cdef class ComplexDoubleElement(FieldElement):
         Some degenerate cases::
 
             sage: CDF(0).agm(a)
-            0
+            0.0
             sage: a.agm(0)
-            0
+            0.0
             sage: a.agm(-a)
-            0
+            0.0
         """
         cdef double complex a, b, a1, b1, r
         cdef double d, e, eps = 2.0**-51

@@ -104,7 +104,7 @@ verify that the element types are correct::
     sage: W = V.span_of_basis([CDF.0 * V.1]); W
     Vector space of degree 3 and dimension 1 over Complex Double Field
     User basis matrix:
-    [    0 1.0*I     0]
+    [  0.0 1.0*I   0.0]
     sage: type(W.0)
     <type 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
 

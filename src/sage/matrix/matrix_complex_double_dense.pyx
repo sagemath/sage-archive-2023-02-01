@@ -5,8 +5,8 @@ EXAMPLES::
 
     sage: b=Mat(CDF,2,3).basis()
     sage: b[0]
-    [1.0   0   0]
-    [  0   0   0]
+    [1.0 0.0 0.0]
+    [0.0 0.0 0.0]
 
 We deal with the case of zero rows or zero columns::
 

@@ -1583,22 +1583,22 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: a.agm(b)
             0.199246281325876 + 0.478401702759654*I
             sage: a.agm(-a)
-            0
+            0.000000000000000
             sage: a.agm(0)
-            0
+            0.000000000000000
             sage: CC(0).agm(a)
-            0
+            0.000000000000000
 
         Consistency::
 
             sage: a = 1 + 0.5*I
             sage: b = 2 - 0.25*I
             sage: a.agm(b) - ComplexField(100)(a).agm(b)
-            0
+            0.000000000000000
             sage: ComplexField(200)(a).agm(b) - ComplexField(500)(a).agm(b)
-            0
+            0.00000000000000000000000000000000000000000000000000000000000
             sage: ComplexField(500)(a).agm(b) - ComplexField(1000)(a).agm(b)
-            0
+            0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
         """
         if algorithm=="pari":
             t = self._parent(right)._pari_()
@@ -1796,7 +1796,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: c = ComplexNumber(0,0)
             sage: c.dilog()
-            0
+            0.000000000000000
         """
         return self._parent(self._pari_().dilog())
 

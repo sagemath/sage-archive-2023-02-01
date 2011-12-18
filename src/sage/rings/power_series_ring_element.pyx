@@ -661,15 +661,15 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: R.<m> = CDF[[]]
             sage: f = CDF(pi)^2 + m^3 + CDF(e)*m^4 + O(m^10); f
-            9.86960440109 + 1.0*m^3 + 2.71828182846*m^4 + O(m^10)
+            9.86960440109 + 0.0*m + 0.0*m^2 + 1.0*m^3 + 2.71828182846*m^4 + O(m^10)
             sage: f[-5]
-            0
+            0.0
             sage: f[0]
             9.86960440109
             sage: f[4]
             2.71828182846
             sage: f[9]
-            0
+            0.0
             sage: f[10]
             Traceback (most recent call last):
             ...
@@ -1160,7 +1160,7 @@ cdef class PowerSeries(AlgebraElement):
             [1.0*I - 0.5*I*t - 0.125*I*t^2 - 0.5625*I*t^3 - 0.2890625*I*t^4 + O(t^5),
              -1.0*I + 0.5*I*t + 0.125*I*t^2 + 0.5625*I*t^3 + 0.2890625*I*t^4 + O(t^5)]
             sage: [a^2 for a in v]
-            [-1.0 + 1.0*t + 1.0*t^3 + O(t^5), -1.0 + 1.0*t + 1.0*t^3 + O(t^5)]
+            [-1.0 + 1.0*t + 0.0*t^2 + 1.0*t^3 + O(t^5), -1.0 + 1.0*t + 0.0*t^2 + 1.0*t^3 + O(t^5)]
 
         A formal square root::
 

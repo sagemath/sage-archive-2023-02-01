@@ -86,7 +86,7 @@ cdef class MPolynomial(CommutativeRingElement):
         TESTS::
 
             sage: CC(RR['x,y'](0)) # indirect doctest
-            0
+            0.000000000000000
         """
         if self.degree() <= 0:
             return R(self.constant_coefficient())
@@ -98,7 +98,7 @@ cdef class MPolynomial(CommutativeRingElement):
         TESTS::
 
             sage: CDF(RR['x,y'](0)) # indirect doctest
-            0
+            0.0
         """
         if self.degree() <= 0:
             return R(self.constant_coefficient())

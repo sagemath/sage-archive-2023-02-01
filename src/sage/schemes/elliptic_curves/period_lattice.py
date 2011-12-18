@@ -1571,7 +1571,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: E = EllipticCurve([1,1,1,-8,6])
             sage: L = E.period_lattice()
             sage: L.elliptic_exponential(0)
-            (0 : 1.00000000000000 : 0)
+            (0.000000000000000 : 1.00000000000000 : 0.000000000000000)
             sage: L.elliptic_exponential(0, to_curve=False)
             (+infinity, +infinity)
 
@@ -1581,7 +1581,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: K.<a> = QuadraticField(-5)
             sage: L = E.change_ring(K).period_lattice(K.places()[0])
             sage: P = L.elliptic_exponential(0); P
-            (0 : 1.00000000000000 : 0)
+            (0.000000000000000 : 1.00000000000000 : 0.000000000000000)
             sage: P.parent()
             Abelian group of points on Elliptic Curve defined by y^2 + 1.00000000000000*y = x^3 + (-1.00000000000000)*x over Complex Field with 53 bits of precision
 
@@ -1591,7 +1591,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: E = EllipticCurve([0,0,0,a,0])
             sage: L = E.period_lattice(K.complex_embeddings()[0])
             sage: L.elliptic_exponential(1e-100)
-            (0 : 1.00000000000000 : 0)
+            (0.000000000000000 : 1.00000000000000 : 0.000000000000000)
 
         The elliptic exponential of `z` is returned as (0 : 1 : 0) if
         the coordinates of z with respect to the period lattice are

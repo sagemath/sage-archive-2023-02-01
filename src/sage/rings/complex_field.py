@@ -265,7 +265,7 @@ class ComplexField_class(field.Field):
         In the absence of arguments we return zero::
 
             sage: a = CC(); a
-            0
+            0.000000000000000
             sage: a.parent()
             Complex Field with 53 bits of precision
         """

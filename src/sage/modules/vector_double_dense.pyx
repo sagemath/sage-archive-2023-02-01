@@ -153,7 +153,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: vector(RDF, range(9))
             (0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
             sage: vector(CDF, 5)
-            (0, 0, 0, 0, 0)
+            (0.0, 0.0, 0.0, 0.0, 0.0)
 
         TESTS:
             sage: vector(CDF, 0)
@@ -161,11 +161,11 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: vector(RDF, 0)
             ()
             sage: vector(CDF, 4)
-            (0, 0, 0, 0)
+            (0.0, 0.0, 0.0, 0.0)
             sage: vector(RDF, 4)
             (0.0, 0.0, 0.0, 0.0)
             sage: vector(CDF, [CDF(1+I)*j for j in range(4)])
-            (0, 1.0 + 1.0*I, 2.0 + 2.0*I, 3.0 + 3.0*I)
+            (0.0, 1.0 + 1.0*I, 2.0 + 2.0*I, 3.0 + 3.0*I)
             sage: vector(RDF, 4, range(4))
             (0.0, 1.0, 2.0, 3.0)
 
@@ -418,7 +418,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         EXAMPLE:
             sage: v = vector(CDF, range(3))
             sage: 3*v
-            (0, 3.0, 6.0)
+            (0.0, 3.0, 6.0)
         """
         if self._degree == 0:
             from copy import copy
@@ -434,7 +434,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         EXAMPLE:
             sage: v = vector(CDF, range(3))
             sage: v*3
-            (0, 3.0, 6.0)
+            (0.0, 3.0, 6.0)
         """
         if self._degree == 0:
             from copy import copy
@@ -492,7 +492,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: v.fft(direction='backward')
             (1.5, -0.5 - 0.5*I, -0.5, -0.5 + 0.5*I)
             sage: v.fft().fft(direction='backward')
-            (0, 1.0, 2.0, 3.0)
+            (0.0, 1.0, 2.0, 3.0)
             sage: v.fft().parent()
             Vector space of dimension 4 over Complex Double Field
             sage: v.fft(inplace=True)
@@ -595,7 +595,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: v = vector(RDF,4,range(4)); v
             (0.0, 1.0, 2.0, 3.0)
             sage: v.complex_vector()
-            (0, 1.0, 2.0, 3.0)
+            (0.0, 1.0, 2.0, 3.0)
             sage: v = vector(RDF,0)
             sage: v.complex_vector()
             ()
@@ -636,7 +636,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
 
             sage: w = vector(CDF, [10^-6 + 5*I, 5 + 10^-6*I, 5 + 5*I, 10^-6 + 10^-6*I])
             sage: w.zero_at(1.0e-4)
-            (5.0*I, 5.0, 5.0 + 5.0*I, 0)
+            (5.0*I, 5.0, 5.0 + 5.0*I, 0.0)
             sage: w.zero_at(1.0e-8)
             (1e-06 + 5.0*I, 5.0 + 1e-06*I, 5.0 + 5.0*I, 1e-06 + 1e-06*I)
         """

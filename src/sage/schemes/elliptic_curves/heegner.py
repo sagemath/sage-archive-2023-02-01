@@ -3006,7 +3006,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: z = ComplexField(100)(y); z # real part approx. 0
             -... - 3.9434754031032964088448153963*I
             sage: E.period_lattice().elliptic_exponential(z)
-            (0 : 1.0000000000000000000000000000 : 0)
+            (0.00000000000000000000000000000 : 1.0000000000000000000000000000 : 0.00000000000000000000000000000)
 """
         phi = self.__E.modular_parametrization()
         tau = self.heegner_point_on_X0N().tau()
@@ -3161,7 +3161,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: P = E.heegner_point(-7); P
             Heegner point of discriminant -7 on elliptic curve of conductor 389
             sage: P.numerical_approx()
-            (0 : 1.00000000000000 : 0)
+            (0.000000000000000 : 1.00000000000000 : 0.000000000000000)
 
         However, Heegner points of bigger conductor are often nonzero::
 

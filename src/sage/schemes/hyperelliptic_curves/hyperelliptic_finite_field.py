@@ -183,7 +183,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         TESTS::
 
             sage: x = polygen(GF(16, 'a'))
-            sage: C = HyperellipticCurve(x^5 - x + 1, x^2 + x)
+            sage: C = HyperellipticCurve(x^5 - x + 1, x^2 + x + 1)
             sage: set(C._points_fast_sqrt()) == set(C._points_cache_sqrt())
             True
             sage: x = polygen(GF(19))
@@ -494,7 +494,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         TESTS::
 
             sage: K.<x>=GF(2,'x')[]
-            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: C=HyperellipticCurve(x^7-1,x)
             sage: C._Cartier_matrix_cached()
             Traceback (most recent call last):
             ...
@@ -502,7 +502,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
 
             sage: K.<x>=GF(5,'x')[]
-            sage: C=HyperellipticCurve(x^7-1,2)
+            sage: C=HyperellipticCurve(x^7-1,4)
             sage: C._Cartier_matrix_cached()
             Traceback (most recent call last):
             ...
@@ -518,11 +518,11 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
 
             sage: K.<x>=GF(5,'x')[]
-            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: C=HyperellipticCurve(x^5+1,0,check_squarefree=False)
             sage: C._Cartier_matrix_cached()
             Traceback (most recent call last):
             ...
-            ValueError: so curve is not smooth
+            ValueError: curve is not smooth
 
         """
 
@@ -551,7 +551,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         df=f.derivative()
         R=df.resultant(f)
         if R == 0:
-            raise ValueError, "so curve is not smooth"
+            raise ValueError, "curve is not smooth"
 
         #computing F, since the entries of the matrix are c_i where F= \sum c_i x^i
 
@@ -628,7 +628,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         TESTS::
 
             sage: K.<x>=GF(2,'x')[]
-            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: C=HyperellipticCurve(x^7-1,x)
             sage: C.Cartier_matrix()
             Traceback (most recent call last):
             ...
@@ -636,7 +636,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
 
             sage: K.<x>=GF(5,'x')[]
-            sage: C=HyperellipticCurve(x^7-1,2)
+            sage: C=HyperellipticCurve(x^7-1,4)
             sage: C.Cartier_matrix()
             Traceback (most recent call last):
             ...
@@ -652,11 +652,11 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
 
             sage: K.<x>=GF(5,'x')[]
-            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: C=HyperellipticCurve(x^5+1,0,check_squarefree=False)
             sage: C.Cartier_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: so curve is not smooth
+            ValueError: curve is not smooth
 
         """
         #checking first that Cartier matrix is not already cached. Since

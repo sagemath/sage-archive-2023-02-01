@@ -43,7 +43,7 @@ facet enumeration compares well with existing packages.
 == Change log ==
 
 === palp-2.0.p0 (Volker Braun, 19th November 2011) ===
- * Update to new upstream version
+ * #12055 Update to new upstream version
  * Now building multiple versions for different ambient dimensions
  * Patched Polynf.c and MoriCone.c that do not use nested functions
    (private communication with Harald Skarke)

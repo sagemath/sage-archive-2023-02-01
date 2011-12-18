@@ -25,6 +25,9 @@
 
 == Changelog ==
 
+=== r-2.14.0.p2 (John H. Palmieri, 17 Dec 2011) ===
+ * #12172: unconditionally disable X11 support on Darwin
+
 === r-2.14.0.p1 (Simon King, 10 Dec 2011) ===
  * #12131: use --libdir, to make the package work on openSUSE
 

@@ -3868,6 +3868,17 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Traceback (most recent call last):
             ...
             NotImplementedError: proof = True factorization not implemented.  Call factor with proof=False.
+
+        This checks that ticket \#11838 is fixed::
+
+            sage: K = GF(4,'a')
+            sage: a = K.gens()[0]
+            sage: R.<x,y> = K[]
+            sage: p=x^8*y^3 + x^2*y^9 + a*x^9 + a*x*y^4
+            sage: q=y^11 + (a)*y^10 + (a + 1)*x*y^3
+            sage: f = p*q
+            sage: f.factor(proof=False)
+            x * y^3 * (y^8 + (a)*y^7 + (a + 1)*x) * (x^7*y^3 + x*y^9 + (a)*x^8 + (a)*y^4)
         """
         cdef ring *_ring = self._parent_ring
         cdef poly *ptemp

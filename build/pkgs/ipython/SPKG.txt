@@ -43,8 +43,15 @@ ipython-user@scipy.org
  * src/IPython/rlineimpl.py: We disable the check for libedit which
    caused "sage -gdb" not to work under OS X.  This was trac ticket
    #4991.
+ * src/IPytion/OInspect.py: Make ? show the two different location of source
+   files used in sage (site-packages and devel)
+
 
 == Changelog ==
+
+=== ipython-0.10.2.p1 (Maarten Derickx. March, 2011 [1]) ===
+ * Add the OInspect.py patch.
+ [1] Yes this patch is older then p0.
 
 === ipython-0.10.2.p0 (John H. Palmieri, August 16th, 2011) ===
  * reinstated patch for src/IPython/rlineimpl.py.

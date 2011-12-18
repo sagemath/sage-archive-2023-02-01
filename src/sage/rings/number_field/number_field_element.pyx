@@ -1062,6 +1062,35 @@ cdef class NumberFieldElement(FieldElement):
         """
         return self.number_field().complex_embeddings(prec)[i](self)
 
+    def is_unit(self):
+        """
+        Return ``True`` if ``self`` is a unit in the ring where it is defined.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 - x - 1)
+            sage: OK = K.ring_of_integers()
+            sage: OK(a).is_unit()
+            True
+            sage: OK(13).is_unit()
+            False
+            sage: K(13).is_unit()
+            True
+
+        It also works for relative fields and orders::
+
+            sage: K.<a,b> = NumberField([x^2 - 3, x^4 + x^3 + x^2 + x + 1])
+            sage: OK = K.ring_of_integers()
+            sage: OK(b).is_unit()
+            True
+            sage: OK(a).is_unit()
+            False
+            sage: a.is_unit()
+            True
+        """
+        if self.parent().is_field():
+            return bool(self)
+        return self.norm().is_unit()
 
     def is_norm(self, L, element=False, proof=True):
         r"""

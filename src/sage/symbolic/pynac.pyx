@@ -2027,6 +2027,19 @@ def init_pynac_I():
         <type 'sage.symbolic.expression.Expression'>
         sage: type(sage.symbolic.pynac.I.pyobject())
         <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+
+    TESTS:
+
+    Check that :trac:`10064` is fixed::
+
+        sage: y = I*I*x / x # so y is the expression -1
+        sage: y.is_positive()
+        False
+        sage: z = -x / x
+        sage: z.is_positive()
+        False
+        sage: bool(z == y)
+        True
     """
     global pynac_I, I
     from sage.rings.number_field.number_field import QuadraticField

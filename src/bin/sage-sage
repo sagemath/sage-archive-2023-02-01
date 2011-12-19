@@ -171,8 +171,6 @@ usage_advanced() {
     echo "  -coverageall        -- give summary info about doctest coverage of all"
     echo "                         files in the Sage library"
     echo "  -docbuild [lang/]<document> <html|pdf|...> -- Build the Sage documentation"
-    echo "  -grep <string>      -- grep through all the Sage library code for string"
-    echo "  -grepdoc <string>   -- grep through all the Sage documentation for string"
 
     echo
     ####  1.......................26..................................................78
@@ -630,20 +628,6 @@ fi
 
 if [ "$1" = "-log" -o "$1" = "--log" ]; then
    sage-log
-   exit 0
-fi
-
-if [ "$1" = '-grep' -o "$1" = "--grep" ]; then
-   sage_setup
-   shift
-   sage-grep "$@"
-   exit 0
-fi
-
-if [ "$1" = '-grepdoc' -o "$1" = "--grepdoc" ]; then
-   sage_setup
-   shift
-   sage-grepdoc "$@"
    exit 0
 fi
 

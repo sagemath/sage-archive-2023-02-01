@@ -74,10 +74,12 @@ the file ::
 
 is a patch for the file ::
 
-    matplotlib-1.0.1.p0/src/lib/matplotlib/finance.py.patch
+    matplotlib-1.0.1.p0/src/lib/matplotlib/finance.py
 
 The installation script ``matplotlib-1.0.1.p0/spkg-install`` contains the
 following code to install the relevant patches::
+
+    cd src
 
     # Apply patches.  See SPKG.txt for information about what each patch
     # does.
@@ -106,12 +108,19 @@ For example::
 (The environment variable :envvar:`UNAME` is defined by the script
 ``sage-env``, and is available when ``spkg-install`` is run.)
 
-Now provide a high-level explanation of your changes in
-``SPKG.txt``. Once you are satisfied with your changes, use Mercurial
-to check in your changes with a meaningful commit message. Next,
-increment the patch level of the spkg by one, e.g. rename the
-directory ``matplotlib-1.0.1.p0`` to ``matplotlib-1.0.1.p1``.  To
-produce the actual spkg file, change to the parent directory of
+Now provide a high-level explanation of your changes in ``SPKG.txt``.
+Note the format of ``SPKG.txt`` -- see the chapter :ref:`chapter-spkg`
+for details.  Once you are satisfied with your changes, use Mercurial
+to check in your changes with a meaningful commit message.  Then use
+the command ``hg tag`` to tag the tip with the new version number
+(using "p1" instead of "p0": we have made changes, so we need to
+update the patch level)::
+
+    $ hg tag matplotlib-1.0.1.p1
+
+Next, rename the directory ``matplotlib-1.0.1.p0`` to
+``matplotlib-1.0.1.p1`` to match the new patch level.  To produce the
+actual spkg file, change to the parent directory of
 ``matplotlib-1.0.1.p1`` and execute ::
 
     $ /path/to/sage-x.y.z/sage --pkg matplotlib-1.0.1.p1
@@ -155,7 +164,7 @@ binary files to the trac server.
 Use patch for patching
 ======================
 
-A main message of this section is: use the GNU program ``patch`` to
+The main message of this section is: use the GNU program ``patch`` to
 apply patches to files in ``src/``.  GNU patch is distributed with
 Sage, so if you are writing an spkg which is not part of the standard
 Sage distribution, you may use ``patch`` in the ``spkg-install``
@@ -201,7 +210,7 @@ bzip2).
 
 To install your replacement spkg, you use ::
 
-    sage -f /URL/to/package-x.y.z.spkg
+    sage -f http://URL/to/package-x.y.z.spkg
 
 or ::
 

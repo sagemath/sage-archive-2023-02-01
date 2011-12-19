@@ -294,7 +294,11 @@ The ``SPKG.txt`` file should follow this pattern::
 
      == SPKG Maintainers ==
 
-     List the maintainers here
+     Put a bulleted list of the maintainers of the SPKG here:
+
+     * Mary Smith
+     * Bill Jones
+     * Leonhard Euler
 
      == Upstream Contact ==
 
@@ -302,7 +306,10 @@ The ``SPKG.txt`` file should follow this pattern::
 
      == Dependencies ==
 
-     List the dependencies here
+     Put a bulleted list of dependencies here:
+
+     * python
+     * readline
 
      == Special Update/Build Instructions ==
 
@@ -310,7 +317,15 @@ The ``SPKG.txt`` file should follow this pattern::
 
      == Changelog ==
 
-     Provide a changelog of the spkg here.
+     Provide a changelog of the spkg here, where the entries have this format:
+
+     === mypackage-0.1.p0 (Mary Smith, 1 Jan 2012) ===
+
+      * Patch src/configure so it builds on Solaris. See Sage trac #137.
+
+     === mypackage-0.1 (Leonhard Euler, 17 September 1783) ===
+
+      * Initial release.  See Sage trac #007.
 
 When the directory (say, ``mypackage-0.1``) is ready, the command
 

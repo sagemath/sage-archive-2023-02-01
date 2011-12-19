@@ -3614,6 +3614,26 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return self.discriminant(v=v)
 
+    def trace_dual_basis(self, b):
+        r"""
+        Compute the dual basis of a basis of ``self`` with respect to the trace pairing.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + x + 1)
+            sage: b = [1, 2*a, 3*a^2]
+            sage: T = K.trace_dual_basis(b); T
+            [4/31*a^2 - 6/31*a + 13/31, -9/62*a^2 - 1/31*a - 3/31, 2/31*a^2 - 3/31*a + 4/93]
+            sage: [(b[i]*T[j]).trace() for i in xrange(3) for j in xrange(3)]
+            [1, 0, 0, 0, 1, 0, 0, 0, 1]
+        """
+        if not len(b) == self.degree():
+            raise ValueError, 'Not a basis of the number field.'
+        M = self.trace_pairing(b)
+        if not M.is_invertible():
+            raise ValueError, 'Not a basis of the number field.'
+        return [sum([v[i]*b[i] for i in xrange(len(b))]) for v in M.inverse()]
+
     def elements_of_norm(self, n, proof=None):
         r"""
         Return a list of solutions modulo units of positive norm to

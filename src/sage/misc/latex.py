@@ -371,18 +371,19 @@ latex_table = {types.NoneType: None_function,
 
 
 class LatexExpr(str):
-    """
+    r"""
     A class for LaTeX expressions.
 
     Normally, objects of this class are created by a :func:`latex` call. It is
     also possible to generate :class:`LatexExpr` directly from a string, which
-    must contain a valid LaTeX code for typesetting in math mode. Strings are
-    wrapped into verbatim environment for typeset output, while LaTeX
-    expressions are left as-is (see :func:`pretty_print`).
+    must contain valid LaTeX code for typesetting in math mode (without dollar
+    signs). In the Sage Notebook, use :func:`pretty_print` or the "Typeset"
+    checkbox to actually see the typeset LaTeX code.
 
     INPUT:
 
-    - anything convertible to a string of valid math mode LaTeX code.
+    - ``str`` -- a string with valid math mode LaTeX code (or something
+      which can be converted to such a string).
 
     OUTPUT:
 
@@ -410,6 +411,11 @@ class LatexExpr(str):
         x^{20} + 1
         sage: type(L)
         <class 'sage.misc.latex.LatexExpr'>
+
+    A ``LatexExpr`` can be converted to a plain string::
+
+        sage: str(latex(x^20 + 1))
+        'x^{20} + 1'
     """
     def __add__(self, other):
         r"""
@@ -763,15 +769,15 @@ class Latex:
 
     ::
 
-                %latex
-                The equation $y^2 = x^3 + x$ defines an elliptic curve.
-                We have $2006 = \sage{factor(2006)}$.
-
+        %latex
+        The equation $y^2 = x^3 + x$ defines an elliptic curve.
+        We have $2006 = \sage{factor(2006)}$.
 
     in an input cell in the notebook to get a typeset version. Use
     ``%latex_debug`` to get debugging output.
 
-    Use ``latex(...)`` to typeset a Sage object.
+    Use ``latex(...)`` to typeset a Sage object.  Use :class:`LatexExpr`
+    to typeset LaTeX code that you created by hand.
 
     Use ``%slide`` instead to typeset slides.
 
@@ -780,6 +786,22 @@ class Latex:
        You must have dvipng (or dvips and convert) installed
        on your operating system, or this command won't work.
 
+    EXAMPLES::
+
+        sage: latex(x^20 + 1)
+        x^{20} + 1
+        sage: latex(FiniteField(25,'a'))
+        \Bold{F}_{5^{2}}
+        sage: latex("hello")
+        \verb|hello|
+        sage: LatexExpr(r"\frac{x^2 - 1}{x + 1} = x - 1")
+        \frac{x^2 - 1}{x + 1} = x - 1
+
+    LaTeX expressions can be added, note that a space is automatically
+    added::
+
+        sage: LatexExpr(r"y \neq") + latex(x^20 + 1)
+        y \neq x^{20} + 1
     """
     def __init__(self, debug=False, slide=False, density=150, pdflatex=None, engine=None):
         self.__debug = debug

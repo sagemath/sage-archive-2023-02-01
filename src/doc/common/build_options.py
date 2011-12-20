@@ -4,7 +4,7 @@
 
 import os
 SAGE_DOC = os.environ['SAGE_DOC']
-LANGUAGES = ['de', 'en', 'fr', 'ru']
+LANGUAGES = ['de', 'en', 'fr', 'ru','tr']
 SPHINXOPTS = ""
 PAPER = ""
 OMIT = ["introspect"]  # docs/dirs to omit when listing and building 'all'

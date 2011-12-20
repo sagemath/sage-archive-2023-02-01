@@ -11,7 +11,7 @@ Hecke Operators on `q`-expansions
 #########################################################################
 
 from sage.modular.dirichlet import DirichletGroup, is_DirichletCharacter
-from sage.rings.all import (divisors, gcd, ZZ, Integer, is_PowerSeries, Infinity)
+from sage.rings.all import (divisors, gcd, ZZ, Integer, is_PowerSeries, Infinity, CyclotomicField)
 from sage.matrix.all import matrix, MatrixSpace
 from element import is_ModularFormElement
 
@@ -190,6 +190,17 @@ def hecke_operator_on_basis(B, n, k, eps=None,
         sage: hecke_operator_on_basis(bas_mod5, 2, 12)
         [4 0]
         [0 1]
+
+    This shows that empty input is handled sensibly (trac #12202)::
+
+        sage: x = hecke_operator_on_basis([], 3, 12); x
+        []
+        sage: x.parent()
+        Full MatrixSpace of 0 by 0 dense matrices over Cyclotomic Field of order 1 and degree 1
+        sage: y = hecke_operator_on_basis([], 3, 12, eps=DirichletGroup(13).0^2); y
+        []
+        sage: y.parent()
+        Full MatrixSpace of 0 by 0 dense matrices over Cyclotomic Field of order 12 and degree 4
     """
     if not isinstance(B, (list, tuple)):
         raise TypeError, "B (=%s) must be a list or tuple"%B
@@ -198,7 +209,7 @@ def hecke_operator_on_basis(B, n, k, eps=None,
             R = CyclotomicField(1)
         else:
             R = eps.base_ring()
-        return MatrixSpace(eps.base_ring(), 0)(0)
+        return MatrixSpace(R, 0)(0)
     f = B[0]
     R = f.base_ring()
     if eps is None:

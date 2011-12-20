@@ -13,118 +13,35 @@ fi
 
 # PATCH
 
-# When building Python 2.6 on Debian and derivatives with multiarch,
-# system library directories are not correctly setup.  This patch
-# fixes this, with no-op on other systems.
-# The fix requires 'dpkg-architecture' to be installed there though
-# (see below).
-echo "Patching src/setup.py for multiarch."
-patch -p0 < patches/setup.py.multiarch.patch
+patch -p0 < patches/Lib.distutils.command.sdist.patch
 if [ $? -ne 0 ]; then
-    echo >&2 "Error patching src/setup.py"
+    echo "Error copying patched sdist.py"
     exit 1
 fi
 
-# Due to a python bug with Solaris
-# see http://bugs.python.org/issue1759169
-# it is necessary to apply a patch to configure.in
-# then run autoconf. This not only generates a
-# new 'configure' script, but some subdirectories too
-# so these will be copied.
-
-if [ "x`uname`" = xSunOS ] ; then
-   echo "Applying a revised 'configure' script for Solaris"
-   echo "See http://bugs.python.org/issue1759169"
-   echo "http://trac.sagemath.org/sage_trac/ticket/7867"
-   cp -r patches/autom4te.cache patches/configure patches/configure.in src
-   if [ $? -ne 0 ]; then
-      echo >&2 "Failed to apply the Solaris patches needed for"
-      echo >&2 "http://bugs.python.org/issue1759169"
-      echo >&2 "http://trac.sagemath.org/sage_trac/ticket/7867"
-      exit 1
-   fi
-   echo "Setting  HAVE_FD_TRANSFER=0 for Solaris to allow"
-   echo "the python module '_multiprocessing' to build"
-   echo "See: http://trac.sagemath.org/sage_trac/ticket/8440"
-   cp patches/setup.py src
-   if [ $? -ne 0 ]; then
-      echo >&2 "Failed to apply the Solaris patch needed for"
-      echo >&2 "http://trac.sagemath.org/sage_trac/ticket/8440"
-      exit 1
-   fi
-fi
-
-
-cp patches/locale.py src/Lib/locale.py
+patch -p0 < patches/Lib.socket.patch
 if [ $? -ne 0 ]; then
-    echo >&2 "Error copying patched locale.py"
+    echo "Error copying patched socket.py"
     exit 1
 fi
 
-( cd src && patch -p1 <../patches/Makefile.pre.in.patch )
+patch -p0 < patches/dynamic_class_copyreg_py.patch
+if [ $? -ne 0 ]; then
+    echo "Error copying patched pickle.py"
+    exit 1
+fi
+
+patch -p0 < patches/dynamic_class_copyreg_c.patch
+if [ $? -ne 0 ]; then
+    echo "Error copying patched cPickle.c"
+    exit 1
+fi
+
+patch -p0 < patches/Makefile.pre.in.patch
 if [ $? -ne 0 ]; then
     echo >&2 "Error patching Makefile.pre.in"
     exit 1
 fi
-
-cp patches/sdist.py src/Lib/distutils/command/sdist.py
-if [ $? -ne 0 ]; then
-    echo >&2 "Error copying patched sdist.py"
-    exit 1
-fi
-
-cp patches/socket.py src/Lib/socket.py
-if [ $? -ne 0 ]; then
-    echo >&2 "Error copying patched socket.py"
-    exit 1
-fi
-
-cp patches/pickle.py src/Lib/pickle.py
-if [ $? -ne 0 ]; then
-    echo >&2 "Error copying patched pickle.py"
-    exit 1
-fi
-
-cp patches/cPickle.c src/Modules/cPickle.c
-if [ $? -ne 0 ]; then
-    echo >&2 "Error copying patched cPickle.c"
-    exit 1
-fi
-
-# Due to a problem with _socket not building on OpenSolaris on x64
-# see http://bugs.python.org/issue8852
-# http://trac.sagemath.org/sage_trac/ticket/9041
-# http://trac.sagemath.org/sage_trac/ticket/9022
-# Modules/socketmodule.c needs patching. The patch consists of
-# only checking if things are defined before trying to build with them
-# so it is safe (and desirable) on any platform.
-
-cp patches/Modules.socketmodule.c src/Modules/socketmodule.c
-if [ $? -ne 0 ]; then
-    echo >&2 "Error copying patched socketmodule.c"
-    exit 1
-fi
-
-# The following patch for fixing broken readline behavior on Itanium
-# Linux definitely does *not* work on anything else.
-if [ "`uname -m`" = "ia64" -a "`uname`" = "Linux" ]; then
-    echo "Updating readline.c for Linux/Itanium"
-    cp patches/readline.c-Itanium-fix src/Modules/readline.c
-else
-    # Readline patch: http://bugs.python.org/file14599/python-2.6-readline.patch
-    # Associated bug: http://bugs.python.org/issue5833
-    #
-    # Committed to Python as r75747 in the py26-maint branch, but not
-    # in time for 2.6.4 -- so we can remove this patch the next time
-    # we update Python in Sage.
-    cp patches/readline.c-spacebug src/Modules/readline.c
-fi
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error copying patched readline.c"
-    exit 1
-fi
-
 
 # We are setting LDFLAGS and CPPFLAGS so that we pick up Sage's readline
 LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
@@ -226,12 +143,12 @@ cd "$SAGE_LOCAL/lib"
 
 # move the python directory if we're upgrading from a version
 # of sage with python 2.5
-if [ -d python2.5/site-packages ]; then
-   mv python2.5/site-packages python2.6/site-packages-old
+if [ -d python2.6/site-packages ]; then
+   mv python2.6/site-packages python2.7/site-packages-old
 fi
 
-rm -rf python/python2.6 python/python2.5 python/python python python2.4 python2.5
-ln -s python2.6 python
+rm -rf python/python2.7 python/python2.6 python/python2.5 python/python python python2.4 python2.5
+ln -s python2.7 python
 if [ $? -ne 0 ]; then
     echo >&2 "Error creating symbolic link"
     exit 1

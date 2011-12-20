@@ -1,51 +1,11 @@
-diff -r -u src/Makefile.pre.in src.patched/Makefile.pre.in
---- src/Makefile.pre.in	2010-05-26 00:40:33.000000000 +0200
-+++ src.patched/Makefile.pre.in	2011-11-30 13:55:40.000000000 +0100
-@@ -49,15 +49,14 @@
- INSTALL_DATA=	@INSTALL_DATA@
+--- src/Makefile.pre.in.orig	2011-12-06 16:00:20.000000000 +1300
++++ src/Makefile.pre.in	2011-12-06 16:00:44.000000000 +1300
+@@ -55,7 +55,7 @@
  # Shared libraries must be installed with executable mode on some systems;
  # rather than figuring out exactly which, we always give them executable mode.
--# Also, making them read-only seems to be a good idea...
+ # Also, making them read-only seems to be a good idea...
 -INSTALL_SHARED= ${INSTALL} -m 555
 +INSTALL_SHARED= ${INSTALL} -m 755
  
  MAKESETUP=      $(srcdir)/Modules/makesetup
  
- # Compiler options
- OPT=		@OPT@
- BASECFLAGS=	@BASECFLAGS@
--CFLAGS=		$(BASECFLAGS) $(OPT) $(EXTRA_CFLAGS)
-+CFLAGS=		$(BASECFLAGS) @CFLAGS@ $(OPT) $(EXTRA_CFLAGS)
- # Both CPPFLAGS and LDFLAGS need to contain the shell's value for setup.py to
- # be able to build extension modules using the directories specified in the
- # environment variables
-@@ -86,8 +85,8 @@
- datarootdir=    @datarootdir@
- 
- # Expanded directories
--BINDIR=		$(exec_prefix)/bin
--LIBDIR=		$(exec_prefix)/lib
-+BINDIR=		@bindir@
-+LIBDIR=		@libdir@
- MANDIR=		@mandir@
- INCLUDEDIR=	@includedir@
- CONFINCLUDEDIR=	$(exec_prefix)/include
-@@ -394,8 +393,8 @@
- # Build the shared modules
- sharedmods: $(BUILDPYTHON)
- 	@case $$MAKEFLAGS in \
--	*s*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py -q build;; \
--	*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py build;; \
-+	*s*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' LDFLAGS='$(LDFLAGS)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py -q build;; \
-+	*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' LDFLAGS='$(LDFLAGS)' OPT='$(OPT)' ./$(BUILDPYTHON) -E $(srcdir)/setup.py build;; \
- 	esac
- 
- # Build static library
-@@ -1051,6 +1050,7 @@
- # install (which includes python-config) happy.
- frameworkinstallmaclib:
- 	ln -fs "../../../$(PYTHONFRAMEWORK)" "$(DESTDIR)$(prefix)/lib/python$(VERSION)/config/libpython$(VERSION).a"
-+	ln -fs "../../../$(PYTHONFRAMEWORK)" "$(DESTDIR)$(prefix)/lib/python$(VERSION)/config/libpython$(VERSION).dylib"
- 	cd Mac && $(MAKE) installmacsubtree DESTDIR="$(DESTDIR)"
- 
- # This installs the IDE, the Launcher and other apps into /Applications

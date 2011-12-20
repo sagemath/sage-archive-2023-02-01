@@ -47,42 +47,33 @@ http://www.python.org/community/
  * We used to block parallel MAKE, but extensive testing [make -j64]
    showed that there is no longer any problem. The problem is with
    parallel 'make install', which remains disabled.
- * There are two fixes that can be removed once we update to a
-   Python newer than 2.6.4: the readline-spacebug.patch below, and
-   the 'unset DISTUTILS_DEBUG' in spkg-install.
  * Spaces in SAGE_ROOT aren't yet fully supported by this package,
    since we put $SAGE_LOCAL/... into CPPFLAGS and LDFLAGS, which
    wouldn't work then.
- * TODO: Most "patches" are still applied by *copying* patched versions
-   of the files; this should be fixed.
 
 === Patches ===
 
  * cPickle.c.patch, pickle.py.patch: These add support for pickling
    classes with a metaclass via copy_reg. These have been submitted
    upstream: http://bugs.python.org/issue7689
- * locale.py: Work around import failures for locales
- * readline-spacebug.patch: Fix issue where a space is inserted
-   after tab completing at the command line. This is merged upstream
-   and can be removed as soon as a Python newer than 2.6.4 is used.
- * readline-Itanium-fix.patch: Fix Itanium specific readline
-   extension problem.
+   This is fixed in python-2.7.3 and can be removed at the next upgrade.
  * sdist.py.patch: Make sure that sdist copies over the .hg directory.
  * socket.py.patch: Work around an SSL issue.
- * Makefile.pre.in.patch: Fixes http://bugs.python.org/issue1628484
-   This was merged upstream for Python 2.6.6 and 2.7.  Also changes
-   permission of installed libraries to 0755 (like any other library)
-   instead of 0555.
- * socketmodule.c: Makes sure some things are defined before trying to compile
-   them. This was to work around a failure of _socket to build on OpenSolaris.
-   see  http://bugs.python.org/issue8852 and Sage trac #9041 and #9022
- * setup.py.multiarch.patch: Library search dir is expanded on Debian
-   and derivatives with multiarch (see #11243, #11447).
-   This requires 'dpkg-architecture' to be installed on the affected systems.
-   (Since the patch origins from Python 2.7, it can certainly be removed
-   when we upgrade to that. But the patch then won't apply anymore anyway.)
+ * Makefile.pre.in.patch: Changes the permission of installed libraries
+   to 0755 (like any other library) instead of 0555.
 
 == Changelog ==
+
+=== python-2.7.2.p0 (François Bissey, December 21st, 2011) ===
+ * #9958 Upgrade to python-2.7.2.
+ * Converted the spkg to use patch exclusively.
+ * A number of patches have been dropped because the fix are in this release
+   or they don't apply cleanly anymore. The list of dropped patches is as follow:
+   - locale.py doesn't apply to this release
+   - readline-spacebug.patch fixed in this release
+   - readline-Itanium-fix.patch cannot be applied as is in this release
+   - socketmodule.c fixed in this release
+   - setup.py.multiarch.patch fixed in this release
 
 === python-2.6.4.p13 (Simon King, 10 December 2011) ===
  * #12131: use --libdir, to make the package work on openSUSE.

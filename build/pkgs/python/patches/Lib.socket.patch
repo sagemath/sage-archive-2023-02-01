@@ -1,6 +1,6 @@
---- ../src/Lib/socket.py	2009-08-14 23:40:49.000000000 -0700
-+++ socket.py	2010-01-11 12:36:29.000000000 -0800
-@@ -48,6 +48,9 @@
+--- src/Lib/socket.py.orig	2011-05-20 15:28:49.980525832 +1200
++++ src/Lib/socket.py	2011-05-20 15:28:53.943299694 +1200
+@@ -51,6 +51,9 @@
  
  try:
      import _ssl
@@ -10,7 +10,7 @@
  except ImportError:
      # no SSL support
      pass
-@@ -61,7 +64,6 @@
+@@ -64,7 +67,6 @@
          return _realssl.sslwrap_simple(sock, keyfile, certfile)
  
      # we need to import the same constants we used to...

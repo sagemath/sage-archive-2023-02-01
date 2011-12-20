@@ -26,6 +26,7 @@ BASE = $(INST)/$(PREREQ) $(INST)/$(DIR) $(INST)/$(SAGE_BZIP2)
 
 # Targets
 all: $(BASE) \
+     $(INST)/$(SAGE_SCRIPTS) \
      $(INST)/$(ATLAS) \
      $(INST)/$(BLAS) \
      $(INST)/$(BOEHM_GC) \
@@ -101,7 +102,6 @@ all: $(BASE) \
      $(INST)/$(RUBIKS) \
      $(INST)/$(SAGE) \
      $(INST)/$(SAGE_ROOT_REPO) \
-     $(INST)/$(SAGE_SCRIPTS) \
      $(INST)/$(SAGENB) \
      $(INST)/$(SAGETEX) \
      $(INST)/$(SCIPY) \

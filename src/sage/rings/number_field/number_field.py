@@ -620,14 +620,14 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
 
     -  ``D`` - a rational number
 
-    -  ``names`` - variable name, default: 'a'
+    -  ``name`` - variable name (default: 'a')
 
     -  ``check`` - bool (default: True)
 
     -  ``embedding`` - bool or square root of D in an
        ambient field (default: True)
 
-    - ``latex_name`` - latex variable name (defalt: \sqrt{D})
+    - ``latex_name`` - latex variable name (default: \sqrt{D})
 
 
     OUTPUT: A number field defined by a quadratic polynomial. Unless
@@ -668,6 +668,8 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
     By default, quadratic fields come with a nice latex representation::
 
         sage: K.<a> = QuadraticField(-7)
+        sage: latex(K)
+        \Bold{Q}(\sqrt{-7})
         sage: latex(a)
         \sqrt{-7}
         sage: latex(1/(1+a))
@@ -8279,7 +8281,25 @@ class NumberField_quadratic(NumberField_absolute):
         else:
             return NumberField_absolute._coerce_map_from_(self, K)
 
+    def _latex_(self):
+        """
+        Return the latex representation of this quadratic field.
 
+        EXAMPLES::
+
+            sage: Z = QuadraticField(7)
+            sage: latex(Z) # indirect doctest
+            \Bold{Q}(\sqrt{7})
+
+            sage: Z = QuadraticField(7, latex_name='x')
+            sage: latex(Z) # indirect doctest
+            \Bold{Q}[x]/(x^{2} - 7)
+        """
+        v = self.latex_variable_name()
+        if v.startswith('\\sqrt'):
+            return "%s(%s)"%(latex(QQ), v)
+        else:
+            return NumberField_generic._latex_(self)
 
     def discriminant(self, v=None):
         """

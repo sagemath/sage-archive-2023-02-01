@@ -3060,6 +3060,22 @@ def binomial(x, m, **kwds):
         -4.00000000000000
         sage: binomial(0.5r, 5)
         0.02734375
+
+    Test symbolic and uni/multivariate polynomials::
+
+        sage: K.<x> = ZZ[]
+        sage: binomial(x,3)
+        1/6*x^3 - 1/2*x^2 + 1/3*x
+        sage: binomial(x,3).parent()
+        Univariate Polynomial Ring in x over Rational Field
+        sage: K.<x,y> = Integers(7)[]
+        sage: binomial(y,3)
+        -y^3 + 3*y^2 - 2*y
+        sage: binomial(y,3).parent()
+        Multivariate Polynomial Ring in x, y over Ring of integers modulo 7
+        sage: n = var('n')
+        sage: binomial(n,2)
+        1/2*(n - 1)*n
     """
     if isinstance(m,sage.symbolic.expression.Expression):
         try:
@@ -3130,7 +3146,7 @@ def binomial(x, m, **kwds):
         P = type(x)
     if m < 0:
         return P(0)
-    return misc.prod([x-i for i in xrange(m)]) / P(factorial(m))
+    return misc.prod([x-i for i in xrange(m)])/factorial(m)
 
 def multinomial(*ks):
     r"""

@@ -148,7 +148,6 @@ set_environment()
     # prefix kernel with_gmp with_readline
 
     # Make flags for building (not installing) PARI/GP
-    PARI_MAKEFLAGS="-k"
     if [ "$UNAME" = "CYGWIN" ]; then
         # There are weird bugs in PARI's build process on Windows XP
         # under Cygwin.

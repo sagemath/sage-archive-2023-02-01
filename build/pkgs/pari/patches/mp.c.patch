@@ -1,16 +1,27 @@
---- src/kernel/gmp/mp.c	2010-08-22 21:25:46.000000000 +0200
-+++ src/kernel/gmp/mp.c	2010-09-06 00:34:54.000000000 +0200
-@@ -56,7 +56,9 @@
+Index: src/kernel/gmp/mp.c
+===================================================================
+--- src/kernel/gmp/mp.c	(revision 13151)
++++ src/kernel/gmp/mp.c	(working copy)
+@@ -45,18 +45,8 @@
+ /*We need PARI invmod renamed to invmod_pari*/
+ #define INVMOD_PARI
+ 
+-static void *gmp_realloc(void *ptr, size_t old_size, size_t new_size) {
+-  (void)old_size; return (void *) pari_realloc(ptr,new_size);
+-}
+-
+-static void gmp_free(void *ptr, size_t old_size){
+-  (void)old_size; pari_free(ptr);
+-}
+-
  int pari_kernel_init(void)
  {
-   /* Use pari_malloc instead of malloc */
-+  /* patch for Sage
-   mp_set_memory_functions((void *(*)(size_t)) pari_malloc, gmp_realloc, gmp_free);
-+  */
+-  /* Use pari_malloc instead of malloc */
+-  mp_set_memory_functions((void *(*)(size_t)) pari_malloc, gmp_realloc, gmp_free);
    return 0;
  }
  
-@@ -949,7 +951,16 @@
+@@ -1036,7 +1026,16 @@
  
  /* EXACT INTEGER DIVISION */
  
@@ -28,7 +39,7 @@
  static void
  GEN2mpz(mpz_t X, GEN x)
  {
-@@ -1008,7 +1019,7 @@
+@@ -1095,7 +1094,7 @@
      mpz2GEN(z, Z); return z;
    }
  }

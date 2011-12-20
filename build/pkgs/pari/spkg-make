@@ -46,18 +46,15 @@ mkdir src
 if ! [ -d parisvn ]; then
 	svn checkout svn://pari.math.u-bordeaux.fr/pari/trunk parisvn
 fi
-
+cd parisvn
 
 # Download galdata.tgz and seadata-small.tgz
-[ -f parisvn/galdata.tgz ] || wget -O parisvn/galdata.tgz \
-	http://pari.math.u-bordeaux.fr/pub/pari/packages/galdata.tgz
-[ -f parisvn/seadata-small.tgz ] || wget -O parisvn/seadata-small.tgz \
-	http://pari.math.u-bordeaux.fr/pub/pari/packages/seadata-small.tgz
+wget --timestamping http://pari.math.u-bordeaux.fr/pub/pari/packages/galdata.tgz
+wget --timestamping http://pari.math.u-bordeaux.fr/pub/pari/packages/seadata-small.tgz
 
 
 # Use the specified SVN version
-cd parisvn
-svn update -r 12623   # 12623 is PARI 2.4.3
+svn update -r 13228   # svn revision 13228 is PARI 2.5.0
 
 
 # make pari (must run bison, etc...) but disable optimization to speed
@@ -69,9 +66,9 @@ make gp doc || exit
 # Copy the needed files to src using a tar pipe.  This is based on code
 # from config/settar.
 #
-# Added src/desc/pari.desc to remove build-time dependency on perl
+# Add src/desc/pari.desc to remove build-time dependency on perl
 # -- Jeroen Demeyer
-tar c `config/get_MANIFEST && echo src/desc/pari.desc` | ( cd ../src && tar xv )
+tar -c -T <( config/get_MANIFEST && echo src/desc/pari.desc ) | ( cd ../src && tar xv )
 
 # Save svn version (see config/settar)
 svnversion >../src/config/svnversion

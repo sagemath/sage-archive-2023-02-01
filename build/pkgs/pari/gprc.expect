@@ -29,8 +29,9 @@ timer = 0
 breakloop = 0
 
 
-/* List of directories where gp will look for scripts */
-path = ""
+/* List of directories where gp will look for scripts:
+ * only current working directory */
+path = "."
 
 /* Location of elldata, seadata, galdata */
 datadir = "$SAGE_LOCAL/share/pari"

@@ -44,5 +44,3 @@ if [ -d ../parisvn ]; then
 fi
 
 echo "The PARI self-tests all passed"
-exit 0
-

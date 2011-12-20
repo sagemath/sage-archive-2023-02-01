@@ -42,7 +42,7 @@ Most of the building of a new version of the PARI spkg is automated
 in the script spkg-make.  Normally, the following should work.  In case
 of doubt, have a look at the file spkg-make.
 
-  0) Edit the line "svn update -r 12623" in spkg-make and set the
+  0) Edit the line "svn update -r 13228" in spkg-make and set the
      desired SVN version.
 
   1) ./spkg-make
@@ -79,6 +79,15 @@ all the same. But it is not right. I have not looked at PARI to see
 exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
+
+=== pari-2.5.0.p2 (Jeroen Demeyer, 26 July 2011) ===
+ * Ticket #11130: update to PARI stable version 2.5.0, which is
+   equal to svn version 13228.
+ * Moving to this upstream version fixes #10195, #10767, #11604.
+ * Remove all previous upstream patches.
+ * Add current working directory "." to default path in gprc.expect.
+ * Add patches osx_13318_13330.patch from upstream to fix linking on
+   Mac OS X.
 
 === pari-2.4.3.alpha.p7 (Leif Leonhardy, July 16th, 2011) ===
  * #11605: Fix typo in spkg-install and add `exit 1` (again) in case

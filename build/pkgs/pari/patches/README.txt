@@ -3,38 +3,40 @@ See below for information on files which used to be patched but are no
 longer, or are still but now for a different reason. (Do not delete that!)
 
 ======================================================================
-Files patched as of pari-2.4.3.alpha.p4:
+Current patches to PARI in Sage:
 ======================================================================
 
 Patches to configuration files:
-* config/get_ld: cwitty: Disable -rpath.
-* config/get_tests: John Cremona: Disable testing of ellglobalred in
-                    "make test-all" in spkg-check, since it requires
-                    the elldata database which we do not include since
-					it is about 14MB.
-* config/get_config_options: leif: Catch invalid arguments to "--graphic"
+* get_ld.patch: cwitty: Disable -rpath.
+* get_tests.patch: John Cremona: Disable testing of ellglobalred in
+  "make test-all" in spkg-check, since it requires the elldata database
+  which we do not include since it is about 18MB.
+* get_config_options.patch: leif: Catch invalid arguments to "--graphic"
   (and treat such as an error) since otherwise strange compilation errors
   might occur (cf. #9722, too).
-* config/get_fltk: leif: Explicitly link against libstdc++ when using FLTK
+* get_fltk.patch: leif: Explicitly link against libstdc++ when using FLTK
   (for plotting) to support Fedora 13, and do an extra check for the FLTK
   include dir (cf. #9722).
-* config/get_X11: leif: Also search */lib64/* for X11 libraries (since on
+* get_X11.patch: leif: Also search */lib64/* for X11 libraries (since on
   some systems this is really a separate directory, i.e. neither a
   symbolic link to */lib/* nor the target of a symbolic link */lib/*; cf.
   #9722, too).
-* config/get_dlcflags: jdemeyer: Add -fno-common to DLCFLAGS on Darwin.
+* get_dlcflags.patch: jdemeyer: Add -fno-common to DLCFLAGS on Darwin.
   Fixed upstream, but probably in a bad way.
-* install_doc_no_make.patch: Do not build the documentation when doing
-  install-doc or install-docpdf.  We must not build the documentation
-  because that requires tex.  On the other hand, to have ? and ?? work
-  within gp, we must install the .tex files (but not .dvi files).  So
-  simply not doing install-doc doesn't work.
-* perl_path.patch: change first line of all perl scripts
-  to "#!/usr/bin/env perl" (#10559).
+* install_doc_no_make.patch: jdemeyer: Do not *build* the documentation
+  when doing install-doc or install-docpdf.  We must not build the
+  documentation because that requires tex.  On the other hand, to have ?
+  and ?? work within gp, we must install the .tex files (but not .dvi
+  files).  So simply not doing install-doc doesn't work.
+* osx_13318_13330.patch.patch: jdemeyer: upstream patch (svn revisions
+  13318 and 13330) to fix linking on certain older Mac OS X systems.
+* perl_path.patch: jdemeyer: change first line of all perl scripts
+  to "#!/usr/bin/env perl" (#10559).  Note that this patch will always
+  apply with fuzz 2 because of the svn Id.
 
 C files:
-* src/kernel/gmp/mp.c, src/language/init.c:
-  These two are needed so that Sage can catch PARI's error signals.
+* src/kernel/gmp/mp.c:
+  Do not override GMP's memory functions.
   In addition, let PARI use "GMP internals" (access members of GMP
   structures directly) *conditionally*. (We *don't* disable that by
   default, since at least currently this is compatible with both GMP
@@ -46,16 +48,7 @@ Upstream patches included (file name refers to the ticket in PARI's bug
 tracking system, see
 http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=NNNN
 where NNNN is the bug number):
-* pari_1084.patch: exotic branch cut convention (#9620).  jdemeyer:
-  removed the parts of the patch involving the COMPAT and CHANGES files
-  as they are documentation only and give patch conflicts.  Rebased
-  a hunk in src/basemath/trans1.c to make the patch apply cleanly.
-* pari_1132.patch: nffactor() returns reducible factor (#10279)
-* pari_1141.patch: factoring non-square-free polynomial over number
-  fields (#10369)
-* pari_1143.patch: rnfisnorm failing for non-integral elements (#2329)
-* pari_1144.patch: rnfisnorminit requires leading coefficient 1 to be
-  in ZZ instead of the base field (#2329)
+* currently no patches
 
 ======================================================================
 Files previously patched:
@@ -103,3 +96,17 @@ Files previously patched:
 * Makefile_mv.patch: Fix race condition in parallel "make install",
   see http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1148
   Removed because race conditions still remain, instead make -j1 install.
+* pari_1084.patch: exotic branch cut convention (#9620).  jdemeyer:
+  removed the parts of the patch involving the COMPAT and CHANGES files
+  as they are documentation only and give patch conflicts.  Rebased
+  a hunk in src/basemath/trans1.c to make the patch apply cleanly.
+* pari_1132.patch: nffactor() returns reducible factor (#10279)
+* pari_1141.patch: factoring non-square-free polynomial over number
+  fields (#10369)
+* pari_1143.patch: rnfisnorm failing for non-integral elements (#2329)
+* pari_1144.patch: rnfisnorminit requires leading coefficient 1 to be
+  in ZZ instead of the base field (#2329)
+* src/language/init.c:
+  These was needed so that Sage can catch PARI's error signals.
+  Turns out this is totally not needed since we use err_catch()
+  in devel/sage/sage/libs/pari/pari_err.h

@@ -5577,8 +5577,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
             sage: (f*(x^2-5)).is_squarefree()
             False
+            sage: R.<x> = ZZ[]
+            sage: f = 2*x; g = 4*x; h = 2*x^2
+            sage: f.is_squarefree()
+            True
+            sage: g.is_squarefree()
+            False
+            sage: h.is_squarefree()
+            False
         """
-        return self.derivative().gcd(self).degree() <= 0
+        if self.parent().base_ring().is_field():
+            return self.derivative().gcd(self).degree() <= 0
+        return self.derivative().gcd(self).degree() <= 0 and self.content().is_squarefree()
 
     def radical(self):
         """

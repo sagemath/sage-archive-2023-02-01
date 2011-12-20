@@ -2,11 +2,14 @@
 HTML typesetting for the notebook
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
 from sage.misc.latex import latex
 from sage.misc.sage_eval import sage_eval
@@ -318,9 +321,7 @@ class HTML:
             elif isinstance(row[column], str):
                 print column_tag % math_parse(row[column])
             else:
-                print column_tag % ('<span class="math">'
-                                    + latex(row[column])
-                                    + '</span>')
+                print column_tag % ('<span class="math">%s</span>' % latex(row[column]))
 
     def iframe(self, url, height=400, width=800):
         r"""

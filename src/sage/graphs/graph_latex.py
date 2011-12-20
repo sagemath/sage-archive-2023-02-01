@@ -367,20 +367,15 @@ GraphLatex class and functions
 ------------------------------
 """
 #*****************************************************************************
-#      Copyright (C) 2009   Robert Beezer <beezer@ups.edu>
-#                    2009   Fidel Barrera Cruz <fidel.barrera@gmail.com>
+#       Copyright (C) 2009 Robert Beezer <beezer@ups.edu>
+#       Copyright (C) 2009 Fidel Barrera Cruz <fidel.barrera@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_function
 from sage.misc.latex import latex
@@ -1930,9 +1925,9 @@ class GraphLatex(SageObject):
             # but may be ignored by the style, so not apparent
             if vertex_labels or not customized:
                 if vertex_labels_math and not (type(u)==str and u[0]=='$' and u[-1]=='$'):
-                    lab = '\hbox{$' + latex(u) + '$}'
+                    lab = '\hbox{$%s$}' % latex(u)
                 else:
-                    lab = '\hbox{' + str(u) + '}'
+                    lab = '\hbox{%s}' % u
                 s+=['L=', lab, ',']
             scaled_pos = translate(pos[u])
             s+=['x=', str(round(scale*scaled_pos[0],4)), units, ',']
@@ -1976,9 +1971,9 @@ class GraphLatex(SageObject):
                     s+=['},']
                     el = self._graph.edge_label(edge[0],edge[1])
                     if edge_labels_math and not (type(el)==str and el[0]=='$' and el[-1]=='$'):
-                        lab = '\hbox{$' + latex(el) + '$}'
+                        lab = '\hbox{$%s$}' % latex(el)
                     else:
-                        lab = '\hbox{' + str(el) + '}'
+                        lab = '\hbox{%s}' % el
                     s+=['label=', lab, ',']
             s+=[']']
             if not loop:

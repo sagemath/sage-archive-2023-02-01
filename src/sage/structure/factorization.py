@@ -182,7 +182,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.misc.latex as latex
 from sage.structure.sage_object import SageObject
 from sage.structure.sequence import Sequence
 from sage.rings.integer import Integer
@@ -856,7 +855,7 @@ class Factorization(SageObject):
             '-1 \\cdot 2^{2} \\cdot 5^{2}'
         """
         if len(self) == 0:
-            return latex.latex(self.__unit)
+            return self.__unit._latex_()
         try:
             atomic = ((isinstance(self.__x[0][0], (int, long)) or \
                        self.universe().is_atomic_repr()))
@@ -864,20 +863,20 @@ class Factorization(SageObject):
             atomic = False
         s = ''
         for i in range(len(self)):
-            t = latex.latex(self.__x[i][0])
+            t = self.__x[i][0]._latex_()
             if not atomic and ('+' in t or '-' in t or ' ' in t):
                 t = '(%s)'%t
             n = self.__x[i][1]
             if n != 1:
-                t += '^{%s}'%latex.latex(n)
+                t += '^{%s}'%n
             s += t
             if i < len(self)-1:
                 s += ' \\cdot '
         if self.__unit != 1:
             if atomic:
-                u = latex.latex(self.__unit)
+                u = self.__unit._latex_()
             else:
-                u = '\\left(%s\\right)'%latex.latex(self.__unit)
+                u = '\\left(%s\\right)'%self.__unit._latex_()
             s =  u + ' \\cdot ' + s
         return s
 

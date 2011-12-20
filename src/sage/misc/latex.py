@@ -419,16 +419,54 @@ class LatexExpr(str):
     """
     def __add__(self, other):
         r"""
-        Add two instances of LatexExpr.
+        Add a LatexExpr and another LatexExpr (or a string).
 
         EXAMPLES::
 
-            sage: o = LatexExpr(r"\Delta\neq") + LatexExpr(r"\frac{x}2"); o
-            \Delta\neq \frac{x}2
+            sage: o = LatexExpr(r"\Delta\neq") + LatexExpr(r"\frac{x}{2}"); o
+            \Delta\neq \frac{x}{2}
+            sage: type(o)
+            <class 'sage.misc.latex.LatexExpr'>
+            sage: o = LatexExpr(r"\Delta\neq") + r"\frac{x}{2}"; o
+            \Delta\neq \frac{x}{2}
+            sage: type(o)
+            <class 'sage.misc.latex.LatexExpr'>
+
+        We add extra space only if it wasn't there yet::
+
+            sage: LatexExpr("foo ") + LatexExpr("bar")
+            foo bar
+            sage: LatexExpr("foo") + LatexExpr(" bar")
+            foo bar
+            sage: str(LatexExpr("") + LatexExpr("bar"))
+            'bar'
+            sage: str(LatexExpr("foo") + LatexExpr(""))
+            'foo'
+        """
+        left = str(self)
+        right = str(other)
+        # Add a space if self ends with a non-space and other starts
+        # with a non-space
+        try:
+            if left[-1] != ' ' and right[0] != ' ':
+                left += ' '
+        except IndexError:
+            pass
+        return LatexExpr(left + right)
+
+    def __radd__(self, other):
+        r"""
+        Add a string and a LatexExpr.
+
+        EXAMPLES::
+
+            sage: o = "a =" + LatexExpr("b")
+            sage: o
+            a = b
             sage: type(o)
             <class 'sage.misc.latex.LatexExpr'>
         """
-        return LatexExpr(str(self) + ' ' + str(other))
+        return LatexExpr(other) + self
 
     def __repr__(self):
         """
@@ -878,7 +916,7 @@ class Latex:
 
             var = t[:j]
             try:
-                k = latex(sage_eval.sage_eval(var, locals))
+                k = str(latex(sage_eval.sage_eval(var, locals)))
             except Exception, msg:
                 print msg
                 k = '\\mbox{\\rm [%s undefined]}'%var
@@ -1781,7 +1819,7 @@ def jsmath(x, mode='display'):
         sage: jsmath(g, 'inline')
         <html><font color='black'><span class="math">\tan^{-1} x</span></font></html>
         sage: jsmath('\int' + latex(f) + '\ dx=' + latex(g))
-        <html><font color='black'><div class="math">\int{{1}\over{x^2+1}}\ dx=\tan^{-1} x</div></font></html>
+        <html><font color='black'><div class="math">\int {{1}\over{x^2+1}} \ dx= \tan^{-1} x</div></font></html>
 
     AUTHORS:
 

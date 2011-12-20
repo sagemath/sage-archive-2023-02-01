@@ -511,7 +511,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         for i in range(len(self.values_on_gens())):
             if i != 0:
                 mapst += r',\ '
-            mapst += latex(self.parent().unit_gens()[i]) + ' \mapsto ' + latex(self.values_on_gens()[i])
+            mapst += self.parent().unit_gens()[i]._latex_() + ' \mapsto ' + self.values_on_gens()[i]._latex_()
         return r'\hbox{Dirichlet character modulo } %s \hbox{ of conductor } %s \hbox{ mapping } %s' \
                  % (self.modulus(), self.conductor(), mapst)
 

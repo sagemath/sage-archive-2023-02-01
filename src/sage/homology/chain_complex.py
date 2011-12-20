@@ -1150,9 +1150,9 @@ class ChainComplex(SageObject):
         if self._grading_group != ZZ:
             guess = dict.keys()[0]
             if guess-deg in dict:
-                string += "\\dots \\xrightarrow{d_{" + latex(guess-deg) + "}} "
+                string += "\\dots \\xrightarrow{d_{%s}} " % latex(guess-deg)
             string += _latex_module(ring, mat.ncols())
-            string += " \\xrightarrow{d_{" + latex(guess) + "}} \\dots"
+            string += " \\xrightarrow{d_{%s}} \\dots" % latex(guess)
         else:
             backwards = (deg < 0)
             sorted_list = sorted(dict.keys(), reverse=backwards)
@@ -1160,19 +1160,17 @@ class ChainComplex(SageObject):
                 for n in sorted_list[:-1]:
                     mat = dict[n]
                     string += _latex_module(ring, mat.ncols())
-                    string += " \\xrightarrow{d_{"
-                    string += latex(n) + "}} "
+                    string += " \\xrightarrow{d_{%s}} " % latex(n)
                 mat = dict[sorted_list[-1]]
                 string += _latex_module(ring, mat.ncols())
             else:
                 for n in sorted_list[:2]:
                     mat = dict[n]
                     string += _latex_module(ring, mat.ncols())
-                    string += " \\xrightarrow{d_{"
-                    string += latex(n) + "}} "
+                    string += " \\xrightarrow{d_{%s}} " % latex(n)
                 string += "\\dots "
                 n = sorted_list[-2]
-                string += "\\xrightarrow{d_{" + latex(n) + "}} "
+                string += "\\xrightarrow{d_{%s}} " % latex(n)
                 mat = dict[sorted_list[-1]]
                 string += _latex_module(ring, mat.ncols())
         return string

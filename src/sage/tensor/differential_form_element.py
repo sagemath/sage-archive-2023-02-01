@@ -196,23 +196,36 @@ class DifferentialFormFormatter:
             sage: D = DifferentialFormFormatter(U)
             sage: D.latex((0, 1), z^3)
             'z^{3} d x \\wedge d y'
-
+            sage: D.latex((), 1)
+            '1'
+            sage: D.latex((), z^3)
+            'z^{3}'
+            sage: D.latex((0,), 1)
+            'd x'
         """
 
         from sage.misc.latex import latex
 
-        str = " \\wedge ".join( \
+        s = " \\wedge ".join( \
             [('d %s' % latex(self._space.coordinate(c))) for c in comp])
 
-        if fun == 1 and len(comp) > 0:
-            return str
-        else:
-            funstr = latex(fun)
+        # Make sure this is a string and not a LatexExpr
+        s = str(s)
 
-            if not self._is_atomic(funstr):
-                funstr = '(' + funstr + ')'
+        # Add coefficient except if it's 1
+        if fun == 1:
+            if s:
+                return s
+            else:
+                return "1"
 
-            return funstr + " " + str
+        funstr = fun._latex_()
+        if not self._is_atomic(funstr):
+            funstr = '(' + funstr + ')'
+
+        if s:
+            s = " " + s
+        return funstr + s
 
 
     def _is_atomic(self, str):

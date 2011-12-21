@@ -192,7 +192,7 @@ Sage preparsing
 
 The following files are relevant to preparsing in Sage:
 
-#. ``SAGE_ROOT/local/bin/sage-sage``
+#. ``SAGE_ROOT/spkg/bin/sage``
 
 #. ``SAGE_ROOT/local/bin/sage-preparse``
 

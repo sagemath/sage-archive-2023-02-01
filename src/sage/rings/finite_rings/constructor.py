@@ -289,6 +289,10 @@ class FiniteFieldFactory(UniqueFactory):
 
     The order of a finite field must be a prime power::
 
+        sage: GF(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: the order of a finite field must be > 1.
         sage: GF(100)
         Traceback (most recent call last):
         ...
@@ -346,17 +350,15 @@ class FiniteFieldFactory(UniqueFactory):
         if proof is None: proof = arithmetic()
         with WithProof('arithmetic', proof):
             order = int(order)
-            if order == 1:
+            if order <= 1:
                 raise ValueError("the order of a finite field must be > 1.")
-            if not arith.is_prime_power(order):
-                    raise ValueError("the order of a finite field must be a prime power.")
 
             if arith.is_prime(order):
                 name = None
                 modulus = None
                 p = integer.Integer(order)
                 n = integer.Integer(1)
-            else:
+            elif arith.is_prime_power(order):
                 if not names is None: name = names
                 name = normalize_names(1,name)
 
@@ -382,6 +384,8 @@ class FiniteFieldFactory(UniqueFactory):
                     modulus = modulus.change_variable_name('x')
                 elif not isinstance(modulus, str):
                     raise ValueError("Modulus parameter not understood.")
+            else:  # Neither a prime, nor a prime power
+                raise ValueError("the order of a finite field must be a prime power.")
 
             return (order, name, modulus, impl, str(kwds), p, n, proof), kwds
 

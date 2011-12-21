@@ -152,7 +152,7 @@ cdef class MixedIntegerLinearProgram:
          4.0
     """
 
-    def __init__(self, solver = None, maximization=True, constraint_generation = False):
+    def __init__(self, solver = None, maximization=True, constraint_generation = False, check_redundant = False):
         r"""
         Constructor for the ``MixedIntegerLinearProgram`` class.
 
@@ -186,6 +186,14 @@ cdef class MixedIntegerLinearProgram:
         - ``constraint_generation`` -- whether to require the returned solver to
           support constraint generation (excludes Coin). ``False by default``.
 
+        - ``check_redundant`` -- whether to check that constraints added to the
+          program are redundant with constraints already in the program.
+          Only obvious redundancies are checked: to be considered redundant,
+          either a constraint is equal to another constraint in the program,
+          or it is a constant multiple of the other. To make this search
+          effective and efficient, constraints are normalized; thus, the
+          constraint `-x_1 < 0` will be stored as `x_1 > 0`.
+
         .. SEEALSO::
 
         - :meth:`default_mip_solver` -- Returns/Sets the default MIP solver.
@@ -214,6 +222,11 @@ cdef class MixedIntegerLinearProgram:
 
         # Associates an index to the variables
         self._variables = {}
+
+        # Check for redundant constraints
+        self._check_redundant = check_redundant
+        if check_redundant:
+            self._constraints = set()
 
     def __repr__(self):
          r"""
@@ -256,6 +269,12 @@ cdef class MixedIntegerLinearProgram:
 
         try:
             p._default_mipvariable = self._default_mipvariable
+        except AttributeError:
+            pass
+
+        try:
+            p._check_redundant = self._check_redundant
+            p._constraints = copy(self._constraints)
         except AttributeError:
             pass
 
@@ -918,6 +937,43 @@ cdef class MixedIntegerLinearProgram:
             ...
             ValueError: min and max arguments are required to be numerical
 
+        Do not add redundant elements (notice only one copy of each constraint is added)::
+
+            sage: lp = MixedIntegerLinearProgram(check_redundant=True)
+            sage: for each in xrange(10): lp.add_constraint(lp[0]-lp[1],min=1)
+            sage: lp.show()
+            Maximization:
+            <BLANKLINE>
+            Constraints:
+              1.0 <= x_0 -x_1
+            Variables:
+              x_0 is a continuous variable (min=0.0, max=+oo)
+              x_1 is a continuous variable (min=0.0, max=+oo)
+
+        We check for constant multiples of constraints as well::
+
+            sage: for each in xrange(10): lp.add_constraint(2*lp[0]-2*lp[1],min=2)
+            sage: lp.show()
+            Maximization:
+            <BLANKLINE>
+            Constraints:
+              1.0 <= x_0 -x_1
+            Variables:
+              x_0 is a continuous variable (min=0.0, max=+oo)
+              x_1 is a continuous variable (min=0.0, max=+oo)
+
+        But if the constant multiple is negative, we should add it anyway (once)::
+
+              sage: for each in xrange(10): lp.add_constraint(-2*lp[0]+2*lp[1],min=-2)
+              sage: lp.show()
+              Maximization:
+              <BLANKLINE>
+              Constraints:
+                1.0 <= x_0 -x_1
+                x_0 -x_1 <= 1.0
+              Variables:
+                x_0 is a continuous variable (min=0.0, max=+oo)
+                x_1 is a continuous variable (min=0.0, max=+oo)
         """
         if linear_function is None or linear_function is 0:
             return None
@@ -942,7 +998,25 @@ cdef class MixedIntegerLinearProgram:
             indices = []
             values = []
 
-            C = [(v,coeff) for (v,coeff) in f.iteritems() if v != -1]
+            if self._check_redundant:
+              b = self._backend
+              from __builtin__ import min as min_function
+              i = min_function([v for (v,coeff) in f.iteritems() if coeff != 0])
+              c = f[i]
+              C = [(v,coeff/c) for (v,coeff) in f.iteritems() if v != -1]
+              if c > 0:
+                min = min/c if min != None else None
+                max = max/c if max != None else None
+              else:
+                tempmin = max/c if max != None else None
+                tempmax = min/c if min != None else None
+                min, max = tempmin, tempmax
+              if (tuple(C),min,max) in self._constraints:
+                return None
+              else:
+                self._constraints.add((tuple(C),min,max))
+            else:
+              C = [(v,coeff) for (v,coeff) in f.iteritems() if v != -1]
 
             if min == None and max == None:
                 raise ValueError("Both max and min are set to None ? Weird!")

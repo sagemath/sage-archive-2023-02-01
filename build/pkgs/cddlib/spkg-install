@@ -27,7 +27,9 @@ patch() {
     cp -p patches/random.[c,h] src/lib-src/
     cp -p patches/random.[c,h] src/lib-src-gmp/
     cp -p patches/cddcore.c src/lib-src/
+    cp -p patches/cddcore.c src/lib-src-gmp/
     cp -p patches/cddlp.c src/lib-src/
+    cp -p patches/cddlp.c src/lib-src-gmp/
 
     # Required by sage.geometry.polyhedra
     cp -p patches/cdd_both_reps.c src/src/

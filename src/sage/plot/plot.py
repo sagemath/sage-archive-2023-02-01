@@ -525,7 +525,7 @@ class Graphics(SageObject):
 
             sage: P = circle((1,1), 1)
             sage: P.aspect_ratio()
-            1.0
+            'automatic'
             sage: P.set_aspect_ratio(2)
             sage: P.aspect_ratio()
             2.0
@@ -533,7 +533,7 @@ class Graphics(SageObject):
             sage: P.aspect_ratio()
             'automatic'
         """
-        return self._extra_kwds.get('aspect_ratio',1.0)
+        return self._extra_kwds.get('aspect_ratio', 'automatic')
 
     def legend(self, show=None):
         r"""

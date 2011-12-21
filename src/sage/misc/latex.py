@@ -377,8 +377,9 @@ class LatexExpr(str):
     Normally, objects of this class are created by a :func:`latex` call. It is
     also possible to generate :class:`LatexExpr` directly from a string, which
     must contain valid LaTeX code for typesetting in math mode (without dollar
-    signs). In the Sage Notebook, use :func:`pretty_print` or the "Typeset"
-    checkbox to actually see the typeset LaTeX code.
+    signs). In the Sage notebook, use :func:`pretty_print` or the "Typeset"
+    checkbox to actually see the typeset LaTeX code; alternatively, from
+    either the command-line or the notebook, use the :func:`view` function.
 
     INPUT:
 
@@ -815,7 +816,7 @@ class Latex:
     ``%latex_debug`` to get debugging output.
 
     Use ``latex(...)`` to typeset a Sage object.  Use :class:`LatexExpr`
-    to typeset LaTeX code that you created by hand.
+    to typeset LaTeX code that you create by hand.
 
     Use ``%slide`` instead to typeset slides.
 
@@ -835,8 +836,8 @@ class Latex:
         sage: LatexExpr(r"\frac{x^2 - 1}{x + 1} = x - 1")
         \frac{x^2 - 1}{x + 1} = x - 1
 
-    LaTeX expressions can be added, note that a space is automatically
-    added::
+    LaTeX expressions can be added; note that a space is automatically
+    inserted::
 
         sage: LatexExpr(r"y \neq") + latex(x^20 + 1)
         y \neq x^{20} + 1

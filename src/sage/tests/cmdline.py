@@ -6,6 +6,7 @@ We test the following command line options:
 --advanced
 --branch
 -c
+--cython
 --ecl
 --experimental
 --gap
@@ -212,6 +213,12 @@ def test_executable(args, input="", timeout=50.0):
         ''
         sage: ret
         0
+
+        sage: (out, err, ret) = test_executable(["sage", "--cython"])
+        sage: print err
+        Cython (http://cython.org) is a compiler for code written in the
+        Cython language.  Cython is based on Pyrex by Greg Ewing.
+        ...
 
         sage: (out, err, ret) = test_executable(["sage", "--ecl"], "(* 12345 54321)\n")
         sage: out.find("Embeddable Common-Lisp") >= 0

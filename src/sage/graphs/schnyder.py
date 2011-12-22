@@ -55,6 +55,11 @@ def _triangulate(g, comb_emb):
         sage: _triangulate(g, g._embedding)
         [(2, 0), (1, 3)]
 
+        sage: g = graphs.PathGraph(3)
+        sage: g.is_planar(set_embedding=True)
+        True
+        sage: _triangulate(g, g._embedding)
+        [(0, 2)]
     """
     # first make sure that the graph has at least 3 vertices, and that it is connected
     if g.order() < 3:
@@ -64,7 +69,7 @@ def _triangulate(g, comb_emb):
 
     if g.order() == 3 and len(g.edges()) == 2:             # if g is o--o--o
         vertex_list = g.vertices()
-        if len(g.neighbors(vertex_list[0]) == 2):          # figure our which of the vertices already has two neighbors
+        if len(g.neighbors(vertex_list[0])) == 2:          # figure out which of the vertices already has two neighbors
             new_edge = (vertex_list[1], vertex_list[2])    # and connect the other two together.
         elif len(g.neighbors(vertex_list[1])) == 2:
             new_edge = (vertex_list[0], vertex_list[2])

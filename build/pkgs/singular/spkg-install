@@ -99,7 +99,7 @@ apply_patches()
 {
     pushd $SRC
 
-    patches="assert.h.diff sing_win.cc.diff Minor.h.patch os_x_ppc.patch Singular.configure.patch"
+    patches="assert.h.diff sing_win.cc.diff Minor.h.patch os_x_ppc.patch Singular.configure.patch make_parallel.patch"
 
     if [ "$UNAME" = "CYGWIN" ]; then
         patches="$patches IntegerProgramming-Makefile.in.diff"
@@ -121,16 +121,16 @@ apply_patches()
 
 distclean()
 {
-     cd $SRC
-     $MAKE distclean
-     rm $SAGE_LOCAL/bin/Singular*
-     find . -name *.dl_o -exec rm \{\} \;
-     find . -name *.o -exec rm \{\} \;
-     find . -name *.og -exec rm \{\} \;
-     find . -name *.so -exec rm \{\} \;
-     find . -name *.a -exec rm \{\} \;
-     rm -f $SAGE_LOCAL/include/factory.h
-     rm -f $SAGE_LOCAL/include/factoryconf.h
+    cd $SRC
+    $MAKE distclean
+    rm $SAGE_LOCAL/bin/Singular*
+    find . -name *.dl_o -exec rm \{\} \;
+    find . -name *.o -exec rm \{\} \;
+    find . -name *.og -exec rm \{\} \;
+    find . -name *.so -exec rm \{\} \;
+    find . -name *.a -exec rm \{\} \;
+    rm -f $SAGE_LOCAL/include/factory.h
+    rm -f $SAGE_LOCAL/include/factoryconf.h
 }
 
 config()
@@ -283,7 +283,7 @@ build_factory()
         exit 1
     fi
 
-    make
+    $MAKE
     if [ $? -ne 0 ]; then
         echo "Error building the standalone factory."
         exit 1

@@ -29,11 +29,12 @@ GNU patch, MPIR, NTL, Termcap, Readline and MPFR
 
 See spgk-changes for how to delete unnecessary stuff under src/
 
- Several patches are applied.
+Several patches are applied.
  * assert.h: logic seems to be broken on some platforms
  * Minor.h needs to have <time.h> included on Cygwin
+ * make_parallel.patch to fix parallel make
 
- Other notes
+Other notes
  * The option '--without-dynamic-kernel' is used on *all*
    systems with the exception of Linux. The online README at
    http://www.singular.uni-kl.de/svn/trunk/README says this should
@@ -47,6 +48,11 @@ See spgk-changes for how to delete unnecessary stuff under src/
    was missing, which caused problems on Cygwin (e.g., see #10235)
 
 == ChangeLog ==
+
+=== singular-3-1-3-3.p2 (Jeroen Demeyer, 9 December 2011) ===
+ * Trac #12137: Add patch make_parallel.patch to fix parallel building
+   by patching various Makefile.in's
+ * Use $MAKE instead of make
 
 === singular-3-1-3-3.p1 (Jeroen Demeyer, 10 October 2011) ===
  * Trac #10903: Add a patch os_x_ppc.patch to fix building on OS X PPC.

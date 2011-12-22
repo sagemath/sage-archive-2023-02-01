@@ -1,0 +1,16 @@
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+./configure --prefix="$SAGE_LOCAL" "${args[@]}" --enable-cbc-parallel --enable-parallel &&
+make &&
+make install &&
+echo "********************************************************************************" &&
+echo "" &&
+echo "    ATTENTION: YOU HAVE TO REBUILD THE SAGE LIBRARY TO GET THIS TO WORK" &&
+echo "    exit any running sage instances and call \"sage -b\"" &&
+echo "" &&
+echo "********************************************************************************"
+

@@ -744,15 +744,26 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
               x^2 - y
             and Y is defined by:
               x - y
+
+        TESTS:
+
+        The bug reported at #12211 has been fixed::
+
+            sage: P.<x, y, z, w> = ProjectiveSpace(3, QQ)
+            sage: S = P.subscheme([x])
+            sage: T = P.subscheme([y, z])
+            sage: U = T.complement(S)
+            sage: U._check_satisfies_equations([0, 0, 1, 1])
+            True
         """
         coords = list(v)
         for f in self.__X.defining_polynomials():
             if f(coords) != 0:
                 raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
         for f in self.__Y.defining_polynomials():
-            if f(coords) == 0:
-                raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
-        return True
+            if f(coords) != 0:
+                return True
+        raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
 
     def rational_points(self, F=None, bound=0):
         """

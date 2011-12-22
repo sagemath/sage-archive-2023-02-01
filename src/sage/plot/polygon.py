@@ -274,7 +274,7 @@ def polygon(points, **options):
         return polygon3d(points, **options)
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, rgbcolor=(0,0,1), thickness=0, legend_label=None)
+@options(alpha=1, rgbcolor=(0,0,1), thickness=0, legend_label=None, aspect_ratio=1.0)
 def polygon2d(points, **options):
     r"""
     Returns a polygon defined by ``points``.
@@ -336,6 +336,11 @@ def polygon2d(points, **options):
 
         sage: L = [[sin(pi*i/100)+sin(pi*i/50),-(1+cos(pi*i/100)+cos(pi*i/50))] for i in range(-100,100)]
         sage: polygon2d(L, rgbcolor=(1,1/4,1/2))
+
+    Polygons have a default aspect ratio of 1.0::
+
+        sage: polygon2d([[1,2], [5,6], [5,0]]).aspect_ratio()
+        1.0
 
     AUTHORS:
 

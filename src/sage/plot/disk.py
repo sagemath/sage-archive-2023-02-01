@@ -220,7 +220,8 @@ class Disk(GraphicPrimitive):
             return Line(xdata, ydata, options).plot3d().translate((0,0,z))
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, fill=True, rgbcolor=(0,0,1), thickness=0, legend_label=None)
+@options(alpha=1, fill=True, rgbcolor=(0,0,1), thickness=0, legend_label=None,
+         aspect_ratio=1.0)
 def disk(point, radius, angle, **options):
     r"""
     A disk (that is, a sector or wedge of a circle) with center
@@ -241,11 +242,12 @@ def disk(point, radius, angle, **options):
         sage: P  = tl+tr+bl+br
         sage: P.show(xmin=-2,xmax=2,ymin=-2,ymax=2)
 
-    ::
+    The default aspect ratio is 1.0::
 
-        sage: disk((0.0,0.0), 1, (pi, 3*pi/2), color='yellow')
+        sage: disk((0.0,0.0), 1, (pi, 3*pi/2)).aspect_ratio()
+        1.0
 
-    ::
+    Another example of a disk::
 
         sage: bl = disk((0.0,0.0), 1, (pi, 3*pi/2), rgbcolor=(1,1,0))
         sage: bl.show(figsize=[5,5])

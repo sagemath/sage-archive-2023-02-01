@@ -285,7 +285,8 @@ class Arc(GraphicPrimitive):
         raise NotImplementedError
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, thickness=1, linestyle='solid', zorder=5,rgbcolor='blue')
+@options(alpha=1, thickness=1, linestyle='solid', zorder=5,rgbcolor='blue',
+         aspect_ratio=1.0)
 def arc(center, r1, r2=None, angle=0.0, sector=(0.0,2*pi), **options):
     r"""
     An arc (that is a portion of a circle or an ellipse)
@@ -336,7 +337,12 @@ def arc(center, r1, r2=None, angle=0.0, sector=(0.0,2*pi), **options):
 
         sage: arc((0,0), 2, 1, 0, (0,pi/2), linestyle="dashed", color="red")
 
-    It is not possible to draw ellipses in 3D::
+    The default aspect ratio for arcs is 1.0::
+
+        sage: arc((0,0), 1, sector=(pi/4,3*pi/4)).aspect_ratio()
+        1.0
+
+    It is not possible to draw arcs in 3D::
 
         sage: A = arc((0,0,0), 1)
         Traceback (most recent call last):

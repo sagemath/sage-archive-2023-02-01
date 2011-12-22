@@ -214,7 +214,7 @@ class Circle(GraphicPrimitive):
 
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid',
-         zorder=5, legend_label=None, clip=True)
+         zorder=5, legend_label=None, clip=True, aspect_ratio=1.0)
 def circle(center, radius, **options):
     """
     Return a circle at a point center = `(x,y)` (or `(x,y,z)` and
@@ -305,6 +305,12 @@ def circle(center, radius, **options):
         Traceback (most recent call last):
         ...
         ValueError: The center of a plotted circle should have two or three coordinates.
+
+    The default aspect ratio for a circle is 1.0::
+
+        sage: P = circle((1,1), 1)
+        sage: P.aspect_ratio()
+        1.0
     """
     from sage.plot.plot import Graphics
     g = Graphics()

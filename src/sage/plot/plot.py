@@ -77,6 +77,10 @@ Type ``?`` after each primitive in Sage for help and examples.
 
 EXAMPLES:
 
+We draw a curve::
+
+    sage: plot(x^2, (x,0,5))
+
 We draw a circle and a curve::
 
     sage: circle((1,1), 1) + plot(x^2, (x,0,5))
@@ -521,11 +525,19 @@ class Graphics(SageObject):
         OUTPUT: a positive float (height/width of a unit square), or 'automatic'
         (expand to fill the figure).
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The default aspect ratio for a new blank Graphics object is 'automatic'::
+
+            sage: P = Graphics()
+            sage: P.aspect_ratio()
+            'automatic'
+
+        The aspect ratio can be explicitly set different than the object's default::
 
             sage: P = circle((1,1), 1)
             sage: P.aspect_ratio()
-            'automatic'
+            1.0
             sage: P.set_aspect_ratio(2)
             sage: P.aspect_ratio()
             2.0

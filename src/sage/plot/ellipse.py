@@ -212,7 +212,8 @@ class Ellipse(GraphicPrimitive):
         raise NotImplementedError
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid', zorder=5)
+@options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid', zorder=5,
+         aspect_ratio=1.0)
 def ellipse(center, r1, r2, angle=0, **options):
     """
     Return an ellipse centered at a point center = ``(x,y)`` with radii =
@@ -258,6 +259,11 @@ def ellipse(center, r1, r2, angle=0, **options):
     ::
 
         sage: ellipse((0,0),3,1,pi/6,fill=True,edgecolor='blue',facecolor='red')
+
+    The default aspect ratio for ellipses is 1.0::
+
+        sage: ellipse((0,0),2,1).aspect_ratio()
+        1.0
 
     One cannot yet plot ellipses in 3D::
 

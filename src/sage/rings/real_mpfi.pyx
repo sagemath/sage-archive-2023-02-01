@@ -1079,12 +1079,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: b = R('393.39203845902384098234098230948209384028340')
             sage: cmp(loads(dumps(b)), b)
             0
-            sage: b = R(1)/R(0); b
-            [+infinity .. +infinity]
+            sage: b = R(1)/R(0); b # R(0) has no particular sign, thus 1/R(0) covers the whole reals
+            [-infinity .. +infinity]
             sage: loads(dumps(b)) == b
             True
-            sage: b = R(-1)/R(0); b
-            [-infinity .. -infinity]
+            sage: b = R(-1)/R(0); b # same as above
+            [-infinity .. +infinity]
             sage: loads(dumps(b)) == b
             True
             sage: b = R('[2 .. 3]'); b.str(error_digits=1)
@@ -2361,8 +2361,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: R = RealIntervalField()
             sage: R(1)/R(3)
             0.3333333333333334?
-            sage: R(1)/R(0)
-            [+infinity .. +infinity]
+            sage: R(1)/R(0) # since R(0) has no sign, gives the whole reals
+            [-infinity .. +infinity]
             sage: R(1)/R(-1, 1)
             [-infinity .. +infinity]
 
@@ -3218,12 +3218,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RIF(-1, 1).min(0).endpoints()
-            (-1.00000000000000, 0.000000000000000)
+            sage: a=RIF(-1, 1).min(0).endpoints()
+            sage: a[0] == -1.0 and a[1].abs() == 0.0 # in MPFI, the sign of 0.0 is not specified
+            True
             sage: RIF(-1, 1).min(pi).endpoints()
             (-1.00000000000000, 1.00000000000000)
-            sage: RIF(-1, 1).min(0).endpoints()
-            (-1.00000000000000, 0.000000000000000)
             sage: RIF(-1, 1).min(RIF(-100, 100)).endpoints()
             (-100.000000000000, 1.00000000000000)
             sage: RIF(-1, 1).min(RIF(-100, 0)).endpoints()

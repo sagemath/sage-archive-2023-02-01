@@ -4000,14 +4000,18 @@ class AlgebraicReal(AlgebraicNumber_base):
             -2.00000000000000
             sage: (-x).real_exact(RealField(53, rnd='RNDZ'))
             -2.00000000000000
-            sage: (x-2).real_exact(RR)
-            0.000000000000000
-            sage: (x-2).real_exact(RealField(53, rnd='RNDD'))
-            0.000000000000000
-            sage: (x-2).real_exact(RealField(53, rnd='RNDU'))
-            0.000000000000000
-            sage: (x-2).real_exact(RealField(53, rnd='RNDZ'))
-            0.000000000000000
+            sage: y = (x-2).real_exact(RR).abs()
+            sage: y == 0.0 or y == -0.0 # the sign of 0.0 is not significant in MPFI
+            True
+            sage: y = (x-2).real_exact(RealField(53, rnd='RNDD'))
+            sage: y == 0.0 or y == -0.0 # same as above
+            True
+            sage: y = (x-2).real_exact(RealField(53, rnd='RNDU'))
+            sage: y == 0.0 or y == -0.0 # idem
+            True
+            sage: y = (x-2).real_exact(RealField(53, rnd='RNDZ'))
+            sage: y == 0.0 or y == -0.0 # ibidem
+            True
             sage: y = AA(2).sqrt()
             sage: y.real_exact(RR)
             1.41421356237310

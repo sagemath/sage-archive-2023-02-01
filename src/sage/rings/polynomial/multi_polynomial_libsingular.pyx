@@ -2519,6 +2519,51 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: x.degree(x), y.degree(y), z.degree(z)
             (1, 1, 1)
 
+        The following example is inspired by trac 11652::
+
+            sage: R.<p,q,t> = ZZ[]
+            sage: poly = p+q^2+t^3
+            sage: poly = poly.polynomial(t)[0]
+            sage: poly
+            q^2 + p
+
+        There is no canonical coercion from R to the parent of poly,
+        so this doesn't work::
+        
+            sage: poly.degree(q)
+            Traceback (most recent call last):
+            ...
+            TypeError: argument must canonically coerce to parent
+
+        Using a non-canonical coercion does work, but we require this
+        to be done explicitly, since it can lead to confusing results
+        if done automatically::
+        
+            sage: poly.degree(poly.parent()(q))
+            2
+            sage: poly.degree(poly.parent()(p))
+            1
+            sage: T.<x,y> = ZZ[]
+            sage: poly.degree(poly.parent()(x))  # noncanonical coercions can be confusing
+            1
+
+        The argument to degree has to be a generator::
+        
+            sage: pp = poly.parent().gen(0)
+            sage: poly.degree(pp)
+            1
+            sage: poly.degree(pp+1)
+            Traceback (most recent call last):
+            ...
+            TypeError: argument must be a generator
+
+        Canonical coercions are used::
+            
+            sage: S = ZZ['p,q']
+            sage: poly.degree(S.0)
+            1
+            sage: poly.degree(S.1)
+            2
         """
         cdef ring *r = self._parent_ring
         cdef poly *p = self._poly
@@ -2528,9 +2573,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             else:
                 return self.total_degree(std_grading=True)
 
-        # TODO: we can do this faster
-        if not x in self._parent.gens():
-            raise TypeError("x must be one of the generators of the parent.")
+        if not x.parent() is self.parent():
+            try:
+                x = self.parent().coerce(x)
+            except TypeError:
+                raise TypeError("argument must canonically coerce to parent")
+        if not x.is_generator():
+            raise TypeError("argument must be a generator")
 
         return singular_polynomial_deg(p, x._poly, r)
 

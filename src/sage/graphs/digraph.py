@@ -1480,8 +1480,7 @@ class DiGraph(GenericGraph):
 
                 b_sol=p.get_values(b)
 
-                from sage.sets.set import Set
-                return Set([(u,v) for (u,v) in self.edges(labels=None) if b_sol[(u,v)]==1])
+                return [(u,v) for (u,v) in self.edges(labels=None) if b_sol[(u,v)]==1]
 
     def feedback_vertex_set(self, value_only=False, solver=None, verbose=0, constraint_generation = True):
         r"""
@@ -1602,9 +1601,7 @@ class DiGraph(GenericGraph):
         if self.is_directed_acyclic():
             if value_only:
                 return 0
-
-            from sage.sets.set import Set
-            return Set([0])
+            return []
 
         from sage.numerical.mip import MixedIntegerLinearProgram, Sum
 
@@ -1656,8 +1653,7 @@ class DiGraph(GenericGraph):
             else:
 
                 # listing the edges contained in the MFAS
-                from sage.sets.set import Set
-                return Set([v for v in self if p.get_values(b[v]) > .5])
+                return [v for v in self if p.get_values(b[v]) > .5]
 
 
         else:
@@ -1687,8 +1683,7 @@ class DiGraph(GenericGraph):
                 p.solve(log=verbose)
                 b_sol=p.get_values(b)
 
-                from sage.sets.set import Set
-                return Set([v for v in self if b_sol[v]==1])
+                return [v for v in self if b_sol[v]==1]
 
 
     ### Construction

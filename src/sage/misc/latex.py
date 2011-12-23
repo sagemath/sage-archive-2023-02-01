@@ -259,9 +259,12 @@ def str_function(x):
         '+34.5'
         sage: str_function('hello_world')
         '\\verb|hello_world|'
+        sage: str_function('-1.00000?') # trac 12178
+        '-1.00000?'
     """
-    # Check if x is just a number with a possible sign and/or decimal point.
-    if re.match(r'(\+|-)?[0-9]*\.?[0-9]*$', x):
+    # Check if x is just a number with a possible sign, and/or decimal
+    # point, and/or ends with "?"
+    if re.match(r'(\+|-)?[0-9]*\.?[0-9]*\??$', x):
         return x
     # Try to pick a delimiter.
     for delimiter in """|"'`#%&,.:;?!@_~^+-/\=<>()[]{}0123456789E""":

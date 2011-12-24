@@ -79,7 +79,7 @@ cdef class UniqueFactory(SageObject):
             Rational Field
         """
         self._name = name
-        self._cache = {}
+        self._cache = weakref.WeakValueDictionary()
 
     def __reduce__(self):
         """
@@ -164,25 +164,21 @@ cdef class UniqueFactory(SageObject):
             False
         """
         try:
-            obj = self._cache[version, key]()
-            if obj is not None:
-                return obj
+            return self._cache[version, key]
         except KeyError:
             pass
         obj = self.create_object(version, key, **extra_args)
-        self._cache[version, key] = weakref.ref(obj)
+        self._cache[version, key] = obj
         try:
             other_keys = self.other_keys(key, obj)
             for key in other_keys:
                 try:
-                    new_obj = self._cache[version, key]()
-                    if new_obj is not None:
-                        obj = new_obj
-                        break
+                    obj = self._cache[version, key]
+                    break
                 except KeyError:
                     pass
             for key in other_keys:
-                self._cache[version, key] = weakref.ref(obj)
+                self._cache[version, key] = obj
             obj._factory_data = self, version, key, extra_args
             if obj.__class__.__reduce__.__objclass__ is object:
                 # replace the generic object __reduce__ to use this one

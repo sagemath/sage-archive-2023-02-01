@@ -42,7 +42,7 @@ import sage.rings.padics.padic_base_leaves as padic_base_leaves
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
-from sage.misc.cachefunc import cached_function
+from sage.misc.cachefunc import weak_cached_function
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -572,7 +572,7 @@ _UniqueFactorizationDomains = categories.unique_factorization_domains.UniqueFact
 _IntegralDomains = categories.integral_domains.IntegralDomains()
 _Rings = category = categories.rings.Rings()
 
-@cached_function
+@weak_cached_function
 def polynomial_default_category(base_ring,multivariate):
     """
     Choose an appropriate category for a polynomial ring.

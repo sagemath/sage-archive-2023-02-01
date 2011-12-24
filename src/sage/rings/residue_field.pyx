@@ -774,7 +774,6 @@ cdef class ReductionMap(Map):
         self._PBinv = PBinv
         self._to_order = to_order # used for lift
         self._PB = PB # used for lift
-        from sage.categories.homset import Hom
         from sage.categories.all import SetsWithPartialMaps
         self._repr_type_str = "Partially defined reduction"
         Map.__init__(self, Hom(K, F, SetsWithPartialMaps()))
@@ -938,10 +937,16 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
         abar
         sage: (1+abar)^179
         24*abar + 12
-        sage: k.coerce_map_from(OK)
+        sage: phi = k.coerce_map_from(OK); phi
         Ring morphism:
           From: Maximal Order in Number Field in a with defining polynomial x^3 - 7
           To:   Residue field in abar of Fractional ideal (2*a^2 + 3*a - 10)
+
+    By trac ticket #12215, phi is in fact contained in the homset with
+    domain ``OK`` and codomain ``k``::
+
+        sage: phi in Hom(OK,k)
+        True
 
         #sage: R.<t> = GF(19)[]; P = R.ideal(t^2 + 5)
         #sage: k.<a> = R.residue_field(P)
@@ -986,9 +991,8 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
         self._PBinv = PBinv
         self._PB = PB # used for lift
         self._to_order = to_order # used for lift
-        from sage.rings.homset import RingHomset
         self._repr_type_str = "Reduction"
-        RingHomomorphism.__init__(self, RingHomset(K, F))
+        RingHomomorphism.__init__(self, Hom(K,F))
 
     cpdef Element _call_(self, x):
         """

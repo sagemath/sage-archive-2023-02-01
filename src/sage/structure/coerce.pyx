@@ -176,8 +176,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: A = cm.get_action(ZZ, NumberField(x^2-2, 'a'), operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
-            sage: cm.get_stats()
-            ((0, 1.0, 4), (0, 0.25, 1))
+            sage: cm.get_stats()  # random
+            ((0, 1.0, 4), (0, 0.0, 0))
 
         .. note::
 

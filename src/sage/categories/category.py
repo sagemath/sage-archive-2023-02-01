@@ -106,16 +106,12 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.dynamic_class import dynamic_class_internal
 
-@cached_function
+from weakref import WeakValueDictionary
+_join_cache = WeakValueDictionary()
+
 def _join(categories, as_list):
     """
     This is an auxiliary function for :meth:`Category.join`
-
-    NOTE:
-
-    It is used for getting a temporary speed-up at trac ticket #11900.
-    But it is supposed to be replaced by a better solution at trac
-    ticket #11943.
 
     INPUT:
 
@@ -135,6 +131,12 @@ def _join(categories, as_list):
         from objects import Objects
         return Objects()
 
+    if not as_list:
+        try:
+            return _join_cache[categories]
+        except KeyError:
+            pass
+
     # Ensure associativity by flattening JoinCategory's
     # Invariant: the super categories of a JoinCategory are not JoinCategories themselves
     categories = sum( (tuple(category._super_categories) if isinstance(category, JoinCategory) else (category,)
@@ -149,9 +151,10 @@ def _join(categories, as_list):
     if as_list:
         return list(result)
     if len(result) == 1:
-        return result[0]
+        out = _join_cache[categories] = result[0]
     else:
-        return JoinCategory(result)
+        out = _join_cache[categories] = JoinCategory(result)
+    return out
 
 
 class Category(UniqueRepresentation, SageObject):
@@ -264,9 +267,18 @@ class Category(UniqueRepresentation, SageObject):
         ...               return "D"
         ...
 
-    Categories should always have uniq representation. We check
-    this before proceeding::
+    Categories should always have unique representation; by trac ticket
+    #12215, this means that it will be kept in cache, but only if there
+    is still some strong reference to it.
 
+    We check this before proceeding::
+
+        sage: import gc
+        sage: idAs = id(As())
+        sage: _ = gc.collect()
+        sage: n == id(As())
+        False
+        sage: a = As()
         sage: id(As()) == id(As())
         True
         sage: As().parent_class == As().parent_class

@@ -22,7 +22,7 @@ Abstract class for singleton and unique representation behavior.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_function
+from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 
 class UniqueRepresentation:
@@ -97,11 +97,14 @@ class UniqueRepresentation:
         ...
 
     Two coexisting instances of MyClass created with the same
-    argument data are guaranteed to share the same identity::
+    argument data are guaranteed to share the same identity. Since
+    trac ticket #12215, this is only the case if there is some
+    strong reference to the returned instance, since otherwise
+    it may be garbage collected::
 
         sage: x = MyClass(1)
         sage: y = MyClass(1)
-        sage: x is y
+        sage: x is y               # There is a strong reference
         True
         sage: z = MyClass(2)
         sage: x is z
@@ -446,7 +449,7 @@ class UniqueRepresentation:
 
     _included_private_doc_ = ["__classcall__"]
 
-    @cached_function # automatically a staticmethod
+    @weak_cached_function # automatically a staticmethod
     def __classcall__(cls, *args, **options):
         """
         Constructs a new object of this class or reuse an existing one.

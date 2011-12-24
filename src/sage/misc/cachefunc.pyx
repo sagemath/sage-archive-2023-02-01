@@ -9,7 +9,7 @@ AUTHORS:
   methods to instances).
 - Tom Boothby (added DiskCachedFunction).
 - Simon King (improved performance, more doctests, cython version,
-  added CachedMethodCallerNoArgs).
+  added CachedMethodCallerNoArgs. Weak cached function).
 
 EXAMPLES:
 
@@ -29,9 +29,46 @@ Python functions::
     sage: test_pfunc(5) is test_pfunc(5)
     True
 
+In some cases, one would only want to keep the result in cache as long
+as there is any other reference to the result. By :trac:`12215`, this is
+enabled for :class:`~sage.structure.unique_representation.UniqueRepresentation`,
+which is used to create unique parents: If an algebraic structure, such
+as a finite field, is only temporarily used, then it will not stay in
+cache forever. That behaviour is implemented using ``weak_cached_function``,
+that behaves the same as ``cached_function``, except that it uses a
+``WeakValueDictionary`` for storing the results.
+::
+
+    sage: from sage.misc.cachefunc import weak_cached_function
+    sage: class A: pass
+    sage: @weak_cached_function
+    ... def f():
+    ...    print "doing a computation"
+    ...    return A()
+    ...
+    sage: a = f()
+    doing a computation
+
+The result is cached::
+
+    sage: b = f()
+    sage: a is b
+    True
+
+However, if there are no strong references left, the result
+may be garbage collected, and thus a new computation would
+take place::
+
+    sage: del a
+    sage: del b
+    sage: import gc
+    sage: n = gc.collect()
+    sage: a = f()
+    doing a computation
+
 Unfortunately, cython functions do not allow arbitrary
 decorators. However, one can wrap a Cython function and
-turn it into a cached function, by trac ticket #11115.
+turn it into a cached function, by :trac:`11115`.
 We need to provide the name that the wrapped method or
 function should have, since otherwise the name of the
 original function would be used::
@@ -71,7 +108,44 @@ attribute ``__cached_methods`` of type ``<dict>``. Since trac ticket
     sage: O.wrapped_method(5) is O.wrapped_method(5)
     True
 
-By trac ticket #11115, even if a parent does not allow attribute
+In some cases, one would only want to keep the result in cache as long
+as there is any other reference to the result. By :trac:`12215`, this is
+enabled for :class:`~sage.structure.unique_representation.UniqueRepresentation`,
+which is used to create unique parents: If an algebraic structure, such
+as a finite field, is only temporarily used, then it will not stay in
+cache forever. That behaviour is implemented using ``weak_cached_function``,
+that behaves the same as ``cached_function``, except that it uses a
+``WeakValueDictionary`` for storing the results.
+::
+
+    sage: from sage.misc.cachefunc import weak_cached_function
+    sage: class A: pass
+    sage: @weak_cached_function
+    ... def f():
+    ...    print "doing a computation"
+    ...    return A()
+    ...
+    sage: a = f()
+    doing a computation
+
+The result is cached::
+
+    sage: b = f()
+    sage: a is b
+    True
+
+However, if there are no strong references left, the result
+may be garbage collected, and thus a new computation would
+take place::
+
+    sage: del a
+    sage: del b
+    sage: import gc
+    sage: n = gc.collect()
+    sage: a = f()
+    doing a computation
+
+By :trac:`11115`, even if a parent does not allow attribute
 assignment, it can inherit a cached method from the parent class of a
 category (previously, the cache would have been broken)::
 
@@ -271,6 +345,8 @@ ought to be chosen. A typical example is
 from function_mangling import ArgumentFixer
 import os
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
+
+from weakref import WeakValueDictionary
 
 def _cached_function_unpickle(module,name):
     """
@@ -715,6 +791,190 @@ cdef class CachedFunction(object):
 
 
 cached_function = CachedFunction
+
+cdef class WeakCachedFunction(CachedFunction):
+    """
+    A version of :class:`CachedFunction` using weak references on the values.
+
+    If f is a function, do either ``g = weak_cached_function(f)`` to make
+    a cached version of f, or put ``@weak_cached_function`` right before
+    the definition of f (i.e., use Python decorators, but then
+    the optional argument ``name`` can not be used)::
+
+        @weak_cached_function
+        def f(...):
+            ...
+
+    EXAMPLES::
+
+        sage: from sage.misc.cachefunc import weak_cached_function
+        sage: class A: pass
+        sage: @weak_cached_function
+        ... def f():
+        ...    print "doing a computation"
+        ...    return A()
+        ...
+        sage: a = f()
+        doing a computation
+
+    The result is cached::
+
+        sage: b = f()
+        sage: a is b
+        True
+
+    However, if there are no strong references left, the result
+    may be garbage collected, and thus a new computation would
+    take place::
+
+        sage: del a
+        sage: del b
+        sage: import gc
+        sage: n = gc.collect()
+        sage: a = f()
+        doing a computation
+
+    """
+    def __init__(self, f, classmethod=False, name=None):
+        """
+        The inputs to the function must be hashable.
+        The outputs to the function must be weakly referenceable.
+
+        TESTS::
+
+            sage: from sage.misc.cachefunc import weak_cached_function
+            sage: class A: pass
+            sage: @weak_cached_function
+            ... def f():
+            ...    return A()
+            ...
+            sage: f
+            Cached version of <function f at ...>
+
+        We demonstrate that pickling works, provided the uncached function
+        is available::
+
+            sage: import __main__
+            sage: __main__.f = f
+            sage: loads(dumps(f))
+            Cached version of <function f at ...>
+            sage: f.cache
+            <WeakValueDictionary at ...>
+
+        """
+        self._common_init(f, ArgumentFixer(f,classmethod=classmethod), name=name)
+        self.cache = WeakValueDictionary()
+    def __call__(self, *args, **kwds):
+        """
+        Return value from cache or call the wrapped function,
+        caching the output.
+
+        TESTS::
+
+            sage: from sage.misc.cachefunc import weak_cached_function
+            sage: class A: pass
+            sage: @weak_cached_function
+            ... def f():
+            ...    print "doing a computation"
+            ...    return A()
+            ...
+            sage: a = f()    # indirect doctest
+            doing a computation
+
+        The result is cached::
+
+            sage: b = f()
+            sage: a is b
+            True
+
+        However, if there are no strong references left, the result
+        may be garbage collected, and thus a new computation would
+        take place::
+
+            sage: del a
+            sage: del b
+            sage: import gc
+            sage: n = gc.collect()
+            sage: a = f()
+            doing a computation
+
+        """
+        # We shortcut a common case of no arguments
+        if args or kwds:
+            k = self._fix_to_pos(*args, **kwds)
+        else:
+            if self._default_key is not None:
+                k = self._default_key
+            else:
+                k = self._default_key = self._fix_to_pos()
+
+        try:
+            return self.cache[k]
+        except KeyError:
+            w = self.f(*args, **kwds)
+            self.cache[k] = w
+            return w
+    def is_in_cache(self, *args, **kwds):
+        """
+        Checks if the argument list is in the cache.
+
+        EXAMPLES::
+
+            sage: from sage.misc.cachefunc import weak_cached_function
+            sage: class A:
+            ...     def __init__(self, x):
+            ...         self.x = x
+            ...
+            sage: @weak_cached_function
+            ... def f(n):
+            ...    return A(n)
+            ...
+            sage: a = f(5)
+
+        The key 5 is in the cache, as long as there is a strong
+        reference to the corresponding value::
+
+            sage: f.is_in_cache(5)
+            True
+
+        However, if there are no strong references left, the cached
+        item is removed from cache after garbage collection::
+
+            sage: del a
+            sage: import gc
+            sage: n = gc.collect()
+            sage: f.is_in_cache(5)
+            False
+
+        """
+        return self._fix_to_pos(*args, **kwds) in self.cache
+
+    def set_cache(self, value, *args, **kwds):
+        """
+        Set the value for those args and keyword args
+        Mind the unintuitive syntax (value first).
+        Any idea on how to improve that welcome!
+
+        It is required that the given value is weak
+        referenceable. The item will be removed from
+        cache if the value is garbage collected.
+
+        EXAMPLES::
+
+            sage: from sage.misc.cachefunc import weak_cached_function
+            sage: @weak_cached_function
+            ... def f(n):
+            ...     raise RuntimeError
+            ...
+            sage: f.set_cache(ZZ, 5)
+            sage: f(5)
+            Integer Ring
+
+         """
+        self.cache[self._fix_to_pos(*args, **kwds)] = value
+
+
+weak_cached_function = WeakCachedFunction
 
 class CachedMethodPickle(object):
     """

@@ -116,7 +116,7 @@ an inheritance can be partially emulated using :meth:`__getattr__`. See
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.cachefunc import cached_function
+from sage.misc.cachefunc import weak_cached_function
 from sage.structure.unique_representation import ClasscallMetaclass
 
 def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
@@ -256,7 +256,7 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
     #    assert(cls is None or issubtype(type(cls), type) or type(cls) is classobj)
     return dynamic_class_internal(name, bases, cls, reduction, doccls)
 
-@cached_function
+@weak_cached_function
 def dynamic_class_internal(name, bases, cls = None, reduction = None, doccls = None):
     r"""
     See sage.structure.dynamic_class.dynamic_class? for indirect doctests.

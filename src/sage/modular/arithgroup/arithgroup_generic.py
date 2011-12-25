@@ -23,6 +23,12 @@ from copy import copy # for making copies of lists of cusps
 from sage.modular.modsym.p1list import lift_to_sl2z
 from sage.modular.cusps import Cusp
 
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.modular.arithgroup.congroup_sl2z', 'SL2Z')
+from sage.structure.element import parent
+
+from arithgroup_element import ArithmeticSubgroupElement
+
 def is_ArithmeticSubgroup(x):
     r"""
     Return True if x is of type ArithmeticSubgroup.
@@ -46,6 +52,8 @@ class ArithmeticSubgroup(group.Group):
     general-purpose routines which compute data about an arithmetic subgroup
     assuming that it has a working element testing routine.
     """
+
+    Element = ArithmeticSubgroupElement
 
     def __init__(self):
         r"""
@@ -102,6 +110,86 @@ class ArithmeticSubgroup(group.Group):
         """
         raise NotImplementedError, "all subclasses must define a __reduce__ method"
 
+    def _element_constructor_(self, x, check=True):
+        r"""
+        Create an element of this congruence subgroup from x.
+
+        If the optional flag check is True (default), check whether
+        x actually gives an element of self.
+
+        EXAMPLES::
+
+            sage: G = Gamma(5)
+            sage: G([1, 0, -10, 1]) # indirect doctest
+            [ 1   0]
+            [-10  1]
+            sage: G(matrix(ZZ, 2, [26, 5, 5, 1]))
+            [26  5]
+            [ 5  1]
+            sage: G([1, 1, 6, 7])
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix [1 1]
+            [6 7] is not an element of Congruence Subgroup Gamma(5)
+        """
+        # Do not override this function! Derived classes should override
+        # _contains_sl2.
+        x = SL2Z(x, check)
+        if not check or x in self:
+            return x
+        raise TypeError, "matrix %s is not an element of %s" % (x, self)
+
+    def __contains__(self, x):
+        r"""
+        Test if x is an element of this group. This checks that x defines (is?) a 2x2 integer matrix of determinant 1, and
+        then hands over to the routine _contains_sl2, which derived classes should implement.
+
+        EXAMPLES::
+
+            sage: [1,2] in SL2Z # indirect doctest
+            False
+            sage: [1,2,0,1] in SL2Z # indirect doctest
+            True
+            sage: SL2Z([1,2,0,1]) in Gamma(3) # indirect doctest
+            False
+            sage: -1 in SL2Z
+            True
+            sage: 2 in SL2Z
+            False
+        """
+        # Do not override this function! Derived classes should override
+        # _contains_sl2.
+        if type(x) == type([]) and len(x) == 4:
+            if not (x[0] in ZZ and x[1] in ZZ and x[2] in ZZ and x[3] in ZZ):
+                return False
+            a,b,c,d = map(ZZ, x)
+            if a*d - b*c != 1: return False
+            return self._contains_sl2(a,b,c,d)
+        else:
+            if parent(x) is not SL2Z:
+                try:
+                    y = SL2Z(x)
+                except TypeError:
+                    return False
+                x = y
+            return self._contains_sl2(x.a(),x.b(),x.c(),x.d())
+
+    def _contains_sl2(self, a,b,c,d):
+        r"""
+        Test whether the matrix [a,b;c,d], which may be assumed to have
+        determinant 1, is an element of self. This must be overridden by all
+        subclasses.
+
+        EXAMPLE::
+
+            sage: G = sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup()
+            sage: 1 in G
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Please implement _contains_sl2 for <class 'sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup_with_category'>
+        """
+        raise NotImplementedError, "Please implement _contains_sl2 for %s" % self.__class__
+
     def __hash__(self):
         r"""
         Return a hash of self.
@@ -116,6 +204,24 @@ class ArithmeticSubgroup(group.Group):
             4909638266971150633 # 64-bit
         """
         return hash(str(self))
+
+    def is_parent_of(self, x):
+        r"""
+        Check whether this group is a valid parent for the element x. Required
+        by Sage's testing framework.
+
+        EXAMPLE::
+
+            sage: Gamma(3).is_parent_of(ZZ(1))
+            False
+            sage: Gamma(3).is_parent_of([1,0,0,1])
+            False
+            sage: Gamma(3).is_parent_of(SL2Z([1,1,0,1]))
+            False
+            sage: Gamma(3).is_parent_of(SL2Z(1))
+            True
+        """
+        return (parent(x) == SL2Z and x in self)
 
     def coset_reps(self, G=None):
         r"""
@@ -132,7 +238,7 @@ class ArithmeticSubgroup(group.Group):
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().coset_reps()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Please implement _contains_sl2 for <class 'sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup_with_category'>
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.coset_reps(Gamma0(3))
             [
             [1 0]  [ 0 -1]  [ 0 -1]  [ 0 -1]
@@ -214,8 +320,6 @@ class ArithmeticSubgroup(group.Group):
             sage: all(~reps[s[i]] * S * reps[i] in G for i in xrange(6))
             True
         """
-        from all import SL2Z
-
         if G is None:
             G = SL2Z
         if G != SL2Z:
@@ -315,7 +419,7 @@ class ArithmeticSubgroup(group.Group):
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().nu2()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Please implement _contains_sl2 for <class 'sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup_with_category'>
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.nu2(Gamma0(1105)) == 8
             True
         """
@@ -339,7 +443,6 @@ class ArithmeticSubgroup(group.Group):
         # still works, since the failure of these points to be distinct happens
         # precisely when the preimages are not elliptic.)
 
-        from all import SL2Z
         count = 0
         for g in self.coset_reps():
             if g * SL2Z([0,1,-1,0]) * (~g) in self:
@@ -356,7 +459,7 @@ class ArithmeticSubgroup(group.Group):
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().nu3()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Please implement _contains_sl2 for <class 'sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup_with_category'>
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.nu3(Gamma0(1729)) == 8
             True
 
@@ -374,7 +477,6 @@ class ArithmeticSubgroup(group.Group):
             if self.is_subgroup(Gamma0(self.level())) and Gamma0(self.level()).nu3() == 0:
                 return 0
 
-        from all import SL2Z
         count = 0
         for g in self.coset_reps():
             if g * SL2Z([0,1,-1,-1]) * (~g) in self:
@@ -475,7 +577,6 @@ class ArithmeticSubgroup(group.Group):
             sage: Gamma1(3).is_normal()
             False
         """
-        from all import SL2Z
         for x in self.gens():
             for y in SL2Z.gens():
                 if y*SL2Z(x)*(~y) not in self:
@@ -526,7 +627,7 @@ class ArithmeticSubgroup(group.Group):
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().to_even_subgroup()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Please implement _contains_sl2 for <class 'sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup_with_category'>
         """
         if self.is_even():
             return self
@@ -604,7 +705,6 @@ class ArithmeticSubgroup(group.Group):
 
         from congroup_sl2z import is_SL2Z
         if is_SL2Z(self):
-            from sage.modular.cusps import Cusp
             s = [Cusp(1,0)]
 
         if algorithm == 'default':
@@ -634,7 +734,6 @@ class ArithmeticSubgroup(group.Group):
         so this should usually be overridden in subclasses; but it doesn't have
         to be.
         """
-        from sage.modular.cusps import Cusp
         i = Cusp([1,0])
         L = [i]
         for a in self.coset_reps():
@@ -678,8 +777,6 @@ class ArithmeticSubgroup(group.Group):
             except NotImplementedError:
                 pass
 
-        from all import SL2Z
-
         vx = lift_to_sl2z(x.numerator(),x.denominator(), 0)
         dx = SL2Z([vx[2], -vx[0], vx[3], -vx[1]])
         vy = lift_to_sl2z(y.numerator(),y.denominator(), 0)
@@ -716,7 +813,6 @@ class ArithmeticSubgroup(group.Group):
             )
         """
         c = Cusp(c)
-        from all import SL2Z # can't import at top as that would cause a circular import
 
         # first find an element of SL2Z sending infinity to the given cusp
         w = lift_to_sl2z(c.denominator(), c.numerator(), 0)
@@ -790,10 +886,8 @@ class ArithmeticSubgroup(group.Group):
 
             sage: Gamma0(18).generalised_level()
             18
-            sage: sage.modular.arithgroup.congroup_generic.CongruenceSubgroup(5).index()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: sage.modular.arithgroup.arithgroup_perm.HsuExample18().generalised_level()
+            24
 
         In the following example, the actual level is twice the generalised
         level. This is the group `G_2` from Example 17 of K-S-V.

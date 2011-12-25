@@ -1271,6 +1271,9 @@ ext_modules = [
               libraries = ['gmpxx', 'gmp'],
               language = 'c++'),
 
+    Extension('sage.modular.arithgroup.arithgroup_element',
+              sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
+
     Extension('sage.modular.modform.eis_series_cython',
               sources = ['sage/modular/modform/eis_series_cython.pyx'],
               libraries = ["gmp", "flint"],

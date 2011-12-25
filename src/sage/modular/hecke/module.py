@@ -24,6 +24,7 @@ import sage.modules.module
 from sage.structure.all import Sequence
 import sage.matrix.matrix_space as matrix_space
 from sage.structure.parent_gens import ParentWithGens
+from sage.structure.parent import Parent
 
 import sage.misc.prandom as random
 
@@ -93,6 +94,20 @@ class HeckeModule_generic(sage.modules.module.Module_old):
         self.__level = level
         self._hecke_matrices = {}
         self._diamond_matrices = {}
+
+    def __setstate__(self, state):
+        r"""
+        Ensure that the category is initialized correctly on unpickling.
+
+        EXAMPLE::
+
+            sage: loads(dumps(ModularSymbols(11))).category() # indirect doctest
+            Category of Hecke modules over Rational Field
+        """
+        if not self._is_category_initialized():
+            from sage.categories.hecke_modules import HeckeModules
+            self._init_category_(HeckeModules(state['_base']))
+        sage.modules.module.Module_old.__setstate__(self, state)
 
     def __hash__(self):
         r"""

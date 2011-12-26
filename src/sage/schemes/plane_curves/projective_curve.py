@@ -301,8 +301,15 @@ class ProjectiveCurve_generic(Curve_generic_projective):
             sage: E.is_singular()
             False
 
+        Showing that ticket #12187 is fixed::
+
+            sage: F.<X,Y,Z> = GF(2)[]
+            sage: G = Curve(X^2+Y*Z)
+            sage: G.is_singular()
+            False
         """
-        return C.defining_polynomial().parent().ideal(C.defining_polynomial().gradient()).dimension()> 0
+        poly = C.defining_polynomial()
+        return poly.parent().ideal(poly.gradient()+[poly]).dimension()> 0
 
 
 class ProjectiveCurve_finite_field(ProjectiveCurve_generic):

@@ -9,10 +9,20 @@ from sage.schemes.generic.divisor_group import DivisorGroup
 from sage.schemes.generic.divisor import Divisor_curve
 
 class Curve_generic(AlgebraicScheme_subscheme):
+    r"""
+    EXAMPLES::
+
+        sage: A.<x,y,z> = AffineSpace(QQ,3)
+        sage: C = Curve([x-y,z-2])
+        sage: loads(C.dumps()) == C
+        True
+    """
+
     def _repr_(self):
         """
-        EXAMPLES:
-       sage: A.<x,y,z> = AffineSpace(QQ,3)
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(QQ,3)
             sage: C = Curve([x-y,z-2])
             sage: C
             Affine Space Curve over Rational Field defined by x - y, z - 2

@@ -51,9 +51,9 @@ def AffineSpace(n, R=None, names='x'):
     r"""
     Return affine space of dimension `n` over the ring `R`.
 
-    EXAMPLES: The dimension and ring can be given in either order.
+    EXAMPLES:
 
-    ::
+    The dimension and ring can be given in either order::
 
         sage: AffineSpace(3, QQ, 'x')
         Affine Space of dimension 3 over Rational Field
@@ -64,23 +64,17 @@ def AffineSpace(n, R=None, names='x'):
         sage: A.coordinate_ring()
         Multivariate Polynomial Ring in X, Y over Rational Field
 
-    Use the divide operator for base extension.
-
-    ::
+    Use the divide operator for base extension::
 
         sage: AffineSpace(5, names='x')/GF(17)
         Affine Space of dimension 5 over Finite Field of size 17
 
-    The default base ring is `\ZZ`.
-
-    ::
+    The default base ring is `\ZZ`::
 
         sage: AffineSpace(5, names='x')
         Affine Space of dimension 5 over Integer Ring
 
-    There is also an affine space associated to each polynomial ring.
-
-    ::
+    There is also an affine space associated to each polynomial ring::
 
         sage: R = GF(7)['x,y,z']
         sage: A = AffineSpace(R); A
@@ -104,6 +98,7 @@ def AffineSpace(n, R=None, names='x'):
             raise TypeError, "You must specify the variables names of the coordinate ring."
     return AffineSpace_generic(n, R, names)
 
+
 class AffineSpace_generic(AmbientSpace, AffineScheme):
     """
     Affine space of dimension `n` over the ring `R`.
@@ -116,8 +111,8 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         sage: X.base_ring()
         Rational Field
         sage: X.category()
-        Category of schemes over Spectrum of Rational Field
-        sage: X.structure_morphism ()
+        Category of schemes over Rational Field
+        sage: X.structure_morphism()
         Scheme morphism:
           From: Affine Space of dimension 3 over Rational Field
           To:   Spectrum of Rational Field
@@ -128,26 +123,18 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         sage: loads(X.dumps()) == X
         True
 
-    We create several other examples of affine spaces.
-
-    ::
+    We create several other examples of affine spaces::
 
         sage: AffineSpace(5, PolynomialRing(QQ, 'z'), 'Z')
         Affine Space of dimension 5 over Univariate Polynomial Ring in z over Rational Field
 
-    ::
-
         sage: AffineSpace(RealField(), 3, 'Z')
         Affine Space of dimension 3 over Real Field with 53 bits of precision
-
-    ::
 
         sage: AffineSpace(Qp(7), 2, 'x')
         Affine Space of dimension 2 over 7-adic Field with capped relative precision 20
 
-    Even 0-dimensional affine spaces are supported.
-
-    ::
+    Even 0-dimensional affine spaces are supported::
 
         sage: AffineSpace(0)
         Affine Space of dimension 0 over Integer Ring

@@ -603,10 +603,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             characteristic = self.base_ring().characteristic()
             if characteristic != 0 and isinstance(args[0][0], rings.Rational) and isinstance(args[0][1], rings.Rational):
                 if rings.mod(args[0][0].denominator(),characteristic) == 0 or rings.mod(args[0][1].denominator(),characteristic) == 0:
-                    args = self._reduce_point(args[0], characteristic)
-                    args = tuple(args)
-            else:
-                args = tuple(args[0])
+                    return self._reduce_point(args[0], characteristic)
+            args = tuple(args[0])
 
         return plane_curve.ProjectiveCurve_generic.__call__(self, *args, **kwds)
 
@@ -860,8 +858,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         EXAMPLES::
 
             sage: E=EllipticCurve(GF(5),[1,1])
-            sage: E._homset_class(GF(5^10,'a'),GF(5))
-            Abelian group of points on Finite Field in a of size 5^10
+            sage: E._homset_class(Spec(GF(5^10,'a'),GF(5)), E)
+            Abelian group of points on Elliptic Curve defined
+            by y^2 = x^3 + x + 1 over Finite Field in a of size 5^10
         """
         return homset.SchemeHomsetModule_abelian_variety_coordinates_field(*args, **kwds)
 
@@ -2301,12 +2300,17 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: F = EllipticCurve('27a3') # should be the same one
             sage: E.isomorphisms(F);
             [Generic morphism:
-            From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
-            To:   Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
-            Via:  (u,r,s,t) = (-1, 0, 0, -1), Generic morphism:
-            From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
-            To:   Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
-            Via:  (u,r,s,t) = (1, 0, 0, 0)]
+              From: Abelian group of points on Elliptic Curve defined
+                    by y^2 + y = x^3 over Rational Field
+              To:   Abelian group of points on Elliptic Curve defined
+                    by y^2 + y = x^3 over Rational Field
+              Via:  (u,r,s,t) = (-1, 0, 0, -1), Generic morphism:
+              From: Abelian group of points on Elliptic Curve defined
+                    by y^2 + y = x^3 over Rational Field
+              To:   Abelian group of points on Elliptic Curve defined
+                    by y^2 + y = x^3 over Rational Field
+              Via:  (u,r,s,t) = (1, 0, 0, 0)]
+
 
         We can also find isomorphisms defined over extension fields::
 

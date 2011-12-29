@@ -24,14 +24,14 @@ def Schemes(X=None):
         Category of Schemes
 
         sage: Schemes(Spec(ZZ))
-        Category of schemes over Spectrum of Integer Ring
+        Category of schemes over Integer Ring
 
         sage: Schemes(ZZ)
-        Category of schemes over Spectrum of Integer Ring
+        Category of schemes over Integer Ring
     """
     if X is None:
         return Schemes_abstract()
-    from sage.schemes.all import is_Scheme
+    from sage.schemes.generic.scheme import is_Scheme
     if not is_Scheme(X):
         X = Schemes()(X)
     return Schemes_over_base(X)
@@ -90,7 +90,7 @@ class Schemes_abstract(Category):
             Spectrum of Integer Ring
 
         We create a scheme morphism from a ring homomorphism.x::
-\
+
             sage: phi = ZZ.hom(QQ); phi
             Ring Coercion morphism:
               From: Integer Ring
@@ -116,11 +116,15 @@ class Schemes_abstract(Category):
                       To:   Rational Field
 
         """
-        from sage.rings.all import is_CommutativeRing, is_RingHomomorphism
-        from sage.schemes.all import is_Scheme, Spec, is_SchemeMorphism
-        if is_Scheme(x) or is_SchemeMorphism(x):
+        from sage.schemes.generic.scheme import is_Scheme
+        if is_Scheme(x):
             return x
-        elif is_CommutativeRing(x):
+        from sage.schemes.generic.morphism import is_SchemeMorphism
+        if is_SchemeMorphism(x):
+            return x
+        from sage.rings.all import is_CommutativeRing, is_RingHomomorphism
+        from sage.schemes.generic.spec import Spec
+        if is_CommutativeRing(x):
             return Spec(x)
         elif is_RingHomomorphism(x):
             A = Spec(x.codomain())
@@ -159,7 +163,7 @@ class Schemes_abstract(Category):
                 the parent for Hom(R, S) to be in a different class::
 
                     sage: Hom(Spec(ZZ), Spec(ZZ)).__class__
-                    <class 'sage.schemes.generic.homset.SchemeHomset_spec_with_category'>
+                    <class 'sage.schemes.generic.homset.SchemeHomset_coordinates_with_category'>
 
                 Currently, and to minimize the changes, this is done
                 by delegating the job to SchemeHomset. This is not
@@ -182,7 +186,7 @@ class Schemes_over_base(Category_over_base):
     EXAMPLES::
 
         sage: Schemes(Spec(ZZ))
-        Category of schemes over Spectrum of Integer Ring
+        Category of schemes over Integer Ring
 
     TESTS::
 
@@ -214,7 +218,11 @@ class Schemes_over_base(Category_over_base):
         EXAMPLES::
 
             sage: Schemes(Spec(ZZ)) # indirect doctest
-            Category of schemes over Spectrum of Integer Ring
+            Category of schemes over Integer Ring
         """
         # To work around the name of the class (schemes_over_base)
-        return "schemes over %s"%self.base_scheme()
+        from sage.schemes.generic.spec import is_Spec
+        if is_Spec(self.base_scheme()):
+            return "schemes over %s" % self.base_scheme().coordinate_ring()
+        else:
+            return "schemes over %s" % self.base_scheme()

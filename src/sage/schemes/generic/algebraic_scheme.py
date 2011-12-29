@@ -344,8 +344,8 @@ class AlgebraicScheme(scheme.Scheme):
 
         OUTPUT:
 
-        A scheme morphism whose :meth:`~morphism.PyMorphism.domain` is
-        ``self``.
+        A scheme morphism whose
+        :meth:`~morphism.SchemeMorphism.domain` is ``self``.
 
         * By default, it is the tautological embedding into its own
           ambient space :meth:`ambient_space`.
@@ -714,7 +714,6 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             Traceback (most recent call last):
             ...
             TypeError: number of arguments does not match number of variables in parent
-
 
             sage: A.<x, y> = AffineSpace(2, GF(7))
             sage: S = A.subscheme([x^2-y])

@@ -301,7 +301,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         (x(t),y(t)) such that y(t)^2 = f(x(t)) and t = x - a
         is the local parameter at P
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ['x']
             sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
             sage: P = H(1,6)
@@ -318,6 +319,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             12 - 19/2*t - 19/32*t^2 + 61/256*t^3 - 5965/24576*t^4 + O(t^5)
 
         AUTHOR:
+
             - Jennifer Balakrishnan (2007-12)
         """
         d = P[1]

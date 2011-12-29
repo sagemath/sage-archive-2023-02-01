@@ -58,7 +58,7 @@ Only affine toric varieties have points whose (homogeneous) coordinates
 are all zero. ::
 
     sage: parent(origin)
-    Set of Rational Points of 2-d affine toric variety
+    Set of rational points of 2-d affine toric variety
 
 As you can see, by default toric varieties live over the field of rational
 numbers::
@@ -414,7 +414,7 @@ def AffineToricVariety(cone, *args, **kwds):
         sage: origin
         [0 : 0]
         sage: parent(origin)
-        Set of Rational Points of 2-d affine toric variety
+        Set of rational points of 2-d affine toric variety
 
     Only affine toric varieties have points whose (homogeneous) coordinates
     are all zero.
@@ -637,8 +637,8 @@ class ToricVariety_field(AmbientSpace):
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
             sage: P1xP1 = ToricVariety(fan)
-            sage: P1xP1._homset_class(P1xP1, P1xP1.base_ring())
-            Set of Rational Points of 2-d toric variety
+            sage: P1xP1._homset_class(Spec(QQ), P1xP1)
+            Set of rational points of 2-d toric variety
             covered by 4 affine patches
         """
         return SchemeHomset_toric_coordinates_field(*args, **kwds)

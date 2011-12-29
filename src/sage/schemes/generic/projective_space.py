@@ -176,7 +176,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         Spectrum of Rational Field
         sage: X.base_ring()
         Rational Field
-        sage: X.structure_morphism ()
+        sage: X.structure_morphism()
         Scheme morphism:
           From: Projective Space of dimension 3 over Rational Field
           To:   Spectrum of Rational Field

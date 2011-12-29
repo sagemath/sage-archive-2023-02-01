@@ -1,5 +1,5 @@
 """
-Spec of a ring
+Spectrum of a ring as affine scheme.
 """
 
 #*******************************************************************************
@@ -10,11 +10,23 @@ Spec of a ring
 
 from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.integer_ring import ZZ
-import scheme
-import point
+
+from sage.schemes.generic.scheme import AffineScheme
+from sage.schemes.generic.point import SchemeTopologicalPoint_prime_ideal
+
 
 def is_Spec(X):
     """
+    Test whether ``X`` is a Spec.
+
+    INPUT:
+
+    - ``X`` -- anything.
+
+    OUTPUT:
+
+    Boolean.
+
     EXAMPLES::
 
         sage: from sage.schemes.generic.spec import is_Spec
@@ -27,7 +39,7 @@ def is_Spec(X):
     """
     return isinstance(X, Spec)
 
-class Spec(scheme.AffineScheme):
+class Spec(AffineScheme):
     r"""
     The spectrum of a commutative ring, as a scheme.
 
@@ -36,6 +48,13 @@ class Spec(scheme.AffineScheme):
         Calling ``Spec(R)`` twice produces two distinct (but equal)
         schemes, which is important for gluing to construct more
         general schemes.
+
+    INPUT:
+
+    - ``R`` -- a commutative ring.
+
+    - ``S`` -- a commutative ring (optional, default:`\ZZ`). The base
+      ring.
 
     EXAMPLES::
 
@@ -47,7 +66,8 @@ class Spec(scheme.AffineScheme):
         Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         sage: X = Spec(PolynomialRing(GF(49,'a'), 3, 'x')); X
         Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Finite Field in a of size 7^2
-        sage: TestSuite(X).run(skip = ["_test_an_element", "_test_elements", "_test_some_elements", "_test_category"]) # see # 7946
+        sage: TestSuite(X).run(skip = ["_test_an_element", "_test_elements",
+        ...                            "_test_some_elements"])
 
         sage: A = Spec(ZZ); B = Spec(ZZ)
         sage: A is B
@@ -55,9 +75,7 @@ class Spec(scheme.AffineScheme):
         sage: A == B
         True
 
-    A TypeError is raised if the input is not a CommutativeRing.
-
-    ::
+    A ``TypeError`` is raised if the input is not a commutative ring::
 
         sage: Spec(5)
         Traceback (most recent call last):
@@ -66,9 +84,10 @@ class Spec(scheme.AffineScheme):
         sage: Spec(FreeAlgebra(QQ,2, 'x'))
         Traceback (most recent call last):
         ...
-        TypeError: R (=Free Algebra on 2 generators (x0, x1) over Rational Field) must be a commutative ring
+        TypeError: R (=Free Algebra on 2 generators (x0, x1) over
+        Rational Field) must be a commutative ring
 
-    EXAMPLES::
+    TESTS::
 
         sage: X = Spec(ZZ)
         sage: X
@@ -79,9 +98,17 @@ class Spec(scheme.AffineScheme):
         Integer Ring
         sage: X.dimension()
         1
+        sage: Spec(QQ,QQ).base_scheme()
+        Spectrum of Rational Field
+        sage: Spec(RDF,QQ).base_scheme()
+        Spectrum of Rational Field
     """
-    def __init__(self, R, S=None, check=True):
+    def __init__(self, R, S=None):
         """
+        Construct the spectrum of the ring ``R``.
+
+        See :class:`Spec` for details.
+
         EXAMPLES::
 
             sage: Spec(ZZ)
@@ -97,16 +124,24 @@ class Spec(scheme.AffineScheme):
                 S.hom(R)
             except TypeError:
                 raise ValueError, "There must be a natural map S --> R, but S = %s and R = %s"%(S,R)
-            self._base_ring = S
+        AffineScheme.__init__(self, S)
 
     def _cmp_(self, X):
         """
-        Return the result of the comparison of self and X.
+        Compare ``self`` and ``X``.
 
         Spec's are compared with self using comparison of the
         underlying rings.  If X is not a Spec, then the result is
         platform-dependent (either self < X or X < self, but never
         self == X).
+
+        INPUT:
+
+        - ``X`` -- anything.
+
+        OUTPUT:
+
+        ``+1``, ``0``, or ``-1``.
 
         EXAMPLES::
 
@@ -130,6 +165,12 @@ class Spec(scheme.AffineScheme):
 
     def __hash__(self):
         """
+        Return the hash value.
+
+        OUTPUT:
+
+        A 32/64-bit hash value, depending on architecture.
+
         TESTS::
 
             sage: hash(Spec(ZZ))
@@ -145,6 +186,12 @@ class Spec(scheme.AffineScheme):
 
     def _repr_(self):
         """
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        String.
+
         EXAMPLES::
 
             sage: Spec(PolynomialRing(QQ, 3, 'x'))
@@ -161,6 +208,10 @@ class Spec(scheme.AffineScheme):
         """
         LaTeX representation of this Spec.
 
+        OUTPUT:
+
+        String.
+
         EXAMPLES::
 
             sage: S = Spec(PolynomialRing(ZZ, 2, 'x'))
@@ -173,10 +224,17 @@ class Spec(scheme.AffineScheme):
 
     def __call__(self, x):
         """
-        Create a point of this Spec.  The argument `x` can be a prime
-        ideal of the coordinate ring, or an element (or list of
-        elements) of the coordinate ring which generates a prime
-        ideal.
+        Call syntax for Spec.
+
+        INPUT:
+
+        - ``x`` -- a prime ideal of the coordinate ring, or an element
+          (or list of elements) of the coordinate ring which generates
+          a prime ideal.
+
+        OUTPUT:
+
+        A point of this Spec.
 
         EXAMPLES::
 
@@ -188,18 +246,42 @@ class Spec(scheme.AffineScheme):
             sage: S(ZZ.ideal(next_prime(1000000)))
             Point on Spectrum of Integer Ring defined by the Principal ideal (1000003) of Integer Ring
 
-        ::
-
             sage: R.<x, y, z> = QQ[]
             sage: S = Spec(R)
             sage: P = S(R.ideal(x, y, z)); P
-            Point on Spectrum of Multivariate Polynomial Ring in x, y, z over Rational Field defined by the Ideal (x, y, z) of Multivariate Polynomial Ring in x, y, z over Rational Field
+            Point on Spectrum of Multivariate Polynomial Ring
+            in x, y, z over Rational Field defined by the Ideal (x, y, z)
+            of Multivariate Polynomial Ring in x, y, z over Rational Field
         """
-        return point.SchemeTopologicalPoint_prime_ideal(self, x)
+        return SchemeTopologicalPoint_prime_ideal(self, x)
+
+    def _an_element_(self):
+        r"""
+        Return an element of the spectrum of the ring.
+
+        OUTPUT:
+
+        A point of the affine scheme ``self``.
+
+        EXAMPLES::
+
+            sage: Spec(QQ).an_element()
+            Point on Spectrum of Rational Field defined by the Principal ideal (0) of Rational Field
+            sage: Spec(ZZ).an_element()    # random output
+            Point on Spectrum of Integer Ring defined by the Principal ideal (811) of Integer Ring
+        """
+        if self.coordinate_ring() is ZZ:
+            from sage.rings.arith import random_prime
+            return self(random_prime(1000))
+        return self(0)
 
     def coordinate_ring(self):
         """
         Return the underlying ring of this scheme.
+
+        OUTPUT:
+
+        A commutative ring.
 
         EXAMPLES::
 
@@ -212,7 +294,11 @@ class Spec(scheme.AffineScheme):
 
     def is_noetherian(self):
         """
-        Return True if this scheme is Noetherian.
+        Test whether ``self`` is Noetherian.
+
+        OUTPUT:
+
+        Boolean. Return True if this scheme is Noetherian.
 
         EXAMPLES::
 
@@ -224,6 +310,10 @@ class Spec(scheme.AffineScheme):
     def dimension_absolute(self):
         """
         Return the absolute dimension of this scheme.
+
+        OUTPUT:
+
+        Integer.
 
         EXAMPLES::
 
@@ -241,6 +331,10 @@ class Spec(scheme.AffineScheme):
         """
         Return the relative dimension of this scheme over its base.
 
+        OUTPUT:
+
+        Integer.
+
         EXAMPLES::
 
             sage: S = Spec(ZZ)
@@ -248,5 +342,40 @@ class Spec(scheme.AffineScheme):
             0
         """
         return self.__R.krull_dimension() - self.base_ring().krull_dimension()
+
+    def base_extend(self, R):
+        """
+        Extend the base ring/scheme.
+
+        INPUT:
+
+        - ``R`` -- an affine scheme or a commutative ring.
+
+        EXAMPLES::
+
+            sage: Spec_ZZ = Spec(ZZ);  Spec_ZZ
+            Spectrum of Integer Ring
+            sage: Spec_ZZ.base_extend(QQ)
+            Spectrum of Rational Field
+        """
+        if is_CommutativeRing(R):
+            return Spec(self.coordinate_ring().base_extend(R), self.base_ring())
+        if not self.base_scheme() == R.base_scheme():
+            raise ValueError('The new base scheme must be a scheme over the old base scheme.')
+        return Spec(self.coordinate_ring().base_extend(new_base.coordinate_ring()),
+                    self.base_ring())
+
+    def _homset_class(self, *args, **kwds):
+        """
+        Return the Hom set class.
+
+        EXAMPLES::
+
+            sage: Spec(QQ)._homset_class(Spec(QQ), Spec(ZZ))
+            Set of rational points of Spectrum of Rational Field
+        """
+        from sage.schemes.generic.homset import SchemeHomset_coordinates
+        return SchemeHomset_coordinates(*args, **kwds)
+
 
 SpecZ = Spec(ZZ)

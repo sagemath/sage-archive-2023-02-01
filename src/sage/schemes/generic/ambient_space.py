@@ -12,9 +12,7 @@ Ambient Spaces
 
 from sage.rings.all import Integer, is_CommutativeRing, ZZ
 
-from sage.structure.parent import Parent
-
-import scheme
+from sage.schemes.generic.scheme import Scheme
 
 def is_AmbientSpace(x):
     """
@@ -33,7 +31,7 @@ def is_AmbientSpace(x):
     """
     return isinstance(x, AmbientSpace)
 
-class AmbientSpace(scheme.Scheme, Parent):
+class AmbientSpace(Scheme):
     """
     Base class for ambient spaces over a ring.
 
@@ -57,13 +55,14 @@ class AmbientSpace(scheme.Scheme, Parent):
         n = Integer(n)
         if n < 0:
             raise ValueError, "n (=%s) must be nonnegative"%n
-        self.__n = n
-        self._base_ring = R
+        self._dimension_relative = n
+        Scheme.__init__(self, R)
+
         # NT: this seems to set improperly self._base_scheme to X instead of Spec(X)????
         # scheme.Scheme.__init__(self, R)
         # This should be cleaned up by someone who knows about schemes (not me!)
-        from sage.categories.schemes import Schemes
-        Parent.__init__(self, R, category = Schemes(self.base_scheme()))
+        #from sage.categories.schemes import Schemes
+        #Parent.__init__(self, R, category = Schemes(self.base_scheme()))
 
     #######################################################################
     # Derived classes must overload all of the following functions
@@ -393,4 +392,4 @@ class AmbientSpace(scheme.Scheme, Parent):
             sage: A2Z.dimension_relative()
             2
         """
-        return self.__n
+        return self._dimension_relative

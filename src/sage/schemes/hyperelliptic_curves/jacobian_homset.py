@@ -8,7 +8,7 @@ EXAMPLES::
     sage: C = HyperellipticCurve(f); C
     Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + x + 1
     sage: C(QQ)
-    Set of Rational Points of Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + x + 1
+    Set of rational points of Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + x + 1
     sage: P = C([0,1,1])
     sage: J = C.jacobian(); J
     Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + x + 1
@@ -47,18 +47,17 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.schemes.generic.spec as spec
-from sage.rings.all import is_Polynomial, PolynomialRing, Integer, ZZ
-from sage.schemes.generic.homset import SchemeHomset_generic
+from sage.rings.all import is_Polynomial, PolynomialRing, Integer, is_Integer, ZZ
+from sage.schemes.generic.homset import SchemeHomset_coordinates
 from sage.schemes.generic.morphism import is_SchemeMorphism
-#from sage.schemes.jacobians.abstract_jacobian import Jacobian_generic
+from sage.schemes.generic.spec import Spec, is_Spec
 from jacobian_morphism import JacobianMorphism_divisor_class_field
-from sage.rings.integer import Integer, is_Integer
 
-class JacobianHomset_divisor_classes(SchemeHomset_generic):
-    def __init__(self, X, S):
+class JacobianHomset_divisor_classes(SchemeHomset_coordinates):
+    def __init__(self, Y, X, **kwds):
         R = X.base_ring()
-        SchemeHomset_generic.__init__(self, spec.Spec(S, R), X)
+        S = Y.coordinate_ring()
+        SchemeHomset_coordinates.__init__(self, Y, X, **kwds)
         P2 = X.curve()._printing_ring
         if S != R:
             y = str(P2.gen())
@@ -168,7 +167,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
         Returns S for a homset X(T) where T = Spec(S).
         """
         T = self.domain()
-        if spec.is_Spec(T):
+        if is_Spec(T):
             return T.coordinate_ring()
         else:
             raise TypeError, "Domain of argument must be of the form Spec(S)."

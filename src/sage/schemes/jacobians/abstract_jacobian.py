@@ -160,3 +160,60 @@ class Jacobian_generic(Scheme):
             Projective Curve over Rational Field defined by x^3 + y^3 + z^3
         """
         return self.__curve
+
+    def change_ring(self, R):
+        r"""
+        Return the Jacobian over the ring `R`.
+
+        INPUT:
+
+        - ``R`` -- a field. The new base ring.
+
+        OUTPUT:
+
+        The Jacobian over the ring `R`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: H = HyperellipticCurve(x^3-10*x+9)
+            sage: Jac = H.jacobian();   Jac
+            Jacobian of Hyperelliptic Curve over Rational
+            Field defined by y^2 = x^3 - 10*x + 9
+            sage: Jac.change_ring(RDF)
+            Jacobian of Hyperelliptic Curve over Real Double
+            Field defined by y^2 = x^3 - 10.0*x + 9.0
+        """
+        return self.curve().change_ring(R).jacobian()
+
+    def base_extend(self, R):
+        r"""
+        Return the natural extension of ``self`` over `R`
+
+        INPUT:
+
+        - ``R`` -- a field. The new base field.
+
+        OUTPUT:
+
+        The Jacobian over the ring `R`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: H = HyperellipticCurve(x^3-10*x+9)
+            sage: Jac = H.jacobian();   Jac
+            Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^3 - 10*x + 9
+            sage: F.<a> = QQ.extension(x^2+1)
+            sage: Jac.base_extend(F)
+            Jacobian of Hyperelliptic Curve over Number Field in a with defining
+            polynomial x^2 + 1 defined by y^2 = x^3 - 10*x + 9
+        """
+        if not is_Field(R):
+            raise ValueError('Not a field: '+str(R))
+        if self.base_ring() is R:
+            return self
+        if not R.has_coerce_map_from(self.base_ring()):
+            raise ValueError('no natural map from the base ring (=%s) to R (=%s)!'
+                             % (self.base_ring(), R))
+        return self.change_ring(R)

@@ -1,3 +1,28 @@
+r"""
+Factory for unique objects
+
+More general than :mod:`~sage.structure.unique_representation`, the
+:class:`UniqueFactory` class can specify a subset of the arguments
+that serve as the unique key. Typically, this is used to construct
+objects that accept an optional ``check=[True|False]`` argument, but
+whose result should be unique irregardless of said optional argument.
+"""
+
+#*****************************************************************************
+#  Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#******************************************************************************
+
 import weakref, types, copy_reg
 
 from sage_object cimport SageObject
@@ -28,7 +53,8 @@ cdef class UniqueFactory(SageObject):
     will return the same object for the same version of Sage, and distinct
     (but hopefully equal) objects for different versions of Sage.
 
-    Typically one only needs to implement create_key and create_object.
+    Typically one only needs to implement :meth:`create_key` and
+    :meth:`create_object`.
     """
 
     cdef readonly _name
@@ -37,11 +63,13 @@ cdef class UniqueFactory(SageObject):
     def __init__(self, name):
         """
         INPUT:
-            name -- a name in the global namespace referring to self
-                    or a fully qualified path name to self, which is
-                    used to locate the factory on unpickling.
 
-        EXAMPLES:
+        - ``name`` -- string. A name in the global namespace referring
+          to self or a fully qualified path name to self, which is
+          used to locate the factory on unpickling.
+
+        EXAMPLES::
+
             sage: from sage.structure.factory import UniqueFactory
             sage: fake_factory = UniqueFactory('ZZ')
             sage: loads(dumps(fake_factory))
@@ -55,7 +83,8 @@ cdef class UniqueFactory(SageObject):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = FiniteField(127)
             sage: A is loads(dumps(A)) # indirect doctest
             True
@@ -69,10 +98,11 @@ cdef class UniqueFactory(SageObject):
             sage: D is loads(dumps(D))
             True
 
-        TESTS:
+        TESTS::
+
             sage: loads(dumps(FiniteField)) is FiniteField
             True
-            sage: from sage.structure.factory import test_factory
+            sage: from sage.structure.test_factory import test_factory
             sage: loads(dumps(test_factory)) is test_factory
             True
         """
@@ -88,19 +118,22 @@ cdef class UniqueFactory(SageObject):
         Do not override this method, override create_key and create_object and
         put the docstring in the body of the class.
 
-        EXAMPLES:
-            sage: from sage.structure.factory import test_factory
+        EXAMPLES::
+
+            sage: from sage.structure.test_factory import test_factory
             sage: _ = test_factory(1,2,3); _
             Making object (1, 2, 3)
-            <sage.structure.factory.A instance at ...>
+            <sage.structure.test_factory.A instance at ...>
 
-        It already created one, so don't re-create.
+        It already created one, so don't re-create::
+
             sage: test_factory(1,2,3)
-            <sage.structure.factory.A instance at ...>
+            <sage.structure.test_factory.A instance at ...>
             sage: test_factory(1,2,3) is test_factory(1,2,3)
             True
 
-        Of course, with a different key, a new object will be created.
+        Of course, with a different key, a new object will be created::
+
             sage: test_factory(1,2,3) is test_factory(1,2,4)
             Making object (1, 2, 4)
             False
@@ -115,11 +148,12 @@ cdef class UniqueFactory(SageObject):
         if necessary (for example, it isn't in the cache or it is unpickling
         from an older version of Sage).
 
-        EXAMPLES:
-            sage: from sage.structure.factory import test_factory
+        EXAMPLES::
+
+            sage: from sage.structure.test_factory import test_factory
             sage: a = test_factory.get_object(3.0, 'a', {}); a
             Making object a
-            <sage.structure.factory.A instance at ...>
+            <sage.structure.test_factory.A instance at ...>
             sage: test_factory.get_object(3.0, 'a', {}) is test_factory.get_object(3.0, 'a', {})
             True
             sage: test_factory.get_object(3.0, 'a', {}) is test_factory.get_object(3.1, 'a', {})
@@ -171,8 +205,9 @@ cdef class UniqueFactory(SageObject):
         Defaults to the Sage version that is passed in, but courser
         granularity can be provided.
 
-        EXAMPLES:
-            sage: from sage.structure.factory import test_factory
+        EXAMPLES::
+
+            sage: from sage.structure.test_factory import test_factory
             sage: test_factory.get_version((3,1,0))
             (3, 1, 0)
         """
@@ -183,10 +218,11 @@ cdef class UniqueFactory(SageObject):
         Return a tuple containing the key (uniquely defining data)
         and any extra arguments (empty by default).
 
-        Defaults to \code{self.create_key}.
+        Defaults to :meth:`create_key`.
 
-        EXAMPLES:
-            sage: from sage.structure.factory import test_factory
+        EXAMPLES::
+
+            sage: from sage.structure.test_factory import test_factory
             sage: test_factory.create_key_and_extra_args(1, 2, key=5)
             ((1, 2), {})
             sage: GF.create_key_and_extra_args(3, foo='value')
@@ -199,8 +235,9 @@ cdef class UniqueFactory(SageObject):
         Given the arguments and keywords, create a key that uniquely
         determines this object.
 
-        EXAMPLES:
-            sage: from sage.structure.factory import test_factory
+        EXAMPLES::
+
+            sage: from sage.structure.test_factory import test_factory
             sage: test_factory.create_key(1, 2, key=5)
             (1, 2)
         """
@@ -211,16 +248,17 @@ cdef class UniqueFactory(SageObject):
         Create the object from the key and extra arguments. This is only
         called if the object was not found in the cache.
 
-        EXAMPLES:
-            sage: from sage.structure.factory import test_factory
+        EXAMPLES::
+
+            sage: from sage.structure.test_factory import test_factory
             sage: test_factory.create_object(0, (1,2,3))
             Making object (1, 2, 3)
-            <sage.structure.factory.A instance at ...>
+            <sage.structure.test_factory.A instance at ...>
             sage: test_factory('a')
             Making object ('a',)
-            <sage.structure.factory.A instance at ...>
+            <sage.structure.test_factory.A instance at ...>
             sage: test_factory('a') # NOT called again
-            <sage.structure.factory.A instance at ...>
+            <sage.structure.test_factory.A instance at ...>
         """
         raise NotImplementedError
 
@@ -230,7 +268,8 @@ cdef class UniqueFactory(SageObject):
         may result in a new (more specific) key. This allows the more specific
         key to be cached as well, and used for pickling.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: key, _ = GF.create_key_and_extra_args(27, 'k'); key
             (27, ('k',), 'conway', None, '{}', 3, 3, True)
             sage: K = GF.create_object(0, key); K
@@ -247,11 +286,13 @@ cdef class UniqueFactory(SageObject):
 
     cpdef reduce_data(self, obj):
         """
-        The results of this function can be returned from __reduce__. This is
-        here so the factory internals can change without having to re-write
-        __reduce__ methods that use it.
+        The results of this function can be returned from
+        :meth:`__reduce__`. This is here so the factory internals can
+        change without having to re-write :meth:`__reduce__` methods
+        that use it.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: V = FreeModule(ZZ, 5)
             sage: factory, data = FreeModule.reduce_data(V)
             sage: factory(*data)
@@ -259,17 +300,18 @@ cdef class UniqueFactory(SageObject):
             sage: factory(*data) is V
             True
 
-            sage: from sage.structure.factory import test_factory
+            sage: from sage.structure.test_factory import test_factory
             sage: a = test_factory(1, 2)
             Making object (1, 2)
             sage: test_factory.reduce_data(a)
             (<built-in function generic_factory_unpickle>,
-             (<class 'sage.structure.factory.UniqueFactoryTester'>,
+             (<class 'sage.structure.test_factory.UniqueFactoryTester'>,
               (...),
               (1, 2),
               {}))
 
-        NOTE: The (...) here is the Sage version.
+        Note that the ellipsis ``(...)`` here stands for the Sage
+        version.
         """
         return generic_factory_unpickle, obj._factory_data
 
@@ -280,9 +322,10 @@ def generic_factory_unpickle(UniqueFactory factory, *args):
 
     The unpickling mechanism needs a plain Python function to call.
     It takes a factory as the first argument, passes the rest of the
-    arguments onto the factory's get_object method.
+    arguments onto the factory's :meth:`UniqueFactory.get_object` method.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: V = FreeModule(ZZ, 5)
         sage: func, data = FreeModule.reduce_data(V)
         sage: func is sage.structure.factory.generic_factory_unpickle
@@ -294,9 +337,10 @@ def generic_factory_unpickle(UniqueFactory factory, *args):
 
 def generic_factory_reduce(self, proto):
     """
-    Used to provide a __reduce__ method if one does not already exist.
+    Used to provide a ``__reduce__`` method if one does not already exist.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: V = QQ^6
         sage: sage.structure.factory.generic_factory_reduce(V, 1) == V.__reduce_ex__(1)
         True
@@ -310,7 +354,8 @@ def lookup_global(name):
     """
     Used in unpickling the factory itself.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.structure.factory import lookup_global
         sage: lookup_global('ZZ')
         Integer Ring
@@ -325,32 +370,5 @@ def lookup_global(name):
     return getattr(all, name)
 
 
-class A:
-    # something we can weakref
-    pass
-
-class UniqueFactoryTester(UniqueFactory):
-
-    def create_key(self, *args, **kwds):
-        """
-        EXAMPLES:
-            sage: from sage.structure.factory import UniqueFactoryTester
-            sage: test_factory = UniqueFactoryTester('foo')
-            sage: test_factory.create_key(1, 2, 3)
-            (1, 2, 3)
-        """
-        return args
-
-    def create_object(self, version, key, **extra_args):
-        """
-        EXAMPLES:
-            sage: from sage.structure.factory import UniqueFactoryTester
-            sage: test_factory = UniqueFactoryTester('foo')
-            sage: test_factory.create_object('version', key=(1, 2, 4))
-            Making object (1, 2, 4)
-            <sage.structure.factory.A instance at ...>
-        """
-        print "Making object", key
-        return A()
-
-test_factory = UniqueFactoryTester('sage.structure.factory.test_factory')
+# To make the pickle jar happy:
+from sage.structure.test_factory import test_factory

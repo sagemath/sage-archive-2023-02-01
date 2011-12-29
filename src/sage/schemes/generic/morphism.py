@@ -1,6 +1,13 @@
 """
 Scheme morphism
 
+.. note::
+
+    You should never create the morphisms directy. Instead, use the
+    :meth:`~sage.schemes.generic.scheme.hom` and
+    :meth:`~sage.structure.parent.Hom` methods that are inherited by
+    all schemes.
+
 AUTHORS:
 
 - David Kohel, William Stein
@@ -24,36 +31,135 @@ from sage.rings.all           import is_RingHomomorphism, is_CommutativeRing, In
 from point                    import is_SchemeTopologicalPoint
 import scheme
 
+
 def is_SchemeMorphism(f):
     """
-    Return True if f is a scheme morphism or a point on an elliptic curve.
+    Test whether ``f`` is a scheme morphism.
+
+    INPUT:
+
+    - ``f`` -- anything.
+
+    OUTPUT:
+
+    Boolean. Return ``True`` if ``f``a is a scheme morphism or a point
+    on an elliptic curve.
 
     EXAMPLES::
 
-        sage: R.<x,y> = QQ[]; A.<x,y> = AffineSpace(R); H = A.Hom(A)
-        sage: f = H([y,x^2+y])
-        sage: sage.schemes.generic.morphism.is_SchemeMorphism(f)
+        sage: A.<x,y> = AffineSpace(QQ,2); H = A.Hom(A)
+        sage: f = H([y,x^2+y]); f
+        Scheme endomorphism of Affine Space of dimension 2 over Rational Field
+          Defn: Defined on coordinates by sending (x, y) to
+                (y, x^2 + y)
+        sage: from sage.schemes.generic.morphism import is_SchemeMorphism
+        sage: is_SchemeMorphism(f)
         True
     """
-    from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field # TODO: fix circular ref.
+    from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
     return isinstance(f, (SchemeMorphism, EllipticCurvePoint_field));
 
 
-class PyMorphism(Element):
+class SchemeMorphism(Element):
+    """
+    Base class for scheme morphisms
+
+    INPUT:
+
+    - ``parent`` -- the parent of the morphism.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.generic.scheme import Scheme
+        sage: X = Scheme(ZZ)
+        sage: Hom = X.Hom(X)
+        sage: from sage.schemes.generic.morphism import SchemeMorphism
+        sage: f = SchemeMorphism(Hom)
+        sage: type(f)
+        <class 'sage.schemes.generic.morphism.SchemeMorphism'>
+    """
     def __init__(self, parent):
+        """
+        The Pyhon constructor.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.generic.scheme import Scheme
+            sage: X = Scheme(ZZ)
+            sage: Hom = X.Hom(X)
+            sage: from sage.schemes.generic.morphism import SchemeMorphism
+            sage: f = SchemeMorphism(Hom)
+            sage: type(f)
+            <class 'sage.schemes.generic.morphism.SchemeMorphism'>
+        """
         if not isinstance(parent, Homset):
             raise TypeError, "parent (=%s) must be a Homspace"%parent
         Element.__init__(self, parent)
         self._domain = parent.domain()
         self._codomain = parent.codomain()
 
-    def _repr_type(self):
-        return "Generic"
-
     def _repr_defn(self):
-        return ""
+        r"""
+        Return a string representation of the definition of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.generic.scheme import Scheme
+            sage: X = Scheme(ZZ)
+            sage: Hom = X.Hom(X)
+            sage: from sage.schemes.generic.morphism import SchemeMorphism
+            sage: f = SchemeMorphism(Hom)
+            sage: f._repr_defn()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def _repr_type(self):
+        r"""
+        Return a string representation of the type of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.generic.scheme import Scheme
+            sage: X = Scheme(ZZ)
+            sage: Hom = X.Hom(X)
+            sage: from sage.schemes.generic.morphism import SchemeMorphism
+            sage: f = SchemeMorphism(Hom)
+            sage: f._repr_type()
+            'Scheme'
+        """
+        return "Scheme"
 
     def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.generic.scheme import Scheme
+            sage: X = Scheme(ZZ)
+            sage: Hom = X.Hom(X)
+            sage: from sage.schemes.generic.morphism import SchemeMorphism
+            sage: f = SchemeMorphism(Hom)
+            sage: f._repr_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         if self.is_endomorphism():
             s = "%s endomorphism of %s"%(self._repr_type(), self.domain())
         else:
@@ -66,40 +172,134 @@ class PyMorphism(Element):
         return s
 
     def domain(self):
+        """
+        Return the domain of the morphism.
+
+        OUTPUT:
+
+        A scheme. The domain of the morphism ``self``.
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(QQ,2)
+            sage: A2.structure_morphism().domain()
+            Affine Space of dimension 2 over Rational Field
+        """
         return self._domain
 
     def codomain(self):
+        """
+        Return the codomain (range) of the morphism.
+
+        OUTPUT:
+
+        A scheme. The codomain of the morphism ``self``.
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(QQ,2)
+            sage: A2.structure_morphism().codomain()
+            Spectrum of Rational Field
+        """
         return self.parent().codomain()
 
     def category(self):
+        """
+        Return the category of the hom set.
+
+        OUTPUT:
+
+        A category.
+
+        EXAMPLES::
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(QQ,2)
+            sage: A2.structure_morphism().category()
+            Category of hom sets in Category of Schemes
+        """
         return self.parent().category()
 
     def is_endomorphism(self):
+        """
+        Return wether the morphism is an endomorphism.
+
+        OUTPUT:
+
+        Boolean. Whether the domain and codomain are identical.
+
+        EXAMPLES::
+
+            sage: X = AffineSpace(QQ,2)
+            sage: X.structure_morphism().is_endomorphism()
+            False
+            sage: X.identity_morphism().is_endomorphism()
+            True
+        """
         return self.parent().is_endomorphism_set()
 
     def _composition_(self, right, homset):
-        return FormalCompositeMorphism(homset, right, self)
+        """
+        Helper to construct the composition of two morphisms.
+
+        EXAMPLES::
+
+            sage: X = AffineSpace(QQ,2)
+            sage: f = X.structure_morphism()
+            sage: g = X.identity_morphism()
+            sage: f._composition_(g, f.parent())
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+            sage: f * g
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for *: 'SchemeMorphism_structure_map' and 'SchemeMorphism_id'
+        """
+        raise NotImplementedError
 
     def __pow__(self, n, dummy=None):
+        """
+        Exponentiate an endomorphism.
+
+        INPUT:
+
+        - ``n`` -- integer. The exponent.
+
+        OUTPUT:
+
+        A scheme morphism in the same endomorphism set as ``self``.
+
+        EXAMPLES::
+
+            sage: X = AffineSpace(QQ,2)
+            sage: id = X.identity_morphism()
+            sage: id^0
+            Scheme endomorphism of Affine Space of dimension 2 over Rational Field
+              Defn: Identity map
+            sage: id^2
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for *: 'SchemeMorphism_id' and 'SchemeMorphism_id'
+        """
         if not self.is_endomorphism():
             raise TypeError, "self must be an endomorphism."
-        # todo -- what about the case n=0 -- need to specify the identity map somehow.
+        if n==0:
+            return self.domain().identity_morphism()
         return generic_power(self, n)
-
-
-
-class SchemeMorphism(PyMorphism):
-    """
-    A scheme morphism
-    """
-    def __init__(self, parent):
-        PyMorphism.__init__(self, parent)
-
-    def _repr_type(self):
-        return "Scheme"
 
     def glue_along_domains(self, other):
         r"""
+        Glue two morphism
+
+        INPUT:
+
+        - ``other`` -- a scheme morphism with the same domain.
+
+        OUTPUT:
+
         Assuming that self and other are open immersions with the same
         domain, return scheme obtained by gluing along the images.
 
@@ -107,9 +307,7 @@ class SchemeMorphism(PyMorphism):
 
         We construct a scheme isomorphic to the projective line over
         `\mathrm{Spec}(\QQ)` by gluing two copies of `\mathbb{A}^1`
-        minus a point.
-
-        ::
+        minus a point::
 
             sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: S.<xbar, ybar> = R.quotient(x*y - 1)
@@ -129,26 +327,29 @@ class SchemeMorphism(PyMorphism):
             Scheme obtained by gluing X and Y along U, where
               X: Spectrum of Univariate Polynomial Ring in x over Rational Field
               Y: Spectrum of Univariate Polynomial Ring in y over Rational Field
-              U: Spectrum of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
-
-        ::
+              U: Spectrum of Quotient of Multivariate Polynomial Ring in x, y
+              over Rational Field by the ideal (x*y - 1)
 
             sage: a, b = P1.gluing_maps()
             sage: a
             Affine Scheme morphism:
-             From: Spectrum of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+             From: Spectrum of Quotient of Multivariate Polynomial Ring in x, y
+                   over Rational Field by the ideal (x*y - 1)
               To:   Spectrum of Univariate Polynomial Ring in x over Rational Field
               Defn: Ring morphism:
                       From: Univariate Polynomial Ring in x over Rational Field
-                      To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+                      To:   Quotient of Multivariate Polynomial Ring in x, y over
+                            Rational Field by the ideal (x*y - 1)
                       Defn: x |--> xbar
             sage: b
             Affine Scheme morphism:
-              From: Spectrum of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+              From: Spectrum of Quotient of Multivariate Polynomial Ring in x, y
+                    over Rational Field by the ideal (x*y - 1)
               To:   Spectrum of Univariate Polynomial Ring in y over Rational Field
               Defn: Ring morphism:
                       From: Univariate Polynomial Ring in y over Rational Field
-                      To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x*y - 1)
+                      To:   Quotient of Multivariate Polynomial Ring in x, y over
+                            Rational Field by the ideal (x*y - 1)
                       Defn: y |--> ybar
         """
         import glue
@@ -156,41 +357,113 @@ class SchemeMorphism(PyMorphism):
 
 class SchemeMorphism_id(SchemeMorphism):
     """
-    Return the identity morphism from X to itself.
+    Return the identity morphism from `X` to itself.
+
+    INPUT:
+
+    - ``X`` -- the scheme.
 
     EXAMPLES::
 
         sage: X = Spec(ZZ)
-        sage: X.identity_morphism()
+        sage: X.identity_morphism()  # indirect doctest
         Scheme endomorphism of Spectrum of Integer Ring
           Defn: Identity map
     """
     def __init__(self, X):
+        """
+        The Python constructor.
+
+        See :class:`SchemeMorphism_id` for details.
+
+        TESTS::
+
+            sage: Spec(ZZ).identity_morphism()
+            Scheme endomorphism of Spectrum of Integer Ring
+              Defn: Identity map
+        """
         SchemeMorphism.__init__(self, X.Hom(X))
 
     def _repr_defn(self):
-        return "Identity map"
+        r"""
+        Return a string representation of the definition of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: Spec(ZZ).identity_morphism()._repr_defn()
+            'Identity map'
+        """
+        return 'Identity map'
 
 
 class SchemeMorphism_structure_map(SchemeMorphism):
+    r"""
+    The structure morphism
+
+    INPUT:
+
+    - ``parent`` -- homset with codomain equal to the base scheme of
+      the domain.
+
+    EXAMPLES::
+
+        sage: Spec(ZZ).structure_morphism()    # indirect doctest
+        Scheme morphism:
+          From: Spectrum of Integer Ring
+          To:   Spectrum of Integer Ring
+          Defn: Structure map
+    """
     def __init__(self, parent):
         """
-        INPUT:
+        The Python constuctor.
 
-        - ``parent`` - homset with codomain equal to the base
-          scheme of the domain.
+        See :class:`SchemeMorphism_structure_map` for details.
+
+        TESTS::
+
+            sage: from sage.schemes.generic.morphism import SchemeMorphism_structure_map
+            sage: SchemeMorphism_structure_map( Spec(QQ).Hom(Spec(ZZ)) )
+            Scheme morphism:
+              From: Spectrum of Rational Field
+              To:   Spectrum of Integer Ring
+              Defn: Structure map
         """
         SchemeMorphism.__init__(self, parent)
         if self.domain().base_scheme() != self.codomain():
             raise ValueError, "parent must have codomain equal the base scheme of domain."
 
     def _repr_defn(self):
-        return "Structure map"
+        r"""
+        Return a string representation of the definition of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: Spec(ZZ).structure_morphism()._repr_defn()
+            'Structure map'
+        """
+        return 'Structure map'
 
 
 class SchemeMorphism_spec(SchemeMorphism):
     """
-    A morphism of spectrums of rings
+    Morphism of spectra of rings
+
+    INPUT:
+
+    - ``parent`` -- homset whose domain and codomain are affine schemes.
+
+    - ``phi`` -- a ring morphism with matching domain and codomain.
+
+    - ``check`` -- boolean (optional, default:``True``). Whether to
+      check the input for consistency.
 
     EXAMPLES::
 
@@ -200,8 +473,6 @@ class SchemeMorphism_spec(SchemeMorphism):
           From: Univariate Polynomial Ring in x over Rational Field
           To:   Rational Field
           Defn: x |--> 7
-
-    ::
 
         sage: X = Spec(QQ); Y = Spec(R)
         sage: f = X.hom(phi); f
@@ -213,8 +484,6 @@ class SchemeMorphism_spec(SchemeMorphism):
                   To:   Rational Field
                   Defn: x |--> 7
 
-    ::
-
         sage: f.ring_homomorphism()
         Ring morphism:
           From: Univariate Polynomial Ring in x over Rational Field
@@ -222,32 +491,120 @@ class SchemeMorphism_spec(SchemeMorphism):
           Defn: x |--> 7
     """
     def __init__(self, parent, phi, check=True):
+        """
+        The Python constuctor.
+
+        See :class:`SchemeMorphism_structure_map` for details.
+
+        TESTS::
+
+            sage: from sage.schemes.generic.morphism import SchemeMorphism_spec
+            sage: SchemeMorphism_spec(Spec(QQ).Hom(Spec(ZZ)), ZZ.hom(QQ))
+            Affine Scheme morphism:
+              From: Spectrum of Rational Field
+              To:   Spectrum of Integer Ring
+              Defn: Ring Coercion morphism:
+                      From: Integer Ring
+                      To:   Rational Field
+        """
         SchemeMorphism.__init__(self, parent)
         if check:
             if not is_RingHomomorphism(phi):
-                raise TypeError, "phi (=%s) must be a ring homomorphism"%phi
+                raise TypeError("phi (=%s) must be a ring homomorphism" % phi)
             if phi.domain() != parent.codomain().coordinate_ring():
-                raise TypeError, "phi (=%s) must have domain %s"%(phi,
-                                                   parent.codomain().coordinate_ring())
+                raise TypeError("phi (=%s) must have domain %s"
+                                % (phi, parent.codomain().coordinate_ring()))
             if phi.codomain() != parent.domain().coordinate_ring():
-                raise TypeError, "phi (=%s) must have codomain %s"%(phi,
-                                                 parent.domain().coordinate_ring())
+                raise TypeError("phi (=%s) must have codomain %s"
+                                % (phi, parent.domain().coordinate_ring()))
         self.__ring_homomorphism = phi
 
     def __call__(self, P):
+        r"""
+        Make morphisms callable.
+
+        INPUT:
+
+        - ``P`` -- a scheme point.
+
+        OUTPUT:
+
+        The image scheme point.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: phi = R.hom([QQ(7)])
+            sage: X = Spec(QQ); Y = Spec(R)
+            sage: f = X.hom(phi)
+            sage: f(X.an_element())
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         if not is_SchemeTopologicalPoint(P) and P in self.domain():
             raise TypeError, "P (=%s) must be a topological scheme point of %s"%(P, self)
         S = self.ring_homomorphism().inverse_image(P.prime_ideal())
         return self.codomain()(S)
 
     def _repr_type(self):
+        r"""
+        Return a string representation of the type of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: phi = R.hom([QQ(7)])
+            sage: X = Spec(QQ); Y = Spec(R)
+            sage: f = X.hom(phi)
+            sage: f._repr_type()
+            'Affine Scheme'
+        """
         return "Affine Scheme"
 
     def _repr_defn(self):
+        r"""
+        Return a string representation of the type of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: phi = R.hom([QQ(7)])
+            sage: X = Spec(QQ); Y = Spec(R)
+            sage: f = X.hom(phi)
+            sage: f._repr_type()
+            'Affine Scheme'
+        """
         return repr(self.ring_homomorphism())
 
-
     def ring_homomorphism(self):
+        """
+        Return the underlying ring homomorphism.
+
+        OUTPUT:
+
+        A ring homomorphism.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: phi = R.hom([QQ(7)])
+            sage: X = Spec(QQ); Y = Spec(R)
+            sage: f = X.hom(phi)
+            sage: f.ring_homomorphism()
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Rational Field
+              To:   Rational Field
+              Defn: x |--> 7
+        """
         return self.__ring_homomorphism
 
 
@@ -262,6 +619,16 @@ class SchemeMorphism_on_points(SchemeMorphism):
     """
     A morphism of schemes determined by rational functions that define
     what the morphism does on points in the ambient space.
+
+    INPUT:
+
+    - ``parent`` -- homset whose domain and codomain are affine schemes.
+
+    - ``polys`` -- a list/tuple/iterable of polynomials defining the
+      scheme morphism.
+
+    - ``check`` -- boolean (optional, default:``True``). Whether to
+      check the input for consistency.
 
     EXAMPLES:
 
@@ -297,9 +664,24 @@ class SchemeMorphism_on_points(SchemeMorphism):
         sage: f = H([exp(x),exp(y)])
         Traceback (most recent call last):
         ...
-        TypeError: polys (=[e^x, e^y]) must be elements of Multivariate Polynomial Ring in x, y over Rational Field
+        TypeError: polys (=[e^x, e^y]) must be elements of Multivariate
+        Polynomial Ring in x, y over Rational Field
     """
     def __init__(self, parent, polys, check=True):
+        """
+        The Python constructor.
+
+        See :class:`SchemeMorphism_on_points` for details.
+
+        EXAMPLES::
+
+            sage: A2.<x,y> = AffineSpace(QQ,2)
+            sage: H = A2.Hom(A2)
+            sage: H([x-y, x*y])
+            Scheme endomorphism of Affine Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    (x - y, x*y)
+        """
         if check:
             if not isinstance(polys, (list, tuple)):
                 raise TypeError, "polys (=%s) must be a list or tuple"%polys
@@ -341,8 +723,12 @@ class SchemeMorphism_on_points(SchemeMorphism):
 
     def defining_polynomials(self):
         """
-        Return the immutable sequence of polynomials that defines this
-        scheme morphism.
+        Return the defining polynomials.
+
+        OUTPUT:
+
+        An immutable sequence of polynomials that defines this scheme
+        morphism.
 
         EXAMPLES::
 
@@ -357,6 +743,14 @@ class SchemeMorphism_on_points(SchemeMorphism):
     def __call__(self, x):
         """
         Apply this morphism to a point in the domain.
+
+        INPUT:
+
+        - ``x`` -- anything that defines a point in the domain.
+
+        OUTPUT:
+
+        A point in the codomain.
 
         EXAMPLES::
 
@@ -400,7 +794,11 @@ class SchemeMorphism_on_points(SchemeMorphism):
 
     def _repr_defn(self):
         """
-        This function is used internally for printing.
+        Return a string representation of the definition of ``self``.
+
+        OUTPUT:
+
+        String.
 
         EXAMPLES::
 
@@ -437,6 +835,7 @@ class SchemeMorphism_on_points_affine_space(SchemeMorphism_on_points):
           Defn: Defined on coordinates by sending (x, y) to
                 (x : y : 1)
     """
+    pass
 
 class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
     """
@@ -500,10 +899,25 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
         sage: H([exp(x),exp(y)])
         Traceback (most recent call last):
         ...
-        TypeError: polys (=[e^x, e^y]) must be elements of Multivariate Polynomial Ring in x, y over Rational Field
+        TypeError: polys (=[e^x, e^y]) must be elements of
+        Multivariate Polynomial Ring in x, y over Rational Field
     """
 
     def __init__(self, parent, polys, check=True):
+        """
+        The Python constructor.
+
+        See :class:`SchemeMorphism_on_points` for details.
+
+        EXAMPLES::
+
+            sage: P1.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = P1.Hom(P1)
+            sage: H([y,2*x])
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (y : 2*x)
+        """
         SchemeMorphism_on_points.__init__(self, parent, polys, check)
         if check:
             # morphisms from projective space are always given by
@@ -526,22 +940,154 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
 ############################################################################
 
 class SchemeMorphism_coordinates(SchemeMorphism):
+    """
+    Base class for rational points on schemes.
+
+    Recall that the `K`-rational points of a scheme `X` over `k` can
+    be identified with the set of morphisms `Spec(K) \to X`. In Sage,
+    the rational points are implemented by such scheme morphisms.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.generic.morphism import SchemeMorphism
+        sage: f = SchemeMorphism(Spec(ZZ).Hom(Spec(ZZ)))
+        sage: type(f)
+        <class 'sage.schemes.generic.morphism.SchemeMorphism'>
+    """
     def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: A = AffineSpace(2, QQ)
+            sage: a = A(1,2)
+            sage: a._repr_()
+            '(1, 2)'
+        """
         return self.codomain().ambient_space()._repr_generic_point(self._coords)
 
     def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: A = AffineSpace(2, QQ)
+            sage: a = A(1,2)
+            sage: latex(a) == a._latex_()
+            True
+            sage: a._latex_()
+            '\\left(1, 2\\right)'
+        """
         return self.codomain().ambient_space()._latex_generic_point(self._coords)
 
     def __getitem__(self, n):
+        """
+        Return the ``n``-th coordinate.
+
+        OUTPUT:
+
+        The coordinate values as an element of the base ring.
+
+        EXAMPLES::
+
+            sage: A = AffineSpace(2, QQ)
+            sage: a = A(1,2)
+            sage: a[0]
+            1
+            sage: a[1]
+            2
+        """
         return self._coords[n]
 
     def __iter__(self):
+        """
+        Iterate over the coordinates of the point.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: A = AffineSpace(2, QQ)
+            sage: a = A(1,2)
+            sage: iter = a.__iter__()
+            sage: iter.next()
+            1
+            sage: iter.next()
+            2
+            sage: list(a)
+            [1, 2]
+        """
         return iter(self._coords)
 
     def __tuple__(self):
+        """
+        Return the coordinates as a tuple.
+
+        OUTPUT:
+
+        A tuple.
+
+        EXAMPLES::
+
+            sage: A = AffineSpace(2, QQ)
+            sage: a = A(1,2)
+            sage: tuple(a)
+            (1, 2)
+        """
         return self._coords
 
+    def __len__(self):
+        """
+        Return the number of coordinates.
+
+        OUTPUT:
+
+        Integer. The number of coordinates used to describe the point.
+
+        EXAMPLES::
+
+            sage: A = AffineSpace(2, QQ)
+            sage: a = A(1,2)
+            sage: len(a)
+            2
+        """
+        return len(self._coords)
+
     def __cmp__(self, other):
+        """
+        Compare two scheme morphisms.
+
+        INPUT:
+
+        - ``other`` -- anything. To compare against the scheme
+          morphism ``self``.
+
+        OUTPUT:
+
+        ``+1``, ``0``, or ``-1``.
+
+        EXAMPLES::
+
+            sage: A = AffineSpace(2, QQ)
+            sage: a = A(1,2)
+            sage: b = A(3,4)
+            sage: a.__cmp__(b)
+            -1
+            sage: a != b
+            True
+        """
         if not isinstance(other, SchemeMorphism_coordinates):
             try:
                 other = self.codomain().ambient_space()(other)
@@ -550,6 +1096,20 @@ class SchemeMorphism_coordinates(SchemeMorphism):
         return cmp(self._coords, other._coords)
 
     def scheme(self):
+        """
+        Return the scheme whose point is represented.
+
+        OUTPUT:
+
+        A scheme.
+
+        EXAMPLES::
+
+            sage: A = AffineSpace(2, QQ)
+            sage: a = A(1,2)
+            sage: a.scheme()
+            Affine Space of dimension 2 over Rational Field
+        """
         return self.codomain()
 
 
@@ -558,16 +1118,16 @@ class SchemeMorphism_coordinates(SchemeMorphism):
 #*******************************************************************
 class SchemeMorphism_affine_coordinates(SchemeMorphism_coordinates):
     """
-    A morphism determined by giving coordinates in a ring.
+    A rational point on an affine scheme.
 
     INPUT:
 
+    - ``X`` -- a subscheme of an ambient affine space over a ring `R`.
 
-    -  ``X`` - a subscheme of an ambient affine space over
-       a ring R.
+    - ``v`` -- a list/tuple/iterable of coordinates in `R`.
 
-    -  ``v`` - a list or tuple of coordinates in R
-
+    - ``check`` -- boolean (optional, default:``True``). Whether to
+      check the input for consistency.
 
     EXAMPLES::
 
@@ -576,25 +1136,35 @@ class SchemeMorphism_affine_coordinates(SchemeMorphism_coordinates):
         (1, 2)
     """
     def __init__(self, X, v, check=True):
-        if scheme.is_Scheme(X):
-            X = X(X.base_ring())
+        """
+        The Python constructor.
+
+        See :class:`SchemeMorphism_affine_coordinates` for details.
+
+        TESTS::
+
+            sage: from sage.schemes.generic.morphism import SchemeMorphism_affine_coordinates
+            sage: A3.<x,y,z> = AffineSpace(QQ, 3)
+            sage: SchemeMorphism_affine_coordinates(A3(QQ), [1,2,3])
+            (1, 2, 3)
+        """
         SchemeMorphism.__init__(self, X)
+        if is_SchemeMorphism(v):
+            v = list(v)
         if check:
             # Verify that there are the right number of coords
-            d = X.codomain().ambient_space().ngens()
+            d = self.codomain().ambient_space().ngens()
             if len(v) != d:
                 raise TypeError, \
                       "Argument v (=%s) must have %s coordinates."%(v, d)
-            if is_SchemeMorphism(v):
-                v = list(v)
             if not isinstance(v,(list,tuple)):
                 raise TypeError, \
                       "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)
             # Make sure the coordinates all lie in the appropriate ring
             v = Sequence(v, X.value_ring())
             # Verify that the point satisfies the equations of X.
-            X.codomain()._check_satisfies_equations(v)
-        self._coords = v
+            X.extended_codomain()._check_satisfies_equations(v)
+        self._coords = tuple(v)
 
 
 #*******************************************************************
@@ -602,24 +1172,47 @@ class SchemeMorphism_affine_coordinates(SchemeMorphism_coordinates):
 #*******************************************************************
 class SchemeMorphism_projective_coordinates_ring(SchemeMorphism_coordinates):
     """
-    A morphism determined by giving coordinates in a ring (how?).
+    A rational point of projective space over a ring (how?).
+
+    Currently this is not implemented.
+
+    EXAMPLES:
+
+        sage: from sage.schemes.generic.morphism import SchemeMorphism_projective_coordinates_ring
+        sage: SchemeMorphism_projective_coordinates_ring(None, None)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError
+
     """
     def __init__(self, X, v, check=True):
+        """
+        The Python constructor
+
+        EXAMPLES:
+
+            sage: from sage.schemes.generic.morphism import SchemeMorphism_projective_coordinates_ring
+            sage: SchemeMorphism_projective_coordinates_ring(None, None)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
 
 class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coordinates_ring):
     """
-    A morphism determined by giving coordinates in a field.
+    A rational point of projective space over a field.
 
     INPUT:
 
+    -  ``X`` -- a subscheme of an ambient projective space
+       over a field `K`
 
-    -  ``X`` - a subscheme of an ambient projective space
-       over a field K
+    - ``v`` -- a list or tuple of coordinates in `K`
 
-    -  ``v`` - a list or tuple of coordinates in K
-
+    - ``check`` -- boolean (optional, default:``True``). Whether to
+      check the input for consistency.
 
     EXAMPLES::
 
@@ -627,7 +1220,7 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
         sage: P(2,3,4,5)
         (0.400000000000000 : 0.600000000000000 : 0.800000000000000 : 1.00000000000000)
 
-    ::
+    Not all homogeneous coordinates are allowed to vanish simultaneously::
 
         sage: P = ProjectiveSpace(3, QQ)
         sage: P(0,0,0,0)
@@ -636,11 +1229,20 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
         ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
     """
     def __init__(self, X, v, check=True):
-        if scheme.is_Scheme(X):
-            X = X(X.base_ring())
+        """
+        The Python constructor.
+
+        See :class:`SchemeMorphism_projective_coordinates_field` for details.
+
+        EXAMPLES::
+
+        sage: P = ProjectiveSpace(2, CDF)
+        sage: P(2+I, 3-I, 4+5*I)
+        (0.317073170732 - 0.146341463415*I : 0.170731707317 - 0.463414634146*I : 1.0)
+        """
         SchemeMorphism.__init__(self, X)
         if check:
-            from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field # TODO: fix circular ref.
+            from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
             d = X.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
@@ -680,14 +1282,22 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
 #*******************************************************************
 # Abelian varieties
 #*******************************************************************
-class SchemeMorphism_abelian_variety_coordinates_field(AdditiveGroupElement, SchemeMorphism_projective_coordinates_field):
-    def __mul__(self, n):
-        if isinstance(n, (RingElement, int, long)):
-            # [n]*P - multiplication by n.
-            return AdditiveGroupElement._rmul_(self, Integer(n))
-        else:
-            # Function composition
-            return SchemeMorphism_projective_coordinates_field.__mul__(self, n)
+class SchemeMorphism_abelian_variety_coordinates_field\
+        (AdditiveGroupElement, SchemeMorphism_projective_coordinates_field):
+    """
+    A rational point of an abelian variety over a field.
+
+    EXAMPLES::
+
+        sage: E = EllipticCurve([0,0,1,-1,0])
+        sage: origin = E(0)
+        sage: origin.domain()
+        Spectrum of Rational Field
+        sage: origin.codomain()
+        Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+    """
+    pass
+
 
 
 

@@ -91,6 +91,7 @@ cdef class Map(Element):
         sage: f(x^2+2*x-1)
         x^2 + 2*x*y + y^2 + 2*x + 2*y - 1
     """
+
     def __init__(self, parent, codomain=None):
         """
         INPUT:
@@ -158,8 +159,12 @@ cdef class Map(Element):
             sage: f._repr_type_str
             'bla'
         """
+        # todo: the following can break during unpickling of complex
+        # objects with circular references! In that case, _slots might
+        # contain incomplete objects.
         self._domain = _slots['_domain']
         self._codomain = _slots['_codomain']
+
         # Several pickles exist without a _repr_type_str, so
         # if there is none saved, we just set it to None.
         if _slots.has_key('_repr_type_str'):

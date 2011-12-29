@@ -117,7 +117,7 @@ TODO List
   ::
 
         sage: PP(QQ)
-        Set of Rational Points of Projective Space
+        Set of rational points of Projective Space
         of dimension 2 over Rational Field
         sage: PP(QQ)([-2,3,5])
         (-2/5 : 3/5 : 1)
@@ -131,7 +131,7 @@ TODO List
         sage: S.<t> = R.quo(x^2+5)
         sage: P.<X,Y,Z> = ProjectiveSpace(2, S)
         sage: P(S)
-        Set of Rational Points of Projective Space of dimension 2 over
+        Set of rational points of Projective Space of dimension 2 over
         Univariate Quotient Polynomial Ring in t over Integer Ring with
         modulus x^2 + 5
 

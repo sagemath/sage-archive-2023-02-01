@@ -365,17 +365,17 @@ class Spec(AffineScheme):
         return Spec(self.coordinate_ring().base_extend(new_base.coordinate_ring()),
                     self.base_ring())
 
-    def _homset_class(self, *args, **kwds):
+    def _point_homset_class(self, *args, **kwds):
         """
         Return the Hom set class.
 
         EXAMPLES::
 
-            sage: Spec(QQ)._homset_class(Spec(QQ), Spec(ZZ))
-            Set of rational points of Spectrum of Rational Field
+            sage: Spec(QQ)._point_homset_class(Spec(QQ), Spec(ZZ))
+            Set of rational points of Spectrum of Integer Ring
         """
-        from sage.schemes.generic.homset import SchemeHomset_coordinates
-        return SchemeHomset_coordinates(*args, **kwds)
+        from sage.schemes.generic.homset import SchemeHomset_points_spec
+        return SchemeHomset_points_spec(*args, **kwds)
 
 
 SpecZ = Spec(ZZ)

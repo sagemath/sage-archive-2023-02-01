@@ -1,4 +1,4 @@
-"""
+r"""
 Scheme morphism
 
 .. note::
@@ -8,13 +8,58 @@ Scheme morphism
     :meth:`~sage.structure.parent.Hom` methods that are inherited by
     all schemes.
 
+If you want to extend the Sage library with some new kind of scheme,
+your new class (say, ``myscheme``) should provide a methods
+
+* ``myscheme._morphism_class(*args, **kwds)`` return a morphism
+  between to schemes in your category, usually defined via
+  polynomials. Your point class should derive from
+  :class:`SchemeMorphism_polynomial`. They will usually be elements of
+  the hom set
+  :class:`~sage.schemes.generic.homset.SchemeHomset_generic`.
+
+Optionally, you can also provide a special hom set for your
+subcategory of schemes. If you want to do this, you should also
+provide a method
+
+* ``myscheme._homset_class(*args, **kwds)`` (optional) return the
+  homset, which must be a derived class of
+  `class:`~sage.schemes.generic.homset.SchemeHomset_generic`. If your
+  new homset class does not use ``myscheme._morphism_class`` then you
+  do not have to provide it.
+
+Note that points on schemes are morphisms `Spec(K)\to X`, too. But we
+typically use a different notation, so they are implemented in a
+different derived class. For this, you should implement a method
+
+* ``myscheme._point_class(*args, **kwds)`` return a point, that is,
+  morphism `Spec(K)\to X`. Your point class should derive from
+  :class:`SchemeMorphism_point`.
+
+Optionally, you can also provide a special hom set for the points, for
+example the point hom set can provide a method to enumerate all
+points. If you want to do this, you should also provide a method
+
+* ``myscheme._point_homset_class(*args, **kwds)`` (optional) return
+  the :mod:`~sage.schemes.generic.homset` of points. The hom sets of
+  points are implemented in classes named ``SchemeHomset_points_...``.
+  If your new homset class does not use ``myscheme._point_class`` then
+  you do not have to provide it.
+
 AUTHORS:
 
 - David Kohel, William Stein
 
 - William Stein (2006-02-11): fixed bug where P(0,0,0) was allowed as
   a projective point.
+
+- Volker Braun (2011-08-08): Renamed classes, more documentation, misc
+  cleanups.
 """
+
+# Historical note: in trac #11599, V.B. renamed
+# * _point_morphism_class -> _morphism_class
+# * _homset_class -> _point_homset_class
 
 #*****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
@@ -42,7 +87,7 @@ def is_SchemeMorphism(f):
 
     OUTPUT:
 
-    Boolean. Return ``True`` if ``f``a is a scheme morphism or a point
+    Boolean. Return ``True`` if ``f`` is a scheme morphism or a point
     on an elliptic curve.
 
     EXAMPLES::
@@ -80,7 +125,7 @@ class SchemeMorphism(Element):
     """
     def __init__(self, parent):
         """
-        The Pyhon constructor.
+        The Python constructor.
 
         EXAMPLES::
 
@@ -213,8 +258,6 @@ class SchemeMorphism(Element):
 
         EXAMPLES::
 
-        EXAMPLES::
-
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.structure_morphism().category()
             Category of hom sets in Category of Schemes
@@ -256,7 +299,8 @@ class SchemeMorphism(Element):
             sage: f * g
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for *: 'SchemeMorphism_structure_map' and 'SchemeMorphism_id'
+            TypeError: unsupported operand type(s) for *:
+            'SchemeMorphism_structure_map' and 'SchemeMorphism_id'
         """
         raise NotImplementedError
 
@@ -282,7 +326,8 @@ class SchemeMorphism(Element):
             sage: id^2
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for *: 'SchemeMorphism_id' and 'SchemeMorphism_id'
+            TypeError: unsupported operand type(s) for *:
+            'SchemeMorphism_id' and 'SchemeMorphism_id'
         """
         if not self.is_endomorphism():
             raise TypeError, "self must be an endomorphism."
@@ -614,11 +659,10 @@ class SchemeMorphism_spec(SchemeMorphism):
 # The domain can be either affine or projective regardless
 # of the class
 ############################################################################
-
-class SchemeMorphism_on_points(SchemeMorphism):
+class SchemeMorphism_polynomial(SchemeMorphism):
     """
-    A morphism of schemes determined by rational functions that define
-    what the morphism does on points in the ambient space.
+    A morphism of schemes determined by polynomials that define what
+    the morphism does on points in the ambient space.
 
     INPUT:
 
@@ -671,7 +715,7 @@ class SchemeMorphism_on_points(SchemeMorphism):
         """
         The Python constructor.
 
-        See :class:`SchemeMorphism_on_points` for details.
+        See :class:`SchemeMorphism_polynomial` for details.
 
         EXAMPLES::
 
@@ -815,7 +859,7 @@ class SchemeMorphism_on_points(SchemeMorphism):
         return "Defined on coordinates by sending %s to\n%s"%(i,o)
 
 
-class SchemeMorphism_on_points_affine_space(SchemeMorphism_on_points):
+class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     """
     A morphism of schemes determined by rational functions that define
     what the morphism does on points in the ambient affine space.
@@ -837,7 +881,7 @@ class SchemeMorphism_on_points_affine_space(SchemeMorphism_on_points):
     """
     pass
 
-class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
+class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     """
     A morphism of schemes determined by rational functions that define
     what the morphism does on points in the ambient projective space.
@@ -907,7 +951,7 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
         """
         The Python constructor.
 
-        See :class:`SchemeMorphism_on_points` for details.
+        See :class:`SchemeMorphism_polynomial` for details.
 
         EXAMPLES::
 
@@ -918,7 +962,7 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
               Defn: Defined on coordinates by sending (x : y) to
                     (y : 2*x)
         """
-        SchemeMorphism_on_points.__init__(self, parent, polys, check)
+        SchemeMorphism_polynomial.__init__(self, parent, polys, check)
         if check:
             # morphisms from projective space are always given by
             # homogeneous polynomials of the same degree
@@ -939,7 +983,7 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
 # by coordinates.
 ############################################################################
 
-class SchemeMorphism_coordinates(SchemeMorphism):
+class SchemeMorphism_point(SchemeMorphism):
     """
     Base class for rational points on schemes.
 
@@ -1088,7 +1132,7 @@ class SchemeMorphism_coordinates(SchemeMorphism):
             sage: a != b
             True
         """
-        if not isinstance(other, SchemeMorphism_coordinates):
+        if not isinstance(other, SchemeMorphism_point):
             try:
                 other = self.codomain().ambient_space()(other)
             except TypeError:
@@ -1116,7 +1160,7 @@ class SchemeMorphism_coordinates(SchemeMorphism):
 #*******************************************************************
 # Affine varieties
 #*******************************************************************
-class SchemeMorphism_affine_coordinates(SchemeMorphism_coordinates):
+class SchemeMorphism_point_affine(SchemeMorphism_point):
     """
     A rational point on an affine scheme.
 
@@ -1139,13 +1183,13 @@ class SchemeMorphism_affine_coordinates(SchemeMorphism_coordinates):
         """
         The Python constructor.
 
-        See :class:`SchemeMorphism_affine_coordinates` for details.
+        See :class:`SchemeMorphism_point_affine` for details.
 
         TESTS::
 
-            sage: from sage.schemes.generic.morphism import SchemeMorphism_affine_coordinates
+            sage: from sage.schemes.generic.morphism import SchemeMorphism_point_affine
             sage: A3.<x,y,z> = AffineSpace(QQ, 3)
-            sage: SchemeMorphism_affine_coordinates(A3(QQ), [1,2,3])
+            sage: SchemeMorphism_point_affine(A3(QQ), [1,2,3])
             (1, 2, 3)
         """
         SchemeMorphism.__init__(self, X)
@@ -1170,7 +1214,7 @@ class SchemeMorphism_affine_coordinates(SchemeMorphism_coordinates):
 #*******************************************************************
 # Projective varieties
 #*******************************************************************
-class SchemeMorphism_projective_coordinates_ring(SchemeMorphism_coordinates):
+class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
     """
     A rational point of projective space over a ring (how?).
 
@@ -1178,8 +1222,8 @@ class SchemeMorphism_projective_coordinates_ring(SchemeMorphism_coordinates):
 
     EXAMPLES:
 
-        sage: from sage.schemes.generic.morphism import SchemeMorphism_projective_coordinates_ring
-        sage: SchemeMorphism_projective_coordinates_ring(None, None)
+        sage: from sage.schemes.generic.morphism import SchemeMorphism_point_projective_ring
+        sage: SchemeMorphism_point_projective_ring(None, None)
         Traceback (most recent call last):
         ...
         NotImplementedError
@@ -1191,8 +1235,8 @@ class SchemeMorphism_projective_coordinates_ring(SchemeMorphism_coordinates):
 
         EXAMPLES:
 
-            sage: from sage.schemes.generic.morphism import SchemeMorphism_projective_coordinates_ring
-            sage: SchemeMorphism_projective_coordinates_ring(None, None)
+            sage: from sage.schemes.generic.morphism import SchemeMorphism_point_projective_ring
+            sage: SchemeMorphism_point_projective_ring(None, None)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -1200,7 +1244,7 @@ class SchemeMorphism_projective_coordinates_ring(SchemeMorphism_coordinates):
         raise NotImplementedError
 
 
-class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coordinates_ring):
+class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring):
     """
     A rational point of projective space over a field.
 
@@ -1232,7 +1276,7 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
         """
         The Python constructor.
 
-        See :class:`SchemeMorphism_projective_coordinates_field` for details.
+        See :class:`SchemeMorphism_point_projective_field` for details.
 
         EXAMPLES::
 
@@ -1273,7 +1317,7 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
             if all_zero:
                 raise ValueError, "%s does not define a valid point since all entries are 0"%repr(v)
 
-            X.codomain()._check_satisfies_equations(v)
+            X.extended_codomain()._check_satisfies_equations(v)
 
         self._coords = v
 
@@ -1282,8 +1326,8 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
 #*******************************************************************
 # Abelian varieties
 #*******************************************************************
-class SchemeMorphism_abelian_variety_coordinates_field\
-        (AdditiveGroupElement, SchemeMorphism_projective_coordinates_field):
+class SchemeMorphism_point_abelian_variety_field\
+        (AdditiveGroupElement, SchemeMorphism_point_projective_field):
     """
     A rational point of an abelian variety over a field.
 

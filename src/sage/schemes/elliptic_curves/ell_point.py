@@ -14,8 +14,8 @@ functionality implemented over `\QQ` than over other number
 fields.
 
 The class ``EllipticCurvePoint``, which is based on
-``SchemeMorphism_projective_coordinates_ring``, currently has little
-extra functionality.
+``SchemeMorphism_point_projective_ring``, currently has little extra
+functionality.
 
 EXAMPLES:
 
@@ -136,15 +136,15 @@ from sage.libs.pari.all import pari, PariError
 from sage.structure.sequence  import Sequence
 
 from sage.schemes.plane_curves.projective_curve import Hasse_bounds
-from sage.schemes.generic.morphism import (SchemeMorphism_projective_coordinates_ring,
-                                           SchemeMorphism_abelian_variety_coordinates_field,
-                                           is_SchemeMorphism, SchemeMorphism_coordinates)
+from sage.schemes.generic.morphism import (SchemeMorphism_point_projective_ring,
+                                           SchemeMorphism_point_abelian_variety_field,
+                                           is_SchemeMorphism)
 
 from constructor import EllipticCurve
 
 oo = rings.infinity       # infinity
 
-class EllipticCurvePoint(SchemeMorphism_projective_coordinates_ring):
+class EllipticCurvePoint(SchemeMorphism_point_projective_ring):
     """
     A point on an elliptic curve.
     """
@@ -171,7 +171,7 @@ class EllipticCurvePoint(SchemeMorphism_projective_coordinates_ring):
             return -1
 
 
-class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field):
+class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
     """
     A point on an elliptic curve over a field.  The point has coordinates
     in the base field.
@@ -269,7 +269,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             #v = (R.zero(),R.one(),R.zero())
             v = (0,1,0)
         if check:
-            # mostly from SchemeMorphism_projective_coordinates_field
+            # mostly from SchemeMorphism_point_projective_field
             d = point_homset.codomain().ambient_space().ngens()
             if not isinstance(v,(list,tuple)):
                 raise TypeError, \
@@ -303,7 +303,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             if not test == 0:
                 raise TypeError, "Coordinates %s do not define a point on %s"%(list(v),curve)
 
-        SchemeMorphism_abelian_variety_coordinates_field.__init__(self, point_homset, v, check=False)
+        SchemeMorphism_point_abelian_variety_field.__init__(self, point_homset, v, check=False)
         #AdditiveGroupElement.__init__(self, point_homset)
 
     def _repr_(self):

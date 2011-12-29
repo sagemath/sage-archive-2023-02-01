@@ -48,16 +48,16 @@ EXAMPLES::
 #*****************************************************************************
 
 from sage.rings.all import is_Polynomial, PolynomialRing, Integer, is_Integer, ZZ
-from sage.schemes.generic.homset import SchemeHomset_coordinates
+from sage.schemes.generic.homset import SchemeHomset_points
 from sage.schemes.generic.morphism import is_SchemeMorphism
 from sage.schemes.generic.spec import Spec, is_Spec
 from jacobian_morphism import JacobianMorphism_divisor_class_field
 
-class JacobianHomset_divisor_classes(SchemeHomset_coordinates):
+class JacobianHomset_divisor_classes(SchemeHomset_points):
     def __init__(self, Y, X, **kwds):
         R = X.base_ring()
         S = Y.coordinate_ring()
-        SchemeHomset_coordinates.__init__(self, Y, X, **kwds)
+        SchemeHomset_points.__init__(self, Y, X, **kwds)
         P2 = X.curve()._printing_ring
         if S != R:
             y = str(P2.gen())
@@ -156,7 +156,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_coordinates):
         else:
             return -1
 
-    def _point_morphism_class(self, *args, **kwds):
+    def _morphism_class(self, *args, **kwds):
         return JacobianMorphism_divisor_class_field(*args, **kwds)
 
     def curve(self):

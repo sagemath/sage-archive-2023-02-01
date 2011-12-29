@@ -240,11 +240,10 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             raise TypeError, "Second argument (= %s) must be a finite field."%F
         return [ P for P in self.base_extend(F) ]
 
-    def _point_morphism_class(self, *args, **kwds):
-        return morphism.SchemeMorphism_on_points_affine_space(*args, **kwds)
-
     def __cmp__(self, right):
         """
+        Compare ``self`` with ``right``.
+
         EXAMPLES::
 
             sage: AffineSpace(QQ, 3, 'a') == AffineSpace(ZZ, 3, 'a')
@@ -275,11 +274,76 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
-    def _homset_class(self, *args, **kwds):
-        return homset.SchemeHomset_affine_coordinates(*args, **kwds)
+    def _morphism_class(self, *args, **kwds):
+        """
+        Construct a morphism determined by action on points of ``self``.
+
+        INPUT:
+
+        Same as for
+        :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_affine_space`.
+
+        OUPUT:
+
+        A new instance of
+        :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_affine_space`.
+
+        EXAMPLES::
+
+            sage: AA = AffineSpace(QQ, 3, 'a')
+            sage: AA.inject_variables()
+            Defining a0, a1, a2
+            sage: EndAA = AA.Hom(AA)
+            sage: AA._morphism_class(EndAA, [a0*a1, a1*a2, a0*a2])
+            Scheme endomorphism of Affine Space of dimension 3 over Rational Field
+              Defn: Defined on coordinates by sending (a0, a1, a2) to
+                    (a0*a1, a1*a2, a0*a2)
+        """
+        return morphism.SchemeMorphism_polynomial_affine_space(*args, **kwds)
+
+    def _point_homset_class(self, *args, **kwds):
+        """
+        Construct a Hom-space for ``self``.
+
+        INPUT:
+
+        Same as for
+        :class:`~sage.schemes.generic.homset.SchemeHomset_points_affine`.
+
+        OUPUT:
+
+        A new instance of
+        :class:`~sage.schemes.generic.homset.SchemeHomset_points_affine`.
+
+        EXAMPLES::
+
+            sage: AA = AffineSpace(QQ, 3, 'a')
+            sage: AA._point_homset_class(Spec(QQ), AA)
+            Set of rational points of Affine Space of dimension 3 over Rational Field
+        """
+        return homset.SchemeHomset_points_affine(*args, **kwds)
 
     def _point_class(self, *args, **kwds):
-        return morphism.SchemeMorphism_affine_coordinates(*args, **kwds)
+        r"""
+        Construct a point of ``self``.
+
+        INPUT:
+
+        Same as for
+        :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_affine`.
+
+        OUPUT:
+
+        A new instance of
+        :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_affine`.
+
+        TESTS::
+
+            sage: AA = AffineSpace(QQ, 3, 'a')
+            sage: AA._point_class(AA.point_homset(), [0,1,2])
+            (0, 1, 2)
+        """
+        return morphism.SchemeMorphism_point_affine(*args, **kwds)
 
     def _repr_(self):
         """

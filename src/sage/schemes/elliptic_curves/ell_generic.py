@@ -167,14 +167,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         # purposes.
         from sage.rings.all import is_FiniteField, is_IntegerModRing
         if is_FiniteField(K) or is_IntegerModRing(K):
-            self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_finite_field
+            self._morphism_class = self._point_class = ell_point.EllipticCurvePoint_finite_field
         elif K.is_field():
             if is_NumberField(K):
-                self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_number_field
+                self._morphism_class = self._point_class = ell_point.EllipticCurvePoint_number_field
             else:
-                self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_field
+                self._morphism_class = self._point_class = ell_point.EllipticCurvePoint_field
         else:
-            self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint
+            self._morphism_class = self._point_class = ell_point.EllipticCurvePoint
 
     def _defining_params_(self):
         r"""
@@ -850,7 +850,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         else:
             raise ValueError, "No point with x-coordinate %s on %s"%(x, self)
 
-    def _homset_class(self, *args, **kwds):
+    def _point_homset_class(self, *args, **kwds):
         r"""
         Internal function. Returns the (abstract) group of points on this
         elliptic curve over a ring.
@@ -858,11 +858,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         EXAMPLES::
 
             sage: E=EllipticCurve(GF(5),[1,1])
-            sage: E._homset_class(Spec(GF(5^10,'a'),GF(5)), E)
+            sage: E._point_homset_class(Spec(GF(5^10,'a'),GF(5)), E)
             Abelian group of points on Elliptic Curve defined
             by y^2 = x^3 + x + 1 over Finite Field in a of size 5^10
         """
-        return homset.SchemeHomsetModule_abelian_variety_coordinates_field(*args, **kwds)
+        return homset.SchemeHomset_points_abelian_variety_field(*args, **kwds)
 
     def __getitem__(self, n):
         r"""

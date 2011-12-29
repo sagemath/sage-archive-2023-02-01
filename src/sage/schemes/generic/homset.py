@@ -1,5 +1,14 @@
-"""
+r"""
 Set of homomorphisms between two schemes
+
+For schemes `X` and `Y`, this module implements the set of morphisms
+`Hom(X,Y)`. This is done by :class:`SchemeHomset_generic`.
+
+As a special case, the hom sets can also represent the points of a
+scheme. Recall that the `K`-rational points of a scheme `X` over `k`
+can be identified with the set of morphisms `Spec(K) \to X`. In Sage,
+the rational points are implemented by such scheme morphisms. This is
+done by :class:`SchemeHomset_points` and its subclasses.
 
 .. note::
 
@@ -25,9 +34,10 @@ from sage.schemes.generic.spec import Spec, is_Spec
 from sage.schemes.generic.morphism import (
     SchemeMorphism,
     SchemeMorphism_structure_map, SchemeMorphism_spec,
-    SchemeMorphism_affine_coordinates,
-    SchemeMorphism_projective_coordinates_field )
-from sage.schemes.generic.toric_morphism import SchemeMorphism_toric_coordinates_field
+    SchemeMorphism_point_affine,
+    SchemeMorphism_point_projective_ring,
+    SchemeMorphism_point_projective_field )
+from sage.schemes.generic.toric_morphism import SchemeMorphism_point_toric_field
 
 
 
@@ -35,6 +45,19 @@ from sage.schemes.generic.toric_morphism import SchemeMorphism_toric_coordinates
 def is_SchemeHomset(H):
     r"""
     Test whether ``H`` is a scheme homset.
+
+    EXAMPLES::
+
+        sage: f = Spec(QQ).identity_morphism();  f
+        Scheme endomorphism of Spectrum of Rational Field
+          Defn: Identity map
+        sage: from sage.schemes.generic.homset import is_SchemeHomset
+        sage: is_SchemeHomset(f)
+        False
+        sage: is_SchemeHomset(f.parent())
+        True
+        sage: is_SchemeHomset('a string')
+        False
     """
     return isinstance(H, SchemeHomset_generic)
 
@@ -162,8 +185,11 @@ class SchemeHomsetFactory(UniqueFactory):
         Y = extra_args.pop('Y')
         base_ring = extra_args.pop('base_ring')
         if is_Spec(X):
-            return Y._homset_class(X, Y, category=category, base=base_ring, **extra_args)
-        return SchemeHomset_generic(X, Y, category=category, base=base_ring, **extra_args)
+            return Y._point_homset_class(X, Y, category=category, base=base_ring, **extra_args)
+        try:
+            return X._homset_class(X, Y, category=category, base=base_ring, **extra_args)
+        except AttributeError:
+            return SchemeHomset_generic(X, Y, category=category, base=base_ring, **extra_args)
 
 
 SchemeHomset = SchemeHomsetFactory('sage.schemes.generic.homset.SchemeHomset')
@@ -284,7 +310,7 @@ class SchemeHomset_generic(HomsetWithBase):
               To:   Rational Field
 
             sage: H = Hom(Spec(QQ, ZZ), Spec(ZZ)); H
-            Set of rational points of Spectrum of Rational Field
+            Set of rational points of Spectrum of Integer Ring
 
             sage: phi = H(f); phi
             Affine Scheme morphism:
@@ -295,6 +321,14 @@ class SchemeHomset_generic(HomsetWithBase):
                       To:   Rational Field
 
         TESTS:
+
+            sage: H._element_constructor_(f)
+            Affine Scheme morphism:
+              From: Spectrum of Rational Field
+              To:   Spectrum of Integer Ring
+              Defn: Ring Coercion morphism:
+                      From: Integer Ring
+                      To:   Rational Field
 
         We illustrate input type checking::
 
@@ -313,7 +347,7 @@ class SchemeHomset_generic(HomsetWithBase):
             TypeError: x must be a ring homomorphism, list or tuple
         """
         if isinstance(x, (list, tuple)):
-            return self.domain()._point_morphism_class(self, x, check=check)
+            return self.domain()._morphism_class(self, x, check=check)
 
         if is_RingHomomorphism(x):
             return SchemeMorphism_spec(self, x, check=check)
@@ -321,8 +355,10 @@ class SchemeHomset_generic(HomsetWithBase):
         raise TypeError, "x must be a ring homomorphism, list or tuple"
 
 
-
-class SchemeHomset_coordinates(SchemeHomset_generic):
+#*******************************************************************
+# Base class for points
+#*******************************************************************
+class SchemeHomset_points(SchemeHomset_generic):
     """
     Set of rational points of the scheme.
 
@@ -336,8 +372,8 @@ class SchemeHomset_coordinates(SchemeHomset_generic):
 
     EXAMPLES::
 
-        sage: from sage.schemes.generic.homset import SchemeHomset_coordinates
-        sage: SchemeHomset_coordinates(Spec(QQ), AffineSpace(ZZ,2))
+        sage: from sage.schemes.generic.homset import SchemeHomset_points
+        sage: SchemeHomset_points(Spec(QQ), AffineSpace(ZZ,2))
         Set of rational points of Affine Space of dimension 2 over Rational Field
     """
 
@@ -351,13 +387,52 @@ class SchemeHomset_coordinates(SchemeHomset_generic):
 
         EXAMPLES::
 
-            sage: from sage.schemes.generic.homset import SchemeHomset_coordinates
-            sage: SchemeHomset_coordinates(Spec(QQ), AffineSpace(ZZ,2))
+            sage: from sage.schemes.generic.homset import SchemeHomset_points
+            sage: SchemeHomset_points(Spec(QQ), AffineSpace(ZZ,2))
             Set of rational points of Affine Space of dimension 2 over Rational Field
         """
         if check and not is_Spec(X):
             raise ValueError('The domain must be an affine scheme.')
         SchemeHomset_generic.__init__(self, X, Y, category=category, check=check, base=base)
+
+    def _element_constructor_(self, *v, **kwds):
+        """
+        The element contstructor.
+
+        INPUT:
+
+        - ``v`` -- anything that determines a scheme morphism in the
+          hom set.
+
+        OUTPUT:
+
+        The scheme morphism determined by ``v``.
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(ZZ,2)
+            sage: F = GF(3)
+            sage: F_points = A2(F);  type(F_points)
+            <class 'sage.schemes.generic.homset.SchemeHomset_points_affine_with_category'>
+            sage: F_points([2,5])
+            (2, 2)
+
+            sage: P2 = ProjectiveSpace(GF(3),2)
+            sage: F.<a> = GF(9,'a')
+            sage: F_points = P2(F)
+            sage: type(F_points)
+            <class 'sage.schemes.generic.homset.SchemeHomset_points_projective_field_with_category'>
+            sage: F_points([4,2*a])
+            (1 : 2*a : 1)
+
+        TESTS::
+
+            sage: F_points._element_constructor_([4,2*a])
+            (1 : 2*a : 1)
+        """
+        if len(v) == 1:
+            v = v[0]
+        return self.codomain()._point_class(self, v, **kwds)
 
     def extended_codomain(self):
         """
@@ -412,7 +487,7 @@ class SchemeHomset_coordinates(SchemeHomset_generic):
 
     def value_ring(self):
         """
-        Returns ``R` for a homset `X(Spec(R))`
+        Returns `R` for a point homset `X(Spec(R))`
 
         OUTPUT:
 
@@ -432,7 +507,7 @@ class SchemeHomset_coordinates(SchemeHomset_generic):
 #*******************************************************************
 # Affine varieties
 #*******************************************************************
-class SchemeHomset_affine_coordinates(SchemeHomset_coordinates):
+class SchemeHomset_points_spec(SchemeHomset_generic):
     """
     Set of rational points of an affine variety.
 
@@ -442,36 +517,72 @@ class SchemeHomset_affine_coordinates(SchemeHomset_coordinates):
 
     EXAMPLES::
 
-        sage: from sage.schemes.generic.homset import SchemeHomset_affine_coordinates
-        sage: SchemeHomset_affine_coordinates(Spec(QQ), AffineSpace(ZZ,2))
-        Set of rational points of Affine Space of dimension 2 over Rational Field
+        sage: from sage.schemes.generic.homset import SchemeHomset_points_spec
+        sage: SchemeHomset_points_spec(Spec(QQ), Spec(QQ))
+        Set of rational points of Spectrum of Rational Field
     """
-    def _element_constructor_(self, *v):
+
+    def _element_constructor_(self, *args, **kwds):
         """
         The element contstructor.
 
-        INPUT:
+        EXAMPLES::
 
-        - ``v`` -- anything that determines a scheme morphism in the
-          hom set.
+            sage: X = Spec(QQ)
+            sage: ring_hom = QQ.hom((1,), QQ);  ring_hom
+            Ring endomorphism of Rational Field
+              Defn: 1 |--> 1
+            sage: Hom = X.Hom(X)
+            sage: Hom(ring_hom)
+            Affine Scheme endomorphism of Spectrum of Rational Field
+              Defn: Ring endomorphism of Rational Field
+                      Defn: 1 |--> 1
+
+        TESTS::
+
+            sage: Hom._element_constructor_(ring_hom)
+            Affine Scheme endomorphism of Spectrum of Rational Field
+              Defn: Ring endomorphism of Rational Field
+                      Defn: 1 |--> 1
+        """
+        return SchemeHomset_generic._element_constructor_(self, *args, **kwds)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
 
         OUTPUT:
 
-        The scheme morphism determined by ``v``.
+        A string.
 
         EXAMPLES::
 
-            sage: A2 = AffineSpace(ZZ,2)
-            sage: F = GF(3)
-            sage: F_points = A2(F);  type(F_points)
-            <class 'sage.schemes.generic.homset.SchemeHomset_affine_coordinates_with_category'>
-            sage: F_points([2,5])
-            (2, 2)
+            sage: from sage.schemes.generic.homset import SchemeHomset_points_spec
+            sage: S = SchemeHomset_points_spec(Spec(QQ), Spec(QQ))
+            sage: S._repr_()
+            'Set of rational points of Spectrum of Rational Field'
         """
-        if len(v) == 1:
-            v = v[0]
-        return SchemeMorphism_affine_coordinates(self, v)
+        return 'Set of rational points of '+str(self.codomain())
 
+
+
+#*******************************************************************
+# Affine varieties
+#*******************************************************************
+class SchemeHomset_points_affine(SchemeHomset_points):
+    """
+    Set of rational points of an affine variety.
+
+    INPUT:
+
+    See :class:`SchemeHomset_generic`.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.generic.homset import SchemeHomset_points_affine
+        sage: SchemeHomset_points_affine(Spec(QQ), AffineSpace(ZZ,2))
+        Set of rational points of Affine Space of dimension 2 over Rational Field
+    """
     def points(self, B=0):
         r"""
         Return some or all rational points of an affine scheme.
@@ -521,7 +632,7 @@ class SchemeHomset_affine_coordinates(SchemeHomset_coordinates):
 #*******************************************************************
 # Projective varieties
 #*******************************************************************
-class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
+class SchemeHomset_points_projective_field(SchemeHomset_points):
     """
     Set of rational points of a projective variety over a field.
 
@@ -531,36 +642,10 @@ class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
 
     EXAMPLES::
 
-        sage: from sage.schemes.generic.homset import SchemeHomset_projective_coordinates_field
-        sage: SchemeHomset_projective_coordinates_field(Spec(QQ), ProjectiveSpace(QQ,2))
+        sage: from sage.schemes.generic.homset import SchemeHomset_points_projective_field
+        sage: SchemeHomset_points_projective_field(Spec(QQ), ProjectiveSpace(QQ,2))
         Set of rational points of Projective Space of dimension 2 over Rational Field
     """
-    def _element_constructor_(self, *v):
-        """
-        The element contstructor.
-
-        INPUT:
-
-        - ``v`` -- anything that determines a scheme morphism in the
-          hom set.
-
-        OUTPUT:
-
-        The scheme morphism determined by ``v``.
-
-        EXAMPLES::
-
-            sage: P2 = ProjectiveSpace(GF(3),2)
-            sage: F.<a> = GF(9,'a')
-            sage: F_points = P2(F)
-            sage: F_points([4,2*a])
-            (1 : 2*a : 1)
-        """
-        if len(v) == 1:
-            v = v[0]
-        X = self.extended_codomain()
-        return X.point(v)
-
     def points(self, B=0):
         """
         Return some or all rational points of a projective scheme.
@@ -595,7 +680,7 @@ class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
         else:
             raise TypeError, "Unable to enumerate points over %s."%R
 
-class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
+class SchemeHomset_points_projective_ring(SchemeHomset_points):
     """
     Set of rational points of a projective variety over a commutative ring.
 
@@ -605,11 +690,11 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
 
     EXAMPLES::
 
-        sage: from sage.schemes.generic.homset import SchemeHomset_projective_coordinates_ring
-        sage: SchemeHomset_projective_coordinates_ring(Spec(ZZ), ProjectiveSpace(ZZ,2))
+        sage: from sage.schemes.generic.homset import SchemeHomset_points_projective_ring
+        sage: SchemeHomset_points_projective_ring(Spec(ZZ), ProjectiveSpace(ZZ,2))
         Set of rational points of Projective Space of dimension 2 over Integer Ring
     """
-    def _element_constructor_(self, *v):
+    def _element_constructor_(self, *v, **kwds):
         r"""
         The element constructor.
 
@@ -617,13 +702,21 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
 
         EXAMPLES::
 
-            sage: from sage.schemes.generic.homset import SchemeHomset_projective_coordinates_ring
-            sage: Hom = SchemeHomset_projective_coordinates_ring(Spec(ZZ), ProjectiveSpace(ZZ,2))
+            sage: from sage.schemes.generic.homset import SchemeHomset_points_projective_ring
+            sage: Hom = SchemeHomset_points_projective_ring(Spec(ZZ), ProjectiveSpace(ZZ,2))
             sage: Hom(1,2,3)
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        TESTS::
+
+            sage: Hom._element_constructor_(1,2,3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
+        check = kwds.get('check', True)
         raise NotImplementedError
 
     def points(self, B=0):
@@ -641,8 +734,8 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
 
         EXAMPLES::
 
-            sage: from sage.schemes.generic.homset import SchemeHomset_projective_coordinates_ring
-            sage: Hom = SchemeHomset_projective_coordinates_ring(Spec(ZZ), ProjectiveSpace(ZZ,2))
+            sage: from sage.schemes.generic.homset import SchemeHomset_points_projective_ring
+            sage: Hom = SchemeHomset_points_projective_ring(Spec(ZZ), ProjectiveSpace(ZZ,2))
             sage: Hom.points(5)
             Traceback (most recent call last):
             ...
@@ -662,7 +755,7 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
 #*******************************************************************
 # Abelian varieties
 #*******************************************************************
-class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projective_coordinates_field):
+class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_field):
     r"""
     Set of rational points of an abelian variety.
 
@@ -694,6 +787,37 @@ class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projecti
         True
     """
 
+    def _element_constructor_(self, *v, **kwds):
+        """
+        The element contstructor.
+
+        INPUT:
+
+        - ``v`` -- anything that determines a scheme morphism in the
+          hom set.
+
+        OUTPUT:
+
+        The scheme morphism determined by ``v``.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: X = E(QQ)
+            sage: P = X([0,1,0]);  P
+            (0 : 1 : 0)
+            sage: type(P)
+            <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_number_field'>
+
+        TESTS::
+
+            sage: X._element_constructor_([0,1,0])
+            (0 : 1 : 0)
+        """
+        if len(v) == 1:
+            v = v[0]
+        return self.codomain()._point_class(self.extended_codomain(), v, **kwds)
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -713,27 +837,56 @@ class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projecti
         return s
 
     def base_extend(self, R):
+        """
+        Extend the base ring.
+
+        This is currently not implemented except for the trivial case
+        ``R==ZZ``.
+
+        INPUT:
+
+        - ``R`` -- a ring.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: Hom = E.point_homset();  Hom
+            Abelian group of points on Elliptic Curve defined
+            by y^2 + y = x^3 - x over Rational Field
+            sage: Hom.base_ring()
+            Integer Ring
+            sage: Hom.base_extend(QQ)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Abelian variety point sets not
+            implemented as modules over rings other than ZZ.
+        """
         if not R is ZZ:
             raise NotImplementedError('Abelian variety point sets not implemented '
                                       'as modules over rings other than ZZ.')
         return self
 
 
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.schemes.generic.homset',
+                           'SchemeHomsetModule_abelian_variety_coordinates_field',
+                           SchemeHomset_points_abelian_variety_field)
+
 #*******************************************************************
 # Toric varieties
 #*******************************************************************
-class SchemeHomset_toric_coordinates_field(SchemeHomset_coordinates):
+class SchemeHomset_points_toric_field(SchemeHomset_points):
     """
     Set of rational points of a toric variety.
 
     INPUT:
 
-    - same as for :class:`SchemeHomset_coordinates`.
+    - same as for :class:`SchemeHomset_points`.
 
     OUPUT:
 
     A scheme morphism of type
-    :class:`SchemeHomset_toric_coordinates_field`.
+    :class:`SchemeHomset_points_toric_field`.
 
     EXAMPLES::
 
@@ -745,7 +898,7 @@ class SchemeHomset_toric_coordinates_field(SchemeHomset_coordinates):
     TESTS::
 
         sage: import sage.schemes.generic.homset as HOM
-        sage: HOM.SchemeHomset_toric_coordinates_field(Spec(QQ), P1xP1)
+        sage: HOM.SchemeHomset_points_toric_field(Spec(QQ), P1xP1)
         Set of rational points of 2-d CPR-Fano toric variety covered by 4 affine patches
     """
     pass

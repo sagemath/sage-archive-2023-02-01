@@ -33,8 +33,8 @@ from sage.rings.all import (is_MPolynomial, PolynomialRing,
                             is_RationalField)
 from sage.rings.number_field.number_field import is_NumberField
 from sage.schemes.generic.all import ProjectiveSpace
-from sage.schemes.generic.morphism import (SchemeMorphism_affine_coordinates,
-                            SchemeMorphism_projective_coordinates_field)
+from sage.schemes.generic.morphism import (
+    SchemeMorphism_point_affine, SchemeMorphism_point_projective_field)
 from sage.structure.all import Sequence
 from sage.structure.element import is_Matrix
 
@@ -148,12 +148,12 @@ def Conic(base_field, F=None, names=None, unique=True):
         if len(F) == 5:
             L=[]
             for f in F:
-                if isinstance(f, SchemeMorphism_affine_coordinates):
+                if isinstance(f, SchemeMorphism_point_affine):
                     C = Sequence(f, universe = base_field)
                     if len(C) != 2:
                         raise TypeError, "points in F (=%s) must be planar"%F
                     C.append(1)
-                elif isinstance(f, SchemeMorphism_projective_coordinates_field):
+                elif isinstance(f, SchemeMorphism_point_projective_field):
                     C = Sequence(f, universe = base_field)
                 elif isinstance(f, (list, tuple)):
                     C = Sequence(f, universe = base_field)

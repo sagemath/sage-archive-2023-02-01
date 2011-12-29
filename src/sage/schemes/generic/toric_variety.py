@@ -244,10 +244,9 @@ from sage.rings.all import PolynomialRing, ZZ, QQ, is_Field
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.generic.ambient_space import AmbientSpace
-from sage.schemes.generic.homset import (SchemeHomset_coordinates,
-                                         SchemeHomset_toric_coordinates_field)
-from sage.schemes.generic.toric_morphism import (SchemeMorphism_on_points_toric_variety,
-                                                 SchemeMorphism_toric_coordinates_field)
+from sage.schemes.generic.homset import SchemeHomset_points_toric_field
+from sage.schemes.generic.toric_morphism import (SchemeMorphism_polynomial_toric_variety,
+                                                 SchemeMorphism_point_toric_field)
 
 
 
@@ -619,29 +618,29 @@ class ToricVariety_field(AmbientSpace):
         raise TypeError("coordinates %s are in the exceptional set!"
                         % str(coordinates)) # Need str, coordinates is a tuple
 
-    def _homset_class(self, *args, **kwds):
+    def _point_homset_class(self, *args, **kwds):
         r"""
         Construct a `Hom`-space for ``self``.
 
         INPUT:
 
         - same as for
-          :class:`~sage.schemes.generic.homset.SchemeHomset_toric_coordinates_field`.
+          :class:`~sage.schemes.generic.homset.SchemeHomset_points_toric_field`.
 
         OUPUT:
 
         -
-          :class:`~sage.schemes.generic.homset.SchemeHomset_toric_coordinates_field`.
+          :class:`~sage.schemes.generic.homset.SchemeHomset_points_toric_field`.
 
         TESTS::
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
             sage: P1xP1 = ToricVariety(fan)
-            sage: P1xP1._homset_class(Spec(QQ), P1xP1)
+            sage: P1xP1._point_homset_class(Spec(QQ), P1xP1)
             Set of rational points of 2-d toric variety
             covered by 4 affine patches
         """
-        return SchemeHomset_toric_coordinates_field(*args, **kwds)
+        return SchemeHomset_points_toric_field(*args, **kwds)
 
     def _latex_(self):
         r"""
@@ -694,11 +693,11 @@ class ToricVariety_field(AmbientSpace):
         INPUT:
 
         - same as for
-          :class:`~sage.schemes.generic.morphism.SchemeMorphism_toric_coordinates_field`.
+          :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_toric_field`.
 
         OUPUT:
 
-        :class:`~sage.schemes.generic.morphism.SchemeMorphism_toric_coordinates_field`.
+        :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_toric_field`.
 
         TESTS::
 
@@ -707,20 +706,20 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1._point_class(P1xP1, [1,2,3,4])
             [1 : 2 : 3 : 4]
         """
-        return SchemeMorphism_toric_coordinates_field(*args, **kwds)
+        return SchemeMorphism_point_toric_field(*args, **kwds)
 
-    def _point_morphism_class(self, *args, **kwds):
+    def _morphism_class(self, *args, **kwds):
         r"""
         Construct a morphism determined by action on points of ``self``.
 
         INPUT:
 
         - same as for
-          :class:`~sage.schemes.generic.morphism.SchemeMorphism_on_points_toric_variety`.
+          :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_toric_variety`.
 
         OUPUT:
 
-        :class:`~sage.schemes.generic.morphism.SchemeMorphism_on_points_toric_variety`.
+        :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_toric_variety`.
 
         TESTS::
 
@@ -730,7 +729,7 @@ class ToricVariety_field(AmbientSpace):
             Defining z0, z1, z2, z3
             sage: P1 = P1xP1.subscheme(z0-z2)
             sage: H = P1xP1.Hom(P1)
-            sage: P1xP1._point_morphism_class(H, [z0,z1,z0,z3])
+            sage: P1xP1._morphism_class(H, [z0,z1,z0,z3])
             Scheme morphism:
               From: 2-d toric variety covered by 4 affine patches
               To:   Closed subscheme of 2-d toric variety
@@ -739,7 +738,7 @@ class ToricVariety_field(AmbientSpace):
               Defn: Defined on coordinates by sending
                     [z0 : z1 : z2 : z3] to [z0 : z1 : z0 : z3]
         """
-        return SchemeMorphism_on_points_toric_variety(*args, **kwds)
+        return SchemeMorphism_polynomial_toric_variety(*args, **kwds)
 
     def _repr_(self):
         r"""
@@ -977,7 +976,7 @@ class ToricVariety_field(AmbientSpace):
         OUTPUT:
 
         - :class:`scheme morphism
-          <sage.schemes.generic.morphism.SchemeMorphism_on_points_toric_variety>`
+          <sage.schemes.generic.morphism.SchemeMorphism_polynomial_toric_variety>`
           if the default embedding morphism was defined for ``self``,
           otherwise a ``ValueError`` exception is raised.
 

@@ -163,7 +163,7 @@ class Schemes_abstract(Category):
                 the parent for Hom(R, S) to be in a different class::
 
                     sage: Hom(Spec(ZZ), Spec(ZZ)).__class__
-                    <class 'sage.schemes.generic.homset.SchemeHomset_coordinates_with_category'>
+                    <class 'sage.schemes.generic.homset.SchemeHomset_points_spec_with_category'>
 
                 Currently, and to minimize the changes, this is done
                 by delegating the job to SchemeHomset. This is not

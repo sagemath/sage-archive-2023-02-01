@@ -2562,6 +2562,21 @@ class DiGraph(GenericGraph):
             sage: D.add_edge([2,0])
             sage: D.strongly_connected_components()
             [[0, 1, 2], [3], [4], [5], [6]]
+
+        TESTS:
+
+        Checking against NetworkX::
+
+            sage: import networkx
+            sage: for i in range(100):                                     # long
+            ...        g = digraphs.RandomDirectedGNP(100,.05)             # long
+            ...        h = g.networkx_graph()                              # long
+            ...        scc1 = g.strongly_connected_components()            # long
+            ...        scc2 = networkx.strongly_connected_components(h)    # long
+            ...        s1 = Set(map(Set,scc1))                             # long
+            ...        s2 = Set(map(Set,scc2))                             # long
+            ...        if s1 != s2:                                        # long
+            ...            print "Ooch !"                                  # long
         """
 
         try:

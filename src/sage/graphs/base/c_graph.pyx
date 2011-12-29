@@ -3002,7 +3002,7 @@ cdef class Search_iterator:
                 if self.test_out:
                     self.stack.extend(self.graph._cg.out_neighbors(v_int))
                 if self.test_in:
-                    self.stack.extend(self.graph._cg.in_neighbors(v_int))
+                    self.stack.extend(self.graph._cg_rev.out_neighbors(v_int))
 
                 break
         else:

@@ -1,5 +1,38 @@
-"""
+r"""
 Homsets
+
+The class :class:`Hom` is the base class used to represent sets of morphisms
+between objects of a given category.
+:class:`Hom` objects are usually "weakly" cached upon creation so that they
+don't have to be generated over and over but can be garbage collected together
+with the corresponding objects when these are are not stongly ref'ed anymore.
+
+EXAMPLES:
+
+In the following, the :class:`Hom` object is indeed cached::
+
+    sage: K = GF(17)
+    sage: H = Hom(ZZ, K)
+    sage: H
+    Set of Homomorphisms from Integer Ring to Finite Field of size 17
+    sage: H is Hom(ZZ, K)
+    True
+
+Nonetheless, garbage collection occurs when the original references are
+overwritten::
+
+    sage: for p in prime_range(200):
+    ...     K = GF(p)
+    ...     H = Hom(ZZ, K)
+    ...
+    sage: import gc
+    sage: _ = gc.collect()
+    sage: from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn as FF
+    sage: L = [x for x in gc.get_objects() if isinstance(x, FF)]
+    sage: len(L)
+    2
+    sage: L
+    [Finite Field of size 2, Finite Field of size 199]
 
 AUTHORS:
 
@@ -10,6 +43,8 @@ AUTHORS:
 - William Stein (2006-01-14): Changed from Homspace to Homset.
 
 - Nicolas M. Thiery (2008-12-): Updated for the new category framework
+
+- Simon King (2011-12): Use a weak cache for homsets
 """
 
 #*****************************************************************************
@@ -27,8 +62,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import weakref
-
 from sage.categories.category import Category
 import morphism
 from sage.structure.parent import Parent, Set_generic
@@ -36,7 +69,14 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_function
 import types
 
-_cache = {}
+###################################
+# Use the weak "triple" dictionary
+# introduced in trac ticket #715
+
+import weakref
+from sage.structure.coerce_dict import TripleDict
+_cache = TripleDict(53)
+
 def Hom(X, Y, category=None):
     """
     Create the space of homomorphisms from X to Y in the category ``category``.
@@ -71,6 +111,20 @@ def Hom(X, Y, category=None):
         Set of Morphisms from Ambient free module of rank 1 over the principal ideal domain Integer Ring to Vector space of dimension 1 over Rational Field in Category of modules with basis over Integer Ring
         sage: Hom(FreeModule(QQ,1), FreeModule(ZZ,1))
         Set of Morphisms from Vector space of dimension 1 over Rational Field to Ambient free module of rank 1 over the principal ideal domain Integer Ring in Category of vector spaces over Rational Field
+
+    Here, we test against a memory leak that has been fixed at :trac:`11521` by
+    using a weak cache::
+
+        sage: for p in prime_range(10^5):
+        ...    K = GF(p)
+        ...    a = K(0)
+        sage: import gc
+        sage: gc.collect()       # random
+        624
+        sage: from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn as FF
+        sage: L = [x for x in gc.get_objects() if isinstance(x, FF)]
+        sage: len(L), L[0], L[len(L)-1]
+        (2, Finite Field of size 2, Finite Field of size 99991)
 
     To illustrate the choice of the category, we consider the
     following parents as running examples::
@@ -155,17 +209,19 @@ def Hom(X, Y, category=None):
     # However it breaks somehow the coercion (see e.g. sage -t sage.rings.real_mpfr)
     # To be investigated.
     global _cache
-    key = (X,Y,category)
-    if _cache.has_key(key):
+    cat_ref = weakref.ref(category) if category is not None else None
+    key = (X,Y,cat_ref)
+    try:
         H = _cache[key]()
-        # What is this test for? Why does the cache ever contain a 0 value?
-        # This actually occurs: see e.g. sage -t  sage-combinat/sage/categories/modules_with_basis.py
-        if H:
-            # Are domain or codomain breaking the unique parent condition?
-            if H.domain() is X and H.codomain() is Y:
-                return H
+    except KeyError:
+        H = None
+    if H:
+        # Are domain or codomain breaking the unique parent condition?
+        if H.domain() is X and H.codomain() is Y:
+            return H
 
     try:
+        # Apparently X._Hom_ is supposed to be cached
         return X._Hom_(Y, category)
     except (AttributeError, TypeError):
         pass
@@ -182,13 +238,16 @@ def Hom(X, Y, category=None):
     else:
         raise TypeError, "Argument category (= %s) must be a category."%category
     # Now, as the category may have changed, we try to find the hom set in the cache, again:
-    key = (X,Y,category)
-    if _cache.has_key(key):
+    cat_ref = weakref.ref(category) if category is not None else None
+    key = (X,Y,cat_ref)
+    try:
         H = _cache[key]()
-        if H:
-            # Are domain or codomain breaking the unique parent condition?
-            if H.domain() is X and H.codomain() is Y:
-                return H
+    except KeyError:
+        H = None
+    if H:
+        # Are domain or codomain breaking the unique parent condition?
+        if H.domain() is X and H.codomain() is Y:
+            return H
 
     # coercing would be incredibly annoying, since the domain and codomain
     # are totally different objects
@@ -201,7 +260,7 @@ def Hom(X, Y, category=None):
     H = category.hom_category().parent_class(X, Y, category = category)
 
     ##_cache[key] = weakref.ref(H)
-    _cache[(X, Y, category)] = weakref.ref(H)
+    _cache[key] = weakref.ref(H)
     return H
 
 def hom(X, Y, f):

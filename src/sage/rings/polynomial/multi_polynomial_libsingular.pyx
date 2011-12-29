@@ -406,6 +406,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: import gc
             sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
             sage: from sage.libs.singular.ring import ring_refcount_dict
+            sage: gc.collect()  # random output
             sage: n = len(ring_refcount_dict)
             sage: R = MPolynomialRing_libsingular(GF(547), 2, ('x', 'y'), TermOrder('degrevlex', 2))
             sage: len(ring_refcount_dict) == n + 1

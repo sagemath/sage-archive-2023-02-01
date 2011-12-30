@@ -9681,6 +9681,18 @@ cdef class Matrix(matrix1.Matrix):
             sage: all([A.is_mutable() for A in [P, L, U]])
             True
 
+        Partial pivoting is based on the absolute values of entries
+        of a column.  Trac #12208 shows that the return value of the
+        absolute value must be handled carefully.  This tests that
+        situation in the case of cylotomic fields.  ::
+
+            sage: C = SymmetricGroup(5).character_table()
+            sage: C.base_ring()
+            Cyclotomic Field of order 1 and degree 1
+            sage: P, L, U = C.LU(pivot='partial')
+            sage: C == P*L*U
+            True
+
         AUTHOR:
 
         - Rob Beezer (2011-04-26)
@@ -9738,8 +9750,10 @@ cdef class Matrix(matrix1.Matrix):
             zero = F(0)
             for k in range(d):
                 max_location = -1
-                max_entry = zero
                 if partial:
+                    # abs() necessary to convert zero to the
+                    # correct type for comparisons (Trac #12208)
+                    max_entry = abs(zero)
                     for i in range(k,m):
                         entry = abs(M.get_unsafe(i,k))
                         if entry > max_entry:

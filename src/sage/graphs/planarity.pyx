@@ -62,10 +62,17 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
         sage: a == b # long time
         True
 
-    There were some problems with set_pos stability in the past,
-    so let's check if this this runs without exception:
+    There were some problems with ``set_pos`` stability in the past,
+    so let's check if this this runs without exception::
 
-        sage: c = [i for i in [1..1252] if atlas_graphs[i].is_connected() and atlas_graphs[i].is_planar(set_embedding=True, set_pos=True)] # long time
+        sage: for i,g in enumerate(atlas_graphs):                         # long time
+        ...       if (not g.is_connected() or i==0):                      # long time
+        ...           continue                                            # long time
+        ...       try:                                                    # long time
+        ...           _ = g.is_planar(set_embedding=True, set_pos=True)   # long time
+        ...       except:                                                 # long time
+        ...           print "There is something wrong here !"             # long time
+        ...           break                                               # long time
     """
     if set_pos and not g.is_connected():
         raise ValueError("is_planar() cannot set vertex positions for a disconnected graph")
@@ -76,10 +83,11 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
             g._embedding = dict((v, []) for v in g.vertices())
         return (True, None) if kuratowski else True
     if len(g) == 2 and g.is_connected(): # P_2 is too small to be triangulated
+        u,v = g.vertices()
         if set_embedding:
-            g._embedding = { g.vertices()[0]: [g.vertices()[1]], g.vertices()[1]: [g.vertices()[0]] }
+            g._embedding = { u: [v], v: [u] }
         if set_pos:
-            g._pos = { g.vertices()[0]: [0,0], g.vertices()[1]: [0,1] }
+            g._pos = { u: [0,0], v: [0,1] }
         return (True, None) if kuratowski else True
 
     # create to and from mappings to relabel vertices to the set {0,...,n-1}

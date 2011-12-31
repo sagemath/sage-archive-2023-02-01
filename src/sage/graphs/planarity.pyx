@@ -61,15 +61,26 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
         sage: b = [i for i in [1..1252] if atlas_graphs[i].is_planar()] # long time
         sage: a == b # long time
         True
-    """
-    # First take care of a trivial case.  We ignore the set_pos,
-    # set_embedding, and circular arguments.
-    if g.size() == 0:
-        if kuratowski:
-            return (True, None)
-        else:
-            return True
 
+    There were some problems with set_pos stability in the past,
+    so let's check if this this runs without exception:
+
+        sage: c = [i for i in [1..1252] if atlas_graphs[i].is_connected() and atlas_graphs[i].is_planar(set_embedding=True, set_pos=True)] # long time
+    """
+    if set_pos and not g.is_connected():
+        raise ValueError("is_planar() cannot set vertex positions for a disconnected graph")
+
+    # First take care of a trivial cases
+    if g.size() == 0: # There are no edges
+        if set_embedding:
+            g._embedding = dict((v, []) for v in g.vertices())
+        return (True, None) if kuratowski else True
+    if len(g) == 2 and g.is_connected(): # P_2 is too small to be triangulated
+        if set_embedding:
+            g._embedding = { g.vertices()[0]: [g.vertices()[1]], g.vertices()[1]: [g.vertices()[0]] }
+        if set_pos:
+            g._pos = { g.vertices()[0]: [0,0], g.vertices()[1]: [0,1] }
+        return (True, None) if kuratowski else True
 
     # create to and from mappings to relabel vertices to the set {0,...,n-1}
     cdef int i

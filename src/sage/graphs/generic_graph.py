@@ -10943,18 +10943,33 @@ class GenericGraph(GenericGraph_pyx):
             6
             sage: graphs.trees(9).next().girth()
             +Infinity
+
+        TESTS:
+
+        Prior to Trac #12243, the girth computation assumed
+        vertices were integers (and failed).  The example below
+        tests the computation for graphs with vertices that are
+        not integers.  In this example the vertices are sets.  ::
+
+            sage: G = graphs.OddGraph(3)
+            sage: type(G.vertices()[0])
+            <class 'sage.sets.set.Set_object_enumerated_with_category'>
+            sage: G.girth()
+            5
         """
         n = self.num_verts()
         best = n+1
-        for i in self.vertex_iterator():
-            span = set([i])
+        seen = {}
+        for w in self.vertex_iterator():
+            seen[w] = None
+            span = set([w])
             depth = 1
-            thisList = set([i])
+            thisList = set([w])
             while 2*depth <= best and 3 < best:
                 nextList = set()
                 for v in thisList:
                     for u in self.neighbors(v):
-                        if u<i: continue
+                        if u in seen: continue
                         if not u in span:
                             span.add(u)
                             nextList.add(u)

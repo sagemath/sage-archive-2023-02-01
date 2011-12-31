@@ -1041,8 +1041,8 @@ class ModulesWithBasis(Category_over_base_ring):
 
                     sage: A = AlgebrasWithBasis(QQ).example(); A
                     An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
-                    sage: B = HopfAlgebrasWithBasis(QQ).example(); A
-                    An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
+                    sage: B = HopfAlgebrasWithBasis(QQ).example(); B
+                    An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
                     sage: A.an_element(), B.an_element()
                     (B[word: ] + 2*B[word: a] + 3*B[word: b], B[()] + 2*B[(2,3)] + 3*B[(1,2)] + B[(1,2,3)])
                     sage: cartesian_product((A, B, A)).an_element()           # indirect doctest

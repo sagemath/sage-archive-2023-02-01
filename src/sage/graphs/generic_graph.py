@@ -7724,7 +7724,8 @@ class GenericGraph(GenericGraph_pyx):
         `\exists v'\in S: (u,v')\in G`.
 
         The new vertex is named after the first vertex in the list
-        given in argument.
+        given in argument. If this first name is None, a new vertex
+        is created.
 
         In the case of multigraphs, the multiplicity is preserved.
 
@@ -7738,18 +7739,30 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.merge_vertices([0,1])
             sage: g.edges()
             [(0, 2, None)]
+
             sage: # With a Multigraph :
             sage: g=graphs.CycleGraph(3)
             sage: g.allow_multiple_edges(True)
             sage: g.merge_vertices([0,1])
             sage: g.edges(labels=False)
             [(0, 2), (0, 2)]
+
             sage: P=graphs.PetersenGraph()
             sage: P.merge_vertices([5,7])
             sage: P.vertices()
             [0, 1, 2, 3, 4, 5, 6, 8, 9]
 
+            sage: g=graphs.CycleGraph(5)
+            sage: g.vertices()
+            [0, 1, 2, 3, 4]
+            sage: g.merge_vertices([None, 1, 3])
+            sage: g.edges(labels=False)
+            [(0, 4), (0, 5), (2, 5), (4, 5)]
+
         """
+
+        if len(vertices) > 0 and vertices[0] is None:
+            vertices[0] = self.add_vertex()
 
         if self.is_directed():
             out_edges=self.edge_boundary(vertices)
@@ -7818,17 +7831,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges()
             [('label', (1, 2), None)]
 
+        Vertex name cannot be None, so::
+
+            sage: G = Graph()
+            sage: G.add_edge(None, 4)
+            sage: G.vertices()
+            [0, 4]
         """
         if label is None:
             if v is None:
                 try:
                     u, v, label = u
                 except:
-                    u, v = u
-                    label = None
+                    try:
+                        u, v = u
+                    except:
+                        pass
         else:
             if v is None:
-                u, v = u
+                try:
+                    u, v = u
+                except:
+                    pass
         if not self.allows_loops() and u==v:
             return
         self._backend.add_edge(u, v, label, self._directed)

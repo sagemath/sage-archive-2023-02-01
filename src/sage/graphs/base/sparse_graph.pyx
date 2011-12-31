@@ -1601,14 +1601,13 @@ class SparseGraphBackend(CGraphBackend):
             [(0, 1, 3)]
 
         """
+        if u is None: u = self.add_vertex(None)
+        if v is None: v = self.add_vertex(None)
+
         cdef int u_int = check_vertex(u, self.vertex_ints, self.vertex_labels,
                       self._cg, self._cg_rev, self._directed)
         cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
                       self._cg, self._cg_rev, self._directed)
-        if not self._cg.has_vertex(u_int):
-            self._cg.add_vertex(u_int)
-        if not self._cg.has_vertex(v_int):
-            self._cg.add_vertex(v_int)
 
         cdef int l_int
         if l is None:

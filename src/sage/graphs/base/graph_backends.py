@@ -675,6 +675,9 @@ class NetworkXGraphBackend(GenericGraphBackend):
         except AssertionError:
             self._nxg = self._nxg.mutate()
 
+        if u is None: u = self.add_vertex(None)
+        if v is None: v = self.add_vertex(None)
+
         if l:
             self._nxg.add_edge(u, v, weight=l)
         else:

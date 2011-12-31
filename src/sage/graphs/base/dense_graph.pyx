@@ -774,14 +774,14 @@ class DenseGraphBackend(CGraphBackend):
             [(0, 1, None)]
 
         """
+        if u is None: u = self.add_vertex(None)
+        if v is None: v = self.add_vertex(None)
+
         cdef int u_int = check_vertex(u, self.vertex_ints, self.vertex_labels,
                       self._cg, None, 0)
-        if not self._cg.has_vertex(u_int):
-            self._cg.add_vertex(u_int)
         cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
                       self._cg, None, 0)
-        if not self._cg.has_vertex(v_int):
-            self._cg.add_vertex(v_int)
+
         if directed or u_int == v_int:
             self._cg.add_arc(u_int, v_int)
         else:

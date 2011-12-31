@@ -1081,11 +1081,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             0
             sage: b = R(1)/R(0); b # R(0) has no particular sign, thus 1/R(0) covers the whole reals
             [-infinity .. +infinity]
-            sage: loads(dumps(b)) == b
+            sage: c = loads(dumps(b))
+            sage: (c.lower(), c.upper()) == (b.lower(), b.upper())
             True
             sage: b = R(-1)/R(0); b # same as above
             [-infinity .. +infinity]
-            sage: loads(dumps(b)) == b
+            sage: c = loads(dumps(b))
+            sage: (c.lower(), c.upper()) == (b.lower(), b.upper())
             True
             sage: b = R('[2 .. 3]'); b.str(error_digits=1)
             '2.5?5'

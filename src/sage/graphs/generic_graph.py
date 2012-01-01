@@ -10681,7 +10681,18 @@ class GenericGraph(GenericGraph_pyx):
             2
             sage: G.diameter()
             2
+
+        TEST::
+
+            sage: g = Graph()
+            sage: g.radius()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method has no meaning on empty graphs.
         """
+        if self.order() == 0:
+            raise ValueError("This method has no meaning on empty graphs.")
+
         return min(self.eccentricity())
 
     def center(self):
@@ -11605,7 +11616,6 @@ class GenericGraph(GenericGraph_pyx):
         the theory of the Wiener number. INDIAN JOURNAL OF CHEMISTRY SECTION A
         PUBLICATIONS & INFORMATION DIRECTORATE, CSIR
         """
-
         return sum([sum(v.itervalues()) for v in self.distance_all_pairs().itervalues()])/2
 
     def average_distance(self):
@@ -11631,7 +11641,17 @@ class GenericGraph(GenericGraph_pyx):
         .. [GYLL93] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
           results in the theory of the Wiener number. *Indian Journal of
           Chemistry*, 32A:651--661, 1993.
+
+        TEST::
+
+            sage: g = Graph()
+            sage: g.average_distance()
+            Traceback (most recent call last):
+            ...
+            ValueError: The graph must have at least two vertices for this value to be defined
         """
+        if self.order() < 2:
+            raise ValueError("The graph must have at least two vertices for this value to be defined")
 
         return Integer(self.wiener_index())/Integer((self.order()*(self.order()-1))/2)
 

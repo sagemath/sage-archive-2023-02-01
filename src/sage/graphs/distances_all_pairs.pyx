@@ -601,6 +601,60 @@ def diameter(G):
     """
     return max(eccentricity(G))
 
+
+################
+# Wiener index #
+################
+
+def wiener_index(G):
+    r"""
+    Returns the Wiener index of the graph.
+
+    The Wiener index of a graph `G` can be defined in two equivalent
+    ways [KRG96b]_ :
+
+    - `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the
+      distance between vertices `u` and `v`.
+
+    - Let `\Omega` be a set of `\frac {n(n-1)} 2` paths in `G` such that `\Omega`
+      contains exactly one shortest `u-v` path for each set `\{u,v\}` of
+      vertices in `G`. Besides, `\forall e\in E(G)`, let `\Omega(e)` denote the
+      paths from `\Omega` containing `e`. We then have
+      `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
+
+    EXAMPLE:
+
+    From [GYLL93c]_, cited in [KRG96b]_::
+
+        sage: g=graphs.PathGraph(10)
+        sage: w=lambda x: (x*(x*x -1)/6)
+        sage: g.wiener_index()==w(10)
+        True
+
+    REFERENCE:
+
+    .. [KRG96b] S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
+      Wiener index of graphs. *Applied Mathematics Letters*, 9(5):45--49, 1996.
+
+    .. [GYLL93c] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
+      results in the theory of the Wiener number. *Indian Journal of
+      Chemistry*, 32A:651--661, 1993.
+    """
+    if not G.is_connected():
+        from sage.rings.infinity import Infinity
+        return +Infinity
+
+    cdef unsigned short * distances = c_distances_all_pairs(G)
+    cdef int NN = G.order()*G.order()
+    cdef int s = 0
+    cdef int i
+    for 0 <= i < NN:
+        s += distances[i]
+    sage_free(distances)
+    return s/2
+
+
+
 ##################
 # Floyd-Warshall #
 ##################

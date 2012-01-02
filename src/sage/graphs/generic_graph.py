@@ -11619,35 +11619,39 @@ class GenericGraph(GenericGraph_pyx):
         Returns the Wiener index of the graph.
 
         The Wiener index of a graph `G` can be defined in two equivalent
-        ways [1] :
+        ways [KRG96]_ :
 
-        - `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the distance between
-          vertices `u` and `v`.
+        - `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the
+          distance between vertices `u` and `v`.
 
-        - Let `\Omega` be a set of `\frac {n(n-1)} 2` paths in `G` such that `\Omega`
-          contains exactly one shortest `u-v` path for each set `\{u,v\}` of vertices
-          in `G`. Besides, `\forall e\in E(G)`, let `\Omega(e)` denote the paths from `\Omega`
-          containing `e`. We then have `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
+        - Let `\Omega` be a set of `\frac {n(n-1)} 2` paths in `G` such that
+          `\Omega` contains exactly one shortest `u-v` path for each set
+          `\{u,v\}` of vertices in `G`. Besides, `\forall e\in E(G)`, let
+          `\Omega(e)` denote the paths from `\Omega` containing `e`. We then
+          have `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
 
         EXAMPLE:
 
-        From [2], cited in [1]::
+        From [GYLL93b]_, cited in [KRG96]_::
 
             sage: g=graphs.PathGraph(10)
             sage: w=lambda x: (x*(x*x -1)/6)
             sage: g.wiener_index()==w(10)
             True
 
-        REFERENCE:
+        REFERENCES:
 
-        [1] Klavzar S., Rajapakse A., Gutman I. (1996). The Szeged and the
-        Wiener index of graphs. Applied Mathematics Letters, 9 (5), pp. 45-49.
+        .. [KRG96] S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
+          Wiener index of graphs. *Applied Mathematics Letters*, 9(5):45--49,
+          1996.
 
-        [2] I Gutman, YN Yeh, SL Lee, YL Luo (1993), Some recent results in
-        the theory of the Wiener number. INDIAN JOURNAL OF CHEMISTRY SECTION A
-        PUBLICATIONS & INFORMATION DIRECTORATE, CSIR
+        .. [GYLL93b] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
+          results in the theory of the Wiener number. *Indian Journal of
+          Chemistry*, 32A:651--661, 1993.
         """
-        return sum([sum(v.itervalues()) for v in self.distance_all_pairs().itervalues()])/2
+        from sage.graphs.distances_all_pairs import wiener_index
+        return wiener_index(self)
+
 
     def average_distance(self):
         r"""

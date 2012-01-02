@@ -392,7 +392,7 @@ $(INST)/$(EXTCODE): $(BASE) $(INST)/$(MERCURIAL) $(INST)/$(PATCH)
 $(INST)/$(LIBM4RI): $(BASE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBM4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBM4RI).log"
 
-$(INST)/$(LIBM4RIE): $(BASE) $(INST)/$(PATCH) $(INST)/$(LIBM4RI)
+$(INST)/$(LIBM4RIE): $(BASE) $(INST)/$(PATCH) $(INST)/$(LIBM4RI) $(INST)/$(GIVARO) $(INST)/$(NTL)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBM4RIE) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBM4RIE).log"
 
 # zn_poly really does depend on Python, despite this is far from obvious.

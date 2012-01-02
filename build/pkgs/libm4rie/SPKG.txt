@@ -3,7 +3,7 @@
 == Description ==
 
 M4RIE: Library for matrix multiplication, reduction and inversion over
-GF(2^k) for 2 <= k <= 16.
+GF(2^k) for 2 <= k <= 10.
 
 == License ==
 
@@ -21,7 +21,7 @@ GF(2^k) for 2 <= k <= 16.
 
 == Dependencies ==
 
- Givaro (for testing)
+ M4RI and for testing: MPIR, Givaro and NTL
 
 == Special Update/Build Instructions ==
  * Delete the upstream Mercurial repositories (file m4rie/.hgtags, directory m4rie/.hg).
@@ -29,6 +29,9 @@ GF(2^k) for 2 <= k <= 16.
  * Touch m4rie/configure to make sure it is newer than its sources.
 
 == Releases/Changelog ==
+
+=== libm4rie-20111004.p1 (Martin Albrecht, January 2nd, 2012) ===
+ * #12245: proper dependencies
 
 === libm4rie-20111004.p0 (Simon King, December 10th, 2011) ===
  * #12131: Use --libdir, to make the package work on openSUSE.

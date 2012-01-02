@@ -67,6 +67,16 @@ cdef class PolynomialRealDense(Polynomial):
             ... except KeyboardInterrupt:
             ...     print "ok"
             ok
+
+        Test that we don't clean up uninitialized coefficients (#9826)::
+
+            sage: k.<a> = GF(7^3)
+            sage: P.<x> = PolynomialRing(k)
+            sage: (a*x).complex_roots()
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert x (='a') to real number.
+
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         self._base_ring = parent._base
@@ -101,12 +111,14 @@ cdef class PolynomialRealDense(Polynomial):
                 sig_off()
 
         sig_on()
-        degree = self._degree = len(x) - 1
+        degree = len(x) - 1
+        self._degree = -1
         cdef mpfr_t* coeffs
         coeffs = <mpfr_t*>sage_malloc(sizeof(mpfr_t)*(degree+1))
         try:  # We might get Python exceptions here
             for i from 0 <= i <= degree:
                 mpfr_init2(coeffs[i], prec)
+                self._degree += 1
                 a = x[i]
                 if PY_TYPE_CHECK_EXACT(a, RealNumber):
                     mpfr_set(coeffs[i], (<RealNumber>a).value, rnd)

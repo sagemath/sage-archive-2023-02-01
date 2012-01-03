@@ -27,20 +27,43 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
  * GNU patch
 
+ * libtermcap (or libncurses or libtinfo), but not Sage's one,
+   since we only build a static version. I.e., the system has
+   to provide one of these.
+
 == Special Update/Build Instructions ==
 
  * Deleted some files from the doc directory from the standard distro,
    since it took tons of space; didn't delete anything else.
- * Work around some MacOSX dynamic lib flags
+ * Work around some MacOSX dynamic lib flags.
  * When self-tests are added upstream, we may have to set up
    variables like CFLAGS in the script spkg-check: imitate the
-   settings in spkg-install.
+   settings in spkg-install.  For self-tests, when we use the system's
+   version of libreadline (e.g. [Open]SuSE or Arch Linux), we have to
+   make sure we don't try to run the test suite in `spkg-check`, since
+   this wouldn't work (and wouldn't make any sense either).
  * In #11882, we turned off the fixes for Arch Linux and OpenSuSE by
    changing various tests in spkg-install from "if ..." to "if false
    && ...".  When Arch Linux or OpenSuSE are updated, modified
    versions of these tests may need to be reinstated.
 
 == Changelog ==
+
+=== readline-6.2.p3 (Leif Leonhardy, 3 January 2012) ===
+ * #11970: Support Ubuntu 11.10 by adding the library libreadline depends on
+   (libtermcap or a replacement) to the shared library, i.e. link against it,
+   such that it appears in libreadline's DT_NEEDED tags.
+   This is currently done by patching `src/shlib/Makefile.in`; we could also
+   do this [conditionally] in `spkg-install`, probably by also performing
+   some tests to check whether that (and which library) is needed.
+   It's likely to also fix the previous "undefined symbol" error on Arch Linux
+   (although currently our readline 6.2 works well without this; we previously
+   instead used the system's libreadline on that platform).
+ * Do not make the static libraries executable.
+ * Further clean-up to `spkg-install`, add comments and some more
+   messages.  All error messages now start with "Error", and go to
+   stderr. Also consistently use the shell's built-in `test` (`[[
+   ... ]]`), which is faster and more reliable.
 
 === readline-6.2.p2 (Volker Braun, 10 Dec 2011) ===
  * Add configure --libdir (trac #12131).

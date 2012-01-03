@@ -542,13 +542,22 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             ValueError: You need to specify the name of the new variable.
+
+            var(['x', 'y ', ' z '])
+            (x, y, z)
+            var(['x,y'])
+            Traceback (most recent call last):
+            ...
+            ValueError: The name "x,y" is not a valid Python identifier.
         """
         if is_Expression(name):
             return name
-        if not isinstance(name, str):
+        if not isinstance(name, (basestring,list,tuple)):
             name = repr(name)
 
-        if ',' in name:
+        if isinstance(name, (list,tuple)):
+            names_list = [s.strip() for s in name]
+        elif ',' in name:
             names_list = [s.strip() for s in name.split(',' )]
         elif ' ' in name:
             names_list = [s.strip() for s in name.split()]

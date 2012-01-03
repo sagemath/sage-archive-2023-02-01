@@ -1,14 +1,19 @@
 from sage.symbolic.function_factory import function as new_function
 from sage.symbolic.ring import SR
 
-def var(s, **kwds):
+def var(*args, **kwds):
     r"""
     Create a symbolic variable with the name *s*.
 
     INPUT:
 
-    - ``s`` - a string, either a single variable name, or a space or
-      comma separated list of variable names.
+    - ``args`` - A single string ``var('x y')``, a list of strings
+      ``var(['x','y'])``, or multiple strings ``var('x', 'y')``. A
+      single string can be either a single variable name, or a space
+      or comma separated list of variable names. In a list or tuple of
+      strings, each entry is one variable. If multiple arguments are
+      specified, each argument is taken to be one variable. Spaces
+      before or after variable names are ignored.
 
     - ``kwds`` - keyword arguments can be given to specify domain and
       custom latex_name for variables. See EXAMPLES for usage.
@@ -19,7 +24,28 @@ def var(s, **kwds):
        into the global namespace. If you need symbolic variable in
        library code, it is better to use either SR.var() or SR.symbol().
 
+    OUTPUT:
+
+    If a single symbolic variable was created, the variable
+    itself. Otherwise, a tuple of symbolic variables. The variable
+    names are checked to be valid Python identifiers and a
+    ``ValueError`` is raised otherwise.
+
     EXAMPLES:
+
+    Here are the different ways to define three variables ``x``, ``y``,
+    and ``z`` in a single line::
+
+        sage: var('x y z')
+        (x, y, z)
+        sage: var('x, y, z')
+        (x, y, z)
+        sage: var(['x', 'y', 'z'])
+        (x, y, z)
+        sage: var('x', 'y', 'z')
+        (x, y, z)
+        sage: var('x'), var('y'), var(z)
+        (x, y, z)
 
     We define some symbolic variables::
 
@@ -31,8 +57,8 @@ def var(s, **kwds):
         sage: f = xx^n + yy^n + zz^n; f
         xx^n + yy^n + zz^n
 
-    By default, var returns complex variable. To define real or positive
-    variable we can specify its domain as::
+    By default, var returns a complex variable. To define real or positive
+    variables we can specify the domain as::
 
         sage: x = var('x', domain=RR); x; x.conjugate()
         x
@@ -97,6 +123,10 @@ def var(s, **kwds):
         doctest:...: DeprecationWarning: The new (Pynac) symbolics are now the only symbolics; please do not use keyword 'ns' any longer.
         q
     """
+    if len(args)==1:
+        name = args[0]
+    else:
+        name = args
     G = globals()  # this is the reason the code must be in Cython.
     if kwds.has_key('ns'):
         if kwds['ns']:
@@ -105,7 +135,7 @@ def var(s, **kwds):
         else:
             raise NotImplementedError, "The new (Pynac) symbolics are now the only symbolics; please do not use keyword `ns` any longer."
         kwds.pop('ns')
-    v = SR.var(s, **kwds)
+    v = SR.var(name, **kwds)
     if isinstance(v, tuple):
         for x in v:
             G[repr(x)] = x

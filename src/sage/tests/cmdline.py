@@ -3,6 +3,11 @@ This file contains some tests that Sage command line options actually
 do something.
 
 We test the following command line options:
+
+test.py
+/path/to/test.py
+test.sage
+/path/to/test.sage
 --advanced
 --branch
 -c
@@ -82,7 +87,9 @@ def test_executable(args, input="", timeout=50.0):
         ...
         RuntimeError: timeout in test_executable()
 
-    TESTS::
+    TESTS:
+
+    Run Sage itself with various options::
 
         sage: (out, err, ret) = test_executable(["sage"])
         sage: out.find(version()) >= 0
@@ -113,20 +120,30 @@ def test_executable(args, input="", timeout=50.0):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "-c", "print 3^33"])
-        sage: out.find("5559060566555523\n") >= 0
-        True
+        sage: print out
+        5559060566555523
         sage: err
         ''
         sage: ret
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--min", "-c", "print 3^33"])
-        sage: out.find("5559060566555523\n") >= 0
+        sage: print out
+        5559060566555523
+        sage: err
+        ''
+        sage: ret
+        0
+
+        sage: (out, err, ret) = test_executable(["sage", "--startuptime"])
+        sage: out.find("sage.all: ") >= 0
         True
         sage: err
         ''
         sage: ret
         0
+
+    Test help::
 
         sage: (out, err, ret) = test_executable(["sage", "-h"])
         sage: out.find("Optional arguments:") >= 0
@@ -152,6 +169,8 @@ def test_executable(args, input="", timeout=50.0):
         sage: ret
         0
 
+    Basic information about the Sage installation::
+
         sage: (out, err, ret) = test_executable(["sage", "-v"])
         sage: out.find(version()) >= 0
         True
@@ -176,13 +195,57 @@ def test_executable(args, input="", timeout=50.0):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--startuptime"])
-        sage: out.find("sage.all: ") >= 0
-        True
+    Test ``sage-run`` on a Python file, both with an absolute and with a relative path::
+
+        sage: import tempfile
+        sage: F = tempfile.NamedTemporaryFile(suffix=".py")
+        sage: F.write("print 3^33\n")
+        sage: F.flush()
+        sage: (out, err, ret) = test_executable(["sage", F.name])
+        sage: print out
+        34
         sage: err
         ''
         sage: ret
         0
+        sage: (dir,filename) = os.path.split(F.name)
+        sage: os.chdir(dir)
+        sage: (out, err, ret) = test_executable(["sage", filename])
+        sage: print out
+        34
+        sage: err
+        ''
+        sage: ret
+        0
+        sage: del F   # Close and delete the file
+
+    The same as above, but now with a ``.sage`` file.  This indirectly
+    also tests the preparser::
+
+        sage: import tempfile
+        sage: F = tempfile.NamedTemporaryFile(suffix=".sage")
+        sage: py_file = F.name[:-5] + ".py"  # Will be created by the preparser
+        sage: F.write("k.<a> = GF(5^3); print a^124\n")
+        sage: F.flush()
+        sage: (out, err, ret) = test_executable(["sage", F.name])
+        sage: os.unlink(py_file)
+        sage: print out
+        1
+        sage: err
+        ''
+        sage: ret
+        0
+        sage: (dir,filename) = os.path.split(F.name)
+        sage: os.chdir(dir)
+        sage: (out, err, ret) = test_executable(["sage", filename])
+        sage: os.unlink(py_file)
+        sage: print out
+        1
+        sage: err
+        ''
+        sage: ret
+        0
+        sage: del F   # Close and delete the file
 
     Test external programs being called by Sage::
 

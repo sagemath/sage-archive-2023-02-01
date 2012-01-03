@@ -15,6 +15,7 @@ Library interface to Embeddable Common Lisp (ECL)
 #adapted to work with pure Python types.
 
 include '../ext/interrupt.pxi'
+include "../ext/cdefs.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -46,6 +47,15 @@ cdef extern from "signal.h":
         pass
     int sigaction(int sig, Sigaction * act, Sigaction * oact)
     int SIGINT, SIGBUS, SIGSEGV
+
+cdef extern from "eclsig.c":
+    int ecl_sig_on() except 0
+    void ecl_sig_off()
+    cdef Sigaction ecl_sigint_handler
+    cdef Sigaction ecl_sigbus_handler
+    cdef Sigaction ecl_sigsegv_handler
+    cdef mpz_t* ecl_mpz_from_bignum(cl_object obj)
+    cdef cl_object ecl_bignum_from_mpz(mpz_t* num)
 
 cdef cl_object string_to_object(char * s):
     return ecl_read_from_cstring(s)
@@ -97,12 +107,6 @@ cdef cl_object read_from_string_clobj  #our own error catching reader
 cdef bint ecl_has_booted = 0
 
 # ECL signal handling
-cdef extern from "eclsig.c":
-    int ecl_sig_on() except 0
-    void ecl_sig_off()
-    cdef Sigaction ecl_sigint_handler
-    cdef Sigaction ecl_sigbus_handler
-    cdef Sigaction ecl_sigsegv_handler
 
 def test_sigint_before_ecl_sig_on():
     """
@@ -351,11 +355,10 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
     elif isinstance(pyobj,int):
         return ecl_make_integer(pyobj)
     elif isinstance(pyobj,long):
-        if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj < MOST_NEGATIVE_FIXNUM:
+        if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj <= MOST_POSITIVE_FIXNUM:
             return ecl_make_integer(pyobj)
         else:
-            s=str(pyobj)
-            return string_to_object(s)
+            return python_to_ecl(Integer(pyobj))
     elif isinstance(pyobj,float):
         return ecl_make_doublefloat(pyobj)
     elif isinstance(pyobj,unicode):
@@ -365,16 +368,10 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
         s=<bytes>pyobj
         return ecl_safe_read_string(s)
     elif isinstance(pyobj,Integer):
-        if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj < MOST_NEGATIVE_FIXNUM:
+        if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj <= MOST_POSITIVE_FIXNUM:
             return ecl_make_integer(pyobj)
         else:
-            #This can be done much more efficiently, since
-            #ecl bignums are in fact mpz_t's as well, so it should just consist
-            #of copying some limbs (beware that ECL bignums do not have
-            #their limbs managed by GMP. Copying via big_register would probably
-            #be the best way.
-            s=str(pyobj)
-            return string_to_object(s)
+            return ecl_bignum_from_mpz( (<Integer>pyobj).get_value() )
     elif isinstance(pyobj,Rational):
         return ecl_make_ratio(
                 python_to_ecl( (<Rational>pyobj).numerator()  ),
@@ -408,6 +405,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
         raise TypeError,"Unimplemented type for python_to_ecl"
 
 cdef ecl_to_python(cl_object o):
+    cdef Integer N
     # conversions from an ecl object to a python object.
 
     if o == Cnil:
@@ -418,9 +416,9 @@ cdef ecl_to_python(cl_object o):
         return Integer(ecl_fixint(o))
     elif bint_integerp(o):
         #SAGE specific conversion
-        #return int(ecl_base_string_pointer_safe(cl_write_to_string(1,o)))
-        #this routine can be made much more efficient.
-        return Integer(ecl_base_string_pointer_safe(cl_write_to_string(1,o)))
+        N = Integer.__new__(Integer)
+        N.set_from_mpz(ecl_mpz_from_bignum(o))
+        return N
     elif bint_rationalp(o):
         #SAGE specific conversion
         #vanilla python does not have a class to represent rational numbers
@@ -528,6 +526,19 @@ cdef class EclObject:
         sage: eval([car, [cdr, [quote,[1,2,3]]]])
         <ECL: 2>
 
+    TESTS:
+
+    We check that multiprecision integers are converted correctly::
+
+        sage: i = 10 ^ (10 ^ 5)
+        sage: EclObject(i) == EclObject(str(i))
+        True
+        sage: EclObject(-i) == EclObject(str(-i))
+        True
+        sage: EclObject(i).python() == i
+        True
+        sage: EclObject(-i).python() == -i
+        True
     """
     cdef cl_object obj   #the wrapped object
     cdef cl_object node  #linked list pointer: car(node) == obj

@@ -10077,6 +10077,21 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         sig_on()
         return self.new_gen(polcyclo(n, self.get_var(v)))
 
+    def polcyclo_eval(self, long n, v):
+        """
+        polcyclo_eval(n, v): value of the nth cyclotomic polynomial at value v.
+
+        EXAMPLES::
+
+            sage: pari.polcyclo_eval(8, 2)
+            17
+            sage: cyclotomic_polynomial(8)(2)
+            17
+        """
+        t0GEN(v)
+        sig_on()
+        return self.new_gen(polcyclo_eval(n, t0))
+
     def polsubcyclo(self, long n, long d, v=-1):
         """
         polsubcyclo(n, d, v=x): return the pari list of polynomial(s)

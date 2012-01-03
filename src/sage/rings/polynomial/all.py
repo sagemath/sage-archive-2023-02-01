@@ -45,3 +45,5 @@ from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing,
 # Infinite Polynomial Rings
 from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing
 
+# Evaluation of cyclotomic polynomials
+from sage.rings.polynomial.cyclotomic import cyclotomic_value

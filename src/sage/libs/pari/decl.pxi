@@ -610,6 +610,7 @@ cdef extern from 'pari/pari.h':
     int     cmp_prime_over_p(GEN x, GEN y)
     GEN     convol(GEN x, GEN y)
     GEN     polcyclo(long n, long v)
+    GEN     polcyclo_eval(long n, GEN v)
     GEN     dirdiv(GEN x, GEN y)
     GEN     dirmul(GEN x, GEN y)
     GEN     dirzetak(GEN nf, GEN b)

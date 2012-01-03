@@ -28,6 +28,7 @@ import sys
 
 include "../../ext/stdsage.pxi"
 include "../../ext/interrupt.pxi"
+include "../../ext/cdefs.pxi"
 
 cdef extern from *:
     void memset(void *, char, int)
@@ -35,6 +36,10 @@ cdef extern from *:
 from sage.rings.arith import factor
 from sage.rings.infinity import infinity
 from sage.misc.misc import prod, subsets
+from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
+from sage.libs.pari.gen cimport gen
+from sage.libs.pari.gen import pari, PariError
 
 def cyclotomic_coeffs(nn, sparse=None):
     u"""
@@ -192,6 +197,167 @@ def cyclotomic_coeffs(nn, sparse=None):
 
     sage_free(coeffs)
     return L
+
+def cyclotomic_value(n, x):
+    """
+    Returns the value of the `n`-th cyclotomic polynomial evaulated at `x`.
+
+    INPUT:
+
+    - n -- an Integer, specifying which cyclotomic polynomial is to be
+      evaluated.
+    - x -- an element of a ring.
+
+    OUTPUT:
+
+    - the value of the cyclotomic polynomial `\Phi_n` at `x`.
+
+    ALGORITHM:
+
+    - Reduce to the case that n is squarefree: use the identity
+
+    .. MATH::
+
+        \Phi_n(x) = \Phi_q(x^{n/q})
+
+    where `q` is the radical of `n`.
+
+    - Use the identity
+
+    .. MATH::
+
+        \Phi_n(x) = \prod_{d | n} (x^d - 1)^{\mu(n / d)},
+
+    where `\mu` is the Moebius function.
+
+    - Handles the case that x^d = 1 for some d, but not the case that
+      x^d - 1 is non-invertible: in this case polynomial evaluation is
+      used instead.
+
+    EXAMPLES::
+
+        sage: cyclotomic_value(51, 3)
+        1282860140677441
+        sage: cyclotomic_polynomial(51)(3)
+        1282860140677441
+
+    It works for non-integral values as well::
+
+        sage: cyclotomic_value(144, 4/3)
+        79148745433504023621920372161/79766443076872509863361
+        sage: cyclotomic_polynomial(144)(4/3)
+        79148745433504023621920372161/79766443076872509863361
+
+    TESTS::
+
+        sage: K.<i> = NumberField(polygen(QQ)^2 + 1)
+        sage: R.<x> = QQ[]
+        sage: for y in [-1, 0, 1, 2, 1/2, mod(3, 8), GF(9,'a').gen(), Zp(3)(54), i, x^2+2]:
+        ...       for n in range(1, 61):
+        ...           val1 = cyclotomic_value(n, y)
+        ...           val2 = cyclotomic_polynomial(n)(y)
+        ...           assert val1 == val2 and val1.parent() is val2.parent()
+
+        sage: cyclotomic_value(20, I)
+        5
+        sage: a = cyclotomic_value(10, mod(3, 11)); a
+        6
+        sage: a.parent()
+        Ring of integers modulo 11
+        sage: cyclotomic_value(30, -1.0)
+        1.00000000000000
+        sage: S.<t> = R.quotient(R.cyclotomic_polynomial(15))
+        sage: cyclotomic_value(15, t)
+        0
+        sage: cyclotomic_value(30, t)
+        2*t^7 - 2*t^5 - 2*t^3 + 2*t
+        sage: S.<t> = R.quotient(x^10)
+        sage: cyclotomic_value(2^128-1, t)
+        -t^7 - t^6 - t^5 + t^2 + t + 1
+        sage: cyclotomic_value(10,mod(3,4))
+        1
+    """
+    n = int(n)
+    if n == 1:
+        return x - 1
+    if n <= 0:
+        raise ValueError, "n must be positive"
+    try:
+        return x.parent()(pari.polcyclo_eval(n, x._pari_()))
+    except StandardError:
+        pass
+    # The following is modeled on the implementation in Pari
+    factors = factor(n)
+    cdef Py_ssize_t i, j, ti, L, root_of_unity = -1
+    primes = [p for p, e in factors]
+    L = len(primes)
+    if any([e != 1 for p, e in factors]):
+        # If there are primes that occur in the factorization with multiplicity
+        # greater than one we use the fact that Phi_ar(x) = Phi_r(x^a) when all
+        # primes dividing a divide r.
+        rad = prod(primes)
+        pow = n // rad
+        x = x**pow
+        n = rad
+    if x == 1:
+        # if n is prime, return n
+        if L == 1:
+            return n * x # in case the parent of x has nonzero characteristic
+        else:
+            return x
+    xd = [x] # the x^d for d | n
+    cdef char mu
+    cdef char* md = <char*>sage_malloc(sizeof(char) * (1 << L)) # the mu(d) for d | n
+    one = x.parent()(1)
+    try:
+        md[0] = 1
+        if L & 1:
+            mu = -1
+            num = 1
+            den = x - 1
+        else:
+            mu = 1
+            num = x - 1
+            den = 1
+        for i in range(L):
+            ti = 1 << i
+            p = primes[i]
+            for j in range(ti):
+                xpow = xd[j]**p
+                xd.append(xpow)
+                md[ti+j] = -md[j]
+                # if xpow = 1, we record such smallest index,
+                # and deal with the corresponding factors at the end.
+                if xpow == one:
+                    if root_of_unity == -1:
+                        root_of_unity = ti+j
+                elif mu == md[ti+j]:
+                    num *= xpow - one
+                else:
+                    den *= xpow - one
+    finally:
+        sage_free(md)
+    try:
+        ans = num / den
+    except ZeroDivisionError:
+        # We fall back on evaluation of the cyclotomic polynomial.
+        # This case is triggered in cyclotomic_value(10, mod(3, 4)) for example.
+        from sage.misc.functional import cyclotomic_polynomial
+        return cyclotomic_polynomial(n)(x)
+    if root_of_unity >= 0:
+        # x is a root of unity.  If root_of_unity=2^L, x is a primitive
+        # root of unity and the value is zero
+        if root_of_unity == (1 << L) - 1:
+            return x - x # preserves the parent, as well as precision for p-adic x
+        # x is a primitive d-th root of unity, where d|n and d<n.
+        # If root_of_unity = (1<<L) - (1<<(i-1)) - 1 for some i < L,
+        # then n/d == primes[i] and we need to multiply by primes[i],
+        # otherwise n/d is composite and nothing more needs to be done.
+        for i in range(L):
+            if root_of_unity + (1 << i) + 1 == 1 << L:
+                ans *= primes[i]
+                break
+    return x.parent()(ans)
 
 def bateman_bound(nn):
     _, n = nn.val_unit(2)

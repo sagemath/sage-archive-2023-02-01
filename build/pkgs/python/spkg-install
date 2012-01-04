@@ -11,37 +11,16 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+cd src
+
 # PATCH
-
-patch -p0 < patches/Lib.distutils.command.sdist.patch
-if [ $? -ne 0 ]; then
-    echo "Error copying patched sdist.py"
-    exit 1
-fi
-
-patch -p0 < patches/Lib.socket.patch
-if [ $? -ne 0 ]; then
-    echo "Error copying patched socket.py"
-    exit 1
-fi
-
-patch -p0 < patches/dynamic_class_copyreg_py.patch
-if [ $? -ne 0 ]; then
-    echo "Error copying patched pickle.py"
-    exit 1
-fi
-
-patch -p0 < patches/dynamic_class_copyreg_c.patch
-if [ $? -ne 0 ]; then
-    echo "Error copying patched cPickle.c"
-    exit 1
-fi
-
-patch -p0 < patches/Makefile.pre.in.patch
-if [ $? -ne 0 ]; then
-    echo >&2 "Error patching Makefile.pre.in"
-    exit 1
-fi
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: Patch \"$patch\" failed to apply."
+        exit 1
+    fi
+done
 
 # We are setting LDFLAGS and CPPFLAGS so that we pick up Sage's readline
 LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
@@ -63,7 +42,7 @@ fi
 #       is.
 #       -- Yi Qiang
 #
-# This bug was fixed in Python, but not yet in Python 2.6.4. So this fix
+# This bug was fixed in Python, but not yet in Python 2.7.2. So this fix
 # can be removed the next time we upgrade our version of Python. See
 #
 #   http://bugs.python.org/issue6954
@@ -73,9 +52,6 @@ fi
 unset DISTUTILS_DEBUG
 
 
-cd src
-
-touch Include/*
 
 build()
 {
@@ -131,28 +107,29 @@ build()
     fi
 }
 
-# Do not exit script if there is an error, but instead print an
-# informative error message. This is helps in determining why the
-# configuration, compilation or installation failed. So put this before the
-# build() function.
-set +e # This is redundant here, but doesn't hurt to keep it... ;-)
 
 build
 
 cd "$SAGE_LOCAL/lib"
 
-# move the python directory if we're upgrading from a version
-# of sage with python 2.5
-if [ -d python2.6/site-packages ]; then
-   mv python2.6/site-packages python2.7/site-packages-old
+# If we are upgrading from Python-2.6, remove compiled Python files.
+# We do not care about still older Python versions, since upgrades
+# from such old Sage versions are not supported anyway.
+if [ -d python2.6 ]; then
+    rm -rf "$SAGE_ROOT"/devel/sage-*/build
 fi
 
-rm -rf python/python2.7 python/python2.6 python/python2.5 python/python python python2.4 python2.5
+# Make symbolic link (after removing old link first)
+rm -f python
 ln -s python2.7 python
 if [ $? -ne 0 ]; then
     echo >&2 "Error creating symbolic link"
     exit 1
 fi
+
+# Remove previous Python installs
+rm -rf python2.6
+
 
 # Make sure extension modules were built correctly.
 # All these modules are important and if any one

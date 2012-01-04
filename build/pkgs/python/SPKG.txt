@@ -64,11 +64,17 @@ http://www.python.org/community/
 
 == Changelog ==
 
+=== python-2.7.2.p1 (Jeroen Demeyer, 4 January 2012) ===
+ * Trac #9958: delete $SAGE_ROOT/devel/sage-*/build directories of
+   older Python versions to fix upgrading.
+ * Remove obsolete patch Modules.Setup.dist.patch
+ * Clean up spkg-install, remove old/unused parts.
+
 === python-2.7.2.p0 (François Bissey, December 21st, 2011) ===
  * #9958 Upgrade to python-2.7.2.
  * Converted the spkg to use patch exclusively.
  * A number of patches have been dropped because the fix are in this release
-   or they don't apply cleanly anymore. The list of dropped patches is as follow:
+   or they don't apply cleanly anymore. The list of dropped patches is:
    - locale.py doesn't apply to this release
    - readline-spacebug.patch fixed in this release
    - readline-Itanium-fix.patch cannot be applied as is in this release

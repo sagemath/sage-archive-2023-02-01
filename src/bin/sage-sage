@@ -760,6 +760,7 @@ if [ "$1" = '-c' ]; then
    shift
    SAGE_BANNER="no"
    sage_setup
+   unset TERM  # See Trac #12263
    sage-eval "$@"
    exit $?
 fi
@@ -1016,7 +1017,9 @@ if [ $# -ge 1 ]; then
        exit $?
    fi
    cd "$SAGE_LOCAL/bin/"
-   SAGE_BANNER="no" sage_setup
+   SAGE_BANNER="no"
+   sage_setup
+   unset TERM  # See Trac #12263
    sage-run "$CUR" "$@"
    exit $?
 fi

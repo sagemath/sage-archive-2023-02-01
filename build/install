@@ -445,13 +445,20 @@ else
     echo > "$SAGE_ROOT"/spkg/parallel_make.cfg
 fi
 
-# Skip the rest if nothing to do (i.e., to [re]build):
-# If "make" doesn't understand the -q option (although we require
-# GNU make, which supports it), it should exit with a non-zero status
-# which is not a problem.
-if ${MAKE:-make} -q -f standard/deps $1; then
-    echo "Nothing to (re)build / all up-to-date."
-    exit 0
+# Skip the rest if nothing to do (i.e., to [re]build).
+# * If "make" doesn't understand the -q option (although we require
+#   GNU make, which supports it), it should exit with a non-zero status
+#   which is not a problem.
+# * Only do this check if $SAGE_LOCAL/bin/sage-spkg understands MAKEFLAGS.
+#   If $SAGE_LOCAL/bin/sage-spkg does not exist, we assume that a
+#   sage-5.x scripts and root repository has been installed, which also
+#   understands MAKEFLAGS.  See Trac #12248 and also #12016.
+if [ ! -f "$SAGE_LOCAL/bin/sage-spkg" ] || \
+grep >/dev/null MAKEFLAGS "$SAGE_LOCAL/bin/sage-spkg"; then
+    if ${MAKE:-make} -q -f standard/deps $1; then
+        echo "Nothing to (re)build / all up-to-date."
+        exit 0
+    fi
 fi
 
 # Dump environment for debugging purposes:

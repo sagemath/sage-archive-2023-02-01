@@ -78,6 +78,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         True
         sage: a - a == K(0)
         True
+        sage: TestSuite(a).run()
     """
     def __init__(self, parent, value, value_from_pari=False):
         """
@@ -86,11 +87,11 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         INPUT:
 
         - ``parent``: A finite field, the parent of this element.
-        - ``value``: Anything that can be converted into the Pari
+        - ``value``: Anything that can be converted into the PARI
           interface and can be interpreted as an element of ``parent``.
         - ``value_from_pari``: optional bool, default False. If it evaluates
           as true, then ``value`` *must* be an element of the
-          Pari interface, and there will be no conversion.
+          PARI interface, and there will be no conversion.
 
         NOTE:
 
@@ -101,7 +102,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         parent. The empty list results in zero.
 
         If ``value_from_pari==True`` then it is assumed that the given value
-        is a suitable representation of the element in Pari, and there is no
+        is a suitable representation of the element in PARI, and there is no
         conversion. Hence, it is very fast, but must be used with care.
 
         EXAMPLES::
@@ -305,6 +306,16 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             raise TypeError, "unable to coerce"
 
     def __hash__(self):
+        """
+        The hash of this element is the hash of the underlying polynomial.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^15)
+            sage: R = GF(3)['a']; aa = R.gen()
+            sage: hash(a^2 + 1) == hash(aa^2 + 1)
+            True
+        """
         return hash(self.polynomial())
 
     def polynomial(self):
@@ -428,12 +439,13 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
     def sqrt(self, extend=False, all = False):
         """
-        See self.square_root().
+        See :meth:square_root().
 
-        INPUT:
+        EXAMPLES::
 
-
-        -  ``extend`` - ignored
+            sage: k.<a> = GF(3^17)
+            sage: (a^3 - a - 1).sqrt()
+            2*a^16 + a^15 + 2*a^13 + a^12 + 2*a^10 + a^9 + a^8 + 2*a^7 + 2*a^6 + a^5 + 2*a^4 + a^2 + a + 1
         """
         return self.square_root(extend=extend, all=all)
 
@@ -542,6 +554,15 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             return self.__value.subst('a', var)
 
     def _pari_init_(self):
+        """
+        The string producing this finite field element in PARI.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17)
+            sage: a._pari_init_()
+            'Mod(Mod(1, 3)*a, Mod(1, 3)*a^17 + Mod(2, 3)*a + Mod(1, 3))'
+        """
         return str(self.__value)
 
     def _magma_init_(self, magma):
@@ -573,7 +594,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: F = FiniteField_ext_pari(8,'a')
             sage: a = F.multiplicative_generator()
-            sage: gap(a)
+            sage: gap(a) # indirect doctest
             Z(2^3)
             sage: b = F.multiplicative_generator()
             sage: a = b^3
@@ -614,42 +635,127 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         return 'Z(%s)^%s'%(F.order(), n)
 
     def _repr_(self):
+        """
+        String representation of this element.
+
+        EXAMPLES::
+
+            sage: k.<c> = GF(3^17)
+            sage: c^20 # indirect doctest
+            c^4 + 2*c^3
+        """
         return ("%s"%(self.__value.lift().lift())).replace('a',self.parent().variable_name())
 
-    def __compat(self, other):
-        if self.parent() != other.parent():
-            raise TypeError, "Parents of finite field elements must be equal."
-
     def _add_(self, right):
+        """
+        Addition.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17)
+            sage: a + a^2 # indirect doctest
+            a^2 + a
+        """
         return FiniteField_ext_pariElement(self.parent(), self.__value + right.__value, value_from_pari=True)
 
     def _sub_(self, right):
+        """
+        Subtraction.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17)
+            sage: a - a # indirect doctest
+            0
+        """
         return FiniteField_ext_pariElement(self.parent(), self.__value - right.__value, value_from_pari=True)
 
     def _mul_(self, right):
+        """
+        Multiplication.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17)
+            sage: (a^12 + 1)*(a^15 - 1) # indirect doctest
+            a^15 + 2*a^12 + a^11 + 2*a^10 + 2
+        """
         return FiniteField_ext_pariElement(self.parent(), self.__value * right.__value, value_from_pari=True)
 
     def _div_(self, right):
+        """
+        Division.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17)
+            sage: (a - 1) / (a + 1) # indirect doctest
+            2*a^16 + a^15 + 2*a^14 + a^13 + 2*a^12 + a^11 + 2*a^10 + a^9 + 2*a^8 + a^7 + 2*a^6 + a^5 + 2*a^4 + a^3 + 2*a^2 + a + 1
+        """
         if right.__value == 0:
             raise ZeroDivisionError
         return FiniteField_ext_pariElement(self.parent(), self.__value / right.__value, value_from_pari=True)
 
     def __int__(self):
+        """
+        Lifting to a python int, if possible.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17); b = k(2)
+            sage: int(b)
+            2
+            sage: int(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: gen must be of PARI type t_INT or t_POL of degree 0
+        """
         try:
             return int(self.__value.lift().lift())
         except ValueError:
             raise TypeError, "cannot coerce to int"
 
     def _integer_(self, ZZ=None):
+        """
+        Lifting to a sage integer if possible.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17); b = k(2)
+            sage: b._integer_()
+            2
+            sage: a._integer_()
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce PARI a to an Integer
+        """
         return self.lift()
 
     def __long__(self):
+        """
+        Lifting to a python long, if possible.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17); b = k(2)
+            sage: long(b)
+            2L
+        """
         try:
             return long(self.__value.lift().lift())
         except ValueError:
             raise TypeError, "cannot coerce to long"
 
     def __float__(self):
+        """
+        Lifting to a python float, if possible.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17); b = k(2)
+            sage: float(b)
+            2.0
+        """
         try:
             return float(self.__value.lift().lift())
         except ValueError:
@@ -690,12 +796,41 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         return FiniteField_ext_pariElement(self.parent(), self.__value**right, value_from_pari=False)
 
     def __neg__(self):
+        """
+        Negation.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17)
+            sage: -a
+            2*a
+        """
         return FiniteField_ext_pariElement(self.parent(), -self.__value, value_from_pari=True)
 
     def __pos__(self):
+        """
+        Unitary positive operator...
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17)
+            sage: +a
+            a
+        """
         return self
 
     def __abs__(self):
+        """
+        Absolute value, which is not defined.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17)
+            sage: abs(a)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: absolute value not defined
+        """
         raise ArithmeticError, "absolute value not defined"
 
     def __invert__(self):
@@ -810,6 +945,16 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
 dynamic_FiniteField_ext_pariElement = None
 def _late_import():
+    """
+    Used to reset the class of PARI finite field elements in their initialization.
+
+    EXAMPLES::
+
+        sage: from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
+        sage: k.<a> = GF(3^17)
+        sage: a.__class__ is FiniteField_ext_pariElement # indirect doctest
+        False
+    """
     global dynamic_FiniteField_ext_pariElement
     dynamic_FiniteField_ext_pariElement = dynamic_class("%s_with_category"%FiniteField_ext_pariElement.__name__, (FiniteField_ext_pariElement, FiniteFields().element_class), doccls=FiniteField_ext_pariElement)
 

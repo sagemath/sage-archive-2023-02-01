@@ -1412,6 +1412,22 @@ cdef class Matrix(matrix1.Matrix):
             sage: u.charpoly('x')
             x^3 - c*x^2 - b*x - a
 
+        We shouldn't cache a dictionary until we successfully compute
+        the characteristic polynomial, per trac #6442. The call to
+        A.det() below will attempt to use the cached charpoly, and
+        crash if an empty dictionary is cached::
+
+            sage: z = Zp(p=5)
+            sage: A = matrix(z, [ [3 + O(5^1), 4 + O(5^1), 4 + O(5^1)],
+            ...                   [2*5^2 + O(5^3), 2 + O(5^1), 1 + O(5^1)],
+            ...                   [5 + O(5^2), 1 + O(5^1), 1 + O(5^1)] ])
+            sage: A.charpoly(algorithm='hessenberg')
+            Traceback (most recent call last):
+            ...
+            ValueError: element has negative valuation.
+            sage: A.det()
+            3 + O(5)
+
         AUTHORS:
 
         - Unknown: No author specified in the file from 2009-06-25
@@ -1424,9 +1440,6 @@ cdef class Matrix(matrix1.Matrix):
         if not D is None:
             if D.has_key(var):
                 return D[var]
-        else:
-            D = {}
-            self.cache('charpoly',D)
 
         if algorithm is None:
             R = self._base_ring
@@ -1444,7 +1457,15 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 f = self._charpoly_df(var)
 
-        # Cache the result
+        # If we don't yet have a cache dictionary, create one and
+        # store it. It is important that we do this only after the
+        # charpoly computation has completed successfully; otherwise,
+        # we can leave an empty dictionary in the cache (trac #6442).
+        if D is None:
+            D = {}
+            self.cache('charpoly',D)
+
+        # Cache the result, and return it.
         D[var] = f
         return f
 

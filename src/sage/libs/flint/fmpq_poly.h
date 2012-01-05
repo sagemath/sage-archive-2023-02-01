@@ -143,6 +143,18 @@ void fmpq_poly_set(fmpq_poly_ptr rop, const fmpq_poly_ptr op)
 /**
  * \ingroup  Assignment
  *
+ * Sets the element \c rop to the same value as the element \c op.
+ */
+static inline
+void fmpq_poly_set_fmpz_poly(fmpq_poly_ptr rop, const fmpz_poly_t op)
+{
+    fmpz_poly_set(rop->num, op);
+    fmpz_set_ui(rop->den, 1);
+}
+
+/**
+ * \ingroup  Assignment
+ *
  * Sets the element \c rop to the value given by the \c int \c op.
  */
 static inline

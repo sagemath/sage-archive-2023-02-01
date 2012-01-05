@@ -32,6 +32,7 @@ cdef extern from "fmpq_poly.h":
     void fmpq_poly_clear(fmpq_poly_t)
 
     void fmpq_poly_set(fmpq_poly_t, fmpq_poly_t)
+    void fmpq_poly_set_fmpz_poly(fmpq_poly_t, fmpz_poly_t)
     void fmpq_poly_set_si(fmpq_poly_t, long)
     void fmpq_poly_set_mpz(fmpq_poly_t, mpz_t)
     void fmpq_poly_set_mpq(fmpq_poly_t, mpq_t)

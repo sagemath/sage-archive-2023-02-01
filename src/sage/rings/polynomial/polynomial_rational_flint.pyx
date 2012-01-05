@@ -185,6 +185,11 @@ cdef class Polynomial_rational_flint(Polynomial):
 
             sage: R.<t> = QQ[]
             sage: f = -4 * t^2 + 1/3 * t - 1/7  # indirect doctest
+
+            sage: f = ZZ['x']([1..10^6])
+            sage: g = f.change_ring(QQ)
+            sage: g[:10]
+            10*x^9 + 9*x^8 + 8*x^7 + 7*x^6 + 6*x^5 + 5*x^4 + 4*x^3 + 3*x^2 + 2*x + 1
         """
         cdef long deg
         cdef unsigned long n
@@ -247,6 +252,9 @@ cdef class Polynomial_rational_flint(Polynomial):
             x = [k(w) for w in x.Vecrev()]
             Polynomial_rational_flint.__init__(self, parent, x, check=True, \
                                              is_gen=False, construct=construct)
+
+        elif PY_TYPE_CHECK(x, Polynomial_integer_dense_flint):
+            fmpq_poly_set_fmpz_poly(self.__poly, (<Polynomial_integer_dense_flint>x).__poly)
 
         elif PY_TYPE_CHECK(x, Polynomial):
             k = self._parent.base_ring()
@@ -1714,4 +1722,5 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     # Alias for discriminant
     disc = discriminant
+
 

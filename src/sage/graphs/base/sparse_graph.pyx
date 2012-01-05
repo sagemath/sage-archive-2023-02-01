@@ -54,7 +54,7 @@ You can begin working with unlabeled arcs right away as follows::
     sage: S.all_arcs(7,3)
     Traceback (most recent call last):
     ...
-    RuntimeError: Vertex (7) is not a vertex of the graph.
+    LookupError: Vertex (7) is not a vertex of the graph.
     sage: S._num_verts()
     10
     sage: S._num_arcs()
@@ -68,7 +68,7 @@ labels be positive integers (the case label = 0 is treated as no label).
     sage: S.add_arc_label(0,1,-1)
     Traceback (most recent call last):
     ...
-    RuntimeError: Label (-1) must be a nonnegative integer.
+    ValueError: Label (-1) must be a nonnegative integer.
     sage: S.add_arc(0,1)
     sage: S.arc_label(0,1)
     0
@@ -534,7 +534,7 @@ cdef class SparseGraph(CGraph):
             sage: G.add_arc(4,7)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (7) is not a vertex of the graph.
+            LookupError: Vertex (7) is not a vertex of the graph.
             sage: G.has_arc(1,0)
             False
             sage: G.has_arc(0,1)
@@ -954,7 +954,7 @@ cdef class SparseGraph(CGraph):
             sage: G.add_arc_label(4,7)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (7) is not a vertex of the graph.
+            LookupError: Vertex (7) is not a vertex of the graph.
             sage: G.has_arc(1,0)
             False
             sage: G.has_arc(0,1)
@@ -967,7 +967,7 @@ cdef class SparseGraph(CGraph):
         self.check_vertex(u)
         self.check_vertex(v)
         if l < 0:
-            raise RuntimeError("Label (%d) must be a nonnegative integer."%l)
+            raise ValueError("Label ({0}) must be a nonnegative integer.".format(l))
         self.add_arc_label_unsafe(u,v,l)
 
     cdef int arc_label_unsafe(self, int u, int v):
@@ -1206,7 +1206,7 @@ cdef class SparseGraph(CGraph):
         self.check_vertex(u)
         self.check_vertex(v)
         if l < 0:
-            raise RuntimeError("Label (%d) must be a nonnegative integer."%l)
+            raise ValueError("Label ({0}) must be a nonnegative integer.".format(l))
         self.del_arc_label_unsafe(u,v,l)
 
     cdef int has_arc_label_unsafe(self, int u, int v, int l):
@@ -1272,7 +1272,7 @@ cdef class SparseGraph(CGraph):
         self.check_vertex(u)
         self.check_vertex(v)
         if l < 0:
-            raise RuntimeError("Label (%d) must be a nonnegative integer."%l)
+            raise ValueError("Label ({0}) must be a nonnegative integer.".format(l))
         return self.has_arc_label_unsafe(u,v,l) == 1
 
 ##############################
@@ -1700,15 +1700,15 @@ class SparseGraphBackend(CGraphBackend):
         """
         cdef int l_int
         if not self.has_vertex(u):
-            raise RuntimeError("%s not a vertex of the graph."%u)
+            raise LookupError("({0}) is not a vertex of the graph.".format(repr(u)))
         if not self.has_vertex(v):
-            raise RuntimeError("%s not a vertex of the graph."%v)
+            raise LookupError("({0}) is not a vertex of the graph.".format(repr(v)))
         cdef int u_int = get_vertex(u, self.vertex_ints, self.vertex_labels,
                       self._cg)
         cdef int v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
                       self._cg)
         if not (<SparseGraph>self._cg).has_arc_unsafe(u_int, v_int):
-            raise RuntimeError("%s, %s not an edge of the graph."%(u,v))
+            raise LookupError("({0}, {1}) is not an edge of the graph.".format(repr(u),repr(v)))
         if self.multiple_edges(None):
             return [self.edge_labels[l_int] if l_int != 0 else None
                      for l_int in self._cg.all_arcs(u_int, v_int)]

@@ -140,15 +140,15 @@ cdef class CGraph:
             sage: S.check_vertex(12)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (12) is not a vertex of the graph.
+            LookupError: Vertex (12) is not a vertex of the graph.
             sage: S.check_vertex(24)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (24) is not a vertex of the graph.
+            LookupError: Vertex (24) is not a vertex of the graph.
             sage: S.check_vertex(-19)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (-19) is not a vertex of the graph.
+            LookupError: Vertex (-19) is not a vertex of the graph.
 
         ::
 
@@ -158,18 +158,18 @@ cdef class CGraph:
             sage: D.check_vertex(12)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (12) is not a vertex of the graph.
+            LookupError: Vertex (12) is not a vertex of the graph.
             sage: D.check_vertex(24)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (24) is not a vertex of the graph.
+            LookupError: Vertex (24) is not a vertex of the graph.
             sage: D.check_vertex(-19)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (-19) is not a vertex of the graph.
+            LookupError: Vertex (-19) is not a vertex of the graph.
         """
         if not self.has_vertex(n):
-            raise RuntimeError("Vertex (%d) is not a vertex of the graph." % n)
+            raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(n))
 
     cdef int add_vertex_unsafe(self, int k):
         """
@@ -244,7 +244,7 @@ cdef class CGraph:
             sage: G.add_arc(2, 5)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (5) is not a vertex of the graph.
+            LookupError: Vertex (5) is not a vertex of the graph.
             sage: G.add_arc(1, 3)
             sage: G.has_arc(1, 3)
             True
@@ -260,7 +260,7 @@ cdef class CGraph:
             sage: G.add_arc(2,5)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (5) is not a vertex of the graph.
+            LookupError: Vertex (5) is not a vertex of the graph.
             sage: G.add_arc(1, 3)
             sage: G.has_arc(1, 3)
             True
@@ -312,7 +312,7 @@ cdef class CGraph:
         """
         if k >= (2 * self.active_vertices.size):
             raise RuntimeError(
-                "Requested vertex is past twice the allocated range: " +
+                "Requested vertex is past twice the allocated range: "
                 "use realloc.")
         if (k >= self.active_vertices.size or
             (k == -1 and self.active_vertices.size == self.num_verts)):
@@ -1053,7 +1053,7 @@ cdef class CGraph:
             3
         """
         if not self.has_vertex(v):
-            raise RuntimeError("Vertex (%d) is not a vertex of the graph." % v)
+            raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(v))
         return self.in_degrees[v]
 
     def _out_degree(self, int v):
@@ -1075,7 +1075,7 @@ cdef class CGraph:
             0
         """
         if not self.has_vertex(v):
-            raise RuntimeError("Vertex (%d) is not a vertex of the graph." % v)
+            raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(v))
         return self.out_degrees[v]
 
     def _num_verts(self):
@@ -2738,7 +2738,7 @@ class CGraphBackend(GenericGraphBackend):
         """
 
         if not self._directed:
-            raise ValueError("The graph should be directed !")
+            raise ValueError("Input must be a directed graph.")
 
         # Activated vertices
         cdef bitset_t activated
@@ -2924,21 +2924,21 @@ cdef class Search_iterator:
             sage: list(g.breadth_first_search(0))
             [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
 
-        TEST:
+        TESTS:
 
         A vertex which does not belong to the graph::
 
             sage: list(g.breadth_first_search(-9))
             Traceback (most recent call last):
             ...
-            ValueError: The given vertex is not an element of the graph !
+            LookupError: Vertex (-9) is not a vertex of the graph.
 
         An empty graph::
 
             sage: list(Graph().breadth_first_search(''))
             Traceback (most recent call last):
             ...
-            ValueError: The given vertex is not an element of the graph !
+            LookupError: Vertex ('') is not a vertex of the graph.
         """
         self.graph = graph
         self.direction = direction
@@ -2952,7 +2952,7 @@ cdef class Search_iterator:
                                  self.graph._cg)
 
         if v_id == -1:
-            raise ValueError("The given vertex is not an element of the graph !")
+            raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(repr(v)))
 
         self.stack = [v_id]
 

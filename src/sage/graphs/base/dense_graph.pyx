@@ -378,7 +378,7 @@ cdef class DenseGraph(CGraph):
             sage: G.add_arc(4,7)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (7) is not a vertex of the graph.
+            LookupError: Vertex (7) is not a vertex of the graph.
             sage: G.has_arc(1,0)
             False
             sage: G.has_arc(0,1)
@@ -891,11 +891,11 @@ class DenseGraphBackend(CGraphBackend):
             sage: D.get_edge_label(2,4)
             Traceback (most recent call last):
             ...
-            RuntimeError: 2, 4 not an edge of the graph.
+            LookupError: (2, 4) is not an edge of the graph.
 
         """
         if not self.has_edge(u, v, None):
-            raise RuntimeError("%s, %s not an edge of the graph."%(u, v))
+            raise LookupError("({0}, {1}) is not an edge of the graph.".format(repr(u), repr(v)))
         return None
 
     def has_edge(self, object u, object v, object l):

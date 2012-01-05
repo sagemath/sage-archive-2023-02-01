@@ -221,7 +221,7 @@ An illustration of integration::
     sage: f(x) = (x-3)*(x-5)*(x-7)+40
     sage: P = line([(2,0),(2,f(2))], color='black')
     sage: P += line([(8,0),(8,f(8))], color='black')
-    sage: P += polygon([(2,0),(2,f(2))] + [(x, f(x)) for x in [2,2.1,..,8]] + [(8,0),(2,0)],  rgbcolor=(0.8,0.8,0.8))
+    sage: P += polygon([(2,0),(2,f(2))] + [(x, f(x)) for x in [2,2.1,..,8]] + [(8,0),(2,0)],  rgbcolor=(0.8,0.8,0.8),aspect_ratio='automatic')
     sage: P += text("$\\int_{a}^b f(x) dx$", (5, 20), fontsize=16, color='black')
     sage: P += plot(f, (1, 8.5), thickness=3)
     sage: P    # show the result

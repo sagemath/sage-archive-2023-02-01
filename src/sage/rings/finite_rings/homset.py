@@ -52,6 +52,25 @@ class FiniteFieldHomset(RingHomset_generic):
                 raise TypeError, "images do not define a valid homomorphism"
 
     def _coerce_impl(self, x):
+        """
+        Coercion of other morphisms.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(25)
+            sage: l.<b> = GF(625)
+            sage: H = Hom(k, l)
+            sage: G = loads(dumps(H))
+            sage: H == G
+            True
+            sage: H is G # this should change eventually
+            False
+            sage: G.coerce(list(H)[0]) # indirect doctest
+            Ring morphism:
+              From: Finite Field in a of size 5^2
+              To:   Finite Field in b of size 5^4
+              Defn: a |--> 4*b^3 + 4*b^2 + 4*b + 3
+        """
         if not isinstance(x, FiniteFieldHomomorphism_im_gens):
             raise TypeError
         if x.parent() is self:
@@ -64,7 +83,7 @@ class FiniteFieldHomset(RingHomset_generic):
         """
         EXAMPLES::
 
-            sage: Hom(GF(4, 'a'), GF(16, 'b'))
+            sage: Hom(GF(4, 'a'), GF(16, 'b')) # indirect doctest
             Set of field embeddings from Finite Field in a of size 2^2 to Finite Field in b of size 2^4
             sage: Hom(GF(4, 'a'), GF(4, 'c'))
             Set of field embeddings from Finite Field in a of size 2^2 to Finite Field in c of size 2^2

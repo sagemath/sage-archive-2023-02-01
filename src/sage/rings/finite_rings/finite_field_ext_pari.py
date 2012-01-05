@@ -443,7 +443,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
             sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3^4, 'a')
-            sage: b = k(5)
+            sage: b = k(5) # indirect doctest
             sage: b.parent()
             Finite Field in a of size 3^4
             sage: a = k.gen()

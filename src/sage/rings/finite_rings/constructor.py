@@ -394,7 +394,7 @@ class FiniteFieldFactory(UniqueFactory):
         """
         EXAMPLES::
 
-            sage: K = GF(19)
+            sage: K = GF(19) # indirect doctest
             sage: TestSuite(K).run()
         """
         # IMPORTANT!  If you add a new class to the list of classes

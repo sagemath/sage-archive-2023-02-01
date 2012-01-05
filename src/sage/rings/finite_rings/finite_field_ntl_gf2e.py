@@ -9,6 +9,15 @@ from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
 
 def late_import():
+    """
+    Imports various modules after startup.
+
+    EXAMPLES::
+
+       sage: sage.rings.finite_rings.finite_field_ntl_gf2e.late_import()
+       sage: sage.rings.finite_rings.finite_field_ntl_gf2e.GF2 is None # indirect doctest
+       False
+    """
     if globals().has_key("GF2"):
         return
     global ResidueField_generic, is_FiniteField, exists_conway_polynomial, conway_polynomial, Cache_ntl_gf2e, GF, GF2, is_Polynomial
@@ -190,7 +199,7 @@ class FiniteField_ntl_gf2e(FiniteField):
         EXAMPLES::
 
             sage: k.<a> = GF(2^20)
-            sage: k(1)
+            sage: k(1) # indirect doctest
             1
             sage: k(int(2))
             0
@@ -222,6 +231,16 @@ class FiniteField_ntl_gf2e(FiniteField):
     def _coerce_map_from_(self, R):
         """
         Coercion accepts elements of self.parent(), ints, and prime subfield elements.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(2^8)
+            sage: a + int(1) # indirect doctest
+            a + 1
+            sage: a + 1
+            a + 1
+            sage: a + GF(2)(1)
+            a + 1
         """
         if R is int or R is long or R is ZZ:
             return True

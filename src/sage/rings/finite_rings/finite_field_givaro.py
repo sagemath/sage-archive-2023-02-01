@@ -79,6 +79,7 @@ class FiniteField_givaro(FiniteField):
 
             sage: GF(2^3,'a') == copy(GF(2^3,'a'))
             True
+            sage: TestSuite(j).run()
         """
         self._kwargs = {}
 
@@ -216,7 +217,7 @@ class FiniteField_givaro(FiniteField):
 
         Floats, ints, longs, Integer are interpreted modulo characteristic::
 
-            sage: k(2)
+            sage: k(2) # indirect doctest
             0
 
             Floats coerce in:
@@ -334,6 +335,16 @@ class FiniteField_givaro(FiniteField):
     def _coerce_map_from_(self, R):
         """
         Returns True if this finite field has a coercion map from R.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^8)
+            sage: a + 1 # indirect doctest
+            a + 1
+            sage: a + int(1)
+            a + 1
+            sage: a + GF(3)(1)
+            a + 1
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.finite_rings.finite_field_base import is_FiniteField

@@ -116,6 +116,14 @@ class IntegerModFactory(UniqueFactory):
         True
     """
     def create_key(self, order=0, category=None):
+        """
+        An integer mod ring is specified uniquely by its order.
+
+        EXAMPLES::
+
+            sage: Zmod.create_key(7)
+            7
+        """
         if category is None:
             return order
         return (order, category)
@@ -331,7 +339,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         EXAMPLES::
 
-            sage: macaulay2(Integers(7))  # optional - macaulay2
+            sage: macaulay2(Integers(7))  # indirect doctest, optional - macaulay2
             ZZ
             --
              7
@@ -401,9 +409,29 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
 
     def _precompute_table(self):
+        """
+        Computes a table of elements so that elements are unique.
+
+        EXAMPLES::
+
+            sage: R = Zmod(500); R._precompute_table()
+            sage: R(7) + R(13) is R(3) + R(17)
+            True
+        """
         self._pyx_order.precompute_table(self)
 
     def list_of_elements_of_multiplicative_group(self):
+        """
+        Returns a list of all invertible elements, as python ints.
+
+        EXAMPLES::
+
+            sage: R = Zmod(12)
+            sage: L = R.list_of_elements_of_multiplicative_group(); L
+            [1, 5, 7, 11]
+            sage: type(L[0])
+            <type 'int'>
+        """
         import sage.rings.fast_arith as a
         if self.__order <= 46340:   # todo: don't hard code
             gcd = a.arith_int().gcd_int
@@ -773,9 +801,25 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         return self.__order
 
     def _repr_(self):
+        """
+        String representation.
+
+        EXAMPLES::
+
+            sage: Zmod(87) # indirect doctest
+            Ring of integers modulo 87
+        """
         return "Ring of integers modulo %s"%self.__order
 
     def _latex_(self):
+        """
+        Latex representation.
+
+        EXAMPLES::
+
+            sage: latex(Zmod(87)) # indirect doctest
+            \ZZ/87\ZZ
+        """
         return "\ZZ/%s\ZZ" % self.__order
 
     def modulus(self):
@@ -804,12 +848,36 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return self.__modulus
 
     def order(self):
+        """
+        Returns the order of this ring.
+
+        EXAMPLES::
+
+            sage: Zmod(87).order()
+            87
+        """
         return self.__order
 
     def cardinality(self):
+        """
+        Returns the cardinality of this ring.
+
+        EXAMPLES::
+
+            sage: Zmod(87).cardinality()
+            87
+        """
         return self.order()
 
     def _pari_order(self):
+        """
+        Returns the pari integer representing the order of this ring.
+
+        EXAMPLES::
+
+            sage: Zmod(87)._pari_order()
+            87
+        """
         try:
             return self.__pari_order
         except AttributeError:
@@ -823,7 +891,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: K2 = GF(2)
             sage: K3 = GF(3)
             sage: K8 = GF(8,'a')
-            sage: K8(5)
+            sage: K8(5) # indirect doctest
             1
             sage: K8('a+1')
             a + 1
@@ -892,7 +960,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         EXAMPLES::
 
             sage: R = Integers(15)
-            sage: f = R.coerce_map_from(Integers(450)); f
+            sage: f = R.coerce_map_from(Integers(450)); f # indirect doctest
             Natural morphism:
               From: Ring of integers modulo 450
               To:   Ring of integers modulo 15
@@ -980,6 +1048,15 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     # them out from the unit_gens function.  They are only called by
     # the unit_gens function.
     def __unit_gens_primecase(self, p):
+        """
+        Assuming the modulus is prime, returns the smallest generator
+        of the group of units.
+
+        EXAMPLES::
+
+            sage: Zmod(17)._IntegerModRing_generic__unit_gens_primecase(17)
+            3
+        """
         if p==2:
             return integer_mod.Mod(1,p)
         P = prime_divisors(p-1)
@@ -1003,6 +1080,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         r"""
         Find smallest generator for
         `(\ZZ/p^r\ZZ)^*`.
+
+        EXAMPLES::
+
+            sage: Zmod(27)._IntegerModRing_generic__unit_gens_primepowercase(3,3)
+            [2]
         """
         if r==1:
             return [self.__unit_gens_primecase(p)]
@@ -1141,7 +1223,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R = Integers(12345678900)
             sage: R
             Ring of integers modulo 12345678900
-            sage: gap(R)
+            sage: gap(R) # indirect doctest
             (Integers mod 12345678900)
         """
         return 'ZmodnZ(%s)'%self.order()
@@ -1153,7 +1235,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R = Integers(12345678900)
             sage: R
             Ring of integers modulo 12345678900
-            sage: magma(R)                                          # optional - magma
+            sage: magma(R) # indirect doctest, optional - magma
             Residue class ring of integers modulo 12345678900
         """
         return 'Integers(%s)'%self.order()
@@ -1194,6 +1276,12 @@ def crt(v):
     """
     INPUT: v - (list) a lift of elements of rings.IntegerMod(n), for
     various coprime moduli n.
+
+    EXAMPLES::
+
+        sage: from sage.rings.finite_rings.integer_mod_ring import crt
+        sage: crt([mod(3, 8),mod(1,19),mod(7, 15)])
+        1027
     """
     if len(v) == 0:
         return IntegerModRing(1)(1)

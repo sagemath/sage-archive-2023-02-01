@@ -242,7 +242,7 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: FiniteField(3**2, 'c') == FiniteField(3**3, 'c')
+            sage: FiniteField(3**2, 'c') == FiniteField(3**3, 'c') # indirect doctest
             False
             sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'c')
             True

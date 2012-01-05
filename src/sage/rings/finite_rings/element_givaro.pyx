@@ -756,6 +756,11 @@ cdef class Cache_givaro(SageObject):
     def __reduce__(self):
         """
         For pickling.
+
+        TESTS::
+
+            sage: k.<a> = GF(3^8)
+            sage: TestSuite(a).run()
         """
         p, k = self.order().factor()[0]
         if self.repr == 0:
@@ -888,23 +893,29 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
     def _repr_(FiniteField_givaroElement self):
         """
         EXAMPLE:
-            sage: k.<FOOBAR> = GF(2^4)
+            sage: k.<FOOBAR> = GF(3^4)
             sage: FOOBAR #indirect doctest
             FOOBAR
 
-            sage: k.<FOOBAR> = GF(2^4,repr='log')
+            sage: k.<FOOBAR> = GF(3^4,repr='log')
             sage: FOOBAR
-            1
+            41
 
-            sage: k.<FOOBAR> = GF(2^4,repr='int')
+            sage: k.<FOOBAR> = GF(3^4,repr='int')
             sage: FOOBAR
-            2
+            3
         """
         return self._cache._element_repr(self)
 
     def _element(self):
         """
         Returns the int interally representing this element.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^4)
+            sage: (a^2 + 1)._element()
+            58
         """
         return self.element
 
@@ -1062,7 +1073,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         EXAMPLE:
             sage: k.<b> = GF(9**2)
-            sage: b^10 + 2*b
+            sage: b^10 + 2*b # indirect doctest
             2*b^3 + 2*b^2 + 2*b + 1
         """
         cdef int r
@@ -1076,7 +1087,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         EXAMPLE:
             sage: k.<b> = GF(9**2)
-            sage: b^10 + 2*b
+            sage: b^10 + 2*b # indirect doctest
             2*b^3 + 2*b^2 + 2*b + 1
         """
         cdef int r
@@ -1091,7 +1102,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         EXAMPLE:
             sage: k.<c> = GF(7**4)
-            sage: 3*c
+            sage: 3*c # indirect doctest
             3*c
             sage: c*c
             c^2
@@ -1108,7 +1119,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         EXAMPLE:
             sage: k.<c> = GF(7**4)
-            sage: 3*c
+            sage: 3*c # indirect doctest
             3*c
             sage: c*c
             c^2
@@ -1124,7 +1135,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         EXAMPLE:
             sage: k.<g> = GF(2**8)
-            sage: g/g
+            sage: g/g # indirect doctest
             1
 
             sage: k(1) / k(0)
@@ -1145,7 +1156,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         EXAMPLE:
             sage: k.<g> = GF(2**8)
-            sage: g/g
+            sage: g/g # indirect doctest
             1
 
             sage: k(1) / k(0)
@@ -1167,7 +1178,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         EXAMPLE:
             sage: k.<a> = GF(3**4)
-            sage: k(3) - k(1)
+            sage: k(3) - k(1) # indirect doctest
             2
             sage: 2*a - a^2
             2*a^2 + 2*a
@@ -1183,7 +1194,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         EXAMPLE:
             sage: k.<a> = GF(3**4)
-            sage: k(3) - k(1)
+            sage: k(3) - k(1) # indirect doctest
             2
             sage: 2*a - a^2
             2*a^2 + 2*a
@@ -1384,7 +1395,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         return self._cache.log_to_int(self.element)
 
-    def _integer_(FiniteField_givaroElement self, Integer):
+    def _integer_(FiniteField_givaroElement self, ZZ=None):
         """
         Convert self to an integer if it is in the prime subfield.
 
@@ -1392,7 +1403,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
             sage: k.<b> = GF(5^2); k
             Finite Field in b of size 5^2
-            sage: ZZ(k(4))
+            sage: k(4)._integer_()
             4
             sage: ZZ(b)
             Traceback (most recent call last):

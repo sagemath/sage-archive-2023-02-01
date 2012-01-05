@@ -97,7 +97,14 @@ cdef class FiniteRingElement(CommutativeRingElement):
             raise ValueError, "unknown algorithm"
 
 cdef class FinitePolyExtElement(FiniteRingElement):
+    """
+    Elements represented as polynomials modulo a given ideal.
 
+    TESTS::
+
+        sage: k.<a> = GF(64)
+        sage: TestSuite(a).run()
+    """
     def _im_gens_(self, codomain, im_gens):
         """
         Used for applying homomorphisms of finite fields.
@@ -106,7 +113,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
             sage: k.<a> = FiniteField(73^2, 'a')
             sage: K.<b> = FiniteField(73^4, 'b')
-            sage: phi = k.hom([ b^(73*73+1) ])
+            sage: phi = k.hom([ b^(73*73+1) ]) # indirect doctest
             sage: phi(0)
             0
             sage: phi(a)

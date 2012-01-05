@@ -195,7 +195,8 @@ def mpfr_prec_max():
         sage: R = RealField(2147483648)
         Traceback (most recent call last):
         ...
-        OverflowError: ... too large to convert to int
+        OverflowError: ... too large to convert to C long   # 32-bit
+        OverflowError: ... too large to convert to int      # 64-bit
     """
     global MY_MPFR_PREC_MAX
     # We use 2^31-1 as the largest precision, since 2^31 is not representable
@@ -5163,7 +5164,7 @@ cdef class int_toRR(Map):
             sage: f(2^75)
             Traceback (most recent call last):
             ...
-            OverflowError: long int too large to convert to int
+            OverflowError: Python int too large to convert to C long
 
         ::
 

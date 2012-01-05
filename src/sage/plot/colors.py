@@ -627,7 +627,7 @@ class Color(object):
             sage: Color('black') / 0.0
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: float division
+            ZeroDivisionError: float division by zero
             sage: papayawhip / yellow
             Traceback (most recent call last):
             ...

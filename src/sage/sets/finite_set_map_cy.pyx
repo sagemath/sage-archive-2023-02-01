@@ -491,13 +491,13 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
             ...       fs3.setimage("z", 2)
             Traceback (most recent call last):
             ...
-            ValueError: list.index(x): x not in list
+            ValueError: 'z' is not in list
 
             sage: with fs.clone() as fs3:
             ...       fs3.setimage(1, 4)
             Traceback (most recent call last):
             ...
-            ValueError: list.index(x): x not in list
+            ValueError: 1 is not in list
         """
         parent = self._parent
         return self._setitem(parent._rank_domain(i), parent._rank_codomain(j))

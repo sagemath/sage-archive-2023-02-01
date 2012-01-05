@@ -201,12 +201,12 @@ class TestSuite(object):
             Failure in _test_b:
             Traceback (most recent call last):
               ...
-            AssertionError
+            AssertionError: None
             ------------------------------------------------------------
             Failure in _test_d:
             Traceback (most recent call last):
               ...
-            AssertionError
+            AssertionError: None
             ------------------------------------------------------------
             Failure in _test_pickling:
             Traceback (most recent call last):
@@ -220,14 +220,14 @@ class TestSuite(object):
             running ._test_b() . . . fail
             Traceback (most recent call last):
               ...
-            AssertionError
+            AssertionError: None
             ------------------------------------------------------------
             running ._test_c() . . . pass
             running ._test_category() . . . pass
             running ._test_d() . . . fail
             Traceback (most recent call last):
               ...
-            AssertionError
+            AssertionError: None
             ------------------------------------------------------------
             running ._test_not_implemented_methods() . . . pass
             running ._test_pickling() . . . fail
@@ -249,7 +249,7 @@ class TestSuite(object):
               File ..., in _test_b
                 def _test_b(self, tester): tester.fail()
               ...
-            AssertionError
+            AssertionError: None
 
         In conjonction with ``%pdb on``, this allows for the debbuger
         to jump directly to the first failure location.
@@ -311,7 +311,7 @@ def instance_tester(instance, tester = None, **options):
         sage: tester.assert_(1 == 0)
         Traceback (most recent call last):
         ...
-        AssertionError
+        AssertionError: False is not true
         sage: tester.assert_(1 == 0, "this is expected to fail")
         Traceback (most recent call last):
         ...

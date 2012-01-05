@@ -506,7 +506,7 @@ semigroup::
       File ".../sage/categories/semigroups.py", line ..., in _test_associativity
         tester.assert_((x * y) * z == x * (y * z))
       ...
-    AssertionError
+    AssertionError: False is not true
 
 
 Wrapup:

@@ -273,7 +273,7 @@ cdef class SageObject:
             sage: CC._test_category()
             Traceback (most recent call last):
             ...
-            AssertionError
+            AssertionError: False is not true
         """
         from sage.categories.category import Category
         from sage.categories.objects import Objects
@@ -312,7 +312,7 @@ cdef class SageObject:
             sage: tester.assert_(1 == 0)
             Traceback (most recent call last):
             ...
-            AssertionError
+            AssertionError: False is not true
             sage: tester.assert_(1 == 0, "this is expected to fail")
             Traceback (most recent call last):
             ...

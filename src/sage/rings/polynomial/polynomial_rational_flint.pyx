@@ -1032,7 +1032,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: (1 + t)^(2^63)
             Traceback (most recent call last):
             ...
-            OverflowError: long int too large to convert to int
+            OverflowError: Python int too large to convert to C long
         """
         cdef long n
         cdef Polynomial_rational_flint res

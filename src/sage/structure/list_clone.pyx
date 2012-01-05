@@ -728,7 +728,7 @@ cdef class ClonableArray(ClonableElement):
             sage: c.index(5)
             Traceback (most recent call last):
             ...
-            ValueError: list.index(x): x not in list
+            ValueError: 5 is not in list
         """
         if start is None:
             return self._list.index(x)

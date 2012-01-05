@@ -574,7 +574,7 @@ class EnumeratedSets(Category):
                 sage: CC._test_enumerated_set_contains()
                 Traceback (most recent call last):
                 ...
-                AssertionError
+                AssertionError: False is not true
             """
             tester = self._tester(**options)
             i = 0

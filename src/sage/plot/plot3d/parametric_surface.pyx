@@ -309,7 +309,7 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
             sage: M = MobiusStrip(7,3,2)
             sage: M.bounding_box()
-            ((-10.0, -7.53907349250478..., -2.9940801852848145), (10.0, 7.5390734925047846, 2.9940801852848145))
+            ((-10.0, -7.53907349250478..., -2.9940801852848145), (10.0, 7.53907349250478..., 2.9940801852848145))
         """
         # We must triangulate before computing the bounding box; otherwise
         # we'll get an empty bounding box, as the bounding box is computed

@@ -1288,7 +1288,7 @@ cdef class LazyConstant(LazyFieldElement):
             sage: from sage.rings.real_lazy import LazyConstant
             sage: a = LazyConstant(RLF, 'pi')
             sage: float(a)
-            3.1415926535897931
+            3.141592653589793
         """
         interval_field = self._parent.interval_field()
         return <double>self.eval(interval_field._middle_field())

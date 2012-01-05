@@ -38,9 +38,9 @@ class SpikeFunction:
         sage: from sage.functions.spike_function import SpikeFunction
         sage: S = SpikeFunction([(0,1),(1,2),(pi,-5)])
         sage: S
-        A spike function with spikes at [0.0, 1.0, 3.1415926535897931]
+        A spike function with spikes at [0.0, 1.0, 3.141592653589793]
         sage: S.support
-        [0.0, 1.0, 3.1415926535897931]
+        [0.0, 1.0, 3.141592653589793]
     """
     def __init__(self, v, eps=0.0000001):
         """
@@ -141,7 +141,7 @@ class SpikeFunction:
             A spike function with spikes at [-3.0, -1.0, 2.0]
             sage: P = S.plot_fft_abs(8)
             sage: p = P[0]; p.ydata
-            [5.0, 5.0, 3.3679586919241769, 3.3679586919241769, 4.1231056256176606, 4.1231056256176606, 4.7599216642180551, 4.7599216642180551]
+            [5.0, 5.0, 3.367958691924177, 3.367958691924177, 4.123105625617661, 4.123105625617661, 4.759921664218055, 4.759921664218055]
         """
         w = self.vector(samples = samples, xmin=xmin, xmax=xmax)
         xmin, xmax = self._ranges(xmin, xmax)

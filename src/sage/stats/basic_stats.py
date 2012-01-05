@@ -239,7 +239,7 @@ def variance(v, bias=False):
         2.5
         sage: x = finance.TimeSeries([1..100])
         sage: variance(x)
-        841.66666666666663
+        841.6666666666666
         sage: variance(x, bias=True)
         833.25
         sage: class MyClass:

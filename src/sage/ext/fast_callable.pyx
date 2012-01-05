@@ -382,7 +382,7 @@ def fast_callable(x, domain=None, vars=None,
         sin(add(ipow(v_0, 2), v_1))
         sage: fc = fast_callable(expr, domain=float)
         sage: fc(5, 7)
-        0.55142668124169059
+        0.5514266812416906
     """
     cdef Expression et
     if isinstance(x, Expression):

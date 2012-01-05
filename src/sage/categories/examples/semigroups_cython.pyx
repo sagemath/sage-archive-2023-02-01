@@ -193,7 +193,7 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
     This is the semigroup which contains all sort of objects::
 
         sage: S.some_elements()
-        [3, 42, 'a', 3.3999999999999999, 'raton laveur']
+        [3, 42, 'a', 3.4, 'raton laveur']
 
     with product rule is given by $a \times b = a$ for all $a,b$. ::
 

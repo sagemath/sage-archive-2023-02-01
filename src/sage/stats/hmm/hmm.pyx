@@ -275,7 +275,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         sage: m.log_likelihood([0,1,0,1,0,1])
         -4.66693474691329...
         sage: m.viterbi([0,1,0,1,0,1])
-        ([1, 1, 1, 1, 1, 1], -5.3788328422087481)
+        ([1, 1, 1, 1, 1, 1], -5.378832842208748)
         sage: m.baum_welch([0,1,0,1,0,1])
         (0.0, 22)
         sage: m
@@ -488,7 +488,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: m.log_likelihood([0, 1, 0, 1, 1, 0, 1, 0, 0, 0])
             -7.3301308009370825
             sage: m.log_likelihood([0, 1, 0, 1, 1, 0, 1, 0, 0, 0], scale=False)
-            -7.3301308009370816
+            -7.330130800937082
             sage: m.log_likelihood([])
             0.0
 
@@ -502,7 +502,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
             sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.1,0.9],[0.5,0.5]], [.2,.8])
             sage: m.log_likelihood([0,1]*1000, scale=True)
-            -1433.8206666527281
+            -1433.820666652728
             sage: m.log_likelihood([0,1]*1000, scale=False)
             -inf
         """
@@ -600,7 +600,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         non-scaled algorithm::
 
             sage: m._forward_scale(stats.IntList([0,1]*1000))
-            -1433.8206666527281
+            -1433.820666652728
             sage: m._forward(stats.IntList([0,1]*1000))
             -inf
 
@@ -608,7 +608,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
             sage: set_random_seed(0); v = m.sample(1000)
             sage: m._forward_scale(v)
-            -686.87531893650555
+            -686.8753189365056
         """
         # This is just like self._forward(obs) above, except at every step of the
         # algorithm, we rescale the vector alpha so that the sum of
@@ -879,7 +879,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
             sage: m = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.9,0.1]], [[1,0],[0,1]], [.2,.8])
             sage: m._viterbi(stats.IntList([1]*5))
-            ([1, 1, 1, 1, 1], -9.4334839232903924)
+            ([1, 1, 1, 1, 1], -9.433483923290392)
             sage: m._viterbi(stats.IntList([0]*5))
             ([0, 0, 0, 0, 0], -10.819778284410283)
 
@@ -958,7 +958,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
             sage: m = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.9,0.1]], [[.5,.5],[0,1]], [.2,.8])
             sage: m._viterbi_scale(stats.IntList([1]*10))
-            ([1, 0, 1, 0, 1, 0, 1, 0, 1, 0], -4.6371240950343733)
+            ([1, 0, 1, 0, 1, 0, 1, 0, 1, 0], -4.637124095034373)
 
         Long sequences should not overflow::
 
@@ -1226,7 +1226,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: m = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.9,0.1]], [[.5,.5],[.2,.8]], [.2,.8])
             sage: set_random_seed(0); v = m.sample(100)
             sage: m.baum_welch(v,fix_emissions=True)
-            (-66.986308569187742, 100)
+            (-66.98630856918774, 100)
             sage: m.emission_matrix()
             [0.5 0.5]
             [0.2 0.8]

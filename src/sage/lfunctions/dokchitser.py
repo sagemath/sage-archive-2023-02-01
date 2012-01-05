@@ -312,7 +312,7 @@ class Dokchitser(SageObject):
             0.998583063162746
             sage: a = delta_qexp(1000)
             sage: sum(a[n]/float(n)^14 for n in range(1,1000))
-            0.99858306316274592
+            0.9985830631627459
 
         Illustrate that one can give a list of complex numbers for v (see trac 10937)::
 

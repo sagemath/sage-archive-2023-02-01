@@ -626,7 +626,7 @@ class MaximaAbstract(Interface):
             sage: t(2)
              sin(2)
             sage: float(t(2))
-            0.90929742682568171
+            0.9092974268256817
             sage: loads(t.dumps())
             gamma(x)*sin(x)
         """
@@ -1591,11 +1591,11 @@ class MaximaAbstractElement(InterfaceElement):
         EXAMPLES::
 
             sage: float(maxima("3.14"))
-            3.1400000000000001
+            3.14
             sage: float(maxima("1.7e+17"))
             1.7e+17
             sage: float(maxima("1.7e-17"))
-            1.6999999999999999e-17
+            1.7e-17
         """
         try:
             return float(repr(self.numer()))

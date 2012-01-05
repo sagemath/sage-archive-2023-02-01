@@ -502,7 +502,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: res.subs(y=2).n()
         1.46383232641443
         sage: nres = numerical_integral(f.subs(y=.5), 0.0001414, 1.); nres
-        (-0.66951170887280698, 7.7686781108547113e-15)
+        (-0.669511708872807, 7.768678110854711e-15)
         sage: res.subs(y=.5).n()
         -0.669511708872807
 

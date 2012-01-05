@@ -788,7 +788,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K,1000,1000,density=0.1)
             sage: float(A.density())
-            0.099738...
+            0.099739...
 
             sage: A = random_matrix(K,1000,1000,density=1.0)
             sage: float(A.density())
@@ -796,7 +796,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
 
             sage: A = random_matrix(K,1000,1000,density=0.5)
             sage: float(A.density())
-            0.499759...
+            0.49976...
 
         Note, that the matrix is updated and not zero-ed out before
         being randomized::

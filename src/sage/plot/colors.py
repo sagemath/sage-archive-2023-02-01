@@ -251,7 +251,7 @@ def html_to_float(c):
         sage: html_to_float('#fff')
         (1.0, 1.0, 1.0)
         sage: html_to_float('#abcdef')
-        (0.6705882352941176, 0.80392156862745101, 0.93725490196078431)
+        (0.6705882352941176, 0.803921568627451, 0.9372549019607843)
         sage: html_to_float('#123xyz')
         Traceback (most recent call last):
         ...
@@ -290,23 +290,23 @@ def rgbcolor(c, space='rgb'):
 
         sage: from sage.plot.colors import rgbcolor
         sage: rgbcolor(Color(0.25, 0.4, 0.9))
-        (0.25, 0.40000000000000002, 0.90000000000000002)
+        (0.25, 0.4, 0.9)
         sage: rgbcolor('purple')
-        (0.50196078431372548, 0.0, 0.50196078431372548)
+        (0.5019607843137255, 0.0, 0.5019607843137255)
         sage: rgbcolor('#fa0')
-        (1.0, 0.66666666666666663, 0.0)
+        (1.0, 0.6666666666666666, 0.0)
         sage: rgbcolor('#ffffff')
         (1.0, 1.0, 1.0)
         sage: rgbcolor((1,1/2,1/3))
-        (1.0, 0.5, 0.33333333333333331)
+        (1.0, 0.5, 0.3333333333333333)
         sage: rgbcolor([1,1/2,1/3])
-        (1.0, 0.5, 0.33333333333333331)
+        (1.0, 0.5, 0.3333333333333333)
         sage: rgbcolor((1,1,1), space='hsv')
         (1.0, 0.0, 0.0)
         sage: rgbcolor((0.5,0.75,1), space='hls')
-        (0.5, 0.99999999999999989, 1.0)
+        (0.5, 0.9999999999999999, 1.0)
         sage: rgbcolor((0.5,1.0,0.75), space='hsl')
-        (0.5, 0.99999999999999989, 1.0)
+        (0.5, 0.9999999999999999, 1.0)
         sage: rgbcolor([1,2,255])   # WARNING -- numbers are reduced mod 1!!
         (1.0, 0.0, 0.0)
         sage: rgbcolor('#abcd')
@@ -393,20 +393,20 @@ class Color(object):
         EXAMPLES::
 
             sage: Color('purple')
-            RGB color (0.50196078431372548, 0.0, 0.50196078431372548)
+            RGB color (0.5019607843137255, 0.0, 0.5019607843137255)
             sage: Color('#8000ff')
-            RGB color (0.50196078431372548, 0.0, 1.0)
+            RGB color (0.5019607843137255, 0.0, 1.0)
             sage: Color(0.5,0,1)
             RGB color (0.5, 0.0, 1.0)
             sage: Color(0.5, 1.0, 1, space='hsv')
             RGB color (0.0, 1.0, 1.0)
             sage: Color(0.25, 0.5, 0.5, space='hls')
-            RGB color (0.50000000000000011, 0.75, 0.25)
+            RGB color (0.5000000000000001, 0.75, 0.25)
             sage: Color(1, 0, 1/3, space='hsl')
-            RGB color (0.33333333333333331, 0.33333333333333331, 0.33333333333333331)
+            RGB color (0.3333333333333333, 0.3333333333333333, 0.3333333333333333)
             sage: from sage.plot.colors import chocolate
             sage: Color(chocolate)
-            RGB color (0.82352941176470584, 0.41176470588235292, 0.11764705882352941)
+            RGB color (0.8235294117647058, 0.4117647058823529, 0.11764705882352941)
         """
         if g is None and b is None:
             self.__rgb = rgbcolor(r)
@@ -424,7 +424,7 @@ class Color(object):
         EXAMPLES::
 
             sage: Color('#8000ff').__repr__()
-            'RGB color (0.50196078431372548, 0.0, 1.0)'
+            'RGB color (0.5019607843137255, 0.0, 1.0)'
             sage: Color(1, 0.5, 1/16, space='hsl').__repr__()
             'RGB color (0.09375, 0.03125, 0.03125)'
         """
@@ -458,13 +458,13 @@ class Color(object):
             sage: red.blend(blue, fraction=1.0)
             RGB color (0.0, 0.0, 1.0)
             sage: lime.blend((0.3, 0.5, 0.7))
-            RGB color (0.14999999999999999, 0.75, 0.34999999999999998)
+            RGB color (0.15, 0.75, 0.35)
             sage: blue.blend(blue)
             RGB color (0.0, 0.0, 1.0)
             sage: red.blend(lime, fraction=0.3)
-            RGB color (0.69999999999999996, 0.29999999999999999, 0.0)
+            RGB color (0.7, 0.3, 0.0)
             sage: blue.blend((0.0, 0.9, 0.2), fraction=0.2)
-            RGB color (0.0, 0.18000000000000002, 0.84000000000000008)
+            RGB color (0.0, 0.18000000000000002, 0.8400000000000001)
             sage: red.blend(0.2)
             Traceback (most recent call last):
             ...
@@ -507,11 +507,11 @@ class Color(object):
             ...
             TypeError: 0.100000000000000 must be a Color or float-convertible 3-tuple/list
             sage: c2 + [0.5, 0.2, 0.9]
-            RGB color (0.57199999999999995, 0.44999999999999996, 0.66000000000000003)
+            RGB color (0.572, 0.44999999999999996, 0.66)
             sage: c1.__add__(red).__add__((0.9, 0.2, 1/3))
-            RGB color (0.72500000000000009, 0.22500000000000001, 0.3666666666666667)
+            RGB color (0.7250000000000001, 0.225, 0.3666666666666667)
             sage: c1 + c2
-            RGB color (0.37199999999999994, 0.59999999999999998, 0.60999999999999999)
+            RGB color (0.37199999999999994, 0.6, 0.61)
         """
         return self.blend(right)
 
@@ -533,16 +533,16 @@ class Color(object):
 
             sage: from sage.plot.colors import olive, orchid
             sage: olive + orchid
-            RGB color (0.67843137254901964, 0.47058823529411764, 0.41960784313725491)
+            RGB color (0.6784313725490196, 0.47058823529411764, 0.4196078431372549)
             sage: d1 = Color(0.1, 0.5, 0.8, space='hls'); d2 = Color(0.2, 0.4, 0.7)
             sage: [0.5, 0.2, 0.9] + d2
-            RGB color (0.34999999999999998, 0.30000000000000004, 0.80000000000000004)
+            RGB color (0.35, 0.30000000000000004, 0.8)
             sage: 0.1 + d1
             Traceback (most recent call last):
             ...
             TypeError: 0.100000000000000 must be a Color or float-convertible 3-tuple/list
             sage: d2.__radd__(Color('brown')).__radd__((0.9, 0.2, 1/3))
-            RGB color (0.66176470588235303, 0.2411764705882353, 0.38284313725490193)
+            RGB color (0.661764705882353, 0.2411764705882353, 0.38284313725490193)
         """
         return self + left
 
@@ -567,9 +567,9 @@ class Color(object):
             RGB color (0.125, 0.125, 0.0)
             sage: from sage.plot.colors import cyan, grey, indianred
             sage: cyan * 0.3 + grey * 0.1 + indianred * 0.6
-            RGB color (0.25372549019607843, 0.19578431372549021, 0.19578431372549021)
+            RGB color (0.25372549019607843, 0.1957843137254902, 0.1957843137254902)
             sage: indianred.__mul__(42)
-            RGB color (0.76470588235294201, 0.15294117647058769, 0.15294117647058769)
+            RGB color (0.764705882352942, 0.1529411764705877, 0.1529411764705877)
         """
         right = float(right)
         return Color([x * right for x in self.__rgb])
@@ -591,9 +591,9 @@ class Color(object):
 
             sage: from sage.plot.colors import aqua, cornsilk, tomato
             sage: 0.3 * aqua
-            RGB color (0.0, 0.29999999999999999, 0.29999999999999999)
+            RGB color (0.0, 0.3, 0.3)
             sage: Color('indianred').__rmul__(42)
-            RGB color (0.76470588235294201, 0.15294117647058769, 0.15294117647058769)
+            RGB color (0.764705882352942, 0.1529411764705877, 0.1529411764705877)
         """
         return self * left
 
@@ -619,7 +619,7 @@ class Color(object):
             sage: yellow.__div__(4)
             RGB color (0.25, 0.25, 0.0)
             sage: (papayawhip + Color(0.5, 0.5, 0.1) + yellow) / 3.0
-            RGB color (0.29166666666666663, 0.28643790849673201, 0.077941176470588236)
+            RGB color (0.29166666666666663, 0.286437908496732, 0.07794117647058824)
             sage: vector((papayawhip / 2).rgb()) == vector((papayawhip * 0.5).rgb())
             True
             sage: yellow.__div__(1/4)
@@ -701,7 +701,7 @@ class Color(object):
             sage: r
             0.11764705882352941
             sage: g
-            0.56470588235294117
+            0.5647058823529412
             sage: b
             1.0
             sage: vector(maroon) == vector(Color(maroon)) == vector(Color('maroon'))
@@ -726,7 +726,7 @@ class Color(object):
 
             sage: from sage.plot.colors import crimson, midnightblue
             sage: Color('#badfad')[0]
-            0.72941176470588232
+            0.7294117647058823
             sage: (crimson[0], crimson[1], crimson[2]) == crimson.rgb()
             True
             sage: midnightblue[2] == midnightblue[-1]
@@ -750,16 +750,16 @@ class Color(object):
         EXAMPLES::
 
             sage: Color(0.3, 0.5, 0.7).rgb()
-            (0.29999999999999999, 0.5, 0.69999999999999996)
+            (0.3, 0.5, 0.7)
             sage: Color('#8000ff').rgb()
-            (0.50196078431372548, 0.0, 1.0)
+            (0.5019607843137255, 0.0, 1.0)
             sage: from sage.plot.colors import orange
             sage: orange.rgb()
             (1.0, 0.6470588235294118, 0.0)
             sage: Color('magenta').rgb()
             (1.0, 0.0, 1.0)
             sage: Color(1, 0.7, 0.9, space='hsv').rgb()
-            (0.90000000000000002, 0.27000000000000007, 0.27000000000000007)
+            (0.9, 0.2700000000000001, 0.2700000000000001)
         """
         return self.__rgb
 
@@ -775,14 +775,14 @@ class Color(object):
         EXAMPLES::
 
             sage: Color(0.3, 0.5, 0.7, space='hls').hls()
-            (0.30000000000000004, 0.5, 0.69999999999999996)
+            (0.30000000000000004, 0.5, 0.7)
             sage: Color(0.3, 0.5, 0.7, space='hsl').hls()
-            (0.30000000000000004, 0.69999999999999996, 0.50000000000000011)
+            (0.30000000000000004, 0.7, 0.5000000000000001)
             sage: Color('#aabbcc').hls()
-            (0.58333333333333337, 0.73333333333333339, 0.25000000000000017)
+            (0.5833333333333334, 0.7333333333333334, 0.25000000000000017)
             sage: from sage.plot.colors import orchid
             sage: orchid.hls()
-            (0.83962264150943389, 0.64705882352941169, 0.58888888888888891)
+            (0.8396226415094339, 0.6470588235294117, 0.5888888888888889)
         """
         return tuple(map(float, rgb_to_hls(*self.__rgb)))
 
@@ -801,9 +801,9 @@ class Color(object):
             (0.0, 1.0, 0.5)
             sage: from sage.plot.colors import orchid
             sage: orchid.hsl()
-            (0.83962264150943389, 0.58888888888888891, 0.64705882352941169)
+            (0.8396226415094339, 0.5888888888888889, 0.6470588235294117)
             sage: Color('#aabbcc').hsl()
-            (0.58333333333333337, 0.25000000000000017, 0.73333333333333339)
+            (0.5833333333333334, 0.25000000000000017, 0.7333333333333334)
         """
         h, l, s = tuple(map(float, rgb_to_hls(*self.__rgb)))
         return (h, s, l)
@@ -825,7 +825,7 @@ class Color(object):
             sage: Color(1,1,1).hsv()
             (0.0, 0.0, 1.0)
             sage: Color('gray').hsv()
-            (0.0, 0.0, 0.50196078431372548)
+            (0.0, 0.0, 0.5019607843137255)
         """
         return tuple(map(float, rgb_to_hsv(*self.__rgb)))
 
@@ -870,13 +870,13 @@ class Color(object):
 
             sage: from sage.plot.colors import khaki
             sage: khaki.lighter()
-            RGB color (0.96078431372549034, 0.934640522875817, 0.69934640522875824)
+            RGB color (0.9607843137254903, 0.934640522875817, 0.6993464052287582)
             sage: Color('white').lighter().darker()
-            RGB color (0.66666666666666674, 0.66666666666666674, 0.66666666666666674)
+            RGB color (0.6666666666666667, 0.6666666666666667, 0.6666666666666667)
             sage: Color('#abcdef').lighter(1/4)
-            RGB color (0.75294117647058822, 0.85294117647058831, 0.95294117647058818)
+            RGB color (0.7529411764705882, 0.8529411764705883, 0.9529411764705882)
             sage: Color(1, 0, 8/9, space='hsv').lighter()
-            RGB color (0.92592592592592604, 0.92592592592592604, 0.92592592592592604)
+            RGB color (0.925925925925926, 0.925925925925926, 0.925925925925926)
         """
         return self.blend((1.0, 1.0, 1.0), fraction)
 
@@ -900,7 +900,7 @@ class Color(object):
             sage: vector(black.darker().rgb()) == vector(black.rgb())
             True
             sage: Color(0.4, 0.6, 0.8).darker(0.1)
-            RGB color (0.36000000000000004, 0.54000000000000004, 0.72000000000000008)
+            RGB color (0.36000000000000004, 0.54, 0.7200000000000001)
             sage: Color(.1,.2,.3,space='hsl').darker()
             RGB color (0.24000000000000002, 0.20800000000000002, 0.16)
         """
@@ -1029,9 +1029,9 @@ def hue(h, s=1, v=1):
         (0.0, 0.40000000000000036, 1.0)
         sage: from sage.plot.colors import royalblue
         sage: royalblue
-        RGB color (0.25490196078431371, 0.41176470588235292, 0.88235294117647056)
+        RGB color (0.2549019607843137, 0.4117647058823529, 0.8823529411764706)
         sage: hue(*royalblue.hsv())
-        (0.25490196078431371, 0.41176470588235292, 0.88235294117647056)
+        (0.2549019607843137, 0.4117647058823529, 0.8823529411764706)
         sage: hue(.5, .5, .5)
         (0.25, 0.5, 0.5)
 
@@ -1120,7 +1120,7 @@ def rainbow(n, format='hex'):
         sage: rainbow(7)
         ['#ff0000', '#ffda00', '#48ff00', '#00ff91', '#0091ff', '#4800ff', '#ff00da']
         sage: rainbow(7, 'rgbtuple')
-        [(1.0, 0.0, 0.0), (1.0, 0.8571428571428571, 0.0), (0.28571428571428581, 1.0, 0.0), (0.0, 1.0, 0.57142857142857117), (0.0, 0.57142857142857162, 1.0), (0.2857142857142847, 0.0, 1.0), (1.0, 0.0, 0.85714285714285765)]
+        [(1.0, 0.0, 0.0), (1.0, 0.8571428571428571, 0.0), (0.2857142857142858, 1.0, 0.0), (0.0, 1.0, 0.5714285714285712), (0.0, 0.5714285714285716, 1.0), (0.2857142857142847, 0.0, 1.0), (1.0, 0.0, 0.8571428571428577)]
 
     AUTHORS:
 

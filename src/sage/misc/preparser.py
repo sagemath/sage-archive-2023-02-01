@@ -173,7 +173,7 @@ You can also use an upper case letter::
 
     sage: z = 3.1415R
     sage: z
-    3.1415000000000002
+    3.1415
     sage: type(z)
     <type 'float'>
 

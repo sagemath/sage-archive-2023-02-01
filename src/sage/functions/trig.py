@@ -790,7 +790,7 @@ class Function_arctan2(GinacFunction):
             sage: maxima.atan2(1,-1)
             3*%pi/4
             sage: math.atan2(1,-1)
-            2.3561944901923448
+            2.356194490192345
 
         More examples::
 

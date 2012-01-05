@@ -151,9 +151,9 @@ class Function_log(GinacFunction):
             sage: ln(2.0)
             0.693147180559945
             sage: ln(float(-1))
-            3.1415926535897931j
+            3.141592653589793j
             sage: ln(complex(-1))
-            3.1415926535897931j
+            3.141592653589793j
 
         We do not currently support a ``hold`` parameter in functional
         notation::
@@ -203,9 +203,9 @@ class Function_log(GinacFunction):
             sage: log(float(0))
             -inf
             sage: log(float(-1))
-            3.1415926535897931j
+            3.141592653589793j
             sage: log(x).subs(x=float(-1))
-            3.1415926535897931j
+            3.141592653589793j
         """
         GinacFunction.__init__(self, 'log', latex_name=r'\log',
                                    conversions=dict(maxima='log'))
@@ -333,7 +333,7 @@ class Function_polylog(GinacFunction):
             sage: complex(polylog(4,2))
             (2.4278628067547032-0.17437130002545306j)
             sage: float(polylog(4,0.5))
-            0.51747906167389934
+            0.5174790616738993
 
             sage: z = var('z')
             sage: polylog(2,z).series(z==0, 5)

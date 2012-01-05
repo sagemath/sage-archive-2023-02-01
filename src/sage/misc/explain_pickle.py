@@ -847,12 +847,12 @@ class PickleExplainer(object):
             sage: from sage.misc.explain_pickle import *
             sage: test_pickle(float(pi))
                 0: \x80 PROTO      2
-                2: G    BINFLOAT   3.1415926535897931
+                2: G    BINFLOAT   3.141592653589793
                11: .    STOP
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True/False:
             float(RR(3.1415926535897931))
-            result: 3.1415926535897931
+            result: 3.141592653589793
         """
         self.push(self.sib(f))
 

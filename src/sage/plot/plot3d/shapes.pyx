@@ -746,7 +746,7 @@ cdef class Sphere(ParametricSurface):
             sage: from sage.plot.plot3d.shapes import Sphere
             sage: Sphere(1).get_grid(100)
             ([-10.0, ..., 0.0, ..., 10.0],
-             [0.0, ..., 3.1415926535897931, ..., 0.0])
+             [0.0, ..., 3.141592653589793, ..., 0.0])
         """
         cdef int K, u_res, v_res
         u_res = min(max(int(M_PI*self.radius/ds), 6), 20)
@@ -811,8 +811,8 @@ cdef class Torus(ParametricSurface):
 
             sage: from sage.plot.plot3d.shapes import Torus
             sage: Torus(2, 1).get_grid(100)
-            ([0.0, -1.047..., -3.1415926535897931, ..., 0.0],
-             [0.0, 1.047..., 3.1415926535897931, ..., 0.0])
+            ([0.0, -1.047..., -3.141592653589793, ..., 0.0],
+             [0.0, 1.047..., 3.141592653589793, ..., 0.0])
         """
         cdef int k, u_divs, v_divs
         u_divs = min(max(int(4*M_PI * self.R/ds), 6), 37)

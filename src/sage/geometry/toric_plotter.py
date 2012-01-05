@@ -773,8 +773,7 @@ def color_list(color, n):
 
         sage: from sage.geometry.toric_plotter import color_list
         sage: color_list("grey", 1)
-        [RGB color (0.50196078431372548,
-         0.50196078431372548, 0.50196078431372548)]
+        [RGB color (0.5019607843137255, 0.5019607843137255, 0.5019607843137255)]
         sage: len(color_list("grey", 3))
         3
         sage: color_list("rainbow", 3)

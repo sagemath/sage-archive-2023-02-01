@@ -21,7 +21,7 @@ instead of SymPy.
     sage: pi^2
     pi^2
     sage: float(pi)
-    3.1415926535897931
+    3.141592653589793
     sage: RealField(200)(pi)
     3.1415926535897932384626433832795028841971693993751058209749
     sage: float(pi + exp(1))

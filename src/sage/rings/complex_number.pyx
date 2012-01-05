@@ -868,7 +868,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: a.__abs__()
             2.23606797749979
             sage: float(sqrt(2^2 + 1^1))
-            2.2360679774997898
+            2.23606797749979
 
         ::
 

@@ -1262,7 +1262,7 @@ cdef class _two_descent:
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'
             sage: D2.regulator()
-            0.41714355875838399
+            0.417143558758384
         """
         sig_on()
         return float(string_sigoff(two_descent_regulator(self.x)))

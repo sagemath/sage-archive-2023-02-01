@@ -96,7 +96,7 @@ class MarkovSwitchingMultifractal:
 
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1,0.95,3)
             sage: msm.m0()
-            1.3999999999999999
+            1.4
         """
         return self.__m0
 
@@ -132,7 +132,7 @@ class MarkovSwitchingMultifractal:
 
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,0.01,0.95,3)
             sage: msm.gamma_kbar()
-            0.94999999999999996
+            0.95
         """
         return self.__gamma_kbar
 
@@ -160,7 +160,7 @@ class MarkovSwitchingMultifractal:
 
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
             sage: msm.gamma()
-            (0.001368852970712986, 0.0041009402016725094, 0.012252436441829..., 0.03630878209190..., 0.10501923017634..., 0.28312883556311..., 0.6315968501359..., 0.95000000000000...)
+            (0.001368852970712986, 0.004100940201672509, 0.012252436441829..., 0.03630878209190..., 0.10501923017634..., 0.28312883556311..., 0.6315968501359..., 0.95000000000000...)
         """
         try:
             return self.__gamma

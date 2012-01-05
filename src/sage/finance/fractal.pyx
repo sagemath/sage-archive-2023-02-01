@@ -65,7 +65,7 @@ def stationary_gaussian_simulation(s, N, n=1):
         sage: N = 2^15
         sage: s = [1/math.sqrt(k+1) for k in [0..N]]
         sage: s[:5]
-        [1.0, 0.70710678118654746, 0.57735026918962584, 0.5, 0.44721359549995793]
+        [1.0, 0.7071067811865475, 0.5773502691896258, 0.5, 0.4472135954999579]
 
     We run the simulation::
 

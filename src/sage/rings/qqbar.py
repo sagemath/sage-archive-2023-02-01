@@ -454,9 +454,9 @@ Here are examples of all of these conversions::
     ...               return None
     ...       return map(convert_test, all_vals)
     sage: convert_test_all(float)
-    [42.0, 3.1428571428571432, 1.6180339887498949, -13.0, 1.6181818181818182, -2.6457513110645907, None]
+    [42.0, 3.1428571428571432, 1.618033988749895, -13.0, 1.6181818181818182, -2.6457513110645907, None]
     sage: convert_test_all(complex)
-    [(42+0j), (3.1428571428571432+0j), (1.6180339887498949+0j), (-13+0j), (1.6181818181818182+0j), (-2.6457513110645907+0j), (0.30901699437494745+0.95105651629515364j)]
+    [(42+0j), (3.1428571428571432+0j), (1.618033988749895+0j), (-13+0j), (1.6181818181818182+0j), (-2.6457513110645907+0j), (0.30901699437494745+0.9510565162951536j)]
     sage: convert_test_all(RDF)
     [42.0, 3.14285714286, 1.61803398875, -13.0, 1.61818181818, -2.64575131106, None]
     sage: convert_test_all(CDF)
@@ -3238,7 +3238,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
         EXAMPLES::
 
             sage: QQbar(sqrt(2)).__float__()
-            1.4142135623730949
+            1.414213562373095
             sage: float(QQbar(-22/7))
             -3.1428571428571432
             sage: float(QQbar.zeta(3))
@@ -3255,7 +3255,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
         EXAMPLES::
 
             sage: QQbar(sqrt(2)).__complex__()
-            (1.4142135623730949+0j)
+            (1.414213562373095+0j)
             sage: complex(QQbar.zeta(3))
             (-0.5+0.8660254037844386j)
         """
@@ -3956,9 +3956,9 @@ class AlgebraicReal(AlgebraicNumber_base):
         EXAMPLES::
 
             sage: AA(golden_ratio).__float__()
-            1.6180339887498949
+            1.618033988749895
             sage: float(AA(sqrt(11)))
-            3.3166247903553998
+            3.3166247903554
         """
         return float(RR(self))
 

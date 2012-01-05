@@ -157,7 +157,7 @@ cpdef double odlyzko_bound_totallyreal(int n):
     EXAMPLES::
 
         sage: [sage.rings.number_field.totallyreal.odlyzko_bound_totallyreal(n) for n in range(1,5)]
-        [1.0, 2.2229999999999999, 3.6099999999999999, 5.0670000000000002]
+        [1.0, 2.223, 3.61, 5.067]
 
     AUTHORS:
 

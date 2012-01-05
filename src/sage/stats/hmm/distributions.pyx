@@ -148,7 +148,7 @@ cdef class GaussianMixtureDistribution(Distribution):
         sage: P = hmm.GaussianMixtureDistribution([(.3,1,2),(.7,-1,1)]); P
         0.3*N(1.0,2.0) + 0.7*N(-1.0,1.0)
         sage: P[0]
-        (0.29999999999999999, 1.0, 2.0)
+        (0.3, 1.0, 2.0)
         sage: P.is_fixed()
         False
         sage: P.fix(1)
@@ -215,13 +215,13 @@ cdef class GaussianMixtureDistribution(Distribution):
 
             sage: P = hmm.GaussianMixtureDistribution([(.2,-10,.5),(.6,1,1),(.2,20,.5)])
             sage: P[0]
-            (0.20000000000000001, -10.0, 0.5)
+            (0.2, -10.0, 0.5)
             sage: P[2]
-            (0.20000000000000001, 20.0, 0.5)
+            (0.2, 20.0, 0.5)
             sage: [-1]
             [-1]
             sage: P[-1]
-            (0.20000000000000001, 20.0, 0.5)
+            (0.2, 20.0, 0.5)
             sage: P[3]
             Traceback (most recent call last):
             ...
@@ -395,7 +395,7 @@ cdef class GaussianMixtureDistribution(Distribution):
 
             sage: P = hmm.GaussianMixtureDistribution([(.2,-10,.5),(.6,1,1),(.2,20,.5)])
             sage: P.sample()
-            19.658243610875129
+            19.65824361087513
             sage: P.sample(1)
             [-10.4683]
             sage: P.sample(5)
@@ -499,7 +499,7 @@ cdef class GaussianMixtureDistribution(Distribution):
 
             sage: P = hmm.GaussianMixtureDistribution([(.2,-10,.5),(.6,1,1),(.2,20,.5)])
             sage: P.prob_m(.5, 0)
-            2.760811768050888...e-97
+            2.7608117680508...e-97
             sage: P.prob_m(.5, 1)
             0.21123919605857971
             sage: P.prob_m(.5, 2)

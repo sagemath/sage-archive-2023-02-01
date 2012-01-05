@@ -1241,7 +1241,7 @@ cdef public object py_sin(object x) except +:
     TESTS::
 
         sage: sin(float(2)) #indirect doctest
-        0.90929742682568171
+        0.9092974268256817
         sage: sin(2.)
         0.909297426825682
         sage: sin(2.*I)
@@ -1262,7 +1262,7 @@ cdef public object py_cos(object x) except +:
     """
     TESTS::
         sage: cos(float(2)) #indirect doctest
-        -0.41614683654714241
+        -0.4161468365471424
         sage: cos(2.)
         -0.416146836547142
         sage: cos(2.*I)
@@ -1379,7 +1379,7 @@ cdef public object py_log(object x) except +:
         sage: py_log(float(0))
         -inf
         sage: py_log(float(-1))
-        3.1415926535897931j
+        3.141592653589793j
         sage: py_log(int(1))
         0.0
         sage: py_log(long(1))

@@ -3037,7 +3037,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = Integer(17); float(n)
             17.0
             sage: n = Integer(902834098234908209348209834092834098); float(n)
-            9.0283409823490813e+35
+            9.028340982349081e+35
             sage: n = Integer(-57); float(n)
             -57.0
             sage: n.__float__()

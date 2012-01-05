@@ -128,7 +128,7 @@ http://maxima.sourceforge.net/docs/intromax/.
 
     sage: a = maxima('(1 + sqrt(2))^5')
     sage: float(a)
-    82.012193308819747
+    82.01219330881975
     sage: a.numer()
     82.01219330881975
 

@@ -918,7 +918,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         sage: for _ in range(10000):
         ...       counts[X.get_random_element()] += 1
         sage: float(counts[1]/counts[0])
-        3.0420371867421179
+        3.042037186742118
     """
 
 

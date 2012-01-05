@@ -966,7 +966,7 @@ cdef class Expression(CommutativeRingElement):
             sage: float(SR(12))
             12.0
             sage: float(SR(2/3))
-            0.66666666666666663
+            0.6666666666666666
             sage: float(sqrt(SR(2)))
             1.4142135623730951
             sage: float(x^2 + 1)
@@ -2507,7 +2507,7 @@ cdef class Expression(CommutativeRingElement):
             sage: cmp(sin(SR(2)), sin(SR(1)))
             1
             sage: float(sin(SR(2)))
-            0.90929742682568171
+            0.9092974268256817
             sage: float(sin(SR(1)))
             0.8414709848078965
         """
@@ -2584,7 +2584,7 @@ cdef class Expression(CommutativeRingElement):
             sage: int(2)^x
             2^x
             sage: float(2.3)^(x^3 - x^2 + 1/3)
-            2.2999999999999998^(x^3 - x^2 + 1/3)
+            2.3^(x^3 - x^2 + 1/3)
             sage: complex(1,3)^(sqrt(2))
             (1+3j)^sqrt(2)
         """
@@ -5559,7 +5559,7 @@ cdef class Expression(CommutativeRingElement):
             sage: maxima('atan2(0.7,0.6)')
             .862170054667226...
             sage: float(SR(0.7).arctan2(-0.6))
-            2.2794225989225669
+            2.279422598922567
             sage: maxima('atan2(0.7,-0.6)')
             2.279422598922567
             sage: float(SR(-0.7).arctan2(0.6))
@@ -5567,11 +5567,11 @@ cdef class Expression(CommutativeRingElement):
             sage: maxima('atan2(-0.7,0.6)')
             -.862170054667226...
             sage: float(SR(-0.7).arctan2(-0.6))
-            -2.2794225989225669
+            -2.279422598922567
             sage: maxima('atan2(-0.7,-0.6)')
             -2.279422598922567
             sage: float(SR(0).arctan2(-0.6))
-            3.1415926535897931
+            3.141592653589793
             sage: maxima('atan2(0,-0.6)')
             3.141592653589793
             sage: float(SR(0).arctan2(0.6))
@@ -6027,7 +6027,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0.5).log().exp()
             0.500000000000000
             sage: math.log(0.5)
-            -0.69314718055994529
+            -0.6931471805599453
             sage: plot(lambda x: SR(x).log(), 0.1,10)
 
         To prevent automatic evaluation use the ``hold`` argument::
@@ -7918,7 +7918,7 @@ cdef class Expression(CommutativeRingElement):
         An example with a square root::
 
             sage: f = 1 + x + sqrt(x+2); f.find_root(-2,10)
-            -1.6180339887498949
+            -1.618033988749895
 
         Some examples that Ted Kosan came up with::
 

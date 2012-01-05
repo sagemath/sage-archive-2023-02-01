@@ -1807,7 +1807,7 @@ def max_abs_doublevec(Vector_real_double_dense c):
 
         sage: from sage.rings.polynomial.real_roots import *
         sage: max_abs_doublevec(vector(RDF, [0.1, -0.767, 0.3, 0.693]))
-        0.76700000000000002
+        0.767
     """
     cdef numpy.ndarray[double, ndim=1] cd = c._vector_numpy
 

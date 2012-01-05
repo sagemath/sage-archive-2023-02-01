@@ -546,7 +546,7 @@ class Pi(Constant):
         EXAMPLES::
 
             sage: float(pi)
-            3.1415926535897931
+            3.141592653589793
         """
         return math.pi
 
@@ -737,7 +737,7 @@ class GoldenRatio(Constant):
         sage: grm + grm
         sqrt(5)+1
         sage: float(grm + grm)
-        3.2360679774997898
+        3.23606797749979
     """
     def __init__(self, name='golden_ratio'):
         """
@@ -769,9 +769,9 @@ class GoldenRatio(Constant):
         EXAMPLES::
 
             sage: float(golden_ratio)
-            1.6180339887498949
+            1.618033988749895
             sage: golden_ratio.__float__()
-            1.6180339887498949
+            1.618033988749895
         """
         return float(0.5)*(float(1.0)+math.sqrt(float(5.0)))
 
@@ -832,7 +832,7 @@ class Log2(Constant):
         sage: log2
         log2
         sage: float(log2)
-        0.69314718055994529
+        0.6931471805599453
         sage: RR(log2)
         0.693147180559945
         sage: R = RealField(200); R
@@ -871,9 +871,9 @@ class Log2(Constant):
         EXAMPLES::
 
             sage: float(log2)
-            0.69314718055994529
+            0.6931471805599453
             sage: log2.__float__()
-            0.69314718055994529
+            0.6931471805599453
         """
         return math.log(2)
 
@@ -948,7 +948,7 @@ class EulerGamma(Constant):
         EXAMPLES::
 
             sage: float(euler_gamma)
-            0.57721566490153287
+            0.5772156649015329
         """
         return 0.57721566490153286060651209008
 
@@ -1027,7 +1027,7 @@ class Catalan(Constant):
         EXAMPLES::
 
             sage: float(catalan)
-            0.91596559417721901
+            0.915965594177219
         """
         return 0.91596559417721901505460351493252
 
@@ -1107,7 +1107,7 @@ class TwinPrime(Constant):
     EXAMPLES::
 
         sage: float(twinprime)
-        0.66016181584686962
+        0.6601618158468696
         sage: twinprime.n(digits=60)
         0.660161815846869573927812110014555778432623360284733413319448
 
@@ -1140,7 +1140,7 @@ class TwinPrime(Constant):
         EXAMPLES::
 
             sage: float(twinprime)
-            0.66016181584686962
+            0.6601618158468696
         """
         return 0.66016181584686957392781211001
 

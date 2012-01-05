@@ -286,7 +286,7 @@ The solution found is (of course) admissible
 ::
 
     sage: sum(weight[o] * taken[o] for o in L)
-    0.69649597966191712
+    0.6964959796619171
 
 Should we take a flashlight?
 

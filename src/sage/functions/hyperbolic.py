@@ -150,7 +150,7 @@ class Function_tanh(GinacFunction):
             sage: tanh(3.1415)
             0.996271386633702
             sage: float(tanh(pi))
-            0.996272076220749...
+            0.99627207622075
             sage: tan(3.1415/4)
             0.999953674278156
             sage: tanh(pi/4)
@@ -541,7 +541,7 @@ class Function_arccoth(HyperbolicFunction):
             sage: arccoth(2).n(200)
             0.54930614433405484569762261846126285232374527891137472586735
             sage: float(arccoth(2))
-            0.54930614433405489
+            0.5493061443340549
 
             sage: latex(arccoth(x))
             {\rm arccoth}\left(x\right)
@@ -639,7 +639,7 @@ class Function_arccsch(HyperbolicFunction):
             sage: arccsch(1).n(200)
             0.88137358701954302523260932497979230902816032826163541075330
             sage: float(arccsch(1))
-            0.88137358701954305
+            0.881373587019543
 
             sage: latex(arccsch(x))
             {\rm arccsch}\left(x\right)

@@ -1803,13 +1803,13 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             62483/125000
 
             sage: float(d)
-            0.499863999...
+            0.499864
 
             sage: A.density(approx=True)
             0.499864000...
 
             sage: float(len(A.nonzero_positions())/1000^2)
-            0.49986399...
+            0.499864
         """
         if approx:
             from sage.rings.real_mpfr import create_RealNumber

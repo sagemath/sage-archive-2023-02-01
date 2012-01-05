@@ -221,7 +221,7 @@ We compute the length of the parabola from 0 to 2::
     sage: n(z,200)
     4.6467837624329358733826155674904591885104869874232887508703
     sage: float(z)
-    4.6467837624329356
+    4.646783762432936
 
 We test pickling::
 
@@ -642,7 +642,7 @@ def nintegral(ex, x, a, b,
 
         sage: f(x) = exp(-sqrt(x))
         sage: f.nintegral(x, 0, 1)
-        (0.52848223531423055, 4.163...e-11, 231, 0)
+        (0.5284822353142306, 4.163...e-11, 231, 0)
 
     We can also use the ``numerical_integral`` function,
     which calls the GSL C library.
@@ -650,7 +650,7 @@ def nintegral(ex, x, a, b,
     ::
 
         sage: numerical_integral(f, 0, 1)
-        (0.52848223225314706, 6.83928460...e-07)
+        (0.528482232253147, 6.83928460...e-07)
 
     Note that in exotic cases where floating point evaluation of the
     expression leads to the wrong value, then the output can be
@@ -677,7 +677,7 @@ def nintegral(ex, x, a, b,
     Now numerically integrating, we see why the answer is wrong::
 
         sage: f.nintegrate(x,0,1)
-        (-480.00000000000006, 5.3290705182007538e-12, 21, 0)
+        (-480.00000000000006, 5.329070518200754e-12, 21, 0)
 
     It is just because every floating point evaluation of return -480.0
     in floating point.

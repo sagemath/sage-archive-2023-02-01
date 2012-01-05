@@ -2214,7 +2214,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: F
             Elliptic Curve defined by y^2 + x*y + y = x^3 - x^2 + 1376*x - 130 over Rational Field
             sage: F.CPS_height_bound()
-            0.65551583769728516
+            0.6555158376972852
 
         IMPLEMENTATION:
             Call the corresponding mwrank C++ library function.  Note that
@@ -2265,9 +2265,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E=EllipticCurve('37a1')
             sage: E.silverman_height_bound()
-            4.8254007581809182
+            4.825400758180918
             sage: E.silverman_height_bound(algorithm='mwrank')
-            4.8254007581809182
+            4.825400758180918
             sage: E.CPS_height_bound()
             0.16397076103046915
         """

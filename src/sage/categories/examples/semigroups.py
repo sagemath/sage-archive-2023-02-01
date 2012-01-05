@@ -29,7 +29,7 @@ class LeftZeroSemigroup(UniqueRepresentation, Parent):
     This is the semigroup that contains all sorts of objects::
 
         sage: S.some_elements()
-        [3, 42, 'a', 3.3999999999999999, 'raton laveur']
+        [3, 42, 'a', 3.4, 'raton laveur']
 
     with product rule given by $a \times b = a$ for all $a, b$::
 
@@ -123,7 +123,7 @@ class LeftZeroSemigroup(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: Semigroups().example().some_elements()
-            [3, 42, 'a', 3.3999999999999999, 'raton laveur']
+            [3, 42, 'a', 3.4, 'raton laveur']
 
         """
         return [self(i) for i in [3, 42, "a", 3.4, "raton laveur"]]

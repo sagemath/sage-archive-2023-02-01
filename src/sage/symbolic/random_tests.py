@@ -82,7 +82,7 @@ def normalize_prob_list(pl, extra=()):
         sage: B = [(1, 'B1'), (2, 'B2'), (2, 'B3')]
         sage: top = [(50, A, 'Group A'), (50, B, 'Group B')]
         sage: normalize_prob_list(top)
-        [(0.250000000000000, 'A1', 'Group A'), (0.250000000000000, 'A2', 'Group A'), (0.10000000000000001, 'B1', 'Group B'), (0.20000000000000001, 'B2', 'Group B'), (0.20000000000000001, 'B3', 'Group B')]
+        [(0.250000000000000, 'A1', 'Group A'), (0.250000000000000, 'A2', 'Group A'), (0.1, 'B1', 'Group B'), (0.2, 'B2', 'Group B'), (0.2, 'B3', 'Group B')]
     """
     if len(pl) == 0:
         return pl

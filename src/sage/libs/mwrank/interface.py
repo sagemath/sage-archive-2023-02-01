@@ -699,10 +699,10 @@ class mwrank_EllipticCurve(SageObject):
 
             sage: E = mwrank_EllipticCurve([0, 0, 0, -1002231243161, 0])
             sage: E.silverman_bound()
-            18.295452104682472
+            18.29545210468247
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: E.silverman_bound()
-            6.2848333699724028
+            6.284833369972403
         """
         return self.__curve.silverman_bound()
 
@@ -1022,7 +1022,7 @@ class mwrank_MordellWeil(SageObject):
 
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: E.regulator()
-            0.41714355875838399
+            0.417143558758384
         """
         return self.__mw.regulator()
 

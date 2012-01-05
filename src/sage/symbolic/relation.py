@@ -154,7 +154,7 @@ We can numerically find roots of equations::
     sage: (x == sin(x)).find_root(-2,2)
     0.0
     sage: (x^5 + 3*x + 2 == 0).find_root(-2,2,x)
-    -0.63283452024215225
+    -0.6328345202421523
     sage: (cos(x) == sin(x)).find_root(10,20)
     19.634954084936208
 

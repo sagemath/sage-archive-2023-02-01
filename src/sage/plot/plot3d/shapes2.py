@@ -811,7 +811,7 @@ class Line(PrimitiveObject):
             sage: from sage.plot.plot3d.shapes2 import Line
             sage: L = Line([(i,i^2-1,-2*ln(i)) for i in [10,20,30]])
             sage: L.bounding_box()
-            ((10.0, 99.0, -6.8023947633243109), (30.0, 899.0, -4.6051701859880918))
+            ((10.0, 99.0, -6.802394763324311), (30.0, 899.0, -4.605170185988092))
         """
         try:
             return self.__bounding_box

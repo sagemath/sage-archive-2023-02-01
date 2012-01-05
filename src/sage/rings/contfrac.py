@@ -631,7 +631,7 @@ class ContinuedFraction(FieldElement):
             sage: a = CFF(-17/389); a
             [-1, 1, 21, 1, 7, 2]
             sage: float(a)
-            -0.043701799485861177
+            -0.04370179948586118
         """
         return float(self._rational_())
 
@@ -747,7 +747,7 @@ class ContinuedFraction(FieldElement):
             sage: b.value()
             4508361/9825745
             sage: float(b.value()^2 - a)
-            -5.4514925256726876e-16
+            -5.451492525672688e-16
             sage: b = a.sqrt(prec=100); b
             [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5]
             sage: b^2

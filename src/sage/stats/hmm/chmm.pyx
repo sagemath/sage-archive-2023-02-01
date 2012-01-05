@@ -124,7 +124,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
     of states produced obs::
 
         sage: m.viterbi(obs)
-        ([1, 0, 1, 0, 1, 1, 0, 1, 0, 1], -16.677382701707881)
+        ([1, 0, 1, 0, 1, 1, 0, 1, 0, 1], -16.67738270170788)
 
     We use the Baum-Welch iterative algorithm to find another model
     for which our observation sequence is more likely::
@@ -258,9 +258,9 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             sage: m[0]
             (1.0, 0.5)
             sage: m[1]
-            (-2.0, 0.29999999999999999)
+            (-2.0, 0.3)
             sage: m[-1]
-            (-2.0, 0.29999999999999999)
+            (-2.0, 0.3)
             sage: m[3]
             Traceback (most recent call last):
             ...
@@ -503,7 +503,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
             sage: m = hmm.GaussianHiddenMarkovModel([[.1,.9],[.5,.5]], [(1,.5), (-1,3)], [.1,.9])
             sage: m.log_likelihood([1,1,1])
-            -4.2978807660724856
+            -4.297880766072486
             sage: set_random_seed(0); s = m.sample(20)
             sage: m.log_likelihood(s)
             -40.115714129484...
@@ -604,7 +604,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             sage: m.viterbi([-2,-1,.1,0.1])
             ([1, 1, 0, 1], -9.61823698847639...)
             sage: m.viterbi([-2,-1,.1,0.3])
-            ([1, 1, 1, 0], -9.5660236533785135)
+            ([1, 1, 1, 0], -9.566023653378513)
         """
         cdef TimeSeries _obs
         if not isinstance(obs, TimeSeries):
@@ -839,7 +839,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
             sage: m = hmm.GaussianHiddenMarkovModel([[.1,.9],[.5,.5]], [(1,.5), (-1,3)], [.1,.9])
             sage: m.log_likelihood([-2,-1,.1,0.1])
-            -8.8582822159862751
+            -8.858282215986275
             sage: m.baum_welch([-2,-1,.1,0.1])
             (22.164539478647512, 8)
             sage: m.log_likelihood([-2,-1,.1,0.1])

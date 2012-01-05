@@ -108,17 +108,17 @@ def numerical_integral(func, a, b=None,
     To integrate the function $x^2$ from 0 to 1, we do ::
 
         sage: numerical_integral(x^2, 0, 1, max_points=100)
-        (0.33333333333333331, 3.7007434154171879e-15)
+        (0.3333333333333333, 3.700743415417188e-15)
 
     To integrate the function $\sin(x)^3 + \sin(x)$ we do ::
 
         sage: numerical_integral(sin(x)^3 + sin(x),  0, pi)
-        (3.333333333333333, 3.7007434154171883e-14)
+        (3.333333333333333, 3.700743415417188e-14)
 
     The input can be any callable::
 
         sage: numerical_integral(lambda x: sin(x)^3 + sin(x),  0, pi)
-        (3.333333333333333, 3.7007434154171883e-14)
+        (3.333333333333333, 3.700743415417188e-14)
 
     We check this with a symbolic integration::
 
@@ -129,7 +129,7 @@ def numerical_integral(func, a, b=None,
 
         sage: f = x^2
         sage: numerical_integral(f, 0, 1, max_points=200, eps_abs=1e-7, eps_rel=1e-7, rule=4)
-        (0.33333333333333331, 3.7007434154171879e-15)
+        (0.3333333333333333, 3.700743415417188e-15)
 
     For a Python function with parameters::
 
@@ -170,7 +170,7 @@ def numerical_integral(func, a, b=None,
     function (which uses GSL) or the native integration (which uses Maxima)::
 
         sage: exp(-1/x).nintegral(x, 1, 2)  # via maxima
-        (0.50479221787318396, 5.6043194293440752e-15, 21, 0)
+        (0.504792217873184, 5.604319429344075e-15, 21, 0)
         sage: numerical_integral(exp(-1/x), 1, 2)
         (0.50479221787318..., 5.60431942934407...e-15)
 

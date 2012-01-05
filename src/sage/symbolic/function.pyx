@@ -179,7 +179,7 @@ cdef class Function(SageObject):
             sage: cot(0.5) #indirect doctest
             1.83048772171245
             sage: cot(complex(1,2))
-            (0.032797755533752602-0.98432922645819...j)
+            (0.0327977555337526-0.98432922645819...j)
         """
         if isinstance(x, (int, long)):
             return None
@@ -298,7 +298,7 @@ cdef class Function(SageObject):
             sage: arctan(1)
             1/4*pi
             sage: arctan(float(1))
-            0.78539816339744828
+            0.7853981633974483
 
         Precision of the result depends on the precision of the input::
 
@@ -553,7 +553,7 @@ cdef class Function(SageObject):
             sage: ff.is_pure_c()
             False
             sage: ff(1.5)
-            0.96610514647531076
+            0.9661051464753108
             sage: erf(1.5)
             0.966105146475311
         """

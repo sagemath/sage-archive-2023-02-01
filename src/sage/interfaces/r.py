@@ -171,7 +171,7 @@ Convert R Data Structures to Python/Sage::
 
     sage: rr = r.dnorm(r.seq(-3,3,0.1))
     sage: sum(rr._sage_())
-    9.97721251689810...
+    9.9772125168981...
 
 Or you get a dictionary to be able to access all the information::
 

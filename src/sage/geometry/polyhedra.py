@@ -5611,7 +5611,7 @@ class Projection(SageObject):
             sage: proj = p.projection()
             sage: filled_poly = proj.render_fill_2d()
             sage: filled_poly.axes_width()
-            0.8000...
+            0.8
         """
         poly = [polygon2d(self.coordinates_of(p), **kwds)
                  for p in self.polygons]

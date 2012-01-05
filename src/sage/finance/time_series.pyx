@@ -27,7 +27,7 @@ EXAMPLES::
     sage: t.standard_deviation()
     0.33729638212891383
     sage: t.mean()
-    -0.089334255069294391
+    -0.08933425506929439
     sage: t.variance()
     0.1137688493972542...
 
@@ -1269,7 +1269,7 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries([1,1,1,2,3]); v
             [1.0000, 1.0000, 1.0000, 2.0000, 3.0000]
             sage: v.mean()
-            1.6000000000000001
+            1.6
         """
         return self.sum() / self._length
 
@@ -1317,9 +1317,9 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries([1,1,1,2,3]); v
             [1.0000, 1.0000, 1.0000, 2.0000, 3.0000]
             sage: v.moment(1)
-            1.6000000000000001
+            1.6
             sage: v.moment(2)
-            3.2000000000000002
+            3.2
         """
         if k <= 0:
             raise ValueError, "k must be positive"
@@ -1349,7 +1349,7 @@ cdef class TimeSeries:
 
             sage: v = finance.TimeSeries([1,2,3])
             sage: v.central_moment(2)
-            0.66666666666666663
+            0.6666666666666666
 
         Note that the central moment is different from the moment
         here, since the mean is not `0`::
@@ -1362,7 +1362,7 @@ cdef class TimeSeries:
             sage: mu = v.mean(); mu
             2.0
             sage: ((1-mu)^2 + (2-mu)^2 + (3-mu)^2) / 3
-            0.66666666666666663
+            0.6666666666666666
         """
         if k == 1:
             return float(0)
@@ -1431,11 +1431,11 @@ cdef class TimeSeries:
             sage: mu = v.mean(); sum([(a-mu)^2 for a in v])/len(v)
             14.4
             sage: v.autocovariance(1)
-            -2.70000000...
+            -2.7
             sage: mu = v.mean(); sum([(v[i]-mu)*(v[i+1]-mu) for i in range(len(v)-1)])/len(v)
-            -2.70000000...
+            -2.7
             sage: v.autocovariance(1)
-            -2.70000000...
+            -2.7
 
         We illustrate with a random sample that an independently and
         identically distributed distribution with zero mean and
@@ -1548,9 +1548,9 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries([1,1,1,2,3]); v
             [1.0000, 1.0000, 1.0000, 2.0000, 3.0000]
             sage: v.variance()
-            0.80000000000000004
+            0.8
             sage: v.variance(bias=True)
-            0.64000000000000001
+            0.64
 
         TESTS::
 
@@ -1594,7 +1594,7 @@ cdef class TimeSeries:
             sage: v.standard_deviation()
             0.8944271909...
             sage: v.standard_deviation(bias=True)
-            0.8000000000...
+            0.8
 
         TESTS::
 
@@ -2182,13 +2182,13 @@ cdef class TimeSeries:
 
             sage: s = a.standard_deviation()
             sage: len(a.clip_remove(-s,s))/float(len(a))
-            0.68309399999999998
+            0.683094
             sage: len(a.clip_remove(-2*s,2*s))/float(len(a))
-            0.95455900000000005
+            0.954559
             sage: len(a.clip_remove(-3*s,3*s))/float(len(a))
             0.997228
             sage: len(a.clip_remove(-5*s,5*s))/float(len(a))
-            0.99999800000000005
+            0.999998
 
         There were no "six sigma events"::
 

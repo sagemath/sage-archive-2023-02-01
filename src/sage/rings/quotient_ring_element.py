@@ -492,7 +492,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
             sage: float(S(2/3))
-            0.66666666666666663
+            0.6666666666666666
             sage: float(a)
             Traceback (most recent call last):
             ...

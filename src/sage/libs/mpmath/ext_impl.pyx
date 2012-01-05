@@ -1411,7 +1411,7 @@ def exp_fixed(Integer x, int prec, ln2=None):
         sage: from sage.libs.mpmath.ext_impl import exp_fixed
         sage: y = exp_fixed(1<<53, 53)
         sage: float(y) / 2^53
-        2.7182818284590442
+        2.718281828459044
 
     """
     cdef Integer v

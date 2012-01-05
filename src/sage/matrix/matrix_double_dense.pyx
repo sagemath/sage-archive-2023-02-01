@@ -3148,11 +3148,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
             sage: M=matrix(CDF, [[10.234r + 34.2343jr, 34e10r]])
             sage: M
-            [10.234 + 34.2343*I     340000000000.0]
+            [10.234 + 34.2343*I     3.4e+11]
             sage: M.round(2)
-            [10.23 + 34.23*I  340000000000.0]
+            [10.23 + 34.23*I        3.4e+11]
             sage: M.round()
-            [ 10.0 + 34.0*I 340000000000.0]
+            [10.0 + 34.0*I       3.4e+11]
         """
         global numpy
         cdef Matrix_double_dense M

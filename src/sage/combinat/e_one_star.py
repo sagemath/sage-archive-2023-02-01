@@ -1085,9 +1085,9 @@ class Patch(SageObject):
             sage: P = Patch([Face((0,0,0),t,color) for t in [1,2,3]])
             sage: P.repaint([(0.9, 0.9, 0.9), (0.65,0.65,0.65), (0.4,0.4,0.4)])
             sage: for f in P: f.color()
-            RGB color (0.9000..., 0.9000..., 0.9000...)
-            RGB color (0.6500..., 0.6500..., 0.6500...)
-            RGB color (0.4000..., 0.4000..., 0.4000...)
+            RGB color (0.9, 0.9, 0.9)
+            RGB color (0.65, 0.65, 0.65)
+            RGB color (0.4, 0.4, 0.4)
 
         Using a dictionary to color faces according to their type::
 

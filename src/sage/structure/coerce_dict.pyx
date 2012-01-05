@@ -51,7 +51,7 @@ cdef class TripleDict:
         sage: len(L)
         1
         sage: L.stats()             # min, avg, max (bucket length)
-        (0, 0.032258064516129031, 1)
+        (0, 0.03225806451612903, 1)
         sage: L.bucket_lens()       # random layout
         [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         sage: for i in range(1000):

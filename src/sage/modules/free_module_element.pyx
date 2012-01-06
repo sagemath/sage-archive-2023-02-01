@@ -1319,7 +1319,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         INPUT:
 
-        - ``p`` - defalt: 2 - ``p`` can be a real number greater than 1,
+        - ``p`` - default: 2 - ``p`` can be a real number greater than 1,
           infinity (``oo`` or ``Infinity``), or a symbolic expression.
 
             - `p=1`: the taxicab (Manhattan) norm

@@ -2225,14 +2225,14 @@ class Graph(GenericGraph):
 
         As previously for random graphs, but more intensively::
 
-            sage: for i in xrange(30):                                   # long
-            ...       g = graphs.RandomGNP(40, .4)                       # long
-            ...       b = lambda v : ceil(g.degree(v)/2)                 # long
-            ...       D = g.bounded_outdegree_orientation(b)             # long
-            ...       if not (                                           # long
-            ...            all( D.out_degree(v) <= b(v) for v in g ) or  # long
-            ...            D.size() != g.size()):                        # long
-            ...           print "Something wrong happened"               # long
+            sage: for i in xrange(30):      # long time (up to 6s on sage.math, 2012)
+            ...       g = graphs.RandomGNP(40, .4)
+            ...       b = lambda v : ceil(g.degree(v)/2)
+            ...       D = g.bounded_outdegree_orientation(b)
+            ...       if not (
+            ...            all( D.out_degree(v) <= b(v) for v in g ) or
+            ...            D.size() != g.size()):
+            ...           print "Something wrong happened"
 
         """
         from sage.graphs.all import DiGraph

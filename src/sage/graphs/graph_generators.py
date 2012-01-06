@@ -478,13 +478,13 @@ class GraphGenerators():
     Generate all graphs with a specified degree sequence (see
     http://oeis.org/classic/A002851)::
 
-        sage: for i in [4,6,8]:
+        sage: for i in [4,6,8]:  # long time (4s on sage.math, 2012)
         ...       print i, len([g for g in graphs(i, degree_sequence=[3]*i) if g.is_connected()])
         4 1
         6 2
         8 5
-        sage: for i in [4,6,8]:                                                                          # long time
-        ...       print i, len([g for g in graphs(i,augment='vertices',degree_sequence=[3]*i) if g.is_connected()]) # long time
+        sage: for i in [4,6,8]:  # long time (7s on sage.math, 2012)
+        ...       print i, len([g for g in graphs(i, augment='vertices', degree_sequence=[3]*i) if g.is_connected()])
         4 1
         6 2
         8 5

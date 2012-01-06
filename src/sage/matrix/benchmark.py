@@ -89,7 +89,7 @@ def report_ZZ(**kwds):
     EXAMPLES::
 
         sage: import sage.matrix.benchmark as b
-        sage: b.report_ZZ(systems=['sage'])
+        sage: b.report_ZZ(systems=['sage'])  # long time (15s on sage.math, 2012)
         ======================================================================
         Dense benchmarks over ZZ
         ======================================================================

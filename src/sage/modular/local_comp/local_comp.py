@@ -632,7 +632,7 @@ class PrimitiveSupercuspidal(LocalComponentBase):
 
             sage: f = Newform('81a', names='j'); f
             q + j0*q^2 + q^4 - j0*q^5 + O(q^6)
-            sage: LocalComponent(f, 3).characters()
+            sage: LocalComponent(f, 3).characters()  # long time (12s on sage.math, 2012)
             [
             Character of unramified extension Q_3(s)* (s^2 + 2*s + 2 = 0), of level 2, mapping -2*s |--> -2*d - j0, 4 |--> 1, 3*s + 1 |--> -j0*d - 2, 3 |--> 1,
             Character of unramified extension Q_3(s)* (s^2 + 2*s + 2 = 0), of level 2, mapping -2*s |--> 2*d + j0, 4 |--> 1, 3*s + 1 |--> j0*d + 1, 3 |--> 1

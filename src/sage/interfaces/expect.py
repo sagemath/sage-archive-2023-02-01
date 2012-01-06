@@ -820,13 +820,16 @@ If this all works, you can then make calls like:
         we declare that we are not waiting for a prompt, we can interrupt
         it without a KeyboardInterrupt. At the same time, we test that
         the line is not forwarded to :meth:`_eval_line_using_file`, since
-        that method would not support the ``wait_for_prompt`` option::
+        that method would not support the ``wait_for_prompt`` option.
+        For reasons which are currently not understood, the ``interrupt``
+        test usually returns immediately, but sometimes it takes a very
+        long time on the same system. ::
 
             sage: cutoff = singular._eval_using_file_cutoff
             sage: singular._eval_using_file_cutoff = 4
             sage: singular._eval_line('for(int i=1;i<=3;i++){i=1;};', wait_for_prompt=False)
             ''
-            sage: singular.interrupt(timeout=3)
+            sage: singular.interrupt(timeout=3)  # sometimes very slow (up to 60s on sage.math, 2012)
             False
             sage: singular._eval_using_file_cutoff = cutoff
 

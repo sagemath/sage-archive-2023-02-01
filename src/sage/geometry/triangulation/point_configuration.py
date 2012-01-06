@@ -318,7 +318,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         EXAMPLES::
 
             sage: p = PointConfiguration([[0,4],[2,3],[3,2],[4,0],[3,-2],[2,-3],[0,-4],[-2,-3],[-3,-2],[-4,0],[-3,2],[-2,3]])
-            sage: len(p.triangulations_list())    # long time
+            sage: len(p.triangulations_list())    # long time (30s on sage.math, 2012)
             16796
 
         TESTS::

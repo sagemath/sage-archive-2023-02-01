@@ -5221,12 +5221,13 @@ class HeegnerQuatAlg(SageObject):
 
             sage: N = 389; D = -7; ell = 5; c = 17; q = 3
             sage: H = heegner_points(N).reduce_mod(ell)
-            sage: V = H.modp_dual_elliptic_curve_factor(EllipticCurve('389a'), q, 5)
+            sage: E = EllipticCurve('389a')
+            sage: V = H.modp_dual_elliptic_curve_factor(E, q, 5)  # long time (4s on sage.math, 2012)
             sage: k118 = H.kolyvagin_sigma_operator(D, c, 118)
             sage: k104 = H.kolyvagin_sigma_operator(D, c, 104)
-            sage: [b.dot_product(k104.element().change_ring(GF(3))) for b in V.basis()]
+            sage: [b.dot_product(k104.element().change_ring(GF(3))) for b in V.basis()]  # long time
             [0, 0]
-            sage: [b.dot_product(k118.element().change_ring(GF(3))) for b in V.basis()]
+            sage: [b.dot_product(k118.element().change_ring(GF(3))) for b in V.basis()]  # long time
             [0, 0]
 
         Next we try again with `c=41` and this does work, in that we
@@ -5235,9 +5236,9 @@ class HeegnerQuatAlg(SageObject):
             sage: c = 41
             sage: k118 = H.kolyvagin_sigma_operator(D, c, 118)
             sage: k104 = H.kolyvagin_sigma_operator(D, c, 104)
-            sage: [b.dot_product(k118.element().change_ring(GF(3))) for b in V.basis()]
+            sage: [b.dot_product(k118.element().change_ring(GF(3))) for b in V.basis()]  # long time
             [1, 0]
-            sage: [b.dot_product(k104.element().change_ring(GF(3))) for b in V.basis()]
+            sage: [b.dot_product(k104.element().change_ring(GF(3))) for b in V.basis()]  # long time
             [2, 0]
 
         By the way, the above is the first ever provable verification

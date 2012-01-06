@@ -847,9 +847,9 @@ class GaloisRepresentation(SageObject):
             'The image is contained in the normalizer of a non-split Cartan group.'
             sage: EllipticCurve([0,0,1,-25650,1570826]).galois_representation().image_type(5)
             'The image is contained in the normalizer of a split Cartan group.'
-            sage: EllipticCurve([1,-1,1,-2680,-50053]).galois_representation().image_type(7)    # long time, the dots (...) in the output fix #11937 (installed 'Kash' may give additional output)
+            sage: EllipticCurve([1,-1,1,-2680,-50053]).galois_representation().image_type(7)    # the dots (...) in the output fix #11937 (installed 'Kash' may give additional output); long time (26s on sage.math, 2012)
             'The image is a... group of order 18.'
-            sage: EllipticCurve([1,-1,0,-107,-379]).galois_representation().image_type(7)       # long time, the dots (...) in the output fix #11937 (installed 'Kash' may give additional output)
+            sage: EllipticCurve([1,-1,0,-107,-379]).galois_representation().image_type(7)       # the dots (...) in the output fix #11937 (installed 'Kash' may give additional output); long time (5s on sage.math, 2012)
             'The image is a... group of order 36.'
             sage: EllipticCurve([0,0,1,2580,549326]).galois_representation().image_type(7)
             'The image is contained in the normalizer of a split Cartan group.'

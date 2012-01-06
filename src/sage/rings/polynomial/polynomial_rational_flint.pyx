@@ -188,7 +188,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
             sage: f = ZZ['x']([1..10^6])
             sage: g = f.change_ring(QQ)
-            sage: g[:10]
+            sage: g[:10]  # long time (5s on sage.math, 2012)
             10*x^9 + 9*x^8 + 8*x^7 + 7*x^6 + 6*x^5 + 5*x^4 + 4*x^3 + 3*x^2 + 2*x + 1
         """
         cdef long deg

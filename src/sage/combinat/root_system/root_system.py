@@ -224,7 +224,7 @@ class RootSystem(UniqueRepresentation, SageObject):
 
     ::
 
-        sage: for T in CartanType.samples(crystalographic=True):
+        sage: for T in CartanType.samples(crystalographic=True):  # long time (13s on sage.math, 2012)
         ...       TestSuite(RootSystem(T)).run()
     """
 

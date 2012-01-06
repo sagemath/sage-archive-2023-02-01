@@ -24,8 +24,8 @@ sage: n[1,:]=2
 sage: n[2,:]=-1
 sage: A=sparse.spdiags(n,[-1,0,1],int(500),int(500))
 sage: A=aslinearoperator(A)
-sage: e,v=arpack.eigs(A,k=6,which='SM')
-sage: e[0]*float(501/pi)**2
+sage: e,v=arpack.eigs(A,k=6,which='SM')  # long time (4s on sage.math, 2012)
+sage: e[0]*float(501/pi)**2  # long time
 (0.999...+0j)
 """
 

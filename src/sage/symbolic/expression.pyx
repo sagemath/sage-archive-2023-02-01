@@ -1144,7 +1144,7 @@ cdef class Expression(CommutativeRingElement):
             sage: X = var(' '.join(['x'+str(i) for i in range(num_vars)]))
             sage: f = function('f',*X)
             sage: hashes=set()
-            sage: for length in range(1,max_order+1):
+            sage: for length in range(1,max_order+1):  # long time (4s on sage.math, 2012)
             ...       for s in UnorderedTuples(X, length):
             ...           deriv = f.diff(*s)
             ...           h = hash(deriv)
@@ -8480,7 +8480,7 @@ cdef class Expression(CommutativeRingElement):
         A more complicated family::
 
             sage: G = sum([plot(sin(n*x), (x,-2*pi, 2*pi)).plot3d(z=n) for n in [0,0.1,..1]])
-            sage: G.show(frame_aspect_ratio=[1,1,1/2])
+            sage: G.show(frame_aspect_ratio=[1,1,1/2])  # long time (5s on sage.math, 2012)
 
         A plot involving the floor function::
 

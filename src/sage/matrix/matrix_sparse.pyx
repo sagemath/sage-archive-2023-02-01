@@ -321,7 +321,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         Really Large Example you wouldn't want to do with normal matrices::
 
-            sage: M=MatrixSpace(QQ,100000,1000000,sparse=true)
+            sage: M=MatrixSpace(QQ, 100000, 1000000, sparse=True)
             sage: m=M.random_element(density=1/100000000)
             sage: m==(97/42)*(42/97*m)
             True
@@ -755,9 +755,9 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         We can efficiently extract large submatrices::
 
-            sage: A=random_matrix(ZZ,100000,density=.00005,sparse=True)
-            sage: B=A[50000:,:50000]
-            sage: len(B.nonzero_positions())
+            sage: A = random_matrix(ZZ, 100000, density=.00005, sparse=True)  # long time (4s on sage.math, 2012)
+            sage: B = A[50000:,:50000]        # long time
+            sage: len(B.nonzero_positions())  # long time
             17550              # 32-bit
             125449             # 64-bit
 

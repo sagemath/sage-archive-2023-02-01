@@ -253,9 +253,9 @@ def pyx_preparse(s):
 
     TESTS::
 
-        sage: module = sage.misc.cython.import_test("trac11680")
+        sage: module = sage.misc.cython.import_test("trac11680")  # long time (7s on sage.math, 2012)
         sage: R.<x> = QQ[]
-        sage: module.evaluate_at_power_of_gen(x^3 + x - 7, 5)
+        sage: module.evaluate_at_power_of_gen(x^3 + x - 7, 5)  # long time
         x^15 + x^5 - 7
     """
     lang, s = parse_keywords('clang', s)

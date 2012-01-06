@@ -39,8 +39,12 @@ def example_type_space(example_no = 0):
     EXAMPLE::
 
         sage: from sage.modular.local_comp.type_space import example_type_space
-        sage: example_type_space()
+        sage: example_type_space()  # takes a while but caches stuff (21s on sage.math, 2012)
         6-dimensional type space at prime 7 of form q + q^2 + (-1/2*a1 + 1/2)*q^3 + q^4 + (a1 - 1)*q^5 + O(q^6)
+
+    The above test takes a long time, but it precomputes and caches
+    various things such that subsequent doctests can be very quick.
+    So we don't want to mark it ``# long time``.
     """
     from sage.modular.modform.constructor import Newform as Newform_constructor
     if example_no == 0:
@@ -98,11 +102,11 @@ def find_in_space(f, A, base_extend=False):
     ``base_extend``::
 
         sage: chi = DirichletGroup(5).0
-        sage: f = Newforms(chi, 7, names='c')[0]; f
+        sage: f = Newforms(chi, 7, names='c')[0]; f  # long time (4s on sage.math, 2012)
         q + c0*q^2 + (zeta4*c0 - 5*zeta4 + 5)*q^3 + ((-5*zeta4 - 5)*c0 + 24*zeta4)*q^4 + ((10*zeta4 - 5)*c0 - 40*zeta4 - 55)*q^5 + O(q^6)
-        sage: find_in_space(f, ModularSymbols(Gamma1(5), 7), base_extend=True)
+        sage: find_in_space(f, ModularSymbols(Gamma1(5), 7), base_extend=True)  # long time
         Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 12 for Gamma_1(5) of weight 7 with sign 0 and over Number Field in c0 with defining polynomial x^2 + (5*zeta4 + 5)*x - 88*zeta4 over its base field
-        sage: find_in_space(f, ModularSymbols(Gamma1(5), 7), base_extend=False)
+        sage: find_in_space(f, ModularSymbols(Gamma1(5), 7), base_extend=False)  # long time (27s on sage.math, 2012)
         Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 12 for Gamma_1(5) of weight 7 with sign 0 and over Cyclotomic Field of order 4 and degree 2
 
     Note that the base ring in the second example is `\QQ(\zeta_4)` (the base

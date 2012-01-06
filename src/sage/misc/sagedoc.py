@@ -573,10 +573,8 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
 
         sage: len(_search_src_or_doc('src', 'matrix\(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1
         True
-
-        sage: 'abvar/homology' in _search_src_or_doc('doc', 'homology', 'variety', interact=False)
+        sage: 'abvar/homology' in _search_src_or_doc('doc', 'homology', 'variety', interact=False)  # long time (4s on sage.math, 2012)
         True
-
         sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)
         True
     """

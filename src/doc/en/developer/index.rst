@@ -31,7 +31,7 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
    walk_through
    writing_code
    disseminating_code
-
+   sagenb/index
 
 Indices and tables
 ==================

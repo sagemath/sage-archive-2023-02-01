@@ -33,6 +33,7 @@ Several patches are applied.
  * assert.h: logic seems to be broken on some platforms
  * Minor.h needs to have <time.h> included on Cygwin
  * make_parallel.patch to fix parallel make
+ * Singular.Makefile.in.shared.patch to fix the ARM build
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*
@@ -48,6 +49,12 @@ Other notes
    was missing, which caused problems on Cygwin (e.g., see #10235)
 
 == ChangeLog ==
+
+=== singular-3-1-3-3.p3 (Julien Puydt, 7 January 2012) ==
+ * Trac #12110: Add patch to use the -shared switch by default on unknown
+   platforms -- ARM is unknown and doesn't compile without that switch ;
+   upstream has better support for the arch so it's not interesting to make
+   a better fix.
 
 === singular-3-1-3-3.p2 (Jeroen Demeyer, 9 December 2011) ===
  * Trac #12137: Add patch make_parallel.patch to fix parallel building

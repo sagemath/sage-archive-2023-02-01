@@ -59,9 +59,9 @@ cdef class FrozenBitset:
     cpdef FrozenBitset _larger_capacity_(self, long size)
     cpdef long capacity(self)
     cpdef bint isempty(self)
-    cpdef bint issubset(self, FrozenBitset other)
-    cpdef bint issuperset(self, FrozenBitset other)
-    cpdef bint isdisjoint(self, FrozenBitset other)
+    cpdef bint issubset(self, FrozenBitset other) except -1
+    cpdef bint issuperset(self, FrozenBitset other) except -1
+    cpdef bint isdisjoint(self, FrozenBitset other) except -1
     cpdef _union(self, FrozenBitset other)
     cpdef intersection(self, FrozenBitset other)
     cpdef difference(self, FrozenBitset other)

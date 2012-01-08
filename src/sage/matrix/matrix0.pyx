@@ -3332,6 +3332,20 @@ cdef class Matrix(sage.structure.element.Matrix):
         return tuple(x)
 
     def rank(self):
+        """
+
+        TESTS:
+
+        We should be able to compute the rank of a matrix whose
+        entries are polynomials over a finite field (trac #5014)::
+
+            sage: P.<x> = PolynomialRing(GF(17))
+            sage: m = matrix(P, [ [ 6*x^2 + 8*x + 12, 10*x^2 + 4*x + 11],
+            ...                   [8*x^2 + 12*x + 15,  8*x^2 + 9*x + 16] ])
+            sage: m.rank()
+            2
+
+        """
         x = self.fetch('rank')
         if not x is None: return x
         if self._nrows == 0 or self._ncols == 0:

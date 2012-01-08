@@ -14,3 +14,5 @@ from arithgroup_perm import ArithmeticSubgroup_Permutation
 from congroup_pyx import (degeneracy_coset_representatives_gamma0,
                             degeneracy_coset_representatives_gamma1)
 
+from farey_symbol import Farey as FareySymbol
+

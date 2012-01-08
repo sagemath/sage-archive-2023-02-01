@@ -1104,6 +1104,13 @@ ext_modules = [
     Extension('sage.modular.arithgroup.congroup_pyx',
               sources = ['sage/modular/arithgroup/congroup_pyx.pyx']),
 
+    Extension('sage.modular.arithgroup.farey_symbol',
+              sources = ['sage/modular/arithgroup/farey_symbol.pyx',
+                         'sage/modular/arithgroup/farey.cpp',
+                         'sage/modular/arithgroup/sl2z.cpp'],
+              libraries = ['gmpxx'],
+              language = 'c++'),
+
     Extension('sage.modular.modform.eis_series_cython',
               sources = ['sage/modular/modform/eis_series_cython.pyx'],
               libraries = ["gmp", "flint"],

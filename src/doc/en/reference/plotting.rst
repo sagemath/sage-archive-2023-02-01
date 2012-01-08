@@ -26,3 +26,5 @@
    sage/plot/scatter_plot
    sage/plot/text
    sage/plot/colors
+   sage/plot/hyperbolic_arc
+   sage/plot/hyperbolic_triangle

@@ -14,7 +14,7 @@ from dirichlet import (DirichletGroup, is_DirichletGroup, is_DirichletCharacter,
 
 from arithgroup.all import (Gamma0, Gamma1, GammaH, Gamma, SL2Z,
                             ArithmeticSubgroup_Permutation,
-                            CongruenceSubgroup)
+                            CongruenceSubgroup, FareySymbol)
 
 from cusps import Cusp, Cusps
 

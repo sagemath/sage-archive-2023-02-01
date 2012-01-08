@@ -33,3 +33,6 @@ from plot3d.tachyon import Tachyon
 from colors import Color, hue, rainbow, colors, colormaps
 
 from step import plot_step_function
+
+from hyperbolic_arc import hyperbolic_arc
+from hyperbolic_triangle import hyperbolic_triangle

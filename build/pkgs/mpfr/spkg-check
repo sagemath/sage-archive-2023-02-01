@@ -1,8 +1,18 @@
-cd src
-make check
+#!/usr/bin/env bash
 
-if [ $? -ne 0 ]; then
-  echo "There was a problem during the mpfr tests."
-  exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "Error: SAGE_LOCAL undefined - exiting..."
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
+# unset RM since it messes with libtool
+unset RM
+
+cd src
+
+$MAKE check
+if [ $? -ne 0 ]; then
+  echo "Error: the MPFR test suite failed."
+  exit 1
+fi

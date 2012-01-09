@@ -2,17 +2,29 @@
 
 == Description ==
 
-From http://mpfr.org/: The MPFR library is a C library for multiple-precision
-floating-point computations with correct rounding. MPFR has continuously been
-supported by the INRIA and the current main authors come from the CACAO and
-Arenaire project-teams at Loria (Nancy, France) and LIP (Lyon, France)
-respectively; see more on the credit page. MPFR is based on the GMP
-multiple-precision library.
+The MPFR library is a C library for multiple-precision floating-point
+computations with correct rounding. MPFR has continuously been supported by
+the INRIA and the current main authors come from the Caramel and Arénaire
+project-teams at Loria (Nancy, France) and LIP (Lyon, France) respectively;
+see more on the credit page. MPFR is based on the GMP multiple-precision
+library.
+
+The main goal of MPFR is to provide a library for multiple-precision
+floating-point computation which is both efficient and has a well-defined
+semantics. It copies the good ideas from the ANSI/IEEE-754 standard for
+double-precision floating-point arithmetic (53-bit significand).
 
 == License ==
 
 MPFR is free. It is distributed under the GNU Lesser General Public License
-(GNU Lesser GPL), version 2.1 or later.
+(GNU Lesser GPL), version 3 or later (2.1 or later for MPFR versions until
+2.4.x). The library has been registered in France by the Agence de Protection
+des Programmes under the number IDDN FR 001 120020 00 R P 2000 000 10800, on
+15 March 2000. This license guarantees your freedom to share and change MPFR,
+to make sure MPFR is free for all its users. Unlike the ordinary General
+Public License, the Lesser GPL enables developers of non-free programs to use
+MPFR in their programs. If you have written a new function for MPFR or improved
+an existing one, please share your work!
 
 == SPKG Maintainers ==
 
@@ -26,7 +38,7 @@ The MPFR team can be contact via the MPFR mailing list: mpfr@loria.fr
 
 == Dependencies ==
 
- * GMP
+ * MPIR
 
 == IMPORTANT ==
 When building Sage binaries for widespead distribution, set the variable
@@ -34,6 +46,14 @@ INCLUDE_MPFR_PATCH to 1, to include a patch, which can cause failures
 on sun4v machines.
 
 == Changelog ==
+
+=== mpfr-3.1.0.p0 (Jean-Pierre Flori, February 22nd, 2012) ===
+ * #11666: Further cleanups and rebase on #12131, #12366 and #12548.
+ * Let configure get the MPIR flags.
+
+=== mpfr-3.1.0 (Mike Hansen, December 17th, 2011) ===
+ * #11666: Upgrade MPFR to 3.1.0
+ * Update spkg-install and spkg-check files to current standards
 
 === mpfr-2.4.2.p2 (Jeroen Demeyer, 20 February 2012) ===
  * #12548: do not delete old libraries
@@ -46,9 +66,6 @@ on sun4v machines.
 
 === mpfr-2.4.2.p0 (Simon King, December 10th, 2010) ===
  * #12131: Use --libdir, to make the package work on openSUSE.
-
-=== mpfr-3.1.0 (Mike Hansen, December 17th, 2011) ===
- * #11666: Upgrade MPFR to 3.1.0
 
 === mpfr-2.4.2 (Mike Hansen, February 16th, 2010) ===
  * #8261: Upgrade MPFR to 2.4.2.
@@ -111,4 +128,3 @@ on sun4v machines.
 === mpfr-2.3.0 (Michael Abshoff, Sept. 14th, 2007) ===
  * upgrade to mpfr 2.3.0 release
  * add spkg-check
-

@@ -218,10 +218,21 @@ def plot_slope_field(f, xrange, yrange, **kwds):
 
         sage: x,y = var('x y')
         sage: plot_slope_field(sin(x+y)+cos(x+y), (x,-3,3), (y,-3,3))
+
+    Plot a slope field using a lambda function::
+
+        sage: plot_slope_field(lambda x,y: x+y, (-2,2), (-2,2))
     """
     slope_options = {'headaxislength': 0, 'headlength': 0, 'pivot': 'middle'}
     slope_options.update(kwds)
 
     from sage.functions.all import sqrt
-    norm = sqrt((f**2+1))
-    return plot_vector_field((1/norm, f/norm), xrange, yrange, **slope_options)
+    from inspect import isfunction
+    if isfunction(f):
+        norm_inverse=lambda x,y: 1/sqrt(f(x,y)**2+1)
+        f_normalized=lambda x,y: f(x,y)*norm_inverse(x,y)
+    else:
+        norm_inverse = 1/sqrt((f**2+1))
+        f_normalized=f*norm_inverse
+    return plot_vector_field((norm_inverse, f_normalized), xrange, yrange, **slope_options)
+

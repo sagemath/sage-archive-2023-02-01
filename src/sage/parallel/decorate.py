@@ -194,6 +194,26 @@ def parallel(p_iter='fork', ncpus=None, **kwds):
         ... def f(N): return N^2
         sage: v = list(f([1,2,4])); v.sort(); v
         [(((1,), {}), 1), (((2,), {}), 4), (((4,), {}), 16)]
+
+    For functions that take multiple arguments, enclose the arguments in tuples
+    when calling the parallel function::
+
+        sage: @parallel
+        ... def f(a,b): return a*b
+        sage: for X, Y in sorted(list(f([(2,3),(3,5),(5,7)]))): print X, Y
+        ((2, 3), {}) 6
+        ((3, 5), {}) 15
+        ((5, 7), {}) 35
+
+    For functions that take a single tuple as an argument, enclose it in an
+    additional tuple at call time, to distinguish it as the first argument,
+    as opposed to a tuple of arguments::
+
+        sage: @parallel
+        ... def firstEntry(aTuple): return aTuple[0]
+        sage: for X, Y in sorted(list(firstEntry([((1,2,3,4),),((5,6,7,8),)]))): print X, Y
+        (((1, 2, 3, 4),), {}) 1
+        (((5, 6, 7, 8),), {}) 5
     """
     import types
     if isinstance(p_iter, types.FunctionType):

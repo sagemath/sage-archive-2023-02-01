@@ -574,6 +574,19 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
 
         sage: integrate(sin(x)*sin(x/3)/x^2, x, 0, oo)
         1/6*pi
+
+    Maxima returned a negative value for this integral prior to
+    maxima-5.24 (trac #10923). Ideally we would get an answer in terms
+    of the gamma function; however, we get something equivalent::
+
+        sage: actual_result = integral(e^(-1/x^2), x, 0, 1)
+        sage: actual_result.full_simplify()
+        ((e*erf(1) - e)*sqrt(pi) + 1)*e^(-1)
+        sage: ideal_result = 1/2*gamma(-1/2, 1)
+        sage: error = actual_result - ideal_result
+        sage: error.numerical_approx() # abs tol 10e-10
+        0
+
     """
     if isinstance(v, (list, tuple)) and a is None and b is None:
         if len(v)==1: # bare variable in a tuple

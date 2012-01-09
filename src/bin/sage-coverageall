@@ -25,7 +25,11 @@ def coverage_all(directory):
 
     print ''.join(s)
 
-    score = (float(scr) / total)
+    # Trac #5859: Don't crash if there isn't anything to test.
+    score = 100.0
+    if total != 0:
+        score = (float(scr) / total)
+
     print "Overall weighted coverage score:  %.1f%%"%score
     print "Total number of functions: ", total
 

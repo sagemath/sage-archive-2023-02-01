@@ -1531,6 +1531,25 @@ cdef class RingElement(ModuleElement):
             1
             sage: 2r^(1/2)
             sqrt(2)
+
+        Exponent overflow should throw an OverflowError (trac #2956)::
+
+            sage: K.<x,y> = AA[]
+            sage: x^(2^64 + 12345)
+            Traceback (most recent call last):
+            ...
+            OverflowError: Exponent overflow (2147483648).
+
+        Another example from trac #2956; this should overflow on x32
+        and succeed on x64::
+
+            sage: K.<x,y> = ZZ[]
+            sage: (x^12345)^54321
+            x^670592745                                   # 64-bit
+            Traceback (most recent call last):            # 32-bit
+            ...                                           # 32-bit
+            OverflowError: Exponent overflow (670592745). # 32-bit
+
         """
         if dummy is not None:
             raise RuntimeError, "__pow__ dummy argument not used"

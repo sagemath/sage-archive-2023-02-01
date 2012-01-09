@@ -646,6 +646,11 @@ def symbolic_sum(expression, *args, **kwds):
         sage: sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional  -- requires maple
         (x + 1)^n
 
+    Python ints should work as limits of summation (trac #9393)::
+
+        sage: sum(x, x, 1r, 5r)
+        15
+
     .. note::
 
        #. Sage can currently only understand a subset of the output of Maxima, Maple and

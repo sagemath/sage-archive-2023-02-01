@@ -870,7 +870,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             [(1.0, 2.0), (-1.0, 0.5)]
             sage: m = hmm.GaussianHiddenMarkovModel([[.1,.9],[.9,.1]], [(1,2),(-1,.5)], [.3,.7])
             sage: m.baum_welch(v)
-            (-162.85437039799817, 49)
+            (-162.854370397998..., 49)
             sage: m.emission_parameters()
             [(1.27224191726, 2.37136875176), (-0.948617467518, 0.576236038512)]
         """

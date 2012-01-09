@@ -2034,7 +2034,7 @@ class Permutation_class(CombinatorialObject):
 
     def weak_excedences(self):
         """
-        Returns all the numbers self[i] such that self[i] = i+1.
+        Returns all the numbers self[i] such that self[i] >= i+1.
 
         EXAMPLES::
 

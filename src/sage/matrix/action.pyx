@@ -1,8 +1,42 @@
 """
-These are the actions used by the coercion model for matrix and vector multiplications.
+These are the actions used by the coercion model for matrix and vector
+multiplications.
 
-AUTHORS:
-    -- Robert Bradshaw (2007-09): Initial version.
+.. WARNING::
+
+    The class :class:`MatrixMulAction` and its descendants extends the class
+    :class:`Action`. As a cosnequence objects from these classes only keep weak
+    references to the underlying sets which are acted upon. This decision was
+    made in :trac:`715` in order to allow garbage collection within the coercion
+    framework, where actions are mainly used, and avoid memory leaks.
+
+    To ensure that the underlying set of such an object does not get garbage
+    collected, it is sufficient to explicitely create a strong reference to it
+    before creating the action.
+
+    ::
+
+        sage: MSQ = MatrixSpace(QQ, 2)
+        sage: MSZ = MatrixSpace(ZZ['x'], 2)
+        sage: A = MSQ.get_action(MSZ)
+        sage: A
+        Left action by Full MatrixSpace of 2 by 2 dense matrices over Rational Field on Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring
+        sage: import gc
+        sage: _ = gc.collect()
+        sage: A
+        Left action by Full MatrixSpace of 2 by 2 dense matrices over Rational Field on Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring
+
+.. NOTE::
+
+    The :func:`MatrixSpace` function caches the objects it creates. Therefore,
+    the underlying set ``MSZ`` in the above example will not be garbage
+    collected, even if it is not strongly ref'ed. Nonetheless, there is no
+    guarantee that the set that is acted upon will always be cached in such a
+    way, so that following the above example is good practice.
+
+AUTHOR:
+
+- Robert Bradshaw (2007-09): Initial version.
 """
 
 #*****************************************************************************
@@ -39,7 +73,15 @@ cdef class MatrixMulAction(Action):
     def domain(self):
         """
         EXAMPLES:
-            sage: A = MatrixSpace(QQ, 2).get_action(MatrixSpace(ZZ['x'], 2)); A
+
+        By :trac:`715`, there only is a weak reference on the underlying set,
+        so that it can be garbage collected if only the action itself is
+        explicitly referred to. Hence, we first assign the involved matrix
+        spaces to a variable::
+
+            sage: MSQ = MatrixSpace(QQ, 2)
+            sage: MSZ = MatrixSpace(ZZ['x'], 2)
+            sage: A = MSQ.get_action(MSZ); A
             Left action by Full MatrixSpace of 2 by 2 dense matrices over Rational Field on Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring
             sage: A.actor()
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
@@ -47,17 +89,35 @@ cdef class MatrixMulAction(Action):
             Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring
             sage: A.codomain()
             Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+
+        .. NOTE::
+
+            The :func:`MatrixSpace` function caches the object it creates.
+            Therefore, the underlying set ``MSZ`` in the above example will not
+            be garbage collected, even if it is not strongly ref'ed.
+            Nonetheless, there is no guarantee that the set that is acted upon
+            will always be cached in such a way, so that following the above
+            example is good practice.
+
         """
-        return self.S
+        return self.underlying_set()
 
 
 cdef class MatrixMatrixAction(MatrixMulAction):
     def __init__(self, G, S):
         """
         EXAMPLES:
+
+        By :trac:`715`, there only is a weak reference on the underlying set,
+        so that it can be garbage collected if only the action itself is
+        explicitly referred to. Hence, we first assign the involved matrix
+        spaces to a variable::
+
             sage: R.<x> = ZZ[]
+            sage: MSR = MatrixSpace(R, 3, 3)
+            sage: MSQ = MatrixSpace(QQ, 3, 2)
             sage: from sage.matrix.action import MatrixMatrixAction
-            sage: A = MatrixMatrixAction(MatrixSpace(R, 3, 3), MatrixSpace(QQ, 3, 2)); A
+            sage: A = MatrixMatrixAction(MSR, MSQ); A
             Left action by Full MatrixSpace of 3 by 3 dense matrices over Univariate Polynomial Ring in x over Integer Ring on Full MatrixSpace of 3 by 2 dense matrices over Rational Field
             sage: A.codomain()
             Full MatrixSpace of 3 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
@@ -65,6 +125,16 @@ cdef class MatrixMatrixAction(MatrixMulAction):
             [  0   x]
             [2*x 3*x]
             [4*x 5*x]
+
+        .. NOTE::
+
+            The :func:`MatrixSpace` function caches the object it creates.
+            Therefore, the underlying set ``MSZ`` in the above example will not
+            be garbage collected, even if it is not strongly ref'ed.
+            Nonetheless, there is no guarantee that the set that is acted upon
+            will always be cached in such a way, so that following the above
+            example is good practice.
+
         """
         if not is_MatrixSpace(S):
             raise TypeError, "Not a matrix space: %s" % S
@@ -73,21 +143,42 @@ cdef class MatrixMatrixAction(MatrixMulAction):
     def _create_codomain(self, base):
         """
         EXAMPLES:
+
+        By :trac:`715`, there only is a weak reference on the underlying set,
+        so that it can be garbage collected if only the action itself is
+        explicitly referred to. Hence, we first assign the involved matrix
+        spaces to a variable::
+
             sage: from sage.matrix.action import MatrixMatrixAction
             sage: R.<x> = ZZ[]
-            sage: A = MatrixMatrixAction(MatrixSpace(R, 3, 3), MatrixSpace(QQ, 3, 2)); A
+            sage: MSR = MatrixSpace(R, 3, 3)
+            sage: MSQ = MatrixSpace(QQ, 3, 2)
+            sage: A = MatrixMatrixAction(MSR, MSQ); A
             Left action by Full MatrixSpace of 3 by 3 dense matrices over Univariate Polynomial Ring in x over Integer Ring on Full MatrixSpace of 3 by 2 dense matrices over Rational Field
             sage: A.codomain()
             Full MatrixSpace of 3 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+
+        .. NOTE::
+
+            The :func:`MatrixSpace` function caches the object it creates.
+            Therefore, the underlying set ``MSZ`` in the above example will not
+            be garbage collected, even if it is not strongly ref'ed.
+            Nonetheless, there is no guarantee that the set that is acted upon
+            will always be cached in such a way, so that following the above
+            example is good practice.
+
         """
-        if self.G.ncols() != self.S.nrows():
-            raise TypeError, "incompatible dimensions %s, %s" % (self.G.ncols(),  self.S.nrows())
-        return MatrixSpace(base, self.G.nrows(), self.S.ncols(), sparse = self.G.is_sparse() and self.S.is_sparse())
+        if self.G.ncols() != self.underlying_set().nrows():
+            raise TypeError, "incompatible dimensions %s, %s" % (self.G.ncols(),  self.underlying_set().nrows())
+        return MatrixSpace(base, self.G.nrows(), self.underlying_set().ncols(),
+                           sparse = self.G.is_sparse() and self.underlying_set().is_sparse())
 
     cpdef _call_(self, g, s):
         """
         EXAMPLES:
-        Respects compatible subdivisions:
+
+        Respects compatible subdivisions::
+
             sage: M = matrix(5, 5, prime_range(100))
             sage: M.subdivide(2,3); M
             [ 2  3  5| 7 11]
@@ -112,12 +203,15 @@ cdef class MatrixMatrixAction(MatrixMulAction):
             [ 8168|11143]
             [11056|15077]
 
-        Note that this is just like block matrix multiplication:
+        Note that this is just like block matrix multiplication::
+
             sage: M.subdivision(0,0) * N.subdivision(0,0) + M.subdivision(0,1) * N.subdivision(1,0)
             [1048]
             [3056]
 
         If the subdivisions aren't compatible, ignore them.
+        ::
+
             sage: N.subdivide(1,1); N
             [ 0| 1]
             [--+--]
@@ -156,7 +250,8 @@ cdef class MatrixMatrixAction(MatrixMulAction):
 cdef class MatrixVectorAction(MatrixMulAction):
     def __init__(self, G, S):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.matrix.action import MatrixVectorAction
             sage: A = MatrixVectorAction(MatrixSpace(QQ, 3, 3), VectorSpace(CDF, 4)); A
             Traceback (most recent call last):
@@ -169,15 +264,17 @@ cdef class MatrixVectorAction(MatrixMulAction):
 
     def _create_codomain(self, base):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.matrix.action import MatrixVectorAction
             sage: A = MatrixVectorAction(MatrixSpace(QQ, 5, 3), VectorSpace(CDF, 3)); A
             Left action by Full MatrixSpace of 5 by 3 dense matrices over Rational Field on Vector space of dimension 3 over Complex Double Field
             sage: A.codomain()
             Vector space of dimension 5 over Complex Double Field
         """
-        if self.G.ncols() != self.S.degree():
-            raise TypeError, "incompatible dimensions %s, %s" % (self.G.ncols(),  self.S.degree())
+        if self.G.ncols() != self.underlying_set().degree():
+            raise TypeError, "incompatible dimensions %s, %s" % (self.G.ncols(),
+                                                                 self.underlying_set().degree())
         return FreeModule(base, self.G.nrows(), sparse = self.G.is_sparse())
 
     cpdef _call_(self, g, s):
@@ -198,7 +295,8 @@ cdef class MatrixVectorAction(MatrixMulAction):
 cdef class VectorMatrixAction(MatrixMulAction):
     def __init__(self, G, S):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.matrix.action import VectorMatrixAction
             sage: A = VectorMatrixAction(MatrixSpace(QQ, 5, 3), VectorSpace(CDF, 3)); A
             Traceback (most recent call last):
@@ -211,15 +309,17 @@ cdef class VectorMatrixAction(MatrixMulAction):
 
     def _create_codomain(self, base):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.matrix.action import VectorMatrixAction
             sage: A = VectorMatrixAction(MatrixSpace(QQ, 3, 5), VectorSpace(CDF, 3)); A
             Right action by Full MatrixSpace of 3 by 5 dense matrices over Rational Field on Vector space of dimension 3 over Complex Double Field
             sage: A.codomain()
             Vector space of dimension 5 over Complex Double Field
         """
-        if self.G.nrows() != self.S.degree():
-            raise TypeError, "incompatible dimensions %s, %s" % (self.G.nrows(), self.S.degree())
+        if self.G.nrows() != self.underlying_set().degree():
+            raise TypeError, "incompatible dimensions %s, %s" % (self.G.nrows(),
+                                                                 self.underlying_set().degree())
         return FreeModule(base, self.G.ncols(), sparse = self.G.is_sparse())
 
     cpdef _call_(self, s, g):

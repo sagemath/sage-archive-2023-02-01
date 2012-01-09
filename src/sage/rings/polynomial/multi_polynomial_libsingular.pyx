@@ -243,6 +243,7 @@ from sage.misc.sage_eval import sage_eval
 import sage.libs.pari.gen
 import polynomial_element
 
+permstore=[]
 cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
     def __cinit__(self):
@@ -364,6 +365,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
         base_inject = PolynomialBaseringInjection(base_ring, self)
         self.register_coercion(base_inject)
+        #permanently store a reference to this ring until deallocation works reliably
+        permstore.append(self)
 
     def __dealloc__(self):
         r"""

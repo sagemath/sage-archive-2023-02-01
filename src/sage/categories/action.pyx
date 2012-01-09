@@ -1,14 +1,48 @@
 r"""
 Group, ring, etc. actions on objects.
 
-The terminology and notation used is suggestive of groups
-acting on sets, but this framework can be used for modules,
-algebras, etc.
+The terminology and notation used is suggestive of groups acting on sets,
+but this framework can be used for modules, algebras, etc.
 
 A group action $G \times S \rightarrow S$ is a functor from $G$ to Sets.
 
-AUTHORS:
-    -- Robert Bradshaw: initial version
+.. WARNING::
+
+    An :class:`Action` object only keeps a weak reference to the underlying set
+    which is acted upon. This decision was made in :trac:`715` in order to
+    allow garbage collection within the coercion framework (this is where
+    actions are mainly used) and avoid memory leaks.
+
+    ::
+
+        sage: from sage.categories.action import Action
+        sage: class P: pass
+        sage: A = Action(P(),P())
+        sage: import gc
+        sage: _ = gc.collect()
+        sage: A
+        Traceback (most recent call last):
+        ...
+        RuntimeError: This action acted on a set that became garbage collected
+
+    To avoid garbage collection of the underlying set, it is sufficient to
+    create a strong reference to it before the action is created.
+
+    ::
+
+        sage: _ = gc.collect()
+        sage: from sage.categories.action import Action
+        sage: class P: pass
+        sage: q = P()
+        sage: A = Action(P(),q)
+        sage: gc.collect()
+        0
+        sage: A
+        Left action by <__main__.P instance at ...> on <__main__.P instance at ...>
+
+AUTHOR:
+
+- Robert Bradshaw: initial version
 """
 
 #*****************************************************************************
@@ -32,6 +66,7 @@ from map cimport Map
 
 import homset
 import sage.structure.element
+from weakref import ref
 
 include "../ext/stdsage.pxi"
 
@@ -48,7 +83,7 @@ cdef class Action(Functor):
         from groupoid import Groupoid
         Functor.__init__(self, Groupoid(G), category(S))
         self.G = G
-        self.S = S
+        self.US = ref(S)
         self._is_left = is_left
         self.op = op
 
@@ -61,14 +96,14 @@ cdef class Action(Functor):
             if g in self.G:
                 return ActionEndomorphism(self, self.G(g))
             elif g == self.G:
-                return self.S
+                return self.underlying_set()
             else:
                 raise TypeError, "%s not an element of %s"%(g, self.G)
         elif len(args) == 2:
             if self._is_left:
-                return self._call_(self.G(args[0]), self.S(args[1]))
+                return self._call_(self.G(args[0]), self.underlying_set()(args[1]))
             else:
-                return self._call_(self.S(args[0]), self.G(args[1]))
+                return self._call_(self.underlying_set()(args[0]), self.G(args[1]))
 
     cpdef _call_(self, a, b):
         raise NotImplementedError, "Action not implemented."
@@ -91,7 +126,8 @@ cdef class Action(Functor):
 
     def __repr__(self):
         side = "Left" if self._is_left else "Right"
-        return "%s %s by %r on %r"%(side, self._repr_name_(), self.G, self.S)
+        return "%s %s by %r on %r"%(side, self._repr_name_(), self.G,
+                                    self.underlying_set())
 
     def _repr_name_(self):
         return "action"
@@ -99,11 +135,65 @@ cdef class Action(Functor):
     def actor(self):
         return self.G
 
+    cdef underlying_set(self):
+        """
+        The set on which the actor acts (it is not necessarily the codomain of
+        the action).
+
+        NOTE:
+
+        Since this is a cdef'ed method, we can only provide an indirect doctest.
+
+        EXAMPLES::
+
+            sage: P = QQ['x']
+            sage: R = (ZZ['x'])['y']
+            sage: A = R.get_action(P,operator.mul,True)
+            sage: A                 # indirect doctest
+            Right scalar multiplication by Univariate Polynomial Ring in x over
+            Rational Field on Univariate Polynomial Ring in y over Univariate
+            Polynomial Ring in x over Integer Ring
+
+        In this example, the underlying set is the ring ``R``. This is the same
+        as the left domain, which is different from the codomain of the action::
+
+            sage: A.codomain()
+            Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: A.codomain() == R
+            False
+            sage: A.left_domain() is R
+            True
+
+        By :trac:`715`, there is only a weak reference to the underlying set.
+        Hence, the underlying set may be garbage collected, even when the
+        action is still alive. This may result in a runtime error, as follows::
+
+            sage: from sage.categories.action import Action
+            sage: class P: pass
+            sage: p = P()
+            sage: q = P()
+            sage: A = Action(p,q)
+            sage: A
+            Left action by <__main__.P instance at ...> on <__main__.P instance at ...>
+            sage: del q
+            sage: import gc
+            sage: _ = gc.collect()
+            sage: A
+            Traceback (most recent call last):
+            ...
+            RuntimeError: This action acted on a set that became garbage collected
+
+        """
+        S = self.US()
+        if S is None:
+            raise RuntimeError, "This action acted on a set that became garbage collected"
+        return S
+
     def codomain(self):
-        return self.S
+       return self.underlying_set()
 
     def domain(self):
-        return self.S
+        return self.underlying_set()
 
     def left_domain(self):
         if self._is_left:
@@ -145,12 +235,12 @@ cdef class InverseAction(Action):
             # We must be in the case that parent(~a) == parent(a)
             # so we can invert in call_c code below.
             if (PY_TYPE_CHECK(G, Group) and G.is_multiplicative()) or G.is_field():
-                Action.__init__(self, G, action.S, action._is_left)
+                Action.__init__(self, G, action.underlying_set(), action._is_left)
                 self._action = action
                 return
             else:
                 K = G._pseudo_fraction_field()
-                Action.__init__(self, K, action.S, action._is_left)
+                Action.__init__(self, K, action.underlying_set(), action._is_left)
                 self._action = action
                 return
         except (AttributeError, NotImplementedError):
@@ -190,9 +280,9 @@ cdef class PrecomposedAction(Action):
               right_precomposition = homset.Hom(right_precomposition._codomain, right).natural_map() * right_precomposition
             right = right_precomposition._domain
         if action._is_left:
-            Action.__init__(self, left, action.S, 1)
+            Action.__init__(self, left, action.underlying_set(), 1)
         else:
-            Action.__init__(self, right, action.S, 0)
+            Action.__init__(self, right, action.underlying_set(), 0)
         self._action = action
         self.left_precomposition = left_precomposition
         self.right_precomposition = right_precomposition
@@ -230,7 +320,8 @@ cdef class PrecomposedAction(Action):
 cdef class ActionEndomorphism(Morphism):
 
     def __init__(self, Action action, g):
-        Morphism.__init__(self, homset.Hom(action.S, action.S))
+        Morphism.__init__(self, homset.Hom(action.underlying_set(),
+                                           action.underlying_set()))
         self._action = action
         self._g = g
 
@@ -241,7 +332,8 @@ cdef class ActionEndomorphism(Morphism):
             return self._action._call_(x, self._g)
 
     def _repr_(self):
-        return "Action of %s on %s under %s."%(self._g, self._action.S, self._action)
+        return "Action of %s on %s under %s."%(self._g,
+                                               self._action.underlying_set(), self._action)
 
     def __mul__(left, right):
         cdef ActionEndomorphism left_c, right_c

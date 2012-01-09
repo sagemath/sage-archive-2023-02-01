@@ -4,7 +4,7 @@ from element cimport Element, RingElement, ModuleElement, CoercionModel
 from parent cimport Parent
 from sage.categories.action cimport Action
 
-from coerce_dict cimport TripleDict, TripleDictIter
+from coerce_dict cimport TripleDict
 
 cdef class CoercionModel_cache_maps(CoercionModel):
     # This MUST be a mapping to tuples, where each

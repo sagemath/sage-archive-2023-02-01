@@ -9,6 +9,7 @@ Basic Structures
    sage/structure/parent_old
    sage/structure/parent_base
    sage/structure/parent_gens
+   sage/structure/coerce_dict
    sage/structure/formal_sum
    sage/structure/factorization
    sage/structure/element

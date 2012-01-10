@@ -1678,6 +1678,44 @@ cdef class Expression(CommutativeRingElement):
 
     rhs = right = right_hand_side
 
+    def is_trivial_zero(self):
+        """
+        Check if this expression is trivially equal to zero without any
+        simplification.
+
+        This method is intended to be used in library code where trying to
+        obtain a mathematically correct result by applying potentially
+        expensive rewrite rules is not desirable.
+
+        EXAMPLES::
+
+            sage: SR(0).is_trivial_zero()
+            True
+            sage: SR(0.0).is_trivial_zero()
+            True
+            sage: SR(float(0.0)).is_trivial_zero()
+            True
+
+            sage: (SR(1)/2^1000).is_trivial_zero()
+            False
+            sage: SR(1./2^10000).is_trivial_zero()
+            False
+
+        The :meth:`is_zero` method is more capable::
+
+            sage: t = pi + (pi - 1)*pi - pi^2
+            sage: t.is_trivial_zero()
+            False
+            sage: t.is_zero()
+            True
+            sage: u = sin(x)^2 + cos(x)^2 - 1
+            sage: u.is_trivial_zero()
+            False
+            sage: u.is_zero()
+            True
+        """
+        return self._gobj.is_zero()
+
     def __nonzero__(self):
         """
         Return True unless this symbolic expression can be shown by Sage

@@ -24,7 +24,8 @@ from sage.plot.colors import to_mpl_color
 class Polygon(GraphicPrimitive_xydata):
     """
     Primitive class for the Polygon graphics type.  For information
-    on actual plotting, please see polygon?, polygon2d?, or polygon3d?
+    on actual plotting, please see :func:`polygon`, :func:`polygon2d`,
+    or :func:`~sage.plot.plot3d.shapes2.polygon3d`.
 
     INPUT:
 
@@ -36,7 +37,7 @@ class Polygon(GraphicPrimitive_xydata):
 
     EXAMPLES:
 
-    Note this should normally be used indirectly via ``circle``::
+    Note this should normally be used indirectly via :func:`polygon`::
 
         sage: from sage.plot.polygon import Polygon
         sage: P = Polygon([1,2,3],[2,3,2],{'alpha':.5})
@@ -254,8 +255,8 @@ def polygon(points, **options):
     Returns either a 2-dimensional or 3-dimensional polygon depending
     on value of points.
 
-    For information regarding additional arguments, see either polygon2d?
-    or polygon3d?.
+    For information regarding additional arguments, see either :func:`polygon2d`
+    or :func:`~sage.plot.plot3d.shapes2.polygon3d`.
 
     EXAMPLES::
 

@@ -811,6 +811,10 @@ class GenericGraph(GenericGraph_pyx):
             - If ``True``, the returned matrix is
               `D^{-1/2}(D-M)D^{-1/2}`, a normalized version of the
               Laplacian matrix.
+              (More accurately, the normalizing matrix used is equal to `D^{-1/2}`
+              only for non-isolated vertices.  If vertex `i` is isolated, then
+              diagonal entry `i` in the matrix is 1, rather than a division by
+              zero.)
             - Else, the matrix `D-M` is returned
 
         Note that any additional keywords will be passed on to either
@@ -861,7 +865,10 @@ class GenericGraph(GenericGraph_pyx):
             [-1/6*sqrt(2)*sqrt(3)                    1                 -1/2                    0]
             [-1/6*sqrt(2)*sqrt(3)                 -1/2                    1                    0]
             [        -1/3*sqrt(3)                    0                    0                    1]
-
+            sage: Graph({0:[],1:[2]}).laplacian_matrix(normalized=True)
+            [ 0  0  0]
+            [ 0  1 -1]
+            [ 0 -1  1]
 
         A weighted directed graph with loops, changing the variable ``indegree`` ::
 
@@ -915,7 +922,8 @@ class GenericGraph(GenericGraph_pyx):
                     D[i,i] += row_sums[i]
 
         if normalized:
-            Dsqrt = diagonal_matrix([1/sqrt(D[i,i]) for i in range(D.nrows())])
+            Dsqrt = diagonal_matrix([1/sqrt(D[i,i]) if D[i,i]>0 else 1 \
+                                     for i in range(D.nrows())])
             return Dsqrt*(D-M)*Dsqrt
         else:
             return D-M

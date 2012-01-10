@@ -166,12 +166,8 @@ class Polygon(GraphicPrimitive_xydata):
         """
         if options is None:
             options = dict(self.options())
-        if 'thickness' in options:
-            del options['thickness']
-        if 'zorder' in options:
-            del options['zorder']
-        if 'legend_label' in options:
-            del options['legend_label']
+        for o in ['thickness', 'zorder', 'legend_label', 'fill']:
+            options.pop(o, None)
         return GraphicPrimitive_xydata._plot3d_options(self, options)
 
     def plot3d(self, z=0, **kwds):
@@ -243,6 +239,8 @@ class Polygon(GraphicPrimitive_xydata):
         a = float(options['alpha'])
         z = int(options.pop('zorder', 1))
         p.set_alpha(a)
+        f = options.pop('fill')
+        p.set_fill(f)
         c = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(c)
         p.set_facecolor(c)
@@ -275,10 +273,10 @@ def polygon(points, **options):
         return polygon3d(points, **options)
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, rgbcolor=(0,0,1), thickness=0, legend_label=None, aspect_ratio=1.0)
+@options(alpha=1, rgbcolor=(0,0,1), thickness=None, legend_label=None, aspect_ratio=1.0, fill=True)
 def polygon2d(points, **options):
     r"""
-    Returns a polygon defined by ``points``.
+    Returns a 2-dimensional polygon defined by ``points``.
 
     Type ``polygon.options`` for a dictionary of the default
     options for polygons.  You can change this to change
@@ -290,6 +288,15 @@ def polygon2d(points, **options):
     We create a purple-ish polygon::
 
         sage: polygon2d([[1,2], [5,6], [5,0]], rgbcolor=(1,0,1))
+
+    By default, polygons are filled in, but we can make them
+    without a fill as well::
+
+        sage: polygon2d([[1,2], [5,6], [5,0]], fill=False)
+
+    In either case, the thickness of the border can be controlled::
+
+        sage: polygon2d([[1,2], [5,6], [5,0]], fill=False, thickness=4, color='orange')
 
     Some modern art -- a random polygon, with legend::
 
@@ -349,6 +356,11 @@ def polygon2d(points, **options):
 
     """
     from sage.plot.plot import xydata_from_point_list, Graphics
+    if options["thickness"] is None:    # If the user did not specify thickness
+        if options["fill"]:                 # If the user chose fill
+            options["thickness"] = 0
+        else:
+            options["thickness"] = 1
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

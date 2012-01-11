@@ -355,7 +355,7 @@ method:
         3/4             0.82                 -0.16            -0.66          -0.081
           1             0.65                 -0.18            -0.74           0.022
 
-Therefore, :math:`z(1)\approx 0.75`.
+Therefore, :math:`z(1)\approx 0.65`.
 
 We can also plot the points :math:`(x,y)` to get an approximate
 picture of the curve. The function ``eulers_method_2x2_plot`` will

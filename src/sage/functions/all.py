@@ -16,7 +16,7 @@ reciprocal_trig_functions = {'sec': cos, 'csc': sin, 'cot': tan, 'sech': cosh, '
 
 
 from other import ( ceil, floor, gamma, psi, factorial, beta,
-                    abs_symbolic, erf, sqrt,
+                    abs_symbolic, erf, sqrt, log_gamma,
                     gamma_inc, incomplete_gamma,
                     arg, real_part, real,
                     imag_part, imag, imaginary, conjugate)
@@ -34,7 +34,7 @@ from special import (bessel_I, bessel_J, bessel_K, bessel_Y,
                      spherical_bessel_J, spherical_bessel_Y,
                      spherical_hankel1, spherical_hankel2,
                      spherical_harmonic, jacobi,
-                     inverse_jacobi, log_gamma,
+                     inverse_jacobi,
                      lngamma, exp_int, error_fcn, elliptic_e,
                      elliptic_f, elliptic_ec, elliptic_eu,
                      elliptic_kc, elliptic_pi, elliptic_j,

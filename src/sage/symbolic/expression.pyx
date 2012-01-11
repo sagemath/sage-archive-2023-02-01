@@ -6403,10 +6403,10 @@ cdef class Expression(CommutativeRingElement):
 
     def log_gamma(self, hold=False):
         """
-        Return the log-gamma function evaluated at self.
+        Return the log gamma function evaluated at self.
         This is the logarithm of gamma of self, where
-        gamma is a complex function such that gamma(n)
-        equals factorial(n-1).
+        gamma is a complex function such that `gamma(n)`
+        equals `factorial(n-1)`.
 
         EXAMPLES::
 
@@ -6417,6 +6417,8 @@ cdef class Expression(CommutativeRingElement):
             0
             sage: SR(5).log_gamma()
             log(24)
+            sage: a = SR(5).log_gamma(); a.n()
+            3.17805383034795
             sage: SR(5-1).factorial().log()
             log(24)
             sage: set_verbose(-1); plot(lambda x: SR(x).log_gamma(), -7,8, plot_points=1000).show()
@@ -6434,14 +6436,6 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a = SR(5).log_gamma(hold=True); a.n()
             3.17805383034795
-
-        We do not currently support a ``hold`` parameter in functional
-        notation::
-
-            sage: log_gamma(SR(5),hold=True)
-            Traceback (most recent call last):
-            ...
-            TypeError: log_gamma() got an unexpected keyword argument 'hold'
         """
         cdef GEx x
         try:

@@ -709,6 +709,95 @@ class Function_gamma(GinacFunction):
 
 gamma1 = Function_gamma()
 
+class Function_log_gamma(GinacFunction):
+    def __init__(self):
+        r"""
+        The principal branch of the logarithm of Gamma function.
+        Gamma is defined for complex input `z` with real part greater
+        than zero, and by analytic continuation on the rest of the
+        complex plane (except for negative integers, which are poles).
+
+        It is computed by the `log_gamma` function for the number type,
+        or by `lgamma` in Ginac, failing that.
+
+        EXAMPLES:
+
+        Numerical evaluation happens when appropriate, to the
+        appropriate accuracy (see #10072)::
+
+            sage: log_gamma(6)
+            log(120)
+            sage: log_gamma(6.)
+            4.78749174278205
+            sage: log_gamma(6).n()
+            4.78749174278205
+            sage: log_gamma(RealField(100)(6))
+            4.7874917427820459942477009345
+            sage: log_gamma(2.4+i)
+            -0.0308566579348816 + 0.693427705955790*I
+            sage: log_gamma(-3.1)
+            0.400311696703985
+
+        Symbolic input works (see #10075)::
+
+            sage: log_gamma(3*x)
+            log_gamma(3*x)
+            sage: log_gamma(3+i)
+            log_gamma(I + 3)
+            sage: log_gamma(3+i+x)
+            log_gamma(x + I + 3)
+
+        To get evaluation of input for which gamma
+        is negative and the ceiling is even, we must
+        explicitly make the input complex.  This is
+        a known issue, see #12521::
+
+            sage: log_gamma(-2.1)
+            NaN
+            sage: log_gamma(CC(-2.1))
+            1.53171380819509 + 3.14159265358979*I
+
+        In order to prevent evaluation, use the `hold` argument;
+        to evaluate a held expression, use the `n()` numerical
+        evaluation method::
+
+            sage: log_gamma(SR(5),hold=True)
+            log_gamma(5)
+            sage: log_gamma(SR(5),hold=True).n()
+            3.17805383034795
+
+        TESTS::
+
+            sage: log_gamma(-2.1+i)
+            -1.90373724496982 - 0.901638463592247*I
+            sage: log_gamma(pari(6))
+            4.78749174278205
+            sage: log_gamma(CC(6))
+            4.78749174278205
+            sage: log_gamma(CC(-2.5))
+            -0.0562437164976740 + 3.14159265358979*I
+
+        ``conjugate(log_gamma(x))==log_gamma(conjugate(x))`` unless on the branch
+        cut, which runs along the negative real axis.::
+
+            sage: conjugate(log_gamma(x))
+            conjugate(log_gamma(x))
+            sage: var('y', domain='positive')
+            y
+            sage: conjugate(log_gamma(y))
+            log_gamma(y)
+            sage: conjugate(log_gamma(y+I))
+            conjugate(log_gamma(y + I))
+            sage: log_gamma(-2)
+            +Infinity
+            sage: conjugate(log_gamma(-2))
+            conjugate(+Infinity)
+        """
+        GinacFunction.__init__(self, "log_gamma", latex_name=r'\log\Gamma',
+                conversions={'mathematica':'LogGamma','maxima':'log_gamma'})
+
+log_gamma = Function_log_gamma()
+
 class Function_gamma_inc(BuiltinFunction):
     def __init__(self):
         r"""

@@ -386,7 +386,7 @@ from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import ZZ, RR, RDF
-from sage.functions.other import real, imag
+from sage.functions.other import real, imag, log_gamma
 from sage.symbolic.function import BuiltinFunction
 from sage.calculus.calculus import maxima
 
@@ -1644,10 +1644,10 @@ elliptic_pi = EllipticPi()
 def lngamma(t):
     r"""
     This method is deprecated, please use
-    :meth:`sage.functions.special.log_gamma` instead.
+    :meth:`~sage.functions.other.log_gamma` instead.
 
-    See the :meth:`sage.functions.special.log_gamma` method for documentation
-    and examples.
+    See the :meth:`~sage.functions.other.log_gamma` function for '
+    documentation and examples.
 
     EXAMPLES::
 
@@ -1658,62 +1658,6 @@ def lngamma(t):
     from sage.misc.misc import deprecation
     deprecation("The method lngamma() is deprecated. Use log_gamma() instead.")
     return log_gamma(t)
-
-def log_gamma(t):
-    """
-    The principal branch of the logarithm of the Gamma function of t.
-    This function is currently always immediately evaluated for
-    non-symbolic input.
-
-    EXAMPLES::
-
-        sage: log_gamma(RR(6))
-        4.78749174278205
-        sage: log_gamma(6)
-        4.78749174278205
-        sage: log_gamma(pari(6))
-        4.78749174278205
-        sage: log_gamma(x)
-        log_gamma(x)
-
-    The only current way to prevent automatic evaluation is to
-    use the ``hold`` argument with the symbolic method, thus::
-
-        sage: SR(5).log_gamma(hold=True)
-        log_gamma(5)
-
-    To evaluate again, currently we must use numerical evaluation
-    via :meth:`n`::
-
-        sage: a = SR(5).log_gamma(hold=True); a.n()
-        3.17805383034795
-
-    TESTS:
-
-    ``conjugate(log_gamma(x))==log_gamma(conjugate(x))`` unless on the branch
-    cut which runs along the negative real axis.::
-
-        sage: conjugate(log_gamma(x))
-        conjugate(log_gamma(x))
-        sage: var('y', domain='positive')
-        y
-        sage: conjugate(log_gamma(y))
-        log_gamma(y)
-        sage: conjugate(log_gamma(y+I))
-        conjugate(log_gamma(y + I))
-        sage: conjugate(log_gamma(-2))
-        NaN
-        sage: log_gamma(-2)
-        NaN
-    """
-    try:
-        return t.log_gamma()
-    except AttributeError:
-        from sage.rings.real_mpfr import RR
-        try:
-            return RR(t).log_gamma()
-        except:
-            raise NotImplementedError
 
 def exp_int(t):
     r"""

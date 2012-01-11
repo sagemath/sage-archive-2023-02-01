@@ -1,13 +1,39 @@
-1) Deleted some lines from Makefile.in to prevent info docs being built
+= termcap =
 
-2) In Makefile.in I commented out the line
+== Description ==
 
-     oldincludedir = /usr/include
+A library of C functions that enable programs to send control strings
+to terminals in a way independent of the terminal type.
 
-since SAGE install should work as not-root.
+== License ==
 
+GPL version 2
 
-== Changlog ==
+== SPKG Maintainers ==
+
+None
+
+== Upstream Contact ==
+
+Please report any bugs in this library to bug-gnu-emacs@prep.ai.mit.edu
+
+== Dependencies ==
+
+ * GNU patch
+
+== Special Update/Build Instructions ==
+
+None
+
+== Changelog ==
+
+=== termcap-1.3.1.p2 (Jeroen Demeyer, 11 January 2012) ===
+ * Trac #12282: Add patches/strcmp_NULL.patch to fix a bug when the
+   environment variable TERM is not set.
+ * Restore upstream sources, put existing patch in
+   patches/Makefile.in.patch
+ * Use patch for patching
+ * Standardize SPKG.txt
 
 === termcap-1.3.1.p1 (Jaap Spies, Jan 28th, 2010) ===
  * If $SAGE64="yes" add -m64 to CFLAGS. This used to work only on Darwin.
@@ -19,4 +45,11 @@ since SAGE install should work as not-root.
  * add 64 OSX build support
  * check in all files
  * add .hgignore
+ * Changes from upstream:
+1) Deleted some lines from Makefile.in to prevent info docs being built
 
+2) In Makefile.in I commented out the line
+
+     oldincludedir = /usr/include
+
+since SAGE install should work as not-root.

@@ -6,17 +6,29 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+CFLAGS="-O2 -g -fPIC $CFLAGS"
+
 if [ "x$SAGE64" = xyes ]; then
-   CFLAGS="-O2 -g -m64 " && export CFLAGS
+   CFLAGS="$CFLAGS -m64"
 fi
+export CFLAGS
 
 cd src/
 
+# Apply patches
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+
 build()
 {
-    CFLAGS="$CFLAGS -fPIC"
     if [ ! -f Makefile ]; then
-        ./configure --prefix=$SAGE_LOCAL
+        ./configure --prefix="$SAGE_LOCAL"
         if [ $? -ne 0 ]; then
             echo "ERROR configuring termcap"
             exit 1

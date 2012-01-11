@@ -10,6 +10,7 @@ Graph objects and methods
 
    sage/graphs/generic_graph
    sage/graphs/graph
+   sage/graphs/graph_plot
    sage/graphs/digraph
    sage/graphs/bipartite_graph
 

@@ -1,3 +1,6 @@
+"""
+Graph Plotting
+"""
 
 #*****************************************************************************
 #      Copyright (C) 2009   Emily Kirkman
@@ -553,52 +556,53 @@ class GraphPlot(SageObject):
         Returns a graphics object representing the (di)graph.
 
         INPUT:
-            pos -- an optional positioning dictionary
-            layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed
-                    on a circle
-                'spring' -- uses the traditional spring layout, using the
-                    graph's current positions as initial positions
-                'tree' -- the (di)graph must be a tree. One can specify the root
-                    of the tree using the keyword tree_root, otherwise a root
-                    will be selected at random. Then the tree will be plotted in
-                    levels, depending on minimum distance for the root.
-            vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edge labels. By default, False,
-                but if True, the result of str(l) is printed on the edge for
-                each label l. Labels equal to None are not printed (to set edge
-                labels, see set_edge_label).
-            vertex_size -- size of vertices displayed
-            vertex_shape -- the shape to draw the vertices (Not available for
-                multiedge digraphs.
-            graph_border -- whether to include a box around the graph
-            vertex_colors -- optional dictionary to specify vertex colors: each
-                key is a color recognizable by matplotlib, and each corresponding
-                entry is a list of vertices. If a vertex is not listed, it looks
-                invisible on the resulting plot (it doesn't get drawn).
-            edge_colors -- a dictionary specifying edge colors: each key is a
-                color recognized by matplotlib, and each entry is a list of edges.
-            partition -- a partition of the vertex set. if specified, plot will
-                show each cell in a different color. vertex_colors takes precedence.
-            talk -- if true, prints large vertices with white backgrounds so that
-                labels are legible on slides
-            iterations -- how many iterations of the spring layout algorithm to
-                go through, if applicable
-            color_by_label -- if True, color edges by their labels
-            heights -- if specified, this is a dictionary from a set of
-                floating point heights to a set of vertices
-            edge_style -- keyword arguments passed into the
-                edge-drawing routine.  This currently only works for
-                directed graphs, since we pass off the undirected graph to
-                networkx
-            tree_root -- a vertex of the tree to be used as the root for
-                the layout="tree" option. If no root is specified, then one
-                is chosen at random. Ignored unless layout='tree'.
-            tree_orientation -- "up" or "down" (default is "down").
-                If "up" (resp., "down"), then the root of the tree will
-                appear on the bottom (resp., top) and the tree will grow
-                upwards (resp. downwards). Ignored unless layout='tree'.
-            save_pos -- save position computed during plotting
+            - pos -- an optional positioning dictionary
+            - layout -- what kind of layout to use, takes precedence over pos
+
+              - 'circular' -- plots the graph with vertices evenly distributed
+                on a circle
+              - 'spring' -- uses the traditional spring layout, using the
+                graph's current positions as initial positions
+              - 'tree' -- the (di)graph must be a tree. One can specify the root
+                of the tree using the keyword tree_root, otherwise a root
+                will be selected at random. Then the tree will be plotted in
+                levels, depending on minimum distance for the root.
+            - vertex_labels -- whether to print vertex labels
+              edge_labels -- whether to print edge labels. By default, False,
+              but if True, the result of str(l) is printed on the edge for
+              each label l. Labels equal to None are not printed (to set edge
+              labels, see set_edge_label).
+            - vertex_size -- size of vertices displayed
+            - vertex_shape -- the shape to draw the vertices (Not available for
+              multiedge digraphs.
+            - graph_border -- whether to include a box around the graph
+            - vertex_colors -- optional dictionary to specify vertex colors: each
+              key is a color recognizable by matplotlib, and each corresponding
+              entry is a list of vertices. If a vertex is not listed, it looks
+              invisible on the resulting plot (it doesn't get drawn).
+            - edge_colors -- a dictionary specifying edge colors: each key is a
+              color recognized by matplotlib, and each entry is a list of edges.
+            - partition -- a partition of the vertex set. if specified, plot will
+              show each cell in a different color. vertex_colors takes precedence.
+            - talk -- if true, prints large vertices with white backgrounds so that
+              labels are legible on slides
+            - iterations -- how many iterations of the spring layout algorithm to
+              go through, if applicable
+            - color_by_label -- if True, color edges by their labels
+            - heights -- if specified, this is a dictionary from a set of
+              floating point heights to a set of vertices
+            - edge_style -- keyword arguments passed into the
+              edge-drawing routine.  This currently only works for
+              directed graphs, since we pass off the undirected graph to
+              networkx
+            - tree_root -- a vertex of the tree to be used as the root for
+              the layout="tree" option. If no root is specified, then one
+              is chosen at random. Ignored unless layout='tree'.
+            - tree_orientation -- "up" or "down" (default is "down").
+              If "up" (resp., "down"), then the root of the tree will
+              appear on the bottom (resp., top) and the tree will grow
+              upwards (resp. downwards). Ignored unless layout='tree'.
+            - save_pos -- save position computed during plotting
 
         EXAMPLES::
 
@@ -770,11 +774,11 @@ class GraphPlot(SageObject):
         - ``root`` -- the root vertex.
 
         - ``orientation`` -- Whether to place the root
-        at the top or at the bottom :
-            - ``orientation="down"`` -- children are place below
-            their parent
-            - ``orientation="top"`` -- children are places above
-            their parent
+          at the top or at the bottom :
+            - ``orientation="down"`` -- children are placed below
+              their parent
+            - ``orientation="top"`` -- children are placed above
+              their parent
 
 
         EXAMPLES::

@@ -12,10 +12,10 @@ The M4RIE library offers two matrix representations:
   represented as ``[0xxx|0xxx|0xxx|0xxx|...]``. This representation is
   wrapped as :class:`Matrix_mod2e_dense` in Sage.
 
-  Multiplication and elimination both use "Travolta" tables. These
+  Multiplication and elimination both use "Newton-John" tables. These
   tables are simply all possible multiples of a given row in a matrix
   such that a scale+add operation is reduced to a table lookup +
-  add. On top of Travolta multiplication M4RIE implements
+  add. On top of Newton-John multiplication M4RIE implements
   asymptotically fast Strassen-Winograd multiplication. Elimination
   uses simple Gaussian elimination which requires `O(n^3)` additions
   but only `O(n^2 * 2^e)` multiplications.
@@ -430,13 +430,13 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             sage: K.<a> = GF(2^3)
             sage: A = random_matrix(K, 51, 50)
             sage: B = random_matrix(K, 50, 52)
-            sage: A*B == A._multiply_travolta(B) # indirect doctest
+            sage: A*B == A._multiply_newton_john(B) # indirect doctest
             True
 
             sage: K.<a> = GF(2^5)
             sage: A = random_matrix(K, 10, 50)
             sage: B = random_matrix(K, 50, 12)
-            sage: A*B == A._multiply_travolta(B)
+            sage: A*B == A._multiply_newton_john(B)
             True
 
             sage: K.<a> = GF(2^7)
@@ -458,9 +458,9 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         _sig_off
         return ans
 
-    cpdef Matrix_mod2e_dense _multiply_travolta(Matrix_mod2e_dense self, Matrix_mod2e_dense right):
+    cpdef Matrix_mod2e_dense _multiply_newton_john(Matrix_mod2e_dense self, Matrix_mod2e_dense right):
         """
-        Return A*B using Travolta tables.
+        Return A*B using Newton-John tables.
 
         We can write classical cubic multiplication (``C=A*B``) as::
 
@@ -474,7 +474,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         ``e * B[j]`` is computed more than once for any ``e`` in the finite
         field. Instead, we compute all possible
         multiples of ``B[j]`` and re-use this data in the inner loop.
-        This is what is called a "Travolta" table in M4RIE.
+        This is what is called a "Newton-John" table in M4RIE.
 
         INPUT:
 
@@ -485,25 +485,25 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             sage: K.<a> = GF(2^2)
             sage: A = random_matrix(K, 50, 50)
             sage: B = random_matrix(K, 50, 50)
-            sage: A._multiply_travolta(B) == A._multiply_classical(B) # indirect doctest
+            sage: A._multiply_newton_john(B) == A._multiply_classical(B) # indirect doctest
             True
 
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K, 50, 50)
             sage: B = random_matrix(K, 50, 50)
-            sage: A._multiply_travolta(B) == A._multiply_classical(B)
+            sage: A._multiply_newton_john(B) == A._multiply_classical(B)
             True
 
             sage: K.<a> = GF(2^8)
             sage: A = random_matrix(K, 50, 50)
             sage: B = random_matrix(K, 50, 50)
-            sage: A._multiply_travolta(B) == A._multiply_classical(B)
+            sage: A._multiply_newton_john(B) == A._multiply_classical(B)
             True
 
             sage: K.<a> = GF(2^10)
             sage: A = random_matrix(K, 50, 50)
             sage: B = random_matrix(K, 50, 50)
-            sage: A._multiply_travolta(B) == A._multiply_classical(B)
+            sage: A._multiply_newton_john(B) == A._multiply_classical(B)
             True
         """
         if self._ncols != right._nrows:
@@ -516,7 +516,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             return ans
 
         _sig_on
-        ans._entries = mzed_mul_travolta(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
+        ans._entries = mzed_mul_newton_john(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
         _sig_off
         return ans
 
@@ -550,13 +550,13 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
 
         TESTS::
 
-            sage: K.<a> = GF(2^5)
+            sage: K.<a> = GF(2^10)
             sage: A = random_matrix(K, 50, 50)
             sage: B = random_matrix(K, 50, 50)
             sage: A._multiply_karatsuba(B) == A._multiply_classical(B)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Karatsuba multiplication is only implemented for matrices over GF(2^e) with e <= 4.
+            NotImplementedError: Karatsuba multiplication is only implemented for matrices over GF(2^e) with e <= 8.
         """
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
@@ -577,14 +577,14 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
 
     cpdef Matrix_mod2e_dense _multiply_strassen(Matrix_mod2e_dense self, Matrix_mod2e_dense right, cutoff=0):
         """
-        Winograd-Strassen matrix multiplication with Travolta
+        Winograd-Strassen matrix multiplication with Newton-John
         multiplication as base case.
 
         INPUT:
 
         - ``right`` - a matrix
         - ``cutoff`` - row or column dimension to switch over to
-          Travolta multiplication (default: 64)
+          Newton-John multiplication (default: 64)
 
         EXAMPLES::
 
@@ -877,7 +877,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
 
         - ``algorithm`` - one of the following
           - ``heuristic`` - let M4RIE decide (default)
-          - ``travolta`` - use travolta table based algorithm
+          - ``newton_john`` - use newton_john table based algorithm
           - ``ple`` - use PLE decomposition
           - ``naive`` - use naive cubic Gaussian elimination (M4RIE implementation)
           - ``builtin`` - use naive cubic Gaussian elimination (Sage implementation)
@@ -904,7 +904,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             sage: MS = MatrixSpace(K,m,n)
             sage: A = random_matrix(K, 3, 5)
 
-            sage: copy(A).echelon_form('travolta')
+            sage: copy(A).echelon_form('newton_john')
             [          1           0           0         a^2     a^2 + 1]
             [          0           1           0         a^2           1]
             [          0           0           1 a^2 + a + 1       a + 1]
@@ -940,9 +940,9 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             r =  mzed_echelonize_naive(self._entries, full)
             _sig_off
 
-        elif algorithm == 'travolta':
+        elif algorithm == 'newton_john':
             _sig_on
-            r =  mzed_echelonize_travolta(self._entries, full)
+            r =  mzed_echelonize_newton_john(self._entries, full)
             _sig_off
 
         elif algorithm == 'ple':
@@ -1014,7 +1014,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         A = Matrix_mod2e_dense.__new__(Matrix_mod2e_dense, self._parent, 0, 0, 0)
 
         if self._nrows and self._nrows == self._ncols:
-            mzed_invert_travolta(A._entries, self._entries)
+            mzed_invert_newton_john(A._entries, self._entries)
 
         return A
 

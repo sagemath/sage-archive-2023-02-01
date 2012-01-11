@@ -18,7 +18,7 @@ cdef extern from "m4rie/m4rie.h":
 
     void gf2e_free(gf2e *ff)
 
-#cdef extern from "m4rie/gf2e_matrix.h":
+#cdef extern from "m4rie/mzed.h":
     ctypedef struct mzed_t:
         mzd_t *x
         gf2e *finite_field
@@ -87,7 +87,7 @@ cdef extern from "m4rie/m4rie.h":
 
     void mzed_print(const_mzed_t *M)
 
-    mzed_t *mzed_invert_travolta(mzed_t *A, mzed_t *B)
+    mzed_t *mzed_invert_newton_john(mzed_t *A, mzed_t *B)
 
     # TODO: not implemented yet in m4rie
     double mzed_density(mzed_t *A, int res)
@@ -95,10 +95,10 @@ cdef extern from "m4rie/m4rie.h":
     # TODO: not implemented yet in m4rie
     double _mzed_density(mzed_t *A, int res, size_t r, size_t c)
 
-#cdef extern from "m4rie/travolta.h":
-    size_t mzed_echelonize_travolta(mzed_t *, size_t)
+#cdef extern from "m4rie/newton_john.h":
+    size_t mzed_echelonize_newton_john(mzed_t *, size_t)
 
-    mzed_t *mzed_mul_travolta(mzed_t *, mzed_t *, mzed_t *)
+    mzed_t *mzed_mul_newton_john(mzed_t *, mzed_t *, mzed_t *)
 
 #cdef extern from "m4rie/echelonform.h":
     size_t mzed_echelonize(mzed_t *, size_t)
@@ -110,7 +110,7 @@ cdef extern from "m4rie/m4rie.h":
 
     size_t _mzed_strassen_cutoff(mzed_t *C, mzed_t *A, mzed_t *B)
 
-#cdef extern from "m4rie/bitslice.h":
+#cdef extern from "m4rie/mzd_slice.h":
 
     int __M4RIE_MAX_KARATSUBA_DEGREE
 

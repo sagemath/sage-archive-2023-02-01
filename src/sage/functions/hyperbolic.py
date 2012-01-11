@@ -387,7 +387,7 @@ class Function_arcsinh(GinacFunction):
             {\rm arcsinh}\left(x\right)
         """
         GinacFunction.__init__(self, "arcsinh", latex_name=r"{\rm arcsinh}",
-                conversions=dict(maxima='asinh'))
+                conversions=dict(maxima='asinh', sympy='asinh'))
 
 arcsinh = asinh = Function_arcsinh()
 
@@ -466,7 +466,7 @@ class Function_arccosh(GinacFunction):
             {\rm arccosh}\left(x\right)
         """
         GinacFunction.__init__(self, "arccosh", latex_name=r"{\rm arccosh}",
-                conversions=dict(maxima='acosh'))
+                conversions=dict(maxima='acosh', sympy='acosh'))
 
 arccosh = acosh = Function_arccosh()
 
@@ -521,7 +521,7 @@ class Function_arctanh(GinacFunction):
             {\rm arctanh}\left(x\right)
         """
         GinacFunction.__init__(self, "arctanh", latex_name=r"{\rm arctanh}",
-                conversions=dict(maxima='atanh'))
+                conversions=dict(maxima='atanh', sympy='atanh'))
 
 arctanh = atanh = Function_arctanh()
 
@@ -547,7 +547,8 @@ class Function_arccoth(HyperbolicFunction):
             {\rm arccoth}\left(x\right)
         """
         HyperbolicFunction.__init__(self, "arccoth",
-                latex_name=r"{\rm arccoth}", conversions=dict(maxima='acoth'),
+                latex_name=r"{\rm arccoth}",
+                conversions=dict(maxima='acoth', sympy='acoth'),
                 evalf_float=lambda x: atanh(float(1/x)))
 
     def _eval_numpy_(self, x):

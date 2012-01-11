@@ -646,23 +646,10 @@ class SympyConverter(Converter):
             sage: s.composition(f, f.operator())
             asin(2)
         """
-        f = repr(operator)
+        f = operator._sympy_init_()
         g = ex.operands()
         import sympy
-        # translates Sage function names to SymPy function names
-        translation_table = {
-                "arcsin": "asin",
-                "arccos": "acos",
-                "arctan": "atan",
-                "arctan2": "atan2",
-                "arccot": "acot",
-                "arcsinh": "asinh",
-                "arccosh": "acosh",
-                "arctanh": "atanh",
-                "arccoth": "acoth",
-                }
-        if f in translation_table:
-            f = translation_table[f]
+
         f_sympy = getattr(sympy, f, None)
         if f_sympy:
             return f_sympy(*sympy.sympify(g))

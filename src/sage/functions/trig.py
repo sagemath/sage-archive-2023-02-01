@@ -445,7 +445,7 @@ class Function_arcsin(GinacFunction):
             arcsin
         """
         GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
-                conversions=dict(maxima='asin'))
+                conversions=dict(maxima='asin', sympy='asin'))
 
 arcsin = asin = Function_arcsin()
 
@@ -500,7 +500,7 @@ class Function_arccos(GinacFunction):
             arccos
         """
         GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
-                conversions=dict(maxima='acos'))
+                conversions=dict(maxima='acos', sympy='acos'))
 
 arccos = acos = Function_arccos()
 
@@ -557,7 +557,7 @@ class Function_arctan(GinacFunction):
             arctan
         """
         GinacFunction.__init__(self, "arctan", latex_name=r'\arctan',
-                conversions=dict(maxima='atan'))
+                conversions=dict(maxima='atan', sympy='atan'))
 
 arctan = atan = Function_arctan()
 
@@ -588,7 +588,7 @@ class Function_arccot(BuiltinFunction):
 
         """
         BuiltinFunction.__init__(self, "arccot", latex_name=r'{\rm arccot}',
-                                   conversions=dict(maxima='acot'))
+                conversions=dict(maxima='acot', sympy='acot'))
 
     def _evalf_(self, x, parent=None):
         """
@@ -855,6 +855,6 @@ class Function_arctan2(GinacFunction):
             3.14159265358979
         """
         GinacFunction.__init__(self, "arctan2", nargs=2, latex_name=r'\arctan',
-                conversions=dict(maxima='atan2'))
+                conversions=dict(maxima='atan2', sympy='atan2'))
 
 arctan2 = atan2 = Function_arctan2()

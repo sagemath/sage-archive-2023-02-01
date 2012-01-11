@@ -507,6 +507,19 @@ cdef class Function(SageObject):
         s = self._conversions.get('mathematica', None)
         return s if s is not None else repr(self).capitalize()
 
+    def _sympy_init_(self, I=None):
+        """
+        EXAMPLES::
+
+            sage: arcsin._sympy_init_()
+            'asin'
+            sage: from sage.symbolic.function import SymbolicFunction
+            sage: f = SymbolicFunction('f', conversions=dict(sympy='ff'))
+            sage: f._sympy_init_()
+            'ff'
+        """
+        return self._conversions.get('sympy', self._name)
+
     def _maxima_init_(self, I=None):
         """
         EXAMPLES::
@@ -518,11 +531,7 @@ cdef class Function(SageObject):
             sage: f._maxima_init_()
             'ff'
         """
-        s = self._conversions.get('maxima', None)
-        if s is None:
-            return repr(self)
-        else:
-            return s
+        return self._conversions.get('maxima', self._name)
 
     def _fast_float_(self, *vars):
         """

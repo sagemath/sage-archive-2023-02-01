@@ -965,15 +965,8 @@ class Function_factorial(GinacFunction):
         INPUT:
 
 
-        -  ``n`` - an integer, or symbolic expression
-
-        -  ``algorithm`` - string (default: 'gmp')
-
-        -  ``'gmp'`` - use the GMP C-library factorial
-           function
-
-        -  ``'pari'`` - use PARI's factorial function This
-           option has no effect if n is a symbolic expression.
+        -  ``n`` - any complex argument (except negative
+           integers) or any symbolic expression
 
 
         OUTPUT: an integer or symbolic expression

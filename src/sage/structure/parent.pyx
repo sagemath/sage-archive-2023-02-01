@@ -323,13 +323,13 @@ def getattr_from_other_class(self, cls, str name):
         AttributeError: 'sage.rings.integer.Integer' object has no attribute '__call__'
     """
     if PY_TYPE_CHECK(self, cls):
-        raise AttributeError, AttributeErrorMessage(self, name)
+        raise AttributeError(AttributeErrorMessage(self, name))
     try:
         attribute = getattr(cls, name)
     except AttributeError:
-        raise AttributeError, AttributeErrorMessage(self, name)
+        raise AttributeError(AttributeErrorMessage(self, name))
     if PY_TYPE_CHECK(attribute, methodwrapper):
-        raise AttributeError, AttributeErrorMessage(self, name)
+        raise AttributeError(AttributeErrorMessage(self, name))
     try:
         getter = attribute.__get__
     except AttributeError:
@@ -342,7 +342,7 @@ def getattr_from_other_class(self, cls, str name):
         return getter(self, cls)
     except TypeError:
         pass
-    raise AttributeError, AttributeErrorMessage(self, name)
+    raise AttributeError(AttributeErrorMessage(self, name))
 
 def dir_with_other_class(self, cls):
     r"""
@@ -795,7 +795,7 @@ cdef class Parent(category_object.CategoryObject):
         if self._coerce_from_hash is None:
             if warn:
                 print "init_coerce() for ", type(self)
-                raise ZeroDivisionError, "hello"
+                raise ZeroDivisionError("hello")
             self._initial_coerce_list = []
             self._initial_action_list = []
             self._initial_convert_list = []
@@ -868,7 +868,7 @@ cdef class Parent(category_object.CategoryObject):
 
         """
         if (name.startswith('__') and not name.endswith('_')) or self._category is None:
-            raise AttributeError, AttributeErrorMessage(self, name)
+            raise AttributeError(AttributeErrorMessage(self, name))
         try:
             return self.__cached_methods[name]
         except KeyError:
@@ -1059,7 +1059,7 @@ cdef class Parent(category_object.CategoryObject):
             else:
                 return mor._call_with_args(x, args, kwds)
 
-        raise TypeError, "No conversion defined from %s to %s"%(R, self)
+        raise TypeError("No conversion defined from %s to %s"%(R, self))
 
     def __mul__(self,x):
         """
@@ -1146,7 +1146,7 @@ cdef class Parent(category_object.CategoryObject):
             except AttributeError:
                 pass
         if _mul_ is None:
-            raise TypeError,"For implementing multiplication, provide the method '_mul_' for %s resp. %s"%(self,x)
+            raise TypeError("For implementing multiplication, provide the method '_mul_' for %s resp. %s"%(self,x))
         if switch:
             return _mul_(self,switch_sides=True)
         return _mul_(x)
@@ -1251,7 +1251,7 @@ cdef class Parent(category_object.CategoryObject):
                     return self(0)
                 except:
                     _record_exception()
-            raise TypeError, "no canonical coercion from %s to %s" % (parent_c(x), self)
+            raise TypeError("no canonical coercion from %s to %s" % (parent_c(x), self))
         else:
             return (<map.Map>mor)._call_(x)
 
@@ -1445,7 +1445,8 @@ cdef class Parent(category_object.CategoryObject):
     # Should be moved and merged into the EnumeratedSets() category
     def __getitem__(self, n):
         """
-        Returns the `n^{th}` item of self, by getting self as a list.
+        Returns the `n^{th}` item or slice `n` of self,
+        by getting self as a list.
 
         EXAMPLES::
 
@@ -1455,15 +1456,6 @@ cdef class Parent(category_object.CategoryObject):
             sage: MatrixSpace(GF(3), 2, 2)[0]
             [0 0]
             [0 0]
-        """
-        return self.list()[n]
-
-    def __getslice__(self,  Py_ssize_t n,  Py_ssize_t m):
-        """
-        Returns the `n^{th}` through `m^{th}` items in self.
-
-        EXAMPLES::
-
             sage: VectorSpace(GF(7), 3)[:10]
             [(0, 0, 0),
              (1, 0, 0),
@@ -1476,7 +1468,8 @@ cdef class Parent(category_object.CategoryObject):
              (1, 1, 0),
              (2, 1, 0)]
         """
-        return self.list()[int(n):int(m)]
+        return self.list()[n]
+
 
     #################################################################################
     # Generators and Homomorphisms
@@ -1491,7 +1484,7 @@ cdef class Parent(category_object.CategoryObject):
        been implemented for this ring, then a NotImplementedError exception
        is raised.
        """
-       raise NotImplementedError, "Verification of correctness of homomorphisms from %s not yet implemented."%self
+       raise NotImplementedError("Verification of correctness of homomorphisms from %s not yet implemented."%self)
 
     def Hom(self, codomain, category=None):
         r"""
@@ -1673,16 +1666,16 @@ cdef class Parent(category_object.CategoryObject):
             try:
                 element_constructor = self._element_constructor_
             except AttributeError:
-                raise RuntimeError, "element_constructor must be provided, either as an _element_constructor_ method or via the _populate_coercion_lists_ call"
+                raise RuntimeError("element_constructor must be provided, either as an _element_constructor_ method or via the _populate_coercion_lists_ call")
         self._element_constructor = element_constructor
         self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
 
         if not PY_TYPE_CHECK(coerce_list, list):
-            raise ValueError, "%s_populate_coercion_lists_: coerce_list is type %s, must be list" % (type(coerce_list), type(self))
+            raise ValueError("%s_populate_coercion_lists_: coerce_list is type %s, must be list" % (type(coerce_list), type(self)))
         if not PY_TYPE_CHECK(action_list, list):
-            raise ValueError, "%s_populate_coercion_lists_: action_list is type %s, must be list" % (type(action_list), type(self))
+            raise ValueError("%s_populate_coercion_lists_: action_list is type %s, must be list" % (type(action_list), type(self)))
         if not PY_TYPE_CHECK(convert_list, list):
-            raise ValueError, "%s_populate_coercion_lists_: convert_list is type %s, must be list" % (type(convert_list), type(self))
+            raise ValueError("%s_populate_coercion_lists_: convert_list is type %s, must be list" % (type(convert_list), type(self)))
 
         self._initial_coerce_list = copy(coerce_list)
         self._initial_action_list = copy(action_list)
@@ -1778,11 +1771,11 @@ cdef class Parent(category_object.CategoryObject):
         """
         if PY_TYPE_CHECK(mor, map.Map):
             if mor.codomain() is not self:
-                raise ValueError, "Map's codomain must be self (%s) is not (%s)" % (self, mor.codomain())
+                raise ValueError("Map's codomain must be self (%s) is not (%s)" % (self, mor.codomain()))
         elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
             mor = self._generic_convert_map(mor)
         else:
-            raise TypeError, "coercions must be parents or maps (got %s)" % type(mor)
+            raise TypeError("coercions must be parents or maps (got %s)" % type(mor))
 
         assert not (self._coercions_used and mor.domain() in self._coerce_from_hash), "coercion from %s to %s already registered or discovered"%(mor.domain(), self)
         self._coerce_from_list.append(mor)
@@ -1852,9 +1845,9 @@ cdef class Parent(category_object.CategoryObject):
                 self._action_list.append(action)
                 self._action_hash[action.actor(), action.operation(), not action.is_left()] = action
             else:
-                raise ValueError, "Action must involve self"
+                raise ValueError("Action must involve self")
         else:
-            raise TypeError, "actions must be actions"
+            raise TypeError("actions must be actions")
 
     cpdef register_conversion(self, mor):
         r"""
@@ -1879,7 +1872,7 @@ cdef class Parent(category_object.CategoryObject):
         assert not self._coercions_used, "coercions must all be registered up before use"
         if isinstance(mor, map.Map):
             if mor.codomain() is not self:
-                raise ValueError, "Map's codomain must be self"
+                raise ValueError("Map's codomain must be self")
             self._convert_from_list.append(mor)
             self._convert_from_hash[mor.domain()] = mor
         elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
@@ -1889,7 +1882,7 @@ cdef class Parent(category_object.CategoryObject):
             self._convert_from_hash[t] = mor
             self._convert_from_hash[mor.domain()] = mor
         else:
-            raise TypeError, "conversions must be parents or maps"
+            raise TypeError("conversions must be parents or maps")
 
     cpdef register_embedding(self, embedding):
         r"""
@@ -1978,12 +1971,12 @@ cdef class Parent(category_object.CategoryObject):
 
         if isinstance(embedding, map.Map):
             if embedding.domain() is not self:
-                raise ValueError, "embedding's domain must be self"
+                raise ValueError("embedding's domain must be self")
             self._embedding = embedding
         elif isinstance(embedding, Parent):
             self._embedding = embedding._generic_convert_map(self)
         elif embedding is not None:
-            raise TypeError, "embedding must be a parent or map"
+            raise TypeError("embedding must be a parent or map")
 
     def coerce_embedding(self):
         """
@@ -2249,7 +2242,7 @@ cdef class Parent(category_object.CategoryObject):
             elif callable(user_provided_mor):
                 mor = CallableConvertMap(user_provided_mor)
             else:
-                raise TypeError, "_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor))
+                raise TypeError("_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
             if (PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap) or
                   PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap_unique) or
@@ -2344,7 +2337,7 @@ cdef class Parent(category_object.CategoryObject):
                 from coerce_maps import CallableConvertMap
                 return CallableConvertMap(user_provided_mor)
             else:
-                raise TypeError, "_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor))
+                raise TypeError("_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
         if not PY_TYPE_CHECK(S, type) and not PY_TYPE_CHECK(S, Parent):
             # Sequences is used as a category and a "Parent"
@@ -2397,7 +2390,7 @@ cdef class Parent(category_object.CategoryObject):
         if action is not None:
             from sage.categories.action import Action
             if not isinstance(action, Action):
-                raise TypeError, "get_action_impl must return None or an Action"
+                raise TypeError("get_action_impl must return None or an Action")
             # We do NOT add to the list, as this would lead to errors as in
             # the example above.
 
@@ -2609,7 +2602,7 @@ cdef class Parent(category_object.CategoryObject):
             except (TypeError, NameError, NotImplementedError, AttributeError, ValueError):
                 _record_exception()
 
-        raise NotImplementedError, "please implement _an_element_ for %s" % self
+        raise NotImplementedError("please implement _an_element_ for %s" % self)
 
     cpdef bint is_exact(self) except -2:
         """
@@ -2935,7 +2928,7 @@ cdef bint _register_pair(x, y, tag) except -1:
     if both in _coerce_test_dict:
         xp = type(x) if PY_TYPE_CHECK(x, Parent) else parent_c(x)
         yp = type(y) if PY_TYPE_CHECK(y, Parent) else parent_c(y)
-        raise CoercionException, "Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp)
+        raise CoercionException("Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp))
     _coerce_test_dict[both] = True
     return 0
 

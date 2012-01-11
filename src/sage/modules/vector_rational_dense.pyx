@@ -104,13 +104,13 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_init(self._entries[i])
         if isinstance(x, (list, tuple)):
             if len(x) != self._degree:
-                raise TypeError, "entries must be a list of length %s"%self._degree
+                raise TypeError("entries must be a list of length %s"%self._degree)
             for i from 0 <= i < self._degree:
                 z = Rational(x[i])
                 mpq_set(self._entries[i], z.value)
             return
         if x != 0:
-            raise TypeError, "can't initialize vector from nonzero non-list"
+            raise TypeError("can't initialize vector from nonzero non-list")
 
     def __dealloc__(self):
         cdef Py_ssize_t i
@@ -153,19 +153,32 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
     def __len__(self):
         return self._degree
 
-    def __setitem__(self, Py_ssize_t i, x):
+    def __setitem__(self, i, value):
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
+            raise ValueError("vector is immutable; please change a copy instead (use copy())")
         cdef Rational z
-        if i < 0 or i >= self._degree:
-            raise IndexError
+        cdef Py_ssize_t k, d, n
+        if isinstance(i, slice):
+            start, stop = i.start, i.stop
+            d = self.degree()
+            R = self.base_ring()
+            n = 0
+            for k from start <= k < stop:
+                if k >= d:
+                    return
+                if k >= 0:
+                    self[k] = R(value[n])
+                    n = n + 1
         else:
-            z = Rational(x)
-            mpq_set(self._entries[i], z.value)
+            if i < 0 or i >= self._degree:
+                raise IndexError
+            else:
+                z = Rational(value)
+                mpq_set(self._entries[i], z.value)
 
-    def __getitem__(self, Py_ssize_t i):
+    def __getitem__(self, i):
         """
-        Return the ith entry of self.
+        Returns `i`-th entry or slice of self.
 
         EXAMPLES::
 
@@ -186,15 +199,18 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             ...
             IndexError: index out of range
         """
-        cdef Rational z
-        z = PY_NEW(Rational)
-        if i < 0:
-            i += self._degree
-        if i < 0 or i >= self._degree:
-            raise IndexError, 'index out of range'
+        cdef Rational z = PY_NEW(Rational)
+        if isinstance(i, slice):
+            start, stop, step = i.indices(len(self))
+            return vector(self.base_ring(), self.list()[start:stop])
         else:
-            mpq_set(z.value, self._entries[i])
-            return z
+            if i < 0:
+                i += self._degree
+            if i < 0 or i >= self._degree:
+                raise IndexError('index out of range')
+            else:
+                mpq_set(z.value, self._entries[i])
+                return z
 
     def list(self,copy=True):
         """
@@ -294,7 +310,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_set_z(a.value, (<Integer>left).value)
         else:
             # should not happen
-            raise TypeError, "Cannot convert %s to %s" % (type(left).__name__, Rational.__name__)
+            raise TypeError("Cannot convert %s to %s" % (type(left).__name__, Rational.__name__))
         z = self._new_c()
         cdef Py_ssize_t i
         for i from 0 <= i < self._degree:
@@ -313,7 +329,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_set_z(a.value, (<Integer>right).value)
         else:
             # should not happen
-            raise TypeError, "Cannot convert %s to %s" % (type(right).__name__, Rational.__name__)
+            raise TypeError("Cannot convert %s to %s" % (type(right).__name__, Rational.__name__))
         z = self._new_c()
         cdef Py_ssize_t i
         for i from 0 <= i < self._degree:

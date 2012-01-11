@@ -52,9 +52,9 @@ cdef class Polynomial_GF2X(Polynomial_template):
             pass
         Polynomial_template.__init__(self, parent, x, check, is_gen, construct)
 
-    def __getitem__(self, int i):
+    def __getitem__(self, i):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = GF(2)[]
             sage: f = x^3 + x^2 + 1; f
@@ -63,11 +63,31 @@ cdef class Polynomial_GF2X(Polynomial_template):
             1
             sage: f[1]
             0
+            sage: f[-5:50] == f
+            True
+            sage: f[1:]
+            x^3 + x^2
         """
         cdef long c = 0
-        if 0 <= i < GF2X_NumBits(self.x):
-            c = GF2_conv_to_long(GF2X_coeff(self.x, i))
-        return self._parent.base_ring()(c)
+        cdef cparent _parent
+        cdef Polynomial_template r
+        if isinstance(i, slice):
+            start, stop = i.start, i.stop
+            _parent = get_cparent((<Polynomial_template>self)._parent)
+            if start < 0:
+                start = 0
+            if stop > celement_len(&self.x,_parent) or stop is None:
+                stop = celement_len(&self.x, _parent)
+            x = (<Polynomial_template>self)._parent.gen()
+            v = [self[t] for t from start <= t < stop]
+
+            r = <Polynomial_template>PY_NEW(self.__class__)
+            Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
+            return r << start
+        else:
+            if 0 <= i < GF2X_NumBits(self.x):
+                c = GF2_conv_to_long(GF2X_coeff(self.x, i))
+            return self._parent.base_ring()(c)
 
     def _pari_(self, variable=None):
         """

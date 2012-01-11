@@ -171,7 +171,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
     def __getitem__(self, i):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = GF(32003)[]
             sage: f = 24998*x^2 + 29761*x + 2252
@@ -183,11 +183,31 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             2252
             sage: f[-1]
             0
+            sage: f[1:3]
+            24998*x^2 + 29761*x
+            sage: f[-5:50] == f
+            True
         """
         cdef unsigned long c = 0
-        if 0 <= i < zmod_poly_length(&self.x):
-            c = zmod_poly_get_coeff_ui(&self.x, i)
-        return self._parent.base_ring()(c)
+        cdef cparent _parent
+        cdef Polynomial_template r
+        if isinstance(i, slice):
+            start, stop = i.start, i.stop
+            _parent = get_cparent((<Polynomial_template>self)._parent)
+            if start < 0:
+                start = 0
+            if stop > celement_len(&self.x,_parent) or stop is None:
+                stop = celement_len(&self.x, _parent)
+            x = (<Polynomial_template>self)._parent.gen()
+            v = [self[t] for t from start <= t < stop]
+
+            r = <Polynomial_template>PY_NEW(self.__class__)
+            Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
+            return r << start
+        else:
+            if 0 <= i < zmod_poly_length(&self.x):
+                c = zmod_poly_get_coeff_ui(&self.x, i)
+            return self._parent.base_ring()(c)
 
     def __call__(self, *x, **kwds):
         """
@@ -333,7 +353,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         if n >= 0:
             zmod_poly_set_coeff_ui(&self.x, n, int(value)%zmod_poly_modulus(&self.x))
         else:
-            raise IndexError, "Polynomial coefficient index must be nonnegative."
+            raise IndexError("Polynomial coefficient index must be nonnegative.")
 
     def _mul_zn_poly(self, other):
         r"""
@@ -419,7 +439,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         """
         cdef Polynomial_zmod_flint res = self._new()
         if n <= 0:
-            raise ValueError, "length must be > 0"
+            raise ValueError("length must be > 0")
         zmod_poly_mul_trunc_n(&res.x, &self.x, &other.x, n)
         return res
 
@@ -452,7 +472,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         """
         cdef Polynomial_zmod_flint res = self._new()
         if n < 0:
-            raise ValueError, "length must be >= 0"
+            raise ValueError("length must be >= 0")
         zmod_poly_mul_trunc_left_n(&res.x, &self.x, &other.x, n)
         return res
 
@@ -473,7 +493,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             True
         """
         if n_deg < 0 or d_deg < 0:
-            raise ValueError, "The degree bounds n_deg and d_deg should be positive."
+            raise ValueError("The degree bounds n_deg and d_deg should be positive.")
 
         if n_deg == 0:
             n_deg = (m.degree() - 1)//2
@@ -502,7 +522,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
         assert(t0 != 0)
         if d_deg < zmod_poly_degree(&t0.x):
-            raise ValueError, "could not complete rational reconstruction"
+            raise ValueError("could not complete rational reconstruction")
 
         # make the denominator monic
         c = t0.leading_coefficient()
@@ -547,12 +567,12 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             NotImplementedError: checking irreducibility of polynomials over rings with composite characteristic is not implemented
         """
         if self.is_zero():
-            raise ValueError, "must be nonzero"
+            raise ValueError("must be nonzero")
         if self.is_unit():
             return False
 
         if not self.base_ring().is_field():
-            raise NotImplementedError, "checking irreducibility of polynomials over rings with composite characteristic is not implemented"
+            raise NotImplementedError("checking irreducibility of polynomials over rings with composite characteristic is not implemented")
 
         if 1 == zmod_poly_isirreducible(&self.x):
             return True
@@ -581,7 +601,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
         """
         if not self.base_ring().is_field():
-            raise NotImplementedError, "square free factorization of polynomials over rings with composite characteristic is not implemented"
+            raise NotImplementedError("square free factorization of polynomials over rings with composite characteristic is not implemented")
 
         return factor_helper(self, True)
 
@@ -607,7 +627,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
         """
         if not self.base_ring().is_field():
-            raise NotImplementedError, "factorization of polynomials over rings with composite characteristic is not implemented"
+            raise NotImplementedError("factorization of polynomials over rings with composite characteristic is not implemented")
 
         return factor_helper(self)
 
@@ -634,7 +654,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         """
         if self.base_ring().characteristic().gcd(\
                 self.leading_coefficient().lift()) != 1:
-            raise ValueError, "leading coefficient must be invertible"
+            raise ValueError("leading coefficient must be invertible")
         cdef Polynomial_zmod_flint res = self._new()
         zmod_poly_make_monic(&res.x, &self.x)
         return res
@@ -700,7 +720,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         if degree:
             d = degree
             if d != degree:
-                raise ValueError, "degree argument must be a non-negative integer, got %s"%(degree)
+                raise ValueError("degree argument must be a non-negative integer, got %s"%(degree))
             zmod_poly_reverse(&res.x, &self.x, d+1) # FLINT expects length
         else:
             zmod_poly_reverse(&res.x, &self.x, zmod_poly_length(&self.x))

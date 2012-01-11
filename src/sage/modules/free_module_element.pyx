@@ -446,7 +446,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
                 raise TypeError(msg.format(arg0))
         else:
             if not isinstance(arg2, dict) and len(arg2) != degree:
-                raise ValueError, "incompatible degrees in vector constructor"
+                raise ValueError("incompatible degrees in vector constructor")
             arg1 = arg2
 
     # Analyze arg0 and arg1 to create a ring (R) and entries (v)
@@ -585,7 +585,7 @@ def prepare(v, R, degree=None):
     v = Sequence(v, universe=R, use_sage_types=True)
     ring = v.universe()
     if not is_Ring(ring):
-        raise TypeError, "unable to find a common ring for all elements"
+        raise TypeError("unable to find a common ring for all elements")
     return v, ring
 
 def zero_vector(arg0, arg1=None):
@@ -662,7 +662,7 @@ def zero_vector(arg0, arg1=None):
         return (ZZ**arg0).zero_vector()
     if is_Ring(arg0):
         return (arg0**arg1).zero_vector()
-    raise TypeError, "first argument must be a ring"
+    raise TypeError("first argument must be a ring")
 
 def random_vector(ring, degree=None, *args, **kwds):
     r"""
@@ -894,7 +894,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v.__hash__()   # random output
         """
         if self._is_mutable:
-            raise TypeError, "mutable vectors are unhashable"
+            raise TypeError("mutable vectors are unhashable")
         return hash(tuple(self))
 
     def _vector_(self, R=None):
@@ -1422,7 +1422,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         try:
             pr = RDF(p)
             if pr < 1:
-                raise ValueError, "%f is not greater than or equal to 1" %(pr)
+                raise ValueError("%f is not greater than or equal to 1" %(pr))
         except TypeError:
             pass
 
@@ -1455,7 +1455,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def __getitem__(self, i):
         """
-        Return i-th entry of self.
+        Return `i`-th entry or slice of self.
 
         EXAMPLES::
 
@@ -1672,7 +1672,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def __setitem__(self, i, x):
         """
-        Set the i-th entry of self to x.  This is not implemented,
+        Set the `i`-th entry or slice of self to x. This is not implemented,
         since self is an abstract base class.
 
         EXAMPLES::
@@ -1691,59 +1691,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (5, 2/3, 8)
         """
         raise NotImplementedError
-
-    def __getslice__(self, Py_ssize_t i, Py_ssize_t j):
-        """
-        EXAMPLES::
-
-            sage: v = vector(QQ['x,y'], [1,2, 'x*y', 'x^2-y^2']); v
-            (1, 2, x*y, x^2 - y^2)
-            sage: v[1:]
-            (2, x*y, x^2 - y^2)
-            sage: v[:2]
-            (1, 2)
-            sage: type(v[1:])
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
-            sage: v = vector(CDF,[1,2,(3,4)]); v
-            (1.0, 2.0, 3.0 + 4.0*I)
-            sage: w = v[1:]; w
-            (2.0, 3.0 + 4.0*I)
-            sage: parent(w)
-            Vector space of dimension 2 over Complex Double Field
-        """
-        return vector(self.base_ring(), self.list()[i:j])
-
-    def __setslice__(self, i, j, value):
-        """
-        EXAMPLES::
-
-            sage: v = vector(CDF,[1,2,(3,4)]); v
-            (1.0, 2.0, 3.0 + 4.0*I)
-            sage: v[1:] = (1,3); v
-            (1.0, 1.0, 3.0)
-
-        ::
-
-            sage: v.set_immutable()
-            sage: v[1:2] = [3,5]
-            Traceback (most recent call last):
-            ...
-            ValueError: vector is immutable; please change a copy instead (use copy())
-        """
-        if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
-        cdef Py_ssize_t k, d, n
-        d = self.degree()
-        R = self.base_ring()
-        n = 0
-        for k from i <= k < j:
-            if k >= d:
-                return
-            if k >= 0:
-                self[k] = R(value[n])
-                n = n + 1
-
-
 
     def __richcmp__(left, right, int op):
         """
@@ -1965,7 +1912,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             start = list(start)
 
 
-
         if plot_type == 'arrow' or plot_type == 'point':
             dimension = len(coords)
             if dimension == 3:
@@ -1987,21 +1933,17 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
                 else:
                     return point(coords, **kwds)
             else:
-                raise ValueError, "arrow and point plots require vectors with 3 or fewer components"
+                raise ValueError("arrow and point plots require vectors with 3 or fewer components")
 
         elif plot_type == 'step':
             return self.plot_step(**kwds)
         else:
-            raise NotImplementedError, "plot_type was unrecognized"
-
-
-
+            raise NotImplementedError("plot_type was unrecognized")
 
     def plot_step(self, xmin=0, xmax=1, eps=None, res=None,
              connect=True, **kwds):
         """
         INPUT:
-
 
         -  ``xmin`` - (default: 0) start x position to start
            plotting
@@ -2124,11 +2066,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             ArithmeticError: degrees (2 and 3) must be the same
         """
         if not PY_TYPE_CHECK(right, FreeModuleElement):
-            raise TypeError, "right must be a free module element"
+            raise TypeError("right must be a free module element")
         r = right.list(copy=False)
         l = self.list(copy=False)
         if len(r) != len(l):
-            raise ArithmeticError, "degrees (%s and %s) must be the same"%(len(l),len(r))
+            raise ArithmeticError("degrees (%s and %s) must be the same"%(len(l),len(r)))
         if len(r) == 0:
             return self._parent.base_ring()(0)
         sum = l[0] * r[0]
@@ -2230,7 +2172,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         Billy Wonderly (2010-05-11), Added 7-D Cross Product
         """
         if not PY_TYPE_CHECK(right, FreeModuleElement):
-            raise TypeError, "right must be a free module element"
+            raise TypeError("right must be a free module element")
         r = right.list(copy=False)
         l = self.list(copy=False)
         if len(r) == 3 and len(l) == 3:
@@ -2248,7 +2190,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
                            l[0]*r[2] - l[2]*r[0] + l[1]*r[5] - l[5]*r[1] + l[3]*r[4] - l[4]*r[3]])
 
         else:
-            raise ArithmeticError, "Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r))
+            raise ArithmeticError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
 
 
 
@@ -2361,7 +2303,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             True
         """
         if not PY_TYPE_CHECK(right, FreeModuleElement):
-            raise TypeError, "right must be a free module element"
+            raise TypeError("right must be a free module element")
         if self._parent is not (<FreeModuleElement>right)._parent:
             self, right = canonical_coercion(self, right)
         return self._pairwise_product_(right)
@@ -2611,7 +2553,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         if self.parent().is_ambient() and self.parent()._inner_product_is_dot_product():
             return self.dot_product(right)
         if not isinstance(right, FreeModuleElement):
-            raise TypeError, "right must be a free module element"
+            raise TypeError("right must be a free module element")
         M = self.parent()
         if M.is_ambient() or M.uses_ambient_inner_product():
             A = M.ambient_module().inner_product_matrix()
@@ -3179,7 +3121,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             if sage.symbolic.callable.is_CallableSymbolicExpressionRing(self.base_ring()):
                 return sage.calculus.all.jacobian(self, self.base_ring().arguments())
             else:
-                raise ValueError, "No differentiation variable specified."
+                raise ValueError("No differentiation variable specified.")
 
         # We would just use apply_map, except that Cython doesn't
         # allow lambda functions
@@ -3451,18 +3393,18 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             entries = [R(0)]*self.degree()
         else:
             if not isinstance(entries, (list, tuple)):
-                raise TypeError, "entries (=%s) must be a list"%(entries, )
+                raise TypeError("entries (=%s) must be a list"%(entries, ))
 
             if len(entries) != self.degree():
-                raise TypeError, "entries must be a list of length %s"%\
-                            self.degree()
+                raise TypeError("entries must be a list of length %s"%\
+                            self.degree())
             if coerce:
                 if len(entries) != 0:
                     coefficient_ring = parent.basis()[0][0].parent()
                     try:
                         entries = [coefficient_ring(x) for x in entries]
                     except TypeError:
-                        raise TypeError, "Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring)
+                        raise TypeError("Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring))
             elif copy:
                 # Make a copy
                 entries = list(entries)
@@ -3585,7 +3527,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
-    def __getitem__(self, Py_ssize_t i):
+    def __getitem__(self, i):
         """
         EXAMPLES::
 
@@ -3603,18 +3545,25 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             Traceback (most recent call last):
             ...
             IndexError: index must be between -2 and 1
+
+            sage: v = vector(QQ['x,y'], [1,2, 'x*y'])
+            sage: v
+            (1, 2, x*y)
+            sage: v[1:]
+            (2, x*y)
         """
         if isinstance(i, slice):
-            return list(self)[i]
-        degree = self.degree()
-        i = int(i)
-        if i < 0:
-            i += degree
-        if i < 0 or i >= self.degree():
-            raise IndexError, "index must be between -%s and %s"%(degree, degree-1)
-        return self._entries[i]
+            start, stop, step = i.indices(len(self))
+            return vector(self.base_ring(), list(self)[start:stop:step])
+        else:
+            degree = self.degree()
+            if i < 0:
+                i += degree
+            if i < 0 or i >= self.degree():
+                raise IndexError("index must be between -%s and %s"%(degree, degree-1))
+            return self._entries[i]
 
-    def __setitem__(self, Py_ssize_t i, value):
+    def __setitem__(self, i, value):
         """
         Set entry i of self to value.
 
@@ -3624,21 +3573,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v[1] = 19+pi
             sage: v
             (1, pi + 19, pi)
-        """
-        if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
-        i = int(i)
-        #if not isinstance(i, int):
-        #    raise TypeError, "index must an integer"
-        if i < 0 or i >= self.degree():
-            raise IndexError, "index (i=%s) must be between 0 and %s"%(i,
-                            self.degree()-1)
-        self._entries[i] = self.base_ring()(value)
-
-    def __setslice__(self, Py_ssize_t i, Py_ssize_t j, value):
-        """
-        EXAMPLES::
-
             sage: v = vector(QQ['x,y'], [1,2, 'x*y'])
             sage: v
             (1, 2, x*y)
@@ -3652,17 +3586,24 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             (5, 3)
         """
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
+            raise ValueError("vector is immutable; please change a copy instead (use copy())")
         cdef Py_ssize_t k, n, d
-        d = self.degree()
-        R = self.base_ring()
-        n = 0
-        for k from i <= k < j:
-            if k >= d:
-                return
-            if k >= 0:
-                self._entries[k] = R(value[n])
-                n = n + 1
+        if isinstance(i, slice):
+            start, stop, step = i.indices(len(self))
+            d = self.degree()
+            R = self.base_ring()
+            n = 0
+            for k from start <= k < stop:
+                if k >= d:
+                    return
+                if k >= 0:
+                    self._entries[k] = R(value[n])
+                    n = n + 1
+        else:
+            if i < 0 or i >= self.degree():
+                raise IndexError("index (i=%s) must be between 0 and %s"%(i,
+                                self.degree()-1))
+            self._entries[i] = self.base_ring()(value)
 
     def list(self, copy=True):
         """
@@ -3927,7 +3868,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         else:
             if isinstance(entries, list):
                 if len(entries) != self.degree():
-                    raise TypeError, "entries has the wrong length"
+                    raise TypeError("entries has the wrong length")
                 x = entries
                 entries = {}
                 for i in xrange(self.degree()):
@@ -3946,7 +3887,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                         for k, x in entries.iteritems():
                             entries[k] = coefficient_ring(x)
                     except TypeError:
-                        raise TypeError, "Unable to coerce value (=%s) of entries dict (=%s) to %s"%(x, entries, coefficient_ring)
+                        raise TypeError("Unable to coerce value (=%s) of entries dict (=%s) to %s"%(x, entries, coefficient_ring))
         self._entries = entries
 
     cpdef ModuleElement _add_(left, ModuleElement right):
@@ -4124,16 +4065,20 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             ...
             IndexError: index must be between -2 and 1
         """
-        i = int(i)
-        degree = self.degree()
-        if i < 0:
-            i += degree
-        if i < 0 or i >= degree:
-            raise IndexError, "index must be between %s and %s"%(-degree,
-                            degree-1)
-        if self._entries.has_key(i):
-            return self._entries[i]
-        return self.base_ring()(0)  # optimize this somehow
+        if isinstance(i, slice):
+            start, stop, step = i.indices(len(self))
+            return vector(self.base_ring(), self.list()[start:stop])
+        else:
+            i = int(i)
+            degree = self.degree()
+            if i < 0:
+                i += degree
+            if i < 0 or i >= degree:
+                raise IndexError("index must be between %s and %s"%(-degree,
+                                degree-1))
+            if self._entries.has_key(i):
+                return self._entries[i]
+            return self.base_ring()(0)  # optimize this somehow
 
     def get(self, i):
         """
@@ -4177,7 +4122,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             IndexError: list assignment index out of range
         """
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
+            raise ValueError("vector is immutable; please change a copy instead (use copy())")
         i = int(i)
         if x == 0:
             if self._entries.has_key(i):
@@ -4187,7 +4132,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def __setitem__(self, i, value):
         """
-        Set the ith entry of self to value.
+        Set the `i`-th entry or slice of self to value.
 
         EXAMPLES::
 
@@ -4196,6 +4141,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w[39893] = 20
             sage: w[39893]
             3
+            sage: w[39000:39003] = [4, 5, 6]; w[39000:39003]
+            (4, 5, 6)
             sage: parent(w[39893])
             Finite Field of size 17
             sage: w[39893] = sqrt(2)
@@ -4204,14 +4151,25 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             TypeError: unable to convert x (=sqrt(2)) to an integer
         """
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
-        i = int(i)
-        #if not isinstance(i, int):
-        #    raise TypeError, "index must an integer"
-        if i < 0 or i >= self.degree():
-            raise IndexError, "index (i=%s) must be between 0 and %s"%(i,
-                            self.degree()-1)
-        self.set(i, self._parent.base_ring()(value))
+            raise ValueError("vector is immutable; please change a copy instead (use copy())")
+        cdef Py_ssize_t k, d, n
+        if isinstance(i, slice):
+            start, stop = i.start, i.stop
+            d = self.degree()
+            R = self.base_ring()
+            n = 0
+            for k from start <= k < stop:
+                if k >= d:
+                    return
+                if k >= 0:
+                    self[k] = R(value[n])
+                    n = n + 1
+        else:
+            i = int(i)
+            if i < 0 or i >= self.degree():
+                raise IndexError("index (i=%s) must be between 0 and %s"%(i,
+                                self.degree()-1))
+            self.set(i, self._parent.base_ring()(value))
 
     def denominator(self):
         """

@@ -172,7 +172,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         cdef Py_ssize_t i,j
         if isinstance(entries,(tuple, list)):
             if len(entries)!=self._degree:
-                    raise TypeError, "entries has wrong length"
+                    raise TypeError("entries has wrong length")
 
             if coerce:
                 for i from 0<=i<self._degree:
@@ -192,7 +192,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
                 try:
                     z = self._python_dtype(entries)
                 except TypeError:
-                    raise TypeError, "cannot coerce entry to type %s"%self._python_dtype
+                    raise TypeError("cannot coerce entry to type %s"%self._python_dtype)
                 if z != 0:
                     for i from 0<=i<self._degree:
                         self.set_unsafe(i,z)
@@ -209,9 +209,9 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         """
         return self._degree
 
-    def __setitem__(self, Py_ssize_t i, object value):
+    def __setitem__(self, i, object value):
         """
-        Set the ith entry of self.
+        Set the `i`-th entry of self.
 
         EXAMPLES:
             sage: v = vector(CDF, [1,CDF(3,2), -1]); v
@@ -224,20 +224,33 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             IndexError: index out of range
             sage: v
             (1.0, 2.0, 1.0*I)
+            sage: v[1:3] = [1, 1]; v
+            (1.0, 1.0, 1.0)
         """
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead"
-        if i < 0:
-            i += self._degree
+            raise ValueError("vector is immutable; please change a copy instead (use copy())")
+        cdef Py_ssize_t k, d, n
+        if isinstance(i, slice):
+            start, stop = i.start, i.stop
+            d = self.degree()
+            R = self.base_ring()
+            n = 0
+            for k from start <= k < stop:
+                if k >= d:
+                    return
+                if k >= 0:
+                    self[k] = R(value[n])
+                    n = n + 1
+        else:
+            if i < 0:
+                i += self._degree
+            if i < 0 or i >= self._degree:
+                raise IndexError('index out of range')
+            self.set_unsafe(i, value)
 
-        if i < 0 or i >= self._degree:
-            raise IndexError, 'index out of range'
-
-        self.set_unsafe(i, value)
-
-    def __getitem__(self, Py_ssize_t i):
+    def __getitem__(self, i):
         """
-        Return the ith entry of self.
+        Return the `i`-th entry of self.
 
         EXAMPLES:
             sage: v = vector(CDF, [1,CDF(3,2), -1]); v
@@ -254,12 +267,18 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             Traceback (most recent call last):
             ...
             IndexError: index out of range
+            sage: v[1:3]
+            (3.0 + 2.0*I, -1.0)
         """
-        if i < 0:
-            i += self._degree
-        if i < 0 or i >= self._degree:
-            raise IndexError, 'index out of range'
-        return self.get_unsafe(i)
+        if isinstance(i, slice):
+            start, stop, step = i.indices(len(self))
+            return free_module_element.vector(self.base_ring(), self.list()[start:stop])
+        else:
+            if i < 0:
+                i += self._degree
+            if i < 0 or i >= self._degree:
+                raise IndexError('index out of range')
+            return self.get_unsafe(i)
 
     cdef set_unsafe(self, Py_ssize_t i, object value):
         """
@@ -471,7 +490,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             ValueError: inplace can only be True for CDF vectors
         """
         if direction not in ('forward', 'backward'):
-            raise ValueError, "direction must be either 'forward' or 'backward'"
+            raise ValueError("direction must be either 'forward' or 'backward'")
 
         if self._degree == 0:
             return self
@@ -482,7 +501,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
 
         if inplace:
             if self._sage_dtype is not CDF:
-                raise ValueError, "inplace can only be True for CDF vectors"
+                raise ValueError("inplace can only be True for CDF vectors")
             if direction == 'forward':
                 self._vector_numpy = scipy.fftpack.fft(self._vector_numpy, overwrite_x = True)
             else:
@@ -524,7 +543,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         if self._degree == 0:
             return
         if numpy_array.ndim != 1 or len(self._vector_numpy) != numpy_array.shape[0]:
-            raise ValueError, "vector lengths are not the same"
+            raise ValueError("vector lengths are not the same")
 
         self._vector_numpy = numpy_array.astype(self._numpy_dtype)
 

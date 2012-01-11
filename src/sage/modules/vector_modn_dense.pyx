@@ -121,7 +121,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         cdef mod_int a, p
         if isinstance(x, (list, tuple)):
             if len(x) != self._degree:
-                raise TypeError, "x must be a list of the right length"
+                raise TypeError("x must be a list of the right length")
             if coerce:
                 R = parent.base_ring()
                 p = R.order()
@@ -133,7 +133,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
                     self._entries[i] = x[i]
             return
         if x != 0:
-            raise TypeError, "can't initialize vector from nonzero non-list"
+            raise TypeError("can't initialize vector from nonzero non-list")
         else:
             for i from 0 <= i < self._degree:
                 self._entries[i] = 0
@@ -173,19 +173,32 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     def __len__(self):
         return self._degree
 
-    def __setitem__(self, Py_ssize_t i, x):
+    def __setitem__(self, i, value):
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
-        cdef IntegerMod_int n
-        n = self.base_ring()(x)
-        if i < 0 or i >= self._degree:
-            raise IndexError
+            raise ValueError("vector is immutable; please change a copy instead (use copy())")
+        cdef IntegerMod_int m
+        cdef Py_ssize_t k, d, n
+        if isinstance(i, slice):
+            start, stop = i.start, i.stop
+            d = self.degree()
+            R = self.base_ring()
+            n = 0
+            for k from start <= k < stop:
+                if k >= d:
+                    return
+                if k >= 0:
+                    self[k] = R(value[n])
+                    n = n + 1
         else:
-            self._entries[i] = n.ivalue
+            m = self.base_ring()(value)
+            if i < 0 or i >= self._degree:
+                raise IndexError
+            else:
+                self._entries[i] = m.ivalue
 
-    def __getitem__(self, Py_ssize_t i):
+    def __getitem__(self, i):
         """
-        Return the ith entry of self.
+        Returns `i`-th entry or slice of self.
 
         EXAMPLES:
             sage: R = Integers(7)
@@ -197,6 +210,8 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             3
             sage: v[-2]
             2
+            sage: v[0:2]
+            (1, 2)
             sage: v[5]
             Traceback (most recent call last):
             ...
@@ -205,20 +220,21 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             Traceback (most recent call last):
             ...
             IndexError: index out of range
-
         """
         cdef IntegerMod_int n
-
-        if i < 0:
-            i += self._degree
-
-        if i < 0 or i >= self._degree:
-            raise IndexError, 'index out of range'
+        if isinstance(i, slice):
+            start, stop, step = i.indices(len(self))
+            return vector(self.base_ring(), self.list()[start:stop])
         else:
-            n =  IntegerMod_int.__new__(IntegerMod_int)
-            IntegerMod_abstract.__init__(n, self.base_ring())
-            n.ivalue = self._entries[i]
-            return n
+            if i < 0:
+                i += self._degree
+            if i < 0 or i >= self._degree:
+                raise IndexError('index out of range')
+            else:
+                n =  IntegerMod_int.__new__(IntegerMod_int)
+                IntegerMod_abstract.__init__(n, self.base_ring())
+                n.ivalue = self._entries[i]
+                return n
 
     def __reduce__(self):
         return unpickle_v1, (self._parent, self.list(), self._degree, self._p, self._is_mutable)

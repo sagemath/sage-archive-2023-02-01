@@ -103,13 +103,13 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             mpz_init(self._entries[i])
         if isinstance(x, (list, tuple)):
             if len(x) != self._degree:
-                raise TypeError, "x must be a list of the right length"
+                raise TypeError("x must be a list of the right length")
             for i from 0 <= i < self._degree:
                 z = Integer(x[i])
                 mpz_set(self._entries[i], z.value)
             return
         if x != 0:
-            raise TypeError, "can't initialize vector from nonzero non-list"
+            raise TypeError("can't initialize vector from nonzero non-list")
 
     def __dealloc__(self):
         cdef Py_ssize_t i
@@ -148,23 +148,41 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
     def __len__(self):
         return self._degree
 
-    def __setitem__(self, Py_ssize_t i, x):
+    def __setitem__(self, i, value):
         """
-        EXAMPLES:
+        EXAMPLES::
 
+            sage: v = vector([1,2,3]); v
+            (1, 2, 3)
+            sage: v[0] = 2
+            sage: v[1:3] = [1, 4]; v
+            (2, 1, 4)
         """
         if not self._is_mutable:
-            raise ValueError, "vector is immutable; please change a copy instead (use copy())"
+            raise ValueError("vector is immutable; please change a copy instead (use copy())")
         cdef Integer z
-        if i < 0 or i >= self._degree:
-            raise IndexError
+        cdef Py_ssize_t k, d, n
+        if isinstance(i, slice):
+            start, stop = i.start, i.stop
+            d = self.degree()
+            R = self.base_ring()
+            n = 0
+            for k from start <= k < stop:
+                if k >= d:
+                    return
+                if k >= 0:
+                    self[k] = R(value[n])
+                    n = n + 1
         else:
-            z = Integer(x)
-            mpz_set(self._entries[i], z.value)
+            if i < 0 or i >= self._degree:
+                raise IndexError
+            else:
+                z = Integer(value)
+                mpz_set(self._entries[i], z.value)
 
-    def __getitem__(self, Py_ssize_t i):
+    def __getitem__(self, i):
         """
-        Return the ith entry of self.
+        Returns `i`-th entry or slice of self.
 
         EXAMPLES::
 
@@ -174,6 +192,8 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             1
             sage: v[-2]
             2
+            sage: v[0:2]
+            (1, 2)
             sage: v[5]
             Traceback (most recent call last):
             ...
@@ -183,15 +203,18 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             ...
             IndexError: index out of range
         """
-        cdef Integer z
-        z = PY_NEW(Integer)
-        if i < 0:
-            i += self._degree
-        if i < 0 or i >= self._degree:
-            raise IndexError, 'index out of range'
+        cdef Integer z = PY_NEW(Integer)
+        if isinstance(i, slice):
+            start, stop, step = i.indices(len(self))
+            return vector(self.base_ring(), self.list()[start:stop])
         else:
-            mpz_set(z.value, self._entries[i])
-            return z
+            if i < 0:
+                i += self._degree
+            if i < 0 or i >= self._degree:
+                raise IndexError('index out of range')
+            else:
+                mpz_set(z.value, self._entries[i])
+                return z
 
     def list(self,copy=True):
         """

@@ -214,7 +214,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         """
         return self._degree
 
-    def __setitem__(self, Py_ssize_t i, x):
+    def __setitem__(self, i, value):
         """
         EXAMPLES::
 
@@ -223,6 +223,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             (1, 0, 0, 0)
             sage: v[0] = 0; v
             (0, 0, 0, 0)
+            sage: v[1:3] = [1, 1]; v
+            (0, 1, 1, 0)
             sage: v[4] = 0
             Traceback (most recent call last):
             ...
@@ -230,16 +232,29 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         """
         if not self._is_mutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        cdef IntegerMod_int n
-        n = self.base_ring()(x)
-        if i < 0 or i >= self._degree:
-            raise IndexError("Index '%s' out of bound."%(i))
+        cdef IntegerMod_int m
+        cdef Py_ssize_t k, d, n
+        if isinstance(i, slice):
+            start, stop = i.start, i.stop
+            d = self.degree()
+            R = self.base_ring()
+            n = 0
+            for k from start <= k < stop:
+                if k >= d:
+                    return
+                if k >= 0:
+                    self[k] = R(value[n])
+                    n = n + 1
         else:
-            mzd_write_bit(self._entries, 0, i, n)
+            m = self.base_ring()(value)
+            if i < 0 or i >= self._degree:
+                raise IndexError("Index '%s' out of bound."%(i))
+            else:
+                mzd_write_bit(self._entries, 0, i, m)
 
-    def __getitem__(self, Py_ssize_t i):
+    def __getitem__(self, i):
         """
-        Return the ith entry of self.
+        Returns `i`-th entry or slice of self.
 
         EXAMPLES::
 
@@ -251,6 +266,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             1
             sage: v[-2]
             0
+            sage: v[0:2]
+            (1, 0)
             sage: v[5]
             Traceback (most recent call last):
             ...
@@ -261,13 +278,15 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             ...
             IndexError: index '-2' out of range
         """
-        if i < 0:
-            i += self._degree
-
-        if i < 0 or i >= self._degree:
-            raise IndexError("index '%s' out of range"%(i,))
-
-        return self._base_ring(mzd_read_bit(self._entries, 0, i))
+        if isinstance(i, slice):
+            start, stop, step = i.indices(len(self))
+            return vector(self.base_ring(), self.list()[start:stop])
+        else:
+            if i < 0:
+                i += self._degree
+            if i < 0 or i >= self._degree:
+                raise IndexError("index '%s' out of range"%(i,))
+            return self._base_ring(mzd_read_bit(self._entries, 0, i))
 
     def __reduce__(self):
         """

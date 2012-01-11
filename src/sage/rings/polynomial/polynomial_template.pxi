@@ -593,7 +593,7 @@ cdef class Polynomial_template(Polynomial):
             e = -e
         if not self:
             if e == 0:
-                raise ArithmeticError, "0^0 is undefined."
+                raise ArithmeticError("0^0 is undefined.")
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         parent = (<Polynomial_template>self)._parent
 
@@ -628,33 +628,6 @@ cdef class Polynomial_template(Polynomial):
         r._parent = (<Polynomial_template>self)._parent
         celement_set(&r.x, &self.x, get_cparent((<Polynomial_template>self)._parent))
         return r
-
-    def __getslice__(self, i, j):
-        """
-        Returns the monomials of self of degree i <= n < j.
-
-        EXAMPLES::
-
-            sage: R.<x> = Integers(100)[]
-            sage: f = (x+2)^7
-            sage: f[3:6]
-            84*x^5 + 80*x^4 + 60*x^3
-            sage: f[-5:50] == f
-            True
-            sage: f[6:]
-            x^7 + 14*x^6
-        """
-        cdef cparent _parent = get_cparent((<Polynomial_template>self)._parent)
-        if i < 0:
-            i = 0
-        if j > celement_len(&self.x,_parent):
-            j = celement_len(&self.x, _parent)
-        x = (<Polynomial_template>self)._parent.gen()
-        v = [self[t] for t from i <= t < j]
-
-        cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
-        Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
-        return r << i
 
     def is_gen(self):
         """
@@ -827,7 +800,7 @@ cdef class Polynomial_template(Polynomial):
             ValueError: cannot differentiate with respect to y
         """
         if var is not None and var is not self._parent.gen():
-            raise ValueError, "cannot differentiate with respect to %s" % var
+            raise ValueError("cannot differentiate with respect to %s" % var)
 
         P = self.parent()
         x = P.gen()

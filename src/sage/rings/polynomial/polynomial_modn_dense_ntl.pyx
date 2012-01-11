@@ -134,7 +134,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
                 x = numer.__poly * denom.__poly
                 check = False
             else:
-                raise TypeError, "Denominator not a unit."
+                raise TypeError("Denominator not a unit.")
 
         elif not isinstance(x, list) and not isinstance(x, tuple):
             x = [x]   # constant polynomials
@@ -181,21 +181,37 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         return self.__poly
 
     def __getitem__(self, n):
-        return self.parent().base_ring()(self.__poly[n]._sage_())
+        """
+        Returns coefficient of the monomial of degree `n` if `n` is an integer,
+        returns the monomials of self of degree in slice `n` if `n` is a slice.
 
-    def __getslice__(self, i, j):
-        R = self.base_ring()
-        if i < 0:
-            i = 0
-        if j > self.__poly.degree()+1:
-            j = self.__poly.degree()+1
-        v = [R(self.__poly[k]._sage_()) for k in range(i,j)]
-        return self.parent()([0]*int(i) + v)
+        EXAMPLES::
+
+            sage: R.<x> = Integers(100)[]
+            sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_mod_n
+            sage: f = Polynomial_dense_mod_n(R,[5,10,13,1,4]); f
+            4*x^4 + x^3 + 13*x^2 + 10*x + 5
+            sage: f[2]
+            13
+            sage: f[1:3]
+            13*x^2 + 10*x
+        """
+        if isinstance(n, slice):
+            start, stop = n.start, n.stop
+            R = self.base_ring()
+            if start < 0:
+                start = 0
+            if stop > self.__poly.degree()+1 or stop is None:
+                stop = self.__poly.degree()+1
+            v = [R(self.__poly[k]._sage_()) for k in range(start,stop)]
+            return self.parent()([0]*int(start) + v)
+        else:
+            return self.parent().base_ring()(self.__poly[n]._sage_())
 
     def _unsafe_mutate(self, n, value):
         n = int(n)
         if n < 0:
-            raise IndexError, "n must be >= 0"
+            raise IndexError("n must be >= 0")
 ##        self._ntl_set_modulus()
         self.__poly[n] = int(value)
 
@@ -227,15 +243,15 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         try:
 ##            self._ntl_set_modulus()
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
-        except RuntimeError, msg: # should this really be a TypeError
-            raise TypeError, msg
+        except RuntimeError as msg: # should this really be a TypeError
+            raise TypeError(msg)
 
     cpdef ModuleElement _lmul_(self, RingElement c):
         try:
 ##            self._ntl_set_modulus()
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
-        except RuntimeError, msg: # should this really be a TypeError
-            raise TypeError, msg
+        except RuntimeError as msg: # should this really be a TypeError
+            raise TypeError(msg)
 
     @coerce_binop
     def quo_rem(self, right):
@@ -346,7 +362,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             4*x^3 + 3*x^2 + 98*x + 1
         """
         if self.is_gen():
-            raise TypeError, "Cannot change the value of the generator."
+            raise TypeError("Cannot change the value of the generator.")
 ##        self._ntl_set_modulus()
         self.__poly = ZZ_pX(v, self.parent().modulus())
 
@@ -543,11 +559,11 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
     N = self.parent().characteristic()
 
     if not self.is_monic():
-        raise ArithmeticError, "Polynomial must be monic."
+        raise ArithmeticError("Polynomial must be monic.")
 
     beta = RR(beta)
     if beta <= 0.0 or beta > 1.0:
-        raise ValueError, "0.0 < beta <= 1.0 not satisfied."
+        raise ValueError("0.0 < beta <= 1.0 not satisfied.")
 
     f = self.change_ring(ZZ)
 
@@ -657,31 +673,16 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __getitem__(self, n):
         """
+        Returns coefficient of the monomial of degree `n` if `n` is an integer,
+        returns the monomials of self of degree in slice `n` if `n` is a slice.
+
         EXAMPLES::
 
             sage: R.<x> = Integers(100)[]
-            sage: f = (x+2)^7
+            sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_modn_ntl_zz
+            sage: f = Polynomial_dense_modn_ntl_zz(R,[2, 1])^7
             sage: f[3]
             60
-        """
-        R = self._parent._base
-        if n < 0 or n > zz_pX_deg(self.x):
-            return R(0)
-        else:
-            return R(zz_p_rep(zz_pX_GetCoeff(self.x, n)))
-
-    def _unsafe_mutate(self, n, value):
-        self.c.restore_c()
-        zz_pX_SetCoeff_long(self.x, n, value)
-
-    def __getslice__(self, i, j):
-        """
-        Returns the monomials of self of degree i <= n < j.
-
-        EXAMPLES::
-
-            sage: R.<x> = Integers(100)[]
-            sage: f = (x+2)^7
             sage: f[3:6]
             84*x^5 + 80*x^4 + 60*x^3
             sage: f[-5:50] == f
@@ -689,13 +690,25 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f[6:]
             x^7 + 14*x^6
         """
-        R = self.base_ring()
-        if i < 0:
-            i = 0
-        if j > zz_pX_deg(self.x)+1:
-            j = zz_pX_deg(self.x)+1
-        v = [ zz_p_rep(zz_pX_GetCoeff(self.x, t)) for t from i <= t < j ]
-        return Polynomial_dense_modn_ntl_zz(self._parent, v, check=False) << i
+        if isinstance(n, slice):
+            start, stop = n.start, n.stop
+            R = self.base_ring()
+            if start < 0:
+                start = 0
+            if stop > zz_pX_deg(self.x)+1 or stop is None:
+                stop = zz_pX_deg(self.x)+1
+            v = [ zz_p_rep(zz_pX_GetCoeff(self.x, t)) for t from start <= t < stop ]
+            return Polynomial_dense_modn_ntl_zz(self._parent, v, check=False) << start
+        else:
+            R = self._parent._base
+            if n < 0 or n > zz_pX_deg(self.x):
+                return R(0)
+            else:
+                return R(zz_p_rep(zz_pX_GetCoeff(self.x, n)))
+
+    def _unsafe_mutate(self, n, value):
+        self.c.restore_c()
+        zz_pX_SetCoeff_long(self.x, n, value)
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
         """
@@ -835,13 +848,13 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         cdef bint recip = 0, do_sig
         cdef long e = ee
         if e != ee:
-            raise TypeError, "Only integral powers defined."
+            raise TypeError("Only integral powers defined.")
         elif e < 0:
             recip = 1
             e = -e
         if not self:
             if e == 0:
-                raise ArithmeticError, "0^0 is undefined."
+                raise ArithmeticError("0^0 is undefined.")
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         cdef zz_pX_Modulus_c *mod
 
@@ -1033,7 +1046,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             ValueError: cannot differentiate with respect to y
         """
         if var is not None and var is not self._parent.gen():
-            raise ValueError, "cannot differentiate with respect to %s" % var
+            raise ValueError("cannot differentiate with respect to %s" % var)
 
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         zz_pX_diff(r.x, self.x)
@@ -1231,16 +1244,36 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __getitem__(self, n):
         """
+        Returns coefficient of the monomial of degree `n` if `n` is an integer,
+        returns the monomials of self of degree in slice `n` if `n` is a slice.
+
         EXAMPLES::
 
             sage: R.<x> = Integers(10^30)[]
-            sage: f = (x+2)^7
+            sage: from sage.rings.polynomial.polynomial_modn_dense_ntl import Polynomial_dense_modn_ntl_ZZ
+            sage: f = Polynomial_dense_modn_ntl_ZZ(R,[2,1])^7
             sage: f[3]
             560
+            sage: f[3:6]
+            84*x^5 + 280*x^4 + 560*x^3
+            sage: f[-5:50] == f
+            True
+            sage: f[6:]
+            x^7 + 14*x^6
         """
-        R = self._parent._base
-        if n < 0 or n > ZZ_pX_deg(self.x):
-            return R(0)
+        if isinstance(n, slice):
+            start, stop = n.start, n.stop
+            R = self.base_ring()
+            if start < 0:
+                start = 0
+            if stop > ZZ_pX_deg(self.x)+1 or stop is None:
+                stop = ZZ_pX_deg(self.x)+1
+            v = [ self[t] for t from start <= t < stop ]
+            return Polynomial_dense_modn_ntl_ZZ(self._parent, v, check=False) << start
+        else:
+            R = self._parent._base
+            if n < 0 or n > ZZ_pX_deg(self.x):
+                return R(0)
 
         self.c.restore_c()
         cdef Integer z
@@ -1261,29 +1294,6 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             a = ZZ(value)
         cdef ntl_ZZ_p val = ntl_ZZ_p(a, self.c)
         ZZ_pX_SetCoeff(self.x, n, val.x)
-
-    def __getslice__(self, i, j):
-        """
-        Returns the monomials of self of degree i <= n < j.
-
-        EXAMPLES::
-
-            sage: R.<x> = Integers(10^30)[]
-            sage: f = (x+2)^7
-            sage: f[3:6]
-            84*x^5 + 280*x^4 + 560*x^3
-            sage: f[-5:50] == f
-            True
-            sage: f[6:]
-            x^7 + 14*x^6
-        """
-        R = self.base_ring()
-        if i < 0:
-            i = 0
-        if j > ZZ_pX_deg(self.x)+1:
-            j = ZZ_pX_deg(self.x)+1
-        v = [ self[t] for t from i <= t < j ]
-        return Polynomial_dense_modn_ntl_ZZ(self._parent, v, check=False) << i
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
         """
@@ -1414,13 +1424,13 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         cdef bint recip = 0, do_sig
         cdef long e = ee
         if e != ee:
-            raise TypeError, "Only integral powers defined."
+            raise TypeError("Only integral powers defined.")
         elif e < 0:
             recip = 1 # delay because powering frac field elements is slow
             e = -e
         if not self:
             if e == 0:
-                raise ArithmeticError, "0^0 is undefined."
+                raise ArithmeticError("0^0 is undefined.")
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
         cdef ZZ_pX_Modulus_c *mod
 
@@ -1612,7 +1622,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             ValueError: cannot differentiate with respect to y
         """
         if var is not None and var is not self._parent.gen():
-            raise ValueError, "cannot differentiate with respect to %s" % var
+            raise ValueError("cannot differentiate with respect to %s" % var)
 
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
         ZZ_pX_diff(r.x, self.x)

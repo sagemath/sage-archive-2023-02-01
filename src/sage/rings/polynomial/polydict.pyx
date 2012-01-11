@@ -91,7 +91,7 @@ cdef class PolyDict:
                 remove_zero = False
                 pdict = v
             else:
-                raise TypeError, "pdict must be a list."
+                raise TypeError("pdict must be a list.")
 
         if isinstance(pdict,dict) and force_etuples==True:
             pdict2 = []
@@ -240,14 +240,14 @@ cdef class PolyDict:
             return self.total_degree()
         L = x.__repn.keys()
         if len(L) != 1:
-            raise TypeError, "x must be one of the generators of the parent."
+            raise TypeError("x must be one of the generators of the parent.")
         L = L[0]
         nonzero_positions = L.nonzero_positions()
         if len(nonzero_positions) != 1:
-            raise TypeError, "x must be one of the generators of the parent."
+            raise TypeError("x must be one of the generators of the parent.")
         i = nonzero_positions[0]
         if L[i] != 1:
-            raise TypeError, "x must be one of the generators of the parent."
+            raise TypeError("x must be one of the generators of the parent.")
         _max = []
         for v in self.__repn.keys():
             _max.append(v[i])
@@ -275,14 +275,14 @@ cdef class PolyDict:
             return min(_min)
         L = x.__repn.keys()
         if len(L) != 1:
-            raise TypeError, "x must be one of the generators of the parent."
+            raise TypeError("x must be one of the generators of the parent.")
         L = L[0]
         nonzero_positions = L.nonzero_positions()
         if len(nonzero_positions) != 1:
-            raise TypeError, "x must be one of the generators of the parent."
+            raise TypeError("x must be one of the generators of the parent.")
         i = nonzero_positions[0]
         if L[i] != 1:
-            raise TypeError, "x must be one of the generators of the parent."
+            raise TypeError("x must be one of the generators of the parent.")
         _min = []
         for v in self.__repn.keys():
             _min.append(v[i])
@@ -745,7 +745,7 @@ cdef class PolyDict:
         try:
             return ETuple(reduce(greater_etuple,self.__repn.keys()))
         except KeyError:
-            raise ArithmeticError, "%s not supported",greater_etuple
+            raise ArithmeticError("%s not supported",greater_etuple)
 
     def __reduce__(PolyDict self):
         """
@@ -1013,56 +1013,50 @@ cdef class ETuple:
                 result._data[2*(f*self._nonzero+index)+1] = self._data[2*index+1]
         return result
 
-    def __getitem__(ETuple self,int i):
+    def __getitem__(ETuple self, i):
         """
-        x.__getitem__(i) <==> x[i]
-
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import ETuple
-            sage: m=ETuple([1,2,0,3])
+            sage: m = ETuple([1,2,0,3])
             sage: m[2]
             0
             sage: m[1]
             2
-        """
-        cdef size_t ind = 0
-        for ind from 0 <= ind < self._nonzero:
-            if self._data[2*ind] == i:
-                return self._data[2*ind+1]
-            elif self._data[2*ind] > i:
-                # the indices are sorted in _data, we are beyond, so quit
-                return 0
-        return 0
-
-    def __getslice__(ETuple self, Py_ssize_t i, Py_ssize_t j):
-        """
-        x.__getslice(i,j) <==> x[i:j]
-
-        EXAMPLES::
-
-            sage: from sage.rings.polynomial.polydict import ETuple
-            sage: e=ETuple([1,2,3])
+            sage: e = ETuple([1,2,3])
             sage: e[1:]
             (2, 3)
             sage: e[:1]
             (1,)
         """
-        if i<0:
-            i = i % self._length
-        elif i>self._length:
-            i = self._length
-
-        if j<0:
-            j = j % self._length
-        elif j>self._length:
-            j = self._length
-
         cdef size_t ind
-        # this is not particularly fast, but I doubt many people care
-        # if you do, feel free to tweak!
-        d = [self[ind] for ind from i<=ind<j]
-        return ETuple(d)
+        if isinstance(i, slice):
+            start, stop = i.start, i.stop
+            if start is None:
+                start = 0
+            elif start < 0:
+                start = start % self._length
+            elif start > self._length:
+                start = self._length
+
+            if stop > self._length or stop is None:
+                stop = self._length
+            elif stop < 0:
+                stop = stop % self._length
+
+            # this is not particularly fast, but I doubt many people care
+            # if you do, feel free to tweak!
+            d = [self[ind] for ind from start <= ind < stop]
+            return ETuple(d)
+        else:
+            ind = 0
+            for ind from 0 <= ind < self._nonzero:
+                if self._data[2*ind] == i:
+                    return self._data[2*ind+1]
+                elif self._data[2*ind] > i:
+                    # the indices are sorted in _data, we are beyond, so quit
+                    return 0
+            return 0
 
     def __hash__(ETuple self):
         """
@@ -1269,7 +1263,7 @@ cdef class ETuple:
             s = exp1 + exp2
             # Check for overflow and underflow
             if (exp2 > 0 and s < exp1) or (exp2 < 0 and s > exp1):
-                raise OverflowError, "Exponent overflow (%s)."%(int(exp1)+int(exp2))
+                raise OverflowError("Exponent overflow (%s)."%(int(exp1)+int(exp2)))
             if s != 0:
                 result._data[2*result._nonzero] = index
                 result._data[2*result._nonzero+1] = s
@@ -1295,7 +1289,7 @@ cdef class ETuple:
         cdef int new_value
         cdef int need_to_add = 1
         if pos < 0 or pos >= self._length:
-            raise ValueError, "pos must be between 0 and %s"%self._length
+            raise ValueError("pos must be between 0 and %s"%self._length)
 
         cdef size_t alloc_len = self._nonzero + 1
 
@@ -1357,7 +1351,7 @@ cdef class ETuple:
             # Check for overflow and underflow
             d = exp1 - exp2
             if (exp2 > 0 and d > exp1) or (exp2 < 0 and d < exp1):
-                raise OverflowError, "Exponent overflow (%s)."%(int(exp1)-int(exp2))
+                raise OverflowError("Exponent overflow (%s)."%(int(exp1)-int(exp2)))
             if d != 0:
                 result._data[2*result._nonzero] = index
                 result._data[2*result._nonzero+1] = d

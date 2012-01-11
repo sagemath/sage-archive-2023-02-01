@@ -963,14 +963,13 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._ncols == 0:
             return self.__copy__()
 
-        I = mzd_init(self._nrows,self._ncols)
-        mzd_set_ui(I, 1)
+        if self.rank() != self._nrows:
+            raise ZeroDivisionError("Matrix does not have full rank.")
 
         A = Matrix_mod2_dense.__new__(Matrix_mod2_dense, self._parent, 0, 0, 0, alloc = False)
         sig_on()
-        A._entries = mzd_invert_m4ri(self._entries, I, k)
+        A._entries = mzd_inv_m4ri(NULL, self._entries, 0)
         sig_off()
-        mzd_free(I)
 
         if A._entries==NULL:
             raise ZeroDivisionError("input matrix must be nonsingular")
@@ -1817,18 +1816,18 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
             return matrix_dense.Matrix_dense.density(self)
 
-    def rank(self, algorithm='pls'):
+    def rank(self, algorithm='ple'):
         """
         Return the rank of this matrix.
 
-        On average 'pls' should be faster than 'm4ri' and hence it is
+        On average 'ple' should be faster than 'm4ri' and hence it is
         the default choice. However, for small - i.e. quite few
         thousand rows & columns - and sparse matrices 'm4ri' might be
         a better choice.
 
         INPUT:
 
-        - ``algorithm`` - either "pls" or "m4ri"
+        - ``algorithm`` - either "ple" or "m4ri"
 
         EXAMPLE::
 
@@ -1849,9 +1848,17 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef mzp_t *P, *Q
 
         if algorithm == 'pls':
+            from sage.misc.misc import deprecation
+            deprecation("Parameter 'pls' is deprecated, use 'ple' instead.")
             P = mzp_init(self._entries.nrows)
             Q = mzp_init(self._entries.ncols)
-            r = mzd_pls(A, P, Q, 0)
+            r = mzd_ple(A, P, Q, 0)
+            mzp_free(P)
+            mzp_free(Q)
+        elif algorithm == 'ple':
+            P = mzp_init(self._entries.nrows)
+            Q = mzp_init(self._entries.ncols)
+            r = mzd_ple(A, P, Q, 0)
             mzp_free(P)
             mzp_free(Q)
         elif algorithm == 'm4ri':
@@ -2160,7 +2167,7 @@ def pluq(Matrix_mod2_dense A, algorithm="standard", int param=0):
         sig_off()
     elif algorithm == "mmpf":
         sig_on()
-        _mzd_pluq_mmpf(B._entries, p, q, param)
+        _mzd_pluq_russian(B._entries, p, q, param)
         sig_off()
     elif algorithm == "naive":
         sig_on()
@@ -2175,28 +2182,28 @@ def pluq(Matrix_mod2_dense A, algorithm="standard", int param=0):
     mzp_free(q)
     return B,P,Q
 
-def pls(Matrix_mod2_dense A, algorithm="standard", int param=0):
+def ple(Matrix_mod2_dense A, algorithm="standard", int param=0):
     """
-    Return PLS factorization of A.
+    Return PLE factorization of A.
 
     INPUT:
         A -- matrix
         algorithm -- 'standard' asymptotically fast (default)
-                     'mmpf' M4RI inspired
+                     'russian' M4RI inspired
                      'naive' naive cubic
         param -- either k for 'mmpf' is chosen or matrix multiplication
                  cutoff for 'standard' (default: 0)
 
     EXAMPLE::
 
-        sage: from sage.matrix.matrix_mod2_dense import pls
+        sage: from sage.matrix.matrix_mod2_dense import ple
         sage: A = random_matrix(GF(2),4,4); A
         [0 1 0 1]
         [0 1 1 1]
         [0 0 0 1]
         [0 1 1 0]
 
-        sage: LU, P, Q = pls(A)
+        sage: LU, P, Q = ple(A)
         sage: LU
         [1 0 0 1]
         [1 1 0 0]
@@ -2210,7 +2217,7 @@ def pls(Matrix_mod2_dense A, algorithm="standard", int param=0):
         [1, 2, 3, 3]
 
         sage: A = random_matrix(GF(2),1000,1000)
-        sage: pls(A) == pls(A,'mmpf') == pls(A,'naive')
+        sage: ple(A) == ple(A,'russian') == ple(A,'naive')
         True
     """
     cdef Matrix_mod2_dense B = A.__copy__()
@@ -2219,15 +2226,22 @@ def pls(Matrix_mod2_dense A, algorithm="standard", int param=0):
 
     if algorithm == 'standard':
         sig_on()
-        mzd_pls(B._entries, p, q, param)
+        mzd_ple(B._entries, p, q, param)
         sig_off()
+
     elif algorithm == "mmpf":
+        from sage.misc.misc import deprecation
+        deprecation("Parameter 'mmpf' is deprecated, use 'russian' instead.")
         sig_on()
-        _mzd_pls_mmpf(B._entries, p, q, param)
+        _mzd_ple_russian(B._entries, p, q, param)
+        sig_off()
+    elif algorithm == "russian":
+        sig_on()
+        _mzd_ple_russian(B._entries, p, q, param)
         sig_off()
     elif algorithm == "naive":
         sig_on()
-        _mzd_pls_naive(B._entries, p, q)
+        _mzd_ple_naive(B._entries, p, q)
         sig_off()
     else:
         raise ValueError("Algorithm '%s' unknown."%algorithm)

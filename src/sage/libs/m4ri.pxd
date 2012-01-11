@@ -151,25 +151,25 @@ cdef extern from "m4ri/m4ri.h":
     cdef int mzd_echelonize(mzd_t *m, int full)
 
     # matrix inversion using Gray codes
-    cdef mzd_t *mzd_invert_m4ri(mzd_t *m, mzd_t *identity, int k)
+    cdef mzd_t *mzd_inv_m4ri(mzd_t *dst, mzd_t *src, int k)
 
     # asymptotically fast PLUQ factorization
     cdef long mzd_pluq(mzd_t *A, mzp_t *P, mzp_t *Q, int cutoff)
 
     # PLUQ factorization using Gray codes
-    cdef long _mzd_pluq_mmpf(mzd_t *A, mzp_t *P, mzp_t *Q, int k)
+    cdef long _mzd_pluq_russian(mzd_t *A, mzp_t *P, mzp_t *Q, int k)
 
     # cubic PLUQ factorization
     cdef long _mzd_pluq_naive(mzd_t *A, mzp_t *P, mzp_t *Q)
 
     # asymptotically fast PLS factorization
-    cdef long mzd_pls(mzd_t *A, mzp_t *P, mzp_t *Q, int cutoff)
+    cdef long mzd_ple(mzd_t *A, mzp_t *P, mzp_t *Q, int cutoff)
 
     # PLS factorization using Gray codes
-    cdef long _mzd_pls_mmpf(mzd_t *A, mzp_t *P, mzp_t *Q, int k)
+    cdef long _mzd_ple_russian(mzd_t *A, mzp_t *P, mzp_t *Q, int k)
 
     # cubic PLS factorization
-    cdef long _mzd_pls_naive(mzd_t *A, mzp_t *P, mzp_t *Q)
+    cdef long _mzd_ple_naive(mzd_t *A, mzp_t *P, mzp_t *Q)
 
     # reduced row echelon form using PLUQ factorization
     cdef long mzd_echelonize_pluq(mzd_t *A, int full)

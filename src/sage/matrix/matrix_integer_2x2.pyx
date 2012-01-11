@@ -18,10 +18,10 @@ import matrix_dense
 
 cimport matrix
 
-from matrix_space import MatrixSpace_generic
+from matrix_space import MatrixSpace
 from sage.misc.lazy_attribute import lazy_attribute
 
-class MatrixSpace_ZZ_2x2_class(MatrixSpace_generic):
+class MatrixSpace_ZZ_2x2_class(MatrixSpace):
     """
     Return a space of 2x2 matrices over ZZ, whose elements are of
     type sage.matrix.matrix_integer_2x2.Matrix_integer_2x2 instead of
@@ -35,26 +35,37 @@ class MatrixSpace_ZZ_2x2_class(MatrixSpace_generic):
 
         sage: sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
         Space of 2x2 integer matrices
+
+    By trac ticket #12290, it is a unique parent::
+
+        sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
+        sage: MatrixSpace_ZZ_2x2() is MatrixSpace_ZZ_2x2()
+        True
+        sage: M = MatrixSpace_ZZ_2x2()
+        sage: loads(dumps(M)) is M
+        True
+
     """
+    @staticmethod
+    def __classcall__(cls):
+        """
+        EXAMPLES::
+
+            sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
+            sage: MatrixSpace_ZZ_2x2() is MatrixSpace_ZZ_2x2()  # indirect doctest
+            True
+
+        """
+        return super(MatrixSpace,cls).__classcall__(cls)
+
     def __init__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
             Space of 2x2 integer matrices
         """
-        MatrixSpace_generic.__init__(self, ZZ, 2, 2, False)
-
-    def __reduce__(self):
-        """
-        Used for pickling.
-
-        EXAMPLES::
-
-            sage: M = sage.matrix.matrix_integer_2x2.MatrixSpace_ZZ_2x2()
-            sage: M.__reduce__()
-            (<built-in function MatrixSpace_ZZ_2x2>, ())
-        """
-        return MatrixSpace_ZZ_2x2, ()
+        MatrixSpace.__init__(self, ZZ, 2, 2, False)
 
     def _repr_(self):
         """
@@ -198,6 +209,9 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         mpz_clear(self.c)
         mpz_clear(self.d)
 
+    def testit(self):
+        print "testing",self._base_ring
+
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         mpz_set(self._entries[(i << 1) | j], (<Integer>value).value)
 
@@ -316,6 +330,12 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
             True
             sage: n.is_mutable()
             True
+
+        The following test against a bug fixed in trac ticket #12290::
+
+            sage: n.base_ring()
+            Integer Ring
+
         """
         cdef Matrix_integer_2x2 x
         x = self._new_c()
@@ -324,6 +344,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         mpz_set(x.c ,self.c)
         mpz_set(x.d, self.d)
         x._mutability = Mutability(False)
+        x._base_ring = self._base_ring
         if self._subdivisions is not None:
             x.subdivide(*self.subdivisions())
         return x

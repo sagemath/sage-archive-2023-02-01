@@ -569,9 +569,7 @@ cdef class Matrix(matrix1.Matrix):
 
         We illustrate various combinations of sparse and dense matrices.
         Notice how if base rings are unequal, both operands must be sparse
-        to get a sparse result.  When the base rings are equal, the left
-        operand dictates the sparse/dense property of the result. This
-        behavior is entirely a consequence of the coercion model.  ::
+        to get a sparse result. ::
 
             sage: A = matrix(ZZ, 5, range(30), sparse=False)
             sage: B = matrix(ZZ, 5, range(30), sparse=True)
@@ -582,7 +580,7 @@ cdef class Matrix(matrix1.Matrix):
             True
             sage: A.elementwise_product(B).is_dense()
             True
-            sage: B.elementwise_product(A).is_sparse()
+            sage: B.elementwise_product(A).is_dense()
             True
 
         TESTS:

@@ -66,6 +66,7 @@ import sage.groups.matrix_gps.matrix_group_element
 # Sage imports
 import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
+from sage.structure.unique_representation import UniqueRepresentation
 import sage.rings.ring as ring
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
@@ -108,99 +109,21 @@ def is_MatrixSpace(x):
         False
     """
 
-    return isinstance(x, MatrixSpace_generic)
+    return isinstance(x, MatrixSpace)
 
-_cache = {}
-def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
+
+class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
     """
-    Create with the command
-
-    MatrixSpace(base_ring , nrows [, ncols] [, sparse])
-
-    The default value of the optional argument sparse is False. The
-    default value of the optional argument ncols is nrows.
+    The space of all nrows x ncols matrices over base_ring.
 
     INPUT:
 
-
     -  ``base_ring`` - a ring
-
     -  ``nrows`` - int, the number of rows
-
     -  ``ncols`` - (default nrows) int, the number of
        columns
-
     -  ``sparse`` - (default false) whether or not matrices
        are given a sparse representation
-
-
-    OUTPUT: The unique space of all nrows x ncols matrices over
-    base_ring.
-
-    EXAMPLES::
-
-        sage: MS = MatrixSpace(RationalField(),2)
-        sage: MS.base_ring()
-        Rational Field
-        sage: MS.dimension()
-        4
-        sage: MS.dims()
-        (2, 2)
-        sage: B = MS.basis()
-        sage: B
-        [
-        [1 0]  [0 1]  [0 0]  [0 0]
-        [0 0], [0 0], [1 0], [0 1]
-        ]
-        sage: B[0]
-        [1 0]
-        [0 0]
-        sage: B[1]
-        [0 1]
-        [0 0]
-        sage: B[2]
-        [0 0]
-        [1 0]
-        sage: B[3]
-        [0 0]
-        [0 1]
-        sage: A = MS.matrix([1,2,3,4])
-        sage: A
-        [1 2]
-        [3 4]
-        sage: MS2 = MatrixSpace(RationalField(),2,3)
-        sage: B = MS2.matrix([1,2,3,4,5,6])
-        sage: A*B
-        [ 9 12 15]
-        [19 26 33]
-
-    ::
-
-        sage: M = MatrixSpace(ZZ, 10)
-        sage: M
-        Full MatrixSpace of 10 by 10 dense matrices over Integer Ring
-        sage: loads(M.dumps()) == M
-        True
-    """
-    if base_ring not in _Rings:
-        raise TypeError("base_ring (=%s) must be a ring"%base_ring)
-    if ncols is None: ncols = nrows
-    nrows = int(nrows); ncols = int(ncols); sparse=bool(sparse)
-    key = (base_ring, nrows, ncols, sparse)
-    if _cache.has_key(key):
-        M = _cache[key]()
-        if not M is None: return M
-
-    M = MatrixSpace_generic(base_ring, nrows, ncols, sparse)
-
-    _cache[key] = weakref.ref(M)
-    return M
-
-
-
-class MatrixSpace_generic(parent_gens.ParentWithGens):
-    """
-    The space of all nrows x ncols matrices over base_ring.
 
     EXAMPLES::
 
@@ -225,6 +148,82 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         Category of algebras over Rational Field
     """
     _no_generic_basering_coercion = True
+
+    @staticmethod
+    def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False):
+        """
+        Create with the command
+
+        MatrixSpace(base_ring , nrows [, ncols] [, sparse])
+
+        The default value of the optional argument sparse is False. The
+        default value of the optional argument ncols is nrows.
+
+        INPUT:
+
+        -  ``base_ring`` - a ring
+        -  ``nrows`` - int, the number of rows
+        -  ``ncols`` - (default nrows) int, the number of
+           columns
+        -  ``sparse`` - (default false) whether or not matrices
+           are given a sparse representation
+
+
+        OUTPUT:
+
+        The unique space of all nrows x ncols matrices over base_ring.
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(RationalField(),2)
+            sage: MS.base_ring()
+            Rational Field
+            sage: MS.dimension()
+            4
+            sage: MS.dims()
+            (2, 2)
+            sage: B = MS.basis()
+            sage: B
+            [
+            [1 0]  [0 1]  [0 0]  [0 0]
+            [0 0], [0 0], [1 0], [0 1]
+            ]
+            sage: B[0]
+            [1 0]
+            [0 0]
+            sage: B[1]
+            [0 1]
+            [0 0]
+            sage: B[2]
+            [0 0]
+            [1 0]
+            sage: B[3]
+            [0 0]
+            [0 1]
+            sage: A = MS.matrix([1,2,3,4])
+            sage: A
+            [1 2]
+            [3 4]
+            sage: MS2 = MatrixSpace(RationalField(),2,3)
+            sage: B = MS2.matrix([1,2,3,4,5,6])
+            sage: A*B
+            [ 9 12 15]
+            [19 26 33]
+
+        ::
+
+            sage: M = MatrixSpace(ZZ, 10)
+            sage: M
+            Full MatrixSpace of 10 by 10 dense matrices over Integer Ring
+            sage: loads(M.dumps()) is M
+            True
+
+        """
+        if base_ring not in _Rings:
+            raise TypeError("base_ring (=%s) must be a ring"%base_ring)
+        if ncols is None: ncols = nrows
+        nrows = int(nrows); ncols = int(ncols); sparse=bool(sparse)
+        return super(MatrixSpace, cls).__classcall__(cls, base_ring, nrows, ncols, sparse)
 
     def __init__(self,  base_ring,
                         nrows,
@@ -316,11 +315,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             ------------------------------------------------------------
             The following tests failed: _test_category
             sage: type(MS)
-            <class 'sage.matrix.matrix_space.MatrixSpace_generic'>
+            <class 'sage.matrix.matrix_space.MatrixSpace'>
             sage: MS.full_category_initialisation()
             sage: TestSuite(MS).run()
             sage: type(MS)
-            <class 'sage.matrix.matrix_space.MatrixSpace_generic_with_category'>
+            <class 'sage.matrix.matrix_space.MatrixSpace_with_category'>
 
         .. todo::
 
@@ -340,24 +339,12 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 sage: MS = MatrixSpace(QQ,7)                      # todo: not implemented
                 sage: TestSuite(MS).run()                         # todo: not implemented
         """
-        if type(type(self)) is not type:
+        if self.__dict__.get('_category_is_initialised'):
             # Apparently the category is already taken care of.
             return
         category = self.category()
-        self._category = None
+        self._category_is_initialised = True
         sage.structure.parent.Parent.__init__(self, category=category)
-
-    def __reduce__(self):
-        """
-        EXAMPLES::
-
-            sage: A = Mat(ZZ,5,7,sparse=True)
-            sage: A
-            Full MatrixSpace of 5 by 7 sparse matrices over Integer Ring
-            sage: loads(dumps(A)) == A
-            True
-        """
-        return MatrixSpace, (self.base_ring(), self.__nrows, self.__ncols, self.__is_sparse)
 
     @lazy_attribute
     def _copy_zero(self):
@@ -669,29 +656,6 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                     return self(x)
                 raise TypeError("no canonical coercion")
         return self._coerce_try(x, self.base_ring())
-
-    def __cmp__(self, other):
-        """
-        Compare this matrix space with other. Sparse and dense matrix
-        spaces with otherwise the same parameters are considered equal.
-
-        If other is not a matrix space, return something arbitrary but
-        deterministic. Otherwise, compare based on base ring, then on
-        number of rows and columns.
-
-        EXAMPLES::
-
-            sage: Mat(ZZ,1000) == Mat(QQ,1000)
-            False
-            sage: Mat(ZZ,10) == Mat(ZZ,10)
-            True
-            sage: Mat(ZZ,10, sparse=False) == Mat(ZZ,10, sparse=True)
-            True
-        """
-        if isinstance(other, MatrixSpace_generic):
-            return cmp((self.base_ring(), self.__nrows, self.__ncols),
-                       (other.base_ring(), other.__nrows, other.__ncols))
-        return cmp(type(self), type(other))
 
     def _repr_(self):
         """
@@ -1425,14 +1389,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         if ncols is None:
             ncols = self.__ncols
         base = self._base
-        try:
-            MS = _cache[base,nrows,ncols,sparse]()
-        except KeyError:
-            MS = None
-        if MS is None:
-            return MatrixSpace(base, nrows, ncols, sparse=sparse)
-        else:
-            return MS
+        return MatrixSpace(base, nrows, ncols, sparse=sparse)
 
     def ncols(self):
         """

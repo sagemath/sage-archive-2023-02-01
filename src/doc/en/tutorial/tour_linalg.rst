@@ -234,4 +234,4 @@ Note that Python is case sensitive:
     sage: M = MatrixSpace(QQ, 10,10, Sparse=True)
     Traceback (most recent call last):
     ...
-    TypeError: MatrixSpace() got an unexpected keyword argument 'Sparse'
+    TypeError: __classcall__() got an unexpected keyword argument 'Sparse'

@@ -27,7 +27,7 @@ AUTHORS:
 ###########################################################################
 
 from sage.matrix.matrix_dense import Matrix_dense
-from sage.matrix.matrix_space import MatrixSpace, MatrixSpace_generic
+from sage.matrix.matrix_space import MatrixSpace
 from sage.monoids.string_monoid import BinaryStrings
 from sage.monoids.string_monoid_element import StringMonoidElement
 from sage.rings.finite_rings.constructor import FiniteField

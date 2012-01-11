@@ -80,7 +80,6 @@ from func_persist import func_persist
 
 from functional import (additive_order,
                         sqrt as numerical_sqrt,
-                        arg,
                         base_ring,
                         base_field,
                         basis,

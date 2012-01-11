@@ -62,22 +62,6 @@ def additive_order(x):
     """
     return x.additive_order()
 
-def arg(x):
-    """
-    Returns the argument of a complex number `x`.
-
-    EXAMPLES::
-
-        sage: z = CC(1,2)
-        sage: theta = arg(z)
-        sage: cos(theta)*abs(z)
-        1.00000000000000
-        sage: sin(theta)*abs(z)
-        2.00000000000000
-    """
-    try: return x.arg()
-    except AttributeError: return CDF(x).arg()
-
 def base_ring(x):
     """
     Returns the base ring over which x is defined.

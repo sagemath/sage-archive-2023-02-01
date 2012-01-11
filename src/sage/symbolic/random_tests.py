@@ -16,12 +16,12 @@ def _mk_full_functions():
         sage: [f for (one,f,arity) in _mk_full_functions()]
         [Ei, abs, arccos, arccosh, arccot, arccoth, arccsc, arccsch,
         arcsec, arcsech, arcsin, arcsinh, arctan, arctan2, arctanh,
-        binomial, ceil, conjugate, cos, cosh, cot, coth, csc, csch,
-        dickman_rho, dilog, dirac_delta, elliptic_e, elliptic_ec,
-        elliptic_eu, elliptic_f, elliptic_kc, elliptic_pi, erf, exp,
-        factorial, floor, heaviside, imag_part, integrate,
-        kronecker_delta, log, polylog, real_part, sec, sech, sgn, sin,
-        sinh, tan, tanh, unit_step, zeta, zetaderiv]
+        arg, binomial, ceil, conjugate, cos, cosh, cot, coth, csc,
+        csch, dickman_rho, dilog, dirac_delta, elliptic_e,
+        elliptic_ec, elliptic_eu, elliptic_f, elliptic_kc,
+        elliptic_pi, erf, exp, factorial, floor, heaviside, imag_part,
+        integrate, kronecker_delta, log, polylog, real_part, sec,
+        sech, sgn, sin, sinh, tan, tanh, unit_step, zeta, zetaderiv]
 
     Note that this doctest will fail whenever a Pynac function is added or
     removed.  In that case, it is very likely that the doctests for
@@ -237,9 +237,10 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_interna
         (euler_gamma - v3^(-e) + (v2 - factorial(-e/v2))^(((2.85879036573 - 1.18163393202*I)*v2 + (2.85879036573 - 1.18163393202*I)*v3)*pi - 0.247786879678 + 0.931826724898*I)*arccsc((0.891138386848 - 0.0936820840629*I)/v1) - (0.553423153995 - 0.5481180572*I)*v3 + 0.149683576515 - 0.155746451854*I)*v1 + arccsch(pi + e)*elliptic_f(khinchin*v2, 1.4656989704 + 0.863754357069*I)
         sage: random_expr(5, verbose=True)
         About to apply dirac_delta to [1]
-        About to apply arccsch to [0]
-        About to apply <built-in function add> to [0, arccsch(0)]
-        arccsch(0)
+        About to apply arcsec to [0]
+        About to apply <built-in function add> to [0, arcsec(0)]
+        arcsec(0)
+
     """
     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
     if ncoeffs is None:

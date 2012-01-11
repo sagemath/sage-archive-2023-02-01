@@ -19,6 +19,7 @@ from sage.structure.coerce import parent
 from sage.symbolic.constants import pi
 from sage.symbolic.function import is_inexact
 from sage.functions.log import exp
+from sage.functions.trig import arctan2
 from sage.functions.transcendental import Ei
 from sage.libs.mpmath import utils as mpmath_utils
 
@@ -1318,6 +1319,118 @@ symbol_table['functions']['sqrt'] = sqrt
 Function_sqrt = type('deprecated_sqrt', (),
         {'__call__': staticmethod(sqrt),
             '__setstate__': lambda x, y: None})
+
+class Function_arg(BuiltinFunction):
+    def __init__(self):
+        r"""
+        The argument function for complex numbers.
+
+        EXAMPLES::
+
+            sage: arg(3+i)
+            arctan(1/3)
+            sage: arg(-1+i)
+            3/4*pi
+            sage: arg(2+2*i)
+            1/4*pi
+            sage: arg(2+x)
+            arg(x + 2)
+            sage: arg(2.0+i+x)
+            arg(x + 2.00000000000000 + 1.00000000000000*I)
+            sage: arg(-3)
+            pi
+            sage: arg(3)
+            0
+            sage: arg(0)
+            0
+            sage: latex(arg(x))
+            \text{arg}\left(x\right)
+            sage: maxima(arg(x))
+            atan2(0,x)
+            sage: maxima(arg(2+i))
+            atan(1/2)
+            sage: maxima(arg(sqrt(2)+i))
+            atan(1/sqrt(2))
+            sage: arg(2+i)
+            arctan(1/2)
+            sage: arg(sqrt(2)+i)
+            arg(sqrt(2) + I)
+            sage: arg(sqrt(2)+i).simplify()
+            arctan(1/2*sqrt(2))
+
+        TESTS::
+
+            sage: arg(0.0)
+            0.000000000000000
+            sage: arg(3.0)
+            0.000000000000000
+            sage: arg(-2.5)
+            3.14159265358979
+            sage: arg(2.0+3*i)
+            0.982793723247329
+        """
+        BuiltinFunction.__init__(self, "arg",
+                conversions=dict(maxima='carg', mathematica='Arg'))
+
+    def _eval_(self, x):
+        """
+        EXAMPLES::
+
+            sage: arg(3+i)
+            arctan(1/3)
+            sage: arg(-1+i)
+            3/4*pi
+            sage: arg(2+2*i)
+            1/4*pi
+            sage: arg(2+x)
+            arg(x + 2)
+            sage: arg(2.0+i+x)
+            arg(x + 2.00000000000000 + 1.00000000000000*I)
+            sage: arg(-3)
+            pi
+            sage: arg(3)
+            0
+            sage: arg(0)
+            0
+            sage: arg(sqrt(2)+i)
+            arg(sqrt(2) + I)
+
+        """
+        if not isinstance(x,Expression):
+            # x contains no variables
+            if is_inexact(x):
+                # inexact complex numbers, e.g. 2.0+i
+                return self._evalf_(x, parent(x))
+            else:
+                # exact complex numbers, e.g. 2+i
+                return arctan2(imag_part(x),real_part(x))
+        else:
+            # x contains variables, e.g. 2+i+y or 2.0+i+y
+            # or x involves an expression such as sqrt(2)
+            return None
+
+    def _evalf_(self, x, parent=None):
+        """
+        EXAMPLES::
+
+            sage: arg(0.0)
+            0.000000000000000
+            sage: arg(3.0)
+            0.000000000000000
+            sage: arg(-2.5)
+            3.14159265358979
+            sage: arg(2.0+3*i)
+            0.982793723247329
+        """
+        try:
+            return x.arg()
+        except AttributeError:
+            from sage.rings.complex_field import CC
+            x = CC(x)
+            return x.arg()
+
+arg=Function_arg()
+
 
 ############################
 # Real and Imaginary Parts #

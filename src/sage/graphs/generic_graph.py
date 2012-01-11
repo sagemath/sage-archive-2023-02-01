@@ -9755,6 +9755,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: hole.is_isomorphic(graphs.CycleGraph(5))
             True
 
+        TESTS:
+
+        This shouldn't fail (trac 10899)::
+
+            sage: Graph(1).is_chordal()
+            True
+            sage: for g in graphs(5):
+            ...     try:
+            ...         forget = g.is_chordal()
+            ...     except:
+            ...         print("Oh no.")
+
         REFERENCES:
 
         .. [Rose75] Rose, D.J. and Tarjan, R.E.,
@@ -12054,6 +12066,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: all([g.subgraph(g.neighbors(v)).is_clique() for v in leaves])
             True
 
+        TESTS:
+
+        There were some problems with the following call in the past (trac 10899) -- now
+        it should be fine::
+
+            sage: Graph(1).lex_BFS(tree=True)
+            ([0], Digraph on 1 vertex)
+
         """
         id_inv = dict([(i,v) for (v,i) in zip(self.vertices(),range(self.order()))])
         code = [[] for i in range(self.order())]
@@ -12090,6 +12110,7 @@ class GenericGraph(GenericGraph_pyx):
         if tree:
             from sage.graphs.digraph import DiGraph
             g = DiGraph(sparse=True)
+            g.add_vertices(self.vertices())
             edges = [(id_inv[i], id_inv[pred[i]]) for i in range(self.order()) if pred[i]!=-1]
             g.add_edges(edges)
             return value, g

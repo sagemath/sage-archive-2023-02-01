@@ -81,6 +81,8 @@ objects like operation tables (e.g. the multiplication table of a group).
 
    sage/matrix/matrix_rational_dense
 
+   sage/matrix/matrix_double_dense
+
    sage/matrix/matrix_real_double_dense
 
    sage/matrix/matrix_complex_double_dense

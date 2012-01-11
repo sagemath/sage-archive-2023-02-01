@@ -1,6 +1,9 @@
 """
-Dense matrices using a NumPy backend.  This serves as a base class for
-dense matrices over Real Double Field and Complex Double Field.
+Dense matrices using a NumPy backend.
+
+
+This serves as a base class for dense matrices over
+Real Double Field and Complex Double Field.
 
 AUTHORS:
 
@@ -9,6 +12,7 @@ AUTHORS:
 - Josh Kantor
 
 - William Stein: many bug fixes and touch ups.
+
 
 EXAMPLES::
 
@@ -74,7 +78,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     creation depends on several variables that are set in the
     subclasses.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: m = Matrix(RDF, [[1,2],[3,4]])
         sage: m**2
         [ 7.0 10.0]
@@ -111,7 +116,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         EXAMPLE:
         In this example, we throw away the current matrix and make a
-        new uninitialized matrix representing the data for the class.
+        new uninitialized matrix representing the data for the class.::
+
             sage: a=matrix(RDF, 3, range(9))
             sage: a.__create_matrix__()
         """
@@ -132,7 +138,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Hash this matrix if it's immutable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matrix(RDF,3,range(1,10))
             sage: hash(A)
             Traceback (most recent call last):
@@ -154,10 +161,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
     def LU_valid(self):
         r"""
-        Returns \code{True} if the LU form of this matrix has
+        Returns ``True`` if the LU form of this matrix has
         already been computed.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = random_matrix(RDF,3) ; A.LU_valid()
             False
             sage: P, L, U = A.LU()
@@ -172,7 +180,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         The numpy matrix must have already been allocated.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: matrix(RDF,3,range(9))
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
@@ -182,7 +191,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [  0 2.0   0]
             [  0   0 2.0]
 
-        TESTS:
+        TESTS::
+
             sage: matrix(RDF,3,0)
             []
             sage: matrix(RDF,3,3,0)
@@ -287,7 +297,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Return a new uninitialized matrix with same parent as self.
 
-        INPUT
+        INPUT:
+
             nrows -- (default self._nrows) number of rows in returned matrix
             ncols -- (default self._ncols) number of columns in returned matrix
 
@@ -312,7 +323,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Add two matrices together.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matrix(RDF,3,range(1,10))
             sage: A+A
             [ 2.0  4.0  6.0]
@@ -335,7 +347,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Return self - right
 
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matrix(RDF,3,range(1,10))
             sage: (A-A).is_zero()
             True
@@ -355,7 +368,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Negate this matrix
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = matrix(RDF,3,range(1,10))
             sage: -A
             [-1.0 -2.0 -3.0]
@@ -385,7 +399,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Multiply self*right as matrices.
 
-        EXAMPLES
+        EXAMPLES::
+
             sage: A = matrix(RDF,3,range(1,10))
             sage: B = matrix(RDF,3,range(1,13))
             sage: A*B
@@ -415,7 +430,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Invert this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = Matrix(RDF, [[10, 0], [0, 100]])
             sage: (~A).det()
             0.001
@@ -429,14 +445,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [  2.85714285714             3.0  -2.42857142857]
             [-0.428571428571            -1.0  0.714285714286]
 
-            Note that if this matrix is (nearly) singular, finding
-            its inverse will not help much and will give slightly different
-            answers on similar platforms depending on the hardware
-            and tuning options given to ATLAS:
-            sage: A = Matrix(RDF, [[1, 0], [0, 0]])
-
-
-
+        Note that if this matrix is (nearly) singular, finding
+        its inverse will not help much and will give slightly different
+        answers on similar platforms depending on the hardware
+        and tuning options given to ATLAS::
 
             sage: A = matrix(RDF,3,range(1,10));A
             [1.0 2.0 3.0]
@@ -447,7 +459,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             True
 
 
-        TESTS:
+        TESTS::
+
             sage: ~Matrix(RDF, 0,0)
             []
             sage: ~Matrix(RDF, 0,3)
@@ -1123,7 +1136,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         However, round-off errors can make it hard to determine
         the zero entries of ``U``.
 
-        .. note::
+        .. NOTE::
 
             Sometimes this decomposition is written as ``A=P*L*U``,
             where ``P`` represents the inverse permutation and is
@@ -1394,7 +1407,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Returns a list of the eigenvalues (with multiplicity)
         of this matrix.  The returned eigenvalues are elements of CDF.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix(RDF, 2, 2, [1,2,3,4])
             sage: m.eigenvalues()
             [-0.372281323269, 5.37228132327]
@@ -1488,6 +1502,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         real or complex numbers (i.e. RDF or CDF).
 
         OUTPUT:
+
         Returns a list of triples, each of the form ``(e,[v],1)``,
         where ``e`` is the eigenvalue, and ``v`` is an associated
         right eigenvector.  If the matrix is of size `n`, then there
@@ -1544,23 +1559,29 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
     def solve_left_LU(self, b):
         """
-        Solve the equation A*x = b using LU decomposition.
+        Solve the equation `A x = b` using LU decomposition.
 
-        WARNING: This function is broken. See trac 4932.
+        .. WARNING::
+
+            This function is broken. See trac 4932.
 
         INPUT:
-           self -- an invertible matrix
-           b -- a vector
 
-        NOTES: This method precomputes and stores the LU decomposition
-        before solving. If many equations of the form Ax=b need to be
-        solved for a singe matrix A, then this method should be used
-        instead of solve. The first time this method is called it will
-        compute the LU decomposition.  If the matrix has not changed
-        then subsequent calls will be very fast as the precomputed LU
-        decomposition will be reused.
+            - self -- an invertible matrix
+            - b -- a vector
 
-        EXAMPLES:
+        .. NOTE::
+
+            This method precomputes and stores the LU decomposition
+            before solving. If many equations of the form Ax=b need to be
+            solved for a singe matrix A, then this method should be used
+            instead of solve. The first time this method is called it will
+            compute the LU decomposition.  If the matrix has not changed
+            then subsequent calls will be very fast as the precomputed LU
+            decomposition will be reused.
+
+        EXAMPLES::
+
             sage: A = matrix(RDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
             [ 1.0  2.0  5.0]
             [ 7.6  2.3  1.0]
@@ -1573,7 +1594,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
 
         TESTS:
-        We test two degenerate cases:
+
+        We test two degenerate cases::
+
             sage: A = matrix(RDF, 0, 3, [])
             sage: A.solve_left_LU(vector(RDF,[]))
             (0.0, 0.0, 0.0)
@@ -1882,9 +1905,12 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Return the determinant of self.
 
-        ALGORITHM: Use numpy
+        ALGORITHM:
 
-        EXAMPLES:
+        Use numpy
+
+        EXAMPLES::
+
             sage: m = matrix(RDF,2,range(4)); m.det()
             -2.0
             sage: m = matrix(RDF,0,[]); m.det()
@@ -1911,9 +1937,12 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Compute the log of the absolute value of the determinant
         using LU decomposition.
 
-        NOTE: This is useful if the usual determinant overflows.
+        .. NOTE::
 
-        EXAMPLES:
+            This is useful if the usual determinant overflows.
+
+        EXAMPLES::
+
             sage: m = matrix(RDF,2,2,range(4)); m
             [0.0 1.0]
             [2.0 3.0]
@@ -1976,7 +2005,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [1.0 4.0]
             [2.0 5.0]
 
-       ::
             sage: m = matrix(RDF,0,3); m
             []
             sage: m.transpose()
@@ -2007,16 +2035,18 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         The computed decomposition is cached and returned on subsequent calls.
 
         INPUT:
+
             A -- a matrix
 
         OUTPUT:
+
             U, S, V -- immutable matrices such that $A = U*S*V.conj().transpose()$
                        where U and V are orthogonal and S is zero off of the diagonal.
 
         Note that if self is m-by-n, then the dimensions of the
         matrices that this returns are (m,m), (m,n), and (n, n).
 
-        .. note::
+        .. NOTE::
 
             If all you need is the singular values of the matrix, see
             the more convenient :meth:`singular_values`.
@@ -2145,9 +2175,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         The computed decomposition is cached and returned on subsequent calls.
 
         INPUT:
+
            self -- a real matrix A
 
         OUTPUT:
+
            Q, R -- immutable matrices such that A = Q*R such that the columns of Q are
                    orthogonal (i.e., $Q^t Q = I$), and R is upper triangular.
 
@@ -2204,7 +2236,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         """
         Return whether this matrix is symmetric, to the given tolerance.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix(RDF,2,2,range(4)); m
             [0.0 1.0]
             [2.0 3.0]
@@ -2409,7 +2442,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         The result is cached, on a per-tolerance and per-algorithm basis.
 
-        ALGORITHMS::
+        ALGORITHMS:
 
         The naive algorithm simply compares corresponing entries on either
         side of the diagonal (and on the diagonal itself) to see if they are
@@ -2581,7 +2614,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         has columns that form an orthonormal basis composed of eigenvectors
         of ``self``.  This is known as "orthonormal diagonalization".
 
-        .. warning::
+        .. WARNING::
 
             The Schur decomposition is not unique, as there may be numerous
             choices for the vectors of the orthonormal basis, and consequently
@@ -2841,9 +2874,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         matrix must be symmetric and positive definite or an exception
         will be raised.
 
-        WARNING::
+        .. WARNING::
 
-        .. This is deprecated!  Use ``cholesky_decomposition'' instead.
+            This is deprecated!  Use :func:`~sage.matrix.matrix2.Matrix.cholesky_decomposition` instead.
 
         EXAMPLES::
 
@@ -2897,7 +2930,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         This method returns a copy of the matrix as a numpy array. It
         uses the numpy C/api so is very fast.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = matrix(RDF,[[1,2],[3,4]])
             sage: n = m.numpy()
             sage: import numpy
@@ -2933,7 +2967,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: numpy.array(m).dtype
             dtype('complex128')
 
-        TESTS:
+        TESTS::
+
             sage: m = matrix(RDF,0,5,[]); m
             []
             sage: m.numpy()
@@ -2947,7 +2982,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
     def _replace_self_with_numpy(self,numpy_matrix):
         """
-        EXAMPLES:
+
+        EXAMPLES::
+
             sage: import numpy
             sage: a = numpy.array([[1,2],[3,4]], 'float64')
             sage: m = matrix(RDF,2,2,0)
@@ -2963,7 +3000,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
     def _replace_self_with_numpy32(self,numpy_matrix):
         """
-        EXAMPLES:
+
+        EXAMPLES::
+
             sage: import numpy
             sage: a = numpy.array([[1,2],[3,4]], 'float32')
             sage: m = matrix(RDF,2,2,0)
@@ -2981,7 +3020,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Return an integer n such that the absolute value of the
         determinant of this matrix is at most $10^n$.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = matrix(RDF, 3, [1,2,5,7,-3,4,2,1,123])
             sage: a._hadamard_row_bound()
             4
@@ -3009,15 +3049,16 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         INPUT:
 
-            algorithm -- 'pade', 'eig', or 'taylor'; the algorithm used to
-            compute the exponential.
+            - algorithm -- 'pade', 'eig', or 'taylor'; the algorithm used to
+              compute the exponential.
 
-            order -- for Pade or Taylor series algorithms, order is the
-            order of the Pade approximation or the order of the Taylor
-            series used.  The current defaults (from scipy) are 7 for
-            'pade' and 20 for 'taylor'.
+            - order -- for Pade or Taylor series algorithms, order is the
+              order of the Pade approximation or the order of the Taylor
+              series used.  The current defaults (from scipy) are 7 for
+              'pade' and 20 for 'taylor'.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A=matrix(RDF, 2, [1,2,3,4]); A
             [1.0 2.0]
             [3.0 4.0]
@@ -3094,7 +3135,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         INPUT:
 
-          - ``eps`` - Cutoff value
+        - ``eps`` - Cutoff value
 
         OUTPUT:
 
@@ -3138,13 +3179,13 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         INPUT:
 
-         - ``ndigits`` - The precision in number of decimal digits
+        - ``ndigits`` - The precision in number of decimal digits
 
         OUTPUT:
 
         A modified copy of the matrix
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M=matrix(CDF, [[10.234r + 34.2343jr, 34e10r]])
             sage: M

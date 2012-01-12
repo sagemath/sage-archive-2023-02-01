@@ -285,18 +285,21 @@ def edit(obj, editor=None, bg=None):
 
 def edit_devel(self, filename, linenum):
     """
-    This hook calls the default implementation but with a diffrent filename.
+    This function is for internal use and is called by IPython when you use
+    the IPython commands ``%edit`` or ``%ed``.
 
-    If the filename begins with SAGE_ROOT/local/lib/python2.6/site-packages/
-    it replaces this by SAGE_ROOT/devel/sage
+    This hook calls the default implementation, but changes the filename for
+    files that appear to be from the sage library: if the filename begins with
+    SAGE_ROOT/local/lib/python.../site-packages/ it replaces this by
+    SAGE_ROOT/devel/sage
 
-    This function is called by IPython when you do either:
+    EXAMPLES::
 
-    sage: %edit gcd         # not tested
-    sage: %ed gcd           # not tested
+        sage: %edit gcd         # indirect doctest, not tested
+        sage: %ed gcd           # indirect doctest, not tested
 
     The above should open your favorite editor (as stored in the environment
-    variable $EDITOR) with the file in witch gcd is defined, and when your
+    variable $EDITOR) with the file in which gcd is defined, and when your
     editor supports it, also at the line in wich gcd is defined.
     """
     sageroot = sage.misc.sageinspect.SAGE_ROOT+'/'
@@ -304,6 +307,7 @@ def edit_devel(self, filename, linenum):
     develbranch = sageroot+'devel/sage'
     filename=re.sub(runpathpattern,develbranch,filename)
     IPython.hooks.editor(self, filename, linenum)
+
 
 ip = IPython.ipapi.get()
 if ip:

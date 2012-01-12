@@ -1,5 +1,5 @@
 r"""
-Interpolation
+Real Interpolation using GSL
 """
 
 include '../ext/stdsage.pxi'

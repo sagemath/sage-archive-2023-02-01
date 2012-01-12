@@ -19,4 +19,5 @@ Symbolic Calculus
    sage/gsl/ode
    sage/gsl/integration
    sage/calculus/riemann
+   sage/gsl/interpolation
    sage/calculus/interpolators

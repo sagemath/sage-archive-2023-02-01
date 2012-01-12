@@ -1,5 +1,5 @@
 r"""
-Solving ODE numericaly by GSL
+Solving ODE numerically by GSL
 
 AUTHORS:
 

@@ -1216,6 +1216,90 @@ class Function_binomial(GinacFunction):
 
 binomial = Function_binomial()
 
+class Function_beta(GinacFunction):
+    def __init__(self):
+        r"""
+        Return the beta function.  This is defined by
+
+        .. math::
+
+            B(p,q) = \int_0^1 t^{p-1}(1-t)^{1-q} dt
+
+        for complex or symbolic input `p` and `q`.
+        Note that the order of inputs does not matter:  `B(p,q)=B(q,p)`.
+
+        GiNaC is used to compute `B(p,q)`.  However, complex inputs
+        are not yet handled in general.  When GiNaC raises an error on
+        such inputs, we raise a NotImplementedError.
+
+        If either input is 1, GiNaC returns the reciprocal of the
+        other.  In other cases, GiNaC uses one of the following
+        formulas:
+
+        .. math::
+
+            B(p,q) = \Gamma(p)\Gamma(q)/\Gamma(p+q)
+
+        or
+
+        .. math::
+
+            B(p,q) = (-1)^q B(1-p-q, q).
+
+
+        For numerical inputs, GiNaC uses the formula
+
+        .. math::
+
+            B(p,q) =  \exp[\log\Gamma(p)+\log\Gamma(q)-\log\Gamma(p+q)]
+
+
+        INPUT:
+
+        -  ``p`` - number or symbolic expression
+
+        -  ``q`` - number or symbolic expression
+
+
+        OUTPUT: number or symbolic expression (if input is symbolic)
+
+        EXAMPLES::
+
+            sage: beta(3,2)
+            1/12
+            sage: beta(3,1)
+            1/3
+            sage: beta(1/2,1/2)
+            beta(1/2, 1/2)
+            sage: beta(-1,1)
+            -1
+            sage: beta(-1/2,-1/2)
+            0
+            sage: beta(x/2,3)
+            beta(1/2*x, 3)
+            sage: beta(.5,.5)
+            3.14159265358979
+            sage: beta(1,2.0+I)
+            0.400000000000000 - 0.200000000000000*I
+            sage: beta(3,x+I)
+            beta(x + I, 3)
+
+        Note that the order of arguments does not matter::
+
+            sage: beta(1/2,3*x)
+            beta(3*x, 1/2)
+
+        The following must be fixed to remain symbolic::
+
+            sage: beta(2,1+5*I)
+            -0.0305039787798408 - 0.0198938992042440*I
+
+        """
+        GinacFunction.__init__(self, "beta", nargs=2,
+                conversions=dict(maxima='beta', mathematica='Beta'))
+
+beta = Function_beta()
+
 def _do_sqrt(x, prec=None, extend=True, all=False):
         r"""
         Used internally to compute the square root of x.

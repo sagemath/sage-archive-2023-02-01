@@ -574,10 +574,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         INPUT:
 
         - ``p`` - default: 'frob' - controls which norm is used
-        to compute the condition number, allowable values are
-        'frob' (for the Frobenius norm), integers -2, -1, 1, 2,
-        positive and negative infinity. See output discussion
-        for specifics.
+          to compute the condition number, allowable values are
+          'frob' (for the Frobenius norm), integers -2, -1, 1, 2,
+          positive and negative infinity. See output discussion
+          for specifics.
 
         OUTPUT:
 
@@ -1567,8 +1567,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         INPUT:
 
-            - self -- an invertible matrix
-            - b -- a vector
+        - self -- an invertible matrix
+        - b -- a vector
 
         .. NOTE::
 
@@ -2036,12 +2036,12 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         INPUT:
 
-            A -- a matrix
+        - A -- a matrix
 
         OUTPUT:
 
-            U, S, V -- immutable matrices such that $A = U*S*V.conj().transpose()$
-                       where U and V are orthogonal and S is zero off of the diagonal.
+        - U, S, V -- immutable matrices such that $A = U*S*V.conj().transpose()$
+          where U and V are orthogonal and S is zero off of the diagonal.
 
         Note that if self is m-by-n, then the dimensions of the
         matrices that this returns are (m,m), (m,n), and (n, n).
@@ -2176,12 +2176,12 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         INPUT:
 
-           self -- a real matrix A
+        - self -- a real matrix A
 
         OUTPUT:
 
-           Q, R -- immutable matrices such that A = Q*R such that the columns of Q are
-                   orthogonal (i.e., $Q^t Q = I$), and R is upper triangular.
+        - Q, R -- immutable matrices such that A = Q*R such that the columns of Q are
+          orthogonal (i.e., $Q^t Q = I$), and R is upper triangular.
 
         EXAMPLES::
 
@@ -2536,7 +2536,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         AUTHOR:
 
-         - Rob Beezer (2011-03-30)
+        - Rob Beezer (2011-03-30)
         """
         import sage.rings.complex_double
         global numpy
@@ -2827,7 +2827,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         AUTHOR:
 
-            - Rob Beezer (2011-03-31)
+        - Rob Beezer (2011-03-31)
         """
         global scipy
         from sage.rings.real_double import RDF
@@ -3045,17 +3045,19 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         r"""
         Calculate the exponential of this matrix X, which is the matrix
 
-        e^X = sum_{k=0}^{infty} frac{X^k}{k!}.
+        .. math::
+
+           e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
 
         INPUT:
 
-            - algorithm -- 'pade', 'eig', or 'taylor'; the algorithm used to
-              compute the exponential.
+        - algorithm -- 'pade', 'eig', or 'taylor'; the algorithm used to
+          compute the exponential.
 
-            - order -- for Pade or Taylor series algorithms, order is the
-              order of the Pade approximation or the order of the Taylor
-              series used.  The current defaults (from scipy) are 7 for
-              'pade' and 20 for 'taylor'.
+        - order -- for Pade or Taylor series algorithms, order is the
+          order of the Pade approximation or the order of the Taylor
+          series used.  The current defaults (from scipy) are 7 for
+          'pade' and 20 for 'taylor'.
 
         EXAMPLES::
 

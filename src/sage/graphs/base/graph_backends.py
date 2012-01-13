@@ -67,7 +67,12 @@ class GenericGraphBackend(SageObject):
         Add a labelled vertex to self.
 
         INPUT:
-            name: vertex label
+
+        - ``name`` -- vertex label
+
+        OUTPUT:
+
+        If ``name``=``None``, the new vertex name is returned, ``None`` otherwise.
 
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
@@ -82,9 +87,17 @@ class GenericGraphBackend(SageObject):
         Add labelled vertices to self.
 
         INPUT:
-            vertices: iterator of vertex labels
 
-        DOCTEST:
+        - ``vertices``: iterator of vertex labels. A new label is created, used and returned in
+          the output list for all ``None`` values in ``vertices``.
+
+        OUTPUT:
+
+        Generated names of new vertices if there is at least one ``None`` value
+        present in ``vertices``. ``None`` otherwise.
+
+        EXAMPLES::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.add_vertices([1,2,3])
             Traceback (most recent call last):
@@ -655,7 +668,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
         DOCTEST:
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.add_edge(1,2,'a',True)
-         """
+        """
 
         try:
             assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
@@ -693,9 +706,15 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Add a labelled vertex to self.
 
         INPUT:
-            name: vertex label
+
+        - ``name``: vertex label
+
+        OUTPUT:
+
+        If ``name``=``None``, the new vertex name is returned. ``None`` otherwise.
 
         DOCTEST:
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.add_vertex(0)
         """
@@ -704,30 +723,61 @@ class NetworkXGraphBackend(GenericGraphBackend):
         except AssertionError:
             self._nxg = self._nxg.mutate()
 
+        retval = None
         if name is None: # then find an integer to use as a key
             i = 0
             while self.has_vertex(i):
                 i=i+1
             name = i
+            retval = name
+
         self._nxg.add_node(name)
+
+        return retval
 
     def add_vertices(self, vertices):
         """
         Add labelled vertices to self.
 
         INPUT:
-            vertices: iterator of vertex labels
 
-        DOCTEST:
+        - ``vertices``: iterator of vertex labels. A new label is created, used and returned in
+          the output list for all ``None`` values in ``vertices``.
+
+        OUTPUT:
+
+        Generated names of new vertices if there is at least one ``None`` value
+        present in ``vertices``. ``None`` otherwise.
+
+        EXAMPLES::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.add_vertices([1,2,3])
+            sage: G.add_vertices([4,None,None,5])
+            [0, 6]
         """
         try:
             assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
         except AssertionError:
             self._nxg = self._nxg.mutate()
 
+        vertices = list(vertices)
+        nones = vertices.count(None)
+        vertices = filter(lambda v: v is not None, vertices)
         self._nxg.add_nodes_from(vertices)
+
+        new_names = []
+        i = 0
+        while nones > 0:
+            while self.has_vertex(i):
+                i += 1
+            self._nxg.add_node(i)
+            new_names.append(i)
+
+            nones -= 1
+            i += 1
+
+        return new_names if new_names != [] else None
 
     def degree(self, v, directed):
         """

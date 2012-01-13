@@ -1093,6 +1093,7 @@ class GraphGenerators():
 
             sage: empty1 = graphs.EmptyGraph()
             sage: empty1.add_vertex()
+            0
             sage: empty1.show() # long time
 
         Use for loops to build a graph from an empty graph::
@@ -1101,6 +1102,11 @@ class GraphGenerators():
             sage: for i in range(5):
             ...    empty2.add_vertex() # add 5 nodes, labeled 0-4
             ...
+            0
+            1
+            2
+            3
+            4
             sage: for i in range(3):
             ...    empty2.add_edge(i,i+1) # add edges {[0:1],[1:2],[2:3]}
             ...

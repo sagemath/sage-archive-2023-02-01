@@ -7099,24 +7099,40 @@ class GenericGraph(GenericGraph_pyx):
         of vertices with numeric labels, then G.add_vertex() could
         potentially be slow, if name is None.
 
+        OUTPUT:
+
+        If ``name``=``None``, the new vertex name is returned. ``None`` otherwise.
+
         EXAMPLES::
 
             sage: G = Graph(); G.add_vertex(); G
+            0
             Graph on 1 vertex
 
         ::
 
             sage: D = DiGraph(); D.add_vertex(); D
+            0
             Digraph on 1 vertex
 
         """
-        self._backend.add_vertex(name)
+        return self._backend.add_vertex(name)
 
     def add_vertices(self, vertices):
         """
         Add vertices to the (di)graph from an iterable container of
         vertices. Vertices that already exist in the graph will not be
         added again.
+
+        INPUT:
+
+        - ``vertices``: iterator of vertex labels. A new label is created, used and returned in
+          the output list for all ``None`` values in ``vertices``.
+
+        OUTPUT:
+
+        Generated names of new vertices if there is at least one ``None`` value
+        present in ``vertices``. ``None`` otherwise.
 
         EXAMPLES::
 
@@ -7128,8 +7144,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_vertices(graphs.CycleGraph(25).vertices())
             sage: G.vertices()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+
+        ::
+
+            sage: G = Graph()
+            sage: G.add_vertices([1,2,3])
+            sage: G.add_vertices([4,None,None,5])
+            [0, 6]
+
         """
-        self._backend.add_vertices(vertices)
+        return self._backend.add_vertices(vertices)
 
     def delete_vertex(self, vertex, in_order=False):
         """
@@ -10939,6 +10963,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.center()
             []
             sage: G.add_vertex()
+            0
             sage: G.center()
             [0]
         """
@@ -11232,6 +11257,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.periphery()
             []
             sage: G.add_vertex()
+            0
             sage: G.periphery()
             [0]
         """

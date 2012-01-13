@@ -948,6 +948,7 @@ class SQLDatabase(SageObject):
         Next, add the graph on one vertex.::
 
             sage: G.add_vertex()
+            0
             sage: D.add_row('simon',(0, G.graph6_string(), 1))
             sage: D.show('simon')
             edges                graph6               vertices

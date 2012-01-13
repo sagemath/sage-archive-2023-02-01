@@ -435,11 +435,17 @@ class BipartiteGraph(Graph):
         of vertices with numeric labels, then ``G.add_vertex()`` could
         potentially be slow, if name is ``None``.
 
+        OUTPUT:
+
+        - If ``name``=``None``, the new vertex name is returned. ``None`` otherwise.
+
         EXAMPLES::
 
             sage: G = BipartiteGraph()
             sage: G.add_vertex(left=True)
+            0
             sage: G.add_vertex(right=True)
+            1
             sage: G.vertices()
             [0, 1]
             sage: G.left
@@ -489,15 +495,8 @@ class BipartiteGraph(Graph):
                     "Cannot add duplicate vertex to other partition.")
 
         # add the vertex
-        if name is not None:
-            # easy add
-            Graph.add_vertex(self, name)
-        else:
-            # figure out what vertex name we end up with
-            old_verts = set(self.vertices())
-            Graph.add_vertex(self, name)
-            new_verts = set(self.vertices())
-            name = list(new_verts - old_verts)[0]
+        retval = Graph.add_vertex(self, name)
+        if retval != None: name = retval
 
         # add to proper partition
         if left:
@@ -505,7 +504,7 @@ class BipartiteGraph(Graph):
         else:
             self.right.add(name)
 
-        return
+        return retval
 
     def add_vertices(self, vertices, left=False, right=False):
         """

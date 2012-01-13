@@ -325,11 +325,14 @@ cdef class CGraph:
 
         INPUT:
 
-        - ``verts`` -- an iterable of vertices.
+        - ``verts`` -- an iterable of vertices. Value -1 has a special
+          meaning -- for each such value an unused vertex name is found,
+          used to create a new vertex and returned.
 
         OUTPUT:
 
-        - Same as for :meth:`add_vertex`.
+        List of generated labels if there is any -1 in ``verts``.
+        None otherwise.
 
         .. SEEALSO::
 
@@ -344,12 +347,13 @@ cdef class CGraph:
             sage: S = SparseGraph(nverts=4, extra_vertices=4)
             sage: S.verts()
             [0, 1, 2, 3]
-            sage: S.add_vertices([3,5,7,9])
+            sage: S.add_vertices([3,-1,4,9])
+            [5]
             sage: S.verts()
-            [0, 1, 2, 3, 5, 7, 9]
+            [0, 1, 2, 3, 4, 5, 9]
             sage: S.realloc(20)
             sage: S.verts()
-            [0, 1, 2, 3, 5, 7, 9]
+            [0, 1, 2, 3, 4, 5, 9]
 
         Adding vertices for dense graphs::
 
@@ -357,16 +361,28 @@ cdef class CGraph:
             sage: D = DenseGraph(nverts=4, extra_vertices=4)
             sage: D.verts()
             [0, 1, 2, 3]
-            sage: D.add_vertices([3,5,7,9])
+            sage: D.add_vertices([3,-1,4,9])
+            [5]
             sage: D.verts()
-            [0, 1, 2, 3, 5, 7, 9]
+            [0, 1, 2, 3, 4, 5, 9]
             sage: D.realloc(20)
             sage: D.verts()
-            [0, 1, 2, 3, 5, 7, 9]
+            [0, 1, 2, 3, 4, 5, 9]
         """
         cdef int v
+        cdef int nones = 0
         for v in verts:
-            self.add_vertex(v)
+            if v > -1:
+                self.add_vertex(v)
+            else:
+                nones += 1
+
+        new_names = []
+        while nones > 0:
+            new_names.append(self.add_vertex())
+            nones -= 1
+
+        return new_names if new_names != [] else None
 
     cdef int del_vertex_unsafe(self, int v):
         """
@@ -1414,11 +1430,13 @@ class CGraphBackend(GenericGraphBackend):
 
         INPUT:
 
-        - ``name`` -- the vertex to be added (must be hashable).
+        - ``name`` -- the vertex to be added (must be hashable). If ``None``,
+          a new name is created.
 
         OUTPUT:
 
-        - None.
+        - If name=None, the new vertex name is returned.
+          None otherwise.
 
         .. SEEALSO::
 
@@ -1446,12 +1464,15 @@ class CGraphBackend(GenericGraphBackend):
             ...
             TypeError: unhashable type: 'list'
         """
+        retval = None
         if name is None:
             name = 0
             while name in self.vertex_ints or (
                 name not in self.vertex_labels and
                 bitset_in((<CGraph>self._cg).active_vertices, name)):
                 name += 1
+            retval = name
+
         check_vertex(name,
                      self.vertex_ints,
                      self.vertex_labels,
@@ -1460,17 +1481,21 @@ class CGraphBackend(GenericGraphBackend):
                      (self._directed and
                       self._cg_rev is not None)) # this will add the vertex
 
+        return retval
+
     def add_vertices(self, object vertices):
         """
         Add vertices to ``self``.
 
         INPUT:
 
-        - ``vertices`` -- iterator of vertex labels.
+        - ``vertices``: iterator of vertex labels. A new name is created, used and returned in
+          the output list for all ``None`` values in ``vertices``.
 
         OUTPUT:
 
-        - None.
+        Generated names of new vertices if there is at least one ``None`` value
+        present in ``vertices``. ``None`` otherwise.
 
         .. SEEALSO::
 
@@ -1481,6 +1506,8 @@ class CGraphBackend(GenericGraphBackend):
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(1)
             sage: D.add_vertices([1,2,3])
+            sage: D.add_vertices([None]*4)
+            [4, 5, 6, 7]
 
         ::
 
@@ -1498,8 +1525,19 @@ class CGraphBackend(GenericGraphBackend):
             sage: D.add_vertices([10,11,12])
         """
         cdef object v
+        cdef int nones = 0
         for v in vertices:
-            self.add_vertex(v)
+            if v is not None:
+                self.add_vertex(v)
+            else:
+                nones += 1
+
+        new_names = []
+        while nones > 0:
+            new_names.append(self.add_vertex(None))
+            nones -= 1
+
+        return new_names if new_names != [] else None
 
     def del_vertex(self, v):
         """

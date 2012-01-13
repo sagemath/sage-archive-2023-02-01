@@ -573,7 +573,7 @@ def run_tests(patches,
         # currently, we only check to see if the doc build script actually
         # raised an exception.  i don't know if it's possible that it
         # could do something else to signal bad behavior.
-        verbosity_command("%s -docbuild all --jsmath html"%SAGE_COMMAND, tmp_file, verbose)
+        verbosity_command("%s -docbuild all --mathjax html"%SAGE_COMMAND, tmp_file, verbose)
 
         f = open(tmp_file)
         for line in f.readlines():

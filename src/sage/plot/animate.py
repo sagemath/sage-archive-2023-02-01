@@ -380,7 +380,9 @@ www.ffmpeg.org, or use 'convert' to produce gifs instead."""
                 savefile += '.gif'
             savefile = os.path.abspath(savefile)
             d = self.png()
-            cmd = 'cd "%s"; sage-native-execute convert -delay %s -loop %s *.png "%s"'%(d, int(delay), int(iterations), savefile)
+            cmd = ( 'cd "%s"; sage-native-execute convert -dispose Background '
+                    '-delay %s -loop %s *.png "%s"' ) % ( d, int(delay),
+                        int(iterations), savefile )
             from subprocess import check_call, CalledProcessError
             try:
                 check_call(cmd, shell=True)

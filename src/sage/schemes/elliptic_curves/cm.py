@@ -160,7 +160,7 @@ def cm_j_invariants(K):
 
        This is currently only implemented for the rationals and
        quadratic fields.  David Kohel has large tables for other
-       functions, but they are not in Sage yet.
+       fields, but they are not in Sage yet.
 
     EXAMPLE::
 

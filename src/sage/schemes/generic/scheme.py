@@ -807,6 +807,21 @@ class AffineScheme(Scheme):
               Defn: Ring Coercion morphism:
                       From: Integer Ring
                       To:   Rational Field
+
+        TESTS:
+
+        We can construct a morphism to an affine curve (trac #7956)::
+
+            sage: S.<p,q> = QQ[]
+            sage: A1.<r> = AffineSpace(QQ,1)
+            sage: A1_emb = Curve(p-2)
+            sage: A1.hom([2,r],A1_emb)
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Rational Field
+              To:   Affine Curve over Rational Field defined by p - 2
+              Defn: Defined on coordinates by sending (r) to
+                    (2, r)
+
         """
         if is_Scheme(x):
             return self.Hom(x).natural_map()

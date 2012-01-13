@@ -1912,6 +1912,12 @@ class MPolynomialIdeal_singular_repr:
             sage: I.interreduced_basis()
             [x]
 
+        The interreduced basis of 0 is 0::
+
+            sage: P.<x,y,z> = GF(2)[]
+            sage: Ideal(P(0)).interreduced_basis()
+            [0]
+
         ALGORITHM:
 
         Uses Singular's interred command or
@@ -1925,7 +1931,7 @@ class MPolynomialIdeal_singular_repr:
         R = self.ring()
 
         if isinstance(R,MPolynomialRing_libsingular):
-            return interred_libsingular(self)
+            return PolynomialSequence(R, interred_libsingular(self), immutable=True)
         else:
             try:
                 s = self._singular_().parent()

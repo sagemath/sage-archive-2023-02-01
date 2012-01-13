@@ -272,6 +272,7 @@ def interred_libsingular(I):
     cdef int j
     cdef int bck
 
+
     if len(I.gens()) == 0:
         return Sequence([], check=False, immutable=True)
 
@@ -290,8 +291,9 @@ def interred_libsingular(I):
     if r.ringtype == 0:
         for j from 0 <= j < IDELEMS(result):
             p = result.m[j]
-            n = p_GetCoeff(p,r)
-            n = r.cf.nInvers(n)
+            if p:
+                n = p_GetCoeff(p,r)
+                n = r.cf.nInvers(n)
             result.m[j] = pp_Mult_nn(p, n, r)
             p_Delete(&p,r)
             n_Delete(&n,r)

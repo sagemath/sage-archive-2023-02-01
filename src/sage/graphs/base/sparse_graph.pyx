@@ -828,6 +828,28 @@ cdef class SparseGraph(CGraph):
         sage_free(neighbors)
         return output
 
+    cpdef int out_degree(self, int u):
+        """
+        Returns the out-degree of ``v``
+
+        INPUT:
+         - ``u`` - integer
+
+        EXAMPLES::
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.add_arc(1,2)
+            sage: G.add_arc(1,3)
+            sage: G.out_degree(0)
+            1
+            sage: G.out_degree(1)
+            2
+        """
+        return self.out_degrees[u]
+
+
     cdef int in_neighbors_unsafe(self, int v, int *neighbors, int size):
         """
         Gives all u such that (u, v) is an arc of the graph.
@@ -892,6 +914,28 @@ cdef class SparseGraph(CGraph):
         output = [neighbors[i] for i from 0 <= i < num_nbrs]
         sage_free(neighbors)
         return output
+
+    cpdef int in_degree(self, int u):
+        """
+        Returns the in-degree of ``v``
+
+        INPUT:
+         - ``u`` - integer
+
+        EXAMPLES::
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.add_arc(1,2)
+            sage: G.add_arc(1,3)
+            sage: G.in_degree(0)
+            0
+            sage: G.in_degree(1)
+            1
+        """
+        return self.in_degrees[u]
+
 
     ###################################
     # Labeled arc functions

@@ -338,6 +338,9 @@ ext_modules = [
     Extension('sage.graphs.distances_all_pairs',
               sources = ['sage/graphs/distances_all_pairs.pyx']),
 
+    Extension('sage.graphs.base.static_sparse_graph',
+              sources = ['sage/graphs/base/static_sparse_graph.pyx']),
+
     Extension('sage.graphs.modular_decomposition.modular_decomposition',
               sources = ['sage/graphs/modular_decomposition/modular_decomposition.pyx'],
               depends = ['sage/graphs/modular_decomposition/src/dm.c',

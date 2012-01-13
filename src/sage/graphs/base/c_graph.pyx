@@ -1424,6 +1424,42 @@ class CGraphBackend(GenericGraphBackend):
                 d += 1
         return self._cg._out_degree(v_int) + d
 
+
+    def out_degree(self, v):
+        r"""
+        Returns the out-degree of v
+
+        INPUT:
+
+        - ``v`` -- a vertex of the graph.
+
+        - ``directed`` -- boolean; whether to take into account the
+          orientation of this graph in counting the degree of ``v``.
+
+
+        EXAMPLE::
+
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
+            sage: D.out_degree(1)
+            2
+        """
+        cdef v_int = get_vertex(v,
+                                self.vertex_ints,
+                                self.vertex_labels,
+                                self._cg)
+        if self._directed:
+            return self._cg._out_degree(v_int)
+        d = 0
+        if self._loops and self.has_edge(v, v, None):
+            if self._multiple_edges:
+                d += len(self.get_edge_label(v, v))
+            else:
+                d += 1
+
+        return self._cg._out_degree(v_int) + d
+
+
     def add_vertex(self, object name):
         """
         Add a vertex to ``self``.

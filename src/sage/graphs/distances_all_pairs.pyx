@@ -114,6 +114,8 @@ from sage.graphs.base.c_graph cimport CGraph
 from sage.graphs.base.c_graph cimport vertex_label
 from sage.graphs.base.c_graph cimport get_vertex
 
+from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph
+
 
 cdef inline all_pairs_shortest_path_BFS(gg,
                                         unsigned short * predecessors,
@@ -127,13 +129,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     cdef CGraph cg = <CGraph> gg._backend._cg
 
     cdef list int_to_vertex = gg.vertices()
-    cdef dict vertex_to_int = {}
     cdef int i
-
-    for i, l in enumerate(int_to_vertex):
-        int_to_vertex[i] = get_vertex(l, gg._backend.vertex_ints, gg._backend.vertex_labels, cg)
-        vertex_to_int[int_to_vertex[i]] = i
-
 
     cdef int n = len(int_to_vertex)
 
@@ -154,6 +150,8 @@ cdef inline all_pairs_shortest_path_BFS(gg,
 
     cdef unsigned short source
     cdef unsigned short v, u
+    cdef unsigned short * p_tmp
+    cdef unsigned short * end
 
     cdef unsigned short * c_predecessors = predecessors
     cdef unsigned short * c_eccentricity = eccentricity
@@ -184,24 +182,15 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     #
     # p_vertices[i] to p_vertices[i+1] - 1
     # (if p_vertices[i] is equal to p_vertices[i+1], then i has no outneighbours)
+    #
+    # This data structure is well documented in the module
+    # sage.graphs.base.static_sparse_graph
 
-    cdef unsigned short ** p_vertices = <unsigned short **> sage_malloc(n*sizeof(short *))
-    cdef unsigned short * p_edges = <unsigned short *> sage_malloc(cg.num_arcs*sizeof(short))
+    cdef short_digraph sd
+    init_short_digraph(sd, gg)
+    cdef unsigned short ** p_vertices = sd.neighbors
+    cdef unsigned short * p_edges = sd.edges
     cdef unsigned short * p_next = p_edges
-
-    for v,i in enumerate(int_to_vertex):
-        outneighbors = <int *>sage_malloc(cg.out_degrees[i] * sizeof(int))
-        cg.out_neighbors_unsafe(i, outneighbors, cg.out_degrees[i])
-        p_vertices[v] = p_next
-
-        for 0<= j < cg.out_degrees[i]:
-            p_next[0] = <unsigned short> vertex_to_int[outneighbors[j]]
-            p_next = p_next + 1
-
-        degree[v] = p_next - p_vertices[v]
-
-        sage_free(outneighbors)
-
 
     # We run n different BFS taking each vertex as a source
     for source in range(n):
@@ -227,9 +216,12 @@ cdef inline all_pairs_shortest_path_BFS(gg,
             # We pick the first one
             v = waiting_list[waiting_beginning]
 
+            p_tmp = p_vertices[v]
+            end = p_vertices[v+1]
+
             # Iterating over all the outneighbors u of v
-            for 0 <= i < degree[v]:
-                u = p_vertices[v][i]
+            while p_tmp < end:
+                u = p_tmp[0]
 
                 # If we notice one of these neighbors is not seen yet, we set
                 # its parameters and add it to the queue to be explored later.
@@ -240,6 +232,8 @@ cdef inline all_pairs_shortest_path_BFS(gg,
                     bitset_add(seen, u)
                     waiting_end += 1
                     waiting_list[waiting_end] = u
+
+                p_tmp += 1
 
             waiting_beginning += 1
 
@@ -265,9 +259,8 @@ cdef inline all_pairs_shortest_path_BFS(gg,
 
     bitset_free(seen)
     sage_free(waiting_list)
-    sage_free(p_vertices)
-    sage_free(p_edges)
     sage_free(degree)
+    free_short_digraph(sd)
     if distances == NULL:
         sage_free(c_distances)
 

@@ -15,20 +15,20 @@ AUTHORS:
 
 
 from sage.numerical.mip import MIPSolverException
+from copy import copy
 
 cdef class CoinBackend(GenericBackend):
 
     def __cinit__(self, maximization = True):
 
-        self.si = new c_OsiCbcSolverInterface(NULL)
-        # stuff related to the loglevel
-        cdef c_CbcModel * model
-        model = self.si.getModelPtr()
-
-        import multiprocessing
-        model.setNumberThreads(multiprocessing.cpu_count())
-
-        self.set_verbosity(0)
+        # Coin devs seem to favor OsiClpSolverInterface
+        self.si = new OsiClpSolverInterface()
+        self.solution = NULL
+        self.log_level = 0
+        self.obj_value = 0.0
+        self.prob_name = None
+        self.row_names = []
+        self.col_names = []
 
         if maximization:
             self.set_sense(+1)
@@ -40,6 +40,8 @@ cdef class CoinBackend(GenericBackend):
         Destructor function
         """
         del self.si
+        if self.solution != NULL:
+            sage_free(self.solution)
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
@@ -91,13 +93,20 @@ cdef class CoinBackend(GenericBackend):
             sage: p.add_variable(name='x',obj=1.0)                  # optional - Coin
             3
             sage: p.col_name(3)                                     # optional - Coin
-            ''
+            'x'
             sage: p.objective_coefficient(3)                        # optional - Coin
             1.0
 
         """
 
-        cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
+        # the solution is no longer valid if we add a new column
+        if self.solution != NULL:
+            sage_free(self.solution)
+            self.solution = NULL
+
+        # for some reason, Cython is not accepting the line below, which appeare
+        #cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
+        cdef int vtype = int(binary) + int(continuous) + int(integer)
         if  vtype == 0:
             continuous = True
         elif vtype != 1:
@@ -119,6 +128,11 @@ cdef class CoinBackend(GenericBackend):
             self.set_variable_type(n,1)
 
         # THE NAMES ARE IGNORED BY COIN AT THE MOMENT
+        # (not in this patch)
+        if name:
+            self.col_names.append(name)
+        else:
+            self.col_names.append("")
 
         if obj:
             self.si.setObjCoeff(n, obj)
@@ -169,7 +183,8 @@ cdef class CoinBackend(GenericBackend):
             sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - Coin
             6
         """
-        cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
+        #cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
+        cdef int vtype = int(binary) + int(continuous) + int(integer)
         if  vtype == 0:
             continuous = True
         elif vtype != 1:
@@ -198,6 +213,10 @@ cdef class CoinBackend(GenericBackend):
                 self.si.setObjCoeff(n + i, obj)
 
         # THE NAMES ARE IGNORED BY COIN AT THE MOMENT
+        # not in this patch
+        if names != None:
+            for name in names:
+                self.col_names.append(name)
 
         return n + number -1
 
@@ -258,6 +277,9 @@ cdef class CoinBackend(GenericBackend):
             sage: p.is_maximization()                              # optional - Coin
             False
         """
+        if self.solution != NULL:
+            sage_free(self.solution)
+            self.solution = NULL
         self.si.setObjSense(-sense)
 
     cpdef objective_coefficient(self, int variable, coeff=None):
@@ -285,6 +307,9 @@ cdef class CoinBackend(GenericBackend):
         """
         if coeff is not None:
             self.si.setObjCoeff(variable, coeff)
+            if self.solution != NULL:
+                sage_free(self.solution)
+                self.solution = NULL
         else:
             return self.si.getObjCoefficients()[variable]
 
@@ -309,6 +334,9 @@ cdef class CoinBackend(GenericBackend):
         """
 
         cdef int i
+        if self.solution != NULL:
+            sage_free(self.solution)
+            self.solution = NULL
         for i,v in enumerate(coeff):
             self.si.setObjCoeff(i, v)
 
@@ -328,11 +356,7 @@ cdef class CoinBackend(GenericBackend):
 
         """
 
-        cdef c_CbcModel * model
-        cdef c_CoinMessageHandler * msg
-        model = self.si.getModelPtr()
-        msg = model.messageHandler()
-        msg.setLogLevel(level)
+        self.log_level = level
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names = None):
         """
@@ -403,16 +427,18 @@ cdef class CoinBackend(GenericBackend):
             (2.0, 2.0)
             sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo') # optional - Coin
             sage: p.row_name(1)                                                           # optional - Coin
-            ''
-
+            'foo'
         """
+        if self.solution != NULL:
+            sage_free(self.solution)
+            self.solution = NULL
         if lower_bound is None and upper_bound is None:
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
 
         cdef int i
         cdef double c
-        cdef c_CoinPackedVector* row
-        row = new_c_CoinPackedVector();
+        cdef CoinPackedVector* row
+        row = new_CoinPackedVector();
 
 
         for i,c in coefficients:
@@ -421,6 +447,10 @@ cdef class CoinBackend(GenericBackend):
         self.si.addRow (row[0],
                         lower_bound if lower_bound != None else -self.si.getInfinity(),
                         upper_bound if upper_bound != None else +self.si.getInfinity())
+        if name != None:
+            self.row_names.append(name)
+        else:
+            self.row_names.append("")
 
     cpdef row(self, int index):
         r"""
@@ -455,8 +485,8 @@ cdef class CoinBackend(GenericBackend):
         cdef int * c_indices
         cdef int i
         cdef double * c_values
-        cdef c_CoinPackedMatrix * M = <c_CoinPackedMatrix *> self.si.getMatrixByRow()
-        cdef c_CoinShallowPackedVector V = <c_CoinShallowPackedVector> M.getVector(index)
+        cdef CoinPackedMatrix * M = <CoinPackedMatrix *> self.si.getMatrixByRow()
+        cdef CoinShallowPackedVector V = <CoinShallowPackedVector> M.getVector(index)
         cdef int n = V.getNumElements()
 
         c_indices = <int*> V.getIndices()
@@ -586,6 +616,9 @@ cdef class CoinBackend(GenericBackend):
 
 
         self.si.addCol (1, c_indices, c_values, 0, self.si.getInfinity(), 0)
+        if self.solution != NULL:
+            sage_free(self.solution)
+            self.solution = NULL
 
     cpdef int solve(self) except -1:
         r"""
@@ -621,24 +654,43 @@ cdef class CoinBackend(GenericBackend):
             MIPSolverException: ...
         """
 
-        self.si.branchAndBound()
+        # set up the model
+        cdef OsiSolverInterface * si = self.si
+        cdef CbcModel * model
+        model = new CbcModel(si[0])
+        model.setLogLevel(self.log_level)
 
-        cdef const_double_ptr solution
+        # multithreading
+        import multiprocessing
+        model.setNumberThreads(multiprocessing.cpu_count())
 
-        if self.si.isAbandoned():
+        model.branchAndBound()
+
+        if model.solver().isAbandoned():
             raise MIPSolverException("CBC : The solver has abandoned!")
 
-        elif self.si.isProvenPrimalInfeasible() or self.si.isProvenDualInfeasible():
+        elif model.solver().isProvenPrimalInfeasible() or model.solver().isProvenDualInfeasible():
             raise MIPSolverException("CBC : The problem or its dual has been proven infeasible!")
 
-        elif (self.si.isPrimalObjectiveLimitReached() or self.si.isDualObjectiveLimitReached()):
+        elif (model.solver().isPrimalObjectiveLimitReached() or model.solver().isDualObjectiveLimitReached()):
             raise MIPSolverException("CBC : The objective limit has been reached for the problem or its dual!")
 
-        elif self.si.isIterationLimitReached():
+        elif model.solver().isIterationLimitReached():
             raise MIPSolverException("CBC : The iteration limit has been reached!")
 
-        elif not self.si.isProvenOptimal():
+        elif not model.solver().isProvenOptimal():
             raise MIPSolverException("CBC : Unknown error")
+
+        self.obj_value = model.solver().getObjValue()
+        if self.solution != NULL:
+            sage_free(self.solution)
+            self.solution = NULL
+        self.solution = <double *>sage_malloc(sizeof(double) * self.si.getNumCols())
+        cdef double * temp_sol = <double *>model.solver().getColSolution()
+        cdef int i
+        for i in xrange(self.si.getNumCols()): self.solution[i] = temp_sol[i]
+        del model
+
 
     cpdef double get_objective_value(self):
         r"""
@@ -666,7 +718,11 @@ cdef class CoinBackend(GenericBackend):
             1.5
         """
 
-        return self.si.getObjValue()
+        #return self.si.getObjValue()
+        if self.solution != NULL:
+            return self.obj_value
+        else:
+            raise MIPSolverException("If you change a linear program, you must solve it before requesting solutions.")
 
     cpdef double get_variable_value(self, int variable):
         r"""
@@ -694,9 +750,12 @@ cdef class CoinBackend(GenericBackend):
             1.5
         """
 
-        cdef double * solution
-        solution = <double*> self.si.getColSolution()
-        return solution[variable]
+        #cdef double * solution
+        #solution = <double*> self.model.solver().getColSolution()
+        if self.solution != NULL:
+            return self.solution[variable]
+        else:
+            raise MIPSolverException("If you change a linear program, you must solve it before requesting solutions.")
 
     cpdef int ncols(self):
         r"""
@@ -857,6 +916,9 @@ cdef class CoinBackend(GenericBackend):
             return ub[index] if ub[index] != + self.si.getInfinity() else None
         else:
             self.si.setColUpper(index, value if value is not None else +self.si.getInfinity())
+            if self.solution != NULL:
+                sage_free(self.solution)
+                self.solution = NULL
 
     cpdef variable_lower_bound(self, int index, value = False):
         r"""
@@ -889,6 +951,9 @@ cdef class CoinBackend(GenericBackend):
             return lb[index] if lb[index] != - self.si.getInfinity() else None
         else:
             self.si.setColLower(index, value if value is not None else -self.si.getInfinity())
+            if self.solution != NULL:
+              sage_free(self.solution)
+              self.solution = NULL
 
     cpdef write_mps(self, char * filename, int modern):
         r"""
@@ -912,6 +977,28 @@ cdef class CoinBackend(GenericBackend):
         cdef char * mps = "mps"
         self.si.writeMps(filename, mps, -1 if self.is_maximization() else 1)
 
+    cpdef write_lp(self, char * filename):
+        r"""
+        Writes the problem to a .lp file
+
+        INPUT:
+
+        - ``filename`` (string)
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")  # optional - Coin
+            sage: p.add_variables(2)                               # optional - Coin
+            1
+            sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - Coin
+            sage: p.set_objective([2, 5])                          # optional - Coin
+            sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")       # optional - Coin
+        """
+
+        cdef char * lp = "lp"
+        self.si.writeLp(filename, lp, 0.00001, 10, 5, -1 if self.is_maximization() else 1, 1)
+
     cpdef problem_name(self, char * name = NULL):
         r"""
         Returns or defines the problem's name
@@ -927,10 +1014,15 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")   # optional - Coin
             sage: p.problem_name("There once was a french fry") # optional - Coin
             sage: print p.problem_name()                        # optional - Coin
-            <BLANKLINE>
+            There once was a french fry
         """
         if name == NULL:
-            return ""
+            if self.prob_name != None:
+                return self.prob_name
+            else:
+                return ""
+        else:
+            self.prob_name = name
 
 
     cpdef row_name(self, int index):
@@ -949,7 +1041,10 @@ cdef class CoinBackend(GenericBackend):
             sage: print p.row_name(0)                                                 # optional - Coin
             <BLANKLINE>
         """
-        return ""
+        if self.row_names != None:
+            return self.row_names[index]
+        else:
+            return ""
 
     cpdef col_name(self, int index):
         r"""
@@ -966,9 +1061,12 @@ cdef class CoinBackend(GenericBackend):
             sage: p.add_variable(name='I am a variable')   # optional - Coin
             0
             sage: print p.col_name(0)                      # optional - Coin
-            <BLANKLINE>
+            I am a variable
         """
-        return ""
+        if self.col_names != None:
+            return self.col_names[index]
+        else:
+            return ""
 
     cpdef CoinBackend copy(self):
         """
@@ -983,11 +1081,17 @@ cdef class CoinBackend(GenericBackend):
             sage: p.set_objective(b[1] + b[2])                 # optional - Coin
             sage: copy(p).solve()                              # optional - Coin
             6.0
-
         """
+        # create new backend
         cdef CoinBackend p = CoinBackend(maximization = (1 if self.is_maximization() else -1))
 
-        p.si = new c_OsiCbcSolverInterface(<OsiSolverInterface *> self.si)
+        # replace solver with copy of self's solver
+        del p.si
+        p.si = self.si.clone(1)
+        p.row_names = copy(self.row_names)
+        p.col_names = copy(self.col_names)
+        # Maybe I should copy this, not sure -- seems complicated, though
+        p.prob_name = self.prob_name
 
         return p
 

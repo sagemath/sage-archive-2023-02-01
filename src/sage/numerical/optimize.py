@@ -782,7 +782,7 @@ def binpacking(items,maximum=1,k=None):
     boxes=[[] for i in range(k)]
 
     for b in range(k):
-        boxes[b].extend([items[i] for i in range(len(items)) if box[i][b]==1])
+        boxes[b].extend([items[i] for i in range(len(items)) if round(box[i][b])==1])
 
     return boxes
 

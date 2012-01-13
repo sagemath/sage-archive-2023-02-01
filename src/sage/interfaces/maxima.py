@@ -834,12 +834,20 @@ class Maxima(MaximaAbstract, Expect):
         cmd = '''0;sconcat("%s",(%s+1));\n'''%(marker,r)
         self._sendstr(cmd)
         try:
-            self._expect_expr(timeout=0.5)
-            if not s in self._before():
-                self._expect_expr(s,timeout=0.5)
+            try:
                 self._expect_expr(timeout=0.5)
-        except pexpect.TIMEOUT, msg:
-            self._interrupt()
+                if not s in self._before():
+                    self._expect_expr(s,timeout=0.5)
+                    self._expect_expr(timeout=0.5)
+            except pexpect.TIMEOUT:
+                # Don't call self._interrupt() here, as that might send multiple
+                # interrupts.  On OS X 10.4, maxima takes a long time to
+                # process one interrupt (7.5 seconds on an idle system, but up
+                # to a minute on a loaded system) and gets confused by multiple
+                # interrupts.  Instead, send just one interrupt and wait.
+                # See Trac #9361.
+                self._sendstr(chr(3))
+                self._expect_expr(timeout=120)
         except pexpect.EOF:
             self._crash_msg()
             self.quit()

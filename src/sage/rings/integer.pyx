@@ -2821,10 +2821,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         INPUT:
 
-        -  ``other`` - the integer the divisor
+        -  ``other`` - the divisor
 
         OUTPUT:
-
 
         -  ``q`` - the quotient of self/other
 
@@ -2850,6 +2849,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: 3.quo_rem(ZZ['x'].0)
             (0, 3)
+
+        TESTS:
+
+        The divisor can be rational as well, although the remainder
+        will always be zero (trac #7965)::
+
+            sage: 5.quo_rem(QQ(2))
+            (5/2, 0)
+            sage: 5.quo_rem(2/3)
+            (15/2, 0)
+
         """
         cdef Integer q = PY_NEW(Integer)
         cdef Integer r = PY_NEW(Integer)

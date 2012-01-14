@@ -44,7 +44,15 @@ This method is much faster, but won't include any potential fixes old entries.
 
 == Changelog ==
 
-=== database_cremona_ellcurve-20111029 (R. Andrew Ohana, 29 October 2011 ===
+=== database_cremona_ellcurve-20120113 (R. Andrew Ohana, 14 January 2012) ===
+ * Updated the tables to include all conductors up to 220000
+
+=== database_cremona_ellcurve-20111121 (R. Andrew Ohana, 27 November 2011) ===
+ * Older versions of Sage will now revert to the 20071019.p0 version
+ * Version number is now based off of Cremona's release of the tables
+ * Updated the tables to include all conductors up to 210000
+
+=== database_cremona_ellcurve-20111029 (R. Andrew Ohana, 29 October 2011) ===
  * Updated the tables to include all conductors up to 200000
  * Fixed a mistake in update instructions
 

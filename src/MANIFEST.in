@@ -34,6 +34,8 @@ include doc/en/bordeaux_2008/birch.png
 include doc/en/bordeaux_2008/modpcurve.png
 include doc/fr/a_tour_of_sage/eigen_plot.png
 include doc/fr/a_tour_of_sage/sin_plot.png
+include doc/tr/a_tour_of_sage/eigen_plot.png
+include doc/tr/a_tour_of_sage/sin_plot.png
 recursive-include doc/en/reference/media *
 recursive-include doc/en/thematic_tutorials/media *
 recursive-include doc/common/static *

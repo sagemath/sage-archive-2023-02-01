@@ -27,12 +27,6 @@ extensions = ['sage_autodoc',  'sphinx.ext.graphviz',
 #, 'sphinx.ext.intersphinx']
 
 
-if 'SAGE_DOC_JSMATH' in os.environ:
-    extensions.append('sphinx.ext.jsmath')
-else:
-    extensions.append('sphinx.ext.pngmath')
-jsmath_path = 'jsmath_sage.js'
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = [os.path.join(SAGE_DOC, 'common/templates'), 'templates']
 
@@ -134,7 +128,7 @@ extlinks = {
 # -----------------------
 
 # HTML theme (e.g., 'default', 'sphinxdoc').  We use a custom Sage
-# theme to set a Pygments style, stylesheet, and insert jsMath macros. See
+# theme to set a Pygments style, stylesheet, and insert MathJax macros. See
 # the directory doc/common/themes/sage/ for files comprising the custom Sage
 # theme.
 html_theme = 'sage'
@@ -143,13 +137,6 @@ html_theme = 'sage'
 # a theme further.  For a list of options available for each theme,
 # see the documentation.
 html_theme_options = {}
-
-if 'SAGE_DOC_JSMATH' in os.environ:
-    from sage.misc.latex_macros import sage_jsmath_macros_easy
-    html_theme_options['jsmath_macros'] = sage_jsmath_macros_easy
-
-    from sage.misc.package import is_package_installed
-    html_theme_options['jsmath_image_fonts'] = is_package_installed('jsmath-image-fonts')
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = [os.path.join(SAGE_DOC, 'common/themes')]
@@ -179,14 +166,32 @@ html_favicon = 'favicon.ico'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = [os.path.join(SAGE_DOC, 'common/static'), 'static']
 
-# If we're using jsMath, we prepend its location to the static path
-# array.  We can override / overwrite selected files by putting them
-# in the remaining paths.
-if 'SAGE_DOC_JSMATH' in os.environ:
+# The environment variable SAGE_DOC_MATHJAX may be set by the user or
+# by the file "builder.py".  If it's set, or if SAGE_DOC_JSMATH is set
+# (for backwards compatibility), use MathJax.
+if (os.environ.get('SAGE_DOC_MATHJAX', False)
+    or os.environ.get('SAGE_DOC_JSMATH', False)):
+
+    extensions.append('sphinx.ext.mathjax')
+    mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
+
+    from sage.misc.latex_macros import sage_mathjax_macros
+    html_theme_options['mathjax_macros'] = sage_mathjax_macros
+
     from pkg_resources import Requirement, working_set
     sagenb_path = working_set.find(Requirement.parse('sagenb')).location
-    jsmath_static = os.path.join(sagenb_path, 'sagenb', 'data', 'jsmath')
-    html_static_path.insert(0, jsmath_static)
+    mathjax_relative = os.path.join('sagenb','data','mathjax')
+
+    # It would be really nice if sphinx would copy the entire mathjax directory,
+    # (so we could have a _static/mathjax directory), rather than the contents of the directory
+
+    mathjax_static = os.path.join(sagenb_path, mathjax_relative)
+    html_static_path.append(mathjax_static)
+    exclude_patterns=['**/'+os.path.join(mathjax_relative, i) for i in ('docs', 'README*', 'test',
+                                                                        'unpacked', 'LICENSE')]
+else:
+     extensions.append('sphinx.ext.pngmath')
+
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -428,19 +433,6 @@ def process_dollars(app, what, name, obj, options, docstringlines):
         for i in range(len(lines)):
             docstringlines[i] = lines[i]
 
-def process_mathtt(app, what, name, obj, options, docstringlines):
-    r"""
-    Replace \mathtt{BLAH} with \verb|BLAH| if using jsMath.
-    See sage.misc.sagedoc.process_mathtt for more information
-    """
-    if (len(docstringlines) > 0 and 'SAGE_DOC_JSMATH' in os.environ
-        and name.find("process_mathtt") == -1):
-        from sage.misc.sagedoc import process_mathtt as sagedoc_mathtt
-        s = sagedoc_mathtt("\n".join(docstringlines), True)
-        lines = s.split("\n")
-        for i in range(len(lines)):
-            docstringlines[i] = lines[i]
-
 def process_inherited(app, what, name, obj, options, docstringlines):
     """
     If we're including inherited members, omit their docstrings.
@@ -604,7 +596,6 @@ def setup(app):
     app.connect('autodoc-process-docstring', process_directives)
     app.connect('autodoc-process-docstring', process_docstring_module_title)
     app.connect('autodoc-process-docstring', process_dollars)
-    app.connect('autodoc-process-docstring', process_mathtt)
     app.connect('autodoc-process-docstring', process_inherited)
     app.connect('autodoc-skip-member', skip_member)
 

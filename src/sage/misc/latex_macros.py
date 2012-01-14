@@ -9,15 +9,16 @@ The code here sets up LaTeX macro definitions for use in the
 documentation. To add a macro, modify the list ``macros``, near the
 end of this file, and then run 'sage -b'. The entries in this list are
 used to produce ``sage_latex_macros``, a list of strings of the form
-'\\newcommand...', and ``sage_js_macros``, a list of strings of the
-form 'jsMath.Macro...'.  The LaTeX macros are produced using the
-``_latex_`` method for each Sage object listed in ``macros``, and the
-jsMath macros are produced from the LaTeX macros.  The list of LaTeX
-macros is used in the file ``SAGE_ROOT/devel/sage/doc/common/conf.py``
-to add to the preambles of both the LaTeX file used to build the PDF
-version of the documentation and the LaTeX file used to build the HTML
-version.  The list of jsMath macros is used in the file
-``sage/server/notebook/notebook.py`` to define jsMath macros for use
+'\\newcommand...', and ``sage_mathjax_macros``, a list of strings
+suitable for parsing by MathJax.  The LaTeX macros are produced using
+the ``_latex_`` method for each Sage object listed in ``macros``, and
+the MathJax macros are produced from the LaTeX macros.  The list of
+LaTeX macros is used in the file
+``SAGE_ROOT/devel/sage/doc/common/conf.py`` to add to the preambles of
+both the LaTeX file used to build the PDF version of the documentation
+and the LaTeX file used to build the HTML version.  The list of
+MathJax macros is used in the file
+``sage/server/notebook/notebook.py`` to define MathJax macros for use
 in the live documentation (and also in the notebook).
 
 Any macro defined here may be used in docstrings or in the tutorial
@@ -101,26 +102,26 @@ def produce_latex_macro(name, *sample_args):
         defn = defn.replace(str(x), "#" + str(count))
     return newcommand + defn
 
-def convert_latex_macro_to_jsmath(macro):
+def convert_latex_macro_to_mathjax(macro):
     r"""
     This converts a LaTeX macro definition (\newcommand...) to a
-    jsMath macro definition (jsMath.Macro...).
+    MathJax macro definition (MathJax.Macro...).
 
     INPUT:
 
     -  ``macro`` - LaTeX macro definition
 
     See the web page
-    http://www.math.union.edu/~dpvc/jsMath/authors/macros.html for a
-    description of the format for jsMath macros.
+    http://www.mathjax.org/docs/1.1/options/TeX.html for a
+    description of the format for MathJax macros.
 
     EXAMPLES::
 
-        sage: from sage.misc.latex_macros import convert_latex_macro_to_jsmath
-        sage: convert_latex_macro_to_jsmath('\\newcommand{\\ZZ}{\\Bold{Z}}')
-        "jsMath.Macro('ZZ','\\\\Bold{Z}');"
-        sage: convert_latex_macro_to_jsmath('\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}')
-        "jsMath.Macro('GF','\\\\Bold{F}_{#1}',1);"
+        sage: from sage.misc.latex_macros import convert_latex_macro_to_mathjax
+        sage: convert_latex_macro_to_mathjax('\\newcommand{\\ZZ}{\\Bold{Z}}')
+        'ZZ: "\\\\Bold{Z}"'
+        sage: convert_latex_macro_to_mathjax('\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}')
+        'GF: ["\\\\Bold{F}_{#1}",1]'
     """
     left_bracket = macro.find('[')
     right_bracket = macro.find('[')
@@ -135,47 +136,10 @@ def convert_latex_macro_to_jsmath(macro):
     start_defn = macro.find('{', end_name)
     end_defn = macro.rfind('}')
     defn = macro[start_defn+1: end_defn].replace('\\', '\\\\')
-    if num_args > 0:
-        args_str = "," + str(num_args)
+    if num_args == 0:
+        return name + ': "' + defn + '"'
     else:
-        args_str = ""
-    return "jsMath.Macro('" + name + "','" + defn + "'" + args_str + ");"
-
-def convert_latex_macro_to_jsmath_easy(macro):
-    r"""
-    This converts a LaTeX macro definition (\newcommand...) to a
-    definition for jsMath's easy/load.js macro array.
-
-    INPUT:
-
-    -  ``macro`` - LaTeX macro definition
-
-    EXAMPLES::
-
-        sage: from sage.misc.latex_macros import convert_latex_macro_to_jsmath_easy
-        sage: convert_latex_macro_to_jsmath_easy('\\newcommand{\\ZZ}{\\Bold{Z}}')
-        "ZZ : '{\\\\Bold{Z}}'"
-        sage: convert_latex_macro_to_jsmath_easy('\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}')
-        "GF : ['{\\\\Bold{F}_{#1}}', 1]"
-    """
-    left_bracket = macro.find('[')
-    right_bracket = macro.find('[')
-    if left_bracket >= 0:
-        right_bracket = macro.find(']')
-        num_args = macro[left_bracket+1:right_bracket]
-    else:
-        num_args = 0
-    start_name = macro.find('{') + 1  # add one to go past the backslash
-    end_name = macro.find('}')
-    name = macro[start_name+1:end_name]
-    start_defn = macro.find('{', end_name)
-    end_defn = macro.rfind('}')
-    defn = macro[start_defn+1: end_defn].replace('\\', '\\\\')
-    if num_args > 0:
-        args_str = "," + str(num_args)
-        return name + " : ['{" + defn + "}', " + str(num_args) + ']'
-    else:
-        return name + " : '{" + defn + "}'"
+        return name + ': ["' + defn + '",' + str(num_args) + ']'
 
 # To add a new macro for use in the Sage documentation, add a list or
 # tuple to the following list.  Each list (or tuple) should have the
@@ -213,9 +177,6 @@ sage_configurable_latex_macros = ["\\newcommand{\\Bold}[1]{\\mathbf{#1}}"]
 
 sage_latex_macros += sage_configurable_latex_macros
 
-# jsMath macro definitions as JavaScript, e.g., to include in HTML
+# MathJax macro definitions as JavaScript, e.g., to include in HTML
 # script elements.
-sage_jsmath_macros = [convert_latex_macro_to_jsmath(m) for m in sage_latex_macros]
-
-# jsMath macro definitions for an easy/load.js file's "macros" array.
-sage_jsmath_macros_easy = [convert_latex_macro_to_jsmath_easy(m) for m in sage_latex_macros]
+sage_mathjax_macros = [convert_latex_macro_to_mathjax(m) for m in sage_latex_macros]

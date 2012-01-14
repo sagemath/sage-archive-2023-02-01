@@ -323,11 +323,7 @@ def str_function(x):
     # 2) wrap each line into \verb;
     # 3) assemble lines into a left-justified array.
 
-    # There is a bug in verb-space treatment in jsMath...
-    spacer = "\\phantom{%s}"
-    # \phantom{\verb!%s!} is more accurate and it works, but it is not a valid
-    # LaTeX and may cause problems, so let's live with the above variant until
-    # spaces are properly treated in jsMath/MathJax and we don't need to worry.
+    spacer = r"\phantom{\verb!%s!}"
     lines = []
     for line in x.split("\n"):
         parts = []
@@ -583,7 +579,7 @@ class _Latex_prefs_object(SageObject):
         self._option["preamble"] = ""
         self._option["engine"] = "latex"
         self._option["engine_name"] = "LaTeX"
-        self._option["jsmath_avoid"] = []
+        self._option["mathjax_avoid"] = []
 
 _Latex_prefs = _Latex_prefs_object()
 
@@ -1091,9 +1087,9 @@ class Latex:
         """
         if t is None:
             return _Latex_prefs._option["blackboard_bold"]
-        from latex_macros import sage_latex_macros, sage_jsmath_macros, sage_configurable_latex_macros, convert_latex_macro_to_jsmath
+        from latex_macros import sage_latex_macros, sage_mathjax_macros, sage_configurable_latex_macros, convert_latex_macro_to_mathjax
         global sage_latex_macros
-        global sage_jsmath_macros
+        global sage_mathjax_macros
         old = _Latex_prefs._option["blackboard_bold"]
         _Latex_prefs._option["blackboard_bold"] = bool(t)
         if bool(old) != bool(t):
@@ -1109,8 +1105,8 @@ class Latex:
             sage_configurable_latex_macros.remove(old_macro)
             sage_latex_macros.append(macro)
             sage_configurable_latex_macros.append(macro)
-            sage_jsmath_macros.remove(convert_latex_macro_to_jsmath(old_macro))
-            sage_jsmath_macros.append(convert_latex_macro_to_jsmath(macro))
+            sage_mathjax_macros.remove(convert_latex_macro_to_mathjax(old_macro))
+            sage_mathjax_macros.append(convert_latex_macro_to_mathjax(macro))
 
     def matrix_delimiters(self, left=None, right=None):
         r"""nodetex
@@ -1288,7 +1284,7 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
     def extra_macros(self, macros=None):
         r"""nodetex
         String containing extra LaTeX macros to use with %latex,
-        %html, and %jsmath.
+        %html, and %mathjax.
 
         INPUT: ``macros`` - string
 
@@ -1313,7 +1309,7 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
     def add_macro(self, macro):
         r"""nodetex
         Append to the string of extra LaTeX macros, for use with
-        %latex, %html, and %jsmath.
+        %latex, %html, and %mathjax.
 
         INPUT: ``macro`` - string
 
@@ -1333,7 +1329,7 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
     def extra_preamble(self, s=None):
         r"""nodetex
         String containing extra preamble to be used with %latex.
-        Anything in this string won't be processed by %jsmath.
+        Anything in this string won't be processed by %mathjax.
 
         INPUT: ``s`` - string or ``None``
 
@@ -1367,7 +1363,7 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
         r"""nodetex
         Append to the string of extra LaTeX macros, for use with
         %latex.  Anything in this string won't be processed by
-        %jsmath.
+        %mathjax.
 
         EXAMPLES::
 
@@ -1433,9 +1429,9 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
         if self.has_file(package_name+".sty"):
             self.add_to_preamble("\\usepackage{%s}\n"%package_name)
 
-    def jsmath_avoid_list(self, L=None):
+    def mathjax_avoid_list(self, L=None):
         r"""nodetex
-        List of strings which signal that jsMath should not
+        List of strings which signal that MathJax should not
         be used when 'view'ing.
 
         INPUT: ``L`` - list or ``None``
@@ -1443,47 +1439,47 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
         If ``L`` is ``None``, then return the current list.
         Otherwise, set it to ``L``.  If you want to *append* to the
         current list instead of replacing it, use
-        :meth:`latex.add_to_jsmath_avoid_list <Latex.add_to_jsmath_avoid_list>`.
+        :meth:`latex.add_to_mathjax_avoid_list <Latex.add_to_mathjax_avoid_list>`.
 
         EXAMPLES::
 
-            sage: latex.jsmath_avoid_list(["\\mathsf", "pspicture"])
-            sage: latex.jsmath_avoid_list()  # display current setting
+            sage: latex.mathjax_avoid_list(["\\mathsf", "pspicture"])
+            sage: latex.mathjax_avoid_list()  # display current setting
             ['\\mathsf', 'pspicture']
-            sage: latex.jsmath_avoid_list([])  # reset to default
-            sage: latex.jsmath_avoid_list()
+            sage: latex.mathjax_avoid_list([])  # reset to default
+            sage: latex.mathjax_avoid_list()
             []
         """
         if L is None:
-            return _Latex_prefs._option['jsmath_avoid']
+            return _Latex_prefs._option['mathjax_avoid']
         else:
-            _Latex_prefs._option['jsmath_avoid'] = L
+            _Latex_prefs._option['mathjax_avoid'] = L
 
-    def add_to_jsmath_avoid_list(self, s):
+    def add_to_mathjax_avoid_list(self, s):
         r"""nodetex
-        Add to the list of strings which signal that jsMath should not
+        Add to the list of strings which signal that MathJax should not
         be used when 'view'ing.
 
-        INPUT: ``s`` - string -- add ``s`` to the list of 'jsMath avoid' strings
+        INPUT: ``s`` - string -- add ``s`` to the list of 'MathJax avoid' strings
 
         If you want to replace the current list instead of adding to
-        it, use :meth:`latex.jsmath_avoid_list <Latex.jsmath_avoid_list>`.
+        it, use :meth:`latex.mathjax_avoid_list <Latex.mathjax_avoid_list>`.
 
         EXAMPLES::
 
-            sage: latex.add_to_jsmath_avoid_list("\\mathsf")
-            sage: latex.jsmath_avoid_list()  # display current setting
+            sage: latex.add_to_mathjax_avoid_list("\\mathsf")
+            sage: latex.mathjax_avoid_list()  # display current setting
             ['\\mathsf']
-            sage: latex.add_to_jsmath_avoid_list("tkz-graph")
-            sage: latex.jsmath_avoid_list()  # display current setting
+            sage: latex.add_to_mathjax_avoid_list("tkz-graph")
+            sage: latex.mathjax_avoid_list()  # display current setting
             ['\\mathsf', 'tkz-graph']
-            sage: latex.jsmath_avoid_list([])  # reset to default
-            sage: latex.jsmath_avoid_list()
+            sage: latex.mathjax_avoid_list([])  # reset to default
+            sage: latex.mathjax_avoid_list()
             []
         """
-        current = latex.jsmath_avoid_list()
+        current = latex.mathjax_avoid_list()
         if s not in current:
-            _Latex_prefs._option['jsmath_avoid'].append(s)
+            _Latex_prefs._option['mathjax_avoid'].append(s)
 
     def pdflatex(self, t = None):  # this is deprecated since 4.3.3
         """
@@ -1703,19 +1699,19 @@ def _latex_file_(objects, title='SAGE', debug=False, \
 
     return s
 
-class JSMathExpr:
+class MathJaxExpr:
     """
-    An arbitrary JSMath expression that can be nicely concatenated.
+    An arbitrary MathJax expression that can be nicely concatenated.
 
     EXAMPLES::
 
-        sage: from sage.misc.latex import JSMathExpr
-        sage: JSMathExpr("a^{2}") + JSMathExpr("x^{-1}")
+        sage: from sage.misc.latex import MathJaxExpr
+        sage: MathJaxExpr("a^{2}") + MathJaxExpr("x^{-1}")
         a^{2}x^{-1}
     """
     def __init__(self, y):
         """
-        Initialize a JSMath expression.
+        Initialize a MathJax expression.
 
         INPUT:
 
@@ -1725,8 +1721,8 @@ class JSMathExpr:
 
         EXAMPLES::
 
-            sage: from sage.misc.latex import JSMathExpr
-            sage: js = JSMathExpr(3); js  # indirect doctest
+            sage: from sage.misc.latex import MathJaxExpr
+            sage: jax = MathJaxExpr(3); jax  # indirect doctest
             3
         """
         self.__y = y
@@ -1737,59 +1733,59 @@ class JSMathExpr:
 
         EXAMPLES::
 
-            sage: from sage.misc.latex import JSMathExpr
-            sage: js = JSMathExpr('3')
-            sage: js.__repr__()
+            sage: from sage.misc.latex import MathJaxExpr
+            sage: jax = MathJaxExpr('3')
+            sage: jax.__repr__()
             '3'
         """
         return str(self.__y)
 
     def __add__(self, y):
         """
-        'Add' JSMathExpr ``self`` to ``y``.  This concatenates them
+        'Add' MathJaxExpr ``self`` to ``y``.  This concatenates them
         (assuming that they're strings).
 
         EXAMPLES::
 
-            sage: from sage.misc.latex import JSMathExpr
-            sage: j3 = JSMathExpr('3')
-            sage: jx = JSMathExpr('x')
+            sage: from sage.misc.latex import MathJaxExpr
+            sage: j3 = MathJaxExpr('3')
+            sage: jx = MathJaxExpr('x')
             sage: j3 + jx
             3x
         """
-        return JSMathExpr(self.__y + y)
+        return MathJaxExpr(self.__y + y)
 
     def __radd__(self, y):
         """
-        'Add' JSMathExpr ``y`` to ``self``.  This concatenates them
+        'Add' MathJaxExpr ``y`` to ``self``.  This concatenates them
         (assuming that they're strings).
 
         EXAMPLES::
 
-            sage: from sage.misc.latex import JSMathExpr
-            sage: j3 = JSMathExpr('3')
-            sage: jx = JSMathExpr('x')
+            sage: from sage.misc.latex import MathJaxExpr
+            sage: j3 = MathJaxExpr('3')
+            sage: jx = MathJaxExpr('x')
             sage: j3.__radd__(jx)
             x3
         """
-        return JSMathExpr(y + self.__y)
+        return MathJaxExpr(y + self.__y)
 
-class JSMath:
+class MathJax:
     r"""
-    Render LaTeX input using JSMath.  This returns a :class:`JSMathExpr`.
+    Render LaTeX input using MathJax.  This returns a :class:`MathJaxExpr`.
 
     EXAMPLES::
 
-        sage: from sage.misc.latex import JSMath
-        sage: JSMath()(3)
-        <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</div></html>
-        sage: JSMath()(ZZ)
-        <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}</div></html>
+        sage: from sage.misc.latex import MathJax
+        sage: MathJax()(3)
+        <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
+        sage: MathJax()(ZZ)
+        <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}</script></html>
     """
 
     def __call__(self, x, combine_all=False):
         r"""
-        Render LaTeX input using JSMath.  This returns a :class:`JSMathExpr`.
+        Render LaTeX input using MathJax.  This returns a :class:`MathJaxExpr`.
 
         INPUT:
 
@@ -1800,14 +1796,14 @@ class JSMath:
           and instead returns a string with all the elements separated by
           a single space.
 
-        OUTPUT: a JSMathExpr
+        OUTPUT: a MathJaxExpr
 
         EXAMPLES::
 
-            sage: from sage.misc.latex import JSMath
-            sage: JSMath()(3)
-            <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</div></html>
-            sage: str(JSMath().eval(ZZ[x], mode='display')) == str(JSMath()(ZZ[x]))
+            sage: from sage.misc.latex import MathJax
+            sage: MathJax()(3)
+            <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
+            sage: str(MathJax().eval(ZZ[x], mode='display')) == str(MathJax()(ZZ[x]))
             True
         """
         return self.eval(x, combine_all=combine_all)
@@ -1815,7 +1811,7 @@ class JSMath:
     def eval(self, x, globals=None, locals=None, mode='display',
             combine_all=False):
         r"""
-        Render LaTeX input using JSMath.  This returns a :class:`JSMathExpr`.
+        Render LaTeX input using MathJax.  This returns a :class:`MathJaxExpr`.
 
         INPUT:
 
@@ -1834,100 +1830,38 @@ class JSMath:
           and instead returns a string with all the elements separated by
           a single space.
 
-        OUTPUT: a JSMathExpr
+        OUTPUT: a MathJaxExpr
 
         EXAMPLES::
 
-            sage: from sage.misc.latex import JSMath
-            sage: JSMath().eval(3, mode='display')
-            <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</div></html>
-            sage: JSMath().eval(3, mode='inline')
-            <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</span></html>
-            sage: JSMath().eval(type(3), mode='inline')
-            <html>...\verb|&lt;type|\phantom{x}\verb|'sage.rings.integer.Integer'&gt;|</span></html>
-            sage: JSMath().eval((1,3), mode='display', combine_all=True)
-            <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}1 3</div></html>
+            sage: from sage.misc.latex import MathJax
+            sage: MathJax().eval(3, mode='display')
+            <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
+            sage: MathJax().eval(3, mode='inline')
+            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
+            sage: MathJax().eval(type(3), mode='inline')
+            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|&lt;type|\phantom{\verb!x!}\verb|'sage.rings.integer.Integer'&gt;|</script></html>
         """
         # Get a regular LaTeX representation of x...
         x = latex(x, combine_all=combine_all)
-        # ... and make it suitable for jsMath, which has issues with < and >.
+        # ... and make it suitable for MathJax and html
         x = x.replace('<', '&lt;').replace('>', '&gt;')
-        # In jsMath:
-        #   inline math: <span class="math">...</span>
-        #   displaymath: <div class="math">...</div>
+        # In MathJax:
+        #   inline math: <script type="math/tex">...</script>
+        #   displaymath: <script type="math/tex; mode=display">...</script>
         from sage.misc.latex_macros import sage_configurable_latex_macros
-        if 'display' == mode:
-            return JSMathExpr('<html><div class="math">'
-                              + ''.join(sage_configurable_latex_macros)
-                              + _Latex_prefs._option['macros']
-                              + '%s</div></html>'%x)
-        elif 'inline' == mode:
-            return JSMathExpr('<html><span class="math">'
-                              + ''.join(sage_configurable_latex_macros)
-                              + _Latex_prefs._option['macros']
-                              + '%s</span></html>'%x)
+        if mode == 'display':
+            modecode = '; mode=display'
+        elif mode == 'inline':
+            modecode = ''
         else:
             # what happened here?
-            raise ValueError, "mode must be either 'display' or 'inline'"
+            raise ValueError("mode must be either 'display' or 'inline'")
 
-def jsmath(x, mode='display'):
-    r"""
-    Attempt to nicely render an arbitrary Sage object with jsMath typesetting.
-    Tries to call ._latex_() on x. If that fails, it will render a string
-    representation of x.
-
-    .. warning::
-
-        2009-04: This function is deprecated; use :func:`~.html.html`
-        instead: replace ``jsmath('MATH', mode='display')`` with
-        ``html('$$MATH$$')``, and replace ``jsmath('MATH',
-        mode='inline')`` with ``html('$MATH$')``.
-
-    INPUT:
-        x -- the object to render
-        mode -- 'display' for displaymath or 'inline' for inline math
-
-    OUTPUT:
-        A string of html that contains the LaTeX representation of x. In the
-        notebook this gets embedded into the cell.
-
-    EXAMPLES::
-
-        sage: from sage.misc.latex import jsmath
-        sage: f = maxima('1/(x^2+1)')
-        sage: g = f.integrate()
-        sage: jsmath(f)
-        doctest:1: DeprecationWarning: The jsmath function is deprecated.  Use html('$math$') for inline mode or html('$$math$$') for display mode.
-        See http://trac.sagemath.org/8552 for details.
-        <html><font color='black'><div class="math">{{1}\over{x^2+1}}</div></font></html>
-        <BLANKLINE>
-        sage: jsmath(g, 'inline')
-        <html><font color='black'><span class="math">\tan^{-1} x</span></font></html>
-        sage: jsmath('\int' + latex(f) + '\ dx=' + latex(g))
-        <html><font color='black'><div class="math">\int {{1}\over{x^2+1}} \ dx= \tan^{-1} x</div></font></html>
-
-    AUTHORS:
-
-    - William Stein (2006-10): general layout (2006-10)
-
-    - Bobby Moretti (2006-10): improvements, comments, documentation
-    """
-    from sage.misc.superseded import deprecation
-    from sage.misc.html import html
-    deprecation(8552, "The jsmath function is deprecated.  Use html('$math$') for inline mode or html('$$math$$') for display mode.")
-    if mode == 'display':
-        delimiter = '$$'
-    elif mode == 'inline':
-        delimiter = '$'
-    else:
-        raise ValueError, "mode must be either 'display' or 'inline'"
-    try:
-        # try to get a latex representation of the object
-        x = x._latex_()
-    except AttributeError:
-        # otherwise just get the string representation
-        x = str(x)
-    return html(delimiter + x + delimiter)
+        return MathJaxExpr('<html><script type="math/tex{0}">'.format(modecode)
+                         + ''.join(sage_configurable_latex_macros)
+                         + _Latex_prefs._option['macros']
+                         + '{0}</script></html>'.format(x))
 
 def view(objects, title='SAGE', debug=False, sep='', tiny=False,
         pdflatex=None, engine=None, viewer = None, tightpage = None,
@@ -2018,25 +1952,25 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False,
     each object by ``\\begin{page}$`` and ``$\\end{page}``.
 
     If in notebook mode with ``viewer`` equal to ``None``, this
-    usually uses jsMath -- see the next paragraph for the exception --
+    usually uses MathJax -- see the next paragraph for the exception --
     to display the output in the notebook. Only the first argument,
     ``objects``, is relevant; the others are ignored. If ``objects``
     is a list, each object is printed on its own line.
 
-    In the notebook, this *does* *not* use jsMath if the LaTeX code
+    In the notebook, this *does* *not* use MathJax if the LaTeX code
     for ``objects`` contains a string in
-    :meth:`latex.jsmath_avoid_list() <Latex.jsmath_avoid_list>`.  In
+    :meth:`latex.mathjax_avoid_list() <Latex.mathjax_avoid_list>`.  In
     this case, it creates and displays a png file.
 
     EXAMPLES::
 
         sage: sage.misc.latex.EMBEDDED_MODE = True
         sage: view(3)
-        <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</span></html>
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
         sage: view(3, mode='display')
-        <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</div></html>
+        <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
         sage: view((x,2), combine_all=True) # trac 11775
-        <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}x 2</span></html>
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x 2</script></html>
         sage: sage.misc.latex.EMBEDDED_MODE = False
 
     TESTS::
@@ -2074,14 +2008,14 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False,
         engine = "pdflatex"
     # notebook
     if EMBEDDED_MODE and viewer is None:
-        jsMath_okay = True
-        for t in latex.jsmath_avoid_list():
+        MathJax_okay = True
+        for t in latex.mathjax_avoid_list():
             if s.find(t) != -1:
-                jsMath_okay = False
-            if not jsMath_okay:
+                MathJax_okay = False
+            if not MathJax_okay:
                 break
-        if jsMath_okay:  # put comma at end of line in print below?
-            print JSMath().eval(objects, mode=mode, combine_all=combine_all)
+        if MathJax_okay:  # put comma at end of line below?
+            print MathJax().eval(objects, mode=mode, combine_all=combine_all)
         else:
             base_dir = os.path.abspath("")
             png_file = graphics_filename(ext='png')
@@ -2288,7 +2222,7 @@ def print_or_typeset(object):
         sage: TEMP = sys.displayhook
         sage: sys.displayhook = sage.misc.latex.pretty_print
         sage: sage.misc.latex.print_or_typeset(3)
-        <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</span></html>
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
         sage: sage.misc.latex.EMBEDDED_MODE=False
         sage: sys.displayhook = TEMP
     """
@@ -2304,7 +2238,7 @@ def pretty_print (*args):
     objects, this returns their default representation.  For other
     objects, in the notebook, this calls the :func:`view` command,
     while from the command line, this produces an html string suitable
-    for processing by jsMath.
+    for processing by MathJax.
 
     INPUT:
 
@@ -2317,14 +2251,14 @@ def pretty_print (*args):
     EXAMPLES::
 
         sage: pretty_print(ZZ)  # indirect doctest
-        <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}</span></html>
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}</script></html>
         sage: pretty_print("Integers = ", ZZ) # trac 11775
-        <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|Integers|\phantom{x}\verb|=| \Bold{Z}</span></html>
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|Integers|\phantom{\verb!x!}\verb|=| \Bold{Z}</script></html>
 
     To typeset LaTeX code as-is, use :class:`LatexExpr`::
 
         sage: pretty_print(LatexExpr(r"\frac{x^2 + 1}{x - 2}"))
-        <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{x^2 + 1}{x - 2}</span></html>
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{x^2 + 1}{x - 2}</script></html>
     """
     # view s if it is not empty. Used twice.
     def _show_s(s):
@@ -2332,7 +2266,7 @@ def pretty_print (*args):
             if EMBEDDED_MODE:
                 view(tuple(s), combine_all=True)
             else:
-                print JSMath().eval(tuple(s), mode='inline',
+                print MathJax().eval(tuple(s), mode='inline',
                         combine_all=True)
 
     s = []
@@ -2358,7 +2292,7 @@ def pretty_print (*args):
 def pretty_print_default(enable=True):
     r"""
     Enable or disable default pretty printing. Pretty printing means
-    rendering things so that jsMath or some other latex-aware front end
+    rendering things so that MathJax or some other latex-aware front end
     can render real math.
 
     INPUT:
@@ -2370,7 +2304,7 @@ def pretty_print_default(enable=True):
 
         sage: pretty_print_default(True)
         sage: sys.displayhook
-        <html>...\verb|&lt;function|\phantom{x}\verb|pretty_print|...</html>
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|&lt;function|\phantom{\verb!x!}\verb|pretty_print|\phantom{\verb!x!}\verb|at|\phantom{\verb!x!}\verb|...|</script></html>
         sage: pretty_print_default(False)
         sage: sys.displayhook == sys.__displayhook__
         True
@@ -2596,8 +2530,8 @@ gibberish.  Now, make sure that you have the most recent version of
 the TeX package pgf installed, along with the LaTeX package tkz-graph.
 Run 'latex.add_to_preamble("\\usepackage{tkz-graph}")', and try viewing
 it again.  From the command line, this should pop open a nice window
-with a picture of a graph.  In the notebook, you should get a jsMath
-error.  Finally, run 'latex.add_to_jsmath_avoid_list("tikzpicture")'
+with a picture of a graph.  In the notebook, you should get a MathJax
+error.  Finally, run 'latex.add_to_mathjax_avoid_list("tikzpicture")'
 and try again from the notebook -- you should get a nice picture.
 
 (LaTeX code taken from http://altermundus.com/pages/graph.html)
@@ -2679,7 +2613,7 @@ viewing it again. From the command line, this should pop
 open a nice window with a picture of forces acting on a mass
 on a pendulum. In the notebook, you should get an error.
 Finally, run
-'latex.add_to_jsmath_avoid_list("pspicture")' and try again
+'latex.add_to_mathjax_avoid_list("pspicture")' and try again
 -- you should get a nice picture."""
 
         def _latex_(self):
@@ -2746,7 +2680,7 @@ To use, try to view this object -- it won't work.  Now try
 'latex.add_to_preamble("\\usepackage[graph,knot,poly,curve]{xypic}")',
 and try viewing again -- it should work in the command line but not
 from the notebook.  In the notebook, run
-'latex.add_to_jsmath_avoid_list("xygraph")' and try again -- you
+'latex.add_to_mathjax_avoid_list("xygraph")' and try again -- you
 should get a nice picture.
 
 (LaTeX code taken from the xypic manual)
@@ -2810,7 +2744,7 @@ To use, try to view this object -- it won't work.  Now try
 'latex.add_to_preamble("\\usepackage[matrix,arrow,curve,cmtip]{xy}")',
 and try viewing again -- it should work in the command line but not
 from the notebook.  In the notebook, run
-'latex.add_to_jsmath_avoid_list("xymatrix")' and try again -- you
+'latex.add_to_mathjax_avoid_list("xymatrix")' and try again -- you
 should get a picture (a part of the diagram arising from a filtered
 chain complex)."""
 

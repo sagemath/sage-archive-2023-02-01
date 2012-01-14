@@ -42,7 +42,7 @@ import sage.version
 
 # two kinds of substitutions: math, which should only be done on the
 # command line -- in the notebook, these should instead by taken care
-# of by jsMath -- and nonmath, which should be done always.
+# of by MathJax -- and nonmath, which should be done always.
 math_substitutes = [ # don't forget leading backslash '\\'
     ('\\to', '-->'),
     ('\\leq', '<='),
@@ -347,40 +347,28 @@ def process_extlinks(s, embedded=False):
                        s, count=1)
     return s
 
-def process_mathtt(s, embedded=False):
+def process_mathtt(s):
     r"""nodetex
-    Replace \\mathtt{BLAH} with either \\verb|BLAH| (in the notebook) or
-    BLAH (from the command line).
+    Replace \\mathtt{BLAH} with BLAH in the command line.
 
     INPUT:
 
     - ``s`` - string, in practice a docstring
-    - ``embedded`` - boolean (optional, default False)
 
-    This function is called by :func:`format`, and if in the notebook,
-    it sets ``embedded`` to be ``True``, otherwise ``False``.
+    This function is called by :func:`format`.
 
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import process_mathtt
         sage: process_mathtt(r'e^\mathtt{self}')
         'e^self'
-        sage: process_mathtt(r'e^\mathtt{self}', embedded=True)
-        'e^{\\verb|self|}'
     """
-    replaced = False
     while True:
         start = s.find("\\mathtt{")
         end = s.find("}", start)
         if start == -1 or end == -1:
             break
-        if embedded:
-            left = "{\\verb|"
-            right = "|}"
-        else:
-            left = ""
-            right = ""
-        s = s[:start] + left + s[start+8:end] + right + s[end+1:]
+        s = s[:start] + s[start+8:end] + s[end+1:]
     return s
 
 def format(s, embedded=False):
@@ -569,7 +557,8 @@ def format(s, embedded=False):
 
     if 'nodetex' not in directives:
         s = process_dollars(s)
-        s = process_mathtt(s, embedded=embedded)
+        if not embedded:
+            s = process_mathtt(s)
         s = process_extlinks(s, embedded=embedded)
         s = detex(s, embedded=embedded)
     return embedding_info+s
@@ -1331,7 +1320,7 @@ class _sage_doc:
     </script>
     <script type="text/javascript" src="%(static_path)s/jquery.js"></script>
     <script type="text/javascript" src="%(static_path)s/doctools.js"></script>
-    <script type="text/javascript" src="%(static_path)s/jsmath_sage.js"></script>
+    <script type="text/javascript" src="%(static_path)s/mathjax_sage.js"></script>
     <link rel="shortcut icon" href="%(static_path)s/favicon.ico" />
     <link rel="icon" href="%(static_path)s/sageicon.png" type="image/x-icon" />
   </head>
@@ -1389,7 +1378,7 @@ class _sage_doc:
         path = os.path.join(self._base_path, name, "index.html")
         if not os.path.exists(path):
             raise OSError, """The document '%s' does not exist.  Please build it
-with 'sage -docbuild %s html --jsmath' and try again.""" %(name, name)
+with 'sage -docbuild %s html --mathjax' and try again.""" %(name, name)
 
         if testing:
             return (url, path)

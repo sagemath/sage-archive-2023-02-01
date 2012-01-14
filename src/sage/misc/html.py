@@ -30,43 +30,44 @@ def math_parse(s):
     Do the following:
 
     * Replace all ``\$ text \$``\'s by
-      ``<span class='math'> text </span>``
+      ``<script type="math/tex"> text </script>``
     * Replace all ``\$\$ text \$\$``\'s by
-      ``<div class='math'> text </div>``
+      ``<script type="math/tex; mode=display"> text </script>``
     * Replace all ``\ \$``\'s by ``\$``\'s.  Note that in
       the above two cases nothing is done if the ``\$``
       is preceeded by a backslash.
     * Replace all ``\[ text \]``\'s by
-      ``<div class='math'> text </div>``
+      ``<script type="math/tex; mode=display"> text </script>``
 
     EXAMPLES::
 
         sage: sage.misc.html.math_parse('This is $2+2$.')
-        'This is <span class="math">2+2</span>.'
+        'This is <script type="math/tex">2+2</script>.'
         sage: sage.misc.html.math_parse('This is $$2+2$$.')
-        'This is <div class="math">2+2</div>.'
+        'This is <script type="math/tex; mode=display">2+2</script>.'
         sage: sage.misc.html.math_parse('This is \\[2+2\\].')
-        'This is <div class="math">2+2</div>.'
+        'This is <script type="math/tex; mode=display">2+2</script>.'
         sage: sage.misc.html.math_parse(r'This is \[2+2\].')
-        'This is <div class="math">2+2</div>.'
+        'This is <script type="math/tex; mode=display">2+2</script>.'
 
     TESTS::
 
         sage: sage.misc.html.math_parse(r'This \$\$is $2+2$.')
-        'This $$is <span class="math">2+2</span>.'
+        'This $$is <script type="math/tex">2+2</script>.'
     """
-    # first replace \\[ and \\] by <div class="math"> and </div>, respectively.
+    # first replace \\[ and \\] by <script type="math/tex; mode=display">
+    # and </script>, respectively.
     while True:
         i = s.find('\\[')
         if i == -1:
             break
         else:
-            s = s[:i] + '<div class="math">' + s[i+2:]
+            s = s[:i] + '<script type="math/tex; mode=display">' + s[i+2:]
             j = s.find('\\]')
             if j == -1:  # missing right-hand delimiter, so add one
-                s = s + '</div>'
+                s = s + '</script>'
             else:
-                s = s[:j] + '</div>' + s[j+2:]
+                s = s[:j] + '</script>' + s[j+2:]
 
     # Below t always has the "parsed so far" version of s, and s is
     # just the part of the original input s that hasn't been parsed.
@@ -84,29 +85,35 @@ def math_parse(s):
             s = s[i+1:]
             continue
         elif i+1 < len(s) and s[i+1] == '$':
-            # Found a math environment. Double dollar sign so div mode.
-            typ = 'div'
+            # Found a math environment. Double dollar sign so display mode.
+            disp = '; mode=display'
         else:
-            # Found math environment. Single dollar sign so span mode.
-            typ = 'span'
+            # Found math environment. Single dollar sign so default mode.
+            disp = ''
 
-        # Now find the matching $ sign and form the span or div.
-        j = s[i+2:].find('$')
-        if j == -1:
-            j = len(s)
-            s += '$'
-            if typ == 'div':
+        # Now find the matching $ sign and form the html string.
+
+        if len(disp) > 0:
+            j = s[i+2:].find('$$')
+            if j == -1:
+                j = len(s)
                 s += '$$'
-        else:
-            j += i + 2
-        if typ == 'div':
+            else:
+                j += i + 2
             txt = s[i+2:j]
         else:
+            j = s[i+2:].find('$')
+            if j == -1:
+                j = len(s)
+                s += '$'
+            else:
+                j += i + 2
             txt = s[i+1:j]
-        t += s[:i] + '<%s class="math">%s</%s>'%(typ,
-                      ' '.join(txt.splitlines()), typ)
+
+        t += s[:i] + '<script type="math/tex%s">%s</script>'%(disp,
+                      ' '.join(txt.splitlines()))
         s = s[j+1:]
-        if typ == 'div':
+        if len(disp) > 0:
             s = s[1:]
     return t
 
@@ -168,7 +175,7 @@ class HTML:
             if j == -1:
                  t += s
                  break
-            t += s[:i] + '<span class="math">%s</span>'%\
+            t += s[:i] + '<script type="math/tex">%s</script>'%\
                      latex(sage_eval(s[6+i:j], locals=locals))
             s = s[j+7:]
         print "<html><font color='black'>%s</font></html>"%t
@@ -196,24 +203,24 @@ class HTML:
             <table class="table_form">
             <tbody>
             <tr class ="row-a">
-            <td><span class="math">0</span></td>
-            <td><span class="math">0</span></td>
-            <td><span class="math">\mathrm{True}</span></td>
+            <td><script type="math/tex">0</script></td>
+            <td><script type="math/tex">0</script></td>
+            <td><script type="math/tex">\mathrm{True}</script></td>
             </tr>
             <tr class ="row-b">
-            <td><span class="math">0</span></td>
-            <td><span class="math">1</span></td>
-            <td><span class="math">\mathrm{False}</span></td>
+            <td><script type="math/tex">0</script></td>
+            <td><script type="math/tex">1</script></td>
+            <td><script type="math/tex">\mathrm{False}</script></td>
             </tr>
             <tr class ="row-a">
-            <td><span class="math">1</span></td>
-            <td><span class="math">0</span></td>
-            <td><span class="math">\mathrm{False}</span></td>
+            <td><script type="math/tex">1</script></td>
+            <td><script type="math/tex">0</script></td>
+            <td><script type="math/tex">\mathrm{False}</script></td>
             </tr>
             <tr class ="row-b">
-            <td><span class="math">1</span></td>
-            <td><span class="math">1</span></td>
-            <td><span class="math">\mathrm{True}</span></td>
+            <td><script type="math/tex">1</script></td>
+            <td><script type="math/tex">1</script></td>
+            <td><script type="math/tex">\mathrm{True}</script></td>
             </tr>
             </tbody>
             </table>
@@ -226,13 +233,13 @@ class HTML:
             <table class="table_form">
             <tbody>
             <tr>
-            <th>Functions <span class="math">f(x)</span></th>
+            <th>Functions <script type="math/tex">f(x)</script></th>
             </tr>
             <tr class ="row-a">
-            <td><span class="math">\sin\left(x\right)</span></td>
+            <td><script type="math/tex">\sin\left(x\right)</script></td>
             </tr>
             <tr class ="row-b">
-            <td><span class="math">\cos\left(x\right)</span></td>
+            <td><script type="math/tex">\cos\left(x\right)</script></td>
             </tr>
             </tbody>
             </table>
@@ -245,24 +252,24 @@ class HTML:
             <table class="table_form">
             <tbody>
             <tr>
-            <th><span class="math">x</span></th>
-            <th><span class="math">\sin(x)</span></th>
+            <th><script type="math/tex">x</script></th>
+            <th><script type="math/tex">\sin(x)</script></th>
             </tr>
             <tr class ="row-a">
-            <td><span class="math">0</span></td>
-            <td><span class="math">0.00</span></td>
+            <td><script type="math/tex">0</script></td>
+            <td><script type="math/tex">0.00</script></td>
             </tr>
             <tr class ="row-b">
-            <td><span class="math">1</span></td>
-            <td><span class="math">0.84</span></td>
+            <td><script type="math/tex">1</script></td>
+            <td><script type="math/tex">0.84</script></td>
             </tr>
             <tr class ="row-a">
-            <td><span class="math">2</span></td>
-            <td><span class="math">0.91</span></td>
+            <td><script type="math/tex">2</script></td>
+            <td><script type="math/tex">0.91</script></td>
             </tr>
             <tr class ="row-b">
-            <td><span class="math">3</span></td>
-            <td><span class="math">0.14</span></td>
+            <td><script type="math/tex">3</script></td>
+            <td><script type="math/tex">0.14</script></td>
             </tr>
             </tbody>
             </table>
@@ -306,9 +313,9 @@ class HTML:
         TESTS::
 
             sage: html._table_columns(["a $x^2$",1, sin(x)])
-            <td>a <span class="math">x^2</span></td>
-            <td><span class="math">1</span></td>
-            <td><span class="math">\sin\left(x\right)</span></td>
+            <td>a <script type="math/tex">x^2</script></td>
+            <td><script type="math/tex">1</script></td>
+            <td><script type="math/tex">\sin\left(x\right)</script></td>
             sage: html._table_columns("a", header=True)
             <th>a</th>
         """
@@ -326,7 +333,7 @@ class HTML:
             elif isinstance(row[column], str):
                 print column_tag % math_parse(row[column])
             else:
-                print column_tag % ('<span class="math">%s</span>' % latex(row[column]))
+                print column_tag % ('<script type="math/tex">%s</script>' % latex(row[column]))
 
     def iframe(self, url, height=400, width=800):
         r"""

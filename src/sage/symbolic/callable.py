@@ -435,7 +435,6 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
             return r"%s \ {\mapsto}\ %s" % (args[0], latex_x)
         else:
             vars = ", ".join(args)
-            # the weird TeX is to workaround an apparent JsMath bug
             return r"\left( %s \right) \ {\mapsto} \ %s" % (vars, latex_x)
 
     def _call_element_(self, _the_element, *args, **kwds):

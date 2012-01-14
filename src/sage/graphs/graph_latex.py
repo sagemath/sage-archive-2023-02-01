@@ -48,7 +48,8 @@ To use LaTeX in Sage you of course need a working TeX installation and it will w
 
 Customizing the output is accomplished in several ways.  Suppose ``g`` is a graph, then ``g.set_latex_options()`` can be used to efficiently set or modify various options.  Setting individual options, or querying options, can be accomplished by first using a command like ``opts = g.latex_options()`` to obtain a :class:`sage.graphs.graph_latex.GraphLatex` object which has several methods to set and retrieve options.
 
-Here is a minimal session demonstrating how to use these features. The following setup should work in the notebook or at the command-line, though the call to :meth:`~sage.misc.latex.Latex.jsmath_avoid_list` is only needed in the notebook. ::
+Here is a minimal session demonstrating how to use these features. The following setup should work in the notebook or at the command-line, though the call to :meth:`~sage.misc.latex.Latex.mathjax_avoid_list` is only needed in the notebook. ::
+
 
     sage: from sage.graphs.graph_latex import setup_latex_preamble
     sage: setup_latex_preamble()
@@ -58,7 +59,7 @@ Here is a minimal session demonstrating how to use these features. The following
     \usepackage{tkz-berge}
     \usetikzlibrary{arrows,shapes}
     sage: latex.engine('pdflatex')
-    sage: latex.jsmath_avoid_list('tikzpicture')
+    sage: latex.mathjax_avoid_list('tikzpicture')
     sage: H=graphs.HeawoodGraph()
     sage: H.set_latex_options(
     ...   graphic_size=(5,5),

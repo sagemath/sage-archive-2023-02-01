@@ -1918,27 +1918,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             \hline\hline
             0 & 0 & 0 & 0
             \end{array}\right)
-
-        Note that size-zero subdivisions are ignored in the notebook::
-
-            sage: sage.server.support.EMBEDDED_MODE = True
-            sage: latex(B)
-            \left(\begin{array}{rr}
-            \left(\begin{array}{rrr}
-            0 & 0 & 0 \\
-            0 & 0 & 0
-            \end{array}\right) & \left(\begin{array}{r}
-            0 \\
-            0
-            \end{array}\right) \\
-            \\
-            \left(\begin{array}{rrr}
-            0 & 0 & 0
-            \end{array}\right) & \left(\begin{array}{r}
-            0
-            \end{array}\right)
-            \end{array}\right)
-            sage: sage.server.support.EMBEDDED_MODE = False
         """
         latex = sage.misc.latex.latex
         matrix_delimiters = latex.matrix_delimiters()
@@ -1953,36 +1932,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         row_divs, col_divs = self.subdivisions()
 
-        from sage.server.support import EMBEDDED_MODE
-
-        # jsmath doesn't know the command \hline, so have to do things
-        # differently (and not as attractively) in embedded mode:
-        # construct an array with a subarray for each block.
-        if len(row_divs) + len(col_divs) > 0 and EMBEDDED_MODE:
-            for r in range(len(row_divs)+1):
-                s = ""
-                for c in range(len(col_divs)+1):
-                    if c == len(col_divs):
-                        sep=""
-                    else:
-                        sep=" & "
-                    sub = self.subdivision(r,c)
-                    if sub.nrows() > 0 and sub.ncols() > 0:
-                        entry = latex(self.subdivision(r,c))
-                        s = s + entry + sep
-                rows.append(s)
-
-            # Put brackets around in a single string
-            tmp = []
-            for row in rows:
-                tmp.append(str(row))
-
-            s = " \\\\\n".join(tmp)
-            format = 'r'*len(row_divs)
-            return "\\left" + matrix_delimiters[0] + "\\begin{array}{%s}\n"%format + s + "\n\\end{array}\\right" + matrix_delimiters[1]
-
-        # not in EMBEDDED_MODE, or in EMBEDDED_MODE with just a single
-        # block: construct one large array, using \hline and vertical
+        # construct one large array, using \hline and vertical
         # bars | in the array descriptor to indicate subdivisions.
         for r from 0 <= r < nr:
             if r in row_divs:

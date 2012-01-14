@@ -335,7 +335,7 @@ class GenericGraph(GenericGraph_pyx):
         here to ``None``.  Some options are added to the global
         :data:`sage.misc.latex.latex` instance which will insure
         that if `\mbox{\rm\LaTeX}` is used to render the graph,
-        then the right packages are loaded and jsMath reacts
+        then the right packages are loaded and MathJax reacts
         properly.
 
         Most other initialization is done in the directed

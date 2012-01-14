@@ -29,33 +29,28 @@ grundsätzlichen Methoden in Sage ansieht.
        mit dem ``latex()``-Befehl  aus und fügen Sie es in Ihr Dokument ein.
 
     #. Die Notebook Schnittstelle ist konfiguriert
-       `jsMath <http://www.math.union.edu/~dpvc/jsMath/>`_
+       `MathJax <http://www.mathjax.org>`_
        zu nutzen um mathematische Ausdrücke im Browser darzustellen.
-       jsMath ist eine Kollektion aus JavaScript-Routinen und
+       MathJax ist eine Kollektion aus JavaScript-Routinen und
        zugehörigen Schriftarten. Es ist also nichts zusätzlich
        einzustellen um mathematische Ausdrücke in Ihrem Browser
        anzuzeigen, wenn Sie das Sage-Notebook nutzen.
 
-       jsMath wurde entwickelt um einen großen, aber nicht vollständigen
+       MathJax wurde entwickelt um einen großen, aber nicht vollständigen
        Teil von TeX darstellen zu können. Es gibt keine Unterstützung
        für Dinge, wie komplizierte Tabellen, Kapiteleinteilung oder
        Dokument Management, da es für genaues Darstellen von TeX
        Ausdrücken konzipiert wurde. Die nahtlose Darstellung von
        mathematischen Ausdrücken im Sage Notebook wird durch
-       Konvertierung der ``latex()``-Darstellung in jsMath
+       Konvertierung der ``latex()``-Darstellung in MathJax
        gewährleistet.
 
-       Da jsMath seine eigenen skalierbaren Schriftarten nutzt, ist es
+       Da MathJax seine eigenen skalierbaren Schriftarten nutzt, ist es
        anderen Methoden überlegen, die auf Konvertierung in kleine
        Bilder beruhen.
 
-       jsMath wird möglicherweise von MathJAX abgelöst werden, einer
-       ähnlichen Technik, die vom gleichen Author stammt und eine
-       breite Unterstützung von Technikern und professionellen
-       Vereinen hat.
-
     #. Sollte in der Sage Kommandozeile oder im Notebook mehr
-       LaTeX-Code vorkommen als jsMath verarbeiten kann, kann eine
+       LaTeX-Code vorkommen als MathJax verarbeiten kann, kann eine
        systemweite Installation von LaTeX aushelfen. Sage beinhaltet
        fast alles, das Sie brauchen um Sage weiter zu entwickeln und
        zu nutzen. Eine Ausnahme hierzu ist TeX selbst. In diesen
@@ -71,7 +66,7 @@ Hier führen wir einige grundlegenden Funktionen von ``latex()`` vor. ::
     sage: latex(integrate(z^4, z))
     \frac{1}{5} \, z^{5}
     sage: latex('a string')
-    \verb|a|\phantom{x}\verb|string|
+    \verb|a|\phantom{\verb!x!}\verb|string|
     sage: latex(QQ)
     \Bold{Q}
     sage: latex(matrix(QQ, 2, 3, [[2,4,6],[-1,-1,-1]]))
@@ -80,25 +75,24 @@ Hier führen wir einige grundlegenden Funktionen von ``latex()`` vor. ::
     -1 & -1 & -1
     \end{array}\right)
 
-Grundlegende jsMath Funktionen gibt es im Notebook weitgehend automatisch,
-aber wir können es teilweise mit Hilfe der ``JSMath`` Klasse demonstrieren.
+Grundlegende MathJax Funktionen gibt es im Notebook weitgehend automatisch,
+aber wir können es teilweise mit Hilfe der ``MathJax`` Klasse demonstrieren.
 Die ``eval`` Funktion dieser Klasse konvertiert ein Sage-Objekt in
 seine LaTeX-Darstellung und dann in HTML mit der CSS ``math`` Klasse,
-die dann jsMath verwendet. ::
+die dann MathJax verwendet. ::
 
-    sage: from sage.misc.latex import JSMath
-    sage: js = JSMath()
+    sage: from sage.misc.latex import MathJax
+    sage: mj = MathJax()
     sage: var('z')
     z
-    sage: js(z^12)
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}z^{12}</div></html>
-    sage: js(QQ)
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</div></html>
-    sage: js(ZZ[x])
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}[x]</div></html>
-    sage: js(integrate(z^4, z))
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{5} \, z^{5}</div></html>
-
+    sage: mj(z^12)
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}z^{12}</script></html>
+    sage: mj(QQ)
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</script></html>
+    sage: mj(ZZ[x])
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}[x]</script></html>
+    sage: mj(integrate(z^4, z))
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{5} \, z^{5}</script></html>
 
 Grundlegende Nutzung
 ====================
@@ -120,30 +114,30 @@ Anzeigeprogramm aufgerufen wird, kann angepasst werden (siehe
 :ref:`sec-custom-processing`).
 
 Im Notebook schafft der ``view(foo)`` Befehl die nötige Kombination
-von HTML und CSS sodass jsMath die LaTeX Darstellung im Arbeitsblatt
+von HTML und CSS sodass MathJax die LaTeX Darstellung im Arbeitsblatt
 anzeigt. Für den Anwender erstellt er einfach eine schön formatierte
 Ausgabe, die sich von der normalen ASCII Ausgabe aus Sage
 unterscheidet. Nicht jedes mathematische Objekt in Sage hat eine
-LaTeX-Darstellung, die die eingeschränkten Möglichkeiten von jsMath
-unterstützt. In diesen Fällen kann die jsMath Darstellung umgangen
+LaTeX-Darstellung, die die eingeschränkten Möglichkeiten von MathJax
+unterstützt. In diesen Fällen kann die MathJax Darstellung umgangen
 werden, und stattdessen die systemweite TeX-Installation aufgerufen
 werden. Dessen Ausgabe kann dann als Bild im Arbeitsblatt angezeigt
 werden. Die Einstellungen und Auswirkungen dieses Prozesses wird im
 Kapitel :ref:`sec-custom-generation` dargestellt.
 
 Der interne ``pretty_print()`` Befehl zeigt die Konvertierung von Sage
-Objekten in HTML Code der jsMath nutzt im Notebook.  ::
+Objekten in HTML Code der MathJax nutzt im Notebook.  ::
 
     sage: from sage.misc.latex import pretty_print
     sage: pretty_print(x^12)
-    <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</span></html>
+    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
     sage: pretty_print(integrate(sin(x), x))
-    <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</span></html>
+    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
 
 Das Notebook hat zwei weitere Möglichkeiten TeX zu nutzen. Die erste
 ist der "Typeset"-Knopf über der ersten Zelle eines Arbeitsblatts,
 rechts von den vier Drop-Down-Boxen. Ist er ausgewählt werden die
-Ausgaben aller folgenden Berechnungen von jsMath
+Ausgaben aller folgenden Berechnungen von MathJax
 interpretiert. Beachten Sie, dass dieser Befehl nicht rückwirkend ist
 -- alle vorher berechneten Zellen werden nicht neu berechnet. Im
 Grunde ist der "Typeset"-Knopf gleichzusetzen mit dem Aufruf des
@@ -157,7 +151,7 @@ geöffnet. Dieser erlaubt die Eingabe von HTML und CSS formatiertem
 Text mit einem WYSIWYG-Editor. Es ist also möglich den so formatierten
 Text als Kommentar in einem  Arbeitsblatt unterzubringen. Text den Sie
 hier zwischen ``$...$`` oder ``$$...$$`` eingeben wird ebenfalls von
-jsMath in einer "inline" bzw. "display math" Umgebung gesetzt.
+MathJax in einer "inline" bzw. "display math" Umgebung gesetzt.
 
 .. _sec-custom-generation:
 
@@ -210,18 +204,18 @@ integriert ist. ::
 
     sage: latex(QQ)
     \Bold{Q}
-    sage: from sage.misc.latex import JSMath
-    sage: js=JSMath()
-    sage: js(QQ)
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</div></html>
+    sage: from sage.misc.latex import MathJax
+    sage: mj=MathJax()
+    sage: mj(QQ)
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</script></html>
     sage: latex.blackboard_bold(True)
-    sage: js(QQ)
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbb{#1}}\Bold{Q}</div></html>
+    sage: mj(QQ)
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbb{#1}}\Bold{Q}</script></html>
     sage: latex.blackboard_bold(False)
 
 Dank der Erweiterbarkeit von TeX können Sie selbst Makros und Pakete
 einbinden. Individuelle Makros können hinzugefügt werden, die dann von
-jsMath als TeX-Schnipsel  interpretiert werden. ::
+MathJax als TeX-Schnipsel  interpretiert werden. ::
 
     sage: latex.extra_macros()
     ''
@@ -232,13 +226,13 @@ jsMath als TeX-Schnipsel  interpretiert werden. ::
     (x, y)
     sage: latex(x+y)
     x + y
-    sage: from sage.misc.latex import JSMath
-    sage: js=JSMath()
-    sage: js(x+y)
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\newcommand{\foo}{bar}x + y</div></html>
+    sage: from sage.misc.latex import MathJax
+    sage: mj=MathJax()
+    sage: mj(x+y)
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\newcommand{\foo}{bar}x + y</script></html>
 
 Zusätzliche Makros, die so hinzugefügt wurden, werden auch vom
-systemweiten TeX genutzt, wenn jsMath an seine Grenzen gestoßen ist.
+systemweiten TeX genutzt, wenn MathJax an seine Grenzen gestoßen ist.
 Der Befehl ``latex_extra_preamble`` kann genutzt werden um eine
 Präambel eines kompletten LaTeX Dokuments zu erzeugen, das folgende
 Beispiel zeigt wie. Beachten Sie wiederrum die doppelten Backslashes
@@ -304,7 +298,7 @@ Anpassen der LaTeX-Verarbeitung
 Es ist möglich zu entscheiden welche Variante von TeX für einen
 systemweiten Aufruf genutzt werden soll, und somit auch wie die
 Ausgabe aussehen soll. Ebenso ist es möglich zu beeinflussen, ob das
-Notebook jsMath oder die systemweite LaTeX Installation nutzt.
+Notebook MathJax oder die systemweite LaTeX Installation nutzt.
 
 Der Befehl ``latex.engine()`` entscheidet, ob die systemweiten
 Anwendungen ``latex``, ``pdflatex`` oder ``xelatex`` genutzt werden
@@ -317,32 +311,32 @@ Datei erzeugt, die mit dem Standard-PDF-Programm angezeigt
 wird. (acrobat, okular, evince, etc.).
 
 Im Notebook kann es nötig sein, dem System die Entscheidung
-abzunehmen, ob jsMath für einige TeX-Schnipsel, oder das systemweite
+abzunehmen, ob MathJax für einige TeX-Schnipsel, oder das systemweite
 LaTeX für kompliziertere Ausdrücke genutzt werden soll. Es gibt eine
 Liste von Befehlen, die wenn einer von ihnen in einem Stück LaTeX-Code
 erkannt wird, die Ausgabe von LaTeX (oder welcher Prozessor auch immer
-durch ``latex.engine()`` gesetzt ist) statt von jsMath erstellen
+durch ``latex.engine()`` gesetzt ist) statt von MathJax erstellen
 lässt. Diese Liste wird verwaltet durch die Befehle
-``latex.add_to_jsmath_avoid_list`` und
-``latex.jsmath_avoid_list``. ::
+``latex.add_to_mathjax_avoid_list`` und
+``latex.mathjax_avoid_list``. ::
 
-    sage: latex.jsmath_avoid_list([])
-    sage: latex.jsmath_avoid_list()
+    sage: latex.mathjax_avoid_list([])
+    sage: latex.mathjax_avoid_list()
     []
-    sage: latex.jsmath_avoid_list(['foo', 'bar'])
-    sage: latex.jsmath_avoid_list()
+    sage: latex.mathjax_avoid_list(['foo', 'bar'])
+    sage: latex.mathjax_avoid_list()
     ['foo', 'bar']
-    sage: latex.add_to_jsmath_avoid_list('tikzpicture')
-    sage: latex.jsmath_avoid_list()
+    sage: latex.add_to_mathjax_avoid_list('tikzpicture')
+    sage: latex.mathjax_avoid_list()
     ['foo', 'bar', 'tikzpicture']
-    sage: latex.jsmath_avoid_list([])
-    sage: latex.jsmath_avoid_list()
+    sage: latex.mathjax_avoid_list([])
+    sage: latex.mathjax_avoid_list()
     []
 
 Nehmen wir an ein LaTeX-Ausdruck wurde im Notebook durch ``view()``
 oder während aktiviertem "Typeset" Knopf erzeugt. Und dann wird
 festgestellt, dass er die externe LaTeX-Installation benötigt, weil
-er in der ``jsmath_avoid_list`` steht. Der Ausdruck wird nun vom
+er in der ``mathjax_avoid_list`` steht. Der Ausdruck wird nun vom
 ausgewählten (durch ``latex.engine()``) Prozessor erzeugt, und statt
 der Anzeige in einem externen Programm (was in der Kommandozeile
 passieren  würde) wird Sage versuchen das Ergebnis in einem einzigen,
@@ -398,7 +392,7 @@ eingestellt sind).
     'latex.add_to_preamble("\\usepackage[matrix,arrow,curve,cmtip]{xy}")',
     and try viewing again -- it should work in the command line but not
     from the notebook.  In the notebook, run
-    'latex.add_to_jsmath_avoid_list("xymatrix")' and try again -- you
+    'latex.add_to_mathjax_avoid_list("xymatrix")' and try again -- you
     should get a picture (a part of the diagram arising from a filtered
     chain complex).
 
@@ -430,9 +424,9 @@ erzeugt wird. Es ist also ratsam, den LaTeX-Prozessor auf
 erfolgreich eine .pdf Datei mit einem  Bild vom kompletten `K_4`
 Graphen erzeugen.
 
-Um das Gleiche im Notebook zu erstellen, müssen Sie jsMath
+Um das Gleiche im Notebook zu erstellen, müssen Sie MathJax
 für die Verarbeitung von LaTeX-Code ausschalten, indem Sie
-die "jsmath avoid list" benutzen. Graphen werden in einer
+die "mathjax avoid list" benutzen. Graphen werden in einer
 ``tikzpicture`` Umgebung eingebunden, das ist also eine gute Wahl
 für die Zeichenkette für die Ausschlussliste. Jetzt sollte
 ``view(graphs.CompleteGraph(4))`` in einem Arbeitsblatt
@@ -447,8 +441,8 @@ mittels LaTeX in einem Notebook darzustellen. ::
     sage: latex.extra_preamble() # random - depends on system's TeX installation
     '\\usepackage{tikz}\n\\usepackage{tkz-graph}\n\\usepackage{tkz-berge}\n'
     sage: latex.engine('pdflatex')
-    sage: latex.add_to_jsmath_avoid_list('tikzpicture')
-    sage: latex.jsmath_avoid_list()
+    sage: latex.add_to_mathjax_avoid_list('tikzpicture')
+    sage: latex.mathjax_avoid_list()
     ['tikzpicture']
 
 Beachten Sie, dass es eine Vielzahl von Optionen gibt, die die
@@ -494,7 +488,7 @@ aus den anderen berechnen zu lassen. Siehe hierfür auch :ref:`sec-sagetex`
 
 tex2sws beginnt mit einem LaTeX-Dokument, aber definiert einige zusätzliche
 Umgebungen für Sage Code. Wenn es richtig genutzt wird, ist das Ergebnis ein
-Sage Arbeitsblatt mit korrekt von jsMath formatiertem Inhalt und dem dazugehörigen
+Sage Arbeitsblatt mit korrekt von MathJax formatiertem Inhalt und dem dazugehörigen
 Sage Code in den Eingabezellen. Ein Lehrbuch oder Artikel kann also mit Sage Code Blöcken
 in LaTeX gesetzt werden und es kann "live" das ganze Dokument in ein Sage Arbeitsblatt überführt werden;
 unter Beibehaltung der Sage Code Blöcke und mit schön formatiertem mathematischen Text.

@@ -28,15 +28,6 @@ html_title = project + " v" + release
 # Output file base name for HTML help builder.
 htmlhelp_basename = "thematic_tutorials"
 
-# mathfrak isn't defined in jsMath, so using it gives errors.  The
-# following line turns it into bold face only when using jsMath, thus
-# avoiding the errors, while keeping the nice mathfrak fonts when not
-# using jsMath.
-try:
-    html_theme_options['jsmath_macros'].append("mathfrak : ['\\\\mathbf{#1}', 1]")
-except KeyError:
-    html_theme_options['jsmath_macros'] = ["mathfrak : ['\\\\mathbf{#1}', 1]"]
-
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author,
 # document class [howto/manual]).

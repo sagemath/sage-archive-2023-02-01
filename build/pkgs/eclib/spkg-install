@@ -61,6 +61,7 @@ elif [ "$UNAME" = "CYGWIN" ]; then
     cp -p lib/*.dll "$SAGE_LOCAL"/lib/
 else
     cp -p lib/*.so "$SAGE_LOCAL"/lib/
+    ldconfig -n "$SAGE_LOCAL"/lib/
 fi
 if [ $? -ne 0 ]; then
     echo "Error copying over libraries"
@@ -85,30 +86,14 @@ rm -rf "$SAGE_LOCAL"/bin/mwrank"$EXE_NAME"
 
 # Copy new binaries:
 
-cp -p qrank/mwrank"$EXE_NAME" "$SAGE_LOCAL"/bin
+cp -p bin/mwrank"$EXE_NAME" "$SAGE_LOCAL"/bin
 if [ $? -ne 0 ]; then
     echo "Error copying over mwrank binary"
     exit 1
 fi
 strip "$SAGE_LOCAL"/bin/mwrank"$EXE_NAME"
 
-cp -p qrank/ratpoint"$EXE_NAME" "$SAGE_LOCAL"/bin &&
-strip "$SAGE_LOCAL"/bin/ratpoint"$EXE_NAME" &&
-cp -p qcurves/findinf"$EXE_NAME" "$SAGE_LOCAL"/bin &&
-strip "$SAGE_LOCAL"/bin/findinf"$EXE_NAME" &&
-cp -p qcurves/tate"$EXE_NAME" "$SAGE_LOCAL"/bin &&
-strip "$SAGE_LOCAL"/bin/tate"$EXE_NAME" &&
-cp -p qcurves/conductor"$EXE_NAME" "$SAGE_LOCAL"/bin &&
-strip "$SAGE_LOCAL"/bin/conductor"$EXE_NAME" &&
-cp -p qcurves/torsion"$EXE_NAME" "$SAGE_LOCAL"/bin &&
-strip "$SAGE_LOCAL"/bin/torsion"$EXE_NAME" &&
-cp -p qcurves/twist"$EXE_NAME" "$SAGE_LOCAL"/bin &&
-strip "$SAGE_LOCAL"/bin/twist"$EXE_NAME" &&
-cp -p qcurves/allisog"$EXE_NAME" "$SAGE_LOCAL"/bin &&
-strip "$SAGE_LOCAL"/bin/allisog"$EXE_NAME" &&
-cp -p qcurves/indep"$EXE_NAME" "$SAGE_LOCAL"/bin &&
-strip "$SAGE_LOCAL"/bin/indep"$EXE_NAME" &&
-cp -p procs/tconic"$EXE_NAME" "$SAGE_LOCAL"/bin &&
+cp -p bin/tconic"$EXE_NAME" "$SAGE_LOCAL"/bin &&
 strip "$SAGE_LOCAL"/bin/tconic"$EXE_NAME"
 if [ $? -ne 0 ]; then
     echo "Error copying over (or stripping) other binaries"

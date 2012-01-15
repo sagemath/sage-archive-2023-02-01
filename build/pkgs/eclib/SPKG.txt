@@ -15,7 +15,7 @@ over 25 years of hard work.
 
  * Author: John Cremona
  * Email: john.cremona@gmail.com
- * Website: http://www.warwick.ac.uk/staff/J.E.Cremona/mwrank/index.html
+ * Website: https://code.google.com/p/eclib/
 
 == Dependencies ==
 
@@ -36,6 +36,11 @@ over 25 years of hard work.
  * The makefiles do use GNU extensions. This causes build failures on systems like FreeBSD where GNU's make is usually called gmake. A workaround is to create a symlink from gmake to make in {{{~/bin}}} and to add that directory to {{{$PATH}}} before the directory that contains the BSD make
 
 == Changelog ==
+
+=== eclib-20120115 (John Cremona, 15 January 2012) ===
+ * Source code now at http://code.google.com/p/eclib/
+ * Current source code is revision 2b04700f06ba (as at 15 January 2012)
+ * Add a line in spkg-install to run ldconfig
 
 === eclib-20100711.p0 (Mariah Lenox and Leif Leonhardy, September 28th 2011) ===
  * #11354: Deleted the obsolete (Debian) dist/ directory. (May 2011)

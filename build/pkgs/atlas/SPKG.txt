@@ -87,26 +87,29 @@ The package can be configured via two environment variables:
 
 == ChangeLog ==
 
+=== atlas-3.8.4.p1 (Jeroen Demeyer, 15 January 2012) ===
+ * Trac #12312: Completely disable parallel make everywhere
 
-== atlas-3.8.4 (Volker Braun, 15 June 2011) ==
+=== atlas-3.8.4 (Volker Braun, 15 June 2011) ===
+ * Trac #10226: Rewrite spkg-install in Python
  * Updated to new upstream stable version.
  * Removed SpewMakeInc.c.patch as it is included in new upstream
    version.
  * Rediffed other patches.
  * Cygwin library name fix.
 
-== atlas-3.8.3.p18 (Mariah Lenox, 11 May 2011) ==
+=== atlas-3.8.3.p18 (Mariah Lenox, 11 May 2011) ===
  * Make atlas respect CC environment variable.
 
-== atlas-3.8.3.p17 (Volker Braun, November 5th 2010) ==
+=== atlas-3.8.3.p17 (Volker Braun, November 5th 2010) ===
  * Rewrite the spkg-install script in pure python. Introduce the
    SAGE_ATLAS_ARCH environment variable.
 
-== atlas-3.8.3.p16 (John Palmieri, September 19th 2010) ==
+=== atlas-3.8.3.p16 (John Palmieri, September 19th 2010) ===
  * Make spkg-check work when using SAGE_ATLAS_LIB: if SAGE_ATLAS_LIB
    is set, skip the self-tests.
 
-== atlas-3.8.3.p15 (David Kirkby, September 6th 2010) ==
+=== atlas-3.8.3.p15 (David Kirkby, September 6th 2010) ===
  * Make SAGE_ATLAS_LIB use static libraries on all platforms,
    as building two shared libraries often fails on Linux, and
    messes things up on Solaris. The static library is less hassle
@@ -128,7 +131,7 @@ The package can be configured via two environment variables:
  * Remove the OS X specific code from make-correct-shared.sh, as ATLAS is
    never installed on OS X - see the spkg-install-script.
 
-== atlas-3.8.3.p14 (David Kirkby, August 10th 2010) ==
+=== atlas-3.8.3.p14 (David Kirkby, August 10th 2010) ===
  * #9508 Fix multiple ATLAS build issues on Solaris 10 and OpenSolaris.
  * Remove an inaccurate comment from spkg-install-script
    about the number of shred libraries built.

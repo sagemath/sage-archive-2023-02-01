@@ -371,7 +371,7 @@ def make_atlas_library():
             print "on 32-bit builds of ATLAS on x86/x64 hardware"
             edit_in_place('Make.inc').replace('-melf_i386', '').close()
 
-    rc = os.system('make shared cshared')
+    rc = os.system('$MAKE shared cshared')
     return rc
 
 

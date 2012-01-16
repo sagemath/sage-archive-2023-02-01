@@ -68,6 +68,13 @@ downloading this spkg.
 
 == Changelog ==
 
+=== sagetex-2.3.3.p1 (Dan Drake, 16 Jan 2012) ===
+
+ * Improve mechanism for preventing multiply-defined labels (ticket
+   12267), and also keep track of label names when recording maximum
+   counter seen. Also improve version mismatch checking to be backwards
+   compatible (fixes ticket 8035).
+
 === sagetex-2.3.1.p1 (Dan Drake, 18 Nov 2011) ===
 
  * Comment out tkz-berge and other TikZ stuff from example file; don't

@@ -1,5 +1,5 @@
 recursive-include * *.c *.cc *.h *.hh *.hpp *.pyx *.pxd *.pxi *.txt *.tex *.i *.d 00*
-recursive-include doc *.rst *.py
+recursive-include doc *.rst *.py *.inc
 include c_lib c_lib/* c_lib/src/*
 include MANIFEST.in README.txt
 include .hgignore .hg .hg/* .hgtags
@@ -36,6 +36,9 @@ include doc/en/a_tour_of_sage/eigen_plot.png
 include doc/en/a_tour_of_sage/sin_plot.png
 include doc/en/bordeaux_2008/birch.png
 include doc/en/bordeaux_2008/modpcurve.png
+include doc/en/developer/sagenb/branch_dropdown.png
+include doc/en/developer/sagenb/forking_button.png
+include doc/en/developer/sagenb/pull_button.png
 include doc/fr/a_tour_of_sage/eigen_plot.png
 include doc/fr/a_tour_of_sage/sin_plot.png
 include doc/tr/a_tour_of_sage/eigen_plot.png

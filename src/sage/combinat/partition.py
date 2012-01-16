@@ -20,6 +20,8 @@ AUTHORS:
 - Dan Drake (2009-03-28): deprecate RestrictedPartitions and implement
   Partitions_parts_in
 
+- Travis Scrimshaw (2012-01-12): Implemented latex function to Partition_class
+
 EXAMPLES:
 
 There are 5 partitions of the integer 4::
@@ -418,6 +420,30 @@ def from_core_and_quotient(core, quotient):
     return Partition([new_w[i]+i for i in range(len(new_w))])
 
 class Partition_class(CombinatorialObject):
+
+    def _latex_(self):
+        r"""
+        Returns a LaTeX version of self.
+
+        EXAMPLES::
+
+            sage: latex(Partition([2, 1]))
+            {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{cc}
+            \cline{1-1}\cline{2-2}
+            \lr{\phantom{x}}&\lr{\phantom{x}}\\
+            \cline{1-1}\cline{2-2}
+            \lr{\phantom{x}}\\
+            \cline{1-1}
+            \end{array}$}
+            }
+        """
+        if len(self._list) == 0:
+            return "{\\emptyset}"
+
+        from sage.combinat.output import tex_from_array
+        return tex_from_array([ ["\\phantom{x}"]*row_size for row_size in self._list ])
+
     def ferrers_diagram(self):
         """
         Return the Ferrers diagram of pi.

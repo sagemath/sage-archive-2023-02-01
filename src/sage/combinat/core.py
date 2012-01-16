@@ -9,6 +9,7 @@ multiple of) `k`.
 Authors:
 
 - Anne Schilling and Mike Zabrocki (2011): initial version
+- Travis Scrimshaw (2012): Added latex output for Core class
 """
 #*****************************************************************************
 #       Copyright (C) 2011 Anne Schilling <anne at math.ucdavis.edu>
@@ -105,6 +106,26 @@ class Core(CombinatorialObject, Element):
             raise ValueError, "%s is not a %s-core"%(part, k)
         CombinatorialObject.__init__(self, core)
         Element.__init__(self, parent)
+
+    def _latex_(self):
+        """
+        Outputs the LaTeX representation of this core using its Ferrers diagram.
+
+        EXAMPLES::
+
+            sage: c = Core([2,1],4)
+            sage: latex(c)
+            {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{cc}
+            \cline{1-1}\cline{2-2}
+            \lr{\phantom{x}}&\lr{\phantom{x}}\\
+            \cline{1-1}\cline{2-2}
+            \lr{\phantom{x}}\\
+            \cline{1-1}
+            \end{array}$}
+            }
+        """
+        return self.to_partition()._latex_()
 
     def k(self):
         r"""

@@ -97,7 +97,6 @@ cdef class FastHashable_class:
         True
 
     """
-    cdef int _hash
     def __hash__(self):
         """
         TESTS::
@@ -282,7 +281,7 @@ class Category_singleton(FastHashable_class,Category):
             # when someone is calling it.
             raise TypeError, "%s is not a direct subclass of %s"%(cls,Category_singleton)
         obj = UniqueRepresentation.__classcall__(cls)
-        obj._hash = id(cls)
+        obj._hash = <Py_ssize_t><void *>cls
         return ConstantFunction(obj)
 
 #    @lazy_class_attribute

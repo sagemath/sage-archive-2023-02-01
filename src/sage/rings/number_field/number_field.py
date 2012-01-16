@@ -3053,6 +3053,15 @@ class NumberField_generic(number_field_base.NumberField):
             sage: p = L.ideal((-1/2*b - 1/2)*a + 1/2*b - 1/2)
             sage: W = L.S_units([p]); [x.norm() for x in W]
             [9, 1, 1]
+
+        Our generators should have the correct parent (trac #9367)::
+
+            sage: _.<x> = QQ[]
+            sage: L.<alpha> = NumberField(x^3 + x + 1)
+            sage: p = L.S_units([ L.ideal(7) ])
+            sage: p[0].parent()
+            Number Field in alpha with defining polynomial x^3 + x + 1
+
         """
         return self._S_class_group_and_units(tuple(S), proof=proof)[0]
 

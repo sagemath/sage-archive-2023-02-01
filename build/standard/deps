@@ -60,6 +60,7 @@ all: $(BASE) \
      $(INST)/$(IML) \
      $(INST)/$(IPYTHON) \
      $(INST)/$(JINJA2) \
+     $(INST)/$(JMOL) \
      $(INST)/$(LAPACK) \
      $(INST)/$(LCALC) \
      $(INST)/$(LIBGCRYPT) \
@@ -333,6 +334,9 @@ $(INST)/$(MPMATH): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 
 $(INST)/$(ZLIB): $(BASE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(ZLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ZLIB).log"
+
+$(INST)/$(JMOL): $(BASE) $(INST)/$(SAGENB) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(JMOL) 2>&1" "tee -a $(SAGE_LOGS)/$(JMOL).log"
 
 ##  << NON-GUI matplotlib >>
 $(INST)/$(FREETYPE): $(BASE) $(INST)/$(PATCH)

@@ -36,9 +36,11 @@ ln -s "$SAGE_ROOT" /tmp/sage-mac-app
 # Move to a fake SAGE_ROOT -- without spaces
 cd /tmp/sage-mac-app || exit 1
 
-# Set (i.e. "source") SAGE_ROOT and all the other environment settings
+# Set SAGE_ROOT and all the other environment variables by sourcing
+# sage-env.  In order to support older versions 4.x of Sage, we try both
+# spkg/bin/sage-env and local/bin/sage-env.
 echo Setting environment variables >> "$SAGE_LOG"
-. ./local/bin/sage-env >> "$SAGE_LOG" 2>> "$SAGE_LOG"
+{ . spkg/bin/sage-env || . local/bin/sage-env; } >> "$SAGE_LOG" 2>> "$SAGE_LOG"
 export SAGE_ROOT
 
 # Mac OS X app bundles are *intended* to be moved around, and/or given away
@@ -47,7 +49,7 @@ export SAGE_ROOT
 echo Checking install location >> "$SAGE_LOG"
 ./local/bin/sage-location >> "$SAGE_LOG" 2>> "$SAGE_LOG"
 
-echo Checking existance of notebook directory >> "$SAGE_LOG"
+echo Checking existence of notebook directory >> "$SAGE_LOG"
 if [ -d $DOT_SAGE/sage_notebook.sagenb ]; then
     echo Starting Notebook >> "$SAGE_LOG"
     ./sage --notebook >> "$SAGE_LOG" 2>> "$SAGE_LOG"

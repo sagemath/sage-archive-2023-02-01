@@ -61,7 +61,7 @@ elif [ "$UNAME" = "CYGWIN" ]; then
     cp -p lib/*.dll "$SAGE_LOCAL"/lib/
 else
     cp -p lib/*.so "$SAGE_LOCAL"/lib/
-    PATH = "$PATH:/sbin" ldconfig -n $SAGE_LOCAL/lib
+    PATH="$PATH:/sbin" ldconfig -n $SAGE_LOCAL/lib
 fi
 if [ $? -ne 0 ]; then
     echo "Error copying over libraries"

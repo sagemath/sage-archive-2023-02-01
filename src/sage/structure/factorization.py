@@ -804,7 +804,9 @@ class Factorization(SageObject):
 
            sage: x = polygen(QQ)
            sage: Factorization([(x-1,1), (x-2,2)])
-            (x - 1) * (x - 2)^2
+           (x - 1) * (x - 2)^2
+           sage: Factorization([(x + 1, -3)])
+           (x + 1)^-3
         """
         cr = self._cr()
         if len(self) == 0:
@@ -826,7 +828,8 @@ class Factorization(SageObject):
         for i in range(len(self)):
             t = repr(self.__x[i][0])
             n = self.__x[i][1]
-            if (n>1 or len(self) > 1 or self.__unit != one) and not atomic  and ('+' in t or '-' in t or ' ' in t):
+            if (n != 1 or len(self) > 1 or self.__unit != one) and not atomic \
+               and ('+' in t or '-' in t or ' ' in t):
                 t = '(%s)'%t
             if n != 1:
                 t += '^%s'%n

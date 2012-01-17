@@ -3739,7 +3739,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<a> = NumberField(x^2 + 1)
             sage: K.factor(1/3)
-            Fractional ideal (3)^-1
+            (Fractional ideal (3))^-1
             sage: K.factor(1+a)
             Fractional ideal (a + 1)
             sage: K.factor(1+a/5)

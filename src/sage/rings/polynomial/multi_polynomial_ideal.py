@@ -1675,9 +1675,9 @@ class MPolynomialIdeal_singular_repr(
             return self.__genus
 
     @libsingular_standard_options
-    def intersection(self, other):
+    def intersection(self, *others):
         """
-        Return the intersection of the two ideals.
+        Return the intersection of the arguments with this ideal.
 
         EXAMPLES::
 
@@ -1698,16 +1698,40 @@ class MPolynomialIdeal_singular_repr(
             Ideal (x^2*y^2, x^3, y^3, x*y) of Multivariate Polynomial Ring in x, y over Rational Field
             sage: IJ == K
             False
+
+        Intersection of several ideals::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ, 3, order='lex')
+            sage: I1 = x*R
+            sage: I2 = y*R
+            sage: I3 = (x, y)*R
+            sage: I4 = (x^2 + x*y*z, y^2 - z^3*y, z^3 + y^5*x*z)*R
+            sage: I1.intersection(I2, I3, I4)
+            Ideal (x*y*z^20 - x*y*z^3, x*y^2 - x*y*z^3, x^2*y + x*y*z^4) of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+        The ideals must share the same ring::
+
+            sage: R2.<x,y> = PolynomialRing(QQ, 2, order='lex')
+            sage: R3.<x,y,z> = PolynomialRing(QQ, 3, order='lex')
+            sage: I2 = x*R2
+            sage: I3 = x*R3
+            sage: I2.intersection(I3)
+            Traceback (most recent call last):
+                ...
+            TypeError: Intersection is only available for ideals of the same ring.
+
         """
         R = self.ring()
 
-        if not isinstance(other, MPolynomialIdeal_singular_repr) or other.ring() != R:
-            raise ValueError, "other must be an ideal in the ring of self, but it isn't."
+
+        for other in others:
+            if not isinstance(other, MPolynomialIdeal_singular_repr) or other.ring() != R:
+                raise TypeError, "Intersection is only available for ideals of the same ring."
 
         import sage.libs.singular
         intersect = sage.libs.singular.ff.intersect
 
-        K = intersect(self,other)
+        K = intersect(self, *others)
         return R.ideal(K)
 
     @require_field

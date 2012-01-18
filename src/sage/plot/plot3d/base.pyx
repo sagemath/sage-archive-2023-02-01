@@ -1114,7 +1114,10 @@ end_scene""" % (render_params.antialiasing,
             #if fg >= 2:
             #    fg = 2
             filename = '%s-size%s%s'%(base, fg*100, ext)
-            ext = "jmol"
+            if EMBEDDED_MODE:
+                ext = "jmol"
+            else:
+                ext = "spt"
             archive_name = "%s.%s.zip" % (filename, ext)
             if EMBEDDED_MODE:
                 # jmol doesn't seem to correctly parse the ?params part of a URL
@@ -1125,7 +1128,7 @@ end_scene""" % (render_params.antialiasing,
             viewer_app = os.path.join(sage.misc.misc.SAGE_LOCAL, "bin/jmol")
 
             # We need a script to load the file
-            f = open(filename + '.jmol', 'w')
+            f = open(filename + '.'+ext, 'w')
             if EMBEDDED_MODE:
                 import sagenb
                 path = "cells/%s/%s" %(sagenb.notebook.interact.SAGE_CELL_ID, archive_name)

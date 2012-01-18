@@ -37,6 +37,10 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20120115.p0 (John Cremona, 18 January 2012) ===
+ * Small patch to spkg-install (adding PATH extension before calling
+   ldconfig) as suggested on review at trac #10993
+
 === eclib-20120115 (John Cremona, 15 January 2012) ===
  * Source code now at http://code.google.com/p/eclib/
  * Current source code is revision 2b04700f06ba (as at 15 January 2012)

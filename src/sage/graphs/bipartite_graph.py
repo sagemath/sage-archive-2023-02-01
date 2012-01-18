@@ -43,8 +43,7 @@ class BipartiteGraph(Graph):
     - ``data`` -- can be any of the following:
 
       #. Empty or ``None`` (creates an empty graph).
-      #. An arbitrary graph (finds a bipartition).
-      #. A graph and a bipartition.
+      #. An arbitrary graph.
       #. A reduced adjacency matrix.
       #. A file in alist format.
       #. From a NetworkX bipartite graph.
@@ -56,6 +55,18 @@ class BipartiteGraph(Graph):
 
     The alist file format is described at
     http://www.inference.phy.cam.ac.uk/mackay/codes/alist.html
+
+    - ``partition`` -- (default: ``None``) a tuple defining vertices of the left and right
+      partition of the graph. Partitions will be determined automatically
+      if ``partition``=``None``.
+
+    - ``check`` -- (default: ``True``) if ``True``, an invalid input partition
+      raises an exception. In the other case offending edges simply won't
+      be included.
+
+    .. NOTE::
+
+        All remaining arguments are passed to the ``Graph`` constructor
 
     EXAMPLES:
 
@@ -92,11 +103,11 @@ class BipartiteGraph(Graph):
         sage: B.right
         set([4, 5, 6])
 
-    3. From a graph and a partition. Note that if the input graph is not
-       bipartite, then Sage will raise an error. However, if one specifies
-       ``check=False``, the offending edges are simply deleted (along with
-       those vertices not appearing in either list).  We also lump creating
-       one bipartite graph from another into this category::
+    You can specify a partition using ``partition`` argument. Note that if such graph
+    is not bipartite, then Sage will raise an error. However, if one specifies
+    ``check=False``, the offending edges are simply deleted (along with
+    those vertices not appearing in either list).  We also lump creating
+    one bipartite graph from another into this category::
 
         sage: P = graphs.PetersenGraph()
         sage: partition = [range(5), range(5,10)]
@@ -237,7 +248,7 @@ class BipartiteGraph(Graph):
 
     """
 
-    def __init__(self, *args, **kwds):
+    def __init__(self, data=None, partition=None, check=True, *args, **kwds):
         """
         Create a bipartite graph. See documentation ``BipartiteGraph?`` for
         detailed information.
@@ -248,7 +259,10 @@ class BipartiteGraph(Graph):
             sage: partition = [range(5), range(5,10)]
             sage: B = BipartiteGraph(P, partition, check=False)
         """
-        if len(args) == 0:
+        if data is None:
+            if partition != None and check:
+                if partition[0] or partition[1]:
+                    raise ValueError("Invalid partition.")
             Graph.__init__(self, **kwds)
             self.left = set()
             self.right = set()
@@ -266,28 +280,26 @@ class BipartiteGraph(Graph):
                                              BipartiteGraph)
         self.add_edge = types.MethodType(Graph.add_edge, self, BipartiteGraph)
 
-        arg1 = args[0]
-        args = args[1:]
         from sage.structure.element import is_Matrix
-        if isinstance(arg1, BipartiteGraph):
-            Graph.__init__(self, arg1, *args, **kwds)
-            self.left = set(arg1.left)
-            self.right = set(arg1.right)
-        elif isinstance(arg1, str):
+        if isinstance(data, BipartiteGraph):
+            Graph.__init__(self, data, *args, **kwds)
+            self.left = set(data.left)
+            self.right = set(data.right)
+        elif isinstance(data, str):
             Graph.__init__(self, *args, **kwds)
             # will call self.load_afile after restoring add_vertex() instance
             # methods; initialize left and right attributes
             self.left = set()
             self.right = set()
-        elif is_Matrix(arg1):
+        elif is_Matrix(data):
             # sanity check for mutually exclusive keywords
             if kwds.get("multiedges", False) and kwds.get("weighted", False):
                 raise TypeError(
                     "Weighted multi-edge bipartite graphs from reduced " +
                     "adjacency matrix not supported.")
             Graph.__init__(self, *args, **kwds)
-            ncols = arg1.ncols()
-            nrows = arg1.nrows()
+            ncols = data.ncols()
+            nrows = data.nrows()
             self.left = set(xrange(ncols))
             self.right = set(xrange(ncols, nrows + ncols))
 
@@ -299,73 +311,70 @@ class BipartiteGraph(Graph):
             if kwds.get("multiedges", False):
                 for ii in range(ncols):
                     for jj in range(nrows):
-                        if arg1[jj][ii] != 0:
-                            self.add_edges([(ii, jj + ncols)] * arg1[jj][ii])
+                        if data[jj][ii] != 0:
+                            self.add_edges([(ii, jj + ncols)] * data[jj][ii])
             elif kwds.get("weighted", False):
                 for ii in range(ncols):
                     for jj in range(nrows):
-                        if arg1[jj][ii] != 0:
-                            self.add_edge((ii, jj + ncols, arg1[jj][ii]))
+                        if data[jj][ii] != 0:
+                            self.add_edge((ii, jj + ncols, data[jj][ii]))
             else:
                 for ii in range(ncols):
                     for jj in range(nrows):
-                        if arg1[jj][ii] != 0:
+                        if data[jj][ii] != 0:
                             self.add_edge((ii, jj + ncols))
-        elif (isinstance(arg1, Graph) and
-              len(args) > 0 and isinstance(args[0], (list, tuple)) and
-              len(args[0]) == 2 and isinstance(args[0][0], (list, tuple))):
-            # Assume that args[0] is a bipartition
+        elif (isinstance(data, Graph) and partition != None):
             from copy import copy
-            left, right = args[0]
+            left, right = partition
             left = copy(left)
             right = copy(right)
             verts = set(left) | set(right)
-            if set(arg1.vertices()) != verts:
-                arg1 = arg1.subgraph(list(verts))
-            Graph.__init__(self, arg1, *(args[1:]), **kwds)
-            if "check" not in kwds or kwds["check"]:
+            if set(data.vertices()) != verts:
+                data = data.subgraph(list(verts))
+            Graph.__init__(self, data, *args, **kwds)
+            if check:
                 while len(left) > 0:
                     a = left.pop(0)
-                    if len(set(arg1.neighbors(a)) & set(left)) != 0:
+                    if len(set(data.neighbors(a)) & set(left)) != 0:
                         raise TypeError(
                             "Input graph is not bipartite with " +
                             "respect to the given partition!")
                 while len(right) > 0:
                     a = right.pop(0)
-                    if len(set(arg1.neighbors(a)) & set(right)) != 0:
+                    if len(set(data.neighbors(a)) & set(right)) != 0:
                         raise TypeError(
                             "Input graph is not bipartite with " +
                             "respect to the given partition!")
             else:
                 while len(left) > 0:
                     a = left.pop(0)
-                    a_nbrs = set(arg1.neighbors(a)) & set(left)
+                    a_nbrs = set(data.neighbors(a)) & set(left)
                     if len(a_nbrs) != 0:
                         self.delete_edges([(a, b) for b in a_nbrs])
                 while len(right) > 0:
                     a = right.pop(0)
-                    a_nbrs = set(arg1.neighbors(a)) & set(right)
+                    a_nbrs = set(data.neighbors(a)) & set(right)
                     if len(a_nbrs) != 0:
                         self.delete_edges([(a, b) for b in a_nbrs])
-            self.left, self.right = set(args[0][0]), set(args[0][1])
-        elif isinstance(arg1, Graph):
-            Graph.__init__(self, arg1, *args, **kwds)
+            self.left, self.right = set(partition[0]), set(partition[1])
+        elif isinstance(data, Graph):
+            Graph.__init__(self, data, *args, **kwds)
             try:
                 self.left, self.right = self.bipartite_sets()
             except:
                 raise TypeError("Input graph is not bipartite!")
         else:
             import networkx
-            Graph.__init__(self, arg1, *args, **kwds)
-            if isinstance(arg1, (networkx.MultiGraph, networkx.Graph)):
-                if hasattr(arg1, "node_type"):
+            Graph.__init__(self, data, *args, **kwds)
+            if isinstance(data, (networkx.MultiGraph, networkx.Graph)):
+                if hasattr(data, "node_type"):
                     # Assume the graph is bipartite
                     self.left = set()
                     self.right = set()
-                    for v in arg1.nodes_iter():
-                        if arg1.node_type[v] == "Bottom":
+                    for v in data.nodes_iter():
+                        if data.node_type[v] == "Bottom":
                             self.left.add(v)
-                        elif arg1.node_type[v] == "Top":
+                        elif data.node_type[v] == "Top":
                             self.right.add(v)
                         else:
                             raise TypeError(
@@ -390,8 +399,8 @@ class BipartiteGraph(Graph):
                                          BipartiteGraph)
 
         # post-processing
-        if isinstance(arg1, str):
-            self.load_afile(arg1)
+        if isinstance(data, str):
+            self.load_afile(data)
 
         return
 

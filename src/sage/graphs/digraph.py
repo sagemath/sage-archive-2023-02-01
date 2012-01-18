@@ -161,9 +161,12 @@ class DiGraph(GenericGraph):
        Whether to allow any object as a vertex (slower), or
        only the integers 0, ..., n-1, where n is the number of vertices.
 
+    -  ``convert_empty_dict_labels_to_None`` - this arguments sets
+       the default edge labels used by NetworkX (empty dictionaries)
+       to be replaced by None, the default Sage edge label. It is
+       set to ``True`` iff a NetworkX graph is on the input.
 
     EXAMPLES:
-
 
     #. A dictionary of dictionaries::
 
@@ -291,13 +294,13 @@ class DiGraph(GenericGraph):
             sage: G._backend._nxg is H._backend._nxg
             False
 
-
     """
     _directed = True
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
                  boundary=[], weighted=None, implementation='c_graph',
-                 sparse=True, vertex_labels=True, **kwds):
+                 sparse=True, vertex_labels=True, name=None,
+                 multiedges=None, convert_empty_dict_labels_to_None=None):
         """
         TESTS::
 
@@ -355,7 +358,6 @@ class DiGraph(GenericGraph):
         """
         msg = ''
         GenericGraph.__init__(self)
-        multiedges = kwds.get('multiedges', None)
         from sage.structure.element import is_Matrix
         from sage.misc.misc import uniq
         if format is None and isinstance(data, str):
@@ -480,7 +482,8 @@ class DiGraph(GenericGraph):
         # At this point, format has been set.
 
         # adjust for empty dicts instead of None in NetworkX default edge labels
-        kwds.setdefault('convert_empty_dict_labels_to_None', (format == 'NX'))
+        if convert_empty_dict_labels_to_None is None:
+            convert_empty_dict_labels_to_None = (format == 'NX')
 
         verts = None
 
@@ -728,7 +731,7 @@ class DiGraph(GenericGraph):
                     if f(uu,vv):
                         self.add_edge(uu,vv)
         elif format == 'dict_of_dicts':
-            if kwds.get('convert_empty_dict_labels_to_None', False):
+            if convert_empty_dict_labels_to_None:
                 for u in data:
                     for v in data[u]:
                         if multiedges:
@@ -750,7 +753,6 @@ class DiGraph(GenericGraph):
             assert format == 'int'
         self._pos = pos
         self._boundary = boundary
-        name = kwds.get('name', None)
         if format != 'DiGraph' or name is not None:
             self.name(name)
 
@@ -2855,7 +2857,7 @@ class DiGraph(GenericGraph):
             g.add_vertices(scc_set)
             g.add_edges( set((scc_set[d[u]], scc_set[d[v]], label) for (u,v,label) in self.edges() ) )
         else:
-            g = DiGraph(multiple_edges=False, loops=False)
+            g = DiGraph(multiedges=False, loops=False)
             g.add_vertices(scc_set)
             g.add_edges( (scc_set[d[u]], scc_set[d[v]]) for u,v in self.edges(labels=False) )
 

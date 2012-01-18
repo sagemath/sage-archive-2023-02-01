@@ -1433,7 +1433,7 @@ class GraphGenerators():
                 for freea, freeb in Subsets(emptypegs, 2):
                     edges.append([freea*nverts+state,freeb*nverts+state])
 
-        H = graph.Graph({}, loops=False, multiedge=False)
+        H = graph.Graph({}, loops=False, multiedges=False)
         H.add_edges(edges)
 
 
@@ -5507,7 +5507,7 @@ class GraphGenerators():
         """
 
         n = len(intervals)
-        g = graph.Graph(vertices=range(n))
+        g = graph.Graph(n)
 
         edges = []
 

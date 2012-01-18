@@ -1640,7 +1640,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         # construct the graph
         from sage.graphs.graph import Graph
-        G = Graph(dense=True)
+        G = Graph(sparse=False)
         for i in range(0,len(v_list)):
             for j in range(i+1,len(v_list)):
                 v_i = v_list[i]

@@ -372,16 +372,23 @@ class ReferenceBuilder(DocBuilder):
     def get_cache(self):
         """
         Retrieve the cache of already generated ReST files.  If it
-        doesn't exist, then we just return an empty dictionary.
+        doesn't exist, then we just return an empty dictionary.  If it
+        is corrupted, return an empty dictionary.
         """
         filename = self.cache_filename()
         if not os.path.exists(filename):
             return {}
         import cPickle
         file = open(self.cache_filename(), 'rb')
-        cache = cPickle.load(file)
-        file.close()
-        logger.debug("Loaded .rst file cache: %s", filename)
+        try:
+            cache = cPickle.load(file)
+        except:
+            logger.debug("Cache file '%s' is corrupted; ignoring it..."% filename)
+            cache = {}
+        else:
+            logger.debug("Loaded .rst file cache: %s", filename)
+        finally:
+            file.close()
         return cache
 
     def save_cache(self):

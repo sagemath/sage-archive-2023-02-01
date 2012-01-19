@@ -116,6 +116,11 @@ apply_patches()
         fi
     done
 
+	# Finally, copy the new src/factory/configure
+	# We don't use patch for this, since the file is completely changed.
+	# The .patch file would be larger than the complete patched file.
+	cp -p ../patches/factory_configure factory/configure
+
     popd
 }
 

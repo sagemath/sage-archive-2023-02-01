@@ -1,7 +1,11 @@
-# changes to upstream singular
+#!/bin/sh
+
+# Changes to upstream singular
+
+cd src
 rm -rf ntl
 rm -rf modules
 rm -rf MP
 rm -rf Tst
-gzip omalloc/Misc/dlmalloc/malloc.ps
+gzip -9 omalloc/Misc/dlmalloc/malloc.ps
 rm -rf Singular/LIB/surfex

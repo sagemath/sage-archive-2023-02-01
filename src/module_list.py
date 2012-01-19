@@ -1789,6 +1789,10 @@ ext_modules = [
     Extension('sage.tests.interrupt',
               sources = ['sage/tests/interrupt.pyx', 'sage/tests/c_lib.c']),
 
+    Extension('sage.tests.stl_vector',
+              sources = ['sage/tests/stl_vector.pyx'],
+              language = 'c++'),
+
     Extension('sage.tests.cython',
               sources = ['sage/tests/cython.pyx']),
 

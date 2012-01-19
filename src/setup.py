@@ -17,6 +17,7 @@ from warnings import warn
 
 from module_list import ext_modules
 import sage.ext.gen_interpreters
+import warnings
 
 #########################################################
 ### Configuration
@@ -643,7 +644,7 @@ class DependencyTree:
                 # an exception.
                 if not found_include:
                     msg = 'could not find dependency %s included in %s.'%(path, filename)
-                    if is_cython_file(filename):
+                    if is_cython_file(path):
                         raise IOError, msg
                     else:
                         warnings.warn(msg+' I will assume it is a system C/C++ header.')

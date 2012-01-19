@@ -375,7 +375,6 @@ SYMPOW=`newest_version sympow`
 SYMPY=`newest_version sympy`
 TACHYON=`newest_version tachyon`
 TERMCAP=`newest_version termcap`
-TWISTED=`newest_version twisted`
 ZLIB=`newest_version zlib`
 ZNPOLY=`newest_version zn_poly`
 ZODB=`newest_version zodb3`

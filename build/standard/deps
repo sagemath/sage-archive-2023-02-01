@@ -113,7 +113,6 @@ all: $(BASE) \
      $(INST)/$(SYMPY) \
      $(INST)/$(TACHYON) \
      $(INST)/$(TERMCAP) \
-     $(INST)/$(TWISTED) \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
      $(INST)/$(ZODB)
@@ -411,43 +410,42 @@ $(INST)/$(ZNPOLY): $(BASE) $(INST)/$(MPIR) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 $(INST)/$(SAGE_ROOT_REPO): $(BASE) $(INST)/$(MERCURIAL)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGE_ROOT_REPO) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_ROOT_REPO).log"
 
-# setuptools forgets to update easy-install.pth during parallel
-# builds, so we build the relevant packages serially.  Note: To avoid
-# branching, we haven't given explicit dependencies, but the chain's
-# order is important.
-$(INST)/$(SAGENB): $(BASE) $(INST)/$(SQLALCHEMY) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(SAGENB) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGENB).log"
-
-$(INST)/$(SQLALCHEMY): $(BASE) $(INST)/$(SPHINX) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(SQLALCHEMY) 2>&1" "tee -a $(SAGE_LOGS)/$(SQLALCHEMY).log"
-
-$(INST)/$(SPHINX): $(BASE) $(INST)/$(JINJA2) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(SPHINX) 2>&1" "tee -a $(SAGE_LOGS)/$(SPHINX).log"
-
-$(INST)/$(JINJA2): $(BASE) $(INST)/$(PYGMENTS) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(JINJA2) 2>&1" "tee -a $(SAGE_LOGS)/$(JINJA2).log"
-
-$(INST)/$(PYGMENTS): $(BASE) $(INST)/$(ZODB) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(PYGMENTS) 2>&1" "tee -a $(SAGE_LOGS)/$(PYGMENTS).log"
-
-$(INST)/$(ZODB): $(BASE) $(INST)/$(TWISTED) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(ZODB) 2>&1" "tee -a $(SAGE_LOGS)/$(ZODB).log"
-
-$(INST)/$(TWISTED): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PYTHON_GNUTLS) \
-		    $(INST)/$(PEXPECT) $(INST)/$(DOCUTILS) \
-		    $(INST)/$(SETUPTOOLS) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(TWISTED) 2>&1" "tee -a $(SAGE_LOGS)/$(TWISTED).log"
-
+# setuptools forgets to update easy-install.pth during parallel builds,
+# so we build the relevant packages serially.  In order to enforce
+# this, we artificially make every package in the list below depend on
+# the package under it.
+#
 # For reference and for when the setuptools problem is solved, here
 # are the actual dependencies:
 #
-# sagenb: python pexpect twisted jinja2 sphinx docutils setuptools
+# sagenb: python pexpect jinja2 sphinx docutils setuptools
 # sqlalchemy: python setuptools
 # sphinx: docutils jinja2 pygments
 # jinja2: python docutils setuptools
 # pygments: python setuptools
-# twisted: python python_gnutls setuptools
 # zodb: python setuptools
+
+$(INST)/$(SAGENB): $(BASE) $(INST)/$(SETUPTOOLS) $(INST)/$(SQLALCHEMY) \
+                   $(INST)/$(PEXPECT) $(INST)/$(JINJA2) $(INST)/$(SPHINX) \
+                   $(INST)/$(DOCUTILS) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(SAGENB) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGENB).log"
+
+$(INST)/$(SQLALCHEMY): $(BASE) $(INST)/$(SETUPTOOLS) $(INST)/$(SPHINX) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(SQLALCHEMY) 2>&1" "tee -a $(SAGE_LOGS)/$(SQLALCHEMY).log"
+
+$(INST)/$(SPHINX): $(BASE) $(INST)/$(DOCUTILS) $(INST)/$(JINJA2) \
+                   $(INST)/$(PYGMENTS) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(SPHINX) 2>&1" "tee -a $(SAGE_LOGS)/$(SPHINX).log"
+
+$(INST)/$(JINJA2): $(BASE) $(INST)/$(SETUPTOOLS) $(INST)/$(PYGMENTS) \
+                   $(INST)/$(PATCH) $(INST)/$(DOCUTILS)
+	+$(PIPE) "$(SAGE_SPKG) $(JINJA2) 2>&1" "tee -a $(SAGE_LOGS)/$(JINJA2).log"
+
+$(INST)/$(PYGMENTS): $(BASE) $(INST)/$(SETUPTOOLS) $(INST)/$(ZODB) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(PYGMENTS) 2>&1" "tee -a $(SAGE_LOGS)/$(PYGMENTS).log"
+
+$(INST)/$(ZODB): $(BASE) $(INST)/$(SETUPTOOLS) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(ZODB) 2>&1" "tee -a $(SAGE_LOGS)/$(ZODB).log"
 
 ########################################################################
 # List all *build-time* dependencies of the Sage library.  These are,

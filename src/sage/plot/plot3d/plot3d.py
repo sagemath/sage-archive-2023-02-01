@@ -901,7 +901,7 @@ def spherical_plot3d(f, urange, vrange, **kwds):
         sage: Y = spherical_harmonic(2, 1, theta, phi)
         sage: rea = spherical_plot3d(abs(real(Y)), (phi,0,2*pi), (theta,0,pi), color='blue', opacity=0.6)
         sage: ima = spherical_plot3d(abs(imag(Y)), (phi,0,2*pi), (theta,0,pi), color='red', opacity=0.6)
-        sage: (rea + ima).show(aspect_ratio=1)
+        sage: (rea + ima).show(aspect_ratio=1)  # long time (4s on sage.math, 2011)
 
     A drop of water::
 

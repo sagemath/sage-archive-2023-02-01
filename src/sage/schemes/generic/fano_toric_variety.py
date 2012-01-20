@@ -1094,12 +1094,12 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         We construct several complete intersections associated to the same
         nef-partition of the 3-dimensional reflexive polytope #2254::
 
-            sage: p = ReflexivePolytope(3, 2254)
-            sage: np = p.nef_partitions()[1]
-            sage: np
+            sage: p = ReflexivePolytope(3, 2254)  # long time (7s on sage.math, 2011)
+            sage: np = p.nef_partitions()[1]      # long time
+            sage: np  # long time
             Nef-partition {2, 3, 4, 7, 8} U {0, 1, 5, 6}
-            sage: X = CPRFanoToricVariety(Delta_polar=p)
-            sage: X.nef_complete_intersection(np)
+            sage: X = CPRFanoToricVariety(Delta_polar=p)  # long time
+            sage: X.nef_complete_intersection(np)  # long time
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 10 affine patches defined by:
               a2*z1*z4^2*z5^2*z7^3 + a1*z2*z4*z5*z6*z7^2*z8^2
@@ -1110,7 +1110,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         Now we include only monomials associated to vertices of `\Delta_i`::
 
-            sage: X.nef_complete_intersection(np, monomial_points="vertices")
+            sage: X.nef_complete_intersection(np, monomial_points="vertices")  # long time
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 10 affine patches defined by:
               a2*z1*z4^2*z5^2*z7^3 + a1*z2*z4*z5*z6*z7^2*z8^2
@@ -1121,8 +1121,9 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         (effectively, we set ``b5=0``). Next we provide coefficients explicitly
         instead of using default generic names::
 
-            sage: X.nef_complete_intersection(np, monomial_points="vertices",
-            ...       coefficients=[range(1,5), range(1, 6)])
+            sage: X.nef_complete_intersection(np,  # long time
+            ...         monomial_points="vertices",
+            ...         coefficients=[range(1,5), range(1,6)])
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 10 affine patches defined by:
               3*z1*z4^2*z5^2*z7^3 + 2*z2*z4*z5*z6*z7^2*z8^2
@@ -1133,9 +1134,9 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         Finally, we take a look at the generic representative of these complete
         intersections in a completely resolved ambient toric variety::
 
-            sage: X = CPRFanoToricVariety(Delta_polar=p,
-            ...                           coordinate_points="all")
-            sage: X.nef_complete_intersection(np)
+            sage: X = CPRFanoToricVariety(Delta_polar=p,  # long time
+            ...                      coordinate_points="all")
+            sage: X.nef_complete_intersection(np)  # long time
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 22 affine patches defined by:
               a1*z2*z4*z5*z6*z7^2*z8^2*z9^2*z10^2*z11*z12*z13

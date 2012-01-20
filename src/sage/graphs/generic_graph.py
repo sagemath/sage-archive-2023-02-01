@@ -13632,7 +13632,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: C = graphs.CubeGraph(8)
             sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
-            sage: P.show()
+            sage: P.show()  # long time (3s on sage.math, 2011)
         """
         kwds.setdefault('figsize', [4,4])
         from graph_plot import graphplot_options

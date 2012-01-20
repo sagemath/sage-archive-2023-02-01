@@ -266,7 +266,7 @@ class HeckeModuleElement(sage.modules.module_element.ModuleElement):
             True
             sage: CuspForms(22, 2).0.is_old()
             True
-            sage: EisensteinForms(144, 2).1.is_old()
+            sage: EisensteinForms(144, 2).1.is_old()  # long time (3s on sage.math, 2011)
             False
             sage: EisensteinForms(144, 2).1.is_old(2) # not implemented
             False

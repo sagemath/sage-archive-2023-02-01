@@ -1479,7 +1479,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         The result is cached for each algorithm separately.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(3)
             sage: A = matrix(W, 2, 3, [1+z, 2/3, 9*z+7, -3 + 4*z, z, -7*z]); A
             [  z + 1     2/3 9*z + 7]
@@ -1491,28 +1492,32 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [                  1                   0  -192/97*z - 361/97]
             [                  0                   1 1851/97*z + 1272/97]
 
-        We verify that the result is cached and that the caches are separate:
+        We verify that the result is cached and that the caches are separate::
+
             sage: A.echelon_form() is A.echelon_form()
             True
             sage: A.echelon_form() is A.echelon_form(algorithm='classical')
             False
 
-        TESTS:
+        TESTS::
+
             sage: W.<z> = CyclotomicField(13)
             sage: A = Matrix(W, 2,3, [10^30*(1-z)^13, 1, 2, 3, 4, z])
             sage: B = Matrix(W, 2,3, [(1-z)^13, 1, 2, 3, 4, z])
-            sage: A.echelon_form() == A.echelon_form('classical')
+            sage: A.echelon_form() == A.echelon_form('classical')  # long time (4s on sage.math, 2011)
             True
             sage: B.echelon_form() == B.echelon_form('classical')
             True
 
-        A degenerate case with the degree 1 cyclotomic field:
+        A degenerate case with the degree 1 cyclotomic field::
+
             sage: A = matrix(CyclotomicField(1),2,3,[1,2,3,4,5,6]);
             sage: A.echelon_form()
             [ 1  0 -1]
             [ 0  1  2]
 
-        A case that checks the bug in trac #3500.
+        A case that checks the bug in trac #3500. ::
+
             sage: cf4 = CyclotomicField(4) ; z4 = cf4.0
             sage: A = Matrix(cf4, 1, 2, [-z4, 1])
             sage: A.echelon_form()

@@ -386,7 +386,7 @@ cdef class ntl_mat_ZZ:
             sage: t = cputime(); d = A.determinant()
             sage: cputime(t)          # random
             0.33201999999999998
-            sage: t = cputime(); B = A.HNF(d)
+            sage: t = cputime(); B = A.HNF(d)  # long time (5s on sage.math, 2011)
             sage: cputime(t)          # random
             6.4924050000000006
 

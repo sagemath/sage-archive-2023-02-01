@@ -805,7 +805,7 @@ class PieriFactors_type_C_affine(PieriFactors_affine_type):
             sage: PF = WeylGroup(['C',3,1]).pieri_factors()
             sage: PF.__class__
             <class 'sage.combinat.root_system.pieri_factors.PieriFactors_type_C_affine_with_category'>
-            sage: TestSuite(PF).run()
+            sage: TestSuite(PF).run()  # long time (4s on sage.math, 2011)
         """
         Parent.__init__(self, category = FiniteEnumeratedSets())
         self.W = W

@@ -338,7 +338,7 @@ class ClassicalCrystals(Category):
 
             ::
 
-                sage: TestSuite(fb4(1,0,1,0)).run(verbose = True)
+                sage: TestSuite(fb4(1,0,1,0)).run(verbose = True)  # long time (8s on sage.math, 2011)
                 running ._test_an_element() . . . pass
                 running ._test_category() . . . pass
                 running ._test_elements() . . .

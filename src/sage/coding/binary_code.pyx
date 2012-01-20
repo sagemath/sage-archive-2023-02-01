@@ -169,13 +169,15 @@ def test_word_perms(t_limit=5.0):
         permuting by the permutation and its inverse in either order, and
         permuting by the identity both return the original word.
 
-    NOTE:
+    .. NOTE::
+
         The functions permute_word_by_wp and dealloc_word_perm are implicitly
         involved in each of the above tests.
 
-    TESTS:
+    TESTS::
+
         sage: from sage.coding.binary_code import test_word_perms
-        sage: test_word_perms()
+        sage: test_word_perms()  # long time (5s on sage.math, 2011)
 
     """
     cdef WordPermutation *g, *h, *i

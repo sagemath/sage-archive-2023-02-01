@@ -1059,7 +1059,7 @@ cdef class TimeSeries:
             sage: v.plot()
             sage: v.plot(points=True)
             sage: v.plot() + v.plot(points=True, rgbcolor='red')
-            sage: v.plot() + v.plot(points=True, rgbcolor='red',pointsize=50)
+            sage: v.plot() + v.plot(points=True, rgbcolor='red', pointsize=50)
         """
         from sage.plot.all import line, point
         cdef Py_ssize_t s

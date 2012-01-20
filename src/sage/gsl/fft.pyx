@@ -34,6 +34,7 @@ from sage.rings.complex_number import ComplexNumber
 def FastFourierTransform(size, base_ring=None):
     """
     EXAMPLES::
+
         sage: a = FastFourierTransform(128)
         sage: for i in range(1, 11):
         ...    a[i] = 1
@@ -178,7 +179,8 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         gsl_fft_complex_radix2_inverse is automatically called.
         Otherwise, gsl_fft_complex_inverse is called.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = FastFourierTransform(125)
             sage: b = FastFourierTransform(125)
             sage: for i in range(1, 60): a[i]=1
@@ -206,14 +208,15 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         using the Cooley-Tukey algorithm. This is the same as "inverse"
         but lacks normalization so that backwards*forwards(f) = n*f.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = FastFourierTransform(125)
             sage: b = FastFourierTransform(125)
             sage: for i in range(1, 60): a[i]=1
             sage: for i in range(1, 60): b[i]=1
             sage: a.forward_transform()
             sage: a.backward_transform()
-            sage: (a.plot() + b.plot()).show(ymin=0)
+            sage: (a.plot() + b.plot()).show(ymin=0)  # long time (2s on sage.math, 2011)
         """
         cdef gsl_fft_complex_wavetable * wt
         cdef gsl_fft_complex_workspace * mem

@@ -124,9 +124,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         ...         l.append((float(i*pi/5),float(j*pi/5),m[i,j]))
         sage: list_plot3d(l,texture='yellow')
 
-    Note that the points do not have to be regularly sampled. For example:
-
-    ::
+    Note that the points do not have to be regularly sampled. For example::
 
         sage: l=[]
         sage: for i in range(-5,5):
@@ -135,6 +133,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         sage: list_plot3d(l,interpolation_type='nn',texture='yellow',num_points=100)
 
     TESTS:
+
     We plot 0, 1, and 2 points::
 
         sage: list_plot3d([])

@@ -1857,8 +1857,8 @@ class LinearCode(module.Module_old):
             sage: M11 = MathieuGroup(11)
             sage: M11.order()
             7920
-            sage: G = C.permutation_automorphism_group()  # this should take < 5 seconds
-            sage: G.is_isomorphic(M11)                    # this should take < 5 seconds
+            sage: G = C.permutation_automorphism_group()  # long time (6s on sage.math, 2011)
+            sage: G.is_isomorphic(M11)                    # long time
             True
 
         Other examples::

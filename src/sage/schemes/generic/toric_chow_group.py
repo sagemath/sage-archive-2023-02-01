@@ -69,7 +69,7 @@ EXAMPLES::
     sage: A.degree(2).ngens()
     7
     sage: a = sum( A.gen(i) * (i+1) for i in range(0,A.ngens()) )   # an element of A
-    sage: a
+    sage: a  # long time (2s on sage.math, 2011)
     ( 3 | 1 mod 7 | 0 mod 2, 1 mod 2, 4, 5, 6, 7, 8 | 9 )
 
 The Chow group elements are printed as ``( a0 | a1 mod 7 | a2 mod 2,

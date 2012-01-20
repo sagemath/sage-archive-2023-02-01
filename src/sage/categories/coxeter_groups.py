@@ -1191,7 +1191,7 @@ class CoxeterGroups(Category):
                 sage: W = WeylGroup(["A",3])
                 sage: P4 = Permutations(4)
                 sage: def P4toW(w): return W.from_reduced_word(w.reduced_word())
-                sage: for u in P4:
+                sage: for u in P4:  # long time (5s on sage.math, 2011)
                 ...       for v in P4:
                 ...           assert u.permutohedron_lequal(v) == P4toW(u).weak_le(P4toW(v))
                 ...           assert u.permutohedron_lequal(v, side='left') == P4toW(u).weak_le(P4toW(v), side='left')

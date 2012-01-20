@@ -304,7 +304,7 @@ class WeylGroups(Category):
 
                 sage: W = WeylGroup(['B',4])
                 sage: w = W.from_reduced_word([3,2,3,1])
-                sage: w.stanley_symmetric_function()
+                sage: w.stanley_symmetric_function()  # long time (6s on sage.math, 2011)
                 48*m[1, 1, 1, 1] + 24*m[2, 1, 1] + 12*m[2, 2] + 8*m[3, 1] + 2*m[4]
 
              * :meth:stanley_symmetric_function_as_polynomial`

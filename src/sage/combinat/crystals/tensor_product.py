@@ -654,7 +654,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: K = KirillovReshetikhinCrystal(['C',2,1],1,2)
             sage: T = TensorProductOfCrystals(K,K)
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
-            sage: for b in hw:
+            sage: for b in hw:  # long time (5s on sage.math, 2011)
             ...       print b, b.energy_function()
             ...
             [[], []] 4

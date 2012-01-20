@@ -114,9 +114,9 @@ sage: def count_primes5(n):
 ...    s=0
 ...    for p in prime_range(n): s+=1
 ...    return s
-sage: timeit('count_primes1(10^5)') # random long time
+sage: timeit('count_primes1(10^5)') # random, not tested
 5 loops, best of 3: 674 ms per loop
-sage: timeit('count_primes2(10^5)') # random long time
+sage: timeit('count_primes2(10^5)') # random, not tested
 5 loops, best of 3: 256 ms per loop
 sage: timeit('count_primes3(10^5)') # random
 5 loops, best of 3: 49.2 ms per loop

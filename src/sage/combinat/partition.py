@@ -380,7 +380,9 @@ def from_core_and_quotient(core, quotient):
         sage: Partition(core=[2,1], quotient=[[2,1],[3],[1,1,1]])
         [11, 5, 5, 3, 2, 2, 2]
 
-    TESTS: We check that #11412 is actually fixed::
+    TESTS:
+
+    We check that #11412 is actually fixed::
 
         sage: test = lambda x, k: x == Partition(core=x.core(k),
         ...                                      quotient=x.quotient(k))
@@ -391,7 +393,7 @@ def from_core_and_quotient(core, quotient):
         ...       Partition(core=core, quotient=mus).core(len(mus)) == core
         ...       and
         ...       Partition(core=core, quotient=mus).quotient(len(mus)) == mus)
-        sage: all(test2(core,tuple(mus))
+        sage: all(test2(core,tuple(mus))  # long time (5s on sage.math, 2011)
         ...       for k in range(1,10)
         ...       for n_core in range(10-k)
         ...       for core in Partitions(n_core)

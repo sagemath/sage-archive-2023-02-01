@@ -134,7 +134,7 @@ one endomorphism ring for the newform 33a (since it is again
      Abelian variety endomorphism of Abelian subvariety of dimension 2 of J0(33))
     sage: B.endomorphism_ring().gens()
     (Abelian variety endomorphism of Abelian subvariety of dimension 1 of J0(33),)
-    sage: E = J.endomorphism_ring() ; E.gens()
+    sage: E = J.endomorphism_ring() ; E.gens()  # long time (3s on sage.math, 2011)
     (Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
      Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
      Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
@@ -148,14 +148,14 @@ of T in its saturation, which is 1 in this case.
 
 ::
 
-    sage: T = E.image_of_hecke_algebra()
-    sage: T.gens()
+    sage: T = E.image_of_hecke_algebra()  # long time
+    sage: T.gens()  # long time
     (Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
      Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
      Abelian variety endomorphism of Abelian variety J0(33) of dimension 3)
-    sage: T.index_in(E)
+    sage: T.index_in(E)  # long time
     +Infinity
-    sage: T.index_in_saturation()
+    sage: T.index_in_saturation()  # long time
     1
 
 AUTHORS:
@@ -832,7 +832,7 @@ class EndomorphismSubring(Homspace, Ring):
 
             sage: J0(33).endomorphism_ring().discriminant()
             -64800
-            sage: J0(46).endomorphism_ring().discriminant()
+            sage: J0(46).endomorphism_ring().discriminant()  # long time (6s on sage.math, 2011)
             24200000000
             sage: J0(11).endomorphism_ring().discriminant()
             2

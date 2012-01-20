@@ -1311,13 +1311,13 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         We check that #10450 is fixed::
 
-            sage: M = CuspForms(Gamma1(22), 2).new_submodule()
-            sage: M.hecke_matrix(3)
+            sage: M = CuspForms(Gamma1(22), 2).new_submodule()  # long time (3s on sage.math, 2011)
+            sage: M.hecke_matrix(3)  # long time
             [ 0 -2  3  0]
             [ 0 -3  5 -1]
             [ 1 -1  0 -1]
             [ 0 -2  3 -1]
-            sage: M.hecke_matrix(9)
+            sage: M.hecke_matrix(9)  # long time
             [ 3  3 -4 -4]
             [ 2  6 -9 -4]
             [ 0  3 -2 -1]

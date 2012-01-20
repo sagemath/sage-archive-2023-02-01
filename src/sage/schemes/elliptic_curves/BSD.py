@@ -425,7 +425,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
     ::
 
         sage: E = EllipticCurve('960d1')
-        sage: E.prove_BSD(verbosity=1)
+        sage: E.prove_BSD(verbosity=1)  # long time (4s on sage.math, 2011)
         p = 2: True by 2-descent
         True for p not in {2} by Kolyvagin.
         []

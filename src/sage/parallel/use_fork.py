@@ -1,5 +1,5 @@
 """
-Parallel iterator built using the ``fork()`` system call.
+Parallel iterator built using the ``fork()`` system call
 """
 
 ################################################################################

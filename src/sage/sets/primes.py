@@ -1,5 +1,5 @@
 """
-The set of prime numbers.
+The set of prime numbers
 
 AUTHORS:
 

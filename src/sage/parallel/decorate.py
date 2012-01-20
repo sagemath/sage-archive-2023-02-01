@@ -1,5 +1,5 @@
 r"""
-Decorate interface for parallel computation.
+Decorate interface for parallel computation
 """
 
 import types

@@ -1,5 +1,5 @@
 """
-Miscellaneous functions for the Steenrod algebra and its elements.
+Miscellaneous functions for the Steenrod algebra and its elements
 
 AUTHORS:
 

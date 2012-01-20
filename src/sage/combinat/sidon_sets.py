@@ -1,5 +1,5 @@
 r"""
-Sidon sets and their generalizations, Sidon `g`-sets.
+Sidon sets and their generalizations, Sidon `g`-sets
 
 AUTHORS:
 

@@ -1,5 +1,5 @@
 """
-The ``timeit`` command.
+The ``timeit`` command
 
 This uses the function :func:`~sage.misc.sage_timeit.sage_timeit`.
 """

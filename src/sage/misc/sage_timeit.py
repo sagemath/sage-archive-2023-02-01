@@ -1,5 +1,5 @@
 """
-Accurate timing information for Sage commands.
+Accurate timing information for Sage commands
 
 This is an implementation of nice timeit functionality, like the
 ``%timeit`` magic command in IPython.  To use it, use the ``timeit``

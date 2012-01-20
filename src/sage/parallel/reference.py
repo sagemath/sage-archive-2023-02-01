@@ -1,5 +1,5 @@
 """
-Reference Parallel Primitives.
+Reference Parallel Primitives
 
 These are reference implementations of basic parallel
 primitives. These are not actually parallel, but work the same way.

@@ -1115,6 +1115,30 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         else:
             return 1
 
+    def _integer_(FiniteField_ntl_gf2eElement self, Integer):
+        """
+        Convert self to an integer if it is in the prime subfield.
+
+        EXAMPLES::
+
+            sage: k.<b> = GF(2^16); k
+            Finite Field in b of size 2^16
+            sage: ZZ(k(1))
+            1
+            sage: ZZ(k(0))
+            0
+            sage: ZZ(b)
+            Traceback (most recent call last):
+            ...
+            TypeError: not in prime subfield
+            sage: GF(2)(b^(2^16-1)) # indirect doctest
+            1
+        """
+        if self.is_zero(): return Integer(0)
+        elif self.is_one(): return Integer(1)
+        else:
+            raise TypeError, "not in prime subfield"
+
     def __int__(FiniteField_ntl_gf2eElement self):
         """
         Return the int representation of self.  When self is in the

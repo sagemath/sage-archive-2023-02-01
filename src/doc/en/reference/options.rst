@@ -17,11 +17,11 @@ Command-line options for Sage
 - ``-v``, ``--version`` -- print the Sage version
 - ``--advanced`` -- print (essentially this) list of Sage options
 - ``-c cmd`` -- evaluate ``cmd`` as sage code.  For example, ``sage
-  --c 'print factor(35)'`` will print "5 * 7".
+  -c 'print factor(35)'`` will print "5 * 7".
 
 .. rubric:: Running Sage, other options
 
-- ``--preparse file.sage`` --- preparse ``file.sage``, a file of
+- ``--preparse file.sage`` -- preparse ``file.sage``, a file of
   Sage code, and produce the corresponding Python file
   ``file.sage.py``.  See the Sage tutorial for more about preparsing
   and the differences between Sage and Python.
@@ -50,7 +50,7 @@ Command-line options for Sage
 .. rubric:: Running external programs and utilities
 
 - ``--cython [...]`` -- run Cython with the given arguments
-- ``--ecl [...]``, ``--lisp [...]`` --- run Sage's copy of ECL
+- ``--ecl [...]``, ``--lisp [...]`` -- run Sage's copy of ECL
   (Embeddable Common Lisp) with the given arguments
 - ``--gap [...]`` -- run Sage's Gap with the given arguments
 - ``--gp [...]`` -- run Sage's PARI/GP calculator with the given arguments
@@ -154,8 +154,12 @@ __ http://wiki.sagemath.org/combinat
   - ``--long``  -- include lines with the phrase 'long time'
   - ``--verbose`` -- print debugging output during the test
   - ``--optional`` -- also test all examples labeled ``# optional``
-  - ``--only-optional <tag1,...,tagn>`` -- only run tests labeled
-    ``# optional tagi`` where `i` is between 1 and `n`
+  - ``--only-optional[=tags]`` -- If no ``tags`` are specified, only
+    run blocks of tests containing a line labeled ``# optional``. If
+    a comma separated list of tags is specified, only run blocks containing
+    a line labeled ``# optional tag`` for any of the tags given and in these blocks only
+    run the lines which are unlabeled or labeled ``#optional`` or labeled
+    ``#optional tag`` for any of the tags given.
   - ``--randorder[=seed]`` -- randomize order of tests
 
 - ``-tnew [...]`` -- like ``-t`` above, but only tests files
@@ -163,8 +167,8 @@ __ http://wiki.sagemath.org/combinat
 - ``-tp <N> [...]`` -- like ``-t`` above, but tests in parallel
   using ``N`` threads with 0 interpreted as ``minimum(8, cpu_count())``
 - ``--testall [options]`` -- test all source files, docs, and
-  examples; options as the same as for ``-t``.
-- ``-bt [...]`` --- build and test, options like ``-t`` above
+  examples; options are the same as for ``-t``.
+- ``-bt [...]`` -- build and test, options like ``-t`` above
 - ``-btp <N> [...]`` -- build and test in parallel, options like
   ``-tp`` above
 - ``-btnew [...]`` -- build and test modified files, options like ``-tnew``
@@ -182,14 +186,14 @@ __ http://wiki.sagemath.org/combinat
 
 .. rubric:: Documentation
 
-- ``--docbuild [OPTIONS] DOCUMENT (FORMAT | COMMAND)`` -- build or
+- ``--docbuild [options] document (format | command)`` -- build or
   return information about the Sage documentation.
 
-  - ``DOCUMENT`` -- name of the document to build
-  - ``FORMAT`` -- document output format
-  - ``COMMAND`` -- document-specific command
+  - ``document`` -- name of the document to build
+  - ``format`` -- document output format
+  - ``command`` -- document-specific command
 
-  A DOCUMENT and either a FORMAT or a COMMAND are required, unless a
+  A ``document`` and either a ``format`` or a ``command`` are required, unless a
   list of one or more of these is requested.
 
   Options:
@@ -197,10 +201,10 @@ __ http://wiki.sagemath.org/combinat
   - ``help``, ``-h``, ``--help`` -- print a help message
   - ``-H``, ``--help-all`` -- print an extended help message,
     including the output from the options ``-h``, ``-D``, ``-F``,
-    and ``-C all``, plus with a short list of examples.
-  - ``-D``, ``--documents`` -- list all available DOCUMENTs
-  - ``-F``, ``--formats`` -- list all output FORMATs
-  - ``-C DOC``, ``--commands=DOC`` -- list all COMMANDs for document
+    ``-C all``, and a short list of examples.
+  - ``-D``, ``--documents`` -- list all available documents
+  - ``-F``, ``--formats`` -- list all output formats
+  - ``-C DOC``, ``--commands=DOC`` -- list all commands for document
     ``DOC``; use ``-C all`` to list all
   - ``-i``, ``--inherited`` -- include inherited members in
     reference manual; may be slow, may fail for PDF output
@@ -221,7 +225,7 @@ __ http://wiki.sagemath.org/combinat
 
   Advanced -- use these options with care:
 
-  - ``-S OPTS``, ``--sphinx-opts=OPTS`` -- pass comma-separated OPTS
+  - ``-S OPTS``, ``--sphinx-opts=OPTS`` -- pass comma-separated ``OPTS``
     to sphinx-build
   - ``-U``, ``--update-mtimes`` -- before building reference manual,
     update modification times for auto-generated ReST files

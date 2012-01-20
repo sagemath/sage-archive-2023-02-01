@@ -4369,14 +4369,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             u = 1
         try:
             an = self[n]**(n - k - 2)
-            return self.base_ring()(u * self.resultant(d) * an)
         except ZeroDivisionError:
+            assert(n-k-2 == -1)
             # Rather than dividing the resultant by the leading coefficient,
             # we alter the Sylvester matrix (see #11782).
             mat = self.sylvester_matrix(d)
             mat[0, 0] = self.base_ring()(1)
             mat[n - 1, 0] = self.base_ring()(n)
             return u * mat.determinant()
+        else:
+            return self.base_ring()(u * self.resultant(d) * an)
 
     def reverse(self, degree=None):
         """

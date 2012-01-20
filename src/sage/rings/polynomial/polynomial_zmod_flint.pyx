@@ -266,7 +266,18 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             11
             sage: r.parent() is GF(19)
             True
+
+        The following example shows that #11782 has been fixed::
+
+            sage: R.<x> = ZZ.quo(9)['x']
+            sage: f = 2*x^3 + x^2 + x;  g = 6*x^2 + 2*x + 1
+            sage: f.resultant(g)
+            5
         """
+        # As of version 1.6 of FLINT, the base ring must be a field to compute
+        # resultants correctly. (see http://www.flintlib.org/flint-1.6.pdf p.58)
+        # If it is not a field we fall back to direct computation through the
+        # Sylvester matrix.
         if self.base_ring().is_field():
             res = zmod_poly_resultant(&(<Polynomial_template>self).x,
                                       &(<Polynomial_template>other).x)

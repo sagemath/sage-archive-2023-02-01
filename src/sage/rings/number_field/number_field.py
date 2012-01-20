@@ -4041,7 +4041,7 @@ class NumberField_generic(number_field_base.NumberField):
 
         - ``important`` -- (default:True) bool.  If False, raise a
           ``RuntimeError`` if we need to do a difficult discriminant
-          factorization.  Useful when the PARI nf structure is useful
+          factorization.  Useful when the integral basis is useful
           but not strictly required.
 
         EXAMPLES::

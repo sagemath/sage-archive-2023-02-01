@@ -2759,6 +2759,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = (x+a)^50 - (a-1)^50
             sage: len(factor(f))
             6
+            sage: pari(K.discriminant()).factor(limit=0)
+            [-1, 1; 3, 15; 23, 1; 887, 1; 12583, 1; 2354691439917211, 1]
             sage: factor(K.discriminant())
             -1 * 3^15 * 23 * 887 * 12583 * 6335047 * 371692813
 
@@ -2776,6 +2778,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^2 + 1
             sage: factor( (x - a) * (x + 2*a) )
             (x - a) * (x + 2*a)
+
+        A test where nffactor used to fail without a nf structure::
+
+            sage: x = polygen(QQ)
+            sage: K = NumberField([x^2-1099511627777, x^3-3],'a')
+            sage: x = polygen(K)
+            sage: f = x^3 - 3
+            sage: factor(f)
+            (x - a1) * (x^2 + a1*x + a1^2)
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially

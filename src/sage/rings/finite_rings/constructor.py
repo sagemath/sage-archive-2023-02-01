@@ -250,38 +250,49 @@ class FiniteFieldFactory(UniqueFactory):
         sage: K.<a> = GF(5**5, name='a', modulus=x^5 - x )
         Traceback (most recent call last):
         ...
-        ValueError: finite field modulus must be irreducible but it is not
+        ValueError: finite field modulus must be irreducible but it is not.
 
     You can't accidentally fool the constructor into thinking the modulus
     is irreducible when it isn't mod p, since it actually tests
-    irreducibility modulo p.
+    irreducibility modulo p.  Also, the modulus has to be of the right degree.
 
     ::
 
         sage: F.<x> = QQ[]
-        sage: factor(x^5+2)
+        sage: factor(x^5 + 2)
         x^5 + 2
         sage: K.<a> = GF(5**5, name='a', modulus=x^5 + 2 )
         Traceback (most recent call last):
         ...
-        ValueError: finite field modulus must be irreducible but it is not
+        ValueError: finite field modulus must be irreducible but it is not.
+        sage: K.<a> = GF(5**5, name='a', modulus=x^3 + 3*x + 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: The degree of the modulus does not correspond to the
+        cardinality of the field.
 
     If you wish to live dangerously, you can tell the constructor not
     to test irreducibility using check_irreducible=False, but this can
     easily lead to crashes and hangs - so do not do it unless you know
-    that the modulus really is irreducible!
+    that the modulus really is irreducible and has the correct degree!
 
     ::
 
         sage: F.<x> = GF(5)[]
         sage: K.<a> = GF(5**2, name='a', modulus=x^2 + 2, check_irreducible=False)
 
+    ::
+
+        sage: L = GF(3**2, name='a', modulus=QQ[x](x - 1), check_irreducible=False)
+        sage: L.list()  # random
+        [0, a, 1, 2, 1, 2, 1, 2, 1]
+
     The order of a finite field must be a prime power::
 
         sage: GF(100)
         Traceback (most recent call last):
         ...
-        ValueError: the order of a finite field must be a prime power
+        ValueError: the order of a finite field must be a prime power.
 
     Finite fields with explicit random modulus are not cached::
 
@@ -316,7 +327,7 @@ class FiniteFieldFactory(UniqueFactory):
 
     ::
 
-        sage: k.<a> = GF(2^8,repr='int')
+        sage: k.<a> = GF(2^8, repr='int')
         sage: a
         2
 
@@ -336,9 +347,9 @@ class FiniteFieldFactory(UniqueFactory):
         with WithProof('arithmetic', proof):
             order = int(order)
             if order == 1:
-                raise ValueError("the order of a finite field must be > 1")
+                raise ValueError("the order of a finite field must be > 1.")
             if not arith.is_prime_power(order):
-                    raise ValueError("the order of a finite field must be a prime power")
+                    raise ValueError("the order of a finite field must be a prime power.")
 
             if arith.is_prime(order):
                 name = None
@@ -349,13 +360,13 @@ class FiniteFieldFactory(UniqueFactory):
                 if not names is None: name = names
                 name = normalize_names(1,name)
 
-                p,n = arith.factor(order)[0]
+                p, n = arith.factor(order)[0]
 
                 if modulus is None or modulus == "default":
-                    if exists_conway_polynomial(p,n):
+                    if exists_conway_polynomial(p, n):
                         modulus = "conway"
                     else:
-                        if p==2:
+                        if p == 2:
                             modulus = "minimal_weight"
                         else:
                             modulus = "random"
@@ -370,7 +381,7 @@ class FiniteFieldFactory(UniqueFactory):
                 elif sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
                     modulus = modulus.change_variable_name('x')
                 elif not isinstance(modulus, str):
-                    raise ValueError("Modulus parameter not understood")
+                    raise ValueError("Modulus parameter not understood.")
 
             return (order, name, modulus, impl, str(kwds), p, n, proof), kwds
 
@@ -426,9 +437,11 @@ class FiniteFieldFactory(UniqueFactory):
                     if modulus.parent().base_ring().characteristic() == 0:
                         modulus = modulus.change_ring(FiniteField(p))
                     if not modulus.is_irreducible():
-                        raise ValueError, "finite field modulus must be irreducible but it is not"
+                        raise ValueError("finite field modulus must be irreducible but it is not.")
+                    if modulus.degree() != n:
+                        raise ValueError("The degree of the modulus does not correspond to the cardinality of the field.")
                 if name is None:
-                    raise TypeError, "you must specify the generator name"
+                    raise TypeError("you must specify the generator name.")
                 if order < zech_log_bound:
                     # DO *NOT* use for prime subfield, since that would lead to
                     # a circular reference in the call to ParentWithGens in the
@@ -564,7 +577,7 @@ def conway_polynomial(p, n):
     try:
         return R(sage.databases.conway.ConwayPolynomials()[p][n])
     except KeyError:
-        raise RuntimeError, "requested conway polynomial not in database."
+        raise RuntimeError("requested conway polynomial not in database.")
 
 def exists_conway_polynomial(p, n):
     r"""

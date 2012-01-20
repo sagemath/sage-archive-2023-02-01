@@ -8,6 +8,15 @@ fi
 
 cd src/
 
+# Apply all patches
+for patch in ../patches/*.patch; do
+    if ! patch -p1 <$patch; then
+        echo >&2 "Error: patch $patch failed to apply."
+        exit 1
+    fi
+done
+
+
 unset AR
 
 
@@ -30,15 +39,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-make
+$MAKE
 if [ $? -ne 0 ]; then
-    echo "Error building zlib"
-    echo "This may not be fatal"
+    echo >&2 "Error building zlib (this may not be fatal)"
 fi
 
-make install
+$MAKE install
 if [ $? -ne 0 ]; then
-    echo "Error installing zlib"
+    echo >&2 "Error installing zlib"
     exit 1
 fi
 

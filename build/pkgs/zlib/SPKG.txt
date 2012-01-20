@@ -26,6 +26,10 @@ Free, Not to Mention Unencumbered by Patents)
  None - previously it was necessary to remove binary *.obj files, but there
  are none in the current source package.
 
+=== zlib-1.2.5.p0 (Jeroen Demeyer, 9 December 2011) ===
+ * Trac #12138: Fix parallel build by patching Makefile.in
+ * Use $MAKE variable in spkg-install
+
 === zlib-1.2.5 (David Kirkby, May 21st 2010) ===
  * Update to the latest upstream version - 1.2.5
  * Remove the patches directory.

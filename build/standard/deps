@@ -135,6 +135,11 @@ base: $(BASE)
 
 scripts: $(INST)/$(SAGE_SCRIPTS) # depends on $(BASE)
 
+# Everything needed to start up Sage using "./sage".  Of course, not
+# every part of Sage will work.  It does not include Maxima for example.
+SAGERUNTIME = $(INST)/$(SAGE_SCRIPTS) $(INST)/$(SAGE) $(INST)/$(SAGENB) \
+              $(INST)/$(IPYTHON) $(INST)/$(GAP)
+
 ###############################################################################
 # Building the base system
 ###############################################################################
@@ -308,12 +313,11 @@ $(INST)/$(SQLITE): $(BASE) $(INST)/$(READLINE) $(INST)/$(PATCH)
 $(INST)/$(MERCURIAL): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(MERCURIAL) 2>&1" "tee -a $(SAGE_LOGS)/$(MERCURIAL).log"
 
-# Make Sage and GAP prerequisites for sagetex so that as much of Sage
-# is installed as possible: this is so that spkg-check works for
-# sagetex.  (To build sagetex, you just need Python, but to test it,
-# you need a full Sage installation.)
-$(INST)/$(SAGETEX): $(BASE) $(INST)/$(SAGE_SCRIPTS) \
-		    $(INST)/$(PYTHON) $(INST)/$(SAGE) $(INST)/$(GAP) $(INST)/$(PATCH)
+# To build SageTeX, you just need Python, but to test (SAGE_CHECK=yes)
+# SageTeX, you actually need to run sage, produce plots,...
+$(INST)/$(SAGETEX): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH) \
+                    $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(SCIPY) \
+                    $(INST)/$(MATPLOTLIB) $(INST)/$(PIL) $(INST)/$(TACHYON)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGETEX) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGETEX).log"
 
 $(INST)/$(SETUPTOOLS): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
@@ -449,66 +453,52 @@ $(INST)/$(TWISTED): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PYTHON_GNUTLS) \
 # twisted: python python_gnutls setuptools
 # zodb: python setuptools
 
-###############################################################################
-# All components that are linked against extensions need to be listed here:
-###############################################################################
+########################################################################
+# List all *build-time* dependencies of the Sage library.  These are,
+# on the one hand, programs needed for the build/install process of the
+# Sage library (e.g. SAGE_SCRIPTS, SCONS, MERCURIAL, JINJA2), and on the
+# other hand all dependencies for Cython files (e.g. PARI, NTL, MPIR).
+########################################################################
 $(INST)/$(SAGE): $(BASE) \
-		 $(INST)/$(SAGE_SCRIPTS) \
 		 $(INST)/$(ATLAS) \
 		 $(INST)/$(CEPHES) \
 		 $(INST)/$(CLIQUER) \
-		 $(INST)/$(CONWAY) \
 		 $(INST)/$(CYTHON) \
-		 $(INST)/$(DOCUTILS) \
 		 $(INST)/$(ECL) \
 		 $(INST)/$(ECLIB) \
 		 $(INST)/$(ECM) \
-		 $(INST)/$(ELLIPTIC_CURVES) \
-		 $(INST)/$(EXTCODE) \
 		 $(INST)/$(FLINT) \
 		 $(INST)/$(FPLLL) \
-		 $(INST)/$(GDMODULE) \
-		 $(INST)/$(GRAPHS) \
+		 $(INST)/$(GD) \
 		 $(INST)/$(GIVARO) \
 		 $(INST)/$(GLPK) \
 		 $(INST)/$(GSL) \
 		 $(INST)/$(IML) \
-		 $(INST)/$(IPYTHON) \
+		 $(INST)/$(JINJA2) \
 		 $(INST)/$(LCALC) \
 		 $(INST)/$(LIBM4RI) \
 		 $(INST)/$(LIBM4RIE) \
+		 $(INST)/$(LIBPNG) \
 		 $(INST)/$(LINBOX) \
-		 $(INST)/$(MATPLOTLIB) \
 		 $(INST)/$(MERCURIAL) \
 		 $(INST)/$(MPFI) \
 		 $(INST)/$(MPFR) \
 		 $(INST)/$(MPIR) \
-		 $(INST)/$(MPMATH) \
-		 $(INST)/$(NETWORKX) \
 		 $(INST)/$(NTL) \
 		 $(INST)/$(NUMPY) \
 		 $(INST)/$(PARI) \
-		 $(INST)/$(PEXPECT) \
 		 $(INST)/$(POLYBORI) \
 		 $(INST)/$(PPL) \
-		 $(INST)/$(PYCRYPTO) \
 		 $(INST)/$(PYNAC) \
 		 $(INST)/$(PYTHON) \
-		 $(INST)/$(R) \
 		 $(INST)/$(RATPOINTS) \
-		 $(INST)/$(RUBIKS) \
-		 $(INST)/$(SAGENB) \
+		 $(INST)/$(READLINE) \
+		 $(INST)/$(SAGE_SCRIPTS) \
 		 $(INST)/$(SCONS) \
-		 $(INST)/$(SETUPTOOLS) \
 		 $(INST)/$(SINGULAR) \
 		 $(INST)/$(SYMMETRICA) \
-		 $(INST)/$(SYMPY) \
 		 $(INST)/$(ZNPOLY)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGE) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE).log"
-# Needed when #9906 gets merged:
-# 		 $(INST)/$(RPY) \
-# (But move this up; it's just here because 'make' doesn't support comments
-# within line continuations.)
 
 # Rather than making *all* standard packages depend on SAGE_SCRIPTS (which
 # triggers the rebuild of *every* package on an upgrade), add SAGE_SCRIPTS

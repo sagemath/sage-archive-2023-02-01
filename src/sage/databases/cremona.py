@@ -20,7 +20,7 @@ This causes the latest version of the database to be downloaded from
 the internet.  You can also install it from a local copy of the
 database spkg file, using a command of the form::
 
-    !sage -i database_cremona_ellcurve-20110809.spkg
+    !sage -i database_cremona_ellcurve-*.spkg
 
 Both the mini and full versions of John Cremona's tables are stored in
 SAGE_DATA/cremona as SQLite databases. The mini version has the layout::
@@ -58,8 +58,6 @@ from sage.misc.misc import SAGE_DATA, walltime
 import re
 import string
 
-_currentConductorBound = 180000
-_currentDatabasePackage = 'database_cremona_ellcurve-20110809.spkg'
 _cremonaSkeleton = {
     't_class': {
         'conductor': {'sql':'INTEGER', 'index':True},
@@ -100,8 +98,7 @@ for t in _cremonaSkeleton:
     for c in _miniCremonaSkeleton[t]:
         _miniCremonaSkeleton[t][c] = verify_column(_miniCremonaSkeleton[t][c])
 
-def build(name, data_tgz, largest_conductor=_currentConductorBound, \
-    mini=False, decompress=True):
+def build(name, data_tgz, largest_conductor=0, mini=False, decompress=True):
     """
     Build the CremonaDatabase with given name from scratch
     using the data_tgz tarball.
@@ -646,28 +643,23 @@ class MiniCremonaDatabase(SQLDatabase):
                 F.db_extra = list(c[5:])
             return F
         except StopIteration:
-            if N < 10000:
+            if N < self.largest_conductor():
                 message = "There is no elliptic curve with label " + label \
                     + " in the database (note: use lower case letters!)"
-            elif N < _currentConductorBound:
-                if _currentDatabasePackage in optional_packages()[0]:
-                    message =  "There is no elliptic curve with label " \
-                        + label + " in the database (note: use lower case " \
-                        + "letters!)"
-                else:
-                    message = "There is no elliptic curve with label " \
-                        + label + " in the default database; try installing " \
-                        + "the  optional package " + _currentDatabasePackage \
-                        + " which contains all curves of conductor up to " \
-                        + str(_currentConductorBound)
-            else:
+            elif 'database_cremona_ellcurve' in \
+                    [s.split('-')[0] for s in optional_packages()[0]]:
                 message = "There is no elliptic curve with label " + label \
                     + " in the currently available databases"
-            raise RuntimeError(message)
+            else:
+                message = "There is no elliptic curve with label " \
+                    + label + " in the default database; try installing " \
+                    + "the optional package database_cremona_ellcurve which " \
+                    + "contains the complete cremona database"
 
     def iter(self, conductors):
         """
-        Return an iterator through all curves in the database with given conductors.
+        Return an iterator through all curves in the database with given
+        conductors.
 
         INPUT:
 

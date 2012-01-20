@@ -43,6 +43,11 @@ C files:
   *and* MPIR. To disable the use, add "-DPARI_DONT_USE_GMP_INTERNALS"
   to CFLAGS. This is a trivial patch to mp.c only; see also the comment
   there.):
+* reorder_init_opts.patch: call pari_init_defaults() *before* calling
+  gp_expand_path(), such that warnings during gp_expand_path() do not
+  cause a dereference of the NULL pointer pariErr (#12158).
+  Reported upstream at
+  http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1264
 
 Upstream patches included (file name refers to the ticket in PARI's bug
 tracking system, see

@@ -80,6 +80,10 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.5.0.p3 (Jeroen Demeyer, 20 December 2011) ===
+ * Ticket #12158: add reorder_init_opts.patch such that warnings
+   during pari_init_opts() do not cause segfaults.
+
 === pari-2.5.0.p2 (Jeroen Demeyer, 26 July 2011) ===
  * Ticket #11130: update to PARI stable version 2.5.0, which is
    equal to svn version 13228.

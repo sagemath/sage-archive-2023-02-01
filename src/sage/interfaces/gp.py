@@ -207,7 +207,7 @@ class Gp(Expect):
                         restart_on_ctrlc = False,
                         verbose_start = False,
                         logfile=logfile,
-                        eval_using_file_cutoff=50)
+                        eval_using_file_cutoff=1024)
         self.__seq = 0
         self.__var_store_len = 0
         self.__init_list_length = init_list_length

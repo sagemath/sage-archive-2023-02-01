@@ -1,5 +1,5 @@
---- ../src/include/Lcommon.h	2010-01-31 15:16:45.000000000 +0000
-+++ Lcommon.h	2011-03-08 21:19:11.849443238 +0000
+--- src/include/Lcommon.h	2010-01-31 15:16:45.000000000 +0000
++++ src/include/Lcommon.h	2011-03-08 21:19:11.849443238 +0000
 @@ -25,7 +25,7 @@
  #ifdef USE_MPFR
  inline double lcalc_to_double(const double& x) { return x; }

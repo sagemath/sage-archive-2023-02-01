@@ -431,7 +431,16 @@ If this all works, you can then make calls like:
             if self.__remote_cleaner and self._server:
                 c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &'%self._server
                 os.system(c)
-            self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
+
+            # Unset $TERM for the children to reduce the chances they do
+            # something complicated breaking the terminal interface.
+            # See Trac #12221.
+            pexpect_env = dict(os.environ)
+            try:
+                del pexpect_env["TERM"]
+            except KeyError:
+                pass
+            self._expect = pexpect.spawn(cmd, logfile=self.__logfile, env=pexpect_env)
             if self._do_cleaner():
                 cleaner.cleaner(self._expect.pid, cmd)
 

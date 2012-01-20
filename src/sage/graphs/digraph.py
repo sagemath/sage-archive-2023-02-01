@@ -346,6 +346,12 @@ class DiGraph(GenericGraph):
             Multi-digraph on 2 vertices
             sage: DiGraph([(1, 2, 0)])
             Digraph on 2 vertices
+
+        An empty dictionary defines a simple graph (trac #10441)::
+
+            sage: DiGraph({})
+            Digraph on 0 vertices
+            sage: # not "Multi-digraph on 0 vertices"
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -595,7 +601,8 @@ class DiGraph(GenericGraph):
                         if multiedges is None: multiedges = False
                         if multiedges:
                             raise ValueError("Dict of dicts for multidigraph must be in the format {v : {u : list}}")
-            if multiedges is None: multiedges = True
+            if multiedges is None and len(data) > 0:
+                multiedges = True
             num_verts = len(verts)
         elif format == 'dict_of_lists':
             if not all(isinstance(data[u], list) for u in data):

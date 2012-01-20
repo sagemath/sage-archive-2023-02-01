@@ -5769,7 +5769,7 @@ cdef extern from "gmp.h":
     void mp_get_memory_functions (void *(**alloc) (size_t), void *(**realloc)(void *, size_t, size_t), void (**free) (void *, size_t))
 
     # GMP's configuration of how many Bits are stuffed into a limb
-    cdef int __GMP_BITS_PER_MP_LIMB
+    cdef int GMP_LIMB_BITS
 
 # This variable holds the size of any Integer object in bytes.
 cdef int sizeof_Integer
@@ -5897,7 +5897,7 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
         # because the rest of the mpz struct was already initialized
         # fully using the memcpy above.
 
-        (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(__GMP_BITS_PER_MP_LIMB >> 3)
+        (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(GMP_LIMB_BITS >> 3)
 
     # The global_dummy_Integer may have a reference count larger than
     # one, but it is expected that newly created objects have a

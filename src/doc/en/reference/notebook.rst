@@ -16,14 +16,12 @@ The Sage Notebook
    sagenb/notebook/css
    sagenb/notebook/template
 
-Servers
--------
+Other Servers
+-------------
 
 .. toctree::
    :maxdepth: 2
 
-   sagenb/notebook/twist
-   sagenb/simple/twist
    sage/server/trac/trac
    sagenb/notebook/challenge
 

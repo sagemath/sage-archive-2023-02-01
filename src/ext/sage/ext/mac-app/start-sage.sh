@@ -54,6 +54,13 @@ if [ -d $DOT_SAGE/sage_notebook.sagenb ]; then
     echo Starting Notebook >> "$SAGE_LOG"
     ./sage --notebook >> "$SAGE_LOG" 2>> "$SAGE_LOG"
 else
+    # if Terminal.app is not running before it is activated by
+    # osascript, then it inherits the environment from osascript.
+    # This includes SAGE_ENV_SOURCED which causes problems because
+    # PATH can get messed up and we'll end up calling the system
+    # python instead of the sage version.  We unset it here so that
+    # sage-env will be sourced and PATH set up properly.
+    SAGE_ENV_SOURCED=
     echo Starting Notebook in Terminal >> "$SAGE_LOG"
     sage-native-execute osascript \
         -e 'tell app "Terminal"' \

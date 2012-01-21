@@ -254,7 +254,7 @@ cdef class MixedIntegerLinearProgram:
 
     def __copy__(self):
         r"""
-        Returns a copy of self
+        Returns a copy of the current ``MixedIntegerLinearProgram`` instance.
         """
         cdef MixedIntegerLinearProgram p = MixedIntegerLinearProgram(solver="GLPK")
         try:
@@ -340,6 +340,13 @@ cdef class MixedIntegerLinearProgram:
         ``items()`` and ``keys()``.
 
         Any of its fields exists, and is uniquely defined.
+
+        By default, all ``x[i]`` are assumed to be non-negative
+        reals. They can be defined as binary through the parameter
+        ``binary=True`` (or integer with ``integer=True``). Lower and
+        upper bounds can be defined or re-defined (for instance when you want
+        some variables to be negative) using ``MixedIntegerLinearProgram`` methods
+        ``set_min`` and ``set_max``.
 
         INPUT:
 
@@ -835,7 +842,7 @@ cdef class MixedIntegerLinearProgram:
 
     def add_constraint(self, linear_function, max=None, min=None, name=None):
         r"""
-        Adds a constraint to self.
+        Adds a constraint to the ``MixedIntegerLinearProgram``.
 
         INPUT:
 
@@ -850,6 +857,9 @@ cdef class MixedIntegerLinearProgram:
         - ``min`` -- A lower bound on the constraint.  This must be a
           numerical value.
         - ``name`` -- A name for the constraint.
+
+        To set a lower and/or upper bound on the variables use the methods
+        ``set_min`` and/or ``set_max`` of ``MixedIntegerLinearProgram``.
 
         EXAMPLE:
 
@@ -875,7 +885,7 @@ cdef class MixedIntegerLinearProgram:
             6.666667
 
         There are two different ways to add the constraint
-        ``x[5] + 3*x[7] <= x[6] + 3`` to self.
+        ``x[5] + 3*x[7] <= x[6] + 3`` to a ``MixedIntegerLinearProgram``.
 
         The first one consists in giving ``add_constraint`` this
         very expression::

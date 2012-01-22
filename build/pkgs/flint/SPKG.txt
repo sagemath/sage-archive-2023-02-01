@@ -36,6 +36,10 @@ GPL V2+
 
 == Changelog ==
 
+=== flint-1.5.2 (Julien Puydt, William Stein, December 21st 2011) ===
+  * #10328: enable ARM support; longlong.patch removes non-working
+    asm code for 32-bit ARM
+
 === flint-1.5.0.p10 (Leif Leonhardy, October 11th 2011) ===
   * #9858: Add an upstream patch from FLINT 1.5.2 to make FLINT's test suite
     build (when `SAGE_CHECK=yes`) with MPIR 1.3.x, 2.x (cf. #8664) and GMP 5.x.

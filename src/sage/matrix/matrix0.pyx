@@ -801,6 +801,46 @@ cdef class Matrix(sage.structure.element.Matrix):
             True
             sage: A[1:3].is_immutable()
             True
+
+        TESTS:
+
+        If we're given lists as arguments, we should throw an
+        appropriate error when those lists do not contain valid
+        indices (trac #6569)::
+
+            sage: A = matrix(4, range(1,17))
+            sage: A[[1.5], [1]]
+            Traceback (most recent call last):
+            ...
+            IndexError: row indices must be integers
+            sage: A[[1], [1.5]]
+            Traceback (most recent call last):
+            ...
+            IndexError: column indices must be integers
+            sage: A[[1.5]]
+            Traceback (most recent call last):
+            ...
+            IndexError: row indices must be integers
+
+        Before trac #6569 was fixed, sparse/dense matrices behaved
+        differently due to implementation details. Given invalid
+        indices, they should fail in the same manner. These tests
+        just repeat the previous set with a sparse matrix::
+
+            sage: A = matrix(4, range(1,17), sparse=True)
+            sage: A[[1.5], [1]]
+            Traceback (most recent call last):
+            ...
+            IndexError: row indices must be integers
+            sage: A[[1], [1.5]]
+            Traceback (most recent call last):
+            ...
+            IndexError: column indices must be integers
+            sage: A[[1.5]]
+            Traceback (most recent call last):
+            ...
+            IndexError: row indices must be integers
+
         """
         cdef list row_list
         cdef list col_list
@@ -832,6 +872,12 @@ cdef class Matrix(sage.structure.element.Matrix):
                     row_list = row_index
 
                 for i from 0 <= i < len(row_list):
+                    # The 'ind' variable is 'cdef int' and will
+                    # truncate a float to a valid index. So, we have
+                    # to test row_list[i] instead.
+                    if not PyIndex_Check(row_list[i]):
+                        raise IndexError('row indices must be integers')
+
                     ind = row_list[i]
                     if ind < 0:
                         ind += nrows
@@ -858,6 +904,12 @@ cdef class Matrix(sage.structure.element.Matrix):
                     col_list = col_index
 
                 for i from 0 <= i < len(col_list):
+                    # The 'ind' variable is 'cdef int' and will
+                    # truncate a float to a valid index. So, we have
+                    # to test col_list[i] instead.
+                    if not PyIndex_Check(col_list[i]):
+                        raise IndexError('column indices must be integers')
+
                     ind = col_list[i]
                     if ind < 0:
                         ind += ncols
@@ -903,6 +955,12 @@ cdef class Matrix(sage.structure.element.Matrix):
                 row_list = row_index
 
             for i from 0 <= i < len(row_list):
+                # The 'ind' variable is 'cdef int' and will
+                # truncate a float to a valid index. So, we have
+                # to test row_list[i] instead.
+                if not PyIndex_Check(row_list[i]):
+                    raise IndexError('row indices must be integers')
+
                 ind = row_list[i]
                 if ind < 0:
                     ind += nrows

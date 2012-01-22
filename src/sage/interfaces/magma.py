@@ -1960,6 +1960,7 @@ class MagmaElement(ExpectElement):
 
         Number fields and their elements::
 
+            sage: x = var('x')
             sage: L.<alpha> = NumberField(x^3+2*x+2)
             sage: K = magma(L)                       # optional - magma
             sage: K.sage()                           # optional - magma
@@ -1982,8 +1983,7 @@ class MagmaElement(ExpectElement):
             sage: magma(b)                       # optional - magma
             Traceback (most recent call last):
             ...
-            TypeError: Error evaluating Magma code.
-            ...
+            TypeError: coercion of relative number field elements to Magma is not implemented
 
         Sage does not have absolute number fields defined by
         two polynomials, like Magma does. They are converted
@@ -2435,8 +2435,8 @@ class MagmaElement(ExpectElement):
         ::
 
             sage: V = magma("VectorSpace(RationalField(),2)")        # optional - magma
-            sage: V.list_attributes()                                # optional - magma
-            ['Coroots', 'Qform', 'StrLocalData', 'eisen', 'p', 'Involution', 'RootDatum', 'T', 'exthom', 'ssbasis', 'M', 'Roots', 'decomp', 'hSplit', 'weights']
+            sage: v = V.list_attributes(); v.sort(); v               # optional - magma
+            ['Coroots', 'Involution', 'M', 'RootDatum', 'Roots', 'StrLocalData', 'T', 'decomp', 'eisen', 'exthom', 'hSplit', 'ip_form', 'p', 'ssbasis', 'weights']
         """
         return magma.eval('ListAttributes(Type(%s))'%\
                           self.name()).split()
@@ -2838,10 +2838,8 @@ class MagmaGBLogPrettyPrinter:
             sage: _ = I.groebner_basis('magma',prot=True) # indirect doctest, optional - magma
             <BLANKLINE>
             Homogeneous weights search
-            Number of variables: 3, nullity: 0
-            Exact search time: 0.000
             ...
-            Total Faugere F4 time: 0.0..., real time: 0.00...
+            Total Faugere F4 time: ..., real time: ...
         """
         verbosity,style = self.verbosity,self.style
 

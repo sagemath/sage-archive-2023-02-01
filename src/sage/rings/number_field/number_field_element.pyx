@@ -3738,6 +3738,18 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             raise IndexError, "index must be between 0 and the relative degree minus 1."
         return self.vector()[n]
 
+    def _magma_init_(self, magma):
+        """
+        EXAMPLES::
+
+            sage: K.<a, b> = NumberField([x^3 - 5, x^2 + 3])
+            sage: a._magma_init_(magma)
+            Traceback (most recent call last):
+            ...
+            TypeError: coercion of relative number field elements to Magma is not implemented
+        """
+        raise TypeError, "coercion of relative number field elements to Magma is not implemented"
+
     def list(self):
         """
         Return the list of coefficients of self written in terms of a power

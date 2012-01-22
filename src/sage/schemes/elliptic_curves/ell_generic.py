@@ -336,7 +336,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
             sage: E = EllipticCurve(QQ,[1,1])
             sage: E._magma_init_(magma)                          # optional - magma
-            'EllipticCurve([_sage_ref...|0,0,0,1,1])'
+            'EllipticCurve([_sage_ref...|0/1,0/1,0/1,1/1,1/1])'
             sage: E =  EllipticCurve(GF(41),[2,5])               # optional - magma
             sage: E._magma_init_(magma)                          # optional - magma
             'EllipticCurve([_sage_ref...|GF(41)!0,GF(41)!0,GF(41)!0,GF(41)!2,GF(41)!5])'

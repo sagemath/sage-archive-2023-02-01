@@ -602,7 +602,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
 
             sage: C = Conic(QQ, [1,2,3])
             sage: C._magma_init_(magma)                          # optional - magma
-            'Conic([_sage_ref1|1,2,3,0,0,0])'
+            'Conic([_sage_ref1|1/1,2/1,3/1,0/1,0/1,0/1])'
             sage: C = Conic(GF(41), [-1,2,5])                    # optional - magma
             sage: C._magma_init_(magma)                          # optional - magma
             'Conic([_sage_ref2|GF(41)!40,GF(41)!2,GF(41)!5,GF(41)!0,GF(41)!0,GF(41)!0])'

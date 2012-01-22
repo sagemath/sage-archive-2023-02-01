@@ -805,7 +805,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
             sage: R.<x,y> = QQ[]; S.<z,w> = R[]; f = (2/3)*x^3*z + w^2 + 5
             sage: f._magma_init_(magma)               # optional - magma
-            '_sage_[...]!((_sage_[...]!((1)*1))*_sage_[...]^2+(_sage_[...]!((2/3)*_sage_[...]^3))*_sage_[...]+(_sage_[...]!((5)*1))*1)'
+            '_sage_[...]!((_sage_[...]!((1/1)*1))*_sage_[...]^2+(_sage_[...]!((2/3)*_sage_[...]^3))*_sage_[...]+(_sage_[...]!((5/1)*1))*1)'
             sage: magma(f)                            # optional - magma
             w^2 + 2/3*x^3*z + 5
         """

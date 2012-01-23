@@ -55,10 +55,8 @@ doc-clean:
 clean:
 	@echo "Deleting spkg/build..."
 	rm -rf spkg/build
-	mkdir -p spkg/build
 	@echo "Deleting spkg/archive..."
 	rm -rf spkg/archive
-	mkdir -p spkg/archive
 
 distclean: clean
 	@echo "Deleting all remaining traces of builds, tests etc. ..."
@@ -77,8 +75,6 @@ distclean: clean
 	rm -rf doc
 	rm -rf examples
 	rm -rf sage-python
-	rm -rf spkg/build
-	rm -rf spkg/archive
 	rm -rf matplotlibrc
 	rm -rf tmp
 	rm -f .BUILDSTART

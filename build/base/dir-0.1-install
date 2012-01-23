@@ -1,7 +1,6 @@
 #!/bin/sh
 
 TARGET=dir-0.1
-BUILD=`pwd`/build
 
 mymkdir()
 {
@@ -20,7 +19,6 @@ build()
    mymkdir "../local/bin"
    mymkdir "../local/include"
    mymkdir "../tmp/"
-   mymkdir "$BUILD"
    mymkdir "installed/"
 
    # Remove this line in Trac #12311

@@ -30,13 +30,6 @@
 #
 #######################################################
 
-mymkdir()
-{
-    if [ ! -d $1 ]; then
-        mkdir $1
-    fi
-}
-
 no_version()
 {
     if [ -z "`echo "$1" | grep -`" ]; then
@@ -96,13 +89,6 @@ if [ $# -eq 0 ]; then
     exit 0
 fi
 
-
-cd "$SAGE_PACKAGES"
-mymkdir "$BUILD"
-mymkdir installed
-cd "$BUILD"
-mymkdir old
-
 # the following two options are mutually exclusive -- i.e., you
 # can give only one.
 
@@ -123,6 +109,10 @@ DELETE_TMP=1
 if [ $1 = '-s' -o $1 = '-m' ]; then
     DELETE_TMP=0
     shift
+fi
+
+if [ "x$SAGE_KEEP_BUILT_SPKGS" = "xyes" ]; then
+    DELETE_TMP=0
 fi
 
 INSTALLED="$SAGE_PACKAGES/installed/"
@@ -202,33 +192,55 @@ if [ -f "$INSTALLED/$PKG_NAME" -a $FORCE -eq 0 ]; then
     exit 0
 fi
 
-cd "$SAGE_PACKAGES/build"
+if [ ! -n "$SAGE_BUILD_DIR" ]; then
+    SAGE_BUILD_DIR="$SAGE_PACKAGES/build"
+fi
+
+mkdir -p "$SAGE_PACKAGES/installed"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating directory $SAGE_PACKAGES/installed."
+    exit 1
+fi
+mkdir -p "$SAGE_BUILD_DIR"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating directory $SAGE_BUILD_DIR."
+    exit 1
+fi
+
+cd "$SAGE_BUILD_DIR"
+if [ $? -ne 0 ]; then
+    echo >&2 "Unable to find build directory."
+    exit 1
+fi
 
 if [ $DELETE_TMP -eq 1 ]; then
     echo "Deleting directories from past builds of previous/current versions of $PKG_NAME"
-    # Make triply sure that we are in the build directory before doing
+    # Make sure that we are in the build directory before doing
     # a scary "rm -rf".
-    cd "$SAGE_PACKAGES/build"
-    if [ $? -ne 0 ]; then
-        echo "Unable to find build directory."
-    else
-        rm -rf "$PKG_BASE-"*
-    fi
+    cd "$SAGE_BUILD_DIR"
+    rm -rf "$PKG_BASE-"*
 else
-    echo "Moving directories from past builds of previous/current versions of $PKG_NAME to build/old"
-    mv -f "$PKG_BASE-"* old/  2>/dev/null
+    for dir in "$PKG_BASE-"*
+    do
+	if [ -e "$dir" ]; then
+	    echo "Moving old directory $dir to $SAGE_BUILD_DIR/old..."
+	    mkdir -p old
+	    if [ $? -ne 0 ]; then
+		echo >&2 "Error creating directory $SAGE_BUILD_DIR/old."
+		exit 1
+	    fi
+	    rm -rf old/"$dir"
+	    mv "$dir" old/
+	fi
+    done
 fi
 
 if [ ! -f "$PKG_SRC" ]; then
-
     echo "$0: file $PKG_NAME does not exist"
     echo "Attempting to download it."
     CUR=`pwd`
-    cd "$SAGE_PACKAGES"
-    if [ ! -d optional ]; then
-        mkdir optional
-    fi
-    cd optional
+    mkdir -p "$SAGE_PACKAGES/optional"
+    cd "$SAGE_PACKAGES/optional"
 
     FOUND_VERSION=''
     if [ -n "`no_version "$PKG_NAME"`" ]; then
@@ -389,7 +401,7 @@ else
 fi
 
 if [ $? -eq 0 ]; then
-    cd $INSTALLED
+    cd "$INSTALLED"
     # TURNED OFF: Remove all old packages with the same name up to the first "-":
     # rm -f $PKG_BASE-*
 
@@ -403,7 +415,7 @@ if [ $? -eq 0 ]; then
     fi
     echo "Successfully installed $PKG_NAME"
 
-    cd $BASEDIR
+    cd "$BASEDIR"
     if [ "x$SAGE_CHECK" = "xyes" -a -f spkg-check ]; then
         echo "Running the test suite."
         chmod +x spkg-check
@@ -421,14 +433,14 @@ if [ $? -eq 0 ]; then
     # Delete the temporary build directory if required.
     if [ $DELETE_TMP -eq 1 ]; then
         echo "Now cleaning up tmp files."
-        if [ -d "$SAGE_PACKAGES/build/$PKG_NAME" ]; then
+        if [ -d "$SAGE_BUILD_DIR/$PKG_NAME" ]; then
             # the if is there only to avoid the possibility of a weird bug.
-            cd "$SAGE_PACKAGES/build/"
-            rm -rf "$SAGE_PACKAGES/build/$PKG_NAME"
+            cd "$SAGE_BUILD_DIR/"
+            rm -rf "$SAGE_BUILD_DIR/$PKG_NAME"
         fi
     else
         echo "You can safely delete the temporary build directory"
-        echo "$SAGE_PACKAGES/build/$PKG_NAME"
+        echo "$SAGE_BUILD_DIR/$PKG_NAME"
     fi
 
 else

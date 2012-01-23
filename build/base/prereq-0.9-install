@@ -4,12 +4,17 @@
 ###########################################
 
 
-BUILD=build
-ROOT=`pwd`
-LOCAL="$ROOT/../local"
 TARGET=prereq-0.9
+if [ ! -n "$SAGE_BUILD_DIR" ]; then
+    SAGE_BUILD_DIR="$SAGE_ROOT/spkg/build"
+fi
+mkdir -p "$SAGE_BUILD_DIR"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating directory $SAGE_BUILD_DIR."
+    exit 1
+fi
 
-cd $BUILD
+cd "$SAGE_BUILD_DIR"
 
 echo "Starting prerequisite check."
 echo "Machine: `uname -a`"
@@ -151,13 +156,13 @@ trap '' TTOU
 # does not update the base packages and we cannot retro-actively change
 # that in earlier versions.  So the only thing to do is to skip this
 # test.
-if ! [ -f "../base/$TARGET.tar" ]; then
+if ! [ -f "$SAGE_ROOT/spkg/base/$TARGET.tar" ]; then
     echo >&2 "The file 'spkg/base/$TARGET.tar' does not exist."
     echo >&2 "Most likely, this is because you upgraded from an old version of Sage."
     echo >&2 "Since this package only does some checks, it should be okay to continue"
     echo >&2 "without it.  Skipping prerequisite checks..."
 else
-    tar xf "../base/$TARGET.tar"
+    tar xf "$SAGE_ROOT/spkg/base/$TARGET.tar"
 
     # A reasonably sophisticated test is performed in a configure
     # script, which checks compilers exist, their version numbers,
@@ -413,5 +418,4 @@ if [ -z "`make --version 2>&1 | grep GNU`" ] ; then
 fi
 
 
-touch $ROOT/installed/$TARGET
-
+touch "$SAGE_ROOT/spkg/installed/$TARGET"

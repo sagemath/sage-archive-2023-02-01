@@ -4,7 +4,17 @@
 ###########################################
 
 CUR="`pwd`"
-BUILD=build
+if [ ! -n "$SAGE_BUILD_DIR" ]; then
+    SAGE_BUILD_DIR="$SAGE_ROOT/spkg/build"
+fi
+# This directory should already exist: it should have been created by
+# prereq.  Just in case...
+mkdir -p "$SAGE_BUILD_DIR"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating directory $SAGE_BUILD_DIR."
+    exit 1
+fi
+
 SAGE_LOCAL="`pwd`/../local"
 VERSION=1.0.5
 TARGET=bzip2-$VERSION
@@ -35,9 +45,9 @@ fi
 
 build()
 {
-    cd $BUILD
+    cd "$SAGE_BUILD_DIR"
     echo "Unpacking bzip2"
-    gzip -cd ../base/$TARGET.tar.gz | tar xf -
+    gzip -cd "$SAGE_ROOT/spkg/base/$TARGET.tar.gz" | tar xf -
     cd bzip2-$VERSION
 
     echo "Building bzip2"

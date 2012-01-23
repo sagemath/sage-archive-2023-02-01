@@ -839,7 +839,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: lp = E.padic_lseries(3)
             sage: lp.series(2,quadratic_twist=-19)
             2 + 2*3 + 2*3^2 + O(3^4) + (1 + O(3))*T + (1 + O(3))*T^2 + O(T^3)
-            sage: E.quadratic_twist(-19).label()    #optional --- conductor is greater than 10000
+            sage: E.quadratic_twist(-19).label()    # optional -- database_cremona_ellcurve
             '15523a1'
 
         This proves that the rank of '15523a1' is zero, even if ``mwrank`` can not determine this.

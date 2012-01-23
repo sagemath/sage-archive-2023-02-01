@@ -52,7 +52,7 @@ from sage.misc.prandom import randint
 
 import sage.schemes.elliptic_curves.constructor as elliptic
 from sql_db import SQLDatabase, verify_column
-from sage.misc.package import optional_packages
+from sage.misc.package import is_package_installed
 from sage.misc.misc import SAGE_SHARE, walltime
 
 import re
@@ -114,10 +114,10 @@ def build(name, data_tgz, largest_conductor=0, mini=False, decompress=True):
 
         sage: d = sage.databases.cremona.build('cremona','ecdata.tgz')   # not tested
     """
-    t = name.replace(' ','_')
-    if os.path.exists("%s/cremona/%s.db"%(SAGE_SHARE, t)):
-        raise RuntimeError("Please (re)move %s/cremona/%s.db"%(SAGE_SHARE, t)
-        + " before rebuilding database.")
+    db_path = os.path.join(SAGE_SHARE,'cremona',name.replace(' ','_')+'.db')
+    if os.path.exists(db_path):
+        raise RuntimeError('Please (re)move %s before building '%db_path \
+                + 'database')
     if not os.path.exists(data_tgz):
         raise IOError, "The data file is not at %s"%data_tgz
     t = walltime()
@@ -584,20 +584,21 @@ class MiniCremonaDatabase(SQLDatabase):
             sage: c.name
             'cremona mini'
         """
+        self.name = name
+        name = name.replace(' ','_')
+        db_path = os.path.join(SAGE_SHARE, 'cremona', name+'.db')
         if build:
             if name is None:
                 raise RuntimeError('The database must have a name.')
             if read_only:
                 raise RuntimeError('The database must not be read_only.')
-            self.name = name
-            name = name.replace(' ','_')
-            SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_SHARE, name), \
-                read_only=read_only, skeleton=_miniCremonaSkeleton)
+            SQLDatabase.__init__(self, db_path, read_only=read_only, \
+                    skeleton=_miniCremonaSkeleton)
             return
-        self.name = name
-        name = name.replace(' ','_')
-        SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_SHARE, name), \
-            read_only=read_only)
+        if not os.path.isfile(db_path):
+            raise ValueError("Desired database (='%s') does not "%self.name \
+                    + "exist")
+        SQLDatabase.__init__(self, db_path, read_only=read_only)
         if self.get_skeleton() != _miniCremonaSkeleton:
             raise RuntimeError('Database at %s does '%(self.__dblocation__) \
               + 'not appear to be a valid SQL Cremona database.')
@@ -854,8 +855,7 @@ class MiniCremonaDatabase(SQLDatabase):
             if N < self.largest_conductor():
                 message = "There is no elliptic curve with label " + label \
                     + " in the database (note: use lower case letters!)"
-            elif 'database_cremona_ellcurve' in \
-                    [s.split('-')[0] for s in optional_packages()[0]]:
+            elif is_package_installed('database_cremona_ellcurve'):
                 message = "There is no elliptic curve with label " + label \
                     + " in the currently available databases"
             else:
@@ -1306,20 +1306,21 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             sage: c.name                                              # optional - database_cremona_ellcurve
             'cremona'
         """
+        self.name = name
+        name = name.replace(' ','_')
+        db_path = os.path.join(SAGE_SHARE, 'cremona', name+'.db')
         if build:
             if name is None:
                 raise RuntimeError('The database must have a name.')
             if read_only:
                 raise RuntimeError('The database must not be read_only.')
-            self.name = name
-            name = name.replace(' ','_')
-            SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_SHARE, name), \
-                read_only=read_only, skeleton=_cremonaSkeleton)
+            SQLDatabase.__init__(self, db_path, read_only=read_only, \
+                    skeleton=_cremonaSkeleton)
             return
-        self.name = name
-        name = name.replace(' ','_')
-        SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_SHARE, name), \
-            read_only=read_only)
+        if not os.path.isfile(db_path):
+            raise ValueError("Desired database (='%s') does not "%self.name \
+                    + "exist")
+        SQLDatabase.__init__(self, db_path, read_only=read_only)
         if self.get_skeleton() != _cremonaSkeleton:
             raise RuntimeError('Database at %s does '%(self.__dblocation__) \
               + 'not appear to be a valid SQL Cremona database.')
@@ -1542,6 +1543,20 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
         True
         sage: isinstance(c, sage.databases.cremona.LargeCremonaDatabase)  # optional - database_cremona_ellcurve
         True
+
+    Verify that ticket #12341 has been resolved::
+
+        sage: c = CremonaDatabase('should not exist',mini=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: Desired database (='should not exist') does not exist
+        sage: c = CremonaDatabase('should not exist',mini=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: Desired database (='should not exist') does not exist
+        sage: from sage.misc.misc import SAGE_SHARE
+        sage: os.path.isfile(os.path.join(SAGE_SHARE,'cremona','should_not_exist.db'))
+        False
     """
     global _db
     if set_global is None:
@@ -1549,13 +1564,10 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
     if name is None and not set_global:
         return _db
     if set_global and name is None:
-        if os.path.isfile('%s/cremona/cremona.db'%SAGE_SHARE):
+        if is_package_installed('database_cremona_ellcurve'):
             name = 'cremona'
-        elif os.path.isfile('%s/cremona/cremona_mini.db'%SAGE_SHARE):
-            name = 'cremona mini'
         else:
-            raise RuntimeError('Could not find valid cremona database. ' \
-                + 'Please make sure SAGE_SHARE is set correctly.')
+            name = 'cremona mini'
     if name == 'cremona':
         mini = False
     elif name == 'cremona mini':

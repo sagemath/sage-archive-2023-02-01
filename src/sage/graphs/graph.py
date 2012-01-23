@@ -703,15 +703,6 @@ class Graph(GenericGraph):
             sage: Graph(M,sparse=True)
             Graph on 3 vertices
 
-            sage: M = Matrix([[0,1,1],[1,0,0],[0,0,0]]); M
-            [0 1 1]
-            [1 0 0]
-            [0 0 0]
-            sage: Graph(M)
-            Traceback (most recent call last):
-            ...
-            ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: There must be two nonzero entries (-1 & 1) per column.
-
             sage: M = Matrix([[0,1,1],[1,0,1],[-1,-1,0]]); M
             [ 0  1  1]
             [ 1  0  1]
@@ -720,6 +711,22 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: Each column represents an edge: -1 goes to 1.
+
+        ::
+
+            sage: MA = Matrix([[1,2,0], [0,2,0], [0,0,1]])      # trac 9714
+            sage: MI = Graph(MA, format='adjacency_matrix').incidence_matrix(); MI
+            [-1 -1  0  0  0  1]
+            [ 1  1  0  1  1  0]
+            [ 0  0  1  0  0  0]
+            sage: Graph(MI).edges(labels=None)
+            [(0, 0), (0, 1), (0, 1), (1, 1), (1, 1), (2, 2)]
+
+            sage: M = Matrix([[1], [-1]]); M
+            [ 1]
+            [-1]
+            sage: Graph(M).edges()
+            [(0, 1, None)]
 
     #. a list of edges, or labelled edges::
 
@@ -1061,13 +1068,24 @@ class Graph(GenericGraph):
                 positions = []
                 for c in data.columns():
                     NZ = c.nonzero_positions()
-                    positions.append(tuple(NZ))
-                    if len(NZ) != 2:
+                    if len(NZ) == 1:
+                        if loops is None:
+                            loops = True
+                        elif not loops:
+                            msg += "There must be two nonzero entries (-1 & 1) per column."
+                            assert False
+                        positions.append((NZ[0], NZ[0]))
+                    elif len(NZ) != 2:
                         msg += "There must be two nonzero entries (-1 & 1) per column."
                         assert False
+                    else:
+                        positions.append(tuple(NZ))
                     L = uniq(c.list())
                     L.sort()
-                    if L != [-1,0,1]:
+                    desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
+                    if data.nrows() == len(desirable) - 1:
+                        desirable = filter(lambda i: i != 0, desirable)
+                    if L != desirable:
                         msg += "Each column represents an edge: -1 goes to 1."
                         assert False
                 if loops      is None: loops     = False

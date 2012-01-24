@@ -12,11 +12,12 @@ GNU General Public License V2+
 
 == SPKG Maintainers ==
 
-Mike Hansen, Nicolas M. Thiéry
+ * Mike Hansen
+ * Nicolas M. Thiéry
 
 == Upstream Contact ==
 
-Anders S. Buch (abuch@math.mit.edu)
+Anders S. Buch (asbuch@math.rutgers.edu)
 
 == Dependencies ==
 
@@ -24,12 +25,19 @@ Anders S. Buch (abuch@math.mit.edu)
 
 == Changelog ==
 
-1.1.6beta: Upgrade to lrcalc 1.1.6beta which combines:
- - lrcalc-1.1.5.tar.gz
- - schmult-1.1.5.tar.gz
- - an autotools build system
+=== lrcalc-1.1.6beta (Nicolas M. Thiéry, January 2012)  ===
 
-1.1.5b: an alpha prerelease of 1.1.6beta
+ * Upgrade to lrcalc 1.1.6beta which combines:
+   * lrcalc-1.1.5.tar.gz
+   * schmult-1.1.5.tar.gz
+   * an autotools build system
 
-1.1.4: Initial version by Mike Hansen
+ * First release as optional spkg (see #10333)
 
+=== lrcalc-1.1.5b (Nicolas M. Thiéry, May 2011) ===
+
+ * An alpha prerelease of 1.1.6beta
+
+=== lrcalc-1.1.4 (Mike Hansen, May 2010) ===
+
+ * Initial version

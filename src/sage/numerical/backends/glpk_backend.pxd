@@ -26,9 +26,26 @@ cdef extern from "../../../local/include/glpk.h":
          int fp_heur
          int mir_cuts
          int tm_lim
+     ctypedef struct c_glp_smcp "glp_smcp":
+         int msg_lev
+         int meth
+         int pricing
+         int r_test
+         double tol_bnd
+         double tol_dj
+         double tol_piv
+         double obj_ll
+         double obj_ul
+         int it_lim
+         int tm_lim
+         int out_frq
+         int out_dly
+         int presolve
+         double foo_bar[36]
      c_glp_iocp * new_c_glp_iocp "new glp_iocp" ()
      #void del_c_glp_iocp "del glp_iocp" ()
      void glp_init_iocp(c_glp_iocp *)
+     void glp_init_smcp(c_glp_smcp *)
      c_glp_prob * glp_create_prob()
      void glp_set_prob_name(c_glp_prob *, char *)
      const_char_ptr glp_get_prob_name(c_glp_prob *)
@@ -41,7 +58,7 @@ cdef extern from "../../../local/include/glpk.h":
      void glp_set_col_bnds(c_glp_prob *, int, int, double, double)
      void glp_set_obj_coef(c_glp_prob *, int, double)
      void glp_load_matrix(c_glp_prob *, int, int *, int *, double *)
-     void glp_simplex(c_glp_prob *, int)
+     int glp_simplex(c_glp_prob *, c_glp_smcp *)
      int glp_intopt(c_glp_prob *, c_glp_iocp *)
      int lpx_intopt(c_glp_prob *)
      void glp_delete_prob(c_glp_prob *)
@@ -76,6 +93,7 @@ cdef extern from "../../../local/include/glpk.h":
      double glp_get_col_lb(c_glp_prob *lp, int i)
      double glp_get_col_ub(c_glp_prob *lp, int i)
 
+     int glp_get_prim_stat(c_glp_prob *lp)
      int glp_mip_status(c_glp_prob *lp)
      int glp_set_mat_row(c_glp_prob *lp, int, int, int *, double * )
      int glp_set_mat_col(c_glp_prob *lp, int, int, int *, double * )
@@ -112,7 +130,18 @@ cdef extern from "../../../local/include/glpk.h":
      int GLP_FEAS
      int GLP_NOFEAS
 
+     int GLP_MSG_DBG
+     int GLP_PRIMAL
+     int GLP_DUALP
+     int GLP_DUAL
+     int GLP_PT_STD
+     int GLP_PT_PSE
+     int GLP_RT_STD
+     int GLP_RT_HAR
+
 cdef class GLPKBackend(GenericBackend):
     cdef c_glp_prob * lp
     cdef c_glp_iocp * iocp
+    cdef c_glp_smcp * smcp
+    cdef int preprocessing
     cpdef GLPKBackend copy(self)

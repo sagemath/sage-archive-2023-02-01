@@ -4,6 +4,7 @@ GLPK Backend
 AUTHORS:
 
 - Nathann Cohen (2010-10): initial implementation
+- John Perry (2012-01): glp_simplex preprocessing
 """
 
 ##############################################################################
@@ -14,6 +15,8 @@ AUTHORS:
 ##############################################################################
 
 from sage.numerical.mip import MIPSolverException
+
+include "../../ext/interrupt.pxi"
 
 cdef class GLPKBackend(GenericBackend):
 
@@ -26,6 +29,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
         """
         self.lp = glp_create_prob()
+        self.preprocessing = 0
+        self.smcp = <c_glp_smcp* > sage_malloc(sizeof(c_glp_smcp))
+        glp_init_smcp(self.smcp)
         self.iocp = <c_glp_iocp* > sage_malloc(sizeof(c_glp_iocp))
         glp_init_iocp(self.iocp)
         self.iocp.presolve = GLP_ON
@@ -346,12 +352,16 @@ cdef class GLPKBackend(GenericBackend):
         """
         if level == 0:
             self.iocp.msg_lev = GLP_MSG_OFF
+            self.smcp.msg_lev = GLP_MSG_OFF
         elif level == 1:
             self.iocp.msg_lev = GLP_MSG_ERR
+            self.smcp.msg_lev = GLP_MSG_ERR
         elif level == 2:
             self.iocp.msg_lev = GLP_MSG_ON
+            self.smcp.msg_lev = GLP_MSG_ON
         else:
             self.iocp.msg_lev = GLP_MSG_ALL
+            self.smcp.msg_lev = GLP_MSG_ALL
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """
@@ -660,11 +670,53 @@ cdef class GLPKBackend(GenericBackend):
             Traceback (most recent call last):
             ...
             MIPSolverException: ...
+
+        .. WARNING::
+
+            Sage uses GLPK's ``glp_intopt`` to find solutions.
+            This routine sometimes FAILS CATASTROPHICALLY
+            when given a system it cannot solve. (Ticket #12309.)
+            Here, "catastrophic" can mean either "infinite loop" or
+            segmentation fault. Upstream considers this behavior
+            "essentially innate" to their design, and suggests
+            preprocessing it with ``glpk_simplex`` first.
+            Thus, if you suspect that your system is infeasible,
+            set the ``preprocessing`` option first.
+
+        EXAMPLE::
+
+            sage: lp = MixedIntegerLinearProgram(solver = "GLPK")
+            sage: lp.add_constraint( lp[1] +lp[2] -2.0 *lp[3] , max =-1.0)
+            sage: lp.add_constraint( lp[0] -4.0/3 *lp[1] +1.0/3 *lp[2] , max =-1.0/3)
+            sage: lp.add_constraint( lp[0] +0.5 *lp[1] -0.5 *lp[2] +0.25 *lp[3] , max =-0.25)
+            sage: lp.solve()
+            0.0
+            sage: lp.add_constraint( lp[0] +4.0 *lp[1] -lp[2] +lp[3] , max =-1.0)
+            sage: lp.solve()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: GLPK : Signal sent, try preprocessing option
+            sage: lp.solver_parameter("preprocessing", True)
+            sage: lp.solve()
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: 'GLPK : Simplex cannot find a feasible solution'
         """
 
-        glp_intopt(self.lp, self.iocp)
+        cdef int status
+        if self.preprocessing:
+            status = glp_simplex(self.lp, self.smcp)
+            status = glp_get_prim_stat(self.lp)
+            if status == GLP_OPT or status == GLP_FEAS:
+                pass
+            elif status == GLP_UNDEF or status == GLP_NOFEAS:
+                raise MIPSolverException("GLPK : Simplex cannot find a feasible solution")
 
-        cdef int status = glp_mip_status(self.lp)
+        sig_str('GLPK : Signal sent, try preprocessing option')
+        glp_intopt(self.lp, self.iocp)
+        sig_off()
+
+        status = glp_mip_status(self.lp)
         if status == GLP_OPT:
             pass
         elif status == GLP_UNDEF:
@@ -1063,6 +1115,8 @@ cdef class GLPKBackend(GenericBackend):
             6.0
         """
         cdef GLPKBackend p = GLPKBackend(maximization = (1 if self.is_maximization() else -1))
+        p.preprocessing = self.preprocessing
+        p.iocp.tm_lim = self.iocp.tm_lim
         glp_copy_prob(p.lp, self.lp, 1)
         return p
 
@@ -1097,6 +1151,14 @@ cdef class GLPKBackend(GenericBackend):
             else:
                 self.iocp.tm_lim = 1000 * value
 
+        elif name == "preprocessing":
+            if value == None:
+                return self.preprocessing
+            else:
+                if value == True: value = 1
+                elif value == False: value = 0
+                self.preprocessing = value
+
         else:
             raise ValueError("This parameter is not available.")
 
@@ -1106,3 +1168,4 @@ cdef class GLPKBackend(GenericBackend):
         """
         glp_delete_prob(self.lp)
         sage_free(self.iocp)
+        sage_free(self.smcp)

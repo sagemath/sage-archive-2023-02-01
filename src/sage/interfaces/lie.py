@@ -19,29 +19,29 @@ To access the LiE interpreter directly, run lie_console().
 
 
 EXAMPLES:
-    sage: a4 = lie('A4')  # optional -- requires lie package
-    sage: lie.diagram('A4')          # optional
+    sage: a4 = lie('A4')  # optional - lie
+    sage: lie.diagram('A4')          # optional - lie
     O---O---O---O
     1   2   3   4
     A4
 
-    sage: lie.diagram(a4)            # optional
+    sage: lie.diagram(a4)            # optional - lie
     O---O---O---O
     1   2   3   4
     A4
 
-    sage: a4.diagram()               # optional
+    sage: a4.diagram()               # optional - lie
     O---O---O---O
     1   2   3   4
     A4
 
-    sage: a4.Cartan()                # optional
+    sage: a4.Cartan()                # optional - lie
          [[ 2,-1, 0, 0]
          ,[-1, 2,-1, 0]
          ,[ 0,-1, 2,-1]
          ,[ 0, 0,-1, 2]
          ]
-    sage: lie.LR_tensor([3,1],[2,2]) # optional
+    sage: lie.LR_tensor([3,1],[2,2]) # optional - lie
     1X[5,3]
 
 
@@ -51,68 +51,68 @@ The following examples are taken from Section 2.1 of the LiE manual.
 
 You can perform basic arithmetic operations in LiE.
 
-    sage: lie.eval('19+68') # optional
+    sage: lie.eval('19+68') # optional - lie
     '87'
-    sage: a = lie('1111111111*1111111111') # optional
-    sage: a # optional
+    sage: a = lie('1111111111*1111111111') # optional - lie
+    sage: a # optional - lie
     1234567900987654321
-    sage: a/1111111111 # optional
+    sage: a/1111111111 # optional - lie
     1111111111
-    sage: a = lie('345') # optional
-    sage: a^2+3*a-5 # optional
+    sage: a = lie('345') # optional - lie
+    sage: a^2+3*a-5 # optional - lie
     120055
-    sage: _ / 7*a # optional
+    sage: _ / 7*a # optional - lie
     5916750
 
 Vectors in LiE are created using square brackets.  Notice that
 the indexing in LiE is 1-based, unlike Python/Sage which is
 0-based.
 
-    sage: v = lie('[3,2,6873,-38]') # optional
-    sage: v # optional
+    sage: v = lie('[3,2,6873,-38]') # optional - lie
+    sage: v # optional - lie
     [3,2,6873,-38]
-    sage: v[3] # optional
+    sage: v[3] # optional - lie
     6873
-    sage: v+v # optional
+    sage: v+v # optional - lie
     [6,4,13746,-76]
-    sage: v*v # optional
+    sage: v*v # optional - lie
     47239586
-    sage: v+234786 # optional
+    sage: v+234786 # optional - lie
     [3,2,6873,-38,234786]
-    sage: v-3 # optional
+    sage: v-3 # optional - lie
     [3,2,-38]
-    sage: v^v # optional
+    sage: v^v # optional - lie
     [3,2,6873,-38,3,2,6873,-38]
 
 You can also work with matrices in LiE.
 
-    sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional
-    sage: m # optional
+    sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional - lie
+    sage: m # optional - lie
          [[ 1, 0, 3,3]
          ,[12, 4,-4,7]
          ,[-1, 9, 8,0]
          ,[ 3,-5,-2,9]
          ]
-    sage: print lie.eval('*'+m._name) # optional
+    sage: print lie.eval('*'+m._name) # optional - lie
          [[1,12,-1, 3]
          ,[0, 4, 9,-5]
          ,[3,-4, 8,-2]
          ,[3, 7, 0, 9]
          ]
 
-    sage: m^3 # optional
+    sage: m^3 # optional - lie
          [[ 220,   87, 81, 375]
          ,[-168,-1089, 13,1013]
          ,[1550,  357,-55,1593]
          ,[-854, -652, 98,-170]
          ]
-    sage: v*m # optional
+    sage: v*m # optional - lie
     [-6960,62055,55061,-319]
-    sage: m*v # optional
+    sage: m*v # optional - lie
     [20508,-27714,54999,-14089]
-    sage: v*m*v # optional
+    sage: v*m*v # optional - lie
     378549605
-    sage: m+v # optional
+    sage: m+v # optional - lie
          [[ 1, 0,   3,  3]
          ,[12, 4,  -4,  7]
          ,[-1, 9,   8,  0]
@@ -120,7 +120,7 @@ You can also work with matrices in LiE.
          ,[ 3, 2,6873,-38]
          ]
 
-    sage: m-2 # optional
+    sage: m-2 # optional - lie
          [[ 1, 0, 3,3]
          ,[-1, 9, 8,0]
          ,[ 3,-5,-2,9]
@@ -129,23 +129,23 @@ You can also work with matrices in LiE.
 
 LiE handles multivariate (Laurent) polynomials.
 
-    sage: lie('X[1,2]') # optional
+    sage: lie('X[1,2]') # optional - lie
     1X[1,2]
-    sage: -3*_ # optional
+    sage: -3*_ # optional - lie
     -3X[1,2]
-    sage: _ + lie('4X[-1,4]') # optional
+    sage: _ + lie('4X[-1,4]') # optional - lie
     4X[-1,4] - 3X[ 1,2]
-    sage: _^2 # optional
+    sage: _^2 # optional - lie
     16X[-2,8] - 24X[ 0,6] +  9X[ 2,4]
-    sage: lie('(4X[-1,4]-3X[1,2])*(X[2,0]-X[0,-4])') # optional
+    sage: lie('(4X[-1,4]-3X[1,2])*(X[2,0]-X[0,-4])') # optional - lie
     -4X[-1, 0] + 3X[ 1,-2] + 4X[ 1, 4] - 3X[ 3, 2]
-    sage: _ - _ # optional
+    sage: _ - _ # optional - lie
     0X[0,0]
 
 
 You can call LiE's built-in functions using lie.functionname .
 
-    sage: lie.partitions(6) # optional
+    sage: lie.partitions(6) # optional - lie
          [[6,0,0,0,0,0]
          ,[5,1,0,0,0,0]
          ,[4,2,0,0,0,0]
@@ -158,7 +158,7 @@ You can call LiE's built-in functions using lie.functionname .
          ,[2,1,1,1,1,0]
          ,[1,1,1,1,1,1]
          ]
-    sage: lie.diagram('E8') # optional
+    sage: lie.diagram('E8') # optional - lie
             O 2
             |
             |
@@ -171,15 +171,15 @@ You can define your own functions in LiE using lie.eval .  Once you've defined
 a function (say f), you can call it using lie.f ; however, user-defined functions
 do not show up when using tab-completion.
 
-    sage: lie.eval('f(int x) = 2*x') # optional
+    sage: lie.eval('f(int x) = 2*x') # optional - lie
     ''
-    sage: lie.f(984) # optional
+    sage: lie.f(984) # optional - lie
     1968
-    sage: lie.eval('f(int n) = a=3*n-7; if a < 0 then a = -a fi; 7^a+a^3-4*a-57') # optional
+    sage: lie.eval('f(int n) = a=3*n-7; if a < 0 then a = -a fi; 7^a+a^3-4*a-57') # optional - lie
     ''
-    sage: lie.f(2) # optional
+    sage: lie.f(2) # optional - lie
     -53
-    sage: lie.f(5) # optional
+    sage: lie.f(5) # optional - lie
     5765224
 
 
@@ -187,7 +187,7 @@ do not show up when using tab-completion.
 LiE's help can be accessed through lie.help('functionname') where
 functionname is the function you want to receive help for.
 
-   sage: print lie.help('diagram') # optional
+   sage: print lie.help('diagram') # optional - lie
    diagram(g).   Prints the Dynkin diagram of g, also indicating
       the type of each simple component printed, and labeling the nodes as
       done by Bourbaki (for the second and further simple components the
@@ -204,44 +204,44 @@ native Sage data types by calling the .sage() method.
 
 Integers:
 
-    sage: a = lie('1234') # optional
-    sage: b = a.sage(); b # optional
+    sage: a = lie('1234') # optional - lie
+    sage: b = a.sage(); b # optional - lie
     1234
-    sage: type(b) # optional
+    sage: type(b) # optional - lie
     <type 'sage.rings.integer.Integer'>
 
 Vectors:
 
-    sage: a = lie('[1,2,3]')# optional
-    sage: b = a.sage(); b # optional
+    sage: a = lie('[1,2,3]') # optional - lie
+    sage: b = a.sage(); b # optional - lie
     [1, 2, 3]
-    sage: type(b) # optional
+    sage: type(b) # optional - lie
     <type 'list'>
 
 Matrices:
 
-    sage: a = lie('[[1,2],[3,4]]') # optional
-    sage: b = a.sage(); b # optional
+    sage: a = lie('[[1,2],[3,4]]') # optional - lie
+    sage: b = a.sage(); b # optional - lie
     [1 2]
     [3 4]
-    sage: type(b) # optional
+    sage: type(b) # optional - lie
     <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
 
 
 Polynomials:
 
-    sage: a = lie('X[1,2] - 2*X[2,1]') # optional
-    sage: b = a.sage(); b              # optional
+    sage: a = lie('X[1,2] - 2*X[2,1]') # optional - lie
+    sage: b = a.sage(); b              # optional - lie
     -2*x0^2*x1 + x0*x1^2
-    sage: type(b)                      # optional
+    sage: type(b)                      # optional - lie
     <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
 
 Text:
 
-    sage: a = lie('"text"') # optional
-    sage: b = a.sage(); b # optional
+    sage: a = lie('"text"') # optional - lie
+    sage: b = a.sage(); b # optional - lie
     'text'
-    sage: type(b) # optional
+    sage: type(b) # optional - lie
     <type 'str'>
 
 
@@ -250,7 +250,7 @@ of the manual gives an example of a function written in LiE's language
 which evaluates a polynomial at a point.  Below is a (roughly) direct
 translation of that program into Python / Sage.
 
-    sage: def eval_pol(p, pt): # optional
+    sage: def eval_pol(p, pt): # optional - lie
     ...       s = 0
     ...       for i in range(1,p.length().sage()+1):
     ...           m = 1
@@ -258,12 +258,12 @@ translation of that program into Python / Sage.
     ...               m *= pt[j]^p.expon(i)[j]
     ...           s += p.coef(i)*m
     ...       return s
-    sage: a = lie('X[1,2]') # optional
-    sage: b1 = lie('[1,2]') # optional
-    sage: b2 = lie('[2,3]') # optional
-    sage: eval_pol(a, b1) # optional
+    sage: a = lie('X[1,2]') # optional - lie
+    sage: b1 = lie('[1,2]') # optional - lie
+    sage: b2 = lie('[2,3]') # optional - lie
+    sage: eval_pol(a, b1) # optional - lie
     4
-    sage: eval_pol(a, b2) # optional
+    sage: eval_pol(a, b2) # optional - lie
     18
 
 
@@ -356,8 +356,8 @@ class LiE(Expect):
             sage: lie = LiE()
             sage: lie._trait_names_list is None
             True
-            sage: lie._read_info_files(use_disk_cache=False) #optional -- requires LiE
-            sage: lie._trait_names_list #optional
+            sage: lie._read_info_files(use_disk_cache=False) #optional - lie
+            sage: lie._trait_names_list # optional - lie
             ['history',
              'version',
              ...
@@ -501,7 +501,7 @@ class LiE(Expect):
     def trait_names(self, type=None, verbose=False, use_disk_cache=True):
         """
         EXAMPLES:
-            sage: lie.trait_names() #optional -- requires LiE
+            sage: lie.trait_names() # optional - lie
             ['Cartan_type',
              'cent_roots',
              ...
@@ -518,7 +518,7 @@ class LiE(Expect):
     def _an_element_impl(self):
         """
         EXAMPLES:
-            sage: lie._an_element_impl() #optional -- requires LiE
+            sage: lie._an_element_impl() # optional - lie
             0
         """
         return self(0)
@@ -530,8 +530,8 @@ class LiE(Expect):
             sage: f = open(filename, 'w')
             sage: f.write('x = 2\n')
             sage: f.close()
-            sage: lie.read(filename)  #optional -- requires LiE
-            sage: lie.get('x')        #optional
+            sage: lie.read(filename)  # optional - lie
+            sage: lie.get('x')        # optional - lie
             '2'
             sage: import os
             sage: os.unlink(filename)
@@ -555,7 +555,7 @@ class LiE(Expect):
     def version(self):
         """
         EXAMPLES:
-            sage: lie.version() #optional -- requires LiE
+            sage: lie.version() # optional - lie
             '2.1'
         """
         return lie_version()
@@ -598,7 +598,7 @@ class LiE(Expect):
         Returns a string of the LiE help for command.
 
         EXAMPLES:
-            sage: lie.help('diagram') # optional -- requires LiE
+            sage: lie.help('diagram') # optional - lie
             'diagram(g)...'
         """
         # return help on a given command.
@@ -612,9 +612,9 @@ class LiE(Expect):
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
         """
         EXAMPLES:
-            sage: lie._eval_line('2+2') #optional -- requires LiE
+            sage: lie._eval_line('2+2') # optional - lie
             '     4'
-            sage: lie._eval_line('diagram(2)') #optional
+            sage: lie._eval_line('diagram(2)') # optional - lie
             Traceback (most recent call last):
             ...
             RuntimeError: An error occurred running a LiE command:
@@ -633,7 +633,7 @@ class LiE(Expect):
     def eval(self, code, strip=True, **kwds):
         """
         EXAMPLES:
-            sage: lie.eval('2+2')  #optional -- requires LiE
+            sage: lie.eval('2+2')  # optional - lie
             '4'
         """
         s = Expect.eval(self,code, strip=True, **kwds)
@@ -648,8 +648,8 @@ class LiE(Expect):
         Set the variable var to the given value.
 
         EXAMPLES:
-            sage: lie.set('x', '2')  #optional -- requires LiE
-            sage: lie.get('x')       #optional
+            sage: lie.set('x', '2')  # optional - lie
+            sage: lie.get('x')       # optional - lie
             '2'
         """
         cmd = '%s=%s'%(var,value)
@@ -663,8 +663,8 @@ class LiE(Expect):
         Get the value of the variable var.
 
         EXAMPLES:
-            sage: lie.set('x', '2')  #optional -- requires LiE
-            sage: lie.get('x')       #optional
+            sage: lie.set('x', '2')  # optional - lie
+            sage: lie.get('x')       # optional - lie
             '2'
 
         """
@@ -684,7 +684,7 @@ class LiE(Expect):
     def function_call(self, function, args=None, kwds=None):
         """
         EXAMPLES:
-            sage: lie.function_call("diagram", args=['A4'])  #optional -- requires LiE
+            sage: lie.function_call("diagram", args=['A4']) # optional - lie
             O---O---O---O
             1   2   3   4
             A4
@@ -713,8 +713,8 @@ class LiEElement(ExpectElement):
         Returns the possible tab completions for self.
 
         EXAMPLES:
-            sage: a4 = lie('A4')   #optional -- requires LiE
-            sage: a4.trait_names() #optional
+            sage: a4 = lie('A4')   # optional - lie
+            sage: a4.trait_names() # optional - lie
             ['center',
              'diagram',
              ...
@@ -726,8 +726,8 @@ class LiEElement(ExpectElement):
     def type(self):
         """
         EXAMPLES:
-            sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional
-            sage: m.type() #optional
+            sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional - lie
+            sage: m.type() # optional - lie
             'mat'
         """
         t = self.parent().eval('type(%s)'%self._name)
@@ -737,13 +737,13 @@ class LiEElement(ExpectElement):
     def _matrix_(self, R=None):
         """
         EXAMPLES:
-            sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional
-            sage: matrix(m)  #optional
+            sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional - lie
+            sage: matrix(m)  # optional - lie
             [ 1  0  3  3]
             [12  4 -4  7]
             [-1  9  8  0]
             [ 3 -5 -2  9]
-            sage: matrix(RDF, m) #optional
+            sage: matrix(RDF, m) # optional - lie
             [ 1.0  0.0  3.0  3.0]
             [12.0  4.0 -4.0  7.0]
             [-1.0  9.0  8.0  0.0]
@@ -762,8 +762,8 @@ class LiEElement(ExpectElement):
     def _sage_(self):
         """
         EXAMPLES:
-            sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional
-            sage: m.sage()  #optional
+            sage: m = lie('[[1,0,3,3],[12,4,-4,7],[-1,9,8,0],[3,-5,-2,9]]') # optional - lie
+            sage: m.sage()  # optional - lie
             [ 1  0  3  3]
             [12  4 -4  7]
             [-1  9  8  0]
@@ -824,8 +824,8 @@ class LiEFunctionElement(FunctionElement):
     def _sage_doc_(self):
         """
         EXAMPLES:
-            sage: a4 = lie('A4')  # optional -- requires lie package
-            sage: a4.diagram._sage_doc_() #optional
+            sage: a4 = lie('A4')  # optional - lie
+            sage: a4.diagram._sage_doc_() # optional - lie
             'diagram(g)...'
         """
         M = self._obj.parent()
@@ -838,7 +838,7 @@ class LiEFunction(ExpectFunction):
         Returns the help for self.
 
         EXAMPLES:
-            sage: lie.diagram._sage_doc_() #optional -- requires LiE
+            sage: lie.diagram._sage_doc_() # optional - lie
             'diagram(g)...'
         """
         M = self._parent
@@ -850,8 +850,8 @@ def is_LiEElement(x):
     """
     EXAMPLES:
         sage: from sage.interfaces.lie import is_LiEElement
-        sage: l = lie(2) #optional -- requires LiE
-        sage: is_LiEElement(l) #optional -- requires LiE
+        sage: l = lie(2) # optional - lie
+        sage: is_LiEElement(l) # optional - lie
         True
         sage: is_LiEElement(2)
         False
@@ -891,7 +891,7 @@ def lie_version():
     """
     EXAMPLES:
         sage: from sage.interfaces.lie import lie_version
-        sage: lie_version() #optional -- requires LiE
+        sage: lie_version() # optional - lie
         '2.1'
     """
     f = open(SAGE_LOCAL + 'lib/lie/INFO.0')

@@ -41,8 +41,6 @@ from sage.structure.element import coerce_binop, parent
 # to make sure the function get_cparent is found since it is used in
 # 'polynomial_template.pxi'.
 
-ctypedef unsigned long cparent
-
 cdef inline cparent get_cparent(parent) except? 0:
     try:
         return <unsigned long>(parent.modulus())
@@ -107,6 +105,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         cdef Polynomial_template e = <Polynomial_template>PY_NEW(self.__class__)
         zmod_poly_init(&e.x, self._parent.modulus())
         e._parent = self._parent
+        e._cparent = self._cparent
         return e
 
     cpdef Polynomial _new_constant_poly(self, x, Parent P):
@@ -135,8 +134,9 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         """
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         r._parent = P
+        r._cparent = get_cparent(P)
         zmod_poly_init(&r.x, zmod_poly_modulus(&self.x))
-        celement_set_si(&r.x, int(x), get_cparent(P))
+        celement_set_si(&r.x, int(x), (<Polynomial_template>self)._cparent)
         return r
 
     cdef _set_list(self, x):
@@ -189,15 +189,13 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             True
         """
         cdef unsigned long c = 0
-        cdef cparent _parent
         cdef Polynomial_template r
         if isinstance(i, slice):
             start, stop = i.start, i.stop
-            _parent = get_cparent((<Polynomial_template>self)._parent)
             if start < 0:
                 start = 0
-            if stop > celement_len(&self.x,_parent) or stop is None:
-                stop = celement_len(&self.x, _parent)
+            if stop > celement_len(&self.x, (<Polynomial_template>self)._cparent) or stop is None:
+                stop = celement_len(&self.x, (<Polynomial_template>self)._cparent)
             x = (<Polynomial_template>self)._parent.gen()
             v = [self[t] for t from start <= t < stop]
 
@@ -346,8 +344,6 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: f
             4*x^2 + 2*x + 1
         """
-        cdef cparent _parent = get_cparent((<Polynomial_template>self)._parent)
-
         n = int(n)
         value = self.base_ring()(value)
         if n >= 0:
@@ -397,6 +393,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
         cdef Polynomial_zmod_flint r = <Polynomial_zmod_flint>PY_NEW(self.__class__)
         r._parent = (<Polynomial_zmod_flint>self)._parent
+        r._cparent = (<Polynomial_zmod_flint>self)._cparent
 
         cdef unsigned long p = self._parent.modulus()
         cdef unsigned long n1 = self.x.length

@@ -7,7 +7,7 @@
 ###############################################################################
 
 cimport sage.structure.category_object
-from sage.structure.coerce_dict cimport TripleDict
+from sage.structure.coerce_dict cimport MonoDict, TripleDict
 
 cdef class Parent(category_object.CategoryObject):
 
@@ -66,9 +66,9 @@ cdef class Parent(category_object.CategoryObject):
     # and Parents for which the __call__ method of self
     # results in natural coercion.
     # Initialized at ring creation.
-    cdef _coerce_from_list
+    cdef list _coerce_from_list
     # Hashtable of everything we've (possibly recursively) discovered so far.
-    cdef _coerce_from_hash
+    cdef MonoDict _coerce_from_hash
 
     # List consisting of Actions (either by or on self)
     # and Parents for which self._rmul_ and/or self._lmul_
@@ -82,9 +82,9 @@ cdef class Parent(category_object.CategoryObject):
     # and Parents for which the __call__ method of self
     # does not result in type errors
     # Initialized at ring creation.
-    cdef _convert_from_list
+    cdef list _convert_from_list
     # Hashtable of everything we've (possibly recursively) discovered so far.
-    cdef _convert_from_hash
+    cdef MonoDict _convert_from_hash
     # An optional single Morphism that describes a canonical coercion out of self
     cdef _embedding
 

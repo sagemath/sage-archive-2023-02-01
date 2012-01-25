@@ -14,7 +14,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.fraction_field import FractionField_generic, FractionField_1poly_field
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int
 from sage.rings.integer cimport Integer
-from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint
+from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint, get_cparent
 import sage.algebras.algebra
 
 from sage.rings.finite_rings.integer_mod cimport jacobi_int, mod_inverse_int, mod_pow_int
@@ -199,6 +199,7 @@ cdef class FpTElement(RingElement):
         zmod_poly_init2_precomp(&res.x, self.p, self._numer.p_inv, self._numer.length)
         zmod_poly_set(&res.x, self._numer)
         res._parent = self._parent.poly_ring
+        res._cparent = get_cparent(self._parent.poly_ring)
         return res
 
     def denom(self):
@@ -229,6 +230,7 @@ cdef class FpTElement(RingElement):
         zmod_poly_init2_precomp(&res.x, self.p, self._denom.p_inv, self._denom.length)
         zmod_poly_set(&res.x, self._denom)
         res._parent = self._parent.poly_ring
+        res._cparent = get_cparent(self._parent.poly_ring)
         return res
 
     def __call__(self, *args, **kwds):
@@ -1177,6 +1179,7 @@ cdef class FpT_Polyring_section(Section):
         zmod_poly_init(&ans.x, self.p)
         zmod_poly_set(&ans.x, x._numer)
         ans._parent = self._codomain
+        ans._cparent = get_cparent(self._codomain)
         return ans
 
 cdef class Fp_FpT_coerce(RingHomomorphism_coercion):

@@ -22,8 +22,6 @@ from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_rep
 # to make sure the function get_cparent is found since it is used in
 # 'polynomial_template.pxi'.
 
-ctypedef ZZ_pEContext_c *cparent
-
 cdef cparent get_cparent(parent) except? NULL:
     if parent is None:
         return NULL
@@ -98,13 +96,12 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             TypeError: unable to convert x into the base ring
 
         """
-        cdef cparent _parent
         cdef ntl_ZZ_pE d
         try:
             if (x.parent() is parent.base_ring()) or (x.parent() == parent.base_ring()):
-                _parent = get_cparent(parent)
                 Polynomial.__init__(self, parent, is_gen=is_gen)
-                celement_construct(&self.x, _parent)
+                (<Polynomial_template>self)._cparent = get_cparent(parent)
+                celement_construct(&self.x, (<Polynomial_template>self)._cparent)
                 d = parent._modulus.ZZ_pE(list(x.polynomial()))
                 ZZ_pEX_SetCoeff(self.x, 0, d.x)
                 return
@@ -112,9 +109,9 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             pass
 
         if PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple):
-            _parent = get_cparent(parent)
             Polynomial.__init__(self, parent, is_gen=is_gen)
-            celement_construct(&self.x, _parent)
+            (<Polynomial_template>self)._cparent = get_cparent(parent)
+            celement_construct(&self.x, (<Polynomial_template>self)._cparent)
             K = parent.base_ring()
             for i,e in enumerate(x):
                 try:
@@ -155,15 +152,13 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             True
         """
         cdef ZZ_pE_c c_pE
-        cdef cparent _parent
         cdef Polynomial_template r
         if isinstance(i, slice):
             start, stop = i.start, i.stop
-            _parent = get_cparent((<Polynomial_template>self)._parent)
             if start < 0:
                 start = 0
-            if stop > celement_len(&self.x,_parent) or stop is None:
-                stop = celement_len(&self.x, _parent)
+            if stop > celement_len(&self.x, (<Polynomial_template>self)._cparent) or stop is None:
+                stop = celement_len(&self.x, (<Polynomial_template>self)._cparent)
             x = (<Polynomial_template>self)._parent.gen()
             v = [self[t] for t from start <= t < stop]
 
@@ -171,8 +166,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
             return r << start
         else:
-            _parent = get_cparent(self._parent)
-            _parent[0].restore()
+            (<Polynomial_template>self)._cparent[0].restore()
             c_pE = ZZ_pEX_coeff(self.x, i)
 
             K = self._parent.base_ring()
@@ -195,11 +189,10 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         cdef Py_ssize_t i
 
-        cdef cparent _parent = get_cparent(self._parent)
-        _parent[0].restore()
+        (<Polynomial_template>self)._cparent[0].restore()
 
         K = self._parent.base_ring()
-        return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i))) for i in range(celement_len(&self.x, _parent))]
+        return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i))) for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         """
@@ -212,8 +205,9 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         cdef ntl_ZZ_pE d
         cdef Polynomial_ZZ_pEX r
         r = PY_NEW(Polynomial_ZZ_pEX)
-        celement_construct(&r.x, get_cparent(self._parent))
-        r._parent = self._parent
+        celement_construct(&r.x, (<Polynomial_template>self)._cparent)
+        r._parent = (<Polynomial_template>self)._parent
+        r._cparent = (<Polynomial_template>self)._cparent
         d = self._parent._modulus.ZZ_pE(list(left.polynomial()))
         ZZ_pEX_mul_ZZ_pE(r.x, self.x, d.x)
         return r
@@ -423,8 +417,9 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         self._parent._modulus.restore()
         cdef Polynomial_ZZ_pEX r
         r = PY_NEW(Polynomial_ZZ_pEX)
-        celement_construct(&r.x, get_cparent(self._parent))
-        r._parent = self._parent
+        celement_construct(&r.x, (<Polynomial_template>self)._cparent)
+        r._parent = (<Polynomial_template>self)._parent
+        r._cparent = (<Polynomial_template>self)._cparent
         ZZ_pEX_LeftShift(r.x, self.x, n)
         return r
 

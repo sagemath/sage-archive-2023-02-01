@@ -584,11 +584,11 @@ cdef class Parent(category_object.CategoryObject):
             self._initial_action_list = []
             self._initial_convert_list = []
             self._coerce_from_list = []
-            self._coerce_from_hash = {}
+            self._coerce_from_hash = MonoDict(23)
             self._action_list = []
             self._action_hash = TripleDict(23)
             self._convert_from_list = []
-            self._convert_from_hash = {}
+            self._convert_from_hash = MonoDict(53)
             self._embedding = None
 
     def __getattr__(self, str name):
@@ -709,9 +709,9 @@ cdef class Parent(category_object.CategoryObject):
             sage: sorted(QQ._introspect_coerce().items())
             [('_action_hash', <sage.structure.coerce_dict.TripleDict object at ...>),
              ('_action_list', []),
-             ('_coerce_from_hash', {...}),
+             ('_coerce_from_hash', <sage.structure.coerce_dict.MonoDict object at ...>),
              ('_coerce_from_list', []),
-             ('_convert_from_hash', {...}),
+             ('_convert_from_hash', <sage.structure.coerce_dict.MonoDict object at ...>),
              ('_convert_from_list', [...]),
              ('_element_init_pass_parent', False),
              ('_embedding', None),
@@ -1971,6 +1971,22 @@ cdef class Parent(category_object.CategoryObject):
             Natural morphism:
               From: Integer Ring
               To:   Rational Field
+
+        By :trac:`12313`, a special kind of weak key dictionary is used to
+        store coercion and conversion maps, namely
+        :class:`~sage.structure.coerce_dict.MonoDict`. In that way, a memory
+        leak was fixed that would occur in the following test::
+
+            sage: import gc
+            sage: _ = gc.collect()
+            sage: K = GF(1<<55,'t')
+            sage: for i in range(50):
+            ...     a = K.random_element()
+            ...     E = EllipticCurve(j=a)
+            ...     b = K.has_coerce_map_from(E)
+            sage: _ = gc.collect()
+            sage: len([x for x in gc.get_objects() if isinstance(x,type(E))])
+            1
 
         TESTS:
 

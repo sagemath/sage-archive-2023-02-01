@@ -30,7 +30,7 @@ cimport sage_object
 import operator
 from parent import Set_PythonType, Set_PythonType_class
 from coerce import py_scalar_parent
-from sage.structure.coerce_dict import TripleDict
+from sage.structure.coerce_dict import MonoDict, TripleDict
 
 include '../ext/python_object.pxi'
 include '../ext/python_bool.pxi'
@@ -65,7 +65,7 @@ cdef class Parent(parent.Parent):
 #            print type(self), coerce_from
         self.init_coerce(False)
         self._coerce_from_list = list(coerce_from)
-        self._coerce_from_hash = {}
+        self._coerce_from_hash = MonoDict(23)
         self._action_list = list(actions)
         self._action_hash = TripleDict(23)
 
@@ -80,7 +80,7 @@ cdef class Parent(parent.Parent):
         self._set_element_constructor()
 
         # old
-        self._has_coerce_map_from = {}
+        self._has_coerce_map_from = MonoDict(23)
         if category is not None:
             self._init_category_(category)
 
@@ -323,7 +323,7 @@ cdef class Parent(parent.Parent):
         if self == S:
             return True
         if self._has_coerce_map_from is None:
-            self._has_coerce_map_from = {}
+            self._has_coerce_map_from = MonoDict(23)
         else:
             try:
                 return self._has_coerce_map_from[S]

@@ -1631,6 +1631,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         EXAMPLES::
 
             sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
+            sage: X.rename('X')
             sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
             sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
             sage: phi = X.module_morphism(uut, triangular=True, codomain = Y,
@@ -1708,6 +1709,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             B[1] - B[3]
 
             sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
+            sage: X.rename("X")
             sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
             sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
             sage: phi = X.module_morphism(uut, triangular=True, codomain = Y,

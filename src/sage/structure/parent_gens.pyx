@@ -70,6 +70,7 @@ import sage.misc.defaults
 from sage.misc.latex import latex_variable_name
 import gens_py
 cimport parent
+from sage.structure.coerce_dict import MonoDict
 
 include '../ext/stdsage.pxi'
 
@@ -250,7 +251,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             ('a', 'b', 'c')
         """
         self._base = base
-        self._has_coerce_map_from = {}
+        self._has_coerce_map_from = MonoDict(23)
         self._assign_names(names=names, normalize=normalize)
 
         # Why does not this call ParentWithBase.__init__ ?

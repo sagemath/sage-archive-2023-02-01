@@ -10,7 +10,6 @@ AUTHOR:
 # to make sure the function get_cparent is found since it is used in
 # 'polynomial_template.pxi'.
 
-ctypedef long cparent
 cdef inline cparent get_cparent(parent):
     return 0
 
@@ -79,15 +78,13 @@ cdef class Polynomial_GF2X(Polynomial_template):
             x^3 + x^2
         """
         cdef long c = 0
-        cdef cparent _parent
         cdef Polynomial_template r
         if isinstance(i, slice):
             start, stop = i.start, i.stop
-            _parent = get_cparent((<Polynomial_template>self)._parent)
             if start < 0:
                 start = 0
-            if stop > celement_len(&self.x,_parent) or stop is None:
-                stop = celement_len(&self.x, _parent)
+            if stop > celement_len(&self.x, (<Polynomial_template>self)._cparent) or stop is None:
+                stop = celement_len(&self.x, (<Polynomial_template>self)._cparent)
             x = (<Polynomial_template>self)._parent.gen()
             v = [self[t] for t from start <= t < stop]
 
@@ -162,6 +159,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
 
         res = <Polynomial_GF2X>PY_NEW(Polynomial_GF2X)
         res._parent = self._parent
+        res._cparent = self._cparent
 
         if algorithm == "ntl":
             t = cputime()

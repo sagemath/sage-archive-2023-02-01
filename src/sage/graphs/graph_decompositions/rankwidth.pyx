@@ -1,5 +1,5 @@
 r"""
-Rank Decompositions of graphs.
+Rank Decompositions of graphs
 
 This modules wraps a C code from Philipp Klaus Krause computing a an optimal
 rank-decomposition [RWKlause]_.
@@ -68,7 +68,12 @@ from the smaller of the two and its complement.
 
 .. WARNING::
 
-    The current implementation cannot handle graphs of `\geq 32` vertices.
+    * The current implementation cannot handle graphs of `\geq 32` vertices.
+
+    * A bug that has been reported upstream make the code crash immediately on
+      instances of size `30`. If you experience this kind of bug please report
+      it to us, what we need is some information on the hardware you run to know
+      where it comes from !
 
 EXAMPLE::
 

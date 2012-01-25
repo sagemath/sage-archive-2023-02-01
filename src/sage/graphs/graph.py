@@ -2928,7 +2928,7 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``verbose`` (boolean) -- whether to display progress information while
-        computing the decomposition.
+           computing the decomposition.
 
         OUTPUT:
 

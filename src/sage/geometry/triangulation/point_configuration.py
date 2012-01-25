@@ -1995,4 +1995,42 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
     pushing_triangulation = placing_triangulation
 
+    @cached_method
+    def Gale_transform(self, points=None):
+        r"""
+        Return the Gale transform of ``self``.
 
+        INPUT:
+
+        - ``points`` -- a tuple of points or point indices or ``None``
+          (default). A subset of points for which to compute the Gale
+          transform. By default, all points are used.
+
+        OUTPUT:
+
+        A matrix over :meth:`base_ring`.
+
+        EXAMPLES::
+
+            sage: pc = PointConfiguration([(0,0),(1,0),(2,1),(1,1),(0,1)])
+            sage: pc.Gale_transform()
+            [ 1 -1  0  1 -1]
+            [ 0  0  1 -2  1]
+
+            sage: pc.Gale_transform((0,1,3,4))
+            [ 1 -1  1 -1]
+
+            sage: points = (pc.point(0), pc.point(1), pc.point(3), pc.point(4))
+            sage: pc.Gale_transform(points)
+            [ 1 -1  1 -1]
+        """
+        self._assert_is_affine()
+        if points is None:
+            points = self.points()
+        else:
+            try:
+                points = [ self.point(ZZ(i)) for i in points ]
+            except TypeError:
+                pass
+        m = matrix([ (1,) + p.affine() for p in points])
+        return m.left_kernel().matrix()

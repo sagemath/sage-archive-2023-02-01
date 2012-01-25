@@ -10,13 +10,19 @@ should construct a point configuration first and then use one of its
 methods to triangulate it according to your requirements. You should
 never have to construct a :class:`Triangulation` object directly.
 
-EXAMPLES::
+EXAMPLES:
+
+First, we select the internal implementation for enumerating
+triangulations::
 
     sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
 
+Here is a simple example of how to triangulate a point configuration::
+
     sage: p = [[0,-1,-1],[0,0,1],[0,1,0], [1,-1,-1],[1,0,1],[1,1,0]]
     sage: points = PointConfiguration(p)
-    sage: triang = points.triangulate()
+    sage: triang = points.triangulate();  triang
+    (<0,1,2,5>, <0,1,3,5>, <1,3,4,5>)
     sage: triang.plot(axes=False)
 
 See :mod:`sage.geometry.triangulation.point_configuration` for more details.
@@ -34,7 +40,7 @@ See :mod:`sage.geometry.triangulation.point_configuration` for more details.
 from sage.structure.element import Element
 from sage.rings.all import QQ, ZZ
 from sage.modules.all import vector
-
+from sage.misc.cachefunc import cached_method
 
 
 ########################################################################
@@ -56,7 +62,7 @@ def triangulation_render_2d(triangulation, **kwds):
 
         sage: points = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
         sage: triang = points.triangulate()
-        sage: triang.plot(axes=False)   # indirect doctest
+        sage: triang.plot(axes=False, aspect_ratio=1)   # indirect doctest
     """
     from sage.plot.all import point2d, line2d, arrow, polygon2d
     points = [ point.reduced_affine() for point in triangulation.point_configuration() ]
@@ -331,6 +337,7 @@ class Triangulation(Element):
 
         EXAMPLES::
 
+            sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: triangulation = pc.triangulate()
             sage: iter = triangulation.__iter__()
@@ -361,6 +368,7 @@ class Triangulation(Element):
 
         EXAMPLES::
 
+            sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: triangulation = pc.triangulate()
             sage: triangulation[1]
@@ -375,6 +383,7 @@ class Triangulation(Element):
 
         TESTS::
 
+            sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: triangulation = pc.triangulations().next()
             sage: triangulation.__len__()
@@ -391,6 +400,7 @@ class Triangulation(Element):
 
         TESTS::
 
+            sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1],[2,2]])
             sage: t = pc.triangulations()
             sage: t.next()._repr_()
@@ -433,9 +443,20 @@ class Triangulation(Element):
         r"""
         Calculate the GKZ phi vector of the triangulation.
 
+        The phi vector is a vector of length equals to the number of
+        points in the point configuration. For a fixed triangulation
+        `T`, the entry corresponding to the `i`-th point `p_i` is
+
+        .. math::
+
+            \phi_T(p_i) = \sum_{t\in T, t\owns p_i} Vol(t)
+
+        that is, the total volume of all simplices containing `p_i`.
+        See also [GKZ]_ page 220 equation 1.4.
+
         OUTPUT:
 
-        Vector -- the phi vector of self.
+        The phi vector of self.
 
         EXAMPLES::
 
@@ -444,10 +465,6 @@ class Triangulation(Element):
             (3, 1, 5, 2, 4)
             sage: p.lexicographic_triangulation().gkz_phi()
             (1, 3, 4, 2, 5)
-
-        NOTE:
-
-        For a definition of the phi vector, see [GKZ]_ page 220 equation 1.4.
         """
         vec = vector(ZZ, self.point_configuration().n_points())
         for simplex in self:
@@ -525,7 +542,6 @@ class Triangulation(Element):
         EXAMPLES::
 
             sage: pc = PointConfiguration([(0,0), (1,0), (0,1), (-1,-1)], star=0, fine=True)
-            sage: pc.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: triangulation = pc.triangulate()
             sage: fan = triangulation.fan(); fan
             Rational polyhedral fan in 2-d lattice N
@@ -538,7 +554,6 @@ class Triangulation(Element):
             sage: interior=[(0, 1, 1), (0, 1, 2), (0, 2, 1), (0, 2, 2)]
             sage: points = vertices+interior
             sage: pc = PointConfiguration(points, fine=True)
-            sage: pc.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: triangulation = pc.triangulate()
             sage: fan = triangulation.fan( (-1,0,0) )
             sage: fan
@@ -556,6 +571,7 @@ class Triangulation(Element):
         return Fan(self, (vector(R, p) - origin for p in points))
 
 
+    @cached_method
     def simplicial_complex(self):
         r"""
         Return a simplicial complex from a triangulation of the point
@@ -582,4 +598,180 @@ class Triangulation(Element):
         vertex_set = set(flatten(self))
         return SimplicialComplex(vertex_set = vertex_set,
                                  maximal_faces = self)
+
+
+    @cached_method
+    def _boundary_simplex_dictionary(self):
+        """
+        Return facets and the simplices they bound
+
+        TESTS::
+
+            sage: triangulation = polytopes.n_cube(2).triangulate(engine='internal')
+            sage: triangulation._boundary_simplex_dictionary()
+            {(0, 1): ((0, 1, 3),),
+             (0, 3): ((0, 1, 3), (0, 2, 3)),
+             (1, 3): ((0, 1, 3),),
+             (2, 3): ((0, 2, 3),),
+             (0, 2): ((0, 2, 3),)}
+
+            sage: triangulation = polytopes.n_cube(3).triangulate(engine='internal')
+            sage: triangulation._boundary_simplex_dictionary()
+            {(1, 4, 7): ((0, 1, 4, 7), (1, 4, 5, 7)),
+             (1, 3, 7): ((1, 2, 3, 7),),
+             (0, 1, 7): ((0, 1, 2, 7), (0, 1, 4, 7)),
+             (0, 2, 7): ((0, 1, 2, 7), (0, 2, 4, 7)),
+             (0, 1, 4): ((0, 1, 4, 7),),
+             (2, 4, 6): ((2, 4, 6, 7),),
+             (0, 1, 2): ((0, 1, 2, 7),),
+             (1, 2, 7): ((0, 1, 2, 7), (1, 2, 3, 7)),
+             (2, 6, 7): ((2, 4, 6, 7),),
+             (2, 3, 7): ((1, 2, 3, 7),),
+             (1, 4, 5): ((1, 4, 5, 7),),
+             (1, 5, 7): ((1, 4, 5, 7),),
+             (4, 5, 7): ((1, 4, 5, 7),),
+             (0, 4, 7): ((0, 1, 4, 7), (0, 2, 4, 7)),
+             (2, 4, 7): ((0, 2, 4, 7), (2, 4, 6, 7)),
+             (1, 2, 3): ((1, 2, 3, 7),),
+             (4, 6, 7): ((2, 4, 6, 7),),
+             (0, 2, 4): ((0, 2, 4, 7),)}
+        """
+        result = dict()
+        for simplex in self:
+            for i in range(len(simplex)):
+                facet = simplex[:i] + simplex[i+1:]
+                result[facet] = result.get(facet, tuple()) + (simplex,)
+        return result
+
+
+    @cached_method
+    def boundary(self):
+        """
+        Return the boundary of the triangulation.
+
+        OUTPUT:
+
+        The outward-facing boundary simplices (of dimension `d-1`) of
+        the `d`-dimensional triangulation as a set. Each boundary is
+        returned by a tuple of point indices.
+
+        EXAMPLES::
+
+            sage: triangulation = polytopes.n_cube(3).triangulate(engine='internal')
+            sage: triangulation
+            (<0,1,2,7>, <0,1,4,7>, <0,2,4,7>, <1,2,3,7>, <1,4,5,7>, <2,4,6,7>)
+            sage: triangulation.boundary()
+            frozenset([(1, 3, 7), (4, 5, 7), (1, 2, 3), (0, 1, 2), (2, 4, 6), (2, 6, 7),
+                       (2, 3, 7), (1, 5, 7), (0, 1, 4), (1, 4, 5), (4, 6, 7), (0, 2, 4)])
+            sage: triangulation.interior_facets()
+            frozenset([(1, 4, 7), (1, 2, 7), (2, 4, 7), (0, 1, 7), (0, 4, 7), (0, 2, 7)])
+        """
+        return frozenset(facet for facet, bounded_simplices
+                         in self._boundary_simplex_dictionary().iteritems()
+                         if len(bounded_simplices)==1)
+
+    @cached_method
+    def interior_facets(self):
+        """
+        Return the interior facets of the triangulation.
+
+        OUTPUT:
+
+        The inward-facing boundary simplices (of dimension `d-1`) of
+        the `d`-dimensional triangulation as a set. Each boundary is
+        returned by a tuple of point indices.
+
+        EXAMPLES::
+
+            sage: triangulation = polytopes.n_cube(3).triangulate(engine='internal')
+            sage: triangulation
+            (<0,1,2,7>, <0,1,4,7>, <0,2,4,7>, <1,2,3,7>, <1,4,5,7>, <2,4,6,7>)
+            sage: triangulation.boundary()
+            frozenset([(1, 3, 7), (4, 5, 7), (1, 2, 3), (0, 1, 2), (2, 4, 6), (2, 6, 7),
+                       (2, 3, 7), (1, 5, 7), (0, 1, 4), (1, 4, 5), (4, 6, 7), (0, 2, 4)])
+            sage: triangulation.interior_facets()
+            frozenset([(1, 4, 7), (1, 2, 7), (2, 4, 7), (0, 1, 7), (0, 4, 7), (0, 2, 7)])
+        """
+        return frozenset(facet for facet, bounded_simplices
+                         in self._boundary_simplex_dictionary().iteritems()
+                         if len(bounded_simplices)==2)
+
+    @cached_method
+    def normal_cone(self):
+        r"""
+        Return the (closure of the) normal cone of the triangulation.
+
+        Recall that a regular triangulation is one that equals the
+        "crease lines" of a convex piecewise-linear function. This
+        support function is not unique, for example, you can scale it
+        by a positive constant. The set of all piecewise-linear
+        functions with fixed creases forms an open cone. This cone can
+        be interpreted as the cone of normal vectors at a point of the
+        secondary polytope, which is why we call it normal cone. See
+        [GKZ]_ Section 7.1 for details.
+
+        OUTPUT:
+
+        The closure of the normal cone. The `i`-th entry equals the
+        value of the piecewise-linear function at the `i`-th point of
+        the configuration.
+
+        For an irregular triangulation, the normal cone is empty. In
+        this case, a single point (the origin) is returned.
+
+        EXAMPLES::
+
+            sage: triangulation = polytopes.n_cube(2).triangulate(engine='internal')
+            sage: triangulation
+            (<0,1,3>, <0,2,3>)
+            sage: N = triangulation.normal_cone();  N
+            4-d cone in 4-d lattice
+            sage: N.rays()
+            ((-1, 0, 0, 0), (1, 0, 1, 0), (-1, 0, -1, 0), (1, 0, 0, -1),
+             (-1, 0, 0, 1), (1, 1, 0, 0), (-1, -1, 0, 0))
+            sage: N.dual().rays()
+            ((-1, 1, 1, -1),)
+
+        TESTS::
+
+            sage: polytopes.n_simplex(2).triangulate().normal_cone()
+            3-d cone in 3-d lattice
+            sage: _.dual().is_trivial()
+            True
+        """
+        if not self.point_configuration().base_ring().is_subring(QQ):
+            raise NotImplementedError('Only base rings ZZ and QQ are supported')
+        from sage.libs.ppl import Variable, Constraint, Constraint_System, Linear_Expression, C_Polyhedron
+        from sage.matrix.constructor import matrix
+        from sage.misc.misc import uniq
+        from sage.rings.arith import lcm
+        pc = self.point_configuration()
+        cs = Constraint_System()
+        for facet in self.interior_facets():
+            s0, s1 = self._boundary_simplex_dictionary()[facet]
+            p = set(s0).difference(facet).pop()
+            q = set(s1).difference(facet).pop()
+            origin = pc.point(p).reduced_affine_vector()
+            base_indices = [ i for i in s0 if i!=p ]
+            base = matrix([ pc.point(i).reduced_affine_vector()-origin for i in base_indices ])
+            sol = base.solve_left( pc.point(q).reduced_affine_vector()-origin )
+            relation = [0]*pc.n_points()
+            relation[p] = sum(sol)-1
+            relation[q] = 1
+            for i, base_i in enumerate(base_indices):
+                relation[base_i] = -sol[i]
+            rel_denom = lcm([QQ(r).denominator() for r in relation])
+            relation = [ ZZ(r*rel_denom) for r in relation ]
+            ex = Linear_Expression(relation,0)
+            cs.insert(ex >= 0)
+        from sage.modules.free_module import FreeModule
+        ambient = FreeModule(ZZ, self.point_configuration().n_points())
+        if cs.empty():
+            cone = C_Polyhedron(ambient.dimension(), 'universe')
+        else:
+            cone = C_Polyhedron(cs)
+        from sage.geometry.cone import _Cone_from_PPL
+        return _Cone_from_PPL(cone, lattice=ambient)
+
+
 

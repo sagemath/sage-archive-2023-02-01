@@ -266,17 +266,21 @@ def saturation(A, proof=True, p=0, max_dets=5):
     return C.change_ring(ZZ)._insert_zero_columns(zero_cols)
 
 def index_in_saturation(A, proof=True):
-    """
+    r"""
     The index of A in its saturation.
 
-    INPUT:
-        A -- matrix over ZZ
-        proof -- bool (True or False)
+    INPUT::
+
+    - ``A`` -- matrix over `\ZZ`
+
+    - ``proof`` -- boolean (``True`` or ``False``)
 
     OUTPUT:
-        an integer
 
-    EXAMPLES:
+    An integer
+
+    EXAMPLES::
+
         sage: from sage.matrix.matrix_integer_dense_saturation import index_in_saturation
         sage: A = matrix(ZZ, 2, 2, [3,2,3,4]); B = matrix(ZZ, 2,3,[1,2,3,4,5,6]); C = A*B; C
         [11 16 21]
@@ -287,8 +291,16 @@ def index_in_saturation(A, proof=True):
         sage: S = W.saturation()
         sage: W.index_in(S)
         18
+
+    TESTS::
+
+        sage: zero = matrix(ZZ, [[]])
+        sage: zero.index_in_saturation()
+        1
     """
     r = A.rank()
+    if r==0 and (A.nrows()==0 or A.ncols()==0):
+        return 1
     if r < A.nrows():
         A = A.hermite_form(proof=proof, include_zero_rows=False)
     if A.is_square():

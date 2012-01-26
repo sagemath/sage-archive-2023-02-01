@@ -1771,10 +1771,25 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return Rational(self.size())/Rational((n**2 - n)/2)
 
-    def is_eulerian(self):
-        """
-        Return true if the graph has an tour that visits each edge exactly
+    def is_eulerian(self, path=False):
+        r"""
+        Return true if the graph has a (closed) tour that visits each edge exactly
         once.
+
+        INPUT:
+
+        - ``path`` -- by default this function finds if the graph contains a closed
+          tour visiting each edge once, i.e. an eulerian cycle. If you want to test
+          the existence of an eulerian path, set this argument to ``True``. Graphs
+          with this property are sometimes called semi-eulerian.
+
+        OUTPUT:
+
+        ``True`` or ``False`` for the closed tour case. For an open tour search
+        (``path``=``True``) the function returns ``False`` if the graph is not
+        semi-eulerian, or a tuple (u, v) in the other case. This tuple defines the
+        edge that would make the graph eulerian, i.e. close an existing open tour.
+        This edge may or may not be already present in the graph.
 
         EXAMPLES::
 
@@ -1790,6 +1805,31 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: g = Graph([(1,2), (2,3), (3,1), (4,5), (5,6), (6,4)]); g.is_eulerian()
             False
+
+        ::
+
+            sage: g = DiGraph({0: [1]}); g.is_eulerian(path=True)
+            (1, 0)
+            sage: graphs.CycleGraph(4).is_eulerian(path=True)
+            False
+            sage: g = DiGraph({0: [1], 1: [2,3], 2: [4]}); g.is_eulerian(path=True)
+            False
+
+        ::
+
+            sage: g = Graph({0:[1,2,3], 1:[2,3], 2:[3,4], 3:[4]}, multiedges=True)
+            sage: g.is_eulerian()
+            False
+            sage: e = g.is_eulerian(path=True); e
+            (0, 1)
+            sage: g.add_edge(e)
+            sage: g.is_eulerian(path=False)
+            True
+            sage: g.is_eulerian(path=True)
+            False
+
+        TESTS::
+
             sage: g = Graph({0:[], 1:[], 2:[], 3:[]}); g.is_eulerian()
             True
         """
@@ -1803,17 +1843,39 @@ class GenericGraph(GenericGraph_pyx):
             if nontrivial_components > 1:
                 return False
 
+        uv = [None, None]
         if self._directed:
             for v in self.vertex_iterator():
                 # loops don't matter since they count in both the in and out degree.
                 if self.in_degree(v) != self.out_degree(v):
-                    return False
+                    if path:
+                        diff = self.out_degree(v) - self.in_degree(v)
+                        if abs(diff) > 1:
+                            return False
+                        else:
+                            # if there was another vertex with the same sign of difference...
+                            if uv[(diff+1)/2] != None:
+                                return False # ... the graph is not semi-eulerian
+                            else:
+                                uv[(diff+1)/2] = v
+                    else:
+                        return False
         else:
-            for deg in self.degree_iterator():
+            for v in self.vertex_iterator():
                 # loops don't matter since they add an even number to the degree
-                if deg % 2 != 0:
-                    return False
-        return True
+                if self.degree(v) % 2 != 0:
+                    if not path:
+                        return False
+                    else:
+                        if uv[0] is None or uv[1] is None:
+                            uv[0 if uv[0] is None else 1] = v
+                        else:
+                            return False
+
+        if path and (uv[0] is None or uv[1] is None):
+            return False
+
+        return True if not path else tuple(uv)
 
     def is_tree(self):
         """
@@ -2073,27 +2135,26 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     return d
 
-    def eulerian_circuit(self, return_vertices=False, labels=True):
-        """
+    def eulerian_circuit(self, return_vertices=False, labels=True, path=False):
+        r"""
         Return a list of edges forming an eulerian circuit if one exists.
         Otherwise return False.
 
         This is implemented using Hierholzer's algorithm.
-        This could be extended to find eulerian paths too (check for existence
-        and make sure you start on an odd-degree vertex if one exists).
 
         INPUT:
 
-
-        -  ``return_vertices`` - optionally provide a list of
+        -  ``return_vertices`` -- (default: ``False``) optionally provide a list of
            vertices for the path
 
-        -  ``labels`` - whether to return edges with labels
+        -  ``labels`` -- (default: ``True``) whether to return edges with labels
            (3-tuples)
 
+        -  ``path`` -- (default: ``False``) find an eulerian path instead
 
-        OUTPUT: either ([edges], [vertices]) or [edges] of an Eulerian
-        circuit
+        OUTPUT:
+
+        either ([edges], [vertices]) or [edges] of an Eulerian circuit (or path)
 
         EXAMPLES::
 
@@ -2102,39 +2163,74 @@ class GenericGraph(GenericGraph_pyx):
             [(0, 4, None), (4, 3, None), (3, 2, None), (2, 1, None), (1, 0, None)]
             sage: g.eulerian_circuit(labels=False)
             [(0, 4), (4, 3), (3, 2), (2, 1), (1, 0)]
+
+        ::
+
             sage: g = graphs.CompleteGraph(7)
             sage: edges, vertices = g.eulerian_circuit(return_vertices=True)
             sage: vertices
             [0, 6, 5, 4, 6, 3, 5, 2, 4, 3, 2, 6, 1, 5, 0, 4, 1, 3, 0, 2, 1, 0]
+
+        ::
+
             sage: graphs.CompleteGraph(4).eulerian_circuit()
             False
-            sage: g = Graph({0: [], 1: [2], 2: [3], 3: [1], 4: []}); g.eulerian_circuit(labels=False)
+
+        A disconnected graph can be eulerian::
+
+            sage: g = Graph({0: [], 1: [2], 2: [3], 3: [1], 4: []})
+            sage: g.eulerian_circuit(labels=False)
             [(1, 3), (3, 2), (2, 1)]
+
+        ::
+
+            sage: g = DiGraph({0: [1], 1: [2, 4], 2:[3], 3:[1]})
+            sage: g.eulerian_circuit(labels=False, path=True)
+            [(0, 1), (1, 2), (2, 3), (3, 1), (1, 4)]
+
+        ::
+
+            sage: g = Graph({0:[1,2,3], 1:[2,3], 2:[3,4], 3:[4]})
+            sage: g.is_eulerian(path=True)
+            (0, 1)
+            sage: g.eulerian_circuit(labels=False, path=True)
+            [(1, 3), (3, 4), (4, 2), (2, 3), (3, 0), (0, 2), (2, 1), (1, 0)]
+
+        TESTS::
+
             sage: Graph({'H': ['G','L','L','D'], 'L': ['G','D']}).eulerian_circuit(labels=False)
             [('H', 'D'), ('D', 'L'), ('L', 'G'), ('G', 'H'), ('H', 'L'), ('L', 'H')]
             sage: Graph({0: [0, 1, 1, 1, 1]}).eulerian_circuit(labels=False)
             [(0, 1), (1, 0), (0, 1), (1, 0), (0, 0)]
         """
-        if not self.is_eulerian():
+        # trivial case
+        if self.order() == 0:
+            return ([], []) if return_vertices else []
+
+        # check if the graph has proper properties to be eulerian
+        edge = self.is_eulerian(path=path)
+        if not edge:
             return False
+        if path:
+            start_vertex = edge[0]
 
         edges = []
         vertices = []
 
         # we'll remove edges as we go, so let's preserve the graph structure
-        from copy import copy
-        g = copy(self)
+        if self.is_directed():
+            g = self.reverse()  # so the output will be in the proper order
+        else:
+            from copy import copy
+            g = copy(self)
 
-        # get the first vertex with degree>0
-        start_vertex = None
-        for v in g.vertex_iterator():
-            if g.degree(v) != 0:
-                start_vertex = v
-                break
-
-        # trivial case of empty graph
-        if start_vertex == None:
-            return ([], []) if return_vertices else []
+        if not path:
+            # get the first vertex with degree>0
+            start_vertex = None
+            for v in g.vertex_iterator():
+                if g.degree(v) != 0:
+                    start_vertex = v
+                    break
 
         # (where to return?, what was the way?)
         stack = [ (start_vertex, None) ]
@@ -2142,18 +2238,26 @@ class GenericGraph(GenericGraph_pyx):
         while len(stack) != 0:
             v, e = stack.pop()
 
-            if g.degree(v) == 0:
+            degr = g.out_degree(v) if self.is_directed() else g.degree(v)
+            if degr == 0:
                 vertices.append(v)
                 if e != None:
                     edges.append(e if labels else (e[0], e[1]))
             else:
-                next_edge = g.edge_iterator(v).next()
-                if next_edge[0] == v:
-                    next_edge = (next_edge[1], next_edge[0], next_edge[2])
-                next_vertex = next_edge[0]
+                if self.is_directed():
+                    next_edge = g.outgoing_edge_iterator(v).next()
+                else:
+                    next_edge = g.edge_iterator(v).next()
+
+                if next_edge[0] == v:  # in the undirected case we want to
+                                       # save the direction of traversal
+                    next_edge_new = (next_edge[1], next_edge[0], next_edge[2])
+                else:
+                    next_edge_new = next_edge
+                next_vertex = next_edge_new[0]
 
                 stack.append((v, e))
-                stack.append((next_vertex, next_edge))
+                stack.append((next_vertex, next_edge_new))
 
                 g.delete_edge(next_edge)
 

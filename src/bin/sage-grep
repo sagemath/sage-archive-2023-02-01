@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+cd $SAGE_ROOT/devel/sage/
+
+find sage -print | egrep '.py([xdi])?$' | xargs grep "$@"

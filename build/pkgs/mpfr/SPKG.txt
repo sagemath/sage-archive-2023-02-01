@@ -35,6 +35,11 @@ on sun4v machines.
 
 == Changelog ==
 
+=== mpfr-2.4.2.p1 (Jeroen Demeyer, 27 January 2012) ===
+ * #12366: delete old libraries/headers *after* build
+ * Remove useless "export MAKE=make".
+ * Do not run spkg-check by default.
+
 === mpfr-2.4.2.p0 (Simon King, December 10th, 2010) ===
  * #12131: Use --libdir, to make the package work on openSUSE.
 
@@ -46,7 +51,7 @@ on sun4v machines.
 
 === mpfr-2.4.1p0 (David Kirkby, July 17th 2009) ===
  * Sage TRAC #6453 http://sagetrac.org/sage_trac/ticket/6453
-   Implement a patch to mpn_exp.c develoed by Paul Zimmermann
+   Implement a patch to mpn_exp.c developed by Paul Zimmermann
    (Paul.Zimmermann@loria.fr) to bypass what may be a Solaris or gcc bug.
    This avoids 20 test failures on a Sun T5240 running Solaris 10 (both
    updates 4 and 7 have been tried on this machine). Since it's only seen
@@ -56,7 +61,8 @@ on sun4v machines.
    If INCLUDE_MPFR_PATCH is unset, the patch will be included on sun4v systems,
    but exluded on all others. Please set it to 1 if building binaries for others.
 
-   This is as gcc bug ID 40757 - see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=40757
+   This is a bug in Solaris's memset() function, for more information see
+   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=40757
 
  * Remove a comment at the bottom of spkg-install telling developers to bypass
    check on release systems. Given failures have occured, it would be unwise to

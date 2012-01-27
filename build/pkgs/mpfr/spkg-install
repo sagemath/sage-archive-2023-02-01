@@ -9,11 +9,6 @@ fi
 # unset RM since it messes with libtool for "make check"
 unset RM
 
-echo "Deleting old libraries"
-rm -f "$SAGE_LOCAL"/lib/libmpfr.*
-echo "Deleting old headers"
-rm -f "$SAGE_LOCAL"/include/*mpfr*
-
 build()
 {
     if [ "$SAGE64" = "yes" ]; then
@@ -103,8 +98,12 @@ build()
     echo "Building MPFR"
     $MAKE
 
+    echo "Deleting old libraries"
+    rm -f "$SAGE_LOCAL"/lib/libmpfr.*
+    echo "Deleting old headers"
+    rm -f "$SAGE_LOCAL"/include/*mpfr*
+
     echo "Installing MPFR"
-    MAKE=make; export MAKE
     $MAKE install
 }
 
@@ -116,7 +115,3 @@ if ! [ $? -eq 0 -a -f $SAGE_LOCAL/include/mpfr.h ];  then
     echo "An error occurred while building mpfr."
     exit 1
 fi
-
-# Do not bypass the checks, as some MPFR failures
-# have been observed, so MPFR should be carefully tested.
-cd ..; ./spkg-check

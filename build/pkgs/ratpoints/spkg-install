@@ -16,12 +16,13 @@ CCFLAGS3="-L. -lratpoints"
 
 if [ `uname` = "Darwin" ]; then
     CCFLAGS1="$CCFLAGS_NO_SSE"
-    CCFLAGS="-fnested-functions"
     echo "Building without SSE2 instructions (OS X)."
 else
     CCFLAGS1="$CCFLAGS_NO_SSE -DUSE_SSE"
-    CCFLAGS=""
 fi
+
+# Use -fnested-functions if supported
+CCFLAGS=`testcflags.sh -fnested-functions`
 
 # When CFLAG64 is not set, set it to the default -m64
 if [ -z $CFLAG64 ]; then

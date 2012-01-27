@@ -161,7 +161,6 @@ cdef void late_import():
     import sage.rings.complex_interval_field
     is_ComplexIntervalField = sage.rings.complex_interval_field.is_ComplexIntervalField
 
-
 cdef class Polynomial(CommutativeAlgebraElement):
     """
     A polynomial.
@@ -1976,7 +1975,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         R = self.parent().base_ring()[var]
         return R(self.list())
 
-
     def change_ring(self, R):
         """
         Return a copy of this polynomial but with coefficients in R, if at
@@ -2041,7 +2039,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 D[i + j] = a
 
         return D
-
 
     def __copy__(self):
         """
@@ -2293,7 +2290,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return multi_derivative(self, args)
 
-
     def _derivative(self, var=None):
         r"""
         Return the formal derivative of this polynomial with respect to the
@@ -2368,7 +2364,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent().zero_element()
         coeffs = self.list()
         return self._parent([n*coeffs[n] for n from 1 <= n <= degree])
-
 
     def integral(self):
         """
@@ -3807,7 +3802,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             return a*self
 
-
     def coefficients(self):
         """
         Return the coefficients of the monomials appearing in self.
@@ -4041,7 +4035,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         f = self._pari_()
         v = list(f.newtonpoly(p))
         return [sage.rings.rational.Rational(x) for x in v]
-
 
     #####################################################################
     # Conversions to other systems
@@ -5292,7 +5285,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return self.roots(ring=CC, multiplicities=False)
 
-
     def variable_name(self):
         """
         Return name of variable used in this polynomial as a string.
@@ -5464,7 +5456,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.misc.superseded import deprecation
         deprecation(4522, "This function is deprecated. It will be removed in a future release of Sage. Please use the .variable_name() function instead.")
         return self.parent().variable_name()
-
 
     def _xgcd(self, other):
         r"""
@@ -5983,7 +5974,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function
 
-
 cdef _karatsuba_sum(v,w):
     if len(v)>=len(w):
         x = list(v)
@@ -6040,7 +6030,6 @@ cpdef Polynomial_generic_dense _new_constant_dense_poly(list coeffs, Parent P, s
     f._parent = P
     f.__coeffs = coeffs
     return f
-
 
 cdef class Polynomial_generic_dense(Polynomial):
     """
@@ -6470,6 +6459,60 @@ cdef class Polynomial_generic_dense(Polynomial):
             else:
                 return self._new_c(self.__coeffs[-int(n):], self._parent)
 
+    @coerce_binop
+    def quo_rem(self, other):
+        """
+        Returns the quotient and remainder of the Euclidean division of
+        ``self`` and ``other``.
+
+        Raises ZerodivisionError if ``other`` is zero. Raises ArithmeticError if ``other`` has
+        a nonunit leading coefficient.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: R.<y> = P[]
+            sage: f = R.random_element(10)
+            sage: g = y^5+R.random_element(4)
+            sage: q,r = f.quo_rem(g)
+            sage: f == q*g + r
+            True
+            sage: g = x*y^5
+            sage: f.quo_rem(g)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Nonunit leading coefficient
+            sage: g = 0
+            sage: f.quo_rem(g)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Division by zero polynomial
+        """
+        if other.is_zero():
+            raise ZeroDivisionError("Division by zero polynomial")
+        if not other.leading_coefficient().is_unit():
+            raise ArithmeticError("Nonunit leading coefficient")
+        if self.is_zero():
+            return self, self
+
+        R = self.parent().base_ring()
+        x = (<Polynomial_generic_dense>self).__coeffs[:] # make a copy
+        y = (<Polynomial_generic_dense>other).__coeffs
+        m = len(x)  # deg(self)=m-1
+        n = len(y)  # deg(other)=n-1
+        if m < n:
+            return self.parent()(0), self
+
+        quo = list()
+        for k from m-n >= k >= 0:
+            q = x[n+k-1]/y[n-1]
+            x[n+k-1] = R.zero_element()
+            for j from n+k-2 >= j >= k:
+                x[j] -= q * y[j-k]
+            quo.insert(0,q)
+
+        return self._new_c(quo,self._parent), self._new_c(x,self._parent)._inplace_truncate(n-1)
+
     cpdef Polynomial truncate(self, long n):
         r"""
         Returns the polynomial of degree ` < n` which is equivalent
@@ -6506,15 +6549,13 @@ cdef class Polynomial_generic_dense(Polynomial):
 
     cdef _inplace_truncate(self, long n):
         if n < len(self.__coeffs):
-            while n > 0 and not self.__coeffs[n]:
+            while n > 0 and not self.__coeffs[n-1]:
                 n -= 1
         self.__coeffs = self.__coeffs[:n]
         return self
 
-
 def make_generic_polynomial(parent, coeffs):
     return parent(coeffs)
-
 
 cdef class ConstantPolynomialSection(Map):
     """

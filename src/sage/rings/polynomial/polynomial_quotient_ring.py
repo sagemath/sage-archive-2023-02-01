@@ -484,7 +484,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             try:
                 if not self.__polynomial.divides(R.modulus()):
                     return False
-            except AttributeError:
+            except (ZeroDivisionError,ArithmeticError):
                 return False
             return self.__ring.has_coerce_map_from(R.polynomial_ring())
 

@@ -54,7 +54,7 @@ if [[ "$UNAME" = "Darwin" ]]; then
     echo "Since we're on MacOS X and there is a very weird"
     echo "bug with buffered output while building Maxima,"
     echo "you will not be able to see the output of the build"
-    echo "as it occurs.  Don't worry, the build process doesn't"
+    echo "as it occurs.  Don't worry, the build process does"
     echo "not hang."
     $MAKE >> "$CUR"/output.log  2>> "$CUR"/error.log
 else
@@ -112,3 +112,21 @@ echo
 echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
 cp -f maxima.fasb "$ECLLIB/maxima.fas"
 check_error "Failed to install '`pwd`/maxima.fasb' as '$ECLLIB/maxima.fas'."
+
+
+if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]] ; then
+    # Install a copy of the Maxima HTML documentation locally.
+    cd "${CUR}/src"
+
+    # The Maxima HTML docs are already built, we just need to copy
+    # them to the sage installation.
+    MAXIMA_DOCS=$SAGE_ROOT/local/share/doc/maxima
+    MAXIMA_FIGURES=$MAXIMA_DOCS/figures
+
+    mkdir -p $MAXIMA_FIGURES
+
+    # The HTML documentation only uses the GIF figures, not the PDF
+    # ones.
+    cp doc/info/*.html        $MAXIMA_DOCS
+    cp doc/info/figures/*.gif $MAXIMA_FIGURES
+fi

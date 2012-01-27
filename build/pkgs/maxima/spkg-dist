@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 
-import os, sys, time
+import os, sys
 
 def cmd(x):
     print x
     if os.system(x):
         print "(Failed.)"
 
-for X in ['es', 'es.utf8', 'pt', 'pt.utf8', 'pt_BR', 'pt_BR.utf8']:
+for X in ['de', 'de.utf8', 'es', 'es.utf8', 'pt', 'pt.utf8', 'pt_BR', 'pt_BR.utf8']:
     cmd('rm -rf "src/doc/info/%s/"*'%X)
     open('src/doc/info/%s/Makefile.in'%X,'w').write('all:\n\tls\n\n')
-
-
-
-

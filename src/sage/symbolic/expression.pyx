@@ -7585,9 +7585,9 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-            - ``self`` -- the symbolic expression converting from
-            - ``target`` -- (default None) the symbolic expression
-                         converting to
+        - ``self`` -- the symbolic expression converting from
+        - ``target`` -- (default None) the symbolic expression
+          converting to
 
         OUTPUT:
 

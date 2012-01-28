@@ -7912,7 +7912,7 @@ cdef class Expression(CommutativeRingElement):
         assumed to be an integer, a real if with ``r``, and so on::
 
             sage: solve( sin(x)==cos(x), x, to_poly_solve=True)
-            [x == 1/4*pi + pi*z44]
+            [x == 1/4*pi + pi*z74]
 
         An effort is made to only return solutions that satisfy the current assumptions::
 
@@ -7952,7 +7952,7 @@ cdef class Expression(CommutativeRingElement):
             sage: from sage.calculus.calculus import maxima
             sage: sol = maxima(cos(x)==0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == -1/2*pi + 2*pi*z56], [x == 1/2*pi + 2*pi*z58]]
+            [[x == -1/2*pi + 2*pi*z86], [x == 1/2*pi + 2*pi*z88]]
 
         If a returned unsolved expression has a denominator, but the
         original one did not, this may also be true::
@@ -7962,7 +7962,7 @@ cdef class Expression(CommutativeRingElement):
             sage: from sage.calculus.calculus import maxima
             sage: sol = maxima(cos(x) * sin(x) == 1/2).to_poly_solve(x)
             sage: sol.sage()
-            [[x == 1/4*pi + pi*z72]]
+            [[x == 1/4*pi + pi*z102]]
 
         Some basic inequalities can be also solved::
 
@@ -8019,7 +8019,7 @@ cdef class Expression(CommutativeRingElement):
         ::
 
             sage: solve(sin(x)==1/2,x,to_poly_solve='force')
-            [x == 5/6*pi + 2*pi*z86, x == 1/6*pi + 2*pi*z84]
+            [x == 5/6*pi + 2*pi*z116, x == 1/6*pi + 2*pi*z114]
 
         Trac #11618 fixed::
 
@@ -8244,7 +8244,7 @@ cdef class Expression(CommutativeRingElement):
             sage: b.solve(t)
             []
             sage: b.solve(t, to_poly_solve=True)
-            [t == 1/450*I*pi*z98 + 1/900*log(3/4*sqrt(41) + 25/4), t == 1/450*I*pi*z96 + 1/900*log(-3/4*sqrt(41) + 25/4)]
+            [t == 1/450*I*pi*z128 + 1/900*log(3/4*sqrt(41) + 25/4), t == 1/450*I*pi*z126 + 1/900*log(-3/4*sqrt(41) + 25/4)]
             sage: n(1/900*log(-3/4*sqrt(41) + 25/4))
             0.000411051404934985
 

@@ -774,7 +774,7 @@ class PiecewisePolynomial:
             sage: f.integral(definite=True)
             2
             sage: f.integral()
-            Piecewise defined function with 1 parts, [[(-Infinity, +Infinity), x |--> -integrate(e^(-abs(x)), x, x, +Infinity)]]
+            Piecewise defined function with 1 parts, [[(-Infinity, +Infinity), x |--> -1/2*((sgn(x) - 1)*e^(2*x) - 2*e^x*sgn(x) + sgn(x) + 1)*e^(-x) - 1]]
 
         ::
 

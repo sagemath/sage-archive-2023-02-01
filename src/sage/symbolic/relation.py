@@ -561,7 +561,7 @@ def solve(f, *args, **kwds):
     be implicitly an integer (hence the ``z``)::
 
         sage: solve([cos(x)*sin(x) == 1/2, x+y == 0],x,y)
-        [[x == 1/4*pi + pi*z38, y == -1/4*pi - pi*z38]]
+        [[x == 1/4*pi + pi*z68, y == -1/4*pi - pi*z68]]
 
     Expressions which are not equations are assumed to be set equal
     to zero, as with `x` in the following example::

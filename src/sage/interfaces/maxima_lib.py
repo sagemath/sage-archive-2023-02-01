@@ -140,7 +140,9 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 # display2d -- no ascii art output
 # keepfloat -- don't automatically convert floats to rationals
 init_code = ['display2d : false', 'domain : complex', 'keepfloat : true',
-            'load(to_poly_solver)', 'load(simplify_sum)']
+            'load(to_poly_solver)', 'load(simplify_sum)',
+            'load(abs_integrate)']
+
 # Turn off the prompt labels, since computing them *very
 # dramatically* slows down the maxima interpret after a while.
 # See the function makelabel in suprv1.lisp.
@@ -670,6 +672,55 @@ class MaximaLib(MaximaAbstract):
             sage: forget()
             sage: assumptions()  # Check the assumptions really were forgotten
             []
+
+        Make sure the abs_integrate package is being used, trac
+        #11483. The following are examples from the Maxima
+        abs_integrate documentation::
+
+            sage: integrate(abs(x), x)
+            1/2*x*abs(x)
+
+        ::
+
+            sage: integrate(sgn(x) - sgn(1-x), x)
+            abs(x - 1) + abs(x)
+
+        ::
+
+            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6)
+            log(2) + log(11)
+
+        ::
+
+            sage: integrate(1/(1 + abs(x)), x)
+            1/2*(log(-x + 1) + log(x + 1))*sgn(x) - 1/2*log(-x + 1) + 1/2*log(x + 1)
+
+        ::
+
+            sage: integrate(cos(x + abs(x)), x)
+            1/4*(sgn(x) + 1)*sin(2*x) - 1/2*x*sgn(x) + 1/2*x
+
+        An example from sage-support thread e641001f8b8d1129::
+
+            sage: f = e^(-x^2/2)/sqrt(2*pi) * sgn(x-1)
+            sage: integrate(f, x, -Infinity, Infinity)
+            -erf(1/2*sqrt(2))
+
+        From trac #8624::
+
+            sage: integral(abs(cos(x))*sin(x),(x,pi/2,pi))
+            1/2
+
+        ::
+
+            sage: integrate(sqrt(x + sqrt(x)), x).simplify_full()
+            1/12*sqrt(sqrt(x) + 1)*((8*x - 3)*x^(1/4) + 2*x^(3/4)) - 1/8*log(sqrt(sqrt(x) + 1) - x^(1/4)) + 1/8*log(sqrt(sqrt(x) + 1) + x^(1/4))
+
+        And trac #11594::
+
+            sage: integrate(abs(x^2 - 1), x, -2, 2)
+            4
+
         """
         try:
             return max_to_sr(maxima_eval(([max_integrate],[sr_to_max(SR(a)) for a in args])))
@@ -870,12 +921,15 @@ class MaximaLibElement(MaximaAbstractElement):
 
         OUTPUT: Maxima object
 
-        EXAMPLES::
+        EXAMPLES:
+
+            The zXXX below are names for arbitrary integers and
+            subject to change::
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: sol = maxima_lib(sin(x) == 0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == pi + 2*pi*z6], [x == 2*pi*z8]]
+            [[x == pi + 2*pi*z60], [x == 2*pi*z62]]
         """
         if options.find("use_grobner=true") != -1:
             cmd=EclObject([[max_to_poly_solve], self.ecl(), sr_to_max(vars),

@@ -830,6 +830,16 @@ class MaximaLib(MaximaAbstract):
             sage: forget()
             sage: assumptions() # check the assumptions were really forgotten
             []
+
+        The second limit below was computed incorrectly prior to
+        maxima-5.24 (trac #10868)::
+
+            sage: f(n) = 2 + 1/factorial(n)
+            sage: limit(f(n), n=infinity)
+            2
+            sage: limit(1/f(n), n=infinity)
+            1/2
+
         """
         try:
             L=[sr_to_max(SR(a)) for a in [expr,v,a]]

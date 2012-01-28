@@ -721,6 +721,13 @@ class MaximaLib(MaximaAbstract):
             sage: integrate(abs(x^2 - 1), x, -2, 2)
             4
 
+        This definite integral returned zero (incorrectly) in at least
+        maxima-5.23. The correct answer is now given (trac #11591)::
+
+            sage: f = (x^2)*exp(x) / (1+exp(x))^2
+            sage: integrate(f, (x, -infinity, infinity))
+            1/3*pi^2
+
         """
         try:
             return max_to_sr(maxima_eval(([max_integrate],[sr_to_max(SR(a)) for a in args])))

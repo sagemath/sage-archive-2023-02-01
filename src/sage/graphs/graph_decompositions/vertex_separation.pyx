@@ -127,6 +127,7 @@ include '../../ext/stdsage.pxi'
 include '../../ext/cdefs.pxi'
 include '../../ext/interrupt.pxi'
 include 'fast_digraph.pyx'
+from libc.stdint cimport uint8_t, int8_t
 
 #*****************************************************************************
 #          Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
@@ -189,19 +190,19 @@ def lower_bound(G):
     cdef int n = FD.n
 
     # minimums[i] is means to store the value of c'_{i+1}
-    minimums = <char *> sage_malloc(sizeof(char)* n)
+    minimums = <uint8_t *> sage_malloc(sizeof(uint8_t)* n)
     cdef unsigned int i
 
     # They are initialized to n
     for 0<= i< n:
         minimums[i] = n
 
-    cdef char tmp, tmp_count
+    cdef uint8_t tmp, tmp_count
 
     # We go through all sets
     for 1<= i< <unsigned int> (1<<n):
-        tmp_count = <char> popcount(i)
-        tmp = <char> compute_out_neighborhood_cardinality(FD, i)
+        tmp_count = <uint8_t> popcount(i)
+        tmp = <uint8_t> compute_out_neighborhood_cardinality(FD, i)
 
         # And update the costs
         minimums[tmp_count-1] = minimum(minimums[tmp_count-1], tmp)
@@ -335,12 +336,12 @@ def vertex_separation(G, verbose = False):
     _sig_on
 
     cdef unsigned int mem = 1 << g.n
-    cdef char * neighborhoods = <char *> sage_malloc(mem)
+    cdef int8_t * neighborhoods = <int8_t *> sage_malloc(mem)
 
     if neighborhoods == NULL:
         raise MemoryError("Error allocating memory. I just tried to allocate "+str(mem>>10)+"MB, could that be too much ?")
 
-    memset(neighborhoods, <char> -1, mem)
+    memset(neighborhoods, <int8_t> -1, mem)
 
     cdef int i,j , k
     for 0 <= k <g.n:
@@ -374,7 +375,7 @@ def vertex_separation(G, verbose = False):
 # Check whether an ordering with the given cost exists, and updates data in the
 # neighborhoods array at the same time. See the module's documentation
 
-cdef inline int exists(FastDigraph g, char * neighborhoods, int current, int cost):
+cdef inline int exists(FastDigraph g, int8_t * neighborhoods, int current, int cost):
 
     # If this is true, it means the set has not been evaluated yet
     if neighborhoods[current] < 0:
@@ -415,7 +416,7 @@ cdef inline int exists(FastDigraph g, char * neighborhoods, int current, int cos
     return neighborhoods[current]
 
 # Returns the ordering once we are sure it exists
-cdef list find_order(FastDigraph g, char * neighborhoods, int cost):
+cdef list find_order(FastDigraph g, int8_t * neighborhoods, int cost):
     cdef list ordering = []
     cdef int current = 0
     cdef int n = g.n

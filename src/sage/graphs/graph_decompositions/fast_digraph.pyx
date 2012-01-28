@@ -17,8 +17,10 @@ include '../../ext/stdsage.pxi'
 include '../../ext/cdefs.pxi'
 include '../../ext/interrupt.pxi'
 
+from libc.stdint cimport uint8_t
+
 cdef class FastDigraph:
-    cdef char n
+    cdef uint8_t n
     cdef int * graph
 
     def __cinit__(self, D):

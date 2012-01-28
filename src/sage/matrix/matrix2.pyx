@@ -1008,7 +1008,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.determinant()
             -x^2*y + x*y^2
 
-        TEST::
+        TESTS::
 
             sage: A = matrix(5, 5, [next_prime(i^2) for i in range(25)])
             sage: B = MatrixSpace(ZZ['x'], 5, 5)(A)
@@ -1039,6 +1039,17 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.determinant()
             xbarbarbar*ybarbarbar*zbarbarbar + xbarbarbar*ybarbarbar + xbarbarbar*zbarbarbar + ybarbarbar*zbarbarbar + xbarbarbar + ybarbarbar + zbarbarbar + 1
 
+        Check that the determinant is computed from a cached charpoly
+        properly::
+
+            sage: A = matrix(RR, [ [1, 0, 1/2],
+            ...                    [0, 1, 0  ],
+            ...                    [0, 0, -2 ] ])
+            sage: B = copy(A)
+            sage: _ = A.charpoly()
+            sage: A.determinant() == B.determinant()
+            True
+
         AUTHORS:
 
           - Unknown: No author specified in the file from 2009-06-25
@@ -1059,9 +1070,9 @@ cdef class Matrix(matrix1.Matrix):
             return d
 
         # If charpoly known, then det is easy.
-        D = self.fetch('charpoly')
-        if not D is None:
-            c = D[D.keys()[0]][0]
+        f = self.fetch('charpoly')
+        if f is not None:
+            c = f[0]
             if self._nrows % 2 != 0:
                 c = -c
             d = self._coerce_element(c)
@@ -1410,10 +1421,10 @@ cdef class Matrix(matrix1.Matrix):
             sage: u.charpoly('x')
             x^3 - c*x^2 - b*x - a
 
-        We shouldn't cache a dictionary until we successfully compute
-        the characteristic polynomial, per trac #6442. The call to
-        A.det() below will attempt to use the cached charpoly, and
-        crash if an empty dictionary is cached::
+        A test case from :trac:`6442`. Prior to :trac:`12292`, the
+        call to ``A.det()`` would attempt to use the cached charpoly,
+        and crash if an empty dictionary was cached. We don't cache
+        dictionaries anymore, but this test should still pass::
 
             sage: z = Zp(p=5)
             sage: A = matrix(z, [ [3 + O(5^1), 4 + O(5^1), 4 + O(5^1)],
@@ -1426,18 +1437,33 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.det()
             3 + O(5)
 
+        The cached polynomial should be independent of the ``var``
+        argument (:trac:`12292`). We check (indirectly) that the
+        second call uses the cached value by noting that its result is
+        not cached::
+
+            sage: M = MatrixSpace(RR, 2)
+            sage: A = M(range(0, 2^2))
+            sage: type(A)
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            sage: A.charpoly('x')
+            x^2 - 3.00000000000000*x - 2.00000000000000
+            sage: A.charpoly('y')
+            y^2 - 3.00000000000000*y - 2.00000000000000
+            sage: A._cache['charpoly']
+            x^2 - 3.00000000000000*x - 2.00000000000000
+
         AUTHORS:
 
         - Unknown: No author specified in the file from 2009-06-25
         - Sebastian Pancratz (2009-06-25): Include the division-free algorithm
         """
 
-        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+        f = self.fetch('charpoly')
+        if f is not None:
+            return f.change_variable_name(var)
 
-        D = self.fetch('charpoly')
-        if not D is None:
-            if D.has_key(var):
-                return D[var]
+        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
         if algorithm is None:
             R = self._base_ring
@@ -1455,16 +1481,8 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 f = self._charpoly_df(var)
 
-        # If we don't yet have a cache dictionary, create one and
-        # store it. It is important that we do this only after the
-        # charpoly computation has completed successfully; otherwise,
-        # we can leave an empty dictionary in the cache (trac #6442).
-        if D is None:
-            D = {}
-            self.cache('charpoly',D)
-
         # Cache the result, and return it.
-        D[var] = f
+        self.cache('charpoly', f)
         return f
 
     def _charpoly_df(self, var = 'x'):

@@ -1407,7 +1407,32 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
 
         ALGORITHM: Uses LinBox if ``self.base_ring()`` is a field,
         otherwise use Hessenberg form algorithm.
+
+        TESTS:
+
+        The cached polynomial should be independent of the ``var``
+        argument (:trac:`12292`). We check (indirectly) that the
+        second call uses the cached value by noting that its result is
+        not cached. The polynomial here is not unique, so we only
+        check the polynomial's variable.
+
+            sage: M = MatrixSpace(Integers(37), 2)
+            sage: A = M(range(0, 2^2))
+            sage: type(A)
+            <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
+            sage: A.charpoly('x').variables()
+            (x,)
+            sage: A.charpoly('y').variables()
+            (y,)
+            sage: A._cache['charpoly_linbox'].variables()
+            (x,)
+
         """
+        cache_key = 'charpoly_%s' % algorithm
+        g = self.fetch(cache_key)
+        if g is not None:
+            return g.change_variable_name(var)
+
         if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
             algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
 
@@ -1422,8 +1447,10 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
                 raise ArithmeticError("Characteristic polynomials do not match.")
         else:
             raise ValueError, "no algorithm '%s'"%algorithm
-        self.cache('charpoly_%s_%s'%(algorithm, var), g)
+
+        self.cache(cache_key, g)
         return g
+
 
     def minpoly(self, var='x', algorithm='linbox', proof=None):
         """

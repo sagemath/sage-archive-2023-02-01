@@ -926,10 +926,30 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [0 0 0]
             [0 0 0]
             [0 0 0]
+
+        TESTS:
+
+        The cached polynomial should be independent of the ``var``
+        argument (:trac:`12292`). We check (indirectly) that the
+        second call uses the cached value by noting that its result is
+        not cached::
+
+            sage: M = MatrixSpace(QQ, 2)
+            sage: A = M(range(0, 2^2))
+            sage: type(A)
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            sage: A.charpoly('x')
+            x^2 - 3*x - 2
+            sage: A.charpoly('y')
+            y^2 - 3*y - 2
+            sage: A._cache['charpoly_linbox']
+            x^2 - 3*x - 2
+
         """
-        key = 'charpoly_%s_%s'%(algorithm, var)
-        x = self.fetch(key)
-        if x: return x
+        cache_key = 'charpoly_%s' % algorithm
+        g = self.fetch(cache_key)
+        if g is not None:
+            return g.change_variable_name(var)
 
         if algorithm == 'linbox':
             A, denom = self._clear_denom()
@@ -941,7 +961,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
 
-        self.cache(key, g)
+        self.cache(cache_key, g)
         return g
 
     def minpoly(self, var='x', algorithm='linbox'):

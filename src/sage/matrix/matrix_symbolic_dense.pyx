@@ -396,14 +396,38 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         """
         Compute the characteristic polynomial of self, using maxima.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = matrix(SR, 2, 2, var('a,b,c,d'))
             sage: M.charpoly('t')
             t^2 + (-a - d)*t + a*d - b*c
             sage: matrix(SR, 5, [1..5^2]).charpoly()
             x^5 - 65*x^4 - 250*x^3
 
+        TESTS:
+
+        The cached polynomial should be independent of the ``var``
+        argument (:trac:`12292`). We check (indirectly) that the
+        second call uses the cached value by noting that its result is
+        not cached::
+
+            sage: M = MatrixSpace(SR, 2)
+            sage: A = M(range(0, 2^2))
+            sage: type(A)
+            <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
+            sage: A.charpoly('x')
+            x^2 - 3*x - 2
+            sage: A.charpoly('y')
+            y^2 - 3*y - 2
+            sage: A._cache['charpoly']
+            x^2 - 3*x - 2
+
         """
+        cache_key = 'charpoly'
+        cp = self.fetch(cache_key)
+        if cp is not None:
+            return cp.change_variable_name(var)
+
         from sage.symbolic.ring import SR
         # Maxima has the definition det(matrix-xI) instead of
         # det(xI-matrix), which is what Sage uses elsewhere.  We
@@ -412,6 +436,8 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         cp = cp.expand().polynomial(None, ring=SR[var])
         if self.nrows() % 2 == 1:
             cp = -cp
+
+        self.cache(cache_key, cp)
         return cp
 
     def fcp(self, var='x'):

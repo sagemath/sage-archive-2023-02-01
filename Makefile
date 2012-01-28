@@ -139,16 +139,20 @@ ptestoptionallong: ptestalllong # just an alias
 install:
 	echo "Experimental use only!"
 	if [ "$(DESTDIR)" = "" ]; then \
-		echo "Set DESTDIR"; \
+		echo >&2 "Set the environment variable DESTDIR to the install path."; \
 		exit 1; \
 	fi
-	mkdir -p $(DESTDIR)
-	mkdir -p $(DESTDIR)/sage
-	mkdir -p $(DESTDIR)/bin/
-	cp -rpv * $(DESTDIR)/sage/
-	python local/bin/sage-hardcode_sage_root $(DESTDIR)/sage/sage "$(DESTDIR)"/sage
-	cp $(DESTDIR)/sage/sage $(DESTDIR)/bin/
-	cd $(DESTDIR)/bin/; ./sage -c
+	# Make sure we remove only an existing directory. If $(DESTDIR)/sage is
+	# a file instead of a directory then the mkdir statement later will fail
+	if [ -d "$(DESTDIR)"/sage ]; then \
+		rm -rf "$(DESTDIR)"/sage; \
+	fi
+	mkdir -p "$(DESTDIR)"/sage
+	mkdir -p "$(DESTDIR)"/bin
+	cp -Rp * "$(DESTDIR)"/sage
+	rm -f "$(DESTDIR)"/bin/sage
+	ln -s ../sage/sage "$(DESTDIR)"/bin/sage
+	"$(DESTDIR)"/bin/sage -c # Run sage-location
 
 
 .PHONY: all build build-serial start install \

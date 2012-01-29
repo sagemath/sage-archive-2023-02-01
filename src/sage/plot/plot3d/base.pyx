@@ -479,7 +479,7 @@ cdef class Graphics3d(SageObject):
             ...
             Texdef texture...
               Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 1
-               Color 1.0 0.0 0.0
+               Color 1.0 1.0 0.0
                TexFunc 0
             TRI V0 ...
             Sphere center 1.0 -2.0 3.0 Rad 0.5 texture...
@@ -521,7 +521,7 @@ resolution 400 400
     %s
 
 end_scene""" % (render_params.antialiasing,
-               "\n".join([t.tachyon_str() for t in self.texture_set()]),
+               "\n".join(sorted([t.tachyon_str() for t in self.texture_set()])),
                "\n".join(flatten_list(self.tachyon_repr(render_params))))
 
     def obj(self):
@@ -793,7 +793,7 @@ end_scene""" % (render_params.antialiasing,
             Ns 1
             d 0.500000000000000
         """
-        return "\n\n".join([t.mtl_str() for t in self.texture_set()]) + "\n"
+        return "\n\n".join(sorted([t.mtl_str() for t in self.texture_set()])) + "\n"
 
     def flatten(self):
         """

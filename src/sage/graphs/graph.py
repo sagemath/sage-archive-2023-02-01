@@ -1082,9 +1082,12 @@ class Graph(GenericGraph):
                         positions.append(tuple(NZ))
                     L = uniq(c.list())
                     L.sort()
-                    desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
-                    if data.nrows() == len(desirable) - 1:
-                        desirable = filter(lambda i: i != 0, desirable)
+
+                    if data.nrows() != len(desirable) - 1:
+                        desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
+                    else:
+                        desirable = [-1, 1] if len(NZ) == 2 else [1]
+
                     if L != desirable:
                         msg += "Each column represents an edge: -1 goes to 1."
                         assert False

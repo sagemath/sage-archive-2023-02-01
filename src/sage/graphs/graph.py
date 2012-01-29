@@ -2382,11 +2382,11 @@ class Graph(GenericGraph):
             method is inefficient in terms of speed and it only useful for
             small graphs.
 
-          - If ``algorithm="MILP"``, the chromatic number is computed
-            using a mixed integer linear program. This method requires
-            you to install an optional Sage package like GLPK or
-            COIN-OR's CBC. Of the methods "DLX", "CP", and "MILP", the last
-            method is the fastest method of the three.
+          - If ``algorithm="MILP"``, the chromatic number is computed using a
+            mixed integer linear program. The performance of this implementation
+            is affected by whether optional MILP solvers have been installed
+            (see the :mod:`MILP module <sage.numerical.mip>`, or Sage's tutorial
+            on Linear Programming).
 
         .. SEEALSO::
 
@@ -2439,12 +2439,13 @@ class Graph(GenericGraph):
         - ``algorithm`` -- Select an algorithm from the following supported
           algorithms:
 
-          - If ``algorithm="DLX"`` (default), the chromatic number is computed
-            using the dancing link algorithm.
+          - If ``algorithm="DLX"`` (default), the coloring is computed using the
+            dancing link algorithm.
 
-          - If ``algorithm="MILP"``, the chromatic number is computed using
-            a mixed integer linear program. This algorithm requires you to
-            install an optional Sage package like GLPK or COIN-OR's CBC.
+          - If ``algorithm="MILP"``, the coloring is computed using a mixed
+            integer linear program. The performance of this implementation is
+            affected by whether optional MILP solvers have been installed (see
+            the :mod:`MILP module <sage.numerical.mip>`).
 
         - ``hex_colors`` -- (default: ``False``) if ``True``, return a
           dictionary which can easily be used for plotting.

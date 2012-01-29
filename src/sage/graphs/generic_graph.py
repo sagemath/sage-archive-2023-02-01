@@ -4561,7 +4561,7 @@ class GenericGraph(GenericGraph_pyx):
             using the Cliquer package.
 
           - ``"MILP"`` will compute a minimum vertex cover through a mixed
-            integer linear program (requires packages GLPK or CBC).
+            integer linear program.
 
         - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
           only the size of a minimum vertex cover is returned. Otherwise,

@@ -74,14 +74,50 @@ cdef inline int compute_out_neighborhood_cardinality(FastDigraph g, int S):
         tmp |= g.graph[i] * ((S >> i)&1)
 
     tmp &= (~S)
-    return popcount(tmp)
+    return popcount32(tmp)
+
+cdef inline int popcount32(int i):
+   """
+   Returns the number of '1' bits in a 32-bits integer.
+
+   If sizeof(int) > 4, this function only returns the number of '1'
+   bits in (i & ((1<<32) - 1)).
+   """
+   i = i - ((i >> 1) & 0x55555555);
+   i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+   return ((i + (i >> 4) & 0x0F0F0F0F) * 0x01010101) >> 24;
 
 
-cdef extern from *:
-    int __builtin_popcount(unsigned int)
+# If you happened to be doubting the consistency of the popcount32 function
+# above, you can give the following doctest a try. It is not tested
+# automatically by Sage as it takes a *LONG* time to run (around 5 minutes), but
+# it would report any problem if it finds one.
 
-cdef inline int popcount(int i):
-    #return __builtin_popcount(i)
-    i = i - ((i >> 1) & 0x55555555);
-    i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-    return ((i + (i >> 4) & 0x0F0F0F0F) * 0x01010101) >> 24;
+def test_popcount():
+   """
+   Correction test for popcount32.
+
+   EXAMPLE::
+
+       sage: from sage.graphs.graph_decompositions.vertex_separation import test_popcount
+       sage: test_popcount() # not tested
+   """
+   cdef int i = 1
+   # While the last 32 bits of i are not equal to 0
+   while (i & ((1<<32) - 1)) :
+       if popcount32(i) != slow_popcount32(i):
+           print "Error for i = ", str(i)
+           print "Result with popcount32 : "+str(popcount32(i))
+           print "Result with slow_popcount32 : "+str(slow_popcount32(i))
+       i += 1
+
+
+cdef inline int slow_popcount32(int i):
+   # Slow popcount for 32bits integers
+   cdef int j = 0
+   cdef int k
+
+   for k in range(32):
+       j += (i>>k) & 1
+
+   return j

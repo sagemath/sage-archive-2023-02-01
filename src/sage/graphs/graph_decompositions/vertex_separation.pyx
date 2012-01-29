@@ -201,7 +201,7 @@ def lower_bound(G):
 
     # We go through all sets
     for 1<= i< <unsigned int> (1<<n):
-        tmp_count = <uint8_t> popcount(i)
+        tmp_count = <uint8_t> popcount32(i)
         tmp = <uint8_t> compute_out_neighborhood_cardinality(FD, i)
 
         # And update the costs

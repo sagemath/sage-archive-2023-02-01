@@ -20,7 +20,7 @@ requested file at the right line number, can be supplied via a
 template. For a limited number of editors, templates are already known
 to the system. In those cases it suffices to give the editor name.
 
-In fact, if the environment variable EDITOR is set to a known editor,
+In fact, if the environment variable :envvar:`EDITOR` is set to a known editor,
 then the system will use that if no template has been set explicitly.
 """
 
@@ -159,7 +159,7 @@ def set_edit_template(template_string):
 
    It should reference ``${file}`` and ``${line}``. This routine normally
    needs to be called prior to using 'edit'. However, if the editor
-   set in the shell variable EDITOR is known, then the system will
+   set in the shell variable :envvar:`EDITOR` is known, then the system will
    substitute an appropriate template for you. See
    edit_module.template_defaults for the recognised templates.
 
@@ -248,7 +248,7 @@ def edit(obj, editor=None, bg=None):
       sage: m.edit_template.template
       'vi -c ${line} ${file}'
 
-   And if your environment variable EDITOR is set to a recognised
+   And if your environment variable :envvar:`EDITOR` is set to a recognised
    editor, you would not have to set anything.
 
    To edit the source of an object, just type something like::
@@ -299,7 +299,7 @@ def edit_devel(self, filename, linenum):
         sage: %ed gcd           # indirect doctest, not tested
 
     The above should open your favorite editor (as stored in the environment
-    variable $EDITOR) with the file in which gcd is defined, and when your
+    variable :envvar:`EDITOR`) with the file in which gcd is defined, and when your
     editor supports it, also at the line in wich gcd is defined.
     """
     sageroot = sage.misc.sageinspect.SAGE_ROOT+'/'

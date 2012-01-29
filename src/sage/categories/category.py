@@ -467,9 +467,9 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Rings().__repr_object_names
+            sage: Rings()._Category__repr_object_names
             'rings'
-            sage: PrincipalIdealDomains().__repr_object_names
+            sage: PrincipalIdealDomains()._Category__repr_object_names
             'principal ideal domains'
 
             sage: Rings()

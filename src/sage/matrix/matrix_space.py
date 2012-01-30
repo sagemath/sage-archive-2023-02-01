@@ -533,7 +533,10 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                                 e[(j,i)] = x
                 entries = e
             else:
-                entries = sum([v.list() for v in entries],[])
+                tmp=[]
+                for v in entries:
+                    tmp.extend(v)
+                entries = tmp
 
         if rows is None:
             rows = True
@@ -1333,16 +1336,12 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                     raise ValueError("a matrix from %s cannot be converted to "
                                      "a matrix in %s!" % (x.parent(), self))
         if isinstance(x, list) and len(x) > 0:
-            if isinstance(x[0], list):
-                x = sum(x,[])
-            elif hasattr(x[0], "is_vector"): # TODO: is this the best way to test that?
+            if isinstance(x[0], (list,tuple)) or hasattr(x[0], "is_vector"):# TODO: is this the best way to test is_vector?
                 e = []
                 for v in x:
-                    e = e + v.list()
-                copy = False # deep copy?
+                    e.extend(v)
                 x = e
-            elif isinstance(x[0], tuple):
-                x = list(sum(x,()))
+
 
             if not rows:
                 new_x = []

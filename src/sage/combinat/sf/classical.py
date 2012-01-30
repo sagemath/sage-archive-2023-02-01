@@ -93,6 +93,11 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             2*s[]
             sage: s([2,1]) # indirect doctest
             s[2, 1]
+
+            sage: McdJ = MacdonaldPolynomialsJ(QQ)
+            sage: s = SymmetricFunctions(McdJ.base_ring()).s()
+            sage: s._element_constructor(McdJ(s[2,1]))
+            s[2, 1]
         """
         R = self.base_ring()
 
@@ -220,12 +225,12 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         elif isinstance(x, macdonald.MacdonaldPolynomials_generic.Element):
             if isinstance(x, macdonald.MacdonaldPolynomials_j.Element):
                 J = x.parent()
-                sx = J._s._from_cache(x, J._s_cache, J._j_to_s_cache, q=J.q, t=J.t)
+                sx = J._s._from_cache(x, J._s_cache, J._self_to_s_cache, q=J.q, t=J.t)
                 return self(sx)
             elif isinstance(x, (macdonald.MacdonaldPolynomials_q.Element, macdonald.MacdonaldPolynomials_p.Element)):
                 J = x.parent()._J
                 jx = J(x)
-                sx = J._s._from_cache(jx, J._s_cache, J._j_to_s_cache, q=J.q, t=J.t)
+                sx = J._s._from_cache(jx, J._s_cache, J._self_to_s_cache, q=J.q, t=J.t)
                 return self(sx)
             elif isinstance(x, (macdonald.MacdonaldPolynomials_h.Element,macdonald.MacdonaldPolynomials_ht.Element)):
                 H = x.parent()

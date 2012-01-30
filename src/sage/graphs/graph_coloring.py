@@ -336,7 +336,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
         #   color class is at most alpha(G)
         # - max, because we know it is not bipartite
         from math import ceil
-        k = max([3, g.clique_number(),ceil(g.order()/len(g.independent_set()))])
+        k = int(max([3, g.clique_number(),ceil(g.order()/len(g.independent_set()))]))
 
         while True:
             # tries to color the graph, increasing k each time it fails.

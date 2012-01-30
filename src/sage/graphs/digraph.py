@@ -1794,27 +1794,28 @@ class DiGraph(GenericGraph):
         queue = [[vertex]]
         while queue:
             path = queue.pop(0)     # get a path
-            cycle = False
-            if simple and path.count(path[-1]) > 1:
-                # We found a path which has formed a cycle, and simple=True, so
-                # we don't want to extend this path, and we don't want to yield
-                # it unless it IS a cycle (beginning = end). See trac #12385.
-                if path[0] == path[-1]:
-                    cycle = True
-                else:
-                    continue
+
             if path[-1] in ending_vertices and (trivial or len(path) > 1):
                 yield path      # yield good path
 
-            if cycle:
-                # We only yielded this path because it was a cycle; it should
-                # not be extended.
-                continue
-
             # Build next generation of paths, one arc longer
             if len(path) <= max_length:
+
+                # We try all possible extensions
                 for neighbor in self.neighbor_out_iterator(path[-1]):
-                    queue.append(path + [neighbor])
+                    if simple:
+                        # We only keep simple extensions. One exception : when
+                        # we have found a simple cycle. In this case, we return
+                        # it immediately.
+                        if neighbor in path:
+                            if neighbor == path[0] and neighbor in ending_vertices:
+                                yield path + [neighbor]
+                        else:
+                            queue.append(path + [neighbor])
+
+                    else:
+                        # Non-simple paths : we add all of them
+                        queue.append(path + [neighbor])
 
     def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
                            simple=False, max_length=None, trivial=False):

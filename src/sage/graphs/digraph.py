@@ -1701,18 +1701,18 @@ class DiGraph(GenericGraph):
         INPUT:
 
         -  ``vertex`` - the starting vertex of the paths.
-        -  ``ending_vertices`` - iterable (default: None) on
-           the allowed ending vertices of the paths. If None,
-           then all vertices are allowed.
-        -  ``simple`` - boolean (default: False). If set to True,
-           then only simple paths are considered. A path is simple
-           if no vertex occurs twice in it except possibly the first
-           and last ones.
-        -  ``max_length`` - non negative integer (default: None).
-           The maximum length of the enumerated paths. If set to None,
-           then all lengths are allowed.
-        -  ``trivial`` - boolean (default: False). If set to True,
-           then the empty paths are also enumerated.
+        -  ``ending_vertices`` - iterable (default: None) on the allowed
+           ending vertices of the paths. If None, then all vertices are
+           allowed.
+        -  ``simple`` - boolean (default: False). If set to True, then
+           only simple paths are considered. A path is simple if no
+           vertex occurs twice in it except possibly the first and last
+           ones.
+        -  ``max_length`` - non negative integer (default: None). The
+           maximum length of the enumerated paths. If set to None, then
+           all lengths are allowed.
+        -  ``trivial`` - boolean (default: False). If set to True, then
+           the empty paths are also enumerated.
 
         OUTPUT:
 
@@ -1739,13 +1739,14 @@ class DiGraph(GenericGraph):
             ['b', 'c', 'd', 'c', 'd']
             ['b', 'c', 'd', 'c', 'd', 'c']
 
-        One may wish to enumerate simple paths, i.e. paths such that no vertex
-        occurs twice in it except possibly the first and last one. The result
-        is always finite but may be long to be computed::
+        One may wish to enumerate simple paths, i.e. paths such that no
+        vertex occurs twice in it except possibly the first and last
+        one. The result is always finite but may be long to be
+        computed::
 
             sage: pi = g._all_paths_iterator('a', simple=True)
             sage: list(pi)
-            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd', 'c']]
+            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
             sage: pi = g._all_paths_iterator('d', simple=True)
             sage: list(pi)
             [['d', 'c'], ['d', 'c', 'd']]
@@ -1777,24 +1778,41 @@ class DiGraph(GenericGraph):
 
             sage: pi = g._all_paths_iterator('a', max_length=3, trivial=True)
             sage: list(pi)
-            [['a'], ['a', 'a'], ['a', 'b'], ['a', 'a', 'a'], ['a', 'a', 'b'], ['a', 'b', 'c'], ['a', 'a', 'a', 'a'], ['a', 'a', 'a', 'b'], ['a', 'a', 'b', 'c'], ['a', 'b', 'c', 'd']]
+            [['a'], ['a', 'a'], ['a', 'b'], ['a', 'a', 'a'], ['a', 'a', 'b'],
+             ['a', 'b', 'c'], ['a', 'a', 'a', 'a'], ['a', 'a', 'a', 'b'],
+             ['a', 'a', 'b', 'c'], ['a', 'b', 'c', 'd']]
         """
         if ending_vertices is None:
             ending_vertices = self
-        # First enumerate the empty path
-        if trivial:
-            yield [vertex]
-        queue = [[vertex]]
         if max_length is None:
             from sage.rings.infinity import Infinity
             max_length = Infinity
+        if max_length < 1:
+            return
+
+        # Start with the empty path; we will try all extensions of it
+        queue = [[vertex]]
         while queue:
-            path = queue.pop(0)
-            if len(path) > 1 and path[-1] in ending_vertices:
-                yield path
-            # Makes sure that the current path is not too long
-            # and checks that the path is simple
-            if len(path) <= max_length and (not simple or path.count(path[-1]) == 1):
+            path = queue.pop(0)     # get a path
+            cycle = False
+            if simple and path.count(path[-1]) > 1:
+                # We found a path which has formed a cycle, and simple=True, so
+                # we don't want to extend this path, and we don't want to yield
+                # it unless it IS a cycle (beginning = end). See trac #12385.
+                if path[0] == path[-1]:
+                    cycle = True
+                else:
+                    continue
+            if path[-1] in ending_vertices and (trivial or len(path) > 1):
+                yield path      # yield good path
+
+            if cycle:
+                # We only yielded this path because it was a cycle; it should
+                # not be extended.
+                continue
+
+            # Build next generation of paths, one arc longer
+            if len(path) <= max_length:
                 for neighbor in self.neighbor_out_iterator(path[-1]):
                     queue.append(path + [neighbor])
 
@@ -1865,23 +1883,37 @@ class DiGraph(GenericGraph):
 
             sage: pi = g.all_paths_iterator(simple=True)
             sage: list(pi)
-            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd'], ['a', 'b', 'c', 'd'], ['b', 'c', 'd', 'c'], ['a', 'b', 'c', 'd', 'c']]
+            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'],
+             ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'],
+             ['d', 'c', 'd'], ['a', 'b', 'c', 'd']]
 
         Or simply bound the length of the enumerated paths::
 
             sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['b', 'c'], max_length=6)
             sage: list(pi)
-            [['a', 'b'], ['a', 'a', 'b'], ['a', 'b', 'c'], ['a', 'a', 'a', 'b'], ['a', 'a', 'b', 'c'], ['a', 'a', 'a', 'a', 'b'], ['a', 'a', 'a', 'b', 'c'], ['a', 'b', 'c', 'd', 'c'], ['a', 'a', 'a', 'a', 'a', 'b'], ['a', 'a', 'a', 'a', 'b', 'c'], ['a', 'a', 'b', 'c', 'd', 'c'], ['a', 'a', 'a', 'a', 'a', 'a', 'b'], ['a', 'a', 'a', 'a', 'a', 'b', 'c'], ['a', 'a', 'a', 'b', 'c', 'd', 'c'], ['a', 'b', 'c', 'd', 'c', 'd', 'c']]
+            [['a', 'b'], ['a', 'a', 'b'], ['a', 'b', 'c'],
+             ['a', 'a', 'a', 'b'], ['a', 'a', 'b', 'c'],
+             ['a', 'a', 'a', 'a', 'b'], ['a', 'a', 'a', 'b', 'c'],
+             ['a', 'b', 'c', 'd', 'c'], ['a', 'a', 'a', 'a', 'a', 'b'],
+             ['a', 'a', 'a', 'a', 'b', 'c'], ['a', 'a', 'b', 'c', 'd', 'c'],
+             ['a', 'a', 'a', 'a', 'a', 'a', 'b'],
+             ['a', 'a', 'a', 'a', 'a', 'b', 'c'],
+             ['a', 'a', 'a', 'b', 'c', 'd', 'c'],
+             ['a', 'b', 'c', 'd', 'c', 'd', 'c']]
 
         By default, empty paths are not enumerated, but it may be
         parametrized::
 
             sage: pi = g.all_paths_iterator(simple=True, trivial=True)
             sage: list(pi)
-            [['a'], ['b'], ['c'], ['d'], ['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd'], ['a', 'b', 'c', 'd'], ['b', 'c', 'd', 'c'], ['a', 'b', 'c', 'd', 'c']]
+            [['a'], ['b'], ['c'], ['d'], ['a', 'a'], ['a', 'b'], ['b', 'c'],
+             ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'],
+             ['c', 'd', 'c'], ['d', 'c', 'd'], ['a', 'b', 'c', 'd']]
             sage: pi = g.all_paths_iterator(simple=True, trivial=False)
             sage: list(pi)
-            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd'], ['a', 'b', 'c', 'd'], ['b', 'c', 'd', 'c'], ['a', 'b', 'c', 'd', 'c']]
+            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'],
+             ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'],
+             ['d', 'c', 'd'], ['a', 'b', 'c', 'd']]
         """
         if starting_vertices is None:
             starting_vertices = self
@@ -1947,30 +1979,35 @@ class DiGraph(GenericGraph):
 
             sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
             sage: g.all_simple_paths()
-            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd'], ['a', 'b', 'c', 'd'], ['b', 'c', 'd', 'c'], ['a', 'b', 'c', 'd', 'c']]
+            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'],
+             ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'],
+             ['d', 'c', 'd'], ['a', 'b', 'c', 'd']]
 
         One may compute all paths having specific starting and/or
         ending vertices::
 
             sage: g.all_simple_paths(starting_vertices=['a'])
-            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd', 'c']]
+            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
             sage: g.all_simple_paths(starting_vertices=['a'], ending_vertices=['c'])
-            [['a', 'b', 'c'], ['a', 'b', 'c', 'd', 'c']]
+            [['a', 'b', 'c']]
             sage: g.all_simple_paths(starting_vertices=['a'], ending_vertices=['b', 'c'])
-            [['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd', 'c']]
+            [['a', 'b'], ['a', 'b', 'c']]
 
         It is also possible to bound the length of the paths::
 
             sage: g.all_simple_paths(max_length=2)
-            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'], ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'], ['d', 'c', 'd']]
+            [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'],
+             ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'],
+             ['d', 'c', 'd']]
 
         By default, empty paths are not enumerated, but this can
         be parametrized::
 
             sage: g.all_simple_paths(starting_vertices=['a'], trivial=True)
-            [['a'], ['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd', 'c']]
+            [['a'], ['a', 'a'], ['a', 'b'], ['a', 'b', 'c'],
+             ['a', 'b', 'c', 'd']]
             sage: g.all_simple_paths(starting_vertices=['a'], trivial=False)
-            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd', 'c']]
+            [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
         """
         return list(self.all_paths_iterator(starting_vertices=starting_vertices, ending_vertices=ending_vertices, simple=True, max_length=max_length, trivial=trivial))
 

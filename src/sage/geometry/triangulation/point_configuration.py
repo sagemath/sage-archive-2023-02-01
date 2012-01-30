@@ -1640,7 +1640,11 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         # construct the graph
         from sage.graphs.graph import Graph
-        G = Graph(sparse=False)
+
+        # Was set to sparse = False, but there is a problem with Graph
+        # backends. It should probably be set back to sparse = False as soon as
+        # the backends are fixed.
+        G = Graph(sparse=True)
         for i in range(0,len(v_list)):
             for j in range(i+1,len(v_list)):
                 v_i = v_list[i]

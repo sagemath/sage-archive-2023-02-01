@@ -3513,10 +3513,7 @@ class Partitions_n(CombinatorialClass):
           - ``'gap'`` - use GAP (VERY *slow*)
 
           - ``'pari'`` - use PARI. Speed seems the same as GAP until
-            `n` is in the thousands, in which case PARI is
-            faster. *But* PARI has a bug, e.g., on 64-bit Linux
-            PARI-2.3.2 outputs numbpart(147007)%1000 as 536, but it
-            should be 533!.  So do not use this option.
+            `n` is in the thousands, in which case PARI is faster.
 
           - ``'default'`` - ``'bober'`` when k is not specified;
             otherwise use ``'gap'``.

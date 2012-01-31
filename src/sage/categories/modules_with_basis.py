@@ -410,6 +410,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 sage: A = C.example(); A.rename("A")
                 sage: A.tensor(A,A)
                 A # A # A
+                sage: A.rename(None)
             """
             return parents[0].Tensor(parents, category = tensor.category_from_parents(parents))
 

@@ -8,6 +8,7 @@ AUTHORS:
 - Robert L. Miller (2006)
 - Emily A. Kirkman (2006)
 - Michael C. Yurko (2009)
+- David Coudert    (2012)
 """
 
 ################################################################################
@@ -681,41 +682,60 @@ class DiGraphGenerators():
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 
-    def RandomDirectedGNP(self, n, p):
+    def RandomDirectedGNP(self, n, p, loops = False, fast = False, seed = None):
         r"""
-        Returns a random digraph on `n` nodes. Each edge is
-        inserted independently with probability `p`.
+        Returns a random digraph on `n` nodes. Each edge is inserted
+        independently with probability `p`.
+
+        INPUTS:
+
+        - ``n`` -- number of nodes of the digraph
+
+        - ``p`` -- probability of an edge
+
+        - ``loops`` -- is a boolean set to True if the random digraph may have
+          loops, and False (default) otherwise.
+
+        - ``fast`` -- boolean set to True to use the algorithm with time
+          complexity in `O(n+m)` proposed in [3]_. It is designed for generating
+          large sparse digraphs, and faster than other methods only faster for
+          *LARGE* instances (try it to know whether it is useful for you).
+
+        - ``seed`` -- integer seed for random number generator (default=None).
 
         REFERENCES:
 
-        - [1] P. Erdos and A. Renyi, On Random Graphs, Publ.  Math. 6,
-          290 (1959).
+        .. [1] P. Erdos and A. Renyi, On Random Graphs, Publ.  Math. 6, 290
+               (1959).
 
-        - [2] E. N. Gilbert, Random Graphs, Ann. Math.  Stat., 30,
-          1141 (1959).
+        .. [2] E. N. Gilbert, Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
 
-        PLOTTING: When plotting, this graph will use the default
-        spring-layout algorithm, unless a position dictionary is
-        specified.
+        .. [3] V. Batagelj and U. Brandes. Efficient generation of large
+               random networks. Phys. Rev. E, 71, 036113, 2005.
+
+        PLOTTING: When plotting, this graph will use the default spring-layout
+        algorithm, unless a position dictionary is specified.
 
         EXAMPLE::
 
+            sage: set_random_seed(0)
             sage: D = digraphs.RandomDirectedGNP(10, .2)
             sage: D.num_verts()
             10
             sage: D.edges(labels=False)
-            [(0, 1), (0, 3), (0, 6), (0, 8), (1, 4), (3, 7), (4, 1), (4, 8), (5, 2), (5, 6), (5, 8), (6, 4), (7, 6), (8, 4), (8, 5), (8, 7), (8, 9), (9, 3), (9, 4), (9, 6)]
+            [(1, 0), (1, 2), (3, 6), (3, 7), (4, 5), (4, 7), (4, 8), (5, 2), (6, 0), (7, 2), (8, 1), (8, 9), (9, 4)]
         """
-        from sage.misc.prandom import random
-        D = DiGraph(n)
-        for i in xrange(n):
-            for j in xrange(i):
-                if random() < p:
-                    D.add_edge(i,j)
-            for j in xrange(i+1,n):
-                if random() < p:
-                    D.add_edge(i,j)
-        return D
+        from sage.graphs.graph_generators_pyx import RandomGNP
+        if n < 0:
+            raise ValueError("The number of nodes must be positive or null.")
+        if 0.0 > p or 1.0 < p:
+            raise ValueError("The probability p must be in [0..1].")
+
+        if seed is None:
+            seed = current_randstate().long_seed()
+
+        return RandomGNP(n, p, directed = True, loops = loops, fast = fast)
+
 
     def RandomDirectedGNM(self, n, m, loops = False):
         r"""

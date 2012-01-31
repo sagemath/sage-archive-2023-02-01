@@ -338,6 +338,9 @@ ext_modules = [
               sources = ['sage/graphs/generic_graph_pyx.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.graphs.graph_generators_pyx',
+                            sources = ['sage/graphs/graph_generators_pyx.pyx']),
+
     Extension('sage.graphs.distances_all_pairs',
               sources = ['sage/graphs/distances_all_pairs.pyx']),
 

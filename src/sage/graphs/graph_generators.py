@@ -225,6 +225,7 @@ AUTHORS:
 
 - Keshav Kini (2011-02-16): added Shrikhande and Dyck graphs
 
+- David Coudert (2012-02-10): new RandomGNP generator
 """
 
 ###########################################################################
@@ -5023,30 +5024,46 @@ class GraphGenerators():
 #   Random Graphs
 ################################################################################
 
-    def RandomGNP(self, n, p, seed=None, fast=True):
+    def RandomGNP(self, n, p, seed=None, fast=True, method='networkx'):
         r"""
-        Returns a Random graph on `n` nodes. Each edge is inserted
-        independently with probability `p`.
+        Returns a Random graph on `n` nodes. Each edge is inserted independently
+        with probability `p`.
 
-        IMPLEMENTATION: This function calls the NetworkX function
-        ``fast_gnp_random_graph``, unless fast==False, then
-        ``gnp_random_graph``.
+        INPUTS:
+
+        - ``n`` -- number of nodes of the digraph
+
+        - ``p`` -- probability of an edge
+
+        - ``seed`` -- integer seed for random number generator (default=None).
+
+        - ``fast`` -- boolean set to True to use the algorithm with time
+          complexity in `O(n+m)` proposed in [3]_. It is designed for generating
+          large sparse digraphs, and faster than other methods only faster for
+          *LARGE* instances (try it to know whether it is useful for you).
+
+        - ``method`` -- By default (```method='networkx'``), this function calls
+          the NetworkX function ``gnp_random_graph``, unless ``fast=True``, then
+          ``fast_gnp_random_graph``. When ``method='sage'``, it uses the method
+          implemented in ```sage.graphs.graph_generators_pyx.pyx``. Try it to
+          know whether it is useful for you.
 
         REFERENCES:
 
-        - [1] P. Erdos and A. Renyi, On Random Graphs, Publ.
-          Math. 6, 290 (1959).
+        .. [1] P. Erdos and A. Renyi. On Random Graphs, Publ.  Math. 6, 290 (1959).
 
-        - [2] E. N. Gilbert, Random Graphs, Ann. Math.
-          Stat., 30, 1141 (1959).
+        .. [2] E. N. Gilbert. Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
 
-        PLOTTING: When plotting, this graph will use the default
-        spring-layout algorithm, unless a position dictionary is
-        specified.
+        .. [3] V. Batagelj and U. Brandes. Efficient generation of large
+               random networks. Phys. Rev. E, 71, 036113, 2005.
+
+        PLOTTING: When plotting, this graph will use the default spring-layout
+        algorithm, unless a position dictionary is specified.
 
         EXAMPLES: We show the edge list of a random graph on 6 nodes with
         probability `p = .4`::
 
+            sage: set_random_seed(0)
             sage: graphs.RandomGNP(6, .4).edges(labels=False)
             [(0, 1), (0, 3), (0, 4), (0, 5), (1, 2), (1, 3), (1, 4), (1, 5)]
 
@@ -5102,16 +5119,27 @@ class GraphGenerators():
             sage: cputime(t)     # slightly random, long time
             0.90005700000000033
         """
+        if n < 0:
+            raise ValueError("The number of nodes must be positive or null.")
+        if 0.0 > p or 1.0 < p:
+            raise ValueError("The probability p must be in [0..1].")
+
         if seed is None:
             seed = current_randstate().long_seed()
         if p == 1:
             return graphs.CompleteGraph(n)
-        import networkx
-        if fast:
-            G = networkx.fast_gnp_random_graph(n, p, seed=seed)
+
+        if method == 'networkx':
+            import networkx
+            if fast:
+                G = networkx.fast_gnp_random_graph(n, p, seed=seed)
+            else:
+                G = networkx.gnp_random_graph(n, p, seed=seed)
+            return graph.Graph(G)
         else:
-            G = networkx.gnp_random_graph(n, p, seed=seed)
-        return graph.Graph(G)
+            # We use the Sage generator
+            from sage.graphs.graph_generators_pyx import RandomGNP as sageGNP
+            return sageGNP(n, p, fast = fast)
 
     def RandomBarabasiAlbert(self, n, m, seed=None):
         u"""

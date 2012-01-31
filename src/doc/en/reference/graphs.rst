@@ -23,6 +23,7 @@ Constructors and databases
 
    sage/graphs/graph_generators
    sage/graphs/digraph_generators
+   sage/graphs/graph_generators_pyx
    sage/graphs/graph_database
 
 

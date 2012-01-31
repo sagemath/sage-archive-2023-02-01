@@ -324,14 +324,14 @@ class ClassicalCrystals(Category_singleton):
                 sage: fb4 = lambda a,b,c,d: CrystalOfTableaux(['B',4],shape=[a+b+c+d,b+c+d,c+d,d])
                 sage: fd4 = lambda a,b,c,d: CrystalOfTableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d])
                 sage: fd5 = lambda a,b,c,d,e: CrystalOfTableaux(['D',5],shape=[a+b+c+d+e,b+c+d+e,c+d+e,d+e,e])
-                sage: def fd4spinplus(a,b,c,d):\
-                     C = CrystalOfTableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d]);\
-                     D = CrystalOfSpinsPlus(['D',4]);\
-                     return TensorProductOfCrystals(C,D,generators=[[C[0],D[0]]])
-                sage: def fb3spin(a,b,c):\
-                     C = CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c]);\
-                     D = CrystalOfSpins(['B',3]);\
-                     return TensorProductOfCrystals(C,D,generators=[[C[0],D[0]]])
+                sage: def fd4spinplus(a,b,c,d):
+                ...     C = CrystalOfTableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d])
+                ...     D = CrystalOfSpinsPlus(['D',4])
+                ...     return TensorProductOfCrystals(C,D,generators=[[C[0],D[0]]])
+                sage: def fb3spin(a,b,c):
+                ...     C = CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c])
+                ...     D = CrystalOfSpins(['B',3])
+                ...     return TensorProductOfCrystals(C,D,generators=[[C[0],D[0]]])
 
             TODO: choose a good panel of values for a,b,c ... both for
             basic systematic tests and for conditionally run,

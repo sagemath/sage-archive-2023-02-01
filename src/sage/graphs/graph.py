@@ -1083,7 +1083,7 @@ class Graph(GenericGraph):
                     L = uniq(c.list())
                     L.sort()
 
-                    if data.nrows() != len(desirable) - 1:
+                    if data.nrows() != (2 if len(NZ) == 2 else 1):
                         desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
                     else:
                         desirable = [-1, 1] if len(NZ) == 2 else [1]

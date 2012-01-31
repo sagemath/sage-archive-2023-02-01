@@ -226,7 +226,8 @@ class SimplicialComplexMorphism(SageObject):
             sage: g(Simplex([0,1]))
             (0, 1)
             sage: g(Simplex([0,1]), orientation=True)
-            ((0, 1), -1)        """
+            ((0, 1), -1)
+        """
         dim = self._domain.dimension()
         if not isinstance(x,simplicial_complex.Simplex) or x.dimension() > dim or not x in self._domain.faces()[x.dimension()]:
             raise ValueError, "x must be a simplex of the source of f"

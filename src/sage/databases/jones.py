@@ -128,7 +128,8 @@ class JonesDatabase:
                 sage: J = JonesDatabase()
                 sage: J._init()   # not tested
                 ...
-            This takes about 5 seconds.
+
+        This takes about 5 seconds.
         """
         from sage.misc.misc import sage_makedirs
         n = 0

@@ -1379,7 +1379,8 @@ class MemoryChunkScratch(MemoryChunkLonglivedArray):
             sage: print mc.handle_cleanup()
             for i in range(self._n_registers):
                 Py_CLEAR(self._registers[i])
-            <BLANKLINE>        """
+            <BLANKLINE>
+        """
         # XXX This is a lot slower than it needs to be, because
         # we don't have a "cdef int i" in scope here.
         return je("""

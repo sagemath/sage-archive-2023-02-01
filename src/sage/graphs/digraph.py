@@ -1791,31 +1791,41 @@ class DiGraph(GenericGraph):
             return
 
         # Start with the empty path; we will try all extensions of it
-        queue = [[vertex]]
-        while queue:
-            path = queue.pop(0)     # get a path
+        queue = []
+        path = [vertex]
 
-            if path[-1] in ending_vertices and (trivial or len(path) > 1):
-                yield path      # yield good path
-
-            # Build next generation of paths, one arc longer
+        if trivial and vertex in ending_vertices:
+            yield path
+        while True:
+            # Build next generation of paths, one arc longer; max_length refers
+            # to edges and not vertices, hence <= and not <
             if len(path) <= max_length:
 
                 # We try all possible extensions
-                for neighbor in self.neighbor_out_iterator(path[-1]):
-                    if simple:
-                        # We only keep simple extensions. One exception : when
-                        # we have found a simple cycle. In this case, we return
-                        # it immediately.
-                        if neighbor in path:
-                            if neighbor == path[0] and neighbor in ending_vertices:
-                                yield path + [neighbor]
-                        else:
+                if simple:
+                    # We only keep simple extensions. One exception: when we
+                    # have found a simple cycle. In this case, we yield it
+                    # immediately, but don't consider it for further extension.
+                    # See trac #12385.
+                    for neighbor in self.neighbor_out_iterator(path[-1]):
+                        if neighbor not in path:
                             queue.append(path + [neighbor])
+                        elif ( neighbor == path[0] and
+                               neighbor in ending_vertices ):
+                            yield path + [neighbor]
 
-                    else:
-                        # Non-simple paths : we add all of them
+                else:
+                    # Non-simple paths requested: we add all of them
+                    for neighbor in self.neighbor_out_iterator(path[-1]):
                         queue.append(path + [neighbor])
+
+            if not queue:
+                break
+            path = queue.pop(0)     # get the next path
+
+            if path[-1] in ending_vertices:
+                yield path      # yield good path
+
 
     def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
                            simple=False, max_length=None, trivial=False):

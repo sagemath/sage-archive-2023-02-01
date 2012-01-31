@@ -3342,7 +3342,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: C.is_singular()
             Traceback (most recent call last):
             ...
-            ValueError: incompatible matrix dimensions
+            ValueError: self must be a square matrix
 
         When the base ring is not a field, then a matrix
         may be both not invertible and not singular. ::
@@ -3357,7 +3357,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: d.is_unit()
             False
         """
-        return self.determinant() == 0
+        if self.ncols() == self.nrows():
+            return self.rank() != self.nrows()
+        else:
+            raise ValueError("self must be a square matrix")
 
     ###################################################
     # Invariants of a matrix

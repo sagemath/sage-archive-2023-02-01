@@ -2551,7 +2551,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             3
         """
         if self._nrows != self._ncols:
-            raise ValueError("incompatible matrix dimensions")
+            raise ValueError("self must be a square matrix")
         cdef PariInstance P = sage.libs.pari.gen.pari
         sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)

@@ -37,6 +37,10 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20120115.p1 (John Cremona, 1 February 2012) ===
+ * Small changes to all Makefiles (see trac #10993)
+ * Current source code is revision c2266b8c6029 (as at 1 February 2012)
+
 === eclib-20120115.p0 (John Cremona, 18 January 2012) ===
  * Small patch to spkg-install (adding PATH extension before calling
    ldconfig) as suggested on review at trac #10993

@@ -17,18 +17,19 @@ if [ "x$SAGE64" = xyes ]; then
     CXXFLAGS="-O2 -g $CXXFLAGS $CFLAG64"; export CXXFLAGS
 fi
 
-CUR=`pwd`
-
-cp patches/posix.py src/mercurial/posix.py
-if [ $? -ne 0 ]; then
-    echo "Error copying patch"
-    exit 1
-fi
-
 # Remove existing copies of Mercurial:
 rm -rf "$SAGE_LOCAL/lib/python/mercurial"
 
 cd src
+
+# Apply patches
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
 python setup.py install --home="$SAGE_LOCAL" --force
 if [ $? -ne 0 ]; then

@@ -20,12 +20,19 @@ See http://mercurial.selenic.com/ for more information.
    http://mercurial.selenic.com/wiki/MailingLists
 
 == Dependencies ==
+ * GNU patch
  * Python
 
 == Special Update/Build Instructions ==
  * Currently none (except one should make sure the patch still applies)
 
 == Changelog ==
+
+=== mercurial-1.8.4.p0 (Jeroen Demeyer, 2 February 2012) ===
+ * Trac #12416: add backported upstream patch "xcode.patch" to fix
+   building Mercurial on systems where XCode is installed, but where
+   the "gcc" found in the PATH isn't XCode's gcc.
+ * Use "patch" for patching.
 
 === mercurial-1.8.4  (Keshav Kini, 2011-06-13) ===
  * Upgrade Mercurial to version 1.8.4

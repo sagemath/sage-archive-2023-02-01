@@ -1,0 +1,11 @@
+--- a/setup.py	2011-06-15 00:28:19.000000000 +0200
++++ b/setup.py	2012-02-01 21:23:54.000000000 +0100
+@@ -385,7 +456,7 @@
+     # Also parse only first digit, because 3.2.1 can't be parsed nicely
+     if (version.startswith('Xcode') and
+         StrictVersion(version.split()[1]) >= StrictVersion('4.0')):
+-        os.environ['ARCHFLAGS'] = '-arch i386 -arch x86_64'
++        os.environ['ARCHFLAGS'] = ''
+ 
+ setup(name='mercurial',
+       version=setupversion,

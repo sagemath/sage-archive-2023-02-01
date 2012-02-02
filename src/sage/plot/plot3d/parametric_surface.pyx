@@ -178,7 +178,7 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
             sage: s = P.tachyon_repr(P.default_render_params())
             sage: s[:2]
-            ['TRI V0 -2 -2 0 V1 -2 -1.89744 0.399737 V2 -1.89744 -1.89744 0', 'texture229']
+            ['TRI V0 -2 -2 0 V1 -2 -1.89744 0.399737 V2 -1.89744 -1.89744 0', 'texture...']
         """
         self.triangulate(render_params)
         return IndexFaceSet.tachyon_repr(self, render_params)
@@ -194,7 +194,7 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
             sage: s = P.obj_repr(P.default_render_params())
             sage: s[:2]+s[2][:3]+s[3][:3]
-            ['g obj_1', 'usemtl texture230', 'v -2 -2 0', 'v -2 -1.89744 0.399737', 'v -2 -1.79487 0.778435', 'f 1 2 42 41', 'f 2 3 43 42', 'f 3 4 44 43']
+            ['g obj_1', 'usemtl texture...', 'v -2 -2 0', 'v -2 -1.89744 0.399737', 'v -2 -1.79487 0.778435', 'f 1 2 42 41', 'f 2 3 43 42', 'f 3 4 44 43']
         """
         self.triangulate(render_params)
         return IndexFaceSet.obj_repr(self, render_params)

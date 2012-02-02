@@ -242,7 +242,7 @@ class Texture_class(SageObject):
         sage: t.jmol_str('obj')
         'color obj translucent 0.4 [102,102,255]'
         sage: t.mtl_str()
-        'newmtl texture44\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 0.600000000000000'
+        'newmtl texture...\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 0.600000000000000'
         sage: t.x3d_str()
         "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance>"
     """
@@ -324,7 +324,7 @@ class Texture_class(SageObject):
             sage: from sage.plot.plot3d.texture import Texture
             sage: t = Texture(opacity=0.6)
             sage: t.tachyon_str()
-            'Texdef texture49\n  Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 0.600000000000000\n   Color 0.4 0.4 1.0\n   TexFunc 0'
+            'Texdef texture...\n  Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 0.600000000000000\n   Color 0.4 0.4 1.0\n   TexFunc 0'
         """
         total_color = float(sum(self.ambient) + sum(self.diffuse) + sum(self.specular))
         if total_color == 0:
@@ -361,7 +361,7 @@ class Texture_class(SageObject):
             sage: from sage.plot.plot3d.texture import Texture
             sage: t = Texture(opacity=0.6)
             sage: t.mtl_str()
-            'newmtl texture23\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 0.600000000000000'
+            'newmtl texture...\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 0.600000000000000'
         """
         return "\n".join(["newmtl %s" % self.id,
                    "Ka %s %s %s" % self.ambient,

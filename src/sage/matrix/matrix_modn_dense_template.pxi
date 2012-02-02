@@ -37,6 +37,41 @@ AUTHORS:
 - Burcin Erocal (2010-2011): most of the functions present in this file
 - Martin Albrecht (2011): some polishing, bug fixes, documentation
 - Rob Beezer (2011): documentation
+
+TESTS:
+
+We test corner cases for multiplication::
+
+    sage: v0 = vector(GF(3),[])
+    sage: v1 = vector(GF(3),[1])
+    sage: m00 = matrix(GF(3),0,0,[])
+    sage: m01 = matrix(GF(3),0,1,[])
+    sage: m10 = matrix(GF(3),1,0,[])
+    sage: m11 = matrix(GF(3),1,1,[1])
+    sage: good = [ (v0,m00), (v0,m01), (v1,m10), (v1,m11), (m00,v0), (m10,v0), (m01,v1), (m11,v1), (m00,m00), (m01,m10), (m10,m01), (m11,m11) ]
+    sage: for v,m in good:
+    ...       print v, 'x', m, '=', v*m
+    () x [] = ()
+    () x [] = (0)
+    (1) x [] = ()
+    (1) x [1] = (1)
+    [] x () = ()
+    [] x () = (0)
+    [] x (1) = ()
+    [1] x (1) = (1)
+    [] x [] = []
+    [] x [] = []
+    [] x [] = [0]
+    [1] x [1] = [1]
+
+    sage: bad  = [ (v1,m00), (v1,m01), (v0,m10), (v0,m11), (m00,v1), (m10,v1), (m01,v0), (m11,v0), (m01,m01), (m10,m10), (m11,m01), (m10,m11) ]
+    sage: for v,m in bad:
+    ...       try:
+    ...           v*m
+    ...           print 'Uncaught dimension mismatch!'
+    ...       except (TypeError, ArithmeticError):
+    ...           pass
+
 """
 
 ###############################################################################
@@ -1117,6 +1152,9 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             verbose('mod-p multiply of %s x %s matrix by %s x %s matrix modulo %s'%(
                     self._nrows, self._ncols, right._nrows, right._ncols, self.p))
 
+        if self._ncols != right._nrows:
+            raise ArithmeticError("right's number of rows must match self's number of columns")
+
         cdef int e
         cdef Matrix_modn_dense_template ans, B
 
@@ -1158,9 +1196,16 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             sage: v = random_vector(Integers(16337), 10)
             sage: matrix(v*A) == matrix(v)*A
             True
+
         """
         if not isinstance(v, Vector_modn_dense):
             return (self.new_matrix(1,self._nrows, entries=v.list()) * self)[0]
+
+        M = self._row_ambient_module()
+        cdef Vector_modn_dense c = M.zero_vector()
+
+        if self._ncols == 0 or self._nrows == 0:
+            return c
 
         cdef Py_ssize_t i
         cdef Vector_modn_dense b = v
@@ -1173,8 +1218,6 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
 
         linbox_matrix_vector_multiply(self.p, _c, self._entries, _b, self._nrows, self._ncols, fflas_trans)
 
-        M = self._row_ambient_module()
-        cdef Vector_modn_dense c = M.zero_vector()
         for i in range(self._ncols):
             c._entries[i] = <mod_int>_c[i]
         sage_free(_b)
@@ -1212,6 +1255,12 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             from sage.modules.free_module_element import vector
             return vector(r.list())
 
+        M = self._column_ambient_module()
+        cdef Vector_modn_dense c = M.zero_vector()
+
+        if self._ncols == 0 or self._nrows == 0:
+            return c
+
         cdef Py_ssize_t i
         cdef Vector_modn_dense b = v
 
@@ -1223,8 +1272,6 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
 
         linbox_matrix_vector_multiply(self.p, _c, self._entries, _b, self._nrows, self._ncols, fflas_no_trans)
 
-        M = self._column_ambient_module()
-        cdef Vector_modn_dense c = M.zero_vector()
         for i in range(self._nrows):
             c._entries[i] = <mod_int>_c[i]
         sage_free(_b)

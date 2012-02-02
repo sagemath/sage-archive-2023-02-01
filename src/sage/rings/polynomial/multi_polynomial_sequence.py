@@ -299,7 +299,10 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
     k = ring.base_ring()
 
-    if k.characteristic() != 2:
+    try: c = k.characteristic()
+    except NotImplementedError: c = -1
+
+    if c != 2:
         return PolynomialSequence_generic(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)
     elif k.degree() == 1:
         return PolynomialSequence_gf2(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)

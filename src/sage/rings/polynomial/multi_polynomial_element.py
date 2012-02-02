@@ -1702,7 +1702,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             fs = self._singular_()
             Is = fs.parent().ideal(I)
             return P(fs.reduce(Is))
-        except TypeError:
+        except (NotImplementedError, TypeError):
             pass
 
         lI = len(I)

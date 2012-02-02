@@ -3502,6 +3502,16 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             Y^2 + (-3/5)*Z^2 + (2/5*t^2 - 2/5*t + 1/15)*Y + (-2/5*t^2 + 2/5*t - 1/15)*Z - 1/10*t^4 + 1/5*t^3 - 7/30*t^2 + 2/5*t + 11/90,
             Y*Z + 6/5*Z^2 + (1/5*t^2 - 1/5*t + 1/30)*Y + (4/5*t^2 - 4/5*t + 2/15)*Z + 1/5*t^4 - 2/5*t^3 + 7/15*t^2 - 3/10*t - 11/45, X + 2*Y + 2*Z + t^2 - t - 1/3]
 
+        In cases where a characteristic cannot be determined, we use a toy implementation of Buchberger's algorithm
+        (see ticket 6581):
+
+            sage: R.<a,b> = QQ[]; I = R.ideal(a^2+b^2-1)
+            sage: Q = QuotientRing(R,I); K = Frac(Q)
+            sage: R2.<x,y> = K[]; J = R2.ideal([(a^2+b^2)*x + y, x+y])
+            sage: J.groebner_basis()
+            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            [x + y]
+
         ALGORITHM:
 
         Uses Singular, Magma (if available), Macaulay2 (if available),
@@ -3527,7 +3537,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             except (TypeError,NameError), msg: # conversion to Singular not supported
                 try:
                     gb = self._groebner_basis_singular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
-                except (TypeError,NameError), msg: # conversion to Singular not supported
+                except (TypeError,NameError,NotImplementedError), msg: # conversion to Singular not supported
                     if self.ring().term_order().is_global() and is_IntegerModRing(self.ring().base_ring()) and not self.ring().base_ring().is_field():
                         verbose("Warning: falling back to very slow toy implementation.", level=0)
 

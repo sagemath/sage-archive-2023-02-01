@@ -1747,7 +1747,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 if mzd_read_bit(self._entries, i, j):
                     gdImageSetPixel(im, j, i, black )
 
-        cdef char *buf = <char*>gdImagePngPtr(im, &size)
+        cdef signed char *buf = <signed char*>gdImagePngPtr(im, &size)
 
         data = [buf[i] for i in range(size)]
         gdFree(buf)
@@ -2013,7 +2013,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
     if r == 0 or c == 0:
         return A
 
-    cdef char *buf = <char*>sage_malloc(size)
+    cdef signed char *buf = <signed char*>sage_malloc(size)
     for i from 0 <= i < size:
         buf[i] = data[i]
 

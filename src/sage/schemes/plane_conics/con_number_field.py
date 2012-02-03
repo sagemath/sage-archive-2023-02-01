@@ -24,7 +24,7 @@ AUTHORS:
 from sage.rings.all import (is_RationalField,
                             is_RingHomomorphism, is_RealIntervalField,
                             is_ComplexField, is_ComplexIntervalField,
-                            RDF, CDF, AA, QQbar, PolynomialRing)
+                            RDF, CDF, AA, RLF, QQbar, PolynomialRing)
 
 from con_field import ProjectiveConic_field
 
@@ -83,8 +83,6 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
          - if ``obstruction`` is True, ``self`` has no rational point,
            then ``S`` is a prime or infinite place of `B` such that no
            rational point exists over the completion at ``S``.
-           Finding obstructions is not yet implemented for number fields
-           (see Sage trac ticket #10742).
 
         Points and obstructions are cached whenever they are found.
         Cached information is used for the output if available, but only
@@ -100,10 +98,11 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
 
          - ``'local'`` -- Check if a local solution exists for all primes
            and infinite places of `B` and apply the Hasse principle.
-           (cannot be combined with ``point = True``, not yet implemented
-           for number fields other than `QQ`, see Sage trac ticket #10742.)
+           (Cannot be combined with ``point = True``.)
 
-         - ``'default'`` -- Use ``'rnfisnorm'``
+         - ``'default'`` -- Use algorithm ``'rnfisnorm'`` first.
+           Then, if no point exists and obstructions are requested, use
+           algorithm ``'local'`` to find an obstruction.
 
          - ``'magma'`` (requires Magma to be installed) --
            delegates the task to the Magma computer algebra
@@ -124,11 +123,11 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
 
             sage: K.<i> = QuadraticField(-1)
             sage: C = Conic(K, [1, 3, -5])
-            sage: C.has_rational_point(point = True)
-            (False, None)
+            sage: C.has_rational_point(point = True, obstruction = True)
+            (False, Fractional ideal (-i - 2))
             sage: C.has_rational_point(algorithm = "rnfisnorm")
             False
-            sage: C.has_rational_point(algorithm = "rnfisnorm", obstruction = True)
+            sage: C.has_rational_point(algorithm = "rnfisnorm", obstruction = True, read_cache=False)
             Traceback (most recent call last):
             ...
             ValueError: Algorithm rnfisnorm cannot be combined with obstruction = True in has_rational_point
@@ -149,10 +148,11 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
 
         TESTS:
 
-        Create a bunch of conics over number fields and check if ``has_rational_point``
-        runs without errors for ``algorithm = 'rnfisnorm'``. Check if all points
-        returned are valid. If Magma is available, then also check if the output
-        agrees with Magma. ::
+        Create a bunch of conics over number fields and check whether
+        ``has_rational_point`` runs without errors for algorithms
+        ``'rnfisnorm'`` and ``'local'``. Check if all points returned are
+        valid. If Magma is available, then also check if the output agrees with
+        Magma. ::
 
             sage: P.<X> = QQ[]
             sage: Q = P.fraction_field()
@@ -169,6 +169,8 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: d = [C.has_rational_point(algorithm = 'rnfisnorm', point = True) for C in c] # long time: 3.3 seconds
             sage: all([c[k].defining_polynomial()(Sequence(d[k][1])) == 0 for k in range(len(d)) if d[k][0]])
             True
+            sage: [C.has_rational_point(algorithm='local', read_cache=False) for C in c] == [o[0] for o in d] # long time: 5 seconds
+            True
             sage: [C.has_rational_point(algorithm = 'magma', read_cache=False) for C in c] == [o[0] for o in d] # long time: 3 seconds, optional - magma
             True
 
@@ -184,6 +186,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: c = [Conic(a) for a in m if a != [0,0,0] and a != [1,1,1] and a != [-1,-1,-1]]
             sage: assert all([C.has_rational_point(algorithm = 'rnfisnorm') for C in c])
             sage: assert all([C.defining_polynomial()(Sequence(C.has_rational_point(point = True)[1])) == 0 for C in c])
+            sage: assert all([C.has_rational_point(algorithm='local', read_cache=False) for C in c]) # long time: 1 second
         """
         if read_cache:
             if self._rational_point is not None:
@@ -208,12 +211,32 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
                 return True, None
             return True
         B = self.base_ring()
+
         if algorithm == 'default':
-            algorithm = 'rnfisnorm'
+            ret = self.has_rational_point(point=True, obstruction=False,
+                                          algorithm='rnfisnorm',
+                                          read_cache=False)
+            if ret[0]:
+                if point or obstruction:
+                    return ret
+                return True
+            if obstruction:
+                ret = self.has_rational_point(point=False, obstruction=True,
+                                              algorithm='local',
+                                              read_cache=False)
+                if ret[0]:
+                    raise RuntimeError, "Outputs of algorithms in " \
+                                        "has_rational_point disagree " \
+                                        "for conic %s" % self
+                return ret
+            if point:
+                return False, None
+            return False
+
         if algorithm == 'local':
             if point:
-                raise ValueError, "Algorithm 'local' cannot be combined with " \
-                                  "point = True in has_rational_point"
+                raise ValueError, "Algorithm 'local' cannot be combined " \
+                                  "with point = True in has_rational_point"
             obs = self.local_obstructions(infinite = True, finite = False,
                                           read_cache = read_cache)
             if obs != []:
@@ -290,9 +313,6 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         completion of the base field `B` of ``self`` at ``p``. Here ``p``
         is a finite prime or infinite place of `B`.
 
-        This is currently not implemented for Number Fields.
-        See Sage trac ticket #10742.
-
         EXAMPLES::
 
             sage: P.<x> = QQ[]
@@ -300,28 +320,37 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: C = Conic(K, [1, 2, 3 - a])
             sage: [p1, p2] = K.places()
             sage: C.is_locally_solvable(p1)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Sorry, is_locally_solvable is not yet implemented for number fields.
+            False
 
             sage: C.is_locally_solvable(p2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Sorry, is_locally_solvable is not yet implemented for number fields.
+            True
 
             sage: O = K.maximal_order()
             sage: f = (2*O).factor()
             sage: C.is_locally_solvable(f[0][0])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Sorry, is_locally_solvable is not yet implemented for number fields.
+            True
 
             sage: C.is_locally_solvable(f[1][0])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Sorry, is_locally_solvable is not yet implemented for number fields.
+            False
         """
-        raise NotImplementedError, "Sorry, is_locally_solvable is not yet implemented for number fields."
+        D, T = self.diagonal_matrix()
+        abc = [D[j, j] for j in range(3)]
+        for a in abc:
+            if a == 0:
+                return True
+        a = -abc[0]/abc[2]
+        b = -abc[1]/abc[2]
+
+        ret = self.base_ring().hilbert_symbol(a, b, p)
+
+        if ret == -1:
+            if self._local_obstruction == None:
+                if (not is_RingHomomorphism(p)) or p.codomain() is AA or \
+                    p.codomain() is RLF:
+                    self._local_obstruction = p
+            return False
+
+        return True
 
 
     def local_obstructions(self, finite = True, infinite = True, read_cache = True):
@@ -339,24 +368,21 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         Local obstructions are cached. The parameter ``read_cache``
         specifies whether to look at the cache before computing anything.
 
-        This is currently not implemented for Number Fields.
-        See Sage trac ticket #10742.
-
         EXAMPLES ::
 
             sage: K.<i> = QuadraticField(-1)
             sage: Conic(K, [1, 2, 3]).local_obstructions()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Sorry, is_locally_solvable is not yet implemented for number fields.
+            []
 
             sage: L.<a> = QuadraticField(5)
             sage: Conic(L, [1, 2, 3]).local_obstructions()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Sorry, is_locally_solvable is not yet implemented for number fields.
-
-
+            [Ring morphism:
+              From: Number Field in a with defining polynomial x^2 - 5
+              To:   Algebraic Real Field
+              Defn: a |--> -2.236067977499790?, Ring morphism:
+              From: Number Field in a with defining polynomial x^2 - 5
+              To:   Algebraic Real Field
+              Defn: a |--> 2.236067977499790?]
         """
         obs0 = []
         obs1 = []

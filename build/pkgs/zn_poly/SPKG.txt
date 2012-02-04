@@ -29,6 +29,8 @@ GPL V2 or V3. Some of the code has been copied from other projects - see src/COP
 
 == Changelog ==
 
+=== zn_poly-0.9.p6 (R. Andrew Ohana, February 4th, 2012) ===
+ * make spkg respect global CC flag
 
 === zn_poly-0.9.p5 (David Kirkby, July 14th, 2010) ===
  * #9358 Ensure that spkg-install can handle the case

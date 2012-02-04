@@ -51,7 +51,7 @@ cd src
             --prefix="$SAGE_LOCAL" --cflags="$CFLAGS" --ldflags="$LDFLAGS"
 
 # optionally run tuning program, only takes 1 minute or so
-make tune
+$MAKE tune CC=$CC
 if [ $? -ne 0 ]; then
 	echo "Error building zn_poly tuning program."
 	exit 1
@@ -63,14 +63,14 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-make
+$MAKE CC=$CC
 if [ $? -ne 0 ]; then
 	echo "Error building zn_poly."
 	exit 1
 fi
 
 # run test suite (quick version)
-make check
+$MAKE check CC=$CC
 
 if [ $? -ne 0 ]; then
    echo "Error running zn_poly's quick test suite (make check)."
@@ -86,7 +86,7 @@ fi
 
 # UNIX
 if [ $UNAME != "Darwin" ]; then
-    $MAKE libzn_poly.so
+    $MAKE libzn_poly.so CC=$CC
     if [ $? -ne 0 ]; then
         echo "Error building zn_poly shared library."
         exit 1
@@ -104,9 +104,9 @@ fi
 # OS X
 if [ $UNAME = "Darwin" ]; then
     if [ "$SAGE64" = "yes" ]; then
-      $MAKE libzn_poly.dylib64
+      $MAKE libzn_poly.dylib64 CC=$CC
     else
-      $MAKE libzn_poly.dylib
+      $MAKE libzn_poly.dylib CC=$CC
     fi
     if [ ! -f libzn_poly.dylib ]; then
         echo "Failed to build zn_poly dylib."

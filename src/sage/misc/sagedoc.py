@@ -1172,6 +1172,12 @@ class _sage_doc:
         'Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring'
     """
     def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: browse_sage_doc._base_url
+            'http://localhost:8000/doc/live/'
+        """
         self._base_url = "http://localhost:8000/doc/live/"
         self._base_path = os.path.join(SAGE_DOC, "output/html/en/")
 
@@ -1329,12 +1335,12 @@ class _sage_doc:
         """
         url = self._base_url + os.path.join(name, "index.html")
         path = os.path.join(self._base_path, name, "index.html")
-        if testing:
-            return (url, path)
-
         if not os.path.exists(path):
             raise OSError, """The document '%s' does not exist.  Please build it
 with 'sage -docbuild %s html --jsmath' and try again.""" %(name, name)
+
+        if testing:
+            return (url, path)
 
         from sage.server.support import EMBEDDED_MODE
         if EMBEDDED_MODE:
@@ -1345,12 +1351,21 @@ with 'sage -docbuild %s html --jsmath' and try again.""" %(name, name)
     def tutorial(self):
         """
         The Sage tutorial.  To get started with Sage, start here.
+
+        EXAMPLES::
+
+            sage: tutorial()  # indirect doctest, not tested
         """
         self._open("tutorial")
 
     def reference(self):
         """
         The Sage reference manual.
+
+        EXAMPLES::
+
+            sage: reference() # indirect doctest, not tested
+            sage: manual() # indirect doctest, not tested
         """
         self._open("reference")
 
@@ -1359,6 +1374,10 @@ with 'sage -docbuild %s html --jsmath' and try again.""" %(name, name)
     def developer(self):
         """
         The Sage developer's guide.  Learn to develop programs for Sage.
+
+        EXAMPLES::
+
+            sage: developer()  # indirect doctest, not tested
         """
         self._open("developer")
 
@@ -1366,6 +1385,10 @@ with 'sage -docbuild %s html --jsmath' and try again.""" %(name, name)
         """
         Sage constructions.  Attempts to answer the question "How do I
         construct ... in Sage?"
+
+        EXAMPLES::
+
+            sage: constructions()  # indirect doctest, not tested
         """
         self._open("constructions")
 
@@ -1392,13 +1415,25 @@ def help(module=None):
     if not module is None:
         python_help(module)
     else:
-        print """Welcome to Sage %s!  To view the Sage tutorial in your web browser,
-type 'tutorial()', and to view the (very detailed) Sage reference
-manual, type 'manual()'.  For help on any Sage function, for example
-'matrix_plot', type 'matrix_plot?' to see a help message, type
-'help(matrix_plot)' to see a very similar message, type
-'browse_sage_doc(matrix_plot)' to view a message in a web browser, and
-type 'matrix_plot??' to look at the function's source code.
+        print """Welcome to Sage %s!
+
+To view the Sage tutorial in your web browser, type 'tutorial()', and
+to view the (very detailed) Sage reference manual, type 'manual()'.
+For help on any Sage function, for example 'matrix_plot', type
+'matrix_plot?' to see a help message, type 'help(matrix_plot)' to see
+a very similar message, type 'browse_sage_doc(matrix_plot)' to view a
+help message in a web browser, and type 'matrix_plot??' to look at the
+function's source code.
+
+(When you type something like 'matrix_plot?', 'help(matrix_plot)', or
+'matrix_plot??', Sage may start a paging program to display the
+requested message. Type a space to scroll to the next page, type 'h'
+to get help on the paging program, and type 'q' to quit it and return
+to the 'sage:' prompt.)
+
+For license information for Sage and its components, read the file
+'COPYING.txt' in the top-level directory of the Sage installation,
+or type 'license()'.
 
 To enter Python's interactive online help utility, type 'python_help()'.
 To get help on a Python function, module or package, type 'help(MODULE)' or

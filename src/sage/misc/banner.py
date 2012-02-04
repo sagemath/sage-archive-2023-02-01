@@ -57,12 +57,13 @@ def banner_text():
         sage: print sage.misc.banner.banner_text()
         ----------------------------------------------------------------------
         | Sage Version ..., Release Date: ...                  |
-        | Type notebook() for the GUI, and license() for information...
+        | Type 'notebook()' for ...
     """
     bars = "-"*70
     s = bars
     s += "\n| %-66s |\n"%version()
-    s += "| %-66s |\n"%'Type notebook() for the GUI, and license() for information.'
+    s += "| %-66s |\n"%'Type \'notebook()\' for the browser-based notebook interface.'
+    s += "| %-66s |\n"%'Type \'help()\' for help.'
     #s += "| %-66s |\n"%'Distributed under the GNU General Public License V2.'
     s += bars
     pre = version_dict()['prerelease']
@@ -90,7 +91,7 @@ def banner():
         sage: banner()
         ----------------------------------------------------------------------
         | Sage Version ..., Release Date: ...                  |
-        | Type notebook() for the GUI, and license() for information...
+        | Type 'notebook()' for ...
     """
     print banner_text()
 

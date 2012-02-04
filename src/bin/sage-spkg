@@ -351,6 +351,29 @@ fi
 
 chmod +x spkg-install
 
+# Remove '.' from PYTHONPATH, which may also come from SAGE_PATH, to avoid
+# trouble with setuptools / easy_install (cf. #10192, #10176):
+if [ -n "$PYTHONPATH" ]; then
+    # We also collapse multiple slashs into a single one (first substitution),
+    # remove leading './'s and trailing '/.'s (second and third), and
+    # remove leading, trailing and redundant ':'s (last three substitutions):
+    new_pp=`echo ":$PYTHONPATH:" \
+        | sed \
+        -e 's|//*|/|g' \
+        -e 's|:\(\./\)\{1,\}|:|g' \
+        -e 's|\(/\.\)\{1,\}:|:|g' \
+        -e 's|\(:\.\)\{1,\}:|:|g' \
+        -e 's|::*|:|g' -e 's|^::*||' -e 's|::*$||'`
+
+    if [ "$PYTHONPATH" != "$new_pp" ]; then
+        echo "Cleaning up PYTHONPATH:"
+        echo "  Old: \"$PYTHONPATH\""
+        echo "  New: \"$new_pp\""
+        PYTHONPATH=$new_pp
+        export PYTHONPATH # maybe redundant, but in any case safe
+    fi
+fi
+
 echo "****************************************************"
 echo "Host system"
 echo "uname -a:"

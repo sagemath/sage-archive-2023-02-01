@@ -423,6 +423,9 @@ automatically install it by typing ``sage -i mypackage-version.spkg``.
              exit 1
          fi
 
+   - If your package will be merged as a standard Sage spkg, then add
+     license information for it to the file ``SAGE_ROOT/COPYING.txt``.
+
    - *Caveat*: Do not just copy to e.g. ``SAGE_ROOT/local/lib/gap*/``
      since that will copy your package to the lib directory of the old
      version of GAP if GAP is upgraded.

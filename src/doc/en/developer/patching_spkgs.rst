@@ -220,3 +220,14 @@ To compile Sage from source with the replacement (standard) spkg,
 untar a Sage source tarball, remove the existing spkg under
 ``SAGE_ROOT/spkg/standard/``. In its place, put your replacement
 spkg. Then execute ``make`` from ``SAGE_ROOT``.
+
+
+License information
+===================
+
+If you are patching a standard Sage spkg, then you should make sure
+that the license information for that package is up-to-date, both in
+its ``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
+example, if you are producing an spkg which upgrades the vanilla
+source to a new version, check whether the license changed between
+versions.

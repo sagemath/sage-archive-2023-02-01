@@ -1,6 +1,9 @@
-r"""
-Thin wrapper for the optional SymbolicData set of ideals as published
-on \url{http://www.symbolicdata.org} . From that website:
+"""
+Ideals from the Symbolic Data project
+
+This file implements a thin wrapper for the optional symbolic data set
+of ideals as published on http://www.symbolicdata.org . From the
+project website:
 
     For different purposes algorithms and implementations are tested
     on certified and reliable data. The development of tools and data
@@ -29,26 +32,29 @@ on \url{http://www.symbolicdata.org} . From that website:
     certified data that could be addressed and extended during further
     development.
 
-EXAMPLE:
-    sage: sd = SymbolicData(); sd # optional requires database_symbolic_data
+EXAMPLES::
+
+    sage: sd = SymbolicData(); sd # optional - database_symbolic_data
     SymbolicData with 372 ideals
 
-    sage: sd.ZeroDim__example_1 # optional requires database_symbolic_data
+    sage: sd.ZeroDim__example_1 # optional - database_symbolic_data
     Ideal (x1^2 + x2^2 - 10, x1^2 + x1*x2 + 2*x2^2 - 16) of Multivariate Polynomial Ring in x1, x2 over Rational Field
 
-    sage: sd.Katsura_3 # optional requires database_symbolic_data
+    sage: sd.Katsura_3 # optional - database_symbolic_data
     Ideal (u0 + 2*u1 + 2*u2 + 2*u3 - 1,
            u1^2 + 2*u0*u2 + 2*u1*u3 - u2,
            2*u0*u1 + 2*u1*u2 + 2*u2*u3 - u1,
            u0^2 + 2*u1^2 + 2*u2^2 + 2*u3^2 - u0) of Multivariate Polynomial Ring in u0, u1, u2, u3 over Rational Field
 
-    sage: sd.get_ideal('Katsura_3',GF(127),'degrevlex') # optional requires database_symbolic_data
+    sage: sd.get_ideal('Katsura_3',GF(127),'degrevlex') # optional - database_symbolic_data
     Ideal (u0 + 2*u1 + 2*u2 + 2*u3 - 1,
            u1^2 + 2*u0*u2 + 2*u1*u3 - u2,
            2*u0*u1 + 2*u1*u2 + 2*u2*u3 - u1,
            u0^2 + 2*u1^2 + 2*u2^2 + 2*u3^2 - u0) of Multivariate Polynomial Ring in u0, u1, u2, u3 over Finite Field of size 127
 
-AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
+AUTHORS:
+
+- Martin Albrecht <martinralbrecht@googlemail.com>
 """
 import os
 from xml.dom.minidom import parse
@@ -57,14 +63,16 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 class SymbolicData:
     """
-    Access to the benchmark and test ideals of the SymbolicData
-    suite. This class needs the optional database-symbolicdata package
-    to be installed.
+    Database of ideals as distributed by the The SymbolicData Project
+    (http://symbolicdata.org).
+
+    This class needs the optional ``database_symbolic_data`` package to be
+    installed.
     """
     def __init__(self):
         """
-        EXAMPLE:
-            sage: sd = SymbolicData(); sd # optional requires database_symbolic_data
+        EXAMPLES:
+            sage: sd = SymbolicData(); sd # optional - database_symbolic_data
             SymbolicData with 372 ideals
         """
         path=os.environ["SAGE_ROOT"]+"/data/symbolic_data"
@@ -78,16 +86,19 @@ class SymbolicData:
         'term_order'.
 
         INPUT:
-            name -- name as in the SymbolicData package
-            base_ring -- base ring for the polynomial ring (default: QQ)
-            term_order -- term order for the polynomial ring (default: degrevlex)
+
+        - ``name`` - name as on the symbolic data website
+        - ``base_ring`` - base ring for the polynomial ring (default: ``QQ``)
+        - ``term_order`` - term order for the polynomial ring (default: ``degrevlex``)
 
         OUTPUT:
-            ideal as given by name in PolynomialRing(base_ring,vars,term_order)
 
-        EXAMPLE:
-            sage: sd = SymbolicData() # optional requires database_symbolic_data
-            sage: sd.get_ideal('Katsura_3',GF(127),'degrevlex') # optional requires database_symbolic_data
+            ideal as given by ``name`` in ``PolynomialRing(base_ring,vars,term_order)``
+
+        EXAMPLES::
+
+            sage: sd = SymbolicData() # optional - database_symbolic_data
+            sage: sd.get_ideal('Katsura_3',GF(127),'degrevlex') # optional - database_symbolic_data
             Ideal (u0 + 2*u1 + 2*u2 + 2*u3 - 1,
                    u1^2 + 2*u0*u2 + 2*u1*u3 - u2,
                    2*u0*u1 + 2*u1*u2 + 2*u2*u3 - u1,
@@ -116,6 +127,7 @@ class SymbolicData:
 
             return l
 
+        orig_name = name
         name = name.replace('__','.')
 
         try:
@@ -126,20 +138,22 @@ class SymbolicData:
                 name = self.__genpath + name + ".xml"
                 open(name)
             except IOError:
-                raise AttributeError, "Ideal not found on disk"
-
+                raise AttributeError("No ideal matching '%s' found in database."%orig_name)
 
         dom = parse(name)
         res = _dom2ideal(dom)
-        vars,polys = res[0].replace("_",""),[p.replace("_","") for p in res[1:]]
+        variables, polys = res[0].replace("_",""), [p.replace("_","") for p in res[1:]]
 
-        return PolynomialRing(base_ring, len(vars.split(",")), vars).ideal(polys)
+        P = PolynomialRing(base_ring, len(variables.split(",")), variables)
+        I = P.ideal([P(f) for f in polys])
+        return I
 
 
     def __repr__(self):
         """
-        EXAMPLE:
-            sage: sd = SymbolicData(); sd # optional requires database_symbolic_data
+        EXAMPLES::
+
+            sage: sd = SymbolicData(); sd # optional - database_symbolic_data
             SymbolicData with 372 ideals
         """
         try:
@@ -150,14 +164,15 @@ class SymbolicData:
 
     def __getattr__(self, name):
         """
-        EXAMPLE:
-           sage: sd = SymbolicData() # optional requires database_symbolic_data
-           sage: sd.Cyclic5 # optional requires database_symbolic_data
+        EXAMPLES::
+
+           sage: sd = SymbolicData() # optional - database_symbolic_data
+           sage: sd.Cyclic5 # optional - database_symbolic_data
            Traceback (most recent call last):
            ...
-           AttributeError: Ideal not found on disk
+           AttributeError: No ideal matching 'Cyclic5' found in database.
 
-           sage: sd.Cyclic_5 # optional requires database_symbolic_data
+           sage: sd.Cyclic_5 # optional - database_symbolic_data
            Ideal (v + w + x + y + z,
                   v*w + w*x + x*y + v*z + y*z,
                   v*w*x + w*x*y + v*w*z + v*y*z + x*y*z,
@@ -168,9 +183,10 @@ class SymbolicData:
 
     def trait_names(self):
         """
-        EXAMPLE:
-            sage: sd = SymbolicData() # optional requires database_symbolic_data
-            sage: sorted(sd.trait_names())[:10]# optional requires database_symbolic_data
+        EXAMPLES::
+
+            sage: sd = SymbolicData() # optional - database_symbolic_data
+            sage: sorted(sd.trait_names())[:10] # optional - database_symbolic_data
             ['Bjoerk_8',
              'Bronstein-86',
              'Buchberger-87',

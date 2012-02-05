@@ -59,3 +59,4 @@ database engine.
    sage/databases/sloane
    sage/databases/conway
    sage/databases/odlyzko
+   sage/databases/symbolic_data

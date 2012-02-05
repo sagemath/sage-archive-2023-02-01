@@ -1491,6 +1491,77 @@ class MPolynomialIdeal_singular_repr(
         else:
             return vd
 
+    @require_field
+    def _groebner_basis_ginv(self, algorithm="TQ", criteria='CritPartially', division_interface="Janet"):
+        """
+        Compute a Groebner basis using GINV.
+
+        INPUT:
+
+        - ``algorithm`` - "TQ", "TQBlockHigh", "TQBlockLow" or "TQDegree"
+        - ``criteria`` - "Without" (without any criteria)
+                        - "C1", "CritPartially" (partial involutive criteria)
+                        - "C1C2C3", "C1C2C3C4" (full involutive criteria)
+
+        - ``division_interface`` - either "Janet" or "JanetLike"
+
+        EXAMPLES:
+
+        Currently, only GF(p) and QQ are supported as base fields::
+
+            sage: P.<x,y,z> = PolynomialRing(QQ,order='degrevlex')
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: I.groebner_basis(algorithm='ginv') # optional - ginv
+            [z^3 - 79/210*z^2 + 1/30*y + 1/70*z, y^2 - 3/5*z^2 - 1/5*y + 1/5*z, y*z + 6/5*z^2 - 1/10*y - 2/5*z, x + 2*y + 2*z - 1]
+
+            sage: P.<x,y,z> = PolynomialRing(GF(127),order='degrevlex')
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: I.groebner_basis(algorithm='ginv') # optional - ginv
+            ...
+            [z^3 + 22*z^2 - 55*y + 49*z, y^2 - 26*z^2 - 51*y + 51*z, y*z + 52*z^2 + 38*y + 25*z, x + 2*y + 2*z - 1]
+
+        .. note::
+
+          Criterion C1 is Buchberger's co-prime criterion. Criteria
+          C2, C3 and C4 in the aggregate are equivalent to the second
+          (chain) Buchberger's criterion. Supported term orderings are
+          'lex' and 'degrevlex', supported base rings are GF(p) with p
+          < 2^16 and QQ.
+        """
+        P = self.ring()
+        T = P.term_order()
+        K = P.base_ring()
+
+        try:
+            import ginv
+        except ImportError:
+            raise ImportError("""GINV is missing, to install use "install_package('ginv')".""")
+
+        st = ginv.SystemType("Polynomial")
+
+        term_order_map = {'degrevlex':"DegRevLex",'lex':"Lex"}
+        try:
+            im = ginv.MonomInterface(term_order_map[T.name()], st, list(P.variable_names()))
+        except KeyError:
+            raise NotImplementedError("Term order '%s' not supported by Sage's GINV interface or GINV"%T.term_order())
+
+        from sage.all import QQ
+        if K is QQ:
+            ic = ginv.CoeffInterface("GmpQ", st)
+        elif K.order() <= 2**16 and K.order().is_prime():
+            ic = ginv.CoeffInterface("ModularShort", st, modularShort=K.order())
+        else:
+            raise NotImplementedError("GINV interface for base ring '%s' is not implemented."%K)
+
+        ip = ginv.PolyInterface("PolyList", st, im, ic)
+        iw = ginv.WrapInterface(criteria, ip)
+        iD = ginv.DivisionInterface(division_interface, iw)
+
+        system = [ginv.Poly(ip, str(f)) for f in self.gens()]
+        G = ginv.basisBuild(algorithm, iD, system)
+        G = Sequence([P(str(f)) for f in G.iterGB()])
+        return G
+
     @singular_standard_options
     def _groebner_basis_singular(self, algorithm="groebner", *args, **kwds):
         """
@@ -3313,6 +3384,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         'magma:GroebnerBasis'
             Magma's ``Groebnerbasis`` command (if available)
 
+        'ginv:TQ', 'ginv:TQBlockHigh', 'ginv:TQBlockLow' and 'ginv:TQDegree'
+            One of GINV's implementations (if available)
+
         If only a system is given - e.g. 'magma' - the default algorithm is
         chosen for that system.
 
@@ -3572,6 +3646,14 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
         elif algorithm == 'toy:d_basis':
             gb = toy_d_basis.d_basis(self, *args, **kwds)
+        elif algorithm.startswith('ginv'):
+            if algorithm == 'ginv':
+                gb = self._groebner_basis_ginv(*args, **kwds)
+            elif ":" in algorithm:
+                ginv,alg = algorithm.split(":")
+                gb = self._groebner_basis_ginv(algorithm=alg,*args, **kwds)
+            else:
+                raise NameError("Algorithm '%s' unknown."%algorithm)
         else:
             raise NameError("Algorithm '%s' unknown."%algorithm)
 

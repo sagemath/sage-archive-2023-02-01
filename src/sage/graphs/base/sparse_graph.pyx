@@ -1662,6 +1662,14 @@ class SparseGraphBackend(CGraphBackend):
             sage: G.edges()
             [(0, 1, 2)]
 
+        Do we remove loops correctly? (Trac 12135)
+
+            sage: g=Graph({0:[0,0,0]}, implementation='c_graph', sparse=True)
+            sage: g.edges(labels=False)
+            [(0, 0), (0, 0), (0, 0)]
+            sage: g.delete_edge(0,0); g.edges(labels=False)
+            [(0, 0), (0, 0)]
+
         """
         if not ( self.has_vertex(u) and self.has_vertex(v) ):
             return
@@ -1689,7 +1697,7 @@ class SparseGraphBackend(CGraphBackend):
                 self.edge_labels.pop(l_int)
         else:
             self._cg.del_arc_label(u_int, v_int, l_int)
-            self._cg.del_arc_label(v_int, u_int, l_int)
+            if v_int != u_int: self._cg.del_arc_label(v_int, u_int, l_int)
             if l_int:
                 self.edge_labels.pop(l_int)
 

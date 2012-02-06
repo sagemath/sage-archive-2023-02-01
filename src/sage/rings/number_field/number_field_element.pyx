@@ -3679,7 +3679,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: L(e)  # Conversion from PARI absolute number field element
             a*b
             sage: e = L.pari_rnf().rnfeltabstorel(e); e
-            Mod(y*x, x^4 + y*x + 2)
+            Mod(Mod(y, y^2 + y + 1)*x, x^4 + y*x + 2)
             sage: L(e)  # Conversion from PARI relative number field element
             a*b
             sage: e = pari('Mod(0, x^8 + 1)'); L(e)  # Wrong modulus

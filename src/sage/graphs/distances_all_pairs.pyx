@@ -4,16 +4,23 @@ Distances/shortest paths between all pairs of vertices
 This module implements a few functions that deal with the computation of
 distances or shortest paths between all pairs of vertices.
 
-Because these functions involve listing many times the (out)-neighborhoods of
-(di)-graphs, it is useful in terms of efficiency to build a temporary copy of
-the graph in a data structure that makes it easy to compute quickly. These
-functions also work on large volume of data, typically dense matrices of size
-`n^2`, and are expected to return corresponding dictionaries of size `n^2`,
-where the integers corresponding to the vertices have first been converted to
-the vertices' labels. Sadly, this last translating operation turns out to be the
-most time-consuming, and for this reason it is also nice to have a Cython
-module, and version of these functions that return C arrays, in order to avoid
-these operations when they are not necessary.
+**Efficiency** : Because these functions involve listing many times the
+(out)-neighborhoods of (di)-graphs, it is useful in terms of efficiency to build
+a temporary copy of the graph in a data structure that makes it easy to compute
+quickly. These functions also work on large volume of data, typically dense
+matrices of size `n^2`, and are expected to return corresponding dictionaries of
+size `n^2`, where the integers corresponding to the vertices have first been
+converted to the vertices' labels. Sadly, this last translating operation turns
+out to be the most time-consuming, and for this reason it is also nice to have a
+Cython module, and version of these functions that return C arrays, in order to
+avoid these operations when they are not necessary.
+
+**Memory cost** : The methods implemented in the current module sometimes need large
+amounts of memory to return their result. Storing the distances between all
+pairs of vertices in a graph on `1500` vertices as a dictionary of dictionaries
+takes around 200MB, while storing the same information as a C array requires
+4MB.
+
 
 The module's main function
 --------------------------
@@ -51,16 +58,17 @@ Breadth First Search per vertex of the (di)graph.
     - ``gg`` a (Di)Graph.
 
     - ``unsigned short * predecessors`` -- a pointer toward an array of size
-      `n^2\text{sizeof(unsigned short)}`. Set to ``NULL`` if you do not want to
-      compute the predecessors.
+      `n^2\cdot\text{sizeof(unsigned short)}`. Set to ``NULL`` if you do not
+      want to compute the predecessors.
 
     - ``unsigned short * distances`` -- a pointer toward an array of size
-      `n^2\text{sizeof(unsigned short)}`. The computation of the distances is
-      necessary for the algorithm, so this value can **not** be set to ``NULL``.
+      `n^2\cdot\text{sizeof(unsigned short)}`. The computation of the distances
+      is necessary for the algorithm, so this value can **not** be set to
+      ``NULL``.
 
     - ``unsigned short * eccentricity`` -- a pointer toward an array of size
-      `n\text{sizeof(unsigned short)}`. Set to ``NULL`` if you do not want to
-      compute the eccentricity.
+      `n\cdot\text{sizeof(unsigned short)}`. Set to ``NULL`` if you do not want
+      to compute the eccentricity.
 
 **Technical details**
 

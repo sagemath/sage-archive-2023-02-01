@@ -91,11 +91,21 @@ cdef class LazyImport(object):
         self._as_name = as_name
         self._namespace = namespace
 
-    cpdef _get_object(self):
+    cpdef _get_object(self, owner=None):
         """
         Return the wrapped object, importing it if necessary.
 
-        EXAMPLE::
+        INPUT:
+
+        - ``owner`` -- ``None`` or the class (or subclass thereof)
+          which contains this :class:`LazyImport` object in its
+          ``__dict__``.
+
+        OUTPUT:
+
+        - the wrapped object
+
+        EXAMPLES::
 
             sage: from sage.misc.lazy_import import LazyImport
             sage: my_integer_ring = LazyImport('sage.rings.all', 'ZZ')
@@ -105,12 +115,47 @@ cdef class LazyImport(object):
             Integer Ring
             sage: my_integer_ring._object is None
             False
+
+        .. note::
+
+           For a :class:`LazyImport` object that appears in a class
+           namespace, we need to do something special. Indeed, the
+           class namespace dictionary at the time of the class
+           definition is not the one that actually gets used. Thus,
+           when this function is called, :meth:`__get__`, ``owner``
+           should be set to the ``owner`` class passed into
+           ``__get__``::
+
+               sage: class Foo(object):
+               ...       lazy_import('sage.all', 'plot')
+               sage: class Bar(Foo):
+               ...       pass
+               sage: type(Foo.__dict__['plot'])
+               <type 'sage.misc.lazy_import.LazyImport'>
+
+           Here is how :meth:`_get_object` is called internally upon
+           ``Bar.plot``::
+
+               sage: Foo.__dict__['plot']._get_object(Bar)
+               <function plot at ...>
+
+           Now ``Bar`` has been replaced in the dictionary of ``Foo``::
+
+               sage: type(Foo.__dict__['plot'])
+               <type 'function'>
         """
         if self._object is None:
             self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
             alias = self._as_name or self._name
-            if self._namespace and self._namespace[alias] is self:
-                self._namespace[alias] = self._object
+            if owner is None:
+                if self._namespace and self._namespace[alias] is self:
+                    self._namespace[alias] = self._object
+            else:
+                from inspect import getmro
+                for cls in getmro(owner):
+                    if cls.__dict__.get(alias, None) is self:
+                        setattr(cls, alias, self._object)
+                        break
         return self._object
 
     def _sage_doc_(self):
@@ -329,14 +374,13 @@ cdef class LazyImport(object):
             sage: Foo().my_method
             <bound method Foo.my_method of <__main__.Foo instance at ...>>
 
-        Currently, ``my_method`` remains a lazy imported object in the
-        class dictionary, even when it has already been used, which is
-        not as efficient as it could be (but see #11003)::
-
-            sage: type(Foo.__dict__["my_method"])
-            <type 'sage.misc.lazy_import.LazyImport'>
+        When a :class:`LazyImport` method is a method (or attribute)
+        of a class, then extra work must be done to replace this
+        :class:`LazyImport` object with the actual object. See the
+        documentation of :meth:`_get_object` for an explanation of
+        this.
         """
-        obj = self._get_object()
+        obj = self._get_object(owner=owner)
         if hasattr(obj, "__get__"):
             return obj.__get__(instance, owner)
         return obj
@@ -780,6 +824,19 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True):
         37
         sage: my_ZZ is ZZ
         True
+
+    We check that :func:`lazy_import` also works for methods::
+
+        sage: class Foo(object):
+        ...       lazy_import('sage.all', 'plot')
+        sage: class Bar(Foo):
+        ...       pass
+        sage: type(Foo.__dict__['plot'])
+        <type 'sage.misc.lazy_import.LazyImport'>
+        sage: 'EXAMPLES' in Bar.plot.__doc__
+        True
+        sage: type(Foo.__dict__['plot'])
+        <type 'function'>
     """
     if _as is None:
         _as = names
@@ -787,7 +844,7 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True):
         names = [names]
         _as = [_as]
     if namespace is None:
-        namespace = inspect.currentframe().f_globals
+        namespace = inspect.currentframe().f_locals
     if "*" in names:
         ix = names.index("*")
         names[ix:ix+1] = get_star_imports(module)

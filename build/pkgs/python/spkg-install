@@ -130,6 +130,17 @@ fi
 # Remove previous Python installs
 rm -rf python2.6
 
+# On OS X with XCode 4, the presence of
+# $SAGE_LOCAL/lib/python/config/libpython2.7.a causes problems with
+# GiNaC -- see #11967 -- so we delete it.
+if [ "$UNAME" = "Darwin" ] && \
+    [ `xcodebuild -version | grep Xcode | sed -e 's/[A-Za-z ]//g' | cut '-d.' -f1` -gt 3 ]; then
+    rm "$SAGE_LOCAL/lib/python2.7/config/libpython2.7.a"
+    if [ $? -ne 0 ] ; then
+	echo &>2 "Error deleting libpython2.7.a."
+	exit 1
+    fi
+fi
 
 # Make sure extension modules were built correctly.
 # All these modules are important and if any one

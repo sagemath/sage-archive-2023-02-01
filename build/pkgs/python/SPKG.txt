@@ -64,6 +64,11 @@ http://www.python.org/community/
 
 == Changelog ==
 
+=== python-2.7.2.p2 (John Palmieri, 3 February 2012) ===
+ * Trac #11967: on OS X Lion, delete the file
+   $SAGE_LOCAL/lib/python/config/libpython2.7.a.  Its presence causes
+   problems with GiNaC.
+
 === python-2.7.2.p1 (Jeroen Demeyer, 4 January 2012) ===
  * Trac #9958: delete $SAGE_ROOT/devel/sage-*/build directories of
    older Python versions to fix upgrading.

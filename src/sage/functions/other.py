@@ -1344,7 +1344,7 @@ class Function_arg(BuiltinFunction):
             sage: arg(0)
             0
             sage: latex(arg(x))
-            \text{arg}\left(x\right)
+            {\rm arg}\left(x\right)
             sage: maxima(arg(x))
             atan2(0,x)
             sage: maxima(arg(2+i))
@@ -1409,7 +1409,7 @@ class Function_arg(BuiltinFunction):
             # or x involves an expression such as sqrt(2)
             return None
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent_d=None):
         """
         EXAMPLES::
 
@@ -1417,6 +1417,20 @@ class Function_arg(BuiltinFunction):
             0.000000000000000
             sage: arg(3.0)
             0.000000000000000
+            sage: arg(3.00000000000000000000000000)
+            0.00000000000000000000000000
+            sage: arg(3.00000000000000000000000000).prec()
+            90
+            sage: arg(ComplexIntervalField(90)(3)).prec()
+            90
+            sage: arg(ComplexIntervalField(90)(3)).parent()
+            Real Interval Field with 90 bits of precision
+            sage: arg(3.0r)
+            0.000000000000000
+            sage: arg(RDF(3))
+            0.0
+            sage: arg(RDF(3)).parent()
+            Real Double Field
             sage: arg(-2.5)
             3.14159265358979
             sage: arg(2.0+3*i)
@@ -1425,9 +1439,20 @@ class Function_arg(BuiltinFunction):
         try:
             return x.arg()
         except AttributeError:
-            from sage.rings.complex_field import CC
-            x = CC(x)
-            return x.arg()
+            pass
+        # try to find a parent that support .arg()
+        if parent_d is None:
+            parent_d = parent(x)
+        try:
+            parent_d = parent_d.complex_field()
+        except AttributeError:
+            from sage.rings.complex_field import ComplexField
+            try:
+                parent_d = ComplexField(x.prec())
+            except AttributeError:
+                parent_d = ComplexField()
+
+        return parent_d(x).arg()
 
 arg=Function_arg()
 

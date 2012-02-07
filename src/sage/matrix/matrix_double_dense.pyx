@@ -1174,18 +1174,18 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [0.0 0.0 1.0 0.0 0.0]
             [0.0 0.0 0.0 1.0 0.0]
             [0.0 1.0 0.0 0.0 0.0]
-            sage: L
+            sage: L.zero_at(0)   # Use zero_at(0) to get rid of signed zeros
             [ 1.0  0.0  0.0  0.0  0.0]
             [ 0.0  1.0  0.0  0.0  0.0]
             [ 0.5  0.5  1.0  0.0  0.0]
-            [0.75 0.25 -0.0  1.0  0.0]
-            [0.25 0.75 -0.0 -0.0  1.0]
-            sage: U
+            [0.75 0.25  0.0  1.0  0.0]
+            [0.25 0.75  0.0  0.0  1.0]
+            sage: U.zero_at(0)   # Use zero_at(0) to get rid of signed zeros
             [24.0 25.0 26.0 27.0 28.0 29.0]
             [ 0.0  1.0  2.0  3.0  4.0  5.0]
-            [ 0.0  0.0 -0.0  0.0  0.0  0.0]
-            [ 0.0  0.0  0.0 -0.0 -0.0  0.0]
-            [ 0.0  0.0  0.0  0.0 -0.0  0.0]
+            [ 0.0  0.0  0.0  0.0  0.0  0.0]
+            [ 0.0  0.0  0.0  0.0  0.0  0.0]
+            [ 0.0  0.0  0.0  0.0  0.0  0.0]
             sage: P*A-L*U
             [0.0 0.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0 0.0 0.0]
@@ -1419,7 +1419,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: e, V = spectrum[2]
             sage: v = V.basis()[0]
             sage: diff = (m*v).change_ring(CDF) - e*v
-            sage: abs(abs(diff)) < 1e-14
+            sage: abs(abs(diff)) < 3e-14
             True
 
         TESTS::
@@ -2535,7 +2535,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         (indeed it should be the identity matrix), but with some
         imprecision.  We use this to illustrate that if the tolerance
         is set too small, then we can be too strict about the equality
-        of entries and achieve the wrong result.  ::
+        of entries and may achieve the wrong result (depending on
+        the system)::
 
             sage: A = matrix(CDF, [[ 1 + I,  1 - 6*I, -1 - I],
             ...                    [-3 - I,     -4*I,     -2],
@@ -2544,7 +2545,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: B=U*U.conjugate_transpose()
             sage: B.is_hermitian(algorithm='naive')
             True
-            sage: B.is_hermitian(algorithm='naive', tol=1.0e-17)
+            sage: B.is_hermitian(algorithm='naive', tol=1.0e-17)  # random
             False
             sage: B.is_hermitian(algorithm='naive', tol=1.0e-15)
             True

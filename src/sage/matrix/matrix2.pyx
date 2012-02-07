@@ -8002,11 +8002,11 @@ cdef class Matrix(matrix1.Matrix):
             ...                    [-0.2913 + 0.8057*I,  0.8321 + 0.8170*I, -0.6744 + 0.9248*I],
             ...                    [ 0.2554 + 0.3517*I, -0.4454 - 0.1715*I,  0.8325 - 0.6282*I]])
             sage: G, M = A.gram_schmidt()
-            sage: G.round(6)
+            sage: G.round(6)  # random signs
             [-0.422243 - 0.490087*I  0.566698 - 0.097416*I -0.500882 + 0.002251*I]
             [-0.057002 - 0.495035*I  -0.35059 - 0.625323*I  0.255514 - 0.415284*I]
             [ 0.394105 - 0.421778*I -0.392266 - 0.039345*I  -0.352905 + 0.62195*I]
-            sage: M.round(6).zero_at(10^-6)
+            sage: M.round(6)  # random
             [             -1.528503                      0                      0]
             [  0.459974 - 0.40061*I              -1.741233                      0]
             [-0.934304 + 0.148868*I   0.54833 + 0.073202*I              -0.550725]
@@ -8014,7 +8014,7 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 0]
             [0 0 0]
             [0 0 0]
-            sage: (G*G.conjugate().transpose()).zero_at(10^-12)
+            sage: (G*G.conjugate_transpose()).zero_at(10^-12)
             [1.0   0   0]
             [  0 1.0   0]
             [  0   0 1.0]
@@ -8050,14 +8050,22 @@ cdef class Matrix(matrix1.Matrix):
             2
             sage: B = matrix(RDF, entries)
             sage: G, M = B.gram_schmidt()
-            sage: G.round(6).zero_at(10^-6)
+            sage: G.round(6)  # random signs
             [-0.408248 -0.408248 -0.816497]
-            [ 0.707107 -0.707107       0.0]
+            [ 0.707107 -0.707107      -0.0]
             [ -0.57735  -0.57735   0.57735]
-            sage: M.round(10).zero_at(10^-10)
+            sage: M.round(10)  # random
             [-2.4494897428           0.0           0.0]
             [-3.6742346142  0.7071067812           0.0]
             [-4.8989794856  1.4142135624           0.0]
+            sage: (A - M*G).zero_at(1e-14)
+            [0.0 0.0 0.0]
+            [0.0 0.0 0.0]
+            [0.0 0.0 0.0]
+            sage: (G*G.transpose()).zero_at(1e-14)
+            [1.0 0.0 0.0]
+            [0.0 1.0 0.0]
+            [0.0 0.0 1.0]
 
         Exact Rings, Orthonormalization:
 

@@ -15,39 +15,30 @@ build() {
       echo "sage: Building and installing modified Sage library files."
       echo ""
 
-      ## install c_lib
-      ## we're doing this here instead of setup.py because
-      ## it's easier to keep track of whether or not we're
-      ## switching branches, which changes what we do with
-      ## the c_lib install
-      ##
-      ## that's no longer true, but it's easier to just
-      ## keep this here.
+      # install c_lib
+      # we're doing this here instead of setup.py for historical
+      # reasons:
+      #
+      # it used to be easier to keep track of whether or not we're
+      # switching branches, which changes what we do with the c_lib
+      # install
       echo ""
       echo "Installing c_lib"
       CUR=`pwd`
       cd "c_lib"
-      if [ -n "$SAGE_DEBIAN" ]; then
-        SAGE_LOCAL=/usr scons -Q install
-      else
-        scons -Q install
-      fi
-      ## make sure c_lib install went okay
+      scons -Q install
+      # make sure c_lib install went okay
       if [ $? -ne 0 ]; then
-	  echo "ERROR: There was an error building c_lib."
-	  echo ""
-	  exit 1
+          echo >&2 "Error building c_lib."
+          exit 1
       fi
       cd "$CUR"
 
       ./install "$SAGE_ROOT"
       if [ $? -ne 0 ]; then
-         echo "sage: There was an error installing modified $1 library code."
-         echo ""
+         echo >&2 "Error installing modified $1 library code."
          exit 1
       fi
-   #else
-      #echo "The directory $SAGE_ROOT/devel/$1/ does not exist."
    fi
 }
 
@@ -58,14 +49,13 @@ else
     DO_BUILD_ALL=0
 fi
 
-
 if [ "$1" != "" ]; then
     # make devel/sage point to devel/$1
     cd "$SAGE_ROOT/devel/"
     if [ ! -d "sage-$1" ]; then
         # this will happen a lot because of people (=me) making typos.
-        echo "No such branch '$SAGE_ROOT/devel/sage-$1'"
-	echo "Use 'sage -clone' to create a new branch."
+        echo >&2 "No such branch '$SAGE_ROOT/devel/sage-$1'"
+        echo >&2 "Use 'sage --clone' to create a new branch."
         exit 1
     fi
     # On Solaris (and perhaps other systems), "ln -snf FILE LINK"
@@ -78,24 +68,18 @@ if [ "$1" != "" ]; then
 fi
 
 if [ ! -d "$SAGE_ROOT/devel/sage" ]; then
-    echo "There is no directory '$SAGE_ROOT/devel/sage'"
+    echo >&2 "There is no directory '$SAGE_ROOT/devel/sage'"
     exit 1
 fi
 
 if [ $DO_BUILD_ALL = 1 ]; then
-   CUR=`pwd`
-   cd "$SAGE_ROOT/devel/sage/sage"
-   echo "*** TOUCHING ALL CYTHON (.pyx) FILES ***"
-   touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx 2> /dev/null
-   cd ../c_lib
-   if [ -n "$SAGE_DEBIAN" ]; then
-     SAGE_LOCAL=/usr scons -Q install
-   else
-     scons -Q install
-   fi
-   cd ..
-
-   cd "$CUR"
+    CUR=`pwd`
+    cd "$SAGE_ROOT/devel/sage/sage"
+    echo "*** TOUCHING ALL CYTHON (.pyx) FILES ***"
+    touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx 2> /dev/null
+    cd ../c_lib
+    scons -Q install
+    cd "$CUR"
 fi
 
 # In case SAGE64 has been set to yes before re-inject it into the environment

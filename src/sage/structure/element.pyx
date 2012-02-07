@@ -3320,10 +3320,10 @@ cdef generic_power_c(a, nn, one):
     if not n:
         if one is None:
             if PY_TYPE_CHECK(a, Element):
-                return (<Element>a)._parent(1)
+                return (<Element>a)._parent.one()
             try:
                 try:
-                    return a.parent()(1)
+                    return a.parent().one()
                 except AttributeError:
                     return type(a)(1)
             except:

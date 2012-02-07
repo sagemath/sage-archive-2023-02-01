@@ -140,6 +140,17 @@ class EtaGroup_class(AbelianGroup):
         """
         return "Group of eta products on X_0(%s)" % self.level()
 
+    def one(self):
+        r"""
+        Return the identity element of ``self``.
+
+        EXAMPLE::
+
+            sage: EtaGroup(12).one()
+            Eta product of level 12 : 1
+        """
+        return self({})
+
     def __call__(self, dict):
         r"""
         Create an element of this group (an eta product object) with

@@ -2001,10 +2001,18 @@ class CompletionFunctor(ConstructionFunctor):
         INPUT:
 
         - ``p``: A prime number, the generator of a univariate polynomial ring, or ``+Infinity``
+
         - ``prec``: an integer, yielding the precision in bits. Note that
           if ``p`` is prime then the ``prec`` is the *capped* precision,
           while it is the *set* precision if ``p`` is ``+Infinity``.
+
         - ``extras`` (optional dictionary): Information on how to print elements, etc.
+          If 'type' is given as a key, the corresponding value should be a string among the following:
+
+          - 'RDF', 'Interval', 'RLF', or 'RR' for completions at infinity
+
+          - 'capped-rel', 'capped-abs', 'fixed-mod' or 'lazy' for completions at a finite place
+            or ideal of a DVR.
 
         TESTS::
 
@@ -2018,13 +2026,25 @@ class CompletionFunctor(ConstructionFunctor):
             sage: F2
             Completion[+Infinity]
             sage: F2.extras
-            {'sci_not': False, 'rnd': 'RNDN'}
+            {'type': 'MPFR', 'sci_not': False, 'rnd': 'RNDN'}
 
         """
         Functor.__init__(self, Rings(), Rings())
         self.p = p
         self.prec = prec
-        self.extras = extras
+        if extras is None:
+            self.extras = {}
+            self.type = None
+        else:
+            self.extras = dict(extras)
+            self.type = extras.get('type', None)
+            from sage.rings.infinity import Infinity
+            if self.p == Infinity:
+                if self.type not in self._real_types:
+                    raise ValueError("completion type must be one of %s"%(", ".join(self._real_types)))
+            else:
+                if self.type not in self._dvr_types:
+                    raise ValueError("completion type must be one of %s"%(", ".join(self._dvr_types)))
 
     def __str__(self):
         """
@@ -2050,12 +2070,18 @@ class CompletionFunctor(ConstructionFunctor):
 
         """
         try:
-            if self.extras is None:
-                try:
-                    return R.completion(self.p, self.prec)
-                except TypeError:
-                    return R.completion(self.p, self.prec, {})
-            return R.completion(self.p, self.prec, self.extras)
+            if len(self.extras) == 0:
+                if self.type is None:
+                    try:
+                        return R.completion(self.p, self.prec)
+                    except TypeError:
+                        return R.completion(self.p, self.prec, {})
+                else:
+                    return R.completion(self.p, self.prec, {'type':self.type})
+            else:
+                extras = self.extras.copy()
+                extras['type'] = self.type
+                return R.completion(self.p, self.prec, extras)
         except (NotImplementedError,AttributeError):
             if R.construction() is None:
                 raise NotImplementedError, "Completion is not implemented for %s"%R.__class__
@@ -2097,6 +2123,9 @@ class CompletionFunctor(ConstructionFunctor):
             c = cmp(self.p, other.p)
         return c
 
+    _real_types = ['Interval','MPFR','RDF','RLF']
+    _dvr_types = [None, 'fixed-mod','capped-abs','capped-rel','lazy']
+
     def merge(self, other):
         """
         Two Completion functors are merged, if they are equal. If the precisions of
@@ -2119,21 +2148,79 @@ class CompletionFunctor(ConstructionFunctor):
             sage: (R3(1) + R4(1)).parent()
             Real Field with 30 bits of precision
 
+        TESTS:
+
+        We check that #12353 has been resolved::
+
+            sage: RealIntervalField(53)(-1) > RR(1)
+            False
+            sage: RealIntervalField(54)(-1) > RR(1)
+            False
+            sage: RealIntervalField(54)(1) > RR(-1)
+            True
+            sage: RealIntervalField(53)(1) > RR(-1)
+            True
+
+        We check that various pushouts work::
+
+            sage: R0 = RealIntervalField(30)
+            sage: R1 = RealIntervalField(30, sci_not=True)
+            sage: R2 = RealIntervalField(53)
+            sage: R3 = RealIntervalField(53, sci_not = True)
+            sage: R4 = RealIntervalField(90)
+            sage: R5 = RealIntervalField(90, sci_not = True)
+            sage: R6 = RealField(30)
+            sage: R7 = RealField(30, sci_not=True)
+            sage: R8 = RealField(53, rnd = 'RNDD')
+            sage: R9 = RealField(53, sci_not = True, rnd = 'RNDZ')
+            sage: R10 = RealField(53, sci_not = True)
+            sage: R11 = RealField(90, sci_not = True, rnd = 'RNDZ')
+            sage: Rlist = [R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11]
+            sage: from sage.categories.pushout import pushout
+            sage: pushouts = [R0,R0,R0,R1,R0,R1,R0,R1,R0,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R0,R1,R2,R2,R2,R3,R0,R1,R2,R3,R3,R3,R1,R1,R3,R3,R3,R3,R1,R1,R3,R3,R3,R3,R0,R1,R2,R3,R4,R4,R0,R1,R2,R3,R3,R5,R1,R1,R3,R3,R5,R5,R1,R1,R3,R3,R3,R5,R0,R1,R0,R1,R0,R1,R6,R6,R6,R7,R7,R7,R1,R1,R1,R1,R1,R1,R7,R7,R7,R7,R7,R7,R0,R1,R2,R3,R2,R3,R6,R7,R8,R9,R10,R9,R1,R1,R3,R3,R3,R3,R7,R7,R9,R9,R10,R9,R1,R1,R3,R3,R3,R3,R7,R7,R10,R10,R10,R10,R1,R1,R3,R3,R5,R5,R7,R7,R9,R9,R10,R11]
+            sage: all([R is S for R, S in zip(pushouts, [pushout(a, b) for a in Rlist for b in Rlist])])
+            True
+
+        ::
+
+            sage: P0 = ZpFM(5, 10)
+            sage: P1 = ZpFM(5, 20)
+            sage: P2 = ZpCR(5, 10)
+            sage: P3 = ZpCR(5, 20)
+            sage: P4 = ZpCA(5, 10)
+            sage: P5 = ZpCA(5, 20)
+            sage: P6 = Qp(5, 10)
+            sage: P7 = Qp(5, 20)
+            sage: Plist = [P2,P3,P4,P5,P6,P7]
+            sage: from sage.categories.pushout import pushout
+            sage: pushouts = [P2,P3,P4,P5,P6,P7,P3,P3,P5,P5,P7,P7,P4,P5,P4,P5,P6,P7,P5,P5,P5,P5,P7,P7,P6,P7,P6,P7,P6,P7,P7,P7,P7,P7,P7,P7]
+            sage: all([P is Q for P, Q in zip(pushouts, [pushout(a, b) for a in Plist for b in Plist])])
+            True
         """
-        if self!=other:
-            return None
-        if self.p == other.p:
+        if self == other: # both are Completion functors with the same p
             from sage.all import Infinity
-            if self.prec == other.prec:
+            if self.p == Infinity:
+                new_prec = min(self.prec, other.prec)
+                new_type = self._real_types[min(self._real_types.index(self.type), \
+                                                self._real_types.index(other.type))]
+                new_scinot = max(self.extras.get('sci_not',0), other.extras.get('sci_not',0))
+                from sage.rings.real_mpfr import _rounding_modes
+                new_rnd = _rounding_modes[min(_rounding_modes.index(self.extras.get('rnd', 'RNDN')), \
+                                              _rounding_modes.index(other.extras.get('rnd', 'RNDN')))]
+                return CompletionFunctor(self.p, new_prec, {'type': new_type, 'sci_not':new_scinot, 'rnd':new_rnd})
+            else:
+                new_type = self._dvr_types[min(self._dvr_types.index(self.type), self._dvr_types.index(other.type))]
+                if new_type == 'fixed-mod':
+                    if self.type != 'fixed-mod' or other.type != 'fixed-mod':
+                        return None # no coercion into fixed-mod
+                    new_prec = min(self.prec, other.prec)
+                else:
+                    new_prec = max(self.prec, other.prec) # since elements track their own precision, we don't want to truncate them
                 extras = self.extras.copy()
                 extras.update(other.extras)
-                return CompletionFunctor(self.p, self.prec, extras)
-            elif (self.p==Infinity and self.prec<other.prec) or (self.p<Infinity and self.prec>other.prec):
-                return self
-            else: # self.prec > other.prec
-                return other
-        else:
-            return None
+                extras['type'] = new_type
+                return CompletionFunctor(self.p, new_prec, extras)
+
 ##   Completion has a lower rank than FractionField
 ##   and is thus applied first. However, fact is that
 ##   both commute. This is used in the call method,

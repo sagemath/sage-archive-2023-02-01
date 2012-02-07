@@ -576,7 +576,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         from sage.categories.pushout import CompletionFunctor
         return (CompletionFunctor(sage.rings.infinity.Infinity,
                                   self.prec(),
-                                  {'sci_not': self.scientific_notation(), 'rnd': self.rounding_mode()}),
+                                  {'type': 'MPFR', 'sci_not': self.scientific_notation(), 'rnd': self.rounding_mode()}),
                sage.rings.rational_field.QQ)
 
     def gen(self, i=0):
@@ -4961,11 +4961,55 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
 
 # here because this imports the other two real fields
 def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
+    """
+    Create a real field with given precision, type, rounding mode and scientific notation.
+
+    Some options are ignored for certain types (RDF for example).
+
+    INPUT:
+
+    - prec -- a positive integer
+
+    - type -- a string, one of
+
+      - 'RDF' -- the Sage real field corresponding to native doubles
+
+      - 'Interval' -- real fields implementing interval arithmetic
+
+      - 'RLF' -- the real lazy field
+
+      - 'MPFR' -- floating point real numbers implemented using the MPFR library
+
+    - rnd -- a string, one of
+
+      - 'RNDN' -- round to nearest
+
+      - 'RNDZ' -- round toward zero
+
+      - 'RNDD' -- round down
+
+      - 'RNDU' -- round up
+
+    - sci_not -- boolean, whether to use scientific notation for printing
+
+    OUTPUT:
+
+    - the appropriate real field.
+
+    EXAMPLES::
+
+        sage: from sage.rings.real_mpfr import create_RealField
+        sage: create_RealField(30)
+        Real Field with 30 bits of precision
+        sage: create_RealField(20, 'RDF') # ignores precision
+        Real Double Field
+        sage: create_RealField(60, 'Interval')
+        Real Interval Field with 60 bits of precision
+        sage: create_RealField(40, 'RLF') # ignores precision
+        Real Lazy Field
+    """
     if type == "RDF":
         return RDF
-    elif type == "RQDF":
-        from real_rqdf import RQDF
-        return RQDF
     elif type == "Interval":
         from real_mpfi import RealIntervalField
         return RealIntervalField(prec, sci_not)

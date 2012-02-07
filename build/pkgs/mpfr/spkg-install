@@ -94,24 +94,29 @@ build()
                  CFLAGS="$CFLAGS $SHAREDFLAGS -O2" CXX="$CXX" \
                  CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS" \
                  GMP_PREFIX="$SAGE_LOCAL" $EXTRA
+    if [ $? -ne 0 ];  then
+        echo >&2 "Error configuring mpfr."
+        exit 1
+    fi
 
     echo "Building MPFR"
     $MAKE
+    if [ $? -ne 0 ];  then
+        echo >&2 "Error building mpfr."
+        exit 1
+    fi
 
-    echo "Deleting old libraries"
-    rm -f "$SAGE_LOCAL"/lib/libmpfr.*
-    echo "Deleting old headers"
-    rm -f "$SAGE_LOCAL"/include/*mpfr*
+    echo "Deleting old libraries and headers"
+    rm -f "$SAGE_LOCAL"/lib/libmpfr.* "$SAGE_LOCAL"/include/*mpfr*
 
     echo "Installing MPFR"
     $MAKE install
+    if [ $? -ne 0 ];  then
+        echo >&2 "Error installing mpfr."
+        exit 1
+    fi
 }
 
 cd src
 
 build
-
-if ! [ $? -eq 0 -a -f $SAGE_LOCAL/include/mpfr.h ];  then
-    echo "An error occurred while building mpfr."
-    exit 1
-fi

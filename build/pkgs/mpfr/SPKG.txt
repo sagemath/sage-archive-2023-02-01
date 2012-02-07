@@ -39,6 +39,7 @@ on sun4v machines.
  * #12366: delete old libraries/headers *after* build
  * Remove useless "export MAKE=make".
  * Do not run spkg-check by default.
+ * Actually check whether ./configure and $MAKE were successful.
 
 === mpfr-2.4.2.p0 (Simon King, December 10th, 2010) ===
  * #12131: Use --libdir, to make the package work on openSUSE.

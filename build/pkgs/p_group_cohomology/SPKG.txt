@@ -1,4 +1,4 @@
-= p_group_cohomology-2.1.1 =
+= p_group_cohomology-2.1.2 =
 
 == Description ==
 
@@ -9,7 +9,7 @@ http://sage.math.washington.edu/home/SimonKing/Cohomology/
 
 == License ==
 
-Copyright (C) 2010 Simon A. King  <simon.king@nuigalway.ie>
+Copyright (C) 2011 Simon A. King  <simon.king@uni-jena.de>
 Copyright (C) 2009 Simon A. King  <simon.king@nuigalway.ie> and
                    David J. Green <david.green@uni-jena.de>
 
@@ -36,11 +36,11 @@ available at
 
 == SPKG Maintainers ==
 
-Simon A. King <simon.king@nuigalway.ie>
+Simon A. King <simon.king@uni-jena.de>
 
 == Upstream Contact ==
 
-Simon A. King  <simon.king@nuigalway.ie>
+Simon A. King  <simon.king@uni-jena.de>
 David J. Green <david.green@uni-jena.de>
 
 == Acknowledgements ==
@@ -51,7 +51,8 @@ accomplished at the Friedrich Schiller University Jena.
 
 Since version 1.0.1, the further work on this SPKG is funded
 by Marie Curie grant MTKD-CT-2006-042685 and is pursued at
-the National University of Ireland, Galway.
+the National University of Ireland, Galway. Since Novermber 2010,
+it is moved back to Jena.
 
 We thank William Stein for giving us access to various computers
 on which we could build test the SPKG and on which some huge computations
@@ -106,6 +107,9 @@ exporting the environment variable SAGE_NUMBER_THREAD (for example:
 
 == Changelog ==
 
+  * 2.1.2 (Simon King, February 2012):
+    - Some fixes needed with the new version of Cython used by Sage.
+    - Small improvements in the MeatAxe code.
   * 2.1.1 (Simon King, September 2010):
     - Cohomology data are now by default only created in the private
       database.

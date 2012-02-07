@@ -402,14 +402,11 @@ def do_update():
     os.system('chmod +x install')
     os.chdir(os.path.join(SPKG_ROOT, "standard"))
     download_file("standard/deps")
-    download_file("standard/newest_version")
-    os.system('chmod +x newest_version')
     # commit any changes into sage root repo.
     os.chdir(SAGE_ROOT)
     if root_repo_intact:
         for file in ['spkg/install',
-                     'spkg/standard/deps',
-                     'spkg/standard/newest_version']:
+                     'spkg/standard/deps']:
             subprocess.call('hg commit %s -m ' % file +
                             '"committing %s while running sage-update" ' % file +
                             '-u "Sage (during sage -upgrade)"',

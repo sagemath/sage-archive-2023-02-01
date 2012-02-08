@@ -15124,17 +15124,39 @@ class GenericGraph(GenericGraph_pyx):
             [1, 2]
             sage: G.get_pos()
             {0: (0, 0), 1: (2, 0), 2: (3, 0), 3: (4, 0)}
+
+        Check that #12477 is fixed::
+
+            sage: g = Graph({1:[2,3]})
+            sage: rel = {1:'a', 2:'b'}
+            sage: g.relabel(rel)
+            sage: g.vertices()
+            [3, 'a', 'b']
+            sage: rel
+            {1: 'a', 2: 'b'}
         """
+        from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+
+        # If perm is not a dictionary, we build one !
+
         if perm is None:
             verts = self.vertices() # vertices() returns a sorted list:
             perm = {}; i = 0        # this guarantees consistent relabeling
             for v in verts:
                 perm[v] = i
                 i += 1
-        if isinstance(perm, (list, tuple)):
+
+        elif isinstance(perm, dict):
+
+            # If all vertices do not have a new label, the code will touch the
+            # dictionary. Let us keep the one we received from the user clean !
+            from copy import copy
+            perm = copy(perm)
+
+        elif isinstance(perm, (list, tuple)):
             perm = dict( [ [i,perm[i]] for i in xrange(len(perm)) ] )
-        from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-        if isinstance(perm, PermutationGroupElement):
+
+        elif isinstance(perm, PermutationGroupElement):
             n = self.order()
             ddict = {}
             llist = perm.list()
@@ -15143,9 +15165,11 @@ class GenericGraph(GenericGraph_pyx):
             if n > 0:
                 ddict[0] = llist[n-1]%n
             perm = ddict
-        if callable(perm):
+
+        elif callable(perm):
             perm = dict( [ i, perm(i) ] for i in self.vertices() )
-        if not isinstance(perm, dict):
+
+        else:
             raise TypeError("Type of perm is not supported for relabeling.")
 
         if not inplace:

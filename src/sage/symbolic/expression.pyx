@@ -776,6 +776,9 @@ cdef class Expression(CommutativeRingElement):
         """
         Evaluate this expression numerically.
 
+        This function is used to convert symbolic expressions to ``RR``,
+        ``CC``, ``float``, ``complex``, ``CIF`` and ``RIF``.
+
         EXAMPLES::
 
             sage: var('x,y,z')
@@ -788,8 +791,31 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: Cannot evaluate symbolic expression to a numeric value.
-       """
-        cdef GEx res = self._gobj.evalf(0, R)
+
+        Check if we can compute a real evaluation even if the expression
+        contains complex coefficients::
+
+            sage: RR((I - sqrt(2))*(I+sqrt(2)))
+            -3.00000000000000
+            sage: cos(I)._eval_self(RR)
+            1.54308063481524
+            sage: float(cos(I))
+            1.5430806348152437
+        """
+        cdef GEx res
+        try:
+            res = self._gobj.evalf(0, R)
+        except TypeError as err:
+            # try the evaluation again with the complex field
+            # corresponding to the parent R
+            if R is float:
+                R_complex = complex
+            else:
+                try:
+                    R_complex = R.complex_field()
+                except (TypeError, AttributeError):
+                    raise err
+            res = self._gobj.evalf(0, R_complex)
         if is_a_numeric(res):
             return R(py_object_from_numeric(res))
         else:

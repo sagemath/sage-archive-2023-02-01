@@ -66,7 +66,7 @@ class UniqueRepresentation:
     provide two alternative implementations of this design pattern. Both
     implementations have their own merits. :class:`UniqueRepresentation` is
     very easy to use: a class just needs to derive from it, or make sure some
-    of its super classes does. For basic usage . Also, it groups together the
+    of its super classes does. Also, it groups together the
     class and the factory in a single gadget; in the example above, one would
     want to do::
 

@@ -359,6 +359,30 @@ class WordMorphism(SageObject):
         if not isinstance(other, WordMorphism):
             return False
         return self._morph == other._morph
+    def __ne__(self, other):
+        r"""
+        Returns whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: m = WordMorphism('a->ab,b->baba')
+            sage: n = WordMorphism('a->ab,b->baba')
+            sage: o = WordMorphism('a->ab,b->bab')
+            sage: m != n
+            False
+            sage: n != o
+            True
+
+        This solves Sage trac #12475::
+
+            sage: s = WordMorphism('1->121,2->131,3->4,4->1')
+            sage: s == s.reversal()
+            True
+            sage: s != s.reversal()
+            False
+
+        """
+        return not self.__eq__(other)
 
     def __repr__(self):
         r"""

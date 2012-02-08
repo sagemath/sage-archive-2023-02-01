@@ -17,10 +17,10 @@ Hasse diagrams of posets
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import copy
 from sage.graphs.all import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
-from sage.matrix.constructor import matrix
 from sage.misc.misc import uniq
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
@@ -725,14 +725,16 @@ class HasseDiagram(DiGraph):
 
     def mobius_function_matrix(self):
         r"""
-        Returns a matrix whose ``(x, y)`` entry is the value of the
-        M\"obius function of self evaluated on ``x`` and ``y``.
+        Returns the matrix of the mobius function of this poset
+
+        This returns the sparse matrix over ZZ whose ``(x, y)`` entry
+        is the value of the M\"obius function of ``self`` evaluated on
+        ``x`` and ``y``, and redefines :meth:`mobius_function` to use
+        it
 
         .. note::
 
-            Once this matrix has been computed, it is stored in
-            ``self._mobius_function_matrix``. Delete this attribute if
-            you want to recompute the matrix.
+            The result is cached in ``self._mobius_function_matrix``.
 
         EXAMPLES::
 
@@ -747,41 +749,43 @@ class HasseDiagram(DiGraph):
             [ 0  0  0  0  0  1  0 -1]
             [ 0  0  0  0  0  0  1 -1]
             [ 0  0  0  0  0  0  0  1]
+
+        TESTS::
+
+            sage: H.mobius_function_matrix().is_immutable()
+            True
             sage: hasattr(H,'_mobius_function_matrix')
+            True
+
+            sage: H.mobius_function == H._mobius_function_from_matrix
             True
         """
         if not hasattr(self,'_mobius_function_matrix'):
-            self._mobius_function_matrix = self.lequal_matrix(ring=ZZ).inverse()
-
-        # Redefine self.mobius_function
-        def mobius_function(i,j):
-            r"""
-            Returns a matrix whose ``(x, y)`` entry is the value of
-            the M\"obius function of self evaluated on x and y.
-
-            .. note::
-
-                Once this matrix has been computed, it is stored as
-                ``self._mobius_function_matrix``. Delete this attribute
-                if you want to recompute the matrix.
-
-            EXAMPLES::
-
-                sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-                sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
-                sage: H.mobius_function_matrix()
-                [ 1 -1 -1 -1  1  0  1  0]
-                [ 0  1  0  0 -1  0  0  0]
-                [ 0  0  1  0 -1 -1 -1  2]
-                [ 0  0  0  1  0  0 -1  0]
-                [ 0  0  0  0  1  0  0 -1]
-                [ 0  0  0  0  0  1  0 -1]
-                [ 0  0  0  0  0  0  1 -1]
-                [ 0  0  0  0  0  0  0  1]
-            """
-            return self._mobius_function_matrix[i,j]
-        self.mobius_function = mobius_function
+            self._mobius_function_matrix = self.lequal_matrix().inverse().change_ring(ZZ)
+            self._mobius_function_matrix.set_immutable()
+            self.mobius_function = self._mobius_function_from_matrix
         return self._mobius_function_matrix
+
+    # Redefine self.mobius_function
+    def _mobius_function_from_matrix(self, i,j):
+        r"""
+        Returns the value of the M\"obius function of the poset
+        on the elements ``i`` and ``j``.
+
+        EXAMPLES::
+
+            sage: P = Poset([[1,2,3],[4],[4],[4],[]])
+            sage: H = P._hasse_diagram
+            sage: H.mobius_function(0,4)
+            2
+            sage: for u,v in P.cover_relations_iterator():
+            ...    if P.mobius_function(u,v) != -1:
+            ...        print "Bug in mobius_function!"
+
+        This uses ``self._mobius_function_matrix``, as computed by
+        :meth:`mobius_function_matrix`.
+        """
+        return self._mobius_function_matrix[i,j]
 
     @cached_method
     def coxeter_transformation(self):
@@ -900,16 +904,17 @@ class HasseDiagram(DiGraph):
             for v in self.breadth_first_search(i):
                 D[(i,v)] = 1
         M = matrix(ZZ, n, n, D, sparse=True)
+        M.set_immutable()
         # Redefine self.is_lequal
         self.is_lequal = self._alternate_is_lequal
         # Return the matrix
         return M
 
-    def lequal_matrix(self,ring=ZZ,sparse=True):
+    def lequal_matrix(self):
         """
-        Returns a matrix whose ``(i,j)`` entry is 1 if ``i`` is less than
-        ``j`` in the poset, and 0 otherwise; and redefines ``__lt__`` to
-        use this matrix.
+        Returns the matrix whose ``(i,j)`` entry is 1 if ``i`` is less
+        than ``j`` in the poset, and 0 otherwise; and redefines
+        ``__lt__`` to use this matrix.
 
         EXAMPLES::
 
@@ -925,13 +930,12 @@ class HasseDiagram(DiGraph):
             [0 0 0 0 0 0 1 1]
             [0 0 0 0 0 0 0 1]
 
+        TESTS::
+
+            sage: H.lequal_matrix().is_immutable()
+            True
         """
-        M = self._leq_matrix
-        if ring is not ZZ:
-            M = M.change_ring(ring)
-        if sparse is False:
-            M = M.dense_matrix()
-        return M
+        return self._leq_matrix
 
     def _alternate_is_lequal(self,i,j):
         r"""
@@ -1012,7 +1016,7 @@ class HasseDiagram(DiGraph):
             return self._meet
         n = self.cardinality()
         meet = [[0 for x in range(n)] for x in range(n)]
-        le = self.lequal_matrix()
+        le = copy.copy(self.lequal_matrix())
         for i in range(n): le[i,i] = 1
         if not all([le[0,x]==1 for x in range(n)]):
             raise ValueError, "Not a meet-semilattice: no bottom element."
@@ -1108,7 +1112,7 @@ class HasseDiagram(DiGraph):
         if hasattr(self,'_join'): return self._join
         n = self.cardinality()
         join = [[0 for x in range(n)] for x in range(n)]
-        le = self.lequal_matrix()
+        le = copy.copy(self.lequal_matrix())
         for i in range(n): le[i,i] = 1
         if not all([le[x][n-1]==1 for x in range(n)]):
             raise ValueError, "Not a join-semilattice: no top element."

@@ -63,6 +63,13 @@ Trying to multiply temperatures by another unit then converting raises a ValueEr
     ...
     ValueError: Cannot convert
 
+TESTS:
+
+Check that Trac 12373 if fixed::
+
+    sage: b = units.amount_of_substance.mole
+    sage: b.convert(units.amount_of_substance.elementary_entity)
+    6.02214129000000e23*elementary_entity
 
 AUTHORS:
 

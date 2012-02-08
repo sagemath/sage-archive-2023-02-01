@@ -49,8 +49,8 @@ The development of the initial version of this SPKG was funded by
 the German Science Foundation, DFG project GR 1585/4.1, and was
 accomplished at the Friedrich Schiller University Jena.
 
-Since version 1.0.1, the further work on this SPKG is funded
-by Marie Curie grant MTKD-CT-2006-042685 and is pursued at
+Since version 1.0.1, the further work on this SPKG was funded
+by Marie Curie grant MTKD-CT-2006-042685 and was pursued at
 the National University of Ireland, Galway. Since Novermber 2010,
 it is moved back to Jena.
 
@@ -108,7 +108,9 @@ exporting the environment variable SAGE_NUMBER_THREAD (for example:
 == Changelog ==
 
   * 2.1.2 (Simon King, February 2012):
-    - Some fixes needed with the new version of Cython used by Sage.
+    - Some fixes needed with the new version of Cython used by sage-5.0.
+    - Some fixes needed with Singular 3-1-3.
+    - Using the coercion framework in a better way.
     - Small improvements in the MeatAxe code.
   * 2.1.1 (Simon King, September 2010):
     - Cohomology data are now by default only created in the private

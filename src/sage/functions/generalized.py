@@ -412,6 +412,14 @@ class FunctionSignum(BuiltinFunction):
         sage: sign(a)
         -1
 
+    TESTS:
+
+    Check if conversion to sympy works #11921::
+
+        sage: sgn(x)._sympy_()
+        sign(x)
+
+
     REFERENCES:
 
     -  http://en.wikipedia.org/wiki/Sign_function

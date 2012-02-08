@@ -97,7 +97,7 @@ unitdict =  {
         'gravity':'9.80665000000000'},
 
 'amount_of_substance':
-        {'elementary_entity':'1/6.02214179000000e23',
+        {'elementary_entity':'1/6.02214129000000e23',
         'mole':'1'},
 
 'angles':

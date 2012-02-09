@@ -13,6 +13,15 @@ AUTHORS:
 
 - Florent Hivert (2008-04): various fixes, cleanups and improvements.
 
+TESTS:
+
+Check for workaround #12482 (shall be run in a fresh session)::
+
+    sage: P = Partitions(3)
+    sage: Family(P, lambda x: x).category() # used to return ``enumerated sets``
+    Category of finite enumerated sets
+    sage: Family(P, lambda x: x).category()
+    Category of finite enumerated sets
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
@@ -29,7 +38,6 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.combinat.combinat', 'CombinatorialClass')
 from sage.rings.integer import Integer
 from sage.misc.misc import AttrCallObject
 from warnings import warn
@@ -353,6 +361,7 @@ def Family(indices, function = None, hidden_keys = [], hidden_function = None, l
                 return TrivialFamily(indices)
             if isinstance(indices, (FiniteFamily, LazyFamily, TrivialFamily) ):
                 return indices
+            from sage.combinat.combinat import CombinatorialClass # workaround #12482
             if (indices in EnumeratedSets()
                 or isinstance(indices, CombinatorialClass)):
                 return EnumeratedFamily(indices)
@@ -805,7 +814,6 @@ class LazyFamily(AbstractFamily):
             Failure ...
             The following tests failed: _test_an_element, _test_enumerated_set_contains, _test_some_elements
 
-
         Check for bug #5538::
 
             sage: l = [3,4,7]
@@ -813,8 +821,9 @@ class LazyFamily(AbstractFamily):
             sage: l[1] = 18
             sage: f
             Lazy family (<lambda>(i))_{i in [3, 4, 7]}
-
         """
+        from sage.combinat.combinat import CombinatorialClass # workaround #12482
+
         if set in FiniteEnumeratedSets():
             category = FiniteEnumeratedSets()
         elif set in InfiniteEnumeratedSets():

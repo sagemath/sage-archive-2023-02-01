@@ -631,6 +631,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: F = W.fraction_field()
             sage: z = F(1+w); z # indirect doctest
             1 + w + O(w^1530)
+            sage: z = F(w+w^2,relprec=0); z
+            O(w)
         """
         self.ordp = ordp
         self._set_prec_rel(relprec)
@@ -920,6 +922,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         # the -1 in the next line signals that there is no absprec specified
         self._set_from_ZZX_part1(poly, -1, relprec)
         # context was restored in _set_from_ZZX_part1
+        if relprec == 0:
+            self._set_prec_rel(relprec)
+            return 0
         if self.relprec + self.ordp != 0:
             self.prime_pow.restore_context_capdiv(self.relprec + self.ordp)
             ZZX_to_ZZ_pX(self.unit, poly)
@@ -1036,6 +1041,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 self._set_inexact_zero(ctx_prec)
             return 0
         self._set_from_ZZ_pX_part1(poly)
+        if relprec == 0:
+            self._set_prec_rel(relprec)
+            return 0
         if ctx_prec == -1:
             self._set_prec_rel(self.ordp + relprec)
         else:
@@ -1296,6 +1304,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: y # indirect doctest
             w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
         """
+        if self.relprec == 0:
+            raise RuntimeError("p-adic Internal l-shift called with relative precision 0")
         cdef ZZ_pX_c tmpP
         cdef ZZ_pX_Modulus_c* mod
         if self.prime_pow.e == 1:

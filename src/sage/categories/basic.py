@@ -11,10 +11,10 @@ for sage startup (i.e. to define ZZ, QQ, ...).
 
 from objects import Objects
 from sets_cat import Sets, EmptySetError
-from partially_ordered_sets import PartiallyOrderedSets
-Posets = PartiallyOrderedSets
+from posets import Posets
 # For backward compatibility; will be deprecated at some point
-OrderedSets = PartiallyOrderedSets
+PartiallyOrderedSets = Posets
+OrderedSets = Posets
 
 from additive_magmas import AdditiveMagmas
 from commutative_additive_semigroups import CommutativeAdditiveSemigroups

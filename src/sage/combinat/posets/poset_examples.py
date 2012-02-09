@@ -1,5 +1,5 @@
 r"""
-Some examples of posets and lattices.
+A collection of posets and lattices.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -18,22 +18,67 @@ Some examples of posets and lattices.
 #*****************************************************************************
 
 import random
+from sage.misc.classcall_metaclass import ClasscallMetaclass
+import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation
-from sage.combinat.posets.posets import Poset, Posets_all, FinitePosets_n
+from sage.combinat.posets.posets import Poset, FinitePosets_n
 from sage.combinat.posets.lattices import LatticePoset
 from sage.graphs.all import DiGraph
 from sage.rings.integer import Integer
 
-class PosetsGenerator(object):
+class Posets(object):
     r"""
-    A collection of examples of posets.
+    A collection of posets and lattices.
 
     EXAMPLES::
-        sage: P = Posets()
-        sage: P == loads(dumps(P))
-        True
+
+        sage: Posets.BooleanLattice(3)
+        Finite lattice containing 8 elements
+        sage: Posets.ChainPoset(3)
+        Finite lattice containing 3 elements
+        sage: Posets.RandomPoset(17,.15)
+        Finite poset containing 17 elements
+
+    The category of all posets::
+
+        sage: Posets()
+        Category of posets
+
+    The enumerated set of all posets on `3` vertices, up to an
+    isomorphism::
+
+        sage: Posets(3)
+        Posets containing 3 vertices
+
+    .. seealso:: :class:`~sage.categories.posets.Posets`, :class:`FinitePosets`, :func:`Poset`
+
+    TESTS::
+
+        sage: P = Posets
+        sage: TestSuite(P).run()
     """
-    def BooleanLattice(self, n):
+
+    __metaclass__ = ClasscallMetaclass
+    @staticmethod
+    def __classcall__(cls, n = None):
+        r"""
+        Return either the category of all posets, or the finite
+        enumerated set of all finite posets on ``n`` elements up to an
+        isomorphism.
+
+        EXAMPLES::
+
+            sage: Posets()
+            Category of posets
+            sage: Posets(4)
+            Posets containing 4 vertices
+        """
+        if n is None:
+            return sage.categories.posets.Posets()
+        return FinitePosets_n(n)
+
+    @staticmethod
+    def BooleanLattice(n):
         """
         Returns the Boolean lattice containing `2^n` elements.
 
@@ -45,7 +90,8 @@ class PosetsGenerator(object):
         return LatticePoset([[Integer(x|(1<<y)) for y in range(0,n) if x&(1<<y)==0] for
             x in range(0,2**n)])
 
-    def ChainPoset(self, n):
+    @staticmethod
+    def ChainPoset(n):
         """
         Returns a chain (a totally ordered poset) containing ``n`` elements.
 
@@ -77,10 +123,11 @@ class PosetsGenerator(object):
         """
         return LatticePoset((range(n), [[x,x+1] for x in range(n-1)]))
 
-    def AntichainPoset(self, n):
+    @staticmethod
+    def AntichainPoset(n):
         """
         Returns an antichain (a poset with no comparable elements)
-        containing ``n`` elements.
+        containing `n` elements.
 
         EXAMPLES::
 
@@ -108,20 +155,32 @@ class PosetsGenerator(object):
         """
         return Poset((range(n), []))
 
-    def PentagonPoset(self):
+    @staticmethod
+    def PentagonPoset(facade = False):
         """
-        Return the "pentagon".
+        Returns the "pentagon poset".
 
         EXAMPLES::
 
-            sage: Posets.PentagonPoset()
+            sage: P = Posets.PentagonPoset(); P
             Finite lattice containing 5 elements
+            sage: P.cover_relations()
+            [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
+
+        This lattice and the diamond poset on 5 elements are the two
+        smallest lattices which are not distributive::
+
+            sage: P.is_distributive()
+            False
+            sage: Posets.DiamondPoset(5).is_distributive()
+            False
         """
-        p = LatticePoset([[1,2],[4],[3],[4],[]])
+        p = LatticePoset([[1,2],[4],[3],[4],[]], facade = facade)
         p.hasse_diagram()._pos = {0:[2,0],1:[0,2],2:[3,1],3:[3,3],4:[2,4]}
         return p
 
-    def DiamondPoset(self, n):
+    @staticmethod
+    def DiamondPoset(n, facade = False):
         """
         Returns the lattice of rank two containing ``n`` elements.
 
@@ -134,19 +193,20 @@ class PosetsGenerator(object):
         c[0] = [x for x in range(1,n-1)]
         c[n-1] = []
         if n > 2:
-            return LatticePoset(c)
+            return LatticePoset(c, facade = facade)
         else:
-            return Poset(c)
+            return Poset(c, facade = facade)
 
-    def IntegerCompositions(self, n):
+    @staticmethod
+    def IntegerCompositions(n):
         """
         Returns the poset of integer compositions of the integer ``n``.
 
         A composition of a positive integer `n` is a list of positive
         integers that sum to `n`. The order is reverse refinement:
-        ``[p_1,p_2,...,p_l]`` < ``[q_1,q_2,...,q_m]`` if ``q`` consists
-        of an integer composition of ``p_1``, followed by an integer
-        composition of ``p_2``, and so on.
+        `[p_1,p_2,...,p_l] < [q_1,q_2,...,q_m]` if `q` consists
+        of an integer composition of `p_1`, followed by an integer
+        composition of `p_2`, and so on.
 
         EXAMPLES::
 
@@ -159,14 +219,15 @@ class PosetsGenerator(object):
         C = Compositions(n)
         return Poset((C, [[c,d] for c in C for d in C if d.is_finer(c)]), cover_relations=False)
 
-    def IntegerPartitions(self, n):
+    @staticmethod
+    def IntegerPartitions(n):
         """
         Returns the poset of integer partitions on the integer ``n``.
 
         A partition of a positive integer `n` is a non-increasing list
-        of positive integers that sum to `n`. If ``p`` and ``q`` are
-        integer partitions of `n`, then ``p`` covers ``q`` if and only
-        if ``q`` is obtained from ``p`` by joining two parts of ``p``
+        of positive integers that sum to `n`. If `p` and `q` are
+        integer partitions of `n`, then `p` covers `q` if and only
+        if `q` is obtained from `p` by joining two parts of `p`
         (and sorting, if necessary).
 
         EXAMPLES::
@@ -198,13 +259,14 @@ class PosetsGenerator(object):
             partitions_list(n)]))
         return Poset(H.reverse())
 
-    def RestrictedIntegerPartitions(self, n):
+    @staticmethod
+    def RestrictedIntegerPartitions(n):
         """
-        Returns the poset of integer partitions on the integer ``n``
-        ordered by restricted refinement. That is, if ``p`` and ``q``
-        are integer partitions of ``n``, then ``p`` covers ``q`` if and
-        only if ``q`` is obtained from ``p`` by joining two distinct
-        parts of ``p`` (and sorting, if necessary).
+        Returns the poset of integer partitions on the integer `n`
+        ordered by restricted refinement. That is, if `p` and `q`
+        are integer partitions of `n`, then `p` covers `q` if and
+        only if `q` is obtained from `p` by joining two distinct
+        parts of `p` (and sorting, if necessary).
 
         EXAMPLES::
 
@@ -236,7 +298,8 @@ class PosetsGenerator(object):
             Partitions(n)]))
         return Poset(H.reverse())
 
-    def RandomPoset(self, n,p):
+    @staticmethod
+    def RandomPoset(n,p):
         r"""
         Generate a random poset on ``n`` vertices according to a
         probability ``p``.
@@ -309,7 +372,8 @@ class PosetsGenerator(object):
                         D.delete_edge(i,j)
         return Poset(D,cover_relations=False)
 
-    def SymmetricGroupBruhatOrderPoset(self, n):
+    @staticmethod
+    def SymmetricGroupBruhatOrderPoset(n):
         """
         The poset of permutations with respect to Bruhat order.
 
@@ -323,7 +387,8 @@ class PosetsGenerator(object):
         return Poset(dict([[s,s.bruhat_succ()]
                 for s in Permutations(n)]),element_labels)
 
-    def SymmetricGroupBruhatIntervalPoset(self, start, end):
+    @staticmethod
+    def SymmetricGroupBruhatIntervalPoset(start, end):
         """
         The poset of permutations with respect to Bruhat order.
 
@@ -369,7 +434,8 @@ class PosetsGenerator(object):
                     unseen.append(succ_perm)
         return Poset(nodes)
 
-    def SymmetricGroupWeakOrderPoset(self, n,labels="permutations"):
+    @staticmethod
+    def SymmetricGroupWeakOrderPoset(n,labels="permutations"):
         """
         The poset of permutations with respect to weak order.
 
@@ -391,183 +457,4 @@ class PosetsGenerator(object):
                 s.length() + (s.inverse()*v).length() == v.length()]
         return Poset(dict([[s,weak_covers(s)] for s in Permutations(n)]),element_labels)
 
-    def __call__(self, n=None):
-        r"""
-        Return either the CombinatorialClass of all posets or the
-        CombinatorialClass of all finite posets on ``n`` elements.
-
-        EXAMPLES::
-            sage: Posets()
-            Posets
-            sage: Posets(4)
-            Posets containing 4 vertices
-        """
-        if n is None:
-            return Posets_all()
-        return FinitePosets_n(n)
-
-posets = PosetsGenerator()
-Posets = posets
-
-
-###########################################################################
-##### DEPRECATION WARNINGS ################################################
-##### Added 28 April 2009 #################################################
-###########################################################################
-
-from sage.misc.misc import deprecation
-
-def BooleanLattice(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future
-    version of Sage. Please use ``Posets.BooleanLattice`` instead.
-
-    TESTS::
-        sage: BooleanLattice(3)
-        doctest:1: DeprecationWarning: BooleanLattice is deprecated, use Posets.BooleanLattice instead!
-        Finite lattice containing 8 elements
-    """
-    deprecation("%s is deprecated, use Posets.%s instead!" % \
-           ("BooleanLattice", "BooleanLattice"))
-    return Posets.BooleanLattice(*args, **kwds)
-
-def ChainPoset(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future
-    version of Sage. Please use ``Posets.ChainPoset`` instead.
-
-    TESTS::
-        sage: ChainPoset(3)
-        doctest:1: DeprecationWarning: ChainPoset is deprecated, use Posets.ChainPoset instead!
-        Finite lattice containing 3 elements
-    """
-    deprecation("%s is deprecated, use Posets.%s instead!" % \
-           ("ChainPoset","ChainPoset"))
-    return Posets.ChainPoset(*args, **kwds)
-
-def AntichainPoset(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future
-    version of Sage. Please use ``Posets.AntichainPoset`` instead.
-
-    TESTS::
-        sage: AntichainPoset(3)
-        doctest:1: DeprecationWarning: AntichainPoset is deprecated, use Posets.AntichainPoset instead!
-        Finite poset containing 3 elements
-    """
-    deprecation("%s is deprecated, use Posets.%s instead!" % \
-           ("AntichainPoset","AntichainPoset"))
-    return Posets.AntichainPoset(*args, **kwds)
-
-def PentagonPoset(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future
-    version of Sage. Please use ``Posets.PentagonPoset`` instead.
-
-    TESTS::
-        sage: PentagonPoset()
-        doctest:1: DeprecationWarning: PentagonPoset is deprecated, use Posets.PentagonPoset instead!
-        Finite lattice containing 5 elements
-    """
-    deprecation("%s is deprecated, use Posets.%s instead!" % \
-           ("PentagonPoset","PentagonPoset"))
-    return Posets.PentagonPoset(*args, **kwds)
-
-def DiamondPoset(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future
-    version of Sage. Please use ``Posets.DiamondPoset`` instead.
-
-    TESTS::
-        sage: DiamondPoset(3)
-        doctest:1: DeprecationWarning: DiamondPoset is deprecated, use Posets.DiamondPoset instead!
-        Finite lattice containing 3 elements
-    """
-    deprecation("%s is deprecated, use Posets.%s instead!" % \
-           ("DiamondPoset","DiamondPoset"))
-    return Posets.DiamondPoset(*args, **kwds)
-
-def PosetOfIntegerCompositions(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future
-    version of Sage. Please use ``Posets.IntegerCompositions`` instead.
-
-    TESTS::
-        sage: PosetOfIntegerCompositions(3)
-        doctest:1: DeprecationWarning: PosetOfIntegerCompositions is deprecated, use Posets.IntegerCompositions instead!
-        Finite poset containing 4 elements
-    """
-    deprecation("%s is deprecated, use Posets.%s instead!" % \
-           ("PosetOfIntegerCompositions","IntegerCompositions"))
-    return Posets.IntegerCompositions(*args, **kwds)
-
-def PosetOfIntegerPartitions(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future
-    version of Sage. Please use ``Posets.IntegerPartitions`` instead.
-
-    TESTS::
-        sage: PosetOfIntegerPartitions(3)
-        doctest:1: DeprecationWarning: PosetOfIntegerPartitions is deprecated, use Posets.IntegerPartitions instead!
-        Finite poset containing 3 elements
-    """
-    deprecation("%s is deprecated, use Posets.%s instead!" % \
-           ("PosetOfIntegerPartitions","IntegerPartitions"))
-    return Posets.IntegerPartitions(*args, **kwds)
-
-def PosetOfRestrictedIntegerPartitions(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future
-    version of Sage. Please use ``Posets.RestrictedIntegerPartitions`` instead.
-
-    TESTS::
-        sage: PosetOfRestrictedIntegerPartitions(3)
-        doctest:1: DeprecationWarning: PosetOfRestrictedIntegerPartitions is deprecated, use Posets.RestrictedIntegerPartitions instead!
-        Finite poset containing 3 elements
-    """
-    deprecation("%s is deprecated, use Posets.%s instead!" % \
-           ("PosetOfRestrictedIntegerPartitions","RestrictedIntegerPartitions"))
-    return Posets.RestrictedIntegerPartitions(*args, **kwds)
-
-def RandomPoset(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future
-    version of Sage. Please use ``Posets.RandomPoset`` instead.
-
-    TESTS::
-        sage: RandomPoset(17,.15)
-        doctest:1: DeprecationWarning: RandomPoset is deprecated, use Posets.RandomPoset instead!
-        Finite poset containing 17 elements
-    """
-    deprecation("%s is deprecated, use Posets.%s instead!" % \
-           ("RandomPoset","RandomPoset"))
-    return Posets.RandomPoset(*args, **kwds)
-
-
-def SymmetricGroupBruhatOrderPoset(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future
-    version of Sage. Please use ``Posets.SymmetricGroupBruhatOrderPoset`` instead.
-
-    TESTS::
-        sage: SymmetricGroupBruhatOrderPoset(3)
-        doctest:1: DeprecationWarning: SymmetricGroupBruhatOrderPoset is deprecated, use Posets.SymmetricGroupBruhatOrderPoset instead!
-        Finite poset containing 6 elements
-    """
-    deprecation("%s is deprecated, use Posets.%s instead!" % \
-           ("SymmetricGroupBruhatOrderPoset","SymmetricGroupBruhatOrderPoset"))
-    return Posets.SymmetricGroupBruhatOrderPoset(*args, **kwds)
-
-def SymmetricGroupWeakOrderPoset(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future
-    version of Sage. Please use ``Posets.SymmetricGroupWeakOrderPoset`` instead.
-
-    TESTS::
-        sage: SymmetricGroupWeakOrderPoset(3)
-        doctest:1: DeprecationWarning: SymmetricGroupWeakOrderPoset is deprecated, use Posets.SymmetricGroupWeakOrderPoset instead!
-        Finite poset containing 6 elements
-    """
-    deprecation("%s is deprecated, use Posets.%s instead!" % \
-           ("SymmetricGroupWeakOrderPoset","SymmetricGroupWeakOrderPoset"))
-    return Posets.SymmetricGroupWeakOrderPoset(*args, **kwds)
+posets = Posets

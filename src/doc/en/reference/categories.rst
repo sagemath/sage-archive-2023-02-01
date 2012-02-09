@@ -73,6 +73,8 @@ Categories
    sage/categories/finite_dimensional_modules_with_basis
    sage/categories/finite_enumerated_sets
    sage/categories/finite_fields
+   sage/categories/finite_posets
+   sage/categories/finite_lattice_posets
    sage/categories/finite_monoids
    sage/categories/finite_permutation_groups
    sage/categories/finite_semigroups
@@ -97,6 +99,7 @@ Categories
    sage/categories/hopf_algebras_with_basis
    sage/categories/infinite_enumerated_sets
    sage/categories/integral_domains
+   sage/categories/lattice_posets
    sage/categories/left_modules
    sage/categories/magmas
    sage/categories/matrix_algebras
@@ -108,7 +111,7 @@ Categories
    sage/categories/number_fields
    sage/categories/objects
    sage/categories/partially_ordered_monoids
-   sage/categories/partially_ordered_sets
+   sage/categories/posets
    sage/categories/pointed_sets
    sage/categories/principal_ideal_domains
    sage/categories/quotient_fields

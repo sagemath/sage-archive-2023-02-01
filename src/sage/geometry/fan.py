@@ -132,7 +132,7 @@ Note, that while ``cone`` above seems to be a "cone", it is not::
     sage: cone.rays()
     Traceback (most recent call last):
     ...
-    AttributeError: 'PosetElement' object has no attribute 'rays'
+    AttributeError: 'FinitePoset_with_category.element_class' object has no attribute 'rays'
 
 To get your hands on the "real" cone, you need to do one more step::
 
@@ -213,6 +213,7 @@ inclusion!)
 
 import collections
 import warnings
+import copy
 
 from sage.combinat.combination import Combinations
 from sage.combinat.posets.posets import FinitePoset
@@ -1048,7 +1049,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             self._cone_lattice = Hasse_diagram_from_incidences(
                                 self._ray_to_cones(),
                                 (cone.ambient_ray_indices() for cone in self),
-                                FanFace)
+                                FanFace, key = id(self))
         else:
             # For general fans we will "merge" face lattices of generating
             # cones.
@@ -1114,7 +1115,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             # ray incidence information to the total list, it would be
             # confused with the generating cone in the case of a single cone.
             elements[labels[0]] = FanFace(tuple(range(self.nrays())), ())
-            self._cone_lattice = FinitePoset(L, elements)
+            self._cone_lattice = FinitePoset(L, elements, key = id(self))
 
     def _contains(self, cone):
         r"""
@@ -1686,6 +1687,32 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
     # Internally we use this name for a uniform behaviour of cones and fans.
     _face_lattice_function = cone_lattice
+
+    def __getstate__(self):
+        r"""
+        Return the dictionary that should be pickled.
+
+        OUTPUT:
+
+        - :class:`dict`.
+
+        TESTS::
+
+            sage: cone1 = Cone([(1,0), (0,1)])
+            sage: cone2 = Cone([(-1,0)])
+            sage: fan = Fan([cone1, cone2])
+            sage: fan.cone_lattice()
+            Finite poset containing 6 elements
+            sage: fan._test_pickling()
+        """
+        state = copy.copy(self.__dict__)
+        # TODO: do we want to keep the cone lattice in the pickle?
+        # Currently there is an unpickling loop if do.
+        # See Cone.__getstate__ for a similar problem and discussion.
+        state.pop("_cone_lattice", None)
+        return state
+
+
 
     def cones(self, dim=None, codim=None):
         r"""

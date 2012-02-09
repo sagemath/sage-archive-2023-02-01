@@ -10,7 +10,7 @@ Partially ordered monoids
 
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
-from sage.categories.basic import PartiallyOrderedSets, Monoids
+from sage.categories.basic import Posets, Monoids
 from sage.misc.cachefunc import cached_method
 
 class PartiallyOrderedMonoids(Category_singleton):
@@ -26,7 +26,7 @@ class PartiallyOrderedMonoids(Category_singleton):
         sage: PartiallyOrderedMonoids()
         Category of partially ordered monoids
         sage: PartiallyOrderedMonoids().super_categories()
-        [Category of partially ordered sets, Category of monoids]
+        [Category of posets, Category of monoids]
 
     TESTS::
 
@@ -39,9 +39,9 @@ class PartiallyOrderedMonoids(Category_singleton):
         EXAMPLES::
 
             sage: PartiallyOrderedMonoids().super_categories()
-            [Category of partially ordered sets, Category of monoids]
+            [Category of posets, Category of monoids]
         """
-        return [PartiallyOrderedSets(), Monoids()]
+        return [Posets(), Monoids()]
 
     class ParentMethods:
         pass

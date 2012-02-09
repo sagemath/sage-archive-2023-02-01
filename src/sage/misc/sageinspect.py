@@ -950,7 +950,7 @@ def sage_getargspec(obj):
         sage: sage_getargspec(identity_matrix)
         ArgSpec(args=['ring', 'n', 'sparse'], varargs=None, keywords=None, defaults=(0, False))
         sage: sage_getargspec(Poset)
-        ArgSpec(args=['data', 'element_labels', 'cover_relations'], varargs=None, keywords=None, defaults=(None, None, False))
+        ArgSpec(args=['data', 'element_labels', 'cover_relations', 'category', 'facade', 'key'], varargs=None, keywords=None, defaults=(None, None, False, None, None, None))
         sage: sage_getargspec(factor)
         ArgSpec(args=['n', 'proof', 'int_', 'algorithm', 'verbose'], varargs=None, keywords='kwds', defaults=(None, False, 'pari', 0))
 

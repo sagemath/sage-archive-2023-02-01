@@ -41,8 +41,8 @@ class FacadeSets(Category_singleton):
 
     or endowing a parent with more (or less!) structure::
 
-        sage: ... # todo: not implemented
-        The positive integers endowed with divisibility order
+        sage: Posets().example("facade")
+        An example of a facade poset: the positive integers ordered by divisibility
 
     Let us consider one of the examples above in detail: the partially ordered
     set `P` of positive integers w.r.t. divisibility order. There are two
@@ -61,7 +61,9 @@ class FacadeSets(Category_singleton):
     To raise this ambiguity, one needs to explicitely specify the order
     as in `2 <_P 3`::
 
-        sage: P.le(2,3) # todo: not implemented
+
+        sage: P = Posets().example("facade")
+        sage: P.lt(2,3)
         False
 
     In short `P` being a facade parent is one of the programmatic

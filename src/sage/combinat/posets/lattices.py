@@ -1,5 +1,5 @@
 r"""
-SemiLattices and Lattices
+Finite semilattices and lattices
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -16,22 +16,25 @@ SemiLattices and Lattices
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.combinat.posets.elements import (LatticePosetElement,
                                            MeetSemilatticeElement,
                                            JoinSemilatticeElement)
-import copy
 
 ####################################################################################
 
-def MeetSemilattice(data):
+def MeetSemilattice(data, *args, **options):
     r"""
     Construct a meet semi-lattice from various forms of input data.
 
     INPUT:
 
-    - ``data`` - any data that defines a poset that is also a meet
-      semilattice. See the documentation for ``Poset``.
+    - ``data``, ``*args``, ``**options`` -- data and options that will
+      be passed down to :func:`Poset` to construct a poset that is
+      also a meet semilattice.
+
+    .. seealso:: :func:`Poset`, :func:`JoinSemilattice`, :func:`LatticePoset`
 
     EXAMPLES:
 
@@ -40,13 +43,16 @@ def MeetSemilattice(data):
           sage: MeetSemilattice([[1,2],[3],[3]])
           Finite meet-semilattice containing 4 elements
 
+          sage: MeetSemilattice([[1,2],[3],[3]], cover_relations = True)
+          Finite meet-semilattice containing 4 elements
+
     Using a previously constructed poset::
 
           sage: P = Poset([[1,2],[3],[3]])
           sage: L = MeetSemilattice(P); L
           Finite meet-semilattice containing 4 elements
           sage: type(L)
-          <class 'sage.combinat.posets.lattices.FiniteMeetSemilattice'>
+          <class 'sage.combinat.posets.lattices.FiniteMeetSemilattice_with_category'>
 
     If the data is not a lattice, then an error is raised::
 
@@ -57,20 +63,16 @@ def MeetSemilattice(data):
           ...
           ValueError: Not a meet semilattice.
     """
-    if isinstance(data,FiniteMeetSemilattice):
+    if isinstance(data,FiniteMeetSemilattice) and len(args) == 0 and len(options) == 0:
         return data
-    else:
-        P = Poset(data)
-        if P.is_meet_semilattice():
-            M = copy.copy(P)
-            M.__class__ = FiniteMeetSemilattice
-            return M
-        else:
-            raise ValueError, "Not a meet semilattice."
+    P = Poset(data, *args, **options)
+    if not P.is_meet_semilattice():
+        raise ValueError, "Not a meet semilattice."
+    return FiniteMeetSemilattice(P)
 
 class FiniteMeetSemilattice(FinitePoset):
     """
-    ..note::
+    .. note::
         We assume that the argument passed to MeetSemilattice is the poset
         of a meet-semilattice (i.e. a poset with greatest lower bound for
         each pair of elements).
@@ -78,32 +80,30 @@ class FiniteMeetSemilattice(FinitePoset):
     TESTS::
 
         sage: M = MeetSemilattice([[1,2],[3],[3]])
-        sage: M == loads(dumps(M))
-        True
+        sage: TestSuite(M).run()
 
     ::
 
         sage: P = Poset([[1,2],[3],[3]])
         sage: M = MeetSemilattice(P)
-        sage: M == loads(dumps(M))
-        True
+        sage: TestSuite(M).run()
 
     """
-    _element_type = MeetSemilatticeElement
+    Element = MeetSemilatticeElement
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         TESTS::
 
             sage: M = MeetSemilattice([[1,2],[3],[3]])
-            sage: M.__repr__()
+            sage: M._repr_()
             'Finite meet-semilattice containing 4 elements'
 
         ::
 
             sage: P = Poset([[1,2],[3],[3]])
             sage: M = MeetSemilattice(P)
-            sage: M.__repr__()
+            sage: M._repr_()
             'Finite meet-semilattice containing 4 elements'
         """
         return "Finite meet-semilattice containing %s elements"\
@@ -116,13 +116,13 @@ class FiniteMeetSemilattice(FinitePoset):
         EXAMPLES::
 
             sage: D = Posets.DiamondPoset(5)
-            sage: D(1) * D(2)
+            sage: D.meet(1, 2)
             0
-            sage: D(1) * D(1)
+            sage: D.meet(1, 1)
             1
-            sage: D(1) * D(0)
+            sage: D.meet(1, 0)
             0
-            sage: D(1) * D(4)
+            sage: D.meet(1, 4)
             1
 
         If this method is used directly, it is not necessary to coerce
@@ -133,20 +133,32 @@ class FiniteMeetSemilattice(FinitePoset):
             0
             sage: D.meet(1, 4)
             1
+
+        Test that this method also works for facade lattices::
+
+            sage: L = LatticePoset([[1,2],[3],[3]], facade = True)
+            sage: L.meet(2, 3)
+            2
+            sage: L.meet(1, 2)
+            0
+
         """
         i, j = map(self._element_to_vertex,(x,y))
         return self._vertex_to_element(self._hasse_diagram._meet[i,j])
 
 ####################################################################################
 
-def JoinSemilattice(data):
+def JoinSemilattice(data, *args, **options):
     r"""
     Construct a join semi-lattice from various forms of input data.
 
     INPUT:
 
-    - ``data`` - any data that defines a poset that is also a join
-      semilattice. See the documentation for ``Poset``.
+    - ``data``, ``*args``, ``**options`` -- data and options that will
+      be passed down to :func:`Poset` to construct a poset that is
+      also a join semilattice.
+
+    .. seealso:: :func:`Poset`, :func:`MeetSemilattice`, :func:`LatticePoset`
 
     EXAMPLES:
 
@@ -155,13 +167,16 @@ def JoinSemilattice(data):
           sage: JoinSemilattice([[1,2],[3],[3]])
           Finite join-semilattice containing 4 elements
 
+          sage: JoinSemilattice([[1,2],[3],[3]], cover_relations = True)
+          Finite join-semilattice containing 4 elements
+
     Using a previously constructed poset::
 
           sage: P = Poset([[1,2],[3],[3]])
           sage: J = JoinSemilattice(P); J
           Finite join-semilattice containing 4 elements
           sage: type(J)
-          <class 'sage.combinat.posets.lattices.FiniteJoinSemilattice'>
+          <class 'sage.combinat.posets.lattices.FiniteJoinSemilattice_with_category'>
 
     If the data is not a lattice, then an error is raised::
 
@@ -172,16 +187,12 @@ def JoinSemilattice(data):
           ...
           ValueError: Not a join semilattice.
     """
-    if isinstance(data,FiniteJoinSemilattice):
+    if isinstance(data,FiniteJoinSemilattice) and len(args) == 0 and len(options) == 0:
         return data
-    else:
-        P = Poset(data)
-        if P.is_join_semilattice():
-            J = copy.copy(P)
-            J.__class__ = FiniteJoinSemilattice
-            return J
-        else:
-            raise ValueError, "Not a join semilattice."
+    P = Poset(data, *args, **options)
+    if not P.is_join_semilattice():
+        raise ValueError, "Not a join semilattice."
+    return FiniteJoinSemilattice(P)
 
 class FiniteJoinSemilattice(FinitePoset):
     """
@@ -192,32 +203,30 @@ class FiniteJoinSemilattice(FinitePoset):
     TESTS::
 
         sage: J = JoinSemilattice([[1,2],[3],[3]])
-        sage: J == loads(dumps(J))
-        True
+        sage: TestSuite(J).run()
 
     ::
 
         sage: P = Poset([[1,2],[3],[3]])
         sage: J = JoinSemilattice(P)
-        sage: J == loads(dumps(J))
-        True
+        sage: TestSuite(J).run()
 
     """
-    _element_type = JoinSemilatticeElement
+    Element = JoinSemilatticeElement
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         TESTS::
 
             sage: J = JoinSemilattice([[1,2],[3],[3]])
-            sage: J.__repr__()
+            sage: J._repr_()
             'Finite join-semilattice containing 4 elements'
 
         ::
 
             sage: P = Poset([[1,2],[3],[3]])
             sage: J = JoinSemilattice(P)
-            sage: J.__repr__()
+            sage: J._repr_()
             'Finite join-semilattice containing 4 elements'
         """
         return "Finite join-semilattice containing %s elements"\
@@ -230,13 +239,13 @@ class FiniteJoinSemilattice(FinitePoset):
         EXAMPLES::
 
             sage: D = Posets.DiamondPoset(5)
-            sage: D(1) + D(2)
+            sage: D.join(1, 2)
             4
-            sage: D(1) + D(1)
+            sage: D.join(1, 1)
             1
-            sage: D(1) + D(4)
+            sage: D.join(1, 4)
             4
-            sage: D(1) + D(0)
+            sage: D.join(1, 0)
             1
 
         If this method is used directly, it is not necessary to coerce
@@ -247,59 +256,80 @@ class FiniteJoinSemilattice(FinitePoset):
             1
             sage: D.join(1, 4)
             4
+
+        Test that this method also works for facade lattices::
+
+            sage: L = LatticePoset([[1,2],[3],[3]], facade = True)
+            sage: L.join(1, 0)
+            1
+            sage: L.join(1, 2)
+            3
+
         """
         i, j = map(self._element_to_vertex,(x,y))
         return self._vertex_to_element(self._hasse_diagram._join[i,j])
 
 ####################################################################################
 
-def LatticePoset(data):
+def LatticePoset(data, *args, **options):
     r"""
     Construct a lattice from various forms of input data.
 
     INPUT:
 
-    - ``data`` - any data that defines a poset. See the documentation
-      for ``Poset``.
+    - ``data``, ``*args``, ``**options`` -- data and options that will
+      be passed down to :func:`Poset` to construct a poset that is
+      also a lattice.
 
     OUTPUT:
 
-        FiniteLatticePoset -- an instance of FiniteLatticePoset
+        FiniteLatticePoset -- an instance of :class:`FiniteLatticePoset`
+
+    .. seealso:: :class:`Posets`, :class:`FiniteLatticePosets`, :func:`JoinSemiLattice`, :func:`MeetSemiLattice`
 
     EXAMPLES:
 
     Using data that defines a poset::
 
-          sage: LatticePoset([[1,2],[3],[3]])
-          Finite lattice containing 4 elements
+        sage: LatticePoset([[1,2],[3],[3]])
+        Finite lattice containing 4 elements
+
+        sage: LatticePoset([[1,2],[3],[3]], cover_relations = True)
+        Finite lattice containing 4 elements
 
     Using a previously constructed poset::
 
-          sage: P = Poset([[1,2],[3],[3]])
-          sage: L = LatticePoset(P); L
-          Finite lattice containing 4 elements
-          sage: type(L)
-          <class 'sage.combinat.posets.lattices.FiniteLatticePoset'>
+        sage: P = Poset([[1,2],[3],[3]])
+        sage: L = LatticePoset(P); L
+        Finite lattice containing 4 elements
+        sage: type(L)
+        <class 'sage.combinat.posets.lattices.FiniteLatticePoset_with_category'>
 
     If the data is not a lattice, then an error is raised::
 
-          sage: elms = [1,2,3,4,5,6,7]
-          sage: rels = [[1,2],[3,4],[4,5],[2,5]]
-          sage: LatticePoset((elms, rels))
-          Traceback (most recent call last):
-          ...
-          ValueError: Not a lattice.
+        sage: elms = [1,2,3,4,5,6,7]
+        sage: rels = [[1,2],[3,4],[4,5],[2,5]]
+        sage: LatticePoset((elms, rels))
+        Traceback (most recent call last):
+        ...
+        ValueError: Not a lattice.
+
+    Creating a facade lattice::
+
+        sage: L = LatticePoset([[1,2],[3],[3]], facade = True)
+        sage: L.category()
+        Category of facade finite lattice posets
+        sage: parent(L[0])
+        Integer Ring
+        sage: TestSuite(L).run(skip = ['_test_an_element']) # is_parent_of is not yet implemented
+
     """
-    if isinstance(data,FiniteLatticePoset):
+    if isinstance(data,FiniteLatticePoset) and len(args) == 0 and len(options) == 0:
         return data
-    else:
-        P = Poset(data)
-        if P.is_meet_semilattice() and P.is_join_semilattice():
-            L = copy.copy(P)
-            L.__class__ = FiniteLatticePoset
-            return L
-        else:
-            raise ValueError, "Not a lattice."
+    P = Poset(data, *args, **options)
+    if not P.is_lattice():
+        raise ValueError, "Not a lattice."
+    return FiniteLatticePoset(P, category = FiniteLatticePosets())
 
 class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
     """
@@ -310,32 +340,30 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
     TESTS::
 
         sage: L = LatticePoset([[1,2],[3],[3]])
-        sage: L == loads(dumps(L))
-        True
+        sage: TestSuite(L).run()
 
     ::
 
         sage: P = Poset([[1,2],[3],[3]])
         sage: L = LatticePoset(P)
-        sage: L == loads(dumps(L))
-        True
+        sage: TestSuite(L).run()
 
     """
-    _element_type = LatticePosetElement
+    Element = LatticePosetElement
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         TESTS::
 
             sage: L = LatticePoset([[1,2],[3],[3]])
-            sage: L.__repr__()
+            sage: L._repr_()
             'Finite lattice containing 4 elements'
 
         ::
 
             sage: P = Poset([[1,2],[3],[3]])
             sage: L = LatticePoset(P)
-            sage: L.__repr__()
+            sage: L._repr_()
             'Finite lattice containing 4 elements'
         """
         return "Finite lattice containing %s elements"%self._hasse_diagram.order()
@@ -375,7 +403,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def complements(self):
         r"""
-        Returns a list of the elements of the lattice.
+        Returns all elements in ``self`` that have a complement.
 
         A complement of ``x`` is an element ``y`` such that the meet
         of ``x`` and ``y`` is the bottom element of ``self`` and the
@@ -394,3 +422,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return self._hasse_diagram.complements()
 
 ####################################################################################
+
+FiniteMeetSemilattice._dual_class = FiniteJoinSemilattice
+FiniteJoinSemilattice._dual_class = FiniteMeetSemilattice
+FiniteLatticePoset   ._dual_class = FiniteLatticePoset

@@ -38,6 +38,7 @@ Combinatorics
    ../sage/combinat/set_partition
    ../sage/combinat/skew_partition
    ../sage/combinat/subset
+   ../sage/combinat/subsets_pairwise
    ../sage/combinat/subword
    ../sage/combinat/tiling
    ../sage/combinat/tuple

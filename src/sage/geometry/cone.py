@@ -1241,13 +1241,30 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         TESTS::
 
-            sage: loads(dumps(Cone([(1,0)])))
+            sage: C = Cone([(1,0)])
+            sage: C.face_lattice()
+            Finite poset containing 2 elements
+            sage: C._test_pickling()
+            sage: C2 = loads(dumps(C)); C2
             1-d cone in 2-d lattice N
+            sage: C2 == C
+            True
+            sage: C2 is C      # Is this desirable?
+            False
         """
         state = copy.copy(self.__dict__)
         state.pop("_polyhedron", None) # Polyhedron is not picklable.
         state.pop("_lattice_polytope", None) # Just to save time and space.
         state.pop("_PPL_C_Polyhedron", None) # PPL is not picklable.
+
+        # TODO: do we want to keep the face lattice in the pickle?
+        # Currently there is an unpickling loop if do:
+        # Unpickling a cone C requires first to unpickle its face lattice.
+        # The latter is a Poset which takes C among its arguments. Due
+        # to UniqueRepresentation, this triggers a call to hash(C) which
+        # itself depends on the attribute C._rays which have not yet
+        # been unpickled.  See ``explain_pickle(dumps(C))``.
+        state.pop("_face_lattice", None)
         return state
 
     def _contains(self, point, region='whole cone'):
@@ -1905,7 +1922,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: face.rays()
             Traceback (most recent call last):
             ...
-            AttributeError: 'PosetElement' object has no attribute 'rays'
+            AttributeError: 'FinitePoset_with_category.element_class' object has no attribute 'rays'
 
         To get the actual face you need one more step::
 
@@ -1976,6 +1993,34 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             3-d face of 4-d cone in 4-d lattice N
             sage: cone.face_lattice().top().element == cone
             True
+
+        TESTS::
+
+            sage: C1 = Cone([(0,1)])
+            sage: C2 = Cone([(0,1)])
+            sage: C1 == C2
+            True
+            sage: C1 is C2
+            False
+
+        C1 and C2 are equal, but not identical. We currently want them
+        to have non identical face lattices, even if the faces
+        themselves are equal (see #10998)::
+
+            sage: C1.face_lattice() is C2.face_lattice()
+            False
+
+            sage: C1.facets()[0]
+            0-d face of 1-d cone in 2-d lattice N
+            sage: C2.facets()[0]
+            0-d face of 1-d cone in 2-d lattice N
+
+            sage: C1.facets()[0].ambient() is C1
+            True
+            sage: C2.facets()[0].ambient() is C1
+            False
+            sage: C2.facets()[0].ambient() is C2
+            True
         """
         if "_face_lattice" not in self.__dict__:
             if self._ambient is self:
@@ -2016,7 +2061,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                         return self
 
                 self._face_lattice = Hasse_diagram_from_incidences(
-                                    atom_to_facets, facet_to_atoms, ConeFace)
+                                    atom_to_facets, facet_to_atoms, ConeFace,
+                                    key = id(self))
             else:
                 # Get face lattice as a sublattice of the ambient one
                 allowed_indices = frozenset(self._ambient_ray_indices)
@@ -2054,7 +2100,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     faces.append(self)
                     for face in dfaces:
                         L.add_edge(face_to_index[face], next_index)
-                self._face_lattice = FinitePoset(L, faces)
+                self._face_lattice = FinitePoset(L, faces, key = id(self))
         return self._face_lattice
 
     # Internally we use this name for a uniform behaviour of cones and fans.

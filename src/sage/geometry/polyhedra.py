@@ -6753,6 +6753,7 @@ class PolyhedronFace(SageObject):
 def Hasse_diagram_from_incidences(atom_to_coatoms, coatom_to_atoms,
                                   face_constructor=None,
                                   required_atoms=None,
+                                  key = None,
                                   **kwds):
     r"""
     Compute the Hasse diagram of an atomic and coatomic lattice.
@@ -6774,6 +6775,9 @@ def Hasse_diagram_from_incidences(atom_to_coatoms, coatom_to_atoms,
     - ``required_atoms`` -- list of atoms (default:None). Each
       non-empty "face" requires at least on of the specified atoms
       present. Used to ensure that each face has a vertex.
+
+    - ``key`` -- any hashable value (default: None). It is passed down
+      to :class:`sage.combinat.posets.posets.FinitePoset`.
 
     - all other keyword arguments will be passed to ``face_constructor`` on
       each call.
@@ -6932,4 +6936,4 @@ def Hasse_diagram_from_incidences(atom_to_coatoms, coatom_to_atoms,
         atoms, coatoms = face
         elements[labels[index]] = face_constructor(
                         tuple(sorted(atoms)), tuple(sorted(coatoms)), **kwds)
-    return FinitePoset(L, elements)
+    return FinitePoset(L, elements, key = key)

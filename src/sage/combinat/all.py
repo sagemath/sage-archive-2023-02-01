@@ -83,6 +83,7 @@ from cartesian_product import CartesianProduct
 from set_partition import SetPartitions
 from set_partition_ordered import OrderedSetPartitions
 from subset import Subsets
+#from subsets_pairwise import PairwiseCompatibleSubsets
 from necklace import Necklaces
 from lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from dyck_word import DyckWords, DyckWord

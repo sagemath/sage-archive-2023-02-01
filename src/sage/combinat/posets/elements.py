@@ -17,6 +17,7 @@ Elements of posets, lattices, semilattices, etc.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.element import Element
+from sage.structure.sage_object import have_same_parent
 
 class PosetElement(Element):
 
@@ -41,11 +42,10 @@ class PosetElement(Element):
             sage: e = P(0)
             sage: e.parent() is P
             True
-            sage: e == loads(dumps(e))
-            True
+            sage: TestSuite(e).run()
         """
         Element.__init__(self, poset)
-        if isinstance(element, self.parent()._element_type):
+        if isinstance(element, self.parent().element_class):
             self.element = element.element
         else:
             self.element = element
@@ -71,7 +71,7 @@ class PosetElement(Element):
             sage: P = Poset(([m],[]))
             sage: [e] = P
             sage: type(e)
-            <class 'sage.combinat.posets.elements.PosetElement'>
+            <class 'sage.combinat.posets.elements.FinitePoset_with_category.element_class'>
             sage: latex(e)                 #indirect doctest
             \left(\begin{array}{rr}
             1 & 2 \\
@@ -85,36 +85,51 @@ class PosetElement(Element):
         """
         TESTS::
 
-            sage: P = Poset([[1,2],[4],[3],[4],[]])
+            sage: P = Poset([["a","b"],["d"],["c"],["d"],[]])
+            sage: Q = Poset([["a","b"],["d"],["c"],[],[]])
             sage: P(0).__eq__(P(4))
             False
             sage: from sage.combinat.posets.elements import PosetElement
-            sage: PosetElement(P,0,3) == PosetElement(P,0,3)
+            sage: PosetElement(P,0,"c") == PosetElement(P,0,"c")
             True
-            sage: PosetElement(P,1,3) == PosetElement(P,0,3)
+            sage: PosetElement(P,0,"c") == PosetElement(Q,0,"c")
             False
-            sage: PosetElement(P,0,2) == PosetElement(P,0,3)
+            sage: PosetElement(P,0,"b") == PosetElement(P,0,"c")
             False
+
+        .. warning:: as an optimization, this only compares the parent
+           and vertex, using the invariant that, in a proper poset
+           element, ``self.element == other.element`` if and only
+           ``self.vertex == other.vertex``::
+
+            sage: PosetElement(P,1,"c") == PosetElement(P,0,"c")
+            True
         """
-        return self.parent() == other.parent() \
-                and self.element == other.element \
-                and self.vertex == other.vertex
+        # This should instead exploit unique representation, using
+        # self is other, or best inherit __eq__ from there. But there
+        # are issues around pickling and rich comparison functions.
+        return have_same_parent(self, other) \
+            and self.vertex == other.vertex
+
 
     def __ne__(self,other):
         r"""
         TESTS::
 
             sage: P = Poset([[1,2],[4],[3],[4],[]])
+            sage: P = Poset([["a","b"],["d"],["c"],["d"],[]])
             sage: P(0).__ne__(P(4))
             True
             sage: from sage.combinat.posets.elements import PosetElement
-            sage: PosetElement(P,0,3) != PosetElement(P,0,3)
+            sage: PosetElement(P,0,"c") != PosetElement(P,0,"c")
             False
-            sage: PosetElement(P,1,3) != PosetElement(P,0,3)
-            True
-            sage: PosetElement(P,0,2) != PosetElement(P,0,3)
+            sage: PosetElement(P,0,"b") != PosetElement(P,0,"c")
             True
 
+        For this one, see comment in :meth:`__eq__`::
+
+            sage: PosetElement(P,1,"c") != PosetElement(P,0,"c")
+            False
         """
         return not (self.__eq__(other))
 

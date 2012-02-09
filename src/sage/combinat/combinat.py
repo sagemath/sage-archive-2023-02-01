@@ -1852,6 +1852,18 @@ class MapCombinatorialClass(CombinatorialClass):
         for x in self.cc:
             yield self.f(x)
 
+    def an_element(self):
+        """
+        Returns an element of this combinatorial class
+
+        EXAMPLES::
+
+            sage: R = SymmetricGroup(10).map(attrcall('reduced_word'))
+            sage: R.an_element()
+            [9, 8, 7, 6, 5, 4, 3, 2, 1]
+        """
+        return self.f(self.cc.an_element())
+
 ##############################################################################
 from sage.rings.all import infinity
 class InfiniteAbstractCombinatorialClass(CombinatorialClass):

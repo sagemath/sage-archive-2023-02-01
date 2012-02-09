@@ -33,6 +33,12 @@ from enumerated_sets import EnumeratedSets
 from finite_enumerated_sets import FiniteEnumeratedSets
 from infinite_enumerated_sets import InfiniteEnumeratedSets
 
+# posets
+from posets import Posets
+from finite_posets import FinitePosets
+from lattice_posets import LatticePosets
+from finite_lattice_posets import FiniteLatticePosets
+
 # finite groups/...
 from finite_semigroups import FiniteSemigroups
 from finite_monoids import FiniteMonoids

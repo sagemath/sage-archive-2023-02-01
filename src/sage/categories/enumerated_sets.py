@@ -542,6 +542,45 @@ class EnumeratedSets(Category_singleton):
                 """
             raise NotImplementedError, "unknown cardinality"
 
+        def map(self, f, name=None):
+            r"""
+            Returns the image `\{f(x) | x \in \text{self}\}` of this
+            enumerated set by `f`, as an enumerated set.
+
+            `f` is supposed to be injective.
+
+            EXAMPLES::
+
+                sage: R = SymmetricGroup(3).map(attrcall('reduced_word')); R
+                Image of Symmetric group of order 3! as a permutation group by *.reduced_word()
+                sage: R.cardinality()
+                6
+                sage: R.list()
+                [[], [2], [1], [2, 1], [1, 2], [1, 2, 1]]
+                sage: [ r for r in R]
+                [[], [2], [1], [2, 1], [1, 2], [1, 2, 1]]
+
+            .. warning::
+
+                If the function is not injective, then there may be
+                repeated elements::
+
+                    sage: P = SymmetricGroup(3)
+                    sage: P.list()
+                    [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
+                    sage: P.map(attrcall('length')).list()
+                    [0, 1, 1, 2, 2, 3]
+
+            .. warning::
+
+                :class:`MapCombinatorialClass` needs to be refactored to use categories::
+
+                    sage: R.category()             # todo: not implemented
+                    Category of enumerated sets
+                    sage: TestSuite(R).run(skip=['_test_an_element', '_test_category', '_test_some_elements'])
+            """
+            from sage.combinat.combinat import MapCombinatorialClass
+            return MapCombinatorialClass(self, f, name)
 
 #
 #  Consistency test suite for an enumerated set:

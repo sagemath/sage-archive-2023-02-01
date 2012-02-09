@@ -864,7 +864,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: sorted(D.__iter__())
             [0, 1, 2, 3, 4]
         """
-        return self._list.__iter__()
+        return iter(self._list)
 
     def linear_extension(self):
         """
@@ -2012,27 +2012,58 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Poset({"a":["c","d"], "b":["d","e"], "c":["f"], "d":["f"], "e":["f"]})
-            sage: P.subposet(["a","b","f"])
+            sage: Q = P.subposet(["a","b","f"]); Q
             Finite poset containing 3 elements
+            sage: Q.cover_relations()
+            [[b, f], [a, f]]
 
-            sage: P = posets.BooleanLattice(2)
-            sage: above = P.principal_order_filter(0)
-            sage: Q = P.subposet(above)
+        A subposet of a facade poset is again a facade poset::
+
+            sage: P = Poset({"a":["c","d"], "b":["d","e"], "c":["f"], "d":["f"], "e":["f"]}, facade=True)
+            sage: Q = P.subposet(["a","b","f"]); Q
+            Finite poset containing 3 elements
+            sage: Q.cover_relations()
+            [['b', 'f'], ['a', 'f']]
+
+        One may specified wrapped elements or not::
+
+            sage: P = Poset({"a":["c","d"], "b":["d","e"], "c":["f"], "d":["f"], "e":["f"]})
+            sage: Q = P.subposet([P("a"),P("b"),P("f")]); Q
+            Finite poset containing 3 elements
+            sage: Q.cover_relations()
+            [[b, f], [a, f]]
+
+            sage: B = posets.BooleanLattice(2)
+            sage: above = B.principal_order_filter(0)
+            sage: Q = B.subposet(above)
             sage: above_new = Q.principal_order_filter(Q.list()[0])
             sage: Q.subposet(above_new)
             Finite poset containing 4 elements
+
+        TESTS::
+
+            sage: P.subposet(("a","b","f"))
+            Finite poset containing 3 elements
+            sage: P.subposet(["a","b","x"])
+            Traceback (most recent call last):
+            ...
+            ValueError: <type 'str'> is not an element of this poset
+            sage: P.subposet(3)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
-        if not isinstance(elements,list):
-            raise ValueError, "not a list."
-        for element in elements:
-            if element not in self:
-                raise ValueError, "element not in self"
+        # Type checking is performed by the following line:
+        elements  = [self(e) for e in elements]
         relations = []
-        elements = [self(e).element for e in elements]
         for u in elements:
             for v in elements:
-                if self.is_less_than(u,v): relations.append([u,v])
-        return Poset((elements, relations), cover_relations=False)
+                if self.is_less_than(u,v):
+                    relations.append([u,v])
+        if not self._is_facade:
+            elements = [e.element for e in elements]
+            relations = [[u.element,v.element] for u,v in relations]
+        return Poset((elements, relations), cover_relations=False, facade=self._is_facade)
 
     def random_subposet(self, p):
         """

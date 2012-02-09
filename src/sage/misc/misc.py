@@ -2069,26 +2069,28 @@ def getitem(v, n):
 
 def branch_current_hg():
     """
-    Return the current hg Mercurial branch name. If the branch is
-    'main', which is the default branch, then just '' is returned.
+    Return the current Mercurial branch name.
+
+    TESTS::
+
+        sage: br = sage.misc.misc.branch_current_hg()
+        sage: len(br) > 0
+        True
+
+    AUTHOR:
+
+    - Jeroen Demeyer (#12481)
     """
     try:
-        s = os.popen('ls -l %s/devel/sage'%os.environ['SAGE_ROOT']).read()
-    except IOError:
-        # this happens when running sage under gdb on macs
-        s = 'gdb'
-    if 'No such file or directory' in s:
-        raise RuntimeError, "unable to determine branch?!"
-    # do ls -l and look for a symlink, which `ls` represents by a '->'
-    i = s.rfind('->')
-    if i == -1:
-        raise RuntimeError, "unable to determine branch?!"
-    s = s[i+2:]
-    i = s.find('-')
-    if i == -1:
-        return ''
-    br = s[i+1:].strip()
-    return br
+        br = os.readlink(os.path.join(SAGE_ROOT, 'devel', 'sage'))
+    except OSError:
+        raise RuntimeError("Unable to determine branch")
+    br = os.path.basename(br)
+
+    # Delete everything up to and including the first "-".
+    # (if there is no "-", then i == -1 and we return everything)
+    i = br.find('-')
+    return br[i+1:]
 
 def branch_current_hg_notice(branch):
     r"""

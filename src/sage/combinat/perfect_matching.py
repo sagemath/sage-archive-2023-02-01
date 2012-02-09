@@ -877,7 +877,7 @@ class PerfectMatchings(UniqueRepresentation,Parent):
         if n%2==1:
             return 0
         else:
-            return prod(i for i in range(n) if i%2==1)
+            return Integer(prod(i for i in range(n) if i%2==1))
 
     def an_element(self):
         r"""

@@ -16,6 +16,7 @@ from sage.misc.misc import prod, attrcall
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import infinity
 from sage.rings.arith import binomial
@@ -720,7 +721,7 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
             15
         """
         if self._min_length == len(self._min_support) and self._max_length == len(self._max_support) -1:
-            return 2**(len(self._extra_support)) - 1
+            return Integer(2**(len(self._extra_support)) - 1)
         else:
             return self.generating_series(weight = ConstantFunction(1))
 

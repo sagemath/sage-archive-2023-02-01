@@ -325,7 +325,7 @@ class EnumeratedSets(Category_singleton):
                 sage: C = FiniteEnumeratedSets().example()
                 sage: C.unrank(2) # indirect doctest
                 3
-                sage: C.unrank(5) # indirect doctest
+                sage: C._unrank_from_iterator(5)
                 Traceback (most recent call last):
                 ...
                 ValueError: the value must be between 0 and 2 inclusive
@@ -653,6 +653,9 @@ class EnumeratedSets(Category_singleton):
             """
             tester = self._tester(**options)
             if self.list != self._list_default:
+                # TODO: if self._cardinality is self._cardinality_from_iterator
+                # we could make sure to stop the counting at
+                # self.max_test_enumerated_set_loop
                 if self.cardinality() > self.max_test_enumerated_set_loop:
                     tester.info("Enumerated set too big; skipping test; see ``self.max_test_enumerated_set_loop``")
                     return

@@ -480,13 +480,17 @@ class WeightLatticeRealization(RootLatticeRealization):
 
             sage: RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0])
             20
+
+            sage: type(RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0]))
+            <type 'sage.rings.integer.Integer'>
         """
         highest_weight = self(highest_weight)
         assert(highest_weight.is_dominant())
         rho = self.rho()
         n = prod([(rho+highest_weight).dot_product(x) for x in self.positive_roots()])
         d = prod([ rho.dot_product(x) for x in self.positive_roots()])
-        return n/d
+        from sage.rings.integer import Integer
+        return Integer(n/d)
 
     def plot(self, size=[[0],[0]], projection='usual', simple_roots=True, fundamental_weights=True, alcovewalks=[]):
         r"""

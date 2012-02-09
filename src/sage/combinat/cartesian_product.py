@@ -19,7 +19,7 @@ Cartesian Products
 import sage.misc.prandom as rnd
 import __builtin__
 from combinat import CombinatorialClass
-
+from sage.rings.integer import Integer
 
 def CartesianProduct(*iters):
     """
@@ -110,7 +110,7 @@ class CartesianProduct_iters(CombinatorialClass):
                 total *= len(it) # may not work when it is a CClass.
             except AttributeError:
                 total *= it.cardinality()
-        return total
+        return Integer(total)
 
 
     def list(self):

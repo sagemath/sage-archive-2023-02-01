@@ -186,7 +186,7 @@ class Subsets_s(CombinatorialClass):
             sage: Subsets(3).cardinality()
             8
         """
-        return 2**len(self.s)
+        return Integer(2**len(self.s))
 
     def first(self):
         """

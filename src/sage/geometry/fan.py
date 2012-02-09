@@ -347,7 +347,7 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
         Traceback (most recent call last):
         ...
         ValueError: you have provided 3 cones, but only 2 of them are maximal!
-        Use discard_faces=False if you indeed need to construct a fan from
+        Use discard_faces=True if you indeed need to construct a fan from
         these cones.
 
     Oops! There was a typo and ``cone2`` was listed twice as a generating cone
@@ -520,7 +520,7 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
                     cones = generating_cones
                 else:
                     raise ValueError("you have provided %d cones, but only %d "
-                        "of them are maximal! Use discard_faces=False if you "
+                        "of them are maximal! Use discard_faces=True if you "
                         "indeed need to construct a fan from these cones." %
                         (len(cones), len(generating_cones)))
         elif discard_faces:

@@ -429,7 +429,7 @@ def CPRFanoToricVariety(Delta=None,
         Traceback (most recent call last):
         ...
         ValueError: you have provided 5 cones, but only 4 of them are maximal!
-        Use discard_faces=False if you indeed need to construct a fan from
+        Use discard_faces=True if you indeed need to construct a fan from
         these cones.
 
     These charts are technically correct, they just happened to list one of

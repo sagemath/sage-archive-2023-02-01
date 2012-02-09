@@ -157,3 +157,11 @@ Examples of parents using categories
    sage/categories/examples/semigroups
    sage/categories/examples/semigroups_cython
    sage/categories/examples/sets_cat
+
+Miscellaneous
+=============
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/categories/action

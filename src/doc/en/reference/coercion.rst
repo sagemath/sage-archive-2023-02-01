@@ -161,8 +161,9 @@ these coercion morphisms should all commute.  In particular, if there
 are coercion maps `A \to B` and `B \to A`, then their composites
 must be the identity maps.
 
-Coercions can be discovered via the :meth:`has_coerce_map_from` method, and
-if needed explicitly invoked with the :meth:`coerce` method::
+Coercions can be discovered via the :meth:`Parent.has_coerce_map_from`
+method, and if needed explicitly invoked with the
+:meth:`Parent.coerce` method::
 
     sage: QQ.has_coerce_map_from(ZZ)
     True
@@ -324,11 +325,11 @@ Methods to implement
     wrong kind of object is passed in to indicate the action is not
     appropriate here.
 
-  * If either `R` acts on `S` *or* `S` acts on `R`, one may
-    implement ``R._get_action_`` to return an actual :class:`Action`
-    object to be used.  This is how non-multiplicative actions must be
-    implemented, and is the most powerful (and completed) way to do
-    things.
+  * If either `R` acts on `S` *or* `S` acts on `R`, one may implement
+    ``R._get_action_`` to return an actual
+    :class:`~sage.categories.action.Action` object to be used.  This
+    is how non-multiplicative actions must be implemented, and is the
+    most powerful (and completed) way to do things.
 
 * Element conversion/construction for Parents: use
   ``_element_constructor_`` **not** ``__call__``

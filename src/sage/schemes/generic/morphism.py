@@ -9,21 +9,21 @@ Scheme morphism
     all schemes.
 
 If you want to extend the Sage library with some new kind of scheme,
-your new class (say, ``myscheme``) should provide a methods
+your new class (say, ``myscheme``) should provide a method
 
-* ``myscheme._morphism_class(*args, **kwds)`` return a morphism
-  between to schemes in your category, usually defined via
-  polynomials. Your point class should derive from
-  :class:`SchemeMorphism_polynomial`. They will usually be elements of
-  the hom set
+* ``myscheme._morphism_class(*args, **kwds)`` returning a morphism
+  between two schemes in your category, usually defined via
+  polynomials. Your morphism class should derive from
+  :class:`SchemeMorphism_polynomial`. These morphisms will usually be
+  elements of the hom set
   :class:`~sage.schemes.generic.homset.SchemeHomset_generic`.
 
-Optionally, you can also provide a special hom set for your
+Optionally, you can also provide a special hom set class for your
 subcategory of schemes. If you want to do this, you should also
 provide a method
 
-* ``myscheme._homset_class(*args, **kwds)`` (optional) return the
-  homset, which must be a derived class of
+* ``myscheme._homset_class(*args, **kwds)`` returning a
+  homset, which must be an element of a derived class of
   `class:`~sage.schemes.generic.homset.SchemeHomset_generic`. If your
   new homset class does not use ``myscheme._morphism_class`` then you
   do not have to provide it.
@@ -32,15 +32,15 @@ Note that points on schemes are morphisms `Spec(K)\to X`, too. But we
 typically use a different notation, so they are implemented in a
 different derived class. For this, you should implement a method
 
-* ``myscheme._point_class(*args, **kwds)`` return a point, that is,
-  morphism `Spec(K)\to X`. Your point class should derive from
+* ``myscheme._point_class(*args, **kwds)`` returning a point, that is,
+  a morphism `Spec(K)\to X`. Your point class should derive from
   :class:`SchemeMorphism_point`.
 
 Optionally, you can also provide a special hom set for the points, for
 example the point hom set can provide a method to enumerate all
 points. If you want to do this, you should also provide a method
 
-* ``myscheme._point_homset_class(*args, **kwds)`` (optional) return
+* ``myscheme._point_homset_class(*args, **kwds)`` returning
   the :mod:`~sage.schemes.generic.homset` of points. The hom sets of
   points are implemented in classes named ``SchemeHomset_points_...``.
   If your new homset class does not use ``myscheme._point_class`` then
@@ -62,11 +62,16 @@ AUTHORS:
 # * _homset_class -> _point_homset_class
 
 #*****************************************************************************
-#  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
-#  Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 from sage.rings.infinity import infinity
 from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power
@@ -613,7 +618,7 @@ class SchemeMorphism_spec(SchemeMorphism):
 
     def _repr_defn(self):
         r"""
-        Return a string representation of the type of ``self``.
+        Return a string representation of the definition of ``self``.
 
         OUTPUT:
 
@@ -625,8 +630,11 @@ class SchemeMorphism_spec(SchemeMorphism):
             sage: phi = R.hom([QQ(7)])
             sage: X = Spec(QQ); Y = Spec(R)
             sage: f = X.hom(phi)
-            sage: f._repr_type()
-            'Affine Scheme'
+            sage: print f._repr_defn()
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Rational Field
+              To:   Rational Field
+              Defn: x |--> 7
         """
         return repr(self.ring_homomorphism())
 
@@ -708,8 +716,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         sage: f = H([exp(x),exp(y)])
         Traceback (most recent call last):
         ...
-        TypeError: polys (=[e^x, e^y]) must be elements of Multivariate
-        Polynomial Ring in x, y over Rational Field
+        TypeError: polys (=[e^x, e^y]) must be elements of
+        Multivariate Polynomial Ring in x, y over Rational Field
     """
     def __init__(self, parent, polys, check=True):
         """

@@ -22,7 +22,7 @@ cannot.
 
 The toric morphisms are perhaps the most mysterious at the
 beginning. Let us quickly review their definition (See Definition
-3.3.3 of [CLS]_). Let `\Sigma_1` a fan in `N_{1,\RR}` and `\Sigma_2` a
+3.3.3 of [CLS]_). Let `\Sigma_1` be a fan in `N_{1,\RR}` and `\Sigma_2` be a
 fan in `N_{2,\RR}`. A morphism `\phi: X_{\Sigma_1} \to X_{\Sigma_2}`
 of the associated toric varieties is toric if `\phi` maps the maximal
 torus `T_{N_1} \subseteq X_{\Sigma_1}` into `T_{N_2} \subseteq
@@ -56,20 +56,20 @@ First, consider the following embedding of `\mathbb{P}^1` into
             [0 : u^2 + v^2 : u*v]
 
 This is a well-defined morphism of algebraic varieties because
-homogeneously rescaled points of `\mathbb{P}^1` map to the same point
-in `\mathbb{P}^2` up to its homogeneous rescalings. It is not
+homogeneously rescaled coordinates of a point of `\mathbb{P}^1` map to the same
+point in `\mathbb{P}^2` up to its homogeneous rescalings. It is not
 equivariant with respect to the torus actions
 
 .. math::
 
     \CC^\times \times \mathbb{P}^1,
     (\mu,[u:v]) \mapsto [u:\mu v]
-    ,\quad
-    \CC^\times \times \mathbb{P}^2,
-    (\alpha,\beta,[x:y:z]) \mapsto [x:\alpha y:\beta z]
+    \quad\text{and}\quad
+    \left(\CC^\times\right)^2 \times \mathbb{P}^2,
+    ((\alpha,\beta),[x:y:z]) \mapsto [x:\alpha y:\beta z]
     ,
 
-though. Hence it is not a toric morphism. Clearly, the problem is that
+hence it is not a toric morphism. Clearly, the problem is that
 the map in homogeneous coordinates contains summands that transform
 differently under the torus action. However, this is not the only
 difficulty. For example, consider ::
@@ -108,7 +108,7 @@ which also defines a morphism of toric varieties::
       Defn: Defined by sending the Rational polyhedral fan in 1-d lattice N
             to Rational polyhedral fan in 2-d lattice N.
 
-The fan morphism map is equivalent to the polynomial map::
+The fan morphism map is equivalent to the following polynomial map::
 
     sage: _.as_polynomial_map()
     Scheme morphism:
@@ -118,7 +118,7 @@ The fan morphism map is equivalent to the polynomial map::
             [u : v : v]
 
 Finally, here is an example of a fan morphism that cannot be written
-with homogeneous polynomials. Consider the blowup `O_{\mathbb{P}^1}(2)
+using homogeneous polynomials. Consider the blowup `O_{\mathbb{P}^1}(2)
 \to \CC^2/\ZZ_2`. In terms of toric data, this blowup is::
 
     sage: A2_Z2 = toric_varieties.A2_Z2()
@@ -320,8 +320,7 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial):
         OUTPUT:
 
         A :class:`SchemeMorphism_polynomial_toric_variety`. Raises a
-        ``TypeError`` if the morphism cannot be written in terms of
-        homogeneous polynomials.
+        ``TypeError`` if the morphism cannot be written in such a way.
 
         EXAMPLES::
 
@@ -331,9 +330,11 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial):
             sage: patch.as_fan_morphism()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: expressing toric morphisms as fan morphisms is
+            not implemented yet!
         """
-        raise NotImplementedError
+        raise NotImplementedError("expressing toric morphisms as fan "
+                                  "morphisms is not implemented yet!")
 
 
 ############################################################################

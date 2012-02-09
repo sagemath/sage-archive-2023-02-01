@@ -1150,7 +1150,7 @@ class ToricVariety_field(AmbientSpace):
             True
 
         Note that by homogeneous, we mean well-defined with respect to
-        the homogeneous rescalings. So a polynomial that you would
+        the homogeneous rescalings of ``self``. So a polynomial that you would
         usually not call homogeneous can be homogeneous if there are
         no homogeneous rescalings, for example::
 

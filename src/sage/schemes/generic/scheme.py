@@ -4,19 +4,23 @@ Schemes
 AUTHORS:
 
 - William Stein, David Kohel, Kiran Kedlaya (2008): added zeta_series
+
+- Volker Braun (2011-08-11): documenting, improving, refactoring.
 """
 
-#*******************************************************************************
-#  Copyright (C) 2008 Kiran Kedlaya <kedlaya@mit.edu>
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
-#  Copyright (C) 2005 William Stein
+
+#*****************************************************************************
+#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2008 Kiran Kedlaya <kedlaya@mit.edu>
+#       Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
+#       Copyright (C) 2005 William Stein
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*******************************************************************************
+#*****************************************************************************
+
 
 from sage.misc.all import cached_method
 from sage.structure.parent import Parent

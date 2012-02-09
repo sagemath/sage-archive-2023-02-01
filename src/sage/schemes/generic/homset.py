@@ -6,7 +6,7 @@ For schemes `X` and `Y`, this module implements the set of morphisms
 
 As a special case, the hom sets can also represent the points of a
 scheme. Recall that the `K`-rational points of a scheme `X` over `k`
-can be identified with the set of morphisms `Spec(K) \to X`. In Sage,
+can be identified with the set of morphisms `Spec(K) \to X`. In Sage
 the rational points are implemented by such scheme morphisms. This is
 done by :class:`SchemeHomset_points` and its subclasses.
 
@@ -15,13 +15,25 @@ done by :class:`SchemeHomset_points` and its subclasses.
     You should not create the homsets manually. Instead, use the
     :meth:`~sage.structure.parent.Hom` method that is inherited by all
     schemes.
+
+AUTHORS:
+
+- William Stein (2006): initial version.
+
+- Volker Braun (2011-08-11): significant improvement and refactoring.
 """
 
+
 #*****************************************************************************
-#  Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 from sage.categories.homset import HomsetWithBase
 from sage.structure.factory import UniqueFactory
@@ -74,6 +86,9 @@ class SchemeHomsetFactory(UniqueFactory):
         sage: A2 = AffineSpace(QQ,2)
         sage: A3 = AffineSpace(QQ,3)
         sage: Hom = A3.Hom(A2)
+
+    The Hom sets are unique::
+
         sage: Hom is copy(Hom)
         True
         sage: Hom is A3.Hom(A2)
@@ -81,8 +96,8 @@ class SchemeHomsetFactory(UniqueFactory):
         sage: loads(Hom.dumps()) is Hom
         True
 
-    Here is a tricy point. The Hom sets are not identical if
-    domain/codomains are isomorphic but not identiacal::
+    Here is a tricky point. The Hom sets are not identical if
+    domains/codomains are isomorphic but not identiacal::
 
         sage: A3_iso = AffineSpace(QQ,3)
         sage: [ A3_iso is A3, A3_iso == A3 ]
@@ -101,7 +116,8 @@ class SchemeHomsetFactory(UniqueFactory):
         Integer Ring
     """
 
-    def create_key_and_extra_args(self, X, Y, category=None, check=True, base=ZZ):
+    def create_key_and_extra_args(self, X, Y, category=None, base=ZZ,
+                                  check=True):
         """
         Create a key that uniquely determines the Hom set.
 
@@ -110,6 +126,9 @@ class SchemeHomsetFactory(UniqueFactory):
         - ``X`` -- a scheme. The domain of the morphisms.
 
         - ``Y`` -- a scheme. The codomain of the morphisms.
+
+        - ``category`` -- a category for the Hom sets (default: schemes over
+          given base).
 
         - ``base`` -- a scheme or a ring. The base scheme of domain
           and codomain schemes. If a ring is specified, the spectrum
@@ -146,7 +165,8 @@ class SchemeHomsetFactory(UniqueFactory):
             base_spec = Spec(base)
             base_ring = base
         else:
-            raise ValueError('The base must be an affine scheme or a commutative ring.')
+            raise ValueError(
+                        'The base must be a commutative ring or its spectrum.')
         if not category:
             from sage.categories.schemes import Schemes
             category = Schemes(base_spec)
@@ -256,8 +276,11 @@ class SchemeHomset_generic(HomsetWithBase):
         EXAMPLES::
 
             sage: A = AffineSpace(4, QQ)
-            sage: A.structure_morphism()._repr_()
-            'Scheme morphism:\n  From: Affine Space of dimension 4 over Rational Field\n  To:   Spectrum of Rational Field\n  Defn: Structure map'
+            sage: print A.structure_morphism()._repr_()
+            Scheme morphism:
+              From: Affine Space of dimension 4 over Rational Field
+              To:   Spectrum of Rational Field
+              Defn: Structure map
         """
         s = 'Set of morphisms'
         s += '\n  From: %s' % self.domain()
@@ -295,12 +318,12 @@ class SchemeHomset_generic(HomsetWithBase):
 
         INPUT:
 
-        - `x` -- a ring morphism, or a list or tuple of that define a
+        - `x` -- a ring morphism, or a list or a tuple that define a
           ring morphism.
 
         - ``check`` -- boolean (default: ``True``) passed onto
-          functions called by this to be more careful about input
-          argument type checking
+          functions called by this one to be more careful about input
+          argument type checking.
 
         EXAMPLES::
 
@@ -487,7 +510,7 @@ class SchemeHomset_points(SchemeHomset_generic):
 
     def value_ring(self):
         """
-        Returns `R` for a point homset `X(Spec(R))`
+        Return `R` for a point homset `X(Spec(R))`.
 
         OUTPUT:
 
@@ -500,7 +523,8 @@ class SchemeHomset_points(SchemeHomset_generic):
             Rational Field
         """
         dom = self.domain()
-        assert is_Spec(dom)
+        if not is_Spec(dom):
+            raise ValueError("value rings are defined for Spec domains only!")
         return dom.coordinate_ring()
 
 
@@ -583,18 +607,19 @@ class SchemeHomset_points_affine(SchemeHomset_points):
         sage: SchemeHomset_points_affine(Spec(QQ), AffineSpace(ZZ,2))
         Set of rational points of Affine Space of dimension 2 over Rational Field
     """
+
     def points(self, B=0):
         r"""
         Return some or all rational points of an affine scheme.
 
         INPUT:
 
-        - `B` -- integer (optional, default=0). The bound for the
+        - ``B`` -- integer (optional, default: 0). The bound for the
           height of the coordinates.
 
         OUTPUT:
 
-        - If the base ring is a finite field: All points of the scheme,
+        - If the base ring is a finite field: all points of the scheme,
           given by coordinate tuples.
 
         - If the base ring is `\QQ` or `\ZZ`: the subset of points whose
@@ -858,12 +883,12 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
             sage: Hom.base_extend(QQ)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Abelian variety point sets not
+            NotImplementedError: Abelian variety point sets are not
             implemented as modules over rings other than ZZ.
         """
-        if not R is ZZ:
-            raise NotImplementedError('Abelian variety point sets not implemented '
-                                      'as modules over rings other than ZZ.')
+        if R is not ZZ:
+            raise NotImplementedError('Abelian variety point sets are not '
+                            'implemented as modules over rings other than ZZ.')
         return self
 
 

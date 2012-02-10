@@ -975,10 +975,11 @@ class HasseDiagram(DiGraph):
         Returns the matrix of meets of self. The ``(x,y)``-entry of
         this matrix is the meet of ``x`` and ``y`` in ``self``.
 
-        This algorithm is modelled after the algorithm of
-        Freese-Jezek-Nation (p217).
+        This algorithm is modelled after the algorithm of Freese-Jezek-Nation
+        (p217). It can also be found on page 140 of [Gec81m]_.
 
         .. note::
+
             Once the matrix has been computed, it is stored in
             self._meet_matrix. Delete this attribute if you want to
             recompute the matrix.
@@ -996,6 +997,14 @@ class HasseDiagram(DiGraph):
             [0 0 2 0 2 5 2 5]
             [0 0 2 3 2 2 6 6]
             [0 1 2 3 4 5 6 7]
+
+        REFERENCE:
+
+        .. [Gec81m] Fundamentals of Computation Theory
+          Gecseg, F.
+          Proceedings of the 1981 International Fct-Conference
+          Szeged, Hungaria, August 24-28, vol 117
+          Springer-Verlag, 1981
 
         TESTS::
 
@@ -1021,22 +1030,23 @@ class HasseDiagram(DiGraph):
         if not all([le[0,x]==1 for x in range(n)]):
             raise ValueError, "Not a meet-semilattice: no bottom element."
         lc = [[y[0] for y in self.incoming_edges([x])] for x in range(n)]
-        S = []
+
         for x in range(n): # x=x_k
             meet[x][x] = x
-            for y in S:
+            for y in range(x):
                 T = []
                 for z in lc[x]:
                     T.append(meet[y][z]) # T = {x_i \wedge z : z>-x_k}
+
                 q = T[0]
-                for z in T[1:]:
+                for z in T:
                     if z>q: q = z
                 for z in T:
                     if not le[z,q]:
                         raise ValueError, "No meet for x=%s y=%s"%(x,y)
                 meet[x][y] = q
                 meet[y][x] = q
-            S.append(x)
+
         self._meet = matrix(ZZ,meet)
         return self._meet
 
@@ -1072,8 +1082,8 @@ class HasseDiagram(DiGraph):
         Returns the matrix of joins of ``self``. The ``(x,y)``-entry
         of this matrix is the join of ``x`` and ``y`` in ``self``.
 
-        This algorithm is modelled after the algorithm of
-        Freese-Jezek-Nation (p217).
+        This algorithm is modelled after the algorithm of Freese-Jezek-Nation
+        (p217). It can also be found on page 140 of [Gec81j]_.
 
         .. note::
             Once the matrix has been computed, it is stored in
@@ -1093,6 +1103,14 @@ class HasseDiagram(DiGraph):
             [5 7 5 7 7 5 7 7]
             [6 7 6 6 7 7 6 7]
             [7 7 7 7 7 7 7 7]
+
+        REFERENCE:
+
+        .. [Gec81j] Fundamentals of Computation Theory
+          Gecseg, F.
+          Proceedings of the 1981 International Fct-Conference
+          Szeged, Hungaria, August 24-28, vol 117
+          Springer-Verlag, 1981
 
         TESTS::
 
@@ -1114,26 +1132,27 @@ class HasseDiagram(DiGraph):
         join = [[0 for x in range(n)] for x in range(n)]
         le = copy.copy(self.lequal_matrix())
         for i in range(n): le[i,i] = 1
-        if not all([le[x][n-1]==1 for x in range(n)]):
+        if not all([le[x,n-1]==1 for x in range(n)]):
             raise ValueError, "Not a join-semilattice: no top element."
         uc = [sorted([n-1-y[1] for y in self.outgoing_edges([x])]) for
                 x in reversed(range(n))]
-        S = []
+
         for x in range(n): # x=x_k
             join[x][x] = x
-            for y in S:
+
+            for y in range(x):
                 T = []
                 for z in uc[x]:
                     T.append(join[y][z]) # T = {x_i \vee z : z>-x_k}
                 q = T[0]
-                for z in T[1:]:
+                for z in T:
                     if z>q: q = z
                 for z in T:
-                    if not le[n-1-q][n-1-z]:
+                    if not le[n-1-q,n-1-z]:
                         raise ValueError, "No join for x=%s y=%s"%(x,y)
                 join[x][y] = q
                 join[y][x] = q
-            S.append(x)
+
         self._join = matrix(ZZ,[[n-1-join[n-1-x][n-1-y] for y in range(n)] for x in range(n)])
         return self._join
 

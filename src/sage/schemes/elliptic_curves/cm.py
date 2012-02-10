@@ -5,13 +5,17 @@ This module implements the functions
 
 - ``hilbert_class_polynomial``
 - ``cm_j_invariants``
+- ``cm_orders``
+- ``discriminants_with_bounded_class_number``
 - ``cm_j_invariants_and_orders``
+- ``largest_fundamental_disc_with_class_number``
 
 AUTHORS:
 
 - Robert Bradshaw
 - John Cremona
 - William Stein
+
 """
 
 #*****************************************************************************
@@ -155,8 +159,8 @@ def cm_j_invariants(K, proof=None):
 
     INPUT:
 
-    - ``K`` -- a number field (currently only implemented for `K` of degree at most 2)
-    - `proof` -- (default: proof.number_field())
+    - ``K`` -- a number field
+    - ``proof`` -- (default: proof.number_field())
 
     OUTPUT:
 
@@ -194,8 +198,8 @@ def cm_j_invariants_and_orders(K, proof=None):
 
     INPUT:
 
-    - ``K`` -- a number field (currently only implemented for `K` of degree at most 2)
-    - `proof` -- (default: proof.number_field())
+    - ``K`` -- a number field
+    - ``proof`` -- (default: proof.number_field())
 
     OUTPUT:
 
@@ -245,7 +249,7 @@ def cm_orders(h, proof=None):
     INPUT:
 
     - `h` -- positive integer
-    - `proof` -- (default: proof.number_field())
+    - ``proof`` -- (default: proof.number_field())
 
     OUTPUT:
 
@@ -322,7 +326,7 @@ watkins_table = {1: (163, 9), 2: (427, 18), 3: (907, 16), 4: (1555, 54), 5: (268
 def largest_fundamental_disc_with_class_number(h):
     """
     Return largest absolute value of any fundamental discriminant with
-    class number h, and the number of fundamental discriminants with
+    class number `h`, and the number of fundamental discriminants with
     that class number.  This is known for `h` up to 100, by work of Mark
     Watkins.
 
@@ -361,27 +365,29 @@ def largest_fundamental_disc_with_class_number(h):
 
 def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
     """
-    Return dictionary with keys class numbers h<=hmax and values the
-    list of all pairs (D, f), with D<0 a fundamental discriminant such
-    that D*f^2 has class number h.  If the optional bound B is given,
-    return only those pairs with fundamental |D| <= B, though f can
+    Return dictionary with keys class numbers `h\le hmax` and values the
+    list of all pairs `(D, f)`, with `D<0` a fundamental discriminant such
+    that `Df^2` has class number `h`.  If the optional bound `B` is given,
+    return only those pairs with fundamental `|D| \le B`, though `f` can
     still be arbitrarily large.
 
     INPUT:
+
     - ``hmax`` -- integer
     - `B` -- integer or None; if None returns all pairs
-    - ``proof -- this code calls the PARI function qfbclassno, so it
-      could give wrong answers when proof==False.  The default is
-      whatever proof.number_field() is.  If proof==False and B is
-      None, at least the number of discriminants is correct, since it
+    - ``proof`` -- this code calls the PARI function ``qfbclassno``, so it
+      could give wrong answers when ``proof``==``False``.  The default is
+      whatever ``proof.number_field()`` is.  If ``proof==False`` and `B` is
+      ``None``, at least the number of discriminants is correct, since it
       is double checked with Watkins's table.
 
     OUTPUT:
+
     - dictionary
 
-    In case B is not given, we use Mark Watkins's: "Class numbers of
-    imaginary quadratic fields" to compute a B that captures all h
-    up to hmax.
+    In case `B` is not given, we use Mark Watkins's: "Class numbers of
+    imaginary quadratic fields" to compute a `B` that captures all `h`
+    up to `hmax` (only available for `hmax\le100`).
 
     EXAMPLES::
 
@@ -461,9 +467,10 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
             h_D = classno(D)
             # For each fundamental discrimant D, loop through the f's such
             # that h(D*f^2) could possibly be <= hmax.  As explained to me by Cremona,
-            # we have h(D*f^2) >= h(D)*phi_D(f) >= h(D)*euler_phi(f), where
+            # we have h(D*f^2) >= (1/c)*h(D)*phi_D(f) >= (1/c)*h(D)*euler_phi(f), where
             # phi_D(f) is like euler_phi(f) but the factor (1-1/p) is replaced
             # by a factor of (1-kr(D,p)*p), where kr(D/p) is the Kronecker symbol.
+            # The factor c is 1 unless D=-4 and f>1 (when c=2) or D=-3 and f>1 (when c=3).
             # Since (1-1/p) <= 1 and (1-1/p) <= (1+1/p), we see that
             #     euler_phi(f) <= phi_D(f).
             #
@@ -482,13 +489,19 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
             #   lb(n) = n/(exp(euler_gamma)*log(log(n)) + 3/log(log(n)))
             #   plot(lb, (n, 1, 10^4), color='red') + plot(lambda x: euler_phi(int(x)), 1, 10^4).show()
             #
-            # So we consider f=1,2,..., until the first f with lb(f)*h_D > h_max.
+            # So we consider f=1,2,..., until the first f with lb(f)*h_D > c*h_max.
             # (Note that lb(f) is <= 0 for f=1,2, so nothing special is needed there.)
             #
             # TODO: Maybe we could do better using a bound for for phi_D(f).
             #
             f = 1
-            while lb(f)*h_D <= hmax:
+            chmax=hmax
+            if D==-3:
+                chmax*=3
+            else:
+                if D==-4:
+                    chmax*=2
+            while lb(f)*h_D <= chmax:
                 if f == 1:
                     h = h_D
                 else:

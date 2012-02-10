@@ -872,6 +872,12 @@ if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
    exit $?
 fi
 
+if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
+   shift
+   "$SAGE_LOCAL/bin/patchbot/patchbot.py" "$@"
+   exit $?
+fi
+
 if [ "$1" = '-c' ]; then
    cd "$CUR"
    shift

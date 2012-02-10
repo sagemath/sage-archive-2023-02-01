@@ -3347,14 +3347,15 @@ class Polyhedron(SageObject):
 
             sage: p = polytopes.permutahedron(4, project = False)
             sage: p.radius_square()
-            720
+            5
         """
         try:
             return self._radius_2
         except AttributeError:
-            self._radius_2 = 0
-            for v in self.vertex_generator():
-                self._radius_2 += v.vector()*v.vector()
+            center = self.center()
+            self._radius_2 = max( (v.vector() - center).dot_product(
+                                   v.vector() - center) for v in
+                                   self.vertex_generator() )
             return self._radius_2
 
 
@@ -3373,7 +3374,7 @@ class Polyhedron(SageObject):
 
             sage: p = polytopes.n_cube(4)
             sage: p.radius()
-            8
+            2
         """
         return sqrt(self.radius_square())
 

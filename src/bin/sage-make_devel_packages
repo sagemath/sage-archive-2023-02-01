@@ -39,17 +39,21 @@ cd "$DESTINATION"
 DESTINATION=`pwd`
 PKG="$DESTINATION"
 
-# NEW SAGE SOURCE PACKAGE
+# NEW SAGE LIBRARY PACKAGE
 if [ -d "$SAGE_ROOT"/devel/sage ]; then
    cd "$SAGE_ROOT"/devel/sage
    hg diff
    hg status
    hg tag "$SAGE_VERSION"
    hg commit -m "$SAGE_VERSION"
-   #./sage-push
+   if [ $? -gt 1 ]; then  # Status 1 is returned when there are no changes
+       echo >&2 "Error committing Sage library repository."
+       exit 1
+   fi
+
    ./spkg-dist "$SAGE_VERSION" "$SAGE_ROOT"
    if [ $? -ne 0 ]; then
-       echo "Error building the Sage source code package"
+       echo "Error building the Sage library package"
        exit 1
    fi
    mv dist/sage-"$SAGE_VERSION".spkg "$DESTINATION"/
@@ -68,8 +72,11 @@ if [ -d "$SAGE_ROOT"/data/extcode ]; then
    hg status
    hg tag "$SAGE_VERSION"
    hg commit -m "$SAGE_VERSION"
+   if [ $? -gt 1 ]; then  # Status 1 is returned when there are no changes
+       echo >&2 "Error committing extcode repository."
+       exit 1
+   fi
 
-   #./sage-push
    ./spkg-dist "$SAGE_VERSION" "$SAGE_ROOT"
    if [ $? -ne 0 ]; then
        echo "Error building the extcode package"
@@ -93,14 +100,12 @@ fi
 SCRIPTS=sage_scripts-"$SAGE_VERSION"
 cd "$SAGE_ROOT"/local/bin/
 
-#./sage-push
 hg diff
 hg status
 hg tag "$SAGE_VERSION"
 hg commit -m "$SAGE_VERSION"
-
-if [ $? -ne 0 ]; then
-    echo "Error pushing scripts repository."
+if [ $? -gt 1 ]; then  # Status 1 is returned when there are no changes
+    echo >&2 "Error committing scripts repository."
     exit 1
 fi
 

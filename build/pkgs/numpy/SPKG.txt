@@ -1,29 +1,37 @@
 = numpy =
-Description: This package adds numerical linear algebra and other numerical computing
+
+== Description ==
+
+This package adds numerical linear algebra and other numerical computing
 capabilities to python.
 
-Maintainers:
-  Josh Kantor
-  Michael Abshoff
+== Maintainers ==
+ * Josh Kantor
 
-Upstream Contact:
-  Travis Oliphant
-  Fernando Perez
-  Brian Granger
+== Upstream Contact ==
+ * Travis Oliphant
+ * Fernando Perez
+ * Brian Granger
 
-Dependencies:
-  Python
-  Lapack
-  Blas
-  Atlas
-  Fortran
+== Dependencies ==
+ * GNU patch
+ * Python
+ * Lapack
+ * Blas
+ * Atlas
+ * Fortran
 
-Special Update/Build Instructions:
-  * Scipy uses numpy's distutils to control its compilation of fortran code.
-    Whenever numpy is updated it is necessary to make sure that scipy still builds ok.
-
+== Special Update/Build Instructions ==
+ * Scipy uses numpy's distutils to control its compilation of fortran code.
+   Whenever numpy is updated it is necessary to make sure that scipy still builds ok.
 
 == Changelog ==
+
+=== numpy-1.5.1.p1 (Jeroen Demeyer, 10 February 2012) ==
+ * #12423: add patch darwin_x86_64.patch from upstream such that the
+   "x86_64" platform gets recognized as Intel (and therefore, hopefully
+   the correct CFLAGS are used).
+ * Use patch for patching.
 
 === numpy-1.5.1 (Francois Bissey, 18 Feb 2011) ==
  * Update to numpy-1.5.1

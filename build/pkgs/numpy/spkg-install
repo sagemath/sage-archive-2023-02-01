@@ -21,12 +21,21 @@ if [ "x$SAGE64" = xyes ] ; then
    export CC
 fi
 
-if [ $UNAME = "CYGWIN" ]; then
-    echo "CYGWIN: Patching src/numpy/linalg/setup.py"
-    cp patches/cygwin-lapack_lite-setup.py src/numpy/linalg/setup.py
-fi
-
 cd src
+
+# Apply patches.
+patches="../patches/darwin_x86_64.patch"
+if [ $UNAME = "CYGWIN" ]; then
+    echo "CYGWIN: Patching numpy/linalg/setup.py"
+    patches="$patches ../patches/cygwin-lapack_lite-setup.py.diff"
+fi
+for patch in $patches; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
 echo "[DEFAULT]" > site.cfg
 echo "library_dirs = $SAGE_LOCAL/lib" >> site.cfg

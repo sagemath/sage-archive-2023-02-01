@@ -1,0 +1,23 @@
+diff -ru src/numpy/distutils/system_info.py src.patched/numpy/distutils/system_info.py
+--- src/numpy/distutils/system_info.py	2010-11-18 12:11:51.000000000 +0100
++++ src.patched/numpy/distutils/system_info.py	2012-02-10 13:55:32.000000000 +0100
+@@ -1250,7 +1250,8 @@
+         if sys.platform=='darwin' and not os.environ.get('ATLAS',None):
+             args = []
+             link_args = []
+-            if get_platform()[-4:] == 'i386':
++            if get_platform()[-4:] == 'i386' or 'intel' in get_platform() or \
++                'i386' in platform.platform():
+                 intel = 1
+             else:
+                 intel = 0
+@@ -1347,7 +1348,8 @@
+         if sys.platform=='darwin' and not os.environ.get('ATLAS',None):
+             args = []
+             link_args = []
+-            if get_platform()[-4:] == 'i386':
++            if get_platform()[-4:] == 'i386' or 'intel' in get_platform() or \
++                'i386' in platform.platform():
+                 intel = 1
+             else:
+                 intel = 0

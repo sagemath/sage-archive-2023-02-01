@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VALGRIND_VERSION="3.6.1"
+VALGRIND_VERSION="3.7.0"
 
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
@@ -19,7 +19,7 @@ else
         echo "Good - Valgrind works on x86/Darwin 9.x or 10.x"
     else
         echo "Sorry, Valgrind only works on x86,AMD64,PPC32,PPC64,ARM Linux"
-        echo "and x86,AMD64 on Darwin 9.x/10.x (Mac OS X 10.5.x, 10.6.x)"
+        echo "and x86,AMD64 on Darwin 9.x/10.x (Mac OS X 10.5.x, 10.6.x, 10.7.x)"
         exit 1
     fi
 fi
@@ -51,4 +51,4 @@ fi
 
 echo "Adding Sage suppression file"
 cp ../patches/sage.supp $SAGE_LOCAL/lib/valgrind/
-
+cp ../patches/sage-liberal.supp $SAGE_LOCAL/lib/valgrind/

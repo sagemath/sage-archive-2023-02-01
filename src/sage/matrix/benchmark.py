@@ -1,3 +1,20 @@
+"""
+Benchmarks for matrices
+
+This file has many functions for computing timing benchmarks
+of various methods for random matrices with given bounds for
+the entries.  The systems supported are Sage and Magma.
+
+The basic command syntax is as follows::
+
+    sage: import sage.matrix.benchmark as b
+    sage: b.report([b.det_ZZ], 'Test', systems=['sage'])
+    ======================================================================
+              Test
+    ======================================================================
+    ...
+    ======================================================================
+"""
 from sage.all import *
 
 verbose = False
@@ -12,7 +29,7 @@ def report(F, title, systems = ['sage', 'magma'], **kwds):
 
     - ``F`` - a list of callables used for benchmarking
     - ``title`` - a string describing this report
-    - ``systems - a list of systems (supported entries are 'sage' and 'magma')
+    - ``systems`` - a list of systems (supported entries are 'sage' and 'magma')
     - ``**kwds`` - keyword arguments passed to all functions in ``F``
 
     EXAMPLES::

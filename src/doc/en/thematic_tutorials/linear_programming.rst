@@ -517,6 +517,10 @@ create symbolic links to these files in the appropriate directories:
 
         ln -s /path/to/include/cplex.h .
 
+    *  ``cpxconst.h`` (if it exists) -- in ``SAGE_ROOT/local/include/``, type::
+
+        ln -s /path/to/include/cpxconst.h .
+
 * For GUROBI
 
     * ``libgurobi45.so`` -- in ``SAGE_ROOT/local/lib/``, type::

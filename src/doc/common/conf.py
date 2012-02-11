@@ -14,8 +14,10 @@ sys.path.append(os.path.abspath(os.path.join(SAGE_DOC, 'common')))
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sage_autodoc',  'sphinx.ext.graphviz',
-              'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo']
-#, 'sphinx.ext.intersphinx', 'sphinx.ext.extlinks']
+              'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo',
+              'sphinx.ext.extlinks']
+#, 'sphinx.ext.intersphinx']
+
 
 if 'SAGE_DOC_JSMATH' in os.environ:
     extensions.append('sphinx.ext.jsmath')
@@ -96,8 +98,10 @@ inheritance_edge_attrs = {}
 todo_include_todos = True
 
 
-# Sage trac ticket shortcuts. For example, :ticket:`7549` .
-#extlinks = {'ticket': ('http://trac.sagemath.org/sage_trac/ticket/', 'Ticket ')}
+# Sage trac ticket shortcuts. For example, :trac:`7549` .
+extlinks = {
+    'trac': ('http://trac.sagemath.org/sage_trac/ticket/%s', 'trac ticket #'),
+    'wikipedia': ('http://en.wikipedia.org/wiki/%s', 'Wikipedia article ')}
 
 # Options for HTML output
 # -----------------------

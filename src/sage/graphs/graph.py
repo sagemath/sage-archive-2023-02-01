@@ -377,7 +377,7 @@ class Graph(GenericGraph):
     Undirected graph.
 
     A graph is a set of vertices connected by edges. See also the
-    `Wikipedia article on graphs <http://en.wikipedia.org/wiki/Graph_(mathematics)>`_.
+    :wikipedia:`Wikipedia article on graphs <Graph_(mathematics)>`.
 
     One can very easily create a graph in Sage by typing::
 
@@ -2020,8 +2020,7 @@ class Graph(GenericGraph):
     def strong_orientation(self):
         r"""
         Returns a strongly connected orientation of the current graph. See
-        also the
-        `Wikipedia article on strongly connected component <http://en.wikipedia.org/wiki/Strongly_connected_component>`_.
+        also the :wikipedia:`Strongly_connected_component`.
 
         An orientation of an undirected graph is a digraph obtained by
         giving an unique direction to each of its edges. An orientation

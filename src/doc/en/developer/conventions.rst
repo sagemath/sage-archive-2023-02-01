@@ -418,6 +418,8 @@ a guide.
   that reference under this block. The Sphinx/ReST markup for
   citations is described at
   http://sphinx.pocoo.org/rest.html#citations. See below for an example.
+  Sage also add specific markup for links to sage trac tickets and
+  Wikipedia. See :ref:`chapter-sage_manuals_links`.
 
 -  An AUTHORS block (optional, but encouraged for important
    functions, so users can see from the docstring who wrote it and

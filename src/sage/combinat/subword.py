@@ -305,10 +305,12 @@ def smallest_positions(word, subword, pos = 0):
         sage: sage.combinat.subword.smallest_positions([1,3,3,5,4,5,3,5],[3,5,3],3)
         False
 
-    TEST::
+    TEST:
+
+    We check for :trac:`5534`::
 
         sage: w = ["a", "b", "c", "d"]; ww = ["b", "d"]
-        sage: x = sage.combinat.subword.smallest_positions(w, ww); ww # Trac #5534
+        sage: x = sage.combinat.subword.smallest_positions(w, ww); ww
         ['b', 'd']
     """
     pos -= 1

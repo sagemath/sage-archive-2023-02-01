@@ -88,8 +88,10 @@ where ``<repo-name>`` is the name of the repository you are using, and
 when you run ``sage --docbuild --formats``).
 
 
-Setting hyperlink to modules, classes, methods, etc.
-----------------------------------------------------
+.. _chapter-sage_manuals_links:
+
+Linking to modules, classes, methods, ..., trac tickets and Wikipedia.
+----------------------------------------------------------------------
 
 For full documentation, refer to `inline markup`__ in the Sphinx
 documentation. Currently, there is no support for defining chapters
@@ -151,6 +153,22 @@ name cannot be found, the title is typeset in boldface without any
 link produced and also without any error or warning. Note that without
 the prepended dot, the object is searched starting from the top-level
 to the innermost module or class.
+
+Sage adds a special role to link to trac ticket. The code ``:trac:`12490```
+link to the :trac:`12490`. When fixing a bug, you should add the link to the
+corresponding trac ticket in the ``TEST`` section. Here is an example::
+
+    TEST:
+
+    We check for :trac:`5534`::
+
+        sage: w = ["a", "b", "c", "d"]; ww = ["b", "d"]
+        sage: x = sage.combinat.subword.smallest_positions(w, ww); ww
+        ['b', 'd']
+
+If the same vein you can also add links to Wikipedia:
+``:wikipedia:`Sage_(mathematics_software)``` add the following link to the
+:wikipedia:`Sage_(mathematics_software)`
 
 
 Adding a new file

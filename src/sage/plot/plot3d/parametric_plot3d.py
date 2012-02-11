@@ -15,53 +15,50 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
 
     There are four ways to call this function:
 
+    - ``parametric_plot3d([f_x, f_y, f_z], (u_min,
+      u_max))``:
+      `f_x, f_y, f_z` are three functions and
+      `u_{\min}` and `u_{\max}` are real numbers
 
-    -  ``parametric_plot3d([f_x, f_y, f_z], (u_min,
-       u_max))``:
-       `f_x, f_y, f_z` are three functions and
-       `u_{\min}` and `u_{\max}` are real numbers
+    - ``parametric_plot3d([f_x, f_y, f_z], (u, u_min,
+      u_max))``:
+      `f_x, f_y, f_z` can be viewed as functions of
+      `u`
 
-    -  ``parametric_plot3d([f_x, f_y, f_z], (u, u_min,
-       u_max))``:
-       `f_x, f_y, f_z` can be viewed as functions of
-       `u`
+    - ``parametric_plot3d([f_x, f_y, f_z], (u_min, u_max),
+      (v_min, v_max))``:
+      `f_x, f_y, f_z` are each functions of two variables
 
-    -  ``parametric_plot3d([f_x, f_y, f_z], (u_min, u_max),
-       (v_min, v_max))``:
-       `f_x, f_y, f_z` are each functions of two variables
-
-    -  ``parametric_plot3d([f_x, f_y, f_z], (u, u_min,
-       u_max), (v, v_min, v_max))``:
-       `f_x, f_y, f_z` can be viewed as functions of
-       `u` and `v`
+    - ``parametric_plot3d([f_x, f_y, f_z], (u, u_min,
+      u_max), (v, v_min, v_max))``:
+      `f_x, f_y, f_z` can be viewed as functions of
+      `u` and `v`
 
 
     INPUT:
 
+    - ``f`` - a 3-tuple of functions or expressions, or vector of size 3
 
-    -  ``f`` - a 3-tuple of functions or expressions, or vector of size 3
+    - ``urange`` - a 2-tuple (u_min, u_max) or a 3-tuple
+      (u, u_min, u_max)
 
-    -  ``urange`` - a 2-tuple (u_min, u_max) or a 3-tuple
-       (u, u_min, u_max)
+    - ``vrange`` - (optional - only used for surfaces) a
+      2-tuple (v_min, v_max) or a 3-tuple (v, v_min, v_max)
 
-    -  ``vrange`` - (optional - only used for surfaces) a
-       2-tuple (v_min, v_max) or a 3-tuple (v, v_min, v_max)
-
-    -  ``plot_points`` - (default: "automatic", which is
-       75 for curves and [40,40] for surfaces) initial number of sample
-       points in each parameter; an integer for a curve, and a pair of
-       integers for a surface.
+    - ``plot_points`` - (default: "automatic", which is
+      75 for curves and [40,40] for surfaces) initial number of sample
+      points in each parameter; an integer for a curve, and a pair of
+      integers for a surface.
 
     - ``boundary_style`` - (default: None, no boundary) a dict that describes
       how to draw the boundaries of regions by giving options that are passed
       to the line3d command.
 
-    -  ``mesh`` - bool (default: False) whether to display
-       mesh grid lines
+    - ``mesh`` - bool (default: False) whether to display
+      mesh grid lines
 
-    -  ``dots`` - bool (default: False) whether to display
-       dots at mesh grid points
-
+    - ``dots`` - bool (default: False) whether to display
+      dots at mesh grid points
 
     .. note::
 
@@ -519,8 +516,47 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
 
 def _parametric_plot3d_curve(f, urange, plot_points, **kwds):
     r"""
+    Return a parametric three-dimensional space curve.
     This function is used internally by the
-    ``parametric_plot3d`` command.
+    :func:`parametric_plot3d` command.
+
+    There are two ways this function is invoked by
+    :func:`parametric_plot3d`.
+
+    - ``parametric_plot3d([f_x, f_y, f_z], (u_min,
+      u_max))``:
+      `f_x, f_y, f_z` are three functions and
+      `u_{\min}` and `u_{\max}` are real numbers
+
+    - ``parametric_plot3d([f_x, f_y, f_z], (u, u_min,
+      u_max))``:
+      `f_x, f_y, f_z` can be viewed as functions of
+      `u`
+
+    INPUT:
+
+    - ``f`` - a 3-tuple of functions or expressions, or vector of size 3
+
+    - ``urange`` - a 2-tuple (u_min, u_max) or a 3-tuple
+      (u, u_min, u_max)
+
+    - ``plot_points`` - (default: "automatic", which is 75) initial
+      number of sample points in each parameter; an integer.
+
+    EXAMPLES:
+
+    We demonstrate each of the two ways of calling this.  See
+    :func:`parametric_plot3d` for many more examples.
+
+    We do the first one with a lambda function, which creates a
+    callable Python function that sends `u` to `u/10`::
+
+        sage: parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20))
+
+    Now we do the same thing with symbolic expressions::
+
+        sage: u = var('u')
+        sage: parametric_plot3d( (sin(u), cos(u), u/10), (u, 0, 20))
     """
     from sage.plot.misc import setup_for_eval_on_grid
     g, ranges = setup_for_eval_on_grid(f, [urange], plot_points)
@@ -530,8 +566,54 @@ def _parametric_plot3d_curve(f, urange, plot_points, **kwds):
 
 def _parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, **kwds):
     r"""
+    Return a parametric three-dimensional space surface.
     This function is used internally by the
-    ``parametric_plot3d`` command.
+    :func:`parametric_plot3d` command.
+
+    There are two ways this function is invoked by
+    :func:`parametric_plot3d`.
+
+    - ``parametric_plot3d([f_x, f_y, f_z], (u_min, u_max),
+      (v_min, v_max))``:
+      `f_x, f_y, f_z` are each functions of two variables
+
+    - ``parametric_plot3d([f_x, f_y, f_z], (u, u_min,
+      u_max), (v, v_min, v_max))``:
+      `f_x, f_y, f_z` can be viewed as functions of
+      `u` and `v`
+
+    INPUT:
+
+    - ``f`` - a 3-tuple of functions or expressions, or vector of size 3
+
+    - ``urange`` - a 2-tuple (u_min, u_max) or a 3-tuple
+      (u, u_min, u_max)
+
+    - ``vrange`` - a 2-tuple (v_min, v_max) or a 3-tuple
+      (v, v_min, v_max)
+
+    - ``plot_points`` - (default: "automatic", which is [40,40]
+      for surfaces) initial number of sample points in each parameter;
+      a pair of integers.
+
+    - ``boundary_style`` - (default: None, no boundary) a dict that describes
+      how to draw the boundaries of regions by giving options that are passed
+      to the line3d command.
+
+    EXAMPLES:
+
+    We demonstrate each of the two ways of calling this.  See
+    :func:`parametric_plot3d` for many more examples.
+
+    We do the first one with lambda functions::
+
+        sage: f = (lambda u,v: cos(u), lambda u,v: sin(u)+cos(v), lambda u,v: sin(v))
+        sage: parametric_plot3d(f, (0, 2*pi), (-pi, pi))
+
+    Now we do the same thing with symbolic expressions::
+
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), mesh=True)
     """
     from sage.plot.misc import setup_for_eval_on_grid
     g, ranges = setup_for_eval_on_grid(f, [urange,vrange], plot_points)
@@ -545,73 +627,3 @@ def _parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, *
         for v in (vrange[0], vrange[-1]):
             G += line3d([(g[0](u,v), g[1](u,v), g[2](u,v)) for u in urange], **boundary_style)
     return G
-
-
-
-def adapt_if_symbolic(f):
-    """
-    If f is symbolic find the variables u, v to substitute into f.
-    Otherwise raise a TypeError.
-
-    This function is used internally by the plot commands for
-    efficiency reasons only.
-    """
-    from sage.symbolic.all import is_Expression, SR
-    if sum([is_Expression(a) for a in f]) > 0:
-        g = [SR(a) for a in f]
-        vars = list(set(sum([list(a.variables()) for a in g], [])))
-        vars.sort()
-        if len(vars) > 0:
-            u = vars[0]
-            if len(vars) > 1:
-                v = vars[1]
-            else:
-                v = None
-            return g, u, v
-        else:
-            g = [lambda x: float(a) for a in g]
-            return g, None, None
-
-def adapt_to_callable(f, nargs=None):
-    """
-    Tries to make every function in f into a (fast) callable
-    function, returning a new list of functions and the expected
-    arguments.
-
-    INPUT:
-
-    - ``f`` -- a list of functions; these can be symbolic expressions,
-            polynomials, etc
-
-    -  ``nargs`` -- number of input args to have in the output functions
-
-    OUTPUT: functions, expected arguments
-    """
-    from sage.misc.misc import deprecation
-    deprecation("adapt_to_callable is a deprecated function.  Please use functions from sage.misc.plot instead.")
-
-    try:
-        from sage.symbolic.callable import is_CallableSymbolicExpression
-        if sum([is_CallableSymbolicExpression(z) for z in f]):
-            # Sum to get common universe; this works since f is
-            # callable, and summing gets the arguments in the right
-            # order.
-            vars = sum(f).args()
-        else:
-            # Otherwise any free variable names in any order
-            try:
-                vars = tuple(sorted(set(sum( [z.variables() for z in f], ()) )))
-                if len(vars) > 1:
-                    from sage.misc.misc import deprecation
-                    deprecation("Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
-            except AttributeError:
-                vars = ()
-                f = [fast_float_constant(x) for x in f]
-    except TypeError:
-        vars = ()
-        f = [fast_float_constant(x) for x in f]
-
-    if nargs is not None and len(vars) != nargs:
-        vars = (vars + ('_',)*nargs)[:nargs]
-
-    return fast_float(f, *vars), vars

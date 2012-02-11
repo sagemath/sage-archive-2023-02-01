@@ -561,9 +561,61 @@ class Cylindrical(_Coordinates):
                 height)
 
 class TrivialTriangleFactory:
+    """
+    Class emulating behavior of :class:`~sage.plot.plot3d.tri_plot.TriangleFactory`
+    but simply returning a list of vertices for both regular and
+    smooth triangles.
+    """
     def triangle(self, a, b, c, color = None):
+        """
+        Function emulating behavior of
+        :meth:`~sage.plot.plot3d.tri_plot.TriangleFactory.triangle`
+        but simply returning a list of vertices.
+
+        INPUT:
+
+        - ``a``, ``b``, ``c`` : triples (x,y,z) representing corners
+          on a triangle in 3-space
+        - ``color``: ignored
+
+        OUTPUT:
+
+        - the list ``[a,b,c]``
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.plot3d import TrivialTriangleFactory
+            sage: factory = TrivialTriangleFactory()
+            sage: tri = factory.triangle([0,0,0],[0,0,1],[1,1,0])
+            sage: tri
+            [[0, 0, 0], [0, 0, 1], [1, 1, 0]]
+        """
         return [a,b,c]
     def smooth_triangle(self, a, b, c, da, db, dc, color = None):
+        """
+        Function emulating behavior of
+        :meth:`~sage.plot.plot3d.tri_plot.TriangleFactory.smooth_triangle`
+        but simply returning a list of vertices.
+
+        INPUT:
+
+        - ``a``, ``b``, ``c`` : triples (x,y,z) representing corners
+          on a triangle in 3-space
+        - ``da``, ``db``, ``dc`` : ignored
+        - ``color`` : ignored
+
+        OUTPUT:
+
+        - the list ``[a,b,c]``
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.plot3d import TrivialTriangleFactory
+            sage: factory = TrivialTriangleFactory()
+            sage: sm_tri = factory.smooth_triangle([0,0,0],[0,0,1],[1,1,0],[0,0,1],[0,2,0],[1,0,0])
+            sage: sm_tri
+            [[0, 0, 0], [0, 0, 1], [1, 1, 0]]
+        """
         return [a,b,c]
 
 import parametric_plot3d
@@ -806,7 +858,9 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
     -  ``**kwds`` - standard graphics parameters
 
 
-    EXAMPLES: We plot `\sin(xy)`::
+    EXAMPLES:
+
+    We plot `\sin(xy)`::
 
         sage: from sage.plot.plot3d.plot3d import plot3d_adaptive
         sage: x,y=var('x,y'); plot3d_adaptive(sin(x*y), (x,-pi,pi), (y,-pi,pi), initial_depth=5)
@@ -975,6 +1029,25 @@ def cylindrical_plot3d(f, urange, vrange, **kwds):
     return plot3d(f, urange, vrange, transformation=Cylindrical('radius', ['azimuth', 'height']), **kwds)
 
 def axes(scale=1, radius=None, **kwds):
+    """
+    Creates basic axes in three dimensions.  Each axis is a three
+    dimensional arrow object.
+
+    INPUT:
+
+    - ``scale`` - (default: 1) The length of the axes (all three
+      will be the same).
+    - ``radius`` - (default: .01) The radius of the axes as arrows.
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.plot3d import axes
+        sage: S = axes(6, color='black'); S
+
+    ::
+
+        sage: T = axes(2, .5); T
+    """
     if radius is None:
         radius = scale/100.0
     return Graphics3dGroup([arrow3d((0,0,0),(scale,0,0), radius, **kwds),

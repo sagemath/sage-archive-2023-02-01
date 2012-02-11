@@ -68,6 +68,10 @@ downloading this spkg.
 
 == Changelog ==
 
+=== sagetex-2.3.3.p2 (John Palmieri, 11 Feb 2012) ===
+ * Use "#!/usr/bin/env bash" at the top of spkg-check so it works on
+   OpenSolaris (ticket #12500).
+
 === sagetex-2.3.3.p1 (Dan Drake, 16 Jan 2012) ===
 
  * Improve mechanism for preventing multiply-defined labels (ticket

@@ -928,7 +928,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
     """
 
     @staticmethod
-    def __classcall_private__(cls, *args, **keywords):
+    def __classcall_private__(cls, base_ring, basis_keys, category = None, **keywords):
         """
         TESTS::
 
@@ -940,13 +940,28 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], latex_bracket=['LEFT', 'RIGHT'])
             sage: F.print_options()['latex_bracket']
             ('LEFT', 'RIGHT')
+
+            sage: F is G
+            False
+
+        We check that the category is properly straightened::
+
+            sage: F  = CombinatorialFreeModule(QQ, ['a','b'])
+            sage: F1 = CombinatorialFreeModule(QQ, ['a','b'], category = ModulesWithBasis(QQ))
+            sage: F2 = CombinatorialFreeModule(QQ, ['a','b'], category = [ModulesWithBasis(QQ)])
+            sage: F3 = CombinatorialFreeModule(QQ, ['a','b'], category = (ModulesWithBasis(QQ),))
+            sage: F4 = CombinatorialFreeModule(QQ, ['a','b'], category = (ModulesWithBasis(QQ),CommutativeAdditiveSemigroups()))
+            sage: F5 = CombinatorialFreeModule(QQ, ['a','b'], category = (ModulesWithBasis(QQ),Category.join((LeftModules(QQ), RightModules(QQ)))))
+            sage: F1 is F, F2 is F, F3 is F, F4 is F, F5 is F
+            (True, True, True, True, True)
+
+            sage: G  = CombinatorialFreeModule(QQ, ['a','b'], category = AlgebrasWithBasis(QQ))
+            sage: F is G
+            False
         """
-        # Convert the argument args[1] into a FiniteEumeratedSet
-        # if it is a list or a tuple in order it to have a cardinality() method.
-        # note: if args is too short, we still propagate it down
-        # to __init__ to let it handle proper exception raising.
-        if len(args) >= 2 and isinstance(args[1], (list, tuple)):
-            args = (args[0], FiniteEnumeratedSet(args[1])) + args[2:]
+        if isinstance(basis_keys, (list, tuple)):
+            basis_keys = FiniteEnumeratedSet(basis_keys)
+        category = ModulesWithBasis(base_ring).or_subcategory(category)
         # bracket or latex_bracket might be lists, so convert
         # them to tuples so that they're hashable.
         bracket = keywords.get('bracket', None)
@@ -955,7 +970,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         latex_bracket = keywords.get('latex_bracket', None)
         if isinstance(latex_bracket, list):
             keywords['latex_bracket'] = tuple(latex_bracket)
-        return super(CombinatorialFreeModule, cls).__classcall__(cls, *args, **keywords)
+        return super(CombinatorialFreeModule, cls).__classcall__(cls, base_ring, basis_keys, category = category, **keywords)
 
     Element = CombinatorialFreeModuleElement
 
@@ -1005,13 +1020,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         from sage.categories.all import Rings
         if R not in Rings():
             raise TypeError, "Argument R must be a ring."
-        try:
-            z = R.one()
-        except:
-            raise ValueError, "R must have a unit element"
 
         if category is None:
             category = ModulesWithBasis(R)
+
         if element_class is not None:
             self.Element = element_class
 

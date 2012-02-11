@@ -171,7 +171,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         if base_ring is None:
             base_ring = q1.parent()
         q2 = base_ring(q2)
-        return super(IwahoriHeckeAlgebraT, cls).__classcall_private__(cls, W, q1=q1, q2=q2, base_ring=base_ring, prefix=prefix)
+        return super(IwahoriHeckeAlgebraT, cls).__classcall__(cls, W, q1=q1, q2=q2, base_ring = base_ring, prefix=prefix)
 
     def __init__(self, W, q1, q2, base_ring, prefix):
          """

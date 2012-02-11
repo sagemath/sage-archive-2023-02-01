@@ -1,20 +1,23 @@
 r"""
-Base class for all monoids
+Monoids
 """
 
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
 
 def is_Monoid(x):
-    """
-    Return True if x is of type Monoid_class.
+    r"""
+    Returns True if ``x`` is of type ``Monoid_class``.
 
     EXAMPLES::
 
         sage: from sage.monoids.monoid import is_Monoid
         sage: is_Monoid(0)
         False
-        sage: is_Monoid(ZZ)   # not technical math meaning of monoid
+        sage: is_Monoid(ZZ)   # The technical math meaning of monoid has
+        ...                   # no bearing whatsoever on the result: it's
+        ...                   # a typecheck which is not satisfied by ZZ
+        ...                   # since it does not inherit from Monoid_class.
         False
         sage: is_Monoid(sage.monoids.monoid.Monoid_class(('a','b')))
         True
@@ -26,20 +29,25 @@ def is_Monoid(x):
 
 class Monoid_class(Parent):
     def __init__(self,names):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.monoids.monoid import Monoid_class
             sage: Monoid_class(('a','b'))
             <class 'sage.monoids.monoid.Monoid_class_with_category'>
+
+        TESTS::
+
+            sage: F.<a,b,c,d,e> = FreeMonoid(5)
+            sage: TestSuite(F).run()
         """
         from sage.categories.monoids import Monoids
         Parent.__init__(self, base=self,names=names,category=Monoids())
 
     @cached_method
     def gens(self):
-        """
-        Return generators for self.
+        r"""
+        Returns the generators for ``self``.
 
         EXAMPLES::
 

@@ -16,8 +16,8 @@ def _mk_full_functions():
         sage: [f for (one,f,arity) in _mk_full_functions()] # random
         [Ei, abs, arccos, arccosh, arccot, arccoth, arccsc, arccsch,
         arcsec, arcsech, arcsin, arcsinh, arctan, arctan2, arctanh,
-        arg, binomial, ceil, conjugate, cos, cosh, cot, coth, csc,
-        csch, dickman_rho, dilog, dirac_delta, elliptic_e,
+        arg, beta, binomial, ceil, conjugate, cos, cosh, cot, coth,
+        csc, csch, dickman_rho, dilog, dirac_delta, elliptic_e,
         elliptic_ec, elliptic_eu, elliptic_f, elliptic_kc,
         elliptic_pi, erf, exp, factorial, floor, heaviside, imag_part,
         integrate, kronecker_delta, log, polylog, real_part, sec,
@@ -234,13 +234,17 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_interna
         sage: from sage.symbolic.random_tests import *
         sage: set_random_seed(2)
         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element) # random
-        (euler_gamma - v3^(-e) + (v2 - factorial(-e/v2))^(((2.85879036573 - 1.18163393202*I)*v2 + (2.85879036573 - 1.18163393202*I)*v3)*pi - 0.247786879678 + 0.931826724898*I)*arccsc((0.891138386848 - 0.0936820840629*I)/v1) - (0.553423153995 - 0.5481180572*I)*v3 + 0.149683576515 - 0.155746451854*I)*v1 + arccsch(pi + e)*elliptic_f(khinchin*v2, 1.4656989704 + 0.863754357069*I)
+        (euler_gamma - v3^(-e) + (v2 - e^(-e/v2))^(((2.85879036573 -
+        1.18163393202*I)*v2 + (2.85879036573 - 1.18163393202*I)*v3)*pi
+        - 0.247786879678 + 0.931826724898*I)*arccsc((0.891138386848 -
+        0.0936820840629*I)/v1) - (0.553423153995 - 0.5481180572*I)*v3
+        + 0.149683576515 - 0.155746451854*I)*v1 + arccsch(pi +
+        e)*elliptic_eu(khinchin*v2, 1.4656989704 + 0.863754357069*I)
         sage: random_expr(5, verbose=True) # random
-        About to apply dirac_delta to [1]
+        About to apply dilog to [1]
         About to apply arcsec to [0]
-        About to apply <built-in function add> to [0, arcsec(0)]
-        arcsec(0)
-
+        About to apply <built-in function add> to [1/6*pi^2, arcsec(0)]
+        1/6*pi^2 + arcsec(0)
     """
     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
     if ncoeffs is None:

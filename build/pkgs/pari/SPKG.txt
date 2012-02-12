@@ -42,11 +42,10 @@ Most of the building of a new version of the PARI spkg is automated
 in the script spkg-make.  Normally, the following should work.  In case
 of doubt, have a look at the file spkg-make.
 
-  0) Edit the line "svn update -r 13228" in spkg-make and set the
-     desired SVN version.
+  0) Edit the line "git checkout pari-2.5.1".
 
   1) ./spkg-make
-     This will download the SVN sources to the directory parisvn/
+     This will download the git sources to the directory parigit/
      and will also download galdata.tgz and ellsea-small.tgz.
      Then, a src/ directory will be created.
      WARNING: This script will remove any existing src/ directory.
@@ -59,12 +58,12 @@ of doubt, have a look at the file spkg-make.
   2) Check that everything is okay somehow.  In particular, look at
      patches/README.txt
 
-  3) rm -rf parisvn
-     The directory parisvn is a temporary SVN copy of the PARI sources.
-     When making this package just for testing, you can keep the parisvn
+  3) rm -rf parigit
+     The directory parigit contains a git repository for the PARI sources.
+     When making this package just for testing, you can keep the parigit
      directory.  However, it should not be there in a final version.
 
-  4) cd ..; sage -pkg pari-version-name
+  4) cd ..; sage --spkg pari-version-name
 
 Note from David Kirkby that could be relevant to building on Solaris:
 
@@ -79,6 +78,11 @@ all the same. But it is not right. I have not looked at PARI to see
 exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
+
+=== pari-2.5.1.p0 (Jeroen Demeyer, 11 February 2012) ===
+ * Ticket #12363: upgrade to PARI 2.5.1.
+ * Use git instead of svn in spkg-make to obtain the PARI sources.
+ * Remove upstreamed patch osx_13318_13330.patch.
 
 === pari-2.5.0.p3 (Jeroen Demeyer, 20 December 2011) ===
  * Ticket #12158: add reorder_init_opts.patch such that warnings

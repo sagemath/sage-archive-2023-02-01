@@ -39,8 +39,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ -d ../parisvn ]; then
-    echo "WARNING: You should delete the parisvn directory before submitting this spkg."
+if [ -d ../parigit ]; then
+    echo "WARNING: You should delete the parigit directory before submitting this spkg."
 fi
 
 echo "The PARI self-tests all passed"

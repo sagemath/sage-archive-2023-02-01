@@ -7,33 +7,40 @@
 #
 # HOW TO MAKE THE SPKG:
 # 1) ./spkg-make
-# 2) rm -rf parisvn    (For final distribution, not necessary for testing)
-# 3) cd ..; sage -pkg pari-2.4.3.whatever_the_name_of_the_package_is
+# 2) rm -rf parigit    (For final distribution, not necessary for testing)
+# 3) cd ..; sage --spkg pari-2.5.1.whatever_the_name_of_the_package_is
 #
-# If something goes wrong, try rm -rf parisvn and try again.
+# If something goes wrong, try rm -rf parigit and try again.
 #
 # This script does the following:
-# * If the directory ./parisvn/ exists, it is assumed to be a SVN
-#   repository of the PARI sources.  If it does not exist, the SVN
-#   sources are automatically downloaded.  In any case, the SVN sources
-#   are updated to a specific version.
-# * If the file parisvn/galdata.tgz does not exist, it is downloaded.
-# * The same for the file parisvn/seadata-small.tgz
-# * PARI is configured and built in the parisvn directory.  The built
+# * If the directory parigit/ exists, it is assumed to be a git
+#   repository of the PARI sources.  If it does not exist, the git
+#   sources are automatically downloaded.  In any case, a specific
+#   version is checked out.
+# * If the file parigit/galdata.tgz does not exist, it is downloaded.
+# * The same for the file parigit/seadata-small.tgz
+# * PARI is configured and built in the parigit directory.  The built
 #   executables are not needed, but some files generated in the
 #   process (using bison for example) are needed.
-# * The necessary files are copied from parisvn/ to src/ using a
-#   mechanism very similar to "make svnsnapshot" from PARI.
-# * The files parisvn/galdata.tgz and parisvn/seadata-small.tgz are
+# * The necessary files are copied from parigit/ to src/ using a
+#   mechanism very similar to "make snapshot" from PARI.
+# * The files parigit/galdata.tgz and parigit/seadata-small.tgz are
 #   extracted.
 #
-# AUTHOR: Jeroen Demeyer (July 2010)
+# AUTHOR:
+#
+# - Jeroen Demeyer (July 2010): initial version
+#
+# - Jeroen Demeyer (February 2012): use git instead of svn, upgrade to PARI 2.5.1
+
+# Automatically exit on errors
+set -e
 
 
 # Sanity check: must be run from current directory
 if ! [ -f spkg-make ]; then
-	echo >&2 "This script must be run from its own source directory!"
-	exit 1
+    echo >&2 "This script must be run from its own source directory!"
+    exit 1
 fi
 
 
@@ -42,25 +49,28 @@ rm -rf src
 mkdir src
 
 
-# Download SVN sources to parisvn/
-if ! [ -d parisvn ]; then
-	svn checkout svn://pari.math.u-bordeaux.fr/pari/trunk parisvn
+# Download or update git sources in parigit/
+if [ -d parigit ]; then
+    cd parigit
+    git fetch
+else
+    git clone http://pari.math.u-bordeaux.fr/git/pari.git parigit
+    cd parigit
 fi
-cd parisvn
 
 # Download galdata.tgz and seadata-small.tgz
 wget --timestamping http://pari.math.u-bordeaux.fr/pub/pari/packages/galdata.tgz
 wget --timestamping http://pari.math.u-bordeaux.fr/pub/pari/packages/seadata-small.tgz
 
 
-# Use the specified SVN version
-svn update -r 13228   # svn revision 13228 is PARI 2.5.0
+# Use the specified git version
+git checkout pari-2.5.1
 
 
 # make pari (must run bison, etc...) but disable optimization to speed
 # up compilation (the output of the compiling is not used anyway).
-env CFLAGS="-O0" ./Configure || exit
-make gp doc || exit
+env CFLAGS="-O0" ./Configure
+make gp doc
 
 
 # Copy the needed files to src using a tar pipe.  This is based on code
@@ -70,13 +80,14 @@ make gp doc || exit
 # -- Jeroen Demeyer
 tar -c -T <( config/get_MANIFEST && echo src/desc/pari.desc ) | ( cd ../src && tar xv )
 
-# Save svn version (see config/settar)
-svnversion >../src/config/svnversion
+# Hardcode version number in config/version.
+vcsversion=git-`git log -1 --pretty=format:%h`
+sed "s/^vcsversion=$/vcsversion=$vcsversion    # hardcoded by spkg-make/" <config/version >../src/config/version
 
 
 # Extract the tgz files
 for tgzfile in galdata.tgz seadata-small.tgz; do
-	( cd ../src && tar xvz ) < "$tgzfile"
+    ( cd ../src && tar xvz ) < "$tgzfile"
 done
 
 
@@ -85,6 +96,6 @@ cd ..
 echo "======================================================"
 echo "Done downloading PARI and creating the src/ directory."
 echo "If everything looks okay, proceed as follows:"
-echo "  rm -rf parisvn"
+echo "  rm -rf parigit"
 echo "  cd .."
-echo -n "  sage -pkg "; basename `pwd`
+echo -n "  sage --spkg "; basename `pwd`

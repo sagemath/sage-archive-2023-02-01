@@ -22,14 +22,13 @@ Patches to configuration files:
   symbolic link to */lib/* nor the target of a symbolic link */lib/*; cf.
   #9722, too).
 * get_dlcflags.patch: jdemeyer: Add -fno-common to DLCFLAGS on Darwin.
-  Fixed upstream, but probably in a bad way.
+  Fixed upstream, but only for PowerPC. Since this doesn't break anything
+  and only improves performance, add the flag unconditionally.
 * install_doc_no_make.patch: jdemeyer: Do not *build* the documentation
   when doing install-doc or install-docpdf.  We must not build the
   documentation because that requires tex.  On the other hand, to have ?
   and ?? work within gp, we must install the .tex files (but not .dvi
   files).  So simply not doing install-doc doesn't work.
-* osx_13318_13330.patch.patch: jdemeyer: upstream patch (svn revisions
-  13318 and 13330) to fix linking on certain older Mac OS X systems.
 * perl_path.patch: jdemeyer: change first line of all perl scripts
   to "#!/usr/bin/env perl" (#10559).  Note that this patch will always
   apply with fuzz 2 because of the svn Id.
@@ -48,12 +47,6 @@ C files:
   cause a dereference of the NULL pointer pariErr (#12158).
   Reported upstream at
   http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1264
-
-Upstream patches included (file name refers to the ticket in PARI's bug
-tracking system, see
-http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=NNNN
-where NNNN is the bug number):
-* currently no patches
 
 ======================================================================
 Files previously patched:
@@ -115,3 +108,5 @@ Files previously patched:
   These was needed so that Sage can catch PARI's error signals.
   Turns out this is totally not needed since we use err_catch()
   in devel/sage/sage/libs/pari/pari_err.h
+* osx_13318_13330.patch: fix linking on certain older Mac OS X systems.
+  Upstreamed in PARI 2.5.1.

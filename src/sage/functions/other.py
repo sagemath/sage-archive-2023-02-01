@@ -26,7 +26,6 @@ from sage.libs.mpmath import utils as mpmath_utils
 one_half = ~SR(2)
 
 class Function_erf(BuiltinFunction):
-    _eval_ = BuiltinFunction._eval_default
     def __init__(self):
         r"""
         The error function, defined for real values as
@@ -52,6 +51,13 @@ class Function_erf(BuiltinFunction):
             sage: erf(3*I).n()
             1.00000000000000 + 1629.86732385786*I
 
+        Sage simplifies erf(0) automatically::
+
+            sage: erf(0)
+            0
+            sage: solve(erf(x)==0,x)
+            [x == 0]
+
         TESTS:
 
         Test pickling::
@@ -66,6 +72,41 @@ class Function_erf(BuiltinFunction):
             True
         """
         BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}")
+
+    def _eval_(self, x):
+        """
+        EXAMPLES:
+
+        Input is not an expression but is exact::
+
+            sage: erf(0)
+            0
+            sage: erf(1)
+            erf(1)
+
+        Input is not an expression and is not exact::
+
+            sage: erf(0.0)
+            0.000000000000000
+
+        Input is an expression but not a trivial zero::
+
+            sage: erf(x)
+            erf(x)
+
+        Input is an expression which is trivially zero::
+
+            sage: erf(SR(0))
+            0
+        """
+        if not isinstance(x, Expression):
+            if is_inexact(x):
+                return self._evalf_(x, parent=parent(x))
+            elif x == Integer(0):
+                return Integer(0)
+        elif x.is_trivial_zero():
+            return x
+        return None
 
     def _evalf_(self, x, parent):
         """

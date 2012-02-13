@@ -696,6 +696,28 @@ cdef class Matrix_sparse(matrix.Matrix):
                    self._ncols, sparse=True)
         return M(v)
 
+    def density(self):
+        """
+        Return the density of the matrix.
+
+        By density we understand the ratio of the number of nonzero
+        positions and the self.nrows() \* self.ncols(), i.e. the number of
+        possible nonzero positions.
+
+        EXAMPLES::
+
+            sage: a = matrix([[],[],[],[]], sparse=True); a.density()
+            0
+            sage: a = matrix(5000,5000,{(1,2): 1}); a.density()
+            1/25000000
+        """
+        nr = self.nrows()
+        nc = self.ncols()
+        if nc == 0 or nr == 0:
+            return 0
+        from sage.rings.rational_field import QQ
+        d = QQ(len(self.nonzero_positions(copy=False))) / (nr*nc)
+        return d
 
     def matrix_from_rows_and_columns(self, rows, columns):
         """

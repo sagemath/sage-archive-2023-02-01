@@ -10,6 +10,9 @@ web, the most common applications of GD involve web site development.
 
 == Changelog ==
 
+=== gd-2.0.35.p7 (Jeroen Demeyer, 13 February 2012) ===
+ * Trac #12501: touch src/config.hin to prevent autoheader from running.
+
 === gd-2.0.35.p6 (Simon King, December 11th, 2011) ===
  * #12131: Use --libdir, to make the package work on openSUSE
 

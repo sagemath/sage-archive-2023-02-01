@@ -352,6 +352,13 @@ def doc_preparse(s):
             t.append(L)
 
         comment_modifiers.append(comment)
+        if has_tolerance:
+            # In this case, we added a line to the source code:
+            #      ">>> res = Exception"
+            # So we need to add 'comment' one more time to
+            # comment_modifiers so that the length of the list of
+            # lines agrees with the length of comment_modifiers.
+            comment_modifiers.append(comment)
 
     if has_tolerance:
         t.append(close_tolerance(c))

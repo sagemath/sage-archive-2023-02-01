@@ -32,6 +32,9 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.3.p1 (Jeroen Demeyer, 13 February 2012) ===
+ * Trac #12501: touch src/config.h.in to prevent autoheader from running.
+
 === pynac-0.2.3.p0 (Simon King, December 10, 2011) ===
  * #12131: Use --libdir, to make the package work on openSUSE.
 

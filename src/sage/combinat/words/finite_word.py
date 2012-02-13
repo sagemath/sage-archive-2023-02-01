@@ -5031,41 +5031,59 @@ exponent %s: the length of the word (%s) times the exponent \
         r"""
         Returns the standard factorization of self.
 
-        The *standard factorization* of a word `w` is the unique
-        factorization: `w = uv` where `v` is the longest proper suffix
-        of `w` that is a Lyndon word.
+        The *standard factorization* of a word `w` of length greater than 1 is
+        the unique factorization: `w = uv` where `v` is the longest proper
+        suffix of `w` that is a Lyndon word.
 
-        Note that if `w` is a Lyndon word with standard factorization
-        `w = uv`, then `u` and `v` are also Lyndon words and `u < v`.
+        Note that if `w` is a Lyndon word of length greater than 1 with
+        standard factorization `w = uv`, then `u` and `v` are also Lyndon words
+        and `u < v`.
 
-        See for instance [1] and [2].
+        See for instance [1], [2] and [3].
+
+        INPUT:
+
+        - ``self`` - finite word of length greater than 1
 
         OUTPUT:
 
-            list -- the list of factors
+            tuple -- tuple of two factors
 
         EXAMPLES::
 
             sage: Words('01')('0010110011').standard_factorization()
-            (001011, 0011)
+            (word: 001011, word: 0011)
             sage: Words('123')('1223312').standard_factorization()
-            (12233, 12)
+            (word: 12233, word: 12)
             sage: Word([3,2,1]).standard_factorization()
-            (32, 1)
-            sage: Words('123')('').standard_factorization()
-            ()
+            (word: 32, word: 1)
 
         ::
 
             sage: w = Word('0010110011',alphabet='01')
             sage: w.standard_factorization()
-            (001011, 0011)
+            (word: 001011, word: 0011)
             sage: w = Word('0010110011',alphabet='10')
             sage: w.standard_factorization()
-            (001011001, 1)
+            (word: 001011001, word: 1)
             sage: w = Word('1223312',alphabet='123')
             sage: w.standard_factorization()
-            (12233, 12)
+            (word: 12233, word: 12)
+
+        TESTS::
+
+            sage: w = Word()
+            sage: w.standard_factorization()
+            Traceback (most recent call last):
+            ...
+            ValueError: Standard factorization not defined on words of
+            length less than 2
+            sage: w = Word('a')
+            sage: w.standard_factorization()
+            Traceback (most recent call last):
+            ...
+            ValueError: Standard factorization not defined on words of
+            length less than 2
 
         REFERENCES:
 
@@ -5074,14 +5092,18 @@ exponent %s: the length of the word (%s) times the exponent \
             68 (1958) 81--95.
         -   [2] J.-P. Duval, Factorizing words over an ordered alphabet,
             J. Algorithms 4 (1983) 363--381.
+        -   [3] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
+            Encyclopedia of Mathematics and its Applications, Cambridge
+            University Press, U.K., 2002.
         """
-        if self.is_empty():
-            return Factorization([])
+        if self.length() < 2:
+            raise ValueError, ("Standard factorization not defined on"
+                               " words of length less than 2")
         for l in xrange(1, self.length()):
             suff = self[l:]
             if suff.is_lyndon():
-                return Factorization([self[:l], suff])
-        raise RuntimeError, 'Bug in standard factorization of words'
+                return self[:l], suff
+
 
     def standard_factorization_of_lyndon_factorization(self):
         r"""
@@ -5095,8 +5117,16 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Words('123')('1221131122').standard_factorization_of_lyndon_factorization()
-            [(12, 2), (1, 13), (1, 122)]
+            doctest:...: DeprecationWarning:
+            standard_factorization_of_lyndon_factorization(): is
+            deprecated and will be removed in later versions of sage.
+            [(word: 12, word: 2), (word: 1, word: 13), (word: 1, word: 122)]
+
         """
+        from sage.misc.misc import deprecation
+        deprecation("standard_factorization_of_lyndon_factorization(): is "
+                    "deprecated since March 2012 and will be removed in "
+                    "a later version of Sage.")
         return [x.standard_factorization() for x in self.lyndon_factorization()]
 
     def apply_permutation_to_positions(self, permutation):

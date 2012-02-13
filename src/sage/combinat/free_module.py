@@ -12,6 +12,7 @@ Free modules
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.structure.parent import Parent
+from sage.structure.sage_object import have_same_parent
 from sage.modules.free_module_element import vector
 from sage.misc.misc import repr_lincomb
 from sage.modules.module import Module
@@ -209,6 +210,87 @@ class CombinatorialFreeModuleElement(Element):
         else:
             return x
 
+    def __eq__(self, other):
+        """
+        EXAMPLES::
+
+            sage: F1 = CombinatorialFreeModule(QQ, [1, 2, 3])
+            sage: F2 = CombinatorialFreeModule(QQ, [1, 2, 3], prefix = "g")
+            sage: F1.zero() == F1.zero()
+            True
+            sage: F1.zero() == F1.an_element()
+            False
+            sage: F1.an_element() == F1.an_element()
+            True
+
+        Currently, if ``self`` and ``other`` do not have the same
+        parent, coercions are attempted::
+
+            sage: F1.zero() == 0
+            True
+            sage: F1.zero() == F2.zero()
+            False
+            sage: F1.an_element() == None
+            False
+
+            sage: F = AlgebrasWithBasis(QQ).example()
+            sage: F.one() == 1
+            True
+            sage: 1 == F.one()
+            True
+            sage: 2 * F.one() == int(2)
+            True
+            sage: int(2) == 2 * F.one()
+            True
+
+            sage: S = SymmetricFunctions(QQ); s = S.s(); p = S.p()
+            sage: p[2] == s[2] - s[1, 1]
+            True
+            sage: p[2] == s[2]
+            False
+
+        This feature is disputable, in particular since it can make
+        equality testing costly. It may be removed at some point.
+
+        Equality testing can be a bit tricky when the order of terms
+        can vary because their indices are incomparable with
+        ``cmp``. The following test did fail before :trac:`12489` ::
+
+            sage: F = CombinatorialFreeModule(QQ, Subsets([1,2,3]))
+            sage: x = F.an_element()
+            sage: (x+F.zero()).terms()  # random
+            [2*B[{1}], 3*B[{2}], B[{}]]
+            sage: x.terms()             # random
+            [2*B[{1}], B[{}], 3*B[{2}]]
+            sage: x+F.zero() == x
+            True
+
+        TESTS::
+
+            sage: TestSuite(F1).run()
+            sage: TestSuite(F).run()
+        """
+        if have_same_parent(self, other):
+            return self._monomial_coefficients == other._monomial_coefficients
+        from sage.structure.element import get_coercion_model
+        import operator
+        try:
+            return get_coercion_model().bin_op(self, other, operator.eq)
+        except TypeError:
+            return False
+
+    def __ne__(left, right):
+        """
+        EXAMPLES::
+
+            sage: F1 = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: F1.an_element() != F1.an_element()
+            False
+            sage: F1.an_element() != F1.zero()
+            True
+        """
+        return not left == right
+
     def __cmp__(left, right):
         """
         The ordering is the one on the underlying sorted list of
@@ -222,6 +304,8 @@ class CombinatorialFreeModuleElement(Element):
             sage: cmp(a,b) #indirect doctest
             1
         """
+        if have_same_parent(left, right) and left._monomial_coefficients == right._monomial_coefficients:
+            return 0
         nonzero = lambda mc: mc[1] != 0
         v = filter(nonzero, left._monomial_coefficients.items())
         v.sort()

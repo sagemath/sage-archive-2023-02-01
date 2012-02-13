@@ -19,6 +19,7 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.matrix.all import matrix
 import sage.combinat.partition
+from sage.combinat.dict_addition import dict_linear_combination
 import sfa, classical
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
@@ -28,9 +29,10 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         EXAMPLES::
 
-            sage: h = SFAElementary(QQ)
-            sage: f = h.dual_basis(prefix = "m")
-            sage: TestSuite(f).run()  # long time (11s on sage.math, 2011)
+            sage: e = SymmetricFunctions(QQ).e()
+            sage: f = e.dual_basis(prefix = "m")
+            sage: TestSuite(f).run(elements = [f[1,1]+2*f[2], f[1]+3*f[1,1]])
+            sage: TestSuite(f).run() # long time (11s on sage.math, 2011)
 
         This class defines canonical coercions between self and
         self^*, as follow:
@@ -54,6 +56,17 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             sage: S = s.dual_basis(zee_hl)
             sage: S(s([2,1]))
             (-t/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[1, 1, 1] + ((-t^2-1)/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[2, 1] + (-t/(t^5-2*t^4+t^3-t^2+2*t-1))*d_s[3]
+
+        TESTS:
+
+        Regression test for :trac:`12489`. This ticked improving
+        equality test revealed that the conversion back from the dual
+        basis did not strip cancelled terms from the dictionary::
+
+            sage: y = e[1, 1, 1, 1] - 2*e[2, 1, 1] + e[2, 2]
+            sage: sorted(f.element_class(f, dual = y))
+            [([1, 1, 1, 1], 6), ([2, 1, 1], 2), ([2, 2], 1)]
+
         """
         self._dual_basis = dual_basis
         self._scalar = scalar
@@ -407,11 +420,7 @@ class SymmetricFunctionAlgebra_dual_Element(classical.SymmetricFunctionAlgebra_c
 
             #Create the monomial coefficient dictionary from the
             #the monomial coefficient dictionary of dual
-            for d_part in d_mcs:
-                to_dictionary = to_self_cache[d_part]
-                for part in to_dictionary:
-                    dictionary[ part ] = dictionary.get(part, zero) + base_ring(d_mcs[d_part]*to_dictionary[part])
-
+            dictionary = dict_linear_combination( (to_self_cache[d_part], d_mcs[d_part]) for d_part in d_mcs)
 
         #Initialize self
         self._dual = dual

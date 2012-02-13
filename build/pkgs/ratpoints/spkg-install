@@ -21,8 +21,9 @@ else
     CCFLAGS1="$CCFLAGS_NO_SSE -DUSE_SSE"
 fi
 
-# Use -fnested-functions if supported
-CCFLAGS=`testcflags.sh -fnested-functions`
+# Copy CFLAGS set externally to CCFLAGS.
+# Prepend -fnested-functions if supported by the compiler.
+CCFLAGS="`testcflags.sh -fnested-functions` $CFLAGS"
 
 # When CFLAG64 is not set, set it to the default -m64
 if [ -z $CFLAG64 ]; then

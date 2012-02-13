@@ -261,7 +261,7 @@ def debug():
     command to start an interactive debugger.  Using %debug on the
     command line.
 
-    Using the debugger you can move and down the stack frame and
+    Using the debugger you can move up and down the stack frame and
     evaluate arbitrary code anywhere in the call stack.
 
     .. warning::

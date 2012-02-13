@@ -53,6 +53,11 @@ LGPL V2+
 
 == Changelog ==
 
+=== ecm-6.3.p4 (Jeroen Demeyer, 13 February 2012) ===
+ * #12501: Do not patch configure.in in spkg-install (to prevent
+   automake from running).
+ * Restore upstream sources.
+
 === ecm-6.3.p3 (Simon King, December 11th, 2011) ===
  * #12131: Use --libdir, to make the package work on openSUSE.
 

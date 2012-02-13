@@ -14,9 +14,13 @@ fi
 # - Fix compilation error on x86 CPUs supporting SSE2. (Sage trac #10252,
 #   upstream revision 1546)
 echo "Copying patched files..."
-cp -p patches/configure patches/configure.in src/
+# Note that we don't patch configure.in here, since it is only needed
+# to generate automatically-generated files in the source tree.
+# Patching configure.in forces automake to be run, which may cause
+# build failures on systems where autotools aren't installed.
+cp -p patches/configure src/
 if [ $? -ne 0 ]; then
-    echo "Error copying patched configure and configure.in."
+    echo "Error copying patched configure."
     exit 1
 fi
 

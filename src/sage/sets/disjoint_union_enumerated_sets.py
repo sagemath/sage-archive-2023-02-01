@@ -5,13 +5,14 @@ AUTHORS:
 
 - Florent Hivert (2009-07/09): initial implementation.
 - Florent Hivert (2010-03): classcall related stuff.
+- Florent Hivert (2010-12): fixed facade element construction.
 """
-#*****************************************************************************
+#****************************************************************************
 #  Copyright (C) 2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#****************************************************************************
 
 # from sage.structure.element import Element
 from sage.structure.parent import Parent
@@ -20,7 +21,7 @@ from sage.sets.family import Family
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.rings.infinity import Infinity
-from sage.misc.all import cached_method
+from sage.misc.all import cached_method, lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 
 class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
@@ -141,7 +142,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: el = it.next(); el
         [2, 1, 3]
         sage: type(el)
-        <class 'sage.sets.disjoint_union_enumerated_sets.DisjointUnionEnumeratedSets_with_category.element_class'>
+        <class 'sage.structure.element_wrapper.DisjointUnionEnumeratedSets_with_category.element_class'>
         sage: el.parent() == UNoFacade
         True
         sage: elv = el.value; elv
@@ -219,7 +220,8 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
     """
 
     @staticmethod
-    def __classcall_private__(cls, fam, facade=True, keepkey=False): # was *args, **options):
+    def __classcall_private__(cls, fam, facade=True,
+                              keepkey=False, category=None):
         """
         Normalization of arguments; see :class:`UniqueRepresentation`.
 
@@ -245,9 +247,11 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         assert(isinstance(facade,  bool))
         assert(isinstance(keepkey, bool))
         return super(DisjointUnionEnumeratedSets, cls).__classcall__(
-            cls, Family(fam), facade = facade, keepkey = keepkey)
+            cls, Family(fam),
+            facade = facade, keepkey = keepkey, category=category)
 
-    def __init__(self, family, facade=True, keepkey=False):
+
+    def __init__(self, family, facade=True, keepkey=False, category = None):
         """
         TESTS::
 
@@ -258,13 +262,17 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         self._family = family
         self._facade  = facade
         self._keepkey = keepkey
-        # try to guess if the result is infinite or not.
-        if self._family.cardinality() == Infinity:
-            Parent.__init__(self, category = InfiniteEnumeratedSets())
-        elif self._family.last().cardinality() == Infinity:
-            Parent.__init__(self, category = InfiniteEnumeratedSets())
-        else:
-            Parent.__init__(self, category = FiniteEnumeratedSets())
+        if self._is_category_initialized():
+            return
+        if category is None:
+            # try to guess if the result is infinite or not.
+            if self._family in InfiniteEnumeratedSets():
+                category = InfiniteEnumeratedSets()
+            elif self._family.last().cardinality() == Infinity:
+                category = InfiniteEnumeratedSets()
+            else:
+                category = FiniteEnumeratedSets()
+        Parent.__init__(self, category = category)
 
     def _repr_(self):
         """
@@ -337,43 +345,6 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
                 return True
             else:
                 return self._is_a(x)
-
-
-    def _element_constructor_(self, el):
-        r"""
-        TESTS::
-
-            sage: U = DisjointUnionEnumeratedSets(
-            ...           Family([1,2,3], Partitions), facade=False)
-            sage: U([1])       # indirect doctest
-            [1]
-            sage: U([2,1])     # indirect doctest
-            [2, 1]
-            sage: U([1,3,2])   # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: Value [1, 3, 2] does not belong to Disjoint union of Finite family {1: Partitions of the integer 1, 2: Partitions of the integer 2, 3: Partitions of the integer 3}
-
-            sage: U = DisjointUnionEnumeratedSets(
-            ...            Family([1,2,3], Partitions), keepkey=True, facade=False)
-            sage: U((1, [1]))    # indirect doctest
-            (1, [1])
-            sage: U((3,[2,1]))   # indirect doctest
-            (3, [2, 1])
-            sage: U((4,[2,1]))   # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: Value (4, [2, 1]) does not belong to Disjoint union of Finite family {1: Partitions of the integer 1, 2: Partitions of the integer 2, 3: Partitions of the integer 3}
-        """
-        if self._facade: # or maybe return the element silently
-            raise NotImplementedError, "The enumerated set %s is a facade. It can't build any element of is own."%(self)
-        if isinstance(el, self.element_class):
-            el = el.value
-        if self._is_a(el):
-            return self.element_class(el, parent=self)
-        else:
-            raise ValueError, "Value %s does not belong to %s"%(el, self)
-
 
     def __iter__(self):
         """
@@ -455,6 +426,77 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             return Infinity
         return sum(set.cardinality() for set in self._family)
 
+    @lazy_attribute
+    def _element_constructor_(self):
+        """
+        TESTS::
 
-    class Element(ElementWrapper):
-        pass
+            sage: U = DisjointUnionEnumeratedSets(
+            ...            Family([1,2,3], Partitions), facade=False)
+            sage: U._element_constructor_
+            <bound method DisjointUnionEnumeratedSets_with_category._element_constructor_default of Disjoint union of Finite family {1: Partitions of the integer 1, 2: Partitions of the integer 2, 3: Partitions of the integer 3}>
+            sage: U = DisjointUnionEnumeratedSets(
+            ...            Family([1,2,3], Partitions), facade=True)
+            sage: U._element_constructor_
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'DisjointUnionEnumeratedSets_with_category' object has no attribute '_element_constructor_'
+        """
+        if not self._facade:
+            return self._element_constructor_default
+        else:
+            return NotImplemented
+
+    def _element_constructor_default(self, el):
+        r"""
+        TESTS::
+
+            sage: U = DisjointUnionEnumeratedSets(
+            ...           Family([1,2,3], Partitions), facade=False)
+            sage: U([1])       # indirect doctest
+            [1]
+            sage: U([2,1])     # indirect doctest
+            [2, 1]
+            sage: U([1,3,2])   # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: Value [1, 3, 2] does not belong to Disjoint union of Finite family {1: Partitions of the integer 1, 2: Partitions of the integer 2, 3: Partitions of the integer 3}
+
+            sage: U = DisjointUnionEnumeratedSets(
+            ...            Family([1,2,3], Partitions), keepkey=True, facade=False)
+            sage: U((1, [1]))    # indirect doctest
+            (1, [1])
+            sage: U((3,[2,1]))   # indirect doctest
+            (3, [2, 1])
+            sage: U((4,[2,1]))   # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: Value (4, [2, 1]) does not belong to Disjoint union of Finite family {1: Partitions of the integer 1, 2: Partitions of the integer 2, 3: Partitions of the integer 3}
+        """
+        if isinstance(el, self.element_class):
+            el = el.value
+        if self._is_a(el):
+            return self.element_class(el, parent=self)
+        else:
+            raise ValueError, "Value %s does not belong to %s"%(el, self)
+
+    @lazy_attribute
+    def Element(self):
+        """
+        TESTS::
+
+            sage: U = DisjointUnionEnumeratedSets(
+            ...            Family([1,2,3], Partitions), facade=False)
+            sage: U.Element
+            <class 'sage.structure.element_wrapper.ElementWrapper'>
+            sage: U = DisjointUnionEnumeratedSets(
+            ...            Family([1,2,3], Partitions), facade=True)
+            sage: U.Element
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'DisjointUnionEnumeratedSets_with_category' object has no attribute 'Element'
+        """
+        if not self._facade:
+            return ElementWrapper
+        else:
+            return NotImplemented

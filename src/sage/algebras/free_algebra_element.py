@@ -92,17 +92,12 @@ class FreeAlgebraElement(AlgebraElement):
         """
         v = self.__monomial_coefficients.items()
         v.sort()
-        mons = [ m for (m, _) in v ]
-        cffs = [ x for (_, x) in v ]
         P = self.parent()
         M = P.monoid()
         from sage.structure.parent_gens import localvars
         with localvars(M, P.variable_names(), normalize=False):
-            x = repr_lincomb(mons, cffs).replace("*1 "," ")
-        if x[len(x)-2:] == "*1":
-            return x[:len(x)-2]
-        else:
-            return x
+            x = repr_lincomb(v, strip_one=True)
+        return x
 
     def _latex_(self):
         r"""
@@ -119,10 +114,7 @@ class FreeAlgebraElement(AlgebraElement):
         """
         v = self.__monomial_coefficients.items()
         v.sort()
-        mons = [ m for (m, _) in v ]
-        cffs = [ x for (_, x) in v ]
-        x = repr_lincomb(mons, cffs,is_latex=True)
-        return x
+        return repr_lincomb(v, strip_one=True, is_latex=True)
 
     def __call__(self, *x, **kwds):
         """

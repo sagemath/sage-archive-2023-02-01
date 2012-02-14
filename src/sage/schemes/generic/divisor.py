@@ -186,12 +186,8 @@ class Divisor_generic(FormalSum):
         # straight - as the test above demonstrates, it results in the first
         # generator being in front of the second one
         terms.sort(key=lambda x: x[1], reverse=True)
-        coefficients = []
-        varieties = []
-        for c, v in terms:
-            coefficients.append(c)
-            varieties.append(r"\mathrm{V}\left(%s\right)" % latex(v))
-        return repr_lincomb(varieties, coefficients, is_latex=True)
+        return repr_lincomb([(r"\mathrm{V}\left(%s\right)" % latex(v), c) for c,v in terms],
+                            is_latex=True)
 
     def _repr_(self):
         r"""
@@ -219,12 +215,7 @@ class Divisor_generic(FormalSum):
         # straight - as the test above demonstrates, it results in the first
         # generator being in front of the second one
         terms.sort(key=lambda x: x[1], reverse=True)
-        coefficients = []
-        varieties = []
-        for c, v in terms:
-            coefficients.append(c)
-            varieties.append("V(%s)" % v)
-        return repr_lincomb(varieties, coefficients, is_latex=False)
+        return repr_lincomb([("V(%s)" % v, c) for c,v in terms])
 
     def scheme(self):
         """
@@ -372,10 +363,7 @@ class Divisor_curve(Divisor_generic):
             sage: E.divisor( E(0,0) )._repr_()
             '(x, y)'
         """
-        ideals = [ z[1] for z in self ]
-        coeffs = [ z[0] for z in self ]
-        polys = [ tuple(I.gens()) for I in ideals ]
-        return repr_lincomb(polys, coeffs)
+        return repr_lincomb([(tuple(I.gens()), c) for c, I in self])
 
     def support(self):
         """

@@ -132,11 +132,7 @@ class FreeAlgebraQuotientElement(AlgebraElement):
         with localvars(M, Q.variable_names()):
             cffs = list(self.__vector)
             mons = Q.monomial_basis()
-            x = repr_lincomb(mons, cffs).replace("*1 "," ")
-            if x[len(x)-2:] == "*1":
-                return x[:len(x)-2]
-            else:
-                return x
+            return repr_lincomb(zip(mons, cffs), strip_one=True)
 
     def _latex_(self):
         """
@@ -149,13 +145,9 @@ class FreeAlgebraQuotientElement(AlgebraElement):
         Q = self.parent()
         M = Q.monoid()
         with localvars(M, Q.variable_names()):
-            cffs = list(self.__vector)
+            cffs = tuple(self.__vector)
             mons = Q.monomial_basis()
-            x = repr_lincomb(mons, cffs, True).replace("*1 "," ")
-            if x[len(x)-2:] == "*1":
-                return x[:len(x)-2]
-            else:
-                return x
+            return repr_lincomb(zip(mons, cffs), is_latex=True, strip_one=True)
 
     def vector(self):
         """

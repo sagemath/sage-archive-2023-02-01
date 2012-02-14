@@ -352,9 +352,7 @@ class FormalSum(ModuleElement):
             sage: a._repr_()    # random
             '2/3 - 3*4/5 + 7*2'
         """
-        symbols = [z[1] for z in self]
-        coeffs= [z[0] for z in self]
-        return sage.misc.misc.repr_lincomb(symbols, coeffs)
+        return sage.misc.misc.repr_lincomb([t,c] for c,t in self)
 
     def _latex_(self):
         """
@@ -366,6 +364,9 @@ class FormalSum(ModuleElement):
         symbols = [z[1] for z in self]
         coeffs= [z[0] for z in self]
         return sage.misc.latex.repr_lincomb(symbols, coeffs)
+        # TODO: finish merging sage.misc.latex.repr_lincomb and
+        # sage.misc.misc.repr_lincomb and use instead:
+        # return sage.misc.misc.repr_lincomb([[t,c] for c,t in self], is_latex=True)
 
     def __cmp__(left, right):
         """

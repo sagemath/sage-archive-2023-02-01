@@ -184,10 +184,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
             '-6*[0]'
         """
         g = self.parent()._known_gens_repr
-        z = [0 for _ in xrange(len(g))]
-        for i, c in self.__x.items():
-            z[i] = c
-        return repr_lincomb(g, z)
+        return repr_lincomb([ (g[i], c) for i,c in self.__x.items() ])
 
     # can't inherit arithmetic operations from HeckeModule, because basis
     # dimension might change!

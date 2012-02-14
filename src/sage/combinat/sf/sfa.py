@@ -389,7 +389,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if prefix is not None:
             self._prefix = prefix
         CombinatorialFreeModule.__init__(self, R, sage.combinat.partition.Partitions(),
-                                         category = (GradedHopfAlgebrasWithBasis(R), CommutativeRings()))
+                                         category = (GradedHopfAlgebrasWithBasis(R), CommutativeRings()),
+                                         bracket="", prefix = prefix)
 
     @cached_method
     def one_basis(self):
@@ -1158,62 +1159,30 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             'length'
             sage: s.set_print_style('lex')
         """
-        styles = ['lex', 'length', 'maximal_part']
-        if ps not in styles:
-            raise ValueError, "the print style must be one of ", styles
+        if ps == 'lex':
+            self.print_options(monomial_cmp = lambda x,y: cmp(x,y))
+        elif ps == 'length':
+            self.print_options(monomial_cmp = lambda x,y: cmp(len(x), len(y)))
+        elif ps == 'maximal_part':
+            self.print_options(monomial_cmp= lambda x,y: cmp(_lmax(x), _lmax(y)))
+        else:
+            raise ValueError, "the print style must be one of lex,length, or maximal_part "
         self._print_style = ps
 
-
-
-class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
-    def __repr__(self):
+    def _latex_term(self, m):
         """
+        Latex terms (i.e. partitions) as plain lists
+
+        (and not as ferrers diagrams)
+
         EXAMPLES::
 
             sage: m = SFAMonomial(QQ)
+            sage: m._latex_term(Partition([3,2,1]))
+            'm_{3,2,1}'
             sage: f = sum([m(p) for p in Partitions(3)])
-            sage: m.get_print_style()
-            'lex'
-            sage: f
-            m[1, 1, 1] + m[2, 1] + m[3]
-            sage: m.set_print_style('length')
-            sage: f
-            m[3] + m[2, 1] + m[1, 1, 1]
-            sage: m.set_print_style('maximal_part')
-            sage: f
-            m[1, 1, 1] + m[2, 1] + m[3]
             sage: m.set_print_style('lex')
-        """
-        v = self._monomial_coefficients.items()
-
-        ps = self.parent().get_print_style()
-        if ps == 'lex':
-            v.sort(key=lambda x: x[0])
-        if ps == 'length':
-            v.sort(key=lambda x: len(x[0]))
-        if ps == 'maximal_part':
-             v.sort(key=_lmax)
-
-        prefix = self.parent().prefix()
-        mons = [ prefix + repr(m) for (m, _) in v ]
-        cffs = [ x for (_, x) in v ]
-        x = repr_lincomb(mons, cffs).replace("*1 "," ")
-        if x[len(x)-2:] == "*1":
-            return x[:len(x)-2]
-        else:
-            return x
-
-    def _latex_(self):
-        """
-        Returns a string representing the LaTeX version of self.
-
-        EXAMPLES::
-
-            sage: m = SFAMonomial(QQ)
-            sage: f = sum([m(p) for p in Partitions(3)])
-            sage: m.get_print_style()
-            'lex'
-            sage: latex(f) #indirect doctest
+            sage: latex(f)
             m_{1,1,1} + m_{2,1} + m_{3}
             sage: m.set_print_style('length')
             sage: latex(f)
@@ -1222,24 +1191,25 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: latex(f)
             m_{1,1,1} + m_{2,1} + m_{3}
         """
-        v = self._monomial_coefficients.items()
+        return super(SymmetricFunctionAlgebra_generic, self)._latex_term(','.join(str(i) for i in m))
 
-        ps = self.parent().get_print_style()
-        if ps == 'lex':
-            v.sort(key=lambda x: x[0])
-        if ps == 'length':
-            v.sort(key=lambda x: len(x[0]))
-        if ps == 'maximal_part':
-            v.sort(key=_lmax)
+class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
+    """
+    TESTS::
 
-        prefix = self.parent().prefix()
-        mons = [ prefix + '_{' + ",".join(map(str, m)) + '}' for (m, _) in v ]
-        cffs = [ x for (_, x) in v ]
-        x = repr_lincomb(mons, cffs, is_latex=True).replace("*1 "," ")
-        if x[len(x)-2:] == "*1":
-            return x[:len(x)-2]
-        else:
-            return x
+        sage: m = SFAMonomial(QQ)
+        sage: f = sum([m(p) for p in Partitions(3)])
+        sage: m.set_print_style('lex')
+        sage: f
+        m[1, 1, 1] + m[2, 1] + m[3]
+        sage: m.set_print_style('length')
+        sage: f
+        m[3] + m[2, 1] + m[1, 1, 1]
+        sage: m.set_print_style('maximal_part')
+        sage: f
+        m[1, 1, 1] + m[2, 1] + m[3]
+        sage: m.set_print_style('lex')
+    """
 
     def plethysm(self, x, include=None, exclude=None):
         """
@@ -1801,7 +1771,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: z.restrict_parts(1)
             s[1] + s[1, 1, 1]
         """
-        res = dict( filter( lambda x: _lmax(x) <= n, self._monomial_coefficients.items()) )
+        res = dict( filter( lambda x: _lmax(x[0]) <= n, self._monomial_coefficients.items()) )
         return self.parent()._from_dict(res)
 
     def expand(self, n, alphabet='x'):
@@ -1909,25 +1879,25 @@ cache_p = powersum.SymmetricFunctionAlgebra_power
 cache_e = elementary.SymmetricFunctionAlgebra_elementary
 cache_h = homogeneous.SymmetricFunctionAlgebra_homogeneous
 
-
 ###################
 def _lmax(x):
     """
-    Returns the max of x[0] where x is a list. If x is the empty list,
+    Returns the max of x where x is a list. If x is the empty list,
     the _lmax returns 0.
 
     EXAMPLES::
 
         sage: from sage.combinat.sf.sfa import _lmax
-        sage: _lmax(([3,2,1], 2))
+        sage: _lmax([3,2,1])
         3
-        sage: _lmax(([],4))
+        sage: _lmax([])
         0
     """
-    if x[0] == []:
+    if x == []:
         return 0
     else:
-        return max(x[0])
+        return max(x)
+
 
 def _nonnegative_coefficients(x):
     """

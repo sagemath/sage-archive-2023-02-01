@@ -2109,13 +2109,12 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
     def _repr_(self):
         x = PolynomialRing(QQ, 'x').gen(0)
         coeffs = self._f.list()
-        return repr_lincomb([x**i for i in range(len(coeffs))], coeffs)
+        return repr_lincomb([(x**i, coeffs[i]) for i in range(len(coeffs))])
 
     def _latex_(self):
         x = PolynomialRing(QQ, 'x').gen(0)
         coeffs = self._f.list()
-        return repr_lincomb([x**i for i in range(len(coeffs))], coeffs, is_latex=True)
-
+        return repr_lincomb([(x**i, coeffs[i]) for i in range(len(coeffs))], is_latex=True)
 
     def diff(self):
 

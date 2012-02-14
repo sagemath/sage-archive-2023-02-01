@@ -160,9 +160,7 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             m = self.manin_symbol_rep()
         elif _print_mode == "modular":
             m = self.modular_symbol_rep()
-        c = [x[0] for x in m]
-        v = [x[1] for x in m]
-        return misc.repr_lincomb(v, c)
+        return misc.repr_lincomb([(t,c) for c,t in m])
 
     def _latex_(self):
         r"""
@@ -190,6 +188,7 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             m = self.modular_symbol_rep()
         c = [x[0] for x in m]
         v = [x[1] for x in m]
+        # TODO: use repr_lincomb with is_latex=True
         return latex.repr_lincomb(v, c)
 
     def _add_(self, right):

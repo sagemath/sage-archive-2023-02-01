@@ -509,14 +509,13 @@ class LazyPowerSeries(AlgebraElement):
             sage: a = L([1,2,3])
             sage: a.compute_coefficients(5)
             sage: a._get_repr_info('x')
-            (['1', 'x', 'x^2'], [1, 2, 3])
+            [('1', 1), ('x', 2), ('x^2', 3)]
         """
         n = len(self._stream)
         m = ['1', x]
         m += [x+"^"+str(i) for i in range(2, n)]
         c = [ self._stream[i] for i in range(n) ]
-        mc = [ (m,c) for m,c in zip(m,c) if c != 0]
-        return [m for m,c in mc], [c for m,c in mc]
+        return [ (m,c) for m,c in zip(m,c) if c != 0]
 
     def __repr__(self):
         """
@@ -556,13 +555,12 @@ class LazyPowerSeries(AlgebraElement):
         if self.is_initialized:
             n = len(self._stream)
             x = self.parent()._name
-            m, c = self._get_repr_info(x)
-            baserepr = repr_lincomb(m, c)
+            baserepr = repr_lincomb(self._get_repr_info(x))
             if self._stream.is_constant():
                 if self._stream[n-1] == 0:
                     l = baserepr
                 else:
-                    l = baserepr + " + " + repr_lincomb([x+"^"+str(i) for i in range(n, n+3)], [self._stream[n-1]]*3) + " + ..."
+                    l = baserepr + " + " + repr_lincomb([(x+"^"+str(i), self._stream[n-1]) for i in range(n, n+3)]) + " + ..."
             else:
                 l = baserepr + " + O(x^%s)"%n if n > 0 else "O(1)"
         else:

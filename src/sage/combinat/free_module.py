@@ -110,6 +110,14 @@ class CombinatorialFreeModuleElement(Element):
             sage: d['c']
             3
 
+        To run through the monomials of an element, it is better to
+        use the idiom::
+
+            sage: for (t,c) in f:
+            ...       print t,c
+            a 1
+            c 3
+
         ::
 
             sage: s = SFASchur(QQ)
@@ -123,6 +131,32 @@ class CombinatorialFreeModuleElement(Element):
             2
         """
         return self._monomial_coefficients
+
+    def _sorted_items_for_printing(self):
+        """
+        Returns the items (i.e terms) of ``self``, sorted for printing
+
+        EXAMPLES::
+
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] + 2*B['c'] + 3 * B['b']
+            sage: f._sorted_items_for_printing()
+            [('a', 1), ('b', 3), ('c', 2)]
+            sage: F.print_options(monomial_cmp = lambda x,y: -cmp(x,y))
+            sage: f._sorted_items_for_printing()
+            [('c', 2), ('b', 3), ('a', 1)]
+
+        .. seealso:: :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
+        """
+        print_options = self.parent().print_options()
+        v = self._monomial_coefficients.items()
+        try:
+            v.sort(cmp = print_options['monomial_cmp'],
+                   key = lambda (monomial,coeff): monomial)
+        except StandardError: # Sorting the output is a plus, but if we can't, no big deal
+            pass
+        return v
 
     def _repr_(self):
         """
@@ -140,23 +174,26 @@ class CombinatorialFreeModuleElement(Element):
             sage: e = F.basis()
             sage: e['a'] + 2*e['b'] # indirect doctest
             'a' + 2 'b'
+
+        Controling the order of terms by providing a comparison
+        function on elements of the support::
+
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'],
+            ...                               monomial_cmp = lambda x,y: cmp(y,x))
+            sage: e = F.basis()
+            sage: e['a'] + 3*e['b'] + 2*e['c']
+            2*B['c'] + 3*B['b'] + B['a']
+
+            sage: F = CombinatorialFreeModule(QQ, ['ac', 'ba', 'cb'],
+            ...                               monomial_cmp = lambda x,y: cmp(x[1],y[1]))
+            sage: e = F.basis()
+            sage: e['ac'] + 3*e['ba'] + 2*e['cb']
+            3*B['ba'] + 2*B['cb'] + B['ac']
         """
-        v = self._monomial_coefficients.items()
-        try:
-            v.sort()
-        except StandardError: # Sorting the output is a plus, but if we can't, no big deal
-            pass
-        repr_term = self.parent()._repr_term
-        v = [ (repr_term(m),x) for (m, x) in v ]
-        if v:
-            mons, cffs = zip(*v)
-        else:
-            mons = cffs = []
-        ast = self.parent()._print_options.get('scalar_mult', "*")
-        x = repr_lincomb(mons, cffs,scalar_mult=ast).replace("%s1 "%ast," ")
-        if x[len(x)-2:] == "%s1"%ast:
-            x = x[:len(x)-2]
-        return x
+        return repr_lincomb(self._sorted_items_for_printing(),
+                            scalar_mult=self.parent()._print_options['scalar_mult'],
+                            repr_monomial = self.parent()._repr_term,
+                            strip_one = True)
 
     def _latex_(self):
         """
@@ -183,32 +220,27 @@ class CombinatorialFreeModuleElement(Element):
             2*beta['a'] + 2*beta['b']
             sage: latex(x)
             2\beta_{a} + 2\beta_{b}
-        """
-        v = self._monomial_coefficients.items()
-        try:
-            v.sort()
-        except StandardError: # Sorting the output is a plus, but if we can't, no big deal
-            pass
 
-        alg = self.parent()
-        latex_term = alg._latex_term
-        v = [ (latex_term(m), x) for (m, x) in v ]
-        if v:
-            mons, cffs = zip(*v)
-        else:
-            mons = cffs = []
-        ast = alg._print_options.get('latex_scalar_mult')
-        if ast is None:
-            ast = alg._print_options.get('scalar_mult')
-            if ast == '*':
-                ast = ''
-        ast_replace = ast if ast else ''
-        ln = len(ast_replace)
-        x = repr_lincomb(mons, cffs, is_latex=True, latex_scalar_mult=ast)
-        if ln>0 and x[len(x)-ln-1:] == ast_replace+"1":
-            return x[:len(x)-ln-1]
-        else:
-            return x
+        Controling the order of terms by providing a comparison
+        function on elements of the support::
+
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'],
+            ...                               monomial_cmp = lambda x,y: cmp(y,x))
+            sage: e = F.basis()
+            sage: latex(e['a'] + 3*e['b'] + 2*e['c'])
+            2B_{c} + 3B_{b} + B_{a}
+
+            sage: F = CombinatorialFreeModule(QQ, ['ac', 'ba', 'cb'],
+            ...                               monomial_cmp = lambda x,y: cmp(x[1],y[1]))
+            sage: e = F.basis()
+            sage: latex(e['ac'] + 3*e['ba'] + 2*e['cb'])
+            3B_{ba} + 2B_{cb} + B_{ac}
+        """
+        return repr_lincomb(self._sorted_items_for_printing(),
+                            scalar_mult       = self.parent()._print_options['scalar_mult'],
+                            latex_scalar_mult = self.parent()._print_options['latex_scalar_mult'],
+                            repr_monomial = self.parent()._latex_term,
+                            is_latex=True, strip_one = True)
 
     def __eq__(self, other):
         """
@@ -576,6 +608,10 @@ class CombinatorialFreeModuleElement(Element):
 
     def terms(self):
         """
+        Returns a list of the terms of ``self``
+
+        .. seealso:: :meth:`monomials`
+
         EXAMPLES::
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
@@ -593,7 +629,7 @@ class CombinatorialFreeModuleElement(Element):
 
     def coefficients(self):
         """
-        Returns a list of the coefficients appearing on the basiselements in
+        Returns a list of the coefficients appearing on the basis elements in
         self.
 
         EXAMPLES::
@@ -886,8 +922,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
       string to use for tensor product in the print representation. If
       None, use the ``sage.categories.tensor.symbol``.
 
-    These print options may also be accessed and modified using the
-    :meth:`print_options` method, after the module has been defined.
+    - ``monomial_cmp`` - a comparison function (optional, default cmp),
+      to use for sorting elements in the output of elements
+
+    .. note:: These print options may also be accessed and modified using the
+       :meth:`print_options` method, after the module has been defined.
 
     EXAMPLES:
 
@@ -997,6 +1036,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         sage: latex(e['a'] - 3 * e['b'])
         y_{a} + \left(-3\right) y_{b}
 
+        sage: F.print_options(monomial_cmp = lambda x,y: -cmp(x,y))
+        sage: e['a'] - 3 * e['b']
+        -3 x{'b'} + x{'a'}
+
         sage: F = CombinatorialFreeModule(QQ, [(1,2), (3,4)])
         sage: e = F.basis()
         sage: e[(1,2)] - 3 * e[(3,4)]
@@ -1009,6 +1052,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         sage: F.print_options(prefix='', bracket=False)
         sage: e[(1,2)] - 3 * e[(3,4)]
         (1, 2) - 3*(3, 4)
+
     """
 
     @staticmethod
@@ -1058,7 +1102,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
 
     Element = CombinatorialFreeModuleElement
 
-    def __init__(self, R, basis_keys, element_class = None, prefix="B", category = None, **kwds):
+    def __init__(self, R, basis_keys, element_class = None, category = None, **kwds):
         r"""
         TESTS::
 
@@ -1099,6 +1143,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             MyAlgebra on Integer Ring
 
         A simpler example would be welcome!
+
+        We check that unknown options are caught::
+
+            sage: CombinatorialFreeModule(ZZ, [1,2,3], keyy=2)
+            Traceback (most recent call last):
+            ...
+            ValueError: keyy is not a valid print option.
         """
         #Make sure R is a ring with unit element
         from sage.categories.all import Rings
@@ -1130,8 +1181,14 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         # This includes self._repr_option_bracket (kept for backwards
         # compatibility, declared to be True by default, needs to be
         # overridden explicitly).
-        self._print_options = {}
-        self._print_options['prefix'] = prefix
+        self._print_options = {'prefix': "B",
+                               'bracket': None,
+                               'latex_bracket': False,
+                               'latex_prefix': None,
+                               'scalar_mult': "*",
+                               'latex_scalar_mult': None,
+                               'tensor_symbol': None,
+                               'monomial_cmp': cmp}
         # 'bracket': its default value here is None, meaning that
         # the value of self._repr_option_bracket is used; the default
         # value of that attribute is True -- see immediately before
@@ -1139,12 +1196,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         # except None, then it overrides the value of
         # self._repr_option_bracket.  Future users might consider
         # using 'bracket' instead of _repr_option_bracket.
-        self._print_options['bracket'] = kwds.get('bracket', None)
-        self._print_options['latex_bracket'] = kwds.get('latex_bracket', False)
-        self._print_options['latex_prefix'] = kwds.get('latex_prefix', None)
-        self._print_options['scalar_mult'] = kwds.get('scalar_mult', "*")
-        self._print_options['latex_scalar_mult'] = kwds.get('latex_scalar_mult', None)
-        self._print_options['tensor_symbol'] = kwds.get('tensor_symbol', None)
+
+        # ignore the optional 'key' since it only affects UniqueRepresentation
+        kwds.pop('key', None)
+        self.print_options(**kwds)
 
     # mostly for backward compatibility
     @lazy_attribute
@@ -1519,6 +1574,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         - ``scalar_mult``
         - ``latex_scalar_mult``
         - ``tensor_symbol``
+        - ``monomial_cmp``
 
         See the documentation for :class:`CombinatorialFreeModule` for
         descriptions of the effects of setting each of these options.
@@ -1531,26 +1587,31 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
 
             sage: F = CombinatorialFreeModule(ZZ, [1,2,3], prefix='x')
             sage: F.print_options()
-            {'latex_prefix': None, 'scalar_mult': '*', 'prefix': 'x', 'bracket': None, 'latex_bracket': False, 'latex_scalar_mult': None, 'tensor_symbol': None}
+            {...'prefix': 'x'...}
             sage: F.print_options(bracket='(')
             sage: F.print_options()
-            {'latex_prefix': None, 'scalar_mult': '*', 'prefix': 'x', 'bracket': '(', 'latex_bracket': False, 'latex_scalar_mult': None, 'tensor_symbol': None}
+            {...'bracket': '('...}
+
+        TESTS::
+
+            sage: sorted(F.print_options().items())
+            [('bracket', '('), ('latex_bracket', False), ('latex_prefix', None), ('latex_scalar_mult', None), ('monomial_cmp', <built-in function cmp>), ('prefix', 'x'), ('scalar_mult', '*'), ('tensor_symbol', None)]
+
         """
         # don't just use kwds.get(...) because I want to distinguish
         # between an argument like "option=None" and the option not
         # being there altogether.
-        args = False
-
-        for option in kwds:
-            if option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
-                          'scalar_mult', 'latex_scalar_mult', 'tensor_symbol']:
-                args = True
-                self._print_options[option] = kwds[option]
-            else:
-                raise ValueError, '%s is not a valid print option.' % option
-        if not args:
+        if kwds:
+            for option in kwds:
+                if option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
+                              'scalar_mult', 'latex_scalar_mult', 'tensor_symbol',
+                              'monomial_cmp'
+                             ]:
+                    self._print_options[option] = kwds[option]
+                else:
+                    raise ValueError, '%s is not a valid print option.' % option
+        else:
             return self._print_options
-        return
 
     _repr_option_bracket = True
 
@@ -1574,6 +1635,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
 
         See the documentation for :class:`CombinatorialFreeModule` for
         details on the initialization options.
+
+        .. todo:: rename to ``_repr_monomial``
 
         EXAMPLES::
 
@@ -1649,6 +1712,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
 
         See the documentation for :class:`CombinatorialFreeModule` for
         details on the initialization options.
+
+        .. todo:: rename to ``_latex_monomial``
 
         EXAMPLES::
 
@@ -1816,16 +1881,18 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         """
         return self.linear_combination( ( on_basis( key ), coeff ) for key, coeff in x._monomial_coefficients.iteritems() )
 
-    def sum( self, iter_of_elements ):
+    def sum(self, iter_of_elements):
         """
         overrides method inherited from commutative additive monoid as it is much faster on dicts directly
 
         INPUT:
-         - iter_of_elements: iterator of elements of self
 
-        Returns the sum of all elements in iter_of_elements
+        - ``iter_of_elements``: iterator of elements of ``self``
+
+        Returns the sum of all elements in ``iter_of_elements``
 
         EXAMPLES::
+
             sage: F = CombinatorialFreeModule(QQ,[1,2])
             sage: f = F.an_element(); f
             2*B[1] + 2*B[2]
@@ -1839,16 +1906,21 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
     def linear_combination( self, iter_of_elements_coeff, factor_on_left=True ):
         """
         INPUT:
-         - iter_of_elements_coeff   -- iterator of pairs ( element, coeff ) with element in self and coeff in self.base_ring()
-         - factor_on_left (optional)- if True, the coefficients are multiplied from the left
-                                      if False, the coefficients are multiplied from the right
 
-        Returns the linear combination lambda_1 v_1 + ... + lambda_k v_k resp.
-                the linear combination v_1 lambda_1 + ... + v_k lambda_k where
-                list_of_elements = [ v_1, ..., v_k ]
-                list_of_coefficients = [ lambda_1, ..., lambda_k ]
+        - ``iter_of_elements_coeff`` -- iterator of pairs ``(element, coeff)``
+          with ``element`` in ``self`` and ``coeff`` in ``self.base_ring()``
+
+        - ``factor_on_left`` (optional) -- if ``True``, the coefficients are
+          multiplied from the left if ``False``, the coefficients are
+          multiplied from the right
+
+        Returns the linear combination `\lambda_1 v_1 + ... + \lambda_k v_k`
+        (resp.  the linear combination `v_1 \lambda_1 + ... + v_k \lambda_k`)
+        where ``iter_of_elements_coeff`` iterates through the sequence
+        `(\lambda_1, v_1) ... (\lambda_k, v_k)`.
 
         EXAMPLES::
+
             sage: F = CombinatorialFreeModule(QQ,[1,2])
             sage: f = F.an_element(); f
             2*B[1] + 2*B[2]

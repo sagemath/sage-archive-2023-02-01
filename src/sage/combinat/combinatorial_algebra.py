@@ -139,13 +139,7 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
         v = self._monomial_coefficients.items()
         v.sort()
         prefix = self.parent().prefix()
-        mons = [ prefix + repr(m) for (m, _) in v ]
-        cffs = [ x for (_, x) in v ]
-        x = repr_lincomb(mons, cffs).replace("*1 "," ")
-        if x[len(x)-2:] == "*1":
-            return x[:len(x)-2]
-        else:
-            return x
+        retur = repr_lincomb( [(prefix + repr(m), c) for m,c in v ], strip_one = True)
 
 class CombinatorialAlgebra(CombinatorialFreeModule):
     """

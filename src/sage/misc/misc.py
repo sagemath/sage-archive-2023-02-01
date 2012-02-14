@@ -688,94 +688,114 @@ def coeff_repr(c, is_latex=False):
             return "(%s)"%s
     return s
 
-def repr_lincomb(symbols, coeffs, is_latex=False, scalar_mult='*', latex_scalar_mult=None):
+def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_one=False, repr_monomial = None, latex_scalar_mult = None):
     """
     Compute a string representation of a linear combination of some
     formal symbols.
 
     INPUT:
 
-    - ``symbols`` -- list of symbols
-    - ``coeffs`` -- list of coefficients of the symbols
-    - ``scalar_mult`` -- (default:'*') string representing the multiplication
-    - ``latex_scalar_mult`` -- (default:None) None or a string representing
-      the multiplication in latex
-
-        - if None and ``scalar_mult`` is '*', the empty string '' is used
-        - if None and ``scalar_mult`` is not '*', ``scalar_mult`` is used
-        - otherwise: ``latex_scalar_mult`` is used
+    - ``terms`` -- list of terms, as pairs (support, coefficient)
+    - ``is_latex`` -- whether to produce latex (default: ``False``)
+    - ``scalar_mult`` -- string representing the multiplication (default:``'*'``)
+    - ``latex_scalar_mult`` -- latex string representing the multiplication
+      (default: ``''`` if ``scalar_mult`` is ``'*'``; otherwise ``scalar_mult``)
+    - ``coeffs`` -- for backward compatibility
 
     OUTPUT:
 
     -  ``str`` - a string
 
-    EXAMPLES:
+    EXAMPLES::
 
-    - examples without scalar_mult or latex_scalar_mult::
-
-        sage: repr_lincomb(['a','b','c'], [1,2,3])
+        sage: repr_lincomb([('a',1), ('b',2), ('c',3)])
         'a + 2*b + 3*c'
-        sage: repr_lincomb(['a','b','c'], [1,'2+3*x',3])
+        sage: repr_lincomb([('a',1), ('b','2+3*x'), ('c',3)])
         'a + (2+3*x)*b + 3*c'
-        sage: repr_lincomb(['a','b','c'], ['1+x^2','2+3*x',3])
+        sage: repr_lincomb([('a', '1+x^2'), ('b', '2+3*x'), ('c', 3)])
         '(1+x^2)*a + (2+3*x)*b + 3*c'
-        sage: repr_lincomb(['a','b','c'], ['1+x^2','-2+3*x',3])
+        sage: repr_lincomb([('a', '1+x^2'), ('b', '-2+3*x'), ('c', 3)])
         '(1+x^2)*a + (-2+3*x)*b + 3*c'
-        sage: repr_lincomb(['a','b','c'], [1,-2,-3])
+        sage: repr_lincomb([('a', 1), ('b', -2), ('c', -3)])
         'a - 2*b - 3*c'
         sage: t = PolynomialRing(RationalField(),'t').gen()
-        sage: repr_lincomb(['a', 's', ''], [-t,t-2,t**2+2])
+        sage: repr_lincomb([('a', -t), ('s', t - 2), ('', t^2 + 2)])
         '-t*a + (t-2)*s + (t^2+2)'
 
-    - example for scalar_mult::
+    Examples for ``scalar_mult``::
 
-        sage: repr_lincomb(['a','b','c'], [1,2,3], scalar_mult='**')
+        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], scalar_mult='*')
+        'a + 2*b + 3*c'
+        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], scalar_mult='**')
+        'a + 2**b + 3**c'
+        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], scalar_mult='**')
         'a + 2**b + 3**c'
 
-        sage: repr_lincomb(['a','b','c'], [1,2,3], scalar_mult='**')
-        'a + 2**b + 3**c'
+    Examples for ``scalar_mult`` and ``is_latex``::
 
-    - examples for latex_scalar_mult::
-
-        sage: repr_lincomb(['a','b','c'], [1,2,3], is_latex=True)
+        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], is_latex=True)
         'a + 2b + 3c'
-
-        sage: repr_lincomb(['a','b','c'], [1,2,3], is_latex=True, scalar_mult='**')
+        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], is_latex=True, scalar_mult='*')
+        'a + 2b + 3c'
+        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], is_latex=True, scalar_mult='**')
         'a + 2**b + 3**c'
-
-        sage: repr_lincomb(['a','b','c'], [1,2,3], is_latex=True, latex_scalar_mult='*')
+        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], is_latex=True, latex_scalar_mult='*')
         'a + 2*b + 3*c'
 
-    - examples for scalar_mult and latex_scalar_mult::
+    Examples for ``strip_one``::
 
-        sage: repr_lincomb(['a','b','c'], [1,2,3], latex_scalar_mult='*')
-        'a + 2*b + 3*c'
-        sage: repr_lincomb(['a','b','c'], [1,2,3], is_latex=True, latex_scalar_mult='*')
+        sage: repr_lincomb([ ('a',1), (1,2), ('3',3) ])
+        'a + 2*1 + 3*3'
+        sage: repr_lincomb([ ('a',1), (1,1), ('3',3) ])
+        'a + 1 + 3*3'
+        sage: repr_lincomb([ ('a',1), (1,2), ('3',3) ], strip_one = True)
+        'a + 2 + 3*3'
+        sage: repr_lincomb([ ('a',1), (1,1), ('3',3) ], strip_one = True)
+        'a + 1 + 3*3'
+
+    Examples for ``repr_monomial``::
+
+        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], repr_monomial = lambda s: s+"1")
+        'a1 + 2*b1 + 3*c1'
+
+    TESTS:
+
+    For backward compatibility (will be deprecated)::
+
+        sage: repr_lincomb(['a','b','c'], [1,2,3])
+        doctest:...: DeprecationWarning: (Since Sage Version 5.0) calling `repr_lincomb(monoms, coeffs)` is deprecated; please specify a list of tuples (monom, coeff) instead
         'a + 2*b + 3*c'
 
-        sage: repr_lincomb(['a','b','c'], [1,2,3], scalar_mult='**', latex_scalar_mult='*')
-        'a + 2**b + 3**c'
-        sage: repr_lincomb(['a','b','c'], [1,2,3], is_latex=True, scalar_mult='**', latex_scalar_mult='*')
-        'a + 2*b + 3*c'
     """
+    # For backward compatibility
+    if coeffs is not None:
+        from sage.misc.misc import deprecation
+        deprecation("calling `repr_lincomb(monoms, coeffs)` is deprecated; please specify a list of tuples (monom, coeff) instead", "Sage Version 5.0")
+        terms = zip(terms, coeffs)
+
+    # Setting scalar_mult: symbol used for scalar multiplication
+    if is_latex:
+        if latex_scalar_mult is not None:
+            scalar_mult = latex_scalar_mult
+        elif scalar_mult == "*":
+            scalar_mult = ""
+
+    if repr_monomial is None:
+        if is_latex:
+            repr_monomial = lambda monomial: monomial._latex_() if hasattr(monomial, '_latex_') else str(monomial)
+        else:
+            repr_monomial = str
+
     s = ""
     first = True
     i = 0
 
-    if is_latex:
-        if latex_scalar_mult is None:
-            if scalar_mult == '*':
-                scalar_mult = ''
-        else:
-            scalar_mult = latex_scalar_mult
-    l = len(scalar_mult)
+    if scalar_mult is None:
+        scalar_mult = "" if is_latex else "*"
 
     all_atomic = True
-    for c in coeffs:
-        if is_latex and hasattr(symbols[i], '_latex_'):
-            b = symbols[i]._latex_()
-        else:
-            b = str(symbols[i])
+    for (monomial,c) in terms:
+        b = repr_monomial(monomial)
         if c != 0:
             coeff = coeff_repr(c, is_latex)
             if coeff != "0":
@@ -784,9 +804,10 @@ def repr_lincomb(symbols, coeffs, is_latex=False, scalar_mult='*', latex_scalar_
                 elif coeff == "-1":
                     coeff = "-"
                 elif len(b) > 0:
-                    b = scalar_mult + b
-                elif len(coeff) > 0 and b == "1":
-                    b = ""
+                    if len(coeff) > 0 and b == "1" and strip_one:
+                        b = ""
+                    else:
+                        b = scalar_mult + b
                 if not first:
                     if len(coeff) > 0 and coeff[0] == "-":
                         coeff = " - %s"%coeff[1:]
@@ -796,7 +817,6 @@ def repr_lincomb(symbols, coeffs, is_latex=False, scalar_mult='*', latex_scalar_
                     coeff = "%s"%coeff
             s += "%s%s"%(coeff, b)
             first = False
-        i += 1
     if first:
         return "0"
     elif s == "":

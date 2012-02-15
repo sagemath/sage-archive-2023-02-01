@@ -62,6 +62,8 @@ def EllipticCurve(x=None, y=None, j=None):
       `j`.  Warning: this is deprecated.  Use ``EllipticCurve_from_j(j)``
       or ``EllipticCurve(j=j)`` instead.
 
+    In each case above where the input is a list of length 2 or 5, one
+    can instead give a 2 or 5-tuple instead.
 
     EXAMPLES: We illustrate creating elliptic curves.
 
@@ -212,7 +214,11 @@ def EllipticCurve(x=None, y=None, j=None):
         sage: type(E)
         <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field'>
 
+    See trac #12517::
 
+        sage: E = EllipticCurve([1..5])
+        sage: EllipticCurve(E.a_invariants())
+        Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
     """
     import ell_generic, ell_field, ell_finite_field, ell_number_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
 
@@ -318,7 +324,7 @@ def EllipticCurve(x=None, y=None, j=None):
         k=j-1728
         return EllipticCurve(F, [0,0,0,-3*j*k, -2*j*k**2])
 
-    if not isinstance(x,list):
+    if not isinstance(x, (list, tuple)):
         raise TypeError, "invalid input to EllipticCurve constructor"
 
     x = Sequence(x)

@@ -1103,7 +1103,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             TypeError: can't convert complex to float; use abs(z)
         """
         if mpfr_zero_p(self.value.im):
-            return mpfr_get_d(<mpfr_t> self.value.re,\
+            return mpfr_get_d(self.value.re,\
                                    rnd_re((<MPComplexField_class>self._parent).__rnd))
         else:
             raise TypeError, "can't convert complex to float; use abs(z)"
@@ -1391,7 +1391,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: a.__abs__()                           # optional - Mpc
             2.23606797749979
             sage: float(sqrt(2^2 + 1^1))                # optional - Mpc
-            2.2360679774997898
+            2.23606797749979
 
             sage: b = MPC(42,0)                         # optional - Mpc
             sage: abs(b)                                # optional - Mpc

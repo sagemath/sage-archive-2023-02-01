@@ -1822,11 +1822,6 @@ ext_modules = [
               depends = ginac_depends + numpy_depends,
               libraries = ["pynac", "gmp"]),
 
-    Extension('sage.symbolic.power_helper',
-              sources = ['sage/symbolic/power_helper.pyx'],
-              depends = ginac_depends,
-              language = 'c++'),
-
     Extension('sage.symbolic.pynac',
               sources = ['sage/symbolic/pynac.pyx'],
               language = 'c++',

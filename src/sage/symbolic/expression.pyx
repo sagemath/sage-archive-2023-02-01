@@ -2817,6 +2817,18 @@ cdef class Expression(CommutativeRingElement):
             sqrt(I)
             sage: I^(2/3)
             I^(2/3)
+            sage: 2^(1/2)
+            sqrt(2)
+            sage: (2*I)^(1/2)
+            sqrt(2*I)
+
+        Test if we can take powers of elements of Q(i) #8659::
+
+            sage: t = I.pyobject().parent()(8)
+            sage: t^(1/2)
+            2*sqrt(2)
+            sage: (t^2)^(1/4)
+            2*4^(1/4)
         """
         cdef Expression base, nexp
 

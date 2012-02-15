@@ -50,7 +50,7 @@ from sage.modules.free_module_element import vector
 from sage.libs.all import pari_gen, pari
 from sage.libs.pari.gen import PariError
 from sage.structure.element cimport Element, generic_power_c
-from sage.structure.element import canonical_coercion
+from sage.structure.element import canonical_coercion, parent
 
 QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
@@ -1625,15 +1625,25 @@ cdef class NumberFieldElement(FieldElement):
             cbase, cexp = canonical_coercion(base, exp)
             if not isinstance(cbase, NumberFieldElement):
                 return cbase ** cexp
-            from sage.symbolic.power_helper import try_symbolic_power
+            # Return a symbolic expression.
+            # We use the hold=True keyword argument to prevent the
+            # symbolics library from trying to simplify this expression
+            # again. This would lead to infinite loops otherwise.
+            from sage.symbolic.ring import SR
             try:
-                return try_symbolic_power(base, exp)
-            except ValueError:
-                if isinstance(exp, Rational):
-                    # pynac can handle this case
-                    return None
-                else:
-                    raise
+                res = QQ(base)**exp
+            except TypeError:
+                pass
+            else:
+                if res.parent() is not SR:
+                    return parent(cbase)(res)
+                return res
+            sbase = SR(base)
+            if sbase.operator() is operator.pow:
+                nbase, pexp = sbase.operands()
+                return nbase.power(pexp * exp, hold=True)
+            else:
+                return sbase.power(exp, hold=True)
 
     cdef void _reduce_c_(self):
         """

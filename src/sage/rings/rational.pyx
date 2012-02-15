@@ -2225,6 +2225,15 @@ cdef class Rational(sage.structure.element.FieldElement):
             3/5*(-1)^(1/3)
             sage: (-27/125)^(1/2)
             3/5*sqrt(-3/5)
+
+        The result is normalized to have the rational power in the numerator::
+
+            sage: 2^(-1/2)
+            1/2*sqrt(2)
+            sage: 8^(-1/5)
+            1/8*8^(4/5)
+            sage: 3^(-3/2)
+            1/9*sqrt(3)
         """
         if dummy is not None:
             raise ValueError, "__pow__ dummy variable not used"
@@ -2259,14 +2268,17 @@ cdef class Rational(sage.structure.element.FieldElement):
                     return c * I.pyobject() ** (n.numerator() % 4)
                 elif c != 1:
                     return c * d**n
-                # this is the only sensible answer that avoids rounding and
-                # an infinite recursion.
-                from sage.symbolic.power_helper import try_symbolic_power
-                try:
-                    return try_symbolic_power(self, n)
-                except ValueError:
-                    # pynac recognizes this and holds the value
-                    return None
+                # Can't simplify the power, return a symbolic expression.
+                # We use the hold=True keyword argument to prevent the
+                # symbolics library from trying to simplify this expression
+                # again. This would lead to infinite loops otherwise.
+                from sage.symbolic.ring import SR
+                if n < 0:
+                    int_exp = -(n.floor())
+                    return SR(1/self**int_exp)*\
+                            SR(self).power(int_exp+n, hold=True)
+                else:
+                    return SR(self).power(n, hold=True)
 
             if PY_TYPE_CHECK(n, Element):
                 return (<Element>n)._parent(self)**n
@@ -2329,32 +2341,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpz_clear(num)
         mpz_clear(den)
         sig_off()
-
-        return x
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        sig_on()
-        if nn < 0:  # we used to call (self**(-n)).__invert__()) -- this should be loads faster
-            mpz_pow_ui(mpq_denref(x.value), mpq_numref(_self.value), -nn) #we switch den and num to invert
-            mpz_pow_ui(mpq_numref(x.value), mpq_denref(_self.value), -nn)
-        else:
-            mpz_pow_ui(mpq_numref(x.value), mpq_numref(_self.value), nn)
-            mpz_pow_ui(mpq_denref(x.value), mpq_denref(_self.value), nn)
-        sig_off()
-
-        #print "returning"
 
         return x
 

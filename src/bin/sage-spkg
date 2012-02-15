@@ -207,6 +207,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Make absolutely sure that we are in the build directory before doing
+# a scary "rm -rf" below.
 cd "$SAGE_BUILD_DIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Unable to find build directory."
@@ -215,23 +217,20 @@ fi
 
 if [ $DELETE_TMP -eq 1 ]; then
     echo "Deleting directories from past builds of previous/current versions of $PKG_NAME"
-    # Make sure that we are in the build directory before doing
-    # a scary "rm -rf".
-    cd "$SAGE_BUILD_DIR"
     rm -rf "$PKG_BASE-"*
 else
     for dir in "$PKG_BASE-"*
     do
-	if [ -e "$dir" ]; then
-	    echo "Moving old directory $dir to $SAGE_BUILD_DIR/old..."
-	    mkdir -p old
-	    if [ $? -ne 0 ]; then
-		echo >&2 "Error creating directory $SAGE_BUILD_DIR/old."
-		exit 1
-	    fi
-	    rm -rf old/"$dir"
-	    mv "$dir" old/
-	fi
+        if [ -e "$dir" ]; then
+            echo "Moving old directory $dir to $SAGE_BUILD_DIR/old..."
+            mkdir -p old
+            if [ $? -ne 0 ]; then
+                echo >&2 "Error creating directory $SAGE_BUILD_DIR/old."
+                exit 1
+            fi
+            rm -rf old/"$dir"
+            mv "$dir" old/
+        fi
     done
 fi
 

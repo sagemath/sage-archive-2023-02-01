@@ -94,6 +94,73 @@ from sage.combinat.words.words import Words_all, Words
 from sage.sets.set import Set
 from sage.misc.misc import deprecated_function_alias
 
+class CallableDict(dict):
+    r"""
+    Wrapper of dictionary that makes it callable.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.words.morphism import CallableDict
+        sage: d = CallableDict({1:'one', 2:'zwei', 3:'trois'})
+        sage: d(1), d(2), d(3)
+        ('one', 'zwei', 'trois')
+    """
+    def __call__(self, key):
+        r"""
+        Returns the value with key ``key``.
+
+        EXAMPLES::
+
+        sage: from sage.combinat.words.morphism import CallableDict
+        sage: d = CallableDict({'one': 1, 'zwei': 2, 'trois': 3})
+        sage: d('one'), d('zwei'), d('trois')
+        (1, 2, 3)
+        """
+        return self[key]
+
+def get_cycles(f, domain=None):
+    r"""
+    Return the cycle of the function ``f`` on the finite set domain. It is
+    assumed that f is an endomorphism.
+
+    INPUT:
+
+    - ``f`` - function.
+
+    - ``domain`` - set (default: None) - the domain of ``f``. If none, then
+      tries to use ``f.domain()``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.words.morphism import get_cycles
+        sage: get_cycles(lambda i: (i+1)%3, domain=[0,1,2])
+        [(0, 1, 2)]
+        sage: get_cycles(lambda i: [0,0,0][i], domain=[0,1,2])
+        [(0,)]
+        sage: get_cycles(lambda i: [1,1,1][i], domain=[0,1,2])
+        [(1,)]
+    """
+    if domain is None:
+        try:
+            domain = f.domain()
+        except AttributeError:
+            raise ValueError, "you should specify the domain of the function f"
+    cycles = []
+    not_seen = dict((letter,True) for letter in domain)
+    for a in not_seen:
+        if not_seen[a]:
+            not_seen[a] = False
+            cycle = [a]
+            b = f(a)
+            while not_seen[b]:
+                not_seen[b] = False
+                cycle.append(b)
+                b = f(b)
+            if b in cycle:
+                cycles.append(tuple(cycle[cycle.index(b):]))
+
+    return cycles
+
 class WordMorphism(SageObject):
     r"""
     WordMorphism class
@@ -1596,17 +1663,87 @@ class WordMorphism(SageObject):
         w = self.codomain()(self._fixed_point_iterator(letter), datatype='iter')
         return w
 
-    def list_fixed_points(self):
+    def fixed_points(self):
         r"""
         Returns the list of all fixed points of ``self``.
 
         EXAMPLES::
 
-            sage: WordMorphism('a->ab,b->ba').list_fixed_points() #not implemented
-            [Fixed point beginning with 'a' of the morphism WordMorphism: a->ab, b->ba,
-            Fixed point beginning with 'b' of the morphism WordMorphism: a->ab, b->ba]
+            sage: f = WordMorphism('a->ab,b->ba')
+            sage: for w in f.fixed_points(): print w
+            abbabaabbaababbabaababbaabbabaabbaababba...
+            baababbaabbabaababbabaabbaababbaabbabaab...
+
+            sage: f = WordMorphism('a->ab,b->c,c->a')
+            sage: for w in f.fixed_points(): print w
+            abcaababcabcaabcaababcaababcabcaababcabc...
+
+            sage: f = WordMorphism('a->ab,b->cab,c->bcc')
+            sage: for w in f.fixed_points(): print w
+            abcabbccabcabcabbccbccabcabbccabcabbccab...
         """
-        raise NotImplementedError
+        return [p[0] for p in self.periodic_points() if len(p) == 1]
+
+    def periodic_point(self, letter):
+        r"""
+        Return the periodic point of self that starts with ``letter``.
+
+        EXAMPLES::
+
+            sage: f = WordMorphism('a->bab,b->aba')
+            sage: f.periodic_point('a')
+            word: abababababababababababababababababababab...
+            sage: f.fixed_point('a')
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be prolongable on a
+        """
+        if self.is_erasing():
+            raise NotImplementedError, "self should be non erasing"
+
+        cycle = [letter]
+        a = self(letter)[0]
+        while a not in cycle:
+            cycle.append(a)
+            a = self(a)[0]
+        if a != letter:
+            raise ValueError, "there is no periodic point starting with letter (=%s)"%letter
+        return (self**len(cycle)).fixed_point(letter)
+
+    def periodic_points(self):
+        r"""
+        Return the periodic points of ``f`` as a list of tuples where each tuple is
+        a periodic orbit of ``f``.
+
+        EXAMPLES::
+
+            sage: f = WordMorphism('a->aba,b->baa')
+            sage: for p in f.periodic_points():
+            ...      print len(p), ',', p[0]
+            1 , ababaaababaaabaabaababaaababaaabaabaabab...
+            1 , baaabaabaababaaabaababaaabaababaaababaaa...
+
+            sage: f = WordMorphism('a->bab,b->aa')
+            sage: for p in f.periodic_points():
+            ...       print len(p), ',', p[0]
+            2 , aababaaaababaababbabaababaababbabaababaa...
+            sage: f.fixed_points()
+            []
+        """
+        assert self.is_endomorphism(), "f should be an endomorphism"
+
+        if self.is_erasing():
+            raise NotImplementedError, "f should be non erasing"
+
+        A = self.domain().alphabet()
+        d = dict((letter,self(letter)[0]) for letter in A)
+
+        res = []
+        for cycle in get_cycles(CallableDict(d),A):
+            g = self**len(cycle)
+            res.append([g.fixed_point(letter) for letter in cycle])
+
+        return res
 
     def conjugate(self, pos):
         r"""

@@ -19,7 +19,7 @@ cpdef object try_symbolic_power(object obj, object p):
     global __pynac_pow
     if __pynac_pow:
         __pynac_pow = False
-        return None
+        raise ValueError("recursion")
     else:
         try:
             __pynac_pow = True

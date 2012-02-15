@@ -50,6 +50,7 @@ from sage.modules.free_module_element import vector
 from sage.libs.all import pari_gen, pari
 from sage.libs.pari.gen import PariError
 from sage.structure.element cimport Element, generic_power_c
+from sage.structure.element import canonical_coercion
 
 QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
@@ -1621,8 +1622,18 @@ cdef class NumberFieldElement(FieldElement):
             (PY_TYPE_CHECK(exp, Integer) or PY_TYPE_CHECK_EXACT(exp, int) or exp in ZZ)):
             return generic_power_c(base, exp, None)
         else:
+            cbase, cexp = canonical_coercion(base, exp)
+            if not isinstance(cbase, NumberFieldElement):
+                return cbase ** cexp
             from sage.symbolic.power_helper import try_symbolic_power
-            return try_symbolic_power(base, exp)
+            try:
+                return try_symbolic_power(base, exp)
+            except ValueError:
+                if isinstance(exp, Rational):
+                    # pynac can handle this case
+                    return None
+                else:
+                    raise
 
     cdef void _reduce_c_(self):
         """

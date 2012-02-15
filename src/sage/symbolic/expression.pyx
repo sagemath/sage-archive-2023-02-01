@@ -2625,6 +2625,21 @@ cdef class Expression(CommutativeRingElement):
             2.3^(x^3 - x^2 + 1/3)
             sage: complex(1,3)^(sqrt(2))
             (1+3j)^sqrt(2)
+
+        Test complex numeric powers::
+
+            sage: I^0.5
+            0.707106781186548 + 0.707106781186547*I
+            sage: (I + 1) ^ (0.5 + I)
+            0.400667052375828 + 0.365310866736929*I
+            sage: I^I
+            I^I
+            sage: I^x
+            I^x
+            sage: I^(1/2)
+            sqrt(I)
+            sage: I^(2/3)
+            I^(2/3)
         """
         cdef Expression base, nexp
 

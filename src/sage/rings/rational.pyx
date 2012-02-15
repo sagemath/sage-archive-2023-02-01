@@ -2262,7 +2262,11 @@ cdef class Rational(sage.structure.element.FieldElement):
                 # this is the only sensible answer that avoids rounding and
                 # an infinite recursion.
                 from sage.symbolic.power_helper import try_symbolic_power
-                return try_symbolic_power(self, n)
+                try:
+                    return try_symbolic_power(self, n)
+                except ValueError:
+                    # pynac recognizes this and holds the value
+                    return None
 
             if PY_TYPE_CHECK(n, Element):
                 return (<Element>n)._parent(self)**n

@@ -28,8 +28,10 @@ Valgrind is Open Source / Free Software, and is freely available under the GNU G
 
 == Changelog ==
 
-=== valgrind_3.6.1 (Ivan Andrus, February 9th, 2012)  ===
+=== valgrind_3.7.0.p0 (Ivan Andrus, February 16th, 2012)  ===
  * update to 3.7.0
+ * removed call to autoreconf
+ * changed `make` to `$MAKE`
 
 === valgrind_3.6.1 (Ivan Andrus, March 23rd, 2011)  ===
  * update to 3.6.1

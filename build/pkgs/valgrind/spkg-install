@@ -26,8 +26,6 @@ fi
 
 cd src/
 
-autoreconf
-
 /usr/bin/env bash configure --prefix=$SAGE_LOCAL
 
 if [ $? -ne 0 ]; then
@@ -35,14 +33,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-make
+$MAKE
 
 if [ $? -ne 0 ]; then
     echo "error installing valgrind $VALGRIND_VERSION"
     exit 1
 fi
 
-make install
+$MAKE install
 
 if [ $? -ne 0 ]; then
     echo "error installing valgrind $VALGRIND_VERSION"

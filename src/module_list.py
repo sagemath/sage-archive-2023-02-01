@@ -1345,6 +1345,10 @@ ext_modules = [
     Extension('sage.rings.morphism',
               sources = ['sage/rings/morphism.pyx']),
 
+    Extension('sage.rings.complex_mpc',
+              sources = ['sage/rings/complex_mpc.pyx'],
+              libraries = ['mpc', 'mpfr', 'gmp']),
+
     Extension('sage.rings.noncommutative_ideals',
               sources = ['sage/rings/noncommutative_ideals.pyx']),
 
@@ -1870,14 +1874,6 @@ if is_package_installed('cbc'):
                   include_dirs = [SAGE_INC, "sage/c_lib/include/"],
                   language = 'c++',
                   libraries = ["csage", "stdc++", "Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi"])
-        )
-
-
-if is_package_installed('mpc'):
-    ext_modules.append(
-        Extension('sage.rings.complex_mpc',
-                  sources = ['sage/rings/complex_mpc.pyx'],
-                  libraries = ['mpc', 'mpfr', 'gmp'])
         )
 
 

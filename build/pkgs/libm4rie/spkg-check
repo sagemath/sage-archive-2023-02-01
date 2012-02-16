@@ -3,8 +3,8 @@
 unset RM
 
 if [ "$SAGE_LOCAL" = "" ]; then
-    echo "SAGE_LOCAL undefined ... exiting"
-    echo "Maybe run 'sage -sh'?"
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
 
@@ -27,14 +27,8 @@ CXXFLAGS="$CXXFLAGS $INCLUDES $LIBDIRS -g"
 export CFLAGS
 export CXXFLAGS
 
-cd m4rie
+cd src
 
 echo "Testing the M4RIE library"
 
 $MAKE check
-
-if [ $? -ne 0 ]; then
-    echo "Error testing M4RIE"
-    exit 1
-fi
-

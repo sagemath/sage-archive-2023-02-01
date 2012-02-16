@@ -24,11 +24,18 @@ GF(2^k) for 2 <= k <= 10.
  M4RI and for testing: MPIR, Givaro and NTL
 
 == Special Update/Build Instructions ==
- * Delete the upstream Mercurial repositories (file m4rie/.hgtags, directory m4rie/.hg).
- * Delete the directory m4rie/autom4te.cache (if present).
- * Touch m4rie/configure to make sure it is newer than its sources.
+ * Delete the upstream Mercurial repositories (file src/.hgtags, directory src/.hg).
+ * Delete the directory src/autom4te.cache (if present).
+ * Touch src/configure to make sure it is newer than its sources.
 
 == Releases/Changelog ==
+
+=== libm4rie-20111004.p2 (Jeroen Demeyer, 16 February 2012) ===
+ * Rename source directory "m4rie" to "src".
+ * Trac #12501: touch src/src/config.h.in to prevent autoheader from
+   running.
+ * Trac #12311: remove testcc.sh script, instead use the one from
+   $SAGE_ROOT/spkg/bin (in the $PATH).
 
 === libm4rie-20111004.p1 (Martin Albrecht, January 2nd, 2012) ===
  * #12245: proper dependencies

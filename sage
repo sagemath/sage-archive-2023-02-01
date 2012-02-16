@@ -116,11 +116,23 @@ fi
 
 # Make SAGE_ROOT absolute
 SAGE_ROOT=`cd "$SAGE_ROOT" && pwd -P`
+if [ $? -ne 0 ]; then
+    echo >&2 "$0: cannot determine SAGE_ROOT directory"
+    exit 1
+fi
+
 export SAGE_ROOT
 
 # Run the actual Sage script
-"$SAGE_ROOT/spkg/bin/sage" "$@"
-
+if [ -x "$SAGE_ROOT/spkg/bin/sage" ]; then
+    "$SAGE_ROOT/spkg/bin/sage" "$@"
+elif [ -x "$SAGE_ROOT/local/bin/sage-sage" ]; then   # Support sage-4.x
+    export CUR=`pwd`
+    "$SAGE_ROOT/local/bin/sage-sage" "$@"
+else
+    echo >&2 "$0: no Sage installation found in \$SAGE_ROOT=$SAGE_ROOT"
+    exit 1
+fi
 
 # Kill all processes in the current process group.  In practice, this
 # means all child processes not running their own pty.

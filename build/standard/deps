@@ -73,6 +73,7 @@ all: $(BASE) \
      $(INST)/$(MAXIMA) \
      $(INST)/$(MERCURIAL) \
      $(INST)/$(MOIN) \
+     $(INST)/$(MPC) \
      $(INST)/$(MPFI) \
      $(INST)/$(MPFR) \
      $(INST)/$(MPIR) \
@@ -223,6 +224,9 @@ $(INST)/$(POLYTOPES_DB): $(BASE) $(INST)/$(PATCH)
 
 $(INST)/$(PPL): $(BASE) $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(PPL) 2>&1" "tee -a $(SAGE_LOGS)/$(PPL).log"
+
+$(INST)/$(MPC): $(BASE) $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(MPC) 2>&1" "tee -a $(SAGE_LOGS)/$(MPC).log"
 
 $(INST)/$(MPFR): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(MPFR) 2>&1" "tee -a $(SAGE_LOGS)/$(MPFR).log"
@@ -478,6 +482,7 @@ $(INST)/$(SAGE): $(BASE) \
 		 $(INST)/$(LIBPNG) \
 		 $(INST)/$(LINBOX) \
 		 $(INST)/$(MERCURIAL) \
+		 $(INST)/$(MPC) \
 		 $(INST)/$(MPFI) \
 		 $(INST)/$(MPFR) \
 		 $(INST)/$(MPIR) \

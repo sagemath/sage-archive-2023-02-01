@@ -1318,6 +1318,19 @@ class Graphics(SageObject):
     def add_primitive(self, primitive):
         """
         Adds a primitive to this graphics object.
+
+        EXAMPLES:
+
+        We give a very explicit example::
+
+            sage: G = Graphics()
+            sage: from sage.plot.line import Line
+            sage: from sage.plot.arrow import Arrow
+            sage: L = Line([3,4,2,7,-2],[1,2,e,4,5.],{'alpha':1,'thickness':2,'rgbcolor':(0,1,1),'legend_label':''})
+            sage: A = Arrow(2,-5,.1,.2,{'width':3,'head':0,'rgbcolor':(1,0,0),'linestyle':'dashed','zorder':8,'legend_label':''})
+            sage: G.add_primitive(L)
+            sage: G.add_primitive(A)
+            sage: G
         """
         self.__objects.append(primitive)
 
@@ -2584,7 +2597,6 @@ class Graphics(SageObject):
 _SelectiveFormatterClass = None
 
 def SelectiveFormatter(formatter, skip_values):
-
     """
     This matplotlib formatter selectively omits some tick values and
     passes the rest on to a specified formatter.
@@ -3221,7 +3233,43 @@ def plot(funcs, *args, **kwds):
 
 def _plot(funcs, xrange, parametric=False,
               polar=False, fill=False, label='', randomize=True, **options):
+    """
+    Internal function which does the actual plotting.
 
+    INPUT:
+
+    - ``funcs`` - function or list of functions to be plotted
+    - ``xrange`` - two or three tuple of [input variable], min and max
+    - ``parametric`` - (default: False) a boolean for whether
+      this is a parametric plot
+    - ``polar`` - (default: False) a boolean for whether
+      this is a polar plot
+    - ``fill`` - (default: False) an input for whether
+      this plot is filled
+    - ``randomize`` - (default: True) a boolean for whether
+      to use random plot points
+
+    The following option is deprecated in favor of ``legend_label``:
+
+    - ``label`` - (default: '') a string for the label
+
+    All other usual plot options are also accepted, and a number
+    are required (see the example below) which are normally passed
+    through the options decorator to :func:`plot`.
+
+    OUTPUT:
+
+    - A ``Graphics`` object
+
+    EXAMPLES::
+
+    See :func:`plot` for many, many implicit examples.
+    Here is an explicit one::
+
+        sage: from sage.plot.plot import _plot
+        sage: P = _plot(e^(-x^2),(-3,3),fill=True,color='red',plot_points=50,adaptive_tolerance=2,adaptive_recursion=True,exclude=None)
+        sage: P.show(aspect_ratio='automatic')
+    """
     from sage.plot.misc import setup_for_eval_on_grid
     if funcs == []:
         return Graphics()
@@ -3736,12 +3784,49 @@ def to_float_list(v):
     """
     return [float(x) for x in v]
 
+
+
 class GraphicsArray(SageObject):
     """
     GraphicsArray takes a (`m` x `n`) list of lists of
     graphics objects and plots them all on one canvas.
     """
     def __init__(self, array):
+        """
+        Constructor for ``GraphicsArray`` class.  Normally used only
+        via :func:`graphics_array` function.
+
+        INPUT: a list or list of lists/tuples, all of which are graphics objects
+
+        EXAMPLES::
+
+            sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in range(10)]
+            sage: G = graphics_array(L)
+            sage: G.ncols()
+            10
+            sage: M = [[plot(x^2)],[plot(x^3)]]
+            sage: H = graphics_array(M)
+            sage: str(H[1])
+            'Graphics object consisting of 1 graphics primitive'
+
+        TESTS::
+
+            sage: L = [[plot(sin),plot(cos)],[plot(tan)]]
+            sage: graphics_array(L)
+            Traceback (most recent call last):
+            ...
+            TypeError: array (=[[, ], []]) must be a list of lists of Graphics objects
+            sage: G = plot(x,(x,0,1))
+            sage: graphics_array(G)
+            Traceback (most recent call last):
+            ...
+            TypeError: array (=Graphics object consisting of 1 graphics primitive) must be a list of lists of Graphics objects
+            sage: G = [[plot(x,(x,0,1)),x]]
+            sage: graphics_array(G)
+            Traceback (most recent call last):
+            ...
+            TypeError: every element of array must be a Graphics object
+        """
         if not isinstance(array, (list, tuple)):
             raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
         array = list(array)
@@ -3765,6 +3850,23 @@ class GraphicsArray(SageObject):
         self._figsize = None
 
     def _repr_(self):
+        """
+        Representation of the graphics array.
+
+        EXAMPLES::
+
+            sage: R = rainbow(6)
+            sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
+            sage: G = graphics_array(L,2,3)
+            sage: G # plot shown is default
+
+        We can make commands not display their plots by default.
+
+            sage: show_default(False)
+            sage: graphics_array(L)
+            Graphics Array of size 1 x 6
+            sage: show_default(True)
+        """
         if SHOW_DEFAULT:
             self.show()
             return ''
@@ -3772,37 +3874,198 @@ class GraphicsArray(SageObject):
             return self.__str__()
 
     def __str__(self):
+        """
+        String representation of the graphics array.
+
+        EXAMPLES::
+
+            sage: R = rainbow(6)
+            sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
+            sage: G = graphics_array(L,2,3)
+            sage: str(G)
+            'Graphics Array of size 2 x 3'
+
+        We can make commands not display their plots by default.
+
+            sage: show_default(False)
+            sage: graphics_array(L)
+            Graphics Array of size 1 x 6
+            sage: show_default(True)
+        """
         return "Graphics Array of size %s x %s"%(self._rows, self._cols)
 
     def nrows(self):
+        """
+        String representation of the graphics array.
+
+        EXAMPLES::
+
+            sage: R = rainbow(6)
+            sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
+            sage: G = graphics_array(L,2,3)
+            sage: G.nrows()
+            2
+            sage: graphics_array(L).nrows()
+            1
+        """
         return self._rows
 
     def ncols(self):
+        """
+        Number of columns of the graphics array.
+
+        EXAMPLES::
+
+            sage: R = rainbow(6)
+            sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
+            sage: G = graphics_array(L,2,3)
+            sage: G.ncols()
+            3
+            sage: graphics_array(L).ncols()
+            6
+        """
         return self._cols
 
     def __getitem__(self, i):
+        """
+        Return the ``i``th element of the list of graphics
+        in the (flattened) array.
+
+        EXAMPLES:
+
+        We can access and view individual plots::
+
+            sage: M = [[plot(x^2)],[plot(x^3)]]
+            sage: H = graphics_array(M)
+            sage: H[1]
+
+        They can also be represented::
+
+            sage: str(H[1])
+            'Graphics object consisting of 1 graphics primitive'
+
+        Another example::
+
+            sage: L = [plot(sin(k*x),(x,-pi,pi))+circle((k,k),1,color='red') for k in range(10)]
+            sage: G = graphics_array(L,5,2)
+            sage: str(G[3])
+            'Graphics object consisting of 2 graphics primitives'
+            sage: G[3]
+        """
         i = int(i)
         return self._glist[i]
 
     def __setitem__(self, i, g):
+        """
+        Set the ``i``th element of the list of graphics
+        in the (flattened) array.
+
+        EXAMPLES::
+
+            sage: M = [[plot(x^2)],[plot(x^3)]]
+            sage: H = graphics_array(M)
+            sage: str(H[1])
+            'Graphics object consisting of 1 graphics primitive'
+
+        We can check this is one primitive::
+
+            sage: H[1] # the plot of x^3
+
+        Now we change it::
+
+            sage: H[1] = circle((1,1),2)+points([(1,2),(3,2),(5,5)],color='purple')
+            sage: str(H[1])
+            'Graphics object consisting of 2 graphics primitives'
+
+        And we visually check that it's different::
+
+            sage: H[1] # a circle and some purple points
+        """
         i = int(i)
         self._glist[i] = g
 
-    def __set_figsize__(self, list):
-        m = int(list[0])
-        n = int(list[1])
+    def __set_figsize__(self, ls):
+        """
+        Set the figsize of all plots in the array.
+
+        This is normally only used via the ``figsize`` keyword in
+        :meth:`save` or :meth:`show`.
+
+        EXAMPLES::
+
+            sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in [1..3]]
+            sage: G = graphics_array(L)
+            sage: G.show(figsize=[5,3])  # smallish and compact
+
+        ::
+
+            sage: G.show(figsize=[10,20])  # bigger and tall and thin
+
+        ::
+
+            sage: G.show(figsize=8)  # figure as a whole is a square
+        """
+        # if just one number is passed in for figsize, as documented
+        if not isinstance(ls,list):
+            ls = [ls,ls]
+        # now the list is a list
+        m = int(ls[0])
+        n = int(ls[1])
         self._figsize = [m,n]
 
     def __len__(self):
+        """
+        Total number of elements of the graphics array.
+
+        EXAMPLES::
+
+            sage: R = rainbow(6)
+            sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
+            sage: G = graphics_array(L,2,3)
+            sage: G.ncols()
+            3
+            sage: graphics_array(L).ncols()
+            6
+        """
         return len(self._glist)
 
+# This does not work, and can never have worked!
+# To make this work, one would also change the
+# dimensions of the array, but it's not clear there
+# is a canonical way to do this.
+#
+#    def append(self, g):
+#        """
+#        Appends a graphic to the array.
+#        """
+#        self._glist.append(g)
+
     def append(self, g):
-        self._glist.append(g)
+        """
+        Appends a graphic to the array.  Currently
+        not implemented.
+
+        TESTS::
+
+            sage: from sage.plot.plot import GraphicsArray
+            sage: G = GraphicsArray([plot(sin),plot(cos)])
+            sage: G.append(plot(tan))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Appending to a graphics array is not yet implemented
+        """
+        raise NotImplementedError('Appending to a graphics array is not yet implemented')
+
 
     def _render(self, filename, dpi=None, figsize=None, axes=None, **args):
         r"""
-        ``render`` loops over all graphics objects in the array
-        and adds them to the subplot.
+        ``_render`` loops over all graphics objects in the array
+        and adds them to the subplot.  This is only used internally
+        when the plot is actually saved or shown.
+
+        EXAMPLES::
+
+            sage: graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
         """
         #glist is a list of Graphics objects:
         glist = self._glist
@@ -3824,8 +4087,25 @@ class GraphicsArray(SageObject):
     def save(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
              axes = None, **args):
         """
-        save the ``graphics_array`` to (for now) a png called
+        Save the ``graphics_array`` to (for now) a png called
         'filename'.
+
+        OPTIONAL INPUT:
+
+        -  ``filename`` - (default: None) string
+
+        -  ``dpi`` - dots per inch
+
+        -  ``figsize`` - width or [width, height]
+
+        -  ``axes`` - (default: True)
+
+        EXAMPLES::
+
+            sage: F = sage.misc.misc.tmp_filename()+'.png'
+            sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in [1..3]]
+            sage: G = graphics_array(L)
+            sage: G.save(F,500,axes=False)
         """
         if (figsize is not None): self.__set_figsize__(figsize)
         self._render(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
@@ -3836,7 +4116,6 @@ class GraphicsArray(SageObject):
         Show this graphics array using the default viewer.
 
         OPTIONAL INPUT:
-
 
         -  ``filename`` - (default: None) string
 
@@ -3850,7 +4129,6 @@ class GraphicsArray(SageObject):
 
         -  ``frame`` - (default: False) draw a frame around the
            image
-
 
         EXAMPLES: This draws a graphics array with four trig plots and no
         axes in any of the plots.
@@ -3876,6 +4154,42 @@ class GraphicsArray(SageObject):
 
 
 def reshape(v, n, m):
+    """
+    Helper function for creating graphics arrays.
+
+    The input array is flattened and turned into an `n\times m`
+    array, with blank graphics object padded at the end, if
+    necessary.
+
+    INPUT:
+
+    -  ``v`` - a list of lists or tuples
+
+    -  ``n, m`` - integers
+
+    OUTPUT:
+
+    A list of lists of graphics objects
+
+    EXAMPLES::
+
+        sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in range(10)]
+        sage: graphics_array(L,3,4)
+
+    ::
+
+        sage: M = [[plot(sin(k*x),(x,-pi,pi)) for k in range(3)],[plot(cos(j*x),(x,-pi,pi)) for j in [3..5]]]
+        sage: graphics_array(M,6,1)
+
+    TESTS::
+
+        sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in [1..3]]
+        sage: graphics_array(L,0,-1)
+        Traceback (most recent call last):
+        ...
+        AssertionError: array sizes must be positive
+    """
+    assert n>0 and m>0, 'array sizes must be positive'
     G = Graphics()
     G.axes(False)
     if len(v) == 0:
@@ -3909,7 +4223,6 @@ def graphics_array(array, n=None, m=None):
 
     INPUT:
 
-
     -  ``array`` - a list of lists or tuples
 
     -  ``n, m`` - (optional) integers - if n and m are
@@ -3928,12 +4241,15 @@ def graphics_array(array, n=None, m=None):
         sage: p3 = parametric_plot((f,g),(0,2*pi),color=hue(0.6))
         sage: p4 = parametric_plot((f,h),(0,2*pi),color=hue(1.0))
 
-    Now make a graphics array out of the plots; then you can type
-    either: ``ga.show()`` or ``ga.save()``.
-
-    ::
+    Now make a graphics array out of the plots::
 
         sage: graphics_array(((p1,p2),(p3,p4)))
+
+    One can also name the array, and then use :meth:`~GraphicsArray.show`
+    or :meth:`~GraphicsArray.save`::
+
+        sage: ga = graphics_array(((p1,p2),(p3,p4)))
+        sage: ga.show()
 
     Here we give only one row::
 
@@ -3942,6 +4258,21 @@ def graphics_array(array, n=None, m=None):
         sage: g = graphics_array([p1, p2]); print g
         Graphics Array of size 1 x 2
         sage: g.show()
+
+    It is possible to use ``figsize`` to change the size of the plot
+    as a whole::
+
+        sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in [1..3]]
+        sage: G = graphics_array(L)
+        sage: G.show(figsize=[5,3])  # smallish and compact
+
+    ::
+
+        sage: G.show(figsize=[10,20])  # bigger and tall and thin
+
+    ::
+
+        sage: G.show(figsize=8)  # figure as a whole is a square
     """
     if not n is None:
         # Flatten then reshape input

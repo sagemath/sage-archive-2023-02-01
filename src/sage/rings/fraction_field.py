@@ -78,6 +78,7 @@ import ring
 import field
 import fraction_field_element
 import sage.misc.latex as latex
+from sage.misc.cachefunc import cached_method
 
 from sage.structure.parent import Parent
 from sage.structure.coerce_maps import CallableConvertMap
@@ -440,6 +441,7 @@ class FractionField_generic(field.Field):
         """
         return self._R
 
+    @cached_method
     def is_exact(self):
         """
         EXAMPLES::
@@ -449,12 +451,7 @@ class FractionField_generic(field.Field):
             sage: Frac(CDF['x']).is_exact()
             False
         """
-        try:
-            return self.__is_exact
-        except AttributeError:
-            r = self.ring().is_exact()
-            self.__is_exact = r
-        return r
+        return self.ring().is_exact()
 
     def _element_constructor_(self, x, y=1, coerce=True):
         """

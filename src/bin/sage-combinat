@@ -2,11 +2,10 @@
 
 import os
 import re
-from re import split
-from sys import argv, stderr
-from subprocess import *
 from optparse import OptionParser
-import ConfigParser
+from sys import stderr
+from subprocess import Popen, PIPE
+from warnings import warn
 
 if "SAGE_ROOT" in os.environ:
     sage = os.environ["SAGE_ROOT"]+"/sage"
@@ -88,7 +87,35 @@ def get_sage_root():
         sage_root = Popen(["echo 'echo ROOT${SAGE_ROOT}ROOT' | "+sage+" -sh"], stdout=PIPE, shell=True).communicate()[0]
     except OSError, e:
         error("Could not start sage"+str(e))
-    return split("ROOT", sage_root)[1]
+    return re.split("ROOT", sage_root)[1]
+
+"""
+A regexp matching Sage version strings
+
+EXAMPLES::
+
+    sage: re.search(version_regexp, "Sage Version 5.0").group()
+    '5.0'
+    sage: re.search(version_regexp, "Sage Version 5.4.2").group()
+    '5.4.2'
+    sage: re.search(version_regexp, "Sage Version 5.3.1.alpha3").group()
+    '5.3.1.alpha3'
+    sage: re.search(version_regexp, "Sage Version 5.3.1.alpha3 blah blah").group()
+    '5.3.1.alpha3'
+    sage: re.search(version_regexp, "Sage Version 5.3.beta2 blah blah").group()
+    '5.3.beta2'
+    sage: re.search(version_regexp, "Sage Version 5.rc0 blah blah").group()
+    '5.rc0'
+
+    sage: re.match(version_regexp, "Sage Version 5.rc0 blah blah")
+    sage: re.match(version_regexp, "5.rc0 blah").group()
+    '5.rc0'
+    sage: re.match(version_regexp+"$", "4_3_3:")
+    sage: re.match(version_regexp, "4_3_3:")
+    '4_3_3'
+
+"""
+version_regexp = '(\d+(\.|_))*(\d+)((\.|_)(alpha|beta|rc)(\d+))?'
 
 def get_sage_version():
     global sage
@@ -98,13 +125,82 @@ def get_sage_version():
     except OSError, e:
         error("Could not start sage"+str(e))
 
-    match = re.search('(\d+\.)*(\d+)',sage_version)
+    match = re.search(version_regexp, sage_version)
     if match is None:
         error("Cannot determine Sage version number from"+sage_version)
     else:
         version = match.group()
     return version
 
+def encode_sage_version_for_comparison(version):
+    """
+    Encodes a version of Sage as a list for comparison purposes
+
+    INPUT:
+
+    - ``version`` -- a string
+
+        sage: encode_sage_version_for_comparison("4.2")
+        [4, 2, 0]
+        sage: encode_sage_version_for_comparison("5.0.beta3")
+        [5, 0, -3, 3, 0]
+        sage: encode_sage_version_for_comparison("4.2.1.rc0")
+        [4, 2, 1, -1, 0, 0]
+        sage: encode_sage_version_for_comparison("4.0.alpha3")
+        [4, 0, -3, 3, 0]
+
+    The only purpose of this encoding is that Python's standard
+    (lexicographic) comparison of lists implements the comparison of
+    Sage versions.
+
+    EXAMPLES::
+
+        sage: e = encode_sage_version_for_comparison
+        sage: e("4.2") < e("4.2.1")
+        True
+        sage: e("4.2.1") < e("4.2.2")
+        True
+        sage: e("4.2.rc0") < e("4.2")
+        True
+        sage: e("4.7.2.rc0") < e("4.7.2.rc2")
+        True
+        sage: e("4.7.2.beta2") < e("4.7.2")
+        True
+        sage: e("4.7.2.beta2") < e("4.7.2.beta3")
+        True
+        sage: e("4.7.2.beta10") < e("4.7.2.rc0")
+        True
+    """
+    version = version.replace("alpha", "-3.")
+    version = version.replace("beta", "-2.")
+    version = version.replace("rc", "-1.")
+    return [int(s) for s in re.split("\.|_", version)]+[0]
+
+def cmp_sage_versions(version1, version2):
+    """
+    Compares two Sage versions given as strings
+
+    EXAMPLES::
+
+        sage: cmp_sage_versions("4.2", "4.2.1")
+        -1
+        sage: cmp_sage_versions("4.2.1", "4.2.2")
+        -1
+        sage: cmp_sage_versions("4.2.rc0", "4.2")
+        -1
+        sage: cmp_sage_versions("4.7.2.rc0", "4.7.2.rc2")
+        -1
+        sage: cmp_sage_versions("4.7.2.beta2", "4.7.2")
+        -1
+        sage: cmp_sage_versions("4.7.2.beta2", "4.7.2.beta3")
+        -1
+        sage: cmp_sage_versions("4.7.2.beta10", "4.7.2.rc0")
+        -1
+        sage: cmp_sage_versions("4.7.2.beta10", "4.7.2.beta10")
+        0
+
+    """
+    return cmp(encode_sage_version_for_comparison(version1), encode_sage_version_for_comparison(version2))
 
 def cd_to_combinat():
     global sage_combinat_root
@@ -117,6 +213,7 @@ def hg_query(command, dir):
     r"""
     Runs hg in the directory dir, and returns its output as a string
     """
+    cd_to_combinat() # make sure we are in the sage combinat directory
     return Popen(["cd %s && %s %s"%(dir,hg,command)], stdout=PIPE, shell=True).communicate()[0].rstrip()
 
 def hg_status():
@@ -136,21 +233,21 @@ def hg_series():
     return hg_query("qseries", sage_combinat_root)
 
 def hg_all_patches():
-    return split("\r\n|\r|\n",hg_series())
+    return re.split("\r\n|\r|\n",hg_series())
 
 def hg_qnext():
     global sage_combinat_root
     return hg_query("qnext", sage_combinat_root)
 
 def hg_all_guards():
-    return split("\r\n|\r|\n",
-                 hg_query("qselect -s", sage_combinat_root))
+    return re.split("\r\n|\r|\n",
+                    hg_query("qselect -s", sage_combinat_root))
 
 def hg_active_guards():
     # hg qselect -v returns all the active guards, one per line
     # the first line is always "active guards" or "no active guards"
-    return split("\r\n|\r|\n",
-                 hg_query("qselect -v", sage_combinat_root))[1:]
+    return re.split("\r\n|\r|\n",
+                    hg_query("qselect -v", sage_combinat_root))[1:]
 
 def hg_are_all_patch_applied():
     return hg_qnext() == "All patches applied"
@@ -181,7 +278,7 @@ def qselect_backward_compatibility_patches(guards = []):
 
     # FIXME: how to change the guards on a one by one basis
 
-    non_version_guards = filter(lambda guard: re.match("^(sage_)?(\d+_)*(\d+)$", guard) is None, hg_active_guards())
+    non_version_guards = filter(lambda guard: re.match(version_regexp, guard) is None, hg_active_guards())
     info("Current non version guards: %s"%" ".join(non_version_guards))
 
     if options.n:
@@ -191,24 +288,29 @@ def qselect_backward_compatibility_patches(guards = []):
 
     info("Updated non version guards: %s"%" ".join(non_version_guards))
 
-    sage_version_as_list = [int(s) for s in re.split("\.", sage_version)]
     def is_newversion_guard(guard):
         """
-        Returns true if this is a guard of the form a_b_c with a.b.c > sage_version
+        Returns true if this is a guard for version X (like 4_3_3 or 5_0_beta4) with X > sage_version
         """
-        if not re.match("^\+(sage_)?(\d+_)*(\d+)$",guard):
+        if not re.match(version_regexp+"$", guard):
+            if  re.match(version_regexp, guard):
+                # Catch erroneous guards like 4_3_3:
+                message = "Invalid version guard in the mercurial queue: %s"%guard
+                if options.force:
+                    warn(message)
+                else:
+                    error(message)
             return False
-        guard = re.sub("^\+(sage_)?","", guard)
-        guard_as_list = [int(s) for s in re.split("_", guard)]
-        if guard_as_list > sage_version_as_list:
+        if cmp_sage_versions(guard, sage_version) > 0:
             info("Keep backward compatibility patches for sage "+re.sub("_",".",guard))
             return True
         else:
             info("Skip backward compatibility patches for sage "+re.sub("_",".",guard))
             return False
 
-    version_guards = map(lambda guard: guard[1:], # get rid of leading "+"
-                            filter(is_newversion_guard, hg_all_guards()))
+    version_guards = filter(is_newversion_guard,
+                            map(lambda guard: guard[1:], # get rid of leading "+"
+                                hg_all_guards()))
 
     info("Updating guards")
     system(hg+" qselect -q -n")
@@ -223,7 +325,6 @@ def update(update_from_sage_main = False):
      - push back the patches
      - rebuild
     """
-    cd_to_combinat()
     check_for_no_diff()
 
     info("Storing top applied patch")
@@ -305,7 +406,6 @@ elif args[0] == "install":
         info("Done")
     assert(os.path.exists(sage_combinat_hg))
     assert(not os.path.exists(sage_combinat_patch_queue))
-    cd_to_combinat()
     check_for_no_diff(check_patch_queue=False)
     info("Uploading sage-combinat patches into .hg/patches:")
     system("cd .hg/; "+hg+" clone %s patches"%options.server)
@@ -320,7 +420,6 @@ elif args[0] == "update":
     update()
 
 elif args[0] == "upgrade":
-    cd_to_combinat()
     check_for_no_diff()
     info("Upgrading sage")
     system(sage+" -upgrade")

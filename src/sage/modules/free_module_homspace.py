@@ -76,6 +76,7 @@ import sage.categories.homset
 import sage.matrix.all as matrix
 import free_module_morphism
 from inspect import isfunction
+from sage.misc.cachefunc import cached_method
 
 
 def is_FreeModuleHomspace(x):
@@ -187,6 +188,39 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
                     # Let us hope that FreeModuleMorphism knows to handle that case
                     pass
         return free_module_morphism.FreeModuleMorphism(self, A)
+
+    @cached_method
+    def zero(self):
+        """
+        EXAMPLES::
+
+            sage: E = ZZ^2
+            sage: F = ZZ^3
+            sage: H = Hom(E, F)
+            sage: f = H.zero()
+            sage: f
+            Free module morphism defined by the matrix
+            [0 0 0]
+            [0 0 0]
+            Domain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            Codomain: Ambient free module of rank 3 over the principal ideal domain Integer Ring
+            sage: f(E.an_element())
+            (0, 0, 0)
+            sage: f(E.an_element()) == F.zero()
+            True
+
+        TESTS:
+
+        We check that ``H.zero()`` is picklable::
+
+            sage: loads(dumps(f.parent().zero()))
+            Free module morphism defined by the matrix
+            [0 0 0]
+            [0 0 0]
+            Domain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            Codomain: Ambient free module of rank 3 over the principal ideal domain Integer Ring
+        """
+        return self(lambda x: self.codomain().zero())
 
     def _matrix_space(self):
         """

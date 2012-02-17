@@ -855,11 +855,10 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             -Phi[3, 1, 2]
             sage: f.__class__
             <class 'sage.combinat.ncsf_qsym.generic_basis_code.AlgebraMorphism'>
-            sage: TestSuite(f).run() # known issue; see ModuleMorphismByLinearity.__init__
+            sage: TestSuite(f).run(skip=['_test_nonzero_equal']) # known issue; see ModuleMorphismByLinearity.__init__
             Failure in _test_category:
             ...
             The following tests failed: _test_category
-
         """
         assert position == 0
         assert codomain is not None

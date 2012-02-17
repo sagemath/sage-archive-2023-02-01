@@ -99,10 +99,7 @@ cdef class Module(sage.structure.parent.Parent):
         sage: M.category()
         Category of modules over Integer Ring
         sage: M.category().required_methods()
-        {'parent': {'required': ['__contains__'],
-                    'optional': []},
-         'element': {'required': [],
-                     'optional': ['_add_']}}
+        {'parent': {'required': ['__contains__'], 'optional': []}, 'element': {'required': ['__nonzero__'], 'optional': ['_add_']}}
         sage: M_QQ = Module(QQ)
         sage: M_QQ.category()
         Category of vector spaces over Rational Field

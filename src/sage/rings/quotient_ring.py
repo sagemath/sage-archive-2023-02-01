@@ -14,7 +14,12 @@ TESTS::
     sage: R.<x> = PolynomialRing(ZZ)
     sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
     sage: S = R.quotient_ring(I);
-    sage: TestSuite(S).run()
+
+.. todo::
+
+    The following skipped tests should be removed once :trac:`13999` is fixed::
+
+        sage: TestSuite(S).run(skip=['_test_nonzero_equal', '_test_elements', '_test_zero'])
 
 In trac ticket #11068, non-commutative quotient rings `R/I` were
 implemented.  The only requirement is that the two-sided ideal `I`

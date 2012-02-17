@@ -1091,8 +1091,7 @@ class Category(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: Algebras(QQ).required_methods()
-            {'parent': {'required': ['__contains__'], 'optional': []}, 'element': {'required': [], 'optional': ['_add_', '_mul_']}}
-
+            {'parent': {'required': ['__contains__'], 'optional': []}, 'element': {'required': ['__nonzero__'], 'optional': ['_add_', '_mul_']}}
         """
         return { "parent"  : abstract_methods_of_class(self.parent_class),
                  "element" : abstract_methods_of_class(self.element_class) }

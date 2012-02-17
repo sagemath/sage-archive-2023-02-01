@@ -46,6 +46,7 @@ class FreeCommutativeAdditiveMonoid(FreeCommutativeAdditiveSemigroup):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -102,5 +103,22 @@ class FreeCommutativeAdditiveMonoid(FreeCommutativeAdditiveSemigroup):
             0
         """
         return self(())
+
+    class Element(FreeCommutativeAdditiveSemigroup.Element):
+        def __nonzero__(self):
+            """
+            Check if ``self`` is not the zero of the monoid
+
+            EXAMPLES::
+
+                sage: M = CommutativeAdditiveMonoids().example()
+                sage: M.zero().__nonzero__()
+                False
+                sage: bool(M.zero())
+                False
+                sage: [bool(m) for m in M.additive_semigroup_generators()]
+                [True, True, True, True]
+            """
+            return any(x for x in self.value.values())
 
 Example = FreeCommutativeAdditiveMonoid

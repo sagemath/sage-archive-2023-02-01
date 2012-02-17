@@ -10,6 +10,7 @@ Commutative additive monoids
 #******************************************************************************
 
 from sage.categories.category import Category
+from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
@@ -79,6 +80,8 @@ class CommutativeAdditiveMonoids(Category_singleton):
             # Check that zero is immutable by asking its hash:
             tester.assertEqual(type(zero.__hash__()), int)
             tester.assertEqual(zero.__hash__(), zero.__hash__())
+            # Check that bool behave consistently on zero
+            tester.assertFalse(bool(self.zero()))
 
         @cached_method
         def zero(self):
@@ -138,7 +141,6 @@ class CommutativeAdditiveMonoids(Category_singleton):
             return sum(args, self.zero())
 
     class ElementMethods:
-        pass
 
 #         TODO: merge with the implementation in Element which currently
 #         overrides this one, and further requires self.parent()(0) to work.
@@ -159,6 +161,39 @@ class CommutativeAdditiveMonoids(Category_singleton):
 #             """
 #             return self == self.parent().zero()
 
+        @abstract_method
+        def __nonzero__(self):
+            """
+            Returns whether ``self`` is not zero
+
+            All parents in the category ``CommutativeAdditiveMonoids()``
+            should implement this method.
+
+            .. note:: This is currently not useful because this method is
+               overridden by ``Element``.
+
+            TESTS::
+
+                sage: S = CommutativeAdditiveMonoids().example()
+                sage: bool(S.zero())
+                False
+                sage: bool(S.an_element())
+                True
+             """
+
+        def _test_nonzero_equal(self, **options):
+            r"""
+            Test that ``.__nonzero__()`` behave consistently with `` == 0``.
+
+            TESTS::
+
+                sage: S = CommutativeAdditiveMonoids().example()
+                sage: S.zero()._test_nonzero_equal()
+                sage: S.an_element()._test_nonzero_equal()
+            """
+            tester = self._tester(**options)
+            tester.assertEqual(bool(self), self != self.parent().zero())
+            tester.assertEqual(not self, self == self.parent().zero())
     class WithRealizations(WithRealizationsCategory):
 
         class ParentMethods:

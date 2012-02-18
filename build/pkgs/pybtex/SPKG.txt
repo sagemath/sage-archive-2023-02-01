@@ -19,6 +19,7 @@ Burcin Erocal <burcin@erocal.org>
 
 Andrey Golovizin <golovizin@gmail.com>
 http://pybtex.sourceforge.net/
+https://code.launchpad.net/~ero-sennin/pybtex/trunk
 
 == Dependencies ==
 
@@ -29,16 +30,6 @@ This package is self contained.
 Make sure the easy_install commands in spkg-install work without internet
 access.
 
-We include a patch for pybtex to improve it's support for bibtex formats:
-
-https://code.launchpad.net/~matthias-troffaes/pybtex/doctree/+merge/55170
-
-The original version of this patch as of August 10, 2011 can be found in
-
-patches/pybtex-doc_tree.patch.org
-
-The file patches/pybtex-doc_tree.patch is rebased to apply to pybtex-0.15.
-
 == Changelog ==
 
 === pybtex-0.15 (Burcin Erocal, Niels Ranosch, August 10, 2011) ===
@@ -46,4 +37,7 @@ The file patches/pybtex-doc_tree.patch is rebased to apply to pybtex-0.15.
 
 === pybtex-0.15-r1 (Burcion Erocal, Niels Ranosch, September 27, 2011) ===
  * prevent PyYAML from checking for libyaml
+
+=== pybtex-20120218 (Niels Ranosch, February 18, 2012) ===
+ * switched to the official bazaar trunk (there are much fewer bugs)
 

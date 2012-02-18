@@ -26,15 +26,6 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-# pybtex needs a patch, so easy_install is not available
-cd src
-
-# apply patch to make pybtex support bibtex standards better
-patch -p0 < ../patches/pybtex-doc_tree.patch
-if [ $? -ne 0 ]; then
-   echo "Applying patch to pybtex failed."
-   exit 1
-fi
 
 python setup.py install --prefix="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then

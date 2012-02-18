@@ -424,8 +424,9 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         """
         wi = w.apply_simple_reflection(i, side = side)
         if w.has_descent(i, side = side):
-            return self.term(w ,  self._q1+self._q2) + \
-                   self.term(wi, -self._q1*self._q2)
+            # 10% faster than a plain addition on the example of #12528
+            return self.sum_of_terms(((w ,  self._q1+self._q2),
+                                      (wi, -self._q1*self._q2)), distinct=True)
         else:
             return self.monomial(wi)
 
@@ -441,7 +442,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
             [(q-1)*T1 + q, T2*T1]
 
         """
-        return self.sum(self.product_by_generator_on_basis(w, i)._acted_upon_(c) for (w,c) in x)
+        return self.linear_combination((self.product_by_generator_on_basis(w, i), c) for (w,c) in x)
 
     def _repr_term(self, t):
         """

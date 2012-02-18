@@ -3122,7 +3122,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 Sq^2 Sq^1
                 sage: d = Sq(0,0,1)
                 sage: d._basis_dictionary('arnonc')
-                {(7,): 1, (2, 5): 1, (4, 2, 1): 1, (4, 3): 1}
+                {(7,): 1, (2, 5): 1, (4, 3): 1, (4, 2, 1): 1}
                 sage: d.change_basis('arnonc')
                 Sq^2 Sq^5 + Sq^4 Sq^2 Sq^1 + Sq^4 Sq^3 + Sq^7
 

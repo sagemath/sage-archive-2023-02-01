@@ -27,6 +27,8 @@ if [ $? -ne 0 ]; then
 fi
 
 
+# Not using the PyPI tarballs, so easy_install not available
+cd src
 python setup.py install --prefix="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then
    echo "Error installing pybtex."

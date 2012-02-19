@@ -22,7 +22,6 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.misc.all import cached_method
 from sage.structure.parent import Parent
 from sage.misc.all import cached_method
 from sage.rings.all import (IntegerRing, is_CommutativeRing,

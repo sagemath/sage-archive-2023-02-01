@@ -729,7 +729,29 @@ class ToricVariety_field(AmbientSpace):
              To:   1-d CPR-Fano toric variety covered by 2 affine patches
             sage: type(hom_set)
             <class 'sage.schemes.generic.toric_homset.SchemeHomset_toric_variety_with_category'>
-        """
+
+        This is also the Hom-set for algebraic subschemes of toric varieties::
+
+            sage: P1xP1.inject_variables()
+            Defining s, t, x, y
+            sage: P1 = P1xP1.subscheme(s-t)
+            sage: hom_set = P1xP1.Hom(P1)
+            sage: hom_set([s,s,x,y])
+            Scheme morphism:
+              From: 2-d CPR-Fano toric variety covered by 4 affine patches
+              To:   Closed subscheme of 2-d CPR-Fano toric variety covered by 4 affine patches defined by:
+              s - t
+              Defn: Defined on coordinates by sending [s : t : x : y] to
+                    [s : s : x : y]
+
+            sage: hom_set = P1.Hom(P1)
+            sage: hom_set([s,s,x,y])
+            Scheme endomorphism of Closed subscheme of 2-d CPR-Fano toric
+            variety covered by 4 affine patches defined by:
+              s - t
+              Defn: Defined on coordinates by sending [s : t : x : y] to
+                    [t : t : x : y]
+         """
         from sage.schemes.generic.toric_homset import SchemeHomset_toric_variety
         return SchemeHomset_toric_variety(*args, **kwds)
 

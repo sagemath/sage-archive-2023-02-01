@@ -105,7 +105,7 @@ which also defines a morphism of toric varieties::
     Scheme morphism:
       From: 1-d CPR-Fano toric variety covered by 2 affine patches
       To:   2-d CPR-Fano toric variety covered by 3 affine patches
-      Defn: Defined by sending the Rational polyhedral fan in 1-d lattice N
+      Defn: Defined by sending Rational polyhedral fan in 1-d lattice N
             to Rational polyhedral fan in 2-d lattice N.
 
 The fan morphism map is equivalent to the following polynomial map::
@@ -374,7 +374,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
         Scheme morphism:
           From: 2-d CPR-Fano toric variety covered by 4 affine patches
           To:   2-d CPR-Fano toric variety covered by 3 affine patches
-          Defn: Defined by sending the Rational polyhedral fan in 2-d lattice N
+          Defn: Defined by sending Rational polyhedral fan in 2-d lattice N
                 to Rational polyhedral fan in 2-d lattice N.
         sage: type(f)
         <class 'sage.schemes.generic.toric_morphism.SchemeMorphism_fan_toric_variety'>
@@ -389,14 +389,14 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
         Scheme morphism:
           From: 2-d CPR-Fano toric variety covered by 4 affine patches
           To:   1-d CPR-Fano toric variety covered by 2 affine patches
-          Defn: Defined by sending the Rational polyhedral fan in 2-d lattice N
+          Defn: Defined by sending Rational polyhedral fan in 2-d lattice N
                to Rational polyhedral fan in 1-d lattice N.
 
         sage: P1xP1.hom(fm, P1)
         Scheme morphism:
           From: 2-d CPR-Fano toric variety covered by 4 affine patches
           To:   1-d CPR-Fano toric variety covered by 2 affine patches
-          Defn: Defined by sending the Rational polyhedral fan in 2-d lattice N
+          Defn: Defined by sending Rational polyhedral fan in 2-d lattice N
                 to Rational polyhedral fan in 1-d lattice N.
     """
 
@@ -415,7 +415,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
             Scheme morphism:
               From: 2-d CPR-Fano toric variety covered by 4 affine patches
               To:   1-d CPR-Fano toric variety covered by 2 affine patches
-              Defn: Defined by sending the Rational polyhedral fan in 2-d lattice N
+              Defn: Defined by sending Rational polyhedral fan in 2-d lattice N
                     to Rational polyhedral fan in 1-d lattice N.
         """
         SchemeMorphism.__init__(self, parent)
@@ -439,9 +439,9 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
             sage: P1 = toric_varieties.P1()
             sage: f = P1xP1.hom(matrix([[1],[0]]), P1)
             sage: f._repr_defn()
-            'Defined by sending the Rational polyhedral fan in 2-d lattice N to Rational polyhedral fan in 1-d lattice N.'
+            'Defined by sending Rational polyhedral fan in 2-d lattice N to Rational polyhedral fan in 1-d lattice N.'
         """
-        s  = 'Defined by sending the '
+        s  = 'Defined by sending '
         s += str(self.domain().fan())
         s += ' to '
         s += str(self.codomain().fan())

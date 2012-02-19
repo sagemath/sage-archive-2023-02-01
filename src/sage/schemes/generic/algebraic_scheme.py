@@ -521,6 +521,29 @@ class AlgebraicScheme(scheme.Scheme):
         """
         return "Subscheme of %s"%self.__A
 
+    def _homset(self, *args, **kwds):
+        """
+        Construct the Hom-set
+
+        INPUT:
+
+        Same as :class:`sage.schemes.generic.homset.SchemeHomset_generic`.
+
+        OUTPUT:
+
+        The Hom-set of the ambient space.
+
+        EXAMPLES::
+
+            sage: P1.<x,y> = toric_varieties.P1()
+            sage: type(P1.Hom(P1))
+            <class 'sage.schemes.generic.toric_homset.SchemeHomset_toric_variety_with_category'>
+            sage: X = P1.subscheme(x-y)
+            sage: type(X.Hom(X))
+            <class 'sage.schemes.generic.toric_homset.SchemeHomset_toric_variety_with_category'>
+        """
+        return self.__A._homset(*args, **kwds)
+
     def _point_homset(self, *args, **kwds):
         return self.__A._point_homset(*args, **kwds)
 
@@ -2068,11 +2091,11 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         INPUT:
 
         - same as for
-          :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_toric_variety`.
+          :class:`~sage.schemes.generic.toric_morphism.SchemeMorphism_polynomial_toric_variety`.
 
         OUPUT:
 
-        - :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_toric_variety`.
+        - :class:`~sage.schemes.generic.toric_morphism.SchemeMorphism_polynomial_toric_variety`.
 
         TESTS::
 
@@ -2082,6 +2105,15 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             Defining z0, z1, z2, z3
             sage: P1 = P1xP1.subscheme(z0-z2)
             sage: H = P1.Hom(P1xP1)
+            sage: H([z0,z1,z0,z3])
+            Scheme morphism:
+              From: Closed subscheme of 2-d toric variety
+              covered by 4 affine patches defined by:
+              z0 - z2
+              To:   2-d toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
+                    [z2 : z1 : z2 : z3]
+
             sage: P1._morphism(H, [z0,z1,z0,z3])
             Scheme morphism:
               From: Closed subscheme of 2-d toric variety
@@ -2093,6 +2125,23 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         """
         from sage.schemes.generic.toric_morphism import SchemeMorphism_polynomial_toric_variety
         return SchemeMorphism_polynomial_toric_variety(*args, **kwds)
+
+    def fan(self):
+        """
+        Return the fan of the ambient space.
+
+        OUTPUT:
+
+        A fan.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P(2)
+            sage: E = P2.subscheme([x^2+y^2+z^2])
+            sage: E.fan()
+            Rational polyhedral fan in 2-d lattice N
+        """
+        return self.ambient_space().fan()
 
     def affine_patch(self, i):
         r"""

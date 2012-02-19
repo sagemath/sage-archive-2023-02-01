@@ -40,4 +40,5 @@ access.
 
 === pybtex-20120218 (Niels Ranosch, February 18, 2012) ===
  * switched to the official bazaar trunk (there are much fewer bugs)
+ * removed the patches, because they were merged to the trunk
 

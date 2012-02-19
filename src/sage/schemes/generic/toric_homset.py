@@ -4,7 +4,7 @@ Set of homomorphisms between two toric varieties.
 For schemes `X` and `Y`, this module implements the set of morphisms
 `Hom(X,Y)`. This is done by :class:`SchemeHomset_generic`.
 
-As a special case, the hom sets can also represent the points of a
+As a special case, the Hom-sets can also represent the points of a
 scheme. Recall that the `K`-rational points of a scheme `X` over `k`
 can be identified with the set of morphisms `Spec(K) \to X`. In Sage,
 the rational points are implemented by such scheme morphisms. This is
@@ -12,7 +12,7 @@ done by :class:`SchemeHomset_points` and its subclasses.
 
 .. note::
 
-    You should not create the homsets manually. Instead, use the
+    You should not create the Hom-sets manually. Instead, use the
     :meth:`~sage.structure.parent.Hom` method that is inherited by all
     schemes.
 """

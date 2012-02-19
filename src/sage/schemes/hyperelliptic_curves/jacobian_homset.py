@@ -156,7 +156,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_points):
         else:
             return -1
 
-    def _morphism_class(self, *args, **kwds):
+    def _morphism(self, *args, **kwds):
         return JacobianMorphism_divisor_class_field(*args, **kwds)
 
     def curve(self):

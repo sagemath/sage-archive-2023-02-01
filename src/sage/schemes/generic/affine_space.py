@@ -274,7 +274,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
-    def _morphism_class(self, *args, **kwds):
+    def _morphism(self, *args, **kwds):
         """
         Construct a morphism determined by action on points of ``self``.
 
@@ -294,16 +294,16 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: AA.inject_variables()
             Defining a0, a1, a2
             sage: EndAA = AA.Hom(AA)
-            sage: AA._morphism_class(EndAA, [a0*a1, a1*a2, a0*a2])
+            sage: AA._morphism(EndAA, [a0*a1, a1*a2, a0*a2])
             Scheme endomorphism of Affine Space of dimension 3 over Rational Field
               Defn: Defined on coordinates by sending (a0, a1, a2) to
                     (a0*a1, a1*a2, a0*a2)
         """
         return morphism.SchemeMorphism_polynomial_affine_space(*args, **kwds)
 
-    def _point_homset_class(self, *args, **kwds):
+    def _point_homset(self, *args, **kwds):
         """
-        Construct a Hom-space for ``self``.
+        Construct a Hom-set for ``self``.
 
         INPUT:
 
@@ -318,12 +318,12 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         EXAMPLES::
 
             sage: AA = AffineSpace(QQ, 3, 'a')
-            sage: AA._point_homset_class(Spec(QQ), AA)
+            sage: AA._point_homset(Spec(QQ), AA)
             Set of rational points of Affine Space of dimension 3 over Rational Field
         """
         return homset.SchemeHomset_points_affine(*args, **kwds)
 
-    def _point_class(self, *args, **kwds):
+    def _point(self, *args, **kwds):
         r"""
         Construct a point of ``self``.
 
@@ -340,7 +340,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         TESTS::
 
             sage: AA = AffineSpace(QQ, 3, 'a')
-            sage: AA._point_class(AA.point_homset(), [0,1,2])
+            sage: AA._point(AA.point_homset(), [0,1,2])
             (0, 1, 2)
         """
         return morphism.SchemeMorphism_point_affine(*args, **kwds)

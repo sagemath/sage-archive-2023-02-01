@@ -175,14 +175,14 @@ class Scheme(Parent):
 
     __add__ = union
 
-    def _morphism_class(self, *args, **kwds):
+    def _morphism(self, *args, **kwds):
         """
         Construct a morphism determined by action on points of ``self``.
 
         EXAMPLES::
 
             sage: X = Spec(QQ)
-            sage: X._morphism_class()
+            sage: X._morphism()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -358,37 +358,37 @@ class Scheme(Parent):
         # todo: update elliptic curve stuff to take point_homset as argument
         from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
         if is_EllipticCurve(self):
-            return self._point_class(self, v, check=check)
+            return self._point(self, v, check=check)
 
         return self.point_homset() (v, check=check)
 
-    def _point_class(self):
+    def _point(self):
         """
-        Return the Hom set from some affine scheme to ``self``.
+        Return the Hom-set from some affine scheme to ``self``.
 
         OUTPUT:
 
-        A scheme hom set, see :mod:`~sage.schemes.generic.homset`.
+        A scheme Hom-set, see :mod:`~sage.schemes.generic.homset`.
 
         EXAMPLES::
 
             sage: X = Spec(QQ)
-            sage: X._point_class()
+            sage: X._point()
             Traceback (most recent call last):
             ...
             NotImplementedError
         """
         raise NotImplementedError
 
-    def _point_homset_class(self, *args, **kwds):
+    def _point_homset(self, *args, **kwds):
         """
-        Return the Hom set from ``self`` to another scheme.
+        Return the Hom-set from ``self`` to another scheme.
 
         EXAMPLES::
 
             sage: from sage.schemes.generic.scheme import Scheme
             sage: X = Scheme(QQ)
-            sage: X._point_homset_class()
+            sage: X._point_homset()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -641,10 +641,10 @@ class Scheme(Parent):
 
         INPUT:
 
-        - ``Y`` -- a scheme. The codomain of the Hom set.
+        - ``Y`` -- a scheme. The codomain of the Hom-set.
 
         - ``category`` -- a category (optional). The category of the
-          Hom set.
+          Hom-set.
 
         - ``check`` -- boolean (optional, default=``True``). Whether
           to check the defining data for consistency.

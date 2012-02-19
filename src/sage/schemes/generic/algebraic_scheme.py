@@ -521,11 +521,11 @@ class AlgebraicScheme(scheme.Scheme):
         """
         return "Subscheme of %s"%self.__A
 
-    def _point_homset_class(self, *args, **kwds):
-        return self.__A._point_homset_class(*args, **kwds)
+    def _point_homset(self, *args, **kwds):
+        return self.__A._point_homset(*args, **kwds)
 
-    def _point_class(self, *args, **kwds):
-        return self.__A._point_class(*args, **kwds)
+    def _point(self, *args, **kwds):
+        return self.__A._point(*args, **kwds)
 
 
 
@@ -1483,7 +1483,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
           x^2 - y*z
     """
 
-    def _morphism_class(self, *args, **kwds):
+    def _morphism(self, *args, **kwds):
         return morphism.SchemeMorphism_polynomial_affine_space(*args, **kwds)
 
     def dimension(self):
@@ -1679,7 +1679,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
           x^2 - y*z
     """
 
-    def _morphism_class(self, *args, **kwds):
+    def _morphism(self, *args, **kwds):
         r"""
         Construct a morphism determined by action on points of ``self``.
 
@@ -1705,7 +1705,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
               To:   Projective Space of dimension 2 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                 (x^2 : x*y : y^2)
-            sage: P1._morphism_class(H12, [x^2,x*y, y^2])
+            sage: P1._morphism(H12, [x^2,x*y, y^2])
             Scheme morphism:
               From: Projective Space of dimension 1 over Rational Field
               To:   Projective Space of dimension 2 over Rational Field
@@ -2061,7 +2061,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         super(AlgebraicScheme_subscheme_toric, self).__init__(toric_variety,
                                                               polynomials)
 
-    def _morphism_class(self, *args, **kwds):
+    def _morphism(self, *args, **kwds):
         r"""
         Construct a morphism determined by action on points of ``self``.
 
@@ -2082,7 +2082,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             Defining z0, z1, z2, z3
             sage: P1 = P1xP1.subscheme(z0-z2)
             sage: H = P1.Hom(P1xP1)
-            sage: P1._morphism_class(H, [z0,z1,z0,z3])
+            sage: P1._morphism(H, [z0,z1,z0,z3])
             Scheme morphism:
               From: Closed subscheme of 2-d toric variety
               covered by 4 affine patches defined by:

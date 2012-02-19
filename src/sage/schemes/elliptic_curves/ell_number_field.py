@@ -157,7 +157,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             raise TypeError
 
         EllipticCurve_field.__init__(self, [field(x) for x in ainvs])
-        self._point_class = ell_point.EllipticCurvePoint_number_field
+        self._point = ell_point.EllipticCurvePoint_number_field
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""

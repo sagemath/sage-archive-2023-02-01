@@ -63,7 +63,7 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
 
         EllipticCurve_field.__init__(self, [field(x) for x in ainvs])
 
-        self._point_class = ell_point.EllipticCurvePoint_field
+        self._point = ell_point.EllipticCurvePoint_field
         self._genus = 1
 
     def frobenius(self, P=None):

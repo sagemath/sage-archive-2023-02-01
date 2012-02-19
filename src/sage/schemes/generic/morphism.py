@@ -11,39 +11,39 @@ Scheme morphism
 If you want to extend the Sage library with some new kind of scheme,
 your new class (say, ``myscheme``) should provide a method
 
-* ``myscheme._morphism_class(*args, **kwds)`` returning a morphism
+* ``myscheme._morphism(*args, **kwds)`` returning a morphism
   between two schemes in your category, usually defined via
   polynomials. Your morphism class should derive from
   :class:`SchemeMorphism_polynomial`. These morphisms will usually be
-  elements of the hom set
+  elements of the Hom-set
   :class:`~sage.schemes.generic.homset.SchemeHomset_generic`.
 
-Optionally, you can also provide a special hom set class for your
+Optionally, you can also provide a special Hom-set class for your
 subcategory of schemes. If you want to do this, you should also
 provide a method
 
-* ``myscheme._homset_class(*args, **kwds)`` returning a
-  homset, which must be an element of a derived class of
+* ``myscheme._homset(*args, **kwds)`` returning a
+  Hom-set, which must be an element of a derived class of
   `class:`~sage.schemes.generic.homset.SchemeHomset_generic`. If your
-  new homset class does not use ``myscheme._morphism_class`` then you
+  new Hom-set class does not use ``myscheme._morphism`` then you
   do not have to provide it.
 
 Note that points on schemes are morphisms `Spec(K)\to X`, too. But we
 typically use a different notation, so they are implemented in a
 different derived class. For this, you should implement a method
 
-* ``myscheme._point_class(*args, **kwds)`` returning a point, that is,
+* ``myscheme._point(*args, **kwds)`` returning a point, that is,
   a morphism `Spec(K)\to X`. Your point class should derive from
   :class:`SchemeMorphism_point`.
 
-Optionally, you can also provide a special hom set for the points, for
-example the point hom set can provide a method to enumerate all
+Optionally, you can also provide a special Hom-set for the points, for
+example the point Hom-set can provide a method to enumerate all
 points. If you want to do this, you should also provide a method
 
-* ``myscheme._point_homset_class(*args, **kwds)`` returning
-  the :mod:`~sage.schemes.generic.homset` of points. The hom sets of
+* ``myscheme._point_homset(*args, **kwds)`` returning
+  the :mod:`~sage.schemes.generic.homset` of points. The Hom-sets of
   points are implemented in classes named ``SchemeHomset_points_...``.
-  If your new homset class does not use ``myscheme._point_class`` then
+  If your new Hom-set class does not use ``myscheme._point`` then
   you do not have to provide it.
 
 AUTHORS:
@@ -58,8 +58,8 @@ AUTHORS:
 """
 
 # Historical note: in trac #11599, V.B. renamed
-# * _point_morphism_class -> _morphism_class
-# * _homset_class -> _point_homset_class
+# * _point_morphism_class -> _morphism
+# * _homset_class -> _point_homset
 
 #*****************************************************************************
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
@@ -255,7 +255,7 @@ class SchemeMorphism(Element):
 
     def category(self):
         """
-        Return the category of the hom set.
+        Return the category of the Hom-set.
 
         OUTPUT:
 
@@ -456,7 +456,7 @@ class SchemeMorphism_structure_map(SchemeMorphism):
 
     INPUT:
 
-    - ``parent`` -- homset with codomain equal to the base scheme of
+    - ``parent`` -- Hom-set with codomain equal to the base scheme of
       the domain.
 
     EXAMPLES::
@@ -508,7 +508,7 @@ class SchemeMorphism_spec(SchemeMorphism):
 
     INPUT:
 
-    - ``parent`` -- homset whose domain and codomain are affine schemes.
+    - ``parent`` -- Hom-set whose domain and codomain are affine schemes.
 
     - ``phi`` -- a ring morphism with matching domain and codomain.
 
@@ -674,7 +674,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
     INPUT:
 
-    - ``parent`` -- homset whose domain and codomain are affine schemes.
+    - ``parent`` -- Hom-set whose domain and codomain are affine schemes.
 
     - ``polys`` -- a list/tuple/iterable of polynomials defining the
       scheme morphism.

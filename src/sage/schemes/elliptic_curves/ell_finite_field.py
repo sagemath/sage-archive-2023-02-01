@@ -97,7 +97,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         EllipticCurve_field.__init__(self, ainvs)
 
-        self._point_class = ell_point.EllipticCurvePoint_finite_field
+        self._point = ell_point.EllipticCurvePoint_finite_field
 
     def plot(self, *args, **kwds):
         """

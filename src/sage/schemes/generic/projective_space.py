@@ -348,13 +348,49 @@ class ProjectiveSpace_ring(AmbientSpace):
         """
         return "{\\mathbf P}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
-    def _morphism_class(self, *args, **kwds):
+    def _morphism(self, *args, **kwds):
+        """
+        Construct a morphism.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2, GF(3))
+            sage: P2._morphism(P2.Hom(P2), [x,y,z])
+            Scheme endomorphism of Projective Space of dimension 2 over Finite Field of size 3
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x : y : z)
+        """
         return morphism.SchemeMorphism_polynomial_projective_space(*args, **kwds)
 
-    def _point_homset_class(self, *args, **kwds):
+    def _point_homset(self, *args, **kwds):
+        """
+        Construct a point Hom-set.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2, GF(3))
+            sage: P2._point_homset(Spec(GF(3)), P2)
+            Set of rational points of Projective Space of dimension 2 over Finite Field of size 3
+        """
         return homset.SchemeHomset_points_projective_ring(*args, **kwds)
 
-    def _point_class(self, *args, **kwds):
+    def _point(self, *args, **kwds):
+        """
+        Construct a point.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2, GF(3))
+            sage: point_homset = P2._point_homset(Spec(GF(3)), P2)
+            sage: P2._point(point_homset, [1,2,3])
+            (2 : 1 : 0)
+        """
         return morphism.SchemeMorphism_point_projective_ring(*args, **kwds)
 
     def _repr_(self):
@@ -459,9 +495,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         INPUT:
 
-
         -  ``X`` - a list or tuple of equations
-
 
         EXAMPLES::
 
@@ -504,13 +538,11 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         INPUT:
 
+        - ``i`` -- integer between 0 and dimension of self, inclusive.
 
-        -  ``i`` - integer between 0 and dimension of self,
-           inclusive.
+        OUTPUT:
 
-
-        OUTPUT: an ambient affine space with fixed projective_embedding
-        map.
+        An ambient affine space with fixed projective_embedding map.
 
         EXAMPLES::
 
@@ -550,10 +582,33 @@ class ProjectiveSpace_ring(AmbientSpace):
 
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
-    def _point_homset_class(self, *args, **kwds):
+    def _point_homset(self, *args, **kwds):
+        """
+        Construct a point Hom-set.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2, GF(3))
+            sage: P2._point_homset(Spec(GF(3)), P2)
+            Set of rational points of Projective Space of dimension 2 over Finite Field of size 3
+        """
         return homset.SchemeHomset_points_projective_field(*args, **kwds)
 
-    def _point_class(self, *args, **kwds):
+    def _point(self, *args, **kwds):
+        """
+        Construct a point.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2, GF(3))
+            sage: point_homset = P2._point_homset(Spec(GF(3)), P2)
+            sage: P2._point(point_homset, [1,2,3])
+            (2 : 1 : 0)
+        """
         return morphism.SchemeMorphism_point_projective_field(*args, **kwds)
 
 

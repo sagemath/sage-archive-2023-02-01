@@ -4,7 +4,7 @@ Set of homomorphisms between two schemes
 For schemes `X` and `Y`, this module implements the set of morphisms
 `Hom(X,Y)`. This is done by :class:`SchemeHomset_generic`.
 
-As a special case, the hom sets can also represent the points of a
+As a special case, the Hom-sets can also represent the points of a
 scheme. Recall that the `K`-rational points of a scheme `X` over `k`
 can be identified with the set of morphisms `Spec(K) \to X`. In Sage
 the rational points are implemented by such scheme morphisms. This is
@@ -12,7 +12,7 @@ done by :class:`SchemeHomset_points` and its subclasses.
 
 .. note::
 
-    You should not create the homsets manually. Instead, use the
+    You should not create the Hom-sets manually. Instead, use the
     :meth:`~sage.structure.parent.Hom` method that is inherited by all
     schemes.
 
@@ -56,7 +56,7 @@ from sage.schemes.generic.toric_morphism import SchemeMorphism_point_toric_field
 
 def is_SchemeHomset(H):
     r"""
-    Test whether ``H`` is a scheme homset.
+    Test whether ``H`` is a scheme Hom-set.
 
     EXAMPLES::
 
@@ -79,7 +79,7 @@ def is_SchemeHomset(H):
 #*******************************************************************
 class SchemeHomsetFactory(UniqueFactory):
     """
-    Factory for Hom sets of schemes.
+    Factory for Hom-sets of schemes.
 
     EXAMPLES::
 
@@ -87,7 +87,7 @@ class SchemeHomsetFactory(UniqueFactory):
         sage: A3 = AffineSpace(QQ,3)
         sage: Hom = A3.Hom(A2)
 
-    The Hom sets are unique::
+    The Hom-sets are unique::
 
         sage: Hom is copy(Hom)
         True
@@ -96,7 +96,7 @@ class SchemeHomsetFactory(UniqueFactory):
         sage: loads(Hom.dumps()) is Hom
         True
 
-    Here is a tricky point. The Hom sets are not identical if
+    Here is a tricky point. The Hom-sets are not identical if
     domains/codomains are isomorphic but not identiacal::
 
         sage: A3_iso = AffineSpace(QQ,3)
@@ -119,7 +119,7 @@ class SchemeHomsetFactory(UniqueFactory):
     def create_key_and_extra_args(self, X, Y, category=None, base=ZZ,
                                   check=True):
         """
-        Create a key that uniquely determines the Hom set.
+        Create a key that uniquely determines the Hom-set.
 
         INPUT:
 
@@ -127,7 +127,7 @@ class SchemeHomsetFactory(UniqueFactory):
 
         - ``Y`` -- a scheme. The codomain of the morphisms.
 
-        - ``category`` -- a category for the Hom sets (default: schemes over
+        - ``category`` -- a category for the Hom-sets (default: schemes over
           given base).
 
         - ``base`` -- a scheme or a ring. The base scheme of domain
@@ -205,9 +205,9 @@ class SchemeHomsetFactory(UniqueFactory):
         Y = extra_args.pop('Y')
         base_ring = extra_args.pop('base_ring')
         if is_Spec(X):
-            return Y._point_homset_class(X, Y, category=category, base=base_ring, **extra_args)
+            return Y._point_homset(X, Y, category=category, base=base_ring, **extra_args)
         try:
-            return X._homset_class(X, Y, category=category, base=base_ring, **extra_args)
+            return X._homset(X, Y, category=category, base=base_ring, **extra_args)
         except AttributeError:
             return SchemeHomset_generic(X, Y, category=category, base=base_ring, **extra_args)
 
@@ -221,16 +221,16 @@ SchemeHomset = SchemeHomsetFactory('sage.schemes.generic.homset.SchemeHomset')
 #*******************************************************************
 class SchemeHomset_generic(HomsetWithBase):
     r"""
-    The base class for Hom sets of schemes.
+    The base class for Hom-sets of schemes.
 
     INPUT:
 
-    - ``X`` -- a scheme. The domain of the Hom set.
+    - ``X`` -- a scheme. The domain of the Hom-set.
 
-    - ``Y`` -- a scheme. The codomain of the Hom set.
+    - ``Y`` -- a scheme. The codomain of the Hom-set.
 
-    - ``category`` -- a category (optional). The category of the Hom
-      set.
+    - ``category`` -- a category (optional). The category of the
+      Hom-set.
 
     - ``check`` -- boolean (optional, default=``True``). Whether to
       check the defining data for consistency.
@@ -250,7 +250,7 @@ class SchemeHomset_generic(HomsetWithBase):
 
     def __call__(self, *args, **kwds):
         r"""
-        Make Hom sets callable.
+        Make Hom-sets callable.
 
         See the ``_call_()`` method of the derived class. All
         arguments are handed through.
@@ -370,7 +370,7 @@ class SchemeHomset_generic(HomsetWithBase):
             TypeError: x must be a ring homomorphism, list or tuple
         """
         if isinstance(x, (list, tuple)):
-            return self.domain()._morphism_class(self, x, check=check)
+            return self.domain()._morphism(self, x, check=check)
 
         if is_RingHomomorphism(x):
             return SchemeMorphism_spec(self, x, check=check)
@@ -425,7 +425,7 @@ class SchemeHomset_points(SchemeHomset_generic):
         INPUT:
 
         - ``v`` -- anything that determines a scheme morphism in the
-          hom set.
+          Hom-set.
 
         OUTPUT:
 
@@ -455,7 +455,7 @@ class SchemeHomset_points(SchemeHomset_generic):
         """
         if len(v) == 1:
             v = v[0]
-        return self.codomain()._point_class(self, v, **kwds)
+        return self.codomain()._point(self, v, **kwds)
 
     def extended_codomain(self):
         """
@@ -510,7 +510,7 @@ class SchemeHomset_points(SchemeHomset_generic):
 
     def value_ring(self):
         """
-        Return `R` for a point homset `X(Spec(R))`.
+        Return `R` for a point Hom-set `X(Spec(R))`.
 
         OUTPUT:
 
@@ -819,7 +819,7 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
         INPUT:
 
         - ``v`` -- anything that determines a scheme morphism in the
-          hom set.
+          Hom-set.
 
         OUTPUT:
 
@@ -841,7 +841,7 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
         """
         if len(v) == 1:
             v = v[0]
-        return self.codomain()._point_class(self.extended_codomain(), v, **kwds)
+        return self.codomain()._point(self.extended_codomain(), v, **kwds)
 
     def _repr_(self):
         """

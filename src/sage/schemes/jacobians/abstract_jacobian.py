@@ -144,7 +144,25 @@ class Jacobian_generic(Scheme):
         """
         return "Jacobian of %s"%self.__curve
 
-    def _point_class(self):
+    def _point(self):
+        """
+        Return the Hom-set from some affine scheme to ``self``.
+
+        OUTPUT:
+
+        This method always raises a ``NotImplementedError``; it is
+        only abstract.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.jacobians.abstract_jacobian import Jacobian
+            sage: P2.<x, y, z> = ProjectiveSpace(QQ, 2)
+            sage: J = Jacobian(Curve(x^3 + y^3 + z^3))
+            sage: J._point()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def curve(self):

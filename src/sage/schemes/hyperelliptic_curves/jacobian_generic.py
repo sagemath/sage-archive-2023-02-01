@@ -129,10 +129,10 @@ class HyperellipticJacobian_generic(Jacobian_generic):
         except AttributeError:
             raise ValueError, "Arguments must determine a valid Mumford divisor."
 
-    def _point_homset_class(self, *args, **kwds):
+    def _point_homset(self, *args, **kwds):
         return jacobian_homset.JacobianHomset_divisor_classes(*args, **kwds)
 
-    def _point_class(self, *args, **kwds):
+    def _point(self, *args, **kwds):
         return jacobian_morphism.JacobianMorphism_divisor_class_field(*args, **kwds)
 
     def _cmp_(self,other):

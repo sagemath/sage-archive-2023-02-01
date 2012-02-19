@@ -353,11 +353,11 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
 
     INPUT:
 
-    - ``parent`` -- homset whose domain and codomain are toric varieties.
+    - ``parent`` -- Hom-set whose domain and codomain are toric varieties.
 
     - ``fan_morphism`` -- A morphism of fans whose domain and codomain
       fans equal the fans of the domain and codomain in the ``parent``
-      homset.
+      Hom-set.
 
     - ``check`` -- boolean (optional, default:``True``). Whether to
       check the input for consistency.

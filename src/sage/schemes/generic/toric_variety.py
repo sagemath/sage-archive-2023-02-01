@@ -616,9 +616,9 @@ class ToricVariety_field(AmbientSpace):
         raise TypeError("coordinates %s are in the exceptional set!"
                         % str(coordinates)) # Need str, coordinates is a tuple
 
-    def _point_homset_class(self, *args, **kwds):
+    def _point_homset(self, *args, **kwds):
         r"""
-        Construct a `Hom`-space for ``self``.
+        Construct a Hom-set for ``self``.
 
         INPUT:
 
@@ -634,7 +634,7 @@ class ToricVariety_field(AmbientSpace):
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
             sage: P1xP1 = ToricVariety(fan)
-            sage: P1xP1._point_homset_class(Spec(QQ), P1xP1)
+            sage: P1xP1._point_homset(Spec(QQ), P1xP1)
             Set of rational points of 2-d toric variety
             covered by 4 affine patches
         """
@@ -684,7 +684,7 @@ class ToricVariety_field(AmbientSpace):
         return r"\left[%s\right]" % (" : ".join(str(latex(coord))
                                                 for coord in coordinates))
 
-    def _point_class(self, *args, **kwds):
+    def _point(self, *args, **kwds):
         r"""
         Construct a point of ``self``.
 
@@ -701,13 +701,13 @@ class ToricVariety_field(AmbientSpace):
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
             sage: P1xP1 = ToricVariety(fan)
-            sage: P1xP1._point_class(P1xP1, [1,2,3,4])
+            sage: P1xP1._point(P1xP1, [1,2,3,4])
             [1 : 2 : 3 : 4]
         """
         from sage.schemes.generic.toric_morphism import SchemeMorphism_point_toric_field
         return SchemeMorphism_point_toric_field(*args, **kwds)
 
-    def _homset_class(self, *args, **kwds):
+    def _homset(self, *args, **kwds):
         r"""
         Return the homset between two toric varieties.
 

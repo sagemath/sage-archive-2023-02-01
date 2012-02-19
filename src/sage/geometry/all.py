@@ -6,7 +6,7 @@ from fan_morphism import FanMorphism
 
 from polytope import polymake
 
-from polyhedra import Polyhedron, polytopes
+from polyhedron.all import *
 
 from lattice_polytope import (LatticePolytope, NefPartition, ReflexivePolytope,
                               ReflexivePolytopes)

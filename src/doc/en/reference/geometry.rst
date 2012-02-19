@@ -18,7 +18,17 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/rings/polynomial/groebner_fan
 
    sage/geometry/lattice_polytope
-   sage/geometry/polyhedra
+
+   sage/geometry/polyhedron/constructor
+   sage/geometry/polyhedron/representation
+   sage/geometry/polyhedron/library
+   sage/geometry/polyhedron/plot
+   sage/geometry/polyhedron/base
+   sage/geometry/polyhedron/base_QQ
+   sage/geometry/polyhedron/base_RDF
+   sage/geometry/polyhedron/backend_cdd
+   sage/geometry/polyhedron/backend_ppl
+   sage/geometry/polyhedron/cdd_file_format
 
    sage/geometry/triangulation/point_configuration
    sage/geometry/triangulation/base

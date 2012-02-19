@@ -586,7 +586,7 @@ class Triangulation(Element):
             sage: p = polytopes.cuboctahedron()
             sage: sc = p.triangulate(engine='internal').simplicial_complex()
             sage: sc
-            Simplicial complex with 12 vertices and 17 facets
+            Simplicial complex with 12 vertices and 16 facets
 
         Any convex set is contractable, so its reduced homology groups vanish::
 

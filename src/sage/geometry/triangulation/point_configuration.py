@@ -1072,14 +1072,14 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: p.convex_hull()
-            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices.
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
         """
         try:
             return self._polyhedron
         except AttributeError:
             pass
 
-        from sage.geometry.polyhedra import Polyhedron
+        from sage.geometry.polyhedron.constructor import Polyhedron
         pts = [ p.reduced_affine() for p in self.points() ];
         self._polyhedron = Polyhedron(vertices=pts);
         return self._polyhedron
@@ -1329,35 +1329,35 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         The secondary polytope of the point configuration as an
         instance of
-        :class:`sage.geometry.polyhedra.Polyhedron`.
+        :class:`~sage.geometry.polyhedron.base.Polyhedron_base`.
 
         EXAMPLES::
 
             sage: p = PointConfiguration([[0,0],[1,0],[2,1],[1,2],[0,1]])
             sage: poly = p.secondary_polytope()
             sage: matrix(poly.vertices()).transpose()
-            [1 3 1 5 3]
-            [3 1 5 1 4]
-            [4 5 2 4 2]
-            [2 2 4 4 5]
-            [5 4 3 1 1]
+            [1 1 3 3 5]
+            [3 5 1 4 1]
+            [4 2 5 2 4]
+            [2 4 2 5 4]
+            [5 3 4 1 1]
             sage: poly.Vrepresentation()
-            [A vertex at (1, 3, 4, 2, 5),
-             A vertex at (3, 1, 5, 2, 4),
+            (A vertex at (1, 3, 4, 2, 5),
              A vertex at (1, 5, 2, 4, 3),
-             A vertex at (5, 1, 4, 4, 1),
-             A vertex at (3, 4, 2, 5, 1)]
+             A vertex at (3, 1, 5, 2, 4),
+             A vertex at (3, 4, 2, 5, 1),
+             A vertex at (5, 1, 4, 4, 1))
             sage: poly.Hrepresentation()
-            [An equation (1/2, 1, 1, 0, 0) x - 15/2 == 0,
-             An equation (-1, -1, 0, 1, 0) x + 2 == 0,
-             An equation (3/2, 1, 0, 0, 1) x - 19/2 == 0,
-             An inequality (-1, -2, 0, 0, 0) x + 11 >= 0,
-             An inequality (1, 0, 0, 0, 0) x - 1 >= 0,
-             An inequality (1, 1, 0, 0, 0) x - 4 >= 0,
-             An inequality (0, 1, 0, 0, 0) x - 1 >= 0,
-             An inequality (-3/2, -1, 0, 0, 0) x + 17/2 >= 0]
+            (An equation (0, 0, 1, 2, 1) x - 13 == 0,
+             An equation (1, 0, 0, 2, 2) x - 15 == 0,
+             An equation (0, 1, 0, -3, -2) x + 13 == 0,
+             An inequality (0, 0, 0, -1, -1) x + 7 >= 0,
+             An inequality (0, 0, 0, 1, 0) x - 2 >= 0,
+             An inequality (0, 0, 0, -2, -1) x + 11 >= 0,
+             An inequality (0, 0, 0, 0, 1) x - 1 >= 0,
+             An inequality (0, 0, 0, 3, 2) x - 14 >= 0)
         """
-        from sage.geometry.polyhedra import Polyhedron
+        from sage.geometry.polyhedron.constructor import Polyhedron
         #TODO: once restriction to regular triangulations is fixed,
         #change the next line to only take the regular triangulations,
         #since they are the vertices of the secondary polytope anyway.

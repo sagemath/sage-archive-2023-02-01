@@ -107,7 +107,7 @@ basis vectors::
     ...      gs.insert(point( sum( (coeff[i]+1)*x[i] for i in basis ) ))
     ...
     sage: C_Polyhedron(gs)
-    A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 points.
+    A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 points
 
 The above computation (using PPL) finishes without noticeable delay (timeit
 measures it to be 90 microseconds on sage.math). Below we do the same
@@ -116,8 +116,8 @@ hardware::
 
     sage: basis = range(0,5)
     sage: gs = [ tuple(coeff) for coeff in permutations(basis) ]
-    sage: Polyhedron(vertices=gs)  # long time (3s on sage.math, 2011)
-    A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 vertices.
+    sage: Polyhedron(vertices=gs, backend='cddr')  # long time (3s on sage.math, 2011)
+    A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 vertices
 
 DIFFERENCES VS. C++
 
@@ -129,7 +129,7 @@ necessarily some differences. The main ones are:
 
 * :class:`Polyhedron` and its subclasses as well as
   :class:`Generator_System` and :class:`Constraint_System` can be set
-  immutable via a ``set_immutable()` method. This is the analog of
+  immutable via a ``set_immutable()`` method. This is the analog of
   declaring a C++ instance ``const``. All other classes are immutable
   by themselves.
 
@@ -634,14 +634,14 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: x = Variable(0)
             sage: y = Variable(1)
             sage: C_Polyhedron( 5*x-2*y >=  x+y-1 ).__repr__()
-            'A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 ray, 1 line.'
+            'A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 ray, 1 line'
 
         Special cases::
 
             sage: C_Polyhedron(3, 'empty').__repr__()
-            'The empty polyhedron in QQ^3.'
+            'The empty polyhedron in QQ^3'
             sage: C_Polyhedron(3, 'universe').__repr__()
-            'The space-filling polyhedron in QQ^3.'
+            'The space-filling polyhedron in QQ^3'
         """
         dim = self.affine_dimension()
         ambient_dim = self.space_dimension()
@@ -662,9 +662,9 @@ cdef class Polyhedron(_mutable_or_immutable):
             else:
                 assert False
         if self.is_empty():
-            return 'The empty polyhedron in QQ^'+str(ambient_dim)+'.'
+            return 'The empty polyhedron in QQ^'+str(ambient_dim)
         if self.is_universe():
-            return 'The space-filling polyhedron in QQ^'+str(ambient_dim)+'.'
+            return 'The space-filling polyhedron in QQ^'+str(ambient_dim)
         desc = 'A ' + str(dim) + '-dimensional polyhedron'
         desc += ' in QQ'
         desc += '^' + str(ambient_dim)
@@ -698,7 +698,7 @@ cdef class Polyhedron(_mutable_or_immutable):
             desc += repr(n_lines)
             if n_lines==1: desc +=' line'
             else:          desc +=' lines'
-        return desc + ".";
+        return desc;
 
 
     def space_dimension(self):
@@ -1811,9 +1811,9 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: x = Variable(0)
             sage: y = Variable(1)
             sage: p = C_Polyhedron( point(x+y) ); p
-            A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point.
+            A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point
             sage: p.unconstrain(x); p
-            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 line.
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 line
             sage: z = Variable(2)
             sage: p.unconstrain(z)
             Traceback (most recent call last):
@@ -2433,6 +2433,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         return result
 
 
+
 ####################################################
 ### C_Polyhedron ###################################
 ####################################################
@@ -2483,28 +2484,28 @@ cdef class C_Polyhedron(Polyhedron):
         sage: x = Variable(0)
         sage: y = Variable(1)
         sage: C_Polyhedron( 5*x-2*y >=  x+y-1 )
-        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 ray, 1 line.
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 ray, 1 line
         sage: cs = Constraint_System()
         sage: cs.insert( x >= 0 )
         sage: cs.insert( y >= 0 )
         sage: C_Polyhedron(cs)
-        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 2 rays.
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 2 rays
         sage: C_Polyhedron( point(x+y) )
-        A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point.
+        A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point
         sage: gs = Generator_System()
         sage: gs.insert( point(-x-y) )
         sage: gs.insert( ray(x) )
         sage: C_Polyhedron(gs)
-        A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 ray.
+        A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 ray
 
     The empty and universe polyhedra are constructed like this::
 
         sage: C_Polyhedron(3, 'empty')
-        The empty polyhedron in QQ^3.
+        The empty polyhedron in QQ^3
         sage: C_Polyhedron(3, 'empty').constraints()
         Constraint_System {-1==0}
         sage: C_Polyhedron(3, 'universe')
-        The space-filling polyhedron in QQ^3.
+        The space-filling polyhedron in QQ^3
         sage: C_Polyhedron(3, 'universe').constraints()
         Constraint_System {}
 
@@ -2533,21 +2534,21 @@ cdef class C_Polyhedron(Polyhedron):
 
             sage: from sage.libs.ppl import C_Polyhedron
             sage: C_Polyhedron(3, 'empty')   # indirect doctest
-            The empty polyhedron in QQ^3.
+            The empty polyhedron in QQ^3
         """
-        if PY_TYPE_CHECK(arg, C_Polyhedron):
+        if isinstance(arg, C_Polyhedron):
             ph = <C_Polyhedron>arg
             self.thisptr = new PPL_C_Polyhedron(<PPL_C_Polyhedron&>ph.thisptr[0])
             return
-        if PY_TYPE_CHECK(arg, Generator):
+        if isinstance(arg, Generator):
             arg = Generator_System(arg)
-        if PY_TYPE_CHECK(arg, Constraint):
+        if isinstance(arg, Constraint):
             arg = Constraint_System(arg)
-        if PY_TYPE_CHECK(arg, Generator_System):
+        if isinstance(arg, Generator_System):
             gs = <Generator_System>arg
             self.thisptr = new PPL_C_Polyhedron(gs.thisptr[0])
             return
-        if PY_TYPE_CHECK(arg, Constraint_System):
+        if isinstance(arg, Constraint_System):
             cs = <Constraint_System>arg
             self.thisptr = new PPL_C_Polyhedron(cs.thisptr[0])
             return
@@ -2577,7 +2578,7 @@ cdef class C_Polyhedron(Polyhedron):
 
             sage: from sage.libs.ppl import C_Polyhedron
             sage: C_Polyhedron(3, 'empty')   # indirect doctest
-            The empty polyhedron in QQ^3.
+            The empty polyhedron in QQ^3
         """
         # override Polyhedron.__init__
         pass
@@ -2590,6 +2591,33 @@ cdef class C_Polyhedron(Polyhedron):
         del self.thisptr
 
 
+    def __reduce__(self):
+        """
+        Pickle object
+
+        TESTS::
+
+            sage: from sage.libs.ppl import C_Polyhedron, Variable
+            sage: P = C_Polyhedron(3, 'empty')
+            sage: loads(dumps(P))
+            The empty polyhedron in QQ^3
+
+            sage: Q = C_Polyhedron(5, 'universe')
+            sage: loads(dumps(Q))
+            The space-filling polyhedron in QQ^5
+
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: H = C_Polyhedron( 5*x-2*y >=  x+y-1 )
+            sage: loads(dumps(H))
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 ray, 1 line
+        """
+        if self.is_empty():
+            return (C_Polyhedron, (self.space_dimension(), 'empty'))
+        elif self.is_universe():
+            return (C_Polyhedron, (self.space_dimension(), 'universe'))
+        else:
+            return (C_Polyhedron, (self.generators(),))
 
 
 ####################################################
@@ -2644,20 +2672,20 @@ cdef class NNC_Polyhedron(Polyhedron):
         sage: x = Variable(0)
         sage: y = Variable(1)
         sage: NNC_Polyhedron( 5*x-2*y >  x+y-1 )
-        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 closure_point, 1 ray, 1 line.
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 closure_point, 1 ray, 1 line
         sage: cs = Constraint_System()
         sage: cs.insert( x > 0 )
         sage: cs.insert( y > 0 )
         sage: NNC_Polyhedron(cs)
-        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 closure_point, 2 rays.
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 closure_point, 2 rays
         sage: NNC_Polyhedron( point(x+y) )
-        A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point.
+        A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point
         sage: gs = Generator_System()
         sage: gs.insert( point(-y) )
         sage: gs.insert( closure_point(-x-y) )
         sage: gs.insert( ray(x) )
         sage: p = NNC_Polyhedron(gs); p
-        A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 closure_point, 1 ray.
+        A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 closure_point, 1 ray
         sage: p.minimized_constraints()
         Constraint_System {x1+1==0, x0+1>0}
 
@@ -2682,25 +2710,25 @@ cdef class NNC_Polyhedron(Polyhedron):
 
             sage: from sage.libs.ppl import NNC_Polyhedron
             sage: NNC_Polyhedron(3, 'empty')   # indirect doctest
-            The empty polyhedron in QQ^3.
+            The empty polyhedron in QQ^3
         """
-        if PY_TYPE_CHECK(arg, NNC_Polyhedron):
+        if isinstance(arg, NNC_Polyhedron):
             p_nnc = <NNC_Polyhedron>arg
             self.thisptr = new PPL_NNC_Polyhedron(<PPL_NNC_Polyhedron&>p_nnc.thisptr[0])
             return
-        if PY_TYPE_CHECK(arg, C_Polyhedron):
+        if isinstance(arg, C_Polyhedron):
             p_c = <C_Polyhedron>arg
             self.thisptr = new PPL_NNC_Polyhedron(<PPL_C_Polyhedron&>p_c.thisptr[0])
             return
-        if PY_TYPE_CHECK(arg, Generator):
+        if isinstance(arg, Generator):
             arg = Generator_System(arg)
-        if PY_TYPE_CHECK(arg, Constraint):
+        if isinstance(arg, Constraint):
             arg = Constraint_System(arg)
-        if PY_TYPE_CHECK(arg, Generator_System):
+        if isinstance(arg, Generator_System):
             gs = <Generator_System>arg
             self.thisptr = new PPL_NNC_Polyhedron(gs.thisptr[0])
             return
-        if PY_TYPE_CHECK(arg, Constraint_System):
+        if isinstance(arg, Constraint_System):
             cs = <Constraint_System>arg
             self.thisptr = new PPL_NNC_Polyhedron(cs.thisptr[0])
             return
@@ -2730,7 +2758,7 @@ cdef class NNC_Polyhedron(Polyhedron):
 
             sage: from sage.libs.ppl import NNC_Polyhedron
             sage: NNC_Polyhedron(3, 'empty')   # indirect doctest
-            The empty polyhedron in QQ^3.
+            The empty polyhedron in QQ^3
         """
         # override Polyhedron.__init__
         pass
@@ -2742,6 +2770,35 @@ cdef class NNC_Polyhedron(Polyhedron):
         """
         del self.thisptr
 
+
+    def __reduce__(self):
+        """
+        Pickle object
+
+        TESTS::
+
+            sage: from sage.libs.ppl import NNC_Polyhedron, Variable
+            sage: P = NNC_Polyhedron(3, 'empty')
+            sage: loads(dumps(P))
+            The empty polyhedron in QQ^3
+
+            sage: Q = NNC_Polyhedron(5, 'universe')
+            sage: loads(dumps(Q))
+            The space-filling polyhedron in QQ^5
+
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: H = NNC_Polyhedron( 5*x-2*y >  x+y-1 )
+            sage: loads(dumps(H))
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point,
+            1 closure_point, 1 ray, 1 line
+        """
+        if self.is_empty():
+            return (NNC_Polyhedron, (self.space_dimension(), 'empty'))
+        elif self.is_universe():
+            return (NNC_Polyhedron, (self.space_dimension(), 'universe'))
+        else:
+            return (NNC_Polyhedron, (self.generators(),))
 
 
 ####################################################
@@ -2966,7 +3023,7 @@ cdef class Variable(object):
             sage: 15 * y
             15*x1
         """
-        if PY_TYPE_CHECK(self, Variable):
+        if isinstance(self, Variable):
             return Linear_Expression(self) * other
         else:
             return Linear_Expression(other) * self
@@ -3134,11 +3191,11 @@ cdef class Linear_Expression(object):
         else:
             assert False, 'Cannot initialize with more than 2 arguments.'
 
-        if PY_TYPE_CHECK(arg, Variable):
+        if isinstance(arg, Variable):
             v = <Variable>arg
             self.thisptr = new PPL_Linear_Expression(v.thisptr[0])
             return
-        if PY_TYPE_CHECK(arg, Linear_Expression):
+        if isinstance(arg, Linear_Expression):
             e = <Linear_Expression>arg
             self.thisptr = new PPL_Linear_Expression(e.thisptr[0])
             return
@@ -3473,7 +3530,7 @@ cdef class Linear_Expression(object):
         """
         cdef Linear_Expression e
         cdef Integer c
-        if PY_TYPE_CHECK(self, Linear_Expression):
+        if isinstance(self, Linear_Expression):
             e = <Linear_Expression>self
             c = Integer(other)
         else:
@@ -3538,6 +3595,22 @@ cdef class Linear_Expression(object):
             x0-x1+3>0
         """
         return _make_Constraint_from_richcmp(self, other, op)
+
+
+    def __reduce__(self):
+        """
+        Pickle object
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Linear_Expression
+            sage: le = loads(dumps(Linear_Expression([1,2,3],4)))
+            sage: le.coefficients() == (1,2,3)
+            True
+            sage: le.inhomogeneous_term() == 4
+            True
+        """
+        return (Linear_Expression, (self.coefficients(), self.inhomogeneous_term()))
 
 
 ####################################################
@@ -4203,6 +4276,36 @@ cdef class Generator(object):
         return self.thisptr.OK()
 
 
+    def __reduce__(self):
+        """
+        Pickle object.
+
+        TESTS::
+
+            sage: from sage.libs.ppl import Generator, Variable, line, ray, point, closure_point
+            sage: x = Variable(0); y = Variable(1);
+            sage: loads(dumps(Generator.point(2*x+7*y, 3)))
+            point(2/3, 7/3)
+            sage: loads(dumps(Generator.closure_point(2*x+7*y, 3)))
+            closure_point(2/3, 7/3)
+            sage: loads(dumps(Generator.line(2*x+7*y)))
+            line(2, 7)
+            sage: loads(dumps(Generator.ray(2*x+7*y)))
+            ray(2, 7)
+        """
+        t = self.thisptr.type()
+        le = Linear_Expression(self.coefficients(), 0)
+        if t==LINE:
+            return (line, (le,))
+        elif t==RAY:
+            return (ray, (le,))
+        elif t==POINT:
+            return (point, (le, self.divisor()))
+        elif t==CLOSURE_POINT:
+            return (closure_point, (le, self.divisor()))
+        assert False
+
+
 
 ####################################################
 def line(expression):
@@ -4333,13 +4436,18 @@ cdef class Generator_System(_mutable_or_immutable):
         if arg is None:
             self.thisptr = new PPL_Generator_System()
             return
-        if PY_TYPE_CHECK(arg, Generator):
+        if isinstance(arg, Generator):
             g = <Generator>arg
             self.thisptr = new PPL_Generator_System(g.thisptr[0])
             return
-        if PY_TYPE_CHECK(arg, Generator_System):
+        if isinstance(arg, Generator_System):
             gs = <Generator_System>arg
             self.thisptr = new PPL_Generator_System(gs.thisptr[0])
+            return
+        if isinstance(arg, (list,tuple)):
+            self.thisptr = new PPL_Generator_System()
+            for generator in arg:
+                self.insert(generator)
             return
         raise ValueError, 'Cannot initialize with '+str(arg)+'.'
 
@@ -4510,6 +4618,24 @@ cdef class Generator_System(_mutable_or_immutable):
         s += ', '.join([ g.__repr__() for g in self ])
         s += '}'
         return s
+
+
+    def __reduce__(self):
+        """
+        Pickle object.
+
+        TESTS::
+
+            sage: from sage.libs.ppl import Generator_System, Variable, point, ray
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: gs = Generator_System((point(3*x+2*y+1), ray(x)));  gs
+            Generator_System {point(3/1, 2/1), ray(1, 0)}
+            sage: loads(dumps(gs))
+            Generator_System {point(3/1, 2/1), ray(1, 0)}
+        """
+        return (Generator_System, (tuple(self), ))
+
 
 
 ####################################################
@@ -5081,6 +5207,110 @@ cdef class Constraint(object):
         return self.thisptr.OK()
 
 
+    def __reduce__(self):
+        """
+        Pickle object.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Linear_Expression, Variable
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: loads(dumps(3*x+2*y+1>=5))
+            3*x0+2*x1-4>=0
+            sage: loads(dumps(3*x+2*y+1>5))
+            3*x0+2*x1-4>0
+            sage: loads(dumps(3*x+2*y+1==5))
+            3*x0+2*x1-4==0
+        """
+        le = Linear_Expression(self.coefficients(), self.inhomogeneous_term())
+        if self.is_nonstrict_inequality():
+            return (inequality, (le, ))
+        elif self.is_strict_inequality():
+            return (strict_inequality, (le, ))
+        elif self.is_equality():
+            return (equation, (le, ))
+        else:
+            assert False
+
+
+
+####################################################
+def inequality(expression):
+    """
+    Constuct an inequality.
+
+    INPUT:
+
+    - ``expression`` -- a :class:`Linear_Expression`.
+
+    OUTPUT:
+
+    The inequality ``expression`` >= 0.
+
+    EXAMPLES::
+
+        sage: from sage.libs.ppl import Variable, inequality
+        sage: y = Variable(1)
+        sage: 2*y+1 >= 0
+        2*x1+1>=0
+        sage: inequality(2*y+1)
+        2*x1+1>=0
+    """
+    return expression >= 0
+
+
+####################################################
+def strict_inequality(expression):
+    """
+    Constuct a strict inequality.
+
+    INPUT:
+
+    - ``expression`` -- a :class:`Linear_Expression`.
+
+    OUTPUT:
+
+    The inequality ``expression`` > 0.
+
+    EXAMPLES::
+
+        sage: from sage.libs.ppl import Variable, strict_inequality
+        sage: y = Variable(1)
+        sage: 2*y+1 > 0
+        2*x1+1>0
+        sage: strict_inequality(2*y+1)
+        2*x1+1>0
+    """
+    return expression > 0
+
+
+####################################################
+def equation(expression):
+    """
+    Constuct an equation.
+
+    INPUT:
+
+    - ``expression`` -- a :class:`Linear_Expression`.
+
+    OUTPUT:
+
+    The equation ``expression`` == 0.
+
+    EXAMPLES::
+
+        sage: from sage.libs.ppl import Variable, equation
+        sage: y = Variable(1)
+        sage: 2*y+1 == 0
+        2*x1+1==0
+        sage: equation(2*y+1)
+        2*x1+1==0
+    """
+    return expression == 0
+
+
+
 ####################################################
 ### Constraint_System  ##############################
 ####################################################
@@ -5135,13 +5365,18 @@ cdef class Constraint_System(object):
         if arg is None:
             self.thisptr = new PPL_Constraint_System()
             return
-        if PY_TYPE_CHECK(arg, Constraint):
+        if isinstance(arg, Constraint):
             g = <Constraint>arg
             self.thisptr = new PPL_Constraint_System(g.thisptr[0])
             return
-        if PY_TYPE_CHECK(arg, Constraint_System):
+        if isinstance(arg, Constraint_System):
             gs = <Constraint_System>arg
             self.thisptr = new PPL_Constraint_System(gs.thisptr[0])
+            return
+        if isinstance(arg, (list,tuple)):
+            self.thisptr = new PPL_Constraint_System()
+            for constraint in arg:
+                self.insert(constraint)
             return
         raise ValueError, 'Cannot initialize with '+str(arg)+'.'
 
@@ -5352,8 +5587,7 @@ cdef class Constraint_System(object):
             sage: from sage.libs.ppl import Constraint_System, Variable
             sage: x = Variable(0)
             sage: y = Variable(1)
-            sage: cs = Constraint_System( 3*x+2*y+1 < 3)
-            sage: cs.insert( 0*x>x+1 )
+            sage: cs = Constraint_System([3*x+2*y+1 < 3, 0*x>x+1])
             sage: cs.__repr__()
             'Constraint_System {-3*x0-2*x1+2>0, -x0-1>0}'
         """
@@ -5361,6 +5595,23 @@ cdef class Constraint_System(object):
         s += ', '.join([ c.__repr__() for c in self ])
         s += '}'
         return s
+
+
+    def __reduce__(self):
+        """
+        Pickle object.
+
+        TESTS::
+
+            sage: from sage.libs.ppl import Constraint_System, Variable
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System([3*x+2*y+1 < 3, 0*x>x+1]);  cs
+            Constraint_System {-3*x0-2*x1+2>0, -x0-1>0}
+            sage: loads(dumps(cs))
+            Constraint_System {-3*x0-2*x1+2>0, -x0-1>0}
+        """
+        return (Constraint_System, (tuple(self), ))
 
 
 ####################################################

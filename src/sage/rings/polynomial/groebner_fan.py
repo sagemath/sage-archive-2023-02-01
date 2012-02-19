@@ -75,7 +75,7 @@ from sage.rings.integer_ring import ZZ
 from sage.modules.free_module_element import vector
 from sage.plot.plot import line, Graphics, polygon
 from sage.plot.plot3d.shapes2 import line3d
-from sage.geometry.polyhedra import Polyhedron
+from sage.geometry.polyhedron.constructor import Polyhedron
 
 def prefix_check(str_list):
     """
@@ -1040,12 +1040,12 @@ class GroebnerFan(SageObject):
             sage: cone_data = Polyhedron(ieqs = g_cone_ieqs, eqns = [[1,-1,-1,-1,-1]])
             sage: cone_lines = gf._4d_to_3d(cone_data)
             sage: cone_lines
-            [[[-3/5, -1/3, -1/5], [-1/7, 3/7, 5/7]],
-            [[-3/5, -1/3, -1/5], [1, -1/3, 1/3]],
-            [[-3/5, -1/3, -1/5], [1, 1, -1]],
-            [[-1/7, 3/7, 5/7], [1, -1/3, 1/3]],
-            [[-1/7, 3/7, 5/7], [1, 1, -1]],
-            [[1, -1/3, 1/3], [1, 1, -1]]]
+            [[[1, 1, -1], [1, -1/3, 1/3]],
+            [[1, 1, -1], [-1/7, 3/7, 5/7]],
+            [[1, 1, -1], [-3/5, -1/3, -1/5]],
+            [[1, -1/3, 1/3], [-1/7, 3/7, 5/7]],
+            [[1, -1/3, 1/3], [-3/5, -1/3, -1/5]],
+            [[-1/7, 3/7, 5/7], [-3/5, -1/3, -1/5]]]
         """
         fpoints = polyhedral_data.vertices()
         tpoints = [self._embed_tetra(q) for q in fpoints]

@@ -222,7 +222,7 @@ from sage.geometry.cone import (Cone,
                                 IntegralRayCollection,
                                 is_Cone,
                                 normalize_rays)
-from sage.geometry.polyhedra import Hasse_diagram_from_incidences
+from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
 from sage.geometry.lattice_polytope import (LatticePolytope,
                                             all_faces,
                                             all_facet_equations)

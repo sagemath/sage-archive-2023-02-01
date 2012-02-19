@@ -145,7 +145,7 @@ corresponding to cones::
     A lattice polytope: 3-dimensional, 5 vertices.
     sage: four_rays.polyhedron()
     A 3-dimensional polyhedron in QQ^3 defined as
-    the convex hull of 1 vertex and 4 rays.
+    the convex hull of 1 vertex and 4 rays
 
 And of course you are always welcome to suggest new features that should be
 added to cones!
@@ -175,7 +175,9 @@ import warnings
 
 from sage.combinat.posets.posets import FinitePoset
 from sage.geometry.lattice_polytope import LatticePolytope, integral_length
-from sage.geometry.polyhedra import Polyhedron, Hasse_diagram_from_incidences
+from sage.geometry.polyhedron.constructor import Polyhedron
+from sage.geometry.polyhedron.base import is_Polyhedron
+from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
     is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
@@ -224,10 +226,10 @@ def Cone(rays, lattice=None, check=True, normalize=True):
 
     INPUT:
 
-    - ``rays`` -- a list of rays. Each ray should be given as a list or
-      a vector convertible to the rational extension of the given
+    - ``rays`` -- a list of rays. Each ray should be given as a list
+      or a vector convertible to the rational extension of the given
       ``lattice``. May also be specified by a
-      :class:`~sage.geometry.polyhedra.Polyhedron` object;
+      :class:`~sage.geometry.polyhedron.base.Polyhedron_base` object;
 
     - ``lattice`` -- :class:`ToricLattice
       <sage.geometry.toric_lattice.ToricLatticeFactory>`, `\ZZ^n`, or any
@@ -350,7 +352,7 @@ def Cone(rays, lattice=None, check=True, normalize=True):
         [ 1 -1  0  0]
 
     The cone can also be specified by a
-    :class:`~sage.geometry.polyhedra.Polyhedron`::
+    :class:`~sage.geometry.polyhedron.base.Polyhedron_base`::
 
         sage: p = plane.polyhedron()
         sage: Cone(p)
@@ -368,7 +370,7 @@ def Cone(rays, lattice=None, check=True, normalize=True):
         0-d cone in 2-d lattice N
     """
     # Cone from Polyhedron
-    if isinstance(rays, Polyhedron):
+    if is_Polyhedron(rays):
         polyhedron = rays
         if lattice is None:
             lattice = ToricLattice(polyhedron.ambient_dim())
@@ -1186,7 +1188,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: c = Cone([(1,0), (1,1), (0,1)])
             sage: c._PPL_cone()
             A 2-dimensional polyhedron in QQ^2 defined as
-            the convex hull of 1 point, 2 rays.
+            the convex hull of 1 point, 2 rays
             sage: c._PPL_cone().minimized_generators()
             Generator_System {point(0/1, 0/1), ray(0, 1), ray(1, 0)}
             sage: c._PPL_cone().minimized_constraints()
@@ -1198,10 +1200,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: Cone([(0,0)])._PPL_cone()
             A 0-dimensional polyhedron in QQ^2
-            defined as the convex hull of 1 point.
+            defined as the convex hull of 1 point
             sage: Cone([], lattice=ToricLattice(2))._PPL_cone()
             A 0-dimensional polyhedron in QQ^2
-            defined as the convex hull of 1 point.
+            defined as the convex hull of 1 point
         """
         if "_PPL_C_Polyhedron" not in self.__dict__:
             gs = Generator_System(
@@ -2868,25 +2870,25 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        - :class:`~sage.geometry.polyhedra.Polyhedron`.
+        - :class:`~sage.geometry.polyhedron.base.Polyhedron_base`.
 
         EXAMPLES::
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.polyhedron()
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull
-            of 1 vertex and 2 rays.
+            of 1 vertex and 2 rays
             sage: line = Cone([(1,0), (-1,0)])
             sage: line.polyhedron()
             A 1-dimensional polyhedron in QQ^2 defined as the convex hull
-            of 1 vertex and 1 line.
+            of 1 vertex and 1 line
 
         Here is an example of a trivial cone (see Trac #10237)::
 
             sage: origin = Cone([], lattice=ZZ^2)
             sage: origin.polyhedron()
             A 0-dimensional polyhedron in QQ^2 defined as the convex hull
-            of 1 vertex.
+            of 1 vertex
         """
         if "_polyhedron" not in self.__dict__:
             self._polyhedron = Polyhedron(rays=self.rays(),

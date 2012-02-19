@@ -167,7 +167,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import is_Vector
 from sage.combinat.combination import Combinations
 from sage.geometry.cone import is_Cone
-from sage.geometry.polyhedra import Polyhedron
+from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.toric_lattice_element import is_ToricLatticeElement
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.misc.all import latex, flatten, prod
@@ -1264,25 +1264,25 @@ class ToricDivisor_generic(Divisor_generic):
 
         OUTPUT:
 
-        `P_D` as an instance of :class:`~sage.geometry.polyhedra.Polyhedron`.
+        `P_D` as an instance of :class:`~sage.geometry.polyhedron.base.Polyhedron_base`.
 
         EXAMPLES::
 
             sage: dP7 = toric_varieties.dP7()
             sage: D = dP7.divisor(2)
             sage: P_D = D.polyhedron(); P_D
-            A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex.
+            A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex
             sage: P_D.Vrepresentation()
-            [A vertex at (0, 0)]
+            (A vertex at (0, 0),)
             sage: D.is_nef()
             False
             sage: dP7.integrate( D.ch() * dP7.Td() )
             1
             sage: P_antiK = (-dP7.K()).polyhedron(); P_antiK
-            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices.
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices
             sage: P_antiK.Vrepresentation()
-            [A vertex at (1, -1), A vertex at (0, 1), A vertex at (1, 0),
-             A vertex at (-1, 1), A vertex at (-1, -1)]
+            (A vertex at (1, -1), A vertex at (0, 1), A vertex at (1, 0),
+             A vertex at (-1, 1), A vertex at (-1, -1))
             sage: P_antiK.integral_points()
             ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0))
 
@@ -1293,10 +1293,10 @@ class ToricDivisor_generic(Divisor_generic):
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: D = F2.divisor(3)
             sage: D.polyhedron().Vrepresentation()
-            [A vertex at (2, 1), A vertex at (0, 1), A vertex at (0, 0)]
+            (A vertex at (0, 0), A vertex at (2, 1), A vertex at (0, 1))
             sage: Dprime = F2.divisor(1) + D
             sage: Dprime.polyhedron().Vrepresentation()
-            [A vertex at (2, 1), A vertex at (0, 1), A vertex at (0, 0)]
+            (A vertex at (2, 1), A vertex at (0, 1), A vertex at (0, 0))
             sage: D.is_ample()
             False
             sage: D.is_nef()
@@ -1310,16 +1310,16 @@ class ToricDivisor_generic(Divisor_generic):
             sage: antiK = -X.K()
             sage: P_D = antiK.polyhedron()
             sage: P_D
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices.
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
             sage: P_D.Vrepresentation()
-            [A vertex at (1, -1, 0), A vertex at (1, 1, 1),
-             A vertex at (1, -3, 1), A vertex at (-5, 1, 1),
-             A vertex at (-5, -3, 1), A vertex at (1, 1, -1/2),
-             A vertex at (1, 1/2, -1/2), A vertex at (-1, -1, 0)]
+            (A vertex at (1, -1, 0), A vertex at (1, -3, 1),
+             A vertex at (1, 1, 1), A vertex at (-5, 1, 1),
+             A vertex at (1, 1, -1/2), A vertex at (1, 1/2, -1/2),
+             A vertex at (-1, -1, 0), A vertex at (-5, -3, 1))
             sage: P_D.Hrepresentation()
-            [An inequality (-1, 0, 0) x + 1 >= 0, An inequality (0, -1, 0) x + 1 >= 0,
-             An inequality (0, 0, -1) x + 1 >= 0, An inequality (0, 1, 2) x + 1 >= 0,
-             An inequality (0, 1, 3) x + 1 >= 0, An inequality (1, 0, 4) x + 1 >= 0]
+            (An inequality (-1, 0, 0) x + 1 >= 0, An inequality (0, -1, 0) x + 1 >= 0,
+             An inequality (0, 0, -1) x + 1 >= 0, An inequality (1, 0, 4) x + 1 >= 0,
+             An inequality (0, 1, 3) x + 1 >= 0, An inequality (0, 1, 2) x + 1 >= 0)
             sage: P_D.integral_points()
             ((-1, -1, 0), (0, -1, 0), (1, -1, 0), (-1, 0, 0), (0, 0, 0),
              (1, 0, 0), (-1, 1, 0), (0, 1, 0), (1, 1, 0), (-5, -3, 1),
@@ -1566,9 +1566,9 @@ class ToricDivisor_generic(Divisor_generic):
 
         OUTPUT:
 
-        A :class:`~sage.geometry.polyhedra.Polyhedron` object that
-        contains all weights `m` for which the sheaf cohomology is
-        *potentially* non-vanishing.
+        A :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
+        object that contains all weights `m` for which the sheaf
+        cohomology is *potentially* non-vanishing.
 
         ALGORITHM:
 
@@ -1586,9 +1586,9 @@ class ToricDivisor_generic(Divisor_generic):
             sage: D = -D0 + 2*D2 - D3
             sage: supp = D._sheaf_cohomology_support()
             sage: supp
-            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices.
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
             sage: supp.Vrepresentation()
-            [A vertex at (-1, 1), A vertex at (0, 2), A vertex at (0, -1), A vertex at (3, -1)]
+            (A vertex at (-1, 1), A vertex at (0, -1), A vertex at (3, -1), A vertex at (0, 2))
         """
         X = self.parent().scheme()
         fan = X.fan()

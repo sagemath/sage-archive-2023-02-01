@@ -1,5 +1,3 @@
-# cython: profile=True
-
 r"""
 Cython helper methods to compute integral points in polyhedra.
 """
@@ -259,7 +257,7 @@ def simplex_points(vertices):
 
         sage: simplex = Polyhedron([(1,2,3,5), (2,3,7,5), (-2,-3,-11,5)])
         sage: simplex_points(simplex.Vrepresentation())
-        ((-2, -3, -11, 5), (0, 0, -2, 5), (1, 2, 3, 5), (2, 3, 7, 5))
+        ((2, 3, 7, 5), (0, 0, -2, 5), (-2, -3, -11, 5), (1, 2, 3, 5))
 
         sage: simplex_points([(2,3,7)])
         ((2, 3, 7),)
@@ -268,7 +266,7 @@ def simplex_points(vertices):
 
         sage: v = [(1,0,7,-1), (-2,-2,4,-3), (-1,-1,-1,4), (2,9,0,-5), (-2,-1,5,1)]
         sage: simplex = Polyhedron(v); simplex
-        A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices.
+        A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices
         sage: pts = simplex_points(simplex.Vrepresentation())
         sage: len(pts)
         49
@@ -281,7 +279,7 @@ def simplex_points(vertices):
 
         sage: v = [(4,-1,-1,-1), (-1,4,-1,-1), (-1,-1,4,-1), (-1,-1,-1,4), (-1,-1,-1,-1)]
         sage: P4mirror = Polyhedron(v); P4mirror
-        A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices.
+        A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices
         sage: len( simplex_points(P4mirror.Vrepresentation()) )
         126
     """
@@ -434,7 +432,7 @@ def rectangular_box_points(box_min, box_max, polyhedron=None):
 
     Long ints and non-integral polyhedra are explictly allowed::
 
-        sage: polytope = Polyhedron([[1], [10*pi.n()]], field=RDF)
+        sage: polytope = Polyhedron([[1], [10*pi.n()]], base_ring=RDF)
         sage: len( rectangular_box_points([-100], [100], polytope) )
         31
 
@@ -773,15 +771,15 @@ cdef class InequalityCollection:
     EXAMPLES::
 
         sage: from sage.geometry.integral_points import InequalityCollection
-        sage: P_QQ = Polyhedron(identity_matrix(3).columns() + [(-2, -1,-1)], field=QQ)
+        sage: P_QQ = Polyhedron(identity_matrix(3).columns() + [(-2, -1,-1)], base_ring=QQ)
         sage: ieq = InequalityCollection(P_QQ, Permutation([1,2,3]), [0]*3,[1]*3); ieq
         The collection of inequalities
-        integer: (-1, -1, -1) x + 1 >= 0
-        integer: (-1, -1, 4) x + 1 >= 0
-        integer: (-1, 4, -1) x + 1 >= 0
         integer: (3, -2, -2) x + 2 >= 0
+        integer: (-1, 4, -1) x + 1 >= 0
+        integer: (-1, -1, 4) x + 1 >= 0
+        integer: (-1, -1, -1) x + 1 >= 0
 
-        sage: P_RR = Polyhedron(identity_matrix(2).columns() + [(-2.7, -1)], field=RDF)
+        sage: P_RR = Polyhedron(identity_matrix(2).columns() + [(-2.7, -1)], base_ring=RDF)
         sage: InequalityCollection(P_RR, Permutation([1,2]), [0]*2, [1]*2)
         The collection of inequalities
         integer: (-1, -1) x + 1 >= 0
@@ -998,21 +996,21 @@ cdef class InequalityCollection:
         EXAMPLES::
 
             sage: from sage.geometry.integral_points import InequalityCollection
-            sage: P_QQ = Polyhedron(identity_matrix(3).columns() + [(-2, -1,-1)], field=QQ)
+            sage: P_QQ = Polyhedron(identity_matrix(3).columns() + [(-2, -1,-1)], base_ring=QQ)
             sage: iec = InequalityCollection(P_QQ, Permutation([1,2,3]), [0]*3,[1]*3)
             sage: iec
             The collection of inequalities
-            integer: (-1, -1, -1) x + 1 >= 0
-            integer: (-1, -1, 4) x + 1 >= 0
-            integer: (-1, 4, -1) x + 1 >= 0
             integer: (3, -2, -2) x + 2 >= 0
+            integer: (-1, 4, -1) x + 1 >= 0
+            integer: (-1, -1, 4) x + 1 >= 0
+            integer: (-1, -1, -1) x + 1 >= 0
             sage: iec.swap_ineq_to_front(3)
             sage: iec
             The collection of inequalities
-            integer: (3, -2, -2) x + 2 >= 0
             integer: (-1, -1, -1) x + 1 >= 0
-            integer: (-1, -1, 4) x + 1 >= 0
+            integer: (3, -2, -2) x + 2 >= 0
             integer: (-1, 4, -1) x + 1 >= 0
+            integer: (-1, -1, 4) x + 1 >= 0
         """
         i_th_entry = self.ineqs_int.pop(i)
         self.ineqs_int.insert(0, i_th_entry)

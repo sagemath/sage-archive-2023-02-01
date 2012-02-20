@@ -296,6 +296,9 @@ ext_modules = [
      ##
      ################################
 
+     Extension('sage.geometry.point_collection',
+               sources = ['sage/geometry/point_collection.pyx']),
+
      Extension('sage.geometry.toric_lattice_element',
                sources = ['sage/geometry/toric_lattice_element.pyx'],
                libraries=['gmp']),

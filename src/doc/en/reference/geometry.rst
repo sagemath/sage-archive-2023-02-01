@@ -12,6 +12,7 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/cone
    sage/geometry/fan
    sage/geometry/fan_morphism
+   sage/geometry/point_collection
    sage/geometry/toric_plotter
 
    sage/rings/polynomial/groebner_fan

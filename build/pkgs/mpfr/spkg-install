@@ -106,8 +106,11 @@ build()
         exit 1
     fi
 
-    echo "Deleting old libraries and headers"
-    rm -f "$SAGE_LOCAL"/lib/libmpfr.* "$SAGE_LOCAL"/include/*mpfr*
+    echo "Deleting old headers"
+    rm -f "$SAGE_LOCAL"/include/*mpfr*
+    # Do not delete old libraries as this causes gcc to break during
+    # parallel builds.
+    # rm -f "$SAGE_LOCAL"/lib/libmpfr.*
 
     echo "Installing MPFR"
     $MAKE install

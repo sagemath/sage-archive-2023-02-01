@@ -4,6 +4,12 @@
 
 Pybtex is a drop-in replacement for BibTeX written in Python.
 
+We use the bazaar trunk because it is less buggy and more feature-rich.
+The latest version is available through this command:
+
+    bzr branch lp:pybtex
+
+
 This package also installs pyparsing and PyYAML which are needed for pybtex.
 
 == License ==
@@ -19,6 +25,7 @@ Burcin Erocal <burcin@erocal.org>
 
 Andrey Golovizin <golovizin@gmail.com>
 http://pybtex.sourceforge.net/
+
 https://code.launchpad.net/~ero-sennin/pybtex/trunk
 
 == Dependencies ==

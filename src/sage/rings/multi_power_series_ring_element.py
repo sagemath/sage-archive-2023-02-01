@@ -167,10 +167,11 @@ from sage.rings.power_series_ring_element import PowerSeries
 from sage.rings.polynomial.all import is_PolynomialRing
 from sage.rings.power_series_ring import is_PowerSeriesRing
 
+from sage.rings.all import ZZ
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 
-from sage.rings.infinity import infinity
+from sage.rings.infinity import infinity, is_Infinite
 
 
 def is_MPowerSeries(f):
@@ -1319,20 +1320,34 @@ class MPowerSeries(PowerSeries):
         """
         raise NotImplementedError("square_root")
 
-    def derivative(self, v):
+    def derivative(self, *args):
         """
-        Method from univariate power series not yet implemented
+        The formal derivative of this power series, with respect to
+        variables supplied in ``args``.
 
         TESTS::
 
             sage: T.<a,b> = PowerSeriesRing(ZZ,2)
-            sage: f = a + b + a*b + T.O(5)
+            sage: f = a + b + a^2*b + T.O(5)
             sage: f.derivative(a)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: derivative
+            1 + 2*a*b + O(a, b)^4
+            sage: f.derivative(a,2)
+            2*b + O(a, b)^3
+            sage: f.derivative(a,a)
+            2*b + O(a, b)^3
+            sage: f.derivative([a,a])
+            2*b + O(a, b)^3
+            sage: f.derivative(a,5)
+            0 + O(a, b)^0
+            sage: f.derivative(a,6)
+            0 + O(a, b)^0
         """
-        raise NotImplementedError("derivative")
+        from sage.misc.derivative import derivative_parse
+        R = self.parent()
+        variables = [ x.polynomial() for x in derivative_parse(args) ]
+        deriv = self.polynomial().derivative(variables)
+        new_prec = max(self.prec()-len(variables), 0)
+        return R(deriv) + R.O(new_prec)
 
     def ogf(self):
         """
@@ -1481,7 +1496,7 @@ class MPowerSeries(PowerSeries):
         """
         raise NotImplementedError("valuation_zero_part not defined for multivariate power series; perhaps 'constant_coefficient' is what you want.")
 
-    def solve_linear_de(self, prec = infinity, b=None, f0=None):
+    def solve_linear_de(self, prec=infinity, b=None, f0=None):
         """
         Not implemented for multivariate power series.
 
@@ -1496,20 +1511,190 @@ class MPowerSeries(PowerSeries):
         """
         raise NotImplementedError("solve_linear_de not defined for multivariate power series.")
 
-    def exp(self, prec=None):
-        """
-        Not implemented for multivariate power series.
+    def exp(self, prec=infinity):
+        r"""
+        Exponentiate the formal power series.
+
+        INPUT:
+
+        - ``prec`` -- Integer or ``infinity``. The degree to truncate
+          the result to.
+
+        OUTPUT:
+
+        The exponentiated multivariate power series as a new
+        multivaritate power series.
+
+        EXAMPLES::
+
+            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+            sage: f = a + b + a*b + T.O(3)
+            sage: exp(f)
+            1 + a + b + 1/2*a^2 + 2*a*b + 1/2*b^2 + O(a, b)^3
+            sage: f.exp()
+            1 + a + b + 1/2*a^2 + 2*a*b + 1/2*b^2 + O(a, b)^3
+            sage: f.exp(prec=2)
+            1 + a + b + O(a, b)^2
+            sage: log(exp(f)) - f
+            0 + O(a, b)^3
+
+        If the power series has a constant coefficient `c` and
+        `exp(c)` is transcendental, then `exp(f)` would have to be a
+        power series over the Symbolic Ring. These are not yet
+        implemented and therefore such cases raise an error::
+
+            sage: g = 2+f
+            sage: exp(g)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Symbolic Ring' and
+            'Power Series Ring in Tbg over Multivariate Polynomial Ring in a, b
+            over Rational Field'
+
+
+        Another workaround for this limitation is to change base ring
+        to one which is closed under exponentiation, such as `\RR` or
+        `\CC` ::
+
+            sage: exp(g.change_ring(RDF))
+            7.38905609... + 7.38905609...*a + 7.38905609...*b + 3.69452804...*a^2 +
+            14.7781121...*a*b + 3.69452804...*b^2 + O(a, b)^3
+
+        If no precision is specified, the default precision is used::
+
+            sage: T.default_prec()
+            12
+            sage: exp(a)
+            1 + a + 1/2*a^2 + 1/6*a^3 + 1/24*a^4 + 1/120*a^5 + 1/720*a^6 + 1/5040*a^7 +
+            1/40320*a^8 + 1/362880*a^9 + 1/3628800*a^10 + 1/39916800*a^11 + O(a, b)^12
+            sage: a.exp(prec=5)
+            1 + a + 1/2*a^2 + 1/6*a^3 + 1/24*a^4 + O(a, b)^5
+            sage: exp(a + T.O(5))
+            1 + a + 1/2*a^2 + 1/6*a^3 + 1/24*a^4 + O(a, b)^5
 
         TESTS::
 
+            sage: exp(a^2 + T.O(5))
+            1 + a^2 + 1/2*a^4 + O(a, b)^5
+        """
+        R = self.parent()
+        Rbg = R._bg_power_series_ring
+
+        from sage.functions.log import exp
+        c = self.constant_coefficient()
+        exp_c = exp(c)
+        x = self._bg_value - c
+        if x.is_zero(): return exp_c
+        val = x.valuation()
+        assert(val >= 1)
+
+        prec = min(prec, self.prec())
+        if is_Infinite(prec):
+            prec = R.default_prec()
+        n_inv_factorial = R.base_ring().one()
+        x_pow_n = Rbg.one()
+        exp_x = Rbg.one().add_bigoh(prec)
+        for n in range(1,prec/val+1):
+            x_pow_n = (x_pow_n * x).add_bigoh(prec)
+            n_inv_factorial /= n
+            exp_x += x_pow_n * n_inv_factorial
+        result_bg = exp_c*exp_x
+
+        if result_bg.base_ring() is not self.base_ring():
+            R = R.change_ring(self.base_ring().fraction_field())
+        return R(result_bg, prec=prec)
+
+    def log(self, prec=infinity):
+        r"""
+        Return the logarithm of the formal power series.
+
+        INPUT:
+
+        - ``prec`` -- Integer or ``infinity``. The degree to truncate
+          the result to.
+
+        OUTPUT:
+
+        The logarithm of the multivariate power series as a new
+        multivaritate power series.
+
+        EXAMPLES::
+
             sage: T.<a,b> = PowerSeriesRing(ZZ,2)
-            sage: f = a + b + a*b + T.O(5)
-            sage: f.exp()
+            sage: f = 1 + a + b + a*b + T.O(5)
+            sage: f.log()
+            a + b - 1/2*a^2 - 1/2*b^2 + 1/3*a^3 + 1/3*b^3 - 1/4*a^4 - 1/4*b^4 + O(a, b)^5
+            sage: log(f)
+            a + b - 1/2*a^2 - 1/2*b^2 + 1/3*a^3 + 1/3*b^3 - 1/4*a^4 - 1/4*b^4 + O(a, b)^5
+            sage: exp(log(f)) - f
+            0 + O(a, b)^5
+
+        If the power series has a constant coefficient `c` and
+        `exp(c)` is transcendental, then `exp(f)` would have to be a
+        power series over the Symbolic Ring. These are not yet
+        implemented and therefore such cases raise an error::
+
+            sage: g = 2+f
+            sage: log(g)
             Traceback (most recent call last):
             ...
-            NotImplementedError: exp not defined for multivariate power series.
+            TypeError: unsupported operand parent(s) for '-': 'Symbolic Ring' and 'Power
+            Series Ring in Tbg over Multivariate Polynomial Ring in a, b over Rational Field'
+
+        Another workaround for this limitation is to change base ring
+        to one which is closed under exponentiation, such as `\RR` or
+        `\CC` ::
+
+            sage: log(g.change_ring(RDF))
+            1.09861228... + 0.333333333...*a + 0.333333333...*b - 0.0555555555...*a^2
+            + 0.222222222...*a*b - 0.0555555555...*b^2 + 0.0123456790...*a^3
+            - 0.0740740740...*a^2*b - 0.0740740740...*a*b^2 + 0.0123456790...*b^3
+            - 0.00308641975...*a^4 + 0.0246913580...*a^3*b + 0.0246913580...*a*b^3
+            - 0.00308641975...*b^4 + O(a, b)^5
+
+        TESTS::
+
+            sage: (1+a).log(prec=10).exp()
+            1 + a + O(a, b)^10
+            sage: a.exp(prec=10).log()
+            a + O(a, b)^10
+
+            sage: log(1+a)
+            a - 1/2*a^2 + 1/3*a^3 - 1/4*a^4 + 1/5*a^5 - 1/6*a^6 + 1/7*a^7
+            - 1/8*a^8 + 1/9*a^9 - 1/10*a^10 + 1/11*a^11 + O(a, b)^12
+            sage: -log(1-a+T.O(5))
+            a + 1/2*a^2 + 1/3*a^3 + 1/4*a^4 + O(a, b)^5
+            sage: a.log(prec=10)
+            Traceback (most recent call last):
+            ...
+            ValueError: Can only take formal power series for non-zero constant term.
         """
-        raise NotImplementedError("exp not defined for multivariate power series.")
+        R = self.parent()
+        Rbg = R._bg_power_series_ring
+
+        from sage.functions.log import log
+        c = self.constant_coefficient()
+        if c.is_zero():
+            raise ValueError('Can only take formal power series for non-zero constant term.')
+        log_c = log(c)
+        x = 1 - self._bg_value/c
+        if x.is_zero(): return log_c
+        val = x.valuation()
+        assert(val >= 1)
+
+        prec = min(prec, self.prec())
+        if is_Infinite(prec):
+            prec = R.default_prec()
+        x_pow_n = Rbg.one()
+        log_x = Rbg.zero().add_bigoh(prec)
+        for n in range(1,prec/val+1):
+            x_pow_n = (x_pow_n * x).add_bigoh(prec)
+            log_x += x_pow_n / n
+        result_bg = log_c - log_x
+
+        if result_bg.base_ring() is not self.base_ring():
+            R = R.change_ring(self.base_ring().fraction_field())
+        return R(result_bg, prec=prec)
 
     def laurent_series(self):
         """

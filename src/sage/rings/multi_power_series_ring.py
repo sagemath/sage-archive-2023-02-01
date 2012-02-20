@@ -812,7 +812,6 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             Multivariate Polynomial Ring in t, u over Rational Field
             sage: R._poly_ring(2).parent()
             Multivariate Polynomial Ring in t, u over Rational Field
-
         """
         if x is None:
             return self._poly_ring_
@@ -830,7 +829,6 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             Multivariate Polynomial Ring in t, u over Rational Field
             sage: R._mpoly_ring(2).parent()
             Multivariate Polynomial Ring in t, u over Rational Field
-
         """
         return self._poly_ring(x)
 

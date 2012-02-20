@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Posets
 """
@@ -19,6 +20,7 @@ Posets
 
 import random
 import copy
+from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import deprecated_function_alias
 from sage.categories.category import Category
@@ -34,7 +36,7 @@ from sage.graphs.all import DiGraph
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 
-def Poset(data=None, element_labels=None, cover_relations=False, category = None, facade = None, key = None):
+def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category = None, facade = None, key = None):
     r"""
     Construct a poset from various forms of input data.
 
@@ -72,10 +74,14 @@ def Poset(data=None, element_labels=None, cover_relations=False, category = None
     - ``element_labels`` -- (default: None) an optional list or
       dictionary of objects that label the poset elements.
 
-    - ``cover_relations`` - (default: False) If True, then the data is
-      assumed to describe a directed acyclic graph whose arrows are
-      cover relations. If False, then the cover relations are first
-      computed.
+    - ``cover_relations`` -- a boolean (default: False); whether the
+      data can be assumed to describe a directed acyclic graph whose
+      arrows are cover relations; otherwise, the cover relations are
+      first computed.
+
+    - ``linear_extension`` -- a boolean (default: False); whether to
+      use the provided list of elements as default linear extension
+      for the poset; otherwise a linear extension is computed.
 
     OUTPUT:
 
@@ -174,6 +180,34 @@ def Poset(data=None, element_labels=None, cover_relations=False, category = None
           ...
           ValueError: Hasse diagram is not transitively reduced.
 
+    .. rubric:: Default Linear extension
+
+    Every poset `P` obtained with ``Poset`` comes equipped with a
+    default linear extension, which is also used for enumerating
+    its elements. By default, this linear extension is computed,
+    and has no particular significance::
+
+        sage: P = Poset((divisors(12), attrcall("divides")))
+        sage: P.list()
+        [1, 2, 4, 3, 6, 12]
+        sage: P.linear_extension()
+        [1, 2, 4, 3, 6, 12]
+
+    You may enforce a specific linear extension using the
+    ``linear_extension`` option::
+
+        sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
+        sage: P.list()
+        [1, 2, 3, 4, 6, 12]
+        sage: P.linear_extension()
+        [1, 2, 3, 4, 6, 12]
+
+    Depending on popular request, ``Poset`` might eventually get
+    modified to always use the provided list of elements as
+    default linear extension, when it is one.
+
+    .. seealso:: :meth:`FinitePoset.linear_extensions`
+
     .. rubric:: Facade posets
 
     By default, the elements of a poset are wrapped so as to make them
@@ -223,9 +257,11 @@ def Poset(data=None, element_labels=None, cover_relations=False, category = None
         ['d']
         sage: TestSuite(P).run()
 
-    .. warning:: :class:`DiGraph` is used to construct the poset, and
-        the vertices of a :class:`DiGraph` are converted to plain
-        Python :class:`int`'s if they are :class:`Integer`'s::
+    .. warning::
+
+        :class:`DiGraph` is used to construct the poset, and the
+        vertices of a :class:`DiGraph` are converted to plain Python
+        :class:`int`'s if they are :class:`Integer`'s::
 
             sage: G = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
             sage: type(G.vertices()[0])
@@ -234,6 +270,10 @@ def Poset(data=None, element_labels=None, cover_relations=False, category = None
         This is worked around by systematically converting back the
         vertices of a poset to :class:`Integer`'s if they are
         :class:`int`'s::
+
+            sage: P = Poset((divisors(15), attrcall("divides")))
+            sage: type(P.an_element().element)
+            <type 'sage.rings.integer.Integer'>
 
             sage: P = Poset((divisors(15), attrcall("divides")), facade=True)
             sage: type(P.an_element())
@@ -283,6 +323,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, category = None
         <type 'int'>
     """
     #Convert data to a DiGraph
+    elements = None
     D = {}
     if isinstance(data, FinitePoset):
         if element_labels is None and category is None and facade is None:
@@ -338,11 +379,14 @@ def Poset(data=None, element_labels=None, cover_relations=False, category = None
     elif cover_relations is True and not D.is_transitively_reduced():
         raise ValueError, "Hasse diagram is not transitively reduced."
 
-    # Compute a linear extension of the poset (a topological sort).
-    try:
-        lin_ext = D.topological_sort()
-    except:
-        raise ValueError, "Hasse diagram contains cycles."
+    if linear_extension and elements is not None:
+        lin_ext = list(elements)
+    else:
+        # Compute a linear extension of the poset (a topological sort).
+        try:
+            lin_ext = D.topological_sort()
+        except:
+            raise ValueError, "Hasse diagram contains cycles."
 
     # Relabel using the linear_extension.
     # So range(len(D)) becomes a linear extension of the poset.
@@ -352,11 +396,10 @@ def Poset(data=None, element_labels=None, cover_relations=False, category = None
     # Set element labels.
     if element_labels is None:
         elements = lin_ext
-        if facade:
-            # Work around the fact that, currently, when a DiGraph is
-            # created with Integer's as vertices, those vertices are
-            # converted to plain int's
-            elements = [ Integer(i) if isinstance(i,int) else i for i in elements ]
+        # Work around the fact that, currently, when a DiGraph is
+        # created with Integer's as vertices, those vertices are
+        # converted to plain int's. This is a bit abusive.
+        elements = [ Integer(i) if isinstance(i,int) else i for i in elements ]
     else:
         elements = [element_labels[z] for z in lin_ext]
 
@@ -668,7 +711,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Returns the element corresponding to a vertex of the Hasse diagram.
 
-        It is wrapped is ``self`` is not a facade poset.
+        It is wrapped if ``self`` is not a facade poset.
 
         EXAMPLES::
 
@@ -687,6 +730,47 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
         """
         return self._list[vertex]
+
+    def unwrap(self, element):
+        """
+        Unwraps an element of this poset
+
+        INPUT:
+
+        - ``element`` -- an element of ``self``
+
+        EXAMPLES::
+
+            sage: P = Poset((divisors(15), attrcall("divides")))
+            sage: x = P.an_element(); x
+            1
+            sage: x.parent()
+            Finite poset containing 4 elements
+            sage: P.unwrap(x)
+            1
+            sage: P.unwrap(x).parent()
+            Integer Ring
+
+        For a non facade poset, this is equivalent to using the
+        ``.element`` attribute::
+
+            sage: P.unwrap(x) is x.element
+            True
+
+        For a facade poset, this does nothing::
+
+            sage: P = Poset((divisors(15), attrcall("divides")), facade=True)
+            sage: x = P.an_element()
+            sage: P.unwrap(x) is x
+            True
+
+        This method is useful in code where we don't know if ``P`` is
+        a facade poset or not.
+        """
+        if self._is_facade:
+            return element
+        else:
+            return element.element
 
     def __contains__(self, x):
         r"""
@@ -835,6 +919,35 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return DiGraph(self._hasse_diagram).relabel(self._list, inplace = False)
 
+    def _latex_(self):
+        r"""
+        Returns a latex method for the poset.
+
+        EXAMPLES::
+
+            sage: P = Poset(([1,2], [[1,2]]), cover_relations = True)
+            sage: print P._latex_() #optional - dot2tex graphviz
+            \begin{tikzpicture}
+            %
+            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
+            %
+            \definecolor{cv0}{rgb}{0.0,0.0,0.0}
+            \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
+            \definecolor{clv0}{rgb}{0.0,0.0,0.0}
+            \definecolor{cv1}{rgb}{0.0,0.0,0.0}
+            \definecolor{cfv1}{rgb}{1.0,1.0,1.0}
+            \definecolor{clv1}{rgb}{0.0,0.0,0.0}
+            \definecolor{cv0v1}{rgb}{0.0,0.0,0.0}
+            %
+            \Vertex[style={minimum size=1.0cm,draw=cv0,fill=cfv0,text=clv0,shape=circle},LabelOut=false,L=\hbox{$1$},x=0.0cm,y=0.0cm]{v0}
+            \Vertex[style={minimum size=1.0cm,draw=cv1,fill=cfv1,text=clv1,shape=circle},LabelOut=false,L=\hbox{$2$},x=5.0cm,y=5.0cm]{v1}
+            %
+            \Edge[lw=0.1cm,style={post, bend right,color=cv0v1,},](v0)(v1)
+            %
+            \end{tikzpicture}
+        """
+        return self.hasse_diagram()._latex_()
+
     def _repr_(self):
         r"""
         Returns a string representation of the poset.
@@ -866,31 +979,164 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return iter(self._list)
 
-    def linear_extension(self):
+    def linear_extension(self, linear_extension=None, check=True):
         """
-        Returns a linear extension of the poset.
+        Returns a linear extension of this poset.
+
+        INPUT:
+
+        - ``linear_extension`` -- a list of the elements of ``self`` (default: ``None``)
+        - ``check`` -- a boolean (default: True);
+          whether to check that ``linear_extension`` is indeed a
+          linear extension of ``self``.
+
+        .. seealso:: :meth:`is_linear_extension`, :meth:`linear_extensions`
 
         EXAMPLES::
 
-            sage: B = Posets.BooleanLattice(3)
-            sage: B.linear_extension()
-            [0, 1, 2, 3, 4, 5, 6, 7]
-        """
-        # TODO: do we care whether this is a list or tuple?
-        return list(self._list)
+            sage: P = Poset((divisors(15), attrcall("divides")), facade = True)
 
-    def linear_extensions(self):
+        Without optional argument, the default linear extension of the
+        poset is returned, as a plain list::
+
+            sage: P.linear_extension()
+            [1, 3, 5, 15]
+
+        Otherwise, a full-featured linear extension is constructed
+        as an element of ``P.linear_extensions()``::
+
+            sage: l = P.linear_extension([1,5,3,15]); l
+            [1, 5, 3, 15]
+            sage: type(l)
+            <class 'sage.combinat.posets.linear_extensions.LinearExtensionsOfPoset_with_category.element_class'>
+            sage: l.parent()
+            The set of all linear extensions of Finite poset containing 4 elements
+
+        By default, the linear extension is checked for correctness::
+
+            sage: l = P.linear_extension([1,3,15,5])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 3, 15, 5] is not a linear extension of Finite poset containing 4 elements
+
+        This can be disabled (at your own risks!) with::
+
+            sage: P.linear_extension([1,3,15,5], check=False)
+            [1, 3, 15, 5]
+
+        .. todo::
+
+            - Is it acceptable to have those two features for a single method?
+
+            - In particular, we miss a short idiom to get the default
+              linear extension
         """
-        Returns a list of all the linear extensions of the poset.
+        if linear_extension is not None:
+            return self.linear_extensions()(linear_extension, check=check)
+        else:
+            # TODO: do we care whether this is a list or tuple?
+            return list(self._list)
+
+    @cached_method
+    def linear_extensions(self, facade=False):
+        """
+        Returns the enumerated set of all the linear extensions of this poset
+
+        INPUT:
+
+        - ``facade`` -- a boolean (default: False);
+          whether to return the linear extensions as plain lists
+
+        .. seealso:: :meth:`linear_extension`, :meth:`is_linear_extension`
 
         EXAMPLES::
+
+            sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
+            sage: P.list()
+            [1, 2, 3, 4, 6, 12]
+            sage: L = P.linear_extensions(); L
+            The set of all linear extensions of Finite poset containing 6 elements
+            sage: l = L.an_element(); l
+            [1, 2, 3, 4, 6, 12]
+            sage: L.cardinality()
+            5
+            sage: L.list()
+            [[1, 2, 3, 4, 6, 12], [1, 2, 3, 6, 4, 12], [1, 2, 4, 3, 6, 12], [1, 3, 2, 4, 6, 12], [1, 3, 2, 6, 4, 12]]
+
+        Each element is aware that it is a linear extension of `P`::
+
+            sage: type(l.parent())
+            <class 'sage.combinat.posets.linear_extensions.LinearExtensionsOfPoset_with_category'>
+
+        With ``facade=True``, the elements of ``L`` are plain lists instead::
+
+            sage: L = P.linear_extensions(facade=True)
+            sage: l = L.an_element()
+            sage: type(l)
+            <type 'list'>
+
+        .. warning::
+
+            In Sage <= 4.8, this function used to return a plain list
+            of lists. To recover the previous functionality, please
+            use::
+
+                sage: L = list(P.linear_extensions(facade=True)); L
+                [[1, 2, 3, 4, 6, 12], [1, 2, 3, 6, 4, 12], [1, 2, 4, 3, 6, 12], [1, 3, 2, 4, 6, 12], [1, 3, 2, 6, 4, 12]]
+                sage: type(L[0])
+                <type 'list'>
+
+        .. todo::
+
+            The ``facade`` option is not yet fully functional::
+
+                 sage: L = P.linear_extensions(facade=True); L
+                 The set of all linear extensions of Finite poset containing 6 elements
+                 sage: L([1, 2, 3, 4, 6, 12])
+                 Traceback (most recent call last):
+                 ...
+                 TypeError: Cannot convert list to sage.structure.element.Element
+
+        TESTS::
 
             sage: D = Poset({ 0:[1,2], 1:[3], 2:[3,4] })
-            sage: D.linear_extensions()
+            sage: list(D.linear_extensions())
             [[0, 1, 2, 3, 4], [0, 1, 2, 4, 3], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3]]
+
         """
-        return [map(self._vertex_to_element,lin_ext) for lin_ext in
-                self._hasse_diagram.linear_extensions()]
+        from linear_extensions import LinearExtensionsOfPoset
+        return LinearExtensionsOfPoset(self, facade = facade)
+
+    def is_linear_extension(self, l):
+        """
+        Returns whether ``l`` is a linear extension of ``self``
+
+        INPUT:
+
+        - ``l`` -- a list (or iterable) containing all of the elements of ``self`` exactly once
+
+        .. seealso:: :meth:`linear_extension`, :meth:`linear_extensions`
+
+        EXAMPLES::
+
+            sage: P = Poset((divisors(12), attrcall("divides")), facade=True, linear_extension=True)
+            sage: P.list()
+            [1, 2, 3, 4, 6, 12]
+            sage: P.is_linear_extension([1, 2, 4, 3, 6, 12])
+            True
+            sage: P.is_linear_extension([1, 2, 4, 6, 3, 12])
+            False
+
+            sage: [p for p in Permutations(list(P)) if P.is_linear_extension(p)]
+            [[1, 2, 3, 4, 6, 12], [1, 2, 3, 6, 4, 12], [1, 2, 4, 3, 6, 12], [1, 3, 2, 4, 6, 12], [1, 3, 2, 6, 4, 12]]
+            sage: list(P.linear_extensions())
+            [[1, 2, 3, 4, 6, 12], [1, 2, 3, 6, 4, 12], [1, 2, 4, 3, 6, 12], [1, 3, 2, 4, 6, 12], [1, 3, 2, 6, 4, 12]]
+
+        .. note:: this is used and systematically tested in :class:`~sage.combinat.posets.linear_extensions.LinearExtensionsOfPosets`
+
+        """
+        index = { x:i for (i,x) in enumerate(l) }
+        return all(index[i] < index[j] for (i,j) in self.cover_relations())
 
     def list(self):
         """
@@ -1977,6 +2223,126 @@ class FinitePoset(UniqueRepresentation, Parent):
                                 category = self.category(),
                                 facade = self._is_facade)
 
+    def relabel(self, relabelling):
+        r"""
+        Returns a copy of this poset with its elements relabelled
+
+        INPUT:
+
+        - ``relabelling`` -- a function or dictionnary
+
+          This function should map each (non-wrapped) element of
+          ``self`` to some distinct object.
+
+        EXAMPLES::
+
+            sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
+            sage: P.list()
+            [1, 2, 3, 4, 6, 12]
+            sage: P.cover_relations()
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
+            sage: Q = P.relabel(lambda x: 12/x)
+            sage: Q.list()
+            [12, 6, 4, 3, 2, 1]
+            sage: Q.cover_relations()
+            [[12, 6], [12, 4], [6, 3], [6, 2], [4, 2], [3, 1], [2, 1]]
+
+        Here we relabel the elements of a poset by {0,1,2, ...}, using
+        a dictionary::
+
+            sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
+            sage: relabelling = {c.element:i for (i,c) in enumerate(P)}; relabelling
+            {1: 0, 2: 1, 3: 2, 4: 3, 6: 4, 12: 5}
+            sage: Q = P.relabel(relabelling)
+            sage: Q.list()
+            [0, 1, 2, 3, 4, 5]
+            sage: Q.cover_relations()
+            [[0, 1], [0, 2], [1, 3], [1, 4], [2, 4], [3, 5], [4, 5]]
+
+        Mind the ``c.element``; this is because the relabelling is
+        applied to the elements of the poset without the wrapping.
+        Thanks to this convention, the same relabelling function can
+        be used both for facade or non facade posets::
+
+            sage: P = Poset((divisors(12), attrcall("divides")), facade = True, linear_extension=True)
+            sage: P.list()
+            [1, 2, 3, 4, 6, 12]
+            sage: Q = P.relabel(lambda x: 12/x)
+            sage: Q.list()
+            [12, 6, 4, 3, 2, 1]
+            sage: Q.cover_relations()
+            [[12, 6], [12, 4], [6, 3], [6, 2], [4, 2], [3, 1], [2, 1]]
+
+        .. note::
+
+            As can be seen in the above examples, the default linear
+            extension of ``Q`` is that of ``P`` after relabelling. In
+            particular, ``P`` and ``Q`` share the same internal Hasse
+            diagram.
+        """
+        assert not isinstance(relabelling, (tuple, list)), "relabelling by tuple or list not yet defined"
+        if isinstance(relabelling, dict):
+            relabelling = relabelling.__getitem__
+        elements = tuple(relabelling(x) for x in self._elements)
+        return FinitePoset(self._hasse_diagram,
+                           elements = elements,
+                           category=self.category(),
+                           facade=self._is_facade)
+
+    def with_linear_extension(self, linear_extension):
+        """
+        Returns a copy of ``self`` with a different default linear extension
+
+        EXAMPLES::
+
+            sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
+            sage: P.cover_relations()
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
+            sage: list(P)
+            [1, 2, 3, 4, 6, 12]
+            sage: Q = P.with_linear_extension([1,3,6,2,4,12])
+            sage: list(Q)
+            [1, 3, 6, 2, 4, 12]
+            sage: Q.cover_relations()
+            [[1, 3], [1, 2], [3, 6], [6, 12], [2, 6], [2, 4], [4, 12]]
+
+        TESTS:
+
+        We check that we can pass in a list of elements of P instead::
+
+            sage: Q = P.with_linear_extension(map(P, [1,3,6,2,4,12]))
+            sage: list(Q)
+            [1, 3, 6, 2, 4, 12]
+            sage: Q.cover_relations()
+            [[1, 3], [1, 2], [3, 6], [6, 12], [2, 6], [2, 4], [4, 12]]
+
+        We check that this works for facade posets too::
+
+            sage: P = Poset((divisors(12), attrcall("divides")), facade=True)
+            sage: Q = P.with_linear_extension([1,3,6,2,4,12])
+            sage: list(Q)
+            [1, 3, 6, 2, 4, 12]
+            sage: Q.cover_relations()
+            [[1, 3], [1, 2], [3, 6], [6, 12], [2, 6], [2, 4], [4, 12]]
+            sage: sorted(Q.cover_relations()) == sorted(P.cover_relations())
+            True
+
+        .. note::
+
+            With the current implementation, this requires relabelling
+            the internal Dynkin diagram which is `O(n+m)`, where `n`
+            is the number of elements and `m` the number of cover
+            relations.
+
+        """
+        new_vertices = [ self._element_to_vertex(element) for element in linear_extension]
+        new_elements = [ self._elements[i] for i in new_vertices ]
+        vertex_relabelling = dict(zip(new_vertices, range(len(new_vertices))))
+        return FinitePoset(self._hasse_diagram.relabel(vertex_relabelling, inplace=False),
+                           elements = new_elements,
+                           category=self.category(),
+                           facade=self._is_facade)
+
     def graphviz_string(self,graph_string="graph",edge_string="--"):
         r"""
         Returns a representation in the DOT language, ready to render in
@@ -2286,6 +2652,170 @@ class FinitePoset(UniqueRepresentation, Parent):
                 facets.append([a.element for a in f])
 
         return SimplicialComplex(vertices, facets)
+
+    def promotion(self, i=1):
+        r"""
+        Computes the (extended) promotion on the linear extension of the poset ``self``
+
+        INPUT:
+
+        - ``i`` -- an integer between `1` and `n` (default: `1`)
+
+        OUTPUT:
+
+        - an isomorphic poset, with the same default linear extension
+
+        The extended promotion is defined on a poset ``self`` of size
+        `n` by applying the promotion operator `\tau_i \tau_{i+1}
+        \cdots \tau_{n-1}` to the default linear extension `\pi` of ``self``
+        (see :meth:`~sage.combinat.posets.linear_extensions.LinearExtensionOfPoset.promotion`),
+        and relabelling ``self`` accordingly. For more details see [St2009]_.
+
+        When the vertices of the poset ``self`` are labelled by
+        `\{1,2,\ldots,n\}`, the linear extension is the identity, and
+        `i=1`, the above algorithm corresponds to the promotion
+        operator on posets defined by Schützenberger as
+        follows. Remove `1` from ``self`` and replace it by the
+        minimum `j` of all labels covering `1` in the poset. Then,
+        remove `j` and replace it by the minimum of all labels
+        covering `j`, and so on.  This process ends when a label is a
+        local maximum. Place the label `n+1` at this vertex.  Finally,
+        decrease all labels by `1`.
+
+        REFERENCES:
+
+            .. [St2009] Richard Stanley,
+               *Promotion and evacuation*,
+               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of Anders Björner,
+               Research Paper 9, 24 pp.
+
+        EXAMPLES::
+
+            sage: P = Poset(([1,2], [[1,2]]))
+            sage: P.promotion()
+            Finite poset containing 2 elements
+            sage: P == P.promotion()
+            True
+
+            sage: P = Poset(([1,2,3,4,5,6,7], [[1,2],[1,4],[2,3],[2,5],[3,6],[4,7],[5,6]]))
+            sage: P.list()
+            [1, 2, 3, 5, 6, 4, 7]
+            sage: Q = P.promotion(4); Q
+            Finite poset containing 7 elements
+            sage: Q.cover_relations()
+            [[1, 2], [1, 6], [2, 3], [2, 5], [3, 7], [5, 7], [6, 4]]
+
+        Note that if one wants to obtain the promotion defined by
+        Schützenberger's algorithm directly on the poset, one needs
+        to make sure the linear extension is the identity::
+
+            sage: P = P.with_linear_extension([1,2,3,4,5,6,7])
+            sage: P.list()
+            [1, 2, 3, 4, 5, 6, 7]
+            sage: Q = P.promotion(4); Q
+            Finite poset containing 7 elements
+            sage: Q.cover_relations()
+            [[1, 2], [1, 6], [2, 3], [2, 4], [3, 5], [4, 5], [6, 7]]
+            sage: Q = P.promotion()
+            sage: Q.cover_relations()
+            [[1, 2], [1, 3], [2, 4], [2, 5], [3, 6], [4, 7], [5, 7]]
+
+        Here is an example for a poset not labelled by `\{1,2,\ldots,n\}`::
+
+            sage: P = Poset((divisors(30), attrcall("divides")), linear_extension = True)
+            sage: P.list()
+            [1, 2, 3, 5, 6, 10, 15, 30]
+            sage: P.cover_relations()
+            [[1, 2], [1, 3], [1, 5], [2, 6], [2, 10], [3, 6], [3, 15], [5, 10], [5, 15], [6, 30], [10, 30], [15, 30]]
+            sage: Q = P.promotion(4); Q
+            Finite poset containing 8 elements
+            sage: Q.cover_relations()
+            [[1, 2], [1, 3], [1, 6], [2, 5], [2, 15], [3, 5], [3, 10], [5, 30], [6, 10], [6, 15], [10, 30], [15, 30]]
+
+        .. seealso::
+
+            - :meth:`linear_extension`
+            - :meth:`with_linear_extension` and the ``linear_extension`` option of :func:`Poset`
+            - :meth:`~sage.combinat.posets.linear_extensions.LinearExtensionOfPoset.promotion`
+            - :meth:`evacuation`
+
+        AUTHOR:
+
+        - Anne Schilling (2012-02-18)
+        """
+        return self.linear_extension(self.linear_extension()).promotion(i).to_poset()
+
+    def evacuation(self):
+        r"""
+        Computes evacuation on the linear extension associated to the poset ``self``.
+
+        OUTPUT:
+
+        - an isomorphic poset, with the same default linear extension
+
+        Evacuation is defined on a poset ``self`` of size `n` by
+        applying the evacuation operator
+        `(\tau_1 \cdots \tau_{n-1}) (\tau_1 \cdots \tau_{n-2}) \cdots (\tau_1)`,
+        to the default linear extension `\pi` of ``self``
+        (see :meth:`~sage.combinat.posets.linear_extensions.LinearExtensionOfPoset.evacuation`),
+        and relabelling ``self`` accordingly. For more details see [Stan2009]_.
+
+        .. seealso::
+
+            - :meth:`linear_extension`
+            - :meth:`with_linear_extension` and the ``linear_extension`` option of :func:`Poset`
+            - :meth:`~sage.combinat.posets.linear_extensions.LinearExtensionOfPoset.evacuation`
+            - :meth:`promotion`
+
+        REFERENCES:
+
+            .. [Stan2009] Richard Stanley,
+               *Promotion and evacuation*,
+               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of Anders Björner,
+               Research Paper 9, 24 pp.
+
+        EXAMPLES::
+
+            sage: P = Poset(([1,2], [[1,2]]))
+            sage: P.evacuation()
+            Finite poset containing 2 elements
+            sage: P.evacuation() == P
+            True
+
+            sage: P = Poset(([1,2,3,4,5,6,7], [[1,2],[1,4],[2,3],[2,5],[3,6],[4,7],[5,6]]), linear_extension = True)
+            sage: P.list()
+            [1, 2, 3, 4, 5, 6, 7]
+            sage: Q = P.evacuation(); Q
+            Finite poset containing 7 elements
+            sage: Q.cover_relations()
+            [[1, 2], [1, 3], [2, 5], [3, 4], [3, 6], [4, 7], [6, 7]]
+
+        Note that the results depend on the linear extension associated to the poset::
+
+            sage: P = Poset(([1,2,3,4,5,6,7], [[1,2],[1,4],[2,3],[2,5],[3,6],[4,7],[5,6]]))
+            sage: P.list()
+            [1, 2, 3, 5, 6, 4, 7]
+            sage: Q = P.evacuation(); Q
+            Finite poset containing 7 elements
+            sage: Q.cover_relations()
+            [[1, 2], [1, 5], [2, 3], [5, 6], [5, 4], [6, 7], [4, 7]]
+
+        Here is an example of a poset where the vertices are not labelled by `\{1,2,\ldots,n\}`::
+
+            sage: P = Poset((divisors(15), attrcall("divides")), linear_extension = True)
+            sage: P.list()
+            [1, 3, 5, 15]
+            sage: Q = P.evacuation(); Q
+            Finite poset containing 4 elements
+            sage: Q.cover_relations()
+            [[1, 3], [1, 5], [3, 15], [5, 15]]
+
+        AUTHOR:
+
+        - Anne Schilling (2012-02-18)
+        """
+        return self.linear_extension(self.linear_extension()).evacuation().to_poset()
+
 
 FinitePoset._dual_class = FinitePoset
 

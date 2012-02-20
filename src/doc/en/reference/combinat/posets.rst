@@ -8,4 +8,5 @@ Posets
    ../sage/combinat/posets/hasse_diagram
    ../sage/combinat/posets/elements
    ../sage/combinat/posets/lattices
+   ../sage/combinat/posets/linear_extensions
    ../sage/combinat/posets/poset_examples

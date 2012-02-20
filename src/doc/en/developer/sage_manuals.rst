@@ -90,8 +90,8 @@ when you run ``sage --docbuild --formats``).
 
 .. _chapter-sage_manuals_links:
 
-Linking to modules, classes, methods, ..., trac tickets and Wikipedia.
-----------------------------------------------------------------------
+Linking to modules, classes, methods, ..., trac tickets and Wikipedia
+---------------------------------------------------------------------
 
 For full documentation, refer to `inline markup`__ in the Sphinx
 documentation. Currently, there is no support for defining chapters

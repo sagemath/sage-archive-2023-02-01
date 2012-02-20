@@ -310,6 +310,16 @@ a guide.
    functions without these doctests will not be accepted for inclusion
    with Sage.
 
+- A SEEALSO block (optional) with links to related things in Sage. A SEEALSO
+  block should start with ``.. SEEALSO::``. It can also be the lower-case form
+  ``.. seealso::``. However, you are encouraged to use the upper-case form
+  ``.. SEEALSO::``. See :ref:`chapter-sage_manuals_links` for details on how
+  to setup link in Sage.  Here's an example of a SEEALSO block::
+
+      .. SEEALSO::
+
+          :ref:`chapter-sage_manuals_links`
+
 -  An ALGORITHM block (optional) which indicates what software
    and/or what algorithm is used. For example
    ``ALGORITHM: Uses Pari``. Here's a longer example that describes an
@@ -443,6 +453,8 @@ indentation::
         OUTPUT:
 
         integer -- the ...
+
+	.. SEEALSO:: :func:`line`
 
         EXAMPLES:
 

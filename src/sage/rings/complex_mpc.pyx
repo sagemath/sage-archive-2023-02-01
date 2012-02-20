@@ -1518,7 +1518,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         cdef RealNumber x
         x = RealNumber(self._parent._real_field())
-        mpc_norm (x.value, self.value, (<RealField_class>x.parent).rnd)
+        mpc_norm(x.value, self.value, (<RealField_class>x._parent).rnd)
         return x
 
     def __rdiv__(self, left):

@@ -1,12 +1,18 @@
-import sys, os, re
+import sys, os, sphinx
+
 SAGE_ROOT = os.environ['SAGE_ROOT']
 SAGE_DOC = os.path.join(SAGE_ROOT, 'devel/sage/doc')
 
+def get_doc_abspath(path):
+    """
+    return the absolute path from a SAGE_DOC relative path
+    """
+    return os.path.abspath(os.path.join(SAGE_DOC, path))
+
 # If your extensions are in another directory, add it here. If the directory
-# is relative to the documentation root, use os.path.abspath to make it
+# is relative to the documentation root, use get_doc_abspath to make it
 # absolute, like shown here.
-#sys.path.append(os.path.abspath('.'))
-sys.path.append(os.path.abspath(os.path.join(SAGE_DOC, 'common')))
+sys.path.append(get_doc_abspath('common'))
 
 # General configuration
 # ---------------------
@@ -16,6 +22,8 @@ sys.path.append(os.path.abspath(os.path.join(SAGE_DOC, 'common')))
 extensions = ['sage_autodoc',  'sphinx.ext.graphviz',
               'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo',
               'sphinx.ext.extlinks']
+# We do *not* fully initialize intersphinx since we call it by hand
+# in find_sage_dangling_links.
 #, 'sphinx.ext.intersphinx']
 
 
@@ -98,8 +106,27 @@ inheritance_edge_attrs = {}
 todo_include_todos = True
 
 
+# Cross-links to other project's online documentation.
+# intersphinx_mapping = {'http://docs.python.org/': None}
+#intersphinx_mapping = {'python': ('http://docs.python.org/',
+#                                  'python-inv.txt')}
+intersphinx_mapping = {
+    'http://docs.python.org/': get_doc_abspath('common/python.inv')}
+
+def set_intersphinx_mappings(app):
+    """
+    Add reference's objects.inv to intersphinx if not compiling reference
+    """
+    app.config.intersphinx_mapping = intersphinx_mapping
+    refpath = 'output/html/en/reference/'
+    if not app.srcdir.endswith('reference'):
+        app.config.intersphinx_mapping[get_doc_abspath(refpath)] = get_doc_abspath(refpath+'objects.inv')
+pythonversion = sys.version.split(' ')[0]
+# Python and Sage trac ticket shortcuts. For example, :trac:`7549` .
+
 # Sage trac ticket shortcuts. For example, :trac:`7549` .
 extlinks = {
+    'python': ('http://docs.python.org/release/'+pythonversion+'/%s', ''),
     'trac': ('http://trac.sagemath.org/sage_trac/ticket/%s', 'trac ticket #'),
     'wikipedia': ('http://en.wikipedia.org/wiki/%s', 'Wikipedia article ')}
 
@@ -198,9 +225,6 @@ html_split_index = True
 
 # Output file base name for HTML help builder.
 #htmlhelp_basename = ''
-
-# Cross-links to other project's online documentation.
-#intersphinx_mapping = {'http://docs.python.org/dev': None}
 
 
 # Options for LaTeX output
@@ -440,8 +464,118 @@ def process_inherited(app, what, name, obj, options, docstringlines):
     for i in xrange(len(docstringlines)):
         docstringlines.pop()
 
-from sage.misc.sageinspect import sage_getargspec
-autodoc_builtin_argspec = sage_getargspec
+dangling_debug = False
+
+def debug_inf(app, message):
+    if dangling_debug: app.info(message)
+
+def call_intersphinx(app, env, node, contnode):
+    """
+    Call intersphinx and work around its misshandling of relative links
+    """
+    debug_inf(app, "???? Trying intersphinx for %s"%node['reftarget'])
+    builder = app.builder
+    res =  sphinx.ext.intersphinx.missing_reference(
+        app, env, node, contnode)
+    if res: #workaround intersphinx misshandling of relative links
+        # useful for debugging
+        # import pdb
+        # pdb.set_trace()
+        if res['refuri'].startswith(SAGE_DOC):
+            here = os.path.dirname(os.path.join(builder.outdir,
+                                                node['refdoc']))
+            res['refuri'] = os.path.relpath(res['refuri'], here)
+            debug_inf(app, "++++ Found at %s"%res['refuri'])
+    else:
+        debug_inf(app, "---- Intersphinx: %s not Found"%node['reftarget'])
+    return res
+
+# lists of basic Python class which are documented as functions
+base_class_as_func = [
+    'bool', 'complex', 'dict', 'file', 'float',
+    'frozenset', 'int', 'list', 'long', 'object',
+    'set', 'slice', 'str', 'tuple', 'type', 'unicode', 'xrange']
+
+def find_sage_dangling_links(app, env, node, contnode):
+    """
+    Try to find dangling link in local module imports or all.py.
+    """
+    debug_inf(app, "==================== find_sage_dangling_links ")
+
+    reftype = node['reftype']
+    reftarget  = node['reftarget']
+    try:
+        doc = node['refdoc']
+    except KeyError:
+        debug_inf(app, "-- no refdoc in node %s"%node)
+        return None
+
+    debug_inf(app, "Searching %s from %s"%(reftarget, doc))
+
+    # Workaround: in Python's doc 'object', 'list', ... are documented as a
+    # function rather than a class
+    if reftarget in base_class_as_func and reftype == 'class':
+        node['reftype'] = 'func'
+
+    res = call_intersphinx(app, env, node, contnode)
+    if res:
+        debug_inf(app, "++ DONE %s"%(res['refuri']))
+        return res
+
+    if node.get('refdomain') != 'py': # not a python file
+       return None
+
+    try:
+        module = node['py:module']
+        cls    = node['py:class']
+    except KeyError:
+        debug_inf(app, "-- no module or class for :%s:%s"%(reftype, reftarget))
+        return None
+
+    basename = reftarget.split(".")[0]
+    try:
+        target_module = getattr(sys.modules['sage.all'], basename).__module__
+    except AttributeError:
+        debug_inf(app, "-- %s not found in sage.all"%(basename))
+        return None
+    if target_module is None:
+        target_module = ""
+        debug_inf(app, "?? found in None !!!")
+
+    debug_inf(app, "++ found %s using sage.all in %s"%(basename, target_module))
+
+    newtarget = target_module+'.'+reftarget
+    node['reftarget'] = newtarget
+
+    # adapted  from sphinx/domains/python.py
+    builder = app.builder
+    searchmode = node.hasattr('refspecific') and 1 or 0
+    matches =  builder.env.domains['py'].find_obj(
+        builder.env, module, cls, newtarget, reftype, searchmode)
+    if not matches:
+        debug_inf(app, "?? no matching doc for %s"%newtarget)
+        return call_intersphinx(app, env, node, contnode)
+    elif len(matches) > 1:
+        env.warn(target_module,
+                 'more than one target found for cross-reference '
+                 '%r: %s' % (newtarget,
+                             ', '.join(match[0] for match in matches)),
+                 node.line)
+    name, obj = matches[0]
+    debug_inf(app, "++ match = %s %s"%(name, obj))
+
+    from docutils import nodes
+    newnode = nodes.reference('', '', internal=True)
+    if name == target_module:
+        newnode['refid'] = name
+    else:
+        newnode['refuri'] = builder.get_relative_uri(node['refdoc'], obj[0])
+        newnode['refuri'] += '#' + name
+        debug_inf(app, "++ DONE at URI %s"%(newnode['refuri']))
+    newnode['reftitle'] = name
+    newnode.append(contnode)
+    return newnode
+
 
 def setup(app):
     app.connect('autodoc-process-docstring', process_docstring_cython)
@@ -451,3 +585,14 @@ def setup(app):
     app.connect('autodoc-process-docstring', process_mathtt)
     app.connect('autodoc-process-docstring', process_inherited)
     app.connect('autodoc-skip-member', skip_member)
+
+    app.add_config_value('intersphinx_mapping', {}, True)
+    app.add_config_value('intersphinx_cache_limit', 5, False)
+    # We do *not* fully initialize intersphinx since we call it by hand
+    # in find_sage_dangling_links.
+    #   app.connect('missing-reference', missing_reference)
+    app.connect('missing-reference', find_sage_dangling_links)
+    import sphinx.ext.intersphinx
+    app.connect('builder-inited', set_intersphinx_mappings)
+    app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
+

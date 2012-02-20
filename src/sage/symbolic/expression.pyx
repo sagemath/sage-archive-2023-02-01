@@ -5251,7 +5251,7 @@ cdef class Expression(CommutativeRingElement):
                     ans += coeff*xpow
         return ans
 
-    def polynomial(self, base_ring, ring=None):
+    def polynomial(self, base_ring=None, ring=None):
         r"""
         Return this symbolic expression as an algebraic polynomial
         over the given base ring, if possible.
@@ -5334,6 +5334,11 @@ cdef class Expression(CommutativeRingElement):
             3*x^35 + 2*y^35
             sage: parent(g)
             Multivariate Polynomial Ring in x, y over Finite Field of size 7
+
+        We check to make sure constants are converted appropriately::
+
+            sage: (pi*x).polynomial(SR)
+            pi*x
         """
         from sage.symbolic.expression_conversions import polynomial
         return polynomial(self, base_ring=base_ring, ring=ring)

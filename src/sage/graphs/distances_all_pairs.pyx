@@ -654,6 +654,98 @@ def wiener_index(G):
     sage_free(distances)
     return s/2
 
+##########################
+# Distances distribution #
+##########################
+
+def distances_distribution(G):
+    r"""
+    Returns the distances distribution of the (di)graph in a dictionary.
+
+    This method *ignores all edge labels*, so that the distance considered is
+    the topological distance.
+
+    OUTPUT:
+
+        A dictionary ``d`` such that the number of pairs of vertices at distance
+        ``k`` (if any) is equal to `d[k] \cdot |V(G)| \cdot (|V(G)|-1)`.
+
+    .. NOTE::
+
+        We consider that two vertices that do not belong to the same connected
+        component are at infinite distance, and we do not take the trivial pairs
+        of vertices `(v, v)` at distance `0` into account. Empty (di)graphs and
+        (di)graphs of order 1 have no paths and so we return the empty
+        dictionary ``{}``.
+
+    EXAMPLES:
+
+    An empty Graph::
+
+        sage: g = Graph()
+        sage: g.distances_distribution()
+        {}
+
+    A Graph of order 1::
+
+        sage: g = Graph()
+        sage: g.add_vertex(1)
+        sage: g.distances_distribution()
+        {}
+
+    A Graph of order 2 without edge::
+
+        sage: g = Graph()
+        sage: g.add_vertices([1,2])
+        sage: g.distances_distribution()
+        {+Infinity: 1}
+
+    The Petersen Graph::
+
+        sage: g = graphs.PetersenGraph()
+        sage: g.distances_distribution()
+        {1: 1/3, 2: 2/3}
+
+    A graph with multiple disconnected components::
+
+        sage: g = graphs.PetersenGraph()
+        sage: g.add_edge('good','wine')
+        sage: g.distances_distribution()
+        {1: 8/33, 2: 5/11, +Infinity: 10/33}
+
+    The de Bruijn digraph dB(2,3)::
+
+        sage: D = digraphs.DeBruijn(2,3)
+        sage: D.distances_distribution()
+        {1: 1/4, 2: 11/28, 3: 5/14}
+    """
+    if G.order() <= 1:
+        return {}
+
+    from sage.rings.infinity import Infinity
+    from sage.rings.integer import Integer
+
+    cdef unsigned short * distances = c_distances_all_pairs(G)
+    cdef int NN = G.order()*G.order()
+    cdef dict count = {}
+    cdef dict distr = {}
+    cdef int i
+    NNN = Integer(NN-G.order())
+
+    # We count the number of pairs at equal distances
+    for 0 <= i < NN:
+        count[ distances[i] ] = count.get(distances[i],0) + 1
+
+    sage_free(distances)
+
+    # We normalize the distribution
+    for j in count:
+        if j == <unsigned short> -1:
+            distr[ +Infinity ] = Integer(count[j])/NNN
+        elif j > 0:
+            distr[j] = Integer(count[j])/NNN
+
+    return distr
 
 
 ##################

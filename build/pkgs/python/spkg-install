@@ -11,6 +11,12 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+# It is best to unset these environment variables, as they might confuse
+# the Python installer.
+unset PYTHONHOME
+unset PYTHONPATH
+
+
 cd src
 
 # PATCH
@@ -29,11 +35,28 @@ export LDFLAGS
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 export CPPFLAGS
 
+# Extra flags for ./configure
+EXTRAFLAGS=
+
 # pymalloc screws with valgrind, so let's disable it
 if [ "$SAGE_VALGRIND" = "yes" ]; then
     echo "Building Python without pymalloc"
-    EXTRAFLAGS="--without-pymalloc"; export EXTRAFLAGS
+    EXTRAFLAGS="$EXTRAFLAGS --without-pymalloc"
 fi
+
+if [ `uname` = "Darwin" ]; then
+    EXTRAFLAGS="$EXTRAFLAGS --disable-toolbox-glue"
+fi
+
+if [ "$SAGE64" = yes ]; then
+    echo "64 bit build of Python enabled"
+    export CC="$CC -m64"
+fi
+
+# Add -fwrapv flag if supported by the compiler.
+# This is needed to support clang (#12430).
+export CFLAGS="$CFLAGS `testcflags.sh -fwrapv`"
+
 
 # Program around weird bug in build process:
 #      Apparently if you have this:
@@ -55,35 +78,8 @@ unset DISTUTILS_DEBUG
 
 build()
 {
-    rm -f "$SAGE_LOCAL"/lib/libpython*
-
-    EXTRAFLAGS="$EXTRAFLAGS --enable-shared"; export EXTRAFLAGS
-
-    if [ `uname` = "Darwin" ]; then
-        if [ "x$SAGE64" = xyes ]; then
-            echo "64 bit OSX build enabled"
-            OPT="-g -O3 -m64 -Wall -Wstrict-prototypes"; export OPT
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-	    --enable-unicode=ucs4 --with-gcc="gcc -m64" --disable-toolbox-glue
-        else
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-	    --enable-unicode=ucs4 --disable-toolbox-glue
-        fi
-    elif [ `uname` = "SunOS" ]; then
-        if [ "x$SAGE64" = xyes ]; then
-            echo "64 bit Open Solaris build enabled"
-            OPT="-g -O3 -m64 -Wall -Wstrict-prototypes"; export OPT
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  --libdir="$SAGE_LOCAL/lib" \
-            --enable-unicode=ucs4 --with-gcc="gcc -m64"
-        else
-            ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  --libdir="$SAGE_LOCAL/lib" \
-            --enable-unicode=ucs4
-        fi
-    else
-        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"  --enable-unicode=ucs4 \
-            CC="$CC $CFLAGS" CXX="$CXX $CXXFLAGS"
-    fi
-
+    ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+        --enable-unicode=ucs4 --enable-shared
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring Python."
@@ -96,10 +92,13 @@ build()
         exit 1
     fi
 
+    # Remove old libraries
+    rm -f "$SAGE_LOCAL"/lib/libpython*
+
     # Running 'make install' in parallel is a bad idea, so we use
     # only 1 job.
     # The "-i" option to ignore errors is crucial, especially in the
-    # case of a major upgrade.
+    # case of upgrades.
     $MAKE -i -j1 install
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing Python."
@@ -135,11 +134,7 @@ rm -rf python2.6
 # GiNaC -- see #11967 -- so we delete it.
 if [ "$UNAME" = "Darwin" ] && \
     [ `xcodebuild -version | grep Xcode | sed -e 's/[A-Za-z ]//g' | cut '-d.' -f1` -gt 3 ]; then
-    rm "$SAGE_LOCAL/lib/python2.7/config/libpython2.7.a"
-    if [ $? -ne 0 ] ; then
-	echo &>2 "Error deleting libpython2.7.a."
-	exit 1
-    fi
+    rm -f "$SAGE_LOCAL/lib/python2.7/config/libpython2.7.a"
 fi
 
 # Make sure extension modules were built correctly.

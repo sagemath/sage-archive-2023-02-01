@@ -64,6 +64,13 @@ http://www.python.org/community/
 
 == Changelog ==
 
+=== python-2.7.2.p3 (Jeroen Demeyer, R. Andrew Ohana, 8 February 2012) ===
+ * Trac #12430: add -fwrapv to CFLAGS if supported.  This is needed for
+   building with clang.
+ * Simplify spkg-install
+ * Removed redundant CC="$CC $CFLAGS" from ./configure
+ * Do not export EXTRAFLAGS.
+
 === python-2.7.2.p2 (John Palmieri, 3 February 2012) ===
  * Trac #11967: on OS X Lion, delete the file
    $SAGE_LOCAL/lib/python/config/libpython2.7.a.  Its presence causes

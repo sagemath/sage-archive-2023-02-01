@@ -1,4 +1,4 @@
-"""
+r"""
 Categories
 
 AUTHORS:
@@ -9,10 +9,10 @@ Every Sage object lies in a category. Categories in Sage are
 modeled on the mathematical idea of category, and are distinct from
 Python classes, which are a programming construct.
 
-In most cases, typing ``x.category()`` returns the
-category to which `x` belongs. If `C` is a category
-and `x` is any object, `C(x)` tries to make an
-object in `C` from `x`.
+In most cases, typing ``x.category()`` returns the category to which ``x``
+belongs. If ``C`` is a category and ``x`` is any object, ``C(x)`` tries to
+make an object in ``C`` from ``x``. Checking if ``x`` belongs to ``C`` is done
+as usually by ``x in C``.
 
 See :class:`Category` and :mod:`sage.categories.primer` for more details.
 
@@ -31,26 +31,59 @@ We create a couple of categories::
     sage: Ideals(IntegerRing())
     Category of ring ideals in Integer Ring
 
-The default category for elements `x` of an object `O` is the category
-of all objects of `O`. For example::
+Let's request the category of some objects::
 
     sage: V = VectorSpace(RationalField(), 3)
-    sage: x = V.gen(1)
-    sage: x.category()
-    Category of elements of Vector space of dimension 3 over Rational Field
+    sage: V.category()
+    Category of vector spaces over Rational Field
+    sage: G = SymmetricGroup(9)
+    sage: G.category()
+    Join of Category of finite permutation groups and Category of finite weyl groups
+    sage: P = PerfectMatchings(3)
+    sage: P.category()
+    Category of finite enumerated sets
 
-Currently, an object is considered *in* a category as soon as it has a
-category method returning an appropriate value::
+Let's check some memberships::
 
-    sage: class A:
-    ...     def category(self):
-    ...         return Fields()
-    sage: A() in Rings()
+    sage: V in VectorSpaces(QQ)
     True
+    sage: V in VectorSpaces(FiniteField(11))
+    False
+    sage: G in Monoids()
+    True
+    sage: P in Rings()
+    False
 
-This feature is deprecated, though. If at all possible, any object in any category
-should be an instance of :class:`CategoryObject`.
+For parametrized categories one can use the following shorthand::
 
+    sage: V in VectorSpaces
+    True
+    sage: G in VectorSpaces
+    False
+
+A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
+``C``.
+
+.. note::
+
+    Any object of a category should be an instance of
+    :class:`~sage.structure.category_object.CategoryObject`.
+
+    For backward compatibilty this is not yet enforced::
+
+        sage: class A:
+        ...     def category(self):
+        ...         return Fields()
+        sage: A() in Rings()
+        True
+
+    By default, the category of an element `x` of a parent `P` is the category
+    of all objects of `P` (this is dubious an may be deprecated)::
+
+        sage: V = VectorSpace(RationalField(), 3)
+        sage: v = V.gen(1)
+        sage: v.category()
+        Category of elements of Vector space of dimension 3 over Rational Field
 """
 
 #*****************************************************************************
@@ -579,10 +612,10 @@ class Category(UniqueRepresentation, SageObject):
 
     def __contains__(self, x):
         """
-        Returns whether ``x`` is an object in this category.
+        Membership testing
 
-        More specifically, returns True if and only if ``x`` has a
-        category which is a subcategory of this one.
+        Returns whether ``x`` is an object in this category, that is
+        if the category of ``x`` is a subcategory of ``self``.
 
         EXAMPLES::
 
@@ -594,6 +627,48 @@ class Category(UniqueRepresentation, SageObject):
         except AttributeError:
             return False
         return c.is_subcategory(self)
+
+    @staticmethod
+    def __classcontains__(cls, x):
+        """
+        Membership testing, without arguments
+
+        INPUT:
+
+        - ``cls`` -- a category class
+        - ``x`` -- any object
+
+        Returns whether ``x`` is an object of a category which is an instance
+        of ``cls``.
+
+        EXAMPLES:
+
+        This method makes it easy to test if an object is, say, a
+        vector space, without having to specify the base ring::
+
+            sage: F = FreeModule(QQ,3)
+            sage: F in VectorSpaces
+            True
+
+            sage: F = FreeModule(ZZ,3)
+            sage: F in VectorSpaces
+            False
+
+            sage: F in Algebras
+            False
+
+        TESTS:
+
+        Non category objects shall be handled properly::
+
+            sage: [1,2] in Algebras
+            False
+        """
+        try:
+            c = x.categories()
+        except AttributeError:
+            return False
+        return any(isinstance(cat, cls) for cat in c)
 
     def is_abelian(self):
         """
@@ -882,11 +957,11 @@ class Category(UniqueRepresentation, SageObject):
         """
         INPUT:
 
-         - ``category`` - a sub category of ``self``, tuple/list thereof, or None
+        - ``category`` - a sub category of ``self``, tuple/list thereof, or ``None``
 
         OUTPUT:
 
-        a category
+        - a category
 
         Returns ``category`` or ``self`` if ``category`` is None.
 
@@ -918,7 +993,7 @@ class Category(UniqueRepresentation, SageObject):
         assert category.is_subcategory(self), "Subcategory of `%s` required; got `%s`"%(category, self)
         return category
 
-    def _is_subclass(self, c,):
+    def _is_subclass(self, c):
         """
         Same as is_subcategory, but c may also be the class of a
         category instead of a category.

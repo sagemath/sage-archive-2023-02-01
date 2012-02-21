@@ -928,19 +928,6 @@ cdef class RealField_class(sage.rings.ring.Field):
         """
         cdef RealNumber x = self._new()
         cdef randstate rstate = current_randstate()
-        if sizeof(long) == 4:
-            # This is a gross hack that depends on the internals of
-            # MPFR... but that's OK, because if MPFR changes it will
-            # be instantly caught by the doctests above.
-            # MPFR rounds up the precision to a multiple of the
-            # current word size, then requests that many bits from
-            # .gmp_state .  So if (1 <= precision mod 64 <= 32),
-            # a 64-bit machine will request 32 more bits than a 32-bit
-            # machine, and the random numbers will get out of sync.
-            # We work around this problem by requesting an extra
-            # 32 bits on a 32-bit machine.
-            if 1 <= self.__prec % 64 <= 32:
-                rstate.c_random()
         mpfr_urandomb(x.value, rstate.gmp_state)
         if min == 0 and max == 1:
             return x

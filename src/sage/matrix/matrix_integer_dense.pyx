@@ -1639,6 +1639,37 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 0 3]
             [0 0 0]
             [0 0 0]
+
+        Check that #12280 is fixed::
+
+            sage: m = matrix([(-2, 1, 9, 2, -8, 1, -3, -1, -4, -1),
+            ...               (5, -2, 0, 1, 0, 4, -1, 1, -2, 0),
+            ...               (-11, 3, 1, 0, -3, -2, -1, -11, 2, -2),
+            ...               (-1, 1, -1, -2, 1, -1, -1, -1, -1, 7),
+            ...               (-2, -1, -1, 1, 1, -2, 1, 0, 2, -4)]).stack(
+            ...               200 * identity_matrix(ZZ, 10))
+            sage: matrix(ZZ,m).hermite_form(algorithm='pari', include_zero_rows=False)
+            [  1   0   2   0  13   5   1 166  72  69]
+            [  0   1   1   0  20   4  15 195  65 190]
+            [  0   0   4   0  24   5  23  22  51 123]
+            [  0   0   0   1  23   7  20 105  60 151]
+            [  0   0   0   0  40   4   0  80  36  68]
+            [  0   0   0   0   0  10   0 100 190 170]
+            [  0   0   0   0   0   0  25   0 100 150]
+            [  0   0   0   0   0   0   0 200   0   0]
+            [  0   0   0   0   0   0   0   0 200   0]
+            [  0   0   0   0   0   0   0   0   0 200]
+            sage: matrix(ZZ,m).hermite_form(algorithm='padic', include_zero_rows=False)
+            [  1   0   2   0  13   5   1 166  72  69]
+            [  0   1   1   0  20   4  15 195  65 190]
+            [  0   0   4   0  24   5  23  22  51 123]
+            [  0   0   0   1  23   7  20 105  60 151]
+            [  0   0   0   0  40   4   0  80  36  68]
+            [  0   0   0   0   0  10   0 100 190 170]
+            [  0   0   0   0   0   0  25   0 100 150]
+            [  0   0   0   0   0   0   0 200   0   0]
+            [  0   0   0   0   0   0   0   0 200   0]
+            [  0   0   0   0   0   0   0   0   0 200]
         """
         if self._nrows == 0 or self._ncols == 0:
             self.cache('pivots', ())
@@ -4860,12 +4891,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         stack overflows).
 
         INPUT:
-            flag -- 0 (default), 1, 3 or 4 (see docstring for gp.mathnf).
-            include_zero_rows -- if False, do not include any of the zero
-                  rows at the bottom of the matrix in the output.
 
-        NOTE: In no cases is the transformation matrix returned by
-        this function.
+        - ``flag`` -- 0 (default), 1, 3 or 4 (see docstring for
+          gp.mathnf).
+
+        - ``include_zero_rows`` -- boolean. if False, do not include
+          any of the zero rows at the bottom of the matrix in the
+          output.
+
+        .. NOTE::
+
+            In no cases is the transformation matrix returned by this
+            function.
 
         EXAMPLES::
 
@@ -4873,9 +4910,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 2 3]
             [0 3 6]
             [0 0 0]
-            sage: matrix(ZZ,3,[1..9])._hnf_pari(include_zero_rows=False)
-            [1 2 3]
-            [0 3 6]
             sage: matrix(ZZ,3,[1..9])._hnf_pari(1)
             [1 2 3]
             [0 3 6]
@@ -4888,7 +4922,33 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 2 3]
             [0 3 6]
             [0 0 0]
+
+        Check that ``include_zero_rows=False`` works correctly::
+
+            sage: matrix(ZZ,3,[1..9])._hnf_pari(0, include_zero_rows=False)
+            [1 2 3]
+            [0 3 6]
+            sage: matrix(ZZ,3,[1..9])._hnf_pari(1, include_zero_rows=False)
+            [1 2 3]
+            [0 3 6]
+            sage: matrix(ZZ,3,[1..9])._hnf_pari(3, include_zero_rows=False)
+            [1 2 3]
+            [0 3 6]
+            sage: matrix(ZZ,3,[1..9])._hnf_pari(4, include_zero_rows=False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Pari flag=4 is currently broken.
+
+        The following tests for the Pari bug in trac #12280. Expected
+        output is ``Mat(1), [1, 0; 0, 1]]``. Once this gets fixed we
+        can remove the ``NotImplementedError`` below. This is trac
+        #12346 ::
+
+            sage: pari('mathnf(Mat([0,1]), 4)')
+            [Mat([0, 1]), [1, 0; 0, 1]]
         """
+        if not include_zero_rows and flag==4:
+            raise NotImplementedError('Pari flag=4 is currently broken.')
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef GEN A
         sig_on()
@@ -4904,20 +4964,64 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Hermite form of this matrix, computed using PARI.
 
         INPUT:
-            flag -- 0 (default), 1, 3 or 4 (see docstring for gp.mathnf).
-            include_zero_rows -- if False, do not include any of the zero
-                  rows at the bottom of the matrix in the output.
 
-        NOTE: In no cases is the transformation matrix returned by
-        this function.
+        - ``flag`` -- 0 (default), 1, 3 or 4 (see docstring for
+          gp.mathnf).
+
+        - ``include_zero_rows`` -- boolean. if False, do not include
+          any of the zero rows at the bottom of the matrix in the
+          output.
+
+        .. NOTE::
+
+            In no cases is the transformation matrix returned by this
+            function.
 
         EXAMPLES::
 
             sage: a = matrix(ZZ,3,3,[1..9])
-            sage: a._hnf_pari_big(flag=1, include_zero_rows=False)
+            sage: a._hnf_pari_big(flag=0, include_zero_rows=True)
             [1 2 3]
             [0 3 6]
+            [0 0 0]
+            sage: a._hnf_pari_big(flag=1, include_zero_rows=True)
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+            sage: a._hnf_pari_big(flag=3, include_zero_rows=True)
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+            sage: a._hnf_pari_big(flag=4, include_zero_rows=True)
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+
+        Check that ``include_zero_rows=False`` works correctly::
+
+            sage: matrix(ZZ,3,[1..9])._hnf_pari_big(0, include_zero_rows=False)
+            [1 2 3]
+            [0 3 6]
+            sage: matrix(ZZ,3,[1..9])._hnf_pari_big(1, include_zero_rows=False)
+            [1 2 3]
+            [0 3 6]
+            sage: matrix(ZZ,3,[1..9])._hnf_pari_big(3, include_zero_rows=False)
+            [1 2 3]
+            [0 3 6]
+            sage: matrix(ZZ,3,[1..9])._hnf_pari_big(4, include_zero_rows=False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Pari flag=4 is currently broken.
+
+        The following tests for the Pari bug in trac #12280. Expected output
+        is ``Mat(1), [1, 0; 0, 1]]``. If this gets fixed we can remove
+        the ``NotImplementedError`` below. This is trac #12346 ::
+
+            sage: pari('mathnf(Mat([0,1]), 4)')
+            [Mat([0, 1]), [1, 0; 0, 1]]
         """
+        if (not include_zero_rows and flag==4):
+            raise NotImplementedError('Pari flag=4 is currently broken.')
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef gen H = P.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)

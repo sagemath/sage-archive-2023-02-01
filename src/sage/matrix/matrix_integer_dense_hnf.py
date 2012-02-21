@@ -840,7 +840,7 @@ def probable_hnf(A, include_zero_rows, proof):
         # raise
         # this signals that we must fallback to pari
         verbose("generic random modular HNF algorithm failed -- we fall back to PARI")
-        H = A.hermite_form(algorithm='pari')
+        H = A.hermite_form(algorithm='pari', include_zero_rows=include_zero_rows, proof=proof)
         return H, H.pivots()
 
     # The transformation matrix to HNF is the unique

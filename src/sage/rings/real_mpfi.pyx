@@ -676,18 +676,18 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: RIF.random_element()
-            -0.30607732607725314?
+            0.15363619378561300?
             sage: RIF.random_element()
-            -0.075929193054320221?
+            -0.50298737524751780?
             sage: RIF.random_element(-100, 100)
-            -83.808125490023344?
+            60.958996432224126?
 
         Passes extra positional or keyword arguments through::
 
             sage: RIF.random_element(min=0, max=100)
-            39.649686167130405?
+            2.5572702830891970?
             sage: RIF.random_element(min=-100, max=0)
-            -87.891396653188821?
+            -1.5803457307118123?
         """
         return self(self._middle_field().random_element(*args, **kwds))
 

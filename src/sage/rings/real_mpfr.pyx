@@ -900,32 +900,32 @@ cdef class RealField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: RealField(100).random_element(-5, 10)
-            1.9305310520925994224072377281
+            -1.7093633198207765227646362966
             sage: RealField(10).random_element()
-            -0.84
+            -0.11
 
         TESTS::
 
             sage: RealField(31).random_element()
-            -0.207006278
+            -0.676162510
             sage: RealField(32).random_element()
-            -0.757827933
+            0.689774422
             sage: RealField(33).random_element()
-            -0.530834221
+            0.396496861
             sage: RealField(63).random_element()
-            0.918013195263849341
+            -0.339980711116375371
             sage: RealField(64).random_element()
-            -0.805114150788947694
+            -0.0453049884016705260
             sage: RealField(65).random_element()
-            0.2035927570696802284
+            -0.5926714709589708137
             sage: RealField(10).random_element()
-            -0.59
+            0.23
             sage: RealField(10).random_element()
-            0.57
+            -0.41
             sage: RR.random_element()
-            0.931242676441124
+            -0.0420335212948924
             sage: RR.random_element()
-            0.979095507956490
+            -0.616678906367394
         """
         cdef RealNumber x = self._new()
         cdef randstate rstate = current_randstate()

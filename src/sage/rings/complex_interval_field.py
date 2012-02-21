@@ -342,14 +342,14 @@ class ComplexIntervalField_class(field.Field):
         EXAMPLES::
 
             sage: CIF.random_element()
-            -0.30607732607725314? - 0.075929193054320221?*I
+            0.15363619378561300? - 0.50298737524751780?*I
             sage: CIF.random_element(10, 20)
-            10.809593725498833? + 13.964968616713041?*I
+            18.047949821611205? + 10.255727028308920?*I
 
         Passes extra positional or keyword arguments through::
 
             sage: CIF.random_element(max=0, min=-5)
-            -4.3945698326594416? - 3.8270855512644575?*I
+            -0.079017286535590259? - 2.8712089896087117?*I
         """
         return self._real_field().random_element(*args, **kwds) \
             + self.gen() * self._real_field().random_element(*args, **kwds)

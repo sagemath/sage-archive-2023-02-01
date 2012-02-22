@@ -1,35 +1,23 @@
 #!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 # Unset RM since it messes with libtool
 unset RM
 
-# Cleaning
-echo "Deleting old libraries"
-rm -f "$SAGE_LOCAL"/lib/libmpc.*
-echo "Deleting old headers"
-rm -f "$SAGE_LOCAL"/include/mpc.h
-
 cd src
 
-# Setting up flags
-if [ "x$SAGE64" = "xyes" ]; then
-    echo "64 bit build"
-    CFLAGS="-O2 -g -m64 "; export CFLAGS
-    CXXFLAGS="-O2 -g -m64 "; export CXXFLAGS
-    CPPFLAGS="-O2 -g -m64 "; export CPPFLAGS
-fi
+# Unset CC and CFLAGS.  This will make mpc use the same configuration
+# as MPIR, which is probably a good thing.
+unset CC
+unset CFLAGS
+
 
 EXTRA=""
-
-if [ ! -f "$SAGE_LOCAL/include/gmp.h" ]; then
-    EXTRA="--disable-static --enable-shared"
-fi
 
 if [ $UNAME = "CYGWIN" ]; then
     EXTRA="--disable-static --enable-shared"
@@ -37,30 +25,30 @@ fi
 
 # Configuring
 ./configure --prefix="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
-    --with-mpfr="$SAGE_LOCAL" CFLAGS="$CFLAGS $SHAREDFLAGS -O2" CXX="$CXX" \
-    CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS" \
-    GMP_PREFIX="$SAGE_LOCAL" $EXTRA
+    --with-mpfr="$SAGE_LOCAL" $EXTRA
 if [ $? -ne 0 ]; then
-   echo "Error configuring MPC."
-   exit 1
+    echo >&2 "Error configuring MPC."
+    exit 1
 fi
 
 # Building
 $MAKE
 if [ $? -ne 0 ]; then
-   echo "Error building MPC."
-   exit 1
+    echo >&2 "Error building MPC."
+    exit 1
 fi
+
+# Cleaning
+echo "Deleting old headers"
+rm -f "$SAGE_LOCAL"/include/mpc.h
+# Do not delete old libraries as this causes gcc to break during
+# parallel builds.
+# echo "Deleting old libraries"
+# rm -f "$SAGE_LOCAL"/lib/libmpc.*
 
 # Installing
 $MAKE install
 if [ $? -ne 0 ]; then
-   echo "Error installing MPC."
-   exit 1
-fi
-
-# Final test
-if ! [ -f $SAGE_LOCAL/include/mpc.h ];  then
-    echo "An error occurred while building mpc."
+    echo >&2 "Error installing MPC."
     exit 1
 fi

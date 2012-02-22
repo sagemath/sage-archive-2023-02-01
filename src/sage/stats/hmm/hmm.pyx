@@ -282,10 +282,10 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         Discrete Hidden Markov Model with 2 States and 2 Emissions
         Transition matrix:
         [1.0134345614...e-70               1.0]
-        [              1.0 3.99743527136e-19]
+        [              1.0 3.997435271...e-19]
         Emission matrix:
         [7.3802215662...e-54               1.0]
-        [              1.0  3.9974352626e-19]
+        [              1.0  3.99743526...e-19]
         Initial probabilities: [0.0000, 1.0000]
         sage: m.sample(10)
         [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]

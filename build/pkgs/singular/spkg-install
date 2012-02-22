@@ -53,7 +53,7 @@ else
     # Mac OS X systems, we actually use -O3 for such versions of gcc.
     # When compiling with -O1 or -O2, we get linker errors related to
     # restFP/saveFP, see Sage Trac #11278.
-    if [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = xGCC ] ; then
+    if [ "x`testcc.sh $CC`" = xGCC ] ; then
         if $CC -dumpversion 2>/dev/null |grep >/dev/null '^4\.0\.' ; then
             OPTIMIZATION_FLAGS="-O3"
         fi
@@ -85,10 +85,17 @@ CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 CXXFLAGS="$CXXFLAGS -fPIC"
 CFLAGS="$CFLAGS -fPIC"
 
-
 export CXXFLAGS
 export CFLAGS
 export CPPFLAGS
+
+
+# The Sun assembler has problems with -pipe, so disable it.
+# This only affects compile time, not the compiled programs/libraries.
+if [ "$UNAME" = "SunOS" ]; then
+    MAKE="$MAKE PIPE="
+fi
+
 
 clean_headers()
 {
@@ -174,7 +181,8 @@ build_singular()
 {
     cd $SRC
 
-    $MAKE # Singular + rest
+    # Build Singular + rest
+    $MAKE
 
     if [ $? -ne 0 ]; then
         echo "Unable to build Singular."

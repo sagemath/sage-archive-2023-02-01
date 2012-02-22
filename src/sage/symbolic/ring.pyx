@@ -312,7 +312,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         OUTPUT:
 
-        - `i^{th}` wildcard expression
+        - `n^{th}` wildcard expression
 
         EXAMPLES::
 

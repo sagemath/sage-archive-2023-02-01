@@ -6,6 +6,9 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+# unset RM which messes with libtool and was set by previous versions of Sage
+unset RM
+
 if [ "$SAGE64" = "yes" ]; then
    echo "64 bit build"
    CFLAGS="-O2 -g -m64 -fPIC"; export CFLAGS

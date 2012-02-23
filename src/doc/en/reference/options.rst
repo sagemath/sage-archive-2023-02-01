@@ -26,14 +26,17 @@ Command-line options for Sage
   ``file.sage.py``.  See the Sage tutorial for more about preparsing
   and the differences between Sage and Python.
 - ``-q`` -- quiet; start with no banner
-- ``--grep <string>`` -- grep through all the Sage library code for
-  ``string``.  Note that while running Sage, you can also use the
+- ``--grep [options] <string>`` -- grep through all the Sage library
+  code for ``string``. Any options will get passed to the "grep"
+  command; for example, ``sage --grep -i epstein`` will search for
+  ``epstein``, and the ``-i`` flag tells grep to ignore case when
+  searching. Note that while running Sage, you can also use the
   function :func:`search_src <sage.misc.sagedoc.search_src>` to
   accomplish the same thing.
-- ``--grepdoc <string>`` -- grep through all the Sage documentation
-  for ``string``.  Note that while running Sage, you can also use the
-  function :func:`search_doc <sage.misc.sagedoc.search_doc>` to
-  accomplish the same thing.
+- ``--grepdoc [options] <string>`` -- grep through all the Sage
+  documentation for ``string``.  Note that while running Sage, you can
+  also use the function :func:`search_doc
+  <sage.misc.sagedoc.search_doc>` to accomplish the same thing.
 - ``--min [...]`` -- do not populate global namespace (must be first
   option)
 - ``-gthread``, ``-qthread``, ``-q4thread``, ``-wthread``,

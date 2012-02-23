@@ -1,6 +1,7 @@
---- ../src/src/setup.py	2010-09-15 21:55:00.000000000 -0700
-+++ setup.py	2010-12-02 10:01:00.848636199 -0800
-@@ -1,18 +1,37 @@
+diff -ru src/src/setup.py src.patched/src/setup.py
+--- src/src/setup.py	2010-09-16 06:55:00.000000000 +0200
++++ src.patched/src/setup.py	2012-02-16 11:14:40.338372823 +0100
+@@ -1,18 +1,39 @@
  from distutils.core import setup, Extension
  from glob import glob
  
@@ -23,6 +24,8 @@
 +    libdirs = [ATLAS_LIB_DIR,GCC_LIB_DIR]
 +elif os.environ['UNAME'] == 'CYGWIN':
 +    libraries = ['lapack','gsl','gslcblas','blas', 'gfortran']    
++elif os.environ['UNAME'] == 'Darwin':
++    libraries = ['m','lapack','gsl','gslcblas','blas','gfortran']
 +else:
 +    libraries = ['m','lapack','gsl','blas','gslcblas','cblas','gfortran','atlas']
 +
@@ -42,7 +45,7 @@
  
  # Set to 1 if you are installing the fftw module.
  BUILD_FFTW = 0
-@@ -23,53 +42,53 @@
+@@ -23,14 +44,14 @@
  # Directory containing fftw.h (used only when BUILD_FFTW = 1).
  FFTW_INC_DIR = '/usr/include'  
  
@@ -61,17 +64,7 @@
  
  # Set to 1 if you are installing the DSDP module.
  BUILD_DSDP = 0
- 
- # Directory containing libdsdp (used only when BUILD_DSDP = 1).
--DSDP_LIB_DIR = '/usr/lib'
-+DSDP_LIB_DIR = '/usr/local/src/sage/dsdp/DSDP5.8/lib'
-  
- # Directory containing dsdp5.h (used only when BUILD_DSDP = 1).
--DSDP_INC_DIR = '/usr/include'
-+DSDP_INC_DIR = '/usr/local/src/sage/dsdp/DSDP5.8/include'
- 
- extmods = []
- 
+@@ -46,30 +67,30 @@
  # optional modules
  
  if BUILD_GSL:
@@ -109,7 +102,7 @@
          sources = ['C/dsdp.c'] )
      extmods += [dsdp];
  
-@@ -85,28 +104,28 @@
+@@ -85,18 +106,18 @@
  else:    
      MACROS = []
  
@@ -134,12 +127,11 @@
      define_macros = MACROS,
      sources = ['C/lapack.c'] )
  
- umfpack = Extension('umfpack', 
+@@ -104,9 +125,9 @@
      include_dirs = [ 'C/SuiteSparse/UMFPACK/Include',
          'C/SuiteSparse/AMD/Include', 'C/SuiteSparse/AMD/Source', 
--        'C/SuiteSparse/UFconfig' ],
+         'C/SuiteSparse/UFconfig' ],
 -    library_dirs = [ ATLAS_LIB_DIR ],
-+        'C/SuiteSparse/UFconfig', ],
 +    library_dirs = libdirs,
      define_macros = MACROS,
 -    libraries = [ 'blas', 'lapack'],
@@ -147,7 +139,7 @@
      sources = [ 'C/umfpack.c',
          'C/SuiteSparse/UMFPACK/Source/umfpack_global.c',
          'C/SuiteSparse/UMFPACK/Source/umfpack_tictoc.c' ] +
-@@ -117,11 +136,11 @@
+@@ -117,8 +138,8 @@
  if sys.maxint > 2**31: MACROS += [('DLONG','')]
  
  cholmod = Extension('cholmod',
@@ -157,17 +149,10 @@
 +    libraries = libraries,
      include_dirs = [ 'C/SuiteSparse/CHOLMOD/Include', 
          'C/SuiteSparse/COLAMD', 'C/SuiteSparse/AMD/Include', 
--        'C/SuiteSparse/UFconfig', 'C/SuiteSparse/COLAMD/Include' ],
-+        'C/SuiteSparse/UFconfig', 'C/SuiteSparse/COLAMD/Include',],
-     define_macros = MACROS + [('NPARTITION', '1')],
-     sources = [ 'C/cholmod.c' ] + 
-         ['C/SuiteSparse/AMD/Source/' + s for s in ['amd_global.c',
-@@ -135,16 +154,21 @@
- 
- amd = Extension('amd', 
+         'C/SuiteSparse/UFconfig', 'C/SuiteSparse/COLAMD/Include' ],
+@@ -137,15 +158,20 @@
      include_dirs = [ 'C/SuiteSparse/AMD/Include', 
--        'C/SuiteSparse/UFconfig' ],
-+        'C/SuiteSparse/UFconfig', ],
+         'C/SuiteSparse/UFconfig' ],
      define_macros = MACROS,
 +    library_dirs = libdirs,
      sources = [ 'C/amd.c' ] + glob('C/SuiteSparse/AMD/Source/*.c') )
@@ -180,16 +165,11 @@
      define_macros = MACROS,
      sources = ['C/misc_solvers.c'] )
  
--extmods += [base, blas, lapack, umfpack, cholmod, amd, misc_solvers] 
-+extmods += [base, blas, lapack, umfpack, cholmod, amd, misc_solvers]
-+
+ extmods += [base, blas, lapack, umfpack, cholmod, amd, misc_solvers] 
+ 
 +for mod in extmods:
 +    mod.include_dirs += [ SAGE_INCLUDE ]
- 
++
  setup (name = 'cvxopt', 
      description = 'Convex optimization package',
-@@ -166,3 +190,4 @@
-     ext_modules = extmods,
-     package_dir = {"cvxopt": "python"},
-     packages = ["cvxopt"])
-+
+     version = '1.1.3', 

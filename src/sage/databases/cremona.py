@@ -280,6 +280,7 @@ def old_cremona_letter_code(n):
     label = chr(k)*int(n//26 + 1)
     return label
 
+old_cremona_label_regex = re.compile(r'(\d+)([A-Z]*)(\d*)$')
 cremona_label_regex = re.compile(r'(\d+)([a-z]*)(\d*)$')
 lmfdb_label_regex = re.compile(r'(\d+)\.([a-z]+)(\d*)$')
 
@@ -294,8 +295,8 @@ def parse_cremona_label(label):
     omitted (label is just a string representing a conductor), then
     the isogeny class defaults to 'a' and the number to 1.  Valid
     labels consist of one or more digits, followed by zero or more
-    letters (in either upper or lower case, which will be lowered),
-    followed by zero or more digits.
+    letters (either all in upper case for an old Cremona label, or all
+    in lower case), followed by zero or more digits.
 
     INPUT:
 
@@ -321,6 +322,15 @@ def parse_cremona_label(label):
         sage: parse_cremona_label('11')
         (11, 'a', 1)
 
+    Valid old Cremona labels are allowed::
+
+        sage: parse_cremona_label('17CCCC')
+        (17, 'dc', 1)
+        sage: parse_cremona_label('5AB2')
+        Traceback (most recent call last):
+        ...
+        ValueError: 5AB2 is not a valid Cremona label
+
     TESTS::
 
         sage: from sage.databases.cremona import parse_cremona_label
@@ -329,14 +339,26 @@ def parse_cremona_label(label):
         ...
         ValueError: x11 is not a valid Cremona label
     """
-    m = cremona_label_regex.match(str(label).lower())
+    m = cremona_label_regex.match(str(label))
     if m is None:
-        raise ValueError(label + " is not a valid Cremona label")
+        m = old_cremona_label_regex.match(str(label))
+        if m is None:
+            raise ValueError(label + " is not a valid Cremona label")
+
     conductor, iso, num = m.groups()
     if len(iso) == 0:
         iso = "a"
     if len(num) == 0:
         num = "1"
+
+    # convert old cremona labels to new ones
+    if iso.upper() == iso and iso[0]*len(iso) == iso:
+        iso = cremona_letter_code((len(iso)-1)*26+ord(iso[0])-ord('A'))
+
+    # verify cremona label is valid
+    if iso.lower() != iso:
+        raise ValueError('%s is not a valid Cremona label'%label)
+
     return int(conductor), iso, int(num)
 
 def parse_lmfdb_label(label):
@@ -772,6 +794,18 @@ class MiniCremonaDatabase(SQLDatabase):
             Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: c.elliptic_curve_from_ainvs([1, 0, 0, -101, 382])  # optional - database_cremona_ellcurve
             Elliptic Curve defined by y^2 + x*y = x^3 - 101*x + 382 over Rational Field
+
+        Old (pre-2006) Cremona labels are not allowed::
+
+            sage: c.elliptic_curve('9450KKKK1')
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - x^2 - 5*x + 7 over Rational Field
+
+        Make sure ticket #12565 is fixed::
+
+            sage: c.elliptic_curve('10a1')
+            Traceback (most recent call last):
+            ...
+            ValueError: There is no elliptic curve with label 10a1 in the database
         """
         q = self.__connection__.cursor().execute("SELECT curve FROM t_curve " \
             + "WHERE eqn=?",(str(ainvs).replace(' ',''),))
@@ -808,7 +842,7 @@ class MiniCremonaDatabase(SQLDatabase):
             sage: c.elliptic_curve('48c1')
             Traceback (most recent call last):
             ...
-            ValueError: There is no elliptic curve with label 48c1 in the database (note: use lower case letters!)
+            ValueError: There is no elliptic curve with label 48c1 in the database
 
         You can also use LMFDB labels::
 
@@ -854,7 +888,7 @@ class MiniCremonaDatabase(SQLDatabase):
         except StopIteration:
             if N < self.largest_conductor():
                 message = "There is no elliptic curve with label " + label \
-                    + " in the database (note: use lower case letters!)"
+                    + " in the database"
             elif is_package_installed('database_cremona_ellcurve'):
                 message = "There is no elliptic curve with label " + label \
                     + " in the currently available databases"

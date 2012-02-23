@@ -14,12 +14,15 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+UNAME=`uname`
+RELEASE=`uname -r`
+
 cd "$SAGE_BUILD_DIR"
 
 echo "Starting prerequisite check."
 echo "Machine: `uname -a`"
 
-if [ "$SAGE_PORT" = "" ]; then
+if [ -z "$SAGE_PORT" ]; then
     if [ `uname | sed -e 's/WIN.\+/WIN/'` = "CYGWIN" ]; then
         echo "Unfortunately, building SAGE on Cygwin is not currently supported,"
         echo "though we are actively working on supporting it.  If you would like"
@@ -34,8 +37,8 @@ if [ "$SAGE_PORT" = "" ]; then
         echo "To get past this message, export the variable 'SAGE_PORT' to"
         echo "something non-empty."
         exit 1
-    elif [ `uname` = "SunOS" ]; then
-       if [ "x`uname -r`" = "x5.9" ] ||  [ "x`uname -r`" = "x5.8" ] || [ "x`uname -r`" = "x5.7" ] ||  [ "x`uname -r`" = "x5.6" ] ; then
+    elif [ "$UNAME" = "SunOS" ]; then
+       if [ "$RELEASE" = "5.9" ] || [ "$RELEASE" = "5.8" ] || [ "$RELEASE" = "5.7" ] || [ "$RELEASE" = "5.6" ] ; then
           echo "Sage is not supported on any version of Solaris earlier than 10."
           echo "Sage has been tested on the first release of Solaris 10"
           echo "(03/2005) and works on that. Sage may or may not work with"
@@ -48,7 +51,7 @@ if [ "$SAGE_PORT" = "" ]; then
           echo "something non-empty."
           exit 1
        fi
-    elif [ "x`uname`" = "xHP-UX" ]; then
+    elif [ "$UNAME" = "HP-UX" ]; then
         echo "You are attempting to build Sage on HP's HP-UX operating system,"
         echo "which is not a supported platform for Sage yet though"
         echo "some work has been done on HP-UX. A port does not look to"
@@ -63,7 +66,7 @@ if [ "$SAGE_PORT" = "" ]; then
         echo "To get past this message, export the variable SAGE_PORT to"
         echo "something non-empty."
         exit 1
-    elif [ "x`uname`" = "xAIX" ]; then
+    elif [ "$UNAME" = "AIX" ]; then
         echo "You are attempting to build Sage on IBM's AIX operating system,"
         echo "which is not a supported platform for Sage yet. Things may or"
         echo "may not work. If you would like to help port Sage to AIX,"
@@ -74,7 +77,7 @@ if [ "$SAGE_PORT" = "" ]; then
         echo "To get past this message, export the variable SAGE_PORT to"
         echo "something non-empty."
         exit 1
-    elif [ "x`uname`" = "xIRIX" ] ||  [ "x`uname`" = "xIRIX64"  ]; then
+    elif [ "$UNAME" = "IRIX" ] || [ "$UNAME" = "IRIX64"  ]; then
         echo "You are attempting to build Sage on SGI's IRIX operating system,"
         echo "which is not a supported platform for Sage yet. Things may or"
         echo "may not work. If you would like to help port Sage to IRIX,"
@@ -85,7 +88,7 @@ if [ "$SAGE_PORT" = "" ]; then
         echo "To get past this message, export the variable SAGE_PORT to"
         echo "something non-empty."
         exit 1
-    elif [ "x`uname`" = "xTru64" ]; then
+    elif [ "$UNAME" = "Tru64" ]; then
         echo "You are attempting to build Sage on HP's Tru64 operating system,"
         echo "which is not a supported platform for Sage yet. Things may or"
         echo "may not work. If you would like to help port Sage to Tru64,"
@@ -96,7 +99,7 @@ if [ "$SAGE_PORT" = "" ]; then
         echo "To get past this message, export the variable SAGE_PORT to"
         echo "something non-empty."
         exit 1
-    elif [ "x`uname`" = "xFreeBSD" ]; then
+    elif [ "$UNAME" = "FreeBSD" ]; then
         echo "You are attempting to build Sage on the FreeBSD operating system,"
         echo "which is not a supported platform for Sage yet, though"
         echo "developers are working on adding FreeBSD support. Things may or"
@@ -108,10 +111,10 @@ if [ "$SAGE_PORT" = "" ]; then
         echo "To get past this message, export the variable SAGE_PORT to"
         echo "something non-empty."
         exit 1
-    elif [ "x`uname`" != "xSunOS" ] && [ "x`uname`" != "xDarwin" ] && [ "x`uname`" != "xLinux" ]; then
-        echo "You are attempting to build Sage on `uname`,"
+    elif [ "$UNAME" != "SunOS" ] && [ "$UNAME" != "Darwin" ] && [ "$UNAME" != "Linux" ]; then
+        echo "You are attempting to build Sage on $UNAME,"
         echo "which is not a supported platform for Sage yet. Things may or"
-        echo "may not work. If you would like to help port Sage to `uname`,"
+        echo "may not work. If you would like to help port Sage to $UNAME,"
         echo "please join the sage-devel discussion list - see"
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
@@ -121,36 +124,6 @@ if [ "$SAGE_PORT" = "" ]; then
         exit 1
     fi
 fi
-
-
-if [ "x`uname`" = "xSunOS" ] && [ "x`uname -r`" = "x5.9" ]; then
-    echo "WARNING: Building Sage is not supported on Solaris 9"
-    echo "but it might work, so the build will continue"
-    echo "Solaris 9: copying work around stdint.h"
-    cp $SAGE_ROOT/spkg/base/stdint.h_Solaris9 $SAGE_LOCAL/include/stdint.h
-fi
-
-if [ "x`uname`" = "xSunOS" ] && [ "x`uname -r`" = "x5.8" ]; then
-    echo "WARNING: Building Sage is not supported on Solaris 8"
-    echo "but it might work, so the build will continue"
-    echo "Solaris 8: copying work around stdint.h"
-    cp $SAGE_ROOT/spkg/base/stdint.h_Solaris9 $SAGE_LOCAL/include/stdint.h
-fi
-
-if [ "x`uname`" = "xDarwin" ] && [ "x$SAGE64" = "xyes" ]; then
-    echo "64-bit OS X build"
-    SAGE_OPT="-O2 -g -m64 " && export SAGE_OPT
-fi
-
-# From Kate Minola kate01123@gmail.com
-# On my powerpc-Darwin machine with csh as my shell, when I attempt
-# to build SAGE in the background (i.e., "make &") the build
-# stops when executing 'prereq-0.2-install'.  The reason is
-# that the line
-#     which $1 > /dev/null
-# issues a SIGTTOU signal (background process attempting to write
-# to tty).  Solution:
-trap '' TTOU
 
 # Only run configure if the tarfile exists.  Unfortunately, sage-update
 # does not update the base packages and we cannot retro-actively change
@@ -297,7 +270,7 @@ fi
 # to compile Sage. This is not addressed in this version of 'prereq'
 # but will in a later one.
 
-if [ `uname` = "SunOS" ] ; then
+if [ "$UNAME" = "SunOS" ] ; then
    if [ -z "`tar --version 2>&1 | grep GNU`" ] ; then
       echo ""
       echo "ERROR **********************************************"
@@ -394,12 +367,12 @@ fi
 # IRIX and IRIX64 tests on a line of their own. David Kirkby January 2010
 
 if [ -z "`tar --version 2>&1 | grep GNU`" ] ; then
-   if [ "x`uname`" = "xHP-UX" ] ||  [ "x`uname`" = "xAIX" ] ||   [ "x`uname`" = "Tru64" ] ; then
+   if [ "$UNAME" = "HP-UX" ] || [ "$UNAME" = "AIX" ] || [ "$UNAME" = "Tru64" ] ; then
        echo ""
-       echo "You must use the GNU version of tar on `uname` Please"
+       echo "You must use the GNU version of tar on $UNAME. Please"
        echo "ensure that a GNU version of tar is first in your path"
        exit 1
-   elif [ "x`uname`" = "xIRIX" ] ||  [ "x`uname`" = "xIRIX64" ] ; then
+   elif [ "$UNAME" = "IRIX" ] || [ "$UNAME" = "IRIX64" ] ; then
        echo ""
        echo "You must use the GNU version of tar on IRIX. Please"
        echo "ensure that a GNU version of tar is first in your path"
@@ -409,12 +382,12 @@ fi
 
 
 if [ -z "`make --version 2>&1 | grep GNU`" ] ; then
-   if [ "x`uname`" = "xHP-UX" ] ||  [ "x`uname`" = "xAIX" ] ||   [ "x`uname`" = "xTru64" ] ; then
+   if [ "$UNAME" = "HP-UX" ] || [ "$UNAME" = "AIX" ] || [ "$UNAME" = "Tru64" ] ; then
        echo ""
-       echo "You must use the GNU version of make on `uname` Please"
+       echo "You must use the GNU version of make on $UNAME. Please"
        echo "ensure that a GNU version of make is first in your path"
        exit 1
-   elif [ "x`uname`" = "xIRIX" ] ||  [ "x`uname`" = "xIRIX64" ] ; then
+   elif [ "$UNAME" = "IRIX" ] || [ "$UNAME" = "IRIX64" ] ; then
        echo ""
        echo "You must use the GNU version of make on IRIX. Please"
        echo "ensure that a GNU version of make is first in your path"

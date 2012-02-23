@@ -1462,7 +1462,7 @@ def PermutationGraph(second_permutation, first_permutation = None):
 
         sage: p = Permutations(5).random_element()
         sage: edges = graphs.PermutationGraph(p).edges(labels =False)
-        sage: set(edges) == set(map(lambda (x,y) : (x+1,y+1),p.inverse().inversions()))
+        sage: set(edges) == set(p.inverse().inversions())
         True
 
     TESTS::
@@ -1494,7 +1494,7 @@ def PermutationGraph(second_permutation, first_permutation = None):
     g.add_vertices(second_permutation)
 
     for u,v in p2.inversions():
-        g.add_edge(first_permutation[u], first_permutation[v])
+        g.add_edge(first_permutation[u-1], first_permutation[v-1])
 
     return g
 

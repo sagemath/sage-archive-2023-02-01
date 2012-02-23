@@ -94,6 +94,8 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation_class.permutohedron_pred` | Returns a list of the permutations strictly smaller than p in the permutohedron order such that there is no permutation between one of those and p.
     :meth:`~sage.combinat.permutation.Permutation_class.permutohedron_smaller` | Returns a list of permutations smaller than or equal to p in the permutohedron order.
     :meth:`~sage.combinat.permutation.Permutation_class.permutohedron_greater` | Returns a list of permutations greater than or equal to p in the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation_class.right_permutohedron_interval_iterator` | Returns an iterator over permutations in an interval of the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation_class.right_permutohedron_interval` | Returns a list of permutations in an interval of the permutohedron order.
     :meth:`~sage.combinat.permutation.Permutation_class.has_pattern` | Tests whether the permutation matches the pattern.
     :meth:`~sage.combinat.permutation.Permutation_class.avoids` | Tests whether the permutation avoids the pattern.
     :meth:`~sage.combinat.permutation.Permutation_class.pattern_positions` | Returns the list of positions where the pattern patt appears in p.
@@ -201,7 +203,7 @@ from sage.rings.all import ZZ, Integer, PolynomialRing, factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
 import sage.combinat.subword as subword
-from sage.combinat.composition import Composition, Composition
+from sage.combinat.composition import Composition
 import tableau
 import sage.combinat.partition
 from permutation_nk import PermutationsNK
@@ -920,8 +922,6 @@ class Permutation_class(CombinatorialObject):
         else:
             L = set(range(1,len(p)+1))
 
-        from bisect import bisect_left
-
         #Go through until we've considered every remaining number
         while len(L) > 0:
             # take the first remaining element
@@ -1400,25 +1400,21 @@ class Permutation_class(CombinatorialObject):
 
     def inversions(self):
         r"""
-        Returns a list of the inversions of permutation p.
+        Returns a list of the inversions of the permutation `p`.
+
+        An inversion is a pair `(i,j)` such that `i<j` and `p(i)>p(j)`.
 
         EXAMPLES::
 
             sage: Permutation([3,2,4,1,5]).inversions()
-            [[0, 1], [0, 3], [1, 3], [2, 3]]
+            [(1, 2), (1, 4), (2, 4), (3, 4)]
         """
         p = self[:]
-        inversion_list = []
+        n = len(p)
+        return [tuple([i+1,j+1]) for i in range(n-1) for j in range(i+1,n)
+                if p[i]>p[j]]
 
-        for i in range(len(p)):
-            for j in range(i+1,len(p)):
-                if  p[i] > p[j]:
-                    #inversion_list.append((p[i],p[j]))
-                    inversion_list.append([i,j])
-
-        return inversion_list
-
-    def show(self, representation = "cycles", orientation = "landscape", **args):
+    def show(self, representation="cycles", orientation="landscape", **args):
         r"""
         Displays the permutation as a drawing.
 
@@ -1457,7 +1453,6 @@ class Permutation_class(CombinatorialObject):
         """
 
         if representation == "cycles" or representation == "chord-diagram":
-            from sage.graphs.digraph import DiGraph
             d = DiGraph(loops = True)
             for i in range(len(self)):
                 d.add_edge(i+1, self[i])
@@ -1924,7 +1919,6 @@ class Permutation_class(CombinatorialObject):
             [[1, 2, 3, 1], [1, 2, 1, 3], [2, 1, 2, 3]]
         """
         p = self[:]
-        n = len(p)
         rws = []
         descents = self.descents()
 
@@ -2735,6 +2729,60 @@ class Permutation_class(CombinatorialObject):
 
         return transitive_ideal(lambda x: x.permutohedron_succ(side), self)
 
+    def right_permutohedron_interval_iterator(self, other) :
+        r"""
+        Returns an iterator on the permutations (represented as integer
+        lists) belonging to the right permutohedron interval where `self`
+        is the minimal element and `other` the maximal element.
+
+        EXAMPLES::
+
+            sage: Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3])) # indirect doctest
+            [[2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 4, 1, 5, 3], [2, 4, 5, 1, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
+        """
+        if len(self) != len(other) :
+            raise ValueError("len(%s) and len(%s) must be equal" %(self, other))
+        if not self.permutohedron_lequal(other) :
+            raise ValueError("%s must be lower or equal than %s for the right permutohedron order" %(self, other))
+        from sage.graphs.linearextensions import LinearExtensions
+        d = DiGraph()
+        d.add_vertices(xrange(1, len(self) + 1))
+        d.add_edges([(j, i) for (i, j) in self.inverse().inversions()])
+        d.add_edges([(other[i], other[j]) for i in xrange(len(other) - 1)
+                     for j in xrange(i, len(other)) if other[i] < other[j]])
+        return LinearExtensions(d)
+
+    def right_permutohedron_interval(self, other) :
+        r"""
+        Returns the list of the permutations belonging to the right
+        permutohedron interval where `self` is the minimal element and
+        `other` the maximal element.
+
+        EXAMPLES::
+
+            sage: Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3]))
+            [[2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 4, 1, 5, 3], [2, 4, 5, 1, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
+
+        TESTS::
+
+            sage: Permutation([]).right_permutohedron_interval(Permutation([]))
+            [[]]
+            sage: Permutation([3, 1, 2]).right_permutohedron_interval(Permutation([3, 1, 2]))
+            [[3, 1, 2]]
+            sage: Permutation([1, 3, 2, 4]).right_permutohedron_interval(Permutation([3, 4, 2, 1]))
+            [[1, 3, 2, 4], [1, 3, 4, 2], [3, 1, 2, 4], [3, 1, 4, 2], [3, 2, 1, 4], [3, 2, 4, 1], [3, 4, 1, 2], [3, 4, 2, 1]]
+            sage: Permutation([2, 1, 4, 5, 3]).right_permutohedron_interval(Permutation([2, 5, 4, 1, 3]))
+            [[2, 1, 4, 5, 3], [2, 1, 5, 4, 3], [2, 4, 1, 5, 3], [2, 4, 5, 1, 3], [2, 5, 1, 4, 3], [2, 5, 4, 1, 3]]
+            sage: Permutation([2, 5, 4, 1, 3]).right_permutohedron_interval(Permutation([2, 1, 4, 5, 3]))
+            Traceback (most recent call last):
+            ...
+            ValueError: [2, 5, 4, 1, 3] must be lower or equal than [2, 1, 4, 5, 3] for the right permutohedron order
+            sage: Permutation([2, 4, 1, 3]).right_permutohedron_interval(Permutation([2, 1, 4, 5, 3]))
+            Traceback (most recent call last):
+            ...
+            ValueError: len([2, 4, 1, 3]) and len([2, 1, 4, 5, 3]) must be equal
+        """
+        return [Permutation(p) for p in self.right_permutohedron_interval_iterator(other)]
 
     ############
     # Patterns #

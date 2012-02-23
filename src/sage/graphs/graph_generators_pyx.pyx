@@ -1,8 +1,5 @@
 r"""
-Common graphs and digraphs generators.
-
-
-
+Common graphs and digraphs generators (Cython)
 
 AUTHORS:
 
@@ -61,8 +58,20 @@ def RandomGNP(n, p, directed = False, loops = False, fast = False):
         10
         sage: D.edges(labels=False)
         [(0, 2), (0, 5), (1, 5), (1, 7), (4, 1), (4, 2), (4, 9), (5, 0), (5, 2), (5, 3), (5, 7), (6, 5), (7, 1), (8, 2), (8, 6), (9, 4)]
+
+    TESTS::
+
+        sage: abs(mean([RandomGNP(200,.2).density() for i in range(30)])-.2) < .001
+        True
+        sage: abs(mean([RandomGNP(150,.2, fast = True).density() for i in range(30)])-.2) < .001
+        True
+        sage: RandomGNP(150,.2, loops = True)
+        Traceback (most recent call last):
+        ...
+        ValueError: The 'loops' argument can be set to True only when 'directed' is False.
     """
     from sage.graphs.graph import Graph, DiGraph
+
     cdef int i, j
 
     # according the sage.misc.randstate.pyx documentation, random
@@ -74,7 +83,11 @@ def RandomGNP(n, p, directed = False, loops = False, fast = False):
         G = DiGraph(loops = loops)
     else:
         G = Graph()
+        if loops:
+            raise ValueError("The 'loops' argument can be set to True only when 'directed' is False.")
     G.name('Random'+('Directed' if directed else '')+'GNP(%s,%s)'%(n,p))
+
+    G.add_vertices(range(n))
 
     if fast:
         # Algorithm proposed in [3]_

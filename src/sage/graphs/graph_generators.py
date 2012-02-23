@@ -5118,6 +5118,17 @@ class GraphGenerators():
             sage: t=cputime(); fast_dense = graphs.RandomGNP(389,.88,fast=True)    # long time
             sage: cputime(t)     # slightly random, long time
             0.90005700000000033
+
+        TESTS::
+
+            sage: graphs.RandomGNP(50,.2,method=50)
+            Traceback (most recent call last):
+            ...
+            ValueError: 'method' must be equal to 'networkx' or to 'Sage'.
+            sage: graphs.RandomGNP(50,.2, method="Sage").size()
+            236
+            sage: graphs.RandomGNP(50,.2, method="networkx").size()
+            249
         """
         if n < 0:
             raise ValueError("The number of nodes must be positive or null.")
@@ -5136,10 +5147,12 @@ class GraphGenerators():
             else:
                 G = networkx.gnp_random_graph(n, p, seed=seed)
             return graph.Graph(G)
-        else:
+        elif method == "Sage":
             # We use the Sage generator
             from sage.graphs.graph_generators_pyx import RandomGNP as sageGNP
             return sageGNP(n, p, fast = fast)
+        else:
+            raise ValueError("'method' must be equal to 'networkx' or to 'Sage'.")
 
     def RandomBarabasiAlbert(self, n, m, seed=None):
         u"""

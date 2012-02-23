@@ -736,7 +736,6 @@ class DiGraphGenerators():
 
         return RandomGNP(n, p, directed = True, loops = loops, fast = fast)
 
-
     def RandomDirectedGNM(self, n, m, loops = False):
         r"""
         Returns a random labelled digraph on `n` nodes and `m` arcs.

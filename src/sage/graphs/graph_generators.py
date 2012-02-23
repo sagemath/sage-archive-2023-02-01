@@ -5024,7 +5024,7 @@ class GraphGenerators():
 #   Random Graphs
 ################################################################################
 
-    def RandomGNP(self, n, p, seed=None, fast=True, method='networkx'):
+    def RandomGNP(self, n, p, seed=None, fast=False, method='networkx'):
         r"""
         Returns a Random graph on `n` nodes. Each edge is inserted independently
         with probability `p`.
@@ -5044,9 +5044,10 @@ class GraphGenerators():
 
         - ``method`` -- By default (```method='networkx'``), this function calls
           the NetworkX function ``gnp_random_graph``, unless ``fast=True``, then
-          ``fast_gnp_random_graph``. When ``method='sage'``, it uses the method
-          implemented in ```sage.graphs.graph_generators_pyx.pyx``. Try it to
-          know whether it is useful for you.
+          ``fast_gnp_random_graph``. When ``method='Sage'``, it uses the method
+          implemented in ```sage.graphs.graph_generators_pyx.pyx`` (try it to
+          know whether it is useful for you). The ``fast`` parameter is not
+          taken into account by the 'Sage' method so far.
 
         REFERENCES:
 
@@ -5065,7 +5066,7 @@ class GraphGenerators():
 
             sage: set_random_seed(0)
             sage: graphs.RandomGNP(6, .4).edges(labels=False)
-            [(0, 1), (0, 3), (0, 4), (0, 5), (1, 2), (1, 3), (1, 4), (1, 5)]
+            [(0, 1), (0, 3), (0, 4), (1, 2), (1, 4), (3, 4)]
 
         We plot a random graph on 12 nodes with probability
         `p = .71`::
@@ -5092,43 +5093,17 @@ class GraphGenerators():
             sage: graphs.RandomGNP(4,1)
             Complete graph: Graph on 4 vertices
 
-        TIMINGS: The following timings compare the speed with fast==False
-        and fast==True for sparse and dense graphs. (It's no different?)
-
-        ::
-
-            sage: t=cputime(); regular_sparse = graphs.RandomGNP(389,.22)
-            sage: cputime(t)     # slightly random
-            0.2240130000000029
-
-        ::
-
-            sage: t=cputime(); fast_sparse =  graphs.RandomGNP(389,.22,fast=True)
-            sage: cputime(t)     # slightly random
-            0.22401400000000038
-
-        ::
-
-            sage: t=cputime(); regular_dense = graphs.RandomGNP(389,.88)    # long time
-            sage: cputime(t)     # slightly random, long time
-            0.87205499999999958
-
-        ::
-
-            sage: t=cputime(); fast_dense = graphs.RandomGNP(389,.88,fast=True)    # long time
-            sage: cputime(t)     # slightly random, long time
-            0.90005700000000033
-
         TESTS::
 
             sage: graphs.RandomGNP(50,.2,method=50)
             Traceback (most recent call last):
             ...
             ValueError: 'method' must be equal to 'networkx' or to 'Sage'.
+            sage: set_random_seed(0)
             sage: graphs.RandomGNP(50,.2, method="Sage").size()
-            236
+            243
             sage: graphs.RandomGNP(50,.2, method="networkx").size()
-            249
+            231
         """
         if n < 0:
             raise ValueError("The number of nodes must be positive or null.")
@@ -5150,7 +5125,7 @@ class GraphGenerators():
         elif method == "Sage":
             # We use the Sage generator
             from sage.graphs.graph_generators_pyx import RandomGNP as sageGNP
-            return sageGNP(n, p, fast = fast)
+            return sageGNP(n, p)
         else:
             raise ValueError("'method' must be equal to 'networkx' or to 'Sage'.")
 

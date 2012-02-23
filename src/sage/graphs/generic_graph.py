@@ -16054,6 +16054,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.add_edges([(0,1,3),(1,0,2),(1,1,1),(0,0,0)])
             sage: G.is_isomorphic(H, certify=True)
             (True, {0: 0, 1: 1})
+            sage: set_random_seed(0)
             sage: D = digraphs.RandomDirectedGNP(6, .2)
             sage: D.is_isomorphic(D, certify = True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})

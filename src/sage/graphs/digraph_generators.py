@@ -682,7 +682,7 @@ class DiGraphGenerators():
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 
-    def RandomDirectedGNP(self, n, p, loops = False, fast = False, seed = None):
+    def RandomDirectedGNP(self, n, p, loops = False, seed = None):
         r"""
         Returns a random digraph on `n` nodes. Each edge is inserted
         independently with probability `p`.
@@ -696,11 +696,6 @@ class DiGraphGenerators():
         - ``loops`` -- is a boolean set to True if the random digraph may have
           loops, and False (default) otherwise.
 
-        - ``fast`` -- boolean set to True to use the algorithm with time
-          complexity in `O(n+m)` proposed in [3]_. It is designed for generating
-          large sparse digraphs, and faster than other methods only faster for
-          *LARGE* instances (try it to know whether it is useful for you).
-
         - ``seed`` -- integer seed for random number generator (default=None).
 
         REFERENCES:
@@ -710,8 +705,6 @@ class DiGraphGenerators():
 
         .. [2] E. N. Gilbert, Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
 
-        .. [3] V. Batagelj and U. Brandes. Efficient generation of large
-               random networks. Phys. Rev. E, 71, 036113, 2005.
 
         PLOTTING: When plotting, this graph will use the default spring-layout
         algorithm, unless a position dictionary is specified.
@@ -734,7 +727,7 @@ class DiGraphGenerators():
         if seed is None:
             seed = current_randstate().long_seed()
 
-        return RandomGNP(n, p, directed = True, loops = loops, fast = fast)
+        return RandomGNP(n, p, directed = True, loops = loops)
 
     def RandomDirectedGNM(self, n, m, loops = False):
         r"""

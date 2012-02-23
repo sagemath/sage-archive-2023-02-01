@@ -25,7 +25,10 @@
 
 // Use data type uint_leastN_t. N is an upper limit on the size of the graphs that can be handled. N=32 seems to be a good compromise for now (the code works well with other values of N).
 // uint_leastN_t is faster than uint_fastN_t here, since the bottleneck is cache misses.
+#ifndef subset_t
 typedef uint_least32_t subset_t;
+#endif
+
 #define MAX_VERTICES 32
 
 // Input graph.

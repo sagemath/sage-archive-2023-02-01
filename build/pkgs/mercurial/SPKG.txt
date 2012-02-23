@@ -28,6 +28,11 @@ See http://mercurial.selenic.com/ for more information.
 
 == Changelog ==
 
+=== mercurial-1.8.4.p1 (Jeroen Demeyer, 23 February 2012) ===
+ * Trac #12570: completely remove the XCode check, as it breaks with
+   XCode 4.3.  This check was not needed anyway because of the changes
+   in #12416.
+
 === mercurial-1.8.4.p0 (Jeroen Demeyer, 2 February 2012) ===
  * Trac #12416: add backported upstream patch "xcode.patch" to fix
    building Mercurial on systems where XCode is installed, but where

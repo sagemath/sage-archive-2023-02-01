@@ -1,11 +1,19 @@
---- a/setup.py	2011-06-15 00:28:19.000000000 +0200
-+++ b/setup.py	2012-02-01 21:23:54.000000000 +0100
-@@ -385,7 +456,7 @@
-     # Also parse only first digit, because 3.2.1 can't be parsed nicely
-     if (version.startswith('Xcode') and
-         StrictVersion(version.split()[1]) >= StrictVersion('4.0')):
--        os.environ['ARCHFLAGS'] = '-arch i386 -arch x86_64'
-+        os.environ['ARCHFLAGS'] = ''
+diff -ru src/setup.py src.patched/setup.py
+--- src/setup.py	2011-06-15 00:28:19.000000000 +0200
++++ src.patched/setup.py	2012-02-23 11:59:07.048464350 +0100
+@@ -378,15 +378,6 @@
+     # form W.X.Y.Z, where W,X,Y,Z are numbers in the range 0..65535
+     setupversion = version.split('+', 1)[0]
  
+-if sys.platform == 'darwin' and os.path.exists('/usr/bin/xcodebuild'):
+-    # XCode 4.0 dropped support for ppc architecture, which is hardcoded in
+-    # distutils.sysconfig
+-    version = runcmd(['/usr/bin/xcodebuild', '-version'], {})[0].splitlines()[0]
+-    # Also parse only first digit, because 3.2.1 can't be parsed nicely
+-    if (version.startswith('Xcode') and
+-        StrictVersion(version.split()[1]) >= StrictVersion('4.0')):
+-        os.environ['ARCHFLAGS'] = '-arch i386 -arch x86_64'
+-
  setup(name='mercurial',
        version=setupversion,
+       author='Matt Mackall',

@@ -184,23 +184,24 @@ def mpfr_prec_min():
     """
     return MPFR_PREC_MIN
 
-cdef int MY_MPFR_PREC_MAX = 2147483647
+# see Trac #11666 for the origin of this magical constant
+cdef int MY_MPFR_PREC_MAX = 2147483647 - 256   # = 2^31-257
 def mpfr_prec_max():
     """
     TESTS::
 
-        sage: R = RealField(2147483647)
+        sage: from sage.rings.real_mpfr import mpfr_prec_max
+        sage: mpfr_prec_max()
+        2147483391
+        sage: R = RealField(2^31-257)
         sage: R
-        Real Field with 2147483647 bits of precision
-        sage: R = RealField(2147483648)
+        Real Field with 2147483391 bits of precision
+        sage: R = RealField(2^31-256)
         Traceback (most recent call last):
         ...
-        OverflowError: ... too large to convert to C long   # 32-bit
-        OverflowError: ... too large to convert to int      # 64-bit
+        ValueError: prec (=2147483392) must be >= 2 and <= 2147483391.
     """
     global MY_MPFR_PREC_MAX
-    # We use 2^31-1 as the largest precision, since 2^31 is not representable
-    # as a 32-bit int
     return MY_MPFR_PREC_MAX
 
 #*****************************************************************************

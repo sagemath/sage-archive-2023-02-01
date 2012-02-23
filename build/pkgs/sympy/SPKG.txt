@@ -28,6 +28,11 @@ sympy mailinglist: http://groups.google.com/group/sympy
 
 == Changelog ==
 
+=== sympy-0.7.1.p0 (Francois Bissey, 22 February 2012) ===
+ * Trac #12563: add -S option to python to prevent sympy's installer
+   from importing sage.
+ * Clean up spkg-install.
+
 === sympy-0.7.1 (Francois Bissey, Sep 16, 2011) ===
  * trac 11560: update to new upstream release
  * clean old obsolete script.

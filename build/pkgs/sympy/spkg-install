@@ -1,37 +1,35 @@
 #!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 cd src/
 
-# Because sympy imports itself in setup.py we need to set PYTHONPATH
-# to avoid loading the currently installed version.
+# sympy imports itself, and therefore it indirectly imports sage in
+# setup.py.  We need to set PYTHONPATH=. and use the -S option to avoid
+# importing the currently installed version of sympy, and to avoid
+# importing sage.
+export PYTHONPATH="."
 echo "building sympy"
-PYTHONPATH="." python setup.py build
+python -S setup.py build
 
 if [ $? -ne 0 ]; then
-   echo "Error building sympy"
-   exit 1
-fi
-
-# Removing old sympy so that there are no leftover undesirable files,
-# we do this in any python2 install.
-if [ "$SAGE_ROOT" = "" ]; then
-    echo "Please set the SAGE_ROOT variable"
+    echo >&2 "Error building sympy"
     exit 1
 fi
-echo "Deleting $SAGE_ROOT/local/lib/python2.x/site-packages/sympy*"
-rm -rf $SAGE_ROOT/local/lib/python2.*/site-packages/sympy*
 
-if [ $? -ne 0 ]; then
-   echo "Error removing old sympy"
-   exit 1
-fi
+# It is very important that we have SAGE_LOCAL set, otherwise this
+# might potentially delete stuff in /lib
+echo "Deleting $SAGE_LOCAL/lib/python2.*/site-packages/sympy*"
+rm -rf $SAGE_LOCAL/lib/python2.*/site-packages/sympy*
 
 echo "installing sympy"
-PYTHONPATH="." python setup.py install
+python -S setup.py install
 
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing sympy"
+    exit 1
+fi

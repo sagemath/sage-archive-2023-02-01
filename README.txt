@@ -71,10 +71,13 @@ Installation Guide:
    Linux: GCC, g++, gfortran, make, m4, perl, ranlib, and tar.
    (install these using your package manager)
 
-   OS X: XCode.
-
-       WARNING: If "gcc -v" outputs 4.0.0, you *must* upgrade XCode
-       (free from Apple). That version of GCC is very broken.
+   OS X: Xcode.  Make sure you have installed the most recent version
+   of Xcode. For pre-Lion versions of OS X, you can download Xcode
+   from http://developer.apple.com/downloads/. For OS X Lion, you can
+   install it using the App Store. With Xcode 4.3 or later, you need
+   to install the "Command Line Tools": from the File menu, choose
+   "Preferences", then the "Downloads" tab, and then "Install" the
+   Command Line Tools.
 
    Other platforms: See detailed instructions below.
 

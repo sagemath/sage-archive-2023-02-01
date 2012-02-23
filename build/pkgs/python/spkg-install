@@ -131,9 +131,11 @@ rm -rf python2.6
 
 # On OS X with XCode 4, the presence of
 # $SAGE_LOCAL/lib/python/config/libpython2.7.a causes problems with
-# GiNaC -- see #11967 -- so we delete it.
+# GiNaC -- see #11967.  It is easiest to test the version of OS X; we
+# delete this file if using OS X 10.6 or later (so `uname -r` returns
+# x.y.z with x >= 10).
 if [ "$UNAME" = "Darwin" ] && \
-    [ `xcodebuild -version | grep Xcode | sed -e 's/[A-Za-z ]//g' | cut '-d.' -f1` -gt 3 ]; then
+    [ `uname -r | cut '-d.' -f1` -gt 9 ]; then
     rm -f "$SAGE_LOCAL/lib/python2.7/config/libpython2.7.a"
 fi
 

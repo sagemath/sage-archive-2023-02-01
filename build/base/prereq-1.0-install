@@ -182,8 +182,11 @@ fi
 # dphilp 15/9/2008
 ###########################################################################
 
-if [ `uname` = "Darwin" ]; then
-    XCODE_VERS=`xcodebuild -version | grep Xcode | sed -e 's/[A-Za-z ]//g'`
+if [ "$UNAME" = "Darwin" ]; then
+    # Warning: xcodebuild does not seem to be maintained in Xcode 4.3
+    # or later, so do not rely on the variable XCODE_VERS with OS X
+    # 10.7 or later.
+    XCODE_VERS=`xcodebuild -version 2> /dev/null | grep Xcode | sed -e 's/[A-Za-z ]//g'`
     if [ -z $XCODE_VERS ]; then
         XCODE_VERS="2"
     fi
@@ -191,76 +194,69 @@ if [ `uname` = "Darwin" ]; then
     DARWIN_VERSION=`uname -r | cut '-d.' -f1`
     echo "***************************************************"
     echo "***************************************************"
-    if [ $XCODE_VERS_MAJOR -gt 2 ]; then
-        echo "You are using XCode version " $XCODE_VERS
-        echo "WARNING: You are strongly advised to install Apple's latest XCode 3,"
-        echo "unless you already have it. You can download this from "
-        echo "http://developer.apple.com/xcode/"
-        echo "Sage will NOT work with XCode 4!"
-    fi
-    if [ $XCODE_VERS_MAJOR -lt 3 ]; then
-        echo "You are using XCode version 1 or 2"
+    if [ $DARWIN_VERSION -gt 10 ]; then
+        echo "You are using OS X Lion (or later)."
+        echo "You are strongly advised to install Apple's latest Xcode"
+        echo "unless you already have it. You can install this using"
+        echo "the App Store. Also, make sure you install Xcode's"
+        echo "Command Line Tools -- see Sage's README.txt."
+    elif [ $XCODE_VERS_MAJOR -gt 2 ]; then
+        echo "You are using Xcode version $XCODE_VERS."
+        echo "You are strongly advised to install Apple's latest Xcode"
+        echo "unless you already have it. You can download this from"
+        echo "http://developer.apple.com/downloads/."
+        echo "If using Xcode 4.3 or later, make sure you install Xcode's"
+        echo "Command Line Tools -- see Sage's README.txt."
+    else
+        echo "You are using Xcode version 1 or 2"
         echo "WARNING: You are strongly advised to install the"
-        echo "latest (although NOT XCode 4, which does not work with Sage)"
-        echo "Apple's XCode for your platform, unless you already have it."
-        if [ $DARWIN_VERSION -gt 9 ]; then
-           echo "Probably you need XCode 3.2.6"
+        echo "latest version of Apple's Xcode for your platform,"
+        echo "unless you already have it."
+        if [ $DARWIN_VERSION -eq 10 ]; then
+           echo "Probably you need Xcode 3.2.6"
+        elif [ $DARWIN_VERSION -eq 9 ]; then
+           echo "Probably you need Xcode 3.1.4"
         elif [ $DARWIN_VERSION -lt 9 ]; then
-           echo "Probably you need XCode 2.5"
-        else
-           echo "Probably you need XCode 3.1.4"
+           echo "Probably you need Xcode 2.5"
         fi
     fi
     echo "***************************************************"
     echo "***************************************************"
-    if [ "$SAGE_PORT" = "" ] && [ $XCODE_VERS_MAJOR -gt 3 ]; then
-        echo "You are attempting to build Sage using an unsupported XCode version."
-        echo "Things may or may not work."
-        echo "Please use the latest XCode 3, reinstalling it, if necessary."
-        echo "If, however, you would like to help port Sage to the new XCode version,"
-        echo "please join the sage-devel discussion list - see"
-        echo "http://groups.google.com/group/sage-devel"
-        echo "The Sage community would also appreciate any patches you submit."
-        echo ""
-        echo "To get past this message, export the variable SAGE_PORT to"
-        echo "something non-empty."
-        exit 1
-    fi
     SAGE_ABORT=no
     # Try to find ports automatically.
     PORTS_PATH=`which port`
     if [ -f "`which port`" ]; then
-	echo "Found MacPorts in " $PORTS_PATH
-	SAGE_ABORT="yes"; export SAGE_ABORT
+        echo "Found MacPorts in " $PORTS_PATH
+        SAGE_ABORT="yes"
     fi
 
     # Try to find fink automatically.
     FINK_PATH=`which fink`
     if [ -f "`which fink`" ]; then
-	echo "Found Fink in " $FINK_PATH
-	SAGE_ABORT="yes"; export SAGE_ABORT
+        echo "Found Fink in " $FINK_PATH
+        SAGE_ABORT="yes"
     fi
 
     if [ "$SAGE_ABORT" = "yes" ]; then
-	echo ""
-	echo "*********************************************************"
-	echo ""
-	echo "Found either MacPorts or Fink in your PATH, which potentially wrecks the Sage build process."
-	if [ "$SAGE_COMPILE_DESPITE_PORTS_AND_FINK" ]; then
-	    echo "Continuing because SAGE_COMPILE_DESPITE_PORTS_AND_FINK is set."
-	    echo ""
-	    echo "*********************************************************"
-	    echo ""
-	else
-	    echo "You should make sure MacPorts and Fink cannot be found.  Either:"
-	    echo "(1) rename /opt/local and /sw, or"
-	    echo "(2) change PATH and DYLD_LIBRARY_PATH"
-	    echo "(Once Sage is built, you can restore them.)"
-	    echo ""
-	    echo "*********************************************************"
-	    echo ""
-	    exit 1
-	fi
+        echo ""
+        echo "*********************************************************"
+        echo ""
+        echo "Found either MacPorts or Fink in your PATH, which potentially wrecks the Sage build process."
+        if [ "$SAGE_COMPILE_DESPITE_PORTS_AND_FINK" ]; then
+            echo "Continuing because SAGE_COMPILE_DESPITE_PORTS_AND_FINK is set."
+            echo ""
+            echo "*********************************************************"
+            echo ""
+        else
+            echo "You should make sure MacPorts and Fink cannot be found.  Either:"
+            echo "(1) rename /opt/local and /sw, or"
+            echo "(2) change PATH and DYLD_LIBRARY_PATH"
+            echo "(Once Sage is built, you can restore them.)"
+            echo ""
+            echo "*********************************************************"
+            echo ""
+            exit 1
+        fi
     fi
 fi
 

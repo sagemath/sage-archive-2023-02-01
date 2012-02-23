@@ -48,7 +48,7 @@ mpfr_patch()
        if [ $PATCH_MPFR = "1" ] ; then
           echo "Since INCLUDE_MPFR_PATCH was set to 1, the MPFR library will be patched."
           echo "The binaries should be safe on any Solaris system"
-          cp ../patches/mpn_exp.c mpn_exp.c
+          cp ../patches/mpn_exp.c src/mpn_exp.c
        elif [ $PATCH_MPFR = "0" ] ; then
           echo "Since INCLUDE_MPFR_PATCH was set to 0, the MPFR library will not"
           echo "be patched. You would be unwise to distribute SPARC binaries"
@@ -57,7 +57,7 @@ mpfr_patch()
           echo "This is a sun4v system, so the MPFR library will be patched. The binaries"
           echo "should run correctly on any SPARC system whose operating system is"
           echo "no older than the system used to build the binaries."
-          cp ../patches/mpn_exp.c mpn_exp.c
+          cp ../patches/mpn_exp.c src/mpn_exp.c
        elif [ $PATCH_MPFR = "2" -a `arch -k` != "sun4v" ] ; then
           echo "Since this is not a sun4v system, the MPFR binary will not"
           echo "be patched"
@@ -71,7 +71,7 @@ mpfr_patch()
        else
           echo "The environment variable INCLUDE_MPFR_PATCH was set incorrectly The MPFR"
           echo "library will be patched as a precaution."
-          cp ../patches/mpn_exp.c mpn_exp.c
+          cp ../patches/mpn_exp.c src/mpn_exp.c
        fi
     fi
 

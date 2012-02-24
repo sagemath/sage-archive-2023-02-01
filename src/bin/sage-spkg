@@ -388,6 +388,24 @@ if head -1 spkg-install | grep python >/dev/null; then
     fi
 fi
 
+# SAGE_CHECK_PACKAGES: if this contains "!pkg", skip tests for "pkg",
+# so set SAGE_CHECK=no.  If this contains "pkg", run tests, so set
+# SAGE_CHECK=yes.  Check this now and export SAGE_CHECK so that the
+# package's spkg-install script can use this variable.
+#
+# Since Python's self-tests seem to fail on all platforms, we disable
+# its test suite by default.
+if [ -z "$SAGE_CHECK_PACKAGES" ]; then
+    SAGE_CHECK_PACKAGES='!python'
+fi
+# Allow spaces, commas, or colons as separator (the documentation suggests commas).
+if echo ",$SAGE_CHECK_PACKAGES," | grep -i "[ ,:]\!$PKG_BASE[ ,:]" > /dev/null ; then
+    export SAGE_CHECK=no
+elif echo ",$SAGE_CHECK_PACKAGES," | grep -i "[ ,:]$PKG_BASE[ ,:]" > /dev/null ; then
+    export SAGE_CHECK=yes
+fi
+
+
 echo "****************************************************"
 echo "Host system:"
 uname -a

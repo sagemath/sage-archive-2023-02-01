@@ -28,6 +28,7 @@ GNU General Public License, version 2.
 == SPKG Maintainers ==
 
  * Tim Dumol
+ * Ivan Andrus
 
 == Upstream Contact ==
 

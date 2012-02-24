@@ -1,18 +1,29 @@
-= valgrind =
+= Valgrind =
 
 == Description ==
 
-This is an optional spkg. It supports Linux on x86, x86-64, ppc, ppc64 and ARM as well as Darwin (Mac OS X 10.5 and 10.6) on x86 and x86-64.
+This is an optional spkg. It supports Linux on x86, x86-64, ppc, ppc64 and ARM
+as well as Darwin (Mac OS X 10.5 and 10.6) on x86 and x86-64.
 
-Website: http://www.valgrind.org/
+Valgrind is an instrumentation framework for building dynamic analysis tools.
+There are Valgrind tools that can automatically detect many memory management
+and threading bugs, and profile your programs in detail. You can also use
+Valgrind to build new tools.
 
-From the above website: Valgrind is an award-winning instrumentation framework for building dynamic analysis tools. There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. You can also use Valgrind to build new tools.
-
-The Valgrind distribution currently includes five production-quality tools: a memory error detector, a thread error detector, a cache and branch-prediction profiler, a call-graph generating cache profiler, and a heap profiler. It also includes two experimental tools: a data race detector, and an instant mem
+The Valgrind distribution currently includes six production-quality tools:
+a memory error detector, two thread error detectors, a cache and
+branch-prediction profiler, a call-graph generating cache and branch-prediction
+profiler, and a heap profiler. It also includes three experimental tools: a
+heap/stack/global array overrun detector, a second heap profiler that examines
+how heap blocks are used, and a SimPoint basic block vector generator. It runs
+on the following platforms: X86/Linux, AMD64/Linux, ARM/Linux, PPC32/Linux,
+PPC64/Linux, S390X/Linux, ARM/Android (2.3.x), X86/Darwin and AMD64/Darwin
+(Mac OS X 10.6 and 10.7).
 
 == License ==
 
-Valgrind is Open Source / Free Software, and is freely available under the GNU General Public License.
+Valgrind is Open Source / Free Software, and is freely available under the
+GNU General Public License, version 2.
 
 == SPKG Maintainers ==
 
@@ -20,6 +31,7 @@ Valgrind is Open Source / Free Software, and is freely available under the GNU G
 
 == Upstream Contact ==
 
+ * http://www.valgrind.org/
  * valgrind-user, valgrind-devel mailing lists
 
 == Dependencies ==
@@ -28,7 +40,7 @@ Valgrind is Open Source / Free Software, and is freely available under the GNU G
 
 == Changelog ==
 
-=== valgrind_3.7.0.p0 (Ivan Andrus, February 16th, 2012)  ===
+=== valgrind_3.7.0 (Ivan Andrus, February 16th, 2012)  ===
  * update to 3.7.0
  * removed call to autoreconf
  * changed `make` to `$MAKE`

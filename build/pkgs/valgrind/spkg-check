@@ -11,6 +11,6 @@ cd src/
 $MAKE regtest
 
 if [ $? -ne 0 ]; then
-    echo "Testing valgrind failed"
+    echo >&2 "Error testing Valgrind"
     exit 1
 fi

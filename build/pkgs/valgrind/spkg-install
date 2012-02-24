@@ -11,39 +11,41 @@ fi
 if [ "`uname`" = "Linux" ]; then
     echo "Good - Valgrind works on Linux"
     if [ "`uname -p`" = "ia64" ]; then
-        echo "But it does not work on Itanium :("
+        echo >&2 "But it does not work on Itanium"
         exit 1
     fi
 else
-    if [ "$UNAME" = "Darwin" ] && [ -z "`uname -p | grep PPC`" ] && [ `uname -r | grep -Eo '^[0-9]+'` -ge 9 ]; then
+    if [ "$UNAME" = "Darwin" ] && [ -z "`uname -p | grep PPC`" ] && [ `uname -r | grep -Eo '^[0-9]+'` -ge 9 ];
+    then
         echo "Good - Valgrind works on x86/Darwin 9.x or 10.x"
     else
-        echo "Sorry, Valgrind only works on x86,AMD64,PPC32,PPC64,ARM Linux"
-        echo "and x86,AMD64 on Darwin 9.x/10.x (Mac OS X 10.5.x, 10.6.x, 10.7.x)"
+        echo >&2 "Sorry, Valgrind only works on x86,AMD64,PPC32,PPC64,ARM Linux"
+        echo >&2 "and x86,AMD64 on Darwin 9.x/10.x"\
+            "(Mac OS X 10.5.x, 10.6.x, 10.7.x)"
         exit 1
     fi
 fi
 
 cd src/
 
-/usr/bin/env bash configure --prefix=$SAGE_LOCAL
+./configure --prefix=$SAGE_LOCAL
 
 if [ $? -ne 0 ]; then
-    echo "error configuring valgrind $VALGRIND_VERSION"
+    echo >&2 "Error configuring Valgrind $VALGRIND_VERSION"
     exit 1
 fi
 
 $MAKE
 
 if [ $? -ne 0 ]; then
-    echo "error installing valgrind $VALGRIND_VERSION"
+    echo >&2 "Error building Valgrind $VALGRIND_VERSION"
     exit 1
 fi
 
 $MAKE install
 
 if [ $? -ne 0 ]; then
-    echo "error installing valgrind $VALGRIND_VERSION"
+    echo >&2 "Error installing Valgrind $VALGRIND_VERSION"
     exit 1
 fi
 

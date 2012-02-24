@@ -589,7 +589,25 @@ process:
   environment variable for you.
 
 - :envvar:`SAGE_CHECK` - if this is set to "yes", then during the
-  build process, run the test suite for each package which has one.
+  build process and when running ``sage -i ...`` or ``sage -f ...``,
+  run the test suite for each package which has one.  See also
+  :envvar:`SAGE_CHECK_PACKAGES`.
+
+- :envvar:`SAGE_CHECK_PACKAGES` - If :envvar:`SAGE_CHECK` is set to
+  "yes", then the default bahavior is to run test suites for all spkgs
+  which contain them.  If :envvar:`SAGE_CHECK_PACKAGES` is set, it
+  should be a comma-separated list of strings of the form
+  ``pkg-name`` or ``!pkg-name``.  An entry ``pkg-name`` means to run
+  the test suite for the named package regardless of the setting of
+  :envvar:`SAGE_CHECK`.  An entry ``!pkg-name`` means to skip its test
+  suite.  So if this is set to ``mpir,!python``, then always run the
+  test suite for MPIR, but always skip the test suite for Python.
+
+  .. note::
+
+      As of this writing (Sage 5.0), the test suite for the Python
+      spkg fails on most platforms. So when this variable is empty or
+      unset, Sage uses a default of ``!python``.
 
 - :envvar:`SAGE64` - Set this to "yes" to build a 64-bit binary on platforms
   which default to 32-bit, even though they can build 64-bit binaries.
@@ -1003,4 +1021,4 @@ Special Notes
   :ref:`installation in a multiuser environment
   <sagetex_installation_multiuser>`.
 
-  **This page was last updated in February 2012**
+  **This page was last updated in March 2012 (Sage 5.0)**

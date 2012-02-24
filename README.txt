@@ -194,7 +194,9 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
    before starting the Sage build. This will run each test suite and
    will raise an error if any failures occur.  Warning: on many
    platforms, this will cause failures in the installation of the
-   Python spkg.
+   Python spkg, so Python's test suite has been disabled by default.
+   To renable it, set the environment variable SAGE_CHECK_PACKAGES to
+   'python'.
 
    To start the build, type:
 

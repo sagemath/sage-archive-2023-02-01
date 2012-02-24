@@ -222,7 +222,7 @@ void calculate_all(void)
 int init_rw(uint_fast8_t n)
 {
 	// If sizeof(uint_fast8_t) * (1ul << n) overflows, it wraps around to 0, since size_t and unsigned long are unsigned integer types.
-	if(n > MAX_VERTICES || n && !(sizeof(uint_fast8_t) * (1ul << n)))
+        if(  (n > MAX_VERTICES) || ( (n>0) && !(sizeof(uint_fast8_t) * (1ul << n)) ) )
 		return(-1);
 
 	num_vertices = n;

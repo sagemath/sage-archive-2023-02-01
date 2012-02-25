@@ -41,12 +41,12 @@ GNU General Public License, version 2.
 
 == Changelog ==
 
-=== valgrind_3.7.0 (Ivan Andrus, February 16th, 2012)  ===
+=== valgrind-3.7.0 (Ivan Andrus, February 16th, 2012)  ===
  * update to 3.7.0
  * removed call to autoreconf
  * changed `make` to `$MAKE`
 
-=== valgrind_3.6.1 (Ivan Andrus, March 23rd, 2011)  ===
+=== valgrind-3.6.1 (Ivan Andrus, March 23rd, 2011)  ===
  * update to 3.6.1
  * Add support for OS X 10.5 and 10.6
  * No longer need to patch configure.in since support was added upstream
@@ -54,22 +54,22 @@ GNU General Public License, version 2.
 === valgrind-3.5.0.p0 (Tim Dumol, December 23rd, 2009) ===
  * Update to 3.5.0 release
 
-=== valgrind_3.3.1 (Michael Abshoff, September 15th, 2008)  ===
+=== valgrind-3.3.1 (Michael Abshoff, September 15th, 2008)  ===
  * update to 3.3.1 release
  * stop build on Itanium boxen
  * add custom suppression file for Sage
 
-=== valgrind_3.3.0 ===
+=== valgrind-3.3.0 ===
  * update to 3.3.0 release
  * create proper SPKG.txt
  * check for Linux, exit on other platforms
 
-=== valgrind_3.3.0svn_omega-r7025 (Michael Abshoff) ===
+=== valgrind-3.3.0svn_omega-r7025 (Michael Abshoff) ===
  * update to 3.3.0svb-r7025
  * merge experimental omega tool
 
-=== valgrind_3.3.0svn-r6959 (Michael Abshoff, Oct. 8th, 2007) ===
+=== valgrind-3.3.0svn-r6959 (Michael Abshoff, Oct. 8th, 2007) ===
  * update to 3.3.0svn-r6959
 
-=== valgrind_3.3.0svn-r6814 (Michael Abshoff) ===
+=== valgrind-3.3.0svn-r6814 (Michael Abshoff) ===
  * Initial version: 3.3.0svn-r6814

@@ -539,7 +539,6 @@ def implicit_plot(f, xrange, yrange, **options):
     I can do the same thing, but using a callable function so I don't need
     to explicitly define the variables in the ranges, and filling the inside::
 
-        sage: x,y = var('x,y')
         sage: f(x,y) = x^2 + y^2 - 2
         sage: implicit_plot(f, (-3, 3), (-3, 3),fill=True)
 
@@ -602,9 +601,17 @@ def implicit_plot(f, xrange, yrange, **options):
 
     When making a filled implicit plot using a python function rather than a
     symbolic expression the user should increase the number of plot points to
-    avoid artefacts::
+    avoid artifacts::
 
-        sage: implicit_plot(lambda x,y: x^2+y^2-2, (x,-3,3), (y,-3,3), fill=True, plot_points=500)
+        sage: implicit_plot(lambda x,y: x^2+y^2-2, (x,-3,3), (y,-3,3), fill=True, plot_points=500) # long time
+
+    TESTS::
+
+        sage: f(x,y) = x^2 + y^2 - 2
+        sage: implicit_plot(f, (-3, 3), (-3, 3),fill=5)
+        Traceback (most recent call last):
+        ...
+        ValueError: fill=5 is not supported
     """
     from sage.symbolic.expression import is_SymbolicEquation
     if is_SymbolicEquation(f):
@@ -700,13 +707,14 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
         sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2))
 
-    Since it doesn't look very good, let's increase plot_points::
+    Since it doesn't look very good, let's increase ``plot_points``::
 
         sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400)
 
-    To get plots where only one condition needs to be true, use a function::
+    To get plots where only one condition needs to be true, use a function.
+    Using lambda functions, we definitely need the extra ``plot_points``::
 
-        sage: region_plot(lambda x,y: x^2+y^2<1 or x<y, (x,-2,2), (y,-2,2))
+        sage: region_plot(lambda x,y: x^2+y^2<1 or x<y, (x,-2,2), (y,-2,2), plot_points=400)
 
     The first quadrant of the unit circle::
 

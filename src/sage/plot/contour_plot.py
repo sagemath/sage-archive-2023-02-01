@@ -203,7 +203,7 @@ class ContourPlot(GraphicPrimitive):
 
 @suboptions('colorbar', orientation='vertical', format=None, spacing=None)
 @suboptions('label', fontsize=9, colors='blue', inline=None, inline_spacing=3, fmt="%1.2f")
-@options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False, colorbar=False, legend_label=None)
+@options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False, colorbar=False, legend_label=None, aspect_ratio=1)
 def contour_plot(f, xrange, yrange, **options):
     r"""
     ``contour_plot`` takes a function of two variables, `f(x,y)`
@@ -643,7 +643,7 @@ def implicit_plot(f, xrange, yrange, **options):
         raise ValueError("fill=%s is not supported" % options['fill'])
 
 
-@options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None)
+@options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None, aspect_ratio=1)
 def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, borderstyle, borderwidth,**options):
     r"""
     ``region_plot`` takes a boolean function of two variables, `f(x,y)`

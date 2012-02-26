@@ -863,9 +863,9 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             sage: m.log_likelihood([-2,-1,.1,0.1])
             -8.858282215986275
             sage: m.baum_welch([-2,-1,.1,0.1])
-            (4.534646052182663, 7)
+            (4.534646052182..., 7)
             sage: m.log_likelihood([-2,-1,.1,0.1])
-            4.534646052182663
+            4.534646052182...
             sage: m
             Gaussian Hidden Markov Model with 2 States
             Transition matrix:

@@ -26,6 +26,9 @@ PSF or ZPL. i.e Python Software Foundation License or Zope Public License
 
 == Changelog ==
 
+=== setuptools-0.6.16.p0 (Jeroen Demeyer, 27 February 2012) ===
+ * Trac #12599: make spkg-install executable.
+
 === setuptools-0.6.16 (Francois Bissey, June 1, 2011) ===
  * Switch to the "distribute" fork of setuptools and update to 0.6.16,
  * adopt a Gentoo patch to avoid warnings with python-2.7 (works with 2.6 too).

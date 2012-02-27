@@ -40,6 +40,9 @@ COPYING.
 
 == Changelog ==
 
+=== maxima-5.26.0.p0 (Dima Pasechnik, February 28th 2012) ===
+ * upgrading to version 5.26.0 to take care of #10682.
+
 === maxima-5.24.0.p0 (Michael Orlitzky, January 29th 2012) ===
  * Trac #12094: Version bump to prevent a regression with the
    abs_integrate package.

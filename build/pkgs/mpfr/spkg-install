@@ -120,7 +120,7 @@ mpfr_configure()
         default_cflags="$default_cflags"
     fi
 
-    SAGE_CONF_OPTS=--libdir="$SAGE_LOCAL/lib"
+    SAGE_CONF_OPTS="--libdir=$SAGE_LOCAL/lib --disable-thread-safe"
     if [ ! -f "$SAGE_LOCAL/include/gmp.h" ]; then
          SAGE_CONF_OPTS="$SAGE_CONF_OPTS --disable-static --enable-shared"
     fi

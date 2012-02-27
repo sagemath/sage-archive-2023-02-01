@@ -42,6 +42,10 @@ facet enumeration compares well with existing packages.
 
 == Change log ==
 
+=== palp-2.0.p1 (R. Andrew Ohana, 26th February 2012) ===
+ * #7071 Make spkg respect global CC and CFLAGS variables
+ * made SAGE64 set the '-m64' flag the "proper" way
+
 === palp-2.0.p0 (Volker Braun, 19th November 2011) ===
  * #12055 Update to new upstream version
  * Now building multiple versions for different ambient dimensions

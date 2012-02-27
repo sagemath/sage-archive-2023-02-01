@@ -33,16 +33,9 @@ if [ "x$SAGE64" = xyes ]; then
 fi
 
 # Ensure FreeBSD build finds new, local math.h and complex.h
-[ "$UNAME" = 'FreeBSD' ] && export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
-
-# Solaris-specific and other patches
-cp -p patches/cvxopt.h src/src/C/
-
-# patch to use always use GSL's random
-cp -p patches/__init__.py src/src/python/
-
-# setting Sage-specific libraries locations, etc.
-cp -p patches/setup.py src/src/
+if [ "$UNAME" = FreeBSD ]; then
+    export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
+fi
 
 cd src
 python setup.py install
@@ -50,4 +43,3 @@ if [ $? -ne 0 ]; then
    echo "Error building/installing cvxopt"
    exit 1
 fi
-

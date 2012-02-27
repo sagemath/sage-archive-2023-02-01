@@ -298,6 +298,11 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
 
     TESTS::
 
+        sage: r = Permutation("(1,7,9,3)(2,4,8,6)")
+        sage: f = Permutation("(1,3)(4,6)(7,9)")
+        sage: PermutationGroup([r,f]) #See Trac #12597
+        Permutation Group with generators [(1,3)(4,6)(7,9), (1,7,9,3)(2,4,8,6)]
+
         sage: PermutationGroup(SymmetricGroup(5))
         Traceback (most recent call last):
         ...

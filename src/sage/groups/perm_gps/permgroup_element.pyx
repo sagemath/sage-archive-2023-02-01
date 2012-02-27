@@ -174,7 +174,7 @@ def standardize_generator(g, convert_dict=None):
     INPUT:
 
     - ``g`` - a list, tuple, string, GapElement,
-      PermuationGroupElement
+      PermuationGroupElement, Permutation
 
     - ``convert_dict`` - (optional) a dictionary used to convert the
       points to a number compatible with GAP.
@@ -198,6 +198,8 @@ def standardize_generator(g, convert_dict=None):
         [(1, 2)]
         sage: standardize_generator([(1,2)])
         [(1, 2)]
+        sage: standardize_generator(Permutation([2,1,3]))
+        [(1, 2), (3,)]
 
     ::
 
@@ -216,6 +218,7 @@ def standardize_generator(g, convert_dict=None):
     from sage.interfaces.gap import GapElement
     from sage.combinat.permutation import Permutation
     from sage.libs.pari.gen import gen
+    from sage.combinat.permutation import Permutation_class
 
     if isinstance(g, gen):
         g = list(g)
@@ -224,6 +227,8 @@ def standardize_generator(g, convert_dict=None):
     if isinstance(g, GapElement):
         g = str(g)
         needs_conversion = False
+    if isinstance(g, Permutation_class):
+        return g.cycle_tuples()
     if isinstance(g, PermutationGroupElement):
         g = g.cycle_tuples()
     if isinstance(g, str):

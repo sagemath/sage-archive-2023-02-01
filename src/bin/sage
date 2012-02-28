@@ -786,43 +786,42 @@ if [ "$1" = '-c' ]; then
 fi
 
 install() {
-   cd "$SAGE_ROOT/spkg"
-   if [ $# -lt 2 ]; then
-       sage-spkg
-       exit $?
-   fi
-   OPT="$1"
-   shift
-   if [ "$1" = '-m' -o "$1" = '-s' ]; then
-       OPT=$OPT" "$1
-       shift
-   fi
-   SAGE_LOGS="$SAGE_ROOT/spkg/logs"
-   if [ ! -d "$SAGE_LOGS" ]; then
-       mkdir -p "$SAGE_LOGS"
-   fi
-   for PKG in "$@"
-   do
-	echo "Calling sage-spkg on '$PKG'"
-	PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
-	PKG_NAME=`basename "$PKG_NAME"`
-	case "$PKG" in
-	    /*) PKG_PATH="$PKG";;
-	    *) PKG_PATH="$CUR/$PKG";;
-	esac
-	# Could use ./pipestatus here, but using an absolute path is safer:
-	# (We'll have to change it anyway in case 'pipestatus' one day moves.)
-	"$SAGE_ROOT"/spkg/pipestatus \
-	    "sage-spkg $OPT '$PKG_PATH' 2>&1" \
-	    "(trap '' SIGINT; tee -a '$SAGE_ROOT'/install.log '$SAGE_LOGS/$PKG_NAME'.log)"
-	# Do not try to install further packages (if any) if one failed:
-	if [[ $? -ne 0 ]]; then
-	    echo >&2 "Error: Failed to install package '$PKG_NAME'."
-	    exit 1
-	fi
-	shift
-   done
-   exit $?
+    cd "$SAGE_ROOT/spkg"
+    SAGE_LOGS="$SAGE_ROOT/spkg/logs"
+    mkdir -p "$SAGE_LOGS"
+    for PKG in "$@"
+    do
+        # Check for options
+        case "$PKG" in
+            -f) OPTF="-f"
+                continue;;
+            -m) OPTS="-s"
+                echo >&2 "Warning: the -m option is deprecated since Sage 5.0.  Use -s instead."
+                continue;;
+            -s) OPTS="-s"
+                continue;;
+        esac
+
+        echo "Calling sage-spkg on '$PKG'"
+        PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
+        PKG_NAME=`basename "$PKG_NAME"`
+        case "$PKG" in
+            /*) PKG_PATH="$PKG";;
+            *) PKG_PATH="$CUR/$PKG";;
+        esac
+        # Could use ./pipestatus here, but using an absolute path is safer:
+        # (We'll have to change it anyway in case 'pipestatus' one day moves.)
+        "$SAGE_ROOT"/spkg/pipestatus \
+            "sage-spkg $OPTF $OPTS '$PKG_PATH' 2>&1" \
+            "(trap '' SIGINT; tee -a '$SAGE_ROOT'/install.log '$SAGE_LOGS/$PKG_NAME'.log)"
+        # Do not try to install further packages (if any) if one failed:
+        if [ $? -ne 0 ]; then
+            echo >&2 "Error: Failed to install package '$PKG_NAME'."
+            exit 1
+        fi
+        shift
+    done
+    exit $?
 }
 
 if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
@@ -841,15 +840,23 @@ if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
 fi
 
 if [ "$1" = '-i' ]; then
-   shift
-   echo "Installing $@"
-   install " " "$@"
+    shift
+    # If there are no further arguments, simply list all installed
+    # packages.
+    if [ $# -eq 0 ]; then
+        exec sage-spkg
+    fi
+    install "$@"
 fi
 
 if [ "$1" = '-f' ]; then
-   shift
-   echo "Force installing $@"
-   install -f "$@"
+    shift
+    # If there are no further arguments, simply list all installed
+    # packages.
+    if [ $# -eq 0 ]; then
+        exec sage-spkg
+    fi
+    install -f "$@"
 fi
 
 if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then

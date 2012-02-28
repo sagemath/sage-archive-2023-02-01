@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
-
-# William Stein, 2005-12-20 -- removed "m" option from tar,
-# which was seriously confusing the build process on some
-# (too fast?) machines, especially for mpfr.
-
-#######################################################
-#  Install a Sage package.  This script is
-#  typically invoked by giving the command
-#      sage -i <package name>
+#
+#  sage-spkg: install a Sage package
+#
+#  This script is typically invoked by giving the command
+#      sage -i <options> <package name>...
+#
+#  Options can be:
+#   -f: install a package even if the same version is already installed
+#   -s: do not delete temporary build directory
 #
 #  A package may assume that the following environment
 #  variables are defined:
 #
-#      SAGE_ROOT   -- root directory of sage install
-#      SAGE_LOCAL  -- $SAGE_ROOT/local
-#      SAGE_DATA   -- $SAGE_ROOT/data
+#      SAGE_ROOT     -- root directory of sage install
+#      SAGE_PACKAGES -- $SAGE_ROOT/spkg
+#      SAGE_LOCAL    -- $SAGE_ROOT/local
+#      SAGE_DATA     -- $SAGE_ROOT/data
 #      LIBRARY_PATH, PYTHONPATH, LD_LIBRARY_PATH, DYLD_LIBRARY_PATH
 #      CC, CXX, CFLAGS, CXXFLAGS, LDFLAGS, MAKE
 #
@@ -28,14 +29,23 @@
 #      3. Run the script in the package called spkg-install
 #      4. Return error 1 if anything goes wrong.
 #
-#######################################################
+# AUTHORS:
+#
+# - Jeroen Demeyer (2012-02-27): #12479: big reorganization.
+#
+# - Volker Braun, Jeroen Demeyer (2012-01-18): #11073: remove the
+#   spkg/base repository, move this file from local/bin/sage-spkg to
+#   spkg/bin/sage-spkg.
+#
+# - William Stein, John Palmieri and others (Sage 4.8 and earlier).
+#
+#*****************************************************************************
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-no_version()
-{
-    if [ -z "`echo "$1" | grep -`" ]; then
-        echo "no version"
-    fi
-}
 
 # error_msg(header, command)
 # This is for printing an error message if something went wrong.
@@ -72,28 +82,69 @@ if echo "$MAKE $MAKEFLAGS -$MAKEFLAGS" |grep '[ ]-[A-Za-z]*[qnt]' >/dev/null; th
     fi
 fi
 
+##################################################################
+# Set environment variables
+##################################################################
+
 # The following sets environment variables for building packages.
 # Since this is sourced, it returns a non-zero value on errors rather
 # than exiting.  Using dot suggested by W. Cheung.
 . "$SAGE_ROOT/spkg/bin/sage-env"
 
 if [ $? -ne 0 ]; then
-    echo "Error setting environment variables by sourcing '$SAGE_ROOT/spkg/bin/sage-env';"
-    echo "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
+    echo >&2 "Error setting environment variables by sourcing '$SAGE_ROOT/spkg/bin/sage-env';"
+    echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
     exit 1
 fi
 
+if [ -z "$SAGE_BUILD_DIR" ]; then
+    export SAGE_BUILD_DIR="$SAGE_PACKAGES/build"
+fi
+
+INSTALLED="$SAGE_PACKAGES/installed"
+mkdir -p "$INSTALLED"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating directory $INSTALLED."
+    exit 1
+fi
+
+
+# Remove '.' from PYTHONPATH, which may also come from SAGE_PATH, to avoid
+# trouble with setuptools / easy_install (cf. #10192, #10176):
+if [ -n "$PYTHONPATH" ]; then
+    # We also collapse multiple slashs into a single one (first substitution),
+    # remove leading './'s and trailing '/.'s (second and third), and
+    # remove leading, trailing and redundant ':'s (last three substitutions):
+    new_pp=`echo ":$PYTHONPATH:" \
+        | sed \
+        -e 's|//*|/|g' \
+        -e 's|:\(\./\)\{1,\}|:|g' \
+        -e 's|\(/\.\)\{1,\}:|:|g' \
+        -e 's|\(:\.\)\{1,\}:|:|g' \
+        -e 's|::*|:|g' -e 's|^::*||' -e 's|::*$||'`
+
+    if [ "$PYTHONPATH" != "$new_pp" ]; then
+        echo "Cleaning up PYTHONPATH:"
+        echo "  Old: \"$PYTHONPATH\""
+        echo "  New: \"$new_pp\""
+        PYTHONPATH=$new_pp
+        export PYTHONPATH # maybe redundant, but in any case safe
+    fi
+fi
+
+##################################################################
+# Handle special command-line options
+##################################################################
 if [ $# -eq 0 ]; then
     echo "Currently installed packages:"
-    ls -1 "$SAGE_PACKAGES/installed/"
+    ls -1 "$INSTALLED"
     exit 0
 fi
 
-# the following two options are mutually exclusive -- i.e., you
-# can give only one.
-
+# Options have to come in a specific order,
+# this is ensured by spkg/bin/sage.
 INFO=0
-if [ $1 = '-info' ]; then
+if [ $1 = '--info' ]; then
     INFO=1
     shift
 fi
@@ -103,10 +154,9 @@ if [ $1 = '-f' ]; then
     FORCE=1
     shift
 fi
-export FORCE
 
 DELETE_TMP=1
-if [ $1 = '-s' -o $1 = '-m' ]; then
+if [ $1 = '-s' ]; then
     DELETE_TMP=0
     shift
 fi
@@ -115,25 +165,12 @@ if [ "x$SAGE_KEEP_BUILT_SPKGS" = "xyes" ]; then
     DELETE_TMP=0
 fi
 
-INSTALLED="$SAGE_PACKAGES/installed/"
-PKG_NAME=`echo "$1" | sed -e "s/\.spkg$//"`
-PKG_NAME=`basename "$PKG_NAME"`
+##################################################################
+# Figure out the package filename, download it if needed.
+##################################################################
+PKG_NAME=`basename "$1" | sed -e "s/\.spkg$//"`
 PKG_SRC="$1"
 PKG_BASE=`echo "$PKG_NAME" | sed -e "s/-.*//"`
-
-# check if noclobber is set and warn about it
-if [ $PKG_SRC == "noclobber" ]; then
-    echo "***********************************************************"
-    echo "* WARNING WARNING WARNING WARNING WARNING WARNING WARNING *"
-    echo "*                                                         *"
-    echo "* noclobber is set in .bashrc and/or .bash_profile - you  *"
-    echo "* should consider disabling it. The Sage install should   *"
-    echo "* continue to work, so don't worry about it too much.     *"
-    echo "*                                                         *"
-    echo "* WARNING WARNING WARNING WARNING WARNING WARNING WARNING *"
-    echo "***********************************************************"
-    exit 0
-fi
 
 if [ ! -f "$PKG_SRC" ]; then
     if [ -f "$SAGE_PACKAGES/standard/$PKG_NAME.spkg" ]; then
@@ -158,7 +195,6 @@ if [ ! -f "$PKG_SRC" ]; then
 fi
 
 # Don't verbosely extract files from spkgs by default (#10040):
-
 if [ "$SAGE_SPKG_LIST_FILES" = "yes" ]; then
     UNTAR_VERBOSE=v
 else
@@ -167,48 +203,38 @@ fi
 
 if [ $INFO -ne 0 ]; then
     if [ ! -f "$PKG_SRC" ]; then
-        echo "Package $PKG_NAME not found"
+        echo >&2 "Package $PKG_NAME not found"
     fi
-    bunzip2 -c "$PKG_SRC" 2>/dev/null | tar Ofx${UNTAR_VERBOSE} - $PKG_NAME/SAGE.txt 2>/dev/null
+    bunzip2 -c "$PKG_SRC" 2>/dev/null | tar Ofx${UNTAR_VERBOSE} - $PKG_NAME/SPKG.txt 2>/dev/null
     if [ $? -ne 0 ]; then
-        tar Ofx${UNTAR_VERBOSE} "$PKG_SRC" "$PKG_NAME/SAGE.txt" 2>/dev/null
+        tar Ofx${UNTAR_VERBOSE} "$PKG_SRC" "$PKG_NAME/SPKG.txt" 2>/dev/null
     fi
     echo ""
     if [ $? -ne 0 ]; then
-        echo "No file SAGE.txt in $PKG_NAME"
+        echo >&2 "No file SPKG.txt in $PKG_NAME"
         exit 1
     fi
     exit 0
 fi
 
 echo "$PKG_NAME"
-
-echo "Machine:"
-uname -a
+echo "===================================================="
 
 if [ -f "$INSTALLED/$PKG_NAME" -a $FORCE -eq 0 ]; then
-    echo "sage: $1 is already installed"
+    echo "Package $PKG_NAME is already installed."
+    echo "Use 'sage -f $PKG_SRC' to force a reinstallation."
+    # Touch installed file such that "make" considers it up-to-date.
     touch "$INSTALLED/$PKG_NAME"
     exit 0
 fi
 
-if [ ! -n "$SAGE_BUILD_DIR" ]; then
-    SAGE_BUILD_DIR="$SAGE_PACKAGES/build"
-fi
-
-mkdir -p "$SAGE_PACKAGES/installed"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error creating directory $SAGE_PACKAGES/installed."
-    exit 1
-fi
+# Make absolutely sure that we are in the build directory before doing
+# a scary "rm -rf" below.
 mkdir -p "$SAGE_BUILD_DIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Error creating directory $SAGE_BUILD_DIR."
     exit 1
 fi
-
-# Make absolutely sure that we are in the build directory before doing
-# a scary "rm -rf" below.
 cd "$SAGE_BUILD_DIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Unable to find build directory."
@@ -216,7 +242,6 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ $DELETE_TMP -eq 1 ]; then
-    echo "Deleting directories from past builds of previous/current versions of $PKG_NAME"
     rm -rf "$PKG_BASE-"*
 else
     for dir in "$PKG_BASE-"*
@@ -242,7 +267,8 @@ if [ ! -f "$PKG_SRC" ]; then
     cd "$SAGE_PACKAGES/optional"
 
     FOUND_VERSION=''
-    if [ -n "`no_version "$PKG_NAME"`" ]; then
+    if ! echo "$PKG_NAME" | grep - >/dev/null; then
+        # No version number found
         echo "Searching for latest version of $PKG_NAME"
         PKG_NAME=`sage-latest-online-package "$PKG_NAME"`
         if [ $? -eq 0 ]; then
@@ -286,10 +312,6 @@ if [ ! -f "$PKG_SRC" ]; then
     cd "$CUR"
 fi
 
-# * The -i option below to ignore checksum errors, since
-#   I've had problems with this on Solaris.
-# * The m option avoids clock skew problems.
-
 echo "Extracting package $PKG_SRC ..."
 ls -l "$PKG_SRC"
 
@@ -305,10 +327,11 @@ fi
 echo "Finished extraction"
 
 if [ ! -d "$PKG_NAME" ]; then
-    echo "sage: After decompressing the directory $PKG_NAME does not exist"
-    echo "This means that the corresponding .spkg needs to be downloaded"
-    echo "again."
-    if [ -n "`no_version "$PKG_NAME"`" ]; then
+    echo >&2 "sage: After decompressing the directory $PKG_NAME does not exist"
+    echo >&2 "This means that the corresponding .spkg needs to be downloaded"
+    echo >&2 "again."
+    if ! echo "$PKG_NAME" | grep - >/dev/null; then
+        # No version number found
         echo "Searching for latest version of $PKG_NAME"
         PKG_NAME=`sage-latest-online-package "$PKG_NAME"`
         if [ $? -eq 0 ]; then
@@ -330,144 +353,107 @@ if [ ! -d "$PKG_NAME" ]; then
     fi
 fi
 
+##################################################################
+# The package has been extracted, prepare for installation
+##################################################################
+
 cd "$PKG_NAME"
+
+# When there is no spkg-install, assume the "spkg" is a tarball not
+# specifically made for Sage.  Since we want it to be as easy as
+# possible to install such a package, we "guess" spkg-install.
 if [ ! -f spkg-install ]; then
-    echo "#!/usr/bin/env bash" > spkg-install
-    echo "" >> spkg-install
-    if [ -f setup.py ]; then
-        echo "python setup.py install" >> spkg-install
+    echo '#!/usr/bin/env bash' > spkg-install
+    if [ -x configure ]; then
+        echo './configure --prefix="$SAGE_LOCAL" && make && make install' >> spkg-install
+    elif [ -f setup.py ]; then
+        echo 'python setup.py install' >> spkg-install
     else
-        if [ -f configure ]; then
-            echo "./configure --prefix=\$SAGE_ROOT/local/" >> spkg-install
-            echo "make" >> spkg-install
-            echo "make install" >> spkg-install
-        else
-            echo "There is no spkg-install script, no setup.py, and no configure script,"
-            echo "so I do not know how to install $PKG_SRC."
-            exit 1
-        fi
+        echo >&2 "Error: There is no spkg-install script, no setup.py, and no configure"
+        echo >&2 "script, so I do not know how to install $PKG_SRC."
+        exit 1
     fi
+    chmod +x spkg-install
 fi
 
-chmod +x spkg-install
-
-# Remove '.' from PYTHONPATH, which may also come from SAGE_PATH, to avoid
-# trouble with setuptools / easy_install (cf. #10192, #10176):
-if [ -n "$PYTHONPATH" ]; then
-    # We also collapse multiple slashs into a single one (first substitution),
-    # remove leading './'s and trailing '/.'s (second and third), and
-    # remove leading, trailing and redundant ':'s (last three substitutions):
-    new_pp=`echo ":$PYTHONPATH:" \
-        | sed \
-        -e 's|//*|/|g' \
-        -e 's|:\(\./\)\{1,\}|:|g' \
-        -e 's|\(/\.\)\{1,\}:|:|g' \
-        -e 's|\(:\.\)\{1,\}:|:|g' \
-        -e 's|::*|:|g' -e 's|^::*||' -e 's|::*$||'`
-
-    if [ "$PYTHONPATH" != "$new_pp" ]; then
-        echo "Cleaning up PYTHONPATH:"
-        echo "  Old: \"$PYTHONPATH\""
-        echo "  New: \"$new_pp\""
-        PYTHONPATH=$new_pp
-        export PYTHONPATH # maybe redundant, but in any case safe
-    fi
-fi
-
-echo "****************************************************"
-echo "Host system"
-echo "uname -a:"
-uname -a
-if [ $? -ne 0 ]; then
-    echo "Unable to determine host system information."
-fi
-echo "****************************************************"
-
-echo "****************************************************"
-echo "CC Version"
-echo "$CC -v"
-$CC -v
-if [ $? -ne 0 ]; then
-    echo "Unable to determine C compiler version."
-fi
-echo "****************************************************"
-
-
-##################################################################
-# If spkg-install is a Python script, verify that the Sage Python
-# has already been installed.
-##################################################################
-# Check the first line of the file for the string "python".
-head -1 spkg-install | grep python > /dev/null
-if [ $? -eq 0 ]; then   # if it is found, then the exit code will be 0
-    if [ ! -f "$SAGE_LOCAL"/bin/python ]; then   # now check if the python program is in local/bin/
-         # if so, exit with an error.
-         echo "The spkg-install script depends on the Sage Python package,"
-         echo "but the Sage Python package is not yet installed.  This may be"
-         echo "a bug in the Sage build system dependency file.  Please"
-         echo "update the $SAGE_ROOT/spkg/standard/deps makefile."
+# If spkg-install is a Python script (i.e. the first line of the file
+# contains "python"), verify that Python has already been installed.
+if head -1 spkg-install | grep python >/dev/null; then
+    # If there is no Python installed in local/bin, exit with an error.
+    if [ ! -x "$SAGE_LOCAL"/bin/python ]; then
+         echo >&2 "Error: The spkg-install script is written in Python, but the Python"
+         echo >&2 "package is not yet installed in Sage.  This is a bug in the file"
+         echo >&2 "$SAGE_ROOT/spkg/standard/deps"
          exit 1
     fi
 fi
 
-BASEDIR=`pwd`
-if [ -n "$DEBIAN_RELEASE" ]; then
-    SAGE_CHECK=''
-    if [ -e ./spkg-debian ]; then
-        time ./spkg-debian
-    else
-        time sage-build-debian $BASEDIR
-    fi
-else
-    time ./spkg-install
+echo "****************************************************"
+echo "Host system:"
+uname -a
+echo "****************************************************"
+echo "C compiler: $CC"
+echo "C compiler version:"
+$CC -v
+echo "****************************************************"
+
+##################################################################
+# Actually install
+##################################################################
+if [ ! -x spkg-install ]; then
+    echo >&2 "WARNING: spkg-install is not executable, making it executable"
+    chmod +x spkg-install
 fi
+time ./spkg-install
 
-if [ $? -eq 0 ]; then
-    cd "$INSTALLED"
-    # TURNED OFF: Remove all old packages with the same name up to the first "-":
-    # rm -f $PKG_BASE-*
-
-    # Mark that the new package has been installed.
-    # This file will eventually be a certificate like in OS X.
-    echo "PACKAGE NAME: $PKG_NAME" > "$PKG_NAME"
-    echo "INSTALL DATE: `date`" >> "$PKG_NAME"
-    echo "UNAME: `uname -a`" >> "$PKG_NAME"
-    if [ -f "$SAGE_ROOT"/VERSION.txt ]; then
-        cat "$SAGE_ROOT"/VERSION.txt >> "$PKG_NAME"
-    fi
-    echo "Successfully installed $PKG_NAME"
-
-    cd "$BASEDIR"
-    if [ "x$SAGE_CHECK" = "xyes" -a -f spkg-check ]; then
-        echo "Running the test suite."
-        chmod +x spkg-check
-        ./spkg-check
-        if [ $? -ne 0 ]; then
-            rm -f $SAGE_ROOT/spkg/installed/$PKG_NAME
-            error_msg "Error testing package $PKG_NAME" "make check"
-            exit 1
-        else
-            echo "TEST SUITE: passed" >> "$INSTALLED/$PKG_NAME"
-        fi
-    fi
-
-
-    # Delete the temporary build directory if required.
-    if [ $DELETE_TMP -eq 1 ]; then
-        echo "Now cleaning up tmp files."
-        if [ -d "$SAGE_BUILD_DIR/$PKG_NAME" ]; then
-            # the if is there only to avoid the possibility of a weird bug.
-            cd "$SAGE_BUILD_DIR/"
-            rm -rf "$SAGE_BUILD_DIR/$PKG_NAME"
-        fi
-    else
-        echo "You can safely delete the temporary build directory"
-        echo "$SAGE_BUILD_DIR/$PKG_NAME"
-    fi
-
-else
+if [ $? -ne 0 ]; then
     error_msg "Error installing package $PKG_NAME" "make"
     exit 1
+fi
+
+echo "Successfully installed $PKG_NAME"
+
+if [ "$SAGE_CHECK" = "yes" ]; then
+    if [ -f spkg-check ]; then
+        echo "Running the test suite for $PKG_NAME..."
+        if [ ! -x spkg-check ]; then
+            echo >&2 "WARNING: spkg-check is not executable, making it executable"
+            chmod +x spkg-check
+        fi
+        time ./spkg-check
+        if [ $? -ne 0 ]; then
+            error_msg "Error testing package $PKG_NAME" "make check"
+            exit 1
+        fi
+        TEST_SUITE_RESULT="passed"
+    else
+        echo "Package $PKG_NAME has no test suite."
+        TEST_SUITE_RESULT="not available"
+    fi
+fi
+
+# Mark that the new package has been installed (and tested, if
+# applicable).
+PKG_NAME_INSTALLED="$INSTALLED/$PKG_NAME"
+echo "PACKAGE NAME: $PKG_NAME" > "$PKG_NAME_INSTALLED"
+echo "INSTALL DATE: `date`" >> "$PKG_NAME_INSTALLED"
+echo "UNAME: `uname -a`" >> "$PKG_NAME_INSTALLED"
+if [ -n "$TEST_SUITE_RESULT" ]; then
+    echo "TEST SUITE: $TEST_SUITE_RESULT" >> "$PKG_NAME_INSTALLED"
+fi
+cat "$SAGE_ROOT/VERSION.txt" >> "$PKG_NAME_INSTALLED"
+
+
+##################################################################
+# Delete the temporary build directory if required
+##################################################################
+if [ $DELETE_TMP -eq 1 ]; then
+    echo "Deleting temporary build directory"
+    echo "$SAGE_BUILD_DIR/$PKG_NAME"
+    rm -rf "$SAGE_BUILD_DIR/$PKG_NAME"
+else
+    echo "You can safely delete the temporary build directory"
+    echo "$SAGE_BUILD_DIR/$PKG_NAME"
 fi
 
 
@@ -482,5 +468,3 @@ if [ -x ./python -a -f sage-make_relative ]; then
 fi
 
 echo "Finished installing $PKG_NAME.spkg"
-
-exit 0

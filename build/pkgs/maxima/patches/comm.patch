@@ -1,0 +1,12 @@
+--- src/src/comm.lisp  
++++ src/src/comm.lisp   
+@@ -753,7 +753,9 @@
+        (setq ans (list '(mequal simp) (disp2 l) ans)))
+     (if lablist (nconc lablist (cons (elabel ans) nil)))
+     (setq tim (get-internal-run-time))
+-    (displa (list '(mlable) (if lablist linelable) ans))
++    (let ((*display-labels-p* nil))
++      (declare (special *display-labels-p*))
++      (displa (list '(mlable) (if lablist linelable) ans)))
+     (mterpri)
+     (timeorg tim)))

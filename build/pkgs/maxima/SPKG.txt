@@ -42,6 +42,8 @@ COPYING.
 
 === maxima-5.26.0 (Dima Pasechnik, February 28th 2012) ===
  * upgrading to version 5.26.0 to take care of #10682.
+ * added patch/comm.patch to fix Maxima bug #3484414.
+   (false) precedes the display output if display2d is set to false.
 
 === maxima-5.24.0.p0 (Michael Orlitzky, January 29th 2012) ===
  * Trac #12094: Version bump to prevent a regression with the

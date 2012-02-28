@@ -41,6 +41,11 @@ Command-line options for Sage
   option)
 - ``-gthread``, ``-qthread``, ``-q4thread``, ``-wthread``,
   ``-pylab`` -- pass the option through to IPython
+- ``--nodotsage`` -- run Sage without using the user's
+  :file:`.sage` directory: create and use a temporary :file:`.sage`
+  directory instead.  Warning: notebooks are stored in the
+  :file:`.sage` directory, so any notebooks created while running with
+  ``--nodotsage`` will be temporary also.
 
 .. rubric:: Running the notebook
 

@@ -83,10 +83,16 @@ Command-line options for Sage
   packages are given, print a list of all installed packages.
 - ``-i -s [packages]`` -- like ``-i`` but do not delete the
   spkg/build directories -- useful for debugging.
+- ``-i -c [packages]`` -- like ``-i`` but also run the packages' test
+  suites, overriding the settings of :envvar:`SAGE_CHECK` and
+  :envvar:`SAGE_CHECK_PACKAGES`.
 - ``-f [packages]`` -- force build of the given Sage package (even if
   it is already installed)
 - ``-f -s [packages]`` -- like -f but do not delete the spkg/build
   directories
+- ``-f -c [packages]`` -- like ``-i`` but also run the packages' test
+  suites, overriding the settings of :envvar:`SAGE_CHECK` and
+  :envvar:`SAGE_CHECK_PACKAGES`.
 - ``--standard`` -- list all standard packages that can be installed
 - ``--optional`` -- list all optional packages that can be installed
 - ``--experimental`` -- list all experimental packages that can be installed

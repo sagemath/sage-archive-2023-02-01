@@ -738,13 +738,18 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             return infinity
 
-    def valuation(self):
+    def valuation(self, p = None):
         """
         Returns the valuation of self.
 
         INPUT::
 
             - self -- a p-adic element
+            - p -- a prime (default: None). If specified, will make sure that p==self.parent().prime()
+
+        NOTES::
+
+            The optional argument p is used for consistency with the valuation methods on integer and rational.
 
         OUTPUT::
 
@@ -807,7 +812,16 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: K.<a> = Qq(25)
             sage: K(0).valuation()
             +Infinity
+
+            sage: R(1/50).valuation(5)
+            -2
+            sage: R(1/50).valuation(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Ring (5-adic Field with capped relative precision 4) residue field of the wrong characteristic.
         """
+        if not p is None and p != self.parent().prime():
+            raise ValueError, 'Ring (%s) residue field of the wrong characteristic.'%self.parent()
         cdef long v = self.valuation_c()
         if v == maxordp:
             return infinity
@@ -843,13 +857,19 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         raise NotImplementedError
 
-    def ordp(self):
+    def ordp(self, p = None):
         r"""
         Returns the valuation of self, normalized so that the valuation of p is 1
 
         INPUT::
 
             self -- a p-adic element
+            p -- a prime (default: None). If specified, will make sure that p==self.parent().prime()
+
+        NOTES::
+
+            The optional argument p is used for consistency with the valuation methods on integer and rational.
+
 
         OUTPUT::
 
@@ -875,7 +895,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R(1/2).ordp()
             0
         """
-        return self.valuation() / self.parent().ramification_index()
+        return self.valuation(p) / self.parent().ramification_index()
 
     def rational_reconstruction(self):
         r"""

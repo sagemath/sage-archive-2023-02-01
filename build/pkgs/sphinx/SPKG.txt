@@ -79,6 +79,10 @@ Home Page: http://sphinx.pocoo.org,
 
 == Changelog ==
 
+=== sphinx-1.1.2.p1 (Jeroen Demeyer, 28 February 2012) ===
+ * #12572: add extra_mem_top=2000000 to the environment when running
+   latex.  This increases the amount of main memory available.
+
 === sphinx-1.1.2.p0 (John Palmieri, November 5th 2011) ===
  * #10620: Upgrade to Sphinx 1.1.2.  Also minor editing of SPKG.txt.
 

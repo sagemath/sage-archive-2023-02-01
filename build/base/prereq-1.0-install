@@ -394,5 +394,13 @@ if [ -z "`make --version 2>&1 | grep GNU`" ] ; then
    fi
 fi
 
+if [ -z "$SAGE_KEEP_BUILT_SPKGS" ]; then
+    echo "Now cleaning up tmp files."
+    cd "$SAGE_BUILD_DIR"
+    rm -rf "$SAGE_BUILD_DIR/$TARGET"
+else
+    echo "You can safely delete the temporary build directory"
+    echo "$SAGE_BUILD_DIR/$TARGET"
+fi
 
 touch "$SAGE_ROOT/spkg/installed/$TARGET"

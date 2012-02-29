@@ -8,6 +8,8 @@
 #  Options can be:
 #   -f: install a package even if the same version is already installed
 #   -s: do not delete temporary build directory
+#   -c: after installing, run the test suite for the spkg. This should
+#       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
 #
 #  A package may assume that the following environment
 #  variables are defined:
@@ -173,6 +175,12 @@ if [ "$SAGE_SPKG_LIST_FILES" = "yes" ]; then
     UNTAR_VERBOSE=v
 else
     unset UNTAR_VERBOSE
+fi
+
+if [ $1 = '-c' ]; then
+    export SAGE_CHECK=yes
+    SAGE_CHECK_PACKAGES='x' # nonempty, so not set to '!python' later
+    shift
 fi
 
 ##################################################################

@@ -116,9 +116,11 @@ usage_advanced() {
     echo "  -f [packages]       -- force build of the given Sage package (even if it is"
     echo "                         already installed)"
     echo "  -f -s [packages]    -- like -f but do not delete the spkg/build directories"
+    echo "  -f -c [packages]    -- like -f but also run the packages' test suites"
     echo "  -i [packages]       -- install the given Sage packages"
     echo "                         if no packages given, print a list of all installed"
     echo "  -i -s [packages]    -- like -i but do not delete the spkg/build directories"
+    echo "  -i -c [packages]    -- like -i but also run the packages' test suites"
     echo "  -optional           -- list all optional packages that can be installed"
     echo "  -standard           -- list all standard packages that can be installed"
    #echo "  -update             -- download latest non-optional Sage packages (do not build them)"
@@ -852,6 +854,10 @@ install() {
                 continue;;
             -s) OPTS="-s"
                 continue;;
+            -c) OPTC="-c"
+                continue;;
+            --check) OPTC="-c"
+                continue;;
         esac
 
         echo "Calling sage-spkg on '$PKG'"
@@ -859,7 +865,7 @@ install() {
         PKG_NAME=`basename "$PKG_NAME"`
 
         "$SAGE_ROOT"/spkg/pipestatus \
-            "sage-spkg $OPTF $OPTS '$PKG' 2>&1" \
+            "sage-spkg $OPTF $OPTS $OPTC '$PKG' 2>&1" \
             "(trap '' SIGINT; tee -a '$SAGE_ROOT/install.log' '$SAGE_LOGS/$PKG_NAME.log')"
         # Do not try to install further packages if one failed
         if [ $? -ne 0 ]; then

@@ -281,8 +281,9 @@ fi
 
 if [ "$DOT_SAGE" = "" ]; then
     # It is *not* an error if this directory does not exist, it will
-    # be created in spkg/bin/sage.  This also works if $HOME/.sage is a
-    # symbolic link to a non-existing directory.
+    # be created in spkg/bin/sage or devel/sage/sage/misc/misc.py.
+    # This also works if $HOME/.sage is a symbolic link to a
+    # non-existing directory.
     DOT_SAGE=`resolvelinks "$HOME/.sage"`
 
     # In theory, DOT_SAGE is not required to have a trailing slash.
@@ -340,8 +341,7 @@ if [ -f "$MPLINITFILE" ]; then
         MPLCONFIGDIR="$DOT_SAGE/matplotlib"
     fi
     export MPLCONFIGDIR
-    # Create the directory, because matplotlib doesn't seem to be happy otherwise.
-    mkdir -p "$MPLCONFIGDIR"
+    # The directory is created when Sage starts (see sage.misc.misc).
 fi
 
 # Add some directories to $LD_LIBRARY_PATH:

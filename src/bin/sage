@@ -27,6 +27,8 @@ usage() {
     echo "  -singular [...]     -- run Sage's singular with given arguments"
     echo "  -sqlite3 [...]      -- run Sage's sqlite3 with given arguments"
     echo "  -root               -- print the Sage root directory"
+    echo "  --nodotsage         -- run Sage without using the user's .sage directory:"
+    echo "                         create and use a temporary .sage directory instead"
     echo "  -t [options] <files|dir>"
     echo "                      -- test examples in .py, .pyx, .sage or .tex files"
     echo "                         options:"
@@ -229,6 +231,18 @@ CUR=`pwd` || CUR="$SAGE_ROOT"
 export CUR
 
 cd "$SAGE_ROOT"
+
+# Check for '--nodotsage' before sourcing sage-env; otherwise sage-env
+# will already have set some environment variables with the old
+# setting for DOT_SAGE.
+if [ "$1" = '--nodotsage' ]; then
+    export DOT_SAGE=`mktemp -d ${TMPDIR:-/tmp}/dotsageXXXXXX`
+    shift
+    command "$0" "$@"
+    status=$?
+    rm -rf "$DOT_SAGE"
+    exit $status
+fi
 
 # Do NOT redirect stderr and stdout to /dev/null,
 # since sage-env might print important error messages:

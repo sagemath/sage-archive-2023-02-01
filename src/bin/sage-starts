@@ -11,7 +11,10 @@ echo
 echo "Testing that Sage starts..."
 version=spkg/standard/VERSION.txt
 echo "[`date +'%Y-%m-%d %H:%M:%S'`] `cat $version 2>/dev/null`" | tee -a start.log
-spkg/pipestatus "./sage -c \"print 'Yes, Sage starts.'\" 2>&1" "tee -a start.log"
+# This script is run by the top-level Makefile, so may be run by a
+# sysadmin.  We use --nodotsage so we don't force a .sage directory
+# in the sysadmin's HOME directory.
+spkg/pipestatus "./sage --nodotsage -c \"print 'Yes, Sage starts.'\" 2>&1" "tee -a start.log"
 
 if [ $? -ne 0 ]; then
     echo >&2 "Sage failed to start up."

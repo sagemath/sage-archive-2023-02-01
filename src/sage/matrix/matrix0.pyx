@@ -346,6 +346,12 @@ cdef class Matrix(sage.structure.element.Matrix):
     def _clear_cache(self):
         """
         Clear anything cached about this matrix.
+
+        EXAMPLES::
+
+            sage: m=Matrix(QQ,2,range(0,4))
+            sage: m._clear_cache()
+
         """
         self.clear_cache()
 
@@ -376,6 +382,16 @@ cdef class Matrix(sage.structure.element.Matrix):
         self._cache[key] = x
 
     def _get_cache(self):
+        """
+        Return the cache.
+
+        EXAMPLES::
+
+            sage: m=Matrix(QQ,2,range(0,4))
+            sage: m._get_cache()
+            {}
+
+        """
         return self._cache
 
     ###########################################################
@@ -385,7 +401,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef check_bounds(self, Py_ssize_t i, Py_ssize_t j):
         """
         This function gets called when you're about to access the i,j entry
-        of this matrix. If i, j are out of range, and IndexError is
+        of this matrix. If i, j are out of range, an IndexError is
         raised.
         """
         if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
@@ -557,6 +573,16 @@ cdef class Matrix(sage.structure.element.Matrix):
 ##         return self.get_unsafe(i, j)
 
     def __iter__(self):
+        """
+        Return an iterator for the rows of self
+
+        EXAMPLES::
+
+            sage: m=matrix(2,[1,2,3,4])
+            sage: m.__iter__().next()
+            (1, 2)
+        """
+
         return matrix_misc.row_iterator(self)
 
     def __getitem__(self, key):
@@ -1495,6 +1521,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###########################################################
     # Pickling
     ###########################################################
+
     def __reduce__(self):
         """
         EXAMPLES::
@@ -1508,6 +1535,13 @@ cdef class Matrix(sage.structure.element.Matrix):
                                           self._cache, data, version)
 
     def _pickle(self):
+        """
+        Not yet implemented!
+
+        EXAMPLES::
+            sage: m=matrix(QQ,2,range(0,4))
+            sage: m._pickle() # todo: not implemented
+        """
         raise NotImplementedError
 
     def _test_reduce(self, **options):
@@ -1527,6 +1561,15 @@ cdef class Matrix(sage.structure.element.Matrix):
     # Base Change
     ###########################################################
     def base_ring(self):
+        """
+        Returns the base ring of the matrix.
+
+        EXAMPLES::
+
+            sage: m=matrix(QQ,2,[1,2,3,4])
+            sage: m.base_ring()
+            Rational Field
+        """
         return self._base_ring
 
     def change_ring(self, ring):
@@ -3283,6 +3326,21 @@ cdef class Matrix(sage.structure.element.Matrix):
     def is_symmetric(self):
         """
         Returns True if this is a symmetric matrix.
+
+        EXAMPLES::
+
+            sage: m=Matrix(QQ,2,range(0,4))
+            sage: m.is_symmetric()
+            False
+
+            sage: m=Matrix(QQ,2,(1,1,1,1,1,1))
+            sage: m.is_symmetric()
+            False
+
+            sage: m=Matrix(QQ,1,(2,))
+            sage: m.is_symmetric()
+            True
+
         """
         if self._ncols != self._nrows: return False
         # could be bigger than an int on a 64-bit platform, this
@@ -3812,7 +3870,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         EXAMPLE::
 
             sage: M = Matrix(CC, [[1,0],[0,1]], sparse=True)
-            sage: M.nonzero_positions()
+            sage: M._nonzero_positions_by_row()
             [(0, 0), (1, 1)]
 
         """
@@ -3841,6 +3899,12 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         It is safe to change the resulting list (unless you give the option
         copy=False).
+
+        EXAMPLES::
+            sage: m=matrix(QQ,2,[1,0,1,1,1,0])
+            sage: m._nonzero_positions_by_column()
+            [(0, 0), (1, 0), (1, 1), (0, 2)]
+
         """
         x = self.fetch('nonzero_positions_by_column')
         if not x is None:
@@ -4169,6 +4233,16 @@ cdef class Matrix(sage.structure.element.Matrix):
     cpdef ModuleElement _add_(self, ModuleElement right):
         """
         Add two matrices with the same parent.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: a = matrix(2,2, [1,2,x*y,y*x])
+            sage: b = matrix(2,2, [1,2,y*x,y*x])
+            sage: a+b
+            [        2         4]
+            [x*y + y*x     2*y*x]
+
         """
         cdef Py_ssize_t i, j
         cdef Matrix A
@@ -4187,6 +4261,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: R.<x,y> = FreeAlgebra(QQ,2)
             sage: a = matrix(2,2, [1,2,x*y,y*x])
             sage: b = matrix(2,2, [1,2,y*x,y*x])
+            sage: a-b
+            [        0         0]
+            [x*y - y*x         0]
+
         """
         cdef Py_ssize_t i, j
         cdef Matrix A
@@ -4239,7 +4317,6 @@ cdef class Matrix(sage.structure.element.Matrix):
 
 
     cpdef ModuleElement _rmul_(self, RingElement left):
-        # derived classes over a commutative base *just* overload _lmul_ (!!)
         """
         EXAMPLES::
 
@@ -4264,6 +4341,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [          x*y         x*y*x         x*y^2]
             [     -x*y*x*y x*y*x + x*y^2 x*y*x - x*y^2]
         """
+        # derived classes over a commutative base *just* overload _lmul_ (!!)
         if PY_TYPE_CHECK(self._base_ring, CommutativeRing):
             return self._lmul_(left)
         cdef Py_ssize_t r,c
@@ -4729,6 +4807,16 @@ cdef class Matrix(sage.structure.element.Matrix):
     # Comparison
     ###################################################
     def __hash__(self):
+        """
+        Return the hash of this (immutable) matrix
+
+        EXAMPLES::
+            sage: m=matrix(QQ,2,[1,2,3,4])
+            sage: m.set_immutable()
+            sage: m.__hash__()
+            8
+
+        """
         return self._hash()
 
     cdef long _hash(self) except -1:
@@ -4832,9 +4920,29 @@ max_rows = 20
 max_cols = 50
 
 def set_max_rows(n):
+    """
+    Sets the global variable max_rows (which is used in deciding how to output a matrix).
+
+    EXAMPLES::
+
+        sage: from sage.matrix.matrix0 import set_max_rows
+        sage: set_max_rows(20)
+
+    """
+
     global max_rows
     max_rows = n
 
 def set_max_cols(n):
+    """
+    Sets the global variable max_cols (which is used in deciding how to output a matrix).
+
+    EXAMPLES::
+
+        sage: from sage.matrix.matrix0 import set_max_cols
+        sage: set_max_cols(50)
+
+    """
+
     global max_cols
     max_cols = n

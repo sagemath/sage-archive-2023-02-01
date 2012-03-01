@@ -288,7 +288,7 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
 
         p = self.parent().prime()
         # Step 1 -- a unit?
-        if self.is_unit() and self.unit_part().residue(1) == 1:
+        if self.is_padic_unit() and self.unit_part().residue(1) == 1:
             # It's already a 1-unit, so just use the series
             # (base case of "induction")
 
@@ -315,7 +315,7 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
                 xpow *= x
             # Note that it is the absolute precision that is respected by log
             return self.parent()(ans.lift()).add_bigoh(prec)
-        elif self.is_unit():
+        elif self.is_padic_unit():
             return (self**Integer(p-1)).log() // Integer(p-1)
         elif not branch is None and self.parent().__contains__(branch):
             branch = self.parent()(branch)

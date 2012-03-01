@@ -169,9 +169,9 @@ cdef class LocalGenericElement(CommutativeRingElement):
     #def is_square(self):
     #    raise NotImplementedError
 
-    def is_unit(self):
+    def is_padic_unit(self):
         """
-        Returns whether self is a unit
+        Returns whether self is a `p`-adic unit. That is, whether it has zero valuation.
 
         INPUT:
 
@@ -184,6 +184,67 @@ cdef class LocalGenericElement(CommutativeRingElement):
         EXAMPLES::
 
             sage: R = Zp(3,20,'capped-rel'); K = Qp(3,20,'capped-rel')
+            sage: R(0).is_padic_unit()
+            False
+            sage: R(1).is_padic_unit()
+            True
+            sage: R(2).is_padic_unit()
+            True
+            sage: R(3).is_padic_unit()
+            False
+            sage: Qp(5,5)(5).is_padic_unit()
+            False
+
+        TESTS::
+
+            sage: R(4).is_padic_unit()
+            True
+            sage: R(6).is_padic_unit()
+            False
+            sage: R(9).is_padic_unit()
+            False
+            sage: K(0).is_padic_unit()
+            False
+            sage: K(1).is_padic_unit()
+            True
+            sage: K(2).is_padic_unit()
+            True
+            sage: K(3).is_padic_unit()
+            False
+            sage: K(4).is_padic_unit()
+            True
+            sage: K(6).is_padic_unit()
+            False
+            sage: K(9).is_padic_unit()
+            False
+            sage: K(1/3).is_padic_unit()
+            False
+            sage: K(1/9).is_padic_unit()
+            False
+            sage: Qq(3^2,5,names='a')(3).is_padic_unit()
+            False
+        """
+        return self.valuation() == 0
+
+    def is_unit(self):
+        """
+        Returns whether self is a unit
+
+        INPUT:
+
+        - ``self`` -- a local ring element
+
+        OUTPUT:
+
+        - boolean -- whether ``self`` is a unit
+
+        NOTES:
+
+        For fields all nonzero elements are units. For DVR's, only those elements of valuation 0 are. An older implementation ignored the case of fields, and returned always the negation of self.valuation()==0. This behavior is now supported with self.is_padic_unit().
+
+        EXAMPLES::
+
+            sage: R = Zp(3,20,'capped-rel'); K = Qp(3,20,'capped-rel')
             sage: R(0).is_unit()
             False
             sage: R(1).is_unit()
@@ -191,6 +252,10 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: R(2).is_unit()
             True
             sage: R(3).is_unit()
+            False
+            sage: Qp(5,5)(5).is_unit() # Note that 5 is invertible in `QQ_5`, even if it has positive valuation!
+            True
+            sage: Qp(5,5)(5).is_padic_unit()
             False
 
         TESTS::
@@ -208,19 +273,24 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: K(2).is_unit()
             True
             sage: K(3).is_unit()
-            False
+            True
             sage: K(4).is_unit()
             True
             sage: K(6).is_unit()
-            False
+            True
             sage: K(9).is_unit()
-            False
+            True
             sage: K(1/3).is_unit()
-            False
+            True
             sage: K(1/9).is_unit()
-            False
+            True
+            sage: Qq(3^2,5,names='a')(3).is_unit()
+            True
         """
-        return self.valuation() == 0
+        if self.parent().is_field():
+            return not self.is_zero()
+        else:
+            return self.valuation() == 0
 
     #def is_zero(self, prec):
     #    raise NotImplementedError

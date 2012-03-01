@@ -1343,9 +1343,9 @@ def spherical_harmonic(m,n,x,y):
 
         sage: x,y = var('x,y')
         sage: spherical_harmonic(3,2,x,y)
-        1/8*sqrt(7)*sqrt(30)*e^(2*I*y)*sin(x)^2*cos(x)/sqrt(pi)
+        15/4*sqrt(7/30)*e^(2*I*y)*sin(x)^2*cos(x)/sqrt(pi)
         sage: spherical_harmonic(3,2,1,2)
-        1/8*sqrt(7)*sqrt(30)*e^(4*I)*sin(1)^2*cos(1)/sqrt(pi)
+        15/4*sqrt(7/30)*e^(4*I)*sin(1)^2*cos(1)/sqrt(pi)
     """
     _init()
     return meval("spherical_harmonic(%s,%s,%s,%s)"%(ZZ(m),ZZ(n),x,y))
@@ -1461,8 +1461,9 @@ class EllipticE(MaximaFunction):
     EXAMPLES::
 
         sage: z = var("z")
+        sage: # this is still wrong: must be abs(sin(z)) + 2*round(z/pi)
         sage: elliptic_e(z, 1)
-        sin(z)
+        sin(z) + 2*round(z/pi)
         sage: elliptic_e(z, 0)
         z
         sage: elliptic_e(0.5, 0.1)

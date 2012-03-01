@@ -486,10 +486,10 @@ def solve(f, *args, **kwds):
         sage: solve([x+y==6, x-y==4], x, y)
         [[x == 5, y == 1]]
         sage: solve([x^2+y^2 == 1, y^2 == x^3 + x + 1], x, y)
-        [[x == -1/2*I*sqrt(3) - 1/2, y == -1/2*sqrt(-I*sqrt(3) + 3)*sqrt(2)],
-         [x == -1/2*I*sqrt(3) - 1/2, y == 1/2*sqrt(-I*sqrt(3) + 3)*sqrt(2)],
-         [x == 1/2*I*sqrt(3) - 1/2, y == -1/2*sqrt(I*sqrt(3) + 3)*sqrt(2)],
-         [x == 1/2*I*sqrt(3) - 1/2, y == 1/2*sqrt(I*sqrt(3) + 3)*sqrt(2)],
+        [[x == -1/2*I*sqrt(3) - 1/2, y == -sqrt(-1/2*I*sqrt(3) + 3/2)],
+         [x == -1/2*I*sqrt(3) - 1/2, y == sqrt(-1/2*I*sqrt(3) + 3/2)],
+         [x == 1/2*I*sqrt(3) - 1/2, y == -sqrt(1/2*I*sqrt(3) + 3/2)],
+         [x == 1/2*I*sqrt(3) - 1/2, y == sqrt(1/2*I*sqrt(3) + 3/2)],
          [x == 0, y == -1],
          [x == 0, y == 1]]
         sage: solve([sqrt(x) + sqrt(y) == 5, x + y == 10], x, y)

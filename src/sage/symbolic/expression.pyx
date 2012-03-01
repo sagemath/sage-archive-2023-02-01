@@ -2740,7 +2740,7 @@ cdef class Expression(CommutativeRingElement):
             sage: g = derivative(f, x); g # this is a complex expression
             1/2*(x/(x^2 - 1) - (x^2 + 1)*x/(x^2 - 1)^2)/((x^2 + 1)/(x^2 - 1))^(3/4)
             sage: g.factor()
-            -x/((x^2 - 1)^(5/4)*(x^2 + 1)^(3/4))
+            -x/((x - 1)^2*(x + 1)^2*((x^2 + 1)/(x^2 - 1))^(3/4))
 
         ::
 
@@ -3216,7 +3216,7 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(x/2).expand_trig(half_angles=False)
             sin(1/2*x)
             sage: sin(x/2).expand_trig(half_angles=True)
-            1/2*sqrt(-cos(x) + 1)*sqrt(2)*(-1)^floor(1/2*x/pi)
+            sqrt(-1/2*cos(x) + 1/2)*(-1)^floor(1/2*x/pi)
 
         ALIASES:
 
@@ -7840,7 +7840,7 @@ cdef class Expression(CommutativeRingElement):
             (f6, f5, f4, x)
             sage: e=15*f6*x^2 + 5*f5*x + f4
             sage: res = e.roots(x); res
-            [(-1/30*(sqrt(-12*f4*f6 + 5*f5^2)*sqrt(5) + 5*f5)/f6, 1), (1/30*(sqrt(-12*f4*f6 + 5*f5^2)*sqrt(5) - 5*f5)/f6, 1)]
+            [(-1/30*(5*f5 + sqrt(-60*f4*f6 + 25*f5^2))/f6, 1), (-1/30*(5*f5 - sqrt(-60*f4*f6 + 25*f5^2))/f6, 1)]
             sage: e.subs(x=res[0][0]).is_zero()
             True
         """
@@ -8710,6 +8710,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (binomial(n,k)*x^k).sum(k, 0, n, algorithm = 'maple')      # optional  -- requires maple
             (x + 1)^n
+
+        Check that the sum in #10682 is done right::
+
+            sage: sum(binomial(n,k)*k^2, k, 2, n)
+            1/4*(n^2 + n)*2^n - n
 
         .. note::
 

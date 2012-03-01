@@ -632,7 +632,8 @@ def nintegral(ex, x, a, b,
       - ``5`` - integral is probably divergent or slowly
         convergent
 
-      - ``6`` - the input is invalid
+      - ``6`` - the input is invalid; this includes the case of desired_relative_error
+        being too small to be achieved
 
     ALIAS: nintegrate is the same as nintegral
 
@@ -641,17 +642,11 @@ def nintegral(ex, x, a, b,
     integration using the GSL C library. It is potentially much faster
     and applies to arbitrary user defined functions.
 
-    Also, there are limits to the precision to which Maxima can compute
-    the integral to due to limitations in quadpack.
-
     ::
 
         sage: f = x
-        sage: f = f.nintegral(x,0,1,1e-14)
-        Traceback (most recent call last):
-        ...
-        ValueError: Maxima (via quadpack) cannot compute the integral
-        to that precision
+        sage: f.nintegral(x,0,1,1e-14)
+        (0.0, 0.0, 0, 6)
 
     EXAMPLES::
 
@@ -717,14 +712,14 @@ def nintegral(ex, x, a, b,
                                     limit=maximum_num_subintervals)
     except TypeError, err:
         if "ERROR" in str(err):
-            raise ValueError, "Maxima (via quadpack) cannot compute the integral to that precision"
+            raise ValueError, "Maxima (via quadpack) cannot compute the integral"
         else:
             raise TypeError, err
 
     #This is just a work around until there is a response to
     #http://www.math.utexas.edu/pipermail/maxima/2008/012975.html
     if 'quad_qags' in str(v):
-        raise ValueError, "Maxima (via quadpack) cannot compute the integral to that precision"
+        raise ValueError, "Maxima (via quadpack) cannot compute the integral"
 
     return float(v[0]), float(v[1]), Integer(v[2]), Integer(v[3])
 
@@ -1223,7 +1218,7 @@ def laplace(ex, t, s):
         sage: (z + exp(x)).laplace(x, s)
         z/s + 1/(s - 1)
         sage: log(t/t0).laplace(t, s)
-        -(euler_gamma + log(s) - log(1/t0))/s
+        -(euler_gamma + log(s) + log(t0))/s
 
     We do a formal calculation::
 
@@ -1423,7 +1418,7 @@ def dummy_limit(*args):
     EXAMPLES::
 
         sage: a = lim(exp(x^2)*(1-erf(x)), x=infinity); a
-        limit(-e^(x^2)*erf(x) + e^(x^2), x, +Infinity)
+        -limit((erf(x) - 1)*e^(x^2), x, +Infinity)
         sage: a = sage.calculus.calculus.dummy_limit(sin(x)/x, x, 0);a
         limit(sin(x)/x, x, 0)
     """

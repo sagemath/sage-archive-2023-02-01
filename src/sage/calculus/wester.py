@@ -383,10 +383,11 @@ explicit calls to Maxima or other systems.
 ::
 
     sage: # (YES) Assuming Re(x)>0, Re(y)>0, deduce x^(1/n)*y^(1/n)-(x*y)^(1/n)=0.
-    sage: assume(real(x) > 0, real(y) > 0)
-    sage: n = var('n')
+    sage: # Maxima 5.26 does not do "just" simpify() here. Thus simplify_exp() used.
+    sage: # assume(real(x) > 0, real(y) > 0) # (not needed for simplify_exp())
+    sage: n = var('n');
     sage: f = x^(1/n)*y^(1/n)-(x*y)^(1/n)
-    sage: f.simplify()
+    sage: f.simplify_exp()
     0
     sage: forget()
 

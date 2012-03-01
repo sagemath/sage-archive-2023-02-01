@@ -328,7 +328,7 @@ def limit(f, dir=None, taylor=False, **argv):
     it unevaluated::
 
         sage: lim(exp(x^2)*(1-erf(x)), x=infinity)
-        limit(-e^(x^2)*erf(x) + e^(x^2), x, +Infinity)
+        -limit((erf(x) - 1)*e^(x^2), x, +Infinity)
     """
     if not isinstance(f, Expression):
         f = SR(f)

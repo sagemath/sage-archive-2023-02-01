@@ -122,7 +122,7 @@ http://maxima.sourceforge.net/docs/intromax/.
     sage: a = maxima('(1 + sqrt(2))^5'); a
     (sqrt(2)+1)^5
     sage: a.expand()
-    3*2^(7/2)+5*sqrt(2)+41
+    29*sqrt(2)+41
 
 ::
 

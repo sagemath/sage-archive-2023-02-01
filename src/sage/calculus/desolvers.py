@@ -110,7 +110,6 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
       can be used only if the result is one SymbolicEquation (does not
       contain singular solution, for example)
 
-
     OUTPUT:
 
     In most cases returns SymbolicEquation which defines the solution
@@ -355,8 +354,19 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     Trac #9961 fixed (allow assumptions on the dependent variable in desolve)::
 
         sage: y=function('y',x); assume(x>0); assume(y>0)
+        sage: sage.calculus.calculus.maxima('domain:real')  # needed since Maxima 5.26.0 to get the answer as below
+        real
         sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
         [x - arcsinh(y(x)/x) == c]
+
+    Trac #10682 updated Maxima to 5.26, and it started to show a different solution in the complex domain for the ODE above::
+
+        sage: sage.calculus.calculus.maxima('domain:complex')  # back to the dafault, complex, domain
+        complex
+        sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
+        [1/2*(2*x^2*sqrt(x^(-2)) - 2*x*sqrt(x^(-2))*arcsinh(y(x)/sqrt(x^2))
+        - 2*x*sqrt(x^(-2))*arcsinh(y(x)^2/(sqrt(y(x)^2)*x))
+        + log(4*(2*x^2*sqrt((x^2*y(x)^2 + y(x)^4)/x^2)*sqrt(x^(-2)) + x^2 + 2*y(x)^2)/x^2))/(x*sqrt(x^(-2))) == c]
 
     Trac #6479 fixed::
 

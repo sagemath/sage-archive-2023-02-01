@@ -2071,7 +2071,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<a> = NumberField(x^6-x^3-1, embedding=1)
             sage: SR(a)
-            1/2*(sqrt(5) + 1)^(1/3)*2^(2/3)
+            (1/2*sqrt(5) + 1/2)^(1/3)
         """
         if self.__symbolic is None:
 

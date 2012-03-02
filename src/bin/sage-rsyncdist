@@ -64,7 +64,7 @@ fi
 
 if [ ! -r "dist/sage-$VERSION.tar" ]; then
     echo >&2 "The sdist tarball dist/sage-$VERSION.tar has not been created yet."
-    echo >&2 "You should call this script after running ./sage -sdist $VERSION"
+    echo >&2 "You should call this script after running ./sage --sdist $VERSION"
     exit 1
 fi
 
@@ -118,7 +118,3 @@ find . '!' -name . '(' -type d -printf '%P/\n' -or -printf '%P\n' ')' |\
 sort |\
 tar -c --no-recursion -T /dev/stdin |\
 gzip --best --rsyncable >../sage-rsync.tar.gz
-
-# Remove directory used for extraction
-cd ..
-rm -rf sage-rsync

@@ -201,6 +201,25 @@ cdef class MixedIntegerLinearProgram:
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(maximization=True)
+
+        TESTS:
+
+        Checks the objects are deallocated (cf. :trac:`12616`)::
+
+            sage: del p
+            sage: def just_create_variables():
+            ...       p = MixedIntegerLinearProgram()
+            ...       b = p.new_variable()
+            ...       p.add_constraint(b[3]+b[6] <= 2)
+            ...       p.solve()
+            sage: C = sage.numerical.mip.MixedIntegerLinearProgram
+            sage: import gc
+            sage: _ = gc.collect()  # avoid side effects of other doc tests
+            sage: len([x for x in gc.get_objects() if isinstance(x,C)])
+            0
+            sage: just_create_variables()
+            sage: len([x for x in gc.get_objects() if isinstance(x,C)])
+            0
         """
 
         from sage.numerical.backends.generic_backend import get_solver
@@ -215,10 +234,6 @@ cdef class MixedIntegerLinearProgram:
         self.__REAL = -1
         self.__INTEGER = 1
 
-
-        # List of all the MIPVariables linked to this instance of
-        # MixedIntegerLinearProgram
-        self._mipvariables = []
 
         # Associates an index to the variables
         self._variables = {}
@@ -257,10 +272,6 @@ cdef class MixedIntegerLinearProgram:
         Returns a copy of the current ``MixedIntegerLinearProgram`` instance.
         """
         cdef MixedIntegerLinearProgram p = MixedIntegerLinearProgram(solver="GLPK")
-        try:
-            p._mipvariables = copy(self._mipvariables)
-        except AttributeError:
-            pass
 
         try:
             p._variables = copy(self._variables)
@@ -395,7 +406,6 @@ cdef class MixedIntegerLinearProgram:
             vtype = self.__REAL
 
         v=MIPVariable(self, vtype, dim=dim,name=name)
-        self._mipvariables.append(v)
         return v
 
     cpdef int number_of_constraints(self):

@@ -193,6 +193,18 @@ def python(z, locals=None):
         Traceback (most recent call last):
         ...
         NameError: name 'x' is not defined
+
+    Conversion of p-adics::
+
+        sage: K = Qp(11,5)
+        sage: x = K(11^-10 + 5*11^-7 + 11^-6); x
+        11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
+        sage: y = pari(x); y
+        11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
+        sage: y.sage()
+        11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
+        sage: pari(K(11^-5)).sage()
+        11^-5 + O(11^0)
     """
     t = z.type()
     if t == "t_REAL":
@@ -232,5 +244,12 @@ def python(z, locals=None):
     elif t == "t_MAT":
         from sage.matrix.constructor import matrix
         return matrix(z.nrows(),z.ncols(),[python(z[i,j]) for i in range(z.nrows()) for j in range(z.ncols())])
+    elif t == "t_PADIC":
+        from sage.rings.padics.factory import Qp
+        Z = IntegerRing()
+        p = z.padicprime()
+        rprec = Z(z.padicprec(p)) - Z(z._valp())
+        K = Qp(Z(p), rprec)
+        return K(z.lift())
     else:
         return sage_eval(str(z), locals=locals)

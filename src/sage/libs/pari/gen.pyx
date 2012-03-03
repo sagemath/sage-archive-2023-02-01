@@ -3626,7 +3626,13 @@ cdef class gen(sage.structure.element.RingElement):
 
         OUTPUT: int
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: K = Qp(11,5)
+            sage: x = K(11^-10 + 5*11^-7 + 11^-6)
+            sage: y = pari(x)
+            sage: y.padicprec(11)
+            -5
         """
         cdef gen _p
         _p = pari(p)
@@ -3634,6 +3640,29 @@ cdef class gen(sage.structure.element.RingElement):
             raise TypeError, "p (=%s) must be of type t_INT, but is of type %s."%(
                 _p, _p.type())
         return padicprec(x.g, _p.g)
+
+    def padicprime(gen x):
+        """
+        The uniformizer of the p-adic ring this element lies in, as a t_INT.
+
+        INPUT:
+
+        - ``x`` - gen, of type t_PADIC
+
+        OUTPUT:
+
+        - ``p`` - gen, of type t_INT
+
+        EXAMPLES::
+
+            sage: K = Qp(11,5)
+            sage: x = K(11^-10 + 5*11^-7 + 11^-6)
+            sage: y = pari(x)
+            sage: y.padicprime()
+            11
+        """
+        sig_on()
+        return P.new_gen(gel(x.g, 2))
 
     def permtonum(gen x):
         """

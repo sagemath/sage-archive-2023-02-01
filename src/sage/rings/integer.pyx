@@ -598,6 +598,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             TypeError: Unable to coerce PARI x to an Integer
+
+        Test coercion of p-adic with negative valuation::
+
+            sage: ZZ(pari(Qp(11)(11^-7)))
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert p-adic with negative valuation to an integer
         """
         # TODO: All the code below should somehow be in an external
         # cdef'd function.  Then e.g., if a matrix or vector or
@@ -656,6 +663,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         x = x.floor()
                         break
                     elif paritype == t_PADIC:
+                        if x._valp() < 0:
+                            raise TypeError("Cannot convert p-adic with negative valuation to an integer")
                         # Lifting a PADIC yields an integer
                         x = x.lift()
                         break

@@ -47,6 +47,9 @@ class DiGraphGenerators():
 
                 Families of Graphs:
                     - DeBruijn
+                    - GeneralizedDeBruijn
+                    - Kautz
+                    - ImaseItoh
 
 
 
@@ -287,30 +290,34 @@ class DiGraphGenerators():
             g.add_edge(n-1,0)
             return g
 
-    def DeBruijn(self,k,n):
+    def DeBruijn(self, k, n, vertices = 'strings'):
         r"""
         Returns the De Bruijn diraph with parameters `k,n`.
 
-        The De Bruijn digraph with parameters `k,n` is built
-        upon a set of vertices equal to the set of words of
-        length `n` from a dictionary of `k` letters.
+        The De Bruijn digraph with parameters `k,n` is built upon a set of
+        vertices equal to the set of words of length `n` from a dictionary of
+        `k` letters.
 
-        In this digraph, there is an arc `w_1w_2` if `w_2`
-        can be obtained from `w_1` by removing the leftmost
-        letter and adding a new letter at its right end.
-        For more information, see the
-        `Wikipedia article on De Bruijn graph
-        <http://en.wikipedia.org/wiki/De_Bruijn_graph>`_.
+        In this digraph, there is an arc `w_1w_2` if `w_2` can be obtained from
+        `w_1` by removing the leftmost letter and adding a new letter at its
+        right end.  For more information, see the
+        :wikipedia:`Wikipedia article on De Bruijn graph <De_Bruijn_graph>`.
 
         INPUT:
 
         - ``k`` -- Two possibilities for this parameter :
-              - an integer equal to the cardinality of the
-                alphabet to use.
-              - An iterable object to be used as the set
-                of letters
-        - ``n`` -- An integer equal to the length of words in
-          the De Bruijn digraph.
+              - An integer equal to the cardinality of the alphabet to use, that
+                is the degree of the digraph to be produced.
+              - An iterable object to be used as the set of letters. The degree
+                of the resulting digraph is the cardinality of the set of
+                letters.
+
+        - ``n`` -- An integer equal to the length of words in the De Bruijn
+          digraph when ``vertices == 'strings'``, and also to the diameter of
+          the digraph.
+
+        - ``vertices`` -- 'strings' (default) or 'integers', specifying whether
+          the vertices are words build upon an alphabet or integers.
 
         EXAMPLES::
 
@@ -327,7 +334,6 @@ class DiGraphGenerators():
             De Bruijn digraph (k=5, n=0): Looped multi-digraph on 1 vertex
             sage: digraphs.DeBruijn(0,0)
             De Bruijn digraph (k=0, n=0): Looped multi-digraph on 0 vertices
-
         """
         from sage.combinat.words.words import Words
         from sage.rings.integer import Integer
@@ -336,19 +342,269 @@ class DiGraphGenerators():
         A = Words(range(k) if isinstance(k, Integer) else k, 1)
         g = DiGraph(loops=True)
 
-        if n == 0 :
-            g.allow_multiple_edges(True)
-            v = W[0]
-            for a in A:
-                g.add_edge(v.string_rep(), v.string_rep(), a.string_rep())
-        else:
-            for w in W:
-                ww = w[1:]
+        if vertices == 'strings':
+            if n == 0 :
+                g.allow_multiple_edges(True)
+                v = W[0]
                 for a in A:
-                    g.add_edge(w.string_rep(), (ww*a).string_rep(), a.string_rep())
+                    g.add_edge(v.string_rep(), v.string_rep(), a.string_rep())
+            else:
+                for w in W:
+                    ww = w[1:]
+                    for a in A:
+                        g.add_edge(w.string_rep(), (ww*a).string_rep(), a.string_rep())
+        else:
+            d = W.size_of_alphabet()
+            g = digraphs.GeneralizedDeBruijn(d**n, d)
 
         g.name( "De Bruijn digraph (k=%s, n=%s)"%(k,n) )
         return g
+
+    def GeneralizedDeBruijn(self, n, d):
+        r"""
+        Returns the generalized de Bruijn digraph of order `n` and degree `d`.
+
+        The generalized de Bruijn digraph has been defined in [RPK80]_
+        [RPK83]_. It has vertex set `V=\{0, 1,..., n-1\}` and there is an arc
+        from vertex `u \in V` to all vertices `v \in V` such that
+        `v \equiv (u*d + a) \mod{n}` with `0 \leq a < d`.
+
+        When `n = d^{D}`, the generalized de Bruijn digraph is isomorphic to the
+        de Bruijn digraph of degree `d` and diameter `D`.
+
+        INPUTS:
+
+        - ``n`` -- is the number of vertices of the digraph
+
+        - ``d`` -- is the degree of the digraph
+
+        EXAMPLE::
+
+            sage: GB = digraphs.GeneralizedDeBruijn(8, 2)
+            sage: GB.is_isomorphic(digraphs.DeBruijn(2, 3), certify = True)
+            (True, {0: '000', 1: '001', 2: '010', 3: '011', 4: '100', 5: '101', 6: '110', 7: '111'})
+
+        TESTS:
+
+        An exception is raised when the degree is less than one::
+
+            sage: G = digraphs.GeneralizedDeBruijn(2, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: The generalized de Bruijn digraph is defined for degree at least one.
+
+        An exception is raised when the order of the graph is less than one::
+
+            sage: G = digraphs.GeneralizedDeBruijn(0, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: The generalized de Bruijn digraph is defined for at least one vertex.
+
+
+        REFERENCES:
+
+        .. [RPK80] S. M. Reddy, D. K. Pradhan, and J. Kuhl. Directed graphs with
+          minimal diameter and maximal connectivity, School Eng., Oakland Univ.,
+          Rochester MI, Tech. Rep., July 1980.
+
+        .. [RPK83] S. Reddy, P. Raghavan, and J. Kuhl. A Class of Graphs for
+          Processor Interconnection. *IEEE International Conference on Parallel
+          Processing*, pages 154-157, Los Alamitos, Ca., USA, August 1983.
+        """
+        if n < 1:
+            raise ValueError("The generalized de Bruijn digraph is defined for at least one vertex.")
+        if d < 1:
+            raise ValueError("The generalized de Bruijn digraph is defined for degree at least one.")
+
+        GB = DiGraph(loops = True)
+        GB.allow_multiple_edges(True)
+        for u in xrange(n):
+            for a in xrange(u*d, u*d+d):
+                GB.add_edge(u, a%n)
+
+        GB.name( "Generalized de Bruijn digraph (n=%s, d=%s)"%(n,d) )
+        return GB
+
+
+    def ImaseItoh(self, n, d):
+        r"""
+        Returns the digraph of Imase and Itoh of order `n` and degree `d`.
+
+        The digraph of Imase and Itoh has been defined in [II83]_. It has vertex
+        set `V=\{0, 1,..., n-1\}` and there is an arc from vertex `u \in V` to
+        all vertices `v \in V` such that `v \equiv (-u*d-a-1) \mod{n}` with
+        `0 \leq a < d`.
+
+        When `n = d^{D}`, the digraph of Imase and Itoh is isomorphic to the de
+        Bruijn digraph of degree `d` and diameter `D`. When `n = d^{D-1}(d+1)`,
+        the digraph of Imase and Itoh is isomorphic to the Kautz digraph
+        [Kautz68]_ of degree `d` and diameter `D`.
+
+        INPUTS:
+
+        - ``n`` -- is the number of vertices of the digraph
+
+        - ``d`` -- is the degree of the digraph
+
+        EXAMPLES::
+
+            sage: II = digraphs.ImaseItoh(8, 2)
+            sage: II.is_isomorphic(digraphs.DeBruijn(2, 3), certify = True)
+            (True, {0: '010', 1: '011', 2: '000', 3: '001', 4: '110', 5: '111', 6: '100', 7: '101'})
+
+            sage: II = digraphs.ImaseItoh(12, 2)
+            sage: II.is_isomorphic(digraphs.Kautz(2, 3), certify = True)
+            (True, {0: '010', 1: '012', 2: '021', 3: '020', 4: '202', 5: '201', 6: '210', 7: '212', 8: '121', 9: '120', 10: '102', 11: '101'})
+
+
+        TESTS:
+
+        An exception is raised when the degree is less than one::
+
+            sage: G = digraphs.ImaseItoh(2, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: The digraph of Imase and Itoh is defined for degree at least one.
+
+        An exception is raised when the order of the graph is less than two::
+
+            sage: G = digraphs.ImaseItoh(1, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: The digraph of Imase and Itoh is defined for at least two vertices.
+
+
+        REFERENCE:
+
+        .. [II83] M. Imase and M. Itoh. A design for directed graphs with
+          minimum diameter, *IEEE Trans. Comput.*, vol. C-32, pp. 782-784, 1983.
+        """
+        if n < 2:
+            raise ValueError("The digraph of Imase and Itoh is defined for at least two vertices.")
+        if d < 1:
+            raise ValueError("The digraph of Imase and Itoh is defined for degree at least one.")
+
+        II = DiGraph(loops = True)
+        II.allow_multiple_edges(True)
+        for u in xrange(n):
+            for a in xrange(-u*d-d, -u*d):
+                II.add_edge(u, a % n)
+
+        II.name( "Imase and Itoh digraph (n=%s, d=%s)"%(n,d) )
+        return II
+
+
+    def Kautz(self, k, D, vertices = 'strings'):
+        r"""
+        Returns the Kautz digraph of degree `d` and diameter `D`.
+
+        The Kautz digraph has been defined in [Kautz68]_. The Kautz digraph of
+        degree `d` and diameter `D` has `d^{D-1}(d+1)` vertices. This digraph is
+        build upon a set of vertices equal to the set of words of length `D`
+        from an alphabet of `d+1` letters such that consecutive letters are
+        differents. There is an arc from vertex `u` to vertex `v` if `v` can be
+        obtained from `u` by removing the leftmost letter and adding a new
+        letter, distinct from the rightmost letter of `u`, at the right end.
+
+        The Kautz digraph of degree `d` and diameter `D` is isomorphic to the
+        digraph of Imase and Itoh [II83]_ of degree `d` and order
+        `d^{D-1}(d+1)`.
+
+        See also the
+        :wikipedia:`Wikipedia article on Kautz Graphs <Kautz_graph>`.
+
+        INPUTS:
+
+        - ``k`` -- Two possibilities for this parameter :
+            - An integer equal to the degree of the digraph to be produced, that
+              is the cardinality minus one of the alphabet to use.
+            - An iterable object to be used as the set of letters. The degree of
+              the resulting digraph is the cardinality of the set of letters
+              minus one.
+
+        - ``D`` -- An integer equal to the diameter of the digraph, and also to
+              the length of a vertex label when ``vertices == 'strings'``.
+
+        - ``vertices`` -- 'strings' (default) or 'integers', specifying whether
+                      the vertices are words build upon an alphabet or integers.
+
+
+        EXAMPLES::
+
+            sage: K = digraphs.Kautz(2, 3)
+            sage: K.is_isomorphic(digraphs.ImaseItoh(12, 2), certify = True)
+            (True, {'201': 5, '120': 9, '202': 4, '212': 7, '210': 6, '010': 0, '121': 8, '012': 1, '021': 2, '020': 3, '102': 10, '101': 11})
+
+            sage: K = digraphs.Kautz([1,'a','B'], 2)
+            sage: K.edges()
+            [('1B', 'B1', '1'), ('1B', 'Ba', 'a'), ('1a', 'a1', '1'), ('1a', 'aB', 'B'), ('B1', '1B', 'B'), ('B1', '1a', 'a'), ('Ba', 'a1', '1'), ('Ba', 'aB', 'B'), ('a1', '1B', 'B'), ('a1', '1a', 'a'), ('aB', 'B1', '1'), ('aB', 'Ba', 'a')]
+
+            sage: K = digraphs.Kautz([1,'aA','BB'], 2)
+            sage: K.edges()
+            [('1,BB', 'BB,1', '1'), ('1,BB', 'BB,aA', 'aA'), ('1,aA', 'aA,1', '1'), ('1,aA', 'aA,BB', 'BB'), ('BB,1', '1,BB', 'BB'), ('BB,1', '1,aA', 'aA'), ('BB,aA', 'aA,1', '1'), ('BB,aA', 'aA,BB', 'BB'), ('aA,1', '1,BB', 'BB'), ('aA,1', '1,aA', 'aA'), ('aA,BB', 'BB,1', '1'), ('aA,BB', 'BB,aA', 'aA')]
+
+
+        TESTS:
+
+        An exception is raised when the degree is less than one::
+
+            sage: G = digraphs.Kautz(0, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Kautz digraphs are defined for degree at least one.
+
+            sage: G = digraphs.Kautz(['a'], 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Kautz digraphs are defined for degree at least one.
+
+        An exception is raised when the diameter of the graph is less than one::
+
+            sage: G = digraphs.Kautz(2, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Kautz digraphs are defined for diameter at least one.
+
+
+        REFERENCE:
+
+        .. [Kautz68] W. H. Kautz. Bounds on directed (d, k) graphs. Theory of
+          cellular logic networks and machines, AFCRL-68-0668, SRI Project 7258,
+          Final Rep., pp. 20-28, 1968.
+        """
+        if D < 1:
+            raise ValueError("Kautz digraphs are defined for diameter at least one.")
+
+        from sage.combinat.words.words import Words
+        from sage.rings.integer import Integer
+
+        my_alphabet = Words([str(i) for i in range(k+1)] if isinstance(k, Integer) else k, 1)
+        if my_alphabet.size_of_alphabet() < 2:
+            raise ValueError("Kautz digraphs are defined for degree at least one.")
+
+        if vertices == 'strings':
+
+            # We start building the set of vertices
+            V = [i for i in my_alphabet]
+            for i in range(D-1):
+                VV = []
+                for w in V:
+                    VV += [w*a for a in my_alphabet if not w.has_suffix(a) ]
+                V = VV
+
+            # We now build the set of arcs
+            G = DiGraph()
+            for u in V:
+                for a in my_alphabet:
+                    if not u.has_suffix(a):
+                        G.add_edge(u.string_rep(), (u[1:]*a).string_rep(), a.string_rep())
+
+        else:
+            d = my_alphabet.size_of_alphabet()-1
+            G = digraphs.ImaseItoh( (d+1)*(d**(D-1)), d)
+
+        G.name( "Kautz digraph (k=%s, D=%s)"%(k,D) )
+        return G
 
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):

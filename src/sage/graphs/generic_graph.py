@@ -3924,6 +3924,7 @@ class GenericGraph(GenericGraph_pyx):
         """
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException, Sum
+
         p = MixedIntegerLinearProgram(solver = solver)
         p.set_objective(None)
 
@@ -3933,21 +3934,18 @@ class GenericGraph(GenericGraph_pyx):
         # edges[j][e] is equal to one if and only if edge e belongs to color j
         edges = p.new_variable(dim=2)
 
+        if root == None:
+            root = self.vertex_iterator().next()
 
         # r_edges is a relaxed variable grater than edges. It is used to
         # check the presence of cycles
         r_edges = p.new_variable(dim=2)
 
-        epsilon = 1/(10*(Integer(self.order())))
-
+        epsilon = 1/(3*(Integer(self.order())))
 
         if self.is_directed():
             # Does nothing ot an edge.. Useful when out of "if self.directed"
             S = lambda (x,y) : (x,y)
-
-            if root == None:
-                root = self.vertex_iterator().next()
-
 
             # An edge belongs to at most arborescence
             for e in self.edges(labels=False):
@@ -4026,9 +4024,13 @@ class GenericGraph(GenericGraph_pyx):
             for e in self.edges(labels=False):
                 if edges[j][S(e)] == 1:
                     g.add_edge(e)
+            if len(list(g.breadth_first_search(root))) != self.order():
+                raise RuntimeError("The computation seems to have gone wrong somewhere..."+
+                                   "This is probably because of the value of epsilon, but"+
+                                   " in any case please report this bug, with the graph "+
+                                   "that produced it ! ;-)")
 
         return classes
-
 
     def edge_cut(self, s, t, value_only=True, use_edge_labels=False, vertices=False, method="FF", solver=None, verbose=0):
         r"""
@@ -4191,7 +4193,6 @@ class GenericGraph(GenericGraph_pyx):
 
         if method != "LP":
             raise ValueError("The method argument has to be equal to either \"FF\" or \"LP\"")
-
 
         from sage.numerical.mip import MixedIntegerLinearProgram, Sum
         g = self
@@ -5821,12 +5822,15 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: The method argument has to be equal to either "FF", "LP" or None
 
-        The two methods are indeed returning the same results::
+        The two methods are indeed returning the same results (possibly with
+        some numerical noise, cf. :trac:`12362`)::
 
            sage: g = graphs.RandomGNP(20,.3)
            sage: for u,v in g.edges(labels=False):
            ...      g.set_edge_label(u,v,round(random(),5))
-           sage: g.flow(0,1, method="FF") == g.flow(0,1,method="LP")
+           sage: flow_ff = g.flow(0,1, method="FF")
+           sage: flow_lp = g.flow(0,1,method="LP")
+           sage: abs(flow_ff-flow_lp) < 0.01
            True
         """
 

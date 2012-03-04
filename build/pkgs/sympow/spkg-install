@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
+   echo >&2 "SAGE_LOCAL undefined ... exiting"
+   echo >&2 "Maybe run 'sage -sh'?"
    exit 1
 fi
 
@@ -14,86 +14,186 @@ fi
 
 # If SAGE64 is "yes", build 64-bit.
 if [ "x$SAGE64" = xyes ] ; then
-   echo "Building Sympow 64-bit"
+   echo "Building SYMPOW 64-bit"
    CFLAGS="$CFLAGS $CFLAG64"
    LDFLAGS="$LDFLAGS $CFLAG64"
    export CFLAGS
    export LDFLAGS
 fi
 
-# Workaround problems with gcc 4.6.0 on ia64 systems:
-if [ "x`uname -m`" = "xia64" ] && [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = xGCC ] ; then
-    if $CC -dumpversion 2>/dev/null |grep >/dev/null '^4\.6\.' ; then
-        echo "Detected GCC version `$CC -dumpversion` on Itanium. Adding"
-	echo "work-around to fix a bug when sympow is compiled with gcc 4.6.0"
-        CFLAGS="$CFLAGS -fno-expensive-optimizations"
-        export CFLAGS
+
+#######################################################################
+# Apply all patches
+#######################################################################
+cd src
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
     fi
+done
+
+# Back to top level
+cd ..
+
+
+#######################################################################
+# Fix FPU precision
+#######################################################################
+# SYMPOW really needs doubles to have *exactly* 53 bits precision,
+# they need to be true IEEE-754 double precision numbers.
+# In particular, we need to avoid 80 bits extended precision on i386
+# and we need to avoid fused multiply-add instructions (e.g. on ia64).
+# We might need to add various flags to CFLAGS to ensure this.
+# See Trac tickets #9703, #9734, #9166, #11226, #11920.
+
+# Usage: try_add_CFLAG $FLAG
+# Try adding $FLAG to $CFLAGS, compile and run the fpubits program.
+# If it compiles and running it doesn't crash it (with an Illegal
+# Instruction for example), then we add $FLAG to $CFLAGS.
+# Return 0 if we added $FLAG and the FPU correctly used 53 bits,
+# return 1 if we added $FLAG but the FPU doesn't use 53 bits,
+# return 2 if we did not add $FLAG.
+try_add_CFLAG()
+{
+    # We use -O3 here to really force generation of fused
+    # multiply-add instructions and to keep floats as much as
+    # possible in registers.
+    # We compile in the (already patched!) src/fpu.c which only does
+    # something if the macro x86 is defined.
+    if $CC -O3 $CFLAGS $FLAG config/fpubits1.c config/fpubits2.c src/fpu.c -o config/fpubits 2>/dev/null; then
+        # Compiled successfully, now run it
+        config/fpubits >/dev/null 2>/dev/null
+        status=$?
+        if [ $status -le 1 ]; then
+            # The program ran successfully.  For now, we don't need
+            # the exit status to be zero (indicating exactly 53 bits),
+            # we simply need the program not to crash (which would
+            # give an exit status > 128).
+            CFLAGS="$CFLAGS $FLAG"
+            return $status
+        fi
+    fi
+    return 2
+}
+
+# These flags never hurt, so add them if possible
+for FLAG in '-fno-fast-math' '-mfpmath=sse' '-Dx86'; do
+    try_add_CFLAG $FLAG
+done
+
+# Add at most one flag of the following to avoid gcc warnings:
+# gcc versions which support -ffp-contract deprecate -mno-fused-madd
+for FLAG in '-ffp-contract=on' '-mno-fused-madd'; do
+    try_add_CFLAG $FLAG && break
+done
+
+# Some flags to try as last resort.  These hurt performance, so only add
+# them if needed.
+for FLAG in '' '-ffloat-store' '-O0'; do
+    # Stop the loop if the FPU precision already is 53 bits
+    try_add_CFLAG $FLAG && break
+done
+
+
+# Check the actual FPU precision with our new flags.
+$CC -O3 $CFLAGS config/fpubits1.c config/fpubits2.c src/fpu.c -o config/fpubits
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: the command below failed:"
+    echo >&2 "$CC -O3 $CFLAGS config/fpubits1.c config/fpubits2.c src/fpu.c -o config/fpubits"
+    exit 1
+fi
+export CFLAGS
+
+echo "CFLAGS for SYMPOW:$CFLAGS"
+
+config/fpubits
+status=$?
+if [ $status -eq 1 ]; then
+cat >&2 <<EOF
+Error: the Quad Double library used by SYMPOW assumes IEEE-754 double
+precision numbers with exactly 53 bits in the mantissa (64 bits in
+total).  Unfortunately, this is not the case on your system and we
+currently have no workaround for your system.  Running SYMPOW will
+almost certainly fail on some inputs.
+
+Please report this problem to sage-devel
+(http://groups.google.com/group/sage-devel), mentioning in particular
+your operating system, processor type and compiler version
+(run $CC --version).
+EOF
+elif [ $status -ne 0 ]; then
+cat >&2 <<EOF
+Error: something very bad happened while checking the precision of your
+FPU.  Please report this problem (mentioning any error messages above)
+to sage-devel (http://groups.google.com/group/sage-devel).
+Mention in particular your operating system and compiler version
+(run $CC --version).
+EOF
+exit 1
 fi
 
-
-# Add some code to disable the extended precision of Intel
-# x86 based floating point processors. The code in SYMPOW
-# already works for Linux, so there's no need to do that.
-
-# For now this is only done on Cygwin and Solaris, as its needed
-# on Solaris x86. (It's ignored on SPARC, so there's no need to be specific
-# about it). It might potentially need to be enabled on other systems such
-# as FreeBSD, NetBSD, OpenBSD or anything else that uses an x86 processor.
-
-if [ "x$UNAME"  = xSunOS ] || [ "x$UNAME"  = xCYGWIN ] ; then
-   cp patches/fpu.c src/
-fi
-
-cp patches/Configure src/
-
+#######################################################################
+# Configure
+#######################################################################
 cd src/
-
-./Configure
-
+bash ./Configure  # Force bash as shell
 if [ $? -ne 0 ]; then
-   echo "Error configuring sympow"
+   echo >&2 "Error configuring SYMPOW"
    exit 1
 fi
 
-make
 
+#######################################################################
+# Build
+#######################################################################
+$MAKE
 if [ $? -ne 0 ]; then
-   echo "Error building sympow"
+   echo >&2 "Error building SYMPOW"
    exit 1
 fi
 
-if [ ! -f sympow ]; then
-   echo "sympow executable missing"
-   exit 1
-fi
-
+#######################################################################
+# Install
+#######################################################################
 TARGET="$SAGE_LOCAL/lib/sympow"
 
-if [ -d "$TARGET" ]; then
-    rm -rf "$TARGET"
-fi
+rm -rf "$TARGET"
 mkdir "$TARGET"
 
-mv datafiles "$TARGET/"
-
-if [ ! -d "$TARGET/datafiles" ]; then
-   echo "Error installing sympow datafiles."
-   exit 1
-fi
-
 cp sympow *.gp new_data "$TARGET/"
-
-if [ ! -f "$TARGET/sympow" ]; then
-   echo "sympow executable didn't copy correctly"
+if [ $? -ne 0 ]; then
+   echo >&2 "Error copying SYMPOW files"
    exit 1
 fi
 
+# Copy datafiles
+mv datafiles "$TARGET/"
+if [ ! -d "$TARGET/datafiles" ]; then
+   echo >&2 "Error installing SYMPOW datafiles"
+   exit 1
+fi
+
+# Create binary versions of datafiles
+cd "$TARGET/datafiles"
+for file in *.txt; do
+    NUM=`grep -c AT $file`
+    ../sympow -txt2bin "$NUM" <$file ${file/%txt/bin}
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error running SYMPOW"
+        exit 1
+    fi
+done
+
+# Create sympow script in $SAGE_ROOT/local/bin
 SCRIPT="$SAGE_LOCAL/bin/sympow"
 
-echo "#!/bin/sh" > $SCRIPT
-echo "cd \$SAGE_LOCAL/lib/sympow" >> $SCRIPT
-echo "./sympow \$*" >> $SCRIPT
-chmod +x $SCRIPT
+cat >"$SCRIPT" <<'EOF'
+#!/usr/bin/env bash
 
-exit 0
+cd "$SAGE_LOCAL/lib/sympow"
+exec ./sympow "$@"
+EOF
+
+chmod +x "$SCRIPT"

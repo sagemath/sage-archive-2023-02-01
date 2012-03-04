@@ -18,7 +18,7 @@ curve L-functions. It can compute up to about 64 digits of precision.
   Previous (possibly still usable) email is watkins@maths.usyd.edu.au
 
 == Dependencies ==
- * None
+ * GNU patch
 
 == Special Update/Build Instructions ==
  * Some of the code is very dubious, and it is anyones guess really what
@@ -35,16 +35,33 @@ curve L-functions. It can compute up to about 64 digits of precision.
    opened to implement Watkins-Delaunay's algorithm for computing modular
    degrees in Sage. Once implemented, it should be possible to remove this
    package.
- * The package is configured such that the data file written are in a directory
+ * The package is configured such that the data files are in a directory
    below where 'sympow' is installed. If Sage is installed globally, then
    it will be impossible to create the data files without being root.
    This has been fixed in the Gentoo Linux distribution. Some information
    from Christopher can be see on http://trac.sagemath.org/sage_trac/ticket/9703
-   but at the time of writing, this package has not been modified.
- * Experimenting with some of these compiler options to gcc might bring
-   benefits in some cases. -mfpmath=sse, -mpc32, -mpc64, -mpc80.
+   This package will generate binary versions of all shipped datafiles,
+   so these will work. However, creating totally new datafiles from scratch
+   will not work.
 
 == Changelog ==
+
+=== sympow-1.018.1.p11 (Jeroen Demeyer, 19 Jan 2012) ===
+ * #11920: Remove -fno-expensive-optimizations workaround, instead try
+   various flags which might force 53-bit precision doubles.
+ * Find out the actual FPU precision with config/fpubits1.c and
+   config/fpubits2.c.
+ * Move all x86 extended precision FPU-control word stuff from
+   src/Configure to spkg-install
+ * Generate binary datafiles when installing SYMPOW. This ensures that
+   all users (not only the one which installed Sage) can use the standard
+   datafiles.
+ * execlp.patch: Use execlp() instead of execl() to execute "sh".  This
+   is needed for the -new_data option to work (which surely could never
+   have worked before).
+ * Use `patch` instead of `cp` for patching.
+ * Lots of small fixes in spkg-install.
+ * Remove dist/debian directory.
 
 === sympow-1.018.1.p9 (Jeroen Demeyer, 2 May 2011) ===
  * #11226: Add flag -fno-expensive-optimizations when compiling with

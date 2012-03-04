@@ -3633,12 +3633,18 @@ cdef class gen(sage.structure.element.RingElement):
             sage: y = pari(x)
             sage: y.padicprec(11)
             -5
+            sage: y.padicprec(17)
+            Traceback (most recent call last):
+            ...
+            ValueError: not the same prime in padicprec
         """
         cdef gen _p
         _p = pari(p)
         if typ(_p.g) != t_INT:
-            raise TypeError, "p (=%s) must be of type t_INT, but is of type %s."%(
-                _p, _p.type())
+            raise TypeError("p (=%s) must be of type t_INT, but is of type %s."%(
+                _p, _p.type()))
+        if not gequal(gel(x.g, 2), _p.g):
+            raise ValueError("not the same prime in padicprec")
         return padicprec(x.g, _p.g)
 
     def padicprime(gen x):
@@ -3660,6 +3666,8 @@ cdef class gen(sage.structure.element.RingElement):
             sage: y = pari(x)
             sage: y.padicprime()
             11
+            sage: y.padicprime().type()
+            't_INT'
         """
         sig_on()
         return P.new_gen(gel(x.g, 2))

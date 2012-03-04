@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 if [ "x$SAGE_LOCAL" = x ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 if [ "x$CFLAG64" = x ]; then
@@ -17,45 +17,44 @@ if [ "x$SAGE64" = xyes ]; then
     export CC
 fi
 
-# Dependencies check
-MPIR_VERSION=`cd $SAGE_ROOT/spkg/; ./standard/newest_version mpir`
-if [ $? -ne 0 ]; then
-    echo "Failed to find mpir.  Please install the mpir spkg"
-    exit 1
-fi
-
-# sage-env sets RM which will break libtool
-# See http://trac.sagemath.org/sage_trac/ticket/7818#comment:28
+# Old versions of sage-env set RM, which breaks libtool
+# See http://trac.sagemath.org/sage_trac/ticket/3537
 unset RM
 
-# Patch out tests that
-# * fail to compile on Solaris gcc 4.5.1
-# * break when setting MAKE="make -jN"
-# They cover code that is not exposed by the Cython wrapper
-cp -f patches/tests_Makefile.in src/tests/Makefile.in
-
 # Make sure that we prefer Sage's mpir library over system-wide gmp/mpir installs
-LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
-export LDFLAGS
-CXXFLAGS="$CXXFLAGS -I$SAGE_LOCAL/include"
-export CXXFLAGS
+export LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
+export CXXFLAGS="$CXXFLAGS -I$SAGE_LOCAL/include"
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-gmp-prefix="$SAGE_LOCAL" --enable-coefficients=mpz --enable-interfaces=c++ --disable-fpmath
+# Apply patch: patch out tests that
+# * fail to compile on Solaris gcc 4.5.1
+# * break when setting MAKE="make -jN"
+# They cover code that is not exposed by the Cython wrapper
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+    --with-gmp-prefix="$SAGE_LOCAL" --enable-coefficients=mpz \
+    --enable-interfaces=c++ --disable-fpmath
 if [ $? -ne 0 ]; then
-   echo "Error configuring the Parma Polyhedra Library."
+   echo >&2 "Error configuring the Parma Polyhedra Library."
    exit 1
 fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-   echo "Error building the Parma Polyhedra Library."
+   echo >&2 "Error building the Parma Polyhedra Library."
    exit 1
 fi
 
 $MAKE install-strip
 if [ $? -ne 0 ]; then
-   echo "Error installing the Parma Polyhedra Library."
+   echo >&2 "Error installing the Parma Polyhedra Library."
    exit 1
 fi

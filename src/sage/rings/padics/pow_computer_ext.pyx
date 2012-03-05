@@ -65,10 +65,10 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
     """
     Precomputes quantities for shifting right in Eisenstein extensions.
 
-    INPUT::
+    INPUT:
 
-        - prime_pow -- the PowComputer to be initialized
-        - shift_seed -- x^e/p as a polynomial of degree at most e-1 in x.
+    - ``prime_pow`` -- the PowComputer to be initialized
+    - ``shift_seed`` -- x^e/p as a polynomial of degree at most e-1 in x.
 
     EXAMPLES::
 
@@ -171,7 +171,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         low_shifter_p = (<PowComputer_ZZ_pX_big_Eis>prime_pow).low_shifter
         high_shifter_p = (<PowComputer_ZZ_pX_big_Eis>prime_pow).high_shifter
     else:
-        raise RuntimeError, "unrecognized Eisenstein type"
+        raise TypeError("unrecognized Eisenstein type")
 
     cdef long i
     cdef ZZ_pX_c tmp, modup, into_multiplier, shift_seed_inv
@@ -352,7 +352,7 @@ cdef int ZZ_pX_eis_shift_p(PowComputer_ZZ_pX self, ZZ_pX_c* x, ZZ_pX_c* a, long 
         high_length = (<PowComputer_ZZ_pX_FM_Eis>self).high_length
         fm = True
     else:
-        raise RuntimeError, "inconsistent type"
+        raise TypeError("inconsistent type")
 
     cdef ntl_ZZ_pX printer
     if n < 0:
@@ -608,7 +608,8 @@ cdef class PowComputer_ext(PowComputer_class):
         """
         # READ THE DOCSTRING
         if n < 0:
-            raise ValueError, "n must be positive"
+            # Exception will be ignored by Cython
+            raise ValueError("n must be positive")
         if n <= self.cache_limit:
             ZZ_to_mpz(&self.temp_m, &(self.small_powers[n]))
         elif n == self.prec_cap:
@@ -653,7 +654,8 @@ cdef class PowComputer_ext(PowComputer_class):
             625
         """
         if n < 0:
-            raise ValueError, "n must be positive"
+            # Exception will be ignored by Cython
+            raise ValueError("n must be positive")
         if n <= self.cache_limit:
             return &(self.small_powers[n])
         if n == self.prec_cap:
@@ -820,7 +822,8 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         if n < 0:
             n = -n
         elif n == 0:
-            raise ValueError, "n must be nonzero"
+            # Exception will be ignored by Cython
+            raise ValueError("n must be nonzero")
         pn.x = self.pow_ZZ_tmp(n)[0]
         cdef ntl_ZZ_pContext_class context = (<ntl_ZZ_pContext_factory>ZZ_pContext_factory).make_c(pn)
         return context
@@ -873,14 +876,17 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         """
         Runs a speed test.
 
-        INPUT::
+        INPUT:
 
-            n -- input to a function to be tested (the function needs to be set in the source code).
-            runs -- The number of runs of that function
+        - ``n`` -- input to a function to be tested (the function needs to be set in the source code).
+        - ``runs`` -- The number of runs of that function
 
-        OUTPUT::
+        OUTPUT:
 
-            The time in seconds that it takes to call the function on n, runs times.
+        - The time in seconds that it takes to call the function on ``n``,
+          ``runs`` times.
+
+        EXAMPLES::
 
             sage: PC = PowComputer_ext_maker(5, 10, 10, 20, False, ntl.ZZ_pX([-5, 0, 1], 5^10), 'small', 'e',ntl.ZZ_pX([1],5^10))
             sage: PC.speed_test(10, 10^6) # random
@@ -999,6 +1005,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
             sage: A._get_modulus_test(a, b, 2) # indirect doctest
             [4 24]
         """
+        # Exception will be ignored by Cython
         raise NotImplementedError
 
     def _get_modulus_test(self, ntl_ZZ_pX a, ntl_ZZ_pX b, Integer n):
@@ -1053,6 +1060,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
             sage: A._get_top_modulus_test(a, b) #indirect doctest
             [1783058 7785200]
         """
+        # Exception will be ignored by Cython
         raise NotImplementedError
 
     def _get_top_modulus_test(self, ntl_ZZ_pX a, ntl_ZZ_pX b):
@@ -1137,20 +1145,20 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
 
         Does not affect self.
 
-        INPUT::
+        INPUT:
 
-            - x -- The ZZ_pX_c to be set
+        - ``x`` -- The ``ZZ_pX_c`` to be set
 
-            - a -- A ZZ_pX_c currently holding an approximation to the
-             Teichmuller representative (this approximation can be any
-             integer).  It will be set to the actual Teichmuller lift
+        - ``a`` -- A ``ZZ_pX_c`` ``currently holding an approximation to the
+          Teichmuller representative (this approximation can be any
+          integer).  It will be set to the actual Teichmuller lift
 
-            - absprec -- the desired precision of the Teichmuller lift
+        - ``absprec`` -- the desired precision of the Teichmuller lift
 
-        OUTPUT::
+        OUTPUT:
 
-            - 1 -- x should be set to zero (or usually, ZZ_pX_destruct'd)
-            - 0 -- normal
+        - 1 -- x should be set to zero (or usually, ZZ_pX_destruct'd)
+        - 0 -- normal
 
         EXAMPLES::
 
@@ -1358,7 +1366,7 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
         """
         Duplicates functionality of get_top_modulus if n == self.prec_cap.
 
-        If not, raises an error.
+        If not, raise an exception (which will be ignored by Cython).
 
         EXAMPLES::
 
@@ -1371,7 +1379,8 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
         if n == self.prec_cap:
             return &self.mod
         else:
-            raise ValueError, "fixed modulus PowComputers only store top modulus"
+            # Exception will be ignored by Cython
+            raise ValueError("fixed modulus PowComputers only store top modulus")
 
 cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
     """
@@ -1718,18 +1727,16 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
 
     cdef ntl_ZZ_pContext_class get_context(self, long n):
         """
-        Returns the context for p^n.
+        Return the context for p^n.  This will use the cache if
+        ``abs(n) <= self.cache_limit``.
 
-        Note that this function will raise an Index error if n > self.cache_limit.
-        Also, it will return None on input 0
+        INPUT:
 
-        INPUT::
+        - ``n`` -- A nonzero long
 
-            - n -- A long between 1 and self.cache_limit, inclusive
+        OUTPUT:
 
-        OUTPUT::
-
-            A context for p^n
+        - A context for p^n
 
         EXAMPLES::
 
@@ -1746,11 +1753,12 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
 
     cdef restore_context(self, long n):
         """
-        Restores the context for p^n.
+        Restore the context for p^n.  This will use the cache if
+        ``abs(n) <= self.cache_limit``.
 
-        INPUT::
+        INPUT:
 
-            - n -- A long between 1 and self.cache_limit, inclusive
+        - ``n`` -- A nonzero long
 
         EXAMPLES::
 
@@ -1791,11 +1799,11 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
         """
         Returns the modulus corresponding to self.polynomial() (mod self.prime^n).
 
-        INPUT::
+        INPUT:
 
-            - n -- A long between 1 and self.cache_limit, inclusive if
-                   n is larger, this function will return
-                   self.mod[prec_cap] lifted to that precision.
+        - ``n`` -- A long between 1 and ``self.cache_limit``, inclusive.
+          If `n` is larger, this function will return ``self.mod[prec_cap]``
+          lifted to that precision.
 
         EXAMPLES::
 
@@ -2142,16 +2150,13 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         """
         Returns the context for p^n.
 
-        Note that this function will raise an Index error if n > self.cache_limit.
-        Also, it will return None on input 0
+        INPUT:
 
-        INPUT::
+        - ``n`` -- A nonzero long
 
-            n -- A nonzero long
+        OUTPUT:
 
-        OUTPUT::
-
-            A context for p^n
+        - A context for p^n
 
         EXAMPLES::
 
@@ -2162,7 +2167,8 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
             NTL modulus 390625
         """
         if n == 0:
-            raise ValueError, "n must be nonzero"
+            # Exception will be ignored by Cython
+            raise ValueError("n must be nonzero")
         if n < 0:
             n = -n
         if n <= self.cache_limit:
@@ -2203,9 +2209,9 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         """
         Returns the modulus corresponding to self.polynomial() (mod self.prime^n).
 
-        INPUT::
+        INPUT:
 
-            n -- A nonzero long
+        - ``n`` -- A nonzero long
 
         EXAMPLES::
 
@@ -2225,7 +2231,8 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         cdef ntl_ZZ_pX_Modulus holder
         cdef ntl_ZZ_pContext_class c
         if n == 0:
-            raise ValueError, "n must be nonzero"
+            # Exception will be ignored by Cython
+            raise ValueError("n must be nonzero")
         if n < 0:
             n = -n
         elif n <= self.cache_limit:
@@ -2418,33 +2425,33 @@ def PowComputer_ext_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, 
     Once you create a PowComputer, merely call it to get values out.
     You can input any integer, even if it's outside of the precomputed range.
 
-    INPUT::
+    INPUT:
 
-        - prime -- An integer, the base that you want to exponentiate.
+    - ``prime`` -- An integer, the base that you want to exponentiate.
 
-        - cache_limit -- A positive integer that you want to cache
-          powers up to.
+    - ``cache_limit`` -- A positive integer that you want to cache
+      powers up to.
 
-        - prec_cap -- The cap on precisions of elements.  For ramified
-          extensions, p^((prec_cap - 1) // e) will be the largest
-          power of p distinguishable from zero
+    - ``prec_cap`` -- The cap on precisions of elements.  For ramified
+      extensions, p^((prec_cap - 1) // e) will be the largest
+      power of p distinguishable from zero
 
-        - in_field -- Boolean indicating whether this PowComputer is
-          attached to a field or not.
+    - ``in_field`` -- Boolean indicating whether this PowComputer is
+      attached to a field or not.
 
-        - poly -- An ntl_ZZ_pX or ntl_ZZ_pEX defining the extension.
-          It should be defined modulo p^((prec_cap - 1) // e + 1)
+    - ``poly`` -- An ``ntl_ZZ_pX`` or ``ntl_ZZ_pEX`` defining the extension.
+      It should be defined modulo p^((prec_cap - 1) // e + 1)
 
-        - prec_type -- 'FM', 'small', or 'big', defining how caching
-          is done.
+    - ``prec_type`` -- 'FM', 'small', or 'big', defining how caching
+      is done.
 
-        - ext_type -- 'u' = unramified, 'e' = Eisenstein, 't' =
-          two-step
+    - ``ext_type`` -- 'u' = unramified, 'e' = Eisenstein, 't' =
+      two-step
 
-        - shift_seed -- (required only for Eisenstein and two-step)
-          For Eisenstein and two-step extensions, if f = a_n x^n - p
-          a_{n-1} x^{n-1} - ... - p a_0 with a_n a unit, then
-          shift_seed should be 1/a_n (a_{n-1} x^{n-1} + ... + a_0)
+    - ``shift_seed`` -- (required only for Eisenstein and two-step)
+      For Eisenstein and two-step extensions, if f = a_n x^n - p
+      a_{n-1} x^{n-1} - ... - p a_0 with a_n a unit, then
+      shift_seed should be 1/a_n (a_{n-1} x^{n-1} + ... + a_0)
 
     EXAMPLES::
 
@@ -2458,7 +2465,7 @@ def PowComputer_ext_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, 
     cdef long _ram_prec_cap = mpz_get_si((<Integer>Integer(ram_prec_cap)).value)
     cdef bint inf = in_field
     if ext_type != "u" and shift_seed is None:
-        raise ValueError, "must provide shift seed"
+        raise ValueError("must provide shift seed")
     if prec_type == "small" and ext_type == "u":
         return PowComputer_ZZ_pX_small(_prime, _cache_limit, _prec_cap, _ram_prec_cap, inf, poly, None)
     elif prec_type == "small" and ext_type == "e":
@@ -2472,5 +2479,5 @@ def PowComputer_ext_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, 
     elif prec_type == "FM" and ext_type == "e":
         return PowComputer_ZZ_pX_FM_Eis(_prime, _cache_limit, _prec_cap, _ram_prec_cap, inf, poly, shift_seed)
     else:
-        raise ValueError, "prec_type must be one of 'small', 'big' or 'FM' and ext_type must be one of 'u' or 'e' or 't'"
+        raise ValueError("prec_type must be one of 'small', 'big' or 'FM' and ext_type must be one of 'u' or 'e' or 't'")
 

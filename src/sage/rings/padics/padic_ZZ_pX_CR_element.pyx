@@ -1305,7 +1305,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
         """
         if self.relprec == 0:
-            raise RuntimeError("p-adic Internal l-shift called with relative precision 0")
+            raise ValueError("p-adic Internal l-shift called with relative precision 0")
         cdef ZZ_pX_c tmpP
         cdef ZZ_pX_Modulus_c* mod
         if self.prime_pow.e == 1:
@@ -1364,7 +1364,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 elif PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_small_Eis):
                     high_array = (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).high_shifter
                 else:
-                    raise RuntimeError, "unrecognized PowComputer type"
+                    raise TypeError("unrecognized PowComputer type")
                 ZZ_pX_conv_modulus(high_shifter, high_array[0], c.x)
                 ZZ_pX_InvMod_newton_ram(high_shifter, high_shifter, modulus[0], c.x)
                 ZZ_pX_PowerMod_long_pre(high_shifter, high_shifter, shift, modulus[0])
@@ -1402,7 +1402,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     high_array = (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).high_shifter
                     high_length = (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).high_length
                 else:
-                    raise RuntimeError, "unrecognized PowComputer type"
+                    raise TypeError("unrecognized PowComputer type")
                 if shift >= self.prime_pow.prec_cap:
                     # high_shifter = p^(2^(high_length - 1))/x^(e*2^(high_length - 1))
                     ZZ_pX_conv_modulus(high_shifter, high_array[high_length-1], c.x)
@@ -3139,7 +3139,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 elif PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_big_Eis):
                     ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 else:
-                    raise RuntimeError, "unrecognized PowComputer type"
+                    raise TypeError("unrecognized PowComputer type")
                 sig_on()
                 ZZ_pX_InvMod_newton_ram(to_mul, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 sig_off()
@@ -3184,7 +3184,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 elif PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_big_Eis):
                     ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 else:
-                    raise RuntimeError, "unrecognized PowComputer type"
+                    raise TypeError("unrecognized PowComputer type")
                 sig_on()
                 ZZ_pX_InvMod_newton_ram(to_mul, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 sig_off()

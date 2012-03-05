@@ -129,13 +129,13 @@ cat >&3 <<EOF
 # Base packages
 DIR=`newest_version_base dir`
 PREREQ=`newest_version_base prereq`
-BZIP2=`newest_version_base bzip2`
 
 # Standard packages
 ATLAS=`newest_version atlas`
 BLAS=`newest_version blas`
 BOEHM_GC=`newest_version boehm_gc`
 BOOST_CROPPED=`newest_version boost-cropped`
+BZIP2=`newest_version bzip2`
 CDDLIB=`newest_version cddlib`
 CEPHES=`newest_version cephes`
 CLIQUER=`newest_version cliquer`

@@ -141,8 +141,16 @@ $(INST)/$(DIR):
 $(INST)/$(PREREQ): $(INST)/$(DIR)
 	$(PIPE) "base/$(PREREQ)-install 2>&1" "tee -a $(SAGE_LOGS)/$(PREREQ).log"
 
+# If we are upgrading from a version 4.x of Sage, don't build bzip2.
+# This is because the old sage-spkg script cannot install the new bzip2
+# spkg (which is gzip compressed).  We continue using the old bzip2
+# installation, which is fine.
 $(INST)/$(BZIP2): $(INST)/$(PREREQ) $(INST)/$(DIR)
-	$(PIPE) "base/$(BZIP2)-install 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"
+	+if [ -f "$(SAGE_ROOT)/spkg/bin/sage-spkg" ] ; then \
+	    $(PIPE) "$(SAGE_SPKG) $(BZIP2) 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"; \
+	else \
+	    touch "$@"; \
+	fi
 
 ###############################################################################
 # Building normal packages

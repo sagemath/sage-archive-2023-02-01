@@ -343,11 +343,19 @@ if [ -f "$MPLINITFILE" ]; then
     mkdir -p "$MPLCONFIGDIR"
 fi
 
-LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
-# The following is needed for openmpi:
-LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/openmpi:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
-# The following is needed for R (in case the Sage install is moved):
-LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/R/lib:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
+# Add some directories to $LD_LIBRARY_PATH:
+# * lib/openmpi is needed for openmpi.
+# * lib/R/lib is needed for R in case the Sage install is moved.
+# * lib32 and lib64 are needed for GCC, see #12405.
+for d in lib/openmpi lib/R/lib lib32 lib64 lib; do
+    libdir="$SAGE_LOCAL/$d"
+    # Add only existing directories
+    if [ -d "$libdir" ]; then
+        LD_LIBRARY_PATH="$libdir:$LD_LIBRARY_PATH"
+    fi
+done
+export LD_LIBRARY_PATH
+
 # The following is needed for OS X (especially for the
 # Singular install).
 if [ `uname` = "Darwin" ]; then

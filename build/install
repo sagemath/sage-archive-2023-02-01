@@ -10,10 +10,7 @@ SAGE_LOCAL="$SAGE_ROOT/local"
 SAGE_LOGS="$SAGE_ROOT/spkg/logs"
 PATH="$SAGE_ROOT/spkg/bin:$SAGE_LOCAL/bin:$PATH"
 PYTHONPATH="$SAGE_LOCAL"
-PKGDIR=standard
 export SAGE_ROOT SAGE_LOCAL SAGE_LOGS PATH PYTHONPATH
-
-mkdir -p "$SAGE_LOGS"
 
 # Storing the start time of the build process. The time is stored in
 # seconds since 1970-01-01 in a hidden file called
@@ -58,6 +55,18 @@ if [ "$SAGE_UPGRADING" = yes ]; then
     # to force rebuilding dependent packages, too:
     export SAGE_SPKG_OPTS="-f"
 fi
+
+###############################################################################
+# Create basic directories needed for Sage
+###############################################################################
+
+mkdir -p "$SAGE_ROOT/data"
+mkdir -p "$SAGE_ROOT/tmp"
+mkdir -p "$SAGE_LOGS"
+mkdir -p "$SAGE_LOCAL/bin"
+mkdir -p "$SAGE_LOCAL/etc"
+mkdir -p "$SAGE_LOCAL/lib"
+mkdir -p "$SAGE_ROOT/spkg/installed"
 
 ###############################################################################
 # Create $SAGE_ROOT/spkg/Makefile starting from spkg/standard/deps
@@ -127,7 +136,6 @@ newest_version() {
 
 cat >&3 <<EOF
 # Base packages
-DIR=`newest_version_base dir`
 PREREQ=`newest_version_base prereq`
 
 # Standard packages

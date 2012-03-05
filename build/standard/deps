@@ -18,7 +18,7 @@ PIPE = $(SAGE_ROOT)/spkg/pipestatus
 ###############################################################################
 # The base system; required in order to run sage-spkg
 ###############################################################################
-BASE = $(INST)/$(PREREQ) $(INST)/$(DIR) $(INST)/$(BZIP2)
+BASE = $(INST)/$(PREREQ) $(INST)/$(BZIP2)
 
 # Tell make not to look for files with these (base)names:
 .PHONY: all base scripts
@@ -135,17 +135,14 @@ SAGERUNTIME = $(INST)/$(SAGE_SCRIPTS) $(INST)/$(SAGE) $(INST)/$(SAGENB) \
 ###############################################################################
 # Building the base system
 ###############################################################################
-$(INST)/$(DIR):
-	$(PIPE) "base/$(DIR)-install 2>&1" "tee -a $(SAGE_LOGS)/$(DIR).log"
-
-$(INST)/$(PREREQ): $(INST)/$(DIR)
+$(INST)/$(PREREQ):
 	$(PIPE) "base/$(PREREQ)-install 2>&1" "tee -a $(SAGE_LOGS)/$(PREREQ).log"
 
 # If we are upgrading from a version 4.x of Sage, don't build bzip2.
 # This is because the old sage-spkg script cannot install the new bzip2
 # spkg (which is gzip compressed).  We continue using the old bzip2
 # installation, which is fine.
-$(INST)/$(BZIP2): $(INST)/$(PREREQ) $(INST)/$(DIR)
+$(INST)/$(BZIP2): $(INST)/$(PREREQ)
 	+if [ -f "$(SAGE_ROOT)/spkg/bin/sage-spkg" ] ; then \
 	    $(PIPE) "$(SAGE_SPKG) $(BZIP2) 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"; \
 	else \

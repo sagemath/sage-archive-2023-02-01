@@ -14,8 +14,10 @@ CUR=`pwd`
 
 # Remove the spkg/base repository, this is needed for upgrading from
 # Sage versions 4.x, see Trac #11073.
+# Also remove files for "dir" (see #12631) and "bzip2" (see #12102),
+# which are no longer base packages.
 cd "$SAGE_ROOT/spkg/base" && \
-rm -rf .hg* json_bundle.py stdint.h_Solaris9 sage-* text-* *.sh
+rm -rf .hg* json_bundle.py stdint.h_Solaris9 sage-* text-* *.sh dir-* bzip2-* README.txt
 
 TARGET="$SAGE_ROOT"
 

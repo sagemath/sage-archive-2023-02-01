@@ -90,6 +90,9 @@ AUTHORS:
 
 - Nicolas Borie (2009): Added orbit, transversals, stabiliser and strong_generating_system methods
 
+- Christopher Swenson (2012): Added a special case to compute the order efficiently.
+  (This patch Copyright 2012 Google Inc. All Rights Reserved. )
+
 REFERENCES:
 
 - Cameron, P., Permutation Groups. New York: Cambridge University
@@ -132,6 +135,7 @@ from sage.groups.class_function import ClassFunction
 from sage.misc.package import is_package_installed
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
+from sage.functions.other import factorial
 
 def load_hap():
     """
@@ -1289,6 +1293,78 @@ class PermutationGroup_generic(group.Group):
         return '\\langle ' + \
                ', '.join([x._latex_() for x in self.gens()]) + ' \\rangle'
 
+    def _order(self):
+        """
+        This handles a few special cases of computing the subgroup order much
+        faster than GAP.
+
+        This currently operates very quickly for stabilizer subgroups of
+        permutation groups, for one.
+
+        Will return None if the we could not easily compute it.
+
+        Author: Christopher Swenson
+
+        EXAMPLES::
+
+            sage: SymmetricGroup(10).stabilizer(4)._order()
+            362880
+            sage: SymmetricGroup(10).stabilizer(4).stabilizer(5)._order()
+            40320
+            sage: SymmetricGroup(200).stabilizer(100)._order() == factorial(199) # this should be very fast
+            True
+
+        TESTS::
+
+            sage: [SymmetricGroup(n).stabilizer(1)._gap_().Size() for n in [4..10]]
+            [6, 24, 120, 720, 5040, 40320, 362880]
+            sage: [SymmetricGroup(n).stabilizer(1)._order() for n in [4..10]]
+            [6, 24, 120, 720, 5040, 40320, 362880]
+        """
+        gens = self.gens()
+        # This special case only works with more than 1 generator.
+        if not gens or len(gens) < 2:
+            return None
+        # Special case: certain subgroups of the symmetric group for which Gap reports
+        # generators of the form ((1, 2), (1, 3), ...)
+        # This means that this group is isomorphic to a smaller symmetric group
+        # S_n, where n is the number of generators supported.
+        #
+        # The code that follows checks that the following assumptions hold:
+        #     * All generators are transpositions (i.e., permutations
+        #     that switch two elements and leave everything else fixed),
+        #     * All generators share a common element.
+        #
+        # We then know that this group is isomorphic to S_n,
+        # and therefore its order is n!.
+
+        # Check that all generators are order 2 and have length-1 cycle tuples.
+        for g in gens:
+            if g.order() != 2:
+                return None
+            if len(g.cycle_tuples()) != 1:
+                return None
+        # Find the common element.
+        g0 = gens[0].cycle_tuples()[0]
+        g1 = gens[1].cycle_tuples()[0]
+        a, b = g0
+        if a not in g1 and b not in g1:
+            return None
+        if a in g1:
+            elem = a
+        else:
+            elem = b
+        # Count the number of unique elements in the generators.
+        unique = set()
+        for g in gens:
+            a, b = g.cycle_tuples()[0]
+            if a != elem and b != elem:
+                return None
+            unique.add(a)
+            unique.add(b)
+        # Compute the order.
+        return factorial(len(unique))
+
     def order(self):
         """
         Return the number of elements of this group.
@@ -1307,6 +1383,9 @@ class PermutationGroup_generic(group.Group):
         """
         if not self.gens() or self.gens() == [self(1)]:
             return Integer(1)
+        subgroup_order = self._order()
+        if subgroup_order is not None:
+          return subgroup_order
         return Integer(self._gap_().Size())
 
     def random_element(self):

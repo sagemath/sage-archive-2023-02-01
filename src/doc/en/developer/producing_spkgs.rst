@@ -360,28 +360,55 @@ automatically install it by typing ``sage -i mypackage-version.spkg``.
 
 .. note::
 
-   - If your package depends on another package, say boehmgc, then you
-     should check that this other package has been installed. Your
-     ``spkg-install`` script should check that it exists, with code
-     like the following:
-
-     ::
-
-       BOEHM_GC=`cd $SAGE_ROOT/spkg/standard/; ./newest_version boehm_gc`
-       if [ $? -ne 0 ]; then
-           echo "Failed to find boehm_gc.  Please install the boehm_gc spkg"
-           exit 1
-       fi
-
    - If your package is intended to be a standard Sage spkg, then you
      should make sure that any dependencies for your package are
      recorded in the makefile ``SAGE_ROOT/spkg/standard/deps``.  Also
-     add lines for your package to the script
-     ``SAGE_ROOT/spkg/install``.  For example, the relevant lines for
-     the readline package are ::
+     add a line for your package to the script
+     ``SAGE_ROOT/spkg/install``.  For example, the relevant line for
+     the readline package is ::
 
-       READLINE=`$newest readline`
-       export READLINE
+       READLINE=`newest_version readline`
+
+   - If your package is not a standard package and depends on another
+     non-standard package, say ``fricas-1.0.9.spkg``, then
+     your package's ``spkg-install`` script should check that the
+     other package has been installed, with code like the following::
+
+        if [ ! -f "$SAGE_ROOT/spkg/installed/fricas-1.0.9.spkg" ]; then
+            echo "The fricas spkg is required; please install it."
+            exit 1
+        fi
+
+     If you don't care which version of the fricas spkg is installed,
+     you could instead use ::
+
+        if ! ls -1 "$SAGE_ROOT/spkg/installed/" | grep '^fricas-.*' > /dev/null ; then
+            echo "The fricas spkg is required; please install it."
+            exit 1
+        fi
+
+     (The regular expression matches the package name followed by a
+     hyphen and then other characters; in particular, it was chosen so
+     that it wouldn't match a package like ``fricasaldor-1.0.9`` whose
+     name also starts with "fricas".)
+
+     This could be made more sophisticated, for example testing which
+     version of fricas is installed vs. which version is required,
+     etc. You could, instead of or in addition to checking the
+     existence of the appropriate file in
+     ``$SAGE_ROOT/spkg/installed/``, check for the required
+     functionality somehow. For instance, the ``spkg-install`` script
+     for the ``p_group_cohomology`` package checks whether
+     ``database_gap`` is installed using the following::
+
+         SMALL_GROUPS=`echo "SmallGroup(13,1); quit;" | $SAGE_ROOT/sage -gap -b -T | grep "13"`
+         if [ "$SMALL_GROUPS" = "" ]; then
+            echo "It seems that GAP's SmallGroups library is missing."
+            echo "One way to install it is by doing"
+            echo "    sage: install_package('database_gap')"
+            echo "in a Sage session."
+            exit 1
+         fi
 
    - *Caveat*: Do not just copy to e.g. ``SAGE_ROOT/local/lib/gap*/``
      since that will copy your package to the lib directory of the old

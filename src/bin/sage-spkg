@@ -468,6 +468,9 @@ cat "$SAGE_ROOT/VERSION.txt" >> "$PKG_NAME_INSTALLED"
 if [ $DELETE_TMP -eq 1 ]; then
     echo "Deleting temporary build directory"
     echo "$SAGE_BUILD_DIR/$PKG_NAME"
+    # On Solaris, the current working directory cannot be deleted,
+    # so we "cd" out of $SAGE_BUILD_DIR/$PKG_NAME. See #12637.
+    cd "$SAGE_BUILD_DIR"
     rm -rf "$SAGE_BUILD_DIR/$PKG_NAME"
 else
     echo "You can safely delete the temporary build directory"

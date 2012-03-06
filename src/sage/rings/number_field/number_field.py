@@ -7428,12 +7428,24 @@ class NumberField_cyclotomic(NumberField_absolute):
               From: Cyclotomic Field of order 6 and degree 2
               To:   Cyclotomic Field of order 15 and degree 8
               Defn: zeta6 -> zeta15^5 + 1
+
+        Check that #12632 is fixed::
+
+            sage: K1 = CyclotomicField(1); K2 = CyclotomicField(2)
+            sage: K1.coerce_map_from(K2)
+            Generic morphism:
+              From: Cyclotomic Field of order 2 and degree 1
+              To:   Cyclotomic Field of order 1 and degree 1
+              Defn: zeta2 -> -1
         """
         if isinstance(K, NumberField_cyclotomic):
             Kn = K.__n
             n = self.__n
             if Kn.divides(n):
                 return number_field_morphisms.CyclotomicFieldEmbedding(K, self)
+            if Kn == 2 and n == 1:
+                # see #12632
+                return number_field_morphisms.NumberFieldEmbedding(K, self, -self.gen())
             if Kn % 4 == 2 and (Kn//2).divides(n):
                 e1 = (~mod(2, Kn//2)).lift()
                 e2 = 2*n // Kn

@@ -61,6 +61,7 @@ clean:
 distclean: clean
 	@echo "Deleting all remaining traces of builds, tests etc. ..."
 	rm -rf local
+	rm -f spkg/Makefile
 	rm -rf spkg/installed
 	rm -rf spkg/logs
 	rm -rf spkg/optional

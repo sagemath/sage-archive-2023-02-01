@@ -1,0 +1,32 @@
+diff -ru linbox-1.1.6/linbox/util/commentator.C src/linbox/util/commentator.C
+--- linbox-1.1.6/linbox/util/commentator.C	2008-06-14 03:20:54.000000000 +0200
++++ src/linbox/util/commentator.C	2012-03-05 14:29:50.178365092 +0100
+@@ -79,6 +79,7 @@
+ 		return 0;
+ 	}
+ 
++#ifndef DISABLE_COMMENTATOR
+ 	Commentator::Commentator () 
+ 		: cnull (new nullstreambuf), _estimationMethod (BEST_ESTIMATE), _format (OUTPUT_CONSOLE),
+ 		  _show_timing (true), _show_progress (true), _show_est_time (true)
+@@ -720,6 +721,7 @@
+ 		return n;
+ 	}
+ 
++#endif
+ 	// Default global commentator
+-	Commentator commentator;
++	Commentator commentator ;
+ }
+diff -ru linbox-1.1.6/linbox/util/commentator.h src/linbox/util/commentator.h
+--- linbox-1.1.6/linbox/util/commentator.h	2008-06-14 03:20:55.000000000 +0200
++++ src/linbox/util/commentator.h	2012-03-05 14:31:12.808361991 +0100
+@@ -817,7 +817,7 @@
+ 	};
+ 
+ 	// Default global commentator
+-	Commentator commentator;
++	extern Commentator commentator;
+ 	//static Commentator commentator;
+ }
+ 

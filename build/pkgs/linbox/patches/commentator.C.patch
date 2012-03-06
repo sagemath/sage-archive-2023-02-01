@@ -1,9 +1,0 @@
---- ../src/linbox/util/commentator.C	2008-06-14 02:20:54.000000000 +0100
-+++ commentator.C	2008-06-06 00:00:23.000000000 +0100
-@@ -721,5 +721,5 @@
- 	}
- 
- 	// Default global commentator
--	Commentator commentator;
-+	//Commentator commentator;
- }

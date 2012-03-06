@@ -16,12 +16,24 @@ LGPL V2 or later
  * The Google group linbox-devel and linbox-use
 
 == Dependencies ==
- * gmp
+ * GNU patch
+ * MPIR
  * NTL
  * Givaro
  * ATLAS (non-OSX)/The Accelerate FrameWork (on OSX)
 
 == Changelog ==
+
+=== linbox-1.1.6.p7 (Jeroen Demeyer, 5 March 2012) ===
+ * Trac #12629: *always* disable the commentator.  There are problems
+   om some systems (e.g. OS X 10.4 with GCC 4.6.3) when parts of LinBox
+   are compiled with the commentator and parts without.
+ * Backport patch disable_commentator.patch from LinBox-1.2.2 to enable
+   LinBox to be built with the commentator disabled.
+ * Remove all -I and -L compiler flags from spkg-install, ./configure
+   should detect these.
+ * Use $MAKE instead of make.
+ * Use patch for patching.
 
 === linbox-1.1.6.p6 (Simon King, December 10th, 2011) ===
  * #12131: Use --libdir, to make the package work on openSUSE.

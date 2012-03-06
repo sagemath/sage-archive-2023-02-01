@@ -6,35 +6,24 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-CUR=`pwd`
-
-echo "Copying commentator patch"
-cp patches/commentator.C src/linbox/util/
-
-if [ $? -ne 0 ]; then
-    echo "Error copying commentator OSX 10.4 fix"
-    exit 1
-fi
-
-echo "Patching modular-float.h"
-
-cp patches/modular-float.h src/linbox/field/
-
-if [ $? -ne 0 ]; then
-    echo "Error copying modular-float fix"
-    exit 1
-fi
-
-
 cd src/
 
-CFLAGS="$CFLAGS -g -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"-L\"$SAGE_LOCAL/lib\""
-CXXFLAGS="$CXXFLAGS -g -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"  -L\"$SAGE_LOCAL/lib\""
-CPPFLAGS="$CPPFLAGS -g -I\"$SAGE_LOCAL/include/linbox\" -I\"$SAGE_LOCAL\"/include"
+# Apply patches.
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
-export CFLAGS
-export CXXFLAGS
-export CPPFLAGS
+export CFLAGS="$CFLAGS -g -fPIC"
+export CXXFLAGS="$CXXFLAGS -g -fPIC"
+
+# Some systems have problems when parts of Linbox are compiled with
+# the commentator enabled and other parts with the commentator
+# disabled.  Therefore, disable it always.
+export CPPFLAGS="$CPPFLAGS -DDISABLE_COMMENTATOR"
 
 if [ "$SAGE64" = "yes" ]; then
    echo "64 bit build"
@@ -122,12 +111,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-make
+$MAKE
 if [ $? -ne 0 ]; then
     echo "Error building linbox"
 fi
 
-make install
+$MAKE install
 if [ $? -ne 0 ]; then
     echo "Error installing linbox"
     exit 1
@@ -137,4 +126,3 @@ if [ -f "$SAGE_ROOT"/devel/sage/sage/libs/linbox/linbox.pyx ]; then
     echo "Touching extensions linked against LinBox"
     touch "$SAGE_ROOT"/devel/sage/sage/libs/linbox/linbox.pyx
 fi
-

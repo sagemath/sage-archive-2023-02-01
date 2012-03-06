@@ -1,5 +1,6 @@
---- ../src/linbox/field/modular-float.h	2008-09-18 20:40:02.000000000 +0100
-+++ modular-float.h	2011-08-23 19:56:18.947485234 +0100
+diff -ru linbox-1.1.6/linbox/field/modular-float.h src/linbox/field/modular-float.h
+--- linbox-1.1.6/linbox/field/modular-float.h	2008-09-18 21:40:02.000000000 +0200
++++ src/linbox/field/modular-float.h	2012-03-05 14:25:31.118364037 +0100
 @@ -38,6 +38,9 @@
  	template< class Element >
  	class ModularRandIter;
@@ -14,7 +15,7 @@
  			       
  		typedef float Element;
  		typedef ModularRandIter<float> RandIter;
-+		typedef NonzeroRandIter<Modular<double>, ModularRandIter<double> > NonZeroRandIter;
++		typedef NonzeroRandIter<Modular<float>, ModularRandIter<float> > NonZeroRandIter;
  
  		static ClassifyRing<Modular<float> >::categoryTag getCategory() {return ClassifyRing<Modular<float> >::categoryTag();}
  		

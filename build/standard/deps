@@ -1,5 +1,6 @@
 ###############################################################################
-# SAGE_ROOT/spkg/standard/deps - the "real" Sage Makefile (for building)
+# This file ($SAGE_ROOT/spkg/standard/deps) will be copied into
+# $SAGE_ROOT/spkg/Makefile by $SAGE_ROOT/spkg/install
 ###############################################################################
 
 INST = installed
@@ -15,17 +16,9 @@ SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
 PIPE = $(SAGE_ROOT)/spkg/pipestatus
 
 ###############################################################################
-# The file parallel_make.cfg is either empty (build in parallel) or
-# contains ".NOTPARALLEL:" (build serially).  This file is written
-# by spkg/install.  This setting has no effect on sub-makes -- it
-# only determines whether more than one spkg may be built at a time.
-###############################################################################
-include $(SAGE_ROOT)/spkg/parallel_make.cfg
-
-###############################################################################
 # The base system; required in order to run sage-spkg
 ###############################################################################
-BASE = $(INST)/$(PREREQ) $(INST)/$(DIR) $(INST)/$(SAGE_BZIP2)
+BASE = $(INST)/$(PREREQ) $(INST)/$(DIR) $(INST)/$(BZIP2)
 
 # Tell make not to look for files with these (base)names:
 .PHONY: all base scripts
@@ -55,7 +48,7 @@ all: $(BASE) \
      $(INST)/$(FORTRAN) \
      $(INST)/$(FPLLL) \
      $(INST)/$(FREETYPE) \
-     $(INST)/$(G2RED) \
+     $(INST)/$(GENUS2REDUCTION) \
      $(INST)/$(GAP) \
      $(INST)/$(GD) \
      $(INST)/$(GDMODULE) \
@@ -73,8 +66,8 @@ all: $(BASE) \
      $(INST)/$(LCALC) \
      $(INST)/$(LIBGCRYPT) \
      $(INST)/$(LIBGPG_ERROR) \
-     $(INST)/$(LIBM4RI) \
-     $(INST)/$(LIBM4RIE) \
+     $(INST)/$(M4RI) \
+     $(INST)/$(M4RIE) \
      $(INST)/$(LIBPNG) \
      $(INST)/$(LINBOX) \
      $(INST)/$(MATPLOTLIB) \
@@ -149,8 +142,8 @@ $(INST)/$(DIR):
 $(INST)/$(PREREQ): $(INST)/$(DIR)
 	$(PIPE) "base/$(PREREQ)-install 2>&1" "tee -a $(SAGE_LOGS)/$(PREREQ).log"
 
-$(INST)/$(SAGE_BZIP2): $(INST)/$(PREREQ) $(INST)/$(DIR)
-	$(PIPE) "base/$(SAGE_BZIP2)-install 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_BZIP2).log"
+$(INST)/$(BZIP2): $(INST)/$(PREREQ) $(INST)/$(DIR)
+	$(PIPE) "base/$(BZIP2)-install 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"
 
 ###############################################################################
 # Building normal packages
@@ -217,7 +210,7 @@ $(INST)/$(PARI): $(BASE) $(INST)/$(READLINE) \
 	+$(PIPE) "$(SAGE_SPKG) $(PARI) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI).log"
 
 $(INST)/$(POLYBORI): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SCONS) \
-		     $(INST)/$(BOOST_CROPPED) $(INST)/$(LIBM4RI) \
+		     $(INST)/$(BOOST_CROPPED) $(INST)/$(M4RI) \
 		     $(INST)/$(GD) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(POLYBORI) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYBORI).log"
 
@@ -246,8 +239,8 @@ $(INST)/$(IML): $(BASE) $(INST)/$(MPIR) $(INST)/$(GSL) $(INST)/$(PATCH)
 $(INST)/$(ECLIB): $(BASE) $(INST)/$(MPIR) $(INST)/$(PARI) $(INST)/$(NTL) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(ECLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ECLIB).log"
 
-$(INST)/$(G2RED): $(BASE) $(INST)/$(PARI) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(G2RED) 2>&1" "tee -a $(SAGE_LOGS)/$(G2RED).log"
+$(INST)/$(GENUS2REDUCTION): $(BASE) $(INST)/$(PARI) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(GENUS2REDUCTION) 2>&1" "tee -a $(SAGE_LOGS)/$(GENUS2REDUCTION).log"
 
 $(INST)/$(PALP): $(BASE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(PALP) 2>&1" "tee -a $(SAGE_LOGS)/$(PALP).log"
@@ -399,11 +392,11 @@ $(INST)/$(FLINT): $(BASE) $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(PATCH)
 $(INST)/$(EXTCODE): $(BASE) $(INST)/$(MERCURIAL)
 	+$(PIPE) "$(SAGE_SPKG) $(EXTCODE) 2>&1" "tee -a $(SAGE_LOGS)/$(EXTCODE).log"
 
-$(INST)/$(LIBM4RI): $(BASE) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(LIBM4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBM4RI).log"
+$(INST)/$(M4RI): $(BASE) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(M4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(M4RI).log"
 
-$(INST)/$(LIBM4RIE): $(BASE) $(INST)/$(PATCH) $(INST)/$(LIBM4RI) $(INST)/$(GIVARO) $(INST)/$(NTL)
-	+$(PIPE) "$(SAGE_SPKG) $(LIBM4RIE) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBM4RIE).log"
+$(INST)/$(M4RIE): $(BASE) $(INST)/$(PATCH) $(INST)/$(M4RI) $(INST)/$(GIVARO) $(INST)/$(NTL)
+	+$(PIPE) "$(SAGE_SPKG) $(M4RIE) 2>&1" "tee -a $(SAGE_LOGS)/$(M4RIE).log"
 
 # zn_poly really does depend on Python, despite this is far from obvious.
 # The 'configure' script in zn_poly calls Python to make a 'makefile'.
@@ -476,8 +469,8 @@ $(INST)/$(SAGE): $(BASE) \
 		 $(INST)/$(IML) \
 		 $(INST)/$(JINJA2) \
 		 $(INST)/$(LCALC) \
-		 $(INST)/$(LIBM4RI) \
-		 $(INST)/$(LIBM4RIE) \
+		 $(INST)/$(M4RI) \
+		 $(INST)/$(M4RIE) \
 		 $(INST)/$(LIBPNG) \
 		 $(INST)/$(LINBOX) \
 		 $(INST)/$(MERCURIAL) \

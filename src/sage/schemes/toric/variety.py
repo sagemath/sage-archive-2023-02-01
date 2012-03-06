@@ -97,9 +97,12 @@ realized as the toric variety associated to the
     sage: P1xP1 = ToricVariety(fan)
     sage: P1xP1
     2-d toric variety covered by 4 affine patches
-    sage: P1xP1.fan().ray_matrix()
-    [ 1  0 -1  0]
-    [ 0  1  0 -1]
+    sage: P1xP1.fan().rays()
+    N( 1,  0),
+    N( 0,  1),
+    N(-1,  0),
+    N( 0, -1)
+    in 2-d lattice N
     sage: P1xP1.gens()
     (z0, z1, z2, z3)
 
@@ -141,9 +144,10 @@ access the "building pieces"::
     sage: patch = P1xP1.affine_patch(2)
     sage: patch
     2-d affine toric variety
-    sage: patch.fan().ray_matrix()
-    [1 0]
-    [0 1]
+    sage: patch.fan().rays()
+    N(1, 0),
+    N(0, 1)
+    in 2-d lattice N
     sage: patch.embedding_morphism()
     Scheme morphism:
       From: 2-d affine toric variety
@@ -168,9 +172,12 @@ quotient singularities::
     sage: P1xP1.is_smooth()
     True
     sage: TV = ToricVariety(NormalFan(diamond))
-    sage: TV.fan().ray_matrix()
-    [-1  1 -1  1]
-    [ 1  1 -1 -1]
+    sage: TV.fan().rays()
+    N(-1,  1),
+    N( 1,  1),
+    N(-1, -1),
+    N( 1, -1)
+    in 2-d lattice N
     sage: TV.is_orbifold()
     True
     sage: TV.is_smooth()
@@ -179,10 +186,16 @@ quotient singularities::
 In higher dimensions worse things can happen::
 
     sage: TV3 = ToricVariety(NormalFan(lattice_polytope.octahedron(3)))
-    sage: TV3.fan().ray_matrix()
-    [-1  1 -1  1 -1  1 -1  1]
-    [-1 -1  1  1 -1 -1  1  1]
-    [ 1  1  1  1 -1 -1 -1 -1]
+    sage: TV3.fan().rays()
+    N(-1, -1,  1),
+    N( 1, -1,  1),
+    N(-1,  1,  1),
+    N( 1,  1,  1),
+    N(-1, -1, -1),
+    N( 1, -1, -1),
+    N(-1,  1, -1),
+    N( 1,  1, -1)
+    in 3-d lattice N
     sage: TV3.is_orbifold()
     False
 
@@ -400,9 +413,12 @@ def ToricVariety(fan,
     We will create the product of two projective lines::
 
         sage: fan = FaceFan(lattice_polytope.octahedron(2))
-        sage: fan.ray_matrix()
-        [ 1  0 -1  0]
-        [ 0  1  0 -1]
+        sage: fan.rays()
+        N( 1,  0),
+        N( 0,  1),
+        N(-1,  0),
+        N( 0, -1)
+        in 2-d lattice N
         sage: P1xP1 = ToricVariety(fan)
         sage: P1xP1.gens()
         (z0, z1, z2, z3)
@@ -904,9 +920,12 @@ class ToricVariety_field(AmbientSpace):
         `(x, y)` for one and `(s, t)` for the other::
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: fan.ray_matrix()
-            [ 1  0 -1  0]
-            [ 0  1  0 -1]
+            sage: fan.rays()
+            N( 1,  0),
+            N( 0,  1),
+            N(-1,  0),
+            N( 0, -1)
+            in 2-d lattice N
             sage: P1xP1 = ToricVariety(fan, "x s y t")
             sage: P1xP1.inject_variables()
             Defining x, s, y, t
@@ -1232,9 +1251,12 @@ class ToricVariety_field(AmbientSpace):
         `(x, y)` for one and `(s, t)` for the other::
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: fan.ray_matrix()
-            [ 1  0 -1  0]
-            [ 0  1  0 -1]
+            sage: fan.rays()
+            N( 1,  0),
+            N( 0,  1),
+            N(-1,  0),
+            N( 0, -1)
+            in 2-d lattice N
             sage: P1xP1 = ToricVariety(fan, "x s y t")
             sage: P1xP1.inject_variables()
             Defining x, s, y, t
@@ -1273,7 +1295,8 @@ class ToricVariety_field(AmbientSpace):
         if '_homogeneous_degrees_group' not in self.__dict__:
             fan = self.fan()
             from sage.modules.free_module import FreeModule
-            degrees_group = FreeModule(ZZ, fan.nrays()).quotient(fan.ray_matrix().rows())
+            degrees_group = FreeModule(ZZ, fan.nrays()).quotient(
+                                                fan.rays().matrix().columns())
             self._homogeneous_degrees_group = degrees_group
         degrees_group = self._homogeneous_degrees_group
         S = self.coordinate_ring()
@@ -1439,7 +1462,10 @@ class ToricVariety_field(AmbientSpace):
             sage: Kc
             2-d cone in 2-d lattice
             sage: Kc.rays()
-            (Divisor class [0, 1], Divisor class [1, 0])
+            Divisor class [0, 1],
+            Divisor class [1, 0]
+            in Basis lattice of The toric rational divisor class group
+            of a 2-d CPR-Fano toric variety covered by 4 affine patches
             sage: [ divisor_class.lift() for divisor_class in Kc.rays() ]
             [V(x), V(s)]
             sage: Kc.lattice()
@@ -1464,7 +1490,7 @@ class ToricVariety_field(AmbientSpace):
         return self._Kaehler_cone
 
     def Mori_cone(self):
-        """
+        r"""
         Returns the Mori cone of ``self``.
 
         OUTPUT:
@@ -1497,7 +1523,10 @@ class ToricVariety_field(AmbientSpace):
             sage: P4_11169.Mori_cone()
             2-d cone in 7-d lattice
             sage: P4_11169.Mori_cone().rays()
-            ((0, 0, 1, 1, 1, -3, 0), (3, 2, 0, 0, 0, 1, -6))
+            (0, 0, 1, 1, 1, -3,  0),
+            (3, 2, 0, 0, 0,  1, -6)
+            in Ambient free module of rank 7
+            over the principal ideal domain Integer Ring
         """
         if "_Mori_cone" not in self.__dict__:
             # Ideally, self.Kaehler_cone().dual() should be it, but
@@ -1629,7 +1658,11 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1 = P1.cartesian_product(P1); P1xP1
             2-d toric variety covered by 4 affine patches
             sage: P1xP1.fan().rays()
-            (N+N(-1, 0), N+N(1, 0), N+N(0, -1), N+N(0, 1))
+            N+N(-1,  0),
+            N+N( 1,  0),
+            N+N( 0, -1),
+            N+N( 0,  1)
+            in 2-d lattice N+N
         """
         return ToricVariety(self.fan().cartesian_product(other.fan()),
                             coordinate_names, coordinate_indices,
@@ -1678,9 +1711,11 @@ class ToricVariety_field(AmbientSpace):
             sage: TV_res = TV.resolve(new_rays=[(0,1)])
             sage: TV_res.is_smooth()
             True
-            sage: TV_res.fan().ray_matrix()
-            [ 1 -1  0]
-            [ 1  1  1]
+            sage: TV_res.fan().rays()
+            N( 1, 1),
+            N(-1, 1),
+            N( 0, 1)
+            in 2-d lattice N
             sage: [cone.ambient_ray_indices() for cone in TV_res.fan()]
             [(0, 2), (1, 2)]
 
@@ -1808,9 +1843,12 @@ class ToricVariety_field(AmbientSpace):
         with coordinates `(x, y)` for one and `(s, t)` for the other::
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: fan.ray_matrix()
-            [ 1  0 -1  0]
-            [ 0  1  0 -1]
+            sage: fan.rays()
+            N( 1,  0),
+            N( 0,  1),
+            N(-1,  0),
+            N( 0, -1)
+            in 2-d lattice N
             sage: P1xP1 = ToricVariety(fan, "x s y t")
             sage: P1xP1.inject_variables()
             Defining x, s, y, t
@@ -2511,7 +2549,7 @@ class ToricVariety_field(AmbientSpace):
         basis = dual.Hilbert_basis()
         N = len(basis)
         names = normalize_names(names, N, DEFAULT_PREFIX)
-        A = matrix(ZZ,basis).transpose()
+        A = basis.column_matrix()
         IA = ToricIdeal(A, names, base_ring=self.base_ring())
         return (IA.ring(), IA, dual)
 
@@ -3121,7 +3159,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
         elif is_Cone(x):
             cone = fan.embed(x)
             assert cone.ambient() is fan
-            mult = cone.ray_matrix().index_in_saturation()
+            mult = cone.rays().column_matrix().index_in_saturation()
             x = prod((self.cover_ring().gen(i) for i in cone.ambient_ray_indices()),
                      z=self.cover_ring().one()) * mult
         else:

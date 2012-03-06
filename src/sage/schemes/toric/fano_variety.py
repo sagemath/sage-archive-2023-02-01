@@ -305,9 +305,12 @@ def CPRFanoToricVariety(Delta=None,
         2-d CPR-Fano toric variety covered by 4 affine patches
         sage: P1xP1.fan()
         Rational polyhedral fan in 2-d lattice N
-        sage: P1xP1.fan().ray_matrix()
-        [ 1  0 -1  0]
-        [ 0  1  0 -1]
+        sage: P1xP1.fan().rays()
+        N( 1,  0),
+        N( 0,  1),
+        N(-1,  0),
+        N( 0, -1)
+        in 2-d lattice N
 
     "Unfortunately," this variety is smooth to start with and we cannot
     perform any subdivisions of the underlying fan without leaving the
@@ -325,35 +328,53 @@ def CPRFanoToricVariety(Delta=None,
     We will construct several varieties associated to it::
 
         sage: FTV = CPRFanoToricVariety(Delta_polar=square)
-        sage: FTV.fan().ray_matrix()
-        [-1  1 -1  1]
-        [ 1  1 -1 -1]
+        sage: FTV.fan().rays()
+        N(-1,  1),
+        N( 1,  1),
+        N(-1, -1),
+        N( 1, -1)
+        in 2-d lattice N
         sage: FTV.gens()
         (z0, z1, z2, z3)
 
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,
         ...         coordinate_points=[0,1,2,3,8])
-        sage: FTV.fan().ray_matrix()
-        [-1  1 -1  1  1]
-        [ 1  1 -1 -1  0]
+        sage: FTV.fan().rays()
+        N(-1,  1),
+        N( 1,  1),
+        N(-1, -1),
+        N( 1, -1),
+        N( 1,  0)
+        in 2-d lattice N
         sage: FTV.gens()
         (z0, z1, z2, z3, z8)
 
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,
         ...         coordinate_points=[8,0,2,1,3],
         ...         coordinate_names="x+")
-        sage: FTV.fan().ray_matrix()
-        [ 1 -1 -1  1  1]
-        [ 0  1 -1  1 -1]
+        sage: FTV.fan().rays()
+        N( 1,  0),
+        N(-1,  1),
+        N(-1, -1),
+        N( 1,  1),
+        N( 1, -1)
+        in 2-d lattice N
         sage: FTV.gens()
         (x8, x0, x2, x1, x3)
 
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,
         ...         coordinate_points="all",
         ...         coordinate_names="x y Z+")
-        sage: FTV.fan().ray_matrix()
-        [-1  1 -1  1 -1  0  0  1]
-        [ 1  1 -1 -1  0 -1  1  0]
+        sage: FTV.fan().rays()
+        N(-1,  1),
+        N( 1,  1),
+        N(-1, -1),
+        N( 1, -1),
+        N(-1,  0),
+        N( 0, -1),
+        N( 0,  1),
+        N( 1,  0)
+        in 2-d lattice N
         sage: FTV.gens()
         (x, y, Z2, Z3, Z4, Z5, Z7, Z8)
 
@@ -414,9 +435,13 @@ def CPRFanoToricVariety(Delta=None,
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,
         ...         coordinate_points=[0,1,2,3,4],
         ...         charts=charts)
-        sage: FTV.fan().ray_matrix()
-        [-1  1 -1  1 -1]
-        [ 1  1 -1 -1  0]
+        sage: FTV.fan().rays()
+        N(-1,  1),
+        N( 1,  1),
+        N(-1, -1),
+        N( 1, -1),
+        N(-1,  0)
+        in 2-d lattice N
         sage: [cone.ambient_ray_indices() for cone in FTV.fan()]
         [(0, 1), (1, 3), (2, 3), (2, 4), (0, 4)]
 
@@ -440,9 +465,13 @@ def CPRFanoToricVariety(Delta=None,
         ...         coordinate_points=[0,1,2,3,4],
         ...         charts=bad_charts,
         ...         check=False)
-        sage: FTV.fan().ray_matrix()
-        [-1  1 -1  1 -1]
-        [ 1  1 -1 -1  0]
+        sage: FTV.fan().rays()
+        N(-1,  1),
+        N( 1,  1),
+        N(-1, -1),
+        N( 1, -1),
+        N(-1,  0)
+        in 2-d lattice N
         sage: [cone.ambient_ray_indices() for cone in FTV.fan()]
         [(0, 1), (1, 3), (2, 3), (2, 4), (0, 4), (2, 4), (0, 4)]
 
@@ -586,7 +615,7 @@ def CPRFanoToricVariety(Delta=None,
             raise ValueError("given charts do not form a complete fan!")
     # Subdivide this fan to use all required points
     fan = fan.subdivide(new_rays=(ray for ray in rays
-                                      if ray not in fan.ray_set()),
+                                      if ray not in fan.rays().set()),
                         make_simplicial=make_simplicial)
     # Now create yet another fan making sure that the order of the rays is
     # the same as requested (it is a bit difficult to get it from the start)
@@ -1182,8 +1211,12 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             sage: P1xP2 = P1.cartesian_product(P2); P1xP2
             3-d CPR-Fano toric variety covered by 6 affine patches
             sage: P1xP2.fan().rays()
-            (N+N(1, 0, 0), N+N(-1, 0, 0),
-             N+N(0, 1, 0), N+N(0, 0, 1), N+N(0, -1, -1))
+            N+N( 1,  0,  0),
+            N+N(-1,  0,  0),
+            N+N( 0,  1,  0),
+            N+N( 0,  0,  1),
+            N+N( 0, -1, -1)
+            in 3-d lattice N+N
             sage: P1xP2.Delta_polar()
             A lattice polytope: 3-dimensional, 5 vertices.
         """

@@ -47,12 +47,13 @@ way to get two fans assosiated to :class:`lattice polytopes
 Given such "automatic" fans, you may wonder what are their rays and cones::
 
     sage: fan1.rays()
-    (N(1, 0, 0), N(0, 1, 0), N(0, 0, 1),
-     N(-1, 0, 0), N(0, -1, 0), N(0, 0, -1))
-    sage: fan1.ray_matrix()
-    [ 1  0  0 -1  0  0]
-    [ 0  1  0  0 -1  0]
-    [ 0  0  1  0  0 -1]
+    N( 1,  0,  0),
+    N( 0,  1,  0),
+    N( 0,  0,  1),
+    N(-1,  0,  0),
+    N( 0, -1,  0),
+    N( 0,  0, -1)
+    in 3-d lattice N
     sage: fan1.generating_cones()
     (3-d cone of Rational polyhedral fan in 3-d lattice N,
      3-d cone of Rational polyhedral fan in 3-d lattice N,
@@ -66,14 +67,38 @@ Given such "automatic" fans, you may wonder what are their rays and cones::
 The last output is not very illuminating. Let's try to improve it::
 
     sage: for cone in fan1: print cone.rays()
-    (N(1, 0, 0), N(0, 1, 0), N(0, 0, -1))
-    (N(0, 1, 0), N(-1, 0, 0), N(0, 0, -1))
-    (N(1, 0, 0), N(0, -1, 0), N(0, 0, -1))
-    (N(-1, 0, 0), N(0, -1, 0), N(0, 0, -1))
-    (N(1, 0, 0), N(0, 1, 0), N(0, 0, 1))
-    (N(0, 1, 0), N(0, 0, 1), N(-1, 0, 0))
-    (N(1, 0, 0), N(0, 0, 1), N(0, -1, 0))
-    (N(0, 0, 1), N(-1, 0, 0), N(0, -1, 0))
+    N(1, 0,  0),
+    N(0, 1,  0),
+    N(0, 0, -1)
+    in 3-d lattice N
+    N( 0, 1,  0),
+    N(-1, 0,  0),
+    N( 0, 0, -1)
+    in 3-d lattice N
+    N(1,  0,  0),
+    N(0, -1,  0),
+    N(0,  0, -1)
+    in 3-d lattice N
+    N(-1,  0,  0),
+    N( 0, -1,  0),
+    N( 0,  0, -1)
+    in 3-d lattice N
+    N(1, 0, 0),
+    N(0, 1, 0),
+    N(0, 0, 1)
+    in 3-d lattice N
+    N( 0, 1, 0),
+    N( 0, 0, 1),
+    N(-1, 0, 0)
+    in 3-d lattice N
+    N(1,  0, 0),
+    N(0,  0, 1),
+    N(0, -1, 0)
+    in 3-d lattice N
+    N( 0,  0, 1),
+    N(-1,  0, 0),
+    N( 0, -1, 0)
+    in 3-d lattice N
 
 You can also do ::
 
@@ -132,13 +157,16 @@ Note, that while ``cone`` above seems to be a "cone", it is not::
     sage: cone.rays()
     Traceback (most recent call last):
     ...
-    AttributeError: 'FinitePoset_with_category.element_class' object has no attribute 'rays'
+    AttributeError: 'FinitePoset_with_category.element_class' object
+    has no attribute 'rays'
 
 To get your hands on the "real" cone, you need to do one more step::
 
     sage: cone = cone.element
     sage: cone.rays()
-    (N(1, 0, 0), N(0, 1, 0))
+    N(1, 0, 0),
+    N(0, 1, 0)
+    in 3-d lattice N
 
 You can check how "good" a fan is::
 
@@ -570,14 +598,25 @@ def FaceFan(polytope, lattice=None):
 
         sage: diamond = lattice_polytope.octahedron(2)
         sage: P1xP1 = FaceFan(diamond)
-        sage: P1xP1.ray_matrix()
-        [ 1  0 -1  0]
-        [ 0  1  0 -1]
+        sage: P1xP1.rays()
+        N( 1,  0),
+        N( 0,  1),
+        N(-1,  0),
+        N( 0, -1)
+        in 2-d lattice N
         sage: for cone in P1xP1: print cone.rays()
-        (N(1, 0), N(0, -1))
-        (N(-1, 0), N(0, -1))
-        (N(1, 0), N(0, 1))
-        (N(0, 1), N(-1, 0))
+        N(1,  0),
+        N(0, -1)
+        in 2-d lattice N
+        N(-1,  0),
+        N( 0, -1)
+        in 2-d lattice N
+        N(1, 0),
+        N(0, 1)
+        in 2-d lattice N
+        N( 0, 1),
+        N(-1, 0)
+        in 2-d lattice N
     """
     if any(d <= 0 for d in polytope.distances([0]*polytope.dim())):
         raise ValueError("face fans are defined only for polytopes containing"
@@ -616,14 +655,25 @@ def NormalFan(polytope, lattice=None):
 
         sage: square = lattice_polytope.octahedron(2).polar()
         sage: P1xP1 = NormalFan(square)
-        sage: P1xP1.ray_matrix()
-        [ 1  0 -1  0]
-        [ 0  1  0 -1]
+        sage: P1xP1.rays()
+        N( 1,  0),
+        N( 0,  1),
+        N(-1,  0),
+        N( 0, -1)
+        in 2-d lattice N
         sage: for cone in P1xP1: print cone.rays()
-        (N(1, 0), N(0, -1))
-        (N(-1, 0), N(0, -1))
-        (N(1, 0), N(0, 1))
-        (N(0, 1), N(-1, 0))
+        N(1,  0),
+        N(0, -1)
+        in 2-d lattice N
+        N(-1,  0),
+        N( 0, -1)
+        in 2-d lattice N
+        N(1, 0),
+        N(0, 1)
+        in 2-d lattice N
+        N( 0, 1),
+        N(-1, 0)
+        in 2-d lattice N
     """
     rays = (polytope.facet_normal(i) for i in range(polytope.nfacets()))
     cones = (vertex.facets() for vertex in polytope.faces(dim=0))
@@ -834,7 +884,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: f = sage.geometry.fan.RationalPolyhedralFan(
             ...                         [(0,)], [v], None)
             sage: f.rays()
-            ((0, 1),)
+            (0, 1)
+            in Ambient free module of rank 2
+            over the principal ideal domain Integer Ring
             sage: TestSuite(f).run()
             sage: f = Fan([(0,)], [(0,1)])
             sage: TestSuite(f).run()
@@ -980,8 +1032,12 @@ class RationalPolyhedralFan(IntegralRayCollection,
             ...           rays=[(1,0), (0,1), (-1, 0)],
             ...           check=False)
             sage: for cone in f: print cone.rays()
-            (N(1, 0), N(0, 1))
-            (N(0, 1), N(-1, 0))
+            N(1, 0),
+            N(0, 1)
+            in 2-d lattice N
+            N( 0, 1),
+            N(-1, 0)
+            in 2-d lattice N
          """
         return iter(self.generating_cones())
 
@@ -1018,9 +1074,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: cone1 = Cone([(1,0), (0,1)])
             sage: cone2 = Cone([(-1,0)])
             sage: fan = Fan([cone1, cone2])
-            sage: fan.ray_matrix()
-            [ 0  1 -1]
-            [ 1  0  0]
+            sage: fan.rays()
+            N( 0, 1),
+            N( 1, 0),
+            N(-1, 0)
+            in 2-d lattice N
             sage: for cone in fan: print cone.ambient_ray_indices()
             (0, 1)
             (2,)
@@ -1399,9 +1457,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: # Timing information will depend on your machine
             sage: new_fan = fan._subdivide_palp(new_rays, True)
             R:1/1  C:2  T:...(ms)  T/new:...(ms)  T/all:...(ms)
-            sage: new_fan.ray_matrix()
-            [1 0 1]
-            [0 1 1]
+            sage: new_fan.rays()
+            N(1, 0),
+            N(0, 1),
+            N(1, 1)
+            in 2-d lattice N
             sage: for cone in new_fan: print cone.ambient_ray_indices()
             (1, 2)
             (0, 2)
@@ -1470,7 +1530,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         # Convert lattice polytopes to cones
         new_fan_rays = list(self.rays())
         new_fan_rays.extend(ray for ray in new_rays
-                                if ray not in self.ray_set())
+                                if ray not in self.rays().set())
         cones = tuple(tuple(sorted(new_fan_rays.index(cone_polytope.vertex(v))
                             for v in range(cone_polytope.nvertices() - 1)))
                       for cone_polytope in cone_polytopes)
@@ -1504,7 +1564,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: cone2 = Cone([(1,0), (0,1)])
             sage: f = Fan([cone1, cone2])
             sage: f.rays()
-            (N(0, 1), N(0, -1), N(1, 0))
+            N(0,  1),
+            N(0, -1),
+            N(1,  0)
+            in 2-d lattice N
             sage: f.cone_containing(0)  # ray index
             1-d cone of Rational polyhedral fan in 2-d lattice N
             sage: f.cone_containing(0, 1) # ray indices
@@ -1512,7 +1575,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             ...
             ValueError: there is no cone in
             Rational polyhedral fan in 2-d lattice N
-            containing all of the given rays! Rays: (N(0, 1), N(0, -1))
+            containing all of the given rays! Ray indices: [0, 1]
             sage: f.cone_containing(0, 2) # ray indices
             2-d cone of Rational polyhedral fan in 2-d lattice N
             sage: f.cone_containing((0,1))  # point
@@ -1539,7 +1602,8 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan = Fan(cones=[(0,1,2,3), (0,1,4)],
             ...       rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
             sage: fan.cone_containing(0).rays()
-            (N(1, 1, 1),)
+            N(1, 1, 1)
+            in 3-d lattice N
         """
         if not points:
             return self.cones(dim=0)[0]
@@ -1551,7 +1615,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
                 generating_cones.intersection_update(self._ray_to_cones(ray))
             if not generating_cones:
                 raise ValueError("there is no cone in %s containing all of "
-                        "the given rays! Rays: %s" % (self, self.rays(rays)))
+                        "the given rays! Ray indices: %s" % (self, rays))
             containing_cone = self.generating_cone(generating_cones.pop())
             for cone in generating_cones:
                 containing_cone = containing_cone.intersection(
@@ -1625,9 +1689,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: cone1 = Cone([(1,0), (0,1)])
             sage: cone2 = Cone([(-1,0)])
             sage: fan = Fan([cone1, cone2])
-            sage: fan.ray_matrix()
-            [ 0  1 -1]
-            [ 1  0  0]
+            sage: fan.rays()
+            N( 0, 1),
+            N( 1, 0),
+            N(-1, 0)
+            in 2-d lattice N
             sage: for cone in fan: print cone.ambient_ray_indices()
             (0, 1)
             (2,)
@@ -1920,7 +1986,8 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: e_ray
             1-d cone of Rational polyhedral fan in 3-d lattice N
             sage: e_ray.rays()
-            (N(0, -1, 1),)
+            N(0, -1, 1)
+            in 3-d lattice N
             sage: e_ray is ray
             False
             sage: e_ray.is_equivalent(ray)
@@ -1965,6 +2032,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             raise ValueError("%s does not belong to %s!" % (cone, self))
         return result
 
+    @cached_method
     def Gale_transform(self):
         r"""
         Return the Gale transform of ``self``.
@@ -1982,11 +2050,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: _.base_ring()
             Integer Ring
         """
-        if "_Gale_transform" not in self.__dict__:
-            m = self.ray_matrix().augment(matrix(self.lattice_dim(), 1))
-            m = m.stack(matrix([1]*m.ncols()))
-            self._Gale_transform = matrix(ZZ, m.transpose().integer_kernel().matrix())
-        return self._Gale_transform
+        m = self.rays().matrix().stack(matrix(ZZ, 1, self.lattice_dim()))
+        m = m.augment(matrix(ZZ, m.nrows(), 1, [1]*m.nrows()))
+        return matrix(ZZ, m.integer_kernel().matrix())
 
     def generating_cone(self, n):
         r"""
@@ -2124,7 +2190,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         if (self.lattice() != other.lattice()
             or self.dim() != other.dim()
             or self.ngenerating_cones() != other.ngenerating_cones()
-            or self.ray_set() != other.ray_set()):
+            or self.rays().set() != other.rays().set()):
             return False
         # Now we need to really compare cones, which can take a while
         return sorted(sorted(cone.rays()) for cone in self) \
@@ -2257,8 +2323,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan.is_smooth(codim=1)
             True
             sage: fan.generating_cone(0).rays()
-            (N(-1, 1), N(-1, -1))
-            sage: fan.generating_cone(0).ray_matrix().det()
+            N(-1,  1),
+            N(-1, -1)
+            in 2-d lattice N
+            sage: fan.generating_cone(0).rays().matrix().det()
             2
         """
         if codim is None or codim < 0:
@@ -2407,7 +2475,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         else:
             rays = []
         rays.extend(ray for ray in normalize_rays(new_rays, self.lattice())
-                        if ray not in self.ray_set())
+                        if ray not in self.rays().set())
         if not rays:
             return self # Nothing has to be done
         if self.lattice().zero() in rays:
@@ -2597,7 +2665,8 @@ class RationalPolyhedralFan(IntegralRayCollection,
             + 3-d cone of Rational polyhedral fan in 3-d lattice N
             - 3-d cone of Rational polyhedral fan in 3-d lattice N
             + 3-d cone of Rational polyhedral fan in 3-d lattice N
-            sage: [ matrix(cone.ray_basis()).det() for cone in fan.generating_cones() ]
+            sage: [cone.rays().basis().matrix().det()
+            ...    for cone in fan.generating_cones()]
             [-1, 1, -1, 1]
 
         A non-full dimensional fan::
@@ -2640,7 +2709,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
                 outward_v = [ Q.lift(q) for q in Q.gens() ]
 
             outward_vectors[c] = outward_v
-            orientation = sign(matrix(outward_v + list(c.ray_basis())).det())
+            orientation = sign(matrix(outward_v + list(c.rays().basis())).det())
             generating_cones.append(tuple([orientation, c]))
         boundaries = {self:FormalSum(generating_cones)}
 
@@ -2650,14 +2719,14 @@ class RationalPolyhedralFan(IntegralRayCollection,
         for d in range(dim, -1, -1):
             for c in self(d):
                 c_boundary = []
-                c_matrix = matrix(outward_vectors[c] + list(c.ray_basis()))
+                c_matrix = matrix(outward_vectors[c] + list(c.rays().basis()))
                 c_matrix_inv = c_matrix.inverse()
                 for facet in c.facets():
                     outward_ray_indices = set(c.ambient_ray_indices()) \
                               .difference(set(facet.ambient_ray_indices()))
                     outward_vector = - sum(self.ray(i) for i in outward_ray_indices)
                     outward_vectors[facet] = [outward_vector] + outward_vectors[c]
-                    facet_matrix = matrix(outward_vectors[facet] + list(facet.ray_basis()))
+                    facet_matrix = matrix(outward_vectors[facet] + list(facet.rays().basis()))
                     orientation = sign((c_matrix_inv * facet_matrix).det())
                     c_boundary.append(tuple([orientation, facet]))
                 boundaries[c] = FormalSum(c_boundary)

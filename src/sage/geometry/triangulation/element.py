@@ -559,8 +559,15 @@ class Triangulation(Element):
             sage: fan
             Rational polyhedral fan in 3-d lattice N
             sage: fan.rays()
-            (N(1, 1, 0), N(1, 3, 1), N(1, 2, 3), N(1, 0, 2),
-             N(1, 1, 1), N(1, 1, 2), N(1, 2, 1), N(1, 2, 2))
+            N(1, 1, 0),
+            N(1, 3, 1),
+            N(1, 2, 3),
+            N(1, 0, 2),
+            N(1, 1, 1),
+            N(1, 1, 2),
+            N(1, 2, 1),
+            N(1, 2, 2)
+            in 3-d lattice N
         """
         from sage.geometry.fan import Fan
         if origin is None:
@@ -727,10 +734,19 @@ class Triangulation(Element):
             sage: N = triangulation.normal_cone();  N
             4-d cone in 4-d lattice
             sage: N.rays()
-            ((-1, 0, 0, 0), (1, 0, 1, 0), (-1, 0, -1, 0), (1, 0, 0, -1),
-             (-1, 0, 0, 1), (1, 1, 0, 0), (-1, -1, 0, 0))
+            (-1,  0,  0,  0),
+            ( 1,  0,  1,  0),
+            (-1,  0, -1,  0),
+            ( 1,  0,  0, -1),
+            (-1,  0,  0,  1),
+            ( 1,  1,  0,  0),
+            (-1, -1,  0,  0)
+            in Ambient free module of rank 4
+            over the principal ideal domain Integer Ring
             sage: N.dual().rays()
-            ((-1, 1, 1, -1),)
+            (-1, 1, 1, -1)
+            in Ambient free module of rank 4
+            over the principal ideal domain Integer Ring
 
         TESTS::
 

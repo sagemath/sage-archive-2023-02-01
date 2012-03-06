@@ -123,7 +123,9 @@ using homogeneous polynomials. Consider the blowup `O_{\mathbb{P}^1}(2)
 
     sage: A2_Z2 = toric_varieties.A2_Z2()
     sage: A2_Z2.fan().rays()
-    (N(1, 0), N(1, 2))
+    N(1, 0),
+    N(1, 2)
+    in 2-d lattice N
     sage: O2_P1 = A2_Z2.resolve(new_rays=[(1,1)])
     sage: blowup = O2_P1.hom(identity_matrix(2), A2_Z2)
     sage: blowup.as_polynomial_map()
@@ -504,7 +506,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
         for rho, x in zip(phi.domain_fan(1), R.gens()):
             ray = rho.ray(0)
             sigma = phi.image_cone(rho)
-            degrees = sigma.ray_matrix().solve_right(phi(ray))
+            degrees = sigma.rays().matrix().solve_left(phi(ray))
             for i, d in zip(sigma.ambient_ray_indices(), degrees):
                 try:
                     d = ZZ(d)

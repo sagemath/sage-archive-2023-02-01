@@ -46,12 +46,20 @@ face fan. We can rectify the situation in the following way::
     [0 0]
     Domain fan: Rational polyhedral fan in 2-d lattice N
     Codomain fan: Rational polyhedral fan in 2-d lattice N
-    sage: fm.domain_fan().ray_matrix()
-    [-1  1 -1  1  0  0]
-    [ 1  1 -1 -1 -1  1]
-    sage: normal.ray_matrix()
-    [-1  1 -1  1]
-    [ 1  1 -1 -1]
+    sage: fm.domain_fan().rays()
+    N(-1,  1),
+    N( 1,  1),
+    N(-1, -1),
+    N( 1, -1),
+    N( 0, -1),
+    N( 0,  1)
+    in 2-d lattice N
+    sage: normal.rays()
+    N(-1,  1),
+    N( 1,  1),
+    N(-1, -1),
+    N( 1, -1)
+    in 2-d lattice N
 
 As you see, it was necessary to insert two new rays (to prevent "upper" and
 "lower" cones of the normal fan from being mapped to the whole `x`-axis).
@@ -177,9 +185,10 @@ class FanMorphism(FreeModuleMorphism):
         sage: fm = FanMorphism(phi, face)
         sage: fm.codomain_fan()
         Rational polyhedral fan in 2-d lattice N
-        sage: fm.codomain_fan().ray_matrix()
-        [ 1 -1]
-        [ 0  0]
+        sage: fm.codomain_fan().rays()
+        N( 1, 0),
+        N(-1, 0)
+        in 2-d lattice N
 
     Now we demonstrate a more subtle example. We take the first quadrant as our
     domain fan. Then we divide the first quadrant into three cones, throw away
@@ -399,9 +408,12 @@ class FanMorphism(FreeModuleMorphism):
             ValueError: codomain (fan) must be given explicitly
             if morphism is given by a matrix!
             sage: fm = FanMorphism(identity_matrix(2), quadrant_bl, ZZ^2)
-            sage: fm.codomain_fan().ray_matrix()  # indirect doctest
-            [1 0 1]
-            [0 1 1]
+            sage: fm.codomain_fan().rays()  # indirect doctest
+            (1, 0),
+            (0, 1),
+            (1, 1)
+            in Ambient free module of rank 2
+            over the principal ideal domain Integer Ring
         """
         # We literally try to construct the image fan and hope that it works.
         # If it does not, the fan constructor will raise an exception.
@@ -547,9 +559,11 @@ class FanMorphism(FreeModuleMorphism):
             is not contained in a single cone of the codomain fan!
             sage: fm = FanMorphism(identity_matrix(2), quadrant,
             ...                    quadrant_bl, subdivide=True)
-            sage: fm.domain_fan().ray_matrix()  # indirect doctest
-            [1 0 1]
-            [0 1 1]
+            sage: fm.domain_fan().rays()  # indirect doctest
+            N(1, 0),
+            N(0, 1),
+            N(1, 1)
+            in 2-d lattice N
 
         Now we demonstrate a more subtle example. We take the first quadrant
         as our ``domain_fan``. Then we divide the first quadrant into three
@@ -585,10 +599,11 @@ class FanMorphism(FreeModuleMorphism):
             sage: Sigma_prime = FaceFan(lattice_polytope.octahedron(3))
             sage: fm = FanMorphism(identity_matrix(3),
             ...                    Sigma, Sigma_prime, subdivide=True)
-            sage: fm.domain_fan().ray_matrix()
-            [ 1  1  1]
-            [ 1 -1  0]
-            [ 0  0  0]
+            sage: fm.domain_fan().rays()
+            N(1,  1, 0),
+            N(1, -1, 0),
+            N(1,  0, 0)
+            in 3-d lattice N
             sage: [cone.ambient_ray_indices() for cone in fm.domain_fan()]
             [(0, 2), (1, 2)]
 
@@ -748,19 +763,23 @@ class FanMorphism(FreeModuleMorphism):
             sage: F1 = Fan(cones=[(0,1,2), (1,2,3)],
             ...            rays=[(1,1,1), (1,1,-1), (1,-1,1), (1,-1,-1)],
             ...            lattice=N3)
-            sage: F1.ray_matrix()
-            [ 1  1  1  1]
-            [ 1  1 -1 -1]
-            [ 1 -1  1 -1]
+            sage: F1.rays()
+            N3(1,  1,  1),
+            N3(1,  1, -1),
+            N3(1, -1,  1),
+            N3(1, -1, -1)
+            in 3-d lattice N3
             sage: [phi(ray) for ray in F1.rays()]
             [N2(2, 1), N2(0, 1), N2(2, -1), N2(0, -1)]
             sage: F2 = Fan(cones=[(0,1,2), (1,2,3)],
             ...            rays=[(1,1,1), (1,1,-1), (1,2,1), (1,2,-1)],
             ...            lattice=N3)
-            sage: F2.ray_matrix()
-            [ 1  1  1  1]
-            [ 1  1  2  2]
-            [ 1 -1  1 -1]
+            sage: F2.rays()
+            N3(1, 1,  1),
+            N3(1, 1, -1),
+            N3(1, 2,  1),
+            N3(1, 2, -1)
+            in 3-d lattice N3
             sage: [phi(ray) for ray in F2.rays()]
             [N2(2, 1), N2(0, 1), N2(2, 2), N2(0, 2)]
             sage: F3 = Fan(cones=[(0,1), (1,2)],
@@ -1304,9 +1323,9 @@ class FanMorphism(FreeModuleMorphism):
             sage: fm = FanMorphism(matrix(2, 1, [1,-1]), fan, ToricLattice(1))
             sage: fm.kernel_fan()
             Rational polyhedral fan in Sublattice <N(1, 1)>
-            sage: _.ray_matrix()
-            [1]
-            [1]
+            sage: _.rays()
+            N(1, 1)
+            in Sublattice <N(1, 1)>
             sage: fm.kernel_fan().cones()
             ((0-d cone of Rational polyhedral fan in Sublattice <N(1, 1)>,),
              (1-d cone of Rational polyhedral fan in Sublattice <N(1, 1)>,))
@@ -1466,9 +1485,14 @@ class FanMorphism(FreeModuleMorphism):
         Consider a projection of a del Pezzo surface onto the projective line::
 
             sage: Sigma = toric_varieties.dP6().fan()
-            sage: Sigma.ray_matrix()
-            [ 0 -1 -1  0  1  1]
-            [ 1  0 -1 -1  0  1]
+            sage: Sigma.rays()
+            N( 0,  1),
+            N(-1,  0),
+            N(-1, -1),
+            N( 0, -1),
+            N( 1,  0),
+            N( 1,  1)
+            in 2-d lattice N
             sage: Sigma_p = toric_varieties.P1().fan()
             sage: phi = FanMorphism(matrix([[1], [-1]]), Sigma, Sigma_p)
 
@@ -1557,9 +1581,10 @@ class FanMorphism(FreeModuleMorphism):
 
             sage: psi.codomain().gens()
             (N(1, 1),)
-            sage: psi.codomain_fan().ray_matrix()
-            [ 1 -1]
-            [ 1 -1]
+            sage: psi.codomain_fan().rays()
+            N( 1,  1),
+            N(-1, -1)
+            in Sublattice <N(1, 1)>
 
         Restriction to image returns exactly the same map if the corresponding
         map of vector spaces is surjective, e.g. in the case of double

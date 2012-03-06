@@ -2292,14 +2292,14 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         polynomials = [ p.subs(inhomogenize) for p in self.defining_polynomials() ]
 
         # map the monomial x^{D_m} to m, see reference.
-        n_rho_matrix = cone.ray_matrix()
+        n_rho_matrix = cone.rays().matrix()
         def pullback_polynomial(p):
             result = R.zero()
             for coefficient, monomial in p:
                 exponent = monomial.exponents()[0]
                 exponent = [ exponent[i] for i in cone.ambient_ray_indices() ]
                 exponent = vector(ZZ,exponent)
-                m = n_rho_matrix.solve_left(exponent)
+                m = n_rho_matrix.solve_right(exponent)
                 assert all(x in ZZ for x in m), \
                     'The polynomial '+str(p)+' does not define a ZZ-divisor!'
                 m_coeffs = dualcone.Hilbert_coefficients(m)

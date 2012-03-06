@@ -105,11 +105,13 @@ The (rational) divisor class group is where the Kaehler cone lives::
     sage: Kc = dP6.Kaehler_cone(); Kc
     4-d cone in 4-d lattice
     sage: Kc.rays()
-    (Divisor class [0, 1, 1, 0],
-     Divisor class [0, 0, 1, 1],
-     Divisor class [1, 1, 0, 0],
-     Divisor class [1, 1, 1, 0],
-     Divisor class [0, 1, 1, 1])
+    Divisor class [0, 1, 1, 0],
+    Divisor class [0, 0, 1, 1],
+    Divisor class [1, 1, 0, 0],
+    Divisor class [1, 1, 1, 0],
+    Divisor class [0, 1, 1, 1]
+    in Basis lattice of The toric rational divisor class group
+    of a 2-d CPR-Fano toric variety covered by 6 affine patches
     sage: Kc.ray(1).lift()
     V(y) + V(v)
 
@@ -830,7 +832,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         assert cone.ambient() is fan
         b = vector(self.coefficient(i) for i in cone.ambient_ray_indices())
-        A = cone.ray_matrix()
+        A = cone.rays().column_matrix()
         try:
             if cone.dim() == X.dimension():
                 # either unique solution or ValueError (if not QQ-Cartier)
@@ -1183,7 +1185,9 @@ class ToricDivisor_generic(Divisor_generic):
             sage: X.rational_class_group().dimension()
             4
             sage: X.Kaehler_cone().rays()
-            (Divisor class [1, 0, 0, 0],)
+            Divisor class [1, 0, 0, 0]
+            in Basis lattice of The toric rational divisor class group
+            of a 3-d toric variety covered by 7 affine patches
             sage: antiK = -X.K()
             sage: antiK.divisor_class()
             Divisor class [2, 0, 0, 0]

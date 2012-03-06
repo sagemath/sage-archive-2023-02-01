@@ -288,9 +288,14 @@ class ToricVarietyFactory(SageObject):
             sage: dP6 = toric_varieties.dP6()
             sage: dP6
             2-d CPR-Fano toric variety covered by 6 affine patches
-            sage: dP6.fan().ray_matrix()
-            [ 0 -1 -1  0  1  1]
-            [ 1  0 -1 -1  0  1]
+            sage: dP6.fan().rays()
+            N( 0,  1),
+            N(-1,  0),
+            N(-1, -1),
+            N( 0, -1),
+            N( 1,  0),
+            N( 1,  1)
+            in 2-d lattice N
             sage: dP6.gens()
             (x, u, y, v, z, w)
         """
@@ -318,9 +323,13 @@ class ToricVarietyFactory(SageObject):
             sage: dP7 = toric_varieties.dP7()
             sage: dP7
             2-d CPR-Fano toric variety covered by 5 affine patches
-            sage: dP7.fan().ray_matrix()
-            [ 0 -1 -1  0  1]
-            [ 1  0 -1 -1  0]
+            sage: dP7.fan().rays()
+            N( 0,  1),
+            N(-1,  0),
+            N(-1, -1),
+            N( 0, -1),
+            N( 1,  0)
+            in 2-d lattice N
             sage: dP7.gens()
             (x, u, y, v, z)
         """
@@ -348,9 +357,12 @@ class ToricVarietyFactory(SageObject):
             sage: dP8 = toric_varieties.dP8()
             sage: dP8
             2-d CPR-Fano toric variety covered by 4 affine patches
-            sage: dP8.fan().ray_matrix()
-            [ 1  0 -1  1]
-            [ 1  1 -1  0]
+            sage: dP8.fan().rays()
+            N( 1,  1),
+            N( 0,  1),
+            N(-1, -1),
+            N( 1,  0)
+            in 2-d lattice N
             sage: dP8.gens()
             (t, x, y, z)
         """
@@ -378,9 +390,12 @@ class ToricVarietyFactory(SageObject):
             sage: P1xP1 = toric_varieties.P1xP1()
             sage: P1xP1
             2-d CPR-Fano toric variety covered by 4 affine patches
-            sage: P1xP1.fan().ray_matrix()
-            [ 1 -1  0  0]
-            [ 0  0  1 -1]
+            sage: P1xP1.fan().rays()
+            N( 1,  0),
+            N(-1,  0),
+            N( 0,  1),
+            N( 0, -1)
+            in 2-d lattice N
             sage: P1xP1.gens()
             (s, t, x, y)
         """
@@ -408,9 +423,12 @@ class ToricVarietyFactory(SageObject):
             sage: P1xP1_Z2 = toric_varieties.P1xP1_Z2()
             sage: P1xP1_Z2
             2-d CPR-Fano toric variety covered by 4 affine patches
-            sage: P1xP1_Z2.fan().ray_matrix()
-            [ 1 -1 -1  1]
-            [ 1 -1  1 -1]
+            sage: P1xP1_Z2.fan().rays()
+            N( 1,  1),
+            N(-1, -1),
+            N(-1,  1),
+            N( 1, -1)
+            in 2-d lattice N
             sage: P1xP1_Z2.gens()
             (s, t, x, y)
             sage: P1xP1_Z2.Chow_group().degree(1)
@@ -440,8 +458,10 @@ class ToricVarietyFactory(SageObject):
             sage: P1 = toric_varieties.P1()
             sage: P1
             1-d CPR-Fano toric variety covered by 2 affine patches
-            sage: P1.fan().ray_matrix()
-            [ 1 -1]
+            sage: P1.fan().rays()
+            N( 1),
+            N(-1)
+            in 1-d lattice N
             sage: P1.gens()
             (s, t)
         """
@@ -469,9 +489,11 @@ class ToricVarietyFactory(SageObject):
             sage: P2 = toric_varieties.P2()
             sage: P2
             2-d CPR-Fano toric variety covered by 3 affine patches
-            sage: P2.fan().ray_matrix()
-            [ 1  0 -1]
-            [ 0  1 -1]
+            sage: P2.fan().rays()
+            N( 1,  0),
+            N( 0,  1),
+            N(-1, -1)
+            in 2-d lattice N
             sage: P2.gens()
             (x, y, z)
         """
@@ -500,10 +522,12 @@ class ToricVarietyFactory(SageObject):
             sage: P3 = toric_varieties.P(3)
             sage: P3
             3-d CPR-Fano toric variety covered by 4 affine patches
-            sage: P3.fan().ray_matrix()
-            [ 1  0  0 -1]
-            [ 0  1  0 -1]
-            [ 0  0  1 -1]
+            sage: P3.fan().rays()
+            N( 1,  0,  0),
+            N( 0,  1,  0),
+            N( 0,  0,  1),
+            N(-1, -1, -1)
+            in 3-d lattice N
             sage: P3.gens()
             (z0, z1, z2, z3)
         """
@@ -544,8 +568,9 @@ class ToricVarietyFactory(SageObject):
             sage: A1 = toric_varieties.A1()
             sage: A1
             1-d affine toric variety
-            sage: A1.fan().ray_matrix()
-            [1]
+            sage: A1.fan().rays()
+            N(1)
+            in 1-d lattice N
             sage: A1.gens()
             (z,)
         """
@@ -572,9 +597,10 @@ class ToricVarietyFactory(SageObject):
             sage: A2 = toric_varieties.A2()
             sage: A2
             2-d affine toric variety
-            sage: A2.fan().ray_matrix()
-            [1 0]
-            [0 1]
+            sage: A2.fan().rays()
+            N(1, 0),
+            N(0, 1)
+            in 2-d lattice N
             sage: A2.gens()
             (x, y)
         """
@@ -603,10 +629,11 @@ class ToricVarietyFactory(SageObject):
             sage: A3 = toric_varieties.A(3)
             sage: A3
             3-d affine toric variety
-            sage: A3.fan().ray_matrix()
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
+            sage: A3.fan().rays()
+            N(1, 0, 0),
+            N(0, 1, 0),
+            N(0, 0, 1)
+            in 3-d lattice N
             sage: A3.gens()
             (z0, z1, z2)
         """
@@ -647,9 +674,10 @@ class ToricVarietyFactory(SageObject):
             sage: A2_Z2 = toric_varieties.A2_Z2()
             sage: A2_Z2
             2-d affine toric variety
-            sage: A2_Z2.fan().ray_matrix()
-            [1 1]
-            [0 2]
+            sage: A2_Z2.fan().rays()
+            N(1, 0),
+            N(1, 2)
+            in 2-d lattice N
             sage: A2_Z2.gens()
             (x, y)
         """
@@ -677,9 +705,11 @@ class ToricVarietyFactory(SageObject):
             sage: P1xA1 = toric_varieties.P1xA1()
             sage: P1xA1
             2-d toric variety covered by 2 affine patches
-            sage: P1xA1.fan().ray_matrix()
-            [ 1 -1  0]
-            [ 0  0  1]
+            sage: P1xA1.fan().rays()
+            N( 1, 0),
+            N(-1, 0),
+            N( 0, 1)
+            in 2-d lattice N
             sage: P1xA1.gens()
             (s, t, z)
         """
@@ -706,10 +736,12 @@ class ToricVarietyFactory(SageObject):
             sage: Conifold = toric_varieties.Conifold()
             sage: Conifold
             3-d affine toric variety
-            sage: Conifold.fan().ray_matrix()
-            [0 0 1 1]
-            [0 1 0 1]
-            [1 1 1 1]
+            sage: Conifold.fan().rays()
+            N(0, 0, 1),
+            N(0, 1, 1),
+            N(1, 0, 1),
+            N(1, 1, 1)
+            in 3-d lattice N
             sage: Conifold.gens()
             (u, x, y, v)
         """
@@ -734,15 +766,24 @@ class ToricVarietyFactory(SageObject):
 
         EXAMPLES::
 
-            sage: dP6xdP6 = toric_varieties.dP6xdP6()   # long time (20s on sage.math, 2011)
-            sage: dP6xdP6                               # long time
+            sage: dP6xdP6 = toric_varieties.dP6xdP6()
+            sage: dP6xdP6
             4-d CPR-Fano toric variety covered by 36 affine patches
-            sage: dP6xdP6.fan().ray_matrix()            # long time
-            [ 0 -1 -1  0  1  1  0  0  0  0  0  0]
-            [ 1  0 -1 -1  0  1  0  0  0  0  0  0]
-            [ 0  0  0  0  0  0  0 -1 -1  0  1  1]
-            [ 0  0  0  0  0  0  1  0 -1 -1  0  1]
-            sage: dP6xdP6.gens()                        # long time
+            sage: dP6xdP6.fan().rays()
+            N( 0,  1,  0,  0),
+            N(-1,  0,  0,  0),
+            N(-1, -1,  0,  0),
+            N( 0, -1,  0,  0),
+            N( 1,  0,  0,  0),
+            N( 1,  1,  0,  0),
+            N( 0,  0,  0,  1),
+            N( 0,  0, -1,  0),
+            N( 0,  0, -1, -1),
+            N( 0,  0,  0, -1),
+            N( 0,  0,  1,  0),
+            N( 0,  0,  1,  1)
+            in 4-d lattice N
+            sage: dP6xdP6.gens()
             (x0, x1, x2, x3, x4, x5, y0, y1, y2, y3, y4, y5)
         """
         return self._make_CPRFanoToricVariety('dP6xdP6', names)
@@ -772,10 +813,16 @@ class ToricVarietyFactory(SageObject):
             sage: Cube_face_fan = toric_varieties.Cube_face_fan()
             sage: Cube_face_fan
             3-d CPR-Fano toric variety covered by 6 affine patches
-            sage: Cube_face_fan.fan().ray_matrix()
-            [ 1  1 -1 -1 -1 -1  1  1]
-            [ 1 -1  1 -1 -1  1 -1  1]
-            [ 1  1  1  1 -1 -1 -1 -1]
+            sage: Cube_face_fan.fan().rays()
+            N( 1,  1,  1),
+            N( 1, -1,  1),
+            N(-1,  1,  1),
+            N(-1, -1,  1),
+            N(-1, -1, -1),
+            N(-1,  1, -1),
+            N( 1, -1, -1),
+            N( 1,  1, -1)
+            in 3-d lattice N
             sage: Cube_face_fan.gens()
             (z0, z1, z2, z3, z4, z5, z6, z7)
         """
@@ -807,10 +854,16 @@ class ToricVarietyFactory(SageObject):
             sage: Cube_sublattice = toric_varieties.Cube_sublattice()
             sage: Cube_sublattice
             3-d CPR-Fano toric variety covered by 6 affine patches
-            sage: Cube_sublattice.fan().ray_matrix()
-            [ 1  0  0 -1 -1  0  0  1]
-            [ 0  1  0  1  0 -1  0 -1]
-            [ 0  0  1  1  0  0 -1 -1]
+            sage: Cube_sublattice.fan().rays()
+            N( 1,  0,  0),
+            N( 0,  1,  0),
+            N( 0,  0,  1),
+            N(-1,  1,  1),
+            N(-1,  0,  0),
+            N( 0, -1,  0),
+            N( 0,  0, -1),
+            N( 1, -1, -1)
+            in 3-d lattice N
             sage: Cube_sublattice.gens()
             (z0, z1, z2, z3, z4, z5, z6, z7)
 
@@ -855,10 +908,16 @@ class ToricVarietyFactory(SageObject):
             sage: Cube_nonpolyhedral = toric_varieties.Cube_nonpolyhedral()
             sage: Cube_nonpolyhedral
             3-d toric variety covered by 6 affine patches
-            sage: Cube_nonpolyhedral.fan().ray_matrix()
-            [ 1  1 -1 -1 -1 -1  1  1]
-            [ 2 -1  1 -1 -1  1 -1  1]
-            [ 3  1  1  1 -1 -1 -1 -1]
+            sage: Cube_nonpolyhedral.fan().rays()
+            N( 1,  2,  3),
+            N( 1, -1,  1),
+            N(-1,  1,  1),
+            N(-1, -1,  1),
+            N(-1, -1, -1),
+            N(-1,  1, -1),
+            N( 1, -1, -1),
+            N( 1,  1, -1)
+            in 3-d lattice N
             sage: Cube_nonpolyhedral.gens()
             (z0, z1, z2, z3, z4, z5, z6, z7)
         """
@@ -895,10 +954,16 @@ class ToricVarietyFactory(SageObject):
             sage: X_2 = toric_varieties.Cube_deformation(2)
             sage: X_2
             3-d toric variety covered by 6 affine patches
-            sage: X_2.fan().ray_matrix()
-            [ 1  1 -1 -1 -1 -1  1  1]
-            [ 1 -1  1 -1 -1  1 -1  1]
-            [ 5  1  1  1 -1 -1 -1 -1]
+            sage: X_2.fan().rays()
+            N( 1,  1,  5),
+            N( 1, -1,  1),
+            N(-1,  1,  1),
+            N(-1, -1,  1),
+            N(-1, -1, -1),
+            N(-1,  1, -1),
+            N( 1, -1, -1),
+            N( 1,  1, -1)
+            in 3-d lattice N
             sage: X_2.gens()
             (z0, z1, z2, z3, z4, z5, z6, z7)
 
@@ -943,16 +1008,25 @@ class ToricVarietyFactory(SageObject):
 
         EXAMPLES::
 
-            sage: X = toric_varieties.BCdlOG()      # long time (56s on sage.math, 2011)
-            sage: X                                 # long time
+            sage: X = toric_varieties.BCdlOG()
+            sage: X
             5-d CPR-Fano toric variety covered by 54 affine patches
-            sage: X.fan().ray_matrix()              # long time
-            [-1  0  0  0  0  0  0  0  0  0  0  0  1]
-            [ 0 -1  0  0  0  0  0  0  0  0  1  1  0]
-            [ 0  0 -1 -1  0  0  0  1  2  1  2  3  4]
-            [ 2  2  2  1 -1  0  2  2  2  1  2  2  2]
-            [ 3  3  3  2  0 -1  3  3  3  1  3  3  3]
-            sage: X.gens()                          # long time
+            sage: X.fan().rays()
+            N(-1,  0,  0,  2,  3),
+            N( 0, -1,  0,  2,  3),
+            N( 0,  0, -1,  2,  3),
+            N( 0,  0, -1,  1,  2),
+            N( 0,  0,  0, -1,  0),
+            N( 0,  0,  0,  0, -1),
+            N( 0,  0,  0,  2,  3),
+            N( 0,  0,  1,  2,  3),
+            N( 0,  0,  2,  2,  3),
+            N( 0,  0,  1,  1,  1),
+            N( 0,  1,  2,  2,  3),
+            N( 0,  1,  3,  2,  3),
+            N( 1,  0,  4,  2,  3)
+            in 5-d lattice N
+            sage: X.gens()
             (v1, v2, c1, c2, v4, v5, b, e1, e2, e3, f, g, v6)
 
         REFERENCES:
@@ -992,10 +1066,15 @@ class ToricVarietyFactory(SageObject):
             sage: base = toric_varieties.BCdlOG_base()
             sage: base
             3-d toric variety covered by 10 affine patches
-            sage: base.fan().ray_matrix()
-            [-1  0  0  0  0  0  1]
-            [ 0 -1  0  0  1  1  0]
-            [ 0  0 -1  1  2  3  4]
+            sage: base.fan().rays()
+            N(-1,  0,  0),
+            N( 0, -1,  0),
+            N( 0,  0, -1),
+            N( 0,  0,  1),
+            N( 0,  1,  2),
+            N( 0,  1,  3),
+            N( 1,  0,  4)
+            in 3-d lattice N
             sage: base.gens()
             (d4, d3, r2, r1, d2, u, d1)
         """
@@ -1023,9 +1102,11 @@ class ToricVarietyFactory(SageObject):
             sage: P2_112 = toric_varieties.P2_112()
             sage: P2_112
             2-d CPR-Fano toric variety covered by 3 affine patches
-            sage: P2_112.fan().ray_matrix()
-            [ 1  0 -1]
-            [ 0  1 -2]
+            sage: P2_112.fan().rays()
+            N( 1,  0),
+            N( 0,  1),
+            N(-1, -2)
+            in 2-d lattice N
             sage: P2_112.gens()
             (z0, z1, z2)
         """
@@ -1053,9 +1134,11 @@ class ToricVarietyFactory(SageObject):
             sage: P2_123 = toric_varieties.P2_123()
             sage: P2_123
             2-d CPR-Fano toric variety covered by 3 affine patches
-            sage: P2_123.fan().ray_matrix()
-            [ 1  0 -2]
-            [ 0  1 -3]
+            sage: P2_123.fan().rays()
+            N( 1,  0),
+            N( 0,  1),
+            N(-2, -3)
+            in 2-d lattice N
             sage: P2_123.gens()
             (z0, z1, z2)
         """
@@ -1083,11 +1166,13 @@ class ToricVarietyFactory(SageObject):
             sage: P4_11169 = toric_varieties.P4_11169()
             sage: P4_11169
             4-d CPR-Fano toric variety covered by 5 affine patches
-            sage: P4_11169.fan().ray_matrix()
-            [ 1  0  0  0 -9]
-            [ 0  1  0  0 -6]
-            [ 0  0  1  0 -1]
-            [ 0  0  0  1 -1]
+            sage: P4_11169.fan().rays()
+            N( 1,  0,  0,  0),
+            N( 0,  1,  0,  0),
+            N( 0,  0,  1,  0),
+            N( 0,  0,  0,  1),
+            N(-9, -6, -1, -1)
+            in 4-d lattice N
             sage: P4_11169.gens()
             (z0, z1, z2, z3, z4)
         """
@@ -1113,15 +1198,18 @@ class ToricVarietyFactory(SageObject):
 
         EXAMPLES::
 
-            sage: P4_11169_resolved = toric_varieties.P4_11169_resolved()  # long time (2s on sage.math, 2011)
-            sage: P4_11169_resolved                      # long time
+            sage: P4_11169_resolved = toric_varieties.P4_11169_resolved()
+            sage: P4_11169_resolved
             4-d CPR-Fano toric variety covered by 9 affine patches
-            sage: P4_11169_resolved.fan().ray_matrix()   # long time
-            [ 1  0  0  0 -9 -3]
-            [ 0  1  0  0 -6 -2]
-            [ 0  0  1  0 -1  0]
-            [ 0  0  0  1 -1  0]
-            sage: P4_11169_resolved.gens()               # long time
+            sage: P4_11169_resolved.fan().rays()
+            N( 1,  0,  0,  0),
+            N( 0,  1,  0,  0),
+            N( 0,  0,  1,  0),
+            N( 0,  0,  0,  1),
+            N(-9, -6, -1, -1),
+            N(-3, -2,  0,  0)
+            in 4-d lattice N
+            sage: P4_11169_resolved.gens()
             (z0, z1, z2, z3, z4, z5)
         """
         return self._make_CPRFanoToricVariety('P4_11169_resolved', names)
@@ -1148,11 +1236,13 @@ class ToricVarietyFactory(SageObject):
             sage: P4_11133 = toric_varieties.P4_11133()
             sage: P4_11133
             4-d CPR-Fano toric variety covered by 5 affine patches
-            sage: P4_11133.fan().ray_matrix()
-            [ 1  0  0  0 -3]
-            [ 0  1  0  0 -3]
-            [ 0  0  1  0 -1]
-            [ 0  0  0  1 -1]
+            sage: P4_11133.fan().rays()
+            N( 1,  0,  0,  0),
+            N( 0,  1,  0,  0),
+            N( 0,  0,  1,  0),
+            N( 0,  0,  0,  1),
+            N(-3, -3, -1, -1)
+            in 4-d lattice N
             sage: P4_11133.gens()
             (z0, z1, z2, z3, z4)
         """
@@ -1180,11 +1270,14 @@ class ToricVarietyFactory(SageObject):
             sage: P4_11133_resolved = toric_varieties.P4_11133_resolved()
             sage: P4_11133_resolved
             4-d CPR-Fano toric variety covered by 9 affine patches
-            sage: P4_11133_resolved.fan().ray_matrix()
-            [ 1  0  0  0 -3 -1]
-            [ 0  1  0  0 -3 -1]
-            [ 0  0  1  0 -1  0]
-            [ 0  0  0  1 -1  0]
+            sage: P4_11133_resolved.fan().rays()
+            N( 1,  0,  0,  0),
+            N( 0,  1,  0,  0),
+            N( 0,  0,  1,  0),
+            N( 0,  0,  0,  1),
+            N(-3, -3, -1, -1),
+            N(-1, -1,  0,  0)
+            in 4-d lattice N
             sage: P4_11133_resolved.gens()
             (z0, z1, z2, z3, z4, z5)
         """

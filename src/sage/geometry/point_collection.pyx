@@ -9,6 +9,9 @@ AUTHORS:
 
 - Andrey Novoseltsev (2011-04-25): initial version, based on cone module.
 
+- Andrey Novoseltsev (2012-03-06): additions and doctest changes while
+  switching cones to use point collections.
+
 EXAMPLES:
 
 The idea behind :class:`point collections <PointCollection>` is to have a
@@ -16,9 +19,7 @@ container for points of the same space that
 
 * behaves like a tuple *without significant performance penalty*::
 
-    sage: from sage.geometry.point_collection import PointCollection
-    sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-    sage: c = PointCollection(c.rays(), c.lattice())
+    sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
     sage: c[1]
     N(1, 0, 1)
     sage: for point in c: point
@@ -27,13 +28,13 @@ container for points of the same space that
     N(0, 1, 1)
     N(1, 1, 1)
 
-* prints like a matrix with points represented by columns and with some
-  indication of the ambient space::
+* prints in a convenient way and with clear indication of the ambient space::
 
     sage: c
-    [0 1 0 1]
-    [0 0 1 1]
-    [1 1 1 1]
+    N(0, 0, 1),
+    N(1, 0, 1),
+    N(0, 1, 1),
+    N(1, 1, 1)
     in 3-d lattice N
 
 * allows (cached) access to alternative representations::
@@ -44,9 +45,9 @@ container for points of the same space that
 * allows introduction of additional methods::
 
     sage: c.basis()
-    [0 1 0]
-    [0 0 1]
-    [1 1 1]
+    N(0, 0, 1),
+    N(1, 0, 1),
+    N(0, 1, 1)
     in 3-d lattice N
 
 Examples of natural point collections include ray and line generators of cones,
@@ -67,7 +68,7 @@ need to spend time and memory four times.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2011 Andrey Novoseltsev <novoselt@gmail.com>
+#       Copyright (C) 2012 Andrey Novoseltsev <novoselt@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -77,7 +78,7 @@ need to spend time and memory four times.
 
 from sage.structure.sage_object cimport SageObject
 
-from sage.matrix.all import column_matrix
+from sage.matrix.all import matrix
 from sage.misc.all import latex
 
 
@@ -98,15 +99,14 @@ def is_PointCollection(x):
         sage: from sage.geometry.point_collection import is_PointCollection
         sage: is_PointCollection(1)
         False
-        sage: from sage.geometry.point_collection import PointCollection
         sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-        sage: is_PointCollection(c.rays()) # TODO: make it True
-        False
-        sage: c = PointCollection(c.rays(), c.lattice())
-        sage: is_PointCollection(c)
+        sage: is_PointCollection(c.rays())
         True
     """
     return isinstance(x, PointCollection)
+
+
+_output_format = "default"
 
 
 cdef class PointCollection(SageObject):
@@ -184,16 +184,13 @@ cdef class PointCollection(SageObject):
 
         TESTS::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: c()
-            []
+            Empty collection
             in 3-d lattice N
             sage: c(2,1)
-            [0 1]
-            [1 0]
-            [1 1]
+            N(0, 1, 1),
+            N(1, 0, 1)
             in 3-d lattice N
             sage: c(range(4)) == c
             True
@@ -226,9 +223,7 @@ cdef class PointCollection(SageObject):
 
         TESTS::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: cmp(c, c)
             0
             sage: cmp(c, 1) * cmp(1, c)
@@ -257,9 +252,7 @@ cdef class PointCollection(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: c[0]
             N(0, 0, 1)
         """
@@ -275,9 +268,7 @@ cdef class PointCollection(SageObject):
 
         TESTS::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: hash(c) == hash(c)
             True
         """
@@ -293,9 +284,7 @@ cdef class PointCollection(SageObject):
 
         TESTS::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: for point in c: print point
             N(0, 0, 1)
             N(1, 0, 1)
@@ -314,13 +303,27 @@ cdef class PointCollection(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: len(c)
             4
         """
         return len(self._points)
+
+    def __list__(self):
+        r"""
+        Return a list of points of ``self``.
+
+        OUTPUT:
+
+        - a list.
+
+        TESTS::
+
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
+            sage: list(c)
+            [N(0, 0, 1), N(1, 0, 1), N(0, 1, 1), N(1, 1, 1)]
+        """
+        return list(self._points)
 
     def __reduce__(self):
         r"""
@@ -333,18 +336,33 @@ cdef class PointCollection(SageObject):
 
         TESTS::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: loads(dumps(c))
-            [0 1 0 1]
-            [0 0 1 1]
-            [1 1 1 1]
+            N(0, 0, 1),
+            N(1, 0, 1),
+            N(0, 1, 1),
+            N(1, 1, 1)
             in 3-d lattice N
             sage: loads(dumps(c)) == c
             True
         """
         return (PointCollection, (self._points, self._module))
+
+    def __tuple__(self):
+        r"""
+        Return the tuple of points of ``self``.
+
+        OUTPUT:
+
+        - a tuple.
+
+        TESTS::
+
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
+            sage: tuple(c)
+            (N(0, 0, 1), N(1, 0, 1), N(0, 1, 1), N(1, 1, 1))
+        """
+        return self._points
 
     def _latex_(self):
         r"""
@@ -356,17 +374,49 @@ cdef class PointCollection(SageObject):
 
         TESTS::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: print c._latex_()
-            \left(\begin{array}{rrrr}
-            0 & 1 & 0 & 1 \\
-            0 & 0 & 1 & 1 \\
-            1 & 1 & 1 & 1
-            \end{array}\right)_{N}
+            \left(\left(0,\,0,\,1\right)_{N}, \left(1,\,0,\,1\right)_{N},
+            \left(0,\,1,\,1\right)_{N}, \left(1,\,1,\,1\right)_{N}\right)_{N}
         """
-        return r"%s_{%s}" % (latex(self.matrix()), latex(self.module()))
+        global _output_format
+        if _output_format in ["default", "tuple"]:
+            r = latex(tuple(self))
+        elif _output_format == "matrix":
+            r = latex(self.matrix())
+        elif _output_format == "column matrix":
+            r = latex(self.column_matrix())
+        elif _output_format == "separated column matrix":
+            r = latex(self.column_matrix())
+            r = r.replace("r" * len(self), "|".join("r" * len(self)))
+        return r"%s_{%s}" % (r, latex(self.module()))
+
+    def _matrix_(self, ring=None):
+        r"""
+        Return a matrix whose rows are points of ``self``.
+
+        INPUT:
+
+        - ``ring`` -- a base ring for the returned matrix (default: base ring of
+          :meth:`module` of ``self``).
+
+        OUTPUT:
+
+        - a :class:`matrix <Matrix>`.
+
+        EXAMPLES::
+
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
+            sage: matrix(c)
+            [0 0 1]
+            [1 0 1]
+            [0 1 1]
+            [1 1 1]
+        """
+        if ring is None:
+            return self.matrix()
+        else:
+            return self.matrix().change_ring(ring)
 
     def _repr_(self):
         r"""
@@ -378,16 +428,46 @@ cdef class PointCollection(SageObject):
 
         TESTS::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: print c._repr_()
-            [0 1 0 1]
-            [0 0 1 1]
-            [1 1 1 1]
+            N(0, 0, 1),
+            N(1, 0, 1),
+            N(0, 1, 1),
+            N(1, 1, 1)
             in 3-d lattice N
         """
-        return "%s\nin %s" % (self.matrix(), self.module())
+        global _output_format
+        if _output_format == "default":
+            r = map(repr, self)
+            r = [point.split(",") for point in r]
+            if not r:
+                r = "Empty collection"
+            else:
+                if "(" in r[0][0]:
+                    delimiter = "("
+                elif "[" in r[0][0]:
+                    delimiter = "["
+                else:
+                    raise ValueError("cannot parse point representation!")
+                heads = []
+                for point in r:
+                    head, point[0] = point[0].rsplit(delimiter, 1)
+                    heads.append(head + delimiter)
+                format = "{{:<{}}}".format(max(map(len, heads)))
+                widths = [0] * len(r[0])
+                for point in r:
+                    for i, coordinate in enumerate(point):
+                        widths[i] = max(widths[i], len(coordinate))
+                format += ",".join("{{:>{}}}".format(width) for width in widths)
+                r = ",\n".join([format.format(head, *point)
+                                for head, point in zip(heads, r)])
+        elif _output_format == "tuple":
+            r = tuple(self)
+        elif _output_format == "matrix":
+            r = self.matrix()
+        else:
+            r = self.column_matrix()
+        return "{}\nin {}".format(r, self.module())
 
     def basis(self):
         r"""
@@ -401,13 +481,11 @@ cdef class PointCollection(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: c.basis()
-            [0 1 0]
-            [0 0 1]
-            [1 1 1]
+            N(0, 0, 1),
+            N(1, 0, 1),
+            N(0, 1, 1)
             in 3-d lattice N
 
         Calling this method twice will always return *exactly the same* point
@@ -417,7 +495,7 @@ cdef class PointCollection(SageObject):
             True
         """
         if self._basis is None:
-            self._basis = self(self.matrix().pivots())
+            self._basis = self(self.matrix().pivot_rows())
         return self._basis
 
     def cardinality(self):
@@ -430,9 +508,7 @@ cdef class PointCollection(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: c.cardinality()
             4
         """
@@ -456,16 +532,12 @@ cdef class PointCollection(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,1,1)]).rays()
             sage: c.cartesian_product(c)
-            [0 1 0 1]
-            [0 1 0 1]
-            [1 1 1 1]
-            [0 0 1 1]
-            [0 0 1 1]
-            [1 1 1 1]
+            N+N(0, 0, 1, 0, 0, 1),
+            N+N(1, 1, 1, 0, 0, 1),
+            N+N(0, 0, 1, 1, 1, 1),
+            N+N(1, 1, 1, 1, 1, 1)
             in 6-d lattice N+N
         """
         assert is_PointCollection(other)
@@ -477,6 +549,24 @@ cdef class PointCollection(SageObject):
         for pq in PQ:
             pq.set_immutable()
         return PointCollection(PQ, module)
+
+    def column_matrix(self):
+        r"""
+        Return a matrix whose columns are points of ``self``.
+
+        OUTPUT:
+
+        - a :class:`matrix <Matrix>`.
+
+        EXAMPLES::
+
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
+            sage: c.column_matrix()
+            [0 1 0 1]
+            [0 0 1 1]
+            [1 1 1 1]
+        """
+        return self.matrix().transpose()
 
     def dimension(self):
         r"""
@@ -490,9 +580,7 @@ cdef class PointCollection(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,1,1)]).rays()
             sage: c.dimension()
             2
             sage: c.dim()
@@ -515,9 +603,7 @@ cdef class PointCollection(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: c.dual_module()
             3-d lattice M
         """
@@ -528,9 +614,48 @@ cdef class PointCollection(SageObject):
             # TODO: add support for torsion modules as well?
             return M.base_ring() ** M.dimension()
 
+    def index(self, *args):
+        r"""
+        Return the index of the first occurrence of ``point`` in ``self``.
+
+        INPUT:
+
+        - ``point`` -- a point of ``self``;
+
+        - ``start`` -- (optional) an integer, if given, the search will start
+          at this position;
+
+        - ``stop`` -- (optional) an integer, if given, the search will stop
+          at this position.
+
+        OUTPUT:
+
+        - an integer if ``point`` is in ``self[start:stop]``, otherwise a
+          ``ValueError`` exception is raised.
+
+        EXAMPLES::
+
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
+            sage: c.index((0,1,1))
+            Traceback (most recent call last):
+            ...
+            ValueError: tuple.index(x): x not in tuple
+
+        Note that this was not a mistake: the *tuple* ``(0,1,1)`` is *not* a
+        point of ``c``! We need to pass actual element of the ambient module of
+        ``c`` to get their indices::
+
+            sage: N = c.module()
+            sage: c.index(N(0,1,1))
+            2
+            sage: c[2]
+            N(0, 1, 1)
+        """
+        return self._points.index(*args)
+
     def matrix(self):
         r"""
-        Return a matrix whose columns are points of ``self``.
+        Return a matrix whose rows are points of ``self``.
 
         OUTPUT:
 
@@ -538,17 +663,16 @@ cdef class PointCollection(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: c.matrix()
-            [0 1 0 1]
-            [0 0 1 1]
-            [1 1 1 1]
+            [0 0 1]
+            [1 0 1]
+            [0 1 1]
+            [1 1 1]
         """
         if self._matrix is None:
-            M = column_matrix(self._module.base_ring(), len(self._points),
-                              self._module.degree(), self._points)
+            M = matrix(self._module.base_ring(), len(self._points),
+                       self._module.degree(), self._points)
             M.set_immutable()
             self._matrix = M
         return self._matrix
@@ -563,13 +687,97 @@ cdef class PointCollection(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: c.module()
             3-d lattice N
         """
         return self._module
+
+    @classmethod    # @staticmethod does not work in Cython so far
+    def output_format(cls, format=None):
+        r"""
+        Return or set the output format for **ALL** point collections.
+
+        INPUT:
+
+        - ``format`` -- (optional) if given, must be one of the strings
+            * "default" -- output one point per line with vertical alignment of
+              coordinates in text mode, same as "tuple" for LaTeX;
+            * "tuple" -- output ``tuple(self)`` with lattice information;
+            * "matrix" -- output :meth:`matrix` with lattice information;
+            * "column matrix" -- output :meth:`column_matrix` with lattice
+              information;
+            * "separated column matrix" -- same as "column matrix" for text
+              mode, for LaTeX separate columns by lines (not shown by jsMath).
+
+        OUTPUT:
+
+        - a string with the current format (only if ``format`` was omitted).
+
+        This function affects both regular and LaTeX output.
+
+        EXAMPLES::
+
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
+            sage: c
+            N(0, 0, 1),
+            N(1, 0, 1),
+            N(0, 1, 1),
+            N(1, 1, 1)
+            in 3-d lattice N
+            sage: c.output_format()
+            'default'
+            sage: c.output_format("tuple")
+            sage: c
+            (N(0, 0, 1), N(1, 0, 1), N(0, 1, 1), N(1, 1, 1))
+            in 3-d lattice N
+            sage: c.output_format("matrix")
+            sage: c
+            [0 0 1]
+            [1 0 1]
+            [0 1 1]
+            [1 1 1]
+            in 3-d lattice N
+            sage: c.output_format("column matrix")
+            sage: c
+            [0 1 0 1]
+            [0 0 1 1]
+            [1 1 1 1]
+            in 3-d lattice N
+            sage: c.output_format("separated column matrix")
+            sage: c
+            [0 1 0 1]
+            [0 0 1 1]
+            [1 1 1 1]
+            in 3-d lattice N
+
+        Note that the last two outpus are identical, separators are only
+        inserted in the LaTeX mode::
+
+            sage: latex(c)
+            \left(\begin{array}{r|r|r|r}
+            0 & 1 & 0 & 1 \\
+            0 & 0 & 1 & 1 \\
+            1 & 1 & 1 & 1
+            \end{array}\right)_{N}
+
+        Since this is a static method, you can call it for the class directly::
+
+            sage: from sage.geometry.point_collection import PointCollection
+            sage: PointCollection.output_format("default")
+            sage: c
+            N(0, 0, 1),
+            N(1, 0, 1),
+            N(0, 1, 1),
+            N(1, 1, 1)
+            in 3-d lattice N
+        """
+        global _output_format
+        if format is None:
+            return _output_format
+        assert format in ["default", "tuple", "matrix", "column matrix",
+                          "separated column matrix"]
+        _output_format = format
 
     def set(self):
         r"""
@@ -581,9 +789,7 @@ cdef class PointCollection(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.geometry.point_collection import PointCollection
-            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)])
-            sage: c = PointCollection(c.rays(), c.lattice())
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
             sage: c.set()
             frozenset([N(0, 1, 1), N(1, 1, 1), N(0, 0, 1), N(1, 0, 1)])
         """

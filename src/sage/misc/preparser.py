@@ -1894,7 +1894,7 @@ def detach(filename):
 
     INPUT:
 
-    - ``filename`` - a string
+    - ``filename`` - a string, or a list of strings, or a tuple of strings
 
     EXAMPLES::
 
@@ -1927,22 +1927,40 @@ def detach(filename):
         []
         sage: attach('test.py')
         111
-        sage: detach(fullpath)
+        sage: fullpath = os.path.join(t_dir, 'test2.py')
+        sage: open(fullpath, 'w').write("print 3")
+        sage: attach('test2.py')
+        3
+        sage: detach(attached_files())
         sage: attached_files()
         []
         sage: sage.misc.reset.reset_attached(); reset_load_attach_path() # clean up
 
-    """
-    fpath = os.path.expanduser(filename)
-    if not os.path.isabs(fpath):
-        for path in load_attach_path():
-            epath = os.path.expanduser(path)
-            fpath = os.path.join(epath, filename)
-            if fpath in attached:
-                break
+    TESTS::
 
-    if fpath in attached:
-        attached.pop(fpath)
+        sage: detach('/tmp/a b/a.sage')
+        Traceback (most recent call last):
+        ...
+        ValueError: File '/tmp/a b/a.sage' seems not to be attached. To see a list of attached files, call the function attached_files
+    """
+    if isinstance(filename, basestring):
+        filelist = [filename]
     else:
-        raise ValueError("File '%r' seems not to be attached. To see a list \
-            of attached files, call attached_files()" % filename)
+        filelist = [str(x) for x in filename]
+
+    for filename in filelist:
+        fpath = os.path.expanduser(filename)
+        if not os.path.isabs(fpath):
+            for path in load_attach_path():
+                epath = os.path.expanduser(path)
+                fpath = os.path.join(epath, filename)
+                fpath = os.path.abspath(fpath)
+                if fpath in attached:
+                    break
+
+        if fpath in attached:
+            attached.pop(fpath)
+        else:
+            raise ValueError("File '{0}' seems not to be attached. To see a "
+                             "list of attached files, call the function "
+                             "attached_files".format(filename))

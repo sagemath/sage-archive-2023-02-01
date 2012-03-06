@@ -1,4 +1,4 @@
-= maxima =
+= Maxima =
 
 == Description ==
 
@@ -40,7 +40,7 @@ COPYING.
 
 == Changelog ==
 
-=== maxima-5.26.0 (Dima Pasechnik, February 28th 2012) ===
+=== maxima-5.26.0.p0 (Dima Pasechnik, February 28th 2012) ===
  * upgrading to version 5.26.0 to take care of #10682.
  * added patch/comm.patch to fix Maxima bug #3484414.
    (false) precedes the display output if display2d is set to false.
@@ -81,13 +81,16 @@ COPYING.
    (see Ticket #8645)
 
 === maxima-5.20.1.p0 (William Stein, 3 April 2010) ===
- * Artificially bump version number to force rebuild, due to Maxima being broken without
-   doing so on upgrade.
+ * Artificially bump version number to force rebuild, due to Maxima being broken
+   without doing so on upgrade.
 
 === maxima-5.20.1 (Karl-Dieter Crisman, 21st December 2009) ===
  * Upgrade to the latest upstream release
- * Removed patches - the solver is now in Maxima, and topoly.lisp is no longer used
- * Changed instructions below to not automatically assume spkg-dist, because this calls automake and sometimes this causes build failures due to version numbers (see Trac #7287)
+ * Removed patches - the solver is now in Maxima, and topoly.lisp is no longer
+   used
+ * Changed instructions below to not automatically assume spkg-dist, because
+   this calls automake and sometimes this causes build failures due to version
+   numbers (see Trac #7287)
 
 === maxima-5.19.1.p2 (Mike Hansen, Nils Bruin,  December 2nd, 2009) ===
  * Added building Maxima as an ecl library to spkg-install
@@ -97,7 +100,8 @@ COPYING.
    (Sage cannot solve inequalities)
 
 === maxima-5.19.1.p0 (Alex Ghitza, August 24th, 2009) ===
- * Added patch that works around bug in topoly.lisp by changing appropriate instances of parg to carg
+ * Added patch that works around bug in topoly.lisp by changing appropriate
+   instances of parg to carg
 
 === maxima-5.19.1    (David Kirkby, 20th August 2009) ===
  * Upgrade to the latest upstream release
@@ -109,19 +113,22 @@ COPYING.
  * address review comment by Gonzalo
 
 === maxima-5.16.3.p0 (Michael Abshoff, April 18th, 2009) ===
- * create maxima-noreadline script for matching dynamically readline disabling clisp (#5662)
+ * create maxima-noreadline script for matching dynamically readline disabling
+   clisp (#5662)
 
 === maxima-5.16.3 (Michael Abshoff, September 27th, 2008) ===
  * Upgrade to upstream
 
 === maxima-5.16.2.p0 (Michael Abshoff, September 16th, 2008) ===
- * Delete ~/.sage/maxima_commandlist_cache.sobj if it exists in spkg-install (fixes #4133)
+ * Delete ~/.sage/maxima_commandlist_cache.sobj if it exists in spkg-install
+   (fixes #4133)
 
 === maxima-5.16.2 (Michael Abshoff, August 21st, 2008) ===
  * Upgrade to upstream
 
 === maxima-5.13.0.p2 (Michael Abshoff) ===
- * due to fixing #1471 we need to tell maxima to use clisp.bin as clisp executable
+ * due to fixing #1471 we need to tell maxima to use clisp.bin as clisp
+   executable
 
 ToDo:
 
@@ -158,4 +165,3 @@ Here's what spkg-dist does:
 
   However, this caused problems with calling automake because
   of the changed .in files.
-

@@ -1307,20 +1307,23 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             if len(v) != d and len(v) != d-1:
                 raise TypeError, "v (=%s) must have %s components"%(v, d)
             #v = Sequence(v, X.base_ring())
-            v = Sequence(v, X.value_ring())
+            R = X.value_ring()
+            v = Sequence(v, R)
             if len(v) == d-1:     # very common special case
                 v.append(1)
 
             n = len(v)
             all_zero = True
             for i in range(n):
-                if v[n-1-i]:
+                last = n-1-i
+                if v[last]:
                     all_zero = False
-                    c = v[n-1-i]
-                    if c == 1:
+                    c = v[last]
+                    if c == R.one():
                         break
-                    for j in range(n-i):
+                    for j in range(last):
                         v[j] /= c
+                    v[last] = R.one()
                     break
             if all_zero:
                 raise ValueError, "%s does not define a valid point since all entries are 0"%repr(v)

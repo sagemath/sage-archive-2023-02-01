@@ -375,36 +375,60 @@ class Gamma0_class(GammaH_class):
                 yield SL2Z(lift_to_sl2z(z[0], z[1], N))
 
     @cached_method
-    def generators(self):
+    def generators(self, algorithm="farey"):
         r"""
         Return generators for this congruence subgroup.
 
-        The result is cached.
+        INPUT:
+
+        - ``algorithm`` (string): either ``farey`` (default) or
+          ``todd-coxeter``.
+
+        If ``algorithm`` is set to ``"farey"``, then the generators will be
+        calculated using Farey symbols, which will always return a *minimal*
+        generating set. See :mod:`~sage.modular.arithgroup.farey_symbol` for
+        more information.
+
+        If ``algorithm`` is set to ``"todd-coxeter"``, a simpler algorithm
+        based on Todd-Coxeter enumeration will be used. This tends to return
+        far larger sets of generators.
 
         EXAMPLE::
 
-            sage: for g in Gamma0(3).generators():
-            ...     print g
-            ...     print '---'
-            [1 1]
-            [0 1]
-            ---
-            [-1  0]
-            [ 0 -1]
-            ---
-            ...
-            ---
-            [ 1  0]
-            [-3  1]
-            ---
+            sage: [x.matrix() for x in Gamma0(3).generators()]
+            [
+            [1 1]  [-1  1]
+            [0 1], [-3  2]
+            ]
+            sage: [x.matrix() for x in Gamma0(3).generators(algorithm="todd-coxeter")]
+            [
+            [1 1]  [-1  0]  [ 1 -1]  [1 0]  [1 1]  [-1  0]  [ 1  0]
+            [0 1], [ 0 -1], [ 0  1], [3 1], [0 1], [ 3 -1], [-3  1]
+            ]
+            sage: SL2Z.gens()
+            ([ 0 -1]
+            [ 1  0], [1 1]
+            [0 1])
         """
-        from sage.modular.modsym.p1list import P1List
-        from congroup_pyx import generators_helper
-        level = self.level()
-        if level == 1: # P1List isn't very happy working mod 1
+        if self.level() == 1:
+            # we return a fixed set of generators for SL2Z, for historical
+            # reasons, which aren't the ones the Farey symbol code gives
             return [ self([0,-1,1,0]), self([1,1,0,1]) ]
-        gen_list = generators_helper(P1List(level), level, Mat2Z)
-        return [self(g, check=False) for g in gen_list]
+
+        elif algorithm=="farey":
+            return self.farey_symbol().generators()
+
+        elif algorithm=="todd-coxeter":
+            from sage.modular.modsym.p1list import P1List
+            from congroup_pyx import generators_helper
+            level = self.level()
+            if level == 1: # P1List isn't very happy working mod 1
+                return [ self([0,-1,1,0]), self([1,1,0,1]) ]
+            gen_list = generators_helper(P1List(level), level, Mat2Z)
+            return [self(g, check=False) for g in gen_list]
+
+        else:
+            raise ValueError, "Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm
 
     def gamma_h_subgroups(self):
         r"""

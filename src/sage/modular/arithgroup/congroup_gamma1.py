@@ -237,41 +237,49 @@ class Gamma1_class(GammaH_class):
             raise NotImplementedError
 
     @cached_method
-    def generators(self):
+    def generators(self, algorithm="farey"):
         r"""
-        Return generators for this congruence subgroup.
+        Return generators for this congruence subgroup. The result is cached.
 
-        The result is cached.
+        INPUT:
+
+        - ``algorithm`` (string): either ``farey`` (default) or
+          ``todd-coxeter``.
+
+        If ``algorithm`` is set to ``"farey"``, then the generators will be
+        calculated using Farey symbols, which will always return a *minimal*
+        generating set. See :mod:`~sage.modular.arithgroup.farey_symbol` for
+        more information.
+
+        If ``algorithm`` is set to ``"todd-coxeter"``, a simpler algorithm
+        based on Todd-Coxeter enumeration will be used. This tends to return
+        far larger sets of generators.
 
         EXAMPLE::
 
-            sage: for g in Gamma1(3).generators():
-            ...     print g
-            ...     print '---'
-            [1 1]
-            [0 1]
-            ---
-            [-20   9]
-            [ 51 -23]
-            ---
-            [ 4  1]
-            [-9 -2]
-            ---
-            ...
-            ---
-            [ 4 -1]
-            [ 9 -2]
-            ---
-            [ -5   3]
-            [-12   7]
-            ---
-
+            sage: [x.matrix() for x in Gamma1(3).generators()]
+            [
+            [1 1]  [ 1 -1]
+            [0 1], [ 3 -2]
+            ]
+            sage: [x.matrix() for x in Gamma1(3).generators(algorithm="todd-coxeter")]
+            [
+            [1 1]  [-20   9]  [ 4  1]  [-5 -2]  [ 1 -1]  [1 0]  [1 1]  [-5  2]
+            [0 1], [ 51 -23], [-9 -2], [ 3  1], [ 0  1], [3 1], [0 1], [12 -5],
+            [ 1  0]  [ 4 -1]  [ -5   3]  [ 1 -1]  [ 7 -3]  [ 4 -1]  [ -5   3]
+            [-3  1], [ 9 -2], [-12   7], [ 3 -2], [12 -5], [ 9 -2], [-12   7]
+            ]
         """
-        from sage.modular.modsym.g1list import G1list
-        from congroup_pyx import generators_helper
-        level = self.level()
-        gen_list = generators_helper(G1list(level), level, Mat2Z)
-        return [self(g, check=False) for g in gen_list]
+        if algorithm=="farey":
+            return self.farey_symbol().generators()
+        elif algorithm=="todd-coxeter":
+            from sage.modular.modsym.g1list import G1list
+            from congroup_pyx import generators_helper
+            level = self.level()
+            gen_list = generators_helper(G1list(level), level, Mat2Z)
+            return [self(g, check=False) for g in gen_list]
+        else:
+            raise ValueError, "Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm
 
     def __call__(self, x, check=True):
         r"""

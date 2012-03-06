@@ -248,9 +248,13 @@ FareySymbol::FareySymbol(PyObject* o) {
       a.push_back(0);
       b.push_back(1);
       for(size_t i=0; i<a.size(); i++) x.push_back(a[i]/b[i]);
-      generators.push_back(SL2Z(1,  2,  0,  1));
-      generators.push_back(SL2Z(0, -1,  1, -1));
-      generators.push_back(SL2Z(1, -1,  1,  0));
+      if ( group->is_member(SL2Z(0, -1, 1, 1)) )
+        // index 2 even subgroup
+        generators.push_back(SL2Z(0, -1, 1, 1));
+      else
+        // index 4 odd subgroup
+        generators.push_back(SL2Z(0, 1, -1, -1));
+        generators.push_back(SL2Z(-1, 1, -1, 0));
       coset.push_back(SL2Z::E);
       coset.push_back(SL2Z::T);
       cusp_classes.push_back(1);
@@ -446,11 +450,12 @@ vector<SL2Z> FareySymbol::init_generators(const is_element_group *group) const {
     if( find(p.begin(), p.end(), pairing[i]) == p.end() ) {
       SL2Z m = pairing_matrix(i);
       if( not group->is_member(m) ) m = I*m;
+      if( pairing[i] == ODD and group->is_member(I) ) m = I*m;
       gen.push_back(m);
       if( pairing[i] > NO ) p.push_back(pairing[i]);
     }
   }
-  if( nu2() == 0 and group->is_member(I) ) gen.push_back(I);
+  if( nu2() == 0 and nu3() == 0 and group->is_member(I) ) gen.push_back(I);
   return gen;
 }
 

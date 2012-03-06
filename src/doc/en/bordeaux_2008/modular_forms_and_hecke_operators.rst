@@ -55,9 +55,23 @@ coset representatives for the congruence subgroup (which are easy to
 enumerate) to obtain a list of generators [[ref my modular forms
 book]].
 
+The list of generators Sage computes is unfortunately large. Improving this
+would be an excellent Sage development project, which would involve much
+beautiful mathematics.
+
+UPDATE (March 2012): The project referred to above has been carried out (by
+several people, notably Hartmut Monien, building on earlier work of Chris
+Kurth). Sage now uses a much more advanced algorithm based on Farey symbols
+which calculates a *minimal* set of generators.
+
 ::
 
     sage: Gamma0(2).gens()
+    ([1 1]
+    [0 1],
+    [ 1 -1]
+    [ 2 -1])
+    sage: Gamma0(2).gens(algorithm="todd-coxeter") # the old implementation
     ([1 1]
      [0 1],
      [-1  0]
@@ -69,12 +83,8 @@ book]].
      [-1  1]
      [-2  1])
     sage: len(Gamma1(13).gens())
-    260
+    15
 
-As you can see above, the list of generators Sage computes is
-unfortunately large. Improving this would be an excellent Sage
-development project, which would involve much beautiful
-mathematics.
 
 Modular Forms
 -------------

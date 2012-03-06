@@ -283,7 +283,7 @@ def generators_helper(coset_reps, level, Mat2Z):
 
     EXAMPLES::
 
-        sage: Gamma0(7).generators() # indirect doctest
+        sage: Gamma0(7).generators(algorithm="todd-coxeter") # indirect doctest
         [[1 1]
         [0 1], [-1  0]
         [ 0 -1], [ 1 -1]

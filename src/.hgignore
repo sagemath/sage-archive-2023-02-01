@@ -53,6 +53,7 @@ sage/rings/complex_double.h
 sage/rings/complex_double_api.h
 sage/misc/allocator.h
 sage/symbolic/pynac.h
+sage/modular/arithgroup/farey_symbol.h
 doc/output/
 doc/en/reference/sage/
 doc/en/reference/sagenb/

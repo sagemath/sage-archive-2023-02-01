@@ -3215,9 +3215,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         This map is actually a map on `X_0(N)`, so equivalent representatives
         in the upper half plane map to the same point::
 
-            sage: Gamma0(15).gen(5)
-            [-7 -1]
-            [15  2]
             sage: phi((-7*z-1)/(15*z+2))
             (8.20822465478524 - 13.1562816054681*I : -8.79855099049... + 69.4006129342...*I : 1.00000000000000)
 

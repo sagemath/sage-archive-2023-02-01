@@ -408,44 +408,53 @@ class GammaH_class(CongruenceSubgroup):
         return int(self.level() - 1) in v
 
     @cached_method
-    def generators(self):
+    def generators(self, algorithm="farey"):
         r"""
-        Return generators for this congruence subgroup.
+        Return generators for this congruence subgroup. The result is cached.
 
-        The result is cached.
+        INPUT:
+
+        - ``algorithm`` (string): either ``farey`` (default) or
+          ``todd-coxeter``.
+
+        If ``algorithm`` is set to ``"farey"``, then the generators will be
+        calculated using Farey symbols, which will always return a *minimal*
+        generating set. See :mod:`~sage.modular.arithgroup.farey_symbol` for
+        more information.
+
+        If ``algorithm`` is set to ``"todd-coxeter"``, a simpler algorithm
+        based on Todd-Coxeter enumeration will be used. This tends to return
+        far larger sets of generators.
 
         EXAMPLE::
 
-            sage: for g in GammaH(3, [2]).generators():
-            ...     print g
-            ...     print '---'
-            [1 1]
-            [0 1]
-             ---
-            [-1  0]
-            [ 0 -1]
-            ---
-            [ 1 -1]
-            [ 0  1]
-            ---
-            [1 0]
-            [3 1]
-            ---
-            [1 1]
-            [0 1]
-            ---
-            [-1  0]
-            [ 3 -1]
-            ---
-            [ 1  0]
-            [-3  1]
-            ---
+            sage: [x.matrix() for x in GammaH(7, [2]).generators()]
+            [
+            [1 1]  [ 2 -1]  [ 4 -3]
+            [0 1], [ 7 -3], [ 7 -5]
+            ]
+            sage: [x.matrix() for x in GammaH(7, [2]).generators(algorithm="todd-coxeter")]
+            [
+            [1 1]  [-90  29]  [ 15   4]  [-10  -3]  [ 1 -1]  [1 0]  [1 1]  [-3 -1]
+            [0 1], [301 -97], [-49 -13], [  7   2], [ 0  1], [7 1], [0 1], [ 7  2],
+            [-13   4]  [-5 -1]  [-5 -2]  [-10   3]  [ 1  0]  [ 9 -1]  [-20   7]
+            [ 42 -13], [21  4], [28 11], [ 63 -19], [-7  1], [28 -3], [-63  22],
+            [1 0]  [-3 -1]  [ 15  -4]  [ 2 -1]  [ 22  -7]  [-5  1]  [  8  -3]
+            [7 1], [ 7  2], [ 49 -13], [ 7 -3], [ 63 -20], [14 -3], [-21   8],
+            [11  5]  [-13  -4]
+            [35 16], [-42 -13]
+            ]
         """
-        from sage.modular.modsym.ghlist import GHlist
-        from congroup_pyx import generators_helper
-        level = self.level()
-        gen_list = generators_helper(GHlist(self), level, Mat2Z)
-        return [self(g, check=False) for g in gen_list]
+        if algorithm=="farey":
+            return self.farey_symbol().generators()
+        elif algorithm=="todd-coxeter":
+            from sage.modular.modsym.ghlist import GHlist
+            from congroup_pyx import generators_helper
+            level = self.level()
+            gen_list = generators_helper(GHlist(self), level, Mat2Z)
+            return [self(g, check=False) for g in gen_list]
+        else:
+            raise ValueError, "Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm
 
     def _coset_reduction_data_first_coord(G):
         """

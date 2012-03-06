@@ -853,19 +853,47 @@ class ArithmeticSubgroup(group.Group):
 
         return ZZ(1 + (self.projective_index()) / ZZ(12)  - (self.nu2())/ZZ(4) - (self.nu3())/ZZ(3) - self.ncusps()/ZZ(2))
 
-    def generators(self):
+    def farey_symbol(self):
         r"""
-        Return generators for this congruence subgroup.
+        Return the Farey symbol associated to this subgroup. See the
+        :mod:`~sage.modular.arithgroup.farey_symbol` module for more
+        information.
 
-        This is carried out using an "inverse Todd-Coxeter" algorithm.
-        A Cython version of this for the special case of `\Gamma_0` and `\Gamma_1` is
-        implemented in the function ``congroup_pyx.generators_helper``. See the documentation
-        there for further details. Here we are assuming far less about the
-        group, so the computation is exceptionally slow!
+        EXAMPLE::
+
+            sage: Gamma1(4).farey_symbol()
+            FareySymbol(Congruence Subgroup Gamma1(4))
+        """
+        from farey_symbol import Farey
+        return Farey(self)
+
+    @cached_method
+    def generators(self, algorithm="farey"):
+        r"""
+        Return a list of generators for this congruence subgroup. The result is cached.
+
+        INPUT:
+
+        - ``algorithm`` (string): either ``farey`` or ``todd-coxeter``.
+
+        If ``algorithm`` is set to ``"farey"``, then the generators will be
+        calculated using Farey symbols, which will always return a *minimal*
+        generating set. See :mod:`~sage.modular.arithgroup.farey_symbol` for
+        more information.
+
+        If ``algorithm`` is set to ``"todd-coxeter"``, a simpler algorithm
+        based on Todd-Coxeter enumeration will be used. This is *exceedingly*
+        slow for general subgroups, and the list of generators will be far from
+        minimal (indeed it may contain repetitions).
 
         EXAMPLE::
 
             sage: Gamma(2).generators()
+            [[1 2]
+            [0 1], [ 3 -2]
+            [ 2 -1], [-1  0]
+            [ 0 -1]]
+            sage: Gamma(2).generators(algorithm="todd-coxeter")
             [[1 2]
             [0 1], [-1  0]
             [ 0 -1], [ 1  0]
@@ -875,13 +903,18 @@ class ArithmeticSubgroup(group.Group):
             [ 2 -1], [1 0]
             [2 1]]
         """
-        return self.todd_coxeter()[1]
+        if algorithm=="farey":
+            return self.farey_symbol().generators()
+        elif algorithm == "todd-coxeter":
+            return self.todd_coxeter()[1]
+        else:
+            raise ValueError, "Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm
 
-    def gens(self):
+    def gens(self, *args, **kwds):
         r"""
         Return a tuple of generators for this congruence subgroup.
 
-        The generators need not be minimal.
+        The generators need not be minimal. For arguments, see :meth:`~generators`.
 
         EXAMPLES::
 
@@ -890,7 +923,7 @@ class ArithmeticSubgroup(group.Group):
             [ 1  0], [1 1]
             [0 1])
         """
-        return tuple(self.generators())
+        return tuple(self.generators(*args, **kwds))
 
     def gen(self, i):
         r"""
@@ -907,18 +940,17 @@ class ArithmeticSubgroup(group.Group):
 
     def ngens(self):
         r"""
-        Return the number of generators for this arithmetic subgroup.
-
-        This need not be the minimal number of generators of self.
+        Return the size of the minimal generating set of self returned by
+        :meth:`generators`.
 
         EXAMPLES::
 
             sage: Gamma0(22).ngens()
-            42
+            8
             sage: Gamma1(14).ngens()
-            219
+            13
             sage: GammaH(11, [3]).ngens()
-            31
+            3
             sage: SL2Z.ngens()
             2
         """
@@ -1129,9 +1161,9 @@ class ArithmeticSubgroup(group.Group):
         Return self as an arithmetic subgroup defined in terms of the
         permutation action of `SL(2,\ZZ)` on its right cosets.
 
-        This method uses Todd-coxeter enumeration (via the method todd_coxeter) which
-        can be extremly slow for arithmetic subgroup with relatively large index in
-        `SL(2,\ZZ)`.
+        This method uses Todd-coxeter enumeration (via the method
+        :meth:`~todd_coxeter`) which can be extremely slow for arithmetic
+        subgroups with relatively large index in `SL(2,\ZZ)`.
 
         EXAMPLES::
 

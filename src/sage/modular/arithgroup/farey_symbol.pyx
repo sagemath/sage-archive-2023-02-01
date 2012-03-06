@@ -104,11 +104,10 @@ cdef class Farey:
     index 10 arithmetic subgroup given by Tim Hsu::
 
          sage: from sage.modular.arithgroup.arithgroup_perm import HsuExample10
-
          sage: [g.matrix() for g in FareySymbol(HsuExample10()).generators()]
          [
-         [1 2]  [ 2 -1]  [ 4 -3]  [-1  0]
-         [0 1], [ 7 -3], [ 3 -2], [ 0 -1]
+         [1 2]  [-2  1]  [ 4 -3]
+         [0 1], [-7  3], [ 3 -2]
          ]
 
     Calculate the generators of the group `\Gamma' =
@@ -166,21 +165,31 @@ cdef class Farey:
         ## of the group is called
         cdef int p
         if hasattr(group, "level"): p=group.level()
-        sig_on()
         if group == SL2Z:
+            sig_on()
             self.this_ptr = new cpp_farey()
+            sig_off()
         elif is_Gamma0(group):
+            sig_on()
             self.this_ptr = new cpp_farey(group, new is_element_Gamma0(p))
+            sig_off()
         elif is_Gamma1(group):
+            sig_on()
             self.this_ptr = new cpp_farey(group, new is_element_Gamma1(p))
+            sig_off()
         elif is_Gamma(group):
+            sig_on()
             self.this_ptr = new cpp_farey(group, new is_element_Gamma(p))
+            sig_off()
         elif is_GammaH(group):
+            sig_on()
             l = group._GammaH_class__H
             self.this_ptr = new cpp_farey(group, new is_element_GammaH(p, l))
+            sig_off()
         else:
+            sig_on()
             self.this_ptr = new cpp_farey(group)
-        sig_off()
+            sig_off()
 
     def __deallocpp__(self):
         r"""
@@ -351,6 +360,18 @@ cdef class Farey:
             [ 1  0], [ 1 -1]
             ]
 
+        The unique index 2 even subgroup and index 4 odd subgroup each get handled correctly::
+
+            sage: [g.matrix() for g in FareySymbol(ArithmeticSubgroup_Permutation(S2="(1,2)", S3="()")).generators()]
+            [
+            [ 0 -1]  [-1  1]
+            [ 1  1], [-1  0]
+            ]
+            sage: [g.matrix() for g in FareySymbol(ArithmeticSubgroup_Permutation(S2="(1,2, 3, 4)", S3="(1,3)(2,4)")).generators()]
+            [
+            [ 0  1]  [-1  1]
+            [-1 -1], [-1  0]
+            ]
         """
         return self.this_ptr.get_generators()
 

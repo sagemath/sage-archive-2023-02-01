@@ -133,7 +133,7 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
 
         This once caused a segfault (see trac #5443)::
 
-            sage: r,s,t,u,v = Gamma0(2).gens()
+            sage: r,s,t,u,v = map(SL2Z, [[1, 1, 0, 1], [-1, 0, 0, -1], [1, -1, 0, 1], [1, -1, 2, -1], [-1, 1, -2, 1]])
             sage: v == s*u
             True
             sage: s*u == v

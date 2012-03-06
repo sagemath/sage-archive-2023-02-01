@@ -36,20 +36,14 @@ to other operating systems or processors which may be taking place.
 Assumptions: You have a computer with at least 3 GB of free
 disk space running one of the supported version of an
 operating system listed at
-http://wiki.sagemath.org/SupportedPlatforms
+http://wiki.sagemath.org/SupportedPlatforms.
 The following standard
 command-line development tools must be installed on your computer.
-(Under OS X they all come with `Xcode <http://developer.apple.com/xcode/>`_, with the exception of the
-`Fortran <http://en.wikipedia.org/wiki/Fortran>`_ compiler ``gfortran``.
-However, Sage includes an `executable <http://en.wikipedia.org/wiki/Executable>`_
-Fortran compiler for OS X, so there is no need to install
-a Fortran compiler on OS X):
+(Under OS X they all come with `Xcode <http://developer.apple.com/xcode/>`_).
 
 ::
 
        gcc        (Version 4.0.1 or later)
-       g++        (Version 4.0.1 or later)
-       gfortran   (Version 4.0.1 or later)
        make       (For Solaris or OpenSolaris, GNU make, version 3.80 or later)
        perl       (Version 5.8.0 or later)
        ranlib
@@ -60,10 +54,12 @@ a Fortran compiler on OS X):
        ffmpeg -- recommended
        dvipng -- recommended
 
-The programs ``gcc``, ``g++`` and ``gfortran`` are all part of the `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_.
-You are generally advised to use a recent version of GCC, though
-some obscure bugs have stopped specific versions of GCC
-compiling Sage on particular platforms.
+Sage also needs a C++ compiler and a Fortran compiler.
+However, it contains a `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_
+package, such that C, C++ and Fortran compilers will be built if needed
+(you can also use the environment variable :envvar:`SAGE_INSTALL_GCC` to
+control whether or not to install GCC).
+You always need some C compiler to build GCC and its prerequisites itself.
 
 To check if you have ``perl`` installed, for example, type
 
@@ -190,41 +186,39 @@ and inform you of any that are missing, or have unsuitable verisons.
    sage-devel Google group at
    http://groups.google.com/group/sage-devel
 
+   If you want to try building Sage with a compiler which is not GCC,
+   you need to set the environment variable ``SAGE_INSTALL_GCC=no``.
+
 After extracting the Sage tarball, the subdirectory ``spkg`` contains
 the source distributions for everything on which Sage depends. We
 emphasize that all of this software is included with Sage, so you
 do not have to worry about trying to download and install any one
 of these packages (such as GAP, for example) yourself.
 
+.. _section_fortran:
+
 Fortran
 -------
 
-On Linux, Solaris and OpenSolaris systems, a working Fortran compiler is required
-for building Sage from source. If you are using Fortran on a platform
-for which Sage does not include g95 binaries, you must use
-``gfortran``, which may be installed system wide (e.g in /usr or
-/usr/local) or your own private copy.  You need to explicitly
-tell the Sage build process
+Sage includes the C, C++ and Fortran compilers of the
+`GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_.
+If a Fortran compiler is missing, it will be installed (within Sage)
+automatically.
+
+If you want to use an existing Fortran compiler on the system, you
+can tell Sage
 about the Fortran compiler and library location. Do this by typing ::
 
     export SAGE_FORTRAN=/exact/path/to/gfortran
     export SAGE_FORTRAN_LIB=/path/to/fortran/libs/libgfortran.so
 
-Note that the :envvar:`SAGE_FORTRAN` environment variable is supposed to
-impact *only* the Fortran Sage package, otherwise known as the Fortran
-spkg. Apart from that, this variable is *not* designed to do anything
-at all to other spkg's that use Fortran. For example, the Lapack spkg
-uses Fortran, but the compilation process of Lapack should ignore the
-:envvar:`SAGE_FORTRAN` environment variable. The :envvar:`SAGE_FORTRAN`
+The :envvar:`SAGE_FORTRAN` environment variable is read when doing
+``make``.  It is not checked if you simply install one package using
+``./sage -i lapack`` or similar.  The :envvar:`SAGE_FORTRAN`
 environment variable does not mean "build any spkg that uses Fortran
-using this Fortran". It means "when installing the Fortran spkg, setup
+using this Fortran".  It means "when setting up the Sage build, create
 the ``sage_fortran`` script to run the Fortran compiler specified by
 the :envvar:`SAGE_FORTRAN` variable".
-
-On Mac OS X, you are not required to have a Fortran compiler on your
-system. The Sage source distribution is shipped with a Fortran
-compiler for Mac OS X. This Fortran compiler is used, unless you
-specify another Fortran compiler via the variable :envvar:`SAGE_FORTRAN`.
 
 On operating systems such as `AIX <http://en.wikipedia.org/wiki/IBM_AIX>`_,
 `HP-UX <http://en.wikipedia.org/wiki/HP-UX>`_, Solaris and OpenSolaris, where both 32-bit and
@@ -613,7 +607,7 @@ process:
   which default to 32-bit, even though they can build 64-bit binaries.
   It adds the compiler flag
   -m64 when compiling programs.  The SAGE64 variable is mainly of use
-  is on OS X (pre 10.6), Solaris and OpenSolaris, though it will add
+  on OS X (pre 10.6), Solaris and OpenSolaris, though it will add
   the -m64 on any operating system. If you are running version 10.6 of
   OS X on a 64-bit machine, then Sage will automatically build a
   64-bit binary, so this variable does not need setting.
@@ -625,9 +619,18 @@ process:
   typically be set automatically, based on the setting of
   :envvar:`SAGE64`, for example.
 
-- :envvar:`SAGE_FORTRAN` - see above, the "Fortran" section.
+- :envvar:`SAGE_FORTRAN` - see :ref:`section_fortran`.
 
-- :envvar:`SAGE_FORTRAN_LIB` - see above, the "Fortran" section.
+- :envvar:`SAGE_FORTRAN_LIB` - see :ref:`section_fortran`.
+
+- :envvar:`SAGE_INSTALL_GCC` - by default, Sage will automatically
+  detect whether to install the
+  `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_
+  package or not (depending on whether C, C++ and Fortran compilers
+  are present and the versions of those compilers).  Setting
+  ``SAGE_INSTALL_GCC=yes`` will force Sage to install GCC.
+  Setting ``SAGE_INSTALL_GCC=no`` will prevent Sage from installing
+  GCC.
 
 - :envvar:`SAGE_DEBUG` - about half a dozen Sage packages use this
   variable.  If it is unset (the default) or set to "yes", then

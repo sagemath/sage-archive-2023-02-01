@@ -37,6 +37,7 @@ Miscellaneous
    sage/misc/lazy_import
    sage/misc/log
    sage/misc/persist
+   sage/misc/unknown
    sage/misc/func_persist
    sage/misc/sage_eval
    sage/misc/random_testing

@@ -25,6 +25,7 @@ Constructors and databases
    sage/graphs/digraph_generators
    sage/graphs/graph_generators_pyx
    sage/graphs/graph_database
+   sage/graphs/isgci
 
 
 Low-level implementation

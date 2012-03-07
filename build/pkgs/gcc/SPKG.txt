@@ -1,0 +1,36 @@
+= gcc =
+
+== Description ==
+
+The GNU Compiler Collection, including the C, C++ and Fortran compiler.
+
+== License ==
+
+GPL version 2 or version 3
+
+== SPKG Maintainers ==
+
+ * Jeroen Demeyer
+
+== Upstream Contact ==
+
+http://gcc.gnu.org/
+
+== Dependencies ==
+
+ * zlib
+ * MPIR
+ * MPFR
+ * MPC
+
+== Special Update/Build Instructions ==
+
+* Removed the huge src/MD5SUMS file to save space.
+
+* Removed the src/zlib directory, since Sage already ships with zlib.
+  We build GCC with --with-system-zlib, so we don't need src/zlib.
+
+== Changelog ==
+
+=== gcc-4.6.3 (Jeroen Demeyer, 7 March 2012) ===
+ * #12369: Initial release.

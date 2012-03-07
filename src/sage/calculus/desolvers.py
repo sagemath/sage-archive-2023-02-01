@@ -359,9 +359,10 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
         [x - arcsinh(y(x)/x) == c]
 
-    Trac #10682 updated Maxima to 5.26, and it started to show a different solution in the complex domain for the ODE above::
+    Trac #10682 updated Maxima to 5.26, and it started to show a different
+    solution in the complex domain for the ODE above::
 
-        sage: sage.calculus.calculus.maxima('domain:complex')  # back to the dafault, complex, domain
+        sage: sage.calculus.calculus.maxima('domain:complex')  # back to the default complex domain
         complex
         sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
         [1/2*(2*x^2*sqrt(x^(-2)) - 2*x*sqrt(x^(-2))*arcsinh(y(x)/sqrt(x^2))

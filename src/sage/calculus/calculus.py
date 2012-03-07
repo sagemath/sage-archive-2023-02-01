@@ -632,8 +632,8 @@ def nintegral(ex, x, a, b,
       - ``5`` - integral is probably divergent or slowly
         convergent
 
-      - ``6`` - the input is invalid; this includes the case of desired_relative_error
-        being too small to be achieved
+      - ``6`` - the input is invalid; this includes the case of
+                desired_relative_error being too small to be achieved
 
     ALIAS: nintegrate is the same as nintegral
 
@@ -641,6 +641,12 @@ def nintegral(ex, x, a, b,
     ``numerical_integral`` that implements numerical
     integration using the GSL C library. It is potentially much faster
     and applies to arbitrary user defined functions.
+
+    Also, there are limits to the precision to which Maxima can compute
+    the integral due to limitations in quadpack.
+    In the following example, remark that the last value of the returned
+    tuple is ``6``, indicating that the input was invalid, in this case
+    because of a too high desired precision.
 
     ::
 
@@ -716,8 +722,9 @@ def nintegral(ex, x, a, b,
         else:
             raise TypeError, err
 
-    #This is just a work around until there is a response to
-    #http://www.math.utexas.edu/pipermail/maxima/2008/012975.html
+    # Maxima returns unevaluated expressions when the underlying library fails
+    # to perfom numerical integration. See:
+    # http://www.math.utexas.edu/pipermail/maxima/2008/012975.html
     if 'quad_qags' in str(v):
         raise ValueError, "Maxima (via quadpack) cannot compute the integral"
 

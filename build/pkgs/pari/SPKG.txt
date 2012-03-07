@@ -79,6 +79,10 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.5.1.p1 (Jeroen Demeyer, 7 March 2012) ===
+ * Ticket #12638: add patch GCC_PR49330.patch to work around a bug
+   in gcc-4.6.3 on OS X 10.4 PPC.
+
 === pari-2.5.1.p0 (Jeroen Demeyer, 11 February 2012) ===
  * Ticket #12363: upgrade to PARI 2.5.1.
  * Use git instead of svn in spkg-make to obtain the PARI sources.

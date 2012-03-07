@@ -47,6 +47,11 @@ C files:
   cause a dereference of the NULL pointer pariErr (#12158).
   Reported upstream at
   http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1264
+* GCC_PR49330.patch: in pari_init_functions(), reorder code to work
+  around a GCC bug concerning pointer arithmetic:
+  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49330
+  This bug manifests itself as a Bus Error on OS X 10.4 PPC with
+  gcc-4.6.3.
 
 ======================================================================
 Files previously patched:

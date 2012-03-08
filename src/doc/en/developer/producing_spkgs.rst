@@ -34,8 +34,9 @@ Sage packages are distributed as ``.spkg`` files, which are
 to discourage confusion. Although Sage packages are packed using tar
 and/or bzip2, note that ``.spkg`` files contain control information
 (installation scripts and metadata) that are necessary for building
-and installing them. For source distributions, when you compile Sage
-the file ``SAGE_ROOT/Makefile`` takes care of the unpacking,
+and installing them.  When you compile Sage from a source distribution
+(or when you run ``sage -i <pkg>`` or ``sage -f <pkg>``),
+the file ``SAGE_ROOT/spkg/bin/sage-spkg`` takes care of the unpacking,
 compilation, and installation of Sage packages for you. You can
 type
 
@@ -108,6 +109,11 @@ More precisely, the directory should contain the following:
   :ref:`chapter-mercurial`).  The hidden directory ``.hg`` is part
   of the standard Sage spkg layout.  It contains the Mercurial
   repository for all files not in the ``src/`` directory.
+  To create this Mercurial repository from scratch, you should do
+
+  ::
+
+      hg init
 
   The files ``.hgignore`` and ``.hgtags`` also belong to the
   Mercurial repository.  The file ``.hgtags`` is optional, and is
@@ -119,24 +125,22 @@ More precisely, the directory should contain the following:
 
       src/
 
-- ``spkg-install``: this file contains the install script. See below
-  for more information and a template.
+- ``spkg-install``: this file contains the install script.
+  See :ref:`section-spkg-install` for more information and a template.
 
 - ``SPKG.txt``: this file describes the spkg in wiki format.  Each
   new revision needs an updated changelog entry or the spkg will
-  get an automatic "needs work" at review time.  See below for a
-  template.
+  get an automatic "needs work" at review time.  See
+  :ref:`section-SPKG-txt` for a template.
 
 - ``spkg-check``: this file runs the test suite.  This is somewhat
   optional since not all spkg's have test suites. If possible, do
   create such a script since it helps isolate bugs in upstream
-  packages
+  packages.
 
 - ``patches/``: this directory contains patches to
-  source files in ``src/``. Each file requiring changes
-  (e.g. ``foo.c``) must have a diff against the original file
-  (e.g. ``foo.c.patch``) for easy rebases against new upstream source
-  releases. Patches to files in ``src/`` should be applied in
+  source files in ``src/``.  See :ref:`chapter-patching-spkgs`.
+  Patches to files in ``src/`` should be applied in
   ``spkg-install``, and all patches must be documented in
   ``SPKG.txt``, i.e. what they do, if they are platform
   specific, if they should be pushed upstream, etc. To ensure that all
@@ -151,6 +155,14 @@ specific patched versions is a recipe for confusion. There must be a
 project and the patched versions that the Sage project generates based
 on top of the upstream source.
 
+The only exception to this rule is for *removals* of unused
+files or directories.  Some packages contain parts which are not needed
+for Sage.  To save space, these may be removed directly from ``src/``.
+But be sure to document this in the "Special Update/Build Instructions"
+section in ``SPKG.txt``!
+
+
+.. _section-spkg-install:
 
 The file spkg-install
 ---------------------
@@ -184,10 +196,10 @@ place after doing any build that is necessary.  Here is a template::
 
        #!/usr/bin/env bash
 
-       if [[ -z "$SAGE_LOCAL" ]]; then
-          echo "SAGE_LOCAL undefined ... exiting"
-          echo "Maybe run 'sage --sh'?"
-          exit 1
+       if [ -z "$SAGE_LOCAL" ]; then
+           echo >&2 "SAGE_LOCAL undefined ... exiting"
+           echo >&2 "Maybe run 'sage --sh'?"
+           exit 1
        fi
 
        cd src
@@ -204,23 +216,23 @@ place after doing any build that is necessary.  Here is a template::
 
        ./configure --prefix="$SAGE_LOCAL"
        if [ $? -ne 0 ]; then
-          echo "Error configuring PACKAGE_NAME."
-          exit 1
+           echo >&2 "Error configuring PACKAGE_NAME."
+           exit 1
        fi
 
        $MAKE
        if [ $? -ne 0 ]; then
-          echo "Error building PACKAGE_NAME."
-          exit 1
+           echo >&2 "Error building PACKAGE_NAME."
+           exit 1
        fi
 
        $MAKE install
        if [ $? -ne 0 ]; then
-          echo "Error installing PACKAGE_NAME."
-          exit 1
+           echo >&2 "Error installing PACKAGE_NAME."
+           exit 1
        fi
 
-       if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]] ; then
+       if [ "$SAGE_SPKG_INSTALL_DOCS" = yes ] ; then
           # Before trying to build the documentation, check if any
           # needed programs are present. In the example below, we
           # check for 'latex', but this will depend on the package.
@@ -243,8 +255,8 @@ place after doing any build that is necessary.  Here is a template::
           # $MAKE html
 
           if [ $? -ne 0 ]; then
-             echo "Error building PACKAGE_NAME docs."
-             exit 1
+              echo >&2 "Error building PACKAGE_NAME docs."
+              exit 1
           fi
           mkdir -p $SAGE_ROOT/local/share/doc/PACKAGE_NAME
           # assuming the docs are in doc/*
@@ -262,7 +274,7 @@ lines.
 
 Sometimes, though, it can be more complicated. For example, you might need
 to apply the patches from the ``patches`` directory in a particular order. Also,
-you should first build (e.g. with ``python setup.py build``,  exiting
+you should first build (e.g. with ``python setup.py build``, exiting
 if there is an error), before installing (e.g. with ``python setup.py
 install``). In this way, you would not overwrite a working older
 version with a non-working newer version of the spkg.
@@ -276,6 +288,8 @@ rather than copying the entire doc directory.  When generating
 documentation using Sphinx, copying the ``build/html`` directory
 generally will copy just the actual output intended for the user.
 
+
+.. _section-SPKG-txt:
 
 The file SPKG.txt
 -----------------
@@ -293,8 +307,6 @@ The ``SPKG.txt`` file should follow this pattern::
      Describe the package's license here.
 
      == SPKG Maintainers ==
-
-     Put a bulleted list of the maintainers of the SPKG here:
 
      * Mary Smith
      * Bill Jones
@@ -374,8 +386,8 @@ automatically install it by typing ``sage -i mypackage-version.spkg``.
      your package's ``spkg-install`` script should check that the
      other package has been installed, with code like the following::
 
-        if [ ! -f "$SAGE_ROOT/spkg/installed/fricas-1.0.9.spkg" ]; then
-            echo "The fricas spkg is required; please install it."
+        if [ ! -f "$SAGE_ROOT/spkg/installed/fricas-1.0.9" ]; then
+            echo >&2 "The fricas spkg, version 1.0.9 is required; please install it."
             exit 1
         fi
 
@@ -383,7 +395,7 @@ automatically install it by typing ``sage -i mypackage-version.spkg``.
      you could instead use ::
 
         if ! ls -1 "$SAGE_ROOT/spkg/installed/" | grep '^fricas-.*' > /dev/null ; then
-            echo "The fricas spkg is required; please install it."
+            echo >&2 "The fricas spkg is required; please install it."
             exit 1
         fi
 
@@ -403,11 +415,11 @@ automatically install it by typing ``sage -i mypackage-version.spkg``.
 
          SMALL_GROUPS=`echo "SmallGroup(13,1); quit;" | $SAGE_ROOT/sage -gap -b -T | grep "13"`
          if [ "$SMALL_GROUPS" = "" ]; then
-            echo "It seems that GAP's SmallGroups library is missing."
-            echo "One way to install it is by doing"
-            echo "    sage: install_package('database_gap')"
-            echo "in a Sage session."
-            exit 1
+             echo "It seems that GAP's SmallGroups library is missing."
+             echo "One way to install it is by doing"
+             echo "    sage: install_package('database_gap')"
+             echo "in a Sage session."
+             exit 1
          fi
 
    - *Caveat*: Do not just copy to e.g. ``SAGE_ROOT/local/lib/gap*/``

@@ -204,7 +204,8 @@ cdef class MixedIntegerLinearProgram:
 
         TESTS:
 
-        Checks the objects are deallocated (cf. :trac:`12616`)::
+        Checks that the objects are deallocated without invoking the cyclic garbage
+        collector (cf. :trac:`12616`)::
 
             sage: del p
             sage: def just_create_variables():
@@ -217,9 +218,17 @@ cdef class MixedIntegerLinearProgram:
             sage: _ = gc.collect()  # avoid side effects of other doc tests
             sage: len([x for x in gc.get_objects() if isinstance(x,C)])
             0
+
+        We now disable the cyclic garbage collector. Since :trac:`12616` avoids
+        a reference cycle, the mixed integer linear program created in
+        ``just_create_variables()`` is removed even without the cyclic garbage
+        collection::
+
+            sage: gc.disable()
             sage: just_create_variables()
             sage: len([x for x in gc.get_objects() if isinstance(x,C)])
             0
+            sage: gc.enable()
         """
 
         from sage.numerical.backends.generic_backend import get_solver

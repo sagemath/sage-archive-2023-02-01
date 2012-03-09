@@ -3,6 +3,8 @@
 ## elliptic_curves
 #########################################8#
 
+export COMMON_CURVES="$(pwd)/common"
+
 cd cremona_mini
 ./spkg-install
 

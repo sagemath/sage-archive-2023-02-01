@@ -9,11 +9,11 @@ import os
 if 'SAGE_DATA' not in os.environ:
     raise RuntimeError("SAGE_DATA undefined, maybe run 'sage -sh'?")
 
-cremona_root=os.environ['SAGE_DATA']+'/cremona'
+cremona_root=os.path.join(os.environ['SAGE_DATA'], 'cremona')
 if not os.path.exists(cremona_root):
     os.makedirs(cremona_root)
 
-target=cremona_root+'/cremona_mini.db'
+target=os.path.join(cremona_root, 'cremona_mini.db')
 
 if os.path.exists(target):
     os.remove(target)
@@ -28,7 +28,8 @@ con.execute('CREATE INDEX i_t_curve_class ON t_curve(class)')
 class_data = []
 curve_data = []
 
-for line in file('src/allcurves.00000-09999').readlines():
+for line in file(os.path.join(os.environ['COMMON_CURVES'], 'src', \
+        'allcurves.00000-09999')).xreadlines():
     N, iso, num, eqn, r, tors = line.split()
     cls = N+iso
     cur = cls+num

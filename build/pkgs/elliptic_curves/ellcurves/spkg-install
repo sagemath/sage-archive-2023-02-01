@@ -1,25 +1,41 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python
 ###########################################
 ## ellcurves
 ###########################################
 
-if [ "x$SAGE_DATA" = x ]; then
-   echo "SAGE_DATA undefined ... exiting"
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
+import os, shutil, tempfile
 
-TARGET="$SAGE_DATA/ellcurves"
+if 'SAGE_DATA' not in os.environ:
+    raise RuntimeError("SAGE_DATA undefined, maybe run 'sage -sh'?")
 
-if [ ! -d "$TARGET" ]; then
-   mkdir "$TARGET"
-fi
+target=os.path.join(os.environ['SAGE_DATA'], 'ellcurves')
+if os.path.exists(target):
+    try:
+        shutil.rmtree(target)
+    except OSError:
+        os.remove(target)
 
-cd src
+shutil.move('src', target)
+rank = {}
+for line in file(os.path.join(os.environ['COMMON_CURVES'], 'src', \
+        'allcurves.00000-09999')).xreadlines():
+    r = line.split()[4]
+    if r not in rank:
+        rank[r] = file(tempfile.mkstemp()[1], 'w')
+    rank[r].write(line)
 
-cp * "$TARGET/"
-
-if [ $? -ne 0 ]; then
-   echo "Error copying files to $TARGET"
-   exit 1
-fi
+for r,f in rank.iteritems():
+    f.close()
+    endpath = os.path.join(target, 'rank'+r)
+    if os.path.exists(endpath):
+        old = tempfile.mkstemp()[1]
+        shutil.move(endpath, old)
+        shutil.move(f.name, endpath)
+        f = file(endpath, 'a')
+        tmp = file(old, 'r')
+        f.write(tmp.read())
+        tmp.close()
+        f.close()
+        os.remove(old)
+    else:
+        shutil.move(f.name, endpath)

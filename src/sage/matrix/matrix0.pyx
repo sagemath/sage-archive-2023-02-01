@@ -1539,6 +1539,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         Not yet implemented!
 
         EXAMPLES::
+
             sage: m=matrix(QQ,2,range(0,4))
             sage: m._pickle() # todo: not implemented
         """
@@ -1899,7 +1900,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: R = PolynomialRing(QQ,4,'z')
             sage: a = matrix(2,2, R.gens())
             sage: b = a*a
-            sage: latex(b)
+            sage: latex(b) # indirect doctest
             \left(\begin{array}{rr}
             z_{0}^{2} + z_{1} z_{2} & z_{0} z_{1} + z_{1} z_{3} \\
             z_{0} z_{2} + z_{2} z_{3} & z_{1} z_{2} + z_{3}^{2}
@@ -3901,6 +3902,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         copy=False).
 
         EXAMPLES::
+
             sage: m=matrix(QQ,2,[1,0,1,1,1,0])
             sage: m._nonzero_positions_by_column()
             [(0, 0), (1, 0), (1, 1), (0, 2)]
@@ -4239,7 +4241,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: R.<x,y> = FreeAlgebra(QQ,2)
             sage: a = matrix(2,2, [1,2,x*y,y*x])
             sage: b = matrix(2,2, [1,2,y*x,y*x])
-            sage: a+b
+            sage: a+b # indirect doctest
             [        2         4]
             [x*y + y*x     2*y*x]
 
@@ -4261,7 +4263,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: R.<x,y> = FreeAlgebra(QQ,2)
             sage: a = matrix(2,2, [1,2,x*y,y*x])
             sage: b = matrix(2,2, [1,2,y*x,y*x])
-            sage: a-b
+            sage: a-b # indirect doctest
             [        0         0]
             [x*y - y*x         0]
 
@@ -4337,7 +4339,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
             [    1     x     y]
             [ -x*y x + y x - y]
-            sage: (x*y) * a
+            sage: (x*y) * a # indirect doctest
             [          x*y         x*y*x         x*y^2]
             [     -x*y*x*y x*y*x + x*y^2 x*y*x - x*y^2]
         """
@@ -4355,7 +4357,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         return ans
 
     cpdef ModuleElement _lmul_(self, RingElement right):
-        # derived classes over a commutative base *just* overload this and not _rmul_
         """
         EXAMPLES:
 
@@ -4372,7 +4373,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a = matrix(2,[x,y,x^2,y^2]); a
             [  x   y]
             [x^2 y^2]
-            sage: x * a
+            sage: x * a # indirect doctest
             [  x^2   x*y]
             [  x^3 x*y^2]
             sage: a * y
@@ -4387,6 +4388,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [          x*y         x^2*y         y*x*y]
             [     -x*y*x*y x^2*y + y*x*y x^2*y - y*x*y]
         """
+        # derived classes over a commutative base *just* overload this and not _rmul_
         cdef Py_ssize_t r,c
         cpdef RingElement x
         x = self._base_ring(right)
@@ -4414,10 +4416,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             [    1  -x*y]
             [    x x + y]
             [    y x - y]
-            sage: a*b
+            sage: a*b # indirect doctest
             [          x^2 + y^2 + 1         x^2 + x*y - y^2]
             [        x^2 + x*y - y^2 x^2*y^2 + 2*x^2 + 2*y^2]
-            sage: b*a
+            sage: b*a # indirect doctest
             [        x^2*y^2 + 1  -x^2*y - x*y^2 + x  -x^2*y + x*y^2 + y]
             [ -x^2*y - x*y^2 + x 2*x^2 + 2*x*y + y^2     x^2 + x*y - y^2]
             [ -x^2*y + x*y^2 + y     x^2 + x*y - y^2 x^2 - 2*x*y + 2*y^2]
@@ -4811,6 +4813,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         Return the hash of this (immutable) matrix
 
         EXAMPLES::
+
             sage: m=matrix(QQ,2,[1,2,3,4])
             sage: m.set_immutable()
             sage: m.__hash__()
@@ -4891,7 +4894,7 @@ def unpickle(cls, parent, mutability, cache, data, version):
     OVER `\ZZ`::
 
         sage: A = matrix(ZZ,2,range(4))
-        sage: loads(dumps(A))
+        sage: loads(dumps(A)) # indirect doctest
         [0 1]
         [2 3]
 

@@ -52,9 +52,8 @@ def magma_free_eval(code, strip=True, columns=0):
     if len(reslutsNodeList) > 0:
         reslutsNode = reslutsNodeList[0]
         lines = reslutsNode.getElementsByTagName('line')
-        if len(reslutsNodeList) > 0:
-            for line in lines:
-                textNode = line.childNodes[0]
+        for line in lines:
+            for textNode in line.childNodes:
                 res.append(textNode.data)
     res = join(res, "\n")
 

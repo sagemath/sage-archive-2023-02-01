@@ -481,51 +481,104 @@ if [ "$1" = '-sh'  -o "$1" = '--sh' ]; then
     # AUTHORS:
     #   Carl Witty and William Stein: initial version
     #   Craig Citro: add options for not loading profile
+    #   Martin Albrecht: fix zshell prompt (#11866)
+    #   John Palmieri: shorten the prompts, and don't print messages if
+    #      there are more arguments to 'sage -sh' (#11790)
     cd "$CUR"
     shift
-    echo ""
-    echo "Starting subshell with Sage environment variables set."
-    echo "Be sure to exit when you are done and do not do anything"
-    echo "with other copies of Sage!"
-    echo ""
-    SHELL_NAME=`basename $SHELL`
-    echo "Bypassing shell configuration files ..."
-    echo
     # We must start a new shell with no .profile or .bashrc files
     # processed, so that we know our path is correct
-    PS1="SAGE_ROOT=${SAGE_ROOT}\n(sage subshell) \h:\W \u\$ "
-    case $SHELL_NAME in
+    SHELL_NAME=`basename "$SHELL"`
+    # Check for SAGE_SHPROMPT.  If defined, use for the prompt.  If
+    # not, check for already-defined $PS1, and if defined use that.
+    # $PS1 should only be available if it is defined in
+    # $DOT_SAGE/.sagerc.
+    if [ -n "$SAGE_SHPROMPT" ]; then
+        oldPS1=$SAGE_SHPROMPT
+    elif [ -n "$PS1" ]; then
+        oldPS1=$PS1
+    fi
+    # Set the default prompt.  If available, use reverse video to
+    # highlight the string "(sage-sh)".
+    if [ -x /usr/bin/tput ] && tput rev >&/dev/null; then
+        color_prompt=yes
+    else
+        color_prompt=
+    fi
+    case "$SHELL_NAME" in
         bash)
             SHELL_OPTS=" --norc"
+            if [ "$color_prompt" = yes ]; then
+                PS1="\[$(tput rev)\](sage-sh)\[$(tput sgr0)\] \u@\h:\W\$ "
+            else
+                PS1="(sage-sh) \u@\h:\w\$ "
+            fi
+            export PS1
             ;;
         csh)
+            # csh doesn't seem to allow the specification of a different
+            # .cshrc file, and the prompt can only be set in this file, so
+            # don't bother changing the prompt.
             SHELL_OPTS=" -f"
             ;;
         ksh)
             SHELL_OPTS=" -p"
+            if [ "$color_prompt" = yes ] ; then
+                PS1="$(tput rev)(sage-sh)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
+            else
+                PS1="(sage-sh) $USER@`hostname -s`:\${PWD##*/}$ "
+            fi
+            export PS1
             ;;
         sh)
-            SHELL_OPTS=" --norc"
+            # If sh is derived from bash, then the following is okay,
+            # but we shouldn't assume this.
+            #SHELL_OPTS=" --norc"
+            if [ "$color_prompt" = yes ] ; then
+                PS1="$(tput rev)(sage-sh)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
+            else
+                PS1="(sage-sh) $USER@`hostname -s`:\${PWD}$ "
+            fi
+            export PS1
             ;;
         tcsh)
+            # tcsh doesn't seem to allow the specification of a different
+            # .tcshrc file, and the prompt can only be set in this file, so
+            # don't bother changing the prompt.
             SHELL_OPTS=" -f"
             ;;
         zsh)
-PS1="SAGE_ROOT=${SAGE_ROOT}
-(sage subshell) %m:%~ %n$ "
+            PS1="%S(sage-sh)%s %n@%m:%~$ "
             SHELL_OPTS=" -f -d"
+            export PS1
             ;;
         *)
             echo >&2 "Unknown shell: $SHELL!"
-            echo >&2 "Exiting Sage."
+            echo >&2 "Aborting."
             exit 1
     esac
-    export PS1
-
-    $SHELL_NAME $SHELL_OPTS "$@"
-
-    status=$?
-    echo "Exited Sage subshell."
+    if [ -n "$oldPS1" ]; then
+        PS1="$oldPS1"
+        export PS1
+    fi
+    if [ $# -eq 0 ]; then
+        # No arguments, so print informative message...
+        echo "" 1>&2
+        echo "Starting subshell with Sage environment variables set." 1>&2
+        echo "Be sure to exit when you are done and do not do anything" 1>&2
+        echo "with other copies of Sage!" 1>&2
+        echo "" 1>&2
+        echo "Bypassing shell configuration files ..." 1>&2
+        echo "" 1>&2
+	"$SHELL" $SHELL_OPTS "$@"
+	status=$?
+	echo "Exited Sage subshell." 1>&2
+    else
+        exec "$SHELL" $SHELL_OPTS "$@"
+        # If 'exec' returns, an error occurred:
+        status=$?
+        echo >&2 "Fatal error: 'exec \"$SHELL\" \"$@\"' failed!"
+    fi
     exit $status
 fi
 

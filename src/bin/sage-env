@@ -390,6 +390,12 @@ export PKG_CONFIG_PATH
 
 ############ compilation flags
 
+UNAME=`uname`
+if [ `uname | sed -e 's/WIN.\+/WIN/'` = "CYGWIN" ]; then
+    UNAME="CYGWIN"
+fi
+export UNAME
+
 # Setting Sage-related compilation flags.
 # This could be used in code to make special changes only when
 # code is being built as part of Sage.
@@ -415,11 +421,6 @@ if [ "$AS" = "" ]; then
     AS="as"  && export AS
 fi
 
-UNAME=`uname`
-if [ `uname | sed -e 's/WIN.\+/WIN/'` = "CYGWIN" ]; then
-    UNAME="CYGWIN"
-fi
-
 if [ "$LDFLAGS" = "" ]; then
     LDFLAGS=""          && export LDFLAGS
 fi
@@ -440,7 +441,7 @@ source $SAGE_LOCAL/bin/sage-check-64 1> /dev/null 2> /dev/null
 export SAGE64
 
 if [ "$CXXFLAGS" = "" ]; then
-   CXXFLAGS="$CFLAGS"
+    export CXXFLAGS="$CFLAGS"
 fi
 
 if [ "$CP" = "" ]; then
@@ -498,32 +499,20 @@ fi
 if [ "${MAKEFLAGS-__unset__}" != "__unset__" ]; then
     MAKE=`echo "$MAKE" | sed 's/ .*//'`
 fi
-
 export MAKE
 
 
-# Export variable names.
-export SHAREDFLAGS
-export UNAME
-export CC
-export CFLAGS
+# You can set environment variables in $SAGE_RC_FILE
+# (by default, this is the file $DOT_SAGE/sagerc).  For example,
+# setting PS1 there will set your prompt when you run "sage --sh".
+if [ -z "$SAGE_RC_FILE" ]; then
+    SAGE_RC_FILE="$DOT_SAGE/sagerc"
+fi
 
-if [ 1 = 2 ]; then
-echo "AR=$AR"
-echo "AS=$AS"
-echo "CC=$CC"
-echo "CFLAGS=$CFLAGS"
-echo "CXX=$CXX"
-echo "CXXFLAGS=$CXXFLAGS"
-echo "ECLDIR=$ECLDIR"
-echo "LD=$LD"
-echo "LDFLAGS=$LDFLAGS"
-echo "LN=$LN"
-echo "MAKE=$MAKE"
-echo "MAKEFLAGS=$MAKEFLAGS (MFLAGS will be exported the same too)"
-echo "RANLIB=$RANLIB"
-echo "SAGE64=$SAGE64"
-echo "SHAREDFLAGS=$SHAREDFLAGS"
-echo "If any of the above are wrong, or are not optimal, override"
-echo "them by setting the appropiate enviroment variable."
+if [ -r "$SAGE_RC_FILE" ]; then
+    source "$SAGE_RC_FILE"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error sourcing $SAGE_RC_FILE"
+        exit 1
+    fi
 fi

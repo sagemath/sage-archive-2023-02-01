@@ -48,10 +48,10 @@ def magma_free_eval(code, strip=True, columns=0):
 
     xmlDoc = parseString(results)
     res = []
-    reslutsNodeList = xmlDoc.getElementsByTagName('results')
-    if len(reslutsNodeList) > 0:
-        reslutsNode = reslutsNodeList[0]
-        lines = reslutsNode.getElementsByTagName('line')
+    resultsNodeList = xmlDoc.getElementsByTagName('results')
+    if len(resultsNodeList) > 0:
+        resultsNode = resultsNodeList[0]
+        lines = resultsNode.getElementsByTagName('line')
         for line in lines:
             for textNode in line.childNodes:
                 res.append(textNode.data)

@@ -251,11 +251,12 @@ GP scripts for computing Mordell-Weil groups of elliptic curves.
 
 ::
 
-    sage: E = EllipticCurve([1,2,5,7,17])
+    sage: E = EllipticCurve([1,2,5,17,159])
     sage: E.conductor()       # not in the Tables
-    154907
+    10272987
     sage: E.gens()            # a few seconds
-    [(1 : 3 : 1), (67/4 : 507/8 : 1)]
+    [(-3 : 9 : 1), (-3347/3249 : 1873597/185193 : 1)]
+
 
 Sage can also compute the torsion subgroup, isogeny class,
 determine images of Galois representations, determine reduction

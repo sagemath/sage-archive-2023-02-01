@@ -1,3 +1,6 @@
+"""
+Symmetric functions, with their multiple realizations
+"""
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.all import Rings, GradedHopfAlgebrasWithBasis, ModulesWithBasis
@@ -19,10 +22,16 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: Sym
         Symmetric Functions over Rational Field
 
-    Todo: add one example of non trivial computation, and then proceed
-    with the detailed explanations
+    .. todo::
 
-    Todo: expand this tutorial, merging with that of ``MuPAD-Combinat``
+        Add one example of non trivial computation, and then proceed
+        with the detailed explanations.
+
+    .. todo::
+
+        Expand this tutorial, merging with that of ``MuPAD-Combinat``
+
+    ::
 
         sage: h = Sym.h(); e = Sym.e(); s = Sym.s(); m = Sym.m(); p = Sym.p()
         sage: ( ( h[2,1] * ( 1 + 3 * h[2,1]) ) + s[2]. antipode()) . coproduct() # todo: not implemented
@@ -80,9 +89,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         p[2, 1, 1]
 
     Badly enough, due to a limitation in Python syntax, one cannot use::
+
         sage: p[]       # todo: not implemented
 
     Please use instead::
+
         sage: p[[]]
         p[]
 
@@ -91,10 +102,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: p[2,1,1] + 2 * (p[4] + p[2,1])
         2*p[2, 1] + p[2, 1, 1] + 2*p[4]
 
-    ..topic: Algebra structure
+    .. rubric:: Algebra structure
 
     Let us explore the other operations of p. First, we can ask for
-    the mathematical properties of p:
+    the mathematical properties of p::
 
         sage: p.categories() # todo: not implemented
         [The category of multiplicative bases on primitive elements of Sym,
@@ -122,7 +133,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: (p.one() + 2 * p[3,1]) * p[4, 2]
         p[4, 2] + 2*p[4, 3, 2, 1]
 
-    ..topic: Hopf algebra structure
+    .. rubric:: Hopf algebra structure
 
     p is further endowed with a coalgebra algebra structure (in
     fact, it is, up to isomorphism, the unique free algebra on
@@ -136,20 +147,23 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         p[] # p[2] + p[2] # p[]
 
     The coproduct being cocommutative on the generators is cocommutative everywhere::
+
         sage: p[2, 1].coproduct()       # todo: not implemented
         p[] # p[2, 1] + p[1] # p[2] + p[2, 1] # p[] + p[2] # p[1]
 
     The antipode is an anti-algebra morphism (Todo: explain what it
-    is); on the p basis, it sends the generators to their opposite:
+    is); on the p basis, it sends the generators to their opposite::
 
         sage: p[3].antipode()           # todo: not implemented
         -p[3]
         sage: p[1,3,2].antipode()       # todo: not implemented
         -p[2, 3, 1]
 
-    ..topic: Other concrete representations
+    .. rubric:: Other concrete representations
 
-    Todo: demonstrate how to customize the basis names
+    .. todo::
+
+        Demonstrate how to customize the basis names.
 
     Sym admits many other concrete representations::
 
@@ -159,14 +173,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: m = Sym.monomial()
         sage: f = Sym.forgotten()       # todo: not implemented
 
-    To change from one basis to another, one simply does:
+    To change from one basis to another, one simply does::
 
         sage: m(p[3])
         m[3]
         sage: m(p[3,2])
         m[3, 2] + m[5]
 
-    In general, one can mix up different basis in computations:
+    In general, one can mix up different basis in computations::
 
         sage: p( m[1] * ( e[3]*s[2] + 1 ))
         p[1] + 1/12*p[1, 1, 1, 1, 1, 1] - 1/6*p[2, 1, 1, 1, 1] - 1/4*p[2, 2, 1, 1] + 1/6*p[3, 1, 1, 1] + 1/6*p[3, 2, 1]
@@ -178,15 +192,17 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: P = Jack.P(); J = Jack.J(); Q = Jack.Q()  # todo: not implemented
         sage: J(P[2,1])                                 # todo: not implemented
 
-    t can be specialized as follow::
+    It can be specialized as follow::
 
         sage: Sym = SymmetricFunctions(QQ)
         sage: Jack = Sym.jack_polynomials(t = 1)        # todo: not implemented
         sage: P = Jack.P(); J = Jack.J(); Q = Jack.Q()  # todo: not implemented
         sage: J(P[2,1])                                 # todo: not implemented
 
-    Todo: introduce a field with degree 1 elements as in
-    MuPAD-Combinat, to get proper plethysm.
+    .. todo::
+
+        Introduce a field with degree 1 elements as in
+        MuPAD-Combinat, to get proper plethysm.
 
     Similarly one can get Hall-Littlewood, Macdonald polynomials, etc::
 
@@ -195,11 +211,13 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: P = Mcd.P(); J = Mcd.J(); Q = Mcd.Q()     # todo: not implemented
         sage: J(P[2,1])                                 # todo: not implemented
 
-    Further things to do:
-     - Use UniqueRepresentation to get rid of all the manual cache handling for the bases
-     - Devise a mechanism so that pickling bases of symmetric functions pickles
-       the coercions which have a cache.
+    .. todo::
 
+        - Use UniqueRepresentation to get rid of all the manual cache
+          handling for the bases
+        - Devise a mechanism so that pickling bases of symmetric
+          functions pickles the coercions which have a cache.
+        - Use #7980 to handle the multiple realizations
     """
 
     def __init__(self, R):
@@ -309,6 +327,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         We override the canonical coercion from the Schur basis to the
         powersum basis by a (stupid!) map `s_\lambda\mapsto 2p_\lambda`.
+        ::
 
             sage: Sym = SymmetricFunctions(QQ['zorglub']) # make sure we are not going to screw up later tests
             sage: s = Sym.s(); p = Sym.p().dual_basis()
@@ -333,7 +352,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         INPUT:
 
-         - shorthands - a list (or iterable) of strings (default: ['e', 'h', 'm', 'p', 's'])
+        - ``shorthands`` -- a list (or iterable) of strings (default: ['e', 'h', 'm', 'p', 's'])
 
         EXAMPLES::
 
@@ -415,17 +434,17 @@ class SymmetricaConversionOnBasis:
         """
         INPUT:
 
-         - t -- a function taking a monomial in CombinatorialFreeModule(QQ, Partitions()), and returning a
-           (partition, coefficient) list.
+        - ``t`` -- a function taking a monomial in CombinatorialFreeModule(QQ, Partitions()),
+           and returning a (partition, coefficient) list.
 
-         - ``domain``, ``codomain`` -- parents
+        - ``domain``, ``codomain`` -- parents
 
         Construct a function mapping a partition to an element of ``codomain``.
 
         This is a temporary quick hack to wrap around the existing
         symmetrica conversions, without changing their specs.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(QQ[x])
             sage: p = Sym.p(); s = Sym.s()

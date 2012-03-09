@@ -1,7 +1,7 @@
 """
 Dynamic classes
 
-..topic: Why dynamic classes?
+.. rubric:: Why dynamic classes?
 
 The short answer:
 
@@ -22,15 +22,15 @@ parent, but we won't discuss this point here).  First, we have to
 choose a data structure for the permutations, typically among the
 following:
 
- - Stored by cycle type
- - Stored by code
- - Stored in list notation
-   - C arrays of short ints (for small permutations)
-   - python lists of ints (for huge permutations)
-   - ...
- - Stored by reduced word
- - Stored as a function
- - ...
+- Stored by cycle type
+- Stored by code
+- Stored in list notation
+  - C arrays of short ints (for small permutations)
+  - python lists of ints (for huge permutations)
+  - ...
+- Stored by reduced word
+- Stored as a function
+- ...
 
 Luckily, the Sage library provides (or will provide) classes
 implementing each of those data structures. Those classes all share a
@@ -42,7 +42,7 @@ just derive our class from the chosen one::
 
 Then we may want to further choose a specific memory behavior (unique
 representation, copy-on-write) which (hopefuly) can again be achieved
-by inheritance.
+by inheritance::
 
     class MyPermutation(UniqueRepresentation, PermutationCycleType):
          ...
@@ -50,10 +50,10 @@ by inheritance.
 Finaly, we may want to endow the permutations in `S` with further
 operations coming from the (algebraic) structure of `S`:
 
- - group operations
- - or just monoid operations (for a subset of permutations not stable by inverse)
- - poset operations (for left/right/Bruhat order)
- - word operations (searching for substrings, patterns, ...)
+- group operations
+- or just monoid operations (for a subset of permutations not stable by inverse)
+- poset operations (for left/right/Bruhat order)
+- word operations (searching for substrings, patterns, ...)
 
 Or any combination thereof. Now, our class typically looks like::
 
@@ -78,11 +78,11 @@ time. Let us take another standard construction::
 Depending on the structure of `B` and `C`, and possibly on further
 options passed down by the user, `A` may be:
 
- - an enumerated set
- - a group
- - an algebra
- - a poset
- - ...
+- an enumerated set
+- a group
+- an algebra
+- a poset
+- ...
 
 Or any combination thereof.
 
@@ -91,7 +91,7 @@ tedious. Furthermore, this would require a cumbersome mechanism to
 lookup the appropriate class depending on the desired combination.
 
 Instead, one may use the ability of Python to create new classes
-dynamicaly:
+dynamicaly::
 
     type("class name", tuple of base classes, dictionary of methods)
 
@@ -100,7 +100,7 @@ address. The purpose of this library is to standardize its use within
 Sage, and in particular to ensure that the constructed classes are
 reused whenever possible (unique representation), and can be pickled.
 
-..topic: combining dynamic classes and Cython classes
+.. rubric:: Combining dynamic classes and Cython classes
 
 Cython classes cannot inherit from a dynamic class (there might be
 some partial support for this in the future). On the other hand, such
@@ -121,12 +121,13 @@ from sage.structure.unique_representation import ClasscallMetaclass
 
 def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
     r"""
-    INPUT::
-     - ``name``: a string
-     - ``bases``: a tuple of classes
-     - ``cls``: a class or None
-     - ``reduction``: a tuple or None
-     - ``doccls``: a class or None
+    INPUT:
+
+    - ``name`` -- a string
+    - ``bases`` -- a tuple of classes
+    - ``cls`` -- a class or None
+    - ``reduction`` -- a tuple or None
+    - ``doccls`` -- a class or None
 
     Constructs dynamically a new class ``C`` with name ``name``, and
     bases ``bases``. If ``cls`` is provided, then its methods will be
@@ -134,8 +135,8 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
     module of ``cls`` or from the first base class (``bases`` should
     be non empty if ``cls` is ``None``).
 
-    Documentation and source instrospection is taken from doccls, or
-    cls if doccls is None, or bases[0] if both are None.
+    Documentation and source instrospection is taken from ``doccls``, or
+    ``cls`` if ``doccls`` is ``None``, or ``bases[0]`` if both are ``None``.
 
     The constructed class can safely be pickled (assuming the
     arguments themselves can).
@@ -143,8 +144,8 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
     The result is cached, ensuring unique representation of dynamic
     classes.
 
-    See sage.structure.dynamic_class? for a discussion of the dynamic
-    classes paradigm, and its relevance to Sage.
+    See :mod:`sage.structure.dynamic_class` for a discussion of the
+    dynamic classes paradigm, and its relevance to Sage.
 
     EXAMPLES:
 

@@ -5,6 +5,7 @@ Symmetric Functions
    :maxdepth: 2
 
    ../sage/combinat/sf/sfa
+   ../sage/combinat/sf/sf
    ../sage/combinat/sf/classical
    ../sage/combinat/sf/schur
    ../sage/combinat/sf/monomial

@@ -1009,9 +1009,39 @@ class PiecewisePolynomial:
 
         Remember: to view this, type show(P) or P.save("path/myplot.png")
         and then open it in a graphics viewer such as GIMP.
+
+        TESTS:
+
+        We should not add each piece to the legend individually, since
+        this creates duplicates (:trac:`12651`). This tests that only
+        one of the graphics objects in the plot has a non-``None``
+        ``legend_label``::
+
+            sage: f1 = sin(x)
+            sage: f2 = cos(x)
+            sage: f = piecewise([[(-1,0), f1],[(0,1), f2]])
+            sage: p = f.plot(legend_label='$f(x)$')
+            sage: lines = [
+            ...     line
+            ...     for line in p._Graphics__objects
+            ...     if line.options()['legend_label'] is not None ]
+            sage: len(lines)
+            1
         """
-        from sage.plot.all import plot
-        return sum([plot(f, a, b, *args, **kwds) for (a,b),f in self.list()])
+        from sage.plot.all import plot, Graphics
+
+        g = Graphics()
+
+        for i, ((a,b), f) in enumerate(self.list()):
+            # If it's the first piece, pass all arguments. Otherwise,
+            # filter out 'legend_label' so that we don't add each
+            # piece to the legend separately (trac #12651).
+            if i != 0 and 'legend_label' in kwds:
+                del kwds['legend_label']
+
+            g += plot(f, a, b, *args, **kwds)
+
+        return g
 
     def fourier_series_cosine_coefficient(self,n,L):
         r"""

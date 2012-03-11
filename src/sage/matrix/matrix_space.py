@@ -1319,6 +1319,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [               0]
 
         """
+        if x is None or x==0:
+            return self.__matrix_class(self, x, False, False)
+
         if isinstance(x, (types.GeneratorType, xrange)):
             x = list(x)
         elif isinstance(x, (int, integer.Integer)) and x==1:

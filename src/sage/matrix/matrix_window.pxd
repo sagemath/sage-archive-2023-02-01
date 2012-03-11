@@ -3,7 +3,7 @@ from matrix cimport Matrix
 cdef class MatrixWindow:
     cdef Py_ssize_t _row, _col, _nrows, _ncols
     cdef Matrix _matrix
-    cdef object _zero
+    cdef object _cached_zero
 
     # YOU *REALLY SHOULD* OVERRIDE THESE:
     cpdef add(MatrixWindow self, MatrixWindow A)
@@ -32,6 +32,4 @@ cdef class MatrixWindow:
                                          Py_ssize_t n_rows, Py_ssize_t n_cols)
     cpdef matrix(MatrixWindow self)
     cpdef swap_rows(MatrixWindow self, Py_ssize_t a, Py_ssize_t b)
-
-
-
+    cdef object _zero(self)

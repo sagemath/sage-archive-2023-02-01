@@ -34,7 +34,7 @@ cdef class MatrixWindow:
         M._col = col
         M._nrows = n_rows
         M._ncols = n_cols
-        M._zero = self._zero
+        M._cached_zero = self._cached_zero
         return M
 
     def __init__(MatrixWindow self, Matrix matrix,
@@ -44,7 +44,11 @@ cdef class MatrixWindow:
         self._col = col
         self._nrows = nrows
         self._ncols = ncols
-        self._zero = matrix.base_ring()(0)  # expensive
+
+    cdef object _zero(self):
+        if self._cached_zero is None:
+            self._cached_zero = self._matrix.base_ring()(0)  # expensive
+        return self._cached_zero
 
     cpdef MatrixWindow matrix_window(MatrixWindow self, Py_ssize_t row, Py_ssize_t col,
                                     Py_ssize_t n_rows, Py_ssize_t n_cols):
@@ -151,7 +155,7 @@ cdef class MatrixWindow:
 
     cpdef set_to_zero(MatrixWindow self):
         cdef Py_ssize_t i, j
-        z = self._zero
+        z = self._zero()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 self.set_unsafe(i, j, z)
@@ -194,7 +198,7 @@ cdef class MatrixWindow:
             raise ArithmeticError, "incompatible dimensions"
         for i from 0 <= i < A._nrows:
             for j from 0 <= j < B._ncols:
-                s = self._zero
+                s = self._zero()
                 for k from 0 <= k < A._ncols:
                     s = s + A.get_unsafe(i, k) * B.get_unsafe(k, j)
                 self.set_unsafe(i, j, s)
@@ -234,4 +238,4 @@ cdef class MatrixWindow:
         return echelon.pivots()
 
     cpdef bint element_is_zero(MatrixWindow self, Py_ssize_t i, Py_ssize_t j):
-        return self._matrix.get_unsafe(i+self._row, j+self._col) == self._zero
+        return self._matrix.get_unsafe(i+self._row, j+self._col) == self._zero()

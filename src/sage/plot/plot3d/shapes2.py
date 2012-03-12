@@ -151,7 +151,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         w._set_extra_kwds(kwds)
         return w
 
-@options(opacity=1, color="red", aspect_ratio=[1,1,1], thickness=2)
+@options(opacity=1, color="blue", aspect_ratio=[1,1,1], thickness=2)
 def bezier3d(path, **options):
     """
     Draws a 3-dimensional bezier path.  Input is similar to bezier_path, but each

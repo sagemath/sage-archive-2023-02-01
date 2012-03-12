@@ -42,7 +42,7 @@ class PlotField(GraphicPrimitive):
             sage: x,y = var('x,y')
             sage: R=plot_slope_field(x+y,(x,0,1),(y,0,1),plot_points=2)
             sage: r=R[0]
-            sage: r.options()['headlength']
+            sage: r.options()['headaxislength']
             0
             sage: r.xpos_array
             [0.0, 0.0, 1.0, 1.0]
@@ -222,8 +222,19 @@ def plot_slope_field(f, xrange, yrange, **kwds):
     Plot a slope field using a lambda function::
 
         sage: plot_slope_field(lambda x,y: x+y, (-2,2), (-2,2))
+
+    TESTS:
+
+    Verify that we're not getting warnings due to use of headless quivers
+    (trac #11208)::
+
+        sage: x,y = var('x y')
+        sage: import numpy # bump warnings up to errors for testing purposes
+        sage: old_err = numpy.seterr('raise')
+        sage: plot_slope_field(sin(x+y)+cos(x+y), (x,-3,3), (y,-3,3))
+        sage: dummy_err = numpy.seterr(**old_err)
     """
-    slope_options = {'headaxislength': 0, 'headlength': 0, 'pivot': 'middle'}
+    slope_options = {'headaxislength': 0, 'headlength': 1e-9, 'pivot': 'middle'}
     slope_options.update(kwds)
 
     from sage.functions.all import sqrt

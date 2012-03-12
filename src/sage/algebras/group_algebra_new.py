@@ -257,10 +257,10 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
         """
         from sage.groups.group import Group
         if not base_ring.is_commutative():
-            raise NotImplementedError, "Base ring must be commutative"
+            raise NotImplementedError("Base ring must be commutative")
 
         if not isinstance(group, Group):
-            raise TypeError, '"%s" is not a group' % group
+            raise TypeError('"%s" is not a group' % group)
 
         self._group = group
         CombinatorialFreeModule.__init__(self, base_ring, group,
@@ -534,10 +534,10 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
                 ans = False
         except AttributeError:
             if proof:
-                raise NotImplementedError, "cannot determine whether self is an integral domain"
+                raise NotImplementedError("cannot determine whether self is an integral domain")
         except NotImplementedError:
             if proof:
-                raise NotImplementedError, "cannot determine whether self is an integral domain"
+                raise NotImplementedError("cannot determine whether self is an integral domain")
 
         return ans
 
@@ -761,5 +761,5 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
         elif isinstance(x, FormalSum) and k.has_coerce_map_from(S.base_ring()):
             y = [(G(g), k(coeff)) for coeff,g in x]
             return self.sum_of_terms(y)
-        raise TypeError, "Don't know how to create an element of %s from %s" % \
-                             (self, x)
+        raise TypeError("Don't know how to create an element of %s from %s" % \
+                             (self, x))

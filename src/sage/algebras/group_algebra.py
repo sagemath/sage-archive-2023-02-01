@@ -65,10 +65,10 @@ class GroupAlgebra(Algebra):
 
         """
         if not base_ring.is_commutative():
-            raise NotImplementedError, "Base ring must be commutative"
+            raise NotImplementedError("Base ring must be commutative")
 
         if not isinstance(group, Group):
-            raise TypeError, '"%s" is not a group' % group
+            raise TypeError('"%s" is not a group' % group)
 
         ParentWithGens.__init__(self, base_ring, category = GroupAlgebras(base_ring))
 
@@ -191,10 +191,10 @@ class GroupAlgebra(Algebra):
                 ans = False
         except AttributeError:
             if proof:
-                raise NotImplementedError, "cannot determine whether self is an integral domain"
+                raise NotImplementedError("cannot determine whether self is an integral domain")
         except NotImplementedError:
             if proof:
-                raise NotImplementedError, "cannot determine whether self is an integral domain"
+                raise NotImplementedError("cannot determine whether self is an integral domain")
 
         return ans
 
@@ -325,7 +325,7 @@ class GroupAlgebraElement(AlgebraElement):
             if check:
                 for c,d in x._data:
                     if d.parent() != self.parent().group():
-                        raise TypeError, "%s is not an element of group %s" % (d, self.parent().group())
+                        raise TypeError("%s is not an element of group %s" % (d, self.parent().group()))
                 self._fs = x
             else:
                 self._fs = x
@@ -335,7 +335,7 @@ class GroupAlgebraElement(AlgebraElement):
         elif self.parent().group().has_coerce_map_from(x.parent()):
             self._fs = self.parent()._formal_sum_module([ (1, self.parent().group()(x)) ])
         else:
-            raise TypeError, "Don't know how to create an element of %s from %s" % (self.parent(), x)
+            raise TypeError("Don't know how to create an element of %s from %s" % (self.parent(), x))
 
     def _repr_(self):
         return self._fs._repr_()

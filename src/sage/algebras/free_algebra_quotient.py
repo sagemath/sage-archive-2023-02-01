@@ -116,7 +116,7 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
 
         """
         if not is_FreeAlgebra(A):
-            raise TypeError, "Argument A must be an algebra."
+            raise TypeError("Argument A must be an algebra.")
         R = A.base_ring()
 #        if not R.is_field():  # TODO: why?
 #            raise TypeError, "Base ring of argument A must be a field."
@@ -145,7 +145,7 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
             sage: HZ == QQ
             False
         """
-        return type(self) == type(right) and \
+        return isinstance(self, type(right)) and \
                self.ngens() == right.ngens() and \
                self.rank() == right.rank() and \
                self.module() == right.module() and \
@@ -227,7 +227,7 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
         """
         n = self.__ngens
         if i < 0 or not i < n:
-            raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i, n-1)
+            raise IndexError("Argument i (= %s) must be between 0 and %s."%(i, n-1))
         R = self.base_ring()
         F = self.__free_algebra.monoid()
         n = self.__ngens

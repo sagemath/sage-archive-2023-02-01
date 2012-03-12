@@ -201,12 +201,12 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
         for a in [arg0,arg1]:
             if is_RingElement(a):
                 L.append(a)
-            elif type(a) == int or type(a) == long:
+            elif isinstance(a, int) or isinstance(a, long):
                 L.append(Integer(a))
-            elif type(a) == float:
+            elif isinstance(a, float):
                 L.append(RR(a))
             else:
-                raise ValueError, "a and b must be elements of a ring with characteristic not 2"
+                raise ValueError("a and b must be elements of a ring with characteristic not 2")
 
         # QuaternionAlgebra(a, b)
         v = Sequence(L)
@@ -218,20 +218,20 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
     else:
         K = arg0
         if not is_Field(K):
-            raise TypeError, "base ring of quaternion algebra must be a field"
+            raise TypeError("base ring of quaternion algebra must be a field")
         a = K(arg1)
         b = K(arg2)
 
     if K.characteristic() == 2:
         # Lameness!
-        raise ValueError, "a and b must be elements of a ring with characteristic not 2"
+        raise ValueError("a and b must be elements of a ring with characteristic not 2")
     if a == 0 or b == 0:
-        raise ValueError, "a and b must be nonzero"
+        raise ValueError("a and b must be nonzero")
 
     global _cache
     names = normalize_names(3, names)
     key = (K, a, b, names)
-    if _cache.has_key(key):
+    if key in _cache:
         return _cache[key]
     A = QuaternionAlgebra_ab(K, a, b, names=names)
     A._key = key
@@ -583,7 +583,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         self._a = a
         self._b = b
         if not is_Field(base_ring):
-            raise TypeError, "base ring of quaternion algebra must be a field"
+            raise TypeError("base ring of quaternion algebra must be a field")
         if is_RationalField(base_ring) and a.denominator() == 1 and b.denominator() == 1:
             element_constructor = quaternion_algebra_element.QuaternionAlgebraElement_rational_field
         elif is_NumberField(base_ring) and base_ring.degree() > 2 and base_ring.is_absolute() and \
@@ -619,7 +619,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             R = maximal_order(self)
             self.__maximal_order = R
             return R
-        raise NotImplementedError, "maximal order only implemented for rational quaternion algebras of prime discriminant"
+        raise NotImplementedError("maximal order only implemented for rational quaternion algebras of prime discriminant")
 
     def invariants(self):
         """
@@ -768,7 +768,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         try: return self.__discriminant
         except AttributeError: pass
         if not is_RationalField(self.base_ring()):
-            raise NotImplementedError, "base field must be rational numbers"
+            raise NotImplementedError("base field must be rational numbers")
         self.__discriminant = hilbert_conductor(self._a, self._b)
         return self.__discriminant
 
@@ -866,7 +866,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         if self.base_ring() == QQ:
             return QuaternionFractionalIdeal_rational(gens, left_order=left_order, right_order=right_order, check=check)
         else:
-            raise NotImplementedError, "ideal only implemented for quaternion algebras over QQ"
+            raise NotImplementedError("ideal only implemented for quaternion algebras over QQ")
 
     @cached_method
     def modp_splitting_data(self, p):
@@ -939,14 +939,14 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             NotImplementedError: p must be odd
         """
         if self.base_ring() != QQ:
-            raise NotImplementedError, "must be rational quaternion algebra"
+            raise NotImplementedError("must be rational quaternion algebra")
         p = ZZ(p)
         if not p.is_prime():
-            raise ValueError, "p (=%s) must be prime"%p
+            raise ValueError("p (=%s) must be prime"%p)
         if p == 2:
-            raise NotImplementedError, "p must be odd"
+            raise NotImplementedError("p must be odd")
         if self.discriminant() % p == 0:
-            raise ValueError, "p (=%s) must be an unramified prime"%p
+            raise ValueError("p (=%s) must be an unramified prime"%p)
 
         i, j, k = self.gens()
         F = GF(p)
@@ -956,7 +956,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         M = MatrixSpace(F, 2)
         I = M([0,i2,1,0])
         if i2 == 0:
-            raise NotImplementedError, "algorithm for computing local splittings not implemented in general (currently require the first invariant to be coprime to p)"
+            raise NotImplementedError("algorithm for computing local splittings not implemented in general (currently require the first invariant to be coprime to p)")
         i2inv = 1/i2
         a = None
         for b in list(F):
@@ -1065,10 +1065,10 @@ class QuaternionOrder(Algebra):
         if check:
             # right data type
             if not isinstance(basis, (list, tuple)):
-                raise TypeError, "basis must be a list or tuple"
+                raise TypeError("basis must be a list or tuple")
             # right length
             if len(basis) != 4:
-                raise ValueError, "basis must have length 4"
+                raise ValueError("basis must have length 4")
             # coerce to common parent
             basis = tuple([A(x) for x in basis])
         self.__basis = basis
@@ -1230,11 +1230,11 @@ class QuaternionOrder(Algebra):
             Order of Quaternion Algebra (-1, -11) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 23/2*k, j, 15*k)
         """
         if not isinstance(other, QuaternionOrder):
-            raise TypeError, "other must be a QuaternionOrder"
+            raise TypeError("other must be a QuaternionOrder")
 
         A = self.quaternion_algebra()
         if other.quaternion_algebra() != A:
-            raise ValueError, "self and other must be in the same ambient quaternion algebra"
+            raise ValueError("self and other must be in the same ambient quaternion algebra")
 
         V = A.base_ring()**4
 
@@ -1319,7 +1319,7 @@ class QuaternionOrder(Algebra):
         if self.base_ring() == ZZ:
             return QuaternionFractionalIdeal_rational(gens, left_order=self, check=check)
         else:
-            raise NotImplementedError, "ideal only implemented for quaternion algebras over QQ"
+            raise NotImplementedError("ideal only implemented for quaternion algebras over QQ")
 
     def right_ideal(self, gens, check=True):
         r"""
@@ -1341,7 +1341,7 @@ class QuaternionOrder(Algebra):
         if self.base_ring() == ZZ:
             return QuaternionFractionalIdeal_rational(gens, right_order=self, check=check)
         else:
-            raise NotImplementedError, "ideal only implemented for quaternion algebras over QQ"
+            raise NotImplementedError("ideal only implemented for quaternion algebras over QQ")
 
     def unit_ideal(self):
         """
@@ -1356,7 +1356,7 @@ class QuaternionOrder(Algebra):
         if self.base_ring() == ZZ:
             return QuaternionFractionalIdeal_rational(self.basis(), left_order=self, right_order=self, check=False)
         else:
-            raise NotImplementedError, "ideal only implemented for quaternion algebras over QQ"
+            raise NotImplementedError("ideal only implemented for quaternion algebras over QQ")
 
     def quadratic_form(self):
         """
@@ -1425,7 +1425,7 @@ class QuaternionOrder(Algebra):
             1 + 2*q^23 + 2*q^55 + 2*q^56 + 2*q^75 + 4*q^92 + O(q^100)
         """
         if self.base_ring() != ZZ:
-            raise NotImplementedError, "ternary quadratic form of order only implemented for quaternion algebras over QQ"
+            raise NotImplementedError("ternary quadratic form of order only implemented for quaternion algebras over QQ")
 
         Q = self.quaternion_algebra()
         # 2*R + ZZ
@@ -1478,11 +1478,11 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         if check:
             if left_order is not None and not isinstance(left_order, QuaternionOrder):
-                raise TypeError, "left_order must be a quaternion order or None"
+                raise TypeError("left_order must be a quaternion order or None")
             if right_order is not None and not isinstance(right_order, QuaternionOrder):
-                raise TypeError, "right_order must be a quaternion order or None"
+                raise TypeError("right_order must be a quaternion order or None")
             if not isinstance(basis, (list, tuple)):
-                raise TypeError, "basis must be a list or tuple"
+                raise TypeError("basis must be a list or tuple")
 
         self.__left_order = left_order
         self.__right_order = right_order
@@ -1601,7 +1601,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         else: ValueError, "side must be 'left' or 'right'"
         Q = self.quaternion_algebra()
         if Q.base_ring() != QQ:
-            raise NotImplementedError, "computation of left and right orders only implemented over QQ"
+            raise NotImplementedError("computation of left and right orders only implemented over QQ")
         M = [(~b).matrix(action=action) for b in self.basis()]
         B = self.basis_matrix()
         invs = [B*m for m in M]
@@ -1703,7 +1703,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         elif self.__right_order is not None:
             A = self.__right_order
         else:
-            raise RuntimeError, "unable to determine quaternion order of ideal without known order"
+            raise RuntimeError("unable to determine quaternion order of ideal without known order")
         self.__quaternion_order = A
         return A
 
@@ -1746,7 +1746,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
     def __cmp__(self, right):
         """
-        Compare this fractional quaternion ideal to ``right``.  If
+        Compare this fractional quaternion ideal to ``right``. If
         ``right`` is not a fractional quaternion ideal a TypeError is
         raised.  If the fractional ideals are in different ambient
         quaternion algebras, then the quaternion algebras themselves
@@ -2147,7 +2147,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             return False
 
         if I.right_order() != J.right_order():
-            raise ValueError, "I and J must be right ideals"
+            raise ValueError("I and J must be right ideals")
 
         # Just test theta series first.  If the theta series are
         # different, the ideals are definitely not equivalent.
@@ -2265,11 +2265,11 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             scale = g/d
             try:
                 A = W.span_of_basis([W(f(Q(a.list())).list()) for a in IB.rows()])
-            except (ValueError, ZeroDivisionError), msg:
+            except (ValueError, ZeroDivisionError) as msg:
                 # Here we could replace the ideal by an *equivalent*
                 # ideal that works.  This is always possible.
                 # However, I haven't implemented that algorithm yet.
-                raise NotImplementedError, "general algorithm not implemented (%s)"%msg
+                raise NotImplementedError("general algorithm not implemented (%s)"%msg)
 
         Ai = A.basis_matrix()**(-1)
         AiB = Ai.change_ring(QQ) * IB
@@ -2362,7 +2362,7 @@ def intersection_of_row_modules_over_ZZ(v):
         True
     """
     if len(v) <= 0:
-        raise ValueError, "v must have positive length"
+        raise ValueError("v must have positive length")
     if len(v) == 1:
         return v[0]
     elif len(v) == 2:

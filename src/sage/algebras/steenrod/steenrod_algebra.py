@@ -570,7 +570,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         truncation_type = kwds.get('truncation_type', 'auto')
 
         if not is_prime(p):
-            raise ValueError, "%s is not prime." % p
+            raise ValueError("%s is not prime." % p)
         self._prime = p
         base_ring = GF(p)
         self._profile = profile
@@ -581,7 +581,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 and profile[0][0] < Infinity)
             or (truncation_type < Infinity)):
             if basis != 'milnor' and basis.find('pst') == -1:
-                raise NotImplementedError, "For sub-Hopf algebras of the Steenrod algebra, only the Milnor basis and the pst bases are implemented."
+                raise NotImplementedError("For sub-Hopf algebras of the Steenrod algebra, only the Milnor basis and the pst bases are implemented.")
         self._basis_name = basis
         self._basis_fcn = partial(steenrod_algebra_basis,
                                   p=p,
@@ -2002,7 +2002,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 if self.basis_name() == 'milnor':
                     return a
                 return a.change_basis(self.basis_name())
-        raise ValueError, "Element does not lie in this Steenrod algebra"
+        raise ValueError("Element does not lie in this Steenrod algebra")
 
     def __contains__(self, x):
         r"""
@@ -2193,7 +2193,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             try:
                 assert Integer(i) >= 0
             except (TypeError, AssertionError):
-                raise TypeError, "entries must be non-negative integers"
+                raise TypeError("entries must be non-negative integers")
 
         if self.prime() == 2:
             t = nums
@@ -2203,7 +2203,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             A = SteenrodAlgebra_generic(p=self.prime())
             a = A.monomial(t)
             return self(a)
-        raise ValueError, "Element not in this algebra"
+        raise ValueError("Element not in this algebra")
 
     def Q_exp(self, *nums):
         r"""
@@ -2238,8 +2238,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             True
         """
         if not set(nums).issubset(set((0,1))):
-            raise ValueError, "The tuple %s should consist " % (nums,) + \
-                "only of 0's and 1's"
+            raise ValueError("The tuple %s should consist " % (nums,) + \
+                "only of 0's and 1's")
         else:
             if self.basis_name() != 'milnor':
                 return self(SteenrodAlgebra(p=self.prime()).Q_exp(*nums))
@@ -2312,7 +2312,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 t = answer.leading_support()
                 if self._check_profile_on_basis(t):
                     return answer
-                raise ValueError, "Element not in this algebra"
+                raise ValueError("Element not in this algebra")
 
     def an_element(self):
         """
@@ -2402,9 +2402,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         if self.basis_name() != 'milnor':
             return self(SteenrodAlgebra(p=self.prime()).pst(s,t))
         if not isinstance(s, (Integer, int)) and s >= 0:
-            raise ValueError, "%s is not a non-negative integer" % s
+            raise ValueError("%s is not a non-negative integer" % s)
         if not isinstance(t, (Integer, int)) and t > 0:
-            raise ValueError, "%s is not a positive integer" % t
+            raise ValueError("%s is not a positive integer" % t)
         nums = (0,)*(t-1) + (self.prime()**s,)
         return self.P(*nums)
 
@@ -2590,11 +2590,11 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         from sage.rings.all import Integer
         p = self.prime()
         if not isinstance(i, (Integer, int)) and i >= 0:
-            raise ValueError, "%s is not a non-negative integer" % i
+            raise ValueError("%s is not a non-negative integer" % i)
         num = self.ngens()
         if num < Infinity:
             if i >= num:
-                raise ValueError, "This algebra only has %s generators, so call gen(i) with 0 <= i < %s" % (num, num)
+                raise ValueError("This algebra only has %s generators, so call gen(i) with 0 <= i < %s" % (num, num))
             # check to see if equal to A(n) for some n.
             n = self.profile(1)
             if p == 2 and self._profile == AA(n-1, p=p)._profile:
@@ -3018,12 +3018,12 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 True
             """
             if len(self.support()) == 0:
-                raise ValueError, "The zero element does not have a well-defined degree."
+                raise ValueError("The zero element does not have a well-defined degree.")
             try:
                 assert self.is_homogeneous()
                 return self.parent().degree_on_basis(self.leading_support())
             except AssertionError:
-                raise ValueError, "Element is not homogeneous."
+                raise ValueError("Element is not homogeneous.")
 
         def milnor(self):
             """
@@ -3488,7 +3488,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             """
             from sage.rings.all import Integer
             if self.prime() > 2:
-                raise NotImplementedError, "Wall height is not defined at odd primes."
+                raise NotImplementedError("Wall height is not defined at odd primes.")
             if self == 0 or self == 1:
                 return []
             result = []
@@ -3565,7 +3565,7 @@ class SteenrodAlgebra_mod_two(SteenrodAlgebra_generic):
         if self.prime() == 2:
             return self.P(*nums)
         else:
-            raise ValueError, "Sq is only defined at the prime 2"
+            raise ValueError("Sq is only defined at the prime 2")
 
 def SteenrodAlgebra(p=2, basis='milnor', **kwds):
     r"""

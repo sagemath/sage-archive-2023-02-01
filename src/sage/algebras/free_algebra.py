@@ -176,7 +176,7 @@ class FreeAlgebra_generic(Algebra):
             Free Algebra on 3 generators (x, y, z) over Rational Field
         """
         if not isinstance(R, Ring):
-            raise TypeError, "Argument R must be a ring."
+            raise TypeError("Argument R must be a ring.")
         self.__monoid = FreeMonoid(n, names=names)
         self.__ngens = n
         #sage.structure.parent_gens.ParentWithGens.__init__(self, R, names)
@@ -380,7 +380,7 @@ class FreeAlgebra_generic(Algebra):
                     if self.has_coerce_map_from(R.base_ring()):
                         return self(x)
                     else:
-                        raise TypeError, "no natural map between bases of free algebras"
+                        raise TypeError("no natural map between bases of free algebras")
 
         except AttributeError:
             pass
@@ -414,7 +414,7 @@ class FreeAlgebra_generic(Algebra):
         """
         n = self.__ngens
         if i < 0 or not i < n:
-            raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i, n-1)
+            raise IndexError("Argument i (= %s) must be between 0 and %s."%(i, n-1))
         R = self.base_ring()
         F = self.__monoid
         return self.element_class(self,{F.gen(i):R(1)})
@@ -540,7 +540,6 @@ class FreeAlgebra_generic(Algebra):
         from sage.rings.polynomial.plural import g_Algebra
         return g_Algebra(base_ring, cmat, dmat, names = names or self.variable_names(),
                          order=order, check=check)
-
 
 from sage.misc.cache import Cache
 cache = Cache(FreeAlgebra_generic)

@@ -162,7 +162,7 @@ def get_basis_name(basis, p):
         if basis.find('long') >= 0:
             result = result + '_long'
     else:
-        raise ValueError, "%s is not a recognized basis at the prime %s." % (basis, p)
+        raise ValueError("%s is not a recognized basis at the prime %s." % (basis, p))
     return result
 
 ######################################################
@@ -448,7 +448,7 @@ def normalize_profile(profile, precision=None, truncation_type='auto', p=2):
         if is_valid_profile(new_profile, truncation_type, p):
             return new_profile, truncation_type
         else:
-            raise ValueError, "Invalid profile"
+            raise ValueError("Invalid profile")
     else: # p odd
         if profile is None or profile == Infinity:
             # no specified profile or infinite profile: return profile
@@ -506,7 +506,7 @@ def normalize_profile(profile, precision=None, truncation_type='auto', p=2):
         if is_valid_profile(new_profile, truncation_type, p):
             return new_profile, truncation_type
         else:
-            raise ValueError, "Invalid profile"
+            raise ValueError("Invalid profile")
 
 ######################################################
 # string representations for elements
@@ -1084,6 +1084,5 @@ def convert_perm(m):
         sage: sage.algebras.steenrod.steenrod_algebra_misc.convert_perm((5,0,6,3))
         [3, 1, 4, 2]
     """
-    m2 = list(m)
-    m2.sort()
+    m2 = sorted(m)
     return [list(m2).index(x)+1 for x in m]

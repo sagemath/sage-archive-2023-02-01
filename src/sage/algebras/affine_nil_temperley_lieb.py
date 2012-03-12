@@ -57,7 +57,7 @@ class AffineNilTemperleyLiebTypeA(CombinatorialFreeModule):
             The affine nilTemperley Lieb algebra A3 over the ring Rational Field
         """
         if not isinstance(R, Ring):
-            raise TypeError, "Argument R must be a ring."
+            raise TypeError("Argument R must be a ring.")
         self._cartan_type = CartanType(['A',n-1,1])
         self._n = n
         W = WeylGroup(self._cartan_type)

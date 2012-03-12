@@ -286,7 +286,7 @@ def milnor_multiplication(r,s):
                 i = i - 1
             t = tuple(diagonal[:i+1])
             # reduce mod two:
-            if result.has_key(t):
+            if t in result:
                 del result[t]
             else:
                 result[t] = 1
@@ -530,7 +530,7 @@ def milnor_multiplication_odd(m1,m2,p):
                     while i >= 0 and diagonal[i] == 0:
                         i = i - 1
                     t = tuple(diagonal[:i+1])
-                    if result.has_key((e,t)):
+                    if (e,t) in result:
                         result[(e,t)] = F(coeff + result[(e,t)])
                     else:
                         result[(e,t)] = F(coeff)

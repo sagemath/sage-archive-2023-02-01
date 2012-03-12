@@ -175,7 +175,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
 
     def __init__(self, W, q1, q2, base_ring, prefix):
          """
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: R.<q1,q2>=QQ[]
             sage: H = IwahoriHeckeAlgebraT("A2",q1,q2,base_ring=Frac(R),prefix="t"); H
@@ -199,7 +199,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         """
         Construct a basis element from an element of the Weyl group
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: R.<q>=QQ[]
             sage: H = IwahoriHeckeAlgebraT("A2",q)
@@ -233,7 +233,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
 
     def _repr_(self):
         """
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: R.<q1,q2>=QQ[]
             sage: IwahoriHeckeAlgebraT("A2",q1,-q2,base_ring=Frac(R),prefix="Z") # indirect doctest
@@ -244,7 +244,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
 
     def cartan_type(self):
         """
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: IwahoriHeckeAlgebraT("D4",0).cartan_type()
             ['D', 4]
@@ -280,7 +280,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         this special case, the Iwahori Hecke algebra is identified
         with the group algebra of the Coxeter group.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: R.<q>=QQ[]
             sage: H = IwahoriHeckeAlgebraT("A3",q)
@@ -308,7 +308,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
 
     def algebra_generator(self, i):
         """
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: R.<q>=QQ[]
             sage: H = IwahoriHeckeAlgebraT("A3",q)
@@ -355,7 +355,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
             i1 = self._q1.__pow__(-1)
             i2 = self._q2.__pow__(-1)
         except:
-            raise ValueError, "%s and %s must be invertible."%(self._q1, self._q2)
+            raise ValueError("%s and %s must be invertible."%(self._q1, self._q2))
         return (-i1*i2)*self.algebra_generator(i)+(i1+i2)
 
     @cached_method
@@ -435,7 +435,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         Returns T_i*x, where T_i is the i-th generator. This is coded
         individually for use in x._mul_().
 
-        EXAMPLES ::
+        EXAMPLES::
             sage: R.<q>=QQ[]; H = IwahoriHeckeAlgebraT("A2",q)
             sage: [T1,T2] = H.algebra_generators()
             sage: [H.product_by_generator(x, 1, side = "left") for x in [T1,T2]]
@@ -446,7 +446,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
 
     def _repr_term(self, t):
         """
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: R.<q>=QQ[]
             sage: H = IwahoriHeckeAlgebraT("A3",q)
@@ -526,7 +526,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
 
             """
             if len(self) != 1:
-                raise NotImplementedError, "inverse only implemented for basis elements (monomials in the generators)"%self
+                raise NotImplementedError("inverse only implemented for basis elements (monomials in the generators)"%self)
             H = self.parent()
             w = self.support_of_term()
 

@@ -372,7 +372,7 @@ def steenrod_algebra_basis(n, basis='milnor', p=2, **kwds):
     profile = kwds.get("profile", None)
     if (profile is not None and profile != () and profile != ((), ())
         and basis != 'milnor' and basis.find('pst') == -1):
-        raise ValueError, "Profile functions may only be used with the Milnor or pst bases"
+        raise ValueError("Profile functions may only be used with the Milnor or pst bases")
 
     ## Milnor basis
     if basis_name == 'milnor':
@@ -394,7 +394,7 @@ def steenrod_algebra_basis(n, basis='milnor', p=2, **kwds):
     elif p == 2 and basis == 'arnonc':
         return arnonC_basis(n)
     else:
-        raise ValueError, "Unknown basis: %s at the prime %s" % (basis, p)
+        raise ValueError("Unknown basis: %s at the prime %s" % (basis, p))
 
 # helper functions for producing bases
 

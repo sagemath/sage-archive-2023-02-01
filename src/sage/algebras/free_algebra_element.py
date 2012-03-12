@@ -56,7 +56,7 @@ class FreeAlgebraElement(AlgebraElement):
         elif True:
             self.__monomial_coefficients = dict([ (A.monoid()(e1),R(e2)) for e1,e2 in x.items()])
         else:
-            raise TypeError, "Argument x (= %s) is of the wrong type."%x
+            raise TypeError("Argument x (= %s) is of the wrong type."%x)
 
     def __iter__(self):
         """
@@ -90,8 +90,7 @@ class FreeAlgebraElement(AlgebraElement):
             -a + 3*b*c
 
         """
-        v = self.__monomial_coefficients.items()
-        v.sort()
+        v = sorted(self.__monomial_coefficients.items())
         P = self.parent()
         M = P.monoid()
         from sage.structure.parent_gens import localvars
@@ -112,8 +111,7 @@ class FreeAlgebraElement(AlgebraElement):
             sage: latex(alpha-beta)
             \alpha + \left(-1\right)\beta
         """
-        v = self.__monomial_coefficients.items()
-        v.sort()
+        v = sorted(self.__monomial_coefficients.items())
         return repr_lincomb(v, strip_one=True, is_latex=True)
 
     def __call__(self, *x, **kwds):
@@ -138,7 +136,7 @@ class FreeAlgebraElement(AlgebraElement):
         - Joel B. Mohler (2007-10-27)
         """
         if len(kwds)>0 and len(x)>0:
-            raise ValueError, "must not specify both a keyword and positional argument"
+            raise ValueError("must not specify both a keyword and positional argument")
 
         if len(kwds)>0:
             p = self.parent()
@@ -155,7 +153,7 @@ class FreeAlgebraElement(AlgebraElement):
             x = x[0]
 
         if len(x) != self.parent().ngens():
-            raise ValueError, "must specify as many values as generators in parent"
+            raise ValueError("must specify as many values as generators in parent")
 
         # I don't start with 0, because I don't want to preclude evaluation with
         #arbitrary objects (e.g. matrices) because of funny coercion.
@@ -187,10 +185,8 @@ class FreeAlgebraElement(AlgebraElement):
             sage: y * x < x * y
             False
         """
-        v = left.__monomial_coefficients.items()
-        v.sort()
-        w = right.__monomial_coefficients.items()
-        w.sort()
+        v = sorted(left.__monomial_coefficients.items())
+        w = sorted(right.__monomial_coefficients.items())
         return cmp(v, w)
 
     def _add_(self, y):
@@ -219,7 +215,7 @@ class FreeAlgebraElement(AlgebraElement):
 ##             raise TypeError, "Argument y (= %s) is of the wrong type."%y
         z_elt = dict(self.__monomial_coefficients)
         for m, c in y.__monomial_coefficients.iteritems():
-            if z_elt.has_key(m):
+            if m in z_elt:
                 cm = z_elt[m] + c
                 if cm == 0:
                     del z_elt[m]
@@ -274,7 +270,7 @@ class FreeAlgebraElement(AlgebraElement):
 ##             raise TypeError, "Argument y (= %s) is of the wrong type."%y
         z_elt = dict(self.__monomial_coefficients)
         for m, c in y.__monomial_coefficients.iteritems():
-            if z_elt.has_key(m):
+            if m in z_elt:
                 cm = z_elt[m] - c
                 if cm == 0:
                     del z_elt[m]
@@ -302,7 +298,7 @@ class FreeAlgebraElement(AlgebraElement):
         for mx, cx in self.__monomial_coefficients.iteritems():
             for my, cy in y.__monomial_coefficients.iteritems():
                 key = mx*my
-                if z_elt.has_key(key):
+                if key in z_elt:
                     z_elt[key] += cx*cy
                 else:
                     z_elt[key] = cx*cy

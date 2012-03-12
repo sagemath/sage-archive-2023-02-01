@@ -145,7 +145,7 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
             sage: HZ == QQ
             False
         """
-        return isinstance(self, type(right)) and \
+        return isinstance(right, FreeAlgebraQuotient) and \
                self.ngens() == right.ngens() and \
                self.rank() == right.rank() and \
                self.module() == right.module() and \

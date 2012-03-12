@@ -605,7 +605,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 return False
             return self._base.has_coerce_map_from(S.base())
 
-    cdef _coerce_c_impl(self, other):
+    cdef _coerce_c_impl(self, rhs):
         r"""
         Canonical conversion of elements from other domains to
         this boolean polynomial ring.
@@ -746,10 +746,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef BooleanPolynomial p
         # we check for other PolyBoRi types first since this conversion
         # is used by the PolyBoRi python code often
+        other = rhs
         if PY_TYPE_CHECK(other, BooleSet):
-            return new_BP_from_PBSet(self, (<BooleSet>other)._pbset)
+            other = new_BP_from_PBSet(other.ring(), (<BooleSet>other)._pbset)
 
-        elif PY_TYPE_CHECK(other, int) or PY_TYPE_CHECK(other, Integer):
+        if PY_TYPE_CHECK(other, int) or PY_TYPE_CHECK(other, Integer):
             if (other %2) == 1:
                 return self._one_element
             else:
@@ -1445,6 +1446,26 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 #
 ###
 
+    def id(self):
+        """
+        Returns a unique identifiert for this boolean polynomial ring.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = BooleanPolynomialRing(2)
+            sage: print "id: ", P.id()
+            id: ...
+
+        ::
+
+            sage: P = BooleanPolynomialRing(10, 'x')
+            sage: Q = BooleanPolynomialRing(20, 'x')
+
+            sage: P.id() != Q.id()
+            True
+        """
+        return self._pbring.id()
+
     def variable(self, i=0):
         """
         Returns the i-th generator of this boolean polynomial ring.
@@ -1478,7 +1499,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         i = int(i)
         if i < 0 or i >= self._pbring.nVariables():
             raise ValueError, "Generator not defined."
-        return new_BP_from_PBVar(self, self._pbring.variable(self.pbind[i]))
+
+        return new_BM_from_PBVar(self._monom_monoid, self, self._pbring.variable(self.pbind[i]))
 
     def get_order_code(self):
         """
@@ -5068,20 +5090,20 @@ cdef class BooleSet:
                  "BooleSet: could not extract ring from %s, %s"% \
                    (type(param),str(type(ring)))
 
-            s = set()
-            v = BooleanPolynomialVector()
-            Monomial = MonomialConstruct()
-            for i in terms:
-                s.add(Monomial(i))
-            for i in s:
-                v.append(i)
+            #s = set()
+            #v = BooleanPolynomialVector()
+            #Monomial = MonomialConstruct()
+            #for i in terms:
+            #    s.add(Monomial(i))
+            #for i in s:
+            #    v.append(i)
 
             # todo what's wrong here?
             #init = (<BooleanPolynomialRing>ring)._zero_element
             #p = add_up_polynomials(v, init)
             p = sum(terms)
             self._pbset = PBSet_Constructor_poly((<BooleanPolynomial>p)._pbpoly)
-            self._ring = ring
+            self._ring = detected_ring
 
 
     def __repr__(self):
@@ -5576,6 +5598,26 @@ cdef class BooleSet:
         """
         return new_BS_from_PBSet(self._pbset.intersect(other._pbset), self._ring)
 
+    def divisors_of(self, BooleanMonomial m):
+        """
+        Return those members which are divisors of ``m``.
+
+        INPUT:
+
+        - ``m`` - a boolean monomial
+
+        EXAMPLE::
+
+            sage: B = BooleanPolynomialRing(5,'x')
+            sage: x0,x1,x2,x3,x4 = B.gens()
+            sage: f = x1*x2+x2*x3
+            sage: s = f.set()
+            sage: s.divisors_of((x1*x2*x4).lead())
+            {{x1,x2}}
+        """
+        return new_BS_from_PBSet(self._pbset.divisorsOf(m._pbmonom), self._ring)
+
+
     def multiples_of(self, BooleanMonomial m):
         """
         Return those members which are multiples of ``m``.
@@ -5763,7 +5805,7 @@ cdef class BooleanPolynomialVector:
         self._parent = None
         if I is not None:
             if I:
-                self._parent = I[0].parent()
+                self._parent = I[0].ring()
             for f in I:
                 self.append(f)
 
@@ -7122,6 +7164,9 @@ def ll_red_nf_redsb(p, BooleSet reductors):
     elif PY_TYPE_CHECK(p, BooleanPolynomial):
         t = (<BooleanPolynomial>p)._pbpoly
         parent = (<BooleanPolynomial>p)._parent
+    elif PY_TYPE_CHECK(p, BooleanMonomial):
+        t =  PBPoly_Constructor_monom((<BooleanMonomial>p)._pbmonom)
+        parent = (<BooleanMonomial>p)._ring
     else:
         raise TypeError, "Argument 'p' has incorrect type (expected BooleSet or BooleanPolynomial, got %s)"%(type(p))
 

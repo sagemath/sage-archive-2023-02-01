@@ -63,6 +63,7 @@ cdef extern from "pb_wrap.h":
         bint (* is_equal "operator==")(PBVar right)
 
     ctypedef struct PBRing "BoolePolyRing":
+        long (*id) ()
         int (* nVariables )()
         PBVar (* variable )(int n)
         PBOrdering (*ordering )()
@@ -155,6 +156,7 @@ cdef extern from "pb_wrap.h":
         PBSet (* unite)(PBSet rhs)
         PBSet (* intersect)(PBSet rhs)
         PBMonom (* usedVariables)()
+        PBSet (* divisorsOf)(PBMonom rhs)
         PBSet (* multiplesOf)(PBMonom rhs)
         double (* sizeDouble)()
         PBSetIter (* begin)()
@@ -417,7 +419,7 @@ cdef extern from "pb_wrap.h":
 
     PBPolyVector pb_easy_linear_factors "easy_linear_factors"(PBPoly p)
 
-    PBPoly pb_substitute_variables "substitute_variables<BoolePolyRing, std::vector<BoolePolynomial>, BoolePolynomial>" (PBRing ring, PBPolyVector vec, PBPoly poly)
+    PBPoly pb_substitute_variables "substitute_variables<BoolePolyRing, std::vector<BoolePolynomial>, BoolePolynomial>" (PBRing ring, PBPolyVector vec, PBPoly poly) except +
 
     void pb_set_variable_name "BooleEnv::setVariableName" \
         (int idx, char *varname)

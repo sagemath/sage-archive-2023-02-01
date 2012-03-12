@@ -177,9 +177,11 @@ class DiGraph(GenericGraph):
        example, 'out' is the label for the edge from 2 to 5. Labels can be
        used as weights, if all the labels share some common parent.
 
-    #. A dictionary of lists::
+    #. A dictionary of lists (or iterables)::
 
             sage: g = DiGraph({0:[1,2,3], 2:[4]}); g
+            Digraph on 5 vertices
+            sage: g = DiGraph({0:(1,2,3), 2:(4,)}); g
             Digraph on 5 vertices
 
     #. A list of vertices and a function describing adjacencies. Note
@@ -294,6 +296,15 @@ class DiGraph(GenericGraph):
             sage: G._backend._nxg is H._backend._nxg
             False
 
+    TESTS::
+
+            sage: DiGraph({0:[1,2,3], 2:[4]}).edges()
+            [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
+            sage: DiGraph({0:(1,2,3), 2:(4,)}).edges()
+            [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
+            sage: DiGraph({0:Set([1,2,3]), 2:Set([4])}).edges()
+            [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
+
     """
     _directed = True
 
@@ -383,10 +394,10 @@ class DiGraph(GenericGraph):
             keys = data.keys()
             if len(keys) == 0: format = 'dict_of_dicts'
             else:
-                if isinstance(data[keys[0]], list):
-                    format = 'dict_of_lists'
-                elif isinstance(data[keys[0]], dict):
+                if isinstance(data[keys[0]], dict):
                     format = 'dict_of_dicts'
+                else:
+                    format = 'dict_of_lists'
         if format is None and hasattr(data, 'adj'):
             import networkx
             if isinstance(data, (networkx.Graph, networkx.MultiGraph)):
@@ -608,8 +619,9 @@ class DiGraph(GenericGraph):
                 multiedges = True
             num_verts = len(verts)
         elif format == 'dict_of_lists':
+            # convert to a dict of lists if not already one
             if not all(isinstance(data[u], list) for u in data):
-                raise ValueError("Input dict must be a consistent format.")
+                data = dict([u, list(data[u])] for u in data)
             verts = set(data.keys())
             if loops is None or loops is False:
                 for u in data:

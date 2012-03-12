@@ -20,11 +20,10 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
 
       - a list of 3-tuples
 
-      - a list of lists (all of the same length) -
-        this is treated the same as a matrix.
+      - a list of lists (all of the same length) - this is treated the same as
+        a matrix.
 
-    - ``texture`` - (default: "automatic"), solid light
-      blue
+    - ``texture`` - (default: "automatic", a solid light blue)
 
     OPTIONAL KEYWORDS:
 
@@ -54,9 +53,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
       function in each direction, when ``interpolation_type`` is not
       ``default``. By default for an `n\times n` array this is `n`.
 
-    - ``**kwds`` - all other arguments are passed to the
-      surface function
-
+    - ``**kwds`` - all other arguments are passed to the surface function
 
     OUTPUT: a 3d plot
 
@@ -220,7 +217,7 @@ def list_plot3d_matrix(m, texture, **kwds):
 
     We plot a matrix that illustrates summation modulo `n`::
 
-        sage: n = 5; list_plot3d(matrix(RDF,n,[(i+j)%n for i in [1..n] for j in [1..n]]))
+        sage: n = 5; list_plot3d(matrix(RDF,n,[(i+j)%n for i in [1..n] for j in [1..n]])) # indirect doctest
 
     The interpolation type for matrices is 'linear'; for other types
     use other :func:`list_plot3d` input types.
@@ -229,11 +226,8 @@ def list_plot3d_matrix(m, texture, **kwds):
 
         sage: pi = float(pi)
         sage: m = matrix(RDF, 6, [sin(i^2 + j^2) for i in [0,pi/5,..,pi] for j in [0,pi/5,..,pi]])
-        sage: list_plot3d(m, texture='yellow', frame_aspect_ratio=[1,1,1/3])
-
-    ::
-
-        sage: list_plot3d(m, texture='yellow', interpolation_type='linear')
+        sage: list_plot3d(m, texture='yellow', frame_aspect_ratio=[1,1,1/3]) # indirect doctest
+        sage: list_plot3d(m, texture='yellow', interpolation_type='linear') # indirect doctest
     """
     from parametric_surface import ParametricSurface
     f = lambda i,j: (i,j,float(m[int(i),int(j)]))
@@ -256,8 +250,7 @@ def list_plot3d_array_of_arrays(v, interpolation_type, texture, **kwds):
 
     OPTIONAL KEYWORDS:
 
-    - ``**kwds`` - all other arguments are passed to the
-       surface function
+    - ``**kwds`` - all other arguments are passed to the surface function
 
     OUTPUT: a 3d plot
 
@@ -265,7 +258,7 @@ def list_plot3d_array_of_arrays(v, interpolation_type, texture, **kwds):
 
     The resulting matrix does not have to be square::
 
-        sage: show(list_plot3d([[1, 1, 1, 1], [1, 2, 1, 2], [1, 1, 3, 1]]))
+        sage: show(list_plot3d([[1, 1, 1, 1], [1, 2, 1, 2], [1, 1, 3, 1]])) # indirect doctest
 
     The normal route is for the list of lists to be turned into a matrix
     and use :func:`list_plot3d_matrix`::
@@ -301,7 +294,7 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
 
       - a list of lists (all of the same length, under same conditions as a matrix)
 
-    - ``texture`` - (default: "automatic", solid light blue)
+    - ``texture`` - (default: "automatic", a solid light blue)
 
     OPTIONAL KEYWORDS:
 
@@ -342,7 +335,7 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
 
         sage: pi = float(pi)
         sage: m = matrix(RDF, 6, [sin(i^2 + j^2) for i in [0,pi/5,..,pi] for j in [0,pi/5,..,pi]])
-        sage: list_plot3d(m, texture='yellow', interpolation_type='linear', num_points=5)
+        sage: list_plot3d(m, texture='yellow', interpolation_type='linear', num_points=5) # indirect doctest
 
     ::
 

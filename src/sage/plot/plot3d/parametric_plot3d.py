@@ -551,7 +551,7 @@ def _parametric_plot3d_curve(f, urange, plot_points, **kwds):
     We do the first one with a lambda function, which creates a
     callable Python function that sends `u` to `u/10`::
 
-        sage: parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20))
+        sage: parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20)) # indirect doctest
 
     Now we do the same thing with symbolic expressions::
 
@@ -608,7 +608,7 @@ def _parametric_plot3d_surface(f, urange, vrange, plot_points, boundary_style, *
     We do the first one with lambda functions::
 
         sage: f = (lambda u,v: cos(u), lambda u,v: sin(u)+cos(v), lambda u,v: sin(v))
-        sage: parametric_plot3d(f, (0, 2*pi), (-pi, pi))
+        sage: parametric_plot3d(f, (0, 2*pi), (-pi, pi)) # indirect doctest
 
     Now we do the same thing with symbolic expressions::
 

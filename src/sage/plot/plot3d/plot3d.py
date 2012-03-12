@@ -375,11 +375,11 @@ class Spherical(_Coordinates):
     A spherical coordinate system for use with ``plot3d(transformation=...)``
     where the position of a point is specified by three numbers:
 
-     - the *radial distance* (``radius``) from the origin
+    - the *radial distance* (``radius``) from the origin
 
-     - the *azimuth angle* (``azimuth``) from the positive `x`-axis
+    - the *azimuth angle* (``azimuth``) from the positive `x`-axis
 
-     - the *inclination angle* (``inclination``) from the positive `z`-axis
+    - the *inclination angle* (``inclination``) from the positive `z`-axis
 
     These three variables must be specified in the constructor.
 
@@ -432,12 +432,12 @@ class SphericalElevation(_Coordinates):
     A spherical coordinate system for use with ``plot3d(transformation=...)``
     where the position of a point is specified by three numbers:
 
-     - the *radial distance* (``radius``) from the origin
+    - the *radial distance* (``radius``) from the origin
 
-     - the *azimuth angle* (``azimuth``) from the positive `x`-axis
+    - the *azimuth angle* (``azimuth``) from the positive `x`-axis
 
-     - the *elevation angle* (``elevation``) from the `xy`-plane toward the
-       positive `z`-axis
+    - the *elevation angle* (``elevation``) from the `xy`-plane toward the
+      positive `z`-axis
 
     These three variables must be specified in the constructor.
 
@@ -492,7 +492,7 @@ class SphericalElevation(_Coordinates):
 
     def transform(self, radius=None, azimuth=None, elevation=None):
         """
-        A spherical coordinates transform.
+        A spherical elevation coordinates transform.
 
         EXAMPLE::
 
@@ -509,11 +509,11 @@ class Cylindrical(_Coordinates):
     A cylindrical coordinate system for use with ``plot3d(transformation=...)``
     where the position of a point is specified by three numbers:
 
-     - the *radial distance* (``radius``) from the `z`-axis
+    - the *radial distance* (``radius``) from the `z`-axis
 
-     - the *azimuth angle* (``azimuth``) from the positive `x`-axis
+    - the *azimuth angle* (``azimuth``) from the positive `x`-axis
 
-     - the *height* or *altitude* (``height``) above the `xy`-plane
+    - the *height* or *altitude* (``height``) above the `xy`-plane
 
     These three variables must be specified in the constructor.
 

@@ -104,6 +104,11 @@ class PosetElement(Element):
 
             sage: PosetElement(P,1,"c") == PosetElement(P,0,"c")
             True
+
+        Test that :trac:`12351` is fixed::
+
+            sage: P(0) == int(0)
+            False
         """
         # This should instead exploit unique representation, using
         # self is other, or best inherit __eq__ from there. But there

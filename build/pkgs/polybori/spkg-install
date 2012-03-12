@@ -6,7 +6,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-PBDIR=polybori-0.8.0
+PBDIR=polybori-0.8.1
 WORKDIR=${PWD}/src
 SCONS=scons
 
@@ -17,7 +17,6 @@ prepare()
     fi
 
     cp patches/custom.py             src/${PBDIR}
-    cp patches/SConstruct            src/${PBDIR}/SConstruct
     cp patches/PyPolyBoRi.py         src/${PBDIR}/pyroot/polybori
 
     cd ${WORKDIR}/${PBDIR}

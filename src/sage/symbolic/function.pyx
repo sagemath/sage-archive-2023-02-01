@@ -125,8 +125,27 @@ cdef class Function(SageObject):
         raise NotImplementedError, "this is an abstract base class, it shouldn't be initialized directly"
 
     cdef _register_function(self):
+        """
+
+        TESTS:
+
+        After :trac:`9240`, pickling and unpickling of symbolic
+        functions was broken. We check here that this is fixed
+        (:trac:`11919`)::
+
+            sage: f = function('f', x)
+            sage: s = dumps(f)
+            sage: loads(s)
+            f(x)
+            sage: deepcopy(f)
+            f(x)
+
+        """
         cdef GFunctionOpt opt
         opt = g_function_options_args(self._name, self._nargs)
+        # This next call sets some magic in motion that allows
+        # (un)pickling to work.
+        opt.set_python_func()
 
         if hasattr(self, '_eval_'):
             opt.eval_func(self)

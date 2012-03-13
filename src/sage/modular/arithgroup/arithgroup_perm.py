@@ -2134,16 +2134,15 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             sage: G = ArithmeticSubgroup_Permutation(S2='(1,2)(3,4)',S3='(1,2,3)')
             sage: reps,gens,l,s=G.todd_coxeter_l_s2()
             sage: reps
-            [[1 0]
-            [0 1], [ 0 -1]
-            [ 1  0], [1 2]
-            [0 1], [1 1]
-            [0 1]]
+            [
+            [1 0]  [ 0 -1]  [1 2]  [1 1]
+            [0 1], [ 1  0], [0 1], [0 1]
+            ]
             sage: gens
-            [[1 3]
-            [0 1], [ 1 0]
-            [-1  1], [ 2 -3]
-            [ 1 -1]]
+            [
+            [1 3]  [ 1  0]  [ 2 -3]
+            [0 1], [-1  1], [ 1 -1]
+            ]
             sage: l
             [3, 1, 0, 2]
             sage: s

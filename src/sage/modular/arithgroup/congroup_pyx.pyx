@@ -284,18 +284,13 @@ def generators_helper(coset_reps, level, Mat2Z):
     EXAMPLES::
 
         sage: Gamma0(7).generators(algorithm="todd-coxeter") # indirect doctest
-        [[1 1]
-        [0 1], [-1  0]
-        [ 0 -1], [ 1 -1]
-        [ 0  1], [1 0]
-        [7 1], [1 1]
-        [0 1], [-3 -1]
-        [ 7  2], [-2 -1]
-        [ 7  3], [-5 -1]
-        [21  4], [-4 -1]
-        [21  5], [-1  0]
-        [ 7 -1], [ 1  0]
-        [-7  1]]
+        [
+        [1 1]  [-1  0]  [ 1 -1]  [1 0]  [1 1]  [-3 -1]  [-2 -1]  [-5 -1]
+        [0 1], [ 0 -1], [ 0  1], [7 1], [0 1], [ 7  2], [ 7  3], [21  4],
+        <BLANKLINE>
+        [-4 -1]  [-1  0]  [ 1  0]
+        [21  5], [ 7 -1], [-7  1]
+        ]
     """
     cdef Matrix_integer_2x2 S,T,I,x,y,z,v,vSmod,vTmod
 

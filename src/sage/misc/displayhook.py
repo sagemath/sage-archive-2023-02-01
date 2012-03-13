@@ -10,6 +10,7 @@ AUTHORS:
 
 import IPython, sys, __builtin__
 from sage.matrix.matrix import is_Matrix
+from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
 
 # This is used to wrap lines when printing "tall" lists.
 MAX_COLUMN = 70
@@ -134,9 +135,10 @@ def print_obj(out_stream, obj):
         ]
     """
     # We only apply the special formatting to lists (or tuples) where the first
-    # element is a matrix. This should cover most cases.
+    # element is a matrix, or an ArithmeticSubgroupElement (a thin wrapper
+    # around a matrix). This should cover most cases.
     if isinstance(obj, (tuple, list)):
-        if len(obj) > 0 and is_Matrix(obj[0]):
+        if len(obj) > 0 and (is_Matrix(obj[0]) or isinstance(obj[0], ArithmeticSubgroupElement)):
             if _check_tall_list_and_print(out_stream, obj):
                 return
     print >>out_stream, `obj`

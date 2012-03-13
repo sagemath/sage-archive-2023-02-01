@@ -119,12 +119,10 @@ class ArithmeticSubgroup(group.Group):
             ...
             NotImplementedError
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.coset_reps(Gamma0(3))
-            [[1 0]
-            [0 1], [ 0 -1]
-            [ 1  0], [ 0 -1]
-            [ 1  1], [ 0 -1]
-            [ 1  2]]
-
+            [
+            [1 0]  [ 0 -1]  [ 0 -1]  [ 0 -1]
+            [0 1], [ 1  0], [ 1  1], [ 1  2]
+            ]
         """
         return self.todd_coxeter(G)[0]
 
@@ -697,7 +695,10 @@ class ArithmeticSubgroup(group.Group):
         EXAMPLES::
 
             sage: Gamma1(4).cusp_data(Cusps(1/2))
-            ([ 1 -1] [ 4 -3], 1, -1)
+            (
+            [ 1 -1]
+            [ 4 -3], 1, -1
+            )
         """
         c = Cusp(c)
         from all import SL2Z # can't import at top as that would cause a circular import
@@ -889,19 +890,15 @@ class ArithmeticSubgroup(group.Group):
         EXAMPLE::
 
             sage: Gamma(2).generators()
-            [[1 2]
-            [0 1], [ 3 -2]
-            [ 2 -1], [-1  0]
-            [ 0 -1]]
+            [
+            [1 2]  [ 3 -2]  [-1  0]
+            [0 1], [ 2 -1], [ 0 -1]
+            ]
             sage: Gamma(2).generators(algorithm="todd-coxeter")
-            [[1 2]
-            [0 1], [-1  0]
-            [ 0 -1], [ 1  0]
-            [-2  1], [-1  0]
-            [ 0 -1], [-1  2]
-            [-2  3], [-1  0]
-            [ 2 -1], [1 0]
-            [2 1]]
+            [
+            [1 2]  [-1  0]  [ 1  0]  [-1  0]  [-1  2]  [-1  0]  [1 0]
+            [0 1], [ 0 -1], [-2  1], [ 0 -1], [-2  3], [ 2 -1], [2 1]
+            ]
         """
         if algorithm=="farey":
             return self.farey_symbol().generators()
@@ -919,9 +916,10 @@ class ArithmeticSubgroup(group.Group):
         EXAMPLES::
 
             sage: SL2Z.gens()
-            ([ 0 -1]
-            [ 1  0], [1 1]
-            [0 1])
+            (
+            [ 0 -1]  [1 1]
+            [ 1  0], [0 1]
+            )
         """
         return tuple(self.generators(*args, **kwds))
 

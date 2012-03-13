@@ -67,21 +67,15 @@ which calculates a *minimal* set of generators.
 ::
 
     sage: Gamma0(2).gens()
-    ([1 1]
-    [0 1],
-    [ 1 -1]
-    [ 2 -1])
+    (
+    [1 1]  [ 1 -1]
+    [0 1], [ 2 -1]
+    )
     sage: Gamma0(2).gens(algorithm="todd-coxeter") # the old implementation
-    ([1 1]
-     [0 1],
-     [-1  0]
-     [ 0 -1],
-     [ 1 -1]
-     [ 0  1],
-     [ 1 -1]
-     [ 2 -1],
-     [-1  1]
-     [-2  1])
+    (
+    [1 1]  [-1  0]  [ 1 -1]  [ 1 -1]  [-1  1]
+    [0 1], [ 0 -1], [ 0  1], [ 2 -1], [-2  1]
+    )
     sage: len(Gamma1(13).gens())
     15
 

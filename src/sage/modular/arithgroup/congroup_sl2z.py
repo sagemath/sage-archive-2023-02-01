@@ -55,9 +55,10 @@ class SL2Z_class(Gamma0_class):
             sage: G = SL2Z; G
             Modular Group SL(2,Z)
             sage: G.gens()
-            ([ 0 -1]
-            [ 1  0], [1 1]
-            [0 1])
+            (
+            [ 0 -1]  [1 1]
+            [ 1  0], [0 1]
+            )
             sage: G.0
             [ 0 -1]
             [ 1  0]

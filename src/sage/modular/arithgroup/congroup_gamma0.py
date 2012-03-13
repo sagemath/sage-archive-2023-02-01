@@ -349,22 +349,20 @@ class Gamma0_class(GammaH_class):
         EXAMPLES::
 
             sage: list(Gamma0(5).coset_reps())
-            [[1 0]
-            [0 1], [ 0 -1]
-            [ 1  0], [1 0]
-            [1 1], [ 0 -1]
-            [ 1  2], [ 0 -1]
-            [ 1  3], [ 0 -1]
-            [ 1  4]]
+            [
+            [1 0]  [ 0 -1]  [1 0]  [ 0 -1]  [ 0 -1]  [ 0 -1]
+            [0 1], [ 1  0], [1 1], [ 1  2], [ 1  3], [ 1  4]
+            ]
             sage: list(Gamma0(4).coset_reps())
-             [[1 0] [0 1],
-             [ 0 -1] [ 1  0],
-             [1 0] [1 1],
-             [ 0 -1] [ 1  2],
-             [ 0 -1] [ 1  3],
-             [1 0] [2 1]]
+            [
+            [1 0]  [ 0 -1]  [1 0]  [ 0 -1]  [ 0 -1]  [1 0]
+            [0 1], [ 1  0], [1 1], [ 1  2], [ 1  3], [2 1]
+            ]
             sage: list(Gamma0(1).coset_reps())
-            [[1 0] [0 1]]
+            [
+            [1 0]
+            [0 1]
+            ]
         """
         from all import SL2Z
         N = self.level()
@@ -395,20 +393,21 @@ class Gamma0_class(GammaH_class):
 
         EXAMPLE::
 
-            sage: [x.matrix() for x in Gamma0(3).generators()]
+            sage: Gamma0(3).generators()
             [
             [1 1]  [-1  1]
             [0 1], [-3  2]
             ]
-            sage: [x.matrix() for x in Gamma0(3).generators(algorithm="todd-coxeter")]
+            sage: Gamma0(3).generators(algorithm="todd-coxeter")
             [
             [1 1]  [-1  0]  [ 1 -1]  [1 0]  [1 1]  [-1  0]  [ 1  0]
             [0 1], [ 0 -1], [ 0  1], [3 1], [0 1], [ 3 -1], [-3  1]
             ]
             sage: SL2Z.gens()
-            ([ 0 -1]
-            [ 1  0], [1 1]
-            [0 1])
+            (
+            [ 0 -1]  [1 1]
+            [ 1  0], [0 1]
+            )
         """
         if self.level() == 1:
             # we return a fixed set of generators for SL2Z, for historical

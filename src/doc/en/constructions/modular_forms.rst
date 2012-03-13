@@ -51,30 +51,13 @@ Here is an example of computing the coset representatives of
     sage: G = Gamma0(11); G
     Congruence Subgroup Gamma0(11)
     sage: list(G.coset_reps())
-    [[1 0]
-     [0 1],
-     [ 0 -1]
-     [ 1  0],
-     [1 0]
-     [1 1],
-     [ 0 -1]
-     [ 1  2],
-     [ 0 -1]
-     [ 1  3],
-     [ 0 -1]
-     [ 1  4],
-     [ 0 -1]
-     [ 1  5],
-     [ 0 -1]
-     [ 1  6],
-     [ 0 -1]
-     [ 1  7],
-     [ 0 -1]
-     [ 1  8],
-     [ 0 -1]
-     [ 1  9],
-     [ 0 -1]
-     [ 1 10]]
+    [
+    [1 0]  [ 0 -1]  [1 0]  [ 0 -1]  [ 0 -1]  [ 0 -1]  [ 0 -1]  [ 0 -1]
+    [0 1], [ 1  0], [1 1], [ 1  2], [ 1  3], [ 1  4], [ 1  5], [ 1  6],
+    <BLANKLINE>
+    [ 0 -1]  [ 0 -1]  [ 0 -1]  [ 0 -1]
+    [ 1  7], [ 1  8], [ 1  9], [ 1 10]
+    ]
 
 
 .. index:: modular symbols, Hecke operators

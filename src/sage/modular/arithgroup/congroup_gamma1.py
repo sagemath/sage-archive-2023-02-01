@@ -257,15 +257,16 @@ class Gamma1_class(GammaH_class):
 
         EXAMPLE::
 
-            sage: [x.matrix() for x in Gamma1(3).generators()]
+            sage: Gamma1(3).generators()
             [
             [1 1]  [ 1 -1]
             [0 1], [ 3 -2]
             ]
-            sage: [x.matrix() for x in Gamma1(3).generators(algorithm="todd-coxeter")]
+            sage: Gamma1(3).generators(algorithm="todd-coxeter")
             [
             [1 1]  [-20   9]  [ 4  1]  [-5 -2]  [ 1 -1]  [1 0]  [1 1]  [-5  2]
             [0 1], [ 51 -23], [-9 -2], [ 3  1], [ 0  1], [3 1], [0 1], [12 -5],
+            <BLANKLINE>
             [ 1  0]  [ 4 -1]  [ -5   3]  [ 1 -1]  [ 7 -3]  [ 4 -1]  [ -5   3]
             [-3  1], [ 9 -2], [-12   7], [ 3 -2], [12 -5], [ 9 -2], [-12   7]
             ]

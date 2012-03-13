@@ -9,9 +9,9 @@ AUTHOR:
 This is an implementation of the algebraic numbers (the complex
 numbers which are the zero of a polynomial in `\ZZ[x]`; in other
 words, the algebraic closure of `\QQ`, with an embedding into `\CC`).
-All computations are exact.  We also include an implementation of the
+All computations are exact. We also include an implementation of the
 algebraic reals (the intersection of the algebraic numbers with
-`\RR`).  The field of algebraic numbers `\QQbar` is available with
+`\RR`). The field of algebraic numbers `\QQbar` is available with
 abbreviation ``QQbar``; the field of algebraic reals has abbreviation
 ``AA``.
 
@@ -46,14 +46,14 @@ Algebraic numbers exist in one of the following forms:
 The multiplicative subgroup of the algebraic numbers generated
 by the rational numbers and the roots of unity is handled particularly
 efficiently, as long as these roots of unity come from the ``QQbar.zeta()``
-method.  Cyclotomic fields in general are fairly efficient, again
+method. Cyclotomic fields in general are fairly efficient, again
 as long as they are derived from ``QQbar.zeta()``.
 
 An algebraic number can be coerced into ``ComplexIntervalField`` (or
 ``RealIntervalField``, for algebraic reals); every algebraic number has a
 cached interval of the highest precision yet calculated.
 
-Everything is done with intervals except for comparisons.  By default,
+Everything is done with intervals except for comparisons. By default,
 comparisons compute the two algebraic numbers with 128-bit precision
 intervals; if this does not suffice to prove that the numbers are different,
 then we fall back on exact computation.
@@ -81,7 +81,7 @@ EXAMPLES::
 For a monic cubic polynomial `x^3 + bx^2 + cx + d` with roots `s1`,
 `s2`, `s3`, the discriminant is defined as
 `(s1-s2)^2(s1-s3)^2(s2-s3)^2` and can be computed as `b^2c^2 - 4b^3d -
-4c^3 + 18bcd - 27d^2`.  We can test that these definitions do give the
+4c^3 + 18bcd - 27d^2`. We can test that these definitions do give the
 same result::
 
     sage: def disc1(b, c, d):
@@ -153,9 +153,9 @@ roots if they exist, but for ``QQbar`` we take the principal root::
     sage: QQbar(-1)^(1/3)
     0.500000000000000? + 0.866025403784439?*I
 
-We can explicitly coerce from `\QQ[I]`.  (Technically, this is not quite
+We can explicitly coerce from `\QQ[I]`. (Technically, this is not quite
 kosher, since `\QQ[I]` doesn't come with an embedding; we do not know
-whether the field generator is supposed to map to `+I` or `-I`.  We assume
+whether the field generator is supposed to map to `+I` or `-I`. We assume
 that for any quadratic field with polynomial `x^2+1`, the generator maps
 to `+I`.)::
 
@@ -286,7 +286,7 @@ exact computation::
     4*zeta60^15 + 5*zeta60^12 + 9*zeta60^10 + 20*zeta60^3 - 3 where a^16 + a^14 - a^10 - a^8 - a^6 + a^2 + 1 = 0 and a in 0.994521895368274? + 0.1045284632676535?*I
 
 The paper "ARPREC: An Arbitrary Precision Computation Package" by
-Bailey, Yozo, Li and Thompson discusses this result.  Evidently it is
+Bailey, Yozo, Li and Thompson discusses this result. Evidently it is
 difficult to find, but we can easily verify it. ::
 
     sage: alpha = QQbar.polynomial_root(x^10 + x^9 - x^7 - x^6 - x^5 - x^4 - x^3 + x + 1, RIF(1, 1.2))
@@ -308,7 +308,7 @@ difficult to find, but we can easily verify it. ::
     -242494609856316402264822833062350847769474540*a^9 + 862295472068289472491654837785947906234680703*a^8 - 829559238431038252116584538075753012193290520*a^7 - 125882239615006638366472766103700441555126185*a^6 + 1399067970863104691667276008776398309383579345*a^5 - 1561176687069361567616835847286958553574223422*a^4 + 761706318888840943058230840550737823821027895*a^3 + 580740464974951394762758666210754821723780266*a^2 - 954587496403409756503464154898858512440951323*a + 546081123623099782018260884934770383777092602 where a^10 - 4*a^9 + 5*a^8 - a^7 - 6*a^6 + 9*a^5 - 6*a^4 - a^3 + 5*a^2 - 4*a + 1 = 0 and a in 0.4440633440090926?
 
 Given an algebraic number, we can produce a string that will reproduce
-that algebraic number if you type the string into Sage.  We can see
+that algebraic number if you type the string into Sage. We can see
 that until exact computation is triggered, an algebraic number keeps
 track of the computation steps used to produce that number::
 
@@ -343,7 +343,7 @@ the computation tree::
 
 Note that the ``verify=True`` argument to ``sage_input`` will always trigger
 exact computation, so running ``sage_input`` twice in a row on the same number
-will actually give different answers.  In the following, running ``sage_input``
+will actually give different answers. In the following, running ``sage_input``
 on ``n`` will also trigger exact computation on ``rt2``, as you can see by the
 fact that the third output is different than the first::
 
@@ -432,15 +432,15 @@ We can pickle and unpickle algebraic numbers::
 
 We can convert elements of ``QQbar`` and ``AA`` into the following
 types: ``float``, ``complex``, ``RDF``, ``CDF``, ``RR``, ``CC``,
-``RIF``, ``CIF``, ``ZZ``, and ``QQ``, with a few exceptions.  (For the
+``RIF``, ``CIF``, ``ZZ``, and ``QQ``, with a few exceptions. (For the
 arbitrary-precision types, ``RR``, ``CC``, ``RIF``, and ``CIF``, it
 can convert into a field of arbitrary precision.)
 
 Converting from ``QQbar`` to a real type (``float``, ``RDF``, ``RR``,
 ``RIF``, ``ZZ``, or ``QQ``) succeeds only if the ``QQbar`` is actually
-real (has an imaginary component of exactly zero).  Converting from
+real (has an imaginary component of exactly zero). Converting from
 either ``AA`` or ``QQbar`` to ``ZZ`` or ``QQ`` succeeds only if the
-number actually is an integer or rational.  If conversion fails, a
+number actually is an integer or rational. If conversion fails, a
 ValueError will be raised.
 
 Here are examples of all of these conversions::
@@ -476,7 +476,7 @@ Here are examples of all of these conversions::
 
 TESTS:
 
-Verify that trac 10981 is fixed::
+Verify that :trac:`10981` is fixed::
 
     sage: x = AA['x'].gen()
     sage: P = 1/(1+x^4)
@@ -525,30 +525,81 @@ class _uniq_alg_r(object):
 
 is_SymbolicExpressionRing = None
 
-def late_import():
+def _late_import():
+    r"""
+    Import the name "is_SymbolicExpressionRing" (which would cause an infinite
+    loop if imported at startup time).
+
+    EXAMPLE::
+
+        sage: sage.rings.qqbar._late_import()
+        sage: sage.rings.qqbar.is_SymbolicExpressionRing == sage.symbolic.ring.is_SymbolicExpressionRing
+        True
+    """
     global is_SymbolicExpressionRing
     if is_SymbolicExpressionRing is None:
         import sage.symbolic.ring
         is_SymbolicExpressionRing = sage.symbolic.ring.is_SymbolicExpressionRing
 
 class AlgebraicField_common(sage.rings.ring.Field):
+    r"""
+    Common base class for the classes :class:`~AlgebraicRealField` and
+    :class:`~AlgebraicField`.
+    """
+
     def default_interval_prec(self):
+        r"""
+        Return the default interval precision used for root isolation.
+
+        EXAMPLES::
+
+            sage: AA.default_interval_prec()
+            64
+        """
+
         return 64
 
     def is_finite(self):
+        r"""
+        Check whether this field is finite. Since this class is only used for
+        fields of characteristic 0, always returns False.
+
+        EXAMPLE::
+
+            sage: QQbar.is_finite()
+            False
+        """
         return False
 
     def characteristic(self):
+        r"""
+        Return the characteristic of this field. Since this class is only used
+        for fields of characteristic 0, always returns 0.
+
+        EXAMPLES::
+
+            sage: AA.characteristic()
+            0
+        """
         return sage.rings.integer.Integer(0)
 
     def order(self):
+        r"""
+        Return the cardinality of self. Since this class is only used for
+        fields of characteristic 0, always returns Infinity.
+
+        EXAMPLE::
+
+            sage: QQbar.order()
+            +Infinity
+        """
         return infinity.infinity
 
     def common_polynomial(self, poly):
         """
         Given a polynomial with algebraic coefficients, returns a
         wrapper that caches high-precision calculations and
-        factorizations.  This wrapper can be passed to polynomial_root
+        factorizations. This wrapper can be passed to polynomial_root
         in place of the polynomial.
 
         Using ``common_polynomial`` makes no semantic difference, but will
@@ -589,33 +640,78 @@ class AlgebraicField_common(sage.rings.ring.Field):
 class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
     r"""
     The field of algebraic reals.
+
+    TESTS::
+
+        sage: AA == loads(dumps(AA))
+        True
     """
 
     def __init__(self):
+        r"""
+        Standard initialization function.
+
+        EXAMPLE:
+
+        This function calls functions in superclasses which set the category, so we check that.
+
+            sage: QQbar.category() # indirect doctest
+            Category of fields
+        """
         AlgebraicField_common.__init__(self, self, ('x',), normalize=False)
 
     def _element_constructor_(self, x):
         r"""
-        Coerce ``x`` into the field of algebraic real numbers.
+        Construct an element of the field of algebraic real numbers from ``x``.
 
+        EXAMPLE::
+
+            sage: QQbar(sqrt(2)) in AA # indirect doctest
+            True
+            sage: QQbar(I) in AA
+            False
+            sage: AA in AA
+            False
+
+        The following should both return True (this is a bug). ::
+
+            sage: sqrt(2) in AA # not tested
+            False
+            sage: K.<z> = CyclotomicField(5); z + 1/z in AA # not tested
+            False
         """
-
         if isinstance(x, AlgebraicReal):
             return x
         elif isinstance(x, AlgebraicNumber):
             if x.imag().is_zero():
                 return x.real()
             else:
-                raise ValueError, "Cannot coerce algebraic number with non-zero imaginary part to algebraic real"
+                raise ValueError("Cannot coerce algebraic number with non-zero imaginary part to algebraic real")
         elif hasattr(x, '_algebraic_'):
             return x._algebraic_(AA)
         return AlgebraicReal(x)
 
     def _repr_(self):
+        r"""
+        String representation of self.
+
+        EXAMPLE::
+
+            sage: AA._repr_()
+            'Algebraic Real Field'
+        """
         return "Algebraic Real Field"
 
     # Is there a standard representation for this?
     def _latex_(self):
+        r"""
+        Latex representation of self.
+
+        EXAMPLE::
+
+            sage: AA._latex_()
+            '\\mathbf{A}'
+        """
         return "\\mathbf{A}"
 
     def _sage_input_(self, sib, coerce):
@@ -639,7 +735,7 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
 
         TESTS::
 
-            sage: AA.has_coerce_map_from(ZZ)
+            sage: AA.has_coerce_map_from(ZZ) # indirect doctest
             True
             sage: K.<a> = QuadraticField(7, embedding=AA(7).sqrt()); AA.has_coerce_map_from(K)
             True
@@ -655,7 +751,17 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
         return False
 
     def completion(self, p, prec, extras = {}):
-        """
+        r"""
+        Return the completion of self at the place `p`. Only implemented for `p
+        = \infty` at present.
+
+        INPUT:
+
+        - ``p`` -- either a prime (not implemented at present) or Infinity
+        - ``prec`` -- precision of approximate field to return
+        - ``extras`` -- a dict of extra keyword arguments for the ``RealField``
+          constructor
+
         EXAMPLES::
 
             sage: AA.completion(infinity, 500)
@@ -677,6 +783,9 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
 
     def algebraic_closure(self):
         """
+        Return the algebraic closure of this field, which is the field
+        `\overline{\QQ}` of algebraic numbers.
+
         EXAMPLES::
 
             sage: AA.algebraic_closure()
@@ -685,33 +794,114 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
         return QQbar
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
+        r"""
+        Attempt to construct a homomorphism from self to codomain sending the
+        generators to ``im_gens``. Since this field is not finitely generated,
+        this cannot be implemented in a mathematically sensible way, and we
+        just test that there exists a canonical coercion.
+
+        EXAMPLE::
+
+            sage: AA._is_valid_homomorphism_(QQbar, [QQbar(1)])
+            True
+            sage: AA._is_valid_homomorphism_(QQ, [QQ(1)])
+            False
+        """
         try:
             return im_gens[0] == codomain._coerce_(self.gen(0))
         except TypeError:
             return False
 
     def gens(self):
+        r"""
+        Return a set of generators for this field. As this field is not
+        finitely generated, we opt for just returning 1.
+
+        EXAMPLE::
+
+            sage: AA.gens()
+            (1,)
+        """
         return (self(1), )
 
     def gen(self, n=0):
+        r"""
+        Return the `n`-th element of the tuple returned by :meth:`gens`.
+
+        EXAMPLE::
+
+            sage: AA.gen(0)
+            1
+            sage: AA.gen(1)
+            Traceback (most recent call last):
+            ...
+            IndexError: n must be 0
+        """
         if n == 0:
             return self(1)
         else:
             raise IndexError, "n must be 0"
 
     def ngens(self):
+        r"""
+        Return the size of the tuple returned by :meth:`gens`.
+
+        EXAMPLE::
+
+            sage: AA.ngens()
+            1
+        """
         return 1
 
     def is_atomic_repr(self):
+        r"""
+        Check whether elements of this field have atomic string
+        representations. Returns True.
+
+        EXAMPLE::
+
+            sage: AA.is_atomic_repr()
+            True
+        """
         return True
 
     def zeta(self, n=2):
+        r"""
+        Return an `n`-th root of unity in this field. This will raise a
+        ``ValueError`` if `n \ne \{1, 2\}` since no such root exists.
+
+        INPUT:
+
+        - ``n`` (integer) -- default 2
+
+        EXAMPLE::
+
+            sage: AA.zeta(1)
+            1
+            sage: AA.zeta(2)
+            -1
+            sage: AA.zeta()
+            -1
+            sage: AA.zeta(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: no n-th root of unity in algebraic reals
+
+        Some silly inputs::
+
+            sage: AA.zeta(Mod(-5, 7))
+            -1
+            sage: AA.zeta(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: no n-th root of unity in algebraic reals
+        """
         if n == 1:
             return self(1)
         elif n == 2:
             return self(-1)
         else:
-            raise ValueError, "no n-th root of unity in algebraic reals"
+            raise ValueError("no n-th root of unity in algebraic reals")
 
     def polynomial_root(self, poly, interval, multiplicity=1):
         r"""
@@ -721,7 +911,7 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
 
         The polynomial need not be irreducible, or even squarefree; but
         if the given root is a multiple root, its multiplicity must be
-        specified.  (IMPORTANT NOTE: Currently, multiplicity-`k` roots
+        specified. (IMPORTANT NOTE: Currently, multiplicity-`k` roots
         are handled by taking the `(k-1)`-st derivative of the polynomial.
         This means that the interval must enclose exactly one root
         of this derivative.)
@@ -764,29 +954,56 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
             2.000000000000000?
         """
         if not is_RealIntervalFieldElement(interval):
-            raise ValueError, "interval argument of .polynomial_root on algebraic real field must be real"
+            raise ValueError("interval argument of .polynomial_root on algebraic real field must be real")
 
         return AlgebraicReal(ANRoot(poly, interval, multiplicity))
 
 def is_AlgebraicRealField(F):
+    r"""
+    Check whether ``F`` is an :class:`~AlgebraicRealField` instance. For internal use.
+
+    EXAMPLE::
+
+        sage: from sage.rings.qqbar import is_AlgebraicRealField
+        sage: [is_AlgebraicRealField(x) for x in [AA, QQbar, None, 0, "spam"]]
+        [True, False, False, False, False]
+    """
     return isinstance(F, AlgebraicRealField)
 
+# Create the globally unique AlgebraicRealField object.
 AA = AlgebraicRealField()
 
 class AlgebraicField(_uniq_alg, AlgebraicField_common):
     """
-    The field of algebraic numbers.
+    The field of all algebraic complex numbers.
     """
 
     def __init__(self):
+        r"""
+        Standard init function.
+
+        We test by setting the category::
+
+            sage: QQbar.category() # indirect doctest
+            Category of fields
+            sage: QQbar.base_ring()
+            Algebraic Real Field
+        """
         AlgebraicField_common.__init__(self, AA, ('I',), normalize=False)
 
     def _element_constructor_(self, x):
         """
-        Coerce x into the field of algebraic numbers.
+        Try to construct an element of the field of algebraic numbers from `x`.
 
+        EXAMPLES::
+
+            sage: sqrt(2) in QQbar # indirect doctest
+            True
+            sage: 22/7 in QQbar
+            True
+            sage: pi in QQbar
+            False
         """
-
         if isinstance(x, AlgebraicNumber):
             return x
         elif isinstance(x, AlgebraicReal):
@@ -796,9 +1013,25 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
         return AlgebraicNumber(x)
 
     def _repr_(self):
+        r"""
+        String representation of self.
+
+        EXAMPLE::
+
+            sage: QQbar._repr_()
+            'Algebraic Field'
+        """
         return "Algebraic Field"
 
     def _latex_(self):
+        r"""
+        Latex representation of self.
+
+        EXAMPLE::
+
+            sage: QQbar._latex_()
+            '\\overline{\\QQ}'
+        """
         return "\\overline{\\QQ}"
 
     def _sage_input_(self, sib, coerce):
@@ -817,17 +1050,39 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
         return sib.name('QQbar')
 
     def _coerce_map_from_(self, from_par):
+        r"""
+        Set up the coercion model.
+
+        TESTS::
+
+            sage: QQbar.has_coerce_map_from(ZZ) # indirect doctest
+            True
+            sage: QQbar.has_coerce_map_from(AA)
+            True
+            sage: QQbar.has_coerce_map_from(CC)
+            False
+        """
         if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
             return True
         if from_par == AA or from_par == QQbar:
             return True
-        late_import()
+        _late_import()
         if is_SymbolicExpressionRing(from_par):
             return True
         return False
 
     def completion(self, p, prec, extras = {}):
-        """
+        r"""
+        Return the completion of self at the place `p`. Only implemented for `p
+        = \infty` at present.
+
+        INPUT:
+
+        - ``p`` -- either a prime (not implemented at present) or Infinity
+        - ``prec`` -- precision of approximate field to return
+        - ``extras`` -- a dict of extra keyword arguments for the ``RealField``
+          constructor
+
         EXAMPLES::
 
             sage: QQbar.completion(infinity, 500)
@@ -849,6 +1104,9 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
 
     def algebraic_closure(self):
         """
+        Return the algebraic closure of this field. As this field is already
+        algebraically closed, just returns self.
+
         EXAMPLES::
 
             sage: QQbar.algebraic_closure()
@@ -858,6 +1116,8 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
 
     def construction(self):
         """
+        Return a functor that constructs self (used by the coercion machinery).
+
         EXAMPLE::
 
             sage: QQbar.construction()
@@ -868,23 +1128,64 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
         return (AlgebraicClosureFunctor(), QQ)
 
     def gens(self):
+        r"""
+        Return a set of generators for this field. As this field is not
+        finitely generated over its prime field, we opt for just returning I.
+
+        EXAMPLE::
+
+            sage: QQbar.gens()
+            (1*I,)
+        """
         return(QQbar_I, )
 
     def gen(self, n=0):
+        r"""
+        Return the `n`-th element of the tuple returned by :meth:`gens`.
+
+        EXAMPLE::
+
+            sage: QQbar.gen(0)
+            1*I
+            sage: QQbar.gen(1)
+            Traceback (most recent call last):
+            ...
+            IndexError: n must be 0
+        """
         if n == 0:
             return QQbar_I
         else:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
 
     def ngens(self):
+        r"""
+        Return the size of the tuple returned by :meth:`gens`.
+
+        EXAMPLE::
+
+            sage: QQbar.ngens()
+            1
+        """
         return 1
 
     def is_atomic_repr(self):
+        r"""
+        Check whether elements of this field have atomic string representations. Returns False.
+
+        EXAMPLE::
+
+            sage: QQbar.is_atomic_repr()
+            False
+        """
         return False
 
     def zeta(self, n=4):
         r"""
         Returns a primitive `n`'th root of unity, specifically `\exp(2*\pi*i/n)`.
+
+        INPUT:
+
+        - ``n`` (integer) -- default 4
 
         EXAMPLES::
 
@@ -913,7 +1214,7 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
 
         The polynomial need not be irreducible, or even squarefree; but
         if the given root is a multiple root, its multiplicity must be
-        specified.  (IMPORTANT NOTE: Currently, multiplicity-`k` roots
+        specified. (IMPORTANT NOTE: Currently, multiplicity-`k` roots
         are handled by taking the `(k-1)`-st derivative of the polynomial.
         This means that the interval must enclose exactly one root
         of this derivative.)
@@ -952,34 +1253,31 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
 
         INPUT:
 
-        - ``poly_degree`` - default: 2 - degree of the random
-          polynomial over the integers of which the returned
-          algebraic number is a root.  This is not the degree of
-          the minimal polynomial of the number. Increase this
-          parameter to achieve a greater diversity of algebraic
-          numbers, at a cost of greater computation time. You can
-          also vary the distribution of the coefficients but that
-          will not vary the degree of the extension containing
-          the element.
+        - ``poly_degree`` - default: 2 - degree of the random polynomial over
+          the integers of which the returned algebraic number is a root. This
+          is not necessarily the degree of the minimal polynomial of the
+          number. Increase this parameter to achieve a greater diversity of
+          algebraic numbers, at a cost of greater computation time. You can
+          also vary the distribution of the coefficients but that will not vary
+          the degree of the extension containing the element.
 
-        - ``args``, ``kwds`` - arguments and keywords passed to
-          the random number generator for elements of ``ZZ``, the
-          integers.  See
-          :meth:`~sage.rings.integer_ring.IntegerRing_class.random_element`
-          for details, or see example below.
+        - ``args``, ``kwds`` - arguments and keywords passed to the random
+          number generator for elements of ``ZZ``, the integers. See
+          :meth:`~sage.rings.integer_ring.IntegerRing_class.random_element` for
+          details, or see example below.
 
         OUTPUT:
 
-        An element of ``QQbar``, the field of algebraic
-        numbers (see :mod:`sage.rings.qqbar`).
+        An element of ``QQbar``, the field of algebraic numbers (see
+        :mod:`sage.rings.qqbar`).
 
         ALGORITHM:
 
         A polynomial with degree between 1 and ``poly_degree``,
-        with random integer coefficients is created.  A root of this
-        polynomial is chosen at random.  The default degree is
+        with random integer coefficients is created. A root of this
+        polynomial is chosen at random. The default degree is
         2 and the integer coefficients come from a distribution
-        heavily weighted towards $0, \pm 1, \pm 2$.
+        heavily weighted towards `0, \pm 1, \pm 2`.
 
         EXAMPLES::
 
@@ -997,7 +1295,7 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
 
         Parameters for the distribution of the integer coefficients
         of the polynomials can be passed on to the random element method
-        for integers.  For example, current default behavior of this method
+        for integers. For example, current default behavior of this method
         returns zero about 15% of the time; if we do not include zero as a
         possible coefficient, there will never be a zero constant term, and
         thus never a zero root. ::
@@ -1008,7 +1306,7 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
 
          If you just want real algebraic numbers you can filter them out.
          Using an odd degree for the polynomials will insure some degree of
-         success.  ::
+         success. ::
 
             sage: r = []
             sage: while len(r) < 3:
@@ -1030,7 +1328,7 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
             ValueError: polynomial degree must be greater than zero, not 0
 
         Random vectors already have a 'degree' keyword, so
-        we cannot use that for the polynomial's degree.  ::
+        we cannot use that for the polynomial's degree. ::
 
             sage: v = random_vector(QQbar, degree=2, poly_degree=3)
             sage: v                                 # random
@@ -1063,16 +1361,47 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
         return roots[m]
 
 def is_AlgebraicField(F):
+    r"""
+    Check whether ``F`` is an :class:`~AlgebraicField` instance.
+
+    EXAMPLE::
+
+        sage: from sage.rings.qqbar import is_AlgebraicField
+        sage: [is_AlgebraicField(x) for x in [AA, QQbar, None, 0, "spam"]]
+        [False, True, False, False, False]
+    """
     return isinstance(F, AlgebraicField)
 
+# Create the globally unique AlgebraicField object.
 QQbar = AlgebraicField()
 
 def is_AlgebraicField_common(F):
+    r"""
+    Check whether ``F`` is an :class:`~AlgebraicField_common` instance.
+
+    EXAMPLE::
+
+        sage: from sage.rings.qqbar import is_AlgebraicField_common
+        sage: [is_AlgebraicField_common(x) for x in [AA, QQbar, None, 0, "spam"]]
+        [True, True, False, False, False]
+    """
     return isinstance(F, AlgebraicField_common)
 
 def prec_seq():
+    r"""
+    Return a generator object which iterates over an infinite increasing
+    sequence of precisions to be tried in various numerical computations.
+
+    Currently just returns powers of 2 starting at 64.
+
+    EXAMPLE::
+
+        sage: g = sage.rings.qqbar.prec_seq()
+        sage: [g.next(), g.next(), g.next()]
+        [64, 128, 256]
+    """
     # XXX Should do some testing to see where the efficiency breaks are
-    # in MPFR.  We could also test variants like "bits = bits + bits // 2"
+    # in MPFR. We could also test variants like "bits = bits + bits // 2"
     # (I think this is what MPFR uses internally).
     bits = 64
     while True:
@@ -1080,9 +1409,31 @@ def prec_seq():
         bits = bits * 2
 
 _short_prec_seq = (64, 128, None)
-def short_prec_seq(): return _short_prec_seq
+def short_prec_seq():
+    r"""
+    Return a sequence of precisions to try in cases when an infinite-precision
+    computation is possible: returns a couple of small powers of 2 and then
+    ``None``.
+
+    EXAMPLE::
+
+        sage: from sage.rings.qqbar import short_prec_seq
+        sage: short_prec_seq()
+        (64, 128, None)
+    """
+    return _short_prec_seq
 
 def tail_prec_seq():
+    r"""
+    A generator over precisions larger than those in :func:`~short_prec_seq`.
+
+    EXAMPLE::
+
+        sage: from sage.rings.qqbar import tail_prec_seq
+        sage: g = tail_prec_seq()
+        sage: [g.next(), g.next(), g.next()]
+        [256, 512, 1024]
+    """
     bits = 256
     while True:
         yield bits
@@ -1090,7 +1441,7 @@ def tail_prec_seq():
 
 def rational_exact_root(r, d):
     r"""
-    Checks whether the rational `r` is an exact `d`'th power.  If so, returns
+    Checks whether the rational `r` is an exact `d`'th power. If so, returns
     the `d`'th root of `r`; otherwise, returns None.
 
     EXAMPLES::
@@ -1113,7 +1464,7 @@ def rational_exact_root(r, d):
 def clear_denominators(poly):
     """
     Takes a monic polynomial and rescales the variable to get a monic
-    polynomial with "integral" coefficients.  Works on any univariate
+    polynomial with "integral" coefficients. Works on any univariate
     polynomial whose base ring has a ``denominator()`` method that returns
     integers; for example, the base ring might be `\QQ` or a number
     field.
@@ -1164,14 +1515,18 @@ def clear_denominators(poly):
     return change, poly
 
 def do_polred(poly):
-    r""" Find the polynomial of lowest discriminant that generates the
-    same field as poly, out of those returned by the Pari ``polred``
-    routine.  Returns a triple: (``elt_fwd``, ``elt_back``,
-    ``new_poly``), where ``new_poly`` is the new polynomial,
-    ``elt_fwd`` is a polynomial expression for a root of the new
-    polynomial in terms of a root of the original polynomial, and
-    ``elt_back`` is a polynomial expression for a root of the original
-    polynomial in terms of a root of the new polynomial.
+    r"""
+    Find the polynomial of lowest discriminant that generates the same field as
+    poly, out of those returned by the Pari ``polred`` routine.
+
+    Returns a triple (``elt_fwd``, ``elt_back``, ``new_poly``), where:
+
+    * ``new_poly`` is the new polynomial,
+    * ``elt_fwd`` is a polynomial expression
+      for a root of the new polynomial in terms of a root of the original
+      polynomial,
+    * ``elt_back`` is a polynomial expression for a root of the original
+      polynomial in terms of a root of the new polynomial.
 
     EXAMPLES::
 
@@ -1245,13 +1600,13 @@ def isolating_interval(intv_fn, pol):
         ifld = intv.parent()
 
         # We need to verify that pol has exactly one root in the
-        # interval intv.  We know (because it is a precondition of
+        # interval intv. We know (because it is a precondition of
         # calling this function) that it has at least one root in the
         # interval, so we only need to verify that it has at most one
         # root (that the interval is sufficiently narrow).
 
         # We do this by computing the derivative of the polynomial
-        # over the interval.  If the derivative is bounded away from zero,
+        # over the interval. If the derivative is bounded away from zero,
         # then we know there can be at most one root.
 
         if not dpol(intv).contains_zero():
@@ -1259,11 +1614,10 @@ def isolating_interval(intv_fn, pol):
 
 def find_zero_result(fn, l):
     """
-    ``l`` is a list of some sort.  ``fn`` is a function which maps an element
-    of ``l`` and a precision into an interval (either real or complex) of
-    that precision, such that for sufficient precision, exactly one
-    element of ``l`` results in an interval containing 0.  Returns that
-    one element of ``l``.
+    ``l`` is a list of some sort. ``fn`` is a function which maps an element of
+    ``l`` and a precision into an interval (either real or complex) of that
+    precision, such that for sufficient precision, exactly one element of ``l``
+    results in an interval containing 0. Returns that one element of ``l``.
 
     EXAMPLES::
 
@@ -1296,7 +1650,7 @@ def conjugate_expand(v):
     r"""
     If the interval ``v`` (which may be real or complex) includes some
     purely real numbers, return ``v'`` containing ``v`` such that
-    ``v' == v'.conjugate()``.  Otherwise return ``v`` unchanged.  (Note that if
+    ``v' == v'.conjugate()``. Otherwise return ``v`` unchanged. (Note that if
     ``v' == v'.conjugate()``, and ``v'`` includes one non-real root of a real
     polynomial, then ``v'`` also includes the conjugate of that root.
     Also note that the diameter of the return value is at most twice
@@ -1326,7 +1680,7 @@ def conjugate_expand(v):
 def conjugate_shrink(v):
     r"""
     If the interval ``v`` includes some purely real numbers, return
-    a real interval containing only those real numbers.  Otherwise
+    a real interval containing only those real numbers. Otherwise
     return ``v`` unchanged.
 
     If ``v`` includes exactly one root of a real polynomial, and ``v`` was
@@ -1489,7 +1843,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
 
     Note that for the first example, where \sage doesn't realize that
     the number is real, we get a homomorphism to ``QQbar``; but with
-    ``minimal=True``, we get a homomorphism to ``AA``.  Also note
+    ``minimal=True``, we get a homomorphism to ``AA``. Also note
     that the exact answer depends on a Pari function that gives
     different answers for 32-bit and 64-bit machines::
 
@@ -1553,6 +1907,14 @@ class AlgebraicGeneratorRelation(SageObject):
     extensions.
     """
     def __init__(self, child1, child1_poly, child2, child2_poly, parent):
+        r"""
+        EXAMPLE::
+
+            sage: from sage.rings.qqbar import AlgebraicGeneratorRelation
+            sage: c = AlgebraicGeneratorRelation(None, None, None, None, None)
+            sage: c
+            <class 'sage.rings.qqbar.AlgebraicGeneratorRelation'>
+        """
         self.child1 = child1
         self.child1_poly = child1_poly
         self.child2 = child2
@@ -1564,7 +1926,7 @@ algebraic_generator_counter = 0
 class AlgebraicGenerator(SageObject):
     r"""
     An ``AlgebraicGenerator`` represents both an algebraic number `\alpha` and
-    the number field `\QQ[\alpha]`.  There is a single ``AlgebraicGenerator``
+    the number field `\QQ[\alpha]`. There is a single ``AlgebraicGenerator``
     representing `\QQ` (with `\alpha=0`).
 
     The ``AlgebraicGenerator`` class is private, and should not be used
@@ -1625,19 +1987,88 @@ class AlgebraicGenerator(SageObject):
         return (AlgebraicGenerator, (self._field, self._root))
 
     def __hash__(self):
+        r"""
+        Return a hash value for self. This will depend on the order that
+        commands get executed at load time, so we do not test the value that is
+        returned, just that it doesn't raise an error.
+
+        EXAMPLE::
+
+            sage: from sage.rings.qqbar import ANRoot, AlgebraicGenerator, qq_generator
+            sage: _.<y> = QQ['y']
+            sage: x = polygen(QQbar)
+            sage: nf = NumberField(y^2 - y - 1, name='a', check=False)
+            sage: root = ANRoot(x^2 - x - 1, RIF(1, 2))
+            sage: gen = AlgebraicGenerator(nf, root)
+            sage: hash(gen) # random
+        """
         return self._index
 
     def __cmp__(self, other):
+        r"""
+        Compare self with another AlgebraicGenerator object.
+
+        EXAMPLE::
+
+            sage: from sage.rings.qqbar import ANRoot, AlgebraicGenerator, qq_generator
+            sage: _.<y> = QQ['y']
+            sage: x = polygen(QQbar)
+            sage: nf = NumberField(y^2 - y - 1, name='a', check=False)
+            sage: root = ANRoot(x^2 - x - 1, RIF(1, 2))
+            sage: gen = AlgebraicGenerator(nf, root)
+            sage: gen.__cmp__(qq_generator)
+            1
+        """
         return cmp(self._index, other._index)
 
     def set_cyclotomic(self, n):
+        r"""
+        Store the fact that this is generator for a cyclotomic field.
+
+        EXAMPLE::
+
+            sage: y = sage.rings.qqbar.cyclotomic_generator(5) # indirect doctest
+            sage: y._cyclotomic
+            True
+        """
         self._cyclotomic = True
         self._cyclotomic_order = ZZ(n)
 
     def is_complex(self):
+        r"""
+        Return True if this is a generator for a non-real number field.
+
+        EXAMPLE::
+
+            sage: sage.rings.qqbar.cyclotomic_generator(7).is_complex()
+            True
+            sage: sage.rings.qqbar.qq_generator.is_complex()
+            False
+        """
         return self._root.is_complex()
 
     def _repr_(self):
+        r"""
+        String representation of self.
+
+        EXAMPLE::
+
+            sage: from sage.rings.qqbar import qq_generator, cyclotomic_generator
+            sage: qq_generator._repr_()
+            'Trivial generator'
+
+            sage: cyclotomic_generator(7)._repr_()
+            '1*e^(2*pi*I*1/7)'
+
+            sage: from sage.rings.qqbar import ANRoot, AlgebraicGenerator, qq_generator
+            sage: y = polygen(QQ)
+            sage: x = polygen(QQbar)
+            sage: nf = NumberField(y^2 - y - 1, name='a', check=False)
+            sage: root = ANRoot(x^2 - x - 1, RIF(1, 2))
+            sage: gen = AlgebraicGenerator(nf, root)
+            sage: gen._repr_()
+            'Number Field in a with defining polynomial x^2 - x - 1 with a in 1.618033988749895?'
+        """
         if self._trivial:
             return 'Trivial generator'
         else:
@@ -1647,6 +2078,16 @@ class AlgebraicGenerator(SageObject):
                 return '%s with a in %s'%(self._field, self._root._interval_fast(53))
 
     def root_as_algebraic(self):
+        r"""
+        Return the root attached to self as an algebraic number.
+
+        EXAMPLE::
+
+            sage: t = sage.rings.qqbar.qq_generator.root_as_algebraic(); t
+            1
+            sage: t.parent()
+            Algebraic Real Field
+        """
         return self._root_as_algebraic
 
     def is_trivial(self):
@@ -1663,9 +2104,42 @@ class AlgebraicGenerator(SageObject):
         return self._trivial
 
     def field(self):
+        r"""
+        Return the number field attached to self.
+
+        EXAMPLE::
+
+            sage: from sage.rings.qqbar import qq_generator, cyclotomic_generator
+            sage: qq_generator.field()
+            Rational Field
+            sage: cyclotomic_generator(3).field()
+            Cyclotomic Field of order 3 and degree 2
+        """
         return self._field
 
     def pari_field(self):
+        r"""
+        Return the PARI field attached to this generator.
+
+        EXAMPLE::
+
+
+            sage: from sage.rings.qqbar import qq_generator
+            sage: qq_generator.pari_field()
+            Traceback (most recent call last):
+            ...
+            ValueError: No PARI field attached to trivial generator
+
+            sage: from sage.rings.qqbar import ANRoot, AlgebraicGenerator, qq_generator
+            sage: y = polygen(QQ)
+            sage: x = polygen(QQbar)
+            sage: nf = NumberField(y^2 - y - 1, name='a', check=False)
+            sage: root = ANRoot(x^2 - x - 1, RIF(1, 2))
+            sage: gen = AlgebraicGenerator(nf, root)
+            sage: gen.pari_field()
+             [y^2 - y - 1, [2, 0], ...]
+        """
+        if self.is_trivial(): raise ValueError("No PARI field attached to trivial generator")
         if self._pari_field is None:
             pari_pol = self._field.pari_polynomial("y")
             self._pari_field = pari_pol.nfinit(1)
@@ -1675,6 +2149,17 @@ class AlgebraicGenerator(SageObject):
         r"""
         If this generator is for the algebraic number `\alpha`, return a
         generator for the complex conjugate of `\alpha`.
+
+        EXAMPLE::
+
+            sage: from sage.rings.qqbar import AlgebraicGenerator
+            sage: x = polygen(QQ); f = x^4 + x + 17
+            sage: nf = NumberField(f,name='a')
+            sage: b = f.roots(QQbar)[0][0]
+            sage: root = b._descr
+            sage: gen = AlgebraicGenerator(nf, root)
+            sage: gen.conjugate()
+            Number Field in a with defining polynomial x^4 + x + 17 with a in -1.436449997483091? + 1.374535713065812?*I
         """
         try:
             return self._conjugate
@@ -1696,6 +2181,12 @@ class AlgebraicGenerator(SageObject):
         """
         Returns an interval containing this generator, to the specified
         precision.
+
+        EXAMPLE::
+
+            sage: g = sage.rings.qqbar.cyclotomic_generator(5)
+            sage: g._interval_fast(256)
+            0.309016994374947424102293417182819058860154589902881431067724311352...? + 0.951056516295153572116439333379382143405698634125750222447305644430...?*I
         """
         return self._root._interval_fast(prec)
 
@@ -1869,7 +2360,7 @@ class AlgebraicGenerator(SageObject):
         """
         Takes an algebraic number which is represented as either a
         rational or a number field element, and which is in a subfield
-        of the field generated by this generator.  Lifts the number
+        of the field generated by this generator. Lifts the number
         into the field of this generator, and returns either a
         ``Rational`` or a ``NumberFieldElement`` depending on whether
         this is the trivial generator.
@@ -1917,10 +2408,10 @@ class AlgebraicGenerator(SageObject):
         return self._field(elt.field_element_value().polynomial()(sp))
 
 # These are the functions used to add, subtract, multiply, and divide
-# algebraic numbers.  Basically, we try to compute exactly if the
+# algebraic numbers. Basically, we try to compute exactly if the
 # result would be a Gaussian rational, or a rational times a root
 # of unity; or if both arguments are already known to be in the same
-# number field.  Otherwise we fall back to floating-point computation,
+# number field. Otherwise we fall back to floating-point computation,
 # to be backed up by exact symbolic computation only as required.
 
 # These choices are motivated partly by efficiency considerations
@@ -1930,6 +2421,17 @@ class AlgebraicGenerator(SageObject):
 # than as intervals, as often as possible.
 
 def an_addsub_rational(a, b, sub):
+    r"""
+    Used to add and subtract algebraic numbers. Used when both are actually rational.
+
+    EXAMPLE::
+
+        sage: from sage.rings.qqbar import an_addsub_rational
+        sage: f = an_addsub_rational(QQbar(2), QQbar(3/7), False); f
+        17/7
+        sage: type(f)
+        <class 'sage.rings.qqbar.ANRational'>
+    """
     va = a._descr._value
     vb = b._descr._value
     if sub:
@@ -1939,6 +2441,18 @@ def an_addsub_rational(a, b, sub):
     return ANRational(v)
 
 def an_muldiv_rational(a, b, div):
+    r"""
+    Used to multiply and divide algebraic numbers. Used when both are actually rational.
+
+    EXAMPLE::
+
+        sage: from sage.rings.qqbar import an_muldiv_rational
+        sage: f = an_muldiv_rational(QQbar(2), QQbar(3/7), False); f
+        6/7
+        sage: type(f)
+        <class 'sage.rings.qqbar.ANRational'>
+    """
+    va = a._descr._value
     va = a._descr._value
     vb = b._descr._value
     if div:
@@ -1948,6 +2462,19 @@ def an_muldiv_rational(a, b, div):
     return ANRational(v)
 
 def an_addsub_zero(a, b, sub):
+    r"""
+    Used to add and subtract algebraic numbers. Used when one of a and b is zero.
+
+    EXAMPLES::
+
+        sage: from sage.rings.qqbar import an_addsub_zero
+        sage: f = an_addsub_zero(QQbar(sqrt(2)), QQbar(0), False); f
+        Root 1.4142135623730950488? of x^2 - 2
+        sage: type(f)
+        <class 'sage.rings.qqbar.ANRoot'>
+        sage: an_addsub_zero(QQbar(0), QQbar(sqrt(2)), True)
+        <class 'sage.rings.qqbar.ANUnaryExpr'>
+    """
     if b._descr.is_rational() and b._descr.rational_value().is_zero():
         return a._descr
     # we know a is 0
@@ -1957,15 +2484,42 @@ def an_addsub_zero(a, b, sub):
         return b._descr
 
 def an_muldiv_zero(a, b, div):
+    r"""
+    Used to multiply and divide algebraic numbers. Used when one of a and b is zero.
+
+    EXAMPLES::
+
+        sage: from sage.rings.qqbar import an_muldiv_zero
+        sage: f = an_muldiv_zero(QQbar(sqrt(2)), QQbar(0), False); f
+        0
+        sage: type(f)
+        <class 'sage.rings.qqbar.ANRational'>
+        sage: an_muldiv_zero(QQbar(sqrt(2)), QQbar(sqrt(0)), True)
+        Traceback (most recent call last):
+        ...
+        ValueError: algebraic number division by zero
+    """
     if b._descr.is_rational() and b._descr.rational_value().is_zero():
         if div:
-            raise ValueError, "algebraic number division by zero"
+            raise ValueError("algebraic number division by zero")
         else:
             return ANRational(0)
     # we know a is 0
     return ANRational(0)
 
 def an_addsub_gaussian(a, b, sub):
+    r"""
+    Used to add and subtract algebraic numbers when both are in `\QQ(i)`.
+
+    EXAMPLE::
+
+        sage: i = QQbar(I)
+        sage: from sage.rings.qqbar import an_addsub_gaussian
+        sage: x=an_addsub_gaussian(2 + 3*i, 2/3 + 1/4*i, True); x
+        11/4*I + 4/3 where a^2 + 1 = 0 and a in 1*I
+        sage: type(x)
+        <class 'sage.rings.qqbar.ANExtensionElement'>
+    """
     va = a._descr.gaussian_value()
     vb = b._descr.gaussian_value()
     if sub:
@@ -1975,6 +2529,18 @@ def an_addsub_gaussian(a, b, sub):
     return ANExtensionElement(QQbar_I_generator, v)
 
 def an_muldiv_gaussian(a, b, div):
+    r"""
+    Used to multiply and divide algebraic numbers when both are in `\QQ(i)`.
+
+    EXAMPLE::
+
+        sage: i = QQbar(I)
+        sage: from sage.rings.qqbar import an_muldiv_gaussian
+        sage: x=an_muldiv_gaussian(2 + 3*i, 2/3 + 1/4*i, True); x
+        216/73*I + 300/73 where a^2 + 1 = 0 and a in 1*I
+        sage: type(x)
+        <class 'sage.rings.qqbar.ANExtensionElement'>
+    """
     va = a._descr.gaussian_value()
     vb = b._descr.gaussian_value()
     if div:
@@ -1984,12 +2550,57 @@ def an_muldiv_gaussian(a, b, div):
     return ANExtensionElement(QQbar_I_generator, v)
 
 def an_addsub_expr(a, b, sub):
+    r"""
+    Add or subtract algebraic numbers represented as multi-part expressions.
+
+    EXAMPLE::
+
+        sage: a = QQbar(sqrt(2)) + QQbar(sqrt(3))
+        sage: b = QQbar(sqrt(3)) + QQbar(sqrt(5))
+        sage: type(a._descr); type(b._descr)
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: from sage.rings.qqbar import an_addsub_expr
+        sage: x = an_addsub_expr(a, b, False); x
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: x.exactify()
+        6/7*a^7 + 2/7*a^6 - 71/7*a^5 - 26/7*a^4 + 125/7*a^3 + 72/7*a^2 - 43/7*a - 47/7 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in -3.12580...?
+    """
     return ANBinaryExpr(a, b, ('-' if sub else '+'))
 
 def an_muldiv_expr(a, b, div):
+    r"""
+    Multiply or divide algebraic numbers represented as multi-part expressions.
+
+    EXAMPLE::
+
+        sage: a = QQbar(sqrt(2)) + QQbar(sqrt(3))
+        sage: b = QQbar(sqrt(3)) + QQbar(sqrt(5))
+        sage: type(a._descr)
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: from sage.rings.qqbar import an_muldiv_expr
+        sage: x = an_muldiv_expr(a, b, False); x
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: x.exactify()
+        -2*a^7 - a^6 + 24*a^5 + 12*a^4 - 46*a^3 - 22*a^2 + 22*a + 9 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in -3.1258...?
+    """
     return ANBinaryExpr(a, b, ('/' if div else '*'))
 
 def an_muldiv_rootunity(a, b, div):
+    r"""
+    Multiply or divide two algebraic numbers represented as a rational multiple
+    of a root of unity.
+
+    EXAMPLE::
+
+        sage: a = 2*QQbar.zeta(7)
+        sage: b = 3*QQbar.zeta(8)
+        sage: type(a._descr)
+        <class 'sage.rings.qqbar.ANRootOfUnity'>
+        sage: from sage.rings.qqbar import an_muldiv_rootunity
+        sage: an_muldiv_rootunity(a, b, True)
+        2/3*e^(2*pi*I*1/56)
+    """
     ad = a._descr
     bd = b._descr
     if div:
@@ -1998,6 +2609,22 @@ def an_muldiv_rootunity(a, b, div):
         return ANRootOfUnity(ad.angle() + bd.angle(), ad.scale() * bd.scale())
 
 def an_addsub_rootunity(a, b, sub):
+    r"""
+    Add or subtract two algebraic numbers represented as a rational multiple of
+    a root of unity.
+
+    EXAMPLE::
+
+        sage: a = 2*QQbar.zeta(7)
+        sage: b = 3*QQbar.zeta(8)
+        sage: type(a._descr)
+        <class 'sage.rings.qqbar.ANRootOfUnity'>
+        sage: from sage.rings.qqbar import an_addsub_rootunity
+        sage: an_addsub_rootunity(a, b, False)
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        sage: an_addsub_rootunity(a, 3*QQbar.zeta(7), True)
+        -1*e^(2*pi*I*1/7)
+    """
     ad = a._descr
     bd = b._descr
     if ad._angle == bd._angle:
@@ -2009,6 +2636,19 @@ def an_addsub_rootunity(a, b, sub):
         return an_addsub_expr(a, b, sub)
 
 def an_muldiv_element(a, b, div):
+    r"""
+    Multiply or divide two elements represented as elements of number fields.
+
+    EXAMPLES::
+
+        sage: a = QQbar(sqrt(2) + sqrt(3)); a.exactify()
+        sage: b = QQbar(sqrt(3) + sqrt(5)); b.exactify()
+        sage: type(a._descr)
+        <class 'sage.rings.qqbar.ANExtensionElement'>
+        sage: from sage.rings.qqbar import an_muldiv_element
+        sage: an_muldiv_element(a,b,False)
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+    """
     ad = a._descr
     bd = b._descr
     adg = ad.generator()
@@ -2026,6 +2666,17 @@ def an_muldiv_element(a, b, div):
     return ANBinaryExpr(a, b, ('/' if div else '*'))
 
 def an_addsub_element(a, b, sub):
+    r"""
+    Add or subtract two elements represented as elements of number fields.
+
+    EXAMPLES::
+
+        sage: a = QQbar(sqrt(2) + sqrt(3)); a.exactify()
+        sage: b = QQbar(sqrt(3) + sqrt(5)); b.exactify()
+        sage: from sage.rings.qqbar import an_addsub_element
+        sage: an_addsub_element(a,b,False)
+        <class 'sage.rings.qqbar.ANBinaryExpr'>
+    """
     ad = a._descr
     bd = b._descr
     adg = ad.generator()
@@ -2105,13 +2756,13 @@ for a in _descriptors:
         _add_algo[key] = an_addsub_expr
 
 class ANDescr(SageObject):
-    r""" An ``AlgebraicNumber`` or ``AlgebraicReal`` is a wrapper
-    around an ``ANDescr`` object.  ``ANDescr`` is an abstract base
-    class, which should never be directly instantiated; its concrete
-    subclasses are ``ANRational``, ``ANBinaryExpr``, ``ANUnaryExpr``,
-    ``ANRootOfUnity``, ``ANRoot``, and ``ANExtensionElement``.
-    ``ANDescr`` and all of its subclasses are private, and should not
-    be used directly.
+    r"""
+    An ``AlgebraicNumber`` or ``AlgebraicReal`` is a wrapper around an
+    ``ANDescr`` object. ``ANDescr`` is an abstract base class, which should
+    never be directly instantiated; its concrete subclasses are ``ANRational``,
+    ``ANBinaryExpr``, ``ANUnaryExpr``, ``ANRootOfUnity``, ``ANRoot``, and
+    ``ANExtensionElement``. ``ANDescr`` and all of its subclasses are for
+    internal use, and should not be used directly.
     """
     def is_exact(self):
         """
@@ -2160,7 +2811,7 @@ class ANDescr(SageObject):
 
     def is_rational(self):
         r"""
-        Returns ``True`` if self is an ``ANRational`` object.  (Note that
+        Returns ``True`` if self is an ``ANRational`` object. (Note that
         the constructors for ``ANExtensionElement`` and ``ANRootOfUnity``
         will actually return ``ANRational`` objects for rational numbers.)
 
@@ -2190,34 +2841,108 @@ class ANDescr(SageObject):
         """
         return False
 
+    # Unitary operators: the second argument "n" is an AlgebraicNumber_base
+    # wrapper around self.
+
     def neg(self, n):
+        r"""
+        Negation of self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(2))
+            sage: b = a._descr
+            sage: b.neg(a)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+        """
         return ANUnaryExpr(n, '-')
 
     def invert(self, n):
+        r"""
+        1/self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(2))
+            sage: b = a._descr
+            sage: b.invert(a)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+        """
         return ANUnaryExpr(n, '~')
 
     def abs(self, n):
+        r"""
+        Absolute value of self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(2))
+            sage: b = a._descr
+            sage: b.abs(a)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+        """
         return ANUnaryExpr(n, 'abs')
 
     def real(self, n):
+        r"""
+        Real part of self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(-7))
+            sage: b = a._descr
+            sage: b.real(a)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+        """
         if self.is_complex():
             return ANUnaryExpr(n, 'real')
         else:
             return self
 
     def imag(self, n):
+        r"""
+        Imaginary part of self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(-7))
+            sage: b = a._descr
+            sage: b.imag(a)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+        """
         if self.is_complex():
             return ANUnaryExpr(n, 'imag')
         else:
             return ANRational(0)
 
     def conjugate(self, n):
+        r"""
+        Complex conjugate of self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(-7))
+            sage: b = a._descr
+            sage: b.conjugate(a)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+        """
         if self.is_complex():
             return ANUnaryExpr(n, 'conjugate')
         else:
             return self
 
     def norm(self, n):
+        r"""
+        Field norm of self from `\overline{\QQ}` to its real subfield
+        `\mathbf{A}`, i.e.~the square of the usual complex absolute value.
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(-7))
+            sage: b = a._descr
+            sage: b.norm(a)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+        """
         if self.is_complex():
             return ANUnaryExpr(n, 'norm')
         else:
@@ -2231,24 +2956,24 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     ``AlgebraicNumber`` objects can be created using ``QQbar`` (==
     ``AlgebraicNumberField()``), and ``AlgebraicReal`` objects can be created
-    using ``AA`` (== ``AlgebraicRealField()``).  They can be created either by
+    using ``AA`` (== ``AlgebraicRealField()``). They can be created either by
     coercing a rational or a symbolic expression, or by using the
     ``QQbar.polynomial_root()`` or ``AA.polynomial_root()`` method to
     construct a particular root of a polynomial with algebraic
-    coefficients.  Also, ``AlgebraicNumber`` and ``AlgebraicReal`` are closed
+    coefficients. Also, ``AlgebraicNumber`` and ``AlgebraicReal`` are closed
     under addition, subtraction, multiplication, division (except by
     0), and rational powers (including roots), except that for a
     negative ``AlgebraicReal``, taking a power with an even denominator returns
     an ``AlgebraicNumber`` instead of an ``AlgebraicReal``.
 
     ``AlgebraicNumber``   and   ``AlgebraicReal``   objects   can   be
-    approximated  to  any desired  precision.   They  can be  compared
+    approximated  to  any desired  precision. They  can be  compared
     exactly; if the two numbers are very close, or are equal, this may
     require exact computation, which can be extremely slow.
 
     As long as exact computation is not triggered, computation with
     algebraic numbers should not be too much slower than computation with
-    intervals.  As mentioned above, exact computation is triggered
+    intervals. As mentioned above, exact computation is triggered
     when comparing two algebraic numbers which are very close together.
     This can be an explicit comparison in user code, but the following
     list of actions (not necessarily complete) can also trigger exact
@@ -2285,7 +3010,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     def __init__(self, parent, x):
         r"""
-        Initialize an algebraic number.  The argument must be either
+        Initialize an algebraic number. The argument must be either
         a rational number, a Gaussian rational, or a subclass of ``ANDescr``.
 
         EXAMPLES::
@@ -2307,7 +3032,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                  list(x.parent().polynomial()) == [1, 0, 1]:
             self._descr = ANExtensionElement(QQbar_I_generator, QQbar_I_nf(x.list()))
         else:
-            raise TypeError, "Illegal initializer for algebraic number"
+            raise TypeError("Illegal initializer for algebraic number")
 
         self._value = self._descr._interval_fast(64)
 
@@ -2317,7 +3042,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: AA(22/7)
+            sage: AA(22/7) # indirect doctest
             22/7
             sage: QQbar(1/3 + 2/7*I)
             2/7*I + 1/3
@@ -2393,7 +3118,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         TESTS::
 
-            sage: AA(sqrt(2)) * AA(sqrt(8))
+            sage: AA(sqrt(2)) * AA(sqrt(8)) # indirect doctest
             4.000000000000000?
         """
         sd = self._descr
@@ -2406,7 +3131,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         TESTS::
 
-            sage: AA(sqrt(2)) / AA(sqrt(8))
+            sage: AA(sqrt(2)) / AA(sqrt(8)) # indirect doctest
             0.500000000000000?
         """
         sd = self._descr
@@ -2431,7 +3156,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
             sage: x = polygen(ZZ)
             sage: rt1, rt2 = (x^2 - x - 1).roots(ring=AA, multiplicities=False)
-            sage: rt1 + rt2
+            sage: rt1 + rt2 # indirect doctest
             1.000000000000000?
         """
         sd = self._descr
@@ -2444,7 +3169,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         TESTS::
 
-            sage: AA(golden_ratio) * 2 - AA(5).sqrt()
+            sage: AA(golden_ratio) * 2 - AA(5).sqrt() # indirect doctest
             1.000000000000000?
         """
         sd = self._descr
@@ -2457,7 +3182,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         TESTS::
 
-            sage: -QQbar(I)
+            sage: -QQbar(I) # indirect doctest
             -1*I
         """
         return type(self)(self._descr.neg(self))
@@ -2507,7 +3232,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             True
 
         Unfortunately, the hash code for algebraic numbers which are close
-        enough to each other are the same.  (This is inevitable, if
+        enough to each other are the same. (This is inevitable, if
         equal algebraic reals give the same hash code and hashing does
         not always trigger exact computation.)::
 
@@ -2526,17 +3251,17 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         # 1, or 2 are presumably not uncommon).
 
         # So I modify the algebraic real by adding 1/123456789 to it before
-        # calling interval_exact().  Then, exact computation will be triggered
+        # calling interval_exact(). Then, exact computation will be triggered
         # by algebraic reals which are sufficiently close to
-        # (some floating point number minus 1/123456789).  Hopefully,
+        # (some floating point number minus 1/123456789). Hopefully,
         # -1/123456789 comes up in algebraic real computations far less
-        # often than 0 does.  Algebraic numbers have a similar offset added,
+        # often than 0 does. Algebraic numbers have a similar offset added,
         # with an additional complex component of 1/987654321*I.
 
         # All of this effort to avoid exact computation is probably wasted,
         # anyway... in almost all uses of hash codes, if the hash codes
         # match, the next step is to compare for equality; and comparing
-        # for equality often requires exact computation.  (If a==b,
+        # for equality often requires exact computation. (If a==b,
         # then checking a==b requires exact computation unless (a is b).)
 
         if self.parent() is AA:
@@ -2580,7 +3305,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
           return a square root of self in QQbar, otherwise raise a ValueError.
 
         - ``all`` - bool (default: False); if True, return a list of all square
-          roots.  If False, return just one square root, or raise an ValueError
+          roots. If False, return just one square root, or raise an ValueError
           if self is a negative element of AA and extend=False.
 
         OUTPUT:
@@ -2641,7 +3366,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         if self.parent() is AA and self<0 and not extend:
             if not all:
-                raise ValueError, "%s is not a square in AA, being negative. Use extend = True for a square root in QQbar."%self
+                raise ValueError("%s is not a square in AA, being negative. Use extend = True for a square root in QQbar."%self)
             else:
                 return []
 
@@ -2896,7 +3621,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         r"""
         Given a ``RealIntervalField``, compute the value of this number
         using interval arithmetic of at least the precision of the field,
-        and return the value in that field.  (More precision may be used
+        and return the value in that field. (More precision may be used
         in the computation.)  The returned interval may be arbitrarily
         imprecise, if this number is the result of a sufficiently long
         computation chain.
@@ -2927,7 +3652,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
     def interval_diameter(self, diam):
         """
         Compute an interval representation of self with ``diameter()`` at
-        most ``diam``.  The precision of the returned value is unpredictable.
+        most ``diam``. The precision of the returned value is unpredictable.
 
         EXAMPLES::
 
@@ -2953,7 +3678,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         Given an interval field (real or complex, as appropriate) of
         precision `p`, compute an interval representation of self with
         ``diameter()`` at most `2^{-p}`; then round that representation into
-        the given field.  Here ``diameter()`` is relative diameter for
+        the given field. Here ``diameter()`` is relative diameter for
         intervals not containing 0, and absolute diameter for
         intervals that do contain 0; thus, if the returned interval
         does not contain 0, it has at least `p-1` good bits.
@@ -2982,10 +3707,19 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 class AlgebraicNumber(AlgebraicNumber_base):
     r"""
     The class for algebraic numbers (complex numbers which are the roots
-    of a polynomial with integer coefficients).  Much of its functionality
+    of a polynomial with integer coefficients). Much of its functionality
     is inherited from ``AlgebraicNumber_base``.
     """
     def __init__(self, x):
+        r"""
+        Initialize this AlgebraicNumber object.
+
+        EXAMPLE::
+
+            sage: t = QQbar.zeta(5)
+            sage: type(t)
+            <class 'sage.rings.qqbar.AlgebraicNumber'>
+        """
         AlgebraicNumber_base.__init__(self, QQbar, x)
 
     def __reduce__(self):
@@ -3002,7 +3736,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
     def __cmp__(self, other):
         """
-        Compare two algebraic numbers, lexicographically.  (That is,
+        Compare two algebraic numbers, lexicographically. (That is,
         first compare the real components; if the real components are
         equal, compare the imaginary components.)
 
@@ -3054,11 +3788,25 @@ class AlgebraicNumber(AlgebraicNumber_base):
         return not self._sub_(other).__nonzero__()
 
     def __ne__(self, other):
+        r"""
+        Test two algebraic numbers for inequality.
+
+        EXAMPLES::
+
+            sage: QQbar.zeta(6) != QQbar(1/2 + I*sqrt(3)/2)
+            False
+            sage: QQbar(I) != QQbar(I * (2^100+1)/(2^100))
+            True
+            sage: QQbar(2) != 2
+            False
+            sage: QQbar(2) != GF(7)(2)
+            True
+        """
         return not self.__eq__(other)
 
     def __nonzero__(self):
         """
-        Check whether self is equal is nonzero.  This is fast if
+        Check whether self is equal is nonzero. This is fast if
         interval arithmetic proves that self is nonzero, but may be
         slow if the number actually is very close to zero.
 
@@ -3088,8 +3836,8 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
     def __pow__(self, e):
         r""" ``self**p`` returns the `p`'th power of self (where `p` can
-        be an arbitrary rational).  If `p` is `(a/b)`, takes the principal
-        `b`'th root of self, then takes that to the `a`'th power.  (Note
+        be an arbitrary rational). If `p` is `(a/b)`, takes the principal
+        `b`'th root of self, then takes that to the `a`'th power. (Note
         that this differs from ``__pow__`` on algebraic reals, where real
         roots are preferred over principal roots if they exist.)
 
@@ -3213,7 +3961,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def _mpfr_(self, field):
         r"""
         Given a ``RealField``, compute a good approximation to self in
-        that field.  Works only if the imaginary component of self is
+        that field. Works only if the imaginary component of self is
         exactly zero; otherwise it raises a ``ValueError``.
 
         EXAMPLES::
@@ -3231,7 +3979,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
     def __float__(self):
         r"""
-        Compute a good float approximation to self.  Works only if the
+        Compute a good float approximation to self. Works only if the
         imaginary component of self is exactly zero; otherwise it
         raises a ``ValueError``.
 
@@ -3275,6 +4023,14 @@ class AlgebraicNumber(AlgebraicNumber_base):
         return cdf(CC(self))
 
     def _interval_fast(self, prec):
+        r"""
+        Shortcut for :meth:`AlgebraicNumber_base.interval_fast` which uses the complex interval field.
+
+        EXAMPLE::
+
+            sage: QQbar(sqrt(-5))._interval_fast(100)
+            2.236067977499789696409173...?*I
+        """
         return self.interval_fast(ComplexIntervalField(prec))
 
     def _integer_(self, ZZ=None):
@@ -3332,9 +4088,25 @@ class AlgebraicNumber(AlgebraicNumber_base):
         return AA(self)._rational_()
 
     def real(self):
+        r"""
+        Return the real part of self.
+
+        EXAMPLE::
+
+            sage: QQbar.zeta(5).real()
+            0.3090169943749474?
+        """
         return AlgebraicReal(self._descr.real(self))
 
     def imag(self):
+        r"""
+        Return the imaginary part of self.
+
+        EXAMPLE::
+
+            sage: QQbar.zeta(7).imag()
+            0.7818314824680299?
+        """
         return AlgebraicReal(self._descr.imag(self))
 
     def conjugate(self):
@@ -3354,7 +4126,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
     def norm(self):
         r"""
-        Returns ``self * self.conjugate()``.  This is the algebraic
+        Returns ``self * self.conjugate()``. This is the algebraic
         definition of norm, if we view ``QQbar`` as ``AA[I]``.
 
         EXAMPLES::
@@ -3371,7 +4143,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def interval_exact(self, field):
         r"""
         Given a ``ComplexIntervalField``, compute the best possible
-        approximation of this number in that field.  Note that if
+        approximation of this number in that field. Note that if
         either the real or imaginary parts of this number are
         sufficiently close to some floating-point number (and, in
         particular, if either is exactly representable in floating-point),
@@ -3390,22 +4162,39 @@ class AlgebraicNumber(AlgebraicNumber_base):
             0
         """
         if not is_ComplexIntervalField(field):
-            raise ValueError, "AlgebraicNumber interval_exact requires a ComplexIntervalField"
+            raise ValueError("AlgebraicNumber interval_exact requires a ComplexIntervalField")
         rfld = field._real_field()
         re = self.real().interval_exact(rfld)
         im = self.imag().interval_exact(rfld)
         return field(re, im)
 
     def _complex_mpfr_field_(self, field):
+        r"""
+        Compute an approximation to self in the given field, which may be
+        either an interval field (in which case ``self.interval()`` is called)
+        or any other complex field (in which case ``self.complex_number()`` is
+        called).
+
+        EXAMPLE::
+
+            sage: a = QQbar(1 + I).sqrt()
+            sage: t = a._complex_mpfr_field_(CIF); t
+            1.098684113467810? + 0.4550898605622274?*I
+            sage: parent(t)
+            Complex Interval Field with 53 bits of precision
+            sage: t = a._complex_mpfr_field_(ComplexField(100)); t
+            1.0986841134678099660398011952 + 0.45508986056222734130435775782*I
+            sage: parent(t)
+            Complex Field with 100 bits of precision
+        """
         if is_ComplexIntervalField(field):
             return self.interval(field)
         else:
             return self.complex_number(field)
 
-
     def complex_number(self, field):
         r""" Given a ``ComplexField``, compute a good approximation to
-        self in that field.  The approximation will be off by at most
+        self in that field. The approximation will be off by at most
         two ulp's in each component, except for components which are
         very close to zero, which will have an absolute error at most
         ``2**(-(field.prec()-1))``.
@@ -3424,7 +4213,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def complex_exact(self, field):
         r"""
         Given a ``ComplexField``, return the best possible approximation of
-        this number in that field.  Note that if either component is
+        this number in that field. Note that if either component is
         sufficiently close to the halfway point between two floating-point
         numbers in the corresponding ``RealField``, then this will trigger
         exact computation, which may be very slow.
@@ -3444,10 +4233,10 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def multiplicative_order(self):
         r"""
         Compute the multiplicative order of this algebraic real
-        number.  That is, find the smallest positive integer `n` such
-        that `x^n = 1`.  If there is no such `n`, returns ``+Infinity``.
+        number. That is, find the smallest positive integer `n` such
+        that `x^n = 1`. If there is no such `n`, returns ``+Infinity``.
 
-        We first check that ``abs(x)`` is very close to 1.  If so, we compute
+        We first check that ``abs(x)`` is very close to 1. If so, we compute
         `x` exactly and examine its argument.
 
         EXAMPLES::
@@ -3475,7 +4264,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def rational_argument(self):
         r"""
         Returns the argument of self, divided by `2\pi`, as long as this
-        result is rational.  Otherwise returns None.  Always triggers
+        result is rational. Otherwise returns None. Always triggers
         exact computation.
 
         EXAMPLES::
@@ -3493,7 +4282,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: (QQbar.zeta(3)^65536).rational_argument()
             1/3
         """
-        # This always triggers exact computation.  An alternate method
+        # This always triggers exact computation. An alternate method
         # could almost always avoid exact computation when the result
         # is None: if we can compute an upper bound on the degree of
         # this algebraic number without exact computation, we can use
@@ -3513,8 +4302,8 @@ class AlgebraicReal(AlgebraicNumber_base):
 
         TESTS:
 
-        Both of the following examples, from trac 11728, trigger
-        taking the real part below.  This is necessary because
+        Both of the following examples, from :trac:`11728`, trigger
+        taking the real part below. This is necessary because
         sometimes a very small (e.g., 1e-17) complex part appears in a
         complex interval used to create an AlgebraicReal.::
 
@@ -3551,11 +4340,16 @@ class AlgebraicReal(AlgebraicNumber_base):
         Recompute the interval bounding this number with higher-precision
         interval arithmetic.
 
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(2))
+            sage: a._more_precision()
+
         TESTS:
 
         We have to ensure after doing this that self._value is still
         real which isn't the case without calling _ensure_real (see
-        trac 11728)::
+        :trac:`11728`)::
 
             sage: P = AA[x](1+x^4); a1,a2 = P.factor()[0][0],P.factor()[1][0]; a1*a2
             x^4 + 1.000000000000000?
@@ -3603,10 +4397,10 @@ class AlgebraicReal(AlgebraicNumber_base):
     def __pow__(self, e):
         """
         ``self**p`` returns the `p`'th power of self (where `p` can be an
-        arbitrary rational).  If `p` is `(a/b)`, takes the `b`'th root of
-        self, then takes that to the `a`'th power.  If self is negative
+        arbitrary rational). If `p` is `(a/b)`, takes the `b`'th root of
+        self, then takes that to the `a`'th power. If self is negative
         and `b` is odd, it takes the real `b`'th root; if self is odd and
-        `b` is even, this takes a complex root.  Note that the behavior
+        `b` is even, this takes a complex root. Note that the behavior
         when self is negative and `b` is odd differs from the complex
         case; algebraic numbers select the principal complex `b`'th
         root, but algebraic reals select the real root.
@@ -3712,11 +4506,11 @@ class AlgebraicReal(AlgebraicNumber_base):
         """
         if self._value.lower().ceiling() > self._value.upper().floor():
             # The value is known to be non-integral.
-            raise ValueError, "Cannot coerce non-integral Algebraic Real %s to Integer" % self
+            raise ValueError("Cannot coerce non-integral Algebraic Real %s to Integer" % self)
 
         self.exactify()
         if not self._descr.is_rational():
-            raise ValueError, "Cannot coerce irrational Algebraic Real %s to Integer" % self
+            raise ValueError("Cannot coerce irrational Algebraic Real %s to Integer" % self)
 
         return ZZ(self._descr.rational_value())
 
@@ -3741,7 +4535,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         """
         self.exactify()
         if not self._descr.is_rational():
-            raise ValueError, "Cannot coerce irrational Algebraic Real %s to Rational" % self
+            raise ValueError("Cannot coerce irrational Algebraic Real %s to Rational" % self)
 
         return QQ(self._descr.rational_value())
 
@@ -3821,12 +4615,21 @@ class AlgebraicReal(AlgebraicNumber_base):
             return self.sign()
 
     def _interval_fast(self, prec):
+        r"""
+        Compute an approximation to this ``AlgebraicReal`` object in a real interval field of precision prec.
+
+        EXAMPLE::
+
+            sage: t = AA(sqrt(7))
+            sage: t._interval_fast(100)
+            2.64575131106459059050161575364?
+        """
         return self.interval_fast(RealIntervalField(prec))
 
     def interval_exact(self, field):
         """
         Given a ``RealIntervalField``, compute the best possible
-        approximation of this number in that field.  Note that if this
+        approximation of this number in that field. Note that if this
         number is sufficiently close to some floating-point number
         (and, in particular, if this number is exactly representable in
         floating-point), then this will trigger exact computation, which
@@ -3887,10 +4690,10 @@ class AlgebraicReal(AlgebraicNumber_base):
     def real_number(self, field):
         """
         Given a ``RealField``, compute a good approximation to self in
-        that field.  The approximation will be off by at most two
+        that field. The approximation will be off by at most two
         ulp's, except for numbers which are very close to 0, which
         will have an absolute error at most
-        ``2**(-(field.prec()-1))``.  Also, the rounding mode of the
+        ``2**(-(field.prec()-1))``. Also, the rounding mode of the
         field is respected.
 
         EXAMPLES::
@@ -3963,6 +4766,22 @@ class AlgebraicReal(AlgebraicNumber_base):
         return float(RR(self))
 
     def _complex_mpfr_field_(self, field):
+        r"""
+        Compute an approximation to this ``AlgebraicReal`` in the given field,
+        which may be an interval field (in which case ``self.interval()`` is
+        called) or any other real number field (in which case
+        ``self.real_number()`` is called.
+
+        Note that the field ``field`` should be a *complex* field (whose
+        ``_real_field()`` method will be called to obtain a real subfield.)
+
+        EXAMPLE::
+
+            sage: AA(golden_ratio)._complex_mpfr_field_(ComplexIntervalField(100))
+            1.618033988749894848204586834365?
+            sage: AA(golden_ratio)._complex_mpfr_field_(ComplexField(100))
+            1.6180339887498948482045868344
+        """
         if is_ComplexIntervalField(field):
             return field(self.interval(field._real_field()))
         else:
@@ -3971,7 +4790,7 @@ class AlgebraicReal(AlgebraicNumber_base):
     def real_exact(self, field):
         r"""
         Given a ``RealField``, compute the best possible approximation of
-        this number in that field.  Note that if this number is
+        this number in that field. Note that if this number is
         sufficiently close to the halfway point between two
         floating-point numbers in the field (for the default
         round-to-nearest mode) or if the number is sufficiently close
@@ -4037,7 +4856,7 @@ class AlgebraicReal(AlgebraicNumber_base):
 
         val = self.interval_exact(rifp1)
 
-        # Call the largest floating-point number <= self 'x'.  Then
+        # Call the largest floating-point number <= self 'x'. Then
         # val may be [x .. x], [x .. x + 1/2 ulp],
         # [x + 1/2 ulp .. x + 1/2 ulp], or [x + 1/2 ulp .. x + 1 ulp];
         # in the second and fourth cases, the true value is not equal
@@ -4058,7 +4877,7 @@ class AlgebraicReal(AlgebraicNumber_base):
 class ANRational(ANDescr):
     r"""
     The subclass of ``ANDescr`` that represents an arbitrary
-    rational.  This class is private, and should not be used directly.
+    rational. This class is private, and should not be used directly.
     """
 
     def __init__(self, x):
@@ -4076,7 +4895,7 @@ class ANRational(ANDescr):
         elif isinstance(x, (int, long)):
             self._value = ZZ(x)
         else:
-            raise TypeError, "Illegal initializer for algebraic number rational"
+            raise TypeError("Illegal initializer for algebraic number rational")
 
     def __reduce__(self):
         """
@@ -4092,6 +4911,14 @@ class ANRational(ANDescr):
         return (ANRational, (self._value, ))
 
     def _repr_(self):
+        r"""
+        String representation of self.
+
+        EXAMPLES::
+
+            sage: QQbar(2/3)._repr_()
+            '2/3'
+        """
         return repr(self._value)
 
     def handle_sage_input(self, sib, coerce, is_qqbar):
@@ -4124,30 +4951,108 @@ class ANRational(ANDescr):
         return (v, False)
 
     def kind(self):
+        r"""
+        Return a string describing what kind of element this is. Since this is
+        a rational number, the result is either ``'zero'`` or ``'rational'``.
+
+        EXAMPLES::
+
+            sage: a = QQbar(3)._descr; type(a)
+            <class 'sage.rings.qqbar.ANRational'>
+            sage: a.kind()
+            'rational'
+            sage: a = QQbar(0)._descr; type(a)
+            <class 'sage.rings.qqbar.ANRational'>
+            sage: a.kind()
+            'zero'
+        """
         if self._value.is_zero():
             return 'zero'
         else:
             return 'rational'
 
     def _interval_fast(self, prec):
+        r"""
+        Return an approximation to self in a real interval field of precision prec.
+
+        EXAMPLE::
+
+            sage: QQbar(355/113)._descr._interval_fast(30)
+            3.14159292?
+        """
         return RealIntervalField(prec)(self._value)
 
     def generator(self):
+        r"""
+        Return an :class:`AlgebraicGenerator` object associated to this
+        element. Returns the trivial generator, since self is rational.
+
+        EXAMPLE::
+
+            sage: QQbar(0)._descr.generator()
+            Trivial generator
+        """
         return qq_generator
 
     def is_complex(self):
+        r"""
+        Return False, since rational numbers are real
+
+        EXAMPLE::
+
+            sage: QQbar(1/7)._descr.is_complex()
+            False
+        """
         return False
 
     def is_rational(self):
+        r"""
+        Return True, since this is a rational number.
+
+        EXAMPLE::
+
+            sage: QQbar(34/9)._descr.is_rational()
+            True
+            sage: QQbar(0)._descr.is_rational()
+            True
+        """
         return True
 
     def rational_value(self):
+        r"""
+        Return self as a rational number.
+
+        EXAMPLE::
+
+            sage: a = QQbar(789/19)
+            sage: b = a._descr.rational_value(); b
+            789/19
+            sage: type(b)
+            <type 'sage.rings.rational.Rational'>
+        """
         return self._value
 
     def exactify(self):
+        r"""
+        Calculate self exactly. Since self is a rational number, return self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(1/3)._descr
+            sage: a.exactify() is a
+            True
+        """
         return self
 
     def is_exact(self):
+        r"""
+        Return True, since rationals are exact.
+
+        EXAMPLE::
+
+            sage: QQbar(1/3)._descr.is_exact()
+            True
+        """
         return True
 
     def is_simple(self):
@@ -4165,18 +5070,71 @@ class ANRational(ANDescr):
         return True
 
     def minpoly(self):
+        r"""
+        Return the min poly of self over `\QQ`.
+
+        EXAMPLE::
+
+            sage: QQbar(7)._descr.minpoly()
+            x - 7
+        """
         return QQx_x - self._value
 
     def neg(self, n):
+        r"""
+        Negation of self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(3)
+            sage: b = a._descr
+            sage: type(b)
+            <class 'sage.rings.qqbar.ANRational'>
+            sage: b.neg(a)
+            -3
+        """
         return ANRational(-self._value)
 
     def invert(self, n):
+        r"""
+        1/self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(3)
+            sage: b = a._descr
+            sage: b.invert(a)
+            1/3
+        """
         return ANRational(~self._value)
 
     def abs(self, n):
+        r"""
+        Absolute value of self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(3)
+            sage: b = a._descr
+            sage: b.abs(a)
+            3
+        """
         return ANRational(abs(self._value))
 
     def rational_argument(self, n):
+        r"""
+        Return the argument of self divided by `2 \pi`, or ``None`` if this
+        element is 0.
+
+        EXAMPLE::
+
+            sage: QQbar(3)._descr.rational_argument(None)
+            0
+            sage: QQbar(-3)._descr.rational_argument(None)
+            1/2
+            sage: QQbar(0)._descr.rational_argument(None) is None
+            True
+        """
         if self._value > 0:
             return QQ(0)
         if self._value < 0:
@@ -4184,28 +5142,63 @@ class ANRational(ANDescr):
         return None
 
     def gaussian_value(self):
+        r"""
+        Return self as an element of `\QQ(i)`.
+
+        EXAMPLE::
+
+            sage: a = QQbar(3)
+            sage: b = a._descr
+            sage: x = b.gaussian_value(); x
+            3
+            sage: x.parent()
+            Number Field in I with defining polynomial x^2 + 1
+        """
         return QQbar_I_nf(self._value)
 
     def angle(self):
+        r"""
+        Return a rational number `q \in (-1/2, 1/2]` such that ``self`` is a rational multiple of
+        `e^{2\pi i q}`. Always returns 0, since this element is rational.
+
+        EXAMPLE::
+
+            sage: QQbar(3)._descr.angle()
+            0
+            sage: QQbar(-3)._descr.angle()
+            0
+            sage: QQbar(0)._descr.angle()
+            0
+        """
         return QQ_0
 
     def scale(self):
+        r"""
+        Return a rational number `r` such that ``self`` is equal to `r e^{2 \pi
+        i q}` for some `q \in (-1/2, 1/2]`.  In other words, just return self
+        as a rational number.
+
+        EXAMPLE::
+
+            sage: QQbar(-3)._descr.scale()
+            -3
+        """
         return self._value
 
 class ANRootOfUnity(ANDescr):
     r"""
     The subclass of ``ANDescr`` that represents a rational multiplied
-    by a root of unity.  This class is private, and should not be
+    by a root of unity. This class is private, and should not be
     used directly.
 
     Such numbers are represented by a "rational angle" and a rational
-    scale.  The "rational angle" is the argument of the number, divided by
+    scale. The "rational angle" is the argument of the number, divided by
     `2\pi`; so given angle `\alpha` and scale `s`, the number is:
     `s(\cos(2\pi\alpha) + \sin(2\pi\alpha)i)`; or equivalently
     `s(e^{2\pi\alpha i})`.
 
     We normalize so that `0<\alpha<\frac{1}{2}`; this requires
-    allowing both positive and negative scales.  (Attempts to create
+    allowing both positive and negative scales. (Attempts to create
     an ``ANRootOfUnity`` with an angle which is a multiple of
     `\frac{1}{2}` end up creating an ``ANRational`` instead.)
     """
@@ -4213,7 +5206,7 @@ class ANRootOfUnity(ANDescr):
     def __new__(self, angle, scale):
         r"""
         Construct an ``ANRootOfUnity`` from a rational angle and a rational
-        scale.  If the number is actually a real rational, returns an
+        scale. If the number is actually a real rational, returns an
         ``ANRational`` instead.
         """
         if scale.is_zero():
@@ -4234,8 +5227,12 @@ class ANRootOfUnity(ANDescr):
         """
         Construct an ``ANRootOfUnity`` from a rational angle and a rational
         scale.
-        """
 
+        EXAMPLE::
+
+            sage: type((2/3 * QQbar.zeta(7))._descr) # indirect doctest
+            <class 'sage.rings.qqbar.ANRootOfUnity'>
+        """
         angle2 = angle * 2
         fl2 = angle2.floor()
         angle2 = angle2 - fl2
@@ -4259,6 +5256,16 @@ class ANRootOfUnity(ANDescr):
         return (ANRootOfUnity, (self._angle, self._scale))
 
     def _repr_(self):
+        r"""
+        String representation of this ``ANRootOfUnity`` element.
+
+        EXAMPLE::
+
+            sage: t = QQbar.zeta(3) * 5; type(t._descr)
+            <class 'sage.rings.qqbar.ANRootOfUnity'>
+            sage: t._descr._repr_()
+            '5*e^(2*pi*I*1/3)'
+        """
         return "%s*e^(2*pi*I*%s)"%(self._scale, self._angle)
 
     def handle_sage_input(self, sib, coerce, is_qqbar):
@@ -4312,12 +5319,30 @@ class ANRootOfUnity(ANDescr):
             return (v, True)
 
     def kind(self):
+        r"""
+        Return a string describing what kind of element this is.
+
+        EXAMPLE::
+
+            sage: QQbar.zeta(4)._descr.kind()
+            'imaginary'
+            sage: QQbar.zeta(5)._descr.kind()
+            'rootunity'
+        """
         if self._angle == QQ_1_4:
             return 'imaginary'
         else:
             return 'rootunity'
 
     def _interval_fast(self, prec):
+        r"""
+        Calculate an approximation to self in an interval field of precision prec.
+
+        EXAMPLE::
+
+            sage: QQbar.zeta(5)._descr._interval_fast(100)
+            0.30901699437494742410229341719? + 0.95105651629515357211643933338?*I
+        """
         argument = self._angle * RealIntervalField(prec).pi() * 2
         if self._angle == QQ_1_4:
             return ComplexIntervalField(prec)(0, self._scale)
@@ -4325,21 +5350,78 @@ class ANRootOfUnity(ANDescr):
             return ComplexIntervalField(prec)(argument.cos(), argument.sin()) * self._scale
 
     def generator(self):
+        r"""
+        Return an :class:`AlgebraicGenerator` object corresponding to this element.
+
+        EXAMPLE::
+
+            sage: t = (QQbar.zeta(17)^13)._descr
+            sage: type(t)
+            <class 'sage.rings.qqbar.ANRootOfUnity'>
+            sage: t.generator()
+            1*e^(2*pi*I*1/34)
+        """
         return cyclotomic_generator(self._angle.denominator())
 
     def field_element_value(self):
+        r"""
+        Return self as an element of a cyclotomic field.
+
+        EXAMPLE::
+
+            sage: t = (QQbar.zeta(17)^13)._descr
+            sage: type(t)
+            <class 'sage.rings.qqbar.ANRootOfUnity'>
+            sage: s = t.field_element_value(); s
+            -zeta34^9
+            sage: s.parent()
+            Cyclotomic Field of order 34 and degree 16
+        """
         gen = self.generator()
         f = gen._field
         a = f.gen()
         return self._scale * a ** self._angle.numerator()
 
     def is_complex(self):
+        r"""
+        Return True, since this class is only used for complex algebraic numbers.
+
+        EXAMPLE::
+
+            sage: t = (QQbar.zeta(17)^13)._descr
+            sage: type(t)
+            <class 'sage.rings.qqbar.ANRootOfUnity'>
+            sage: t.is_complex()
+            True
+        """
         return True
 
     def exactify(self):
+        r"""
+        Return self, since ``ANRootOfUnity`` elements are exact.
+
+        EXAMPLE::
+
+            sage: t = (QQbar.zeta(17)^13)._descr
+            sage: type(t)
+            <class 'sage.rings.qqbar.ANRootOfUnity'>
+            sage: t.exactify() is t
+            True
+        """
         return self
 
     def is_exact(self):
+        r"""
+        Return True, since ``ANRootOfUnity`` elements are exact.
+
+        EXAMPLE::
+
+            sage: t = (QQbar.zeta(17)^13)._descr
+            sage: type(t)
+            <class 'sage.rings.qqbar.ANRootOfUnity'>
+            sage: t.is_exact()
+            True
+        """
         return True
 
     def is_simple(self):
@@ -4377,45 +5459,167 @@ class ANRootOfUnity(ANDescr):
         p = p / p.leading_coefficient()
         return p
 
+    # These all ignore "n".
+
     def neg(self, n):
+        r"""
+        Negation of self.
+
+        EXAMPLE::
+
+            sage: a = QQbar.zeta(17)^5 * 4/3; a._descr
+            4/3*e^(2*pi*I*5/17)
+            sage: a._descr.neg(None)
+            -4/3*e^(2*pi*I*5/17)
+        """
         return ANRootOfUnity(self._angle, -self._scale)
 
     def invert(self, n):
+        r"""
+        1/self.
+
+        EXAMPLE::
+
+            sage: a = QQbar.zeta(17)^5 * 4/3; a._descr
+            4/3*e^(2*pi*I*5/17)
+            sage: a._descr.invert(None)
+            -3/4*e^(2*pi*I*7/34)
+        """
         # We want ANRootOfUnity(-self._angle, ~self._scale);
         # but that's not normalized, so we pre-normalize it to:
         return ANRootOfUnity(QQ_1_2 - self._angle, -~self._scale)
 
     def conjugate(self, n):
+        r"""
+        Complex conjugate of self.
+
+        EXAMPLE::
+
+            sage: a = QQbar.zeta(17)^5 * 4/3; a._descr
+            4/3*e^(2*pi*I*5/17)
+            sage: a._descr.conjugate(None)
+            -4/3*e^(2*pi*I*7/34)
+        """
         # We want ANRootOfUnity(-self._angle, self._scale);
         # but that's not normalized, so we pre-normalize it to:
         return ANRootOfUnity(QQ_1_2 - self._angle, -self._scale)
 
     def abs(self, n):
+        r"""
+        Absolute value of self.
+
+        EXAMPLE::
+
+            sage: a = -QQbar.zeta(17)^5 * 4/3; a._descr
+            -4/3*e^(2*pi*I*5/17)
+            sage: a._descr.abs(None)
+            4/3
+        """
         return ANRational(abs(self._scale))
 
     def norm(self, n):
+        r"""
+        Norm (square of absolute value) of self.
+
+        EXAMPLE::
+
+            sage: a = -QQbar.zeta(17)^5 * 4/3; a._descr
+            -4/3*e^(2*pi*I*5/17)
+            sage: a._descr.norm(None)
+            16/9
+        """
         return ANRational(self._scale * self._scale)
 
     def rational_argument(self, n):
+        r"""
+        Return the rational `\theta \in (-1/2, 1/2)` such that self represents
+        a positive rational multiple of `e^{2 \pi i \theta}`.
+
+        EXAMPLE::
+
+            sage: (-QQbar.zeta(3))._descr.angle()
+            1/3
+            sage: (-QQbar.zeta(3))._descr.rational_argument(None)
+            -1/6
+        """
         if self._scale > 0:
             return self._angle
         else:
             return self._angle - QQ_1_2
 
     def gaussian_value(self):
+        r"""
+        Return self as an element of `\QQ(i)`` (assuming this is possible).
+
+        EXAMPLE::
+
+            sage: (-17*QQbar.zeta(4))._descr.gaussian_value()
+            -17*I
+            sage: (-17*QQbar.zeta(5))._descr.gaussian_value()
+            Traceback (most recent call last):
+            ...
+            AssertionError
+        """
         assert(self._angle == QQ_1_4)
         return QQbar_I_nf(self._scale * QQbar_I_nf.gen())
 
     def angle(self):
+        r"""
+        Return the rational `\theta \in [0, 1/2)` such that self represents a
+        rational multiple of `e^{2 \pi i \theta}`.
+
+        EXAMPLE::
+
+            sage: (-QQbar.zeta(3))._descr.angle()
+            1/3
+            sage: (-QQbar.zeta(3))._descr.rational_argument(None)
+            -1/6
+        """
         return self._angle
 
     def scale(self):
+        r"""
+        Return the scale of self, the unique rational `r` such that self is
+        equal to `re^{2\pi i \theta}` for some `theta \in (-1/2, 1/2]`. This is
+        `\pm 1` times ``self.abs()``.
+
+        EXAMPLE::
+
+            sage: (QQbar.zeta(5)^3)._descr.scale()
+            -1
+        """
         return self._scale
 
 def is_AlgebraicReal(x):
+    r"""
+    Test if ``x`` is an instance of :class:`~AlgebraicReal`. For internal use.
+
+    EXAMPLE::
+
+        sage: from sage.rings.qqbar import is_AlgebraicReal
+        sage: is_AlgebraicReal(AA(sqrt(2)))
+        True
+        sage: is_AlgebraicReal(QQbar(sqrt(2)))
+        False
+        sage: is_AlgebraicReal("spam")
+        False
+    """
     return isinstance(x, AlgebraicReal)
 
 def is_AlgebraicNumber(x):
+    r"""
+    Test if ``x`` is an instance of :class:`~AlgebraicNumber`. For internal use.
+
+    EXAMPLE::
+
+        sage: from sage.rings.qqbar import is_AlgebraicNumber
+        sage: is_AlgebraicNumber(AA(sqrt(2)))
+        False
+        sage: is_AlgebraicNumber(QQbar(sqrt(2)))
+        True
+        sage: is_AlgebraicNumber("spam")
+        False
+    """
     return isinstance(x, AlgebraicNumber)
 
 QQbarPoly = PolynomialRing(QQbar, 'x')
@@ -4427,13 +5631,13 @@ class AlgebraicPolynomialTracker(SageObject):
 
     If multiple algebraic numbers are created as roots of a single
     polynomial, this allows the polynomial and information about
-    the polynomial to be shared.  This reduces work if the polynomial
+    the polynomial to be shared. This reduces work if the polynomial
     must be recomputed at higher precision, or if it must be factored.
 
     This class is private, and should only be constructed by
     ``AA.common_polynomial()`` or ``QQbar.common_polynomial()``, and should
     only be used as an argument to ``AA.polynomial_root()`` or
-    ``QQbar.polynomial_root()``.  (It doesn't matter whether you create
+    ``QQbar.polynomial_root()``. (It doesn't matter whether you create
     the common polynomial with ``AA.common_polynomial()`` or
     ``QQbar.common_polynomial()``.)
 
@@ -4448,8 +5652,18 @@ class AlgebraicPolynomialTracker(SageObject):
     """
 
     def __init__(self, poly):
+        r"""
+        Initialize this AlgebraicPolynomialTracker object.
+
+        EXAMPLE::
+
+            sage: x = polygen(QQbar)
+            sage: P = QQbar.common_polynomial(x^2 - x - 1)
+            sage: type(P) # indirect doctest
+            <class 'sage.rings.qqbar.AlgebraicPolynomialTracker'>
+        """
         if not is_Polynomial(poly):
-            raise ValueError, "Trying to create AlgebraicPolynomialTracker on non-Polynomial"
+            raise ValueError("Trying to create AlgebraicPolynomialTracker on non-Polynomial")
         if isinstance(poly.base_ring(), AlgebraicField_common):
             complex = is_AlgebraicField(poly.base_ring())
         else:
@@ -4502,23 +5716,56 @@ class AlgebraicPolynomialTracker(SageObject):
             {call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:* {call: {atomic:sqrt}({call: {atomic:AA}({atomic:2})})} {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:2}}} {call: {atomic:sqrt}({call: {atomic:AA}({atomic:3})})}})}
         """
         # XXX It would be nicer to skip the "AA.common_polynomial()"
-        # wrapper if the polynomial is not actually shared.  But
+        # wrapper if the polynomial is not actually shared. But
         # sage_input.py isn't quite that generic.
         v = sib.name('AA').common_polynomial(self._poly)
         sib.id_cache(self, v, 'cp')
         return v
 
     def _repr_(self):
+        r"""
+        String representation of self.
+
+        EXAMPLE::
+
+            sage: x = polygen(QQ)
+            sage: AA.common_polynomial(x^3 - 7)._repr_()
+            'x^3 - 7'
+        """
         return repr(self._poly)
 
     def poly(self):
+        r"""
+        Return the underlying polynomial of self.
+
+        EXAMPLE::
+
+            sage: x = polygen(QQ); f = x^3 - 7
+            sage: g = AA.common_polynomial(f)
+            sage: g.poly() == f
+            True
+        """
         return self._poly
 
     def is_complex(self):
+        r"""
+        Return True if the coefficients of this polynomial are non-real.
+
+        EXAMPLE::
+
+            sage: x = polygen(QQ); f = x^3 - 7
+            sage: g = AA.common_polynomial(f)
+            sage: g.is_complex()
+            False
+            sage: QQbar.common_polynomial(x^3 - QQbar(I)).is_complex()
+            True
+        """
         return self._complex
 
     def complex_roots(self, prec, multiplicity):
         """
+        Find the roots of self in the complex field to precision prec.
+
         EXAMPLES::
 
             sage: x = polygen(ZZ)
@@ -4554,6 +5801,17 @@ class AlgebraicPolynomialTracker(SageObject):
         Compute a common field that holds all of the algebraic coefficients
         of this polynomial, then factor the polynomial over that field.
         Store the factors for later use (ignoring multiplicity).
+
+        EXAMPLE::
+
+            sage: x = polygen(AA)
+            sage: p = sqrt(AA(2)) * x^2 - sqrt(AA(3))
+            sage: cp = AA.common_polynomial(p)
+            sage: cp._exact
+            False
+            sage: cp.exactify()
+            sage: cp._exact
+            True
         """
         if self._exact:
             return
@@ -4582,10 +5840,29 @@ class AlgebraicPolynomialTracker(SageObject):
             self._factors = [fac_exp[0] for fac_exp in fp.factor()]
 
     def factors(self):
+        r"""
+        EXAMPLE::
+
+            sage: x=polygen(QQ); f=QQbar.common_polynomial(x^4 + 4)
+            sage: f.factors()
+            [y^2 - 2*y + 2, y^2 + 2*y + 2]
+        """
         self.exactify()
         return self._factors
 
     def generator(self):
+        r"""
+        Return an :class:`AlgebraicGenerator` for a number field containing all
+        the coefficients of self.
+
+        EXAMPLE::
+
+            sage: x = polygen(AA)
+            sage: p = sqrt(AA(2)) * x^2 - sqrt(AA(3))
+            sage: cp = AA.common_polynomial(p)
+            sage: cp.generator()
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in 1.931851652578137?
+        """
         self.exactify()
         return self._gen
 
@@ -4596,6 +5873,15 @@ class ANRoot(ANDescr):
     This class is private, and should not be used directly.
     """
     def __init__(self, poly, interval, multiplicity=1, is_pow=None):
+        r"""
+        Initialize this ``ANRoot`` object.
+
+        EXAMPLE::
+
+            sage: x = polygen(QQ); f = (x^3 + x + 1).roots(AA,multiplicities=False)[0]._descr
+            sage: type(f) # indirect doctest
+            <class 'sage.rings.qqbar.ANRoot'>
+        """
         if not isinstance(poly, AlgebraicPolynomialTracker):
             poly = AlgebraicPolynomialTracker(poly)
         self._poly = poly
@@ -4621,6 +5907,15 @@ class ANRoot(ANDescr):
         return (ANRoot, (self._poly, self._interval, self._multiplicity))
 
     def _repr_(self):
+        r"""
+        String representation of self.
+
+        EXAMPLE::
+
+            sage: x=polygen(QQ); v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]
+            sage: v._descr._repr_()
+            'Root 1.618033988749894849? of x^2 - x - 1'
+        """
         return 'Root %s of %s'%(self._interval, self._poly)
 
     def handle_sage_input(self, sib, coerce, is_qqbar):
@@ -4635,7 +5930,7 @@ class ANRoot(ANDescr):
             # Verified
             sqrt(AA(3)).nth_root(3)
 
-        These two examples are too big to verify quickly.  (Verification
+        These two examples are too big to verify quickly. (Verification
         would create a field of degree 28.)::
 
             sage: sage_input((sqrt(AA(3))^(5/7))^(9/4))
@@ -4692,12 +5987,48 @@ class ANRoot(ANDescr):
         return (parent.polynomial_root(poly, sib(good_intv)), True)
 
     def kind(self):
+        r"""
+        Return a string indicating what kind of element this is.
+
+        EXAMPLE::
+
+            sage: (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]._descr.kind()
+            'other'
+        """
         return 'other'
 
     def is_complex(self):
+        r"""
+        Whether this is a root in `\overline{\QQ}` (rather than `\mathbf{A}`).
+        Note that this may return True even if the root is actually real, as
+        the second example shows; it does *not* trigger exact computation to
+        see if the root is real.
+
+        EXAMPLE::
+
+            sage: x = polygen(QQ)
+            sage: (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]._descr.is_complex()
+            False
+            sage: (x^2 - x - 1).roots(ring=QQbar, multiplicities=False)[1]._descr.is_complex()
+            True
+        """
         return self._complex
 
     def conjugate(self, n):
+        r"""
+        Complex conjugate of this ANRoot object.
+
+        EXAMPLE::
+
+            sage: a = (x^2 + 23).roots(ring=QQbar, multiplicities=False)[0]
+            sage: b = a._descr
+            sage: type(b)
+            <class 'sage.rings.qqbar.ANRoot'>
+            sage: c = b.conjugate(a); c
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            sage: c.exactify()
+            -2*a + 1 where a^2 - a + 6 = 0 and a in 0.50000000000000000? - 2.397915761656360?*I
+        """
         if not self._complex:
             return self
         if not self._complex_poly:
@@ -4706,6 +6037,27 @@ class ANRoot(ANDescr):
         return ANUnaryExpr(n, 'conjugate')
 
     def refine_interval(self, interval, prec):
+        r"""
+        Takes an interval which is assumed to enclose exactly one root
+        of the polynomial (or, with multiplicity=`k`, exactly one root
+        of the `k-1`-st derivative); and a precision, in bits.
+
+        Tries to find a narrow interval enclosing the root using
+        interval arithmetic of the given precision. (No particular
+        number of resulting bits of precision is guaranteed.)
+
+        Uses a combination of Newton's method (adapted for interval
+        arithmetic) and bisection. The algorithm will converge very
+        quickly if started with a sufficiently narrow interval.
+
+        EXAMPLES::
+
+            sage: from sage.rings.qqbar import ANRoot
+            sage: x = polygen(AA)
+            sage: rt2 = ANRoot(x^2 - 2, RIF(0, 2))
+            sage: rt2.refine_interval(RIF(0, 2), 75)
+            1.4142135623730950488017?
+        """
         if self._complex or self._complex_poly:
             v = self._complex_refine_interval(interval, prec)
             if self._complex:
@@ -4717,24 +6069,14 @@ class ANRoot(ANDescr):
 
     def _real_refine_interval(self, interval, prec):
         r"""
-        Takes an interval which is assumed to enclose exactly one root
-        of the polynomial (or, with multiplicity=`k`, exactly one root
-        of the `k-1`-st derivative); and a precision, in bits.
-
-        Tries to find a narrow interval enclosing the root using
-        interval arithmetic of the given precision.  (No particular
-        number of resulting bits of precision is guaranteed.)
-
-        Uses a combination of Newton's method (adapted for interval
-        arithmetic) and bisection.  The algorithm will converge very
-        quickly if started with a sufficiently narrow interval.
+        Does the calculation for ``refine_interval``.
 
         EXAMPLES::
 
             sage: from sage.rings.qqbar import ANRoot
             sage: x = polygen(AA)
             sage: rt2 = ANRoot(x^2 - 2, RIF(0, 2))
-            sage: rt2.refine_interval(RIF(0, 2), 75)
+            sage: rt2.refine_interval(RIF(0, 2), 75) # indirect doctest
             1.4142135623730950488017?
         """
         # Don't throw away bits in the original interval; doing so might
@@ -4806,10 +6148,10 @@ class ANRoot(ANDescr):
                 # print interval_p
                 # print linfo['endpoint'], linfo['value'], linfo['sign']
                 # print uinfo['endpoint'], uinfo['value'], uinfo['sign']
-                raise ValueError, "Refining interval that does not bound unique root!"
+                raise ValueError("Refining interval that does not bound unique root!")
 
             # Use a simple algorithm:
-            # Try an interval Newton-Raphson step.  If this does not add at
+            # Try an interval Newton-Raphson step. If this does not add at
             # least one bit of information, or if it fails (because the
             # slope is not bounded away from zero), then try bisection.
             # If this fails because the value at the midpoint is not
@@ -4899,12 +6241,12 @@ class ANRoot(ANDescr):
         of the `k-1`-st derivative); and a precision, in bits.
 
         Tries to find a narrow interval enclosing the root using
-        interval arithmetic of the given precision.  (No particular
+        interval arithmetic of the given precision. (No particular
         number of resulting bits of precision is guaranteed.)
 
-        Uses Newton's method (adapted for interval arithmetic).  The
+        Uses Newton's method (adapted for interval arithmetic). The
         algorithm will converge very quickly if started with a
-        sufficiently narrow interval.  If Newton's method fails, then
+        sufficiently narrow interval. If Newton's method fails, then
         we falls back on computing all the roots of the polynomial
         numerically, and select the appropriate root.
 
@@ -4914,7 +6256,7 @@ class ANRoot(ANDescr):
             sage: x = polygen(QQbar)
             sage: intv = CIF(RIF(0, 1), RIF(0.1, 1))
             sage: rt = ANRoot(x^5 - 1, intv)
-            sage: new_intv = rt.refine_interval(intv, 53); new_intv
+            sage: new_intv = rt.refine_interval(intv, 53); new_intv # indirect doctest
             0.3090169943749474241? + 0.951056516295153573?*I
             sage: rt.refine_interval(new_intv, 70)
             0.30901699437494742411? + 0.95105651629515357212?*I
@@ -4972,7 +6314,7 @@ class ANRoot(ANDescr):
                 new_diam = interval.diameter()
 
                 if new_diam == 0:
-                    # Wow; we nailed it exactly.  (This may happen
+                    # Wow; we nailed it exactly. (This may happen
                     # whenever the root is exactly equal to some
                     # floating-point number, and cannot happen
                     # if the root is not equal to a floating-point
@@ -4980,8 +6322,8 @@ class ANRoot(ANDescr):
                     return interval
 
                 if new_diam == diam:
-                    # We're not getting any better.  There are two
-                    # possible reasons for this.  Either we have
+                    # We're not getting any better. There are two
+                    # possible reasons for this. Either we have
                     # refined as much as possible given the imprecision
                     # of our interval polynomial, and we have the best
                     # answer we're going to get at this precision;
@@ -4992,7 +6334,7 @@ class ANRoot(ANDescr):
 
                     # I do not have a formal proof, but I believe the
                     # following test differentiates between these two
-                    # behaviors.  (If I'm wrong, we might get bad behavior
+                    # behaviors. (If I'm wrong, we might get bad behavior
                     # like infinite loops, but we still won't actually
                     # return a wrong answer.)
 
@@ -5005,9 +6347,9 @@ class ANRoot(ANDescr):
                         return interval
 
                     # The center of the current interval is known
-                    # not to be a root.  This should let us divide
+                    # not to be a root. This should let us divide
                     # the interval in half, and improve on our previous
-                    # estimates.  I can only think of two reasons why
+                    # estimates. I can only think of two reasons why
                     # it might not:
                     # 1) the "center" of the interval is actually
                     # on one of the edges of the interval (because the
@@ -5032,7 +6374,7 @@ class ANRoot(ANDescr):
                     # whether the diameter is less than pi/2; in that
                     # case, no matter the value of "val" (as long as
                     # "val" is fairly precise), "val / slope" should
-                    # be bounded away from zero.  But we compare
+                    # be bounded away from zero. But we compare
                     # against 1 instead, in the hopes that this might
                     # be slightly faster.
 
@@ -5046,7 +6388,7 @@ class ANRoot(ANDescr):
         """
         Find a precise approximation to the unique root in interval,
         by finding a precise approximation to all roots of the
-        polynomial, and checking which one is in interval.  Slow but sure.
+        polynomial, and checking which one is in interval. Slow but sure.
 
         EXAMPLES::
 
@@ -5066,7 +6408,7 @@ class ANRoot(ANDescr):
             return our_root[0]
 
         if len(our_root) == 0:
-            raise ValueError, "Complex root interval does not include any roots"
+            raise ValueError("Complex root interval does not include any roots")
 
         # We have more than one root that overlap the current interval.
         # Technically, this might not be an error; perhaps the actual
@@ -5076,7 +6418,7 @@ class ANRoot(ANDescr):
         # But it seems far more likely that the provided interval is
         # just too big.
 
-        raise ValueError, "Complex root interval probably includes multiple roots"
+        raise ValueError("Complex root interval probably includes multiple roots")
 
     def exactify(self):
         """
@@ -5211,8 +6553,18 @@ class ANRoot(ANDescr):
 
     def _more_precision(self):
         """
-        Recompute the interval enclosing this root at higher
+        Recompute the interval enclosing this ``ANRoot`` object at higher
         precision.
+
+        EXAMPLE::
+
+            sage: x = polygen(QQ); y = (x^3 + x + 1).roots(AA,multiplicities=False)[0]
+            sage: z = y._descr
+            sage: z._interval.prec()
+            64
+            sage: z._more_precision()
+            sage: z._interval.prec()
+            128
         """
         prec = self._interval.prec()
         self._interval = self.refine_interval(self._interval, prec*2)
@@ -5221,8 +6573,14 @@ class ANRoot(ANDescr):
         """
         Given a RealIntervalField, compute the value of this number
         using interval arithmetic of at least the precision of the field,
-        and return the value in that field.  (More precision may be used
+        and return the value in that field. (More precision may be used
         in the computation.)
+
+        EXAMPLE::
+
+            sage: x = polygen(QQ); y = (x^3 + x + 1).roots(AA,multiplicities=False)[0]._descr
+            sage: y._interval_fast(128)
+            -0.68232780382801932736948373971104825689?
         """
         if prec == self._interval.prec():
             return self._interval
@@ -5235,6 +6593,18 @@ qq_generator = AlgebraicGenerator(QQ, ANRoot(AAPoly.gen() - 1, RIF(1)))
 
 _cyclotomic_gen_cache = {}
 def cyclotomic_generator(n):
+    r"""
+    Return an :class:`AlgebraicGenerator` object corresponding to the generator
+    `e^{2 \pi I / n}` of the `n`-th cyclotomic field.
+
+    EXAMPLE::
+
+        sage: from sage.rings.qqbar import cyclotomic_generator
+        sage: g=cyclotomic_generator(7); g
+        1*e^(2*pi*I*1/7)
+        sage: type(g)
+        <class 'sage.rings.qqbar.AlgebraicGenerator'>
+    """
     try:
         return _cyclotomic_gen_cache[n]
     except KeyError:
@@ -5250,7 +6620,7 @@ def cyclotomic_generator(n):
 class ANExtensionElement(ANDescr):
     r"""
     The subclass of ``ANDescr`` that represents a number field
-    element in terms of a specific generator.  Consists of a polynomial
+    element in terms of a specific generator. Consists of a polynomial
     with rational coefficients in terms of the generator, and the
     generator itself, an ``AlgebraicGenerator``.
     """
@@ -5339,7 +6709,7 @@ class ANExtensionElement(ANDescr):
         rt = sib(self._generator.root_as_algebraic())
         # For the best fidelity, we really ought to somehow ensure
         # that rt is exactified, but sage_input doesn't support that
-        # nicely.  Skip it for now.
+        # nicely. Skip it for now.
         # The following is copied with slight mods from polynomial_element.pyx
         coeffs = [sib(c, True) for c in self._value.list()]
         terms = []
@@ -5358,15 +6728,63 @@ class ANExtensionElement(ANDescr):
         return (v, True)
 
     def kind(self):
+        r"""
+        Return a string describing what kind of element this is.
+
+        EXAMPLE::
+
+            sage: x = QQbar(sqrt(2) + sqrt(3))
+            sage: x.exactify()
+            sage: x._descr.kind()
+            'element'
+            sage: x = QQbar(I) + 1
+            sage: x.exactify()
+            sage: x._descr.kind()
+            'gaussian'
+        """
         if self._generator is QQbar_I_generator:
             return 'gaussian'
         else:
             return 'element'
 
     def is_complex(self):
+        r"""
+        Return True if the number field that defines this element is not real.
+        This does not imply that the element itself is definitely non-real, as
+        in the example below.
+
+        EXAMPLE::
+
+            sage: rt2 = QQbar(sqrt(2))
+            sage: rtm3 = QQbar(sqrt(-3))
+            sage: x = rtm3 + rt2 - rtm3
+            sage: x.exactify()
+            sage: y = x._descr
+            sage: type(y)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: y.is_complex()
+            True
+            sage: x.imag() == 0
+            True
+        """
         return not self._exactly_real
 
     def is_exact(self):
+        r"""
+        Return True, since ANExtensionElements are exact.
+
+        EXAMPLE::
+
+            sage: rt2 = QQbar(sqrt(2))
+            sage: rtm3 = QQbar(sqrt(-3))
+            sage: x = rtm3 + rt2 - rtm3
+            sage: x.exactify()
+            sage: y = x._descr
+            sage: type(y)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: y.is_exact()
+            True
+        """
         return True
 
     def is_simple(self):
@@ -5402,15 +6820,54 @@ class ANExtensionElement(ANDescr):
             return self._is_simple
 
     def is_field_element(self):
+        r"""
+        Return True if self is an element of a number field (always true for ANExtensionElements)
+
+        EXAMPLE::
+
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]._descr.exactify()
+            sage: v.is_field_element()
+            True
+        """
         return True
 
     def generator(self):
+        r"""
+        Return the :class:`~AlgebraicGenerator` object corresponding to self.
+
+        EXAMPLE::
+
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]._descr.exactify()
+            sage: v.generator()
+            Number Field in a with defining polynomial y^2 - y - 1 with a in 1.618033988749895?
+        """
         return self._generator
 
     def exactify(self):
+        r"""
+        Return an exact representation of self. Since self is already exact,
+        just return self.
+
+        EXAMPLE::
+
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]._descr.exactify()
+            sage: type(v)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: v.exactify() is v
+            True
+        """
         return self
 
     def field_element_value(self):
+        r"""
+        Return the underlying number field element.
+
+        EXAMPLE::
+
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]._descr.exactify()
+            sage: v.field_element_value()
+            a
+        """
         return self._value
 
     def minpoly(self):
@@ -5419,12 +6876,11 @@ class ANExtensionElement(ANDescr):
 
         EXAMPLES::
 
-            sage: a = AA(sqrt(2)) + QQbar(I); a
-            1.414213562373095? + 1*I
-            sage: p = a.minpoly(); p
-            x^4 - 2*x^2 + 9
-            sage: p(a)
-            0
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]._descr.exactify()
+            sage: type(v)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: v.minpoly()
+            x^2 - x - 1
         """
         try:
             return self._minpoly
@@ -5473,19 +6929,83 @@ class ANExtensionElement(ANDescr):
             return v.real()
         return v
 
+    # for these three functions the argument n is not used (but it is there
+    # anyway for compatibility)
+
     def neg(self, n):
+        r"""
+        Negation of self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(-2)) + QQbar(sqrt(-3))
+            sage: a.exactify()
+            sage: b = a._descr
+            sage: type(b)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: b.neg(a)
+            1/2*a^3 - a^2 + 1 where a^4 - 2*a^2 + 4 = 0 and a in -1.224744871391589? - 0.7071067811865475?*I
+            sage: b.neg("ham spam and eggs")
+            1/2*a^3 - a^2 + 1 where a^4 - 2*a^2 + 4 = 0 and a in -1.224744871391589? - 0.7071067811865475?*I
+        """
         return ANExtensionElement(self._generator, -self._value)
 
     def invert(self, n):
+        r"""
+        1/self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(-2)) + QQbar(sqrt(-3))
+            sage: a.exactify()
+            sage: b = a._descr
+            sage: type(b)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: b.invert(a)
+            -1/2*a^3 - a^2 + 1 where a^4 - 2*a^2 + 4 = 0 and a in -1.224744871391589? - 0.7071067811865475?*I
+            sage: b.invert("ham spam and eggs")
+            -1/2*a^3 - a^2 + 1 where a^4 - 2*a^2 + 4 = 0 and a in -1.224744871391589? - 0.7071067811865475?*I
+        """
         return ANExtensionElement(self._generator, ~self._value)
 
     def conjugate(self, n):
+        r"""
+        Negation of self.
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(-2)) + QQbar(sqrt(-3))
+            sage: a.exactify()
+            sage: b = a._descr
+            sage: type(b)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: b.conjugate(a)
+            -1/2*a^3 + a^2 - 1 where a^4 - 2*a^2 + 4 = 0 and a in -1.224744871391589? + 0.7071067811865475?*I
+            sage: b.conjugate("ham spam and eggs")
+            -1/2*a^3 + a^2 - 1 where a^4 - 2*a^2 + 4 = 0 and a in -1.224744871391589? + 0.7071067811865475?*I
+        """
         if self._exactly_real:
             return self
         else:
             return ANExtensionElement(self._generator.conjugate(), self._value)
 
+    # The rest of these unary operations do actually use n, which is an
+    # AlgebraicNumber pointing to self.
+
     def norm(self, n):
+        r"""
+        Norm of self (square of complex absolute value)
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(-2)) + QQbar(sqrt(-3))
+            sage: a.exactify()
+            sage: b = a._descr
+            sage: type(b)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: b.norm(a)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+        """
         if self._exactly_real:
             return (n*n)._descr
         elif self._generator is QQbar_I_generator:
@@ -5494,20 +7014,48 @@ class ANExtensionElement(ANDescr):
             return ANUnaryExpr(n, 'norm')
 
     def abs(self, n):
+        r"""
+        Return the absolute value of self (square root of the norm).
+
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(-2)) + QQbar(sqrt(-3))
+            sage: a.exactify()
+            sage: b = a._descr
+            sage: type(b)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: b.abs(a)
+            Root 3.146264369941972342? of x^2 - 9.89897948556636?
+        """
         return AlgebraicReal(self.norm(n)).sqrt()._descr
 
     def rational_argument(self, n):
         r"""
-        If the argument of self is `2\pi` times some rational number,
-        return that rational; otherwise, return None.
-        """
+        If the argument of self is `2\pi` times some rational number in `[1/2,
+        -1/2)`, return that rational; otherwise, return ``None``.
 
+        EXAMPLE::
+
+            sage: a = QQbar(sqrt(-2)) + QQbar(sqrt(3))
+            sage: a.exactify()
+            sage: b = a._descr
+            sage: type(b)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: b.rational_argument(a) is None
+            True
+            sage: x = polygen(QQ)
+            sage: a = (x^4 + 1).roots(QQbar, multiplicities=False)[0]
+            sage: a.exactify()
+            sage: b = a._descr
+            sage: b.rational_argument(a)
+            -3/8
+        """
         # If the argument of self is 2*pi times some rational number a/b,
         # then self/abs(self) is a root of the b'th cyclotomic polynomial.
         # This implies that the algebraic degree of self is at least
-        # phi(b).  Working backward, we know that the algebraic degree
+        # phi(b). Working backward, we know that the algebraic degree
         # of self is at most the degree of the generator, so that gives
-        # an upper bound on phi(b).  According to
+        # an upper bound on phi(b). According to
         # http://mathworld.wolfram.com/TotientFunction.html,
         # phi(b) >= sqrt(b) for b > 6; this gives us an upper bound on b.
         # We then check to see if this is possible; if so, we test
@@ -5537,11 +7085,44 @@ class ANExtensionElement(ANDescr):
         raise NotImplementedError
 
     def gaussian_value(self):
+        r"""
+        Return self as an element of `\QQ(i)`.
+
+        EXAMPLE::
+
+            sage: a = QQbar(I) + 3/7
+            sage: a.exactify()
+            sage: b = a._descr
+            sage: type(b)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: b.gaussian_value()
+            I + 3/7
+
+        A non-example::
+
+            sage: a = QQbar(sqrt(-2)) + QQbar(sqrt(-3))
+            sage: a.exactify()
+            sage: b = a._descr
+            sage: type(b)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: b.gaussian_value()
+            Traceback (most recent call last):
+            ...
+            AssertionError
+        """
         assert(self._generator is QQbar_I_generator)
         return self._value
 
 class ANUnaryExpr(ANDescr):
     def __init__(self, arg, op):
+        r"""
+        Initialize this ANUnaryExpr.
+
+        EXAMPLE::
+
+            sage: t = ~QQbar(sqrt(2)); type(t._descr) # indirect doctest
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+        """
         self._arg = arg
         self._op = op
         self._complex = True
@@ -5636,12 +7217,52 @@ class ANUnaryExpr(ANDescr):
         return (v, True)
 
     def kind(self):
+        r"""
+        Return a string describing what kind of element this is.
+
+        EXAMPLE::
+
+            sage: x = -QQbar(sqrt(2))
+            sage: y = x._descr
+            sage: type(y)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            sage: y.kind()
+            'other'
+        """
         return 'other'
 
     def is_complex(self):
+        r"""
+        Return whether or not this element is complex. Note that this is a data
+        type check, and triggers no computations -- if it returns False, the
+        element might still be real, it just doesn't know it yet.
+
+        EXAMPLE::
+
+            sage: t = AA(sqrt(2))
+            sage: s = (-t)._descr
+            sage: s
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            sage: s.is_complex()
+            False
+            sage: QQbar(-sqrt(2))._descr.is_complex()
+            True
+        """
         return self._complex
 
     def _interval_fast(self, prec):
+        r"""
+        Calculate an approximation to this ``ANUnaryExpr`` object in an interval field of precision ``prec``.
+
+        EXAMPLE::
+
+            sage: t = AA(sqrt(2))
+            sage: s = (-t)._descr
+            sage: s
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            sage: s._interval_fast(150)
+            -1.414213562373095048801688724209698078569671876?
+        """
         op = self._op
 
         v = self._arg._interval_fast(prec)
@@ -5687,6 +7308,17 @@ class ANUnaryExpr(ANDescr):
         raise NotImplementedError
 
     def exactify(self):
+        r"""
+        Trigger exact computation of self.
+
+        EXAMPLE::
+
+            sage: v = (-QQbar(sqrt(2)))._descr
+            sage: type(v)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            sage: v.exactify()
+            -a where a^2 - 2 = 0 and a in 1.414213562373095?
+        """
         op = self._op
         arg = self._arg
 
@@ -5742,6 +7374,14 @@ class ANUnaryExpr(ANDescr):
 
 class ANBinaryExpr(ANDescr):
     def __init__(self, left, right, op):
+        r"""
+        Initialize this ANBinaryExpr.
+
+        EXAMPLE::
+
+            sage: t = QQbar(sqrt(2)) + QQbar(sqrt(3)); type(t._descr) # indirect doctest
+            <class 'sage.rings.qqbar.ANBinaryExpr'>
+        """
         self._left = left
         self._right = right
         self._op = op
@@ -5817,7 +7457,7 @@ class ANBinaryExpr(ANDescr):
         op = self._op
 
         # We want 2+QQbar.zeta(3) and QQbar.zeta(3)+2, not
-        # QQbar(2)+QQbar.zeta(3).  So we want to pass coerced=True to
+        # QQbar(2)+QQbar.zeta(3). So we want to pass coerced=True to
         # an argument if it is rational (but if both arguments are
         # rational, we only want to set it for one of them).
 
@@ -5861,12 +7501,44 @@ class ANBinaryExpr(ANDescr):
         return (v, True)
 
     def kind(self):
+        r"""
+        Return a string describing what kind of element this is. Returns ``'other'``.
+
+        EXAMPLE::
+
+            sage: x = (QQbar(sqrt(2)) + QQbar(sqrt(5)))._descr
+            sage: type(x)
+            <class 'sage.rings.qqbar.ANBinaryExpr'>
+            sage: x.kind()
+            'other'
+        """
         return 'other'
 
     def is_complex(self):
+        r"""
+        Whether this element is complex. Does not trigger exact computation, so
+        may return True even if the element is real.
+
+        EXAMPLE::
+
+            sage: x = (QQbar(sqrt(-2)) / QQbar(sqrt(-5)))._descr
+            sage: x.is_complex()
+            True
+        """
         return self._complex
 
     def _interval_fast(self, prec):
+        r"""
+        Calculate an approximation to self in an interval field of precision prec.
+
+        EXAMPLE::
+
+            sage: x = (QQbar(sqrt(-2)) / QQbar(sqrt(-5)))._descr
+            sage: y= x._interval_fast(64); y
+            0.632455532033675867?
+            sage: y.parent()
+            Complex Interval Field with 64 bits of precision
+        """
         op = self._op
 
         lv = self._left._interval_fast(prec)
@@ -5896,7 +7568,7 @@ class ANBinaryExpr(ANDescr):
             sage: rt2c = QQbar.zeta(3) + AA(sqrt(2)) - QQbar.zeta(3)
             sage: rt2c.exactify()
 
-        We check to make sure that this method still works even.  We
+        We check to make sure that this method still works even. We
         do this by increasing the recursion level at each step and
         decrease it before we return::
 
@@ -5995,6 +7667,11 @@ def _init_qqbar():
     This code indirectly uses a huge amount of sage, despite the fact
     that qqbar is imported rather early on in the sage loading. This function
     is called at the end of sage.all.
+
+    EXAMPLE::
+
+        sage: sage.rings.qqbar.QQbar_I_generator # indirect doctest
+        Number Field in I with defining polynomial x^2 + 1 with a in 1*I
     """
     global ZZX_x, AA_0, QQbar_I, AA_hash_offset, QQbar_hash_offset, QQbar_I_generator, QQbar_I_nf
     global QQ_0, QQ_1, QQ_1_2, QQ_1_4, RR_1_10
@@ -6025,6 +7702,15 @@ def _init_qqbar():
 AA_golden_ratio = None
 
 def get_AA_golden_ratio():
+    r"""
+    Return the golden ratio as an element of the algebraic real field. Used by
+    :meth:`sage.symbolic.constants.golden_ratio._algebraic_`.
+
+    EXAMPLE::
+
+        sage: AA(golden_ratio) # indirect doctest
+        1.618033988749895?
+    """
     global AA_golden_ratio
     if AA_golden_ratio is None:
         AA_golden_ratio_nf = NumberField(ZZX_x**2 - ZZX_x - 1, 'phi')

@@ -11,6 +11,11 @@ Installation Guide for more about those.)
   default location is ``~/.sage/``, but you can change that by setting
   this variable.
 
+- :envvar:`SAGE_RC_FILE` -- a shell script which is sourced after
+  Sage has determined its environment variables.  This script is
+  executed before starting Sage or any of its subcommands (like
+  ``sage -i <package>``).  The default value is ``$DOT_SAGE/sagerc``.
+
 - :envvar:`SAGE_STARTUP_FILE` -- a file including commands to be
   executed every time Sage starts.  The default value is
   ``$DOT_SAGE/init.sage``.

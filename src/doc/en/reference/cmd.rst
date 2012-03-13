@@ -11,5 +11,6 @@ Sage tutorial and the documentation for IPython.
    :maxdepth: 2
 
    options
+   startup
    environ
    sage/misc/trace

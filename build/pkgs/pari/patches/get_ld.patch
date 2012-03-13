@@ -1,5 +1,5 @@
---- config/get_ld	(revision 12541)
-+++ config/get_ld	(working copy)
+--- a/config/get_ld	(revision 12541)
++++ b/config/get_ld	(working copy)
 @@ -76,3 +76,5 @@
      aix) runpathprefix='-blibpath:' ;;
    esac

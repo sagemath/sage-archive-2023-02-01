@@ -79,6 +79,12 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.5.1.p2 (Jeroen Demeyer, 13 March 2012) ===
+ * Ticket #12638: add upstream patch pari_1302.patch for ispower(),
+   see http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1302
+ * Apply all patches at -p1 level instead of -p0 (just like most other
+   Sage packages).
+
 === pari-2.5.1.p1 (Jeroen Demeyer, 7 March 2012) ===
  * Ticket #12638: add patch GCC_PR49330.patch to work around a bug
    in gcc-4.6.3 on OS X 10.4 PPC.

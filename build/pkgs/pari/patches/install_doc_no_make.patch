@@ -1,7 +1,7 @@
 Index: config/Makefile.SH
 ===================================================================
---- config/Makefile.SH	(revision 12623)
-+++ config/Makefile.SH	(working copy)
+--- a/config/Makefile.SH	(revision 12623)
++++ b/config/Makefile.SH	(working copy)
 @@ -398,7 +398,6 @@
  
  install-doc::

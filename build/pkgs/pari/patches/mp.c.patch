@@ -1,7 +1,7 @@
 Index: src/kernel/gmp/mp.c
 ===================================================================
---- src/kernel/gmp/mp.c	(revision 13151)
-+++ src/kernel/gmp/mp.c	(working copy)
+--- a/src/kernel/gmp/mp.c	(revision 13151)
++++ b/src/kernel/gmp/mp.c	(working copy)
 @@ -45,18 +45,8 @@
  /*We need PARI invmod renamed to invmod_pari*/
  #define INVMOD_PARI

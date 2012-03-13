@@ -30,8 +30,7 @@ Patches to configuration files:
   and ?? work within gp, we must install the .tex files (but not .dvi
   files).  So simply not doing install-doc doesn't work.
 * perl_path.patch: jdemeyer: change first line of all perl scripts
-  to "#!/usr/bin/env perl" (#10559).  Note that this patch will always
-  apply with fuzz 2 because of the svn Id.
+  to "#!/usr/bin/env perl" (#10559).
 
 C files:
 * src/kernel/gmp/mp.c:
@@ -52,6 +51,9 @@ C files:
   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49330
   This bug manifests itself as a Bus Error on OS X 10.4 PPC with
   gcc-4.6.3.
+* pari_1302.patch: Add a patch (from upstream's git master) to make
+  ispower() work properly for negative integers.  See
+  http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1302
 
 ======================================================================
 Files previously patched:

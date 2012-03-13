@@ -1,7 +1,7 @@
 Index: config/get_dlcflags
 ===================================================================
---- config/get_dlcflags	(revision 12594)
-+++ config/get_dlcflags	(working copy)
+--- a/config/get_dlcflags	(revision 12594)
++++ b/config/get_dlcflags	(working copy)
 @@ -2,10 +2,7 @@
  if test -n "$__gnuc__"; then
    case $osname in

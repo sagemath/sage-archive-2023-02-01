@@ -1,7 +1,7 @@
 Index: misc/tex2mail.in
 ===================================================================
---- misc/tex2mail.in    (revision 12811)
-+++ misc/tex2mail.in    (working copy)
+--- a/misc/tex2mail.in    (revision 12811)
++++ b/misc/tex2mail.in    (working copy)
 @@ -1,4 +1,4 @@
 -#!@perl@
 +#!/usr/bin/env perl
@@ -10,8 +10,8 @@ Index: misc/tex2mail.in
  #
 Index: doc/gphelp.in
 ===================================================================
---- doc/gphelp.in       (revision 12811)
-+++ doc/gphelp.in       (working copy)
+--- a/doc/gphelp.in       (revision 12811)
++++ b/doc/gphelp.in       (working copy)
 @@ -1,4 +1,4 @@
 -#!@perl@
 +#!/usr/bin/env perl

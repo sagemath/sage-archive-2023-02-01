@@ -1,6 +1,6 @@
 diff -ru src/src/language/init.c src.patched/src/language/init.c
---- src/language/init.c     2012-02-11 10:57:38.000000000 +0100
-+++ src/language/init.c     2012-03-07 10:24:37.000000000 +0100
+--- a/src/language/init.c     2012-02-11 10:57:38.000000000 +0100
++++ b/src/language/init.c     2012-03-07 10:24:37.000000000 +0100
 @@ -593,14 +593,16 @@
  pari_init_functions(void)
  {

@@ -1,5 +1,5 @@
---- config/get_config_options	2010-08-22 21:25:54.000000000 +0200
-+++ config/get_config_options	2010-08-31 05:18:55.000000000 +0200
+--- a/config/get_config_options	2010-08-22 21:25:54.000000000 +0200
++++ b/config/get_config_options	2010-08-31 05:18:55.000000000 +0200
 @@ -58,9 +58,20 @@
    -h|-help|--help|-\?)error=true;;
    -v|-verbhelp|--verbhelp)error=verb;;

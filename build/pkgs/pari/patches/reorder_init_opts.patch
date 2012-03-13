@@ -1,7 +1,7 @@
 Index: src/language/init.c
 ===================================================================
---- src/language/init.c	(revision 13228)
-+++ src/language/init.c	(working copy)
+--- a/src/language/init.c	(revision 13228)
++++ b/src/language/init.c	(working copy)
 @@ -731,8 +731,8 @@
    pari_stackcheck_init(&u);
    if ((init_opts&INIT_DFTm)) {

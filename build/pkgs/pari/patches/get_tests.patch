@@ -1,5 +1,5 @@
---- config/get_tests	(revision 12541)
-+++ config/get_tests	(working copy)
+--- a/config/get_tests	(revision 12541)
++++ b/config/get_tests	(working copy)
 @@ -4,7 +4,7 @@
  _test_list='test_extra_out test_extra test_basic top_test_extra top_dotest_extra'
  

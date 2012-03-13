@@ -39,6 +39,10 @@ from sage.categories.commutative_algebras import CommutativeAlgebras
 
 from sage.structure.parent_gens import ParentWithGens
 
+from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
+from sage.all import sage_eval, parent
+from sage.structure.element import Element
+
 def PolynomialQuotientRing(ring, polynomial, names=None):
     r"""
     Create a quotient of a polynomial ring.
@@ -287,6 +291,16 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
     Element = PolynomialQuotientRingElement
 
     def __init__(self, ring, polynomial, name=None):
+        """
+        TEST::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: S = R.quo(x^2-4)
+            sage: from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_generic
+            sage: S == PolynomialQuotientRing_generic(R,x^2-4,'xbar')
+            True
+
+        """
         if not isinstance(ring, PolynomialRing_commutative):
             raise TypeError, "R must be a univariate polynomial ring."
 
@@ -301,6 +315,19 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage.rings.commutative_ring.CommutativeRing.__init__(self, ring, names=name, category=CommutativeAlgebras(ring.base_ring()).Quotients())
 
     def __reduce__(self):
+        """
+        TEST:
+
+        Note the polynomial quotient rings are not unique parent structures::
+
+            sage: P.<x> = QQ[]
+            sage: R.<y> = P[]
+            sage: Q = R.quo([(y^2+1)])
+            sage: Q is loads(dumps(Q))
+            False
+            sage: Q == loads(dumps(Q))
+            True
+        """
         return PolynomialQuotientRing_generic, (self.__ring, self.__polynomial, self.variable_names())
 
     def _element_constructor_(self, x):
@@ -336,7 +363,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         TESTS:
 
         Conversion should work even if there is no coercion.
-        This was fixed in trac ticket #8800::
+        This was fixed in :trac:`8800`::
 
             sage: P.<x> = QQ[]
             sage: Q1 = P.quo([(x^2+1)^2*(x^2-3)])
@@ -346,25 +373,86 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: Q1(Q.gen())
             xbar
 
+        Here we test against several issues discussed in :trac:`8992`::
+
+            sage: P.<x> = QQ[]
+            sage: Q1 = P.quo([(x^2+1)^2*(x^2-3)])
+            sage: Q2 = P.quo([(x^2+1)^2*(x^5+3)])
+            sage: p = Q1.gen() + Q2.gen()
+            sage: p
+            2*xbar
+            sage: p.parent()
+            Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^4 + 2*x^2 + 1
+            sage: p.parent()('xbar')
+            xbar
+
+        Note that the result of string conversion has the correct parent, even
+        when the given string suggests an element of the cover ring or the base
+        ring::
+
+            sage: a = Q1('x'); a
+            xbar
+            sage: a.parent() is Q1
+            True
+            sage: b = Q1('1'); b
+            1
+            sage: b.parent() is Q1
+            True
+
+        Conversion may lift an element of one quotient ring to the base ring of
+        another quotient ring::
+
+            sage: R.<y> = P[]
+            sage: Q3 = R.quo([(y^2+1)])
+            sage: Q3(Q1.gen())
+            x
+            sage: Q3.has_coerce_map_from(Q1)
+            False
+
+        String conversion takes into account both the generators of the quotient
+        ring and its base ring::
+
+            sage: Q3('x*ybar^2')
+            -x
+
         """
-        if isinstance(x, PolynomialQuotientRingElement):
-            P = x.parent()
-            if P is self:
-                return x
-            return self.element_class(self, self.__ring(x.lift()), check=False)
-        return self.element_class(
-                        self, self.__ring(x) , check=True)
+        P = parent(x)
+        if P is self:
+            return x
+        if not isinstance(x,basestring):
+            try:
+                return self.element_class(self, self.__ring(x) , check=True)
+            except TypeError:
+                xlift = getattr(x,'lift',None)
+                if xlift is not None: # duck typing for quotient ring elements
+                    return self.element_class(self, self.__ring(x.lift()), check=False)
+        # The problem with the string representation is that it could in principle
+        # mix elements of self with elements of self's cover ring. We therefore
+        # resort to sage_eval.
+        # Interpretation in self has priority over interpretation in self.__ring
+        try:
+            out = sage_eval(x, GenDictWithBasering(self,self.gens_dict()))
+            if out.parent() is not self:
+                return self(out)
+            return out
+        except (TypeError, NameError):
+            pass
+        try:
+            return self.element_class(self, self.__ring(x), check=False)
+        except TypeError:
+            raise TypeError, "unable to convert %s into an element of %s"%(x,repr(self))
 
     def _coerce_map_from_(self, R):
         """
         Anything coercing into ``self``'s polynomial ring coerces into ``self``.
         Any quotient polynomial ring whose polynomial ring coerces into
         ``self``'s polynomial ring and whose modulus is divided by the modulus
-        of ``self`` coerces into ``self``.
+        of ``self`` coerces into ``self``. There is no coercion if the division
+        of the moduli fails.
 
         AUTHOR:
 
-        - Simon King (2010-12): Trac ticket #8800
+        - Simon King (2010-12): :trac:`8800`
 
         TESTS::
 
@@ -380,11 +468,25 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: Q1.has_coerce_map_from(Q2)
             False
 
+        The following tests against a bug fixed in :trac:`8992`::
+
+            sage: P.<x> = QQ[]
+            sage: Q1 = P.quo([(x^2+1)^2*(x^2-3)])
+            sage: R.<y> = P[]
+            sage: Q2 = R.quo([(y^2+1)])
+            sage: Q2.has_coerce_map_from(Q1)
+            False
+
         """
         if self.__ring.has_coerce_map_from(R):
             return True
         if isinstance(R, PolynomialQuotientRing_generic):
-            return self.__ring.has_coerce_map_from(R.polynomial_ring()) and self.__polynomial.divides(R.modulus())
+            try:
+                if not self.__polynomial.divides(R.modulus()):
+                    return False
+            except AttributeError:
+                return False
+            return self.__ring.has_coerce_map_from(R.polynomial_ring())
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

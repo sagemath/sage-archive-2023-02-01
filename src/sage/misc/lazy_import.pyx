@@ -871,6 +871,13 @@ def save_cache_file():
         star_imports = {}
     _, tmp_file = tempfile.mkstemp()
     pickle.dump(star_imports, open(tmp_file, "w"))
+    cache_dir = os.path.dirname(get_cache_file())
+    try:
+        os.makedirs(cache_dir)
+    except OSError:
+        # Probably failed because directory already exists, but we make sure.
+        if not os.path.isdir(cache_dir):
+            raise
     shutil.move(tmp_file, get_cache_file())
 
 def get_star_imports(module_name):

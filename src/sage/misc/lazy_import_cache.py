@@ -1,5 +1,5 @@
 """
-This is a pure Python file with no dependancies so it can be used in setup.py.
+This is a pure Python file with no dependencies so it can be used in setup.py.
 """
 
 import os
@@ -28,5 +28,5 @@ def get_cache_file():
         sage: os.environ['DOT_SAGE'] = OLD
     """
     mangled = os.path.realpath(os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage')).replace(os.sep, '_')
-    return os.path.join(os.environ['DOT_SAGE'],
+    return os.path.join(os.environ['DOT_SAGE'], 'cache',
                         "%s-lazy_import_cache.pickle" % mangled)

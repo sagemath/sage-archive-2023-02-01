@@ -736,6 +736,13 @@ class AlgebraicConverter(Converter):
             0.500000000000000? + 0.866025403784439?*I
             sage: a.composition(sin(pi/5), sin)
             0.5877852522924731? + 0.?e-18*I
+
+        TESTS::
+
+            sage: QQbar(zeta(7))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert zeta(7) to Algebraic Field
         """
         func = operator
         operand, = ex.operands()
@@ -774,6 +781,11 @@ class AlgebraicConverter(Converter):
             res = ~self.reciprocal_trig_functions[func_name](operand)._algebraic_(QQbar)
         else:
             res = func(operand._algebraic_(self.field))
+            #We have to handle the case where we get the same symbolic
+            #expression back.  For example, QQbar(zeta(7)).  See
+            #ticket #12665.
+            if cmp(res, ex) == 0:
+                raise TypeError, "unable to convert %s to %s"%(ex, self.field)
         return self.field(res)
 
 def algebraic(ex, field):

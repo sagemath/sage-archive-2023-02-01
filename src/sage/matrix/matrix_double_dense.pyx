@@ -2656,7 +2656,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         The result is cached, on a per-tolerance and per-algorithm basis.
 
-        ALGORITHMS::
+        ALGORITHMS:
 
         The naive algorithm simply compares entries of the two possible
         products of the matrix with its conjugate-transpose, with equality
@@ -2673,7 +2673,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         decomposition before going through a similar check of a
         matrix entry-by-entry.
 
-        EXAMPLES::
+        EXAMPLES:
 
         First over the complexes.  ``B`` is Hermitian, hence normal.  ::
 

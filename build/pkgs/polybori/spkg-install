@@ -17,7 +17,6 @@ prepare()
     fi
 
     cp patches/custom.py             src/${PBDIR}
-    cp patches/PyPolyBoRi.py         src/${PBDIR}/pyroot/polybori
 
     cd ${WORKDIR}/${PBDIR}
     patch -p1 < ../../patches/base_lookup.patch

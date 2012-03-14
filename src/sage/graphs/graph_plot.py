@@ -57,8 +57,8 @@ graphplot_options.update(
 class GraphPlot(SageObject):
     def __init__(self, graph, options):
         """
-        Returns a GraphPlot object, which stores all the parameters needed for
-        plotting (Di)Graphs.  A GraphPlot has a plot and show function, as well
+        Returns a ``GraphPlot`` object, which stores all the parameters needed for
+        plotting (Di)Graphs.  A ``GraphPlot`` has a plot and show function, as well
         as some functions to set parameters for vertices and edges.  This constructor
         assumes default options are set.  Defaults are shown in the example below.
 
@@ -107,14 +107,14 @@ class GraphPlot(SageObject):
 
     def _repr_(self):
         """
-        Returns a string representation of a GraphPlot object.
+        Returns a string representation of a ``GraphPlot`` object.
 
         EXAMPLE:
 
         This function is called implicitly by the code below::
 
             sage: g = Graph({0:[1,2], 2:[3], 4:[0,1]})
-            sage: g.graphplot()
+            sage: g.graphplot() # indirect doctest
             GraphPlot object for Graph on 5 vertices
         """
         return "GraphPlot object for %s"%self._graph
@@ -128,13 +128,11 @@ class GraphPlot(SageObject):
         This function is called implicitly by the code below::
 
             sage: g = Graph({0:[1,2], 2:[3], 4:[0,1]})
-            sage: g.graphplot(save_pos=True, layout='circular')
+            sage: g.graphplot(save_pos=True, layout='circular') # indirect doctest
             GraphPlot object for Graph on 5 vertices
 
         The following illustrates the format of a position dictionary,
-        but due to numerical noise we do not check the values themselves.
-
-        ::
+        but due to numerical noise we do not check the values themselves::
 
             sage: g.get_pos()
             {0: [...e-17, 1.0],
@@ -142,6 +140,8 @@ class GraphPlot(SageObject):
              2: [-0.587..., -0.809...],
              3: [0.587..., -0.809...],
              4: [0.951..., 0.309...]}
+
+        ::
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
@@ -151,7 +151,7 @@ class GraphPlot(SageObject):
 
         Make sure that vertex locations are floats.  Not being floats
         isn't a bug in itself but makes it too easy to accidentally
-        introduce a bug elsewhere, such as in set_edges (:trac:`10124`),
+        introduce a bug elsewhere, such as in :meth:`set_edges` (:trac:`10124`),
         via silent truncating division of integers::
 
             sage: g = graphs.FruchtGraph()
@@ -170,9 +170,9 @@ class GraphPlot(SageObject):
 
     def set_vertices(self, **vertex_options):
         """
-        Sets the vertex plotting parameters for this GraphPlot.  This function
+        Sets the vertex plotting parameters for this ``GraphPlot``.  This function
         is called by the constructor but can also be called to make updates to
-        the vertex options of an existing GraphPlot object.  Note that the
+        the vertex options of an existing ``GraphPlot`` object.  Note that the
         changes are cumulative.
 
         EXAMPLES::
@@ -241,7 +241,7 @@ class GraphPlot(SageObject):
             voptions['facecolor'] = vertex_colors
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(center,
-                    self._vertex_radius, fill=True, facecolor=vertex_colors, clip=False)
+                    self._vertex_radius, fill=True, facecolor=vertex_colors, edgecolor='black', clip=False)
                     for center in self._pos.values()]
             else:
                 self._plot_components['vertices'] = scatter_plot(
@@ -267,7 +267,7 @@ class GraphPlot(SageObject):
 
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(pos[i],
-                    self._vertex_radius, fill=True, facecolor=colors[i], clip=False)
+                    self._vertex_radius, fill=True, facecolor=colors[i], edgecolor='black', clip=False)
                     for i in range(len(pos))]
             else:
                 self._plot_components['vertices'] = scatter_plot(pos,
@@ -282,10 +282,10 @@ class GraphPlot(SageObject):
 
     def set_edges(self, **edge_options):
         """
-        Sets the edge (or arrow) plotting parameters for the GraphPlot object.  This
-        function is called by the constructor but can also be called to make updates to
-        the vertex options of an existing GraphPlot object.  Note that the changes are
-        cumulative.
+        Sets the edge (or arrow) plotting parameters for the ``GraphPlot`` object.
+        This function is called by the constructor but can also be called to make
+        updates to the vertex options of an existing ``GraphPlot`` object.  Note
+        that the changes are cumulative.
 
         EXAMPLES::
 
@@ -538,10 +538,11 @@ class GraphPlot(SageObject):
 
     def show(self, **kwds):
         """
-        Shows the (Di)Graph associated with this GraphPlot object.
+        Shows the (Di)Graph associated with this ``GraphPlot`` object.
 
-        For syntax and lengthy documentation, see GP.plot?. Any options not used by
-        plot will be passed on to the Graphics.show method.
+        For syntax and lengthy documentation, see :meth:`GraphPlot.plot`.
+        Any options not used by plot will be passed on to the
+        :meth:`~sage.plot.plot.Graphics.show` method.
 
         EXAMPLE::
 
@@ -556,55 +557,77 @@ class GraphPlot(SageObject):
         Returns a graphics object representing the (di)graph.
 
         INPUT:
-            - pos -- an optional positioning dictionary
-            - layout -- what kind of layout to use, takes precedence over pos
 
-              - 'circular' -- plots the graph with vertices evenly distributed
-                on a circle
-              - 'spring' -- uses the traditional spring layout, using the
-                graph's current positions as initial positions
-              - 'tree' -- the (di)graph must be a tree. One can specify the root
-                of the tree using the keyword tree_root, otherwise a root
-                will be selected at random. Then the tree will be plotted in
-                levels, depending on minimum distance for the root.
-            - vertex_labels -- whether to print vertex labels
-              edge_labels -- whether to print edge labels. By default, False,
-              but if True, the result of str(l) is printed on the edge for
-              each label l. Labels equal to None are not printed (to set edge
-              labels, see set_edge_label).
-            - vertex_size -- size of vertices displayed
-            - vertex_shape -- the shape to draw the vertices (Not available for
-              multiedge digraphs.
-            - graph_border -- whether to include a box around the graph
-            - vertex_colors -- optional dictionary to specify vertex colors: each
-              key is a color recognizable by matplotlib, and each corresponding
-              entry is a list of vertices. If a vertex is not listed, it looks
-              invisible on the resulting plot (it doesn't get drawn).
-            - edge_colors -- a dictionary specifying edge colors: each key is a
-              color recognized by matplotlib, and each entry is a list of edges.
-            - partition -- a partition of the vertex set. if specified, plot will
-              show each cell in a different color. vertex_colors takes precedence.
-            - talk -- if true, prints large vertices with white backgrounds so that
-              labels are legible on slides
-            - iterations -- how many iterations of the spring layout algorithm to
-              go through, if applicable
-            - color_by_label -- if True, color edges by their labels
-            - heights -- if specified, this is a dictionary from a set of
-              floating point heights to a set of vertices
-            - edge_style -- keyword arguments passed into the
-              edge-drawing routine.  This currently only works for
-              directed graphs, since we pass off the undirected graph to
-              networkx
-            - tree_root -- a vertex of the tree to be used as the root for
-              the layout="tree" option. If no root is specified, then one
-              is chosen at random. Ignored unless layout='tree'.
-            - tree_orientation -- "up" or "down" (default is "down").
-              If "up" (resp., "down"), then the root of the tree will
-              appear on the bottom (resp., top) and the tree will grow
-              upwards (resp. downwards). Ignored unless layout='tree'.
-            - save_pos -- save position computed during plotting
+        - ``pos`` -- an optional positioning dictionar
 
-        EXAMPLES::
+        - ``layout`` -- what kind of layout to use, takes precedence over ``pos``
+
+          - 'circular' -- plots the graph with vertices evenly distributed
+            on a circle
+
+          - 'spring' -- uses the traditional spring layout, using the
+            graph's current positions as initial positions
+
+          - 'tree' -- the (di)graph must be a tree. One can specify the root
+            of the tree using the keyword ``tree_root``, otherwise a root
+            will be selected at random. Then the tree will be plotted in
+            levels, depending on minimum distance for the root.
+
+        - ``vertex_labels`` -- whether to print vertex labels
+
+        - ``edge_labels`` -- whether to print edge labels. By default, ``False``,
+          but if ``True``, the result of ``str(l)`` is printed on the edge for
+          each label l. Labels equal to None are not printed (to set edge
+          labels, see :meth:`~sage.graphs.generic_graph.GenericGraph.set_edge_label`).
+
+        - ``vertex_size`` -- size of vertices displayed
+
+        - ``vertex_shape`` -- the shape to draw the vertices (Not available for
+          multiedge digraphs.
+
+        - ``graph_border`` -- whether to include a box around the graph
+
+        - ``vertex_colors`` -- optional dictionary to specify vertex colors: each
+          key is a color recognizable by matplotlib, and each corresponding
+          entry is a list of vertices. If a vertex is not listed, it looks
+          invisible on the resulting plot (it doesn't get drawn).
+
+        - ``edge_colors`` -- a dictionary specifying edge colors: each key is a
+          color recognized by matplotlib, and each entry is a list of edges.
+
+        - ``partition`` -- a partition of the vertex set. if specified, plot will
+          show each cell in a different color. vertex_colors takes precedence.
+
+        - ``talk`` -- if ``True``, prints large vertices with white backgrounds
+          so that labels are legible on slides
+
+        - ``iterations`` -- how many iterations of the spring layout algorithm to
+          go through, if applicable
+
+        - ``color_by_label`` -- if ``True``, color edges by their labels
+
+        - ``heights`` -- if specified, this is a dictionary from a set of
+          floating point heights to a set of vertices
+
+        - ``edge_style`` -- keyword arguments passed into the
+          edge-drawing routine.  This currently only works for
+          directed graphs, since we pass off the undirected graph to
+          networkx
+
+        - ``tree_root`` -- a vertex of the tree to be used as the root for
+          the ``layout="tree"`` option. If no root is specified, then one
+          is chosen at random. Ignored unless ``layout='tree'``.
+
+        - ``tree_orientation`` -- "up" or "down" (default is "down").
+          If "up" (resp., "down"), then the root of the tree will
+          appear on the bottom (resp., top) and the tree will grow
+          upwards (resp. downwards). Ignored unless ``layout='tree'``.
+
+        - ``save_pos`` -- save position computed during plotting
+
+        EXAMPLES:
+
+        Let's list all possible options::
 
             sage: from sage.graphs.graph_plot import graphplot_options
             sage: list(sorted(graphplot_options.iteritems()))
@@ -635,6 +658,9 @@ class GraphPlot(SageObject):
              ('vertex_shape', 'The shape to draw the vertices, Currently unavailable for Multi-edged DiGraphs.'),
              ('vertex_size', 'The size to draw the vertices.')]
 
+
+        We can specify some pretty precise plotting of familiar graphs::
+
             sage: from math import sin, cos, pi
             sage: P = graphs.PetersenGraph()
             sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
@@ -652,6 +678,8 @@ class GraphPlot(SageObject):
             sage: pl = P.graphplot(pos=pos_dict, vertex_colors=d)
             sage: pl.show()
 
+        Here are some more common graphs with typical options::
+
             sage: C = graphs.CubeGraph(8)
             sage: P = C.graphplot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()
@@ -661,10 +689,15 @@ class GraphPlot(SageObject):
             ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: G.graphplot(edge_labels=True).show()
 
+        The options for plotting also work with directed graphs::
+
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []}, implementation='networkx' )
             sage: for u,v,l in D.edges():
             ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: D.graphplot(edge_labels=True, layout='circular').show()
+
+
+        This example shows off the coloring of edges::
 
             sage: from sage.plot.colors import rainbow
             sage: C = graphs.CubeGraph(5)
@@ -678,18 +711,28 @@ class GraphPlot(SageObject):
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.graphplot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
 
+
+        With the ``partition`` option, we can separate out same-color groups
+        of vertices::
+
             sage: D = graphs.DodecahedralGraph()
             sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
             sage: D.show(partition=Pi)
+
+        Loops are also plotted correctly::
 
             sage: G = graphs.PetersenGraph()
             sage: G.allow_loops(True)
             sage: G.add_edge(0,0)
             sage: G.show()
 
+        ::
+
             sage: D = DiGraph({0:[0,1], 1:[2], 2:[3]}, loops=True)
             sage: D.show()
             sage: D.show(edge_colors={(0,1,0):[(0,1,None),(1,2,None)],(0,0,0):[(2,3,None)]})
+
+        More options::
 
             sage: pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8], 3:[0.6, -0.8], 4:[0.8, 0.3]}
             sage: g = Graph({0:[1], 1:[2], 2:[3], 3:[4], 4:[0]})
@@ -704,9 +747,13 @@ class GraphPlot(SageObject):
             sage: P.axes()
             False
 
+        We can plot multiple graphs::
+
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}).plot()
+
+        ::
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
@@ -720,12 +767,18 @@ class GraphPlot(SageObject):
             sage: t.set_edge_label(0,4,66)
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}, edge_labels=True).plot()
 
+        ::
+
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.graphplot(layout='tree').show()
 
+        The tree layout is also useful::
+
             sage: t = DiGraph('JCC???@A??GO??CO??GO??')
             sage: t.graphplot(layout='tree', tree_root=0, tree_orientation="up").show()
+
+        More examples::
 
             sage: D = DiGraph({0:[1,2,3], 2:[1,4], 3:[0]})
             sage: D.graphplot().show()
@@ -766,7 +819,6 @@ class GraphPlot(SageObject):
 
     def layout_tree(self,root,orientation):
         """
-
         Compute a nice layout of a tree.
 
         INPUT:
@@ -785,13 +837,13 @@ class GraphPlot(SageObject):
         EXAMPLES::
 
             sage: T = graphs.RandomLobster(25,0.3,0.3)
-            sage: T.show(layout='tree',tree_orientation='up')
+            sage: T.show(layout='tree',tree_orientation='up') # indirect doctest
 
             sage: from sage.graphs.graph_plot import GraphPlot
             sage: G = graphs.HoffmanSingletonGraph()
             sage: T = Graph()
             sage: T.add_edges(G.min_spanning_tree(starting_vertex=0))
-            sage: T.show(layout='tree',tree_root=0)
+            sage: T.show(layout='tree',tree_root=0) # indirect doctest
 
         """
 

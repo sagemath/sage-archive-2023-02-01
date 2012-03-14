@@ -143,6 +143,7 @@ class Ellipse(GraphicPrimitive):
         """
         return {'alpha':'How transparent the figure is.',
                 'fill': 'Whether or not to fill the ellipse.',
+                'legend_label':'The label for this item in the legend.',
                 'thickness':'How thick the border of the ellipse is.',
                 'edgecolor':'2D only: The color of the edge as an RGB tuple.',
                 'facecolor':'2D only: The color of the face as an RGB tuple.',
@@ -193,6 +194,7 @@ class Ellipse(GraphicPrimitive):
         p.set_edgecolor(ec)
         p.set_facecolor(fc)
         p.set_linestyle(options['linestyle'])
+        p.set_label(options['legend_label'])
         z = int(options.pop('zorder', 0))
         p.set_zorder(z)
         subplot.add_patch(p)
@@ -212,8 +214,8 @@ class Ellipse(GraphicPrimitive):
         raise NotImplementedError
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid', zorder=5,
-         aspect_ratio=1.0)
+@options(alpha=1, fill=False, thickness=1, edgecolor='blue', facecolor='blue', linestyle='solid', zorder=5,
+         aspect_ratio=1.0, legend_label=None)
 def ellipse(center, r1, r2, angle=0, **options):
     """
     Return an ellipse centered at a point center = ``(x,y)`` with radii =
@@ -237,28 +239,34 @@ def ellipse(center, r1, r2, angle=0, **options):
 
     - ``thickness`` - default: 1 - thickness of the line
 
-    - ``rgbcolor`` - default: (0,0,0) - color of the ellipse
-      (overwrites ``edgecolor`` and ``facecolor``)
-
     - ``linestyle`` - default: 'solid'
 
     - ``edgecolor`` - default: 'black' - color of the contour
 
     - ``facecolor`` - default: 'red' - color of the filling
 
+    - ``rgbcolor`` - 2D or 3D plotting.  This option overrides
+      ``edgecolor`` and ``facecolor`` for 2D plotting.
+
     EXAMPLES:
 
-    An ellipse centered at (0,0) with major and minor axes of lengths 2 and 1::
+    An ellipse centered at (0,0) with major and minor axes of lengths 2 and 1.
+    Note that the default color is blue::
 
         sage: ellipse((0,0),2,1)
 
     More complicated examples with tilted axes and drawing options::
 
-        sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3)
+        sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3,linestyle="dashed")
 
     ::
 
-        sage: ellipse((0,0),3,1,pi/6,fill=True,edgecolor='blue',facecolor='red')
+        sage: ellipse((0,0),3,1,pi/6,fill=True,edgecolor='black',facecolor='red')
+
+    We see that ``rgbcolor`` overrides these other options, as this plot
+    is green::
+
+        sage: ellipse((0,0),3,1,pi/6,fill=True,edgecolor='black',facecolor='red',rgbcolor='green')
 
     The default aspect ratio for ellipses is 1.0::
 
@@ -276,6 +284,8 @@ def ellipse(center, r1, r2, angle=0, **options):
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Ellipse(center[0],center[1],r1,r2,angle,options))
+    if options['legend_label']:
+        g.legend(True)
     if len(center)==2:
         return g
     elif len(center)==3:

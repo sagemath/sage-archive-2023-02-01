@@ -187,7 +187,7 @@ class Circle(GraphicPrimitive):
 
         ::
 
-            sage: C = circle((2,pi), 2, hue=.8, alpha=.3)
+            sage: C = circle((2,pi), 2, hue=.8, alpha=.3, linestyle='dotted')
             sage: c = C[0]
             sage: d = c.plot3d(z=2)
             sage: d.jmol_repr(d.testing_render_params())[0][-1]
@@ -213,7 +213,7 @@ class Circle(GraphicPrimitive):
             return Line(xdata, ydata, options).plot3d().translate((0,0,z))
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid',
+@options(alpha=1, fill=False, thickness=1, edgecolor='blue', facecolor='blue', linestyle='solid',
          zorder=5, legend_label=None, clip=True, aspect_ratio=1.0)
 def circle(center, radius, **options):
     """
@@ -229,18 +229,26 @@ def circle(center, radius, **options):
 
     - ``thickness`` - default: 1
 
-    - ``rgbcolor`` - default: (0,0,0)
-
     - ``linestyle`` - default: 'solid' (2D plotting only)
 
-    - ``edgecolor`` - default: 'black' (2D plotting only)
+    - ``edgecolor`` - default: 'blue' (2D plotting only)
 
-    - ``facecolor`` - default: 'red' (2D plotting only, useful only
-      if fill=True)
+    - ``facecolor`` - default: 'blue' (2D plotting only, useful only
+      if ``fill=True``)
 
-    - ``legend_label`` -- the label for this item in the legend
+    - ``rgbcolor`` - 2D or 3D plotting.  This option overrides
+      ``edgecolor`` and ``facecolor`` for 2D plotting.
 
-    EXAMPLES::
+    - ``legend_label`` - the label for this item in the legend
+
+    EXAMPLES:
+
+    The default color is blue, but this is easy to change::
+
+        sage: c = circle((1,1), 1)
+        sage: c
+
+    ::
 
         sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
         sage: c

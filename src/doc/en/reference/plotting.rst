@@ -17,6 +17,7 @@
    sage/plot/density_plot
    sage/plot/disk
    sage/plot/ellipse
+   sage/graphs/graph_plot
    sage/plot/line
    sage/plot/step
    sage/plot/matrix_plot

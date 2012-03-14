@@ -37,6 +37,7 @@ from sage.rings.infinity import infinity
 from sage.libs.pari.gen import pari
 from sage.libs.pari.gen import PariError
 from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RR
 import sage.rings.rational_field
 #from sage.rings.padics.pow_computer cimport PowComputer_base
 
@@ -67,7 +68,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         First compare valuations, then compare normalized
         residue of unit part.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Zp(19, 5,'capped-rel','series'); K = Qp(19, 5, 'capped-rel', 'series')
             sage: a = R(2); a
             2 + O(19^5)
@@ -131,6 +133,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         raise NotImplementedError
     cdef int _set_exact_zero(self) except -1:
         raise TypeError, "this type of p-adic does not support exact zeros"
+
     cpdef bint _is_exact_zero(self) except -1:
         """
         Returns True if self is exactly zero.  Since
@@ -143,6 +146,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             False
         """
         return False
+
     cpdef bint _is_inexact_zero(self) except -1:
         """
         Returns True if self is indistinguishable from zero, but not
@@ -154,6 +158,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             True
         """
         raise NotImplementedError
+
     cpdef bint _is_zero_rep(self) except -1:
         """
         Returns True is self is indistinguishable from zero.
@@ -374,9 +379,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: ~a #indirect doctest
             5 + 4*7 + 4*7^2 + 4*7^3 + O(7^4)
 
-        NOTES::
-
-        The element returned is an element of the fraction field.
+        NOTE: The element returned is an element of the fraction field.
         """
         return self.parent().fraction_field()(self, relprec = self.precision_relative()).__invert__()
 
@@ -481,13 +484,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         Returns a string representation of self.
 
-        INPUTS::
+        INPUTS:
 
-            - mode -- allows one to override the default print mode of
-              the parent (default None).
+        - ``mode`` -- allows one to override the default print mode of
+          the parent (default: ``None``).
 
-            - do_latex -- whether to return a latex representation or
-              a normal one.
+        - ``do_latex`` -- whether to return a latex representation or
+          a normal one.
 
         EXAMPLES::
 
@@ -499,25 +502,25 @@ cdef class pAdicGenericElement(LocalGenericElement):
     def additive_order(self, prec):
         r"""
         Returns the additive order of self, where self is considered
-        to be zero if it is zero modulo $p^{\mbox{prec}}$.
+        to be zero if it is zero modulo `p^{\mbox{prec}}`.
 
-        INPUT::
+        INPUT:
 
-            self -- a p-adic element
-            prec -- an integer
+        - ``self`` -- a p-adic element
+        - ``prec`` -- an integer
 
-        OUTPUT::
+        OUTPUT:
 
-            integer -- the additive order of self
+        integer -- the additive order of self
 
         EXAMPLES::
 
-                sage: R = Zp(7, 4, 'capped-rel', 'series'); a = R(7^3); a.additive_order(3)
-                1
-                sage: a.additive_order(4)
-                +Infinity
-                sage: R = Zp(7, 4, 'fixed-mod', 'series'); a = R(7^5); a.additive_order(6)
-                1
+            sage: R = Zp(7, 4, 'capped-rel', 'series'); a = R(7^3); a.additive_order(3)
+            1
+            sage: a.additive_order(4)
+            +Infinity
+            sage: R = Zp(7, 4, 'fixed-mod', 'series'); a = R(7^5); a.additive_order(6)
+            1
         """
         if self.is_zero(prec):
             return Integer(1)
@@ -526,24 +529,21 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def algdep(self, n):
         """
-        Returns a polynomial of degree at most $n$ which is
-        approximately satisfied by this number.  Note that the
-        returned polynomial need not be irreducible, and indeed
-        usually won't be if this number is a good approximation to an
-        algebraic number of degree less than $n$.
+        Returns a polynomial of degree at most `n` which is approximately
+        satisfied by this number. Note that the returned polynomial need not be
+        irreducible, and indeed usually won't be if this number is a good
+        approximation to an algebraic number of degree less than `n`.
 
-        ALGORITHM::
+        ALGORITHM: Uses the PARI C-library ``algdep`` command.
 
-            Uses the PARI C-library algdep command.
+        INPUT:
 
-        INPUT::
+        - ``self`` -- a p-adic element
+        - ``n`` -- an integer
 
-            - self -- a p-adic element
-            - n -- an integer
+        OUTPUT:
 
-        OUTPUT::
-
-            polynomial -- degree n polynomial approximately satisfied by self
+        polynomial -- degree n polynomial approximately satisfied by self
 
         EXAMPLES::
 
@@ -574,24 +574,21 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def algebraic_dependency(self, n):
         """
-        Returns a polynomial of degree at most $n$ which is
-        approximately satisfied by this number.  Note that the
-        returned polynomial need not be irreducible, and indeed
-        usually won't be if this number is a good approximation to an
-        algebraic number of degree less than $n$.
+        Returns a polynomial of degree at most `n` which is approximately
+        satisfied by this number.  Note that the returned polynomial need not
+        be irreducible, and indeed usually won't be if this number is a good
+        approximation to an algebraic number of degree less than `n`.
 
-        ALGORITHM::
+        ALGORITHM: Uses the PARI C-library algdep command.
 
-            Uses the PARI C-library algdep command.
+        INPUT:
 
-        INPUT::
+        - ``self`` -- a p-adic element
+        - ``n`` -- an integer
 
-            - self -- a p-adic element
-            - n -- an integer
+        OUTPUT:
 
-        OUTPUT::
-
-            polynomial -- degree n polynomial approximately satisfied by self
+        polynomial -- degree n polynomial approximately satisfied by self
 
         EXAMPLES::
 
@@ -634,13 +631,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         Returns whether self is a square
 
-        INPUT::
+        INPUT:
 
-            self -- a p-adic element
+        - ``self`` -- a p-adic element
 
-        OUTPUT::
+        OUTPUT:
 
-            boolean -- whether self is a square
+        boolean -- whether self is a square
 
         EXAMPLES::
 
@@ -745,16 +742,16 @@ cdef class pAdicGenericElement(LocalGenericElement):
     def multiplicative_order(self, prec = None): #needs to be rewritten for lazy elements
         r"""
         Returns the multiplicative order of self, where self is
-        considered to be one if it is one modulo $p^{\mbox{prec}}$.
+        considered to be one if it is one modulo `p^{\mbox{prec}}`.
 
-        INPUT::
+        INPUT:
 
-            self -- a p-adic element
-            prec -- an integer
+        - ``self`` -- a p-adic element
+        - ``prec`` -- an integer
 
-        OUTPUT::
+        OUTPUT:
 
-            integer -- the multiplicative order of self
+        - integer -- the multiplicative order of self
 
         EXAMPLES::
 
@@ -810,18 +807,16 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         Returns the valuation of self.
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic element
-            - p -- a prime (default: None). If specified, will make sure that p==self.parent().prime()
+        - ``self`` -- a p-adic element
+        - ``p`` -- a prime (default: None). If specified, will make sure that p==self.parent().prime()
 
-        NOTES::
+        NOTE: The optional argument p is used for consistency with the valuation methods on integer and rational.
 
-            The optional argument p is used for consistency with the valuation methods on integer and rational.
+        OUTPUT:
 
-        OUTPUT::
-
-            - integer -- the valuation of self
+        integer -- the valuation of self
 
         EXAMPLES::
 
@@ -902,12 +897,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
         This function is overridden in subclasses to provide an
         actual implementation of valuation.
 
-        For exact zeros, maxordp is returned, rather than infinity.
+        For exact zeros, ``maxordp`` is returned, rather than infinity.
 
         EXAMPLES:
 
         For example, the valuation function on pAdicCappedRelativeElements
-        uses an overridden version of this function.::
+        uses an overridden version of this function.
+
+        ::
 
             sage: Zp(5)(5).valuation() #indirect doctest
             1
@@ -916,7 +913,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     cpdef val_unit(self):
         """
-        Returns (self.valuation(), self.unit_part()).
+        Return ``(self.valuation(), self.unit_part())``. To be overridden in
+        derived classes.
 
         EXAMPLES::
 
@@ -927,21 +925,19 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def ordp(self, p = None):
         r"""
-        Returns the valuation of self, normalized so that the valuation of p is 1
+        Returns the valuation of self, normalized so that the valuation of `p` is 1
 
-        INPUT::
+        INPUT:
 
-            self -- a p-adic element
-            p -- a prime (default: None). If specified, will make sure that p==self.parent().prime()
+        - ``self`` -- a p-adic element
+        - ``p`` -- a prime (default: ``None``). If specified, will make sure that ``p == self.parent().prime()``
 
-        NOTES::
-
-            The optional argument p is used for consistency with the valuation methods on integer and rational.
+        NOTE: The optional argument p is used for consistency with the valuation methods on integer and rational.
 
 
-        OUTPUT::
+        OUTPUT:
 
-            integer -- the valuation of self, normalized so that the valuation of p is 1
+        integer -- the valuation of self, normalized so that the valuation of `p` is 1
 
         EXAMPLES::
 
@@ -969,13 +965,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r"""
         Returns a rational approximation to this p-adic number
 
-        INPUT::
+        INPUT:
 
-            self -- a p-adic element
+        - ``self`` -- a p-adic element
 
-        OUTPUT::
+        OUTPUT:
 
-            rational -- an approximation to self
+        rational -- an approximation to self
 
         EXAMPLES::
 
@@ -994,25 +990,455 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r = sage.rings.arith.rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
 
+    def _shifted_log(self, prec, check = True):
+        r"""
+        Returns `-\log(1-x)`.
+
+        INPUT:
+
+        - ``self`` -- a p-adic element
+        - ``prec`` -- integer. Adds terms of the series only up to
+          the indicated power of precision `p^\mbox{prec}`
+
+        OUTPUT:
+
+        - a p-adic element. The value of `-\log(1-x)` correct up to `p^\mbox{prec}`.
+
+        EXAMPLE::
+
+            sage: r = Qp(5,prec=4)(5)
+            sage: r._shifted_log(2)
+            5 + 3*5^2 + 2*5^3 + 2*5^4 + O(5^5)
+            sage: r._shifted_log(4)
+            5 + 3*5^2 + 4*5^3 + 4*5^4 + O(5^5)
+
+        """
+        alpha=self.valuation()
+        if check and alpha<=0:
+            raise ValueError, 'Input value (=%s) should have strictly positive valuation' % self
+
+        if hasattr(self.parent(),'_rat_inverses'):
+            inv_integers=self.parent()._rat_inverses
+        else:
+            inv_integers= [QQ(0)]+[1/QQ(ii) for ii in range(1,self.parent().precision_cap()+1)]
+            self.parent()._rat_inverses=inv_integers
+        e=self.parent().ramification_index()
+        p=self.parent().prime()
+
+        if hasattr(self,'lift'):
+            x=QQ(self.lift())
+        else:
+            x=self
+
+        # Compute the power series using Horner's method
+        # One needs to add n2 = floor( prec/alpha ) terms for sure,
+        # but some extra terms are needed depending of what n2 is.
+        # At the end of the first loop we calculate the other
+        # coefficients that contribute up to the requested precision.
+
+        total=x.parent()(0)
+        n1=1
+        k=0
+        p2k=1
+        n2=p2k*((prec+k*e)/(p2k*alpha)).floor()
+        # The while block gets executed at least once, and usually only
+        # once. Sometimes a few more coefficients are needed to get the
+        # requested precision.
+        while n1 <= n2:
+            new=0
+            xx=x**(p2k)
+            for n in range(n2,n1-1,-p2k):
+                new*=xx
+                try:
+                    new += inv_integers[n]
+                except IndexError:
+                    new +1/QQ(n)
+            # The integer n is not necessarily n1 in subsequent loops,
+            # since n decreases by -p2k at each iteration.
+            new*=x**(n-1)
+            n1=n2+1
+            total+=new
+            k+=1
+            p2k*=p
+            # Compute the next range of coefficients
+            n2=p2k*((prec+k*e)/(p2k*alpha)).floor()
+        try:
+            if hasattr(self,'add_bigoh'):
+                return self.parent()(x*total).add_bigoh(self.precision_absolute())
+            else:
+                return self.parent()(x*total)
+        except:
+            return x*total
+
+
+
+    def log(self, branch = None,  prec = None):
+        r"""
+        Compute the `p`-adic logarithm of any unit in `\ZZ_p`. (See below for
+        normalization.)
+
+        The usual power series for log with values in the additive group of
+        `\ZZ_p` only converges for 1-units (units congruent to 1 modulo `p`).
+        However, there is a unique extension of log to a homomorphism defined
+        on all the units. If `u = a \cdot v` is a unit with `v \equiv 1
+        \pmod{p}` and `a` a Teichmuller representative, then we define `log(u)
+        = log(v)`.  This is the correct extension because the units `U` of
+        `\ZZ_p` split as a product `U = V \times \langle w \rangle`, where `V`
+        is the subgroup of 1-units and `w` is a `(p-1)`-st root of unity.  The
+        `\langle w \rangle` factor is torsion, so must go to 0 under any
+        homomorphism to the torsion free group `(\ZZ_p, +)`.
+
+        INPUTS:
+
+        - ``self`` -- a `p`-adic element
+        - ``branch`` -- A choice of branch, i.e. a choice of logarithm of the
+          uniformizer.  This choice can be made arbitrarily.
+        - ``prec`` -- integer (default: None) if specified, computes only up to
+          the indicated absolute precision indicated as a power of `p`. This parameter
+          is at most the precision cap of the parent, and will be ignored if larger.
+          The precision of ``self`` is left unchanged.
+
+
+        NOTES:
+
+        What some other systems do:
+
+        * PARI:  Seems to define log the same way as we do.
+
+        * MAGMA: Gives an error when unit is not a 1-unit.
+
+        ALGORITHM:
+
+        Input: Some p-adic unit `u` (or non-unit if ``branch`` is
+        specified).
+
+        1. Check that the input `p`-adic number is really a unit
+           (i.e., valuation 0), or take the unit part and multiply by
+           ``branch * self.valuation()`` if not and ``branch``
+           specified.
+
+        2. Raise `u` to `q-1` where `q` is the degree of the ring extension, to obtain a one-unit.
+
+        3. Use the series expansion
+
+        .. math::
+
+            \log(1-x) = F(x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
+
+        to compute the logarithm `log(u)`.
+
+
+        EXAMPLES::
+
+            sage: Z13 = Zp(13, 10, print_mode='series')
+            sage: a = Z13(14); a
+            1 + 13 + O(13^10)
+
+        Note that the relative precision decreases when we take log -- it is
+        the absolute precision that is preserved::
+
+            sage: a.log()
+            13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+            sage: Q13 = Qp(13, 10, print_mode='series')
+            sage: a = Q13(14); a
+            1 + 13 + O(13^10)
+            sage: a.log()
+            13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+
+        The next few examples illustrate precision when computing `p`-adic
+        logs. First we create a field with *default* precision 10::
+
+            sage: R = Zp(5,10, print_mode='series')
+            sage: e = R(389); e
+            4 + 2*5 + 3*5^3 + O(5^10)
+            sage: e.log()
+            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
+            sage: K = Qp(5,10, print_mode='series')
+            sage: e = K(389); e
+            4 + 2*5 + 3*5^3 + O(5^10)
+            sage: e.log()
+            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
+
+        Check that results are consistent over a range of precision::
+
+            sage: max_prec = 40
+            sage: p = 3
+            sage: K = Zp(p, max_prec)
+            sage: full_log = (K(1 + p)).log()
+            sage: for prec in range(2, max_prec):
+            ...       ll1 = (K(1 + p).add_bigoh(prec)).log()
+            ...       ll2 = K(1+p).log(prec)
+            ...       assert ll1 == full_log
+            ...       assert ll2 == full_log
+            ...       assert ll1.precision_absolute() == prec
+
+        First, the Eisenstein case::
+
+            sage: R = ZpCR(5,5)
+            sage: S.<x> = R[]
+            sage: f = x^4 + 15*x^2 + 625*x - 5
+            sage: W.<w> = R.ext(f)
+            sage: z = 1 + w^2 + 4*w^7; z
+            1 + w^2 + 4*w^7 + O(w^20)
+            sage: z.log()
+            w^2 + 2*w^4 + 3*w^6 + 4*w^7 + w^9 + 4*w^10 + 4*w^11 + 4*w^12 + 3*w^14 + w^15 + w^17 + 3*w^18 + 3*w^19 + O(w^20)
+
+        Check that log is multiplicative::
+
+            sage: y = 1 + 3*w^4 + w^5
+            sage: y.log() + z.log() - (y*z).log()
+            O(w^20)
+
+        Now an unramified example::
+
+            sage: g = x^3 + 3*x + 3
+            sage: A.<a> = R.ext(g)
+            sage: b = 1 + 5*(1 + a^2) + 5^3*(3 + 2*a)
+            sage: b.log()
+            (a^2 + 1)*5 + (3*a^2 + 4*a + 2)*5^2 + (3*a^2 + 2*a)*5^3 + (3*a^2 + 2*a + 2)*5^4 + O(5^5)
+
+        Check that log is multiplicative::
+
+            sage: c = 3 + 5^2*(2 + 4*a)
+            sage: b.log() + c.log() - (b*c).log()
+            O(5^5)
+
+        We illustrate the effect of the precision argument::
+
+            sage: R = ZpCA(7,10)
+            sage: x = R(123456789)/R(3); x
+            5 + 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 6*7^6 + 7^9 + O(7^10)
+            sage: x.log(prec = 5)
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + O(7^5)
+            sage: x.log(prec = 7)
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + O(7^7)
+            sage: x.log()
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + 7^7 + 3*7^8 + 4*7^9 + O(7^10)
+
+        AUTHORS:
+
+        - William Stein: initial version
+        - David Harvey (2006-09-13): corrected subtle precision bug
+          (need to take denominators into account! -- see trac \#53)
+        - Genya Zaytman (2007-02-14): adapted to new p-adic class
+        - Amnon Besser, Marc Masdeu (2012-02-21): complete rewrite, valid for
+          generic p-adic rings.
+        """
+        if self.is_zero():
+            return ValueError,'Log is not defined at zero'
+
+        e=self.parent().ramification_index()
+        p=self.parent().prime()
+        q=p**self.parent().degree()
+        if not self.is_padic_unit():
+            if branch is None:
+                raise ValueError,'Not a unit: please specify a branch'
+            if e > 1:
+                try:
+                    u_log=self.parent()._log_u
+                except AttributeError:
+                    u_log=-((self.parent().uniformizer()**e)/p).log(prec = self.parent().precision_cap())
+                    self.parent()._log_u=u_log
+                unif_log=(branch-u_log)/e
+            else:
+                unif_log=branch
+            y=self.unit_part()
+            total=unif_log*self.valuation()
+        else:
+            y=self
+            total=self.parent()(0)
+        if (y-1).valuation()>0:
+            denom=Integer(1)
+        else:
+            y=y**(q-1)
+            denom=Integer(q-1)
+
+        # if prec is None or prec > self.parent().precision_cap():
+        #     prec=self.parent().precision_cap()
+        if prec is None or prec > self.precision_absolute():
+            prec=self.precision_absolute()
+
+
+        # Need to be able to carry computations in higher precision.
+        # Otherwise this will lose precision, so we deactivate it for now.
+        if False:
+            k=0
+            y1 = y**p
+            while (y1-1).valuation()>(y-1).valuation():
+                y=y1
+                k+=1
+                denom*=p
+                y1 = y**p
+            return total-((1-y)._shifted_log(prec = prec+1+k, check = False))/denom
+
+        if hasattr(self,'add_bigoh'):
+            return (total-((1-y)._shifted_log(prec = prec+1, check = False))/denom).add_bigoh(prec)
+        else:
+            return total-((1-y)._shifted_log(prec = prec+1, check = False))/denom
+
+
+
+    def exp(self, prec = None):
+        r"""
+        Compute the `p`-adic exponential of any element of `\ZZ_p` where the
+        series converges.
+
+        INPUT:
+
+        - ``self`` -- a `p`-adic number
+        - ``prec`` -- integer (default: None) if specified, computes only up to
+          the indicated precision.
+
+        ALGORITHM: If self has a ``lift`` method (which should happen for
+        elements of `\QQ_p` and `\ZZ_p`), then one uses the rule:
+        `\exp(x)=\exp(p)^{x/p}` modulo the precision. The value of `\exp(p)` is
+        precomputed. Otherwise, use the power series expansion of `\exp`,
+        evaluating a certain number of terms which does about `O(prec)`
+        multiplications.
+
+        EXAMPLES:
+
+        Borrowed from log::
+
+            sage: Z13 = Zp(13, 10, print_mode='series')
+            sage: a = Z13(13 + 6*13**2 + 2*13**3 + 5*13**4 + 10*13**6 + 13**7 + 11*13**8 + 8*13**9).add_bigoh(10); a
+            13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+            sage: a.exp()
+            1 + 13 + O(13^10)
+            sage: Q13 = Qp(13, 10, print_mode='series')
+            sage: a = Q13(13 + 6*13**2 + 2*13**3 + 5*13**4 + 10*13**6 + 13**7 + 11*13**8 + 8*13**9).add_bigoh(10); a
+            13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+            sage: a.exp()
+            1 + 13 + O(13^10)
+
+        The next few examples illustrate precision when computing `p`-adic
+        exps. First we create a field with *default* precision 10::
+
+            sage: R = Zp(5,10, print_mode='series')
+            sage: e = R(2*5 + 2*5**2 + 4*5**3 + 3*5**4 + 5**5 + 3*5**7 + 2*5**8 + 4*5**9).add_bigoh(10); e
+            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
+            sage: e.exp()*R.teichmuller(4)
+            4 + 2*5 + 3*5^3 + O(5^10)
+
+        ::
+
+            sage: K = Qp(5,10, print_mode='series')
+            sage: e = K(2*5 + 2*5**2 + 4*5**3 + 3*5**4 + 5**5 + 3*5**7 + 2*5**8 + 4*5**9).add_bigoh(10); e
+            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
+            sage: e.exp()*K.teichmuller(4)
+            4 + 2*5 + 3*5^3 + O(5^10)
+
+        TESTS:
+
+        Check that results are consistent over a range of precision::
+
+            sage: max_prec = 40
+            sage: p = 3
+            sage: K = Zp(p, max_prec)
+            sage: full_exp = (K(p)).exp()
+            sage: for prec in range(2, max_prec):
+            ...       ll = (K(p).add_bigoh(prec)).exp()
+            ...       assert ll == full_exp
+            ...       assert ll.precision_absolute() == prec
+            sage: K = Qp(p, max_prec)
+            sage: full_exp = (K(p)).exp()
+            sage: for prec in range(2, max_prec):
+            ...       ll = (K(p).add_bigoh(prec)).exp()
+            ...       assert ll == full_exp
+            ...       assert ll.precision_absolute() == prec
+
+        AUTHORS:
+
+        - Genya Zaytman (2007-02-15)
+        - Amnon Besser, Marc Masdeu (2012-02-23): Complete rewrite
+        """
+        p=self.parent().prime()
+        if self.valuation()<=QQ(1)/(p-1):
+            raise ValueError, 'Exponential does not converge for that input.'
+        if prec is None or prec > self.parent().precision_cap():
+            prec=self.parent().precision_cap()
+
+        if hasattr(self,'lift'):
+            y=QQ(self.lift())
+            if p == 2: p=4
+            if hasattr(self.parent(),'_exp_p'):
+                exp_p=self.parent()._exp_p
+            else:
+                exp_p=self.parent()(p)._exp(self.parent().precision_cap())
+                self.parent()._exp_p=exp_p
+            return (exp_p**Integer(y/p)).add_bigoh(self.precision_absolute())
+        return self._exp(prec)
+
+    def _exp(self, prec):
+        r"""
+        Does the actual computation of the exponential power series, using
+        Horner's evaluation and only one division.
+
+        INPUT:
+
+        - ``self`` -- a `p`-adic element
+        - ``prec`` -- the precison to which to compute the exponential
+
+        EXAMPLES::
+
+            sage: R.<w> = Zq(7^2,5)
+            sage: x = R(7*w)
+            sage: x._exp(5)
+            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
+
+        AUTHORS:
+
+        - Genya Zaytman (2007-02-15)
+        - Amnon Besser, Marc Masdeu (2012-02-23): Complete rewrite
+        """
+        p=self.parent().prime()
+        e=self.parent().ramification_index()
+        val=self.valuation()
+        # Copied the bound from a previous implementation
+        cdef long max_term = ((p-1)*(prec-1))//((p-1)*val - 1) + 1
+        cdef long n
+        if hasattr(self,'lift'):
+            x=QQ(self.lift())
+        else:
+            x=self
+        term=x.parent()(1)
+        factor=Integer(1)
+        for n in range(max_term,0,-1):
+            factor *= n
+            term *= x
+            term += factor
+        if not term.parent() is QQ:
+            if e ==1 :
+                vfact=factor.valuation(p)
+            else:
+                vfact=self.parent()(factor).ordp()
+            fact1=factor/(p**vfact)
+            term1=(term<<(-e*vfact)).lift_to_precision(self.parent().precision_cap())
+            return term1 / fact1
+        else:
+            fact1=factor
+            term1=term
+            return self.parent()(term1/fact1)
+
     def square_root(self, extend = True, all = False):
         r"""
         Returns the square root of this p-adic number
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic element
-            - extend -- bool (default: True); if True, return a square root
-              in an extension if necessary; if False and no root exists
-              in the given ring or field, raise a ValueError
-            - all -- bool (default: False); if True, return a list of all
-              square roots
+        - ``self`` -- a p-adic element
+        - ``extend`` -- bool (default: True); if True, return a square root in
+          an extension if necessary; if False and no root exists in the given
+          ring or field, raise a ValueError
+        - ``all`` -- bool (default: False); if True, return a list of all
+          square roots
 
-        OUTPUT::
+        OUTPUT:
 
-            p-adic element -- the square root of this p-adic number
+        p-adic element -- the square root of this p-adic number
 
-            If all = False, the square root chosen is the one whose
-            reduction mod p is in the range [0, p/2).
+        If ``all=False``, the square root chosen is the one whose
+        reduction mod `p` is in the range `[0, p/2)`.
 
         EXAMPLES::
 
@@ -1030,8 +1456,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R(9).square_root()
             3 * 1 + O(3^21)
 
-            When p = 2, the precision of the square root is one less
-            than the input:
+        When p = 2, the precision of the square root is one less
+        than the input::
 
             sage: R2 = Zp(2,20,'capped-rel')
             sage: R2(0).square_root()

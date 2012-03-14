@@ -77,7 +77,7 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
         else:
             return 1
 
-    def exp(self):
+    def orig_exp(self):
         r"""
         Compute the `p`-adic exponential of any element of
         `\mathbb{Z}_p` where the series converges.
@@ -168,7 +168,7 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
         else:
             raise ValueError, "series doesn't converge"
 
-    def log(self, branch = None):
+    def orig_log(self, branch = None):
         r"""
         Compute the `p`-adic logarithm of any unit in `\mathbb{Z}_p`.
         (See below for normalization.)
@@ -237,12 +237,12 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
         Note that the relative precision decreases when we take log:
         it is the absolute precision that is preserved.::
 
-            sage: a.log()
+            sage: a.orig_log()
             13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
             sage: Q13 = Qp(13, 10, print_mode='series')
             sage: a = Q13(14); a
             1 + 13 + O(13^10)
-            sage: a.log()
+            sage: a.orig_log()
             13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
 
         The next few examples illustrate precision when computing
@@ -252,12 +252,12 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
             sage: R = Zp(5,10, print_mode='series')
             sage: e = R(389); e
             4 + 2*5 + 3*5^3 + O(5^10)
-            sage: e.log()
+            sage: e.orig_log()
             2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
             sage: K = Qp(5,10, print_mode='series')
             sage: e = K(389); e
             4 + 2*5 + 3*5^3 + O(5^10)
-            sage: e.log()
+            sage: e.orig_log()
             2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
 
         Check that results are consistent over a range of precision::
@@ -265,9 +265,9 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
             sage: max_prec = 40
             sage: p = 3
             sage: K = Zp(p, max_prec)
-            sage: full_log = (K(1 + p)).log()
+            sage: full_log = (K(1 + p)).orig_log()
             sage: for prec in range(2, max_prec):
-            ...       ll = (K(1 + p).add_bigoh(prec)).log()
+            ...       ll = (K(1 + p).add_bigoh(prec)).orig_log()
             ...       assert ll == full_log
             ...       assert ll.precision_absolute() == prec
 
@@ -316,10 +316,10 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
             # Note that it is the absolute precision that is respected by log
             return self.parent()(ans.lift()).add_bigoh(prec)
         elif self.is_padic_unit():
-            return (self**Integer(p-1)).log() // Integer(p-1)
+            return (self**Integer(p-1)).orig_log() // Integer(p-1)
         elif not branch is None and self.parent().__contains__(branch):
             branch = self.parent()(branch)
-            return self.unit_part().log() + branch*self.valuation()
+            return self.unit_part().orig_log() + branch*self.valuation()
         else:
             raise ValueError, "not a unit: specify a branch of the log map"
 

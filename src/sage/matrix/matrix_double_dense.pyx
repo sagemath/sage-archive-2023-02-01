@@ -2350,7 +2350,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         The result is cached, on a per-tolerance and per-algorithm basis.
 
-        ALGORITHMS::
+        ALGORITHMS:
 
         The naive algorithm simply computes the product of the
         conjugate-transpose with the matrix and compares the entries

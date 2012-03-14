@@ -16,8 +16,8 @@ directories.
 This script is sourced not only when running Sage itself, but also when
 running any of the subcommands (like ``sage --python``, ``sage -b`` or
 ``sage -i <package>``).
-In particular, setting ``PS1`` here sets the prompt for the Sage shell
-``sage --sh``.
+In particular, setting ``PS1`` here overrides the default prompt for
+the Sage shell ``sage --sh``.
 
 .. note::
 
@@ -30,7 +30,7 @@ environment variable :envvar:`SAGE_RC_FILE`.
 The init.sage script
 --------------------
 
-The *sage script* :file:`$DOT_SAGE/init.sage` (with the default
+The *Sage script* :file:`$DOT_SAGE/init.sage` (with the default
 value of :envvar:`DOT_SAGE`, this is :file:`~/.sage/init.sage`)
 contains Sage commands to be executed every time Sage starts.
 If you want symbolic variables ``y`` and ``z`` in every Sage session,

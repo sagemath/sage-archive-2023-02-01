@@ -1590,18 +1590,30 @@ def load(filename, globals, attach=False):
         $ sage
         sage: load_attach_path()          # not tested
         ['.', '/path/to/my/library', '/path/to/utils']
+
+    Make sure that load handles filenames with spaces in the name or path::
+
+        sage: t = tmp_filename() + ' b.sage'; open(t,'w').write("print 2")
+        sage: sage.misc.preparser.load(t, globals())
+        2
     """
     try:
         filename = eval(filename, globals)
     except Exception:
-        # handle multiple input files separated by spaces, which was
-        # maybe a bad idea, but which we have to handle for backwards
-        # compatibility.
-        v = filename.split()
-        if len(v) > 1:
-            for file in v:
-                load(file, globals, attach=attach)
-            return
+        # First check if the file exists. The filename may have spaces in
+        # its name, but more importantly modified_attached_files calls load
+        # with the absolute file path and that may contain spaces in the path
+        # As a side effect, this also allows file names with spaces in
+        # them, but currently I don't see a way to disallow this case.
+        if not os.path.exists(filename) and not os.path.isabs(filename):
+            # handle multiple input files separated by spaces, which was
+            # maybe a bad idea, but which we have to handle for backwards
+            # compatibility.
+            v = filename.split()
+            if len(v) > 1:
+                for file in v:
+                    load(file, globals, attach=attach)
+                return
 
     filename = filename.strip()
 

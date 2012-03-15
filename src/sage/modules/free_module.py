@@ -478,7 +478,7 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
         [1 0]
         [0 1]
 
-    Fix trac 5575::
+    Fix :trac:`5575`::
 
         sage: V = QQ^3
         sage: span([V.0, V.1])
@@ -486,38 +486,59 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
         Basis matrix:
         [1 0 0]
         [0 1 0]
+
+    Improve error message from :trac:`12541`::
+
+        sage: span({0:vector([0,1])}, QQ)
+        Traceback (most recent call last):
+        ...
+        TypeError: generators must be lists of ring elements
+        or free module elements!
     """
     if ring.is_Ring(gens):
         # we allow the old input format with first input the base_ring.
+        # Do we want to deprecate it?..
         base_ring, gens = gens, base_ring
 
-    if base_ring is None:
-        gens = Sequence(gens)
-        R = gens.universe().base_ring()
-    else:
-        R = base_ring
+    try:
+        if base_ring is None:
+            gens = Sequence(gens)
+            R = gens.universe().base_ring()
+        else:
+            gens = list(gens)
+            R = base_ring
+    except TypeError:
+        raise TypeError("generators must be given as an iterable structure!")
 
     if R not in PrincipalIdealDomains():
-        raise TypeError, "The base_ring (= %s) must be a principal ideal domain."%R
+        raise TypeError("The base_ring (= %s) must be a principal ideal "
+                        "domain." % R)
     if len(gens) == 0:
         return FreeModule(R, 0)
     else:
         x = gens[0]
-        if isinstance(x,(list,tuple)):
+        if free_module_element.is_FreeModuleElement(x):
+            M = x.parent()
+        else:
             try:
-                gens = [ [ R(c) for c in v ] for v in gens ]
+                x = list(x)
+            except TypeError:
+                raise TypeError("generators must be lists of ring elements or "
+                                "free module elements!")
+            M = FreeModule(R, len(x))
+            try:
+                gens = map(M, gens)
             except TypeError:
                 R = R.fraction_field()
+                M = FreeModule(R, len(x))
                 try:
-                    gens = [ [ R(c) for c in v ] for v in gens ]
+                    gens = map(M, gens)
                 except TypeError:
-                    raise ValueError, \
-                        "The elements of gens (= %s) must be defined over "%gens + \
-                        "base_ring (= %s) or its field of fractions."%base_ring
-            M = FreeModule(R,len(x))
-        else:
-            M = x.parent()
-        return M.span(gens=gens, base_ring=base_ring, check=check, already_echelonized=already_echelonized)
+                    raise ValueError("The elements of gens (= %s) must be "
+                                     "defined over base_ring (= %s) or its "
+                                     "field of fractions." % (gens, base_ring))
+        return M.span(gens=gens, base_ring=base_ring, check=check,
+                      already_echelonized=already_echelonized)
 
 ###############################################################################
 #
@@ -2536,8 +2557,6 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         if is_FreeModule(gens):
             gens = gens.gens()
-        if not isinstance(gens, (list, tuple, Sequence)):
-            raise TypeError, "Argument gens (= %s) must be a list, tuple, or sequence."%gens
         if base_ring is None or base_ring == self.base_ring():
             return FreeModule_submodule_pid(
                 self.ambient_module(), gens, check=check, already_echelonized=already_echelonized)
@@ -2622,8 +2641,6 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         if is_FreeModule(gens):
             gens = gens.gens()
-        if not isinstance(gens, (list, tuple, Sequence)):
-            raise TypeError, "Argument gens (= %s) must be a list, tuple, or sequence."%gens
         V = self.span(gens, check=check, already_echelonized=already_echelonized)
         if check:
             if not V.is_submodule(self):
@@ -2676,8 +2693,6 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         if is_FreeModule(basis):
             basis = basis.gens()
-        if not isinstance(basis, (list, tuple, Sequence)):
-            raise TypeError, "Argument basis (= %s) must be a list, tuple, or sequence."%basis
         if base_ring is None or base_ring == self.base_ring():
             return FreeModule_submodule_with_basis_pid(
                 self.ambient_module(), basis=basis, check=check,
@@ -2831,8 +2846,6 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         if is_FreeModule(gens):
             gens = gens.gens()
-        if not isinstance(gens, (list, tuple)):
-            raise TypeError, "Arugment gens (= %s) must be a list, tuple, or sequence."%gens
         return FreeModule_submodule_field(self.ambient_vector_space(), gens, check=check)
 
     def vector_space_span_of_basis(self, basis, check=True):
@@ -3246,8 +3259,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         if is_FreeModule(gens):
             gens = gens.gens()
-        if not isinstance(gens, (list, tuple, Sequence)):
-            raise TypeError, "Argument gens (= %s) must be a list, tuple, or sequence."%gens
         if base_ring is None or base_ring == self.base_ring():
             return FreeModule_submodule_field(
                 self.ambient_module(), gens=gens, check=check, already_echelonized=already_echelonized)
@@ -3308,8 +3319,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         if is_FreeModule(basis):
             basis = basis.gens()
-        if not isinstance(basis, (list, tuple, Sequence)):
-            raise TypeError, "Argument gens (= %s) must be a list, tuple, or sequence."%basis
         if base_ring is None:
             return FreeModule_submodule_with_basis_field(
                 self.ambient_module(), basis=basis, check=check, already_echelonized=already_echelonized)
@@ -4903,7 +4912,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: W = M.span_of_basis([[1,2,3],[4,5,6]])
             sage: TestSuite(W).run()
 
-        We test that the issue at Trac #9502 is solved::
+        We test that the issue at :trac:`9502` is solved::
 
             sage: parent(W.basis()[0])
             Free module of degree 3 and rank 2 over Integer Ring
@@ -4916,8 +4925,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [1 2 3]
             [4 5 6]
 
-        Now we test that the issue introduced at Trac #9502 and reported at
-        Trac #10250 is solved as well::
+        Now we test that the issue introduced at :trac:`9502` and reported at
+        :trac:`10250` is solved as well::
 
             sage: V = (QQ^2).span_of_basis([[1,1]])
             sage: w = sqrt(2) * V([1,1])
@@ -4927,9 +4936,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if not isinstance(ambient, FreeModule_ambient_pid):
             raise TypeError("ambient (=%s) must be ambient." % ambient)
         self.__ambient_module = ambient
-        if not isinstance(basis, (list, tuple)):
-            raise TypeError("basis (=%s) must be a list" % basis)
-        basis = list(basis) # make it a list rather than a tuple
+        basis = list(basis)
         if check:
             V = ambient.ambient_vector_space()
             try:
@@ -6196,8 +6203,6 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
         """
         if is_FreeModule(gens):
             gens = gens.gens()
-        if not isinstance(gens, (list, tuple, Sequence)):
-            raise TypeError, "Argument gens (= %s) must be a list, tuple, or sequence."%gens
         FreeModule_submodule_with_basis_field.__init__(self, ambient, basis=gens, check=check,
             echelonize=not already_echelonized, already_echelonized=already_echelonized)
 

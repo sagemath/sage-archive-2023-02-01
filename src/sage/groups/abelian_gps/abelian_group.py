@@ -566,9 +566,6 @@ class AbelianGroup_class(group.AbelianGroup):
             on these ""smaller invariants"" to compute `d_{i-1}`, and so on.
             (Thanks to Robert Miller for communicating this algorithm.)
 
-        TODO: When somebody wants to speed this code up, please implement he
-            above algorithm.
-
         EXAMPLES::
 
             sage: G = AbelianGroup(2,[2,3])
@@ -590,16 +587,12 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G = AbelianGroup(2,[0,6])
             sage: G.elementary_divisors()
             [6, 0]
-
+            sage: AbelianGroup([3,4,5]).elementary_divisors()
+            [60]
         """
         from sage.matrix.constructor import diagonal_matrix
-        inv = self.invariants()
-        eldivs = diagonal_matrix(ZZ,inv).elementary_divisors()
-        if len(eldivs)==1 or not(1 in eldivs):
-            return eldivs
-        else:
-            eldivs.remove(1)
-            return eldivs
+        ed = diagonal_matrix(ZZ, self.invariants()).elementary_divisors()
+        return [d for d in ed if d!=1]
 
     def exponent(self):
         """
@@ -742,7 +735,8 @@ class AbelianGroup_class(group.AbelianGroup):
         """
         Return True if the group is a cyclic group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: J = AbelianGroup([2,3])
             sage: J.invariants()
             [2, 3]
@@ -774,7 +768,9 @@ class AbelianGroup_class(group.AbelianGroup):
             Multiplicative Abelian Group isomorphic to Z
             sage: T.is_cyclic()
             True
-
+            sage: B = AbelianGroup([3,4,5])
+            sage: B.is_cyclic()
+            True
         """
         return len(self.elementary_divisors()) <= 1
 

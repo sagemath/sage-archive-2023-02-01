@@ -5,6 +5,7 @@ include MANIFEST.in README.txt
 include .hgignore .hg .hg/* .hgtags
 include bundle export install pull sage-push
 include module_list.py
+include fpickle_setup.py
 include spkg-delauto spkg-dist spkg-install
 include sage/graphs/graph_decompositions/rankwidth_c/README
 include sage/libs/gmp/__init__.py

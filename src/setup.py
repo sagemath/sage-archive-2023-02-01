@@ -224,7 +224,7 @@ def execute_list_of_commands_in_parallel(command_list, nthreads):
     commands may be run at the same time.
     """
     from multiprocessing import Pool
-    import twisted.persisted.styles #doing this import will allow instancemethods to be pickable
+    import fpickle_setup #doing this import will allow instancemethods to be pickable
     p = Pool(nthreads)
     process_command_results(p.imap(apply_pair, command_list))
 

@@ -27,7 +27,7 @@ CUR=`pwd`
 rm -rf */.doctest */*/.doctest */*/*/.doctest */*/*/*/.doctest */*/*/*/*/.doctest  */*/*/*/*/*/.doctest
 rm -rf */.doctest* */*/.doctest* */*/*/.doctest* */*/*/*/.doctest* */*/*/*/*/.doctest*  */*/*/*/*/*/.doctest*
 
-cp -pr MANIFEST.in README* install doc sage sage-push pull setup.py module_list.py spkg-* .hg .hgtags .hgignore bundle export build.py clib.py sagebuild.py spkg-delauto c_lib debian tmp/
+cp -pr MANIFEST.in README* install doc sage sage-push pull setup.py module_list.py fpickle_setup.py spkg-* .hg .hgtags .hgignore bundle export build.py clib.py sagebuild.py spkg-delauto c_lib debian tmp/
 
 cd tmp/
 

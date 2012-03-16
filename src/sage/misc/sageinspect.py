@@ -947,12 +947,18 @@ def sage_getargspec(obj):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getargspec
+        sage: def f(x, y, z=1, t=2, *args, **keywords):
+        ...       pass
+        sage: sage_getargspec(f)
+        ArgSpec(args=['x', 'y', 'z', 't'], varargs='args', keywords='keywords', defaults=(1, 2))
+
+    We now run sage_getargspec on some functions from the Sage library::
+
         sage: sage_getargspec(identity_matrix)
         ArgSpec(args=['ring', 'n', 'sparse'], varargs=None, keywords=None, defaults=(0, False))
-        sage: sage_getargspec(Poset)
-        ArgSpec(args=['data', 'element_labels', 'cover_relations', 'category', 'facade', 'key'], varargs=None, keywords=None, defaults=(None, None, False, None, None, None))
         sage: sage_getargspec(factor)
         ArgSpec(args=['n', 'proof', 'int_', 'algorithm', 'verbose'], varargs=None, keywords='kwds', defaults=(None, False, 'pari', 0))
+
 
     In the case of a class or a class instance, the ``ArgSpec`` of the ``__new__`` or ``__init__``
     methods are returned::

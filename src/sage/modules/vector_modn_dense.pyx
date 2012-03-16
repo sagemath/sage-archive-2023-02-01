@@ -72,7 +72,16 @@ TESTS:
 include '../ext/interrupt.pxi'
 include '../ext/stdsage.pxi'
 
-from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
+from sage.rings.finite_rings.integer_mod cimport (IntegerMod_int, IntegerMod_int64,
+          IntegerMod_abstract, use_32bit_type)
+
+cdef mod_int ivalue(IntegerMod_abstract x) except 18446744073709551615:
+    if PY_TYPE_CHECK_EXACT(x, IntegerMod_int):
+        return (<IntegerMod_int>x).ivalue
+    elif PY_TYPE_CHECK_EXACT(x, IntegerMod_int64):
+        return (<IntegerMod_int64>x).ivalue
+    else:
+        raise TypeError, "non-fixed size integer"
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
@@ -176,7 +185,6 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     def __setitem__(self, i, value):
         if not self._is_mutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        cdef IntegerMod_int m
         cdef Py_ssize_t k, d, n
         if isinstance(i, slice):
             start, stop = i.start, i.stop
@@ -190,11 +198,10 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
                     self[k] = R(value[n])
                     n = n + 1
         else:
-            m = self.base_ring()(value)
             if i < 0 or i >= self._degree:
                 raise IndexError
             else:
-                self._entries[i] = m.ivalue
+                self._entries[i] = ivalue(self.base_ring()(value))
 
     def __getitem__(self, i):
         """
@@ -221,20 +228,27 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             ...
             IndexError: index out of range
         """
-        cdef IntegerMod_int n
         if isinstance(i, slice):
             start, stop, step = i.indices(len(self))
             return vector(self.base_ring(), self.list()[start:stop])
+
+        if i < 0:
+            i += self._degree
+        if i < 0 or i >= self._degree:
+            raise IndexError('index out of range')
+        cdef IntegerMod_int n
+        cdef IntegerMod_int64 m
+
+        if use_32bit_type(self._p):
+            n =  IntegerMod_int.__new__(IntegerMod_int)
+            IntegerMod_abstract.__init__(n, self.base_ring())
+            n.ivalue = self._entries[i]
+            return n
         else:
-            if i < 0:
-                i += self._degree
-            if i < 0 or i >= self._degree:
-                raise IndexError('index out of range')
-            else:
-                n =  IntegerMod_int.__new__(IntegerMod_int)
-                IntegerMod_abstract.__init__(n, self.base_ring())
-                n.ivalue = self._entries[i]
-                return n
+            m =  IntegerMod_int64.__new__(IntegerMod_int64)
+            IntegerMod_abstract.__init__(m, self.base_ring())
+            m.ivalue = self._entries[i]
+            return m
 
     def __reduce__(self):
         return unpickle_v1, (self._parent, self.list(), self._degree, self._p, self._is_mutable)
@@ -289,14 +303,14 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         return z
 
     cpdef ModuleElement _rmul_(self, RingElement left):
-        cdef IntegerMod_int a
         cdef Vector_modn_dense z
 
-        a = left
+        cdef mod_int a = ivalue(left)
         z = self._new_c()
         cdef Py_ssize_t i
+
         for i from 0 <= i < self._degree:
-            z._entries[i] = (self._entries[i] * a.ivalue) % self._p
+            z._entries[i] = (self._entries[i] * a) % self._p
         return z
 
     cpdef ModuleElement _lmul_(self, RingElement right):

@@ -52,3 +52,6 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 cdef int jacobi_int(int_fast32_t a, int_fast32_t m) except -2
 cdef int_fast32_t mod_inverse_int(int_fast32_t x, int_fast32_t n) except 0
 cdef int_fast32_t mod_pow_int(int_fast32_t base, int_fast32_t exp, int_fast32_t n)
+
+
+cdef bint use_32bit_type(int_fast64_t modulus)

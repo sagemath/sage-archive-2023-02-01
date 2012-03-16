@@ -7,7 +7,8 @@ store a d x (nm) matrix over QQ, each column of which corresponds to
 an element of the original matrix. This can be retrieved via the
 _rational_matrix method. Here is an example illustrating this:
 
-EXAMPLES:
+EXAMPLES::
+
     sage: F.<zeta> = CyclotomicField(5)
     sage: M = Matrix(F, 2, 3, [zeta, 3, zeta**4+5, (zeta+1)**4, 0, 1])
     sage: M
@@ -94,14 +95,16 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             coerce -- bool; if true entries are coerced to base ring
             copy -- bool; ignored due to underlying data structure
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.matrix.matrix_cyclo_dense import Matrix_cyclo_dense
             sage: A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, MatrixSpace(CyclotomicField(3),2), [0,1,2,3], True, True)
             sage: type(A)
             <type 'sage.matrix.matrix_cyclo_dense.Matrix_cyclo_dense'>
 
         Note that the entries of A haven't even been set yet above; that doesn't
-        happen until init is called:
+        happen until init is called::
+
             sage: A[0,0]
             Traceback (most recent call last):
             ...
@@ -195,7 +198,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         internal representation of cyclotomic fields. This is intended
         for internal use only.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<z> = CyclotomicField(11) ; M = Matrix(K,2,range(4))
             sage: M[0,1] = z ; M
             [0 z]
@@ -207,8 +211,10 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [    2 z + 1]
 
         TESTS:
+
         Since separate code exists for each quadratic field, we need
-        doctests for each.
+        doctests for each.::
+
             sage: K.<z> = CyclotomicField(4) ; M = Matrix(K,2,range(4))
             sage: M[1,1] = z+1 ; M
             [    0     1]
@@ -300,17 +306,21 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         WARNING: As the name suggests, expect segfaults if i,j are out
         of bounds!! This is for internal use only.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<a> = CyclotomicField(5)
             sage: A = matrix(2, 3, [9939208341, 1/a, 1-a,a, -2/3*a, a^19])
 
-        This implicitly calls get_unsafe:
+        This implicitly calls get_unsafe::
+
             sage: A[0,0]
             9939208341
 
         TESTS:
+
         Since separate code exists for each quadratic field, we need
-        doctests for each.
+        doctests for each.::
+
             sage: K.<z> = CyclotomicField(3) ; M = Matrix(K,2,range(4))
             sage: M[1,1] = z+1 ; M[1,1]
             z + 1
@@ -405,7 +415,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             data -- output of pickle
             version -- int
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<z> = CyclotomicField(3)
             sage: w = matrix(K, 3, 3, [0, -z, -2, -2*z + 2, 2*z, z, z, 1-z, 2+3*z])
             sage: w._pickle()
@@ -424,7 +435,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         This modifies self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<z> = CyclotomicField(3)
             sage: w = matrix(K, 3, 3, [0, -z, -2, -2*z + 2, 2*z, z, z, 1-z, 2+3*z])
             sage: data, version = w._pickle()
@@ -465,14 +477,16 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         OUTPUT:
             a dense cyclotomic matrix
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(2, 3, [1,z,z^2,z^3,z^4,2/3*z]); B = matrix(2, 3, [-1,2*z,3*z^2,5*z+1,z^4,1/3*z])
             sage: A + B
             [                       0                      3*z                    4*z^2]
             [           z^3 + 5*z + 1 -2*z^3 - 2*z^2 - 2*z - 2                        z]
 
-        Verify directly that the above output is correct:
+        Verify directly that the above output is correct::
+
             sage: (A+B).list() == [A.list()[i]+B.list()[i] for i in range(6)]
             True
         """
@@ -491,14 +505,16 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         OUTPUT:
             a dense cyclotomic matrix
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(2, 3, [1,z,z^2,z^3,z^4,2/3*z]); B = matrix(2, 3, [-1,2*z,3*z^2,5*z+1,z^4,1/3*z])
             sage: A - B
             [            2            -z        -2*z^2]
             [z^3 - 5*z - 1             0         1/3*z]
 
-        Verify directly that the above output is correct:
+        Verify directly that the above output is correct::
+
             sage: (A-B).list() == [A.list()[i]-B.list()[i] for i in range(6)]
             True
         """
@@ -514,14 +530,16 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             self -- dense cyclotomic matrix
             right --- scalar in the base cyclotomic field
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(2, 3, [1,z,z^2,z^3,z^4,2/3*z])
             sage: (1 + z/3)*A
             [                      1/3*z + 1                     1/3*z^2 + z                   1/3*z^3 + z^2]
             [2/3*z^3 - 1/3*z^2 - 1/3*z - 1/3            -z^3 - z^2 - z - 2/3                 2/9*z^2 + 2/3*z]
 
-        Verify directly that the above output is correct:
+        Verify directly that the above output is correct::
+
             sage: ((1+z/3)*A).list() == [(1+z/3)*x for x in A.list()]
             True
         """
@@ -562,7 +580,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             Use a multimodular algorithm that involves multiplying the
             two matrices modulo split primes.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(3, 3, [1,z,z^2,z^3,z^4,2/3*z,-3*z,z,2+z]); B = matrix(3, 3, [-1,2*z,3*z^2,5*z+1,z^4,1/3*z,2-z,3-z,5-z])
             sage: A*B
@@ -572,7 +591,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         Verify that the answer above is consistent with what the
         generic sparse matrix multiply gives (which is a different
-        implementation).
+        implementation).::
+
             sage: A*B == A.sparse_matrix()*B.sparse_matrix()
             True
 
@@ -643,11 +663,13 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         Compare a matrix with something else. This immediately calls
         a base class _richcmp.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1,z,-z,1+z/2])
 
-        These implicitly call richcmp:
+        These implicitly call richcmp::
+
             sage: A == 5
             False
             sage: A < 100
@@ -660,18 +682,22 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         Return hash of this matrix.
 
         EXAMPLES:
-        This is called implicitly by the hash function.
+
+        This is called implicitly by the hash function.::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1,z,-z,1+z/2])
 
-        The matrix must be immutable.
+        The matrix must be immutable.::
+
             sage: hash(A)
             Traceback (most recent call last):
             ...
             TypeError: mutable matrices are unhashable
             sage: A.set_immutable()
 
-        Yes, this works:
+        Yes, this works::
+
             sage: hash(A)
             -25
         """
@@ -682,7 +708,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         Return hash of an immutable matrix. Raise a TypeError if input
         matrix is mutable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1,2/3*z+z^2,-z,1+z/2])
             sage: hash(A)
@@ -709,8 +736,10 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             int; either -1, 0, or 1
 
         EXAMPLES:
+
         This function is called implicitly when comparisons with matrices
-        are done or the cmp function is used.
+        are done or the cmp function is used.::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1,2/3*z+z^2,-z,1+z/2])
             sage: cmp(A,A)
@@ -727,22 +756,26 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         Make a copy of this matrix.
 
         EXAMPLES:
-        We create a cyclotomic matrix.
+        We create a cyclotomic matrix.::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1,2/3*z+z^2,-z,1+z/2])
 
-        We make a copy of A.
+        We make a copy of A.::
             sage: C = A.__copy__()
 
-        We make another reference to A.
+        We make another reference to A.::
+
             sage: B = A
 
-        Changing this reference changes A itself:
+        Changing this reference changes A itself::
+
             sage: B[0,0] = 10
             sage: A[0,0]
             10
 
-        Changing the copy does not change A.
+        Changing the copy does not change A.::
+
             sage: C[0,0] = 20
             sage: C[0,0]
             20
@@ -760,7 +793,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         OUTPUT:
             matrix
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1,2/3*z+z^2,-z,1+z/2])
             sage: -A
@@ -787,7 +821,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         """
         Change this matrix so that it is immutable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1,2/3*z+z^2,-z,1+z/2])
             sage: A[0,0] = 10
@@ -799,7 +834,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         Note that there is no function to set a matrix to be mutable
         again, since such a function would violate the whole point.
-        Instead make a copy, which is always mutable by default.
+        Instead make a copy, which is always mutable by default.::
+
             sage: A.set_mutable()
             Traceback (most recent call last):
             ...
@@ -816,7 +852,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         """
         Return the underlying rational matrix corresponding to self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Matrix(CyclotomicField(7),4,4,range(16))._rational_matrix()
             [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15]
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
@@ -842,7 +879,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             integer -- the smallest integer d so that d * self has
                        entries in the ring of integers
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [-2/7,2/3*z+z^2,-z,1+z/19]); A
             [       -2/7 z^2 + 2/3*z]
@@ -864,7 +902,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         $$ \left| \sum_i a_i\zeta^i \right| \leq \sum_i |a_i|, $$
         as $|\zeta| = 1$.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1+z, 0, 9*z+7, -3 + 4*z]); A
             [  z + 1       0]
@@ -873,7 +912,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             16
 
         The above bound is just $9 + 7$, coming from the lower left entry.
-        A better bound would be the following:
+        A better bound would be the following::
+
             sage: (A[1,0]).abs()
             12.997543663...
         """
@@ -902,7 +942,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         $$
         where $v$ runs over all complex embeddings of \code{self.base_ring()}.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1+z, 0, 9*z+7, -3 + 4*z]); A
             [  z + 1       0]
@@ -1096,14 +1137,16 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         This bound only applies for self._nrows >= 4, so in all
         smaller cases, we just use a naive bound.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = Matrix(CyclotomicField(7),3,3,range(9))
             sage: A._charpoly_bound()
             2048
             sage: A.charpoly()
             x^3 - 12*x^2 - 18*x
 
-        An example from the above paper, where the bound is sharp:
+        An example from the above paper, where the bound is sharp::
+
             sage: B = Matrix(CyclotomicField(7), 5,5, [1,1,1,1,1,1,1,-1,-1,-1,1,-1,1,-1,-1,1,-1,-1,1,-1,1,-1,-1,-1,1])
             sage: B._charpoly_bound()
             80
@@ -1174,7 +1217,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         OUTPUT:
             polynomial
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<z> = CyclotomicField(5)
             sage: a = matrix(K, 3, [1,z,1+z^2, z/3,1,2,3,z^2,1-z])
             sage: f = a.charpoly(); f
@@ -1198,7 +1242,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: Matrix(CyclotomicField(13),3).charpoly()[2].parent()
             Cyclotomic Field of order 13 and degree 12
 
-        TESTS:
+        TESTS::
+
             sage: Matrix(CyclotomicField(10),0).charpoly()
             1
         """
@@ -1248,7 +1293,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             of all the characteristic polynomials of the reduction of self modulo all
             the primes over p.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1+z, 0, 9*z+7, -3 + 4*z]); A
             [  z + 1       0]
@@ -1287,7 +1333,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                      all primes up to $p_{i+3}$ or the bound is
                      reached.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<z> = CyclotomicField(3)
             sage: A = matrix(3, [-z, 2*z + 1, 1/2*z + 2, 1, -1/2, 2*z + 2, -2*z - 2, -2*z - 2, 2*z - 1])
             sage: A._charpoly_multimodular()
@@ -1298,7 +1345,9 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             T^3 + (-z + 3/2)*T^2 + (17/2*z + 9/2)*T - 9/2*z - 23/2
 
         TESTS:
-        We test a degenerate case:
+
+        We test a degenerate case::
+
             sage: A = matrix(CyclotomicField(1),2,[1,2,3,4]); A.charpoly()
             x^2 - 5*x - 2
         """
@@ -1367,7 +1416,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                     the degree of the cyclotomic base field.
             denom -- an integer
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<z> = CyclotomicField(3)
             sage: w = matrix(K, 2, 3, [0, -z/5, -2/3, -2*z + 2, 2*z, z])
             sage: R, d = w._reductions(7)
@@ -1408,7 +1458,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                given by reducing modulo all the primes over p.
             -- inverse of this matrix
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<z> = CyclotomicField(3)
             sage: w = matrix(K, 2, 3, [0, -z/5, -2/3, -2*z + 2, 2*z, z])
             sage: A, B = w._reduction_matrix(7)
@@ -1420,7 +1471,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [4 3]
 
         The reduction matrix is used to calculate the reductions mod primes
-        above p.
+        above p. ::
+
             sage: K.<z> = CyclotomicField(5)
             sage: A = matrix(K, 2, 2, [1, z, z^2+1, 5*z^3]); A
             [      1       z]
@@ -1432,7 +1484,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [ 1  4  6  1]
             [ 1  3 10  3]
 
-        The rows of this product are the (flattened) matrices mod each prime above p:
+        The rows of this product are the (flattened) matrices mod each prime above p::
+
             sage: roots = [r for r, e in K.defining_polynomial().change_ring(GF(11)).roots()]; roots
             [9, 5, 4, 3]
             sage: [r^2+1 for r in roots]
@@ -1440,7 +1493,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: [5*r^3 for r in roots]
             [4, 9, 1, 3]
 
-        The reduction matrix is cached:
+        The reduction matrix is cached::
             sage: w._reduction_matrix(7) is w._reduction_matrix(7)
             True
         """
@@ -1522,6 +1575,16 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A = Matrix(cf4, 1, 2, [-z4, 1])
             sage: A.echelon_form()
             [    1 zeta4]
+
+        Verify that matrix on Trac #10281 works::
+
+            sage: K.<rho> = CyclotomicField(106)
+           sage: coeffs = [(18603/107*rho^51 - 11583/107*rho^50 - 19907/107*rho^49 - 13588/107*rho^48 - 8722/107*rho^47 + 2857/107*rho^46 - 19279/107*rho^45 - 16666/107*rho^44 - 11327/107*rho^43 + 3802/107*rho^42 + 18998/107*rho^41 - 10798/107*rho^40 + 16210/107*rho^39 - 13768/107*rho^38 + 15063/107*rho^37 - 14433/107*rho^36 - 19434/107*rho^35 - 12606/107*rho^34 + 3786/107*rho^33 - 17996/107*rho^32 + 12341/107*rho^31 - 15656/107*rho^30 - 19092/107*rho^29 + 8382/107*rho^28 - 18147/107*rho^27 + 14024/107*rho^26 + 18751/107*rho^25 - 8301/107*rho^24 - 20112/107*rho^23 - 14483/107*rho^22 + 4715/107*rho^21 + 20065/107*rho^20 + 15293/107*rho^19 + 10072/107*rho^18 + 4775/107*rho^17 - 953/107*rho^16 - 19782/107*rho^15 - 16020/107*rho^14 + 5633/107*rho^13 - 17618/107*rho^12 - 18187/107*rho^11 + 7492/107*rho^10 + 19165/107*rho^9 - 9988/107*rho^8 - 20042/107*rho^7 + 10109/107*rho^6 - 17677/107*rho^5 - 17723/107*rho^4 - 12489/107*rho^3 - 6321/107*rho^2 - 4082/107*rho - 1378/107, 1, 4*rho + 1), (0, 1, rho + 4)]
+            sage: m = matrix(2, coeffs)
+            sage: a = m.echelon_form(algorithm='classical')
+            sage: b = m.echelon_form(algorithm='multimodular')        # long: about 5-10 seconds
+            sage: a == b                                              # long: depends on above
+            True
         """
         key = 'echelon_form-%s'%algorithm
         E = self.fetch(key)
@@ -1556,7 +1619,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         OUTPUT:
             matrix in reduced row echelon form
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(3)
             sage: A = matrix(W, 2, 3, [1+z, 2/3, 9*z+7, -3 + 4*z, z, -7*z]); A
             [  z + 1     2/3 9*z + 7]
@@ -1566,7 +1630,9 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [                  0                   1 1851/97*z + 1272/97]
 
         TESTS:
-        We test a degenerate case:
+
+        We test a degenerate case::
+
             sage: A = matrix(CyclotomicField(5),0); A
             []
             sage: A._echelon_form_multimodular(10)
@@ -1708,7 +1774,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             tuple -- the tuple of pivots for the echelon form of self mod the
                      primes dividing p
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: W.<z> = CyclotomicField(3)
             sage: A = matrix(W, 2, 3, [1+z, 2/3, 9*z+7, -3 + 4*z, z, -7*z]); A
             [  z + 1     2/3 9*z + 7]

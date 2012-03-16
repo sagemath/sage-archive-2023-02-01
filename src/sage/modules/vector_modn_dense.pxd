@@ -1,5 +1,8 @@
+cdef extern from "stdint.h":
+    ctypedef unsigned long uint_fast64_t
+
 cdef extern from "../ext/multi_modular.h":
-    ctypedef unsigned long mod_int
+    ctypedef uint_fast64_t mod_int
 
 cimport free_module_element
 import  free_module_element

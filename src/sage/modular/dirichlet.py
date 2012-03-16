@@ -657,9 +657,15 @@ class DirichletCharacter(MultiplicativeGroupElement):
             5
             sage: (a*b).conductor()
             20
+
+        TESTS::
+
+            sage: G.<a, b> = DirichletGroup(20)
+            sage: type(G(1).conductor())
+            <type 'sage.rings.integer.Integer'>
         """
         if self.modulus() == 1 or self.is_trivial():
-            return 1
+            return rings.Integer(1)
         F = arith.factor(self.modulus())
         if len(F) > 1:
             return misc.mul([d.conductor() for d in self.decomposition()])
@@ -673,7 +679,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         cond = p**(arith.valuation(self.order(),p) + 1)
         if p == 2 and F[0][1] > 2 and self.values_on_gens()[1].multiplicative_order() != 1:
             cond *= 2;
-        return cond
+        return rings.Integer(cond)
 
     @cached_method
     def decomposition(self):

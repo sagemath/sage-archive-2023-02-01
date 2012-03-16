@@ -27,6 +27,8 @@ from sage.categories.subobjects   import SubobjectsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import cartesian_product, CartesianProductsCategory
+from sage.categories.realizations import RealizationsCategory, Category_realization_of_parent
+from sage.categories.with_realizations import WithRealizationsCategory
 
 lazy_import('sage.sets.cartesian_product', 'CartesianProduct')
 
@@ -1110,3 +1112,272 @@ class Sets(Category_singleton):
             """
             from sage.categories.modules_with_basis import ModulesWithBasis
             return [ModulesWithBasis(self.base_ring())]
+
+    class WithRealizations(WithRealizationsCategory):
+
+        def extra_super_categories(self):
+            """
+            A set with multiple realizations is a facade parent
+
+            EXAMPLES::
+
+                sage: Sets().WithRealizations().extra_super_categories()
+                [Category of facade sets]
+                sage: Sets().WithRealizations().super_categories()
+                [Category of facade sets]
+            """
+            return [Sets().Facades()]
+
+        def example(self, base_ring = None, set = None):
+            r"""
+            Returns an example of set with multiple realizations, as
+            per :meth:`Category.example`.
+
+            EXAMPLES::
+
+                sage: Sets().WithRealizations().example()
+                The subset algebra of {1, 2, 3} over Rational Field
+
+                sage: Sets().WithRealizations().example(ZZ, Set([1,2]))
+                The subset algebra of {1, 2} over Integer Ring
+            """
+            from sage.rings.rational_field import QQ
+            from sage.sets.set import Set
+            if base_ring is None:
+                base_ring = QQ
+            if set is None:
+                set = Set([1,2,3])
+            from sage.categories.examples.with_realizations import SubsetAlgebra
+            return SubsetAlgebra(base_ring, set)
+
+
+        class ParentMethods:
+
+            def _test_with_realizations(self, **options):
+                r"""
+                Test that this parent with realizations is properly implemented
+
+                INPUT::
+
+                 - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+                EXAMPLES::
+
+                    sage: A = Sets().WithRealizations().example()
+                    sage: A._test_with_realizations()
+
+                See the documentation for :class:`TestSuite` for more information.
+                """
+                tester = self._tester(**options)
+                for R in self.realizations():
+                    tester.assert_(R in self.Realizations())
+                # Could check that there are coerce maps between any two realizations
+
+            @lazy_attribute
+            def _realizations(self):
+                """
+                This lazily initializes the attribute
+                ``_realizations`` the first time it is needed.
+
+                TESTS::
+
+                    sage: class MyParent(Parent):
+                    ...      pass
+                    sage: P = MyParent(category = Sets().WithRealizations())
+                    sage: P._realizations
+                    []
+                """
+                return []
+
+            def _register_realization(self, realization):
+                """
+                EXAMPLES::
+
+                    sage: A = Sets().WithRealizations().example(QQ[x]); A
+                    The subset algebra of {1, 2, 3} over Univariate Polynomial Ring in x over Rational Field
+                    sage: class ANewRealizationOfA(CombinatorialFreeModule):
+                    ...       pass
+                    sage: R = ANewRealizationOfA(A.base_ring(), A.F().basis().keys(), category = A.Realizations())
+                    sage: R in A.realizations()  # indirect doctest
+                    True
+
+                Note: the test above uses ``QQ[x]`` to not interfer with other tests
+                """
+                assert realization.realization_of() is self
+                self._realizations.append(realization)
+
+            def realizations(self):
+                """
+                Returns all the realizations of ``self`` that ``self`` is aware of.
+
+                EXAMPLES::
+
+                    sage: A = Sets().WithRealizations().example(); A
+                    The subset algebra of {1, 2, 3} over Rational Field
+                    sage: A.realizations()
+                    [The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis, The subset algebra of {1, 2, 3} over Rational Field on the in basis, The subset algebra of {1, 2, 3} over Rational Field on the out basis]
+
+                .. note::
+
+                    Constructing a parent ``P`` in the category
+                    ``A.Realizations()`` automatically adds ``P`` to
+                    this list by calling ``A._register_realization(A)``
+                """
+                return self._realizations
+
+            facade_for = realizations
+            """
+            Returns the parents ``self`` is a facade for, that is
+            the realizations of ``self``
+
+            EXAMPLES::
+
+                sage: A = Sets().WithRealizations().example(); A
+                The subset algebra of {1, 2, 3} over Rational Field
+                sage: A.facade_for()
+                [The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis, The subset algebra of {1, 2, 3} over Rational Field on the in basis, The subset algebra of {1, 2, 3} over Rational Field on the out basis]
+
+                sage: A = Sets().WithRealizations().example(); A
+                The subset algebra of {1, 2, 3} over Rational Field
+                sage: f = A.F().an_element(); f
+                F[{}] + 2*F[{1}] + 3*F[{2}] + F[{1, 2}]
+                sage: i = A.In().an_element(); i
+                In[{}] + 2*In[{1}] + 3*In[{2}] + In[{1, 2}]
+                sage: o = A.Out().an_element(); o
+                Out[{}] + 2*Out[{1}] + 3*Out[{2}] + Out[{1, 2}]
+                sage: f in A, i in A, o in A
+                (True, True, True)
+            """
+
+            # Do we really want this feature?
+            class Realizations(Category_realization_of_parent):
+
+                def super_categories(self):
+                    """
+                    EXAMPLES::
+
+                        sage: A = Sets().WithRealizations().example(); A
+                        The subset algebra of {1, 2, 3} over Rational Field
+                        sage: A.Realizations().super_categories()
+                        [Join of Category of algebras over Rational Field and Category of realizations of sets, Category of algebras with basis over Rational Field]
+                    """
+                    return [Sets().Realizations()]
+
+            def _an_element_(self):
+                """
+                Returns an element of some realization of ``self``
+
+                EXAMPLES::
+
+                    sage: A = Sets().WithRealizations().example(); A
+                    The subset algebra of {1, 2, 3} over Rational Field
+                    sage: A.an_element()        # indirect doctest
+                    F[{}] + 2*F[{1}] + 3*F[{2}] + F[{1, 2}]
+                """
+                return self.realizations()[0].an_element()
+
+            # TODO: maybe this could be taken care of by Sets.Facades()?
+            def __contains__(self, x):
+                r"""
+                Test whether ``x`` is in ``self``, that is if it is an
+                element of some realization of ``self``.
+
+                EXAMPLES::
+
+                    sage: A = Sets().WithRealizations().example(); A
+                    The subset algebra of {1, 2, 3} over Rational Field
+                    sage: A.an_element() in A
+                    True
+                    sage: A.In().an_element() in A
+                    True
+                    sage: A.F().an_element() in A
+                    True
+                    sage: A.Out().an_element() in A
+                    True
+                    sage: 1 in A
+                    True
+                    sage: QQ['x'].an_element() in A
+                    False
+                """
+                return any(x in realization for realization in self.realizations())
+
+    class Realizations(RealizationsCategory):
+
+        class ParentMethods:
+
+            def __init_extra__(self):
+                """
+                Registers ``self`` as a realization of ``self.realization_of``
+
+                TESTS::
+
+                    sage: A = Sets().WithRealizations().example()
+                    sage: A.realizations()    # indirect doctest
+                    [The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis,
+                     The subset algebra of {1, 2, 3} over Rational Field on the in basis,
+                     The subset algebra of {1, 2, 3} over Rational Field on the out basis]
+                """
+                self.realization_of()._register_realization(self)
+
+            @cached_method
+            def realization_of(self):
+                """
+                Returns the parent this is a realization of
+
+                EXAMPLES::
+
+                    sage: A = Sets().WithRealizations().example(); A
+                    The subset algebra of {1, 2, 3} over Rational Field
+                    sage: In = A.In(); In
+                    The subset algebra of {1, 2, 3} over Rational Field on the in basis
+                    sage: In.realization_of()
+                    The subset algebra of {1, 2, 3} over Rational Field
+                """
+                for category in self.categories():
+                    if isinstance(category, Category_realization_of_parent):
+                        return category.base()
+
+            def _realization_name(self):
+                """
+                Returns the name of this realization
+
+                In this default implementation, this is guessed from
+                the name of its class.
+
+                EXAMPLES::
+
+                    sage: A = Sets().WithRealizations().example(); A
+                    The subset algebra of {1, 2, 3} over Rational Field
+                    sage: In = A.In(); In
+                    The subset algebra of {1, 2, 3} over Rational Field on the in basis
+                    sage: In._realization_name()
+                    'in'
+
+                FIXME: Do we want ``In`` instead?
+                """
+                # The __base__ gets rid of the with_category
+                return self.__class__.__base__.__name__.lower()
+
+            def _repr_(self):
+                """
+                EXAMPLES::
+
+                    sage: A = Sets().WithRealizations().example(); A
+                    The subset algebra of {1, 2, 3} over Rational Field
+                    sage: In = A.In(); In
+                    The subset algebra of {1, 2, 3} over Rational Field on the in basis
+
+                In the example above, :meth:`repr` was overriden by
+                the category ``A.Realizations()``. We now add a new
+                (fake) realization which is not in
+                ``A.Realizations()`` to actually exercise this
+                method::
+
+                    sage: from sage.categories.realizations import Realizations
+                    sage: class Blah(Parent):
+                    ...       pass
+                    sage: P = Blah(category = Sets.WithRealizations.ParentMethods.Realizations(A))
+                    sage: P     # indirect doctest
+                    The subset algebra of {1, 2, 3} over Rational Field in the realization blah
+                """
+                return "%s in the realization %s"%(self.realization_of(), self._realization_name())

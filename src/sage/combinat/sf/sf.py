@@ -40,7 +40,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     algebra, with one generator in each degree::
 
         sage: Sym.category()
-        Category of abstract graded hopf algebras with basis over Rational Field
+        Category of graded hopf algebras with basis over Rational Field with realizations
 
     We use the Sage standard renaming idiom to get shorter outputs::
 
@@ -236,7 +236,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         """
         assert(R in Rings())
         self._base = R # Won't be needed when CategoryObject won't override anymore base_ring
-        Parent.__init__(self, category = GradedHopfAlgebrasWithBasis(R).abstract_category())
+        Parent.__init__(self, category = GradedHopfAlgebrasWithBasis(R).WithRealizations())
 
     def _repr_(self): # could be taken care of by the category
         """

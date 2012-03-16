@@ -95,7 +95,7 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.abstract_method import abstract_methods_of_class
+from sage.misc.abstract_method import abstract_method, abstract_methods_of_class
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method, cached_function
 #from sage.misc.misc import attrcall
@@ -718,6 +718,19 @@ class Category(UniqueRepresentation, SageObject):
          """
          return category_graph([self])
 
+    @abstract_method
+    def super_categories(self):
+        """
+        Returns the immediate super categories of ``self``
+
+        EXAMPLES::
+
+            sage: Groups().super_categories()
+            [Category of monoids]
+            sage: Objects().super_categories()
+            []
+        """
+
     @cached_method
     def _all_super_categories_raw(self):
         """
@@ -763,19 +776,36 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: C = GradedHopfAlgebrasWithBasis(QQ).abstract_category(); C
-            Category of abstract graded hopf algebras with basis over Rational Field
+            sage: C = Rings(); C
+            Category of rings
             sage: C.all_super_categories()
-            [Category of abstract graded hopf algebras with basis over Rational Field,
-             Category of graded hopf algebras over Rational Field,
-             Category of graded bialgebras over Rational Field,
-             Category of graded algebras over Rational Field,
-             Category of graded coalgebras over Rational Field,
-             Category of graded modules over Rational Field,
-             Category of hopf algebras over Rational Field,
-             Category of bialgebras over Rational Field,
-             Category of algebras over Rational Field,
-             ...]
+            [Category of rings,
+             Category of rngs,
+             Category of commutative additive groups,
+             Category of semirings,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of additive magmas,
+             Category of monoids,
+             Category of semigroups,
+             Category of magmas,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of objects]
+
+            sage: C.all_super_categories(proper = True)
+            [Category of rngs,
+             Category of commutative additive groups,
+             Category of semirings,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of additive magmas,
+             Category of monoids,
+             Category of semigroups,
+             Category of magmas,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of objects]
         """
         done = set()
         linear_extension = []
@@ -1207,65 +1237,6 @@ class Category(UniqueRepresentation, SageObject):
         except AttributeError:
             return Category.join((category.hom_category() for category in self.super_categories()))
 
-    def abstract_category(self):
-        r"""
-        An abstract parent is a parent which models an abstract
-        algebraic structure which has several concrete representations.
-
-        This returns a mostly technical category which provides
-        support tools for handling the different representation, and
-        in particular the coercions between them.
-
-        It can be manually specified by defining a class
-        AbstractCategory as a member of this category.
-
-        Typically, ``FiniteDimensionalModulesWithBasis(QQ).abstract_category()``
-        will be in charge, whenever a coercion `\phi: A\mapsto B` is
-        registered, to register `\phi^{-1}` as coercion `B \mapsto A`
-        if there is none defined yet.
-
-        This is the analog of the `*WithSeveralBases` categories in MuPAD-Combinat.
-
-        TODO: find a better name!
-
-        The hierarchy of all abstract categories is built in parallel
-        to that of their base categories, optimizing away those
-        categories which do not have an AbstractCategory.
-
-        Design question: currently ``self.abstract_category()`` is a
-        subcategory of self by default. Is this desirable? For example,
-        ``Algebras(QQ).abstract_category()`` should definitely be a
-        subcategory of ``Algebras(QQ)``. On the other hand,
-        ``AlgebrasWithBasis(QQ).abstract_category()`` should be a
-        subcategory of ``Algebras(QQ)``, but not of
-        ``AlgebrasWithBasis(QQ)``. This is because
-        ``AlgebrasWithBasis(QQ)`` is specifying something about the
-        concrete representation.
-
-        EXAMPLES::
-
-            sage: Semigroups().abstract_category()
-            Category of semigroups
-            sage: C = GradedHopfAlgebrasWithBasis(QQ).abstract_category(); C
-            Category of abstract graded hopf algebras with basis over Rational Field
-            sage: C.all_super_categories()
-            [Category of abstract graded hopf algebras with basis over Rational Field,
-             Category of graded hopf algebras over Rational Field,
-             Category of graded bialgebras over Rational Field,
-             Category of graded algebras over Rational Field,
-             Category of graded coalgebras over Rational Field,
-             Category of graded modules over Rational Field,
-             Category of hopf algebras over Rational Field,
-             Category of bialgebras over Rational Field,
-             Category of algebras over Rational Field,
-             ...]
-
-        """
-        if hasattr(self, "AbstractCategory"):
-            return self.AbstractCategory(self)
-        else:
-            return Category.join(([self]+[category.abstract_category() for category in self.super_categories()]))
-
     def example(self, *args, **keywords):
         """
         Returns an object in this category. Most of the time, this is a parent.
@@ -1370,7 +1341,7 @@ def category_graph(categories = None):
     import sage.categories.all
     if categories is None:
         import all
-        abstract_classes_for_categories = [Category, HomCategory, AbstractCategory]
+        abstract_classes_for_categories = [Category, HomCategory]
         categories = [ cat.an_instance() for cat in sage.categories.all.__dict__.values() if isinstance(cat, type) and issubclass(cat, Category) and cat not in abstract_classes_for_categories ]
     cats = set()
     for category in categories:
@@ -1469,83 +1440,6 @@ class HomCategory(Category):
             []
         """
         return []
-
-
-#############################################################
-# Categories of abstract parents
-#############################################################
-
-class AbstractCategory(Category):
-    """
-    An abstract base class for all categories of abstract parents
-
-    See Category.abstract_category.
-
-    Caveat: specifications subject to change shortly.
-    """
-    def __init__(self, category, name=None):
-        """
-        Initializes this AbstractCategory
-
-        INPUT:
-
-        - ``category`` -- the category of which this category forms the abstract category.
-        - ``name`` -- An optional name for this category.
-
-        TESTS::
-
-            sage: C = sage.categories.category.AbstractCategory(Sets())
-            sage: C
-            Category of abstract sets
-            sage: TestSuite(C).run()
-        """
-        Category.__init__(self, name)
-        self.base_category = category
-
-    def _repr_(self):
-        """
-        String representation.
-
-        EXAMPLES::
-
-            sage: C = GradedHopfAlgebrasWithBasis(QQ).abstract_category(); C #indirect doctest
-            Category of abstract graded hopf algebras with basis over Rational Field
-        """
-        s = repr(self.base_category)
-        return s[:11]+" abstract"+s[11:]
-
-#    def construction(self):
-#        return (attrcall("abstract_category"), self.base_category)
-
-    @cached_method
-    def super_categories(self):
-        """
-        Returns the immediate super categories, as per :meth:`Category.super_categories`.
-
-        EXAMPLES::
-
-            sage: C = GradedHopfAlgebrasWithBasis(QQ).abstract_category()
-            sage: C.super_categories()
-            [Category of graded hopf algebras over Rational Field]
-        """
-        return Category.join(self.extra_super_categories() +
-                             [category.abstract_category()
-                              for category in self.base_category.super_categories()],
-                             as_list=True)
-    @cached_method
-    def extra_super_categories(self):
-        """
-        The super categories of self that are not derived from the
-        inheritance diagram of the base category, as a list.
-
-        EXAMPLES::
-
-            sage: C = GradedHopfAlgebrasWithBasis(QQ).abstract_category()
-            sage: C.extra_super_categories()
-            [Category of graded hopf algebras with basis over Rational Field]
-        """
-        return [self.base_category]
-
 
 
 #############################################################

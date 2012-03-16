@@ -10,7 +10,8 @@ Graded Hopf algebras with basis
 #******************************************************************************
 
 from category_types import Category_over_base_ring
-from sage.categories.all import AbstractCategory, GradedHopfAlgebras, HopfAlgebrasWithBasis, GradedBialgebrasWithBasis
+from sage.categories.all import GradedHopfAlgebras, HopfAlgebrasWithBasis, GradedBialgebrasWithBasis
+from sage.categories.with_realizations import WithRealizationsCategory
 from sage.misc.cachefunc import cached_method
 
 class GradedHopfAlgebrasWithBasis(Category_over_base_ring):
@@ -46,19 +47,20 @@ class GradedHopfAlgebrasWithBasis(Category_over_base_ring):
     class ElementMethods:
         pass
 
-    class AbstractCategory(AbstractCategory):
+    class WithRealizations(WithRealizationsCategory):
+
         @cached_method
         def super_categories(self):
             """
             EXAMPLES::
 
-                sage: GradedHopfAlgebrasWithBasis(QQ).abstract_category().super_categories()
+                sage: GradedHopfAlgebrasWithBasis(QQ).WithRealizations().super_categories()
                 [Category of graded hopf algebras over Rational Field]
 
             TESTS::
 
-                sage: TestSuite(GradedHopfAlgebrasWithBasis(QQ).abstract_category()).run()
+                sage: TestSuite(GradedHopfAlgebrasWithBasis(QQ).WithRealizations()).run()
             """
             from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
-            R = self.base_category.base_ring()
+            R = self.base_category().base_ring()
             return [GradedHopfAlgebras(R)]

@@ -514,9 +514,13 @@ cdef class Function(SageObject):
             sage: arcsin._sympy_init_()
             'asin'
             sage: from sage.symbolic.function import SymbolicFunction
-            sage: f = SymbolicFunction('f', conversions=dict(sympy='ff'))
-            sage: f._sympy_init_()
-            'ff'
+            sage: g = SymbolicFunction('g', conversions=dict(sympy='gg'))
+            sage: g._sympy_init_()
+            'gg'
+            sage: g(x)._sympy_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: SymPy function 'gg' doesn't exist
         """
         return self._conversions.get('sympy', self._name)
 

@@ -61,7 +61,7 @@ Degree sequences are completely characterized by a result from Erdos and Gallai:
 degree sequence if and only if* `\forall i`
 
 .. MATH::
-    \sum_{j\leq i}d_j \leq j(j-1) + \sum_{j>i}min(d_j,i)
+    \sum_{j\leq i}d_j \leq j(j-1) + \sum_{j>i}\min(d_j,i)
 
 Alternatively, a degree sequence can be defined recursively :
 
@@ -274,12 +274,21 @@ class DegreeSequences:
 
     def __init__(self, n):
         r"""
-        Constructor
+        Degree Sequences
 
-        TEST::
+        An instance of this class represents the degree sequences of graphs on a
+        given number `n` of vertices. It can be used to list and count them, as
+        well as to test whether a sequence is a degree sequence. For more
+        information, please refer to the documentation of the
+        :mod:`DegreeSequence<sage.combinat.degree_sequences>` module.
 
-            sage: DegreeSequences(6)
-            Degree sequences on 6 elements
+        EXAMPLE::
+
+            sage: DegreeSequences(8)
+            Degree sequences on 8 elements
+            sage: [3,3,2,2,2,2,2,2] in DegreeSequences(8)
+            True
+
         """
         self._n = n
 

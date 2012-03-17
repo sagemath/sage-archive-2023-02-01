@@ -46,10 +46,13 @@ http://code.google.com/p/l-calc/
  * We (and apparently also upstream) currently don't build Lcalc's tests
    (see Makefile), hence there's no spkg-check.
    This might change in newer upstream versions.
- * TODO / FIXME:
-   The (upstream) Makefile uses $(CC) to compile C++ (also using $(CCFLAGS)),
+ * The original Makefile uses $(CC) to compile C++ (also using $(CCFLAGS)),
    which it defines to 'g++', and hardcodes 'g++' when linking the shared
    library. (It should use $(CXX) instead, which might *default* to 'g++'.)
+   We now (lcalc-1.23.p10) patch the Makefile also to use $(CXX) for compiling
+   and linking C++; $(CXX) now *defaults* to 'g++', and $(CC) to 'gcc', but
+   both can be overridden by simply setting their respective environment
+   variables.  (Same for $(INSTALL_DIR) btw.)
 
 == Patches ==
 
@@ -61,7 +64,13 @@ http://code.google.com/p/l-calc/
    - put CXXFLAGS into Lcalc's "CCFLAGS" used for compiling C++,
    - remove some stuff involving LDFLAGS1 and LDFLAGS2, setting just LDFLAGS,
    - use $(MAKE) instead of 'make' in the crude build receipts,
-   - use CXXFLAG64 when linking the shared library.
+   - use CXXFLAG64 when linking the shared library,
+   - now use $(CXX) for compiling and linking C++, which *defaults* to 'g++',
+     but can be overridden by setting the environment variable of the same
+     name.  ($(CC) now *defaults* to 'gcc', although currently not really
+     used as far as I can see.)
+   - $(INSTALL_DIR) can now be overridden by simply setting the environment
+     variable of the same name.
  * Lcommon.h.patch:
    Uncomment the definition of lcalc_to_double(const long double& x).
    (Necessary for GCC >= 4.6.0, cf. #10892.)
@@ -82,6 +91,14 @@ http://code.google.com/p/l-calc/
    This should get reported upstream.
 
 == Changelog ==
+
+=== lcalc-1.23.p10 (Leif Leonhardy, March 17th 2012) ===
+ * #12681: Fix hard-coded 'g++'.
+   The (patched) Makefile now uses $(CXX) (which *defaults* to 'g++')
+   for compiling and linking C++, $(CC) (which *defaults* to 'gcc') for
+   compiling C, although the latter is [currently] hardly used.
+   See also "Special Update/Build Instructions" above. (We could now also
+   set `INSTALL_DIR` and use 'make install'...)
 
 === lcalc-1.23.p9 (Jeroen Demeyer, Leif Leonhardy, 6 October 2011) ===
  * Trac #11321: Add a patch for PARI-2.4.4 (use allocatemem() instead of

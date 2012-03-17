@@ -1,15 +1,32 @@
---- src/src/Makefile	2010-01-31 16:16:45.000000000 +0100
-+++ src/src/Makefile	2010-09-19 18:24:23.059332566 +0200
+--- src/src/Makefile	2009-07-14 20:23:17.000000000 +0200
++++ src/src/Makefile	2012-03-17 08:16:53.346311160 +0100
 @@ -13,7 +13,7 @@
  # elliptic curve routines. Doing so disables the -e option.
  # g++ with -DINCLUDE_PARI sends a #define INCLUDE_PARI to the preprocessor.
-
+ 
 -#PARI_DEFINE = -DINCLUDE_PARI
 +PARI_DEFINE = -DINCLUDE_PARI
  #PREPROCESSOR_DEFINE = -DUSE_LONG_DOUBLE
-
+ 
  #OPENMP_FLAG = -fopenmp
-@@ -58,9 +58,7 @@
+@@ -29,7 +29,15 @@
+ 
+ OS_NAME := $(shell uname)
+ 
+-CC = g++
++#CC = g++
++# Note: I've also changed various rules to use $CXX instead of $CC,
++# since we mostly compile C++, not C, and $CC is by convention
++# used for the *C* compiler.
++# I've kept the [name] CCFLAGS though, which we add $CXXFLAGS to.
++# -leif (03/2012)
++CC ?= gcc
++CXX ?= g++
++
+ #cc = /home/mrubinst/local/bin/gcc
+ #CC = /home/mrubinst/local/bin/g++
+ #LD = /home/mrubinst/local/bin/g++
+@@ -58,9 +66,7 @@
     #MACHINE_SPECIFIC_FLAGS = -mpowerpc -mpowerpc64 -m64
  endif
  
@@ -20,7 +37,7 @@
  
  #warning- O2 doesn't help with -DUSE_LONG_DOUBLE on mac, and actually seems to hurt, making runtime longer
  #by a factor of 1.5
-@@ -68,12 +66,12 @@
+@@ -68,12 +74,12 @@
  
  ifeq ($(PARI_DEFINE),-DINCLUDE_PARI)
      #location of pari.h.
@@ -35,7 +52,7 @@
  else
      #supplied as a dummy so as to avoid more ifeq's below
      LOCATION_PARI_H = .
-@@ -88,26 +86,12 @@
+@@ -88,26 +94,12 @@
  #For Mac os x we omit shared library options
  
  ifeq ($(OS_NAME),Darwin)
@@ -63,7 +80,16 @@
  
  
  
-@@ -140,12 +124,12 @@
+@@ -129,7 +121,7 @@
+ #become clear which libraries the computer can find.
+ 
+ 
+-INSTALL_DIR= /usr/local
++INSTALL_DIR ?= /usr/local
+ 
+ #object files for the libLfunction library
+ OBJ_L = Lglobals.o Lgamma.o Lriemannsiegel.o Lriemannsiegel_blfi.o Ldokchitser.o
+@@ -140,34 +132,37 @@
  OBJECTS = $(OBJ3)
  
  all:
@@ -82,12 +108,66 @@
  
  print_vars:
  	@echo OS_NAME = $(OS_NAME)
-@@ -262,7 +246,7 @@
+ 
+ lcalc: $(OBJECTS)
+-	$(CC) $(CCFLAGS) $(INCLUDEFILES) $(OBJECTS) $(LDFLAGS) -o lcalc $(GMP_FLAGS)
++	$(CXX) $(CCFLAGS) $(INCLUDEFILES) $(OBJECTS) $(LDFLAGS) -o lcalc $(GMP_FLAGS)
+ 
+ examples:
+-	$(CC) $(CCFLAGS) $(INCLUDEFILES) example_programs/example.cc libLfunction.so -o example_programs/example $(GMP_FLAGS)
++	$(CXX) $(CCFLAGS) $(INCLUDEFILES) example_programs/example.cc libLfunction.so -o example_programs/example $(GMP_FLAGS)
+ 
+ 
+ proc:
+-	$(CC) $(CCFLAGS) $(INCLUDEFILES) example_programs/proc.cc libLfunction.so -o example_programs/proc $(GMP_FLAGS)
++	$(CXX) $(CCFLAGS) $(INCLUDEFILES) example_programs/proc.cc libLfunction.so -o example_programs/proc $(GMP_FLAGS)
+ 
+ test:
+-	$(CC) $(CCFLAGS) $(INCLUDEFILES) example_programs/test.cc libLfunction.so -o example_programs/test $(GMP_FLAGS)
++	$(CXX) $(CCFLAGS) $(INCLUDEFILES) example_programs/test.cc libLfunction.so -o example_programs/test $(GMP_FLAGS)
+ 
+ find_L:
+-	$(CC) $(CCFLAGS) $(INCLUDEFILES) find_L_functions/find_L_functions.cc libLfunction.so -o find_L_functions/find_L $(GMP_FLAGS)
++	$(CXX) $(CCFLAGS) $(INCLUDEFILES) find_L_functions/find_L_functions.cc libLfunction.so -o find_L_functions/find_L $(GMP_FLAGS)
++
+ 
+ .cc.o:
+-	$(CC) $(CCFLAGS) $(INCLUDEFILES) -c $<
++	$(CXX) $(CCFLAGS) $(INCLUDEFILES) -c $<
++
++# Warning: We (Sage) add $CXXFLAGS to CCFLAGS above.
+ .c.o:
+ 	$(CC) $(CCFLAGS) $(INCLUDEFILES) -c $<
+ 
+@@ -227,7 +222,7 @@
+ Lcommandline_elliptic.o: ../include/Lvalue.h ../include/Lfind_zeros.h
+ Lcommandline_elliptic.o: ../include/Lcommandline_numbertheory.h
+ Lcommandline_elliptic.o: ../include/Lcommandline_globals.h
+-	$(CC) $(CCFLAGS) $(INCLUDEFILES) -I$(LOCATION_PARI_H) $(PARI_DEFINE) -c Lcommandline_elliptic.cc
++	$(CXX) $(CCFLAGS) $(INCLUDEFILES) -I$(LOCATION_PARI_H) $(PARI_DEFINE) -c Lcommandline_elliptic.cc
+ 
+ Lcommandline_twist.o: ../include/Lcommandline_twist.h ../include/L.h
+ Lcommandline_twist.o: ../include/Lglobals.h ../include/Lcommon.h ../include/Lcomplex.h ../include/Lnumeric.h ../include/Lint_complex.h
+@@ -239,7 +234,7 @@
+ Lcommandline_twist.o: ../include/Lcommandline_numbertheory.h
+ Lcommandline_twist.o: ../include/Lcommandline_globals.h
+ Lcommandline_twist.o: ../include/Lcommandline_elliptic.h
+-	$(CC) $(CCFLAGS) $(INCLUDEFILES) -I$(LOCATION_PARI_H) $(PARI_DEFINE) -c Lcommandline_twist.cc
++	$(CXX) $(CCFLAGS) $(INCLUDEFILES) -I$(LOCATION_PARI_H) $(PARI_DEFINE) -c Lcommandline_twist.cc
+ 
+ cmdline.o: ../include/cmdline.h ../include/getopt.h
+ #$(CC) $(CCFLAGS) $(INCLUDEFILES) -DHAVE_LONG_LONG -c cmdline.c
+@@ -258,11 +253,11 @@
+ Lcommandline.o: ../include/Lcommandline_elliptic.h
+ Lcommandline.o: ../include/Lcommandline_twist.h
+ Lcommandline.o: ../include/Lcommandline_values_zeros.h
+-	$(CC) $(CCFLAGS) $(INCLUDEFILES) -I$(LOCATION_PARI_H) $(PARI_DEFINE) -c Lcommandline.cc
++	$(CXX) $(CCFLAGS) $(INCLUDEFILES) -I$(LOCATION_PARI_H) $(PARI_DEFINE) -c Lcommandline.cc
  
  
  libLfunction.so: $(OBJ_L)
 -	g++ -$(DYN_OPTION)  -o libLfunction.so $(OBJ_L)
-+	g++ -$(DYN_OPTION) $(CXXFLAG64) -o libLfunction.so $(OBJ_L)
++	$(CXX) -$(DYN_OPTION) $(CXXFLAG64) -o libLfunction.so $(OBJ_L)
  
  clean:
  	rm -f *.o lcalc libLfunction.so example_programs/example

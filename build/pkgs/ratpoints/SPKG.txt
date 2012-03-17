@@ -2,9 +2,10 @@
 
 == Description ==
 
-Michael Stoll's program which searches for rational points on hyperelliptic curves.
+Michael Stoll's program which searches for rational points on hyperelliptic
+curves.
 
-== Maintainers ==
+== SPKG Maintainers ==
 
  * Robert Miller
 
@@ -16,15 +17,28 @@ Michael Stoll's program which searches for rational points on hyperelliptic curv
 
 == Dependencies ==
 
- * MPIR
+ * GMP/MPIR
+ * (GNU) patch
 
-== Distribution ==
+== Special Update/Build Instructions ==
 
 === Note on SSE2 instructions ===
 
- * On several architectures, the SSE2 instructions used by ratpoints cause compiler errors. In the case that ratpoints fails to build with SSE2 instructions enabled, the build is repeated with SSE2 disabled.
+ * On several architectures, the SSE2 instructions used by ratpoints cause
+   compiler errors.  In the case that ratpoints fails to build with SSE2
+   instructions enabled, the build is repeated with SSE2 disabled.
 
 == Changelog ==
+
+=== ratpoints-2.1.3.p3 (Leif Leonhardy, March 17th 2012) ===
+ * #12682: Patch `Makefile` such that the `CC` (and `INSTALL_DIR`) environment
+   variable(s) override(s) the setting in the Makefile.
+ * Some clean-up; use `$MAKE` instead of `make`, also install the library
+   with `make` (i.e., `$MAKE`) rather than "by hand".
+ * TODO:
+   - The Makefile has a `test` target; don't know whether we should
+     run some tests, and whether it's worth an `spkg-check` script (for
+     which we'd presumably have to duplicate the whole `CCFLAGS*` setup).
 
 === ratpoints-2.1.3.p2 (Jeroen Demeyer, 13 February 2012) ===
  * #12368: Add compiler flag -fnested-functions if and only if it is

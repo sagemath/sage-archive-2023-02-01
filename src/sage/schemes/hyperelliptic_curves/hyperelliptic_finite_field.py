@@ -202,7 +202,41 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         K = self.base_ring()
         f, h = self.hyperelliptic_polynomials()
         one = K(1)
-        points = [self.point([K(0), one, K(0)], check=True)]
+
+        # start with the points at infinity
+        P = self.defining_polynomial()
+        if not P(K(0), K(1), K(0)):
+            # (0:1:0) is a point on the curve
+            points = [self.point([K(0), K(1), K(0)], check=True)]
+        else:
+            points=[]
+        if P.degree() > 2:
+            # P(1, y, 0) = r*y + s
+            s = P(K(1), K(0), K(0))
+            r = P(K(1), K(1), K(0)) - s
+            if r: # r not zero
+                points.append(self.point([K(1), -s/r, K(0)], check=True))
+            # the case r = 0 need not be considered
+        elif K.characteristic() == 2: # deg(P) = 2 and char(K) = 2
+            # quadratic equation doesn't work in characteristic 2 so use brute force
+            points += [self.point([K(1), y, K(0)], check=True) for y in K if not P(K(1), y, K(0))]
+        else: # deg(P) = 2 and char(K) not 2
+            # P(1, y, 0) = y^2 + r*y + s
+            if f.degree() < 2:
+                s = 0
+            else:
+                s = -f.coeffs()[-1]
+            if h.degree() < 1:
+                r = 0
+            else:
+                r = h.coeffs()[-1]
+            d = r**2/4 - s
+            if not d: # d = 0
+                points.append(self.point([K(1), -r/2, K(0)], check=True))
+            elif d.is_square():
+                sqrtd = d.sqrt()
+                points.append(self.point([K(1), -r/2 + sqrtd, K(0)], check=True))
+                points.append(self.point([K(1), -r/2 - sqrtd, K(0)], check=True))
 
         if K.characteristic() == 2:
             # quadratic equation doesn't work in characteristic 2
@@ -276,11 +310,45 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
                 square_roots[x*x] = x
         f, h = self.hyperelliptic_polynomials()
         one = K(1)
-        points = [self.point([K(0), one, K(0)], check=True)]
+
+        # start with the points at infinity
+        P = self.defining_polynomial()
+        if not P(K(0), K(1), K(0)):
+            # (0:1:0) is a point on the curve
+            points = [self.point([K(0), K(1), K(0)], check=True)]
+        else:
+            points=[]
+        if P.degree() > 2:
+            # P(1, y, 0) = r*y + s
+            s = P(K(1), K(0), K(0))
+            r = P(K(1), K(1), K(0)) - s
+            if r: # r not zero
+                points.append(self.point([K(1), -s/r, K(0)], check=True))
+            # the case r = 0 need not be considered
+        elif K.characteristic() == 2: # deg(P) = 2 and char(K) = 2
+            # quadratic equation doesn't work in characteristic 2 so use brute force
+            points += [self.point([K(1), y, K(0)], check=True) for y in K if not P(K(1), y, K(0))]
+        else: # deg(P) = 2 and char(K) not 2
+            # P(1, y, 0) = y^2 + r*y + s
+            if f.degree() < 2:
+                s = 0
+            else:
+                s = -f.coeffs()[-1]
+            if h.degree() < 1:
+                r = 0
+            else:
+                r = h.coeffs()[-1]
+            d = r**2/4 - s
+            sqrtd = square_roots[d]
+            if not d: # d = 0
+                points.append(self.point([K(1), -r/2, K(0)], check=True))
+            elif sqrtd is not None:
+                points.append(self.point([K(1), -r/2 + sqrtd, K(0)], check=True))
+                points.append(self.point([K(1), -r/2 - sqrtd, K(0)], check=True))
 
         if K.characteristic() == 2 or brute_force:
             # quadratic equation doesn't work in characteristic 2
-            # but there are only 4 affinte points, so just test them
+            # but there are only 4 affine points, so just test them
             f = self.defining_polynomial()
             points += [self.point([x, y, one], check=True) for x in K for y in K if not f(x, y, one)]
         elif h.is_zero():
@@ -325,6 +393,34 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: C = HyperellipticCurve(x^5 + x - 1, x^2 + 2)
             sage: len(C.points())
             122
+
+        Conics are allowed (the issue reported at #11800 has been resolved)::
+
+            sage: R.<x> = GF(7)[]
+            sage: H = HyperellipticCurve(3*x^2 + 5*x + 1)
+            sage: H.points()
+            [(0 : 6 : 1), (0 : 1 : 1), (1 : 4 : 1), (1 : 3 : 1), (2 : 4 : 1), (2 : 3 : 1), (3 : 6 : 1), (3 : 1 : 1)]
+
+        The method currently lists points on the plane projective model, that is the closure
+        in $\mathbb{P}^2$ of the curve defined by $y^2+hy=f$. This means that one point
+        $(0:1:0)$ at infinity is returned if the degree of the curve is at least 4 and
+        $\deg(f)>\deg(h)+1$. This point is a singular point of the plane model. Later
+        implementations may consider a smooth model instead since that would be a more
+        relevant object. Then, for a curve whose only singularity is at $(0:1:0)$, the point
+        at infinity would be replaced by a number of rational points of the smooth model.
+        We illustrate this with an example of a genus 2 hyperelliptic curve::
+
+            sage: R.<x>=GF(11)[]
+            sage: H = HyperellipticCurve(x*(x+1)*(x+2)*(x+3)*(x+4)*(x+5))
+            sage: H.points()
+            [(0 : 1 : 0), (0 : 0 : 1), (1 : 7 : 1), (1 : 4 : 1), (5 : 7 : 1), (5 : 4 : 1), (6 : 0 : 1), (7 : 0 : 1), (8 : 0 : 1), (9 : 0 : 1), (10 : 0 : 1)]
+
+        The plane model of the genus 2 hyperelliptic curve in the above example is the curve
+        in $\mathbb{P}^2$ defined by $y^2z^4=g(x,z)$ where $g(x,z)=x(x+z)(x+2z)(x+3z)(x+4z)(x+5z).$
+        This model has one point at infinity $(0:1:0)$ which is also the only singular point of the
+        plane model. In contrast, the hyperelliptic curve is smooth and imbeds via the equation
+        $y^2=g(x,z)$ into weighted projected space $\mathbb{P}(1,3,1)$. The latter model has two
+        points at infinity: $(1:1:0)$ and $(1:-1:0)$.
         """
         from sage.rings.finite_rings.constructor import zech_log_bound
         try:

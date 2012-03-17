@@ -106,7 +106,9 @@ apply_patches()
 {
     pushd $SRC
 
-    patches="assert.h.diff sing_win.cc.diff Minor.h.patch os_x_ppc.patch Singular.configure.patch make_parallel.patch Singular.Makefile.in.shared.patch"
+    patches="assert.h.diff sing_win.cc.diff Minor.h.patch os_x_ppc.patch \
+	Singular.configure.patch make_parallel.patch Singular.Makefile.in.shared.patch \
+	factory.GNUmakefile.in.patch"
 
     if [ "$UNAME" = "CYGWIN" ]; then
         patches="$patches IntegerProgramming-Makefile.in.diff"

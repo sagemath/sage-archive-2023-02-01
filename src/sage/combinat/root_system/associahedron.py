@@ -19,11 +19,11 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.geometry.polyhedra import Polyhedron
+from sage.geometry.polyhedron.backend_ppl import Polyhedron_QQ_ppl
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.modules.free_module_element import vector
 
-class Associahedron(Polyhedron):
+class Associahedron(Polyhedron_QQ_ppl):
     r"""
     The generalized associahedron is a polytopal complex with vertices in one-to-one correspondence
     with clusters in the cluster complex, and with edges between two vertices if and only if the associated two
@@ -43,7 +43,7 @@ class Associahedron(Polyhedron):
         sage: sorted(Asso.Hrepresentation(), key=repr)
         [An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0, An inequality (1, 0) x + 1 >= 0, An inequality (1, 1) x + 1 >= 0]
         sage: Asso.Vrepresentation()
-        [A vertex at (-1, 1), A vertex at (1, 1), A vertex at (1, -1), A vertex at (0, -1), A vertex at (-1, 0)]
+        (A vertex at (1, -1), A vertex at (1, 1), A vertex at (-1, 1), A vertex at (-1, 0), A vertex at (0, -1))
 
         sage: Associahedron(['B',2])
         Generalized associahedron of type ['B', 2] with 6 vertices
@@ -94,7 +94,7 @@ class Associahedron(Polyhedron):
             c = rhocheck.coefficient(orbit[0].leading_support())
             for beta in orbit:
                 inequalities.append( [c] + [ beta.coefficient(i) for i in I ] )
-        Polyhedron.__init__(self,ieqs=inequalities)
+        Polyhedron_QQ_ppl.__init__(self, len(I), None, [inequalities,[]])
         # check that there are non non trivial facets
         assert self.n_facets() == len(inequalities)
 
@@ -127,12 +127,11 @@ class Associahedron(Polyhedron):
         EXAMPLES::
 
             sage: Asso = Associahedron(['A',2])
-
             sage: Asso.vertices()
-            [[-1, 1], [1, 1], [1, -1], [0, -1], [-1, 0]]
+            [[1, -1], [1, 1], [-1, 1], [-1, 0], [0, -1]]
 
             sage: Asso.vertices_in_root_space()
-            [-alpha[1] + alpha[2], alpha[1] + alpha[2], alpha[1] - alpha[2], -alpha[2], -alpha[1]]
+            (alpha[1] - alpha[2], alpha[1] + alpha[2], -alpha[1] + alpha[2], -alpha[1], -alpha[2])
         """
         root_space = self._cartan_type.root_system().root_space()
-        return [ root_space.from_vector(vector(V)) for V in self.vertex_generator() ]
+        return tuple( root_space.from_vector(vector(V)) for V in self.vertex_generator() )

@@ -91,9 +91,15 @@ class Polyhedron_base(SageObject):
 
     - ``ambient_dim`` -- integer. The dimension of the ambient space.
 
-    - ``Vrep`` -- a list `[vertices, rays, lines]``.
+    - ``Vrep`` -- a list `[vertices, rays, lines]`` or ``None``. The
+      V-representation of the polyhedron. If ``None``, the polyhedron
+      is determined by the H-representation.
 
-    - ``Hrep`` -- a list `[ieqs, eqns]``.
+    - ``Hrep`` -- a list `[ieqs, eqns]`` or ``None``. The
+      H-representation of the polyhedron. If ``None``, the polyhedron
+      is determined by the V-representation.
+
+    Only one of ``Vrep`` or ``Hrep`` can be different from ``None``.
 
     TESTS::
 

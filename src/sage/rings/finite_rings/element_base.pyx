@@ -476,14 +476,26 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         return self.parent().prime_subfield()(self._pari_().trace().lift())
 
     def multiplicative_order(self):
-        """
+        r"""
         Return the multiplicative order of this field element.
 
+        EXAMPLE::
+
+            sage: S.<a> = GF(5^3); S
+            Finite Field in a of size 5^3
+            sage: a.multiplicative_order()
+            124
+            sage: (a^8).multiplicative_order()
+            31
+            sage: S(0).multiplicative_order()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Multiplicative order of 0 not defined.
         """
         import sage.rings.arith
 
         if self.is_zero():
-            raise ArithmeticError, "Multiplicative order of 0 not defined."
+            raise ArithmeticError("Multiplicative order of 0 not defined.")
         n = self._parent.order() - 1
         F = self._parent.factored_unit_order()[0]
         order = 1

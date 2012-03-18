@@ -123,6 +123,8 @@ class IntegerModFactory(UniqueFactory):
 
             sage: Zmod.create_key(7)
             7
+            sage: Zmod.create_key(7, Fields())
+            (7, Category of fields)
         """
         if category is None:
             return order

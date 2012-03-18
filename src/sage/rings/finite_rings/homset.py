@@ -83,12 +83,12 @@ class FiniteFieldHomset(RingHomset_generic):
         """
         EXAMPLES::
 
-            sage: Hom(GF(4, 'a'), GF(16, 'b')) # indirect doctest
-            Set of field embeddings from Finite Field in a of size 2^2 to Finite Field in b of size 2^4
-            sage: Hom(GF(4, 'a'), GF(4, 'c'))
-            Set of field embeddings from Finite Field in a of size 2^2 to Finite Field in c of size 2^2
-            sage: Hom(GF(4, 'a'), GF(4, 'a'))
-            Automorphism group of Finite Field in a of size 2^2
+            sage: Hom(GF(4, 'a'), GF(16, 'b'))._repr_()
+            'Set of field embeddings from Finite Field in a of size 2^2 to Finite Field in b of size 2^4'
+            sage: Hom(GF(4, 'a'), GF(4, 'c'))._repr_()
+            'Set of field embeddings from Finite Field in a of size 2^2 to Finite Field in c of size 2^2'
+            sage: Hom(GF(4, 'a'), GF(4, 'a'))._repr_()
+            'Automorphism group of Finite Field in a of size 2^2'
         """
         D = self.domain()
         C = self.codomain()

@@ -916,25 +916,35 @@ cdef class Matrix_sparse(matrix.Matrix):
             [ 0  1  2  3  4| 0  1  2]
             [ 5  6  7  8  9| 3  4  5]
             [10 11 12 13 14| 6  7  8]
+
+        TESTS:
+
+        Verify that Trac #12689 is fixed::
+
+            sage: A = identity_matrix(QQ, 2, sparse=True)
+            sage: B = identity_matrix(ZZ, 2, sparse=True)
+            sage: A.augment(B)
+            [1 0 1 0]
+            [0 1 0 1]
         """
         if hasattr(right, '_vector_'):
             right = right.column()
         if not isinstance(right, matrix.Matrix):
             raise TypeError, "right must be a matrix"
 
+        if not (self._base_ring is right.base_ring()):
+            right = right.change_ring(self._base_ring)
+
         cdef Matrix_sparse other = right.sparse_matrix()
 
         if self._nrows != other._nrows:
             raise TypeError, "number of rows must be the same"
 
-        if not (self._base_ring is right.base_ring()):
-            right = right.change_ring(self._base_ring)
-
         cdef Matrix_sparse Z
         Z = self.new_matrix(ncols = self._ncols + other._ncols)
         for i, j in self.nonzero_positions(copy=False):
             Z.set_unsafe(i, j, self.get_unsafe(i,j))
-        for i, j in right.nonzero_positions(copy=False):
+        for i, j in other.nonzero_positions(copy=False):
             Z.set_unsafe(i, j + self._ncols, other.get_unsafe(i,j))
         if subdivide:
             Z._subdivide_on_augment(self, other)

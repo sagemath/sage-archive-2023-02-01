@@ -24,6 +24,9 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.6.p8 (William Stein, 18 March 2012) ===
+ * Trac #10281: Multimodular echelon form over cyclotomic fields fails
+
 === linbox-1.1.6.p7 (Jeroen Demeyer, 5 March 2012) ===
  * Trac #12629: *always* disable the commentator.  There are problems
    om some systems (e.g. OS X 10.4 with GCC 4.6.3) when parts of LinBox

@@ -436,25 +436,92 @@ def VectorSpace(K, dimension, sparse=False, inner_product_matrix=None):
 ###############################################################################
 
 def span(gens, base_ring=None, check=True, already_echelonized=False):
-    """
-    Return the `R`-span of gens (a list of vectors) where R =
-    base_ring.
+    r"""
+    Return the span of the vectors in ``gens`` using scalars from ``base_ring``.
 
-    EXAMPLES::
+    INPUTS:
+
+    - ``gens`` - a list of either vectors or lists of ring elements
+      used to generate the span
+
+    - ``base_ring`` - default: ``None`` - a principal ideal domain
+      for the ring of scalars
+
+    - ``check`` - default: ``True`` - passed to the ``span()`` method
+      of the ambient module
+
+    - ``already_echelonized`` - default: ``False`` - set to ``True``
+      if the vectors form the rows of a matrix in echelon form, in
+      order to skip the computation of an echelonized basis for the
+      span.
+
+    EXAMPLES:
+
+    The vectors in the list of generators can be given as
+    lists, provided a base ring is specified and the elements of the list
+    are in the ring (or the fraction field of the ring).  If the
+    base ring is a field, the span is a vector space.  ::
 
         sage: V = span([[1,2,5], [2,2,2]], QQ); V
         Vector space of degree 3 and dimension 2 over Rational Field
         Basis matrix:
         [ 1  0 -3]
         [ 0  1  4]
+
         sage: span([V.gen(0)], QuadraticField(-7,'a'))
         Vector space of degree 3 and dimension 1 over Number Field in a with defining polynomial x^2 + 7
         Basis matrix:
         [ 1  0 -3]
+
         sage: span([[1,2,3], [2,2,2], [1,2,5]], GF(2))
         Vector space of degree 3 and dimension 1 over Finite Field of size 2
         Basis matrix:
         [1 0 1]
+
+    If the base ring is not a field, then a module is created.
+    The entries of the vectors can lie outside the ring, if they
+    are in the fraction field of the ring.  ::
+
+        sage: span([[1,2,5], [2,2,2]], ZZ)
+        Free module of degree 3 and rank 2 over Integer Ring
+        Echelon basis matrix:
+        [ 1  0 -3]
+        [ 0  2  8]
+
+        sage: span([[1,1,1], [1,1/2,1]], ZZ)
+        Free module of degree 3 and rank 2 over Integer Ring
+        Echelon basis matrix:
+        [  1   0   1]
+        [  0 1/2   0]
+
+        sage: R.<x> = QQ[]
+        sage: M= span( [[x, x^2+1], [1/x, x^3]], R); M
+        Free module of degree 2 and rank 2 over
+        Univariate Polynomial Ring in x over Rational Field
+        Echelon basis matrix:
+        [          1/x           x^3]
+        [            0 x^5 - x^2 - 1]
+        sage: M.basis()[0][0].parent()
+        Fraction Field of Univariate Polynomial Ring in x over Rational Field
+
+    A base ring can be inferred if the generators are given as a
+    list of vectors. ::
+
+        sage: span([vector(QQ, [1,2,3]), vector(QQ, [4,5,6])])
+        Vector space of degree 3 and dimension 2 over Rational Field
+        Basis matrix:
+        [ 1  0 -1]
+        [ 0  1  2]
+        sage: span([vector(QQ, [1,2,3]), vector(ZZ, [4,5,6])])
+        Vector space of degree 3 and dimension 2 over Rational Field
+        Basis matrix:
+        [ 1  0 -1]
+        [ 0  1  2]
+        sage: span([vector(ZZ, [1,2,3]), vector(ZZ, [4,5,6])])
+        Free module of degree 3 and rank 2 over Integer Ring
+        Echelon basis matrix:
+        [1 2 3]
+        [0 3 6]
 
     TESTS::
 
@@ -470,13 +537,21 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
         ValueError: The elements of gens (= [[1, 2, 3], [2, 2, 2], [1, 2, x]]) must be defined over base_ring (= Integer Ring) or its field of fractions.
 
     For backwards compatibility one can also give the base ring as the
-    first argument::
+    first argument.  ::
 
         sage: span(QQ,[[1,2],[3,4]])
         Vector space of degree 2 and dimension 2 over Rational Field
         Basis matrix:
         [1 0]
         [0 1]
+
+    The base ring must be a principal ideal domain (PID).  ::
+
+        sage: span([[1,2,3]], Integers(6))
+        Traceback (most recent call last):
+        ...
+        TypeError: The base_ring (= Ring of integers modulo 6)
+        must be a principal ideal domain.
 
     Fix :trac:`5575`::
 

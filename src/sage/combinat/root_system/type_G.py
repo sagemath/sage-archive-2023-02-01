@@ -116,7 +116,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         EXAMPLES::
 
-            sage: g = DynkinDiagram(['G',2])
+            sage: g = CartanType(['G',2]).dynkin_diagram()
             sage: g
               3
             O=<=O

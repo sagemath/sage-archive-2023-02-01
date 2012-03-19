@@ -51,9 +51,9 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
         """
         Returns the extended Dynkin diagram for affine type D.
 
-        EXAMPLES:
+        EXAMPLES::
 
-           sage: d = DynkinDiagram(['D', 6, 1])
+           sage: d = CartanType(['D', 6, 1]).dynkin_diagram()
            sage: d
               0 O       O 6
                 |       |
@@ -65,7 +65,7 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
            [(0, 2, 1), (1, 2, 1), (2, 0, 1), (2, 1, 1), (2, 3, 1),
             (3, 2, 1), (3, 4, 1), (4, 3, 1), (4, 5, 1), (4, 6, 1), (5, 4, 1), (6, 4, 1)]
 
-           sage: d = DynkinDiagram(['D', 4, 1])
+           sage: d = CartanType(['D', 4, 1]).dynkin_diagram()
            sage: d
                O 4
                |
@@ -85,7 +85,7 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
             (3, 2, 1),
             (4, 2, 1)]
 
-           sage: d = DynkinDiagram(['D', 3, 1])
+           sage: d = CartanType(['D', 3, 1]).dynkin_diagram()
            sage: d
            0
            O-------+

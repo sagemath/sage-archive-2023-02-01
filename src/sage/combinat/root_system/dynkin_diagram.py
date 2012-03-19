@@ -130,7 +130,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         """
         EXAMPLES::
 
-            sage: DynkinDiagram(['G',2])
+            sage: DynkinDiagram(['G',2])     # indirect doctest
               3
             O=<=O
             1   2
@@ -161,10 +161,17 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             self.add_edge(j,i,1)
 
     def __hash__(self):
+        """
+        EXAMPLES::
+
+            sage: hash(CartanType(['A',3]).dynkin_diagram()) # indirect doctest
+            286820813001824631     # 64-bit
+            -2127980169            # 32-bit
+        """
         # Should assert for immutability!
 
         #return hash(self.cartan_type(), self.vertices(), tuple(self.edges()))
-        # FIMXE: self.edges() currently tests at some point whether
+        # FIXME: self.edges() currently tests at some point whether
         # self is a vertex of itself which causes an infinite
         # recursion loop. Current workaround: call self.edge_iterator directly
         return hash((self.cartan_type(), tuple(self.vertices()), tuple(self.edge_iterator(self.vertices()))))
@@ -304,6 +311,11 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         Implements :meth:`CartanType_abstract.is_crystalographic`
 
         A Dynkin diagram always corresponds to a crystalographic root system.
+
+        EXAMPLES::
+
+            sage: CartanType(['F',4]).dynkin_diagram().is_crystalographic()
+            True
         """
         return True
 

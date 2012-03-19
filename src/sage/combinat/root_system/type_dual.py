@@ -1,5 +1,5 @@
 """
-Dual Cartan types
+Root system data for dual Cartan types
 """
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Anne Schilling <anne at math.ucdavis.edu>
@@ -30,8 +30,9 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
     """
     def __init__(self, type):
         """
-        INPUT::
-         - ``type``: a Cartan type
+        INPUT:
+
+        - ``type`` -- a Cartan type
 
         EXAMPLES::
 
@@ -84,6 +85,7 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         (by hacking the ascii art representation of the dual cartan type)
 
         EXAMPLES::
+
             sage: print CartanType(["G", 2]).dual().ascii_art()
               3
             O=>=O
@@ -122,6 +124,21 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
 
     def __cmp__(self, other):
         """
+        EXAMPLES::
+
+            sage: B4     = CartanType(['B', 4])
+            sage: B4dual = CartanType(['B', 4]).dual()
+            sage: F4dual = CartanType(['F', 4]).dual()
+            sage: cmp(F4dual, F4dual)
+            0
+            sage: cmp(F4dual, B4dual)
+            1
+            sage: cmp(B4dual, F4dual)
+            -1
+            sage: cmp(B4dual, B4)
+            1
+
+        .. todo:: do we really need a cmp, or just eq?
         """
         if other.__class__ != self.__class__:
             return cmp(self.__class__, other.__class__)
@@ -211,7 +228,8 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
 
 
 ###########################################################################
-class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine):
+from cartan_type import CartanType_affine
+class CartanType_affine(CartanType_affine):
     def classical(self):
         """
         Returns the classical Cartan type associated with self (which should be affine)

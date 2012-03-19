@@ -310,6 +310,7 @@ automatically translated into the previous ones::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from types import ClassType as classobj
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.rings.all import ZZ
@@ -478,7 +479,9 @@ class CartanTypeFactory(SageObject):
 
     def _repr_(self):
         """
-            sage: CartanType
+        EXAMPLES::
+
+            sage: CartanType    # indirect doctest
             CartanType
         """
         return "CartanType"
@@ -552,6 +555,16 @@ class CartanTypeFactory(SageObject):
 
     @cached_method
     def _samples(self):
+        """
+        Returns a sample of all implemented Cartan types
+
+        .. note:: this is intended to be used through :meth:`samples`
+
+        EXAMPLES::
+
+            sage: CartanType._samples()
+            [['A', 1], ['A', 5], ['B', 1], ['B', 5], ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5], ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4], ['A', 1, 1], ['A', 5, 1], ['B', 1, 1], ['B', 5, 1], ['C', 1, 1], ['C', 5, 1], ['D', 3, 1], ['D', 5, 1], ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2], ['BC', 5, 2]]
+        """
         finite_crystalographic = \
             [CartanType (t)       for t in [['A', 1], ['A', 5], ['B', 1], ['B', 5],
                                             ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
@@ -605,9 +618,37 @@ class CartanType_abstract(object):
         """
         return None
 
-    def _add_abstract_superclass(self, cls):
+    def _add_abstract_superclass(self, classes):
+        """
+        Adds abstract super-classes to the class of ``self``
+
+        INPUT:
+
+        - ``classes`` -- an abstract class or tuple thereof
+
+        EXAMPLES::
+
+            sage: C = CartanType(["A",3,1])
+            sage: class MyCartanType:
+            ...       def my_method(self):
+            ...           return 'I am here!'
+            sage: C._add_abstract_superclass(MyCartanType)
+            sage: C.__class__
+            <class 'sage.combinat.root_system.type_A_affine.CartanType_with_superclass_with_superclass'>
+            sage: C.__class__.__bases__
+            (<class 'sage.combinat.root_system.type_A_affine.CartanType_with_superclass'>,
+             <class __main__.MyCartanType at ...>)
+            sage: C.my_method()
+            'I am here!'
+
+        .. todo:: Generalize to SageObject?
+        """
         from sage.structure.dynamic_class import dynamic_class
-        self.__class__ = dynamic_class(self.__class__.__name__+"_with_superclass", (self.__class__, cls))
+        assert isinstance(classes, (tuple, type, classobj))
+        if not isinstance(classes, tuple):
+            classes = (classes,)
+        bases = (self.__class__,) + classes
+        self.__class__ = dynamic_class(self.__class__.__name__+"_with_superclass", bases)
 
     @abstract_method
     def rank(self):
@@ -664,8 +705,50 @@ class CartanType_abstract(object):
     @abstract_method(optional = True)
     def coxeter_diagram(self):
         """
-        Returns the Coxeter diagram for self.
+        Returns the Coxeter diagram for ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['B',3]).coxeter_diagram()
+            Graph on 3 vertices
+            sage: CartanType(['A',3]).coxeter_diagram().edges()
+            [(1, 2, 3), (2, 3, 3)]
+            sage: CartanType(['B',3]).coxeter_diagram().edges()
+            [(1, 2, 3), (2, 3, 4)]
+            sage: CartanType(['G',2]).coxeter_diagram().edges()
+            [(1, 2, 6)]
+            sage: CartanType(['F',4]).coxeter_diagram().edges()
+            [(1, 2, 3), (2, 3, 4), (3, 4, 3)]
+
+        This is currently implemented only for crystallographic types::
+
+            sage: CartanType(['H',3]).coxeter_diagram
+            NotImplemented
         """
+
+    @cached_method
+    def coxeter_matrix(self):
+        """
+        Returns the Coxeter matrix for this type.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 4]).coxeter_matrix()
+            [1 3 2 2]
+            [3 1 3 2]
+            [2 3 1 3]
+            [2 2 3 1]
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.all import ZZ
+        index_set = self.index_set()
+        reverse = dict((index_set[i], i) for i in range(len(index_set)))
+        m = matrix(ZZ,len(index_set), lambda i,j: 1 if i==j else 2)
+        for (i,j,l) in self.coxeter_diagram().edge_iterator():
+            m[reverse[i], reverse[j]] = l
+            m[reverse[j], reverse[i]] = l
+        m.set_immutable()
+        return m
 
     def dual(self):
         """
@@ -869,6 +952,22 @@ class CartanType_abstract(object):
         return False
 
     def is_implemented(self):
+        """
+        Checks whether the Cartan datum for ``self`` is actually implemented
+
+        EXAMPLES::
+
+            sage: CartanType(["A",4,1]).is_implemented()
+            True
+            sage: CartanType(['H',3]).is_implemented()
+            False
+
+        .. todo::
+
+            Implemente Cartan datum for non crystallographic types,
+            and update the implementation of this method accordingly,
+            say by testing the coxeter diagram instead.
+        """
         try:
             self.dynkin_diagram()
             return True
@@ -921,6 +1020,44 @@ class CartanType_crystalographic(CartanType_abstract):
         from sage.combinat.root_system.cartan_matrix import cartan_matrix
         return cartan_matrix(self)
 
+    @cached_method
+    def coxeter_diagram(self):
+        """
+        Returns the Coxeter diagram for ``self``
+
+        This implementation constructs it from the Dynkin diagram
+
+        .. seealso:: :meth:`CartanType_abstract.coxeter_diagram`
+
+        EXAMPLES::
+
+            sage: CartanType(['A',3]).coxeter_diagram()
+            Graph on 3 vertices
+            sage: CartanType(['A',3]).coxeter_diagram().edges()
+            [(1, 2, 3), (2, 3, 3)]
+            sage: CartanType(['B',3]).coxeter_diagram().edges()
+            [(1, 2, 3), (2, 3, 4)]
+            sage: CartanType(['G',2]).coxeter_diagram().edges()
+            [(1, 2, 6)]
+            sage: CartanType(['F',4]).coxeter_diagram().edges()
+            [(1, 2, 3), (2, 3, 4), (3, 4, 3)]
+            sage: CartanType(['A',2,2]).coxeter_diagram().edges()
+            [(0, 1, +Infinity)]
+        """
+        from sage.rings.infinity import infinity
+        scalarproducts_to_order = { 0: 2,  1: 3,  2: 4,  3: 6, 4: infinity }
+        from sage.graphs.all import Graph
+        coxeter_diagram = Graph(multiedges=False)
+        a = self.dynkin_diagram()
+        I = self.index_set()
+        coxeter_diagram.add_vertices(I)
+        for i in I:
+            for j in a.neighbors_out(i):
+                # avoid adding the edge twice
+                if not coxeter_diagram.has_edge(i,j):
+                    coxeter_diagram.add_edge(i,j, scalarproducts_to_order[a[i,j]*a[j,i]])
+        return coxeter_diagram
+
     def is_crystalographic(self):
         """
         Implements :meth:`CartanType_abstract.is_crystalographic`
@@ -933,19 +1070,22 @@ class CartanType_crystalographic(CartanType_abstract):
         """
         return True
 
+    @cached_method
     def symmetrizer(self):
         """
+        Returns the symmetrizer of the Cartan matrix of ``self``
+
         A Cartan matrix `M` is symmetrizable if there exists a non
         trivial diagonal matrix `D` such that `DM` is a symmetric
         matrix, that is `DM = M^tD`. In that case, `D` is unique, up
         to a scalar factor for each connected component of the Dynkin
         diagram.
 
-        This method currently assumes that the Cartan type is irreducible.
+        This method computes the unique minimal such `D` with positive
+        integral coefficients. If `D` exists, it is returned as a
+        family. Otherwise ``None`` is returned.
 
-        This method computes the unique minimal such `D` with non
-        negative integral coefficients. If `D` exists, it is returned
-        as a family. Otherwise None is returned.
+        The coefficients are coerced to ``base_ring``.
 
         EXAMPLES::
 
@@ -964,6 +1104,20 @@ class CartanType_crystalographic(CartanType_abstract):
             O=<=O---O---O---O=<=O
             1   2   2   2   2   4
 
+       Here is the symmetrizer of some reducible Cartan types::
+
+            sage: T = CartanType(["D", 2])
+            sage: print T.ascii_art(T.symmetrizer().__getitem__)
+            O   O
+            1   1
+
+            sage: T = CartanType(["B",5],["BC",5, 2])
+            sage: print T.ascii_art(T.symmetrizer().__getitem__)
+            O---O---O---O=>=O
+            2   2   2   2   1
+            O=<=O---O---O---O=<=O
+            1   2   2   2   2   4
+
         Property: up to an overall scalar factor, this gives the norm
         of the simple roots in the ambient space::
 
@@ -978,7 +1132,6 @@ class CartanType_crystalographic(CartanType_abstract):
             2   2   2   2   4
 
         """
-        assert self.is_irreducible()
         from sage.matrix.constructor import matrix, diagonal_matrix
         m = self.cartan_matrix()
         n = m.nrows()
@@ -987,10 +1140,17 @@ class CartanType_crystalographic(CartanType_abstract):
             M[i, n * i + j]  = m[i,j]
             M[j, n * i + j] -= m[j,i]
         kern = M.integer_kernel()
-        assert kern.dimension() <= 1
-        if kern.dimension() == 0:
+        c = len(self.dynkin_diagram().connected_components())
+        if kern.dimension() < c:
+            # the Cartan matrix is not symmetrizable
             return None
-        D = kern.basis()[0]
+        assert kern.dimension() == c
+        # Now the basis contains one vector v per connected component
+        # C of the dynkin diagram, or equivalently diagonal block of
+        # the Cartan matrix. The support of v is exactly that
+        # connected component, and it symmetrizes the corresponding
+        # diagonal block of the Cartan matrix. We sum all those vectors.
+        D = sum(kern.basis())
         assert diagonal_matrix(D) * m == m.transpose() * diagonal_matrix(D)
         I = self.index_set()
         return Family( dict( (I[i], D[i]) for i in range(n) ) )
@@ -1140,8 +1300,9 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
     @abstract_method
     def special_node(self):
         r"""
+        Returns a special node of the Dynkin diagram
 
-        A special node is a node of the Dynkin diagram such that
+        A *special* node is a node of the Dynkin diagram such that
         pruning it yields a Dynkin diagram for the associated
         classical type (see :meth:`.classical`).
 
@@ -1237,6 +1398,11 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
             sage: RootSystem(['BC',4,2]).cartan_type().acheck()
             Finite family {0: 1, 1: 2, 2: 2, 3: 2, 4: 2}
 
+        ``acheck`` is a shortcut for row_annihilator::
+
+            sage: RootSystem(['BC',4,2]).cartan_type().row_annihilator()
+            Finite family {0: 1, 1: 2, 2: 2, 3: 2, 4: 2}
+
         FIXME:
          - The current implementation assumes that the Cartan matrix
            is indexed by `[0,1,...]`, in the same order as the index set.
@@ -1276,6 +1442,11 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
             sage: RootSystem(['F',4,1]).cartan_type().a()
             Finite family {0: 1, 1: 2, 2: 3, 3: 4, 4: 2}
             sage: RootSystem(['BC',4,2]).cartan_type().a()
+            Finite family {0: 2, 1: 2, 2: 2, 3: 2, 4: 1}
+
+        ``a`` is a shortcut for col_annihilator::
+
+            sage: RootSystem(['BC',4,2]).cartan_type().col_annihilator()
             Finite family {0: 2, 1: 2, 2: 2, 3: 2, 4: 1}
         """
         return self.row_annihilator(self.cartan_matrix().transpose())
@@ -1550,6 +1721,8 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
             sage: ct = CartanType(['A',3])
             sage: repr(ct)
             "['A', 3]"
+            sage: ct._repr_(compact=True)
+            'A3'
         """
         format = '%s%s' if compact else "['%s', %s]"
         return format%(self.letter, self.n)
@@ -1726,6 +1899,8 @@ class CartanType_standard_affine(UniqueRepresentation, SageObject, CartanType_af
             sage: ct = CartanType(['A',3, 1])
             sage: repr(ct)
             "['A', 3, 1]"
+            sage: ct._repr_(compact=True)
+            'A3~'
         """
         if compact:
             return '%s%s~'%(self.letter, self.n)

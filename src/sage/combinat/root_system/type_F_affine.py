@@ -54,7 +54,7 @@ class CartanType(CartanType_standard_untwisted_affine):
 
         EXAMPLES::
 
-            sage: f = DynkinDiagram(['F', 4, 1])
+            sage: f = CartanType(['F', 4, 1]).dynkin_diagram()
             sage: f
             O---O---O=>=O---O
             0   1   2   3   4

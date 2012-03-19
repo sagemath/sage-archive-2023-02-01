@@ -49,7 +49,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         sage: w0
         s1*s2*s3*s1*s2*s1
         sage: H.an_element()
-        3*s1*s2 + 2*s1 + 2
+        s1*s2*s3 + 3*s1*s2 + 2*s1 + 1
 
     Iwahori Hecke algebras have proved to be fundamental. See for example:
 

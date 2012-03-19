@@ -10,6 +10,7 @@ Root system data for type F
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import ambient_space
+from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ
 from sage.combinat.family import Family
 
@@ -181,8 +182,6 @@ class AmbientSpace(ambient_space.AmbientSpace):
                         3: v*(3*self.monomial(0)+self.monomial(1)+self.monomial(2)+self.monomial(3)),
                         4: self.monomial(0)})
 
-
-
 from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystalographic
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystalographic):
     def __init__(self):
@@ -223,7 +222,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         EXAMPLES::
 
-            sage: f = DynkinDiagram(['F',4])
+            sage: f = CartanType(['F',4]).dynkin_diagram()
             sage: f
             O---O=>=O---O
             1   2   3   4

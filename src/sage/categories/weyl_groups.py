@@ -9,10 +9,8 @@ Weyl Groups
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
-from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.coxeter_groups import CoxeterGroups
-import sage.combinat.sf
 from sage.rings.infinity import infinity
 from sage.rings.rational_field import QQ
 
@@ -97,7 +95,7 @@ class WeylGroups(Category_singleton):
                 sage: W.from_reduced_word([3,2,0]) in PF
                 True
             """
-            # Don't remove this line which makes sure the pieri factor
+            # Do not remove this line which makes sure the pieri factor
             # code is properly inserted inside the cartan types
             import sage.combinat.root_system.pieri_factors
             ct = self.cartan_type()
@@ -272,7 +270,6 @@ class WeylGroups(Category_singleton):
             x = R.gens()
             if self.is_one():
                 return R(1)
-            ct = W.cartan_type()
 
             return R(sum(2**(pieri_factors.stanley_symm_poly_weight(u))*x[u.length()-1] * v.stanley_symmetric_function_as_polynomial(max_length = u.length())
                            for (u,v) in self.left_pieri_factorizations(max_length)
@@ -320,5 +317,6 @@ class WeylGroups(Category_singleton):
                 .. [Pon2010] S. Pon. Types B and D affine Stanley symmetric functions, unpublished PhD Thesis, UC Davis, 2010.
 
             """
+            import sage.combinat.sf
             m = sage.combinat.sf.all.SFAMonomial(QQ)
             return m.from_polynomial_exp(self.stanley_symmetric_function_as_polynomial())

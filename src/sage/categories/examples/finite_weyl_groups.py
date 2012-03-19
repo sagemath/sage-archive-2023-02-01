@@ -151,9 +151,6 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         assert i in self.index_set()
         return self(tuple(range(i)+[i+1,i]+range(i+2,self.n)))
 
-    # temporary woraround while an_element is overriden by Parent
-    an_element = CoxeterGroups.ParentMethods.an_element_force
-
     def product(self, x, y):
         """
         Implements :meth:`Semigroups.ParentMethods.product`.

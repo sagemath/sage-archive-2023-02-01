@@ -21,7 +21,11 @@ from sage.rings.all import ZZ
 
 def coxeter_matrix_as_function(t):
     """
-    Returns the coxeter matrix associated to the Cartan type t.
+    Returns the coxeter matrix, as a function
+
+    INPUT:
+
+    - ``t`` -- a Cartan type
 
     EXAMPLES::
 
@@ -33,13 +37,11 @@ def coxeter_matrix_as_function(t):
         [2 3 1 3]
         [2 2 3 1]
     """
-    a = CartanType(t).dynkin_diagram()
-    scalarproducts_to_order = { 0: 2,  1: 3,  2: 4,  3: 6
-                                # 4 should be infinity
-                                }
-
-    return lambda i,j: 1 if i == j else scalarproducts_to_order[a[i,j]*a[j,i]]
-
+    t = CartanType(t)
+    m = t.coxeter_matrix()
+    index_set = t.index_set()
+    reverse = dict((index_set[i], i) for i in range(len(index_set)))
+    return lambda i,j: m[reverse[i], reverse[j]]
 
 def coxeter_matrix(t):
     """
@@ -92,12 +94,4 @@ def coxeter_matrix(t):
         [1 6]
         [6 1]
     """
-    ct = CartanType(t)
-    cf = coxeter_matrix_as_function(ct)
-    index_set = ct.index_set()
-    MS = MatrixSpace(ZZ, len(index_set))
-    m = MS(0)
-    for i in range(len(index_set)):
-        for j in range(len(index_set)):
-            m[i,j] = cf(index_set[i],index_set[j])
-    return m
+    return CartanType(t).coxeter_matrix()

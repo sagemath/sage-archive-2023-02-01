@@ -153,9 +153,6 @@ class DihedralGroup(UniqueRepresentation, Parent):
         from sage.misc.functional import parent
         return parent(x) is self
 
-    # temporary workaround while an_element is overriden by Parent
-    an_element = CoxeterGroups.ParentMethods.an_element_force
-
     @cached_method
     def one(self):
         r"""

@@ -45,7 +45,7 @@ from sage.misc.cachefunc import cached_method, ClearCacheOnPickle
 from sage.misc.misc import deprecated_function_alias
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.matrix.constructor import matrix, diagonal_matrix
-from sage.combinat.root_system.root_lattice_realization import RootLatticeRealization
+from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.all import WeylGroups, FiniteWeylGroups, AffineWeylGroups
 from sage.sets.family import Family
@@ -126,7 +126,8 @@ def WeylGroup(x, prefix=None):
         sage: w.action(rho) # action of G on weight lattice
         (5, -1, 3, 2)
 
-    TESTS:
+    TESTS::
+
         sage: TestSuite(WeylGroup(["A",3])).run()
         sage: TestSuite(WeylGroup(["A",3, 1])).run()
 
@@ -139,7 +140,7 @@ def WeylGroup(x, prefix=None):
         sage: w.reduced_word()
         [2, 0]
     """
-    if isinstance(x, RootLatticeRealization):
+    if x in RootLatticeRealizations:
         return WeylGroup_gens(x, prefix=prefix)
 
     ct = CartanType(x)
@@ -389,6 +390,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
     #         [0 1]]
     #    """
     #    return [self._element_constructor_(a._matrix_(QQ)) for a in self._gap_().Elements()]
+
     def list(self):
         """
         Returns a list of the elements of self.
@@ -400,6 +402,12 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
             [[1 0]
              [0 1], [0 1]
              [1 0]]
+
+            sage: G = WeylGroup(['A',3,1])
+            sage: G.list()
+            Traceback (most recent call last):
+              ...
+            NotImplementedError: infinite list
 
         This overrides the implementation of MatrixGroup_gap.
         Those seem typical timings (without the overriding):
@@ -418,8 +426,15 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
             CPU times: user 3.26 s, sys: 0.02 s, total: 3.28 s
             Wall time: 3.29 s
 
+        Note: listing the matrices in GAP is much faster than the
+        timings above suggest; the slowness apparently comes from the
+        interface with GAP, and are therefore highly subject to
+        improvement.
         """
-        return self._list_from_iterator()
+        if hasattr(self, "_list_from_iterator"):
+            return self._list_from_iterator()
+        else:
+            raise NotImplementedError, "infinite list"
 
     def character_table(self):
         """
@@ -623,7 +638,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
 
 class ClassicalWeylSubgroup(WeylGroup_gens):
     """
-    A class for Classical Weyl Subgroup of a Weyl Group
+    A class for Classical Weyl Subgroup of an affine Weyl Group
 
     EXAMPLES::
 
@@ -634,6 +649,8 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
         Category of finite weyl groups
         sage: G.cardinality()
         24
+        sage: G.index_set()
+        [1, 2, 3]
         sage: TestSuite(G).run()
 
     TESTS::
@@ -1001,7 +1018,7 @@ class WeylGroupElement(MatrixGroupElement):
             return s[i] * self
 
 # The methods first_descent, descents, reduced_word appear almost verbatim in
-# root_lattice_realization and need to be factored out!
+# root_lattice_realizations and need to be factored out!
 
     def to_permutation(self):
         """

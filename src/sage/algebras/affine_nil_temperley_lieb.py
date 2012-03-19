@@ -40,10 +40,8 @@ class AffineNilTemperleyLiebTypeA(CombinatorialFreeModule):
         True
         sage: a[0]*a[3]*a[0]
         0
-        sage: A.an_element() # todo: not implemented (see #6588)
-        3*a0 + 3*a0*a1 + 1
         sage: A.an_element()
-        a0
+        2*a0 + 3*a0*a1 + 1 + a0*a1*a2*a3
     """
 
     def __init__(self, n, R = ZZ, prefix = 'a'):

@@ -1,5 +1,5 @@
 r"""
-Ambient spaces
+Ambient lattices and ambient spaces
 """
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
@@ -8,13 +8,13 @@ Ambient spaces
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from root_lattice_realization import RootLatticeRealizationElement
-from weight_lattice_realization import WeightLatticeRealization
+from weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
 from sage.misc.cachefunc import ClearCacheOnPickle
 
-class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRealization):
+class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
     r"""
     Abstract class for ambient spaces
 
@@ -38,7 +38,8 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRea
     This will be cleaned up!
 
     TESTS::
-        sage: types = CartanType.samples(finite=True, crystalographic = True)
+
+        sage: types = CartanType.samples(finite=True, crystalographic = True)+[CartanType(["A",2],["C",5])]
         sage: for e in [ct.root_system().ambient_space() for ct in types]:
         ...       if e is not None:
         ...            TestSuite(e).run()
@@ -56,7 +57,8 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRea
         CombinatorialFreeModule.__init__(self, base_ring,
                                          range(0,self.dimension()),
                                          element_class = AmbientSpaceElement,
-                                         prefix='e')
+                                         prefix='e',
+                                         category = WeightLatticeRealizations(base_ring))
 
         # FIXME: here for backward compatibility;
         # Should we use dimension everywhere?
@@ -70,17 +72,21 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRea
     def _test_norm_of_simple_roots(self, **options):
         """
         Tests that the norm of the roots is, up to an overal constant factor,
-        the norm of the roots is given by the symmetrizer of the Cartan matrix.
+        given by the symmetrizer of the Cartan matrix.
 
-        Not yet implemented for reducible Cartan types.
+        .. seealso:: :class:`TestSuite`
+
+        EXAMPLES::
+
+            sage: e = RootSystem(['F',4]).ambient_space()
+            sage: e._test_norm_of_simple_roots()
         """
         tester = self._tester(**options)
         T = self.cartan_type()
-        if T.is_reducible():
-            return
         D = T.symmetrizer()
         alpha = self.simple_roots()
-        tester.assertEquals(len( set( alpha[i].scalar(alpha[i]) / D[i] for i in self.index_set() ) ), 1)
+        for C in T.dynkin_diagram().connected_components():
+            tester.assertEquals(len( set( alpha[i].scalar(alpha[i]) / D[i] for i in C ) ), 1)
 
     # FIXME: attribute or method?
     def dimension(self):
@@ -116,7 +122,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRea
         """
         EXAMPLES::
 
-            sage: RootSystem(['A',4]).ambient_lattice()
+            sage: RootSystem(['A',4]).ambient_lattice()    # indirect doctest
             Ambient lattice of the Root system of type ['A', 4]
             sage: RootSystem(['B',4]).ambient_space()
             Ambient space of the Root system of type ['B', 4]
@@ -214,6 +220,34 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRea
         # (i.e. scalar and associated coroot are implemented)
         return lambda v: v - root.base_ring()(2*root.inner_product(v)/root.inner_product(root))*root
 
+    @cached_method
+    def fundamental_weight(self, i):
+        """
+        Returns the fundamental weight `\Lambda_i` in ``self``
+
+        In several of the ambient spaces, it is more convenient to
+        construct all fundamental weights at once. To support this, we
+        provide this default implementation of ``fundamental_weight``
+        using the method ``fundamental_weights``. Beware that this
+        will cause a loop if neither ``fundamental_weight`` nor
+        ``fundamental_weights`` is implemented.
+
+        EXAMPLES::
+
+            sage: e =  RootSystem(['F',4]).ambient_space()
+            sage: e.fundamental_weight(3)
+            (3/2, 1/2, 1/2, 1/2)
+
+            sage: e =  RootSystem(['G',2]).ambient_space()
+            sage: e.fundamental_weight(1)
+            (1, 0, -1)
+
+            sage: e =  RootSystem(['E',6]).ambient_space()
+            sage: e.fundamental_weight(3)
+            (-1/2, 1/2, 1/2, 1/2, 1/2, -5/6, -5/6, 5/6)
+        """
+        return self.fundamental_weights()[i]
+
     def __cmp__(self, other):
         """
         EXAMPLES::
@@ -277,7 +311,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRea
                 x = x.coerce_to_sl()
         return x
 
-class AmbientSpaceElement(CombinatorialFreeModuleElement, RootLatticeRealizationElement):
+class AmbientSpaceElement(CombinatorialFreeModuleElement):
     def __hash__(self):
         """
         EXAMPLES::
@@ -295,7 +329,7 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement, RootLatticeRealization
         EXAMPLES::
 
             sage: e = RootSystem(['A',2]).ambient_space()
-            sage: e.simple_root(0)
+            sage: e.simple_root(0)    # indirect doctest
             (-1, 0, 0)
         """
         return str(self.to_vector())
@@ -353,18 +387,6 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement, RootLatticeRealization
             False
         """
         return self.parent().rho().scalar(self) > 0
-
-    def is_dominant_weight(self): # Or is_dominant_integral_weight?
-        """
-        Tests whether ``self`` is a dominant element of the weight lattice
-
-        TODO: EXAMPLES
-
-        TODO: generalize to any root lattice realization
-        """
-        alphacheck = self.parent().simple_coroots()
-        vp = [self.inner_product(alphacheck[i]) for i in self.parent().index_set()]
-        return all(v in ZZ and v >= 0 for v in vp)
 
     def coerce_to_sl(self):
         """

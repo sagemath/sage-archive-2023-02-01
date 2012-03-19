@@ -14,7 +14,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category import Category
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.categories.finite_groups import FiniteGroups
-from sage.combinat.backtrack import search_forest_iterator
 
 class FiniteCoxeterGroups(Category):
     r"""
@@ -57,33 +56,6 @@ class FiniteCoxeterGroups(Category):
         return [CoxeterGroups(), FiniteGroups()]
 
     class ParentMethods:
-        def __iter__(self):
-            r"""
-            Returns an iterator over the elements of this finite Coxeter group.
-
-            EXAMPLES::
-
-                sage: D5 = FiniteCoxeterGroups().example(5)
-                sage: sorted(list(D5)) # indirect doctest (but see :meth:`._test_enumerated_set_iter_list`)
-                [(),
-                 (1,),
-                 (1, 2),
-                 (1, 2, 1),
-                 (1, 2, 1, 2),
-                 (1, 2, 1, 2, 1),
-                 (2,),
-                 (2, 1),
-                 (2, 1, 2),
-                 (2, 1, 2, 1)]
-            """
-            def succ(u):
-                for i in u.descents(positive = True, side = "right"):
-                    u1 = u.apply_simple_reflection(i, "right")
-                    if i == u1.first_descent():
-                        yield u1
-                return
-            return search_forest_iterator((self.one(),), succ)
-
         @lazy_attribute
         def w0(self):
             r"""
@@ -143,7 +115,7 @@ class FiniteCoxeterGroups(Category):
                     w = w.apply_simple_reflection(i)
 
         @cached_method
-        def bruhat_poset(self):
+        def bruhat_poset(self, facade = False):
             """
             Returns the Bruhat poset of ``self``
 
@@ -168,30 +140,44 @@ class FiniteCoxeterGroups(Category):
                 sage: P.is_join_semilattice()
                 False
 
-            See also :class:`Poset`.
+            By default, the elements of `P` are aware that they belong
+            to `P`::
+
+                sage: P.an_element().parent()
+                Finite poset containing 24 elements
+
+            If instead one wants the elements to be plain elements of
+            the Coxeter group, one can use the ``facade`` option::
+
+                sage: P = W.bruhat_poset(facade = True)
+                sage: P.an_element().parent()
+                Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
+
+            .. see also:: :func:`Poset` for more on posets and facade posets.
 
             TESTS::
 
                 sage: [len(WeylGroup(["A", n]).bruhat_poset().cover_relations()) for n in [1,2,3]]
                 [1, 8, 58]
 
-            TODO:
+            .. todo::
 
-            - Use the symmetric group in the examples (for nicer
-              output), and print the edges for a stronger test.
-            - The constructed poset should be lazy, in order to
-              handle large / infinite Coxeter groups.
+                - Use the symmetric group in the examples (for nicer
+                  output), and print the edges for a stronger test.
+                - The constructed poset should be lazy, in order to
+                  handle large / infinite Coxeter groups.
             """
             from sage.combinat.posets.posets import Poset
             covers = tuple([u, v] for v in self for u in v.bruhat_lower_covers() )
-            return Poset((self, covers), cover_relations = True)
+            return Poset((self, covers), cover_relations = True, facade=facade)
 
         @cached_method
-        def weak_poset(self, side = "right"):
+        def weak_poset(self, side = "right", facade = False):
             """
             INPUT:
 
-            - ``side`` -- "left" or "right" (default: "right")
+            - ``side`` -- "left", "right", or "twosided" (default: "right")
+            - ``facade`` -- a boolean (default: False)
 
             Returns the left (resp. right) poset for weak order.  In
             this poset, `u` is smaller than `v` if some reduced word
@@ -203,15 +189,20 @@ class FiniteCoxeterGroups(Category):
                 sage: W = WeylGroup(["A", 2])
                 sage: P = W.weak_poset()
                 sage: P
-                Finite poset containing 6 elements
+                Finite lattice containing 6 elements
                 sage: P.show()
 
             This poset is in fact a lattice::
 
                 sage: W = WeylGroup(["B", 3])
                 sage: P = W.weak_poset(side = "left")
-                sage: P.is_join_semilattice(), P.is_meet_semilattice() # todo: implement is_lattice
-                (True, True)
+                sage: P.is_lattice()
+                True
+
+            so this method has an alias :meth:`weak_lattice`::
+
+                sage: W.weak_lattice(side = "left") is W.weak_poset(side = "left")
+                True
 
             As a bonus feature, one can create the left-right weak
             poset::
@@ -225,7 +216,25 @@ class FiniteCoxeterGroups(Category):
             This is the transitive closure of the union of left and
             right order. In this poset, `u` is smaller than `v` if
             some reduced word of `u` is a factor of some reduced word
-            of `v`.
+            of `v`. Note that this is not a lattice::
+
+                sage: P.is_lattice()
+                False
+
+            By default, the elements of `P` are aware of that they
+            belong to `P`::
+
+                sage: P.an_element().parent()
+                Finite poset containing 6 elements
+
+            If instead one wants the elements to be plain elements of
+            the Coxeter group, one can use the ``facade`` option::
+
+                sage: P = W.weak_poset(facade = True)
+                sage: P.an_element().parent()
+                Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space)
+
+            .. see also:: :func:`Poset` for more on posets and facade posets.
 
             TESTS::
 
@@ -234,20 +243,23 @@ class FiniteCoxeterGroups(Category):
                 sage: [len(WeylGroup(["A", n]).weak_poset(side = "left" ).cover_relations()) for n in [1,2,3]]
                 [1, 6, 36]
 
-            TODO:
+            .. todo::
 
-            - Use the symmetric group in the examples (for nicer
-              output), and print the edges for a stronger test.
-            - The constructed poset should be lazy, in order to
-              handle large / infinite Coxeter groups.
-
+                - Use the symmetric group in the examples (for nicer
+                  output), and print the edges for a stronger test.
+                - The constructed poset should be lazy, in order to
+                  handle large / infinite Coxeter groups.
             """
             from sage.combinat.posets.posets import Poset
+            from sage.combinat.posets.lattices import LatticePoset
             if side == "twosided":
                 covers = tuple([u, v] for u in self for v in u.upper_covers(side="left")+u.upper_covers(side="right") )
+                return Poset((self, covers), cover_relations = True, facade = facade)
             else:
                 covers = tuple([u, v] for u in self for v in u.upper_covers(side=side) )
-            return Poset((self, covers), cover_relations = True)
+                return LatticePoset((self, covers), cover_relations = True, facade = facade)
+
+        weak_lattice = weak_poset
 
     class ElementMethods:
 

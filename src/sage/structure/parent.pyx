@@ -1869,7 +1869,7 @@ cdef class Parent(category_object.CategoryObject):
             ...
             TypeError: ...
         """
-        assert not self._coercions_used, "coercions must all be registered up before use"
+        assert not (self._coercions_used and mor.domain() in self._convert_from_hash), "conversion from %s to %s already registered or discovered"%(mor.domain(), self)
         if isinstance(mor, map.Map):
             if mor.codomain() is not self:
                 raise ValueError("Map's codomain must be self")

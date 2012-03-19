@@ -72,7 +72,7 @@ class CartanType(CartanType_standard_affine):
 
         EXAMPLES::
 
-            sage: c = DynkinDiagram(['BC',3,2])
+            sage: c = CartanType(['BC',3,2]).dynkin_diagram()
             sage: c
             O=<=O---O=<=O
             0   1   2   3
@@ -80,7 +80,7 @@ class CartanType(CartanType_standard_affine):
             sage: sorted(c.edges())
             [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
 
-            sage: c = DynkinDiagram(["A", 6, 2]) # should be the same as above; did fail at some point!
+            sage: c = CartanType(["A", 6, 2]).dynkin_diagram() # should be the same as above; did fail at some point!
             sage: c
             O=<=O---O=<=O
             0   1   2   3
@@ -88,7 +88,7 @@ class CartanType(CartanType_standard_affine):
             sage: sorted(c.edges())
             [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
 
-            sage: c = DynkinDiagram(['BC',2,2])
+            sage: c = CartanType(['BC',2,2]).dynkin_diagram()
             sage: c
             O=<=O=<=O
             0   1   2
@@ -96,7 +96,7 @@ class CartanType(CartanType_standard_affine):
             sage: sorted(c.edges())
             [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 2)]
 
-            sage: c = DynkinDiagram(['BC',1,2])
+            sage: c = CartanType(['BC',1,2]).dynkin_diagram()
             sage: c
               4
             O=<=O

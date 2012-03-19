@@ -12,8 +12,37 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.weyl_groups import WeylGroups
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 
 class AffineWeylGroups(Category_singleton):
+    """
+    The category of affine Weyl groups
+
+    .. todo:: add a description of this category
+
+    .. seealso::
+
+        - :wikipedia:`Affine_weyl_group`
+        - :class:`WeylGroups`, :class:`WeylGroup`
+
+    EXAMPLES::
+
+        sage: C = AffineWeylGroups(); C
+        Category of affine weyl groups
+        sage: C.super_categories()
+        [Category of weyl groups, Category of infinite enumerated sets]
+
+        sage: C.example()
+        NotImplemented
+        sage: W = WeylGroup(["A",4,1]); W
+        Weyl Group of type ['A', 4, 1] (as a matrix group acting on the root space)
+        sage: W.category()
+        Category of affine weyl groups
+
+    TESTS::
+
+        sage: TestSuite(C).run()
+    """
 
     @cached_method
     def super_categories(self):
@@ -21,9 +50,9 @@ class AffineWeylGroups(Category_singleton):
         EXAMPLES::
 
             sage: AffineWeylGroups().super_categories()
-            [Category of weyl groups]
+            [Category of weyl groups, Category of infinite enumerated sets]
         """
-        return [WeylGroups()]
+        return [WeylGroups(), InfiniteEnumeratedSets()]
 
     class ParentMethods:
 
@@ -70,11 +99,11 @@ class AffineWeylGroups(Category_singleton):
     class ElementMethods:
         def is_affine_grassmannian(self):
             """
-            INPUT:
-             - self: an element of an affine Weyl group
+            Tests whether ``self`` is affine Grassmannian
 
-            Tests whether self is Grassmannian, i.e. any of the following
-            equivalent properties hold:
+            An element of an affine Weyl group is *affine Grassmannian*
+            if any of the following equivalent properties holds:
+
              - all reduced words for self end with 0.
              - self is the identity, or 0 is its single right descent.
              - self is a mimimal coset representative for W / cl W.
@@ -88,7 +117,7 @@ class AffineWeylGroups(Category_singleton):
                 sage: w=W.from_reduced_word([2,0])
                 sage: w.is_affine_grassmannian()
                 False
-                sage: W.unit().is_affine_grassmannian()
+                sage: W.one().is_affine_grassmannian()
                 True
             """
             return self.descents() in [[], [self.parent().special_node()]]

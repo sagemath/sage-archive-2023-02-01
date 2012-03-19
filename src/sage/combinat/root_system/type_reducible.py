@@ -1,4 +1,16 @@
-from sage.combinat.root_system.cartan_type import CartanType_abstract, CartanType_simple
+"""
+Root system data for reducible Cartan types
+"""
+#*****************************************************************************
+#       Copyright (C) 2008-2009 Daniel Bump
+#       Copyright (C) 2008-2009 Justin Walker
+#       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from sage.misc.cachefunc import cached_method
+from sage.combinat.root_system.cartan_type import CartanType_abstract, CartanType_simple, CartanType_finite, CartanType_simply_laced, CartanType_crystalographic
 from sage.matrix.constructor import block_diagonal_matrix
 from sage.sets.family import Family
 import ambient_space
@@ -12,11 +24,11 @@ class CartanType(SageObject, CartanType_abstract):
 
     def __init__(self, types):
         """
-        Reducible root systems are ones that can be factored as
-        direct products. Strictly speaking type D2 (corresponding
-        to orthogonal groups of degree 4) are reducible since they
-        are isomorphic to A1xA1. However type D2 is considered
-        irreducible for our purposes.
+        Reducible root systems are ones that can be factored as direct
+        products. Strictly speaking type `D_2` (corresponding to
+        orthogonal groups of degree 4) is reducible since it is
+        isomorphic to `A_1\times A_1`. However type `D_2` is not built
+        using this class for our purposes.
 
         INPUT:
 
@@ -24,30 +36,105 @@ class CartanType(SageObject, CartanType_abstract):
 
         EXAMPLES::
 
-           sage: [t1,t2]=[CartanType(x) for x in ['A',1],['B',2]]
-           sage: CartanType([t1,t2])
-           A1xB2
-           sage: t = CartanType("A2xB2")
-           sage: t == loads(dumps(t))
-           True
+            sage: [t1,t2]=[CartanType(x) for x in ['A',1],['B',2]]
+            sage: CartanType([t1,t2])
+            A1xB2
+            sage: t = CartanType("A2xB2")
+
+        A reducible Cartan type is finite (resp. crystalographic,
+        simply laced) if all its components are::
+
+            sage: t.is_finite()
+            True
+            sage: t.is_crystalographic()
+            True
+            sage: t.is_simply_laced()
+            False
+
+        This is implemented by inserting the appropriate abstract
+        super classes (see :meth:`~sage.combinat.root_system.cartan_type.CartanType_abstract._add_abstract_superclass`)::
+
+            sage: t.__class__.mro()
+            [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <type 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystalographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <type 'object'>]
+
+        The index set of the reducible Cartan type is obtained by
+        relabelling successively the nodes of the Dynkin diagrams of
+        the components by 1,2,...::
+
+            sage: t = CartanType(["A",4], ["BC",5,2], ["C",3])
+            sage: t.index_set()
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+
+            sage: t.dynkin_diagram()
+            O---O---O---O
+            1   2   3   4
+            O=<=O---O---O---O=<=O
+            5   6   7   8   9   10
+            O---O=<=O
+            11   12   13
+            A4xBC5~xC3
+
+        TESTS:
+
+        Internally, this relabelling is stored as a dictionary::
+
+            sage: sorted(t._index_relabelling.iteritems())
+            [((0, 1), 1), ((0, 2), 2), ((0, 3), 3), ((0, 4), 4),
+             ((1, 0), 5), ((1, 1), 6), ((1, 2), 7), ((1, 3), 8), ((1, 4), 9), ((1, 5), 10),
+             ((2, 1), 11), ((2, 2), 12), ((2, 3), 13)]
+
+        Similarly, the attribute `_shifts` specifies by how much the
+        indices of the bases of the ambient spaces of the components
+        are shifted in the ambient space of this Cartan type::
+
+            sage: t = CartanType("A2xB2")
+            sage: t._shifts
+            [0, 3, 5]
+            sage: A = t.root_system().ambient_space(); A
+            Ambient space of the Root system of type A2xB2
+            sage: A.ambient_spaces()
+            [Ambient space of the Root system of type ['A', 2], Ambient space of the Root system of type ['B', 2]]
+            sage: x = A.ambient_spaces()[0]([2,1,0]); x
+            (2, 1, 0)
+            sage: A.inject_weights(0,x)
+            (2, 1, 0, 0, 0)
+            sage: x = A.ambient_spaces()[1]([1,0]); x
+            (1, 0)
+            sage: A.inject_weights(1,x)
+            (0, 0, 0, 1, 0)
+
+
+
+        More tests::
+
+            sage: TestSuite(t).run()
         """
         self._types = types
         self.affine = False
+        indices = (None,) + tuple( (i, j)
+                                   for i in range(len(types))
+                                   for j in types[i].index_set() )
+        self._indices = indices
+        self._index_relabelling = dict((indices[i], i) for i in range(1, len(indices)))
+
         self._spaces = [t.root_system().ambient_space() for t in types]
-        self._shifts = [sum(l.n for l in self._spaces[:k]) for k in range(len(types))]
-        # fails for dual root systems
-        try:
-            self._shifts.append(sum(t.root_system().ambient_space().dimension() for t in types))
-        except:
-            pass
-        self._rshifts = [sum(l[1] for l in types[:k]) for k in range(len(types))]
+        if all(l is not None for l in self._spaces):
+            self._shifts = [sum(l.dimension() for l in self._spaces[:k])
+                            for k in range(len(types)+1)]
+
         self.tools = root_system.type_reducible
+        # a direct product of finite Cartan types is again finite;
+        # idem for simply laced and crystalographic.
+        super_classes = tuple( cls
+                               for cls in (CartanType_finite, CartanType_simply_laced, CartanType_crystalographic)
+                               if all(isinstance(t, cls) for t in types) )
+        self._add_abstract_superclass(super_classes)
 
     def _repr_(self, compact = True): # We should make a consistent choice here
         """
         EXAMPLES::
 
-           sage: CartanType("A2","B2")
+           sage: CartanType("A2","B2")    # indirect doctest
            A2xB2
 
            sage: CartanType("A2",CartanType("F4").dual())
@@ -95,16 +182,6 @@ class CartanType(SageObject, CartanType_abstract):
         """
         return "reducible"
 
-    def is_finite(self):
-        """
-        EXAMPLES::
-
-            sage: ct = CartanType(['A',2],['B',2])
-            sage: ct.is_finite()
-            True
-        """
-        return all(t.is_finite() for t in self.component_types())
-
     def rank(self):
         """
         Returns the rank of self.
@@ -128,19 +205,6 @@ class CartanType(SageObject, CartanType_abstract):
             [1, 2, 3]
         """
         return range(1, self.rank()+1)
-
-    def root_system(self):
-        """
-        Returns the root system associated to self.
-
-        EXAMPLES::
-
-            sage: CartanType(['A',4], ['B', 2]).root_system()
-            Root system of type A4xB2
-
-        """
-        import root_system
-        return root_system.RootSystem(self)
 
     def cartan_matrix(self, subdivide=True):
         """
@@ -166,7 +230,7 @@ class CartanType(SageObject, CartanType_abstract):
         """
         return block_diagonal_matrix([t.cartan_matrix() for t in self._types], subdivide=subdivide)
 
-    def dynkin_diagram(t):
+    def dynkin_diagram(self):
         """
         Returns a Dynkin diagram for type reducible.
 
@@ -192,12 +256,12 @@ class CartanType(SageObject, CartanType_abstract):
             F4xA2
 
         """
-        from dynkin_diagram import DynkinDiagram, DynkinDiagram_class
-        g = DynkinDiagram_class(t)
-        for i in range(len(t._types)):
-            for [e1, e2, l] in DynkinDiagram(t._types[i]).edges():
-                shift = t._rshifts[i]
-                g.add_edge(e1+shift, e2+shift, label=l)
+        from dynkin_diagram import DynkinDiagram_class
+        relabelling = self._index_relabelling
+        g = DynkinDiagram_class(self)
+        for i in range(len(self._types)):
+            for [e1, e2, l] in self._types[i].dynkin_diagram().edges():
+                g.add_edge(relabelling[i,e1], relabelling[i,e2], label=l)
         return g
 
     def ascii_art(self, label = lambda x: x):
@@ -205,15 +269,52 @@ class CartanType(SageObject, CartanType_abstract):
         Returns an ascii art representation of this reducible Cartan type
 
         EXAMPLES::
+
             sage: print CartanType("F4xA2").ascii_art(label = lambda x: x+2)
             O---O=>=O---O
             3   4   5   6
             O---O
             7   8
+
+            sage: print CartanType(["BC",5,2], ["A",4]).ascii_art()
+            O=<=O---O---O---O=<=O
+            1   2   3   4   5   6
+            O---O---O---O
+            7   8   9   10
+
+            sage: print CartanType(["A",4], ["BC",5,2], ["C",3]).ascii_art()
+            O---O---O---O
+            1   2   3   4
+            O=<=O---O---O---O=<=O
+            5   6   7   8   9   10
+            O---O=<=O
+            11   12   13
         """
         types = self.component_types()
-        return "\n".join(types[i].ascii_art(label = lambda x: label(x+self._rshifts[i]))
+        relabelling = self._index_relabelling
+        return "\n".join(types[i].ascii_art(label = lambda x: label(relabelling[i,x]))
                          for i in range(len(types)))
+
+    @cached_method
+    def is_finite(self):
+        """
+        EXAMPLES::
+
+            sage: ct1 = CartanType(['A',2],['B',2])
+            sage: ct1.is_finite()
+            True
+            sage: ct2 = CartanType(['A',2],['B',2,1])
+            sage: ct2.is_finite()
+            False
+
+        TESTS::
+
+            sage: isinstance(ct1, sage.combinat.root_system.cartan_type.CartanType_finite)
+            True
+            sage: isinstance(ct2, sage.combinat.root_system.cartan_type.CartanType_finite)
+            False
+        """
+        return all(t.is_finite() for t in self.component_types())
 
     def is_irreducible(self):
         """
@@ -319,29 +420,35 @@ class AmbientSpace(ambient_space.AmbientSpace):
         shift = self.root_system.cartan_type()._shifts[i]
         return self._from_dict( dict([(shift+k, c) for (k,c) in v ]))
 
-    def simple_roots(self):
+    @cached_method
+    def simple_root(self, i):
         """
         EXAMPLES::
 
-            sage: RootSystem("A1xB2").ambient_space().simple_roots()
+            sage: A = RootSystem("A1xB2").ambient_space()
+            sage: A.simple_root(2)
+            (0, 0, 1, -1)
+            sage: A.simple_roots()
             Finite family {1: (1, -1, 0, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 1)}
         """
-        res = []
-        for i, ambient_space in enumerate(self.ambient_spaces()):
-            res.extend(self.inject_weights(i, v) for v in ambient_space.simple_roots())
-        return Family(dict([i,res[i-1]] for i in range(1,len(res)+1)))
+        assert i in self.index_set()
+        (i, j) = self.cartan_type()._indices[i]
+        return self.inject_weights(i, self.ambient_spaces()[i].simple_root(j))
 
-    def simple_coroots(self):
+    @cached_method
+    def simple_coroot(self, i):
         """
         EXAMPLES:
 
-            sage: RootSystem("A1xB2").ambient_space().simple_coroots()
+            sage: A = RootSystem("A1xB2").ambient_space()
+            sage: A.simple_coroot(2)
+            (0, 0, 1, -1)
+            sage: A.simple_coroots()
             Finite family {1: (1, -1, 0, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 2)}
         """
-        cr = []
-        for i, ambient_space in enumerate(self.ambient_spaces()):
-            cr.extend(self.inject_weights(i, v) for v in ambient_space.simple_coroots())
-        return Family(dict([i,cr[i-1]] for i in range(1,len(cr)+1)))
+        assert i in self.index_set()
+        (i, j) = self.cartan_type()._indices[i]
+        return self.inject_weights(i, self.ambient_spaces()[i].simple_coroot(j))
 
     def positive_roots(self):
         """

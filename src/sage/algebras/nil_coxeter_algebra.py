@@ -40,8 +40,7 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebraT):
         sage: u2*u1*u2 == u1*u2*u1
         True
         sage: U.an_element()
-        u0
-
+        2*u0 + 3*u0*u1 + 1 + u0*u1*u2*u3
     """
 
     def __init__(self, W, base_ring = QQ, prefix='u'):

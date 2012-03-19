@@ -115,6 +115,29 @@ cdef class Morphism(Map):
         """
         self.codomain().register_coercion(self)
 
+    def register_as_conversion(self):
+        """
+        Register this morphism as a conversion to Sage's coercion model
+
+        (see :mod:`sage.structure.coerce`).
+
+        EXAMPLES:
+
+        Let us declare a conversion from the symmetric group to `\ZZ`
+        through the sign map::
+
+            sage: S = SymmetricGroup(4)
+            sage: phi = Hom(S, ZZ)(lambda x: ZZ(x.sign()))
+            sage: x = S.an_element(); x
+            (1,2,3,4)
+            sage: phi(x)
+            -1
+            sage: phi.register_as_conversion()
+            sage: ZZ(x)
+            -1
+        """
+        self.codomain().register_conversion(self)
+
 cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)

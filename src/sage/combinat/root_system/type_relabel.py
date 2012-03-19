@@ -1,5 +1,5 @@
 """
-Relabelled Cartan types
+Root system data for relabelled Cartan types
 """
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
@@ -316,6 +316,21 @@ class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine)
         return self._type.classical().relabel(self._relabelling)
 
     def special_node(self):
+        r"""
+        Returns a special node of the Dynkin diagram
+
+        .. seealso:: :meth:`~sage.combinat.root_system.CartanType_affine.special_node`
+
+        It is obtained by relabelling of the special node of the non
+        relabelled Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: CartanType(['B', 3, 1]).special_node()
+            0
+            sage: CartanType(['B', 3, 1]).relabel({1:2, 2:3, 3:0, 0:1}).special_node()
+            1
+        """
         return self._relabelling[self._type.special_node()]
 
     def is_untwisted_affine(self):

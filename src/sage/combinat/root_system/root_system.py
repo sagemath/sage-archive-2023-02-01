@@ -4,26 +4,27 @@ Root systems
 Quickref
 --------
 
- - T = CartanType(["A", 3]), T.is_finite()          Cartan types
- - T.dynkin_diagram(), DynkinDiagram(["G",2])       Dynkin diagrams
- - T.cartan_matrix(),  CartanMatrix(["F",4])        Cartan matrices
- - RootSystem(T).weight_lattice()                   Root systems
- - WeylGroup(["B", 6, 1]).simple_reflections()      Affine weyl groups
- - WeylCharacterRing(["D", 4])                      Weyl character rings
+- ``T = CartanType(["A", 3]), T.is_finite()``     -- Cartan types
+- ``T.dynkin_diagram(), DynkinDiagram(["G",2])``  -- Dynkin diagrams
+- ``T.cartan_matrix(),  CartanMatrix(["F",4])``   -- Cartan matrices
+- ``RootSystem(T).weight_lattice()``              -- Root systems
+- ``WeylGroup(["B", 6, 1]).simple_reflections()`` -- Affine weyl groups
+- ``WeylCharacterRing(["D", 4])``                 -- Weyl character rings
 
 Documentation
 -------------
 
- - :mod:`sage.combinat.root_system`                 This current overview
- - :class:`CartanType`                              An introduction to Cartan types
- - :class:`RootSystem`                              An introduction to root systems
+- :mod:`sage.combinat.root_system.root_system`    -- This current overview
+- :class:`CartanType`                             -- An introduction to Cartan types
+- :class:`RootSystem`                             -- An introduction to root systems
+- The ``Lie Methods and Related Combinatorics`` thematic tutorial
 
 See also
 --------
 
-- :class:`CoxeterGroups`, :class:`WeylGroups`, ...  The categories of Coxeter and Weyl groups
-- :mod:`sage.combinat.crystals`                     An introduction to crystals
-- :mod:`.type_A`, :mod:`.type_B_affine`, ...        Type specific root system data
+- :class:`CoxeterGroups`, :class:`WeylGroups`, ...-- The categories of Coxeter and Weyl groups
+- :mod:`sage.combinat.crystals.crystals`          -- An introduction to crystals
+- :mod:`.type_A`, :mod:`.type_B_affine`, ...      -- Type specific root system data
 
 """
 #*****************************************************************************
@@ -57,7 +58,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         Root system of type ['B', 3]
 
     ``R`` models the root system abstractly. It comes equipped with various
-    realizations of the root and weight lattices, where all computation
+    realizations of the root and weight lattices, where all computations
     take place. Let us play first with the root lattice::
 
         sage: space = R.root_lattice()
@@ -200,29 +201,47 @@ class RootSystem(UniqueRepresentation, SageObject):
     The coweight lattice and space are defined similarly. Note that, to
     limit confusion, all the output have been tweaked appropriately.
 
+    .. seealso::
+
+        - :mod:`sage.combinat.root_system`
+        - :class:`RootSpace`
+        - :class:`WeightSpace`
+        - :class:`AmbientSpace`
+        - :class:`~sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations`
+        - :class:`~sage.combinat.root_system.weight_lattice_realizations.WeightLatticeRealizations`
+
     TESTS::
 
         sage: R = RootSystem(['C',3])
-        sage: R == loads(dumps(R))
-        True
+        sage: TestSuite(R).run()
         sage: L = R.ambient_space()
-        sage: s = L.simple_reflections()
+        sage: s = L.simple_reflections() # this used to break the testsuite below due to caching an unpicklable method
         sage: s = L.simple_projections() # todo: not implemented
-        sage: L == loads(dumps(L))
-        True
+        sage: TestSuite(L).run()
         sage: L = R.root_space()
         sage: s = L.simple_reflections()
-        sage: L == loads(dumps(L))
-        True
+        sage: TestSuite(L).run()
 
     ::
 
-        sage: for T in CartanType.samples(finite=True,crystalographic=True):
+        sage: for T in CartanType.samples(crystalographic=True):
         ...       TestSuite(RootSystem(T)).run()
     """
 
     @staticmethod
     def __classcall__(cls, cartan_type, as_dual_of=None):
+        """
+        Straighten arguments to enable unique representation
+
+        .. seealso:: :class:`UniqueRepresentation`
+
+        TESTS::
+
+            sage: RootSystem(["A",3]) is RootSystem(CartanType(["A",3]))
+            True
+            sage: RootSystem(["B",3], as_dual_of=None) is RootSystem("B3")
+            True
+        """
         return super(RootSystem, cls).__classcall__(cls, CartanType(cartan_type), as_dual_of)
 
     def __init__(self, cartan_type, as_dual_of=None):
@@ -269,6 +288,9 @@ class RootSystem(UniqueRepresentation, SageObject):
         TestSuite(self.root_space()).run(**options)
         TestSuite(self.weight_lattice()).run(**options)
         TestSuite(self.weight_space()).run(**options)
+        if self.cartan_type().is_affine():
+            TestSuite(self.weight_lattice(extended=True)).run(**options)
+            TestSuite(self.weight_space(extended=True)).run(**options)
         if self.ambient_lattice() is not None:
             TestSuite(self.ambient_lattice()).run(**options)
         if self.ambient_space() is not None:
@@ -278,8 +300,10 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         EXAMPLES::
 
-            sage: RootSystem(['A',3])
+            sage: RootSystem(['A',3])    # indirect doctest
             Root system of type ['A', 3]
+            sage: RootSystem(['B',3]).dual    # indirect doctest
+            Dual of root system of type ['B', 3]
         """
         if self.dual_side:
             return "Dual of root system of type %s"%self.dual.cartan_type()
@@ -454,50 +478,91 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         return self.dual.root_space(base_ring)
 
-    def weight_lattice(self):
+    @cached_method
+    def weight_lattice(self, extended = False):
         """
         Returns the weight lattice associated to self.
+
+        .. see also::
+
+            - :meth:`weight_space`
+            - :meth:`coweight_space`, :meth:`coweight_lattice`
+            - :class:`~sage.combinat.root_system.WeightSpace`
 
         EXAMPLES::
 
             sage: RootSystem(['A',3]).weight_lattice()
             Weight lattice of the Root system of type ['A', 3]
+
+            sage: RootSystem(['A',3,1]).weight_space(extended = True)
+            Extended weight space over the Rational Field of the Root system of type ['A', 3, 1]
         """
-        return self.weight_space(ZZ)
+        return WeightSpace(self, ZZ, extended = extended)
 
     @cached_method
-    def weight_space(self, base_ring=QQ):
+    def weight_space(self, base_ring=QQ, extended = False):
         """
         Returns the weight space associated to self.
+
+        .. see also::
+
+            - :meth:`weight_lattice`
+            - :meth:`coweight_space`, :meth:`coweight_lattice`
+            - :class:`~sage.combinat.root_system.WeightSpace`
 
         EXAMPLES::
 
             sage: RootSystem(['A',3]).weight_space()
             Weight space over the Rational Field of the Root system of type ['A', 3]
-        """
-        return WeightSpace(self, base_ring)
 
-    def coweight_lattice(self):
+            sage: RootSystem(['A',3,1]).weight_space(extended = True)
+            Extended weight space over the Rational Field of the Root system of type ['A', 3, 1]
+        """
+        return WeightSpace(self, base_ring, extended = extended)
+
+    def coweight_lattice(self, extended = False):
         """
         Returns the coweight lattice associated to self.
+
+        This is the weight lattice of the dual root system.
+
+        .. see also::
+
+            - :meth:`coweight_space`
+            - :meth:`weight_space`, :meth:`weight_lattice`
+            - :class:`~sage.combinat.root_system.WeightSpace`
 
         EXAMPLES::
 
             sage: RootSystem(['A',3]).coweight_lattice()
             Coweight lattice of the Root system of type ['A', 3]
-        """
-        return self.dual.weight_lattice()
 
-    def coweight_space(self, base_ring=QQ):
+            sage: RootSystem(['A',3,1]).coweight_lattice(extended = True)
+            Extended coweight lattice of the Root system of type ['A', 3, 1]
         """
-        Returns the weight space associated to self.
+        return self.dual.weight_lattice(extended = extended)
+
+    def coweight_space(self, base_ring=QQ, extended = False):
+        """
+        Returns the coweight space associated to self.
+
+        This is the weight space of the dual root system.
+
+        .. see also::
+
+            - :meth:`coweight_lattice`
+            - :meth:`weight_space`, :meth:`weight_lattice`
+            - :class:`~sage.combinat.root_system.WeightSpace`
 
         EXAMPLES::
 
             sage: RootSystem(['A',3]).coweight_space()
             Coweight space over the Rational Field of the Root system of type ['A', 3]
+
+            sage: RootSystem(['A',3,1]).coweight_space(extended=True)
+            Extended coweight space over the Rational Field of the Root system of type ['A', 3, 1]
         """
-        return self.dual.weight_space(base_ring)
+        return self.dual.weight_space(base_ring, extended = extended)
 
 
     def ambient_lattice(self):

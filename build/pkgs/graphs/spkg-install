@@ -2,4 +2,4 @@
 
 rm -rf "$SAGE_DATA"/graphs
 
-cp -r graphs "$SAGE_DATA"/
+mv src "$SAGE_DATA"/graphs

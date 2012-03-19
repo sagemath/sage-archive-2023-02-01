@@ -1,5 +1,26 @@
-MAINTAINER:
-    -- Emily Kirkman
+= graphs =
 
+== Description ==
 
-This database was created by Emily Kirkman based on work of Jason Grout.
+A database of graphs. Created by Emily Kirkman based on the work of Jason
+Grout.
+
+== SPKG Maintainers ==
+
+ * Emily Kirkman
+
+== Upstream Contact ==
+
+N/A
+
+== Dependencies ==
+
+N/A
+
+== Changelog ==
+
+== graphs-20070722.p2 (Keshav Kini, 2012-03-18) ==
+ * #12694: Normalize directory structure
+
+== graphs-20070722.p1 (?, ?) ==
+?

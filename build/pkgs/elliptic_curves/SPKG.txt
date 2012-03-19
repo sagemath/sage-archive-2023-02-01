@@ -33,6 +33,9 @@ Includes two databases:
 
 == Changelog ==
 
+=== elliptic_curves-0.5 (Keshav Kini, 2012-03-18) ===
+ * #12694: make the spkg contain a src/ directory and track everything else
+
 === elliptic_curves-0.4 (R. Andrew Ohana, 9 March 2012) ===
  * #12644: reduce the size of the spkg by half
  * use os.path.join and file.xreadlines

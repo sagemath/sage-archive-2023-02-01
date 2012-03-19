@@ -27,6 +27,8 @@ from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.sets.family import Family
 from sage.rings.all import ZZ, QQ
 from sage.combinat.backtrack import TransitiveIdeal
+from sage.misc.misc import deprecated_function_alias
+from copy import copy
 
 class RootLatticeRealizations(Category_over_base_ring):
     r"""
@@ -350,7 +352,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             assert(self.root_system.is_finite())
             assert(self.root_system.is_irreducible())
-            return self.a_long_simple_root().to_positive_chamber()
+            return self.a_long_simple_root().to_dominant_chamber()
 
         @cached_method
         def a_long_simple_root(self):
@@ -1266,6 +1268,32 @@ class RootLatticeRealizations(Category_over_base_ring):
                 alphacheck[1]
             """
 
+        def reflection(self, root, use_coroot = False):
+            r"""
+            Reflects ``self`` across the hyperplane orthogonal to ``root``.
+
+            If ``use_coroot`` is True, ``root`` is interpreted as a coroot.
+
+            EXAMPLES::
+
+                sage: R = RootSystem(['C',4])
+                sage: weight_lattice = R.weight_lattice()
+                sage: mu = weight_lattice.from_vector(vector([0,0,1,2]))
+                sage: coroot_lattice = R.coroot_lattice()
+                sage: alphavee = coroot_lattice.from_vector(vector([0,0,1,1]))
+                sage: mu.reflection(alphavee, use_coroot=True)
+                6*Lambda[2] - 5*Lambda[3] + 2*Lambda[4]
+                sage: root_lattice = R.root_lattice()
+                sage: beta = root_lattice.from_vector(vector([0,1,1,0]))
+                sage: mu.reflection(beta)
+                Lambda[1] - Lambda[2] + 3*Lambda[4]
+            """
+            if use_coroot:
+                return self - self.scalar(root) * root.associated_coroot()
+            else:
+                return self - self.scalar(root.associated_coroot()) * root
+
+
         ##########################################################################
         # Descents
         ##########################################################################
@@ -1344,52 +1372,100 @@ class RootLatticeRealizations(Category_over_base_ring):
                 index_set=self.parent().index_set()
             return [ i for i in index_set if self.has_descent(i, positive) ]
 
-        def to_positive_chamber(self, index_set = None, positive = True):
-            """
-            Returns the unique element of the orbit of pt in the positive
-            chamber.
+        def to_dominant_chamber(self, index_set = None, positive = True, get_direction = False):
+            r"""
+            Returns the unique dominant element in the Weyl group orbit of the vector ``self``.
 
-            With the index_set optional parameter, this is done with
-            respect to the corresponding parbolic subgroup
+            If ``positive`` is False, returns the antidominant orbit element.
 
-            With positive = False, returns the unique element in the
-            negative chamber instead
+            With the ``index_set`` optional parameter, this is done with
+            respect to the corresponding parabolic subgroup.
 
+            If ``get_direction`` is True, returns the 2-tuple (``weight``, ``direction``)
+            where ``weight`` is the (anti)dominant orbit element and ``direction`` is a reduced word
+            for the Weyl group element sending ``weight`` to ``self``.
+
+            .. warning::
+
+                In infinite type, an orbit may not contain a dominant element.
+                In this case the function may go into an infinite loop.
+
+                For affine root systems, assertion errors are generated if
+                the orbit does not contain the requested kind of representative.
+                If the input vector is of positive (resp. negative)
+                level, then there is a dominant (resp. antidominant) element in its orbit
+                but not an antidominant (resp. dominant) one. If the vector is of level zero,
+                then there are neither dominant nor antidominant orbit representatives, except
+                for multiples of the null root, which are themselves both dominant and antidominant
+                orbit representatives.
 
             EXAMPLES::
 
                 sage: space=RootSystem(['A',5]).weight_space()
                 sage: alpha=RootSystem(['A',5]).weight_space().simple_roots()
-                sage: alpha[1].to_positive_chamber()
+                sage: alpha[1].to_dominant_chamber()
                 Lambda[1] + Lambda[5]
-                sage: alpha[1].to_positive_chamber([1,2])
+                sage: alpha[1].to_dominant_chamber([1,2])
                 Lambda[1] + Lambda[2] - Lambda[3]
+                sage: wl=RootSystem(['A',2,1]).weight_lattice(extended=True)
+                sage: mu=wl.from_vector(vector([1,-3,0]))
+                sage: mu.to_dominant_chamber(positive=False, get_direction = True)
+                (-Lambda[1] - Lambda[2] - delta, [0, 2])
+
+                sage: R = RootSystem(['A',1,1])
+                sage: rl = R.root_lattice()
+                sage: mu = rl.from_vector(vector([0,1]))
+                sage: mu.to_dominant_chamber()
+                Traceback (most recent call last):
+                ...
+                AssertionError: This element is not in the orbit of the fundamental chamber
+
             """
+
             if index_set is None:
-                index_set=self.parent().index_set()
+                # default index set is the entire Dynkin node set
+                index_set = self.parent().index_set()
+            cartan_type = self.parent().cartan_type()
+            # generate assertion errors for infinite loop cases in affine type
+            if cartan_type.is_affine():
+                if index_set == self.parent().index_set():
+                    # If the full affine Weyl group is being used
+                    level = self.level()
+                    if level > 0:
+                        assert positive, "This element is not in the orbit of the fundamental chamber"
+                    elif level < 0:
+                        assert not positive, "This element is not in the orbit of the negative of the fundamental chamber"
+                    else:
+                        # level zero
+                        if positive:
+                            assert self.is_dominant(), "This element is not in the orbit of the fundamental chamber"
+                        else:
+                            assert self.is_dominant(), "This element is not in the orbit of the negative of the fundamental chamber"
+            if get_direction:
+                direction = []
             while True:
                 # The first index where it is *not* yet on the positive side
                 i = self.first_descent(index_set, positive=(not positive))
                 if i is None:
-                    return self
+                    if get_direction:
+                        return self, direction
+                    else:
+                        return self
                 else:
+                    if get_direction:
+                        direction.append(i)
                     self = self.simple_reflection(i)
 
+        to_positive_chamber = deprecated_function_alias(to_dominant_chamber, "Sage 4.8")
+
         def reduced_word(self, index_set = None, positive = True):
-            """
-            Returns a shortest sequence of simple reflections mapping self
-            to the unique element `o` of its orbit in the positive
-            chamber. Alternatively this is a reduced word for the smallest
-            element of the group mapping `o` to self (recall that, by
-            convention, Weyl groups act on the left).
+            r"""
+            Returns a reduced word for the inverse of the shortest Weyl group element that sends the vector ``self`` into the dominant chamber.
 
-            With the index_set optional parameter, this is done with
-            respect to the corresponding parabolic subgroup
+            With the ``index_set`` optional parameter, this is done with
+            respect to the corresponding parabolic subgroup.
 
-            With positive = False, returns the shortest sequence to the
-            negative chamber instead
-
-            FIXME: better name?
+            If ``positive`` is False, use the antidominant chamber instead.
 
             EXAMPLES::
 
@@ -1399,26 +1475,18 @@ class RootLatticeRealizations(Category_over_base_ring):
                 [2, 3, 4, 5]
                 sage: alpha[1].reduced_word([1,2])
                 [2]
+
             """
-            result = []
-            if index_set is None:
-                index_set=self.parent().index_set()
-            while True:
-                # The first index where it is *not* yet on the positive side
-                i = self.first_descent(index_set, positive=(not positive))
-                if i is None:
-                    return result
-                else:
-                    self = self.simple_reflection(i)
-                    result.append(i)
+            return self.to_dominant_chamber(index_set=index_set,positive=positive,get_direction = True)[1]
+
 
         def is_dominant(self, index_set = None, positive = True):
-            """
+            r"""
             Returns whether self is dominant.
 
-            INPUT:
-
-            - ``v`` - an element of the lattice
+            This is done with respect to the subrootsystem indicated by the subset of Dynkin nodes
+            index_set. If index_set is None then the entire Dynkin node set is used.
+            If positive is False then the dominance condition is replaced by antidominance.
 
             EXAMPLES::
 
@@ -1615,3 +1683,68 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             assert self.level().is_zero()
             return x + x.level() * self
+
+        def weyl_action(self, w = None, reduced_word = None, inverse = False):
+            r"""
+            Acts on ``self`` by a Weyl group element.
+
+            INPUT:
+            - If ``w`` is not None, use it to act.
+            - If ``reduced_word`` is not None, use it to act.
+            - Exactly one of ``w`` and ``reduced_word`` should not be None.
+            - If ``inverse`` is True, act by the inverse element.
+
+            EXAMPLES::
+
+                sage: wl = RootSystem(['A',2,1]).weight_lattice(extended = True)
+                sage: mu = wl.from_vector(vector([1,-3,0]))
+                sage: mu
+                Lambda[0] - 3*Lambda[1]
+                sage: mudom, rw = mu.to_dominant_chamber(positive=False, get_direction = True)
+                sage: mudom, rw
+                (-Lambda[1] - Lambda[2] - delta, [0, 2])
+                sage: mudom.weyl_action(reduced_word = rw)
+                Lambda[0] - 3*Lambda[1]
+                sage: mu.weyl_action(reduced_word = rw, inverse = True)
+                -Lambda[1] - Lambda[2] - delta
+
+            """
+
+            if w is None:
+                assert reduced_word is not None
+                rw = copy(reduced_word)
+            else:
+                rw = w.reduced_word()
+            if not inverse:
+                rw.reverse()
+            for i in rw:
+                self = self.simple_reflection(i)
+            return self
+
+        def weyl_stabilizer(self, index_set=None):
+            r"""
+            Returns the subset of Dynkin nodes whose reflections fix ``self``.
+
+            If ``index_set`` is not None, only consider nodes in this set.
+            Note that if ``self`` is dominant or antidominant, then its stabilizer is the
+            parabolic subgroup defined by the returned node set.
+
+            EXAMPLES::
+
+                sage: wl = RootSystem(['A',2,1]).weight_lattice(extended = True)
+                sage: al = wl.null_root()
+                sage: al.weyl_stabilizer()
+                [0, 1, 2]
+                sage: wl = RootSystem(['A',4]).weight_lattice()
+                sage: mu = wl.from_vector(vector([1,1,0,0]))
+                sage: mu.weyl_stabilizer()
+                [3, 4]
+                sage: mu.weyl_stabilizer(index_set = [1,2,3])
+                [3]
+
+            """
+
+            if index_set is None:
+                index_set = self.parent().cartan_type().index_set()
+            alphavee = self.parent().coroot_lattice().basis()
+            return [i for i in index_set if self.scalar(alphavee[i]) == 0]

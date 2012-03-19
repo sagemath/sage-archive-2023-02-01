@@ -26,6 +26,11 @@ None
 
 == Changelog ==
 
-* 2008-04-30 Original version.
-* 2010-02-10 Binary files replaced by text ones.
+=== polytopes_db-20100210.p1 (Keshav Kini, 2012-03-18) ===
+* #12694: Normalize directory structure
 
+=== polytopes_db-20100210 (?, ?) ===
+* Binary files replaced by text ones.
+
+=== polytopes_db-20080430 (?, ?) ===
+* 2008-04-30 Original version.

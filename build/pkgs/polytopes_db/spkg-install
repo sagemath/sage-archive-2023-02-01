@@ -7,6 +7,4 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 rm -rf "$SAGE_DATA"/reflexive_polytopes
-
-cp -r reflexive_polytopes "$SAGE_DATA"/
-
+cp -r src "$SAGE_DATA"/reflexive_polytopes

@@ -299,11 +299,23 @@ def dimension_new_cusp_forms(X, k=2, p=0):
         12
         sage: dimension_new_cusp_forms(Gamma1(30),3)
         12
+
+    Check that Trac #12640 is fixed::
+
+        sage: dimension_new_cusp_forms(DirichletGroup(1)(1), 12)
+        1
+        sage: dimension_new_cusp_forms(DirichletGroup(2)(1), 24)
+        1
     """
     if is_GammaH(X):
         return X.dimension_new_cusp_forms(k,p=p)
     elif isinstance(X, dirichlet.DirichletCharacter):
-        return Gamma1(X.modulus()).dimension_new_cusp_forms(k,eps=X,p=p)
+        N = X.modulus()
+        if N <= 2:
+            return Gamma0(N).dimension_new_cusp_forms(k,p=p)
+        else:
+            # Gamma1(N) for N<=2 just returns Gamma0(N), which has no eps parameter. See Trac #12640.
+            return Gamma1(N).dimension_new_cusp_forms(k,eps=X,p=p)
     elif isinstance(X, (int,long,Integer)):
         return Gamma0(X).dimension_new_cusp_forms(k,p=p)
     else:
@@ -400,9 +412,20 @@ def dimension_cusp_forms(X, k=2):
         0
         sage: dimension_cusp_forms(e^2,2)
         1
+
+    Check that Trac #12640 is fixed::
+
+        sage: dimension_cusp_forms(DirichletGroup(1)(1), 12)
+        1
+        sage: dimension_cusp_forms(DirichletGroup(2)(1), 24)
+        5
     """
     if isinstance(X, dirichlet.DirichletCharacter):
-        return Gamma1(X.modulus()).dimension_cusp_forms(k, X)
+        N = X.modulus()
+        if N <= 2:
+            return Gamma0(N).dimension_cusp_forms(k)
+        else:
+            return Gamma1(N).dimension_cusp_forms(k, X)
     elif is_ArithmeticSubgroup(X):
         return X.dimension_cusp_forms(k)
     elif isinstance(X, (Integer,int,long)):

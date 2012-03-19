@@ -122,6 +122,33 @@ points in mind.
   threads relevant to the problem you are reporting.
 
 
+Stopgaps
+========
+
+If a component of Sage produces a mathematical error, you should open
+two tickets: a main ticket with all available details, and also a
+"stopgap" ticket. This second ticket should have a patch which will be
+merged into Sage if no one fixes the main issue; this patch should print a
+warning when anyone uses the relevant code. To produce the warning
+message, use code like the following::
+
+    from sage.misc.stopgap import stopgap
+    stopgap("This code contains bugs and may be mathematically unreliable.",
+        TICKET_NUM)
+
+Replace ``TICKET_NUM`` by the ticket number for the main ticket.  See
+:trac:`12699`, for example.  On the main trac ticket, you should also
+enter the ticket number for the stopgap ticket in the "Stopgaps"
+field.  Stopgap tickets should be marked as blockers.
+
+.. note::
+
+    If mathematically valid code causes Sage to raise an error or
+    crash, for example, there is no need for a stopgap.  Rather,
+    stopgaps are to warn users that they may be using buggy code; if
+    Sage crashes, this is not an issue.
+
+
 Patching bugs/working on tickets
 ================================
 

@@ -1488,7 +1488,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.gens()
             [(-73 : -394 : 1), (323/4 : 1891/8 : 1)]
 
+        Example from Trac #11372::
+
+            sage: E = EllipticCurve([1, 1, 0, -23611790086, 1396491910863060])
+            sage: E.simon_two_descent()
+            (1, 2, [(88716 : -44358 : 1)])
+            sage: E.rank()
+            1
+            sage: E.gens()
+            [(4311692542083/48594841 : -13035144436525227/338754636611 : 1)]
         """
+        verbose = int(verbose)
         t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)
         if t=='fail':
@@ -1503,9 +1513,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 print "Rank determined successfully, saturating..."
             gens = [P for P in gens_mod_two if P.has_infinite_order()]
             gens = self.saturation(gens)[0]
-            self.__gens[True] = gens
-            self.__gens[True].sort()
-            self.__rank[True] = len(self.__gens[True])
+            if len(gens) == rank_low_bd:
+                self.__gens[True] = gens
+                self.__gens[True].sort()
+            self.__rank[True] = rank_low_bd
         return rank_low_bd, two_selmer_rank, gens_mod_two
 
     two_descent_simon = simon_two_descent

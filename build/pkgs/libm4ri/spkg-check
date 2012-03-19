@@ -27,7 +27,7 @@ CXXFLAGS="$CXXFLAGS $INCLUDES $LIBDIRS -g"
 export CFLAGS
 export CXXFLAGS
 
-cd m4ri
+cd src
 
 echo "Testing the M4RI library"
 

@@ -46,7 +46,7 @@ fi
 
 #build M4RI
 
-cd $ROOT_DIR/m4ri/
+cd $ROOT_DIR/src/
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $ENABLE_DEBUG $DISABLE_SSE2 $ENABLE_CACHETUNE
 

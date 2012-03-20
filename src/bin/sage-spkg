@@ -31,6 +31,9 @@
 #
 # AUTHORS:
 #
+# - Jeroen Demeyer (2012-02-27): #12602: refactor code to find packages,
+#   download them and extract them.
+#
 # - Jeroen Demeyer (2012-02-27): #12479: big reorganization.
 #
 # - Volker Braun, Jeroen Demeyer (2012-01-18): #11073: remove the
@@ -165,35 +168,6 @@ if [ "x$SAGE_KEEP_BUILT_SPKGS" = "xyes" ]; then
     DELETE_TMP=0
 fi
 
-##################################################################
-# Figure out the package filename, download it if needed.
-##################################################################
-PKG_NAME=`basename "$1" | sed -e "s/\.spkg$//"`
-PKG_SRC="$1"
-PKG_BASE=`echo "$PKG_NAME" | sed -e "s/-.*//"`
-
-if [ ! -f "$PKG_SRC" ]; then
-    if [ -f "$SAGE_PACKAGES/standard/$PKG_NAME.spkg" ]; then
-        PKG_SRC="$SAGE_PACKAGES/standard/$PKG_NAME.spkg"
-    else
-        if [ -f "$SAGE_PACKAGES/optional/$PKG_NAME.spkg" ]; then
-            PKG_SRC="$SAGE_PACKAGES/optional/$PKG_NAME.spkg"
-        else
-            CUR=`pwd`
-            cd "$SAGE_PACKAGES"
-            PKG_NEWEST_VER=`./standard/newest_version "$PKG_NAME" 2> /dev/null`
-            if [ -n "$PKG_NEWEST_VER" ]; then
-                PKG_SRC="$SAGE_PACKAGES/standard/$PKG_NEWEST_VER.spkg"
-            else
-                PKG_NEWEST_VER=`./standard/newest_version -base "$PKG_NAME" 2> /dev/null`
-                if [ -n "$PKG_NEWEST_VER" ]; then
-                    PKG_SRC="$SAGE_PACKAGES/standard/$PKG_NEWEST_VER.spkg"
-                fi
-            fi
-        fi
-    fi
-fi
-
 # Don't verbosely extract files from spkgs by default (#10040):
 if [ "$SAGE_SPKG_LIST_FILES" = "yes" ]; then
     UNTAR_VERBOSE=v
@@ -201,15 +175,119 @@ else
     unset UNTAR_VERBOSE
 fi
 
+##################################################################
+# Figure out the package filename, download it if needed.
+##################################################################
+# One should be able to install a package using
+# sage -i <package-name> where <package-name> can be any of the
+# following values:
+#
+# 1a. /path/to/<package>-x.y.z.spkg, i.e. the package is found somewhere
+#     in your file system and you're giving an absolute path.
+# 1b. relative/path/to/<package>-x.y.z.spkg, the same with a relative
+#     path.
+# 2a. <package>-x.y.z, i.e. the name of the package plus the package's
+#     version numbers.
+# 2b. <package>-x.y.z.spkg, i.e. the name of the package in addition to
+#     the version numbers and the ".spkg" extension.
+# 3.  <package>, i.e. the name of the package without a version number.
+# 4.  <URL>/<package>-x.y.z.spkg, i.e. the full URL where the package
+#     is hosted.  The package is always downloaded, even if a local
+#     package with the same name and version already exists.
+#
+# In cases 2a, 2b and 3 we first look locally inside spkg/* for a
+# matching package.  Otherwise, we try to download it.  In all cases,
+# we reduce to case 1a.
+#
+# See #7544 and #12602.
+#
+
+PKG_SRC="$1"
+# Does PKG_SRC contain a slash?
+if echo "$PKG_SRC" | grep / >/dev/null; then
+    PKG_HAS_PATH=yes
+fi
+# PKG_NAME is the last path component without .spkg
+# This already reduces case 2b to case 2a.
+PKG_NAME=`basename "$PKG_SRC" | sed 's/\.spkg$//'`
+PKG_BASE=`echo "$PKG_NAME" | sed 's/-.*//'`
+
+
+if [ -f "$PKG_SRC" ]; then
+    # PKG_SRC is a file.  If it is given by a relative path, prepend `pwd`
+    # (reduce case 1b to 1a)
+    if ! echo "$PKG_SRC" | grep '^/' >/dev/null; then
+        PKG_SRC="`pwd`/$PKG_SRC"
+    fi
+elif [ -z "$PKG_HAS_PATH" ]; then
+    # If PKG_SRC is not an existing file and doesn't contain a slash,
+    # we are in case 2a or 3.  Try to find a package in spkg/standard
+    # or spkg/optional (or other possible directories under spkg).
+    cd "$SAGE_PACKAGES"
+    for spkg in `ls -1t */${PKG_NAME}.spkg */${PKG_NAME}-*.spkg 2>/dev/null`; do
+        if [ -f "$spkg" ]; then
+            # Found a good package
+            PKG_SRC="`pwd`/$spkg"
+            PKG_NAME=`basename "$spkg" | sed 's/\.spkg$//'`
+            break
+        fi
+    done
+fi
+
+# If we haven't found the package yet, we must download it
+if [ ! -f "$PKG_SRC" ]; then
+    echo "Attempting to download package $PKG_NAME"
+    mkdir -p "$SAGE_PACKAGES/optional"
+    cd "$SAGE_PACKAGES/optional"
+
+    # Handle case 3 above, where the package name contains no version
+    # number and no full path.  Reduce to case 2a.
+    if [ "$PKG_BASE" = "$PKG_NAME" -a -z "$PKG_HAS_PATH" ]; then
+        # No version number found
+        echo "Searching for latest online version of $PKG_BASE"
+        PKG_NAME=`sage-latest-online-package "$PKG_BASE"`
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
+        echo "Found $PKG_NAME"
+        PKG_SRC="$PKG_NAME"
+    fi
+
+    # This script can handle either full URLs (case 4) or a package
+    # name with version (case 2a).
+    sage-download_package "$PKG_SRC"
+
+    if [ ! -f "$PKG_NAME.spkg" ]; then
+        echo >&2 "Error: Failed to download package $PKG_NAME from $SAGE_SERVER"
+        exit 1
+    fi
+    PKG_SRC="`pwd`/$PKG_NAME.spkg"
+fi
+
+# Do a final check that PKG_SRC is a file with an absolute path
+cd /
+if [ ! -f "$PKG_SRC" ]; then
+    echo >&2 "Error: spkg file '$PKG_SRC' not found."
+    echo >&2 "This shouldn't happen, it is a bug in the sage-spkg script."
+    exit 1
+fi
+
+# Go back to SAGE_ROOT where we have less chance of completely messing
+# up the system if we do something wrong.
+cd "$SAGE_ROOT" || exit
+
+##################################################################
+# Extract the package
+##################################################################
+# Usage: uncompress_spkg $PKG_FILE_NAME
+# Uncompresses a spkg to stdout.
+uncompress_spkg()
+{
+    bzip2 -d -c "$1" 2>/dev/null || gzip -d -c "$1" 2>/dev/null || cat "$1"
+}
+
 if [ $INFO -ne 0 ]; then
-    if [ ! -f "$PKG_SRC" ]; then
-        echo >&2 "Package $PKG_NAME not found"
-    fi
-    bunzip2 -c "$PKG_SRC" 2>/dev/null | tar Ofx${UNTAR_VERBOSE} - $PKG_NAME/SPKG.txt 2>/dev/null
-    if [ $? -ne 0 ]; then
-        tar Ofx${UNTAR_VERBOSE} "$PKG_SRC" "$PKG_NAME/SPKG.txt" 2>/dev/null
-    fi
-    echo ""
+    uncompress_spkg "$PKG_SRC" | tar Oxf - "$PKG_NAME/SPKG.txt"
     if [ $? -ne 0 ]; then
         echo >&2 "No file SPKG.txt in $PKG_NAME"
         exit 1
@@ -242,122 +320,44 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ $DELETE_TMP -eq 1 ]; then
-    rm -rf "$PKG_BASE-"*
+    rm -rf "$PKG_NAME"
 else
-    for dir in "$PKG_BASE-"*
-    do
-        if [ -e "$dir" ]; then
-            echo "Moving old directory $dir to $SAGE_BUILD_DIR/old..."
-            mkdir -p old
-            if [ $? -ne 0 ]; then
-                echo >&2 "Error creating directory $SAGE_BUILD_DIR/old."
-                exit 1
-            fi
-            rm -rf old/"$dir"
-            mv "$dir" old/
-        fi
-    done
-fi
-
-if [ ! -f "$PKG_SRC" ]; then
-    echo "$0: file $PKG_NAME does not exist"
-    echo "Attempting to download it."
-    CUR=`pwd`
-    mkdir -p "$SAGE_PACKAGES/optional"
-    cd "$SAGE_PACKAGES/optional"
-
-    FOUND_VERSION=''
-    if ! echo "$PKG_NAME" | grep - >/dev/null; then
-        # No version number found
-        echo "Searching for latest version of $PKG_NAME"
-        PKG_NAME=`sage-latest-online-package "$PKG_NAME"`
-        if [ $? -eq 0 ]; then
-            echo "Found package $PKG_NAME"
-            FOUND_VERSION='1'
-        else
-            echo "$PKG_NAME"
+    if [ -e "$PKG_NAME" ]; then
+        echo "Moving old directory $PKG_NAME to $SAGE_BUILD_DIR/old..."
+        mkdir -p old
+        if [ $? -ne 0 ]; then
+            echo >&2 "Error creating directory $SAGE_BUILD_DIR/old."
             exit 1
         fi
+        rm -rf old/"$PKG_NAME"
+        mv "$PKG_NAME" old/
     fi
-
-    # See trac ticket #7544. One should be able to install a package using
-    # sage -i <package-name> where <package-name> can be any of the
-    # following values:
-    #
-    # 1. <package>-x.y.z, i.e. the name of the package plus the package's
-    #    version numbers.
-    # 2. the full name <package>-x.y.z.spkg, i.e. the name of the package in
-    #    addition to the version numbers and the ".spkg" extension.
-    # 3. <URL>/<package>-x.y.z.spkg, i.e. the full URL where the package is
-    #    hosted. This can be a URL on the Sage website or somewhere else.
-    # 4. /path/to/<package>-x.y.z.spkg, i.e. the package is found somewhere
-    #    in your file system and you're giving an absolute or relative path
-    #    to the package.
-    #
-    # See trac ticket #8043. If no version was specified but a version
-    # was found above, then $PKG_NAME now contains the version number.
-    # Download this, since it's a known Sage package.  Otherwise,
-    # download the package specified by $1, since it either already
-    # contains the version number or is a URL.
-    if [ "x$FOUND_VERSION" = "x" ]; then
-        sage-download_package "$1"
-    else
-        sage-download_package "$PKG_NAME"
-    fi
-    if [ ! -f "$PKG_NAME.spkg" ]; then
-        echo "sage: Failed to download package $PKG_NAME from $SAGE_SERVER"
-        exit 1
-    fi
-    PKG_SRC="`pwd`/$PKG_NAME.spkg"
-    cd "$CUR"
 fi
 
-echo "Extracting package $PKG_SRC ..."
+if [ -e "$PKG_NAME" ]; then
+    echo >&2 "Error (re)moving $PKG_NAME"
+    exit 1
+fi
+
+echo "Extracting package $PKG_SRC"
 ls -l "$PKG_SRC"
 
-if [ -d "$PKG_NAME" ]; then
-    echo "Removing previous version."
-    rm -rf "$PKG_NAME"
-fi
-
-bunzip2 -c "$PKG_SRC" 2>/dev/null | tar fx${UNTAR_VERBOSE} -  2>/dev/null
-if [ ! -d "$PKG_NAME" ]; then
-    tar fx${UNTAR_VERBOSE} "$PKG_SRC"
+uncompress_spkg "$PKG_SRC" | tar x${UNTAR_VERBOSE}f -
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: failed to extract $PKG_SRC"
+    exit 1
 fi
 echo "Finished extraction"
-
-if [ ! -d "$PKG_NAME" ]; then
-    echo >&2 "sage: After decompressing the directory $PKG_NAME does not exist"
-    echo >&2 "This means that the corresponding .spkg needs to be downloaded"
-    echo >&2 "again."
-    if ! echo "$PKG_NAME" | grep - >/dev/null; then
-        # No version number found
-        echo "Searching for latest version of $PKG_NAME"
-        PKG_NAME=`sage-latest-online-package "$PKG_NAME"`
-        if [ $? -eq 0 ]; then
-            echo "Found package $PKG_NAME"
-        else
-            echo "$PKG_NAME"
-            exit 1
-        fi
-    fi
-    sage-download_package "$PKG_NAME"
-    echo `pwd`
-    bunzip2 -c "$PKG_NAME.spkg"  | tar fx${UNTAR_VERBOSE} -
-    if [ ! -d "$PKG_NAME.spkg" ]; then
-        tar fx${UNTAR_VERBOSE} "$PKG_NAME.spkg"
-    fi
-    if [ ! -d "$PKG_NAME" ]; then
-        echo "Second download resulted in a corrupted package."
-        exit 1
-    fi
-fi
 
 ##################################################################
 # The package has been extracted, prepare for installation
 ##################################################################
 
 cd "$PKG_NAME"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: after extracting, the directory $PKG_NAME does not exist"
+    exit 1
+fi
 
 # When there is no spkg-install, assume the "spkg" is a tarball not
 # specifically made for Sage.  Since we want it to be as easy as

@@ -842,8 +842,7 @@ if [ "$1" = '-c' ]; then
 fi
 
 install() {
-    cd "$SAGE_ROOT/spkg"
-    SAGE_LOGS="$SAGE_ROOT/spkg/logs"
+    cd "$CUR"
     mkdir -p "$SAGE_LOGS"
     for PKG in "$@"
     do
@@ -861,23 +860,16 @@ install() {
         echo "Calling sage-spkg on '$PKG'"
         PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
         PKG_NAME=`basename "$PKG_NAME"`
-        case "$PKG" in
-            /*) PKG_PATH="$PKG";;
-            *) PKG_PATH="$CUR/$PKG";;
-        esac
-        # Could use ./pipestatus here, but using an absolute path is safer:
-        # (We'll have to change it anyway in case 'pipestatus' one day moves.)
+
         "$SAGE_ROOT"/spkg/pipestatus \
-            "sage-spkg $OPTF $OPTS '$PKG_PATH' 2>&1" \
-            "(trap '' SIGINT; tee -a '$SAGE_ROOT'/install.log '$SAGE_LOGS/$PKG_NAME'.log)"
-        # Do not try to install further packages (if any) if one failed:
+            "sage-spkg $OPTF $OPTS '$PKG' 2>&1" \
+            "(trap '' SIGINT; tee -a '$SAGE_ROOT/install.log' '$SAGE_LOGS/$PKG_NAME.log')"
+        # Do not try to install further packages if one failed
         if [ $? -ne 0 ]; then
-            echo >&2 "Error: Failed to install package '$PKG_NAME'."
             exit 1
         fi
-        shift
     done
-    exit $?
+    exit 0
 }
 
 if [ "$1" = '-optional' -o "$1" = "--optional" ]; then

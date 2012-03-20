@@ -214,11 +214,12 @@ if [ 1 = 2 ]; then
 fi
 
 # Setting Sage-related location environment variables.
-SAGE_PACKAGES="$SAGE_ROOT/spkg" && export SAGE_PACKAGES
-SAGE_LOCAL="$SAGE_ROOT/local"   && export SAGE_LOCAL
-SAGE_DATA="$SAGE_ROOT/data"     && export SAGE_DATA
-SAGE_DOC="$SAGE_ROOT/devel/sage/doc" && export SAGE_DOC
-PATH="$SAGE_PACKAGES/bin:$SAGE_LOCAL/bin:$PATH" && export PATH
+export SAGE_LOCAL="$SAGE_ROOT/local"
+export SAGE_DATA="$SAGE_ROOT/data"
+export SAGE_PACKAGES="$SAGE_ROOT/spkg"
+export SAGE_LOGS="$SAGE_ROOT/spkg/logs"
+export SAGE_DOC="$SAGE_ROOT/devel/sage/doc"
+export PATH="$SAGE_PACKAGES/bin:$SAGE_LOCAL/bin:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.

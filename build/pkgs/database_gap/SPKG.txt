@@ -21,14 +21,17 @@ Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
 
 needs GAP (a standard spkg)
 
-== Change log ==
+== Changelog ==
 
-== 4.4.12.p0 (2010.03.17 Dmitrii Pasechnik) ==
+=== 4.4.12.p1 (John Palmieri, 20 March 2012) ===
+
+ * cleaned up spkg-install, made it work following the deletion of the
+   "newest_version" script (trac #10492).
+
+=== 4.4.12.p0 (2010.03.17 Dmitrii Pasechnik) ===
 
  * fixed this file
 
-== 4.4.12.p0 (2010.03.15 Dmitrii Pasechnik) ==
+=== 4.4.12.p0 (2010.03.15 Dmitrii Pasechnik) ===
 
  * made spkg-install Solaris-compatible
-
-

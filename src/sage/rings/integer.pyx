@@ -4720,6 +4720,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             False
             sage: Integer(102).is_squarefree()
             True
+            sage: Integer(0).is_squarefree()
+            False
         """
         return self._pari_().issquarefree()
 

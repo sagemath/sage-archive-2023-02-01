@@ -30,8 +30,7 @@ def install_cremona():
     class_data = []
     curve_data = []
 
-    for line in file(os.path.join(common_curves,
-            'allcurves.00000-09999')).xreadlines():
+    for line in open(os.path.join(common_curves, 'allcurves.00000-09999')):
         N, iso, num, eqn, r, tors = line.split()
         cls = N + iso
         cur = cls + num
@@ -61,11 +60,10 @@ def install_ellcurves():
 
     shutil.move(os.path.join('src', 'ellcurves'), target)
     rank = {}
-    for line in file(os.path.join(common_curves,
-            'allcurves.00000-09999')).xreadlines():
+    for line in open(os.path.join(common_curves, 'allcurves.00000-09999')):
         r = line.split()[4]
         if r not in rank:
-            rank[r] = file(tempfile.mkstemp()[1], 'w')
+            rank[r] = open(tempfile.mkstemp()[1], 'w')
         rank[r].write(line)
 
     for r, f in rank.iteritems():
@@ -75,8 +73,8 @@ def install_ellcurves():
             old = tempfile.mkstemp()[1]
             shutil.move(endpath, old)
             shutil.move(f.name, endpath)
-            f = file(endpath, 'a')
-            tmp = file(old, 'r')
+            f = open(endpath, 'a')
+            tmp = open(old, 'r')
             f.write(tmp.read())
             tmp.close()
             f.close()

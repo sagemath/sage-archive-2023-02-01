@@ -564,15 +564,19 @@ if [ "$1" = '-sh'  -o "$1" = '--sh' ]; then
     fi
     if [ $# -eq 0 ]; then
         # No arguments, so print informative message...
-        echo "" 1>&2
-        echo "Starting subshell with Sage environment variables set." 1>&2
-        echo "Be sure to exit when you are done and do not do anything" 1>&2
-        echo "with other copies of Sage!" 1>&2
-        echo "" 1>&2
+        echo >&2
+        echo >&2 "Starting subshell with Sage environment variables set.  Don't forget"
+        echo >&2 "to exit when you are done.  Beware:"
+        echo >&2 " * Do not do anything with other copies of Sage on your system."
+        echo >&2 " * Do not use this for installing Sage packages using \"sage -i\" or for"
+        echo >&2 "   running \"make\" at Sage's root directory.  These should be done"
+        echo >&2 "   outside the Sage shell."
+        echo >&2
         if [ -n "$SHELL_OPTS" ]; then
-            echo "Bypassing shell configuration files ..." 1>&2
-            echo "" 1>&2
+            echo >&2 "Bypassing shell configuration files..."
+            echo >&2
         fi
+        echo >&2 "Note: SAGE_ROOT=$SAGE_ROOT"
         "$SHELL" $SHELL_OPTS "$@"
         status=$?
         echo "Exited Sage subshell." 1>&2

@@ -1044,6 +1044,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
                 yrel = self._valaddeds[i]
                 answer.append((i, self._valbase + yrel))
                 curslope = (yfrel - yrel) / (xf - i)
+        from sage.misc.stopgap import stopgap
+        stopgap("Check that the Newton polygon below is actually convex.", 6667)
         answer.append((xf, self._valbase + self._valaddeds[xf]))
         return answer
 

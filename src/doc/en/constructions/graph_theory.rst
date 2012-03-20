@@ -49,7 +49,7 @@ graphs was written by Bobby Moretti and Robert Miller.
     sage: C.diameter()
     3
     sage: C.girth()
-    4
+    2
     sage: C.automorphism_group().order()
     10
     sage: len(C.edges())

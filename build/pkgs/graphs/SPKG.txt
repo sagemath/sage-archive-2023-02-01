@@ -7,7 +7,7 @@ Grout.
 
 == SPKG Maintainers ==
 
- * Emily Kirkman
+ * R. Andrew Ohana
 
 == Upstream Contact ==
 
@@ -21,6 +21,7 @@ N/A
 
 == graphs-20070722.p2 (Keshav Kini, 2012-03-18) ==
  * #12694: Normalize directory structure
+ * Make R. Andrew Ohana the maintainer
 
 == graphs-20070722.p1 (?, ?) ==
 ?

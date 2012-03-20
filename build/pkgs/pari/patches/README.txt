@@ -54,6 +54,10 @@ C files:
 * pari_1302.patch: Add a patch (from upstream's git master) to make
   ispower() work properly for negative integers.  See
   http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1302
+* pari_1304.patch: Add a patch (from upstream's git master, with the
+  patch to CHANGES removed) to make issquarefree(0) return 0 instead of
+  raising an error.  See
+  http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1304
 
 ======================================================================
 Files previously patched:

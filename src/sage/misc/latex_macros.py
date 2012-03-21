@@ -188,6 +188,7 @@ def convert_latex_macro_to_jsmath_easy(macro):
 # SAGE_DOC/output/latex/en/tutorial.  The preamble should contain
 # \newcommand's for each of the entries here.
 macros = [["ZZ"],
+          ["NN"],
           ["RR"],
           ["CC"],
           ["QQ"],

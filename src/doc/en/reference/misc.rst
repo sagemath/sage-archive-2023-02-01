@@ -27,6 +27,7 @@ Miscellaneous
    sage/misc/hg
    sage/misc/preparser
    sage/misc/functional
+   sage/misc/html
    sage/misc/latex
    sage/misc/latex_macros
    other/sagetex

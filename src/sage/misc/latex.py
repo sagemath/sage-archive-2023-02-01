@@ -203,6 +203,36 @@ def bool_function(x):
     """
     return r"\mathrm{%s}" % bool(x)
 
+def builtin_constant_function(x):
+    r"""
+    Returns the LaTeX code for a builtin constant ``x``.
+
+    INPUT: ``x`` - builtin constant
+
+    .. SEEALSO:: Python built-in Constants http://docs.python.org/library/constants.html
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import builtin_constant_function
+        sage: builtin_constant_function(True)
+        '\\mbox{\\rm True}'
+        sage: builtin_constant_function(None)
+        '\\mbox{\\rm None}'
+        sage: builtin_constant_function(NotImplemented)
+        '\\mbox{\\rm NotImplemented}'
+        sage: builtin_constant_function(Ellipsis)
+        '\\mbox{\\rm Ellipsis}'
+
+    TESTS::
+
+        sage: sage.misc.latex.EMBEDDED_MODE = True
+        sage: builtin_constant_function(True)
+        '{\\rm True}'
+        sage: sage.misc.latex.EMBEDDED_MODE = False
+    """
+    if EMBEDDED_MODE:
+        return "{\\rm %s}"%x
+    return "\mbox{\\rm %s}"%x
 
 def None_function(x):
     r"""
@@ -370,7 +400,10 @@ latex_table = {types.NoneType: None_function,
                list: list_function,
                long: str,
                str: str_function,
-               tuple: tuple_function}
+               tuple: tuple_function,
+               type(None):builtin_constant_function,
+               type(NotImplemented):builtin_constant_function,
+               type(Ellipsis):builtin_constant_function}
 
 
 class LatexExpr(str):
@@ -562,6 +595,7 @@ def latex_extra_preamble():
         sage: print latex_extra_preamble()
         <BLANKLINE>
         \newcommand{\ZZ}{\Bold{Z}}
+        \newcommand{\NN}{\Bold{N}}
         \newcommand{\RR}{\Bold{R}}
         \newcommand{\CC}{\Bold{C}}
         \newcommand{\QQ}{\Bold{Q}}
@@ -1519,6 +1553,9 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
 # assignment.
 
 latex = Latex()
+# Ensure that latex appear in the sphinx doc as a function
+# so that the link :func:`latex` is correctly set up.
+latex.__doc__  = Latex.__call__.__doc__
 #########################################
 
 def _latex_file_(objects, title='SAGE', debug=False, \
@@ -1799,7 +1836,7 @@ def jsmath(x, mode='display'):
 
     .. warning::
 
-        2009-04: This function is deprecated; use :func:`html`
+        2009-04: This function is deprecated; use :func:`~.html.html`
         instead: replace ``jsmath('MATH', mode='display')`` with
         ``html('$$MATH$$')``, and replace ``jsmath('MATH',
         mode='inline')`` with ``html('$MATH$')``.

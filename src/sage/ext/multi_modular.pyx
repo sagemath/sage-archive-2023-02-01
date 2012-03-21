@@ -172,22 +172,33 @@ cdef class MultiModularBasis_base:
         else:
             self._u_bound = u_bound
 
+        from sage.functions.prime_pi import prime_pi  # must be here to avoid circular import
+        self._num_primes = prime_pi(self._u_bound) - prime_pi(self._l_bound-1)
+
         cdef int i
         if isinstance(val, (list, tuple, GeneratorType)):
             self.extend_with_primes(val, check=True)
         else:
             self._extend_moduli_to_height(val)
 
-    cdef mod_int _new_random_prime(self):
-        # choose a new random prime
+    cdef mod_int _new_random_prime(self, set known_primes) except 1:
+        """
+        Choose a new random prime for inclusion in the list of moduli,
+        or raise a RuntimeError if there are no more primes.
+
+        INPUT:
+
+            - `known_primes` -- Python set of already known primes in
+              the allowed interval; we will not return a prime in
+              known_primes.
+        """
         cdef Py_ssize_t i
         cdef mod_int p
         while True:
+            if len(known_primes) >= self._num_primes:
+                raise RuntimeError, "there are not enough primes in the interval [%s, %s] to complete this multimodular computation"%(self._l_bound, self._u_bound)
             p = random_prime(self._u_bound, lbound =self._l_bound)
-            for i in range(self.n):
-                if p == self.moduli[i]:
-                    break
-            else:
+            if p not in known_primes:
                 return p
 
     def extend_with_primes(self, plist, partial_products = None, check=True):
@@ -315,6 +326,26 @@ cdef class MultiModularBasis_base:
             sage: mm._extend_moduli_to_height(10^30); mm
             MultiModularBasis with moduli [46307, 28499, 32573, 4339, 30859, 16451, 14323, 28631]
 
+        TESTS:
+
+        Verify that Trac #11358 is fixed::
+
+            sage: set_random_seed(0); m = sage.ext.multi_modular.MultiModularBasis_base(0)
+            sage: m._extend_moduli_to_height(prod(prime_range(50)))
+            sage: m = sage.ext.multi_modular.MultiModularBasis_base([],2,100)
+            sage: m._extend_moduli_to_height(prod(prime_range(90)))
+            sage: m._extend_moduli_to_height(prod(prime_range(150)))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: there are not enough primes in the interval [2, 100] to complete this multimodular computation
+
+        Another check (which fails horribly before #11358 is fixed)::
+
+            sage: set_random_seed(0); m = sage.ext.multi_modular.MultiModularBasis_base(0); m._extend_moduli_to_height(10**10000)
+            sage: len(set(m)) == len(m)
+            True
+            sage: len(m)
+            2438
         """
         cdef Integer h
         h = ZZ(height)
@@ -352,9 +383,12 @@ cdef class MultiModularBasis_base:
         else:
             M = PY_NEW(Integer)
             mpz_set(M.value, self.partial_products[self.n-1])
+
+        known_primes = set(self)
         while mpz_cmp(height, M.value) > 0:
-            p = self._new_random_prime()
+            p = self._new_random_prime(known_primes)
             new_moduli.append(p)
+            known_primes.add(p)
             M *= p
             new_partial_products.append(M)
         mpz_clear(height)
@@ -384,9 +418,12 @@ cdef class MultiModularBasis_base:
         new_moduli = []
 
         cdef int i
-        cdef Integer p
+        cdef mod_int p
+        known_primes = set(self)
         for i from self.n <= i < count:
-            new_moduli.append(self._new_random_prime())
+            p = self._new_random_prime(known_primes)
+            known_primes.add(p)
+            new_moduli.append(p)
 
         return self.extend_with_primes(new_moduli, check=False)
 
@@ -741,7 +778,7 @@ cdef class MultiModularBasis_base:
             sage: mm.list()
             [46307, 10007]
         """
-        cdef int i
+        cdef Py_ssize_t i
         return [ZZ(self.moduli[i]) for i in range(self.n)]
 
     def __len__(self):
@@ -949,7 +986,7 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
 
     cdef mod_int replace_prime_c(self, int ix) except -1:
         r"""
-        Replace $m_{ix} in the list of moduli with a new
+        Replace $m_{ix}$ in the list of moduli with a new
         prime number greater than all others in the list,
         and recompute all precomputations.
 
@@ -966,7 +1003,7 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
         if ix < 0 or ix >= self.n:
             raise IndexError, "index out of range"
 
-        new_p = self._new_random_prime()
+        new_p = self._new_random_prime(set(self))
         self.moduli[ix] = new_p
 
         self._refresh_products(ix)

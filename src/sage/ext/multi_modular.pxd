@@ -17,8 +17,9 @@ cdef class MultiModularBasis_base:
     cdef mpz_t    half_product
     cdef unsigned long _l_bound
     cdef unsigned long _u_bound
+    cdef unsigned long _num_primes
 
-    cdef mod_int _new_random_prime(self)
+    cdef mod_int _new_random_prime(self, set known_primes) except 1
     cdef mod_int last_prime(self)
     cdef _realloc_to_new_count(self, new_count)
     cdef int _extend_moduli_to_height_c(self, mpz_t height) except -1

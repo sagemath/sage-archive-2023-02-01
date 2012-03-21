@@ -36,6 +36,10 @@ reference implementation for Gröbner basis computation.
  * png/libpng12 (accomplished because Python and gd depend on it, too)
  * libz         (accomplished because e.g. libpng depends on it)
 
+== Special Files ==
+ * custom.py - configuration file for PolyBoRi's build system,
+               sets local prefix and install paths to Sage directories
+
 == Releases ==
 
 === polybori-0.8.1.p0 (Alexander Dreyer, March 7th, 2012) ===

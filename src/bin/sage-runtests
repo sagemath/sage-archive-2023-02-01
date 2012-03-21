@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+
+import optparse, os, sys
+
+if __name__ == "__main__":
+    parser = optparse.OptionParser()
+
+    def nthreads_callback(option, opt_str, value, parser):
+        assert value is None
+        if parser.rargs: # there are more arguments
+            try:
+                next_arg = int(parser.rargs[0])
+                parser.rargs.pop(0)
+            except ValueError:
+                # No explicit number of threads passed
+                next_arg = 0
+        else:
+            next_arg = 0
+        parser.values.nthreads = next_arg
+
+    parser.add_option("-p", "--nthreads", action="callback", callback=nthreads_callback, nargs=0, metavar="N", help="tests in parallel using N threads with 0 interpreted as minimum(8, cpu_count())")
+    parser.add_option("--serial", action="store_true", default=False, help="run tests in a single process in series")
+    parser.add_option("-T", "--timeout", type=int, default=-1, help="timeout (in seconds) for doctesting one file")
+    parser.add_option("-a", "--all", action="store_true", default=False, help="test all files in the Sage library")
+    parser.add_option("--logfile", metavar="FILE", help="log all output to FILE")
+    parser.add_option("--sagenb", action="store_true", default=False, help="test all sagenb files")
+
+    parser.add_option("--long", action="store_true", default=False, help="include lines with the phrase 'long time'")
+    parser.add_option("--optional", metavar="OPTIONAL_PKGS", default="sage", \
+                          help="only run tests including one of the #optional tags listed in OPTIONAL_PKGS; if 'sage' is listed will also test the standard doctests; if OPTIONAL_PKGS='all' all tests will be run")
+    parser.add_option("--randorder", type=int, metavar="SEED", help="randomize order of tests")
+    parser.add_option("--global-iterations", "--global_iterations", type=int, default=0, help="repeat the whole testing process this many times")
+    parser.add_option("--file-iterations", "--file_iterations", type=int, default=0, help="repeat each file this many times, stopping on the first failure")
+
+    parser.add_option("-i", "--initial", action="store_true", default=False, help="only show the first failure in each file")
+    parser.add_option("--force_lib", "--force-lib", action="store_true", default=False, help="assume all files are Sage library files, regardless of location, ie don't import anything from the file tested")
+    parser.add_option("--abspath", action="store_true", default=False, help="print absolute paths rather than relative paths")
+    parser.add_option("--verbose", action="store_true", default=False, help="print debugging output during the test")
+    parser.add_option("-d", "--debug", action="store_true", default=False, help="drop into a python debugger when an unexpected error is raised")
+
+    parser.add_option("--gdb", action="store_true", default=False, help="run doctests under the control of gdb")
+    parser.add_option("--valgrind", "--memcheck", action="store_true", default=False,
+                      help="run doctests using Valgrind's memcheck tool.  The log " + \
+                         "files are named sage-memcheck.PID and can be found in " + \
+                         os.path.join(os.environ["DOT_SAGE"], "valgrind"))
+    parser.add_option("--massif", action="store_true", default=False,
+                      help="run doctests using Valgrind's massif tool.  The log " + \
+                         "files are named sage-massif.PID and can be found in " + \
+                         os.path.join(os.environ["DOT_SAGE"], "valgrind"))
+    parser.add_option("--cachegrind", action="store_true", default=False,
+                      help="run doctests using Valgrind's cachegrind tool.  The log " + \
+                         "files are named sage-cachegrind.PID and can be found in " + \
+                         os.path.join(os.environ["DOT_SAGE"], "valgrind"))
+    parser.add_option("--omega", action="store_true", default=False,
+                      help="run doctests using Valgrind's omega tool.  The log " + \
+                         "files are named sage-omega.PID and can be found in " + \
+                         os.path.join(os.environ["DOT_SAGE"], "valgrind"))
+
+    parser.add_option("-f", "--failed", action="store_true", default=False, \
+                          help="doctest only those files that failed in the previous run")
+    parser.add_option("--new", action="store_true", default=False, help="doctest only those files that have been changed in the repository and not yet been committed")
+
+    parser.add_option("--stats_path", "--stats-path", default=os.path.join(os.path.expanduser("~/.sage/timings2.json")), \
+                          help="path to a json dictionary for the latest run storing a timing for each file")
+
+    parser.set_usage("sage -t [options] filenames")
+    from sage.doctest.control import DocTestController
+    options, args = parser.parse_args()
+    if len(args) == 0 and not (options.all or options.sagenb or options.new):
+        parser.print_help()
+        sys.exit(8)
+    else:
+        DC = DocTestController(*parser.parse_args())
+        err = DC.run()
+
+        # We use os._exit rather then sys.exit since sys.exit wasn't
+        # completely quitting on sage.math after a KeyboardInterrupt
+        os._exit(err)

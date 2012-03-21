@@ -4,7 +4,6 @@ import sys
 from sage.all import *
 from sage.calculus.predefined import x
 from sage.misc.preparser import preparse
-from sage.misc.misc import tmp_filename
 
 if len(sys.argv) > 1:
     s = preparse(" ".join(sys.argv[1:]))

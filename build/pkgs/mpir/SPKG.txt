@@ -27,8 +27,6 @@ See http://www.mpir.org
          each upgrade.)
  * Make sure the patches still apply; also, putting "-Wl,z,noexecstack"
    into LDFLAGS might not be necessary for later versions.
- * There is a race condition in `make install`, supposed to be fixed in
-   MPIR 2.1.4.  Currently we work around this by installing with -j1.
  * Perhaps make sure we still delete the correct files on 32-bit MacOS X
    on Intel hardware (x86) to not break PIC there.
  * Remove some files / directories not needed for Sage from upstream:
@@ -41,6 +39,16 @@ See http://www.mpir.org
    MPIR would compile with Sun CC there. See also `spkg-install`.
 
 == Changelog ==
+
+=== mpir-2.4.0.p1 (Leif Leonhardy, March 21st, 2012) ===
+ * Upstream upgrade to MPIR 2.4.0 (#11616).
+   The 2.4.0.p0 spkg isn't in this history, as it was based
+   on the 2.1.3.p4 spkg, i.e., is "on another branch",
+   and never got merged into Sage.
+ * Remove forcing a sequential `make install` again, since
+   the potential race condition was fixed in MPIR 2.1.4.
+ * Fix `.hgtags`, which contained duplicate entries, and
+   was missing others.
 
 === mpir-2.1.3.p9 (Simon King, 11 December 2011) ===
  * #12131: Use --libdir, so that the package works on openSUSE

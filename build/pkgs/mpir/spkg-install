@@ -75,6 +75,11 @@ get_upstream_selected_cflags() # Get MPIR's choice on empty CFLAGS (or system GM
         exit 1
     fi
     header_file=$1
+    # We'll probably have to change the following patterns (conditionally) when we
+    # upgrade to MPIR >=2.5.0(?), since MPIR's gmp.h was changed to define __GMP_CC
+    # to (literally) __MPIR_CC, and likewise __GMP_CFLAGS to __MPIR_CFLAGS.
+    # I.e., in later releases __MPIR_CC and __MPIR_CFLAGS will contain the real strings
+    # we need (unless they again change this; I've already complained about that).
     gmp_cc_pat='/^[ 	]*#[ 	]*define[ 	]\+__GMP_CC[ 	]\+/s/.*"\([^"]*\)"/\1/p'
     gmp_cflags_pat='/^[ 	]*#[ 	]*define[ 	]\+__GMP_CFLAGS[ 	]\+/s/.*"\([^"]*\)"/\1/p'
     if ! [ -f "$header_file" ]; then
@@ -128,11 +133,17 @@ native_build_cflags_if_supported() # Give option for a native build if supported
 # The Yasm build uses PYTHON from the environment to find python, so unset
 # it since the setting from 'spkg/standard/newest_version' confuses it:
 unset PYTHON
+# This can be removed once #10492 has been merged, which turns the "package
+# version" environment variables into solely `make` variables, such that the
+# (shell) environment does no longer get polluted.
 
 user_cflags=$CFLAGS # Save them. 'sage-env' sets CC, but not CFLAGS.
 required_cflags="" # Additional mandatory settings required by Sage, accumulated below.
 default_cflags="" # Spkg defaults that can and might get overridden.
+
+# Newer autotools may put libs into .../lib64 (on 64-bit systems):
 SAGE_CONF_OPTS=--libdir="$SAGE_LOCAL/lib"
+# (Further options to `configure` are added below.)
 
 
 if [ -z "$CFLAG32" ]; then
@@ -201,11 +212,11 @@ case "$UNAME" in
             # on both 64-bit and 32-bit, though this is likely to change.
             case "`uname -m`" in
             i[3456]86)
-                echo "** Building with FAT Binary Support (32-bit) **"
+                echo "** Building with \"fat binary\" support for 32-bit CPUs **"
                 SAGE_CONF_OPTS="$SAGE_CONF_OPTS --enable-fat"
                 ;;
             x86_64|amd64)
-                echo "** Building with FAT Binary Support (64-bit) **"
+                echo "** Building with \"fat binary\" support for 64-bit CPUs **"
                 SAGE_CONF_OPTS="$SAGE_CONF_OPTS --enable-fat"
                 ;;
             *) # e.g. ia64 (Itanium) or PPC (ppc, ppc64)
@@ -251,7 +262,7 @@ case "$UNAME" in
         ;;
     *) # e.g. AIX or HP-UX
         echo "Warning: Your platform ($UNAME) isn't yet explicitly supported" \
-            "in this spkg."
+            "by this MPIR spkg, i.e., by Sage's part of it."
 esac
 
 export ABI CFLAGS CXXFLAGS # Partially redundant, but safe(r).
@@ -382,7 +393,7 @@ if [ -z "$MPIR_EXTRA_OPTS" ]; then
     echo "    --prefix=\"$SAGE_LOCAL\" $SAGE_CONF_OPTS"
     echo "You can set MPIR_EXTRA_OPTS to pass additional parameters."
 else
-    echo "Using additional 'configure' options as specified with" \
+    echo "Using additional 'configure' options as specified through" \
         "MPIR_EXTRA_OPTS:"
     echo "    $MPIR_EXTRA_OPTS"
     echo "Configuring MPIR with the following options:"
@@ -431,8 +442,8 @@ fi
 # Now install MPIR:
 ###############################################################################
 
-# Serial make since parallel is broken (#12139).
-$MAKE -j1 install
+# The potential race condition in `make install` was fixed in MPIR 2.1.4.
+$MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing MPIR."
     if [ "$UNAME" != "CYGWIN" ]; then  # On Cygwin an error is not fatal.
@@ -443,7 +454,7 @@ fi
 echo "Remember to rebuild the Sage library ('./sage -b') such that it"
 echo "will use the new MPIR."
 echo "You may also have to (or want to) rebuild other Sage packages"
-echo "that use MPIR. Provided that this MPIR spkg is in 'spkg/standard/',"
+echo "that use MPIR.  Provided that this MPIR spkg is in 'spkg/standard/',"
 echo "you can rebuild all packages depending on MPIR by typing:"
 echo "    cd $SAGE_ROOT"
 echo "    env SAGE_UPGRADING=yes make"

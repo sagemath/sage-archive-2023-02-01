@@ -47,9 +47,6 @@ along with the GNU MP Library.  If not, see http://www.gnu.org/licenses/.  */
 #define GMP_NAIL_MASK     (~ GMP_NUMB_MASK)
 
 
-/* The following (everything under ifndef __GNU_MP__) must be identical in
-   mpir.h and mp.h to allow both to be included in an application or during
-   the library build.  */
 #ifndef __GNU_MP__
 #define __GNU_MP__ 4
 
@@ -67,6 +64,10 @@ along with the GNU MP Library.  If not, see http://www.gnu.org/licenses/.  */
 #define __GMP_LIBGMP_DLL  @LIBGMP_DLL@
 #endif
 
+/*  #if defined(__GMP_WITHIN_CONFIGURE) && defined(_WIN64)   */
+#ifdef __WIN64
+#define _LONG_LONG_LIMB	1
+#endif
 
 /* __STDC__ - some ANSI compilers define this only to 0, hence the use of
        "defined" and not "__STDC__-0".  In particular Sun workshop C 5.0
@@ -203,10 +204,12 @@ typedef long int		mp_limb_signed_t;
 #endif
 #endif
 
-#if defined( _MSC_VER ) && defined( _WIN64 )
+#ifdef _WIN64
 typedef unsigned long long int	mp_bitcnt_t;
+#define __GMP_BITCNT_MAX  (~(unsigned long long) 0)
 #else
 typedef unsigned long int mp_bitcnt_t;
+#define __GMP_BITCNT_MAX  (~(unsigned long) 0)
 #endif
 
 /* For reference, note that the name __mpz_struct gets into C++ mangled
@@ -228,12 +231,7 @@ typedef __mpz_struct mpz_t[1];
 
 typedef mp_limb_t *		mp_ptr;
 typedef __gmp_const mp_limb_t *	mp_srcptr;
-#if defined (_CRAY) && ! defined (_CRAYMPP)
-/* plain `int' is much faster (48 bits) */
-#define __GMP_MP_SIZE_T_INT     1
-typedef int			mp_size_t;
-typedef int			mp_exp_t;
-#elif defined( _WIN64)
+#if defined( _WIN64)
 #define __GMP_MP_SIZE_T_INT     0
 typedef long long int	mp_size_t;
 typedef long int		mp_exp_t;
@@ -294,8 +292,6 @@ typedef __gmp_const __mpq_struct *mpq_srcptr;
 typedef __mpq_struct *mpq_ptr;
 
 
-/* This is not wanted in mp.h, so put it outside the __GNU_MP__ common
-   section. */
 #if __GMP_LIBGMP_DLL
 #if __GMP_WITHIN_GMPXX
 /* compiling to go into a DLL libmpirxx */
@@ -334,7 +330,6 @@ typedef __mpq_struct *mpq_ptr;
   || defined (__STDIO_H)              /* Borland */             \
   || defined (__STDIO_H__)            /* IRIX */                \
   || defined (_STDIO_INCLUDED)        /* HPUX */                \
-  || defined (__dj_include_stdio_h_)  /* DJGPP */               \
   || defined (_FILE_DEFINED)          /* Microsoft */           \
   || defined (__STDIO__)              /* Apple MPW MrC */       \
   || defined (_MSL_STDIO_H)           /* Metrowerks */          \
@@ -528,13 +523,6 @@ typedef __mpq_struct *mpq_ptr;
 #define __GMP_LIKELY(cond)    (cond)
 #define __GMP_UNLIKELY(cond)  (cond)
 #endif
-
-#ifdef _CRAY
-#define __GMP_CRAY_Pragma(str)  _Pragma (str)
-#else
-#define __GMP_CRAY_Pragma(str)
-#endif
-
 
 /* Allow direct user access to numerator and denominator of a mpq_t object.  */
 #define mpq_numref(Q) (&((Q)->_mp_num))
@@ -732,7 +720,7 @@ __GMP_DECLSPEC void mpz_bin_uiui __GMP_PROTO ((mpz_ptr, unsigned long int, unsig
 __GMP_DECLSPEC void mpz_cdiv_q __GMP_PROTO ((mpz_ptr, mpz_srcptr, mpz_srcptr));
 
 #define mpz_cdiv_q_2exp __gmpz_cdiv_q_2exp
-__GMP_DECLSPEC void mpz_cdiv_q_2exp __GMP_PROTO ((mpz_ptr, mpz_srcptr, unsigned long));
+__GMP_DECLSPEC void mpz_cdiv_q_2exp __GMP_PROTO ((mpz_ptr, mpz_srcptr, mp_bitcnt_t));
 
 #define mpz_cdiv_q_ui __gmpz_cdiv_q_ui
 __GMP_DECLSPEC unsigned long int mpz_cdiv_q_ui __GMP_PROTO ((mpz_ptr, mpz_srcptr, unsigned long int));
@@ -1069,7 +1057,7 @@ __GMP_DECLSPEC int mpz_likely_prime_p __GMP_PROTO ((mpz_srcptr,gmp_randstate_t, 
 __GMP_DECLSPEC void mpz_realloc2 __GMP_PROTO ((mpz_ptr, mp_bitcnt_t));
 
 #define mpz_remove __gmpz_remove
-__GMP_DECLSPEC unsigned long int mpz_remove __GMP_PROTO ((mpz_ptr, mpz_srcptr, mpz_srcptr));
+__GMP_DECLSPEC mp_bitcnt_t mpz_remove __GMP_PROTO ((mpz_ptr, mpz_srcptr, mpz_srcptr));
 
 #define mpz_root __gmpz_root
 __GMP_DECLSPEC int mpz_root __GMP_PROTO ((mpz_ptr, mpz_srcptr, unsigned long int));
@@ -1195,6 +1183,33 @@ __GMP_DECLSPEC void mpz_urandomm __GMP_PROTO ((mpz_ptr, gmp_randstate_t, mpz_src
 #define mpz_xor __gmpz_xor
 #define mpz_eor __gmpz_xor
 __GMP_DECLSPEC void mpz_xor __GMP_PROTO ((mpz_ptr, mpz_srcptr, mpz_srcptr));
+
+
+/****** Integer (i.e. Z) routines for intmaax_t/uintmax_t types ******/
+
+#if defined( _STDINT_H ) || defined ( _STDINT_H_ ) || defined ( _STDINT )
+
+#define __GMP_BITS_PER_UINTMAX  (8*sizeof(uintmax_t))
+
+#define mpz_get_ux __gmpz_get_ux
+__GMP_DECLSPEC uintmax_t mpz_get_ux __GMP_PROTO ((mpz_srcptr));
+
+#define mpz_get_sx __gmpz_get_sx
+__GMP_DECLSPEC intmax_t mpz_get_sx __GMP_PROTO ((mpz_srcptr));
+
+#define mpz_set_ux __gmpz_set_ux
+__GMP_DECLSPEC void mpz_set_ux __GMP_PROTO ((mpz_ptr, uintmax_t));
+
+#define mpz_set_sx __gmpz_set_sx
+__GMP_DECLSPEC void mpz_set_sx __GMP_PROTO ((mpz_ptr, intmax_t));
+
+#define mpz_init_set_ux __gmpz_init_set_ux
+__GMP_DECLSPEC void mpz_init_set_ux __GMP_PROTO ((mpz_ptr, uintmax_t));
+
+#define mpz_init_set_sx __gmpz_init_set_sx
+__GMP_DECLSPEC void mpz_init_set_sx __GMP_PROTO ((mpz_ptr, intmax_t));
+
+#endif
 
 
 /**************** Rational (i.e. Q) routines.  ****************/
@@ -1354,7 +1369,7 @@ __GMP_DECLSPEC void mpf_div_ui __GMP_PROTO ((mpf_ptr, mpf_srcptr, unsigned long 
 __GMP_DECLSPEC void mpf_dump __GMP_PROTO ((mpf_srcptr));
 
 #define mpf_eq __gmpf_eq
-__GMP_DECLSPEC int mpf_eq __GMP_PROTO ((mpf_srcptr, mpf_srcptr, unsigned long int)) __GMP_ATTRIBUTE_PURE;
+__GMP_DECLSPEC int mpf_eq __GMP_PROTO ((mpf_srcptr, mpf_srcptr, mp_bitcnt_t)) __GMP_ATTRIBUTE_PURE;
 
 #define mpf_fits_sint_p __gmpf_fits_sint_p
 __GMP_DECLSPEC int mpf_fits_sint_p __GMP_PROTO ((mpf_srcptr)) __GMP_NOTHROW __GMP_ATTRIBUTE_PURE;
@@ -1556,6 +1571,9 @@ __GMP_DECLSPEC void mpn_mulmod_2expm1 __GMP_PROTO ((mp_ptr, mp_ptr, mp_ptr,unsig
 #if __GMP_INLINE_PROTOTYPES || defined (__GMP_FORCE_mpn_cmp)
 __GMP_DECLSPEC int mpn_cmp __GMP_PROTO ((mp_srcptr, mp_srcptr, mp_size_t)) __GMP_NOTHROW __GMP_ATTRIBUTE_PURE;
 #endif
+
+#define mpn_redc_1 __MPN(redc_1)
+__GMP_DECLSPEC void mpn_redc_1 __GMP_PROTO ((mp_ptr, mp_ptr, mp_srcptr, mp_size_t, mp_limb_t);)
 
 #define mpn_divexact_by3(dst,src,size) \
   mpn_divexact_by3c (dst, src, size, __GMP_CAST (mp_limb_t, 0))
@@ -1877,7 +1895,7 @@ mpz_get_ui (mpz_srcptr __gmp_z) __GMP_NOTHROW
      "__GMP_ULONG_MAX < GMP_NUMB_MASK".  */
 #if GMP_NAIL_BITS == 0 || defined (_LONG_LONG_LIMB)
   /* limb==long and no nails, or limb==longlong, one limb is enough */
-  return (__gmp_n != 0 ? __gmp_l : 0);
+  return (unsigned long)(__gmp_n != 0 ? __gmp_l : 0);
 #else
   /* limb==long and nails, need two limbs when available */
   __gmp_n = __GMP_ABS (__gmp_n);
@@ -1942,7 +1960,7 @@ mpz_popcount (mpz_srcptr __gmp_u) __GMP_NOTHROW
   mp_bitcnt_t    __gmp_result;
 
   __gmp_usize = __gmp_u->_mp_size;
-  __gmp_result = (__gmp_usize < 0 ? __GMP_ULONG_MAX : 0);
+  __gmp_result = (__gmp_usize < 0 ? __GMP_BITCNT_MAX : 0);
   if (__GMP_LIKELY (__gmp_usize > 0))
     __gmp_result =  mpn_popcount (__gmp_u->_mp_d, __gmp_usize);
   return __gmp_result;
@@ -2211,7 +2229,6 @@ mpq_neg (mpq_ptr __gmp_w, mpq_srcptr __gmp_u)
     /* ASSERT ((start) >= 0); */                                \
     /* ASSERT ((start) <= (size)); */                           \
     /* ASSERT (MPN_SAME_OR_SEPARATE_P (dst, src, size)); */     \
-    __GMP_CRAY_Pragma ("_CRI ivdep");                           \
     for (__gmp_j = (start); __gmp_j < (size); __gmp_j++)        \
       (dst)[__gmp_j] = (src)[__gmp_j];                          \
   } while (0)
@@ -2378,14 +2395,14 @@ enum
 /* Major version number is the value of __GNU_MP__ too, above and in mp.h. */
 #define __GNU_MP_VERSION 5
 #define __GNU_MP_VERSION_MINOR 0
-#define __GNU_MP_VERSION_PATCHLEVEL 1
-#define GMP_VERSION "5.0.1"
+#define __GNU_MP_VERSION_PATCHLEVEL 2
+#define GMP_VERSION "5.0.2"
 
 #define __MPIR_VERSION 2
-#define __MPIR_VERSION_MINOR 1
-#define __MPIR_VERSION_PATCHLEVEL 3
+#define __MPIR_VERSION_MINOR 4
+#define __MPIR_VERSION_PATCHLEVEL 0
 #if defined( _MSC_VER )
-#define _MSC_MPIR_VERSION "2.1.3"
+#define _MSC_MPIR_VERSION "2.4.0"
 #endif
 
 /* These are for programs like MPFR to use the same CC and CFLAGS as MPIR */

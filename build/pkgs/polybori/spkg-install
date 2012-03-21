@@ -10,13 +10,16 @@ PBDIR=polybori-0.8.1
 WORKDIR=${PWD}/src
 SCONS=scons
 
-patch_polybori()
+prepare_polybori()
 {
     if [ $UNAME = "CYGWIN" ]; then
         export PROGSUFFIX=.exe
     fi
 
     cd ${PBDIR}
+
+    # place configuration file
+    cp ../../custom.py .
 
     # Apply patches.  See SPKG.txt for information about what each patch
     # does.
@@ -69,7 +72,7 @@ clean_polybori()
 
 cd ${WORKDIR}
 
-patch_polybori
+prepare_polybori
 echo "Starting build..."
 
 echo "Removing old PolyBoRi install..."

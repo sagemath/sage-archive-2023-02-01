@@ -7,7 +7,26 @@ die () {
 
 [ -n "$SAGE_LOCAL" ] || die 'Error: $SAGE_LOCAL not set. Source sage-env or run this script from `sage -sh`.'
 
+CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
+LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
+
+if [ -z $CFLAG64 ]; then
+    CFLAG64=-m64
+fi
+if [ -n $SAGE64 ]; then
+    echo "Building with extra 64-bit flags for MacOS X and Open Solaris."
+    CFLAGS="$CFLAGS $CFLAG64"
+    CPPFLAGS="$CPPFLAGS $CFLAG64"
+    CXXFLAGS="$CXXFLAGS $CFLAG64"
+    LDFLAGS="$LDFLAGS $CFLAG64"
+fi
+
 cd src
 ./configure --prefix="$SAGE_LOCAL" || die 'Error configuring git.'
-$MAKE || die 'Error building git.'
+if [ -n $SPKG_CHECK ]; then
+    $MAKE test || die "Error running git's combined build/test suite."
+else
+    $MAKE || die 'Error building git.'
+fi
+
 $MAKE install || die 'Error installing git.'

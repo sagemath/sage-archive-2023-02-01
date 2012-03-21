@@ -658,32 +658,32 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
     coleman_integrals_on_basis_hyperelliptic = coleman_integrals_on_basis
 
 
-    def invariant_differential(self):
-        """
-        Returns the invariant differential $dx/2y$ on self
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ['x']
-            sage: H = HyperellipticCurve(x^3+1)
-            sage: K = Qp(5,8)
-            sage: HK = H.change_ring(K)
-            sage: w = HK.invariant_differential(); w
-            (((1+O(5^8)))*1) dx/2y
-
-        ::
-
-            sage: K = pAdicField(11, 6)
-            sage: x = polygen(K)
-            sage: C = HyperellipticCurve(x^5 + 33/16*x^4 + 3/4*x^3 + 3/8*x^2 - 1/4*x + 1/16)
-            sage: C.invariant_differential()
-            (((1+O(11^6)))*1) dx/2y
-
-        """
-        import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
-        S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self)
-        MW = monsky_washnitzer.MonskyWashnitzerDifferentialRing(S)
-        return MW.invariant_differential()
+#    def invariant_differential(self):
+#        """
+#        Returns the invariant differential $dx/2y$ on self
+#
+#        EXAMPLES::
+#
+#            sage: R.<x> = QQ['x']
+#            sage: H = HyperellipticCurve(x^3+1)
+#            sage: K = Qp(5,8)
+#            sage: HK = H.change_ring(K)
+#            sage: w = HK.invariant_differential(); w
+#            (((1+O(5^8)))*1) dx/2y
+#
+#        ::
+#
+#            sage: K = pAdicField(11, 6)
+#            sage: x = polygen(K)
+#            sage: C = HyperellipticCurve(x^5 + 33/16*x^4 + 3/4*x^3 + 3/8*x^2 - 1/4*x + 1/16)
+#            sage: C.invariant_differential()
+#            (((1+O(11^6)))*1) dx/2y
+#
+#        """
+#        import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
+#        S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self)
+#        MW = monsky_washnitzer.MonskyWashnitzerDifferentialRing(S)
+#        return MW.invariant_differential()
 
     def coleman_integral(self, w, P, Q, algorithm = 'None'):
         r"""

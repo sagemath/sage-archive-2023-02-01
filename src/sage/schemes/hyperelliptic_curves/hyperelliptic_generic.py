@@ -285,6 +285,24 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self)
         return S.gens()
 
+    def invariant_differential(self):
+        """
+        Returns $dx/2y$, as an element of the Monsky-Washnitzer cohomology
+        of self
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: C = HyperellipticCurve(x^5 - 4*x + 4)
+            sage: C.invariant_differential()
+            1 dx/2y
+
+        """
+        import sage.schemes.elliptic_curves.monsky_washnitzer as m_w
+        S = m_w.SpecialHyperellipticQuotientRing(self)
+        MW = m_w.MonskyWashnitzerDifferentialRing(S)
+        return MW.invariant_differential()
+
     def local_coordinates_at_nonweierstrass(self, P, prec = 20, name = 't'):
         """
         For a non-Weierstrass point P = (a,b) on the hyperelliptic

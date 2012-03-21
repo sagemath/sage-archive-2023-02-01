@@ -300,7 +300,6 @@ M4RIE=`newest_version libm4rie`
 MATPLOTLIB=`newest_version matplotlib`
 MAXIMA=`newest_version maxima`
 MERCURIAL=`newest_version mercurial`
-MOIN=`newest_version moin`
 MPC=`newest_version mpc`
 MPFI=`newest_version mpfi`
 MPFR=`newest_version mpfr`

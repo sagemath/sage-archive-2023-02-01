@@ -71,7 +71,6 @@ all: $(BASE) \
      $(INST)/$(MATPLOTLIB) \
      $(INST)/$(MAXIMA) \
      $(INST)/$(MERCURIAL) \
-     $(INST)/$(MOIN) \
      $(INST)/$(MPC) \
      $(INST)/$(MPFI) \
      $(INST)/$(MPFR) \
@@ -303,11 +302,6 @@ $(INST)/$(SCONS): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 
 $(INST)/$(RUBIKS): $(BASE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(RUBIKS) 2>&1" "tee -a $(SAGE_LOGS)/$(RUBIKS).log"
-
-# extcode must be built before MoinMoin because it has jsmath in it:
-$(INST)/$(MOIN): $(BASE) $(INST)/$(PYTHON) $(INST)/$(EXTCODE) \
-		 $(INST)/$(SAGENB) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(MOIN) 2>&1" "tee -a $(SAGE_LOGS)/$(MOIN).log"
 
 $(INST)/$(SQLITE): $(BASE) $(INST)/$(READLINE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(SQLITE) 2>&1" "tee -a $(SAGE_LOGS)/$(SQLITE).log"

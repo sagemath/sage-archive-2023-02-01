@@ -81,3 +81,7 @@ Updating to biopython-1.57, which was released April 2, 2011. Release notes are 
 
 Updating to biopython-1.58, which was released August 18, 2011. Release notes are at: http://news.open-bio.org/news/2011/08/biopython-1-58-released/
 
+=== biopython-1.59 ===
+
+Updating to biopython-1.59, which was released February 24th,
+2012. Release notes are at: http://news.open-bio.org/news/2012/02/biopython-1-59-released/

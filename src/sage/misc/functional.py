@@ -706,6 +706,16 @@ def integral(x, *args, **kwds):
         1/2*x - 1/4*sin(2*x)
         sage: integral(sin(x)^2, x, algorithm='sympy')
         -1/2*sin(x)*cos(x) + 1/2*x
+
+    TESTS:
+
+    A symbolic integral from :trac:`11445` that was incorrect in
+    earlier versions of Maxima::
+
+        sage: f = abs(x - 1) + abs(x + 1) - 2*abs(x)
+        sage: integrate(f, (x, -Infinity, Infinity))
+        2
+
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)

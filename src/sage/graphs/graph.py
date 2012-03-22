@@ -3109,7 +3109,7 @@ class Graph(GenericGraph):
         Returns an rank-decomposition of ``self`` achieving optiml rank-width.
 
         See the documentation of the ``rankwidth`` module
-        :class:`<rankwidth sage.graphs.graph_decompositions.rankwidth>`.
+        :mod:`rankwidth <sage.graphs.graph_decompositions.rankwidth>`.
 
         INPUT:
 
@@ -3124,7 +3124,7 @@ class Graph(GenericGraph):
 
         See the documentation of the ``rankwidth`` module for more information
         on the tree
-        :class:`rankwidth <sage.graphs.graph_decompositions.rankwidth.`.
+        :mod:`rankwidth <sage.graphs.graph_decompositions.rankwidth>`.
 
         .. WARNING::
 
@@ -3470,9 +3470,8 @@ class Graph(GenericGraph):
         obtained from `H` through arbitrary subdivision of its edges)
         as a subgraph.
 
-        For more information, see the `Wikipedia article on graph
-        minor
-        <http://en.wikipedia.org/wiki/Minor_%28graph_theory%29>`_.
+        For more information, see the `Wikipedia article on graph minor
+        :wikipedia:`Minor_(graph_theory)`.
 
         INPUT:
 
@@ -3494,9 +3493,9 @@ class Graph(GenericGraph):
         The topological `H`-minor found is returned as a subgraph `M`
         of ``self``, such that the vertex `v` of `M` that represents a
         vertex `h\in H` has ``h`` as a label (see
-        :meth:`get_vertex <sage.graphs.generic_graph.get_vertex>`
+        :meth:`get_vertex <sage.graphs.generic_graph.GenericGraph.get_vertex>`
         and
-        :meth:`set_vertex <sage.graphs.generic_graph.set_vertex>`),
+        :meth:`set_vertex <sage.graphs.generic_graph.GenericGraph.set_vertex>`),
         and such that every edge of `M` has as a label the edge of `H`
         it (partially) represents.
 

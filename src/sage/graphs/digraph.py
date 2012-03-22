@@ -2724,7 +2724,7 @@ class DiGraph(GenericGraph):
         set decomposition of the graph (see :meth:`.level_sets`).
 
         This is achieved by calling ``graphviz`` and ``dot2tex`` if available
-        (see :meth:`.layout_acyclic_graphviz`), and using a random horizontal
+        (see :meth:`.layout_graphviz`), and using a random horizontal
         placement of the vertices otherwise (see :meth:`.layout_acyclic_dummy`).
 
         Non acyclic graphs are partially supported by ``graphviz``, which then

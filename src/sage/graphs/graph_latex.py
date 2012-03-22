@@ -392,7 +392,7 @@ def check_tkz_graph():
     should call this once as having random output to exhaust the
     warnings before testing output.
 
-    See also :meth:`sage.misc.latex.check_file`
+    See also :meth:`sage.misc.latex.Latex.check_file`
 
     TESTS::
 
@@ -418,7 +418,7 @@ def have_tkz_graph():
 
     The result is cached.
 
-    See also :meth:`sage.misc.latex.has_file`
+    See also :meth:`sage.misc.latex.Latex.has_file`
 
     TESTS::
 
@@ -437,7 +437,7 @@ def setup_latex_preamble():
     graphs(``tikz``, ``tkz-graph``, ``tkz-berge``), if available
     in the ``LaTeX`` installation.
 
-    See also :meth:`sage.misc.latex.add_package_to_preamble_if_available`.
+    See also :meth:`sage.misc.latex.Latex.add_package_to_preamble_if_available`.
 
     EXAMPLES::
 
@@ -597,17 +597,16 @@ class GraphLatex(SageObject):
         Sets, modifies, clears a LaTeX
         option for controlling the rendering of a graph.
 
-        The possible options are documented here, because ultimately
-        it is this routine that sets the values.  However, the
-        :meth:`sage.graphs.generic_graph.Graph.set_latex_options` method
-        is the easiest way to set options, and allows several to
-        be set at once.
+        The possible options are documented here, because ultimately it is this
+        routine that sets the values.  However, the
+        :meth:`sage.graphs.generic_graph.GenericGraph.set_latex_options` method
+        is the easiest way to set options, and allows several to be set at once.
 
         INPUTS:
 
-        - ``option_name`` - a string for a latex option contained in
-          the list :data:`__graphlatex_options`. A ``ValueError`` is
-          raised if the option is not allowed.
+        - ``option_name`` - a string for a latex option contained in the list
+          ``sage.graphs.graph_latex.GraphLatex.__graphlatex_options``. A
+          ``ValueError`` is raised if the option is not allowed.
 
         - ``option_value`` - a value for the option.  If omitted, or
           set to ``None``, the option will use the default value.
@@ -888,11 +887,11 @@ class GraphLatex(SageObject):
             ...
             ValueError: bad_name is not a LaTeX option for a graph.
 
-        See :meth:`Graph.layout_graphviz` for installation
-        instructions for ``graphviz`` and ``dot2tex``. Further more,
-        pgf >= 2.00 should be available inside LaTeX's tree for LaTeX
-        compilation (e.g. when using ``view``). In case your LaTeX
-        distribution does not provide it, here are short instructions:
+        See :meth:`sage.graphs.generic_graph.GenericGraph.layout_graphviz` for
+        installation instructions for ``graphviz`` and ``dot2tex``. Further
+        more, pgf >= 2.00 should be available inside LaTeX's tree for LaTeX
+        compilation (e.g. when using ``view``). In case your LaTeX distribution
+        does not provide it, here are short instructions:
 
            - download pgf from http://sourceforge.net/projects/pgf/
            - unpack it in ``/usr/share/texmf/tex/generic`` (depends on your system)
@@ -1236,7 +1235,7 @@ class GraphLatex(SageObject):
         OUTPUT:
 
         If the name is not present in
-        :data:`sage.graphs.graph_latex.__graphlatex_options` it is an
+        ``__graphlatex_options`` it is an
         error to ask for it.  If an option has not been set then the
         default value is returned. Otherwise, the value of the
         option is returned.
@@ -1269,16 +1268,15 @@ class GraphLatex(SageObject):
         Returns a string in LaTeX representing a graph.
 
         This is the command that is invoked by
-        :meth:`~sage.graphs.graph.GenericGraph._latex_` for
-        a graph, so it returns a string of
-        LaTeX commands that can be incorporated
-        into a LaTeX document unmodified.  The exact contents
-        of this string are influenced by the options set via the methods
-        :meth:`sage.graphs.graph.GenericGraph.set_latex_options`,
+        ``sage.graphs.generic_graph.GenericGraph._latex_`` for a graph, so
+        it returns a string of LaTeX commands that can be incorporated into a
+        LaTeX document unmodified.  The exact contents of this string are
+        influenced by the options set via the methods
+        :meth:`sage.graphs.generic_graph.GenericGraph.set_latex_options`,
         :meth:`set_option`, and :meth:`set_options`.
 
-        By setting the ``format`` option different packages can be used
-        to create the latex version of a graph.  Supported packages are
+        By setting the ``format`` option different packages can be used to
+        create the latex version of a graph.  Supported packages are
         ``tkz-graph`` and ``dot2tex``.
 
         EXAMPLES::

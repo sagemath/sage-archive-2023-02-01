@@ -132,11 +132,11 @@ cdef dict vertices_to_id
 
 def rank_decomposition(G, verbose = False):
     r"""
-    Computes an optiml rank-decomposition of the given graph.
+    Computes an optimal rank-decomposition of the given graph.
 
-    This function is available as a method of the
-    :class:`Graph <sage.graphs.graph>` class. See
-    :meth:`rank_decomposition <sage.graphs.graph.rank_decomposition>`.
+    This function is available as a method of the :class:`Graph
+    <sage.graphs.graph>` class. See :meth:`rank_decomposition
+    <sage.graphs.graph.Graph.rank_decomposition>`.
 
     INPUT:
 
@@ -304,7 +304,7 @@ def mkgraph():
     r"""
     Returns the graph corresponding the the current rank-decomposition.
 
-    (This function is for interna use)
+    (This function is for internal use)
 
     EXAMPLE::
 

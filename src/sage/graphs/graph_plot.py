@@ -151,7 +151,7 @@ class GraphPlot(SageObject):
 
         Make sure that vertex locations are floats.  Not being floats
         isn't a bug in itself but makes it too easy to accidentally
-        introduce a bug elsewhere, such as in set_edges (trac #10124),
+        introduce a bug elsewhere, such as in set_edges (:trac:`10124`),
         via silent truncating division of integers::
 
             sage: g = graphs.FruchtGraph()
@@ -313,7 +313,7 @@ class GraphPlot(SageObject):
             sage: G.show(edge_colors={'red':[(3,6),(2,5)]})
 
         Verify that default edge labels are pretty close to being between the vertices
-        in some cases where they weren't due to truncating division (trac #10124)::
+        in some cases where they weren't due to truncating division (:trac:`10124`)::
 
             sage: test_graphs = graphs.FruchtGraph(), graphs.BullGraph()
             sage: tol = 0.001
@@ -514,7 +514,7 @@ class GraphPlot(SageObject):
 
         TESTS:
 
-        Make sure that Python ints are acceptable arguments (trac #10124)::
+        Make sure that Python ints are acceptable arguments (:trac:`10124`)::
 
             sage: GP = DiGraph().graphplot()
             sage: GP._polar_hack_for_multidigraph((0, 1), (2, 2), .1)

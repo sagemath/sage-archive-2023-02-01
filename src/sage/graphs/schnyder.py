@@ -1,5 +1,6 @@
-
 """
+Schnyder's Algorithm for straight-line planar embeddings.
+
 A module for computing the (x,y) coordinates for a straight-line planar
 embedding of any connected planar graph with at least three vertices.  Uses
 Walter Schnyder's Algorithm.
@@ -47,7 +48,8 @@ def _triangulate(g, comb_emb):
     RETURNS:
         A list of edges that are added to the graph (in place)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.graphs.schnyder import _triangulate
         sage: g = Graph(graphs.CycleGraph(4))
         sage: g.is_planar(set_embedding=True)
@@ -145,7 +147,8 @@ def _normal_label(g, comb_emb, external_face):
                     { vertex : { (u,v): angel_label } }
             x[1] = (v1,v2,v3) tuple of the three vertices of the external face.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer
         sage: g = Graph(graphs.CycleGraph(7))
         sage: g.is_planar(set_embedding=True)
@@ -342,7 +345,8 @@ def _realizer(g, x, example=False):
             x[0] = (v1,v2,v3) tuple of the three external vertices (also the
                     roots of each tree)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer
         sage: g = Graph(graphs.CycleGraph(7))
         sage: g.is_planar(set_embedding=True)
@@ -422,7 +426,8 @@ def _compute_coordinates(g, x):
 
              x[1] = (v1, v2, v3) tuple of the three external vertices (also
                     the roots of each tree)
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
         sage: g = Graph(graphs.CycleGraph(7))
         sage: g.is_planar(set_embedding=True)
@@ -512,7 +517,8 @@ class TreeNode():
         children -- a list of TreeNode children of self
         label -- the associated realizer vertex label
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.graphs.schnyder import TreeNode
         sage: tn = TreeNode(label=5)
         sage: tn2 = TreeNode(label=2,parent=tn)
@@ -536,7 +542,8 @@ class TreeNode():
             children -- a list of TreeNode children of self
             label -- the associated realizer vertex label
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: from sage.graphs.schnyder import TreeNode
             sage: tn = TreeNode(label=5)
             sage: tn2 = TreeNode(label=2,parent=tn)
@@ -566,7 +573,8 @@ class TreeNode():
         Computes the number of descendants of self and all descendants.
         For each TreeNode, sets result as attribute self.number_of_descendants
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.schnyder import TreeNode
             sage: tn = TreeNode(label=5)
             sage: tn2 = TreeNode(label=2,parent=tn)
@@ -594,7 +602,8 @@ class TreeNode():
         Computes the depth of self and all descendants.
         For each TreeNode, sets result as attribute self.depth
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.schnyder import TreeNode
             sage: tn = TreeNode(label=5)
             sage: tn2 = TreeNode(label=2,parent=tn)
@@ -622,7 +631,8 @@ class TreeNode():
         """
         Add a child to list of children.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.schnyder import TreeNode
             sage: tn = TreeNode(label=5)
             sage: tn2 = TreeNode(label=2,parent=tn)

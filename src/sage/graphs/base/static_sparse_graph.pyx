@@ -419,12 +419,12 @@ def strongly_connected_components(G):
     .. NOTE::
 
         This method has been written as an attempt to solve the slowness
-        reported in #12235. It is not the one used by
-        :meth:`sage.graphs.digraph.strongly_connected_components` as saving some
-        time on the computation of the strongly connected components is not
-        worth copying the whole graph, but it is a nice way to test this
+        reported in :trac:`12235`. It is not the one used by
+        :meth:`sage.graphs.digraph.DiGraph.strongly_connected_components` as
+        saving some time on the computation of the strongly connected components
+        is not worth copying the whole graph, but it is a nice way to test this
         module's functions. It is also tested in the doctest or
-        :meth:`sage.graphs.digraph.strongly_connected_components`.
+        :meth:`sage.graphs.digraph.DiGraph.strongly_connected_components`.
 
     EXAMPLE::
 

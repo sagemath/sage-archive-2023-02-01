@@ -14,8 +14,10 @@ of time per extension generated, or linear in the number of extensions
 generated.
 
 EXAMPLES:
+
 Here we generate the 5 linear extensions of the following directed
-acyclic graph.
+acyclic graph::
+
     sage: from sage.graphs.linearextensions import LinearExtensions
     sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
     sage: D.is_directed_acyclic()
@@ -31,7 +33,8 @@ Notice how all of the total orders are compatible with the ordering
 induced from the graph.
 
 We can also get at the linear extensions directly from the graph.  From
-the graph, the linear extensions are known as topological sorts.
+the graph, the linear extensions are known as topological sorts ::
+
     sage: D.topological_sort_generator()
     [[0, 1, 2, 3, 4],
      [0, 1, 2, 4, 3],
@@ -64,7 +67,8 @@ class LinearExtensions(CombinatorialClass):
         of the current linear extensions.  The boolean variable self.is_plus
         keeps track of the "sign".
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: l = LinearExtensions(D)
@@ -126,7 +130,8 @@ class LinearExtensions(CombinatorialClass):
         Note that this meant to be called by the generate_linear_extensions
         method and is not meant to be used directly.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: l = LinearExtensions(D)
@@ -177,7 +182,8 @@ class LinearExtensions(CombinatorialClass):
         Note that this is meant to be called by the generate_linear_extensions
         method and is not meant to be used directly.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: l = LinearExtensions(D)
@@ -220,7 +226,8 @@ class LinearExtensions(CombinatorialClass):
         Note that this is meant to be called by the generate_linear_extensions
         method and is not meant to be used directly.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: l = LinearExtensions(D)
@@ -270,7 +277,8 @@ class LinearExtensions(CombinatorialClass):
         Note that this is meant to be called by the list
         method and is not meant to be used directly.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: l = LinearExtensions(D)
@@ -325,7 +333,8 @@ class LinearExtensions(CombinatorialClass):
         Note that once they are computed, the linear extensions are
         cached in this object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: LinearExtensions(D).list()
@@ -352,7 +361,8 @@ class LinearExtensions(CombinatorialClass):
         Returns True if vertices x and y are incomparable in the directed
         acyclic graph when thought of as a poset.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: l = LinearExtensions(D)

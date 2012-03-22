@@ -12481,7 +12481,7 @@ class GenericGraph(GenericGraph_pyx):
 
         More generally, you can specify a ``neighbors`` function.  For
         example, you can traverse the graph backwards by setting
-        ``neighbors`` to be the :meth:`.predecessor` function of the graph::
+        ``neighbors`` to be the :meth:`.neighbors_in` function of the graph::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
             sage: list(D.breadth_first_search(5,neighbors=D.neighbors_in, distance=2))
@@ -12607,7 +12607,7 @@ class GenericGraph(GenericGraph_pyx):
 
         More generally, you can specify a ``neighbors`` function.  For
         example, you can traverse the graph backwards by setting
-        ``neighbors`` to be the :meth:`.predecessor` function of the graph::
+        ``neighbors`` to be the :meth:`.neighbors_in` function of the graph::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
             sage: list(D.depth_first_search(5,neighbors=D.neighbors_in, distance=2))
@@ -13787,7 +13787,7 @@ class GenericGraph(GenericGraph_pyx):
         :meth:`.layout_graphviz` for installation instructions.
 
         A subclass may implement another layout algorithm `blah`, by
-        implementing a method :meth:`.layout_blah`. It may override
+        implementing a method ``.layout_blah``. It may override
         the default layout by overriding :meth:`.layout_default`, and
         similarly override the predefined layouts.
 
@@ -15207,7 +15207,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         -  ``laplacian`` - if ``True``, use the Laplacian matrix
-           (see :meth:`~sage.graphs.graph.GenericGraph.kirchhoff_matrix()`)
+           (see :meth:`kirchhoff_matrix`)
 
         OUTPUT:
 
@@ -15315,7 +15315,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         -  ``laplacian`` - if True, use the Laplacian matrix
-           (see :meth:`~sage.graphs.graph.GenericGraph.kirchhoff_matrix()`)
+           (see :meth:`kirchhoff_matrix`)
 
         OUTPUT:
 
@@ -15406,7 +15406,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         -  ``laplacian`` - if True, use the Laplacian matrix
-           (see :meth:`~sage.graphs.graph.GenericGraph.kirchhoff_matrix()`)
+           (see :meth:`kirchhoff_matrix`)
 
         OUTPUT:
 

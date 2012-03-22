@@ -226,12 +226,11 @@ cdef class CGraph:
 
         .. SEEALSO::
 
-            - :meth:`add_vertex_unsafe`
-              -- add a vertex to a graph. This method is potentially unsafe.
-              You should instead use :meth:`add_vertex`.
+            - ``add_vertex_unsafe`` -- add a vertex to a graph. This
+              method is potentially unsafe.  You should instead use
+              :meth:`add_vertex`.
 
-            - :meth:`add_vertices`
-              -- add a bunch of vertices to a graph.
+            - ``add_vertices`` -- add a bunch of vertices to a graph.
 
         EXAMPLES:
 
@@ -439,9 +438,8 @@ cdef class CGraph:
 
         .. SEEALSO::
 
-            - :meth:`del_vertex_unsafe`
-              -- delete a vertex from a graph. This method is potentially
-              unsafe. Use :meth:`del_vertex` instead.
+            - ``del_vertex_unsafe`` -- delete a vertex from a graph. This method
+              is potentially unsafe. Use :meth:`del_vertex` instead.
 
         EXAMPLES:
 

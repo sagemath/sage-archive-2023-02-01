@@ -1,5 +1,7 @@
 r"""
-This is an implementation of the algorithm for generating trees with n vertices
+Generation of trees
+
+This is an implementation of the algorithm for generating trees with `n` vertices
 (up to isomorphism) in constant time per tree described in [WRIGHT-ETAL]_.
 
 AUTHORS:
@@ -27,7 +29,7 @@ cdef class TreeIterator:
     r"""
     This class iterates over all trees with n vertices (up to isomorphism).
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.trees import TreeIterator
         sage: def check_trees(n):
@@ -47,6 +49,8 @@ cdef class TreeIterator:
         sage: print check_trees(10)
         True
 
+    ::
+
         sage: from sage.graphs.trees import TreeIterator
         sage: count = 0
         sage: for t in TreeIterator(15):
@@ -57,7 +61,7 @@ cdef class TreeIterator:
 
     def __init__(self, int vertices):
         r"""
-        Initializes an iterator over all trees with n vertices.
+        Initializes an iterator over all trees with `n` vertices.
 
         EXAMPLES::
 
@@ -73,7 +77,8 @@ cdef class TreeIterator:
 
     def __dealloc__(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.trees import TreeIterator
             sage: t = TreeIterator(100)
             sage: t = None # indirect doctest
@@ -85,7 +90,8 @@ cdef class TreeIterator:
 
     def __str__(self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.trees import TreeIterator
             sage: t = TreeIterator(100)
             sage: print t # indirect doctest
@@ -95,9 +101,10 @@ cdef class TreeIterator:
 
     def __iter__(self):
         r"""
-        Returns an iterator over all the trees with n vertices.
+        Returns an iterator over all the trees with `n` vertices.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.trees import TreeIterator
             sage: t = TreeIterator(4)
             sage: list(iter(t))
@@ -107,9 +114,10 @@ cdef class TreeIterator:
 
     def __next__(self):
         r"""
-        Returns the next tree with n vertices
+        Returns the next tree with `n` vertices
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.trees import TreeIterator
             sage: T = TreeIterator(5)
             sage: [t for t in T] # indirect doctest
@@ -164,7 +172,7 @@ cdef class TreeIterator:
 
     cdef int generate_first_level_sequence(self):
         r"""
-        Generates the level sequence representing the first tree with n vertices
+        Generates the level sequence representing the first tree with `n` vertices
         """
         cdef int i
         cdef int k
@@ -200,7 +208,7 @@ cdef class TreeIterator:
 
     cdef int generate_next_level_sequence(self):
         r"""
-        Generates the level sequence representing the next tree with n vertices
+        Generates the level sequence representing the next tree with `n` vertices
         """
         cdef int i
         cdef int fixit = 0

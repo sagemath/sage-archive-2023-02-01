@@ -13,10 +13,10 @@ This module contains the following methods:
 
 AUTHORS:
 
-    - Robert Miller, Tom Boothby - original implementation
+- Robert Miller, Tom Boothby - original implementation
 
 REFERENCE:
-    Chris Godsil, Algebraic Combinatorics.
+ Chris Godsil, Algebraic Combinatorics.
 
 Methods
 -------

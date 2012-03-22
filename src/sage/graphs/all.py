@@ -22,3 +22,5 @@ from graph_editor import graph_editor
 import sage.graphs.isgci
 from sage.graphs.isgci import graph_classes
 import sage.graphs.distances_all_pairs
+import sage.graphs.trees
+import sage.graphs.graph_latex

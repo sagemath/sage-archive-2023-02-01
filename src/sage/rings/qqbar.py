@@ -5095,6 +5095,16 @@ class ANRoot(ANDescr):
             sage: strange = ANRoot(x^2 + sqrt(QQbar(3))*x - sqrt(QQbar(2)), RIF(-0, 1))
             sage: strange.exactify()
             a where a^8 - 6*a^6 + 5*a^4 - 12*a^2 + 4 = 0 and a in 0.6051012265139511?
+
+        TESTS:
+
+        Verify that :trac:`12727` is fixed::
+
+            sage: m = sqrt(sin(pi/5)); a = QQbar(m); b = AA(m)
+            sage: a.minpoly()
+            x^8 - 5/4*x^4 + 5/16
+            sage: b.minpoly()
+            x^8 - 5/4*x^4 + 5/16
         """
         gen = self._poly.generator()
 
@@ -5134,7 +5144,19 @@ class ANRoot(ANDescr):
                 if_poly = ifield['x']
                 gen_val = gen._interval_fast(prec)
                 self_val = self._interval_fast(prec)
-                ip = if_poly([c.polynomial()(gen_val) for c in factor])
+                v = [c.polynomial()(gen_val) for c in factor]
+                # This try/except can be triggered if ifield is Real
+                # but the entries in v have some imaginary part that
+                # is only known to be 0 to very low precision, e.g.,
+                # as in Trac #12727.  In such cases, we instead create
+                # the polynomial over the appropriate complex interval
+                # field, which is mathematically safe, unlike taking
+                # real parts would be.
+                try:
+                    ip = if_poly(v)
+                except TypeError:
+                    if_poly = ComplexIntervalField(prec)['x']
+                    ip = if_poly(v)
                 return ip(self_val)
             my_factor = find_zero_result(find_fn, fpf)
 

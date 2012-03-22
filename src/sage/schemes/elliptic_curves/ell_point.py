@@ -2565,6 +2565,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             h = Emin.pari_curve(prec=precision).ellheight(P, precision=precision)
             height = rings.RealField(precision)(h)
         else:
+            from sage.misc.stopgap import stopgap
+            stopgap("Computation of heights on elliptic curves over fields other than Q can return very imprecise results.", 12509)
             height = (self.nonarchimedian_local_height(prec=precision)
                         + self.archimedian_local_height(prec=precision))
 

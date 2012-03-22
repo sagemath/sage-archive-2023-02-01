@@ -21,7 +21,7 @@ PIPE = $(SAGE_ROOT)/spkg/pipestatus
 BASE = $(INST)/$(PREREQ) $(INST)/$(BZIP2)
 
 # Tell make not to look for files with these (base)names:
-.PHONY: all base scripts
+.PHONY: all base scripts toolchain
 
 # Targets
 all: $(BASE) \
@@ -44,7 +44,6 @@ all: $(BASE) \
      $(INST)/$(EXTCODE) \
      $(INST)/$(FLINT) \
      $(INST)/$(FLINTQS) \
-     $(INST)/$(FORTRAN) \
      $(INST)/$(FPLLL) \
      $(INST)/$(FREETYPE) \
      $(INST)/$(GENUS2REDUCTION) \
@@ -127,6 +126,8 @@ all: $(BASE) \
 base: $(BASE)
 
 scripts: $(INST)/$(SAGE_SCRIPTS) # depends on $(BASE)
+
+toolchain: $(TOOLCHAIN)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
@@ -377,7 +378,7 @@ $(INST)/$(MAXIMA): $(BASE) $(INST)/$(ECL) $(INST)/$(PATCH)
 
 # Note that even with a separate RPy spkg (#9906), Sage's R will still depend on
 # Python (but does no longer on SAGE_SCRIPTS, #10016):
-$(INST)/$(R): $(BASE) $(INST)/$(PYTHON) $(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(FORTRAN) $(INST)/$(PATCH)
+$(INST)/$(R): $(BASE) $(INST)/$(PYTHON) $(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(R) 2>&1" "tee -a $(SAGE_LOGS)/$(R).log"
 
 # Needed when #9906 gets merged (moving RPy out of R's spkg):
@@ -520,28 +521,28 @@ $(INST)/$(SAGE_SCRIPTS): $(BASE) $(INST)/$(SAGE_ROOT_REPO)
 # Further receipts for normal packages:
 ###############################################################################
 
-# Do not remove PYTHON below -- see trac 9368
-$(INST)/$(FORTRAN): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(FORTRAN) 2>&1" "tee -a $(SAGE_LOGS)/$(FORTRAN).log"
+$(INST)/$(GCC): $(BASE) $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
+                $(INST)/$(ZLIB) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(GCC) 2>&1" "tee -a $(SAGE_LOGS)/$(GCC).log"
 
 $(INST)/$(PIL): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(PIL) 2>&1" "tee -a $(SAGE_LOGS)/$(PIL).log"
 
-$(INST)/$(LAPACK): $(BASE) $(INST)/$(FORTRAN) $(INST)/$(PATCH)
+$(INST)/$(LAPACK): $(BASE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(LAPACK) 2>&1" "tee -a $(SAGE_LOGS)/$(LAPACK).log"
 
-$(INST)/$(BLAS): $(BASE) $(INST)/$(FORTRAN) $(INST)/$(PATCH)
+$(INST)/$(BLAS): $(BASE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(BLAS) 2>&1" "tee -a $(SAGE_LOGS)/$(BLAS).log"
 
-$(INST)/$(NUMPY): $(BASE) $(INST)/$(PYTHON) $(INST)/$(FORTRAN) \
+$(INST)/$(NUMPY): $(BASE) $(INST)/$(PYTHON) \
 		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(ATLAS) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(NUMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(NUMPY).log"
 
-$(INST)/$(SCIPY): $(BASE) $(INST)/$(FORTRAN) \
+$(INST)/$(SCIPY): $(BASE) \
 		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(SCIPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SCIPY).log"
 
-$(INST)/$(CVXOPT): $(BASE) $(INST)/$(FORTRAN) \
+$(INST)/$(CVXOPT): $(BASE) \
 		   $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) \
 		   $(INST)/$(ATLAS) $(INST)/$(CEPHES) $(INST)/$(PATCH) \
 		   $(INST)/$(GSL) $(INST)/$(GLPK) $(INST)/$(MATPLOTLIB)

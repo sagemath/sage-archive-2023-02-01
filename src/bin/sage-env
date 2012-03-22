@@ -400,17 +400,37 @@ export UNAME
 # Setting Sage-related compilation flags.
 # This could be used in code to make special changes only when
 # code is being built as part of Sage.
-__sage__="" && export __sage__
-# Set the default compiler to gcc if the enviroment variable
-# CC is not set.
-if [ "$CC" = "" ]; then
-     CC="gcc"         && export CC
+export __sage__=""
+
+# Set the C and C++ compilers
+if [ -z "$CC" ]; then
+    CC=gcc
 fi
- # Set the default C++ compiler to g++ if the environment variable
-# CXX is not set.
-if [ "$CXX" = "" ]; then
-    CXX="g++"         && export CXX
+if [ -z "$CXX" ]; then
+    CXX=g++
 fi
+
+# An Objective-C compiler is needed for R on Darwin.
+# On Darwin, /usr/bin/cc supports Objective-C.  The gcc shipped with
+# Sage doesn't.
+if [ "$UNAME" = "Darwin" ]; then
+    if [ -z "$OBJC" -a -x "/usr/bin/cc" ]; then
+        export OBJC=/usr/bin/cc
+    fi
+    if [ -z "$OBJCXX" -a -x "/usr/bin/c++" ]; then
+        export OBJCXX=/usr/bin/c++
+    fi
+fi
+
+# Override CC and CXX if the gcc spkg was installed.
+if [ -x "$SAGE_LOCAL/bin/gcc" ]; then
+    CC=gcc
+fi
+if [ -x "$SAGE_LOCAL/bin/g++" ]; then
+    CXX=g++
+fi
+export CC CXX
+
 
 if [ "$LD" = "" ]; then
     LD="ld"  && export LD
@@ -438,7 +458,7 @@ fi
 # In case SAGE64 has been set to yes before re-inject it into the environment
 # This is only done on OSX and Solaris since those are the only real multi lib
 # arches we support. Eventually Linux PPC on the PS3 might need to be added here
-source $SAGE_LOCAL/bin/sage-check-64 1> /dev/null 2> /dev/null
+source "$SAGE_LOCAL/bin/sage-check-64" 1> /dev/null 2> /dev/null
 export SAGE64
 
 if [ "$CXXFLAGS" = "" ]; then

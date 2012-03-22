@@ -69,6 +69,114 @@ mkdir -p "$SAGE_LOCAL/lib"
 mkdir -p "$SAGE_ROOT/spkg/installed"
 
 ###############################################################################
+# Determine whether to install GCC (gcc, g++, gfortran).
+###############################################################################
+
+# Determine various compilers.  These variables should not be exported,
+# they are only used in this spkg/install script to determine whether to
+# install GCC.  The "real" $CC, $CXX,... variables for building Sage are
+# set in sage-env.
+
+if [ -z "$CC" ]; then
+    CC=gcc
+fi
+
+if [ -z "$CXX" ]; then
+    if command -v g++ >/dev/null 2>/dev/null; then
+        CXX=g++
+    fi
+fi
+
+if [ -z "$SAGE_FORTRAN" ]; then
+    if command -v gfortran >/dev/null 2>/dev/null; then
+        SAGE_FORTRAN=gfortran
+    elif command -v g95 >/dev/null 2>/dev/null; then
+        SAGE_FORTRAN=g95
+    elif command -v g77 >/dev/null 2>/dev/null; then
+        SAGE_FORTRAN=g77
+    fi
+fi
+
+# We obviously don't need to do anything if gcc is already installed
+if [ -f "$SAGE_LOCAL/bin/gcc" ]; then
+    need_to_install_gcc=no
+elif [ -n "$SAGE_INSTALL_GCC" ]; then
+    # Check the value of the environment variable SAGE_INSTALL_GCC
+    case "$SAGE_INSTALL_GCC" in
+        yes)
+            echo >&2 "Installing GCC because SAGE_INSTALL_GCC is set to 'yes'."
+            need_to_install_gcc=yes;;
+        no)
+            need_to_install_gcc=no;;
+        *)
+            echo >&2 "Error: SAGE_INSTALL_GCC should be set to 'yes' or 'no'."
+            echo >&2 "You can also leave it unset to install GCC when needed."
+            exit 2;;
+    esac
+else
+    # SAGE_INSTALL_GCC is not set, install GCC when needed.
+    need_to_install_gcc=no
+
+    # Check whether $CC is some version of GCC.  If it's a different
+    # compiler, install GCC.
+    CCtype=`testcc.sh "$CC"`
+    if [ "$CCtype" != GCC ]; then
+        echo >&2 "Installing GCC because your '$CC' isn't GCC (GNU CC)."
+        need_to_install_gcc=yes
+    else
+        # $CC points to some version of GCC.  Install our own GCC if the
+        # system-provided one is older than gcc-4.4.
+        # Install GCC if we have version 4.6.0 or 4.6.1, which is
+        # known to give trouble within Sage:
+        # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48702
+        # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48774
+        if { $CC -dumpversion | grep '^\($\|[0-3]\.\|4\.[0-3]\|4\.6\.[01]$\)' ; } >/dev/null 2>/dev/null; then
+            echo >&2 "Installing GCC because your '$CC' is not so recent."
+            need_to_install_gcc=yes
+        fi
+    fi
+
+    # Check C++ and Fortran compilers.
+    if [ -z "$CXX" ]; then
+        echo >&2 "Installing GCC because a C++ compiler is missing."
+        need_to_install_gcc=yes
+    fi
+
+    if [ -z "$SAGE_FORTRAN" ]; then
+        echo >&2 "Installing GCC because a Fortran compiler is missing."
+        need_to_install_gcc=yes
+    fi
+fi
+
+###############################################################################
+# Create the sage_fortran script.
+###############################################################################
+
+# Use "gfortran" as fallback if SAGE_FORTRAN is still unset.
+# By the time we need to run sage_fortran, the GCC spkg should be
+# installed, such that gfortran is available.
+if [ -z "$SAGE_FORTRAN" ] ; then
+    SAGE_FORTRAN=gfortran
+fi
+
+# Write sage_fortran script.
+cat >"$SAGE_LOCAL/bin/sage_fortran" <<EOF
+#!/bin/sh
+
+if [ "\$SAGE64" = yes ]; then
+    exec $SAGE_FORTRAN -m64 -fPIC "\$@"
+else
+    exec $SAGE_FORTRAN -fPIC "\$@"
+fi
+EOF
+chmod +x "$SAGE_LOCAL/bin/sage_fortran"
+
+# Make the fortran library symlink if requested
+if [ -f "$SAGE_FORTRAN_LIB" ]; then
+    ( cd "$SAGE_LOCAL/lib" && ln -sf "$SAGE_FORTRAN_LIB" . )
+fi
+
+###############################################################################
 # Create $SAGE_ROOT/spkg/Makefile starting from spkg/standard/deps
 ###############################################################################
 
@@ -158,10 +266,10 @@ ELLIPTIC_CURVES=`newest_version elliptic_curves`
 EXTCODE=`newest_version extcode`
 FLINT=`newest_version flint`
 FLINTQS=`newest_version flintqs`
-FORTRAN=`newest_version fortran`
 FPLLL=`newest_version libfplll`
 FREETYPE=`newest_version freetype`
 GAP=`newest_version gap`
+GCC=`newest_version gcc`
 GD=`newest_version gd`
 GDMODULE=`newest_version gdmodule`
 GENUS2REDUCTION=`newest_version genus2reduction`
@@ -237,6 +345,13 @@ ZODB=`newest_version zodb3`
 
 EOF
 
+# $(TOOLCHAIN) variable containing prerequisites for the build
+if [ "$need_to_install_gcc" = yes ]; then
+    echo >&3 'TOOLCHAIN=$(INST)/$(GCC)'
+else
+    echo >&3 'TOOLCHAIN='
+fi
+
 # Copy spkg/standard/deps
 cat >&3 <<EOF
 
@@ -252,7 +367,15 @@ cat standard/deps >&3
 # Close the Makefile
 exec 3>&-
 
+###############################################################################
 # Skip the rest if nothing to do (i.e., to [re]build).
+###############################################################################
+
+# Set MAKE to "make" if unset
+if [ -z "$MAKE" ]; then
+    MAKE=make
+fi
+
 # * If "make" doesn't understand the -q option (although we require
 #   GNU make, which supports it), it should exit with a non-zero status
 #   which is not a problem.
@@ -262,7 +385,7 @@ exec 3>&-
 #   which doesn't check MAKEFLAGS.
 #   See Trac #12248 and also #12016.
 if [ -f "$SAGE_ROOT/spkg/bin/sage-spkg" ]; then
-    if ${MAKE:-make} -q $1; then
+    if $MAKE -q $1; then
         echo "Nothing to (re)build / all up-to-date."
         exit 0
     fi
@@ -276,7 +399,8 @@ echo "***********************************************"
 ###############################################################################
 # NOW do the actual build:
 ###############################################################################
-time ${MAKE:-make} $1
+# Build "toolchain" before everything else.
+time { $MAKE toolchain && $MAKE $1 ; }
 if [ $? -ne 0 ]; then
     echo >&2 "Error building Sage."
     exit 1

@@ -716,6 +716,13 @@ def integral(x, *args, **kwds):
         sage: integrate(f, (x, -Infinity, Infinity))
         2
 
+    Another symbolic integral, from :trac:`11238`, that used to return
+    zero incorrectly::
+
+        sage: f = exp(-x) * sinh(sqrt(x))
+        sage: integrate(f, x, 0, Infinity)
+        1/2*sqrt(pi)*e^(1/4)
+
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)

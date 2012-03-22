@@ -148,7 +148,6 @@ ECLIB=`newest_version eclib`
 ECM=`newest_version ecm`
 ELLIPTIC_CURVES=`newest_version elliptic_curves`
 EXTCODE=`newest_version extcode`
-F2C=`newest_version f2c`
 FLINT=`newest_version flint`
 FLINTQS=`newest_version flintqs`
 FORTRAN=`newest_version fortran`

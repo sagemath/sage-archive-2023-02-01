@@ -42,7 +42,6 @@ all: $(BASE) \
      $(INST)/$(ECM) \
      $(INST)/$(ELLIPTIC_CURVES) \
      $(INST)/$(EXTCODE) \
-     $(INST)/$(F2C) \
      $(INST)/$(FLINT) \
      $(INST)/$(FLINTQS) \
      $(INST)/$(FORTRAN) \
@@ -515,9 +514,6 @@ $(INST)/$(SAGE_SCRIPTS): $(BASE) $(INST)/$(SAGE_ROOT_REPO)
 $(INST)/$(FORTRAN): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(FORTRAN) 2>&1" "tee -a $(SAGE_LOGS)/$(FORTRAN).log"
 
-$(INST)/$(F2C): $(BASE) $(INST)/$(FORTRAN) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(F2C) 2>&1" "tee -a $(SAGE_LOGS)/$(F2C).log"
-
 $(INST)/$(PIL): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(PIL) 2>&1" "tee -a $(SAGE_LOGS)/$(PIL).log"
 
@@ -527,15 +523,15 @@ $(INST)/$(LAPACK): $(BASE) $(INST)/$(FORTRAN) $(INST)/$(PATCH)
 $(INST)/$(BLAS): $(BASE) $(INST)/$(FORTRAN) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(BLAS) 2>&1" "tee -a $(SAGE_LOGS)/$(BLAS).log"
 
-$(INST)/$(NUMPY): $(BASE) $(INST)/$(PYTHON) $(INST)/$(FORTRAN) $(INST)/$(F2C) \
+$(INST)/$(NUMPY): $(BASE) $(INST)/$(PYTHON) $(INST)/$(FORTRAN) \
 		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(ATLAS) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(NUMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(NUMPY).log"
 
-$(INST)/$(SCIPY): $(BASE) $(INST)/$(FORTRAN) $(INST)/$(F2C) \
+$(INST)/$(SCIPY): $(BASE) $(INST)/$(FORTRAN) \
 		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(SCIPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SCIPY).log"
 
-$(INST)/$(CVXOPT): $(BASE) $(INST)/$(FORTRAN) $(INST)/$(F2C) \
+$(INST)/$(CVXOPT): $(BASE) $(INST)/$(FORTRAN) \
 		   $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) \
 		   $(INST)/$(ATLAS) $(INST)/$(CEPHES) $(INST)/$(PATCH) \
 		   $(INST)/$(GSL) $(INST)/$(GLPK)

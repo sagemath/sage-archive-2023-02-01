@@ -58,6 +58,7 @@ cdef extern from "../../local/include/coin/CoinPackedMatrix.hpp":
 cdef extern from "../../local/include/coin/CoinMessageHandler.hpp":
      cdef cppclass CoinMessageHandler:
          void setLogLevel (int)
+         int LogLevel ()
      CoinMessageHandler *new_CoinMessageHandler "new CoinMessageHandler" ()
      void del_CoinMessageHandler "delete" (CoinMessageHandler *)
 
@@ -143,6 +144,7 @@ cdef extern from "../../local/include/coin/CbcModel.hpp":
          CbcModel(CbcModel & rhs, int cloneHandler = ?)
          # shut up
          void setLogLevel(int value)
+         int logLevel()
          # assign strategy
          void setStrategy(CbcStrategy & strategy)
          # threads
@@ -176,7 +178,7 @@ cdef extern from "../../local/include/coin/OsiClpSolverInterface.hpp":
 cdef class CoinBackend(GenericBackend):
 
     cdef OsiSolverInterface * si
-    cdef double * solution
+    cdef CbcModel * model
     cdef int log_level
     cdef double obj_value
 

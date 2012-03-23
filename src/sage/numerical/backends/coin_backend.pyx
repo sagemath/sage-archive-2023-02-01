@@ -4,6 +4,9 @@ COIN Backend
 AUTHORS:
 
 - Nathann Cohen (2010-10): initial implementation
+
+- John Perry (2012-03): major modifications to the interface in order to update
+  the Coin package to version 2.7.5
 """
 
 ##############################################################################
@@ -32,9 +35,7 @@ cdef class CoinBackend(GenericBackend):
 
         # Coin devs seem to favor OsiClpSolverInterface
         self.si = new OsiClpSolverInterface()
-        self.solution = NULL
-        self.log_level = 0
-        self.obj_value = 0.0
+        self.model =  new CbcModel(self.si[0])
         self.prob_name = None
         self.row_names = []
         self.col_names = []
@@ -49,8 +50,6 @@ cdef class CoinBackend(GenericBackend):
         Destructor function
         """
         del self.si
-        if self.solution != NULL:
-            sage_free(self.solution)
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         r"""
@@ -77,10 +76,6 @@ cdef class CoinBackend(GenericBackend):
 
         OUTPUT: The index of the newly created variable
 
-        .. NOTE::
-
-            The names are ignored by Coin at the moment !!!
-
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
@@ -106,11 +101,6 @@ cdef class CoinBackend(GenericBackend):
             sage: p.objective_coefficient(3)                        # optional - Coin
             1.0
         """
-
-        # the solution is no longer valid if we add a new column
-        if self.solution != NULL:
-            sage_free(self.solution)
-            self.solution = NULL
 
         # for some reason, Cython is not accepting the line below, which appeare
         #cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
@@ -172,10 +162,6 @@ cdef class CoinBackend(GenericBackend):
 
         OUTPUT: The index of the variable created last.
 
-        .. NOTE::
-
-            The names are ignored by Coin at the moment !!!
-
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
@@ -188,6 +174,8 @@ cdef class CoinBackend(GenericBackend):
             5
             sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - Coin
             6
+            sage: p.col_name(5)                                                        # optional - Coin
+            'a'
         """
         #cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         cdef int vtype = int(binary) + int(continuous) + int(integer)
@@ -218,11 +206,11 @@ cdef class CoinBackend(GenericBackend):
             if obj:
                 self.si.setObjCoeff(n + i, obj)
 
-        # THE NAMES ARE IGNORED BY COIN AT THE MOMENT
-        # not in this patch
         if names != None:
             for name in names:
                 self.col_names.append(name)
+        else:
+            self.col_names.extend(['' for i in range(number)])
 
         return n + number -1
 
@@ -283,9 +271,6 @@ cdef class CoinBackend(GenericBackend):
             sage: p.is_maximization()                              # optional - Coin
             False
         """
-        if self.solution != NULL:
-            sage_free(self.solution)
-            self.solution = NULL
         self.si.setObjSense(-sense)
 
     cpdef objective_coefficient(self, int variable, coeff=None):
@@ -313,9 +298,6 @@ cdef class CoinBackend(GenericBackend):
         """
         if coeff is not None:
             self.si.setObjCoeff(variable, coeff)
-            if self.solution != NULL:
-                sage_free(self.solution)
-                self.solution = NULL
         else:
             return self.si.getObjCoefficients()[variable]
 
@@ -340,9 +322,7 @@ cdef class CoinBackend(GenericBackend):
         """
 
         cdef int i
-        if self.solution != NULL:
-            sage_free(self.solution)
-            self.solution = NULL
+
         for i,v in enumerate(coeff):
             self.si.setObjCoeff(i, v)
 
@@ -362,7 +342,8 @@ cdef class CoinBackend(GenericBackend):
 
         """
 
-        self.log_level = level
+        self.model.setLogLevel(level)
+
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names = None):
         """
@@ -378,10 +359,6 @@ cdef class CoinBackend(GenericBackend):
 
         - ``names`` - an optional list of names (default: ``None``)
 
-        .. NOTE::
-
-            The names are ignored by Coin at the moment !!!
-
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
@@ -394,11 +371,14 @@ cdef class CoinBackend(GenericBackend):
             sage: p.row_bounds(4)                        # optional - Coin
             (None, 2.0)
             sage: p.add_linear_constraints(2, None, 2, names=['foo','bar']) # optional - Coin
+            sage: p.row_name(6)                          # optional - Coin
+            'bar'
         """
 
         cdef int i
         for 0<= i<number:
-            self.add_linear_constraint([],lower_bound, upper_bound)
+            self.add_linear_constraint([],lower_bound, upper_bound, name = (names[i] if names else None))
+
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name = None):
         """
@@ -416,10 +396,6 @@ cdef class CoinBackend(GenericBackend):
 
         - ``name`` - an optional name for this row (default: ``None``)
 
-        .. NOTE::
-
-            The names are ignored by Coin at the moment !!!
-
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
@@ -435,9 +411,6 @@ cdef class CoinBackend(GenericBackend):
             sage: p.row_name(1)                                                           # optional - Coin
             'foo'
         """
-        if self.solution != NULL:
-            sage_free(self.solution)
-            self.solution = NULL
         if lower_bound is None and upper_bound is None:
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
 
@@ -620,11 +593,7 @@ cdef class CoinBackend(GenericBackend):
             c_indices[i] = indices[i]
             c_values[i] = coeffs[i]
 
-
         self.si.addCol (1, c_indices, c_values, 0, self.si.getInfinity(), 0)
-        if self.solution != NULL:
-            sage_free(self.solution)
-            self.solution = NULL
 
     cpdef int solve(self) except -1:
         r"""
@@ -662,9 +631,10 @@ cdef class CoinBackend(GenericBackend):
 
         # set up the model
         cdef OsiSolverInterface * si = self.si
+
         cdef CbcModel * model
         model = new CbcModel(si[0])
-        model.setLogLevel(self.log_level)
+        model.setLogLevel(self.model.logLevel())
 
         # multithreading
         import multiprocessing
@@ -687,16 +657,8 @@ cdef class CoinBackend(GenericBackend):
         elif not model.solver().isProvenOptimal():
             raise MIPSolverException("CBC : Unknown error")
 
-        self.obj_value = model.solver().getObjValue()
-        if self.solution != NULL:
-            sage_free(self.solution)
-            self.solution = NULL
-        self.solution = <double *>sage_malloc(sizeof(double) * self.si.getNumCols())
-        cdef double * temp_sol = <double *>model.solver().getColSolution()
-        cdef int i
-        for i in xrange(self.si.getNumCols()): self.solution[i] = temp_sol[i]
-        del model
-
+        del self.model
+        self.model = model
 
     cpdef double get_objective_value(self):
         r"""
@@ -723,12 +685,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.get_variable_value(1)                          # optional - Coin
             1.5
         """
-
-        #return self.si.getObjValue()
-        if self.solution != NULL:
-            return self.obj_value
-        else:
-            raise MIPSolverException("If you change a linear program, you must solve it before requesting solutions.")
+        return self.model.solver().getObjValue()
 
     cpdef double get_variable_value(self, int variable):
         r"""
@@ -756,12 +713,9 @@ cdef class CoinBackend(GenericBackend):
             1.5
         """
 
-        #cdef double * solution
-        #solution = <double*> self.model.solver().getColSolution()
-        if self.solution != NULL:
-            return self.solution[variable]
-        else:
-            raise MIPSolverException("If you change a linear program, you must solve it before requesting solutions.")
+        cdef double * solution
+        solution = <double*> self.model.solver().getColSolution()
+        return solution[variable]
 
     cpdef int ncols(self):
         r"""
@@ -922,9 +876,6 @@ cdef class CoinBackend(GenericBackend):
             return ub[index] if ub[index] != + self.si.getInfinity() else None
         else:
             self.si.setColUpper(index, value if value is not None else +self.si.getInfinity())
-            if self.solution != NULL:
-                sage_free(self.solution)
-                self.solution = NULL
 
     cpdef variable_lower_bound(self, int index, value = False):
         r"""
@@ -957,9 +908,6 @@ cdef class CoinBackend(GenericBackend):
             return lb[index] if lb[index] != - self.si.getInfinity() else None
         else:
             self.si.setColLower(index, value if value is not None else -self.si.getInfinity())
-            if self.solution != NULL:
-              sage_free(self.solution)
-              self.solution = NULL
 
     cpdef write_mps(self, char * filename, int modern):
         r"""
@@ -1045,7 +993,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")                                     # optional - Coin
             sage: p.add_linear_constraints(1, 2, None, names=['Empty constraint 1'])  # optional - Coin
             sage: print p.row_name(0)                                                 # optional - Coin
-            <BLANKLINE>
+            Empty constraint 1
         """
         if self.row_names != None:
             return self.row_names[index]
@@ -1100,4 +1048,3 @@ cdef class CoinBackend(GenericBackend):
         p.prob_name = self.prob_name
 
         return p
-

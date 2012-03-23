@@ -13,7 +13,7 @@ set -e
 # Add a sensible default optimisation flag. Change if necessary.
 OPTIMIZATION_FLAGS="-O2"
 # Work around a bug in gcc 4.6.0: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48774
-if [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = xGCC ] ; then
+if [ "`testcc.sh $CC`" = GCC ] ; then
     if $CC -dumpversion 2>/dev/null |grep >/dev/null '^4\.6\.[01]' ; then
         echo "Warning: Working around bug in gcc 4.6.0"
         OPTIMIZATION_FLAGS="$OPTIMIZATION_FLAGS -fno-ivopts"

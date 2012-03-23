@@ -24,6 +24,9 @@ http://users.tkk.fi/pat/cliquer.html
 
 == Changelog ==
 
+=== cliquer-1.2.p11 (John Palmieri, 23 March 2012) ===
+ * #12311: Remove explicit path to testcc.sh in spkg-install.
+
 === cliquer-1.2.p10 (Karl-Dieter Crisman, 28 June 2011) ===
  * #11547: Make sure that libcliquer.so is copied as both
    .dll and .so files on Cygwin

@@ -20,6 +20,15 @@ from copy import copy
 cdef class CoinBackend(GenericBackend):
 
     def __cinit__(self, maximization = True):
+        """
+        Cython constructor
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")                  # optional - Coin
+
+        """
 
         # Coin devs seem to favor OsiClpSolverInterface
         self.si = new OsiClpSolverInterface()
@@ -44,7 +53,7 @@ cdef class CoinBackend(GenericBackend):
             sage_free(self.solution)
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
-        """
+        r"""
         Add a variable.
 
         This amounts to adding a new column to the matrix. By default,
@@ -96,7 +105,6 @@ cdef class CoinBackend(GenericBackend):
             'x'
             sage: p.objective_coefficient(3)                        # optional - Coin
             1.0
-
         """
 
         # the solution is no longer valid if we add a new column
@@ -127,8 +135,6 @@ cdef class CoinBackend(GenericBackend):
         elif integer:
             self.set_variable_type(n,1)
 
-        # THE NAMES ARE IGNORED BY COIN AT THE MOMENT
-        # (not in this patch)
         if name:
             self.col_names.append(name)
         else:

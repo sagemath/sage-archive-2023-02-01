@@ -9039,7 +9039,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # setting the minimum to 1/(10 * size of the whole graph )
         # should be safe :-)
-        m = 1/(10*g.order())
+        m = 1/(10 *Integer(g.order()))
         g_mad = g.subgraph([v for v,l in p.get_values(d).iteritems() if l>m ])
 
         if value_only:

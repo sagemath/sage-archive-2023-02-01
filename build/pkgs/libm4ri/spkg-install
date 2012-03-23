@@ -12,13 +12,13 @@ ROOT_DIR="`pwd`"
 
 CFLAGS="$CFLAGS $INCLUDES -g"
 
-COMPILER=`./testcc.sh`
+COMPILER=`testcc.sh $CC`
 
-if [ "x$COMPILER"  = "xGNU" ] ; then
+if [ "$COMPILER"  = "GCC" ] ; then
    CFLAGS="$CFLAGS -fPIC -Wall -pedantic"
-elif [ "x$COMPILER" = "xSun_on_Solaris" ] ; then
+elif [ "$COMPILER" = "Sun_Studio" ] ; then
    CFLAGS="$CFLAGS -Kpic"
-elif [ "x$COMPILER" = "xHP_on_HPUX" ] ; then
+elif [ "$COMPILER" = "HP_on_HP-UX" ] ; then
    CFLAGS="$CFLAGS + z"
 fi
 

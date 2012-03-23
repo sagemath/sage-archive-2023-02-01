@@ -156,13 +156,18 @@ trap '' TTOU
 # does not update the base packages and we cannot retro-actively change
 # that in earlier versions.  So the only thing to do is to skip this
 # test.
-if ! [ -f "$SAGE_ROOT/spkg/base/$TARGET.tar" ]; then
-    echo >&2 "The file 'spkg/base/$TARGET.tar' does not exist."
+prereq_tarball="$SAGE_ROOT/spkg/base/$TARGET.tar.gz"
+if ! [ -f "$prereq_tarball" ]; then
+    echo >&2 "The file '$prereq_tarball' does not exist."
     echo >&2 "Most likely, this is because you upgraded from an old version of Sage."
     echo >&2 "Since this package only does some checks, it should be okay to continue"
     echo >&2 "without it.  Skipping prerequisite checks..."
 else
-    tar xf "$SAGE_ROOT/spkg/base/$TARGET.tar"
+    gzip -cd "$prereq_tarball" | tar xf -
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: failed to extract '$prereq_tarball'"
+        exit 1
+    fi
 
     # A reasonably sophisticated test is performed in a configure
     # script, which checks compilers exist, their version numbers,

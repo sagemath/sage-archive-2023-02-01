@@ -37,18 +37,18 @@ EOF
     exit 2
 fi
 
-###############################################################################
-# Make upgrading work: If this script is called from sage-upgrade,
-# either sage-upgrade has set SAGE_UPGRADING to "yes",
-# or we have an old version of sage-upgrade that doesn't contain
-# the string "SAGE_UPGRADING".
-# If SAGE_UPGRADING is not set to "yes", or sage-upgrade does not (yet)
-# exist, do the usual build (without setting SAGE_SPKG_OPTS).
-###############################################################################
-if [ -f "$SAGE_LOCAL/bin/sage-upgrade" ] && \
-    ! grep SAGE_UPGRADING "$SAGE_LOCAL/bin/sage-upgrade" >/dev/null; then
+# If spkg/bin/sage-env doesn't exist, we are surely upgrading (sage-env
+# was moved to spkg/bin in sage-5.0).  Manually set SAGE_UPGRADING=yes,
+# as old versions of sage-upgrade didn't do this.
+# Also avoid RM being set to "rm":
+#   http://trac.sagemath.org/sage_trac/ticket/3537
+if [ ! -f "$SAGE_ROOT/spkg/bin/sage-env" ]; then
     SAGE_UPGRADING=yes
+    if [ "$RM" = rm ]; then
+        export RM="rm -f"
+    fi
 fi
+
 if [ "$SAGE_UPGRADING" = yes ]; then
     # We're doing an upgrade.
     # Let the Makefile (spkg/standard/deps) call sage-spkg with "-f"
@@ -152,9 +152,15 @@ fi
 # Create the sage_fortran script.
 ###############################################################################
 
+# Don't use SAGE_FORTRAN and SAGE_FORTRAN_LIB if we are installing GCC
+# or have installed gfortran, as that can cause compatibility problems.
+# We want to use the Fortran compiler that we build as part of GCC.
+if [ "$need_to_install_gcc" = yes ] || [ -x "$SAGE_LOCAL/bin/gfortran" ]; then
+    SAGE_FORTRAN=gfortran
+    unset SAGE_FORTRAN_LIB
+fi
+
 # Use "gfortran" as fallback if SAGE_FORTRAN is still unset.
-# By the time we need to run sage_fortran, the GCC spkg should be
-# installed, such that gfortran is available.
 if [ -z "$SAGE_FORTRAN" ] ; then
     SAGE_FORTRAN=gfortran
 fi
@@ -400,7 +406,10 @@ echo "***********************************************"
 # NOW do the actual build:
 ###############################################################################
 # Build "toolchain" before everything else.
-time { $MAKE toolchain && $MAKE $1 ; }
+# During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes such
+# that packages can do different things when they are built as
+# prerequisite of GCC.
+time { env SAGE_BUILD_TOOLCHAIN=yes $MAKE toolchain && $MAKE $1 ; }
 if [ $? -ne 0 ]; then
     echo >&2 "Error building Sage."
     exit 1

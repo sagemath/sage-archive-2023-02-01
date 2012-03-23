@@ -29,7 +29,18 @@ The MPC team can be contact via the MPC mailing list:
  * MPIR
  * MPFR
 
+== Special Update/Build Instructions ==
+
+Patches:
+ * no_fortify_source.patch: on some older systems, there are linker
+   errors when compiling MPC.  These go away when removing the compiler
+   flag "-D_FORTIFY_SOURCE=2", which is what the patch does.
+
 == Changelog ==
+
+=== mpc-1.0.0dev1126.p1 (Jeroen Demeyer, 23 March 2012) ===
+ * Trac #12515: add no_fortify_source.patch to remove compiler option
+   "-D_FORTIFY_SOURCE=2".
 
 === mpc-1.0.0dev1126 (Jeroen Demeyer, 22 February 2012) ===
  * Trac #12515: Upgrade to mpc-1.0.0, svn revision 1126

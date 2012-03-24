@@ -267,8 +267,21 @@ class MPolynomial_element(MPolynomial):
             sage: f = (x + y)/x; f
             (x + y)/x
             sage: f.parent()
-            Fraction Field of Multivariate Polynomial Ring in x, y over Complex Field with 53 bits of precision
+            Fraction Field of Multivariate Polynomial Ring in x, y over
+            Complex Field with 53 bits of precision
+
+        If dividing by a scalar, there is no need to go to the fraction
+        field of the polynomial ring::
+
+            sage: f = (x + y)/2; f
+            0.500000000000000*x + 0.500000000000000*y
+            sage: f.parent()
+            Multivariate Polynomial Ring in x, y over Complex Field with
+            53 bits of precision
         """
+        if right in self.base_ring():
+            inv = 1/self.base_ring()(right)
+            return inv*self
         return self.parent().fraction_field()(self, right, coerce=False)
 
     def __rpow__(self, n):

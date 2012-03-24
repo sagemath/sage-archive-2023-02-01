@@ -2369,39 +2369,66 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = R(2).integral(); f
             2*x
 
-        Note that since the integral is defined over the same base ring the
-        integral is actually in the base ring.
-
-        ::
+        Note that the integral lives over the fraction field of the
+        scalar coefficients::
 
             sage: f.parent()
-            Univariate Polynomial Ring in x over Integer Ring
-
-        If the integral isn't defined over the same base ring, then the
-        base ring is extended::
+            Univariate Polynomial Ring in x over Rational Field
+            sage: R(0).integral().parent()
+            Univariate Polynomial Ring in x over Rational Field
 
             sage: f = x^3 + x - 2
             sage: g = f.integral(); g
             1/4*x^4 + 1/2*x^2 - 2*x
             sage: g.parent()
             Univariate Polynomial Ring in x over Rational Field
+
+        This shows that the issue at trac #7711 is resolved::
+
+            sage: P.<x,z> = PolynomialRing(GF(2147483647))
+            sage: Q.<y> = PolynomialRing(P)
+            sage: p=x+y+z
+            sage: p.integral()
+            -1073741823*y^2 + (x + z)*y
+
+            sage: P.<x,z> = PolynomialRing(GF(next_prime(2147483647)))
+            sage: Q.<y> = PolynomialRing(P)
+            sage: p=x+y+z
+            sage: p.integral()
+            1073741830*y^2 + (x + z)*y
+
+        A truly convoluted example::
+
+            sage: A.<a1, a2> = PolynomialRing(ZZ)
+            sage: B.<b> = PolynomialRing(A)
+            sage: C.<c> = PowerSeriesRing(B)
+            sage: R.<x> = PolynomialRing(C)
+            sage: f = a2*x^2 + c*x - a1*b
+            sage: f.parent()
+            Univariate Polynomial Ring in x over Power Series Ring in c
+            over Univariate Polynomial Ring in b over Multivariate Polynomial
+            Ring in a1, a2 over Integer Ring
+            sage: f.integral()
+            1/3*a2*x^3 + 1/2*c*x^2 - a1*b*x
+            sage: f.integral().parent()
+            Univariate Polynomial Ring in x over Power Series Ring in c
+            over Univariate Polynomial Ring in b over Multivariate Polynomial
+            Ring in a1, a2 over Rational Field
+            sage: g = 3*a2*x^2 + 2*c*x - a1*b
+            sage: g.integral()
+            a2*x^3 + c*x^2 - a1*b*x
+            sage: g.integral().parent()
+            Univariate Polynomial Ring in x over Power Series Ring in c
+            over Univariate Polynomial Ring in b over Multivariate Polynomial
+            Ring in a1, a2 over Rational Field
         """
         cdef Py_ssize_t n, degree = self.degree()
-        if degree < 0:
-            return self.parent().zero_element()
-
+        R = self.parent()
+        Q = (self.constant_coefficient()/1).parent()
         coeffs = self.list()
-        v = [0, coeffs[0]] + [coeffs[n]/(n+1) for n from 1 <= n <= degree]
-        try:
-            return self._parent(v)
-        except TypeError:
-            R = self.parent()
-            try:
-                S = R.change_ring(R.base_ring().fraction_field())
-                return S(v)
-            except (TypeError, AttributeError):
-                raise ArithmeticError("coefficients of integral cannot be coerced into the base ring or its fraction field")
-
+        v = [0] + [coeffs[n]/(n+1) for n from 0 <= n <= degree]
+        S = R.change_ring(Q)
+        return S(v)
 
     def dict(self):
         """

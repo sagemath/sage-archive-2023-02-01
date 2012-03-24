@@ -36,6 +36,9 @@ GPL V2+
 
 == Changelog ==
 
+=== flint-1.5.2.p0 (Dima Pasechnik, March 24th 2012) ===
+  * bumped up the version to reflect the fact that we patch the source
+
 === flint-1.5.2 (Julien Puydt, William Stein, December 21st 2011) ===
   * #10328: enable ARM support; longlong.patch removes non-working
     asm code for 32-bit ARM

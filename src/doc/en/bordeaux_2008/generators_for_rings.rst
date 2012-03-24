@@ -44,7 +44,11 @@ weights :math:`2` and :math:`4`.
     sage: ModularFormsRing(Gamma0(3)).generators()
     [(2, 1 + 12*q + 36*q^2 + 12*q^3 + 84*q^4 + 72*q^5 + 36*q^6 + 96*q^7 + 180*q^8 + 12*q^9 + O(q^10)),
     (4, 1 + 240*q^3 + 2160*q^6 + 6720*q^9 + O(q^10)),
-    (6, q - 6*q^2 + 9*q^3 + 4*q^4 + 6*q^5 - 54*q^6 - 40*q^7 + 168*q^8 + 81*q^9 + O(q^10))]
+    (6, 1 - 504*q^3 - 16632*q^6 - 122976*q^9 + O(q^10))]
+
+(*Note*: As of 2012, updates to the code mean that the output of this test is
+not quite the same as it was in 2008, but of course there are multiple equally
+valid answers.)
 
 We can also handle rings of modular forms for odd congruence subgroups, but
 with the usual caveat that we can't calculate forms of weight 1. So these are

@@ -10,351 +10,233 @@ AUTHORS:
 """
 
 
-from sage.rings.all             import Integer, QQ, infinity
-from sage.misc.misc             import prod, verbose
-from sage.modular.congroup import Gamma0
-from constructor                import ModularForms
-from sage.structure.sage_object import SageObject
+from sage.rings.all              import Integer, QQ, ZZ, PowerSeriesRing
+from sage.misc.misc              import prod, verbose
+from sage.misc.cachefunc         import cached_method
+from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
+from constructor                 import ModularForms
+from sage.structure.sage_object  import SageObject
+from random import shuffle
 
-def span_of_series(v, prec=None, basis=False):
+def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=False):
     r"""
-    Return the free module spanned by the given list of power series
-    or objects with a padded_list method.  If prec is not given, the
-    precision used is the minimum of the precisions of the elements in
-    the list (as determined by a prec method).
+    Utility function. Given a nonempty list of pairs ``(k,f)``, where `k` is an
+    integer and `f` is a power series, and a weight l, return all weight l
+    forms obtained by multiplying together the given forms.
 
     INPUT:
 
-    - v -- a list of power series
-    - prec -- optional; if given then the series do not have to be of finite
-      precision, and will be considered to have precision prec.
-    - basis -- (default: False) if True the input is assumed to determine
-      linearly independent vectors, and the resulting free module has that as
-      basis.
+    - ``forms`` -- list of pairs `(k, f)` with k an integer and f a power
+      series (all over the same base ring)
+    - ``weight`` -- an integer
+    - ``prec`` -- an integer (less than or equal to the precision of all the
+      forms in ``forms``) -- precision to use in power series computations.
+    - ``stop_dim`` -- an integer: stop as soon as we have enough forms to span
+      a submodule of this rank (a saturated one if the base ring is `\ZZ`).
+      Ignored if ``use_random`` is False.
+    - ``use_random`` -- which algorithm to use. If True, tries random products
+      of the generators of the appropriate weight until a large enough
+      submodule is found (determined by ``stop_dim``). If False, just tries
+      everything.
 
-    OUTPUT:
-
-    A free module of rank prec over the base ring of the forms
-    (actually, of the first form in the list).  If the list is
-    empty, the free module is over QQ.
-
-    EXAMPLES:
-
-    An example involving modular forms::
-
-        sage: from sage.modular.modform.find_generators import span_of_series
-        sage: v = ModularForms(11,2, prec=5).basis(); v
-        [
-        q - 2*q^2 - q^3 + 2*q^4 + O(q^5),
-        1 + 12/5*q + 36/5*q^2 + 48/5*q^3 + 84/5*q^4 + O(q^5)
-        ]
-        sage: span_of_series(v)
-        Vector space of degree 5 and dimension 2 over Rational Field
-        Basis matrix:
-        [ 1  0 12 12 12]
-        [ 0  1 -2 -1  2]
-
-    Next we make sure the vectors give a basis::
-
-        sage: span_of_series(v,basis=True)
-        Vector space of degree 5 and dimension 2 over Rational Field
-        User basis matrix:
-        [   0    1   -2   -1    2]
-        [   1 12/5 36/5 48/5 84/5]
-
-    An example involving power series.::
-
-        sage: R.<x> = PowerSeriesRing(QQ, default_prec=5)
-        sage: v = [1/(1-x), 1/(1+x), 2/(1+x), 2/(1-x)]; v
-        [1 + x + x^2 + x^3 + x^4 + O(x^5),
-         1 - x + x^2 - x^3 + x^4 + O(x^5),
-         2 - 2*x + 2*x^2 - 2*x^3 + 2*x^4 + O(x^5),
-         2 + 2*x + 2*x^2 + 2*x^3 + 2*x^4 + O(x^5)]
-        sage: span_of_series(v)
-        Vector space of degree 5 and dimension 2 over Rational Field
-        Basis matrix:
-        [1 0 1 0 1]
-        [0 1 0 1 0]
-        sage: span_of_series(v,10)
-        Vector space of degree 10 and dimension 2 over Rational Field
-        Basis matrix:
-        [1 0 1 0 1 0 0 0 0 0]
-        [0 1 0 1 0 0 0 0 0 0]
-
-    An example involving polynomials.::
-
-        sage: x = polygen(QQ)
-        sage: span_of_series([x^3, 2*x^2 + 17*x^3, x^2])
-        Traceback (most recent call last):
-        ...
-        ValueError: please specify a precision
-        sage: span_of_series([x^3, 2*x^2 + 17*x^3, x^2],5)
-        Vector space of degree 5 and dimension 2 over Rational Field
-        Basis matrix:
-        [0 0 1 0 0]
-        [0 0 0 1 0]
-        sage: span_of_series([x^3, 2*x^2 + 17*x^3, x^2],3)
-        Vector space of degree 3 and dimension 1 over Rational Field
-        Basis matrix:
-        [0 0 1]
-    """
-    verbose('computing span of series %s' % v)
-    if len(v) == 0:
-        if not prec:
-            prec = 0
-        return (QQ**prec).zero_submodule()
-    if prec:
-        n = Integer(prec)
-    else:
-        n = min([g.prec() for g in v])
-        if n == infinity:
-            raise ValueError, "please specify a precision"
-
-    K = v[0].parent().base_ring()
-    V = K**n
-    B = [V(g.padded_list(n)) for g in v]
-    if basis:
-        M = V.span_of_basis(B)
-    else:
-        M = V.span(B)
-    return M
-
-def multiply_forms_to_weight(forms, weight, stop_dim=None):
-    r"""
-    Given a list of pairs ``(k,f)``, where `k` is an integer and `f` is a power
-    series, and a weight l, return all weight l forms obtained by multiplying
-    together the given forms.
-
-    INPUT:
-
-    - forms -- list of pairs (k, f) with k an integer and f a power series
-    - weight -- an integer
-    - stop_dim -- integer (optional): if set to an integer and we find that the
-      series so far span a space of at least this dimension, then stop
-      multiplying more forms together.
+    Note that if the given forms do generate the whole space, then
+    ``use_random=True`` will often be quicker (particularly if the weight is
+    large); but if the forms don't generate, the randomized algorithm is no
+    help and will actually be substantially slower, because it needs to do
+    repeated echelon form calls to check if vectors are in a submodule, while
+    the non-randomized algorithm just echelonizes one enormous matrix at the
+    end.
 
     EXAMPLES::
 
         sage: import sage.modular.modform.find_generators as f
         sage: forms = [(4, 240*eisenstein_series_qexp(4,5)), (6,504*eisenstein_series_qexp(6,5))]
-        sage: f.multiply_forms_to_weight(forms, 12)
-        [(12, 1 - 1008*q + 220752*q^2 + 16519104*q^3 + 399517776*q^4 + O(q^5)), (12, 1 + 720*q + 179280*q^2 + 16954560*q^3 + 396974160*q^4 + O(q^5))]
-        sage: f.multiply_forms_to_weight(forms, 24)
-        [(24, 1 - 2016*q + 1457568*q^2 - 411997824*q^3 + 16227967392*q^4 + O(q^5)), (24, 1 - 288*q - 325728*q^2 + 11700864*q^3 + 35176468896*q^4 + O(q^5)), (24, 1 + 1440*q + 876960*q^2 + 292072320*q^3 + 57349833120*q^4 + O(q^5))]
-        sage: dimension_modular_forms(SL2Z,24)
-        3
-    """
-    verbose('multiplying forms up to weight %s'%weight)
-    # Algorithm: run through the subsets of forms and for each check
-    # whether or not the sum of the weights (with coefficients -- i.e.,
-    # account for multiplicities) of the forms equals weight.
-    # If so, multiply those together and append them to the output
-    # list v
+        sage: f._span_of_forms_in_weight(forms, 12, prec=5)
+        Vector space of degree 5 and dimension 2 over Rational Field
+        Basis matrix:
+        [        1         0    196560  16773120 398034000]
+        [        0         1       -24       252     -1472]
+        sage: f._span_of_forms_in_weight(forms, 24, prec=5)
+        Vector space of degree 5 and dimension 3 over Rational Field
+        Basis matrix:
+        [          1           0           0    52416000 39007332000]
+        [          0           1           0      195660    12080128]
+        [          0           0           1         -48        1080]
+        sage: ModularForms(1, 24).q_echelon_basis(prec=5)
+        [
+        1 + 52416000*q^3 + 39007332000*q^4 + O(q^5),
+        q + 195660*q^3 + 12080128*q^4 + O(q^5),
+        q^2 - 48*q^3 + 1080*q^4 + O(q^5)
+        ]
 
-    # The answer list
-    v = []
+    Test the alternative randomized algorithm::
+
+        sage: f._span_of_forms_in_weight(forms, 24, prec=5, use_random=True, stop_dim=3)
+        Vector space of degree 5 and dimension 3 over Rational Field
+        Basis matrix:
+        [          1           0           0    52416000 39007332000]
+        [          0           1           0      195660    12080128]
+        [          0           0           1         -48        1080]
+    """
+    t = verbose('multiplying forms up to weight %s'%weight)
+    # Algorithm: run through the monomials of the appropriate weight, and build
+    # up the vector space they span.
+
     n = len(forms)
+    R = forms[0][1].base_ring()
+    V = R ** prec
+    W = V.zero_submodule()
+    shortforms = [f[1].truncate_powerseries(prec) for f in forms]
 
     # List of weights
     from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
-    wts = WeightedIntegerVectors(weight, [f[0] for f in forms])
+    wts = list(WeightedIntegerVectors(weight, [f[0] for f in forms]))
+    t = verbose("calculated weight list", t)
+    N = len(wts)
 
-    for c in wts:
-        if sum(c[i]*forms[i][0] for i in xrange(n) if c[i]) != weight:
-            raise ArithmeticError, "Can't get here!"
-        g = prod(forms[i][1]**c[i] for i in xrange(n))
-        v.append((weight, g))
-        if stop_dim and len(v) >= stop_dim:
-            z = span_of_series([f for _, f in v]).dimension()
-            if z >= stop_dim:
-                return v
-    return v
+    if use_random:
+        if stop_dim is None:
+            raise ValueError("stop_dim must be provided if use_random is True")
+        shuffle(wts)
 
-def basis_for_modform_space(gens, group, weight):
-    """
-    Given a list of pairs ``(k,f)`` of a weight and a modular form of that
-    weight, and a target weight l, return a basis of q-expansions for the
-    weight l part of the graded algebra generated by those forms (which may or
-    may not be the whole space of weight l forms for the given group).
-
-    EXAMPLES::
-
-        sage: X = ModularFormsRing(SL2Z).generators()
-        sage: sage.modular.modform.find_generators.basis_for_modform_space(X, SL2Z, 12)
-        [1 + 196560*q^2 + 16773120*q^3 + 398034000*q^4 + 4629381120*q^5 + 34417656000*q^6 + 187489935360*q^7 + 814879774800*q^8 + 2975551488000*q^9 + O(q^10),
-        q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + 84480*q^8 - 113643*q^9 + O(q^10)]
-    """
-    if len(gens) == 0:
-        return []
-    d = ModularForms(group, weight).dimension()
-    v = multiply_forms_to_weight(gens, weight, stop_dim=d)
-    s = span_of_series([f for _, f in v])
-    R = gens[0][1].parent()
-    prec = s.degree()
-    return [R(list(f), prec) for f in s.basis()]
-
-def modform_generators(group, maxweight=20, prec=None, start_gens=[], start_weight=2):
-    r"""
-    Find modular forms in `M_k(group)` for `k \leq maxweight`, such that these
-    forms generate -- as an algebra -- all forms on group of weight up to
-    maxweight, where all forms are computed as `q`-expansions to precision
-    prec.
-
-    INPUT:
-
-    - ``group`` -- a level or a congruence subgroup
-    - ``maxweight`` -- integer
-    - ``prec`` -- integer (default: twice largest dimension)
-    - ``start_gens`` -- list of pairs (k,f) where k is an integer and f is a
-      power series (default: []); if given, we assume the given pairs (k,f) are
-      q-expansions of modular form of the given weight, and start creating
-      modular forms generators using them.
-    - ``start_weight`` -- an integer (default: 2)
-
-    OUTPUT:
-
-    a list of pairs (k, f), where f is the q-expansion of a modular form of
-    weight k.
-
-    EXAMPLES::
-
-        sage: import sage.modular.modform.find_generators as fg
-        sage: forms = [(4, 240*eisenstein_series_qexp(4,5)), (6,504*eisenstein_series_qexp(6,5))]
-        sage: fg.multiply_forms_to_weight(forms, 12)
-        [(12, 1 - 1008*q + 220752*q^2 + 16519104*q^3 + 399517776*q^4 + O(q^5)), (12, 1 + 720*q + 179280*q^2 + 16954560*q^3 + 396974160*q^4 + O(q^5))]
-        sage: fg.multiply_forms_to_weight(forms, 24)
-        [(24, 1 - 2016*q + 1457568*q^2 - 411997824*q^3 + 16227967392*q^4 + O(q^5)), (24, 1 - 288*q - 325728*q^2 + 11700864*q^3 + 35176468896*q^4 + O(q^5)), (24, 1 + 1440*q + 876960*q^2 + 292072320*q^3 + 57349833120*q^4 + O(q^5))]
-        sage: dimension_modular_forms(SL2Z,24)
-        3
-
-        sage: fg.modform_generators(1)
-        [(4, 1 + 240*q + 2160*q^2 + 6720*q^3 + O(q^4)), (6, 1 - 504*q - 16632*q^2 - 122976*q^3 + O(q^4))]
-        sage: fg.modform_generators(2)
-        [(2, 1 + 24*q + 24*q^2 + 96*q^3 + 24*q^4 + 144*q^5 + 96*q^6 + 192*q^7 + 24*q^8 + 312*q^9 + 144*q^10 + 288*q^11 + O(q^12)), (4, 1 + 240*q^2 + 2160*q^4 + 6720*q^6 + 17520*q^8 + 30240*q^10 + O(q^12))]
-        sage: fg.modform_generators(4, 12, 20)
-        [(2, 1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + 144*q^10 + 96*q^12 + 192*q^14 + 24*q^16 + 312*q^18 + O(q^20)), (2, q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + 12*q^11 + 14*q^13 + 24*q^15 + 18*q^17 + 20*q^19 + O(q^20))]
-
-    Here we see that for ``\Gamma_0(11)`` taking a basis of forms in weights 2 and 4 is
-    enough to generate everything up to weight 12 (and probably
-    everything else).::
-
-        sage: v = fg.modform_generators(11, 12)
-        sage: len(v)
-        3
-        sage: [k for k, _ in v]
-        [2, 2, 4]
-        sage: dimension_modular_forms(11,2)
-        2
-        sage: dimension_modular_forms(11,4)
-        4
-
-    For congruence subgroups not -1, we miss out some forms since we can't calculate weight 1 forms at present, but we can still find generators for the ring of forms of weight `\ge 2`::
-
-        sage: fg.modform_generators(Gamma1(4), prec=10, maxweight=10)
-        [(2, 1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10)),
-        (2, q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10)),
-        (3, 1 + 12*q^2 + 64*q^3 + 60*q^4 + 160*q^6 + 384*q^7 + 252*q^8 + O(q^10)),
-        (3, q + 4*q^2 + 8*q^3 + 16*q^4 + 26*q^5 + 32*q^6 + 48*q^7 + 64*q^8 + 73*q^9 + O(q^10))]
-    """
-    if prec is None:
-        prec = 2 * ModularForms(group, maxweight).dimension()
-    k = start_weight
-    if start_gens:
-        G = list(start_gens)
+        for c in xrange(N):
+            w = V(prod(shortforms[i]**wts[c][i] for i in xrange(n)).padded_list(prec))
+            if w in W: continue
+            W = V.span(list(W.gens()) + [w])
+            if stop_dim and W.rank() == stop_dim:
+                if R != ZZ or W.index_in_saturation() == 1:
+                    verbose("Succeeded after %s of %s" % (c, N), t)
+                    return W
+        verbose("Nothing worked", t)
+        return W
     else:
-        M = ModularForms(group, weight=k)
-        B = M.q_expansion_basis(prec)
-        G = [(k, f) for f in B]
-        k += 1
+        G = [V(prod(forms[i][1]**c[i] for i in xrange(n)).padded_list(prec)) for c in wts]
+        t = verbose('found %s candidates' % N, t)
+        W = V.span(G)
+        verbose('span has dimension %s' % W.rank(), t)
+        return W
 
-    already_reported_indep = False
-    while k <= maxweight:
-        verbose('Looking at k = %s'%k)
-        M = ModularForms(group, k)
-        # 1. Multiply together all forms in G that give an element
-        #    of M.
-        F = multiply_forms_to_weight(G, k)
-        verbose('Already know %s forms of weight %s' % (len(F), k))
-        # 2. If the dimension of the span of the result is equal
-        #    to the dimension of M, increment k.
-        gens = [f for _, f in F]
-        S = span_of_series(gens, prec=prec, basis=False)
-        if S.dimension() < len(gens):
-            if not already_reported_indep:
-                verbose("Generators are not independent (already at weight %s)"%k)
-                already_reported_indep = True
-        assert S.dimension() <= M.dimension(), "there is a bug in the code for finding generators of modular forms spaces"
-        if S.dimension() == M.dimension():
-            verbose("Gens so far do span at weight %s"%k)
-            k += 1
-            continue
-        verbose("Known generators span a subspace of dimension %s of space of dimension %s" % (S.dimension(), M.dimension()))
-        # 3. If the dimension is less, compute a basis for G, and
-        #    try adding basis elements of M into G.
-        t = verbose("Computing more modular forms at weight %s"%k)
-        B = M.q_expansion_basis(prec)
-        for f in B:
-            SS = span_of_series(gens + [f], prec = prec, basis = False)
-            if SS.dimension() > S.dimension():
-                verbose('adding one more form')
-                G.append( (k, f) )
-                gens.append(f)
-                S = SS
-                verbose('now known forms span a subspace of dimension %s' % S.dimension())
-        verbose('done computing forms', t)
-    return G
+def find_generators(*args):
+    r"""
+    This function, which existed in earlier versions of Sage, has now been
+    replaced by the :meth:`~ModularFormsRing.generators` method of
+    ModularFormsRing objects.
+
+    EXAMPLE::
+
+        sage: from sage.modular.modform.find_generators import find_generators
+        sage: find_generators()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: find_generators has been removed -- use ModularFormsRing.generators()
+    """
+    raise NotImplementedError("find_generators has been removed -- use ModularFormsRing.generators()")
+
+def basis_for_modform_space(*args):
+    r"""
+    This function, which existed in earlier versions of Sage, has now been
+    replaced by the :meth:`~ModularFormsRing.q_expansion_basis` method of
+    ModularFormsRing objects.
+
+    EXAMPLE::
+
+        sage: from sage.modular.modform.find_generators import basis_for_modform_space
+        sage: basis_for_modform_space()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: basis_for_modform_space has been removed -- use ModularFormsRing.q_expansion_basis()
+    """
+    raise NotImplementedError("basis_for_modform_space has been removed -- use ModularFormsRing.q_expansion_basis()")
 
 class ModularFormsRing(SageObject):
-    r"""
-    The ring of modular forms (of weights 0 or at least 2) for a congruence
-    subgroup of `{\rm SL}_2(\ZZ)`.
 
-    EXAMPLES::
-
-        sage: ModularFormsRing(Gamma1(13))
-        Ring of modular forms for Congruence Subgroup Gamma1(13) of weights 0 and at least 2
-        sage: m = ModularFormsRing(4); m
-        Ring of modular forms for Congruence Subgroup Gamma0(4)
-        sage: m.modular_forms_of_weight(2)
-        Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(4) of weight 2 over Rational Field
-        sage: m.modular_forms_of_weight(10)
-        Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(4) of weight 10 over Rational Field
-        sage: m == loads(dumps(m))
-        True
-        sage: m.generators()
-        [(2, 1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10)),
-        (2, q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10))]
-        sage: m.q_expansion_basis(2,10)
-        [1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10),
-         q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10)]
-        sage: m.q_expansion_basis(3,10)
-        []
-        sage: m.q_expansion_basis(10,10)
-        [1 + 10560*q^6 + 3960*q^8 + O(q^10),
-         q - 8056*q^7 - 30855*q^9 + O(q^10),
-         q^2 - 796*q^6 - 8192*q^8 + O(q^10),
-         q^3 + 66*q^7 + 832*q^9 + O(q^10),
-         q^4 + 40*q^6 + 528*q^8 + O(q^10),
-         q^5 + 20*q^7 + 190*q^9 + O(q^10)]
-    """
-
-    def __init__(self, group):
+    def __init__(self, group, base_ring=QQ):
         r"""
-        Create a modular form ring.
+        The ring of modular forms (of weights 0 or at least 2) for a congruence
+        subgroup of `{\rm SL}_2(\ZZ)`, with coefficients in a specified base ring.
+
+        INPUT:
+
+        - ``group`` -- a congruence subgroup of `{\rm SL}_2(\ZZ)`, or a
+          positive integer `N` (interpreted as `\Gamma_0(N)`)
+
+        - ``base_ring`` (ring, default: `\QQ`) -- a base ring, which should be
+          `\QQ`, `\ZZ`, or the integers mod `p` for some prime `p`.
+
+        EXAMPLES::
+
+            sage: ModularFormsRing(Gamma1(13))
+            Ring of modular forms for Congruence Subgroup Gamma1(13) with coefficients in Rational Field
+            sage: m = ModularFormsRing(4); m
+            Ring of modular forms for Congruence Subgroup Gamma0(4) with coefficients in Rational Field
+            sage: m.modular_forms_of_weight(2)
+            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(4) of weight 2 over Rational Field
+            sage: m.modular_forms_of_weight(10)
+            Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(4) of weight 10 over Rational Field
+            sage: m == loads(dumps(m))
+            True
+            sage: m.generators()
+            [(2, 1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10)),
+            (2, q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10))]
+            sage: m.q_expansion_basis(2,10)
+            [1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10),
+             q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10)]
+            sage: m.q_expansion_basis(3,10)
+            []
+            sage: m.q_expansion_basis(10,10)
+            [1 + 10560*q^6 + 3960*q^8 + O(q^10),
+             q - 8056*q^7 - 30855*q^9 + O(q^10),
+             q^2 - 796*q^6 - 8192*q^8 + O(q^10),
+             q^3 + 66*q^7 + 832*q^9 + O(q^10),
+             q^4 + 40*q^6 + 528*q^8 + O(q^10),
+             q^5 + 20*q^7 + 190*q^9 + O(q^10)]
+        """
+        if isinstance(group, (int, long, Integer)):
+            group = Gamma0(group)
+        elif not is_CongruenceSubgroup(group):
+            raise ValueError("Group (=%s) should be a congruence subgroup")
+
+        if base_ring != ZZ and not base_ring.is_prime_field():
+            raise ValueError("Base ring (=%s) should be QQ, ZZ or a finite prime field")
+
+        self.__group = group
+        self.__base_ring = base_ring
+        self.__cached_maxweight = ZZ(-1)
+        self.__cached_gens = []
+        self.__cached_cusp_maxweight = ZZ(-1)
+        self.__cached_cusp_gens = []
+
+
+
+    def group(self):
+        r"""
+        Return the congruence subgroup for which this is the ring of modular forms.
 
         EXAMPLE::
 
-            sage: ModularFormsRing(Gamma1(13)) # indirect doctest
-            Ring of modular forms for Congruence Subgroup Gamma1(13) of weights 0 and at least 2
+            sage: R = ModularFormsRing(Gamma1(13))
+            sage: R.group() is Gamma1(13)
+            True
         """
+        return self.__group
 
-        if isinstance(group, (int, long, Integer)):
-            group = Gamma0(group)
-        self.__group = group
+    def base_ring(self):
+        r"""
+        Return the coefficient ring of this modular forms ring.
+
+        EXAMPLE::
+
+            sage: ModularFormsRing(Gamma1(13)).base_ring()
+            Rational Field
+            sage: ModularFormsRing(Gamma1(13), base_ring = ZZ).base_ring()
+            Integer Ring
+        """
+        return self.__base_ring
 
     def __cmp__(self, other):
         r"""
-        Compare self to other. Rings are equal if and only if their groups are.
+        Compare self to other. Rings are equal if and only if their groups and
+        base rings are.
 
         EXAMPLE::
 
@@ -369,7 +251,7 @@ class ModularFormsRing(SageObject):
         if not isinstance(other, ModularFormsRing):
             return cmp( type(self), type(other) )
         else:
-            return cmp(self.__group, other.__group)
+            return cmp(self.group(), other.group()) or cmp(self.base_ring(), other.base_ring())
 
     def _repr_(self):
         r"""
@@ -378,15 +260,11 @@ class ModularFormsRing(SageObject):
         EXAMPLES::
 
             sage: ModularFormsRing(Gamma0(13))._repr_()
-            'Ring of modular forms for Congruence Subgroup Gamma0(13)'
-            sage: ModularFormsRing(Gamma1(13))._repr_()
-            'Ring of modular forms for Congruence Subgroup Gamma1(13) of weights 0 and at least 2'
+            'Ring of modular forms for Congruence Subgroup Gamma0(13) with coefficients in Rational Field'
+            sage: ModularFormsRing(Gamma1(13), base_ring=ZZ)._repr_()
+            'Ring of modular forms for Congruence Subgroup Gamma1(13) with coefficients in Integer Ring'
         """
-
-        if (-1 in self.__group):
-            return "Ring of modular forms for %s" % self.__group
-        else:
-            return "Ring of modular forms for %s of weights 0 and at least 2"%self.__group
+        return "Ring of modular forms for %s with coefficients in %s" % (self.group(), self.base_ring())
 
     def modular_forms_of_weight(self, weight):
         """
@@ -400,44 +278,325 @@ class ModularFormsRing(SageObject):
             sage: ModularFormsRing(Gamma1(13)).modular_forms_of_weight(3)
             Modular Forms space of dimension 20 for Congruence Subgroup Gamma1(13) of weight 3 over Rational Field
         """
-        return ModularForms(self.__group, weight)
+        return ModularForms(self.group(), weight)
 
-    def generators(self, prec=10, maxweight=20):
+    def generators(self, maxweight=8, prec=10, start_gens=[], start_weight=2):
         r"""
-        Calculate modular forms generating a subring that contains all forms of
-        weight up to maxweight (default 20).
+        If `R` is the base ring of self, then this function calculates a set of
+        modular forms which generate the `R`-algebra of all modular forms of
+        weight up to ``maxweight`` with coefficients in `R`.
+
+        INPUT:
+
+        - ``maxweight`` (integer, default: 8) -- check up to this weight for
+          generators
+
+        - ``prec`` (integer, default: 10) -- return `q`-expansions to this
+          precision
+
+        - ``start_gens`` (list, default: ``[]``) -- list of pairs `(k, f)`, or
+          triples `(k, f, F)`, where:
+
+          - `k` is an integer,
+          - `f` is the `q`-expansion of a modular form of weight `k`, as a power series over the base ring of self,
+          - `F` (if provided) is a modular form object corresponding to F.
+
+          If this list is nonempty, we find a minimal generating set containing
+          these forms. If `F` is not supplied, then `f` needs to have
+          sufficiently large precision (an error will be raised if this is not
+          the case); otherwise, more terms will be calculated from the modular
+          form object `F`.
+
+        - ``start_weight`` (integer, default: 2) -- calculate the graded
+          subalgebra of forms of weight at least ``start_weight``.
+
+        OUTPUT:
+
+        a list of pairs (k, f), where f is the q-expansion to precision
+        ``prec`` of a modular form of weight k.
+
+        .. seealso::
+
+            :meth:`gen_forms`, which does exactly the same thing, but returns
+            Sage modular form objects rather than bare power series, and keeps
+            track of a lifting to characteristic 0 when the base ring is a
+            finite field.
+
+        .. note::
+
+            If called with the default values of ``start_gens`` (an empty list)
+            and ``start_weight`` (2), the values will be cached for re-use on
+            subsequent calls to this function. (This cache is shared with
+            :meth:`gen_forms`). If called with non-default values for these
+            parameters, caching will be disabled.
 
         EXAMPLES::
 
             sage: ModularFormsRing(SL2Z).generators()
             [(4, 1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + 60480*q^6 + 82560*q^7 + 140400*q^8 + 181680*q^9 + O(q^10)), (6, 1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 - 4058208*q^6 - 8471232*q^7 - 17047800*q^8 - 29883672*q^9 + O(q^10))]
-            sage: ModularFormsRing(SL2Z).generators(maxweight=5)
-            [(4, 1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + 60480*q^6 + 82560*q^7 + 140400*q^8 + 181680*q^9 + O(q^10))]
+            sage: s = ModularFormsRing(SL2Z).generators(maxweight=5, prec=3); s
+            [(4, 1 + 240*q + 2160*q^2 + O(q^3))]
+            sage: s[0][1].parent()
+            Power Series Ring in q over Rational Field
+
+            sage: ModularFormsRing(1).generators(prec=4)
+            [(4, 1 + 240*q + 2160*q^2 + 6720*q^3 + O(q^4)), (6, 1 - 504*q - 16632*q^2 - 122976*q^3 + O(q^4))]
+            sage: ModularFormsRing(2).generators(prec=12)
+            [(2, 1 + 24*q + 24*q^2 + 96*q^3 + 24*q^4 + 144*q^5 + 96*q^6 + 192*q^7 + 24*q^8 + 312*q^9 + 144*q^10 + 288*q^11 + O(q^12)), (4, 1 + 240*q^2 + 2160*q^4 + 6720*q^6 + 17520*q^8 + 30240*q^10 + O(q^12))]
+            sage: ModularFormsRing(4).generators(maxweight=2, prec=20)
+            [(2, 1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + 144*q^10 + 96*q^12 + 192*q^14 + 24*q^16 + 312*q^18 + O(q^20)), (2, q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + 12*q^11 + 14*q^13 + 24*q^15 + 18*q^17 + 20*q^19 + O(q^20))]
+
+        Here we see that for ``\Gamma_0(11)`` taking a basis of forms in weights 2
+        and 4 is enough to generate everything up to weight 12 (and probably
+        everything else).::
+
+            sage: v = ModularFormsRing(11).generators(maxweight=12)
+            sage: len(v)
+            3
+            sage: [k for k, _ in v]
+            [2, 2, 4]
+            sage: dimension_modular_forms(11,2)
+            2
+            sage: dimension_modular_forms(11,4)
+            4
+
+        For congruence subgroups not containing -1, we miss out some forms since we
+        can't calculate weight 1 forms at present, but we can still find generators
+        for the ring of forms of weight `\ge 2`::
+
+            sage: ModularFormsRing(Gamma1(4)).generators(prec=10, maxweight=10)
+            [(2, 1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10)),
+            (2, q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10)),
+            (3, 1 + 12*q^2 + 64*q^3 + 60*q^4 + 160*q^6 + 384*q^7 + 252*q^8 + O(q^10)),
+            (3, q + 4*q^2 + 8*q^3 + 16*q^4 + 26*q^5 + 32*q^6 + 48*q^7 + 64*q^8 + 73*q^9 + O(q^10))]
+
+        Using different base rings will change the generators::
+
+            sage: ModularFormsRing(Gamma0(13)).generators(maxweight=12, prec=4)
+            [(2, 1 + 2*q + 6*q^2 + 8*q^3 + O(q^4)), (4, 1 + O(q^4)), (4, q + O(q^4)), (4, q^2 + O(q^4)), (4, q^3 + O(q^4)), (6, 1 + O(q^4)), (6, q + O(q^4))]
+            sage: ModularFormsRing(Gamma0(13),base_ring=ZZ).generators(maxweight=12, prec=4)
+            [(2, 1 + 2*q + 6*q^2 + 8*q^3 + O(q^4)), (4, O(q^4)), (4, q^3 + O(q^4)), (4, q^2 + O(q^4)), (4, q + O(q^4)), (6, O(q^4)), (6, O(q^4)), (12, O(q^4))]
+
+            sage: [k for k,f in ModularFormsRing(1, QQ).generators(maxweight=12)]
+            [4, 6]
+            sage: [k for k,f in ModularFormsRing(1, ZZ).generators(maxweight=12)]
+            [4, 6, 12]
+            sage: [k for k,f in ModularFormsRing(1, Zmod(5)).generators(maxweight=12)]
+            [4, 6]
+            sage: [k for k,f in ModularFormsRing(1, Zmod(2)).generators(maxweight=12)]
+            [4, 6, 12]
+
+        An example where ``start_gens`` are specified::
+
+            sage: M = ModularForms(11, 2); f = (M.0 + M.1).qexp(8)
+            sage: ModularFormsRing(11).generators(start_gens = [(2, f)])
+            Traceback (most recent call last):
+            ...
+            ValueError: Requested precision cannot be higher than precision of approximate starting generators!
+            sage: f = (M.0 + M.1).qexp(10); f
+            1 + 17/5*q + 26/5*q^2 + 43/5*q^3 + 94/5*q^4 + 77/5*q^5 + 154/5*q^6 + 86/5*q^7 + 36*q^8 + 146/5*q^9 + O(q^10)
+            sage: ModularFormsRing(11).generators(start_gens = [(2, f)])
+            [(2, 1 + 17/5*q + 26/5*q^2 + 43/5*q^3 + 94/5*q^4 + 77/5*q^5 + 154/5*q^6 + 86/5*q^7 + 36*q^8 + 146/5*q^9 + O(q^10)), (2, 1 + 12*q^2 + 12*q^3 + 12*q^4 + 12*q^5 + 24*q^6 + 24*q^7 + 36*q^8 + 36*q^9 + O(q^10)), (4, 1 + O(q^10))]
         """
+        sgs = []
+        for x in start_gens:
+            if len(x) == 2:
+                if x[1].prec() < prec:
+                    raise ValueError("Requested precision cannot be higher than precision of approximate starting generators!")
+                sgs.append((x[0], x[1], None))
+            else:
+                sgs.append(x)
 
-        try:
-            if self.__genprec > prec and self.__maxweight >= maxweight:
-                return [(k, f.add_bigoh(prec)) for k, f in self.__gens if k <= maxweight]
-            elif self.__genprec == prec and self.__maxweight >= maxweight:
-                return [(k,f) for k,f in self.__gens if k <= maxweight]
-        except AttributeError:
-            pass
-        # Now we either don't know generators, or we know them to
-        # too small of a precision.
-        d = self.modular_forms_of_weight(maxweight).dimension()
-        minprec = max(prec, int(1.5*d))
-        gens = modform_generators(self.__group, prec=minprec, maxweight=maxweight)
-        self.__gens = gens
-        self.__genprec = minprec
-        self.__maxweight = maxweight
-        self.__genmaxweight = max([k for k,_ in self.__gens])
-        return [(k, f.add_bigoh(prec)) for k,f in gens]
+        G = self._find_generators(maxweight, tuple(sgs), start_weight)
 
-    def q_expansion_basis(self, weight, prec=None):
+        ret = []
+        # Returned generators may be a funny mixture of precisions if start_gens has been used.
+        for k, f, F in G:
+            if f.prec() < prec:
+                f = F.qexp(prec).change_ring(self.base_ring())
+            else:
+                f = f.truncate_powerseries(prec)
+            ret.append((k, f))
+
+        return ret
+
+
+    def gen_forms(self, maxweight=8, start_gens=[], start_weight=2):
+        r"""
+        This function calculates a list of modular forms generating this ring
+        (as an algebra over the appropriate base ring). It differs from
+        :meth:`generators` only in that it returns Sage modular form objects,
+        rather than bare `q`-expansions; and if the base ring is a finite
+        field, the modular forms returned will be forms in characteristic 0
+        with integral `q`-expansions whose reductions modulo `p` generate the
+        ring of modular forms mod `p`.
+
+        INPUT:
+
+        - ``maxweight`` (integer, default: 8) -- calculate forms generating all
+          forms up to this weight.
+
+        - ``start_gens`` (list, default: ``[]``) -- a list of modular forms. If
+          this list is nonempty, we find a minimal generating set containing
+          these forms.
+
+        - ``start_weight`` (integer, default: 2) -- calculate the graded
+          subalgebra of forms of weight at least ``start_weight``.
+
+        .. note::
+
+            If called with the default values of ``start_gens`` (an empty list)
+            and ``start_weight`` (2), the values will be cached for re-use on
+            subsequent calls to this function. (This cache is shared with
+            :meth:`generators`). If called with non-default values for these
+            parameters, caching will be disabled.
+
+        EXAMPLE::
+
+            sage: A = ModularFormsRing(Gamma0(11), Zmod(5)).gen_forms(); A
+            [1 + 12*q^2 + 12*q^3 + 12*q^4 + 12*q^5 + O(q^6), q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6), q - 9*q^4 - 10*q^5 + O(q^6)]
+            sage: A[0].parent()
+            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+        """
+        sgs = tuple( (F.weight(), None, F) for F in start_gens )
+        G = self._find_generators(maxweight, sgs, start_weight)
+        return [F for k,f,F in G]
+
+    def _find_generators(self, maxweight, start_gens, start_weight):
+        r"""
+        For internal use. This function is called by :meth:`generators` and
+        :meth:`gen_forms`: it returns a list of triples `(k, f, F)` where `F`
+        is a modular form of weight `k` and `f` is its `q`-expansion coerced
+        into the base ring of self.
+
+        INPUT:
+
+        - maxweight: maximum weight to try
+        - start_weight: minimum weight to try
+        - start_gens: a sequence of tuples of the form `(k, f, F)`, where `F` is a
+          modular form of weight `k` and `f` is its `q`-expansion coerced into
+          ``self.base_ring()`. Either (but not both) of `f` and `F` may be
+          None.
+
+        OUTPUT:
+
+        a list of tuples, formatted as with ``start_gens``.
+
+        EXAMPLE::
+
+            sage: R = ModularFormsRing(Gamma1(4))
+            sage: R._find_generators(8, (), 2)
+            [(2, 1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^9), 1 + 24*q^2 + 24*q^4 + O(q^6)), (2, q + 4*q^3 + 6*q^5 + 8*q^7 + O(q^9), q + 4*q^3 + 6*q^5 + O(q^6)), (3, 1 + 12*q^2 + 64*q^3 + 60*q^4 + 160*q^6 + 384*q^7 + 252*q^8 + O(q^9), 1 + 12*q^2 + 64*q^3 + 60*q^4 + O(q^6)), (3, q + 4*q^2 + 8*q^3 + 16*q^4 + 26*q^5 + 32*q^6 + 48*q^7 + 64*q^8 + O(q^9), q + 4*q^2 + 8*q^3 + 16*q^4 + 26*q^5 + O(q^6))]
+        """
+        default_params = (start_gens == () and start_weight == 2)
+
+        if default_params and self.__cached_maxweight != -1:
+            verbose("Already know generators up to weight %s -- using those" % self.__cached_maxweight)
+
+            if self.__cached_maxweight >= maxweight:
+                return [(k, f, F) for k, f, F in self.__cached_gens if k <= maxweight]
+
+            start_gens = self.__cached_gens
+            start_weight = self.__cached_maxweight + 1
+
+        if self.group().is_even():
+            increment = 2
+        else:
+            increment = 1
+
+        working_prec = self.modular_forms_of_weight(maxweight).sturm_bound()
+
+        # parse the list of start gens
+        G = []
+        for x in start_gens:
+            k, f, F = x
+            if F is None and f.prec() < working_prec:
+                raise ValueError("Need start gens to precision at least %s" % working_prec)
+            elif f is None or f.prec() < working_prec:
+                f = F.qexp(working_prec).change_ring(self.base_ring())
+            G.append((k, f, F))
+
+        k = start_weight
+        if increment == 2 and (k % 2) == 1: k += 1
+
+        while k <= maxweight:
+
+            if self.modular_forms_of_weight(k).dimension() == 0:
+                k += increment
+                continue
+
+            verbose('Looking at k = %s'%k)
+            M = self.modular_forms_of_weight(k)
+
+            # 1. Multiply together all forms in G that give an element
+            #    of M.
+            if G != []:
+                F = _span_of_forms_in_weight(G, k, M.sturm_bound(), None, False)
+            else:
+                F = (self.base_ring() ** M.sturm_bound()).zero_submodule()
+
+            # 2. If the dimension of the span of the result is equal
+            #    to the dimension of M, increment k.
+            if F.rank() == M.dimension():
+                if self.base_ring().is_field() or F.index_in_saturation() == 1:
+                    # TODO: Do something clever if the submodule's of the right
+                    # rank but not saturated -- avoid triggering needless
+                    # modular symbol computations.
+                    verbose('Nothing new in weight %s' % k)
+                    k += increment
+                    continue
+
+            # 3. If the dimension is less, compute a basis for G, and
+            #    try adding basis elements of M into G.
+
+            verbose("Known generators span a subspace of dimension %s of space of dimension %s" % (F.dimension(), M.dimension()))
+            if self.base_ring() == ZZ: verbose("saturation index is %s" % F.index_in_saturation())
+
+            t = verbose("Computing more modular forms at weight %s" % k)
+            kprec = M.sturm_bound()
+            if self.base_ring() == QQ:
+                B = M.q_echelon_basis(working_prec)
+            else:
+                B = M.q_integral_basis(working_prec)
+            t = verbose("done computing forms", t)
+            V = F.ambient_module().submodule_with_basis([f.padded_list(kprec) for f in B])
+            Q = V / F
+            for q in Q.gens():
+                try:
+                    qc = V.coordinates(Q.lift(q))
+                except AttributeError:
+                    # work around a silly free module bug
+                    qc = V.coordinates(q.lift())
+                qcZZ = map(ZZ, qc) # lift to ZZ so we can define F
+                f = sum([B[i] * qcZZ[i] for i in xrange(len(B))])
+                F = M(f)
+                G.append((k, f.change_ring(self.base_ring()), F))
+
+            verbose('added %s new generators' % Q.ngens(), t)
+            k += increment
+
+        if default_params:
+            self.__cached_maxweight = maxweight
+            self.__cached_gens = G
+
+        return G
+
+    @cached_method
+    def q_expansion_basis(self, weight, prec=None, use_random=True):
         r"""
         Calculate a basis of q-expansions for the space of modular forms of the
         given weight for this group, calculated using the ring generators given
         by ``find_generators``.
+
+        INPUT:
+
+        - ``weight`` (integer) -- the weight
+        - ``prec`` (integer or ``None``, default: ``None``) -- power series
+          precision. If ``None``, the precision defaults to the Sturm bound for
+          the requested level and weight.
+        - ``use_random`` (boolean, default: True) -- whether or not to use a
+          randomized algorithm when building up the space of forms at the given
+          weight from known generators of small weight.
 
         EXAMPLES::
 
@@ -448,20 +607,187 @@ class ModularFormsRing(SageObject):
             sage: m.q_expansion_basis(3,10)
             []
 
+            sage: X = ModularFormsRing(SL2Z)
+            sage: X.q_expansion_basis(12, 10)
+            [1 + 196560*q^2 + 16773120*q^3 + 398034000*q^4 + 4629381120*q^5 + 34417656000*q^6 + 187489935360*q^7 + 814879774800*q^8 + 2975551488000*q^9 + O(q^10),
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + 84480*q^8 - 113643*q^9 + O(q^10)]
+
+        We calculate a basis of a massive modular forms space, in two ways.
+        Using this module is about twice as fast as Sage's generic code. ::
+
+            sage: A = ModularFormsRing(11).q_expansion_basis(30, prec=40) # long time (5s)
+            sage: B = ModularForms(Gamma0(11), 30).q_echelon_basis(prec=40) # long time (9s)
+            sage: A == B # long time
+            True
+
+        Check that absurdly small values of ``prec`` don't mess things up::
+
+            sage: ModularFormsRing(11).q_expansion_basis(10, prec=5)
+            [1 + O(q^5), q + O(q^5), q^2 + O(q^5), q^3 + O(q^5), q^4 + O(q^5), O(q^5), O(q^5), O(q^5), O(q^5), O(q^5)]
         """
         d = self.modular_forms_of_weight(weight).dimension()
-        orig_prec = prec
-        if not prec or prec <= 1.5*d:
-            prec = 2*d
-        maxweight = min(4, weight)
-        while True:
-            gens = self.generators(prec, maxweight)
-            V = basis_for_modform_space(gens, self.__group, weight)
-            if len(V) == d:
+        if d == 0: return []
+
+        if prec is None:
+            prec=self.modular_forms_of_weight(weight).sturm_bound()
+
+        working_prec = max(prec, self.modular_forms_of_weight(weight).sturm_bound())
+
+        gen_weight = min(6, weight)
+
+        while 1:
+            verbose("Trying to generate the %s-dimensional space at weight %s using generators of weight up to %s" % (d, weight, gen_weight))
+            G = self.generators(maxweight=gen_weight, prec=working_prec)
+            V = _span_of_forms_in_weight(G, weight, prec=working_prec, use_random=use_random, stop_dim=d)
+            if V.rank() == d and (self.base_ring().is_field() or V.index_in_saturation() == 1):
                 break
-            assert len(V) < d, "Bug in q_expansion_basis: dimension too large."
-            prec += d
-            maxweight += 4
-        if orig_prec:
-            return [f.add_bigoh(orig_prec) for f in V]
-        return V
+            else:
+                gen_weight += 1
+                verbose("Need more generators: trying again with generators of weight up to %s" % gen_weight)
+
+        R = G[0][1].parent()
+        return [R(list(x), prec=prec) for x in V.gens()]
+
+    def cuspidal_ideal_generators(self, maxweight=8, prec=None):
+        r"""
+        Calculate generators for the ideal of cuspidal forms in this ring, as a
+        module over the whole ring.
+
+        EXAMPLE::
+
+            sage: ModularFormsRing(Gamma0(3)).cuspidal_ideal_generators(maxweight=12)
+            [(6, q - 6*q^2 + 9*q^3 + 4*q^4 + O(q^5), q - 6*q^2 + 9*q^3 + 4*q^4 + 6*q^5 + O(q^6))]
+            sage: [k for k,f,F in ModularFormsRing(13, base_ring=ZZ).cuspidal_ideal_generators(maxweight=14)]
+            [4, 4, 4, 6, 6, 12]
+        """
+        working_prec = self.modular_forms_of_weight(maxweight).sturm_bound()
+
+        if self.__cached_cusp_maxweight > -1:
+            k = self.__cached_cusp_maxweight + 1
+            verbose("Already calculated cusp gens up to weight %s -- using those" % (k-1))
+
+            # we may need to increase the precision of the cached cusp
+            # generators
+            G =  []
+            for j,f,F in self.__cached_cusp_gens:
+                if f.prec() >= working_prec:
+                    f = F.qexp(working_prec).change_ring(self.base_ring())
+                G.append( (j,f,F) )
+        else:
+            k = 2
+            G = []
+
+
+        while k <= maxweight:
+            t = verbose("Looking for cusp generators in weight %s" % k)
+
+            kprec = self.modular_forms_of_weight(k).sturm_bound()
+
+            flist = []
+
+            for (j, f, F) in G:
+                for g in self.q_expansion_basis(k - j, prec=kprec):
+                    flist.append(g*f)
+            A = self.base_ring() ** kprec
+            W = A.span([A(f.padded_list(kprec)) for f in flist])
+
+            S = self.modular_forms_of_weight(k).cuspidal_submodule()
+            if (W.rank() == S.dimension()
+                and (self.base_ring().is_field() or W.index_in_saturation() == 1)):
+                    verbose("Nothing new in weight %s" % k, t)
+                    k += 1
+                    continue
+
+            t = verbose("Known cusp generators span a submodule of dimension %s of space of dimension %s" % (W.rank(), S.dimension()), t)
+
+            B = S.q_integral_basis(prec=working_prec)
+            V = A.span([A(f.change_ring(self.base_ring()).padded_list(kprec)) for f in B])
+            Q = V/W
+
+            for q in Q.gens():
+                try:
+                    qc = V.coordinates(Q.lift(q))
+                except AttributeError:
+                    # work around a silly free module bug
+                    qc = V.coordinates(q.lift())
+                qcZZ = map(ZZ, qc) # lift to ZZ so we can define F
+                f = sum([B[i] * qcZZ[i] for i in xrange(len(B))])
+                F = S(f)
+                G.append((k, f.change_ring(self.base_ring()), F))
+
+            verbose('added %s new generators' % Q.ngens(), t)
+            k += 1
+
+        self.__cached_cusp_maxweight = maxweight
+        self.__cached_cusp_gens = G
+
+        if prec is None:
+            return G
+        elif prec <= working_prec:
+            return [ (k, f.truncate_powerseries(prec), F) for k,f,F in G]
+        else:
+            # user wants increased precision, so we may as well cache that
+            Gnew = [ (k, F.qexp(prec).change_ring(self.base_ring()), F) for k,f,F in G]
+            self.__cached_cusp_gens = Gnew
+            return Gnew
+
+    def cuspidal_submodule_q_expansion_basis(self, weight, prec=None):
+        r"""
+        Calculate a basis of `q`-expansions for the space of cusp forms of
+        weight ``weight`` for this group.
+
+        INPUT:
+
+        - ``weight`` (integer) -- the weight
+        - ``prec`` (integer or None) -- precision of `q`-expansions to return
+
+        ALGORITHM: Uses the method :meth:`cuspidal_ideal_generators` to
+        calculate generators of the ideal of cusp forms inside this ring. Then
+        multiply these up to weight ``weight`` using the generators of the
+        whole modular form space returned by :meth:`q_expansion_basis`.
+
+        EXAMPLES::
+
+            sage: R = ModularFormsRing(Gamma0(3))
+            sage: R.cuspidal_submodule_q_expansion_basis(20)
+            [q - 8532*q^6 - 88442*q^7 + O(q^8), q^2 + 207*q^6 + 24516*q^7 + O(q^8), q^3 + 456*q^6 + O(q^8), q^4 - 135*q^6 - 926*q^7 + O(q^8), q^5 + 18*q^6 + 135*q^7 + O(q^8)]
+
+        We compute a basis of a space of very large weight, quickly (using this
+        module) and slowly (using modular symbols), and verify that the answers
+        are the same. ::
+
+            sage: A=R.cuspidal_submodule_q_expansion_basis(80, prec=30)
+            sage: B=R.modular_forms_of_weight(80).cuspidal_submodule().q_expansion_basis(prec=30) # long time (20s)
+            sage: A == B # long time
+            True
+        """
+        d = self.modular_forms_of_weight(weight).cuspidal_submodule().dimension()
+        if d == 0: return []
+
+        minprec = self.modular_forms_of_weight(weight).sturm_bound()
+        if prec is None:
+            prec = working_prec = minprec
+        else:
+            working_prec = max(prec, minprec)
+
+        gen_weight = min(6, weight)
+
+        while 1:
+            verbose("Trying to generate the %s-dimensional cuspidal submodule at weight %s using generators of weight up to %s" % (d, weight, gen_weight))
+            G = self.cuspidal_ideal_generators(maxweight=gen_weight, prec=working_prec)
+
+            flist = []
+            for (j, f, F) in G:
+                for g in self.q_expansion_basis(weight - j, prec=working_prec):
+                    flist.append(g*f)
+
+            A = self.base_ring() ** working_prec
+            W = A.span([A(f.padded_list(working_prec)) for f in flist])
+            if W.rank() == d and (self.base_ring().is_field() or W.index_in_saturation() == 1):
+                break
+            else:
+                gen_weight += 1
+                verbose("Need more generators: trying again with generators of weight up to %s" % gen_weight)
+
+        R = G[0][1].parent()
+        return [R(list(x), prec=prec) for x in W.gens()]

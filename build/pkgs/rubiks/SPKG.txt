@@ -25,6 +25,9 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 
 == Changelog ==
 
+=== rubiks-20070912.p18 (John Palmieri, 23 March 2012) ===
+ * #12311: Remove explicit path to testcc.sh in spkg-install.
+
 === rubiks-20070912.p17 (Jeroen Demeyer, 8 June 2011) ===
  * #11437: Apply workaround for versions 4.6.0 and 4.6.1 of gcc.
    The bug is supposed to be fixed in the final gcc 4.6.1 but we still

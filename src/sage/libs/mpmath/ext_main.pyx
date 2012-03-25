@@ -2020,7 +2020,7 @@ cdef class mpf(mpf_base):
             sage: from mpmath import mpf
             sage: mpf(7.25).to_fixed(30)
             7784628224
-            sage: int(7.25 * 2**30)
+            sage: ZZ(7.25 * 2**30)
             7784628224
         """
         # return libmp.to_fixed(self._mpf_, prec)

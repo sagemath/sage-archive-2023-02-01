@@ -42,7 +42,7 @@ include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
 include 'gsl.pxi'
 #cimport sage.rings.real_double
-import sage.rings.real_double
+#import sage.rings.real_double
 import random, sys
 import integration
 from sage.modules.free_module_element import vector
@@ -1050,9 +1050,12 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
             sage: X = GeneralDiscreteDistribution(P)
             sage: [X.get_random_element() for _ in range(10)] # random
             [1, 0, 1, 1, 2, 0, 0, 2, 2, 0]
+            sage: isinstance(X.get_random_element(), sage.rings.integer.Integer)
+            True
+
         """
 
-        return gsl_ran_discrete(self.r, self.dist)
+        return sage.rings.integer.Integer(gsl_ran_discrete(self.r, self.dist))
 
     def reset_distribution(self):
         """

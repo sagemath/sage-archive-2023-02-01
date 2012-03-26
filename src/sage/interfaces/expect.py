@@ -717,7 +717,7 @@ If this all works, you can then make calls like:
             sage: singular._eval_line_using_file('def a=3;', restart_if_needed=False)
             Traceback (most recent call last):
             ...
-            RuntimeError: Singular terminated unexpectedly while reading in a large line
+            RuntimeError: Singular terminated unexpectedly while reading in a large line...
 
         We end by triggering a re-start of Singular, since otherwise
         the doc test of another method would fail by a side effect.
@@ -826,7 +826,7 @@ If this all works, you can then make calls like:
             sage: singular._eval_using_file_cutoff = 4
             sage: singular._eval_line('for(int i=1;i<=3;i++){i=1;};', wait_for_prompt=False)
             ''
-            sage: singular.interrupt(timeout=1)
+            sage: singular.interrupt(timeout=3)
             False
             sage: singular._eval_using_file_cutoff = cutoff
 
@@ -839,11 +839,10 @@ If this all works, you can then make calls like:
             sage: singular._eval_line_using_file('def a=3;', restart_if_needed=False)
             Traceback (most recent call last):
             ...
-            RuntimeError: Singular terminated unexpectedly while reading in a large line
+            RuntimeError: Singular terminated unexpectedly while reading in a large line...
 
-        Since the doc test of the next method would fail, we re-start
-        Singular now.
-        ::
+        Since the test of the next method would fail, we re-start
+        Singular now. ::
 
             sage: singular(2+3)
             Singular crashed -- automatically restarting.

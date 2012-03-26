@@ -542,7 +542,7 @@ $(INST)/$(SCIPY): $(BASE) $(INST)/$(FORTRAN) \
 $(INST)/$(CVXOPT): $(BASE) $(INST)/$(FORTRAN) \
 		   $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) \
 		   $(INST)/$(ATLAS) $(INST)/$(CEPHES) $(INST)/$(PATCH) \
-		   $(INST)/$(GSL) $(INST)/$(GLPK)
+		   $(INST)/$(GSL) $(INST)/$(GLPK) $(INST)/$(MATPLOTLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(CVXOPT) 2>&1" "tee -a $(SAGE_LOGS)/$(CVXOPT).log"
 
 $(INST)/$(CEPHES): $(BASE) $(INST)/$(PATCH)

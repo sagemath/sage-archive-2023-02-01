@@ -718,6 +718,14 @@ class AlgebraicConverter(Converter):
             sage: a.arithmetic(f, f.operator())
             1.414213562373095?
 
+        TESTS::
+
+            sage: f = pi^6
+            sage: a = AlgebraicConverter(QQbar)
+            sage: a.arithmetic(f, f.operator())
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert pi^6 to Algebraic Field
         """
         # We try to avoid simplifying, because maxima's simplify command
         # can change the value of a radical expression (by changing which
@@ -732,11 +740,15 @@ class AlgebraicConverter(Converter):
             else:
                 return reduce(operator, map(self, ex.operands()))
         except TypeError:
-            if operator is _operator.pow:
-                from sage.symbolic.constants import e, pi, I
-                base, expt = self._operands
-                if base == e and expt / (pi*I) in QQ:
-                    return exp(expt)._algebraic_(self.field)
+            pass
+
+        if operator is _operator.pow:
+            from sage.symbolic.constants import e, pi, I
+            base, expt = ex.operands()
+            if base == e and expt / (pi*I) in QQ:
+                return exp(expt)._algebraic_(self.field)
+
+        raise TypeError, "unable to convert %s to %s"%(ex, self.field)
 
     def composition(self, ex, operator):
         """

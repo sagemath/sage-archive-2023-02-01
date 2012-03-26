@@ -389,10 +389,41 @@ class FreeAlgebra_generic(Algebra):
         return self._coerce_try(x, [self.base_ring()])
 
     def _coerce_map_from_(self, R):
+        """
+        Returns True if there is a coercion from R into self and false
+        otherwise.  The things that coerce into self are:
+
+        - Anything with a coercion into self.monoid()
+
+        - Free Algebras in the same variables over a base with a coercion
+          map into self.base_ring()
+
+        - Anything with a coercion into self.base_ring()
+
+        TESTS::
+
+            sage: F = FreeAlgebra(ZZ, 3, 'x,y,z')
+            sage: G = FreeAlgebra(QQ, 3, 'x,y,z')
+            sage: H = FreeAlgebra(ZZ, 1, 'y')
+            sage: F._coerce_map_from_(G)
+            False
+            sage: G._coerce_map_from_(F)
+            True
+            sage: F._coerce_map_from_(H)
+            False
+            sage: F._coerce_map_from_(QQ)
+            False
+            sage: G._coerce_map_from_(QQ)
+            True
+            sage: F._coerce_map_from_(G.monoid())
+            True
+            sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
+            False
+        """
         if self.__monoid.has_coerce_map_from(R):
             return True
 
-        # polynomial rings in the same variable over any base that coerces in:
+        # free algebras in the same variable over any base that coerces in:
         if is_FreeAlgebra(R):
             if R.variable_names() == self.variable_names():
                 if self.base_ring().has_coerce_map_from(R.base_ring()):

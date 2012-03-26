@@ -20,12 +20,23 @@ cdef extern from "../../../local/include/glpk.h":
      ctypedef struct c_glp_prob "glp_prob":
          pass
      ctypedef struct c_glp_iocp "glp_iocp":
-         int presolve
          int msg_lev
-         int gmi_cuts
+         int br_tech
+         int bt_tech
+         int pp_tech
          int fp_heur
+         int gmi_cuts
          int mir_cuts
+         int cov_cuts
+         int clq_cuts
+         double tol_int
+         double tol_obj
+         double mip_gap
          int tm_lim
+         int out_frq
+         int out_dly
+         int presolve
+         int binarize
      ctypedef struct c_glp_smcp "glp_smcp":
          int msg_lev
          int meth
@@ -41,7 +52,6 @@ cdef extern from "../../../local/include/glpk.h":
          int out_frq
          int out_dly
          int presolve
-         double foo_bar[36]
      c_glp_iocp * new_c_glp_iocp "new glp_iocp" ()
      #void del_c_glp_iocp "del glp_iocp" ()
      void glp_init_iocp(c_glp_iocp *)
@@ -105,9 +115,71 @@ cdef extern from "../../../local/include/glpk.h":
      int glp_get_obj_dir(c_glp_prob *lp)
      void glp_copy_prob(c_glp_prob *dst, c_glp_prob *src, int names)
 
+     # constants
 
+     # constants for smcp control
+
+     int GLP_MSG_OFF
+     int GLP_MSG_ERR
+     int GLP_MSG_ON
+     int GLP_MSG_ALL
+
+     int GLP_PRIMAL
+     int GLP_DUALP
+     int GLP_DUAL
+
+     int GLP_PT_STD
+     int GLP_PT_PSE
+
+     int GLP_RT_STD
+     int GLP_RT_HAR
+
+     double DBL_MAX
+
+     int INT_MAX
 
      int GLP_ON
+     int GLP_OFF
+
+     # constants for iocp control, not already in simplex
+
+     int GLP_BR_FFV
+     int GLP_BR_LFV
+     int GLP_BR_MFV
+     int GLP_BR_DTH
+     int GLP_BR_PCH
+
+     int GLP_BT_DFS
+     int GLP_BT_BFS
+     int GLP_BT_BLB
+     int GLP_BT_BPH
+
+     int GLP_PP_NONE
+     int GLP_PP_ROOT
+     int GLP_PP_ALL
+
+     # error codes
+     int GLP_EBADB
+     int GLP_ESING
+     int GLP_ECOND
+     int GLP_EBOUND
+     int GLP_EFAIL
+     int GLP_EOBJLL
+     int GLP_EOBJUL
+     int GLP_EITLIM
+     int GLP_ETMLIM
+     int GLP_EOPFS
+     int GLP_EODFS
+
+     int GLP_UNDEF
+     int GLP_OPT
+     int GLP_FEAS
+     int GLP_NOFEAS
+     int GLP_INFEAS
+     int GLP_UNBND
+
+     # other constants
+
      int GLP_MAX
      int GLP_MIN
      int GLP_UP
@@ -118,30 +190,14 @@ cdef extern from "../../../local/include/glpk.h":
      int GLP_CV
      int GLP_IV
      int GLP_BV
-     int GLP_MSG_OFF
-     int GLP_MSG_ERR
-     int GLP_MSG_ON
-     int GLP_MSG_ALL
      int GLP_MPS_DECK
      int GLP_MPS_FILE
 
-     int GLP_UNDEF
-     int GLP_OPT
-     int GLP_FEAS
-     int GLP_NOFEAS
-
      int GLP_MSG_DBG
-     int GLP_PRIMAL
-     int GLP_DUALP
-     int GLP_DUAL
-     int GLP_PT_STD
-     int GLP_PT_PSE
-     int GLP_RT_STD
-     int GLP_RT_HAR
 
 cdef class GLPKBackend(GenericBackend):
     cdef c_glp_prob * lp
     cdef c_glp_iocp * iocp
     cdef c_glp_smcp * smcp
-    cdef int preprocessing
+    cdef int simplex_or_intopt
     cpdef GLPKBackend copy(self)

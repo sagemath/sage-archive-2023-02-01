@@ -5,6 +5,7 @@ AUTHORS:
 
 - Nathann Cohen (2010-10): initial implementation
 - John Perry (2012-01): glp_simplex preprocessing
+- John Perry and Raniere Gaia Silva (2012-03): solver parameters
 """
 
 ##############################################################################
@@ -29,7 +30,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
         """
         self.lp = glp_create_prob()
-        self.preprocessing = 0
+        self.simplex_or_intopt = glp_intopt_only
         self.smcp = <c_glp_smcp* > sage_malloc(sizeof(c_glp_smcp))
         glp_init_smcp(self.smcp)
         self.iocp = <c_glp_iocp* > sage_malloc(sizeof(c_glp_iocp))
@@ -696,15 +697,39 @@ cdef class GLPKBackend(GenericBackend):
             Traceback (most recent call last):
             ...
             RuntimeError: GLPK : Signal sent, try preprocessing option
-            sage: lp.solver_parameter("preprocessing", True)
+            sage: lp.solver_parameter("simplex_or_intopt", "simplex_then_intopt")
             sage: lp.solve()
             Traceback (most recent call last):
             ...
             MIPSolverException: 'GLPK : Simplex cannot find a feasible solution'
+
+        The user can ask sage to solve via ``simplex`` or ``intopt``.
+        The default solver is ``intopt``, so we get integer solutions.
+
+            sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
+            sage: x, y = lp[0], lp[1]
+            sage: lp.add_constraint(-2*x + y <= 1)
+            sage: lp.add_constraint(x - y <= 1)
+            sage: lp.add_constraint(x + y >= 2)
+            sage: lp.set_objective(x + y)
+            sage: lp.set_integer(x)
+            sage: lp.set_integer(y)
+            sage: lp.solve()
+            2.0
+            sage: lp.get_values([x, y])
+            [1.0, 1.0]
+
+        If we switch to ``simplex``, we get continuous solutions.
+
+            sage: lp.solver_parameter("simplex_or_intopt", "simplex_only") # use simplex only
+            sage: lp.solve()
+            2.0
+            sage: lp.get_values([x, y])
+            [1.5, 0.5]
         """
 
         cdef int status
-        if self.preprocessing:
+        if self.simplex_or_intopt == glp_simplex_only or self.simplex_or_intopt == glp_simplex_then_intopt:
             status = glp_simplex(self.lp, self.smcp)
             status = glp_get_prim_stat(self.lp)
             if status == GLP_OPT or status == GLP_FEAS:
@@ -712,19 +737,27 @@ cdef class GLPKBackend(GenericBackend):
             elif status == GLP_UNDEF or status == GLP_NOFEAS:
                 raise MIPSolverException("GLPK : Simplex cannot find a feasible solution")
 
-        sig_str('GLPK : Signal sent, try preprocessing option')
-        glp_intopt(self.lp, self.iocp)
-        sig_off()
+        if self.simplex_or_intopt != glp_simplex_only:
+          sig_str('GLPK : Signal sent, try preprocessing option')
+          status = glp_intopt(self.lp, self.iocp)
+          sig_off()
+          # this is necessary to catch errors when certain options are enabled, e.g. tm_lim
+          if status == GLP_ETMLIM: raise MIPSolverException("GLPK : The time limit was reached")
+          elif status == GLP_EITLIM: raise MIPSolverException("GLPK : The iteration limit was reached")
 
-        status = glp_mip_status(self.lp)
-        if status == GLP_OPT:
-            pass
-        elif status == GLP_UNDEF:
-            raise MIPSolverException("GLPK : Solution is undefined")
-        elif status == GLP_FEAS:
-            raise MIPSolverException("GLPK : Feasible solution found, while optimality has not been proven")
-        elif status == GLP_NOFEAS:
-            raise MIPSolverException("GLPK : There is no feasible integer solution to this Linear Program")
+          status = glp_mip_status(self.lp)
+          if status == GLP_OPT:
+              pass
+          elif status == GLP_UNDEF:
+              raise MIPSolverException("GLPK : Solution is undefined")
+          elif status == GLP_FEAS:
+              raise MIPSolverException("GLPK : Feasible solution found, while optimality has not been proven")
+          elif status == GLP_INFEAS:
+              raise MIPSolverException("GLPK : Solution is infeasible")
+          elif status == GLP_UNBND:
+              raise MIPSolverException("GLPK : Problem has unbounded solution")
+          elif status == GLP_NOFEAS:
+              raise MIPSolverException("GLPK : There is no feasible integer solution to this Linear Program")
 
         return 0
 
@@ -753,7 +786,10 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.get_variable_value(1)
             1.5
         """
-        return glp_mip_obj_val(self.lp)
+        if self.simplex_or_intopt != glp_simplex_only:
+          return glp_mip_obj_val(self.lp)
+        else:
+          return glp_get_obj_val(self.lp)
 
     cpdef double get_variable_value(self, int variable):
         """
@@ -780,7 +816,10 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.get_variable_value(1)
             1.5
         """
-        return glp_mip_col_val(self.lp, variable+1)
+        if self.simplex_or_intopt != glp_simplex_only:
+          return glp_mip_col_val(self.lp, variable+1)
+        else:
+          return glp_get_col_prim(self.lp, variable+1)
 
     cpdef int ncols(self):
         """
@@ -1115,7 +1154,7 @@ cdef class GLPKBackend(GenericBackend):
             6.0
         """
         cdef GLPKBackend p = GLPKBackend(maximization = (1 if self.is_maximization() else -1))
-        p.preprocessing = self.preprocessing
+        p.simplex_or_intopt = self.simplex_or_intopt
         p.iocp.tm_lim = self.iocp.tm_lim
         glp_copy_prob(p.lp, self.lp, 1)
         return p
@@ -1132,10 +1171,141 @@ cdef class GLPKBackend(GenericBackend):
         - ``value`` -- the parameter's value if it is to be defined,
           or ``None`` (default) to obtain its current value.
 
+        You can supply the name of a parameter and its value using either a string
+        or a ``glp_`` constant.
+        In most cases, you can use the same name for a paramter as that given
+        in the GLPK documentation, which is available by downloading GLPK from
+        <http://www.gnu.org/software/glpk/>. The exceptions relate to parameters
+        common to both methods; these require you to append ``_simplex`` or ``_intopt``
+        to the name to resolve ambiguity, since the interface allows access to both.
+
+        We have also provided more meaningful names, to assist readability.
+
+        Parameter **names** are specified in lower case.
+        To use a constant instead of a string, prepend ``glp_`` to the name.
+        For example, both ``glp_gmi_cuts`` or ``"gmi_cuts"`` control whether
+        to solve using Gomory cuts.
+
+        Parameter **values** are specificed as strings in upper case,
+        or as constants in lower case. For example, both ``glp_on`` and ``"GLP_ON"``
+        specify the same thing.
+
+        Naturally, you can use ``True`` and ``False`` in cases where ``glp_on`` and ``glp_off``
+        would be used.
+
+        A list of parameter names, with their values:
+
+        - ``timelimit`` -- specify the time limit IN SECONDS.
+          This affects both simplex and intopt.
+
+        - ``timelimit_simplex`` and ``timelimit_intopt`` -- specify the time limit
+          IN MILLISECONDS. (This is glpk's default.)
+
+        - ``simplex_or_intopt`` -- whether to use the ``simplex`` or ``intopt``
+          routines in GLPK. This is controlled by using ``glp_simplex_only``,
+          ``glp_intopt_only``, and ``glp_simplex_then_intopt``. The latter is
+          useful to deal with a problem in GLPK where problems with no solution
+          hang when using integer optimization; if you specify
+          ``glp_simplex_then_intopt``, sage will try simplex first,
+          then perform integer optimization only if a solution of the LP
+          relaxation exists.
+
+        - ``verbosity_intopt`` and ``verbosity_simplex`` -- one of ``GLP_MSG_OFF``,
+          ``GLP_MSG_ERR``, ``GLP_MSG_ON``, or ``GLP_MSG_ALL``. The default in sage
+          is ``GLP_MSG_OFF``.
+
+        - ``output_frequency_intopt`` and ``output_frequency_simplex`` --
+          the output frequency, in milliseconds. Default is 5000.
+
+        - ``output_delay_intopt`` and ``output_delay_simplex`` --
+          the output delay, in milliseconds, regarding the use of the simplex
+          method on the LP relaxation. Default is 10000.
+
+        - ``intopt``-specific parameters:
+
+          - ``branching`` -- one of:
+            - ``GLP_BR_FFV`` -- first fractional variable
+            - ``GLP_BR_LFV`` -- last fractional variable
+            - ``GLP_BR_MFV`` -- most fractional variable
+            - ``GLP_BR_DTH`` -- Driebeck-Tomlin heuristic (default)
+            - ``GLP_BR_PCH`` -- hybrid pseudocost heuristic
+
+          - ``backtracking`` -- one of:
+            - ``GLP_BT_DFS`` -- depth first search
+            - ``GLP_BT_BFS`` -- breadth first search
+            - ``GLP_BT_BLB`` -- best local bound (default)
+            - ``GLP_BT_BPH`` -- best projection heuristic
+
+          - ``preprocessing`` -- one of:
+            - ``GLP_PP_NONE``
+            - ``GLP_PP_ROOT`` -- preprocessing only at root level
+            - ``GLP_PP_ALL`` (default)
+
+          - ``feasibility_pump`` -- one of ``GLP_ON`` or ``GLP_OFF`` (default)
+
+          - ``gomory_cuts`` -- one of ``GLP_ON`` or ``GLP_OFF`` (default)
+
+          - ``mixed_int_rounding_cuts`` -- one of ``GLP_ON`` or ``GLP_OFF`` (default)
+
+          - ``mixed_cover_cuts`` -- one of ``GLP_ON`` or ``GLP_OFF`` (default)
+
+          - ``clique_cuts`` -- one of ``GLP_ON`` or ``GLP_OFF`` (default)
+
+          - ``absolute_tolerance`` -- (double) used to check if optimal solution to LP relaxation
+            is integer feasible. GLPK manual advises, "do not change... without detailed
+            understanding of its purpose."
+
+          - ``relative_tolerance`` -- (double) used to check if objective value in LP relaxation
+            is not better than best known integer solution. GLPK manual advises, "do not
+            change... without detailed understanding of its purpose."
+
+          - ``mip_gap_tolerance`` -- (double) relative mip gap tolerance. Default is 0.0.
+
+          - ``presolve_intopt`` -- one of ``GLP_ON`` (default in sage) or ``GLP_OFF``.
+
+          - ``binarize`` -- one of ``GLP_ON`` or ``GLP_OFF`` (default)
+
+        - ``simplex``-specific parameters:
+
+          - ``primal_v_dual`` -- one of ``GLP_PRIMAL`` (default), ``GLP_DUAL``, or
+            ``GLP_DUALP``.
+
+          - ``pricing`` -- one of:
+            - ``GLP_PT_STD`` -- standard (textbook)
+            - ``GLP_PT_PSE`` -- projected steepest edge (default)
+
+          - ``ratio_test`` -- one of:
+            - ``GLP_RT_STD`` -- standard (textbook)
+            - ``GLP_RT_HAR`` -- Harris' two-pass ratio test (default)
+
+          - ``tolerance_primal`` -- (double) tolerance used to check if basic solution
+            is primal feasible. GLPK manual advises, "do not
+            change... without detailed understanding of its purpose."
+
+          - ``tolerance_dual`` -- (double) tolerance used to check if basic solution
+            is dual feasible. GLPK manual advises, "do not
+            change... without detailed understanding of its purpose."
+
+          - ``tolerance_pivot`` -- (double) tolerance used to choose pivot. GLPK manual advises, "do not
+            change... without detailed understanding of its purpose."
+
+          - ``obj_lower_limit`` -- (double) lower limit of the objective function.
+            The default is ``-DBL_MAX``.
+
+          - ``obj_upper_limit`` -- (double) upper limit of the objective function.
+            The default is ``DBL_MAX``.
+
+          - ``iteration_limit`` -- (int) iteration limit of the simplex algorithn.
+            The default is ``INT_MAX``.
+
+          - ``presolve_simplex`` -- one of ``GLP_ON`` or ``GLP_OFF`` (default).
+
         .. NOTE::
 
-           The list of available parameters is available at
-           :meth:`sage.numerical.mip.MixedIntegerlinearProgram.solver_parameter`
+            The coverage for GLPK's control parameters for simplex and integer optimization
+            is nearly complete. The only thing lacking is a wrapper for callback routines.
+
+            To date, no attempt has been made to expose the interior point methods.
 
         EXAMPLE::
 
@@ -1144,20 +1314,231 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.solver_parameter("timelimit", 60)
             sage: p.solver_parameter("timelimit")
             60.0
-        """
-        if name == "timelimit":
-            if value == None:
-                return self.iocp.tm_lim/1000.0
-            else:
-                self.iocp.tm_lim = 1000 * value
 
-        elif name == "preprocessing":
-            if value == None:
-                return self.preprocessing
+        Don't forget the difference between ``timelimit`` and ``timelimit_intopt``.
+
+        ..::
+
+            sage: p.solver_parameter("timelimit_intopt")
+            60000
+
+        If you don't care for an integer answer, you can ask for an lp relaxation instead.
+        The default solver performs integer optimization, but
+        you can switch to the standard simplex algorithm.
+
+        EXAMPLE::
+
+            sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
+            sage: x, y = lp[0], lp[1]
+            sage: lp.add_constraint(-2*x + y <= 1)
+            sage: lp.add_constraint(x - y <= 1)
+            sage: lp.add_constraint(x + y >= 2)
+            sage: lp.set_integer(x); lp.set_integer(y)
+            sage: lp.set_objective(x + y)
+            sage: lp.solve()
+            2.0
+            sage: lp.get_values([x,y])
+            [1.0, 1.0]
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            2.0
+            sage: lp.get_values([x,y])
+            [1.5, 0.5]
+
+        You can get glpk to spout all sorts of information at you.
+        The default is to turn this off, but sometimes (debugging) it's very useful.
+
+        .. link
+
+        ::
+
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_then_intopt)
+            sage: lp.solver_parameter(backend.glp_mir_cuts, backend.glp_on)
+            sage: lp.solver_parameter(backend.glp_msg_lev_intopt, backend.glp_msg_all)
+            sage: lp.solver_parameter(backend.glp_mir_cuts)
+            1
+
+        If you actually try to solve ``lp``, you will get a lot of detailed information.
+        """
+
+        if type(name) == str:
+          if name == "out_frq" or name == "out_dly" or name == "tm_lim" or name == "msg_lev":
+            raise ValueError("To set parameter " + name + " you must specify the solver. Append either _simplex or _intopt.")
+          name = solver_parameter_names_dict[name]
+
+        if type(value) == str: value = solver_parameter_values[value]
+
+        if name == timelimit_intopt:
+            if value == None: return self.iocp.tm_lim
+            else: self.iocp.tm_lim = value
+
+        if name == timelimit_seconds:
+            if value == None: return self.iocp.tm_lim / 1000.0
             else:
-                if value == True: value = 1
-                elif value == False: value = 0
-                self.preprocessing = value
+                self.iocp.tm_lim = value * 1000.0
+                self.smcp.tm_lim = value * 1000.0
+
+        elif name == timelimit_simplex:
+            if value == None: return self.smcp.tm_lim
+            else: self.smcp.tm_lim = value
+
+        elif name == simplex_or_intopt:
+            if value == None: return self.simplex_or_intopt
+            if not value in (simplex_only,intopt_only,simplex_then_intopt): raise MIPSolverException, "GLPK: invalid value for simplex_or_intopt; see documentation"
+            self.simplex_or_intopt = value
+
+        elif name == msg_lev_simplex:
+            if value == None: return self.smcp.msg_lev
+            else: self.smcp.msg_lev = value
+
+        elif name == msg_lev_intopt:
+            if value == None: return self.iocp.msg_lev
+            else: self.iocp.msg_lev = value
+
+        elif name == br_tech:
+            if value == None: return self.iocp.br_tech
+            else: self.iocp.br_tech = value
+
+        elif name == bt_tech:
+            if value == None: return self.iocp.bt_tech
+            else: self.iocp.bt_tech = value
+
+        elif name == pp_tech:
+            if value == None: return self.iocp.pp_tech
+            else: self.iocp.pp_tech = value
+
+        elif name == fp_heur:
+            if value == None: return self.iocp.fp_heur
+            else:
+              if value == True: value = GLP_ON
+              elif value == False: value = GLP_OFF
+              self.iocp.fp_heur = value
+
+        elif name == gmi_cuts:
+            if value == None: return self.iocp.gmi_cuts
+            else:
+              if value == True: value = GLP_ON
+              elif value == False: value = GLP_OFF
+              self.iocp.gmi_cuts = value
+
+        elif name == mir_cuts:
+            if value == None: return self.iocp.mir_cuts
+            else:
+              if value == True: value = GLP_ON
+              elif value == False: value = GLP_OFF
+              self.iocp.mir_cuts = value
+
+        elif name == cov_cuts:
+            if value == None: return self.iocp.cov_cuts
+            else:
+              if value == True: value = GLP_ON
+              elif value == False: value = GLP_OFF
+              self.iocp.cov_cuts = value
+
+        elif name == clq_cuts:
+            if value == None: return self.iocp.clq_cuts
+            else:
+              if value == True: value = GLP_ON
+              elif value == False: value = GLP_OFF
+              self.iocp.clq_cuts = value
+
+        elif name == tol_int:
+            if value == None: return self.iocp.tol_int
+            else: self.iocp.tol_int = value
+
+        elif name == tol_obj:
+            if value == None: return self.iocp.tol_obj
+            else: self.iocp.tol_obj = value
+
+        elif name == mip_gap:
+            if value == None: return self.iocp.mip_gap
+            else: self.iocp.mip_gap = value
+
+        elif name == tm_lim_intopt:
+            if value == None: return self.iocp.tm_lim
+            else: self.iocp.tm_lim = value
+
+        elif name == out_frq_intopt:
+            if value == None: return self.iocp.out_frq
+            else: self.iocp.out_frq = value
+
+        elif name == out_dly_intopt:
+            if value == None: return self.iocp.out_dly
+            else: self.iocp.out_dly = value
+
+        elif name == presolve_intopt:
+            if value == None: return self.iocp.presolve
+            else:
+                if value == True: value = GLP_ON
+                elif value == False: value = GLP_OFF
+                self.iocp.presolve = value
+
+        elif name == binarize:
+            if value == None: return self.iocp.binarize
+            else:
+              if value == True: value = GLP_ON
+              elif value == False: value = GLP_OFF
+              self.iocp.binarize = value
+
+        elif name == msg_lev_simplex:
+            if value == None: return self.smcp.msg_lev
+            else: self.smcp.msg_lev = value
+
+        elif name == meth:
+            if value == None: return self.smcp.meth
+            else: self.smcp.meth = value
+
+        elif name == pricing:
+            if value == None: return self.smcp.pricing
+            else: self.smcp.pricing = value
+
+        elif name == r_test:
+            if value == None: return self.smcp.r_test
+            else: self.smcp.r_test = value
+
+        elif name == tol_bnd:
+            if value == None: return self.smcp.tol_bnd
+            else: self.smcp.tol_bnd = value
+
+        elif name == tol_dj:
+            if value == None: return self.smcp.tol_dj
+            else: self.smcp.tol_dj = value
+
+        elif name == tol_piv:
+            if value == None: return self.smcp.tol_piv
+            else: self.smcp.tol_piv = value
+
+        elif name == obj_ll:
+            if value == None: return self.smcp.obj_ll
+            else: self.smcp.obj_ll = value
+
+        elif name == obj_ul:
+            if value == None: return self.smcp.obj_ul
+            else: self.smcp.obj_ul = value
+
+        elif name == it_lim:
+            if value == None: return self.smcp.it_lim
+            else: self.smcp.it_lim = value
+
+        elif name == tm_lim_simplex:
+            if value == None: return self.smcp.tm_lim
+            else: self.smcp.tm_lim = value
+
+        elif name == out_frq_simplex:
+            if value == None: return self.smcp.out_frq
+            else: self.smcp.out_frq = value
+
+        elif name == out_dly_simplex:
+            if value == None: return self.smcp.out_dly
+            else: self.smcp.out_dly = value
+
+        elif name == presolve_simplex:
+            if value == None: return self.smcp.presolve
+            else:
+              if value == True: value = GLP_ON
+              elif value == False: value = GLP_OFF
+              self.smcp.presolve = value
 
         else:
             raise ValueError("This parameter is not available.")
@@ -1169,3 +1550,213 @@ cdef class GLPKBackend(GenericBackend):
         glp_delete_prob(self.lp)
         sage_free(self.iocp)
         sage_free(self.smcp)
+
+# parameter names
+
+cdef enum solver_parameter_names:
+  timelimit_seconds, timelimit_simplex, timelimit_intopt, simplex_or_intopt, msg_lev_simplex,
+  msg_lev_intopt, br_tech, bt_tech, pp_tech, fp_heur, gmi_cuts,
+  mir_cuts, cov_cuts, clq_cuts, tol_int, tol_obj, mip_gap,
+  tm_lim_intopt, out_frq_intopt, out_dly_intopt, presolve_intopt,
+  binarize, meth, pricing, r_test, tol_bnd, tol_dj, tol_piv, obj_ll,
+  obj_ul, it_lim, tm_lim_simplex, out_frq_simplex, out_dly_simplex,
+  presolve_simplex
+
+glp_tm_lim_simplex = timelimit_simplex
+glp_tm_lim_intopt = timelimit_intopt
+glp_simplex_or_intopt = simplex_or_intopt
+glp_msg_lev_intopt = glp_verbosity_intopt = msg_lev_intopt
+glp_msg_lev_simplex = glp_verbosity_simplex = msg_lev_simplex
+glp_br_tech = glp_branching = br_tech
+glp_bt_tech = glp_backtracking = bt_tech
+glp_pp_tech = glp_preprocessing = pp_tech
+glp_fp_heur = glp_feasibility_pump = fp_heur
+glp_gmi_cuts = glp_gomory_cuts = gmi_cuts
+glp_mir_cuts = glp_mixed_int_rounding_cuts = mir_cuts
+glp_cov_cuts = glp_mixed_cover_cuts = cov_cuts
+glp_clq_cuts = glp_clique_cuts = clq_cuts
+glp_tol_int = glp_absolute_tolerance = tol_int
+glp_tol_obj = glp_relative_tolerance = tol_obj
+glp_mip_gap = glp_mip_gap_tolerance = mip_gap
+glp_out_frq_intopt = glp_output_frequency_intopt = out_frq_intopt
+glp_out_dly_intopt = glp_output_delay_intopt = out_dly_intopt
+glp_presolve_intopt = presolve_intopt
+glp_binarize = binarize
+glp_meth = glp_primal_v_dual = meth
+glp_pricing = pricing
+glp_r_test = glp_ratio_test = r_test
+glp_tol_bnd = glp_tolerance_primal = tol_bnd
+glp_tol_dj = glp_tolerance_dual = tol_dj
+glp_tol_piv = glp_tolerance_pivot = tol_piv
+glp_obj_ll = glp_obj_lower_limit = obj_ll
+glp_obj_ul = glp_obj_upper_limit = obj_ul
+glp_it_lim = glp_iteration_limit = it_lim
+glp_out_frq_simplex = glp_output_frequency_intopt = out_frq_simplex
+glp_out_dly_simplex = glp_output_delay_simplex = out_dly_simplex
+glp_presolve_simplex = presolve_simplex
+
+solver_parameter_names_dict = {
+  'timelimit': timelimit_seconds,
+  'timelimit_intopt': timelimit_intopt,
+  'tm_lim_intopt': timelimit_intopt,
+  'timelimit_simplex': timelimit_simplex,
+  'tm_lim_simplex': timelimit_simplex,
+  'simplex_or_intopt': simplex_or_intopt,
+  'msg_lev_simplex': msg_lev_simplex, 'verbosity_simplex': msg_lev_simplex,
+  'msg_lev_intopt': msg_lev_intopt, 'verbosity_intopt': msg_lev_intopt,
+  'br_tech': br_tech, 'branching': br_tech,
+  'bt_tech': bt_tech, 'backtracking': bt_tech,
+  'pp_tech': pp_tech, 'preprocessing': pp_tech,
+  'fp_heur': fp_heur, 'feasibility_pump': fp_heur,
+  'gmi_cuts': gmi_cuts, 'gomory_cuts': gmi_cuts,
+  'mir_cuts': mir_cuts, 'mixed_int_rounding_cuts': mir_cuts,
+  'cov_cuts': cov_cuts, 'mixed_cover_cuts': cov_cuts,
+  'clq_cuts': clq_cuts, 'clique_cuts': clq_cuts,
+  'tol_int': tol_int, 'absolute_tolerance': tol_int,
+  'tol_obj': tol_obj, 'relative_tolerance': tol_obj,
+  'mip_gap': mip_gap, 'mip_gap_tolerance': mip_gap,
+  'out_frq_intopt': out_frq_intopt, 'output_frequency_intopt': out_frq_intopt,
+  'out_dly_intopt': out_dly_intopt, 'output_delay_intopt': out_dly_intopt,
+  'presolve_intopt': presolve_intopt, 'binarize': binarize,
+  'meth': meth, 'primal_v_dual': meth,
+  'pricing': pricing,
+  'r_test': r_test, 'ratio_test': r_test,
+  'tol_bnd': tol_bnd, 'tolerance_primal': tol_bnd,
+  'tol_dj': tol_dj, 'tolerance_dual': tol_dj,
+  'tol_piv': tol_piv, 'tolerance_pivot': tol_piv,
+  'obj_ll': obj_ll, 'obj_lower_limit': obj_ll,
+  'obj_ul': obj_ul, 'obj_upper_limit': obj_ul,
+  'it_lim': it_lim, 'iteration_limit': it_lim,
+  'out_frq_simplex': out_frq_simplex, 'output_frequency_intopt': out_frq_simplex,
+  'out_dly_simplex': out_dly_simplex, 'output_delay_simplex': out_dly_simplex,
+  'presolve_simplex': presolve_simplex
+}
+
+# parameter values
+
+glp_msg_off = GLP_MSG_OFF
+glp_msg_on = GLP_MSG_ON
+glp_msg_err = GLP_MSG_ERR
+glp_msg_all = GLP_MSG_ALL
+glp_msg_dbg = GLP_MSG_DBG
+
+glp_primal = GLP_PRIMAL
+glp_dual = GLP_DUAL
+glp_dualp = GLP_DUALP
+
+glp_pt_std = GLP_PT_STD
+glp_pt_pse = GLP_PT_PSE
+
+glp_rt_std = GLP_RT_STD
+glp_rt_har = GLP_RT_HAR
+
+dbl_max = DBL_MAX
+int_max = INT_MAX
+
+glp_on = GLP_ON
+glp_off = GLP_OFF
+
+glp_br_ffv = GLP_BR_FFV
+glp_br_lfv = GLP_BR_LFV
+glp_br_mfv = GLP_BR_MFV
+glp_br_dth = GLP_BR_DTH
+glp_br_pch = GLP_BR_PCH
+
+glp_bt_dfs = GLP_BT_DFS
+glp_bt_bfs = GLP_BT_BFS
+glp_bt_blb = GLP_BT_BLB
+glp_bt_bph = GLP_BT_BPH
+
+glp_pp_none = GLP_PP_NONE
+glp_pp_root = GLP_PP_ROOT
+glp_pp_all = GLP_PP_ALL
+
+glp_max = GLP_MAX
+glp_min = GLP_MIN
+glp_up = GLP_UP
+glp_fr = GLP_FR
+glp_db = GLP_DB
+glp_fx = GLP_FX
+glp_lo = GLP_LO
+glp_cv = GLP_CV
+glp_iv = GLP_IV
+glp_bv = GLP_BV
+glp_mps_deck = GLP_MPS_DECK
+glp_mps_file = GLP_MPS_FILE
+
+glp_undef = GLP_UNDEF
+glp_opt = GLP_OPT
+glp_feas = GLP_FEAS
+glp_nofeas = GLP_NOFEAS
+
+cdef enum more_parameter_values:
+  simplex_only, simplex_then_intopt, intopt_only
+
+glp_simplex_only = simplex_only
+glp_simplex_then_intopt = simplex_then_intopt
+glp_intopt_only = intopt_only
+
+# dictionaries for those who prefer to use strings
+
+solver_parameter_values = {
+
+  'simplex_only': simplex_only,
+  'simplex_then_intopt': simplex_then_intopt,
+  'intopt_only': intopt_only,
+
+  'GLP_MSG_OFF' : GLP_MSG_OFF,
+  'GLP_MSG_ON' : GLP_MSG_ON,
+  'GLP_MSG_ERR' : GLP_MSG_ERR,
+  'GLP_MSG_ALL' : GLP_MSG_ALL,
+  'GLP_MSG_DBG' : GLP_MSG_DBG,
+
+  'GLP_PRIMAL' : GLP_PRIMAL,
+  'GLP_DUAL' : GLP_DUAL,
+  'GLP_DUALP' : GLP_DUALP,
+
+  'GLP_PT_STD' : GLP_PT_STD,
+  'GLP_PT_PSE' : GLP_PT_PSE,
+
+  'GLP_RT_STD' : GLP_RT_STD,
+  'GLP_RT_HAR' : GLP_RT_HAR,
+
+  'DBL_MAX' : DBL_MAX,
+  'INT_MAX' : INT_MAX,
+
+  'GLP_ON' : GLP_ON,
+  'GLP_OFF' : GLP_OFF,
+
+  'GLP_BR_FFV' : GLP_BR_FFV,
+  'GLP_BR_LFV' : GLP_BR_LFV,
+  'GLP_BR_MFV' : GLP_BR_MFV,
+  'GLP_BR_DTH' : GLP_BR_DTH,
+  'GLP_BR_PCH' : GLP_BR_PCH,
+
+  'GLP_BT_DFS' : GLP_BT_DFS,
+  'GLP_BT_BFS' : GLP_BT_BFS,
+  'GLP_BT_BLB' : GLP_BT_BLB,
+  'GLP_BT_BPH' : GLP_BT_BPH,
+
+  'GLP_PP_NONE' : GLP_PP_NONE,
+  'GLP_PP_ROOT' : GLP_PP_ROOT,
+  'GLP_PP_ALL' : GLP_PP_ALL,
+
+  'GLP_MAX' : GLP_MAX,
+  'GLP_MIN' : GLP_MIN,
+  'GLP_UP' : GLP_UP,
+  'GLP_FR' : GLP_FR,
+  'GLP_DB' : GLP_DB,
+  'GLP_FX' : GLP_FX,
+  'GLP_LO' : GLP_LO,
+  'GLP_CV' : GLP_CV,
+  'GLP_IV' : GLP_IV,
+  'GLP_BV' : GLP_BV,
+  'GLP_MPS_DECK' : GLP_MPS_DECK,
+  'GLP_MPS_FILE' : GLP_MPS_FILE,
+
+  'GLP_UNDEF' : GLP_UNDEF,
+  'GLP_OPT' : GLP_OPT,
+  'GLP_FEAS' : GLP_FEAS,
+  'GLP_NOFEAS' : GLP_NOFEAS
+
+}

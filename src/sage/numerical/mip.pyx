@@ -1276,7 +1276,7 @@ cdef class MixedIntegerLinearProgram:
 
         return self._backend.is_variable_continuous(self._variables[e])
 
-    def solve(self, solver=None, log=0, objective_only=False):
+    def solve(self, solver=None, log=None, objective_only=False):
         r"""
         Solves the ``MixedIntegerLinearProgram``.
 
@@ -1342,7 +1342,7 @@ cdef class MixedIntegerLinearProgram:
         if solver != None:
             raise ValueError("Solver argument deprecated. This parameter now has to be set when calling the class' constructor")
 
-        self._backend.set_verbosity(log)
+        if log != None: self._backend.set_verbosity(log)
 
         self._backend.solve()
 
@@ -1479,14 +1479,10 @@ cdef class MixedIntegerLinearProgram:
 
         Solver-specific parameters:
 
-            - GLPK : only "timelimit" is available at the moment.
-
-              .. NOTE::
-
-                  In the case of GLPK, It is very easy to expose more
-                  solver-specific parameters through this method, so if you need
-                  to set a parameter that is not already here complain and/or
-                  write the patch !
+            - GLPK : We have implemented very close to comprehensive coverage
+              of the GLPK solver parameters for the simplex and integer optimization
+              methods. For details, see the documentation in
+              :meth:`sage.numerical.backends.glpk_backend`.
 
             - CPLEX's parameters are identified by a string. Their
               list is available `on ILOG's website
@@ -2204,3 +2200,4 @@ class LinearConstraint:
 
         self.constraints = other.constraints + self.constraints
         return self
+

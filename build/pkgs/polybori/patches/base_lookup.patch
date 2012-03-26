@@ -8,7 +8,7 @@ FIX explict name lookups (in template base)
 diff -r 617ce1a715329d16e5ebde0bfdde9c4d09072451 -r 43b3931ceed7b57c4c5385442de6ff45bd0f477c libpolybori/include/polybori/iterators/CTermStack.h
 --- a/libpolybori/include/polybori/iterators/CTermStack.h	Mon Mar 19 22:53:46 2012 +0100
 +++ b/libpolybori/include/polybori/iterators/CTermStack.h	Wed Mar 21 22:18:37 2012 +0100
-@@ -853,7 +853,7 @@
+@@ -854,7 +854,7 @@
      PBORI_ASSERT(m_zero.isValid());
      PBORI_ASSERT(m_zero.isEmpty());
  

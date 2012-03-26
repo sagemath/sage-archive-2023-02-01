@@ -949,6 +949,13 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         sage: Xs = [GeneralDiscreteDistribution(P).get_random_element() for _ in range(1000)]
         sage: len(set(Xs)) > 2^^32
         True
+
+    The distribution probabilities must be non-negative::
+
+        sage: GeneralDiscreteDistribution([0.1, -0.1])
+        Traceback (most recent call last):
+        ...
+        ValueError: The distribution probabilities must be non-negative
     """
 
     cdef gsl_rng_type * T
@@ -983,6 +990,9 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
 
         cdef int i
         for i in range(n):
+            if P[i] < 0:
+                raise ValueError("The distribution probabilities must "
+                    "be non-negative")
             P_vec[i] = P[i]
 
         self.dist = gsl_ran_discrete_preproc(n, P_vec)

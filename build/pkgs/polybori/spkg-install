@@ -10,7 +10,7 @@ PBDIR=polybori-0.8.0
 WORKDIR=${PWD}/src
 SCONS=scons
 
-patch()
+prepare()
 {
     if [ $UNAME = "CYGWIN" ]; then
         export PROGSUFFIX=.exe
@@ -19,6 +19,10 @@ patch()
     cp patches/custom.py             src/${PBDIR}
     cp patches/SConstruct            src/${PBDIR}/SConstruct
     cp patches/PyPolyBoRi.py         src/${PBDIR}/pyroot/polybori
+
+    cd ${WORKDIR}/${PBDIR}
+    patch -p1 < ../../patches/base_lookup.patch
+    cd ${WORKDIR}
 }
 
 
@@ -58,9 +62,7 @@ clean_polybori()
     rm -rf ${SAGE_LOCAL}/include/cudd
 }
 
-patch
-
-cd src
+prepare
 
 echo "Starting build..."
 

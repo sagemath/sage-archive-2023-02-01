@@ -2,9 +2,20 @@ import os
 import sys
 
 # FIXME: Do we really want to *overwrite* the flags (e.g. if set by the user)?
+# Note: there will be better ways in PolyBoRi 0.8.1
 CCFLAGS=["-O3 -Wno-long-long -Wreturn-type -g -fPIC"]
 #CXXFLAGS=CCFLAGS+["-ftemplate-depth-100 -g -fPIC"]
 CXXFLAGS=CCFLAGS+["-ftemplate-depth-100"]
+CFLAGS=["-std=c99"]
+
+if 'CFLAGS' in os.environ:
+  CFLAGS += os.environ['CFLAGS'].split(' ')
+
+if 'CXXFLAGS' in os.environ:
+  CXXFLAGS += os.environ['CXXFLAGS'].split(' ')
+
+if 'CPPFLAGS' in os.environ:
+  CCFLAGS += os.environ['CPPFLAGS'].split(' ')
 
 GD_LIBS+=["png12","z"]
 

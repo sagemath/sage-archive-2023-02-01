@@ -180,10 +180,11 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
     def change_ring(self, R):
         r"""
         Change the base ring of self to R, when this makes sense. This differs
-        from :meth:`~base_extend` in that there may not be a canonical map from
-        self to the new space, as in the first example below. If this space has
-        a character then this may fail when the character cannot be defined
-        over R, as in the second example.
+        from :meth:`~sage.modular.modform.space.ModularFormsSpace.base_extend`
+        in that there may not be a canonical map from self to the new space, as
+        in the first example below. If this space has a character then this may
+        fail when the character cannot be defined over R, as in the second
+        example.
 
         EXAMPLES::
 

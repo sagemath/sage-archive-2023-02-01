@@ -25,6 +25,7 @@ to be aware of the modules described in this chapter.
 .. toctree::
    :maxdepth: 2
 
+   sage/libs/flint/fmpz_poly
    sage/libs/pari/gen
    sage/libs/ntl/all
    sage/libs/mwrank/all

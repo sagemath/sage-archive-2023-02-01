@@ -1,5 +1,5 @@
 r"""
-Base class for parent objects
+Base class for old-style parent objects
 
 CLASS HIERARCHY:
 
@@ -96,7 +96,7 @@ cdef class Parent(parent.Parent):
 
     cpdef coerce_map_from_c(self, S):
         """
-        EXAMPLES::
+        EXAMPLES:
 
         Check to make sure that we handle coerce maps from Python
         native types correctly::

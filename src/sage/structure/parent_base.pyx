@@ -1,3 +1,6 @@
+r"""
+Base class for old-style parent objects with a base ring
+"""
 ###############################################################################
 #   Sage: System for Algebra and Geometry Experimentation
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>

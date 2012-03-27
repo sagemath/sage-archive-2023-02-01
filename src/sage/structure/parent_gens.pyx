@@ -1,5 +1,5 @@
 r"""
-Base class for parent objects with generators
+Base class for old-style parent objects with generators
 
 .. note::
 
@@ -79,8 +79,8 @@ cdef inline check_old_coerce(parent.Parent p):
 
 def is_ParentWithGens(x):
     """
-    Return True if x is a parent object with generators, i.e., derives
-    from :mod:`sage.structure.parent.ParentWithGens` and False otherwise.
+    Return True if x is a parent object with generators, i.e., derives from
+    :class:`sage.structure.parent_gens.ParentWithGens` and False otherwise.
 
     EXAMPLES::
 
@@ -96,9 +96,9 @@ def is_ParentWithGens(x):
 
 def is_ParentWithAdditiveAbelianGens(x):
     """
-    Return True if x is a parent object with additive abelian
-    generators, i.e., derives from
-    :mod:`sage.structure.parent.ParentWithAdditiveAbelianGens` and False
+    Return True if x is a parent object with additive abelian generators, i.e.,
+    derives from
+    :mod:`sage.structure.parent_gens.ParentWithAdditiveAbelianGens` and False
     otherwise.
 
     EXAMPLES::
@@ -113,10 +113,10 @@ def is_ParentWithAdditiveAbelianGens(x):
 
 def is_ParentWithMultiplicativeAbelianGens(x):
     """
-    Return True if x is a parent object with additive abelian
-    generators, i.e., derives from
-    :mod:`sage.structure.parent.ParentWithMultiplicativeAbelianGens` and False
-    otherwise.
+    Return True if x is a parent object with additive abelian generators, i.e.,
+    derives from
+    :class:`sage.structure.parent_gens.ParentWithMultiplicativeAbelianGens` and
+    False otherwise.
 
     EXAMPLES::
 

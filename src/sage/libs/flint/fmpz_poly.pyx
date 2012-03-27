@@ -1,10 +1,11 @@
 """
-FLINT wrapper
+FLINT fmpz_poly class wrapper
 
 AUTHORS:
-   -- Robert Bradshaw (2007-09-15) Initial version.
-   -- William Stein (2007-10-02) update for new flint; add arithmetic and
-          creation of coefficients of arbitrary size.
+
+- Robert Bradshaw (2007-09-15) Initial version.
+- William Stein (2007-10-02) update for new flint; add arithmetic and creation
+  of coefficients of arbitrary size.
 """
 
 

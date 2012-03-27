@@ -6,6 +6,8 @@ Basic Structures
 
    sage/structure/sage_object
    sage/structure/category_object
+   sage/structure/parent_old
+   sage/structure/parent_base
    sage/structure/parent_gens
    sage/structure/formal_sum
    sage/structure/factorization

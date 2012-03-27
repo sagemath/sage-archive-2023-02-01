@@ -1622,13 +1622,41 @@ class EllipticPi(MaximaFunction):
 
     .. math::
 
-        \int_0^\phi \frac{dx}{(1 - n\sin(x)^2)\sqrt{1 -
-        m\sin(x)^2}}.
+        \text{elliptic\_pi}(n, t, m) = \int_0^t \frac{dx}{(1 - n \sin(x)^2)
+        \sqrt{1 - m \sin(x)^2}}.
+
+    INPUT:
+
+    - ``n`` -- a real number, called the "characteristic"
+
+    - ``t`` -- a real number, called the "amplitude"
+
+    - ``m`` -- a real number, called the "parameter"
 
     EXAMPLES::
 
+        sage: N(elliptic_pi(1, pi/4, 1))
+        1.14779357469632
+
+    Compare the value computed by Maxima to the definition as a definite integral
+    (using GSL)::
+
         sage: elliptic_pi(0.1, 0.2, 0.3)
         0.200665068221
+        sage: numerical_integral(1/(1-0.1*sin(x)^2)/sqrt(1-0.3*sin(x)^2), 0.0, 0.2)
+        (0.2006650682209791, 2.227829789769088e-15)
+
+    ALGORITHM:
+
+    Numerical evaluation and symbolic manipulation are provided by `Maxima`_.
+
+    REFERENCES:
+
+    - Abramowitz and Stegun: Handbook of Mathematical Functions, section 17.7
+      http://www.math.sfu.ca/~cbm/aands/
+    - Elliptic Functions in `Maxima`_
+
+    .. _`Maxima`: http://maxima.sourceforge.net/docs/manual/en/maxima_16.html#SEC91
     """
     def __init__(self):
         r"""

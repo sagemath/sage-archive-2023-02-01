@@ -1,181 +1,76 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # WARNING -- if you add a package here, also add it to
 # the gap_reset_workspace() command in
 #    <SAGE_ROOT>/devel/sage/sage/interfaces/gap.py
 #
 
-HERE=`pwd`
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage --sh'?"
+    exit 1
+fi
 
-cd $SAGE_ROOT/spkg
-#${gapver:=$SAGE_ROOT/spkg/standard/newest_version gap}
-#GAP0=`$gapver`
-GAP0=`$SAGE_ROOT/spkg/standard/newest_version gap`
-GAP=`echo $GAP0 | cut -f 1,2,3 -d "."`
-# returns latest gap version - eg, GAP=gap-4.4.12
-echo "********************************************************************"
-echo "Installing optional GAP packages, which may not be open source."
-echo "Installing GAP $GAP packages to $HERE/.. "
-echo "Please see SPKG.txt for license details."
-echo "********************************************************************"
+GAP=`echo 'Print(Concatenation("gap-", GAPInfo.Version));' | gap -q`
+if [ -z "$GAP" ]; then
+    echo >&2 "Error determining the version of GAP installed in Sage."
+    exit 1
+fi
+# GAP should now be set to installed gap version - eg, GAP=gap-4.4.12
 
-PATH=$SAGE_ROOT:$SAGE_ROOT/local/bin:$PATH
-
-export PATH
 
 rm -rf "$SAGE_ROOT/local/lib/$GAP/pkg/"
 mkdir "$SAGE_ROOT/local/lib/$GAP/pkg/"
 
-#cp patches/guava/* src/guava/   # is this still needed?
-# get around problem on osx
-
-cd $HERE
-
-$CP -pr SPKG.txt "$SAGE_ROOT/local/lib/$GAP/pkg/"
-
+$CP -p SPKG.txt "$SAGE_ROOT/local/lib/$GAP/pkg/"
 if [ $? -ne 0 ]; then
-    echo "Error copying SPKG.txt"
+    echo >&2 "Error copying SPKG.txt"
     exit 1
 fi
 
 
 cd src/
 
-echo "Copying braid package"
-$CP -pr  braid              "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying braid package."
-    exit 1
-fi
+# HAPprime should be added in the future?
+for p in braid crime ctbllib design factint GAPDoc grape guava Hap HAPcryst laguna polymaking sonata toric
+do
+    echo "Copying $p package"
+    $CP -pr $p "$SAGE_ROOT/local/lib/$GAP/pkg/"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error copying $p package."
+        exit 1
+    fi
+done
 
-echo "Copying crime package"
-$CP -pr  crime              "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying braid package."
-    exit 1
-fi
 
-echo "Copying ctbllib package"
-$CP -pr  ctbllib             "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying ctbllib package."
-    exit 1
-fi
-
-echo "Copying design package"
-$CP -pr  design             "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying design package."
-    exit 1
-fi
-
-echo "Copying factint package"
-$CP -pr  factint            "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying factint package."
-    exit 1
-fi
-
-echo "Copying GAPDoc package"
-$CP -pr  GAPDoc             "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying gapdoc package."
-    exit 1
-fi
-
-echo "Copying Grape package"
-$CP -pr  grape              "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying grape package."
-    exit 1
-fi
-
-echo "Copying Guava package"
-$CP -pr  guava              "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying guava package."
-    exit 1
-fi
-
-echo "Copying HAP package"
-$CP -pr  Hap             "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying Hap package."
-    exit 1
-fi
-
-echo "Copying HAPcryst package"
-$CP -pr  HAPcryst             "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying HAPcryst package."
-    exit 1
-fi
-
-###### Should be added in the future?
-#echo "Copying HAPprime package"
-#$CP -pr  happrime-0.3.2             "$SAGE_ROOT/local/lib/$GAP/pkg/"
-#if [ $? -ne 0 ]; then
-#    echo "Error copying happrime package."
-#    exit 1
-#fi
-
-echo "Copying Laguna package"
-$CP -pr  laguna             "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying laguna package."
-    exit 1
-fi
-
-echo "Copying Polymaking package"
-$CP -pr  polymaking             "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying polymaking package."
-    exit 1
-fi
-
-echo "Copying Sonata package"
-$CP -pr  sonata             "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying sonata package."
-    exit 1
-fi
-
-echo "Copying toric package"
-$CP -pr  toric           "$SAGE_ROOT/local/lib/$GAP/pkg/"
-if [ $? -ne 0 ]; then
-    echo "Error copying toric package."
-    exit 1
-fi
-
+# Build GRAPE package
 cd "$SAGE_ROOT/local/lib/$GAP/pkg/grape/"
 rm -rf bin   # added since rebuilding breaks otherwise
 
-/bin/sh configure ../..
-
+./configure ../..
 if [ $? -ne 0 ]; then
-    echo "Error configuring Gap packages."
+    echo >&2 "Error configuring GRAPE package."
     exit 1
 fi
-
 $MAKE
-
 if [ $? -ne 0 ]; then
-    echo "Error installing Gap packages."
+    echo >&2 "Error building GRAPE package."
     exit 1
 fi
 
 
-# Finally build Guava
+# Build GUAVA package
 cd "$SAGE_ROOT/local/lib/$GAP/pkg/guava/"
 ./configure ../../ --enable-libsuffix=64
 if [ $? -ne 0 ]; then
-   echo "Error configuring Guava"
-   exit 1
+    echo >&2 "Error configuring GUAVA packagae."
+    exit 1
 fi
 $MAKE
 if [ $? -ne 0 ]; then
-   echo "Error building Guava"
-   exit 1
+    echo >&2 "Error building GUAVA package."
+    exit 1
 fi
+
 
 touch "$SAGE_LOCAL"/bin/gap_stamp

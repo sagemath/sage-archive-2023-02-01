@@ -180,7 +180,7 @@ def Permutation(l):
         sage: p = Permutation( '(4,5)' ); p
         [1, 2, 3, 5, 4]
 
-    The length of the permutation is the maximum integer appearing; add
+    The size of the permutation is the maximum integer appearing; add
     a 1-cycle to increase this::
 
         sage: p2 = Permutation( '(4,5)(10)' ); p2
@@ -350,6 +350,17 @@ class Permutation_class(CombinatorialObject):
         """
         return self.to_permutation_group_element()._gap_(gap)
 
+    def size(self):
+        """
+        Returns the size of the permutation 'self'.
+
+        EXAMPLES::
+
+            sage: Permutation([3,4,1,2,5]).size()
+            5
+        """
+        return len(self)
+
     def cycle_string(self, singletons=False):
         """
         Returns a string of the permutation in cycle notation.
@@ -479,7 +490,7 @@ class Permutation_class(CombinatorialObject):
             [3, 4, 1, 2, 5]
         """
         if sum(shape) != len(self):
-            raise ValueError, "the size of the partition must be the length of self"
+            raise ValueError, "the size of the partition must be the size of self"
 
         t = []
         w = list(self)
@@ -862,7 +873,7 @@ class Permutation_class(CombinatorialObject):
             [1, 3, 2]
         """
         #Pad the permutations if they are of
-        #different lengths
+        #different sizes
         new_lp = lp[:] + [i+1 for i in range(len(lp), len(self))]
         new_p1 = self[:] + [i+1 for i in range(len(self), len(lp))]
         return Permutation([ new_p1[i-1] for i in new_lp ])
@@ -880,7 +891,7 @@ class Permutation_class(CombinatorialObject):
             [3, 2, 1]
         """
         #Pad the permutations if they are of
-        #different lengths
+        #different sizes
         new_rp = rp[:] + [i+1 for i in range(len(rp), len(self))]
         new_p1 = self[:] + [i+1 for i in range(len(self), len(rp))]
         return Permutation([ new_rp[i-1] for i in new_p1 ])
@@ -1166,13 +1177,13 @@ class Permutation_class(CombinatorialObject):
 
     def length(self):
         r"""
-        Returns the length of a permutation p. The length is given by the
-        number of inversions of p.
+        Returns the Coxeter length of a permutation p. The length is given by
+        the number of inversions of p.
 
         EXAMPLES::
 
-            sage: Permutation([5, 1, 3, 2, 4]).length()
-            5
+            sage: Permutation([5, 1, 3, 4, 2]).length()
+            6
         """
         return self.number_of_inversions()
 

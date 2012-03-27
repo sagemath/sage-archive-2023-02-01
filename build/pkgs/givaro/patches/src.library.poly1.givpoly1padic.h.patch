@@ -1,0 +1,16 @@
+--- src/src/library/poly1/givpoly1padic.h	2007-11-21 11:40:39.000000000 +0100
++++ patches/givpoly1padic.h	2012-03-27 05:11:31.197732877 +0200
+@@ -106,11 +106,11 @@
+             IntegerDom::divmod(iq, ir, E, q);
+             radix(Q, iq, n-t);
+             radix(P, ir, t);
+-            Degree dp; degree(dp,P); ++dp;
++            Degree dp; this->degree(dp,P); ++dp;
+             for(long i=t; dp<i; --i)
+                 P.push_back(_domain.zero);
+         P.insert(P.end(),Q.begin(),Q.end());
+-        return setdegree(P);
++        return this->setdegree(P);
+     } 
+ 
+ 

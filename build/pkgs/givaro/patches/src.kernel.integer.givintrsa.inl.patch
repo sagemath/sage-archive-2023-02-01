@@ -1,0 +1,70 @@
+--- src/src/kernel/integer/givintrsa.inl	2008-04-21 16:01:56.000000000 +0200
++++ patches/givintrsa.inl	2012-03-27 03:43:34.037731848 +0200
+@@ -195,14 +195,14 @@
+         this->random(g,t,3); 
+         this->random(g,s,3); 
+     }
+-    nextprimein( t );
+-    nextprimein( s );
++    IntRSADom<RandIter>::nextprimein( t );
++    IntRSADom<RandIter>::nextprimein( s );
+     
+     
+ 
+     r = t<<1;
+     ++r;
+-    while( ! isprime(r,4) ) {
++    while( ! IntRSADom<RandIter>::isprime(r,4) ) {
+         r += t<<1;
+     }
+ 
+@@ -221,7 +221,7 @@
+     r <<= 1;
+     
+     p = q+r;
+-    while( ! isprime(p,4) ) {
++    while( ! IntRSADom<RandIter>::isprime(p,4) ) {
+         p += r;
+     }
+ 
+@@ -246,21 +246,21 @@
+     do  strong_prime(g, qsize, q); while (q == p);
+     
+ 
+-    Element phim; mul(phim, sub(d,p,IntFactorDom<RandIter>::one), sub(l,q,IntFactorDom<RandIter>::one));
+-    mul(m, p, q);
++    Element phim; IntRSADom<RandIter>::mul(phim, IntRSADom<RandIter>::sub(d,p,IntFactorDom<RandIter>::one), IntRSADom<RandIter>::sub(l,q,IntFactorDom<RandIter>::one));
++    IntRSADom<RandIter>::mul(m, p, q);
+ 
+     Element v, gd;
+ 
+     if (_fast_impl) {
+-        mod(k,SIMPLE_EXPONENT, phim);
++        IntRSADom<RandIter>::mod(k,SIMPLE_EXPONENT, phim);
+         this->gcd(gd,u,v,k,phim);
+     } else {
+         do {
+             this->random(g,k,phim);
+         } while (this->gcd(gd,u,v,k,phim) != 1);
+     }
+-    modin(u,phim);
+-    if ( islt(u,IntFactorDom<RandIter>::zero) ) addin(u,phim);
++    IntRSADom<RandIter>::modin(u,phim);
++    if ( IntRSADom<RandIter>::islt(u,IntFactorDom<RandIter>::zero) ) IntRSADom<RandIter>::addin(u,phim);
+ }
+ 
+ // =================================================================== //
+@@ -270,10 +270,10 @@
+ typename IntRSADom<RandIter>::Element& IntRSADom<RandIter>::point_break(Element& u) {
+     if ( isZero(_u) ) {
+         Element p,v,d, pm;
+-        factor(p, _m);
+-        mul(pm, sub(v,p,IntFactorDom<RandIter>::one), subin( this->div(d,_m,p), IntFactorDom<RandIter>::one ) );
++        IntRSADom<RandIter>::factor(p, _m);
++        IntRSADom<RandIter>::mul(pm, IntRSADom<RandIter>::sub(v,p,IntFactorDom<RandIter>::one), IntRSADom<RandIter>::subin( this->div(d,_m,p), IntFactorDom<RandIter>::one ) );
+         this->gcd(d,_u,v,_k,pm);
+-        if (islt(_u,IntFactorDom<RandIter>::zero)) addin(_u, pm);
++        if (IntRSADom<RandIter>::islt(_u,IntFactorDom<RandIter>::zero)) IntRSADom<RandIter>::addin(_u, pm);
+     }
+     return u = _u;
+ }

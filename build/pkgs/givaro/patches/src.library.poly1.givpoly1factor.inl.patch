@@ -1,0 +1,107 @@
+--- src/src/library/poly1/givpoly1factor.inl	2008-02-26 23:11:36.000000000 +0100
++++ patches/givpoly1factor.inl	2012-03-27 15:03:08.837739790 +0200
+@@ -24,7 +24,7 @@
+     , Residu_t MOD) const {
+ 	typename Domain::Element one;
+ 	_domain.init(one, 1UL);
+-    Degree dG;degree(dG,G);
++    Degree dG; this->degree(dG,G);
+     if (dG == d)
+         L.push_back(G);
+     else {
+@@ -32,7 +32,7 @@
+         while (! splitted) {
+             Rep tmp, G1;
+             this->gcd(G1, G, this->random(_g, tmp, dG-1));
+-            Degree dG1; degree(dG1,G1);
++            Degree dG1; this->degree(dG1,G1);
+ // write(std::cerr << "SF rd: ", tmp) << std::endl;
+ // write(std::cerr << "SF G1: ", G1) << std::endl;
+             if ( dG1 != dG) {
+@@ -44,8 +44,8 @@
+                 Integer pp = (power(Integer(MOD), d.value()) - 1)/2;
+ // std::cerr << "pp: " << pp << std::endl;
+                 Rep tp, tp2, G2;
+-                this->gcd(G2,G, sub(tp2, this->powmod(tp, tmp, pp, G) , one) );
+-                Degree dG2; degree(dG2,G2);
++                this->gcd(G2,G, this->sub(tp2, this->powmod(tp, tmp, pp, G) , one) );
++                Degree dG2; this->degree(dG2,G2);
+ // write(std::cerr << "SF t2: ", tp2) << std::endl;
+ // write(std::cerr << "SF G2: ", G2) << std::endl;
+                 if ( dG2 != dG) {
+@@ -54,8 +54,8 @@
+                         SplitFactor ( L, G2, d, MOD) ;
+                     }
+ // UNNECESSARY : ANYTHING FOUND BY G3 WOULD HAVE THE COFACTOR IN G2
+-                     Rep G3; this->gcd(G3, G, add(tp2,tp,one) );
+-                     Degree dG3; degree(dG3,G3);
++                     Rep G3; this->gcd(G3, G, this->add(tp2,tp,one) );
++                     Degree dG3; this->degree(dG3,G3);
+ // write(std::cerr << "SF t3: ", tp2) << std::endl;
+ // write(std::cerr << "SF G3: ", G3) << std::endl;
+                      if (( dG3 != dG) && (dG3 > 0 )) {
+@@ -133,21 +133,21 @@
+ // write(std::cerr << "DD in: ", f) << std::endl;
+     Rep W, D, P = f;
+     Degree dP;
+-    Rep Unit, G1; init(Unit, Degree(1), one);
++    Rep Unit, G1; this->init(Unit, Degree(1), one);
+     W.copy(Unit);
+-    degree(dP,P); Degree dPo = (dP/2);
++    this->degree(dP,P); Degree dPo = (dP/2);
+     for(Degree dp = 1; dp <= dPo; ++dp) {
+ // std::cerr << "DD degree: " << dp << std::endl;
+         this->powmod(W, D.copy(W), MOD, P);
+-        this->gcd (G1,sub(D,W,Unit), P) ;
+-        Degree dG1; degree(dG1,G1);
++        this->gcd (G1,this->sub(D,W,Unit), P) ;
++        Degree dG1; this->degree(dG1,G1);
+ // write(std::cerr << "DD found: ", G1) << ", of degree " << dG1 << std::endl;
+         if ( dG1 > 0 ) {
+             SplitFactor (L, G1, dp, MOD);
+-            divin(P,G1);
++            this->divin(P,G1);
+         }
+     }
+-    degree(dP,P);    
++    this->degree(dP,P);    
+     if (dP > 0)
+         L.push_back(P);
+ // write(std::cerr << "DD: ", P) << std::endl;
+@@ -165,10 +165,10 @@
+ 	       const Rep& P,
+ 	       Residu_t MOD)  const {
+ // write(std::cerr << "CZ in: ", P) << std::endl;
+-    Degree dp; degree(dp,P);
++    Degree dp; this->degree(dp,P);
+     size_t nb=dp.value()+1; 
+     Rep * g = new Rep[nb];
+-    sqrfree(nb,g,P);
++    this->sqrfree(nb,g,P);
+ // std::cerr << "CZ sqrfree: " << nb << std::endl;
+     for(size_t i = 0; i<nb;++i) {
+         size_t this_multiplicity = Lf.size();
+@@ -200,17 +200,17 @@
+         // Square free ?
+    typename Domain::Element _one;
+    _domain.init(_one,1UL); 
+-   Rep W,D; this->gcd(W,diff(D,P),P);
++   Rep W,D; this->gcd(W,Poly1FactorDom<Domain,Tag, RandIter>::diff(D,P),P);
+     Degree d, dP;
+-    if (degree(d,W) > 0) return 0;
++    if (Poly1FactorDom<Domain,Tag, RandIter>::degree(d,W) > 0) return 0;
+         // Distinct degree free ?
+-    Rep Unit, G1; init(Unit, Degree(1), _one);
++    Rep Unit, G1; Poly1FactorDom<Domain,Tag, RandIter>::init(Unit, Degree(1), _one);
+     W.copy(Unit);
+-    degree(dP,P); Degree dPo = (dP/2);
++    Poly1FactorDom<Domain,Tag, RandIter>::degree(dP,P); Degree dPo = (dP/2);
+     for(Degree dp = 1; dp <= dPo; ++dp) {
+         this->powmod(W, D.copy(W), MOD, P);
+-        this->gcd (G1, sub(D,W,Unit), P) ;
+-        if ( degree(d,G1) > 0 ) return 0;
++        this->gcd (G1, Poly1FactorDom<Domain,Tag, RandIter>::sub(D,W,Unit), P) ;
++        if ( Poly1FactorDom<Domain,Tag, RandIter>::degree(d,G1) > 0 ) return 0;
+     }
+     return 1;
+ }

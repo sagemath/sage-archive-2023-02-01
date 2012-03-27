@@ -1,0 +1,322 @@
+--- src/src/kernel/integer/givintnumtheo.inl	2008-07-10 19:25:29.000000000 +0200
++++ patches/givintnumtheo.inl	2012-03-27 04:47:24.897732595 +0200
+@@ -17,8 +17,8 @@
+ // =================================================================== //
+ template<class RandIter>
+ typename IntNumTheoDom<RandIter>::Rep& IntNumTheoDom<RandIter>::phi(Rep& res, const Rep& n) const {
+-    if (isleq(n,1)) return res=n;
+-    if (isleq(n,3)) return sub(res,n,this->one);
++    if (IntNumTheoDom<RandIter>::isleq(n,1)) return res=n;
++    if (IntNumTheoDom<RandIter>::isleq(n,3)) return IntNumTheoDom<RandIter>::sub(res,n,this->one);
+     std::list<Rep> Lf;
+     Father_t::set(Lf,n);
+     //return phi (res,Lf,n);
+@@ -29,11 +29,11 @@
+ template<class RandIter>
+ template< template<class, class> class Container, template<class> class Alloc>
+  typename IntNumTheoDom<RandIter>::Rep& IntNumTheoDom<RandIter>::phi(Rep& res, const Container<Rep, Alloc<Rep> >& Lf, const Rep& n) const {
+-    if (isleq(n,1)) return res=n;
+-    if (isleq(n,3)) return sub(res,n,this->one);
++    if (IntNumTheoDom<RandIter>::isleq(n,1)) return res=n;
++    if (IntNumTheoDom<RandIter>::isleq(n,3)) return IntNumTheoDom<RandIter>::sub(res,n,this->one);
+     res = n; Rep t,m;
+     for(typename Container<Rep, Alloc<Rep> >::const_iterator f=Lf.begin(); f!=Lf.end(); ++f) 
+-        mul(res, divexact(t,res,*f), sub(m, *f, this->one));
++        IntNumTheoDom<RandIter>::mul(res, IntNumTheoDom<RandIter>::divexact(t,res,*f), IntNumTheoDom<RandIter>::sub(m, *f, this->one));
+     return res;
+ }
+ 
+@@ -80,26 +80,26 @@
+         // n must be in {2,4,p^m,2p^m} where p is an odd prime
+         // else infinite loop
+ 
+-    if (isleq(n,4)) return sub(A,n,this->one);
+-    if (isZero(mod(A,n,4))) return A=this->zero;
++    if (IntNumTheoDom<RandIter>::isleq(n,4)) return IntNumTheoDom<RandIter>::sub(A,n,this->one);
++    if (isZero(IntNumTheoDom<RandIter>::mod(A,n,4))) return A=this->zero;
+     Rep p,ismod2, q, no2, root; 
+-    if (isZero(mod(ismod2,n,2))) divexact(no2,n,2); else no2=n;
++    if (isZero(IntNumTheoDom<RandIter>::mod(ismod2,n,2))) IntNumTheoDom<RandIter>::divexact(no2,n,2); else no2=n;
+     p=no2;
+     int k = 1; 
+-    while (! isprime(p) ) {
++    while (! IntNumTheoDom<RandIter>::isprime(p) ) {
+         sqrt(root, p);
+-        while (mul(q,root,root) == p) {
++        while (IntNumTheoDom<RandIter>::mul(q,root,root) == p) {
+             p = root;
+             sqrt(root,p);
+         }
+-        if (! isprime(p) ) {
++        if (! IntNumTheoDom<RandIter>::isprime(p) ) {
+             q=p;
+-            while( p == q ) factor(p, q);
+-            divin(q,p);
++            while( p == q ) IntNumTheoDom<RandIter>::factor(p, q);
++            IntNumTheoDom<RandIter>::divin(q,p);
+             if (q < p) p = q;
+         }
+     }
+-    if (isZero(ismod2)) mul(q,p,2); else q=p;
++    if (isZero(ismod2)) IntNumTheoDom<RandIter>::mul(q,p,2); else q=p;
+     for(;q != n;++k,q*=p);
+     Rep phin, tmp; 
+     phi(phin,p);
+@@ -134,21 +134,21 @@
+     while (! found) {
+        do {
+             this->random(this->_g, A, p);
+-            addin( modin(A,sub(tmp,p,7)) , 7);
++            IntNumTheoDom<RandIter>::addin( IntNumTheoDom<RandIter>::modin(A,IntNumTheoDom<RandIter>::sub(tmp,p,7)) , 7);
+         } while ( ! isOne(gcd(tmp,A,p)) );
+         found = ++runs;
+         for(f=Lf.begin();(f!=Lf.end() && found);f++)
+             found = (! isOne( this->powmod(tmp,A,*f,p)) );
+     }
+     if (k == 1) {
+-        if (isZero(ismod2) && isZero(mod(ismod2, A, 2)))
++        if (isZero(ismod2) && isZero(IntNumTheoDom<RandIter>::mod(ismod2, A, 2)))
+             return A+=p;
+         else
+             return A;
+     } else {
+         if (! is_prim_root(A,no2))
+             A+=p;
+-        if (isZero(ismod2) && isZero(mod(ismod2, A, 2)))
++        if (isZero(ismod2) && isZero(IntNumTheoDom<RandIter>::mod(ismod2, A, 2)))
+             return A+=no2;
+         else
+             return A;
+@@ -204,18 +204,18 @@
+       Lq.pop_back(); 
+        this->div(Temp, pmun, Q);
+       do {
+-          nonzerorandom(this->_g, alea, p);
+-          modin(alea, p);
++          IntNumTheoDom<RandIter>::nonzerorandom(this->_g, alea, p);
++          IntNumTheoDom<RandIter>::modin(alea, p);
+           this->powmod(essai, alea, Temp, p);
+ //std::cerr << alea << " should be of order " << Q << " mod " << p << std::endl;
+       } while (essai == 1);
+ // looking for alea, of order Q with high probability      
+       
+-      mulin(primroot, essai);
++      IntNumTheoDom<RandIter>::mulin(primroot, essai);
+ 
+ //  1-(1+2/(p-1))*(1-1/L^2)^log_B(Q)  < 1-(1+2^(-log_2(p)))*(1-1/L^2)^log_B(Q);
+       essai = L;
+-      mul(Temp, essai, L);
++      IntNumTheoDom<RandIter>::mul(Temp, essai, L);
+       error = 1-1.0/(double)Temp;
+       error = power(error, logp(Q,Temp) );
+       error *= (1.0+1.0/((double)Q-1.0));
+@@ -228,8 +228,8 @@
+   for ( ; Lqi != Lq.end(); ++Lqi, ++ei) { 
+        this->div(Temp, pmun, *Lqi);
+       do {
+-          nonzerorandom(this->_g, alea, p);
+-          modin(alea, p);
++          IntNumTheoDom<RandIter>::nonzerorandom(this->_g, alea, p);
++          IntNumTheoDom<RandIter>::modin(alea, p);
+           this->powmod(essai, alea, Temp, p);
+ //std::cerr << alea << " should be of order at least " << *Lqi << "^" << *ei << "==" << power(*Lqi,*ei) << " mod " << p << std::endl;
+       } while( essai == 1 ) ;
+@@ -239,10 +239,10 @@
+ //std::cerr << alea << " is of order at least " << (*Lqi) << "^" << (*ei) << "==" << power(*Lqi,*ei) << " mod " << p << std::endl;
+           
+       this->divin(Temp, power(*Lqi,*ei-1));
+-      mulin(primroot, this->powmod(essai, alea, Temp, p));    
++      IntNumTheoDom<RandIter>::mulin(primroot, this->powmod(essai, alea, Temp, p));    
+   }
+ 
+-  modin(primroot, p);
++  IntNumTheoDom<RandIter>::modin(primroot, p);
+   
+   return primroot; 
+ // return primroot with high probability
+@@ -298,7 +298,7 @@
+ typename IntNumTheoDom<RandIter>::Rep& IntNumTheoDom<RandIter>::prim_root_of_prime(Rep& A, const Rep& n) const { 
+     
+     std::vector<Rep> Lf;
+-    Rep phin; sub(phin,n,this->one);
++    Rep phin; IntNumTheoDom<RandIter>::sub(phin,n,this->one);
+     Father_t::set(Lf,phin);
+     return prim_root_of_prime(A, Lf, phin, n);
+ }
+@@ -330,14 +330,14 @@
+ 
+     Rep primeorder;
+     
+-    for(bool exemp = true; exemp; nextprimein(prime) ) {
++    for(bool exemp = true; exemp; IntNumTheoDom<RandIter>::nextprimein(prime) ) {
+         A = prime;
+         primeorder = phin;
+         for(typename Array::const_iterator f = Lf.begin(); f != Lf.end(); ++f) {
+             this->powmod(tmp, prime, this->div(expo, primeorder, *f), n);
+             if (isOne(tmp)) {
+                 newLf.push_back(*f);
+-                while (isZero(mod(tmp,expo,*f)) && isOne( this->powmod(tmp, prime, this->div(temp, expo, *f), n) ) ) { expo = temp; }
++                while (isZero(IntNumTheoDom<RandIter>::mod(tmp,expo,*f)) && isOne( this->powmod(tmp, prime, this->div(temp, expo, *f), n) ) ) { expo = temp; }
+                 primeorder = expo;
+ //                 std::cerr << "2 Order (Div): " << primeorder << std::endl;
+             } else {
+@@ -357,7 +357,7 @@
+ //     std::cerr << "Root : " << A << std::endl;
+ //     std::cerr << "Order : " << Aorder << std::endl;
+     
+-    for ( ; islt(Aorder,phin); nextprimein(prime) ) {
++    for ( ; IntNumTheoDom<RandIter>::islt(Aorder,phin); IntNumTheoDom<RandIter>::nextprimein(prime) ) {
+         newLf.resize(0); oldLf.resize(0);
+ 
+         for(typename Array::const_iterator f = Lf.begin(); f != Lf.end(); ++f) {
+@@ -379,9 +379,9 @@
+ 
+             this->powmod(tmp, prime, g, n);
+ 
+-            modin( mulin(A, tmp), n );
++            IntNumTheoDom<RandIter>::modin( IntNumTheoDom<RandIter>::mulin(A, tmp), n );
+ 
+-            mulin(Aorder, this->div(tmp, phin, g));
++            IntNumTheoDom<RandIter>::mulin(Aorder, this->div(tmp, phin, g));
+ 
+             Lf = newLf;
+         }
+@@ -402,8 +402,8 @@
+ typename IntNumTheoDom<RandIter>::Rep& IntNumTheoDom<RandIter>::lowest_prim_root(Rep& A, const Rep& n) const {
+         // n must be in {2,4,p^m,2p^m} where p is an odd prime
+         // else returns zero
+-    if (isleq(n,4)) return sub(A,n,this->one);
+-    if (isZero(mod(A,n,4))) return A=this->zero;
++    if (IntNumTheoDom<RandIter>::isleq(n,4)) return IntNumTheoDom<RandIter>::sub(A,n,this->one);
++    if (isZero(IntNumTheoDom<RandIter>::mod(A,n,4))) return A=this->zero;
+     Rep phin, tmp; 
+     phi(phin,n);
+     std::list<Rep> Lf;
+@@ -412,15 +412,15 @@
+     for(f=Lf.begin();f!=Lf.end();++f)
+             this->div(*f,phin,*f);
+     int found=0;
+-    for(A = 2;(isleq(A,n) && (! found));addin(A,1)) {
++    for(A = 2;(IntNumTheoDom<RandIter>::isleq(A,n) && (! found));IntNumTheoDom<RandIter>::addin(A,1)) {
+         if (isOne(gcd(tmp,A,n))) {
+             found = 1;
+             for(f=Lf.begin();(f!=Lf.end() && found);f++)
+                 found = (! isOne( this->powmod(tmp,A,*f,n)) );
+         }
+     }
+-    if (isleq(A,n))
+-        return subin(A,1);
++    if (IntNumTheoDom<RandIter>::isleq(A,n))
++        return IntNumTheoDom<RandIter>::subin(A,1);
+     else
+         return A=this->zero; 
+ }
+@@ -434,7 +434,7 @@
+     std::list<Rep> Lf;
+     Father_t::set(Lf,phin);
+     typename std::list<Rep>::iterator f=Lf.begin();
+-    Rep A; mod(A,p,n);
++    Rep A; IntNumTheoDom<RandIter>::mod(A,p,n);
+     if (isOne(gcd(tmp,A,n))) {
+         found = true;
+         for(;(f!=Lf.end() && found);f++) {
+@@ -449,13 +449,13 @@
+ bool IntNumTheoDom<RandIter>::isorder(const Rep& g, const Rep& p, const Rep& n) const {
+         // returns 1 if p is of order g in Z/nZ
+     Rep tmp;
+-    return (isOne( this->powmod(tmp, p, g, n) ) && areEqual( g, order(tmp,p,n) ) );
++    return (isOne( this->powmod(tmp, p, g, n) ) && IntNumTheoDom<RandIter>::areEqual( g, order(tmp,p,n) ) );
+ }
+ 
+ template<class RandIter>
+ typename IntNumTheoDom<RandIter>::Rep& IntNumTheoDom<RandIter>::order(Rep& g, const Rep& p, const Rep& n) const {
+         // returns 0 if failed
+-    Rep A; mod(A,p,n);
++    Rep A; IntNumTheoDom<RandIter>::mod(A,p,n);
+     if (isZero(A))
+ 	return g = this->zero;
+     if (isOne(A))
+@@ -474,7 +474,7 @@
+                 break;
+         if (noprimroot) {
+             for(;f!=Lf.end();++f)
+-                while (isZero(mod(tmp,g,*f)) && isOne(  this->powmod(tmp,A,  this->div(gg,g,*f),n) ) )
++                while (isZero(IntNumTheoDom<RandIter>::mod(tmp,g,*f)) && isOne(  this->powmod(tmp,A,  this->div(gg,g,*f),n) ) )
+                     g = gg;
+             return g;
+         } else
+@@ -492,12 +492,12 @@
+ 
+ template<class RandIter>
+ typename IntNumTheoDom<RandIter>::Rep& IntNumTheoDom<RandIter>::prim_elem(Rep& A, const Rep& n) const {
+-    if (isleq(n,4)) { 
++    if (IntNumTheoDom<RandIter>::isleq(n,4)) { 
+         Rep tmp; 
+         return this->sub(A,n,this->one); 
+     }
+     
+-    if (areEqual(n,8)) return init(A,2);
++    if (IntNumTheoDom<RandIter>::areEqual(n,8)) return IntNumTheoDom<RandIter>::init(A,2);
+     return prim_base(A, n);
+ }
+ 
+@@ -516,8 +516,8 @@
+     typename std::vector<Rep>::iterator a = Ra.begin() ;
+     for( ;p!=Lp.end();++p, ++e, ++pe, ++a) {
+         dom_power( *pe, *p, *e, *this);
+-        if (areEqual(*p,2))
+-            init(*a, 3);
++        if (IntNumTheoDom<RandIter>::areEqual(*p,2))
++            IntNumTheoDom<RandIter>::init(*a, 3);
+         else
+             prim_root(*a, *pe);
+     }
+@@ -544,13 +544,13 @@
+ template<class RandIter>
+ typename IntNumTheoDom<RandIter>::Rep& IntNumTheoDom<RandIter>::lambda_inv_primpow(Rep & z, const Rep& p, const unsigned long e) const {
+         // Prerequisite : p prime.
+-    if (areEqual(p, 2)) {
+-        if (e<=2) return init(z,e);
+-        if (e==3) return init(z,2);
++    if (IntNumTheoDom<RandIter>::areEqual(p, 2)) {
++        if (e<=2) return IntNumTheoDom<RandIter>::init(z,e);
++        if (e==3) return IntNumTheoDom<RandIter>::init(z,2);
+         return dom_power(z, p, e-2, *this);
+     } else {
+         Rep tmp;
+-        return mulin( dom_power(z, p, e-1, *this), sub(tmp, p, this->one) );
++        return IntNumTheoDom<RandIter>::mulin( dom_power(z, p, e-1, *this), IntNumTheoDom<RandIter>::sub(tmp, p, this->one) );
+     }
+ }
+ 
+@@ -559,16 +559,16 @@
+     
+ template<class RandIter>
+ typename IntNumTheoDom<RandIter>::Rep& IntNumTheoDom<RandIter>::lambda_inv(Rep & z, const Rep& m) const {
+-        if (areEqual(m,2)) return init(z,1);
+-        if (areEqual(m,3) || areEqual(m,4) || areEqual(m,8) ) return init(z,2);
++        if (IntNumTheoDom<RandIter>::areEqual(m,2)) return IntNumTheoDom<RandIter>::init(z,1);
++        if (IntNumTheoDom<RandIter>::areEqual(m,3) || IntNumTheoDom<RandIter>::areEqual(m,4) || IntNumTheoDom<RandIter>::areEqual(m,8) ) return IntNumTheoDom<RandIter>::init(z,2);
+         return lambda_base(z, m);
+ }
+ 
+ template<class RandIter>
+ typename IntNumTheoDom<RandIter>::Rep& IntNumTheoDom<RandIter>::lambda(Rep & z, const Rep& m) const {
+-        if (areEqual(m,2)) return init(z,1);
+-        if (areEqual(m,3) || areEqual(m,4)) return init(z,2);
+-        if (areEqual(m,8) ) return init(z,3);
++        if (IntNumTheoDom<RandIter>::areEqual(m,2)) return IntNumTheoDom<RandIter>::init(z,1);
++        if (IntNumTheoDom<RandIter>::areEqual(m,3) || IntNumTheoDom<RandIter>::areEqual(m,4)) return IntNumTheoDom<RandIter>::init(z,2);
++        if (IntNumTheoDom<RandIter>::areEqual(m,8) ) return IntNumTheoDom<RandIter>::init(z,3);
+         return lambda_base(z, m);
+ }
+ 
+@@ -592,7 +592,7 @@
+ //            Rep g;
+ //            gcd(g, z, tmp);
+ //            mulin(z, this->divin(tmp, g));
+-	    lcmin(z,tmp);
++	    IntNumTheoDom<RandIter>::lcmin(z,tmp);
+         }
+         
+         return z;

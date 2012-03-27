@@ -2,24 +2,82 @@
 
 == Description ==
 
-Givaro is a C++ library for arithmetic and algebraic computations. Its main features are implementations of the basic arithmetic of many mathematical entities: Primes fields, Extensions Fields, Finite Fields, Finite Rings, Polynomials, Algebraic numbers, Arbitrary precision integers and rationals (C++ wrappers over gmp) It also provides data-structures and templated classes for the manipulation of basic algebraic objects, such as vectors, matrices (dense, sparse, structured), univariate polynomials (and therefore recursive multivariate).
+Givaro is a C++ library for arithmetic and algebraic computations. Its main
+features are implementations of the basic arithmetic of many mathematical
+entities: Primes fields, Extensions Fields, Finite Fields, Finite Rings,
+Polynomials, Algebraic numbers, Arbitrary precision integers and rationals
+(C++ wrappers over GMP). It also provides data structures and templated
+classes for the manipulation of basic algebraic objects, such as vectors,
+matrices (dense, sparse, structured), univariate polynomials (and therefore
+recursive multivariate).
 
 Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 
 == License ==
- * GPL
+
+ * GNU GPL
 
 == Upstream Contact ==
+
  * Clement Pernet
 
 == Dependencies ==
- * gmp
 
-== Maintainers  ==
+ * GMP/MPIR
+ * (GNU) patch
+
+== SPKG Maintainers ==
+
   * Clement Pernet
   * Martin Albrecht <malb@informatik.uni-bremen.de>
 
+== Special Update/Build Instructions ==
+
+ * Make sure the patches are still needed and do apply, especially
+   for the prepatched files that are copied over.  (I.e., make sure these
+   are still current, made from current upstream files.)
+
+ * Perhaps apply *all* patches with `patch` and remove the prepatched files.
+
+ * Make sure newer upstream sources conform to C++11, e.g. build with
+   GCC 4.7.x, *without* `-fpermissive`.  Note that some of the Sage library's
+   extension modules use Givaro's headers, hence also check whether `./sage -b`
+   works after installation of a new Givaro spkg.
+   Also test whether Givaro's test suite builds with GCC 4.7.x, since these
+   tests use other code parts than the Sage library does (template instanti-
+   ation!).
+
+ * Doesn't seem that `make check` actually *runs* any tests, it just builds
+   a lot.  Perhaps we'd have to extend `spkg-check` regarding that.
+
+
 == Changelog ==
+
+=== givaro-3.2.13.rc1.p4 (Leif Leonhardy, March 27th 2012) ===
+ * #12761: Fix headers not conforming to C++11 to make Sage (especially the
+   Sage library) build with GCC 4.7.0 (and without `-fpermissive`).
+   Same for Givaro's test suite, which uses / instantiates much more!
+   (These headers get installed into `$SAGE_LOCAL/include/givaro/`.)
+   New patches:
+   - patches/src.kernel.integer.givintnumtheo.inl.patch
+   - patches/src.kernel.integer.givintrsa.inl.patch
+   - patches/src.library.poly1.givpoly1factor.inl.patch
+   - patches/src.library.poly1.givpoly1padic.h.patch
+   - patches/src.library.poly1.givpoly1proot.inl.patch
+ * Remove the obsolete Debian `dist/` directory.
+ * Remove obsolete GCC 4.3 patch.
+ * Rename diffs of prepatched files that are (still) copied over to `*.diff`
+   (rather than `*.patch`) such that they don't get "automatically" applied
+   by the `patch -p1` loop, which I added.
+ * Fix permissions of `SPKG.txt` and `spkg-install`, and two upstream files.
+ * Add "Special Update/Build Instructions" section.
+ * Clean up `spkg-check` and `spkg-install`.
+ * Also set up environment variables in `spkg-check`, as `make check` involves
+   compilation.  (Although `configure` should have put them into the generated
+   Makefiles.)
+ * Use `$MAKE` in `spkg-check` as well.
+ * Exit in case the build failed!
+ * Only `touch` extension modules (`*.pyx`) if they (already) exist.
 
 === givaro-3.2.13.rc1.p3 (Simon King, Dec 10th, 2011) ===
  * #12131: Use --libdir, to make the package work on openSUSE.

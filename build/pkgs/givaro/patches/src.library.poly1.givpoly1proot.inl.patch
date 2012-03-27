@@ -1,0 +1,66 @@
+--- src/src/library/poly1/givpoly1proot.inl	2007-10-02 16:49:45.000000000 +0200
++++ patches/givpoly1proot.inl	2012-03-27 04:57:49.437732716 +0200
+@@ -28,7 +28,7 @@
+ 
+ template<class Domain, class Tag, class RandIter >
+ inline typename Poly1FactorDom<Domain,Tag, RandIter>::Element& Poly1FactorDom<Domain,Tag, RandIter>::creux_random_irreducible (Element& R, Degree n) const {
+-    init(R, n, _domain.one);
++    Poly1FactorDom<Domain,Tag, RandIter>::init(R, n, _domain.one);
+     Residu_t MOD = _domain.residu();
+ 
+         // Search for an irreducible BINOMIAL : X^n + a
+@@ -97,9 +97,9 @@
+ // ---------------------------------------------------------------
+ template<class Domain, class Tag, class RandIter >
+ inline typename Poly1FactorDom<Domain,Tag, RandIter>::Element& Poly1FactorDom<Domain,Tag, RandIter>::ixe_irreducible (Element& R, Degree n) const {
+-    init(R, n, _domain.one);
++    Poly1FactorDom<Domain,Tag, RandIter>::init(R, n, _domain.one);
+     Element IXE;
+-    init(IXE,Degree(1),_domain.one);
++    Poly1FactorDom<Domain,Tag, RandIter>::init(IXE,Degree(1),_domain.one);
+     Residu_t MOD = _domain.residu();
+ 
+         // Search for an irreducible BINOMIAL : X^n + a
+@@ -229,13 +229,13 @@
+ template<class Domain, class Tag, class RandIter>
+ bool Poly1FactorDom<Domain,Tag, RandIter>::is_prim_root( const Rep& P, const Rep& F)  const {
+     bool isproot = 0;
+-    Rep A, G; mod(A,P,F);
++    Rep A, G; Poly1FactorDom<Domain,Tag, RandIter>::mod(A,P,F);
+     Degree d;
+-    if ( degree(d, this->gcd(G,A,F)) == 0) {
++    if ( Poly1FactorDom<Domain,Tag, RandIter>::degree(d, this->gcd(G,A,F)) == 0) {
+         Residu_t MOD = _domain.residu();
+         IntFactorDom<> FD;
+         IntFactorDom<>::Element IMOD( MOD ), q, qp;
+-        degree(d,F);
++        Poly1FactorDom<Domain,Tag, RandIter>::degree(d,F);
+ //         FD.pow(q ,IMOD, d.value());
+ //         FD.sub(qp, q, FD.one);
+         FD.subin( FD.pow(qp ,IMOD, d.value()) , FD.one);
+@@ -286,14 +286,14 @@
+ 
+ template<class Domain, class Tag, class RandIter >
+ inline typename Poly1FactorDom<Domain,Tag, RandIter>::Rep& Poly1FactorDom<Domain,Tag, RandIter>::give_prim_root(Rep& R, const Rep& F)  const {
+-    Degree n; degree(n,F);
++    Degree n; Poly1FactorDom<Domain,Tag, RandIter>::degree(n,F);
+     Residu_t MOD = _domain.residu();
+ //    this->write(std::cout << "Give Pr: ", F) << std::endl;
+     
+     
+         // Search for a primitive BINOMIAL : X^i + a
+     for(Degree di=1;di<n;++di) {
+-        init(R, di, _domain.one);
++        Poly1FactorDom<Domain,Tag, RandIter>::init(R, di, _domain.one);
+ //         for(Residu_t a=MOD; a--; ) {
+         for(Residu_t a=0; a<MOD;++a ) {
+             _domain.assign(R[0],a);
+@@ -303,7 +303,7 @@
+     }
+         // Search for a primitive TRINOMIAL : X^i + b*X^j + a
+     for(Degree di=2;di<n;++di) {
+-        init(R, di, _domain.one);
++        Poly1FactorDom<Domain,Tag, RandIter>::init(R, di, _domain.one);
+         for(Degree dj=1;dj<di;++dj)
+ //             for(Residu_t b=MOD; b--;) {
+             for(Residu_t b=0; b<MOD;++b) {

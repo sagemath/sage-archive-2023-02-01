@@ -1,79 +1,91 @@
 #!/usr/bin/env bash
-#xxxxxxxxxxxxxxxxx
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
-
-if [ "x$SAGE64" = "xyes" ] ; then
-   CFLAGS="$CFLAGS -m64"
-   CXXFLAGS="$CXXFLAGS -m64"
-   CFLAG64=-m64
-   CXXFLAG64=-m64
-fi
-
-# patch the Makefile so it can build in Sage
-echo "Copying a revised Makefile, to improve portability"
-cp patches/Makefile src/
-if [ $? -ne 0 ]; then
-   echo "Patch to improve portability did not copy correctly"
-   exit 1
-fi
-
-# patch polynomial.cpp to fix a bug, as suggested by Anders Jensen
-# this should not be necessary any more (and can be removed) in
-# the next release of gfan (following 0.4plus).
-echo "Copying a patched polynomial.cpp"
-cp patches/polynomial.cpp src/
-if [ $? -ne 0 ]; then
-   echo "Patch to fix polynomial.cpp did not copy correctly"
-   exit 1
-fi
-
-cp patches/linalg.cpp patches/matrix.h src/
-if [ $? -ne 0 ]; then
-    echo "Patch to fix gcc 4.5.0 issues did not copy correctly"
+if [[ -z "$SAGE_LOCAL" ]]; then
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
 
+
+if [[ -z $CFLAG64 ]]; then
+    CFLAG64=-m64
+fi
+if [[ -z $CXXFLAG64 ]]; then
+    CXXFLAG64="$CFLAG64"
+fi
+if [[ "$SAGE64" = yes ]]; then
+    echo "Building a 64-bit version of gfan."
+    CFLAGS="$CFLAGS $CFLAG64"
+    CXXFLAGS="$CXXFLAGS $CXXFLAG64"
+fi
+
+export CC CXX CFLAGS CFLAG64 CXXFLAGS CXXFLAG64
+
+
+# Patch the Makefile so it can build in Sage:
+echo "Copying a revised Makefile, to improve portability..."
+cp patches/Makefile src/
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error: Patch to improve portability did not copy correctly."
+    exit 1
+fi
+
+# Patch polynomial.cpp to fix a bug, as suggested by Anders Jensen.
+# This should not be necessary any more (and can be removed) in
+# the next release of gfan (following 0.4plus).
+echo "Copying a patched polynomial.cpp..."
+cp patches/polynomial.cpp src/
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error: Patch to fix polynomial.cpp did not copy correctly."
+    exit 1
+fi
+
+cp patches/linalg.cpp patches/matrix.h src/
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error: Patch to fix GCC 4.5.0 issues did not copy correctly."
+    exit 1
+fi
+
+cp patches/app_minkowski.cpp src/
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error: Patch to fix GCC 4.7.0 issues did not copy correctly."
+    exit 1
+fi
+
+
 cd src/
 
+
+# TODO: Should only be done *after* a *successful* (re)build,
+#       although not necessary anyway:
+echo "Removing old version of gfan (if any)..."
 rm -f "$SAGE_LOCAL/bin/gfan*"
 
-export CC
-export CXX
-export CFLAGS
-export CFLAG64
-export CXXFLAGS
-export CXXFLAG64
 
-$MAKE  cddpath=$SAGE_LOCAL
-
-
-if [ $? -ne 0 ]; then
-   echo "Error building gfan"
-   exit 1
+echo "Now building gfan..."
+$MAKE cddpath="$SAGE_LOCAL"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error building gfan."
+    exit 1
 fi
 
-if [ ! -f gfan ]; then
-   echo "gfan executable not found."
-   exit 1
+if [[ ! -f gfan ]]; then
+    echo >&2 "Error: Build completed normally but gfan executable not found."
+    exit 1
 fi
 
-$CP gfan "$SAGE_LOCAL/bin/"
-
-if [ ! -f "$SAGE_LOCAL/bin/gfan" ]; then
-   echo "gfan executable not copied"
-   exit 1
+cp -pf gfan "$SAGE_LOCAL/bin/"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error copying gfan executable."
+    exit 1
 fi
 
 cd "$SAGE_LOCAL/bin/"
-rm gfan_*
+rm -f gfan_* # remove old links
+echo "Now running gfan to install links in '$SAGE_LOCAL/bin/'..."
 ./gfan installlinks
-
-if [ ! -f "$SAGE_LOCAL/bin/gfan_buchberger" ]; then
-   echo "gfan links not created correctly"
-   exit 1
+# XXX How about [just] checking $? here?
+if [[ ! -f "$SAGE_LOCAL/bin/gfan_buchberger" ]]; then
+    echo >&2 "Error: gfan links not created correctly."
+    exit 1
 fi

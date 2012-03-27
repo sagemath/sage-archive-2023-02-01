@@ -16,28 +16,44 @@ many tools which are useful in the study of Groebner bases, initial ideals and
 tropical geometry.
 
 == License ==
+
  * GPL v2
 
 == SPKG Maintainers ==
+
  * Marshall Hampton
  * William Stein
 
 == Upstream Contact ==
 
-Anders Nedergaard Jensen for contact info check out
+Anders Nedergaard Jensen; for contact info check out
 http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html
 
 == Dependencies ==
- * GMP
+
+ * GMP/MPIR
  * CDDLIB
 
 == Special Update/Build Instructions ==
 
-Download the package from http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html
+Download the package from
+  http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html
 then remove the doc, homepage, and examples subdirectories, which take up
 most of the space.
 
+Make sure the patches still apply, i.e., remove unnecessary ones and/or
+refresh the prepatched files in `patches/`.
+
+TODO:
+ * Use `patch` to apply patches (then also add GNU patch to the dependencies).
+ * Clean up `spkg-install` further w.r.t. installation etc.
+
 == Changelog ==
+
+=== gfan-0.4plus.p2 (Leif Leonhardy, March 25th 2012) ===
+ * #12760: Correct trivial C++ programming error to make gfan build with
+   GCC 4.7.0.
+ * Clean up and beautify `spkg-install`.
 
 === gfan-0.4plus.p1 (William Stein, Willem Jan Palenstijn, April 28, 2010) ===
  * #8770: Work around gcc 4.5.0 bug in matrix.h by removing an assert

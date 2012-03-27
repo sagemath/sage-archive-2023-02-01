@@ -1,0 +1,63 @@
+# HG changeset patch
+# User Alexander Dreyer <adreyer@gmx.de>
+# Date 1332886317 -7200
+# Node ID a6ec1da8f4bb0632f4302113c6cee76ecfee7cf9
+# Parent  6cb71a049af468df2abda51809dfb24be33e4151
+FIX: work around wrong tool chain on sun
+
+diff -r 6cb71a049af4 -r a6ec1da8f4bb SConstruct
+--- a/SConstruct	Mon Mar 26 09:46:48 2012 +0200
++++ b/SConstruct	Wed Mar 28 00:11:57 2012 +0200
+@@ -226,15 +226,30 @@
+                       "defaults appended to " + repr(varname),
+                       self.defaults[varname])
+ 
+-ExtendedVariables(opts, defaultenv)
+ 
+-# Define option handle, may be changed from command line or custom.py
++# Define option handle for compilers, may be changed from command line or custom.py
+ opts.Add('CXX', 'C++ Compiler (inherited from SCons)',
+          defaultenv['CXX'])
+ opts.Add('CC', 'C Compiler (inherited from SCons)',
+          defaultenv['CC'])
+ 
+-opts.Add('SHCXX', 
++# Fix compiler environment in on sun
++if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
++    def is_gcc():
++        compilerenv = Environment(ENV = os.environ, options = opts)
++        return compilerenv['CC']  == 'gcc'
++    if is_gcc():
++        tools = defaultenv['TOOLS']
++        for arg in ['default', 'suncc', 'sunc++', 'sunar']:
++            if arg in tools:
++                tools.remove(arg)
++        tools +=  [ 'gcc', 'g++', 'ar']
++        defaultenv = Environment(ENV = os.environ, tools=tools)
++
++
++ExtendedVariables(opts, defaultenv)
++
++opts.Add('SHCXX',
+          'C++ Compiler (preparing shared libraries; inherited from SCons)',
+          defaultenv['SHCXX'])
+ opts.Add('SHCC', 
+@@ -400,18 +415,6 @@
+ 
+ tools =  ["default"]
+ 
+-if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
+-    def is_gcc():
+-        compilerenv = Environment(ENV = os.environ, options = opts)
+-        return compilerenv['CC']  == 'gcc'
+-    
+-    if is_gcc():
+-        tools = defaultenv['TOOLS']
+-        for arg in ['default', 'suncc', 'sunc++', 'sunar']:
+-            if arg in tools:
+-                tools.remove(arg)
+-        tools +=  [ 'gcc', 'g++', 'ar']
+-        defaultenv = Environment(ENV = os.environ, tools=tools)
+ 
+ for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
+ SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):

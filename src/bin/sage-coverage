@@ -47,6 +47,10 @@ def functions_without_doctests(file):
 
         function_name = ' '.join(file[i:j].lstrip('def').split())
         bare_function_name = function_name[:function_name.find("(")]
+        # Take the last word of the bare function name, to support
+        # Cython/Python functions like "cpdef long foo()".  The bare
+        # function name should be "foo", not "long foo".
+        bare_function_name = bare_function_name.split()[-1]
 
         if i > 0 and file[i-1] in ['c', 'e']: # and ('\n' in file[i:j] or '(' not in file[i:j]):
             file = file[i+10:]

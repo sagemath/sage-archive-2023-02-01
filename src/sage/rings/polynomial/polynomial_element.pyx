@@ -4689,7 +4689,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: ((x^3 -1)).roots(multiplicities=False)
             [1.0]
 
-        Another examples involving the complex double field::
+        More examples involving the complex double field::
 
             sage: x = CDF['x'].0
             sage: i = CDF.0
@@ -4956,7 +4956,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: factor(x^3-1)
             (x - 1) * (x^2 + x + 1)
 
-        This shows that the issue from trac ticket #6237 is fixed::
+        This shows that the issue from :trac:`6237` is fixed::
 
             sage: R.<u> = QQ[]
             sage: g = -27*u^14 - 32*u^9
@@ -4965,7 +4965,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g.roots(CDF)
             [(-1.03456371594, 1), (0.0, 9), (-0.31969776999 - 0.983928563571*I, 1), (-0.31969776999 + 0.983928563571*I, 1), (0.836979627962 - 0.608101294789*I, 1), (0.836979627962 + 0.608101294789*I, 1)]
 
-        This shows that the issue at trac ticket #2418 is fixed::
+        This shows that the issue at :trac:`2418` is fixed::
 
             sage: x = polygen(QQ)
             sage: p = (x^50/2^100 + x^10 + x + 1).change_ring(ComplexField(106))
@@ -4973,6 +4973,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: eps = 2^(-50)   # we test the roots numerically
             sage: [abs(p(rt)) < eps for rt in rts] == [True]*50
             True
+
+        This shows that the issue at :trac:`10901` is fixed::
+
+            sage: a = var('a'); R.<x> = SR[]
+            sage: f = x - a
+            sage: f.roots(RR)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot evaluate symbolic expression to a numeric value.
+            sage: f.roots(CC)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot evaluate symbolic expression to a numeric value.
         """
         K = self.parent().base_ring()
         if hasattr(K, '_roots_univariate_polynomial'):

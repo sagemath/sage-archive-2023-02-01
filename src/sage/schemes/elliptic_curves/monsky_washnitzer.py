@@ -2,7 +2,7 @@ r"""
 Computation of Frobenius matrix on Monsky-Washnitzer cohomology
 
 The most interesting functions to be exported here are
-matrix_of_frobenius() and adjusted_prec().
+:func:`matrix_of_frobenius` and :func:`adjusted_prec`.
 
 Currently this code is limited to the case `p \geq 5` (no
 `GF(p^n)` for `n > 1`), and only handles the
@@ -2278,6 +2278,10 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 class MonskyWashnitzerDifferentialRing_class(Module):
 
     def __init__(self, base_ring):
+        r"""
+        Class for the ring of Monsky--Washnitzer differentials over a given
+        base ring.
+        """
         Module.__init__(self, base_ring)
         self._cache = {}
 
@@ -2445,7 +2449,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
             return frobQ
 
     def frob_invariant_differential(self, prec, p):
-        """
+        r"""
         Kedlaya's algorithm allows us to calculate the action of Frobenius on
         the Monsky-Washnitzer cohomology. First we lift `\phi` to `A^{\dagger}`
         by setting
@@ -2454,14 +2458,14 @@ class MonskyWashnitzerDifferentialRing_class(Module):
 
             \phi(x) = x^p
 
-            \phi(y) = y^p \sqrt{1 \frac{Q(x^p) - Q(x)^p}{Q(x)^p}}.
+            \phi(y) = y^p \sqrt{1  + \frac{Q(x^p) - Q(x)^p}{Q(x)^p}}.
 
         Pulling back the differential `dx/2y`, we get
 
         .. math::
 
            \phi^*(dx/2y) = px^{p-1} y(\phi(y))^{-1} dx/2y
-                         = px^{p-1} y^{1-p} \sqrt{1 \frac{Q(x^p) - Q(x)^p}{Q(x)^p}} dx/2y
+                         = px^{p-1} y^{1-p} \sqrt{1+ \frac{Q(x^p) - Q(x)^p}{Q(x)^p}} dx/2y
 
         Use Newton's method to calculate the square root.
 
@@ -2578,20 +2582,20 @@ class MonskyWashnitzerDifferentialRing_class(Module):
 
 
 class MonskyWashnitzerDifferential(ModuleElement):
-    """
-    Represents an element of the form `F dx/2y`.
-    """
+
     def __init__(self, parent, val=0, offset=0):
-        """
-        Create an element of the Monsky-Washnitzer ring of differentials.
+        r"""
+        Create an element of the Monsky-Washnitzer ring of differentials, of
+        the form `F dx/2y`.
 
         INPUT:
 
-            - ``parent`` - Monsky-Washnitzer differential ring
+        - ``parent`` - Monsky-Washnitzer differential ring (instance of class
+          :class:`~MonskyWashnitzerDifferentialRing_class`
 
-            - ``val`` - element of the base ring, or list of coefficients
+        - ``val`` - element of the base ring, or list of coefficients
 
-            - ``offset`` - if non-zero, shift val by `y^offset` (default 0)
+        - ``offset`` - if non-zero, shift val by `y^\text{offset}` (default 0)
 
         EXAMPLES::
 
@@ -2713,8 +2717,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
         return MonskyWashnitzerDifferential(self.parent(), a * self._coeff)
 
     def coeff(self):
-        """
-        Returns `A`, where `A dx/2y = self`.
+        r"""
+        Returns `A`, where this element is `A dx/2y`.
 
         EXAMPLES::
 
@@ -3111,9 +3115,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
     def reduce(self):
         """
-        Use homology relations to find `a` and `f` such
-        that `self = a + df` where `a` is given in terms of
-        the `x^i dx/2y`.
+        Use homology relations to find `a` and `f` such that this element is
+        equal to `a + df`, where `a` is given in terms of the `x^i dx/2y`.
 
         EXAMPLES::
 
@@ -3153,9 +3156,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
     def reduce_fast(self, even_degree_only=False):
         """
-        Use homology relations to find `a` and `f` such
-        that `self = a + df` where `a` is given in terms of
-        the `x^i dx/2y`.
+        Use homology relations to find `a` and `f` such that this element is
+        equal to `a + df`, where `a` is given in terms of the `x^i dx/2y`.
 
         EXAMPLES::
 
@@ -3187,12 +3189,11 @@ class MonskyWashnitzerDifferential(ModuleElement):
     def coeffs(self, R=None):
         """
         Used to obtain the raw coefficients of a differential, see
-        SpecialHyperellipticQuotientElement.coeffs()
+        :meth:`SpecialHyperellipticQuotientElement.coeffs`
 
         INPUT:
 
-            - R - An (optional) base ring in which to cast the
-                  coefficients
+        - R - An (optional) base ring in which to cast the coefficients
 
         OUTPUT:
 
@@ -3216,16 +3217,16 @@ class MonskyWashnitzerDifferential(ModuleElement):
         return self._coeff.coeffs(R)
 
     def coleman_integral(self, P, Q):
-        """
+        r"""
         Computes the definite integral of self from $P$ to $Q$.
 
         INPUT:
 
-            - P, Q - Two points on the underlying curve
+        - P, Q - Two points on the underlying curve
 
         OUTPUT:
 
-        $$\int_P^Q \text{self}$$
+        `\int_P^Q \text{self}`
 
         EXAMPLES::
 

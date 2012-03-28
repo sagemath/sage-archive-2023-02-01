@@ -90,7 +90,10 @@ class KodairaSymbol_class(SageObject):
             I10
             sage: KodairaSymbol_class('III*')
             III*
-
+            sage: latex(KodairaSymbol_class('In'))
+            I_n
+            sage: KodairaSymbol_class('In')
+            In
         """
         if not isinstance(symbol, str):
             n = Integer(symbol)
@@ -181,7 +184,7 @@ class KodairaSymbol_class(SageObject):
                 self._latex = "I_n^*"
             else:
                 self._str = "In"
-                self._str = "I_n"
+                self._latex = "I_n"
         elif symbol.isdigit():
             self._roman = 1
             self._n = Integer(symbol)

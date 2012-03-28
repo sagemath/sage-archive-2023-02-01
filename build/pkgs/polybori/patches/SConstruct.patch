@@ -466,7 +466,7 @@ diff -r 9b8d3aa10e46 -r b7c7af057e2e SConstruct
 +        tools +=  ['gnulink']
 +    else:
 +        if 'gnulink' in tools:
-+            tools.remove(arg)
++            tools.remove('gnulink')
 +        tools +=  ['sunlink']
 +    if tools != defaultenv['TOOLS']:    
  

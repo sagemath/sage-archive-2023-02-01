@@ -95,6 +95,9 @@ would be highly unstable without that patch.
 The number of threads can be bounded using the environment variable
 ``SAGE_NUMBER_THREADS``.
 
+Documentation
+-------------
+
 If the environment variable ``SAGE_SPKG_INSTALL_DOCS`` is set to ``yes``, then
 the documentation of our spkg is automatically created and put into
 ``SAGE_ROOT/local/share/doc/p_group_cohomology/html/``.

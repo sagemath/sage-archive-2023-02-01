@@ -101,48 +101,48 @@ class KodairaSymbol_class(SageObject):
                 self._n = 0
                 self._roman = 1
                 self._str = 'I0'
-                self._latex = '$I_0$'
+                self._latex = 'I_0'
             elif n == 2:
                 self._roman = 2
                 self._str = 'II'
-                self._latex = '$II$'
+                self._latex = 'II'
             elif n == 3:
                 self._roman = 3
                 self._str = 'III'
-                self._latex = '$III$'
+                self._latex = 'III'
             elif n == 4:
                 self._roman = 4
                 self._str = 'IV'
-                self._latex = '$IV$'
+                self._latex = 'IV'
             elif n > 4:
                 nu = n - 4
                 self._n = nu
                 self._roman = 1
                 self._str = 'I' + nu.str()
-                self._latex = '$I_{' + nu.str() + '}$'
+                self._latex = 'I_{' + nu.str() + '}'
             elif n == -1:
                 self._roman = 1
                 self._n = 0
                 self._str = 'I0*'
-                self._latex = '$I_0^{*}$'
+                self._latex = 'I_0^{*}'
             elif n == -2:
                 self._roman = 2
                 self._str = 'II*'
-                self._latex = '$II^{*}$'
+                self._latex = 'II^{*}'
             elif n == -3:
                 self._roman = 3
                 self._str = 'III*'
-                self._latex = '$III^{*}$'
+                self._latex = 'III^{*}'
             elif n == -4:
                 self._roman = 4
                 self._str = 'IV*'
-                self._latex = '$IV^{*}$'
+                self._latex = 'IV^{*}'
             elif n < -4:
                 nu = -n - 4
                 self._roman = 1
                 self._n = nu
                 self._str = 'I' + nu.str() +'*'
-                self._latex = '$I_' + nu.str() + '^{*}$'
+                self._latex = 'I_' + nu.str() + '^{*}'
             self._starred = (n < 0)
             self._pari = n
             return
@@ -161,11 +161,11 @@ class KodairaSymbol_class(SageObject):
             if starred:
                 sign = -1
                 self._str = "I" + symbol + "*"
-                self._latex = "$I" + symbol + "^*$"
+                self._latex = "I" + symbol + "^*"
             else:
                 sign = 1
                 self._str = "I" + symbol
-                self._latex = "$" + self._str + "$"
+                self._latex = "" + self._str + ""
             if symbol == "I":
                 self._pari = 2 * sign
             elif symbol == "II":
@@ -178,10 +178,10 @@ class KodairaSymbol_class(SageObject):
             self._n = "generic"
             if starred:
                 self._str = "In*"
-                self._latex = "$I_n^*$"
+                self._latex = "I_n^*"
             else:
                 self._str = "In"
-                self._str = "$I_n$"
+                self._str = "I_n"
         elif symbol.isdigit():
             self._roman = 1
             self._n = Integer(symbol)
@@ -191,14 +191,14 @@ class KodairaSymbol_class(SageObject):
                 else:
                     self._pari = -self._n - 4
                 self._str = "I" + symbol + "*"
-                self._latex = "$I_{%s}^*$"%(symbol)
+                self._latex = "I_{%s}^*"%(symbol)
             else:
                 if self._n == 0:
                     self._pari = 1
                 else:
                     self._pari = self._n + 4
                 self._str = "I" + symbol
-                self._latex = "$I_{%s}$"%(symbol)
+                self._latex = "I_{%s}"%(symbol)
         else:
             raise ValueError, "input is not a Kodaira symbol"
 
@@ -224,7 +224,7 @@ class KodairaSymbol_class(SageObject):
             sage: from sage.schemes.elliptic_curves.kodaira_symbol import KodairaSymbol_class
             sage: KS = KodairaSymbol_class(15)
             sage: latex(KS)
-            $I_{11}$
+            I_{11}
         """
         return self._latex
 

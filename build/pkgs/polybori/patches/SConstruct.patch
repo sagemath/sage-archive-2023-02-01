@@ -1,63 +1,516 @@
 # HG changeset patch
 # User Alexander Dreyer <adreyer@gmx.de>
-# Date 1332886317 -7200
-# Node ID a6ec1da8f4bb0632f4302113c6cee76ecfee7cf9
-# Parent  6cb71a049af468df2abda51809dfb24be33e4151
-FIX: work around wrong tool chain on sun
+# Date 1332971613 -7200
+# Node ID b7c7af057e2ec03eeeac3e0fd05191c50512b434
+# Parent  9b8d3aa10e46d6f74a72dac037f9d2166aa2eb55
+FIX gcc components on sun
 
-diff -r 6cb71a049af4 -r a6ec1da8f4bb SConstruct
---- a/SConstruct	Mon Mar 26 09:46:48 2012 +0200
-+++ b/SConstruct	Wed Mar 28 00:11:57 2012 +0200
-@@ -226,15 +226,30 @@
+diff -r 9b8d3aa10e46 -r b7c7af057e2e SConstruct
+--- a/SConstruct	Wed Mar 28 11:13:26 2012 +0200
++++ b/SConstruct	Wed Mar 28 23:53:33 2012 +0200
+@@ -5,8 +5,6 @@
+     Variables = Options
+     BoolVariable = BoolOption
+ 
+-opts = Variables('custom.py')
+-
+ # Some hard-coded settings
+ pboriname = 'PolyBoRi'
+ try:
+@@ -106,7 +104,11 @@
+     return result
+ 
+ def shell_output(*args):
+-    return os.popen(' '.join(args)).read().strip()
++    from subprocess import Popen, PIPE, STDOUT
++    result = Popen(args, stdin=None, stdout=PIPE, stderr=STDOUT, env=os.environ)
++    result.wait()
++    
++    return result.stdout.read()
+ 
+ pyroot="pyroot/"
+ ipbroot = 'ipbori'
+@@ -115,8 +117,6 @@
+ 
+ [PyRootPath, IPBPath, GUIPath] = [PathJoiner(fdir) for fdir in [pyroot, ipbroot,
+                                                                 guiroot] ]
+-
+-
+ try:
+ 	import SCons.Tool.applelink as applelink
+ except:
+@@ -158,12 +158,26 @@
+ prepare_rpm = 'prepare-rpm' in COMMAND_LINE_TARGETS
+ rpm_generation = generate_rpm or generate_srpm or prepare_rpm
+ 
+-defaultenv = Environment(ENV = os.environ)
++
++# Undocumented switches (for debugging foreign platforms)
++defaultopts = Variables() # Works only from command line
++defaultopts.Add('PLATFORM', "Manually set another platform (unusual)")
++defaultopts.Add('TOOLS', "Manually set toolchain (unusual)", converter = Split)   
++
++defaultenv = Environment(ENV = os.environ, options=defaultopts)
+ 
+ # See also: http://trac.sagemath.org/sage_trac/ticket/9872 and #6437
+ def detect_linker(env):
+     import re
+-    if re.search("Binutils|GNU",  shell_output(env['CC'], '-Wl,-v', '2>&1')):
++    if re.search("Binutils|GNU",  shell_output(env['CC'], '-Wl,-v')):
++        return "gnu"
++
++    # Non-gnu linker or linux (could be Sun or Intel linker) will return 'posix'.
++    return env['PLATFORM']
++
++def detect_compiler(env):
++    import re
++    if re.search("gcc version",  shell_output(env['CC'], '-v')):
+         return "gnu"
+ 
+     # Non-gnu linker or linux (could be Sun or Intel linker) will return 'posix'.
+@@ -214,6 +228,14 @@
+     return [env['RPATHPREFIX'] + relative_path + env['RPATHSUFFIX'],
+             '-z', 'origin']
+ 
++def scons_version():
++    import SCons
++    return SCons.__version__.split('.')
++
++def oldstyle_flags():
++    return scons_version() < ['0','97','0']
++
++
+ class ExtendedVariables:
+     def __init__(self, vars, defaults):
+         from weakref import proxy
+@@ -226,212 +248,237 @@
                        "defaults appended to " + repr(varname),
                        self.defaults[varname])
  
 -ExtendedVariables(opts, defaultenv)
++pbori_cache_macros=["PBORI_UNIQUE_SLOTS","PBORI_CACHE_SLOTS","PBORI_MAX_MEMORY"]
  
 -# Define option handle, may be changed from command line or custom.py
-+# Define option handle for compilers, may be changed from command line or custom.py
- opts.Add('CXX', 'C++ Compiler (inherited from SCons)',
-          defaultenv['CXX'])
- opts.Add('CC', 'C Compiler (inherited from SCons)',
-          defaultenv['CC'])
+-opts.Add('CXX', 'C++ Compiler (inherited from SCons)',
+-         defaultenv['CXX'])
+-opts.Add('CC', 'C Compiler (inherited from SCons)',
+-         defaultenv['CC'])
++def setup_env(defaultenv):
  
 -opts.Add('SHCXX', 
-+# Fix compiler environment in on sun
-+if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
-+    def is_gcc():
-+        compilerenv = Environment(ENV = os.environ, options = opts)
-+        return compilerenv['CC']  == 'gcc'
-+    if is_gcc():
-+        tools = defaultenv['TOOLS']
-+        for arg in ['default', 'suncc', 'sunc++', 'sunar']:
-+            if arg in tools:
-+                tools.remove(arg)
-+        tools +=  [ 'gcc', 'g++', 'ar']
-+        defaultenv = Environment(ENV = os.environ, tools=tools)
-+
-+
-+ExtendedVariables(opts, defaultenv)
-+
-+opts.Add('SHCXX',
-          'C++ Compiler (preparing shared libraries; inherited from SCons)',
-          defaultenv['SHCXX'])
- opts.Add('SHCC', 
-@@ -400,18 +415,6 @@
+-         'C++ Compiler (preparing shared libraries; inherited from SCons)',
+-         defaultenv['SHCXX'])
+-opts.Add('SHCC', 
+-         'C Compiler (preparing shared libraries; inherited from SCons)',
+-         defaultenv['SHCC'])
++    opts = Variables('custom.py')
  
- tools =  ["default"]
+-opts.Add('PYTHON', 'Python executable', "python$PROGSUFFIX")
++    ExtendedVariables(opts, defaultenv)
++    
++    # Define option handle, may be changed from command line or custom.py
++    opts.Add('CXX', 'C++ Compiler (inherited from SCons)',
++             defaultenv['CXX'])
++    opts.Add('CC', 'C Compiler (inherited from SCons)',
++             defaultenv['CC'])
  
--if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
+-opts.Add('LIBPATH', 'list of library paths (colon or whitespace separated)',
+-         defaultenv.get('LIBPATH', []), converter = SplitColonSep)
+-opts.Add('CPPPATH', 'list of include paths (colon or whitespace separated)',
+-         defaultenv.get('CPPPATH', []), converter = SplitColonSep)
++    opts.Add('SHCXX', 
++             'C++ Compiler (preparing shared libraries; inherited from SCons)',
++             defaultenv['SHCXX'])
++    opts.Add('SHCC', 
++             'C Compiler (preparing shared libraries; inherited from SCons)',
++             defaultenv['SHCC'])
+ 
+-opts.Add('TEST_CPPPATH', 'list of include paths for tests (colon or whitespace separated)',
+-         None, converter = SplitColonSep)
++    opts.Add('PYTHON', 'Python executable', "python$PROGSUFFIX")
+ 
+-opts.Add('CPPDEFINES', 'list of preprocessor defines (whitespace separated)',
+-         defaultenv.get('CPPDEFINES',[]) + ['PBORI_NDEBUG'], converter = Split)
++    opts.Add('LIBPATH', 'list of library paths (colon or whitespace separated)',
++             defaultenv.get('LIBPATH', []), converter = SplitColonSep)
++    opts.Add('CPPPATH', 'list of include paths (colon or whitespace separated)',
++             defaultenv.get('CPPPATH', []), converter = SplitColonSep)
+ 
+-def scons_version():
+-    import SCons
+-    return SCons.__version__.split('.')
++    opts.Add('TEST_CPPPATH', 'list of include paths for tests (colon or whitespace separated)',
++             None, converter = SplitColonSep)
+ 
+-def oldstyle_flags():
+-    return scons_version() < ['0','97','0']
++    opts.Add('CPPDEFINES', 'list of preprocessor defines (whitespace separated)',
++             defaultenv.get('CPPDEFINES',[]) + ['PBORI_NDEBUG'], converter = Split)
+ 
+-if oldstyle_flags() :
+-    defaultenv.Append(CCFLAGS=["-std=c99", "$M4RI_CFLAGS"])
+-    defaultenv.Append(CXXFLAGS=["-std=c++98", "$M4RI_CFLAGS", 
+-                                "-ftemplate-depth-100"])
+-    for (var, help, default) in [('CCFLAGS', "C compiler flags", ["-O3"]),
+-                                 ('CXXFLAGS', "C++ compiler flags", ["-O3"])]:
+-        opts.AddWithDefaults(var, help, default, converter=Split)
+ 
+-else:
+-    defaultenv.Append(CCFLAGS=["$M4RI_CFLAGS"])
+-    defaultenv.Append(CFLAGS=["-std=c99"])
+-    defaultenv.Append(CXXFLAGS=["-std=c++98", "-ftemplate-depth-100"])
++    if oldstyle_flags() :
++        defaultenv.Append(CCFLAGS=["-std=c99", "$M4RI_CFLAGS"])
++        defaultenv.Append(CXXFLAGS=["-std=c++98", "$M4RI_CFLAGS", 
++                                    "-ftemplate-depth-100"])
++        for (var, help, default) in [('CCFLAGS', "C compiler flags", ["-O3"]),
++                                     ('CXXFLAGS', "C++ compiler flags", ["-O3"])]:
++            opts.AddWithDefaults(var, help, default, converter=Split)
+ 
+-    for (var, help, default) in [('CCFLAGS', "C/C++ compiler flags", ["-O3"]),
+-                                 ('CFLAGS', "C compiler flags", []),
+-                                 ('CXXFLAGS', "C++ compiler flags", [])]:
+-        opts.AddWithDefaults(var, help, default, converter=Split)
++    else:
++        defaultenv.Append(CCFLAGS=["$M4RI_CFLAGS"])
++        defaultenv.Append(CFLAGS=["-std=c99"])
++        defaultenv.Append(CXXFLAGS=["-std=c++98", "-ftemplate-depth-100"])
+ 
++        for (var, help, default) in [('CCFLAGS', "C/C++ compiler flags", ["-O3"]),
++                                     ('CFLAGS', "C compiler flags", []),
++                                     ('CXXFLAGS', "C++ compiler flags", [])]:
++            opts.AddWithDefaults(var, help, default, converter=Split)
+ 
+-opts.Add('M4RI_CFLAGS', "C compiler flags for M4RI", converter = Split) 
+ 
++    opts.Add('M4RI_CFLAGS', "C compiler flags for M4RI", converter = Split) 
+ 
+-defaultenv.Append(LINKFLAGS=['${_fix_dynlib_flags(__env__)}', 
+-                             '${_relative_rpath(TARGET, __env__)}'])
+-defaultenv.Append(SHLINKFLAGS=['$SONAMEFLAGS'])
+-defaultenv.Append(LDMODULEFLAGS=['${_moduleflags(__env__)}'])
+-defaultenv.Append(LIBS=[])
+ 
+-opts.AddWithDefaults('LINKFLAGS', 
+-                     "Custom linker flags (e.g. '-s' for stripping)", [],
+-                     converter=Split)
++    defaultenv.Append(LINKFLAGS=['${_fix_dynlib_flags(__env__)}', 
++                                 '${_relative_rpath(TARGET, __env__)}'])
++    defaultenv.Append(SHLINKFLAGS=['$SONAMEFLAGS'])
++    defaultenv.Append(LDMODULEFLAGS=['${_moduleflags(__env__)}'])
++    defaultenv.Append(LIBS=[])
+ 
+-opts.AddWithDefaults('SHLINKFLAGS', 'Shared libraries link flags.', [],
+-                     converter=Split)
++    opts.AddWithDefaults('LINKFLAGS', 
++                         "Custom linker flags (e.g. '-s' for stripping)", [],
++                         converter=Split)
+ 
+-opts.AddWithDefaults('LDMODULEFLAGS',
+-                     'Dynamic module compile flags', [], converter=Split)
++    opts.AddWithDefaults('SHLINKFLAGS', 'Shared libraries link flags.', [],
++                         converter=Split)
+ 
+-for flag in Split("""SHCCFLAGS SHCFLAGS SHCXXFLAGS FRAMEWORKS"""):
+-    if defaultenv.has_key(flag):
+-        opts.AddWithDefaults(flag, "flags inherited from SCons",
+-                             [], converter=Split)
++    opts.AddWithDefaults('LDMODULEFLAGS',
++                         'Dynamic module compile flags', [], converter=Split)
++
++    for flag in Split("""SHCCFLAGS SHCFLAGS SHCXXFLAGS FRAMEWORKS"""):
++        if defaultenv.has_key(flag):
++            opts.AddWithDefaults(flag, "flags inherited from SCons",
++                                 [], converter=Split)
++        else:
++            print "Flags", flag, "not in default environment!"
++
++
++    opts.AddWithDefaults('LIBS', 'custom libraries needed for build', [],
++                         converter = Split)
++    opts.Add('GD_LIBS', 'Library gb and its dependencies (if needed)', 
++             ["gd"], converter = Split)
++
++    opts.Add('PREFIX', 'installation prefix directory', '/usr/local')
++    opts.Add('EPREFIX','executables installation prefix directory', '$PREFIX/bin')
++
++    opts.Add('INSTALLDIR', 'end user installation directory',
++             '$PREFIX/share/polybori')
++    opts.Add('DOCDIR', 'documentation installation directory',
++             '$INSTALLDIR/doc')
++    opts.Add('MANDIR', 'Man-pages installation directory',
++             '$PREFIX/man')
++    opts.Add('PYINSTALLPREFIX',
++             'python modules directory (default is built-in site)', '$PYTHONSITE')
++
++    opts.Add('DEVEL_PREFIX',
++             'development version installation directory','$PREFIX' )
++    opts.Add('DEVEL_INCLUDE_PREFIX',
++             'development version header installation directory',
++             '$DEVEL_PREFIX/include' )
++    opts.Add('DEVEL_LIB_PREFIX',
++             'development version library installation directory',
++             '$DEVEL_PREFIX/lib' )
++
++    opts.Add(BoolVariable('M4RI_RPM',
++                          'Assume rpm knows about M4RI', False))   
++
++    opts.Add(BoolVariable('HAVE_DOXYGEN',
++                        'Generate doxygen-based documentation, if available', True))
++    opts.Add(BoolVariable('HAVE_PYTHON_EXTENSION',
++                        'Build python extension, if possible', True))
++
++    opts.Add('BOOST_PYTHON',
++             'Name of Boost-python library to link with', 'boost_python')
++
++    opts.Add('BOOST_TEST',
++             'Name of Boost unit test framework library to link with',
++             'boost_unit_test_framework')
++
++
++    opts.Add(BoolVariable('RELATIVE_SYMLINK',
++                          'Use relative symbolic links on install', True))
++
++    opts.Add(BoolVariable('HAVE_L2H', 'Switch latex2html on/off (deprecated)', 
++                          False))
++    opts.Add(BoolVariable('HAVE_HEVEA', 'Switch hevea on/off (deprecated)', False))
++    opts.Add(BoolVariable('HAVE_TEX4HT', 'Switch tex4ht on/off', True))
++
++
++    opts.Add(BoolVariable('HAVE_PYDOC', 'Switch python doc generation on/off',
++                          True))
++    opts.Add(BoolVariable('EXTERNAL_PYTHON_EXTENSION', 'External python interface',
++                          False))
++
++    opts.Add(BoolVariable('USE_TIMESTAMP', 'Use timestamp on distribution', True))
++    opts.Add(BoolVariable('SHLIBVERSIONING',
++                          'Use libtool-style versionated shared library', True))
++
++    opts.Add('SONAMEPREFIX', 'Prefix for compiler soname command.', 
++             '${_sonameprefix(__env__)}')
++    opts.Add('SONAMESUFFIX','Suffix for compiler soname command.', '')
++
++    opts.Add('SONAMEFLAGS',
++             'Shared libraries link flags.',
++             ['${_sonamecmd(SONAMEPREFIX, TARGET, SONAMESUFFIX, __env__)}'])
++
++
++    opts.Add('INSTALL_NAME_DIR',
++             'Path to be used for dylib install_name (darwin only)',
++             '@loader_path')
++
++    opts.Add('SHLIBVERSIONSUFFIX',
++             'Shared libraries suffix for library versioning.',
++             '-' + pboriversion +'.' + pborirelease +
++             defaultenv['SHLIBSUFFIX'] + '.' + libraryversion)
++
++
++
++    opts.Add(BoolVariable('FORCE_HASH_MAP', "Force the use of gcc's deprecated " +
++    "hash_map extension, even if unordered_map is available (avoiding of buggy " +
++    "unordered_map)", False))
++
++    opts.Add('RPATH', "rpath setting",  converter = SplitColonSep)
++
++
++    for m in pbori_cache_macros:
++        opts.Add(m, 'PolyBoRi Cache macro value: '+m, None)
++
++
++    for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
++    SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
++        if defaultenv.has_key(var):
++            opts.Add(var, 
++                     "inherited from SCons", defaultenv[var])
+     else:
+-        print "Flags", flag, "not in default environment!"
++            if var != "LIBSUFFIX":
++                print "Variable", var, "not in default environment!"
+ 
++    opts.Add('CONFFILE', "Dump settings to file, if given", '')
+ 
+-opts.AddWithDefaults('LIBS', 'custom libraries needed for build', [],
+-                     converter = Split)
+-opts.Add('GD_LIBS', 'Library gb and its dependencies (if needed)', 
+-         ["gd"], converter = Split)
++    opts.Add('PLATFORM', "Manually set another platform (unusual)",
++             defaultenv['PLATFORM'])
+ 
+-opts.Add('PREFIX', 'installation prefix directory', '/usr/local')
+-opts.Add('EPREFIX','executables installation prefix directory', '$PREFIX/bin')
++    tools =  defaultenv['TOOLS'] + ["disttar", "doxygen"]
+ 
+-opts.Add('INSTALLDIR', 'end user installation directory',
+-         '$PREFIX/share/polybori')
+-opts.Add('DOCDIR', 'documentation installation directory',
+-         '$INSTALLDIR/doc')
+-opts.Add('MANDIR', 'Man-pages installation directory',
+-         '$PREFIX/man')
+-opts.Add('PYINSTALLPREFIX',
+-         'python modules directory (default is built-in site)', '$PYTHONSITE')
+ 
+-opts.Add('DEVEL_PREFIX',
+-         'development version installation directory','$PREFIX' )
+-opts.Add('DEVEL_INCLUDE_PREFIX',
+-         'development version header installation directory',
+-         '$DEVEL_PREFIX/include' )
+-opts.Add('DEVEL_LIB_PREFIX',
+-         'development version library installation directory',
+-         '$DEVEL_PREFIX/lib' )
++    # Get paths and related things from current environment os.environ
++    # note: We cannot avoid those due to non-standard system setups,
++    #       also we do not know which variables are used in general
+ 
+-opts.Add(BoolVariable('M4RI_RPM',
+-                      'Assume rpm knows about M4RI', False))   
++    return (Environment(ENV = os.environ, options = opts, tools = tools, 
++                        toolpath = '.'), opts)
+ 
+-opts.Add(BoolVariable('HAVE_DOXYGEN',
+-                    'Generate doxygen-based documentation, if available', True))
+-opts.Add(BoolVariable('HAVE_PYTHON_EXTENSION',
+-                    'Build python extension, if possible', True))
+ 
+-opts.Add('BOOST_PYTHON',
+-         'Name of Boost-python library to link with', 'boost_python')
+-
+-opts.Add('BOOST_TEST',
+-         'Name of Boost unit test framework library to link with',
+-         'boost_unit_test_framework')
+-
+-
+-opts.Add(BoolVariable('RELATIVE_SYMLINK',
+-                      'Use relative symbolic links on install', True))
+-
+-opts.Add(BoolVariable('HAVE_L2H', 'Switch latex2html on/off (deprecated)', 
+-                      False))
+-opts.Add(BoolVariable('HAVE_HEVEA', 'Switch hevea on/off (deprecated)', False))
+-opts.Add(BoolVariable('HAVE_TEX4HT', 'Switch tex4ht on/off', True))
+-
+-
+-opts.Add(BoolVariable('HAVE_PYDOC', 'Switch python doc generation on/off',
+-                      True))
+-opts.Add(BoolVariable('EXTERNAL_PYTHON_EXTENSION', 'External python interface',
+-                      False))
+-
+-opts.Add(BoolVariable('USE_TIMESTAMP', 'Use timestamp on distribution', True))
+-opts.Add(BoolVariable('SHLIBVERSIONING',
+-                      'Use libtool-style versionated shared library', True))
+-
+-opts.Add('SONAMEPREFIX', 'Prefix for compiler soname command.', 
+-         '${_sonameprefix(__env__)}')
+-opts.Add('SONAMESUFFIX','Suffix for compiler soname command.', '')
+-
+-opts.Add('SONAMEFLAGS',
+-         'Shared libraries link flags.',
+-         ['${_sonamecmd(SONAMEPREFIX, TARGET, SONAMESUFFIX, __env__)}'])
+-
+-
+-opts.Add('INSTALL_NAME_DIR',
+-         'Path to be used for dylib install_name (darwin only)',
+-         '@loader_path')
+-
+-opts.Add('SHLIBVERSIONSUFFIX',
+-         'Shared libraries suffix for library versioning.',
+-         '-' + pboriversion +'.' + pborirelease +
+-         defaultenv['SHLIBSUFFIX'] + '.' + libraryversion)
+-
+-
+-
+-opts.Add(BoolVariable('FORCE_HASH_MAP', "Force the use of gcc's deprecated " +
+-"hash_map extension, even if unordered_map is available (avoiding of buggy " +
+-"unordered_map)", False))
+-
+-opts.Add('RPATH', "rpath setting",  converter = SplitColonSep)
+-
+-
+-pbori_cache_macros=["PBORI_UNIQUE_SLOTS","PBORI_CACHE_SLOTS","PBORI_MAX_MEMORY"]
+-for m in pbori_cache_macros:
+-    opts.Add(m, 'PolyBoRi Cache macro value: '+m, None)
+-
+-tools =  ["default"]
++(env, opts) = setup_env(defaultenv)
+ 
+ if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
 -    def is_gcc():
--        compilerenv = Environment(ENV = os.environ, options = opts)
++    def is_gnu():
+         compilerenv = Environment(ENV = os.environ, options = opts)
 -        return compilerenv['CC']  == 'gcc'
 -    
 -    if is_gcc():
 -        tools = defaultenv['TOOLS']
--        for arg in ['default', 'suncc', 'sunc++', 'sunar']:
--            if arg in tools:
--                tools.remove(arg)
--        tools +=  [ 'gcc', 'g++', 'ar']
++        return (detect_compiler(compilerenv)  == 'gnu',
++                detect_linker(compilerenv)  == 'gnu')
++
++    (is_gcc, is_gnulink) = is_gnu()
++
++    tools = [tool for tool in defaultenv['TOOLS']]
++
++    if is_gcc:
+         for arg in ['default', 'suncc', 'sunc++', 'sunar']:
+             if arg in tools:
+                 tools.remove(arg)
+         tools +=  [ 'gcc', 'g++', 'ar']
 -        defaultenv = Environment(ENV = os.environ, tools=tools)
  
- for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
- SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
+-for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
+-SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
+-    if defaultenv.has_key(var):
+-        opts.Add(var, 
+-                 "inherited from SCons", defaultenv[var])
+-else:
+-        print "Variable", var, "not in default environment!"
++    if is_gnulink:
++        if 'sunlink' in tools:
++            tools.remove('sunlink')
++        tools +=  ['gnulink']
++    else:
++        if 'gnulink' in tools:
++            tools.remove(arg)
++        tools +=  ['sunlink']
++    if tools != defaultenv['TOOLS']:    
+ 
+-opts.Add('CONFFILE', "Dump settings to file, if given", '')
++        platform_opts = Variables(args={'PLATFORM': defaultenv['PLATFORM']})
++        defaultenv = Environment(ENV=os.environ, tools=tools,
++                                 options=platform_opts)
+ 
++        (env, opts) = setup_env(defaultenv)
+ 
+-tools +=  ["disttar", "doxygen"]
+-
+-# Get paths and related things from current environment os.environ
+-# note: We cannot avoid those due to non-standard system setups,
+-#       also we do not know which variables are used in general
+-
+-env = Environment(ENV = os.environ, options = opts, tools = tools, 
+-                  toolpath = '.')
+ 
+ # Monkey patching Install/InstallAs to fix permissions on install
+ _env_install = env.Install
+@@ -538,11 +585,11 @@
+ 
+ class PythonConfig(object):
+     def __init__(self, python_executable):
+-        def querycmd(arg):
+-            return shell_output(self.python, "-c",
+-                                '"from distutils.sysconfig import *; \
+-                                  print ' + arg + '"')
+-        
++        def querycmd(arg): # Note: subprocess.POpen blocks calling python itself
++            return os.popen(self.python + " -c " + \
++                            '"from distutils.sysconfig import *; \
++                            print ' + arg + '"').read().strip()
++
+         self.python = python_executable
+         self.version = querycmd("get_python_version()")
+         self.sitedir = querycmd("get_python_lib()")
+@@ -560,7 +607,7 @@
+         self.libs=[l.replace('-l','') for l in self.libs]
+         self.libname = 'python' + str(self.version)
+ 
+-pyconf = PythonConfig(env["PYTHON"])
++pyconf = PythonConfig(env.subst("$PYTHON"))
+ 
+ env.AppendUnique(PYTHONSITE = pyconf.sitedir)
+ 

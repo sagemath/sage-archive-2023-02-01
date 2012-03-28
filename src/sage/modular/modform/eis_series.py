@@ -76,6 +76,8 @@ def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q', normalization='linear'):
         1 + 65520/691*q + 134250480/691*q^2 + 11606736960/691*q^3 + 274945048560/691*q^4 + O(q^5)
         sage: eisenstein_series_qexp(12, 5, normalization='linear')
         691/65520 + q + 2049*q^2 + 177148*q^3 + 4196353*q^4 + O(q^5)
+        sage: eisenstein_series_qexp(12, 50, K=GF(13), normalization="constant")
+        1 + O(q^50)
 
     TESTS:
 

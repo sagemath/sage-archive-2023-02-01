@@ -74,6 +74,7 @@ and testing to make sure nothing funny is going on).
    sage/interfaces/mathematica
    sage/interfaces/mwrank
    sage/interfaces/octave
+   sage/interfaces/r
    sage/interfaces/sage0
    sage/interfaces/singular
    sage/interfaces/tachyon

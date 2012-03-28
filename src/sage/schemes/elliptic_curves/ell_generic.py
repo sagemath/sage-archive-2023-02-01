@@ -51,6 +51,7 @@ from sage.rings.all import PolynomialRing
 import sage.groups.additive_abelian.additive_abelian_group as groups
 import sage.groups.generic as generic
 import sage.plot.all as plot
+from sage.plot.plot import generate_plot_points
 
 import sage.rings.arith as arith
 import sage.rings.all as rings
@@ -2500,7 +2501,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     # Plotting
 
 
-    def plot(self, xmin=None, xmax=None, **args):
+    def plot(self, xmin=None, xmax=None, components='both', **args):
         """
         Draw a graph of this elliptic curve.
 
@@ -2508,6 +2509,18 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         -  ``xmin, xmax`` - (optional) points will be computed at
            least within this range, but possibly farther.
+
+        - ``components`` - a string, one of the following:
+
+          - ``both`` -- (default), scale so that both bounded and
+            unbounded components appear
+
+          - ``bounded`` -- scale the plot to show the bounded
+            component.  Raises an error if there is only one real
+            component.
+
+          - ``unbounded`` -- scale the plot to show the unbounded
+            component, including the two flex points.
 
         -  ``**args`` - all other options are passed to the
            line graphing primitive.
@@ -2527,52 +2540,109 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             RR._coerce_(K(1))
         except TypeError:
             raise NotImplementedError, "Plotting of curves over %s not implemented yet"%K
+        if components not in ['both', 'bounded', 'unbounded']:
+            raise ValueError("component must be one of 'both', 'bounded' or 'unbounded'")
+
         a1, a2, a3, a4, a6 = self.ainvs()
-        R = rings.PolynomialRing(rings.RealField(), 'x')
-        x = R.gen()
-        d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
+        d = self.division_polynomial(2)
         # Internal function for plotting first branch of the curve
         f1 = lambda z: (-(a1*z + a3) + sqrt(abs(d(z))))/2
         # Internal function for plotting second branch of the curve
         f2 = lambda z: (-(a1*z + a3) - sqrt(abs(d(z))))/2
-        r = d.roots(multiplicities=False)
+        r = d.roots(RR, multiplicities=False)
         r.sort()
-        if xmax is None:
-            xmax = r[-1] + 2
-        xmax = max(xmax, r[-1]+2)
-        if xmin is None:
-            xmin = r[0]  - 2
-        xmin = min(xmin, r[0]-2)
-        if len(r) == 1:
+        if components == 'bounded' and len(r) == 1:
+            raise ValueError("no bounded component for this curve")
+        if xmin is None or xmax is None:
+            xmins = []
+            xmaxs = []
+            if components in ['both','bounded'] and len(r) > 1:
+                xmins.append(r[0])
+                xmaxs.append(r[1])
+            # The following 3 is an aesthetic choice.
+            if components == 'unbounded' or components == 'both' and (len(r) == 1 or r[2] - r[1] > 3*(r[1] - r[0])):
+                flex = self.division_polynomial(3).roots(RR, multiplicities=False)
+                flex.sort()
+                flex = flex[-1]
+                xmins.append(r[-1])
+                # The doubling here is an aesthetic choice
+                xmaxs.append(flex + 2*(flex - r[-1]))
+            elif components == 'both':
+                # First the easy part.
+                xmins.append(r[-1])
+                # There are two components and the unbounded component
+                # is not too far from the bounded one.  We scale so
+                # that the unbounded component is twice as tall as the
+                # bounded component.  The y values corresponding to
+                # horizontal tangent lines are determined as follows.
+                # We implicitly differentiate the equation for this
+                # curve and get
+                # 2 yy' + a1 y + a1 xy' + a3 y' = 3 x^2 + 2a2 x + a4
+
+                R = RR['x']
+                x = R.gen()
+                if a1 == 0:
+                    # a horizontal tangent line can only occur at a root of
+                    Ederiv = 3*x**2 + 2*a2*x + a4
+                else:
+                    # y' = 0  ==>  y = (3*x^2 + 2*a2*x + a4) / a1
+                    y = (3*x**2 + 2*a2*x + a4) / a1
+                    Ederiv = y**2 + a1*x*y + a3*y - (x**3 + a2*x**2 + a4*x + a6)
+                critx = [a for a in Ederiv.roots(RR, multiplicities=False) if r[0] < a < r[1]]
+                if len(critx) == 0:
+                    raise RuntimeError("No horizontal tangent lines on bounded component")
+                # The 2.5 here is an aesthetic choice
+                ymax = 2.5 * max([f1(a) for a in critx])
+                ymin = 2.5 * min([f2(a) for a in critx])
+                top_branch = ymax**2 + a1*x*ymax + a3*ymax - (x**3 + a2*x**2 + a4*x + a6)
+                bottom_branch = ymin**2 + a1*x*ymin + a3*ymin - (x**3 + a2*x**2 + a4*x + a6)
+                xmaxs.append(max(top_branch.roots(RR,multiplicities=False) + bottom_branch.roots(RR,multiplicities=False)))
+            xmins = min(xmins)
+            xmaxs = max(xmaxs)
+            span = xmaxs - xmins
+            if xmin is None:
+                xmin = xmins - .02*span
+            if xmax is None:
+                xmax = xmaxs + .02*span
+        elif xmin >= xmax:
+            raise ValueError("xmin must be less than xmax")
+
+        I = []
+        if components in ['unbounded', 'both'] and xmax > r[-1]:
             # one real root; 1 component
-            I = [(r[0],xmax)]
-        else:
-            # three real roots; 2 components
-            I = [(r[0],r[1]), (r[2],xmax)]
-        I = [(max(a,xmin),min(b,xmax)) for a,b in I]
+            if xmin <= r[-1]:
+                I.append((r[-1],xmax,'<'))
+            else:
+                I.append((xmin, xmax,'='))
+        if components in ['bounded','both'] and len(r) > 1 and (xmin < r[1] or xmax > r[0]):
+            if xmin <= r[0]:
+                if xmax >= r[1]:
+                    I.append((r[0],r[1],'o'))
+                else:
+                    I.append((r[0],xmax,'<'))
+            elif xmax >= r[1]:
+                I.append((xmin, r[1], '>'))
+            else:
+                I.append((xmin, xmax, '='))
 
         g = plot.Graphics()
-        try:
-            plot_points = int(args['plot_points'])
-            del args['plot_points']
-        except KeyError:
-            plot_points = 100
-
+        plot_points = int(args.pop('plot_points',200))
+        adaptive_tolerance = args.pop('adaptive_tolerance',0.01)
+        adaptive_recursion = args.pop('adaptive_recursion',5)
+        randomize = args.pop('randomize',True)
         for j in range(len(I)):
-            a,b = I[j]
-            delta = (b-a)/float(plot_points)
-            v = []
-            w = []
-            for i in range(plot_points):
-                x = a + delta*i
-                v.append((x, f1(x)))
-                w.append((x, f2(x)))
-            v.append((b,f1(b)))
-            w.append((b,f2(b)))
-            if len(I) == 2 and j == 0:  # two components -- the oh.
+            a,b,shape = I[j]
+            v = generate_plot_points(f1, (a, b), plot_points, adaptive_tolerance, adaptive_recursion, randomize)
+            w = generate_plot_points(f2, (a, b), plot_points, adaptive_tolerance, adaptive_recursion, randomize)
+            if shape == 'o':
                 g += plot.line(v + list(reversed(w)) + [v[0]], **args)
-            else:
+            elif shape == '<':
                 g += plot.line(list(reversed(v)) + w, **args)
+            elif shape == '>':
+                g += plot.line(v + list(reversed(w)), **args)
+            else:
+                g += plot.line(v, **args)
+                g += plot.line(w, **args)
         return g
 
     def formal_group(self):

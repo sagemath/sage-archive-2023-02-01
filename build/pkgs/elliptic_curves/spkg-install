@@ -81,6 +81,7 @@ def install_ellcurves():
             os.remove(old)
         else:
             shutil.move(f.name, endpath)
+        os.chmod(endpath, 0644)
 
 if __name__ == '__main__':
     install_cremona()

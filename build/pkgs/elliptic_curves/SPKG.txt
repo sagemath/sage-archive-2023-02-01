@@ -33,6 +33,9 @@ Includes two databases:
 
 == Changelog ==
 
+=== elliptic_curves-0.6 (R. Andrew Ohana, 2012-03-27) ===
+ * #12763: fix permissions for the installed files
+
 === elliptic_curves-0.5 (Keshav Kini, 2012-03-18) ===
  * #12694: make the spkg contain a src/ directory and track everything else
 

@@ -59,7 +59,7 @@ cdef int* expand(int *v, int n, int new_length) except NULL:
     if w == <int*> 0:
         return NULL
     if v:
-        for i from 0 <= i < n:
+        for i in range(n):
             w[i] = v[i]
         sage_free(v)
     return w
@@ -158,7 +158,7 @@ cdef class Heilbronn:
         """
         cdef int i
         L = []
-        for i from 0 <= i < self.length:
+        for i in range(self.length):
             L.append([self.list.v[4*i], self.list.v[4*i+1], \
                       self.list.v[4*i+2], self.list.v[4*i+3]])
         return L
@@ -186,18 +186,21 @@ cdef class Heilbronn:
             sage: [M.T(n)(z).element() for n in [2,2]]
             [(3, 0, 1, 0, -1, 1), (3, 0, 1, 0, -1, 1)]
         """
-        cdef int i
+        cdef Py_ssize_t i
         sig_on()
+        if N == 1:   # easy special case
+            for i in range(self.length):
+                a[i] = b[i] = 0
         if N < 32768:   # use ints with no reduction modulo N
-            for i from 0 <= i < self.length:
+            for i in range(self.length):
                 a[i] = u*self.list.v[4*i] + v*self.list.v[4*i+2]
                 b[i] = u*self.list.v[4*i+1] + v*self.list.v[4*i+3]
         elif N < 46340:    # use ints but reduce mod N so can add two
-            for i from 0 <= i < self.length:
+            for i in range(self.length):
                 a[i] = (u * self.list.v[4*i])%N + (v * self.list.v[4*i+2])%N
                 b[i] = (u * self.list.v[4*i+1])%N + (v * self.list.v[4*i+3])%N
         else:
-            for i from 0 <= i < self.length:
+            for i in range(self.length):
                 a[i] = llong_prod_mod(u,self.list.v[4*i],N) + llong_prod_mod(v,self.list.v[4*i+2], N)
                 b[i] = llong_prod_mod(u,self.list.v[4*i+1],N) + llong_prod_mod(v,self.list.v[4*i+3], N)
         sig_off()
@@ -206,19 +209,15 @@ cdef class Heilbronn:
         """
         INPUT:
 
-
         -  ``ans`` - fmpz_poly_t\*; pre-allocated an
            initialized array of self.length fmpz_poly_t's
-
         -  ``i`` - integer
-
         -  ``k`` - integer
-
 
         OUTPUT: sets entries of ans
         """
         cdef int j, m = k-2
-        for j from 0 <= j < self.length:
+        for j in range(self.length):
             PolyApply.apply_to_monomial_flint(ans[j], i, m,
                    self.list.v[4*j], self.list.v[4*j+1],
                    self.list.v[4*j+2], self.list.v[4*j+3])
@@ -235,9 +234,7 @@ cdef class Heilbronn:
 
         INPUT:
 
-
         -  ``u, v, N`` - integers
-
 
         OUTPUT: list
 
@@ -254,7 +251,7 @@ cdef class Heilbronn:
         t = sage.misc.misc.verbose("start making list M.",level=5)
         sig_on()
         if N < 32768:   # use ints with no reduction modulo N
-            for i from 0 <= i < self.length:
+            for i in range(self.length):
                 a = u*self.list.v[4*i] + v*self.list.v[4*i+2]
                 b = u*self.list.v[4*i+1] + v*self.list.v[4*i+3]
                 export.c_p1_normalize_int(N, a, b, &c, &d, &s, 0)
@@ -264,7 +261,7 @@ cdef class Heilbronn:
                 else:
                     M[X] = 1
         elif N < 46340:    # use ints but reduce mod N so can add two
-            for i from 0 <= i < self.length:
+            for i in range(self.length):
                 a = (u * self.list.v[4*i])%N + (v * self.list.v[4*i+2])%N
                 b = (u * self.list.v[4*i+1])%N + (v * self.list.v[4*i+3])%N
                 export.c_p1_normalize_int(N, a, b, &c, &d, &s, 0)
@@ -274,7 +271,7 @@ cdef class Heilbronn:
                 else:
                     M[X] = 1
         else:
-            for i from 0 <= i < self.length:
+            for i in range(self.length):
                 a = llong_prod_mod(u,self.list.v[4*i],N) + llong_prod_mod(v,self.list.v[4*i+2], N)
                 b = llong_prod_mod(u,self.list.v[4*i+1],N) + llong_prod_mod(v,self.list.v[4*i+3], N)
                 export.c_p1_normalize_llong(N, a, b, &c, &d, &s, 0)
@@ -375,7 +372,7 @@ cdef class HeilbronnCremona(Heilbronn):
         # NOTE: In C, -p/2 means "round toward 0", but in Python it
         # means "round down."
         sig_on()
-        for r from -p/2 <= r < p/2+1:
+        for r in range(-p/2, p/2+1):
             x1=p; x2=-r; y1=0; y2=1; a=-p; b=r; c=0; x3=0; y3=0; q=0
             list_append4(L, x1,x2,y1,y2)
             while b:
@@ -465,22 +462,22 @@ cdef class HeilbronnMerel(Heilbronn):
         n = self.n
 
         sig_on()
-        for a from 1 <= a <= n:
+        for a in range(1, n+1):
             ## We have ad-bc=n so c=0 and ad=n, or b=(ad-n)/c
             ## Must have ad - n >= 0, so d must be >= Ceiling(n/a).
             q = n/a
             if q*a == n:
                 d = q
-                for b from 0 <= b < a:
+                for b in range(a):
                     list_append4(L, a,b,0,d)
-                for c from 1 <= c < d:
+                for c in range(1, d):
                     list_append4(L, a,0,c,d)
-            for d from q+1 <= d <= n:
+            for d in range(q+1, n+1):
                 bc = a*d-n
                 ## Divisor c of bc must satisfy Floor(bc/c) lt a and c lt d.
                 ## c ge (bc div a + 1)  <=>  Floor(bc/c) lt a  (for integers)
                 ## c le d - 1           <=>  c lt d
-                for c from bc/a + 1 <= c < d:
+                for c in range(bc/a + 1, d):
                     if bc % c == 0:
                         list_append4(L,a,bc/c,c,d)
         self.length = L.i/4
@@ -498,13 +495,10 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
     """
     INPUT:
 
-
-    -  ``u, v, N`` - integers so that gcd(u,v,N) = 1
-
-    -  ``indices`` - a list of positive integers
-
-    -  ``R`` - matrix over QQ that writes each elements of
-       P1 = P1List(N) in terms of a subset of P1.
+    - ``u, v, N`` - integers so that gcd(u,v,N) = 1
+    - ``indices`` - a list of positive integers
+    - ``R`` - matrix over QQ that writes each elements of
+      P1 = P1List(N) in terms of a subset of P1.
 
 
     OUTPUT: a dense matrix whose columns are the images T_n(x)
@@ -570,7 +564,7 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
 
         # Compute the indexes of these images.
         # We just store them in the array a for simplicity.
-        for j from 0 <= j < H.length:
+        for j in range(H.length):
             # Compute index of the symbol a[j], b[j] in the standard list.
             k = P1.index(a[j], b[j])
 
@@ -628,16 +622,12 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
 
     INPUT:
 
-
-    -  ``u, v, N`` - integers so that gcd(u,v,N) = 1
-
-    -  ``indices`` - a list of positive integers
-
-    -  ``chi`` - a Dirichlet character that takes values
-       in a nontrivial extension of QQ.
-
-    -  ``R`` - matrix over QQ that writes each elements of
-       P1 = P1List(N) in terms of a subset of P1.
+    - ``u, v, N`` - integers so that gcd(u,v,N) = 1
+    - ``indices`` - a list of positive integers
+    - ``chi`` - a Dirichlet character that takes values
+      in a nontrivial extension of QQ.
+    - ``R`` - matrix over QQ that writes each elements of
+      P1 = P1List(N) in terms of a subset of P1.
 
 
     OUTPUT: a dense matrix with entries in the field QQ(chi) (the
@@ -705,7 +695,7 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
         # Compute images of (u,v) under all Heilbronn matrices
         H.apply_only(u, v, N, a, b)
 
-        for j from 0 <= j < H.length:
+        for j in range(H.length):
             # Compute index of the symbol a[j], b[j] in the standard list.
             P1.index_and_scalar(a[j], b[j], &k, &scalar)
             # Now fill in row i of the matrix T.
@@ -731,16 +721,11 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
     """
     INPUT:
 
-
-    -  ``u, v, N`` - integers so that gcd(u,v,N) = 1
-
-    -  ``indices`` - a list of positive integers
-
-    -  ``chi`` - a Dirichlet character that takes values
-       in QQ
-
-    -  ``R`` - matrix over QQ(chi) that writes each
-       elements of P1 = P1List(N) in terms of a subset of P1.
+    - ``u, v, N`` - integers so that gcd(u,v,N) = 1
+    - ``indices`` - a list of positive integers
+    - ``chi`` - a Dirichlet character that takes values in QQ
+    - ``R`` - matrix over QQ(chi) that writes each elements of P1 =
+       P1List(N) in terms of a subset of P1.
 
 
     OUTPUT: a dense matrix with entries in the rational field QQ (the
@@ -790,7 +775,7 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
     _chivals = chi.values()
     cdef int *chi_vals = <int*>sage_malloc(sizeof(int)*len(_chivals))
     if not chi_vals: raise MemoryError
-    for i from 0 <= i < len(_chivals):
+    for i in range(len(_chivals)):
         chi_vals[i] = _chivals[i]
 
     for i, n in enumerate(indices):
@@ -801,7 +786,7 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
         if not b: raise MemoryError
 
         H.apply_only(u, v, N, a, b)
-        for j from 0 <= j < H.length:
+        for j in range(H.length):
             P1.index_and_scalar(a[j], b[j], &k, &scalar)
             if k != -1:
                  # This is just T[i,k] += chi(scalar)
@@ -829,18 +814,12 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
     """
     INPUT:
 
-
     -  ``u, v, N`` - integers so that gcd(u,v,N) = 1
-
     -  ``i`` - integer with 0 = i = k-2
-
     -  ``k`` - weight
-
     -  ``indices`` - a list of positive integers
-
     -  ``R`` - matrix over QQ that writes each elements of
        P1 = P1List(N) in terms of a subset of P1.
-
 
     OUTPUT: a dense matrix with rational entries whose columns are the
     images T_n(x) for n in indices and x the Manin symbol
@@ -901,7 +880,7 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
 
         # Compute images of X^i Y^(2-k-i) under each Heilbronn matrix
         poly = <fmpz_poly_t*> sage_malloc(sizeof(fmpz_poly_t)*H.length)
-        for j from 0 <= j < H.length:
+        for j in range(H.length):
             fmpz_poly_init(poly[j])
 
         # The following line dominates the runtime of this entire function:
@@ -909,12 +888,12 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
 
         # Compute the indexes of these images.
         # We just store them in the array a for simplicity.
-        for j from 0 <= j < H.length:
+        for j in range(H.length):
             # Compute index of the symbol a[j], b[j] in the standard list.
             p = P1.index(a[j], b[j])
             # Now fill in row z of the matrix T.
             if p != -1:
-                for w from 0 <= w < k-1:
+                for w in range(k-1):
                     # The following two lines are just a vastly faster version of:
                     #           T[z, n*w + p] += poly[j][w]
                     # They use that we know that T has only integer entries.
@@ -926,7 +905,7 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
         sage_free(b)
 
         # Free poly part
-        for j from 0 <= j < H.length:
+        for j in range(H.length):
             fmpz_poly_clear(poly[j])
         sage_free(poly)
 
@@ -948,7 +927,7 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
 ############################################################################
 # Fast application of Heilbronn operators to computation of
 # systems of Hecke eigenvalues.
-#   Nontrivial character of order 2 and weight > 2
+#   Nontrivial character of order = 2 and weight > 2
 ############################################################################
 
 # TODO

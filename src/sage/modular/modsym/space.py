@@ -149,21 +149,16 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         INPUT:
 
-
-        -  ``v`` - a list of positive integers
-
-        -  ``nz`` - (default: None); if given specifies a
-           column index such that the dual module has that column nonzero.
+        - ``v`` - a list of positive integers
+        - ``nz`` - (default: None); if given specifies a column index
+          such that the dual module has that column nonzero.
 
 
         OUTPUT:
 
-
-        -  ``E`` - matrix such that E\*v is a vector with
-           components the eigenvalues `a_n` for `n \in v`.
-
-        -  ``v`` - a vector over a number field
-
+        - ``E`` - matrix such that E\*v is a vector with components
+          the eigenvalues `a_n` for `n \in v`.
+        - ``v`` - a vector over a number field
 
         EXAMPLES::
 
@@ -179,6 +174,20 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             (1, -1/2*alpha + 3/2)
             sage: E*v
             (alpha, -alpha, -alpha + 2, alpha - 2)
+
+        TESTS:
+
+        Verify that Trac #12772 is fixed::
+
+            sage: M = ModularSymbols(1,12,sign=1).cuspidal_subspace().new_subspace()
+            sage: A = M.decomposition()[0]
+            sage: A.compact_system_of_eigenvalues(prime_range(10))
+            (
+            [   -24]
+            [   252]
+            [  4830]
+            [-16744], (1)
+            )
         """
         if nz is None:
             nz = self._eigen_nonzero()

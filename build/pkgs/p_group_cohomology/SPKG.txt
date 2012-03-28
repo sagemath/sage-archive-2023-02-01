@@ -105,13 +105,21 @@ equals one third of the available CPUs. The default can be changed by
 exporting the environment variable SAGE_NUMBER_THREAD (for example:
 ``export SAGE_NUMBER_THREADS=2``.
 
+== Documentation ==
+
+The documentation of this package is automatically built, if the environment
+variable SAGE_SPKG_INSTALL_DOCS is yes (do "export SAGE_SPKG_INSTALL_DOCS=yes"
+on the command line before installation). The documents are put into
+SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
+
 == Changelog ==
 
-  * 2.1.2 (Simon King, February 2012):
+  * 2.1.2 (Simon King, March 2012):
     - Some fixes needed with the new version of Cython used by sage-5.0.
     - Some fixes needed with Singular 3-1-3.
     - Using the coercion framework in a better way.
     - Small improvements in the MeatAxe code.
+    - Include the docs in the spkg.
   * 2.1.1 (Simon King, September 2010):
     - Cohomology data are now by default only created in the private
       database.

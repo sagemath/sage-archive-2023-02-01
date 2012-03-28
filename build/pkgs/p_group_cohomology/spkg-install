@@ -42,23 +42,45 @@ else
    DARWIN64=""; export DARWIN64;
 fi
 
-# building parallely is bad. Therefore, although it is probably bad style:
+# MeatAxe would fail to build parallely. Therefore, although it is probably bad style:
+OLD_MAKE="$MAKE";
 MAKE=make; export MAKE;
 
 cd src
 
-make
+$MAKE
 if [ $? -ne 0 ]; then
    echo "Error building pGroupCohomology."
    exit 1
 fi
 
-make install
+$MAKE install
 if [ $? -ne 0 ]; then
    echo "Error installing pGroupCohomology."
    exit 1
 fi
 
 #rm pGroupCohomology/*.c
+MAKE="$OLDMAKE"; export MAKE;
 DISTUTILS_DEBUG='debug'
 python setup.py install
+
+# Perhaps we are supposed to build the docs?
+if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
+    cd ../
+    export SPKG_ROOT=`pwd`
+    cd doc
+    ./builder.py reference html
+    if [ $? -ne 0 ]; then
+	    echo "Error building p_group_cohomology docs."
+	    exit 1
+    fi
+    mkdir -p $SAGE_ROOT/local/share/doc/p_group_cohomology
+    cp -r output/html/en/reference $SAGE_ROOT/local/share/doc/p_group_cohomology/html
+    if [ $? -ne 0 ]; then
+	    echo "Error copying docs."
+	    exit 1
+    else
+	    echo "The built documents have been copied to $SAGE_ROOT/local/share/doc/p_group_cohomology/html/"
+    fi
+fi

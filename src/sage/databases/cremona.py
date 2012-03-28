@@ -619,6 +619,10 @@ class MiniCremonaDatabase(SQLDatabase):
             Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: c.elliptic_curve('12001a1')    # optional - database_cremona_ellcurve
             Elliptic Curve defined by y^2 + x*y = x^3 - 101*x + 382 over Rational Field
+            sage: c.elliptic_curve('48c1')
+            Traceback (most recent call last):
+            ...
+            ValueError: There is no elliptic curve with label 48c1 in the database (note: use lower case letters!)
         """
         N, iso, num = parse_cremona_label(label)
         label = str(N)+iso+str(num)
@@ -657,7 +661,8 @@ class MiniCremonaDatabase(SQLDatabase):
                 message = "There is no elliptic curve with label " \
                     + label + " in the default database; try installing " \
                     + "the optional package database_cremona_ellcurve which " \
-                    + "contains the complete cremona database"
+                    + "contains the complete Cremona database"
+            raise ValueError(message)
 
     def iter(self, conductors):
         """

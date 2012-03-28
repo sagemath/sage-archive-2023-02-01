@@ -2,6 +2,9 @@ from sage.libs.mpfr cimport *
 
 include '../ext/cdefs.pxi'
 
+ctypedef mpz_t mpz_srcptr
+ctypedef mpq_t mpq_srcptr
+
 cdef extern from "mpfi.h":
     ctypedef struct __mpfi_struct:
         __mpfr_struct left
@@ -128,7 +131,7 @@ cdef extern from "mpfi.h":
 
     # arithmetic operations taking a single interval operand
     int mpfi_neg(mpfi_ptr, mpfi_srcptr)
-    int mpfi_sqr(mpfi_ptr ,mpfi_srcptr)
+    int mpfi_sqr(mpfi_ptr, mpfi_srcptr)
     # the inv function generates the whole real interval
     # if 0 is in the interval defining the divisor
     int mpfi_inv(mpfi_ptr, mpfi_srcptr)
@@ -179,13 +182,13 @@ cdef extern from "mpfi.h":
     # Warning: the meaning of interval comparison is not clearly defined
     # customizable comparison functions
 
-    int (*mpfi_cmp) (mpfi_srcptr,mpfi_srcptr)
-    int (*mpfi_cmp_d) (mpfi_srcptr,double)
-    int (*mpfi_cmp_ui) (mpfi_srcptr,unsigned long)
-    int (*mpfi_cmp_si) (mpfi_srcptr,long)
-    int (*mpfi_cmp_z) (mpfi_srcptr,mpz_srcptr)
-    int (*mpfi_cmp_q) (mpfi_srcptr,mpq_srcptr)
-    int (*mpfi_cmp_fr) (mpfi_srcptr,mpfr_srcptr)
+    int (*mpfi_cmp) (mpfi_srcptr, mpfi_srcptr)
+    int (*mpfi_cmp_d) (mpfi_srcptr, double)
+    int (*mpfi_cmp_ui) (mpfi_srcptr, unsigned long)
+    int (*mpfi_cmp_si) (mpfi_srcptr, long)
+    int (*mpfi_cmp_z) (mpfi_srcptr, mpz_srcptr)
+    int (*mpfi_cmp_q) (mpfi_srcptr, mpq_srcptr)
+    int (*mpfi_cmp_fr) (mpfi_srcptr, mpfr_srcptr)
 
     bint (*mpfi_is_pos) (mpfi_srcptr)
     bint (*mpfi_is_nonneg) (mpfi_srcptr)
@@ -204,13 +207,13 @@ cdef extern from "mpfi.h":
     bint mpfi_is_strictly_neg_default(mpfi_srcptr a)
     bint mpfi_is_strictly_pos_default(mpfi_srcptr a)
 
-    int mpfi_cmp_default(mpfi_srcptr,mpfi_srcptr)
-    int mpfi_cmp_d_default(mpfi_srcptr,double)
-    int mpfi_cmp_ui_default(mpfi_srcptr,unsigned long)
-    int mpfi_cmp_si_default(mpfi_srcptr,long)
-    int mpfi_cmp_z_default(mpfi_srcptr,mpz_srcptr)
-    int mpfi_cmp_q_default(mpfi_srcptr,mpq_srcptr)
-    int mpfi_cmp_fr_default(mpfi_srcptr,mpfr_srcptr)
+    int mpfi_cmp_default(mpfi_srcptr, mpfi_srcptr)
+    int mpfi_cmp_d_default(mpfi_srcptr, double)
+    int mpfi_cmp_ui_default(mpfi_srcptr, unsigned long)
+    int mpfi_cmp_si_default(mpfi_srcptr, long)
+    int mpfi_cmp_z_default(mpfi_srcptr, mpz_srcptr)
+    int mpfi_cmp_q_default(mpfi_srcptr, mpq_srcptr)
+    int mpfi_cmp_fr_default(mpfi_srcptr, mpfr_srcptr)
 
 
     bint mpfi_has_zero(mpfi_srcptr)
@@ -225,8 +228,8 @@ cdef extern from "mpfi.h":
 
     # get left or right bound of the interval defined by the
     # second argument and put the result in the first one
-    int mpfi_get_left(mpfr_ptr,mpfi_srcptr)
-    int mpfi_get_right(mpfr_ptr,mpfi_srcptr)
+    int mpfi_get_left(mpfr_ptr, mpfi_srcptr)
+    int mpfi_get_right(mpfr_ptr, mpfi_srcptr)
 
     int mpfi_revert_if_needed(mpfi_ptr)
 
@@ -235,37 +238,37 @@ cdef extern from "mpfi.h":
     # extends the interval defined by the first argument
     # so that it contains the second one
 
-    int mpfi_put(mpfi_ptr,mpfi_srcptr)
-    int mpfi_put_d(mpfi_ptr,double)
-    int mpfi_put_si(mpfi_ptr,long)
-    int mpfi_put_ui(mpfi_ptr,unsigned long)
-    int mpfi_put_z(mpfi_ptr,mpz_srcptr)
-    int mpfi_put_q(mpfi_ptr,mpq_srcptr)
-    int mpfi_put_fr(mpfi_ptr,mpfr_srcptr)
+    int mpfi_put(mpfi_ptr, mpfi_srcptr)
+    int mpfi_put_d(mpfi_ptr, double)
+    int mpfi_put_si(mpfi_ptr, long)
+    int mpfi_put_ui(mpfi_ptr, unsigned long)
+    int mpfi_put_z(mpfi_ptr, mpz_srcptr)
+    int mpfi_put_q(mpfi_ptr, mpq_srcptr)
+    int mpfi_put_fr(mpfi_ptr, mpfr_srcptr)
 
     # builds an interval whose left bound is the lower (round -infty)
     # than the second argument and the right bound is greater
     # (round +infty) than the third one
 
 
-    int mpfi_interv_d(mpfi_ptr,double,double)
-    int mpfi_interv_si(mpfi_ptr,long,long)
-    int mpfi_interv_ui(mpfi_ptr,unsigned long,unsigned long)
-    int mpfi_interv_z(mpfi_ptr,mpz_srcptr,mpz_srcptr)
-    int mpfi_interv_q(mpfi_ptr, mpq_srcptr, mpq_srcptr)
-    int mpfi_interv_fr(mpfi_ptr,mpfr_srcptr,mpfr_srcptr)
+    int mpfi_interv_d(mpfi_ptr, double,double)
+    int mpfi_interv_si(mpfi_ptr, long,long)
+    int mpfi_interv_ui(mpfi_ptr, unsigned long,unsigned long)
+    int mpfi_interv_z(mpfi_ptr, mpz_srcptr,mpz_srcptr)
+    int mpfi_interv_q(mpfi_ptr, mpq_srcptr,mpq_srcptr)
+    int mpfi_interv_fr(mpfi_ptr, mpfr_srcptr,mpfr_srcptr)
 
     # Inclusion tests
     # tests if the first argument is inside the interval
     # defined by the second one
-    bint mpfi_is_strictly_inside(mpfi_srcptr,mpfi_srcptr)
+    bint mpfi_is_strictly_inside(mpfi_srcptr, mpfi_srcptr)
     bint mpfi_is_inside(mpfi_srcptr, mpfi_srcptr)
     bint mpfi_is_inside_d(double, mpfi_srcptr)
     bint mpfi_is_inside_ui(unsigned long, mpfi_srcptr)
     bint mpfi_is_inside_si(long, mpfi_srcptr)
-    bint mpfi_is_inside_z(mpz_srcptr,mpfi_srcptr)
-    bint mpfi_is_inside_q(mpq_srcptr,mpfi_srcptr)
-    bint mpfi_is_inside_fr(mpfr_srcptr,mpfi_srcptr)
+    bint mpfi_is_inside_z(mpz_srcptr, mpfi_srcptr)
+    bint mpfi_is_inside_q(mpq_srcptr, mpfi_srcptr)
+    bint mpfi_is_inside_fr(mpfr_srcptr, mpfi_srcptr)
 
     # set operations
     bint mpfi_is_empty(mpfi_srcptr)
@@ -280,7 +283,7 @@ cdef extern from "mpfi.h":
     # adds the second argument to the right bound of the first one
     # and subtracts the second argument to the left bound of
     # the first one
-    int mpfi_increase(mpfi_ptr,mpfr_srcptr)
+    int mpfi_increase(mpfi_ptr, mpfr_srcptr)
     # keeps the same center and multiply the radius by 2*(1+fact)
     int mpfi_blow(mpfi_ptr, mpfi_srcptr, double)
     # splits the interval into 2 halves

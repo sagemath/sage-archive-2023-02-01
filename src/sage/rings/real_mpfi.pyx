@@ -1022,12 +1022,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             elif PY_TYPE_CHECK(a, Rational) and PY_TYPE_CHECK(b, Rational):
                 rat = a
                 rat1 = b
-                # todo: The <object> coerce is evidently to get around a weird bug in SageX (?)
-                mpfi_interv_q(self.value, <object>rat.value, <object>rat1.value)
+                mpfi_interv_q(self.value, rat.value, rat1.value)
             elif PY_TYPE_CHECK(a, Integer) and PY_TYPE_CHECK(b, Integer):
                 integ = a
                 integ1 = b
-                mpfi_interv_z(self.value, <object> integ.value, <object> integ1.value)
+                mpfi_interv_z(self.value, integ.value, integ1.value)
             elif PY_TYPE_CHECK(a, int) and PY_TYPE_CHECK(b, int):
                 ix = a
                 ix1 = b

@@ -1,6 +1,3 @@
-cdef extern from "stdlib.h":
-    void free(void *ptr)
-
 include 'mpfi.pxi'
 
 cimport sage.rings.ring

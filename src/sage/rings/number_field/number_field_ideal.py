@@ -1049,7 +1049,7 @@ class NumberFieldIdeal(Ideal_generic):
         OUTPUT:
 
         None.  This function simply caches the results: it sets
-        ``_ideal_class_log`` (see :meth:`_ideal_class_log`),
+        ``_ideal_class_log`` (see :meth:`ideal_class_log`),
         ``_is_principal`` (see :meth:`is_principal`) and
         ``_reduced_generators``.
         """
@@ -1161,7 +1161,7 @@ class NumberFieldIdeal(Ideal_generic):
 
     def S_ideal_class_log(self, S):
         r"""
-        S-class group version of :meth:`_ideal_class_log`.
+        S-class group version of :meth:`ideal_class_log`.
 
         EXAMPLES::
 

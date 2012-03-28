@@ -34,6 +34,12 @@ def is_NumberField(x):
 from sage.rings.ring cimport Field
 
 cdef class NumberField(Field):
+    r"""
+    Base class for all number fields.
+    """
+    # This token docstring is mostly there to prevent Sphinx from pasting in
+    # the docstring of the __init__ method inherited from IntegralDomain, which
+    # is rather confusing.
 
     def ring_of_integers(self, *args, **kwds):
         r"""

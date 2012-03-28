@@ -609,7 +609,7 @@ class NumberField_relative(NumberField_generic):
         """
         raise NotImplementedError, "For a relative number field you must use relative_degree or absolute_degree as appropriate"
 
-    def maximal_order(self):
+    def maximal_order(self, v=None):
         """
         Return the maximal order, i.e., the ring of integers of this
         number field.
@@ -632,14 +632,29 @@ class NumberField_relative(NumberField_generic):
             sage: K.<a,b> = NumberField([x^4 + 1, x^4 - 3])
             sage: K.maximal_order()
             Maximal Relative Order in Number Field in a with defining polynomial x^4 + 1 over its base field
+
+        An example with nontrivial ``v``::
+
+            sage: L.<a,b> = NumberField([x^2 - 3, x^2 - 5])
+            sage: O3 = L.maximal_order([3])
+            sage: O3.absolute_discriminant()
+            3686400
+            sage: O3.is_maximal()
+            False
         """
+        v = self._normalize_prime_list(v)
         try:
-            return self.__maximal_order
+            return self.__maximal_order[v]
         except AttributeError:
+            self.__maximal_order = {}
+        except KeyError:
             pass
-        abs_order = self.absolute_field('z').maximal_order()
-        self.__maximal_order = RelativeOrder(self, abs_order, is_maximal=True, check=False)
-        return self.__maximal_order
+        abs_order = self.absolute_field('z').maximal_order(v)
+        if v == ():
+            self.__maximal_order[v] = RelativeOrder(self, abs_order, is_maximal=True, check=False)
+        else:
+            self.__maximal_order[v] = RelativeOrder(self, abs_order, is_maximal=None, check=False)
+        return self.__maximal_order[v]
 
     def __reduce__(self):
         """

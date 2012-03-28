@@ -10,6 +10,7 @@ Category Theory
    sage/categories/tutorial
    sage/categories/category
    sage/categories/category_types
+   sage/categories/map
    sage/categories/homset
    sage/categories/morphism
    sage/categories/functor

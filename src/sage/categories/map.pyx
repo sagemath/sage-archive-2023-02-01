@@ -1,3 +1,6 @@
+r"""
+Base class for maps
+"""
 #*****************************************************************************
 #       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
 #
@@ -72,8 +75,8 @@ cdef class Map(Element):
     NOTE:
 
     The call method is of course not implemented in this base class. This must
-    be done in the sub classes, by overloading :meth:`_call_` and possibly also
-    :meth:`_call_with_args`.
+    be done in the sub classes, by overloading ``_call_`` and possibly also
+    ``_call_with_args``.
 
     EXAMPLES:
 
@@ -417,12 +420,12 @@ cdef class Map(Element):
 
         INPUT:
 
-            ``x`` -- an element coercible to the domain of ``self``; also
-                     objects like ideals are supported in some cases
+        - ``x`` -- an element coercible to the domain of ``self``; also objects
+          like ideals are supported in some cases
 
         OUTPUT:
 
-            an element (or ideal, etc.)
+        an element (or ideal, etc.)
 
         EXAMPLES::
 
@@ -495,7 +498,7 @@ cdef class Map(Element):
             4
 
         If the argument does not coerce into the domain, and if
-        ``pushforward`` fails, ``_call_`` is tried after conversion.
+        ``pushforward`` fails, ``_call_`` is tried after conversion. ::
 
             sage: g = FOO(QQ,ZZ)
             sage: g(SR(3))
@@ -588,7 +591,7 @@ cdef class Map(Element):
 
         OUTPUT:
 
-        The map $x \mapsto self(right(x))$.
+        The map `x \mapsto self(right(x))`.
 
         EXAMPLES::
 
@@ -772,8 +775,9 @@ cdef class Map(Element):
     def pre_compose(self, right):
         """
         INPUT:
-         - ``self`` -- a Map in some ``Hom(Y, Z, category_left)``
-         - ``left`` -- a Map in some ``Hom(X, Y, category_right)``
+
+        - ``self`` -- a Map in some ``Hom(Y, Z, category_left)``
+        - ``left`` -- a Map in some ``Hom(X, Y, category_right)``
 
         Returns the composition of ``right`` followed by ``self`` as a
         morphism in ``Hom(X, Z, category)`` where ``category`` is the
@@ -808,14 +812,15 @@ cdef class Map(Element):
     def post_compose(self, left):
         """
         INPUT:
-         - ``self`` -- a Map in some ``Hom(X, Y, category_right)``
-         - ``left`` -- a Map in some ``Hom(Y, Z, category_left)``
+
+        - ``self`` -- a Map in some ``Hom(X, Y, category_right)``
+        - ``left`` -- a Map in some ``Hom(Y, Z, category_left)``
 
         Returns the composition of ``self`` followed by ``right`` as a
         morphism in ``Hom(X, Z, category)`` where ``category`` is the
         meet of ``category_left`` and ``category_right``.
 
-        Caveat: see the current restrictions on :method:`Category.meet`
+        Caveat: see the current restrictions on :meth:`Category.meet`
 
         EXAMPLES::
 
@@ -844,15 +849,18 @@ cdef class Map(Element):
     def extend_domain(self, new_domain):
         r"""
         INPUT:
-            self          -- a member of Hom(Y, Z)
-            new_codomain  -- an object X such that there is a canonical
-                             coercion $\phi$ in Hom(X, Y)
+
+        - ``self`` -- a member of Hom(Y, Z)
+        - ``new_codomain`` -- an object X such that there is a canonical coercion
+          `\phi` in Hom(X, Y)
 
         OUTPUT:
-            An element of Hom(X, Z) obtained by composing self with the $\phi$.
-            If no canonical $\phi$ exists, a TypeError is raised.
 
-        EXAMPLES:
+        An element of Hom(X, Z) obtained by composing self with `\phi`.  If
+        no canonical `\phi` exists, a TypeError is raised.
+
+        EXAMPLES::
+
             sage: mor = CDF.coerce_map_from(RDF)
             sage: mor.extend_domain(QQ)
             Composite map:
@@ -881,15 +889,18 @@ cdef class Map(Element):
     def extend_codomain(self, new_codomain):
         r"""
         INPUT:
-            self          -- a member of Hom(X, Y)
-            new_codomain  -- an object Z such that there is a canonical
-                             coercion $\phi$ in Hom(Y, Z)
+
+        - ``self`` -- a member of Hom(X, Y)
+        - ``new_codomain`` -- an object Z such that there is a canonical coercion
+          `\phi` in Hom(Y, Z)
 
         OUTPUT:
-            An element of Hom(X, Z) obtained by composing self with the $\phi$.
-            If no canonical $\phi$ exists, a TypeError is raised.
 
-        EXAMPLES:
+        An element of Hom(X, Z) obtained by composing self with `\phi`.  If
+        no canonical `\phi` exists, a TypeError is raised.
+
+        EXAMPLES::
+
             sage: mor = QQ.coerce_map_from(ZZ)
             sage: mor.extend_codomain(RDF)
             Composite map:
@@ -947,7 +958,8 @@ cdef class Map(Element):
 
     def __pow__(Map self, n, dummy):
         """
-        TESTS:
+        TESTS::
+
             sage: R.<x> = ZZ['x']
             sage: phi = R.hom([x+1]); phi
             Ring endomorphism of Univariate Polynomial Ring in x over Integer Ring

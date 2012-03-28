@@ -4188,7 +4188,7 @@ class NumberField_generic(number_field_base.NumberField):
 
         from sage.matrix.constructor import matrix
 
-        d = self.degree()
+        d = self.absolute_degree()
         Z_basis = self.integral_basis()
 
         ## If self is totally real, then we can use (x*y).trace() as
@@ -4227,12 +4227,12 @@ class NumberField_generic(number_field_base.NumberField):
            to calculate the Minkowski embedding. (See NOTE below.)
 
 
-        OUTPUT: The Gram matrix `[<x_i,x_j>]` of an LLL reduced
+        OUTPUT: The Gram matrix `[\langle x_i,x_j \rangle]` of an LLL reduced
         basis for the maximal order of self, where the integral basis for
-        self is given by `\{x_0, \dots, x_{n-1}\}`. Here < , > is the
-        usual inner product on `\RR^n`, and self is embedded in
-        `\RR^n` by the Minkowski embedding. See the docstring for
-        :meth:`Minkowski_embedding` for more information.
+        self is given by `\{x_0, \dots, x_{n-1}\}`. Here `\langle , \rangle` is
+        the usual inner product on `\RR^n`, and self is embedded in `\RR^n` by
+        the Minkowski embedding. See the docstring for
+        :meth:`NumberField_absolute.Minkowski_embedding` for more information.
 
         .. note::
 
@@ -4291,7 +4291,7 @@ class NumberField_generic(number_field_base.NumberField):
 
         from sage.matrix.constructor import matrix
         from sage.misc.flatten import flatten
-        d = self.degree()
+        d = self.absolute_degree()
 
         if self.is_totally_real():
             B = self.reduced_basis()

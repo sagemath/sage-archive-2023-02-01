@@ -2826,25 +2826,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: C.is_normal()
             True
 
-        We get a unitary matrix from the SVD routine and use this
-        numerical matrix to create a matrix that should be normal
-        (indeed it should be the identity matrix), but with some
-        imprecision.  We use this to illustrate that if the tolerance
-        is set too small, then we can be too strict about the equality
-        of entries and achieve the wrong result.  ::
-
-            sage: A = matrix(CDF, [[ 1 + I,  1 - 6*I, -1 - I],
-            ...                    [-3 - I,     -4*I,     -2],
-            ...                    [-1 + I, -2 - 8*I,  2 + I]])
-            sage: U, _, _ = A.SVD()
-            sage: B=U*U.conjugate_transpose()
-            sage: B.is_normal(algorithm='naive')
-            True
-            sage: B.is_normal(algorithm='naive', tol=1.0e-34)
-            False
-            sage: B.is_normal(algorithm='naive', tol=1.0e-31)
-            True
-
         A square, empty matrix is trivially normal.  ::
 
             sage: A = matrix(CDF, 0, 0)

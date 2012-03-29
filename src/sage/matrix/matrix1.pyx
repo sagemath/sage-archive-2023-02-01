@@ -22,6 +22,7 @@ include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
 import sage.modules.free_module
+import warnings
 
 cdef class Matrix(matrix0.Matrix):
     ###################################################
@@ -1511,17 +1512,17 @@ cdef class Matrix(matrix0.Matrix):
             k = k + 1
         return A
 
-    def delete_columns(self, cols_to_delete, index_check=False):
+    def delete_columns(self, dcols, index_check=True):
         """
-        Return the matrix constructed from deleting the columns with indices in the columns_to_delete list.
+        Return the matrix constructed from deleting the columns with indices in the ``dcols`` list.
 
         INPUT:
 
-        * "cols_to_delete" - list of indices of columns to be deleted from self.
-        * "index_check" - checks whether any index in "cols_to_delete" is out of range. Defaults to False.
+        * ``dcols`` - list of indices of columns to be deleted from self.
+        * ``index_check`` - checks whether any index in ``dcols`` is out of range. Defaults to True.
 
         SEE ALSO:
-            The functions, "delete_rows()" "matrix_from_columns()"
+            The functions :meth: ``delete_rows`` and :meth: ``matrix_from_columns``
 
         EXAMPLES::
 
@@ -1534,36 +1535,37 @@ cdef class Matrix(matrix0.Matrix):
             [ 5  7]
             [ 9 11]
 
-        cols_to_delete can be a tuple. Also only the underlying set of indices matters.::
+        ``dcols`` can be a tuple. But only the underlying set of indices matters. ::
 
             sage: A.delete_columns((2,0,2))
             [ 1  3]
             [ 5  7]
             [ 9 11]
 
-        There is an option to check whether the any index is out of range. Defaults to False.::
+        The default is to check whether the any index in ``dcols`` is out of range. ::
 
             sage: A.delete_columns([-1,2,4])
+            doctest:1: UserWarning: [4, -1] contains invalid indices.
             [ 0  1  3]
             [ 4  5  7]
             [ 8  9 11]
-            sage: A.delete_columns([-1,2,4], index_check=True)
-            Traceback (most recent call last):
-            ...
-            IndexError: column indices in [4, -1] are out of range.
+            sage: A.delete_columns([-1,2,4], index_check=False)
+            [ 0  1  3]
+            [ 4  5  7]
+            [ 8  9 11]
 
         AUTHORS:
-        - Wai Yan Pong (2012-03-05)
+            - Wai Yan Pong (2012-03-05)
         """
-        if not (PY_TYPE_CHECK(cols_to_delete, list) or PY_TYPE_CHECK(cols_to_delete, tuple)):
-            raise TypeError, "columns (=%s) must be a list of integers"%cols_to_delete
+        if not (PY_TYPE_CHECK(dcols, list) or PY_TYPE_CHECK(dcols, tuple)):
+            raise TypeError("{l} must be a list or a tuple".format(l=dcols))
         cdef list cols, diff_cols
 
         if index_check:
-            diff_cols = list(set(cols_to_delete).difference(set(range(self._ncols))))
+            diff_cols = list(set(dcols).difference(set(range(self._ncols))))
             if not (diff_cols == []):
-                raise IndexError, "column indices in %s are out of range."%diff_cols
-        cols = list(set(range(self.ncols())) - set(cols_to_delete))
+                warnings.warn("{d} contains invalid indices.".format(d=diff_cols))
+        cols = [k for k in range(self._ncols) if not k in dcols]
         return self.matrix_from_columns(cols)
 
     def matrix_from_rows(self, rows):
@@ -1598,17 +1600,18 @@ cdef class Matrix(matrix0.Matrix):
             k += 1
         return A
 
-    def delete_rows(self, rows_to_delete, index_check=False):
+
+    def delete_rows(self, drows, index_check=True):
         """
-        Return the matrix constructed from deleting the rows with indices in the rows_to_delete list.
+        Return the matrix constructed from deleting the rows with indices in the ``drows`` list.
 
         INPUT:
 
-        * "rows_to_delete" - list of indices of rows to be deleted from self.
-        * "index_check" - checks whether any index in "rows_to_delete" is out of range. Defaults to False.
+        * ``drows`` - list of indices of rows to be deleted from self.
+        * ``index_check`` - checks whether any index in ``drows`` is out of range. Defaults to True.
 
         SEE ALSO:
-            The functions "delete_columns()", "matrix_from_rows()"
+            The functions :meth: ``delete_columns`` and :meth: ``matrix_from_rows``
 
         EXAMPLES::
 
@@ -1621,35 +1624,36 @@ cdef class Matrix(matrix0.Matrix):
             [ 3  4  5]
             [ 9 10 11]
 
-        rows_to_delete can be a tuple. Also only the underlying set of indices matters.::
+        ``drows`` can be a tuple. But only the underlying set of indices matters.::
 
             sage: A.delete_rows((2,0,2))
             [ 3  4  5]
             [ 9 10 11]
 
-        There is an option to check whether the any index is out of range. Defaults to False.::
+        The default is to check whether the any index in ``drows`` is out of range.
 
             sage: A.delete_rows([-1,2,4])
+            doctest:1: UserWarning: [4, -1] contains invalid indices.
             [ 0  1  2]
             [ 3  4  5]
             [ 9 10 11]
-            sage: A.delete_rows([-1,2,4], index_check=True)
-            Traceback (most recent call last):
-            ...
-            IndexError: row indices in [4, -1] are out of range.
+            sage: A.delete_rows([-1,2,4], index_check=False)
+            [ 0  1  2]
+            [ 3  4  5]
+            [ 9 10 11]
 
         AUTHORS:
-        - Wai Yan Pong (2012-03-05)
+            - Wai Yan Pong (2012-03-05)
         """
-        if not (PY_TYPE_CHECK(rows_to_delete, list) or PY_TYPE_CHECK(rows_to_delete, tuple)):
-            raise TypeError, "columns (=%s) must be a list of integers"%rows_to_delete
+        if not (PY_TYPE_CHECK(drows, list) or PY_TYPE_CHECK(drows, tuple)):
+            raise TypeError("{l} must be a list or a tuple".format(l=drows))
         cdef list rows, diff_rows
 
         if index_check:
-            diff_rows = list(set(rows_to_delete).difference(set(range(self._nrows))))
+            diff_rows = list(set(drows).difference(set(range(self._nrows))))
             if not (diff_rows == []):
-                raise IndexError, "row indices in %s are out of range."%diff_rows
-        rows = list(set(range(self.nrows())) - set(rows_to_delete))
+                warnings.warn("{d} contains invalid indices.".format(d=diff_rows))
+        rows = [k for k in range(self._nrows) if not k in drows]
         return self.matrix_from_rows(rows)
 
     def matrix_from_rows_and_columns(self, rows, columns):

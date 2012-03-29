@@ -179,25 +179,26 @@ def ModularSymbols(group  = 1,
                    weight = 2,
                    sign   = 0,
                    base_ring = None,
-                   use_cache = True):
+                   use_cache = True,
+                   custom_init=None):
     r"""
     Create an ambient space of modular symbols.
 
     INPUT:
 
-
     - ``group`` - A congruence subgroup or a Dirichlet character eps.
-
-
     - ``weight`` - int, the weight, which must be = 2.
-
-    - ``sign`` - int, The sign of the involution on modular symbols induced by
-      complex conjugation. The default is 0, which means"no sign", i.e., take
-      the whole space.
-
-    - ``base_ring`` - the base ring. Defaults to `\QQ` if no character is
-      given, or to the minimal extension of `\QQ` containing the values of the
-      character.
+    - ``sign`` - int, The sign of the involution on modular symbols
+      induced by complex conjugation. The default is 0, which means
+      "no sign", i.e., take the whole space.
+    - ``base_ring`` - the base ring. Defaults to `\QQ` if no character
+      is given, or to the minimal extension of `\QQ` containing the
+      values of the character.
+    - ``custom_init`` - a function that is called with self as input
+      before any computations are done using self; this could be used
+      to set a custom modular symbols presentation.  If self is
+      already in the cache and use_cache=True, then this function is
+      not called.
 
     EXAMPLES: First we create some spaces with trivial character::
 
@@ -296,6 +297,28 @@ def ModularSymbols(group  = 1,
         [    0     0     0     0     0     0 a + 1     a]
         [    0     0     0     0     0     0     1     0]
 
+    We illustrate the custom_init function, which can be used to make
+    arbitrary changes to the modular symbols object before its
+    presentation is computed::
+
+        sage: ModularSymbols_clear_cache()
+        sage: def custom_init(M):
+        ...       M.customize='hi'
+        sage: M = ModularSymbols(1,12, custom_init=custom_init)
+        sage: M.customize
+        'hi'
+
+    We illustrate the relation between custom_init and use_cache::
+
+        sage: def custom_init(M):
+        ...       M.customize='hi2'
+        sage: M = ModularSymbols(1,12, custom_init=custom_init)
+        sage: M.customize
+        'hi'
+        sage: M = ModularSymbols(1,12, custom_init=custom_init, use_cache=False)
+        sage: M.customize
+        'hi2'
+
     TESTS: We test use_cache::
 
         sage: ModularSymbols_clear_cache()
@@ -322,22 +345,25 @@ def ModularSymbols(group  = 1,
     if arithgroup.is_Gamma0(group):
             if weight == 2:
                 M = ambient.ModularSymbolsAmbient_wt2_g0(
-                    group.level(),sign, base_ring)
+                    group.level(),sign, base_ring, custom_init=custom_init)
             else:
                 M = ambient.ModularSymbolsAmbient_wtk_g0(
-                    group.level(), weight, sign, base_ring)
+                    group.level(), weight, sign, base_ring, custom_init=custom_init)
 
     elif arithgroup.is_Gamma1(group):
 
-        M = ambient.ModularSymbolsAmbient_wtk_g1(group.level(), weight, sign, base_ring)
+        M = ambient.ModularSymbolsAmbient_wtk_g1(group.level(),
+                            weight, sign, base_ring, custom_init=custom_init)
 
     elif arithgroup.is_GammaH(group):
 
-        M = ambient.ModularSymbolsAmbient_wtk_gamma_h(group, weight, sign, base_ring)
+        M = ambient.ModularSymbolsAmbient_wtk_gamma_h(group,
+                            weight, sign, base_ring, custom_init=custom_init)
 
     elif isinstance(group, tuple):
         eps = group[0]
-        M = ambient.ModularSymbolsAmbient_wtk_eps(eps, weight, sign, base_ring)
+        M = ambient.ModularSymbolsAmbient_wtk_eps(eps,
+                            weight, sign, base_ring, custom_init=custom_init)
 
     if M is None:
         raise NotImplementedError, "computation of requested space of modular symbols not defined or implemented"

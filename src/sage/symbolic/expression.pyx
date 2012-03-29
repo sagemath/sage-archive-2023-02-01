@@ -7631,9 +7631,7 @@ cdef class Expression(CommutativeRingElement):
             0
         """
         from sage.calculus.calculus import maxima
-        maxima.eval('domain: real$')
         res = self.parent()(self._maxima_().radcan())
-        maxima.eval('domain: complex$')
         return res
 
     radical_simplify = simplify_radical
@@ -7757,12 +7755,26 @@ cdef class Expression(CommutativeRingElement):
             sage: log_expr.simplify_full()   # applies both simplify_log and simplify_rational
             0
 
+        We should use the current simplification domain rather than
+        set it to 'real' explicitly (:trac:`12780`)::
+
+            sage: f = sqrt(x^2)
+            sage: f.simplify_log()
+            sqrt(x^2)
+            sage: from sage.calculus.calculus import maxima
+            sage: maxima('domain: real;')
+            real
+            sage: f.simplify_log()
+            abs(x)
+            sage: maxima('domain: complex;')
+            complex
+
         AUTHORS:
 
         - Robert Marik (11-2009)
         """
         from sage.calculus.calculus import maxima
-        maxima.eval('domain: real$ savelogexpand:logexpand$ logexpand:false$')
+        maxima.eval('savelogexpand:logexpand$ logexpand:false$')
         if algorithm is not None:
             maxima.eval('logconcoeffp:\'logconfun$')
         if algorithm == 'ratios':
@@ -7776,7 +7788,6 @@ cdef class Expression(CommutativeRingElement):
         elif algorithm is not None:
             raise NotImplementedError, "unknown algorithm, see the help for available algorithms"
         res = self.parent()(self._maxima_().logcontract())
-        maxima.eval('domain: complex$')
         if algorithm is not None:
             maxima.eval('logconcoeffp:false$')
         maxima.eval('logexpand:savelogexpand$')
@@ -7861,11 +7872,30 @@ cdef class Expression(CommutativeRingElement):
             sage: (log(3/4*x^pi)).log_expand()
             pi*log(x) + log(3/4)
 
+        TESTS:
+
+        Most of these log expansions only make sense over the
+        reals. So, we should set the Maxima ``domain`` variable to
+        'real' before we call out to Maxima. When we return, however, we
+        should set the ``domain`` back to what it was, rather than
+        assuming that it was 'complex'. See :trac:`12780`::
+
+            sage: from sage.calculus.calculus import maxima
+            sage: maxima('domain: real;')
+            real
+            sage: x.expand_log()
+            x
+            sage: maxima('domain;')
+            real
+            sage: maxima('domain: complex;')
+            complex
+
         AUTHORS:
 
         - Robert Marik (11-2009)
         """
         from sage.calculus.calculus import maxima
+        original_domain = maxima.eval('domain')
         maxima.eval('domain: real$ savelogexpand:logexpand$')
         if algorithm == 'nothing':
             maxima_method='false'
@@ -7880,7 +7910,8 @@ cdef class Expression(CommutativeRingElement):
         maxima.eval('logexpand:%s'%maxima_method)
         res = self._maxima_()
         res = res.sage()
-        maxima.eval('domain: complex$ logexpand:savelogexpand$')
+        # Set the domain back to what it was before expand_log() was called.
+        maxima.eval('domain: %s$ logexpand:savelogexpand$' % original_domain)
         return res
 
     log_expand = expand_log

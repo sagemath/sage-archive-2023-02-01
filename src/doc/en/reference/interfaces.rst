@@ -71,6 +71,7 @@ and testing to make sure nothing funny is going on).
    sage/interfaces/maple
    sage/interfaces/matlab
    sage/interfaces/maxima
+   sage/interfaces/maxima_lib
    sage/interfaces/mathematica
    sage/interfaces/mwrank
    sage/interfaces/octave

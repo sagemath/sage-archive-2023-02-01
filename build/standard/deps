@@ -536,6 +536,7 @@ $(INST)/$(SCIPY): $(BASE) \
 		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(SCIPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SCIPY).log"
 
+# matplotlib is needed to test cvxopt (i.e., if SAGE_CHECK=yes). See #12742.
 $(INST)/$(CVXOPT): $(BASE) \
 		   $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) \
 		   $(INST)/$(ATLAS) $(INST)/$(CEPHES) $(INST)/$(PATCH) \

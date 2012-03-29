@@ -2522,9 +2522,20 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
           - ``unbounded`` -- scale the plot to show the unbounded
             component, including the two flex points.
 
-        -  ``**args`` - all other options are passed to the
-           line graphing primitive.
+        - ``plot_points`` -- passed to
+          :func:`sage.plot.generate_plot_points`
 
+        - ``adaptive_tolerance`` -- passed to
+          :func:`sage.plot.generate_plot_points`
+
+        - ``adaptive_recursion`` -- passed to
+          :func:`sage.plot.generate_plot_points`
+
+        - ``randomize`` -- passed to
+          :func:`sage.plot.generate_plot_points`
+
+        -  ``**args`` - all other options are passed to
+           :class:`sage.plot.line.Line`
 
         EXAMPLES::
 
@@ -2532,7 +2543,23 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: plot(E, rgbcolor=hue(0.7))
             sage: E = EllipticCurve('37a')
             sage: plot(E)
-            sage: plot(E, xmin=25,xmax=25)
+            sage: plot(E, xmin=25,xmax=26)
+
+        With #12766 we added the components keyword::
+
+            sage: E.real_components()
+            2
+            sage: E.plot(components='bounded')
+            sage: E.plot(components='unbounded')
+
+        If there is only one component then specifying
+        components='bounded' raises a ValueError::
+
+            sage: E = EllipticCurve('9990be2')
+            sage: E.plot(components='bounded')
+            Traceback (most recent call last):
+            ...
+            ValueError: no bounded component for this curve
         """
         RR = rings.RealField()
         K = self.base_ring()
@@ -2553,13 +2580,23 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         r.sort()
         if components == 'bounded' and len(r) == 1:
             raise ValueError("no bounded component for this curve")
+        if isinstance(xmin, (tuple, list)):
+            if xmax is not None:
+                raise ValueError("xmax must be None if xmin is a tuple")
+            if len(xmin) != 2:
+                raise ValueError("if xmin is a tuple it must have length 2")
+            xmin, xmax = xmin
         if xmin is None or xmax is None:
             xmins = []
             xmaxs = []
             if components in ['both','bounded'] and len(r) > 1:
                 xmins.append(r[0])
                 xmaxs.append(r[1])
-            # The following 3 is an aesthetic choice.
+
+            # The following 3 is an aesthetic choice.  It's possible
+            # that we should compute both of the following when
+            # components=='both' and len(r) > 1 and take the maximum
+            # generated xmax.
             if components == 'unbounded' or components == 'both' and (len(r) == 1 or r[2] - r[1] > 3*(r[1] - r[0])):
                 flex = self.division_polynomial(3).roots(RR, multiplicities=False)
                 flex.sort()

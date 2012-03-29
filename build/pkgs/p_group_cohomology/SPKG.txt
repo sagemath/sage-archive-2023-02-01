@@ -120,6 +120,7 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
     - Using the coercion framework in a better way.
     - Small improvements in the MeatAxe code.
     - Include the docs in the spkg.
+    - Improved construction of dependent parameters for Symonds' test.
   * 2.1.1 (Simon King, September 2010):
     - Cohomology data are now by default only created in the private
       database.

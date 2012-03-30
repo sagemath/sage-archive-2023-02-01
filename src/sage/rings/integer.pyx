@@ -1096,6 +1096,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         PyMem_Free(s)
         return k
 
+    def __format__(self, *args, **kwargs):
+        """
+        Returns a string representation using Python's Format protocol.
+        Valid format descriptions are exactly those for Python integers.
+
+        EXAMPLES::
+
+            sage: "{0:#x}; {0:#b}; {0:+05d}".format(ZZ(17))
+            '0x11; 0b10001; +0017'
+
+        """
+        return int(self).__format__(*args,**kwargs)
+
     def ordinal_str(self):
         """
         Returns a string representation of the ordinal associated to self.

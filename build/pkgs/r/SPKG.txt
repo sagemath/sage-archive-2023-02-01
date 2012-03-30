@@ -16,14 +16,34 @@
  * R mailing list, #R in IRC
 
 == Dependencies ==
+
+ * GNU patch
+ * iconv
+ * Readline
  * ATLAS
 
 == Special Update/Build Instructions ==
  * TODO: Remove the contained Rpy spkg and ship (and maintain)
    it separately, for many reasons. (#9906 addresses this.)
- * TODO: Clean up spkg-install.
+
+ * Patches:
+   - configure.patch: Use -### instead of -v to detect linker options.
+     See Sage ticket #12787 and upstream ticket
+     https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=14865
+     The corresponding patch to m4/clibs.m4 is not included, as
+     autoconf-2.68 gives errors, even on the clean upstream sources.
+   - R.sh.in: Set R_HOME_DIR to "${SAGE_LOCAL}/lib/R/" when running R.
 
 == Changelog ==
+
+=== r-2.14.0.p3 (Jeroen Demeyer, 30 March 2012) ===
+ * #12787: use -### instead of -v to detect linker options
+ * Don't export OSXFW in spkg-install
+ * Remove "export MAKE=make" and "export MAKEFLAGS=".  Instead, install
+   with -j1.
+ * Removed the fix_hardcode Python script, found simpler work-around
+   using environment variable SAGE_BUILDING_R set in spkg-install.
+ * Use `patch` for patching.
 
 === r-2.14.0.p2 (John H. Palmieri, 17 Dec 2011) ===
  * #12172: unconditionally disable X11 support on Darwin

@@ -23,9 +23,6 @@ CUR=`pwd`
 # set CPPFLAGS so that Sage's readline & iconv are picked up
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"; export CPPFLAGS
 
-# Hack to get around dumb hardcoding.
-cp patches/R.sh.in src/src/scripts/
-
 # Note by Karl-Dieter Crisman, April 12th 2010. X support would be nice
 # to have in OSX, but see
 # http://CRAN.R-project.org/bin/macosx/RMacOSX-FAQ.html#X11-window-server-_0028optional_0029
@@ -51,11 +48,10 @@ else
    fi
 fi
 
-# we don't want to install R as a library framework on OSX
+OSXFW=
 if [ "$UNAME" = "Darwin" ]; then
-    OSXFW="--enable-R-framework=no"; export OSXFW
-else
-    OSXFW=""; export OSXFW
+    # We don't want to install R as a library framework on OSX
+    OSXFW="--enable-R-framework=no"
 fi
 
 if [ "$UNAME" = "SunOS" ]; then
@@ -82,6 +78,20 @@ rm -rf "$SAGE_LOCAL"/lib/libRblas.dylib "$SAGE_LOCAL"/lib/libRlapack.dylib "$SAG
 
 cd src
 
+# Apply patches.  See SPKG.txt for information about what each patch
+# does.
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+# Don't override R_HOME_DIR in local/bin/R while building R.
+# See patches/R.sh.patch
+export SAGE_BUILDING_R=yes
+
 # make sure the prefix is always lib, not lib64 on 64 bit linux
 LIBnn="lib"; export LIBnn
 
@@ -92,21 +102,6 @@ F77=sage_fortran; export F77
 # copy of readline and ATLAS.
 CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib/ $CFLAGS"; export CFLAGS
 LDFLAGS="-L$SAGE_LOCAL/lib/ $LDFLAGS"; export LDFLAGS
-
-# FreeBSD needs the path to libiconv to be explicitly specified.  In theory,
-# --with-libiconv-prefix should work but configure script is broken and
-# ignores that path when looking for libiconv.  Hard-wire via xxFLAGS.
-# Note by David Kirkby, 16th Feb 2010. The option --with-libiconv-prefix
-# is not documented in the latest R manual, neither is it an option if you
-# type 'configure --help'.  Since there is an iconv library going to be
-# integrated into Sage - see http://trac.sagemath.org/sage_trac/ticket/8191
-# it is likely these FreeBSD specific lines can be removed, but I'll leave
-# them here for a FreeBSD developer to address.
-if [ "$UNAME" = "FreeBSD" ]; then
-    CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-    CFLAGS="$CFLAGS -I/usr/local/include"
-    LDFLAGS="$LDFLAGS -L/usr/local/lib"
-fi
 
 if [ "$UNAME" = "Darwin" ]; then
      echo "Configuring R for OSX"
@@ -136,13 +131,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-#parallel make install is broken
-export MAKE=make
-# We clear MAKEFLAGS to fix building multiple spkgs in parallel on OS X.
-export MAKEFLAGS=
-
-$MAKE vignettes #needed for help system
-$MAKE install
+# Disable parallel make install, which is supposedly broken
+$MAKE -j1 vignettes  # Needed for help system
+$MAKE -j1 install
 if [ $? -ne 0 ]; then
     echo "Error installing R."
     exit 1
@@ -154,10 +145,6 @@ fi
 #    exit 1
 #fi
 
-# Fix hardcoding problems.
-cd "$CUR"/patches
-python fix_hardcode
-
 cd "$CUR"
 
 
@@ -165,14 +152,7 @@ RPY_VER=rpy2-2.0.8
 
 echo "Now installing the contained Rpy ($RPY_VER) spkg..."
 
-# Do NOT call $SAGE_ROOT/sage here, since $SAGE_LOCAL/bin/sage-sage
-# might not yet exist.
-# See http://trac.sagemath.org/sage_trac/ticket/8306#comment:29
-# and http://trac.sagemath.org/sage_trac/ticket/9896#comment:95
-# Instead, as a temporary solution before Rpy gets removed from
-# R's spkg (#9906), call $SAGE_LOCAL/bin/sage-spkg directly since
-# it is present in any case (installed by spkg/base/dir-0.1-install)
-# and the environment is already set up:
+# TODO: Rpy should get removed from this spkg (#9906)
 
 # Avoid trouble with pipestatus and spaces in the spkg's pathname:
 export RPY_PKG=$CUR/$RPY_VER.spkg

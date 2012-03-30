@@ -4,8 +4,8 @@
 ###########################################
 
 
-TARGET=prereq-0.9
-if [ ! -n "$SAGE_BUILD_DIR" ]; then
+TARGET=prereq-1.0
+if [ "x$SAGE_BUILD_DIR" = x ]; then
     SAGE_BUILD_DIR="$SAGE_ROOT/spkg/build"
 fi
 mkdir -p "$SAGE_BUILD_DIR"
@@ -22,7 +22,7 @@ cd "$SAGE_BUILD_DIR"
 echo "Starting prerequisite check."
 echo "Machine: `uname -a`"
 
-if [ -z "$SAGE_PORT" ]; then
+if [ "x$SAGE_PORT" = x ]; then
     if [ `uname | sed -e 's/WIN.\+/WIN/'` = "CYGWIN" ]; then
         echo "Unfortunately, building SAGE on Cygwin is not currently supported,"
         echo "though we are actively working on supporting it.  If you would like"
@@ -130,33 +130,36 @@ fi
 # that in earlier versions.  So the only thing to do is to skip this
 # test.
 prereq_tarball="$SAGE_ROOT/spkg/base/$TARGET.tar.gz"
-if ! [ -f "$prereq_tarball" ]; then
-    echo >&2 "The file '$prereq_tarball' does not exist."
-    echo >&2 "Most likely, this is because you upgraded from an old version of Sage."
-    echo >&2 "Since this package only does some checks, it should be okay to continue"
-    echo >&2 "without it.  Skipping prerequisite checks..."
-else
+if [ -f "$prereq_tarball" ]; then
     gzip -cd "$prereq_tarball" | tar xf -
     if [ $? -ne 0 ]; then
         echo >&2 "Error: failed to extract '$prereq_tarball'"
         exit 1
     fi
 
+    # If we are installing GCC, skip all compiler checks in ./configure
+    if [ "x$SAGE_BUILD_TOOLCHAIN" = xyes ]; then
+        PREREQ_OPTIONS="--disable-compiler-checks $PREREQ_OPTIONS"
+    fi
+
     # A reasonably sophisticated test is performed in a configure
     # script, which checks compilers exist, their version numbers,
     # the fact GNU and non-GNU compilers are not mixed etc.
-    cd "$TARGET" && ./configure
+    cd "$TARGET" && ./configure $PREREQ_OPTIONS
 
     if [ $? -ne 0 ]; then
         echo >&2 "You do not have all of the prerequisites needed to build Sage"
         echo >&2 "from source.  See the errors above."
         exit 1
     fi
+else
+    echo >&2 "The file '$prereq_tarball' does not exist."
+    echo >&2 "Most likely, this is because you upgraded from an old version of Sage."
+    echo >&2 "Since this package only does some checks, it should be okay to continue"
+    echo >&2 "without it.  Skipping prerequisite checks..."
 fi
 
-echo `pwd` | grep " "
-
-if [ $? -eq 0 ]; then
+if pwd | grep >/dev/null " "; then
     echo ""
     echo "*********************************************************"
     echo ""

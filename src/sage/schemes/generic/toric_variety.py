@@ -6,15 +6,13 @@ This module provides support for (normal) toric varieties, corresponding to
 See also :mod:`~sage.schemes.generic.fano_toric_variety` for a more
 restrictive class of (weak) Fano toric varieties.
 
-An **excellent reference on toric varieties** is the book "Toric Varieties" by
-David A. Cox, John B. Little, and Hal Schenck [CLS]_. Its draft **is freely
-available** at
-http://www.cs.amherst.edu/~dac/toric.html
-**but will be removed** from this site once it is published, so hurry up!
+An **excellent reference on toric varieties** is the book "Toric
+Varieties" by David A. Cox, John B. Little, and Hal Schenck
+[CLS]_.
 
 The interface to this module is provided through functions
-:func:`AffineToricVariety` and :func:`ToricVariety`, although you may also be
-interested in :func:`normalize_names`.
+:func:`AffineToricVariety` and :func:`ToricVariety`, although you may
+also be interested in :func:`normalize_names`.
 
 .. NOTE::
 
@@ -29,7 +27,7 @@ REFERENCES:
 ..  [CLS]
     David A. Cox, John B. Little,  Hal Schenck,
     "Toric Varieties", Graduate Studies in Mathematics,
-    Amer. Math. Soc., Providence, RI, to appear.
+    Amer. Math. Soc., Providence, RI, 2011
 
 AUTHORS:
 
@@ -209,6 +207,83 @@ but (at least for now) you will have to specify which rays should be inserted
 into the fan. See also
 :func:`~sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety`,
 which can construct some other "nice partial resolutions."
+
+The intersection theory on toric varieties is very well understood,
+and there are explicit algorithms to compute many quantities of
+interest. The most important tools are the :class:`cohomology ring
+<CohomologyRing>` and the :mod:`Chow group
+<sage.schemes.generic.toric_chow_group>`. For `d`-dimensional compact
+toric varieties with at most orbifold singularities, the rational
+cohomology ring `H^*(X,\QQ)` and the rational Chow ring `A^*(X,\QQ) =
+A_{d-*}(X)\otimes \QQ` are isomorphic except for a doubling in
+degree. More precisely, the Chow group has the same rank
+
+  .. math::
+
+       A_{d-k}(X) \otimes \QQ \simeq H^{2k}(X,\QQ)
+
+and the intersection in of Chow cycles matches the cup product in
+cohomology.
+
+In this case, you should work with the cohomology ring description
+because it is much faster. For example, here is a weighted projective
+space with a curve of `\ZZ_3`-orbifold singularities::
+
+    sage: P4_11133 = toric_varieties.P4_11133()
+    sage: P4_11133.is_smooth(), P4_11133.is_orbifold()
+    (False, True)
+    sage: cone = P4_11133.fan(3)[8]
+    sage: cone.is_smooth(), cone.is_simplicial()
+    (False, True)
+    sage: HH = P4_11133.cohomology_ring();  HH
+    Rational cohomology ring of a 4-d CPR-Fano toric variety covered by 5 affine patches
+    sage: P4_11133.cohomology_basis()
+    (([1],), ([z4],), ([z4^2],), ([z4^3],), ([z4^4],))
+
+Every cone defines a torus orbit closure, and hence a (co)homology class::
+
+    sage: HH.gens()
+    ([3*z4], [3*z4], [z4], [z4], [z4])
+    sage: map(HH, P4_11133.fan(1))
+    [[3*z4], [3*z4], [z4], [z4], [z4]]
+    sage: map(HH, P4_11133.fan(4) )
+    [[9*z4^4], [9*z4^4], [9*z4^4], [9*z4^4], [9*z4^4]]
+    sage: HH(cone)
+    [3*z4^3]
+
+We can compute intersection numbers by integrating top-dimensional
+cohomology classes::
+
+    sage: D = P4_11133.divisor(0)
+    sage: HH(D)
+    [3*z4]
+    sage: P4_11133.integrate( HH(D)^4 )
+    9
+    sage: P4_11133.integrate( HH(D) * HH(cone) )
+    1
+
+Although computationally less efficient, we can do the same
+computations with the rational Chow group::
+
+    sage: AA = P4_11133.Chow_group(QQ)
+    sage: map(AA, P4_11133.fan(1))
+    [( 0 | 0 | 0 | 3 | 0 ), ( 0 | 0 | 0 | 3 | 0 ), ( 0 | 0 | 0 | 1 | 0 ), ( 0 | 0 | 0 | 1 | 0 ), ( 0 | 0 | 0 | 1 | 0 )]
+    sage: map(AA, P4_11133.fan(4))
+    [( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 )]
+    sage: AA(cone).intersection_with_divisor(D)
+    ( 1 | 0 | 0 | 0 | 0 )
+    sage: AA(cone).intersection_with_divisor(D).count_points()
+    1
+
+The real advantage of the Chow group is that
+
+  * it works just as well over `\ZZ`, so torsion information is also
+    easily available, and
+
+  * its combinatorial description also works over worse-than-orbifold
+    singularities. By contrast, the cohomology groups can become very
+    complicated to compute in this case, and one usually only has a
+    spectral sequence but no toric algorithm.
 
 Below you will find detailed descriptions of available functions. If you are
 familiar with toric geometry, you will likely see that many important objects
@@ -1297,6 +1372,11 @@ class ToricVariety_field(AmbientSpace):
         r"""
         Check if ``self`` has only quotient singularities.
 
+        A toric variety with at most orbifold singularities (in this
+        sense) is often called a simplicial toric variety. In this
+        package, we generally try to avoid this term since it mixes up
+        differential geometry and cone terminology.
+
         OUTPUT:
 
         - ``True`` if ``self`` has at most quotient singularities by
@@ -1826,7 +1906,7 @@ class ToricVariety_field(AmbientSpace):
               torsion-free, so in this case there is no loss of
               information when going to rational coefficients.
 
-            - ``self.cohomology_ring().gen(i)`` is the divisor class generated by
+            - ``self.cohomology_ring().gen(i)`` is the divisor class corresponding to
               the ``i``-th ray of the fan.
 
         EXAMPLES::
@@ -1897,15 +1977,15 @@ class ToricVariety_field(AmbientSpace):
         return self._cohomology_basis
 
     def volume_class(self):
-        """
+        r"""
         Return the cohomology class of the volume form on the toric
         variety.
 
-        If the variety is non-compact: Note that we are using
-        cohomology with compact supports. This is dual to homology
-        without any support condition. In particular, for non-compact
+        Note that we are using cohomology with compact supports. If
+        the variety is non-compact this is dual to homology without
+        any support condition. In particular, for non-compact
         varieties the volume form `\mathrm{dVol}=\wedge_i(dx_i \wedge
-        dy_i)` does not define a cohomology class.
+        dy_i)` does not define a (non-zero) cohomology class.
 
         OUTPUT:
 
@@ -1919,19 +1999,60 @@ class ToricVariety_field(AmbientSpace):
             sage: P2 = toric_varieties.P2()
             sage: P2.volume_class()
             [z^2]
+
             sage: A2_Z2 = toric_varieties.A2_Z2()
             sage: A2_Z2.volume_class()
             Traceback (most recent call last):
             ...
             ValueError: Volume class does not exist.
+
+        If none of the maximal cones is smooth things get more
+        tricky. In this case no torus-fixed point is smooth. If we
+        want to count an ordinary point as `1`, then a `G`-orbifold
+        point needs to count as `\frac{1}{|G|}`. For example, take
+        `\mathbb{P}^1\times\mathbb{P}^1` with inhomogeneous
+        coordinates `(t,y)`. Take the quotient by the action
+        `(t,y)\mapsto (-t,-y)`. The `\ZZ_2`-invariant Weil divisors
+        `\{t=0\}` and `\{y=0\}` intersect in a `\ZZ_2`-fixed point, so
+        they ought to have intersection number `\frac{1}{2}`. This
+        means that the cohomology class `[t] \cap [y]` should be
+        `\frac{1}{2}` times the volume class. Note that this is
+        different from the volume normalization chosen in
+        [Schubert]_::
+
+            sage: P1xP1_Z2 = toric_varieties.P1xP1_Z2()
+            sage: Dt = P1xP1_Z2.divisor(1);  Dt
+            V(t)
+            sage: Dy = P1xP1_Z2.divisor(3);  Dy
+            V(y)
+            sage: P1xP1_Z2.volume_class()
+            [2*t*y]
+
+            sage: HH = P1xP1_Z2.cohomology_ring()
+            sage: HH(Dt) * HH(Dy) == 1/2 * P1xP1_Z2.volume_class()
+            True
+
+        The fractional coefficients are also necessary to match the
+        normalization in the rational Chow group for simplicial toric
+        varieties::
+
+            sage: A = P1xP1_Z2.Chow_group(QQ)
+            sage: A(Dt).intersection_with_divisor(Dy).count_points()
+            1/2
+
+        REFERENCES:
+
+        ..  [Schubert]
+            Sheldon Katz and Stein Arild Stromme,
+            A Maple package for intersection theory and enumerative geometry.
         """
         if "_volume_class" not in self.__dict__:
             if not self.is_orbifold():
                 raise NotImplementedError('Cohomology computations are only '
                                           'implemented for orbifolds.')
-            def V(cone): return abs(cone.ray_matrix().determinant())
-            min_cone = min( self._fan.generating_cones(), key=V)
-            self._volume_class = self.cohomology_ring()(min_cone) / V(min_cone)
+            HH = self.cohomology_ring()
+            dim = self.dimension_relative()
+            self._volume_class = HH(self.fan().generating_cone(0)).part_of_degree(dim)
         if self._volume_class.is_zero():
             raise ValueError, 'Volume class does not exist.'
         return self._volume_class
@@ -1971,6 +2092,24 @@ class ToricVariety_field(AmbientSpace):
             [ 0  0  1 -1  1  0]
             [ 0  0  0  1 -1  1]
             [ 1  0  0  0  1 -1]
+
+        If the toric variety is an orbifold, the intersection numbers
+        are usually fractional::
+
+            sage: P2_123 = toric_varieties.P2_123()
+            sage: HH = P2_123.cohomology_ring()
+            sage: D = [ HH(c) for c in P2_123.fan(dim=1) ]
+            sage: matrix([ [ P2_123.integrate(D[i]*D[j]) for i in range(0,3) ] for j in range(0,3) ])
+            [2/3   1 1/3]
+            [  1 3/2 1/2]
+            [1/3 1/2 1/6]
+            sage: A = P2_123.Chow_group(QQ)
+            sage: matrix([ [ A(P2_123.divisor(i))
+            ...              .intersection_with_divisor(P2_123.divisor(j))
+            ...              .count_points() for i in range(0,3) ] for j in range(0,3) ])
+            [2/3   1 1/3]
+            [  1 3/2 1/2]
+            [1/3 1/2 1/6]
         """
         assert self.is_complete(), "Can only integrate over compact varieties."
         top_form = cohomology_class.part_of_degree(self.dimension())
@@ -2920,6 +3059,10 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
           be converted into a polynomial in the homogeneous
           coordinates.
 
+        OUTPUT:
+
+        The :class:`CohomologyClass` defined by ``x``.
+
         EXAMPLES::
 
             sage: dP6 = toric_varieties.dP6()
@@ -2933,6 +3076,24 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             sage: H( dP6.fan(0)[0] )   # trivial cone
             [1]
 
+        Non-smooth cones are a bit tricky. For such a cone, the
+        intersection of the divisors corresponding to the rays is
+        still proportional to the product of the variables, but the
+        coefficient is a multiple depending on the orbifold
+        singularity. See also [CLS]_, Lemma 12.5.2::
+
+            sage: P2_123 = toric_varieties.P2_123()
+            sage: HH = P2_123.cohomology_ring()
+            sage: HH(Cone([(1,0)])) * HH(Cone([(-2,-3)]))
+            [2*z2^2]
+            sage: HH(Cone([(1,0), (-2,-3)]))
+            [6*z2^2]
+            sage: [ HH(c) for c in P2_123.fan().generating_cones() ]
+            [[6*z2^2], [6*z2^2], [6*z2^2]]
+            sage: P2_123.volume_class()
+            [6*z2^2]
+            sage: [ HH(c.facets()[0]) * HH(c.facets()[1]) for c in P2_123.fan().generating_cones() ]
+            [[6*z2^2], [3*z2^2], [2*z2^2]]
 
         Numbers will be converted into the ring::
 
@@ -2957,8 +3118,9 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
         elif is_Cone(x):
             cone = fan.embed(x)
             assert cone.ambient() is fan
+            mult = cone.ray_matrix().index_in_saturation()
             x = prod((self.cover_ring().gen(i) for i in cone.ambient_ray_indices()),
-                     z=self.cover_ring().one())
+                     z=self.cover_ring().one()) * mult
         else:
             try:
                 # divisor, for example, know how to compute their own cohomology class

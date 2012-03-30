@@ -64,6 +64,9 @@ toric_varieties_rays_cones = {
     'P1xP1':[
         [(1, 0), (-1, 0), (0, 1), (0, -1)],
         [[0,2],[2,1],[1,3],[3,0]] ],
+    'P1xP1_Z2':[
+        [(1, 1), (-1, -1), (-1, 1), (1, -1)],
+        [[0,2],[2,1],[1,3],[3,0]] ],
     'P1':[
         [(1,), (-1,)],
         [[0],[1]] ],
@@ -157,6 +160,13 @@ toric_varieties_rays_cones = {
         [[0,1,2,3],[0,1,2,4],[0,1,3,4],[0,2,3,4],[1,2,3,4]] ],
     'P4_11169_resolved':[
         [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1), (-9, -6, -1, -1), (-3, -2, 0, 0)],
+        [[0, 1, 2, 3], [0, 1, 3, 4], [0, 1, 2, 4], [1, 3, 4, 5], [0, 3, 4, 5],
+         [1, 2, 4, 5], [0, 2, 4, 5], [1, 2, 3, 5], [0, 2, 3, 5]] ],
+    'P4_11133':[
+        [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1), (-3, -3, -1, -1)],
+        [[0,1,2,3],[0,1,2,4],[0,1,3,4],[0,2,3,4],[1,2,3,4]] ],
+    'P4_11133_resolved':[
+        [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1), (-3, -3, -1, -1), (-1, -1, 0, 0)],
         [[0, 1, 2, 3], [0, 1, 3, 4], [0, 1, 2, 4], [1, 3, 4, 5], [0, 3, 4, 5],
          [1, 2, 4, 5], [0, 2, 4, 5], [1, 2, 3, 5], [0, 2, 3, 5]] ]
 }
@@ -375,6 +385,38 @@ class ToricVarietyFactory(SageObject):
             (s, t, x, y)
         """
         return self._make_CPRFanoToricVariety('P1xP1', names)
+
+    def P1xP1_Z2(self, names='s t x y'):
+        r"""
+        Construct the toric `\mathbb{Z}_2`-orbifold of the del Pezzo
+        surface `\mathbb{P}^1 \times \mathbb{P}^1` as a toric variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
+
+        OUTPUT:
+
+        A :class:`CPR-Fano toric variety
+        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+
+        EXAMPLES::
+
+            sage: P1xP1_Z2 = toric_varieties.P1xP1_Z2()
+            sage: P1xP1_Z2
+            2-d CPR-Fano toric variety covered by 4 affine patches
+            sage: P1xP1_Z2.fan().ray_matrix()
+            [ 1 -1 -1  1]
+            [ 1 -1  1 -1]
+            sage: P1xP1_Z2.gens()
+            (s, t, x, y)
+            sage: P1xP1_Z2.Chow_group().degree(1)
+            C2 x Z^2
+        """
+        return self._make_CPRFanoToricVariety('P1xP1_Z2', names)
 
     def P1(self, names='s t'):
         r"""
@@ -1083,6 +1125,70 @@ class ToricVarietyFactory(SageObject):
             (z0, z1, z2, z3, z4, z5)
         """
         return self._make_CPRFanoToricVariety('P4_11169_resolved', names)
+
+    def P4_11133(self, names='z+'):
+        """
+        Construct the weighted projective space
+        `\mathbb{P}^4(1,1,1,3,3)`.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
+
+        OUTPUT:
+
+        A :class:`CPR-Fano toric variety
+        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+
+        EXAMPLES::
+
+            sage: P4_11133 = toric_varieties.P4_11133()
+            sage: P4_11133
+            4-d CPR-Fano toric variety covered by 5 affine patches
+            sage: P4_11133.fan().ray_matrix()
+            [ 1  0  0  0 -3]
+            [ 0  1  0  0 -3]
+            [ 0  0  1  0 -1]
+            [ 0  0  0  1 -1]
+            sage: P4_11133.gens()
+            (z0, z1, z2, z3, z4)
+        """
+        return self._make_CPRFanoToricVariety('P4_11133', names)
+
+    def P4_11133_resolved(self, names='z+'):
+        """
+        Construct the weighted projective space
+        `\mathbb{P}^4(1,1,1,3,3)`.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
+
+        OUTPUT:
+
+        A :class:`CPR-Fano toric variety
+        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+
+        EXAMPLES::
+
+            sage: P4_11133_resolved = toric_varieties.P4_11133_resolved()
+            sage: P4_11133_resolved
+            4-d CPR-Fano toric variety covered by 9 affine patches
+            sage: P4_11133_resolved.fan().ray_matrix()
+            [ 1  0  0  0 -3 -1]
+            [ 0  1  0  0 -3 -1]
+            [ 0  0  1  0 -1  0]
+            [ 0  0  0  1 -1  0]
+            sage: P4_11133_resolved.gens()
+            (z0, z1, z2, z3, z4, z5)
+        """
+        return self._make_CPRFanoToricVariety('P4_11133_resolved', names)
 
 
 toric_varieties = ToricVarietyFactory()

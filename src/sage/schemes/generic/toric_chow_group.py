@@ -322,10 +322,8 @@ class ChowCycle(FGP_Element):
             5
 
         In the case of a smooth complete toric variety, the Chow
-        (homology) groups are Poincare dual to the cohomology
-        groups. Then the number of points equals the integral of the
-        dual cohomology class. But in general there is no Poincare
-        duality. Here is a smooth example::
+        (homology) groups are Poincare dual to the integral cohomology
+        groups. Here is such a smooth example::
 
             sage: D = P2.divisor(1)
             sage: a = D.Chow_cycle()
@@ -334,6 +332,22 @@ class ChowCycle(FGP_Element):
             1
             sage: P2.integrate( aD.cohomology_class() )
             1
+
+        For toric varieties with at most orbifold singularities, the
+        isomorphism only holds over `\QQ`. But the normalization of
+        the integral is still chosen such that the intersection
+        numbers (which are potentially rational) computed both ways
+        agree::
+
+            sage: P1xP1_Z2 = toric_varieties.P1xP1_Z2()
+            sage: Dt = P1xP1_Z2.divisor(1);  Dt
+            V(t)
+            sage: Dy = P1xP1_Z2.divisor(3);  Dy
+            V(y)
+            sage: Dt.Chow_cycle(QQ).intersection_with_divisor(Dy).count_points()
+            1/2
+            sage: P1xP1_Z2.integrate( Dt.cohomology_class() * Dy.cohomology_class() )
+            1/2
         """
         c0 = self.project_to_degree(0).lift()
         return sum(c0)
@@ -459,12 +473,12 @@ class ChowCycle(FGP_Element):
         cohomology classes perform intersection computations.
 
         If the toric variety is compact and has at most orbifold
-        singularities, Poincare duality holds for rational cohomology
-        only. In this case, the associated cohomology class is
-        rationally Poincare-dual to the Chow cycle. However, the
-        normalization of integrals over the associated cohomology
-        classes will not always match the (integral) intersection
-        numbers of the torus orbits.
+        singularities, the torsion parts in cohomology and the Chow
+        group can differ. But they are still isomorphic as rings over
+        the rationals. Moreover, the normalization of integration
+        (:meth:`volume_class
+        <sage.schemes.generic.toric_variety.ToricVariety_field.volume_class>`)
+        and :meth:`count_points` are chosen to agree.
 
         OUTPUT:
 
@@ -491,26 +505,28 @@ class ChowCycle(FGP_Element):
             [-w^2]
 
         Here is an example of a toric variety with orbifold
-        singularities, where Poincare duality holds only rationally::
+        singularities, where we can also use the isomorphism with the
+        rational cohomology ring::
 
             sage: WP4 = toric_varieties.P4_11169()
             sage: A = WP4.Chow_group()
             sage: HH = WP4.cohomology_ring()
             sage: cone3d = Cone([(0,0,1,0), (0,0,0,1), (-9,-6,-1,-1)])
+            sage: A(cone3d)
+            ( 0 | 1 | 0 | 0 | 0 )
+            sage: HH(cone3d)
+            [3*z4^3]
+
             sage: D = -WP4.K()  # the anticanonical divisor
+            sage: A(D)
+            ( 0 | 0 | 0 | 18 | 0 )
+            sage: HH(D)
+            [18*z4]
+
             sage: WP4.integrate( A(cone3d).cohomology_class() * D.cohomology_class() )
-            1/3
+            1
             sage: WP4.integrate( HH(cone3d) * D.cohomology_class() )
-            1/3
-
-        The last two lines are the same integral. In either case, the
-        integrand is the product of the cohomology class associated to
-        the 3-dimensional cone times the cohomology class associated
-        to the divisor ``D``. But the intersection number of the
-        (real) 6-dimensional torus orbit corresponding to the 3-d cone
-        with the divisor is of course not `\frac{1}{3}`. The actual
-        intersection number is::
-
+            1
             sage: A(cone3d).intersection_with_divisor(D).count_points()
             1
         """

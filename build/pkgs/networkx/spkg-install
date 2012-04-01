@@ -13,22 +13,6 @@ rm -rf "$SAGE_LOCAL"/lib/python/networkx*
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/networkx*
 rm -rf "$SAGE_LOCAL"/spkg/network*
 
-echo "Patching"
-# This patch allows the user to use the matplotlib.pyparsing
-# as pyparsing is not included in the base install of sage
-# but is included in matplotlib.
-cp patches/gml.py src/networkx/readwrite
-if [ $? -ne 0 ]; then
-    echo "Error copying patched gml.py"
-    exit 1
-fi
-
-cp patches/test_gml.py src/networkx/readwrite/tests
-if [ $? -ne 0 ]; then
-    echo "Error copying patched test_gml.py"
-    exit 1
-fi
-
 cd src
 
 python setup.py install --home="$SAGE_LOCAL" --force

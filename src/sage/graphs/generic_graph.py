@@ -13091,49 +13091,64 @@ class GenericGraph(GenericGraph_pyx):
         return G
 
     def cartesian_product(self, other):
-        """
+        r"""
         Returns the Cartesian product of self and other.
 
         The Cartesian product of `G` and `H` is the graph `L` with vertex set
         `V(L)` equal to the Cartesian product of the vertices `V(G)` and `V(H)`,
-        and `((u,v), (w,x))` is an edge iff either - `(u, w)` is an edge of
-        self and `v = x`, or - `(v, x)` is an edge of other and `u = w`.
+        and `((u,v), (w,x))` is an edge iff either - `(u, w)` is an edge of self
+        and `v = x`, or - `(v, x)` is an edge of other and `u = w`.
 
-        EXAMPLES::
+        TESTS:
 
-            sage: Z = graphs.CompleteGraph(2)
-            sage: C = graphs.CycleGraph(5)
-            sage: P = C.cartesian_product(Z); P
-            Graph on 10 vertices
-            sage: P.plot() # long time
+        Cartesian product of graphs::
 
-        ::
+            sage: G = Graph([(0,1),(1,2)])
+            sage: H = Graph([('a','b')])
+            sage: C1 = G.cartesian_product(H)
+            sage: C1.edges(labels=None)
+            [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'b'), (1, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
+            sage: C2 = H.cartesian_product(G)
+            sage: C1.is_isomorphic(C2)
+            True
 
-            sage: D = graphs.DodecahedralGraph()
-            sage: P = graphs.PetersenGraph()
-            sage: C = D.cartesian_product(P); C
-            Graph on 200 vertices
-            sage: C.plot() # long time
+        Construction of a Toroidal grid::
+
+            sage: A = graphs.CycleGraph(3)
+            sage: B = graphs.CycleGraph(4)
+            sage: T = A.cartesian_product(B)
+            sage: T.is_isomorphic( graphs.ToroidalGrid2dGraph(3,4) )
+            True
+
+        Cartesian product of digraphs::
+
+            sage: P = DiGraph([(0,1)])
+            sage: B = digraphs.DeBruijn( ['a','b'], 2 )
+            sage: Q = P.cartesian_product(B)
+            sage: Q.edges(labels=None)
+            [((0, 'aa'), (0, 'aa')), ((0, 'aa'), (0, 'ab')), ((0, 'aa'), (1, 'aa')), ((0, 'ab'), (0, 'ba')), ((0, 'ab'), (0, 'bb')), ((0, 'ab'), (1, 'ab')), ((0, 'ba'), (0, 'aa')), ((0, 'ba'), (0, 'ab')), ((0, 'ba'), (1, 'ba')), ((0, 'bb'), (0, 'ba')), ((0, 'bb'), (0, 'bb')), ((0, 'bb'), (1, 'bb')), ((1, 'aa'), (1, 'aa')), ((1, 'aa'), (1, 'ab')), ((1, 'ab'), (1, 'ba')), ((1, 'ab'), (1, 'bb')), ((1, 'ba'), (1, 'aa')), ((1, 'ba'), (1, 'ab')), ((1, 'bb'), (1, 'ba')), ((1, 'bb'), (1, 'bb'))]
+            sage: Q.strongly_connected_components_digraph().num_verts()
+            2
+            sage: V = Q.strongly_connected_component_containing_vertex( (0, 'aa') )
+            sage: B.is_isomorphic( Q.subgraph(V) )
+            True
         """
-        if (self._directed and not other._directed) or (not self._directed and other._directed):
-            raise TypeError('Both arguments must be of the same class.')
-        if self._directed:
+        if self._directed and other._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph()
-        else:
+            G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
+        elif (not self._directed) and (not other._directed):
             from sage.graphs.all import Graph
             G = Graph()
-        verts = []
-        for a in self.vertices():
-            for b in other.vertices():
-                G.add_vertex((a,b))
-                verts.append((a,b))
-        for i in range(len(verts)):
-            for j in range(i):
-                u,v = verts[i]
-                w,x = verts[j]
-                if (self.has_edge(u, w) and v == x) or (other.has_edge(v, x) and u == w):
-                    G.add_edge((u,v), (w,x))
+        else:
+            raise TypeError('The graphs should be both directed or both undirected.')
+
+        G.add_vertices( [(u,v) for u in self for v in other] )
+        for u,w in self.edge_iterator(labels=None):
+            for v in other:
+                G.add_edge((u,v), (w,v))
+        for v,x in other.edge_iterator(labels=None):
+            for u in self:
+                G.add_edge((u,v), (u,x))
         return G
 
     def tensor_product(self, other):

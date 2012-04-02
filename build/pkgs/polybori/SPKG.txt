@@ -36,17 +36,35 @@ reference implementation for Gröbner basis computation.
  * png/libpng12 (accomplished because Python and gd depend on it, too)
  * libz         (accomplished because e.g. libpng depends on it)
 
+== Patches ==
+
+ * Sage Trac #12655 (Upgrade ticket, fixing known issues):
+   - gbcore.py.patch -- Fixing list access to ideal, which might be represented
+     as a set here
+   - ipbori.patch -- Fixing prerequisites check for testing plot.py
+   - nf.h.patch -- Fixing preprocessor misconception
+ * Sage Trac #12750:
+   - base_lookup.patch -- Fixing explict name lookup in template base (gcc 4.7)
+ * Sage Trac #12655, comment:29:
+   - SConstruct.patch -- Fixing gcc components on sun
+
+All patches were merged upstream.
+
+
 == Special Files ==
+
  * custom.py - configuration file for PolyBoRi's build system,
                sets local prefix and install paths to Sage directories
+
 
 == Releases ==
 
 === polybori-0.8.1.p1 (Alexander Dreyer, March 26th, 2012) ===
- * Rebased spkg on polybori-0.8.0.p2, work around broken scons on sun
+ * Rebased spkg on polybori-0.8.0.p2 (Sage Trac #12750)
+ * Working around broken scons on sun (Sage Trac #12655, comment:29)
 
 === polybori-0.8.1.p0 (Alexander Dreyer, March 7th, 2012) ===
- * Updating sources to PolyBoRi's release 0.8.1
+ * Updating sources to PolyBoRi's release 0.8.1 (Sage Trac #12655)
 
 === polybori-0.8.0.p2 (Alexander Dreyer, March 26th, 2012) ===
  * Fix scoping/name look-up issue and support flags from the environment

@@ -56,7 +56,6 @@ Enjoy Sage!
    databases
    interfaces
    libs
-   networking
    cryptography
    logic
    combinat/index

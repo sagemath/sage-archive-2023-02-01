@@ -131,14 +131,16 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
             sage: F4dual = CartanType(['F', 4]).dual()
             sage: cmp(F4dual, F4dual)
             0
-            sage: cmp(F4dual, B4dual)
-            1
-            sage: cmp(B4dual, F4dual)
-            -1
-            sage: cmp(B4dual, B4)
-            1
 
-        .. todo:: do we really need a cmp, or just eq?
+        Whether ``cmp()`` returns 1 or -1 doesn't matter, just check
+        that the following are non-zero::
+
+            sage: cmp(F4dual, B4dual) != 0
+            True
+            sage: cmp(B4dual, F4dual) * cmp(F4dual, B4dual) < 0
+            True
+            sage: cmp(B4dual, B4) != 0
+            True
         """
         if other.__class__ != self.__class__:
             return cmp(self.__class__, other.__class__)

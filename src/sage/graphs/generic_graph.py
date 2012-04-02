@@ -12880,14 +12880,17 @@ class GenericGraph(GenericGraph_pyx):
         return G
 
     def tensor_product(self, other):
-        """
-        Returns the tensor product, also called the categorical product, of
-        self and other.
+        r"""
+        Returns the tensor product of self and other.
 
-        The tensor product of `G` and `H` is the graph `L` with vertex set `V(L)`
-        equal to the Cartesian product of the vertices `V(G)` and `V(H)`, and
-        `((u,v), (w,x))` is an edge iff - `(u, w)` is an edge of self, and -
+        The tensor product of `G` and `H` is the graph `L` with vertex set
+        `V(L)` equal to the Cartesian product of the vertices `V(G)` and `V(H)`,
+        and `((u,v), (w,x))` is an edge iff - `(u, w)` is an edge of self, and -
         `(v, x)` is an edge of other.
+
+        The tensor product is also knwon as the categorical product and the
+        kronecker product (refering to the kronecker matrix product). See
+        :wikipedia:`Wikipedia article on the Kronecker product <Kronecker_product>`.
 
         EXAMPLES::
 
@@ -12904,38 +12907,62 @@ class GenericGraph(GenericGraph_pyx):
             sage: T = D.tensor_product(P); T
             Graph on 200 vertices
             sage: T.plot() # long time
+
+        TESTS:
+
+        Tensor product of graphs::
+
+            sage: G = Graph([(0,1), (1,2)])
+            sage: H = Graph([('a','b')])
+            sage: T = G.tensor_product(H)
+            sage: T.edges(labels=None)
+            [((0, 'a'), (1, 'b')), ((1, 'a'), (2, 'b'))]
+            sage: T.is_isomorphic( H.tensor_product(G) )
+            True
+
+        Tensor product of digraphs::
+
+            sage: I = DiGraph([(0,1), (1,2)])
+            sage: J = DiGraph([('a','b')])
+            sage: T = I.tensor_product(J)
+            sage: T.edges(labels=None)
+            [((0, 'a'), (1, 'b')), ((1, 'a'), (2, 'b'))]
+            sage: T.is_isomorphic( J.tensor_product(I) )
+            True
+
+        The tensor product of two DeBruijn digraphs of same diameter is a DeBruijn digraph::
+
+            sage: B1 = digraphs.DeBruijn(2, 3)
+            sage: B2 = digraphs.DeBruijn(3, 3)
+            sage: T = B1.tensor_product( B2 )
+            sage: T.is_isomorphic( digraphs.DeBruijn( 2*3, 3) )
+            True
         """
-        if (self._directed and not other._directed) or (not self._directed and other._directed):
-            raise TypeError('Both arguments must be of the same class.')
-        if self._directed:
+        if self._directed and other._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph()
-        else:
+            G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
+        elif (not self._directed) and (not other._directed):
             from sage.graphs.all import Graph
             G = Graph()
-        verts = []
-        for a in self.vertices():
-            for b in other.vertices():
-                G.add_vertex((a,b))
-                verts.append((a,b))
-        for i in range(len(verts)):
-            for j in range(i):
-                u,v = verts[i]
-                w,x = verts[j]
-                if self.has_edge(u, w) and other.has_edge(v, x):
-                    G.add_edge((u,v), (w,x))
+        else:
+            raise TypeError('The graphs should be both directed or both undirected.')
+        G.add_vertices( [(u,v) for u in self for v in other] )
+        for u,w in self.edges(labels=None):
+            for v,x in other.edges(labels=None):
+                G.add_edge((u,v), (w,x))
         return G
 
     categorical_product = tensor_product
+    kronecker_product = tensor_product
 
     def lexicographic_product(self, other):
-        """
+        r"""
         Returns the lexicographic product of self and other.
 
-        The lexicographic product of G and H is the graph L with vertex set
-        V(L) equal to the Cartesian product of the vertices V(G) and V(H),
-        and ((u,v), (w,x)) is an edge iff - (u, w) is an edge of self, or -
-        u = w and (v, x) is an edge of other.
+        The lexicographic product of G and H is the graph L with vertex set V(L)
+        equal to the Cartesian product of the vertices V(G) and V(H), and
+        ((u,v), (w,x)) is an edge iff - (u, w) is an edge of self, or - u = w
+        and (v, x) is an edge of other.
 
         EXAMPLES::
 
@@ -12952,39 +12979,57 @@ class GenericGraph(GenericGraph_pyx):
             sage: L = D.lexicographic_product(P); L
             Graph on 200 vertices
             sage: L.plot() # long time
+
+        TESTS:
+
+        Lexicographic product of graphs::
+
+            sage: G = Graph([(0,1), (1,2)])
+            sage: H = Graph([('a','b')])
+            sage: T = G.lexicographic_product(H)
+            sage: T.edges(labels=None)
+            [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'b'), (1, 'a')), ((0, 'b'), (1, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'a')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
+            sage: T.is_isomorphic( H.lexicographic_product(G) )
+            False
+
+        Lexicographic product of digraphs::
+
+            sage: I = DiGraph([(0,1), (1,2)])
+            sage: J = DiGraph([('a','b')])
+            sage: T = I.lexicographic_product(J)
+            sage: T.edges(labels=None)
+            [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'b'), (1, 'a')), ((0, 'b'), (1, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'a')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
+            sage: T.is_isomorphic( J.lexicographic_product(I) )
+            False
         """
-        if (self._directed and not other._directed) or (not self._directed and other._directed):
-            raise TypeError('Both arguments must be of the same class.')
-        if self._directed:
+        if self._directed and other._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph()
-        else:
+            G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
+        elif (not self._directed) and (not other._directed):
             from sage.graphs.all import Graph
             G = Graph()
-        verts = []
-        for a in self.vertices():
-            for b in other.vertices():
-                G.add_vertex((a,b))
-                verts.append((a,b))
-        for i in range(len(verts)):
-            for j in range(i):
-                u,v = verts[i]
-                w,x = verts[j]
-                if self.has_edge(u, w) or (u == w and other.has_edge(v, x)):
+        else:
+            raise TypeError('The graphs should be both directed or both undirected.')
+        G.add_vertices( [(u,v) for u in self for v in other] )
+        for u,w in self.edges(labels=None):
+            for v in other:
+                for x in other:
                     G.add_edge((u,v), (w,x))
+        for u in self:
+            for v,x in other.edges(labels=None):
+                G.add_edge((u,v), (u,x))
         return G
 
     def strong_product(self, other):
-        """
+        r"""
         Returns the strong product of self and other.
 
-        The strong product of G and H is the graph L with vertex set V(L)
-        equal to the Cartesian product of the vertices V(G) and V(H), and
-        ((u,v), (w,x)) is an edge iff either - (u, w) is an edge of self
-        and v = x, or - (v, x) is an edge of other and u = w, or - (u, w)
-        is an edge of self and (v, x) is an edge of other. In other words,
-        the edges of the strong product is the union of the edges of the
-        tensor and Cartesian products.
+        The strong product of G and H is the graph L with vertex set V(L) equal
+        to the Cartesian product of the vertices V(G) and V(H), and ((u,v),
+        (w,x)) is an edge iff either - (u, w) is an edge of self and v = x, or -
+        (v, x) is an edge of other and u = w, or - (u, w) is an edge of self and
+        (v, x) is an edge of other. In other words, the edges of the strong
+        product is the union of the edges of the tensor and Cartesian products.
 
         EXAMPLES::
 
@@ -13001,39 +13046,57 @@ class GenericGraph(GenericGraph_pyx):
             sage: S = D.strong_product(P); S
             Graph on 200 vertices
             sage: S.plot() # long time
+
+        TESTS:
+
+        Strong product of graphs::
+
+            sage: G = Graph([(0,1), (1,2)])
+            sage: H = Graph([('a','b')])
+            sage: T = G.strong_product(H)
+            sage: T.edges(labels=None)
+            [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'b'), (1, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
+            sage: T.is_isomorphic( H.strong_product(G) )
+            True
+
+        Strong product of digraphs::
+
+            sage: I = DiGraph([(0,1), (1,2)])
+            sage: J = DiGraph([('a','b')])
+            sage: T = I.strong_product(J)
+            sage: T.edges(labels=None)
+            [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'b'), (1, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
+            sage: T.is_isomorphic( J.strong_product(I) )
+            True
         """
-        if (self._directed and not other._directed) or (not self._directed and other._directed):
-            raise TypeError('Both arguments must be of the same class.')
-        if self._directed:
+        if self._directed and other._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph()
-        else:
+            G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
+        elif (not self._directed) and (not other._directed):
             from sage.graphs.all import Graph
             G = Graph()
+        else:
+            raise TypeError('The graphs should be both directed or both undirected.')
 
-        verts = []
-        for a in self.vertices():
-            for b in other.vertices():
-                G.add_vertex((a,b))
-                verts.append((a,b))
-        for i in range(len(verts)):
-            for j in range(i):
-                u,v = verts[i]
-                w,x = verts[j]
-                if (self.has_edge(u, w) and v == x) or \
-                   (other.has_edge(v, x) and u == w) or \
-                   (self.has_edge(u, w) and other.has_edge(v, x)):
-                    G.add_edge((u,v), (w,x))
+        G.add_vertices( [(u,v) for u in self for v in other] )
+        for u,w in self.edges(labels=None):
+            for v in other:
+                G.add_edge((u,v), (w,v))
+            for v,x in other.edges(labels=None):
+                G.add_edge((u,v), (w,x))
+        for v,x in other.edges(labels=None):
+            for u in self:
+                G.add_edge((u,v), (u,x))
         return G
 
     def disjunctive_product(self, other):
-        """
+        r"""
         Returns the disjunctive product of self and other.
 
-        The disjunctive product of G and H is the graph L with vertex set
-        V(L) equal to the Cartesian product of the vertices V(G) and V(H),
-        and ((u,v), (w,x)) is an edge iff either - (u, w) is an edge of
-        self, or - (v, x) is an edge of other.
+        The disjunctive product of G and H is the graph L with vertex set V(L)
+        equal to the Cartesian product of the vertices V(G) and V(H), and
+        ((u,v), (w,x)) is an edge iff either - (u, w) is an edge of self, or -
+        (v, x) is an edge of other.
 
         EXAMPLES::
 
@@ -13048,25 +13111,46 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = C.disjunctive_product(Z); D
             Graph on 10 vertices
             sage: D.plot() # long time
+
+        TESTS:
+
+        Disjunctive product of graphs::
+
+            sage: G = Graph([(0,1), (1,2)])
+            sage: H = Graph([('a','b')])
+            sage: T = G.disjunctive_product(H)
+            sage: T.edges(labels=None)
+            [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'a'), (2, 'b')), ((0, 'b'), (1, 'a')), ((0, 'b'), (1, 'b')), ((0, 'b'), (2, 'a')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'a')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
+            sage: T.is_isomorphic( H.disjunctive_product(G) )
+            True
+
+        Disjunctive product of digraphs::
+
+            sage: I = DiGraph([(0,1), (1,2)])
+            sage: J = DiGraph([('a','b')])
+            sage: T = I.disjunctive_product(J)
+            sage: T.edges(labels=None)
+            [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'a'), (2, 'b')), ((0, 'b'), (1, 'a')), ((0, 'b'), (1, 'b')), ((1, 'a'), (0, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'a')), ((1, 'b'), (2, 'b')), ((2, 'a'), (0, 'b')), ((2, 'a'), (1, 'b')), ((2, 'a'), (2, 'b'))]
+            sage: T.is_isomorphic( J.disjunctive_product(I) )
+            True
         """
-        if (self._directed and not other._directed) or (not self._directed and other._directed):
-            raise TypeError('Both arguments must be of the same class.')
-        if self._directed:
+        if self._directed and other._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph()
-        else:
+            G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
+        elif (not self._directed) and (not other._directed):
             from sage.graphs.all import Graph
             G = Graph()
-        verts = []
-        for a in self.vertices():
-            for b in other.vertices():
-                G.add_vertex((a,b))
-                verts.append((a,b))
-        for i in range(len(verts)):
-            for j in range(i):
-                u,v = verts[i]
-                w,x = verts[j]
-                if self.has_edge(u, w) or other.has_edge(v, x):
+        else:
+            raise TypeError('The graphs should be both directed or both undirected.')
+
+        G.add_vertices( [(u,v) for u in self for v in other] )
+        for u,w in self.edges(labels=None):
+            for v in other:
+                for x in other:
+                    G.add_edge((u,v), (w,x))
+        for v,x in other.edges(labels=None):
+            for u in self:
+                for w in self:
                     G.add_edge((u,v), (w,x))
         return G
 

@@ -1073,7 +1073,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         sage: A = random_matrix(ComplexField(32), 3, density=0.8, sparse=True); A
         [                 0.000000000  0.399739209 + 0.909948633*I                  0.000000000]
         [-0.361911424 - 0.455087671*I -0.687810605 + 0.460619713*I  0.625520058 - 0.360952012*I]
-        [                 0.000000000                  0.000000000     62196416 - 0.193242896*I]
+        [                 0.000000000                  0.000000000 -0.162196416 - 0.193242896*I]
         sage: A.is_sparse()
         True
 

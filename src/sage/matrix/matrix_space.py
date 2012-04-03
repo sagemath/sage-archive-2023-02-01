@@ -1315,8 +1315,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MS = MatrixSpace(CC,2,1)
             sage: F = NumberField(x^2+1, name='x')
             sage: MS([F(1),F(0)])
-            [1.00000000000000]
-            [               0]
+            [ 1.00000000000000]
+            [0.000000000000000]
 
         """
         if x is None or x==0:

@@ -42,7 +42,7 @@ class HyperbolicTriangle(BezierPath):
 
          sage: from sage.plot.hyperbolic_triangle import HyperbolicTriangle
          sage: print HyperbolicTriangle(0, 1/2, I, {})
-         Hyperbolic triangle (0, 0.500000000000000, 1.00000000000000*I)
+         Hyperbolic triangle (0.000000000000000, 0.500000000000000, 1.00000000000000*I)
     """
     def __init__(self, A, B, C, options):
         """
@@ -52,7 +52,7 @@ class HyperbolicTriangle(BezierPath):
 
             sage: from sage.plot.hyperbolic_triangle import HyperbolicTriangle
             sage: print HyperbolicTriangle(0, 1/2, I, {})
-            Hyperbolic triangle (0, 0.500000000000000, 1.00000000000000*I)
+            Hyperbolic triangle (0.000000000000000, 0.500000000000000, 1.00000000000000*I)
         """
         A, B, C = (CC(A), CC(B), CC(C))
         self.path = []

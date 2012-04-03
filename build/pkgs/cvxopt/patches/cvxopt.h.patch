@@ -1,36 +1,30 @@
---- src/src/C/cvxopt.h	2011-12-21 13:53:49.000000000 -0800
-+++ src.patched/src/C/cvxopt.h	2012-03-31 10:13:43.000000000 -0700
-@@ -27,8 +27,22 @@
+diff -ru src/src/C/cvxopt.h src.patched/src/C/cvxopt.h
+--- src/src/C/cvxopt.h	2011-12-21 22:53:49.000000000 +0100
++++ src.patched/src/C/cvxopt.h	2012-04-03 15:32:27.348269553 +0200
+@@ -27,8 +27,16 @@
  /* ANSI99 complex is disabled during build of CHOLMOD */
  
  #ifndef NO_ANSI99_COMPLEX
 -#include "complex.h"
--#define MAT_BUFZ(O)  ((complex *)((matrix *)O)->buffer)
-+
 +#include <complex.h>
-+/* work around Solaris 10 specific problem in complex.h */
-+ #if defined(__sun__) && defined(__GNUC__)
-+    #if __GNUC__ < 4  || ( __GNUC__ == 4 && __GNUC_MINOR__ < 5   )
-+ 
-+       #undef  _Complex_I
-+       #define _Complex_I (__extension__ 1.0iF)
-+ 
-+       #undef I
-+       #define I _Complex_I
-+ 
-+    #endif
-+ #endif
+ #define MAT_BUFZ(O)  ((complex *)((matrix *)O)->buffer)
 +
-+#define MAT_BUFZ(O)  ((complex *)((matrix *)O)->buffer)
++/* The <complex.h> header of Solaris 10 defines I in a way that GCC
++ * doesn't understand.  Redefine I like in glibc. */
++#if defined(__sun__) && defined(__GNUC__)
++    #undef I
++    #define I (__extension__ 1.0iF)
++#endif
++
  #endif
  
  #ifndef __CVXOPT__
-@@ -49,7 +63,7 @@
+@@ -49,7 +57,7 @@
    int_t strides[2];
    int_t ob_exports;
  #else
 -  int_t nrows, ncols;    /* number of rows and columns */
-+  int nrows, ncols;    /* number of rows and columns */
++  int nrows, ncols;      /* number of rows and columns */
  #endif
    int   id;              /* DOUBLE, INT, COMPLEX */
  } matrix;

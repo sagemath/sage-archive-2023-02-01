@@ -32,11 +32,11 @@ except KeyError:
 # tempfile.gettempdir()?
 if 'SAGE_TESTDIR' not in os.environ:
     os.environ['SAGE_TESTDIR'] = os.path.join(SAGE_ROOT, "tmp")
-TMP = os.path.join(os.environ['SAGE_TESTDIR'], "tmp")
+SAGE_TESTDIR = os.environ['SAGE_TESTDIR']
 try:
-    os.makedirs(TMP)
+    os.makedirs(SAGE_TESTDIR)
 except OSError:
-    if not os.path.isdir(TMP):
+    if not os.path.isdir(SAGE_TESTDIR):
         raise
 
 def sage_test_command(f):
@@ -88,7 +88,6 @@ def test(F, cmd):
         failed.append(sage_test_command(F))
     elif err != 0:
         failed.append(sage_test_command(F))
-    os.system("mv -f __test* %s 2>/dev/null"%(TMP))
     t = time.time() - t
     print "\t [%.1f s]" % t
     if XML_RESULTS:

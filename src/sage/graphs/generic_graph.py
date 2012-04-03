@@ -4530,109 +4530,6 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return filter(lambda (u,v,l) : cut[R(u,v)] > .5, self.edge_iterator())
 
-    def vertex_cover(self, algorithm="Cliquer", value_only=False, solver=None, verbose=0):
-        r"""
-        Returns a minimum vertex cover of self represented
-        by a list of vertices.
-
-        A minimum vertex cover of a graph is a set `S` of
-        vertices such that each edge is incident to at least
-        one element of `S`, and such that `S` is of minimum
-        cardinality. For more information, see the
-        `Wikipedia article on vertex cover
-        <http://en.wikipedia.org/wiki/Vertex_cover>`_.
-
-        Equivalently, a vertex cover is defined as the
-        complement of an independent set.
-
-        As an optimization problem, it can be expressed as follows:
-
-        .. MATH::
-
-            \mbox{Minimize : }&\sum_{v\in G} b_v\\
-            \mbox{Such that : }&\forall (u,v) \in G.edges(), b_u+b_v\geq 1\\
-            &\forall x\in G, b_x\mbox{ is a binary variable}
-
-        INPUT:
-
-        - ``algorithm`` -- string (default: ``"Cliquer"``). Indicating
-          which algorithm to use. It can be one of those two values.
-
-          - ``"Cliquer"`` will compute a minimum vertex cover
-            using the Cliquer package.
-
-          - ``"MILP"`` will compute a minimum vertex cover through a mixed
-            integer linear program.
-
-        - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
-          only the size of a minimum vertex cover is returned. Otherwise,
-          a minimum vertex cover is returned as a list of vertices.
-
-        - ``log`` -- non-negative integer (default: ``0``). Set the level
-          of verbosity you want from the linear program solver. Since the
-          problem of computing a vertex cover is `NP`-complete, its solving
-          may take some time depending on the graph. A value of 0 means
-          that there will be no message printed by the solver. This option
-          is only useful if ``algorithm="MILP"``.
-
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
-
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
-          verbosity. Set to 0 by default, which means quiet.
-
-        EXAMPLES:
-
-        On the Pappus graph::
-
-           sage: g = graphs.PappusGraph()
-           sage: g.vertex_cover(value_only=True)
-           9
-
-        The two algorithms should return the same result::
-
-           sage: g = graphs.RandomGNP(10,.5)
-           sage: vc1 = g.vertex_cover(algorithm="MILP")
-           sage: vc2 = g.vertex_cover(algorithm="Cliquer")
-           sage: len(vc1) == len(vc2)
-           True
-        """
-        if algorithm == "Cliquer":
-            independent = self.independent_set()
-            if value_only:
-                return self.order() - len(independent)
-            else:
-                return set(self.vertices()).difference(set(independent))
-
-        elif algorithm == "MILP":
-
-            from sage.numerical.mip import MixedIntegerLinearProgram, Sum
-            g = self
-            p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-            b = p.new_variable()
-
-            # minimizes the number of vertices in the set
-            p.set_objective(Sum([b[v] for v in g.vertices()]))
-
-            # an edge contains at least one vertex of the minimum vertex cover
-            for (u,v) in g.edges(labels=None):
-                p.add_constraint(b[u] + b[v], min=1)
-
-            p.set_binary(b)
-
-            if value_only:
-                return p.solve(objective_only=True, log=verbose)
-            else:
-                p.solve(log=verbose)
-                b = p.get_values(b)
-                return set([v for v in g.vertices() if b[v] == 1])
-        else:
-            raise ValueError("Only two algorithms are available : Cliquer and MILP.")
 
     def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
         r"""
@@ -5282,7 +5179,7 @@ class GenericGraph(GenericGraph_pyx):
             ...       c1 = sum(map(itemgetter(2), v1.edges()))
             ...       c2 = sum(map(itemgetter(2), v2.edges()))
             ...       if c1 != c2:
-            ...           print "Erreur !",c1,c2
+            ...           print "Error !",c1,c2
             ...           break
 
         Then for digraphs::
@@ -5303,9 +5200,9 @@ class GenericGraph(GenericGraph_pyx):
             ...       c1 = sum(map(itemgetter(2), v1.edges()))
             ...       c2 = sum(map(itemgetter(2), v2.edges()))
             ...       if c1 != c2:
-            ...           print "Erreur !",c1,c2
-            ...           print "Avec generation de contrainte :",c2
-            ...           print "Sans generation de contrainte :",c1
+            ...           print "Error !",c1,c2
+            ...           print "With constraint generation :",c2
+            ...           print "Without constraint generation :",c1
             ...           break
 
         """

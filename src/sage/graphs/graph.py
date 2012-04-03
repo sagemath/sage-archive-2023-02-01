@@ -71,6 +71,8 @@ AUTHORS:
 
 - Nicolas M. Thiery (2010-02): graph layout code refactoring, dot2tex/graphviz interface
 
+- David Coudert (2012-04) : Reduction rules in vertex_cover.
+
 
 Graph Format
 ------------
@@ -3834,13 +3836,16 @@ class Graph(GenericGraph):
         import networkx
         return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
 
-    def independent_set(self, algorithm = "Cliquer", verbose = 0):
-        """
+    def independent_set(self, algorithm = "Cliquer", value_only = False, reduction_rules = True, solver = None, verbosity = 0):
+        r"""
         Returns a maximum independent set.
 
-        An independent set of a graph is a set of pairwise nonadjacent
+        An independent set of a graph is a set of pairwise non-adjacent
         vertices. A maximum independent set is an independent set of maximum
-        cardinality.  induces an empty subgraph.
+        cardinality.  It induces an empty subgraph.
+
+        Equivalently, an independent set is defined as the complement of a
+        vertex cover.
 
         INPUT:
 
@@ -3854,14 +3859,31 @@ class Graph(GenericGraph):
             * If ``algorithm = "MILP"``, the problem is solved through a Mixed
               Integer Linear Program.
 
-              (see :class:`MixedIntegerLinearProgram
-              <sage.numerical.mip>`)
+              (see :class:`MixedIntegerLinearProgram <sage.numerical.mip>`)
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
-          verbosity. Set to 0 by default, which means quiet.
+        - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
+          only the size of a maximum independent set is returned. Otherwise,
+          a maximum independent set is returned as a list of vertices.
 
-          Only useful when ``algorithm = "MILP"``.
+        - ``reduction_rules`` -- (default: ``True``) Specify if the reductions
+          rules from kernelization must be applied as pre-processing or not.
+          See [ACFLSS04]_ for more details. Note that depending on the
+          instance, it might be faster to disable reduction rules.
 
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbosity`` -- non-negative integer (default: ``0``). Set the level
+          of verbosity you want from the linear program solver. Since the
+          problem of computing an independent set is `NP`-complete, its solving
+          may take some time depending on the graph. A value of 0 means that
+          there will be no message printed by the solver. This option is only
+          useful if ``algorithm="MILP"``.
 
         .. NOTE::
 
@@ -3873,52 +3895,296 @@ class Graph(GenericGraph):
 
         Using Cliquer::
 
-            sage: C=graphs.PetersenGraph()
+            sage: C = graphs.PetersenGraph()
             sage: C.independent_set()
             [0, 3, 6, 7]
 
         As a linear program::
 
-            sage: C=graphs.PetersenGraph()
+            sage: C = graphs.PetersenGraph()
             sage: len(C.independent_set(algorithm = "MILP"))
             4
+        """
+        my_cover = self.vertex_cover(algorithm=algorithm, value_only=value_only, reduction_rules=reduction_rules, solver=solver, verbosity=verbosity)
+        if value_only:
+            return self.order() - my_cover
+        else:
+            return [u for u in self.vertices() if not u in my_cover]
+
+
+    def vertex_cover(self, algorithm = "Cliquer", value_only = False,
+                     reduction_rules = True, solver = None, verbosity = 0):
+        r"""
+        Returns a minimum vertex cover of self represented by a set of vertices.
+
+        A minimum vertex cover of a graph is a set `S` of vertices such that
+        each edge is incident to at least one element of `S`, and such that `S`
+        is of minimum cardinality. For more information, see the
+        :wikipedia:`Wikipedia article on vertex cover <Vertex_cover>`.
+
+        Equivalently, a vertex cover is defined as the complement of an
+        independent set.
+
+        As an optimization problem, it can be expressed as follows:
+
+        .. MATH::
+
+            \mbox{Minimize : }&\sum_{v\in G} b_v\\
+            \mbox{Such that : }&\forall (u,v) \in G.edges(), b_u+b_v\geq 1\\
+            &\forall x\in G, b_x\mbox{ is a binary variable}
+
+        INPUT:
+
+        - ``algorithm`` -- string (default: ``"Cliquer"``). Indicating
+          which algorithm to use. It can be one of those two values.
+
+          - ``"Cliquer"`` will compute a minimum vertex cover
+            using the Cliquer package.
+
+          - ``"MILP"`` will compute a minimum vertex cover through a mixed
+            integer linear program.
+
+        - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
+          only the size of a minimum vertex cover is returned. Otherwise,
+          a minimum vertex cover is returned as a list of vertices.
+
+        - ``reduction_rules`` -- (default: ``True``) Specify if the reductions
+          rules from kernelization must be applied as pre-processing or not.
+          See [ACFLSS04]_ for more details. Note that depending on the
+          instance, it might be faster to disable reduction rules.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbosity`` -- non-negative integer (default: ``0``). Set the level
+          of verbosity you want from the linear program solver. Since the
+          problem of computing a vertex cover is `NP`-complete, its solving may
+          take some time depending on the graph. A value of 0 means that there
+          will be no message printed by the solver. This option is only useful
+          if ``algorithm="MILP"``.
+
+        EXAMPLES:
+
+        On the Pappus graph::
+
+           sage: g = graphs.PappusGraph()
+           sage: g.vertex_cover(value_only=True)
+           9
 
         TESTS:
 
+        The two algorithms should return the same result::
+
+           sage: g = graphs.RandomGNP(10,.5)
+           sage: vc1 = g.vertex_cover(algorithm="MILP")
+           sage: vc2 = g.vertex_cover(algorithm="Cliquer")
+           sage: len(vc1) == len(vc2)
+           True
+
+        The cardinality of the vertex cover is unchanged when reduction rules are used. First for trees::
+
+           sage: for i in range(20):
+           ...       g = graphs.RandomTree(20)
+           ...       vc1_set = g.vertex_cover()
+           ...       vc1 = len(vc1_set)
+           ...       vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
+           ...       if vc1 != vc2:
+           ...           print "Error :", vc1, vc2
+           ...           print "With reduction rules :", vc1
+           ...           print "Without reduction rules :", vc2
+           ...           break
+           ...       g.delete_vertices(vc1_set)
+           ...       if g.size() != 0:
+           ...           print "This thing is not a vertex cover !"
+
+        Then for random GNP graphs::
+
+           sage: for i in range(20):
+           ...       g = graphs.RandomGNP(50,4/50)
+           ...       vc1_set = g.vertex_cover()
+           ...       vc1 = len(vc1_set)
+           ...       vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
+           ...       if vc1 != vc2:
+           ...           print "Error :", vc1, vc2
+           ...           print "With reduction rules :", vc1
+           ...           print "Without reduction rules :", vc2
+           ...           break
+           ...       g.delete_vertices(vc1_set)
+           ...       if g.size() != 0:
+           ...           print "This thing is not a vertex cover !"
+
+
         Given a wrong algorithm::
 
-            sage: C.independent_set(algorithm = "guess")
+            sage: graphs.PetersenGraph().vertex_cover(algorithm = "guess")
             Traceback (most recent call last):
             ...
             ValueError: The algorithm must be either "Cliquer" or "MILP".
+
+        REFERENCE:
+
+        .. [ACFLSS04] F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.
+          Langston, W. H. Suters, and C. T. Symons: Kernelization Algorithm for
+          the Vertex Cover Problem: Theory and Experiments. *SIAM ALENEX/ANALCO*
+          2004: 62-69.
         """
-        if algorithm == "Cliquer":
+        g = self
+
+        ppset = []
+        folded_vertices = []
+
+        ###################
+        # Reduction rules #
+        ###################
+
+        if reduction_rules:
+            # We apply simple reduction rules allowing to identify vertices that
+            # belongs to an optimal vertex cover
+
+            # We first create manually a copy of the graph to prevent creating
+            # multi-edges when merging vertices, if edges have labels (e.g., weights).
+            g = self.copy()
+
+            degree_at_most_two = set([u for u,du in g.degree(labels = True).items() if du <= 2])
+
+            while degree_at_most_two:
+
+                u = degree_at_most_two.pop()
+                du = g.degree(u)
+
+                if du == 0:
+                    # RULE 1: isolated vertices are not part of the cover. We
+                    # simply remove them from the graph. The degree of such
+                    # vertices may have been reduced to 0 while applying other
+                    # reduction rules
+                    g.delete_vertex(u)
+
+                elif du == 1:
+                    # RULE 2: If a vertex u has degree 1, we select its neighbor
+                    # v and remove both u and v from g.
+                    v = g.neighbors(u)[0]
+                    ppset.append(v)
+                    g.delete_vertex(u)
+
+                    for w in g.neighbors(v):
+                        if g.degree(w) <= 3:
+                            # The degree of w will be at most two after the
+                            # deletion of v
+                            degree_at_most_two.add(w)
+
+                    g.delete_vertex(v)
+                    degree_at_most_two.discard(v)
+
+                elif du == 2:
+                    v,w  = g.neighbors(u)
+
+                    if g.has_edge(v,w):
+                        # RULE 3: If the neighbors v and w of a degree 2 vertex
+                        # u are incident, then we select both v and w and remove
+                        # u, v, and w from g.
+                        ppset.append(v)
+                        ppset.append(w)
+                        g.delete_vertex(u)
+                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference(set([v,w]))
+                        g.delete_vertex(v)
+                        g.delete_vertex(w)
+
+                        for z in neigh:
+                            if g.degree(z) <= 2:
+                                degree_at_most_two.add(z)
+
+                    else:
+                        # RULE 4, folded vertices: If the neighbors v and w of a
+                        # degree 2 vertex u are not incident, then we contract
+                        # edges (u, v), (u,w). Then, if the solution contains u,
+                        # we replace it with v and w. Otherwise, we let u in the
+                        # solution.
+                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference(set([u,v,w]))
+                        g.delete_vertex(v)
+                        g.delete_vertex(w)
+                        for z in neigh:
+                            g.add_edge(u,z)
+
+                        folded_vertices += [(u,v,w)]
+
+                        if g.degree(u) <= 2:
+                            degree_at_most_two.add(u)
+
+                    degree_at_most_two.discard(v)
+                    degree_at_most_two.discard(w)
+
+
+                # RULE 5:
+                # TODO: add extra reduction rules
+
+
+        ##################
+        # Main Algorithm #
+        ##################
+
+        if g.order() == 0:
+            # Reduction rules were sufficients to get the solution
+            size_cover_g = 0
+            cover_g = []
+
+        elif algorithm == "Cliquer":
             from sage.graphs.cliquer import max_clique
-            return max_clique(self.complement())
+            independent = max_clique(g.complement())
+            if value_only:
+                size_cover_g = g.order() - len(independent)
+            else:
+                cover_g = [u for u in g.vertices() if not u in independent]
 
         elif algorithm == "MILP":
+
             from sage.numerical.mip import MixedIntegerLinearProgram, Sum
+            p = MixedIntegerLinearProgram(maximization=False, solver=solver)
+            b = p.new_variable()
 
-            p = MixedIntegerLinearProgram(maximization = True)
+            # minimizes the number of vertices in the set
+            p.set_objective(Sum([b[v] for v in g.vertices()]))
 
-            b = p.new_variable(binary = True)
+            # an edge contains at least one vertex of the minimum vertex cover
+            for (u,v) in g.edges(labels=None):
+                p.add_constraint(b[u] + b[v], min=1)
 
-            p.set_objective(Sum([b[v] for v in self]))
+            p.set_binary(b)
 
-            for u,v in self.edges(labels = False):
-                if u == v:
-                    continue
-
-                p.add_constraint(b[u] + b[v] <= 1)
-
-            p.solve(log = verbose)
-
-            b = p.get_values(b)
-
-            return [v for v in self if b[v] > .5]
-
+            if value_only:
+                size_cover_g = p.solve(objective_only=True, log=verbosity)
+            else:
+                p.solve(log=verbosity)
+                b = p.get_values(b)
+                cover_g = [v for v in g.vertices() if b[v] == 1]
         else:
             raise ValueError("The algorithm must be either \"Cliquer\" or \"MILP\".")
+
+        #########################
+        # Returning the results #
+        #########################
+
+        # We finally reconstruct the solution according the reduction rules
+        if value_only:
+            return len(ppset) + len(folded_vertices) + size_cover_g
+        else:
+            # RULES 2 and 3:
+            cover_g.extend(ppset)
+            # RULE 4:
+            folded_vertices.reverse()
+            for u,v,w in folded_vertices:
+                if u in cover_g:
+                    cover_g.remove(u)
+                    cover_g += [v,w]
+                else:
+                    cover_g += [u]
+            cover_g.sort()
+            return cover_g
+
 
     def cliques_vertex_clique_number(self, algorithm="cliquer", vertices=None,
                                      cliques=None):

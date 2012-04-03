@@ -1624,6 +1624,6 @@ class SubstituteFunction(Converter):
             D[0](bar)(x)
         """
         if operator.function() == self.original:
-            return operator.change_function(self.new)(*ex.operands())
+            return operator.change_function(self.new)(*map(self,ex.operands()))
         else:
-            return ex
+            return operator(*map(self, ex.operands()))

@@ -23,8 +23,12 @@ Free, Not to Mention Unencumbered by Patents)
 
 == Special Update/Build Instructions ==
 
- None - previously it was necessary to remove binary *.obj files, but there
- are none in the current source package.
+ * None
+
+=== zlib-1.2.6 (Jeroen Demeyer, 3 April 2012) ===
+ * Trac #12800: Upgrade to zlib-1.2.6
+ * Remove patches/Makefile.in.patch which is no longer needed
+ * Exit when building fails
 
 === zlib-1.2.5.p0 (Jeroen Demeyer, 9 December 2011) ===
  * Trac #12138: Fix parallel build by patching Makefile.in

@@ -3,14 +3,14 @@ import sys
 
 # FIXME: Do we really want to *overwrite* the flags (e.g. if set by the user)?
 # Answer: Should be fixed now.
-CCFLAGS += ["-Wno-long-long", "-Wreturn-type"]
+CCFLAGS += ["-Wreturn-type"]
 
 # Note: PolyBoRi still appends DEFAULT_*FLAGS (overwrite those, if necessary)
 if 'CFLAGS' in os.environ:
   CFLAGS = os.environ['CFLAGS'].split(' ')
 
 if 'CXXFLAGS' in os.environ:
-  CXXFLAGS = os.environ['CXXFLAGS'].split(' ')
+  CXXFLAGS = ["-Wno-long-long"] + os.environ['CXXFLAGS'].split(' ')
 
 if 'CPPFLAGS' in os.environ:
   CCFLAGS = os.environ['CPPFLAGS'].split(' ')

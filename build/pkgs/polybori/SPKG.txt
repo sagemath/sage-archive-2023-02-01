@@ -62,6 +62,7 @@ All patches were merged upstream.
 === polybori-0.8.1.p1 (Alexander Dreyer, March 26th, 2012) ===
  * Rebased spkg on polybori-0.8.0.p2 (Sage Trac #12750)
  * Working around broken scons on sun (Sage Trac #12655, comment:29)
+ * Added -Wno-long-long to CXXFLAGS (accompanying -std=c++98, comment:55)
 
 === polybori-0.8.1.p0 (Alexander Dreyer, March 7th, 2012) ===
  * Updating sources to PolyBoRi's release 0.8.1 (Sage Trac #12655)

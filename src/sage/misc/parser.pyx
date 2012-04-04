@@ -946,6 +946,9 @@ cdef class Parser:
             name = tokens.last_token_string()
             tokens.next()
             return name, self.p_expr(tokens)
+        if token == "[" :
+            tokens.backtrack()
+            return self.p_list(tokens)
         else:
             tokens.backtrack()
             return self.p_expr(tokens)

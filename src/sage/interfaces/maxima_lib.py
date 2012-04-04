@@ -67,7 +67,7 @@ which is anyway set to raise an error::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.symbolic.ring import SR
+from sage.symbolic.ring import SR, var
 
 from sage.libs.ecl import *
 
@@ -214,6 +214,7 @@ max_plus=EclObject("$PLUS")
 max_minus=EclObject("$MINUS")
 max_use_grobner=EclObject("$USE_GROBNER")
 max_to_poly_solve=EclObject("$TO_POLY_SOLVE")
+max_at=EclObject("%AT")
 
 def stdout_to_string(s):
     r"""
@@ -1078,7 +1079,7 @@ sage_op_dict = {
     sage.functions.log.log : "%LOG",
     sage.functions.other.factorial : "MFACTORIAL",
     sage.functions.other.erf : "%ERF",
-    sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE"
+    sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE",
 }
 #we compile the dictionary
 sage_op_dict = dict([(k,EclObject(sage_op_dict[k])) for k in sage_op_dict])
@@ -1251,6 +1252,60 @@ def mdiff_to_sage(expr):
     """
     return max_to_sr(expr.cadr()).diff(*[max_to_sr(e) for e in expr.cddr()])
 
+def mlist_to_sage(expr):
+    r"""
+    Special conversion rule for MLIST expressions.
+
+    INPUT:
+
+    - ``expr`` - ECL object; a Maxima MLIST expression (i.e., a list)
+
+    OUTPUT: a python list of converted expressions.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.maxima_lib import maxima_lib, mlist_to_sage
+        sage: L=maxima_lib("[1,2,3]")
+        sage: L.ecl()
+        <ECL: ((MLIST SIMP) 1 2 3)>
+        sage: mlist_to_sage(L.ecl())
+        [1, 2, 3]
+    """
+    return [max_to_sr(x) for x in expr.cdr()]
+
+def max_at_to_sage(expr):
+    r"""
+    Special conversion rule for AT expressions.
+
+    INPUT:
+
+    - ``expr`` - ECL object; a Maxima AT expression
+
+    OUTPUT: symbolic expression
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.maxima_lib import maxima_lib, max_at_to_sage
+        sage: a=maxima_lib("'at(f(x,y,z),[x=1,y=2,z=3])")
+        sage: a
+        'at(f(x,y,z),[x=1,y=2,z=3])
+        sage: max_at_to_sage(a.ecl())
+        f(1, 2, 3)
+        sage: a=maxima_lib("'at(f(x,y,z),x=1)")
+        sage: a
+        'at(f(x,y,z),x=1)
+        sage: max_at_to_sage(a.ecl())
+        f(1, y, z)
+    """
+    arg=max_to_sr(expr.cadr())
+    subsarg=caddr(expr)
+    if caar(subsarg)==mlist:
+        subsvalues=dict( (v.lhs(),v.rhs()) for v in max_to_sr(subsarg))
+    else:
+        v=max_to_sr(subsarg)
+        subsvalues=dict([(v.lhs(),v.rhs())])
+    return SR(arg).subs(subsvalues)
+
 def dummy_integrate(expr):
     r"""
     We would like to simply tie Maxima's integrate to
@@ -1291,7 +1346,9 @@ special_max_to_sage={
     mrat : mrat_to_sage,
     mqapply : mqapply_to_sage,
     mdiff : mdiff_to_sage,
-    EclObject("%INTEGRATE") : dummy_integrate
+    EclObject("%INTEGRATE") : dummy_integrate,
+    max_at : max_at_to_sage,
+    mlist : mlist_to_sage
 }
 
 special_sage_to_max={
@@ -1381,7 +1438,15 @@ def sr_to_max(expr):
             args = expr.operands()
             if (not all(is_SymbolicVariable(v) for v in args) or
                 len(args) != len(set(args))):
-                raise NotImplementedError, "arguments must be distinct variables"
+                temp_args=[var("t%s"%i) for i in range(len(args))]
+                f =sr_to_max(op.function()(*temp_args))
+                params = op.parameter_set()
+                deriv_max = [[mdiff],f]
+                for i in set(params):
+                    deriv_max.extend([sr_to_max(temp_args[i]), EclObject(params.count(i))])
+                at_eval=sr_to_max([temp_args[i]==args[i] for i in range(len(args))])
+                return EclObject([[max_at],deriv_max,at_eval])
+
             f = sr_to_max(op.function()(*args))
             params = op.parameter_set()
             deriv_max = []

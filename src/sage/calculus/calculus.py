@@ -1349,7 +1349,7 @@ def inverse_laplace(ex, t, s):
 ###################################################################
 # symbolic evaluation "at" a point
 ###################################################################
-def at(ex, **kwds):
+def at(ex, *args, **kwds):
     """
     Parses ``at`` formulations from other systems, such as Maxima.
     Replaces evaluation 'at' a point with substitution method of
@@ -1390,6 +1390,13 @@ def at(ex, **kwds):
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
+    if len(args) == 1 and isinstance(args[0],list):
+        for c in args[0]:
+            kwds[str(c.lhs())]=c.rhs()
+    else:
+        if len(args) !=0:
+            raise TypeError,"at can take at most one argument, which must be a list"
+
     return ex.subs(**kwds)
 
 

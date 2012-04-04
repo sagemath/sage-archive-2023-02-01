@@ -16,7 +16,7 @@ overridden by subclasses.
 ###############################################################################
 
 import operator as _operator
-from sage.symbolic.ring import SR
+from sage.symbolic.ring import SR,var
 from sage.symbolic.pynac import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator
@@ -474,15 +474,16 @@ class InterfaceInit(Converter):
             sage: print m.derivative(b, b.operator())
             diff('f(x), x, 2)
 
-        We can only convert to Maxima derivatives if the corresponding operand
-        of the function is a variable::
+        We can also convert expressions where the argument is not just a
+        variable, but the result is an "at" expression using temporary
+        variables::
 
             sage: y = var('y')
-            sage: t = f(x*y).diff(x)
+            sage: t = (f(x*y).diff(x))/y
+            sage:  t
+            D[0](f)(x*y)
             sage: m.derivative(t, t.operator())
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: arguments must be distinct variables
+            "at(diff('f(t0), t0, 1), [t0 = x*y])"
         """
         #This code should probably be moved into the interface
         #object in a nice way.
@@ -492,7 +493,15 @@ class InterfaceInit(Converter):
         args = ex.operands()
         if (not all(is_SymbolicVariable(v) for v in args) or
             len(args) != len(set(args))):
-            raise NotImplementedError, "arguments must be distinct variables"
+            temp_args=[var("t%s"%i) for i in range(len(args))]
+            f = operator.function()
+            params = operator.parameter_set()
+            params = ["%s, %s"%(temp_args[i], params.count(i)) for i in set(params)]
+            subs = ["%s = %s"%(t,a) for t,a in zip(temp_args,args)]
+            return "at(diff('%s(%s), %s), [%s])"%(f.name(),
+                ", ".join(map(repr,temp_args)),
+                ", ".join(params),
+                ", ".join(subs))
 
         f = operator.function()
         params = operator.parameter_set()

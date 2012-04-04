@@ -1752,13 +1752,10 @@ class MaximaAbstractElement(InterfaceElement):
 
             sage: y,d = var('y,d')
             sage: f = function('f')
-            sage: latex(maxima(derivative(f(x*y*d), d,x,x,y)))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: arguments must be distinct variables
+            sage: latex(maxima(derivative(f(x*y), x)))
+            \left(\left.{{{\it \partial}}\over{{\it \partial}\,{\it t_0}}}\,f  \left({\it t_0}\right)\right|_{\left[ {\it t_0}=x\,y \right] }  \right)\,y
             sage: latex(maxima(derivative(f(x,y,d), d,x,x,y)))
             {{{\it \partial}^4}\over{{\it \partial}\,d\,{\it \partial}\,x^2\,  {\it \partial}\,y}}\,f\left(x , y , d\right)
-
             sage: latex(maxima(d/(d-2)))
             {{d}\over{d-2}}
         """

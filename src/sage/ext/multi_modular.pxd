@@ -24,7 +24,7 @@ cdef class MultiModularBasis_base:
     cdef int _extend_moduli_to_height_c(self, mpz_t height) except -1
     cdef void _refresh_products(self, int start)
     cdef void _refresh_prod(self)
-    cdef void _refresh_precomputations(self, int start)
+    cdef void _refresh_precomputations(self, int start) except *
     cdef int min_moduli_count(self, mpz_t height) except -1
 
     cdef int mpz_reduce_tail(self, mpz_t z, mod_int* b, int offset, int len) except -1

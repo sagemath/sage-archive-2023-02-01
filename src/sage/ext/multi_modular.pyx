@@ -155,18 +155,22 @@ cdef class MultiModularBasis_base:
             sage: mm = MultiModularBasis_base(0); mm
             MultiModularBasis with moduli [28499]
 
+            sage: mm = MultiModularBasis_base([6, 10])
+            Traceback (most recent call last):
+            ...
+            ValueError: the values provided are not relatively prime
         """
         if l_bound == 0:
             self._l_bound = 2**10
         elif l_bound < 2:
-            raise ValueError, "minimum value for lower bound is 2, given: %s"%(l_bound)
+            raise ValueError("minimum value for lower bound is 2, given: %s"%(l_bound))
         else:
             self._l_bound = l_bound
 
         if u_bound == 0:
             self._u_bound = 2**15
         elif u_bound > MAX_MODULUS:
-            raise ValueError, "upper bound cannot be greater than MAX_MODULUS: %s, given: %s"%(MAX_MODULUS, u_bound)
+            raise ValueError("upper bound cannot be greater than MAX_MODULUS: %s, given: %s"%(MAX_MODULUS, u_bound))
         else:
             self._u_bound = u_bound
 
@@ -175,7 +179,11 @@ cdef class MultiModularBasis_base:
 
         cdef int i
         if isinstance(val, (list, tuple, GeneratorType)):
-            self.extend_with_primes(val, check=True)
+            try:
+                self.extend_with_primes(val, check=True)
+            except ArithmeticError:
+                #See :trac:`10217`
+                raise ValueError("the values provided are not relatively prime")
         else:
             self._extend_moduli_to_height(val)
 
@@ -459,7 +467,7 @@ cdef class MultiModularBasis_base:
         mpz_set(self.product, self.partial_products[self.n-1])
         mpz_fdiv_q_ui(self.half_product, self.product, 2)
 
-    cdef void _refresh_precomputations(self, int start):
+    cdef void _refresh_precomputations(self, int start) except *:
         r"""
         Compute and store $\prod_j=1^{i-1} m_j^{-1} (mod m_i)$ of i >= start.
         """

@@ -366,6 +366,8 @@ cdef class arith_llong:
     cdef public long long c_inverse_mod_longlong(self, long long a, long long m) except -1:
         cdef long long g, s, t
         g = self.c_xgcd_longlong(a,m, &s, &t)
+        if g != 1:
+            raise ArithmeticError("The inverse of %s modulo %s is not defined."%(a,m))
         s = s % m
         if s < 0:
             s = s + m

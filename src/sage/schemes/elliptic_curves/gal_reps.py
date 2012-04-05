@@ -423,7 +423,7 @@ class GaloisRepresentation(SageObject):
         if t == True:
             self.__is_reducible[p] = False
             return False  # definitely not reducible
-        isogeny_matrix = self.E.isogeny_class()[ 1 ]
+        isogeny_matrix = self.E.isogeny_class(use_tuple=False).matrix(fill=True)
         v = isogeny_matrix.row(0) # first row
         for a in v:
             if a != 0 and a % p == 0:
@@ -474,8 +474,8 @@ class GaloisRepresentation(SageObject):
             return self.__reducible_primes
         except AttributeError:
             pass
-        C, I = self.E.isogeny_class(algorithm='sage')
-        X = set(I.list())
+        isocls = self.E.isogeny_class(algorithm='sage', use_tuple=False)
+        X = set(isocls.matrix().list())
         R = [p for p in X if arith.is_prime(p)]
         self.__reducible_primes = R
         return R

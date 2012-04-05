@@ -555,7 +555,14 @@ if [ "$1" = '-sh'  -o "$1" = '--sh' ]; then
             ;;
         zsh)
             PS1="%S(sage-sh)%s %n@%m:%~$ "
-            SHELL_OPTS="-f -d"
+            # In zsh, the system /etc/zshenv is *always* run,
+            # and this may change the path (like on OSX), so we'll
+            # create a temporary .zshenv to reset the path
+            ZDOTDIR=$DOT_SAGE && export ZDOTDIR
+            cat >"$ZDOTDIR/.zshenv" <<EOF
+PATH="$PATH" && export PATH
+EOF
+            SHELL_OPTS=" -d"
             export PS1
             ;;
         *)

@@ -2195,7 +2195,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: I = BrandtModule(11).right_ideals()[1]; I
             Fractional ideal (2 + 6*j + 4*k, 2*i + 4*j + 2*k, 8*j, 8*k)
             sage: I.norm()
-            64
+            32
             sage: I.theta_series(5)
             1 + 12*q^2 + 12*q^3 + 12*q^4 + O(q^5)
             sage: I.theta_series(5,'T')
@@ -2245,21 +2245,43 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
     def norm(self):
         """
-        Return the norm of this fractional ideal.
+        Return the reduced norm of this fractional ideal.
 
         OUTPUT: rational number
 
         EXAMPLES::
 
-            sage: C = BrandtModule(37).right_ideals()
+            sage: M = BrandtModule(37)
+            sage: C = M.right_ideals()
             sage: [I.norm() for I in C]
-            [32, 64, 64]
+            [16, 32, 32]
+
+            sage: (a,b) = M.quaternion_algebra().invariants()                                       # optional - magma
+            sage: magma.eval('A<i,j,k> := QuaternionAlgebra<Rationals() | %s, %s>' % (a,b))         # optional - magma
+            ''
+            sage: magma.eval('O := QuaternionOrder(%s)' % str(list(C[0].right_order().basis())))    # optional - magma
+            ''
+            sage: [ magma('rideal<O | %s>' % str(list(I.basis()))).Norm() for I in C]               # optional - magma
+            [16, 32, 32]
+
+            sage: A.<i,j,k> = QuaternionAlgebra(-1,-1)
+            sage: R = A.ideal([i,j,k,1/2 + 1/2*i + 1/2*j + 1/2*k])      # this is actually an order, so has reduced norm 1
+            sage: R.norm()
+            1
+            sage: [ J.norm() for J in R.cyclic_right_subideals(3) ]     # enumerate maximal right R-ideals of reduced norm 3, verify their norms
+            [3, 3, 3, 3]
         """
-        G = self.gram_matrix()
+        G = self.gram_matrix() / QQ(2)
         r = G.det().abs()
         assert r.is_square(), "first is bad!"
         r = r.sqrt()
-        r/= self.quaternion_order().discriminant()
+        # If we know either the left- or the right order, use that one to compute the norm.
+        # Otherwise quaternion_order() will raise a RuntimeError and we compute the left order
+        try:
+            R = self.quaternion_order()
+        except RuntimeError:
+            R = self.left_order()
+        r/= R.discriminant()
         assert r.is_square(), "second is bad!"
         return r.sqrt()
 

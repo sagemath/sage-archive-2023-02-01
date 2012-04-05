@@ -47,8 +47,21 @@ refresh the prepatched files in `patches/`.
 TODO:
  * Use `patch` to apply patches (then also add GNU patch to the dependencies).
  * Clean up `spkg-install` further w.r.t. installation etc.
+ * Probably remove `CXXFLAG64` from the (patched) Makefile; instead put it
+   into `LDFLAGS` and use these in the Makefile.
+ * The Makefile is still suboptimal; e.g. Sage-specific values shouldn't be
+   hardcoded into it.  That way we could provide a clean patch for upstream,
+   and would later only have to change/set `make` variables in `spkg-install`,
+   without the need to patch the Makefile at all for Sage.
+   Also `CXXFLAGS` aren't used in, i.e. ignored by the current Makefile.
 
 == Changelog ==
+
+=== gfan-0.4plus.p3 (Leif Leonhardy, April 5th 2012) ===
+ * #12760: Fix erroneous unconditional export of `CXXFLAG64`, which is now in
+   the first place always set, and used in the patched Makefile.  (Also do not
+   export `CFLAG64`, which is only used within `spkg-install`.)
+ * Add further TODOs... ;-)
 
 === gfan-0.4plus.p2 (Leif Leonhardy, March 25th 2012) ===
  * #12760: Correct trivial C++ programming error to make gfan build with

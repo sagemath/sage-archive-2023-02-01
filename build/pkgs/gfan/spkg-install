@@ -17,9 +17,14 @@ if [[ "$SAGE64" = yes ]]; then
     echo "Building a 64-bit version of gfan."
     CFLAGS="$CFLAGS $CFLAG64"
     CXXFLAGS="$CXXFLAGS $CXXFLAG64"
+    export CXXFLAG64 # Used in the patched Makefile.
+    # TODO: It would be much better to (also) modify LDFLAGS here and use
+    #       these instead in the Makefile when linking. (Cf. SPKG.txt.)
+else
+    unset CXXFLAG64 # Might come from the "global" environment.
 fi
 
-export CC CXX CFLAGS CFLAG64 CXXFLAGS CXXFLAG64
+export CC CXX CFLAGS CXXFLAGS
 
 
 # Patch the Makefile so it can build in Sage:
@@ -40,15 +45,17 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+echo "Copying patched files to fix issues with GCC 4.5.0..."
 cp patches/linalg.cpp patches/matrix.h src/
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error: Patch to fix GCC 4.5.0 issues did not copy correctly."
     exit 1
 fi
 
+echo "Copying patched file to fix an issue with GCC 4.7.0..."
 cp patches/app_minkowski.cpp src/
 if [[ $? -ne 0 ]]; then
-    echo >&2 "Error: Patch to fix GCC 4.7.0 issues did not copy correctly."
+    echo >&2 "Error: Patch to fix GCC 4.7.0 issue did not copy correctly."
     exit 1
 fi
 

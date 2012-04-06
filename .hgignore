@@ -16,6 +16,7 @@ tmp
 spkg/Makefile
 spkg/base/prereq-0.7-install
 spkg/base/prereq-0.8-install
+spkg/base/prereq-0.9-install
 spkg/base/.*\.tar\.gz
 spkg/base/.*\.tar
 spkg/build

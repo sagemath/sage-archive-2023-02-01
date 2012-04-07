@@ -12959,10 +12959,10 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Returns the lexicographic product of self and other.
 
-        The lexicographic product of G and H is the graph L with vertex set V(L)
-        equal to the Cartesian product of the vertices V(G) and V(H), and
-        ((u,v), (w,x)) is an edge iff - (u, w) is an edge of self, or - u = w
-        and (v, x) is an edge of other.
+        The lexicographic product of `G` and `H` is the graph `L` with vertex
+        set `V(L)` equal to the Cartesian product of the vertices `V(G)` and
+        `V(H)`, and `((u,v), (w,x))` is an edge iff - `(u, w)` is an edge of
+        self, or - `u = w` and `(v, x)` is an edge of other.
 
         EXAMPLES::
 
@@ -13024,12 +13024,13 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Returns the strong product of self and other.
 
-        The strong product of G and H is the graph L with vertex set V(L) equal
-        to the Cartesian product of the vertices V(G) and V(H), and ((u,v),
-        (w,x)) is an edge iff either - (u, w) is an edge of self and v = x, or -
-        (v, x) is an edge of other and u = w, or - (u, w) is an edge of self and
-        (v, x) is an edge of other. In other words, the edges of the strong
-        product is the union of the edges of the tensor and Cartesian products.
+        The strong product of `G` and `H` is the graph `L` with vertex set
+        `V(L)` equal to the Cartesian product of the vertices `V(G)` and `V(H)`,
+        and `((u,v), (w,x))` is an edge iff either - `(u, w)` is an edge of self
+        and `v = x`, or - `(v, x)` is an edge of other and `u = w`, or - `(u,
+        w)` is an edge of self and `(v, x)` is an edge of other. In other words,
+        the edges of the strong product is the union of the edges of the tensor
+        and Cartesian products.
 
         EXAMPLES::
 
@@ -13093,10 +13094,10 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Returns the disjunctive product of self and other.
 
-        The disjunctive product of G and H is the graph L with vertex set V(L)
-        equal to the Cartesian product of the vertices V(G) and V(H), and
-        ((u,v), (w,x)) is an edge iff either - (u, w) is an edge of self, or -
-        (v, x) is an edge of other.
+        The disjunctive product of `G` and `H` is the graph `L` with vertex set
+        `V(L)` equal to the Cartesian product of the vertices `V(G)` and `V(H)`,
+        and `((u,v), (w,x))` is an edge iff either - `(u, w)` is an edge of
+        self, or - `(v, x)` is an edge of other.
 
         EXAMPLES::
 

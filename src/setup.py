@@ -1008,7 +1008,6 @@ code = setup(name = 'sage',
                      'sage.server.simple',
                      'sage.server.notebook',
                      'sage.server.notebook.compress',
-                     'sage.server.wiki',
                      'sage.server.trac',
 
                      'sage.structure',

@@ -1,0 +1,20 @@
+--- src/linbox/field/gf2.inl	2008-09-18 02:53:11.000000000 +0200
++++ patches/gf2.inl	2012-04-07 12:07:07.980798798 +0200
+@@ -633,7 +633,7 @@
+ 	typename Vector::iterator i;
+ 	char c;
+ 
+-	while (!isdigit (is >> c));
++	while (!isdigit ((is >> c, c)));
+ 
+ 	is.unget ();
+ 
+@@ -650,7 +650,7 @@
+ 	char c;
+ 	size_t idx;
+ 
+-	while (!isdigit (is >> c));
++	while (!isdigit ((is >> c, c)));
+ 
+ 	is.unget ();
+ 	x.clear ();

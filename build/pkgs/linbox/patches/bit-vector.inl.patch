@@ -1,0 +1,27 @@
+--- src/linbox/vector/bit-vector.inl	2008-09-18 02:53:12.000000000 +0200
++++ patches/bit-vector.inl	2012-04-07 07:13:51.463297548 +0200
+@@ -254,7 +254,7 @@
+ 		return *this;
+ 	}
+ 
+-	const_iterator &operator = (const iterator &i) {
++	const_iterator &operator = (const BitVector::iterator &i) {
+ 		_ref._word = i._ref._word;
+ 		_ref._pos = i._ref._pos;
+ 		return *this;
+@@ -332,13 +332,13 @@
+ 	bool operator == (const const_iterator &c) const 
+ 		{ return (_ref._word == c._ref._word) && (_ref._pos == c._ref._pos); }
+ 
+-	bool operator == (const iterator &c) const 
++	bool operator == (const BitVector::iterator &c) const 
+ 		{ return (_ref._word == c._ref._word) && (_ref._pos == c._ref._pos); }
+ 
+ 	bool operator != (const const_iterator &c) const 
+ 		{ return (_ref._word != c._ref._word) || (_ref._pos != c._ref._pos); }
+ 
+-	bool operator != (const iterator &c) const 
++	bool operator != (const BitVector::iterator &c) const 
+ 		{ return (_ref._word != c._ref._word) || (_ref._pos != c._ref._pos); }
+ 
+     private:

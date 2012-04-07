@@ -2,7 +2,9 @@
 
 == Description ==
 
-From http://linalg.org/: LinBox is a C++ template library for exact, high-performance linear algebra computation with dense, sparse, and structured matrices over the integers and over finite fields.
+From http://linalg.org/: LinBox is a C++ template library for exact,
+high-performance linear algebra computation with dense, sparse, and
+structured matrices over the integers and over finite fields.
 
 == License ==
 LGPL V2 or later
@@ -13,16 +15,44 @@ LGPL V2 or later
 
 == Upstream Contact ==
  * Clement Pernet
- * The Google group linbox-devel and linbox-use
+ * The Google groups linbox-devel and linbox-use
 
 == Dependencies ==
  * GNU patch
- * MPIR
+ * GMP/MPIR
  * NTL
  * Givaro
- * ATLAS (non-OSX)/The Accelerate FrameWork (on OSX)
+ * ATLAS (non-MacOS X) / The Accelerate FrameWork (on MacOS X), or GSL's CBLAS
+
+== Special Update/Build Instructions ==
+ * Make sure the patches still apply.
+   (They are currently quite self-explanatory; `bit-vector.inl.patch` fixes a
+    scoping error, `gf2.inl.patch` an automatic type conversion error, both
+    needed to make the test suite build, at least with newer versions of GCC.)
+ * TODO:
+   - Check whether `make fullcheck` works/builds, is worth running, and doesn't
+     take ages.  (Version 1.1.6 doesn't seem to have such a target.)
+   - If upstream doesn't, or hasn't yet, perhaps make the sources comply with
+     C++11, submit a patch to upstream, and remove the GCC 4.7.x work-around.
 
 == Changelog ==
+
+=== linbox-1.1.6.p9 (Leif Leonhardy, April 7th 2012) ===
+ * #12762: Temporarily add `-fpermissive` to `CXXFLAGS` if we're compiling
+   with `g++` 4.7.x, since the LinBox sources currently don't conform to
+   C++11, so GCC 4.7.x would otherwise reject them.
+ * Exit if the build failed.
+ * Use `CFLAG64` if it is set (and `SAGE64=yes`).
+ * Clean up `spkg-install`, add some messages.
+ * Add an `spkg-check` file, which currently runs `make check`. (There's also
+   a `fullcheck` target.)
+ * Change patch to disable the commentator, as default parameters were missing
+   with `-DDISABLE_COMMENTATOR`, such that the test suite wouldn't build.
+   Also, one must not unconditionally use `extern` for the global (dummy)
+   commentator since this is C++, and doing so also breaks the test suite.
+ * Fix (i.e. patch) the sources such that the test suite (`make check`) builds,
+   also with GCC 4.7.0.
+ * Add the "Special Update/Build Instructions" section.
 
 === linbox-1.1.6.p8 (William Stein, 18 March 2012) ===
  * Trac #10281: Multimodular echelon form over cyclotomic fields fails

@@ -1,6 +1,28 @@
-diff -ru linbox-1.1.6/linbox/util/commentator.C src/linbox/util/commentator.C
---- linbox-1.1.6/linbox/util/commentator.C	2008-06-14 03:20:54.000000000 +0200
-+++ src/linbox/util/commentator.C	2012-03-05 14:29:50.178365092 +0100
+--- src/linbox/util/commentator.h	2008-06-14 03:20:55.000000000 +0200
++++ patches/commentator.h	2012-04-07 09:09:31.833303032 +0200
+@@ -756,7 +756,7 @@
+ 			LEVEL_UNIMPORTANT  =  3,
+ 		};
+ 
+-		inline std::ostream &report (long level, const char *msg_class) { return cnull; }
++		inline std::ostream &report (long level = LEVEL_IMPORTANT, const char *msg_class = INTERNAL_DESCRIPTION) { return cnull; }
+ 		inline void indent (std::ostream &stream) {}
+ 
+ 		enum OutputFormat
+@@ -817,7 +817,11 @@
+ 	};
+ 
+ 	// Default global commentator
++#ifndef LinBoxSrcOnly
++	extern Commentator commentator;
++#else
+ 	Commentator commentator;
++#endif
+ 	//static Commentator commentator;
+ }
+ 
+--- src/linbox/util/commentator.C	2008-06-14 03:20:54.000000000 +0200
++++ patches/commentator.C	2012-04-07 08:00:56.450802608 +0200
 @@ -79,6 +79,7 @@
  		return 0;
  	}
@@ -15,18 +37,5 @@ diff -ru linbox-1.1.6/linbox/util/commentator.C src/linbox/util/commentator.C
  
 +#endif
  	// Default global commentator
--	Commentator commentator;
-+	Commentator commentator ;
+ 	Commentator commentator;
  }
-diff -ru linbox-1.1.6/linbox/util/commentator.h src/linbox/util/commentator.h
---- linbox-1.1.6/linbox/util/commentator.h	2008-06-14 03:20:55.000000000 +0200
-+++ src/linbox/util/commentator.h	2012-03-05 14:31:12.808361991 +0100
-@@ -817,7 +817,7 @@
- 	};
- 
- 	// Default global commentator
--	Commentator commentator;
-+	extern Commentator commentator;
- 	//static Commentator commentator;
- }
- 

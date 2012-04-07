@@ -349,6 +349,15 @@ class ToricDivisorGroup(DivisorGroup_generic):
             V(z)
             sage: TDiv( P2.fan(1)[0] )
             V(x)
+
+        TESTS::
+
+            sage: TDiv(0)   # Trac #12812
+            0
+            sage: TDiv(1)   # Trac #12812
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
         if is_ToricDivisor(x):
             if x.parent() is self:
@@ -429,11 +438,7 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=True, reduce=True):
     - ``arg`` -- one of the following description of the toric divisor to be
       constructed:
 
-      * ``None`` (the trivial divisor);
-
-      * integer (divisor corresponding to the ``arg``-th ray of the fan, order
-        is the same as in ``toric_variety.fan().rays()``, which is also the
-        same as for the one-cones ``toric_variety.fan(dim=1)``);
+      * ``None`` or 0 (the trivial divisor);
 
       * monomial in the homogeneous coordinates;
 
@@ -471,8 +476,6 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=True, reduce=True):
         sage: dP6 = toric_varieties.dP6()
         sage: ToricDivisor(dP6, [(1,dP6.gen(2)), (1,dP6.gen(1))])
         V(u) + V(y)
-        sage: ToricDivisor(dP6, 1) + ToricDivisor(dP6, 2)
-        V(u) + V(y)
         sage: ToricDivisor(dP6, (0,1,1,0,0,0), ring=QQ)
         V(u) + V(y)
         sage: dP6.inject_variables()
@@ -497,11 +500,13 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=True, reduce=True):
         sage: ToricDivisor(dP6, [(1/2,u)])
         1/2*V(u)
         sage: _.parent()
-        Group of toric QQ-Weil divisors on 2-d CPR-Fano toric variety covered by 6 affine patches
+        Group of toric QQ-Weil divisors on
+        2-d CPR-Fano toric variety covered by 6 affine patches
         sage: ToricDivisor(dP6, [(1/2,u), (1/2,u)])
         V(u)
         sage: _.parent()
-        Group of toric ZZ-Weil divisors on 2-d CPR-Fano toric variety covered by 6 affine patches
+        Group of toric ZZ-Weil divisors on
+        2-d CPR-Fano toric variety covered by 6 affine patches
         sage: ToricDivisor(dP6, [(u,u)])
         Traceback (most recent call last):
         ...
@@ -512,7 +517,7 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=True, reduce=True):
     ##### First convert special arguments into lists
     ##### of multiplicities or (multiplicity,coordinate)
     # Zero divisor
-    if arg is None:
+    if arg is None or arg in ZZ and arg == 0:
         arg = []
         check = False
         reduce = False
@@ -529,12 +534,7 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=True, reduce=True):
         if cone.dim() != 1:
             raise ValueError("Only 1-dimensional cones of the toric variety "
                              "define divisors.")
-
-        assert cone.ambient() is fan
-        arg = cone.ambient_ray_indices()[0]
-    # Divisor by a ray index
-    if arg in ZZ:
-        arg = [(1, toric_variety.gen(arg))]
+        arg = [(1, toric_variety.gen(cone.ambient_ray_indices()[0]))]
         check = True    # ensure that the 1 will be coerced into the coefficient ring
         reduce = False
     # Divisor by monomial

@@ -166,6 +166,12 @@ if [ $1 = '-s' ]; then
     shift
 fi
 
+if [ $1 = '-c' ]; then
+    export SAGE_CHECK=yes
+    SAGE_CHECK_PACKAGES=x  # nonempty, so not set to '!python' later
+    shift
+fi
+
 if [ "x$SAGE_KEEP_BUILT_SPKGS" = "xyes" ]; then
     DELETE_TMP=0
 fi
@@ -175,12 +181,6 @@ if [ "$SAGE_SPKG_LIST_FILES" = "yes" ]; then
     UNTAR_VERBOSE=v
 else
     unset UNTAR_VERBOSE
-fi
-
-if [ $1 = '-c' ]; then
-    export SAGE_CHECK=yes
-    SAGE_CHECK_PACKAGES='x' # nonempty, so not set to '!python' later
-    shift
 fi
 
 ##################################################################

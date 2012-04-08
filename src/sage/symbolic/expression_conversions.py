@@ -480,7 +480,7 @@ class InterfaceInit(Converter):
 
             sage: y = var('y')
             sage: t = (f(x*y).diff(x))/y
-            sage:  t
+            sage: t
             D[0](f)(x*y)
             sage: m.derivative(t, t.operator())
             "at(diff('f(t0), t0, 1), [t0 = x*y])"
@@ -493,6 +493,11 @@ class InterfaceInit(Converter):
         args = ex.operands()
         if (not all(is_SymbolicVariable(v) for v in args) or
             len(args) != len(set(args))):
+            # An evaluated derivative of the form f'(1) is not a
+            # symbolic variable, yet we would like to treat it like
+            # one. So, we replace the argument `1` with a temporary
+            # variable e.g. `t0` and then evaluate the derivative
+            # f'(t0) symbolically at t0=1. See trac #12796.
             temp_args=[var("t%s"%i) for i in range(len(args))]
             f = operator.function()
             params = operator.parameter_set()

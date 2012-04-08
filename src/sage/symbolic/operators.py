@@ -40,9 +40,27 @@ class FDerivativeOperator(object):
             D[0, 1](foo)(x, y)
             sage: op(x,x^2)
             D[0, 1](foo)(x, x^2)
+
+        TESTS:
+
+        We should be able to operate on functions evaluated at a
+        point, not just a symbolic variable, :trac:`12796`::
+
+           sage: from sage.symbolic.operators import FDerivativeOperator
+           sage: f = function('f')
+           sage: op = FDerivativeOperator(f, [0])
+           sage: op(1)
+           D[0](f)(1)
+
         """
         if (not all(is_SymbolicVariable(x) for x in args) or
                 len(args) != len(set(args))):
+            # An evaluated derivative of the form f'(1) is not a
+            # symbolic variable, yet we would like to treat it
+            # like one. So, we replace the argument `1` with a
+            # temporary variable e.g. `t0` and then evaluate the
+            # derivative f'(t0) symbolically at t0=1. See trac
+            # #12796.
             temp_args=[var("t%s"%i) for i in range(len(args))]
             vars=[temp_args[i] for i in self._parameter_set]
             return self._f(*temp_args).diff(*vars).function(*temp_args)(*args)

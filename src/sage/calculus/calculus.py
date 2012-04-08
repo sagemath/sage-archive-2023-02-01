@@ -1387,6 +1387,32 @@ def at(ex, *args, **kwds):
         D[0, 0](f)(t)
         sage: f.diff(t,2).laplace(t,s)
         s^2*laplace(f(t), t, s) - s*f(0) - D[0](f)(0)
+
+    We can also accept a non-keyword list of expression substitutions,
+    like Maxima does, :trac:`12796`::
+
+        sage: from sage.calculus.calculus import at
+        sage: f = function('f')
+        sage: at(f(x), [x == 1])
+        f(1)
+
+    TESTS:
+
+    Our one non-keyword argument must be a list::
+
+        sage: from sage.calculus.calculus import at
+        sage: f = function('f')
+        sage: at(f(x), x == 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: at can take at most one argument, which must be a list
+
+    We should convert our first argument to a symbolic expression::
+
+        sage: from sage.calculus.calculus import at
+        sage: at(int(1), x=1)
+        1
+
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)

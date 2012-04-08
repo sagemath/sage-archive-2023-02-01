@@ -1422,6 +1422,18 @@ def sr_to_max(expr):
         sage: f = function('f',x)
         sage: sr_to_max(f.diff())
         <ECL: ((%DERIVATIVE) (($F) $X) $X 1)>
+
+    TESTS:
+
+    We should be able to convert derivatives evaluated at a point,
+    :trac:`12796`::
+
+        sage: from sage.interfaces.maxima_lib import sr_to_max, max_to_sr
+        sage: f = function('f')
+        sage: f_prime = f(x).diff(x)
+        sage: max_to_sr(sr_to_max(f_prime(x = 1)))
+        D[0](f)(1)
+
     """
     global sage_op_dict, max_op_dict
     global sage_sym_dict, max_sym_dict
@@ -1438,6 +1450,12 @@ def sr_to_max(expr):
             args = expr.operands()
             if (not all(is_SymbolicVariable(v) for v in args) or
                 len(args) != len(set(args))):
+                # An evaluated derivative of the form f'(1) is not a
+                # symbolic variable, yet we would like to treat it
+                # like one. So, we replace the argument `1` with a
+                # temporary variable e.g. `t0` and then evaluate the
+                # derivative f'(t0) symbolically at t0=1. See trac
+                # #12796.
                 temp_args=[var("t%s"%i) for i in range(len(args))]
                 f =sr_to_max(op.function()(*temp_args))
                 params = op.parameter_set()

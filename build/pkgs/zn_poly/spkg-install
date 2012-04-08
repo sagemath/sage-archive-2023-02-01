@@ -1,128 +1,213 @@
 #!/usr/bin/env bash
 
-################################################################
+###############################################################################
 #
-#  zn_poly sage install script
+#  zn_poly Sage install script
 #
-################################################################
+###############################################################################
 
 if [ -z "$SAGE_LOCAL" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
-
-# Let the user set an environment variable CFLAG64 to
-# indicate the C compiler flag for 64-bit builds. By
-# default this will be -m64. IBM's compiler on AIX
-# and HP's on HP-UX do NOT use -m64.
-
-if [ -z "$CFLAG64" ] ; then
-   CFLAG64=-m64
-fi
-
-if [ "x$SAGE64" = xyes ]; then
-   echo "Building a 64-bit version of zn_poly"
-   CFLAGS="$CFLAGS $CFLAG64"
-   CPPFLAGS="$CPPFLAGS $CFLAG64" ; export CPPFLAGS
-   LDFLAGS="$LDFLAGS $CFLAG64" ; export LDFLAGS
-   cp patches/makemakefile.py src/makemakefile.py
-   CC="$CC $CFLAG64" ; export CC
-fi
-
-CFLAGS="$CFLAGS -g -fPIC -O3 -L."; export CFLAGS
-LDFLAGS="$LDFLAGS"; export LDFLAGS
-
-if [ "x$UNAME" = xSunOS ] && [  "`ld  --version  2>&1  | grep GNU`" = ""  ]; then
-   # Change -soname to -h if the Sun linker is used.
-   sed 's/-soname/-h/g' src/makemakefile.py > /tmp/makemakefile.py.$$
-   mv /tmp/makemakefile.py.$$ src/makemakefile.py
-fi
-
-cp patches/mpn_mulmid-tune.c patches/mul-tune.c patches/mulmid-tune.c src/tune
-if [ $? -ne 0 ]; then
-	echo "Error patching."
-	exit 1
-fi
-
-cd src
-
-./configure --gmp-prefix="$SAGE_LOCAL" --ntl-prefix="$SAGE_LOCAL" \
-            --prefix="$SAGE_LOCAL" --cflags="$CFLAGS" --ldflags="$LDFLAGS"
-
-# optionally run tuning program, only takes 1 minute or so
-$MAKE tune CC=$CC
-if [ $? -ne 0 ]; then
-	echo "Error building zn_poly tuning program."
-	exit 1
-fi
-tune/tune > src/tuning.c
-
-if [ $? -ne 0 ]; then
-	echo "Error running tune program."
-	exit 1
-fi
-
-$MAKE CC=$CC
-if [ $? -ne 0 ]; then
-	echo "Error building zn_poly."
-	exit 1
-fi
-
-# run test suite (quick version)
-$MAKE check CC=$CC
-
-if [ $? -ne 0 ]; then
-   echo "Error running zn_poly's quick test suite (make check)."
-   exit 1
-else
-   echo ""
-   echo "zn_poly's *quick* test suite passed. A more comprehensive"
-   echo "test suite can be run if SAGE_CHECK is exported to \"yes\""
-   echo "but it takes about 10x as long to run"
-   echo ""
-fi
-
-
-# UNIX
-if [ $UNAME != "Darwin" ]; then
-    $MAKE libzn_poly.so CC=$CC
-    if [ $? -ne 0 ]; then
-        echo "Error building zn_poly shared library."
-        exit 1
-    fi
-    $CP libzn_poly-0.9.so "$SAGE_LOCAL/lib/"
-    (cd $SAGE_LOCAL/lib/ && ln -sf libzn_poly-0.9.so libzn_poly.so)
-fi
-
-# CYGWIN
-if [ $UNAME = "CYGWIN" ]; then
-    ln -s "$SAGE_LOCAL"/lib/libzn_poly.so "$SAGE_LOCAL"/lib/libzn_poly.dll
-fi
-
-
-# OS X
-if [ $UNAME = "Darwin" ]; then
-    if [ "$SAGE64" = "yes" ]; then
-      $MAKE libzn_poly.dylib64 CC=$CC
-    else
-      $MAKE libzn_poly.dylib CC=$CC
-    fi
-    if [ ! -f libzn_poly.dylib ]; then
-        echo "Failed to build zn_poly dylib."
-        exit 1
-    fi
-    $CP libzn_poly.dylib "$SAGE_LOCAL/lib/"
-fi
-
-# copy header files
-
-mkdir -p $SAGE_LOCAL/include/zn_poly
-$CP include/zn_poly.h $SAGE_LOCAL/include/zn_poly
-$CP include/wide_arith.h $SAGE_LOCAL/include/zn_poly
-
-
-if [ $? -ne 0 ]; then
-    echo "Error building zn_poly"
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
+
+###############################################################################
+# Set up environment variables:
+###############################################################################
+
+if [ "$SAGE64" = yes ]; then
+    echo "Building a 64-bit version of zn_poly."
+    if [ -z "$CFLAG64" ]; then
+        CFLAG64=-m64
+    fi
+    CFLAGS="$CFLAGS $CFLAG64"
+    CPPFLAGS="$CPPFLAGS $CFLAG64"
+    CXXFLAGS="$CXXFLAGS $CFLAG64"
+    LDFLAGS="$LDFLAGS $CFLAG64"
+    # We now do this unconditionally below (actually by patching):
+    # cp -f patches/makemakefile.py src/makemakefile.py
+    # if [ $? -ne 0 ]; then
+    #     echo >&2 "Error copying over patched 'makemakefile.py'."
+    #     exit 1
+    # fi
+fi
+
+if [ "$SAGE_DEBUG" = yes ]; then
+    echo >&2 "Warning: Setting SAGE_DEBUG to 'yes' completely disables optimization."
+    CFLAGS="$CFLAGS -O0 -g -fPIC"
+    CXXFLAGS="$CXXFLAGS -O0 -g -fPIC"
+else
+    CFLAGS="-O3 -g $CFLAGS -fPIC"
+    CXXFLAGS="-O3 -g $CXXFLAGS -fPIC"
+fi
+# LDFLAGS="-L. $LDFLAGS" # Not needed. (-leif, 04/2012)
+
+export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS # Partially redundant, but safe.
+
+# (Actually the currently generated Makefile won't use any of them from the
+# environment; instead we have to pass them with special options to 'configure',
+# which we do below.  Furthermore, CPPFLAGS and CXXFLAGS are only supported by
+# our patched 'makemakefile.py', which is called by 'configure'.)
+
+###############################################################################
+# Apply patches (if any):
+###############################################################################
+
+# cp patches/mpn_mulmid-tune.c patches/mul-tune.c patches/mulmid-tune.c src/tune
+# if [ $? -ne 0 ]; then
+#     echo >&2 "Error copying over patched upstream source files."
+#     exit 1
+# fi
+
+# We now also always patch 'makemakefile.py' below, since the changes are
+# independent of the setting of SAGE64.
+
+cd src/
+
+echo "Applying patches (if any) to upstream sources..."
+for patch in ../patches/*.patch; do
+    basename "$patch"
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: '$patch' failed to apply."
+        exit 1
+    fi
+done
+
+case "$UNAME" in SunOS)
+    if ! (ld --version  2>&1 | grep GNU >/dev/null); then
+        # Assume it's the Sun linker; change '-soname' to '-h':
+        # echo "Patching 'makemakefile.py' for the Sun linker..."
+        # sed 's/-soname/-h/g' makemakefile.py > makemakefile.py.$$ &&
+        # mv -f makemakefile.py.$$ makemakefile.py
+        # if [ $? -ne 0 ]; then
+        #     echo >&2 "Error patching 'makemakefile.py' (with 'sed')."
+        #     exit 1
+        # fi
+        # The following is only supported by the Makefile generated by our
+        # patched 'makemakefile.py':
+        export SONAME_FLAG=-h
+    fi;;
+    *) unset SONAME_FLAG # Leave the Makefile default; for safety.
+esac
+
+unset SHARED_FLAG # Currently leave the Makefile default ('-shared'); for safety.
+
+###############################################################################
+# Configure, tune, build and test zn_poly:
+###############################################################################
+
+echo "Now configuring zn_poly..."
+# Note: The '--cppflags' and '--cxxflags' options are added by our patch to
+#       'makemakefile.py', and aren't available with vanilla upstream.
+#       Moreover, the generated Makefile now takes CC, CXX and CPP from the
+#       environment, so no need to pass them later explicitly to 'make'.
+./configure --prefix="$SAGE_LOCAL" \
+            --cflags="$CFLAGS" --ldflags="$LDFLAGS" \
+            --cppflags="$CPPFLAGS" --cxxflags="$CXXFLAGS" \
+            --gmp-prefix="$SAGE_LOCAL" # --ntl-prefix="$SAGE_LOCAL"
+if [ $? -ne 0 ] || [ ! -f makefile ]; then
+    echo >&2 "Error configuring zn_poly."
+    exit 1
+fi
+
+# Run the tuning program, only takes 1 minute or so:
+echo "Now building zn_poly's self-tuning program..."
+$MAKE tune # CC="$CC"
+if [ $? -ne 0 ] || [ ! -x tune/tune ]; then
+    echo >&2 "Error building zn_poly's tuning program."
+    exit 1
+fi
+echo "Now running zn_poly's self-tuning program..."
+tune/tune > src/tuning.c
+if [ $? -ne 0 ]; then
+    echo >&2 "Error running zn_poly's tuning program."
+    exit 1
+fi
+
+echo "Now building zn_poly with its tuning parameters..."
+$MAKE # CC="$CC"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building zn_poly."
+    exit 1
+fi
+
+# Run the brief test suite:
+echo "Now building and running zn_poly's quick self-test..."
+$MAKE check # CC="$CC"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error running zn_poly's quick test suite ('make check')."
+    exit 1
+else
+    echo "zn_poly's *quick* test suite passed."
+    if [ "$SAGE_CHECK" != yes ]; then
+        echo "A more comprehensive test suite can be run if SAGE_CHECK is"
+        echo "exported to \"yes\", but it takes about 10x as long to run."
+    fi
+fi
+
+###############################################################################
+# Build and manually install the shared library:
+###############################################################################
+
+echo "Now building and installing zn_poly's shared library..."
+
+if [ "$UNAME" != Darwin ]; then
+    # Linux, SunOS/Solaris, Cygwin etc.:
+    $MAKE libzn_poly.so # CC="$CC"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error building zn_poly's shared library."
+        exit 1
+    fi
+    cp -f libzn_poly-0.9.so "$SAGE_LOCAL"/lib/ &&
+    (cd "$SAGE_LOCAL"/lib/ && ln -sf libzn_poly-0.9.so libzn_poly.so)
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error installing zn_poly's shared library."
+        exit 1
+    fi
+    if [ "$UNAME" = CYGWIN ]; then
+        (cd "$SAGE_LOCAL"/lib/ && ln -sf libzn_poly.so libzn_poly.dll)
+        if [ $? -ne 0 ]; then
+            echo >&2 "Error creating symbolic link from libzn_poly.dll to libzn_poly.so."
+            exit 1
+        fi
+    fi
+else
+    # Darwin (MacOS X):
+    # We now use LDFLAGS instead of the hardcoded '-m64' (for the .dylib64
+    # target), so we don't have to differentiate here; i.e., a single
+    # 'libzn_poly.dylib' target is sufficient for both, the extra flag (if any)
+    # used depending on the value of LDFLAGS passed to 'configure' (which in
+    # turn was set above, depending on the value of SAGE64).
+    # if [ "$SAGE64" = yes ]; then
+    #     target=libzn_poly.dylib64
+    # else
+    #     target=libzn_poly.dylib
+    # fi
+    # $MAKE $target # CC="$CC"
+    $MAKE libzn_poly.dylib # CC="$CC"
+    if [ ! -f libzn_poly.dylib ]; then
+        echo >&2 "Error building zn_poly's dylib (shared library)."
+        exit 1
+    fi
+    cp -f libzn_poly.dylib "$SAGE_LOCAL"/lib/
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error copying 'libzn_poly.dylib'."
+        exit 1
+    fi
+fi
+
+###############################################################################
+# Manually install the header files:
+###############################################################################
+
+echo "Now installing zn_poly's header files..."
+
+mkdir -p "$SAGE_LOCAL"/include/zn_poly/ &&
+cp -f include/{zn_poly,wide_arith}.h "$SAGE_LOCAL"/include/zn_poly/
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing zn_poly's header files."
+    exit 1
+fi
+echo "Finished installing zn_poly."

@@ -1,70 +1,93 @@
 #!/usr/bin/env bash
 
-################################################################
+###############################################################################
 #
-#  zn_poly sage check script
+#  zn_poly Sage check script
 #
-################################################################
+###############################################################################
 
 if [ -z "$SAGE_LOCAL" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
-# Let the user set an environment variable CFLAG64 to
-# indicate the C compiler flag for 64-bit builds. By
-# default this will be -m64. IBM's compiler on AIX
-# and HP's on HP-UX do NOT use -m64.
+###############################################################################
+# Set up environment variables:
+###############################################################################
 
-if [ -z "$CFLAG64" ] ; then
-   CFLAG64=-m64
+if [ "$SAGE64" = yes ]; then
+    echo "Building a 64-bit version of zn_poly's \"extensive\" test suite."
+    if [ -z "$CFLAG64" ]; then
+        CFLAG64=-m64
+    fi
+    CFLAGS="$CFLAGS $CFLAG64"
+    CPPFLAGS="$CPPFLAGS $CFLAG64"
+    CXXFLAGS="$CXXFLAGS $CFLAG64"
+    LDFLAGS="$LDFLAGS $CFLAG64"
+    # This should really have happened in advance from 'spkg-install':
+    # cp patches/makemakefile.py src/makemakefile.py
+    # if [ $? -ne 0 ]; then
+    #     echo >&2 "Error copying over patched 'makemakefile.py'."
+    #     exit 1
+    # fi
+    # (Also no need to re-'sed' it in case we're using the Sun linker.)
 fi
 
-if [ "x$SAGE64" = xyes ]; then
-   CFLAGS="$CFLAGS $CFLAG64"
-   CPPFLAGS="$CPPFLAGS $CFLAG64" ; export CPPFLAGS
-   LDFLAGS="$LDFLAGS $CFLAG64" ; export LDFLAGS
-   CC="$CC CFLAG64" ; export CC
+if [ "$SAGE_DEBUG" = yes ]; then
+    echo >&2 "Warning: Setting SAGE_DEBUG to 'yes' completely disables optimization."
+    CFLAGS="$CFLAGS -O0 -g -fPIC"
+    CXXFLAGS="$CXXFLAGS -O0 -g -fPIC"
+else
+    CFLAGS="-O3 -g $CFLAGS -fPIC"
+    CXXFLAGS="-O3 -g $CXXFLAGS -fPIC"
 fi
+# LDFLAGS="-L. $LDFLAGS" # Not needed. (-leif, 04/2012)
 
-cd src
+export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS # Partially redundant, but safe.
 
-# The methods for testing zn_poly are more complex than most other packages.
-# A 'make check' does some quick tests. These are run from spkg-install
-# to check zn_poly is not obviously disfunctional
+# Actually, these flags have been written to the Makefile during 'configure'.
+# Only CC, CPP and CXX settings from the environment currently override the
+# ones in the Makefile (which was generated from a patched 'makemakefile.py').
+# -leif 04/2012
 
-# However, a more comprehensive set of tests can be run
-# by first building a test program, then running that test program.
+###############################################################################
+# Build the 'test' program (if it's not already built) and run it:
+###############################################################################
 
-# To quote from the file src/README
+cd src/
+
+# The methods for testing zn_poly are more complex than those of most other
+# packages.  A 'make check' does some quick tests.  These are run from
+# 'spkg-install' to check zn_poly is not obviously disfunctional.
+#
+# However, a more comprehensive set of tests can be run by first building a
+# test program, then running that test program, which we do here.
+#
+# To quote from the file src/README:
 #
 # make check
 #    Runs some quick tests to make sure that everything appears to be working.
-
+#
 # make test
 #    Builds a test program. Running "test/test all" runs the whole zn_poly test
 #    suite, which tests zn_poly much more thoroughly than "make check".
 
-make test  #  Make sure the test program is built
-
-if [ $? -ne 0 ]; then
-    echo "zn_poly failed to build the test program"
-    echo "So zn_poly's extensive test suite can not be run"
+echo
+echo "Now building zn_poly's extensive test suite (if not already built)..."
+# $MAKE test CC="$CC" # See comment above. We don't have to pass CC.
+$MAKE test # Make sure the test program is built.
+if [ $? -ne 0 ] || [ ! -x test/test ]; then
+    echo >&2 "Error: zn_poly failed to build its 'test' program,"
+    echo >&2 "       so zn_poly's extensive test suite cannot be run."
     exit 1
 fi
 
-echo ""
-echo "zn_poly's extensive test suite will now be run"
-echo ""
-
-test/test all # Run the extensive test suite
-
+echo
+echo "Now running zn_poly's extensive test suite..."
+test/test all # Run the extensive test suite.
 if [ $? -ne 0 ]; then
-    echo "zn_poly failed to pass the extensive test suite"
+    echo >&2 "Error: zn_poly failed to pass its extensive test suite."
     exit 1
-else
-    echo "zn_poly has passed the extensive test suite."
-    exit 0
 fi
-
+echo "zn_poly has passed its extensive test suite."

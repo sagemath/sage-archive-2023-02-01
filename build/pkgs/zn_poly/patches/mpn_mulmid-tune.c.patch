@@ -1,5 +1,5 @@
---- mpn_mulmid-tune.c.orig	2010-04-26 23:47:46.000000000 +0200
-+++ mpn_mulmid-tune.c	2010-04-26 23:48:58.000000000 +0200
+--- src/tune/mpn_mulmid-tune.c	2010-04-26 23:47:46.000000000 +0200
++++ patches/mpn_mulmid-tune.c	2010-04-26 23:52:16.000000000 +0200
 @@ -46,6 +46,9 @@
     ZNP_mpn_smp_kara_thresh = SIZE_MAX;
  

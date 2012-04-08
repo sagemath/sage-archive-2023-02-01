@@ -110,6 +110,9 @@ REFERENCES:
     vol. 41, n.5, pages 39--45
     ACM
     http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.86.1801&rep=rep1&type=pdf
+
+Methods
+-------
 """
 
 #*****************************************************************************

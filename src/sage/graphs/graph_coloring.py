@@ -1,11 +1,48 @@
 """
 Graph coloring
 
+This module gathers all methods related to graph coloring. Here is what it can
+do :
+
+**Proper vertex coloring**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`all_graph_colorings` | Computes all `n`-colorings a graph
+    :meth:`first_coloring` | Returns the first vertex coloring found
+    :meth:`number_of_n_colorings` | Computes the number of `n`-colorings of a graph
+    :meth:`numbers_of_colorings` | Computes the number of colorings of a graph
+    :meth:`chromatic_number` | Returns the chromatic number of the graph
+    :meth:`vertex_coloring` | Computes Vertex colorings and chromatic numbers
+
+
+**Other colorings**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`grundy_coloring` | Computes Grundy numbers and Grundy colorings
+    :meth:`b_coloring` | Computes a b-chromatic numbers and b-colorings
+    :meth:`edge_coloring` | Compute chromatic index and edge colorings
+    :meth:`round_robin` | Computes a round-robin coloring of the complete graph on `n` vertices
+    :meth:`linear_arboricity` | Computes the linear arboricity of the given graph
+    :meth:`acyclic_edge_coloring` | Computes an acyclic edge coloring of the current graph
+
+
+
 AUTHORS:
 
 - Tom Boothby (2008-02-21): Initial version
 - Carlo Hamalainen (2009-03-28): minor change: switch to C++ DLX solver
 - Nathann Cohen (2009-10-24): Coloring methods using linear programming
+
+Methods
+-------
 """
 
 #*****************************************************************************
@@ -177,8 +214,7 @@ def first_coloring(G, n=0, hex_colors=False):
 
 def number_of_n_colorings(G,n):
     r"""
-    Given a graph `G` and a natural number `n`, returns the number of
-    `n`-colorings of the graph.
+    Computes the number of `n`-colorings of a graph
 
     EXAMPLES::
 

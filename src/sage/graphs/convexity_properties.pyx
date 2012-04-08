@@ -1,9 +1,26 @@
 r"""
 Convexity properties of graphs
 
-This class gathers the algorithms related to convexity in a graph.
+This class gathers the algorithms related to convexity in a graph. It implements
+the following methods:
 
-AUTHOR: Nathann Cohen
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`ConvexityProperties.hull` | Returns the convex hull of a set of vertices
+    :meth:`ConvexityProperties.hull_number` | Computes the hull number of a graph and a corresponding generating set.
+
+These methods can be used through the :class:`ConvexityProperties` object
+returned by :meth:`Graph.convexity_properties`.
+
+AUTHORS:
+
+    -  Nathann Cohen
+
+Methods
+-------
 """
 
 include "../misc/bitset.pxi"
@@ -331,15 +348,15 @@ cdef class ConvexityProperties:
 
     cpdef hull_number(self, value_only = True, verbose = False):
         r"""
-        Computes the hull number and a correspondin generating set.
+        Computes the hull number and a corresponding generating set.
 
         The hull number `hn(G)` of a graph `G` is the cardinality of a smallest
         set of vertices `S` such that `h(S)=V(G)`.
 
         INPUT:
 
-        * ``value_only`` (boolean) -- whether to return only the hull number (default) or
-          a minimum set whose convex hull is the whole graph.
+        * ``value_only`` (boolean) -- whether to return only the hull number
+          (default) or a minimum set whose convex hull is the whole graph.
 
         * ``verbose`` (boolean) -- whether to display information on the LP.
 

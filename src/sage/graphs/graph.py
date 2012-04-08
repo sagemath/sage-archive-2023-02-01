@@ -4,6 +4,120 @@ Undirected graphs
 This module implements functions and operations involving undirected
 graphs.
 
+**Graph basic operations:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~Graph.write_to_eps` | Writes a plot of the graph to ``filename`` in ``eps`` format.
+    :meth:`~Graph.to_undirected` | Since the graph is already undirected, simply returns a copy of itself.
+    :meth:`~Graph.to_directed` | Returns a directed version of the graph.
+    :meth:`~Graph.sparse6_string` | Returns the sparse6 representation of the graph as an ASCII string.
+    :meth:`~Graph.graph6_string` | Returns the graph6 representation of the graph as an ASCII string.
+    :meth:`~Graph.bipartite_sets` | Returns `(X,Y)` where X and Y are the nodes in each bipartite set of graph.
+    :meth:`~Graph.bipartite_color` | Returns a dictionary with vertices as the keys and the color class as the values.
+    :meth:`~Graph.is_directed` | Since graph is undirected, returns False.
+
+
+**Distances:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~Graph.centrality_closeness` | Returns the closeness centrality (1/average distance to all vertices)
+    :meth:`~Graph.centrality_degree` | Returns the degree centrality
+    :meth:`~Graph.centrality_betweenness` | Returns the betweenness centrality
+
+
+
+**Graph properties:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~Graph.is_prime` | Tests whether the current graph is prime.
+    :meth:`~Graph.is_split` | Returns ``True`` if the graph is a Split graph, ``False`` otherwise.
+    :meth:`~Graph.is_triangle_free` | Returns whether ``self`` is triangle-free
+    :meth:`~Graph.is_bipartite` | Returns True if graph G is bipartite, False if not.
+    :meth:`~Graph.is_line_graph` | Tests wether the graph is a line graph.
+    :meth:`~Graph.is_odd_hole_free` | Tests whether ``self`` contains an induced odd hole.
+    :meth:`~Graph.is_even_hole_free` | Tests whether ``self`` contains an induced even hole.
+
+
+
+**Connectivity and orientations:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~Graph.gomory_hu_tree` | Returns a Gomory-Hu tree of self.
+    :meth:`~Graph.bounded_outdegree_orientation` | Computes an orientation of ``self`` such that every vertex `v` has out-degree less than `b(v)`
+    :meth:`~Graph.strong_orientation` | Returns a strongly connected orientation of the current graph.
+    :meth:`~Graph.degree_constrained_subgraph` | Returns a degree-constrained subgraph.
+
+
+
+**Clique-related methods:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~Graph.clique_complex` | Returns the clique complex of self
+    :meth:`~Graph.cliques_containing_vertex` | Returns the cliques containing each vertex
+    :meth:`~Graph.cliques_vertex_clique_number` | Returns a dictionary of sizes of the largest maximal cliques containing each vertex
+    :meth:`~Graph.cliques_get_clique_bipartite` | Returns a bipartite graph constructed such that maximal cliques are the right vertices and the left vertices are retained from the given graph
+    :meth:`~Graph.cliques_get_max_clique_graph` | Returns a graph constructed with maximal cliques as vertices, and edges between maximal cliques sharing vertices.
+    :meth:`~Graph.cliques_number_of` | Returns a dictionary of the number of maximal cliques containing each vertex, keyed by vertex.
+    :meth:`~Graph.clique_number` | Returns the order of the largest clique of the graph.
+    :meth:`~Graph.clique_maximum` | Returns the vertex set of a maximal order complete subgraph.
+    :meth:`~Graph.cliques_maximum` | Returns the list of all maximum cliques
+    :meth:`~Graph.cliques_maximal` | Returns the list of all maximal cliques
+
+
+**Algorithmically hard stuff:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~Graph.vertex_cover` | Returns a minimum vertex cover of self
+    :meth:`~Graph.independent_set` | Returns a maximum independent set.
+    :meth:`~Graph.topological_minor` | Returns a topological `H`-minor from ``self`` if one exists.
+    :meth:`~Graph.convexity_properties` | Returns a ``ConvexityProperties`` objet corresponding to ``self``.
+    :meth:`~Graph.matching_polynomial` | Computes the matching polynomial of the graph `G`.
+    :meth:`~Graph.rank_decomposition` | Returns an rank-decomposition of ``self`` achieving optiml rank-width.
+    :meth:`~Graph.minor` | Returns the vertices of a minor isomorphic to `H` in the current graph.
+    :meth:`~Graph.independent_set_of_representatives` | Returns an independent set of representatives.
+    :meth:`~Graph.coloring` | Returns the first (optimal) proper vertex-coloring found.
+    :meth:`~Graph.chromatic_number` | Returns the minimal number of colors needed to color the vertices of the graph.
+    :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial of the graph.
+    :meth:`~Graph.is_perfect` | Tests whether the graph is perfect.
+
+
+
+**Leftovers:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~Graph.fractional_chromatic_index` | Computes the fractional chromatic index of ``self``
+    :meth:`~Graph.modular_decomposition` | Returns the modular decomposition of the current graph.
+    :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
+
+
 AUTHORS:
 
 -  Robert L. Miller (2006-10-22): initial version
@@ -359,6 +473,9 @@ the :mod:`sage.graphs.graph_latex` module. ::
     \begin{tikzpicture}
     ...
     \end{tikzpicture}
+
+Methods
+-------
 """
 
 #*****************************************************************************
@@ -4342,8 +4459,7 @@ class Graph(GenericGraph):
 
     def modular_decomposition(self):
         r"""
-        Returns the modular decomposition corresponding
-        to the current graph.
+        Returns the modular decomposition of the current graph.
 
         Crash course on modular decomposition:
 

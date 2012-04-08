@@ -2,7 +2,91 @@ r"""
 Directed graphs
 
 This module implements functions and operations involving directed
-graphs.
+graphs. Here is what they can do
+
+**Graph basic operations:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~DiGraph.layout_acyclic_dummy` | Computes a (dummy) ranked layout so that all edges point upward.
+    :meth:`~DiGraph.layout_acyclic` | Computes a ranked layout so that all edges point upward.
+    :meth:`~DiGraph.reverse` | Returns a copy of digraph with edges reversed in direction.
+    :meth:`~DiGraph.out_degree_sequence` | Return the outdegree sequence
+    :meth:`~DiGraph.out_degree_iterator` | Same as degree_iterator, but for out degree.
+    :meth:`~DiGraph.out_degree` | Same as degree, but for out degree.
+    :meth:`~DiGraph.in_degree_sequence` | Return the indegree sequence of this digraph.
+    :meth:`~DiGraph.in_degree_iterator` | Same as degree_iterator, but for in degree.
+    :meth:`~DiGraph.in_degree` | Same as degree, but for in-degree.
+    :meth:`~DiGraph.neighbors_out` | Returns the list of the out-neighbors of a given vertex.
+    :meth:`~DiGraph.neighbor_out_iterator` | Returns an iterator over the out-neighbors of a given vertex.
+    :meth:`~DiGraph.neighbors_in` | Returns the list of the in-neighbors of a given vertex.
+    :meth:`~DiGraph.neighbor_in_iterator` | Returns an iterator over the in-neighbors of vertex.
+    :meth:`~DiGraph.outgoing_edges` | Returns a list of edges departing from vertices.
+    :meth:`~DiGraph.outgoing_edge_iterator` | Return an iterator over all departing edges from vertices
+    :meth:`~DiGraph.incoming_edges` | Returns a list of edges arriving at vertices.
+    :meth:`~DiGraph.incoming_edge_iterator` | Return an iterator over all arriving edges from vertices
+    :meth:`~DiGraph.to_undirected` | Returns an undirected version of the graph.
+    :meth:`~DiGraph.to_directed` | Since the graph is already directed, simply returns a copy of itself.
+    :meth:`~DiGraph.is_directed` | Since digraph is directed, returns True.
+    :meth:`~DiGraph.dig6_string` | Returns the dig6 representation of the digraph as an ASCII string.
+
+
+**Paths and cycles:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~DiGraph.all_paths_iterator` | Returns an iterator over the paths of self. The paths are
+    :meth:`~DiGraph.all_simple_paths` | Returns a list of all the simple paths of self starting
+    :meth:`~DiGraph.all_cycles_iterator` | Returns an iterator over all the cycles of self starting
+    :meth:`~DiGraph.all_simple_cycles` | Returns a list of all simple cycles of self.
+
+
+**Connectivity:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~DiGraph.is_strongly_connected` | Returns whether the current ``DiGraph`` is strongly connected.
+    :meth:`~DiGraph.strongly_connected_components_digraph` | Returns the digraph of the strongly connected components
+    :meth:`~DiGraph.strongly_connected_components_subgraphs` | Returns the strongly connected components as a list of subgraphs.
+    :meth:`~DiGraph.strongly_connected_component_containing_vertex` | Returns the strongly connected component containing a given vertex
+    :meth:`~DiGraph.strongly_connected_components` | Returns the list of strongly connected components.
+
+
+**Acyclicity:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
+    :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
+    :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
+    :meth:`~DiGraph.topological_sort` | Returns a topological sort of the digraph if it is acyclic
+
+
+**Hard stuff:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~DiGraph.feedback_edge_set` | Computes the minimum feedback edge (arc) set of a digraph
+    :meth:`~DiGraph.feedback_vertex_set` | Computes the minimum feedback vertex set of a digraph.
+
+
+Methods
+-------
 """
 
 from sage.rings.integer import Integer
@@ -1155,7 +1239,7 @@ class DiGraph(GenericGraph):
 
     def in_degree_sequence(self):
         r"""
-        Return the indegree sequence of this digraph.
+        Return the indegree sequence.
 
         EXAMPLES:
 
@@ -2590,17 +2674,17 @@ class DiGraph(GenericGraph):
 
     def layout_acyclic(self, **options):
         """
-        Computes a ranked layout so that all edges point upward. To
-        this end, the heights of the vertices are set according to the
-        level set decomposition of the graph (see :meth:`.level_sets`).
+        Computes a ranked layout so that all edges point upward.
 
-        This is achieved by calling ``graphviz`` and ``dot2tex`` if
-        available (see :meth:`.layout_acyclic_graphviz`), and using a
-        random horizontal placement of the vertices otherwise (see
-        :meth:`.layout_acyclic_dummy`).
+        To this end, the heights of the vertices are set according to the level
+        set decomposition of the graph (see :meth:`.level_sets`).
 
-        Non acyclic graphs are partially supported by ``graphviz``,
-        which then chooses some edges to point down.
+        This is achieved by calling ``graphviz`` and ``dot2tex`` if available
+        (see :meth:`.layout_acyclic_graphviz`), and using a random horizontal
+        placement of the vertices otherwise (see :meth:`.layout_acyclic_dummy`).
+
+        Non acyclic graphs are partially supported by ``graphviz``, which then
+        chooses some edges to point down.
 
         EXAMPLES::
 
@@ -2646,20 +2730,21 @@ class DiGraph(GenericGraph):
 
     def level_sets(self):
         """
+        Returns the level set decomposition of the digraph.
+
         OUTPUT:
 
          - a list of non empty lists of vertices of this graph
 
-        Returns the level set decomposition of the graph. This a list
-        `l` such that the level `l[i]` contains all the vertices
-        having all their predecessors in the levels `l[j]` for `j<i`,
-        and at least one in level `l[i-1]` (unless `i=0`).
+        The level set decomposition of the digraph is a list `l` such that the
+        level `l[i]` contains all the vertices having all their predecessors in
+        the levels `l[j]` for `j<i`, and at least one in level `l[i-1]` (unless
+        `i=0`).
 
-        The level decomposition contains exactly the vertices not
-        occuring in any cycle of the graph. In particular, the graph
-        is acyclic if and only if the decomposition forms a set
-        partition of its vertices, and we recover the usual level set
-        decomposition of the corresponding poset.
+        The level decomposition contains exactly the vertices not occuring in
+        any cycle of the graph. In particular, the graph is acyclic if and only
+        if the decomposition forms a set partition of its vertices, and we
+        recover the usual level set decomposition of the corresponding poset.
 
         EXAMPLES::
 
@@ -2706,9 +2791,7 @@ class DiGraph(GenericGraph):
 
     def strongly_connected_components(self):
         """
-        Returns a list of lists of vertices, each list representing a
-        strongly connected component.
-
+        Returns the list of strongly connected components.
 
         EXAMPLES::
 
@@ -2760,7 +2843,7 @@ class DiGraph(GenericGraph):
 
     def strongly_connected_component_containing_vertex(self, v):
         """
-        Returns the set of vertices whose strongly connected component is the same as v's.
+        Returns the strongly connected component containing a given vertex
 
         INPUT:
 

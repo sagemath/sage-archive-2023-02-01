@@ -32,6 +32,9 @@ REFERENCES:
 
 .. [Sahni2000] Sartaj Sahni. *Data Structures, Algorithms, and Applications
   in Java*. McGraw-Hill, 2000.
+
+Methods
+-------
 """
 
 ###########################################################################

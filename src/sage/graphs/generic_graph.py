@@ -1,8 +1,316 @@
 r"""
 Generic graphs
 
-This module implements the base class for graphs and digraphs, and
-methods that can be applied on both.
+This module implements the base class for graphs and digraphs, and methods that
+can be applied on both. Here is what it can do:
+
+**Basic Graph operations:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.networkx_graph` | Creates a new NetworkX graph from the Sage graph
+    :meth:`~GenericGraph.adjacency_matrix` | Returns the adjacency matrix of the (di)graph.
+    :meth:`~GenericGraph.incidence_matrix` | Returns an incidence matrix of the (di)graph
+    :meth:`~GenericGraph.weighted_adjacency_matrix` | Returns the weighted adjacency matrix of the graph
+    :meth:`~GenericGraph.kirchhoff_matrix` | Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
+    :meth:`~GenericGraph.get_boundary` | Returns the boundary of the (di)graph.
+    :meth:`~GenericGraph.set_boundary` | Sets the boundary of the (di)graph.
+    :meth:`~GenericGraph.has_loops` | Returns whether there are loops in the (di)graph.
+    :meth:`~GenericGraph.allows_loops` | Returns whether loops are permitted in the (di)graph.
+    :meth:`~GenericGraph.allow_loops` | Changes whether loops are permitted in the (di)graph.
+    :meth:`~GenericGraph.loops` | Returns any loops in the (di)graph.
+    :meth:`~GenericGraph.has_multiple_edges` | Returns whether there are multiple edges in the (di)graph.
+    :meth:`~GenericGraph.allows_multiple_edges` | Returns whether multiple edges are permitted in the (di)graph.
+    :meth:`~GenericGraph.allow_multiple_edges` | Changes whether multiple edges are permitted in the (di)graph.
+    :meth:`~GenericGraph.multiple_edges` | Returns any multiple edges in the (di)graph.
+    :meth:`~GenericGraph.name` | Returns or sets the graph's name.
+    :meth:`~GenericGraph.weighted` | Whether the (di)graph is to be considered as a weighted (di)graph.
+    :meth:`~GenericGraph.antisymmetric` | Tests whether the graph is antisymmetric
+    :meth:`~GenericGraph.density` | Returns the density
+    :meth:`~GenericGraph.order` | Returns the number of vertices.
+    :meth:`~GenericGraph.size` | Returns the number of edges.
+    :meth:`~GenericGraph.add_vertex` | Creates an isolated vertex.
+    :meth:`~GenericGraph.add_vertices` | Add vertices to the (di)graph from an iterable container
+    :meth:`~GenericGraph.delete_vertex` | Deletes a vertex, removing all incident edges.
+    :meth:`~GenericGraph.delete_vertices` | Remove vertices from the (di)graph taken from an iterable container of vertices.
+    :meth:`~GenericGraph.has_vertex` | Return True if vertex is one of the vertices of this graph.
+    :meth:`~GenericGraph.random_vertex` | Returns a random vertex of self.
+    :meth:`~GenericGraph.random_edge` | Returns a random edge of self.
+    :meth:`~GenericGraph.vertex_boundary` | Returns a list of all vertices in the external boundary of vertices1, intersected with vertices2.
+    :meth:`~GenericGraph.set_vertices` | Associate arbitrary objects with each vertex
+    :meth:`~GenericGraph.set_vertex` | Associate an arbitrary object with a vertex.
+    :meth:`~GenericGraph.get_vertex` | Retrieve the object associated with a given vertex.
+    :meth:`~GenericGraph.get_vertices` | Return a dictionary of the objects associated to each vertex.
+    :meth:`~GenericGraph.loop_vertices` | Returns a list of vertices with loops.
+    :meth:`~GenericGraph.vertex_iterator` | Returns an iterator over the vertices.
+    :meth:`~GenericGraph.neighbor_iterator` | Return an iterator over neighbors of vertex.
+    :meth:`~GenericGraph.vertices` | Return a list of the vertices.
+    :meth:`~GenericGraph.neighbors` | Return a list of neighbors (in and out if directed) of vertex.
+    :meth:`~GenericGraph.merge_vertices` | Merge vertices.
+    :meth:`~GenericGraph.add_edge` | Adds an edge from u and v.
+    :meth:`~GenericGraph.add_edges` | Add edges from an iterable container.
+    :meth:`~GenericGraph.subdivide_edge` | Subdivides an edge `k` times.
+    :meth:`~GenericGraph.subdivide_edges` | Subdivides k times edges from an iterable container.
+    :meth:`~GenericGraph.delete_edge` | Delete the edge from u to v
+    :meth:`~GenericGraph.delete_edges` | Delete edges from an iterable container.
+    :meth:`~GenericGraph.delete_multiedge` | Deletes all edges from u and v.
+    :meth:`~GenericGraph.set_edge_label` | Set the edge label of a given edge.
+    :meth:`~GenericGraph.has_edge` | Returns True if (u, v) is an edge, False otherwise.
+    :meth:`~GenericGraph.edges` | Return a list of edges.
+    :meth:`~GenericGraph.edge_boundary` | Returns a list of edges `(u,v,l)` with `u` in ``vertices1``
+    :meth:`~GenericGraph.edge_iterator` | Returns an iterator over edges.
+    :meth:`~GenericGraph.edges_incident` | Returns incident edges to some vertices.
+    :meth:`~GenericGraph.edge_label` | Returns the label of an edge.
+    :meth:`~GenericGraph.edge_labels` | Returns a list of edge labels.
+    :meth:`~GenericGraph.remove_multiple_edges` | Removes all multiple edges, retaining one edge for each.
+    :meth:`~GenericGraph.remove_loops` | Removes loops on vertices in vertices. If vertices is None, removes all loops.
+    :meth:`~GenericGraph.loop_edges` | Returns a list of all loops in the graph.
+    :meth:`~GenericGraph.number_of_loops` | Returns the number of edges that are loops.
+    :meth:`~GenericGraph.clear` | Empties the graph of vertices and edges and removes name, boundary, associated objects, and position information.
+    :meth:`~GenericGraph.degree` | Gives the degree (in + out for digraphs) of a vertex or of vertices.
+    :meth:`~GenericGraph.average_degree` | Returns the average degree of the graph.
+    :meth:`~GenericGraph.degree_histogram` | Returns a list, whose ith entry is the frequency of degree i.
+    :meth:`~GenericGraph.degree_iterator` | Returns an iterator over the degrees of the (di)graph.
+    :meth:`~GenericGraph.degree_sequence` | Return the degree sequence of this (di)graph.
+    :meth:`~GenericGraph.random_subgraph` | Return a random subgraph that contains each vertex with prob. p.
+    :meth:`~GenericGraph.add_cycle` | Adds a cycle to the graph with the given vertices.
+    :meth:`~GenericGraph.add_path` | Adds a cycle to the graph with the given vertices.
+    :meth:`~GenericGraph.complement` | Returns the complement of the (di)graph.
+    :meth:`~GenericGraph.line_graph` | Returns the line graph of the (di)graph.
+    :meth:`~GenericGraph.to_simple` | Returns a simple version of itself (i.e., undirected and loops and multiple edges are removed).
+    :meth:`~GenericGraph.disjoint_union` | Returns the disjoint union of self and other.
+    :meth:`~GenericGraph.union` | Returns the union of self and other.
+    :meth:`~GenericGraph.relabel` | Relabels the vertices of ``self``
+    :meth:`~GenericGraph.degree_to_cell` | Returns the number of edges from vertex to an edge in cell.
+    :meth:`~GenericGraph.subgraph` | Returns the subgraph containing the given vertices and edges.
+    :meth:`~GenericGraph.is_subgraph` | Tests whether self is a subgraph of other.
+
+
+
+**Graph products:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.cartesian_product` | Returns the Cartesian product of self and other.
+    :meth:`~GenericGraph.tensor_product` | Returns the tensor product, also called the categorical product, of self and other.
+    :meth:`~GenericGraph.lexicographic_product` | Returns the lexicographic product of self and other.
+    :meth:`~GenericGraph.strong_product` | Returns the strong product of self and other.
+    :meth:`~GenericGraph.disjunctive_product` | Returns the disjunctive product of self and other.
+
+**Paths and cycles:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.eulerian_orientation` | Returns a DiGraph which is an Eulerian orientation of the current graph.
+    :meth:`~GenericGraph.eulerian_circuit` | Return a list of edges forming an eulerian circuit if one exists.
+    :meth:`~GenericGraph.cycle_basis` | Returns a list of cycles which form a basis of the cycle space of ``self``.
+    :meth:`~GenericGraph.interior_paths` | Returns an exhaustive list of paths (also lists) through only interior vertices from vertex start to vertex end in the (di)graph.
+    :meth:`~GenericGraph.all_paths` | Returns a list of all paths (also lists) between a pair of vertices in the (di)graph.
+
+**Linear algebra:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.spectrum` | Returns a list of the eigenvalues of the adjacency matrix.
+    :meth:`~GenericGraph.eigenvectors` | Returns the *right* eigenvectors of the adjacency matrix of the graph.
+    :meth:`~GenericGraph.eigenspaces` | Returns the *right* eigenspaces of the adjacency matrix of the graph.
+
+**Some metrics:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.cluster_triangles` | Returns the number of triangles for nbunch of vertices as a dictionary keyed by vertex.
+    :meth:`~GenericGraph.clustering_average` | Returns the average clustering coefficient.
+    :meth:`~GenericGraph.clustering_coeff` | Returns the clustering coefficient for each vertex in nbunch
+    :meth:`~GenericGraph.cluster_transitivity` | Returns the transitivity (fraction of transitive triangles) of the graph.
+    :meth:`~GenericGraph.szeged_index` | Returns the Szeged index of the graph.
+
+
+**Automorphism group:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.coarsest_equitable_refinement` | Returns the coarsest partition which is finer than the input partition, and equitable with respect to self.
+    :meth:`~GenericGraph.automorphism_group` | Returns the largest subgroup of the automorphism group of the (di)graph whose orbit partition is finer than the partition given.
+    :meth:`~GenericGraph.is_vertex_transitive` | Returns whether the automorphism group of self is transitive within the partition provided
+    :meth:`~GenericGraph.is_isomorphic` | Tests for isomorphism between self and other.
+    :meth:`~GenericGraph.canonical_label` | Returns the unique graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which 1) is isomorphic to self 2) is invariant in the isomorphism class.
+
+**Graph properties:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.is_eulerian` | Return true if the graph has a (closed) tour that visits each edge exactly once.
+    :meth:`~GenericGraph.is_tree` | Return True if the graph is a tree.
+    :meth:`~GenericGraph.is_forest` | Return True if the graph is a forest, i.e. a disjoint union of trees.
+    :meth:`~GenericGraph.is_overfull` | Tests whether the current graph is overfull.
+    :meth:`~GenericGraph.is_planar` | Tests whether the graph is planar.
+    :meth:`~GenericGraph.is_circular_planar` | Tests whether the graph is circular planar (outerplanar)
+    :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
+    :meth:`~GenericGraph.is_chordal` | Tests whether the given graph is chordal.
+    :meth:`~GenericGraph.is_interval` | Check whether self is an interval graph
+    :meth:`~GenericGraph.is_gallai_tree` | Returns whether the current graph is a Gallai tree.
+    :meth:`~GenericGraph.is_clique` | Tests whether a set of vertices is a clique
+    :meth:`~GenericGraph.is_independent_set` | Tests whether a set of vertices is an independent set
+    :meth:`~GenericGraph.is_transitively_reduced` | Tests whether the digraph is transitively reduced.
+    :meth:`~GenericGraph.is_equitable` | Checks whether the given partition is equitable with respect to self.
+
+**Traversals:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.breadth_first_search` | Returns an iterator over the vertices in a breadth-first ordering.
+    :meth:`~GenericGraph.depth_first_search` | Returns an iterator over the vertices in a depth-first ordering.
+    :meth:`~GenericGraph.lex_BFS` | Performs a Lex BFS on the graph.
+
+**Distances:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.distance` | Returns the (directed) distance from u to v in the (di)graph
+    :meth:`~GenericGraph.distance_all_pairs` | Returns the distances between all pairs of vertices.
+    :meth:`~GenericGraph.distances_distribution` | Returns the distances distribution of the (di)graph in a dictionary.
+    :meth:`~GenericGraph.eccentricity` | Return the eccentricity of vertex (or vertices) v.
+    :meth:`~GenericGraph.radius` | Returns the radius of the (di)graph.
+    :meth:`~GenericGraph.center` | Returns the set of vertices in the center of the graph
+    :meth:`~GenericGraph.diameter` | Returns the largest distance between any two vertices.
+    :meth:`~GenericGraph.distance_graph` | Returns the graph on the same vertex set as the original graph but vertices are adjacent in the returned graph if and only if they are at specified distances in the original graph.
+    :meth:`~GenericGraph.girth` | Computes the girth of the graph.
+    :meth:`~GenericGraph.periphery` | Returns the set of vertices in the periphery
+    :meth:`~GenericGraph.shortest_path` | Returns a list of vertices representing some shortest path from `u` to `v`
+    :meth:`~GenericGraph.shortest_path_length` | Returns the minimal length of paths from u to v
+    :meth:`~GenericGraph.shortest_paths` | Returns a dictionary associating to each vertex v a shortest path from u to v, if it exists.
+    :meth:`~GenericGraph.shortest_path_lengths` | Returns a dictionary of shortest path lengths keyed by targets that are connected by a path from u.
+    :meth:`~GenericGraph.shortest_path_all_pairs` | Computes a shortest path between each pair of vertices.
+    :meth:`~GenericGraph.wiener_index` | Returns the Wiener index of the graph.
+    :meth:`~GenericGraph.average_distance` | Returns the average distance between vertices of the graph.
+
+
+**Flows, connectivity, trees:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.is_connected` | Tests whether the (di)graph is connected.
+    :meth:`~GenericGraph.connected_components` | Returns the list of connected components
+    :meth:`~GenericGraph.connected_components_number` | Returns the number of connected components.
+    :meth:`~GenericGraph.connected_components_subgraphs` | Returns a list of connected components as graph objects.
+    :meth:`~GenericGraph.connected_component_containing_vertex` | Returns a list of the vertices connected to vertex.
+    :meth:`~GenericGraph.blocks_and_cut_vertices` | Computes the blocks and cut vertices of the graph.
+    :meth:`~GenericGraph.edge_cut` | Returns a minimum edge cut between vertices `s` and `t`
+    :meth:`~GenericGraph.vertex_cut` | Returns a minimum vertex cut between non-adjacent vertices `s` and `t`
+    :meth:`~GenericGraph.flow` | Returns a maximum flow in the graph from ``x`` to ``y``
+    :meth:`~GenericGraph.edge_disjoint_paths` | Returns a list of edge-disjoint paths between two vertices
+    :meth:`~GenericGraph.vertex_disjoint_paths` | Returns a list of vertex-disjoint paths between two vertices as given by Menger's theorem.
+    :meth:`~GenericGraph.edge_connectivity` | Returns the edge connectivity of the graph.
+    :meth:`~GenericGraph.vertex_connectivity` | Returns the vertex connectivity of the graph.
+    :meth:`~GenericGraph.transitive_closure` | Computes the transitive closure of a graph and returns it.
+    :meth:`~GenericGraph.transitive_reduction` | Returns a transitive reduction of a graph.
+    :meth:`~GenericGraph.min_spanning_tree` | Returns the edges of a minimum spanning tree.
+    :meth:`~GenericGraph.spanning_trees_count` | Returns the number of spanning trees in a graph.
+
+**Plot/embedding-related methods:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.set_embedding` | Sets a combinatorial embedding dictionary to ``_embedding`` attribute.
+    :meth:`~GenericGraph.get_embedding` | Returns the attribute _embedding if it exists.
+    :meth:`~GenericGraph.check_embedding_validity` | Checks whether an ``_embedding`` attribute is well defined
+    :meth:`~GenericGraph.get_pos` | Returns the position dictionary
+    :meth:`~GenericGraph.check_pos_validity` | Checks whether pos specifies two (resp. 3) coordinates for every vertex (and no more vertices).
+    :meth:`~GenericGraph.set_pos` | Sets the position dictionary.
+    :meth:`~GenericGraph.set_planar_positions` | Compute a planar layout for self using Schnyder's algorithm
+    :meth:`~GenericGraph.layout_planar` | Uses Schnyder's algorithm to compute a planar layout for self.
+    :meth:`~GenericGraph.is_drawn_free_of_edge_crossings` | Tests whether the position dictionary gives a planar embedding.
+    :meth:`~GenericGraph.latex_options` | Returns an instance of :class:`~sage.graphs.graph_latex.GraphLatex` for the graph.
+    :meth:`~GenericGraph.set_latex_options` | Sets multiple options for rendering a graph with LaTeX.
+    :meth:`~GenericGraph.layout` | Returns a layout for the vertices of this graph.
+    :meth:`~GenericGraph.layout_spring` | Computes a spring layout for this graph
+    :meth:`~GenericGraph.layout_ranked` | Computes a ranked layout for this graph
+    :meth:`~GenericGraph.layout_extend_randomly` | Extends randomly a partial layout
+    :meth:`~GenericGraph.layout_circular` | Computes a circular layout for this graph
+    :meth:`~GenericGraph.layout_tree` | Computes an ordered tree layout for this graph, which should be a tree (no non-oriented cycles).
+    :meth:`~GenericGraph.layout_graphviz` | Calls ``graphviz`` to compute a layout of the vertices of this graph.
+    :meth:`~GenericGraph.graphplot` | Returns a GraphPlot object.
+    :meth:`~GenericGraph.plot` | Returns a graphics object representing the (di)graph.
+    :meth:`~GenericGraph.show` | Shows the (di)graph.
+    :meth:`~GenericGraph.plot3d` | Plot a graph in three dimensions.
+    :meth:`~GenericGraph.show3d` | Plots the graph using Tachyon, and shows the resulting plot.
+    :meth:`~GenericGraph.graphviz_string` | Returns a representation in the dot language.
+    :meth:`~GenericGraph.graphviz_to_file_named` | Write a representation in the dot in a file.
+
+**Algorithmically hard stuff:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.steiner_tree` | Returns a tree of minimum weight connecting the given set of vertices.
+    :meth:`~GenericGraph.edge_disjoint_spanning_trees` | Returns the desired number of edge-disjoint spanning trees/arborescences.
+    :meth:`~GenericGraph.multiway_cut` | Returns a minimum edge multiway cut
+    :meth:`~GenericGraph.max_cut` | Returns a maximum edge cut of the graph.
+    :meth:`~GenericGraph.longest_path` | Returns a longest path of ``self``.
+    :meth:`~GenericGraph.traveling_salesman_problem` | Solves the traveling salesman problem (TSP)
+    :meth:`~GenericGraph.is_hamiltonian` | Tests whether the current graph is Hamiltonian.
+    :meth:`~GenericGraph.hamiltonian_cycle` | Returns a Hamiltonian cycle/circuit of the current graph/digraph
+    :meth:`~GenericGraph.multicommodity_flow` | Solves a multicommodity flow problem.
+    :meth:`~GenericGraph.disjoint_routed_paths` | Returns a set of disjoint routed paths.
+    :meth:`~GenericGraph.dominating_set` | Returns a minimum dominating set of the graph
+    :meth:`~GenericGraph.subgraph_search` | Returns a copy of ``G`` in ``self``.
+    :meth:`~GenericGraph.subgraph_search_count` | Returns the number of labelled occurences of ``G`` in ``self``.
+    :meth:`~GenericGraph.subgraph_search_iterator` | Returns an iterator over the labelled copies of ``G`` in ``self``.
+    :meth:`~GenericGraph.characteristic_polynomial` | Returns the characteristic polynomial of the adjacency matrix of the (di)graph.
+    :meth:`~GenericGraph.genus` | Returns the minimal genus of the graph.
+    :meth:`~GenericGraph.trace_faces` | A helper function for finding the genus of a graph.
+
+**Graph stuff that should not be in this file:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.minimum_outdegree_orientation` | Returns an orientation of ``self`` with the smallest possible maximum outdegree
+    :meth:`~GenericGraph.matching` | Returns a maximum weighted matching of the graph
+    :meth:`~GenericGraph.maximum_average_degree` | Returns the Maximum Average Degree (MAD) of the current graph.
+    :meth:`~GenericGraph.cores` | Returns the core number for each vertex in an ordered list.
+
+
+Methods
+-------
 """
 
 from sage.misc.decorators import options
@@ -558,9 +866,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def adjacency_matrix(self, sparse=None, boundary_first=False):
         """
-        Returns the adjacency matrix of the (di)graph. Each vertex is
-        represented by its position in the list returned by the vertices()
-        function.
+        Returns the adjacency matrix of the (di)graph.
+
+        Each vertex is represented by its position in the list returned by the
+        vertices() function.
 
         The matrix returned is over the integers. If a different ring is
         desired, use either the change_ring function or the matrix
@@ -568,13 +877,11 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
         -  ``sparse`` - whether to represent with a sparse
            matrix
 
         -  ``boundary_first`` - whether to represent the
            boundary vertices in the upper left block
-
 
         EXAMPLES::
 
@@ -667,9 +974,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def incidence_matrix(self, sparse=True):
         """
-        Returns an incidence matrix of the (di)graph. Each row is a vertex,
-        and each column is an edge. Note that in the case of graphs, there
-        is a choice of orientation for each edge.
+        Returns the incidence matrix of the (di)graph.
+
+        Each row is a vertex, and each column is an edge. Note that in the case
+        of graphs, there is a choice of orientation for each edge.
 
         EXAMPLES::
 
@@ -723,9 +1031,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def weighted_adjacency_matrix(self, sparse=True, boundary_first=False):
         """
-        Returns the weighted adjacency matrix of the graph. Each vertex is
-        represented by its position in the list returned by the vertices()
-        function.
+        Returns the weighted adjacency matrix of the graph.
+
+        Each vertex is represented by its position in the list returned by the
+        vertices() function.
 
         EXAMPLES::
 
@@ -966,7 +1275,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def set_embedding(self, embedding):
         """
-        Sets a combinatorial embedding dictionary to _embedding attribute.
+        Sets a combinatorial embedding dictionary to ``_embedding`` attribute.
+
         Dictionary is organized with vertex labels as keys and a list of
         each vertex's neighbors in clockwise order.
 
@@ -974,9 +1284,7 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
         -  ``embedding`` - a dictionary
-
 
         EXAMPLES::
 
@@ -994,9 +1302,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def get_embedding(self):
         """
-        Returns the attribute _embedding if it exists. _embedding is a
-        dictionary organized with vertex labels as keys and a list of each
-        vertex's neighbors in clockwise order.
+        Returns the attribute _embedding if it exists.
+
+        ``_embedding`` is a dictionary organized with vertex labels as keys and a
+        list of each vertex's neighbors in clockwise order.
 
         Error-checked to insure valid embedding is returned.
 
@@ -1015,9 +1324,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def check_embedding_validity(self, embedding=None):
         """
-        Checks whether an _embedding attribute is defined on self and if
-        so, checks for accuracy. Returns True if everything is okay, False
-        otherwise.
+        Checks whether an _embedding attribute is well defined.
+
+        If the ``_embedding`` attribute exists, it is checked for
+        accuracy. Returns True if everything is okay, False otherwise.
 
         If embedding=None will test the attribute _embedding.
 
@@ -1513,6 +1823,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def name(self, new=None):
         """
+        Returns or sets the graph's name.
+
         INPUT:
 
         - ``new`` - if not None, then this becomes the new name of the (di)graph.
@@ -1694,8 +2006,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def antisymmetric(self):
         r"""
-        Returns True if the relation given by the graph is antisymmetric
-        and False otherwise.
+        Tests whether the graph is antisymmetric.
 
         A graph represents an antisymmetric relation if there being a path
         from a vertex x to a vertex y implies that there is not a path from
@@ -2404,10 +2715,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def spanning_trees_count(self, root_vertex=None):
         """
-        Returns the number of spanning trees in a graph. In the case of a
-        digraph, counts the number of spanning out-trees rooted in
-        ``root_vertex``.
-        Default is to set first vertex as root.
+        Returns the number of spanning trees in a graph.
+
+        In the case of a digraph, counts the number of spanning out-trees rooted
+        in ``root_vertex``.  Default is to set first vertex as root.
 
         This computation uses Kirchhoff's Matrix Tree Theorem [1] to calculate
         the number of spanning trees. For complete graphs on `n` vertices the
@@ -2538,8 +2849,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def minimum_outdegree_orientation(self, use_edge_labels=False, solver=None, verbose=0):
         r"""
-        Returns a DiGraph which is an orientation with the smallest
-        possible maximum outdegree of the current graph.
+        Returns an orientation of ``self`` with the smallest possible maximum
+        outdegree.
 
         Given a Graph `G`, is is polynomial to compute an orientation
         `D` of the edges of `G` such that the maximum out-degree in
@@ -2798,6 +3109,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_circular_planar(self, ordered=True, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):
         """
+        Tests whether the graph is circular planar (outerplanar)
+
         A graph (with nonempty boundary) is circular planar if it has a
         planar embedding in which all boundary vertices can be drawn in
         order on a disc boundary, with all the interior vertices drawn
@@ -2832,7 +3145,6 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
         -  ``ordered`` - whether or not to consider the order
            of the boundary (set ordered=False to see if there is any possible
            boundary order that will satisfy circular planarity)
@@ -2857,7 +3169,6 @@ class GenericGraph(GenericGraph_pyx):
            Note that this value will default to False if set_emb is set to
            False. Also, the position dictionary will only be updated if a
            circular planar embedding is found.
-
 
         EXAMPLES::
 
@@ -3469,6 +3780,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def connected_components(self):
         """
+        Returns the list of connected components.
+
         Returns a list of lists of vertices, each list representing a
         connected component. The list is ordered from largest to smallest
         component.
@@ -3549,8 +3862,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def blocks_and_cut_vertices(self):
         """
-        Computes the blocks and cut vertices of the graph. In the case of a
-        digraph, this computation is done on the underlying graph.
+        Computes the blocks and cut vertices of the graph.
+
+        In the case of a digraph, this computation is done on the underlying
+        graph.
 
         A cut vertex is one whose deletion increases the number of
         connected components. A block is a maximal induced subgraph which
@@ -7447,17 +7762,16 @@ class GenericGraph(GenericGraph_pyx):
 
     def vertex_iterator(self, vertices=None):
         """
-        Returns an iterator over the given vertices. Returns False if not
-        given a vertex, sequence, iterator or None. None is equivalent to a
-        list of every vertex. Note that ``for v in G`` syntax
-        is allowed.
+        Returns an iterator over the given vertices.
+
+        Returns False if not given a vertex, sequence, iterator or None. None is
+        equivalent to a list of every vertex. Note that ``for v in G`` syntax is
+        allowed.
 
         INPUT:
 
-
         -  ``vertices`` - iterated vertices are these
            intersected with the vertices of the (di)graph
-
 
         EXAMPLES::
 
@@ -8970,14 +9284,17 @@ class GenericGraph(GenericGraph_pyx):
 
     def degree_iterator(self, vertices=None, labels=False):
         """
-        Returns an iterator over the degrees of the (di)graph. In the case
-        of a digraph, the degree is defined as the sum of the in-degree and
-        the out-degree, i.e. the total number of edges incident to a given
-        vertex.
+        Returns an iterator over the degrees of the (di)graph.
 
-        INPUT: labels=False: returns an iterator over degrees. labels=True:
-        returns an iterator over tuples (vertex, degree).
+        In the case of a digraph, the degree is defined as the sum of the
+        in-degree and the out-degree, i.e. the total number of edges incident to
+        a given vertex.
 
+        INPUT:
+
+        - ``labels`` (boolean) -- if set to ``False`` (default) the method
+          returns an iterator over degrees. Otherwise it returns an iterator
+          over tuples (vertex, degree).
 
         -  ``vertices`` - if specified, restrict to this
            subset.
@@ -9117,10 +9434,11 @@ class GenericGraph(GenericGraph_pyx):
     def subgraph(self, vertices=None, edges=None, inplace=False,
                        vertex_property=None, edge_property=None, algorithm=None):
         """
-        Returns the subgraph containing the given vertices and edges. If
-        either vertices or edges are not specified, they are assumed to be
-        all vertices or edges. If edges are not specified, returns the
-        subgraph induced by the vertices.
+        Returns the subgraph containing the given vertices and edges.
+
+        If either vertices or edges are not specified, they are assumed to be
+        all vertices or edges. If edges are not specified, returns the subgraph
+        induced by the vertices.
 
         INPUT:
 
@@ -9585,6 +9903,14 @@ class GenericGraph(GenericGraph_pyx):
 
             This method also works on digraphs.
 
+        .. SEEALSO::
+
+            - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
+              of copies of a graph `H` inside of a graph `G`
+
+            - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate on the
+              copies of a graph `H` inside of a graph `G`
+
         ALGORITHM:
 
         Brute-force search.
@@ -9697,6 +10023,14 @@ class GenericGraph(GenericGraph_pyx):
 
             This method also works on digraphs.
 
+        .. SEEALSO::
+
+            - :meth:`~GenericGraph.subgraph_search` -- finds an subgraph
+              isomorphic to `H` inside of a graph `G`
+
+            - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate on the
+              copies of a graph `H` inside of a graph `G`
+
         EXAMPLES:
 
         Counting the number of paths `P_5` in a PetersenGraph::
@@ -9772,6 +10106,14 @@ class GenericGraph(GenericGraph_pyx):
         .. NOTE::
 
             This method also works on digraphs.
+
+        .. SEEALSO::
+
+            - :meth:`~GenericGraph.subgraph_search` -- finds an subgraph
+              isomorphic to `H` inside of a graph `G`
+
+            - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
+              of copies of a graph `H` inside of a graph `G`
 
         EXAMPLE:
 
@@ -10300,12 +10642,12 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_clique(self, vertices=None, directed_clique=False):
         """
-        Returns True if the set ``vertices`` is a clique, False
-        if not. A clique is a set of vertices such that there is an edge
-        between any two vertices.
+        Tests whether a set of vertices is a clique
+
+        A clique is a set of vertices such that there is an edge between any two
+        vertices.
 
         INPUT:
-
 
         -  ``vertices`` - Vertices can be a single vertex or an
            iterable container of vertices, e.g. a list, set, graph, file or
@@ -10315,7 +10657,6 @@ class GenericGraph(GenericGraph_pyx):
            False, only consider the underlying undirected graph. If set to
            True and the graph is directed, only return True if all possible
            edges in _both_ directions exist.
-
 
         EXAMPLES::
 
@@ -10364,11 +10705,9 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
         -  ``vertices`` - Vertices can be a single vertex or an
            iterable container of vertices, e.g. a list, set, graph, file or
            numeric array. If not passed, defaults to the entire graph.
-
 
         EXAMPLES::
 
@@ -10381,7 +10720,30 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_subgraph(self, other):
         """
-        Tests whether self is a subgraph of other.
+        Tests whether self is an induced subgraph of other.
+
+        .. WARNING::
+
+            Please note that this method does not check whether ``self``
+            contains a subgraph *isomorphic* to ``other``, but only if it
+            directly contains it as a subgraph ! This means that this method
+            returns ``True`` only if the vertices of ``other`` are also vertices
+            of ``self``, and that the edges of ``other`` are equal to the edges
+            of ``self`` between the vertices contained in ``other``.
+
+        .. SEEALSO::
+
+            If you are interested in the (possibly induced) subgraphs of
+            ``self`` to ``other``, you are looking for the following methods:
+
+            - :meth:`~GenericGraph.subgraph_search` -- finds an subgraph
+              isomorphic to `H` inside of a graph `G`
+
+            - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
+              of such copies.
+
+            - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate over all
+              the copies of `H` contained in `G`.
 
         EXAMPLES::
 
@@ -10412,10 +10774,8 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
         -  ``nbunch`` - The vertices to inspect. If
            nbunch=None, returns data for all vertices in the graph
-
 
         REFERENCE:
 
@@ -11571,11 +11931,11 @@ class GenericGraph(GenericGraph_pyx):
                                          bidirectional=True,
                                          weight_sum=None):
         """
-        Returns the minimal length of paths from u to v: if there is no
-        path from u to v, returns Infinity.
+        Returns the minimal length of paths from u to v.
+
+        If there is no path from u to v, returns Infinity.
 
         INPUT:
-
 
         -  ``by_weight`` - if False, uses a breadth first
            search. If True, takes edge weightings into account, using
@@ -11589,7 +11949,6 @@ class GenericGraph(GenericGraph_pyx):
         -  ``weight_sum`` - if False, returns the number of
            edges in the path. If True, returns the sum of the weights of these
            edges. Default behavior is to have the same value as by_weight.
-
 
         EXAMPLES::
 
@@ -13130,8 +13489,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_transitively_reduced(self):
         r"""
-        Returns True if the digraph is transitively reduced and False
-        otherwise.
+        Tests whether the digraph is transitively reduced.
 
         A digraph is transitively reduced if it is equal to its transitive
         reduction.
@@ -16176,7 +16534,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def canonical_label(self, partition=None, certify=False, verbosity=0, edge_labels=False):
         """
-        Returns the unique graph on \{0,1,...,n-1\} ( n = self.order() ) which
+        Returns the unique graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which
 
         - is isomorphic to self,
 

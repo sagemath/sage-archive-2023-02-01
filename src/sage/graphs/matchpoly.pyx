@@ -1,12 +1,25 @@
 """
 Matching Polynomial Routine
 
+This module contains the following methods:
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`matching_polynomial` | Computes the matching polynomial of a given graph
+    :meth:`complete_poly` | Compute the matching polynomial of the complete graph on `n` vertices.
+
 AUTHORS:
-    -- Robert Miller, Tom Boothby - original implementation
+
+    - Robert Miller, Tom Boothby - original implementation
 
 REFERENCE:
     Chris Godsil, Algebraic Combinatorics.
 
+Methods
+-------
 """
 
 #*****************************************************************************
@@ -299,12 +312,13 @@ def complete_poly(n):
 
     - ``n`` -- order of the complete graph
 
-    TODO:
+    .. TODO::
 
-    This code could probably be made more efficient by using FLINT polynomials
-    and being written in Cython, using an array of fmpz_poly_t pointers or
-    something...  Right now just about the whole complement optimization is
-    written in Python, and could be easily sped up.
+        This code could probably be made more efficient by using FLINT
+        polynomials and being written in Cython, using an array of
+        fmpz_poly_t pointers or something...  Right now just about the
+        whole complement optimization is written in Python, and could
+        be easily sped up.
 
     EXAMPLES::
 

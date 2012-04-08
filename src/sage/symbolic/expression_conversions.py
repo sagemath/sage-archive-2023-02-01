@@ -1622,6 +1622,17 @@ class SubstituteFunction(Converter):
             sage: f = foo(x).diff(x)
             sage: s.derivative(f, f.operator())
             D[0](bar)(x)
+
+        TESTS:
+
+        We can substitute functions under a derivative operator,
+        :trac:`12801`::
+
+            sage: f = function('f')
+            sage: g = function('g')
+            sage: f(g(x)).diff(x).substitute_function(g, sin)
+            cos(x)*D[0](f)(sin(x))
+
         """
         if operator.function() == self.original:
             return operator.change_function(self.new)(*map(self,ex.operands()))

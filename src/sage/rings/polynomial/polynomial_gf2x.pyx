@@ -44,9 +44,19 @@ cdef class Polynomial_GF2X(Polynomial_template):
             sage: P.<x> = GF(2)[]
             sage: x^3 + x^2 + 1
             x^3 + x^2 + 1
+
+        We check that the bug noted at :trac:`12724` is fixed::
+
+            sage: R.<x> = Zmod(2)[]
+            sage: R([2^80])
+            0
         """
         try:
-            if x.parent() is parent.base_ring() or x.parent() == parent.base_ring():
+            if (PY_TYPE_CHECK(x, int)
+                or PY_TYPE_CHECK(x, Integer)):
+                x = int(x % 2)
+            elif (x.parent() is parent.base_ring()
+                or x.parent() == parent.base_ring()):
                 x = int(x)
         except AttributeError:
             pass

@@ -4,127 +4,179 @@
 ## GAP
 ###########################################
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [[ -z "$SAGE_LOCAL" ]]; then
+    echo >&2 "SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
-if [ "x`uname`" = xSunOS ] ; then
-  echo "Warning, CC and CXX are not being unset, which may be unwise"
-else
-  echo "*WARNING*: Unsetting CC since that tends to break GAP building"
-  unset CC
-  echo "*WARNING*: Unsetting CXX since that tends to break GAP building"
-  unset CXX
+# Only unset CC and CXX if they contain spaces, which is what (is said to)
+# currently would break the build:
+# (Note that CC and CXX are always defined, since sage-env provides
+# defaults in case they're not.)
+if [[ "`echo $CC | wc -w`" -ne 1 ]]; then
+    echo >&2 "WARNING: \$CC (=$CC) contains multiple words,"
+    echo >&2 "  which currently breaks GAP's build scripts."
+    echo >&2 "  To work around this, we therefore unset it!"
+    echo >&2 "  (This may lead to other errors of course.)"
+    unset CC
+fi
+if [[ "`echo $CXX | wc -w`" -ne 1 ]]; then
+    echo >&2 "WARNING: \$CXX (=$CXX) contains multiple words,"
+    echo >&2 "  which currently breaks GAP's build scripts."
+    echo >&2 "  To work around this, we therefore unset it!"
+    echo >&2 "  (This may lead to other errors of course.)"
+    unset CXX
 fi
 
-TARGET="gap-4.4.12"  #NOTE: Be sure to also update patches/gap*
+TARGET="gap-4.4.12"  # NOTE: Be sure to also update patches/gap*
 
-if [ "x$SAGE64" = xyes ] && [ "x$UNAME" = xSunOS ] ; then
-  CFLAGS=-m64
-  CXXFLAGS=-m64
-  echo "Now setting them again on Solaris, as otherwise there is no way to get a 64-bit build"
-  export CFLAGS
-  export CXXFLAGS
+if [[ "$SAGE64" = yes ]]; then
+    if [[ -z $CFLAG64 ]]; then
+        CFLAG64=-m64
+    fi
+    CFLAGS="$CFLAGS $CFLAG64"
+    CXXFLAGS="$CXXFLAGS $CFLAG64"
+    echo "Building a 64-bit version of GAP (with '$CFLAG64')."
+    # Most probably redundant, as sage-env should already have exported these:
+    export CFLAGS CXXFLAGS
 fi
 
+# We should in principle handle SAGE_DEBUG etc. here as well, but although
+# CFLAGS, CPPFLAGS and LDFLAGS are passed to GAP's second-stage 'configure',
+# GAP apparently ignores these...
 
-# Indicate that Gap has somehow been updated, which invalidates all workspaces.
+
+# Indicate that GAP has somehow been updated, which invalidates all workspaces:
 touch "$SAGE_LOCAL/bin/gap_stamp"
+# (If we do that this way, does GAP's installation still depend on Sage?
+# Cf. SPKG.txt, dependencies section.)
 
 
-# Apply patches
-cp patches/gap.c patches/saveload.c patches/streams.c src/src/
-cp patches/sysfiles.h patches/sysfiles.c src/src/
+# Apply patches:
+echo "Copying over patched GAP files..."
+cp -f patches/gap.c patches/saveload.c patches/streams.c src/src/ &&
+cp -f patches/sysfiles.h patches/sysfiles.c src/src/
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error copying over patched GAP files."
+    exit 1
+fi
+
 
 build()
 {
-    CUR=`pwd`
-    INSTALL_DIR=$SAGE_LOCAL/lib/$TARGET
-    rm -rf $INSTALL_DIR
-    if [ $? -ne 0 ]; then
-        echo "Couldn't remove old dir."
+    CUR=`pwd` # Save GAP's spkg build directory.
+    INSTALL_DIR="$SAGE_LOCAL"/lib/$TARGET
+    rm -rf "$INSTALL_DIR"
+    if [[ $? -ne 0 ]]; then
+        echo >&2 "Error removing (old) installation directory:"
+        echo >&2 "    $INSTALL_DIR"
         exit 1
     fi
 
-    cd src
+    cd src/
+
     # Since there are warnings about setting CFLAGS, the following is only down
-    # on 64-bit Solaris. I don't want to screw things up for anyone else
-    # on OS X for example.
-    if [ "x`uname`" = xSunOS ] && [ "x$SAGE64" = xyes ] ; then
-       echo "64-bit Solaris or OpenSolaris build"
-       ./configure --prefix=$SAGE_LOCAL PREFIX="$SAGE_LOCAL" CC="$CC -m64" CXX="$CXX -m64"
+    # on 64-bit Solaris. I don't want to screw things up for anyone else,
+    # on MacOS X for example. (Dave Kirkby)
+    # TODO: Also "exporting" CFLAGS and CXXFLAGS (i.e., passing them to
+    #       `configure`) should be checked. -leif
+    if [[ "$UNAME" = SunOS ]] && [[ "$SAGE64" = yes ]]; then
+        echo "Configuring GAP for a 64-bit Solaris or OpenSolaris build..."
+        ./configure --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
+                    CC="$CC $CFLAG64" CXX="$CXX $CFLAG64"
     else
-       ./configure --prefix=$SAGE_LOCAL PREFIX="$SAGE_LOCAL" CC="$CC" CXX="$CXX"
+        echo "Configuring GAP..."
+        ./configure --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
+                    CC="$CC" CXX="$CXX"
     fi
-
-    if [ $? -ne 0 ]; then
-        echo "Configuration of GAP failed."
+    if [[ $? -ne 0 ]]; then
+        echo >&2 "Error configuring GAP."
         exit 1
     fi
 
-    # On a Windows machine the gap build creates a file "gap.exe",
+    # On a Windows machine the GAP build creates a file "gap.exe",
     # but no file named "gap".  This breaks the build, since it
     # then tries to strip gap, but can't since the file is missing!
-    if [ $UNAME = "CYGWIN" ]; then
-        mkdir bin
-        mkdir bin/i686-pc-cygwin-gcc
-        cd bin/i686-pc-cygwin-gcc
-        touch gap.exe
+    if [[ "$UNAME" = CYGWIN ]]; then
+        mkdir -p bin/i686-pc-cygwin-gcc &&
+        cd bin/i686-pc-cygwin-gcc &&
+        touch gap.exe &&
         ln -s gap.exe gap
+        if [[ $? -ne 0 ]]; then
+            echo >&2 "Error creating dummy 'gap.exe' and/or a link from 'gap' to it."
+            exit 1
+        fi
         cd ../..
     fi
 
-    echo "Building and installing $TARGET"
+    echo "Now building and installing $TARGET..."
     $MAKE
-    if [ $? -ne 0 ]; then
-        echo "Error building gap."
+    if [[ $? -ne 0 ]]; then
+        echo >&2 "Error building GAP."
         exit 1
     fi
 
-    mkdir $INSTALL_DIR
-    cp -r * $INSTALL_DIR
-
-    cd "$SAGE_LOCAL/bin"
-    rm -f gap
-    if [ ! -f $SAGE_LOCAL/lib/$TARGET/bin/gap.sh ]; then
-       echo "Error building GAP."
-       exit 1
+    echo "Build succeeded.  Now copying files and creating links..."
+    mkdir -p "$INSTALL_DIR" &&
+    cp -r * "$INSTALL_DIR" # XXX Do we really want to copy everything?!
+    if [[ $? -ne 0 ]]; then
+        echo >&2 "Error copying built GAP files."
+        exit 1
     fi
-    ln -sf "../lib/$TARGET/bin/gap.sh" gap
 
-    cd $CUR
-    if [ $UNAME = "CYGWIN" ]; then
+    cd "$SAGE_LOCAL"/bin
+    rm -f gap
+    if [[ ! -f "$SAGE_LOCAL"/lib/$TARGET/bin/gap.sh ]]; then
+        echo "Error building GAP ('gap.sh' not found)."
+        exit 1
+    fi
+    # '-f' is superfluous here if we remove 'gap' in advance (see above):
+    ln -sf "../lib/$TARGET/bin/gap.sh" gap
+    if [[ $? -ne 0 ]]; then
+        echo >&2 "Error creating symbolic link (from '`pwd`/gap'"
+        echo >&2 "to '`pwd`/../lib/$TARGET/bin/gap.sh')."
+        exit 1
+    fi
+    cd "$CUR" # back into GAP's spkg build directory
+
+    echo "Copying customized GAP startup script..."
+    # The following overwrites the target of the symbolic link we just
+    # created (i.e., '$SAGE_LOCAL/lib/$TARGET/bin/gap.sh').
+    if [[ "$UNAME" = CYGWIN ]]; then
         cp patches/gap_cygwin "$SAGE_LOCAL"/bin/gap
     else
         cp patches/gap "$SAGE_LOCAL"/bin/gap
     fi
-
-    if [ $? -ne 0 ]; then
-        echo "Error copying customized gap startup script."
+    if [[ $? -ne 0 ]]; then
+        echo >&2 "Error copying customized GAP startup script."
         exit 1
     fi
 
-    # Build and install docs if requested
-    if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
-	if [ $? -ne 0 ]; then
-	    echo "Error building gap docs."
-	    exit 1
-	fi
-	mkdir -p $SAGE_ROOT/local/share/doc/gap
-	cp -r src/doc/htm $SAGE_ROOT/local/share/doc/gap/html
+    # [Build and] install docs if requested:
+    if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
+        # The (pre-built) HTML documentation is currently (GAP 4.4.12.p7)
+        # included, so we don't have to /build/ it here.
+        # echo "Now building GAP's documentation..."
+        # <COMMAND TO BUILD THE [HTML] DOCUMENTATION>
+	# if [[ $? -ne 0 ]]; then
+	#     echo >&2 "Error building GAP documentation."
+	#     exit 1
+	# fi
+        echo "Now copying GAP's (HTML) documentation..."
+	mkdir -p "$SAGE_LOCAL"/share/doc/gap &&
+	cp -r src/doc/htm "$SAGE_LOCAL"/share/doc/gap/html
+        if [[ $? -ne 0 ]]; then
+            echo >&2 "Error copying GAP's HTML documentation."
+            exit 1
+        fi
     fi
-}
+} # end of build() function
 
 build
 
-if [ $? -eq 0 ]; then
-    # Delete the old version if it is still there.
-    rm -rf "$SAGE_LOCAL"/lib/gap-4.4.10
-    exit 0
-else
-    echo "Something went wrong when building GAP."
-    exit 1
-fi
+# All errors are catched in build(), so no need to test $? here.
 
+# Delete the old version if it is still there:
+rm -rf "$SAGE_LOCAL"/lib/gap-4.4.10
+exit 0

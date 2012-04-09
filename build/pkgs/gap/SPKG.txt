@@ -1,9 +1,12 @@
-= gap =
+= GAP =
 
 == Description ==
 
-This is a stripped-down version of GAP.  The databases, which are arch
+This is a stripped-down version of GAP.  The databases, which are architecture-
 independent, are in a separate package and doc and tests are removed.
+
+As of GAP 4.4.12.p6, the tests and documentation (pre-built HTML and LaTeX
+sources) are included again.  (Not sure whether all of this intentionally.)
 
 == SPKG Maintainers ==
 
@@ -19,16 +22,52 @@ Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
 
 == Dependencies ==
 
-GAP does not depend on any spkg's to build.
+ * readline (according to spkg/standard/deps)
+ * Sage (? also according to deps, "so that gap_reset_workspace works")
 
-== Change log ==
+== Special Update/Build Instructions ==
+
+ * TODO:
+   - Use `patch` instead of copying patched files.
+     (Then also add `patch` to the dependencies above.)
+   - "Flatten" (i.e. remove) the `build()` function.
+   - Perhaps check whether we can fix GAP's configure / build scripts
+     w.r.t. brokenness of multiple words in `CC` (and `CXX`?) and its
+     ignorance concerning `CFLAGS`, `CPPFLAGS` and `LDFLAGS`.
+     (Then also support `SAGE_DEBUG` in `spkg-install`, and probably
+     set up reasonable default `CFLAGS`.)
+
+ * Do we really want to copy everything from the build directory???
+   (Cf. comment in `spkg-install`.)
+
+ * There's apparently a command missing (in `spkg-install`) building the
+   (HTML?) documentation.  Earlier changelog entries as well as the description
+   above state the documentation was removed from the upstream sources...
+   Since the (pre-)built HTML documentation is currently included, I've
+   commented out some lines in that part of `spkg-install`. -leif
+
+ * Upon upgrading, check whether the build still fails when `CC` or `CXX`
+   contain spaces (or multiple words, as e.g. with `CC="ccache gcc"`).
+   Otherwise unsetting `CC` and `CXX` can be removed, which is an odd work-
+   around anyway.
+
+ * `spkg-install` contains further instructions and hints.
+
+== Changelog ==
+
+=== gap-4.4.12.p7 (Leif Leonhardy, March 22nd 2012) ===
+ * #7041: Only unset `CC` and `CXX` if really necessary (i.e., if they
+   contain spaces, which is what currently would break the build).
+ * Clean up `spkg-install`.  Some things seem still weird, see comments.
+ * Added "Special Update/Build Instructions" section above.
 
 === gap-4.4.12.p6 (Jeroen Demeyer, 8 August 2011) ===
  * Trac #11661: Make all files world-readable
  * Remove obsolete dist directory and spkg-debian script
 
 === gap-4.4.12.p5 (Jason Grout, 22 Feb 2011) ===
- * #10825: Add SAGE_SPKG_INSTALL_DOCS support to build and install docs in $SAGE_ROOT/local/share/doc/
+ * #10825: Add SAGE_SPKG_INSTALL_DOCS support to build and install docs in
+   $SAGE_ROOT/local/share/doc/
 
 === gap-4.4.12.p4 (David Kirkby, 14th June 2010) ===
  * #9098 "gap buillds 32-bit on OpenSolaris when SAGE64=yes"
@@ -36,8 +75,6 @@ GAP does not depend on any spkg's to build.
    The changes are only for Solaris, since there are numerous
    warnings that setting CC causes problems. Note, this will not
    built 64-bit on OS X by setting the SAGE64 variable to "yes".
-
-
 
 === gap-4.4.12.p3 (Willem Jan Palenstijn, 2010-4-28) ===
  * #8773: Fix some problems with strict aliasing (gcc 4.5)
@@ -69,7 +106,8 @@ GAP does not depend on any spkg's to build.
 ad/970aa0dc8fa56ab7?lnk=raot
 
 === gap-4.4.10.p12 (William Stein, June 2, 2009) ===
- * Turn optimization back off for itanium, using exactly the same code as from before to do this.
+ * Turn optimization back off for itanium, using exactly the same code as from
+   before to do this.
 
 === gap-4.4.10.p11 (Michael Abshoff, September 20th, 2008) ===
  * Delete all old GAP installs due to a downgrade from GAP 4.4.12 (#5697)

@@ -280,8 +280,8 @@ def old_cremona_letter_code(n):
     label = chr(k)*int(n//26 + 1)
     return label
 
-cremona_label_regex = re.compile(r'(\d+)([a-z]*)(\d*)')
-lmfdb_label_regex = re.compile(r'(\d+)\.([a-z]+)(\d*)')
+cremona_label_regex = re.compile(r'(\d+)([a-z]*)(\d*)$')
+lmfdb_label_regex = re.compile(r'(\d+)\.([a-z]+)(\d*)$')
 
 def parse_cremona_label(label):
     """
@@ -292,7 +292,10 @@ def parse_cremona_label(label):
     For this function, the curve number may be omitted, in which case
     it defaults to 1.  If the curve number and isogeny class are both
     omitted (label is just a string representing a conductor), then
-    the isogeny class defaults to 'a' and the number to 1.
+    the isogeny class defaults to 'a' and the number to 1.  Valid
+    labels consist of one or more digits, followed by zero or more
+    letters (in either upper or lower case, which will be lowered),
+    followed by zero or more digits.
 
     INPUT:
 
@@ -313,6 +316,18 @@ def parse_cremona_label(label):
         (37, 'b', 1)
         sage: parse_cremona_label('10bb2')
         (10, 'bb', 2)
+        sage: parse_cremona_label('11a')
+        (11, 'a', 1)
+        sage: parse_cremona_label('11')
+        (11, 'a', 1)
+
+    TESTS::
+
+        sage: from sage.databases.cremona import parse_cremona_label
+        sage: parse_cremona_label('x11')
+        Traceback (most recent call last):
+        ...
+        ValueError: x11 is not a valid Cremona label
     """
     m = cremona_label_regex.match(str(label).lower())
     if m is None:
@@ -362,11 +377,11 @@ def parse_lmfdb_label(label):
     EXAMPLES::
 
         sage: from sage.databases.cremona import parse_lmfdb_label
-        sage: parse_cremona_label('37.a2')
+        sage: parse_lmfdb_label('37.a2')
         (37, 'a', 2)
-        sage: parse_cremona_label('37.b')
+        sage: parse_lmfdb_label('37.b')
         (37, 'b', 1)
-        sage: parse_cremona_label('10.bb2')
+        sage: parse_lmfdb_label('10.bb2')
         (10, 'bb', 2)
     """
     m = lmfdb_label_regex.match(str(label).lower())

@@ -3801,7 +3801,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             lexicographically by a-invariants.
 
           - if ``order`` is a list of curves, then the curves in the
-            class are reordered to be isogenous with the specified
+            class are reordered to be isomorphic with the specified
             list of curves.
 
         - ``use_tuple`` -- bool (default: True).  Controls the output
@@ -3811,7 +3811,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         If ``use_tuple`` is False, returns a
         :class:`sage.schemes.elliptic_curves.isogeny_class.IsogenyClass_EC_Rational`
-        instace.  This object models a list of minimal models (with
+        instance.  This object models a list of minimal models (with
         containment, index, etc based on isomorphism classes).  It
         also has methods for computing the isogeny matrix and the list
         of isogenies between curves in this class.
@@ -3982,7 +3982,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             deprecation("""For elliptic curves E over Q, isogeny_class(use_tuple=False) returns a class
 that has methods producing the isogeny graph and list of lists of isogenies.
 use_tuple=True (currently default) is deprecated.""", "Sage Version 5.0")
-            # After a year or so we should switch the default to use_tuple=False as the default and deprecate
+            # After a year or so (in May 2013) we should switch the default to use_tuple=False as the default and deprecate
             # the keyword argument
             if return_maps:
                 return isoclass, isoclass.matrix(fill_matrix), isoclass.isogenies()
@@ -4410,7 +4410,7 @@ use_tuple=True (currently default) is deprecated.""", "Sage Version 5.0")
 
         E = self.minimal_model()
         C = self.optimal_curve()
-        _, m = C.isogeny_class()
+        m = C.isogeny_class(use_tuple=False).matrix()
         ma = max(max(x) for x in m)
         OmC = C.period_lattice().basis()
         OmE = E.period_lattice().basis()

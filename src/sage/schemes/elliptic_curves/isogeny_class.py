@@ -29,15 +29,15 @@ import sage.databases.cremona
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
-from sage.schemes.elliptic_curves.ell_generic import EllipticCurve_generic
+from sage.schemes.elliptic_curves.ell_rational_field import EllipticCurve_rational_field
 
 class IsogenyClass_EC(SageObject):
     """
     Isogeny class of an elliptic curve.
 
     The current implementation chooses a curve from each isomorphism
-    class in the isogeny class, since over Q there is a unique minimal
-    model in each isomorphism class.
+    class in the isogeny class, since over Q there is a unique reduced
+    minimal model in each isomorphism class.
 
     EXAMPLES::
 
@@ -122,7 +122,7 @@ class IsogenyClass_EC(SageObject):
             2
         """
         # This will need updating once we start talking about curves over more general number fields
-        if not isinstance(C, EllipticCurve_generic):
+        if not isinstance(C, EllipticCurve_rational_field):
             raise ValueError("x not in isogeny class")
         return self.curves.index(C.minimal_model())
 
@@ -219,7 +219,7 @@ class IsogenyClass_EC(SageObject):
             sage: E.short_weierstrass_model() in cls
             True
         """
-        if not isinstance(x, EllipticCurve_generic):
+        if not isinstance(x, EllipticCurve_rational_field):
             return False
         return x.minimal_model() in self.curves
 
@@ -571,6 +571,11 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC):
 
             sage: isocls = EllipticCurve('389a1').isogeny_class(use_tuple=False); isocls
             Elliptic curve isogeny class 389a
+            sage: E = EllipticCurve([1, -1, 0, -53594, 4788959]) # conductor 10001
+            sage: E.isogeny_class(use_tuple=False, order='database')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: unable to to find Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 53594*x + 4788959 over Rational Field in the database
             sage: TestSuite(isocls).run()
         """
         self._algorithm = algorithm
@@ -632,11 +637,11 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC):
             try:
                 label = self.E.cremona_label(space=False)
             except RuntimeError:
-                raise RuntimeError("unable to to find %s in the database"%self)
+                raise RuntimeError("unable to to find %s in the database"%self.E)
             db = sage.databases.cremona.CremonaDatabase()
             curves = db.isogeny_class(label)
             if len(curves) == 0:
-                raise RuntimeError("unable to to find %s in the database"%self)
+                raise RuntimeError("unable to to find %s in the database"%self.E)
             # All curves will have the same conductor and isogeny class,
             # and there are are most 8 of them, so lexicographic sorting is okay.
             self.curves = tuple(sorted(curves, key = lambda E: E.cremona_label()))

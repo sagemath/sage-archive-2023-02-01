@@ -30,6 +30,11 @@ GF(2^k) for 2 <= k <= 10.
 
 == Releases/Changelog ==
 
+=== libm4rie-20111004.p3 (Jeroen Demeyer, 10 April 2012) ===
+ * Trac #12821: don't quote $CC when running testcc.sh
+ * Use testcflags.sh to add -fPIC -Wall -pedantic -g
+ * Fix strings to test output of testcc.sh against
+
 === libm4rie-20111004.p2 (Jeroen Demeyer, 16 February 2012) ===
  * Rename source directory "m4rie" to "src".
  * Trac #12501: touch src/src/config.h.in to prevent autoheader from

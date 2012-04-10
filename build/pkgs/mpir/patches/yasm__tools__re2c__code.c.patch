@@ -1,0 +1,38 @@
+--- src/yasm/tools/re2c/code.c	2011-03-05 14:47:11.000000000 +0100
++++ src/yasm/tools/re2c/code.c	2012-04-05 12:34:44.958541522 +0200
+@@ -1,5 +1,6 @@
+ #include <stdlib.h>
+ #include <string.h>
++#include <errno.h>
+ #include <ctype.h>
+ #include "tools/re2c/substr.h"
+ #include "tools/re2c/globals.h"
+@@ -10,7 +11,7 @@
+     while (value >= vUsedLabelAlloc) {
+ 	vUsedLabels = realloc(vUsedLabels, vUsedLabelAlloc * 2);
+ 	if (!vUsedLabels) {
+-	    fputs("Out of memory.\n", stderr);
++	    fputs("Error: re2c: Out of memory.\n", stderr);
+ 	    exit(EXIT_FAILURE);
+ 	}
+ 	memset(vUsedLabels + vUsedLabelAlloc, 0, vUsedLabelAlloc);
+@@ -844,14 +845,17 @@
+     nOrgOline = oline;
+     maxFillIndexes = vFillIndexes;
+     orgVFillIndexes = vFillIndexes;
+-    tmpo = fopen("re2c.tmp", "wt");
++    if (!(tmpo = tmpfile()))
++    {
++        fprintf(stderr, "Error: re2c: tmpfile(): %s\n", strerror(errno));
++        exit(EXIT_FAILURE);
++    }
+     for(s = d->head; s; s = s->next){
+ 	int readCh = 0;
+ 	State_emit(s, tmpo, &readCh);
+ 	Go_genGoto(&s->go, tmpo, s, s->next, &readCh);
+     }
+     fclose(tmpo);
+-    remove("re2c.tmp");
+     maxFillIndexes = vFillIndexes;
+     vFillIndexes = orgVFillIndexes;
+     oline = nOrgOline;

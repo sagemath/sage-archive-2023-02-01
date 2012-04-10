@@ -20,25 +20,70 @@ See http://www.mpir.org
 
 == Dependencies ==
  * iconv
+ * GNU patch
 
 == Special Update/Build Instructions ==
- * TODO: Use 'patch' rather than copying over patched upstream files.
-         (The currently patched file for Sun CC on SunOS has to be refreshed on
-         each upgrade.)
- * Make sure the patches still apply; also, putting "-Wl,z,noexecstack"
+ * TODO:
+   - Use 'patch' also to (unconditionally) apply the harmless patch for Sun CC
+     (on SunOS), as the current prepatched file which is still copied over has
+     to get refreshed on each upgrade.
+   - Perhaps also modify CXXFLAGS (and/or CPPFLAGS).
+   - We currently don't use anything of GMP's/MPIR's CC setting, and matching
+     with the current compiler (`$CC`) is perhaps suboptimal.
+ * Make sure the patches still apply; also, putting "-Wl,-z,noexecstack"
    into LDFLAGS might not be necessary for later versions.
  * Perhaps make sure we still delete the correct files on 32-bit MacOS X
    on Intel hardware (x86) to not break PIC there.
+ * The work-around for the broken GCC 4.7.0 on Linux ia64 (Itanium) is current-
+   ly applied for any 4.7.x version (of course only on that platform), as it
+   seems unlikely that the bug which breaks the build of MPIR gets fixed soon.
+   In case GCC 4.7.1 or a later version is meanwhile released, one should check
+   whether the build is still broken with this or these, and eventually change
+   the version pattern accordingly.
  * Remove some files / directories not needed for Sage from upstream:
      rm -rf src/build.vc*             # Microsoft Visual C build files
      rm -rf src/yasm/Mkfiles/{dj,vc*} # DJGPP, Microsoft Visual C
    (Saves 13 of 40 MB uncompressed.)
 
 === Patches ===
- * We currently only apply a trivial patch to gmp-h.in on SunOS such that
-   MPIR would compile with Sun CC there. See also `spkg-install`.
+ * We currently apply a trivial patch to gmp-h.in on SunOS such that
+   MPIR would compile with Sun CC there.  See also `spkg-install`.
+   This patch could be applied on all platforms, as the changes only take
+   effect if the preprocessor variable `__SUNPRO_CC` is defined.
+ * We apply a simple patch to upstream yasm's re2c code, to avoid a potential
+   race condition when building yasm in parallel.  (Cf. #11844.)
 
 == Changelog ==
+
+=== mpir-2.4.0.p2 (Leif Leonhardy, April 4th, 2012) ===
+ #11616 (upgrading MPIR), further fixes:
+ * Before enabling `-march=native`, minimalistically check whether the
+   system's assembler also understands the instructions the compiler emits
+   with that option.  (Work-around for e.g. GCC 4.6.3 on MacOS X 10.x and
+   Intel Core i7-family CPUs with AVX.)
+ * Do not unconditionally unset `PYTHON`, since Sage (>=5.0.beta10) no longer
+   pollutes the environment with its package version variables, which previous-
+   ly confused yasm's `configure`.
+ * Fix extraction of `__GMP_CC` and `__GMP_CFLAGS` from `gmp.h`, since MPIR
+   meanwhile defines these to preprocessor variables (rather than literals).
+   Also don't use `\+` in `sed` patterns, as this is less portable.
+ * Work around GCC 4.7.0 bug (compilation error) on Linux ia64 (Itanium) by
+   almost completely disabling optimization on that platform if GCC 4.7.x
+   is detected.  This doesn't hurt much if we later rebuild MPIR with a (non-
+   broken) GCC from the new GCC spkg.  Cf. #12765.
+ * Do not build the C++ interface and static libraries when bootstrapping the
+   GCC spkg, i.e. if `SAGE_BUILD_TOOLCHAIN=yes`.  (GMP/MPIR is a prerequisite
+   for it, and MPIR will later get rebuilt with both enabled, with the newly
+   built GCC.)  Cf. #12782.
+ * Fix a potential race condition in yasm's build by patching the re2c source.
+   Cf. #11844.
+ * Add "`patch` loop" to apply any patches (`*.patch`) located in `patches/`.
+   Currently only the re2c patch matches that; the prepatched header to support
+   Sun's C compiler is still copied over (and only on SunOS, although it doesn't
+   do any harm on other platforms).
+ * Minor clean-up; e.g. redirect error messages and warnings to `stderr`,
+   quote parameter to `--libdir`, add some comments and messages, also save
+   user's setting of `LDFLAGS` and `ABI`.
 
 === mpir-2.4.0.p1 (Leif Leonhardy, March 21st, 2012) ===
  * Upstream upgrade to MPIR 2.4.0 (#11616).

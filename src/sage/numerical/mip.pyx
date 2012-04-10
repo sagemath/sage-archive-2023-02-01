@@ -1479,10 +1479,11 @@ cdef class MixedIntegerLinearProgram:
 
         Solver-specific parameters:
 
-            - GLPK : We have implemented very close to comprehensive coverage
-              of the GLPK solver parameters for the simplex and integer optimization
-              methods. For details, see the documentation in
-              :meth:`sage.numerical.backends.glpk_backend`.
+            - GLPK : We have implemented very close to comprehensive coverage of
+              the GLPK solver parameters for the simplex and integer
+              optimization methods. For details, see the documentation of
+              :meth:`GLPKBackend.solver_parameter
+              <sage.numerical.backends.glpk_backend.GLPKBackend.solver_parameter>`.
 
             - CPLEX's parameters are identified by a string. Their
               list is available `on ILOG's website

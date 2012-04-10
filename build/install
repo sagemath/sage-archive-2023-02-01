@@ -124,16 +124,48 @@ else
         echo >&2 "Installing GCC because your '$CC' isn't GCC (GNU CC)."
         need_to_install_gcc=yes
     else
-        # $CC points to some version of GCC.  Install our own GCC if the
-        # system-provided one is older than gcc-4.4.
-        # Install GCC if we have version 4.6.0 or 4.6.1, which is
-        # known to give trouble within Sage:
-        # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48702
-        # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48774
-        if { $CC -dumpversion | grep '^\($\|[0-3]\.\|4\.[0-3]\|4\.6\.[01]$\)' ; } >/dev/null 2>/dev/null; then
-            echo >&2 "Installing GCC because your '$CC' is not so recent."
-            need_to_install_gcc=yes
-        fi
+        # $CC points to some version of GCC, find out which version.
+        GCCVERSION=`$CC -dumpversion`
+        case $GCCVERSION in
+            [0-3].*|4.[0-3].*)
+                # Install our own GCC if the system-provided one is older than gcc-4.4.
+                # (admittedly, this is a pretty arbitrary choice -- Jeroen Demeyer)
+                echo >&2 "Installing GCC because you have $CC version $GCCVERSION, which is quite old."
+                need_to_install_gcc=yes;;
+            4.6.[01])
+                # Also install GCC if we have version 4.6.0 or 4.6.1, which is
+                # known to give trouble within Sage:
+                # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48702
+                # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48774
+                #
+                # Detect a Debian multi-arch install.  In this case, some
+                # include files will be in /usr/include/x86_64-linux-gnu for
+                # example.  We detect whether GCC searches for include files
+                # in /usr/include/*.  If so, we don't install GCC.
+                if gcc -x c /dev/null -E -v -o /dev/null 2>&1 |grep '/usr/include/.' >/dev/null; then
+                    echo >&2 "Not installing GCC as your system $CC is looking for include files"
+                    echo >&2 "in unusual directories."
+                else
+                    echo >&2 "Installing GCC because you have $CC version $GCCVERSION."
+                    echo >&2 "gcc-4.6.0 and gcc-4.6.1 have known bugs affecting Sage."
+                    need_to_install_gcc=yes
+                fi;;
+            4.7.*)
+                # GCC 4.7.0 is very broken on ia64, see
+                # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496
+                if [ x`uname -m` = xia64 ]; then
+                    echo >&2 "Installing GCC because you have $CC version $GCCVERSION on ia64."
+                    echo >&2 "gcc-4.7.0 has a serious bug on ia64."
+                    need_to_install_gcc=yes
+                else
+                    # On other systems, GCC 4.7.x works but it is not
+                    # supported by all packages inside Sage, see
+                    # http://trac.sagemath.org/sage_trac/ticket/12751
+                    echo >&2 "Installing GCC because you have $CC version $GCCVERSION."
+                    echo >&2 "gcc-4.7.x is currently not supported in Sage."
+                    need_to_install_gcc=yes
+                fi;;
+        esac
     fi
 
     # Check C++ and Fortran compilers.

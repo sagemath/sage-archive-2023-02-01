@@ -25,10 +25,11 @@ Free, Not to Mention Unencumbered by Patents)
 
  * None
 
-=== zlib-1.2.6 (Jeroen Demeyer, 3 April 2012) ===
+=== zlib-1.2.6 (Jeroen Demeyer, Leif Leonhardy, 11 April 2012) ===
  * Trac #12800: Upgrade to zlib-1.2.6
  * Remove patches/Makefile.in.patch which is no longer needed
  * Exit when building fails
+ * Clean up spkg-install
 
 === zlib-1.2.5.p0 (Jeroen Demeyer, 9 December 2011) ===
  * Trac #12138: Fix parallel build by patching Makefile.in

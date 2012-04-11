@@ -1,52 +1,56 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 cd src/
 
-# Apply all patches (currently none)
-#for patch in ../patches/*.patch; do
-#    if ! patch -p1 <$patch; then
-#        echo >&2 "Error: patch $patch failed to apply."
-#        exit 1
-#    fi
-#done
+# Apply all patches
+for patch in ../patches/*.patch; do
+    [ -f "$patch" ] || continue
+    basename "$patch"
+    if ! patch -p1 <"$patch"; then
+        echo >&2 "Error: patch '$patch' failed to apply."
+        exit 1
+    fi
+done
 
 
 unset AR
 
 
-if [ $UNAME = "CYGWIN" ]; then
+if [ "$UNAME" = CYGWIN ]; then
     export BINARY_PATH="$SAGE_LOCAL/bin"
     export INCLUDE_PATH="$SAGE_LOCAL/include"
     export LIBRARY_PATH="$SAGE_LOCAL/lib"
-    cp win32/Makefile.gcc Makefile
-else
-    if [ "x$SAGE64" = xyes ]; then
-        ./configure --64 --shared --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
-    else
-        ./configure --shared --prefix=$SAGE_LOCAL --includedir="$SAGE_LOCAL/include"
+    cp -f win32/Makefile.gcc Makefile
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error copying over zlib's Makefile for Cygwin."
+        exit 1
     fi
-fi
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring zlib"
-    exit 1
+else
+    if [ "$SAGE64" = yes ]; then
+        ./configure --64 --shared --prefix="$SAGE_LOCAL" --includedir="$SAGE_LOCAL/include"
+    else
+        ./configure --shared --prefix="$SAGE_LOCAL" --includedir="$SAGE_LOCAL/include"
+    fi
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error configuring zlib."
+        exit 1
+    fi
 fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-    echo >&2 "Error building zlib"
+    echo >&2 "Error building zlib."
     exit 1
 fi
 
 $MAKE install
 if [ $? -ne 0 ]; then
-    echo >&2 "Error installing zlib"
+    echo >&2 "Error installing zlib."
     exit 1
 fi
-

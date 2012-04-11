@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [ -z "$SAGE_LOCAL" ]; then
-    echo "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
     exit 1
 fi
 
@@ -15,7 +15,7 @@ echo "Running the GMP-ECM test suite..."
 $MAKE check
 
 if [ $? -ne 0 ]; then
-    echo "Error: The GMP-ECM test suite failed."
+    echo >&2 "Error: The GMP-ECM test suite failed."
     exit 1
 fi
 

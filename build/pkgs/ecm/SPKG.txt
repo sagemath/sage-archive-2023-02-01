@@ -25,9 +25,9 @@ LGPL V2+
 == Special Update/Build Instructions ==
 
  * src/ contains "stable" upstream code, to which we currently apply
-   two upstream patches (both to 'configure.in'). These (i.e. the
-   files 'patches/configure.in' and 'patches/configure') should be
-   removed on the next upgrade to a stable release.
+   one upstream patch (to 'configure'). This (i.e., the file
+   'patches/configure') should be removed on the next upgrade to a stable
+   release.
  * GMP-ECM comes with a self-tuning feature; we could support
    that as an option ($SAGE_TUNE_*=yes) in the future.
  * We currently work around a linker bug on MacOS X 10.5 PPC (with
@@ -52,6 +52,16 @@ LGPL V2+
    option isn't used on anything other than x86 / x86_64.)
 
 == Changelog ==
+
+=== ecm-6.3.p5 (Leif Leonhardy, April 11th 2012) ===
+ * #12830: Don't add `-march=native` if the assembler doesn't understand the
+   instructions the compiler emits with that.  (E.g. the Apple/XCode assembler
+   on Darwin doesn't yet support AVX.)
+ * Fix extraction of `__GMP_CC` and `__GMP_CFLAGS` (from `gmp.h`) for newer
+   versions of MPIR, which define these to preprocessor macros rather than
+   strings.
+ * Redirect warnings and error messages to `stderr`; add some messages.
+ * Correct `SPKG.txt` w.r.t. applied patches.
 
 === ecm-6.3.p4 (Jeroen Demeyer, 13 February 2012) ===
  * #12501: Do not patch configure.in in spkg-install (to prevent

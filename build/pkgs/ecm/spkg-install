@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [ -z "$SAGE_LOCAL" ]; then
-    echo "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
     exit 1
 fi
 
@@ -18,9 +18,9 @@ echo "Copying patched files..."
 # to generate automatically-generated files in the source tree.
 # Patching configure.in forces automake to be run, which may cause
 # build failures on systems where autotools aren't installed.
-cp -p patches/configure src/
+cp -pf patches/configure src/
 if [ $? -ne 0 ]; then
-    echo "Error copying patched configure."
+    echo >&2 "Error copying patched 'configure'."
     exit 1
 fi
 
@@ -36,9 +36,23 @@ fi
 # non-empty CFLAGS; of course the user could set such manually though.)
 gmp_cc_pat='/^[ 	]*#[ 	]*define[ 	]\+__GMP_CC[ 	]\+/s/.*"\([^"]*\)"/\1/p'
 gmp_cflags_pat='/^[ 	]*#[ 	]*define[ 	]\+__GMP_CFLAGS[ 	]\+/s/.*"\([^"]*\)"/\1/p'
+gmp_header_file="$SAGE_LOCAL"/include/gmp.h
 
-gmp_cc=`sed -n -e "$gmp_cc_pat" "$SAGE_LOCAL"/include/gmp.h`
-gmp_cflags=`sed -n -e "$gmp_cflags_pat" "$SAGE_LOCAL"/include/gmp.h`
+gmp_cc=`sed -n -e "$gmp_cc_pat" "$gmp_header_file"`
+gmp_cflags=`sed -n -e "$gmp_cflags_pat" "$gmp_header_file"`
+# At least /some/ newer versions of MPIR define __GMP_CC and __GMP_CFLAGS
+# (also in gmp.h! -- how compatible is that?) to (literally) __MPIR_CC and
+# __MPIR_CFLAGS, respectively, i.e., to preprocessor variables, so we might
+# have to get the real strings from their definitions:
+# (Since we currently only match string literals above, both variables would
+# be empty in that case, and not contain the names of preprocessor variables.
+# We could change the patterns to actually match any definition / "value".)
+case "$gmp_cc" in __MPIR_CC|"")
+    gmp_cc=`sed -n -e "${gmp_cc_pat/GMP/MPIR}" "$gmp_header_file"`
+esac
+case "$gmp_cflags" in __MPIR_CFLAGS|"")
+    gmp_cflags=`sed -n -e "${gmp_cflags_pat/GMP/MPIR}" "$gmp_header_file"`
+esac
 
 system_gmp_h=""
 for incdir in /usr/include /usr/local/include; do
@@ -58,14 +72,12 @@ fi
 
 
 if [ "$SAGE64" = yes ]; then
-    echo "Building a 64-bit version of GMP-ECM"
+    echo "Building a 64-bit version of GMP-ECM."
     if [ -z "$CFLAG64" ]; then
         CFLAG64=-m64
     fi
     CFLAGS="$CFLAGS $CFLAG64"
     LDFLAGS="$LDFLAGS $CFLAG64"; export LDFLAGS
-else
-    :;
 fi
 
 
@@ -89,6 +101,7 @@ fi
 
 if [ "$SAGE_DEBUG" = yes ]; then
     # Add debug symbols and disable optimization:
+    echo >&2 "Warning: Setting SAGE_DEBUG=yes completely disables optimization."
     CFLAGS="$CFLAGS -g -O0"
 else
     # Enable optimization, may be overridden by user settings:
@@ -98,9 +111,9 @@ else
             # fails due to a bus error in Apple's 'ld' when trying
             # to determine if global symbols are prefixed with an
             # underscore (cf. http://trac.sagemath.org/sage_trac/ticket/5847#comment:35 ff.):
-            echo "Warning: Disabling debug symbols on MacOS X 10.5" \
+            echo >&2 "Warning: Disabling debug symbols on MacOS X 10.5" \
                 "PowerPC because of a linker (?) bug."
-            echo "See http://trac.sagemath.org/sage_trac/ticket/5847#comment:35" \
+            echo >&2 "See http://trac.sagemath.org/sage_trac/ticket/5847#comment:35" \
                 "ff. for details."
             echo ""
             CFLAGS="-O3 $CFLAGS"
@@ -114,9 +127,9 @@ fi
 if [ "$SAGE_FAT_BINARY" = yes ]; then
     # XXX Disable SSE2 on x86? (by passing '--enable-sse2=no' to 'configure')
     # XXX Disable asm-redc? Or pass some "generic" '--host=...' to 'configure'?
-    echo "Warning: SAGE_FAT_BINARY is currently not really supported by this package."
-    echo "         Add e.g. '--disable-asm-redc' and/or '--enable-sse2=no'"
-    echo "         to ECM_EXTRA_OPTS if you run into problems."
+    echo >&2 "Warning: SAGE_FAT_BINARY is currently not really supported by this package."
+    echo >&2 "         Add e.g. '--disable-asm-redc' and/or '--enable-sse2=no'"
+    echo >&2 "         to ECM_EXTRA_OPTS if you run into problems."
 else
     # Tune the code generation to the machine we build on:
     cpu_params=""; other_gmp_cflags=""
@@ -124,8 +137,25 @@ else
     # Some gcc 4.0.x versions don't support '-march=native', and it's currently
     # not supported on all platforms supported by Sage:
     if touch foo.c && $CC -march=native -c foo.c &>/dev/null; then
-        cpu_params="-march=native"
-    else
+        # The compiler supports '-march=native', but the assembler might not
+        # support (some of) the instructions emitted with this (e.g. the
+        # Apple assembler doesn't know AVX yet).
+        cat >foo.c <<-"EOF"
+		double d;
+		unsigned long fancy_insns() { return (unsigned long) d; }
+		int main () { return 0; }
+	EOF
+        if $CC -march=native -o foo foo.c &>/dev/null && ./foo >/dev/null; then
+            cpu_params="-march=native"
+        else
+            echo >&2 "Warning: Your assembler apparently doesn't understand the instructions"
+            echo >&2 "         your compiler ($CC) generates with '-march=native'."
+            echo >&2 "         You might also try to compile GMP-ECM with (e.g.)"
+            echo >&2 "             CFLAGS=\"-march=native -mno-avx\""
+            echo >&2 "         to disable specific instruction set extension (in this case, AVX)."
+        fi
+    fi
+    if [ -z "$cpu_params" ]; then
         # 'native' not supported, see if GMP / MPIR provides us some CPU type:
         for opt in $gmp_cflags; do
             case $opt in
@@ -138,7 +168,7 @@ else
             esac
         done
     fi
-    rm -f foo.*
+    rm -f foo.* foo
     # Only add them if CFLAGS do not already contain similar:
     if [ -n "$cpu_params" ] &&
         ! (echo "$CFLAGS" | egrep -- '-march=|-mcpu=|-mtune=' >/dev/null);
@@ -185,13 +215,15 @@ cd src
 #        adapt the logic regarding '-fPIC' above.
 ###############################################################################
 
-SAGE_CONF_OPTS=""
+SAGE_CONF_OPTS="" # XXX Move this up in case you add options above!
 
-echo ""
+echo
 if [ -z "$ECM_EXTRA_OPTS" ]; then
     echo "Configuring GMP-ECM with the following options:"
-    echo "    --prefix=\"$SAGE_LOCAL\" --libdir=\"$SAGE_LOCAL/lib\" --with-gmp=\"$SAGE_LOCAL\"" \
-        "$SAGE_CONF_OPTS"
+    echo "    --prefix=\"$SAGE_LOCAL\""
+    echo "    --libdir=\"$SAGE_LOCAL/lib\""
+    echo "    --with-gmp=\"$SAGE_LOCAL\""
+    test -n "$SAGE_CONF_OPTS" && echo "    $SAGE_CONF_OPTS"
     echo "You can set ECM_EXTRA_OPTS to pass additional parameters,"
     echo "e.g. \"--enable-shared\" to also build a *shared* library,"
     echo "or \"--disable-sse2\" if you encounter problems on a Pentium III system."
@@ -200,15 +232,19 @@ else
         "ECM_EXTRA_OPTS:"
     echo "    $ECM_EXTRA_OPTS"
     echo "Configuring ECM with the following options:"
-    echo "    --prefix=\"$SAGE_LOCAL\" --libdir=\"$SAGE_LOCAL/lib\" --with-gmp=\"$SAGE_LOCAL\"" \
-        "$SAGE_CONF_OPTS $ECM_EXTRA_OPTS"
+    echo "    --prefix=\"$SAGE_LOCAL\""
+    echo "    --libdir=\"$SAGE_LOCAL/lib\""
+    echo "    --with-gmp=\"$SAGE_LOCAL\""
+    test -n "$SAGE_CONF_OPTS" && echo "    $SAGE_CONF_OPTS"
+    echo "    $ECM_EXTRA_OPTS"
 fi
-echo ""
+echo
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-gmp="$SAGE_LOCAL" \
-    $SAGE_CONF_OPTS $ECM_EXTRA_OPTS
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+            --with-gmp="$SAGE_LOCAL" \
+            $SAGE_CONF_OPTS $ECM_EXTRA_OPTS
 if [ $? -ne 0 ]; then
-    echo "Error configuring GMP-ECM."
+    echo >&2 "Error configuring GMP-ECM."
     exit 1
 fi
 
@@ -216,16 +252,20 @@ fi
 # Now build ECM:
 ###############################################################################
 
+echo
+echo "Now building GMP-ECM..."
 $MAKE
 if [ $? -ne 0 ]; then
-    echo "Error building GMP-ECM."
+    echo >&2 "Error building GMP-ECM."
     exit 1
 fi
 
 ###############################################################################
 # Remove old executable/header/libraries/manpage:
 ###############################################################################
-echo "Build succeeded, removing old binary, header file, manual page and libraries..."
+
+echo
+echo "Build succeeded.  Now removing old binary, header file, manual page and libraries..."
 rm -f "$SAGE_LOCAL"/bin/ecm
 rm -f "$SAGE_LOCAL"/lib/libecm.*
 rm -f "$SAGE_LOCAL"/include/ecm.h
@@ -235,8 +275,9 @@ rm -f "$SAGE_LOCAL"/share/man/man1/ecm.1
 # Now install ECM:
 ###############################################################################
 
+echo "Now installing GMP-ECM..."
 $MAKE install
 if [ $? -ne 0 ]; then
-    echo "Error installing GMP-ECM (though it appears to have built fine)."
+    echo >&2 "Error installing GMP-ECM (though it appears to have built fine)."
     exit 1
 fi

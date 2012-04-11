@@ -1480,6 +1480,159 @@ def reset_load_attach_path():
 # user can modify the path with the function load_attach_path.
 reset_load_attach_path()
 
+def load_cython(name):
+    import cython
+    cur = os.path.abspath(os.curdir)
+    try:
+        mod, dir  = cython.cython(name, compile_message=True, use_cache=True)
+    except (IOError, OSError, RuntimeError), msg:
+        print "Error compiling cython file:\n%s"%msg
+        return ''
+    import sys
+    sys.path.append(dir)
+    return 'from %s import *'%mod
+
+def handle_encoding_declaration(contents, out):
+    r"""Find a PEP 263-style Python encoding declaration in the first or
+    second line of `contents`. If found, output it to `out` and return
+    `contents` without the encoding line; otherwise output a default
+    UTF-8 declaration and return `contents`.
+
+    EXAMPLES::
+
+        sage: from sage.misc.preparser import handle_encoding_declaration
+        sage: import sys
+        sage: c1='# -*- coding: latin-1 -*-\nimport os, sys\n...'
+        sage: c2='# -*- coding: iso-8859-15 -*-\nimport os, sys\n...'
+        sage: c3='# -*- coding: ascii -*-\nimport os, sys\n...'
+        sage: c4='import os, sys\n...'
+        sage: handle_encoding_declaration(c1, sys.stdout)
+        # -*- coding: latin-1 -*-
+        'import os, sys\n...'
+        sage: handle_encoding_declaration(c2, sys.stdout)
+        # -*- coding: iso-8859-15 -*-
+        'import os, sys\n...'
+        sage: handle_encoding_declaration(c3, sys.stdout)
+        # -*- coding: ascii -*-
+        'import os, sys\n...'
+        sage: handle_encoding_declaration(c4, sys.stdout)
+        # -*- coding: utf-8 -*-
+        'import os, sys\n...'
+
+    TESTS:
+
+    These are some of the tests listed in PEP 263::
+
+        sage: contents = '#!/usr/bin/python\n# -*- coding: latin-1 -*-\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # -*- coding: latin-1 -*-
+        '#!/usr/bin/python\nimport os, sys'
+
+        sage: contents = '# This Python file uses the following encoding: utf-8\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # This Python file uses the following encoding: utf-8
+        'import os, sys'
+
+        sage: contents = '#!/usr/local/bin/python\n# coding: latin-1\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # coding: latin-1
+        '#!/usr/local/bin/python\nimport os, sys'
+
+    Two hash marks are okay; this shows up in SageTeX-generated scripts::
+
+        sage: contents = '## -*- coding: utf-8 -*-\nimport os, sys\nprint x'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        ## -*- coding: utf-8 -*-
+        'import os, sys\nprint x'
+
+    When the encoding declaration doesn't match the specification, we
+    spit out a default UTF-8 encoding.
+
+    Incorrect coding line::
+
+        sage: contents = '#!/usr/local/bin/python\n# latin-1\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # -*- coding: utf-8 -*-
+        '#!/usr/local/bin/python\n# latin-1\nimport os, sys'
+
+    Encoding declaration not on first or second line::
+
+        sage: contents ='#!/usr/local/bin/python\n#\n# -*- coding: latin-1 -*-\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # -*- coding: utf-8 -*-
+        '#!/usr/local/bin/python\n#\n# -*- coding: latin-1 -*-\nimport os, sys'
+
+    We don't check for legal encoding names; that's Python's job::
+
+        sage: contents ='#!/usr/local/bin/python\n# -*- coding: utf-42 -*-\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # -*- coding: utf-42 -*-
+        '#!/usr/local/bin/python\nimport os, sys'
+
+
+    NOTES::
+
+        PEP 263: http://www.python.org/dev/peps/pep-0263/
+
+        PEP 263 says that Python will interpret a UTF-8 byte order mark
+        as a declaration of UTF-8 encoding, but I don't think we do
+        that; this function only sees a Python string so it can't
+        account for a BOM.
+
+        We default to UTF-8 encoding even though PEP 263 says that
+        Python files should default to ASCII.
+
+        Also see http://docs.python.org/ref/encodings.html.
+
+    AUTHORS::
+
+        - Lars Fischer
+        - Dan Drake (2010-12-08, rewrite for ticket #10440)
+    """
+    lines = contents.splitlines()
+    for num, line in enumerate(lines[:2]):
+        if re.search(r"coding[:=]\s*([-\w.]+)", line):
+            out.write(line + '\n')
+            return '\n'.join(lines[:num] + lines[(num+1):])
+
+    # If we didn't find any encoding hints, use utf-8. This is not in
+    # conformance with PEP 263, which says that Python files default to
+    # ascii encoding.
+    out.write("# -*- coding: utf-8 -*-\n")
+    return contents
+
+def preparse_file_named_to_stream(name, out):
+    r"""
+    Preparse file named \code{name} (presumably a .sage file), outputting to
+    stream \code{out}.
+    """
+    name = os.path.abspath(name)
+    dir, _ = os.path.split(name)
+    cur = os.path.abspath(os.curdir)
+    os.chdir(dir)
+    contents = open(name).read()
+    contents = handle_encoding_declaration(contents, out)
+    parsed = preparse_file(contents)
+    os.chdir(cur)
+    out.write("# -*- encoding: utf-8 -*-\n")
+    out.write('#'*70+'\n')
+    out.write('# This file was *autogenerated* from the file %s.\n' % name)
+    out.write('#'*70+'\n')
+    out.write(parsed)
+
+def preparse_file_named(name):
+    r"""
+    Preparse file named \code{name} (presumably a .sage file), outputting to a
+    temporary file.  Returns name of temporary file.
+    """
+    import sage.misc.misc
+    name = os.path.abspath(name)
+    tmpfilename = os.path.abspath(sage.misc.misc.tmp_filename(name) + ".py")
+    out = open(tmpfilename,'w')
+    preparse_file_named_to_stream(name, out)
+    out.close()
+    return tmpfilename
+
 def load(filename, globals, attach=False):
     """
     Executes a file in the scope given by ``globals``.  The
@@ -1655,14 +1808,12 @@ def load(filename, globals, attach=False):
             # code snippets. Use preparse_file_named to make
             # the file name appear in the traceback as well.
             # See Trac 11812.
-            from sage.misc.interpreter import preparse_file_named
             execfile(preparse_file_named(fpath), globals)
         else:
             # Preparse in memory only for speed.
             exec(preparse_file(open(fpath).read()) + "\n", globals)
     elif fpath.endswith('.spyx') or fpath.endswith('.pyx'):
-        import interpreter
-        exec(interpreter.load_cython(fpath), globals)
+        exec(load_cython(fpath), globals)
     elif fpath.endswith('.m'):
         # Assume magma for now, though maybe .m is used by maple and
         # mathematica too, and we should really analyze the file

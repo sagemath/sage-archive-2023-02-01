@@ -1323,7 +1323,7 @@ class DiGraph(GenericGraph):
 
             \mbox{Minimize : }&\sum_{(u,v)\in G} b_{(u,v)}\\
             \mbox{Such that : }&\\
-            &\forall (u,v)\in G, d_u-d_v+nb_{(u,v)}\geq 0\\
+            &\forall (u,v)\in G, d_u-d_v+ n \cdot b_{(u,v)}\geq 0\\
             &\forall u\in G, 0\leq d_u\leq |G|\\
 
         An explanation:
@@ -1381,14 +1381,16 @@ class DiGraph(GenericGraph):
 
         TESTS:
 
-        Comparing with/without constraint generation::
+        Comparing with/without constraint generation. Also double-checks ticket :trac:`12833`::
 
-            sage: g = digraphs.RandomDirectedGNP(10,.3)
-            sage: x = g.feedback_edge_set(value_only = True)
-            sage: y = g.feedback_edge_set(value_only = True,
-            ...          constraint_generation = False)
-            sage: x == y
-            True
+            sage: for i in range(20):
+            ...      g = digraphs.RandomDirectedGNP(10,.3)
+            ...      x = g.feedback_edge_set(value_only = True)
+            ...      y = g.feedback_edge_set(value_only = True,
+            ...             constraint_generation = False)
+            ...      if x != y:
+            ...         print "Oh my, oh my !"
+            ...         break
         """
         # It would be a pity to start a LP if the digraph is already acyclic
         if self.is_directed_acyclic():
@@ -1416,7 +1418,7 @@ class DiGraph(GenericGraph):
 
             # For as long as we do not break because the digraph is
             # acyclic....
-            while (1):
+            while True:
 
                 # Building the graph without the edges removed by the LP
                 h = DiGraph()
@@ -1468,8 +1470,7 @@ class DiGraph(GenericGraph):
                 p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=1)
 
             for v in self:
-                p.add_constraint(d[v],min=n)
-
+                p.add_constraint(d[v] <= n)
 
             p.set_objective(Sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
 

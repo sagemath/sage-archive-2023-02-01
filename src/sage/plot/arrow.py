@@ -309,7 +309,7 @@ class Arrow(GraphicPrimitive):
         elif head == 2: style = '<|-|>'
         else: raise KeyError('head parameter must be one of 0 (start), 1 (end) or 2 (both).')
         width = float(options['width'])
-        arrowshorten_end = float(options.get('arrowshorten',0))/2.0+width*2
+        arrowshorten_end = float(options.get('arrowshorten',0))/2.0
         arrowsize = float(options.get('arrowsize',5))
         head_width=arrowsize
         head_length=arrowsize*2.0

@@ -203,7 +203,7 @@ class ContourPlot(GraphicPrimitive):
 
 @suboptions('colorbar', orientation='vertical', format=None, spacing=None)
 @suboptions('label', fontsize=9, colors='blue', inline=None, inline_spacing=3, fmt="%1.2f")
-@options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False, colorbar=False, legend_label=None, aspect_ratio=1)
+@options(plot_points=100, fill=True, contours=None, linewidths=None, linestyles=None, labels=False, frame=True, axes=False, colorbar=False, legend_label=None, aspect_ratio=1, region=None)
 def contour_plot(f, xrange, yrange, **options):
     r"""
     ``contour_plot`` takes a function of two variables, `f(x,y)`
@@ -299,6 +299,10 @@ def contour_plot(f, xrange, yrange, **options):
         without regard for numeric values.
 
     - ``legend_label`` -- the label for this item in the legend
+
+    -  ``region`` - (default: None) If region is given, it must be a function
+        of two variables. Only segments of the surface where region(x,y) returns a
+        number >0 will be included in the plot.
 
     EXAMPLES:
 
@@ -458,6 +462,12 @@ def contour_plot(f, xrange, yrange, **options):
 
     ::
 
+    One can also plot over a reduced region:
+
+        sage: contour_plot(x**2-y**2, (x,-2, 2), (y,-2, 2),region=x-y,plot_points=300)
+
+    ::
+
         sage: contour_plot(f, (0, pi), (0, pi)).show(axes=True) # These are equivalent
 
     Note that with ``fill=False`` and grayscale contours, there is the
@@ -475,12 +485,28 @@ def contour_plot(f, xrange, yrange, **options):
     """
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
-    g, ranges = setup_for_eval_on_grid([f], [xrange, yrange], options['plot_points'])
-    g = g[0]
+
+    region = options.pop('region')
+    ev = [f] if region is None else [f,region]
+
+    F, ranges = setup_for_eval_on_grid(ev, [xrange, yrange], options['plot_points'])
+    g = F[0]
     xrange,yrange=[r[:2] for r in ranges]
 
     xy_data_array = [[g(x, y) for x in xsrange(*ranges[0], include_endpoint=True)]
                               for y in xsrange(*ranges[1], include_endpoint=True)]
+
+    if region is not None:
+        import numpy
+
+        xy_data_array = numpy.ma.asarray(xy_data_array,dtype=float)
+
+        m = F[1]
+
+        mask = numpy.asarray([[m(x, y)<=0 for x in xsrange(*ranges[0], include_endpoint=True)]
+                                          for y in xsrange(*ranges[1], include_endpoint=True)],dtype=bool)
+
+        xy_data_array[mask] = numpy.ma.masked
 
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))

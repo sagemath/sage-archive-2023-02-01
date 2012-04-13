@@ -33,6 +33,7 @@ GF(2).  (See also m4ri/README for a brief overview.)
 
 === libm4ri-20120415 (Martin Albrecht, 13 April 2012) ===
  * #12840: new upstream release
+ * remove old headers before installing new ones
 
 === libm4ri-20111004.p2 (John Palmieri, 23 March 2012) ===
  * #12311: Remove the script testcc.sh:

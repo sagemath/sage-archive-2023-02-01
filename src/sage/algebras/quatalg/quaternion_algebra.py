@@ -37,7 +37,7 @@ Pickling test::
 
 from sage.rings.arith import (GCD,
                               hilbert_conductor_inverse, hilbert_conductor,
-                              factor, gcd, lcm, kronecker_symbol)
+                              factor, gcd, lcm, kronecker_symbol, valuation)
 from sage.rings.all import RR, Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
@@ -46,6 +46,7 @@ from sage.rings.finite_rings.constructor import GF
 from sage.rings.ring import Algebra, is_Field
 from sage.rings.ideal import Ideal_fractional
 from sage.rings.rational_field import is_RationalField, QQ
+from sage.rings.infinity import infinity
 from sage.rings.number_field.number_field import is_NumberField
 from sage.structure.parent_gens import ParentWithGens, normalize_names
 from sage.matrix.matrix_space import MatrixSpace
@@ -54,6 +55,8 @@ from sage.structure.sequence import Sequence
 from sage.structure.element import is_RingElement
 from sage.modules.free_module import VectorSpace, FreeModule
 from sage.modules.free_module_element import vector
+
+from operator import itemgetter
 
 import quaternion_algebra_element
 import quaternion_algebra_cython
@@ -601,24 +604,30 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         self._populate_coercion_lists_(coerce_list=[base_ring], element_constructor=element_constructor)
         self._gens = [self([0,1,0,0]), self([0,0,1,0]), self([0,0,0,1])]
 
-    def maximal_order(self):
+    def maximal_order(self, take_shortcuts = True):
         """
         Return a maximal order in this quaternion algebra.
 
-        Currently, the algebra must be ramified precisely at a prime p and at infinity,
-        and the invariants have to be in a special form.
+        The algorithm used is from [Voi2012].
 
-        This is an implementation of Proposition 5.2 of [Pizer, 1980].
+        INPUT:
 
-        OUTPUT: an order in this quaternion algebra
+            - ``take_shortcuts`` - (default: True) If the discriminant is prime and the invariants of the algebra are of a nice form, use Proposition 5.2 of [Pizer, 1980].
 
-        EXAMPLES::
+        OUTPUT: a maximal order in this quaternion algebra
+
+        EXAMPLES:
+
+        ::
 
             sage: QuaternionAlgebra(-1,-7).maximal_order()
             Order of Quaternion Algebra (-1, -7) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
 
             sage: QuaternionAlgebra(-1,-1).maximal_order().basis()
             (1/2 + 1/2*i + 1/2*j + 1/2*k, i, j, k)
+
+            sage: QuaternionAlgebra(-1,-11).maximal_order().basis()
+            (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
 
             sage: QuaternionAlgebra(-1,-3).maximal_order().basis()
             (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
@@ -638,27 +647,63 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             sage: QuaternionAlgebra(-3,-17).maximal_order().basis()
             (1/2 + 1/2*i, 1/2*j - 1/2*k, -1/3*i + 1/3*k, -k)
 
-            sage: QuaternionAlgebra(-17*9,-3).maximal_order()
-            Traceback (most recent call last):
-                ...
-            NotImplementedError: Don't know a basis for this choice of invariants
+            sage: QuaternionAlgebra(-17*9,-3).maximal_order().basis()
+            (1, 1/3*i, 1/6*i + 1/2*j, 1/2 + 1/3*j + 1/18*k)
 
-            sage: QuaternionAlgebra(210).maximal_order()
+            sage: QuaternionAlgebra(-2, -389).maximal_order().basis()
+            (1/2 + 1/2*j + 1/2*k, 1/4*i + 1/2*j + 1/4*k, j, k)
+
+        If you want bases containing 1, switch off ``take_shortcuts``:
+
+        ::
+
+            sage: QuaternionAlgebra(-3,-89).maximal_order(take_shortcuts=False)
+            Order of Quaternion Algebra (-3, -89) with base ring Rational Field with basis (1, 1/2 + 1/2*i, j, 1/2 + 1/6*i + 1/2*j + 1/6*k)
+
+            sage: QuaternionAlgebra(1,1).maximal_order(take_shortcuts=False)    # Matrix ring
+            Order of Quaternion Algebra (1, 1) with base ring Rational Field with basis (1, 1/2 + 1/2*i, j, 1/2*j + 1/2*k)
+
+            sage: QuaternionAlgebra(-22,210).maximal_order(take_shortcuts=False)
+            Order of Quaternion Algebra (-22, 210) with base ring Rational Field with basis (1, i, 1/2*i + 1/2*j, 1/2 + 17/22*i + 1/44*k)
+
+            sage: for d in ( m for m in range(1, 750) if is_squarefree(m) ):        # long time (3s)
+            ...       A = QuaternionAlgebra(d)
+            ...       R = A.maximal_order(take_shortcuts=False)
+            ...       assert A.discriminant() == R.discriminant()
+
+        We don't support number fields other than the rationals yet:
+
+        ::
+
+            sage: K = QuadraticField(5)
+            sage: QuaternionAlgebra(K,-1,-1).maximal_order()
             Traceback (most recent call last):
                 ...
-            NotImplementedError: maximal order only implemented for rational quaternion algebras of prime discriminant
+            NotImplementedError: maximal order only implemented for rational quaternion algebras
+
+
+        REFERENCES:
+
+            .. [Piz1980] A. Pizer. An Algorithm for Computing Modular Forms on `\\Gamma_0(N)`,
+                         J. Algebra 64 (1980), 340-390.
+
+            .. [Voi2012] J. Voight. Identifying the matrix ring: algorithms
+                         for quaternion algebras and quadratic forms, to appear.
         """
         try: return self.__maximal_order
         except AttributeError: pass
+
+        if self.base_ring() != QQ:
+            raise NotImplementedError("maximal order only implemented for rational quaternion algebras")
+
+        d_A = self.discriminant()
 
         # The following only works over QQ if the discriminant is prime
         # and if the invariants are of the special form
         # (every quaternion algebra of prime discriminant has a representation
         #  of such a form though)
-        if self.base_ring() == QQ and self.discriminant().is_prime():
-            a, b = self.invariants()
-            if not (a in ZZ) or not (b in ZZ):
-                raise NotImplementedError("Don't know a basis for this choice of invariants")
+        a, b = self.invariants()
+        if take_shortcuts and d_A.is_prime() and a in ZZ and b in ZZ:
             a = ZZ(a)
             b = ZZ(b)
             i,j,k = self.gens()
@@ -690,10 +735,98 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             if basis:
                 self.__maximal_order = self.quaternion_order(basis)
                 return self.__maximal_order
-            else:
-                raise NotImplementedError("Don't know a basis for this choice of invariants")
 
-        raise NotImplementedError("maximal order only implemented for rational quaternion algebras of prime discriminant")
+        # The following code should always work (over QQ)
+        # Start with <1,i,j,k>
+        R = self.quaternion_order([1] + self.gens())
+        d_R = R.discriminant()
+
+        e_new_gens = []
+
+        # For each prime at which R is not yet maximal, make it bigger
+        for (p,p_val) in d_R.factor():
+            e = R.basis()
+            while self.quaternion_order(e).discriminant().valuation(p) > d_A.valuation(p):
+                # Compute a normalized basis at p
+                f = normalize_basis_at_p(list(e), p)
+
+                # Ensure the basis lies in R by clearing denominators
+                # (this may make the order smaller at q != p)
+                # Also saturate the basis (divide out p as far as possible)
+                V = self.base_ring()**4
+                A = matrix(self.base_ring(), 4, 4, [ list(g) for g in e ]);
+
+                e_n = []
+                x_rows = A.solve_left(matrix([ V(vec.coefficient_tuple()) for (vec,val) in f ]), check=False).rows()
+                denoms = [ x.denominator() for x in x_rows ]
+                for i in range(4):
+                    vec = f[i][0]
+                    val = f[i][1]
+
+                    v = (val/2).floor()
+                    e_n.append(denoms[i] / p**(v) * vec)
+
+                # for e_n to become p-saturated we still need to sort by
+                # ascending valuation of the quadratic form
+                lst = sorted(zip(e_n, [f[m][1].mod(2) for m in range(4)]),
+                             key = itemgetter(1))
+                e_n = list(zip(*lst)[0])
+
+                # Final step: Enlarge the basis at p
+                if p != 2:
+                    # ensure that v_p(e_n[1]**2) = 0 by swapping basis elements
+                    if ZZ(e_n[1]**2).valuation(p) != 0:
+                        if ZZ(e_n[2]**2).valuation(p) == 0:
+                            e_n[1], e_n[2] = e_n[2], e_n[1]
+                        else:
+                            e_n[1], e_n[3] = e_n[3], e_n[1]
+
+                    a = ZZ(e_n[1]**2)
+                    b = ZZ(e_n[2]**2)
+
+                    if b.valuation(p) > 0:      # if v_p(b) = 0, then already p-maximal
+                        F = ZZ.quo(p)
+                        if F(a).is_square():
+                            x = F(a).sqrt().lift()
+                            if (x**2 - a).mod(p**2) == 0:  # make sure v_p(x**2 - a) = 1
+                                x = x + p
+                            g = 1/p*(x - e_n[1])*e_n[2]
+                            e_n[2] = g
+                            e_n[3] = e_n[1]*g
+
+                else:   # p == 2
+                    t = e_n[1].reduced_trace()
+                    a = -e_n[1].reduced_norm()
+                    b = ZZ(e_n[2]**2)
+
+                    if t.valuation(p) == 0:
+                        if b.valuation(p) > 0:
+                            x = a
+                            if (x**2 - t*x + a).mod(p**2) == 0: # make sure v_p(...) = 1
+                                x = x + p
+                            g = 1/p*(x - e_n[1])*e_n[2]
+                            e_n[2] = g
+                            e_n[3] = e_n[1]*g
+
+                    else:   # t.valuation(p) > 0
+                        (y,z,w) = maxord_solve_aux_eq(a, b, p)
+                        g = 1/p*(1 + y*e_n[1] + z*e_n[2] + w*e_n[1]*e_n[2])
+                        h = (z*b)*e_n[1] - (y*a)*e_n[2]
+                        e_n[1:4] = [g,h,g*h]
+                        if (1 - a*y**2 - b*z**2 + a*b*w**2).valuation(2) > 2:
+                            e_n = basis_for_quaternion_lattice(list(e) + e_n[1:], reverse=True)
+
+                # e_n now contains elements that locally at p give a bigger order,
+                # but the basis may be messed up at other primes (it might not even
+                # be an order). We will join them all together at the end
+                e = e_n
+
+            e_new_gens.extend(e[1:])
+
+        e_new = basis_for_quaternion_lattice(list(R.basis()) + e_new_gens, reverse=True)
+        self.__maximal_order = self.quaternion_order(e_new)
+        return self.__maximal_order
+
 
     def invariants(self):
         """
@@ -2457,7 +2590,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 # specialized to go elsewhere.
 #######################################################################
 
-def basis_for_quaternion_lattice(gens):
+def basis_for_quaternion_lattice(gens, reverse = False):
     """
     Return a basis for the `\\ZZ`-lattice in a quaternion algebra
     spanned by the given gens.
@@ -2466,17 +2599,27 @@ def basis_for_quaternion_lattice(gens):
 
     - ``gens`` -- list of elements of a single quaternion algebra
 
+    - ``reverse`` -- when computing the HNF do it on the basis
+                     (k,j,i,1) instead of (1,i,j,k). This ensures
+                     that if ``gens`` are the generators for an order,
+                     the first returned basis vector is 1.
+
     EXAMPLES::
 
+        sage: from sage.algebras.quatalg.quaternion_algebra import basis_for_quaternion_lattice
         sage: A.<i,j,k> = QuaternionAlgebra(-1,-7)
-        sage: sage.algebras.quatalg.quaternion_algebra.basis_for_quaternion_lattice([i+j, i-j, 2*k, A(1/3)])
+        sage: basis_for_quaternion_lattice([i+j, i-j, 2*k, A(1/3)])
         [1/3, i + j, 2*j, 2*k]
+
+        sage: basis_for_quaternion_lattice([A(1),i,j,k])
+        [1, i, j, k]
+
     """
     if len(gens) == 0: return []
-    Z, d = quaternion_algebra_cython.integral_matrix_and_denom_from_rational_quaternions(gens)
+    Z, d = quaternion_algebra_cython.integral_matrix_and_denom_from_rational_quaternions(gens, reverse)
     H = Z._hnf_pari(0, include_zero_rows=False)
     A = gens[0].parent()
-    return quaternion_algebra_cython.rational_quaternions_from_integral_matrix_and_denom(A, H, d)
+    return quaternion_algebra_cython.rational_quaternions_from_integral_matrix_and_denom(A, H, d, reverse)
 
 
 def intersection_of_row_modules_over_ZZ(v):
@@ -2520,3 +2663,181 @@ def intersection_of_row_modules_over_ZZ(v):
         w = intersection_of_row_modules_over_ZZ(v[:2])
         return intersection_of_row_modules_over_ZZ([w] + v[2:])
 
+
+def normalize_basis_at_p(e, p, B = lambda x,y: (x*y.conjugate()).reduced_trace()):
+    """
+    Computes a (at ``p``) normalized basis from the given basis ``e``
+    of a `\\ZZ`-module.
+
+    The returned basis is (at ``p``) a `\\ZZ_p` basis for the same
+    module, and has the property that with respect to it the quadratic
+    form induced by the bilinear form B is represented as a orthogonal
+    sum of atomic forms multiplied by p-powers.
+
+    If `p \\ne 2` this means that the form is diagonal with respect to
+    this basis.
+
+    If `p = 2` there may be additional 2-dimensional subspaces on which
+    the form is represented as `2^e (ax^2 + bxy + cx^2)` with
+    `0 = v_2(b) = v_2(a) \\le v_2(c)`.
+
+    INPUT:
+        - ``e`` -- list; basis of a `\\ZZ` module.
+                   WARNING: will be modified!
+
+        - ``p`` -- prime for at which the basis should be normalized
+
+        - ``B`` -- (default: lambda x,y: ((x*y).conjugate()).reduced_trace())
+                   A bilinear form with respect to which to normalize.
+
+    OUTPUT:
+
+        - A list containing two-element tuples: The first element of
+          each tuple is a basis element, the second the valuation of
+          the orthogonal summand to which it belongs. The list is sorted
+          by ascending valuation.
+
+    EXAMPLES::
+
+        sage: from sage.algebras.quatalg.quaternion_algebra import normalize_basis_at_p
+        sage: A.<i,j,k> = QuaternionAlgebra(-1, -1)
+        sage: e = [A(1), i, j, k]
+        sage: normalize_basis_at_p(e, 2)
+        [(1, 0), (i, 0), (j, 0), (k, 0)]
+
+        sage: A.<i,j,k> = QuaternionAlgebra(210)
+        sage: e = [A(1), i, j, k]
+        sage: normalize_basis_at_p(e, 2)
+        [(1, 0), (i, 1), (j, 1), (k, 2)]
+
+        sage: A.<i,j,k> = QuaternionAlgebra(286)
+        sage: e = [A(1), k, 1/2*j + 1/2*k, 1/2 + 1/2*i + 1/2*k]
+        sage: normalize_basis_at_p(e, 5)
+        [(1, 0), (1/2*j + 1/2*k, 0), (-5/6*j + 1/6*k, 1), (1/2*i, 1)]
+
+        sage: A.<i,j,k> = QuaternionAlgebra(-1,-7)
+        sage: e = [A(1), k, j, 1/2 + 1/2*i + 1/2*j + 1/2*k]
+        sage: normalize_basis_at_p(e, 2)
+        [(1, 0), (1/2 + 1/2*i + 1/2*j + 1/2*k, 0), (-34/105*i - 463/735*j + 71/105*k, 1), (-34/105*i - 463/735*j + 71/105*k, 1)]
+    """
+
+    N = len(e)
+    if N == 0:
+        return []
+    else:
+        min_m, min_n, min_v = 0, 0, infinity
+
+        # Find two basis vector on which the bilinear form has minimal
+        # p-valuation. If there is more than one such pair, always
+        # prefer diagonal entries over any other and (secondary) take
+        # min_m and then min_n as small as possible
+        for m in range(N):
+            for n in range(m, N):
+                v = B(e[m], e[n]).valuation(p)
+                if v < min_v or (v == min_v and (min_m != min_n) and (m == n)):
+                    min_m, min_n, min_v = m, n, v
+
+
+        if (min_m == min_n) or p != 2:      # In this case we can diagonalize
+            if min_m == min_n:              # Diagonal entry has minimal valuation
+                f0 = e[min_m]
+            else:
+                f0 = e[min_m] + e[min_n]    # Only off-diagonal entries have min. val., but p!=2
+
+            # Swap with first vector
+            e[0], e[min_m] = e[min_m], e[0]
+
+            # Orthogonalize remaining vectors with respect to f
+            c = B(f0, f0)
+            for l in range(1, N):
+                e[l] = e[l] - B(e[l],f0)/c * f0
+
+            # Recursively normalize remaining vectors
+            f = normalize_basis_at_p(e[1:], p)
+            f.insert(0, (f0, min_v - valuation(p, 2)))
+            return f
+
+        else:   # p = 2 and only off-diagonal entries have min. val., gives 2-dim. block
+            # first diagonal entry should have smaller valuation
+            if B(e[min_m],e[min_m]).valuation(p) > B(e[min_n],e[min_n]).valuation(p):
+                e[min_m], e[min_n] = e[min_n], e[min_m]
+
+            f0 = p**min_v / B(e[min_m],e[min_n]) * e[min_m]
+            f1 = e[min_n]
+
+            # Ensures that (B(f0,f0)/2).valuation(p) <= B(f0,f1).valuation(p)
+            if B(f0,f1).valuation(p) + 1 < B(f0,f0).valuation(p):
+                f0 = f0 + f1
+                f1 = f0
+
+            # Make remaining vectors orthogonal to span of f0, f1
+            e[min_m] = e[0]
+            e[min_n] = e[1]
+
+            B00 = B(f0,f0)
+            B11 = B(f1,f1)
+            B01 = B(f0,f1)
+            d = B00*B11 - B01**2
+            tu = [ (B01 * B(f1,e[l]) - B11 * B(f0,e[l]),
+                    B01 * B(f0,e[l]) - B00 * B(f1,e[l])) for l in range(2,N) ]
+
+            e[2:n] = [ e[l] + tu[l-2][0]/d * f0 + tu[l-2][1]/d * f1 for l in range(2,N) ]
+
+            # Recursively normalize remaining vectors
+            f = normalize_basis_at_p(e[2:N], p)
+            return [(f0, min_v), (f1, min_v)] + f
+
+def maxord_solve_aux_eq(a, b, p):
+    """
+    Given ``a`` and ``b`` and an even prime ideal ``p`` find
+    (y,z,w) with y a unit mod `p^{2e}` such that
+
+    .. MATH::
+        1 - ay^2 - bz^2 + abw^2 \equiv 0 mod p^{2e},
+
+    where `e` is the ramification index of `p`.
+
+    Currently only `p=2` is implemented by hardcoding solutions.
+
+    INPUT:
+
+        - ``a`` -- integer with `v_p(a) = 0`
+
+        - ``b`` -- integer with `v_p(b) \in \{0,1\}`
+
+        - ``p`` -- even prime ideal (actually only ``p=ZZ(2)`` is implemented)
+
+    OUTPUT:
+
+        - A tuple (y,z,w)
+
+    EXAMPLES::
+
+        sage: from sage.algebras.quatalg.quaternion_algebra import maxord_solve_aux_eq
+        sage: for a in [1,3]:
+        ...       for b in [1,2,3]:
+        ...           (y,z,w) = maxord_solve_aux_eq(a, b, 2)
+        ...           assert mod(y, 4) == 1 or mod(y, 4) == 3
+        ...           assert mod(1 - a*y^2 - b*z^2 + a*b*w^2, 4) == 0
+    """
+    if p != ZZ(2):
+        raise NotImplementedError, "Algorithm only implemented over ZZ at the moment"
+
+    v_a = a.valuation(p)
+    v_b = b.valuation(p)
+
+    if v_a != 0:
+        raise RuntimeError, "a must have v_p(a)=0"
+    if v_b != 0 and v_b != 1:
+        raise RuntimeError, "b must have v_p(b) in {0,1}"
+
+    R = ZZ.quo(ZZ(4))
+    lut = {
+        (R(1), R(1)) : (1,1,1),
+        (R(1), R(2)) : (1,0,0),
+        (R(1), R(3)) : (1,0,0),
+        (R(3), R(1)) : (1,1,1),
+        (R(3), R(2)) : (1,0,1),
+        (R(3), R(3)) : (1,1,1), }
+
+    return lut[ (R(a), R(b)) ]

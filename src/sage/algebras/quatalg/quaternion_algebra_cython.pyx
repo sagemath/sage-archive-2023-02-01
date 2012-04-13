@@ -40,7 +40,7 @@ from quaternion_algebra_element cimport QuaternionAlgebraElement_rational_field
 from sage.libs.gmp.mpz cimport mpz_t, mpz_lcm, mpz_init, mpz_set, mpz_clear, mpz_init_set, mpz_mul, mpz_fdiv_q, mpz_cmp_si
 from sage.libs.gmp.mpq cimport mpq_set_num, mpq_set_den, mpq_canonicalize
 
-def integral_matrix_and_denom_from_rational_quaternions(v):
+def integral_matrix_and_denom_from_rational_quaternions(v, reverse=False):
     r"""
     Given a list of rational quaternions, return matrix `A` over `\ZZ`
     and denominator `d`, such that the rows of `(1/d)A` are the
@@ -48,6 +48,8 @@ def integral_matrix_and_denom_from_rational_quaternions(v):
 
     INPUT:
         - v -- a list of quaternions in a rational quaternion algebra
+        - reverse -- whether order of the coordinates as well as the
+                     order of the list v should be reversed.
 
     OUTPUT:
         - a matrix over ZZ
@@ -59,6 +61,12 @@ def integral_matrix_and_denom_from_rational_quaternions(v):
         (
         [0 3 0 0]
         [2 0 6 6], 6
+        )
+
+        sage: sage.algebras.quatalg.quaternion_algebra_cython.integral_matrix_and_denom_from_rational_quaternions([i/2,1/3+j+k], reverse=True)
+        (
+        [6 6 0 2]
+        [0 0 3 0], 6
         )
     """
     # This function is an optimized version of
@@ -84,20 +92,28 @@ def integral_matrix_and_denom_from_rational_quaternions(v):
     for i in range(n):
         x = v[i]
         mpz_fdiv_q(q, d.value, x.d)
-        mpz_mul(A._matrix[i][0], q, x.x)
-        mpz_mul(A._matrix[i][1], q, x.y)
-        mpz_mul(A._matrix[i][2], q, x.z)
-        mpz_mul(A._matrix[i][3], q, x.w)
+        if reverse:
+            mpz_mul(A._matrix[n-i-1][3], q, x.x)
+            mpz_mul(A._matrix[n-i-1][2], q, x.y)
+            mpz_mul(A._matrix[n-i-1][1], q, x.z)
+            mpz_mul(A._matrix[n-i-1][0], q, x.w)
+        else:
+            mpz_mul(A._matrix[i][0], q, x.x)
+            mpz_mul(A._matrix[i][1], q, x.y)
+            mpz_mul(A._matrix[i][2], q, x.z)
+            mpz_mul(A._matrix[i][3], q, x.w)
     mpz_clear(q)
     return A, d
 
-def rational_matrix_from_rational_quaternions(v):
+def rational_matrix_from_rational_quaternions(v, reverse=False):
     """
     Return matrix over the rationals whose rows have entries the
     coefficients of the rational quaternions in v.
 
     INPUT:
         - v -- a list of quaternions in a rational quaternion algebra
+        - reverse -- whether order of the coordinates as well as the
+                     order of the list v should be reversed.
 
     OUTPUT:
         - a matrix over QQ
@@ -107,6 +123,10 @@ def rational_matrix_from_rational_quaternions(v):
         sage: sage.algebras.quatalg.quaternion_algebra_cython.rational_matrix_from_rational_quaternions([i/2,1/3+j+k])
         [  0 1/2   0   0]
         [1/3   0   1   1]
+
+        sage: sage.algebras.quatalg.quaternion_algebra_cython.rational_matrix_from_rational_quaternions([i/2,1/3+j+k], reverse=True)
+        [  1   1   0 1/3]
+        [  0   0 1/2   0]
     """
     cdef Py_ssize_t i, j, n=len(v)
     M = MatrixSpace(QQ, n, 4)
@@ -114,19 +134,33 @@ def rational_matrix_from_rational_quaternions(v):
     if n == 0: return A
 
     cdef QuaternionAlgebraElement_rational_field x
-    for i in range(n):
-        x = v[i]
-        mpq_set_num(A._matrix[i][0], x.x)
-        mpq_set_num(A._matrix[i][1], x.y)
-        mpq_set_num(A._matrix[i][2], x.z)
-        mpq_set_num(A._matrix[i][3], x.w)
-        if mpz_cmp_si(x.d,1):
-            for j in range(4):
-                mpq_set_den(A._matrix[i][j], x.d)
-                mpq_canonicalize(A._matrix[i][j])
+    if reverse:
+        for i in range(n):
+            x = v[i]
+            mpq_set_num(A._matrix[n-i-1][3], x.x)
+            mpq_set_num(A._matrix[n-i-1][2], x.y)
+            mpq_set_num(A._matrix[n-i-1][1], x.z)
+            mpq_set_num(A._matrix[n-i-1][0], x.w)
+
+            if mpz_cmp_si(x.d,1):
+                for j in range(4):
+                    mpq_set_den(A._matrix[n-i-1][j], x.d)
+                    mpq_canonicalize(A._matrix[n-i-1][j])
+    else:
+        for i in range(n):
+            x = v[i]
+            mpq_set_num(A._matrix[i][0], x.x)
+            mpq_set_num(A._matrix[i][1], x.y)
+            mpq_set_num(A._matrix[i][2], x.z)
+            mpq_set_num(A._matrix[i][3], x.w)
+
+            if mpz_cmp_si(x.d,1):
+                for j in range(4):
+                    mpq_set_den(A._matrix[i][j], x.d)
+                    mpq_canonicalize(A._matrix[i][j])
     return A
 
-def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense H, Integer d):
+def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense H, Integer d, reverse=False):
     """
     Given an integral matrix and denominator, returns a list of rational quaternions.
 
@@ -134,6 +168,8 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
         - A -- rational quaternion algebra
         - H -- matrix over the integers
         - d -- integer
+        - reverse -- whether order of the coordinates as well as the
+                     order of the list v should be reversed.
 
     OUTPUT:
         - list of H.nrows() elements of A
@@ -142,7 +178,10 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
 
         sage: A.<i,j,k>=QuaternionAlgebra(-1,-2)
         sage: f = sage.algebras.quatalg.quaternion_algebra_cython.rational_quaternions_from_integral_matrix_and_denom
-        sage: f(A, matrix([[1,2,3,4], [-1,2,-4,3]]), 3)
+        sage: f(A, matrix([[1,2,3,4],[-1,2,-4,3]]), 3)
+        [1/3 + 2/3*i + j + 4/3*k, -1/3 + 2/3*i - 4/3*j + k]
+
+        sage: f(A, matrix([[3,-4,2,-1],[4,3,2,1]]), 3, reverse=True)
         [1/3 + 2/3*i + j + 4/3*k, -1/3 + 2/3*i - 4/3*j + k]
     """
     #
@@ -156,15 +195,27 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
     a = Integer(A.invariants()[0])
     b = Integer(A.invariants()[1])
     cdef Py_ssize_t i, j
-    for i in range(H.nrows()):
+
+    if reverse:
+        rng = range(H.nrows()-1,-1,-1)
+    else:
+        rng = range(H.nrows())
+
+    for i in rng:
         x = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
         x._parent = A
         mpz_set(x.a, a.value)
         mpz_set(x.b, b.value)
-        mpz_init_set(x.x, H._matrix[i][0])
-        mpz_init_set(x.y, H._matrix[i][1])
-        mpz_init_set(x.z, H._matrix[i][2])
-        mpz_init_set(x.w, H._matrix[i][3])
+        if reverse:
+            mpz_init_set(x.x, H._matrix[i][3])
+            mpz_init_set(x.y, H._matrix[i][2])
+            mpz_init_set(x.z, H._matrix[i][1])
+            mpz_init_set(x.w, H._matrix[i][0])
+        else:
+            mpz_init_set(x.x, H._matrix[i][0])
+            mpz_init_set(x.y, H._matrix[i][1])
+            mpz_init_set(x.z, H._matrix[i][2])
+            mpz_init_set(x.w, H._matrix[i][3])
         mpz_init_set(x.d, d.value)
         # WARNING -- we do *not* canonicalize the entries in the quaternion.  This is
         # I think _not_ needed for quaternion_element.pyx

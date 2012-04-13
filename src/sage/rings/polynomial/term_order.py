@@ -500,11 +500,11 @@ description_mapping = {
 }
 
 class TermOrder(SageObject):
-    r"""
+    """
     A term order.
 
-    See ``sage.rings.polynomial.term_order`` for details
-    on supported term orders.
+    See ``sage.rings.polynomial.term_order`` for details on supported
+    term orders.
     """
     def __setstate__(self, dict):
         """
@@ -554,9 +554,7 @@ class TermOrder(SageObject):
             sage: loads(dumps(t)) == t
             True
 
-        We can construct block orders directly as
-
-        ::
+        We can construct block orders directly as::
 
             sage: TermOrder('degrevlex(3),neglex(2)')
             Block term order with blocks:
@@ -597,11 +595,23 @@ class TermOrder(SageObject):
             sage: a.degree()
             1
 
+        We enforce consistency when calling the copy constructor (cf. #12748)::
+
+            sage: T = TermOrder('degrevlex', 6) + TermOrder('degrevlex',10)
+            sage: R.<x0,y0,z0,x1,y1,z1,a0,a1,a2,a3,a4,a5,a6,a7,a8> = PolynomialRing(QQ,order=T)
+            Traceback (most recent call last):
+            ...
+            ValueError: TermOrder copy constructor called with different number of variables (15) than input term order (16).
+
         """
         if isinstance(name, TermOrder):
             self.__copy(name)
-            if n > 0 and not name.is_block_order() and not name.is_weighted_degree_order():
-                self._length = n
+            if n > 0:
+                if not name.is_block_order() and not name.is_weighted_degree_order():
+                    self._length = n
+                else:
+                    if n != len(name):
+                        raise ValueError("TermOrder copy constructor called with different number of variables (%d) than input term order (%d)."%(n,len(name)))
             return
 
         if isinstance(name, str):

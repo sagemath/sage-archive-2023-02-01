@@ -2183,6 +2183,28 @@ class FinitePoset(UniqueRepresentation, Parent):
         result.rename("Set of chains of %s"%self)
         return result
 
+    def product(self,other):
+        """
+        Returns the cartesian product of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: P = Posets.ChainPoset(3)
+            sage: Q = Posets.ChainPoset(4)
+            sage: PQ = P.product(Q) ; PQ
+            Finite poset containing 12 elements
+            sage: len(PQ.hasse_diagram().edges())
+            17
+            sage: Q.product(P).is_isomorphic(PQ)
+            True
+
+            sage: P = Posets.BooleanLattice(2)
+            sage: Q = P.product(P)
+            sage: Q.is_isomorphic(Posets.BooleanLattice(4))
+            True
+        """
+        return Poset(self._hasse_diagram.cartesian_product(other._hasse_diagram),cover_relations=True)
+
     def dual(self):
         """
         Returns the dual poset of the given poset.

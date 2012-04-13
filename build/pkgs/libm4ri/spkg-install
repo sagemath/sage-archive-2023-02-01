@@ -44,6 +44,12 @@ else
     ENABLE_CACHETUNE="--enable-cachetune"
 fi
 
+# otherwise we might run into problems with old headers
+
+if [ -d "$SAGE_LOCAL/include/m4ri" ]; then
+    rm -rf "$SAGE_LOCAL/include/m4ri"
+fi
+
 #build M4RI
 
 cd $ROOT_DIR/src/

@@ -1,0 +1,35 @@
+= pyzmq =
+
+== Description ==
+
+Python bindings for the zeromq networking library.
+
+== License ==
+
+LGPLv3+
+
+== SPKG Maintainers ==
+
+* Volker Braun
+* William Stein
+
+== Upstream Contact ==
+
+http://www.zeromq.org
+
+== Dependencies ==
+
+* Python
+* Cython
+* zeromq
+
+== Special Update/Build Instructions ==
+
+N/A
+
+== Changelog ==
+
+=== pyzmq-2.1.11.p0 (Volker Braun, William Stein, 14 April 2012) ===
+
+ * Initial version
+

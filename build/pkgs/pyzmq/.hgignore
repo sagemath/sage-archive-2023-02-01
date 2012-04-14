@@ -1,1 +1,5 @@
-src/
+# use glob syntax.
+syntax: glob
+src
+*~
+

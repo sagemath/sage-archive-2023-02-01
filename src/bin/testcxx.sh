@@ -4,17 +4,22 @@
 # will want. This is done by testing what the
 # C++ compiler's pre-processor defines. For example,
 # g++ will always define __GNUC__ (as does gcc).
+#
+# This will typically be called as (don't quote $CXX):
+# testcxx.sh $CXX
 
 # Copyright Dr. David Kirkby
 # Released under the GPL version 2, or any later version
 # the user wishes to use.
-# Re-written in a simpler way by Peter Jeremy
+# Considerably cleaned up by Peter Jeremy.
+# Further clean-up by Jeroen Demeyer (#12821).
+# Helpful comments by William Stein.
 
 # Some of the compilers have been tested, though some have
 # not, due to a lack of hardware or software.
 
 # Documentation on the compilers is taken from many source
-# in particular, for the commercial Unix compilers.
+# in particular, for the commercial Unix compilers:
 
 # HP-UX C and C++ compiler.
 # http://docs.hp.com/en/7730/newhelp0610/preprocess.htm
@@ -30,10 +35,10 @@
 usage()
 {
 cat <<EOF 1>&2
-Usage: $0 name_or_path_to_the_C++_compiler
+Usage: $0 name_or_path_to_the_C++_compiler [optional arguments]
 
-e.g.   $0 /usr/bin/CC
-e.g.   $0 CC
+Typically, this will be called as
+$0 \$CXX
 
   The script will print one of the following to indicate the C++ compiler
 
@@ -50,22 +55,20 @@ e.g.   $0 CC
 EOF
 }
 
-# Exit if the user does not supply one, command line argument.
-if [ $# -ne 1 ] ; then
-  usage
-  exit 1
+# Exit if the user does not supply any command line arguments.
+if [ $# -lt 1 ] ; then
+    usage
+    exit 2
 fi
-
-CXX_LOCAL=$1 # Compiler name or path as argument to script.
 
 # Create a test file. It does not need to be a complete
 # C++ file, as it is only pre-processed. So there is no
 # need for a 'main'
 
-# Hopefully sufficiently random. $$ is the unique PID
-TESTFILE=/tmp/uweew-Test-For-C_plus_Plus_Compiler89yrey4jdgi.$$.cpp
-cat >$TESTFILE <<"E*O*F"
+cd "${TMPDIR:-/tmp}" || exit 2
+TESTFILE=sage-testcxx-$$.cpp
 
+cat >$TESTFILE <<"E*O*F"
 #ifdef __GNUC__
 GCC
 #define KNOWN_CXX
@@ -105,7 +108,6 @@ Unknown
 #endif
 E*O*F
 
-${CXX_LOCAL} -E $TESTFILE | grep '^[A-Z]' | sed 's/ //g'
-rm $TESTFILE
+"$@" -E $TESTFILE | sed -n '/^[A-Z]/{s/ //g;p;}'
+rm -f $TESTFILE
 exit 0
-

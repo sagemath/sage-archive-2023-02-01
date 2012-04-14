@@ -4,11 +4,15 @@
 # will want. This is done by testing what the
 # C compiler's pre-processor defines. For example,
 # gcc will always define __GNUC__
+#
+# This will typically be called as (don't quote $CC):
+# testcc.sh $CC
 
 # Copyright Dr. David Kirkby
 # Released under the GPL version 2, or any later version
 # the user wishes to use.
-# Considerably cleaned up by Peter Jeremy
+# Considerably cleaned up by Peter Jeremy.
+# Further clean-up by Jeroen Demeyer (#12821).
 # Helpful comments by William Stein.
 
 # Some of the compilers have been tested, though some have
@@ -31,10 +35,10 @@
 usage()
 {
 cat <<EOF 1>&2
-Usage: $0 name_or_path_to_the_C_compiler
+Usage: $0 name_or_path_to_the_C_compiler [optional arguments]
 
-e.g.   $0 /usr/bin/cc
-e.g.   $0 cc
+Typically, this will be called as
+$0 \$CC
 
   The script will print one of the following to indicate the C compiler
 
@@ -51,18 +55,18 @@ e.g.   $0 cc
 EOF
 }
 
-# Exit if the user does not supply one command line argument.
-if [ $# -ne 1 ] ; then
-  usage
-  exit 1
+# Exit if the user does not supply any command line arguments.
+if [ $# -lt 1 ] ; then
+    usage
+    exit 2
 fi
-CC_LOCAL=$1
 
 # Create a test file. It does not need to be a complete
 # C file, as it is only pre-processed. So there is no
 # need for a 'main'
 
-TESTFILE=/tmp/hkldfz-test-for-c-compiler-6sokljkhsdhfdf.$$.c
+cd "${TMPDIR:-/tmp}" || exit 2
+TESTFILE=sage-testcc-$$.c
 
 cat >$TESTFILE <<"E*O*F"
 #ifdef __GNUC__
@@ -111,6 +115,6 @@ Unknown
 #endif
 E*O*F
 
-${CC_LOCAL} -E $TESTFILE | grep '^[A-Z]' | sed 's/ //g'
-rm $TESTFILE
+"$@" -E $TESTFILE | sed -n '/^[A-Z]/{s/ //g;p;}'
+rm -f $TESTFILE
 exit 0

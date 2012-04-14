@@ -119,7 +119,7 @@ else
 
     # Check whether $CC is some version of GCC.  If it's a different
     # compiler, install GCC.
-    CCtype=`testcc.sh "$CC"`
+    CCtype=`testcc.sh $CC`
     if [ "$CCtype" != GCC ]; then
         echo >&2 "Installing GCC because your '$CC' isn't GCC (GNU CC)."
         need_to_install_gcc=yes

@@ -584,6 +584,13 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: error.numerical_approx() # abs tol 10e-10
         0
 
+    We won't get an evaluated answer here, which is better than
+    the previous (wrong) answer of zero. See :trac:`10914`::
+
+        sage: f = abs(sin(x))
+        sage: integrate(f, x, 0, 2*pi)
+        integrate(abs(sin(x)), x, 0, 2*pi)
+
     """
     if isinstance(v, (list, tuple)) and a is None and b is None:
         if len(v)==1: # bare variable in a tuple

@@ -37,7 +37,7 @@ Pickling test::
 
 from sage.rings.arith import (GCD,
                               hilbert_conductor_inverse, hilbert_conductor,
-                              factor, gcd, lcm)
+                              factor, gcd, lcm, kronecker_symbol)
 from sage.rings.all import RR, Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
@@ -605,20 +605,94 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         """
         Return a maximal order in this quaternion algebra.
 
+        Currently, the algebra must be ramified precisely at a prime p and at infinity,
+        and the invariants have to be in a special form.
+
+        This is an implementation of Proposition 5.2 of [Pizer, 1980].
+
         OUTPUT: an order in this quaternion algebra
 
         EXAMPLES::
 
             sage: QuaternionAlgebra(-1,-7).maximal_order()
             Order of Quaternion Algebra (-1, -7) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+
+            sage: QuaternionAlgebra(-1,-1).maximal_order().basis()
+            (1/2 + 1/2*i + 1/2*j + 1/2*k, i, j, k)
+
+            sage: QuaternionAlgebra(-1,-3).maximal_order().basis()
+            (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+
+            sage: QuaternionAlgebra(-3,-1).maximal_order().basis()
+            (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
+
+            sage: QuaternionAlgebra(-2,-5).maximal_order().basis()
+            (1/2 + 1/2*j + 1/2*k, 1/4*i + 1/2*j + 1/4*k, j, k)
+
+            sage: QuaternionAlgebra(-5,-2).maximal_order().basis()
+            (1/2 + 1/2*i - 1/2*k, 1/2*i + 1/4*j - 1/4*k, i, -k)
+
+            sage: QuaternionAlgebra(-17,-3).maximal_order().basis()
+            (1/2 + 1/2*j, 1/2*i + 1/2*k, -1/3*j - 1/3*k, k)
+
+            sage: QuaternionAlgebra(-3,-17).maximal_order().basis()
+            (1/2 + 1/2*i, 1/2*j - 1/2*k, -1/3*i + 1/3*k, -k)
+
+            sage: QuaternionAlgebra(-17*9,-3).maximal_order()
+            Traceback (most recent call last):
+                ...
+            NotImplementedError: Don't know a basis for this choice of invariants
+
+            sage: QuaternionAlgebra(210).maximal_order()
+            Traceback (most recent call last):
+                ...
+            NotImplementedError: maximal order only implemented for rational quaternion algebras of prime discriminant
         """
         try: return self.__maximal_order
         except AttributeError: pass
+
+        # The following only works over QQ if the discriminant is prime
+        # and if the invariants are of the special form
+        # (every quaternion algebra of prime discriminant has a representation
+        #  of such a form though)
         if self.base_ring() == QQ and self.discriminant().is_prime():
-            from sage.modular.quatalg.brandt import maximal_order
-            R = maximal_order(self)
-            self.__maximal_order = R
-            return R
+            a, b = self.invariants()
+            if not (a in ZZ) or not (b in ZZ):
+                raise NotImplementedError("Don't know a basis for this choice of invariants")
+            a = ZZ(a)
+            b = ZZ(b)
+            i,j,k = self.gens()
+
+            # if necessary, try to swap invariants to match Pizer's paper
+            if (a != -1 and b == -1) or (b == -2) \
+               or (a != -1 and a != -2 and (-a) % 8 != 1):
+                a, b = b, a
+                i, j = j, i
+                k = i*j
+
+            basis = []
+            if (a,b) == (-1,-1):
+                basis = [(1+i+j+k)/2, i, j, k]
+            elif a == -1 and (-b).is_prime() and ((-b) % 4 == 3):
+                basis = [(1+j)/2, (i+k)/2, j, k]
+            elif a == -2 and (-b).is_prime() and ((-b) % 8 == 5):
+                basis = [(1+j+k)/2, (i+2*j+k)/4, j, k]
+            elif (-a).is_prime() and (-b).is_prime():
+                q = -b
+                p = -a
+
+                if q % 4 == 3 and kronecker_symbol(p,q) == -1:
+                    a = 0
+                    while (a*a*p + 1)%q != 0:
+                        a += 1
+                    basis = [(1+j)/2, (i+k)/2, -(j+a*k)/q, k]
+
+            if basis:
+                self.__maximal_order = self.quaternion_order(basis)
+                return self.__maximal_order
+            else:
+                raise NotImplementedError("Don't know a basis for this choice of invariants")
+
         raise NotImplementedError("maximal order only implemented for rational quaternion algebras of prime discriminant")
 
     def invariants(self):
@@ -1047,10 +1121,9 @@ class QuaternionOrder(Algebra):
         - ``basis`` - list of 4 integral quaternions in ``A``
         - ``check`` - whether to do type and other consistency checks
 
-        .. note::
+        .. WARNING::
 
-           ** TODO: We do *not* currently check that basis is
-           closed under multiplication!! **
+            Currently most methods silently assume that the A.base_ring() is QQ
 
         EXAMPLES::
 
@@ -1061,6 +1134,32 @@ class QuaternionOrder(Algebra):
             Order of Quaternion Algebra (-3, -5) with base ring Rational Field with basis (1, 2*i, 2*j, 2*k)
             sage: type(R)
             <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionOrder'>
+
+            Over QQ and number fields it is checked whether the given
+            basis actually gives a an order (as a module over the maximal order):
+
+            sage: A.<i,j,k> = QuaternionAlgebra(-1,-1)
+            sage: A.quaternion_order([1,i,j,i-j])
+            Traceback (most recent call last):
+            ...
+            ValueError: basis must have rank 4
+            sage: A.quaternion_order([2,i,j,k])
+            Traceback (most recent call last):
+            ...
+            ValueError: lattice must contain 1
+            sage: A.quaternion_order([1,i/2,j/2,k/2])
+            Traceback (most recent call last):
+            ...
+            ValueError: given lattice must be a ring
+
+            sage: K = QuadraticField(10)
+            sage: A.<i,j,k> = QuaternionAlgebra(K,-1,-1)
+            sage: A.quaternion_order([1,i,j,k])
+            Order of Quaternion Algebra (-1, -1) with base ring Number Field in a with defining polynomial x^2 - 10 with basis (1, i, j, k)
+            sage: A.quaternion_order([1,i/2,j,k])
+            Traceback (most recent call last):
+            ...
+            ValueError: given lattice must be a ring
         """
         if check:
             # right data type
@@ -1071,6 +1170,49 @@ class QuaternionOrder(Algebra):
                 raise ValueError("basis must have length 4")
             # coerce to common parent
             basis = tuple([A(x) for x in basis])
+
+            # has rank 4
+            V = A.base_ring()**4
+            if V.span([ V(x.coefficient_tuple()) for x in basis]).dimension() != 4:
+                raise ValueError, "basis must have rank 4"
+
+            # The additional checks will work over QQ and over number fields,
+            # but we can't actually do much with an order defined over a number
+            # field
+
+            if A.base_ring() == QQ:     # fast code over QQ
+                M = matrix(QQ, 4, 4, [ x.coefficient_tuple() for x in basis])
+                v = M.solve_left(V([1,0,0,0]))
+
+                if v.denominator() != 1:
+                    raise ValueError, "lattice must contain 1"
+
+                # check if multiplicatively closed
+                M1 = basis_for_quaternion_lattice(basis)
+                M2 = basis_for_quaternion_lattice(list(basis) + [ x*y for x in basis for y in basis])
+                if M1 != M2:
+                    raise ValueError, "given lattice must be a ring"
+
+            if A.base_ring() != QQ:     # slow code over number fields (should eventually use PARI's nfhnf)
+                O = None
+                try:
+                    O = A.base_ring().maximal_order()
+                except AttributeError:
+                    pass
+
+                if O:
+                    M = matrix(A.base_ring(), 4, 4, [ x.coefficient_tuple() for x in basis])
+                    v = M.solve_left(V([1,0,0,0]))
+
+                    if any([ not a in O for a in v]):
+                        raise ValueError, "lattice must contain 1"
+
+                    # check if multiplicatively closed
+                    Y = matrix(QQ, 16, 4, [ (x*y).coefficient_tuple() for x in basis for y in basis])
+                    X = M.solve_left(Y)
+                    if any([ not a in O for x in X for a in x ]):
+                        raise ValueError, "given lattice must be a ring"
+
         self.__basis = basis
         self.__quaternion_algebra = A
         ParentWithGens.__init__(self, ZZ, names=None)
@@ -1108,15 +1250,15 @@ class QuaternionOrder(Algebra):
         EXAMPLES::
 
             sage: R = QuaternionAlgebra(-11,-1).maximal_order(); R
-            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
             sage: R.gen(0)
-            1/2 + 1/2*j
+            1/2 + 1/2*i
             sage: R.gen(1)
-            1/2*i + 1/2*k
+            1/2*j - 1/2*k
             sage: R.gen(2)
-            j
+            i
             sage: R.gen(3)
-            k
+            -k
         """
         return self.__basis[n]
 
@@ -1130,7 +1272,7 @@ class QuaternionOrder(Algebra):
             sage: R = QuaternionAlgebra(-11,-1).maximal_order()
             sage: R == R                       # indirect doctest
             True
-            sage: R == QuaternionAlgebra(-13,-1).maximal_order()
+            sage: R == QuaternionAlgebra(-1,-1).maximal_order()
             False
             sage: R==5
             False
@@ -1149,7 +1291,7 @@ class QuaternionOrder(Algebra):
         EXAMPLES::
 
             sage: QuaternionAlgebra(-11,-1).maximal_order().basis()
-            (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+            (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
         """
         return self.__basis
 
@@ -1171,9 +1313,9 @@ class QuaternionOrder(Algebra):
         EXAMPLES::
 
             sage: QuaternionAlgebra(-11,-1).maximal_order()._repr_()
-            'Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)'
+            'Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)'
             sage: QuaternionAlgebra(-11,-1).maximal_order()
-            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
         """
         return 'Order of %s with basis %s'%(self.quaternion_algebra(), self.basis())
 
@@ -1194,9 +1336,9 @@ class QuaternionOrder(Algebra):
         EXAMPLES::
 
             sage: QuaternionAlgebra(-11,-1).maximal_order().random_element()
-            -4 + i - 4*j + k
+            -4 - 4*i + j - k
             sage: QuaternionAlgebra(-11,-1).maximal_order().random_element(-10,10)
-            -9/2 - 7/2*i - 7/2*j + 3/2*k
+            -9/2 - 7/2*i - 7/2*j - 3/2*k
         """
         return sum( (ZZ.random_element(*args, **kwds) * b for b in self.basis()) )
 
@@ -1214,7 +1356,7 @@ class QuaternionOrder(Algebra):
 
             sage: R = QuaternionAlgebra(-11,-1).maximal_order()
             sage: R.intersection(R)
-            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1/2 + 1/2*i, i, 1/2*j + 1/2*k, k)
 
         We intersect various orders in the quaternion algebra ramified at 11::
 
@@ -1256,13 +1398,13 @@ class QuaternionOrder(Algebra):
 
             sage: R = QuaternionAlgebra(-11,-1).maximal_order()
             sage: R.basis()
-            (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+            (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
             sage: R.free_module()
             Free module of degree 4 and rank 4 over Integer Ring
             Echelon basis matrix:
-            [1/2   0 1/2   0]
-            [  0 1/2   0 1/2]
-            [  0   0   1   0]
+            [1/2 1/2   0   0]
+            [  0   1   0   0]
+            [  0   0 1/2 1/2]
             [  0   0   0   1]
         """
         try: return self.__free_module
@@ -1314,7 +1456,7 @@ class QuaternionOrder(Algebra):
 
             sage: R = QuaternionAlgebra(-11,-1).maximal_order()
             sage: R.left_ideal([2*a for a in R.basis()])
-            Fractional ideal (1 + j, i + k, 2*j, 2*k)
+            Fractional ideal (1 + i, 2*i, j + k, 2*k)
         """
         if self.base_ring() == ZZ:
             return QuaternionFractionalIdeal_rational(gens, left_order=self, check=check)
@@ -1336,7 +1478,7 @@ class QuaternionOrder(Algebra):
 
             sage: R = QuaternionAlgebra(-11,-1).maximal_order()
             sage: R.right_ideal([2*a for a in R.basis()])
-            Fractional ideal (1 + j, i + k, 2*j, 2*k)
+            Fractional ideal (1 + i, 2*i, j + k, 2*k)
         """
         if self.base_ring() == ZZ:
             return QuaternionFractionalIdeal_rational(gens, right_order=self, check=check)
@@ -1351,7 +1493,7 @@ class QuaternionOrder(Algebra):
 
             sage: R = QuaternionAlgebra(-11,-1).maximal_order()
             sage: I = R.unit_ideal(); I
-            Fractional ideal (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+            Fractional ideal (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
         """
         if self.base_ring() == ZZ:
             return QuaternionFractionalIdeal_rational(self.basis(), left_order=self, right_order=self, check=False)
@@ -1472,9 +1614,9 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
             sage: R = QuaternionAlgebra(-11,-1).maximal_order()
             sage: R.right_ideal(R.basis())
-            Fractional ideal (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+            Fractional ideal (1/2 + 1/2*i, i, 1/2*j + 1/2*k, k)
             sage: R.right_ideal(tuple(R.basis()), check=False)
-            Fractional ideal (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+            Fractional ideal (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
         """
         if check:
             if left_order is not None and not isinstance(left_order, QuaternionOrder):
@@ -1728,7 +1870,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         EXAMPLES::
 
             sage: QuaternionAlgebra(-11,-1).maximal_order().unit_ideal().basis()
-            (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+            (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
         """
         return self.__basis
 
@@ -1740,7 +1882,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         EXAMPLES::
 
             sage: QuaternionAlgebra(-11,-1).maximal_order().unit_ideal().gens()
-            (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
+            (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
         """
         return self.__basis
 
@@ -1783,10 +1925,10 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         EXAMPLES::
 
             sage: QuaternionAlgebra(-11,-1).maximal_order().unit_ideal().basis_matrix()
-            [1/2   0 1/2   0]
-            [  0 1/2   0 1/2]
-            [  0   0   1   0]
-            [  0   0   0   1]
+            [ 1/2  1/2    0    0]
+            [   0    0  1/2 -1/2]
+            [   0    1    0    0]
+            [   0    0    0   -1]
         """
         try: return self.__hermite_basis_matrix
         except AttributeError: pass
@@ -1806,10 +1948,10 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         EXAMPLES::
 
             sage: QuaternionAlgebra(-11,-1).maximal_order().unit_ideal().basis_matrix()
-            [1/2   0 1/2   0]
-            [  0 1/2   0 1/2]
-            [  0   0   1   0]
-            [  0   0   0   1]
+            [ 1/2  1/2    0    0]
+            [   0    0  1/2 -1/2]
+            [   0    1    0    0]
+            [   0    0    0   -1]
 
         This shows that the issue at trac ticket 6760 is fixed::
 

@@ -404,6 +404,15 @@ export __sage__=""
 
 # Set the C and C++ compilers
 if [ -z "$CC" ]; then
+    # On OS X 10.7 (Lion) or later when building GCC, use clang as
+    # default C compiler as some older versions of XCode 4 ship broken
+    # versions of GCC which fail to bootstrap GCC-4.6.3.
+    # See http://trac.sagemath.org/sage_trac/ticket/12820
+    if [ "$SAGE_BUILD_TOOLCHAIN" = yes ] && [ "$UNAME" = Darwin ] && [ `uname -r | cut -d. -f1` -ge 11 ]; then
+        CC=`which clang 2>/dev/null`
+    fi
+fi
+if [ -z "$CC" ]; then
     CC=gcc
 fi
 if [ -z "$CXX" ]; then

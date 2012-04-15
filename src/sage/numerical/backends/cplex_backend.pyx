@@ -34,6 +34,8 @@ cdef class CPLEXBackend(GenericBackend):
         else:
             self.set_sense(-1)
 
+        self.obj_constant_term = 0.0
+
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
         Add a variable.
@@ -339,7 +341,7 @@ cdef class CPLEXBackend(GenericBackend):
             check(status)
 
 
-    cpdef set_objective(self, list coeff):
+    cpdef set_objective(self, list coeff, double d = 0.0):
         r"""
         Sets the objective function.
 
@@ -347,6 +349,8 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``coeff`` -- a list of real values, whose ith element is the
           coefficient of the ith variable in the objective function.
+
+        - ``d`` (double) -- the constant term in the linear function (set to `0` by default)
 
         EXAMPLE::
 
@@ -357,6 +361,17 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - CPLEX
             sage: map(lambda x :p.objective_coefficient(x), range(5))  # optional - CPLEX
             [1.0, 1.0, 2.0, 1.0, 3.0]
+
+        Constants in the objective function are respected::
+
+            sage: p = MixedIntegerLinearProgram(solver='CPLEX') # optional - CPLEX
+            sage: x,y = p[0], p[1]                              # optional - CPLEX
+            sage: p.add_constraint(2*x + 3*y, max = 6)          # optional - CPLEX
+            sage: p.add_constraint(3*x + 2*y, max = 6)          # optional - CPLEX
+            sage: p.set_objective(x + y + 7)                    # optional - CPLEX
+            sage: p.set_integer(x); p.set_integer(y)            # optional - CPLEX
+            sage: p.solve()                                     # optional - CPLEX
+            9.0
         """
 
         cdef int status
@@ -373,6 +388,8 @@ cdef class CPLEXBackend(GenericBackend):
 
         sage_free(c_coeff)
         sage_free(c_indices)
+
+        self.obj_constant_term = d
 
 
     cpdef set_verbosity(self, int level):
@@ -398,6 +415,34 @@ cdef class CPLEXBackend(GenericBackend):
         else:
             status = CPXsetintparam (self.env, CPX_PARAM_SCRIND, CPX_ON)
             check(status)
+
+    cpdef remove_constraint(self, int i):
+        r"""
+        Remove a constraint from self.
+
+        INPUT:
+
+        - ``i`` -- index of the constraint to remove
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver='CPLEX')# optional - CPLEX
+            sage: x,y = p[0], p[1]                             # optional - CPLEX
+            sage: p.add_constraint(2*x + 3*y, max = 6)         # optional - CPLEX
+            sage: p.add_constraint(3*x + 2*y, max = 6)         # optional - CPLEX
+            sage: p.set_objective(x + y + 7)                   # optional - CPLEX
+            sage: p.set_integer(x); p.set_integer(y)           # optional - CPLEX
+            sage: p.solve()                                    # optional - CPLEX
+            9.0
+            sage: p.remove_constraint(0)                       # optional - CPLEX
+            sage: p.solve()                                    # optional - CPLEX
+            10.0
+            sage: p.get_values([x,y])                          # optional - CPLEX
+            [0.0, 3.0]
+        """
+        cdef int status
+        status = CPXdelrows(self.env, self.lp, i, i)
+        check(status)
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names = None):
         """
@@ -856,7 +901,7 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXgetobjval (self.env, self.lp, &value)
         check(status)
 
-        return value
+        return value + self.obj_constant_term
 
 
     cpdef double get_variable_value(self, int variable):

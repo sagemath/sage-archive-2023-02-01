@@ -62,6 +62,7 @@ cdef extern from "../../../local/include/glpk.h":
      void glp_set_obj_dir(c_glp_prob *, int)
      void glp_add_rows(c_glp_prob *, int)
      void glp_add_cols(c_glp_prob *, int)
+     void glp_del_rows(c_glp_prob *, int, int *)
      void glp_set_row_name(c_glp_prob *, int, char *)
      void glp_set_col_name(c_glp_prob *, int, char *)
      void glp_set_row_bnds(c_glp_prob *, int, int, double, double)

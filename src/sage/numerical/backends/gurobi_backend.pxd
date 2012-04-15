@@ -30,6 +30,8 @@ cdef extern from "../../../local/include/gurobi_c.h":
 
 
      int GRBaddconstr(GRBmodel *model, int numnz, int *cind, double *cval, char sense, double rhs, char *constrnames)
+
+     int GRBdelconstrs (GRBmodel *model, int numdel, int * ind )
      int GRBaddrangeconstr(GRBmodel *model, int numnz, int *cind, double *cval, double lower, double upper, char *constrnames)
 
 

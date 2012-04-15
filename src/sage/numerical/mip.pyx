@@ -65,11 +65,11 @@ The following example shows all these steps::
     Minimization:
        x_3
     Constraints:
-      0.0 <= x_0 +x_1 +x_2 -14.0 x_3 <= 0.0
-      0.0 <= x_1 +2.0 x_2 -8.0 x_3 <= 0.0
-      0.0 <= 2.0 x_2 -3.0 x_3 <= 0.0
-      -x_0 +x_1 +x_2 <= 0.0
-      -x_3 <= -1.0
+      0.0 <= x_0 + x_1 + x_2 - 14.0 x_3 <= 0.0
+      0.0 <= x_1 + 2.0 x_2 - 8.0 x_3 <= 0.0
+      0.0 <= 2.0 x_2 - 3.0 x_3 <= 0.0
+      - x_0 + x_1 + x_2 <= 0.0
+      - x_3 <= -1.0
     Variables:
       x_0 is an integer variable (min=0.0, max=+oo)
       x_1 is an integer variable (min=-oo, max=+oo)
@@ -550,9 +550,9 @@ cdef class MixedIntegerLinearProgram:
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2, name="Constraint_1")
             sage: p.show()
             Maximization:
-              Hey[1] +Hey[2]
+              Hey[1] + Hey[2]
             Constraints:
-              Constraint_1: -3.0 Hey[1] +2.0 Hey[2] <= 2.0
+              Constraint_1: -3.0 Hey[1] + 2.0 Hey[2] <= 2.0
             Variables:
               Hey[1] is a continuous variable (min=0.0, max=+oo)
               Hey[2] is a continuous variable (min=0.0, max=+oo)
@@ -565,9 +565,9 @@ cdef class MixedIntegerLinearProgram:
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
             sage: p.show()
             Maximization:
-              x_0 +x_1
+              x_0 + x_1
             Constraints:
-              -3.0 x_0 +2.0 x_1 <= 2.0
+              -3.0 x_0 + 2.0 x_1 <= 2.0
             Variables:
               x_0 is a continuous variable (min=0.0, max=+oo)
               x_1 is a continuous variable (min=0.0, max=+oo)
@@ -601,10 +601,13 @@ cdef class MixedIntegerLinearProgram:
             if c == 0:
                 continue
 
-            print (("+" if (not first and c>0) else "") +
-                   ("" if c == 1 else ("-" if c == -1 else str(c)+" "))+varid_name[i]
+            print (("+ " if (not first and c>0) else "") +
+                   ("" if c == 1 else ("- " if c == -1 else str(c)+" "))+varid_name[i]
                    ),
             first = False
+
+        if b.obj_constant_term > 0.0: print "+", b.obj_constant_term
+        elif b.obj_constant_term < 0.0: print "-", -b.obj_constant_term
 
         print
 
@@ -635,8 +638,8 @@ cdef class MixedIntegerLinearProgram:
                 if c == 0:
                     continue
 
-                print (("+" if (not first and c>0) else "") +
-                       ("" if c == 1 else ("-" if c == -1 else str(c)+" "))+varid_name[j]
+                print (("+ " if (not first and c>0) else "") +
+                       ("" if c == 1 else ("- " if c == -1 else (str(c) + " " if first and c < 0 else ("- " + str(abs(c)) + " " if c < 0 else str(c) + " "))))+varid_name[j]
                        ),
                 first = False
 
@@ -852,13 +855,12 @@ cdef class MixedIntegerLinearProgram:
         else:
             f = {-1 : 0}
 
-        f.pop(-1,0)
+        cdef double d = f.pop(-1,0.0)
 
         for i in range(self._backend.ncols()):
-            values.append(f.get(i,0))
+            values.append(f.get(i,0.0))
 
-
-        self._backend.set_objective(values)
+        self._backend.set_objective(values, d)
 
     def add_constraint(self, linear_function, max=None, min=None, name=None):
         r"""
@@ -945,7 +947,7 @@ cdef class MixedIntegerLinearProgram:
             Maximization:
             <BLANKLINE>
             Constraints:
-              -2.0 x_0 -x_1 <= 9.0
+              -2.0 x_0 - x_1 <= 9.0
             Variables:
               x_0 is a continuous variable (min=0.0, max=+oo)
               x_1 is a continuous variable (min=0.0, max=+oo)
@@ -975,7 +977,7 @@ cdef class MixedIntegerLinearProgram:
             Maximization:
             <BLANKLINE>
             Constraints:
-              1.0 <= x_0 -x_1
+              1.0 <= x_0 - x_1
             Variables:
               x_0 is a continuous variable (min=0.0, max=+oo)
               x_1 is a continuous variable (min=0.0, max=+oo)
@@ -987,7 +989,7 @@ cdef class MixedIntegerLinearProgram:
             Maximization:
             <BLANKLINE>
             Constraints:
-              1.0 <= x_0 -x_1
+              1.0 <= x_0 - x_1
             Variables:
               x_0 is a continuous variable (min=0.0, max=+oo)
               x_1 is a continuous variable (min=0.0, max=+oo)
@@ -999,8 +1001,8 @@ cdef class MixedIntegerLinearProgram:
               Maximization:
               <BLANKLINE>
               Constraints:
-                1.0 <= x_0 -x_1
-                x_0 -x_1 <= 1.0
+                1.0 <= x_0 - x_1
+                x_0 - x_1 <= 1.0
               Variables:
                 x_0 is a continuous variable (min=0.0, max=+oo)
                 x_1 is a continuous variable (min=0.0, max=+oo)
@@ -1065,6 +1067,77 @@ cdef class MixedIntegerLinearProgram:
             else:
                 self.add_constraint(functions[0] - functions[1], max=0, name=name)
                 self.add_constraint(functions[1] - functions[2], max=0, name=name)
+
+    def remove_constraint(self, int i):
+        r"""
+        Removes a constraint from self.
+
+        INPUT:
+
+        - ``i`` -- Index of the constraint to remove.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: x, y = p[0], p[1]
+            sage: p.add_constraint(x + y, max = 10)
+            sage: p.add_constraint(x - y, max = 0)
+            sage: p.add_constraint(x, max = 4)
+            sage: p.show()
+            Maximization:
+            <BLANKLINE>
+            Constraints:
+              x_0 + x_1 <= 10.0
+              x_0 - x_1 <= 0.0
+              x_0 <= 4.0
+            ...
+            sage: p.remove_constraint(1)
+            sage: p.show()
+            Maximization:
+            <BLANKLINE>
+            Constraints:
+              x_0 + x_1 <= 10.0
+              x_0 <= 4.0
+            ...
+            sage: p.number_of_constraints()
+            2
+        """
+        self._backend.remove_constraint(i)
+
+    def remove_constraints(self, constraints):
+        r"""
+        Remove several constraints.
+
+        INPUT:
+
+        - ``constraints`` -- an iterable containing the indices of the rows to remove.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: x, y = p[0], p[1]
+            sage: p.add_constraint(x + y, max = 10)
+            sage: p.add_constraint(x - y, max = 0)
+            sage: p.add_constraint(x, max = 4)
+            sage: p.show()
+            Maximization:
+            <BLANKLINE>
+            Constraints:
+              x_0 + x_1 <= 10.0
+              x_0 - x_1 <= 0.0
+              x_0 <= 4.0
+            ...
+            sage: p.remove_constraints([0, 1])
+            sage: p.show()
+            Maximization:
+            <BLANKLINE>
+            Constraints:
+              x_0 <= 4.0
+            ...
+            sage: p.number_of_constraints()
+            1
+        """
+        self._backend.remove_constraints(constraints)
 
     def set_binary(self, ee):
         r"""
@@ -1285,8 +1358,9 @@ cdef class MixedIntegerLinearProgram:
         - ``solver`` -- DEPRECATED -- the solver now has to be set
           when calling the class' constructor
 
-        - ``log`` -- integer (default: ``0``) The verbosity level. Indicates
-          whether progress should be printed during computation.
+        - ``log`` -- integer (default: ``None``) The verbosity level. Indicates
+          whether progress should be printed during computation. The solver is
+          initialized to report no progress.
 
         - ``objective_only`` -- Boolean variable.
 
@@ -1337,6 +1411,17 @@ cdef class MixedIntegerLinearProgram:
             sage: p.set_binary(b)
             sage: p.solve(objective_only=True)
             4.0
+
+        Constraints in the objective function are respected:
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: x, y = p[0], p[1]
+            sage: p.add_constraint(2*x + 3*y, max = 6)
+            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: p.set_objective(x + y + 7)
+            sage: p.set_integer(x); p.set_integer(y)
+            sage: p.solve()
+            9.0
         """
 
         if solver != None:
@@ -2021,7 +2106,7 @@ def Sum(L):
 
     .. NOTE::
 
-        The use of the regular ``sum`` function is not recommended as it is much less efficient than this one.
+        The use of the regular ``sum`` function is not recommended as it is much less efficient than this one
 
     EXAMPLES::
 

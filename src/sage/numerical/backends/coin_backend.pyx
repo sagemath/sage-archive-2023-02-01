@@ -45,6 +45,8 @@ cdef class CoinBackend(GenericBackend):
         else:
             self.set_sense(-1)
 
+        self.obj_constant_term = 0.0
+
     def __dealloc__(self):
         r"""
         Destructor function
@@ -301,7 +303,7 @@ cdef class CoinBackend(GenericBackend):
         else:
             return self.si.getObjCoefficients()[variable]
 
-    cpdef set_objective(self, list coeff):
+    cpdef set_objective(self, list coeff, double d = 0.0):
         r"""
         Sets the objective function.
 
@@ -309,6 +311,8 @@ cdef class CoinBackend(GenericBackend):
 
         - ``coeff`` -- a list of real values, whose ith element is the
           coefficient of the ith variable in the objective function.
+
+        - ``d`` (double) -- the constant term in the linear function (set to `0` by default)
 
         EXAMPLE::
 
@@ -319,12 +323,25 @@ cdef class CoinBackend(GenericBackend):
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - Coin
             sage: map(lambda x :p.objective_coefficient(x), range(5))  # optional - Coin
             [1.0, 1.0, 2.0, 1.0, 3.0]
+
+        Constants in the objective function are respected::
+
+            sage: p = MixedIntegerLinearProgram(solver='Coin')  # optional - Coin
+            sage: x,y = p[0], p[1]                              # optional - Coin
+            sage: p.add_constraint(2*x + 3*y, max = 6)          # optional - Coin
+            sage: p.add_constraint(3*x + 2*y, max = 6)          # optional - Coin
+            sage: p.set_objective(x + y + 7)                    # optional - Coin
+            sage: p.set_integer(x); p.set_integer(y)            # optional - Coin
+            sage: p.solve()                                     # optional - Coin
+            9.0
         """
 
         cdef int i
 
         for i,v in enumerate(coeff):
             self.si.setObjCoeff(i, v)
+
+        self.obj_constant_term = d
 
     cpdef set_verbosity(self, int level):
         r"""
@@ -344,6 +361,99 @@ cdef class CoinBackend(GenericBackend):
 
         self.model.setLogLevel(level)
 
+    cpdef remove_constraint(self, int i):
+        r"""
+        Remove a constraint from self.
+
+        INPUT:
+
+        - ``i`` -- index of the constraint to remove
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver='Coin') # optional - Coin
+            sage: x,y = p[0], p[1]                             # optional - Coin
+            sage: p.add_constraint(2*x + 3*y, max = 6)         # optional - Coin
+            sage: p.add_constraint(3*x + 2*y, max = 6)         # optional - Coin
+            sage: p.set_objective(x + y + 7)                   # optional - Coin
+            sage: p.set_integer(x); p.set_integer(y)           # optional - Coin
+            sage: p.solve()                                    # optional - Coin
+            9.0
+            sage: p.remove_constraint(0)                       # optional - Coin
+            sage: p.solve()                                    # optional - Coin
+            10.0
+            sage: p.get_values([x,y])                          # optional - Coin
+            [0.0, 3.0]
+
+        TESTS:
+
+        Removing fancy constraints does not make Sage crash::
+
+            sage: MixedIntegerLinearProgram(solver='Coin').remove_constraint(-2)  # optional - Coin
+            Traceback (most recent call last):
+            ...
+            ValueError: The constraint's index i must satisfy 0 <= i < number_of_constraints
+        """
+        cdef int rows [1]
+
+        if i < 0 or i >= self.si.getNumRows():
+            raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
+        rows[0] = i
+        self.si.deleteRows(1,rows)
+
+    cpdef remove_constraints(self, constraints):
+        r"""
+        Remove several constraints.
+
+        INPUT:
+
+        - ``constraints`` -- an interable containing the indices of the rows to remove
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver='Coin') # optional - Coin
+            sage: x,y = p[0], p[1]                             # optional - Coin
+            sage: p.add_constraint(2*x + 3*y, max = 6)         # optional - Coin
+            sage: p.add_constraint(3*x + 2*y, max = 6)         # optional - Coin
+            sage: p.set_objective(x + y + 7)                   # optional - Coin
+            sage: p.set_integer(x); p.set_integer(y)           # optional - Coin
+            sage: p.solve()                                    # optional - Coin
+            9.0
+            sage: p.get_values(x)                              # optional - Coin
+            2.0...
+            sage: p.get_values(y)                              # optional - Coin
+            0.0...
+            sage: p.remove_constraints([0])                    # optional - Coin
+            sage: p.solve()                                    # optional - Coin
+            10.0
+            sage: p.get_values([x,y])                          # optional - Coin
+            [0.0, 3.0]
+
+        TESTS:
+
+        Removing fancy constraints do not make Sage crash::
+
+            sage: MixedIntegerLinearProgram(solver='Coin').remove_constraints([0, -2])  # optional - Coin
+            Traceback (most recent call last):
+            ...
+            ValueError: The constraint's index i must satisfy 0 <= i < number_of_constraints
+        """
+        cdef int i, c
+        cdef int m = len(constraints)
+        cdef int * rows = <int *>sage_malloc(m * sizeof(int *))
+        cdef int nrows = self.si.getNumRows()
+
+        for i in xrange(m):
+
+            c = constraints[i]
+            if c < 0 or c >= nrows:
+                sage_free(rows)
+                raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
+
+            rows[i] = c
+
+        self.si.deleteRows(m,rows)
+        sage_free(rows)
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names = None):
         """
@@ -685,7 +795,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.get_variable_value(1)                          # optional - Coin
             1.5
         """
-        return self.model.solver().getObjValue()
+        return self.model.solver().getObjValue() + self.obj_constant_term
 
     cpdef double get_variable_value(self, int variable):
         r"""
@@ -1044,6 +1154,7 @@ cdef class CoinBackend(GenericBackend):
         p.si = self.si.clone(1)
         p.row_names = copy(self.row_names)
         p.col_names = copy(self.col_names)
+        p.obj_constant_term = self.obj_constant_term
         # Maybe I should copy this, not sure -- seems complicated, though
         p.prob_name = self.prob_name
 

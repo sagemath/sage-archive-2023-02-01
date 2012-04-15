@@ -37,6 +37,7 @@ cdef class GLPKBackend(GenericBackend):
         glp_init_iocp(self.iocp)
         self.iocp.presolve = GLP_ON
         self.set_verbosity(0)
+        self.obj_constant_term = 0.0
 
         if maximization:
             self.set_sense(+1)
@@ -312,7 +313,7 @@ cdef class GLPKBackend(GenericBackend):
         else:
             glp_set_prob_name(self.lp, name)
 
-    cpdef set_objective(self, list coeff):
+    cpdef set_objective(self, list coeff, double d = 0.0):
         """
         Set the objective function.
 
@@ -320,6 +321,8 @@ cdef class GLPKBackend(GenericBackend):
 
         - ``coeff`` - a list of real values, whose ith element is the
           coefficient of the ith variable in the objective function.
+
+        - ``d`` (double) -- the constant term in the linear function (set to `0` by default)
 
         EXAMPLE::
 
@@ -335,6 +338,10 @@ cdef class GLPKBackend(GenericBackend):
 
         for i,v in enumerate(coeff):
             glp_set_obj_coef(self.lp, i+1, v)
+
+        glp_set_obj_coef(self.lp, 0, d)
+
+        self.obj_constant_term = d
 
     cpdef set_verbosity(self, int level):
         """
@@ -363,6 +370,93 @@ cdef class GLPKBackend(GenericBackend):
         else:
             self.iocp.msg_lev = GLP_MSG_ALL
             self.smcp.msg_lev = GLP_MSG_ALL
+
+    cpdef remove_constraint(self, int i):
+        r"""
+        Remove a constraint from self.
+
+        INPUT:
+
+        - ``i`` -- index of the constraint to remove
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x,y = p[0], p[1]
+            sage: p.add_constraint(2*x + 3*y, max = 6)
+            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: p.set_objective(x + y + 7)
+            sage: p.set_integer(x); p.set_integer(y)
+            sage: p.solve()
+            9.0
+            sage: p.remove_constraint(0)
+            sage: p.solve()
+            10.0
+
+        Removing fancy constraints does not make Sage crash::
+
+            sage: MixedIntegerLinearProgram(solver = "GLPK").remove_constraint(-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: The constraint's index i must satisfy 0 <= i < number_of_constraints
+        """
+        cdef int rows[2]
+
+        if i < 0 or i >= glp_get_num_rows(self.lp):
+            raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
+
+        rows[1] = i + 1
+        glp_del_rows(self.lp, 1, rows)
+
+    cpdef remove_constraints(self, constraints):
+        r"""
+        Remove several constraints.
+
+        INPUT:
+
+        - ``constraints`` -- an iterable containing the indices of the rows to remove.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x,y = p[0], p[1]
+            sage: p.add_constraint(2*x + 3*y, max = 6)
+            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: p.set_objective(x + y + 7)
+            sage: p.set_integer(x); p.set_integer(y)
+            sage: p.solve()
+            9.0
+            sage: p.remove_constraints([1])
+            sage: p.solve()
+            10.0
+            sage: p.get_values([x,y])
+            [3.0, 0.0]
+
+        TESTS:
+
+        Removing fancy constraints does not make Sage crash::
+
+            sage: MixedIntegerLinearProgram(solver= "GLPK").remove_constraints([0, -2])
+            Traceback (most recent call last):
+            ...
+            ValueError: The constraint's index i must satisfy 0 <= i < number_of_constraints
+        """
+        cdef int i, c
+        cdef int m = len(constraints)
+        cdef int * rows = <int *>sage_malloc((m + 1) * sizeof(int *))
+        cdef int nrows = glp_get_num_rows(self.lp)
+
+        for i in xrange(m):
+
+            c = constraints[i]
+            if c < 0 or c >= nrows:
+                sage_free(rows)
+                raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
+
+            rows[i+1] = c + 1
+
+        glp_del_rows(self.lp, m, rows)
+        sage_free(rows)
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """

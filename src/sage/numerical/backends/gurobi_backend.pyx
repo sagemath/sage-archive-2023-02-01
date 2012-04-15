@@ -68,6 +68,7 @@ cdef class GurobiBackend(GenericBackend):
         self.set_sense(1 if maximization else -1)
 
         self.set_verbosity(0)
+        self.obj_constant_term = 0.0
 
 
 
@@ -420,7 +421,7 @@ cdef class GurobiBackend(GenericBackend):
 
             return value
 
-    cpdef set_objective(self, list coeff):
+    cpdef set_objective(self, list coeff, double d = 0.0):
         """
         Set the objective function.
 
@@ -428,6 +429,8 @@ cdef class GurobiBackend(GenericBackend):
 
         - ``coeff`` - a list of real values, whose ith element is the
           coefficient of the ith variable in the objective function.
+
+        - ``d`` (double) -- the constant term in the linear function (set to `0` by default)
 
         EXAMPLE::
 
@@ -438,6 +441,17 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.set_objective([1, 1, 2, 1, 3])                                   # optional - Gurobi
             sage: map(lambda x :p.objective_coefficient(x), range(5))                # optional - Gurobi
             [1.0, 1.0, 2.0, 1.0, 3.0]
+
+        Constants in the objective function are respected::
+
+            sage: p = MixedIntegerLinearProgram(solver='Gurobi')# optional - Gurobi
+            sage: x,y = p[0], p[1]                              # optional - Gurobi
+            sage: p.add_constraint(2*x + 3*y, max = 6)          # optional - Gurobi
+            sage: p.add_constraint(3*x + 2*y, max = 6)          # optional - Gurobi
+            sage: p.set_objective(x + y + 7)                    # optional - Gurobi
+            sage: p.set_integer(x); p.set_integer(y)            # optional - Gurobi
+            sage: p.solve()                                     # optional - Gurobi
+            9.0
         """
         cdef int i = 0
         cdef double value
@@ -449,6 +463,8 @@ cdef class GurobiBackend(GenericBackend):
             i += 1
 
         check(self.env,GRBupdatemodel(self.model[0]))
+
+        self.obj_constant_term = d
 
     cpdef set_verbosity(self, int level):
         """
@@ -472,6 +488,39 @@ cdef class GurobiBackend(GenericBackend):
             error = GRBsetintparam(self.env, "OutputFlag", 0)
 
         check(self.env, error)
+
+    cpdef remove_constraint(self, int i):
+        r"""
+        Remove a constraint from self.
+
+        INPUT:
+
+        - ``i`` -- index of the constraint to remove
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver='Gurobi')# optional - Gurobi
+            sage: x,y = p[0], p[1]                             # optional - Gurobi
+            sage: p.add_constraint(2*x + 3*y, max = 6)         # optional - Gurobi
+            sage: p.add_constraint(3*x + 2*y, max = 6)         # optional - Gurobi
+            sage: p.set_objective(x + y + 7)                   # optional - Gurobi
+            sage: p.set_integer(x); p.set_integer(y)           # optional - Gurobi
+            sage: p.solve()                                    # optional - Gurobi
+            9.0
+            sage: p.remove_constraint(0)                       # optional - Gurobi
+            sage: p.solve()                                    # optional - Gurobi
+            10.0
+            sage: p.get_values([x,y])                          # optional - Gurobi
+            [0.0, 3.0]
+        """
+        cdef int ind[1]
+        ind[0] = i
+        cdef int error
+        error = GRBdelconstrs (self.model[0], 1, ind )
+        check(self.env, error)
+
+        error = GRBupdatemodel(self.model[0])
+        check(self.env,error)
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """
@@ -745,7 +794,7 @@ cdef class GurobiBackend(GenericBackend):
 
         check(self.env,GRBgetdblattr(self.model[0], "ObjVal", <double* >p_value))
 
-        return p_value[0]
+        return p_value[0] + self.obj_constant_term
 
     cpdef double get_variable_value(self, int variable):
         """

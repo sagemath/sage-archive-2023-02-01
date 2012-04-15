@@ -197,7 +197,7 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef  set_objective(self, list coeff):
+    cpdef  set_objective(self, list coeff, double d = 0.0):
         """
         Set the objective function.
 
@@ -205,6 +205,8 @@ cdef class GenericBackend:
 
         - ``coeff`` -- a list of real values, whose ith element is the
           coefficient of the ith variable in the objective function.
+
+        - ``d`` (double) -- the constant term in the linear function (set to `0` by default)
 
         EXAMPLE::
 
@@ -215,6 +217,17 @@ cdef class GenericBackend:
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - Nonexistent_LP_solver
             sage: map(lambda x :p.objective_coefficient(x), range(5))  # optional - Nonexistent_LP_solver
             [1.0, 1.0, 2.0, 1.0, 3.0]
+
+        Constants in the objective function are respected::
+
+            sage: p = MixedIntegerLinearProgram(solver='Nonexistent_LP_solver') # optional - Nonexistent_LP_solver
+            sage: x,y = p[0], p[1]                              # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(2*x + 3*y, max = 6)          # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(3*x + 2*y, max = 6)          # optional - Nonexistent_LP_solver
+            sage: p.set_objective(x + y + 7)                    # optional - Nonexistent_LP_solver
+            sage: p.set_integer(x); p.set_integer(y)            # optional - Nonexistent_LP_solver
+            sage: p.solve()                                     # optional - Nonexistent_LP_solver
+            9.0
         """
         raise NotImplementedError()
 
@@ -233,6 +246,33 @@ cdef class GenericBackend:
             sage: p.set_verbosity(2)                                # optional - Nonexistent_LP_solver
         """
         raise NotImplementedError()
+
+    cpdef remove_constraint(self, int i):
+        r"""
+        Remove a constraint.
+
+        INPUT::
+
+        - ``i`` -- index of the constraint to remove.
+        """
+        raise NotImplementedError()
+
+    cpdef remove_constraints(self, constraints):
+        r"""
+        Remove several constraints.
+
+        INPUT:
+
+        - ``constraints`` -- an iterable containing the indices of the rows to remove.
+        """
+        if type(constraints) == int: self.remove_constraint(constraints)
+
+        cdef int last = self.nrows() + 1
+
+        for c in sorted(constraints, reverse=True):
+            if c != last:
+                self.remove_constraint(c)
+                last = c
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """

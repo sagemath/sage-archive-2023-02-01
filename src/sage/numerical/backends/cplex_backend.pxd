@@ -36,6 +36,9 @@ cdef extern from "../../local/include/cplex.h":
                    double *rmatval, char **colname,
                    char **rowname)
 
+     # Remove constraints
+     int CPXdelrows(c_cpxlp * env, c_cpxlp * lp, int begin, int end)
+
      # Solve MILP
      int CPXmipopt (c_cpxlp * env, c_cpxlp * lp)
 

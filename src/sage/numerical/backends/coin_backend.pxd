@@ -119,8 +119,9 @@ cdef extern from "../../local/include/coin/OsiSolverInterface.hpp":
         double * getColLower()
         double * getColUpper()
 
-        # add row
+        # add, delete rows
         void addRow(CoinPackedVectorBase & vec, double rowlb, double rowub)
+        void deleteRows(int num, int *)
 
         # io
         void writeMps(char *filename, char *extension, double objSense)
@@ -180,7 +181,6 @@ cdef class CoinBackend(GenericBackend):
     cdef OsiSolverInterface * si
     cdef CbcModel * model
     cdef int log_level
-    cdef double obj_value
 
     cdef list col_names, row_names
     cdef str prob_name

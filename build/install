@@ -142,7 +142,7 @@ else
                 # include files will be in /usr/include/x86_64-linux-gnu for
                 # example.  We detect whether GCC searches for include files
                 # in /usr/include/*.  If so, we don't install GCC.
-                if gcc -x c /dev/null -E -v -o /dev/null 2>&1 |grep '/usr/include/.' >/dev/null; then
+                if $CC -x c /dev/null -E -v -o /dev/null 2>&1 |grep '^ */usr/include/.' >/dev/null; then
                     echo >&2 "Not installing GCC as your system $CC is looking for include files"
                     echo >&2 "in unusual directories."
                 else

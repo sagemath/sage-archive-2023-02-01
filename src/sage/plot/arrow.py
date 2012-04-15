@@ -301,6 +301,24 @@ class Arrow(GraphicPrimitive):
         a matplotlib subplot::
 
             sage: arrow((0,1), (2,-1))
+
+        TESTS:
+
+        The length of the ends (shrinkA and shrinkB) should not depend
+        on the width of the arrow, because Matplotlib already takes
+        this into account. See :trac:`12836`::
+
+            sage: fig = Graphics().matplotlib()
+            sage: sp = fig.add_subplot(1,1,1)
+            sage: a = arrow((0,0), (1,1))
+            sage: b = arrow((0,0), (1,1), width=20)
+            sage: p1 = a[0]._render_on_subplot(sp)
+            sage: p2 = b[0]._render_on_subplot(sp)
+            sage: p1.shrinkA == p2.shrinkA
+            True
+            sage: p1.shrinkB == p2.shrinkB
+            True
+
         """
         options = self.options()
         head = options.pop('head')

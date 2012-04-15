@@ -1160,13 +1160,14 @@ def norm(x):
     The complex norm of symbolic expressions::
 
         sage: a, b, c = var("a, b, c")
+        sage: assume((a, 'real'), (b, 'real'), (c, 'real'))
         sage: z = a + b*I
         sage: bool(norm(z).simplify() == a^2 + b^2)
         True
         sage: norm(a + b).simplify()
         a^2 + 2*a*b + b^2
         sage: v = vector([a, b, c])
-        sage: bool(norm(v).simplify_full() == sqrt(a^2 + b^2 + c^2))
+        sage: bool(norm(v).simplify() == sqrt(a^2 + b^2 + c^2))
         True
     """
     return x.norm()

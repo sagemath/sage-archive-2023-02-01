@@ -1,10 +1,11 @@
 r"""
 This wraps lcalc Library
 
-AUTHORS:
-- Rishikesh (2009): initial version
-- Yann Laigle-Chapuy (2009): refactored
+AUTHORS: 
 
+- Rishikesh (2010): added compute_rank() and hardy_z_function()
+- Yann Laigle-Chapuy (2009): refactored
+- Rishikesh (2009): initial version
 """
 #*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
@@ -124,6 +125,8 @@ cdef class Lfunction:
         INPUT:
             s --  a complex number
             derivative -- (default 0)  the derivative to be evaluated
+            rotate -- (default False) If True, this returns Riemann Siegel 
+                         Z function (also called Hardy Z function).
 
         EXAMPLES::
 
@@ -158,6 +161,64 @@ cdef class Lfunction:
         cdef c_Complex z = new_Complex(mpfr_get_d(complexified_s.__re,GMP_RNDN), mpfr_get_d(complexified_s.__im, GMP_RNDN))
         cdef c_Complex result = self.__value(z, derivative)
         return CCC(result.real(),result.imag())
+
+    def hardy_z_function(self,s):
+        """
+        Computes the Hardy Z function of the L-function at s
+        
+        INPUT:
+            s --  a complex number such that imaginary part is between -0.5 and 0.5
+
+        EXAMPLES::
+
+            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: from sage.libs.lcalc.lcalc_Lfunction import *
+            sage: L=Lfunction_from_character(chi, type="int")
+            sage: L.hardy_z_function(0)
+            0.231750947504... 
+            sage: L.hardy_z_function(.5).imag().abs() < 1.0e-16
+            True
+            sage: L.hardy_z_function(.4+.3*I)
+            0.2166144222685... - 0.00408187127850...*I
+            sage: chi=DirichletGroup(5)[1]
+            sage: L=Lfunction_from_character(chi,type="complex")
+            sage: L.hardy_z_function(0)
+            0.7939675904771...
+            sage: L.hardy_z_function(.5).imag().abs() < 1.0e-16
+            True
+            sage: E=EllipticCurve([-82,0])
+            sage: L=Lfunction_from_elliptic_curve(E, number_of_coeffs=40000)
+            sage: L.hardy_z_function(2.1)
+            -0.00643179176869...
+            sage: L.hardy_z_function(2.1).imag().abs() < 1.0e-16
+            True
+        """
+        #This takes s -> .5 + I*s
+        cdef ComplexNumber complexified_s = CCC(0.5)+ CCC(0,1)*CCC(s)
+        cdef c_Complex z = new_Complex(mpfr_get_d(complexified_s.__re,GMP_RNDN), mpfr_get_d(complexified_s.__im, GMP_RNDN))
+        cdef c_Complex result = self.__hardy_z_function(z)
+        return CCC(result.real(),result.imag())
+
+
+    def compute_rank(self):
+        """
+        Computes the analytic rank (the order of vanishing at the center) of
+        of the L-Funtion
+
+
+        EXAMPLES::
+
+            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: from sage.libs.lcalc.lcalc_Lfunction import *
+            sage: L=Lfunction_from_character(chi, type="int")
+            sage: L.compute_rank()
+            0
+            sage: E=EllipticCurve([-82,0])
+            sage: L=Lfunction_from_elliptic_curve(E, number_of_coeffs=40000)
+            sage: L.compute_rank()
+            3
+        """
+        return self.__compute_rank()
 
     def __N(self, T):
         """
@@ -295,6 +356,13 @@ cdef class Lfunction:
     cdef c_Complex __value(self,c_Complex s,int derivative):
         raise NotImplementedError
 
+    cdef c_Complex __hardy_z_function(self,c_Complex s):
+        raise NotImplementedError
+    
+    cdef int __compute_rank(self):
+        raise NotImplementedError
+    
+    
     cdef double __typedN(self,double T):
         raise NotImplementedError
 
@@ -340,9 +408,9 @@ cdef class Lfunction_I(Lfunction):
 
         OMEGA --                omega above
 
-        gamma --                list of \gamma_j in Gamma factor, see the reference above
+        kappa --                list of \kappa_j in Gamma factor, see the reference above
 
-        lambd --                list of \lambda_j in Gamma see the reference above
+        gamma --                list of \gamma_j in Gamma see the reference above
 
         pole --                 list of poles of \Lambda
 
@@ -380,6 +448,13 @@ cdef class Lfunction_I(Lfunction):
 
     cdef inline c_Complex __value(self,c_Complex s,int derivative):
         return (<c_Lfunction_I *>(self.thisptr)).value(s, derivative, "pure")
+            
+    cdef inline c_Complex __hardy_z_function(self,c_Complex s):
+        return (<c_Lfunction_I *>(self.thisptr)).value(s, 0, "rotated pure")
+
+    cdef int __compute_rank(self):
+        return (<c_Lfunction_I *>(self.thisptr)).compute_rank()
+
 
     cdef void __find_zeros_v(self, double T1, double T2, double stepsize, doublevec *result):
         (<c_Lfunction_I *>self.thisptr).find_zeros_v(T1,T2,stepsize,result[0])
@@ -468,9 +543,9 @@ cdef class Lfunction_D(Lfunction):
 
         OMEGA --                omega above
 
-        gamma --                list of \gamma_j in Gamma factor, see the reference above
+        kappa --                list of \kappa_j in Gamma factor, see the reference above
 
-        lambd --                list of \lambda_j in Gamma see the reference above
+        gamma --                list of \gamma_j in Gamma see the reference above
 
         pole --                 list of poles of \Lambda
 
@@ -508,6 +583,13 @@ cdef class Lfunction_D(Lfunction):
 
     cdef inline c_Complex __value(self,c_Complex s,int derivative):
         return (<c_Lfunction_D *>(self.thisptr)).value(s, derivative, "pure")
+
+
+    cdef inline c_Complex __hardy_z_function(self,c_Complex s):
+        return (<c_Lfunction_D *>(self.thisptr)).value(s, 0, "rotated pure")
+
+    cdef inline int __compute_rank(self):
+        return (<c_Lfunction_D *>(self.thisptr)).compute_rank()
 
     cdef void __find_zeros_v(self, double T1, double T2, double stepsize, doublevec *result):
         (<c_Lfunction_D *>self.thisptr).find_zeros_v(T1,T2,stepsize,result[0])
@@ -597,9 +679,9 @@ cdef class Lfunction_C:
 
         OMEGA --                omega above
 
-        gamma --                list of \gamma_j in Gamma factor, see the reference above
+        kappa --                list of \kappa_j in Gamma factor, see the reference above
 
-        lambd --                list of \lambda_j in Gamma see the reference above
+        gamma --                list of \gamma_j in Gamma see the reference above
 
         pole --                 list of poles of \Lambda
 
@@ -641,7 +723,15 @@ cdef class Lfunction_C:
         del_Complexes(coeffs)
 
     cdef inline c_Complex __value(self,c_Complex s,int derivative):
-        return (<c_Lfunction_C *>(self.thisptr)).value(s, derivative)
+        return (<c_Lfunction_C *>(self.thisptr)).value(s, derivative, "pure")
+
+
+    cdef inline c_Complex __hardy_z_function(self,c_Complex s):
+        return (<c_Lfunction_C *>(self.thisptr)).value(s, 0,"rotated pure")
+
+    cdef inline int __compute_rank(self):
+        return (<c_Lfunction_C *>(self.thisptr)).compute_rank()
+
 
     cdef void __find_zeros_v(self, double T1, double T2, double stepsize, doublevec *result):
         (<c_Lfunction_C *>self.thisptr).find_zeros_v(T1,T2,stepsize,result[0])
@@ -721,6 +811,14 @@ cdef class Lfunction_Zeta(Lfunction):
 
     cdef inline c_Complex __value(self,c_Complex s,int derivative):
         return (<c_Lfunction_Zeta *>(self.thisptr)).value(s, derivative, "pure")
+
+
+    cdef inline c_Complex __hardy_z_function(self,c_Complex s):
+        return (<c_Lfunction_Zeta *>(self.thisptr)).value(s, 0, "rotated pure")
+
+    cdef inline int __compute_rank(self):
+        return (<c_Lfunction_Zeta *>(self.thisptr)).compute_rank()
+
 
     cdef void __find_zeros_v(self, double T1, double T2, double stepsize, doublevec *result):
         (<c_Lfunction_Zeta *>self.thisptr).find_zeros_v(T1,T2,stepsize,result[0])

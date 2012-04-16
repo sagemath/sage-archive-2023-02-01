@@ -1,19 +1,24 @@
 #!/bin/sh
 
-
 cd src/
 
-python setup.py build_ext -I"$SAGE_LOCAL"/include -L"$SAGE_LOCAL"/lib
+if [ ! -d /usr/include/openssl ]; then
+    python setup.py build_ext -I"$SAGE_LOCAL"/include -L"$SAGE_LOCAL"/lib
+else
+    python setup.py build_ext
+fi
 
 if [ $? -ne 0 ]; then
-    echo "Error building pyopenssl"
+    echo "Error building pyOpenSSL"
+    echo "Check that OpenSSL development headers are installed,"
+    echo "or install the OpenSSL SPKG into your Sage installation"
     exit 1
 fi
 
 python setup.py install
 
 if [ $? -ne 0 ]; then
-    echo "Error installing pyopenssl"
+    echo "Error installing pyOpenSSL"
     exit 1
 fi
 

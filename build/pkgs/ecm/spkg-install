@@ -5,24 +5,23 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+cd src/
+
 ###############################################################################
 # Apply patches (if any):
 ###############################################################################
 
-# Patch configure (and configure.in):
-# - Disable asm-redc on 32-bit Darwin PPCs (upstream revision 1516 / bug #10646)
-# - Fix compilation error on x86 CPUs supporting SSE2. (Sage trac #10252,
-#   upstream revision 1546)
-echo "Copying patched files..."
-# Note that we don't patch configure.in here, since it is only needed
-# to generate automatically-generated files in the source tree.
-# Patching configure.in forces automake to be run, which may cause
-# build failures on systems where autotools aren't installed.
-cp -pf patches/configure src/
-if [ $? -ne 0 ]; then
-    echo >&2 "Error copying patched 'configure'."
-    exit 1
-fi
+ls ../patches/*.patch &>/dev/null &&
+echo "Applying patches to upstream sources..." &&
+for patch in ../patches/*.patch; do
+    basename "$patch"
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: '$patch' failed to apply."
+        exit 1
+    fi
+done &&
+echo
 
 ###############################################################################
 # Set up environment variables, depending on SAGE_* settings:
@@ -34,8 +33,8 @@ fi
 # processor-specific code, since ECM doesn't use them if we set our own:
 # (But currently MPIR doesn't provide optimized settings either if we pass
 # non-empty CFLAGS; of course the user could set such manually though.)
-gmp_cc_pat='/^[ 	]*#[ 	]*define[ 	]\+__GMP_CC[ 	]\+/s/.*"\([^"]*\)"/\1/p'
-gmp_cflags_pat='/^[ 	]*#[ 	]*define[ 	]\+__GMP_CFLAGS[ 	]\+/s/.*"\([^"]*\)"/\1/p'
+gmp_cc_pat='/^[ 	]*#[ 	]*define[ 	]\{1,\}__GMP_CC[ 	]\{1,\}/s/.*"\([^"]*\)"/\1/p'
+gmp_cflags_pat='/^[ 	]*#[ 	]*define[ 	]\{1,\}__GMP_CFLAGS[ 	]\{1,\}/s/.*"\([^"]*\)"/\1/p'
 gmp_header_file="$SAGE_LOCAL"/include/gmp.h
 
 gmp_cc=`sed -n -e "$gmp_cc_pat" "$gmp_header_file"`
@@ -54,6 +53,8 @@ case "$gmp_cflags" in __MPIR_CFLAGS|"")
     gmp_cflags=`sed -n -e "${gmp_cflags_pat/GMP/MPIR}" "$gmp_header_file"`
 esac
 
+# Extract GMP's/MPIR's settings of CC and CFLAGS from a system-wide installation
+# (if present); these are only printed, for informational purposes.
 system_gmp_h=""
 for incdir in /usr/include /usr/local/include; do
     if [ -f $incdir/gmp.h ]; then
@@ -63,11 +64,12 @@ done
 if [ -n "$system_gmp_h" ]; then
     system_gmp_cc=`sed -n -e "$gmp_cc_pat" $system_gmp_h`
     system_gmp_cflags=`sed -n -e "$gmp_cflags_pat" $system_gmp_h`
-fi
-
-cc_is_gcc=false
-if $CC -v 2>&1 | grep -i gcc &>/dev/null; then
-    cc_is_gcc=true;
+    case "$system_gmp_cc" in __MPIR_CC|"")
+        system_gmp_cc=`sed -n -e "${gmp_cc_pat/GMP/MPIR}" $system_gmp_h`
+    esac
+    case "$system_gmp_cflags" in __MPIR_CFLAGS|"")
+        system_gmp_cflags=`sed -n -e "${gmp_cflags_pat/GMP/MPIR}" $system_gmp_h`
+    esac
 fi
 
 
@@ -103,6 +105,9 @@ if [ "$SAGE_DEBUG" = yes ]; then
     # Add debug symbols and disable optimization:
     echo >&2 "Warning: Setting SAGE_DEBUG=yes completely disables optimization."
     CFLAGS="$CFLAGS -g -O0"
+    echo "You may in addition (or instead) pass '--enable-assert' and/or"
+    echo "'--enable-memory-debug' to GMP-ECM's 'configure' by setting (and"
+    echo "of course exporting) ECM_EXTRA_OPTS accordingly."
 else
     # Enable optimization, may be overridden by user settings:
     case "`uname -srm | tr ' ' '-'`" in
@@ -115,11 +120,28 @@ else
                 "PowerPC because of a linker (?) bug."
             echo >&2 "See http://trac.sagemath.org/sage_trac/ticket/5847#comment:35" \
                 "ff. for details."
-            echo ""
+            echo >&2
             CFLAGS="-O3 $CFLAGS"
             ;;
         *)
             CFLAGS="-g -O3 $CFLAGS"
+    esac
+fi
+
+
+# Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs with
+# '-O3', '-O2' and '-O1' (cf. #12765, #12751, and the bug URL below.)
+if [ "`uname -m`" = ia64 ] && [ "`testcc.sh $CC`" = GCC ]; then
+    gcc_version=`$CC -dumpversion`
+    case "$gcc_version" in
+      4.7.*)
+        CFLAGS="$CFLAGS -O0 -finline-functions -fschedule-insns"
+        echo >&2 "Warning: Disabling almost all optimization due to a bug in (at least)"
+        echo >&2 "         GCC 4.7.0 on Itanium, which otherwise would break the build."
+        echo >&2 "         See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496"
+        echo >&2 "         for current status and further details."
+        echo >&2 "         (And please report to e.g. sage-devel in case you feel this bug"
+        echo >&2 "          should already be fixed in GCC $gcc_version.)"
     esac
 fi
 
@@ -182,29 +204,34 @@ else
 fi
 
 
-echo ""
+echo
 echo "Settings from SAGE_LOCAL/include/gmp.h:"
-echo "    CC=$gmp_cc"
-echo "    CFLAGS=$gmp_cflags"
+echo "  CC=$gmp_cc"
+echo "  CFLAGS=$gmp_cflags"
 if [ -n "$system_gmp_h" ]; then
     echo "Settings found in $system_gmp_h (currently not used):"
-    echo "    CC=$system_gmp_cc"
-    echo "    CFLAGS=$system_gmp_cflags"
+    echo "  CC=$system_gmp_cc"
+    echo "  CFLAGS=$system_gmp_cflags"
 fi
 
-echo "Using CC=$CC"
-echo "Using CFLAGS=$CFLAGS"
-echo "Using CPPFLAGS=$CPPFLAGS"
-echo "Using LDFLAGS=$LDFLAGS"
-echo "Using ABI=$ABI"
-echo "(These settings may get overridden by 'configure' or Makefiles.)"
-echo ""
+echo "Finally using:"
+echo "  CC=$CC"
+echo "  CFLAGS=$CFLAGS"
+echo "  CPP=$CPP"
+echo "  CPPFLAGS=$CPPFLAGS"
+test -n "$CCAS" && echo "  CCAS=$CCAS"
+test -n "$CCASFLAGS" && echo "  CCASFLAGS=$CCASFLAGS"
+echo "  LDFLAGS=$LDFLAGS"
+test -n "$LIBS" && echo "  LIBS=$LIBS"
+echo "  ABI=$ABI"
+echo "  M4=$M4"
+echo "(These settings may still get overridden by 'configure' or Makefiles.)"
 
-export CFLAGS # usually redundant, but safe(r)
+export CFLAGS # Not exported by 'sage-env'.  LDFLAGS are exported above if
+              # necessary.  We currently don't set (or modify) any other
+              # environment variables, so don't have to export them here.
 
 unset RM
-
-cd src
 
 ###############################################################################
 # Now configure ECM:
@@ -219,24 +246,23 @@ SAGE_CONF_OPTS="" # XXX Move this up in case you add options above!
 
 echo
 if [ -z "$ECM_EXTRA_OPTS" ]; then
-    echo "Configuring GMP-ECM with the following options:"
-    echo "    --prefix=\"$SAGE_LOCAL\""
-    echo "    --libdir=\"$SAGE_LOCAL/lib\""
-    echo "    --with-gmp=\"$SAGE_LOCAL\""
-    test -n "$SAGE_CONF_OPTS" && echo "    $SAGE_CONF_OPTS"
+    echo "Now configuring GMP-ECM with the following options:"
+else
+    echo "Now configuring GMP-ECM with additional options as specified by" \
+        "ECM_EXTRA_OPTS:"
+    echo "  $ECM_EXTRA_OPTS"
+    echo "Finally configuring GMP-ECM with the following options:"
+fi
+echo "  --prefix=\"$SAGE_LOCAL\""
+echo "  --libdir=\"$SAGE_LOCAL/lib\""
+echo "  --with-gmp=\"$SAGE_LOCAL\""
+for opt in $SAGE_CONF_OPTS $ECM_EXTRA_OPTS; do
+    echo "  $opt"
+done
+if [ -z "$ECM_EXTRA_OPTS" ]; then
     echo "You can set ECM_EXTRA_OPTS to pass additional parameters,"
     echo "e.g. \"--enable-shared\" to also build a *shared* library,"
     echo "or \"--disable-sse2\" if you encounter problems on a Pentium III system."
-else
-    echo "Using additional 'configure' options as specified with" \
-        "ECM_EXTRA_OPTS:"
-    echo "    $ECM_EXTRA_OPTS"
-    echo "Configuring ECM with the following options:"
-    echo "    --prefix=\"$SAGE_LOCAL\""
-    echo "    --libdir=\"$SAGE_LOCAL/lib\""
-    echo "    --with-gmp=\"$SAGE_LOCAL\""
-    test -n "$SAGE_CONF_OPTS" && echo "    $SAGE_CONF_OPTS"
-    echo "    $ECM_EXTRA_OPTS"
 fi
 echo
 
@@ -245,6 +271,7 @@ echo
             $SAGE_CONF_OPTS $ECM_EXTRA_OPTS
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring GMP-ECM."
+    echo >&2 "(See above for the options passed to its 'configure'.)"
     exit 1
 fi
 

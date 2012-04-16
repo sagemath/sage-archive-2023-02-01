@@ -1,0 +1,27 @@
+= pyopenssl =
+
+== Description ==
+
+Python bindings for openssl.
+http://pyopenssl.sourceforge.net/
+
+== License ==
+
+GPLv2+
+
+== SPKG Maintainer ==
+ * William Stein
+
+== Dependencies ==
+ * OpenSSL, Python
+
+== ChangeLog ==
+
+=== pyopenssl-0.8 (William Stein, December 24, 2008) ===
+ * put in proper format; download new version from upstream
+
+
+
+
+
+

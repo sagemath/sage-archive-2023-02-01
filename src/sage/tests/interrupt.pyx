@@ -70,6 +70,10 @@ cdef void dereference_null_pointer():
 def raise_KeyboardInterrupt():
     """
     Raise a KeyboardInterrupt.
+
+    TESTS::
+
+        sage: from sage.tests.interrupt import raise_KeyboardInterrupt
     """
     raise KeyboardInterrupt, "raise test"
 

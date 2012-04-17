@@ -36,6 +36,11 @@ void ms_sleep(long ms)
  */
 void signal_pid_after_delay(int signum, pid_t killpid, long ms, long interval, int n)
 {
+    /* Flush all buffers before forking (otherwise we end up with two
+     * copies of each buffer). */
+    fflush(stdout);
+    fflush(stderr);
+
     pid_t child1 = fork();
     if (child1 == -1) {perror("fork"); exit(1);}
 

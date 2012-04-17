@@ -510,7 +510,7 @@ class TermOrder(SageObject):
         """
         Translate old pickled TermOrder objects.
 
-        See Trac #11316.
+        See Trac :trac:`11316`.
 
         EXAMPLE::
 
@@ -595,7 +595,8 @@ class TermOrder(SageObject):
             sage: a.degree()
             1
 
-        We enforce consistency when calling the copy constructor (cf. #12748)::
+        We enforce consistency when calling the copy constructor (cf.
+        :trac:`12748`)::
 
             sage: T = TermOrder('degrevlex', 6) + TermOrder('degrevlex',10)
             sage: R.<x0,y0,z0,x1,y1,z1,a0,a1,a2,a3,a4,a5,a6,a7,a8> = PolynomialRing(QQ,order=T)
@@ -1611,7 +1612,7 @@ class TermOrder(SageObject):
 
         NOTE:
 
-        This method has been added in trac ticket #11316. There used
+        This method has been added in :trac:`11316`. There used
         to be an *attribute* of the same name and the same content.
         So, it is a backward incompatible syntax change.
 

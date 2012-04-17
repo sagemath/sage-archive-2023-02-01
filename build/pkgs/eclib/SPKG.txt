@@ -33,9 +33,23 @@ over 25 years of hard work.
 
 === Special Update/Build Instructions ===
 
- * The makefiles do use GNU extensions. This causes build failures on systems like FreeBSD where GNU's make is usually called gmake. A workaround is to create a symlink from gmake to make in {{{~/bin}}} and to add that directory to {{{$PATH}}} before the directory that contains the BSD make
+ * The makefiles do use GNU extensions. This causes build failures on
+   systems like FreeBSD where GNU's make is usually called gmake. A
+   workaround is to create a symlink from gmake to make in {{{~/bin}}}
+   and to add that directory to {{{$PATH}}} before the directory that
+   contains the BSD make. [This comment may be redundant now that
+   autotools are used.]
 
 == Changelog ==
+
+=== eclib-20120417 (John Cremona, 17 April 2012) ===
+ * Complete rewrite of build system using autotools and libtool
+ * Current source code is revision 042c47ea0bc4 (as at 17 April 2012),
+   unpacked from http://homepages.warwick.ac.uk/staff/J.E.Cremona/ftp/progs/eclib-2012-04-16.tar.gz
+
+=== eclib-20120115.p2 (John Cremona, 24 February 2012) ===
+ * Small changes to top-level Makefile (remove "--as-needed" flag, see trac #10993)
+ * Current source code is revision 3e54531b1c27 (as at 24 February 2012)
 
 === eclib-20120115.p1 (John Cremona, 1 February 2012) ===
  * Small changes to all Makefiles (see trac #10993)

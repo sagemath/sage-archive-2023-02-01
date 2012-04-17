@@ -11,95 +11,54 @@ CUR=`pwd`
 echo "Deleting old versions of eclib libraries, which"
 echo "would interfere with new builds."
 cd "$SAGE_LOCAL"/lib/
+# delete any pre-autotools libraries:
 rm libcurvesntl.* libg0nntl.* libjcntl.* librankntl.* libmwrank.*
+# delete autotools libraries:
+rm libjc.*
 echo "Deleting old include directory"
 cd "$SAGE_LOCAL"/include
-rm -rf cremona eclib
+rm -rf eclib
 
 cd "$CUR"/src
 
-NTL_PREFIX="$SAGE_LOCAL"
-export NTL_PREFIX
+# if [ "$UNAME" = "CYGWIN" ]; then
+#     PICFLAG=""
+# else
+#     PICFLAG=-fPIC
+# fi
+# if [ "$SAGE64" = "yes" ]; then
+#     DYN_FLAGS="-m64"; export DYN_FLAGS
+#     PICFLAG="-m64 -fPIC"
+# fi
+# export PICFLAG
 
-PARI_PREFIX="$SAGE_LOCAL"
-export PARI_PREFIX
-
-if [ "$UNAME" = "CYGWIN" ]; then
-    PICFLAG=""
-else
-    PICFLAG=-fPIC
-fi
-if [ "$SAGE64" = "yes" ]; then
-    DYN_FLAGS="-m64"; export DYN_FLAGS
-    PICFLAG="-m64 -fPIC"
-fi
-export PICFLAG
+./configure --prefix=$SAGE_LOCAL --with-ntl=$SAGE_LOCAL --with-pari=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --disable-allprogs
 
 $MAKE
+
 if [ $? -ne 0 ]; then
     echo "Error building eclib"
     exit 1
 fi
 
-if [ "$UNAME" = "Darwin" ]; then
-    $MAKE dylib
-elif [ "$UNAME" = "CYGWIN" ]; then
-    $MAKE dll
-else
-    $MAKE so
-fi
-if [ $? -ne 0 ]; then
-    echo "Error building eclib shared libraries"
-    exit 1
-fi
-
 # Install libraries and headers by copying them over:
 
-if [ "$UNAME" = "Darwin" ]; then
-    cp -p lib/*.dylib "$SAGE_LOCAL"/lib/
-elif [ "$UNAME" = "CYGWIN" ]; then
-    cp -p lib/*.dll "$SAGE_LOCAL"/lib/
-else
-    cp -p lib/*.so "$SAGE_LOCAL"/lib/
-    PATH="$PATH:/sbin" ldconfig -n $SAGE_LOCAL/lib
-fi
+$MAKE install
+
+# if [ "$UNAME" = "Darwin" ]; then
+#     cp -p lib/*.dylib "$SAGE_LOCAL"/lib/
+# elif [ "$UNAME" = "CYGWIN" ]; then
+#     cp -p lib/*.dll "$SAGE_LOCAL"/lib/
+# else
+#     cp -p lib/*.so "$SAGE_LOCAL"/lib/
+#     PATH="$PATH:/sbin" ldconfig -n $SAGE_LOCAL/lib
+# fi
+
 if [ $? -ne 0 ]; then
-    echo "Error copying over libraries"
+    echo "Error installing eclib"
     exit 1
 fi
 
-INC_TARGET="$SAGE_LOCAL"/include/eclib
-rm -rf "$INC_TARGET"
-cp -pr include "$INC_TARGET"
-if [ $? -ne 0 ]; then
-    echo "Error copying over header files"
-    exit 1
-fi
-
-if [ "$UNAME" = "CYGWIN" ]; then
-   EXE_NAME=".exe"
-fi
-
-# Delete some leftovers from mwrank:
-rm -rf "$SAGE_LOCAL"/include/mwrank"$EXE_NAME"
-rm -rf "$SAGE_LOCAL"/bin/mwrank"$EXE_NAME"
-
-# Copy new binaries:
-
-cp -p bin/mwrank"$EXE_NAME" "$SAGE_LOCAL"/bin
-if [ $? -ne 0 ]; then
-    echo "Error copying over mwrank binary"
-    exit 1
-fi
-strip "$SAGE_LOCAL"/bin/mwrank"$EXE_NAME"
-
-cp -p bin/tconic"$EXE_NAME" "$SAGE_LOCAL"/bin &&
-strip "$SAGE_LOCAL"/bin/tconic"$EXE_NAME"
-if [ $? -ne 0 ]; then
-    echo "Error copying over (or stripping) other binaries"
-    exit 1
-fi
-
-cd "$SAGE_LOCAL"/include
-chmod 755 eclib
-chmod 644 eclib/*
+# cd "$SAGE_LOCAL"/include
+# chmod 755 eclib
+# chmod 644 eclib/*

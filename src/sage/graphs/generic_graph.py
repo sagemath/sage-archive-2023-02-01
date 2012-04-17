@@ -13518,8 +13518,8 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise TypeError('the graphs should be both directed or both undirected')
         G.add_vertices( [(u,v) for u in self for v in other] )
-        for u,w in self.edges(labels=None):
-            for v,x in other.edges(labels=None):
+        for u,w in self.edge_iterator(labels=None):
+            for v,x in other.edge_iterator(labels=None):
                 G.add_edge((u,v), (w,x))
                 if not G._directed:
                     G.add_edge((u,x), (w,v))
@@ -13585,12 +13585,12 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise TypeError('the graphs should be both directed or both undirected')
         G.add_vertices( [(u,v) for u in self for v in other] )
-        for u,w in self.edges(labels=None):
+        for u,w in self.edge_iterator(labels=None):
             for v in other:
                 for x in other:
                     G.add_edge((u,v), (w,x))
         for u in self:
-            for v,x in other.edges(labels=None):
+            for v,x in other.edge_iterator(labels=None):
                 G.add_edge((u,v), (u,x))
         return G
 
@@ -13664,14 +13664,14 @@ class GenericGraph(GenericGraph_pyx):
             raise TypeError('the graphs should be both directed or both undirected')
 
         G.add_vertices( [(u,v) for u in self for v in other] )
-        for u,w in self.edges(labels=None):
+        for u,w in self.edge_iterator(labels=None):
             for v in other:
                 G.add_edge((u,v), (w,v))
-            for v,x in other.edges(labels=None):
+            for v,x in other.edge_iterator(labels=None):
                 G.add_edge((u,v), (w,x))
                 if not self._directed:
                     G.add_edge((w,v), (u,x))
-        for v,x in other.edges(labels=None):
+        for v,x in other.edge_iterator(labels=None):
             for u in self:
                 G.add_edge((u,v), (u,x))
         return G
@@ -13732,11 +13732,11 @@ class GenericGraph(GenericGraph_pyx):
             raise TypeError('the graphs should be both directed or both undirected')
 
         G.add_vertices( [(u,v) for u in self for v in other] )
-        for u,w in self.edges(labels=None):
+        for u,w in self.edge_iterator(labels=None):
             for v in other:
                 for x in other:
                     G.add_edge((u,v), (w,x))
-        for v,x in other.edges(labels=None):
+        for v,x in other.edge_iterator(labels=None):
             for u in self:
                 for w in self:
                     G.add_edge((u,v), (w,x))

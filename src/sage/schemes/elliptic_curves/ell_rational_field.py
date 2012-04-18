@@ -5139,7 +5139,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             983886013344700707678587482584/141566320009,\
             1124614335716851053281176544216033/152487126016]
             sage: points = [E.lift_x(x) for x in xi]
-            sage: newpoints, U = E.lll_reduce(points)  # long time (35s on sage.math, 2011)
+            sage: newpoints, U = E.lll_reduce(points)  # long time (36s on sage.math, 2011)
             sage: [P[0] for P in newpoints]            # long time
             [6823803569166584943, 5949539878899294213, 2005024558054813068, 5864879778877955778, 23955263915878682727/4, 5922188321411938518, 5286988283823825378, 175620639884534615751/25, -11451575907286171572, 3502708072571012181, 1500143935183238709184/225, 27180522378120223419/4, -5811874164190604461581/625, 26807786527159569093, 7404442636649562303, 475656155255883588, 265757454726766017891/49, 7272142121019825303, 50628679173833693415/4, 6951643522366348968, 6842515151518070703, 111593750389650846885/16, 2607467890531740394315/9, -1829928525835506297]
         """
@@ -5320,7 +5320,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: P1=E.point((540,1188)); P2=E.point((576,1836))
             sage: P3=E.point((468,3132)); P4=E.point((612,3132))
             sage: P5=E.point((432,4428))
-            sage: a=E.integral_points([P1,P2,P3,P4,P5]); len(a)  # long time (34s on sage.math, 2011)
+            sage: a=E.integral_points([P1,P2,P3,P4,P5]); len(a)  # long time (18s on sage.math, 2011)
             54
 
         TESTS:
@@ -5728,7 +5728,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         Output checked with Magma (corrected in 3 cases)::
 
-            sage: [len(e.S_integral_points([2], both_signs=False)) for e in cremona_curves([11..100])] # long time (19s on sage.math, 2011)
+            sage: [len(e.S_integral_points([2], both_signs=False)) for e in cremona_curves([11..100])] # long time (17s on sage.math, 2011)
             [2, 0, 2, 3, 3, 1, 3, 1, 3, 5, 3, 5, 4, 1, 1, 2, 2, 2, 3, 1, 2, 1, 0, 1, 3, 3, 1, 1, 5, 3, 4, 2, 1, 1, 5, 3, 2, 2, 1, 1, 1, 0, 1, 3, 0, 1, 0, 1, 1, 3, 7, 1, 3, 3, 3, 1, 1, 2, 3, 1, 2, 3, 1, 2, 1, 3, 3, 1, 1, 1, 0, 1, 3, 3, 1, 1, 7, 1, 0, 1, 1, 0, 1, 2, 0, 3, 1, 2, 1, 3, 1, 2, 2, 4, 5, 3, 2, 1, 1, 6, 1, 0, 1, 3, 1, 3, 3, 1, 1, 1, 1, 1, 3, 1, 5, 1, 2, 4, 1, 1, 1, 1, 1, 0, 1, 0, 2, 2, 0, 0, 1, 0, 1, 1, 6, 1, 0, 1, 1, 0, 4, 3, 1, 2, 1, 2, 3, 1, 1, 1, 1, 8, 3, 1, 2, 1, 2, 0, 8, 2, 0, 6, 2, 3, 1, 1, 1, 3, 1, 3, 2, 1, 3, 1, 2, 1, 6, 9, 3, 3, 1, 1, 2, 3, 1, 1, 5, 5, 1, 1, 0, 1, 1, 2, 3, 1, 1, 2, 3, 1, 3, 1, 1, 1, 1, 0, 0, 1, 3, 3, 1, 3, 1, 1, 2, 2, 0, 0, 6, 1, 0, 1, 1, 1, 1, 3, 1, 2, 6, 3, 1, 2, 2, 1, 1, 1, 1, 7, 5, 4, 3, 3, 1, 1, 1, 1, 1, 1, 8, 5, 1, 1, 3, 3, 1, 1, 3, 3, 1, 1, 2, 3, 6, 1, 1, 7, 3, 3, 4, 5, 9, 6, 1, 0, 7, 1, 1, 3, 1, 1, 2, 3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 7, 8, 2, 3, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1]
 
         An example from [PZGH]::
@@ -6416,6 +6416,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
     for i in range(1,r):
         RPi[i] = RPi[i-1] + RgensN[i]
 
+    tors_points_R = map(ER, tors_points)
     while True:
         if all([n==0 for n in ni]):
              use_t(E(0))
@@ -6424,8 +6425,8 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
         # test the ni-combination which is RPi[r-1]
         RP = RPi[r-1]
 
-        for T in tors_points:
-            if is_approx_integral(RP+ER(T)):
+        for T, TR in zip(tors_points, tors_points_R):
+            if is_approx_integral(RP + TR):
                  P = sum([ni[i]*mw_base[i] for i in range(r)],T)
                  use(P)
 

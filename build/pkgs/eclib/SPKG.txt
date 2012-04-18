@@ -2,7 +2,7 @@
 
 == Description ==
 
-John Cremona's programs for enumerating and computating with elliptic
+John Cremona's programs for enumerating and computing with elliptic
 curves defined over the rational numbers. This is the culmination of
 over 25 years of hard work.
 
@@ -31,16 +31,24 @@ over 25 years of hard work.
  * EMail: ismail@pardus.org.tr
  * Website: N/A
 
-=== Special Update/Build Instructions ===
+== Special Update/Build Instructions ==
 
  * The makefiles do use GNU extensions. This causes build failures on
-   systems like FreeBSD where GNU's make is usually called gmake. A
-   workaround is to create a symlink from gmake to make in {{{~/bin}}}
-   and to add that directory to {{{$PATH}}} before the directory that
-   contains the BSD make. [This comment may be redundant now that
+   systems like FreeBSD where GNU's make is usually called `gmake`. A
+   work-around is to create a symlink from `gmake` to `make` in e.g. `~/bin/`
+   and to add that directory to `PATH` before the directory that
+   contains the BSD make. [This comment may be obsolete now that
    autotools are used.]
 
 == Changelog ==
+
+=== eclib-20120417.p0 (Leif Leonhardy, 17 April 2012) ===
+ * #10993: Clean up `spkg-check` and `spkg-install`.
+ * Use `$MAKE` in `spkg-check` as well, add sanity check.
+ * Exit if `configure` failed.
+ * Support `SAGE64` and `SAGE_DEBUG`, enable optimization and debug symbols
+   by default.
+ * Redirect all warnings and error messages to `stderr`.
 
 === eclib-20120417 (John Cremona, 17 April 2012) ===
  * Complete rewrite of build system using autotools and libtool

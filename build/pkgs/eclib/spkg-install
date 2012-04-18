@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 
 if [ -z "$SAGE_LOCAL" ]; then
-    echo "SAGE_LOCAL undefined - exiting..."
-    echo "Maybe run 'sage -sh'?"
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
 
-CUR=`pwd`
 
-echo "Deleting old versions of eclib libraries, which"
-echo "would interfere with new builds."
-cd "$SAGE_LOCAL"/lib/
-# delete any pre-autotools libraries:
-rm libcurvesntl.* libg0nntl.* libjcntl.* librankntl.* libmwrank.*
-# delete autotools libraries:
-rm libjc.*
-echo "Deleting old include directory"
-cd "$SAGE_LOCAL"/include
-rm -rf eclib
-
-cd "$CUR"/src
+if [ "$SAGE64" = yes ]; then
+    echo "Building a 64-bit version of eclib."
+    if [ -z "$CFLAG64" ]; then
+        CFLAG64=-m64
+    fi
+    if [ -z "$CXXFLAG64" ]; then
+        CXXFLAG64=$CFLAG64
+    fi
+    CFLAGS="$CFLAGS $CFLAG64"
+    CXXFLAGS="$CXXFLAGS $CXXFLAG64"
+    CPPFLAGS="$CPPFLAGS $CFLAG64"
+    LDFLAGS="$LDFLAGS $CFLAG64" # or $CXXFLAG64
+fi
 
 # if [ "$UNAME" = "CYGWIN" ]; then
 #     PICFLAG=""
@@ -32,19 +32,59 @@ cd "$CUR"/src
 # fi
 # export PICFLAG
 
-./configure --prefix=$SAGE_LOCAL --with-ntl=$SAGE_LOCAL --with-pari=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --disable-allprogs
+if [ "$SAGE_DEBUG" = yes ]; then
+    echo >&2 "Warning: Setting SAGE_DEBUG=yes completely disables optimization."
+    CFLAGS="$CFLAGS -g -O0"
+    CXXFLAGS="$CXXFLAGS -g -O0"
+else
+    # Add debug symbols by default, enable optimization, but let the user
+    # still override these settings:
+    CFLAGS="-g -O3 $CFLAGS"
+    CXXFLAGS="-g -O3 $CXXFLAGS"
+fi
 
-$MAKE
+export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
 
+
+echo "Deleting old versions of eclib libraries, which"
+echo "would interfere with new builds..."
+# Delete any pre-autotools libraries:
+rm -f "$SAGE_LOCAL"/lib/lib{curvesntl,g0nntl,jcntl,rankntl,mwrank}.*
+# Delete autotools libraries:
+rm -f "$SAGE_LOCAL"/lib/libjc.*
+echo "Deleting old include directory..."
+rm -rf "$SAGE_LOCAL"/include/eclib/
+
+
+cd src/
+
+echo
+echo "Now configuring eclib..."
+./configure --prefix="$SAGE_LOCAL" \
+            --with-gmp="$SAGE_LOCAL" \
+            --with-ntl="$SAGE_LOCAL" \
+            --with-pari="$SAGE_LOCAL" \
+            --disable-allprogs
 if [ $? -ne 0 ]; then
-    echo "Error building eclib"
+    echo >&2 "Error configuring eclib."
     exit 1
 fi
 
-# Install libraries and headers by copying them over:
+echo
+echo "Now building eclib..."
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building eclib."
+    exit 1
+fi
 
+echo
+echo "Build succeeded.  Now installing eclib..."
 $MAKE install
-
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing eclib."
+    exit 1
+fi
 # if [ "$UNAME" = "Darwin" ]; then
 #     cp -p lib/*.dylib "$SAGE_LOCAL"/lib/
 # elif [ "$UNAME" = "CYGWIN" ]; then
@@ -53,12 +93,3 @@ $MAKE install
 #     cp -p lib/*.so "$SAGE_LOCAL"/lib/
 #     PATH="$PATH:/sbin" ldconfig -n $SAGE_LOCAL/lib
 # fi
-
-if [ $? -ne 0 ]; then
-    echo "Error installing eclib"
-    exit 1
-fi
-
-# cd "$SAGE_LOCAL"/include
-# chmod 755 eclib
-# chmod 644 eclib/*

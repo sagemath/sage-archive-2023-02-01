@@ -290,7 +290,7 @@ class Arrow(GraphicPrimitive):
         return "Arrow from (%s,%s) to (%s,%s)"%(self.xtail, self.ytail, self.xhead, self.yhead)
 
     def _render_on_subplot(self, subplot):
-        """
+        r"""
         Render this arrow in a subplot.  This is the key function that
         defines how this arrow graphics primitive is rendered in
         matplotlib's library.
@@ -319,6 +319,23 @@ class Arrow(GraphicPrimitive):
             sage: p1.shrinkB == p2.shrinkB
             True
 
+        Dashed arrows should have solid arrowheads,
+        :trac:`12852`. This test saves the plot of a dashed arrow to
+        an EPS file. Within the EPS file, ``stroke`` will be called
+        twice: once to draw the line, and again to draw the
+        arrowhead. We check that both calls do not occur while the
+        dashed line style is enabled::
+
+            sage: a = arrow((0,0), (1,1), linestyle='dashed')
+            sage: filename = tmp_filename(ext='.eps')
+            sage: a.save(filename=filename)
+            sage: with open(filename, 'r') as f:
+            ....:     contents = f.read().replace('\n', ' ')
+            sage: two_stroke_pattern = r'setdash.*stroke.*stroke.*setdash'
+            sage: import re
+            sage: two_stroke_re = re.compile(two_stroke_pattern)
+            sage: two_stroke_re.search(contents) is None
+            True
         """
         options = self.options()
         head = options.pop('head')

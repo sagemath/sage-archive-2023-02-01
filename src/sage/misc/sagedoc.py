@@ -12,6 +12,17 @@ AUTHORS:
 - John Palmieri (2009-06-28): don't use 'find' -- use Python (os.walk, re.search) instead.
 - Simon King (2011-09-19): use os.linesep, avoid destruction of embedding information,
   enable nodetex in a docstring.
+
+TESTS:
+
+Check that argspecs of extension function/methods appear correctly,
+see :trac:`12849`::
+
+    sage: docfilename = os.path.join(SAGE_ROOT, 'devel', 'sage', 'doc', 'output', 'html', 'en', 'reference', 'sage', 'symbolic', 'expression.html')
+    sage: for line in open(docfilename):
+    ...       if "#sage.symbolic.expression.Expression.N" in line:
+    ...           print line
+    <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em><big>)</big>...
 """
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>

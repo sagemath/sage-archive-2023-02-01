@@ -42,6 +42,10 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20120417.p1 (John Cremona, 18 April 2012) ===
+ * Minor source code update to revision cf6aae3592bf (as at 17 April 2012), as at
+   http://homepages.warwick.ac.uk/staff/J.E.Cremona/ftp/progs/eclib-2012-04-17.tar.gz
+
 === eclib-20120417.p0 (Leif Leonhardy, 17 April 2012) ===
  * #10993: Clean up `spkg-check` and `spkg-install`.
  * Use `$MAKE` in `spkg-check` as well, add sanity check.
@@ -52,16 +56,16 @@ over 25 years of hard work.
 
 === eclib-20120417 (John Cremona, 17 April 2012) ===
  * Complete rewrite of build system using autotools and libtool
- * Current source code is revision 042c47ea0bc4 (as at 17 April 2012),
+ * Update source code to revision 042c47ea0bc4 (as at 17 April 2012),
    unpacked from http://homepages.warwick.ac.uk/staff/J.E.Cremona/ftp/progs/eclib-2012-04-16.tar.gz
 
 === eclib-20120115.p2 (John Cremona, 24 February 2012) ===
  * Small changes to top-level Makefile (remove "--as-needed" flag, see trac #10993)
- * Current source code is revision 3e54531b1c27 (as at 24 February 2012)
+ * Update source code to revision 3e54531b1c27 (as at 24 February 2012)
 
 === eclib-20120115.p1 (John Cremona, 1 February 2012) ===
  * Small changes to all Makefiles (see trac #10993)
- * Current source code is revision c2266b8c6029 (as at 1 February 2012)
+ * Update source code to revision c2266b8c6029 (as at 1 February 2012)
 
 === eclib-20120115.p0 (John Cremona, 18 January 2012) ===
  * Small patch to spkg-install (adding PATH extension before calling
@@ -69,7 +73,7 @@ over 25 years of hard work.
 
 === eclib-20120115 (John Cremona, 15 January 2012) ===
  * Source code now at http://code.google.com/p/eclib/
- * Current source code is revision 2b04700f06ba (as at 15 January 2012)
+ * Update source code to revision 2b04700f06ba (as at 15 January 2012)
  * Add a line in spkg-install to run ldconfig
 
 === eclib-20100711.p0 (Mariah Lenox and Leif Leonhardy, September 28th 2011) ===

@@ -83,6 +83,11 @@ LGPL V2+
 
 == Changelog ==
 
+=== ecm-6.3.p7 (Leif Leonhardy, April 19th 2012) ===
+ * #12830: Add `-m[no-]power*` to the processor-specific options recognized;
+   these are used to enable/disable specific instruction set extensions of the
+   POWER and PowerPC (PPC) CPUs.
+
 === ecm-6.3.p6 (Leif Leonhardy, April 16th 2012) ===
  * #12830: Add a work-around for GCC 4.7.x on ia64 (Itanium), since GMP-ECM
    currently won't build with that and anything but `-O0` on that platform.

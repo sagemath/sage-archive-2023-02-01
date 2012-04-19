@@ -181,7 +181,7 @@ else
         # 'native' not supported, see if GMP / MPIR provides us some CPU type:
         for opt in $gmp_cflags; do
             case $opt in
-                -march=*|-mcpu=*|-mtune*)
+                -march=*|-mcpu=*|-mtune=*|-mpower*|-mno-power*)
                     echo "Found CPU parameter in gmp.h: $opt"
                     cpu_params="$cpu_params $opt"
                     ;;
@@ -193,7 +193,7 @@ else
     rm -f foo.* foo
     # Only add them if CFLAGS do not already contain similar:
     if [ -n "$cpu_params" ] &&
-        ! (echo "$CFLAGS" | egrep -- '-march=|-mcpu=|-mtune=' >/dev/null);
+        ! (echo "$CFLAGS" | egrep -- '-march=|-mcpu=|-mtune=|-mpower|-mno-power' >/dev/null);
     then
         echo "Using additional host-specific CFLAGS: $cpu_params"
         CFLAGS="$cpu_params $CFLAGS"

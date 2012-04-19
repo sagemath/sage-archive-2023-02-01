@@ -13,4 +13,6 @@ echo "include_dirs = $SAGE_LOCAL/include/" >> src/setup.cfg
 
 cd src
 
+python setup.py configure --zmq="$SAGE_LOCAL"
 python setup.py install
+

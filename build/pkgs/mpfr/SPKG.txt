@@ -34,18 +34,57 @@ an existing one, please share your work!
 
 The MPFR website is located at http://mpfr.org/
 
-The MPFR team can be contact via the MPFR mailing list: mpfr@loria.fr
+The MPFR team can be contacted via the MPFR mailing list: mpfr@loria.fr
 
 == Dependencies ==
 
- * MPIR
+ * GMP/MPIR
+ * GNU patch
 
-== IMPORTANT ==
-When building Sage binaries for widespead distribution, set the variable
-INCLUDE_MPFR_PATCH to 1, to include a patch, which can cause failures
-on sun4v machines.
+== Special Update/Build Instructions ==
+
+ * When building Sage binaries for wide-spread distribution, set the variable
+   `INCLUDE_MPFR_PATCH` to 1, to include a patch which avoids failures on sun4v
+   machines.  (This applies to at least SunOS / Solaris.)
+ * Check whether there are new "official" upstream patches, i.e., such put into
+   http://www.mpfr.org/mpfr-current/allpatches (if our version is the latest
+   released one); see also http://www.mpfr.org/mpfr-current/#bugs .
+   (As of April 13th 2012, our current version is 3.1.0-p8; the sources in
+   `src/` are kept vanilla, the cumulative upstream patch is in
+   `patches/upstream/` and gets applied by `spkg-install`.)
+ * Make sure the patches still apply.
+ * Make sure MPFR's settings of `CC` and `CFLAGS` still get properly extracted,
+   currently from its `config.log` in the `src/` directory.
+ * We should remove the `configure` option `--disable-thread-safe` in case
+   the issues without that have meanwhile been fixed.  (Then we should
+   actually pass `--enable-thread-safe`.)
+ * Check whether the work-around for GCC 4.7 on ia64 is still appropriate, i.e.
+   adapt it in case the issue has been fixed in later GCC versions of the 4.7
+   release series.  (Although the bug currently affects only GCC 4.7.0, it
+   seems unlikely that it will be fixed soon, hence we apply the work-around
+   for any GCC 4.7.x version on ia64.)
+   See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496 for details and the
+   current status of that bug.
 
 == Changelog ==
+
+=== mpfr-3.1.0.p1 (Leif Leonhardy, April 13th 2012) ===
+ * #12837: Work around GCC 4.7.0 bug on ia64 (Itanium), unfortunately by almost
+   completely disabling optimization on that platform.  (MPFR is also a pre-
+   requisite for building the GCC spkg; after that has been built, MPFR will
+   get rebuilt with normal optimization.)
+ * Use `patch` to apply patches.
+ * Apply all recent "official" upstream patches; the resulting MPFR version
+   then is 3.1.0-p8.
+ * Properly quote the parameter to the `configure` option `--libdir`.
+ * Export `CFLAGS`! Previously MPFR would not even have used "its own" flags
+   (extracted from `config.status` after configuring it with `CC` and `CFLAGS`
+   unset) if `CFLAGS`, set in its `spkg-install`, weren't already exported.
+   (Also export `CPPFLAGS` and `LDFLAGS`, to which `$CFLAG64` is now also added
+   if `SAGE64` is `yes`.)
+ * Add `$CFLAG64` to *required* `CFLAGS` if `SAGE64=yes`.
+ * Clean up the spkg; redirect all warnings and error messages to stderr; add
+   some messages.
 
 === mpfr-3.1.0.p0 (Jean-Pierre Flori, February 22nd, 2012) ===
  * #11666: Further cleanups and rebase on #12131, #12366 and #12548.

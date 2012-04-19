@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 if [ -z "$SAGE_LOCAL" ]; then
-    echo "Error: SAGE_LOCAL undefined - exiting..."
-    echo "Maybe run 'sage -sh'?"
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
 
@@ -12,93 +12,126 @@ unset RM
 mpfr_patch()
 {
     # Apply a patch on Solaris, but only on the sun4v architecture
-    # by default. On other Solaris systems, it can be overridden
-
+    # by default. On other Solaris systems, it can be overridden.
     # The patch to the C code was developed by Paul Zimmermann, the patch
-    # to the spkg-install by David Kirkby. See Ticket #6453
+    # to the spkg-install by David Kirkby. See Ticket #6453.
+    if [ "$UNAME" = SunOS ]; then
+        # Add a patch to MPFR on Solaris if either:
+        # 1) The machine is a sun4v architecture.
+        # 2) The environment variable INCLUDE_MPFR_PATCH is set to 1 or "yes".
+        #    This will allow creating of binaries on a machine other than
+        #    sun4v, which will run on sun4v.
+        echo
+        echo "This computer is running Solaris on which some problems have been observed"
+        echo "with the MPFR library running on a T2+ processor (sun4v architecture)."
+        echo "See http://sagetrac.org/sage_trac/ticket/6453  A patch can be applied"
+        echo "to bypass this problem.  The problem has NEVER been seen on Solaris on x86"
+        echo "or on sun4u (UltraSPARC II etc.).  To determine the architecture run:"
+        echo "    /usr/bin/arch -k"
+        echo "If you experience MPFR test failures, or you wish to ensure the binary will run"
+        echo "on a sun4v system, set the environment variable INCLUDE_MPFR_PATCH to 1, with:"
+        echo "    export INCLUDE_MPFR_PATCH=1"
+        echo "If you specifically wish to exclude the patch, set INCLUDE_MPFR_PATCH to 0 with:"
+        echo "    export INCLUDE_MPFR_PATCH=0"
+        echo "By default, the patch will only be applied on sun4v systems (T1, T2 and T2+"
+        echo "processors), but this can be overridden on other systems.  Binaries for"
+        echo "Solaris SPARC should be built with INCLUDE_MPFR_PATCH set to 1 or \"yes\","
+        echo "unless you are 100% sure they will not be used on a sun4v system."
+        echo
+        # Note: "/usr/bin/arch" will return "sun4" on any SPARC system.
+        # If given the '-k' option, aditional information will be displayed
+        # to indicate if the system is sun4m (very old), sun4u or sun4v.
 
-    if [ `uname` = "SunOS" ]; then
-       # Add a patch to MPFR on Solaris if either:
-       # 1) The machine is a sun4v architecture
-       # 2) The environment variable INCLUDE_MPFR_PATCH is set to 1
-       #    This will allow creating of binaries on a machine other than
-       #    sun4v, which will run on sun4v.
-       echo "\nThis computer is running Solaris on which some problems have been observed"
-       echo "with the MPFR library running on a T2+ processor (sun4v architecture)."
-       echo "See http://sagetrac.org/sage_trac/ticket/6453 A patch can be applied"
-       echo "to bypass this problem. The problem has NEVER been seen on Solaris running x86"
-       echo "or on sun4u (UltraSPARC II etc). To determine the architecture run:"
-       echo "$ /usr/bin/arch -k\n"
-       echo "If you experience MPFR test failures, or you wish to ensure the binary will run"
-       echo "on a sun4v system, set the environment variable INCLUDE_MPFR_PATCH to 1, with:"
-       echo "$ export INCLUDE_MPFR_PATCH=1\n"
-       echo "If you specifically wish to exclude the patch, set INCLUDE_MPFR_PATCH to 0 with"
-       echo "$ export INCLUDE_MPFR_PATCH=0\n"
-       echo "By default, the patch will only be applied on sun4v systems (T1, T2 and T2+)"
-       echo "processors but this can be over-ridden on other systems. Binaries for"
-       echo "Solaris SPARC binaries should be built with INCLUDE_MPFR_PATCH set to 1"
-       echo "unless you are 100% sure they will not be used on a sun4v system.\n"
+        # Set PATCH_MPFR to something other than 0 or 1 if it is unset:
+        PATCH_MPFR="${INCLUDE_MPFR_PATCH-2}"
+        do_apply=false
+        case "$PATCH_MPFR" in
+          1|yes)
+            echo "Since INCLUDE_MPFR_PATCH was set to 1 or \"yes\", the MPFR library will be"
+            echo "patched.  The binaries should be safe on any Solaris system."
+            do_apply=true;;
+          0|no)
+            echo "Since INCLUDE_MPFR_PATCH was set to 0 or \"no\", the MPFR library will not"
+            echo "be specifically patched.  You would be unwise to distribute SPARC binaries"
+            echo "unless you are sure they will not be used on sun4v systems.";;
+          2) # INCLUDE_MPFR_PATCH isn't set at all.
+            if [ "`arch -k`" = sun4v ]; then
+                echo "This is a sun4v system, so the MPFR library will be patched.  The binaries"
+                echo "should run correctly on any SPARC system whose operating system is"
+                echo "no older than the system used to build the binaries."
+                do_apply=true
+            else
+                echo "Since this is not a sun4v system, the MPFR binary will not be patched."
+                # Issue a warning on SPARC, but not (e.g.) x86 systems.
+                if [ "`arch`" = sun4 ]; then
+                    echo >&2 "WARNING: Problems may occur if you try to run this SPARC binary on a sun4v"
+                    echo >&2 "system (T1, T2 or T2+ processors).  Binaries created like this should not"
+                    echo >&2 "be distributed unless you know the end users' systems will not be sun4v."
+                    echo >&2 "Set INCLUDE_MPFR_PATCH to 1, to include the patch, if you are unsure."
+                fi
+            fi;;
+          *)
+            echo >&2 "Warning: The environment variable INCLUDE_MPFR_PATCH was incorrectly"
+            echo >&2 "set to \"$PATCH_MPFR\".  The MPFR library will be patched as a precaution."
+            do_apply=true
+        esac
+        if $do_apply && ! patch -p1 < ../patches/mpn_exp.c.patch; then
+            echo >&2 "Error: Patch for Solaris SPARC ('mpn_exp.c.patch') failed to apply."
+            exit 1
+        fi
+        echo
+    fi # $UNAME=SunOS
 
-       # Note, "/usr/bin/arch" will return "sun4" on any SPARC system
-       # If given the '-k' option, aditional information will be displayed
-       # to indicate if the system is sun4m (very old), sun4u or sun4v
+    # Apply official upstream patches (if any):
+    ls ../patches/upstream/*.patch &>/dev/null &&
+    echo "Applying official upstream patches..." &&
+    for patch in ../patches/upstream/*.patch; do
+        basename "$patch"
+        # We don't need '-N' and '-Z' here, options suggested by upstream:
+        if ! patch -p1 <"$patch"; then
+            echo >&2 "Error: '$patch' failed to apply."
+            exit 1
+        fi
+    done &&
+    echo
 
-       # Set the variable PATCH_MPFR to something other than 0 or 1"
-       PATCH_MPFR="${INCLUDE_MPFR_PATCH-2}"
-       if [ $PATCH_MPFR = "1" ] ; then
-          echo "Since INCLUDE_MPFR_PATCH was set to 1, the MPFR library will be patched."
-          echo "The binaries should be safe on any Solaris system"
-          cp ../patches/mpn_exp.c src/mpn_exp.c
-       elif [ $PATCH_MPFR = "0" ] ; then
-          echo "Since INCLUDE_MPFR_PATCH was set to 0, the MPFR library will not"
-          echo "be patched. You would be unwise to distribute SPARC binaries"
-          echo "unless you are sure they will not be used on sun4v systems"
-       elif [  $PATCH_MPFR = "2" -a `arch -k` = "sun4v" ] ; then
-          echo "This is a sun4v system, so the MPFR library will be patched. The binaries"
-          echo "should run correctly on any SPARC system whose operating system is"
-          echo "no older than the system used to build the binaries."
-          cp ../patches/mpn_exp.c src/mpn_exp.c
-       elif [ $PATCH_MPFR = "2" -a `arch -k` != "sun4v" ] ; then
-          echo "Since this is not a sun4v system, the MPFR binary will not"
-          echo "be patched"
-          # Issue a warning on SPARC, but not x86 systems.
-          if [ `arch` = "sun4" ]; then
-            echo "WARNING: Problems may occur if you try to run this SPARC"
-            echo "binary on a sun4v system (T1, T2 or T2+ processors). Binaries created like"
-            echo "this should not distributed unless you know the end users system will not"
-            echo "be sun4v. Set INCLUDE_MPFR_PATCH to 1, to include the patch, if you are unsure."
-          fi
-       else
-          echo "The environment variable INCLUDE_MPFR_PATCH was set incorrectly The MPFR"
-          echo "library will be patched as a precaution."
-          cp ../patches/mpn_exp.c src/mpn_exp.c
-       fi
-    fi
-
+    # Further patches for Sage should get applied here, i.e., after all
+    # upstream patches have been applied, which also means they should be
+    # based on the already (upstream-)patched upstream sources.
 }
 
 mpfr_get_upstream_selected_cflags() # Get MPFR's choice on empty CC and CFLAGS.
 {
     if [ $# -ne 1 ]; then
-        echo "Error: mpfr_get_upstream_selected_cflags() requires 'file' parameter."
+        echo >&2 "Error: mpfr_get_upstream_selected_cflags() requires 'file' parameter."
         exit 1
     fi
-    header_file=$1
+    config_file=$1
+    # Note: We currently extract MPFR's settings of CC and CFLAGS from
+    #       'config.status', not 'mpfr.h' (which are both created by 'configure').
     mpfr_cc_pat="s/^CC='\([^']*\)'/\1/p"
     mpfr_cflags_pat="s/^CFLAGS='\([^']*\)'/\1/p"
-    if ! [ -f "$header_file" ]; then
+    if ! [ -f "$config_file" ]; then
         upstream_cc=""
         upstream_cflags=""
         return 1
     fi
-    upstream_cc=`sed -n -e "$mpfr_cc_pat" "$header_file"`
-    upstream_cflags=`sed -n -e "$mpfr_cflags_pat" "$header_file"`
+    upstream_cc=`sed -n -e "$mpfr_cc_pat" "$config_file"`
+    upstream_cflags=`sed -n -e "$mpfr_cflags_pat" "$config_file"`
+    # CFLAGS might probably be empty, CC shouldn't:
+    if [ -z "$upstream_cc" ]; then
+        # A warning will be issued by the code calling this function.
+        return 1
+    fi
     return 0
 }
 
 mpfr_configure()
 {
-    sage_cc=$CC # Save Sage CC, because we need to unset it later.
+    ###########################################################################
+    # Set up environment variables:
+    ###########################################################################
+
     user_cflags=$CFLAGS # Save them. 'sage-env' sets CC, but not CFLAGS.
     required_cflags="" # Additional mandatory settings required by Sage, accumulated below.
     default_cflags="" # Spkg defaults that can and might get overridden.
@@ -106,43 +139,72 @@ mpfr_configure()
     if [ "$SAGE_DEBUG" = yes ]; then
         # Disable optimization, add debug symbols:
         required_cflags="$required_cflags -g -O0"
-        echo "Warning: Building MPFR with SAGE_DEBUG=yes disables optimization."
+        echo >&2 "Warning: Building MPFR with SAGE_DEBUG=yes disables optimization."
     else
         # Add debug symbols by default, enable optimization, but do not (yet)
         # add processor-specific flags (these are eventually added later):
         default_cflags="$default_cflags -g -O3"
     fi
 
-    if [ "$SAGE64" = "yes" ]; then
-        echo "Building a 64-bit version of MPFR."
-        default_cflags="$default_cflags -m64"
-    else
-        default_cflags="$default_cflags"
+    if [ "$SAGE64" = yes ]; then
+        if [ -z "$CFLAG64" ]; then
+            CFLAG64=-m64
+        fi
+        echo "Building a 64-bit version of MPFR (using '$CFLAG64')."
+        required_cflags="$required_cflags $CFLAG64"
+        CPPFLAGS="$CPPFLAGS $CFLAG64"
+        LDFLAGS="$LDFLAGS $CFLAG64"
+        # As MPFR doesn't have C++ files, we don't have to modify CXXFLAGS.
     fi
 
-    SAGE_CONF_OPTS="--libdir=$SAGE_LOCAL/lib --disable-thread-safe"
+    # Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs with
+    # '-O3', '-O2' and '-O1' (cf. #12837/#12765, #12751, and the bug URL below.)
+    if [ "`uname -m`" = ia64 ] && [ "`testcc.sh $CC`" = GCC ]; then
+        gcc_version=`$CC -dumpversion`
+        case "$gcc_version" in
+          4.7.*)
+            required_cflags="$required_cflags -O0 -finline-functions -fschedule-insns"
+            echo >&2 "Warning: Disabling almost all optimization due to a bug in (at least)"
+            echo >&2 "         GCC 4.7.0 on Itanium, which otherwise would break the build."
+            echo >&2 "         See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496"
+            echo >&2 "         for current status and further details."
+            echo >&2 "         (And please report to e.g. sage-devel in case you feel this bug"
+            echo >&2 "          should already be fixed in GCC $gcc_version.)"
+        esac
+    fi
+
+    # Enabling thread-safe (which meanwhile is or at least may be the default)
+    # currently causes problems on a few systems:
+    SAGE_CONF_OPTS="--disable-thread-safe"
+
+    # XXX What is the following supposed to achieve???
+    # (GMP/MPIR is a prerequisite for MPFR, and we always build MPIR with
+    # '--enable-gmpcompat', since MPFR and other packages won't build without
+    # that anyway.)
     if [ ! -f "$SAGE_LOCAL/include/gmp.h" ]; then
-         SAGE_CONF_OPTS="$SAGE_CONF_OPTS --disable-static --enable-shared"
+        SAGE_CONF_OPTS="$SAGE_CONF_OPTS --disable-static --enable-shared"
     fi
 
-    if [ $UNAME = "CYGWIN" ]; then
-         SAGE_CONF_OPTS="$SAGE_CONF_OPTS --disable-static --enable-shared"
-
+    if [ "$UNAME" = CYGWIN ]; then
+        SAGE_CONF_OPTS="$SAGE_CONF_OPTS --disable-static --enable-shared"
     fi
 
-    # Pre-configure MPFR to get the settings it would use if CC and CFLAGS were empty:
+    ###########################################################################
+    # Pre-configure MPFR with CC and CFLAGS unset:
+    ###########################################################################
     echo "Checking what CC and CFLAGS MPFR would use if they were empty..."
     if (unset CC CFLAGS CPPFLAGS CXXFLAGS &&
         ./configure --with-gmp="$SAGE_LOCAL" $SAGE_CONF_OPTS $MPFR_EXTRA_OPTS) &>/dev/null;
     then
-        if mpfr_get_upstream_selected_cflags config.status; then
+        mpfr_config_file=config.status
+        if mpfr_get_upstream_selected_cflags "$mpfr_config_file"; then
             mpfr_cflags=$upstream_cflags
             mpfr_cc=$upstream_cc
             echo "Settings chosen by MPFR when configuring with CC and CFLAGS unset:"
             echo "  CC:      $mpfr_cc"
             echo "  CFLAGS:  $mpfr_cflags"
         else
-            echo "Warning: Couldn't determine MPFR-selected CC and CFLAGS from 'mpfr.h'"
+            echo >&2 "Warning: Couldn't determine MPFR-selected CC and CFLAGS from '$mpfr_config_file'."
         fi
     else
         # We ignore errors in the first place, since we redirected all
@@ -151,7 +213,6 @@ mpfr_configure()
         :;
     fi
     find . -name config.cache -o -name config.status -exec rm -f {} \;
-    CC=$sage_cc
 
     echo "Settings required to properly build MPFR, taking into account SAGE_DEBUG etc.:"
     echo "  CFLAGS:  $required_cflags"
@@ -183,6 +244,7 @@ mpfr_configure()
     echo "Finally using the following settings:"
     echo "  CC=$CC"
     echo "  CFLAGS=$CFLAGS"
+    echo "  CPP=$CPP"
     echo "  CPPFLAGS=$CPPFLAGS"
     echo "  CXX=$CXX"
     echo "  CXXFLAGS=$CXXFLAGS"
@@ -190,55 +252,72 @@ mpfr_configure()
     echo "  ABI=$ABI"
     echo "(These settings may still get overridden by 'configure' or Makefiles.)"
 
-    ###############################################################################
+    export CFLAGS CPPFLAGS LDFLAGS # 'sage-env' does *not* export all of them.
+
+    ###########################################################################
     # Now really configure MPFR with proper settings:
-    ###############################################################################
+    ###########################################################################
+    echo
     if [ -z "$MPFR_EXTRA_OPTS" ]; then
         echo "Configuring MPFR with the following options:"
-        echo "    --prefix=\"$SAGE_LOCAL\" --with-gmp=\"$SAGE_LOCAL\" $SAGE_CONF_OPTS"
-        echo "You can set MPFR_EXTRA_OPTS to pass additional parameters."
     else
-        echo "Using additional 'configure' options as specified with" \
+        echo "Configuring MPFR with additional options as specified by" \
             "MPFR_EXTRA_OPTS:"
-        echo "    $MPFR_EXTRA_OPTS"
-        echo "Configuring MPFR with the following options:"
-        echo "    --prefix=\"$SAGE_LOCAL\" --with-gmp=\"$SAGE_LOCAL\" $SAGE_CONF_OPTS $MPFR_EXTRA_OPTS"
+        echo "  $MPFR_EXTRA_OPTS"
+        echo "Finally configuring MPFR with the following options:"
+    fi
+    echo "  --prefix=\"$SAGE_LOCAL\""
+    echo "  --libdir=\"$SAGE_LOCAL/lib\""
+    echo "  --with-gmp=\"$SAGE_LOCAL\""
+    for opt in $SAGE_CONF_OPTS $MPFR_EXTRA_OPTS; do
+        echo "  $opt"
+    done
+    if [ -z "$MPFR_EXTRA_OPTS" ]; then
+        echo "You can set MPFR_EXTRA_OPTS to pass additional parameters."
     fi
 
-    ./configure --prefix="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" $SAGE_CONF_OPTS $MPFR_EXTRA_OPTS
+    ./configure --prefix="$SAGE_LOCAL" \
+                --libdir="$SAGE_LOCAL/lib" \
+                --with-gmp="$SAGE_LOCAL" \
+                $SAGE_CONF_OPTS $MPFR_EXTRA_OPTS
 }
 
 mpfr_build()
 {
-    echo "Patching MPFR"
+    echo "Patching MPFR..."
     mpfr_patch
-    if [ $? -ne 0 ];  then
+    if [ $? -ne 0 ]; then
         echo >&2 "Error patching MPFR."
         exit 1
     fi
 
-    echo "Configuring MPFR"
+    echo
+    echo "Now configuring MPFR..."
     mpfr_configure
     if [ $? -ne 0 ]; then
-        echo >&2 "Error configuring MPFR."\
-            "(See above for the options passed to it.)"
+        echo >&2 "Error configuring MPFR."
+        echo >&2 "See above for the options passed to it, and the file"
+        echo >&2 "  `pwd`/config.log"
+        echo >&2 "for details."
         exit 1
     fi
 
-    echo "Building MPFR"
+    echo
+    echo "Now building MPFR..."
     $MAKE
-    if [ $? -ne 0 ];  then
+    if [ $? -ne 0 ]; then
         echo >&2 "Error building MPFR."
         exit 1
     fi
 
-    echo "Deleting old headers"
+    echo
+    echo "Building MPFR succeeded.  Now deleting old headers..."
     rm -f "$SAGE_LOCAL"/include/*mpfr*
     # Do not delete old libraries as this causes gcc to break during
     # parallel builds.
     # rm -f "$SAGE_LOCAL"/lib/libmpfr.*
 
-    echo "Installing MPFR"
+    echo "Now installing MPFR..."
     $MAKE install
     if [ $? -ne 0 ];  then
         echo >&2 "Error installing MPFR."
@@ -249,3 +328,4 @@ mpfr_build()
 cd src
 
 mpfr_build
+# All potential errors catched in the above function.

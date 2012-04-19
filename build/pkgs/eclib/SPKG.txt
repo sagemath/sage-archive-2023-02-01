@@ -42,6 +42,10 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20120419 (John Cremona, 19 April 2012) ===
+ * Source code update to revision 91afac16a596 (as at 19 April 2012), from
+   http://homepages.warwick.ac.uk/staff/J.E.Cremona/ftp/progs/eclib-2012-04-19.tar.gz
+
 === eclib-20120417.p2 (John Cremona, 18 April 2012) ===
  * Minor source code update to revision ed71f2904c55 (as at 18 April 2012), as at
    http://homepages.warwick.ac.uk/staff/J.E.Cremona/ftp/progs/eclib-2012-04-18.tar.gz

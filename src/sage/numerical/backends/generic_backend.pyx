@@ -839,7 +839,7 @@ def default_mip_solver(solver = None):
         sage: former_solver = default_mip_solver()
         sage: default_mip_solver("GLPK")
         sage: default_mip_solver()
-        'GLPK'
+        'Glpk'
         sage: default_mip_solver("Yeahhhhhhhhhhh")
         Traceback (most recent call last):
         ...

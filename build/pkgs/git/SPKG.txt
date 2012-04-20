@@ -27,6 +27,13 @@ need to do so, please use an external version of git.
 
 == Changelog ==
 
+=== git-1.7.10 (Keshav Kini, 2012-04-20) ===
+
+ * Upgrade to latest stable
+ * Fix building on OS X by making the installer ignore Fink and Darwin
+   Ports
+ * Make sure not to use the system Python for anything
+
 === git-1.7.9.4 (Keshav Kini, 2012-03-19) ===
 
  * Upgrade to latest stable

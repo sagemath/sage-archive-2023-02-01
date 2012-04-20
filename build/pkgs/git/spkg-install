@@ -8,6 +8,10 @@ die () {
 [ -n "$SAGE_LOCAL" ] || die 'Error: $SAGE_LOCAL not set. Source sage-env or run this script from `sage -sh`.'
 
 cd src
-./configure --prefix="$SAGE_LOCAL" || die 'Error configuring git.'
+export NO_FINK=1
+export NO_DARWIN_PORTS=1
+./configure --prefix="$SAGE_LOCAL" \
+            --with-python="$SAGE_LOCAL"/bin/python \
+            || die 'Error configuring git.'
 $MAKE || die 'Error building git.'
 $MAKE install || die 'Error installing git.'

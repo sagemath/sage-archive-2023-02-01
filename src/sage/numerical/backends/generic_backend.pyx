@@ -854,14 +854,16 @@ def default_mip_solver(solver = None):
             return default_solver
 
         else:
-            for s in ["CPLEX", "Gurobi", "Coin", "GLPK"]:
+            for s in ["Cplex", "Gurobi", "Coin", "Glpk"]:
                 try:
                     default_mip_solver(s)
                     return s
                 except ValueError:
                     pass
 
-    elif solver == "CPLEX":
+    solver = solver.capitalize()
+
+    if solver == "Cplex":
         try:
             from sage.numerical.backends.cplex_backend import CPLEXBackend
             default_solver = solver
@@ -882,7 +884,7 @@ def default_mip_solver(solver = None):
         except ImportError:
             raise ValueError("Gurobi is not available. Please refer to the documentation to install it.")
 
-    elif solver == "GLPK":
+    elif solver == "Glpk":
         default_solver = solver
 
     else:
@@ -935,17 +937,20 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
         # We do not want to use Coin for constraint_generation. It just does not
         # work
         if solver == "Coin" and constraint_generation:
-            solver = "GLPK"
+            solver = "Glpk"
+
+    else:
+        solver = solver.capitalize()
 
     if solver == "Coin":
         from sage.numerical.backends.coin_backend import CoinBackend
         return CoinBackend()
 
-    elif solver == "GLPK":
+    elif solver == "Glpk":
         from sage.numerical.backends.glpk_backend import GLPKBackend
         return GLPKBackend()
 
-    elif solver == "CPLEX":
+    elif solver == "Cplex":
         from sage.numerical.backends.cplex_backend import CPLEXBackend
         return CPLEXBackend()
 

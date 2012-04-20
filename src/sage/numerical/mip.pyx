@@ -52,7 +52,7 @@ A mixed integer linear program can give you an answer:
 
 The following example shows all these steps::
 
-    sage: p = MixedIntegerLinearProgram(maximization=False)
+    sage: p = MixedIntegerLinearProgram(maximization=False, solver = "GLPK")
     sage: w = p.new_variable(integer=True)
     sage: p.add_constraint(w[0] + w[1] + w[2] - 14*w[3] == 0)
     sage: p.add_constraint(w[1] + 2*w[2] - 8*w[3] == 0)
@@ -96,7 +96,9 @@ cdef class MixedIntegerLinearProgram:
     programming (LP) and mixed integer programming (MIP) solvers.
 
     See the Wikipedia article on `linear programming
-    <http://en.wikipedia.org/wiki/Linear_programming>`_ for further information.
+    <http://en.wikipedia.org/wiki/Linear_programming>`_ for further information
+    on linear programming and the documentation of the :mod:`MILP module
+    <sage.numerical.mip>` for its use in Sage.
 
     A mixed integer program consists of variables, linear constraints on these
     variables, and an objective function which is to be maximised or minimised
@@ -105,7 +107,7 @@ cdef class MixedIntegerLinearProgram:
 
     INPUT:
 
-    - ``solver`` -- 3 solvers should be available through this class:
+    - ``solver`` -- 4 solvers should be available through this class:
 
       - GLPK (``solver="GLPK"``). See the `GLPK
         <http://www.gnu.org/software/glpk/>`_ web site.
@@ -116,7 +118,7 @@ cdef class MixedIntegerLinearProgram:
       - CPLEX (``solver="CPLEX"``). See the `CPLEX
         <http://www.ilog.com/products/cplex/>`_ web site.
 
-      - GUROBI (``solver="GUROBI"``). See the `GUROBI <http://www.gurobi.com/>`_
+      - Gurobi (``solver="Gurobi"``). See the `Gurobi <http://www.gurobi.com/>`_
           web site.
 
       - If ``solver=None`` (default), the default solver is used (see
@@ -158,7 +160,7 @@ cdef class MixedIntegerLinearProgram:
 
         INPUT:
 
-        - ``solver`` -- 3 solvers should be available through this class:
+        - ``solver`` -- 4 solvers should be available through this class:
 
           - GLPK (``solver="GLPK"``). See the `GLPK
             <http://www.gnu.org/software/glpk/>`_ web site.
@@ -170,7 +172,7 @@ cdef class MixedIntegerLinearProgram:
             <http://www.ilog.com/products/cplex/>`_ web site.  An interface to
             CPLEX is not yet implemented.
 
-          - GUROBI (``solver="GUROBI"``). See the `GUROBI
+          - Gurobi (``solver="Gurobi"``). See the `Gurobi
             <http://www.gurobi.com/>`_ web site.
 
           -If ``solver=None`` (default), the default solver is used (see
@@ -494,7 +496,7 @@ cdef class MixedIntegerLinearProgram:
 
         Running the examples from above, reordering applied::
 
-            sage: p = MixedIntegerLinearProgram()
+            sage: p = MixedIntegerLinearProgram(solver = "GLPK")
             sage: p.add_constraint(p[0] - p[2], min = 1, max = 4)
             sage: p.add_constraint(p[0] - 2*p[1], min = 1)
             sage: sorted(map(reorder_constraint,p.constraints()))
@@ -542,7 +544,7 @@ cdef class MixedIntegerLinearProgram:
 
         When constraints and variables have names ::
 
-            sage: p = MixedIntegerLinearProgram()
+            sage: p = MixedIntegerLinearProgram(solver = "GLPK")
             sage: x = p.new_variable(name="Hey")
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2, name="Constraint_1")
@@ -557,7 +559,7 @@ cdef class MixedIntegerLinearProgram:
 
         Without any names ::
 
-            sage: p = MixedIntegerLinearProgram()
+            sage: p = MixedIntegerLinearProgram(solver = "GLPK")
             sage: x = p.new_variable()
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
@@ -834,8 +836,7 @@ cdef class MixedIntegerLinearProgram:
             sage: round(p.solve(),5)
             6.66667
             sage: p.set_objective(None)
-            sage: p.solve()
-            0.0
+            sage: _ = p.solve()
         """
         cdef list values = []
 
@@ -937,7 +938,7 @@ cdef class MixedIntegerLinearProgram:
 
         Complex constraints::
 
-            sage: p = MixedIntegerLinearProgram()
+            sage: p = MixedIntegerLinearProgram(solver = "GLPK")
             sage: b = p.new_variable()
             sage: p.add_constraint( b[8] - b[15] <= 3*b[8] + 9)
             sage: p.show()
@@ -968,7 +969,7 @@ cdef class MixedIntegerLinearProgram:
 
         Do not add redundant elements (notice only one copy of each constraint is added)::
 
-            sage: lp = MixedIntegerLinearProgram(check_redundant=True)
+            sage: lp = MixedIntegerLinearProgram(solver = "GLPK", check_redundant=True)
             sage: for each in xrange(10): lp.add_constraint(lp[0]-lp[1],min=1)
             sage: lp.show()
             Maximization:

@@ -1,5 +1,11 @@
 r"""
 Unique Representation
+
+Abstract class for singleton and unique representation behavior.
+
+.. SEEALSO::
+
+   :class:`sage.structure.factory.UniqueFactory`
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -17,7 +23,7 @@ Unique Representation
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_function
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 
 class UniqueRepresentation:
     """
@@ -123,12 +129,13 @@ class UniqueRepresentation:
     Similarly, the identity is used as hash function, which is also as
     fast as it can get. However this means that the hash function may
     change in between Sage sessions, or even within the same Sage
-    session (see below). Subclasses should overload :meth:`__hash__`
+    session (see below). Subclasses should overload :meth:`__hash__ <object.__hash__>`
     if this could be a problem.
 
 
     The arguments can consist of any combination of positional or
-    keyword arguments, as taken by a usual :meth:`__init__`
+    keyword arguments, as taken by a usual
+    :meth:`__init__ <object.__init__>`
     function. However, all values passed in should be hashable::
 
         sage: MyClass(value = [1,2,3])
@@ -195,21 +202,21 @@ class UniqueRepresentation:
     implementation of ``__classcall__`` provided by
     :class:`UniqueRepresentation`. This one in turn handles the caching
     and, if needed, constructs and initializes a new object in the
-    class using :meth:`__new__` and :meth:`__init__` as usual.
+    class using :meth:`__new__<object.__new__>` and :meth:`__init__<object.__init__>` as usual.
 
     Constraints:
 
-     - :meth:`__classcall__` is a staticmethod (like, implicitly, :meth:`__new__`)
+     - :meth:`__classcall__` is a staticmethod (like, implicitly, :meth:`__new__<object.__new__>`)
 
      - the preprocessing on the arguments should be
-       idempotent. Namely, If :meth:`MyClass2.__classcall__` calls
+       idempotent. Namely, If ``MyClass2.__classcall__`` calls
        ``UniqueRepresentation.__classcall__(<some_arguments>)``, then
        it should accept <some_arguments> as its own input, and pass it
        down unmodified to :meth:`UniqueRepresentation.__classcall__`.
-     - :meth:`MyClass2.__classcall__` should return the result of
+     - ``MyClass2.__classcall__`` should return the result of
        :meth:`UniqueRepresentation.__classcall__` without modifying it.
 
-    Other than that :meth:`MyClass2.__classcall__` may play any tricks,
+    Other than that ``MyClass2.__classcall__`` may play any tricks,
     like acting as a Factory and returning object from other classes.
 
     .. rubric:: Unique representation and mutability
@@ -260,7 +267,7 @@ class UniqueRepresentation:
     the same object already exists.
 
     :class:`UniqueRepresentation` tries to ensure appropriate pickling by
-    implementing a :meth:`__reduce__` method returning the arguments
+    implementing a :meth:`__reduce__ <object.__reduce__>` method returning the arguments
     passed to the constructor::
 
         sage: import __main__             # Fake MyClass being defined in a python module
@@ -269,9 +276,10 @@ class UniqueRepresentation:
         sage: loads(dumps(x)) is x
         True
 
-    :class:`UniqueRepresentation` uses the :meth:`__reduce__` pickle
-    protocol rather than :meth:`__getnewargs__` because the later does
-    not handle keyword arguments::
+    :class:`UniqueRepresentation` uses the :meth:`__reduce__
+    <object.__reduce__>` pickle protocol rather than :meth:`__getnewargs__
+    <object.__getnewargs__>` because the later does not handle keyword
+    arguments::
 
         sage: x = MyClass(value = 1)
         sage: x.__reduce__()
@@ -279,16 +287,18 @@ class UniqueRepresentation:
         sage: x is loads(dumps(x))
         True
 
-    Caveat: the default implementation of :meth:`__reduce__` in
-    :class:`UniqueRepresentation` requires to store the constructor's
-    arguments in the instance dictionary upon construction::
+    .. warning::
 
-        sage: x.__dict__
-        {'_reduction': (<class '__main__.MyClass'>, (), {'value': 1}), 'value': 1}
+        the default implementation of :meth:`__reduce__ <object.__reduce__>`
+        in :class:`UniqueRepresentation` requires to store the constructor's
+        arguments in the instance dictionary upon construction::
 
-    It is often easy in a derived subclass to reconstruct the
-    constructors arguments from the instance data structure. When this
-    is the case, :meth:`__reduce__` should be overridden; automagically
+            sage: x.__dict__
+            {'_reduction': (<class '__main__.MyClass'>, (), {'value': 1}), 'value': 1}
+
+    It is often easy in a derived subclass to reconstruct the constructors
+    arguments from the instance data structure. When this is the case,
+    :meth:`__reduce__ <object.__reduce__>` should be overridden; automagically
     the arguments won't be stored anymore::
 
         sage: class MyClass3(UniqueRepresentation):
@@ -387,8 +397,8 @@ class UniqueRepresentation:
     :class:`~sage.misc.classcall_metaclass.ClasscallMetaclass`
     of the standard Python type. The following example explains why.
 
-    We define a variant of ``MyClass`` where the calls to :meth:`__init__`
-    are traced::
+    We define a variant of ``MyClass`` where the calls to
+    :meth:`__init__<object.__init__>` are traced::
 
         sage: class MyClass(UniqueRepresentation):
         ...       def __init__(self, value):
@@ -402,19 +412,21 @@ class UniqueRepresentation:
         initializing object
         sage: z = MyClass(1)
 
-    As desired the __init__ method was only called the first time,
-    which is an important feature.
+    As desired the :meth:`__init__<object.__init__>` method was only called
+    the first time, which is an important feature.
 
     As far as we can tell, this is not achievable while just using
-    :meth:`__new__` and :meth:`__init__` (as defined by type; see
-    Section "Basic Customization" in the Python Reference
-    Manual). Indeed, :meth:`__init__` is called systematically on the
-    result of :meth:`__new__` whenever the result is an instance of
-    the class.
+    :meth:`__new__<object.__new__>` and :meth:`__init__<object.__init__>` (as
+    defined by type; see Section :python:`Basic Customization
+    <reference/datamodel.html#basic-customization>` in the Python Reference
+    Manual). Indeed, :meth:`__init__<object.__init__>` is called
+    systematically on the result of :meth:`__new__<object.__new__>` whenever
+    the result is an instance of the class.
 
-    Another difficulty is that argument preprocessing (as in the
-    example above) cannot be handled by :meth:`__new__`, since the
-    unprocessed arguments will be passed down to :meth:`__init__`.
+    Another difficulty is that argument preprocessing (as in the example
+    above) cannot be handled by :meth:`__new__<object.__new__>`, since the
+    unprocessed arguments will be passed down to
+    :meth:`__init__<object.__init__>`.
 
     .. rubric:: Mixing super types and super classes
 
@@ -432,6 +444,8 @@ class UniqueRepresentation:
 
     __metaclass__ = ClasscallMetaclass
 
+    _included_private_doc_ = ["__classcall__"]
+
     @cached_function # automatically a staticmethod
     def __classcall__(cls, *args, **options):
         """
@@ -446,7 +460,7 @@ class UniqueRepresentation:
             sage: x is y
             True
         """
-        instance = type.__call__(cls, *args, **options)
+        instance = typecall(cls, *args, **options)
         assert isinstance( instance, cls )
         if instance.__class__.__reduce__ == UniqueRepresentation.__reduce__:
             instance._reduction = (cls, args, options)
@@ -537,7 +551,7 @@ class UniqueRepresentation:
 
     def __reduce__(self):
         """
-        Returns the argument that have been passed to :meth:`__new__`
+        Returns the argument that have been passed to :meth:`__new__<object.__new__>`
         to construct this object, as per the pickle protocol.
 
         See also :class:`UniqueRepresentation` for a discussion.

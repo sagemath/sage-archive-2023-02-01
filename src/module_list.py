@@ -1096,6 +1096,9 @@ ext_modules = [
     Extension('sage.misc.sage_timeit_class',
               sources = ['sage/misc/sage_timeit_class.pyx']),
 
+    Extension('sage.misc.classcall_metaclass',
+              sources = ['sage/misc/classcall_metaclass.pyx']),
+
     Extension('sage.misc.sagex_ds',
               sources = ['sage/misc/sagex_ds.pyx']),
 

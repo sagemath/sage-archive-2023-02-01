@@ -55,7 +55,7 @@ class MatrixPlot(GraphicPrimitive):
         sage: M.options()
         {'cmap': 'winter'}
 
-    Extra options will get passed on to :meth:`~sage.plot.plot.Graphics.show`, as long as they are valid::
+    Extra options will get passed on to :meth:`~Graphics.show`, as long as they are valid::
 
         sage: matrix_plot([[1, 0], [0, 1]], fontsize=10)
         sage: matrix_plot([[1, 0], [0, 1]]).show(fontsize=10) # These are equivalent
@@ -446,7 +446,7 @@ def matrix_plot(mat, **options):
     """
     import numpy as np
     import scipy.sparse as scipysparse
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     from sage.matrix.all import is_Matrix
     from sage.rings.all import RDF
     orig_mat=mat

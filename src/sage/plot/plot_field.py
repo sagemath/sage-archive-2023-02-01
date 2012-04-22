@@ -175,7 +175,7 @@ def plot_vector_field((f, g), xrange, yrange, **options):
         sage: plot_vector_field((x, y), (x, -2, 2), (y, -2, 2), xmax=10)
         sage: plot_vector_field((x, y), (x, -2, 2), (y, -2, 2)).show(xmax=10) # These are equivalent
     """
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
     z, ranges = setup_for_eval_on_grid([f,g], [xrange, yrange], options['plot_points'])
     f,g = z

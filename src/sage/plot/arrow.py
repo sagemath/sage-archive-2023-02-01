@@ -419,7 +419,7 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
         sage: arrow2d((-2, 2), (7,1), frame=True)
         sage: arrow2d((-2, 2), (7,1)).show(frame=True)
     """
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     if headpoint is not None and tailpoint is not None:

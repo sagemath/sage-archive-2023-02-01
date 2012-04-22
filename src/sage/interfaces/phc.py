@@ -659,7 +659,7 @@ class PHC:
             sage: end_sys = [x^5-25,y^5-x^2]           #optional
             sage: testing = phc.plot_paths_2d(start_sys, end_sys, R2)  #optional
             sage: type(testing)                        #optional (normally use plot here)
-            <class 'sage.plot.plot.Graphics'>
+            <class 'sage.plot.graphics.Graphics'>
         """
         paths = phc.path_track(start_sys, end_sys, input_ring, c_skew = c_skew, saved_start = saved_start)
         path_lines = []

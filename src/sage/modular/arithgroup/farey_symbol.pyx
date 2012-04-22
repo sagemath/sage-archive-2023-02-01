@@ -40,7 +40,7 @@ from congroup_gamma  import is_Gamma
 from congroup_sl2z import SL2Z
 from sage.modular.cusps import Cusp
 
-from sage.plot.plot import Graphics
+from sage.plot.all import Graphics
 from sage.plot.colors import to_mpl_color
 from sage.plot.misc import options, rename_keyword
 from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text

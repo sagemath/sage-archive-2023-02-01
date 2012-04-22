@@ -1178,7 +1178,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: D.plot(label_elements=False)
             sage: D.plot()
             sage: type(D.plot())
-            <class 'sage.plot.plot.Graphics'>
+            <class 'sage.plot.graphics.Graphics'>
             sage: elm_labs = {1:'a', 2:'b', 3:'c', 4:'d', 5:'e'}
             sage: D.plot(element_labels=elm_labs)
 

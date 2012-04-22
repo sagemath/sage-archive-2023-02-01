@@ -1,10 +1,5 @@
-from plot import (Graphics, plot,
-                  graphics_array,
-                  list_plot, parametric_plot,
-                  polar_plot,
-                  is_Graphics,
-                  show_default)
-
+from graphics import show_default, Graphics, is_Graphics
+from plot import plot, graphics_array, list_plot, parametric_plot, polar_plot
 from line import line, line2d
 from arrow import arrow, arrow2d
 from bar_chart import bar_chart

@@ -467,7 +467,7 @@ class SuffixTrie(SageObject):
 
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: type(SuffixTrie(Word("cacao")).plot())
-            <class 'sage.plot.plot.Graphics'>
+            <class 'sage.plot.graphics.Graphics'>
         """
         tree = self.to_digraph()
         for (u,v,label) in tree.edge_iterator():
@@ -868,9 +868,9 @@ class ImplicitSuffixTree(SageObject):
 
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: type(ImplicitSuffixTree(Word('cacao')).plot(word_labels=True))
-            <class 'sage.plot.plot.Graphics'>
+            <class 'sage.plot.graphics.Graphics'>
             sage: type(ImplicitSuffixTree(Word('cacao')).plot(word_labels=False))
-            <class 'sage.plot.plot.Graphics'>
+            <class 'sage.plot.graphics.Graphics'>
         """
         tree = self.to_digraph(word_labels=word_labels)
         if word_labels:

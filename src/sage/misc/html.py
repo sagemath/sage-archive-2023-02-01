@@ -313,7 +313,7 @@ class HTML:
             <th>a</th>
         """
         column_tag = "<th>%s</th>" if header else "<td>%s</td>"
-        from sage.plot.plot import Graphics
+        from sage.plot.all import Graphics
         import types
         if isinstance(row, types.GeneratorType):
             row = list(row)

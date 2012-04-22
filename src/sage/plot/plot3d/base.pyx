@@ -49,7 +49,7 @@ include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
 
-from sage.plot.plot import show_default
+from sage.plot.all import show_default
 
 # import the double infinity constant
 cdef extern from "math.h":

@@ -597,7 +597,7 @@ class GraphGenerators():
             ...           n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...       j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
 
         TESTS:
@@ -951,7 +951,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
         """
         pos_dict = {}
@@ -1044,7 +1044,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
 
         Compare to plotting with the spring-layout algorithm::
@@ -1062,7 +1062,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
         """
         pos_dict = {}
@@ -1692,7 +1692,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
         """
         pos_dict = {}
@@ -1744,7 +1744,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
         """
         pos_dict = {}
@@ -1912,7 +1912,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
 
         Compared to plotting with the spring-layout algorithm
@@ -1932,7 +1932,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
         """
         pos_dict = {}
@@ -1980,7 +1980,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
 
         Next, using the spring-layout algorithm::
@@ -1999,7 +1999,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
 
         Compare the plotting::
@@ -2066,7 +2066,7 @@ class GraphGenerators():
             ...    for m in range(2):
             ...        n.append(g[i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
         """
         import networkx
@@ -2118,7 +2118,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
         """
         return graph.Graph({0:[1,3,4], 1:[2,5], 2:[3,6], 3:[7], 4:[5,7],\
@@ -2176,7 +2176,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
         """
         import networkx
@@ -2238,7 +2238,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
         """
         import networkx
@@ -2297,7 +2297,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
         """
         import networkx
@@ -4091,7 +4091,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
 
         Compare to plotting with the spring-layout algorithm::
@@ -4109,7 +4109,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
 
         Passing a 1 into adjacency should give the cycle.
@@ -4188,7 +4188,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
 
         We compare to plotting with the spring-layout algorithm::
@@ -4207,7 +4207,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
 
         Compare the constructors (results will vary)
@@ -4313,7 +4313,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
 
         We compare to plotting with the spring-layout algorithm::
@@ -4331,7 +4331,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
 
         Trac ticket #12155::
@@ -4433,7 +4433,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show(figsize=[6,4]) # long time
 
         Use the plot options to display larger `n`-cubes
@@ -4523,7 +4523,7 @@ class GraphGenerators():
             ...       for j in range(3):
             ...           n.append(A[3*i + j].plot(vertex_size=20, vertex_labels=False))
             ...       B.append(n)
-            sage: G = sage.plot.plot.GraphicsArray(B)
+            sage: G = sage.plot.graphics.GraphicsArray(B)
             sage: G.show()  # long time
 
         For `n = 1`, the friendship graph `F_1` is isomorphic to the cycle
@@ -5147,7 +5147,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show() # long time
             sage: graphs.RandomGNP(4,1)
             Complete graph: Graph on 4 vertices
@@ -5235,7 +5235,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show()  # long time
 
         """
@@ -5353,7 +5353,7 @@ class GraphGenerators():
             ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage: G = sage.plot.graphics.GraphicsArray(j)
             sage: G.show()  # long time
         """
         if seed is None:

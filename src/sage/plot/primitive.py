@@ -148,7 +148,7 @@ class GraphicPrimitive(SageObject):
             sage: GraphicPrimitive({}).options()
             {}
         """
-        from sage.plot.plot import do_verify
+        from sage.plot.graphics import do_verify
         from sage.plot.colors import hue
         O = dict(self.__options)
         if do_verify:

@@ -123,7 +123,7 @@ class HasseDiagram(DiGraph):
             sage: levels = H.level_sets()
             sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
             sage: type(H.plot(label_elements=True))
-            <class 'sage.plot.plot.Graphics'>
+            <class 'sage.plot.graphics.Graphics'>
 
         ::
 

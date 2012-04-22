@@ -206,13 +206,13 @@ which only work in dimension two or three)::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.misc.functional import det
 from sage.structure.sage_object import SageObject
 from sage.combinat.words.morphism import WordMorphism
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from sage.plot.plot import Graphics
-from sage.plot.plot import rainbow
+from sage.plot.all import Graphics
 from sage.plot.colors import Color
 from sage.plot.polygon import polygon
 from sage.plot.line import line

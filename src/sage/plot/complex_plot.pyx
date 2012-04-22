@@ -314,7 +314,7 @@ def complex_plot(f, xrange, yrange, **options):
 
         sage: complex_plot(sqrt, (-5, 5), (-5, 5))
     """
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
     from sage.ext.fast_callable import fast_callable
     from sage.rings.complex_double import CDF

@@ -221,7 +221,7 @@ def density_plot(f, xrange, yrange, **options):
 
         sage: density_plot(log(x) + log(y), (x, 1, 10), (y, 1, 10)).show(dpi=20) # These are equivalent
     """
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
     g, ranges = setup_for_eval_on_grid([f], [xrange, yrange], options['plot_points'])
     g = g[0]

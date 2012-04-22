@@ -282,7 +282,7 @@ def disk(point, radius, angle, **options):
         ...
         ValueError: The center point of a plotted disk should have two or three coordinates.
     """
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Disk(point, radius, angle, options))

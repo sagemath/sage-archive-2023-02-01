@@ -100,11 +100,11 @@ class Animation(SageObject):
         """
         w = []
         for x in v:
-            if not isinstance(x, plot.Graphics):
+            if not isinstance(x, sage.plot.graphics.Graphics):
                 x = plot.plot(x, (kwds.get('xmin',0), kwds.get('xmax', 1)))
             w.append(x)
         if len(w) == 0:
-            w = [plot.Graphics()]
+            w = [sage.plot.graphics.Graphics()]
         self.__frames = w
         self.__kwds = kwds
 

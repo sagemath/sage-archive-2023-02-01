@@ -128,7 +128,7 @@ def hyperbolic_arc(a, b, **options):
 
          sage: hyperbolic_arc(I, 2*I, linestyle='dashed')
     """
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(g._extract_kwds_for_show(options))
     g.add_primitive(HyperbolicArc(a, b, options))

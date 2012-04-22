@@ -224,7 +224,7 @@ from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.misc import prod
 from sage.combinat.all import WeylGroup
-from sage.plot.plot import Graphics
+from sage.plot.all import Graphics
 from sage.plot.polygon import polygon
 from sage.plot.line import line
 from sage.plot.circle import circle

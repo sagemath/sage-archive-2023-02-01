@@ -473,7 +473,7 @@ def contour_plot(f, xrange, yrange, **options):
         sage: x,y = var('x,y')
         sage: contour_plot(x-y^2,(x,-5,5),(y,-3,3),contours=[-4,-2,0], fill=False)
     """
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
     g, ranges = setup_for_eval_on_grid([f], [xrange, yrange], options['plot_points'])
     g = g[0]
@@ -744,7 +744,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     """
 
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
     import numpy
 

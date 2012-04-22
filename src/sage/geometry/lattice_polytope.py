@@ -2365,7 +2365,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Plot with facets of different colors::
 
-            sage: c.plot3d(facet_colors=sage.plot.plot.rainbow(c.nfacets(), 'rgbtuple'))
+            sage: c.plot3d(facet_colors=rainbow(c.nfacets(), 'rgbtuple'))
 
         It is also possible to plot lower dimensional polytops in 3D (let's
         also change labels of vertices)::

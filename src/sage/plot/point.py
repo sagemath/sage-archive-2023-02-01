@@ -367,7 +367,8 @@ def point2d(points, **options):
 
         sage: point((3,4), pointsize=100)
     """
-    from sage.plot.plot import xydata_from_point_list, Graphics
+    from sage.plot.plot import xydata_from_point_list
+    from sage.plot.all import Graphics
     if points == []:
         return Graphics()
     xdata, ydata = xydata_from_point_list(points)

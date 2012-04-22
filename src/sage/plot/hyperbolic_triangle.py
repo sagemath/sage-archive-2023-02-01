@@ -138,7 +138,7 @@ def hyperbolic_triangle(a, b, c, **options):
 
          sage: hyperbolic_triangle(0, 1, 2+i, fill=true, rgbcolor='red')
     """
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(g._extract_kwds_for_show(options))
     g.add_primitive(HyperbolicTriangle(a, b, c, options))

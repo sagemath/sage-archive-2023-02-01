@@ -4,7 +4,7 @@ Colors
 This module defines a :class:`Color` object and helper functions (see,
 e.g., :func:`hue`, :func:`rainbow`), as well as a set of
 :data:`colors` and :data:`colormaps` to use with
-:class:`sage.plot.plot.Graphics` objects in Sage.
+:class:`Graphics` objects in Sage.
 
 For a list of pre-defined colors in Sage, evaluate::
 

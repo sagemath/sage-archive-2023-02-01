@@ -349,7 +349,7 @@ def arc(center, r1, r2=None, angle=0.0, sector=(0.0,2*pi), **options):
         ...
         NotImplementedError
     """
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     if len(center)==2:
         if r2 is None: r2 = r1
         g = Graphics()

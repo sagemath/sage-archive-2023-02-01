@@ -73,7 +73,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.modules.free_module_element import vector
-from sage.plot.plot import line, Graphics, polygon
+from sage.plot.all import line, Graphics, polygon
 from sage.plot.plot3d.shapes2 import line3d
 from sage.geometry.polyhedron.constructor import Polyhedron
 

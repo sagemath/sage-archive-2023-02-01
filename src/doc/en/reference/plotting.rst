@@ -5,6 +5,7 @@
    :maxdepth: 2
 
    sage/plot/plot
+   sage/plot/graphics
    sage/plot/animate
    sage/plot/arc
    sage/plot/arrow

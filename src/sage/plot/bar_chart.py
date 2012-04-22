@@ -19,7 +19,8 @@ Bar Charts
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
-from sage.plot.plot import minmax_data, Graphics
+from sage.plot.plot import minmax_data
+from sage.plot.graphics import Graphics
 from sage.misc.decorators import options, rename_keyword
 
 #TODO: make bar_chart more general

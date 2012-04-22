@@ -312,7 +312,7 @@ def circle(center, radius, **options):
         sage: P.aspect_ratio()
         1.0
     """
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Circle(center[0], center[1], radius, options))

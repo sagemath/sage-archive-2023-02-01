@@ -272,7 +272,7 @@ def ellipse(center, r1, r2, angle=0, **options):
         ...
         NotImplementedError: plotting ellipse in 3D is not implemented
     """
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Ellipse(center[0],center[1],r1,r2,angle,options))

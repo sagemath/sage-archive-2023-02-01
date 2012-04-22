@@ -2270,7 +2270,7 @@ def pretty_print (object):
     import __builtin__
     __builtin__._=object
 
-    from sage.plot.plot import Graphics
+    from sage.plot.all import Graphics
     from sage.plot.plot3d.base import Graphics3d
     if isinstance(object, (Graphics, Graphics3d)):
         print repr(object)

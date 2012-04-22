@@ -30,7 +30,8 @@ include "../ext/interrupt.pxi"
 
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options
-from sage.plot.plot import list_plot, Graphics, setup_for_eval_on_grid
+from sage.plot.all import list_plot, Graphics
+from sage.plot.misc import setup_for_eval_on_grid
 
 from sage.ext.fast_eval import fast_callable
 

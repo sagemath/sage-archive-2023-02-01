@@ -837,7 +837,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 sage: G = L.plot(size=[[-1..1],[-1..1]],alcovewalks=[[0,2,0,1,2,1,2,0,2,1]])
             """
 
-            from sage.plot.plot import Graphics
+            from sage.plot.all import Graphics
             from sage.plot.line import line
             from cartan_type import CartanType
             from sage.matrix.constructor import matrix

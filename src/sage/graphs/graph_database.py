@@ -103,7 +103,7 @@ def graph6_to_plot(graph6):
 
         sage: from sage.graphs.graph_database import graph6_to_plot
         sage: type(graph6_to_plot('D??'))
-        <class 'sage.plot.plot.Graphics'>
+        <class 'sage.plot.graphics.Graphics'>
     """
     g = Graph(str(graph6))
     return g.plot(layout='circular',vertex_size=30,vertex_labels=False,graph_border=False)

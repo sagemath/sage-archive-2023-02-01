@@ -430,7 +430,8 @@ def line2d(points, **options):
         sage: line([(0,1), (3,4)], figsize=[10, 2])
         sage: line([(0,1), (3,4)]).show(figsize=[10, 2]) # These are equivalent
     """
-    from sage.plot.plot import Graphics, xydata_from_point_list
+    from sage.plot.all import Graphics
+    from sage.plot.plot import xydata_from_point_list
     if points == []:
         return Graphics()
     xdata, ydata = xydata_from_point_list(points)

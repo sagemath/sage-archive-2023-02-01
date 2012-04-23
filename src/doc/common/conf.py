@@ -490,12 +490,6 @@ def call_intersphinx(app, env, node, contnode):
         debug_inf(app, "---- Intersphinx: %s not Found"%node['reftarget'])
     return res
 
-# lists of basic Python class which are documented as functions
-base_class_as_func = [
-    'bool', 'complex', 'dict', 'file', 'float',
-    'frozenset', 'int', 'list', 'long', 'object',
-    'set', 'slice', 'str', 'tuple', 'type', 'unicode', 'xrange']
-
 def find_sage_dangling_links(app, env, node, contnode):
     """
     Try to find dangling link in local module imports or all.py.
@@ -576,6 +570,32 @@ def find_sage_dangling_links(app, env, node, contnode):
     newnode.append(contnode)
     return newnode
 
+# lists of basic Python class which are documented as functions
+base_class_as_func = [
+    'bool', 'complex', 'dict', 'file', 'float',
+    'frozenset', 'int', 'list', 'long', 'object',
+    'set', 'slice', 'str', 'tuple', 'type', 'unicode', 'xrange']
+
+# Nit picky option configuration: Put here broken links we want to ignore. For
+# link to the Python documentation several links where broken because there
+# where class listed as functions. Expand the list 'base_class_as_func'
+# above instead of marking the link as broken.
+nitpick_ignore = (
+    ('py:class', 'twisted.web2.resource.Resource'),
+    ('py:class', 'twisted.web2.resource.PostableResource'))
+
+def nitpick_patch_config(app):
+    """
+    Patch the default config for nitpicky
+
+    Calling path_config ensure that nitpicky is not considered as a Sphinx
+    environment variable but rather as a Sage environment variable. As a
+    consequence, changing it doesn't force the recompilation of the entire
+    documentation.
+    """
+    app.config.values['nitpicky'] = (False, 'sage')
+    app.config.values['nitpick_ignore'] = ([], 'sage')
+
 from sage.misc.sageinspect import sage_getargspec
 autodoc_builtin_argspec = sage_getargspec
 
@@ -597,4 +617,5 @@ def setup(app):
     import sphinx.ext.intersphinx
     app.connect('builder-inited', set_intersphinx_mappings)
     app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
+    app.connect('builder-inited', nitpick_patch_config)
 

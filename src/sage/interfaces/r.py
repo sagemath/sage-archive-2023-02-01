@@ -1,5 +1,5 @@
 r"""
-R Interface
+Interface to R
 
 The following examples try to follow "An Introduction to R" which can
 be found at http://cran.r-project.org/doc/manuals/R-intro.html .
@@ -211,10 +211,8 @@ AUTHORS:
 #
 ##########################################################################
 
-from keyword import iskeyword
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.misc import DOT_SAGE
-from sage.misc.latex import LatexExpr
 import re
 import sage.rings.integer
 
@@ -1098,6 +1096,7 @@ class R(Expect):
             sage: f('class')
             'class_'
         """
+        from keyword import iskeyword
         s = s.replace('.', '_')
         s = s.replace('<-', '__')
         if iskeyword(s):
@@ -1844,6 +1843,7 @@ class RElement(ExpectElement):
             sage: latex(r(2))  #optional requires the Hmisc R package
             2
         """
+        from sage.misc.latex import LatexExpr
         self._check_valid()
         P = self.parent()
         # latex is in Hmisc, this is currently not part of Sage's R!!!

@@ -658,6 +658,18 @@ class Scheme(Parent):
             sage: S = Spec(ZZ)
             sage: S._Hom_(P)
             Set of rational points of Projective Space of dimension 3 over Integer Ring
+
+        TESTS::
+
+            sage: S._Hom_(P).__class__
+            <class 'sage.schemes.projective.projective_homset.SchemeHomset_points_projective_ring_with_category'>
+
+            sage: E = EllipticCurve('37a1')
+            sage: Hom(E, E).__class__
+            <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
+
+            sage: Hom(Spec(ZZ), Spec(ZZ)).__class__
+            <class 'sage.schemes.affine.affine_homset.SchemeHomset_points_spec_with_category'>
         """
         from sage.schemes.generic.homset import SchemeHomset
         return SchemeHomset(self, Y, category=category, check=check)

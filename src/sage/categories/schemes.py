@@ -148,31 +148,6 @@ class Schemes_abstract(Category):
             """
             return []
 
-        class ParentMethods:
-
-            def __new__(cls, R, S, category):
-                """
-                TESTS::
-
-                    sage: E = EllipticCurve('37a1')
-                    sage: Hom(E, E).__class__
-                    <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
-
-                If both schemes R and S are actually specs, we want
-                the parent for Hom(R, S) to be in a different class::
-
-                    sage: Hom(Spec(ZZ), Spec(ZZ)).__class__
-                    <class 'sage.schemes.affine.affine_homset.SchemeHomset_points_spec_with_category'>
-
-                Currently, and to minimize the changes, this is done
-                by delegating the job to SchemeHomset. This is not
-                very robust: for example, only one category can do
-                this hack.
-
-                FIXME: this might be better handled by an extra Spec category
-                """
-                from sage.schemes.generic.homset import SchemeHomset
-                return SchemeHomset(R, S, category=category)
 
 
 #############################################################

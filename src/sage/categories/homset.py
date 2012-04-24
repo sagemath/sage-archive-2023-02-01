@@ -67,6 +67,7 @@ AUTHORS:
 from sage.categories.category import Category
 import morphism
 from sage.structure.parent import Parent, Set_generic
+from sage.misc.constant_function import ConstantFunction
 from sage.misc.lazy_attribute import lazy_attribute
 import types
 
@@ -110,9 +111,9 @@ def Hom(X, Y, category=None):
         Set of Morphisms from Integer Ring to Rational Field in Category of sets
 
         sage: Hom(FreeModule(ZZ,1), FreeModule(QQ,1))
-        Set of Morphisms from Ambient free module of rank 1 over the principal ideal domain Integer Ring to Vector space of dimension 1 over Rational Field in Category of modules with basis over Integer Ring
+        Set of Morphisms from Ambient free module of rank 1 over the principal ideal domain Integer Ring to Vector space of dimension 1 over Rational Field in Category of commutative additive groups
         sage: Hom(FreeModule(QQ,1), FreeModule(ZZ,1))
-        Set of Morphisms from Vector space of dimension 1 over Rational Field to Ambient free module of rank 1 over the principal ideal domain Integer Ring in Category of vector spaces over Rational Field
+        Set of Morphisms from Vector space of dimension 1 over Rational Field to Ambient free module of rank 1 over the principal ideal domain Integer Ring in Category of commutative additive groups
 
     Here, we test against a memory leak that has been fixed at :trac:`11521` by
     using a weak cache::
@@ -153,6 +154,23 @@ def Hom(X, Y, category=None):
         ...
         TypeError: Integer Ring is not in Category of groups
 
+    A parent (or a parent class of a category) may specify how to
+    construct certain homsets by implementing a method ``_Hom_(self,
+    codomain, category)``. This method should either construct the
+    requested homset or raise a ``TypeError``. This hook is currently
+    mostly used to create homsets in some specific subclass of
+    :class:`Homset` (e.g. :class:`sage.rings.homset.RingHomset`)::
+
+        sage: Hom(QQ,QQ).__class__
+        <class 'sage.rings.homset.RingHomset_generic_with_category'>
+
+    Do not call this hook directly to create homsets, as it does not
+    handle unique representation::
+
+        sage: Hom(QQ,QQ) == QQ._Hom_(QQ, category=QQ.category())
+        True
+        sage: Hom(QQ,QQ) is QQ._Hom_(QQ, category=QQ.category())
+        False
 
     TESTS:
 
@@ -164,13 +182,21 @@ def Hom(X, Y, category=None):
         sage: H1 is H2
         True
 
-    Some doc tests in :mod:`sage.rings` (need to) break the unique parent
-    assumption. But if domain or codomain are not unique parents, then the hom
-    set will not fit. That is to say, the hom set found in the cache will have a
-    (co)domain that is equal to, but not identic with, the given (co)domain.
+    Moreover, if no category is provided, then the result is identical
+    with the result for the meet of the categories of the domain and
+    the codomain::
 
-    By :trac:`9138`, we abandon the uniqueness of hom sets, if the domain or
-    codomain break uniqueness::
+        sage: Hom(QQ, ZZ) is Hom(QQ,ZZ, Category.meet([QQ.category(), ZZ.category()]))
+        True
+
+    Some doc tests in :mod:`sage.rings` (need to) break the unique
+    parent assumption. But if domain or codomain are not unique
+    parents, then the homset will not fit. That is to say, the hom set
+    found in the cache will have a (co)domain that is equal to, but
+    not identical with, the given (co)domain.
+
+    By :trac:`9138`, we abandon the uniqueness of homsets, if the
+    domain or codomain break uniqueness::
 
         sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
         sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ, 3, order='degrevlex')
@@ -190,11 +216,25 @@ def Hom(X, Y, category=None):
         sage: H1 is H2
         False
 
-    It is always the most recently constructed hom set that remains in
+    It is always the most recently constructed homset that remains in
     the cache::
 
         sage: H2 is Hom(QQ,Q)
         True
+
+    Variation on the theme::
+
+        sage: U1 = FreeModule(ZZ,2)
+        sage: U2 = FreeModule(ZZ,2,inner_product_matrix=matrix([[1,0],[0,-1]]))
+        sage: U1 == U2, U1 is U2
+        (True, False)
+        sage: V = ZZ^3
+        sage: H1 = Hom(U1, V); H2 = Hom(U2, V)
+        sage: H1 == H2, H1 is H2
+        (True, False)
+        sage: H1 = Hom(V, U1); H2 = Hom(V, U2)
+        sage: H1 == H2, H1 is H2
+        (True, False)
 
     Since :trac:`11900`, the meet of the categories of the given arguments is
     used to determine the default category of the homset. This can also be a
@@ -211,16 +251,28 @@ def Hom(X, Y, category=None):
 
     .. TODO::
 
-        design decision: how much of the homset comes from the
-        category of ``X`` and ``Y``, and how much from the specific ``X`` and
-        ``Y``.  In particular, do we need several parent classes depending on
-        ``X`` and ``Y``, or does the difference only lie in the elements (i.e.
-        the morphism), and of course how the parent calls their constructors.
+        - Design decision: how much of the homset comes from the
+          category of ``X`` and ``Y``, and how much from the specific
+          ``X`` and ``Y``.  In particular, do we need several parent
+          classes depending on ``X`` and ``Y``, or does the difference
+          only lie in the elements (i.e.  the morphism), and of course
+          how the parent calls their constructors.
+        - Specify the protocol for the ``_Hom_`` hook in case of ambiguity
+          (e.g. if both a parent and some category thereof provide one).
+
+    TESTS::
+
+        sage: R = sage.structure.parent.Set_PythonType(int)
+        sage: S = sage.structure.parent.Set_PythonType(float)
+        sage: Hom(R, S)
+        Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
 
     """
     # This should use cache_function instead
-    # However it breaks somehow the coercion (see e.g. sage -t sage.rings.real_mpfr)
-    # To be investigated.
+    # However some special handling is currently needed for
+    # domains/docomains that break the unique parent condition. Also,
+    # at some point, it somehow broke the coercion (see e.g. sage -t
+    # sage.rings.real_mpfr). To be investigated.
     global _cache
     key = (X,Y,category)
     try:
@@ -228,53 +280,41 @@ def Hom(X, Y, category=None):
     except KeyError:
         H = None
     if H is not None:
-        # Are domain or codomain breaking the unique parent condition?
+        # Return H unless the domain or codomain breaks the unique parent condition
         if H.domain() is X and H.codomain() is Y:
             return H
 
-    try:
-        # Apparently X._Hom_ is supposed to be cached
-        # but it is not in some cases (e.g. X is a finite field)
-        # To be investigated
-        H = X._Hom_(Y,category)
-        _cache[key] = H
-        return H
-    except (AttributeError, TypeError):
-        pass
-
+    # Determines the category
     cat_X = X.category()
     cat_Y = Y.category()
     if category is None:
         category = cat_X._meet_(cat_Y)
-    elif isinstance(category, Category):
+        # Recurse to make sure that Hom(X, Y) and Hom(X, Y, category) are identical
+        H = Hom(X, Y, category)
+    else:
+        if not isinstance(category, Category):
+            raise TypeError, "Argument category (= %s) must be a category."%category
         if not cat_X.is_subcategory(category):
             raise TypeError, "%s is not in %s"%(X, category)
         if not cat_Y.is_subcategory(category):
             raise TypeError, "%s is not in %s"%(Y, category)
-    else:
-        raise TypeError, "Argument category (= %s) must be a category."%category
-    # Now, as the category may have changed, we try to find the hom set in the cache, again:
-    key = (X,Y,category)
-    try:
-        H = _cache[key]
-    except KeyError:
-        H = None
-    if H is not None:
-        # Are domain or codomain breaking the unique parent condition?
-        if H.domain() is X and H.codomain() is Y:
-            return H
 
-    # coercing would be incredibly annoying, since the domain and codomain
-    # are totally different objects
-    #X = category(X); Y = category(Y)
-
-    # construct H
-    # Design question: should the Homset classes get the category or the homset category?
-    # For the moment, this is the category, for compatibility with the current implementations
-    # of Homset in rings, schemes, ...
-    H = category.hom_category().parent_class(X, Y, category = category)
-
-    ##_cache[key] = weakref.ref(H)
+        # Construct H
+        try: # _Hom_ hook from the parent
+            H = X._Hom_(Y, category)
+        except (AttributeError, TypeError):
+            try:
+                # Workaround in case the above fails, but the category
+                # also provides a _Hom_ hook.
+                # FIXME:
+                # - If X._Hom_ actually comes from category and fails, it
+                #   will be called twice.
+                # - This is bound to fail if X is an extension type and
+                #   does not actually inherit from category.parent_class
+                H = category.parent_class._Hom_(X, Y, category = category)
+            except (AttributeError, TypeError):
+                # By default, construct a plain homset.
+                H = Homset(X, Y, category = category)
     _cache[key] = H
     return H
 
@@ -398,7 +438,6 @@ class Homset(Set_generic):
             ...
             AttributeError: 'sage.rings.integer.Integer' object has no attribute 'hom_category'
         """
-
         self._domain = X
         self._codomain = Y
         if category is None:
@@ -513,7 +552,7 @@ class Homset(Set_generic):
         """
         return self.__category
 
-    def __call__(self, x=None, y=None, check=True, on_basis=None):
+    def __call__(self, x=None, y=None, check=True, **options):
         """
         Construct a morphism in this homset from ``x`` if possible.
 
@@ -561,17 +600,28 @@ class Homset(Set_generic):
             Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of sets
             sage: f(1), f(2), f(3) # todo: not implemented
 
+            sage: H = Hom(ZZ, QQ, Sets())
+            sage: f = H( ConstantFunction(2/3) )
+            sage: f.parent()
+            Set of Morphisms from Integer Ring to Rational Field in Category of sets
+            sage: f(1), f(2), f(3)
+            (2/3, 2/3, 2/3)
+
         AUTHORS:
 
         - Robert Bradshaw, with changes by Nicolas M. Thiery
         """
-        # Temporary workaround: currently, HomCategory.ParentMethods's cannot override
-        # this __call__ method because of the class inheritance order
-        # This dispatches back the call there
-        if on_basis is not None:
-            return self.__call_on_basis__(on_basis = on_basis)
-        assert x is not None
+        if options:
+            # TODO: this is specific for ModulesWithBasis; generalize
+            # this to allow homsets and categories to provide more
+            # morphism constructors (on_algebra_generators, ...)
+            if 'on_basis' or 'diagonal' in options:
+                return self.__call_on_basis__(category = self.homset_category(),
+                                              **options)
+            else:
+                raise NotImplementedError
 
+        assert x is not None
         if isinstance(x, morphism.Morphism):
             if x.parent() is self:
                 return x
@@ -591,7 +641,7 @@ class Homset(Set_generic):
                     x = mor * x
                 return x
 
-        if isinstance(x, types.FunctionType) or isinstance(x, types.MethodType):
+        if isinstance(x, (types.FunctionType, types.MethodType, ConstantFunction)):
             return self.element_class_set_morphism(self, x)
 
         raise TypeError, "Unable to coerce x (=%s) to a morphism in %s"%(x,self)
@@ -782,11 +832,11 @@ class Homset(Set_generic):
             sage: type(H)
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
             sage: H.reversed()
-            Set of Morphisms from Ambient free module of rank 3 over the principal ideal domain Integer Ring to Ambient free module of rank 2 over the principal ideal domain Integer Ring in Category of hom sets in Category of modules with basis over Integer Ring
+            Set of Morphisms from Ambient free module of rank 3 over the principal ideal domain Integer Ring to Ambient free module of rank 2 over the principal ideal domain Integer Ring in Category of modules with basis over Integer Ring
             sage: type(H.reversed())
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
         """
-        return Hom(self.codomain(), self.domain(), category = self.category())
+        return Hom(self.codomain(), self.domain(), category = self.homset_category())
 
     ############### For compatibility with old coercion model #######################
 

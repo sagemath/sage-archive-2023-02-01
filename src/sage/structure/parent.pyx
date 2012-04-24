@@ -1423,9 +1423,21 @@ cdef class Parent(category_object.CategoryObject):
 
     def Hom(self, codomain, category=None):
         r"""
-        Return the homspace ``Hom(self, codomain, cat)`` of all
-        homomorphisms from self to codomain in the category cat.  The
-        default category is :meth:`category`.
+        Return the homspace ``Hom(self, codomain, category)``.
+
+        INPUT:
+
+        - ``codomain`` -- a parent
+        - ``category`` -- a category or ``None`` (default: ``None``)
+          If ``None``, the meet of the category of ``self`` and
+          ``codomain`` is used.
+
+        OUTPUT:
+
+        The homspace of all homomorphisms from ``self`` to
+        ``codomain`` in the category ``category``.
+
+        .. SEEALSO:: :func:`~sage.categories.homset.Hom`
 
         EXAMPLES::
 
@@ -1446,14 +1458,9 @@ cdef class Parent(category_object.CategoryObject):
             Set of Morphisms from Rational Field to Integer Ring in Category of sets
 
         A parent may specify how to construct certain homsets by
-        implementing a method ``_Hom_(codomain, category)``. This
-        method should either construct the requested homset or raise a
-        ``TypeError``.
+        implementing a method :meth:`_Hom_`(codomain, category).
+        See :func:`~sage.categories.homset.Hom` for details.
         """
-        try:
-            return self._Hom_(codomain, category)
-        except (AttributeError, TypeError):
-            pass
         from sage.categories.homset import Hom
         return Hom(self, codomain, category)
 
@@ -2901,22 +2908,6 @@ cdef class Set_PythonType_class(Set_generic):
             # probably
             import sage.rings.infinity
             return sage.rings.infinity.infinity
-
-#     def _Hom_disabled(self, domain, cat=None):
-#         """
-#         By default, create a homset in the category of sets.
-
-#         EXAMPLES:
-#             sage: R = sage.structure.parent.Set_PythonType(int)
-#             sage: S = sage.structure.parent.Set_PythonType(float)
-#             sage: R._Hom_(S)
-#             Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
-#         """
-#         from sage.categories.sets_cat import Sets
-#         from sage.categories.homset import Homset
-#         if cat is None:
-#             cat = Sets()
-#         return Homset(self, domain, cat)
 
 # These functions are to guarantee that user defined _lmul_, _rmul_,
 # _act_on_, _acted_upon_ do not in turn call __mul__ on their

@@ -328,16 +328,14 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
             [1 0 2]
 
         Coercing a vector space morphism into the parent of a second vector
-        space morphism will unify their parents. ::
+        space morphism will unify their parents::
 
-            sage: U = QQ^3
-            sage: V = QQ^4
-            sage: W = FreeModule(QQ,3,sparse=True)
-            sage: X = QQ^4
+            sage: U = FreeModule(QQ,3, sparse=True ); V = QQ^4
+            sage: W = FreeModule(QQ,3, sparse=False); X = QQ^4
             sage: H = Hom(U, V)
             sage: K = Hom(W, X)
-            sage: H is K
-            False
+            sage: H is K, H == K
+            (False, True)
 
             sage: A = matrix(QQ, 3, 4, [0]*12)
             sage: f = H(A)

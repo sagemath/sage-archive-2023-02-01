@@ -61,9 +61,29 @@ cdef named_constants = [ 'pi', 'e',
 cdef class LazyField(Field):
     """
     The base class for lazy real fields.
+
+    .. WARNING::
+
+        LazyField uses :meth:`__getattr__`, to implement::
+
+            sage: CLF.pi
+            3.141592653589794?
+
+        I (NT, 20/04/2012) did not manage to have __getattr__ call
+        :meth:`Parent.__getattr__` in case of failure; hence we can't
+        use this ``__getattr__`` trick for extension types to recover
+        the methods from categories. Therefore, at this point, no
+        concrete subclass of this class should be an extension type
+        (which is probably just fine)::
+
+            sage: RLF.__class__
+            <class 'sage.rings.real_lazy.RealLazyField_class_with_category'>
+            sage: CLF.__class__
+            <class 'sage.rings.real_lazy.ComplexLazyField_class_with_category'>
     """
     def __init__(self, base=None, names=None, normalize=True, category=None):
         Field.__init__(self,base or self, names=names, normalize=normalize, category=category)
+
     def __getattr__(self, name):
         """
         Simulates a list of methods found on the real/complex rings.
@@ -135,7 +155,7 @@ cdef class LazyField(Field):
         raise NotImplementedError, "subclasses must override this method"
 
 
-cdef class RealLazyField_class(LazyField):
+class RealLazyField_class(LazyField):
     """
     This class represents the set of real numbers to unspecified precision.
     For the most part it simply wraps exact elements and defers evaluation
@@ -161,6 +181,10 @@ cdef class RealLazyField_class(LazyField):
         5.333333333333334?
         sage: RealField(100)(a+5)
         5.3333333333333333333333333333
+
+    TESTS::
+
+        sage: TestSuite(RLF).run()
     """
 
     def __init__(self):
@@ -172,9 +196,10 @@ cdef class RealLazyField_class(LazyField):
             sage: ComplexField(200).0 + RLF(1/3)
             0.33333333333333333333333333333333333333333333333333333333333 + 1.0000000000000000000000000000000000000000000000000000000000*I
         """
+        LazyField.__init__(self)
         self._populate_coercion_lists_(element_constructor=LazyWrapper)
 
-    cpdef interval_field(self, prec=None):
+    def interval_field(self, prec=None):
         """
         Returns the interval field that represents the same mathematical
         field as self.
@@ -277,7 +302,7 @@ def RealLazyField():
     return RLF
 
 
-cdef class ComplexLazyField_class(LazyField):
+class ComplexLazyField_class(LazyField):
     """
     This class represents the set of real numbers to unspecified precision.
     For the most part it simply wraps exact elements and defers evaluation
@@ -294,6 +319,29 @@ cdef class ComplexLazyField_class(LazyField):
         1.0*I
         sage: ComplexField(200)(a)
         1.0000000000000000000000000000000000000000000000000000000000*I
+
+    TESTS::
+
+        sage: TestSuite(CLF).run(skip=["_test_prod"])
+
+    .. NOTE::
+
+        The following TestSuite failure::
+
+            sage: CLF._test_prod()
+            Traceback (most recent call last):
+            ...
+            AssertionError: False is not true
+
+        is due to (acceptable?) numerical noise::
+
+            sage: x = CLF.I
+            sage: x*x == x^2
+            False
+            sage: x*x
+            -1
+            sage: x^2
+            -0.9999999999999999? + 0.?e-15*I
     """
 
     def __init__(self):
@@ -310,7 +358,7 @@ cdef class ComplexLazyField_class(LazyField):
         LazyField.__init__(self, base=RLF)
         self._populate_coercion_lists_(coerce_list=[LazyWrapperMorphism(RLF, self)], element_constructor=LazyWrapper)
 
-    cpdef interval_field(self, prec=None):
+    def interval_field(self, prec=None):
         """
         Returns the interval field that represents the same mathematical
         field as self.

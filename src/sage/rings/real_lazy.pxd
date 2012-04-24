@@ -4,12 +4,6 @@ from sage.structure.element cimport RingElement, ModuleElement, Element, FieldEl
 cdef class LazyField(Field):
     cpdef interval_field(self, prec=*)
 
-cdef class RealLazyField_class(LazyField):
-    pass
-
-cdef class ComplexLazyField_class(LazyField):
-    pass
-
 cdef class LazyFieldElement(FieldElement):
     cdef LazyFieldElement _new_wrapper(self, value)
     cdef LazyFieldElement _new_binop(self, LazyFieldElement left, LazyFieldElement right, op)

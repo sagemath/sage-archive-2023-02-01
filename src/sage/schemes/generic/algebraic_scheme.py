@@ -227,13 +227,18 @@ class AlgebraicScheme(scheme.Scheme):
 
             sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
             sage: P = ProjectiveSpace(3, ZZ)
+            sage: P.category()
+            Category of schemes over Integer Ring
             sage: S = AlgebraicScheme(P); S
             Subscheme of Projective Space of dimension 3 over Integer Ring
+            sage: S.category()
+            Category of schemes over Integer Ring
         """
         if not ambient_space.is_AmbientSpace(A):
             raise TypeError, "A (=%s) must be an ambient space"
         self.__A = A
         self.__divisor_group = {}
+        scheme.Scheme.__init__(self, A.base_scheme())
 
     def _latex_(self):
         """

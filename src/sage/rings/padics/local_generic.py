@@ -17,6 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.commutative_rings import CommutativeRings
 from sage.rings.ring import CommutativeRing
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
@@ -33,7 +34,7 @@ class LocalGeneric(CommutativeRing):
             20
         """
         self._prec = prec
-        Parent.__init__(self, base, element_constructor=element_class, names=(names,), normalize=False)
+        Parent.__init__(self, base, element_constructor=element_class, names=(names,), normalize=False, category=CommutativeRings())
 
     def is_capped_relative(self):
         """

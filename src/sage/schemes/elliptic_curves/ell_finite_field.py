@@ -74,7 +74,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 101
             sage: E = EllipticCurve([F(2), F(3)])
             sage: type(E)
-            <class 'sage.schemes.elliptic_curves.ell_finite_field.EllipticCurve_finite_field'>
+            <class 'sage.schemes.elliptic_curves.ell_finite_field.EllipticCurve_finite_field_with_category'>
+            sage: E.category()
+            Category of schemes over Ring of integers modulo 101
 
         Elliptic curves over `\ZZ/N\ZZ` with `N` composite are of type
         "generic elliptic curve"::
@@ -84,7 +86,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 95
             sage: E = EllipticCurve([F(2), F(3)])
             sage: type(E)
-            <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic'>
+            <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic_with_category'>
+            sage: E.category()
+            Category of schemes over Ring of integers modulo 95
+            sage: TestSuite(E).run(skip=["_test_elements"])
         """
         if isinstance(x, list):
             seq = Sequence(x)

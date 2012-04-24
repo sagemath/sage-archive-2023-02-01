@@ -165,19 +165,23 @@ TESTS::
     True
     sage: repr(S(2777))[3:]
     '4&2&1&0&2'
+    sage: TestSuite(R).run()
 
     sage: R = Zp(5, 15, print_mode='bars', print_sep='&'); S = loads(dumps(R))
     sage: R == S
     True
     sage: repr(S(2777))[3:]
     '4&2&1&0&2'
+    sage: TestSuite(R).run()
 
     sage: R = ZpCA(5, 15, print_mode='bars', print_sep='&'); S = loads(dumps(R))
     sage: R == S
     True
     sage: repr(S(2777))[3:]
     '4&2&1&0&2'
+    sage: TestSuite(R).run()
 
+.. todo:: remove the loads tests above; the TestSuite should be sufficient
 """
 
 from generic_nodes import pAdicFieldBaseGeneric, \

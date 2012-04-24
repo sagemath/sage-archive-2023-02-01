@@ -525,6 +525,8 @@ class ProjectiveSpace_ring(AmbientSpace):
               x*y^2
               To:   Spectrum of Rational Field
               Defn: Structure map
+
+            sage: TestSuite(X).run(skip=["_test_an_element", "_test_elements", "_test_elements_eq", "_test_some_elements"])
         """
         from algebraic_scheme import AlgebraicScheme_subscheme_projective
         return AlgebraicScheme_subscheme_projective(self, X)

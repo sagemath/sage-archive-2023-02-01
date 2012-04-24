@@ -101,7 +101,9 @@ def EllipticCurve(x=None, y=None, j=None):
         Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 101
         sage: E = EllipticCurve([F(2), F(3)])
         sage: type(E)
-        <class 'sage.schemes.elliptic_curves.ell_finite_field.EllipticCurve_finite_field'>
+        <class 'sage.schemes.elliptic_curves.ell_finite_field.EllipticCurve_finite_field_with_category'>
+        sage: E.category()
+        Category of schemes over Ring of integers modulo 101
 
     In contrast, elliptic curves over `\ZZ/N\ZZ` with `N` composite
     are of type "generic elliptic curve"::
@@ -111,7 +113,9 @@ def EllipticCurve(x=None, y=None, j=None):
         Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 95
         sage: E = EllipticCurve([F(2), F(3)])
         sage: type(E)
-        <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic'>
+        <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic_with_category'>
+        sage: E.category()
+        Category of schemes over Ring of integers modulo 95
 
     The following is a curve over the complex numbers::
 
@@ -193,17 +197,19 @@ def EllipticCurve(x=None, y=None, j=None):
         sage: E = EllipticCurve([QQbar(1),3]); E
         Elliptic Curve defined by y^2 = x^3 + x + 3 over Algebraic Field
         sage: type(E)
-        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field'>
+        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field_with_category'>
 
         sage: E = EllipticCurve([RR(1),3]); E
         Elliptic Curve defined by y^2 = x^3 + 1.00000000000000*x + 3.00000000000000 over Real Field with 53 bits of precision
         sage: type(E)
-        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field'>
+        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field_with_category'>
 
         sage: E = EllipticCurve([i,i]); E
         Elliptic Curve defined by y^2 = x^3 + I*x + I over Symbolic Ring
         sage: type(E)
-        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field'>
+        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field_with_category'>
+        sage: E.category()
+        Category of schemes over Symbolic Ring
         sage: is_field(SR)
         True
 
@@ -212,9 +218,11 @@ def EllipticCurve(x=None, y=None, j=None):
         sage: E = EllipticCurve([t,0]); E
         Elliptic Curve defined by y^2 = x^3 + t*x over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: type(E)
-        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field'>
+        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field_with_category'>
+        sage: E.category()
+        Category of schemes over Fraction Field of Univariate Polynomial Ring in t over Rational Field
 
-    See trac #12517::
+    See :trac:`12517`::
 
         sage: E = EllipticCurve([1..5])
         sage: EllipticCurve(E.a_invariants())

@@ -69,6 +69,7 @@ graphs. Here is what they can do
     :delim: |
 
     :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
+    :meth:`~DiGraph.is_transitive` | Returns whether the digraph is transitive or not.
     :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
     :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
     :meth:`~DiGraph.topological_sort` | Returns a topological sort of the digraph if it is acyclic
@@ -971,6 +972,42 @@ class DiGraph(GenericGraph):
             True
         """
         return self._backend.is_directed_acyclic(certificate = certificate)
+
+    def is_transitive(self, certificate = False):
+        r"""
+        Tests whether the given digraph is transitive.
+
+        A digraph is transitive if for any pair of vertices `u,v\in G` linked by a
+        `uv`-path the edge `uv` belongs to `G`.
+
+        INPUT:
+
+        - ``certificate`` -- whether to return a certificate for negative answers.
+
+          - If ``certificate = False`` (default), this method returns ``True`` or
+            ``False`` according to the graph.
+
+          - If ``certificate = True``, this method either returns ``True`` answers
+            or yield a pair of vertices `uv` such that there exists a `uv`-path in
+            `G` but `uv\not\in G`.
+
+        EXAMPLE::
+
+            sage: digraphs.Circuit(4).is_transitive()
+            False
+            sage: digraphs.Circuit(4).is_transitive(certificate = True)
+            (0, 2)
+            sage: digraphs.RandomDirectedGNP(30,.2).is_transitive()
+            False
+            sage: digraphs.DeBruijn(5,2).is_transitive()
+            False
+            sage: digraphs.DeBruijn(5,2).is_transitive(certificate = True)
+            ('00', '10')
+            sage: digraphs.RandomDirectedGNP(20,.2).transitive_closure().is_transitive()
+            True
+        """
+        from sage.graphs.comparability import is_transitive
+        return is_transitive(self, certificate = certificate)
 
     def to_directed(self):
         """

@@ -150,6 +150,7 @@ Families of graphs
 - :meth:`NStarGraph <GraphGenerators.NStarGraph>`
 - :meth:`OddGraph <GraphGenerators.OddGraph>`
 - :meth:`line_graph_forbidden_subgraphs <GraphGenerators.line_graph_forbidden_subgraphs>`
+- :meth:`PermutationGraph <GraphGenerators.PermutationGraph>`
 - :meth:`trees <GraphGenerators.trees>`
 
 
@@ -5599,6 +5600,99 @@ class GraphGenerators():
             raise ValueError, "Parameter n should be an integer strictly greater than 1"
         g = self.KneserGraph(2*n-1,n-1)
         g.name("Odd Graph with parameter %s" % n)
+        return g
+
+
+    def PermutationGraph(self, second_permutation, first_permutation = None):
+        r"""
+        Builds a permutation graph from one (or two) permutations.
+
+        General definition
+
+        A Permutation Graph can be encoded by a permutation `\sigma`
+        of `0, ..., n`. It is then built in the following way :
+
+          Take two horizontal lines in the euclidean plane, and mark points `0,
+          ..., n` from left to right on the first of them. On the second one,
+          still from left to right, mark point in the order in which they appear
+          in `\sigma`. Now, link by a segment the two points marked with 1, then
+          link together the points marked with 2, and so on. The permutation
+          graph defined by the permutation is the intersection graph of those
+          segments : there exists a point in this graph for each element from
+          `1` to `n`, two vertices `i, j` being adjacent if the segments `i` and
+          `j` cross each other.
+
+        The set of edges of the resulting graph is equal to the set of
+        inversions of the inverse of the given permutation.
+
+        INPUT:
+
+        - ``second_permutation`` -- the permutation from which the graph should
+          be built. It corresponds to the ordering of the elements on the second
+          line (see previous definition)
+
+        - ``first_permutation`` (optional) -- the ordering of the elements on
+          the *first* line. This is useful when the elements have no natural
+          ordering, for instance when they are strings, or tuples, or anything
+          else.
+
+          When ``first_permutation == None`` (default), it is set to be equal to
+          ``sorted(second_permutation)``, which just yields the expected
+          ordering when the elements of the graph are integers.
+
+        .. SEEALSO:
+
+          - Recognition of Permutation graphs in the :mod:`comparability module
+            <sage.graphs.comparability>`.
+
+          - Drawings of permutation graphs as intersection graphs of segments is
+            possible through the
+            :meth:`~sage.combinat.permutation.Permutation_class.show` method of
+            :class:`~sage.combinat.permutation.Permutation` objects.
+
+            The correct argument to use in this case is ``show(representation =
+            "braid")``.
+
+          - :meth:`~sage.combinat.permutation.Permutation_class.inversions`
+
+        EXAMPLE::
+
+            sage: p = Permutations(5).random_element()
+            sage: edges = graphs.PermutationGraph(p).edges(labels =False)
+            sage: set(edges) == set(map(lambda (x,y) : (x+1,y+1),p.inverse().inversions()))
+            True
+
+        TESTS::
+
+            sage: graphs.PermutationGraph([1, 2, 3], [4, 5, 6])
+            Traceback (most recent call last):
+            ...
+            ValueError: The two permutations do not contain the same set of elements ...
+        """
+        if first_permutation == None:
+            first_permutation = sorted(second_permutation)
+        else:
+            if set(second_permutation) != set(first_permutation):
+                raise ValueError("The two permutations do not contain the same "+
+                                 "set of elements ! It is going to be pretty "+
+                                 "hard to define a permutation graph from that !")
+
+        vertex_to_index = {}
+        for i, v in enumerate(first_permutation):
+            vertex_to_index[v] = i+1
+
+        from sage.combinat.permutation import Permutation
+        p2 = Permutation(map(lambda x:vertex_to_index[x], second_permutation))
+        p1 = Permutation(map(lambda x:vertex_to_index[x], first_permutation))
+        p2 = p2 * p1.inverse()
+        p2 = p2.inverse()
+
+        g = graph.Graph(name="Permutation graph for "+str(second_permutation))
+        g.add_vertices(second_permutation)
+
+        for u,v in p2.inversions():
+            g.add_edge(first_permutation[u], first_permutation[v])
+
         return g
 
 ################################################################################

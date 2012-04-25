@@ -48,6 +48,7 @@ Libraries of algorithms
 
    sage/graphs/graph_coloring
    sage/graphs/cliquer
+   sage/graphs/comparability
    sage/graphs/spanning_tree
    sage/graphs/pq_trees
    sage/graphs/matchpoly

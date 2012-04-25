@@ -338,6 +338,9 @@ ext_modules = [
     Extension('sage.graphs.convexity_properties',
               sources = ['sage/graphs/convexity_properties.pyx']),
 
+    Extension('sage.graphs.comparability',
+              sources = ['sage/graphs/comparability.pyx']),
+
     Extension('sage.graphs.generic_graph_pyx',
               sources = ['sage/graphs/generic_graph_pyx.pyx'],
               libraries = ['gmp']),

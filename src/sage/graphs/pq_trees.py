@@ -4,7 +4,19 @@ PQ-Trees
 This module implements PQ-Trees and methods to help recognise Interval
 Graphs. It is used by :meth:`is_interval
 <sage.graphs.generic_graph.GenericGraph.is_interval>`.
+
+Author:
+
+- Nathann Cohen
+
 """
+
+################################################################################
+#      Copyright (C) 2012 Nathann Cohen <nathann.cohen@gail.com>               #
+#                                                                              #
+# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL) #
+#                         http://www.gnu.org/licenses/                         #
+################################################################################
 
 # Constants, to make the code more readable
 

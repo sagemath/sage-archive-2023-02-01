@@ -24,6 +24,9 @@ cdef class FastDigraph:
     cdef int * graph
 
     def __cinit__(self, D):
+        r"""
+        Constructor for ``FastDigraph``.
+        """
         if D.order() > 8*sizeof(int):
             raise Exception("Too many vertices. This structure can only encode digraphs on at most sizeof(int) vertices.")
 
@@ -49,10 +52,16 @@ cdef class FastDigraph:
             self.graph[vertices_to_int[u]] = tmp
 
     def __dealloc__(self):
+        r"""
+        Destructor.
+        """
         if self.graph != NULL:
             sage_free(self.graph)
 
     def print_adjacency_matrix(self):
+        r"""
+        Displays the adjacency matrix of ``self``.
+        """
         cdef int i,j
         for 0<= i<self.n:
             for 0<= j <self.n:

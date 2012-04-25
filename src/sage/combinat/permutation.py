@@ -1151,6 +1151,79 @@ class Permutation_class(CombinatorialObject):
 
         return inversion_list
 
+    def show(self, representation = "cycles", orientation = "landscape", **args):
+        r"""
+        Displays the permutation as a drawing.
+
+        INPUT:
+
+        - ``representation`` -- different kinds of drawings are available
+
+            - ``"cycles"`` (default) -- the permutation is displayed as a
+              collection of directed cycles
+
+            - ``"braid"`` -- the permutation is displayed as segments linking
+              each element `1, ..., n` to its image on a parallel line.
+
+              When using this drawing, it is also possible to display the
+              permutation horizontally (``orientation = "landscape"``, default
+              option) or vertically (``orientation = "portrait"``).
+
+            - ``"chord-diagram"`` -- the permutation is displayed as a directed
+              graph, all of its vertices being located on a circle.
+
+        All additional arguments are forwarded to the ``show`` subcalls.
+
+        EXAMPLES::
+
+            sage: Permutations(20).random_element().show(representation = "cycles")
+            sage: Permutations(20).random_element().show(representation = "chord-diagram")
+            sage: Permutations(20).random_element().show(representation = "braid")
+            sage: Permutations(20).random_element().show(representation = "braid", orientation='portrait')
+
+        TESTS::
+
+            sage: Permutations(20).random_element().show(representation = "modern_art")
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of 'representation' must be equal to 'cycles', 'chord-digraph' or 'braid'
+        """
+
+        if representation == "cycles" or representation == "chord-diagram":
+            from sage.graphs.digraph import DiGraph
+            d = DiGraph(loops = True)
+            for i in range(len(self)):
+                d.add_edge(i+1, self[i])
+
+            if representation == "cycles":
+                d.show(**args)
+            else:
+                d.show(layout = "circular", **args)
+
+        elif representation == "braid":
+            from sage.plot.line import line
+            from sage.plot.text import text
+
+            if orientation == "landscape":
+                r = lambda x,y : (x,y)
+            elif orientation == "portrait":
+                r = lambda x,y : (-y,x)
+            else:
+                raise ValueError("The value of 'orientation' must be either "+
+                                 "'landscape' or 'portrait'.")
+
+            p = self[:]
+
+            L = line([r(1,1)])
+            for i in range(len(p)):
+                L += line([r(i,1.0), r(p[i]-1,0)])
+                L += text(str(i), r(i,1.05)) + text(str(i), r(p[i]-1,-.05))
+
+            return L.show(axes = False, **args)
+
+        else:
+            raise ValueError("The value of 'representation' must be equal to "+
+                             "'cycles', 'chord-digraph' or 'braid'")
 
 
     def number_of_inversions(self):

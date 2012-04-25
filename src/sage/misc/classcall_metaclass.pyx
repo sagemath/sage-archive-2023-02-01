@@ -24,14 +24,68 @@ cdef extern from "Python.h":
         callfunc tp_call # needed to call type.__call__ at very high speed.
     cdef PyTypeObject_call PyType_Type # Python's type
 
-__all__ = ['ClasscallType', 'ClasscallMetaclass', 'typecall', 'timeCall']
+__all__ = ['ClasscallMetaclass', 'typecall', 'timeCall']
 
-cdef class ClasscallType(type):
-    r"""
-    Extension of ``type`` for class special methods
+cdef class ClasscallMetaclass(NestedClassMetaclass):
+    """
+    A metaclass providing support for special methods for classes.
 
-    This is the Cython base ``type`` for the metaclass
-    :class:`ClasscallMetaclass`.  See there for more informations.
+    From the Section :python:`Special method names
+    <reference/datamodel.html#special-method-names>` of the Python Reference
+    Manual:
+
+        \`a class ``cls`` can implement certain operations on its instances
+        that are invoked by special syntax (such as arithmetic operations or
+        subscripting and slicing) by defining methods with special
+        names\'.
+
+    The purpose of this metaclass is to allow for the class ``cls`` to
+    implement analogues of those special methods for the operations on the
+    class itself.
+
+    Currently, the following special methods are supported:
+
+     - ``.__classcall__`` (and ``.__classcall_private__``) for
+       customizing ``cls(...)`` (analogue of ``.__call__``).
+
+     - ``.__classcontains__`` for customizing membership testing
+       ``x in cls`` (analogue of ``.__contains__``).
+
+     - ``.__classget__`` for customizing the binding behavior in
+       ``foo.cls`` (analogue of ``.__get__``).
+
+    See the documentation of :meth:`.__call__` and of :meth:`.__get__`
+    and :meth:`.__contains__` for the description of the respective
+    protocols.
+
+    .. warning:: for technical reasons, ``__classcall__``,
+        ``__classcall_private__``, ``__classcontains__``, and
+        ``__classget__`` must be defined as :func:`staticmethod`'s, even
+        though they receive the class itself as their first argument.
+
+    ``ClasscallMetaclass`` is an extension of the base :class:`type`.
+
+    TODO: find a good name for this metaclass.
+
+    TESTS::
+
+        sage: PerfectMatchings(2).list()
+        [PerfectMatching [(2, 1)]]
+
+    .. note::
+
+        If a class is put in this metaclass it automatically becomes a
+        new-style class::
+
+            sage: from sage.misc.classcall_metaclass import ClasscallMetaclass
+            sage: class Foo:
+            ...       __metaclass__ = ClasscallMetaclass
+            sage: x = Foo(); x
+            <__main__.Foo object at 0x...>
+            sage: issubclass(Foo, object)
+            True
+            sage: isinstance(Foo, type)
+            True
     """
     _included_private_doc_ = ['__call__', '__contains__', '__get__']
 
@@ -39,10 +93,10 @@ cdef class ClasscallType(type):
         r"""
         TESTS::
 
-            sage: from sage.misc.classcall_metaclass import ClasscallType
+            sage: from sage.misc.classcall_metaclass import ClasscallMetaclass
             sage: class FOO(object):
-            ...       __metaclass__ = ClasscallType
-            sage: isinstance(FOO, ClasscallType)
+            ...       __metaclass__ = ClasscallMetaclass
+            sage: isinstance(FOO, ClasscallMetaclass)  # indirect doctest
             True
         """
         if '__classcall_private__' in self.__dict__:
@@ -375,72 +429,6 @@ cdef class ClasscallType(type):
         else:
             return x in object
 
-from nested_class import NestedClassMetaclass
-class ClasscallMetaclass(ClasscallType, NestedClassMetaclass):
-    """
-    A metaclass providing support for special methods for classes.
-
-    From the Section :python:`Special method names
-    <reference/datamodel.html#special-method-names>` of the Python Reference
-    Manual:
-
-        \`a class ``cls`` can implement certain operations on its instances
-        that are invoked by special syntax (such as arithmetic operations or
-        subscripting and slicing) by defining methods with special
-        names\'.
-
-    The purpose of this metaclass is to allow for the class ``cls`` to
-    implement analogues of those special methods for the operations on the
-    class itself.
-
-    Currently, the following special methods are supported:
-
-     - ``.__classcall__`` (and ``.__classcall_private__``) for
-       customizing ``cls(...)`` (analogue of ``.__call__``).
-
-     - ``.__classcontains__`` for customizing membership testing
-       ``x in cls`` (analogue of ``.__contains__``).
-
-     - ``.__classget__`` for customizing the binding behavior in
-       ``foo.cls`` (analogue of ``.__get__``).
-
-    See the documentation of :meth:`.__call__` and of :meth:`.__get__`
-    and :meth:`.__contains__` for the description of the respective
-    protocols.
-
-    .. warning:: for technical reasons, ``__classcall__``,
-        ``__classcall_private__``, ``__classcontains__``, and
-        ``__classget__`` must be defined as :func:`staticmethod`'s, even
-        though they receive the class itself as their first argument.
-
-    ``ClasscallMetaclass`` is implemented using an extension of the base
-    :class:`type` called :class:`ClasscallType`.
-
-    .. SEEALSO:: :class:`ClasscallType`
-
-    TODO: find a good name for this metaclass.
-
-    TESTS::
-
-        sage: PerfectMatchings(2).list()
-        [PerfectMatching [(2, 1)]]
-
-    .. note::
-
-        If a class is put in this metaclass it automatically becomes a
-        new-style class::
-
-            sage: from sage.misc.classcall_metaclass import ClasscallMetaclass
-            sage: class Foo:
-            ...       __metaclass__ = ClasscallMetaclass
-            sage: x = Foo(); x
-            <__main__.Foo object at 0x...>
-            sage: issubclass(Foo, object)
-            True
-            sage: isinstance(Foo, type)
-            True
-    """
-    pass
 
 def typecall(type cls, *args, **opts):
     r"""
@@ -475,7 +463,7 @@ def typecall(type cls, *args, **opts):
             ...
             TypeError: Argument 'cls' has incorrect type (expected type, got classobj)
     """
-    # See remarks in ClasscallType.__call__(cls, *args, **opts) for speed.
+    # See remarks in ClasscallMetaclass.__call__(cls, *args, **opts) for speed.
     res = <object> PyType_Type.tp_call(cls, args, opts)
     Py_XDECREF(res) # During the cast to <object> Cython did INCREF(res)
     return res

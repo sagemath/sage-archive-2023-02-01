@@ -1077,6 +1077,9 @@ ext_modules = [
     Extension('sage.misc.misc_c',
               sources = ['sage/misc/misc_c.pyx']),
 
+    Extension('sage.misc.nested_class',
+              sources = ['sage/misc/nested_class.pyx']),
+
     Extension('sage.misc.parser',
               sources = ['sage/misc/parser.pyx']),
 

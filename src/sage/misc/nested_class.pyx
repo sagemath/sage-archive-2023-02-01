@@ -68,6 +68,10 @@ The name for ``"A1.A2"`` could potentially be set to ``"B1.A2"``. But that will 
 """
 
 import sys
+cdef dict sys_modules = sys.modules
+
+import types
+from types import ClassType
 
 __all__ = ['modify_for_nested_pickle', 'nested_pickle',
            'NestedClassMetaclass', 'MainClass'
@@ -75,7 +79,7 @@ __all__ = ['modify_for_nested_pickle', 'nested_pickle',
            #, 'SubClass', 'CopiedClass', 'A1'
            ]
 
-def modify_for_nested_pickle(cls, name_prefix, module):
+cpdef modify_for_nested_pickle(cls, str name_prefix, module):
     r"""
     Modify the subclasses of the given class to be picklable, by
     giving them a mangled name and putting the mangled name in the
@@ -108,10 +112,11 @@ def modify_for_nested_pickle(cls, name_prefix, module):
         <class '__main__.A.B'>
 
     """
-    import types
+    cdef str name, dotted_name
+    cdef str mod_name = module.__name__
     for (name, v) in cls.__dict__.iteritems():
-        if isinstance(v, (type, types.ClassType)):
-            if v.__name__ == name and v.__module__ == module.__name__ and getattr(module, name, None) is not v:
+        if isinstance(v, (type, ClassType)):
+            if v.__name__ == name and v.__module__ == mod_name and getattr(module, name, None) is not v:
                 # OK, probably this is a nested class.
                 dotted_name = name_prefix + '.' + name
                 v.__name__ = dotted_name
@@ -159,11 +164,10 @@ def nested_pickle(cls):
         sage: loads(dumps(MainClass.NestedClass())) # indirect doctest
         <sage.misc.nested_class.MainClass.NestedClass object at 0x...>
     """
-    modify_for_nested_pickle(cls, cls.__name__, sys.modules[cls.__module__])
+    modify_for_nested_pickle(cls, cls.__name__, sys_modules[cls.__module__])
     return cls
 
-
-class NestedClassMetaclass(type):
+cdef class NestedClassMetaclass(type):
     r"""
     A metaclass for nested pickling.
 
@@ -198,8 +202,7 @@ class NestedClassMetaclass(type):
         sage: getattr(sys.modules['__main__'], 'A.B', 'Not found')
         <class '__main__.A.B'>
         """
-        nested_pickle(self)
-
+        modify_for_nested_pickle(self, self.__name__, sys_modules[self.__module__])
 
 class MainClass(object):
     r"""
@@ -253,6 +256,9 @@ class SubClass(MainClass):
 
 nested_pickle(SubClass)
 
+def _provide_SubClass():
+    return SubClass
+
 class CopiedClass(object):
     r"""
     A simple class to test nested_pickle.
@@ -267,7 +273,7 @@ class CopiedClass(object):
     """
     NestedClass = MainClass.NestedClass
     NestedSubClass = MainClass.NestedClass.NestedSubClass
-    SubClass = SubClass
+    SubClass = _provide_SubClass()
 
 nested_pickle(CopiedClass)
 

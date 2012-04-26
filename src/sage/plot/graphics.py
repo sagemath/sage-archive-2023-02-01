@@ -124,6 +124,19 @@ class Graphics(SageObject):
         sage: g = Graphics()
         sage: g += sphere((1, 1, 1), 2)
         sage: g.show()
+
+    We check that graphics can be pickled (we can't use equality on
+    graphics so we just check that the load/dump cycle gives a
+    :class:`Graphics` instance)::
+
+        sage: g = Graphics()
+        sage: g2 = loads(dumps(g))
+        sage: g2.show()
+
+    ::
+
+        sage: isinstance(g2, Graphics)
+        True
     """
 
     def __init__(self):
@@ -2278,12 +2291,12 @@ class GraphicsArray(SageObject):
             sage: R = rainbow(6)
             sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
             sage: G = graphics_array(L,2,3)
-            sage: G # plot shown is default
+            sage: G # plot shown is default (indirect doctest)
 
         We can make commands not display their plots by default. ::
 
             sage: show_default(False)
-            sage: graphics_array(L)
+            sage: graphics_array(L) # indirect doctest
             Graphics Array of size 1 x 6
             sage: show_default(True)
         """

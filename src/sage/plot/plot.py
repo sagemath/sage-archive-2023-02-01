@@ -1637,7 +1637,7 @@ def reshape(v, n, m):
     TESTS::
 
         sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in [1..3]]
-        sage: graphics_array(L,0,-1)
+        sage: graphics_array(L,0,-1) # indirect doctest
         Traceback (most recent call last):
         ...
         AssertionError: array sizes must be positive

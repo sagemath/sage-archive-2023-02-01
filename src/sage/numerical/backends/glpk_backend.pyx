@@ -407,6 +407,7 @@ cdef class GLPKBackend(GenericBackend):
 
         rows[1] = i + 1
         glp_del_rows(self.lp, 1, rows)
+        glp_std_basis(self.lp)
 
     cpdef remove_constraints(self, constraints):
         r"""
@@ -457,6 +458,7 @@ cdef class GLPKBackend(GenericBackend):
 
         glp_del_rows(self.lp, m, rows)
         sage_free(rows)
+        glp_std_basis(self.lp)
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """

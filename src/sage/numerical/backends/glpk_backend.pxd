@@ -72,6 +72,7 @@ cdef extern from "../../../local/include/glpk.h":
      int glp_simplex(c_glp_prob *, c_glp_smcp *)
      int glp_intopt(c_glp_prob *, c_glp_iocp *)
      int lpx_intopt(c_glp_prob *)
+     void glp_std_basis(c_glp_prob *)
      void glp_delete_prob(c_glp_prob *)
      double glp_get_col_prim(c_glp_prob *, int)
      double glp_get_obj_val(c_glp_prob *)

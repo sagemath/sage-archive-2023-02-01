@@ -252,7 +252,7 @@ cdef class MixedIntegerLinearProgram:
         # Check for redundant constraints
         self._check_redundant = check_redundant
         if check_redundant:
-            self._constraints = set()
+            self._constraints = list()
 
     def __repr__(self):
          r"""
@@ -281,6 +281,14 @@ cdef class MixedIntegerLinearProgram:
     def __copy__(self):
         r"""
         Returns a copy of the current ``MixedIntegerLinearProgram`` instance.
+
+        EXAMPLE::
+
+        sage: p = MixedIntegerLinearProgram()
+        sage: p.add_constraint(p[0] + p[1], max = 10)
+        sage: q = copy(p)
+        sage: q.number_of_constraints()
+        1
         """
         cdef MixedIntegerLinearProgram p = MixedIntegerLinearProgram(solver="GLPK")
 
@@ -1046,7 +1054,7 @@ cdef class MixedIntegerLinearProgram:
               if (tuple(C),min,max) in self._constraints:
                 return None
               else:
-                self._constraints.add((tuple(C),min,max))
+                self._constraints.append((tuple(C),min,max))
             else:
               C = [(v,coeff) for (v,coeff) in f.iteritems() if v != -1]
 
@@ -1102,6 +1110,7 @@ cdef class MixedIntegerLinearProgram:
             sage: p.number_of_constraints()
             2
         """
+        if self._check_redundant: self._constraints.pop(i)
         self._backend.remove_constraint(i)
 
     def remove_constraints(self, constraints):
@@ -1136,7 +1145,38 @@ cdef class MixedIntegerLinearProgram:
             ...
             sage: p.number_of_constraints()
             1
+
+        When checking for redundant constraints, make sure you remove only
+        the constraints that were actually added. Problems could arise if
+        you have a function that builds lps non-interactively, but it fails
+        to check whether adding a constraint actually increases the number of
+        constraints. The function might later try to remove constraints that
+        are not actually there::
+
+            sage: p = MixedIntegerLinearProgram(check_redundant=True)
+            sage: x, y = p[0], p[1]
+            sage: p.add_constraint(x + y, max = 10)
+            sage: for each in xrange(10): p.add_constraint(x - y, max = 10)
+            sage: p.add_constraint(x, max = 4)
+            sage: p.number_of_constraints()
+            3
+            sage: p.remove_constraints(range(1,9))
+            Traceback (most recent call last):
+            ...
+            IndexError: pop index out of range
+            sage: p.remove_constraint(1)
+            sage: p.number_of_constraints()
+            2
+
+        We should now be able to add the old constraint back in::
+
+            sage: for each in xrange(10): p.add_constraint(x - y, max = 10)
+            sage: p.number_of_constraints()
+            3
         """
+        if self._check_redundant:
+          for i in sorted(constraints,reverse=True):
+            self._constraints.pop(i)
         self._backend.remove_constraints(constraints)
 
     def set_binary(self, ee):

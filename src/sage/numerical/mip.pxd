@@ -21,7 +21,7 @@ cdef class MixedIntegerLinearProgram:
     cdef int __INTEGER
     cpdef int number_of_constraints(self)
     cdef int _check_redundant
-    cdef set _constraints
+    cdef list _constraints
 
 cdef class MIPVariable:
     cdef MixedIntegerLinearProgram _p

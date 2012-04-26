@@ -20,6 +20,13 @@ from sage.numerical.mip import MIPSolverException
 cdef class CPLEXBackend(GenericBackend):
 
     def __cinit__(self, maximization = True):
+        """
+        Constructor
+
+        EXAMPLE::
+
+        sage: p = MixedIntegerLinearProgram(solver="CPLEX")                 # optional - CPLEX
+        """
 
         cdef int status
         self.env = CPXopenCPLEX (&status)

@@ -254,6 +254,13 @@ cdef class GenericBackend:
         INPUT::
 
         - ``i`` -- index of the constraint to remove.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(p[0] + p[1], max = 10)           # optional - Nonexistent_LP_solver
+            sage: p.remove_constraint(0)                            # optional - Nonexistent_LP_solver
         """
         raise NotImplementedError()
 
@@ -264,6 +271,13 @@ cdef class GenericBackend:
         INPUT:
 
         - ``constraints`` -- an iterable containing the indices of the rows to remove.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
+            sage: p.add_constraint(p[0] + p[1], max = 10)           # optional - Nonexistent_LP_solver
+            sage: p.remove_constraints([0])                         # optional - Nonexistent_LP_solver
         """
         if type(constraints) == int: self.remove_constraint(constraints)
 

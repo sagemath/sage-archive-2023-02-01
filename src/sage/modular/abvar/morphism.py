@@ -654,7 +654,7 @@ class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
         B = sub.lattice().basis()
         ims = sum([ (L(b)*self.matrix()).list() for b in B], [])
         MS = matrix_space.MatrixSpace(self.base_ring(), len(B), self.codomain().rank())
-        H = sub.Hom(self.codomain(), self.category())
+        H = sub.Hom(self.codomain(), self.category_for())
         return H(MS(ims))
 
 class DegeneracyMap(Morphism):
@@ -736,6 +736,8 @@ class HeckeOperator(Morphism):
             sage: J = J0(37)
             sage: T2 = J.hecke_operator(2); T2
             Hecke operator T_2 on Abelian variety J0(37) of dimension 2
+            sage: T2.parent()
+            Endomorphism ring of Abelian variety J0(37) of dimension 2
         """
         n = ZZ(n)
         if n <= 0:
@@ -744,7 +746,7 @@ class HeckeOperator(Morphism):
             raise TypeError, "abvar must be a modular abelian variety"
         self.__abvar = abvar
         self.__n = n
-        sage.modules.matrix_morphism.MatrixMorphism_abstract.__init__(self, abvar._Hom_(abvar))
+        sage.modules.matrix_morphism.MatrixMorphism_abstract.__init__(self, abvar.Hom(abvar))
 
     def _repr_(self):
         """

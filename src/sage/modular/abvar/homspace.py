@@ -183,6 +183,7 @@ import sage.rings.integer_ring
 import sage.rings.all
 
 from sage.rings.ring import Ring
+from sage.categories.category import Category
 from sage.categories.rings import Rings
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix, identity_matrix
@@ -700,8 +701,14 @@ class EndomorphismSubring(Homspace, Ring):
             Endomorphism ring of Abelian variety J0(23) of dimension 2
             sage: sage.modular.abvar.homspace.EndomorphismSubring(J0(25))
             Endomorphism ring of Abelian variety J0(25) of dimension 0
-            sage: type(J0(11).endomorphism_ring())
+            sage: E = J0(11).endomorphism_ring()
+            sage: type(E)
             <class 'sage.modular.abvar.homspace.EndomorphismSubring_with_category'>
+            sage: E.category()
+            Join of Category of hom sets in Category of sets and Category of rings
+            sage: E.homset_category()
+            Category of modular abelian varieties over Rational Field
+            sage: TestSuite(E).run(skip=["_test_elements"])
 
         TESTS:
 
@@ -716,11 +723,14 @@ class EndomorphismSubring(Homspace, Ring):
         self._A = A
 
         # Initialise self with the correct category.
+        # TODO: a category should be able to specify the appropriate
+        # category for its endomorphism sets
         # We need to initialise it as a ring first
-        cat = A.category()
-        cat = cat.join([cat.hom_category(),Rings()])
-        Ring.__init__(self, A.base_ring(), category=cat)
-        Homspace.__init__(self, A, A, cat=cat)
+        homset_cat = A.category()
+        cat = Category.join([homset_cat.hom_category(),Rings()])
+        Ring.__init__(self, A.base_ring())
+        Homspace.__init__(self, A, A, cat=homset_cat)
+        self._refine_category_(Rings())
         if gens is None:
             self._gens = None
         else:

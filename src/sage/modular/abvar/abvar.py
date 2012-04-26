@@ -590,6 +590,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
             sage: J0(37)._Hom_(J1(37))
             Space of homomorphisms from Abelian variety J0(37) of dimension 2 to Abelian variety J1(37) of dimension 40
+            sage: J0(37)._Hom_(J1(37)).homset_category()
+            Category of modular abelian varieties over Rational Field
         """
         if cat is None:
             K = self.base_field(); L = B.base_field()

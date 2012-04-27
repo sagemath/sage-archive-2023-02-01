@@ -43,6 +43,45 @@ static sigset_t default_sigmask;
 /* default_sigmask with SIGINT and SIGALRM added. */
 static sigset_t sigmask_with_sigint;
 
+/* Does this processor support the x86 EMMS instruction? */
+#if defined(__i386__) || defined(__x86_64__)
+#define CPU_ARCH_x86
+static int cpu_has_emms = 0;
+#endif
+
+/* Do whatever is needed to reset the CPU to a sane state after
+ * handling a signal.  In particular on x86 CPUs, we need to clear
+ * the FPU (this is needed after MMX instructions have been used or
+ * if an interrupt occurs during an FPU computation).
+ * Linux and OS X 10.6 do this as part of their signals implementation,
+ * but Solaris doesn't.  Since this code is called only when handling a
+ * signal (which should be very rare), it's better to play safe and
+ * always execute this instead of special-casing based on the operating
+ * system.
+ * See http://trac.sagemath.org/sage_trac/ticket/12873
+ */
+static inline void reset_CPU()
+{
+#ifdef CPU_ARCH_x86
+    /* Clear FPU tag word */
+    if (cpu_has_emms)
+    {
+        asm("emms");
+    }
+    else
+    {
+        asm("ffree %st(0)");
+        asm("ffree %st(1)");
+        asm("ffree %st(2)");
+        asm("ffree %st(3)");
+        asm("ffree %st(4)");
+        asm("ffree %st(5)");
+        asm("ffree %st(6)");
+        asm("ffree %st(7)");
+    }
+#endif
+}
+
 
 /* Handler for SIGINT */
 void sage_interrupt_handler(int sig)
@@ -65,6 +104,7 @@ void sage_interrupt_handler(int sig)
         PyErr_SetNone(PyExc_KeyboardInterrupt);
 
         /* Jump back to sig_on() (the first one if there is a stack) */
+        reset_CPU();
         siglongjmp(_signals.env, sig);
     }
     else
@@ -120,6 +160,7 @@ void sage_signal_handler(int sig)
         PyErr_SetString(PyExc_RuntimeError, msg);
 
         /* Jump back to sig_on() (the first one if there is a stack) */
+        reset_CPU();
         siglongjmp(_signals.env, sig);
     }
     else
@@ -230,6 +271,25 @@ void setup_sage_signal_handler()
     if (sigaction(SIGFPE, &sa, NULL)) {perror("sigaction"); exit(1);}
     if (sigaction(SIGBUS, &sa, NULL)) {perror("sigaction"); exit(1);}
     if (sigaction(SIGSEGV, &sa, NULL)) {perror("sigaction"); exit(1);}
+
+    /* If the CPU architecture is x86, check whether the EMMS
+     * instruction is supported by executing it and catching a
+     * possible SIGILL (illegal instruction signal). */
+#ifdef CPU_ARCH_x86
+    if (!cpu_has_emms)
+    {
+        if (sig_on_no_except())  /* try: */
+        {
+            asm("emms");
+            sig_off();
+            cpu_has_emms = 1;
+        }
+        else  /* except: */
+        {
+            PyErr_Clear();  /* Clear Python exception */
+        }
+    }
+#endif
 }
 
 

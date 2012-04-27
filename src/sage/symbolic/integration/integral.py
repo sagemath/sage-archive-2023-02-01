@@ -581,7 +581,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         ((e*erf(1) - e)*sqrt(pi) + 1)*e^(-1)
         sage: ideal_result = 1/2*gamma(-1/2, 1)
         sage: error = actual_result - ideal_result
-        sage: error.numerical_approx() # abs tol 10e-10
+        sage: error.numerical_approx() # abs tol 1e-10
         0
 
     We won't get an evaluated answer here, which is better than
@@ -590,6 +590,17 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: f = abs(sin(x))
         sage: integrate(f, x, 0, 2*pi)
         integrate(abs(sin(x)), x, 0, 2*pi)
+
+    Another incorrect integral fixed upstream in Maxima, from
+    :trac:`11233`::
+
+        sage: a,t = var('a,t')
+        sage: assume(a>0)
+        sage: assume(x>0)
+        sage: f = log(1 + a/(x * t)^2)
+        sage: F = integrate(f, t, 1, Infinity)
+        sage: F(x=1, a=7).numerical_approx() # abs tol 1e-10
+        4.32025625668262
 
     """
     if isinstance(v, (list, tuple)) and a is None and b is None:

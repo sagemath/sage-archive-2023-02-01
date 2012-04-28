@@ -5083,9 +5083,9 @@ class GraphGenerators():
 #   Random Graphs
 ################################################################################
 
-    def RandomGNP(self, n, p, seed=None, fast=False, method='networkx'):
+    def RandomGNP(self, n, p, seed=None, fast=True, method='Sage'):
         r"""
-        Returns a Random graph on `n` nodes. Each edge is inserted independently
+        Returns a random graph on `n` nodes. Each edge is inserted independently
         with probability `p`.
 
         INPUTS:
@@ -5096,17 +5096,18 @@ class GraphGenerators():
 
         - ``seed`` -- integer seed for random number generator (default=None).
 
-        - ``fast`` -- boolean set to True to use the algorithm with time
-          complexity in `O(n+m)` proposed in [3]_. It is designed for generating
-          large sparse digraphs, and faster than other methods only faster for
+        - ``fast`` -- boolean set to True (default) to use the algorithm with
+          time complexity in `O(n+m)` proposed in [3]_. It is designed for
+          generating large sparse graphs. It is faster than other methods for
           *LARGE* instances (try it to know whether it is useful for you).
 
-        - ``method`` -- By default (```method='networkx'``), this function calls
-          the NetworkX function ``gnp_random_graph``, unless ``fast=True``, then
-          ``fast_gnp_random_graph``. When ``method='Sage'``, it uses the method
-          implemented in ```sage.graphs.graph_generators_pyx.pyx`` (try it to
-          know whether it is useful for you). The ``fast`` parameter is not
-          taken into account by the 'Sage' method so far.
+        - ``method`` -- By default (```method='Sage'``), this function uses the
+          method implemented in ```sage.graphs.graph_generators_pyx.pyx``. When
+          ``method='networkx'``, this function calls the NetworkX function
+          ``fast_gnp_random_graph``, unless ``fast=False``, then
+          ``gnp_random_graph``. Try them to know which method is the best for
+          you. The ``fast`` parameter is not taken into account by the 'Sage'
+          method so far.
 
         REFERENCES:
 
@@ -5125,7 +5126,7 @@ class GraphGenerators():
 
             sage: set_random_seed(0)
             sage: graphs.RandomGNP(6, .4).edges(labels=False)
-            [(0, 1), (0, 3), (0, 4), (1, 2), (1, 4), (3, 4)]
+            [(0, 1), (0, 5), (1, 2), (2, 4), (3, 4), (3, 5), (4, 5)]
 
         We plot a random graph on 12 nodes with probability
         `p = .71`::
@@ -5162,7 +5163,7 @@ class GraphGenerators():
             sage: graphs.RandomGNP(50,.2, method="Sage").size()
             243
             sage: graphs.RandomGNP(50,.2, method="networkx").size()
-            231
+            258
         """
         if n < 0:
             raise ValueError("The number of nodes must be positive or null.")
@@ -5181,7 +5182,7 @@ class GraphGenerators():
             else:
                 G = networkx.gnp_random_graph(n, p, seed=seed)
             return graph.Graph(G)
-        elif method == "Sage":
+        elif method in ['Sage', 'sage']:
             # We use the Sage generator
             from sage.graphs.graph_generators_pyx import RandomGNP as sageGNP
             return sageGNP(n, p)

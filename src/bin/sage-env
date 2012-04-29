@@ -388,6 +388,14 @@ else
 fi
 export PKG_CONFIG_PATH
 
+############ architecture flags
+
+# Support flags to change the build architecture.  Currently, this is
+# only SAGE64.
+# Whenever a flag like SAGE64 has been set once, it needs to be
+# restored in every run of sage, as mixing 64-bit and 32-bit code is
+# bad idea at best.  This script takes care of that.
+. "$SAGE_ROOT/spkg/bin/sage-arch-env"
 
 ############ compilation flags
 
@@ -454,21 +462,6 @@ fi
 if [ "$LDFLAGS" = "" ]; then
     LDFLAGS=""          && export LDFLAGS
 fi
-
-if [ "$SAGE64" = "" ]; then
-    SAGE64="no"
-fi
-
-if [ "$SAGE64" != "yes" -a "$SAGE64" != "no" ]; then
-    echo "The environment variable SAGE64 (=$SAGE64) must be either unset, yes or no."
-    return 1
-fi
-
-# In case SAGE64 has been set to yes before re-inject it into the environment
-# This is only done on OSX and Solaris since those are the only real multi lib
-# arches we support. Eventually Linux PPC on the PS3 might need to be added here
-source "$SAGE_LOCAL/bin/sage-check-64" 1> /dev/null 2> /dev/null
-export SAGE64
 
 if [ "$CXXFLAGS" = "" ]; then
     export CXXFLAGS="$CFLAGS"

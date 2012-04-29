@@ -24,9 +24,6 @@ See http://www.mpir.org
 
 == Special Update/Build Instructions ==
  * TODO:
-   - Use 'patch' also to (unconditionally) apply the harmless patch for Sun CC
-     (on SunOS), as the current prepatched file which is still copied over has
-     to get refreshed on each upgrade.
    - Perhaps also modify CXXFLAGS (and/or CPPFLAGS).
    - We currently don't use anything of GMP's/MPIR's CC setting, and matching
      with the current compiler (`$CC`) is perhaps suboptimal.
@@ -46,14 +43,36 @@ See http://www.mpir.org
    (Saves 13 of 40 MB uncompressed.)
 
 === Patches ===
- * We currently apply a trivial patch to gmp-h.in on SunOS such that
-   MPIR would compile with Sun CC there.  See also `spkg-install`.
-   This patch could be applied on all platforms, as the changes only take
-   effect if the preprocessor variable `__SUNPRO_CC` is defined.
+ * gmp-h.in.patch: a trivial patch adding some #includes such that MPIR
+   would compile on SunOS with Sun CC.  The changes in this patch only
+   take effect if the preprocessor variable `__SUNPRO_CC` is defined.
  * We apply a simple patch to upstream yasm's re2c code, to avoid a potential
    race condition when building yasm in parallel.  (Cf. #11844.)
+ * quote_asm.patch: replace things of the form "define(OPERATION_foo,1)" by
+   "define(`OPERATION_foo',1)".  This gives proper quoting for use with m4,
+   otherwise the define might expand to "define(,1)".  Some versions of m4
+   bail out with an error when encountering "define(,1)".
+   These files were patched using
+     find mpn -name '*.asm' -exec sed -i 's/define(\(OPERATION[^,]*\),/define(\`\1'"'"',/' {} \;
 
 == Changelog ==
+
+=== mpir-2.4.0.p3 (Jeroen Demeyer, April 26th, 2012) ===
+ Trac #11616, reviewer fixes:
+ * When the first configure run (with CFLAGS unset) of MPIR fails, bail
+   out with an error.  I am not aware of any system where MPIR fails
+   to configure with CFLAGS unset but succeeds with CFLAGS set.
+   This implies the following simplifications:
+   - We no longer read CC and CFLAGS from /usr/include/gmp.h or
+     /usr/local/include/gmp.h
+   - We no longer try to add -march=native, we simply use MPIR's flags.
+ * Extract $CC and $CFLAGS from Makefile instead of mpir.h, which is
+   simpler and more reliable.
+ * Added `quote_asm.patch` to add proper quoting to the m4 in .asm files.
+ * Use `patch` to patch gmp-h.in instead of copying the file.
+ * In get_processor_specific_cflags() in spkg-install, also check for
+   -mpower* and -mno-power* flags, as MPIR adds -mpower on 32-bit
+   PowerPC systems.
 
 === mpir-2.4.0.p2 (Leif Leonhardy, April 4th, 2012) ===
  #11616 (upgrading MPIR), further fixes:

@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-###############################################################################
-# IMPORTANT: WHEN EDITING THIS FILE, MAKE SURE YOUR EDITOR DOES NOT REPLACE
-#            TABS BY SPACES.
-###############################################################################
-
 if [ -z "$SAGE_LOCAL" ]; then
     echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
     echo >&2 "Maybe run 'sage -sh'?"
@@ -19,22 +14,7 @@ cd src/
 # Apply patches (if any):
 ###############################################################################
 
-# Add a patch which allows MPIR to build with Sun Studio:
-# (This only adds some includes if __SUNPRO_CC is defined, so is a completely
-# harmless change that doesn't depend on the actual compiler used.)
-if [ "$UNAME" = SunOS ]; then
-    # TODO: Use 'patch' instead of copying over a patched version, which
-    #       has to be refreshed on each new release, since gmp-h.in also
-    #       contains the full version number.
-    echo "Copying a version of gmp-h.in which is patched for Sun Studio..."
-    cp ../patches/gmp-h.in . # We are in src/.
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: Failed to patch MPIR for Sun Studio."
-        exit 1
-    fi
-fi
-
-echo "Applying further patches (if any) to upstream sources..."
+echo "Applying patches to upstream sources..."
 for patch in ../patches/*.patch; do
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
@@ -78,45 +58,6 @@ remove_32_bit_assembly_code() # MacOS X 10.4 and 10.5 on Intel (x86) only.
     cd "$saved"
 }
 
-get_upstream_selected_cflags() # Get MPIR's choice on empty CFLAGS (or system GMP's).
-{
-    # Internal sanity check:
-    if [ $# -ne 1 ]; then
-        echo >&2 "Error: get_upstream_selected_cflags() requires 'file' parameter."
-        exit 1
-    fi
-    header_file=$1
-    if ! [ -f "$header_file" ]; then
-        upstream_cc=""
-        upstream_cflags=""
-        return 1
-    fi
-    # The following patterns only extract the contents of (double-quoted) strings:
-    gmp_cc_pat='/^[ 	]*#[ 	]*define[ 	]\{1,\}__GMP_CC[ 	]\{1,\}/s/.*"\([^"]*\)"/\1/p'
-    gmp_cflags_pat='/^[ 	]*#[ 	]*define[ 	]\{1,\}__GMP_CFLAGS[ 	]\{1,\}/s/.*"\([^"]*\)"/\1/p'
-    # Extract preprocessor definitions of __GMP_CC and __GMP_CFLAGS:
-    upstream_cc=`sed -n -e "$gmp_cc_pat" "$header_file"`
-    upstream_cflags=`sed -n -e "$gmp_cflags_pat" "$header_file"`
-    # At least /some/ newer versions of MPIR define __GMP_CC and __GMP_CFLAGS
-    # (also in gmp.h! -- how compatible is that?) to (literally) __MPIR_CC and
-    # __MPIR_CFLAGS, respectively, i.e., to preprocessor variables, so we might
-    # have to get the real strings from their definitions:
-    # (Since we currently only match string literals above, both variables would
-    # be empty in that case, and not contain the names of preprocessor variables.
-    # We could change the patterns to actually match any definition / "value".)
-    case "$upstream_cc" in __MPIR_CC|"")
-        upstream_cc=`sed -n -e "${gmp_cc_pat/GMP/MPIR}" "$header_file"`
-    esac
-    case "$upstream_cflags" in __MPIR_CFLAGS|"")
-        upstream_cflags=`sed -n -e "${gmp_cflags_pat/GMP/MPIR}" "$header_file"`
-    esac
-    # Upstream-selected CFLAGS may be empty, CC shouldn't:
-    if [ -z "$upstream_cc" ]; then
-        return 1
-    fi
-    return 0
-}
-
 get_processor_specific_cflags() # Extract some processor-specific CFLAGS.
 {
     # Internal sanity check:
@@ -124,52 +65,19 @@ get_processor_specific_cflags() # Extract some processor-specific CFLAGS.
         echo >&2 "Error: get_processor_specific_cflags() requires 'CFLAGS' parameter."
         exit 1
     fi
-    flags=$@
+    flags=$*
     arch_flags=""
     for opt in $flags; do
         case $opt in
-            -march=*|-mcpu=*|-mtune=*)
+            -march=*|-mcpu=*|-mtune=*|-mpower*|-mno-power*)
                 arch_flags="$arch_flags $opt"
                 ;;
             # We could add further '-m' or '-f' options here, but note that
             # this function is also used to determine if the user specified
             # some, which we don't want to override.
-            # AFAIK, MPIR currently uses / defines at most '-m{arch,cpu,tune}',
-            # not more specific / additional ones like e.g. '-mavx' or '-mvsx'.
-            # (-leif, 04/2012)
         esac
     done
     echo $arch_flags
-}
-
-native_build_cflags_if_supported() # Give option for a native build if supported.
-{
-    # Some GCC 4.0.x versions don't support '-march=native', and it's currently
-    # not supported on all platforms supported by Sage.
-    # (Compilers other than 'gcc' might support it as well, in which case the
-    # following also works. Other flavours could be added, too.)
-    if touch foo.c && $CC -march=native -c foo.c &>/dev/null; then
-        # Ok, the compiler (presumably GCC) understands '-march=native', which
-        # doesn't yet mean the *assembler* will know the fancy instructions
-        # the compiler emits with that option.
-        # For example, Apple's assembler on Mac OS X 10.7.1 apparently doesn't
-        # yet support AVX, which could also cause MPIR's 'configure' to fail.
-        cat >foo.c <<-"EOF"
-		double d;
-		unsigned long fancy_insns() { return (unsigned long) d; }
-		int main () { return 0; }
-	EOF
-        if $CC -march=native -o foo foo.c &>/dev/null && ./foo >/dev/null; then
-            echo "-march=native"
-        else
-            echo >&2 "Warning: Your assembler apparently doesn't understand the instructions"
-            echo >&2 "         your compiler ($CC) generates with '-march=native'."
-            echo >&2 "         You might also try to compile MPIR with (e.g.)"
-            echo >&2 "             CFLAGS=\"-march=native -mno-avx\""
-            echo >&2 "         to disable specific instruction set extension (in this case, AVX)."
-        fi
-    fi
-    rm -f foo foo.* >/dev/null
 }
 
 ###############################################################################
@@ -179,13 +87,12 @@ native_build_cflags_if_supported() # Give option for a native build if supported
 # The Yasm build uses PYTHON from the environment to find the Python interpreter,
 # so unset it in case it apparently contains nothing useful (like it did in Sage
 # versions prior to 5.0.beta10; cf. #10492), to not break Yasm's 'configure':
-if ! $PYTHON --version &>/dev/null; then
-    # Only issue a warning if it was really non-empty, to not confuse users:
-    if [ -n "$PYTHON" ]; then
+if [ -n "$PYTHON" ]; then
+    if ! $PYTHON --version &>/dev/null; then
         echo >&2 "Warning: Unsetting PYTHON (=\"$PYTHON\"), since it doesn't seem"
         echo >&2 "         to contain the name of / path to a Python interpreter."
+        unset PYTHON
     fi
-    unset PYTHON
 fi
 
 user_cflags=$CFLAGS # Save them. 'sage-env' sets CC, but not CFLAGS.
@@ -317,19 +224,6 @@ case "$UNAME" in
             fi
             rm -f foo foo.c
         fi
-
-        # Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs:
-        # (Cf. #12765, #12751, and bug URL below.)
-        case "`uname -m`-`$CC -dumpversion 2>/dev/null`" in ia64-4.7.*)
-            # It's quite unlikely we match other compilers than GCC (e.g. clang) here.
-            required_cflags="$required_cflags -O0 -finline-functions -fschedule-insns"
-            echo >&2 "Warning: Disabling almost all optimization due to a bug in (at least)"
-            echo >&2 "         GCC 4.7.0 on Itanium, which otherwise would break the build."
-            echo >&2 "         See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496"
-            echo >&2 "         for current status and further details."
-            echo >&2 "         (And please report to e.g. sage-devel in case you feel this bug"
-            echo >&2 "          should already be fixed in GCC `$CC -dumpversion`.)"
-        esac
         ;; # Linux
     CYGWIN)
         # Nothing special performed (yet).
@@ -339,11 +233,22 @@ case "$UNAME" in
             "by this MPIR spkg, i.e., by Sage's part of it."
 esac
 
-export ABI CFLAGS CXXFLAGS # Partially redundant, but safe(r).
-# We don't export CPPFLAGS here, since we don't (have to) modify them.
-if [ -n "$required_ldflags" ]; then
-    export LDFLAGS # Probably redundant, but safe(r).
+# Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs:
+# See #12765, #12751, and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496
+if [ "`uname -m`" = ia64 ] && [ "`testcc.sh $CC`" = GCC ] ; then
+    if $CC -dumpversion | grep >/dev/null '^4\.7\.' ; then
+        required_cflags="$required_cflags -O0 -finline-functions -fschedule-insns"
+        echo >&2 "Warning: Disabling almost all optimization due to a bug in (at least)"
+        echo >&2 "         GCC 4.7.0 on Itanium, which otherwise would break the build."
+        echo >&2 "         See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496"
+        echo >&2 "         for current status and further details."
+        echo >&2 "         (And please report to e.g. sage-devel in case you think this"
+        echo >&2 "         bug is already fixed in GCC `$CC -dumpversion`.)"
+    fi
 fi
+
+export ABI CFLAGS CXXFLAGS LDFLAGS # Partially redundant, but safe(r).
+# We don't export CPPFLAGS here, since we don't (have to) modify them.
 
 ###############################################################################
 # Now configure MPIR, eventually modifying CFLAGS [further]:
@@ -368,36 +273,27 @@ fi
 
 # Pre-configure MPIR to get the settings it would use if CFLAGS were empty:
 echo "Checking what CFLAGS MPIR would use if they were empty..."
-if (unset CFLAGS CPPFLAGS CXXFLAGS &&
-    ./configure $SAGE_CONF_OPTS $MPIR_EXTRA_OPTS) &>/dev/null;
-then
-    if get_upstream_selected_cflags mpir.h; then
-        mpir_cflags=$upstream_cflags
-        mpir_cc=$upstream_cc
-        echo "Settings chosen by MPIR when configuring with CFLAGS unset:"
-        echo "  CC:      $mpir_cc"
-        echo "  CFLAGS:  $mpir_cflags"
-    else
-        echo >&2 "Warning: Couldn't determine MPIR-selected CFLAGS from 'mpir.h'"
-    fi
-else
-    # We ignore errors in the first place, since we redirected all
-    # messages to /dev/null. (The messages can be found in the 'config.log'
-    # files if someone really wants to read them.)
-    :;
+(unset CFLAGS CPPFLAGS CXXFLAGS && ./configure $SAGE_CONF_OPTS $MPIR_EXTRA_OPTS) &>configure-empty.log
+if [ $? -ne 0 ]; then
+    # Output the log of the failed configure run
+    cat configure-empty.log
+    echo >&2 "Error configuring MPIR (with CFLAGS unset)."
+    echo >&2 "Consult `pwd`/config.log for for details."
+    exit 1
 fi
-find . -name config.cache -o -name config.status -exec rm -f {} \;
 
-for header in /usr/include/gmp.h /usr/local/include/gmp.h; do
-    if get_upstream_selected_cflags $header; then
-        system_cflags=upstream_cflags
-        system_cc=upstream_cc
-        echo "Settings found in $header:"
-        echo "  CC:      $upstream_cc"
-        echo "  CFLAGS:  $upstream_cflags"
-    fi
-done
 
+# Read MPIR-selected flags from Makefile
+mpir_cc=`sed -n 's/^CC *= *//p' Makefile`
+mpir_cflags=`sed -n 's/^CFLAGS *= *//p' Makefile`
+if [ -z "$mpir_cc" ]; then
+    echo >&2 "Error: failed to determine \$CC from Makefile"
+    echo >&2 "Please report this to <sage-devel@googlegroups.com>"
+    exit 1
+fi
+echo "Settings chosen by MPIR when configuring with CFLAGS unset:"
+echo "  CC:      $mpir_cc"
+echo "  CFLAGS:  $mpir_cflags"
 echo "Settings required to properly build MPIR, taking into account SAGE_DEBUG etc.:"
 echo "  CFLAGS:  $required_cflags"  # Might be empty.
 echo "  LDFLAGS: $required_ldflags" # Might be empty.
@@ -410,25 +306,10 @@ echo "  ABI:     $user_abi"
 echo "  (CPP, CPPFLAGS, CXX and CXXFLAGS are listed below; these don't get modified.)"
 
 if [ -z "$user_cflags" ]; then
-    # No CFLAGS specified by user => Use either MPIR's, GMP's or our default
-    # ones, plus those required by Sage for the package to build properly:
-    if [ -n "$mpir_cflags" ]; then
-        # Fine. Use upstream settings. MPIR honors '--enable-fat'.
-        echo "Using MPIR's settings (plus mandatory ones)."
-        CFLAGS="$mpir_cflags $required_cflags"
-    elif [ -n "$system_cflags" ] && [ "$system_cc" = "$CC" ] &&
-        [ "$SAGE_FAT_BINARY" != yes ];
-    then
-        # Use system-wide GMP's settings (since compilers match).
-        echo "Using the settings from the system-wide GMP installation (plus mandatory ones.)"
-        CFLAGS="$system_cflags $required_cflags"
-    else # Use spkg's defaults, and add '-march=native' if supported and appropriate.
-        echo "Using the spkg's (i.e. Sage's) default (plus mandatory) settings."
-        CFLAGS="$default_cflags $required_cflags"
-        if [ "$SAGE_FAT_BINARY" != yes ]; then
-            CFLAGS="`native_build_cflags_if_supported` $CFLAGS"
-        fi
-    fi
+    # No CFLAGS specified by user => Use MPIR's flags, plus those
+    # required by Sage for the package to build properly:
+    echo "Using MPIR's settings (plus mandatory ones)."
+    CFLAGS="$mpir_cflags $required_cflags"
 else
     # CFLAGS were specified by the user, so don't override them (unless
     # necessary) and only add some useful ones to improve code generation:
@@ -438,25 +319,13 @@ else
     # Now add processor-specific flags if appropriate:
     if [ -z "`get_processor_specific_cflags $CFLAGS`" ]; then
         # User didn't specify specific architecture, so try to add such flag(s):
-        if [ -n "$mpir_cflags" ]; then
-            # Add MPIR's. Honors '--enable-fat'.
-            echo "Adding processor-specific options from MPIR."
-            CFLAGS="`get_processor_specific_cflags $mpir_cflags` $CFLAGS"
-        elif [ -n "$system_cflags" ] && [ "$system_cc" = "$CC" ] &&
-            [ "$SAGE_FAT_BINARY" != yes ];
-        then
-            # Add system-wide GMP's processor-specific settings (since compilers match).
-            echo "Adding processor-specific options from the system-wide GMP."
-            CFLAGS="`get_processor_specific_cflags $system_cflags` $CFLAGS"
-        elif [ "$SAGE_FAT_BINARY" != yes ]; then
-            CFLAGS="`native_build_cflags_if_supported` $CFLAGS"
-        fi
+        # Add MPIR's. Honors '--enable-fat'.
+        echo "Adding processor-specific options from MPIR."
+        CFLAGS="`get_processor_specific_cflags $mpir_cflags` $CFLAGS"
     else
         # User did specify some processor-specific CFLAGS.
         # We *might* prepend all of MPIR's CFLAGS here in addition,
         # but doing so could raise a conflict.
-        # (I'm not aware of any processor-specific flags MPIR uses / writes
-        # to gmp.h other than -mcpu, -mtune / -march.)
         :;
     fi
 fi
@@ -492,6 +361,9 @@ else
     echo "Configuring MPIR with the following options:"
     echo "    --prefix=\"$SAGE_LOCAL\" --libdir=\"$SAGE_LOCAL/lib\" $SAGE_CONF_OPTS $MPIR_EXTRA_OPTS"
 fi
+
+# Clear the cache of the previous configure run
+find . -name config.cache -exec rm -f {} \;
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $SAGE_CONF_OPTS $MPIR_EXTRA_OPTS
 if [ $? -ne 0 ]; then

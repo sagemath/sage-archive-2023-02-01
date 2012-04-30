@@ -158,6 +158,11 @@ sage_makedirs(SAGE_TMP_INTERFACE)
 SAGE_DB = '%s/db'%DOT_SAGE
 sage_makedirs(SAGE_DB)
 
+try:
+    # Create the matplotlib config directory.
+    sage_makedirs(os.environ["MPLCONFIGDIR"])
+except KeyError:
+    pass
 
 #################################################################
 # Functions to help with interfacing with CXX code that

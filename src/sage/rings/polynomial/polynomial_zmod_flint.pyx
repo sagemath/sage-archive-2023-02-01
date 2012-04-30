@@ -546,9 +546,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         TESTS::
 
             sage: R(0).is_irreducible()
-            Traceback (most recent call last):
-            ...
-            ValueError: must be nonzero
+            False
             sage: R(1).is_irreducible()
             False
             sage: R(2).is_irreducible()
@@ -567,7 +565,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             NotImplementedError: checking irreducibility of polynomials over rings with composite characteristic is not implemented
         """
         if self.is_zero():
-            raise ValueError("must be nonzero")
+            return False
         if self.is_unit():
             return False
 

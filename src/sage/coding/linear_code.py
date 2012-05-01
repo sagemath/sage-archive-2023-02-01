@@ -518,6 +518,31 @@ def bounds_minimum_distance(n, k, F):
     an example.
 
     This function requires optional GAP package (Guava).
+
+    EXAMPLES::
+
+        sage: print bounds_minimum_distance(10,5,GF(2)) # optional (requires Guava)
+        rec(
+          n := 10,
+          k := 5,
+          q := 2,
+          references := rec(
+               ),
+          construction :=
+           [ <Operation "ShortenedCode">, [ [ <Operation "UUVCode">, [ [
+                              <Operation "DualCode">,
+                              [ [ <Operation "RepetitionCode">, [ 8, 2 ] ] ] ],
+                          [ <Operation "UUVCode">,
+                              [ [ <Operation "DualCode">, [ [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ], [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ] ] ],
+                  [ 1, 2, 3, 4, 5, 6 ] ] ],
+          lowerBound := 4,
+          lowerBoundExplanation :=
+           [ "Lb(10,5)=4, by shortening of:", "Lb(16,11)=4, by the u|u+v construction applied to C1 [8,7,2] and C2 [8,4,4]: ",
+              "Lb(8,7)=2, dual of the repetition code",
+              "Lb(8,4)=4, by the u|u+v construction applied to C1 [4,3,2] and C2 [4,1,4]: ", "Lb(4,3)=2, dual of the repetition code", "Lb(4,1)=4, repetition code"
+             ],
+          upperBound := 4,
+          upperBoundExplanation := [ "Ub(10,5)=4, by the Griesmer bound" ] )
     """
     q = F.order()
     gap.eval("data := BoundsMinimumDistance(%s,%s,GF(%s))"%(n,k,q))
@@ -702,6 +727,17 @@ class LinearCode(module.Module_old):
     #    sage: C.minimum_distance_why()     # optional (net connection)
     #    Ub(7,4) = 3 follows by the Griesmer bound.
     def __init__(self, gen_mat):
+        r"""
+        See the docstring for :meth:`LinearCode`.
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)    # indirect doctest
+            sage: C
+            Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
         base_ring = gen_mat[0,0].parent()
         ParentWithGens.__init__(self, base_ring)
         self.__gens = gen_mat.rows()
@@ -710,6 +746,17 @@ class LinearCode(module.Module_old):
         self.__dim = gen_mat.rank()
 
     def _repr_(self):
+        r"""
+        See the docstring for :meth:`LinearCode`.
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)
+            sage: C                     # indirect doctest
+            Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
 
     def automorphism_group_binary_code(self):
@@ -767,6 +814,15 @@ class LinearCode(module.Module_old):
             yield (v*Gs)*perm_mat
 
     def ambient_space(self):
+        r"""
+        Returns the ambient vector space of `self`.
+
+        EXAMPLES::
+
+            sage: C = HammingCode(3,GF(2))
+            sage: C.ambient_space()
+            Vector space of dimension 7 over Finite Field of size 2
+        """
         return VectorSpace(self.base_ring(),self.__length)
 
     def assmus_mattson_designs(self, t, mode=None):
@@ -887,6 +943,15 @@ class LinearCode(module.Module_old):
         return 0
 
     def basis(self):
+        r"""
+        Returns a basis of `self`.
+
+        EXAMPLES::
+
+            sage: C = HammingCode(3, GF(2))
+            sage: C.basis()
+            [(1, 0, 0, 0, 0, 1, 1), (0, 1, 0, 0, 1, 0, 1), (0, 0, 1, 0, 1, 1, 0), (0, 0, 0, 1, 1, 1, 1)]
+        """
         return self.__gens
 
     # S. Pancratz, 19 Jan 2010:  In the doctests below, I removed the example
@@ -948,11 +1013,33 @@ class LinearCode(module.Module_old):
         return b
 
     def __contains__(self,v):
+        r"""
+        Returns True if `v` can be coerced into `self`. Otherwise, returns False.
+
+        EXAMPLES::
+
+            sage: C = HammingCode(3,GF(2))
+            sage: vector((1, 0, 0, 0, 0, 1, 1)) in C   # indirect doctest
+            True
+            sage: vector((1, 0, 0, 0, 2, 1, 1)) in C   # indirect doctest
+            True
+            sage: vector((1, 0, 0, 0, 0, 1/2, 1)) in C # indirect doctest
+            False
+        """
         A = self.ambient_space()
         C = A.subspace(self.gens())
         return C.__contains__(v)
 
     def characteristic(self):
+        r"""
+        Returns the characteristic of the base ring of `self`.
+
+        EXAMPLES::
+
+            sage: C = HammingCode(3,GF(2))
+            sage: C.characteristic()
+            2
+        """
         return (self.base_ring()).characteristic()
 
     def characteristic_polynomial(self):
@@ -1045,6 +1132,29 @@ class LinearCode(module.Module_old):
             return f(t,sqrt(q))
 
     def __cmp__(self, right):
+        r"""
+        Returns True if the generator matrices of `self` and `right` are
+        equal.
+
+        EXAMPLES::
+
+            sage: C = HammingCode(3,GF(2))
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G = MS([1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1])
+            sage: G
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [0 0 1 0 1 1 0]
+            [0 0 0 1 1 1 1]
+            sage: D = LinearCode(G)
+            sage: C == D
+            True
+
+            sage: Cperp = C.dual_code()
+            sage: Cperpperp = Cperp.dual_code()
+            sage: C == Cperpperp
+            True
+        """
         if not isinstance(right, LinearCode):
             return cmp(type(self), type(right))
         return cmp(self.__gen_mat, right.__gen_mat)
@@ -1705,7 +1815,7 @@ class LinearCode(module.Module_old):
         EXAMPLES::
 
             sage: C = HammingCode(3,GF(2))
-            sage: Cm = magma(C)                 # optional - magma
+            sage: Cm = magma(C)                 # optional - magma, indirect doctest
             sage: Cm.MinimumWeight()            # optional - magma
             3
 
@@ -2126,6 +2236,19 @@ class LinearCode(module.Module_old):
 
         .. [D] I. Duursma, "Extremal weight enumerators and ultraspherical
            polynomials"
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(2),2,4)
+            sage: G = MS([1,1,0,0,0,0,1,1])
+            sage: C = LinearCode(G)
+            sage: C == C.dual_code()  # checks that C is self dual
+            True
+            sage: for i in [1,2,3,4]: print C.sd_duursma_data(i)
+            [2, -1]
+            [2, -3]
+            [2, -2]
+            [2, -1]
         """
         n = C.length()
         d = C.minimum_distance()
@@ -2160,6 +2283,18 @@ class LinearCode(module.Module_old):
 
         - [D] - I. Duursma, "Extremal weight enumerators and ultraspherical
           polynomials"
+
+        EXAMPLES::
+
+            sage: C1 = HammingCode(3,GF(2))
+            sage: C2 = C1.extended_code(); C2
+            Linear code of length 8, dimension 4 over Finite Field of size 2
+            sage: C2.is_self_dual()
+            True
+            sage: C2.sd_duursma_q(1,1)
+            2/5*T^2 + 2/5*T + 1/5
+            sage: C2.sd_duursma_q(3,1)
+            3/5*T^4 + 1/5*T^3 + 1/15*T^2 + 1/15*T + 1/15
         """
         q = (C.base_ring()).order()
         n = C.length()
@@ -2191,8 +2326,8 @@ class LinearCode(module.Module_old):
             qc = [coefs[j]/binomial(6*m+8*v,m+j) for j in range(4*m+8*v+1)]
             q = PR(qc)
         if i == 3:
-            F = (3*T^2+4*T+1)**v*(1+3*T^2)**v
-            # Note that: (3*T^2+4*T+1)(1+3*T^2)=(T+1)**4+8*T**3*(T+1)
+            F = (3*T**2+4*T+1)**v*(1+3*T**2)**v
+            # Note that: (3*T**2+4*T+1)(1+3*T**2)=(T+1)**4+8*T**3*(T+1)
             coefs = (c0*(1+3*T+3*T**2)**m*F).coeffs()
             qc = [coefs[j]/binomial(4*m+4*v,m+j) for j in range(2*m+4*v+1)]
             q = PR(qc)
@@ -2596,6 +2731,17 @@ class LinearCode(module.Module_old):
 def LinearCodeFromVectorSpace(self):
     """
     Simply converts a vector subspace `V` of `GF(q)^n` into a `LinearCode`.
+
+    EXAMPLES::
+
+        sage: V = VectorSpace(GF(2), 8)
+        sage: L = V.subspace([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
+        sage: C = LinearCodeFromVectorSpace(L)
+        sage: C.gen_mat()
+        [1 1 1 1 0 0 0 0]
+        [0 0 0 0 1 1 1 1]
+        sage: C.minimum_distance()
+        4
     """
     F = self.base_ring()
     B = self.basis()

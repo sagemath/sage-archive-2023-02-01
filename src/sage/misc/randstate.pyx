@@ -492,6 +492,25 @@ cdef class randstate:
      states and seeds.  Type ``sage.misc.randstate?`` for much more
      information on random numbers in Sage.
      """
+     def __cinit__(self, *args, **opts):
+         """
+         Initialise c-data for randstate, in a fail-safe way.
+
+         TESTS:
+
+         The following used to segfault (see :trac:`10113`). Now,
+         there is a proper type error::
+
+             sage: seed(1,2)   # indirect doctest
+             Traceback (most recent call last):
+             ...
+             TypeError: __init__() takes at most 1 positional argument (2 given)
+
+         AUTHOR:
+
+         - Simon King <simon.king@uni-jena.de>
+         """
+         gmp_randinit_default(self.gmp_state)
 
      def __init__(self, seed=None):
          r"""
@@ -523,8 +542,6 @@ cdef class randstate:
              sage: timeit('randstate(1)') # random
              125 loops, best of 3: 3.59 ms per loop
          """
-         gmp_randinit_default(self.gmp_state)
-
          cdef mpz_t mpz_seed
 
          if seed is None:

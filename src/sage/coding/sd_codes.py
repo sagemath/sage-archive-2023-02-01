@@ -96,9 +96,38 @@ from sage.groups.perm_gps.permgroup import PermutationGroup
 
 F = GF(2)
 
-def MS(n): n2 = ZZ(n)/2; return MatrixSpace(F, n2, n)
+def MS(n):
+    r"""
+    For internal use; returns the floor(n/2) x n matrix space over GF(2).
+
+    EXAMPLES::
+
+        sage: import sage.coding.sd_codes as sd_codes
+        sage: sd_codes.MS(2)
+        Full MatrixSpace of 1 by 2 dense matrices over Finite Field of size 2
+        sage: sd_codes.MS(3)
+        Full MatrixSpace of 1 by 3 dense matrices over Finite Field of size 2
+        sage: sd_codes.MS(8)
+        Full MatrixSpace of 4 by 8 dense matrices over Finite Field of size 2
+    """
+    n2 = ZZ(n)/2; return MatrixSpace(F, n2, n)
 
 def matA(n):
+    r"""
+    For internal use; returns a list of square matrices over GF(2) `(a_{ij})`
+    of sizes 0 x 0, 1 x 1, ..., n x n which are of the form
+    `(a_{ij} = 1) + (a_{ij} = \delta_{ij})`.
+
+    EXAMPLES::
+
+        sage: import sage.coding.sd_codes as sd_codes
+        sage: sd_codes.matA(4)
+        [
+                        [0 1 1]
+                 [0 1]  [1 0 1]
+        [], [0], [1 0], [1 1 0]
+        ]
+    """
     A = []
     n2 = n.quo_rem(2)[0]
     for j in range(n2+2):
@@ -109,6 +138,20 @@ def matA(n):
     return A
 
 def matId(n):
+    r"""
+    For internal use; returns a list of identity matrices over GF(2)
+    of sizes (floor(n/2)-j) x (floor(n/2)-j) for j = 0 ... (floor(n/2)-1).
+
+    EXAMPLES::
+
+        sage: import sage.coding.sd_codes as sd_codes
+        sage: sd_codes.matId(6)
+        [
+        [1 0 0]
+        [0 1 0]  [1 0]
+        [0 0 1], [0 1], [1]
+        ]
+    """
     Id = []
     n2 = n.quo_rem(2)[0]
     for j in range(n2):
@@ -116,7 +159,19 @@ def matId(n):
         Id.append(MSn.identity_matrix())
     return Id
 
-def MS2(n): n2 = n.quo_rem(2)[0]; return MatrixSpace(F, n2, n2)
+def MS2(n):
+    r"""
+    For internal use; returns the floor(n/2) x floor(n/2) matrix space over GF(2).
+
+    EXAMPLES::
+
+        sage: import sage.coding.sd_codes as sd_codes
+        sage: sd_codes.MS2(8)
+        Full MatrixSpace of 4 by 4 dense matrices over Finite Field of size 2
+    """
+    n2 = n.quo_rem(2)[0]
+    return MatrixSpace(F, n2, n2)
+
 I2 = lambda n: MS2(n).identity_matrix()
     # non-diagonal constructions
 MS7 = MatrixSpace(F, 7, 7)

@@ -248,6 +248,8 @@ def chromatic_number(G):
         for C in all_graph_colorings(G,n):
             return n
 
+from sage.numerical.mip import MIPSolverException
+
 def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None, verbose = 0):
     r"""
     Computes the chromatic number of the given graph or tests its
@@ -329,7 +331,6 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
                 return dict(zip(rainbow(2), g.bipartite_sets()))
             else:
                 return g.bipartite_sets()
-
 
         # - No need to try any k smaller than the maximum clique in
         # - the graph No need to try k less than |G|/alpha(G), as each
@@ -427,19 +428,21 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
                 return value
 
         p = MixedIntegerLinearProgram(maximization=True, solver = solver)
-        color = p.new_variable(dim=2)
+        color = p.new_variable(binary = True)
+
         # a vertex has exactly one color
-        [p.add_constraint(Sum([color[v][i] for i in xrange(k)]), min=1, max=1)
-             for v in g.vertices()]
+        for v in g.vertices():
+            p.add_constraint(Sum([color[v,i] for i in range(k)]), min=1, max=1)
+
         # adjacent vertices have different colors
-        [p.add_constraint(color[u][i] + color[v][i], max=1)
-             for (u, v) in g.edge_iterator(labels=None)
-                 for i in xrange(k)]
-        # anything is good as an objective value as long as it is satisfiable
-        p.add_constraint(color[g.vertex_iterator().next()][0],  max=1, min=1)
-        p.set_objective(color[g.vertex_iterator().next()][0])
-        p.set_binary(color)
-        from sage.numerical.mip import MIPSolverException
+        for (u, v) in g.edge_iterator(labels=None):
+            for i in xrange(k):
+                p.add_constraint(color[u,i] + color[v,i], max=1)
+
+        # The first vertex is colored with 1. It costs nothing to say
+        # it, and it can help.
+        p.add_constraint(color[g.vertex_iterator().next(),0],  max=1, min=1)
+
         try:
             if value_only:
                 p.solve(objective_only=True, log=verbose)
@@ -452,10 +455,13 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
         color = p.get_values(color)
         # builds the color classes
         classes = [[] for i in xrange(k)]
-        [classes[i].append(v)
-             for i in xrange(k)
-                 for v in g.vertices()
-                     if color[v][i] == 1]
+
+        for v in g.vertices():
+            for i in xrange(k):
+                if color[v,i] == 1:
+                    classes[i].append(v)
+                    break
+
         if hex_colors:
             return dict(zip(rainbow(len(classes)), classes))
         else:

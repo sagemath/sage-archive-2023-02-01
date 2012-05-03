@@ -135,7 +135,10 @@ cdef extern from "../../local/include/cplex.h":
      c_cpxlp * CPXopenCPLEX (int *status_p)
 
      # Close a CPLEX enviromnment
-     int * CPXcloseCPLEX (c_cpxlp * env)
+     int CPXcloseCPLEX (c_cpxlp ** env)
+
+     # Free the problem's ressources
+     int CPXfreeprob (c_cpxlp * env, c_cpxlp ** lp)
 
      # Change the type of a variable
      int CPXchgctype(c_cpxlp * env, c_cpxlp * lp, int cnt, int * indices, char * xctype)
@@ -200,6 +203,3 @@ cdef extern from "../../local/include/cplex.h":
      int CPX_PARAM_SOLNPOOLINTENSITY = 2107
      int CPX_MAX = -1
      int CPX_MIN = 1
-
-
-

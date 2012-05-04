@@ -42,6 +42,10 @@ facet enumeration compares well with existing packages.
 
 == Change log ==
 
+=== palp-2.0.p2 (Volker Braun, 4th May 2012) ===
+ * #12088 change regex in spkg-install from \s to [[:space:]], only
+   the latter works on OSX
+
 === palp-2.0.p1 (R. Andrew Ohana, 26th February 2012) ===
  * #7071 Make spkg respect global CC and CFLAGS variables
  * made SAGE64 set the '-m64' flag the "proper" way

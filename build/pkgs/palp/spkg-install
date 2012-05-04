@@ -21,7 +21,7 @@ CFLAGS="-O3 -W -Wall $CFLAGS -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 for dim in 4 5 6 11; do
     echo Building PALP optimized for $dim dimensions
 
-    sed "s/^#define\s*POLY_Dmax.*/#define POLY_Dmax $dim/" Global.h-template > Global.h
+    sed "s/^#define[[:space:]]*POLY_Dmax.*/#define POLY_Dmax $dim/" Global.h-template > Global.h
 
     $MAKE CC="$CC" CFLAGS="$CFLAGS"
     if [ $? -ne 0 ]; then

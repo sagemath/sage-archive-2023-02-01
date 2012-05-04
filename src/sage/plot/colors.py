@@ -430,6 +430,80 @@ class Color(object):
         """
         return "RGB color %s" % (self.__rgb, )
 
+    def __eq__(self, right):
+        """
+        Compare two :class:`Color` objects to determine whether
+        they refer to the same color.
+
+        INPUT:
+
+        - ``right`` - a :class:`Color` instance
+
+        OUTPUT:
+
+        - boolean - True if the two colors are the same, False if different
+
+        EXAMPLES::
+
+            sage: Color('red') == Color((1,0,0))
+            True
+            sage: Color('blue') == Color((0,1,0))
+            False
+            sage: Color('blue') + Color((0,1,0)) == Color((0,0.5,0.5))
+            True
+            sage: Color(0.2,0.3,0.2) == False
+            False
+        """
+        if isinstance(right, Color):
+            return self.__rgb == right.__rgb
+        else:
+            return False
+
+    def __ne__(self, right):
+        """
+        Compare two :class:`Color` objects to determine whether
+        they refer to different colors.
+
+        INPUT:
+
+        - ``right`` - a :class:`Color` instance
+
+        OUTPUT:
+
+        - boolean - True if the two colors are different,
+            False if they're the same
+
+        EXAMPLES::
+
+            sage: Color('green') != Color('yellow')
+            True
+            sage: Color('red') != Color(1,0,0)
+            False
+            sage: Color('yellow') != Color(1,1,0)
+            False
+            sage: Color('blue') != 23
+            True
+        """
+        return not (self == right)
+
+    def __hash__(self):
+        """
+        Return the hash value of a color.
+        Equal colors return equal hash values.
+
+        OUTPUT:
+
+        - a hash value
+
+        EXAMPLES::
+
+            sage: hash(Color('red')) # random
+            873150856
+            sage: hash(Color('red')) == hash(Color((1,0,0)))
+            True
+        """
+        return hash(self.__rgb)
+
     def blend(self, color, fraction=0.5):
         """
         Return a color blended with the given ``color`` by a given
@@ -966,7 +1040,7 @@ class ColorsDict(dict):
         try:
             return self.__getitem__(name)
         except KeyError:
-            raise AttributeError, "'%s' has no attribute or colormap %s"%(type(self).__name__,name)
+            raise AttributeError("'%s' has no attribute or colormap %s"%(type(self).__name__,name))
 
     def __dir__(self):
         """
@@ -1396,7 +1470,7 @@ class Colormaps(collections.MutableMapping):
         try:
             return self.__getitem__(name)
         except KeyError:
-            raise AttributeError, "'%s' has no attribute or colormap %s"%(type(self).__name__,name)
+            raise AttributeError("'%s' has no attribute or colormap %s"%(type(self).__name__,name))
 
     def __repr__(self):
         """

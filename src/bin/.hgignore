@@ -56,6 +56,9 @@ conductor
 cstest
 dsage_setup.py
 dsage_worker.py
+dul-daemon
+dul-web
+dulwich
 ecm
 easy_install
 easy_install-2.5

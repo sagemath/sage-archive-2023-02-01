@@ -1463,30 +1463,33 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             with double-precision floating point entries.
             Uses the :meth:`~scipy.linalg.eigvals` method from SciPy.
 
-          - ``'symmetric'`` - checks that any complex matrix
-            (i.e. with entries from :class:`~sage.rings.complex_double.CDF`)
-            can be coerced into a real matrix (i.e. with entries from
-            :class:`~sage.rings.real_double.RDF`), then applies the
-            algorithm for Hermitian matrices.  This algorithm can
-            be significantly faster than the ``'default'`` algorithm.
+          - ``'symmetric'`` - converts the matrix into a real matrix
+            (i.e. with entries from :class:`~sage.rings.real_double.RDF`),
+            then applies the algorithm for Hermitian matrices.  This
+            algorithm can be significantly faster than the
+            ``'default'`` algorithm.
 
           - ``'hermitian'`` - uses the :meth:`~scipy.linalg.eigh` method
-            from SciPy, which applies only to Hermitian matrices.  Since
-            Hermitian is defined as a matrix equaling its conjugate-transpose,
-            for a matrix with real entries this property is equivalent to
-            being symmetric.  This algorithm can be significantly faster
-            than the ``'default'`` algorithm.
+            from SciPy, which applies only to real symmetric or complex
+            Hermitian matrices.  Since Hermitian is defined as a matrix
+            equaling its conjugate-transpose, for a matrix with real
+            entries this property is equivalent to being symmetric.
+            This algorithm can be significantly faster than the
+            ``'default'`` algorithm.
 
         - ``'tol'`` - default: ``None`` - if set to a value other than
           ``None`` this is interpreted as a small real number used to aid in
           grouping eigenvalues that are numerically similar.  See the output
           description for more information.
 
-        .. warning::
+        .. WARNING::
 
-        When using the ``'symmetric'`` or ``'hermitian'`` algorithms,
-        no check is made on the input matrix, and only the entries below,
-        and on, the main diagonal are employed in the computation.
+           When using the ``'symmetric'`` or ``'hermitian'`` algorithms,
+           no check is made on the input matrix, and only the entries below,
+           and on, the main diagonal are employed in the computation.
+
+           Methods such as :meth:`is_symmetric` and :meth:`is_hermitian`
+           could be used to verify this beforehand.
 
         OUTPUT:
 
@@ -1508,10 +1511,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         interval containing similar eigenvalues could be as large as sum
         of the reciprocals of the first $n$ integers times ``tol``.
 
-        .. warning::
+        .. WARNING::
 
-        Use caution when using the  ``tol`` parameter to group eigenvalues.
-        See the examples below to see how this can go wrong.
+            Use caution when using the  ``tol`` parameter to group
+            eigenvalues.  See the examples below to see how this can go wrong.
 
         EXAMPLES::
 
@@ -1566,9 +1569,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A = G.adjacency_matrix().change_ring(RDF)
             sage: A.eigenvalues(algorithm='symmetric', tol=1.0e-5)
             [(-2.0, 4), (1.0, 5), (3.0, 1)]
-
-            sage: A.eigenvalues(algorithm='symmetric', tol=1.0e-20)
-            [(-2.0, 1), (-2.0, 2), (-2.0, 1), (1.0, 1), (1.0, 1), (1.0, 1), (1.0, 1), (1.0, 1), (3.0, 1)]
 
             sage: A.eigenvalues(algorithm='symmetric', tol=2.5)
             [(-2.0, 4), (1.33333333333, 6)]

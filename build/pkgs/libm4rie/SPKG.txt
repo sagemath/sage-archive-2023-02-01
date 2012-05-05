@@ -33,7 +33,6 @@ GF(2^k) for 2 <= k <= 10.
 === libm4rie-20120415 (Martin Albrecht, 13 April 2012) ===
  * #12841: new upstream release
  * delete old headers before installing new ones
- * _ap_pend -O0 if SAGE_DEBUG="yes", to make sure we overwrite whatever CFLAGS has
 
 === libm4rie-20111004.p3 (Jeroen Demeyer, 10 April 2012) ===
  * Trac #12821: don't quote $CC when running testcc.sh

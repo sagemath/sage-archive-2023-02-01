@@ -41,7 +41,7 @@ def remove(itm, lst):
 
 libdirs = dirtest([
     os.environ["SAGE_LOCAL"]+"/lib",
-    "/usr/local/lib", "/sw/lib", "/usr/lib",
+    "/usr/local/lib", "/usr/lib",
     "/usr/lib/X11", "/usr/X11R6/lib",
     "/opt/gnome/lib",
 ])
@@ -51,7 +51,7 @@ libdirs = dirtest([
 
 incdirs = dirtest([
     os.environ["SAGE_LOCAL"]+"/include",
-    "/usr/local/include", "/sw/include", "/usr/include",
+    "/usr/local/include", "/usr/include",
     "/usr/include/X11", "/usr/X11R6/include",
     "/opt/gnome/include",
 ])

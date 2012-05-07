@@ -14,12 +14,12 @@ usage of Sage. The examples are all tested with each release of
 Sage, and should produce exactly the same output as in this manual,
 except for line breaks.
 
-The Sage command line is briefly described in `The Sage Command Line
-<cmd/index.html>`_, which lists the command line options. For more
+The Sage command line is briefly described in :doc:`The Sage Command Line
+<cmd/index>`, which lists the command line options. For more
 details about the command line, see the Sage tutorial.
 
-The Sage graphical user interface is described in `The Sage Notebook
-<notebook/index.html>`_. This graphical user interface is unusual in
+The Sage graphical user interface is described in :doc:`The Sage Notebook
+<notebook/index>`. This graphical user interface is unusual in
 that it operates via your web browser. It provides you with Sage
 worksheets that you can edit and evaluate, which contain scalable
 typeset mathematics and beautiful antialiased images.
@@ -34,102 +34,111 @@ Enjoy Sage!
 Table of Contents
 =================
 
-   * `The Sage Command Line <cmd/index.html>`_
-   * `The Sage Notebook <notebook/index.html>`_
+* :doc:`The Sage Command Line <cmd/index>`
+* :doc:`The Sage Notebook <notebook/index>`
 
 Calculus, Plotting
 ------------------
 
-   * `Symbolic Calculus <calculus/index.html>`_
-   * `Constants <constants/index.html>`_
-   * `Functions <functions/index.html>`_
-   * `2D Graphics <plotting/index.html>`_
-   * `3D Graphics <plot3d/index.html>`_
+* :doc:`Symbolic Calculus <calculus/index>`
+* :doc:`Constants <constants/index>`
+* :doc:`Functions <functions/index>`
+* :doc:`2D Graphics <plotting/index>`
+* :doc:`3D Graphics <plot3d/index>`
 
 Combinatorics, Discrete Mathematics
 -----------------------------------
 
-   * `Combinatorics <combinat/index.html>`_
-   * `Graph Theory <graphs/index.html>`_
+* :doc:`Combinatorics <combinat/index>`
+* :doc:`Graph Theory <graphs/index>`
 
 Structures, Coercion, Categories
 --------------------------------
 
-   * `Basic Structures <structure/index.html>`_
-   * `Coercion <coercion/index.html>`_
-   * `Category Theory and Categories <categories/index.html>`_
+* :doc:`Basic Structures <structure/index>`
+* :doc:`Coercion <coercion/index>`
+* :doc:`Category Theory and Categories <categories/index>`
 
 Rings, Fields, Algebras
 -----------------------
 
-   * `General Rings, Ideals, and Morphisms <rings/index.html>`_
-   * `Standard Commutative Rings <rings_standard/index.html>`_
-   * `Fixed and Arbitrary Precision Numerical Fields <rings_numerical/index.html>`_
-   * `Finite Rings <finite_rings/index.html>`_
-   * `Algebraic Number Fields <number_fields/index.html>`_
-   * `Function Fields <function_fields/index.html>`_
-   * `p-Adics <padics/index.html>`_
-   * `Polynomial Rings <polynomial_rings/index.html>`_
-   * `Power Series Rings <power_series/index.html>`_
-   * `Standard Semirings <semirings/index.html>`_
-   * `Algebras <algebras/index.html>`_
-   * `Quaternion Algebras <quat_algebras/index.html>`_
+* :doc:`General Rings, Ideals, and Morphisms <rings/index>`
+* :doc:`Standard Commutative Rings <rings_standard/index>`
+* :doc:`Fixed and Arbitrary Precision Numerical Fields <rings_numerical/index>`
+* :doc:`Finite Rings <finite_rings/index>`
+* :doc:`Algebraic Number Fields <number_fields/index>`
+* :doc:`Function Fields <function_fields/index>`
+* :doc:`p-Adics <padics/index>`
+* :doc:`Polynomial Rings <polynomial_rings/index>`
+* :doc:`Power Series Rings <power_series/index>`
+* :doc:`Standard Semirings <semirings/index>`
+* :doc:`Algebras <algebras/index>`
+* :doc:`Quaternion Algebras <quat_algebras/index>`
 
 Groups, Monoids, Matrices, Modules
 ----------------------------------
 
-   * `Groups <groups/index.html>`_
-   * `Monoids <monoids/index.html>`_
-   * `Matrices and Spaces of Matrices <matrices/index.html>`_
-   * `Modules <modules/index.html>`_
+* :doc:`Groups <groups/index>`
+* :doc:`Monoids <monoids/index>`
+* :doc:`Matrices and Spaces of Matrices <matrices/index>`
+* :doc:`Modules <modules/index>`
 
 Geometry and Topology
 ---------------------
 
-   * `Combinatorial Geometry <geometry/index.html>`_
-   * `Cell Complexes and their Homology <homology/index.html>`_
-   * `Differential Forms <tensor/index.html>`_
+* :doc:`Combinatorial Geometry <geometry/index>`
+* :doc:`Cell Complexes and their Homology <homology/index>`
+* :doc:`Differential Forms <tensor/index>`
 
 Number Theory, Algebraic Geometry
 ---------------------------------
 
-   * `Quadratic Forms <quadratic_forms/index.html>`_
-   * `L-Functions <lfunctions/index.html>`_
-   * `Schemes <schemes/index.html>`_
-   * `Elliptic, Plane, and Hyperelliptic Curves <plane_curves/index.html>`_
-   * `Arithmetic Subgroups of SL_2(Z) <arithgroup/index.html>`_
-   * `General Hecke Algebras and Hecke Modules <hecke/index.html>`_
-   * `Modular Symbols <modsym/index.html>`_
-   * `Modular Forms <modfrm/index.html>`_
-   * `Modular Abelian Varieties <modabvar/index.html>`_
-   * `Miscellaneous Modular-Form-Related Modules <modmisc/index.html>`_
+* :doc:`Quadratic Forms <quadratic_forms/index>`
+* :doc:`L-Functions <lfunctions/index>`
+* :doc:`Schemes <schemes/index>`
+* :doc:`Elliptic, Plane, and Hyperelliptic Curves <plane_curves/index>`
+* :doc:`Arithmetic Subgroups of SL_2(Z) <arithgroup/index>`
+* :doc:`General Hecke Algebras and Hecke Modules <hecke/index>`
+* :doc:`Modular Symbols <modsym/index>`
+* :doc:`Modular Forms <modfrm/index>`
+* :doc:`Modular Abelian Varieties <modabvar/index>`
+* :doc:`Miscellaneous Modular-Form-Related Modules <modmisc/index>`
 
 Miscellaneous Mathematics
 -------------------------
 
-   * `Games <games/index.html>`_
-   * `Symbolic Logic <logic/index.html>`_
-   * `SAT solvers <sat/index.html>`_
-   * `Cryptography <cryptography/index.html>`_
-   * `Numerical Optimization <numerical/index.html>`_
-   * `Probability <probability/index.html>`_
-   * `Statistics <stats/index.html>`_
-   * `Quantitative Finance <finance/index.html>`_
-   * `Coding Theory <coding/index.html>`_
+* :doc:`Games <games/index>`
+* :doc:`Symbolic Logic <logic/index>`
+* :doc:`SAT solvers <sat/index>`
+* :doc:`Cryptography <cryptography/index>`
+* :doc:`Numerical Optimization <numerical/index>`
+* :doc:`Probability <probability/index>`
+* :doc:`Statistics <stats/index>`
+* :doc:`Quantitative Finance <finance/index>`
+* :doc:`Coding Theory <coding/index>`
 
 Interfaces, Databases, Miscellany
 ---------------------------------
 
-   * `Interpreter Interfaces <interfaces/index.html>`_
-   * `C/C++ Library Interfaces <libs/index.html>`_
-   * `Databases <databases/index.html>`_
-   * `Parallel Computing <parallel/index.html>`_
-   * `Miscellaneous <misc/index.html>`_
+* :doc:`Interpreter Interfaces <interfaces/index>`
+* :doc:`C/C++ Library Interfaces <libs/index>`
+* :doc:`Databases <databases/index>`
+* :doc:`Parallel Computing <parallel/index>`
+* :doc:`Miscellaneous <misc/index>`
 
 Other
 -----
 
-   * `Sage's To Do List <todolist/index.html>`_
-   * `History and License <history_and_license/index.html>`_
+.. toctree::
+   :maxdepth: 2
 
-.. include:: footer.txt
+   todolist
+
+* :doc:`History and License <history_and_license/index>`
+
+Indices and Tables
+------------------
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

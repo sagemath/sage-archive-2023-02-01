@@ -61,9 +61,10 @@ latex_elements['preamble'] += r'''
 #Ignore all .rst in the _sage subdirectory
 exclude_trees = exclude_trees + ['_sage']
 
-# List of directories, relative to source directory, that shouldn't be
-# searched for source files.
-exclude_trees = exclude_trees + [
+multidocs_is_master = True
+
+# List of subdocs
+multidocs_subdoc_list = [
     'algebras',
     'arithgroup',
     'calculus',
@@ -101,7 +102,6 @@ exclude_trees = exclude_trees + [
     'notebook',
     'number_fields',
     'numerical',
-    'options',
     'padics',
     'parallel',
     'plane_curves',
@@ -115,12 +115,15 @@ exclude_trees = exclude_trees + [
     'rings',
     'rings_numerical',
     'rings_standard',
-    'sage',
-    'sagenb',
     'schemes',
     'semirings',
     'stats',
     'structure',
-    'tensor',
-    'todolist'
+    'tensor'
+    ]
+
+# List of directories, relative to source directory, that shouldn't be
+# searched for source files.
+exclude_trees += multidocs_subdoc_list + [
+    'sage', 'sagenb', 'options'
     ]

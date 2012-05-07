@@ -64,33 +64,13 @@ def copytree(src, dst, symlinks=False, ignore_errors=False):
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
-
-def build_ref_doc(doc, lang, format, output_dir, *args, **kwds):
-    # Build the reference manual for doc
-    static_dir = os.path.join(output_dir, 'reference', '_static')
-    bad_static = os.path.join(output_dir, doc, '_static')
-    # We need to remove the link to "_static" before generating the
-    # documentation, because the html doc builder writes to the
-    # _static directory.
-    if (os.path.isdir(static_dir) and os.path.isdir(bad_static)
-        and os.path.islink(bad_static)):
-        os.remove(bad_static)
+def build_ref_doc(doc, lang, format, *args, **kwds):
     getattr(ReferenceSubBuilder(doc, lang), format)(*args, **kwds)
-    # The standard Sphinx html build puts a copy of the "static"
-    # directory in reference/doc/_static.  For the reference manual,
-    # these are all identical to reference/_static, so delete the
-    # directory reference/doc/_static and replace it with a link to
-    # reference/_static.  This saves hundreds of megabytes of disk
-    # space.
-    if (os.path.isdir(static_dir) and os.path.isdir(bad_static)
-        and not os.path.islink(bad_static)):
-        shutil.rmtree(bad_static)
-    if os.path.isdir(static_dir):
-        os.symlink(static_dir, bad_static)
 
 ##########################################
 #             Builders                   #
 ##########################################
+
 def builder_helper(type):
     """
     Returns a function which builds the documentation for
@@ -156,6 +136,8 @@ class DocBuilder(object):
             sage: b._output_dir('html')
             '.../devel/sage/doc/output/html/en/tutorial'
         """
+        if type == "inventory": # put inventories in the html tree
+            type = "html"
         d = os.path.join(SAGE_DOC, "output", type, self.lang, self.name)
         mkdir(d)
         return d
@@ -186,7 +168,7 @@ class DocBuilder(object):
             sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
             sage: b = builder.DocBuilder('tutorial')
             sage: b._output_formats()
-            ['changes', 'html', 'htmlhelp', 'json', 'latex', 'linkcheck', 'pickle', 'web']
+            ['changes', 'html', 'htmlhelp', 'inventory', 'json', 'latex', 'linkcheck', 'pickle', 'web']
 
         """
         #Go through all the attributes of self and check to
@@ -238,6 +220,15 @@ class DocBuilder(object):
     latex = builder_helper('latex')
     changes = builder_helper('changes')
     linkcheck = builder_helper('linkcheck')
+    # import the customized builder for object.inv files
+    inventory = builder_helper('inventory')
+
+##########################################
+#      Parallel Building Ref Manual      #
+##########################################
+def build_other_doc(document, name, *args, **kwds):
+    logger.warning("\nBuilding %s.\n" % document)
+    getattr(get_builder(document), name)(*args, **kwds)
 
 
 class AllBuilder(object):
@@ -259,26 +250,38 @@ class AllBuilder(object):
         This is the function which goes through all of the documents
         and does the actual building.
         """
+        import time
+        start = time.time()
         docs = self.get_all_documents()
         refs = [x for x in docs if x.endswith('reference')]
         others = [x for x in docs if not x.endswith('reference')]
-        for document in others:
-            logger.warning("\nBuilding %s.\n" % document)
-            getattr(get_builder(document), name)(*args, **kwds)
-        # Build the reference manual twice to resolve references.
-        # That is, build once to construct the intersphinx inventory
-        # files, and then build the second time for real.  So the
-        # first build should be as fast as possible; thus do an html
-        # build first.
+        # Build the reference manual twice to resolve references.  That is,
+        # build once with the inventory builder to construct the intersphinx
+        # inventory files, and then build the second time for real.  So the
+        # first build should be as fast as possible;
         logger.warning("\nBuilding reference manual, first pass.\n")
         global ALLSPHINXOPTS
-        ALLSPHINXOPTS += ' -Q '
+        #ALLSPHINXOPTS += ' -Q -D multidoc_first_pass=1'
+        ALLSPHINXOPTS += ' -D multidoc_first_pass=1'
         for document in refs:
-            getattr(get_builder(document), 'html')(*args, **kwds)
+            getattr(get_builder(document), 'inventory')(*args, **kwds)
         logger.warning("Building reference manual, second pass.\n")
+        ALLSPHINXOPTS = ALLSPHINXOPTS.replace(
+            'multidoc_first_pass=1', 'multidoc_first_pass=0')
         ALLSPHINXOPTS = ALLSPHINXOPTS.replace('-Q', '-q') + ' '
         for document in refs:
             getattr(get_builder(document), name)(*args, **kwds)
+
+        # build the other documents in parallel
+        from multiprocessing import Pool, cpu_count
+        pool = Pool(int(os.environ.get('SAGE_NUM_THREADS', 1)))
+        for document in others:
+            pool.apply_async(build_other_doc,
+                             (document, name)+args, kwds)
+        pool.close()
+        pool.join()
+        logger.warning("Elapsed time = %s."%(time.time()-start))
+        logger.warning("Done compiling the doc !")
 
     def get_all_documents(self):
         """
@@ -377,6 +380,8 @@ class ReferenceBuilder(AllBuilder):
             sage: b._output_dir('html')
             '.../devel/sage/doc/output/html/en/reference'
         """
+        if type == "inventory": # put inventories in the html tree
+            type = "html"
         return mkdir(os.path.join(SAGE_DOC, "output", type, lang, self.name))
 
     def _wrapper(self, format, *args, **kwds):
@@ -388,51 +393,21 @@ class ReferenceBuilder(AllBuilder):
             refdir = os.path.join(SAGE_DOC, lang, self.name)
             if not os.path.exists(refdir):
                 continue
-
             output_dir = self._output_dir(format, lang)
-            getattr(DocBuilder(self.name, lang), format)(*args, **kwds)
-
             from multiprocessing import Pool, cpu_count
             # Determine the number of threads from the environment variable
             # SAGE_NUM_THREADS.
             pool = Pool(int(os.environ.get('SAGE_NUM_THREADS', 1)))
+
             for doc in self.get_all_documents(refdir):
                 pool.apply_async(build_ref_doc,
-                                 (doc, lang, format,
-                                  os.path.split(output_dir)[0]) + args, kwds)
+                                 (doc, lang, format) + args, kwds)
             pool.close()
             pool.join()
-            if format == 'html':
-                # html build: combine the todo lists from the
-                # different modules.
-                todofile = os.path.join(output_dir, 'todolist', 'index.html')
-                old = open(todofile).read()
-                note = "The combined to do list is only available in the html version of the reference manual."
-                preamble = old.find(note)
-                postamble = preamble + len(note)
-                if preamble != -1:
-                    old_todofile = os.path.join(output_dir, 'todolist', 'index-old.html')
-                    shutil.move(todofile, old_todofile)
-                    new = open(todofile, 'w')
-                    new.write(old[:preamble])
-                    for f in os.listdir(output_dir):
-                        index = os.path.join(output_dir, f, 'index.html')
-                        if (f != 'todolist' and os.path.exists(index)):
-                            html = open(index).read()
-                            start = html.find('<div class="admonition-todo')
-                            end = html.find('<div class="section" id="indices-and-tables">')
-                            if start != -1:
-                                html = html[start:end].replace('sage/%s' %f,
-                                                               '../%s/sage/%s' % (f, f))
-                                new.write(html)
-                    new.write(old[postamble:])
-                    new.close()
+            # The html refman must be build at the end to ensure correct
+            # merging of indexes and inventories.
+            getattr(DocBuilder(self.name, lang), format)(*args, **kwds)
 
-                logger.warning('''
-Build finished.  The Sage reference manual can be found in
-
-  %s
-''' % (os.path.join(output_dir, 'index.html')))
             # PDF: we need to build master index file which lists all
             # of the PDF file.  So we create an html file, based on
             # the file index.html from the "website" target.
@@ -532,6 +507,13 @@ for a webpage listing all of the documents.''' % (output_dir,
         Returns a list of all reference manual components to build.
         We add a component name if it's a subdirectory of the manual's
         directory and contains a file named 'index.rst'.
+
+        EXAMPLES::
+
+            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
+            sage: b = builder.ReferenceBuilder('reference')
+            sage: refdir = os.path.join(os.environ['SAGE_DOC'], 'en', b.name)
+            sage: b.get_all_documents(refdir)
         """
         documents = []
 
@@ -539,7 +521,7 @@ for a webpage listing all of the documents.''' % (output_dir,
             if os.path.exists(os.path.join(refdir, doc, 'index.rst')):
                 documents.append(os.path.join(self.name, doc))
 
-        return documents
+        return sorted(documents)
 
 
 class ReferenceSubBuilder(DocBuilder):
@@ -843,7 +825,7 @@ class ReferenceSubBuilder(DocBuilder):
 
             sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
             sage: import builder
-            sage: builder.ReferenceBuilder("reference").auto_rest_filename("sage.combinat.partition")
+            sage: builder.ReferenceSubBuilder("reference").auto_rest_filename("sage.combinat.partition")
             '.../devel/sage/doc/en/reference/sage/combinat/partition.rst'
         """
         return self.dir + os.path.sep + module_name.replace('.',os.path.sep) + '.rst'

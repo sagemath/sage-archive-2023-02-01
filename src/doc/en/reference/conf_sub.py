@@ -69,3 +69,5 @@ latex_documents = [
 
 #Ignore all .rst in the _sage subdirectory
 exclude_trees = exclude_trees + ['_sage']
+
+multidocs_is_master = False

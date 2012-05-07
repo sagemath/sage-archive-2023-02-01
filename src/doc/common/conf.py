@@ -19,7 +19,8 @@ sys.path.append(get_doc_abspath('common'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sage_autodoc',  'sphinx.ext.graphviz',
+extensions = ['inventory_builder', 'multidocs',
+              'sage_autodoc',  'sphinx.ext.graphviz',
               'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo',
               'sphinx.ext.extlinks']
 # We do *not* fully initialize intersphinx since we call it by hand
@@ -212,6 +213,11 @@ else:
 
 # If false, no module index is generated.
 #html_use_modindex = True
+
+# A list of prefixes that are ignored for sorting the Python module index ( if
+# this is set to ['foo.'], then foo.bar is shown under B, not F). Works only
+# for the HTML builder currently.
+modindex_common_prefix = ['sage.']
 
 # If false, no index is generated.
 #html_use_index = True

@@ -3,7 +3,7 @@
        "Creating a Viable Open Source Alternative to
           Magma, Maple, Mathematica, and MATLAB"
 
-    Copyright (C) 2005-2011 William Stein and the Sage Development Team
+    Copyright (C) 2005-2012 William Stein and the Sage Development Team
 
         http://www.sagemath.org
 
@@ -18,6 +18,7 @@
 
 GETTING STARTED
 ---------------
+
 This README.txt contains build instructions for Sage. If you downloaded
 a binary, you do not need to do anything; just execute:
 
@@ -66,12 +67,14 @@ Installation Guide:
 
     http://www.sagemath.org/doc/installation
 
-1. Make sure you have the dependencies and 2.5 GB of free disk space.
+1. Make sure you have the dependencies and 3 GB of free disk space.
 
-   Linux: GCC, g++, gfortran, make, m4, perl, ranlib, and tar.
+   Linux: gcc, make, m4, perl, ranlib, and tar.
    (install these using your package manager)
+   On recent Debian or Ubuntu systems (in particular Ubuntu 12.04
+   "Precise"), you need the dpkg-dev package.
 
-   OS X: Xcode.  Make sure you have installed the most recent version
+   OS X: Xcode. Make sure you have installed the most recent version
    of Xcode. For pre-Lion versions of OS X, you can download Xcode
    from http://developer.apple.com/downloads/. For OS X Lion, you can
    install it using the App Store. With Xcode 4.3 or later, you need
@@ -83,7 +86,7 @@ Installation Guide:
 
 2. Extract the tarball:
 
-       tar -xvf sage-*.tar
+       tar xvf sage-*.tar
 
 3. cd into the Sage directory and type make:
 
@@ -95,27 +98,13 @@ Installation Guide:
    want to know!
 
 
-FORTRAN
--------
+ENVIRONMENT VARIABLES
+---------------------
 
-To build Sage on any platform except OS X, you must use a system-wide
-gfortran compiler. Sometimes you need to explicitly tell the Sage build
-process about the Fortran compiler and library locations. Do this by
-typing:
+There are a lot of environment variables which control the install
+process of Sage, see:
 
-    export SAGE_FORTRAN=/exact/path/to/gfortran
-    export SAGE_FORTRAN_LIB=/path/to/fortran/libs/libgfortran.so
-
-Note that the SAGE_FORTRAN environment variable is supposed to impact
-*only* the Fortran Sage package, otherwise known as the Fortran spkg
-("spkg" stands for "Sage package").  Apart from that, this variable is
-*not* designed to do anything at all to other spkg's that use
-Fortran. For example, the Lapack spkg uses Fortran, but the
-compilation process of Lapack should ignore the SAGE_FORTRAN
-environment variable. The SAGE_FORTRAN environment variable does not
-mean "build any spkg that uses Fortran using this Fortran". It means
-"when installing the Fortran spkg, setup the sage_fortran script to
-run the Fortran specified by the SAGE_FORTRAN variable".
+    http://sagemath.org/doc/installation/source.html#environment-variables
 
 
 SELINUX
@@ -123,12 +112,12 @@ SELINUX
 
 On Linux, if you get this error message:
 
-    " restore segment prot after reloc: Permission denied "
+    Error: cannot restore segment prot after reloc: Permission denied
 
 the problem is probably related to SELinux. See the following URL for
 further information:
 
-    http://www.ittvis.com/services/techtip.asp?ttid=3092
+    http://www.exelisvis.com/Support/HelpArticleDetail/ArticleId/3092.aspx
 
 
 IMPLEMENTATION
@@ -143,7 +132,7 @@ included (OS X only), so you do not need them in order to build Sage.
 MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
 -----------------------------------------------
 
-1. Make sure you have about 2.5 GB of free disk space.
+1. Make sure you have about 3 GB of free disk space.
 
 2. Install build dependencies.
 
@@ -195,16 +184,14 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
        export SAGE_CHECK="yes"
 
    before starting the Sage build. This will run each test suite and
-   will raise an error if any failures occur.  Warning: on many
-   platforms, this will cause failures in the installation of the
-   Python spkg, so Python's test suite has been disabled by default.
-   To renable it, set the environment variable SAGE_CHECK_PACKAGES to
-   'python'.
+   will raise an error if any failures occur. Python's test suite has
+   been disabled by default, because it causes failures on most
+   systems. To renable the Python testsuite, set the environment
+   variable SAGE_CHECK_PACKAGES to "python".
 
    To start the build, type:
 
        make
-
 
 4. Wait about 1 hour to 14 days, depending on your computer (it took
    about 2 weeks to build Sage on the T-Mobile G1 Android cell phone).
@@ -227,7 +214,7 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
 
 8. OPTIONAL: If you want to (try to) build the documentation, run:
 
-       sage -docbuild --help
+       sage --docbuild --help
 
    for instructions. The HTML version of the documentation is built
    during the compilation process of Sage and resides in the directory:
@@ -239,7 +226,7 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
 9. OPTIONAL: It is highly recommended that you install the optional GAP
    database by typing:
 
-       ./sage -optional
+       ./sage --optional
 
    then installing (with "./sage -i") the package whose name begins with
    database_gap. This will download the package from
@@ -262,7 +249,7 @@ to find error messages.  If an spkg fails to build, the whole build
 process will stop soon after, so check the most recent log files
 first, or run
 
-   grep -li "An error" spkg/logs/*
+   grep -li "^Error" spkg/logs/*
 
 from the top-level Sage directory to find log files with error
 messages in them.  Send (a small part of) the relevant log file to the
@@ -274,15 +261,23 @@ suggestions.
 SUPPORTED COMPILERS
 -------------------
 
- * Sage needs a version of GCC that is at least version 4.0.1 that is
-   configured with support for at least the C, C++, and Fortran
-   languages, although a Fortran compiler is not needed on OS X, as
-   noted above.
+Sage includes a GCC (GNU Compiler Collection) package. In order to
+build Sage, you need a C compiler which can build GCC and its
+prerequisites. gcc version 4.0.1 or later should probably work. On
+Solaris or OpenSolaris, building with the Sun compiler should also work.
 
- * The versions of the C compiler (gcc), C++ compiler (g++), and Fortran
-   compiler (gfortran) must all be identical.
+The GCC package in Sage is not always installed. It is determined
+automatically whether it needs to be installed. You can override this
+by setting the environment variable SAGE_INSTALL_GCC=yes (to force
+installation of GCC) or SAGE_INSTALL_GCC=no (to disable installation of
+GCC). If you don't want to install GCC, you need to have recent
+versions of gcc, g++ and gfortran; moreover, the versions must be equal.
 
- * Sage has never been built without using the GCC compiler.
+There are some known problems with old assemblers, in particular when
+building the ECM package. You should ensure that your assembler
+understands all instructions for your processor. On Linux, this means
+you need a recent version of binutils; on OS X you need a recent version
+of XCode.
 
 
 RELOCATION
@@ -316,14 +311,14 @@ do.
 
 1. To make your own source tarball (sage-x.y.z.tar) of Sage, type:
 
-       sage -sdist x.y.z
+       sage --sdist x.y.z
 
    where the version is whatever you want.
 
 2. To make a binary distribution with your currently installed packages,
    type:
 
-       sage -bdist x.y.z
+       sage --bdist x.y.z
 
 3. To make a binary that will run on the widest range of target
    machines, set the SAGE_FAT_BINARY environment variable to "yes"
@@ -331,7 +326,7 @@ do.
 
        export SAGE_FAT_BINARY="yes"
        make
-       ./sage -bdist x.y.z-fat
+       ./sage --bdist x.y.z-fat
 
 In all cases, the result is placed in the directory "$SAGE_ROOT/dist/".
 
@@ -343,10 +338,11 @@ All software included with Sage is copyrighted by the respective authors
 and released under an open source license that is "GPL version 3 or
 later" compatible. See the file COPYING.txt for more details.
 
-Each spkg in $SAGE_ROOT/spkg/standard/ is a bzip'd tarball. You can
-extract it with:
+Almost every spkg in $SAGE_ROOT/spkg/standard/ is a bzip2-compressed
+tarball (currently, the only exception is the bzip2 spkg itself, which
+is gzip-compressed). You can extract it with:
 
-    tar -jxvf name-*.spkg
+    tar xvf name-*.spkg
 
 Inside the spkg, there is a file SPKG.txt that details all changes made
 to the given package for inclusion with Sage. The inclusion of such a

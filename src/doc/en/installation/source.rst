@@ -41,18 +41,24 @@ The following standard
 command-line development tools must be installed on your computer.
 (Under OS X they all come with `Xcode <http://developer.apple.com/xcode/>`_).
 
-::
+- A **C compiler**: GCC version 4.0.1 or newer should work.  Older
+  versions may or may not work.  On Solaris or OpenSolaris systems,
+  the Sun compiler should also work.
+- **make**: GNU make, version 3.80 or later
+- **m4**
+- **perl**: version 5.8.0 or later
+- **tar**: GNU tar version 1.17 or later, or BSD tar
+- **ranlib**
+- On recent Debian or Ubuntu systems: the **dpkg-dev** package for
+  `multiarch <http://wiki.debian.org/Multiarch>`_ support
 
-       gcc        (Version 4.0.1 or later)
-       make       (For Solaris or OpenSolaris, GNU make, version 3.80 or later)
-       perl       (Version 5.8.0 or later)
-       ranlib
-       tar        (For Solaris or OpenSolaris, GNU tar, version 1.17 or later)
-       ssh-keygen (Needed to run the notebook in secure mode)
-       latex      (Highly recommended, though not strictly required)
-       ImageMagick -- recommended
-       ffmpeg -- recommended
-       dvipng -- recommended
+Recommended but not strictly required:
+
+- **latex**: highly recommended
+- **dvipng**
+- **ImageMagick**
+- **ffmpeg**
+- **ssh-keygen**: needed to run the notebook in secure mode
 
 Sage also needs a C++ compiler and a Fortran compiler.
 However, it contains a `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_
@@ -74,9 +80,10 @@ either ``perl`` is not installed, or it is installed but not in your
 It is highly recommended that you have `Latex <http://en.wikipedia.org/wiki/LaTeX>`_
 installed, but it is not required. If you don't have ``ssh-keygen`` on your
 local system, then you cannot run the notebook in secure mode, which the uses
-encrypted `HTTPS <http://en.wikipedia.org/wiki/HTTP_Secure>`_ protocol. To run the notebook in secure mode, type the command
+encrypted `HTTPS <http://en.wikipedia.org/wiki/HTTP_Secure>`_ protocol.
+To run the notebook in secure mode, type the command
 ``notebook(secure=True)`` instead of ``notebook()``. Unless ``notebook(secure=True)``
-is used, the notebook uses the less secure `HTTP <http://en.wikipedia.org/wiki/HTTP>`_ protocol
+is used, the notebook uses the less secure `HTTP <http://en.wikipedia.org/wiki/HTTP>`_ protocol.
 
 If you don't have either ImageMagick or ffmpeg, you won't be able to
 view animations.  ffmpeg can produce animations in more different
@@ -134,7 +141,7 @@ suppied will build Sage, so there is no need to install GNU tar.
 For Solaris, it is recommended you create a directory ``$HOME/bins-for-sage`` and
 put the GNU versions of ``tar`` and ``make`` in that directory. Then ensure that
 ``$HOME/bins-for-sage`` is first in your PATH. That's because Sage also needs
-``/usr/ccs/bin`` in your PATH to execute programs like ``ar`` and ``ranlib`,
+``/usr/ccs/bin`` in your PATH to execute programs like ``ar`` and ``ranlib``,
 but ``/usr/ccs/bin`` has the Sun/Oracle versions of ``make`` and ``tar``
 which are unsuitable for building Sage. For more information on
 building Sage on Solaris, see http://wiki.sagemath.org/solaris
@@ -173,8 +180,14 @@ and inform you of any that are missing, or have unsuitable verisons.
 
    does not raise an ``ImportError`` then it worked.
 
--  Sage developers tend to use fairly recent versions of gcc, but
-   Sage should compile with almost any gcc of at least version 4.0.1
+-  Sage developers tend to use fairly recent versions of GCC, but Sage
+   should compile with any reasonable C compiler.  This is because Sage
+   will build GCC first (if needed) and then use that newly built GCC to
+   compile Sage.
+
+   If you don't want this and want to try building Sage with a
+   different compiler, you need to set the environment variable
+   ``SAGE_INSTALL_GCC=no``.
 
    If you are interested in working on support for commerical compilers
    from `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
@@ -185,9 +198,6 @@ and inform you of any that are missing, or have unsuitable verisons.
    please email the sage-devel mailing list, otherwise known as the
    sage-devel Google group at
    http://groups.google.com/group/sage-devel
-
-   If you want to try building Sage with a compiler which is not GCC,
-   you need to set the environment variable ``SAGE_INSTALL_GCC=no``.
 
 After extracting the Sage tarball, the subdirectory ``spkg`` contains
 the source distributions for everything on which Sage depends. We
@@ -502,16 +512,16 @@ spaces in its name will also fail.
      For example, put something similar to the following line in your
      ``.bashrc`` file::
 
-         alias 'sage'='/home/username/sage-4.8/sage'
+         alias sage=/home/username/sage-5.0/sage
 
      Having done so, quit your terminal emulator and restart it again.
      Now typing ``sage`` within your terminal emulator should start
      Sage.
 
-#. Optional, but highly recommended: Test the install by typing ``./sage -testall``. This
-   runs most examples in the source code and makes sure that they run
+#. Optional, but highly recommended: Test the install by typing ``./sage --testall``.
+   This runs most examples in the source code and makes sure that they run
    exactly as claimed. To test all examples, use
-   ``./sage -testall -optional -long``; this will run examples that take
+   ``./sage --testall --optional --long``; this will run examples that take
    a long time, and those that depend on optional packages and
    software, e.g., Mathematica or Magma. Some (optional) examples will
    likely fail because they assume that a database is installed.
@@ -521,7 +531,7 @@ spaces in its name will also fail.
    very old hardware building and testing Sage can take several days!
 
 #. Optional: Install optional Sage packages and databases. Type
-   ``sage -optional`` to see a list or visit
+   ``sage --optional`` to see a list or visit
    http://www.sagemath.org/packages/optional/, and
    ``sage -i <package name>`` to automatically download and install a
    given package.
@@ -643,7 +653,7 @@ process:
   get very large and harder to search (and listing the contained
   files is usually less valuable), we decided to turn this off
   by default. This variable affects builds of Sage with ``make``
-  (and ``sage -upgrade``) as well as the manual installation of
+  (and ``sage --upgrade``) as well as the manual installation of
   individual spkgs with e.g. ``sage -i``.
 
 - :envvar:`SAGE_SPKG_INSTALL_DOCS` - Set this to "yes" to install
@@ -715,7 +725,7 @@ process:
 
       export SAGE_FAT_BINARY="yes"
       make
-      ./sage -bdist x.y.z-fat
+      ./sage --bdist x.y.z-fat
 
 Variables to set if you're trying to build Sage with an unusual setup,
 e.g., an unsupported machine or an unusual compiler:
@@ -739,10 +749,10 @@ e.g., an unsupported machine or an unusual compiler:
   :envvar:`SAGE_PORT` to something non-empty (and expect to run into
   problems).
 
- :envvar:`SAGE_USE_OLD_GCC` - the Sage build process requires
-  gcc with a version number of at least 4.0.1.
-  If the most recent version of gcc on your system is the older 3.4.x series and you
-  want to try building anyway, then set :envvar:`SAGE_USE_OLD_GCC` to
+- :envvar:`SAGE_USE_OLD_GCC` - the Sage build process requires gcc with
+  a version number of at least 4.0.1.  If the most recent version of gcc
+  on your system is the older 3.4.x series and you want to build with
+  ``SAGE_INSTALL_GCC=no``, then set :envvar:`SAGE_USE_OLD_GCC` to
   something non-empty. Expect the build to fail in this case.
 
 Environment variables dealing with specific Sage packages:
@@ -973,7 +983,7 @@ System-wide install
 
 #. Make sure that all files in the Sage tree are readable by all::
 
-       chmod a+rX -R /usr/local/sage-4.8
+       chmod a+rX -R /usr/local/sage-5.0
 
 #. Optionally, you can test Sage by running::
 
@@ -1003,10 +1013,6 @@ Sometimes the ATLAS spkg can fail to build.  Some things to check for:
 Special Notes
 -------------
 
-
--  (Found by Dorian Raymer) Sage will not build if you have only
-   bison++. You should uninstall bison++ and install `bison <http://www.gnu.org/software/bison/>`_.
-
 -  (Found by Peter Jipsen) If you get an error like
 
    ::
@@ -1024,4 +1030,4 @@ Special Notes
   :ref:`installation in a multiuser environment
   <sagetex_installation_multiuser>`.
 
-  **This page was last updated in March 2012 (Sage 5.0)**
+  **This page was last updated in May 2012 (Sage 5.0)**

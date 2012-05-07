@@ -45,6 +45,7 @@ command-line development tools must be installed on your computer.
   versions may or may not work.  On Solaris or OpenSolaris systems,
   the Sun compiler should also work.
 - **make**: GNU make, version 3.80 or later
+- **OpenSSL with dev headers**
 - **m4**
 - **perl**: version 5.8.0 or later
 - **tar**: GNU tar version 1.17 or later, or BSD tar
@@ -59,6 +60,13 @@ Recommended but not strictly required:
 - **ImageMagick**
 - **ffmpeg**
 - **ssh-keygen**: needed to run the notebook in secure mode
+
+.. note:: If you cannot install OpenSSL and its development headers
+   systemwide, another option is to install the optional OpenSSL spkg
+   into your Sage installation. Unfortunately this is not possible to
+   do immediately after extracting the tarball, so you will need to
+   follow the build instructions as normal, wait for the build to
+   *fail*, then run ``sage -i openssl`` and run ``make`` again.
 
 Sage also needs a C++ compiler and a Fortran compiler.
 However, it contains a `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_

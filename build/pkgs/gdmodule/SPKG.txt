@@ -11,7 +11,7 @@ Permission granted for unlimited use, provided that the Quest Center at Cold Spr
 
 == SPKG Maintainers ==
 
- * Michael Abshoff
+ * None
 
 == Upstream Contact ==
 
@@ -19,24 +19,34 @@ Permission granted for unlimited use, provided that the Quest Center at Cold Spr
 
 == Dependencies ==
 
- * python
+ * GNU patch
+ * Python
  * libpng
  * gd
+ * iconv
 
 == Special Update/Build Instructions ==
 
- * Patch Setup.py: we link against libpng12 instead of libpng. There are also changes to the library handling on Cygwin, so this might need to be fixed.
+ * Patch Setup.py: we link against libpng12 instead of libpng. There
+   are also changes to the library handling on Cygwin, so this might
+   need to be fixed.  Remove non-system include and library prefixes
+   /sw and /usr/local.  If a different version of GD is installed
+   in one of these directories, the gdmodule installer gets in trouble.
 
 == Changelog ==
 
-=== gdmodule-0.56.p5 (Mike Hansen, October 27th, 2009) ===
+=== gdmodule-0.56.p8 (Robert Bradshaw, Jeroen Demeyer, 6 May 2012) ===
+ * Trac #12909: Setup.py: don't use non-system prefixes
+   /sw and /usr/local to look for include files or libraries.
+ * Use standard template for spkg-install, use patch for patching.
+ * Restore upstream sources.  The pre-existing changes to src/Setup.py
+   have been moved to Setup.py.patch
+ * _gdmodule.c: Undo change of #include <gd.h> to #include "gd.h"
+
+=== gdmodule-0.56.p7 (Mike Hansen, October 27th, 2009) ===
  * Make gdmodule work on Cygwin.
 
 === gdmodule-0.56.p5 (Michael Abshoff) ===
  * add .hgignore, SPKG.txt
  * clean up patches directory
  * build gdmodule against libpng12 instead of libpng (#5289)
-
-=== gdmodule-0.56.p4 (Michael Abshoff) ===
- * Details lost to history
-

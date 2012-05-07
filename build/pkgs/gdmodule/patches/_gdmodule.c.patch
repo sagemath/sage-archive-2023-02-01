@@ -1,24 +1,6 @@
---- ../src/_gdmodule.c	2005-03-11 12:06:26.000000000 +0700
-+++ _gdmodule.c	2006-11-23 06:27:38.000000000 +0700
-@@ -124,12 +124,12 @@
- ******************************************************************/
- 
- #include <Python.h>
--#include <gd.h>
--#include <gdfonts.h>
--#include <gdfontl.h>
--#include <gdfontmb.h>
--#include <gdfontt.h>
--#include <gdfontg.h>
-+#include "gd.h"
-+#include "gdfonts.h"
-+#include "gdfontl.h"
-+#include "gdfontmb.h"
-+#include "gdfontt.h"
-+#include "gdfontg.h"
- #include <string.h>
- #include <errno.h>
- 
+diff -ru src/_gdmodule.c c/_gdmodule.c
+--- src/_gdmodule.c	2005-03-11 06:06:26.000000000 +0100
++++ c/_gdmodule.c	2012-05-06 00:59:07.453373313 +0200
 @@ -346,12 +346,12 @@
      return write_file(self, args, 'p');
  }

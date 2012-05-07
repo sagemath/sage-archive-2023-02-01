@@ -88,8 +88,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.subgraph` | Returns the subgraph containing the given vertices and edges.
     :meth:`~GenericGraph.is_subgraph` | Tests whether self is a subgraph of other.
 
-
-
 **Graph products:**
 
 .. csv-table::
@@ -13114,6 +13112,14 @@ class GenericGraph(GenericGraph_pyx):
         `V(L)` equal to the Cartesian product of the vertices `V(G)` and `V(H)`,
         and `((u,v), (w,x))` is an edge iff either - `(u, w)` is an edge of self
         and `v = x`, or - `(v, x)` is an edge of other and `u = w`.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.graph_decompositions.graph_products.is_cartesian_product`
+              -- factorization of graphs according to the cartesian product
+
+            - :mod:`~sage.graphs.graph_decompositions.graph_products`
+              -- a module on graph products.
 
         TESTS:
 

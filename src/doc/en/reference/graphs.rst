@@ -57,6 +57,7 @@ Libraries of algorithms
    sage/graphs/graph_plot
    sage/graphs/graph_decompositions/vertex_separation
    sage/graphs/graph_decompositions/rankwidth
+   sage/graphs/graph_decompositions/graph_products
    sage/graphs/modular_decomposition/modular_decomposition
    sage/graphs/convexity_properties
    sage/graphs/distances_all_pairs

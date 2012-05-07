@@ -48,6 +48,7 @@ graphs.
     :meth:`~Graph.is_line_graph` | Tests wether the graph is a line graph.
     :meth:`~Graph.is_odd_hole_free` | Tests whether ``self`` contains an induced odd hole.
     :meth:`~Graph.is_even_hole_free` | Tests whether ``self`` contains an induced even hole.
+    :meth:`~Graph.is_cartesian_product` | Tests whether ``self`` is a cartesian product of graphs.
 
 
 
@@ -490,6 +491,7 @@ from sage.rings.integer import Integer
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
+
 
 class Graph(GenericGraph):
     r"""
@@ -4706,6 +4708,55 @@ class Graph(GenericGraph):
         D = self.modular_decomposition()
 
         return D[0] == "Prime" and len(D[1]) == self.order()
+
+    def is_cartesian_product(self, certificate = False):
+        r"""
+        Tests whether ``self`` is a cartesian product of graphs.
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- if ``certificate = False`` (default) the
+          method only returns ``True`` or ``False`` answers. If ``certificate =
+          True``, the ``True`` answers are replaced by the list of the factors of
+          the graph.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.cartesian_product`
+
+            - :mod:`~sage.graphs.graph_decompositions.graph_products` -- a
+              module on graph products.
+
+        EXAMPLE:
+
+        The Petersen graph is prime::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_cartesian_product()
+            False
+
+        A 2d grid is the product of paths::
+
+            sage: g = graphs.Grid2dGraph(5,5)
+            sage: p1, p2 = g.is_cartesian_product(certificate = True)
+            sage: p1.is_isomorphic(graphs.PathGraph(5))
+            True
+            sage: p2.is_isomorphic(graphs.PathGraph(5))
+            True
+
+        And of course, we find the factors back when we build a graph from a
+        product::
+
+            sage: g = graphs.PetersenGraph().cartesian_product(graphs.CycleGraph(3))
+            sage: g1, g2 = g.is_cartesian_product(certificate = True)
+            sage: any( x.is_isomorphic(graphs.PetersenGraph()) for x in [g1,g2])
+            True
+            sage: any( x.is_isomorphic(graphs.CycleGraph(3)) for x in [g1,g2])
+            True
+        """
+        from sage.graphs.graph_decompositions.graph_products import is_cartesian_product
+        return is_cartesian_product(self, certificate = certificate)
+
 
     def _gomory_hu_tree(self, vertices=None, method="FF"):
         r"""

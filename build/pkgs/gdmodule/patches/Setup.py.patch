@@ -7,7 +7,7 @@ diff -ru src/Setup.py b/Setup.py
  libdirs = dirtest([
 -    "/usr/local/lib", "/sw/lib", "/usr/lib",
 +    os.environ["SAGE_LOCAL"]+"/lib",
-+    "/usr/local/lib", "/usr/lib",
++    "/usr/lib",
      "/usr/lib/X11", "/usr/X11R6/lib",
      "/opt/gnome/lib",
  ])

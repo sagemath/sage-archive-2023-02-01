@@ -23,6 +23,8 @@ from sage.rings.all import Integer, is_MPolynomial, PolynomialRing
 import permutation
 import sage.libs.symmetrica.all as symmetrica
 
+from sage.combinat.permutation import Permutations
+
 def SchubertPolynomialRing(R):
     """
     Returns the Schubert polynomial ring over R on the X basis.
@@ -206,11 +208,27 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
             sage: R.<x1, x2, x3> = QQ[]
             sage: X(x1^2*x2)
             X[3, 2, 1]
+
+        TESTS for trac 12924::
+            sage: X = SchubertPolynomialRing(QQ)
+            sage: X._element_constructor_([1,2,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: The input [1, 2, 1] is not a valid permutation
+            sage: X._element_constructor_(Permutation([1,2,1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: The input [1, 2, 1] is not a valid permutation
         """
         if isinstance(x, list):
+            #checking the input to avoid symmetrica crashing Sage, see trac 12924
+            if not x in Permutations():
+                raise ValueError, "The input %s is not a valid permutation"%(x)
             perm = permutation.Permutation_class(x).remove_extra_fixed_points()
             return self._from_dict({ perm: self.base_ring()(1) })
         elif isinstance(x, permutation.Permutation_class):
+            if not list(x) in Permutations():
+                raise ValueError, "The input %s is not a valid permutation"%(x)
             perm = x.remove_extra_fixed_points()
             return self._from_dict({ perm: self.base_ring()(1) })
         elif is_MPolynomial(x):

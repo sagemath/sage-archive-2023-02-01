@@ -402,7 +402,7 @@ $(INST)/$(FLINT): $(BASE) $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(PATCH)
 $(INST)/$(EXTCODE): $(BASE) $(INST)/$(MERCURIAL)
 	+$(PIPE) "$(SAGE_SPKG) $(EXTCODE) 2>&1" "tee -a $(SAGE_LOGS)/$(EXTCODE).log"
 
-$(INST)/$(M4RI): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(M4RI): $(BASE) $(INST)/$(PATCH) $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(M4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(M4RI).log"
 
 $(INST)/$(M4RIE): $(BASE) $(INST)/$(PATCH) $(INST)/$(M4RI) $(INST)/$(GIVARO) $(INST)/$(NTL)

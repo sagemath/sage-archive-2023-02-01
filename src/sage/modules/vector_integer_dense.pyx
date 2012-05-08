@@ -145,6 +145,29 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
                 return 1
         return 0
 
+    # see sage/structure/element.pyx
+    def __richcmp__(left, right, int op):
+        """
+        TEST::
+
+            sage: w = vector(ZZ, [-1,0,0,0])
+            sage: w == w
+            True
+        """
+        return (<Element>left)._richcmp(right, op)
+
+    # __hash__ is not properly inherited if comparison is changed
+    def __hash__(self):
+        """
+        TEST::
+
+            sage: w = vector(ZZ, [-1,0,0,0])
+            sage: w.set_immutable()
+            sage: isinstance(hash(w), int)
+            True
+        """
+        return free_module_element.FreeModuleElement.__hash__(self)
+
     def __len__(self):
         return self._degree
 

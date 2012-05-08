@@ -205,6 +205,29 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             return 0
         return mzd_cmp(left._entries, (<Vector_mod2_dense>right)._entries)
 
+    # see sage/structure/element.pyx
+    def __richcmp__(left, right, int op):
+        """
+        TEST::
+
+            sage: w = vector(GF(2), [-1,0,0,0])
+            sage: w == w
+            True
+        """
+        return (<Element>left)._richcmp(right, op)
+
+    # __hash__ is not properly inherited if comparison is changed
+    def __hash__(self):
+        """
+        TEST::
+
+            sage: w = vector(GF(2), [-1,0,0,0])
+            sage: w.set_immutable()
+            sage: isinstance(hash(w), int)
+            True
+        """
+        return free_module_element.FreeModuleElement.__hash__(self)
+
     def __len__(self):
         """
         EXAMPLES::

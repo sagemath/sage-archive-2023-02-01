@@ -5119,7 +5119,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Words('123')('1221131122').standard_factorization_of_lyndon_factorization()
             doctest:...: DeprecationWarning:
             standard_factorization_of_lyndon_factorization(): is
-            deprecated and will be removed in later versions of sage.
+            deprecated since March 2012 and will be removed in a later version of Sage.
             [(word: 12, word: 2), (word: 1, word: 13), (word: 1, word: 122)]
 
         """

@@ -201,7 +201,7 @@ class GraphPlot(SageObject):
         else:
             voptions['markersize'] = self._options['vertex_size']
 
-        if 'vertex_colors' not in self._options:
+        if 'vertex_colors' not in self._options or self._options['vertex_colors'] is None:
             if self._options['partition'] is not None:
                 from sage.plot.colors import rainbow,rgbcolor
                 partition = self._options['partition']

@@ -867,6 +867,7 @@ code = setup(name = 'sage',
                      'sage.coding.source_coding',
 
                      'sage.combinat',
+                     'sage.combinat.cluster_algebra_quiver',
                      'sage.combinat.crystals',
                      'sage.combinat.rigged_configurations',
                      'sage.combinat.designs',

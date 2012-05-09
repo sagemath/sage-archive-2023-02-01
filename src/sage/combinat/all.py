@@ -98,6 +98,9 @@ from matrices.all import *
 from posets.all import *
 from backtrack import TransitiveIdeal, TransitiveIdealGraded, SearchForest
 
+# Cluster Algebras and Quivers
+from cluster_algebra_quiver.all import *
+
 #import lrcalc
 
 

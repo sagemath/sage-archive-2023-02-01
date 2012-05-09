@@ -21,6 +21,8 @@ AUTHORS:
   Partitions_parts_in
 
 - Travis Scrimshaw (2012-01-12): Implemented latex function to Partition_class
+- Travis Scrimshaw (2012-05-09): Fixed Partitions(-1).list() infinite recursion
+  loop by saying Partitions_n is the empty set.
 
 EXAMPLES:
 
@@ -3757,7 +3759,13 @@ class Partitions_n(CombinatorialClass):
             [4]
             sage: type(_)
             <type 'list'>
+            sage: Partitions(-1).list()
+            []
         """
+        # If n is less than 0, there are no partitions
+        if self.n < 0:
+            return
+
         # base case of the recursion: zero is the sum of the empty tuple
         if self.n == 0:
             yield []

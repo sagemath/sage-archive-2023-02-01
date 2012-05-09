@@ -1,14 +1,18 @@
 """
-Integer vectors
+(Non-negative) Integer vectors
 
 AUTHORS:
 
  *   Mike Hanson (2007) - original module
  *   Nathann Cohen, David Joyner (2009-2010) - Gale-Ryser stuff
  *   Nathann Cohen, David Joyner (2011) - Gale-Ryser bugfix
+ *   Travis Scrimshaw (2012-05-12) - Updated doc-strings to tell the user of
+     that the class's name is a misnomer (that they only contains non-negative
+     entries).
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -501,7 +505,9 @@ def constant_func(i):
 
 def IntegerVectors(n=None, k=None, **kwargs):
     """
-    Returns the combinatorial class of integer vectors.
+    Returns the combinatorial class of (non-negative) integer vectors.
+
+    NOTE - These integer vectors are non-negative.
 
     EXAMPLES: If n is not specified, it returns the class of all
     integer vectors.
@@ -516,6 +522,13 @@ def IntegerVectors(n=None, k=None, **kwargs):
         True
         sage: [1, 0, 0] in IntegerVectors()
         True
+
+    Entries are non-negative.
+
+    ::
+
+        sage: [-1, 2] in IntegerVectors()
+        False
 
     If n is specified, then it returns the class of all integer vectors
     which sum to n.

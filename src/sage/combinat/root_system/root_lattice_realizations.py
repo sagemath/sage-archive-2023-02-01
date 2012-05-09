@@ -505,7 +505,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             assert self.cartan_type().is_finite()
             return TransitiveIdeal(attrcall('pred'), self.simple_roots())
 
-        def root_poset(self, restricted=False):
+        def root_poset(self, restricted=False, facade=False):
             r"""
             Returns the (restricted) root poset associated to ``self``.
 
@@ -515,8 +515,14 @@ class RootLatticeRealizations(Category_over_base_ring):
             INPUT:
 
             - ``restricted`` -- (default:False) if True, only non-simple roots are considered.
+            - ``facade`` -- (default:False) passes facade option to the poset generator.
 
             EXAMPLES::
+
+                sage: Phi = RootSystem(['A',1]).root_poset(); Phi
+                Finite poset containing 1 elements
+                sage: Phi.cover_relations()
+                []
 
                 sage: Phi = RootSystem(['A',2]).root_poset(); Phi
                 Finite poset containing 3 elements
@@ -545,7 +551,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                     root_cover = root + simple_roots[i]
                     if root_cover in pos_roots:
                         rels.append((root,root_cover))
-            return Poset(([],rels),cover_relations=True)
+            return Poset((pos_roots,rels),cover_relations=True,facade=facade)
 
         def almost_positive_roots(self):
             r"""

@@ -426,7 +426,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         return RootSpace(self, base_ring)
 
-    def root_poset(self, restricted=False):
+    def root_poset(self, restricted=False, facade=False):
         r"""
         Returns the (restricted) root poset associated to ``self``.
 
@@ -435,7 +435,8 @@ class RootSystem(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - restricted -- (default:False) if True, only non-simple roots are considered.
+        - ``restricted`` -- (default:False) if True, only non-simple roots are considered.
+        - ``facade`` -- (default:False) passes facade option to the poset generator.
 
         EXAMPLES::
 
@@ -454,7 +455,7 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: Phi.cover_relations()
             [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
         """
-        return self.root_lattice().root_poset(restricted=restricted)
+        return self.root_lattice().root_poset(restricted=restricted,facade=facade)
 
     def coroot_lattice(self):
         """

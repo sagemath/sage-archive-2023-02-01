@@ -39,15 +39,14 @@ ipython-user@scipy.org
 
 == Special Update/Build Instructions ==
 
-=== Patches ===
- * src/IPython/rlineimpl.py: We disable the check for libedit which
-   caused "sage -gdb" not to work under OS X.  This was trac ticket
-   #4991.
- * src/IPytion/OInspect.py: Make ? show the two different location of source
-   files used in sage (site-packages and devel)
-
-
 == Changelog ==
+
+=== ipython-0.12.1 (Jason Grout, May 08, 2012) ===
+ * Upgrade to 0.12.1, see trac #12719
+ * deleted rlineimpl.py patch (see
+   https://github.com/ipython/ipython/issues/473)
+ * deleted oinspect.py patch -- this is a lot more difficult now that
+   the information fields are part of the official IPython messaging spec
 
 === ipython-0.10.2.p1 (Maarten Derickx. March, 2011 [1]) ===
  * Add the OInspect.py patch.

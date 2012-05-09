@@ -952,8 +952,10 @@ class Graph(GenericGraph):
             ...
             ValueError: Non-multigraph input dict has multiple edges (1,2)
 
-        An empty dictionary defines a simple graph (trac #10441)::
+        An empty list or dictionary defines a simple graph (trac #10441 and #12910)::
 
+            sage: Graph([])
+            Graph on 0 vertices
             sage: Graph({})
             Graph on 0 vertices
             sage: # not "Multi-graph on 0 vertices"
@@ -1022,8 +1024,13 @@ class Graph(GenericGraph):
             # same length. If it is not true, a ValueError will occur
             try:
 
+                # The list is empty
+                if not data:
+                    data = {}
+                    format = 'dict_of_dicts'
+
                 # The edges are not labelled
-                if len(data[0]) == 2:
+                elif len(data[0]) == 2:
                     data = {}
                     for u,v in edges:
                         if not u in data:

@@ -445,8 +445,10 @@ class DiGraph(GenericGraph):
             sage: DiGraph([(1, 2, 0)])
             Digraph on 2 vertices
 
-        An empty dictionary defines a simple graph (trac #10441)::
+        An empty list or dictionary defines a simple graph (trac #10441 and #12910)::
 
+            sage: DiGraph([])
+            Digraph on 0 vertices
             sage: DiGraph({})
             Digraph on 0 vertices
             sage: # not "Multi-digraph on 0 vertices"
@@ -508,8 +510,13 @@ class DiGraph(GenericGraph):
             # same length. If it is not true, a ValueError will occur
             try:
 
+                # The list is empty
+                if not data:
+                    data = {}
+                    format = 'dict_of_dicts'
+
                 # The edges are not labelled
-                if len(data[0]) == 2:
+                elif len(data[0]) == 2:
                     data = {}
                     for u,v in edges:
                         if not u in data:

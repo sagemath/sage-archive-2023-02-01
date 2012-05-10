@@ -43,6 +43,7 @@ fi
 export CFLAGS="$CFLAGS -O2 "
 export CXXFLAGS="$CXXFLAGS -O2 "
 export CPPFLAGS="$CPPFLAGS -I $SAGE_LOCAL/include"
+export LDFLAGS="$LDFLAGS -I $SAGE_LOCAL/lib"
 
 # There is no Fortran code in sqlite, but if FC is not set, there
 # there are annoying messages showing the use of the GNU fortran compiler
@@ -61,6 +62,7 @@ echo "                      CFLAGS=$CFLAGS"
 echo "                      CXXFLAGS=$CXXFLAGS"
 echo "                      FFLAGS=$FFLAGS"
 echo "                      CPPFLAGS=$CPPFLAGS"
+echo "                      LDFLAGS=$LDFLAGS"
 
 # Disable exit on error, since the necessary checks for errors
 # are below.

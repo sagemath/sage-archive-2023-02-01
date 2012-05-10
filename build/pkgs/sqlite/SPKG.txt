@@ -6,6 +6,9 @@ serverless, zero-configuration, transactional SQL database engine.
 == Upstream contact ==
  * URL: http://www.sqlite.org
 
+=== sqlite-3.7.5.p1 (William Stein, 10 May 2012) ===
+ * #12937: sqlite sometimes picks up the wrong libraries (e.g., readline) since we forgot to set LDFLAGS.  Thus, set LDFLAGS.
+
 === sqlite-3.7.5.p0 (Simon King, 10th December 2011) ===
  * #12131: Use --libdir, to make this package work on openSUSE
 

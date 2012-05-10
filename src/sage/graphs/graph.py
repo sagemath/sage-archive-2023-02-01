@@ -2596,7 +2596,7 @@ class Graph(GenericGraph):
         from sage.graphs.chrompoly import chromatic_polynomial
         return chromatic_polynomial(self)
 
-    def chromatic_number(self, algorithm="DLX"):
+    def chromatic_number(self, algorithm="DLX", verbose = 0):
         r"""
         Returns the minimal number of colors needed to color the vertices
         of the graph `G`.
@@ -2622,6 +2622,9 @@ class Graph(GenericGraph):
             is affected by whether optional MILP solvers have been installed
             (see the :mod:`MILP module <sage.numerical.mip>`, or Sage's tutorial
             on Linear Programming).
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
+          for the MILP algorithm. Its default value is 0, which means *quiet*.
 
         .. SEEALSO::
 
@@ -2654,7 +2657,7 @@ class Graph(GenericGraph):
         # package: choose any of GLPK or CBC.
         elif algorithm == "MILP":
             from sage.graphs.graph_coloring import vertex_coloring
-            return vertex_coloring(self, value_only=True)
+            return vertex_coloring(self, value_only=True, verbose = verbose)
         # another algorithm with bad performance; only good for small graphs
         elif algorithm == "CP":
             f = self.chromatic_polynomial()
@@ -2665,7 +2668,7 @@ class Graph(GenericGraph):
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.")
 
-    def coloring(self, algorithm="DLX", hex_colors=False):
+    def coloring(self, algorithm="DLX", hex_colors=False, verbose = 0):
         r"""
         Returns the first (optimal) proper vertex-coloring found.
 
@@ -2684,6 +2687,9 @@ class Graph(GenericGraph):
 
         - ``hex_colors`` -- (default: ``False``) if ``True``, return a
           dictionary which can easily be used for plotting.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
+          for the MILP algorithm. Its default value is 0, which means *quiet*.
 
         .. SEEALSO::
 
@@ -2721,7 +2727,7 @@ class Graph(GenericGraph):
         """
         if algorithm == "MILP":
             from sage.graphs.graph_coloring import vertex_coloring
-            return vertex_coloring(self, hex_colors=hex_colors)
+            return vertex_coloring(self, hex_colors=hex_colors, verbose = verbose)
         elif algorithm == "DLX":
             from sage.graphs.graph_coloring import first_coloring
             return first_coloring(self, hex_colors=hex_colors)

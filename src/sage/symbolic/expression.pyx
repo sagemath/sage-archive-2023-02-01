@@ -5057,6 +5057,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(-5).abs(hold=True)
             abs(-5)
+
+        TESTS:
+
+        Check if :trac:`11155` is fixed::
+
+            sage: abs(pi+i)
+            abs(pi + I)
         """
         return new_Expression_from_GEx(self._parent, g_abs(self._gobj))
 

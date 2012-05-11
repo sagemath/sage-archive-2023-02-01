@@ -318,6 +318,7 @@ JINJA2=`newest_version jinja2`
 JMOL=`newest_version jmol`
 LAPACK=`newest_version lapack`
 LCALC=`newest_version lcalc`
+LRCALC=`newest_version lrcalc`
 LIBGCRYPT=`newest_version libgcrypt`
 LIBGPG_ERROR=`newest_version libgpg_error`
 LIBPNG=`newest_version libpng`

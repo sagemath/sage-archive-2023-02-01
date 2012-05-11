@@ -63,6 +63,7 @@ all: $(BASE) \
      $(INST)/$(JMOL) \
      $(INST)/$(LAPACK) \
      $(INST)/$(LCALC) \
+     $(INST)/$(LRCALC) \
      $(INST)/$(LIBGCRYPT) \
      $(INST)/$(LIBGPG_ERROR) \
      $(INST)/$(M4RI) \
@@ -255,6 +256,9 @@ $(INST)/$(PALP): $(BASE) $(INST)/$(PATCH)
 
 $(INST)/$(LCALC): $(BASE) $(INST)/$(PARI) $(INST)/$(MPFR) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(LCALC) 2>&1" "tee -a $(SAGE_LOGS)/$(LCALC).log"
+
+$(INST)/$(LRCALC):  $(BASE) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(LRCALC) 2>&1" "tee -a $(SAGE_LOGS)/$(LRCALC).log"
 
 $(INST)/$(PYNAC): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(PYNAC) 2>&1" "tee -a $(SAGE_LOGS)/$(PYNAC).log"

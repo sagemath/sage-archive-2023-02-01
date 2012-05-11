@@ -961,9 +961,10 @@ class Graphics(SageObject):
         aspect ratio is chosen, with 'automatic' being overridden by a
         numeric aspect ratio.
 
-        If one of the graphics object is set to show a legend, then the
-        resulting object will also be set to show a legend.  None of the
-        legend options are carried over.
+        If one of the graphics object is set to show a legend, then
+        the resulting object will also be set to show a legend. Legend
+        options are propagated if set. If the same legend option is
+        present in both arguments, the latter value is used.
 
         EXAMPLES::
 
@@ -983,6 +984,28 @@ class Graphics(SageObject):
             sage: g2.set_aspect_ratio(3)
             sage: (g1+g2).aspect_ratio()
             3.0
+
+        As are legend options, :trac:`12936`::
+
+            sage: p1 = plot(x, x, 0, 1)
+            sage: p2 = p1
+            sage: p1.set_legend_options(back_color = 'white')
+            sage: p2.set_legend_options(shadow = True)
+            sage: p3 = p1 + p2
+            sage: p3._Graphics__legend_opts
+            {'shadow': True, 'back_color': 'white'}
+
+        If the same legend option is specified more than once, the
+        latter takes precedence::
+
+            sage: p1 = plot(x, x, 0, 1)
+            sage: p2 = p1
+            sage: p1.set_legend_options(shadow = True)
+            sage: p2.set_legend_options(shadow = False)
+            sage: p3 = p1 + p2
+            sage: p3._Graphics__legend_opts
+            {'shadow': False}
+
         """
         if isinstance(other, int) and other == 0:
             return self
@@ -996,6 +1019,8 @@ class Graphics(SageObject):
         g.__show_legend = self.__show_legend or other.__show_legend
         g._extra_kwds.update(self._extra_kwds)
         g._extra_kwds.update(other._extra_kwds)
+        g._Graphics__legend_opts.update(self._Graphics__legend_opts)
+        g._Graphics__legend_opts.update(other._Graphics__legend_opts)
         if self.aspect_ratio()=='automatic':
             g.set_aspect_ratio(other.aspect_ratio())
         elif other.aspect_ratio()=='automatic':

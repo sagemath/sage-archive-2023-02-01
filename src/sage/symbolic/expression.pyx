@@ -5661,9 +5661,10 @@ cdef class Expression(CommutativeRingElement):
             0.0
             sage: maxima('atan2(0,0.6)')
             0.0
-            sage: SR(0).arctan2(0)
-            0
-
+            sage: SR(0).arctan2(0) #11423
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arctan2_eval(): arctan2(0,0) encountered
             sage: SR(I).arctan2(1)
             arctan2(I, 1)
             sage: SR(CDF(0,1)).arctan2(1)

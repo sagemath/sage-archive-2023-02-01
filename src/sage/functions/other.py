@@ -1739,14 +1739,14 @@ class Function_arg(BuiltinFunction):
             arg(sqrt(2) + I)
 
         """
-        if not isinstance(x,Expression):
-            # x contains no variables
-            if is_inexact(x):
-                # inexact complex numbers, e.g. 2.0+i
-                return self._evalf_(x, parent(x))
+        if not isinstance(x,Expression): # x contains no variables
+            if parent(x)(0)==x: #compatibility with maxima
+                return parent(x)(0)
             else:
-                # exact complex numbers, e.g. 2+i
-                return arctan2(imag_part(x),real_part(x))
+                if is_inexact(x): # inexact complex numbers, e.g. 2.0+i
+                    return self._evalf_(x, parent(x))
+                else:  # exact complex numbers, e.g. 2+i
+                    return arctan2(imag_part(x),real_part(x))
         else:
             # x contains variables, e.g. 2+i+y or 2.0+i+y
             # or x involves an expression such as sqrt(2)

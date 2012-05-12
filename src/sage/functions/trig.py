@@ -853,6 +853,22 @@ class Function_arctan2(GinacFunction):
 
             sage: arctan2(0, -log(2)).n()
             3.14159265358979
+
+        Check if atan2(0,0) throws error #11423::
+
+            sage: atan2(0,0)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arctan2_eval(): arctan2(0,0) encountered
+
+            sage: atan2(0,0,hold=True)
+            arctan2(0, 0)
+
+            sage: atan2(0,0,hold=True).n()
+            Traceback (most recent call last):
+            ...
+            ValueError: arctan2(0,0) undefined
+
         """
         GinacFunction.__init__(self, "arctan2", nargs=2, latex_name=r'\arctan',
                 conversions=dict(maxima='atan2', sympy='atan2'))

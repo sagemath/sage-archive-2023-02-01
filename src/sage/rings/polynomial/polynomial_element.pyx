@@ -402,9 +402,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         the object at which we are evaluating. Thus, e.g., if we input a
         matrix, we are guaranteed to get a matrix out, though the base ring
         of that matrix may change depending on the base of the polynomial
-        ring.
-
-        ::
+        ring. ::
 
             sage: R.<x> = QQ[]
             sage: f = R(2/3)
@@ -433,9 +431,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             w^3 + 3*w + 2
 
         Nested polynomial ring elements can be called like multi-variate
-        polynomials.
-
-        ::
+        polynomials. ::
 
             sage: R.<x> = QQ[]; S.<y> = R[]
             sage: f = x+y*x+y^2
@@ -458,9 +454,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(x=y)
             2*y^2 + y
 
-        The following results in an element of the symbolic ring.
+        Polynomial ring elements can also, like multi-variate
+        polynomials, be called with an argument that is a list or
+        tuple containing the values to be substituted, though it is
+        perhaps more natural to just unpack the list::
 
-        ::
+            sage: f([2]) # calling with a list
+            3*x + 4
+            sage: f((2,)) # calling with a tuple
+            3*x + 4
+            sage: f(*[2]) # unpacking the list to call normally
+            3*x + 4
+
+        The following results in an element of the symbolic ring. ::
 
             sage: f(x=sqrt(2))
             (y + sqrt(2))*y + sqrt(2)
@@ -474,9 +480,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(2, 1/2)
             15/8
 
-        Some special cases are optimized.
-
-        ::
+        Some special cases are optimized. ::
 
             sage: R.<x> = PolynomialRing(QQ, sparse=True)
             sage: f = x^3-2*x
@@ -495,9 +499,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS:
 
-        The following shows that \#2360 is indeed fixed.
-
-        ::
+        The following shows that \#2360 is indeed fixed. ::
 
             sage: R.<x,y> = ZZ[]
             sage: P.<a> = ZZ[]
@@ -508,13 +510,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(e)
             Traceback (most recent call last):
             ...
-            TypeError: can't multiply sequence by non-int of type 'list'
+            TypeError: Wrong number of arguments
             sage: f(x)
             6*x^4
 
-        The following shows that \#9006 is also fixed.
-
-        ::
+        The following shows that \#9006 is also fixed. ::
 
             sage: f = ZZ['x'](1000000 * [1])
             sage: f(1)
@@ -582,7 +582,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if len(x) == 0:
             return self
 
-        if isinstance(x[0], tuple):
+        if isinstance(x[0], (list, tuple)):
             x = x[0]
         a = x[0]
 

@@ -570,10 +570,38 @@ cdef public object py_loads(object s) except +:
     return loads(s)
 
 cdef public object py_get_sfunction_from_serial(unsigned s) except +:
+    """
+    Return the python object
+    """
     return get_sfunction_from_serial(s)
 
 cdef public unsigned py_get_serial_from_sfunction(object f) except +:
+    """
+    Given a Function object return its serial.
+
+    Python's unpickling mechanism is used to unarchive a symbolic function with
+    custom methods (evaluation, differentiation, etc.). Pynac extracts a string
+    representation from the archive, calls loads() to recreate the stored
+    function. This allows us to extract the serial from the Python object to
+    set the corresponding member variable of the C++ object representing this
+    function.
+    """
     return (<Function>f)._serial
+
+cdef public unsigned py_get_serial_for_new_sfunction(stdstring &s,
+        unsigned nargs) except +:
+    """
+    Return a symbolic function with the given name and number of arguments.
+
+    When unarchiving a user defined symbolic function, Pynac goes through
+    the registry of existing functions. If there is no function already defined
+    with the archived name and number of arguments, this method is called to
+    create one and set up the function tables properly.
+    """
+    from sage.symbolic.function_factory import function_factory
+    cdef Function fn = function_factory(s.c_str(), nargs)
+    return fn._serial
+
 
 #################################################################
 # Modular helpers
@@ -2099,6 +2127,7 @@ def init_function_table():
     py_funcs.py_get_ginac_serial = &py_get_ginac_serial
     py_funcs.py_get_sfunction_from_serial = &py_get_sfunction_from_serial
     py_funcs.py_get_serial_from_sfunction = &py_get_serial_from_sfunction
+    py_funcs.py_get_serial_for_new_sfunction = &py_get_serial_for_new_sfunction
 
     py_funcs.py_get_constant = &py_get_constant
     py_funcs.py_print_fderivative =  &py_print_fderivative

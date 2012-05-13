@@ -505,6 +505,8 @@ cdef extern from "ginac_wrap.h":
 
         object py_get_sfunction_from_serial(unsigned s) except +
         unsigned py_get_serial_from_sfunction(object f) except +
+        unsigned py_get_serial_for_new_sfunction(stdstring &s, unsigned nargs) \
+                except +
 
         stdstring* py_print_function(unsigned id, object args) except +
         stdstring* py_latex_function(unsigned id, object args) except +

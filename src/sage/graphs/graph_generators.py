@@ -95,9 +95,10 @@ Platonic solids
 Named Graphs
 ------------
 
+- :meth:`Balaban10Cage <GraphGenerators.Balaban10Cage>`
+- :meth:`Balaban11Cage <GraphGenerators.Balaban11Cage>`
 - :meth:`BidiakisCube <GraphGenerators.BidiakisCube>`
 - :meth:`BrinkmannGraph <GraphGenerators.BrinkmannGraph>`
-- :meth:`Balaban10Cage <GraphGenerators.Balaban10Cage>`
 - :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
 - :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
 - :meth:`DurerGraph <GraphGenerators.DurerGraph>`
@@ -2332,6 +2333,171 @@ class GraphGenerators():
     #   Named Graphs
     #######################################################################
 
+    def Balaban10Cage(self, embedding = 1):
+        r"""
+        Returns the Balaban 10-cage.
+
+        The Balaban 10-cage is a 3-regular graph with 70 vertices and
+        105 edges. See its :wikipedia:`Wikipedia page
+        <Balaban_10-cage>`.
+
+        The default embedding gives a deeper understanding of the
+        graph's automorphism group. It is divided into 4 layers (each
+        layer being a set of points at equal distance from the drawing's
+        center). From outside to inside :
+
+        - L1 : The outer layer (vertices which are the furthest from the
+          origin) is actually the disjoint union of two cycles of length
+          10.
+
+        - L2 : The second layer is an independent set of 20 vertices.
+
+        - L3 : The third layer is a matching on 10 vertices.
+
+        - L4 : The inner layer (vertices which are the closest from the
+          origin) is also the disjoint union of two cycles of length 10.
+
+        This graph is not vertex-transitive, and its vertices are
+        partitioned into 3 orbits : L2, L3, and the union of L1 of L4
+        whose elements are equivalent.
+
+        INPUT:
+
+        - ``embedding`` -- two embeddings are available, and can be
+          selected by setting ``embedding`` to be either 1 or 2.
+
+        EXAMPLE::
+
+           sage: g = graphs.Balaban10Cage()
+           sage: g.girth()
+           10
+           sage: g.chromatic_number()
+           2
+           sage: g.diameter()
+           6
+           sage: g.is_hamiltonian()
+           True
+           sage: g.show(figsize=[10,10])
+        """
+
+        L = [-9, -25, -19, 29, 13, 35, -13, -29, 19, 25, 9, -29, 29, 17, 33,
+              21, 9,-13, -31, -9, 25, 17, 9, -31, 27, -9, 17, -19, -29, 27,
+              -17, -9, -29, 33, -25,25, -21, 17, -17, 29, 35, -29, 17, -17,
+              21, -25, 25, -33, 29, 9, 17, -27, 29, 19, -17, 9, -27, 31, -9,
+              -17, -25, 9, 31, 13, -9, -21, -33, -17, -29, 29]
+
+        g = graphs.LCFGraph(70, L, 1)
+        g.name("Balaban 10-cage")
+
+        if embedding == 2:
+            return g
+        elif embedding != 1:
+            raise ValueError("The value of embedding must be either 1 or 2")
+
+        L3 = [5, 24, 35, 46, 29, 40, 51, 34, 45, 56]
+        _circle_embedding(g, L3, center=(0,0), radius = 4.3)
+
+        L2  = [6, 4, 23, 25, 60, 36, 1, 47, 28, 30, 39, 41, 50, 52, 33, 9, 44,
+                20, 55, 57]
+        _circle_embedding(g, L2, center=(0,0), radius = 5, shift=-.5)
+
+
+        L1a = [69, 68, 67, 66, 65, 64, 63, 62, 61, 0]
+        L1b = [19, 18, 17, 16, 15, 14, 13, 12, 11, 10]
+        _circle_embedding(g, L1a, center=(0,0), radius = 6, shift = 3.25)
+        _circle_embedding(g, L1b, center=(0,0), radius = 6, shift = -1.25)
+
+        L4a = [37, 2, 31, 38, 53, 32, 21, 54, 3, 22]
+        _circle_embedding(g, L4a, center=(0,0), radius = 3, shift = 1.9)
+
+        L4b = [26, 59, 48, 27, 42, 49, 8, 43, 58, 7]
+        _circle_embedding(g, L4b, center=(0,0), radius = 3, shift = 1.1)
+
+        return g
+
+    def Balaban11Cage(self):
+        r"""
+        Returns the Balaban 11-cage.
+
+        For more information, see this `Wikipedia article on the Balaban
+        11-cage <http://en.wikipedia.org/wiki/Balaban_11-cage>`_.
+        """
+        pos_dict = {}
+        for j in range(8):
+            for i in range(8):
+                pos_dict[str(j) + str(i)]= [
+                        0.8 * float(cos(2*((8*j + i)*pi/64 + pi/128))),
+                        0.8 * float(sin(2*((8*j + i)*pi/64 + pi/128)))
+                ]
+            for i in range(4):
+                pos_dict['1' + str(j) + str(i)] = [
+                        1.1 * float(cos(2*((4*j + i)*pi/32 + pi/64))),
+                        1.1 * float(sin(2*((4*j + i)*pi/32 + pi/64)))
+                ]
+            for i in range(2):
+                pos_dict['1' + str(j) + str(i + 4)] = [
+                        1.4 * float(cos(2*((2*j + i)*pi/16 + pi/32))),
+                        1.4 * float(sin(2*((2*j + i)*pi/16 + pi/32)))
+                ]
+
+        edge_dict = {
+            "00": ["11"], "01": ["10"],   "02": ["53"], "03": ["52"],
+            "11": ["20"], "10": ["21"],   "53": ["22"], "52": ["23"],
+            "20": ["31"], "21": ["30"],   "22": ["33"], "23": ["32"],
+            "31": ["40"], "30": ["41"],   "33": ["43"], "32": ["42"],
+            "40": ["50"], "41": ["51"],   "43": ["12"], "42": ["13"],
+            "50": ["61"], "51": ["60"],   "12": ["63"], "13": ["62"],
+            "61": ["70"], "60": ["71"],   "63": ["72"], "62": ["73"],
+            "70": ["01"], "71": ["00"],   "72": ["03"], "73": ["02"],
+
+            "04": ["35"], "05": ["34"],   "06": ["37"], "07": ["36"],
+            "35": ["64"], "34": ["65"],   "37": ["66"], "36": ["67"],
+            "64": ["55"], "65": ["54"],   "66": ["17"], "67": ["16"],
+            "55": ["45"], "54": ["44"],   "17": ["46"], "16": ["47"],
+            "45": ["74"], "44": ["75"],   "46": ["76"], "47": ["77"],
+            "74": ["25"], "75": ["24"],   "76": ["27"], "77": ["26"],
+            "25": ["14"], "24": ["15"],   "27": ["56"], "26": ["57"],
+            "14": ["05"], "15": ["04"],   "56": ["07"], "57": ["06"],
+
+
+
+            "100": ["03", "04"],   "110": ["10", "12"],
+            "101": ["01", "06"],   "111": ["11", "13"],
+            "102": ["00", "07"],   "112": ["14", "16"],
+            "103": ["02", "05"],   "113": ["15", "17"],
+
+            "120": ["22", "24"],   "130": ["33", "36"],
+            "121": ["20", "26"],   "131": ["32", "37"],
+            "122": ["21", "27"],   "132": ["31", "34"],
+            "123": ["23", "25"],   "133": ["30", "35"],
+
+            "140": ["43", "45"],   "150": ["50", "52"],
+            "141": ["40", "46"],   "151": ["51", "53"],
+            "142": ["41", "47"],   "152": ["54", "56"],
+            "143": ["42", "44"],   "153": ["55", "57"],
+
+            "160": ["60", "66"],   "170": ["73", "76"],
+            "161": ["63", "65"],   "171": ["72", "77"],
+            "162": ["62", "64"],   "172": ["71", "74"],
+            "163": ["61", "67"],   "173": ["70", "75"],
+
+
+
+            "104": ["100", "102", "105"],   "114": ["110", "111", "115"],
+            "105": ["101", "103", "104"],   "115": ["112", "113", "114"],
+
+            "124": ["120", "121", "125"],   "134": ["130", "131", "135"],
+            "125": ["122", "123", "124"],   "135": ["132", "133", "134"],
+
+            "144": ["140", "141", "145"],   "154": ["150", "151", "155"],
+            "145": ["142", "143", "144"],   "155": ["152", "153", "154"],
+
+            "164": ["160", "161", "165"],   "174": ["170", "171", "175"],
+            "165": ["162", "163", "164"],   "175": ["172", "173", "174"]
+        }
+
+        return graph.Graph(edge_dict, pos=pos_dict, name="Balaban 11-cage")
+
     def BidiakisCube(self):
         r"""
         Returns the Bidiakis cube.
@@ -2523,89 +2689,6 @@ class GraphGenerators():
         pos_dict[11] = (-0.5, 0)
 
         return graph.Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
-
-    def Balaban10Cage(self, embedding = 1):
-        r"""
-        Returns the Balaban 10-cage.
-
-        The Balaban 10-cage is a 3-regular graph with 70 vertices and
-        105 edges. See its :wikipedia:`Wikipedia page
-        <Balaban_10-cage>`.
-
-        The default embedding gives a deeper understanding of the
-        graph's automorphism group. It is divided into 4 layers (each
-        layer being a set of points at equal distance from the drawing's
-        center). From outside to inside :
-
-        - L1 : The outer layer (vertices which are the furthest from the
-          origin) is actually the disjoint union of two cycles of length
-          10.
-
-        - L2 : The second layer is an independent set of 20 vertices.
-
-        - L3 : The third layer is a matching on 10 vertices.
-
-        - L4 : The inner layer (vertices which are the closest from the
-          origin) is also the disjoint union of two cycles of length 10.
-
-        This graph is not vertex-transitive, and its vertices are
-        partitioned into 3 orbits : L2, L3, and the union of L1 of L4
-        whose elements are equivalent.
-
-        INPUT:
-
-        - ``embedding`` -- two embeddings are available, and can be
-          selected by setting ``embedding`` to be either 1 or 2.
-
-        EXAMPLE::
-
-           sage: g = graphs.Balaban10Cage()
-           sage: g.girth()
-           10
-           sage: g.chromatic_number()
-           2
-           sage: g.diameter()
-           6
-           sage: g.is_hamiltonian()
-           True
-           sage: g.show(figsize=[10,10])
-        """
-
-        L = [-9, -25, -19, 29, 13, 35, -13, -29, 19, 25, 9, -29, 29, 17, 33,
-              21, 9,-13, -31, -9, 25, 17, 9, -31, 27, -9, 17, -19, -29, 27,
-              -17, -9, -29, 33, -25,25, -21, 17, -17, 29, 35, -29, 17, -17,
-              21, -25, 25, -33, 29, 9, 17, -27, 29, 19, -17, 9, -27, 31, -9,
-              -17, -25, 9, 31, 13, -9, -21, -33, -17, -29, 29]
-
-        g = graphs.LCFGraph(70, L, 1)
-        g.name("Balaban 10-cage")
-
-        if embedding == 2:
-            return g
-        elif embedding != 1:
-            raise ValueError("The value of embedding must be either 1 or 2")
-
-        L3 = [5, 24, 35, 46, 29, 40, 51, 34, 45, 56]
-        _circle_embedding(g, L3, center=(0,0), radius = 4.3)
-
-        L2  = [6, 4, 23, 25, 60, 36, 1, 47, 28, 30, 39, 41, 50, 52, 33, 9, 44,
-                20, 55, 57]
-        _circle_embedding(g, L2, center=(0,0), radius = 5, shift=-.5)
-
-
-        L1a = [69, 68, 67, 66, 65, 64, 63, 62, 61, 0]
-        L1b = [19, 18, 17, 16, 15, 14, 13, 12, 11, 10]
-        _circle_embedding(g, L1a, center=(0,0), radius = 6, shift = 3.25)
-        _circle_embedding(g, L1b, center=(0,0), radius = 6, shift = -1.25)
-
-        L4a = [37, 2, 31, 38, 53, 32, 21, 54, 3, 22]
-        _circle_embedding(g, L4a, center=(0,0), radius = 3, shift = 1.9)
-
-        L4b = [26, 59, 48, 27, 42, 49, 8, 43, 58, 7]
-        _circle_embedding(g, L4b, center=(0,0), radius = 3, shift = 1.1)
-
-        return g
-
 
     def DesarguesGraph(self):
         """

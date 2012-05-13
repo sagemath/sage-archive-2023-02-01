@@ -97,6 +97,7 @@ Named Graphs
 
 - :meth:`BidiakisCube <GraphGenerators.BidiakisCube>`
 - :meth:`BrinkmannGraph <GraphGenerators.BrinkmannGraph>`
+- :meth:`Balaban10Cage <GraphGenerators.Balaban10Cage>`
 - :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
 - :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
 - :meth:`DurerGraph <GraphGenerators.DurerGraph>`
@@ -2522,6 +2523,86 @@ class GraphGenerators():
         pos_dict[11] = (-0.5, 0)
 
         return graph.Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
+
+    def Balaban10Cage(self, embedding = 1):
+        r"""
+        Returns Balaban's 10 cage.
+
+        Balaban's 10-cage is a 3-regular graph with 70 vertices and 105
+        edges. See its :wikipedia:`Wikipedia page <Balaban_10-cage>`.
+
+        The default embedding gives a deeper understanding of the graph's
+        automorphism group. It is divided into 4 layers (each layer being a set
+        of points at equal distance from the drawing's center). From outside to
+        inside :
+
+        - L1 : The outer layer (vertices which are the furthest from the origin)
+          is actually the disjoint union of two cycles of length 10.
+
+        - L2 : The second layer is an independent set of 20 vertices.
+
+        - L3 : The third layer is a matching on 10 vertices.
+
+        - L4 : The inner layer (vertices which are the closest from the origin)
+          is also the disjoint union of two cycles of length 10.
+
+        This graph is not vertex-transitive, and its vertices are partitionned
+        into 3 orbits : L2, L3, and the union of L1 of L4 whose elements are
+        equivalent.
+
+        INPUT:
+
+        - ``embedding`` -- two embeddings are available, and can be selected by
+          setting ``embedding`` to be either 1 or 2.
+
+        EXAMPLE::
+
+           sage: g = graphs.Balaban10Cage()
+           sage: g.girth()
+           10
+           sage: g.chromatic_number()
+           2
+           sage: g.diameter()
+           6
+           sage: g.is_hamiltonian()
+           True
+           sage: g.show(figsize=[10,10])
+        """
+
+        L = [-9, -25, -19, 29, 13, 35, -13, -29, 19, 25, 9, -29, 29, 17, 33,
+              21, 9,-13, -31, -9, 25, 17, 9, -31, 27, -9, 17, -19, -29, 27,
+              -17, -9, -29, 33, -25,25, -21, 17, -17, 29, 35, -29, 17, -17,
+              21, -25, 25, -33, 29, 9, 17, -27, 29, 19, -17, 9, -27, 31, -9,
+              -17, -25, 9, 31, 13, -9, -21, -33, -17, -29, 29]
+
+        g = graphs.LCFGraph(70, L, 1)
+        g.name("Balaban's 10-cage")
+
+        if embedding == 2:
+            return g
+        elif embedding != 1:
+            raise ValueError("The value of embedding must be equal to either 1 or 2")
+
+        L3 = [5, 24, 35, 46, 29, 40, 51, 34, 45, 56]
+        _circle_embedding(g, L3, center=(0,0), radius = 4.3)
+
+        L2  = [6, 4, 23, 25, 60, 36, 1, 47, 28, 30, 39, 41, 50, 52, 33, 9, 44, 20, 55, 57]
+        _circle_embedding(g, L2, center=(0,0), radius = 5, shift=-.5)
+
+
+        L1a = [69, 68, 67, 66, 65, 64, 63, 62, 61, 0]
+        L1b = [19, 18, 17, 16, 15, 14, 13, 12, 11, 10]
+        _circle_embedding(g, L1a, center=(0,0), radius = 6, shift = 3.25)
+        _circle_embedding(g, L1b, center=(0,0), radius = 6, shift = -1.25)
+
+        L4a = [37, 2, 31, 38, 53, 32, 21, 54, 3, 22]
+        _circle_embedding(g, L4a, center=(0,0), radius = 3, shift = 1.9)
+
+        L4b = [26, 59, 48, 27, 42, 49, 8, 43, 58, 7]
+        _circle_embedding(g, L4b, center=(0,0), radius = 3, shift = 1.1)
+
+        return g
+
 
     def DesarguesGraph(self):
         """
@@ -7384,5 +7465,37 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
 graphs = GraphGenerators()
 
 
+####################
+# Helper functions #
+####################
 
+def _circle_embedding(g, vertices, center = (0,0), radius = 1, shift = 0):
+    r"""
+    Set some vertices on a circle in the embedding of a graph G.
 
+    This method modifies the graph's embedding so that the vertices listed in
+    ``vertices`` appear in this ordering on a circle of given radius and
+    center. The ``shift`` parameter is actually a rotation of the circle. A
+    value of ``shift=1`` will replace in the drawing the `i` th element of the
+    list by the `i-1` th. Non-integer values are admissible, and a value of
+    `\alpha` corresponds to a rotation of the circle by an angle of `\alpha
+    2\Pi/n` (where `n` is the number of vertices set on the circle).
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_generators import _circle_embedding
+        sage: g = graphs.CycleGraph(5)
+        sage: _circle_embedding(g, [0, 2, 4, 1, 3], radius = 2, shift = .5)
+        sage: g.show()
+    """
+    c_x, c_y = center
+    n = len(vertices)
+    d = g.get_pos()
+
+    for i,v in enumerate(vertices):
+        i += shift
+        v_x = c_x + radius * cos( 2*i*pi / n)
+        v_y = c_y + radius * sin( 2*i*pi / n)
+        d[v] = (v_x, v_y)
+
+    g.set_pos(d)

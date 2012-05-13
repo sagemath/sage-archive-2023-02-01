@@ -5354,7 +5354,7 @@ class GenericGraph(GenericGraph_pyx):
             return g
 
 
-    def traveling_salesman_problem(self, use_edge_labels = True, solver = None, constraint_generation = None, verbose = 0, verbose_constraints = False):
+    def traveling_salesman_problem(self, use_edge_labels = False, solver = None, constraint_generation = None, verbose = 0, verbose_constraints = False):
         r"""
         Solves the traveling salesman problem (TSP)
 
@@ -5374,6 +5374,7 @@ class GenericGraph(GenericGraph_pyx):
                 `1`
 
               - If set to ``True``, the weights are taken into account, and the
+                circuit returned is the one minimizing the sum of the weights.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -5489,8 +5490,8 @@ class GenericGraph(GenericGraph_pyx):
             ...       for u,v in graphs.CycleGraph(n).edges(labels = False):
             ...            if not g.has_edge(u,v):
             ...                g.add_edge(u,v,round(random(),5))
-            ...       v1 = g.traveling_salesman_problem(constraint_generation = False)
-            ...       v2 = g.traveling_salesman_problem()
+            ...       v1 = g.traveling_salesman_problem(constraint_generation = False, use_edge_labels = True)
+            ...       v2 = g.traveling_salesman_problem(use_edge_labels = True)
             ...       c1 = sum(map(itemgetter(2), v1.edges()))
             ...       c2 = sum(map(itemgetter(2), v2.edges()))
             ...       if c1 != c2:
@@ -5510,8 +5511,8 @@ class GenericGraph(GenericGraph_pyx):
             ...       for u,v in digraphs.Circuit(n).edges(labels = False):
             ...            if not g.has_edge(u,v):
             ...                g.add_edge(u,v,round(random(),5))
-            ...       v2 = g.traveling_salesman_problem()
-            ...       v1 = g.traveling_salesman_problem(constraint_generation = False)
+            ...       v2 = g.traveling_salesman_problem(use_edge_labels = True)
+            ...       v1 = g.traveling_salesman_problem(constraint_generation = False, use_edge_labels = True)
             ...       c1 = sum(map(itemgetter(2), v1.edges()))
             ...       c2 = sum(map(itemgetter(2), v2.edges()))
             ...       if c1 != c2:

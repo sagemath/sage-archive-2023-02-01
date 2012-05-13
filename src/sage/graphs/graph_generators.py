@@ -2526,34 +2526,36 @@ class GraphGenerators():
 
     def Balaban10Cage(self, embedding = 1):
         r"""
-        Returns Balaban's 10 cage.
+        Returns the Balaban 10-cage.
 
-        Balaban's 10-cage is a 3-regular graph with 70 vertices and 105
-        edges. See its :wikipedia:`Wikipedia page <Balaban_10-cage>`.
+        The Balaban 10-cage is a 3-regular graph with 70 vertices and
+        105 edges. See its :wikipedia:`Wikipedia page
+        <Balaban_10-cage>`.
 
-        The default embedding gives a deeper understanding of the graph's
-        automorphism group. It is divided into 4 layers (each layer being a set
-        of points at equal distance from the drawing's center). From outside to
-        inside :
+        The default embedding gives a deeper understanding of the
+        graph's automorphism group. It is divided into 4 layers (each
+        layer being a set of points at equal distance from the drawing's
+        center). From outside to inside :
 
-        - L1 : The outer layer (vertices which are the furthest from the origin)
-          is actually the disjoint union of two cycles of length 10.
+        - L1 : The outer layer (vertices which are the furthest from the
+          origin) is actually the disjoint union of two cycles of length
+          10.
 
         - L2 : The second layer is an independent set of 20 vertices.
 
         - L3 : The third layer is a matching on 10 vertices.
 
-        - L4 : The inner layer (vertices which are the closest from the origin)
-          is also the disjoint union of two cycles of length 10.
+        - L4 : The inner layer (vertices which are the closest from the
+          origin) is also the disjoint union of two cycles of length 10.
 
-        This graph is not vertex-transitive, and its vertices are partitionned
-        into 3 orbits : L2, L3, and the union of L1 of L4 whose elements are
-        equivalent.
+        This graph is not vertex-transitive, and its vertices are
+        partitioned into 3 orbits : L2, L3, and the union of L1 of L4
+        whose elements are equivalent.
 
         INPUT:
 
-        - ``embedding`` -- two embeddings are available, and can be selected by
-          setting ``embedding`` to be either 1 or 2.
+        - ``embedding`` -- two embeddings are available, and can be
+          selected by setting ``embedding`` to be either 1 or 2.
 
         EXAMPLE::
 
@@ -2576,17 +2578,18 @@ class GraphGenerators():
               -17, -25, 9, 31, 13, -9, -21, -33, -17, -29, 29]
 
         g = graphs.LCFGraph(70, L, 1)
-        g.name("Balaban's 10-cage")
+        g.name("Balaban 10-cage")
 
         if embedding == 2:
             return g
         elif embedding != 1:
-            raise ValueError("The value of embedding must be equal to either 1 or 2")
+            raise ValueError("The value of embedding must be either 1 or 2")
 
         L3 = [5, 24, 35, 46, 29, 40, 51, 34, 45, 56]
         _circle_embedding(g, L3, center=(0,0), radius = 4.3)
 
-        L2  = [6, 4, 23, 25, 60, 36, 1, 47, 28, 30, 39, 41, 50, 52, 33, 9, 44, 20, 55, 57]
+        L2  = [6, 4, 23, 25, 60, 36, 1, 47, 28, 30, 39, 41, 50, 52, 33, 9, 44,
+                20, 55, 57]
         _circle_embedding(g, L2, center=(0,0), radius = 5, shift=-.5)
 
 
@@ -7473,13 +7476,14 @@ def _circle_embedding(g, vertices, center = (0,0), radius = 1, shift = 0):
     r"""
     Set some vertices on a circle in the embedding of a graph G.
 
-    This method modifies the graph's embedding so that the vertices listed in
-    ``vertices`` appear in this ordering on a circle of given radius and
-    center. The ``shift`` parameter is actually a rotation of the circle. A
-    value of ``shift=1`` will replace in the drawing the `i` th element of the
-    list by the `i-1` th. Non-integer values are admissible, and a value of
-    `\alpha` corresponds to a rotation of the circle by an angle of `\alpha
-    2\Pi/n` (where `n` is the number of vertices set on the circle).
+    This method modifies the graph's embedding so that the vertices
+    listed in ``vertices`` appear in this ordering on a circle of given
+    radius and center. The ``shift`` parameter is actually a rotation of
+    the circle. A value of ``shift=1`` will replace in the drawing the
+    `i`-th element of the list by the `(i-1)`-th. Non-integer values are
+    admissible, and a value of `\alpha` corresponds to a rotation of the
+    circle by an angle of `\alpha 2\pi/n` (where `n` is the number of
+    vertices set on the circle).
 
     EXAMPLE::
 
@@ -7494,8 +7498,8 @@ def _circle_embedding(g, vertices, center = (0,0), radius = 1, shift = 0):
 
     for i,v in enumerate(vertices):
         i += shift
-        v_x = c_x + radius * cos( 2*i*pi / n)
-        v_y = c_y + radius * sin( 2*i*pi / n)
+        v_x = c_x + radius * cos(2*i*pi / n)
+        v_y = c_y + radius * sin(2*i*pi / n)
         d[v] = (v_x, v_y)
 
     g.set_pos(d)

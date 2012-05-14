@@ -128,14 +128,18 @@ class FunctionField(Field):
 
         EXAMPLES::
 
-            sage: R.<t> = FunctionField(QQ)
-            sage: R.characteristic()
+            sage: K.<x> = FunctionField(QQ)
+            sage: K.characteristic()
             0
-            sage: R.<t> = FunctionField(GF(7))
-            sage: R.characteristic()
+            sage: K.<x> = FunctionField(GF(7))
+            sage: K.characteristic()
+            7
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x)
+            sage: L.characteristic()
             7
         """
-        return self.constant_field().characteristic()
+        return self.constant_base_field().characteristic()
 
     def is_finite(self):
         """

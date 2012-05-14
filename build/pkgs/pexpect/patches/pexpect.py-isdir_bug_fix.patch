@@ -1,5 +1,5 @@
---- pexpect.py	2007-04-16 07:08:24.000000000 -0700
-+++ ../../pexpect-2.0.p1.0/pexpect-2.0.p1/src/pexpect.py	2009-01-23 01:49:18.000000000 -0800
+--- a/pexpect.py	2007-04-16 07:08:24.000000000 -0700
++++ b/pexpect.py	2009-01-23 01:49:18.000000000 -0800
 @@ -1130,7 +1130,7 @@
      """
      # Special case where filename already contains a path.

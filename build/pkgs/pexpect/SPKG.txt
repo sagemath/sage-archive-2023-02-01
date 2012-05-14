@@ -7,6 +7,8 @@ controlling them; and responding to expected patterns in their output.
 
 == License ==
 
+Python Software Foundation License
+
 == SPKG Maintainers ==
 
  * William Stein
@@ -16,22 +18,36 @@ controlling them; and responding to expected patterns in their output.
 
 == Dependencies ==
 
+ * GNU patch
  * Python
 
 == Special Update/Build Instructions ==
 
- * This is a svn checkout. Note that on MacIntel OSX one has to remove a number of files due to PIC issues. The problem will be fixed upstream.
- * pexpect-2.1 is shockingly slow for SAGE (especially in the notebook) and I can't figure out why.  So we're sticking with p
-expect-2.0 for now (which works fine for us).
- * put a try/except around __del__, to get rid of lots of pointless warning messages.
+ * pexpect-2.1 is shockingly slow for Sage (especially in the notebook)
+   and I can't figure out why.  So we're sticking with pexpect-2.0 for
+   now (which works fine for us).
+
+Patches:
+ * del.patch: put a try/except inside __del__, to get rid of lots of
+   pointless warning messages
+ * pexpect.py-isdir_bug_fix.patch: fixed bug in pexpect.py where it
+   tried to run directories
+ * env.patch: add env parameter to spawn.__init__() to run a command
+   with custom environment variables (as in pexpect-2.3).
 
 == Changelog ==
 
-=== pexpect-2.0.p3 (Michael Abshoff, Janury 8th, 2009) ===
+=== pexpect-2.0.p5 (Jeroen Demeyer, 13 January 2012) ===
+ * Trac #12221: add env.patch to add env parameter to spawn.__init__()
+ * Restore upstream sources, use patch for patching
+
+=== pexpect-2.0.p4 ===
+ * undocumented
+
+=== pexpect-2.0.p3 (Michael Abshoff, January 28th, 2009) ===
  * further clean up SPKG.txt
  * add .hgignore
 
 === pexpect-2.0.p2 (William Stein, January 23rd, 2009) ===
  * created proper SPKG.txt
  * fixed bug in pexpect where it tried to run directories
-

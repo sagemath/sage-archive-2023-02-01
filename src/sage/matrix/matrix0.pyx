@@ -470,7 +470,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             Traceback (most recent call last):
             ...
             ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
-            sage: hash(A)
+            sage: hash(A) #random
             12
             sage: v = {A:1}; v
             {[10  1]
@@ -2901,6 +2901,131 @@ cdef class Matrix(sage.structure.element.Matrix):
             l += 1
 
     ###################################################
+    # Methods needed for quiver and cluster mutations
+    # - _travel_column
+    # - is_symmetrizable
+    # - is_skew_symmetrizable
+    # - _check_symmetrizability
+    #
+    # AUTHORS:
+    #     -- Christian Stump (Jun 2011)
+    ###################################################
+
+    def _travel_column( self, dict d, int k, int sign, positive ):
+        r"""
+        Helper function for testing symmetrizability. Tests dependencies within entries in ``self`` and entries in the dictionary ``d``.
+
+        .. warning:: the dictionary ``d`` gets new values for keys in L.
+
+        INPUT:
+
+        - ``d`` -- dictionary modelling partial entries of a diagonal matrix.
+
+        - ``k`` -- integer for which row and column of self should be tested with the dictionary d.
+
+        - ``sign`` -- `\pm 1`, depending on symmetric or skew-symmetric is tested.
+
+        - ``positive`` -- if True, only positive entries for the values of the dictionary are allowed.
+
+        OUTPUT:
+
+        - ``L`` -- list of new keys in d
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ,3,[0,1,0,-1,0,-1,0,1,0]); M
+            [ 0  1  0]
+            [-1  0 -1]
+            [ 0  1  0]
+
+            sage: M._travel_column({0:1},0,-1,True)
+            [1]
+        """
+        cdef list L = []
+        cdef int i
+
+        for i from 0 <= i < self._ncols:
+            if i not in d:
+                self_ik = self.get_unsafe(i,k)
+                self_ki = self.get_unsafe(k,i)
+                if bool(self_ik) != bool(self_ki):
+                    return False
+                if self_ik != 0:
+                    L.append(i)
+                    d[i] = sign * d[k] * self_ki / self_ik
+                    if positive and not d[i] > 0:
+                        return False
+                    for j in d:
+                        if d[i] * self.get_unsafe(i,j) != sign * d[j] * self.get_unsafe(j,i):
+                            return False
+        return L
+
+    def _check_symmetrizability(self, return_diag=False, skew=False, positive=True):
+        r"""
+        This function takes a square matrix over an *ordered integral domain* and checks if it is (skew-)symmetrizable.
+        A matrix `B` is (skew-)symmetrizable iff there exists an invertible diagonal matrix `D` such that `DB` is (skew-)symmetric.
+
+        INPUT:
+
+        - ``return_diag`` -- bool(default:False) if True and ``self`` is (skew)-symmetrizable the diagonal entries of the matrix `D` are returned.
+        - ``skew`` -- bool(default:False) if True, (skew-)symmetrizability is checked.
+        - ``positive`` -- bool(default:True) if True, the condition that `D` has positive entries is added.
+
+        OUTPUT:
+
+        - True -- if ``self`` is (skew-)symmetrizable and ``return_diag`` is False
+        - the diagonal entries of the matrix `D` such that `DB` is (skew-)symmetric -- iff ``self`` is (skew-)symmetrizable and ``return_diag`` is True
+        - False -- iff ``self`` is not (skew-)symmetrizable
+
+        EXAMPLES::
+
+            sage: matrix([[0,6],[3,0]])._check_symmetrizability(positive=False)
+            True
+            sage: matrix([[0,6],[3,0]])._check_symmetrizability(positive=True)
+            True
+            sage: matrix([[0,6],[3,0]])._check_symmetrizability(skew=True, positive=False)
+            True
+            sage: matrix([[0,6],[3,0]])._check_symmetrizability(skew=True, positive=True)
+            False
+
+        REFERENCES:
+
+        - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
+        """
+        cdef dict d = {}
+        cdef list queue = range( self._ncols )
+        cdef int l, sign, i, j
+
+        if skew:
+            # testing the diagonal entries to be zero
+            zero = self.parent().base_ring().zero()
+            for i from 0 <= i < self._nrows:
+                if not self.get_unsafe(i,i) == zero:
+                    return False
+            sign = -1
+        else:
+            sign = 1
+
+        while queue:
+            i = queue.pop(0)
+            d[i] = 1
+            L = self._travel_column( d, i, sign, positive )
+            if L is False:
+                return False
+            while L:
+                l = L.pop(0)
+                queue.remove( l )
+                L_prime = self._travel_column( d, l, sign, positive )
+                if L_prime is False:
+                    return False
+                else:
+                    L.extend( L_prime )
+        if return_diag:
+            return [ d[i] for i in xrange(self._nrows) ]
+        else:
+            return True
+
+    ###################################################
     # Matrix-vector multiply
     ###################################################
     def linear_combination_of_rows(self, v):
@@ -3057,7 +3182,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         v = matrix(self._ncols, 1, list(v)+[0]*(self._ncols-len(v)))
         return (self * v).column(0)
 
-
     ###################################################
     # Predicates
     ###################################################
@@ -3196,6 +3320,99 @@ cdef class Matrix(sage.structure.element.Matrix):
                     return False
         return True
 
+    def is_symmetrizable(self, return_diag=False, positive=True):
+        r"""
+        This function takes a square matrix over an *ordered integral domain* and checks if it is symmetrizable.
+        A matrix `B` is symmetrizable iff there exists an invertible diagonal matrix `D` such that `DB` is symmetric.
+
+        .. warning:: Expects ``self`` to be a matrix over an *ordered integral domain*.
+
+        INPUT:
+
+        - ``return_diag`` -- bool(default:False) if True and ``self`` is symmetrizable the diagonal entries of the matrix `D` are returned.
+        - ``positive`` -- bool(default:True) if True, the condition that `D` has positive entries is added.
+
+        OUTPUT:
+
+        - True -- if ``self`` is symmetrizable and ``return_diag`` is False
+        - the diagonal entries of a matrix `D` such that `DB` is symmetric -- iff ``self`` is symmetrizable and ``return_diag`` is True
+        - False -- iff ``self`` is not symmetrizable
+
+        EXAMPLES::
+
+            sage: matrix([[0,6],[3,0]]).is_symmetrizable(positive=False)
+            True
+
+            sage: matrix([[0,6],[3,0]]).is_symmetrizable(positive=True)
+            True
+
+            sage: matrix([[0,6],[0,0]]).is_symmetrizable(return_diag=True)
+            False
+
+            sage: matrix([2]).is_symmetrizable(positive=True)
+            True
+
+            sage: matrix([[1,2],[3,4]]).is_symmetrizable(return_diag=true)
+            [1, 2/3]
+
+        REFERENCES:
+
+        - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
+        """
+        if self._ncols != self._nrows:
+            raise ValueError, "The matrix is not a square matrix"
+        return self._check_symmetrizability(return_diag=return_diag, skew=False, positive=positive)
+
+    def is_skew_symmetrizable(self, return_diag=False, positive=True):
+        r"""
+        This function takes a square matrix over an *ordered integral domain* and checks if it is skew-symmetrizable.
+        A matrix `B` is skew-symmetrizable iff there exists an invertible diagonal matrix `D` such that `DB` is skew-symmetric.
+
+        .. warning:: Expects ``self`` to be a matrix over an *ordered integral domain*.
+
+        INPUT:
+
+        - ``return_diag`` -- bool(default:False) if True and ``self`` is skew-symmetrizable the diagonal entries of the matrix `D` are returned.
+        - ``positive`` -- bool(default:True) if True, the condition that `D` has positive entries is added.
+
+        OUTPUT:
+
+        - True -- if ``self`` is skew-symmetrizable and ``return_diag`` is False
+        - the diagonal entries of a matrix `D` such that `DB` is skew-symmetric -- iff ``self`` is skew-symmetrizable and ``return_diag`` is True
+        - False -- iff ``self`` is not skew-symmetrizable
+
+        EXAMPLES::
+
+            sage: matrix([[0,6],[3,0]]).is_skew_symmetrizable(positive=False)
+            True
+            sage: matrix([[0,6],[3,0]]).is_skew_symmetrizable(positive=True)
+            False
+
+            sage: M = matrix(4,[0,1,0,0,-1,0,-1,0,0,2,0,1,0,0,-1,0]); M
+            [ 0  1  0  0]
+            [-1  0 -1  0]
+            [ 0  2  0  1]
+            [ 0  0 -1  0]
+
+            sage: M.is_skew_symmetrizable(return_diag=True)
+            [1, 1, 1/2, 1/2]
+
+            sage: M2 = diagonal_matrix([1,1,1/2,1/2])*M; M2
+            [   0    1    0    0]
+            [  -1    0   -1    0]
+            [   0    1    0  1/2]
+            [   0    0 -1/2    0]
+
+            sage: M2.is_skew_symmetric()
+            True
+
+        REFERENCES:
+
+        - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
+        """
+        if self._ncols != self._nrows:
+            raise ValueError, "The matrix is not a square matrix"
+        return self._check_symmetrizability(return_diag=return_diag, skew=True, positive=positive)
 
     def is_dense(self):
         """

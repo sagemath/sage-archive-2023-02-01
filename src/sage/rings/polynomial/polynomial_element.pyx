@@ -5746,6 +5746,36 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 w += 1
         return w
 
+    def map_coefficients(self, f):
+        """
+        Returns the polynomial obtained by applying ``f`` to the non-zero
+        coefficients of self.
+
+        INPUT:
+
+        - ``f`` -- a callable that will be applied to the coefficients of self.
+
+        EXAMPLES::
+
+            sage: R.<x> = SR[]
+            sage: f = (1+I)*x^2 + 3*x - I
+            sage: f.map_coefficients(lambda z: z.conjugate())
+            (-I + 1)*x^2 + 3*x + I
+            sage: R.<x> = ZZ[]
+            sage: f = x^2 + 2
+            sage: f.map_coefficients(lambda a: a + 42)
+            43*x^2 + 44
+            sage: R.<x> = PolynomialRing(SR, sparse=True)
+            sage: f = (1+I)*x^(2^32) - I
+            sage: f.map_coefficients(lambda z: z.conjugate())
+            (-I + 1)*x^4294967296 + I
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: f = x^(2^32) + 2
+            sage: f.map_coefficients(lambda a: a + 42)
+            43*x^4294967296 + 44
+        """
+        return self.parent()(dict((k,f(v)) for (k,v) in self.dict().items()))
+
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function
 

@@ -2333,7 +2333,7 @@ class GraphGenerators():
     #   Named Graphs
     #######################################################################
 
-    def Balaban10Cage(self, embedding = 1):
+    def Balaban10Cage(self, embedding=1):
         r"""
         Returns the Balaban 10-cage.
 
@@ -2344,21 +2344,21 @@ class GraphGenerators():
         The default embedding gives a deeper understanding of the
         graph's automorphism group. It is divided into 4 layers (each
         layer being a set of points at equal distance from the drawing's
-        center). From outside to inside :
+        center). From outside to inside:
 
-        - L1 : The outer layer (vertices which are the furthest from the
+        - L1: The outer layer (vertices which are the furthest from the
           origin) is actually the disjoint union of two cycles of length
           10.
 
-        - L2 : The second layer is an independent set of 20 vertices.
+        - L2: The second layer is an independent set of 20 vertices.
 
-        - L3 : The third layer is a matching on 10 vertices.
+        - L3: The third layer is a matching on 10 vertices.
 
-        - L4 : The inner layer (vertices which are the closest from the
+        - L4: The inner layer (vertices which are the closest from the
           origin) is also the disjoint union of two cycles of length 10.
 
         This graph is not vertex-transitive, and its vertices are
-        partitioned into 3 orbits : L2, L3, and the union of L1 of L4
+        partitioned into 3 orbits: L2, L3, and the union of L1 of L4
         whose elements are equivalent.
 
         INPUT:
@@ -2366,18 +2366,25 @@ class GraphGenerators():
         - ``embedding`` -- two embeddings are available, and can be
           selected by setting ``embedding`` to be either 1 or 2.
 
-        EXAMPLE::
+        EXAMPLES::
 
-           sage: g = graphs.Balaban10Cage()
-           sage: g.girth()
-           10
-           sage: g.chromatic_number()
-           2
-           sage: g.diameter()
-           6
-           sage: g.is_hamiltonian()
-           True
-           sage: g.show(figsize=[10,10])
+            sage: g = graphs.Balaban10Cage()
+            sage: g.girth()
+            10
+            sage: g.chromatic_number()
+            2
+            sage: g.diameter()
+            6
+            sage: g.is_hamiltonian()
+            True
+            sage: g.show(figsize=[10,10])
+
+        TESTS::
+
+            sage: graphs.Balaban10Cage(embedding='foo')
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of embedding must be 1 or 2.
         """
 
         L = [-9, -25, -19, 29, 13, 35, -13, -29, 19, 25, 9, -29, 29, 17, 33,
@@ -2392,7 +2399,7 @@ class GraphGenerators():
         if embedding == 2:
             return g
         elif embedding != 1:
-            raise ValueError("The value of embedding must be either 1 or 2")
+            raise ValueError("The value of embedding must be 1 or 2.")
 
         L3 = [5, 24, 35, 46, 29, 40, 51, 34, 45, 56]
         _circle_embedding(g, L3, center=(0,0), radius = 4.3)
@@ -2428,7 +2435,10 @@ class GraphGenerators():
           selected by setting ``embedding`` to be 1, 2, or 3.
 
           - The first embedding is the one appearing on page 9 of the
-            Fifth Annual Graph Drawing Contest report [FAGDC]_.
+            Fifth Annual Graph Drawing Contest report [FAGDC]_. It
+            separates vertices based on their eccentricity (see
+            :meth:`eccentricity()
+            <sage.graphs.generic_graph.GenericGraph.eccentricity>`).
 
           - The second embedding has been produced just for Sage and is
             meant to emphasize the automorphism group's 6 orbits.
@@ -2459,15 +2469,30 @@ class GraphGenerators():
 
         Our many embeddings::
 
-            sage: graphs.Balaban11Cage(embedding=1).show(figsize=[10,10])
-            sage: graphs.Balaban11Cage(embedding=2).show(figsize=[10,10])
-            sage: graphs.Balaban11Cage(embedding=3).show(figsize=[10,10])
+            sage: g1 = graphs.Balaban11Cage(embedding=1)
+            sage: g2 = graphs.Balaban11Cage(embedding=2)
+            sage: g3 = graphs.Balaban11Cage(embedding=3)
+            sage: g1.show(figsize=[10,10])
+            sage: g2.show(figsize=[10,10])
+            sage: g3.show(figsize=[10,10])
+
+        Proof that the embeddings are the same graph::
+
+            sage: g1.is_isomorphic(g2) # g2 and g3 are obviously isomorphic
+            True
+
+        TESTS::
+
+            sage: graphs.Balaban11Cage(embedding='xyzzy')
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of embedding must be 1, 2, or 3.
 
         REFERENCES:
 
         .. [FAGDC] Fifth Annual Graph Drawing Contest
-          P. Eaded, J. Marks, P.Mutzel, S. North
-          http://www.merl.com/papers/docs/TR98-16.pdf
+           P. Eaded, J. Marks, P.Mutzel, S. North
+           http://www.merl.com/papers/docs/TR98-16.pdf
         """
         if embedding == 1:
             pos_dict = {}
@@ -2565,8 +2590,10 @@ class GraphGenerators():
             v2 = [88, 3, 19, 55, 67, 42, 101, 33, 77, 5, 17, 57, 69, 71, 73,
                   75, 11, 61, 28, 9, 37, 26, 46, 95, 13, 63, 81, 83, 108, 106,
                   48, 97]
-            l1 = [35, 93, 1, 24, 53, 7, 44, 59, 15, 65, 79, 21, 110, 90, 50, 99]
-            l2 = [87, 4, 18, 56, 68, 41, 102, 32, 12, 62, 29, 84, 38, 105, 47, 96]
+            l1 = [35, 93, 1, 24, 53, 7, 44, 59, 15, 65, 79, 21, 110, 90, 50,
+                  99]
+            l2 = [87, 4, 18, 56, 68, 41, 102, 32, 12, 62, 29, 84, 38, 105, 47,
+                  96]
 
             d = g.get_pos()
             for i,v in enumerate(v1):
@@ -2590,7 +2617,7 @@ class GraphGenerators():
             return g
 
         else:
-            raise ValueError("The value of embedding must be either 1 or 2")
+            raise ValueError("The value of embedding must be 1, 2, or 3.")
 
     def BidiakisCube(self):
         r"""
@@ -7649,7 +7676,7 @@ graphs = GraphGenerators()
 # Helper functions #
 ####################
 
-def _circle_embedding(g, vertices, center = (0,0), radius = 1, shift = 0):
+def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
     r"""
     Set some vertices on a circle in the embedding of a graph G.
 

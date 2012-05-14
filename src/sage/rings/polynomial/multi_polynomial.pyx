@@ -15,6 +15,8 @@ def is_MPolynomial(x):
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+from sage.categories.map cimport Map
+
 cdef class MPolynomial(CommutativeRingElement):
 
     ####################
@@ -960,21 +962,28 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def map_coefficients(self, f, new_base_ring=None):
         """
-        Returns the polynomial obtained by applying ``f`` to the coefficients
-        of self.
+        Returns the polynomial obtained by applying ``f`` to the non-zero
+        coefficients of self.
+
+        If ``f`` is a :class:`sage.categories.map.Map`, then the resulting
+        polynomial will be defined over the codomain of ``f``. Otherwise, the
+        resulting polynomial will be over the same ring as self. Set
+        ``new_base_ring`` to override this behaviour.
 
         INPUT:
 
-        - ``f`` -- the callable that will be applied to the coefficients of ``self``
+        - ``f`` -- a callable that will be applied to the coefficients of self.
 
-        - ``new_base_ring`` -- the base ring of the resulting polynomial which
-          defaults to ``self.parent().base_ring()`` if ``None`` is given (default: None)
+        - ``new_base_ring`` (optional) -- if given, the resulting polynomial
+          will be defined over this ring.
 
         EXAMPLES::
 
             sage: k.<a> = GF(9); R.<x,y> = k[];  f = x*a + 2*x^3*y*a + a
             sage: f.map_coefficients(lambda a : a + 1)
             (-a + 1)*x^3*y + (a + 1)*x + (a + 1)
+
+        Examples with different base ring::
 
             sage: R.<r> = GF(9); S.<s> = GF(81)
             sage: h = Hom(R,S)[0]; h
@@ -984,17 +993,27 @@ cdef class MPolynomial(CommutativeRingElement):
               Defn: r |--> 2*s^3 + 2*s^2 + 1
             sage: T.<X,Y> = R[]
             sage: f = r*X+Y
-            sage: f.map_coefficients(h,S)
+            sage: g = f.map_coefficients(h); g
             (-s^3 - s^2 + 1)*X + Y
+            sage: g.parent()
+            Multivariate Polynomial Ring in X, Y over Finite Field in s of size 3^4
+            sage: h = lambda x: x.trace()
+            sage: g = f.map_coefficients(h); g
+            X - Y
+            sage: g.parent()
+            Multivariate Polynomial Ring in X, Y over Finite Field in r of size 3^2
+            sage: g = f.map_coefficients(h, new_base_ring=GF(3)); g
+            X - Y
+            sage: g.parent()
+            Multivariate Polynomial Ring in X, Y over Finite Field of size 3
 
         """
-        if new_base_ring == None:
-            P = self.parent()
-        else:
-            P = self.parent().change_ring(new_base_ring)
-        R = P.base_ring()
-        d = dict([(n,R(f(c))) for n, c in self.dict().iteritems()])
-        return P(d)
+        R = self.parent()
+        if new_base_ring is not None:
+            R = R.change_ring(new_base_ring)
+        elif isinstance(f, Map):
+            R = R.change_ring(f.codomain())
+        return R(dict([(k,f(v)) for (k,v) in self.dict().items()]))
 
     def _norm_over_nonprime_finite_field(self):
         """

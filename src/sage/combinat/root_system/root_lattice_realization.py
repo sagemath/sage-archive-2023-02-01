@@ -348,6 +348,23 @@ class RootLatticeRealization(SageObject):
                     rels.append((root,root_cover))
         return Poset(([],rels),cover_relations=True)
 
+    def almost_positive_roots(self):
+        r"""
+        Returns the almost positive roots of ``self``
+
+        These are the positive roots together with the simple negative roots.
+
+        .. seealso:: :meth:`almost_positive_root_decomposition`, :meth:`tau_plus_minus`
+
+        EXAMPLES::
+
+            sage: L = RootSystem(['A',2]).root_lattice()
+            sage: L.almost_positive_roots()
+            [-alpha[1], alpha[1], alpha[1] + alpha[2], -alpha[2], alpha[2]]
+        """
+        assert self.cartan_type().is_finite()
+        return sorted([ -beta for beta in self.simple_roots() ] + list(self.positive_roots()))
+
     def negative_roots(self):
         r"""
         Returns the negative roots of self.
@@ -732,6 +749,210 @@ class RootLatticeRealization(SageObject):
         """
         from sage.combinat.root_system.weyl_group import WeylGroup
         return WeylGroup(self, prefix=prefix)
+
+    ##########################################################################
+    # The piecewise linear involutive operators tau_plus and tau_minus on self,
+    # and the orbit decomposition of the almost positive roots
+    # by the associated dihedral group
+    ##########################################################################
+
+    # TODO: find a better name; at least, this temporary one won't
+    # create conflicts
+    def tau_epsilon_operator_on_almost_positive_roots(self, J):
+        """
+        The `\tau_\epsilon` operator on almost positive roots
+
+        Given a subset `J` of non adjacent vertices of the Dynkin
+        diagram, this constructs the operator on the almost positive
+        roots which fixes the negative simple roots `\alpha_i` for `i`
+        not in `J`, and acts otherwise by:
+
+        .. math::
+
+            \tau_+( \beta ) = (\prod_{i \in J} s_i) (\beta)
+
+        See Equation (1.2) of [CFZ].
+
+        EXAMPLES::
+
+            sage: L = RootSystem(['A',4]).root_lattice()
+            sage: tau = L.tau_epsilon_operator_on_almost_positive_roots([1,3])
+            sage: alpha = L.simple_roots()
+
+        The action on a negative simple root not in `J`::
+
+            sage: tau(-alpha[2])
+            -alpha[2]
+
+        The action on a negative simple root in `J`::
+
+            sage: tau(-alpha[1])
+            alpha[1]
+
+        The action on all almost positive roots::
+
+            sage: for root in L.almost_positive_roots():
+            ...      print 'tau({:<41}) ='.format(root), tau(root)
+            tau(-alpha[1]                                ) = alpha[1]
+            tau(alpha[1]                                 ) = -alpha[1]
+            tau(alpha[1] + alpha[2]                      ) = alpha[2] + alpha[3]
+            tau(alpha[1] + alpha[2] + alpha[3]           ) = alpha[2]
+            tau(alpha[1] + alpha[2] + alpha[3] + alpha[4]) = alpha[2] + alpha[3] + alpha[4]
+            tau(-alpha[2]                                ) = -alpha[2]
+            tau(alpha[2]                                 ) = alpha[1] + alpha[2] + alpha[3]
+            tau(alpha[2] + alpha[3]                      ) = alpha[1] + alpha[2]
+            tau(alpha[2] + alpha[3] + alpha[4]           ) = alpha[1] + alpha[2] + alpha[3] + alpha[4]
+            tau(-alpha[3]                                ) = alpha[3]
+            tau(alpha[3]                                 ) = -alpha[3]
+            tau(alpha[3] + alpha[4]                      ) = alpha[4]
+            tau(-alpha[4]                                ) = -alpha[4]
+            tau(alpha[4]                                 ) = alpha[3] + alpha[4]
+
+        This method works on any root lattice realization::
+
+            sage: L = RootSystem(['B',3]).ambient_space()
+            sage: tau = L.tau_epsilon_operator_on_almost_positive_roots([1,3])
+            sage: for root in L.almost_positive_roots():
+            ...      print 'tau({:<41}) ='.format(root), tau(root)
+            tau((-1, 1, 0)                               ) = (1, -1, 0)
+            tau((1, 0, 0)                                ) = (0, 1, 0)
+            tau((1, -1, 0)                               ) = (-1, 1, 0)
+            tau((1, 1, 0)                                ) = (1, 1, 0)
+            tau((1, 0, -1)                               ) = (0, 1, 1)
+            tau((1, 0, 1)                                ) = (0, 1, -1)
+            tau((0, -1, 1)                               ) = (0, -1, 1)
+            tau((0, 1, 0)                                ) = (1, 0, 0)
+            tau((0, 1, -1)                               ) = (1, 0, 1)
+            tau((0, 1, 1)                                ) = (1, 0, -1)
+            tau((0, 0, -1)                               ) = (0, 0, 1)
+            tau((0, 0, 1)                                ) = (0, 0, -1)
+
+        .. seealso:: :meth:`tau_plus_minus`
+
+        REFERENCES:
+
+        .. [CFZ] Chapoton, Fomin, Zelevinsky - Polytopal realizations of generalized associahedra
+        """
+        W = self.weyl_group()
+        t = W.from_reduced_word(J)
+        simple_roots = self.simple_roots()
+        other_negative_simple_roots = set(-simple_roots[i] for i in self.index_set() if i not in J)
+        def tau_epsilon(alpha):
+            if alpha in other_negative_simple_roots:
+                return alpha
+            else:
+                return t.action(alpha)
+        return tau_epsilon
+
+    def tau_plus_minus(self):
+        r"""
+        Returns the `\tau^+` and `\tau^-` piecewise linear operators on ``self``
+
+        Those operators are induced by the bipartition `\{L,R\}` of
+        the simple roots of ``self``, and stabilize the almost
+        positive roots. Namely, `\tau_+` fixes the negative simple
+        roots `\alpha_i` for `i` in `R`, and acts otherwise by:
+
+        .. math::
+
+            \tau_+( \beta ) = (\prod_{i \in L} s_i) (\beta)
+
+        `\tau_-` acts analogously, with `L` and `R` interchanged.
+
+        Those operators are used to construct the associahedron, a
+        polytopal realization of the cluster complex (see
+        :class:`Associahedron`).
+
+        .. seealso:: :meth:`tau_epsilon_operator_on_almost_positive_roots`
+
+        EXAMPLES:
+
+        We explore the example of [CFZ] Eq.(1.3)::
+
+            sage: S = RootSystem(['A',2]).root_lattice()
+            sage: taup, taum = S.tau_plus_minus()
+            sage: for beta in S.almost_positive_roots(): print beta, ",", taup(beta), ",", taum(beta)
+            -alpha[1] , alpha[1] , -alpha[1]
+            alpha[1] , -alpha[1] , alpha[1] + alpha[2]
+            alpha[1] + alpha[2] , alpha[2] , alpha[1]
+            -alpha[2] , -alpha[2] , alpha[2]
+            alpha[2] , alpha[1] + alpha[2] , -alpha[2]
+
+        REFERENCES:
+
+        .. [CFZ] Chapoton, Fomin, Zelevinsky - Polytopal realizations of generalized associahedra
+        """
+        ct = self.cartan_type()
+        L,R = ct.index_set_bipartition()
+        return self.tau_epsilon_operator_on_almost_positive_roots(L), self.tau_epsilon_operator_on_almost_positive_roots(R)
+
+    def almost_positive_roots_decomposition(self):
+        r"""
+        Returns the decomposition of the almost positive roots of ``self``
+
+        This is the list of the orbits of the almost positive roots
+        under the action of the dihedral group generated by the
+        operators `\tau_+` and `\tau_-`.
+
+        .. seealso:: :meth:`almost_positive_roots`, :meth:`tau_plus_minus`
+
+        EXAMPLES::
+
+            sage: RootSystem(['A',2]).root_lattice().almost_positive_roots_decomposition()
+            [[-alpha[1], alpha[1], alpha[1] + alpha[2], alpha[2], -alpha[2]]]
+
+            sage: RootSystem(['B',2]).root_lattice().almost_positive_roots_decomposition()
+            [[-alpha[1], alpha[1], alpha[1] + 2*alpha[2]], [-alpha[2], alpha[2], alpha[1] + alpha[2]]]
+
+            sage: RootSystem(['D',4]).root_lattice().almost_positive_roots_decomposition()
+            [[-alpha[1], alpha[1], alpha[1] + alpha[2], alpha[2] + alpha[3] + alpha[4]],
+             [-alpha[2], alpha[2], alpha[1] + alpha[2] + alpha[3] + alpha[4], alpha[1] + 2*alpha[2] + alpha[3] + alpha[4]],
+             [-alpha[3], alpha[3], alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[4]],
+             [-alpha[4], alpha[4], alpha[2] + alpha[4], alpha[1] + alpha[2] + alpha[3]]]
+
+        REFERENCES:
+
+        .. [CFZ] Chapoton, Fomin, Zelevinsky - Polytopal realizations of generalized associahedra
+        """
+        # TODO: this should use a generic function for computing
+        # orbits under the action of a group:
+        # def orbits(seeds, operators)
+        #     INPUT:
+        #     - seeds: a list of elements
+        #     - operators: a list of functions
+        #
+        #     Returns the orbits generated by seeds under the action of the operators
+        tau_plus, tau_minus = self.tau_plus_minus()
+
+        I = set(self.index_set())
+        Delta = self.simple_roots()
+        L, R = self.cartan_type().index_set_bipartition()
+
+        orbits = []
+        while I:
+            i = I.pop()
+            alpha = -self.simple_root(i)
+            orbit = [alpha]
+            if i in L:
+                plus = False
+                beta = tau_plus(alpha)
+            else:
+                plus = True
+                beta = tau_minus(alpha)
+            while -beta not in Delta and beta not in orbit:
+                orbit.append(beta)
+                if beta in Delta:
+                    j = beta.leading_support()
+                    I.discard(j)
+                if plus:
+                    beta = tau_plus(beta)
+                else:
+                    beta = tau_minus(beta)
+                plus = not plus
+            if -beta in Delta:
+                orbit.append(beta)
+            orbits.append(orbit)
+        return orbits
 
 class RootLatticeRealizationElement(object):
     def scalar(self, lambdacheck):

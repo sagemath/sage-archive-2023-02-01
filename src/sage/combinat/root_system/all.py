@@ -1,3 +1,4 @@
+from associahedron import Associahedron
 from cartan_type import CartanType
 from dynkin_diagram import DynkinDiagram, dynkin_diagram
 from cartan_matrix import cartan_matrix

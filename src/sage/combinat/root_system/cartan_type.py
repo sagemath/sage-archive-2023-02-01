@@ -995,6 +995,33 @@ class CartanType_crystalographic(CartanType_abstract):
         I = self.index_set()
         return Family( dict( (I[i], D[i]) for i in range(n) ) )
 
+    def index_set_bipartition(self):
+        r"""
+        Returns a bipartition `\{L,R\}` of the vertices of the Dynkin diagram
+
+        For `i` and `j` both in `L` (or both in `R`), the simple
+        reflections `s_i` and `s_j` commute.
+
+        Of course, the Dynkin diagram should be bipartite. This is
+        always the case for all finite types.
+
+        EXAMPLES::
+
+            sage: CartanType(['A',5]).index_set_bipartition()
+            (set([1, 3, 5]), set([2, 4]))
+
+            sage: CartanType(['A',2,1]).index_set_bipartition()
+            Traceback (most recent call last):
+            ...
+            AssertionError: The Dynkin diagram should be bipartite
+
+        """
+        from sage.graphs.all import Graph
+        G = Graph(self.dynkin_diagram())
+        assert G.is_bipartite(), "The Dynkin diagram should be bipartite"
+        return G.bipartite_sets()
+
+
 
 class CartanType_simply_laced(CartanType_crystalographic):
     """

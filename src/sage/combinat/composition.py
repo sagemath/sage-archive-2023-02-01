@@ -938,6 +938,8 @@ def Compositions(n=None, **kwargs):
         [[4], [2, 2]]
         sage: Compositions(4, outer=[3,1,2]).list()
         [[3, 1], [2, 1, 1], [1, 1, 2]]
+        sage: Compositions(3, outer = Composition([3,2])).list()
+        [[3], [2, 1], [1, 2]]
         sage: Compositions(4, outer=[1,oo,1]).list()
         [[1, 3], [1, 2, 1]]
         sage: Compositions(4, inner=[1,1,1]).list()
@@ -971,7 +973,7 @@ def Compositions(n=None, **kwargs):
                 warn("Currently, setting min_part=0 produces Composition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!", RuntimeWarning)
 
             if 'outer' in kwargs:
-                kwargs['ceiling'] = kwargs['outer']
+                kwargs['ceiling'] = list(kwargs['outer'])
                 if 'max_length' in kwargs:
                     kwargs['max_length'] = min( len(kwargs['outer']), kwargs['max_length'])
                 else:

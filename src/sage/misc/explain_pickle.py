@@ -168,7 +168,6 @@ import types
 
 import sys
 import sage.all
-import new
 import re
 
 def explain_pickle(pickle=None, file=None, compress=True, **kwargs):
@@ -433,7 +432,7 @@ class PickleExplainer(object):
         if in_current_sage and default_assumptions:
             raise ValueError, "in_current_sage and default_assumptions must not both be true"
 
-        self.new_instance = self.sib.import_name('new', 'instance')
+        self.new_instance = self.sib.import_name('types', 'InstanceType')
 
     def run_pickle(self, p):
         r"""
@@ -1445,9 +1444,9 @@ class PickleExplainer(object):
                55: .    STOP
             highest protocol among opcodes = 0
             explain_pickle in_current_sage=True:
-            from new import instance
+            from types import InstanceType
             from sage.misc.explain_pickle import EmptyOldstyleClass
-            instance(EmptyOldstyleClass)
+            InstanceType(EmptyOldstyleClass)
             explain_pickle in_current_sage=False:
             pg_EmptyOldstyleClass = unpickle_global('sage.misc.explain_pickle', 'EmptyOldstyleClass')
             pg = unpickle_instantiate(pg_EmptyOldstyleClass, ())
@@ -1720,9 +1719,9 @@ class PickleExplainer(object):
                57: .    STOP
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
-            from new import instance
+            from types import InstanceType
             from sage.misc.explain_pickle import EmptyOldstyleClass
-            instance(EmptyOldstyleClass)
+            InstanceType(EmptyOldstyleClass)
             explain_pickle in_current_sage=False:
             pg_EmptyOldstyleClass = unpickle_global('sage.misc.explain_pickle', 'EmptyOldstyleClass')
             pg = unpickle_instantiate(pg_EmptyOldstyleClass, ())
@@ -1929,9 +1928,9 @@ class PickleExplainer(object):
                62: .    STOP
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
-            from new import instance
+            from types import InstanceType
             from sage.misc.explain_pickle import TestReduceNoGetinitargs
-            instance(TestReduceNoGetinitargs)
+            InstanceType(TestReduceNoGetinitargs)
             explain_pickle in_current_sage=False:
             pg_TestReduceNoGetinitargs = unpickle_global('sage.misc.explain_pickle', 'TestReduceNoGetinitargs')
             pg = unpickle_instantiate(pg_TestReduceNoGetinitargs, ())
@@ -2140,9 +2139,9 @@ class PickleExplainer(object):
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
             si1 = {}
-            from new import instance
+            from types import InstanceType
             from sage.misc.explain_pickle import EmptyOldstyleClass
-            si2 = instance(EmptyOldstyleClass)
+            si2 = InstanceType(EmptyOldstyleClass)
             si2.__dict__['recdict'] = si1
             si1[si2] = 'circular_key'
             si1['Circular value'] = si1
@@ -2555,7 +2554,7 @@ def unpickle_instantiate(fn, args):
         42
     """
     if isinstance(fn, types.ClassType) and len(args) == 0 and not hasattr(fn, '__getinitargs__'):
-        return new.instance(fn)
+        return types.InstanceType(fn)
 
     return fn(*args)
 

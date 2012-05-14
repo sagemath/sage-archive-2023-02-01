@@ -1206,6 +1206,8 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (-x + y < 0) in [x - y < 0]
             False
+            sage: (x - 1 < 0) in [x - 2 < 0]
+            False
             sage: Set([-x + y < 0, x - y < 0])
             {-x + y < 0, x - y < 0}
             sage: (x < y) == (x > y)
@@ -1213,13 +1215,25 @@ cdef class Expression(CommutativeRingElement):
             sage: (x < 0) < (x < 1)
             False
             sage: (x < y) != (y > x)
+            False
+            sage: (x >= y) == (y <= x)
             True
+            sage: (x > y) == (y <= x)
+            False
             sage: (x < x) == (x < x)
             True
             sage: (y > y) != (y > y)
             False
             sage: (x < y) != x
             True
+            sage: (x == y) == (y == x)
+            True
+            sage: (x != y) != (y != x)
+            False
+            sage: (x == y) != (x != y)
+            True
+            sage: (x == y) == (y != x)
+            False
             sage: x == (x == x)
             False
         """
@@ -1231,30 +1245,52 @@ cdef class Expression(CommutativeRingElement):
         l = left
         r = right
 
-        # resolve relation immediately if lhs or rhs is already a relation
+        # If lhs or rhs is a relation, resolve the big relation
+        # immediately UNLESS the lhs and rhs are flipped versions of
+        # the same relation.
         if is_a_relational(l._gobj):
+            if (op != Py_EQ and op != Py_NE):
+                # relations aren't <, >, <=, or >= to other things
+                return False
             if is_a_relational(r._gobj):
+                # both lhs and rhs are relations, so we can get to work
                 if l.operator() == r.operator():
-                    e2 = ( l._gobj.lhs().is_equal(r._gobj.lhs()) and
-                          l._gobj.rhs().is_equal(r._gobj.rhs()) )
+                    e2 = ( # case: (x _ y) ?= (x _ y)
+                           ( l._gobj.lhs().is_equal(r._gobj.lhs()) and
+                             l._gobj.rhs().is_equal(r._gobj.rhs()) ) or
+
+                           # case: (x == y) ?= (y == x)
+                           #       (x != y) ?= (y != x)
+                           ( ( l.operator() == operator.eq or
+                               l.operator() == operator.ne ) and
+                             l._gobj.lhs().is_equal(r._gobj.rhs()) and
+                             l._gobj.rhs().is_equal(r._gobj.lhs()) ))
                 else:
-                    e2 = False          # l and r are different relations
+                    e2 = ( # case: (x < y)  ?= (y > x)  (or vice versa)
+                           #       (x <= y) ?= (y >= x) (or vice versa)
+                           ( ( l.operator() == operator.lt and
+                               r.operator() == operator.gt ) or
+                             ( l.operator() == operator.gt and
+                               r.operator() == operator.lt ) or
+                             ( l.operator() == operator.le and
+                               r.operator() == operator.ge ) or
+                             ( l.operator() == operator.ge and
+                               r.operator() == operator.le ) ) and
+                           l._gobj.lhs().is_equal(r._gobj.rhs()) and
+                           l._gobj.rhs().is_equal(r._gobj.lhs()) )
+
             else:
                 e2 = False              # l is relational but r isn't.
 
             if op == Py_EQ:
                 return e2
-            elif op == Py_NE:
+            else:                       # op == Py_NE, checked earlier.
                 return not e2
-            else:
-                return False
+
         elif is_a_relational(r._gobj):  # l isn't relational but r is.
-            if op == Py_EQ:
-                return False
-            elif op == Py_NE:
-                return True
-            else:
-                return False
+            # things aren't <, >, <=, >=, or == to relations; they
+            # are, however, != to relations
+            return op == Py_NE
 
         # neither was relational, so we can create a symbolic relation
         cdef GEx e

@@ -5746,14 +5746,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 w += 1
         return w
 
-    def map_coefficients(self, f):
+    def map_coefficients(self, f, new_base_ring = None):
         """
         Returns the polynomial obtained by applying ``f`` to the non-zero
         coefficients of self.
 
+        If ``f`` is a :class:`sage.categories.map.Map`, then the resulting
+        polynomial will be defined over the codomain of ``f``. Otherwise, the
+        resulting polynomial will be over the same ring as self. Set
+        ``new_base_ring`` to override this behaviour.
+
         INPUT:
 
         - ``f`` -- a callable that will be applied to the coefficients of self.
+
+        - ``new_base_ring`` (optional) -- if given, the resulting polynomial
+          will be defined over this ring.
 
         EXAMPLES::
 
@@ -5773,8 +5781,33 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^(2^32) + 2
             sage: f.map_coefficients(lambda a: a + 42)
             43*x^4294967296 + 44
+
+        Examples with different base ring::
+
+            sage: R.<x> = ZZ[]
+            sage: k = GF(2)
+            sage: residue = lambda x: k(x)
+            sage: f = 4*x^2+x+3
+            sage: g = f.map_coefficients(residue); g
+            x + 1
+            sage: g.parent()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: g = f.map_coefficients(residue, new_base_ring = k); g
+            x + 1
+            sage: g.parent()
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            sage: residue = k.coerce_map_from(ZZ)
+            sage: g = f.map_coefficients(residue); g
+            x + 1
+            sage: g.parent()
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
         """
-        return self.parent()(dict((k,f(v)) for (k,v) in self.dict().items()))
+        R = self.parent()
+        if new_base_ring is not None:
+            R = R.change_ring(new_base_ring)
+        elif isinstance(f, Map):
+            R = R.change_ring(f.codomain())
+        return R(dict([(k,f(v)) for (k,v) in self.dict().items()]))
 
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function

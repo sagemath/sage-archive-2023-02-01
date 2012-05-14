@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# This script turns all the large JSON files back into Mercurial
+# repositories and recompresses all SPKGs. Mostly undoes text-expand,
+# with some minor caveats. Repository integrity is preserved, though
+# some caches may be lost.
+cd "${0%/*}/../.."
+echo "Determined SAGE_ROOT=$(pwd)"
+
+for jsonbundle in $(find -regex '.*/bundle.json' -type f)
+do
+    echo "Reconstructing repo at ${jsonbundle%/*} ..."
+
+    # convert JSON to bundle
+    ./json_bundle.py $jsonbundle
+    rm $jsonbundle
+
+    # convert bundle to repository
+    hg init ${jsonbundle%/*}
+    hg pull -R ${jsonbundle%/*} "${jsonbundle%/*}/bundle.hg"
+    rm "${jsonbundle%/*}/bundle.hg"
+
+    hg debugsetparents tip
+done
+
+cd "./spkg/standard/"
+for spkg in $(find -regex '\./[^/]*' -type d)
+do
+    if [ -e "$spkg/spkg-install" ]
+    then
+        echo "Compressing SPKG: $spkg.spkg ..."
+        tar cj -p -f "$spkg.spkg" $spkg
+        rm -rf $spkg
+    fi
+done

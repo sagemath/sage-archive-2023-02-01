@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# This script expands all SPKGs and turns all Mercurial repositories
+# into large JSON files. Undo with text-collapse .
+cd "${0%/*}/../.."
+echo "Determined SAGE_ROOT=$(pwd)"
+
+for spkg in $(find -regex '\./spkg/standard/[^/]*\.spkg' -type f)
+do
+    echo "Extracting SPKG: $spkg ..."
+    tar x -p -C './spkg/standard' -f $spkg
+    rm $spkg
+done
+
+for repo in $(find -regex '.*/\.hg' -type d)
+do
+    echo "Deconstructing repo at ${repo%/*} ..."
+
+    # convert repository to bundle
+    hg bundle -a -R ${repo%/*} "${repo%/*}/bundle.hg"
+    rm -rf $repo
+
+    # convert bundle to JSON
+    ./json_bundle.py "${repo%/*}/bundle.hg"
+    rm "${repo%/*}/bundle.hg"
+done

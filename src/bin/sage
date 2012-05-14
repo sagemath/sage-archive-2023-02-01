@@ -1,0 +1,1025 @@
+#!/usr/bin/env bash
+
+usage() {
+    echo "----------------------------------------------------------------------"
+    grep -i version "$SAGE_LOCAL/bin/sage-banner"
+    echo "----------------------------------------------------------------------"
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Optional arguments:"
+    echo "  file.<sage|py|spyx> -- run given .sage, .py or .spyx files"
+    echo "  -advanced           -- list all command line options"
+    echo "  -c <cmd>            -- Evaluates cmd as sage code"
+    echo "  -experimental       -- list all experimental packages that can be installed"
+    echo "  -gap [...]          -- run Sage's Gap with given arguments"
+    echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
+    echo "  -h, -?              -- print this help message"
+    echo "  -i [packages]       -- install the given Sage packages"
+    echo "  -inotebook [...]    -- start the *insecure* Sage notebook"
+    echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
+    echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
+    echo "  -n, -notebook [...] -- start the Sage notebook (options are the same"
+    echo "                         as for the notebook command in Sage)"
+    echo "  -optional           -- list all optional packages that can be installed"
+    echo "  -python [...]       -- run the Python interpreter"
+    echo "  -R [...]            -- run Sage's R with given arguments"
+    echo "  -singular [...]     -- run Sage's singular with given arguments"
+    echo "  -sqlite3 [...]      -- run Sage's sqlite3 with given arguments"
+    echo "  -root               -- print the Sage root directory"
+    echo "  -t [options] <files|dir>"
+    echo "                      -- test examples in .py, .pyx, .sage or .tex files"
+    echo "                         options:"
+    echo "                           -long  -- include lines with the phrase 'long time'"
+    echo "                           -verbose  -- print debugging output during the test"
+    echo "                           -optional  -- also test all #optional examples"
+    echo "                           -only-optional <tag1,...,tagn>  -- only run tests"
+    echo "                            including one of the #optional tags"
+    echo "                           -randorder[=seed]  -- randomize order of tests"
+    echo "  -upgrade [url]      -- download, build and install standard packages from"
+    echo "                         given url.  If url not given, automatically selects a"
+    echo "                         suitable mirror.  If url='ask', it lets you select"
+    echo "                         the mirror (uses SAGE_SERVER as default)."
+    echo "  -v, -version        -- print the Sage version"
+    exit 0
+}
+
+usage_advanced() {
+    echo "----------------------------------------------------------------------"
+    grep -i version "$SAGE_LOCAL/bin/sage-banner"
+    echo "----------------------------------------------------------------------"
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Running Sage:"
+    echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx files"
+    echo "  -advanced           -- print this advanced help message"
+    echo "  -c <cmd>            -- Evaluates cmd as sage code"
+    echo "  -h, -?              -- print short help message"
+    echo "  -min [...]          -- do not populate global namespace (must be first"
+    echo "                         option)"
+    echo "  -np                 -- run with no output prompts (useful for making"
+    echo "                         doctests)"
+    echo "  -preparse <file.sage> -- preparse file.sage and produce corresponding file.sage.py"
+    echo "  -q                  -- quiet; start with no banner"
+    echo "  -root               -- print the Sage root directory"
+    echo "  -gthread, -qthread, -q4thread, -wthread, -pylab"
+    echo "                      -- pass the option through to ipython"
+    echo "  -v, -version        -- print the Sage version"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Running the notebook:"
+    echo "  -bn, -build-and-notebook [...] -- build the Sage library then start"
+    echo "                         the Sage notebook"
+    echo "  -inotebook [...]    -- start the *insecure* Sage notebook"
+    echo "  -n, -notebook [...] -- start the Sage notebook (options are the same"
+    echo "                         as for the notebook command in Sage)"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Running external programs:"
+    echo "  -cleaner            -- run the Sage cleaner"
+    echo "  -cython [...]       -- run Cython with given arguments"
+    echo "  -ecl [...]          -- run Common Lisp"
+    echo "  -gap [...]          -- run Sage's Gap with given arguments"
+    echo "  -gdb                -- run Sage under the control of gdb"
+    echo "  -gdb-ipython        -- run Sage's IPython under the control of gdb"
+    echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
+    echo "  -hg [...]           -- run Sage's Mercurial with given arguments"
+    echo "  -ipython [...]      -- run Sage's IPython using the default environment (not"
+    echo "                         Sage), passing additional options to IPython"
+    echo "  -kash [...]         -- run Sage's Kash with given arguments"
+    test -x "$SAGE_LOCAL/bin/kash" || \
+    echo "                         (not installed currently, run sage -i kash)"
+    echo "  -lisp [...]         -- run Lisp interpreter included with Sage"
+    echo "  -M2 [...]           -- run Sage's Macaulay2 with given arguments"
+    test -x "$SAGE_LOCAL/bin/M2" || \
+    echo "                         (not installed currently, run sage -i macaulay2)"
+    echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
+    echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
+    echo "  -python [...]       -- run the Python interpreter"
+    echo "  -R [...]            -- run Sage's R with given arguments"
+    echo "  -scons [...]        -- run Sage's scons"
+    echo "  -sh [...]           -- run \$SHELL ($SHELL) with Sage environment variables"
+    echo "  -singular [...]     -- run Sage's singular with given arguments"
+    echo "  -sqlite3 [...]      -- run Sage's sqlite3 with given arguments"
+    echo "  -twistd [...]       -- run Twisted server"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Installing packages and upgrading:"
+    echo "  -experimental       -- list all experimental packages that can be installed"
+    echo "  -f [packages]       -- force build of the given Sage package (even if it is"
+    echo "                         already installed)"
+    echo "  -f -s [packages]    -- like -f but do not delete the spkg/build directories"
+    echo "  -i [packages]       -- install the given Sage packages"
+    echo "                         if no packages given, print a list of all installed"
+    echo "  -i -s [packages]    -- like -i but do not delete the spkg/build directories"
+    echo "  -optional           -- list all optional packages that can be installed"
+    echo "  -standard           -- list all standard packages that can be installed"
+   #echo "  -update             -- download latest non-optional Sage packages (do not build them)"
+   #echo "  -update-build       -- build and install all downloaded non-optional Sage packages"
+    echo "  -upgrade [url]      -- download, build and install standard packages from"
+    echo "                         given url.  If url not given, automatically selects a"
+    echo "                         suitable mirror.  If url='ask', it lets you select"
+    echo "                         the mirror (uses SAGE_SERVER as default)."
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Building and testing the Sage library:"
+    echo "  -b [branch]         -- build Sage library.  If branch is given, switch to"
+    echo "                         branch in devel/sage-branch and build that branch"
+    echo "  -ba [branch]        -- same as -b and rebuild all Cython code"
+    echo "  -ba-force [branch]  -- same as -ba, but don't query before rebuilding"
+    echo "  -br [branch]        -- switch to, build, and run Sage given branch"
+    echo "  -branch             -- print the current Sage branch"
+    echo "  -bt [...]           -- build and test, options like -t below"
+    echo "  -btp <N> [...]      -- build and test parallel, options like -tp below"
+    echo "  -btnew [...]        -- build and test modified files, options like -tnew"
+    echo "  -clone [new branch] -- clone a new branch of the Sage library from the"
+    echo "                         current branch"
+    echo "  -fixdoctests <file.py> -- create <file.py>.out that would pass the doctests"
+    echo "                            and output a patch"
+    echo "  -startuptime        -- display how long each component of Sage takes to"
+    echo "                         start up"
+    echo "  -t [options] <files|dir>"
+    echo "                      -- test examples in .py, .pyx, .sage or .tex files"
+    echo "                         options:"
+    echo "                           -long  -- include lines with the phrase 'long time'"
+    echo "                           -verbose  -- print debugging output during the test"
+    echo "                           -optional  -- also test all #optional examples"
+    echo "                           -only-optional <tag1,...,tagn>  -- only run tests"
+    echo "                            including one of the #optional tags"
+    echo "                           -randorder[=seed]  -- randomize order of tests"
+    echo "  -tnew [...]         -- like -t above, but only tests files modified since"
+    echo "                         last commit"
+    echo "  -tp <N> [...]       -- like -t above, but tests in parallel using N threads"
+    echo "                         with 0 interpreted as a sensible default"
+    echo "  -testall [options]  -- test all source files, docs, and examples.  options"
+    echo "                         like -t"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Documentation:"
+    echo "  -coverage <files>   -- give info about doctest coverage of files"
+    echo "  -coverageall        -- give summary info about doctest coverage of all"
+    echo "                         files in the Sage library"
+    echo "  -docbuild [lang/]<document> <html|pdf|...> -- Build the Sage documentation"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Making Sage packages or distributions:"
+    echo "  -bdist VER          -- build a binary distribution of Sage"
+    echo "  -combinat [...]     -- run sage-combinat patch management script"
+    echo "  -crap sage-ver.tar  -- detect suspicious garbage in sage source tarball"
+   #echo "  -ldist VER          -- build a library Sage distribution (for install into"
+   #echo "                         existing Python)"
+    echo "  -log                -- add entry to <SAGE_ROOT>/changelog.txt"
+    echo "  -merge              -- run Sage's automatic merge and test script"
+    echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
+    echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
+    echo "  -rsyncdist VER      -- build an rsyncable source distribution of Sage (you"
+    echo "                         must first run sage -sdist VER for this to work)"
+    echo "  -sdist VER          -- build a source distribution of Sage"
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
+    echo "Valgrind memory debugging:"
+    echo "  -cachegrind         -- run Sage using Valgrind's cachegrind tool.  The log"
+    echo "                         files are named sage-cachegrind.PID can be found in"
+    echo "                         $DOT_SAGE"
+    echo "  -callgrind          -- run Sage using Valgrind's callgrind tool.  The log"
+    echo "                         files are named sage-callgrind.PID can be found in"
+    echo "                         $DOT_SAGE"
+    echo "  -massif             -- run Sage using Valgrind's massif tool.  The log"
+    echo "                         files are named sage-massif.PID can be found in"
+    echo "                         $DOT_SAGE"
+    echo "  -memcheck           -- run Sage using Valgrind's memcheck tool.  The log"
+    echo "                         files are named sage-memcheck.PID can be found in"
+    echo "                         $DOT_SAGE"
+    echo "  -omega              -- run Sage using Valgrind's omega tool.  The log"
+    echo "                         files are named sage-omega.PID can be found in"
+    echo "                         $DOT_SAGE"
+    echo "  -valgrind           -- this is an alias for -memcheck"
+    echo
+    echo "You can also use -- before a long option, e.g., 'sage --optional'."
+    echo
+    exit 0
+}
+
+# Do NOT redirect stderr and stdout to /dev/null,
+# since sage-env might print important error messages:
+. "$SAGE_ROOT"/local/bin/sage-env
+
+# The following doesn't make much sense, since we *source* sage-env,
+# and if that does exit, it exits *this* shell(!). Only if sourcing
+# the file itself fails (because e.g. sage-env does not exist, or a
+# syntax error occurs in its last command), the error message below
+# will be printed:
+if [ $? -ne 0 ]; then
+   echo >&2 "Error setting environment variables by running \"$SAGE_ROOT/local/bin/sage-env\";"
+   echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
+   exit 1
+fi
+
+# Sage startup script passes some funny options, which are
+# best ignored.
+if [ $# -eq 3 ]; then
+   if [ "$1" = '-i' -a "$2" = '-colors' ]; then
+       shift
+       shift
+       shift
+   fi
+fi
+
+if [ $# -gt 0 ]; then
+  if [ "$1" = '-h' -o "$1" = '-?' -o "$1" = '-help' -o "$1" = '--help' ]; then
+     usage
+  fi
+  if [ "$1" = "-advanced" -o "$1" = "--advanced" ]; then
+     usage_advanced
+  fi
+fi
+
+
+LOGFILE="$SAGE_ROOT/sage.log"
+LOGOPT=""
+
+sage_setup() {
+    # Display the startup banner
+    if [ "$SAGE_BANNER" != "no" ]; then
+        cat "$SAGE_LOCAL/bin/sage-banner"
+    fi
+
+    # Check to see if the whole Sage install tree has moved.
+    # If so, change various hardcoded paths.
+    "$SAGE_ROOT/local/bin/"sage-location
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+
+    cd "$SAGE_ROOT/local/bin"
+    IPYTHONDIR="$DOT_SAGE/ipython" && export IPYTHONDIR
+    IPYTHONRC="ipythonrc" && export IPYTHONRC
+    if [ ! -d "$IPYTHONDIR" ]; then
+        mkdir -p "$DOT_SAGE"
+        cp -r "$SAGE_ROOT/ipython" "$DOT_SAGE/"
+    fi
+    sage-cleaner &>/dev/null &
+}
+
+
+# Below the command
+# _=sage.misc.interpreter.do_prefilter_paste('',False)
+
+# It is very important in the following assignments
+# that there is no whitespace after the backslashes.
+
+########################################################
+# Regarding printing the branch below:
+#   We print a message with the library branch that
+#   Sage is currently being run from. If they are using
+#   main branch, we print nothing, otherwise users get
+#   very confused about what branch they are using.
+########################################################
+
+
+
+if [ $# -gt 0 ]; then
+    if [ "$1" = "-np" ]; then
+       LOGOPT="-prompt_out=\\r $LOGOPT"
+       shift
+    fi
+fi
+
+sage() {
+    sage_setup
+    sage-ipython "$@" -i
+}
+
+if [ $# -eq 0 ]; then
+    sage
+    exit $?
+fi
+
+if [ "$1" = '-cleaner' -o "$1" = '--cleaner' ]; then
+    sage-cleaner
+    exit $?
+fi
+
+if [ "$1" = '-min' -o "$1" = '--min' ]; then
+    SAGE_IMPORTALL="no"
+    export SAGE_IMPORTALL
+    shift
+    sage-sage "$@"
+    exit $?
+fi
+
+#####################################################################
+# Report information about the Sage environment
+#####################################################################
+
+if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
+    sed -n -e '/Version/s/^[ |]\{1,\}//;/Version/s/[ |]\{1,\}$//p' \
+        "$SAGE_LOCAL"/bin/sage-banner
+    exit $?
+fi
+
+if [ "$1" = '-root'  -o "$1" = '--root' ]; then
+    echo "$SAGE_ROOT"
+    exit 0
+fi
+
+if [ "$1" = '-branch'  -o "$1" = '--branch' ]; then
+    cd "$SAGE_ROOT/devel/sage" && pwd -P | sed 's|.*/||; s|^sage-||'
+    exit $?
+fi
+
+#####################################################################
+# Run Sage's versions of the standard Algebra/Geometry etc. software
+#####################################################################
+
+if [ "$1" = '-axiom' -o "$1" = '--axiom' ]; then
+    cd "$CUR"
+    shift
+    axiom "$@"
+    exit $?
+fi
+
+if [ "$1" = '-combinat' -o "$1" = '--combinat' ]; then
+    cd "$CUR"
+    shift
+    sage-combinat "$@"
+    exit $?
+fi
+
+if [ "$1" = '-gap' -o "$1" = '--gap' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/gap" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-gp'  -o "$1" = '--gp' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/gp" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-singular'  -o "$1" = '--singular' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/singular" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-sqlite3'  -o "$1" = '--sqlite3' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/sqlite3" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-twistd'  -o "$1" = '--twistd' ]; then
+    cd "$CUR"
+    shift
+    python $(which twistd) "$@"
+    exit $?
+fi
+
+if [ "$1" = '-ecl'  -o "$1" = '--ecl' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/ecl" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-lisp'  -o "$1" = '--lisp' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/ecl" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-kash'  -o "$1" = '--kash' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/kash" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-fixdoctests' -o "$1" = '--fixdoctests' ]; then
+    cd "$CUR"
+    shift
+    sage-fixdoctests "$@"
+    exit $?
+fi
+
+if [ "$1" = '-maxima'  -o "$1" = '--maxima' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/maxima" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-mwrank'  -o "$1" = '--mwrank' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/mwrank" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-M2'  -o "$1" = '--M2' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/M2" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-scons'  -o "$1" = '--scons' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/scons" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-python'  -o "$1" = '--python' ]; then
+    cd "$CUR"
+    shift
+    python "$@"
+    exit $?
+fi
+
+if [ "$1" = '-R'  -o "$1" = '--R' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/R" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-ipython'  -o "$1" = '--ipython' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/ipython" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-sh'  -o "$1" = '--sh' ]; then
+    # AUTHORS:
+    #   Carl Witty and William Stein: initial version
+    #   Craig Citro: add options for not loading profile
+    cd "$CUR"
+    shift
+    echo ""
+    echo "Starting subshell with Sage environment variables set."
+    echo "Be sure to exit when you are done and do not do anything"
+    echo "with other copies of Sage!"
+    echo ""
+    SHELL_NAME=`basename $SHELL`
+    echo "Bypassing shell configuration files ..."
+    echo
+    # We must start a new shell with no .profile or .bashrc files
+    # processed, so that we know our path is correct
+    PS1="SAGE_ROOT=${SAGE_ROOT}\n(sage subshell) \h:\W \u\$ "
+    case $SHELL_NAME in
+        bash)
+            SHELL_OPTS=" --norc"
+            ;;
+        csh)
+            SHELL_OPTS=" -f"
+            ;;
+        ksh)
+            SHELL_OPTS=" -p"
+            ;;
+        sh)
+            SHELL_OPTS=" --norc"
+            ;;
+        tcsh)
+            SHELL_OPTS=" -f"
+            ;;
+        zsh)
+PS1="SAGE_ROOT=${SAGE_ROOT}
+(sage subshell) %m:%~ %n$ "
+            SHELL_OPTS=" -f -d"
+            ;;
+        *)
+            echo >&2 "Unknown shell: $SHELL!"
+            echo >&2 "Exiting Sage."
+            exit 1
+    esac
+    export PS1
+
+    $SHELL_NAME $SHELL_OPTS "$@"
+
+    status=$?
+    echo "Exited Sage subshell."
+    exit $status
+fi
+
+if [ "$1" = '-gdb-ipython'  -o "$1" = '--gdb-ipython' ]; then
+    cd "$CUR"
+    shift
+    sage-gdb-ipython "$@"
+    exit $?
+fi
+
+if [ "$1" = '-darcs'  -o "$1" = '--darcs' ]; then
+    cd "$CUR"
+    shift
+    darcs "$@"
+    exit $?
+fi
+
+if [ "$1" = '-hg'  -o "$1" = '--hg' ]; then
+    cd "$CUR"
+    shift
+    # Disable HGPLAIN, so we use all user defaults
+    # (both in $SAGE_LOCAL/etc/mercurial and $HOME/.hgrc)
+    unset HGPLAIN
+    "$SAGE_LOCAL/bin/hg" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-merge' ]; then
+    cd "$CUR"
+    shift
+    sage-apply-ticket "$@"
+    exit $?
+fi
+
+#####################################################################
+# Test coverage of a module?
+#####################################################################
+
+if [ "$1" = "-coverage" -o "$1" = "--coverage" ]; then
+   cd "$CUR"
+   shift
+   sage-coverage "$@"
+   exit $?
+fi
+
+if [ "$1" = "-coverageall" -o "$1" = "--coverageall" ]; then
+   cd "$CUR"
+   shift
+   sage-coverageall "$@"
+   exit $?
+fi
+
+
+#####################################################################
+# Crap
+#####################################################################
+
+if [ "$1" = "-crap" -o "$1" = "--crap" ]; then
+   shift
+   cd "$CUR"
+   sage-crap $@
+   exit $?
+fi
+
+#####################################################################
+# Run Sage's versions of the standard Algebra/Geometry etc. software
+#####################################################################
+
+build_sage() {
+    sage-build "$@" || exit $?
+}
+
+if [ "$1" = "-notebook"  -o "$1" = '--notebook' -o "$1" = '-n' ]; then
+   cd "$CUR"
+   shift
+   sage-cleaner &>/dev/null &
+   sage-notebook "$@"
+   exit $?
+fi
+
+if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then
+    cd "$CUR"
+    shift
+    sage-cleaner &>/dev/null &
+    build_sage
+    sage-notebook "$@"
+    exit $?
+fi
+
+if [ "$1" = "-inotebook"  -o "$1" = '--inotebook' ]; then
+   cd "$CUR"
+   shift
+   sage-cleaner &>/dev/null &
+   sage-notebook-insecure "$@"
+   exit $?
+fi
+
+if [ "$1" = "-wiki"  -o "$1" = '--wiki' ]; then
+   cd "$CUR"
+   shift
+   sage-wiki "$@"
+   exit $?
+fi
+
+if [ "$1" = "-log" -o "$1" = "--log" ]; then
+   sage-log
+   exit 0
+fi
+
+if [ "$1" = '-q' ]; then
+   SAGE_BANNER="no"
+   sage_setup
+   shift
+   sage "$@"
+   exit $?
+fi
+
+if [ "$1" = '-b' ]; then
+    shift
+    time build_sage "$@"
+    exit $?
+fi
+
+if [ "$1" = '-br' -o "$1" = "--br" ]; then
+    shift
+    build_sage "$@"
+    sage
+    exit $?
+fi
+
+if [ "$1" = '-r' ]; then
+   shift
+   if [ "$1" != "" ]; then
+      cd "$SAGE_ROOT/devel/"
+      if [ ! -d "sage-$1" ]; then
+         echo >&2 "No such branch '$SAGE_ROOT/devel/sage-$1'"
+         echo >&2 "Use 'sage -clone' to create a new branch."
+         exit 1
+      fi
+      # On Solaris (and perhaps other systems), "ln -snf FILE LINK"
+      # doesn't remove LINK and then relink it, so we need to first
+      # delete LINK -- in this case, SAGE_ROOT/devel/sage -- and then
+      # create a new link.  We use the full path name to make sure we
+      # remove the correct file.
+      rm -f "$SAGE_ROOT/devel/sage"
+      ln -s "sage-$1" sage
+      cd "$SAGE_ROOT"
+   fi
+   sage
+   exit $?
+fi
+
+if [ "$1" = '-ba' ]; then
+   shift
+   echo " *** WARNING ***"
+   echo " You are about to rebuild the entire Sage library."
+   echo " This will take a significant amount of time."
+   echo " (Use -ba-force instead of -ba to skip this prompt.)"
+   echo -n " Do you want to proceed? [y/n] "
+   read CHOICE
+   while [ "$CHOICE" != "y" -a "$CHOICE" != "n" ]; do
+	   echo -n " Choose one of y, n: "
+	   read CHOICE
+   done
+   if [ $CHOICE = 'n' ]; then
+	   exit 0
+   fi
+   build_sage -b "$@"
+   exit $?
+fi
+
+if [ "$1" = '-ba-force' ]; then
+   shift
+   build_sage -b "$@"
+   exit $?
+fi
+
+if [ "$1" = '-sync-build' -o "$1" = '--sync-build' ]; then
+   shift
+   python "$SAGE_LOCAL"/bin/sage-sync-build.py "$@"
+   exit $?
+fi
+
+if [ "$1" = '-clone' -o "$1" = "--clone" ]; then
+   shift
+   time sage-clone "$@"
+   exit $?
+fi
+
+if [ "$1" = '-t' -o "$1" = '-bt' ]; then
+   if [ "$1" = '-bt' ]; then
+      build_sage
+   fi
+   if ! [  -f  "$DOT_SAGE"/init.sage ]; then
+      echo >&2 "init.sage does not exist ... creating"
+      touch "$DOT_SAGE"/init.sage
+   fi
+   cd "$CUR"
+   shift
+   sage-test "$@"
+   exit $?
+fi
+
+if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
+   if [ "$1" = '-btp' ]; then
+      build_sage
+   fi
+   if ! [  -f  "$DOT_SAGE"/init.sage ]; then
+      echo >&2 "init.sage does not exist ... creating"
+      touch "$DOT_SAGE"/init.sage
+   fi
+   cd "$CUR"
+   shift
+   sage-ptest "$@"
+   exit $?
+fi
+
+if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
+   if [ "$1" = '-btnew' ]; then
+      build_sage
+   fi
+   cd "$CUR"
+   shift
+   sage-test-new "$@"
+   exit $?
+fi
+
+if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
+   shift
+   sage-maketest "$@"
+   exit $?
+fi
+
+if [ "$1" = '-c' ]; then
+   cd "$CUR"
+   shift
+   SAGE_BANNER="no"
+   sage_setup
+   unset TERM  # See Trac #12263
+   sage-eval "$@"
+   exit $?
+fi
+
+install() {
+   cd "$SAGE_ROOT/spkg"
+   if [ $# -lt 2 ]; then
+       sage-spkg
+       exit $?
+   fi
+   OPT="$1"
+   shift
+   if [ "$1" = '-m' -o "$1" = '-s' ]; then
+       OPT=$OPT" "$1
+       shift
+   fi
+   SAGE_LOGS="$SAGE_ROOT/spkg/logs"
+   if [ ! -d "$SAGE_LOGS" ]; then
+       mkdir -p "$SAGE_LOGS"
+   fi
+   for PKG in "$@"
+   do
+	echo "Calling sage-spkg on '$PKG'"
+	PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
+	PKG_NAME=`basename "$PKG_NAME"`
+	case "$PKG" in
+	    /*) PKG_PATH="$PKG";;
+	    *) PKG_PATH="$CUR/$PKG";;
+	esac
+	# Could use ./pipestatus here, but using an absolute path is safer:
+	# (We'll have to change it anyway in case 'pipestatus' one day moves.)
+	"$SAGE_ROOT"/spkg/pipestatus \
+	    "sage-spkg $OPT '$PKG_PATH' 2>&1" \
+	    "(trap '' SIGINT; tee -a '$SAGE_ROOT'/install.log '$SAGE_LOGS/$PKG_NAME'.log)"
+	# Do not try to install further packages (if any) if one failed:
+	if [[ $? -ne 0 ]]; then
+	    echo >&2 "Error: Failed to install package '$PKG_NAME'."
+	    exit 1
+	fi
+	shift
+   done
+   exit $?
+}
+
+if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
+   sage-list-optional
+   exit 0
+fi
+
+if [ "$1" = '-experimental' -o "$1" = "--experimental" ]; then
+   sage-list-experimental
+   exit 0
+fi
+
+if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
+   sage-list-standard
+   exit 0
+fi
+
+if [ "$1" = '-i' ]; then
+   shift
+   echo "Installing $@"
+   install " " "$@"
+fi
+
+if [ "$1" = '-f' ]; then
+   shift
+   echo "Force installing $@"
+   install -f "$@"
+fi
+
+if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then
+   cd "$CUR"
+   shift
+   for PKG in "$@"
+   do
+      echo "Creating Sage package $PKG"
+      sage-pkg "$PKG"
+      if [ $? -ne 0 ]; then
+         exit 1
+      fi
+   done
+   exit $?
+fi
+
+if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
+   cd "$CUR"
+   shift
+   for PKG in "$@"
+   do
+      echo "Creating Sage package $PKG with no compression"
+      sage-pkg --nocompress "$PKG"
+      if [ $? -ne 0 ]; then
+         exit 1
+      fi
+   done
+   exit $?
+fi
+
+if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then
+   if [ $# -ne 2 ]; then
+       echo >&2 "** MISSING VERSION NUMBER! **"
+       exit 1
+   fi
+   sage-sdist $2 "$SAGE_ROOT"
+   exit $?
+fi
+
+if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
+   if [ $# -ne 2 ]; then
+       echo >&2 "** MISSING VERSION NUMBER! **"
+       exit 1
+   fi
+   sage-rsyncdist $2
+   exit $?
+fi
+
+if [ "$1" = '-ldist' -o "$1" = "--ldist" ]; then
+   echo "sage -ldist currently disabled"
+   echo "To work on it, remove the exit after this message in SAGE_ROOT/local/bin/sage-sage"
+   exit 1
+   if [ $# -ne 2 ]; then
+       echo >&2 "** MISSING VERSION NUMBER! **"
+       exit 1
+   fi
+   sage-sdist $2 "$SAGE_ROOT"
+   if [ $? -ne 0 ]; then
+       echo >&2 "Error building source distribution"
+       exit 1
+   fi
+   cd "$SAGE_ROOT"/dist/
+   if [ $? -ne 0 ]; then
+       echo >&2 "Error changing to source distribution directory"
+       exit 1
+   fi
+   "$SAGE_ROOT"/local/bin/sage-libdist sage-$2.tar
+   exit $?
+fi
+
+if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
+   if [ $# -ne 2 ]; then
+       echo >&2 "** MISSING VERSION NUMBER! **"
+       exit 1
+   fi
+   sage-bdist $2 "$SAGE_ROOT"
+   exit $?
+fi
+
+#if [ "$1" = '-update' ]; then
+#    sage-update
+#    exit $?
+#fi
+
+#if [ "$1" = '-update-build' -o "$1" = "--update-build" ]; then
+#    sage-update-build
+#    sage-update-build
+#    exit $?
+#fi
+
+if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
+    shift
+
+    # People often move the Sage install right before doing the upgrade, so it's
+    # important to fix any path hardcoding issues first, or certain library
+    # links will fail.
+    sage-location
+
+    # Run sage-upgrade twice since when installing sage-scripts and a
+    # running script changes, it gets confused and exits with an error.
+    # Running again (with the script replaced) then fixes the problem.
+    sage-upgrade "$@"
+    if [ $? -eq 2 ]; then   # this exit code means the user elected not to do the upgrade at all.
+        exit 2
+    fi
+    echo "Double checking that all packages have been installed."
+    sage-upgrade "$@" || exit $?
+
+    # Check that Sage still works
+    sage-starts
+    exit $?
+fi
+
+if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
+   cd "$CUR"
+   shift
+   python "$SAGE_ROOT"/devel/sage/doc/common/builder.py $@
+   exit $?
+fi
+
+
+if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
+    sage_setup
+    sage-gdb
+    exit $?
+fi
+
+if [ "$1" = '-preparse' -o "$1" = "--preparse" ]; then
+    shift
+    cd "$SAGE_LOCAL/bin/"
+    sage-preparse "$CUR" "$@"
+    exit $?
+fi
+
+if [ "$1" = "-cython" -o "$1" = '--cython' -o "$1" = '-pyrex' -o "$1" = "--pyrex" ]; then
+    shift
+    cd "$CUR"
+    sage-cython "$@"
+    exit $?
+fi
+
+if [ "$1" = '-valgrind' -o "$1" = "--valgrind" -o "$1" = '-memcheck' -o "$1" = "--memcheck" ]; then
+    sage_setup
+    sage-valgrind
+    exit $?
+fi
+
+if [ "$1" = '-massif' -o "$1" = "--massif" ]; then
+    sage_setup
+    sage-massif
+    exit $?
+fi
+
+if [ "$1" = '-cachegrind' -o "$1" = "--cachegrind" ]; then
+    sage_setup
+    sage-cachegrind
+    exit $?
+fi
+
+if [ "$1" = '-callgrind' -o "$1" = "--callgrind" ]; then
+    sage_setup
+    sage-callgrind
+    exit $?
+fi
+
+if [ "$1" = '-omega' -o "$1" = "--omega" ]; then
+    sage_setup
+    sage-omega
+    exit $?
+fi
+
+if [ "$1" = '-startuptime' -o "$1" = '--startuptime' ]; then
+    python "$SAGE_LOCAL"/bin/sage-startuptime.py
+    exit $?
+fi
+if [ "$1" = '-gthread' -o "$1" = '-qthread' -o "$1" = '-q4thread' -o "$1" = '-wthread' -o "$1" = '-pylab' ]; then
+    sage "$1"
+    exit $?
+fi
+
+if [ $# -ge 1 ]; then
+   T=`echo "$1" | sed -e "s/.*\.//"`
+   if [ "$T " = "spkg " ]; then
+       install "" "$@"
+       exit $?
+   fi
+   cd "$SAGE_LOCAL/bin/"
+   SAGE_BANNER="no"
+   sage_setup
+   unset TERM  # See Trac #12263
+   sage-run "$CUR" "$@"
+   exit $?
+fi

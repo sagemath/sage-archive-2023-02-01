@@ -1,0 +1,44 @@
+#!/bin/sh
+
+TARGET=dir-0.1
+BUILD=`pwd`/build
+
+mymkdir()
+{
+    echo "$1"
+    if [ ! -d "$1" ]; then
+	mkdir "$1"
+    fi
+}
+
+build()
+{
+   mymkdir "../data/"
+   mymkdir "../local/"
+   mymkdir "../local/etc"
+   mymkdir "../local/lib"
+   mymkdir "../local/bin"
+   mymkdir "../local/include"
+   mymkdir "../tmp/"
+   mymkdir "$BUILD"
+   mymkdir "installed/"
+
+   cp base/sage-* ../local/bin/
+
+   if [ "CYGPKG" = "yes" ]; then
+       ln -s /lib/python2.4 ../local/lib/python2.4
+       ln -s /usr/bin/python.exe ../local/bin/python.exe
+   fi
+
+}
+
+build
+
+if [ $? -ne 0 -a -d ../conf ]; then
+   echo "Error making directories."
+   exit 1
+else
+   touch installed/$TARGET
+fi;
+
+

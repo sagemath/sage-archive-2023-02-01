@@ -1,0 +1,74 @@
+#!/bin/sh
+###########################################
+## Bzip2
+###########################################
+
+CUR="`pwd`"
+BUILD=build
+SAGE_LOCAL="`pwd`/../local"
+VERSION=1.0.5
+TARGET=bzip2-$VERSION
+
+# Set certain SAGE variables
+if [ "$CC" = "" ]; then
+    CC="gcc"         && export CC
+fi
+
+if [ "$SAGE_OPT" = "" ]; then
+   SAGE_OPT="-O2" && export SAGE_OPT
+fi
+
+if [ "x$CFLAG64" = x ]; then
+   CFLAG64=-m64
+fi
+
+if [ "x$SAGE64" = xyes ]; then
+   echo "Building a 64-bit version of bzip2"
+   CFLAGS="-O2 -g $CFLAG64 $CFLAGS"
+   export CFLAGS
+fi
+
+if [ "$SHAREDFLAGS" = "" ]; then
+    SHAREDFLAGS="-fPIC" && export SHAREDFLAGS
+fi
+
+
+build()
+{
+    cd $BUILD
+    echo "Unpacking bzip2"
+    gzip -cd ../base/$TARGET.tar.gz | tar xf -
+    cd bzip2-$VERSION
+
+    echo "Building bzip2"
+    ${MAKE:-make} CC="$CC" CFLAGS="$CFLAGS $SHAREDFLAGS"
+    if [ $? -ne 0 ]; then
+       echo >&2 "Error building bzip2"
+       exit 1
+    fi
+
+    echo "Installing bzip2"
+    ${MAKE:-make} install PREFIX="$SAGE_LOCAL" CC="$CC" CFLAGS="$CFLAGS $SHAREDFLAGS"
+    if [ $? -ne 0 ]; then
+       echo >&2 "Error installing bzip2"
+       exit 1
+    fi
+
+    # Now fix a bunch of hard-coding the bzip2 does during build.
+    cd "$SAGE_LOCAL"/bin
+    rm bzcmp; ln -s bzdiff bzcmp
+    rm bzegrep; ln -s bzgrep bzegrep
+    rm bzfgrep; ln -s bzgrep bzfgrep
+    rm bzless; ln -s bzmore bzless
+}
+
+build
+
+if [ $? -eq 0 -a -f "$SAGE_LOCAL"/bin/bzip2 -a -f "$SAGE_LOCAL"/lib/libbz2.a ]; then
+    touch "$CUR/installed/$TARGET"
+    exit 0
+else
+    echo "Error building bzip2"
+    exit 1
+fi
+

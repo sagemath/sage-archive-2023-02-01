@@ -1629,11 +1629,12 @@ calculated in time linear in the length of the longest element of
 Note that this algorithm was originally developed and implemented in
 ``MuPAD-Combinat`` and was ported identically to ``Sage``; this
 implementation is not robust when the inputs are subtly incoherent, which
-can yield surprising results. For instance, the following example should
-give the partitions of 2 of length 2 which are strictly decreasing::
+can yield surprising results. For example, partitions of 2 of length 2 with
+a max slope of -1 returned the partition [1, 1]. This was slightly modified
+and now gives the proper result.
 
     sage: Partitions(2, max_slope=-1, length=2).list()
-    [[1, 1]]
+    []
 
 .. _section-generic-polytopes:
 

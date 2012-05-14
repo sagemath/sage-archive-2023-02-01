@@ -5,9 +5,16 @@ IMPORTANT NOTE (2009/02):
 The internal functions in this file will be deprecated soon.
 Please only use them through IntegerListsLex.
 
+AUTHORS:
+
+- Mike Hansen
+
+- Travis Scrimshaw (2012-05-12): Fixed errors when returning None from first.
+  Added checks to make sure max_slope is satisfied.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -37,6 +44,10 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
        INTERNAL FUNCTION! DO NOT USE DIRECTLY!
 
+    .. TODO::
+
+       Move this into Cython.
+
     Preconditions:
 
     - minslope < maxslope
@@ -62,9 +73,21 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: integer_list.first(36, 9, 9, f([3,3,3,2,1,4,2,0,0]), f([7,6,5,5,5,5,5,4,4]), -2, 1)
         [7, 6, 5, 5, 5, 4, 3, 1, 0]
     """
+    # Check, trivial cases, and standardize min_length to be at least 1
+    if n < 0:
+        return None
+    if max_length <= 0:
+        if n == 0:
+            return []
+        return None
+    if min_length <= 0:
+        if n == 0:
+            return []
+        min_length = 1
 
     #Increase minl until n <= sum([ceiling(i) for i in range(min_length)])
     #This may run forever!
+    # Find the actual length the list needs to be
     N = sum([ceiling(i) for i in range(1,min_length+1)])
     while N < n:
         min_length += 1
@@ -76,46 +99,45 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
         N += ceiling(min_length)
 
+    # Trivial case
+    if min_length == 1:
+        if n < floor(1):
+            return None
+        return [n]
 
-    #This is the place where it's required that floor(i)
-    #respects the floor conditions.
-    n -= sum([floor(i) for i in range(1, min_length+1)])
-    if n < 0:
-        return None
+    # Compute the minimum values
+    # We are constrained below by the max slope
+    result = [floor(min_length)]
+    n -= floor(min_length)
+    for i in reversed(range(1, min_length)):
+        result.insert(0, max(floor(i), result[0] - max_slope))
+        n -= result[0]
+        if n < 0:
+            return None
 
-    #Now we know that we can build the composition inside
-    #the "tube" [1 ... min_length] * [floor, ceiling]
-
-    if min_slope == -infinity:
-        #Easy case: min_slope == -infinity
-        result = []
-        i = min_length
-        for i in range(1,min_length+1):
-            if n <= ceiling(i) - floor(i):
-                result.append(floor(i) + n)
-                break
-            else:
-                result.append(ceiling(i))
-                n -= ceiling(i) - floor(i)
-
-        result += [floor(j) for j in range(i+1,min_length+1)]
+    if n == 0: # There is nothing more to do
         return result
 
+    if min_slope == -infinity:
+        for i in range(1, min_length+1):
+            if n <= ceiling(i) - result[i-1]: #-1 for indexing
+                result[i-1] += n
+                break
+            else:
+                n -= ceiling(i) - result[i-1]
+                result[i-1] = ceiling(i)
     else:
-        if n == 0 and min_length == 0:
-            return []
-
         low_x = 1
-        low_y = floor(1)
+        low_y = result[0]
         high_x = 1
-        high_y = floor(1)
+        high_y = result[0]
 
         while n > 0:
             #invariant after each iteration of the loop:
             #[low_x, low_y] is the coordinate of the rightmost point of the
-            #current diagonal s.t. floor(low_x) < low_y
+            #current diagonal s.t. result[low_x] < low_y
             low_y += 1
-            while low_x < min_length and low_y+min_slope > floor(low_x + 1):
+            while low_x < min_length and low_y + min_slope > result[low_x]:
                 low_x += 1
                 low_y += min_slope
 
@@ -126,16 +148,14 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
             n -= low_x - high_x + 1
 
-        #print "lx, ly, hw, hy, n", low_x, low_y, high_x, high_y, n
-        #print (high_x-1 - 1 + 1)  + (n + 1 - 0 + 1) + ( low_x-high_x - n + 1) + (min_length - (low_x + 1) +1)
-        result = []
-        result += [ ceiling(j) for j in range(1,high_x)]
-        result += [ high_y + min_slope*i - 1 for i in range(0, -n) ]
-        result += [ high_y + min_slope*i for i in range(-n, low_x-high_x+1)]
-        result += [ floor(j) for j in range(low_x+1,min_length+1) ]
+        for j in range(1, high_x):
+            result[j-1] = ceiling(j)
+        for i in range(0, -n):
+            result[high_x+i-1] = high_y + min_slope * i - 1
+        for i in range(-n, low_x-high_x+1):
+            result[high_x+i-1] = high_y + min_slope * i
 
-        return result
-
+    return result
 
 def lower_regular(comp, min_slope, max_slope):
     """
@@ -294,6 +314,7 @@ def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max
 
     return [x, floorx_x]
 
+
 def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
     Returns the next integer list after comp that satisfies the
@@ -312,7 +333,7 @@ def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
         [0, 0, 2]
     """
     x = rightmost_pivot( comp, min_length, max_length, floor, ceiling, min_slope, max_slope)
-    if x == None:
+    if x is None:
         return None
     [x, low] = x
     high = comp[x-1]-1
@@ -333,13 +354,14 @@ def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
     else:
         new_ceiling = lambda i: min(ceiling(x+(i-1)), high+(i-1)*max_slope)
 
-
     res = []
     res += comp[:x-1]
-    res += first(sum(comp[x-1:]), max(min_length-x+1, 0), max_length-x+1,
+    f = first(sum(comp[x-1:]), max(min_length-x+1, 0), max_length-x+1,
                  new_floor, new_ceiling, min_slope, max_slope)
+    if f is None: # Check to make sure it is valid
+        return None
+    res += f
     return res
-
 
 
 def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
@@ -853,6 +875,8 @@ class IntegerListsLex(CombinatorialClass):
          [2, 2, 2, 2, 2]]
         sage: list(IntegerListsLex(4, **compositions))
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+        sage: list(IntegerListsLex(6, min_length=1, floor=[7]))
+        []
 
     """
     def __init__(self,
@@ -880,12 +904,26 @@ class IntegerListsLex(CombinatorialClass):
             self.floor_list = []
         elif type(floor) is type([]): # FIXME: how to refer to type list rather than the function list above?
             self.floor_list = floor
+            # Make sure the floor list will make the list satisfy the constraints
+            if max_slope != infinity:
+                for i in reversed(range(len(self.floor_list)-1)):
+                    self.floor_list[i] = max(self.floor_list[i], self.floor_list[i+1] - max_slope)
+            if min_slope != -infinity:
+                for i in range(1, len(self.floor_list)):
+                    self.floor_list[i] = max(self.floor_list[i], self.floor_list[i-1] + min_slope)
         else:
             self.floor = floor
         if ceiling is None:
             self.ceiling_list = []
         elif type(ceiling) is type([]):
             self.ceiling_list = ceiling
+            # Make sure the ceiling list will make the list satisfy the constraints
+            if max_slope != infinity:
+                for i in range(1, len(self.ceiling_list)):
+                    self.ceiling_list[i] = min(self.ceiling_list[i], self.ceiling_list[i-1] + max_slope)
+            if min_slope != -infinity:
+                for i in reversed(range(len(self.ceiling_list)-1)):
+                    self.ceiling_list[i] = min(self.ceiling_list[i], self.ceiling_list[i+1] - min_slope)
         else:
             self.ceiling = ceiling
         if length is not None:
@@ -948,7 +986,7 @@ class IntegerListsLex(CombinatorialClass):
             2
 
         """
-        return self.floor_list[i]   if i < len(self.floor_list  ) else self.min_part
+        return self.floor_list[i] if i < len(self.floor_list) else self.min_part
 
     def ceiling(self, i):
         """
@@ -1007,7 +1045,11 @@ class IntegerListsLex(CombinatorialClass):
             sage: C.first()
             [2, 0, 0]
         """
-        return self._element_constructor_(first(self.n_range[0], *(self.build_args())))
+        # Make sure we have a valid return
+        f = first(self.n_range[0], *(self.build_args()))
+        if f is None:
+            return None
+        return self._element_constructor_(f)
 
     def __iter__(self):
         """

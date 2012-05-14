@@ -24,6 +24,9 @@ AUTHORS:
 - Travis Scrimshaw (2012-05-09): Fixed Partitions(-1).list() infinite recursion
   loop by saying Partitions_n is the empty set.
 
+- Travis Scrimshaw (2012-05-11): Fixed bug in inner where if the length was
+  longer than the length of the inner partition, it would include 0's.
+
 EXAMPLES:
 
 There are 5 partitions of the integer 4::
@@ -240,6 +243,7 @@ from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
 from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.misc.prandom import randrange
+from sage.rings.infinity import infinity
 
 def Partition(mu=None, **keyword):
     """
@@ -3279,7 +3283,15 @@ def Partitions(n=None, **kwargs):
         False
         sage: [3,2] in P
         True
+
+        sage: Partitions(5, inner=[2,1], min_length=3).list()
+        [[3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
+        sage: Partitions(5, inner=[2,0,0,0,0,0]).list()
+        [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
+        sage: Partitions(6, length=2, max_slope=-1).list()
+        [[5, 1], [4, 2]]
     """
+    assert n != infinity, "n cannot be infinite"
     if n is None:
         assert(len(kwargs) == 0)
         return Partitions_all()
@@ -3317,8 +3329,10 @@ def Partitions(n=None, **kwargs):
                     del kwargs['outer']
 
                 if 'inner' in kwargs:
-                    inner = kwargs['inner']
-                    kwargs['floor'] = lambda i: inner[i] if i < len(inner) else 0
+                    # Keep only elements that contribute
+                    # We assume that inner is a partition
+                    inner = [x for x in kwargs['inner'] if x > 0]
+                    kwargs['floor'] = lambda i: inner[i] if i < len(inner) else 1
                     if 'min_length' in kwargs:
                         kwargs['min_length'] = max( len(inner), kwargs['min_length'])
                     else:

@@ -960,11 +960,15 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def map_coefficients(self, f, new_base_ring=None):
         """
-        Returns a new element of ``self.parent()`` obtained by applying
-        the function f to all of the coefficients of self.
+        Returns the polynomial obtained by applying ``f`` to the coefficients
+        of self.
 
-        If ``new_base_ring=S`` is given, the new element returned has
-        coefficients in the base ring ``S``.
+        INPUT:
+
+        - ``f`` -- the callable that will be applied to the coefficients of ``self``
+
+        - ``new_base_ring`` -- the base ring of the resulting polynomial which
+          defaults to ``self.parent().base_ring()`` if ``None`` is given (default: None)
 
         EXAMPLES::
 

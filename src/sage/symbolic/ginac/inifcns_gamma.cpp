@@ -291,7 +291,8 @@ static ex beta_eval(const ex & x, const ex & y)
 		    (nx+ny).is_integer() &&
 		   !(nx+ny).is_positive())
 			 return _ex0;
-		if (!ex_to<numeric>(x).is_rational() || !ex_to<numeric>(x).is_rational())
+		if (!ex_to<numeric>(x).is_crational() ||
+				!ex_to<numeric>(y).is_crational())
 			return evalf(beta(x, y).hold());
 	}
 	

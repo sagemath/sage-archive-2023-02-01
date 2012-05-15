@@ -1503,10 +1503,18 @@ class Function_beta(GinacFunction):
             sage: beta(1/2,3*x)
             beta(3*x, 1/2)
 
-        The following must be fixed to remain symbolic::
+        The result is symbolic if exact input is given::
 
             sage: beta(2,1+5*I)
-            -0.0305039787798408 - 0.0198938992042440*I
+            beta(2, 5*I + 1)
+            sage: beta(2, 2.)
+            0.166666666666667
+            sage: beta(I, 2.)
+            -0.500000000000000 - 0.500000000000000*I
+            sage: beta(2., 2)
+            0.166666666666667
+            sage: beta(2., I)
+            -0.500000000000000 - 0.500000000000000*I
 
         Test pickling::
 

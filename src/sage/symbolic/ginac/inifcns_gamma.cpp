@@ -416,7 +416,8 @@ static ex psi1_eval(const ex & x)
 				return recur+psi(_ex1_2);
 			}
 		}
-		//  psi1_evalf should be called here once it becomes available
+		if (!ex_to<numeric>(x).is_crational())
+			return psi(ex_to<numeric>(x));
 	}
 	
 	return psi(x).hold();

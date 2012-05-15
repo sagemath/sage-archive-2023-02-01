@@ -1084,6 +1084,11 @@ class Function_psi1(GinacFunction):
             \psi\left(x\right)
             sage: loads(dumps(psi1(x)+1))
             psi(x) + 1
+
+            sage: t = psi1(x); t
+            psi(x)
+            sage: t.subs(x=.2)
+            -5.28903989659219
         """
         GinacFunction.__init__(self, "psi", nargs=1, latex_name='\psi',
                 conversions=dict(maxima='psi[0]', mathematica='PolyGamma'))

@@ -76,6 +76,7 @@ protected:
 	                                       const ex & c) const;
 	ex recombine_pair_to_ex(const expair & p) const;
 	ex expand(unsigned options=0) const;
+	ex eval_infinity(epvector::const_iterator infinity_iter) const;
 
 	// non-virtual functions in this class
 protected:

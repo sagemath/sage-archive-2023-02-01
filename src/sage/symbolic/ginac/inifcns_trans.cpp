@@ -24,6 +24,7 @@
 #include "inifcns.h"
 #include "ex.h"
 #include "constant.h"
+#include "infinity.h"
 #include "numeric.h"
 #include "power.h"
 #include "operators.h"
@@ -1106,6 +1107,23 @@ static ex atan2_eval(const ex & y, const ex & x)
 	    is_a<numeric>(x) && !x.info(info_flags::crational))
 		return atan(ex_to<numeric>(y), ex_to<numeric>(x));
 
+	// handle infinities
+	if (is_a<infinity>(x) || is_a<infinity>(y)) {
+		if (is_a<infinity>(x) && ex_to<infinity>(x).is_unsigned_infinity())
+			throw (std::runtime_error("arctan2_eval(): arctan2(unsigned_infinity, x) encountered"));
+		if (is_a<infinity>(y) && ex_to<infinity>(y).is_unsigned_infinity())
+			throw (std::runtime_error("arctan2_eval(): arctan2(x, unsigned_infinity) encountered"));
+
+		if (is_a<infinity>(x) && is_a<infinity>(y)) 
+			return atan2_eval(ex_to<infinity>(x).get_direction(), 
+					  ex_to<infinity>(y).get_direction());
+
+		if (is_a<infinity>(x)) 
+			return atan2_eval(ex_to<infinity>(x).get_direction(), 0);
+		if (is_a<infinity>(y)) 
+			return atan2_eval(0, ex_to<infinity>(y).get_direction());
+	}
+
 	// atan2(real, real) -> atan(y/x) +/- Pi
 	if (y.info(info_flags::real) && x.info(info_flags::real)) {
 		if (x.info(info_flags::positive))
@@ -1117,37 +1135,6 @@ static ex atan2_eval(const ex & y, const ex & x)
 			if (y.info(info_flags::negative))
 				return atan(y/x)-Pi;
 		}
-	}
-
-	// atan(infinity, infinity) -> error
-	// atan(oo, x) -> 0
-	// atan(-oo, x) & x negative -> -Pi
-	// atan(-oo, x) -> Pi
-	// atan(UnsignedInfinity, x) -> error
-	if (y.info(info_flags::infinity)) {
-		if (x.info(info_flags::infinity))
-			throw (std::runtime_error("arctan2_eval(): arctan2(infinity, infinity) encountered"));
-		if (y.is_equal(Infinity)) 
-			return _ex0;
-		if (y.is_equal(NegInfinity)) {
-			if (x.info(info_flags::negative))
-				return _ex_1*Pi;
-			return Pi;
-		}
-		// y is unsigned_infinity
-		throw (std::runtime_error("arctan2_eval(): arctan2(unsigned_infinity, x) encountered"));
-	}
-
-	// atan(x, oo) -> Pi/2
-	// atan(x, -oo) -> -Pi/2
-	// atan(x, UnsignedInfinity) -> error
-	if (x.info(info_flags::infinity)) {
-		if (x.is_equal(Infinity))
-			return _ex1_2*Pi;
-		if (x.is_equal(NegInfinity))
-			return _ex_1_2*Pi;
-		// x is unsigned_infinity
-		throw (std::runtime_error("arctan2_eval(): arctan2(x, unsigned_infinity) encountered"));
 	}
 		
 	return atan2(y, x).hold();

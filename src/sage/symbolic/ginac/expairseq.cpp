@@ -32,6 +32,7 @@
 #include "utils.h"
 #include "indexed.h"
 #include "constant.h"
+#include "infinity.h"
 
 #include <iostream>
 #include <algorithm>

@@ -28,6 +28,7 @@
 #include "ncmul.h"
 #include "numeric.h"
 #include "constant.h"
+#include "infinity.h"
 #include "operators.h"
 #include "inifcns.h" // for log() in power::derivative() and exp for printing
 #include "matrix.h"
@@ -466,53 +467,42 @@ ex power::eval(int level) const
 	}
 
 	// ^(\infty, x)
-	// error if x is not numeric and real
-	// -> 0 if x < 0
-	// -> error if x == 0
-	// -> Infinity if \infty is NegInfinity and x is even
-	// -> \infty otherwise
-	if (ebasis.info(info_flags::infinity)) {
-		if (exponent_is_numerical) {
-			if (!num_exponent->is_real()) {
-				throw(std::domain_error("power::eval(): pow(Infinity, x) is not defined for complex x."));
-			} else if (num_exponent->csgn() == -1)
-				return _ex0;
-			else if (num_exponent->is_zero())
-				throw(std::domain_error("power::eval(): pow(Infinity, 0) is undefined."));
-			else if (ebasis.is_equal(NegInfinity) && 
-					num_exponent->is_even())
+	if (is_a<infinity>(ebasis)) {
+		const infinity & basis_inf = ex_to<infinity>(ebasis);
+		if (eexponent.nsymbols()>0)
+			throw(std::domain_error("power::eval(): pow(Infinity, f(x)) is not defined."));
+		if (eexponent.is_zero())
+			throw(std::domain_error("power::eval(): pow(Infinity, 0) is undefined."));
+		if (eexponent.info(info_flags::negative))
+			return _ex0;
+		if (eexponent.info(info_flags::positive))
+			if (basis_inf.is_unsigned_infinity())
+				return UnsignedInfinity;
+			else
+				return mul(pow(basis_inf.get_direction(), eexponent), Infinity);
+		throw(std::domain_error("power::eval(): pow(Infinity, c)"
+					" for constant of undetermined sign is not defined."));
+	}
+
+	// ^(x, \infty)
+	if (is_a<infinity>(eexponent)) {
+		const infinity & exp_inf = ex_to<infinity>(eexponent);
+		if (exp_inf.is_unsigned_infinity())
+			throw(std::domain_error("power::eval(): pow(x, unsigned_infinity) is not defined."));
+		if (ebasis.nsymbols()>0) 
+			throw(std::domain_error("power::eval(): pow(f(x), infinity) is not defined."));
+		// x^(c*oo) --> (x^c)^(+oo)
+		const ex abs_base = abs(pow(ebasis, exp_inf.get_direction()));
+		if (abs_base > _ex1) 
+			if (ebasis.info(info_flags::positive))
 				return Infinity;
 			else
-				return ebasis;
-		} else
-			throw(std::domain_error("power::eval(): pow(Infinity, x) for non numeric x is not defined."));
-	}
-	// ^(x, \infty)
-	// error if x is not numeric
-	// error if \infty is UnsignedInfinity
-	// error if x \in {0, 1, -1}
-	// 0 if \infty is NegInfinity
-	// UnsignedInfinity if x < 0
-	// Infinity otherwise
-	if (eexponent.info(info_flags::infinity)) {
-		if (!basis_is_numerical) {
-			throw(std::domain_error("power::eval(): pow(x, Infinity) for non numeric x is not defined."));
-		} else if (!num_basis->is_real()) {
-			throw(std::domain_error("power::eval(): pow(x, Infinity) for non real x is not defined."));
-		} else if (ebasis.is_equal(UnsignedInfinity)) {
-			throw(std::domain_error("power::eval(): pow(x, UnsignedInfinity) is not defined."));
-		} else if (num_basis->is_zero()) {
-			throw(std::domain_error("power::eval(): pow(0, Infinity) is not defined."));
-		} else if (num_basis->is_equal(*_num1_p) || 
-				num_basis->is_equal(*_num_1_p)) {
+				return UnsignedInfinity;
+		if (abs_base < _ex1) return _ex0;
+		if (abs_base == _ex1)
 			throw(std::domain_error("power::eval(): pow(1, Infinity) is not defined."));
-		} else if (eexponent.is_equal(NegInfinity)) {
-			return _ex0;
-		} else if (num_basis->csgn() == -1) {
-			return UnsignedInfinity;
-		} else {
-			return Infinity;
-		}
+		throw(std::domain_error("power::eval(): pow(c, Infinity)"
+					" for unknown magnitude |c| is not defined."));
 	}
 	
 	// ^(x,0) -> 1  (0^0 also handled here)

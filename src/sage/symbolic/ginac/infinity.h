@@ -1,9 +1,9 @@
-/** @file constant.h
+/** @file infinity.h
  *
- *  Interface to GiNaC's constant types and some special constants. */
+ *  The value "Infinity".  */
 
 /*
- *  GiNaC Copyright (C) 1999-2008 Johannes Gutenberg University Mainz, Germany
+ *  Copyright (C) 2011 Volker Braun <vbraun@stp.dias.ie>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,42 +20,43 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef __GINAC_CONSTANT_H__
-#define __GINAC_CONSTANT_H__
+#ifndef __GINAC_INFINITY_H__
+#define __GINAC_INFINITY_H__
 
 #include "basic.h"
+#include "numeric.h"
 #include "ex.h"
 
 #include <string>
 
 namespace GiNaC {
 
-typedef ex (*evalffunctype)(unsigned serial, PyObject* parent);
 	
-/** This class holds constants, symbols with specific numerical value. Each
- *  object of this class must either provide their own function to evaluate it
- *  to class numeric or provide the constant as a numeric (if it's an exact
- *  number). */
-class constant : public basic
+/** This class holds "infinity"
+ *  It includes a direction (like -infinity).
+ **/
+class infinity : public basic
 {
-	GINAC_DECLARE_REGISTERED_CLASS(constant, basic)
-	
-// member functions
-	
-	// other constructors
+	GINAC_DECLARE_REGISTERED_CLASS(infinity, basic)
 public:
-	constant(const std::string & initname, evalffunctype efun = 0, const std::string & texname = std::string(), unsigned domain = domain::complex);
-	constant(const std::string & initname, const numeric & initnumber, const std::string & texname = std::string(), unsigned domain = domain::complex);
+       	infinity(const numeric & _direction);
+	static infinity from_direction(const ex & _direction);
+	static infinity from_sign(int sgn);
 	
 	// functions overriding virtual functions from base classes
 public:
 	bool info(unsigned inf) const;
 	ex evalf(int level = 0, PyObject* parent=NULL) const;
-	bool is_polynomial(const ex & var) const;
 	ex conjugate() const;
 	ex real_part() const;
 	ex imag_part() const;
-	unsigned get_serial() const {return serial;}
+
+	bool is_unsigned_infinity() const;
+	bool is_plus_infinity() const;
+	bool is_minus_infinity() const;
+	const ex & get_direction() const { return direction; };
+	const infinity & operator *= (const ex & rhs);
+	const infinity & operator += (const ex & rhs);
 
 protected:
 	ex derivative(const symbol & s) const;
@@ -69,21 +70,17 @@ protected:
 	void do_print_latex(const print_latex & c, unsigned level) const;
 	void do_print_python_repr(const print_python_repr & c, unsigned level) const;
 
+	void set_direction(const ex & new_direction);
+	
 // member variables
 private:
-	std::string name;     ///< printname of this constant
-	std::string TeX_name; ///< LaTeX name
-	evalffunctype ef;
-	ex number;            ///< numerical value this constant evalf()s to
-	unsigned serial;      ///< unique serial number for comparison
-	static unsigned next_serial;
-	unsigned domain;      ///< numerical value this constant evalf()s to
+	ex direction;
 };
 
-extern const constant Pi;
-extern const constant Catalan;
-extern const constant Euler;
+extern const infinity Infinity;
+extern const infinity NegInfinity;
+extern const infinity UnsignedInfinity;
 
 } // namespace GiNaC
 
-#endif // ndef __GINAC_CONSTANT_H__
+#endif // ndef __GINAC_INFINITY_H__

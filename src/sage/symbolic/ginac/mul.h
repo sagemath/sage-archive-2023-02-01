@@ -87,6 +87,9 @@ protected:
 	void find_real_imag(ex&, ex&) const;
 	int compare(const basic& other) const;
 	
+	ex eval_infinity(epvector::const_iterator infinity_iter) const;
+	ex eval_exponentials() const;
+
 	// new virtual functions which can be overridden by derived classes
 	// none
 	

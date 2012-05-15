@@ -29,6 +29,7 @@
 #include "clifford.h"
 #include "ncmul.h"
 #include "constant.h"
+#include "infinity.h"
 #include "compiler.h"
 
 #include <sstream>
@@ -396,7 +397,13 @@ ex add::eval(int level) const
 		GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_zero());
 		return *this;
 	}
-	
+		
+	// handle infinity
+	for (epvector::const_iterator i = seq.begin(); i != seq.end(); i++)
+		if (unlikely(is_exactly_a<infinity>(i->rest)))
+			return eval_infinity(i);
+
+	/** Perform automatic term rewriting rules */
 	int seq_size = seq.size();
 	if (seq_size == 0) {
 		// +(;c) -> c
@@ -408,74 +415,56 @@ ex add::eval(int level) const
 		throw (std::logic_error("add::eval(): sum of non-commutative objects has non-zero numeric term"));
 	}
 
-	// handle infinity
-	epvector::const_iterator last = seq.end();
-	epvector::const_iterator i = seq.begin();
-	ex pval = _ex0;
-	ex nval = _ex0;
-	for (; i != last; ++i) {
-		if ((i->rest).info(info_flags::infinity)) {
-			if (pval.is_equal(UnsignedInfinity)) {
-				throw(std::runtime_error("indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered."));
-			}
-			if (i->rest.is_equal(UnsignedInfinity)) {
-				nval = i->rest;
-			} else if (ex_to<numeric>(i->coeff).is_real()) {
-				if (ex_to<numeric>(i->coeff).csgn() == -1) {
-					if (i->rest.is_equal(Infinity))
-						nval = NegInfinity;
-					else
-						nval = Infinity;
-				} else {
-					nval = i->rest;
-				}
-			} else {
-				nval = UnsignedInfinity;
-				if (!pval.is_zero()) {
-					throw(std::runtime_error("indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered."));
-				}
-			}
-			if (!pval.is_zero()) {
-				if (!pval.is_equal(nval)) {
-					throw(std::runtime_error("indeterminate expression: Infinity - Infinity encountered."));
-				}
-			} else {
-				pval = nval;
-			}
-		}
-		
-	}
-	if(!pval.is_zero())
-		return pval;
-
 	// if any terms in the sum still are purely numeric, then they are more
 	// appropriately collected into the overall coefficient
-	//last = seq.end();
-	epvector::const_iterator j = seq.begin();
 	int terms_to_collect = 0;
-	while (j != last) {
+	for (epvector::const_iterator j = seq.begin(); j != seq.end(); j++)
 		if (unlikely(is_a<numeric>(j->rest)))
 			++terms_to_collect;
-		++j;
-	}
 	if (terms_to_collect) {
 		std::auto_ptr<epvector> s(new epvector);
 		s->reserve(seq_size - terms_to_collect);
 		numeric oc = *_num1_p;
-		j = seq.begin();
-		while (j != last) {
+		for (epvector::const_iterator j = seq.begin(); j != seq.end(); j++)
 			if (unlikely(is_a<numeric>(j->rest)))
 				oc = oc.mul(ex_to<numeric>(j->rest)).mul(ex_to<numeric>(j->coeff));
 			else
 				s->push_back(*j);
-			++j;
-		}
 		return (new add(s, ex_to<numeric>(overall_coeff).add_dyn(oc)))
 		        ->setflag(status_flags::dynallocated);
 	}
 
 	return this->hold();
 }
+
+
+
+namespace { // anonymous namespace
+	infinity infinity_from_iter(epvector::const_iterator i)
+	{
+		GINAC_ASSERT(is_exactly_a<infinity>(i->rest));
+		GINAC_ASSERT(is_a<numeric>(i->coeff));
+		infinity result = ex_to<infinity>(i->rest);
+		result *= i->coeff;
+		return result;
+	}
+} // end anonymous namespace
+
+
+ex add::eval_infinity(epvector::const_iterator infinity_iter) const
+{
+	GINAC_ASSERT(is_exactly_a<infinity>(infinity_iter->rest));
+	infinity result = infinity_from_iter(infinity_iter);
+
+        for (epvector::const_iterator i = seq.begin(); i != seq.end(); i++) {
+                if (not is_exactly_a<infinity>(i->rest)) continue;
+                if (i == infinity_iter) continue;
+		infinity i_infty = infinity_from_iter(i);
+		result += i_infty;
+        }
+	return result;
+}
+
 
 ex add::evalm() const
 {

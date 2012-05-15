@@ -20,11 +20,13 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include "compiler.h"
 #include "relational.h"
 #include "operators.h"
 #include "numeric.h"
 #include "archive.h"
 #include "utils.h"
+#include "infinity.h"
 
 #include <iostream>
 #include <stdexcept>
@@ -381,6 +383,27 @@ relational::safe_bool relational::make_safe_bool(bool cond) const
  *  unequal or undecidable). */
 relational::operator relational::safe_bool() const
 {
+	if (unlikely(is_exactly_a<infinity>(rh) and is_exactly_a<infinity>(lh))) {
+		const infinity & lh_inf = ex_to<infinity>(lh);
+		const infinity & rh_inf = ex_to<infinity>(rh);
+		const ex df = lh_inf.get_direction() - rh_inf.get_direction();
+		switch (o) {
+		case equal:
+			return make_safe_bool(ex_to<numeric>(df).is_zero());
+		case not_equal:
+			return make_safe_bool(!ex_to<numeric>(df).is_zero());
+		case less:
+		case less_or_equal:
+			return make_safe_bool(lh_inf.is_minus_infinity() and rh_inf.is_plus_infinity());
+		case greater:
+		case greater_or_equal:
+			return make_safe_bool(lh_inf.is_plus_infinity() and rh_inf.is_minus_infinity());
+		default:
+			throw(std::logic_error("invalid relational operator"));
+		}
+		return make_safe_bool(false);
+	}
+
 	const ex df = lh-rh;
 	if (!is_exactly_a<numeric>(df))
 		// cannot decide on non-numerical results

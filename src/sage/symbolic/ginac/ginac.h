@@ -33,6 +33,7 @@
 #include "print.h"
 
 #include "constant.h"
+#include "infinity.h"
 #include "fail.h"
 #include "integral.h"
 #include "lst.h"

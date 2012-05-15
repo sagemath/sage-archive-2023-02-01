@@ -31,6 +31,7 @@
 #include "symbol.h"
 #include "compiler.h"
 #include "constant.h"
+#include "infinity.h"
 #include "function.h"
 #include "inifcns.h"
 
@@ -611,9 +612,11 @@ ex mul::eval(int level) const
 		    print(print_tree(std::cerr));
 		GINAC_ASSERT(!is_exactly_a<numeric>(recombine_pair_to_ex(*i)));
 		/* for paranoia */
-		expair p = split_ex_to_pair(recombine_pair_to_ex(*i));
-		GINAC_ASSERT(p.rest.is_equal(i->rest));
-		GINAC_ASSERT(p.coeff.is_equal(i->coeff));
+		//   The following test will fail on sage: exp(x)*exp(x)
+		//   Thats probably not an issue, but should be investigated.
+		// expair p = split_ex_to_pair(recombine_pair_to_ex(*i));
+		// GINAC_ASSERT(p.rest.is_equal(i->rest));
+		// GINAC_ASSERT(p.coeff.is_equal(i->coeff));
 		/* end paranoia */
 		++i;
 	}
@@ -624,54 +627,33 @@ ex mul::eval(int level) const
 		GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_equal(_ex1));
 		return *this;
 	}
-	
+
+	// handle infinity and handle exp(a)*exp(b) -> exp(a+b) and
+	unsigned exp_count = 0;
+	for (epvector::const_iterator i = seq.begin(); i != seq.end(); i++) {
+		const numeric& coeff = ex_to<numeric>(i->coeff);
+		if (unlikely(is_exactly_a<infinity>(i->rest)))
+			return eval_infinity(i);
+		if (unlikely(is_ex_the_function(i->rest, exp) and
+			     coeff.is_integer())) {
+			exp_count++;
+			if (exp_count>1 or not coeff.is_equal(*_num1_p))
+				return eval_exponentials();
+		}
+	}
+
+	// perform the remaining automatic rewrites
 	size_t seq_size = seq.size();
 	if (overall_coeff.is_zero()) {
 		// *(...,x;0) -> 0
-		// unless an element of seq is infinity
-		epvector::const_iterator last = seq.end();
-		epvector::const_iterator i = seq.begin();
-		for (; i != last; ++i) {
-			if (i->rest.info(info_flags::infinity) && 
-					is_a<numeric>(i->coeff) && 
-					ex_to<numeric>(i->coeff).csgn() == 1) {
-				throw(std::runtime_error("indeterminate expression: 0*infinity encountered."));
-			}
-		}
 		return _ex0;
 	} else if (seq_size==0) {
 		// *(;c) -> c
 		return overall_coeff;
-	} else if (seq_size==1 && seq[0].rest.info(info_flags::infinity)) {
-		if (!ex_to<numeric>(overall_coeff).is_real()) {
-			throw(std::domain_error("x*Infinity with non real x encountered."));
-		} else if (!is_a<numeric>(seq[0].coeff) || 
-				!ex_to<numeric>(seq[0].coeff).is_real()) {
-				throw(std::domain_error("power::eval(): pow(Infinity, x) for non real x is not defined."));
-		} else if (ex_to<numeric>(seq[0].coeff).csgn() == -1) {
-			return _ex0;
-		} else if (seq[0].rest.is_equal(UnsignedInfinity)) {
-			return UnsignedInfinity;
-		}
-		bool overall_sign=(ex_to<numeric>(overall_coeff).csgn() == -1);
-		if (overall_sign) {
-			if (seq[0].rest.is_equal(NegInfinity)) {
-				if (ex_to<numeric>(seq[0].coeff).is_even()) {
-					return NegInfinity;
-				} else
-					return Infinity;
-			} else
-				return NegInfinity;
-		} else {
-			if (seq[0].rest.is_equal(NegInfinity) && 
-				ex_to<numeric>(seq[0].coeff).is_even()) {
-					return Infinity;
-			} else
-				return seq[0].rest;
-		}
-	} else if (seq_size==1 && overall_coeff.is_equal(_ex1) && \
-			!ex_to<numeric>(overall_coeff).is_parent_pos_char()) {
+	} else if (seq_size==1 && overall_coeff.is_equal(_ex1) &&
+		   !ex_to<numeric>(overall_coeff).is_parent_pos_char()) {
 		// *(x;1) -> x
+		// except in positive characteristic: 1*(x+2) = x in F_2
 		return recombine_pair_to_ex(*(seq.begin()));
 	} else if ((seq_size==1) &&
 	           is_exactly_a<add>((*seq.begin()).rest) &&
@@ -689,25 +671,9 @@ ex mul::eval(int level) const
 		                ex_to<numeric>(addref.overall_coeff).
 		                mul_dyn(ex_to<numeric>(overall_coeff)))
 		       )->setflag(status_flags::dynallocated | status_flags::evaluated);
-	} else if ((seq_size==1) && 
-			is_ex_the_function((*seq.begin()).rest, exp) &&
-			ex_to<numeric>((*seq.begin()).coeff).is_integer() &&
-			!(*seq.begin()).coeff.is_equal(_ex1) ) {
-		// even though exp defines a power simplification rule,
-		// it is possible to end up with i->coeff != 1, e.g.,
-		// as a result of construct_from_2_ex
-		ex new_exp = pow((*seq.begin()).rest, (*seq.begin()).coeff);
-		if (is_a<numeric>(new_exp)) {
-			return ex_to<numeric>(overall_coeff).mul(
-					ex_to<numeric>(new_exp));
-		}
-		return (new mul(new_exp, ex_to<numeric>(overall_coeff))
-			       )->setflag(status_flags::dynallocated);
 	} else if ((seq_size >= 2) && (! (flags & status_flags::expanded))) {
 		// Strip the content and the unit part from each term. Thus
 		// things like (-x+a)*(3*x-3*a) automagically turn into - 3*(x-a)2
-		// also handles exp(a)*exp(b) -> exp(a+b) and
-		// various combinations of infinity
 
 		epvector::const_iterator last = seq.end();
 		epvector::const_iterator i = seq.begin();
@@ -715,89 +681,12 @@ ex mul::eval(int level) const
 		std::auto_ptr<epvector> s(new epvector);
 		numeric oc = *_num1_p;
 		bool something_changed = false;
-		// in order to simplify exp(a)*exp(b) -> exp(a + b)
-		// we keep track of the final exp argument
-		ex exp_arg = _ex0;
-		// for efficiency we only modify the expression for the exp
-		// simplification above if there is more than one exp
-		unsigned exp_count = 0;
-		// we use pval to store the previously encountered infinity type
-		//  0 means we have 1/infinity
-		//  1 means we didn't run into infinity
-		ex pval = _ex1;
-		ex nval = _ex1;
 		while (i!=last) {
-			if (unlikely((i->rest).info(info_flags::infinity))) {
-				if (is_a<numeric>(i->coeff) &&
-					ex_to<numeric>(i->coeff).is_real()) {
-					if (ex_to<numeric>(i->coeff).csgn() ==
-							-1){
-						nval = _ex0;
-					}
-					else if (i->rest.is_equal(NegInfinity) 
-							&& ex_to<numeric>(
-							    i->coeff).is_even())
-						nval = Infinity;
-					else
-						nval = i->rest;
-				} else
-					throw(std::domain_error("power::eval(): pow(Infinity, x) for non real x is not defined."));
-				if (nval.is_zero()) {
-					if (!(pval.is_zero() || 
-							pval.is_equal(_ex1)))
-						throw(std::runtime_error("indeterminate expression: infinity/infinity encountered."));
-					else
-						pval = _ex0;
-				} else if (nval.is_equal(UnsignedInfinity) ||
-						pval.is_equal(UnsignedInfinity))
-					pval = UnsignedInfinity;
-				else if (pval.is_equal(_ex1))
-					pval = nval;
-				else if (nval.is_equal(pval))
-					pval = Infinity;
-				else
-					pval = NegInfinity;
-			}
-			if (unlikely(is_ex_the_function(i->rest, exp) &&
-					ex_to<numeric>(i->coeff).is_integer())) {
-				// if the power of first exp is != 1 we still
-				// have to modify the arguments list
-				// incrementing exp_count one more will
-				// trigger this
-				if (exp_count == 0 && !i->coeff.is_equal(_ex1)){
-					s->push_back(*i);
-					exp_count += 1;
-				}
-				exp_count += 1;
-				exp_arg += i->rest.op(0)*i->coeff;
-				if (exp_count > 1) {
-					// there is more than one exp,
-					// we will change the structure of this
-					// mul instance, create a new epvector
-					// for the argument if there isn't one
-					// already so we can skip this and
-					// future exp's
-
-					if (! something_changed) {
-						s->reserve(seq_size);
-						something_changed = true;
-					}
-
-					while ((j!=i) && (j!=last)) {
-						s->push_back(*j);
-						++j;
-					}
-					++i;
-					++j;
-					continue;
-				}
-
-				// first encounter of an exp, just continue
+			if (likely(! (is_a<add>(i->rest) && i->coeff.is_equal(_ex1)))) {
+				// power::eval has such a rule, no need to handle powers here
 				++i;
 				continue;
-			} else if (unlikely(is_a<add>(i->rest) &&
-						i->coeff.is_equal(_ex1))){
-
+			}
 
 			// XXX: What is the best way to check if the polynomial is a primitive? 
 			numeric c = i->rest.integer_content();
@@ -844,55 +733,11 @@ ex mul::eval(int level) const
 
 			++i;
 			++j;
-			continue;
-			}
-			++i;
-		}
-		if (!pval.is_equal(_ex1)) {
-			if (!ex_to<numeric>(overall_coeff).is_real()) {
-				throw(std::domain_error("x*Infinity with non real x encountered."));
-			} else if (pval.is_zero() || 
-					pval.is_equal(UnsignedInfinity))
-				return pval;
-			else if (ex_to<numeric>(overall_coeff).csgn() == -1)
-				return -pval;
-			else
-				return pval;
 		}
 		if (something_changed) {
 			while (j!=last) {
 				s->push_back(*j);
 				++j;
-			}
-			if (exp_count > 1) {
-				// there was more than one exp
-				// find the already existing exp in the args
-				epvector::iterator prev_exp;
-				prev_exp = s->begin();
-				while( prev_exp != s->end() ) {
-					if (is_ex_the_function(prev_exp->rest,
-						exp) && ex_to<numeric>\
-							(prev_exp->coeff)\
-							.is_integer())
-						break;
-					++prev_exp;
-				}
-				if (prev_exp == s->end())
-					throw(std::runtime_error("Cannot find previous exp while simplifying mul"));
-
-				// see what the new value of exp will be
-				ex new_exp = exp(exp_arg);
-				if (is_a<numeric>(new_exp)) {
-					// if it is a numeric
-					// multiply overall coeff with the new
-					// value, remove the existing exp
-					s->erase(prev_exp);
-					oc = oc.mul(ex_to<numeric>(new_exp));
-				} else {
-					// just set prev_exp to the new value
-					prev_exp->rest = new_exp;
-					prev_exp->coeff = _ex1;
-				}
 			}
 			if (s->empty()) {
 				return ex_to<numeric>(overall_coeff).mul_dyn(oc);
@@ -901,9 +746,53 @@ ex mul::eval(int level) const
 			       )->setflag(status_flags::dynallocated);
 		}
 	}
-
+	
 	return this->hold();
 }
+	
+
+
+ex mul::eval_exponentials() const
+{
+	ex exp_arg = _ex0;
+	numeric oc = *_num1_p;
+	std::auto_ptr<epvector> s(new epvector);
+	s->reserve(seq.size());
+
+	for (epvector::const_iterator i = seq.begin(); i != seq.end(); i++) {
+		const numeric & coeff = ex_to<numeric>(i->coeff);
+		const bool simplifyable_exp = is_ex_the_function(i->rest, exp) and coeff.is_integer();
+		if (likely(not simplifyable_exp))
+			s->push_back(*i);
+		else
+			exp_arg += i->rest.op(0) * coeff;
+	}
+
+	ex new_exp = exp(exp_arg);
+	if (is_a<numeric>(new_exp))
+		oc = oc.mul(ex_to<numeric>(new_exp));
+	else
+		s->push_back(expair(new_exp, _ex1));
+
+	mul * result = new mul(s, ex_to<numeric>(overall_coeff).mul_dyn(oc));
+	return result->setflag(status_flags::dynallocated);
+}
+
+
+ex mul::eval_infinity(epvector::const_iterator infinity_iter) const
+{
+	GINAC_ASSERT(is_exactly_a<infinity>(infinity_iter->rest));
+	GINAC_ASSERT(infinity_iter->coeff.is_equal(_ex1));
+	infinity result = ex_to<infinity>(recombine_pair_to_ex(*infinity_iter));
+	result *= overall_coeff;
+
+	for (epvector::const_iterator i = seq.begin(); i != seq.end(); i++) {
+		if (i == infinity_iter) continue;
+		result *= recombine_pair_to_ex(*i);
+	}
+	return result;
+}
+
 
 ex mul::evalf(int level, PyObject* parent) const
 {

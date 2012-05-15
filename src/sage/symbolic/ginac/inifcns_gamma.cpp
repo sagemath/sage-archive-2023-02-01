@@ -23,6 +23,7 @@
 
 #include "inifcns.h"
 #include "constant.h"
+#include "infinity.h"
 #include "pseries.h"
 #include "numeric.h"
 #include "power.h"

@@ -68,6 +68,7 @@
 
 #include "add.h"
 #include "constant.h"
+#include "infinity.h"
 #include "lst.h"
 #include "mul.h"
 #include "numeric.h"

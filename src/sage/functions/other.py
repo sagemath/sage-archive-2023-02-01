@@ -873,7 +873,7 @@ class Function_log_gamma(GinacFunction):
             sage: log_gamma(-2)
             +Infinity
             sage: conjugate(log_gamma(-2))
-            conjugate(+Infinity)
+            +Infinity
         """
         GinacFunction.__init__(self, "log_gamma", latex_name=r'\log\Gamma',
                 conversions={'mathematica':'LogGamma','maxima':'log_gamma'})

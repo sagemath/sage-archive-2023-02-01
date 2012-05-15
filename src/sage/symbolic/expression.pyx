@@ -207,9 +207,9 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT:
 
-        The python object corresponding to this expression, assuming
-        this expression is a single numerical value. Otherwise, a
-        TypeError is raised.
+        The Python object corresponding to this expression, assuming
+        this expression is a single numerical value or an infinity
+        representable in Python. Otherwise, a ``TypeError`` is raised.
 
         EXAMPLES::
 
@@ -233,7 +233,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(I*oo).pyobject()
             Traceback (most recent call last):
             ...
-            ValueError: Python infinity cannot have complex phase.
+            TypeError: Python infinity cannot have complex phase.
         """
         cdef GConstant* c
         if is_a_constant(self._gobj):
@@ -2248,34 +2248,30 @@ cdef class Expression(CommutativeRingElement):
             sage: nsr(oo) - nsr(oo)
             Traceback (most recent call last):
             ...
-            RuntimeError: indeterminate expression: Infinity - Infinity encountered.
+            RuntimeError: indeterminate expression: infinity - infinity encountered.
             sage: nsr(-oo) - nsr(-oo)
             Traceback (most recent call last):
             ...
-            RuntimeError: indeterminate expression: Infinity - Infinity encountered.
+            RuntimeError: indeterminate expression: infinity - infinity encountered.
 
             sage: nsr(unsigned_infinity) + nsr(oo)
             Traceback (most recent call last):
             ...
-            RuntimeError: indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered.
+            RuntimeError: indeterminate expression: unsigned_infinity +- infinity encountered.
             sage: nsr(unsigned_infinity) - nsr(oo)
             Traceback (most recent call last):
             ...
-            RuntimeError: indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered.
+            RuntimeError: indeterminate expression: unsigned_infinity +- infinity encountered.
             sage: nsr(oo) + nsr(unsigned_infinity)
             Traceback (most recent call last):
             ...
-            RuntimeError: indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered.
+            RuntimeError: indeterminate expression: unsigned_infinity +- infinity encountered.
             sage: nsr(oo) - nsr(unsigned_infinity)
             Traceback (most recent call last):
             ...
-            RuntimeError: indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered.
+            RuntimeError: indeterminate expression: unsigned_infinity +- infinity encountered.
             sage: nsr(unsigned_infinity) + nsr(unsigned_infinity)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: indeterminate expression: unsigned_infinity + x where x is Infinity, -Infinity or unsigned infinity encountered.
-
-
+            Infinity
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -2431,9 +2427,9 @@ cdef class Expression(CommutativeRingElement):
         ::
 
             sage: x*oo
-            +Infinity
-            sage: -x*oo
-            -Infinity
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: indeterminate expression: infinity * f(x) encountered.
             sage: x*unsigned_infinity
             Traceback (most recent call last):
             ...
@@ -2506,32 +2502,34 @@ cdef class Expression(CommutativeRingElement):
             sage: x/oo
             0
             sage: oo/x
-            +Infinity
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: infinity * f(x) encountered.
 
             sage: SR(oo)/SR(oo)
             Traceback (most recent call last):
             ...
-            RuntimeError: indeterminate expression: 0*infinity encountered.
+            RuntimeError: indeterminate expression: 0 * infinity encountered.
 
             sage: SR(-oo)/SR(oo)
             Traceback (most recent call last):
             ...
-            RuntimeError: indeterminate expression: 0*infinity encountered.
+            RuntimeError: indeterminate expression: 0 * infinity encountered.
 
             sage: SR(oo)/SR(-oo)
             Traceback (most recent call last):
             ...
-            RuntimeError: indeterminate expression: 0*infinity encountered.
+            RuntimeError: indeterminate expression: 0 * infinity encountered.
 
             sage: SR(oo)/SR(unsigned_infinity)
             Traceback (most recent call last):
             ...
-            RuntimeError: indeterminate expression: 0*infinity encountered.
+            RuntimeError: indeterminate expression: 0 * infinity encountered.
 
             sage: SR(unsigned_infinity)/SR(oo)
             Traceback (most recent call last):
             ...
-            RuntimeError: indeterminate expression: 0*infinity encountered.
+            RuntimeError: indeterminate expression: 0 * infinity encountered.
 
             sage: SR(0)/SR(oo)
             0
@@ -2676,7 +2674,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x^oo
             Traceback (most recent call last):
             ...
-            ValueError: power::eval(): pow(x, Infinity) for non numeric x is not defined.
+            ValueError: power::eval(): pow(f(x), infinity) is not defined.
             sage: SR(oo)^2
             +Infinity
             sage: SR(-oo)^2
@@ -3576,17 +3574,21 @@ cdef class Expression(CommutativeRingElement):
             sage: (x/y).subs(y=oo)
             0
             sage: (x/y).subs(x=oo)
-            +Infinity
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: infinity * f(x) encountered.
             sage: (x*y).subs(x=oo)
-            +Infinity
+            Traceback (most recent call last):
+            ...
+            RuntimeError: indeterminate expression: infinity * f(x) encountered.
             sage: (x^y).subs(x=oo)
             Traceback (most recent call last):
             ...
-            ValueError: power::eval(): pow(Infinity, x) for non numeric x is not defined.
+            ValueError: power::eval(): pow(Infinity, f(x)) is not defined.
             sage: (x^y).subs(y=oo)
             Traceback (most recent call last):
             ...
-            ValueError: power::eval(): pow(x, Infinity) for non numeric x is not defined.
+            ValueError: power::eval(): pow(f(x), infinity) is not defined.
             sage: (x+y).subs(x=oo)
             +Infinity
             sage: (x-y).subs(y=oo)
@@ -5722,20 +5724,20 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1).arctan2(CDF(0,1))
             arctan2(1, 1.0*I)
 
-            sage: SR(oo).arctan2(oo)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: arctan2_eval(): arctan2(infinity, infinity) encountered
-            sage: SR(oo).arctan2(0)
+            sage: arctan2(0,oo)
             0
+            sage: SR(oo).arctan2(oo)
+            1/4*pi
+            sage: SR(oo).arctan2(0)
+            1/2*pi
             sage: SR(-oo).arctan2(0)
-            pi
+            -1/2*pi
             sage: SR(-oo).arctan2(-2)
-            -pi
+            pi
             sage: SR(unsigned_infinity).arctan2(2)
             Traceback (most recent call last):
             ...
-            RuntimeError: arctan2_eval(): arctan2(unsigned_infinity, x) encountered
+            RuntimeError: arctan2_eval(): arctan2(x, unsigned_infinity) encountered
             sage: SR(2).arctan2(oo)
             1/2*pi
             sage: SR(2).arctan2(-oo)
@@ -5743,7 +5745,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(2).arctan2(SR(unsigned_infinity))
             Traceback (most recent call last):
             ...
-            RuntimeError: arctan2_eval(): arctan2(x, unsigned_infinity) encountered
+            RuntimeError: arctan2_eval(): arctan2(unsigned_infinity, x) encountered
         """
         cdef Expression nexp = self.coerce_in(x)
         return new_Expression_from_GEx(self._parent,

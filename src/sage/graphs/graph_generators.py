@@ -99,17 +99,21 @@ Named Graphs
 - :meth:`Balaban11Cage <GraphGenerators.Balaban11Cage>`
 - :meth:`BidiakisCube <GraphGenerators.BidiakisCube>`
 - :meth:`BrinkmannGraph <GraphGenerators.BrinkmannGraph>`
+- :meth:`DoubleStarSnark <GraphGenerators.DoubleStarSnark>`
 - :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
 - :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
 - :meth:`DurerGraph <GraphGenerators.DurerGraph>`
 - :meth:`DyckGraph <GraphGenerators.DyckGraph>`
 - :meth:`ErreraGraph <GraphGenerators.ErreraGraph>`
 - :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
+- :meth:`FosterGraph <GraphGenerators.FosterGraph>`
 - :meth:`FranklinGraph <GraphGenerators.FranklinGraph>`
 - :meth:`FruchtGraph <GraphGenerators.FruchtGraph>`
 - :meth:`GoldnerHararyGraph <GraphGenerators.GoldnerHararyGraph>`
+- :meth:`GrayGraph <GraphGenerators.GrayGraph>`
 - :meth:`GrotzschGraph <GraphGenerators.GrotzschGraph>`
 - :meth:`HararyGraph <GraphGenerators.HararyGraph>`
+- :meth:`HarriesGraph <GraphGenerators.HarriesGraph>`
 - :meth:`HeawoodGraph <GraphGenerators.HeawoodGraph>`
 - :meth:`HerschelGraph <GraphGenerators.HerschelGraph>`
 - :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
@@ -1551,6 +1555,119 @@ class GraphGenerators():
         G.name('Harary graph {0}, {1}'.format(k,n))
         return G
 
+    def HarriesGraph(self, embedding = 1):
+        r"""
+        Returns the Harries Graph.
+
+        The Harries graph is a hamiltonian 3-regular graph on 70 vertices. See
+        the :wikipedia:`Wikipedia page on the Harries graph <Harries_graph>`.
+
+        The default embedding is here to emphasize the graph's 4 orbits. This
+        graph actually has a funny construction. The following procedures gives
+        an idea of it, though not all the adjacencies are being properly
+        defined.
+
+        #. Take two disjoint copies of a Petersen Graph. Its vertices will be an
+           orbit of the final graph.
+
+        #. Subdivide all the edges once, to create 15+15=30 new vertices which
+           represent another orbit
+
+        #. Create 15 vertices, each of them linked to 2 vertices of the previous
+           orbit, one in each of the two copies. At the end of this step all
+           vertices from the previous orbit have degree 3, and the only vertices
+           of degree 2 in the graph are those that were just created.
+
+        #. Create 5 vertices connected only to the ones from the previous orbit
+           so that the graph is 3-regular
+
+        INPUT:
+
+        - ``embedding`` -- two embeddings are available, and can be
+          selected by setting ``embedding`` to 1 or 2.
+
+        EXAMPLES::
+
+            sage: g = graphs.HarriesGraph()
+            sage: g.order()
+            70
+            sage: g.size()
+            105
+            sage: g.girth()
+            10
+            sage: g.diameter()
+            6
+            sage: g.show(figsize=[10,10])
+            sage: graphs.HarriesGraph(embedding = 2).show(figsize=[10,10])
+
+
+        TESTS::
+
+            sage: graphs.HarriesGraph(embedding = 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of embedding must be 1 or 2.
+
+        """
+        g = graphs.LCFGraph(70, [-29,-19,-13,13,21,-27,27,33,-13,13,19,-21,-33,29], 5)
+        g.name("Harries Graph")
+
+        if embedding == 1:
+            d = g.get_pos()
+
+            # The graph's four orbits
+            o = [None]*4
+            o[0] = [11, 25, 39, 53, 67]
+            o[2] = [60, 10, 12, 4, 24, 26, 18, 38, 40, 32, 52, 54, 46, 66, 68]
+            o[1] = [1, 3, 5, 7, 9, 13, 15, 17, 19, 21, 23, 27, 29, 31, 33, 35, 37, 41, 43, 45, 47, 49, 51, 55, 57, 59, 61, 63, 65, 69]
+            o[3] = [0, 2, 6, 8, 14, 16, 20, 22, 28, 30, 34, 36, 42, 44, 48, 50, 56, 58, 62, 64]
+
+            # Correspondance between the first half of the vertices in o[3] and
+            # a Petersen graph
+            pad = {0: 0, 2: 1, 42: 5, 44: 8, 14: 7, 16: 2, 56: 9, 58: 6, 28: 4, 30: 3} # pa.is_isomorphic(p, certify = True)[1]
+
+            # The second copy
+            pbda = {64: 44, 34: 0, 36: 28, 6: 2, 8: 58, 48: 16, 50: 30, 20: 14, 22: 56, 62: 42} #pb.is_isomorphic(pa, certify = True)[1]
+
+            pd = graphs.PetersenGraph().get_pos()
+
+            # Position for the vertices from the first copy
+            for v in pad:
+                i = pad[v]
+                d[v] = pd[i]
+
+            # Position for the vertices in the second copy. Moves the first,
+            # too.
+            offset = 3.5
+            for v in pbda:
+                i = pbda[v]
+                x,y = d[i]
+                d[v] = x+offset*0.5,y
+                d[i] = x-offset*0.5,y
+
+            # Vertices from o[1]. These are actually the "edges" of the copies of Petersen.
+            for v in o[1]:
+                u,uu = [x for x in g.neighbors(v) if x in o[3]]
+                u, uu = d[u], d[uu]
+                d[v] = (u[0] + uu[0])/2, (u[1] + uu[1])/2
+
+            # 15 vertices from o[2]
+            for i,v in enumerate(o[2]):
+                d[v] = -1.75+i*.25,2
+
+            # 5 vertices from o[0]
+            for i,v in enumerate(o[0]):
+                d[v] = -1+i*.5,2.5
+
+            return g
+
+        elif embedding == 2:
+            return g
+        else:
+            raise ValueError("The value of embedding must be 1 or 2.")
+
+        return g
+
     def HouseGraph(self):
         """
         Returns a house graph with 5 nodes.
@@ -2768,6 +2885,70 @@ class GraphGenerators():
             20: [-0.433883739117558, 0.900968867902419]}
         return graph.Graph(edge_dict, pos=pos_dict, name="Brinkmann graph")
 
+    def DoubleStarSnark(self):
+        r"""
+        Returns the double star snark.
+
+        The double star snark is a 3-regular graph on 30 vertices. See the
+        :wikipedia:`Wikipedia page on the double star snark
+        <Double-star_snark>`.
+
+        EXAMPLES::
+
+            sage: g = graphs.DoubleStarSnark()
+            sage: g.order()
+            30
+            sage: g.size()
+            45
+            sage: g.chromatic_number()
+            3
+            sage: g.is_hamiltonian()
+            False
+            sage: g.automorphism_group().cardinality()
+            80
+            sage: g.show()
+        """
+
+        from sage.graphs.graph_generators import _circle_embedding
+
+        d = {
+            0: [1, 14, 15],
+            1: [0, 2, 11],
+            2: [1, 3, 7],
+            3: [2, 4, 18],
+            4: [3, 5, 14],
+            5: [10, 4, 6],
+            6: [5, 21, 7],
+            7: [8, 2, 6],
+            8: [9, 13, 7],
+            9: [24, 8, 10],
+            10: [9, 11, 5],
+            11: [1, 10, 12],
+            12: [11, 27, 13],
+            13: [8, 12, 14],
+            14: [0, 4, 13],
+            15: [0, 16, 29],
+            16: [15, 20, 23],
+            17: [25, 18, 28],
+            18: [3, 17, 19],
+            19: [18, 26, 23],
+            20: [16, 28, 21],
+            21: [20, 6, 22],
+            22: [26, 21, 29],
+            23: [16, 24, 19],
+            24: [25, 9, 23],
+            25: [24, 17, 29],
+            26: [27, 19, 22],
+            27: [12, 26, 28],
+            28: [17, 27, 20],
+            29: [25, 22, 15]}
+
+        g = graph.Graph(d, pos = {}, name = "Double star snark")
+        _circle_embedding(g, range(15), radius = 2)
+        _circle_embedding(g, range(15,30), radius = 1.4)
+
+        return g
+
     def ChvatalGraph(self):
         r"""
         Returns the Chvatal graph.
@@ -3102,6 +3283,33 @@ class GraphGenerators():
                             12:[13,19],13:[14],15:[19],16:[15,17],18:[17,19]}, \
                             pos=pos_dict, name="Flower Snark")
 
+    def FosterGraph(self):
+        """
+        Returns the Foster graph.
+
+        See the :wikipedia:`Wikipedia page on the Foster Graph <Foster_graph>`.
+
+        EXAMPLE::
+
+            sage: g = graphs.FosterGraph()
+            sage: g.order()
+            90
+            sage: g.size()
+            135
+            sage: g.diameter()
+            8
+            sage: g.girth()
+            10
+            sage: g.automorphism_group().cardinality()
+            4320
+            sage: g.is_hamiltonian()
+            True
+        """
+        g= graphs.LCFGraph(90, [17,-9,37,-37,9,-17], 15)
+        g.name("Foster Graph")
+        return g
+
+
     def FranklinGraph(self):
         r"""
         Returns the Franklin graph.
@@ -3283,6 +3491,55 @@ class GraphGenerators():
             10: (0, 0)}
 
         return graph.Graph(edge_dict, pos = pos, name="Goldner-Harary graph")
+
+    def GrayGraph(self, embedding = 1):
+        r"""
+        Returns the Gray graph.
+
+        See the :wikipedia:`Wikipedia page ont he Gray Graph <Gray_graph>`.
+
+        INPUT:
+
+        - ``embedding`` -- two embeddings are available, and can be
+          selected by setting ``embedding`` to 1 or 2.
+
+        EXAMPLES::
+
+            sage: g = graphs.GrayGraph()
+            sage: g.order()
+            54
+            sage: g.size()
+            81
+            sage: g.girth()
+            8
+            sage: g.diameter()
+            6
+            sage: g.show(figsize=[10,10])
+            sage: graphs.GrayGraph(embedding = 2).show(figsize=[10,10])
+
+        TESTS::
+
+            sage: graphs.GrayGraph(embedding = 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of embedding must be 1, 2, or 3.
+        """
+
+        g = graphs.LCFGraph(54, [-25,7,-7,13,-13,25], 9)
+        g.name("Gray graph")
+
+        if embedding == 1:
+            from sage.graphs.graph_generators import _circle_embedding
+            o = g.automorphism_group(orbits = True)[-1]
+            _circle_embedding(g, o[0], center=(0,0), radius=1)
+            _circle_embedding(g, o[1], center=(0,0), radius=.6, shift=-.5)
+
+        elif embedding == 2:
+            pass
+        else:
+            raise ValueError("The value of embedding must be 1, 2, or 3.")
+
+        return g
 
     def GrotzschGraph(self):
         r"""

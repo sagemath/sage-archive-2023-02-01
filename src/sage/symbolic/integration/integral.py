@@ -395,7 +395,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
                  x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                              2                 Pi
         sage: print f.integral(x)
-        y^z*x + 1/8*((I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) + (I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x))*sqrt(pi)
+        y^z*x + 1/8*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x))*sqrt(pi)
 
     Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
     over the internet (does NOT require a Mathematica license!)::
@@ -466,7 +466,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     see #3013::
 
         sage: integrate(sin(x)*cos(10*x)*log(x), x)
-        1/198*(11*cos(9*x) - 9*cos(11*x))*log(x) + 1/44*Ei(-11*I*x) - 1/36*Ei(-9*I*x) - 1/36*Ei(9*I*x) + 1/44*Ei(11*I*x)
+        1/198*(11*cos(9*x) - 9*cos(11*x))*log(x) + 1/44*Ei(-11*I*x) + 1/44*Ei(11*I*x) - 1/36*Ei(-9*I*x) - 1/36*Ei(9*I*x)
 
     It is no longer possible to use certain functions without an
     explicit variable.  Instead, evaluate the function at a variable,

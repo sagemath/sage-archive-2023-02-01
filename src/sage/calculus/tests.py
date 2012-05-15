@@ -109,7 +109,7 @@ from some Mathematica docs::
     sage: integrate(exp(1-x^2),x)
     1/2*sqrt(pi)*e*erf(x)
     sage: integrate(sin(x^2),x)
-    1/8*((I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) + (I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x))*sqrt(pi)
+    1/8*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x))*sqrt(pi)
 
     sage: integrate((1-x^2)^n,x)
     integrate((-x^2 + 1)^n, x)

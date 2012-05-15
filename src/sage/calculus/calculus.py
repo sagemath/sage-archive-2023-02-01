@@ -353,7 +353,7 @@ Ensure that ticket #8582 is fixed::
 
     sage: k = var("k")
     sage: sum(1/(1+k^2), k, -oo, oo)
-    1/2*I*psi(-I) - 1/2*I*psi(I) + 1/2*I*psi(-I + 1) - 1/2*I*psi(I + 1)
+    -1/2*I*psi(I + 1) - 1/2*I*psi(I) + 1/2*I*psi(-I) + 1/2*I*psi(-I + 1)
 
 Ensure that ticket #8624 is fixed::
 

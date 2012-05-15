@@ -114,6 +114,7 @@ namespace GiNaC {
     operator long int() const;
 
     unsigned hash() const;
+    int compare_same_type(const Number_T& right) const;
     bool operator==(const Number_T& right) const;
     bool operator!=(const Number_T& right) const;
     bool operator<=(const Number_T& right) const;

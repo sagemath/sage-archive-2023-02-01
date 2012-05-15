@@ -756,6 +756,30 @@ void Number_T::archive(archive_node &n) const {
     }
   }
 
+  int Number_T::compare_same_type(const Number_T& right) const { 
+    verbose("compare_same_type");
+    if (t != right.t) {
+      Number_T a, b;
+      coerce(a, b, *this, right);
+      return a.compare_same_type(b);
+    }
+    switch(t) {
+    case DOUBLE:
+      return (v._double < right.v._double)?-1:(v._double > right.v._double);
+    case LONG:
+      return (v._long < right.v._long)?-1:(v._long > right.v._long);
+    case PYOBJECT:
+      int result;
+      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
+	py_error("compare_same_type");
+      }
+      return result;
+    default:
+      stub("invalid type: compare_same_type type not handled");
+    }
+
+  }
+
   bool Number_T::operator<=(const Number_T& right) const { 
     verbose("operator<=");
     if (t != right.t) {
@@ -1696,10 +1720,8 @@ void Number_T::archive(archive_node &n) const {
   {
     GINAC_ASSERT(is_exactly_a<numeric>(other));
     const numeric &o = static_cast<const numeric &>(other);
-    int cmpval = (real() - o.real()).csgn();
-    if (cmpval != 0)
-	    return cmpval;
-    return (imag() - o.imag()).csgn();
+
+    return value.compare_same_type(o.value);
   }
 
 

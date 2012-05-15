@@ -580,7 +580,16 @@ function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 			}
 			++i; ++ser;
 		}
-		throw (std::runtime_error("unknown function '" + s + "' in archive"));
+		// if the name is not already in the registry, we are
+		// unarchiving a SymbolicFunction without any custom methods
+		// Call Python to create a new symbolic function with name s
+		// and get the serial of this new SymbolicFunction
+		ser = py_funcs.py_get_serial_for_new_sfunction(s, nargs);
+		if (PyErr_Occurred()) {
+		    throw(std::runtime_error("function::function archive error: cannot create new symbolic function " + s));
+		}
+		serial = ser;
+		//throw (std::runtime_error("unknown function '" + s + "' in archive"));
 	} else
 		throw (std::runtime_error("unnamed function in archive"));
 	}
@@ -597,10 +606,12 @@ void function::archive(archive_node &n) const
 {
 	inherited::archive(n);
 	GINAC_ASSERT(serial < registered_functions().size());
-	// we use different methods to archive function objects created at
-	// runtime and those created from c++
-	// the python_func flag indicates if we should use the python
-	// unpickling mechanism, or the regular unarchiving for c++ functions
+	// we use Python's pickling mechanism to archive symbolic functions
+	// with customized methods defined in Python. Symbolic functions
+	// defined from c++ or those without custom methods are archived
+	// directly, without calling Python. The python_func flag indicates if
+	// we should use the python unpickling mechanism, or the regular
+	// unarchiving for c++ functions.
 	unsigned python_func = registered_functions()[serial].python_func;
 	if (python_func) {
 		n.add_unsigned("python", python_func);

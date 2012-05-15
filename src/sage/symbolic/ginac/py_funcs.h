@@ -107,6 +107,7 @@ namespace GiNaC {
     int (*py_get_ginac_serial)();
     PyObject* (*py_get_sfunction_from_serial)(unsigned id);
     unsigned (*py_get_serial_from_sfunction)(PyObject* f);
+    unsigned (*py_get_serial_for_new_sfunction)(std::string &s, unsigned nargs);
 
     constant (*py_get_constant)(const char* name);
 

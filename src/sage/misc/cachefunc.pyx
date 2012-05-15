@@ -66,12 +66,12 @@ take place::
     sage: a = f()
     doing a computation
 
-Unfortunately, cython functions do not allow arbitrary
-decorators. However, one can wrap a Cython function and
-turn it into a cached function, by :trac:`11115`.
-We need to provide the name that the wrapped method or
-function should have, since otherwise the name of the
-original function would be used::
+Cython cdef functions do not allow arbitrary decorators.
+However, one can wrap a Cython function and turn it into
+a cached function, by :trac:`11115`. We need to provide
+the name that the wrapped method or function should have,
+since otherwise the name of the original function would
+be used::
 
     sage: cython('''cpdef test_funct(x): return -x''')
     sage: wrapped_funct = cached_function(test_funct, name='wrapped_funct')
@@ -86,9 +86,12 @@ original function would be used::
 
 We can proceed similarly for cached methods of Cython classes,
 provided that they allow attribute assignment or have a public
-attribute ``__cached_methods`` of type ``<dict>``. Since trac ticket
-#11115, this is the case for all classes inheriting from
-:class:`~sage.structure.parent.Parent`::
+attribute ``__cached_methods`` of type ``<dict>``. Since
+:trac:`11115`, this is the case for all classes inheriting from
+:class:`~sage.structure.parent.Parent`. See below for a more explicit
+example. By :trac:`12951`, cached methods of extension classes can
+be defined by simply using the decorater. However, an indirect
+approach is still needed for cpdef methods::
 
     sage: cython_code = ['cpdef test_meth(self,x):',
     ... '    "some doc for a wrapped cython method"',
@@ -96,9 +99,15 @@ attribute ``__cached_methods`` of type ``<dict>``. Since trac ticket
     ... 'from sage.all import cached_method',
     ... 'from sage.structure.parent cimport Parent',
     ... 'cdef class MyClass(Parent):',
+    ... '    @cached_method',
+    ... '    def direct_method(self, x):',
+    ... '        "Some doc for direct method"',
+    ... '        return 2*x',
     ... '    wrapped_method = cached_method(test_meth,name="wrapped_method")']
-    sage: cython('\n'.join(cython_code))
+    sage: cython(os.linesep.join(cython_code))
     sage: O = MyClass()
+    sage: O.direct_method
+    Cached version of <method 'direct_method' of '...MyClass' objects>
     sage: O.wrapped_method
     Cached version of <built-in function test_meth>
     sage: O.wrapped_method.__name__
@@ -106,6 +115,10 @@ attribute ``__cached_methods`` of type ``<dict>``. Since trac ticket
     sage: O.wrapped_method(5)
     -5
     sage: O.wrapped_method(5) is O.wrapped_method(5)
+    True
+    sage: O.direct_method(5)
+    10
+    sage: O.direct_method(5) is O.direct_method(5)
     True
 
 In some cases, one would only want to keep the result in cache as long
@@ -302,10 +315,17 @@ Introspection works::
     sage: print sage_getdoc(O.wrapped_method)
     some doc for a wrapped cython method
     <BLANKLINE>
+    sage: print sage_getdoc(O.direct_method)
+    Some doc for direct method
+    <BLANKLINE>
     sage: print sage_getsource(O.wrapped_method)
     cpdef test_meth(self,x):
         "some doc for a wrapped cython method"
         return -x
+    sage: print sage_getsource(O.direct_method)
+    def direct_method(self, x):
+        "Some doc for direct method"
+        return 2*x
 
 It is a very common special case to cache a method that has no
 arguments. In that special case, the time needed to access the cache
@@ -331,6 +351,62 @@ ought to be chosen. A typical example is
     <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
     sage: type(I.groebner_basis)
     <type 'sage.misc.cachefunc.CachedMethodCaller'>
+
+By :trac:`12951`, the cached_method decorator is also supported on non-c(p)def
+methods of extension classes, as long as they either support attribute assignment
+or have a public attribute of type ``<dict>`` called ``__cached_methods``. The
+latter is easy::
+
+    sage: cython_code = [
+    ... "from sage.misc.cachefunc import cached_method",
+    ... "cdef class MyClass:",
+    ... "    cdef public dict __cached_methods",
+    ... "    @cached_method",
+    ... "    def f(self, a,b):",
+    ... "        return a*b"]
+    sage: cython(os.linesep.join(cython_code))
+    sage: P = MyClass()
+    sage: P.f(2,3)
+    6
+    sage: P.f(2,3) is P.f(2,3)
+    True
+
+Providing attribute access is a bit more tricky, since it is needed that
+an attribute inherited by the instance from its class can be overridden
+on the instance. That is why providing a ``__getattr__`` would not be
+enough in the following example::
+
+    sage: cython_code = [
+    ... "from sage.misc.cachefunc import cached_method",
+    ... "cdef class MyOtherClass:",
+    ... "    cdef dict D",
+    ... "    def __init__(self):",
+    ... "        self.D = {}",
+    ... "    def __setattr__(self, n,v):",
+    ... "        self.D[n] = v",
+    ... "    def __getattribute__(self, n):",
+    ... "        try:",
+    ... "            return self.D[n]",
+    ... "        except KeyError:",
+    ... "            pass",
+    ... "        return getattr(type(self),n).__get__(self)",
+    ... "    @cached_method",
+    ... "    def f(self, a,b):",
+    ... "        return a+b"]
+    sage: cython(os.linesep.join(cython_code))
+    sage: Q = MyOtherClass()
+    sage: Q.f(2,3)
+    5
+    sage: Q.f(2,3) is Q.f(2,3)
+    True
+
+Note that supporting attribute access is somehow faster than the
+easier method::
+
+    sage: timeit("a = P.f(2,3)")   # random
+    625 loops, best of 3: 1.3 µs per loop
+    sage: timeit("a = Q.f(2,3)")   # random
+    625 loops, best of 3: 931 ns per loop
 
 """
 ########################################################################
@@ -488,7 +564,10 @@ cdef class CachedFunction(object):
             self.__name__ = f.func_name
         else:
             self.__name__ = f.__name__
-        self.__module__ = f.__module__
+        try:
+            self.__module__ = f.__module__
+        except AttributeError:
+            self.__module__ = f.__objclass__.__module__
         if argument_fixer is not None: # it is None for CachedMethodCallerNoArgs
             self._argument_fixer = argument_fixer
             self._fix_to_pos = argument_fixer.fix_to_pos

@@ -21,6 +21,7 @@
  */
 
 #include "ex.h"
+#include "symbol.h"
 #include "add.h"
 #include "mul.h"
 #include "ncmul.h"
@@ -263,6 +264,18 @@ bool ex::is_zero_matrix() const
 		ex e = evalm();
 		return is_a<matrix>(e) && ex_to<matrix>(e).is_zero_matrix();
 	}
+}
+
+size_t ex::nsymbols() const
+{
+	int res = 0;
+	if (is_a<symbol>(*this)) {
+		res=1;
+	} else {
+		for (size_t i=0; i < nops(); i++)
+			res += op(i).nsymbols();
+	}
+	return res;
 }
 
 // private

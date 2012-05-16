@@ -185,6 +185,15 @@ usage_advanced() {
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
+    echo "File conversion:"
+    echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone "
+    echo "                         reStructuredText source. "
+    echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone "
+    echo "                         reStructuredText source. "
+
+    echo
+    ####  1.......................26..................................................78
+    ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
     echo "  -bdist VER          -- build a binary distribution of Sage"
     echo "  -combinat [...]     -- run sage-combinat patch management script"
@@ -663,6 +672,23 @@ if [ "$1" = "-coverageall" -o "$1" = "--coverageall" ]; then
    exit $?
 fi
 
+#####################################################################
+# File conversion
+#####################################################################
+
+if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
+    cd "$CUR"
+    shift
+    sage-rst2txt "$@"
+    exit $?
+fi
+
+if [ "$1" = '-rst2sws' -o "$1" = '--rst2sws' ]; then
+    cd "$CUR"
+    shift
+    sage-rst2sws "$@"
+    exit $?
+fi
 
 #####################################################################
 # Crap

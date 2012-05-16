@@ -1,3 +1,20 @@
+#*****************************************************************************
+#       Copyright (C) 2012 Gustavo Rama
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, identity_matrix, diagonal_matrix
 from sage.modules.free_module_element import vector
@@ -40,7 +57,7 @@ def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
     """
     Find the coefficients of the equivalent unique reduced ternary form according to the conditions
     of Dickson's "Studies in the Theory of Numbers", pp164-171, and the tranformation matrix.
-    See TernaryQF.is_ternary_eisenstein_reduced for the conditions.
+    See TernaryQF.is_eisenstein_reduced for the conditions.
 
     EXAMPLES::
 
@@ -241,7 +258,7 @@ def _reduced_ternary_form_eisenstein_without_matrix(a1, a2, a3, a23, a13, a12):
     """
     Find the coefficients of the equivalent unique reduced ternary form according to the conditions
     of Dickson's "Studies in the Theory of Numbers", pp164-171.
-    See TernaryQF.is_ternary_eisenstein_reduced for the conditions.
+    See TernaryQF.is_eisenstein_reduced for the conditions.
 
     EXAMPLES::
 
@@ -484,7 +501,7 @@ def _find_zeros_mod_p_2(a, b, c, r, s, t):
 def pseudorandom_primitive_zero_mod_p(a, b, c, r, s, t, p):
     """
     Find a zero of the form (a, b, 1) of the ternary quadratic form given by the coefficients (a, b, c, r, s, t)
-    mod p, where p is a odd prime that doesn't divides the discriminant.
+    mod p, where p is a odd prime that doesn't divide the discriminant.
 
     EXAMPLES::
 
@@ -518,7 +535,7 @@ def pseudorandom_primitive_zero_mod_p(a, b, c, r, s, t, p):
 
 def _find_zeros_mod_p_odd(long long a, long long b, long long c, long long r, long long s, long long t, long long p, v):
     """
-    Find the zeros mod p, where p is an odd prime, of a ternary quadratic form given by it's coefficients and a given zero of the form v.
+    Find the zeros mod p, where p is an odd prime, of a ternary quadratic form given by its coefficients and a given zero of the form v.
     The prime p doesn't divides the discriminant of the form.
 
     EXAMPLES::
@@ -619,7 +636,7 @@ def _find_zeros_mod_p(a, b, c, r, s, t, p):
 
 def _find_all_ternary_qf_by_level_disc(long long N, long long d):
     """
-    Find the coefficients of all the reduced ternary quadratic forms given it's discriminant d and level N.
+    Find the coefficients of all the reduced ternary quadratic forms given its discriminant d and level N.
     If N|4d and d|N^2, then it may be some forms with that discriminant and level.
 
     EXAMPLES::
@@ -764,7 +781,7 @@ def _find_all_ternary_qf_by_level_disc(long long N, long long d):
 
 def _find_a_ternary_qf_by_level_disc(long long N, long long d):
     """
-    Find the coefficients of a reduced ternary quadratic form given it's discriminant d and level N.
+    Find the coefficients of a reduced ternary quadratic form given its discriminant d and level N.
     If N|4d and d|N^2, then it may be a form with that discriminant and level.
 
     EXAMPLES::

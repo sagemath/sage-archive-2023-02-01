@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-    multi documentations in Sphinx
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    multi documentation in Sphinx
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     The goal of this extension is to manage a multi documentation in Sphinx.
-    To be able to compile Sage huge documentation in parallel, the
-    documentation is cut in a bunch of independent documentations called a
-    "subdoc", which are compiled separately. There is a master document which
-    points to all the subdocs. The intersphinx extension ensure that the
+    To be able to compile Sage's huge documentation in parallel, the
+    documentation is cut into a bunch of independent documentations called
+    "subdocs", which are compiled separately. There is a master document which
+    points to all the subdocs. The intersphinx extension ensures that the
     cross-link between the subdocs are correctly resolved. However some work
     is needed to build a global index. This is the goal of multidocs.
 
-    More precisely this extension ensure the correct merging of
+    More precisely this extension ensures the correct merging of
     - the todo list if this extension is activated;
     - the python indexes;
     - the list of python modules;
@@ -92,7 +92,7 @@ def merge_environment(app, env):
 
 def get_env(app, curdoc):
     """
-    Get the environement of a sub-doc from the pickle
+    Get the environment of a sub-doc from the pickle
     """
     from sphinx.application import ENV_PICKLE_FILENAME
     filename = os.path.join(
@@ -168,7 +168,7 @@ def fix_path_html(app, pagename, templatename, ctx, event_arg):
     - search.html
     - genindex.html
     - py-modindex.html
-    points to the right place, that is in
+    point to the right place, that is in
         reference/
     instead of
         reference/subdocument
@@ -197,7 +197,7 @@ def write_citations(app, citations):
 
 def fetch_citation(app, env):
     """
-    Fetch the global citation index from the refman to allows for cross
+    Fetch the global citation index from the refman to allow for cross
     references.
     """
     app.builder.info(bold('loading cross citations... '), nonl=1)

@@ -11,7 +11,10 @@ except ValueError:
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs as mkdir
 
-# Read options
+# Load the options, including
+#     SAGE_DOC, LANGUAGES, SPHINXOPTS, PAPER, OMIT,
+#     PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS
+# from build_options.py.
 execfile(os.path.join(os.getenv('SAGE_ROOT'), 'devel', 'sage', 'doc', 'common' , 'build_options.py'))
 
 ##########################################
@@ -64,7 +67,12 @@ def copytree(src, dst, symlinks=False, ignore_errors=False):
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
-def build_ref_doc(doc, lang, format, *args, **kwds):
+def build_ref_doc(args):
+    doc = args[0]
+    lang = args[1]
+    format = args[2]
+    kwds = args[3]
+    args = args[4:]
     getattr(ReferenceSubBuilder(doc, lang), format)(*args, **kwds)
 
 ##########################################
@@ -226,10 +234,13 @@ class DocBuilder(object):
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
-def build_other_doc(document, name, *args, **kwds):
+def build_other_doc(args):
+    document = args[0]
+    name = args[1]
+    kwds = args[2]
+    args = args[3:]
     logger.warning("\nBuilding %s.\n" % document)
     getattr(get_builder(document), name)(*args, **kwds)
-
 
 class AllBuilder(object):
     """
@@ -261,8 +272,7 @@ class AllBuilder(object):
         # first build should be as fast as possible;
         logger.warning("\nBuilding reference manual, first pass.\n")
         global ALLSPHINXOPTS
-        #ALLSPHINXOPTS += ' -Q -D multidoc_first_pass=1'
-        ALLSPHINXOPTS += ' -D multidoc_first_pass=1'
+        ALLSPHINXOPTS += ' -Q -D multidoc_first_pass=1'
         for document in refs:
             getattr(get_builder(document), 'inventory')(*args, **kwds)
         logger.warning("Building reference manual, second pass.\n")
@@ -273,15 +283,17 @@ class AllBuilder(object):
             getattr(get_builder(document), name)(*args, **kwds)
 
         # build the other documents in parallel
-        from multiprocessing import Pool, cpu_count
-        pool = Pool(int(os.environ.get('SAGE_NUM_THREADS', 1)))
-        for document in others:
-            pool.apply_async(build_other_doc,
-                             (document, name)+args, kwds)
+        from multiprocessing import Pool
+        pool = Pool(NUM_THREADS)
+        L = [(doc, name, kwds) + args for doc in others]
+        # map_async, with get to provide a timeout, handles
+        # KeyboardInterrupt correctly. apply_async does not, so don't
+        # use it.
+        pool.map_async(build_other_doc, L).get(99999)
         pool.close()
         pool.join()
-        logger.warning("Elapsed time = %s."%(time.time()-start))
-        logger.warning("Done compiling the doc !")
+        logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
+        logger.warning("Done building the documentation!")
 
     def get_all_documents(self):
         """
@@ -382,7 +394,9 @@ class ReferenceBuilder(AllBuilder):
         """
         if type == "inventory": # put inventories in the html tree
             type = "html"
-        return mkdir(os.path.join(SAGE_DOC, "output", type, lang, self.name))
+        d = os.path.join(SAGE_DOC, "output", type, lang, self.name)
+        mkdir(d)
+        return d
 
     def _wrapper(self, format, *args, **kwds):
         """
@@ -394,14 +408,12 @@ class ReferenceBuilder(AllBuilder):
             if not os.path.exists(refdir):
                 continue
             output_dir = self._output_dir(format, lang)
-            from multiprocessing import Pool, cpu_count
-            # Determine the number of threads from the environment variable
-            # SAGE_NUM_THREADS.
-            pool = Pool(int(os.environ.get('SAGE_NUM_THREADS', 1)))
-
-            for doc in self.get_all_documents(refdir):
-                pool.apply_async(build_ref_doc,
-                                 (doc, lang, format) + args, kwds)
+            from multiprocessing import Pool
+            pool = Pool(NUM_THREADS)
+            L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
+            # (See comment in AllBuilder._wrapper about using map_async
+            # instead of apply_async.)
+            pool.map_async(build_ref_doc, L).get(99999)
             pool.close()
             pool.join()
             # The html refman must be build at the end to ensure correct
@@ -429,13 +441,13 @@ class ReferenceBuilder(AllBuilder):
                          'pdf.png', 'plus.png', 'pygments.css',
                          'sage.css', 'sageicon.png', 'sagelogo.png',
                          'searchtools.js', 'sidebar.js', 'underscore.js']
-                try:
-                    os.mkdir(os.path.join(output_dir, '_static'))
-                except OSError:
-                    pass
+                mkdir(os.path.join(output_dir, '_static'))
                 for f in static_files:
-                    shutil.copyfile(os.path.join(website_dir, '_static', f),
-                                    os.path.join(output_dir, '_static', f))
+                    try:
+                        shutil.copyfile(os.path.join(website_dir, '_static', f),
+                                        os.path.join(output_dir, '_static', f))
+                    except IOError: # original file does not exist
+                        pass
                 # Now modify website's index.html page and write it
                 # to output_dir.
                 f = open(os.path.join(website_dir, 'index.html'))
@@ -452,27 +464,37 @@ class ReferenceBuilder(AllBuilder):
                 f = open(os.path.join(SAGE_DOC, lang, 'reference', 'index.rst'))
                 rst = f.read()
                 f.close()
-                # Replace rst links with html links.  There are two types:
+                # Replace rst links with html links.  There are two forms:
                 #
-                # `blah`__
-                # __ link
+                #   `blah`__    followed by __ LINK
                 #
-                # `blah <module/index.html>`_
+                #   :doc:`blah <module/index>`
                 #
-                # For the second type, also change "module/index.html"
-                # to "module/module.pdf".
+                # Change the first form to
+                #
+                #   <a href="LINK">blah</a>
+                #
+                # Change the second form to
+                #
+                #   <a href="module/module.pdf">blah <img src="_static/pdf.png" /></a>
+                #
                 rst = re.sub('`([^`]*)`__\.\n\n__ (.*)',
                                   r'<a href="\2">\1</a>.', rst)
-                rst = re.sub(r'`([^<]*?)\s+<(.*)/index\.html>`_',
+                rst = re.sub(r':doc:`([^<]*?)\s+<(.*)/index>`',
                              r'<a href="\2/\2.pdf">\1 <img src="_static/pdf.png" /></a>',
                              rst)
+                # Get rid of todolist and miscellaneous rst markup.
+                rst = rst.replace('.. toctree::', '')
+                rst = rst.replace(':maxdepth: 2', '')
+                rst = rst.replace('todolist', '')
                 start = rst.find('=\n') + 1
                 end = rst.find('Table of Contents')
                 # Body: add paragraph <p> markup.
                 rst_body = rst[start:end]
                 rst_body = rst_body.replace('\n\n', '</p>\n<p>')
                 start = rst.find('Table of Contents') + 2*len('Table of Contents') + 1
-                end = rst.find('.. include:: footer.txt')
+                # Don't include the indices.
+                end = rst.find('Indices and Tables')
                 # TOC: change * to <li>, change rst headers to html headers.
                 rst_toc = rst[start:end]
                 rst_toc = rst_toc.replace('*', '<li>')
@@ -514,6 +536,7 @@ for a webpage listing all of the documents.''' % (output_dir,
             sage: b = builder.ReferenceBuilder('reference')
             sage: refdir = os.path.join(os.environ['SAGE_DOC'], 'en', b.name)
             sage: b.get_all_documents(refdir)
+            ['reference/algebras', 'reference/arithgroup', ..., 'reference/tensor']
         """
         documents = []
 

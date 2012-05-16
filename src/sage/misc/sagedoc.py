@@ -18,7 +18,7 @@ TESTS:
 Check that argspecs of extension function/methods appear correctly,
 see :trac:`12849`::
 
-    sage: docfilename = os.path.join(SAGE_ROOT, 'devel', 'sage', 'doc', 'output', 'html', 'en', 'reference', 'sage', 'symbolic', 'expression.html')
+    sage: docfilename = os.path.join(SAGE_ROOT, 'devel', 'sage', 'doc', 'output', 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
     sage: for line in open(docfilename):
     ...       if "#sage.symbolic.expression.Expression.N" in line:
     ...           print line

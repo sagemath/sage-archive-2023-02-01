@@ -2215,6 +2215,26 @@ cdef class Parent(category_object.CategoryObject):
            returning the map from step (2) if none is found.
 
         In the future, multiple paths may be discovered and compared.
+
+        TESTS:
+
+        Regression test for :trac:`12919` (probably not 100% robust)::
+
+            sage: class P(Parent):
+            ...       def __init__(self):
+            ...           Parent.__init__(self, category=Sets())
+            ...       Element=ElementWrapper
+            sage: A = P(); a = A('a')
+            sage: B = P(); b = B('b')
+            sage: C = P(); c = C('c')
+            sage: D = P(); d = D('d')
+            sage: Hom(A, B)(lambda x: b).register_as_coercion()
+            sage: Hom(B, A)(lambda x: a).register_as_coercion()
+            sage: Hom(C, B)(lambda x: b).register_as_coercion()
+            sage: Hom(D, C)(lambda x: c).register_as_coercion()
+            sage: A(d)
+            'a'
+
         """
         best_mor = None
         if PY_TYPE_CHECK(S, Parent) and (<Parent>S)._embedding is not None:
@@ -2272,7 +2292,7 @@ cdef class Parent(category_object.CategoryObject):
                 if mor_found  >= num_paths:
                     return best_mor
             else:
-                connection = None
+                connecting = None
                 if EltPair(mor._domain, S, "coerce") not in _coerce_test_dict:
                     connecting = mor._domain.coerce_map_from(S)
                 if connecting is not None:

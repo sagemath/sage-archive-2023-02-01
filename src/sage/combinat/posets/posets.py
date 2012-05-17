@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 r"""
 Posets
+
+This module implements finite partialy ordered sets. The main
+constructor is :meth:`Poset`.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -38,40 +41,45 @@ from sage.combinat.posets.elements import PosetElement
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category = None, facade = None, key = None):
     r"""
-    Construct a poset from various forms of input data.
+    Construct a finite poset from various forms of input data.
 
     INPUT:
 
-    1. A two-element list or tuple (E, R), where E is a collection of
-       elements of the poset and R is the set of relations.  Elements
-       of R are two-element lists/tuples/iterables.  If
-       cover_relations=True, then R is assumed to be the cover
-       relations of the poset. If E is empty, then E is taken to be
-       the set of elements appearing in the relations R.
+    - ``data`` -- different input are accepted by this constructor:
 
-    2. A two-element list or tuple (E, f), where E is the set of
-       elements of the poset and f is a function such that f(x,y) is
-       True if x <= y and False otherwise for all pairs of elements in
-       E. If cover_relations=True, then f(x,y) should be True if and
-       only if x is covered by y, and False otherwise.
+        1. A two-element list or tuple `(E, R)`, where `E` is a
+           collection of elements of the poset and `R` is a collection
+           of relations `x<=y`, each represented as a two-element
+           lists/tuples/iterables such as [x,y]. The poset is then the
+           transitive closure of the provided relations. If
+           ``cover_relations=True``, then `R` is assumed to contain
+           exactly the cover relations of the poset. If `E` is empty,
+           then `E` is taken to be the set of elements appearing in
+           the relations `R`.
 
-    3. A dictionary, list or tuple of upper covers: data[x] is an
-       list of the elements that cover the element x in the poset.
+        2. A two-element list or tuple `(E, f)`, where `E` is the set
+           of elements of the poset and `f` is a function such that,
+           for any pair `x,y` of elements of `E`, `f(x,y)` returns
+           whether `x <= y`. If ``cover_relations=True``, then
+           `f(x,y)` should return whether `x` is covered by `y`.
 
-       .. note::
+        3. A dictionary, list or tuple of upper covers: ``data[x]`` is
+           a list of the elements that cover the element `x` in the
+           poset.
 
-          If data is a list or tuple of length 2, then it is handled
-          by the above cases.
+           .. WARNING::
 
-    4. An acyclic, loop-free and multi-edge free DiGraph. If
-       cover_relations is True, then the edges of the digraph
-       correspond to cover relations in the poset. If cover_relations
-       is False, then the cover relations are computed.
+              If data is a list or tuple of length `2`, then it is
+              handled by the above case..
 
-    5. A previously constructed poset (the poset itself is returned).
+        4. An acyclic, loop-free and multi-edge free ``DiGraph``. If
+           ``cover_relations`` is ``True``, then the edges of the
+           digraph are assumed to correspond to the cover relations of
+           the poset. Otherwise, the cover relations are computed.
 
+        5. A previously constructed poset (the poset itself is returned).
 
-    - ``element_labels`` -- (default: None) an optional list or
+    - ``element_labels`` -- (default: None); an optional list or
       dictionary of objects that label the poset elements.
 
     - ``cover_relations`` -- a boolean (default: False); whether the
@@ -83,9 +91,13 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
       use the provided list of elements as default linear extension
       for the poset; otherwise a linear extension is computed.
 
+    - ``facade`` -- a boolean (default: False); whether the Poset's
+      elements should be wrapped to make them aware of the Poset they
+      belong to. See below for details.
+
     OUTPUT:
 
-        FinitePoset -- an instance of the FinitePoset class.
+        ``FinitePoset`` -- an instance of the ``FinitePoset`` class.
 
     If ``category`` is specified, then the poset is created in this
     category instead of :class:`FinitePosets`.
@@ -223,7 +235,23 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         sage: c < a
         True
 
-    As an experimental feature, one can construct instead facade posets::
+    However, this may have surprising effects::
+
+        sage: my_elements = ['a','b','c','d']
+        sage: any(x in my_elements for x in P)
+        False
+
+    and can be anoying when one wants to manipulate the elements of
+    the poset::
+
+        sage: a + b
+        Traceback (most recent call last):
+        ...
+        TypeError: unsupported operand type(s) for +: 'FinitePoset_with_category.element_class' and 'FinitePoset_with_category.element_class'
+        sage: a.element + b.element
+        'ac'
+
+    Alternatively, one can construct instead facade posets::
 
         sage: P = Poset(DiGraph({'d':['c','b'],'c':['a'],'b':['a']}),
         ...             facade = True)
@@ -321,7 +349,22 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         sage: P = Poset([[1,2],[3],[3]])
         sage: type(hash(P))
         <type 'int'>
+
+    Bad input::
+
+        sage: Poset([1,2,3], lambda x,y : x<y)
+        Traceback (most recent call last):
+        ...
+        ValueError: elements_label should be a dict or a list if different from None. (Did you intend data to be equal to a pair ?)
     """
+    # Avoiding some errors from the user when data should be a pair
+    if (element_labels is not None and
+        not isinstance(element_labels, dict) and
+        not isinstance(element_labels, list)):
+        raise ValueError("elements_label should be a dict or a list if "+
+                         "different from None. (Did you intend data to be "+
+                         "equal to a pair ?)")
+
     #Convert data to a DiGraph
     elements = None
     D = {}

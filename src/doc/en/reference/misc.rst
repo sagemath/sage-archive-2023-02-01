@@ -7,6 +7,7 @@ Miscellaneous
    :maxdepth: 2
 
    sage/misc/abstract_method
+   sage/misc/bindable_class
    sage/misc/cachefunc
    sage/misc/c3
    sage/misc/decorators

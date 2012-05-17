@@ -9971,6 +9971,382 @@ cdef class Matrix(matrix1.Matrix):
                     M[i,k] = zero
             return P, L, M
 
+    def _indefinite_factorization(self, algorithm, check=True):
+        r"""
+        Utility function to decomposes a symmetric or
+        Hermitian matrix into a lower triangular matrix
+        and list of elements for the diagonal of a diagonal matrix.
+
+        INPUT:
+
+        - ``self`` - a matrix that is symmetric or Hermitian,
+          over a ring that has a fraction field implemented.
+
+        - ``algorithm`` - ``'symmetric'`` or ``'hermitian'``,
+          according to the corresponding property of the matrix.
+
+        - ``check`` - default: ``True`` - if ``True`` then
+          performs the check that the matrix is consistent with the
+          ``algorithm`` keyword.
+
+        OUTPUT:
+
+        Given a square matrix ``A``, the routine returns a
+        pair: a matrix ``L`` and a list ``d``.
+
+        ``L`` is a unit lower-triangular matrix.  ``d`` is
+        the entries of a diagonal matrix.  Suppose this diagonal
+        matrix is ``D``.  Then, for a symmetric matrix, these items
+        are related as:
+
+        .. math::
+
+            A = LDL^T
+
+        For a Hermitian matrix, the transpose can be replaced by
+        the conjugate-transpose.
+
+        If any leading principal submatrix is singular, then the
+        computation cannot be performed and a ``ValueError`` results.
+
+        EXAMPLES:
+
+        A simple symmetric matrix. ::
+
+            sage: A = matrix(QQ, [[ 4, -2,  4,  2],
+            ...                   [-2, 10, -2, -7],
+            ...                   [ 4, -2,  8,  4],
+            ...                   [ 2, -7,  4,  7]])
+            sage: A.is_symmetric()
+            True
+            sage: L, d = A._indefinite_factorization('symmetric')
+            sage: L
+            [   1    0    0    0]
+            [-1/2    1    0    0]
+            [   1    0    1    0]
+            [ 1/2 -2/3  1/2    1]
+            sage: d
+            [4, 9, 4, 1]
+            sage: A == L*diagonal_matrix(QQ, d)*L.transpose()
+            True
+
+        A Hermitian matrix. ::
+
+            sage: x = var('x')
+            sage: C.<I> = NumberField(x^2 + 1)
+            sage: A = matrix(C, [[        23,  17*I + 3,  24*I + 25,     21*I],
+            ...                  [ -17*I + 3,        38, -69*I + 89, 7*I + 15],
+            ...                  [-24*I + 25, 69*I + 89,        976, 24*I + 6],
+            ...                  [     -21*I, -7*I + 15,  -24*I + 6,       28]])
+            sage: A.is_hermitian()
+            True
+            sage: L, d = A._indefinite_factorization('hermitian')
+            sage: L
+            [                1                    0                         0  0]
+            [  -17/23*I + 3/23                    1                         0  0]
+            [ -24/23*I + 25/23  617/288*I + 391/144                         1  0]
+            [         -21/23*I     -49/288*I - 1/48  1336/89885*I - 773/89885  1]
+            sage: d
+            [23, 576/23, 89885/144, 142130/17977]
+            sage: A == L*diagonal_matrix(C, d)*L.conjugate_transpose()
+            True
+
+        A matrix may have a singular submatrix in the upper-left
+        corner ("a leading principal submatrix") which will unavoidably
+        lead to division by zero.  This is the only situation when this
+        algorithm fails.  ::
+
+            sage: A = matrix(QQ, [[4, 6, 1], [6, 9, 5], [1, 5, 2]])
+            sage: B = A[0:2, 0:2]; B.determinant()
+            0
+            sage: A._indefinite_factorization('symmetric')
+            Traceback (most recent call last):
+            ...
+            ValueError: 2x2 leading principal submatrix is singular,
+            so cannot create indefinite factorization
+
+        TESTS:
+
+        The matrix must be square.  ::
+
+            sage: A = matrix(QQ, 3, 2, range(6))
+            sage: A._indefinite_factorization('symmetric')
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix must be square, not 3 x 2
+
+        The lone argument must describe the matrix.  ::
+
+            sage: A = matrix(QQ, [[1, 5], [5, 8]])
+            sage: A._indefinite_factorization('junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'algorithm' must be 'symmetric' or 'hermitian',
+            not junk
+
+        The matrix must contain entries from an exact ring.  ::
+
+            sage: F = RealField(100)
+            sage: A = matrix(F, [[1.0, 3.0], [3.0, -6.0]])
+            sage: A._indefinite_factorization('symmetric')
+            Traceback (most recent call last):
+            ...
+            TypeError: entries of the matrix must be in an exact ring,
+            not Real Field with 100 bits of precision
+
+        The base ring must have a fraction field.  ::
+
+            sage: A = matrix(Integers(6), [[1, 5], [5, 8]])
+            sage: A._indefinite_factorization('symmetric')
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to create the fraction field of
+            Ring of integers modulo 6
+
+        When ``check`` is ``True`` (the default), the matrix is
+        checked to see if it conforms with the ``algorithm``
+        keyword.  ::
+
+            sage: A = matrix(QQ, 4, 4, range(16))
+            sage: A._indefinite_factorization('symmetric', check=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not symmetric (maybe try the 'hermitian' keyword)
+
+            sage: A = matrix([[3, 2+3*I], [5+6*I, 12]])
+            sage: A._indefinite_factorization('hermitian', check=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not hermitian
+
+        AUTHOR:
+
+        - Rob Beezer (2012-05-24)
+        """
+        # Implementation note:  L begins as a copy of self.
+        # Entries below the diagonal are replaced as the loops proceed.
+        # Entries above the diagonal are used to store entries of D*L^T,
+        #   which halves the number of multiplications needed otherwise.
+        # The list d_inv holds reciprocals of the diagonal entries
+        # So, below the diagonal, the main computation is:
+        # A_ij = A_ij - (1/d_j)*sum(d_k*L_ik*L_jk, 0 <= k < j)
+
+        cdef Py_ssize_t m, i, j, k
+        cdef Matrix L
+
+        R = self.base_ring()
+        if not self.is_square():
+            msg = "matrix must be square, not {0} x {1}"
+            raise ValueError(msg.format(self.nrows(), self.ncols()))
+        if not algorithm in ['symmetric', 'hermitian']:
+            msg = "'algorithm' must be 'symmetric' or 'hermitian', not {0}"
+            raise ValueError(msg.format(algorithm))
+        if not R.is_exact():
+            msg = "entries of the matrix must be in an exact ring, not {0}"
+            raise TypeError(msg.format(R))
+        try:
+            F = R.fraction_field()
+        except (NotImplementedError, TypeError):
+            msg = 'Unable to create the fraction field of {0}'
+            raise TypeError(msg.format(R))
+        if check and algorithm == 'symmetric':
+            if not self.is_symmetric():
+                msg = "matrix is not symmetric (maybe try the 'hermitian' keyword)"
+                raise ValueError(msg)
+        if check and algorithm == 'hermitian':
+            if not self.is_hermitian():
+                raise ValueError('matrix is not hermitian')
+        conjugate = (algorithm == 'hermitian')
+        # we need a copy no matter what, so we
+        # (potentially) change to fraction field at the same time
+        L = self.change_ring(F)
+        m = L._nrows
+        zero = F(0)
+        one = F(1)
+        d = []
+        d_inv = []
+        for i in range(m):
+            for j in range(i+1):
+                t = L.get_unsafe(i, j)
+                if conjugate:
+                    for k in range(j):
+                        t -= L.get_unsafe(k,i)*L.get_unsafe(j,k).conjugate()
+                else:
+                    for k in range(j):
+                        t -= L.get_unsafe(k,i)*L.get_unsafe(j,k)
+                if i == j:
+                    if t == zero:
+                        msg = "{0}x{0} leading principal submatrix is singular, so cannot create indefinite factorization"
+                        raise ValueError(msg.format(i+1))
+                    d.append(t)
+                    d_inv.append(one/t)
+                    L.set_unsafe(i, i, one)
+                else:
+                    L.set_unsafe(j, i, t)
+                    L.set_unsafe(i, j, (d_inv[j] * t))
+        # Triangularize output matrix
+        for i in range(m):
+            for j in range(i+1, m):
+                L.set_unsafe(i, j, zero)
+        return L, d
+
+    def indefinite_factorization(self, algorithm='symmetric', check=True):
+        r"""
+        Decomposes a symmetric or Hermitian matrix into a
+        lower triangular matrix and a diagonal matrix.
+
+        INPUT:
+
+        - ``self`` - a square matrix over a ring.  The base ring
+          must have an implemented fraction field.
+
+        - ``algorithm`` - default: ``'symmetric'``.  Either
+          ``'symmetric'`` or ``'hermitian'``, according to if
+          the input matrix is symmetric or hermitian.
+
+        - ``check`` - default: ``True`` - if ``True`` then
+          performs the check that the matrix is consistent with the
+          ``algorithm`` keyword.
+
+        OUTPUT:
+
+        A lower triangular matrix `L` with each diagonal element
+        equal to `1` and a vector of entries that form a
+        diagonal matrix `D`.  The vector of diagonal entries
+        can be easily used to form the matrix, as demonstrated
+        below in the examples.
+
+        For a symmetric matrix, `A`, these will be related by
+
+        .. math::
+
+            A = LDL^T
+
+        If `A` is Hermitian matrix, then the transpose of `L`
+        should be replaced by the conjugate-transpose of `L`.
+
+        If any leading principal submatrix (a square submatrix
+        in the upper-left corner) is singular then this method will
+        fail with a ``ValueError``.
+
+        ALGORITHM:
+
+        The algorithm employed only uses field operations,
+        but the compuation of each diagonal entry has the potential
+        for division by zero.  The number of operations is of order
+        `n^3/3`, which is half the count for an LU decomposition.
+        This makes it an appropriate candidate for solving systems
+        with symmetric (or Hermitian) coefficient matrices.
+
+        EXAMPLES:
+
+        There is no requirement that a matrix be positive definite, as
+        indicated by the negative entries in the resulting diagonal
+        matrix.  The default is that the input matrix is symmetric. ::
+
+            sage: A = matrix(QQ, [[ 3,  -6,   9,   6,  -9],
+            ...                   [-6,  11, -16, -11,  17],
+            ...                   [ 9, -16,  28,  16, -40],
+            ...                   [ 6, -11,  16,   9, -19],
+            ...                   [-9,  17, -40, -19,  68]])
+            sage: A.is_symmetric()
+            True
+            sage: L, d = A.indefinite_factorization()
+            sage: D = diagonal_matrix(d)
+            sage: L
+            [ 1  0  0  0  0]
+            [-2  1  0  0  0]
+            [ 3 -2  1  0  0]
+            [ 2 -1  0  1  0]
+            [-3  1 -3  1  1]
+            sage: D
+            [ 3  0  0  0  0]
+            [ 0 -1  0  0  0]
+            [ 0  0  5  0  0]
+            [ 0  0  0 -2  0]
+            [ 0  0  0  0 -1]
+            sage: A == L*D*L.transpose()
+            True
+
+        Optionally, Hermitian matrices can be factored
+        and the result has a similar property (but not
+        identical).  Here, the field is all complex numbers
+        with rational real and imaginary parts.  As theory
+        predicts, the diagonal entries will be real numbers.  ::
+
+            sage: C.<I> = QuadraticField(-1)
+            sage: B = matrix(C, [[      2, 4 - 2*I, 2 + 2*I],
+            ...                  [4 + 2*I,       8,    10*I],
+            ...                  [2 - 2*I,   -10*I,      -3]])
+            sage: B.is_hermitian()
+            True
+            sage: L, d = B.indefinite_factorization(algorithm='hermitian')
+            sage: D = diagonal_matrix(d)
+            sage: L
+            [      1       0       0]
+            [  I + 2       1       0]
+            [ -I + 1 2*I + 1       1]
+            sage: D
+            [ 2  0  0]
+            [ 0 -2  0]
+            [ 0  0  3]
+            sage: B == L*D*L.conjugate_transpose()
+            True
+
+        If a leading principal submatrix is zero this algorithm
+        will fail.  This will never happen with a positive definite
+        matrix.  ::
+
+            sage: A = matrix(QQ, [[21, 15, 12, -2],
+            ...                   [15, 12,  9,  6],
+            ...                   [12,  9,  7,  3],
+            ...                   [-2,  6,  3,  8]])
+            sage: A.is_symmetric()
+            True
+            sage: A[0:3,0:3].det() == 0
+            True
+            sage: A.indefinite_factorization()
+            Traceback (most recent call last):
+            ...
+            ValueError: 3x3 leading principal submatrix is singular,
+            so cannot create indefinite factorization
+
+        This algorithm only depends on field operations, so
+        outside of the singular submatrix situation, any matrix
+        may be factored.  This provides a reasonable alternative
+        to the Cholesky decomposition.  ::
+
+            sage: F.<a> = FiniteField(5^3)
+            sage: A = matrix(F,
+            ...       [[      a^2 + 2*a, 4*a^2 + 3*a + 4,       3*a^2 + a, 2*a^2 + 2*a + 1],
+            ...        [4*a^2 + 3*a + 4,       4*a^2 + 2,             3*a, 2*a^2 + 4*a + 2],
+            ...        [      3*a^2 + a,             3*a,       3*a^2 + 2, 3*a^2 + 2*a + 3],
+            ...        [2*a^2 + 2*a + 1, 2*a^2 + 4*a + 2, 3*a^2 + 2*a + 3, 3*a^2 + 2*a + 4]])
+            sage: A.is_symmetric()
+            True
+            sage: L, d = A.indefinite_factorization()
+            sage: D = diagonal_matrix(d)
+            sage: L
+            [              1               0               0               0]
+            [4*a^2 + 4*a + 3               1               0               0]
+            [              3   4*a^2 + a + 2               1               0]
+            [      4*a^2 + 4 2*a^2 + 3*a + 3 2*a^2 + 3*a + 1               1]
+            sage: D
+            [      a^2 + 2*a               0               0               0]
+            [              0 2*a^2 + 2*a + 4               0               0]
+            [              0               0 3*a^2 + 4*a + 3               0]
+            [              0               0               0       a^2 + 3*a]
+            sage: A == L*D*L.transpose()
+            True
+
+        AUTHOR:
+
+        - Rob Beezer (2012-05-24)
+        """
+        from sage.modules.free_module_element import vector
+        L, d = self._indefinite_factorization(algorithm, check=check)
+        return L, vector(L.base_ring(), d)
+
     def hadamard_bound(self):
         r"""
         Return an int n such that the absolute value of the determinant of

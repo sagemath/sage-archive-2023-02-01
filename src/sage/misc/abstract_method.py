@@ -194,7 +194,7 @@ class AbstractMethod(object):
             sage: src[0]
             'def banner():\n'
             sage: lines
-            80
+            77
 
         """
         from sage.misc.sageinspect import sage_getsourcelines

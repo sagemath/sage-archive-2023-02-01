@@ -93,7 +93,7 @@ def banner():
         | Sage Version ..., Release Date: ...
         | Type "notebook()" for the browser-based notebook interface.        |
         | Type "help()" for help.                                            |
-        ----------------------------------------------------------------------
+        ...
     """
     print banner_text()
 

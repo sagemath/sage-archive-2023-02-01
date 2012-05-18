@@ -1423,7 +1423,7 @@ For help on any Sage function, for example "matrix_plot", type
 "matrix_plot?" to see a help message, type "help(matrix_plot)" to see
 a very similar message, type "browse_sage_doc(matrix_plot)" to view a
 help message in a web browser, and type "matrix_plot??" to look at the
-function"s source code.
+function's source code.
 
 (When you type something like "matrix_plot?", "help(matrix_plot)", or
 "matrix_plot??", Sage may start a paging program to display the
@@ -1435,6 +1435,6 @@ For license information for Sage and its components, read the file
 "COPYING.txt" in the top-level directory of the Sage installation,
 or type "license()".
 
-To enter Python"s interactive online help utility, type "python_help()".
+To enter Python's interactive online help utility, type "python_help()".
 To get help on a Python function, module or package, type "help(MODULE)" or
 "python_help(MODULE)".""" % sage.version.version

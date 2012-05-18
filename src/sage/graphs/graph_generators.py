@@ -98,6 +98,7 @@ Named Graphs
 - :meth:`Balaban10Cage <GraphGenerators.Balaban10Cage>`
 - :meth:`Balaban11Cage <GraphGenerators.Balaban11Cage>`
 - :meth:`BidiakisCube <GraphGenerators.BidiakisCube>`
+- :meth:`BiggsSmith <GraphGenerators.BiggsSmith>`
 - :meth:`BrinkmannGraph <GraphGenerators.BrinkmannGraph>`
 - :meth:`DoubleStarSnark <GraphGenerators.DoubleStarSnark>`
 - :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
@@ -2801,6 +2802,87 @@ class GraphGenerators():
             10: [-0.866025403784439, 0.5],
             11: [-0.5, 0.866025403784439]}
         return graph.Graph(edge_dict, pos=pos_dict, name="Bidiakis cube")
+
+    def BiggsSmith(self, embedding = 1):
+        r"""
+        Returns the Biggs-Smith graph.
+
+        For more information, see this :wikipedia:`Wikipedia article on
+        the Biggs-Smith graph <Biggs-Smith_graph>`.
+
+        INPUT:
+
+        - ``embedding`` -- two embeddings are available, and can be
+          selected by setting ``embedding`` to be 1 or 2.
+
+        EXAMPLES:
+
+        Basic properties::
+
+            sage: g = graphs.BiggsSmith()
+            sage: g.order()
+            102
+            sage: g.size()
+            153
+            sage: g.girth()
+            9
+            sage: g.diameter()
+            7
+            sage: g.automorphism_group().cardinality()
+            2448
+            sage: g.show(figsize=[10,10])
+
+        The other embedding::
+
+            sage: graphs.BiggsSmith(embedding = 2).show()
+
+        TESTS::
+
+            sage: graphs.BiggsSmith(embedding='xyzzy')
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of embedding must be 1, or 2.
+
+        """
+        L = [16, 24, -38, 17, 34, 48, -19, 41, -35, 47, -20, 34, -36,
+             21, 14, 48, -16, -36, -43, 28, -17, 21, 29, -43, 46, -24,
+             28, -38, -14, -50, -45, 21, 8, 27, -21, 20, -37, 39, -34,
+             -44, -8, 38, -21, 25, 15, -34, 18, -28, -41, 36, 8, -29,
+             -21, -48, -28, -20, -47, 14, -8, -15, -27, 38, 24, -48, -18,
+             25, 38, 31, -25, 24, -46, -14, 28, 11, 21, 35, -39, 43, 36,
+             -38, 14, 50, 43, 36, -11, -36, -24, 45, 8, 19, -25, 38, 20,
+             -24, -14, -21, -8, 44, -31, -38, -28, 37]
+
+        g = graphs.LCFGraph(102, L, 1)
+        g.name("Biggs-Smith graph")
+
+        if embedding == 1:
+
+            orbs = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 0],
+                    [17, 101, 25, 66, 20, 38, 53, 89, 48, 75, 56, 92, 45, 78, 34, 28, 63],
+                    [18, 36, 26, 65, 19, 37, 54, 90, 47, 76, 55, 91, 46, 77, 35, 27, 64],
+                    [21, 39, 52, 88, 49, 74, 57, 93, 44, 79, 33, 29, 62, 83, 100, 24, 67],
+                    [22, 97, 51, 96, 50, 95, 58, 94, 59, 80, 60, 81, 61, 82, 99, 23, 98],
+                    [30, 86, 84, 72, 70, 68, 42, 40, 31, 87, 85, 73, 71, 69, 43, 41, 32]]
+
+            # central orbits
+            _circle_embedding(g, orbs[1], center = (-.4,0), radius = .2)
+            _circle_embedding(g, orbs[3], center = (.4,0), radius = .2, shift = 4)
+
+            # Lower orbtis
+            _circle_embedding(g, orbs[0], center = (-.9,-.5), radius = .3, shift = 2)
+            _circle_embedding(g, orbs[2], center = (-.9,.5), radius = .3)
+
+            # Upper orbits
+            _circle_embedding(g, orbs[4], center = (.9,-.5), radius = .3, shift = 4)
+            _circle_embedding(g, orbs[5], center = (.9,.5), radius = .3, shift = -2)
+
+        elif embedding == 2:
+            pass
+        else:
+            raise ValueError("The value of embedding must be 1, or 2.")
+
+        return g
 
     def BrinkmannGraph(self):
         r"""

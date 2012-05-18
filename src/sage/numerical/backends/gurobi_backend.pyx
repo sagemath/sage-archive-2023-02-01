@@ -1205,6 +1205,25 @@ cdef class GurobiBackend(GenericBackend):
         else:
             raise RuntimeError("This should not happen.")
 
+    cpdef GurobiBackend copy(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver    # optional - GUROBI
+            sage: p = MixedIntegerLinearProgram(solver = "GUROBI")                  # optional - GUROBI
+            sage: b = p.new_variable()                                              # optional - GUROBI
+            sage: p.add_constraint(b[1] + b[2] <= 6)                                # optional - GUROBI
+            sage: p.set_objective(b[1] + b[2])                                      # optional - GUROBI
+            sage: copy(p).solve()                                                   # optional - GUROBI
+            6.0
+        """
+        cdef GurobiBackend p = GurobiBackend(maximization = self.is_maximization())
+        p.model[0] = GRBcopymodel(self.model[0])
+        p.env = GRBgetenv(p.model[0])
+        return p
+
     def __dealloc__(self):
         """
         Destructor

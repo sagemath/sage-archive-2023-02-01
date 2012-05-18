@@ -24,6 +24,8 @@ cdef extern from "../../../local/include/gurobi_c.h":
 
      int GRBloadenv(GRBenv **, char *)
      int GRBnewmodel(GRBenv *env, GRBmodel **modelP, char *Pname, int numvars, double *obj, double *lb, double *ub, char *vtype, char **varnames)
+     GRBmodel * GRBcopymodel (GRBmodel *model)
+
      int GRBaddvar(GRBmodel *model, int numnz, int *vind, double *vval, double obj, double lb, double ub, char vtype, char *varname)
      int GRBaddvars (GRBmodel*model, intnumvars, intnumnz, int*vbeg, int*vind, double*vval, double*obj, double*lb, double*ub, char*vtype, char** varnames )
 

@@ -2172,9 +2172,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         c = Emin.mwrank_curve()
         mw = mwrank.mwrank_MordellWeil(c, verbose)
         mw.process(v)
+        repeat_until_saturated = False
         if max_prime == 0:
             repeat_until_saturated = True
-            max_prime = 97
+            max_prime = 9973
         from sage.libs.all import mwrank_get_precision, mwrank_set_precision
         prec0 = mwrank_get_precision()
         prec = 100
@@ -2186,7 +2187,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ok, index, unsat = mw.saturate(max_prime=max_prime, odd_primes_only = odd_primes_only)
             reg = mw.regulator()
             if ok or not repeat_until_saturated: break
-            max_prime = arith.next_prime(max_prime + 100)
+            max_prime = arith.next_prime(max_prime + 1000)
             prec += 50
             #print "Increasing precision to ",prec," and max_prime to ",max_prime
             mwrank_set_precision(prec)

@@ -6,16 +6,11 @@ Sage version and banner info
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import sage.version
 
@@ -48,22 +43,24 @@ def banner_text():
     Text for the Sage banner.
 
     INPUT:
-        None
+
+    None
 
     OUTPUT:
-        string containing the banner message
 
-    EXAMPLES:
+    A string containing the banner message.
+
+    EXAMPLES::
+
         sage: print sage.misc.banner.banner_text()
         ----------------------------------------------------------------------
-        | Sage Version ..., Release Date: ...                  |
-        | Type 'notebook()' for ...
+        | Sage Version ...
     """
     bars = "-"*70
     s = bars
     s += "\n| %-66s |\n"%version()
-    s += "| %-66s |\n"%'Type \'notebook()\' for the browser-based notebook interface.'
-    s += "| %-66s |\n"%'Type \'help()\' for help.'
+    s += "| %-66s |\n"%'Type "notebook()" for the browser-based notebook interface.'
+    s += "| %-66s |\n"%'Type "help()" for help.'
     #s += "| %-66s |\n"%'Distributed under the GNU General Public License V2.'
     s += bars
     pre = version_dict()['prerelease']
@@ -82,16 +79,21 @@ def banner():
     Print the Sage banner.
 
     INPUT:
-        None
+
+    None
 
     OUTPUT:
-        None
 
-    EXAMPLES:
+    None
+
+    EXAMPLES::
+
         sage: banner()
         ----------------------------------------------------------------------
-        | Sage Version ..., Release Date: ...                  |
-        | Type 'notebook()' for ...
+        | Sage Version ..., Release Date: ...
+        | Type "notebook()" for the browser-based notebook interface.        |
+        | Type "help()" for help.                                            |
+        ----------------------------------------------------------------------
     """
     print banner_text()
 

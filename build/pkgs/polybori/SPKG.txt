@@ -28,13 +28,14 @@ reference implementation for Gröbner basis computation.
 
 == Dependencies ==
 
+ * GNU patch
  * Python
  * Scons
  * Boost
- * gd (FIXME/TODO: should be added to deps, I think. Leif, 2010-07-10)
- * M4RI/libm4ri (already included in deps)
- * png/libpng12 (accomplished because Python and gd depend on it, too)
- * libz         (accomplished because e.g. libpng depends on it)
+ * gd
+ * M4RI
+ * png/libpng12 (accomplished because Python and gd depend on it)
+ * libz         (accomplished because Python and libpng depend on it)
 
 == Patches ==
 
@@ -50,14 +51,19 @@ reference implementation for Gröbner basis computation.
 
 All patches were merged upstream.
 
-
 == Special Files ==
 
  * custom.py - configuration file for PolyBoRi's build system,
                sets local prefix and install paths to Sage directories
 
+== Changelog ==
 
-== Releases ==
+=== polybori-0.8.1.p2 (Jeroen Demeyer, 18 May 2012) ===
+ * Trac #12963: Disable the Boost testing framework when
+   SAGE_FAT_BINARY=yes. This prevents linking against a system
+   -lboost_unit_test_framework library (which Sage doesn't provide).
+ * Move sources from src/polybori-0.8.1 to src/
+ * Small cleanup of SPKG.txt and spkg-install.
 
 === polybori-0.8.1.p1 (Alexander Dreyer, March 26th, 2012) ===
  * Rebased spkg on polybori-0.8.0.p2 (Sage Trac #12750)

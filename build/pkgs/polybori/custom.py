@@ -1,8 +1,6 @@
 import os
 import sys
 
-# FIXME: Do we really want to *overwrite* the flags (e.g. if set by the user)?
-# Answer: Should be fixed now.
 CCFLAGS += ["-Wreturn-type"]
 
 # Note: PolyBoRi still appends DEFAULT_*FLAGS (overwrite those, if necessary)
@@ -37,14 +35,12 @@ if os.environ.get('SAGE_DEBUG', "no") == "yes":
     CPPDEFINES=[]
     CCFLAGS=["-pg"] + CCFLAGS
     CXXFLAGS=["-pg"] + CXXFLAGS
-    # LINKFLAGS=["-pg"]
     LINKFLAGS=["-pg"] + LINKFLAGS
 
 if os.environ.get('SAGE64', "no") == "yes":
     print "Building a 64-bit version of PolyBoRi"
     CCFLAGS=["-m64"] + CCFLAGS
     CXXFLAGS=["-m64"] + CXXFLAGS
-    # LINKFLAGS=["-m64"]
     LINKFLAGS=["-m64"] + LINKFLAGS
 
 CPPPATH=[os.environ['SAGE_LOCAL']+"/include"]
@@ -60,14 +56,19 @@ HAVE_HEVEA=False
 HAVE_TEX4HT=False
 HAVE_PYTHON_EXTENSION=False
 EXTERNAL_PYTHON_EXTENSION=True
+# Disable the Boost testing framework on distributable binaries to
+# prevent linking against a system -lboost_unit_test_framework
+# library.
+if os.environ.get('SAGE_FAT_BINARY', "no") == "yes":
+    BOOST_TEST=""
 
 # (CC and CXX should have been set by sage-env, but never mind...:)
 try:
-  CC = os.environ['CC']
-except:
-  pass
+    CC = os.environ['CC']
+except KeyError:
+    pass
 
 try:
-  CXX = os.environ['CXX']
-except:
-  pass
+    CXX = os.environ['CXX']
+except KeyError:
+    pass

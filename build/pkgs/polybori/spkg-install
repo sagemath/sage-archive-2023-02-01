@@ -6,7 +6,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-PBDIR=polybori-0.8.1
 WORKDIR=${PWD}/src
 SCONS=scons
 
@@ -16,58 +15,52 @@ prepare_polybori()
         export PROGSUFFIX=.exe
     fi
 
-    cd ${PBDIR}
-
     # place configuration file
-    cp ../../custom.py .
+    cp ../custom.py .
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error copying 'custom.py'"
+        exit 1
+    fi
 
     # Apply patches.  See SPKG.txt for information about what each patch
     # does.
-    for patch in ../../patches/*.patch; do
+    for patch in ../patches/*.patch; do
         patch -p1 < "$patch"
         if [ $? -ne 0 ]; then
             echo >&2 "Error applying '$patch'"
             exit 1
         fi
     done
-
-    cd ${WORKDIR}
 }
 
 build_polybori()
 {
-    cd ${PBDIR}
     ${SCONS} prepare-devel ${MAKEOPTS}
     if [ $? -ne 0 ]; then
         echo "Error building PolyBoRi."
         exit 1
     fi
-    cd ${WORKDIR}
 }
 
 install_polybori()
 {
-    cd ${PBDIR}
-    ${SCONS} devel-install install PREFIX=${SAGE_LOCAL} \
-        INSTALLDIR=${SAGE_LOCAL}/share/polybori \
-        CONFFILE=${SAGE_LOCAL}/share/polybori/flags.conf
+    ${SCONS} devel-install install "PREFIX=${SAGE_LOCAL}" \
+        "INSTALLDIR=${SAGE_LOCAL}/share/polybori" \
+        "CONFFILE=${SAGE_LOCAL}/share/polybori/flags.conf"
     if [ $? -ne 0 ]; then
         echo "Error installing PolyBoRi."
         exit 1
     fi
-    #if [ -e ${SAGE_LOCAL}/lib/python/site-packages/polybori ] ; then
-    #    rm  -rf ${SAGE_LOCAL}/lib/python/site-packages/polybori
-    #fi
-    cd ${WORKDIR}
+    # rm  -rf "${SAGE_LOCAL}/lib/python/site-packages/polybori"
 }
 
 clean_polybori()
 {
-    rm -f ${SAGE_LOCAL}/lib/libpolybori*
-    rm -f ${SAGE_LOCAL}/lib/libpboriCudd*
-    rm -f ${SAGE_LOCAL}/lib/libgroebner*
-    rm -rf ${SAGE_LOCAL}/include/polybori*
-    rm -rf ${SAGE_LOCAL}/include/cudd
+    rm -f "$SAGE_LOCAL"/lib/libpolybori*
+    rm -f "$SAGE_LOCAL"/lib/libpboriCudd*
+    rm -f "$SAGE_LOCAL"/lib/libgroebner*
+    rm -rf "$SAGE_LOCAL"/include/polybori*
+    rm -rf "$SAGE_LOCAL"/include/cudd
 }
 
 cd ${WORKDIR}

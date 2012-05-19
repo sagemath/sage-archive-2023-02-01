@@ -8,7 +8,7 @@ fi
 
 cd src
 
-make check
+$MAKE check
 if [ $? -ne 0 ]; then
    echo "Error testing lrcalc."
    exit 1

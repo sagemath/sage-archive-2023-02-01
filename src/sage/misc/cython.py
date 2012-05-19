@@ -329,7 +329,30 @@ def cython(filename, verbose=False, compile_message=False,
     - ``create_local_so_file`` (bool, default False) - if True, save a
       copy of the compiled .so file in the current directory.
 
-    TODO: doctests
+    TESTS:
+
+    Before :trac:`12975`, it would have beeen needed to write ``#clang c++``,
+    but upper case ``C++`` has resulted in an error::
+
+        sage: from sage.all import SAGE_ROOT
+        sage: code = [
+        ... "#clang C++",
+        ... "#cinclude %s/local/include/singular %s/local/include/factory"%(SAGE_ROOT,SAGE_ROOT),
+        ... "#clib m readline singular givaro ntl gmpxx gmp",
+        ... "from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular",
+        ... "from sage.libs.singular.polynomial cimport singular_polynomial_pow",
+        ... "def test(MPolynomial_libsingular p):",
+        ... "    singular_polynomial_pow(&p._poly, p._poly, 2, p._parent_ring)"]
+        sage: cython(os.linesep.join(code))
+
+    The function ``test`` now manipulates internal C data of polynomials,
+    squaring them::
+
+        sage: P.<x,y>=QQ[]
+        sage: test(x)
+        sage: x
+        x^2
+
     """
     if not filename.endswith('pyx'):
         print "File (=%s) should have extension .pyx"%filename

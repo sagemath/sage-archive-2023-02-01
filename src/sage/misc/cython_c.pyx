@@ -11,8 +11,8 @@ def cython(code,
 
     The following pragmas are available:
 
-    - ``clang`` - may be either c or c++ indicating whether a C or C++
-      compiler should be used.
+    - ``clang`` - may be either c or c++ (or C or C++) indicating
+      whether a C or C++ compiler should be used.
 
     - ``clib`` - additional libraries to be linked in, the space
       separated list is split and passed to distutils.

@@ -24,9 +24,9 @@ if [ $# -ne 2 ]; then
    exit 1
 fi
 
-SAGE_VERSION=$1
-SAGE_ROOT=$2
-export SAGE_VERSION SAGE_ROOT
+# If $1 starts with "sage-", remove this prefix
+export SAGE_VERSION=`echo "$1" | sed 's/^sage-//'`
+export SAGE_ROOT=$2
 
 TARGET=sage-"$SAGE_VERSION"-`uname -m`-`uname`
 TARGET=`echo $TARGET | sed -e 's/ //'`     #no blank spaces

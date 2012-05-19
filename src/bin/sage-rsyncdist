@@ -7,7 +7,7 @@
 # All spkgs in spkg/standard are stored extracted: instead of a file
 # spkg/standard/atlas-3.8.4.spkg, there is a directory
 # spkg/standard/atlas/ (note the directory has no version number).
-# In the tarball, there is no top-level directory like "sage-4.8",
+# In the tarball, there is no top-level directory like "sage-5.0",
 # files like "Makefile" are stored directly at the top level.
 #
 # Running this script requires:
@@ -52,8 +52,9 @@ if ! gzip --rsyncable </dev/null >/dev/null 2>/dev/null; then
 fi
 
 
-VERSION=$1
-if [ -z "$VERSION" ]; then
+# If $1 starts with "sage-", remove this prefix
+SAGE_VERSION=`echo "$1" | sed 's/^sage-//'`
+if [ -z "$SAGE_VERSION" ]; then
     echo >&2 "Usage: $0 <SAGE_VERSION>"
     echo >&2 "Create an rsyncable source distribution of Sage"
     exit 2
@@ -62,17 +63,17 @@ fi
 # Run this script from SAGE_ROOT
 [ -z "$SAGE_ROOT" ] || cd "$SAGE_ROOT"
 
-if [ ! -r "dist/sage-$VERSION.tar" ]; then
-    echo >&2 "The sdist tarball dist/sage-$VERSION.tar has not been created yet."
-    echo >&2 "You should call this script after running ./sage --sdist $VERSION"
+if [ ! -r "dist/sage-$SAGE_VERSION.tar" ]; then
+    echo >&2 "The sdist tarball dist/sage-$SAGE_VERSION.tar has not been created yet."
+    echo >&2 "You should call this script after running ./sage --sdist $SAGE_VERSION"
     exit 1
 fi
 
 # Extract existing sdist tarball
 mkdir -p "dist/sage-rsync"
 cd "dist/sage-rsync"
-echo "Extracting sdist tarball sage-$VERSION.tar"
-tar -x --strip-components 1 -f "../sage-$VERSION.tar"
+echo "Extracting sdist tarball sage-$SAGE_VERSION.tar"
+tar -x --strip-components 1 -f "../sage-$SAGE_VERSION.tar"
 
 # Create a shell script to repack the spkgs.  The repacked spkgs will
 # not be compressed, but that's not a problem.  It just means one

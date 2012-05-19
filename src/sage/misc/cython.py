@@ -257,7 +257,7 @@ def pyx_preparse(s):
     """
     lang, s = parse_keywords('clang', s)
     if lang:
-        lang = lang[0]
+        lang = lang[0].lower() # this allows both C++ and c++
     else:
         lang = "c"
 

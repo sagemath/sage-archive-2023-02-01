@@ -1,5 +1,5 @@
 from sage.structure.element cimport MultiplicativeGroupElement, MonoidElement, Element
-
+from sage.structure.list_clone cimport ClonableIntArray
 
 cdef class PermutationGroupElement(MultiplicativeGroupElement):
     cdef int* perm
@@ -12,3 +12,5 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
     cpdef _gap_list(self)
     cpdef list(self)
     cdef public __custom_name
+    cpdef list _act_on_list_on_position(self, list x)
+    cpdef ClonableIntArray _act_on_array_on_position(self, ClonableIntArray x)

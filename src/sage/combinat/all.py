@@ -101,7 +101,7 @@ from backtrack import TransitiveIdeal, TransitiveIdealGraded, SearchForest
 
 from integer_vector import IntegerVectors
 from integer_vector_weighted import WeightedIntegerVectors
-
+from integer_vectors_mod_permgroup import IntegerVectorsModPermutationGroup
 
 from finite_class import FiniteCombinatorialClass
 

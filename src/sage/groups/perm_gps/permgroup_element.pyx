@@ -736,6 +736,58 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             else:
                 return from_gap[i]
 
+    cpdef list _act_on_list_on_position(self, list x):
+        """
+        Returns the right action of ``self`` on the list ``x``. This is the
+        action on positions.
+
+        EXAMPLES::
+
+            sage: G = PermutationGroup([[(1,2,3,4,5,6)]])
+            sage: p = G.gen()^2; p
+            (1,3,5)(2,4,6)
+            sage: p._act_on_list_on_position([1,2,3,4,5,6])
+            [3, 4, 5, 6, 1, 2]
+            sage: p._act_on_list_on_position(['a','b','c','d','e','f'])
+            ['c', 'd', 'e', 'f', 'a', 'b']
+            sage: p._act_on_list_on_position(['c','d','e','f','a','b'])
+            ['e', 'f', 'a', 'b', 'c', 'd']
+            sage: p._act_on_list_on_position([])
+            Traceback (most recent call last):
+            ...
+            AssertionError: (1,3,5)(2,4,6) and [] should have the same length
+            sage: p._act_on_list_on_position([1,2,3,4,5,6,7])
+            Traceback (most recent call last):
+            ...
+            AssertionError: (1,3,5)(2,4,6) and [1, 2, 3, 4, 5, 6, 7] should have the same length
+        """
+        assert len(x) == self.n, '%s and %s should have the same length'%(self, x)
+        return [ x[self.perm[i]] for i in range(self.n) ]
+
+    cpdef ClonableIntArray _act_on_array_on_position(self, ClonableIntArray x):
+        """
+        Returns the right action of ``self`` on the ClonableIntArray
+        ``x``. This is the action on positions.
+
+        EXAMPLES::
+
+            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: v = IncreasingIntArrays()([1,2,3,4])
+            sage: G = PermutationGroup([[(1,2,3,4)]])
+            sage: id = G.identity()
+            sage: id._act_on_array_on_position(v)
+            [1, 2, 3, 4]
+        """
+        cdef int i
+        cdef ClonableIntArray y
+        cdef int l = self.n
+        assert x._len == l, '%s and %s should have the same length'%(self, x)
+        y = x.clone()
+        for i in range(l):
+            y._list[i] = x._list[self.perm[i]]
+        y.set_immutable()
+        return y
+
     cpdef _act_on_(self, x, bint self_on_left):
         """
         Return the right action of self on left.

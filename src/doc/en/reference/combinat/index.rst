@@ -23,6 +23,8 @@ Combinatorics
    ../sage/combinat/integer_list
    ../sage/combinat/integer_vector
    ../sage/combinat/integer_vector_weighted
+   ../sage/combinat/integer_vectors_mod_permgroup
+   ../sage/combinat/enumeration_mod_permgroup
    ../sage/combinat/restricted_growth
    ../sage/combinat/yamanouchi
    ../sage/combinat/graph_path

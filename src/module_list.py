@@ -225,6 +225,9 @@ ext_modules = [
               sources=['sage/combinat/combinat_cython.pyx'],
               libraries=['gmp']),
 
+    Extension('sage.combinat.enumeration_mod_permgroup',
+              sources=['sage/combinat/enumeration_mod_permgroup.pyx']),
+
     ################################
     ##
     ## sage.crypto

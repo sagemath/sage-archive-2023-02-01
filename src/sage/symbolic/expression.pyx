@@ -751,13 +751,38 @@ cdef class Expression(CommutativeRingElement):
         """
         EXAMPLES::
 
-            sage: int(sin(2)*100)
-            90
             sage: int(log(8)/log(2))
             3
+            sage: int(-log(8)/log(2))
+            -3
+            sage: int(sin(2)*100)
+            90
+            sage: int(-sin(2)*100)
+            -90
+            sage: int(SR(3^64)) == 3^64
+            True
+            sage: int(SR(10^100)) == 10^100
+            True
+            sage: int(SR(10^100-10^-100)) == 10^100 - 1
+            True
+            sage: int(sqrt(-3))
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot convert sqrt(-3) to int
         """
-        #FIXME: can we do better?
-        return int(self.n(prec=100))
+        from sage.functions.all import floor, ceil
+        try:
+            rif_self = sage.rings.all.RIF(self)
+        except TypeError:
+            raise ValueError, "cannot convert %s to int"%(self)
+        if rif_self > 0 or (rif_self.contains_zero() and self > 0):
+            result = floor(self)
+        else:
+            result = ceil(self)
+        if not isinstance(result, sage.rings.integer.Integer):
+            raise ValueError, "cannot convert %s to int"%(self)
+        else:
+            return int(result)
 
     def __long__(self):
         """
@@ -4296,22 +4321,40 @@ cdef class Expression(CommutativeRingElement):
         """
         Round this expression to the nearest integer.
 
-        This method evaluates an expression in ``RR`` first and rounds the
-        result. This may lead to misleading results.
-
         EXAMPLES::
 
-            sage: t = sqrt(Integer('1'*1000)).round(); t
-            33333333333333330562872877837571095953933917311168389275365130348599729268937180234955282892214983624063325870179809380946753270304893256291223685906477377407805362767048122713900447143840625646189582982153140391592656164907437770144711391823061825859553426442610175266854303816282031207413258045024789468633297982051760989540057817134748449866609872506236671598268343900233203388804404405970909678015833968186200327087593697947284709714538428657648875107834928345435181446453242319048564666814955520
-
-        This is off by a huge margin::
-
-            sage: (Integer('1'*1000) - t^2).ndigits()
-            984
+            sage: u = sqrt(43203735824841025516773866131535024)
+            sage: u.round()
+            207855083711803945
+            sage: t = sqrt(Integer('1'*1000)).round(); print str(t)[-10:]
+            3333333333
+            sage: (-sqrt(110)).round()
+            -10
+            sage: (-sqrt(115)).round()
+            -11
+            sage: (sqrt(-3)).round()
+            Traceback (most recent call last):
+            ...
+            ValueError: could not convert sqrt(-3) to a real number
         """
-        #FIXME: can we do better?
-        from sage.rings.real_mpfr import RR
-        return RR(self).round()
+        try:
+            return self.pyobject().round()
+        except (TypeError, AttributeError):
+            pass
+        from sage.functions.all import floor, ceil
+        try:
+            rif_self = sage.rings.all.RIF(self)
+        except TypeError:
+            raise ValueError, "could not convert %s to a real number"%(self)
+        half = 1 / sage.rings.integer.Integer(2)
+        if rif_self < 0 or (rif_self.contains_zero() and self < 0):
+            result = ceil(self - half)
+        else:
+            result = floor(self + half)
+        if not isinstance(result, sage.rings.integer.Integer):
+            raise ValueError, "could not convert %s to a real number"%(self)
+        else:
+            return result
 
     def function(self, *args):
         """

@@ -121,12 +121,16 @@ Named Graphs
 - :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
 - :meth:`HoffmanSingletonGraph <GraphGenerators.HoffmanSingletonGraph>`
 - :meth:`LjubljanaGraph <GraphGenerators.LjubljanaGraph>`
+- :meth:`McGeeGraph <GraphGenerators.McGeeGraph>`
 - :meth:`MoebiusKantorGraph <GraphGenerators.MoebiusKantorGraph>`
 - :meth:`MoserSpindle <GraphGenerators.MoserSpindle>`
 - :meth:`PappusGraph <GraphGenerators.PappusGraph>`
 - :meth:`PetersenGraph <GraphGenerators.PetersenGraph>`
 - :meth:`ShrikhandeGraph <GraphGenerators.ShrikhandeGraph>`
 - :meth:`ThomsenGraph <GraphGenerators.ThomsenGraph>`
+- :meth:`Tutte12Cage <GraphGenerators.Tutte12Cage>`
+- :meth:`TutteCoxeterGraph <GraphGenerators.TutteCoxeterGraph>`
+- :meth:`WagnerGraph <GraphGenerators.WagnerGraph>`
 
 
 Families of graphs
@@ -1605,8 +1609,8 @@ class GraphGenerators():
             10
             sage: g.diameter()
             6
-            sage: g.show(figsize=[10, 10])
-            sage: graphs.HarriesGraph(embedding=2).show(figsize=[10, 10])
+            sage: g.show(figsize=[10, 10])   # long time
+            sage: graphs.HarriesGraph(embedding=2).show(figsize=[10, 10])   # long time
 
         TESTS::
 
@@ -1728,7 +1732,7 @@ class GraphGenerators():
             sage: g.diameter()
             6
             sage: orbits = g.automorphism_group(orbits=True)[-1]
-            sage: g.show(figsize=[15, 15], partition=orbits)
+            sage: g.show(figsize=[15, 15], partition=orbits)   # long time
 
         Alternative embedding::
 
@@ -2623,7 +2627,7 @@ class GraphGenerators():
             6
             sage: g.is_hamiltonian()
             True
-            sage: g.show(figsize=[10,10])
+            sage: g.show(figsize=[10,10])   # long time
 
         TESTS::
 
@@ -2718,9 +2722,9 @@ class GraphGenerators():
             sage: g1 = graphs.Balaban11Cage(embedding=1)
             sage: g2 = graphs.Balaban11Cage(embedding=2)
             sage: g3 = graphs.Balaban11Cage(embedding=3)
-            sage: g1.show(figsize=[10,10])
-            sage: g2.show(figsize=[10,10])
-            sage: g3.show(figsize=[10,10])
+            sage: g1.show(figsize=[10,10])   # long time
+            sage: g2.show(figsize=[10,10])   # long time
+            sage: g3.show(figsize=[10,10])   # long time
 
         Proof that the embeddings are the same graph::
 
@@ -2952,7 +2956,7 @@ class GraphGenerators():
             7
             sage: g.automorphism_group().cardinality()
             2448
-            sage: g.show(figsize=[10, 10])
+            sage: g.show(figsize=[10, 10])   # long time
 
         The other embedding::
 
@@ -3730,8 +3734,8 @@ class GraphGenerators():
             8
             sage: g.diameter()
             6
-            sage: g.show(figsize=[10, 10])
-            sage: graphs.GrayGraph(embedding = 2).show(figsize=[10, 10])
+            sage: g.show(figsize=[10, 10])   # long time
+            sage: graphs.GrayGraph(embedding = 2).show(figsize=[10, 10])   # long time
 
         TESTS::
 
@@ -4232,8 +4236,8 @@ class GraphGenerators():
             10
             sage: g.diameter()
             8
-            sage: g.show(figsize=[10, 10])
-            sage: graphs.LjubljanaGraph(embedding=2).show(figsize=[10, 10])
+            sage: g.show(figsize=[10, 10])   # long time
+            sage: graphs.LjubljanaGraph(embedding=2).show(figsize=[10, 10])   # long time
 
         TESTS::
 
@@ -4339,6 +4343,65 @@ class GraphGenerators():
                 g.add_edge(s,t)
 
         return g
+
+    def McGeeGraph(self, embedding = 2):
+        r"""
+        Returns the McGee Graph.
+
+        See the :wikipedia:`Wikipedia page on the McGee Graph <McGee_graph>`.
+
+        INPUT:
+
+        - ``embedding`` -- two embeddings are available, and can be selected by
+          setting ``embedding`` to 1 or 2.
+
+        EXAMPLES::
+
+            sage: g = graphs.McGeeGraph()
+            sage: g.order()
+            24
+            sage: g.size()
+            36
+            sage: g.girth()
+            7
+            sage: g.diameter()
+            4
+            sage: g.show()
+            sage: graphs.McGeeGraph(embedding=2).show()
+
+        TESTS::
+
+            sage: graphs.McGeeGraph(embedding=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of embedding must be 1 or 2.
+        """
+
+        L = [47, -23, -31, 39, 25, -21, -31, -41, 25, 15, 29, -41, -19, 15,
+             -49, 33, 39, -35, -21, 17, -33, 49, 41, 31, -15, -29, 41, 31,
+             -15, -25, 21, 31, -51, -25, 23, 9, -17, 51, 35, -29, 21, -51,
+             -39, 33, -9, -51, 51, -47, -33, 19, 51, -21, 29, 21, -31, -39]
+
+        g = graphs.LCFGraph(24, [12,7,-7], 8)
+        g.name('McGee graph')
+
+        if embedding == 1:
+            return g
+
+        elif embedding == 2:
+
+            o = [[7, 2, 13, 8, 19, 14, 1, 20],
+                 [5, 4, 11, 10, 17, 16, 23, 22],
+                 [3, 12, 9, 18, 15, 0, 21, 6]]
+
+            _circle_embedding(g,o[0], radius = 1.5)
+            _circle_embedding(g,o[1], radius = 3, shift = -.5)
+            _circle_embedding(g,o[2], radius = 2.25, shift = .5)
+
+            return g
+        else:
+            raise ValueError("The value of embedding must be 1 or 2.")
+
 
     def MoebiusKantorGraph(self):
         """
@@ -4544,6 +4607,52 @@ class GraphGenerators():
 
         return gg
 
+    def NauruGraph(self, embedding = 2):
+        """
+        Returns the Nauru Graph.
+
+        See the :wikipedia:`Wikipedia page on the Nauru Graph <Nauru_graph>`.
+
+        INPUT:
+
+        - ``embedding`` -- two embeddings are available, and can be
+          selected by setting ``embedding`` to 1 or 2.
+
+        EXAMPLES::
+
+            sage: g = graphs.NauruGraph()
+            sage: g.order()
+            24
+            sage: g.size()
+            36
+            sage: g.girth()
+            6
+            sage: g.diameter()
+            4
+            sage: g.show()
+            sage: graphs.NauruGraph(embedding=2).show()
+
+        TESTS::
+
+            sage: graphs.NauruGraph(embedding=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of embedding must be 1 or 2.
+            sage: graphs.NauruGraph(embedding=1).is_isomorphic(graphs.NauruGraph())
+            True
+        """
+
+        if embedding == 1:
+            g = graphs.LCFGraph(24, [5,-9,7,-7,9,-5], 4)
+            g.name('Nauru Graph')
+            return g
+        elif embedding == 2:
+            g = graphs.GeneralizedPetersenGraph(12,5)
+            g.name("Nauru Graph")
+            return g
+        else:
+            raise ValueError("The value of embedding must be 1 or 2.")
+
     def PappusGraph(self):
         """
         Returns the Pappus graph, a graph on 18 vertices.
@@ -4708,6 +4817,121 @@ class GraphGenerators():
         import networkx
         G = networkx.complete_bipartite_graph(3,3)
         return graph.Graph(G, pos=pos_dict, name="Thomsen graph")
+
+    def Tutte12Cage(self):
+        r"""
+        Returns Tutte's 12-Cage
+
+        See the :wikipedia:`Wikipedia page on the Tutte 12-Cage
+        <Tutte_12-cage>`.
+
+        EXAMPLES::
+
+            sage: g = graphs.Tutte12Cage()
+            sage: g.order()
+            126
+            sage: g.size()
+            189
+            sage: g.girth()
+            12
+            sage: g.diameter()
+            6
+            sage: g.show()
+        """
+        L = [17, 27, -13, -59, -35, 35, -11, 13, -53, 53, -27, 21, 57, 11,
+             -21, -57, 59, -17]
+
+        g = graphs.LCFGraph(126, L, 7)
+        g.name("Tutte 12-Cage")
+        return g
+
+    def TutteCoxeterGraph(self, embedding=2):
+        r"""
+        Returns the Tutte-Coxeter graph.
+
+        See the :wikipedia:`Wikipedia page on the Tutte-Coxeter Graph
+        <Tutte-Coxeter_graph>`.
+
+        INPUT:
+
+        - ``embedding`` -- two embeddings are available, and can be
+          selected by setting ``embedding`` to 1 or 2.
+
+        EXAMPLES::
+
+            sage: g = graphs.TutteCoxeterGraph()
+            sage: g.order()
+            30
+            sage: g.size()
+            45
+            sage: g.girth()
+            8
+            sage: g.diameter()
+            4
+            sage: g.show()
+            sage: graphs.TutteCoxeterGraph(embedding = 1).show()
+
+        TESTS::
+
+            sage: graphs.TutteCoxeterGraph(embedding = 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of embedding must be 1 or 2.
+        """
+
+        g = graphs.LCFGraph(30, [-13,-9,7,-7,9,13], 5)
+        g.name("Tutte-Coxeter graph")
+
+        if embedding == 1:
+            d = {
+                0: [1, 3, 5, 7, 29],
+                1: [2, 4, 6, 28, 0],
+                2: [8, 18, 26, 22, 12],
+                3: [9, 13, 23, 27, 17],
+                4: [11, 15, 21, 25, 19],
+                5: [10, 14, 24, 20, 16]
+                }
+
+            _circle_embedding(g,d[0], center = (-1,1), radius = .25)
+            _circle_embedding(g,d[1], center = (1,1), radius = .25)
+            _circle_embedding(g,d[2], center = (-.8,0), radius = .25, shift = 2.5)
+            _circle_embedding(g,d[3], center = (1.2,0), radius = .25)
+            _circle_embedding(g,d[4], center = (-1,-1), radius = .25, shift = 2)
+            _circle_embedding(g,d[5], center = (1,-1), radius = .25)
+
+            return g
+
+        elif embedding == 2:
+            return g
+
+        else:
+            raise ValueError("The value of embedding must be 1 or 2.")
+
+
+
+
+    def WagnerGraph(self):
+        """
+        Returns the Wagner Graph.
+
+        See the :wikipedia:`Wikipedia page on the Wagner Graph <Wagner_graph>`.
+
+        EXAMPLES::
+
+            sage: g = graphs.WagnerGraph()
+            sage: g.order()
+            8
+            sage: g.size()
+            12
+            sage: g.girth()
+            4
+            sage: g.diameter()
+            2
+            sage: g.show()
+        """
+        g = graphs.LCFGraph(8, [4], 8)
+        g.name("Wagner Graph")
+        return g
 
 ###########################################################################
 #   Families of Graphs

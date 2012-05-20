@@ -179,8 +179,8 @@ class Crystals(Category_singleton):
 
         def Lambda(self):
             """
-            Returns the fundamentals weights in the weight lattice
-            realization for the root system associated the crystal
+            Returns the fundamental weights in the weight lattice
+            realization for the root system associated with the crystal
 
             EXAMPLES::
 
@@ -189,6 +189,32 @@ class Crystals(Category_singleton):
                 Finite family {1: (1, 0, 0, 0, 0, 0), 2: (1, 1, 0, 0, 0, 0), 3: (1, 1, 1, 0, 0, 0), 4: (1, 1, 1, 1, 0, 0), 5: (1, 1, 1, 1, 1, 0)}
             """
             return self.weight_lattice_realization().fundamental_weights()
+
+        def __iter__(self):
+            """
+            Returns the iterator of ``self``.
+
+            EXAMPLES::
+
+                sage: C = CrystalOfLSPaths(['A',2,1],[-1,0,1])
+                sage: C.__iter__.__module__
+                'sage.categories.crystals'
+                sage: g = C.__iter__()
+                sage: g.next()
+                (-Lambda[0] + Lambda[2],)
+                sage: g.next()
+                (Lambda[0] - Lambda[1] + delta,)
+                sage: g.next()
+                (Lambda[1] - Lambda[2] + delta,)
+                sage: g.next()
+                (Lambda[1] - Lambda[2],)
+                sage: g.next()
+                (Lambda[0] - Lambda[1],)
+            """
+            from sage.combinat.backtrack import TransitiveIdeal
+            return TransitiveIdeal(lambda x: [x.f(i) for i in self.index_set()]
+                                           + [x.e(i) for i in self.index_set()], self.module_generators).__iter__()
+
 
         def crystal_morphism(self, g, index_set = None, automorphism = lambda i : i, direction = 'down', direction_image = 'down',
                              similarity_factor = None, similarity_factor_domain = None, cached = False, acyclic = True):
@@ -647,6 +673,33 @@ class Crystals(Category_singleton):
             G = self.digraph(**options)
             return G.plot3d()
 
+        def demazure_elements(self, element_list, reduced_word, raising = False):
+            r"""
+            Returns elements obtained from ``element_list`` by lowering operators from ``reduced_word``.
+
+            Returns the list of the elements of the form `f_{i_1}^{m_1} \cdots f_{i_l}^{m_l} v`
+            where `v` is in ``element_list``, ``reduced_word`` is `[i_1,i_2,\ldots,i_l]`, and
+            the `m_i` are nonnegative integers. If ``raising`` is True, use `e_i` instead of `f_i`.
+
+            EXAMPLES::
+
+                sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: element_list = [C.highest_weight_vector()]
+                sage: C.demazure_elements(element_list, [1,2,1])
+                set([[[1, 2], [3]], [[2, 2], [3]], [[1, 3], [3]], [[2, 3], [3]], [[1, 2], [2]], [[1, 1], [2]], [[1, 3], [2]], [[1, 1], [3]]])
+
+            """
+
+            element_list = set(element_list)
+            for ix in range(len(reduced_word)):
+                i = reduced_word[-ix-1]
+                # go backwards through the reduced word
+                new_elements = []
+                for x in element_list:
+                    new_elements += x.demazure_operator(i, raising = raising)
+                element_list = set(new_elements)
+            return element_list
+
     class ElementMethods:
 
         def index_set(self):
@@ -869,12 +922,12 @@ class Crystals(Category_singleton):
                     b = b.e(i)
             return b
 
-        def demazure_operator(self, i, truncated = False):
+        def demazure_operator(self, i, truncated = False, raising = False):
             r"""
             Returns the list of the elements one can obtain from
             ``self`` by application of `f_i`.  If the option
             "truncated" is set to True, then ``self`` is not included
-            in the list.
+            in the list. If `raising` is True, use `e_i` instead of `f_i`.
 
             REFERENCES:
 
@@ -896,6 +949,12 @@ class Crystals(Category_singleton):
                 []
                 sage: t.demazure_operator(1)
                 [[[1, 2], [2]]]
+                sage: t.demazure_operator(1, raising = True)
+                [[[1, 2], [2]], [[1, 1], [2]]]
+                sage: t.demazure_operator(1, truncated = True, raising = True)
+                [[[1, 1], [2]]]
+                sage: t.demazure_operator(2, truncated = True, raising = True)
+                []
 
                 sage: K = KirillovReshetikhinCrystal(['A',2,1],2,1)
                 sage: t = K(rows=[[3],[2]])
@@ -906,9 +965,18 @@ class Crystals(Category_singleton):
                 l = []
             else:
                 l = [self]
-            for k in range(self.phi(i)):
-                l.append(self.f_string([i for j in range(k+1)]))
-            return(l)
+            curr = self
+            if raising:
+                for k in range(self.epsilon(i)):
+                    new_element = curr.e(i)
+                    l.append(new_element)
+                    curr = new_element
+            else:
+                for k in range(self.phi(i)):
+                    new_element = curr.f(i)
+                    l.append(new_element)
+                    curr = new_element
+            return l
 
         def stembridgeDelta_depth(self,i,j):
             r"""

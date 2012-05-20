@@ -9,8 +9,8 @@ Classical Crystals
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
+from sage.categories.crystals import Crystals
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 
@@ -74,7 +74,6 @@ class ClassicalCrystals(Category_singleton):
             sage: B = ClassicalCrystals().example(); B
             Highest weight crystal of type A_3 of highest weight omega_1
         """
-        from sage.categories.crystals import Crystals
         return Crystals().example(n)
 
 
@@ -230,23 +229,6 @@ class ClassicalCrystals(Category_singleton):
 
             return R.sum_of_monomials( x.weight() for x in self.highest_weight_vectors() )
 
-        def list(self):
-            r"""
-            Returns the list of the elements of ``self``, as per
-            :meth:`FiniteEnumeratedSets.ParentMethods.list`
-
-            EXAMPLES::
-
-                sage: C = CrystalOfLetters(['D',4])
-                sage: C.list()
-                [1, 2, 3, 4, -4, -3, -2, -1]
-
-            FIXME: this is just there to reinstate the default
-            implementation of :meth:`.list` from :meth:`.__iter__`
-            which is overriden in :class:`Crystals`.
-            """
-            return self._list_from_iterator()
-
         def __iter__(self):
             r"""
             Returns an iterator over the elements of this crystal.
@@ -352,8 +334,7 @@ class ClassicalCrystals(Category_singleton):
                 running ._test_elements_eq() . . . pass
                 running ._test_enumerated_set_contains() . . . pass
                 running ._test_enumerated_set_iter_cardinality() . . . pass
-                running ._test_enumerated_set_iter_list() . . .Enumerated set too big; skipping test; see ``self.max_test_enumerated_set_loop``
-                pass
+                running ._test_enumerated_set_iter_list() . . . pass
                 running ._test_eq() . . . pass
                 running ._test_fast_iter() . . . pass
                 running ._test_not_implemented_methods() . . . pass
@@ -381,10 +362,11 @@ class ClassicalCrystals(Category_singleton):
                 sage: C._test_fast_iter()
             """
             tester = self._tester(**options)
-            S = self._list_brute_force()
-            SS = set(S)
+            S = list(self)
+            SS  = list(Crystals().parent_class.__iter__(self))
             tester.assert_( len(S) == len(SS) )
-            tester.assert_( set(self) == set(SS) )
+            tester.assert_( len(S) == len(set(S)))
+            tester.assert_( set(S) == set(SS) )
 
         def cardinality(self):
             r"""

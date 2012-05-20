@@ -12,4 +12,5 @@ from highest_weight_crystals import HighestWeightCrystal
 from direct_sum import DirectSumOfCrystals
 from alcove_path import ClassicalCrystalOfAlcovePaths
 from alcove_path import ClassicalCrystalOfAlcovePathsElement
+from littelmann_path import CrystalOfLSPaths
 

@@ -122,35 +122,3 @@ class FiniteCrystals(Category):
                     tester.fail()
             tester.assertTrue(goodness)
             return goodness
-
-
-        def list(self):
-            """
-            Returns a list of the elements of ``self`` obtained by
-            repeatedly applying the `f_i` operators to the module
-            generators of ``self``.
-
-            EXAMPLES::
-
-                sage: C = FiniteCrystals().example(5)
-                sage: l = C._list_brute_force()
-                sage: l.sort(); l
-                [1, 2, 3, 4, 5, 6]
-            """
-            # Should use transitiveIdeal
-            # should be transformed to __iter__ instead of list
-            # To be moved in a super category CombinatorialModule
-            result = set(self.module_generators)
-            todo = result.copy()
-            while len(todo) > 0:
-                x = todo.pop()
-                for i in self.index_set():
-                    y = x.f(i)
-                    if y == None or y in result:
-                        continue
-                    todo.add(y)
-                    result.add(y)
-            return list(result)
-
-        _list_brute_force = list
-

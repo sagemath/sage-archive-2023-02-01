@@ -550,6 +550,24 @@ def implicit_plot(f, xrange, yrange, **options):
 
     - ``legend_label`` -- the label for this item in the legend
 
+    - ``base`` - (default: 10) the base of the logarithm if
+      a logarithmic scale is set. This must be greater than 1. The base
+      can be also given as a list or tuple ``(basex, basey)``.
+      ``basex`` sets the base of the logarithm along the horizontal
+      axis and ``basey`` sets the base along the vertical axis.
+
+    - ``scale`` -- (default: `linear`) string. The scale of the axes.
+      Possible values are `linear`, `loglog`, `semilogx`, `semilogy`.
+
+      The scale can be also be given as single argument that is a list
+      or tuple ``(scale, base)`` or ``(scale, basex, basey)``.
+
+      The `loglog` scale sets both the horizontal and vertical axes to
+      logarithmic scale. The `semilogx` scale sets the horizontal axis
+      to logarithmic scale. The `semilogy` scale sets the vertical axis
+      to logarithmic scale. The `linear` scale is the default value
+      when :class:`Graphics` is initialized.
+
     EXAMPLES:
 
     A simple circle with a radius of 2. Note that
@@ -629,6 +647,10 @@ def implicit_plot(f, xrange, yrange, **options):
 
         sage: implicit_plot(lambda x,y: x^2+y^2-2, (x,-3,3), (y,-3,3), fill=True, plot_points=500) # long time
 
+    An example of an implicit plot on 'loglog' scale::
+
+        sage: implicit_plot(x^2+y^2 == 200, (x,1,200), (y,1,200), scale='loglog')
+
     TESTS::
 
         sage: f(x,y) = x^2 + y^2 - 2
@@ -707,6 +729,24 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     - ``legend_label`` -- the label for this item in the legend
 
+    - ``base`` - (default: 10) the base of the logarithm if
+      a logarithmic scale is set. This must be greater than 1. The base
+      can be also given as a list or tuple ``(basex, basey)``.
+      ``basex`` sets the base of the logarithm along the horizontal
+      axis and ``basey`` sets the base along the vertical axis.
+
+    - ``scale`` -- (default: `linear`) string. The scale of the axes.
+      Possible values are `linear`, `loglog`, `semilogx`, `semilogy`.
+
+      The scale can be also be given as single argument that is a list
+      or tuple ``(scale, base)`` or ``(scale, basex, basey)``.
+
+      The `loglog` scale sets both the horizontal and vertical axes to
+      logarithmic scale. The `semilogx` scale sets the horizontal axis
+      to logarithmic scale. The `semilogy` scale sets the vertical axis
+      to logarithmic scale. The `linear` scale is the default value
+      when :class:`Graphics` is initialized.
+
 
     EXAMPLES:
 
@@ -765,6 +805,10 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     ::
 
         sage: region_plot(s>0,(s,-2,2),(t,-2,2))
+
+    An example of a region plot in 'loglog' scale::
+
+        sage: region_plot(x^2+y^2<100, (x,1,10), (y,1,10), scale='loglog')
 
     """
 

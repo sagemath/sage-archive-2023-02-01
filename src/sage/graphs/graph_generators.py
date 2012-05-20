@@ -115,6 +115,7 @@ Named Graphs
 - :meth:`GrotzschGraph <GraphGenerators.GrotzschGraph>`
 - :meth:`HararyGraph <GraphGenerators.HararyGraph>`
 - :meth:`HarriesGraph <GraphGenerators.HarriesGraph>`
+- :meth:`HarriesWong <GraphGenerators.HarriesWong>`
 - :meth:`HeawoodGraph <GraphGenerators.HeawoodGraph>`
 - :meth:`HerschelGraph <GraphGenerators.HerschelGraph>`
 - :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
@@ -1667,6 +1668,118 @@ class GraphGenerators():
             # 5 vertices from o[3]
             for i, v in enumerate(o[3]):
                 gpos[v] = (-1 + i*.5, 2.5)
+
+            return g
+
+        elif embedding == 2:
+            return g
+        else:
+            raise ValueError("The value of embedding must be 1 or 2.")
+
+    def HarriesWong(self, embedding=1):
+        r"""
+        Returns the Harries-Wong Graph.
+
+        See the :wikipedia:`Wikipedia page on the Harries-Wong graph
+        <Harries-Wong_graph>`.
+
+        *About the default embedding:*
+
+            The default embedding is an attempt to emphasize the graph's 8 (!!!)
+            different orbits. In order to understand this better, one can
+            picture the graph as built in the following way :
+
+                #. One first create a 3-dimensional cube (8 vertices, 12 edges),
+                   whose vertices define the first orbit of the final graph.
+
+                #. The edges of this graph are subdivided once, to create 12 new
+                   vertices which define a second orbit.
+
+                #. The edges of the graph are subdivided once more, to create 24
+                   new vertices giving a third orbit.
+
+                #. 4 vertices are created and made adjacent to the vertices of
+                   the second orbit so that they have degree 3. These 4 vertices
+                   also define a new orbit.
+
+                #. In order to make the vertices from the third orbit 3-regular
+                   (they all miss one edge), one creates a binary tree on 1 + 3
+                   + 6 + 12 vertices. The leaves of this new tree are made
+                   adjacent to the 12 vertices of the third orbit, and the graph
+                   is now 3-regular. This binary tree contributes 4 new orbits
+                   to the Harries-Wong graph.
+
+        INPUT:
+
+        - ``embedding`` -- two embeddings are available, and can be selected by
+          setting ``embedding`` to 1 or 2.
+
+        EXAMPLES::
+
+            sage: g = graphs.HarriesWong()
+            sage: g.order()
+            70
+            sage: g.size()
+            105
+            sage: g.girth()
+            10
+            sage: g.diameter()
+            6
+            sage: orbits = g.automorphism_group(orbits = True)[-1]
+            sage: g.show(figsize=[15, 15], partition = orbits)
+
+        Alternative embedding::
+
+            sage: graphs.HarriesWong(embedding=2).show()
+
+        TESTS::
+
+            sage: graphs.HarriesWong(embedding=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of embedding must be 1 or 2.
+        """
+
+        L = [9, 25, 31, -17, 17, 33, 9, -29, -15, -9, 9, 25, -25, 29, 17, -9,
+             9, -27, 35, -9, 9, -17, 21, 27, -29, -9, -25, 13, 19, -9, -33,
+             -17, 19, -31, 27, 11, -25, 29, -33, 13, -13, 21, -29, -21, 25,
+             9, -11, -19, 29, 9, -27, -19, -13, -35, -9, 9, 17, 25, -9, 9, 27,
+             -27, -21, 15, -9, 29, -29, 33, -9, -25]
+
+        g = graphs.LCFGraph(70, L, 1)
+        g.name("Harries-Wong graph")
+
+        if embedding == 1:
+            d = g.get_pos()
+
+            # Binary tree (left side)
+            d[66] = (-9.5,0)
+            _line_embedding(g, [37, 65,67], first=(-8,2.25), last=(-8,-2.25))
+            _line_embedding(g, [36, 38, 64, 24, 68, 30], first=(-7,3), last=(-7,-3))
+            _line_embedding(g, [35, 39, 63, 25, 59, 29, 11, 5, 55, 23, 69, 31], first=(-6,3.5), last = (-6,-3.5))
+
+            # Cube, corners : [9, 15, 21, 27, 45, 51, 57, 61]
+            _circle_embedding(g, [61, 9], center = (0,-1.5), shift = .2, radius = 4)
+            _circle_embedding(g, [27, 15], center = (0,-1.5), shift = .7, radius = 4*.707)
+            _circle_embedding(g, [51, 21], center = (0,2.5), shift = .2, radius = 4)
+            _circle_embedding(g, [45, 57], center = (0,2.5), shift = .7, radius = 4*.707)
+
+            # Cube, subdivision
+            _line_embedding(g, [21, 22, 43, 44, 45], first=d[21], last = d[45])
+            _line_embedding(g, [21, 4, 3, 56, 57], first=d[21], last = d[57])
+            _line_embedding(g, [57, 12, 13, 14, 15], first=d[57], last = d[15])
+            _line_embedding(g, [15, 6, 7, 8, 9], first=d[15], last = d[9])
+            _line_embedding(g, [9, 10, 19, 20, 21], first=d[9], last = d[21])
+            _line_embedding(g, [45, 54, 53, 52, 51], first=d[45], last = d[51])
+            _line_embedding(g, [51, 50, 49, 58, 57], first=d[51], last = d[57])
+            _line_embedding(g, [51, 32, 33, 34, 61], first=d[51], last = d[61])
+            _line_embedding(g, [61, 62, 41, 40, 27], first=d[61], last = d[27])
+            _line_embedding(g, [9, 0, 1, 26, 27], first=d[9], last = d[27])
+            _line_embedding(g, [27, 28, 47, 46, 45], first=d[27], last = d[45])
+            _line_embedding(g, [15, 16, 17, 60, 61], first=d[15], last = d[61])
+
+            # Top vertices
+            _line_embedding(g, [2, 18, 42, 48], first=(-1,7), last=(3,7))
 
             return g
 
@@ -8148,3 +8261,31 @@ def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
         d[v] = (v_x, v_y)
 
     g.set_pos(d)
+
+def _line_embedding(g, vertices, first=(0,0), last = (0,1)):
+    r"""
+    Sets some vertices on a line in the embedding of a graph G.
+
+    This method modifies the graph's embedding so that the vertices of
+    ``vertices`` appear on a line, where the position of ``vertices[0]`` is the
+    pair ``first`` and the position of ``vertices[-1]`` is ``last``. The
+    vertices are evenly spaced.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_generators import _line_embedding
+        sage: g = graphs.PathGraph(5)
+        sage: _line_embedding(g, [0, 2, 4, 1, 3], first=(-1,-1), last=(1,1))
+        sage: g.show()
+    """
+    n = len(vertices)-1+0.
+
+    fx, fy = first
+    dx = (last[0] - first[0])/n
+    dy = (last[1] - first[1])/n
+
+    d = g.get_pos()
+    for i, v in enumerate(vertices):
+        d[v] = (fx,fy)
+        fx += dx
+        fy += dy

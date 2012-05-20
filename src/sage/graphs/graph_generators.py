@@ -120,6 +120,7 @@ Named Graphs
 - :meth:`HerschelGraph <GraphGenerators.HerschelGraph>`
 - :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
 - :meth:`HoffmanSingletonGraph <GraphGenerators.HoffmanSingletonGraph>`
+- :meth:`LjubljanaGraph <GraphGenerators.LjubljanaGraph>`
 - :meth:`MoebiusKantorGraph <GraphGenerators.MoebiusKantorGraph>`
 - :meth:`MoserSpindle <GraphGenerators.MoserSpindle>`
 - :meth:`PappusGraph <GraphGenerators.PappusGraph>`
@@ -4202,6 +4203,91 @@ class GraphGenerators():
             pos_dict[map[D[i]]] = (x,y)
         H.set_pos(pos_dict)
         return H
+
+    def LjubljanaGraph(self, embedding = 1):
+        r"""
+        Returns the Ljubljana Graph.
+
+        The Ljubljana graph is a bipartite 3-regular graph on 112 vertices and
+        168 edges. It is not vertex-transitive as it has two orbits which are
+        also independent sets og size 56. See the :wikipedia:`Wikipedia page on
+        the Ljubljana Graph <Ljubljana_graph>`.
+
+        The default embedding is obtained from the Heawood graph.
+
+        INPUT:
+
+        - ``embedding`` -- two embeddings are available, and can be
+          selected by setting ``embedding`` to 1 or 2.
+
+        EXAMPLES::
+
+            sage: g = graphs.LjubljanaGraph()
+            sage: g.order()
+            112
+            sage: g.size()
+            168
+            sage: g.girth()
+            10
+            sage: g.diameter()
+            8
+            sage: g.show(figsize=[10, 10])
+            sage: graphs.LjubljanaGraph(embedding=2).show(figsize=[10, 10])
+
+        TESTS::
+
+            sage: graphs.LjubljanaGraph(embedding=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: The value of embedding must be 1 or 2.
+        """
+
+        L = [47, -23, -31, 39, 25, -21, -31, -41, 25, 15, 29, -41, -19, 15,
+             -49, 33, 39, -35, -21, 17, -33, 49, 41, 31, -15, -29, 41, 31,
+             -15, -25, 21, 31, -51, -25, 23, 9, -17, 51, 35, -29, 21, -51,
+             -39, 33, -9, -51, 51, -47, -33, 19, 51, -21, 29, 21, -31, -39]
+
+        g = graphs.LCFGraph(112, L, 2)
+        g.name("Ljubljana graph")
+
+        if embedding == 1:
+            return g
+
+        elif embedding == 2:
+            dh = graphs.HeawoodGraph().get_pos()
+
+            # Correspondance between the vertices of the Heawood Graph and
+            # 8-sets of the Ljubljana Graph.
+
+            d = {
+                0: [1, 21, 39, 57, 51, 77, 95, 107],
+                1: [2, 22, 38, 58, 50, 78, 94, 106],
+                2: [3, 23, 37, 59, 49, 79, 93, 105],
+                3: [4, 24, 36, 60, 48, 80, 92, 104],
+                4: [5, 25, 35, 61, 15, 81, 91, 71],
+                9: [6, 26, 44, 62, 16, 82, 100, 72],
+                10: [7, 27, 45, 63, 17, 83, 101, 73],
+                11: [8, 28, 46, 64, 18, 84, 102, 74],
+                12: [9, 29, 47, 65, 19, 85, 103, 75],
+                13: [10, 30, 0, 66, 20, 86, 56, 76],
+                8: [11, 31, 111, 67, 99, 87, 55, 43],
+                7: [12, 32, 110, 68, 98, 88, 54, 42],
+                6: [13, 33, 109, 69, 97, 89, 53, 41],
+                5: [14, 34, 108, 70, 96, 90, 52, 40]
+                }
+
+            # The vertices of each 8-set is plotted on a circle, and the circles
+            # is slowly shifted to obtain a symmetric drawing.
+
+            for i, (u, vertices) in enumerate(d.iteritems()):
+                i = i+0.
+                _circle_embedding(g, vertices, center=dh[u], radius=.1, shift=8*i/14)
+
+            return g
+        else:
+            raise ValueError("The value of embedding must be 1 or 2.")
+
+        return g
 
     def KneserGraph(self,n,k):
         r"""

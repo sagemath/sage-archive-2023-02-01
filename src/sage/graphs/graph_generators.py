@@ -105,6 +105,8 @@ Named Graphs
 - :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
 - :meth:`DurerGraph <GraphGenerators.DurerGraph>`
 - :meth:`DyckGraph <GraphGenerators.DyckGraph>`
+- :meth:`EllinghamHorton54Graph <GraphGenerators.EllinghamHorton54Graph>`
+- :meth:`EllinghamHorton78Graph <GraphGenerators.EllinghamHorton78Graph>`
 - :meth:`ErreraGraph <GraphGenerators.ErreraGraph>`
 - :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
 - :meth:`FosterGraph <GraphGenerators.FosterGraph>`
@@ -3387,6 +3389,172 @@ class GraphGenerators():
         }
 
         return graph.Graph(edge_dict, pos=pos_dict, name="Dyck graph")
+
+    def EllinghamHorton54Graph(self):
+        r"""
+        Returns the Ellingham-Horton 54-graph.
+
+        For more information, see the :wikipedia:`Wikipedia page on the
+        Ellingham-Horton graphs
+        <http://en.wikipedia.org/wiki/Ellingham%E2%80%93Horton_graph>`
+
+        EXAMPLE:
+
+        This graph is 3-regular::
+
+            sage: g = graphs.EllinghamHorton54Graph()
+            sage: g.is_regular(k=3)
+            True
+
+        It is 3-connected and bipartite::
+
+            sage: g.vertex_connectivity() # not tested - too long
+            3
+            sage: g.is_bipartite()
+            True
+
+        It is not Hamiltonian::
+
+            sage: g.is_hamiltonian() # not tested - too long
+            False
+
+        ... and it has a nice drawing ::
+
+            sage: g.show(figsize=[10,10]) # not tested - too long
+
+        TESTS::
+
+            sage: g.show() # long time
+        """
+        up = graphs.CycleGraph(16)
+        low = 2*graphs.CycleGraph(6)
+
+        for v in range(6):
+            low.add_edge(v, v+12)
+            low.add_edge(v+6, v+12)
+        low.add_edge(12,15)
+        low.delete_edge(1,2)
+        low.delete_edge(8,7)
+        low.add_edge(1,8)
+        low.add_edge(7,2)
+
+        # The set of vertices on top is 0..15
+        # Bottom left is 16..33
+        # Bottom right is 34..52
+        # The two other vertices are 53, 54
+        g = up + 2*low
+        g.name("Ellingham-Horton 54 graph.")
+        g.set_pos({})
+
+        g.add_edges([(15,4),(3,8),(7,12),(11,0),(2,13),(5,10)])
+        g.add_edges([(30,6),(29,9),(48,14),(47,1)])
+        g.add_edge(32,52)
+        g.add_edge(50,52)
+        g.add_edge(33,53)
+        g.add_edge(51,53)
+        g.add_edge(52,53)
+
+        # Top
+        _circle_embedding(g, range(16), center = (0,.5), shift = .5, radius = .5)
+
+        # Bottom-left
+        x = 16
+        _circle_embedding(g, range(x,x+6), center = (-1.5,-1))
+        x += 6
+        _circle_embedding(g, range(x,x+6), center = (-1.5,-1), radius = .5)
+        x += 6
+        _circle_embedding(g, range(x,x+6), center = (-1.5,-1), radius = .7)
+
+        # Bottom right
+        x += 6
+        _circle_embedding(g, range(x,x+6), center = (1.5,-1))
+        x += 6
+        _circle_embedding(g, range(x,x+6), center = (1.5,-1), radius = .5)
+        x += 6
+        _circle_embedding(g, range(x,x+6), center = (1.5,-1), radius = .7)
+
+        d = g.get_pos()
+        d[52] = (-.3,-2.5)
+        d[53] = (.3,-2.5)
+        d[31] = (-2.2,-.9)
+        d[28] = (-.8,-.9)
+        d[46] = (2.2,-.9)
+        d[49] = (.8,-.9)
+
+        return g
+
+    def EllinghamHorton78Graph(self):
+        r"""
+        Returns the Ellingham-Horton 78-graph.
+
+        For more information, see the :wikipedia:`Wikipedia page on the
+        Ellingham-Horton graphs
+        <http://en.wikipedia.org/wiki/Ellingham%E2%80%93Horton_graph>`
+
+        EXAMPLE:
+
+        This graph is 3-regular::
+
+            sage: g = graphs.EllinghamHorton78Graph()
+            sage: g.is_regular(k=3)
+            True
+
+        It is 3-connected and bipartite::
+
+            sage: g.vertex_connectivity() # not tested - too long
+            3
+            sage: g.is_bipartite()
+            True
+
+        It is not Hamiltonian::
+
+            sage: g.is_hamiltonian() # not tested - too long
+            False
+
+        ... and it has a nice drawing ::
+
+            sage: g.show(figsize=[10,10]) # not tested - too long
+
+        TESTS::
+
+            sage: g.show() # long time
+        """
+        g = graph.Graph({
+                0: [1, 5, 60], 1: [2, 12], 2: [3, 7], 3: [4, 14], 4: [5, 9],
+                5: [6], 6: [7, 11], 7: [15], 8: [9, 13, 22], 9: [10], 10: [11, 72],
+                11: [12], 12: [13], 13: [14], 14: [72], 15: [16, 20], 16: [17, 27],
+                17: [18, 22], 18: [19, 29], 19: [20, 24], 20: [21], 21: [22, 26],
+                23: [24, 28, 72], 24: [25], 25: [26, 71], 26: [27], 27: [28],
+                28: [29], 29: [69], 30: [31, 35, 52], 31: [32, 42], 32: [33, 37],
+                33: [34, 43], 34: [35, 39], 35: [36], 36: [41, 63], 37: [65, 66],
+                38: [39, 59, 74], 39: [40], 40: [41, 44], 41: [42], 42: [74],
+                43: [44, 74], 44: [45], 45: [46, 50], 46: [47, 57], 47: [48, 52],
+                48: [49, 75], 49: [50, 54], 50: [51], 51: [52, 56], 53: [54, 58, 73],
+                54: [55], 55: [56, 59], 56: [57], 57: [58], 58: [75], 59: [75],
+                60: [61, 64], 61: [62, 71], 62: [63, 77], 63: [67], 64: [65, 69],
+                65: [77], 66: [70, 73], 67: [68, 73], 68: [69, 76], 70: [71, 76], 76: [77]}, pos = {})
+
+        _circle_embedding(g, range(15), center = (-2.5,1.5))
+        _circle_embedding(g, range(15, 30), center = (-2.5,-1.5))
+        _circle_embedding(g, [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 74, 43, 44], center = (2.5,1.5))
+        _circle_embedding(g, [45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 75, 59], center = (2.5,-1.5))
+
+        d = g.get_pos()
+
+        d[76] = (-.2,-.1)
+        d[77] = (.2,.1)
+        d[38] = (2.2,.1)
+        d[52] = (2.3,-.1)
+        d[15] = (-2.1,-.1)
+        d[72] = (-2.1,.1)
+
+        _line_embedding(g, [60,61,62,63], first = (-1,2), last=(1,2))
+        _line_embedding(g, [64,65,37], first = (-.5,1.5), last=(1.2,1.5))
+        _line_embedding(g, [66,73,67,68, 69], first = (1.2,-2), last=(-.8,-2))
+        _line_embedding(g, [66,70,71], first = (.7,-1.5), last=(-1,-1.5))
+
+        g.name("Ellingham-Horton 78 Graph")
+        return g
 
     def ErreraGraph(self):
         r"""

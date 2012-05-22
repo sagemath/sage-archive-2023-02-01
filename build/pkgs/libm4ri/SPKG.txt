@@ -31,7 +31,7 @@ GF(2).  (See also m4ri/README for a brief overview.)
 
 == Releases/Changelog ==
 
-=== libm4ri-20120415 (Martin Albrecht, 13 April 2012) ===
+=== libm4ri-20120422 (Martin Albrecht, 22 May 2012) ===
  * #12840: new upstream release
  * remove old headers before installing new ones
 

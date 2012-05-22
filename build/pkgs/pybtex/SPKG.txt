@@ -49,6 +49,6 @@ access.
  * switched to the official bazaar trunk (there are much fewer bugs)
  * removed the patches, because they were merged to the trunk
 
-=== pybtex-20120220 (Niels Ranosch, February 20, 2012) ===
+=== pybtex-20120522 (Niels Ranosch, May 22, 2012) ===
  * upstream update
 

@@ -69,10 +69,15 @@ from sage.rings.all import (PolynomialRing,
                             Integer,
                             ZZ)
 
-from sage.misc.all import latex
+from sage.misc.all import (latex,
+                           prod)
 from sage.structure.parent_gens import normalize_names
-from sage.rings.arith import gcd
+from sage.rings.arith import (gcd,
+                              binomial)
+from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.tuple import Tuples
+from sage.matrix.constructor import matrix
+from sage.modules.free_module_element import prepare
 
 from ambient_space import AmbientSpace
 import homset
@@ -347,6 +352,136 @@ class ProjectiveSpace_ring(AmbientSpace):
             '{\\mathbf P}_{\\ZZ_{5}}^3'
         """
         return "{\\mathbf P}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
+
+    def _linear_system_as_kernel(self, d, pt, m):
+        """
+        Return a matrix whose kernel consists of the coefficient vectors
+        of the degree d hypersurfaces (wrt degree reverse lexicographic
+        ordering of its monomials) with multiplicity at least m at pt.
+
+        INPUT:
+
+        -  ``d`` -- a nonnegative integer
+
+        -  ``pt`` -- a point of self (possibly represented by a list with at \
+                     least one component equal to 1)
+
+        -  ``m`` -- a nonnegative integer
+
+        OUTPUT:
+
+        A matrix of size `{m-1+n \choose n}` x `{d+n \choose n}` where n is the
+        relative dimension of self. The base ring of the matrix is a ring that
+        contains the base ring of self and the coefficients of the given point.
+
+        EXAMPLES:
+
+        If the degree `d` is 0, then a matrix consisting of the first unit vector
+        is returned::
+
+            sage: P = ProjectiveSpace(GF(5), 2, names='x')
+            sage: pt = P([1, 1, 1])
+            sage: P._linear_system_as_kernel(0, pt, 3)
+            [1]
+            [0]
+            [0]
+            [0]
+            [0]
+            [0]
+
+        If the multiplcity `m` is 0, then the a matrix with zero rows is returned::
+
+            sage: P = ProjectiveSpace(GF(5), 2, names='x')
+            sage: pt = P([1, 1, 1])
+            sage: M = P._linear_system_as_kernel(2, pt, 0)
+            sage: [M.nrows(), M.ncols()]
+            [0, 6]
+
+        The base ring does not need to be a field or even an integral domain.
+        In this case, the point can be given by a list::
+
+            sage: R = Zmod(4)
+            sage: P = ProjectiveSpace(R, 2, names='x')
+            sage: pt = [R(1), R(3), R(0)]
+            sage: P._linear_system_as_kernel(3, pt, 2)
+            [1 3 0 1 0 0 3 0 0 0]
+            [0 1 0 2 0 0 3 0 0 0]
+            [0 0 1 0 3 0 0 1 0 0]
+
+        When representing a point by a list at least one component must be 1
+        (even when the base ring is a field and the list gives a well-defined
+        point in projective space)::
+
+            sage: R = GF(5)
+            sage: P = ProjectiveSpace(R, 2, names='x')
+            sage: pt = [R(3), R(3), R(0)]
+            sage: P._linear_system_as_kernel(3, pt, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: At least one component of pt=[3, 3, 0] must be equal
+                          to 1
+
+        The components of the list do not have to be elements of the base ring
+        of the projective space. It suffices if there exists a common parent.
+        For example, the kernel of the following matrix corresponds to
+        hypersurfaces of degree 2 in 3-space with multiplicity at least 2 at a
+        general point in the third affine patch::
+
+            sage: P = ProjectiveSpace(QQ,3,names='x')
+            sage: RPol.<t0,t1,t2,t3> = PolynomialRing(QQ,4)
+            sage: pt = [t0,t1,1,t3]
+            sage: P._linear_system_as_kernel(2,pt,2)
+            [ 2*t0    t1     1    t3     0     0     0     0     0     0]
+            [    0    t0     0     0  2*t1     1    t3     0     0     0]
+            [ t0^2 t0*t1    t0 t0*t3  t1^2    t1 t1*t3     1    t3  t3^2]
+            [    0     0     0    t0     0     0    t1     0     1  2*t3]
+
+        .. TODO::
+
+            Use this method as starting point to implement a class
+            LinearSystem for linear systems of hypersurfaces.
+
+        """
+        if not isinstance(d, (int, Integer)):
+            raise TypeError('The argument d=%s must be an integer'%d)
+        if d < 0:
+            raise ValueError('The integer d=%s must be nonnegative'%d)
+        if not isinstance(pt, (list, tuple, \
+                               morphism.SchemeMorphism_point_projective_ring)):
+            raise TypeError('The argument pt=%s must be a list, tuple, or \
+                              point on a projective space'%pt)
+        pt, R = prepare(pt, None)
+        n = self.dimension_relative()
+        if not len(pt) == n+1:
+            raise TypeError('The sequence pt=%s must have %s \
+                              components'%(pt, n))
+        if not R.has_coerce_map_from(self.base_ring()):
+            raise TypeError('Unable to find a common ring for all elements')
+        try:
+            i = pt.index(1)
+        except:
+            raise TypeError('At least one component of pt=%s must be equal \
+                              to 1'%pt)
+        pt = pt[:i] + pt[i+1:]
+        if not isinstance(m, (int, Integer)):
+            raise TypeError('The argument m=%s must be an integer'%m)
+        if m < 0:
+            raise ValueError('The integer m=%s must be nonnegative'%m)
+        # the components of partials correspond to partial derivatives
+        # of order at most m-1 with respect to n variables
+        partials = IntegerVectors(m-1,n+1).list()
+        # the components of monoms correspond to homogeneous monomials of
+        # degree at most d in n variables
+        monoms = IntegerVectors(d,n+1).list()
+        M = matrix(R,len(partials),len(monoms))
+        for row in range(M.nrows()):
+            e = partials[row][:i] + partials[row][i+1:]
+            for col in range(M.ncols()):
+                f = monoms[col][:i] + monoms[col][i+1:]
+                if min([f[j]-e[j] for j in range(n)]) >= 0:
+                    M[row,col] = prod([binomial(f[j],e[j])*pt[j]**(f[j]-e[j]) \
+                               for j in filter(lambda k: f[k]>e[k], range(n))])
+        return M
 
     def _morphism(self, *args, **kwds):
         """

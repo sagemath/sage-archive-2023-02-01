@@ -32,6 +32,18 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.4 (Jean-Pierre Flori, 23 May 2012) ===
+ * Trac #12950: Include patches to fix:
+  * Trac #11155: abs(pi + I) -> pi + I
+  * Trac #11423: atan2(0,0) should be undefined
+  * Trac #11919: pickling of user defined symbolic functions without custom
+                methods
+  * Trac #12303: beta function should remain symbolic for exact inputs
+  * Use Python when comparing Python objects wrapped in numerics
+  * Complete rewrite of the code handling various types of infinities
+ * Remove upstream revision control within the src directory
+ * Add .hgignore file to exclude src directory
+
 === pynac-0.2.3.p1 (Jeroen Demeyer, 13 February 2012) ===
  * Trac #12501: touch src/config.h.in to prevent autoheader from running.
 

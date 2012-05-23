@@ -4204,14 +4204,15 @@ class GraphGenerators():
         H.set_pos(pos_dict)
         return H
 
-    def LjubljanaGraph(self, embedding = 1):
+    def LjubljanaGraph(self, embedding=1):
         r"""
         Returns the Ljubljana Graph.
 
-        The Ljubljana graph is a bipartite 3-regular graph on 112 vertices and
-        168 edges. It is not vertex-transitive as it has two orbits which are
-        also independent sets og size 56. See the :wikipedia:`Wikipedia page on
-        the Ljubljana Graph <Ljubljana_graph>`.
+        The Ljubljana graph is a bipartite 3-regular graph on 112
+        vertices and 168 edges. It is not vertex-transitive as it has
+        two orbits which are also independent sets of size 56. See the
+        :wikipedia:`Wikipedia page on the Ljubljana Graph
+        <Ljubljana_graph>`.
 
         The default embedding is obtained from the Heawood graph.
 
@@ -4256,7 +4257,7 @@ class GraphGenerators():
         elif embedding == 2:
             dh = graphs.HeawoodGraph().get_pos()
 
-            # Correspondance between the vertices of the Heawood Graph and
+            # Correspondence between the vertices of the Heawood Graph and
             # 8-sets of the Ljubljana Graph.
 
             d = {
@@ -4276,18 +4277,17 @@ class GraphGenerators():
                 5: [14, 34, 108, 70, 96, 90, 52, 40]
                 }
 
-            # The vertices of each 8-set is plotted on a circle, and the circles
-            # is slowly shifted to obtain a symmetric drawing.
+            # The vertices of each 8-set are plotted on a circle, and the
+            # circles are slowly shifted to obtain a symmetric drawing.
 
             for i, (u, vertices) in enumerate(d.iteritems()):
-                i = i+0.
-                _circle_embedding(g, vertices, center=dh[u], radius=.1, shift=8*i/14)
+                _circle_embedding(g, vertices, center=dh[u], radius=.1,
+                        shift=8.*i/14)
 
             return g
+
         else:
             raise ValueError("The value of embedding must be 1 or 2.")
-
-        return g
 
     def KneserGraph(self,n,k):
         r"""

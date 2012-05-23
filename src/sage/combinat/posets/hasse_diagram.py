@@ -523,15 +523,34 @@ class HasseDiagram(DiGraph):
         Returns a rank function of the poset, if it exists.
 
         A *rank function* of a poset `P` is a function `r`
-        from that maps elements of `P` to integers and satisfies:
-        `r(x) = r(y) + 1` if `x` covers
-        `y`.
+        that maps elements of `P` to integers and satisfies:
+        `r(x) = r(y) + 1` if `x` covers `y`. The function `r`
+        is normalized such that its smallest value is `0`.
+        When `P` has several components, this is done for each
+        component separately.
 
         EXAMPLES::
 
             sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
             sage: P.rank_function() is not None
             True
+            sage: P = Poset(([1,2,3,4],[[1,4],[2,3],[3,4]]), facade = True)
+            sage: P.rank_function() is not None
+            True
+            sage: P = Poset(([1,2,3,4,5],[[1,2],[2,3],[3,4],[1,5],[5,4]]), facade = True)
+            sage: P.rank_function() is not None
+            False
+            sage: P = Poset(([1,2,3,4,5,6,7,8],[[1,4],[2,3],[3,4],[5,7],[6,7]]), facade = True)
+            sage: f = P.rank_function(); f is not None
+            True
+            sage: f(5)
+            0
+            sage: f(2)
+            0
+
+        TESTS::
+
+            sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
             sage: r = P.rank_function()
             sage: for u,v in P.cover_relations_iterator():
             ...    if r(v) != r(u) + 1:
@@ -543,17 +562,38 @@ class HasseDiagram(DiGraph):
             sage: Q.rank_function() is None
             True
         """
-        if hasattr(self,"_rank_function"):
-            return self._rank_function
-        levels = self.level_sets()
-        rank_fcn = {}
-        for i in range(len(levels)):
-            for x in levels[i]:
-                rank_fcn[x]=i
-        for e in self.cover_relations_iterator():
-            if rank_fcn[e[1]]-rank_fcn[e[0]] != 1:
-                return None
-        self._rank_function = lambda u: rank_fcn[u]
+        if not hasattr(self, "_rank_function"):
+            rank_fcn = {}  # rank_fcn will be the dictionary whose i-th entry
+                           # is the rank of vertex i for every i.
+            not_found = set(self.vertices())
+            while not_found:
+                y = not_found.pop()
+                rank_fcn[y] = ZZ.zero()  # We set some vertex to have rank 0
+                component = set([y])
+                queue = set([y])
+                while queue:  # look at the neighbors of y and set the ranks;
+                              # then look at the neighbors of the neighbors ...
+                    y = queue.pop()
+                    for x in self.neighbors_out(y):
+                        if x not in rank_fcn:
+                            rank_fcn[x] = rank_fcn[y] + 1
+                            queue.add(x)
+                            component.add(x)
+                    for x in self.neighbors_in(y):
+                        if x not in rank_fcn:
+                            rank_fcn[x] = rank_fcn[y] - 1
+                            queue.add(x)
+                            component.add(x)
+                        elif rank_fcn[x] != rank_fcn[y] - 1:
+                            return None
+                # Normalize the ranks of vertices in the connected component
+                # so that smallest is 0:
+                m = min(rank_fcn[j] for j in component)
+                for j in component:
+                    rank_fcn[j] -= m
+                not_found.difference_update(component)
+            # now, all ranks are set.
+            self._rank_function = rank_fcn.__getitem__  # turn dict into a fcn
         return self._rank_function
 
     def rank(self,element=None):
@@ -585,7 +625,9 @@ class HasseDiagram(DiGraph):
         r"""
         Returns True if the poset is ranked, and False otherwise.
 
-        A poset is *ranked* if it admits a rank function.
+        A poset is *ranked* if it admits a rank function. For more information
+        about the rank function, see :meth:`~rank_function`
+        and :meth:`~is_graded`.
 
         EXAMPLES::
 
@@ -602,7 +644,9 @@ class HasseDiagram(DiGraph):
         r"""
         Returns True if the poset is graded, and False otherwise.
 
-        A poset is *graded* if it admits a rank function.
+        A poset is *graded* if it admits a rank function. For more information
+        about the rank function, see :meth:`~rank_function`
+        and :meth:`~is_ranked`.
 
         EXAMPLES::
 

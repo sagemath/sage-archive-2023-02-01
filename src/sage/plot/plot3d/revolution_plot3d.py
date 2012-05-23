@@ -154,19 +154,28 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
     if parallel_axis=='z':
         x0=axis[0]
         y0=axis[1]
-        phase=atan2((y-y0),(x-x0))
+        # (0,0) must be handled separately for the phase value
+        phase=0
+        if x0!=0 or y0!=0:
+            phase=atan2((y-y0),(x-x0))
         R=sqrt((x-x0)**2+(y-y0)**2)
         v=(R*cos(phi+phase)+x0,R*sin(phi+phase)+y0,z)
     elif parallel_axis=='x':
         y0=axis[0]
         z0=axis[1]
-        phase=atan2((z-z0),(y-y0))
+        # (0,0) must be handled separately for the phase value
+        phase=0
+        if z0!=0 or y0!=0:
+            phase=atan2((z-z0),(y-y0))
         R=sqrt((y-y0)**2+(z-z0)**2)
         v=(x,R*cos(phi+phase)+y0,R*sin(phi+phase)+z0)
     elif parallel_axis=='y':
         x0=axis[0]
         z0=axis[1]
-        phase=atan2((z-z0),(x-x0))
+        # (0,0) must be handled separately for the phase value
+        phase=0
+        if z0!=0 or x0!=0:
+            phase=atan2((z-z0),(x-x0))
         R=sqrt((x-x0)**2+(z-z0)**2)
         v=(R*cos(phi+phase)+x0,y,R*sin(phi+phase)+z0)
 

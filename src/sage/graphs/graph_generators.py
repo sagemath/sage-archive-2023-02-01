@@ -4344,16 +4344,17 @@ class GraphGenerators():
 
         return g
 
-    def McGeeGraph(self, embedding = 2):
+    def McGeeGraph(self, embedding=2):
         r"""
         Returns the McGee Graph.
 
-        See the :wikipedia:`Wikipedia page on the McGee Graph <McGee_graph>`.
+        See the :wikipedia:`Wikipedia page on the McGee Graph
+        <McGee_graph>`.
 
         INPUT:
 
-        - ``embedding`` -- two embeddings are available, and can be selected by
-          setting ``embedding`` to 1 or 2.
+        - ``embedding`` -- two embeddings are available, and can be
+          selected by setting ``embedding`` to 1 or 2.
 
         EXAMPLES::
 
@@ -4367,7 +4368,7 @@ class GraphGenerators():
             sage: g.diameter()
             4
             sage: g.show()
-            sage: graphs.McGeeGraph(embedding=2).show()
+            sage: graphs.McGeeGraph(embedding=1).show()
 
         TESTS::
 
@@ -4382,7 +4383,7 @@ class GraphGenerators():
              -15, -25, 21, 31, -51, -25, 23, 9, -17, 51, 35, -29, 21, -51,
              -39, 33, -9, -51, 51, -47, -33, 19, 51, -21, 29, 21, -31, -39]
 
-        g = graphs.LCFGraph(24, [12,7,-7], 8)
+        g = graphs.LCFGraph(24, [12, 7, -7], 8)
         g.name('McGee graph')
 
         if embedding == 1:
@@ -4394,14 +4395,14 @@ class GraphGenerators():
                  [5, 4, 11, 10, 17, 16, 23, 22],
                  [3, 12, 9, 18, 15, 0, 21, 6]]
 
-            _circle_embedding(g,o[0], radius = 1.5)
-            _circle_embedding(g,o[1], radius = 3, shift = -.5)
-            _circle_embedding(g,o[2], radius = 2.25, shift = .5)
+            _circle_embedding(g, o[0], radius=1.5)
+            _circle_embedding(g, o[1], radius=3, shift=-.5)
+            _circle_embedding(g, o[2], radius=2.25, shift=.5)
 
             return g
+
         else:
             raise ValueError("The value of embedding must be 1 or 2.")
-
 
     def MoebiusKantorGraph(self):
         """
@@ -4607,11 +4608,12 @@ class GraphGenerators():
 
         return gg
 
-    def NauruGraph(self, embedding = 2):
+    def NauruGraph(self, embedding=2):
         """
         Returns the Nauru Graph.
 
-        See the :wikipedia:`Wikipedia page on the Nauru Graph <Nauru_graph>`.
+        See the :wikipedia:`Wikipedia page on the Nauru Graph
+        <Nauru_graph>`.
 
         INPUT:
 
@@ -4630,7 +4632,7 @@ class GraphGenerators():
             sage: g.diameter()
             4
             sage: g.show()
-            sage: graphs.NauruGraph(embedding=2).show()
+            sage: graphs.NauruGraph(embedding=1).show()
 
         TESTS::
 
@@ -4638,16 +4640,16 @@ class GraphGenerators():
             Traceback (most recent call last):
             ...
             ValueError: The value of embedding must be 1 or 2.
-            sage: graphs.NauruGraph(embedding=1).is_isomorphic(graphs.NauruGraph())
+            sage: graphs.NauruGraph(embedding=1).is_isomorphic(g)
             True
         """
 
         if embedding == 1:
-            g = graphs.LCFGraph(24, [5,-9,7,-7,9,-5], 4)
+            g = graphs.LCFGraph(24, [5, -9, 7, -7, 9, -5], 4)
             g.name('Nauru Graph')
             return g
         elif embedding == 2:
-            g = graphs.GeneralizedPetersenGraph(12,5)
+            g = graphs.GeneralizedPetersenGraph(12, 5)
             g.name("Nauru Graph")
             return g
         else:
@@ -4820,7 +4822,7 @@ class GraphGenerators():
 
     def Tutte12Cage(self):
         r"""
-        Returns Tutte's 12-Cage
+        Returns Tutte's 12-Cage.
 
         See the :wikipedia:`Wikipedia page on the Tutte 12-Cage
         <Tutte_12-cage>`.
@@ -4869,17 +4871,17 @@ class GraphGenerators():
             sage: g.diameter()
             4
             sage: g.show()
-            sage: graphs.TutteCoxeterGraph(embedding = 1).show()
+            sage: graphs.TutteCoxeterGraph(embedding=1).show()
 
         TESTS::
 
-            sage: graphs.TutteCoxeterGraph(embedding = 3)
+            sage: graphs.TutteCoxeterGraph(embedding=3)
             Traceback (most recent call last):
             ...
             ValueError: The value of embedding must be 1 or 2.
         """
 
-        g = graphs.LCFGraph(30, [-13,-9,7,-7,9,13], 5)
+        g = graphs.LCFGraph(30, [-13, -9, 7, -7, 9, 13], 5)
         g.name("Tutte-Coxeter graph")
 
         if embedding == 1:
@@ -4892,12 +4894,12 @@ class GraphGenerators():
                 5: [10, 14, 24, 20, 16]
                 }
 
-            _circle_embedding(g,d[0], center = (-1,1), radius = .25)
-            _circle_embedding(g,d[1], center = (1,1), radius = .25)
-            _circle_embedding(g,d[2], center = (-.8,0), radius = .25, shift = 2.5)
-            _circle_embedding(g,d[3], center = (1.2,0), radius = .25)
-            _circle_embedding(g,d[4], center = (-1,-1), radius = .25, shift = 2)
-            _circle_embedding(g,d[5], center = (1,-1), radius = .25)
+            _circle_embedding(g, d[0], center=(-1, 1), radius=.25)
+            _circle_embedding(g, d[1], center=(1, 1), radius=.25)
+            _circle_embedding(g, d[2], center=(-.8, 0), radius=.25, shift=2.5)
+            _circle_embedding(g, d[3], center=(1.2, 0), radius=.25)
+            _circle_embedding(g, d[4], center=(-1, -1), radius=.25, shift=2)
+            _circle_embedding(g, d[5], center=(1, -1), radius=.25)
 
             return g
 
@@ -4907,14 +4909,12 @@ class GraphGenerators():
         else:
             raise ValueError("The value of embedding must be 1 or 2.")
 
-
-
-
     def WagnerGraph(self):
         """
         Returns the Wagner Graph.
 
-        See the :wikipedia:`Wikipedia page on the Wagner Graph <Wagner_graph>`.
+        See the :wikipedia:`Wikipedia page on the Wagner Graph
+        <Wagner_graph>`.
 
         EXAMPLES::
 

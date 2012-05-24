@@ -1686,7 +1686,7 @@ cdef class Expression(CommutativeRingElement):
 
     cpdef bint is_infinity(self):
         """
-        Return True if self is a infinite expression.
+        Return True if self is an infinite expression.
 
         EXAMPLES::
 
@@ -5713,7 +5713,7 @@ cdef class Expression(CommutativeRingElement):
             0.0
             sage: maxima('atan2(0,0.6)')
             0.0
-            sage: SR(0).arctan2(0) #11423
+            sage: SR(0).arctan2(0) # see trac ticket #11423
             Traceback (most recent call last):
             ...
             RuntimeError: arctan2_eval(): arctan2(0,0) encountered

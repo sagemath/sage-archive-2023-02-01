@@ -571,7 +571,7 @@ cdef public object py_loads(object s) except +:
 
 cdef public object py_get_sfunction_from_serial(unsigned s) except +:
     """
-    Return the python object
+    Return the Python object associated with a serial.
     """
     return get_sfunction_from_serial(s)
 

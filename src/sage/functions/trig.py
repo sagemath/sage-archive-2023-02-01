@@ -854,7 +854,7 @@ class Function_arctan2(GinacFunction):
             sage: arctan2(0, -log(2)).n()
             3.14159265358979
 
-        Check if atan2(0,0) throws error #11423::
+        Check if atan2(0,0) throws error of :trac:`11423`::
 
             sage: atan2(0,0)
             Traceback (most recent call last):

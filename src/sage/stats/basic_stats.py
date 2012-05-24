@@ -165,7 +165,7 @@ def std(v, bias=False):
         sage: std([])
         NaN
         sage: std([I, sqrt(2), 3/5])
-        sqrt(1/450*(-5*sqrt(2) + 10*I - 3)^2 + 1/450*(-5*sqrt(2) - 5*I + 6)^2 + 1/450*(10*sqrt(2) - 5*I - 3)^2)
+        sqrt(1/450*(-5*sqrt(2) - 5*I + 6)^2 + 1/450*(10*sqrt(2) - 5*I - 3)^2 + 1/450*(-5*sqrt(2) + 10*I - 3)^2)
         sage: std([RIF(1.0103, 1.0103), RIF(2)])
         0.6998235813403261?
         sage: import numpy
@@ -230,7 +230,7 @@ def variance(v, bias=False):
         sage: variance([])
         NaN
         sage: variance([I, sqrt(2), 3/5])
-        1/450*(-5*sqrt(2) + 10*I - 3)^2 + 1/450*(-5*sqrt(2) - 5*I + 6)^2 + 1/450*(10*sqrt(2) - 5*I - 3)^2
+        1/450*(-5*sqrt(2) - 5*I + 6)^2 + 1/450*(10*sqrt(2) - 5*I - 3)^2 + 1/450*(-5*sqrt(2) + 10*I - 3)^2
         sage: variance([RIF(1.0103, 1.0103), RIF(2)])
         0.4897530450000000?
         sage: import numpy

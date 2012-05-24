@@ -35,7 +35,7 @@ directly, but falls back to the string based conversion used by the
 classical Maxima Pexpect interface in case no new implementation has been made.
 
 This interface is the one used for calculus by Sage
-and is accessible as maxima_calculus::
+and is accessible as `maxima_calculus`::
 
     sage: maxima_calculus
     Maxima_lib
@@ -226,7 +226,7 @@ def stdout_to_string(s):
 
     OUTPUT: string
 
-    This is currently used to implement ``MaximaLib.display2d()``.
+    This is currently used to implement :meth:`~MaximaLibElement.display2d`.
 
     EXAMPLES::
 

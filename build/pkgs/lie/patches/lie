@@ -1,4 +1,4 @@
 #!/bin/sh
 
-LD=$SAGE_LOCAL/lie/
+LD=$SAGE_LOCAL/lib/lie/
 exec $LD/Lie.exe initfile $LD

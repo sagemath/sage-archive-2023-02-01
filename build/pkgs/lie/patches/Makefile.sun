@@ -87,9 +87,9 @@ date.o: date.c $(objects) box/.last_compiled static/.last_compiled
 gapdate.o: date.c $(GAP_objects) box/.last_compiled static/.last_compiled
 	$(CC) -ansi -c -o gapdate.o date.c
 
-# SAGE -- added -lncurses below
+# SAGE -- added -lcurses below
 Lie.exe: date.o
-	$(CC) -o Lie.exe $(objects) date.o static/*.o box/*.o -lreadline -lncurses
+	$(CC) -o Lie.exe $(objects) date.o static/*.o box/*.o -lreadline -lcurses
 	chmod g+w Lie.exe
 Liegap.exe: gapdate.o
 	$(CC) -o Liegap.exe $(GAP_objects) gapdate.o static/*.o box/*.o

@@ -8,3 +8,8 @@ lines from both of
 
 3. Makefile -- I had to add -lcurses
 
+*20070906: change default to link against ncurses, curses is uncommon on
+modern Linux systems. Linking against curses will be better on Solaris.
+
+[mabshoff]
+

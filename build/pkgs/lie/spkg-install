@@ -6,7 +6,11 @@ cp patches/lie "$SAGE_LOCAL"/bin/
 
 # PATCHING
 cp patches/lie.h src
+if [ $UNAME = "SunOS" ]; then
+cp pathces/Makefile.sun src/Makefile
+else
 cp patches/Makefile src
+fi
 cp patches/closure.c src/box/
 
 rm -rf "$SAGE_LOCAL"/lib/lie

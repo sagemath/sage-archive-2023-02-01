@@ -1636,12 +1636,12 @@ class PermutationLI(Permutation):
 
         self._alphabet = Alphabet(tmp_alphabet)
 
-    def is_irreducible(self, return_decomposition=False) :
+    def is_irreducible(self, return_decomposition=False):
         r"""
         Test of reducibility
 
-        A quadratic (or generalized) permutation is reducible if there exist a
-        decomposition
+        A quadratic (or generalized) permutation is *reducible* if there exists
+        a decomposition
 
         .. math::
 
@@ -1651,108 +1651,125 @@ class PermutationLI(Permutation):
 
         where no corners is empty, or exactly one corner is empty
         and it is on the left, or two and they are both on the
-        right or on the left.
+        right or on the left. The definition is due to [BL08]_ where they prove
+        that the property of being irreducible is stable under Rauzy induction.
 
         INPUT:
 
-        -  you can eventually set return_decomposition to True
+        -  ``return_decomposition`` - boolean (default: False) - if True, and
+           the permutation is reducible, returns also the blocs A1 u B1, B1 u
+           A2, A1 u B2 and B2 u A2 of a decomposition as above.
 
         OUTPUT:
 
-        An integer, or an integer and a tuple.
-
-        if return_decomposition is True, returns a 2-uple
+        If return_decomposition is True, returns a 2-uple
         (test,decomposition) where test is the preceding test and
         decomposition is a 4-uple (A11,A12,A21,A22) where:
 
-        A11 = A1 u BA
+        A11 = A1 u B1
         A12 = B1 u A2
         A21 = A1 u B2
         A22 = B2 u A2
 
-
-        REFERENCES:
-
-        Boissy-Lanneau
-
         EXAMPLES::
 
-            sage: iet.GeneralizedPermutation('a a','b b').is_irreducible()
+            sage: GP = iet.GeneralizedPermutation
+
+            sage: GP('a a','b b').is_irreducible()
             False
-            sage: iet.GeneralizedPermutation('a a b','b c c').is_irreducible()
+            sage: GP('a a b','b c c').is_irreducible()
+            True
+            sage: GP('1 2 3 4 5 1','5 6 6 4 3 2').is_irreducible()
             True
 
+        TESTS:
+
+        Test reducible permutations with no empty corner::
+
+            sage: GP('1 4 1 3','4 2 3 2').is_irreducible(True)
+            (False, (['1', '4'], ['1', '3'], ['4', '2'], ['3', '2']))
+
+        Test reducible permutations with one left corner empty::
+
+            sage: GP('1 2 2 3 1','4 4 3').is_irreducible(True)
+            (False, (['1'], ['3', '1'], [], ['3']))
+            sage: GP('4 4 3','1 2 2 3 1').is_irreducible(True)
+            (False, ([], ['3'], ['1'], ['3', '1']))
+
+        Test reducible permutations with two left corners empty::
+
+            sage: GP('1 1 2 3','4 2 4 3').is_irreducible(True)
+            (False, ([], ['3'], [], ['3']))
+
+        Test reducible permutations with two right corners empty::
+
+            sage: GP('1 2 2 3 3','1 4 4').is_irreducible(True)
+            (False, (['1'], [], ['1'], []))
+            sage: GP('1 2 2','1 3 3').is_irreducible(True)
+            (False, (['1'], [], ['1'], []))
+            sage: GP('1 2 3 3','2 1 4 4 5 5').is_irreducible(True)
+            (False, (['1', '2'], [], ['2', '1'], []))
+
         AUTHORS:
+
             - Vincent Delecroix (2008-12-20)
         """
         l0 = self.length_top()
         l1 = self.length_bottom()
-        s = self.list()
+        s0,s1 = self.list()
 
-        # testing no corner empty eventually one or two on the left
-        A11, A12, A21, A22 = [], [], [], []
-        for i1 in range(0, l0) :
-            if (i1 > 0) and (s[0][i1-1] in A11) :
-                A11 = []
+        # testing two corners empty on the right (i12 = i22 = 0)
+        A11, A21, A12, A22 = [],[],[],[]
+
+        for i11 in range(1, l0):
+            if s0[i11-1] in A11:
                 break
-            A11 = s[0][:i1]
+            A11 = s0[:i11]
 
-            for i2 in range(l0 - 1, i1 - 1, -1) :
-                if s[0][i2] in A12 :
-                    A12 = []
+            for i21 in range(1, l1):
+                if s1[i21-1] in A21:
                     break
-                A12 = s[0][i2:]
+                A21 = s1[:i21]
 
+                if sorted(A11)  == sorted(A21):
+                    if return_decomposition:
+                        return False,(A11,A12,A21,A22)
+                    return False
+            A21 = []
 
-                for i3 in range(0, l1) :
-                    if (i3 > 0) and (s[1][i3-1] in A21) :
-                        A21 = []
+        # testing no corner empty but one or two on the left
+        t11 = t21 = False
+        A11, A12, A21, A22 = [], [], [], []
+        for i11 in range(0, l0):
+            if i11 > 0 and s0[i11-1] in A11:
+                break
+            A11 = s0[:i11]
+
+            for i21 in xrange(0, l1) :
+                if i21 > 0 and s1[i21-1] in A21:
+                    break
+                A21 = s1[:i21]
+
+                for i12 in xrange(l0 - 1, i11 - 1, -1) :
+                    if s0[i12] in A12 or s0[i12] in A21:
                         break
-                    A21 = s[1][:i3]
+                    A12 = s0[i12:]
 
-
-                    for i4 in range(l1 - 1, i3 - 1, -1) :
-                        if s[1][i4] in A22 :
-                            A22 = []
+                    for i22 in xrange(l1 - 1, i21 - 1, -1) :
+                        if s1[i22] in A22 or s1[i22] in A11:
                             break
-                        A22 = s[1][i4:]
-
+                        A22 = s1[i22:]
 
                         if sorted(A11 + A22) == sorted(A12 + A21) :
                             if return_decomposition :
                                 return False, (A11,A12,A21,A22)
                             return False
-
-                    else : A22 = []
-                else : A21 = []
-            else : A12 = []
-        else : A11 = []
+                    A22 = []
+                A12 = []
+            A21 = []
 
 
-        # testing two corners empty on the right (i2 = i4 = 0)
-        A11, A21 = s[0][:1], s[1][:1]
-
-        for i1 in range(1, l0) :
-            if s[0][i1-1] in A11 :
-                A11 = s[0][:1]
-                break
-            A11 = s[0][:i1]
-
-
-            for i3 in range(1, l1) :
-                if s[1][i3-1] in A21 :
-                    A21 = s[1][:1]
-                    break
-                A21 = s[1][:i3]
-
-                if sorted(A11)  == sorted(A21) :
-                    if return_decomposition :
-                        return False,(A11,A12,A21,A22)
-                    return False
-            else : A11 = s[0][:1]
-        else : A21 = s[1][:1]
-
-        if return_decomposition :
+        if return_decomposition:
             return True, ()
         return True
 

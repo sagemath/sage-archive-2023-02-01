@@ -94,19 +94,19 @@ class Function_erf(BuiltinFunction):
         sage: (integrate(exp(-x**2),(x,0,3))*2/sqrt(pi)).n()
         0.999977909503001
 
-    Trac #9044::
+    :trac:`9044`::
 
         sage: N(erf(sqrt(2)),200)
         0.95449973610364158559943472566693312505644755259664313203267
 
-    Trac #11626::
+    :trac:`11626`::
 
         sage: n(erf(2),100)
         0.99532226501895273416206925637
         sage: erf(2).n(100)
         0.99532226501895273416206925637
 
-    Test (indirectly) trac #11885::
+    Test (indirectly) :trac:`11885`::
 
         sage: erf(float(0.5))
         0.5204998778130465

@@ -186,10 +186,10 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "File conversion:"
-    echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone "
-    echo "                         reStructuredText source. "
-    echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone "
-    echo "                         reStructuredText source. "
+    echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone"
+    echo "                         reStructuredText source."
+    echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone"
+    echo "                         reStructuredText source."
 
     echo
     ####  1.......................26..................................................78

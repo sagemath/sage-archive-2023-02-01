@@ -126,7 +126,7 @@ We solve an equation and a system of two equations::
                2
              {x  - 3 y == 3, 2 x - y == 1}
     sage: sys.Solve('{x, y}')               # optional - mathematica
-    {{y -> -1, x -> 0}, {y -> 11, x -> 6}}
+    {{x -> 0, y -> -1}, {x -> 6, y -> 11}}
 
 Assignments and definitions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -150,7 +150,7 @@ The Sage interfaces changes Sage lists into Mathematica lists::
     sage: v = m([eq1, eq2]); v              # optional - mathematica
     {x^2 - 3*y == 3, 2*x - y == 1}
     sage: v.Solve(['x', 'y'])               # optional - mathematica
-    {{y -> -1, x -> 0}, {y -> 11, x -> 6}}
+    {{x -> 0, y -> -1}, {x -> 6, y -> 11}}
 
 Function definitions
 ~~~~~~~~~~~~~~~~~~~~
@@ -862,6 +862,21 @@ class MathematicaElement(ExpectElement):
         else:
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
+
+    def N(self, *args):
+        """
+        EXAMPLES::
+
+            sage: mathematica('Pi').N(10)
+            3.1415926536
+            sage: mathematica('Pi').N(50)
+            3.14159265358979323846264338327950288419716939937511
+        """
+        # The base class way up the hierarchy defines an "N" (modeled
+        # after Mathematica's!)  which overwrites the Mathematica one,
+        # and doesn't work at all. We restore it here.
+        return self.parent().N(self, *args)
+
 
 class MathematicaFunction(ExpectFunction):
     def _sage_doc_(self):

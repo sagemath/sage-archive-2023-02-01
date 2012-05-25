@@ -458,8 +458,9 @@ class Color(object):
     def __le__(self, right):
         """
         Check whether a :class:`Color` object is less than or equal to
-        some other object. This doesn't make sense, and so we conclude
-        that it is not less than or equal to the other object.
+        some other object. It wouldn't make sense for it to be less than
+        the other object, so we treat this the same as an equality
+        check.
 
         INPUT:
 
@@ -472,13 +473,13 @@ class Color(object):
         EXAMPLES::
 
             sage: Color('red') <= Color('red')
-            False
+            True
             sage: Color('blue') <= Color('red')
             False
             sage: Color('red') <= "xyzzy"
             False
         """
-        return False
+        return self == right
 
     def __eq__(self, right):
         """
@@ -564,9 +565,9 @@ class Color(object):
     def __ge__(self, right):
         """
         Check whether a :class:`Color` object is greater than or equal
-        to some other object. This doesn't make sense, and so we
-        conclude that it is not greater than or equal to the other
-        object.
+        to some other object. It wouldn't make sense for it to be
+        greater than the other object, so we treat this the same as an
+        equality check.
 
         INPUT:
 
@@ -579,13 +580,13 @@ class Color(object):
         EXAMPLES::
 
             sage: Color('red') >= Color('red')
-            False
+            True
             sage: Color('blue') >= Color('red')
             False
             sage: Color('red') >= "xyzzy"
             False
         """
-        return False
+        return self == right
 
     def __hash__(self):
         """

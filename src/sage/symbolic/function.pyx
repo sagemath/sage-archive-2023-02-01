@@ -1208,7 +1208,7 @@ def get_sfunction_from_serial(serial):
     """
     Returns an already created SFunction given the serial.  These are
     stored in the dictionary
-    :obj:`sage.symbolic.function.sfunction_serial_dict`.
+    `sage.symbolic.function.sfunction_serial_dict`.
 
     EXAMPLES::
 

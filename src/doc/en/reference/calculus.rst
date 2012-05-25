@@ -11,6 +11,8 @@ Symbolic Calculus
    sage/symbolic/units
    sage/symbolic/ring
    sage/calculus/functional
+   sage/symbolic/function
+   sage/symbolic/integration/integral
    sage/calculus/test_sympy
    sage/calculus/tests
    sage/symbolic/expression_conversions

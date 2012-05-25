@@ -5043,6 +5043,64 @@ cdef class Expression(CommutativeRingElement):
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
 
+    def lcm(self, b):
+        """
+        Return the lcm of self and b, which must be integers or
+        polynomials over the rational numbers.  This is computed from
+        the gcd of self and b implicitly from the relation
+        self * b = gcd(self, b) * lcm(self, b).
+
+        .. NOTE::
+
+            In agreement with the convention in use for integers, if
+            self * b == 0, then gcd(self, b) == max(self, b) and
+            lcm(self, b) == 0.
+
+        EXAMPLES::
+
+            sage: var('x,y')
+            (x, y)
+            sage: SR(10).lcm(SR(15))
+            30
+            sage: (x^3 - 1).lcm(x-1)
+            x^3 - 1
+            sage: (x^3 - 1).lcm(x^2+x+1)
+            x^3 - 1
+            sage: (x^3 - sage.symbolic.constants.pi).lcm(x-sage.symbolic.constants.pi)
+            Traceback (most recent call last):
+            ...
+            ValueError: lcm: arguments must be polynomials over the rationals
+            sage: lcm(x^3 - y^3, x-y)
+            -x^3 + y^3
+            sage: lcm(x^100-y^100, x^10-y^10)
+            -x^100 + y^100
+            sage: lcm(expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) ), expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3)) )
+            1/21*(21*x^7 + 357*x^6 + 9*x^5*y - 357*x^2*y + 14*x^2 - 6069*x*y - 153*y^2 + 238*x + 6*y)*(21*x^18 - 357*x^13*y + 14*x^13 + 357*x^6 + 9*x^5*y - 6069*x*y - 153*y^2 + 238*x + 6*y)/(3*x^5 - 51*y + 2)
+
+        TESTS:
+
+        Verify that x * y = gcd(x,y) * lcm(x,y)::
+
+            sage: x, y = var('x,y')
+            sage: LRs = [(SR(10), SR(15)), (x^3-1, x-1), (x^3-y^3, x-y), (x^3-1, x^2+x+1), (SR(0), x-y)]
+            sage: all((L.gcd(R) * L.lcm(R)) == L*R for L, R in LRs)
+            True
+
+        Make sure that the convention for what to do with the 0 is being respected::
+
+            sage: gcd(x, SR(0)), lcm(x, SR(0))
+            (x, 0)
+            sage: gcd(SR(0), SR(0)), lcm(SR(0), SR(0))
+            (0, 0)
+
+        """
+        sb = self * b
+        try:
+            return 0 if sb == 0 else sb / self.gcd(b)
+        except ValueError:
+            # make the error message refer to lcm, not gcd
+            raise ValueError("lcm: arguments must be polynomials over the rationals")
+
     def collect(Expression self, s):
         """
         INPUT:

@@ -1471,7 +1471,7 @@ def gcd(a, b=None, **kwargs):
         sage: GCD(srange(0,10000,10))  # fast  !!
         10
 
-    Note that to take the gcd of  `n` elements for `n \not= 2` you must
+    Note that to take the gcd of `n` elements for `n \not= 2` you must
     put the elements into a list by enclosing them in ``[..]``.  Before
     #4988 the following wrongly returned 3 since the third parameter
     was just ignored::
@@ -1511,6 +1511,30 @@ def gcd(a, b=None, **kwargs):
         sage: parent(gcd([1/p,q]))
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
+    Make sure we try QQ and not merely ZZ (:trac:`13014`)::
+
+        sage: bool(gcd(2/5, 3/7) == gcd(SR(2/5), SR(3/7)))
+        True
+
+    Make sure that the gcd of Expressions stays symbolic::
+
+        sage: parent(gcd(2, 4))
+        Integer Ring
+        sage: parent(gcd(SR(2), 4))
+        Symbolic Ring
+        sage: parent(gcd(2, SR(4)))
+        Symbolic Ring
+        sage: parent(gcd(SR(2), SR(4)))
+        Symbolic Ring
+
+    Verify that objects without gcd methods but which can't be
+    coerced to ZZ or QQ raise an error::
+
+        sage: F.<a,b> = FreeMonoid(2)
+        sage: gcd(a,b)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to find gcd
 
     """
     # Most common use case first:
@@ -1524,7 +1548,12 @@ def gcd(a, b=None, **kwargs):
             try:
                 return ZZ(a).gcd(ZZ(b))
             except TypeError:
-                raise TypeError, "unable to find gcd of %s and %s"%(a,b)
+                pass
+            try:
+                return QQ(a).gcd(QQ(b))
+            except TypeError:
+                pass
+            raise TypeError("unable to find gcd")
         return GCD(b, **kwargs)
 
     from sage.structure.sequence import Sequence
@@ -1615,6 +1644,7 @@ def lcm(a, b=None):
         sage: len(str(v))
         4349
 
+
     TESTS:
 
     The following tests against a bug that was fixed in trac
@@ -1633,6 +1663,31 @@ def lcm(a, b=None):
         sage: parent(lcm([1/p,q]))
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
+    Make sure we try QQ and not merely ZZ (:trac:`13014`)::
+
+        sage: bool(lcm(2/5, 3/7) == lcm(SR(2/5), SR(3/7)))
+        True
+
+    Make sure that the lcm of Expressions stays symbolic::
+
+        sage: parent(lcm(2, 4))
+        Integer Ring
+        sage: parent(lcm(SR(2), 4))
+        Symbolic Ring
+        sage: parent(lcm(2, SR(4)))
+        Symbolic Ring
+        sage: parent(lcm(SR(2), SR(4)))
+        Symbolic Ring
+
+    Verify that objects without lcm methods but which can't be
+    coerced to ZZ or QQ raise an error::
+
+        sage: F.<a,b> = FreeMonoid(2)
+        sage: lcm(a,b)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to find lcm
+
     """
     # Most common use case first:
     if b is not None:
@@ -1645,7 +1700,12 @@ def lcm(a, b=None):
             try:
                 return ZZ(a).lcm(ZZ(b))
             except TypeError:
-                raise TypeError, "unable to find lcm of %s and %s"%(a,b)
+                pass
+            try:
+                return QQ(a).lcm(QQ(b))
+            except TypeError:
+                pass
+            raise TypeError("unable to find lcm")
         return LCM(b)
 
     from sage.structure.sequence import Sequence

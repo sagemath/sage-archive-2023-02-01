@@ -99,7 +99,7 @@ class QuotientFields(Category_singleton):
                 sage: gcd(R.1,R.1)
                 Traceback (most recent call last):
                 ...
-                TypeError: unable to find gcd of q and q
+                TypeError: unable to find gcd
                 sage: (R.1/1).parent()
                 Number Field in q with defining polynomial x^2 + 5
                 sage: gcd(R.1/1,R.1)
@@ -178,7 +178,7 @@ class QuotientFields(Category_singleton):
                 sage: lcm(R.1,R.1)
                 Traceback (most recent call last):
                 ...
-                TypeError: unable to find lcm of q and q
+                TypeError: unable to find lcm
                 sage: (R.1/1).parent()
                 Number Field in q with defining polynomial x^2 + 5
                 sage: lcm(R.1/1,R.1)

@@ -8593,12 +8593,12 @@ cdef class Expression(CommutativeRingElement):
 
     def find_maximum_on_interval(self, a, b, var=None, tol=1.48e-08, maxfun=500):
         r"""
-        Numerically find the maximum of the expression ``self``
+        Numerically find a local maximum of the expression ``self``
         on the interval [a,b] (or [b,a]) along with the point at which the
         maximum is attained.
 
         See the documentation for
-        ``self.find_minimum_on_interval`` for more details.
+        :func:`find_minimum_on_interval` for more details.
 
         EXAMPLES::
 
@@ -8614,7 +8614,7 @@ cdef class Expression(CommutativeRingElement):
 
     def find_minimum_on_interval(self, a, b, var=None, tol=1.48e-08, maxfun=500):
         r"""
-        Numerically find the minimum of the expression ``self``
+        Numerically find a local minimum of the expression ``self``
         on the interval [a,b] (or [b,a]) and the point at which it attains
         that minimum. Note that ``self`` must be a function of
         (at most) one variable.
@@ -8657,7 +8657,7 @@ cdef class Expression(CommutativeRingElement):
 
         ALGORITHM:
 
-        Uses ``scipy.optimize.fminbound`` which uses Brent's method.
+        Uses :func:`sage.numerical.optimize.find_minimum_on_interval`.
 
         AUTHORS:
 

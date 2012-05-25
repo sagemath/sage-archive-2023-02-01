@@ -555,6 +555,8 @@ class Graph(GenericGraph):
 
     -  ``data`` -- can be any of the following (see the ``format`` argument):
 
+      #.  An integer specifying the number of vertices
+
       #.  A dictionary of dictionaries
 
       #.  A dictionary of lists
@@ -592,6 +594,9 @@ class Graph(GenericGraph):
 
     -  ``format`` - if None, Graph tries to guess- can be
        several values, including:
+
+       -  ``'int'`` - an integer specifying the number of vertices in an
+          edge-free graph with vertices labelled from 0 to n-1
 
        -  ``'graph6'`` - Brendan McKay's graph6 format, in a
           string (if the string has multiple graphs, the first graph is
@@ -652,8 +657,17 @@ class Graph(GenericGraph):
 
     EXAMPLES:
 
-    We illustrate the first six input formats (the other two
+    We illustrate the first seven input formats (the other two
     involve packages that are currently not standard in Sage):
+
+    #. An integer giving the number of vertices::
+
+        sage: g = Graph(5); g
+        Graph on 5 vertices
+        sage: g.vertices()
+        [0, 1, 2, 3, 4]
+        sage: g.edges()
+        []
 
     #. A dictionary of dictionaries::
 
@@ -952,13 +966,23 @@ class Graph(GenericGraph):
             ...
             ValueError: Non-multigraph input dict has multiple edges (1,2)
 
-        An empty list or dictionary defines a simple graph (trac #10441 and #12910)::
+        An empty list or dictionary defines a simple graph
+        (:trac:`10441` and :trac:`12910`)::
 
             sage: Graph([])
             Graph on 0 vertices
             sage: Graph({})
             Graph on 0 vertices
             sage: # not "Multi-graph on 0 vertices"
+
+        Verify that the int format works as expected (:trac:`12557`)::
+
+            sage: Graph(2).adjacency_matrix()
+            [0 0]
+            [0 0]
+            sage: Graph(3) == Graph(3,format='int')
+            True
+
         """
         GenericGraph.__init__(self)
         msg = ''

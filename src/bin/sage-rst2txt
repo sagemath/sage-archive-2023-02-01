@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 r"""
 sage-rst2txt
+============
 
 Translate a rst file into a worksheet txt file.
 
-A worksheet txt file is a plain text file (no graphics) with html code and
-sage cells surrounded by {{{'s.
+A worksheet txt file is a plain text file (no graphics) with html code
+and sage cells surrounded by {{{'s.
 
 Usage::
 
@@ -23,28 +24,29 @@ EXAMPLES::
 
     sage -rst2txt input.rst | less
 
-In RestructuredText, "an escaped character represents the character itself,
-and is prevented from playing a role in any markup interpretation. The
-backslash is removed from the output" [1,2]. So, if the backslashes of your
-ReST file are not escaped, they will get lost in the process. This is not
-practical for Sage since most of the documentation and examples are Python
-raw string where backslashes are not escaped. Use the following command to
-escape every backslashes of the input file::
+In reStructuredText, "an escaped character represents the character
+itself, and is prevented from playing a role in any markup
+interpretation. The backslash is removed from the output" [1]_ [2]_. So,
+if the backslashes of your reST file are not escaped, they will get lost
+in the process. This is not practical for Sage since most of the
+documentation and examples are Python raw string where backslashes are
+not escaped. Use the following command to escape all backslashes in the
+input file::
 
     sage -rst2txt --escape-backslashes input.rst output.txt
 
 AUTHOR:
 
     - Sebastien Labbe (2011, January 15th): Initial version
-    - Sebastien Labbe (2011, June 14th, at Sage Days 31): Make it ready for
-      inclusion into Sage.
+    - Sebastien Labbe (2011, June 14th, at Sage Days 31): Make it ready
+      for inclusion into Sage.
 
 REFERENCES:
 
-    - [1] Escaping Mechanism, reStructuredText Markup Specification,
-      http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#escaping-mechanism
-    - [2] Espcaping with backslashes, Quick reStructuredText Reference,
-      http://docutils.sourceforge.net/docs/user/rst/quickref.html#escaping
+.. [1] Escaping Mechanism, reStructuredText Markup Specification,
+   http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#escaping-mechanism
+.. [2] Espcaping with backslashes, Quick reStructuredText Reference,
+   http://docutils.sourceforge.net/docs/user/rst/quickref.html#escaping
 """
 #############################################################################
 #       Copyright (C) 2011 Sebastien Labbe <slabqc at gmail.com>
@@ -60,7 +62,8 @@ usage = r"""
 
     sage -rst2txt [options] <source> [<destination>]
 
-Generates Sage worksheet text file from standalone reStructuredText source.
+Generates Sage worksheet text file from standalone reStructuredText
+source.
 
 Example:
 
@@ -70,7 +73,7 @@ Remarks:
 
     About LaTeX:
 
-        You can put LaTeX expression between backticks "`", dollars sign
+        You can put LaTeX expression between backticks "`", dollar signs
         "$" or double dollar signs "$$". Math role is not supported yet
         (get involved!).
 
@@ -78,24 +81,22 @@ Remarks:
 
     About backslashes:
 
-        In ReStructuredText, backslashes must be escaped or otherwise they
-        are ignored. This is not quite practical for Sage purposes since
-        backslashes are never escaped in the docstrings. If you write
-        `\alpha`, $\beta$ or $$\gamma$$, add the line
+        In reStructuredText, backslashes must be escaped, otherwise they
+        are ignored. This is not quite practical for Sage's purposes
+        since backslashes are never escaped in the docstrings. If you
+        write `\alpha`, $\beta$ or $$\gamma$$, add the line
 
-            "..  escape-backslashes"
+            ..  escape-backslashes
 
-        to the file and this script will consider every backslashes as
+        to the file and this script will consider all backslashes
         escaped. Alternatively, you may use the available options."""
-
 parser = OptionParser(usage=usage)
 parser.add_option("--escape-backslashes",
                   action="store_true", dest="escape_backslashes",
-                  help="Escape every backslashes in the input file before execution. Default: disabled.")
+                  help="Escape all backslashes in the input file before execution. Default: disabled.")
 parser.add_option("--no-escape-backslashes",
                   action="store_true", dest="no_escape_backslashes",
-                  help="Disable escaping every backslashes in the input file before execution. This overwrites the presence of the line '.. escape-backslashes' in the file which also enable escaping every backslashes in the file.")
-
+                  help="Disable escaping all backslashes in the input file before execution. This overrides the presence of the line '.. escape-backslashes' in the file, which can also be used to escape all backslashes in the file.")
 (options, args) = parser.parse_args()
 
 # Parse arguments
@@ -114,7 +115,7 @@ except IOError as e:
     print "Unable to open source file for reading ('%s').  Exiting." % input
     sys.exit(1)
 
-# docutils loses the alone backslashes, so we precede them with escapes
+# docutils loses the single backslashes, so we prepend them with escapes
 # A better solution would be to escape baskslashes only in the math sections
 import re
 if options.escape_backslashes:
@@ -139,4 +140,3 @@ if output:
         f.write(worksheet_txt)
 else:
     print worksheet_txt
-

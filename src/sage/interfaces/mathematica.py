@@ -449,11 +449,11 @@ remote connection to a server running Mathematica -- for hints, type
       * APPLE OS X:
           (a) create a file called math (in your PATH):
               #!/bin/sh
-              /Applications/Mathematica\ 5.2.app/Contents/MacOS/MathKernel $@
+              /Applications/Mathematica.app/Contents/MacOS/MathKernel $@
 
-          Note that the 5.2 part will depend on the version of
-          Mathematica you have, and the above path could be different
-          if you installed mathematica elsewhere.
+          The path in the above script must be modified if you installed
+          Mathematica elsewhere or installed an old version of
+          Mathematica that has the version in the .app name.
 
           (b) Make the file executable.
                 chmod +x math

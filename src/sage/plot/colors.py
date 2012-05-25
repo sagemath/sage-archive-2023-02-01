@@ -430,6 +430,56 @@ class Color(object):
         """
         return "RGB color %s" % (self.__rgb, )
 
+    def __lt__(self, right):
+        """
+        Check whether a :class:`Color` object is less than some other
+        object. This doesn't make sense, and so we conclude that it is
+        not less than the other object.
+
+        INPUT:
+
+        - ``right`` - an object
+
+        OUTPUT:
+
+        - boolean - False
+
+        EXAMPLES::
+
+            sage: Color('red') < Color('red')
+            False
+            sage: Color('blue') < Color('red')
+            False
+            sage: Color('red') < "xyzzy"
+            False
+        """
+        return False
+
+    def __le__(self, right):
+        """
+        Check whether a :class:`Color` object is less than or equal to
+        some other object. This doesn't make sense, and so we conclude
+        that it is not less than or equal to the other object.
+
+        INPUT:
+
+        - ``right`` - an object
+
+        OUTPUT:
+
+        - boolean - False
+
+        EXAMPLES::
+
+            sage: Color('red') <= Color('red')
+            False
+            sage: Color('blue') <= Color('red')
+            False
+            sage: Color('red') <= "xyzzy"
+            False
+        """
+        return False
+
     def __eq__(self, right):
         """
         Compare two :class:`Color` objects to determine whether
@@ -485,6 +535,57 @@ class Color(object):
             True
         """
         return not (self == right)
+
+    def __gt__(self, right):
+        """
+        Check whether a :class:`Color` object is greater than some other
+        object. This doesn't make sense, and so we conclude that it is
+        not greater than the other object.
+
+        INPUT:
+
+        - ``right`` - an object
+
+        OUTPUT:
+
+        - boolean - False
+
+        EXAMPLES::
+
+            sage: Color('red') > Color('red')
+            False
+            sage: Color('blue') > Color('red')
+            False
+            sage: Color('red') > "xyzzy"
+            False
+        """
+        return False
+
+    def __ge__(self, right):
+        """
+        Check whether a :class:`Color` object is greater than or equal
+        to some other object. This doesn't make sense, and so we
+        conclude that it is not greater than or equal to the other
+        object.
+
+        INPUT:
+
+        - ``right`` - an object
+
+        OUTPUT:
+
+        - boolean - False
+
+        EXAMPLES::
+
+            sage: Color('red') >= Color('red')
+            False
+            sage: Color('blue') >= Color('red')
+            False
+            sage: Color('red') >= "xyzzy"
+            False
+        """
+        return False
 
     def __hash__(self):
         """

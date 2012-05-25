@@ -1693,6 +1693,19 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         \overline{x}
         sage: latex(t._maxima_()._sage_())
         \overline{x}
+
+    Check that we can understand maxima's not-equals (:trac:`8969`)::
+
+        sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
+        sage: sefms("x != 3") == SR(x != 3)
+        True
+        sage: sefms("x # 3") == SR(x != 3)
+        True
+        sage: solve([x != 5], x)
+        [[x - 5 != 0]]
+        sage: solve([2*x==3, x != 5], x)
+        [[x == (3/2), (-7/2) != 0]]
+
     """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 
@@ -1733,6 +1746,8 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     if equals_sub:
         s = s.replace('=','==')
+        # unfortunately, this will turn != into !==, which we correct
+        s = s.replace("!==", "!=")
 
     #replace %union from to_poly_solve with a list
     if s[0:5]=='union':

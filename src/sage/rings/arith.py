@@ -3608,6 +3608,17 @@ def primitive_root(n, check=True):
 
 def nth_prime(n):
     """
+
+    Return the n-th prime number (1-indexed, so that 2 is the 1st prime.)
+
+    INPUT:
+
+    - ``n`` -- a positive integer
+
+    OUTPUT:
+
+    -  the n-th prime number
+
     EXAMPLES::
 
         sage: nth_prime(3)
@@ -3621,6 +3632,12 @@ def nth_prime(n):
         Traceback (most recent call last):
         ...
         ValueError: nth prime meaningless for non-positive n (=0)
+
+    TESTS::
+
+        sage: all(prime_pi(nth_prime(j)) == j for j in range(1, 1000, 10))
+        True
+
     """
     return ZZ(pari.nth_prime(n))
 

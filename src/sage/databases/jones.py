@@ -18,19 +18,19 @@ EXAMPLES: First load the database::
 List the degree and discriminant of all fields in the database that
 have ramification at most at 2::
 
-    sage: [(k.degree(), k.disc()) for k in J.unramified_outside([2])]    # optional - jones_database
+    sage: [(k.degree(), k.disc()) for k in J.unramified_outside([2])]    # optional - database_jones_numfield
     [(1, 1), (2, -4), (2, -8), (2, 8), (4, 256), (4, 512), (4, -1024), (4, -2048), (4, 2048), (4, 2048), (4, 2048)]
 
 List the discriminants of the fields of degree exactly 2 unramified
 outside 2::
 
-    sage: [k.disc() for k in J.unramified_outside([2],2)]                # optional - jones_database
+    sage: [k.disc() for k in J.unramified_outside([2],2)]                # optional - database_jones_numfield
     [-4, -8, 8]
 
 List the discriminants of cubic field in the database ramified
 exactly at 3 and 5::
 
-    sage: [k.disc() for k in J.ramified_at([3,5],3)]                     # optional - jones_database
+    sage: [k.disc() for k in J.ramified_at([3,5],3)]                     # optional - database_jones_numfield
     [-135, -675, -6075, -6075]
     sage: factor(6075)
     3^5 * 5^2
@@ -41,7 +41,7 @@ exactly at 3 and 5::
 
 List all fields in the database ramified at 101::
 
-    sage: J.ramified_at(101)                                             # optional - jones_database
+    sage: J.ramified_at(101)                                             # optional - database_jones_numfield
     [Number Field in a with defining polynomial x^2 - 101,
      Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361,
      Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
@@ -166,8 +166,8 @@ class JonesDatabase:
 
         EXAMPLES::
 
-            sage: J = JonesDatabase()             # optional - jones_database
-            sage: J.unramified_outside([101,109]) # optional - jones_database
+            sage: J = JonesDatabase()             # optional - database_jones_numfield
+            sage: J.unramified_outside([101,109]) # optional - database_jones_numfield
             [Number Field in a with defining polynomial x - 1,
              Number Field in a with defining polynomial x^2 - 101,
              Number Field in a with defining polynomial x^2 - 109,
@@ -205,12 +205,12 @@ class JonesDatabase:
 
         EXAMPLES::
 
-            sage: J = JonesDatabase()              # optional - jones_database
-            sage: J.get(163, var='z')              # optional - jones_database
+            sage: J = JonesDatabase()              # optional - database_jones_numfield
+            sage: J.get(163, var='z')              # optional - database_jones_numfield
             [Number Field in z with defining polynomial x^2 + 163,
              Number Field in z with defining polynomial x^3 - x^2 - 54*x + 169,
              Number Field in z with defining polynomial x^4 - x^3 - 7*x^2 + 2*x + 9]
-            sage: J.get([3, 4])                    # optional - jones_database
+            sage: J.get([3, 4])                    # optional - database_jones_numfield
             Traceback (most recent call last):
             ...
             ValueError: S must be a list of primes
@@ -248,20 +248,20 @@ class JonesDatabase:
 
         EXAMPLES::
 
-            sage: J = JonesDatabase()              # optional - jones_database
-            sage: J.ramified_at([101,109])         # optional - jones_database
+            sage: J = JonesDatabase()              # optional - database_jones_numfield
+            sage: J.ramified_at([101,109])         # optional - database_jones_numfield
             []
-            sage: J.ramified_at([109])             # optional - jones_database
+            sage: J.ramified_at([109])             # optional - database_jones_numfield
             [Number Field in a with defining polynomial x^2 - 109,
              Number Field in a with defining polynomial x^3 - x^2 - 36*x + 4,
              Number Field in a with defining polynomial x^4 - x^3 + 14*x^2 + 34*x + 393]
-            sage: J.ramified_at(101)               # optional - jones_database
+            sage: J.ramified_at(101)               # optional - database_jones_numfield
             [Number Field in a with defining polynomial x^2 - 101,
              Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361,
              Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
              Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4,
              Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
-            sage: J.ramified_at((2, 5, 29), 3, 'c') # optional - jones_database
+            sage: J.ramified_at((2, 5, 29), 3, 'c') # optional - database_jones_numfield
             [Number Field in c with defining polynomial x^3 - x^2 - 8*x - 28,
              Number Field in c with defining polynomial x^3 - x^2 + 10*x + 102,
              Number Field in c with defining polynomial x^3 - x^2 + 97*x - 333,

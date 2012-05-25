@@ -1681,15 +1681,10 @@ cdef class RealDoubleElement(FieldElement):
 
 
     cdef _log_base(self, double log_of_base):
-        if self._value < 2:
-            if self._value == 0:
-                return RDF(-1)/RDF(0)
-            if self._value < 0:
-                return RDF(0)/RDF(0)
-            sig_on()
-            a = self._new_c(gsl_sf_log_1plusx(self._value - 1) / log_of_base)
-            sig_off()
-            return a
+        if self._value == 0:
+            return RDF(-1)/RDF(0)
+        elif self._value < 0:
+            return RDF.NaN()
         sig_on()
         a = self._new_c(gsl_sf_log(self._value) / log_of_base)
         sig_off()
@@ -1697,6 +1692,21 @@ cdef class RealDoubleElement(FieldElement):
 
     def log(self, base=None):
         """
+        Return the logarithm.
+
+        INPUT:
+
+        - ``base`` -- integer or ``None`` (default). The base of the
+          logarithm. If none is specified, the base is `e` (the so-called
+          natural logarithm).
+
+        OUTPUT:
+
+        The logarithm of ``self``.  If ``self`` is positive, a double
+        floating point number. Infinity if ``self`` is zero. A
+        imaginary complex floating point number if ``self`` is
+        negative.
+
         EXAMPLES::
 
             sage: RDF(2).log()
@@ -1715,6 +1725,29 @@ cdef class RealDoubleElement(FieldElement):
             3.14159265359*I
             sage: RDF(-1).log(2)
             4.53236014183*I
+
+        TESTS:
+
+        Make sure that we can take the log of small numbers accurately
+        and the fix doesn't break preexisting values (:trac:`12557`)::
+
+            sage: def check_error(x):
+            ...     x = RDF(x)
+            ...     log_RDF = x.log()
+            ...     log_exact = log(x.n(1000))
+            ...     return abs(log_RDF-log_exact) <= log_RDF.ulp()
+            sage: all( check_error(2^x) for x in range(-100,100) )
+            True
+            sage: all( check_error(x) for x in sxrange(0.01, 2.00, 0.01) )
+            True
+            sage: all( check_error(x) for x in sxrange(0.99, 1.01, 0.001) )
+            True
+            sage: RDF(1.000000001).log()
+            1.00000008224e-09
+            sage: RDF(1e-17).log()
+            -39.1439465809
+            sage: RDF(1e-50).log()
+            -115.12925465
         """
         if self < 0:
             from sage.rings.complex_double import CDF

@@ -26,50 +26,132 @@ from sage.libs.mpmath import utils as mpmath_utils
 one_half = ~SR(2)
 
 class Function_erf(BuiltinFunction):
+    r"""
+    The error function, defined for real values as
+
+    `\text{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt`.
+
+    This function is also defined for complex values, via analytic
+    continuation.
+
+
+    EXAMPLES:
+
+    We can evaluate numerically::
+
+        sage: erf(2)
+        erf(2)
+        sage: erf(2).n()
+        0.995322265018953
+        sage: erf(2).n(100)
+        0.99532226501895273416206925637
+        sage: erf(ComplexField(100)(2+3j))
+        -20.829461427614568389103088452 + 8.6873182714701631444280787545*I
+
+    Basic symbolic properties are handled by Sage and Maxima::
+
+        sage: x = var("x")
+        sage: diff(erf(x),x)
+        2*e^(-x^2)/sqrt(pi)
+        sage: integrate(erf(x),x)
+        x*erf(x) + e^(-x^2)/sqrt(pi)
+
+    ALGORITHM:
+
+    Sage implements numerical evaluation of the error function via the ``erfc()``
+    function in PARI. Symbolics are handled by Sage and Maxima.
+
+    REFERENCES:
+
+    - http://en.wikipedia.org/wiki/Error_function
+
+    TESTS:
+
+    Check limits::
+
+        sage: limit(erf(x),x=0)
+        0
+        sage: limit(erf(x),x=infinity)
+        1
+
+     Check that it's odd::
+
+         sage: erf(1.0)
+         0.842700792949715
+         sage: erf(-1.0)
+         -0.842700792949715
+
+    Check against other implementations and against the definition::
+
+        sage: erf(3).n()
+        0.999977909503001
+        sage: maxima.erf(3).n()
+        0.999977909503001
+        sage: (1-pari(3).erfc())
+        0.999977909503001
+        sage: RR(3).erf()
+        0.999977909503001
+        sage: (integrate(exp(-x**2),(x,0,3))*2/sqrt(pi)).n()
+        0.999977909503001
+
+    Trac #9044::
+
+        sage: N(erf(sqrt(2)),200)
+        0.95449973610364158559943472566693312505644755259664313203267
+
+    Trac #11626::
+
+        sage: n(erf(2),100)
+        0.99532226501895273416206925637
+        sage: erf(2).n(100)
+        0.99532226501895273416206925637
+
+    Test (indirectly) trac #11885::
+
+        sage: erf(float(0.5))
+        0.5204998778130465
+        sage: erf(complex(0.5))
+        (0.5204998778130465+0j)
+
+    Ensure conversion from maxima elements works::
+
+        sage: merf = maxima(erf(x)).sage().operator()
+        sage: merf == erf
+        True
+
+    Make sure we can dump and load it::
+
+        sage: loads(dumps(erf(2)))
+        erf(2)
+
+    Special-case 0 for immediate evaluation::
+
+        sage: erf(0)
+        0
+        sage: solve(erf(x)==0,x)
+        [x == 0]
+
+    Make sure that we can hold::
+
+        sage: erf(0,hold=True)
+        erf(0)
+        sage: simplify(erf(0,hold=True))
+        0
+
+    Check that high-precision ComplexField inputs work::
+
+        sage: CC(erf(ComplexField(1000)(2+3j)))
+        -20.8294614276146 + 8.68731827147016*I
+    """
+
     def __init__(self):
         r"""
-        The error function, defined for real values as
-        `\text{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt`.
-        This function is also defined for complex values, via analytic
-        continuation.
+        See docstring for :meth:`Function_erf`.
 
-        Sage implements the error function via the ``erfc()`` function in PARI.
-
-        EXAMPLES:
-
-        We can evaluate the error function at varying precisions::
+        EXAMPLES::
 
             sage: erf(2)
             erf(2)
-            sage: erf(2).n()
-            0.995322265018953
-            sage: erf(2).n(200)
-            0.99532226501895273416206925636725292861089179704006007673835
-
-        Complex values can be evaluated as well::
-
-            sage: erf(3*I).n()
-            1.00000000000000 + 1629.86732385786*I
-
-        Sage simplifies erf(0) automatically::
-
-            sage: erf(0)
-            0
-            sage: solve(erf(x)==0,x)
-            [x == 0]
-
-        TESTS:
-
-        Test pickling::
-
-            sage: loads(dumps(erf))
-            erf
-
-        Check if conversion from maxima elements work::
-
-            sage: merf = maxima(erf(x)).sage().operator()
-            sage: merf == erf
-            True
         """
         BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}")
 

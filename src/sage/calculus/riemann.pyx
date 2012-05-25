@@ -105,6 +105,7 @@ cdef class Riemann_Map:
     EXAMPLES:
 
     The unit circle identity map::
+
         sage: f(t) = e^(I*t)
         sage: fprime(t) = I*e^(I*t)
         sage: m = Riemann_Map([f], [fprime], 0)  # long time (4 sec)
@@ -802,7 +803,7 @@ cdef class Riemann_Map:
 
         Plot zoomed in on a specific spot::
 
-            sage: m.plot_colored(plot_range=[-1,1,2,3])
+            sage: m.plot_colored(plot_range=[0,1,.25,.75])
 
         High resolution plot::
 
@@ -899,13 +900,14 @@ cdef inline double mag_to_lightness(double r):
     return 1 - r
 
 cpdef complex_to_rgb(np.ndarray z_values):
-    """
-    Convert from an array of complex numbers to its corresponding matrix of
-    RGB values.
+    r"""
+    Convert from a (Numpy) array of complex numbers to its corresponding
+    matrix of RGB values.  For internal use of :meth:`~Riemann_Map.plot_colored`
+    only.
 
     INPUT:
 
-    - ``z_values`` -- A grid of complex numbers, as a list of lists.
+    - ``z_values`` -- A Numpy array of complex numbers.
 
     OUTPUT:
 
@@ -924,6 +926,13 @@ cpdef complex_to_rgb(np.ndarray z_values):
         array([[[  1.00000000e+00,   1.00000000e+00,   1.00000000e+00],
                 [  5.00000000e-01,   1.00000000e+00,   0.00000000e+00],
                 [ -4.99000000e+02,  -9.98000000e+02,   0.00000000e+00]]])
+
+    TESTS::
+
+        sage: complex_to_rgb([[0, 1, 10]])
+        Traceback (most recent call last):
+        ...
+        TypeError: Argument 'z_values' has incorrect type (expected numpy.ndarray, got list)
     """
     cdef unsigned int i, j, imax, jmax
     cdef double x, y, mag, arg

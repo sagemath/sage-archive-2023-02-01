@@ -439,7 +439,7 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
     r"""
     Return the span of the vectors in ``gens`` using scalars from ``base_ring``.
 
-    INPUTS:
+    INPUT:
 
     - ``gens`` - a list of either vectors or lists of ring elements
       used to generate the span
@@ -454,6 +454,15 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
       if the vectors form the rows of a matrix in echelon form, in
       order to skip the computation of an echelonized basis for the
       span.
+
+    OUTPUT:
+
+    A module (or vector space) that is all the linear combinations of the
+    free module elements (or vectors) with scalars from the
+    ring (or field) given by ``base_ring``.  See the examples below
+    describing behavior when the base ring is not specified and/or
+    the module elements are given as lists that do not carry
+    explicit base ring information.
 
     EXAMPLES:
 

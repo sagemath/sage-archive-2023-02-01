@@ -12,6 +12,10 @@ GMP_INC_DIR="$SAGE_LOCAL/include"; export GMP_INC_DIR
 ldflags="-L$SAGE_LOCAL/lib/ -lgmpxx -lgmp"; export ldflags
 
 cd src
+
+#Apply the patches
+patch -p0 < ../patches/Makefile.patch
+
 $MAKE MODE=release
 
 if [ $? -ne 0 ]; then

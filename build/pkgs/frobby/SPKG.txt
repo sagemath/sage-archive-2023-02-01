@@ -29,6 +29,10 @@ Frobby source distribution.
 
 == Changelog ==
 
+=== frobby-0.9.0 (Mike Hansen, May 24th, 2012) ===
+ * #13007: Update to 0.9.0.
+ * Add a patch to the Makefile so that the build succeeds with SAGE_CHECK="yes"
+
 === frobby-0.7.6 (Bjarke Hammersholt Roune, May 20th, 2008) ===
  * Move to Frobby 0.7.6 with Makefile improvements by Michale Abshoff.
 

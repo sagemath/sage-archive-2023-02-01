@@ -53,16 +53,16 @@ http://www.python.org/community/
 
 === Patches ===
 
- * cPickle.c.patch, pickle.py.patch: These add support for pickling
-   classes with a metaclass via copy_reg. These have been submitted
-   upstream: http://bugs.python.org/issue7689
-   This is fixed in python-2.7.3 and can be removed at the next upgrade.
  * sdist.py.patch: Make sure that sdist copies over the .hg directory.
  * socket.py.patch: Work around an SSL issue.
  * Makefile.pre.in.patch: Changes the permission of installed libraries
    to 0755 (like any other library) instead of 0555.
 
 == Changelog ==
+
+=== python-2.7.3.p0 (Volker Braun, May 25 2012) ===
+ * Trac #13013: Update to latest upstream Python-2.x version
+ * Removed dynamic_class_copyreg_{c,py}.patch since it is now upstream
 
 === python-2.7.2.p4 (John Palmieri, 23 February 2012) ===
  * Trac #12574: with OS X, do not use xcodebuild to test the version of

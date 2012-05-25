@@ -169,6 +169,16 @@ def initialize_pkgconfig_files():
     SAGE_ROOT_absolute = os.path.abspath(SAGE_ROOT)
     LIB = os.path.join(SAGE_ROOT_absolute, 'local', 'lib')
     PKG = os.path.join(LIB, 'pkgconfig')
+    for name in os.listdir(PKG):
+        filename = os.path.join(PKG, name)
+        initialize_pkgconfig_file(filename)
+
+def initialize_pkgconfig_file(filename):
+    """
+    Insert a ``SAGE_ROOT`` variable into ``filename`` and replace
+    occurrences of its current value by references to it (``${SAGE_ROOT}``).
+    """
+    SAGE_ROOT_absolute = os.path.abspath(SAGE_ROOT)
     import re
     # Pattern matching a *definition* of SAGE_ROOT:
     def_pat = re.compile(r"^SAGE_ROOT=.*\n", re.MULTILINE)
@@ -179,38 +189,36 @@ def initialize_pkgconfig_files():
     # knows...)
     # use_pat = re.compile(SAGE_ROOT_absolute.replace(".", r"\."))
 
-    for name in os.listdir(PKG):
-        filename = os.path.join(PKG, name)
-        if os.path.splitext(filename)[1]==".pc":
-            with open(filename) as file:
-                config = file.read()
+    if os.path.splitext(filename)[1]==".pc":
+        with open(filename) as file:
+            config = file.read()
 
-            if def_pat.search(config):
-                # There are already one or more definitions of SAGE_ROOT,
-                # which also happens if we previously processed the same
-                # file (here) because of [symbolic or hard] links, so this
-                # isn't necessarily an error. (Cf. #11760).
-                # For simplicity, we just remove any definition, and only
-                # issue a warning if there was more than one, and don't
-                # check whether a previous definition was already current:
-                config, n = def_pat.subn("", config)
-                if n>1:
-                    sys.stderr.write(
-                        "Warning: sage_location: initialize_pkgconfig_files():\n" +
-                        "  File \"%s\" already contained %d definitions of SAGE_ROOT.\n" %
-                            (name, n) +
-                        "  These will get replaced by a single, current definition.\n")
-                    sys.stderr.flush()
+        if def_pat.search(config):
+            # There are already one or more definitions of SAGE_ROOT,
+            # which also happens if we previously processed the same
+            # file (here) because of [symbolic or hard] links, so this
+            # isn't necessarily an error. (Cf. #11760).
+            # For simplicity, we just remove any definition, and only
+            # issue a warning if there was more than one, and don't
+            # check whether a previous definition was already current:
+            config, n = def_pat.subn("", config)
+            if n>1:
+                sys.stderr.write(
+                    "Warning: sage_location: initialize_pkgconfig_files():\n" +
+                    "  File \"%s\" already contained %d definitions of SAGE_ROOT.\n" %
+                        (name, n) +
+                    "  These will get replaced by a single, current definition.\n")
+                sys.stderr.flush()
 
-            # Replace all occurrences of the (current) value of SAGE_ROOT
-            # by references to the pkg-config variable SAGE_ROOT:
-            config = config.replace(SAGE_ROOT_absolute, "${SAGE_ROOT}")
-            # Alternate implementation, *may* be faster:
-            # config = use_pat.sub("${SAGE_ROOT}", config)
+        # Replace all occurrences of the (current) value of SAGE_ROOT
+        # by references to the pkg-config variable SAGE_ROOT:
+        config = config.replace(SAGE_ROOT_absolute, "${SAGE_ROOT}")
+        # Alternate implementation, *may* be faster:
+        # config = use_pat.sub("${SAGE_ROOT}", config)
 
-            definition = "SAGE_ROOT=%s\n" % SAGE_ROOT_absolute
-            with open(filename, 'w') as file:
-                file.write(definition + config)
+        definition = "SAGE_ROOT=%s\n" % SAGE_ROOT_absolute
+        with open(filename, 'w') as file:
+            file.write(definition + config)
 
 
 def update_pkgconfig_files():
@@ -235,17 +243,11 @@ def update_pkgconfig_files():
                 config = file.read()
 
             if not def_pat.search(config):
-                # There's no definition of SAGE_ROOT in the .pc file at all.
-                # This should never happen, unless the user modified the file.
-                sys.stderr.write(
-                    "Error: sage_location: update_pkgconfig_files():\n" +
-                    "  File \"%s\" doesn't contain a definition of SAGE_ROOT.\n" %
-                    name + "  Skipping it...\n")
-                sys.stderr.flush()
-                continue
-                # We could of course call initialize_pkgconfig_file(filename)
-                # here instead to fix this issue, but unfortunately there's no
-                # such function (for a single file) [yet].
+                # There's no definition of SAGE_ROOT in the .pc file
+                # at all.  This should only happend if the user
+                # modified the file or installed the package after
+                # initialize_pkgconfig_files had been initially run.
+                initialize_pkgconfig_file(filename)
 
             # Delete all previous definitions of SAGE_ROOT:
             config = def_pat.sub("", config)

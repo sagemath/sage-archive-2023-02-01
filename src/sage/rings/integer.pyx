@@ -476,7 +476,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             8
         """
 
-    def __init__(self, x=None, unsigned int base=0):
+    def __init__(self, x=None, base=0):
         """
         EXAMPLES::
 
@@ -605,6 +605,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             TypeError: Cannot convert p-adic with negative valuation to an integer
+
+        Test converting a list with a very large base::
+
+            sage: a=ZZ(randint(0,2^128-1))
+            sage: L = a.digits(2^64)
+            sage: a == sum([x * 2^(64*i) for i,x in enumerate(L)])
+            True
+            sage: a == ZZ(L,base=2^64)
+            True
         """
         # TODO: All the code below should somehow be in an external
         # cdef'd function.  Then e.g., if a matrix or vector or
@@ -621,6 +630,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int paritype
         cdef Py_ssize_t j
         cdef object otmp
+        cdef unsigned int ibase
 
         cdef Element lift
 
@@ -685,11 +695,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             elif PyString_Check(x) or PY_TYPE_CHECK(x,unicode):
                 if base < 0 or base > 36:
                     raise ValueError, "`base` (=%s) must be between 2 and 36."%base
-
+                ibase = base
                 xs = x
                 if xs[0] == c'+':
                     xs += 1
-                if mpz_set_str(self.value, xs, base) != 0:
+                if mpz_set_str(self.value, xs, ibase) != 0:
                     raise TypeError, "unable to convert x (=%s) to an integer"%x
 
             elif PyObject_HasAttrString(x, "_integer_"):

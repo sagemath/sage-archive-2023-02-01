@@ -1555,7 +1555,7 @@ def __internal_tests():
     This used to be problematic, but was fixed in #10094::
 
         sage: sage_getsource(sage.rings.integer.Integer.__init__, is_binary=True)
-        '    def __init__(self, x=None, unsigned int base=0):\n...'
+        '    def __init__(self, x=None, base=0):\n...'
         sage: sage_getdef(sage.rings.integer.Integer.__init__, obj_name='__init__')
         '__init__(x=None, base=0)'
 

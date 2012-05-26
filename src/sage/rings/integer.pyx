@@ -3303,8 +3303,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def factor(self, algorithm='pari', proof=None, limit=None, int_=False,
                      verbose=0):
         """
-        Return the prime factorization of this integer as a list of pairs
-        `(p, e)`, where `p` is prime and `e` is a positive integer.
+        Return the prime factorization of this integer as a
+        formal Factorization object.
 
         INPUT:
 
@@ -3322,10 +3322,35 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            given it must fit in a signed int, and the factorization is done
            using trial division and primes up to limit.
 
+        OUTPUT:
+
+        -  a Factorization object containing the prime factors and
+           their multiplicities
+
         EXAMPLES::
 
             sage: n = 2^100 - 1; n.factor()
             3 * 5^3 * 11 * 31 * 41 * 101 * 251 * 601 * 1801 * 4051 * 8101 * 268501
+
+        This factorization can be converted into a list of pairs `(p,
+        e)`, where `p` is prime and `e` is a positive integer.  Each
+        pair can also be accessed directly by its index (ordered by
+        increasing size of the prime)::
+
+            sage: f = 60.factor()
+            sage: list(f)
+            [(2, 2), (3, 1), (5, 1)]
+            sage: f[2]
+            (5, 1)
+
+        Similarly, the factorization can be converted to a dictionary
+        so the exponent can be extracted for each prime::
+
+            sage: f = (3^6).factor()
+            sage: dict(f)
+            {3: 6}
+            sage: dict(f)[3]
+            6
 
         We use proof=False, which doesn't prove correctness of the primes
         that appear in the factorization::

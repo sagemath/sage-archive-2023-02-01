@@ -75,7 +75,7 @@ cdef class Riemann_Map:
 
     The ``Riemann_Map`` class computes an interior or exterior Riemann map,
     or an Ahlfors map of a region given by the supplied boundary curve(s)
-    and center ' point. The class also provides various methods to
+    and center point. The class also provides various methods to
     evaluate, visualize, or extract data from the map.
 
     A Riemann map conformally maps a simply connected region in
@@ -84,11 +84,11 @@ cdef class Riemann_Map:
 
     Note that all the methods are numerical. As a result all answers have
     some imprecision. Moreover, maps computed with small number of
-    collocation points, or for unusually shaped regions may be very
+    collocation points, or for unusually shaped regions, may be very
     inaccurate. Error computations for the ellipse can be found in the
-    documentation for ``analytic_boundary()`` and ``analytic_interior()``.
+    documentation for :meth:`analytic_boundary` and :meth:`analytic_interior`.
 
-    [BSV] provides an overview of the Riemann map and discusses the research
+    [BSV]_ provides an overview of the Riemann map and discusses the research
     that lead to the creation of this module.
 
     INPUT:
@@ -120,8 +120,8 @@ cdef class Riemann_Map:
     circumstances:
 
     - ``ncorners`` -- integer (default: ``4``), if mapping a figure with
-      (equally t-spaced) corners--corners that make a significant change in
-      the direction of the boundary, better results may be sometimes obtained by
+      (equally t-spaced) corners -- corners that make a significant change in
+      the direction of the boundary -- better results may be sometimes obtained by
       accurately giving this parameter. Used to add the proper constant to
       the theta correspondence function.
 
@@ -145,13 +145,14 @@ cdef class Riemann_Map:
         sage: hf(t) = 0.5*e^(-I*t)
         sage: hfprime(t) = 0.5*-I*e^(-I*t)
         sage: m = Riemann_Map([f, hf], [fprime, hfprime], 0.5 + 0.5*I)
+        sage: m.plot_colored() + m.plot_spiderweb()  # long time
 
     A square::
 
-        sage: ps = polygon_spline([(-1, -1), (1, -1), (1, 1), (-1, 1)])  # long time
-        sage: f = lambda t: ps.value(real(t))  # long time
-        sage: fprime = lambda t: ps.derivative(real(t))  # long time
-        sage: m = Riemann_Map([f], [fprime], 0.25, ncorners=4)  # long time
+        sage: ps = polygon_spline([(-1, -1), (1, -1), (1, 1), (-1, 1)])
+        sage: f = lambda t: ps.value(real(t))
+        sage: fprime = lambda t: ps.derivative(real(t))
+        sage: m = Riemann_Map([f], [fprime], 0.25, ncorners=4)
         sage: m.plot_colored() + m.plot_spiderweb()  # long time
 
     Compute rough error for this map::
@@ -174,6 +175,7 @@ cdef class Riemann_Map:
     .. [BSV] M. Bolt, S. Snoeyink, E. Van Andel. "Visual representation of
       the Riemann map and Ahlfors map via the Kerzman-Stein equation".
       Involve 3-4 (2010), 405-420.
+
     """
     cdef int N, B, ncorners
     cdef f
@@ -189,7 +191,7 @@ cdef class Riemann_Map:
         opp=False, exterior = False):
 
         """
-        Initializes the ``Riemann_Map`` class. See the class ``Riemann_Map``
+        Initializes the ``Riemann_Map`` class. See the class :class:`Riemann_Map`
         for full documentation on the input of this initialization method.
 
         TESTS::
@@ -266,7 +268,7 @@ cdef class Riemann_Map:
 
     def _repr_(self):
         """
-        Return a string representation of this ``Riemann_Map`` object.
+        Return a string representation of this :class:`Riemann_Map` object.
 
         TESTS::
 
@@ -275,7 +277,7 @@ cdef class Riemann_Map:
             sage: isinstance(Riemann_Map([f], [fprime], 0, N = 10)._repr_(), str)  # long time
             True
         """
-        return "A Riemann or Alfohrs mapping of a figure to the unit circle."
+        return "A Riemann or Ahlfors mapping of a figure to the unit circle."
 
     cdef _generate_theta_array(self):
         """
@@ -317,7 +319,7 @@ cdef class Riemann_Map:
         for i in xrange(NB):
             K[i, i] = 1
         # Nystrom Method for solving 2nd kind integrals
-        phi = np.linalg.solve(K, g) / NB * TWOPI  # Nystrom Method for solving 2nd kind integrals
+        phi = np.linalg.solve(K, g) / NB * TWOPI
         # the all-important Szego kernel
         szego = np.array(phi.flatten() / np.sqrt(dp), dtype=COMPLEX)
         self.szego = szego.reshape([B, N])
@@ -370,8 +372,8 @@ cdef class Riemann_Map:
         The following inputs must all be passed in as named parameters:
 
         - ``boundary`` -- integer (default: ``-1``) if < 0,
-          ``get_theta_points()`` will return the points for all boundaries.
-          If >= 0, ``get_theta_points()`` will return only the points for
+          :meth:`get_theta_points` will return the points for all boundaries.
+          If >= 0, :meth:`get_theta_points` will return only the points for
           the boundary specified.
 
         - ``absolute_value`` -- boolean (default: ``False``) if ``True``, will
@@ -498,7 +500,7 @@ cdef class Riemann_Map:
 
     cdef _generate_interior_mapper(self):
         """
-        Generates the data necessary to use the ``riemann_map`` function.
+        Generates the data necessary to use the :meth:`riemann_map` function.
         As much setup as possible is done here to minimize the computation
         that must be done in ``riemann_map``.
 
@@ -506,7 +508,7 @@ cdef class Riemann_Map:
 
             sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
             sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
-            sage: m = Riemann_Map([f], [fprime], 0, N = 10)
+            sage: m = Riemann_Map([f], [fprime], 0, N = 10) # indirect doctest
         """
         cdef int N = self.N
         cdef double complex coeff = 3*I / (8*N)
@@ -556,7 +558,7 @@ cdef class Riemann_Map:
         the point on the unit disk that ``pt`` maps to. Note that this
         method only works for interior points; accuracy breaks down very close
         to the boundary. To get boundary corrospondance, use
-        ``get_theta_points()``.
+        :meth:`get_theta_points`.
 
         INPUT:
 
@@ -577,9 +579,9 @@ cdef class Riemann_Map:
             sage: m = Riemann_Map([f], [fprime], 0)
             sage: m.riemann_map(0.25 + sqrt(-0.5))
             (0.137514...+0.876696...j)
+            sage: I = CDF.gen()
             sage: m.riemann_map(1.3*I)
             (-1.56...e-05+0.989694...j)
-            sage: I = CDF.gen()
             sage: m.riemann_map(0.4)
             (0.73324...+3.2...e-06j)
             sage: import numpy as np
@@ -603,15 +605,15 @@ cdef class Riemann_Map:
     cdef _generate_inverse_mapper(self):
         """
         Generates the data necessary to use the
-        ``inverse_riemann_map()`` function. As much setup as possible is
+        :meth:`inverse_riemann_map` function. As much setup as possible is
         done here to minimize the computation that must be done in
-        ``inverse_riemann_map()``.
+        ``inverse_riemann_map``.
 
         TESTS::
 
             sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
             sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
-            sage: m = Riemann_Map([f], [fprime], 0, N = 10)
+            sage: m = Riemann_Map([f], [fprime], 0, N = 10) # indirect doctest
         """
         cdef int N = self.N
         cdef int B = self.B
@@ -749,7 +751,7 @@ cdef class Riemann_Map:
 
         INPUT:
 
-        - ``plot_range`` -- a tuple of the form [xmin, xmax, ymin, ymax].
+        - ``plot_range`` -- a tuple of the form ``[xmin, xmax, ymin, ymax]``.
           If the value is ``[]``, the default plotting window of the map will
           be used.
 
@@ -758,8 +760,8 @@ cdef class Riemann_Map:
 
         OUTPUT:
 
-        - a tuple containing [z_values, xmin, xmax, ymin, ymax] where z_values
-          is the evaluation of the map on the specified grid.
+        - a tuple containing ``[z_values, xmin, xmax, ymin, ymax]``
+          where ``z_values`` is the evaluation of the map on the specified grid.
 
         EXAMPLES:
 
@@ -813,7 +815,7 @@ cdef class Riemann_Map:
         """
         Generates a traditional "spiderweb plot" of the Riemann map. Shows
         what concentric circles and radial lines map to. The radial lines
-        may exhibit erratic behavior near the boundary, if this occurs,
+        may exhibit erratic behavior near the boundary; if this occurs,
         decreasing ``linescale`` may mitigate the problem.
 
         Note that this method requires significantly more computation for
@@ -857,6 +859,7 @@ cdef class Riemann_Map:
           The number of points in the y_direction is scaled accordingly.
           Note that very large values can cause this function to run slowly.
           - only for multiply connected domains
+
         EXAMPLES:
 
         General usage::
@@ -998,7 +1001,8 @@ cdef class Riemann_Map:
 
 cdef comp_pt(clist, loop=True):
     """
-    Converts a list of complex numbers xderivs = get_derivatives(z_values, xstep, ystep)[0]to the plottable
+    Utility function to convert the list of complex numbers
+    ``xderivs = get_derivatives(z_values, xstep, ystep)[0]`` to the plottable
     `(x,y)` form. If ``loop=True``, then the first point will be
     added as the last, i.e. to plot a closed circle.
 
@@ -1025,52 +1029,54 @@ cdef comp_pt(clist, loop=True):
         list2[len(clist)] = list2[0]
     return list2
 
-cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2]z_values, FLOAT_T xstep,
+cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,
     FLOAT_T ystep):
     """
-    Computes the r*e^(I*theta) form derivatives from the grid of points. The
+    Computes the r*e^(I*theta) form of derivatives from the grid of points. The
     derivatives are computed using quick-and-dirty taylor expansion and
-    assuming analyticy. As such ``get_derivatives`` is primarily intended
+    assuming analyticity. As such ``get_derivatives`` is primarily intended
     to be used for comparisions in ``plot_spiderweb`` and not for
     applications that require great precision.
 
     INPUT:
+
     - ``z_values`` -- The values for a complex function evaluated on a grid
-      in the complexplane, usually from ``compute_on_grid``.
+      in the complex plane, usually from ``compute_on_grid``.
 
     - ``xstep`` -- float, the spacing of the grid points in the real direction
 
     OUTPUT:
 
-    - A tuple of arrays, [``dr``, ``dtheta``], each array is 2 less in both
+    - A tuple of arrays, [``dr``, ``dtheta``], with each array 2 less in both
       dimensions than ``z_values``
-      ``dr`` - the abs of the derivative of the function in the +r direction
-      ``dtheta`` - the rate of accumulation of angle in the +theta direction
+
+      - ``dr`` - the abs of the derivative of the function in the +r direction
+      - ``dtheta`` - the rate of accumulation of angle in the +theta direction
 
     EXAMPLES:
 
-        Standard usage with compute_on_grid::
+    Standard usage with compute_on_grid::
 
-            sage: from sage.calculus.riemann import get_derivatives
-            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
-            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
-            sage: m = Riemann_Map([f], [fprime], 0)
-            sage: data = m.compute_on_grid([],19)
-            sage: xstep = (data[2]-data[1])/19
-            sage: ystep = (data[4]-data[3])/19
-            sage: dr, dtheta = get_derivatives(data[0],xstep,ystep)
-            sage: dr[8,8]
-            0.241...
-            sage: dtheta[5,5]
-            5.907...
-     """
+        sage: from sage.calculus.riemann import get_derivatives
+        sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+        sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+        sage: m = Riemann_Map([f], [fprime], 0)
+        sage: data = m.compute_on_grid([],19)
+        sage: xstep = (data[2]-data[1])/19
+        sage: ystep = (data[4]-data[3])/19
+        sage: dr, dtheta = get_derivatives(data[0],xstep,ystep)
+        sage: dr[8,8]
+        0.241...
+        sage: dtheta[5,5]
+        5.907...
+    """
     cdef np.ndarray[COMPLEX_T, ndim=2] xderiv
     cdef np.ndarray[FLOAT_T, ndim = 2] dr, dtheta, zabs
     imax = len(z_values)-2
     jmax = len(z_values[0])-2
     #(f(x+delta)-f(x-delta))/2delta
     xderiv = (z_values[1:-1,2:]-z_values[1:-1,:-2])/(2*xstep)
-    #b/c the function is analytic, we know it's abs(derivative) is equal
+    #b/c the function is analytic, we know its abs(derivative) is equal
     #in all directions
     dr = np.abs(xderiv)
     # the abs(derivative) scaled by distance from origin
@@ -1078,14 +1084,14 @@ cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2]z_values, FLOAT_T xstep,
     dtheta = np.divide(dr,zabs)
     return dr, dtheta
 
-cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2]z_values,
+cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2] z_values,
     np.ndarray[FLOAT_T, ndim = 2] dr, np.ndarray[FLOAT_T, ndim = 2] dtheta,
     spokes, circles, rgbcolor, thickness, withcolor):
     """
     Converts a grid of complex numbers into a matrix containing rgb data
     for the Riemann spiderweb plot.
 
-     INPUT:
+    INPUT:
 
     - ``z_values`` -- A grid of complex numbers, as a list of lists.
 
@@ -1109,7 +1115,7 @@ cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2]z_values,
     - ``withcolor`` -- boolean - If ``True`` the spiderweb will be overlaid
       on the basic color plot.
 
-     OUTPUT:
+    OUTPUT:
 
     An `N x M x 3` floating point Numpy array ``X``, where
     ``X[i,j]`` is an (r,g,b) tuple.
@@ -1297,17 +1303,17 @@ cpdef complex_to_rgb(np.ndarray[COMPLEX_T, ndim = 2] z_values):
 
 cpdef analytic_boundary(FLOAT_T t, int n):
     """
-    Provides an exact (for n = infinity) riemann boundary
+    Provides an exact (for n = infinity) Riemann boundary
     correspondence for the ellipse with axes 1 + epsilon and 1 - epsilon. The
     boundary is therefore given by e^(I*t)+epsilon*e^(-I*t). It is primarily
-    useful for testing the accuracy of the numerical Riemann Map.
+    useful for testing the accuracy of the numerical :class:`Riemann_Map`.
 
     INPUT:
 
-    - ``t`` -- The boundary parameter, from 0 to two*pi
+    - ``t`` -- The boundary parameter, from 0 to 2*pi
 
-    - ``n`` -- Integer, The number of terms to include. 10 is fairly accurate,
-        20 is very accurate.
+    - ``n`` -- integer - the number of terms to include.
+      10 is fairly accurate, 20 is very accurate.
 
     OUTPUT:
 
@@ -1316,7 +1322,7 @@ cpdef analytic_boundary(FLOAT_T t, int n):
 
     TESTS:
 
-    Checking the accuracy for different n values::
+    Checking the accuracy of this function for different n values::
 
         sage: from sage.calculus.riemann import analytic_boundary
         sage: t100 = analytic_boundary(pi/2,100)
@@ -1345,7 +1351,7 @@ cpdef analytic_boundary(FLOAT_T t, int n):
 
 cpdef cauchy_kernel(t, args):
     """
-    Intermediate function for the integration in ``analytic_interior``.
+    Intermediate function for the integration in :meth:`~Riemann_Map.analytic_interior`.
 
     INPUT:
 
@@ -1353,24 +1359,22 @@ cpdef cauchy_kernel(t, args):
 
     - ``args`` -- a tuple containing:
 
-        - ``z`` -- Complex, the point to be mapped.
+      - ``z`` -- complex - the point to be mapped.
 
-        - ``n`` -- Integer, The number of terms to include. 10 is fairly
-          accurate, 20 is very accurate.
+      - ``n`` -- integer - the number of terms to include.
+        10 is fairly accurate, 20 is very accurate.
 
-        - ``part`` -- will return the real ('r'), imaginary ('i') or
-          complex ('c') value of the kernel
+      - ``part`` -- will return the real ('r'), imaginary ('i') or
+        complex ('c') value of the kernel
 
     TESTS:
-        Primarily tested implicitly by analytic_interior
 
-        Simple test::
+    This is primarily tested implicitly by :meth:`~Riemann_Map.analytic_interior`.
+    Here is a simple test::
 
         sage: from sage.calculus.riemann import cauchy_kernel
         sage: cauchy_kernel(.5,(.1+.2*I, 10,'c'))
         (-0.584136405997...+0.5948650858950...j)
-
-
     """
     cdef COMPLEX_T result
     cdef COMPLEX_T z = args[0]
@@ -1394,14 +1398,14 @@ cpdef analytic_interior(COMPLEX_T z, int n):
 
     INPUT:
 
-    - ``z`` -- Complex, the point to be mapped.
+    - ``z`` -- complex - the point to be mapped.
 
-    - ``n`` -- Integer, The number of terms to include. 10 is fairly accurate,
-        20 is very accurate.
+    - ``n`` -- integer - the number of terms to include.
+      10 is fairly accurate, 20 is very accurate.
 
     TESTS:
 
-        Testing the accuracy of Riemann_Map::
+    Testing the accuracy of :class:`Riemann_Map`::
 
         sage: from sage.calculus.riemann import analytic_interior
         sage: f(t) = e^(I*t)+.3*e^(-I*t)

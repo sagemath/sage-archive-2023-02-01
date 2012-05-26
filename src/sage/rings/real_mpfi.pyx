@@ -237,7 +237,7 @@ cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate 
 #       Real Field
 #
 #*****************************************************************************
-# The real field is in Pyrex, so mpfi elements will have access to
+# The real field is in Cython, so mpfi elements will have access to
 # their parent via direct C calls, which will be faster.
 
 RealIntervalField_cache = {}
@@ -270,8 +270,8 @@ def RealIntervalField(prec=53, sci_not=False):
         sage: RealIntervalField(200) is RealIntervalField(200)
         True
 
-    See the documentation for :class:`RealIntervalField_class` for many more
-    examples.
+    See the documentation for :class:`~sage.rings.real_mpfi.RealIntervalField_class`
+    for many more examples.
     """
     try:
         return RealIntervalField_cache[prec, sci_not]

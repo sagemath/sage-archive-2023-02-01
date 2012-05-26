@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+python configure.py
+if [ $? -ne 0 ]; then
+   echo "Error configuring sip."
+   exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+   echo "Error making sip."
+   exit 1
+fi
+
+make install
+if [ $? -ne 0 ]; then
+   echo "Error installing sip."
+   exit 1
+fi
+

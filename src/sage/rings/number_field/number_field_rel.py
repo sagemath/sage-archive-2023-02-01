@@ -614,6 +614,18 @@ class NumberField_relative(NumberField_generic):
         Return the maximal order, i.e., the ring of integers of this
         number field.
 
+        INPUT:
+
+        -  ``v`` - (default: None) None, a prime, or a list of
+           primes.
+
+           - if v is None, return the maximal order.
+
+           - if v is a prime, return an order that is p-maximal.
+
+           - if v is a list, return an order that is maximal at each
+             prime in the list v.
+
         EXAMPLES::
 
             sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])

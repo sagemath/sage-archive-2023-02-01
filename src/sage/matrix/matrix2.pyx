@@ -8437,6 +8437,9 @@ cdef class Matrix(matrix1.Matrix):
         compute the result if the characteristic polynomial of the matrix
         splits over the specific base ring.
 
+        Note that the base ring must be a field or a ring with an implemented
+        fraction field.
+
         EXAMPLES::
 
             sage: a = matrix(ZZ,4,[1, 0, 0, 0, 0, 1, 0, 0, 1, \
@@ -8464,7 +8467,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: b.jordan_form()
             Traceback (most recent call last):
             ...
-            RuntimeError: Some eigenvalue does not exist in Integer Ring.
+            RuntimeError: Some eigenvalue does not exist in Rational Field.
             sage: b.jordan_form(RealField(15))
             Traceback (most recent call last):
             ...
@@ -8658,6 +8661,31 @@ cdef class Matrix(matrix1.Matrix):
             True
             sage: T.rank()
             10
+
+        Verify that we smoothly move to QQ from ZZ (:trac:`12693`), i.e.
+        we work in the vector space over the field::
+
+            sage: M = matrix(((2,2,2),(0,0,0),(-2,-2,-2)))
+            sage: J, P = M.jordan_form(transformation=True)
+            sage: J; P
+            [0 1|0]
+            [0 0|0]
+            [---+-]
+            [0 0|0]
+            [ 2  1  0]
+            [ 0  0  1]
+            [-2  0 -1]
+            sage: J - ~P * M * P
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: parent(M)
+            Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+            sage: parent(J) == parent(P) == MatrixSpace(QQ, 3)
+            True
+            sage: M.jordan_form(transformation=True) == (M/1).jordan_form(transformation=True)
+            True
+
         """
         from sage.matrix.constructor import block_diagonal_matrix, jordan_block, diagonal_matrix
         from sage.combinat.partition import Partition
@@ -8681,13 +8709,20 @@ cdef class Matrix(matrix1.Matrix):
 
         if (base_ring is None and not self.base_ring().is_exact()) or \
             (not base_ring is None and not base_ring.is_exact()):
-            raise ValueError, "Jordan normal form not implemented over inexact rings."
+            raise ValueError("Jordan normal form not implemented over inexact rings.")
 
         if base_ring is None:
             A = self
             base_ring = self.base_ring()
-        else:
-            A = self.change_ring(base_ring)
+
+        # make sure we're working with a field..
+        if not base_ring.is_field():
+            try:
+                base_field = base_ring.fraction_field()
+            except (NotImplementedError, AttributeError):
+                raise ValueError("Matrix entries must be from a field, not {0}".
+                                 format(base_ring))
+            A = self.change_ring(base_field)
 
         # Compute the eigenvalues of the matrix, with multiplicities.  Here,
         # ``evals`` is a list of pairs, each first entry a root and each

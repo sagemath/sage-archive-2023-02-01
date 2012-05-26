@@ -78,7 +78,8 @@ from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.geometry.fan_morphism import FanMorphism
 
-from sage.schemes.generic.homset import SchemeHomset_generic
+from sage.schemes.generic.homset import (SchemeHomset_generic,
+                                         SchemeHomset_points)
 
 
 class SchemeHomset_toric_variety(SchemeHomset_generic):
@@ -230,4 +231,30 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
         raise TypeError, "x must be a fan morphism or a list/tuple of polynomials"
 
 
+class SchemeHomset_points_toric_field(SchemeHomset_points):
+    """
+    Set of rational points of a toric variety.
 
+    INPUT:
+
+    - same as for :class:`SchemeHomset_points`.
+
+    OUPUT:
+
+    A scheme morphism of type
+    :class:`SchemeHomset_points_toric_field`.
+
+    EXAMPLES::
+
+        sage: P1xP1 = toric_varieties.P1xP1()
+        sage: P1xP1(QQ)
+        Set of rational points of 2-d CPR-Fano toric variety
+        covered by 4 affine patches
+
+    TESTS::
+
+        sage: import sage.schemes.toric.homset as HOM
+        sage: HOM.SchemeHomset_points_toric_field(Spec(QQ), P1xP1)
+        Set of rational points of 2-d CPR-Fano toric variety covered by 4 affine patches
+    """
+    pass

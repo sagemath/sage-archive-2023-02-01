@@ -318,8 +318,9 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import PolynomialRing, ZZ, QQ, is_Field
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
+from sage.schemes.generic.affine_space import AffineSpace
 from sage.schemes.generic.ambient_space import AmbientSpace
-from sage.schemes.generic.homset import SchemeHomset_points_toric_field
+from sage.schemes.toric.homset import SchemeHomset_points_toric_field
 
 
 
@@ -2604,7 +2605,6 @@ class ToricVariety_field(AmbientSpace):
               1
         """
         R, I, dualcone = self._semigroup_ring(cone, names)
-        from affine_space import AffineSpace
         patch_cover = AffineSpace(R)
         patch = patch_cover.subscheme(I)
         return patch

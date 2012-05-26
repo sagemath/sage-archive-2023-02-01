@@ -49,9 +49,6 @@ from sage.schemes.generic.morphism import (
     SchemeMorphism_point_affine,
     SchemeMorphism_point_projective_ring,
     SchemeMorphism_point_projective_field )
-from sage.schemes.toric.morphism import SchemeMorphism_point_toric_field
-
-
 
 
 def is_SchemeHomset(H):
@@ -897,33 +894,3 @@ register_unpickle_override('sage.schemes.generic.homset',
                            'SchemeHomsetModule_abelian_variety_coordinates_field',
                            SchemeHomset_points_abelian_variety_field)
 
-#*******************************************************************
-# Toric varieties
-#*******************************************************************
-class SchemeHomset_points_toric_field(SchemeHomset_points):
-    """
-    Set of rational points of a toric variety.
-
-    INPUT:
-
-    - same as for :class:`SchemeHomset_points`.
-
-    OUPUT:
-
-    A scheme morphism of type
-    :class:`SchemeHomset_points_toric_field`.
-
-    EXAMPLES::
-
-        sage: P1xP1 = toric_varieties.P1xP1()
-        sage: P1xP1(QQ)
-        Set of rational points of 2-d CPR-Fano toric variety
-        covered by 4 affine patches
-
-    TESTS::
-
-        sage: import sage.schemes.generic.homset as HOM
-        sage: HOM.SchemeHomset_points_toric_field(Spec(QQ), P1xP1)
-        Set of rational points of 2-d CPR-Fano toric variety covered by 4 affine patches
-    """
-    pass

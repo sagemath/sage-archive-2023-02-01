@@ -1092,11 +1092,15 @@ def _plot(funcs, xrange, parametric=False,
 
     TESTS::
 
-    Make sure that we get the right number of legend entries as the number of functions varies
-    (:trac:`10514`):
+    Make sure that we get the right number of legend entries as the number of
+    functions varies (:trac:`10514`):
 
         sage: p1 = plot(1*x, legend_label='1x')
-        sage: p2 = plot(2*x, legend_label='2x')
+        sage: p2 = plot(2*x, legend_label='2x', color='green')
+        sage: p1+p2
+
+    ::
+
         sage: len(p1.matplotlib().axes[0].legend().texts)
         1
         sage: len((p1+p2).matplotlib().axes[0].legend().texts)
@@ -1104,9 +1108,9 @@ def _plot(funcs, xrange, parametric=False,
         sage: q1 = plot([sin(x), tan(x)], legend_label='trig')
         sage: len((q1).matplotlib().axes[0].legend().texts) # used to raise AttributeError
         1
+        sage: q1
 
     """
-
 
     from sage.plot.misc import setup_for_eval_on_grid
     if funcs == []:

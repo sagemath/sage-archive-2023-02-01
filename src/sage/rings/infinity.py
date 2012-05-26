@@ -1193,6 +1193,28 @@ class MinusInfinity(_uniq, AnInfinity, MinusInfinityElement):
         """
         raise SignError, "cannot take square root of negative infinity"
 
+    def _sympy_(self):
+        """
+        Converts -oo to sympy -oo.
+
+        Then you don't have to worry which oo you use, like in these
+        examples:
+
+        EXAMPLE::
+
+            sage: import sympy
+            sage: bool(-oo == -sympy.oo)
+            True
+            sage: bool(SR(-oo) == -sympy.oo)
+            True
+            sage: bool((-oo)._sympy_() == -sympy.oo)
+            True
+
+        """
+        import sympy
+        return -sympy.oo
+
+
 class PlusInfinity(_uniq, AnInfinity, PlusInfinityElement):
 
     _sign = 1

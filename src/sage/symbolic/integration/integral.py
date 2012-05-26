@@ -662,6 +662,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: F(x=1, a=7).numerical_approx() # abs tol 1e-10
         4.32025625668262
 
+    Verify that MinusInfinity works with sympy (:trac:`12345`)::
+
+        sage: integral(1/x^2, x, -infinity, -1, algorithm='sympy')
+        1
+
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

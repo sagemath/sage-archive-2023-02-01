@@ -10347,6 +10347,209 @@ cdef class Matrix(matrix1.Matrix):
         L, d = self._indefinite_factorization(algorithm, check=check)
         return L, vector(L.base_ring(), d)
 
+    def is_positive_definite(self):
+        r"""
+        Determines if a real or symmetric matrix is positive definite.
+
+        A square matrix `A` is postive definite if it is
+        symmetric with real entries or Hermitan with complex entries,
+        and for every non-zero vector `\vec{x}`
+
+        .. math::
+
+            \vec{x}^\ast A\vec{x} > 0
+
+        Here `\vec{x}^\ast` is the conjugate-transpose, which can be
+        simplified to just the transpose in the real case.
+
+        ALGORITHM:
+
+        A matrix is positive definite if and only if the
+        diagonal entries from the indefinite factorization
+        are all positive (see :meth:`indefinite_factorization`).
+        So this algorithm is of order ``n^3/3`` and may be applied
+        to matrices with elements of any ring that has a fraction
+        field contained within the reals or complexes.
+
+        INPUT:
+
+        Any square matrix.
+
+        OUTPUT:
+
+        This routine will return ``True`` if the matrix is square,
+        symmetric or Hermitian, and meets the condition above
+        for the quadratic form.
+
+        The base ring for the elements of the matrix needs to
+        have a fraction field implemented and the computations
+        that result from the indefinite factorization must be
+        convertable to real numbers that are comparable to zero.
+
+        EXAMPLES:
+
+        A real symmetric matrix that is positive definite,
+        as evidenced by the positive entries for the diagonal
+        matrix of the indefinite factorization and the postive
+        determinants of the leading principal submatrices. ::
+
+            sage: A = matrix(QQ, [[ 4, -2,  4,  2],
+            ...                   [-2, 10, -2, -7],
+            ...                   [ 4, -2,  8,  4],
+            ...                   [ 2, -7,  4,  7]])
+            sage: A.is_positive_definite()
+            True
+            sage: _, d = A.indefinite_factorization(algorithm='symmetric')
+            sage: d
+            (4, 9, 4, 1)
+            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
+            [4, 36, 144, 144]
+
+        A real symmetric matrix which is not positive definite, along
+        with a vector that makes the quadratic form negative. ::
+
+            sage: A = matrix(QQ, [[ 3,  -6,   9,   6,  -9],
+            ...                   [-6,  11, -16, -11,  17],
+            ...                   [ 9, -16,  28,  16, -40],
+            ...                   [ 6, -11,  16,   9, -19],
+            ...                   [-9,  17, -40, -19,  68]])
+            sage: A.is_positive_definite()
+            False
+            sage: _, d = A.indefinite_factorization(algorithm='symmetric')
+            sage: d
+            (3, -1, 5, -2, -1)
+            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
+            [3, -3, -15, 30, -30]
+            sage: u = vector(QQ, [2, 2, 0, 1, 0])
+            sage: u.row()*A*u
+            (-3)
+
+        A real symmetric matrix with a singular leading
+        principal submatrix, that is therefore not positive definite.
+        The vector ``u`` makes the quadratic form zero.  ::
+
+            sage: A = matrix(QQ, [[21, 15, 12, -2],
+            ...                   [15, 12,  9,  6],
+            ...                   [12,  9,  7,  3],
+            ...                   [-2,  6,  3,  8]])
+            sage: A.is_positive_definite()
+            False
+            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
+            [21, 27, 0, -75]
+            sage: u = vector(QQ, [1,1,-3,0])
+            sage: u.row()*A*u
+            (0)
+
+        An Hermitian matrix that is positive definite.  ::
+
+            sage: C.<I> = NumberField(x^2 + 1)
+            sage: A = matrix(C, [[        23,  17*I + 3,  24*I + 25,     21*I],
+            ...                  [ -17*I + 3,        38, -69*I + 89, 7*I + 15],
+            ...                  [-24*I + 25, 69*I + 89,        976, 24*I + 6],
+            ...                  [     -21*I, -7*I + 15,  -24*I + 6,       28]])
+            sage: A.is_positive_definite()
+            True
+            sage: _, d = A.indefinite_factorization(algorithm='hermitian')
+            sage: d
+            (23, 576/23, 89885/144, 142130/17977)
+            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
+            [23, 576, 359540, 2842600]
+
+        An Hermitian matrix that is not positive definite.
+        The vector ``u`` makes the quadratic form negative.  ::
+
+            sage: C.<I> = QuadraticField(-1)
+            sage: B = matrix(C, [[      2, 4 - 2*I, 2 + 2*I],
+            ...                  [4 + 2*I,       8,    10*I],
+            ...                  [2 - 2*I,   -10*I,      -3]])
+            sage: B.is_positive_definite()
+            False
+            sage: _, d = B.indefinite_factorization(algorithm='hermitian')
+            sage: d
+            (2, -2, 3)
+            sage: [B[:i,:i].determinant() for i in range(1,B.nrows()+1)]
+            [2, -4, -12]
+            sage: u = vector(C, [-5 + 10*I, 4 - 3*I, 0])
+            sage: u.row().conjugate()*B*u
+            (-50)
+
+        A positive definite matrix over an algebraically closed field.  ::
+
+            sage: A = matrix(QQbar, [[        2,   4 + 2*I,   6 - 4*I],
+            ...                      [ -2*I + 4,        11, 10 - 12*I],
+            ...                      [  4*I + 6, 10 + 12*I,        37]])
+            sage: A.is_positive_definite()
+            True
+            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
+            [2, 2, 6]
+
+        TESTS:
+
+        If the base ring lacks a ``conjugate`` method, it
+        will be assumed to not be Hermitian and thus symmetric.
+        If the base ring does not make sense as a subfield of
+        the reals, then this routine will fail since comparison
+        to zero is meaningless.  ::
+
+            sage: F.<a> = FiniteField(5^3)
+            sage: a.conjugate()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'
+            object has no attribute 'conjugate'
+            sage: A = matrix(F,
+            ...       [[      a^2 + 2*a, 4*a^2 + 3*a + 4,       3*a^2 + a, 2*a^2 + 2*a + 1],
+            ...        [4*a^2 + 3*a + 4,       4*a^2 + 2,             3*a, 2*a^2 + 4*a + 2],
+            ...        [      3*a^2 + a,             3*a,       3*a^2 + 2, 3*a^2 + 2*a + 3],
+            ...        [2*a^2 + 2*a + 1, 2*a^2 + 4*a + 2, 3*a^2 + 2*a + 3, 3*a^2 + 2*a + 4]])
+            sage: A.is_positive_definite()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot convert computations from
+            Finite Field in a of size 5^3 into real numbers
+
+        AUTHOR:
+
+        - Rob Beezer (2012-05-24)
+        """
+        from sage.rings.all import RR
+        # check to see if the Hermitian routine is usable
+        # otherwise we will assume the symmetric case
+        imaginary = True
+        a = self.base_ring().an_element()
+        try:
+            a.conjugate()
+        except AttributeError:
+            imaginary = False
+        if imaginary:
+            if not self.is_hermitian():
+                return False
+        else:
+            if not self.is_symmetric():
+                return False
+        try:
+            if imaginary:
+                _, d = self._indefinite_factorization('hermitian', check=False)
+            else:
+                _, d = self._indefinite_factorization('symmetric', check=False)
+        except ValueError as e:
+            # a zero singular leading principal submatrix is one
+            # indicator that the matrix is not positive definite
+            if e.message.find('leading principal submatrix is singular') != -1:
+                return False
+            else:
+                raise ValueError(e)
+        # Now have diagonal entries (hopefully real) and so can
+        # test with a generator (which will short-circuit)
+        # positive definite iff all entries of d are positive
+        try:
+            posdef = all( RR(x) > 0 for x in d )
+        except TypeError:
+            universe = Sequence(d).universe()
+            msg = "cannot convert computations from {0} into real numbers"
+            raise TypeError(msg.format(universe))
+        return posdef
+
     def hadamard_bound(self):
         r"""
         Return an int n such that the absolute value of the determinant of

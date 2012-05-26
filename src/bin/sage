@@ -958,30 +958,6 @@ if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
    exit $?
 fi
 
-if [ "$1" = '-ldist' -o "$1" = "--ldist" ]; then
-   echo "sage -ldist currently disabled"
-   echo "To work on it, remove the exit after this message in"
-   echo "$SAGE_ROOT/spkg/bin/sage"
-   exit 1
-
-   if [ $# -ne 2 ]; then
-       echo >&2 "** MISSING VERSION NUMBER! **"
-       exit 1
-   fi
-   sage-sdist $2 "$SAGE_ROOT"
-   if [ $? -ne 0 ]; then
-       echo >&2 "Error building source distribution"
-       exit 1
-   fi
-   cd "$SAGE_ROOT"/dist/
-   if [ $? -ne 0 ]; then
-       echo >&2 "Error changing to source distribution directory"
-       exit 1
-   fi
-   "$SAGE_ROOT"/local/bin/sage-libdist sage-$2.tar
-   exit $?
-fi
-
 if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
    if [ $# -ne 2 ]; then
        echo >&2 "** MISSING VERSION NUMBER! **"

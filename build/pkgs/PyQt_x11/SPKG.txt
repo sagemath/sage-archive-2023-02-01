@@ -1,0 +1,35 @@
+= PyQt4 =
+
+== Description ==
+
+PyQt is a set of Python bindings for Nokia's Qt application framework and runs on all platforms supported by Qt including Windows, MacOS/X and Linux. This package provides the X11 bindings.
+
+== License ==
+
+This version of PyQt4 is released under a GPL v2/v3 license.
+
+== SPKG Maintainers ==
+
+ * Alejandro Serrano
+
+== Upstream Contact ==
+
+ * Author: Riverbank
+ * Website: http://www.riverbankcomputing.co.uk/software/pyqt
+
+== Dependencies ==
+
+sip.
+
+== Changelog ==
+
+== Changelog ==
+
+=== PyQt-x11-4.9.1.p0 (Volker Braun, 26 May 2012) ===
+ * Update to latest upstream
+
+=== PyQt4-4.6.2 (Alejandro Serrano, 9 Jan 2010) ===
+ * First attempt.
+
+
+

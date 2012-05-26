@@ -476,7 +476,7 @@ cdef class CPLEXBackend(GenericBackend):
             ([], [])
             sage: p.row_bounds(4)                        # optional - CPLEX
             (None, 2.0)
-            sage: p.add_linear_constraints(2, None, 2, names=['foo','bar']) # optional - Coin
+            sage: p.add_linear_constraints(2, None, 2, names=['foo','bar']) # optional - CPLEX
         """
         if lower_bound is None and upper_bound is None:
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")

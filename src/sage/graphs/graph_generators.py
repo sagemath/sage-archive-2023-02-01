@@ -100,8 +100,10 @@ Named Graphs
 - :meth:`BidiakisCube <GraphGenerators.BidiakisCube>`
 - :meth:`BiggsSmithGraph <GraphGenerators.BiggsSmithGraph>`
 - :meth:`BrinkmannGraph <GraphGenerators.BrinkmannGraph>`
-- :meth:`DoubleStarSnark <GraphGenerators.DoubleStarSnark>`
 - :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
+- :meth:`ClebschGraph <GraphGenerators.ClebschGraph>`
+- :meth:`CoxeterGraph <GraphGenerators.CoxeterGraph>`
+- :meth:`DoubleStarSnark <GraphGenerators.DoubleStarSnark>`
 - :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
 - :meth:`DurerGraph <GraphGenerators.DurerGraph>`
 - :meth:`DyckGraph <GraphGenerators.DyckGraph>`
@@ -122,6 +124,7 @@ Named Graphs
 - :meth:`HerschelGraph <GraphGenerators.HerschelGraph>`
 - :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
 - :meth:`HoffmanSingletonGraph <GraphGenerators.HoffmanSingletonGraph>`
+- :meth:`HoffmanGraph <GraphGenerators.HoffmanGraph>`
 - :meth:`LjubljanaGraph <GraphGenerators.LjubljanaGraph>`
 - :meth:`McGeeGraph <GraphGenerators.McGeeGraph>`
 - :meth:`MoebiusKantorGraph <GraphGenerators.MoebiusKantorGraph>`
@@ -3212,6 +3215,79 @@ class GraphGenerators():
 
         return graph.Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
 
+    def ClebschGraph(self):
+        r"""
+        Return the Clebsch graph.
+
+        EXAMPLES::
+
+            sage: g = graphs.ClebschGraph()
+            sage: g.automorphism_group().cardinality()
+            1920
+            sage: g.girth()
+            4
+            sage: g.chromatic_number()
+            4
+            sage: g.diameter()
+            2
+            sage: g.show(figsize = [10,10]) # long time
+        """
+        g = graph.Graph(pos={})
+        n = 16
+        x = 0
+        for i in range(8):
+            g.add_edge(x%n,(x+1)%n)
+            g.add_edge(x%n,(x+6)%n)
+            g.add_edge(x%n,(x+8)%n)
+            x += 1
+            g.add_edge(x%n,(x+3)%n)
+            g.add_edge(x%n,(x+2)%n)
+            g.add_edge(x%n,(x+8)%n)
+            x += 1
+
+        _circle_embedding(g, range(16), shift = .5)
+        g.name("Clebsch graph")
+
+        return g
+
+    def CoxeterGraph(self):
+        r"""
+        Return the Coxeter graph.
+
+        See the :wikipedia:`Wikipedia page on the Coxeter graph
+        <Coxeter_graph>`.
+
+        EXAMPLES::
+
+            sage: g = graphs.CoxeterGraph()
+            sage: g.automorphism_group().cardinality()
+            336
+            sage: g.girth()
+            7
+            sage: g.chromatic_number()
+            3
+            sage: g.diameter()
+            4
+            sage: g.show(figsize = [10,10]) # long time
+        """
+        g = graph.Graph({
+                27: [6, 22, 14],
+                24: [0, 7, 18],
+                25: [8, 15, 2],
+                26: [10, 16, 23],
+                },pos={})
+
+        g.add_cycle(range(24))
+        g.add_edges([(5,11),(9,20),(12,1),(13,19),(17,4),(3,21)])
+
+        _circle_embedding(g, range(24))
+        _circle_embedding(g, [24,25,26], radius = .5)
+        g.get_pos()[27] = (0,0)
+
+        g.name("Coxeter Graph")
+
+        return g
+
     def DesarguesGraph(self):
         """
         Returns the Desargues graph.
@@ -4377,6 +4453,98 @@ class GraphGenerators():
             pos_dict[map[D[i]]] = (x,y)
         H.set_pos(pos_dict)
         return H
+
+    def HoffmanGraph(self):
+        r"""
+        Returns the Hoffman Graph.
+
+        See the :wikipedia:`Wikipedia page on the Hoffman graph
+        <Hoffman_graph>`.
+
+        EXAMPLES::
+
+            sage: g = graphs.HoffmanGraph()
+            sage: g.is_bipartite()
+            True
+            sage: g.is_hamiltonian() # long time
+            True
+            sage: g.radius()
+            3
+            sage: g.diameter()
+            4
+            sage: g.automorphism_group().cardinality()
+            48
+        """
+        g = graph.Graph({
+                0: [1, 7, 8, 13],
+                1: [2, 9, 14],
+                2: [3, 8, 10],
+                3: [4, 9, 15],
+                4: [5, 10, 11],
+                5: [6, 12, 14],
+                6: [7, 11, 13],
+                7: [12, 15],
+                8: [12, 14],
+                9: [11, 13],
+                10: [12, 15],
+                11: [14],
+                13: [15]})
+        g.set_pos({})
+        _circle_embedding(g, range(8))
+        _circle_embedding(g, range(8, 14), radius = .7, shift = .5)
+        _circle_embedding(g, [14,15], radius = .1)
+
+        g.name("Hoffman Graph")
+
+        return g
+
+    def HoltGraph(self):
+        r"""
+        Returns the Holt Graph.
+
+        See the :wikipedia:`Wikipedia page on the Holt graph
+        <Holt_graph>`.
+
+        EXAMPLES::
+
+            sage: g = graphs.HoltGraph()
+            sage: g.chromatic_number()
+            3
+            sage: g.is_hamiltonian() # long time
+            True
+            sage: g.radius()
+            3
+            sage: g.diameter()
+            4
+            sage: g.girth()
+            5
+            sage: g.automorphism_group().cardinality()
+            18
+        """
+        g = graph.Graph({
+                0: [9, 12],
+                1: [11, 14],
+                2: [13, 16],
+                3: [15, 18],
+                4: [17, 20],
+                5: [19, 22],
+                6: [21, 24],
+                7: [23, 26],
+                8: [10, 25]
+                },pos={})
+
+        g.add_vertices(range(27))
+        g.add_cycle(range(9))
+
+        g.add_cycle([13,21,11,19,9,17,25,15,23])
+        g.add_cycle([12,16,20, 24, 10, 14, 18, 22, 26])
+
+        _circle_embedding(g, range(9), shift = .75)
+        _circle_embedding(g, range(9, 27), radius = .7, shift = 0)
+
+        g.name("Holt graph")
+
+        return g
 
     def LjubljanaGraph(self, embedding=1):
         r"""

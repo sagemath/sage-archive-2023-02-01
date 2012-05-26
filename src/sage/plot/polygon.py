@@ -253,8 +253,10 @@ def polygon(points, **options):
     Returns either a 2-dimensional or 3-dimensional polygon depending
     on value of points.
 
-    For information regarding additional arguments, see either :func:`polygon2d`
-    or :func:`~sage.plot.plot3d.shapes2.polygon3d`.
+    For information regarding additional arguments, see either
+    :func:`polygon2d` or :func:`~sage.plot.plot3d.shapes2.polygon3d`.
+    Options may be found and set using the dictionaries ``polygon2d.options``
+    and ``polygon3d.options``.
 
     EXAMPLES::
 
@@ -278,9 +280,9 @@ def polygon2d(points, **options):
     r"""
     Returns a 2-dimensional polygon defined by ``points``.
 
-    Type ``polygon.options`` for a dictionary of the default
-    options for polygons.  You can change this to change
-    the defaults for all future polygons.  Use ``polygon.reset()``
+    Type ``polygon2d.options`` for a dictionary of the default
+    options for polygons.  You can change this to change the
+    defaults for all future polygons.  Use ``polygon2d.reset()``
     to reset to the default options.
 
     EXAMPLES:

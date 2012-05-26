@@ -1,0 +1,23 @@
+diff -ru src/src/kernel/zpz/givtablelimits.h b/src/kernel/zpz/givtablelimits.h
+--- src/src/kernel/zpz/givtablelimits.h	2008-07-10 19:45:18.000000000 +0200
++++ b/src/kernel/zpz/givtablelimits.h	2012-05-26 00:29:24.383373188 +0200
+@@ -36,6 +36,10 @@
+ #include "givaro/givprimes16.h"
+ 
+ #include <math.h>
++/* SAGE: This declaration should be in <math.h>, but it is missing
++ * in Cygwin. */
++extern double logb(double);
++
+ #include <stddef.h>
+ 
+   // ---------------------------------------------  class 
+@@ -71,7 +75,7 @@
+         tmp *= double(P-1);
+         tmp *= double(e);
+         tmp *= double(nm);
+-        size_t k = ilogb(tmp);
++        size_t k = size_t(logb(tmp));
+         return ( (53/(2*e-1))>k ? ++k : 0);        
+     }
+         

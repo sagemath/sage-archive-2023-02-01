@@ -23,8 +23,8 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 
 == Dependencies ==
 
+ * GNU patch
  * GMP/MPIR
- * (GNU) patch
 
 == SPKG Maintainers ==
 
@@ -33,11 +33,7 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 
 == Special Update/Build Instructions ==
 
- * Make sure the patches are still needed and do apply, especially
-   for the prepatched files that are copied over.  (I.e., make sure these
-   are still current, made from current upstream files.)
-
- * Perhaps apply *all* patches with `patch` and remove the prepatched files.
+ * Make sure the patches are still needed and do apply.
 
  * Make sure newer upstream sources conform to C++11, e.g. build with
    GCC 4.7.x, *without* `-fpermissive`.  Note that some of the Sage library's
@@ -50,8 +46,19 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
  * Doesn't seem that `make check` actually *runs* any tests, it just builds
    a lot.  Perhaps we'd have to extend `spkg-check` regarding that.
 
-
 == Changelog ==
+
+=== givaro-3.2.13.p0 (Jeroen Demeyer, 25 May 2012) ===
+ * #12761: Restore upstream sources to vanilla 3.2.13 (the previous
+   src/ directory was some never-released CVS version between
+   givaro-3.2.13.rc1 and givaro-3.2.13, but bootstrapped with a
+   different automake).
+ * Remove gmp++.h.patch which is upstreamed (the old diff was wrong).
+ * Use `patch` to apply all patches.
+ * Fix patch for givtablelimits.h such that it can be applied on all
+   systems, not only Cygwin.
+ * Merged all GCC-4.7.0 patches into one: cplusplus_scoping.patch
+ * Don't touch .pyx files, instead fix module_list.py (also on #12761).
 
 === givaro-3.2.13.rc1.p4 (Leif Leonhardy, March 27th 2012) ===
  * #12761: Fix headers not conforming to C++11 to make Sage (especially the

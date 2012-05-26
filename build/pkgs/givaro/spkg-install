@@ -35,27 +35,11 @@ export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
 
 cd src/
 
-##################################################
-# Apply patches (or copy over prepatched files): #
-##################################################
+#################
+# Apply patches #
+#################
 
-echo "Copying updated gmp++ headers..."
-cp ../patches/{gmp++.h,gmp++_int.inl} src/kernel/gmp++/
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error copying updated gmp++ headers."
-    exit 1
-fi
-
-if [[ "$UNAME" = CYGWIN ]]; then
-    echo "Patching givtablelimits.h for Cygwin (because of missing logb())..."
-    cp ../patches/givtablelimits.h src/kernel/zpz/givtablelimits.h
-    if [[ $? -ne 0 ]]; then
-        echo >&2 "Error copying patched header file for Cygwin."
-        exit 1
-    fi
-fi
-
-echo "Applying further patches (if any)..."
+echo "Applying patches..."
 for patch in ../patches/*.patch; do
     patch -p1 <"$patch"
     if [[ $? -ne 0 ]]; then
@@ -89,23 +73,3 @@ if [[ $? -ne 0 ]]; then
     echo >&2 "Error installing Givaro."
     exit 1
 fi
-
-############################################################
-# Make sure dependent extension modules later get rebuilt: #
-############################################################
-
-echo "Touching Python extension modules linked against Givaro..."
-for pyx in rings/finite_field_givaro.pyx \
-           libs/linbox/linbox.pyx \
-           libs/singular/singular.pyx \
-           matrix/matrix_mpolynomial_dense.pyx \
-           rings/polynomial/multi_polynomial_libsingular.pyx \
-           rings/polynomial/multi_polynomial_ideal_libsingular.pyx ;
-do
-    f="$SAGE_ROOT/devel/sage/sage/$pyx"
-    if [[ -f "$f" ]]; then
-        echo "  $f"
-        touch "$f"
-    fi
-done
-

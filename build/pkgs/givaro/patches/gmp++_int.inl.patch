@@ -1,5 +1,6 @@
---- gmp++_int.inl.orig	2010-04-30 09:48:10.000000000 +0200
-+++ gmp++_int.inl	2010-04-30 09:47:37.000000000 +0200
+diff -ru src/src/kernel/gmp++/gmp++_int.inl b/src/kernel/gmp++/gmp++_int.inl
+--- src/src/kernel/gmp++/gmp++_int.inl	2007-01-11 19:42:51.000000000 +0100
++++ b/src/kernel/gmp++/gmp++_int.inl	2012-05-26 00:35:46.343372071 +0200
 @@ -314,8 +314,8 @@
  
  #ifdef __GMP_PLUSPLUS__

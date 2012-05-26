@@ -136,8 +136,8 @@ from sage.structure.factory import UniqueFactory
 from sage.rings.all import ZZ, QQ, Infinity
 
 from sage.geometry.cone import is_Cone
-from sage.schemes.generic.toric_variety import is_ToricVariety
-from sage.schemes.generic.toric_divisor import is_ToricDivisor
+from sage.schemes.toric.variety import is_ToricVariety
+from sage.schemes.toric.divisor import is_ToricDivisor
 
 
 
@@ -185,7 +185,7 @@ class ChowCycle(FGP_Element):
 
             sage: P2 = toric_varieties.P2()
             sage: A = P2.Chow_group()
-            sage: from sage.schemes.generic.toric_chow_group import ChowCycle
+            sage: from sage.schemes.toric.chow_group import ChowCycle
             sage: ChowCycle(A, (0,1,2,3,11,12,13), check=False)
             ( 36 | 6 | 0 )
         """
@@ -362,10 +362,10 @@ class ChowCycle(FGP_Element):
         INPUT:
 
         - ``divisor`` -- a :class:`ToricDivisor
-          <sage.schemes.generic.toric_divisor.ToricDivisor_generic>`
+          <sage.schemes.toric.divisor.ToricDivisor_generic>`
           that can be moved away from the Chow cycle. For example, any
           Cartier divisor. See also :meth:`ToricDivisor.move_away_from
-          <sage.schemes.generic.toric_divisor.ToricDivisor_generic.move_away_from>`.
+          <sage.schemes.toric.divisor.ToricDivisor_generic.move_away_from>`.
 
         OUTPUT:
 
@@ -460,7 +460,7 @@ class ChowCycle(FGP_Element):
         `d`-dimensional cone spanned by `d` rays. Take the product of
         the corresponding `d` homogeneous coordinates. This monomial
         represents a cohomology classes of the toric variety `X`, see
-        :meth:`~sage.schemes.generic.toric_variety.ToricVariety_field.cohomology_ring`.
+        :meth:`~sage.schemes.toric.variety.ToricVariety_field.cohomology_ring`.
         Its cohomological degree is `2d`, which is the same degree as
         the Poincare-dual of the (real) `\dim(X)-2d`-dimensional torus
         orbit associated to the simplicial cone. By linearity, we can
@@ -477,13 +477,13 @@ class ChowCycle(FGP_Element):
         group can differ. But they are still isomorphic as rings over
         the rationals. Moreover, the normalization of integration
         (:meth:`volume_class
-        <sage.schemes.generic.toric_variety.ToricVariety_field.volume_class>`)
+        <sage.schemes.toric.variety.ToricVariety_field.volume_class>`)
         and :meth:`count_points` are chosen to agree.
 
         OUTPUT:
 
         The
-        :class:`~sage.schemes.generic.toric_variety.CohomologyClass`
+        :class:`~sage.schemes.toric.variety.CohomologyClass`
         which is associated to the Chow cycle.
 
         If the toric variety is not simplicial, that is, has worse
@@ -559,7 +559,7 @@ class ChowGroupFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: from sage.schemes.generic.toric_chow_group import *
+            sage: from sage.schemes.toric.chow_group import *
             sage: P2 = toric_varieties.P2()
             sage: ChowGroup(P2, ZZ, check=True) == ChowGroup(P2, ZZ, check=False)   # indirect doctest
             True
@@ -589,7 +589,7 @@ class ChowGroupFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: from sage.schemes.generic.toric_chow_group import *
+            sage: from sage.schemes.toric.chow_group import *
             sage: P2 = toric_varieties.P2()
             sage: ChowGroup(P2)    # indirect doctest
             Chow group of 2-d CPR-Fano toric variety covered by 3 affine patches
@@ -610,7 +610,7 @@ class ChowGroup_class(FGP_Module_class):
     EXAMPLES::
 
         sage: P2=toric_varieties.P2()
-        sage: from sage.schemes.generic.toric_chow_group import ChowGroup_class
+        sage: from sage.schemes.toric.chow_group import ChowGroup_class
         sage: A = ChowGroup_class(P2,ZZ,True);  A
         Chow group of 2-d CPR-Fano toric variety covered by 3 affine patches
         sage: A.an_element()
@@ -623,7 +623,7 @@ class ChowGroup_class(FGP_Module_class):
         r"""
         EXAMPLES::
 
-            sage: from sage.schemes.generic.toric_chow_group import *
+            sage: from sage.schemes.toric.chow_group import *
             sage: P2=toric_varieties.P2()
             sage: A = ChowGroup_class(P2,ZZ,True); A
             Chow group of 2-d CPR-Fano toric variety covered by 3 affine patches
@@ -680,7 +680,7 @@ class ChowGroup_class(FGP_Module_class):
         OUTPUT:
 
         A :class:`ToricVariety
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`.
+        <sage.schemes.toric.variety.ToricVariety_field>`.
 
         EXAMPLES::
 
@@ -759,7 +759,7 @@ class ChowGroup_class(FGP_Module_class):
             sage: points = lambda k: matrix([[1,1,1],[1,-1,1],[-1,1,1]]).solve_left(points_mod(k)).rows()
             sage: cones = [[0,1,2,3],[4,5,6,7],[0,1,7,6],[4,5,3,2],[0,2,5,7],[4,6,1,3]]
             sage: X_Delta = lambda k: ToricVariety( Fan(cones=cones, rays=points(k)) )
-            sage: from sage.schemes.generic.toric_chow_group import ChowGroup
+            sage: from sage.schemes.toric.chow_group import ChowGroup
             sage: A = ChowGroup( X_Delta(2) )
             sage: rel = A._rational_equivalence_relations(A.cover()).basis()
             sage: matrix(rel).submatrix(col=0, ncols=1).elementary_divisors()
@@ -813,7 +813,7 @@ class ChowGroup_class(FGP_Module_class):
         EXAMPLES::
 
             sage: P2=toric_varieties.P2()
-            sage: from sage.schemes.generic.toric_chow_group import ChowGroup
+            sage: from sage.schemes.toric.chow_group import ChowGroup
             sage: ChowGroup(P2,ZZ)._repr_()
             'Chow group of 2-d CPR-Fano toric variety covered by 3 affine patches'
             sage: ChowGroup(P2,QQ)._repr_()
@@ -1104,7 +1104,7 @@ class ChowGroup_degree_class(SageObject):
     WARNING ..
 
         Use
-        :meth:`~sage.schemes.generic.toric_chow_group.ChowGroup_class.degree`
+        :meth:`~sage.schemes.toric.chow_group.ChowGroup_class.degree`
         to construct :class:`ChowGroup_degree_class` instances.
 
     EXAMPLES::
@@ -1118,7 +1118,7 @@ class ChowGroup_degree_class(SageObject):
         sage: A.degree(2)
         Z
         sage: type(_)
-        <class 'sage.schemes.generic.toric_chow_group.ChowGroup_degree_class'>
+        <class 'sage.schemes.toric.chow_group.ChowGroup_degree_class'>
     """
 
     def __init__(self, A, d):
@@ -1135,7 +1135,7 @@ class ChowGroup_degree_class(SageObject):
 
             sage: P2 = toric_varieties.P2()
             sage: A = P2.Chow_group()
-            sage: from sage.schemes.generic.toric_chow_group import ChowGroup_degree_class
+            sage: from sage.schemes.toric.chow_group import ChowGroup_degree_class
             sage: A2 = ChowGroup_degree_class(A,2)
             sage: A2
             Z
@@ -1294,7 +1294,7 @@ def is_ChowGroup(x):
 
         sage: P2=toric_varieties.P2()
         sage: A = P2.Chow_group()
-        sage: from sage.schemes.generic.toric_chow_group import is_ChowGroup
+        sage: from sage.schemes.toric.chow_group import is_ChowGroup
         sage: is_ChowGroup(A)
         True
         sage: is_ChowGroup('Victoria')
@@ -1320,7 +1320,7 @@ def is_ChowCycle(x):
 
         sage: P2=toric_varieties.P2()
         sage: A = P2.Chow_group()
-        sage: from sage.schemes.generic.toric_chow_group import *
+        sage: from sage.schemes.toric.chow_group import *
         sage: is_ChowCycle(A)
         False
         sage: is_ChowCycle(A.an_element())

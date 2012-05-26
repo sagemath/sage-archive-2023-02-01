@@ -57,7 +57,7 @@ ambient toric varieties::
     Defining s, t, x, y
     sage: S = P1xP1.subscheme([s*x-t*y])
     sage: type(S.Hom(S))
-    <class 'sage.schemes.generic.toric_homset.SchemeHomset_toric_variety_with_category'>
+    <class 'sage.schemes.toric.homset.SchemeHomset_toric_variety_with_category'>
 """
 
 
@@ -94,7 +94,7 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
           From: 2-d CPR-Fano toric variety covered by 4 affine patches
           To:   1-d CPR-Fano toric variety covered by 2 affine patches
         sage: type(hom_set)
-        <class 'sage.schemes.generic.toric_homset.SchemeHomset_toric_variety_with_category'>
+        <class 'sage.schemes.toric.homset.SchemeHomset_toric_variety_with_category'>
 
         sage: hom_set(matrix([[1],[0]]))
         Scheme morphism:
@@ -210,7 +210,7 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
               Defn: Defined on coordinates by sending [t : x0 : x1 : x2] to
                     [x0 : x1 : x2]
         """
-        from sage.schemes.generic.toric_morphism import SchemeMorphism_polynomial_toric_variety
+        from sage.schemes.toric.morphism import SchemeMorphism_polynomial_toric_variety
         if isinstance(x, (list, tuple)):
             return SchemeMorphism_polynomial_toric_variety(self, x, check=check)
 
@@ -219,7 +219,7 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
             assert x.codomain() is self.domain().coordinate_ring()
             return SchemeMorphism_polynomial_toric_variety(self, x.im_gens(), check=check)
 
-        from sage.schemes.generic.toric_morphism import SchemeMorphism_fan_toric_variety
+        from sage.schemes.toric.morphism import SchemeMorphism_fan_toric_variety
         if isinstance(x, FanMorphism):
             return SchemeMorphism_fan_toric_variety(self, x, check=check)
 

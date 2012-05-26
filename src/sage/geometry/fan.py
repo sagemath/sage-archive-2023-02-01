@@ -2,8 +2,8 @@ r"""
 Rational polyhedral fans
 
 This module was designed as a part of the framework for toric varieties
-(:mod:`~sage.schemes.generic.toric_variety`,
-:mod:`~sage.schemes.generic.fano_toric_variety`). While the emphasis is on
+(:mod:`~sage.schemes.toric.variety`,
+:mod:`~sage.schemes.toric.fano_variety`). While the emphasis is on
 complete full-dimensional fans, arbitrary fans are supported. Work
 with distinct lattices. The default lattice is :class:`ToricLattice
 <sage.geometry.toric_lattice.ToricLatticeFactory>` `N` of the appropriate

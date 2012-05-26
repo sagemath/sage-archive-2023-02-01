@@ -226,7 +226,7 @@ class ToricIdeal(MPolynomialIdeal):
         Create an ideal and a multivariate polynomial ring containing it.
 
         See the :mod:`module documentation
-        <sage.schemes.generic.toric_ideal>` for an introduction to
+        <sage.schemes.toric.ideal>` for an introduction to
         toric ideals.
 
         INPUT:

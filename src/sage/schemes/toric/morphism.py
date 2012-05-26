@@ -82,7 +82,7 @@ difficulty. For example, consider ::
             [0 : u : v]
 
 This map is actually the embedding of the
-:meth:`~sage.schemes.generic.toric_variety.ToricVariety_field.orbit_closure`
+:meth:`~sage.schemes.toric.variety.ToricVariety_field.orbit_closure`
 associated to one of the rays of the fan of `\mathbb{P}^2`. Now the
 morphism is equivariant with respect to **some** map `\CC^\times \to
 (\CC^\times)^2` of the maximal tori of `\mathbb{P}^1` and
@@ -182,7 +182,7 @@ class SchemeMorphism_point_toric_field(SchemeMorphism_point):
         You should not create objects of this class directly. Use the
         :meth:`~sage.schemes.generic.scheme.hom` method of
         :class:`toric varieties
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`
+        <sage.schemes.toric.variety.ToricVariety_field>`
         instead.
 
     INPUT:
@@ -252,7 +252,7 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial):
         You should not create objects of this class directly. Use the
         :meth:`~sage.schemes.generic.scheme.hom` method of
         :class:`toric varieties
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`
+        <sage.schemes.toric.variety.ToricVariety_field>`
         instead.
 
     INPUT:
@@ -272,7 +272,7 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial):
         Defining z0, z1, z2, z3
         sage: P1 = P1xP1.subscheme(z0-z2)
         sage: H = P1xP1.Hom(P1)
-        sage: import sage.schemes.generic.toric_morphism as MOR
+        sage: import sage.schemes.toric.morphism as MOR
         sage: MOR.SchemeMorphism_polynomial_toric_variety(H, [z0,z1,z0,z3])
         Scheme morphism:
           From: 2-d toric variety covered by 4 affine patches
@@ -295,7 +295,7 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial):
             Defining z0, z1, z2, z3
             sage: P1 = P1xP1.subscheme(z0-z2)
             sage: H = P1xP1.Hom(P1)
-            sage: import sage.schemes.generic.toric_morphism as MOR
+            sage: import sage.schemes.toric.morphism as MOR
             sage: MOR.SchemeMorphism_polynomial_toric_variety(H, [z0,z1,z0,z3])
             Scheme morphism:
               From: 2-d toric variety covered by 4 affine patches
@@ -348,7 +348,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
         You should not create objects of this class directly. Use the
         :meth:`~sage.schemes.generic.scheme.hom` method of
         :class:`toric varieties
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`
+        <sage.schemes.toric.variety.ToricVariety_field>`
         instead.
 
     INPUT:
@@ -377,7 +377,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
           Defn: Defined by sending Rational polyhedral fan in 2-d lattice N
                 to Rational polyhedral fan in 2-d lattice N.
         sage: type(f)
-        <class 'sage.schemes.generic.toric_morphism.SchemeMorphism_fan_toric_variety'>
+        <class 'sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety'>
 
     Slightly more explicit construction::
 
@@ -410,7 +410,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
             sage: P1 = toric_varieties.P1()
             sage: hom_set = P1xP1.Hom(P1)
             sage: fan_morphism = FanMorphism( matrix(ZZ,[[1],[0]]), P1xP1.fan(), P1.fan() )
-            sage: from sage.schemes.generic.toric_morphism import SchemeMorphism_fan_toric_variety
+            sage: from sage.schemes.toric.morphism import SchemeMorphism_fan_toric_variety
             sage: SchemeMorphism_fan_toric_variety(hom_set, fan_morphism)
             Scheme morphism:
               From: 2-d CPR-Fano toric variety covered by 4 affine patches

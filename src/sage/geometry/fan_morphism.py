@@ -2,8 +2,8 @@ r"""
 Morphisms between toric lattices compatible with fans
 
 This module is a part of the framework for toric varieties
-(:mod:`~sage.schemes.generic.toric_variety`,
-:mod:`~sage.schemes.generic.fano_toric_variety`). Its main purpose is to
+(:mod:`~sage.schemes.toric.variety`,
+:mod:`~sage.schemes.toric.fano_variety`). Its main purpose is to
 provide support for working with lattice morphisms compatible with fans via
 :class:`FanMorphism` class.
 

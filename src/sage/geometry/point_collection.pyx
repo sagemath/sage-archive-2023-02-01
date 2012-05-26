@@ -2,8 +2,8 @@ r"""
 Point collections
 
 This module was designed as a part of framework for toric varieties
-(:mod:`~sage.schemes.generic.toric_variety`,
-:mod:`~sage.schemes.generic.fano_toric_variety`).
+(:mod:`~sage.schemes.toric.variety`,
+:mod:`~sage.schemes.toric.fano_variety`).
 
 AUTHORS:
 

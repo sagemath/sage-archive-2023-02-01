@@ -2,8 +2,8 @@ r"""
 Convex rational polyhedral cones
 
 This module was designed as a part of framework for toric varieties
-(:mod:`~sage.schemes.generic.toric_variety`,
-:mod:`~sage.schemes.generic.fano_toric_variety`). While the emphasis is on
+(:mod:`~sage.schemes.toric.variety`,
+:mod:`~sage.schemes.toric.fano_variety`). While the emphasis is on
 strictly convex cones, non-strictly convex cones are supported as well. Work
 with distinct lattices (in the sense of discrete subgroups spanning vector
 spaces) is supported. The default lattice is :class:`ToricLattice

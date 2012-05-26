@@ -11,7 +11,7 @@ suitable affine or projective coordinates. Possible ambient spaces are
     <sage.schemes.generic.projective_space.ProjectiveSpace_ring>`), or
 
   * Toric varieties (:class:`ToricVariety
-    <sage.schemes.generic.toric_variety.ToricVariety_field>`).
+    <sage.schemes.toric.variety.ToricVariety_field>`).
 
 Note that while projective spaces are of course toric varieties themselves,
 they are implemented differently in Sage due to efficiency considerations.
@@ -145,7 +145,6 @@ from sage.calculus.functions import jacobian
 import ambient_space
 import affine_space
 import projective_space
-import toric_variety
 import morphism
 import scheme
 
@@ -542,10 +541,10 @@ class AlgebraicScheme(scheme.Scheme):
 
             sage: P1.<x,y> = toric_varieties.P1()
             sage: type(P1.Hom(P1))
-            <class 'sage.schemes.generic.toric_homset.SchemeHomset_toric_variety_with_category'>
+            <class 'sage.schemes.toric.homset.SchemeHomset_toric_variety_with_category'>
             sage: X = P1.subscheme(x-y)
             sage: type(X.Hom(X))
-            <class 'sage.schemes.generic.toric_homset.SchemeHomset_toric_variety_with_category'>
+            <class 'sage.schemes.toric.homset.SchemeHomset_toric_variety_with_category'>
         """
         return self.__A._homset(*args, **kwds)
 
@@ -2023,7 +2022,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         preferred method to construct such subschemes is to use
         :meth:`~ToricVariety_field.subscheme` method of :class:`toric
         varieties
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`.
+        <sage.schemes.toric.variety.ToricVariety_field>`.
 
     INPUT:
 
@@ -2096,11 +2095,11 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         INPUT:
 
         - same as for
-          :class:`~sage.schemes.generic.toric_morphism.SchemeMorphism_polynomial_toric_variety`.
+          :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`.
 
         OUPUT:
 
-        - :class:`~sage.schemes.generic.toric_morphism.SchemeMorphism_polynomial_toric_variety`.
+        - :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`.
 
         TESTS::
 
@@ -2128,7 +2127,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
               Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
                     [z2 : z1 : z2 : z3]
         """
-        from sage.schemes.generic.toric_morphism import SchemeMorphism_polynomial_toric_variety
+        from sage.schemes.toric.morphism import SchemeMorphism_polynomial_toric_variety
         return SchemeMorphism_polynomial_toric_variety(*args, **kwds)
 
     def fan(self):
@@ -2161,11 +2160,11 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         OUTPUT:
 
         - subscheme of an affine :class:`toric variety
-          <sage.schemes.generic.toric_variety.ToricVariety_field>`
+          <sage.schemes.toric.variety.ToricVariety_field>`
           corresponding to the pull-back of ``self`` by the embedding
           morphism of the ``i``-th :meth:`affine patch of the ambient
           space
-          <sage.schemes.generic.toric_variety.ToricVariety_field.affine_patch>`
+          <sage.schemes.toric.variety.ToricVariety_field.affine_patch>`
           of ``self``.
 
         The result is cached, so the ``i``-th patch is always the same object

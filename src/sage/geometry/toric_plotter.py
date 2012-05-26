@@ -916,7 +916,7 @@ def options(option=None, **kwds):
         (:meth:`~ToricPlotter.plot_lattice` will use box mode which is likely
         to be unsuitable). While this method may not be suitable for general
         fans, it is quite natural for fans of :class:`CPR-Fano toric varieties.
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field`
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field`
 
     Round
         The cut-off regions is a sphere centered at the origin.

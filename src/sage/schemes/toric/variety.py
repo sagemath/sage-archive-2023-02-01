@@ -3,7 +3,7 @@ Toric varieties
 
 This module provides support for (normal) toric varieties, corresponding to
 :class:`rational polyhedral fans <sage.geometry.fan.RationalPolyhedralFan>`.
-See also :mod:`~sage.schemes.generic.fano_toric_variety` for a more
+See also :mod:`~sage.schemes.toric.fano_variety` for a more
 restrictive class of (weak) Fano toric varieties.
 
 An **excellent reference on toric varieties** is the book "Toric
@@ -205,14 +205,14 @@ still singular::
 You can resolve it further using :meth:`~ToricVariety_field.resolve` method,
 but (at least for now) you will have to specify which rays should be inserted
 into the fan. See also
-:func:`~sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety`,
+:func:`~sage.schemes.toric.fano_variety.CPRFanoToricVariety`,
 which can construct some other "nice partial resolutions."
 
 The intersection theory on toric varieties is very well understood,
 and there are explicit algorithms to compute many quantities of
 interest. The most important tools are the :class:`cohomology ring
 <CohomologyRing>` and the :mod:`Chow group
-<sage.schemes.generic.toric_chow_group>`. For `d`-dimensional compact
+<sage.schemes.toric.chow_group>`. For `d`-dimensional compact
 toric varieties with at most orbifold singularities, the rational
 cohomology ring `H^*(X,\QQ)` and the rational Chow ring `A^*(X,\QQ) =
 A_{d-*}(X)\otimes \QQ` are isomorphic except for a doubling in
@@ -348,7 +348,7 @@ def is_ToricVariety(x):
 
     EXAMPLES::
 
-        sage: from sage.schemes.generic.toric_variety import is_ToricVariety
+        sage: from sage.schemes.toric.variety import is_ToricVariety
         sage: is_ToricVariety(1)
         False
         sage: fan = FaceFan(lattice_polytope.octahedron(2))
@@ -779,7 +779,7 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1._point(P1xP1, [1,2,3,4])
             [1 : 2 : 3 : 4]
         """
-        from sage.schemes.generic.toric_morphism import SchemeMorphism_point_toric_field
+        from sage.schemes.toric.morphism import SchemeMorphism_point_toric_field
         return SchemeMorphism_point_toric_field(*args, **kwds)
 
     def _homset(self, *args, **kwds):
@@ -792,7 +792,7 @@ class ToricVariety_field(AmbientSpace):
 
         OUTPUT:
 
-        A :class:`sage.schemes.generic.toric_homset.SchemeHomset_toric_variety`.
+        A :class:`sage.schemes.toric.homset.SchemeHomset_toric_variety`.
 
         EXAMPLES::
 
@@ -803,7 +803,7 @@ class ToricVariety_field(AmbientSpace):
              From: 2-d CPR-Fano toric variety covered by 4 affine patches
              To:   1-d CPR-Fano toric variety covered by 2 affine patches
             sage: type(hom_set)
-            <class 'sage.schemes.generic.toric_homset.SchemeHomset_toric_variety_with_category'>
+            <class 'sage.schemes.toric.homset.SchemeHomset_toric_variety_with_category'>
 
         This is also the Hom-set for algebraic subschemes of toric varieties::
 
@@ -827,7 +827,7 @@ class ToricVariety_field(AmbientSpace):
               Defn: Defined on coordinates by sending [s : t : x : y] to
                     [t : t : x : y]
          """
-        from sage.schemes.generic.toric_homset import SchemeHomset_toric_variety
+        from sage.schemes.toric.homset import SchemeHomset_toric_variety
         return SchemeHomset_toric_variety(*args, **kwds)
 
     def _repr_(self):
@@ -1555,7 +1555,7 @@ class ToricVariety_field(AmbientSpace):
         OUTPUT:
 
         - :class:`rational divisor class group
-          <sage.schemes.generic.toric_divisor.ToricRationalDivisorClassGroup>`.
+          <sage.schemes.toric.divisor.ToricRationalDivisorClassGroup>`.
 
         .. NOTE::
 
@@ -1572,7 +1572,7 @@ class ToricVariety_field(AmbientSpace):
             The toric rational divisor class group
             of a 2-d toric variety covered by 4 affine patches
         """
-        from sage.schemes.generic.toric_divisor import ToricRationalDivisorClassGroup
+        from sage.schemes.toric.divisor import ToricRationalDivisorClassGroup
         return ToricRationalDivisorClassGroup(self)
 
     def Chow_group(self, base_ring=ZZ):
@@ -1586,7 +1586,7 @@ class ToricVariety_field(AmbientSpace):
 
         OUTPUT:
 
-        A :class:`sage.schemes.generic.toric_chow_group.ChowGroup_class`
+        A :class:`sage.schemes.toric.chow_group.ChowGroup_class`
 
         EXAMPLES::
 
@@ -1595,7 +1595,7 @@ class ToricVariety_field(AmbientSpace):
             sage: A.gens()
             (( 1 | 0 | 0 ), ( 0 | 1 | 0 ), ( 0 | 0 | 1 ))
         """
-        from sage.schemes.generic.toric_chow_group import ChowGroup
+        from sage.schemes.toric.chow_group import ChowGroup
         return ChowGroup(self,base_ring)
 
     def cartesian_product(self, other,
@@ -2321,7 +2321,7 @@ class ToricVariety_field(AmbientSpace):
             sage: dP6.integrate( HH(dP6.K())^2 )
             6
         """
-        from sage.schemes.generic.toric_divisor import ToricDivisor
+        from sage.schemes.toric.divisor import ToricDivisor
         return ToricDivisor(self, [-1]*self._fan.nrays())
 
     def divisor(self, arg, base_ring=None, check=True, reduce=True):
@@ -2331,13 +2331,13 @@ class ToricVariety_field(AmbientSpace):
         INPUT:
 
         The arguments are the same as in
-        :func:`sage.schemes.generic.toric_divisor.ToricDivisor`, with the
+        :func:`sage.schemes.toric.divisor.ToricDivisor`, with the
         exception of defining a divisor with a single integer: this method
         considers it to be the index of a ray of the :meth:`fan` of ``self``.
 
         OUTPUT:
 
-        - A :class:`sage.schemes.generic.toric_divisor.ToricDivisor_generic`
+        - A :class:`sage.schemes.toric.divisor.ToricDivisor_generic`
 
         EXAMPLES::
 
@@ -2379,7 +2379,7 @@ class ToricVariety_field(AmbientSpace):
             arg = [(1, self.gen(arg))]
             check = True # 1 must be coerced into the coefficient ring
             reduce = False
-        from sage.schemes.generic.toric_divisor import ToricDivisor
+        from sage.schemes.toric.divisor import ToricDivisor
         return ToricDivisor(self, ring=base_ring, arg=arg,
                             check=check, reduce=reduce)
 
@@ -2435,7 +2435,7 @@ class ToricVariety_field(AmbientSpace):
         The free Abelian agroup of toric Weil divisors, that is,
         formal ``base_ring``-linear combinations of codimension-one
         toric subvarieties. The output will be an instance of
-        :class:`sage.schemes.generic.toric_divisor.ToricDivisorGroup`.
+        :class:`sage.schemes.toric.divisor.ToricDivisorGroup`.
 
         The `i`-th generator of the divisor group is the divisor where
         the `i`-th homogeneous coordinate vanishes, `\{z_i=0\}`.
@@ -2453,7 +2453,7 @@ class ToricVariety_field(AmbientSpace):
             sage: dP6.coordinate_ring()
             Multivariate Polynomial Ring in x, u, y, v, z, w over Rational Field
         """
-        from sage.schemes.generic.toric_divisor import ToricDivisorGroup
+        from sage.schemes.toric.divisor import ToricDivisorGroup
         return ToricDivisorGroup(self, base_ring);
 
     def _semigroup_ring(self, cone=None, names=None):
@@ -2496,7 +2496,7 @@ class ToricVariety_field(AmbientSpace):
               Ideal (0) of Multivariate Polynomial Ring in z0, z1 over Finite Field of size 101,
               2-d cone in 2-d lattice M)
         """
-        from sage.schemes.generic.toric_ideal import ToricIdeal
+        from sage.schemes.toric.ideal import ToricIdeal
         if cone is None:
             assert self.is_affine(), \
                 'You may only omit the cone argument for an affine toric variety!'
@@ -2758,7 +2758,7 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
 
     As promised, all parameters are optional::
 
-        sage: from sage.schemes.generic.toric_variety import normalize_names
+        sage: from sage.schemes.toric.variety import normalize_names
         sage: normalize_names()
         []
 
@@ -2891,7 +2891,7 @@ def certify_names(names):
 
     EXAMPLES::
 
-        sage: from sage.schemes.generic.toric_variety import certify_names
+        sage: from sage.schemes.toric.variety import certify_names
         sage: certify_names([])
         sage: certify_names(["a", "x0", "x_45"])
         sage: certify_names(["", "x0", "x_45"])
@@ -2962,7 +2962,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
 
     This is equivalent to::
 
-        sage: from sage.schemes.generic.toric_variety import CohomologyRing
+        sage: from sage.schemes.toric.variety import CohomologyRing
         sage: CohomologyRing(P2)
         Rational cohomology ring of a 2-d CPR-Fano toric variety covered by 3 affine patches
     """
@@ -3104,7 +3104,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             sage: H(1)
             [1]
             sage: type( H(1) )
-            <class 'sage.schemes.generic.toric_variety.CohomologyClass'>
+            <class 'sage.schemes.toric.variety.CohomologyClass'>
             sage: P2.inject_variables()
             Defining x, y, z
             sage: H(1+x*y+z)
@@ -3145,7 +3145,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             sage: H(1)
             [1]
             sage: type( H(1) )
-            <class 'sage.schemes.generic.toric_variety.CohomologyClass'>
+            <class 'sage.schemes.toric.variety.CohomologyClass'>
         """
         return self._element_constructor_(x)
 
@@ -3212,7 +3212,7 @@ def is_CohomologyClass(x):
 
         sage: P2 = toric_varieties.P2()
         sage: HH = P2.cohomology_ring()
-        sage: from sage.schemes.generic.toric_variety import is_CohomologyClass
+        sage: from sage.schemes.toric.variety import is_CohomologyClass
         sage: is_CohomologyClass( HH.one() )
         True
         sage: is_CohomologyClass( HH(P2.fan(1)[0]) )
@@ -3265,7 +3265,7 @@ class CohomologyClass(QuotientRingElement):
 
             sage: P2 = toric_varieties.P2()
             sage: H = P2.cohomology_ring()
-            sage: from sage.schemes.generic.toric_variety import CohomologyClass
+            sage: from sage.schemes.toric.variety import CohomologyClass
             sage: CohomologyClass(H, H.defining_ideal().ring().zero() )
             [0]
         """

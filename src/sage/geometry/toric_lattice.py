@@ -2,8 +2,8 @@ r"""
 Toric lattices
 
 This module was designed as a part of the framework for toric varieties
-(:mod:`~sage.schemes.generic.toric_variety`,
-:mod:`~sage.schemes.generic.fano_toric_variety`).
+(:mod:`~sage.schemes.toric.variety`,
+:mod:`~sage.schemes.toric.fano_variety`).
 
 All toric lattices are isomorphic to `\ZZ^n` for some `n`, but will prevent
 you from doing "wrong" operations with objects from different lattices.

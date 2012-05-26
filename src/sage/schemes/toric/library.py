@@ -17,7 +17,7 @@ EXAMPLES::
 
 You can assign the homogeneous coordinates to Sage variables either
 with
-:meth:`~sage.schemes.generic.toric_variety.ToricVariety_field.inject_variables`
+:meth:`~sage.schemes.toric.variety.ToricVariety_field.inject_variables`
 or immediately during assignment like this::
 
     sage: P2.<x,y,z> = toric_varieties.P2()
@@ -42,8 +42,8 @@ from sage.matrix.all import matrix, identity_matrix
 from sage.geometry.fan import Fan
 from sage.geometry.lattice_polytope import LatticePolytope
 from sage.rings.all import ZZ
-from sage.schemes.generic.toric_variety import ToricVariety
-from sage.schemes.generic.fano_toric_variety import CPRFanoToricVariety
+from sage.schemes.toric.variety import ToricVariety
+from sage.schemes.toric.fano_variety import CPRFanoToricVariety
 
 
 
@@ -200,7 +200,7 @@ class ToricVarietyFactory(SageObject):
         OUTPUT:
 
         A :class:`toric variety
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`.
+        <sage.schemes.toric.variety.ToricVariety_field>`.
 
         EXAMPLES::
 
@@ -238,7 +238,7 @@ class ToricVarietyFactory(SageObject):
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -275,13 +275,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -305,13 +305,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -335,13 +335,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -365,13 +365,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -395,13 +395,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -427,13 +427,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -456,13 +456,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -487,13 +487,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -531,13 +531,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`toric variety
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`.
+        <sage.schemes.toric.variety.ToricVariety_field>`.
 
         EXAMPLES::
 
@@ -559,13 +559,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`toric variety
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`.
+        <sage.schemes.toric.variety.ToricVariety_field>`.
 
         EXAMPLES::
 
@@ -590,13 +590,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`toric variety
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`.
+        <sage.schemes.toric.variety.ToricVariety_field>`.
 
         EXAMPLES::
 
@@ -634,13 +634,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`toric variety
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`.
+        <sage.schemes.toric.variety.ToricVariety_field>`.
 
         EXAMPLES::
 
@@ -664,13 +664,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`toric variety
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`.
+        <sage.schemes.toric.variety.ToricVariety_field>`.
 
         EXAMPLES::
 
@@ -693,13 +693,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`toric variety
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`.
+        <sage.schemes.toric.variety.ToricVariety_field>`.
 
         EXAMPLES::
 
@@ -724,13 +724,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -759,13 +759,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -794,13 +794,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -836,13 +836,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`toric variety
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`.
+        <sage.schemes.toric.variety.ToricVariety_field>`.
 
         NOTES:
 
@@ -881,13 +881,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`toric variety
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`
+        <sage.schemes.toric.variety.ToricVariety_field>`
         `X_k`. Its Chow group is `A_1(X_k)=\ZZ_k`.
 
         EXAMPLES::
@@ -933,13 +933,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -979,13 +979,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`toric variety
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`.
+        <sage.schemes.toric.variety.ToricVariety_field>`.
 
         EXAMPLES::
 
@@ -1010,13 +1010,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -1040,13 +1040,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -1070,13 +1070,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -1103,13 +1103,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -1135,13 +1135,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 
@@ -1167,13 +1167,13 @@ class ToricVarietyFactory(SageObject):
 
         - ``names`` -- string. Names for the homogeneous
           coordinates. See
-          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          :func:`~sage.schemes.toric.variety.normalize_names`
           for acceptable formats.
 
         OUTPUT:
 
         A :class:`CPR-Fano toric variety
-        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+        <sage.schemes.toric.fano_variety.CPRFanoToricVariety_field>`.
 
         EXAMPLES::
 

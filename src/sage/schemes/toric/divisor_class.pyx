@@ -2,7 +2,7 @@ r"""
 Toric rational divisor classes
 
 This module is a part of the framework for :mod:`toric varieties
-<sage.schemes.generic.toric_variety>`.
+<sage.schemes.toric.variety>`.
 
 AUTHORS:
 
@@ -82,7 +82,7 @@ def is_ToricRationalDivisorClass(x):
 
     EXAMPLES::
 
-        sage: from sage.schemes.generic.toric_divisor_class import (
+        sage: from sage.schemes.toric.divisor_class import (
         ...     is_ToricRationalDivisorClass)
         sage: is_ToricRationalDivisorClass(1)
         False
@@ -325,7 +325,7 @@ def _ToricRationalDivisorClass_unpickle_v1(parent, entries,
         Divisor class [1, -2, 3, -4]
         sage: loads(dumps(D))   # indirect test
         Divisor class [1, -2, 3, -4]
-        sage: from sage.schemes.generic.toric_divisor_class import (
+        sage: from sage.schemes.toric.divisor_class import (
         ...       _ToricRationalDivisorClass_unpickle_v1)
         sage: _ToricRationalDivisorClass_unpickle_v1(
         ...      Cl, [1, -2, 3, -4], 4, True)

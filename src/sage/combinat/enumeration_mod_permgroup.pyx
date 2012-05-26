@@ -2,7 +2,7 @@ r"""
 Tools for enumeration modulo the action of a permutation group
 """
 #*****************************************************************************
-#    Copyright (C) 2011 Nicolas Borie <nicolas.borie at math dot u-psud.fr>
+#    Copyright (C) 2010-12 Nicolas Borie <nicolas.borie at math dot u-psud.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -92,7 +92,7 @@ cpdef int lex_cmp(ClonableIntArray v1, ClonableIntArray v2):
 
     INPUT:
 
-    Twoe instances `v_1, v_2` of :class:`~sage.structure.list_clone.ClonableIntArray`
+    Two instances `v_1, v_2` of :class:`~sage.structure.list_clone.ClonableIntArray`
 
     OUPUT:
 
@@ -256,7 +256,8 @@ cpdef set orbit(list sgs, ClonableIntArray v):
 
     NOTE:
 
-    The returned orbit is a set. In the doc tests, we convert it into a sorted list.
+    The returned orbit is a set. In the doctests, we convert it into a
+    sorted list.
 
     EXAMPLES::
 

@@ -2,7 +2,7 @@ r"""
 Integer vectors modulo the action of a permutation group
 """
 #*****************************************************************************
-#    Copyright (C) 2011 Nicolas Borie <nicolas.borie at math dot u-psud.fr>
+#    Copyright (C) 2010-12 Nicolas Borie <nicolas.borie at math dot u-psud.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -58,9 +58,12 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
     INPUT:
 
     - ``G`` - a permutation group
-    - ``sum`` - a non negtive integer (default to None)
-    - ``max_part`` - a non negative integer setting the maximun of entries of elements (default to None)
-    - ``sgs`` - a strong generating system of the group `G`. If you do not provide it, it will be calculated at the creation of the parent (default to None)
+    - ``sum`` - (default: None) - a nonnegative integer
+    - ``max_part`` - (default: None) - a nonnegative integer setting the
+      maximum of entries of elements
+    - ``sgs`` - (default: None) - a strong generating system of the
+      group `G`. If you do not provide it, it will be calculated at the
+      creation of the parent
 
     OUTPUT:
 
@@ -100,7 +103,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         [3, 1, 0]
 
     The method
-    :meth:`sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup_All.is_canonical`
+    :meth:`~sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup_All.is_canonical`
     tests if any integer vector is maximal in its orbit. This method
     is also used in the containment test::
 
@@ -122,10 +125,9 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         ...
         AssertionError: bla should be a list or a integer vector
 
-    If you precise the extra argument ``sum``, the set returned will be a
-    finite set containing only canonical vectors whose entries sum to
-    ``sum``.
-    ::
+    If you give a value to the extra argument ``sum``, the set returned
+    will be a finite set containing only canonical vectors whose entries
+    sum to ``sum``.::
 
         sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]), sum=6)
         sage: I.cardinality()
@@ -296,7 +298,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
 
     def ambient(self):
         r"""
-        Return the ambient from which ``self`` is a quotient.
+        Return the ambient space from which ``self`` is a quotient.
 
         EXAMPLES::
 
@@ -331,7 +333,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         integer ``elt`` under the action of the permutation group
         defining ``self``.
 
-        If the element ``elt`` is already maximum in its orbits for
+        If the element ``elt`` is already maximal in its orbit for
         the lexicographic order, ``elt`` is thus the good
         representative for its orbit.
 
@@ -367,7 +369,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
 
     def roots(self):
         r"""
-        Returns the root of generation of ``self``.This method is
+        Returns the root of generation of ``self``. This method is
         required to build the tree structure of ``self`` which
         inherits from the class :class:`~sage.combinat.backtrack.SearchForest`.
 
@@ -566,7 +568,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
     Integer vectors are enumerated modulo the action of the
     permutation group. To implement that, we keep a single integer
     vector by orbit under the action of the permutation
-    group. Elements chosen are vector maximals in their orbit for the
+    group. Elements chosen are vectors maximal in their orbit for the
     lexicographic order.
 
     For more information see :class:`IntegerVectorsModPermutationGroup`.
@@ -791,7 +793,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
 
     def ambient(self):
         r"""
-        Return the ambient from which ``self`` is a quotient.
+        Return the ambient space from which ``self`` is a quotient.
 
         EXAMPLES::
 
@@ -878,7 +880,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
 
     def an_element(self):
         r"""
-        Returns an element of ``self`` or raise an EmptySetError when
+        Returns an element of ``self`` or raises an EmptySetError when
         ``self`` is empty.
 
         EXAMPLES::

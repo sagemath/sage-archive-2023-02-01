@@ -13,6 +13,7 @@ LGPLv3+
 == SPKG Maintainers ==
 
 * Volker Braun
+* William Stein
 
 == Upstream Contact ==
 
@@ -28,7 +29,7 @@ N/A
 
 == Changelog ==
 
-=== zeromq-2.2.0.p0 (Volker Braun, 14 April 2012) ===
+=== zeromq-2.2.0.p0 (Volker Braun, William Stein, 14 April 2012) ===
 
  * Initial version
 

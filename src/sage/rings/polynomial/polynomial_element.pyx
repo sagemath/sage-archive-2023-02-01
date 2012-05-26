@@ -5665,12 +5665,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: K.<t> = FunctionField(GF(3))
             sage: R.<x> = K[]
-            sage: (x^3+2*x).is_squarefree()
+            sage: (x^3-x).is_squarefree()
             True
-            sage: (x^3+2).is_squarefree()
+            sage: (x^3-1).is_squarefree()
             False
             sage: (x^3+t).is_squarefree()
             True
+            sage: (x^3+t^3).is_squarefree()
+            False
+
+        In the following example, `t^2` is a unit in the base field::
+
             sage: R(t^2).is_squarefree()
             True
 

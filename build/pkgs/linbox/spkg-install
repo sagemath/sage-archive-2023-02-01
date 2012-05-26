@@ -29,8 +29,8 @@ done
 CFLAGS="-g $CFLAGS -fPIC"
 CXXFLAGS="-g $CXXFLAGS -fPIC"
 
-case "`$CXX -dumpversion 2>/dev/null`" in
-    4.7.*)
+case "`testcxx.sh $CXX`-`$CXX -dumpversion 2>/dev/null`" in
+    GCC-4.7.*)
         echo "Adding '-fpermissive' to CXXFLAGS to make LinBox build with GCC 4.7.x."
         echo "This is a temporary fix; LinBox currently doesn't conform to the C++11 standard."
         CXXFLAGS="-fpermissive $CXXFLAGS" # The user might still override that.
@@ -121,20 +121,3 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error installing LinBox."
     exit 1
 fi
-
-echo "Installation of LinBox completed."
-
-# Touch sources of Python extension modules using LinBox such that they get
-# rebuilt the next time the Sage library gets (re)built (e.g. by './sage -b'):
-# (In principle, such modules should depend on a header file with a fresh
-# timestamp each time LinBox gets reinstalled.  Then Cython would automatically
-# rebuild them.)
-echo "Touching extension modules linked against LinBox to force their rebuild..."
-prefix="$SAGE_ROOT/devel/sage"
-modules="sage/libs/linbox/linbox.pyx"
-for pyx in $modules; do
-    if [ -f "$prefix/$pyx" ]; then
-        echo "    $pyx"
-        touch "$prefix/$pyx"
-    fi
-done

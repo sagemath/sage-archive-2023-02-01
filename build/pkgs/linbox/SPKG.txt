@@ -37,6 +37,12 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.6.p10 (Jeroen Demeyer, 25 May 2012) ===
+ * #12762 review: Remove the touching of linbox.pyx, since
+   Cython knows the dependency of linbox.pyx on linbox-sage.h
+ * Only add the -fpermissive workaround on GCC-4.7.x, not other
+   compilers.
+
 === linbox-1.1.6.p9 (Leif Leonhardy, April 7th 2012) ===
  * #12762: Temporarily add `-fpermissive` to `CXXFLAGS` if we're compiling
    with `g++` 4.7.x, since the LinBox sources currently don't conform to

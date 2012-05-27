@@ -8686,6 +8686,16 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.jordan_form(transformation=True) == (M/1).jordan_form(transformation=True)
             True
 
+        TESTS:
+
+        The base ring for the matrix needs to have a fraction field
+        and it needs to be implemented.  ::
+
+            sage: A = matrix(Integers(6), 2, 2, range(4))
+            sage: A.jordan_form()
+            Traceback (most recent call last):
+            ...
+            ValueError: Matrix entries must be from a field, not Ring of integers modulo 6
         """
         from sage.matrix.constructor import block_diagonal_matrix, jordan_block, diagonal_matrix
         from sage.combinat.partition import Partition
@@ -8719,7 +8729,7 @@ cdef class Matrix(matrix1.Matrix):
         if not base_ring.is_field():
             try:
                 base_field = base_ring.fraction_field()
-            except (NotImplementedError, AttributeError):
+            except (NotImplementedError, TypeError, AttributeError):
                 raise ValueError("Matrix entries must be from a field, not {0}".
                                  format(base_ring))
             A = self.change_ring(base_field)

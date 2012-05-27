@@ -443,14 +443,17 @@ ZODB=`newest_version zodb3`
 EOF
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
-if [ "$need_to_install_gcc" = yes ]; then
-    echo >&3 'TOOLCHAIN=$(INST)/$(GCC)'
+echo >&3 -n 'TOOLCHAIN ='
+if [ "$SAGE_INSTALL_CCACHE" == yes ]; then
+    echo >&3 -n ' $(INST)/ccache'
+fi
+if [ "$need_to_install_gcc" == yes ]; then
+    echo >&3 -n ' $(INST)/$(GCC)'
     # Use this option for the prereq configure script, such that it
     # will skip all compiler checks.
     export PREREQ_OPTIONS="--disable-compiler-checks $PREREQ_OPTIONS"
-else
-    echo >&3 'TOOLCHAIN='
 fi
+echo >&3
 
 # Copy spkg/standard/deps
 cat >&3 <<EOF

@@ -497,6 +497,10 @@ $(INST)/$(SAGE): \
 $(INST)/$(SAGE_SCRIPTS): $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGE_SCRIPTS) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_SCRIPTS).log"
 
+$(INST)/ccache: $(BASE) $(INST)/$(ZLIB)
+	+$(PIPE) "$(SAGE_SPKG) ccache 2>&1" "tee -a $(SAGE_LOGS)/ccache.log"
+	touch $(INST)/ccache
+
 $(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
                 $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GCC) 2>&1" "tee -a $(SAGE_LOGS)/$(GCC).log"

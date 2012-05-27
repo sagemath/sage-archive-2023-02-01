@@ -482,6 +482,21 @@ if [ -x "$SAGE_LOCAL/bin/gfortran" ]; then
     done
 fi
 
+# Setup env varariables if ccache is installed
+if [ -d "$SAGE_LOCAL/libexec/ccache" ]; then
+    PATH="$SAGE_LOCAL/libexec/ccache:$PATH"; export PATH
+fi
+if [ -z "$CCACHE_DIR" ]; then
+    CCACHE_DIR="$DOT_SAGE/ccache"
+fi
+if [ -z "$CYCACHE_DIR" ]; then
+    CYCACHE_DIR="$DOT_SAGE/cycache"
+fi
+if [ -z "$CCACHE_BASEDIR" ]; then
+    CCACHE_BASEDIR="$SAGE_ROOT"
+fi
+export CCACHE_DIR CYCACHE_DIR
+export CCACHE_BASEDIR
 
 if [ "$LD" = "" ]; then
     LD="ld"  && export LD

@@ -988,6 +988,126 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return sib.name('vector')(self.base_ring(),
                                       [sib(e, 2) for e in self])
 
+    def _numerical_approx(self, prec=None, digits=None):
+        r"""
+        Implements numerical approximation of a free module element
+        by calling the ``n()`` method on all of its entries.
+
+        EXAMPLES::
+
+            sage: v = vector(RealField(212), [1,2,3])
+            sage: v.N()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: numerical_approx(v)
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+            sage: numerical_approx(v, digits=3)
+            (1.00, 2.00, 3.00)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 14 bits of precision
+
+        Both functional and object-oriented usage is possible.  ::
+
+            sage: u = vector(QQ, [1/2, 1/3, 1/4])
+            sage: u.n()
+            (0.500000000000000, 0.333333333333333, 0.250000000000000)
+            sage: u.N()
+            (0.500000000000000, 0.333333333333333, 0.250000000000000)
+            sage: u.numerical_approx()
+            (0.500000000000000, 0.333333333333333, 0.250000000000000)
+            sage: n(u)
+            (0.500000000000000, 0.333333333333333, 0.250000000000000)
+            sage: N(u)
+            (0.500000000000000, 0.333333333333333, 0.250000000000000)
+            sage: numerical_approx(u)
+            (0.500000000000000, 0.333333333333333, 0.250000000000000)
+
+        Precision (bits) and digits (decimal) may be specified.
+        When both are given, ``prec`` wins.  ::
+
+            sage: u = vector(QQ, [1/2, 1/3, 1/4])
+            sage: n(u, prec=15)
+            (0.5000, 0.3333, 0.2500)
+            sage: n(u, digits=5)
+            (0.50000, 0.33333, 0.25000)
+            sage: n(u, prec=30, digits=100)
+            (0.50000000, 0.33333333, 0.25000000)
+
+        These are some legacy doctests that were part of various specialized
+        versions of the numerical approximation routine that were removed as
+        part of :trac:`12195`.  ::
+
+            sage: v = vector(ZZ, [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+
+            sage: v = vector(RDF, [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+
+            sage: v = vector(CDF, [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Complex Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Complex Field with 75 bits of precision
+
+            sage: v = vector(Integers(8), [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+
+            sage: v = vector(QQ, [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+
+        TESTS:
+
+        Sparse vectors have a similar method that works efficiently for
+        the sparse case.  We test that it is working as it should.  ::
+
+            sage: v = vector(QQ, [1/2, 0, 0, 1/3, 0, 0, 0, 1/4], sparse=True)
+            sage: u = v.numerical_approx(digits=4)
+            sage: u.is_sparse()
+            True
+            sage: u
+            (0.5000, 0.0000, 0.0000, 0.3333, 0.0000, 0.0000, 0.0000, 0.2500)
+        """
+        return vector([e.n(prec, digits) for e in self])
+
     def transpose(self):
         r"""
         Return self as a column matrix.
@@ -3669,25 +3789,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         return vector([e(*args, **kwargs) for e in self])
 
-    def n(self, *args, **kwargs):
-        """
-        Returns a numerical approximation of self by calling the n() method
-        on all of its entries.
-
-        EXAMPLES::
-
-            sage: v = vector(RealField(212), [1,2,3])
-            sage: v.n()
-            (1.00000000000000, 2.00000000000000, 3.00000000000000)
-            sage: _.parent()
-            Vector space of dimension 3 over Real Field with 53 bits of precision
-            sage: v.n(prec=75)
-            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
-            sage: _.parent()
-            Vector space of dimension 3 over Real Field with 75 bits of precision
-        """
-        return vector([e.n(*args, **kwargs) for e in self])
-
     def function(self, *args):
         """
         Returns a vector over a callable symbolic expression ring.
@@ -4257,7 +4358,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return K
 
 
-    def n(self, *args, **kwargs):
+    def _numerical_approx(self, prec=None, digits=None):
         """
         Returns a numerical approximation of self by calling the n() method
         on all of its entries.
@@ -4274,5 +4375,5 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: _.parent()
             Sparse vector space of dimension 3 over Real Field with 75 bits of precision
         """
-        return vector(dict([(e[0],e[1].n(*args, **kwargs)) for e in self._entries.iteritems()]), sparse=True)
+        return vector(dict([(e[0],e[1].n(prec, digits)) for e in self._entries.iteritems()]), sparse=True)
 

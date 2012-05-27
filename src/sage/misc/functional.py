@@ -1193,32 +1193,33 @@ def numerator(x):
         return x
     return x.numerator()
 
-#this is the function which is called as the top level function.
+# Following is the top-level numerical_approx function.
+# Implement a ._numerical_approx(prec, digits) method for your
+# objects to enable the three top-level functions and three methods
+
 def numerical_approx(x, prec=None, digits=None):
-    """
-    Returns a numerical approximation of x with at least prec bits of
-    precision.
+    r"""
+    Returns a numerical approximation of an object ``x`` with at
+    least ``prec`` bits (or decimal ``digits``) of precision.
 
     .. note::
 
-       Both upper case N and lower case n are aliases for
-       :func:`numerical_approx`.
+       Both upper case ``N`` and lower case ``n`` are aliases for
+       :func:`numerical_approx`, and all three may be used as
+       methods.
 
     INPUT:
 
-
     -  ``x`` - an object that has a numerical_approx
        method, or can be coerced into a real or complex field
-
     -  ``prec (optional)`` - an integer (bits of
        precision)
-
     -  ``digits (optional)`` - an integer (digits of
        precision)
 
-
-    If neither the prec or digits are specified, the default is 53 bits
-    of precision.
+    If neither the ``prec`` or ``digits`` are specified,
+    the default is 53 bits of precision.  If both are
+    specified, then ``prec`` is used.
 
     EXAMPLES::
 
@@ -1243,11 +1244,52 @@ def numerical_approx(x, prec=None, digits=None):
         sage: numerical_approx(9)
         9.00000000000000
 
-
-    You can also usually use method notation::
+    You can also usually use method notation.  ::
 
         sage: (pi^2 + e).n()
         12.5878862295484
+        sage: (pi^2 + e).N()
+        12.5878862295484
+        sage: (pi^2 + e).numerical_approx()
+        12.5878862295484
+
+    Vectors and matrices may also have their entries approximated.  ::
+
+        sage: v = vector(RDF, [1,2,3])
+        sage: v.n()
+        (1.00000000000000, 2.00000000000000, 3.00000000000000)
+
+        sage: v = vector(CDF, [1,2,3])
+        sage: v.n()
+        (1.00000000000000, 2.00000000000000, 3.00000000000000)
+        sage: _.parent()
+        Vector space of dimension 3 over Complex Field with 53 bits of precision
+        sage: v.n(prec=75)
+        (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+
+        sage: u = vector(QQ, [1/2, 1/3, 1/4])
+        sage: n(u, prec=15)
+        (0.5000, 0.3333, 0.2500)
+        sage: n(u, digits=5)
+        (0.50000, 0.33333, 0.25000)
+
+        sage: v = vector(QQ, [1/2, 0, 0, 1/3, 0, 0, 0, 1/4], sparse=True)
+        sage: u = v.numerical_approx(digits=4)
+        sage: u.is_sparse()
+        True
+        sage: u
+        (0.5000, 0.0000, 0.0000, 0.3333, 0.0000, 0.0000, 0.0000, 0.2500)
+
+        sage: A = matrix(QQ, 2, 3, range(6))
+        sage: A.n()
+        [0.000000000000000  1.00000000000000  2.00000000000000]
+        [ 3.00000000000000  4.00000000000000  5.00000000000000]
+
+        sage: B = matrix(Integers(12), 3, 8, srange(24))
+        sage: N(B, digits=2)
+        [0.00  1.0  2.0  3.0  4.0  5.0  6.0  7.0]
+        [ 8.0  9.0  10.  11. 0.00  1.0  2.0  3.0]
+        [ 4.0  5.0  6.0  7.0  8.0  9.0  10.  11.]
 
     TESTS::
 
@@ -1261,8 +1303,8 @@ def numerical_approx(x, prec=None, digits=None):
         sage: type(numerical_approx(CC(1/2)))
         <type 'sage.rings.complex_number.ComplexNumber'>
 
-    The following tests Trac 10761, in which n() would break when
-    called on complex-valued AlgebraicNumbers::
+    The following tests :trac:`10761`, in which ``n()`` would break when
+    called on complex-valued algebraic numbers.  ::
 
         sage: E = matrix(3, [3,1,6,5,2,9,7,3,13]).eigenvalues(); E
         [18.16815365088822?, -0.08407682544410650? - 0.2190261484802906?*I, -0.08407682544410650? + 0.2190261484802906?*I]

@@ -346,25 +346,6 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_neg(z._entries[i], self._entries[i])
         return z
 
-    def n(self, *args, **kwargs):
-        """
-        Returns a numerical approximation of self by calling the n()
-        method on all of its entries.
-
-        EXAMPLES::
-
-            sage: v = vector(QQ, [1,2,3])
-            sage: v.n()
-            (1.00000000000000, 2.00000000000000, 3.00000000000000)
-            sage: _.parent()
-            Vector space of dimension 3 over Real Field with 53 bits of precision
-            sage: v.n(prec=75)
-            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
-            sage: _.parent()
-            Vector space of dimension 3 over Real Field with 75 bits of precision
-        """
-        return vector( [e.n(*args, **kwargs) for e in self] )
-
 
 def unpickle_v0(parent, entries, degree):
     # If you think you want to change this function, don't.

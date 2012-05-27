@@ -1304,17 +1304,29 @@ cdef class NumberFieldElement(FieldElement):
             sage: RR(a)
             Traceback (most recent call last):
             ...
-            TypeError: cannot convert a to real number
-
+            TypeError: Unable to coerce a to a rational
             sage: (a^2)._mpfr_(RR)
             -1.00000000000000
+
+        Verify that :trac:`#13005` has been fixed::
+
+            sage: K.<a> = NumberField(x^2-5)
+            sage: RR(K(1))
+            1.00000000000000
+            sage: RR(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce a to a rational
+            sage: K.<a> = NumberField(x^3+2, embedding=-1.25)
+            sage: RR(a)
+            -1.25992104989487
+            sage: RealField(prec=100)(a)
+            -1.2599210498948731647672106073
         """
-        C = R.complex_field()
-        tres = C(self)
-        try:
-            return R(tres)
-        except TypeError:
-            raise TypeError, "cannot convert %s to real number"%(self)
+        if self.parent().coerce_embedding() is None:
+            return R(self.base_ring()(self))
+        else:
+            return R(R.complex_field()(self))
 
     def __float__(self):
         """
@@ -1326,16 +1338,22 @@ cdef class NumberFieldElement(FieldElement):
             sage: float(a)
             Traceback (most recent call last):
             ...
-            TypeError: cannot convert a to real number
-
+            TypeError: Unable to coerce a to a rational
             sage: (a^2).__float__()
             -1.0
+            sage: k.<a> = NumberField(x^2 + 1,embedding=I)
+            sage: float(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to coerce to a real number
         """
-        tres = CC(self)
-        try:
-            return float(tres)
-        except TypeError:
-            raise TypeError, "cannot convert %s to real number"%(self)
+        if self.parent().coerce_embedding() is None:
+            return float(self.base_ring()(self))
+        else:
+            c = complex(self)
+            if c.imag == 0:
+                return c.real
+            raise TypeError('unable to coerce to a real number')
 
     def _complex_double_(self, CDF):
         """

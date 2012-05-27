@@ -8591,28 +8591,28 @@ cdef class Expression(CommutativeRingElement):
         else:
             raise NotImplementedError, "root finding currently only implemented in 1 dimension."
 
-    def find_maximum_on_interval(self, a, b, var=None, tol=1.48e-08, maxfun=500):
+    def find_local_maximum(self, a, b, var=None, tol=1.48e-08, maxfun=500):
         r"""
         Numerically find a local maximum of the expression ``self``
         on the interval [a,b] (or [b,a]) along with the point at which the
         maximum is attained.
 
         See the documentation for
-        :func:`find_minimum_on_interval` for more details.
+        :func:`find_local_minimum` for more details.
 
         EXAMPLES::
 
             sage: f = x*cos(x)
-            sage: f.find_maximum_on_interval(0,5)
+            sage: f.find_local_maximum(0,5)
             (0.5610963381910451, 0.8603335890...)
-            sage: f.find_maximum_on_interval(0,5, tol=0.1, maxfun=10)
+            sage: f.find_local_maximum(0,5, tol=0.1, maxfun=10)
             (0.561090323458081..., 0.857926501456...)
         """
-        minval, x = (-self).find_minimum_on_interval(a, b, var=var, tol=tol,
+        minval, x = (-self).find_local_minimum(a, b, var=var, tol=tol,
                                                      maxfun=maxfun)
         return -minval, x
 
-    def find_minimum_on_interval(self, a, b, var=None, tol=1.48e-08, maxfun=500):
+    def find_local_minimum(self, a, b, var=None, tol=1.48e-08, maxfun=500):
         r"""
         Numerically find a local minimum of the expression ``self``
         on the interval [a,b] (or [b,a]) and the point at which it attains
@@ -8645,30 +8645,35 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: f = x*cos(x)
-            sage: f.find_minimum_on_interval(1, 5)
+            sage: f.find_local_minimum(1, 5)
             (-3.288371395590..., 3.4256184695...)
-            sage: f.find_minimum_on_interval(1, 5, tol=1e-3)
+            sage: f.find_local_minimum(1, 5, tol=1e-3)
             (-3.288371361890..., 3.4257507903...)
-            sage: f.find_minimum_on_interval(1, 5, tol=1e-2, maxfun=10)
+            sage: f.find_local_minimum(1, 5, tol=1e-2, maxfun=10)
             (-3.288370845983..., 3.4250840220...)
             sage: show(f.plot(0, 20))
-            sage: f.find_minimum_on_interval(1, 15)
+            sage: f.find_local_minimum(1, 15)
             (-9.477294259479..., 9.5293344109...)
 
         ALGORITHM:
 
-        Uses :func:`sage.numerical.optimize.find_minimum_on_interval`.
+        Uses :func:`sage.numerical.optimize.find_local_minimum`.
 
         AUTHORS:
 
         - William Stein (2007-12-07)
         """
-        from sage.numerical.optimize import find_minimum_on_interval
+        from sage.numerical.optimize import find_local_minimum
 
         if var is None:
             var = self.default_variable()
-        return find_minimum_on_interval(self._fast_float_(var),
+        return find_local_minimum(self._fast_float_(var),
                                         a=a, b=b, tol=tol, maxfun=maxfun )
+
+    find_maximum_on_interval = deprecated_function_alias(
+                                    find_local_maximum, "Sage 5.1")
+    find_minimum_on_interval = deprecated_function_alias(
+                                    find_local_minimum, "Sage 5.1")
 
     ###################
     # Fast Evaluation #

@@ -10020,7 +10020,7 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Utility function to decomposes a symmetric or
         Hermitian matrix into a lower triangular matrix
-        and list of elements for the diagonal of a diagonal matrix.
+        and tuple of elements for the diagonal of a diagonal matrix.
 
         INPUT:
 
@@ -10054,6 +10054,11 @@ cdef class Matrix(matrix1.Matrix):
         If any leading principal submatrix is singular, then the
         computation cannot be performed and a ``ValueError`` results.
 
+        Results are cached, and hence are immutable.  Caching
+        eliminates redundant computations across
+        :meth:`indefinite_factorization_`, :meth:`is_positive_definite`
+        and :meth:`cholesky_decomposition`.
+
         EXAMPLES:
 
         A simple symmetric matrix. ::
@@ -10071,7 +10076,7 @@ cdef class Matrix(matrix1.Matrix):
             [   1    0    1    0]
             [ 1/2 -2/3  1/2    1]
             sage: d
-            [4, 9, 4, 1]
+            (4, 9, 4, 1)
             sage: A == L*diagonal_matrix(QQ, d)*L.transpose()
             True
 
@@ -10092,7 +10097,7 @@ cdef class Matrix(matrix1.Matrix):
             [ -24/23*I + 25/23  617/288*I + 391/144                         1  0]
             [         -21/23*I     -49/288*I - 1/48  1336/89885*I - 773/89885  1]
             sage: d
-            [23, 576/23, 89885/144, 142130/17977]
+            (23, 576/23, 89885/144, 142130/17977)
             sage: A == L*diagonal_matrix(C, d)*L.conjugate_transpose()
             True
 
@@ -10164,6 +10169,20 @@ cdef class Matrix(matrix1.Matrix):
             ...
             ValueError: matrix is not hermitian
 
+        Results are cached and hence immutable, according
+        to the ``algorithm``.  ::
+
+            sage: A = matrix(QQ, [[ 4, -2,  4,  2],
+            ...                   [-2, 10, -2, -7],
+            ...                   [ 4, -2,  8,  4],
+            ...                   [ 2, -7,  4,  7]])
+            sage: Ls, ds = A._indefinite_factorization('symmetric')
+            sage: Lh, dh = A._indefinite_factorization('hermitian')
+            sage: Ls.is_immutable(), Lh.is_immutable()
+            (True, True)
+            sage: isinstance(ds, tuple), isinstance(dh, tuple)
+            (True, True)
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -10179,61 +10198,71 @@ cdef class Matrix(matrix1.Matrix):
         cdef Py_ssize_t m, i, j, k
         cdef Matrix L
 
-        R = self.base_ring()
-        if not self.is_square():
-            msg = "matrix must be square, not {0} x {1}"
-            raise ValueError(msg.format(self.nrows(), self.ncols()))
         if not algorithm in ['symmetric', 'hermitian']:
             msg = "'algorithm' must be 'symmetric' or 'hermitian', not {0}"
             raise ValueError(msg.format(algorithm))
-        if not R.is_exact():
-            msg = "entries of the matrix must be in an exact ring, not {0}"
-            raise TypeError(msg.format(R))
-        try:
-            F = R.fraction_field()
-        except (NotImplementedError, TypeError):
-            msg = 'Unable to create the fraction field of {0}'
-            raise TypeError(msg.format(R))
-        if check and algorithm == 'symmetric':
-            if not self.is_symmetric():
-                msg = "matrix is not symmetric (maybe try the 'hermitian' keyword)"
-                raise ValueError(msg)
-        if check and algorithm == 'hermitian':
-            if not self.is_hermitian():
-                raise ValueError('matrix is not hermitian')
-        conjugate = (algorithm == 'hermitian')
-        # we need a copy no matter what, so we
-        # (potentially) change to fraction field at the same time
-        L = self.change_ring(F)
-        m = L._nrows
-        zero = F(0)
-        one = F(1)
-        d = []
-        d_inv = []
-        for i in range(m):
-            for j in range(i+1):
-                t = L.get_unsafe(i, j)
-                if conjugate:
-                    for k in range(j):
-                        t -= L.get_unsafe(k,i)*L.get_unsafe(j,k).conjugate()
-                else:
-                    for k in range(j):
-                        t -= L.get_unsafe(k,i)*L.get_unsafe(j,k)
-                if i == j:
-                    if t == zero:
-                        msg = "{0}x{0} leading principal submatrix is singular, so cannot create indefinite factorization"
-                        raise ValueError(msg.format(i+1))
-                    d.append(t)
-                    d_inv.append(one/t)
-                    L.set_unsafe(i, i, one)
-                else:
-                    L.set_unsafe(j, i, t)
-                    L.set_unsafe(i, j, (d_inv[j] * t))
-        # Triangularize output matrix
-        for i in range(m):
-            for j in range(i+1, m):
-                L.set_unsafe(i, j, zero)
-        return L, d
+        cache_string = 'indefinite_factorization_' + algorithm
+        factors = self.fetch(cache_string)
+        if factors is None:
+            R = self.base_ring()
+            if not self.is_square():
+                msg = "matrix must be square, not {0} x {1}"
+                raise ValueError(msg.format(self.nrows(), self.ncols()))
+            if not algorithm in ['symmetric', 'hermitian']:
+                msg = "'algorithm' must be 'symmetric' or 'hermitian', not {0}"
+                raise ValueError(msg.format(algorithm))
+            if not R.is_exact():
+                msg = "entries of the matrix must be in an exact ring, not {0}"
+                raise TypeError(msg.format(R))
+            try:
+                F = R.fraction_field()
+            except (NotImplementedError, TypeError):
+                msg = 'Unable to create the fraction field of {0}'
+                raise TypeError(msg.format(R))
+            if check and algorithm == 'symmetric':
+                if not self.is_symmetric():
+                    msg = "matrix is not symmetric (maybe try the 'hermitian' keyword)"
+                    raise ValueError(msg)
+            if check and algorithm == 'hermitian':
+                if not self.is_hermitian():
+                    raise ValueError('matrix is not hermitian')
+            conjugate = (algorithm == 'hermitian')
+            # we need a copy no matter what, so we
+            # (potentially) change to fraction field at the same time
+            L = self.change_ring(F)
+            m = L._nrows
+            zero = F(0)
+            one = F(1)
+            d = []
+            d_inv = []
+            for i in range(m):
+                for j in range(i+1):
+                    t = L.get_unsafe(i, j)
+                    if conjugate:
+                        for k in range(j):
+                            t -= L.get_unsafe(k,i)*L.get_unsafe(j,k).conjugate()
+                    else:
+                        for k in range(j):
+                            t -= L.get_unsafe(k,i)*L.get_unsafe(j,k)
+                    if i == j:
+                        if t == zero:
+                            msg = "{0}x{0} leading principal submatrix is singular, so cannot create indefinite factorization"
+                            raise ValueError(msg.format(i+1))
+                        d.append(t)
+                        d_inv.append(one/t)
+                        L.set_unsafe(i, i, one)
+                    else:
+                        L.set_unsafe(j, i, t)
+                        L.set_unsafe(i, j, (d_inv[j] * t))
+            # Triangularize output matrix
+            for i in range(m):
+                for j in range(i+1, m):
+                    L.set_unsafe(i, j, zero)
+            L.set_immutable()
+            d = tuple(d)
+            factors = (L, d)
+            self.cache(cache_string, factors)
+        return factors
 
     def indefinite_factorization(self, algorithm='symmetric', check=True):
         r"""

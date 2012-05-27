@@ -2406,9 +2406,6 @@ class PickleExplainer(object):
 #         sage: explain_picklejar(std) # long time (~45s on my computer)
 #         doctest:...: DeprecationWarning: Your data is stored in an old format. Please use the save() function to store your data in a more recent format.
 #         doctest:...: DeprecationWarning: Your data is stored in an old format. Please use the save() function to store your data in a more recent format.
-#         doctest:...: DeprecationWarning: RQDF is deprecated; use RealField(212) instead.
-#         doctest:...: DeprecationWarning: RQDF is deprecated; use RealField(212) instead.
-#         doctest:...: DeprecationWarning: RQDF is deprecated; use RealField(212) instead.
 #         4... matches; 0 mismatches
 #     """
 #     # Largely copied from unpickle_all in sage_object.pyx

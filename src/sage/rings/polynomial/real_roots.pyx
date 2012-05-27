@@ -154,19 +154,6 @@ cimport numpy
 # TODO: Just for the fabs function below
 from math import fabs
 
-# We need to put x86-family CPUs in round-to-double mode.
-# To do this, we call fpu_fix_start/fpu_fix_end from the quad-double package.
-# We could use them like this:
-#   from sage.rings.real_rqdf cimport fpu_fix_start, fpu_fix_end
-# but that requires compiling this file into C++.  Instead, we copy the
-# following declarations from real_rqdf.pxd:
-
-# For controlling the round-to-double bit on x86 machines
-# These functions have no effects on other platforms
-# cdef extern from "qd/fpu.h":
-#     void fpu_fix_start(unsigned int *old_cw)
-#     void fpu_fix_end(unsigned int *old_cw)
-
 include "../../ext/cdefs.pxi"
 include "../../ext/gmp.pxi"
 

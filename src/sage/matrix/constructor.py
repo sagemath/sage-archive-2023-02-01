@@ -288,7 +288,9 @@ def matrix(*args, **kwds):
         sage: m=matrix(QQ,5,[1,2,3,4,5,6]); m; m.parent()
         Traceback (most recent call last):
         ...
-        TypeError: entries has the wrong length
+        TypeError: cannot construct an element of
+        Full MatrixSpace of 5 by 1 dense matrices over Rational Field
+        from [1, 2, 3, 4, 5, 6]!
         sage: m=matrix({(1,1): 2}); m; m.parent()
         [0 0]
         [0 2]

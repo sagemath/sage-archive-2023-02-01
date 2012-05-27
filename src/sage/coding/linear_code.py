@@ -2136,19 +2136,8 @@ class LinearCode(module.Module_old):
             Linear code of length 5, dimension 4 over Finite Field of size 2
         """
         G = self.gen_mat()
-        F = self.base_ring()
-        nC = len(G.columns())
-        kC = len(G.rows())
-        nL = nC-len(L)
-        colsGnotL = [G.columns()[i] for i in range(nC) if not(i in L)]
-        MS1 = MatrixSpace(F, kC, nL)
-        GL1 = MS1(list(colsGnotL))
-        VnotL = GL1.row_space()
-        B = VnotL.basis()
-        k = len(list(B))
-        MS2 = MatrixSpace(F, k, nL)
-        GL2 = MS2(list(B))
-        return LinearCode(GL2)
+        GL = G.matrix_from_columns([i for i in range(G.ncols()) if i not in L])
+        return LinearCode(GL.row_space().basis_matrix())
 
     def random_element(self, *args, **kwds):
         """

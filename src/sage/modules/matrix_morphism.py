@@ -1185,10 +1185,6 @@ class MatrixMorphism(MatrixMorphism_abstract):
             sage: loads(A.dumps()) == A
             True
         """
-        if not matrix.is_Matrix(A):
-            A = matrix.MatrixSpace(parent.category().base_ring(),
-                                   parent.domain().rank(),
-                                   parent.codomain().rank())(A)
         R = A.base_ring()
         if A.nrows() != parent.domain().rank():
             raise ArithmeticError, "number of rows of matrix (=%s) must equal rank of domain (=%s)"%(A.nrows(), parent.domain().rank())
@@ -1224,7 +1220,8 @@ class MatrixMorphism(MatrixMorphism_abstract):
         EXAMPLES::
 
             sage: V = ZZ^2; W = ZZ^3
-            sage: phi = V.hom([3*V.0 - 5*V.1, 4*V.0 + 2*V.1, V.0 + V.1], W)
+            sage: m = column_matrix([3*V.0 - 5*V.1, 4*V.0 + 2*V.1, V.0 + V.1])
+            sage: phi = V.hom(m, W)
             sage: phi.matrix()
             [ 3  4  1]
             [-5  2  1]

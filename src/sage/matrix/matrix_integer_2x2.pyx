@@ -153,7 +153,8 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
             sage: MS([11,3])
             Traceback (most recent call last):
             ...
-            TypeError: entries has the wrong length
+            TypeError: cannot construct an element of
+            Space of 2x2 integer matrices from [11, 3]!
         """
         matrix.Matrix.__init__(self, parent)
 

@@ -13,7 +13,7 @@ Wrapper around Pynac's constants
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 from sage.symbolic.ring import SR
 
-include "../libs/ginac/decl.pxi"
+from sage.libs.ginac cimport *
 include "../ext/stdsage.pxi"
 
 cdef extern from "pynac/constant.h":

@@ -14,8 +14,8 @@ Support for symbolic functions.
 """
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
-include "../libs/ginac/decl.pxi"
 
+from sage.libs.ginac cimport *
 
 from sage.structure.sage_object cimport SageObject
 from expression cimport new_Expression_from_GEx, Expression

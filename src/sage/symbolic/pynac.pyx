@@ -15,8 +15,8 @@ cdef extern from "pynac_cc.h":
 
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
-include "../libs/ginac/decl.pxi"
 
+from sage.libs.ginac cimport *
 
 # for complex log and log gamma
 include "../gsl/gsl_complex.pxi"

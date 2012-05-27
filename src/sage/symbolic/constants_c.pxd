@@ -1,4 +1,4 @@
-include "../libs/ginac/decl.pxi"
+from sage.libs.ginac cimport GConstant
 
 cdef class PynacConstant:
     cdef GConstant* pointer

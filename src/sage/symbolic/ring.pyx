@@ -19,7 +19,7 @@ include "../ext/cdefs.pxi"
 
 #initialize_ginac()
 
-include "../libs/ginac/decl.pxi"
+from sage.libs.ginac cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr import RealNumber

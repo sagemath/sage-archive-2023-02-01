@@ -1,4 +1,3 @@
-include "../libs/ginac/decl.pxi"
 from sage.symbolic.expression cimport Expression
 from sage.structure.sage_object cimport SageObject
 

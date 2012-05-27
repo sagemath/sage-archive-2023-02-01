@@ -11785,8 +11785,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def all_paths(self, start, end):
         """
-        Returns a list of all paths (also lists) between a pair of vertices
-        (start, end) in the (di)graph.
+        Returns a list of all paths (also lists) between a pair of
+        vertices (start, end) in the (di)graph. If ``start`` is the same
+        vertex as ``end``, then ``[[start]]`` is returned -- a list
+        containing the 1-vertex, 0-edge path "``start``".
 
         EXAMPLES::
 
@@ -11832,11 +11834,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: ug = dg.to_undirected()
             sage: sorted(ug.all_paths(0,3))
             [[0, 1, 3], [0, 2, 3], [0, 3]]
+
+        Starting and ending at the same vertex (see :trac:`13006`)::
+
+            sage: graphs.CompleteGraph(4).all_paths(2,2)
+            [[2]]
         """
         if self.is_directed():
             iterator=self.neighbor_out_iterator
         else:
             iterator=self.neighbor_iterator
+        if start == end:
+            return [[start]]
         all_paths = []      # list of
         act_path = []       # the current path
         act_path_iter = []  # the neighbor/successor-iterators of the current path

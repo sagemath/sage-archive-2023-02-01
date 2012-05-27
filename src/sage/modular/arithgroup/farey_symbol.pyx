@@ -564,3 +564,12 @@ cdef public object convert_to_SL2Z(cpp_SL2Z M):
    c = convert_to_Integer(M.c())
    d = convert_to_Integer(M.d())
    return SL2Z([a, b, c, d])
+
+# Use them to work around Cython bug forcing the unused
+# declarations to be emitted.
+cdef void _use_conversions():
+    &convert_to_long
+    &convert_to_Integer
+    &convert_to_rational
+    &convert_to_cusp
+    &convert_to_SL2Z

@@ -188,8 +188,8 @@ cdef MethodType
 from types import MethodType
 
 from sage.categories.category   import Category
-from sage.structure.parent      cimport Parent, AttributeErrorMessage
-from sage.structure.parent      import is_extension_type, getattr_from_other_class
+from sage.structure.parent      cimport Parent
+from sage.structure.misc        import is_extension_type, getattr_from_other_class, AttributeErrorMessage
 from sage.misc.lazy_format      import LazyFormat
 
 # This classes uses element.pxd.  To add data members, you

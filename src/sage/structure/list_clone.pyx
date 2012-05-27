@@ -295,7 +295,7 @@ cdef class ClonableElement(Element):
         if self._is_immutable:
             raise ValueError, "object is immutable; please change a copy instead."
 
-    cpdef inline bint is_mutable(self):
+    cpdef bint is_mutable(self):
         """
         Returns ``True`` if ``self`` is mutable (can be changed) and ``False``
         if it is not.
@@ -316,7 +316,7 @@ cdef class ClonableElement(Element):
         """
         return not self._is_immutable
 
-    cpdef inline bint is_immutable(self):
+    cpdef bint is_immutable(self):
         """
         Returns ``True`` if ``self`` is immutable (can not be changed)
         and ``False`` if it is not.
@@ -337,7 +337,7 @@ cdef class ClonableElement(Element):
         """
         return self._is_immutable
 
-    cpdef inline set_immutable(self):
+    cpdef set_immutable(self):
         """
         Makes ``self`` immutable, so it can never again be changed.
 
@@ -356,7 +356,7 @@ cdef class ClonableElement(Element):
         """
         self._is_immutable = True
 
-    cpdef inline _set_mutable(self):
+    cpdef _set_mutable(self):
         """
         Makes ``self`` mutable, so it can be changed.
 
@@ -393,7 +393,7 @@ cdef class ClonableElement(Element):
                 self._hash = self._hash_()
         return self._hash
 
-    cpdef inline ClonableElement clone(self, bint check=True):
+    cpdef ClonableElement clone(self, bint check=True):
         """
         Returns a clone that is mutable copy of ``self``.
 
@@ -416,7 +416,7 @@ cdef class ClonableElement(Element):
         res._needs_check = check
         return res
 
-    cpdef inline ClonableElement __enter__(self):
+    cpdef ClonableElement __enter__(self):
         """
         Implement the self guarding clone protocol.
 
@@ -535,7 +535,7 @@ cdef class ClonableArray(ClonableElement):
         """
         return bool(self._list)
 
-    cpdef inline list _get_list(self):
+    cpdef list _get_list(self):
         """
         Returns the list embedded in ``self``.
 
@@ -550,7 +550,7 @@ cdef class ClonableArray(ClonableElement):
         """
         return self._list
 
-    cpdef inline _set_list(self, list lst):
+    cpdef _set_list(self, list lst):
         """
         Set the list embedded in ``self``.
 
@@ -806,7 +806,7 @@ cdef class ClonableArray(ClonableElement):
         cdef ClonableArray rgt = <ClonableArray>right
         return cmp(left._list, rgt._list)
 
-    cpdef inline ClonableArray __copy__(self):
+    cpdef ClonableArray __copy__(self):
         """
         Returns a copy of ``self``
 
@@ -850,7 +850,7 @@ cdef class ClonableArray(ClonableElement):
             res.__dict__ = self.__dict__.copy()
         return res
 
-    cpdef inline check(self):
+    cpdef check(self):
         """
         Check that ``self`` fulfill the invariants
 
@@ -868,7 +868,7 @@ cdef class ClonableArray(ClonableElement):
         """
         assert False, "This should never be called, please overload"
 
-    cpdef inline long _hash_(self):
+    cpdef long _hash_(self):
         """
         Return the hash value of ``self``.
 
@@ -1440,7 +1440,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         return self.list().__iter__()
 
-    cpdef inline list list(self):
+    cpdef list list(self):
         """
         Convert self into a Python list.
 
@@ -1697,7 +1697,7 @@ cdef class ClonableIntArray(ClonableElement):
                     return 1
         return reslen
 
-    cpdef inline ClonableIntArray __copy__(self):
+    cpdef ClonableIntArray __copy__(self):
         """
         Returns a copy of ``self``
 
@@ -1743,7 +1743,7 @@ cdef class ClonableIntArray(ClonableElement):
             res.__dict__ = self.__dict__.copy()
         return res
 
-    cpdef inline check(self):
+    cpdef check(self):
         """
         Check that ``self`` fulfill the invariants
 
@@ -1761,7 +1761,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         assert False, "This should never be called, please overload"
 
-    cpdef inline long _hash_(self):
+    cpdef long _hash_(self):
         """
         Return the hash value of ``self``.
 

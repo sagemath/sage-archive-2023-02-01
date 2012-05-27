@@ -91,7 +91,7 @@ from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
 
-def is_Polynomial(f):
+cpdef is_Polynomial(f):
     """
     Return True if f is of type univariate polynomial.
 

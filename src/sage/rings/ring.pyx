@@ -79,16 +79,12 @@ from sage.structure.category_object import check_default_category
 from sage.misc.prandom import randint, randrange
 from sage.categories.rings import Rings
 from sage.categories.commutative_rings import CommutativeRings
-from sage.categories.commutative_algebras import CommutativeAlgebras
-from sage.categories.algebras import Algebras
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.euclidean_domains import EuclideanDomains
-from sage.categories.fields import Fields
 
 _Rings = Rings()
 _CommutativeRings = CommutativeRings()
-_Fields = Fields()
 
 cdef class Ring(ParentWithGens):
     """
@@ -2026,6 +2022,12 @@ def is_Field(x):
     if result:
         x._refine_category_(_Fields)
     return result
+
+# This imports is_Field, so must be executed after is_Field is defined.
+from sage.categories.algebras import Algebras
+from sage.categories.commutative_algebras import CommutativeAlgebras
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 cdef class Field(PrincipalIdealDomain):
     """

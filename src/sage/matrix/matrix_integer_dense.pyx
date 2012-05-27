@@ -5111,7 +5111,7 @@ cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):
 
 
 
-def _lift_crt(Matrix_integer_dense M, residues, moduli=None):
+cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     """
     TESTS::
 

@@ -96,13 +96,13 @@ cdef extern from "mpz_pylong.h":
 
 cdef class Rational(sage.structure.element.FieldElement)
 
-cdef public inline void set_from_mpq(Rational self, mpq_t value):
+cdef inline void set_from_mpq(Rational self, mpq_t value):
     mpq_set(self.value, value)
 
-cdef public inline void set_from_Rational(Rational self, Rational other):
+cdef inline void set_from_Rational(Rational self, Rational other):
     mpq_set(self.value, other.value)
 
-cdef public inline void set_from_Integer(Rational self, integer.Integer other):
+cdef inline void set_from_Integer(Rational self, integer.Integer other):
     mpq_set_z(self.value, other.value)
 
 cdef object Rational_mul_(Rational a, Rational b):

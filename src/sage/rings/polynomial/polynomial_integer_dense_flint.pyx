@@ -28,7 +28,7 @@ from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.structure.element import coerce_binop
 
-from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.polynomial_element cimport is_Polynomial
 
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 

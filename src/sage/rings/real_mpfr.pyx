@@ -356,7 +356,7 @@ cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate 
 
 cdef object RealField_cache = weakref.WeakValueDictionary()
 
-def RealField(int prec=53, int sci_not=0, rnd="RNDN"):
+cpdef RealField(int prec=53, int sci_not=0, rnd="RNDN"):
     """
     RealField(prec, sci_not, rnd):
 

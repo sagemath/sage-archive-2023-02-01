@@ -29,3 +29,5 @@ cdef class RealNumber(sage.structure.element.RingElement):
     cdef _set(self, x, int base)
     cdef _set_from_GEN_REAL(self, GEN g)
     cdef RealNumber abs(RealNumber self)
+
+cpdef RealField(int prec=*, int sci_not=*, rnd=*)

@@ -48,7 +48,7 @@ include "../ext/python_rich_object.pxi"
     #return ["Used pool %s / %s times" % (use_pool, total_alloc),
             #"Pool contains %s / %s items" % (integer_pool_count, integer_pool_size)]
 
-cdef public hook_tp_functions(object global_dummy, allocfunc tp_alloc, newfunc tp_new, freefunc tp_free, destructor tp_dealloc, bint useGC):
+cdef hook_tp_functions(object global_dummy, allocfunc tp_alloc, newfunc tp_new, freefunc tp_free, destructor tp_dealloc, bint useGC):
     """
     Initialize the fast integer creation functions.
     """

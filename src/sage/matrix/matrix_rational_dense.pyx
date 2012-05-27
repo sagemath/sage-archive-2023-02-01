@@ -61,8 +61,7 @@ cimport sage.structure.element
 from sage.structure.sequence import Sequence
 from sage.rings.rational cimport Rational
 from matrix cimport Matrix
-from matrix_integer_dense cimport Matrix_integer_dense
-from matrix_integer_dense import _lift_crt
+from matrix_integer_dense cimport Matrix_integer_dense, _lift_crt
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.ring import is_Ring

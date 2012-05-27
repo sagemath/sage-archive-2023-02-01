@@ -599,7 +599,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         return x
 
 
-cdef public api ComplexDoubleElement new_ComplexDoubleElement():
+cdef ComplexDoubleElement new_ComplexDoubleElement():
     """
     Creates a new (empty) ComplexDoubleElement.
     """

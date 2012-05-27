@@ -14,5 +14,6 @@ cdef class Expression(CommutativeRingElement):
     cpdef object pyobject(self)
     cpdef Expression _subs_expr(self, expr)
 
+cpdef bint is_Expression(x)
 cdef Expression new_Expression_from_GEx(parent, GEx juice)
 cdef Expression new_Expression_from_pyobject(parent, x)

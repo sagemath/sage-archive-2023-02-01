@@ -1778,6 +1778,9 @@ ext_modules = [
     Extension('sage.structure.mutability',
               sources = ['sage/structure/mutability.pyx']),
 
+    Extension('sage.structure.misc',
+              sources = ['sage/structure/misc.pyx']),
+
     Extension('sage.structure.parent',
               sources = ['sage/structure/parent.pyx']),
 

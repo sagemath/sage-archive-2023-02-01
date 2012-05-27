@@ -13,8 +13,9 @@ import sage.all
 from sage.libs.mpfr cimport *
 from sage.libs.gmp.all cimport *
 
+from sage.misc.lazy_import import lazy_import
 from sage.rings.complex_field import ComplexField
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr cimport RealField
 
 cpdef int bitcount(n):
     """

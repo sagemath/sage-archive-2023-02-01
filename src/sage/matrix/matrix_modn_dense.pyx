@@ -158,6 +158,46 @@ from sage.structure.proof.proof import get_flag as get_proof_flag
 cdef long num = 1
 cdef bint little_endian = (<char*>(&num))[0]
 
+def __matrix_from_rows_of_matrices(X):
+    """
+    Return a matrix whose ith row is ``X[i].list()``.
+
+    INPUT:
+
+    - ``X`` - a nonempty list of matrices of the same size mod a
+       single modulus ``p``
+
+    OUTPUT: A single matrix mod p whose ith row is ``X[i].list()``.
+
+
+    """
+    # The code below is just a fast version of the following:
+    ##     from constructor import matrix
+    ##     K = X[0].base_ring()
+    ##     v = sum([y.list() for y in X],[])
+    ##     return matrix(K, len(X), X[0].nrows()*X[0].ncols(), v)
+
+    from matrix_space import MatrixSpace
+    cdef Matrix_modn_dense A, T
+    cdef Py_ssize_t i, n, m
+    n = len(X)
+
+    T = X[0]
+    m = T._nrows * T._ncols
+    A = Matrix_modn_dense.__new__(Matrix_modn_dense, MatrixSpace(X[0].base_ring(), n, m), 0, 0, 0)
+    A.p = T.p
+    A.gather = T.gather
+
+    for i from 0 <= i < n:
+        T = X[i]
+        memcpy(A._entries + i*m, T._entries, sizeof(mod_int)*m)
+    return A
+
+cpdef is_Matrix_modn_dense(self):
+    """
+    """
+    return isinstance(self, Matrix_modn_dense) | isinstance(self, Matrix_modn_dense_float) | isinstance(self, Matrix_modn_dense_double)
+
 ##############################################################################
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -1900,43 +1940,3 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return ans
 
     _matrix_from_rows_of_matrices = staticmethod(__matrix_from_rows_of_matrices)
-
-def __matrix_from_rows_of_matrices(X):
-    """
-    Return a matrix whose ith row is ``X[i].list()``.
-
-    INPUT:
-
-    - ``X`` - a nonempty list of matrices of the same size mod a
-       single modulus ``p``
-
-    OUTPUT: A single matrix mod p whose ith row is ``X[i].list()``.
-
-
-    """
-    # The code below is just a fast version of the following:
-    ##     from constructor import matrix
-    ##     K = X[0].base_ring()
-    ##     v = sum([y.list() for y in X],[])
-    ##     return matrix(K, len(X), X[0].nrows()*X[0].ncols(), v)
-
-    from matrix_space import MatrixSpace
-    cdef Matrix_modn_dense A, T
-    cdef Py_ssize_t i, n, m
-    n = len(X)
-
-    T = X[0]
-    m = T._nrows * T._ncols
-    A = Matrix_modn_dense.__new__(Matrix_modn_dense, MatrixSpace(X[0].base_ring(), n, m), 0, 0, 0)
-    A.p = T.p
-    A.gather = T.gather
-
-    for i from 0 <= i < n:
-        T = X[i]
-        memcpy(A._entries + i*m, T._entries, sizeof(mod_int)*m)
-    return A
-
-cpdef is_Matrix_modn_dense(self):
-    """
-    """
-    return isinstance(self, Matrix_modn_dense) | isinstance(self, Matrix_modn_dense_float) | isinstance(self, Matrix_modn_dense_double)

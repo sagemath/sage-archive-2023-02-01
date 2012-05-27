@@ -19,9 +19,7 @@ Base class for maps
 include "../ext/stdsage.pxi"
 
 import homset
-
-from sage.structure.element import generic_power
-from sage.structure.parent import Set_PythonType
+from sage.structure.parent cimport Set_PythonType
 
 # copied from sage.structure.parent
 cdef inline parent_c(x):
@@ -1002,6 +1000,7 @@ cdef class Map(Element):
         if n == 0:
             from sage.categories.morphism import IdentityMorphism
             return IdentityMorphism(self._parent)
+        from sage.structure.element import generic_power
         return generic_power(self, n)
 
     def section(self):

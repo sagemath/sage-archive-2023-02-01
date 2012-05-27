@@ -179,7 +179,7 @@ cdef object numpy_object_interface = {'typestr': '|O'}
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
 
-cdef public int set_mpz(Integer self, mpz_t value):
+cdef int set_mpz(Integer self, mpz_t value):
     mpz_set(self.value, value)
 
 cdef set_from_Integer(Integer self, Integer other):
@@ -188,7 +188,7 @@ cdef set_from_Integer(Integer self, Integer other):
 cdef set_from_int(Integer self, int other):
     mpz_set_si(self.value, other)
 
-cdef public mpz_t* get_value(Integer self):
+cdef mpz_t* get_value(Integer self):
     return &self.value
 
 
@@ -3425,13 +3425,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 from sage.interfaces.all import kash as I
             else:
                 from sage.interfaces.all import magma as I
-            F = I.eval('Factorization(%s)'%n)
-            i = F.rfind(']') + 1
-            F = F[:i]
-            F = F.replace("<","(").replace(">",")")
-            F = eval(F)
-            if not int_:
-                F = [(Integer(a), int(b)) for a,b in F]
+            str_res = I.eval('Factorization(%s)'%n)
+            # The result looks like "[ <n1, p1>, <p2, e2>, ... ]
+            str_res = str_res.replace(']', '').replace('[', '').replace('>', '').replace('<', '').split(',')
+            res = [int(s.strip()) for s in str_res]
+            exp_type = int if int_ else Integer
+            F = [(Integer(p), exp_type(e)) for p,e in zip(res[0::2], res[1::2])]
             return Factorization(F, unit)
         else:
             raise ValueError, "Algorithm is not known"

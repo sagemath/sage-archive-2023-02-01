@@ -85,7 +85,7 @@ from sage.categories.map cimport Map
 import sage.categories.morphism
 from sage.categories.morphism import IdentityMorphism
 from sage.categories.action import InverseAction, PrecomposedAction
-from parent import Set_PythonType
+from parent cimport Set_PythonType
 from coerce_exceptions import CoercionException
 
 import sys, traceback

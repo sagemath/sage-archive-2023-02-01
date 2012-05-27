@@ -24,8 +24,7 @@ from sage.libs.ginac cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr import RealNumber
 
-from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject
-from sage.symbolic.expression import is_Expression
+from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
 from sage.misc.latex import latex_variable_name
 from sage.structure.element cimport RingElement, Element

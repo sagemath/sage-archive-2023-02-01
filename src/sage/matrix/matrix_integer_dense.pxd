@@ -38,6 +38,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows)
 
 cdef void four_dim_det(mpz_t, mpz_t *)
+cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=*)
 
 ################################################################
 # fast conversion to PARI on the stack

@@ -155,7 +155,7 @@ LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 SAGE_DOCTEST_ALLOW_TABS
 """
 
-def is_Expression(x):
+cpdef bint is_Expression(x):
     """
     Returns True if *x* is a symbolic Expression.
 
@@ -171,7 +171,7 @@ def is_Expression(x):
     """
     return isinstance(x, Expression)
 
-def is_SymbolicEquation(x):
+cpdef bint is_SymbolicEquation(x):
     """
     Returns True if *x* is a symbolic equation.
 

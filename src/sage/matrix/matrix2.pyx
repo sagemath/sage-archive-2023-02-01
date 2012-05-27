@@ -9537,6 +9537,306 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('cholesky', L)
         return L
 
+    def cholesky(self):
+        r"""
+        Returns the Cholesky decomposition of a symmetric or Hermitian matrix.
+
+        INPUT:
+
+        A square matrix that is real, symmetric and positive definite.
+        Or a square matrix that is complex, Hermitian and positive
+        definite.  Generally, the base ring for the entries of the
+        matrix needs to be a subfield of the algebraic numbers
+        (``QQbar``).  Examples include the rational numbers (``QQ``),
+        some number fields, and real algebraic numbers and the
+        algebraic numbers themselves.
+
+        OUTPUT:
+
+        For a matrix `A` the routine returns a lower triangular
+        matrix `L` such that,
+
+        .. math::
+
+            A = LL^\ast
+
+        where `L^\ast` is the conjugate-transpose in the complex case,
+        and just the transpose in the real case.  If the matrix
+        fails to be positive definite (perhaps because it is not
+        symmetric or Hermitian), then a ``ValueError`` results.
+
+        ALGORITHM:
+
+        Whether or not the matrix is positive definite is checked
+        first in every case.  This is accomplished with an
+        indefinite factorization (see :meth:`indefinite_factorization`)
+        which caches its result.  This algorithm is of an order `n^3/3`.
+        If the matrix is positive definite, this computation always
+        succeeds, using just field operations.  The transistion to a
+        Cholesky decomposition "only" requires computing square roots
+        of the positive (real) entries of the diagonal matrix produced in
+        the indefinite factorization.  Hence, there is no real penalty
+        in the positive definite check (here, or prior to calling this
+        routine), but a field extension with square roots may not be
+        implemented in all reasonable cases.
+
+        EXAMPLES:
+
+        This simple example has a result with entries that remain
+        in the field of rational numbers.  ::
+
+            sage: A = matrix(QQ, [[ 4, -2,  4,  2],
+            ...                   [-2, 10, -2, -7],
+            ...                   [ 4, -2,  8,  4],
+            ...                   [ 2, -7,  4,  7]])
+            sage: A.is_symmetric()
+            True
+            sage: L = A.cholesky()
+            sage: L
+            [ 2  0  0  0]
+            [-1  3  0  0]
+            [ 2  0  2  0]
+            [ 1 -2  1  1]
+            sage: L.parent()
+            Full MatrixSpace of 4 by 4 dense matrices over Rational Field
+            sage: L*L.transpose() == A
+            True
+
+        This seemingly simple example requires first moving to
+        the rational numbers for field operations, and then square
+        roots necessitate that the result has entries in the field
+        of algebraic numbers.  ::
+
+            sage: A = matrix(ZZ, [[ 78, -30, -37,  -2],
+            ...                   [-30, 102, 179, -18],
+            ...                   [-37, 179, 326, -38],
+            ...                   [ -2, -18, -38,  15]])
+            sage: A.is_symmetric()
+            True
+            sage: L = A.cholesky()
+            sage: L
+            [   8.83176086632785?                    0                    0                    0]
+            [ -3.396831102433787?    9.51112708681461?                    0                    0]
+            [ -4.189425026335004?   17.32383862241232?   2.886751345948129?                    0]
+            [-0.2264554068289192?  -1.973397116652010?  -1.649572197684645?   2.886751345948129?]
+            sage: L.parent()
+            Full MatrixSpace of 4 by 4 dense matrices over Algebraic Field
+            sage: L*L.transpose() == A
+            True
+
+        Some subfields of the complex numbers, such as this number
+        field of complex numbers with rational real and imaginary parts,
+        allow for this computation.  ::
+
+            sage: C.<I> = QuadraticField(-1)
+            sage: A = matrix(C, [[        23,  17*I + 3,  24*I + 25,     21*I],
+            ...                  [ -17*I + 3,        38, -69*I + 89, 7*I + 15],
+            ...                  [-24*I + 25, 69*I + 89,        976, 24*I + 6],
+            ...                  [     -21*I, -7*I + 15,  -24*I + 6,       28]])
+            sage: A.is_hermitian()
+            True
+            sage: L = A.cholesky()
+            sage: L
+            [                4.79...?                         0                       0        0]
+            [   0.62...? - 3.54...?*I                  5.00...?                       0        0]
+            [   5.21...? - 5.00...?*I   13.58...? + 10.72...?*I               24.98...?        0]
+            [             -4.37...?*I   -0.10...? -  0.85...?*I  -0.21...? + 0.37...?*I 2.81...?]
+            sage: L.parent()
+            Full MatrixSpace of 4 by 4 dense matrices over Algebraic Field
+            sage: (L*L.conjugate_transpose() - A.change_ring(QQbar)).norm() < 10^-10
+            True
+
+        The field of algebraic numbers is an ideal setting for this
+        computation.  ::
+
+            sage: A = matrix(QQbar, [[        2,   4 + 2*I,   6 - 4*I],
+            ...                      [ -2*I + 4,        11, 10 - 12*I],
+            ...                      [  4*I + 6, 10 + 12*I,        37]])
+            sage: A.is_hermitian()
+            True
+            sage: L = A.cholesky()
+            sage: L
+            [                       1.414213562373095?         0                   0]
+            [2.828427124746190? - 1.414213562373095?*I         1                   0]
+            [4.242640687119285? + 2.828427124746190?*I  -2*I + 2  1.732050807568878?]
+            sage: L.parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Algebraic Field
+            sage: (L*L.conjugate_transpose() - A.change_ring(QQbar)).norm() < 10^-10
+            True
+
+
+        Results are cached, hence immutable.  Use the `copy` function
+        if you need to make a change.  ::
+
+            sage: A = matrix(QQ, [[ 4, -2,  4,  2],
+            ...                   [-2, 10, -2, -7],
+            ...                   [ 4, -2,  8,  4],
+            ...                   [ 2, -7,  4,  7]])
+            sage: L = A.cholesky()
+            sage: L.is_immutable()
+            True
+
+            sage: from copy import copy
+            sage: LC = copy(L)
+            sage: LC[0,0] = 1000
+            sage: LC
+            [1000    0    0    0]
+            [  -1    3    0    0]
+            [   2    0    2    0]
+            [   1   -2    1    1]
+
+        There are a variety of situations which will prevent the computation of a Cholesky decomposition.
+
+        The base ring must be exact.  For numerical work, create a
+        matrix with a base ring of `RDF` or `CDF` and use the
+        :meth:`sage.matrix.matrix_double_dense.Matrix_double_dense.cholesky`
+        method or matrices of that type. ::
+
+            sage: F = RealField(100)
+            sage: A = matrix(F, [[1.0, 3.0], [3.0, -6.0]])
+            sage: A.cholesky()
+            Traceback (most recent call last):
+            ...
+            TypeError: base ring of the matrix must be exact, not Real Field with 100 bits of precision
+
+        The base ring may not have a fraction field.  ::
+
+            sage: A = matrix(Integers(6), [[2, 0], [0, 4]])
+            sage: A.cholesky()
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to check positive definiteness because
+            Unable to create the fraction field of Ring of integers modulo 6
+
+        The base field may not have elements that are comparable to zero.  ::
+
+            sage: F.<a> = FiniteField(5^4)
+            sage: A = matrix(F, [[2+a^3, 3], [3, 3]])
+            sage: A.cholesky()
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to check positive definiteness because
+            cannot convert computations from Finite Field in a of size 5^4 into real numbers
+
+        The algebraic closure of the fraction field of the base ring may not be implemented.  ::
+
+            sage: F = Integers(7)
+            sage: A = matrix(F, [[4, 0], [0, 3]])
+            sage: A.cholesky()
+            Traceback (most recent call last):
+            ...
+            TypeError: base field needs an algebraic closure with square roots,
+            not Ring of integers modulo 7
+
+        The matrix may not be positive definite.  ::
+
+            sage: C.<I> = QuadraticField(-1)
+            sage: B = matrix(C, [[      2, 4 - 2*I, 2 + 2*I],
+            ...                  [4 + 2*I,       8,    10*I],
+            ...                  [2 - 2*I,   -10*I,      -3]])
+            sage: B.is_positive_definite()
+            False
+            sage: B.cholesky()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not positive definite,
+            so cannot compute Cholesky decomposition
+
+        The matrix could be positive semi-definite, and thus
+        lack a Cholesky decomposition.  ::
+
+            sage: A = matrix(QQ, [[21, 15, 12, -3],
+            ...                   [15, 12,  9,  12],
+            ...                   [12,  9,  7,  3],
+            ...                   [-3,  12,  3,  8]])
+            sage: A.is_positive_definite()
+            False
+            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
+            [21, 27, 0, 0]
+            sage: A.cholesky()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not positive definite,
+            so cannot compute Cholesky decomposition
+
+        Even in light of the above, you can sometimes get lucky
+        and arrive at a situation where a particular matrix has
+        a Cholesky decomposition when the general characteristics
+        of the matrix suggest this routine would fail. In this
+        example, the indefinite factorization produces a
+        diagonal matrix whose elements from the finite field
+        convert naturally to positive integers and are also
+        perfect squares.  ::
+
+            sage: F.<a> = FiniteField(5^3)
+            sage: A = matrix(F, [[         4,       2*a^2 + 3,         4*a + 1],
+            ...                  [ 2*a^2 + 3,         2*a + 2, 4*a^2 + 4*a + 4],
+            ...                  [   4*a + 1, 4*a^2 + 4*a + 4,       a^2 + 4*a]])
+            sage: A.is_symmetric()
+            True
+            sage: L = A.cholesky()
+            sage: L
+            [            3             0             0]
+            [    4*a^2 + 1             1             0]
+            [      3*a + 2 a^2 + 2*a + 3             3]
+            sage: L*L.transpose() == A
+            True
+
+        AUTHOR:
+
+        - Rob Beezer (2012-05-27)
+        """
+        from copy import copy
+        C = self.fetch('cholesky')
+        if C is None:
+            if not self.is_square():
+                msg = "matrix must be square, not {0} x {1}"
+                raise ValueError(msg.format(self.nrows(), self.ncols()))
+            if not self.base_ring().is_exact():
+                msg = 'base ring of the matrix must be exact, not {0}'
+                raise TypeError(msg.format(self.base_ring()))
+            try:
+                posdef = self.is_positive_definite()
+            except (ValueError, TypeError) as e:
+                msg = "unable to check positive definiteness because " + e.message
+                raise ValueError(msg)
+            if not posdef:
+                msg = "matrix is not positive definite, so cannot compute Cholesky decomposition"
+                raise ValueError(msg)
+            # the successful positive definite check will cache a Hermitian
+            # or symmetric indefinite factorization, as appropriate
+            factors = self.fetch('indefinite_factorization_hermitian')
+            if factors is None:
+                factors = self.fetch('indefinite_factorization_symmetric')
+            L = factors[0]
+            d = factors[1]
+            F = L.base_ring()  # field really
+            splits = []        # square roots of diagonal entries
+            for x in d:
+                try:
+                    sqrt = F(x.sqrt())
+                except (TypeError, ValueError):
+                    try:
+                        F = F.algebraic_closure()
+                    except (NotImplementedError, AttributeError):
+                        msg = "base field needs an algebraic closure with square roots, not {0}"
+                        raise TypeError(msg.format(F))
+                    # try again
+                    sqrt = F(x.sqrt())
+                splits.append(sqrt)
+            # move square root of the diagonal matrix
+            # into the lower triangular matrix
+            # We need a copy, to break immutability
+            # and the field may have changed as well
+            C = copy(L)
+            if F != C.base_ring():
+                C = C.change_ring(F)
+            for c in range(C.ncols()):
+                C.rescale_col(c, splits[c])
+            C.set_immutable()
+            self.cache('cholesky', C)
+        return C
+
     def LU(self, pivot=None, format='plu'):
         r"""
         Finds a decomposition into a lower-triangular matrix and

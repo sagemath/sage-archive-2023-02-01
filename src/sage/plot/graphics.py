@@ -1437,12 +1437,21 @@ class Graphics(SageObject):
         Via matplotlib, Sage allows setting of custom ticks.  See above
         for more details.
 
-        ::
+        Here the labels are not so useful::
 
-            sage: plot(sin(pi*x), (x, -8, 8)) # Labels not so helpful
-            sage: plot(sin(pi*x), (x, -8, 8), ticks=2) # Multiples of 2
-            sage: plot(sin(pi*x), (x, -8, 8), ticks=[[-7,-3,0,3,7],[-1/2,0,1/2]]) # Your choices
-            sage: plot(sin(pi*x), (x, -8, 8), ticks=[[],[]]) # No ticks at all!
+            sage: plot(sin(pi*x), (x, -8, 8))
+
+        Now put ticks at multiples of 2::
+
+            sage: plot(sin(pi*x), (x, -8, 8), ticks=2)
+
+        Or just choose where you want the ticks::
+
+            sage: plot(sin(pi*x), (x, -8, 8), ticks=[[-7,-3,0,3,7],[-1/2,0,1/2]])
+
+        Or no ticks at all::
+
+            sage: plot(sin(pi*x), (x, -8, 8), ticks=[[],[]])
 
         This can be very helpful in showing certain features of plots. ::
 

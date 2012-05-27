@@ -25,6 +25,7 @@ spkg/logs
 spkg/standard/.*\.spkg
 spkg/standard/notes.txt
 spkg/standard/numeric-24.2.txt
+spkg/standard/libdist_filelist
 spkg/optional
 sage-python
 Makefile.old

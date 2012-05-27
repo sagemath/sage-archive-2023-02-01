@@ -3192,33 +3192,149 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
     def cholesky(self):
         r"""
-        Return the cholesky factorization of this matrix.  The input
-        matrix must be symmetric and positive definite or an exception
-        will be raised.
+        Returns the Cholesky factorization of a matrix that
+        is real symmetric, or complex Hermitian.
 
-        .. WARNING::
+        INPUT:
 
-            This is deprecated!  Use :func:`~sage.matrix.matrix2.Matrix.cholesky_decomposition` instead.
+        Any square matrix with entries from ``RDF`` that is symmetric, or
+        with entries from ``CDF`` that is Hermitian.  The matrix must
+        be positive definite for the Cholesky decomposition to exist.
 
-        EXAMPLES::
+        OUTPUT:
 
-            sage: M = MatrixSpace(RDF,5)
-            sage: r = matrix(RDF,[[   0.,    0.,    0.,    0.,    1.],[   1.,    1.,    1.,    1.,    1.],[  16.,    8.,    4.,    2.,    1.],[  81.,   27.,    9.,    3.,    1.],[ 256.,   64.,   16.,    4.,    1.]])
+        For a matrix `A` the routine returns a lower triangular
+        matrix `L` such that,
 
-            sage: m = r*M.identity_matrix()*r.transpose()
-            sage: L = m.cholesky()
-            doctest... DeprecationWarning: cholesky is deprecated for matrices over RDF; use cholesky_decomposition instead.
-            sage: L*L.transpose()
+        .. math::
+
+            A = LL^\ast
+
+        where `L^\ast` is the conjugate-transpose in the complex case,
+        and just the transpose in the real case.  Is the matrix
+        fails to be positive definite (perhaps because it is not
+        symmetric or Hermitian), then a ``ValueError`` results.
+
+        EXAMPLES:
+
+        A real matrix that is symmetric and positive definite.  ::
+
+            sage: M = matrix(RDF,[[ 1,  1,    1,     1,     1],
+            ...                   [ 1,  5,   31,   121,   341],
+            ...                   [ 1, 31,  341,  1555,  4681],
+            ...                   [ 1,121, 1555,  7381, 22621],
+            ...                   [ 1,341, 4681, 22621, 69905]])
+            sage: M.is_symmetric()
+            True
+            sage: L = M.cholesky()
+            sage: L.round(6).zero_at(10^-10)
+            [   1.0    0.0         0.0        0.0     0.0]
+            [   1.0    2.0         0.0        0.0     0.0]
+            [   1.0   15.0   10.723805        0.0     0.0]
+            [   1.0   60.0   60.985814   7.792973     0.0]
+            [   1.0  170.0  198.623524  39.366567  1.7231]
+            sage: (L*L.transpose()).round(6).zero_at(10^-10)
             [ 1.0     1.0     1.0     1.0     1.0]
             [ 1.0     5.0    31.0   121.0   341.0]
             [ 1.0    31.0   341.0  1555.0  4681.0]
             [ 1.0   121.0  1555.0  7381.0 22621.0]
             [ 1.0   341.0  4681.0 22621.0 69905.0]
+
+        A complex matrix that is Hermitian and positive definite.  ::
+
+            sage: A = matrix(CDF, [[        23,  17*I + 3,  24*I + 25,     21*I],
+            ...                    [ -17*I + 3,        38, -69*I + 89, 7*I + 15],
+            ...                    [-24*I + 25, 69*I + 89,        976, 24*I + 6],
+            ...                    [     -21*I, -7*I + 15,  -24*I + 6,       28]])
+            sage: A.is_hermitian()
+            True
+            sage: L = A.cholesky()
+            sage: L.round(6).zero_at(10^-10)
+            [               4.795832                     0.0                    0.0       0.0]
+            [  0.625543 - 3.544745*I                5.004346                    0.0       0.0]
+            [   5.21286 - 5.004346*I 13.588189 + 10.721116*I              24.984023       0.0]
+            [            -4.378803*I  -0.104257 - 0.851434*I  -0.21486 + 0.371348*I  2.811799]
+            sage: (L*L.conjugate_transpose()).round(6).zero_at(10^-10)
+            [         23.0  3.0 + 17.0*I 25.0 + 24.0*I        21.0*I]
+            [ 3.0 - 17.0*I          38.0 89.0 - 69.0*I  15.0 + 7.0*I]
+            [25.0 - 24.0*I 89.0 + 69.0*I         976.0  6.0 + 24.0*I]
+            [      -21.0*I  15.0 - 7.0*I  6.0 - 24.0*I          28.0]
+
+        This routine will recognize when the input matrix is not
+        positive definite.  The negative eigenvalues are an
+        equivalent indicator.  (Eigenvalues of a Hermitian matrix
+        must be real, so there is no loss in ignoring the imprecise
+        imaginary parts).  ::
+
+            sage: A = matrix(RDF, [[ 3,  -6,   9,   6,  -9],
+            ...                    [-6,  11, -16, -11,  17],
+            ...                    [ 9, -16,  28,  16, -40],
+            ...                    [ 6, -11,  16,   9, -19],
+            ...                    [-9,  17, -40, -19,  68]])
+            sage: A.is_symmetric()
+            True
+            sage: A.eigenvalues()
+            [108.07..., 13.02..., -0.02..., -0.70..., -1.37...]
+            sage: A.cholesky()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not positive definite
+
+            sage: B = matrix(CDF, [[      2, 4 - 2*I, 2 + 2*I],
+            ...                    [4 + 2*I,       8,    10*I],
+            ...                    [2 - 2*I,   -10*I,      -3]])
+            sage: B.is_hermitian()
+            True
+            sage: [ev.real() for ev in B.eigenvalues()]
+            [15.88..., 0.08..., -8.97...]
+            sage: B.cholesky()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not positive definite
+
+        TESTS:
+
+        A trivial case. ::
+
+            sage: A = matrix(RDF, 0, [])
+            sage: A.cholesky()
+            []
+
+        The Cholesky factorization is only defined for square matrices.  ::
+
+            sage: A = matrix(RDF, 4, 5, range(20))
+            sage: A.cholesky()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cholesky decomposition requires a square matrix, not a 4 x 5 matrix
         """
-        # deprecation added 2009-05
-        from sage.misc.misc import deprecation
-        deprecation("cholesky is deprecated for matrices over RDF; use cholesky_decomposition instead.")
-        return self.cholesky_decomposition()
+        from sage.rings.real_double import RDF
+        from sage.rings.complex_double import CDF
+
+        cdef Matrix_double_dense L
+
+        if not self.is_square():
+            msg = "Cholesky decomposition requires a square matrix, not a {0} x {1} matrix"
+            raise ValueError(msg.format(self.nrows(), self.ncols()))
+        if self._nrows == 0:   # special case
+            return self.__copy__()
+
+        L = self.fetch('cholesky')
+        if L is None:
+            L = self._new()
+            global scipy
+            if scipy is None:
+                import scipy
+            import scipy.linalg
+            from numpy.linalg import LinAlgError
+            try:
+                L._matrix_numpy = scipy.linalg.cholesky(self._matrix_numpy, lower=1)
+            except LinAlgError:
+                msg = "matrix is not positive definite"
+                raise ValueError(msg)
+            L.set_immutable()
+            self.cache('cholesky', L)
+        return L
 
     cdef Vector _vector_times_matrix_(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:

@@ -270,8 +270,9 @@ def RealIntervalField(prec=53, sci_not=False):
         sage: RealIntervalField(200) is RealIntervalField(200)
         True
 
-    See the documentation for :class:`~sage.rings.real_mpfi.RealIntervalField_class`
-    for many more examples.
+    See the documentation for :class:`RealIntervalField_class
+    <sage.rings.real_mpfi.RealIntervalField_class>` for many more
+    examples.
     """
     try:
         return RealIntervalField_cache[prec, sci_not]

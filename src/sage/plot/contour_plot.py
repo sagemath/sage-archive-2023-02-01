@@ -460,9 +460,7 @@ def contour_plot(f, xrange, yrange, **options):
         sage: f(x, y) = cos(x) + sin(y)
         sage: contour_plot(f, (0, pi), (0, pi), axes=True)
 
-    ::
-
-    One can also plot over a reduced region:
+    One can also plot over a reduced region::
 
         sage: contour_plot(x**2-y**2, (x,-2, 2), (y,-2, 2),region=x-y,plot_points=300)
 

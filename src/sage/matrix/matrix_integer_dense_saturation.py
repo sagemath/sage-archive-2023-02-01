@@ -292,6 +292,22 @@ def index_in_saturation(A, proof=True):
         sage: W.index_in(S)
         18
 
+    For any zero matrix the index in its saturation is 1 (see :trac:`13034`)::
+
+        sage: m = matrix(ZZ, 3)
+        sage: m
+        [0 0 0]
+        [0 0 0]
+        [0 0 0]
+        sage: m.index_in_saturation()
+        1
+        sage: m = matrix(ZZ, 2, 3)
+        sage: m
+        [0 0 0]
+        [0 0 0]
+        sage: m.index_in_saturation()
+        1
+
     TESTS::
 
         sage: zero = matrix(ZZ, [[]])
@@ -299,8 +315,8 @@ def index_in_saturation(A, proof=True):
         1
     """
     r = A.rank()
-    if r==0 and (A.nrows()==0 or A.ncols()==0):
-        return 1
+    if r == 0:
+        return ZZ(1)
     if r < A.nrows():
         A = A.hermite_form(proof=proof, include_zero_rows=False)
     if A.is_square():

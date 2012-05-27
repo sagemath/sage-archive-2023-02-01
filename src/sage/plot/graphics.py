@@ -1459,9 +1459,11 @@ class Graphics(SageObject):
 
             sage: G.show(scale=('loglog', 2, 3)) # x in base 2, y in base 3
 
-        The base need not be an integer.::
+        The base need not be an integer, though it does have to be made
+        a float.  Also, currently the formatting is wrong for non-integer bases,
+        such as in this example::
 
-            sage: G.show(scale='semilogy', base=float(e)) # base is e
+            sage: G.show(scale='semilogx', base=float(e)) # base is e
 
         Logarithmic scale can be used for various kinds of plots. Here are
         some examples.::
@@ -1472,16 +1474,20 @@ class Graphics(SageObject):
             sage: G = parametric_plot((x, x**2), (x, 1, 10))
             sage: G.show(scale='loglog')
 
-            sage: G = arc((2,3), 2, 1, angle=pi/2, sector=(0,pi/2))
-            sage: G.show(scale=('loglog', 2))
-
-            sage: disk((0.1,0.1), 1, (pi/3, pi/2)).show(scale='loglog')
-
-            sage: polygon([(1,1), (10,10), (10,1)]).show(scale='loglog')
+            sage: disk((5,5), 4, (0, 3*pi/2)).show(scale='loglog',base=2)
 
             sage: x, y = var('x, y')
-            sage: G =  plot_vector_field((sin(x),cos(y)),(x,0.1,3),(y,0.1,3))
-            sage: G.show(scale='loglog')
+            sage: G =  plot_vector_field((2^x,y^2),(x,1,10),(y,1,100))
+            sage: G.show(scale='semilogx',base=2)
+
+        But be sure to only plot things that will have a wide enough range
+        for the logarithmic scale to be interpretable::
+
+            sage: G = arc((2,3), 2, 1, angle=pi/2, sector=(0,pi/2))
+            sage: G.show(scale=('loglog', 2))
+            Traceback (most recent call last):
+            ...
+            ValueError: Either expand the range of the dependent variable to allow two different integer powers of your `base`, or change your `base` to a smaller number.
 
         Add grid lines at the major ticks of the axes.
 
@@ -1662,6 +1668,18 @@ class Graphics(SageObject):
         ::
 
             sage: plot(arcsin(x),(x,-1,1),ticks=[None,pi/6],tick_formatter=[None,pi]) # Not so nice-looking
+
+        When using logarithmic scale along the axis, make sure to have
+        enough room for two ticks so that the user can tell what the scale
+        is. This can be effected by increasing the range of the independent
+        variable, or by changing the ``base``.::
+
+            sage: p = list_plot(range(1, 10), plotjoined=True)
+            sage: p.show(scale='loglog')
+            Traceback (most recent call last):
+            ...
+            ValueError: Either expand the range of the dependent variable to allow two different integer powers of your `base`, or change your `base` to a smaller number.
+            sage: p.show(scale='loglog', base=8) # this works.
 
         """
 
@@ -1923,6 +1941,25 @@ class Graphics(SageObject):
         subplot.yaxis.set_major_locator(y_locator)
         subplot.xaxis.set_major_formatter(x_formatter)
         subplot.yaxis.set_major_formatter(y_formatter)
+
+        # Check for whether there will be too few ticks in the log scale case
+        # If part of the data is nonpositive, we assume there are enough ticks
+        if scale[0] == 'log' and xmin > 0:
+            import math
+            base0 = base[0]
+            if (math.floor(math.log(xmax)/math.log(base0)) -
+                    math.ceil(math.log(xmin)/math.log(base0)) < 1):
+                raise ValueError('Either expand the range of the independent '
+                'variable to allow two different integer powers of your `base`, '
+                'or change your `base` to a smaller number.')
+        if scale[1] == 'log' and ymin > 0:
+            import math
+            base1 = base[1]
+            if (math.floor(math.log(ymax)/math.log(base1)) -
+                    math.ceil(math.log(ymin)/math.log(base1)) < 1):
+                raise ValueError('Either expand the range of the dependent '
+                'variable to allow two different integer powers of your `base`, '
+                'or change your `base` to a smaller number.')
 
         return (subplot, x_locator, y_locator, x_formatter, y_formatter)
 

@@ -3211,9 +3211,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             A = LL^\ast
 
         where `L^\ast` is the conjugate-transpose in the complex case,
-        and just the transpose in the real case.  Is the matrix
-        fails to be positive definite (perhaps because it is not
-        symmetric or Hermitian), then a ``ValueError`` results.
+        and just the transpose in the real case.  If the matrix fails
+        to be positive definite (perhaps because it is not symmetric
+        or Hermitian), then this function raises a ``ValueError``.
 
         EXAMPLES:
 
@@ -3330,8 +3330,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             try:
                 L._matrix_numpy = scipy.linalg.cholesky(self._matrix_numpy, lower=1)
             except LinAlgError:
-                msg = "matrix is not positive definite"
-                raise ValueError(msg)
+                raise ValueError("matrix is not positive definite")
             L.set_immutable()
             self.cache('cholesky', L)
         return L
@@ -3345,7 +3344,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         v_numpy = numpy.array([self._python_dtype(i) for i in v])
 
-        M=self._row_ambient_module()
+        M = self._row_ambient_module()
         ans = numpy.dot(v_numpy,self._matrix_numpy)
         return M(ans)
 
@@ -3359,7 +3358,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         v_numpy = numpy.array([self._python_dtype(i) for i in v], dtype=self._numpy_dtype)
 
-        M=self._column_ambient_module()
+        M = self._column_ambient_module()
         ans = numpy.dot(self._matrix_numpy, v_numpy)
         return M(ans)
 

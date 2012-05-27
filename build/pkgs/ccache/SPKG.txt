@@ -1,0 +1,23 @@
+= ccache =
+
+== Description ==
+
+Includes ccache to allow for fast recompiles
+
+== SPKG Maintainers ==
+
+ * R. Andrew Ohana <andrew.ohana@gmail.com>
+
+== Upstream Contact ==
+
+ * Author: Andrew Tridgell
+ * Website: http://ccache.samba.org/
+
+== Upgrade Instructions ==
+
+Remove the zlib directory.
+
+== Changelog ==
+
+=== ccache-3.1.8 (R. Andrew Ohana, 11 September 2012) ===
+  * #13032: create ccache spkg

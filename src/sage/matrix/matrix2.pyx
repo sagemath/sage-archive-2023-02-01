@@ -9665,7 +9665,7 @@ cdef class Matrix(matrix1.Matrix):
             True
 
 
-        Results are cached, hence immutable.  Use the `copy` function
+        Results are cached, hence immutable.  Use the ``copy`` function
         if you need to make a change.  ::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
@@ -9688,9 +9688,9 @@ cdef class Matrix(matrix1.Matrix):
         There are a variety of situations which will prevent the computation of a Cholesky decomposition.
 
         The base ring must be exact.  For numerical work, create a
-        matrix with a base ring of `RDF` or `CDF` and use the
-        :meth:`sage.matrix.matrix_double_dense.Matrix_double_dense.cholesky`
-        method or matrices of that type. ::
+        matrix with a base ring of ``RDF`` or ``CDF`` and use the
+        :meth:`~sage.matrix.matrix_double_dense.Matrix_double_dense.cholesky`
+        method for matrices of that type. ::
 
             sage: F = RealField(100)
             sage: A = matrix(F, [[1.0, 3.0], [3.0, -6.0]])
@@ -9781,6 +9781,21 @@ cdef class Matrix(matrix1.Matrix):
             [      3*a + 2 a^2 + 2*a + 3             3]
             sage: L*L.transpose() == A
             True
+
+        TESTS:
+
+        This verifies that :trac:`11274` is resolved.  ::
+
+            sage: E = matrix(QQ, [[2, 1], [1, 1]])
+            sage: E.is_symmetric()
+            True
+            sage: E.eigenvalues()
+            [0.38...?, 2.61...?]
+            sage: E.det()
+            1
+            sage: E.cholesky()
+            [ 1.414213562373095?                   0]
+            [0.7071067811865475? 0.7071067811865475?]
 
         AUTHOR:
 

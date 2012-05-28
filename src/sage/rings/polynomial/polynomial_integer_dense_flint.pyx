@@ -50,7 +50,6 @@ cdef extern from "limits.h":
 cdef extern from "FLINT/flint.h":
     int FLINT_BITS
 
-
 cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""
     A dense polynomial over the integers, implemented via FLINT.
@@ -68,7 +67,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         calls the underlying FLINT fmpz_poly destructor
         """
         fmpz_poly_clear(self.__poly)
-
 
     cdef Polynomial_integer_dense_flint _new(self):
         r"""
@@ -259,6 +257,89 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 fmpz_poly_set_coeff_mpz(self.__poly, i, (<Integer>a).value)
                 sig_off()
 
+    def __call__(self, *x, **kwds):
+        """
+        Calls this polynomial with the given parameters, which can be
+        interpreted as polynomial composition or evaluation by this
+        method.
+
+        If the argument is not simply an integer (``int``, ``long`` or
+        ``Integer``) or a polynomial (of the same type as ``self``),
+        the call is passed on to the generic implementation in the
+        ``Polynomial`` class.
+
+        EXAMPLES:
+
+        The first example illustrates polynomial composition::
+
+            sage: R.<t> = ZZ[]
+            sage: f = t^2 - 1
+            sage: g = t + 1
+            sage: f(g)          # indirect doctest
+            t^2 + 2*t
+
+        Now we illustrate how a polynomial can be evaluated at an
+        integer::
+
+            sage: f(2)          # indirect doctest
+            3
+        """
+        cdef Polynomial_integer_dense_flint f
+        cdef Integer a, z
+
+        cdef unsigned long limbs
+        cdef fmpz_t a_fmpz
+        cdef fmpz_t z_fmpz
+
+        if len(x) == 1:
+            x0 = x[0]
+            if isinstance(x, Polynomial_integer_dense_flint):
+                f = self._new()
+                _sig_on
+                fmpz_poly_compose(f.__poly, self.__poly, \
+                    (<Polynomial_integer_dense_flint> x0).__poly)
+                _sig_off
+                return f
+            if isinstance(x0, (int, long)):
+                x0 = Integer(x0)
+            if isinstance(x0, Integer):
+                a = <Integer> x0
+
+                if fmpz_poly_length(self.__poly) == 0:
+                    return ZZ.zero()
+                if mpz_sgn(a.value) == 0:
+                    return self[0]
+
+                # As of FLINT1.5, memory management for the fmpz_t type
+                # has to be done manually.  Without inspection of all
+                # coefficients, we can only naively bound the size of
+                # the answer by the very large value of "limbs" below.
+                # If this number is too large, we move on to the generic
+                # polynomial evaluation code, which might either happen
+                # to work (in special cases) or simply run out of memory.
+                #
+                # It is expected that this workaround is unnecessary
+                # with FLINT2.
+                if fmpz_poly_length(self.__poly) <= ((1 << 25) / fmpz_poly_length(self.__poly) - fmpz_poly_limbs(self.__poly)) / mpz_size(a.value):
+
+                    z = PY_NEW(Integer)
+
+                    _sig_on
+                    limbs = fmpz_poly_length(self.__poly) * (fmpz_poly_limbs(self.__poly) + fmpz_poly_length(self.__poly) * mpz_size(a.value))
+                    a_fmpz = fmpz_init(mpz_size(a.value))
+                    z_fmpz = fmpz_init(limbs)
+                    mpz_to_fmpz(a_fmpz, a.value)
+
+                    fmpz_poly_evaluate(z_fmpz, self.__poly, a_fmpz)
+
+                    fmpz_to_mpz(z.value, z_fmpz)
+                    fmpz_clear(a_fmpz)
+                    fmpz_clear(z_fmpz)
+                    _sig_off
+
+                    return z
+
+        return Polynomial.__call__(self, *x, **kwds)
 
     cpdef Integer content(self):
         r"""

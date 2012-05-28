@@ -18,3 +18,5 @@ cdef extern from "FLINT/fmpz.h":
     void fmpz_sub_ui_inplace(fmpz_t output, unsigned long x)
 
     void fmpz_to_mpz(mpz_t rop, fmpz_t op)
+    void mpz_to_fmpz(fmpz_t rop, mpz_t op)
+

@@ -339,7 +339,7 @@ Doubly ensure that Trac #7479 is working::
 
     sage: f(x)=x
     sage: integrate(f,x,0,1)
-    x |--> 1/2
+    1/2
 
 Check that the problem with Taylor expansions of the gamma function
 (Trac #9217) is fixed::

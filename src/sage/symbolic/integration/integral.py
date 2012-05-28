@@ -248,6 +248,66 @@ class DefiniteIntegral(BuiltinFunction):
 
 definite_integral = DefiniteIntegral()
 
+
+def _normalize_integral_input(f, v=None, a=None, b=None):
+    r"""
+    Validate and return variable and endpoints for an integral.
+
+    INPUT:
+
+    - ``f`` -- an expression to integrate;
+
+    - ``v`` -- a variable of integration or a triple;
+
+    - ``a`` -- (optional) the left endpoint of integration;
+
+    - ``b`` -- (optional) the right endpoint of integration.
+
+    It is also possible to pass last three parameters in ``v`` as a triple.
+
+    OUPUT:
+
+    - a tuple of ``f``, ``v``, ``a``, and ``b``.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.integration.integral import \
+        ...       _normalize_integral_input
+        sage: _normalize_integral_input(x^2, x, 0, 3)
+        (x^2, x, 0, 3)
+        sage: _normalize_integral_input(x^2, [x, 0, 3], None, None)
+        (x^2, x, 0, 3)
+        sage: _normalize_integral_input(x^2, [0, 3], None, None)
+        doctest:...: DeprecationWarning:
+        Variable of integration should be specified explicitly.
+        (x^2, x, 0, 3)
+        sage: _normalize_integral_input(x^2, [x], None, None)
+        (x^2, x, None, None)
+    """
+    if isinstance(v, (list, tuple)) and a is None and b is None:
+        if len(v) == 1: # bare variable in a tuple
+            v = v[0]
+        elif len(v) == 2: # endpoints only
+            a, b = v
+            v = None
+        elif len(v) == 3: # variable and endpoints
+            v, a, b = v
+        else:
+            raise ValueError("invalid input %s - please use variable, "
+                             "with or without two endpoints" % repr(v))
+    elif b is None and a is not None:
+        # two arguments, must be endpoints
+        v, a, b = None, v, a
+    if v is None:
+        from sage.misc.misc import deprecation
+        deprecation("Variable of integration should be specified explicitly.")
+        v = f.default_variable()
+        if isinstance(f, Function):  # a bare function like sin
+            f = f(v)
+    if (a is None) ^ (b is None):
+        raise TypeError('only one endpoint was given!')
+    return f, v, a, b
+
 def integrate(expression, v=None, a=None, b=None, algorithm=None):
     r"""
     Returns the indefinite integral with respect to the variable
@@ -306,7 +366,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
 
         sage: f(x) = sin(x)
         sage: f.integral(x, 0, pi/2)
-        x |--> 1
+        1
 
     The variable is required, but the endpoints are optional::
 
@@ -603,41 +663,12 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         4.32025625668262
 
     """
-    if isinstance(v, (list, tuple)) and a is None and b is None:
-        if len(v)==1: # bare variable in a tuple
-            v=v[0]
-        elif len(v)==3: # variable and endpoints
-            v,a,b=v
-        elif len(v)==2: # endpoints only
-            a,b=v
-            v=None
-        elif len(v)==0:
-            v=None
-        else:
-            raise ValueError, "invalid input %s - please use variable, with or without two endpoints"%repr(v)
-    elif b is None and a is not None:
-        # two arguments, must be endpoints
-        a, b = v, a
-        v = None
-
-    if v is None:
-        from sage.misc.misc import deprecation
-        deprecation("Variable of integration should be specified explicitly.")
-        v = expression.default_variable()
-        if isinstance(expression, Function):
-            # a bare function like sin
-            expression = expression(v)
-
-    if (a is None) ^ (b is None):
-        raise TypeError, 'only one endpoint given'
-
-    # Check algorithm
+    expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:
         integrator = available_integrators.get(algorithm)
         if not integrator:
             raise ValueError, "Unknown algorithm: %s" % algorithm
         return integrator(expression, v, a, b)
-
     if a is None:
         return indefinite_integral(expression, v)
     else:

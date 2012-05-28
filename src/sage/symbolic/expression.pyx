@@ -8800,11 +8800,52 @@ cdef class Expression(CommutativeRingElement):
             -cos(3) + 1
             sage: sin(x).integral(x)
             -cos(x)
+
+        TESTS:
+
+        We check that :trac:`12438` is resolved::
+
+            sage: f(x) = x; f
+            x |--> x
+            sage: integral(f, x)
+            x |--> 1/2*x^2
+            sage: integral(f, x, 0, 1)
+            1/2
+
+            sage: f(x, y) = x + y
+            sage: f
+            (x, y) |--> x + y
+            sage: integral(f, y, 0, 1)
+            x |--> x + 1/2
+            sage: integral(f, x, 0, 1)
+            y |--> y + 1/2
+            sage: _(3)
+            7/2
+            sage: var("z")
+            z
+            sage: integral(f, z, 0, 2)
+            (x, y) |--> 2*x + 2*y
+            sage: integral(f, z)
+            (x, y) |--> (x + y)*z
         """
-        from sage.symbolic.integration.integral import integral
-        from sage.symbolic.callable import is_CallableSymbolicExpressionRing
-        if is_CallableSymbolicExpressionRing(self._parent):
-            return self._parent(integral(ring.SR(self), *args, **kwds))
+        from sage.symbolic.integration.integral import \
+            integral, _normalize_integral_input
+        from sage.symbolic.callable import \
+            CallableSymbolicExpressionRing, is_CallableSymbolicExpressionRing
+        R = self._parent
+        if is_CallableSymbolicExpressionRing(R):
+            f = ring.SR(self)
+            f, v, a, b = _normalize_integral_input(f, *args)
+            # Definite integral with respect to a positional variable.
+            if a is not None and v in R.arguments():
+                arguments = list(R.arguments())
+                arguments.remove(v)
+                if arguments:
+                    arguments = tuple(arguments)
+                    R = CallableSymbolicExpressionRing(arguments, check=False)
+                else:   # all arguments are gone
+                    R = ring.SR
+            return R(integral(f, v, a, b, **kwds))
         return integral(self, *args, **kwds)
 
     integrate = integral

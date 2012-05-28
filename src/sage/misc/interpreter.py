@@ -1159,6 +1159,7 @@ class SageTerminalApp(TerminalIPythonApp):
             sage: app.shell
             <sage.misc.interpreter.SageInteractiveShell object at 0x...>
         """
+        import sys
         sys.path.insert(0, '')
 
         # Overwrite the default Sage configuration with the user's.
@@ -1194,11 +1195,23 @@ class SageTerminalApp(TerminalIPythonApp):
         if branch and self.test_shell is False:
             print branch
 
-        self.shell.ex('from sage.all import Integer, RealNumber')
+        try:
+            self.shell.ex('from sage.all import Integer, RealNumber')
+        except Exception:
+            import traceback
+            print "Error importing the Sage library"
+            traceback.print_exc()
+            print
+            print "To debug this, you can run:"
+            print 'sage -ipython -i -c "import sage.all"'
+            print 'and then type "%debug" to enter the interactive debugger'
+            sys.exit(1)
+
         self.shell.push(dict(sage_prompt=sage_prompt))
 
         if os.environ.get('SAGE_IMPORTALL', 'yes') != 'yes':
             return
+
         self.shell.ex('from sage.all_cmdline import *')
         startup_file = os.environ.get('SAGE_STARTUP_FILE', '')
 

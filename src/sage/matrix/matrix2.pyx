@@ -9340,6 +9340,11 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Return the Cholesky decomposition of ``self``.
 
+        .. WARNING::
+
+            ``cholesky_decomposition()`` is deprecated,
+            please use ``cholesky()`` instead.
+
         The computed decomposition is cached and returned on
         subsequent calls. Methods such as :meth:`solve_left` may also
         take advantage of the cached decomposition depending on the
@@ -9389,6 +9394,8 @@ cdef class Matrix(matrix1.Matrix):
             [    1.0   121.0  1555.0  7381.0 22621.0]
             [    1.0   341.0  4681.0 22621.0 69905.0]
             sage: L = m.cholesky_decomposition(); L
+            doctest:...: DeprecationWarning: (Since Sage Version 5.1)
+            cholesky_decomposition() is deprecated; please use cholesky() instead.
             [          1.0           0.0           0.0           0.0           0.0]
             [          1.0           2.0           0.0           0.0           0.0]
             [          1.0          15.0 10.7238052948           0.0           0.0]
@@ -9506,6 +9513,9 @@ cdef class Matrix(matrix1.Matrix):
             [   1.0 -2.0*I]
             [ 2.0*I    8.0]
         """
+        # deprecation added 2012-05-27
+        from sage.misc.misc import deprecation
+        deprecation("cholesky_decomposition() is deprecated; please use cholesky() instead.", "Sage Version 5.1")
         assert self._nrows == self._ncols, "Can only Cholesky decompose square matrices"
         if self._nrows == 0:
             return self.__copy__()
@@ -9813,8 +9823,8 @@ cdef class Matrix(matrix1.Matrix):
             try:
                 posdef = self.is_positive_definite()
             except (ValueError, TypeError) as e:
-                msg = "unable to check positive definiteness because " + e.message
-                raise ValueError(msg)
+                msg = "unable to check positive definiteness because {0}"
+                raise ValueError(msg.format(e))
             if not posdef:
                 msg = "matrix is not positive definite, so cannot compute Cholesky decomposition"
                 raise ValueError(msg)
@@ -10924,7 +10934,7 @@ cdef class Matrix(matrix1.Matrix):
         except ValueError as e:
             # a zero singular leading principal submatrix is one
             # indicator that the matrix is not positive definite
-            if e.message.find('leading principal submatrix is singular') != -1:
+            if str(e).find('leading principal submatrix is singular') != -1:
                 return False
             else:
                 raise ValueError(e)

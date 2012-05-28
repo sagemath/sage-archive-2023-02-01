@@ -867,9 +867,9 @@ class MathematicaElement(ExpectElement):
         """
         EXAMPLES::
 
-            sage: mathematica('Pi').N(10)
+            sage: mathematica('Pi').N(10)    # optional -- mathematica
             3.1415926536
-            sage: mathematica('Pi').N(50)
+            sage: mathematica('Pi').N(50)    # optional -- mathematica
             3.14159265358979323846264338327950288419716939937511
         """
         # The base class way up the hierarchy defines an "N" (modeled

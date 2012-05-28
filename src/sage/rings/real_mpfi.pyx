@@ -1,5 +1,5 @@
 """
-Field of Arbitrary Precision Real Intervals
+Arbitrary Precision Real Intervals
 
 AUTHORS:
 
@@ -2122,13 +2122,15 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: a.fp_rank_diameter()
             30524
             sage: (RIF(sqrt(2)) - RIF(sqrt(2))).fp_rank_diameter()
-            9671406088542672151117826
+            9671406088542672151117826            # 32-bit
+            41538374868278620559869609387229186  # 64-bit
 
         Just because we have the best possible interval, doesn't mean the
         interval is actually small::
 
-            sage: a = RIF(pi)^1234567890; a
-            [2.0985787164673874e323228496 .. +infinity]
+            sage: a = RIF(pi)^12345678901234567890; a
+            [2.0985787164673874e323228496 .. +infinity]            # 32-bit
+            [5.8756537891115869e1388255822130839282 .. +infinity]  # 64-bit
             sage: a.fp_rank_diameter()
             1
         """

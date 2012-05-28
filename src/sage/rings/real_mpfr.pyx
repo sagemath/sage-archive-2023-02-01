@@ -1,5 +1,5 @@
 r"""
-Field of Arbitrary Precision Real Numbers
+Arbitrary Precision Real Numbers
 
 AUTHORS:
 
@@ -24,6 +24,9 @@ AUTHORS:
 
 - Robert Bradshaw (2009-09): decimal literals, optimizations
 
+- Jeroen Demeyer (2012-05-27): set the MPFR exponent range to the
+  maximal possible value (:trac:`13033`)
+
 This is a binding for the MPFR arbitrary-precision floating point
 library.
 
@@ -35,10 +38,10 @@ floating-point numbers are of class ``RealNumber``.
 In Sage (as in MPFR), floating-point numbers of precision
 `p` are of the form `s m 2^{e-p}`, where
 `s \in \{-1, 1\}`, `2^{p-1} \leq m < 2^p`, and
-`-2^{30} + 1 \leq e \leq 2^{30} - 1`; plus the special
-values ``+0``, ``-0``,
-``+infinity``, ``-infinity``, and
-``NaN`` (which stands for Not-a-Number).
+`-2^B + 1 \leq e \leq 2^B - 1` where `B = 30` on 32-bit systems
+and `B = 62` on 64-bit systems;
+additionally, there are the special values ``+0``, ``-0``,
+``+infinity``, ``-infinity`` and ``NaN`` (which stands for Not-a-Number).
 
 Operations in this module which are direct wrappers of MPFR
 functions are "correctly rounded"; we briefly describe what this
@@ -180,7 +183,22 @@ cdef enum:
 
 def mpfr_prec_min():
     """
-    Return the mpfr variable MPFR_PREC_MIN.
+    Return the mpfr variable ``MPFR_PREC_MIN``.
+
+    EXAMPLES::
+
+        sage: from sage.rings.real_mpfr import mpfr_prec_min
+        sage: mpfr_prec_min()
+        2
+        sage: R = RealField(2)
+        sage: R(2) + R(1)
+        3.0
+        sage: R(4) + R(1)
+        4.0
+        sage: R = RealField(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: prec (=1) must be >= 2 and <= 2147483391
     """
     return MPFR_PREC_MIN
 
@@ -199,17 +217,137 @@ def mpfr_prec_max():
         sage: R = RealField(2^31-256)
         Traceback (most recent call last):
         ...
-        ValueError: prec (=2147483392) must be >= 2 and <= 2147483391.
+        ValueError: prec (=2147483392) must be >= 2 and <= 2147483391
     """
     global MY_MPFR_PREC_MAX
     return MY_MPFR_PREC_MAX
+
+def mpfr_get_exp_min():
+    """
+    Return the current minimal exponent for MPFR numbers.
+
+    EXAMPLES::
+
+        sage: from sage.rings.real_mpfr import mpfr_get_exp_min
+        sage: mpfr_get_exp_min()
+        -1073741823            # 32-bit
+        -4611686018427387903   # 64-bit
+        sage: 0.5 >> (-mpfr_get_exp_min())
+        2.38256490488795e-323228497            # 32-bit
+        8.50969131174084e-1388255822130839284  # 64-bit
+        sage: 0.5 >> (-mpfr_get_exp_min()+1)
+        0.000000000000000
+    """
+    return mpfr_get_emin()
+
+def mpfr_get_exp_max():
+    """
+    Return the current maximal exponent for MPFR numbers.
+
+    EXAMPLES::
+
+        sage: from sage.rings.real_mpfr import mpfr_get_exp_max
+        sage: mpfr_get_exp_max()
+        1073741823            # 32-bit
+        4611686018427387903   # 64-bit
+        sage: 0.5 << mpfr_get_exp_max()
+        1.04928935823369e323228496            # 32-bit
+        2.93782689455579e1388255822130839282  # 64-bit
+        sage: 0.5 << (mpfr_get_exp_max()+1)
+        +infinity
+    """
+    return mpfr_get_emax()
+
+def mpfr_set_exp_min(mp_exp_t e):
+    """
+    Set the minimal exponent for MPFR numbers.
+
+    EXAMPLES::
+
+        sage: from sage.rings.real_mpfr import mpfr_get_exp_min, mpfr_set_exp_min
+        sage: old = mpfr_get_exp_min()
+        sage: mpfr_set_exp_min(-1000)
+        sage: 0.5 >> 1000
+        4.66631809251609e-302
+        sage: 0.5 >> 1001
+        0.000000000000000
+        sage: mpfr_set_exp_min(old)
+        sage: 0.5 >> 1001
+        2.33315904625805e-302
+    """
+    if mpfr_set_emin(e) != 0:
+        raise OverflowError("bad value for mpfr_set_exp_min()")
+
+def mpfr_set_exp_max(mp_exp_t e):
+    """
+    Set the maximal exponent for MPFR numbers.
+
+    EXAMPLES::
+
+        sage: from sage.rings.real_mpfr import mpfr_get_exp_max, mpfr_set_exp_max
+        sage: old = mpfr_get_exp_max()
+        sage: mpfr_set_exp_max(1000)
+        sage: 0.5 << 1000
+        5.35754303593134e300
+        sage: 0.5 << 1001
+        +infinity
+        sage: mpfr_set_exp_max(old)
+        sage: 0.5 << 1001
+        1.07150860718627e301
+    """
+    if mpfr_set_emax(e) != 0:
+        raise OverflowError("bad value for mpfr_set_exp_max()")
+
+def mpfr_get_exp_min_min():
+    """
+    Get the minimal value allowed for :func:`mpfr_set_exp_min`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.real_mpfr import mpfr_get_exp_min_min, mpfr_set_exp_min
+        sage: mpfr_get_exp_min_min()
+        -1073741823            # 32-bit
+        -4611686018427387903   # 64-bit
+
+    This is really the minimal value allowed::
+
+        sage: mpfr_set_exp_min(mpfr_get_exp_min_min() - 1)
+        Traceback (most recent call last):
+        ...
+        OverflowError: bad value for mpfr_set_exp_min()
+    """
+    return mpfr_get_emin_min()
+
+def mpfr_get_exp_max_max():
+    """
+    Get the maximal value allowed for :func:`mpfr_set_exp_max`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.real_mpfr import mpfr_get_exp_max_max, mpfr_set_exp_max
+        sage: mpfr_get_exp_max_max()
+        1073741823            # 32-bit
+        4611686018427387903   # 64-bit
+
+    This is really the maximal value allowed::
+
+        sage: mpfr_set_exp_max(mpfr_get_exp_max_max() + 1)
+        Traceback (most recent call last):
+        ...
+        OverflowError: bad value for mpfr_set_exp_max()
+    """
+    return mpfr_get_emax_max()
+
+# On Sage startup, set the exponent range to the maximum allowed
+mpfr_set_exp_min(mpfr_get_emin_min())
+mpfr_set_exp_max(mpfr_get_emax_max())
 
 #*****************************************************************************
 #
 #       Real Field
 #
 #*****************************************************************************
-# The real field is in Pyrex, so mpfr elements will have access to
+# The real field is in Cython, so mpfr elements will have access to
 # their parent via direct C calls, which will be faster.
 
 _rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
@@ -295,7 +433,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         global MY_MPFR_PREC_MAX
         cdef RealNumber rn
         if prec < MPFR_PREC_MIN or prec > MY_MPFR_PREC_MAX:
-            raise ValueError, "prec (=%s) must be >= %s and <= %s."%(
+            raise ValueError, "prec (=%s) must be >= %s and <= %s"%(
                 prec, MPFR_PREC_MIN, MY_MPFR_PREC_MAX)
         self.__prec = prec
         if not isinstance(rnd, str):
@@ -1218,7 +1356,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         mpz_import(mantissa, lg(g) - 2, 1, wordsize/8, 0, 0, &g[2])
 
-        cdef int exponent
+        cdef mp_exp_t exponent
         exponent = expo(g)
 
         # Round to nearest for best results when setting a low-precision
@@ -1751,13 +1889,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(0).nextbelow().nextbelow().fp_rank()
             -2
             sage: RR(1).fp_rank()
-            4835703278458516698824705
+            4835703278458516698824705            # 32-bit
+            20769187434139310514121985316880385  # 64-bit
             sage: RR(-1).fp_rank()
-            -4835703278458516698824705
+            -4835703278458516698824705            # 32-bit
+            -20769187434139310514121985316880385  # 64-bit
             sage: RR(1).fp_rank() - RR(1).nextbelow().fp_rank()
             1
             sage: RR(-infinity).fp_rank()
-            -9671406552413433770278913
+            -9671406552413433770278913            # 32-bit
+            -41538374868278621023740371006390273  # 64-bit
             sage: RR(-infinity).fp_rank() - RR(-infinity).nextabove().fp_rank()
             -1
         """
@@ -1766,8 +1907,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         cdef Integer z = PY_NEW(Integer)
 
-        cdef mp_exp_t EXP_MIN = -(1<<30) + 1
-        cdef mp_exp_t EXP_MAX = (1<<30) - 1
+        cdef mp_exp_t EXP_MIN = mpfr_get_exp_min()
+        cdef mp_exp_t EXP_MAX = mpfr_get_exp_max()
         # fp_rank(0.0) = 0
         # fp_rank(m*2^e-p) = (m-2^{p-1})+(e-EXP_MIN)*2^{p-1}+1
         #                  = m+(e-EXP_MIN-1)*2^{p-1}+1
@@ -1837,9 +1978,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         There are lots of floating-point numbers around 0::
 
             sage: R2(-1).fp_rank_delta(R2(1))
-            4294967298
+            4294967298            # 32-bit
+            18446744073709551618  # 64-bit
         """
-
         # We create the API for forward compatibility, because it can have
         # a (somewhat) more efficient implementation than this; but for now,
         # we just go with the stupid implementation.
@@ -2348,7 +2489,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: (1.0).nexttoward(RR('-infinity')).str(truncate=False)
             '0.99999999999999989'
             sage: RR(infinity).nexttoward(0)
-            2.09857871646739e323228496
+            2.09857871646739e323228496            # 32-bit
+            5.87565378911159e1388255822130839282  # 64-bit
             sage: RR(pi).str(truncate=False)
             '3.1415926535897931'
             sage: RR(pi).nexttoward(22/7).str(truncate=False)
@@ -2376,9 +2518,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES::
 
             sage: RR('-infinity').nextabove()
-            -2.09857871646739e323228496
+            -2.09857871646739e323228496            # 32-bit
+            -5.87565378911159e1388255822130839282  # 64-bit
             sage: RR(0).nextabove()
-            2.38256490488795e-323228497
+            2.38256490488795e-323228497            # 32-bit
+            8.50969131174084e-1388255822130839284  # 64-bit
             sage: RR('+infinity').nextabove()
             +infinity
             sage: RR(-sqrt(2)).str(truncate=False)
@@ -2402,9 +2546,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR('-infinity').nextbelow()
             -infinity
             sage: RR(0).nextbelow()
-            -2.38256490488795e-323228497
+            -2.38256490488795e-323228497            # 32-bit
+            -8.50969131174084e-1388255822130839284  # 64-bit
             sage: RR('+infinity').nextbelow()
-            2.09857871646739e323228496
+            2.09857871646739e323228496              # 32-bit
+            5.87565378911159e1388255822130839282    # 64-bit
             sage: RR(-sqrt(2)).str(truncate=False)
             '-1.4142135623730951'
             sage: RR(-sqrt(2)).nextbelow().str(truncate=False)
@@ -2578,6 +2724,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             2
             sage: RealField(100)(0.0)._pari_().sizeword()
             2
+
+        Check that the largest and smallest exponents representable by
+        PARI convert correctly::
+
+            sage: a = pari(0.5) << (sys.maxint+1)/4
+            sage: RR(a) >> (sys.maxint+1)/4
+            0.500000000000000
+            sage: a = pari(0.5) >> (sys.maxint-3)/4
+            sage: RR(a) << (sys.maxint-3)/4
+            0.500000000000000
         """
         # This uses interfaces of MPFR and PARI which are documented
         # (and not marked subject-to-change).  It could be faster
@@ -2598,7 +2754,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef int rounded_prec
         rounded_prec = (self.prec() + wordsize - 1) & ~(wordsize - 1)
 
-        # Yes, assigning to self works fine, even in Pyrex.
+        # Yes, assigning to self works fine, even in Cython.
         if rounded_prec > prec:
             self = RealField(rounded_prec)(self)
 

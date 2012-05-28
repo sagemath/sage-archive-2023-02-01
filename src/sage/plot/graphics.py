@@ -1451,11 +1451,15 @@ class Graphics(SageObject):
 
             sage: G.show(scale='semilogy', base=2) # y axis as powers of 2
 
+        ::
+
             sage: G.show(scale='semilogy', base=(3,2)) # base ignored for x-axis
 
         The scale can be also given as a 2-tuple or a 3-tuple.::
 
             sage: G.show(scale=('loglog', 2)) # both x and y axes in base 2
+
+        ::
 
             sage: G.show(scale=('loglog', 2, 3)) # x in base 2, y in base 3
 
@@ -1471,10 +1475,16 @@ class Graphics(SageObject):
             sage: G = list_plot(map(lambda i: 10**i, range(10)))
             sage: G.show(scale='semilogy')
 
+        ::
+
             sage: G = parametric_plot((x, x**2), (x, 1, 10))
             sage: G.show(scale='loglog')
 
+        ::
+
             sage: disk((5,5), 4, (0, 3*pi/2)).show(scale='loglog',base=2)
+
+        ::
 
             sage: x, y = var('x, y')
             sage: G =  plot_vector_field((2^x,y^2),(x,1,10),(y,1,100))

@@ -168,3 +168,26 @@ def displayhook(obj):
     __builtin__._ = None
     print_obj(sys.stdout, obj)
     __builtin__._ = obj
+
+
+def install():
+    """
+    Install the Sage displayhook into Python
+
+    In a full Sage session, IPython will override this setting later
+    during the startup. But if you run `from sage.all_cmdline import *`
+    in a python session, then this function will determine the
+    displayhook. Importantly, this is what the doctest runner does!
+
+    TESTS::
+
+        sage: sys.displayhook
+        <function displayhook at 0x...>
+
+    Note that you will get a `sage.misc.interpreter.SageDisplayHook`
+    object if you run this in an interactive Sage shell. At some point
+    in the future, the doctest framework will actually run in a Sage
+    shell and this doctest will change.
+    """
+    sys.displayhook = displayhook
+

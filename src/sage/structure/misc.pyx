@@ -156,7 +156,8 @@ def getattr_from_other_class(self, cls, str name):
         sage: getattr_from_other_class(PolynomialRing(QQ, name='x', implementation="FLINT").one(), A, "lazy_attribute")
         Traceback (most recent call last):
         ...
-        AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute 'lazy_attribute'
+        AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'
+        object has no attribute 'lazy_attribute'
 
     In general, descriptors are not yet well supported, because they
     often do not accept to be cheated with the type of their instance::
@@ -164,7 +165,8 @@ def getattr_from_other_class(self, cls, str name):
         sage: A.__weakref__.__get__(1)
         Traceback (most recent call last):
         ...
-        TypeError: descriptor '__weakref__' for 'A' objects doesn't apply to 'sage.rings.integer.Integer' object
+        TypeError: descriptor '__weakref__' for 'A' objects doesn't apply
+        to 'sage.rings.integer.Integer' object
 
     When this occurs, an ``AttributeError`` is raised::
 
@@ -183,9 +185,12 @@ def getattr_from_other_class(self, cls, str name):
         Traceback (most recent call last):
         ...
         AttributeError: 'sage.rings.integer.Integer' object has no attribute '__weakref__'
-        sage: import IPython
-        sage: _ip = IPython.ipapi.get()
-        sage: _ip.IP.magic_psearch('n.__weakref__') # not tested: only works with an interactive shell running
+
+        sage: n = 1
+        sage: ip = get_ipython()                 # not tested: only works in interactive shell
+        sage: ip.magic_psearch('n.N')            # not tested: only works in interactive shell
+        n.N
+        sage: ip.magic_psearch('n.__weakref__')  # not tested: only works in interactive shell
 
     Caveat: When __call__ is not defined for instances, using
     ``A.__call__`` yields the method ``__call__`` of the class. We use

@@ -9343,7 +9343,7 @@ cdef class Matrix(matrix1.Matrix):
         .. WARNING::
 
             ``cholesky_decomposition()`` is deprecated,
-            please use ``cholesky()`` instead.
+            please use :meth:`cholesky` instead.
 
         The computed decomposition is cached and returned on
         subsequent calls. Methods such as :meth:`solve_left` may also
@@ -9512,6 +9512,31 @@ cdef class Matrix(matrix1.Matrix):
             sage: L*L.conjugate().transpose()
             [   1.0 -2.0*I]
             [ 2.0*I    8.0]
+
+        This test verifies that the caching of the two variants
+        of the Cholesky decomposition have been cleanly separated.
+        It can be safely removed as part of removing this method
+        at the end of the deprecation period.
+        (From :trac:`13045`.)  ::
+
+            sage: r = matrix(CDF, 2, 2, [ 0, -2*I, 2*I, 0 ]); r
+            [   0.0 -2.0*I]
+            [ 2.0*I    0.0]
+            sage: r.cholesky_decomposition()
+            [        0.0         0.0]
+            [NaN + NaN*I NaN + NaN*I]
+            sage: r.cholesky()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not positive definite
+            sage: r[0,0] = 0  # clears cache
+            sage: r.cholesky()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not positive definite
+            sage: r.cholesky_decomposition()
+            [        0.0         0.0]
+            [NaN + NaN*I NaN + NaN*I]
         """
         # deprecation added 2012-05-27
         from sage.misc.misc import deprecation
@@ -9527,7 +9552,7 @@ cdef class Matrix(matrix1.Matrix):
 
         This generic implementation uses a standard recursion.
         """
-        L = self.fetch('cholesky')
+        L = self.fetch('cholesky_broken')
         if L is None:
             A = self.__copy__()
             L = A.parent()(0)
@@ -9544,7 +9569,7 @@ cdef class Matrix(matrix1.Matrix):
                     for i in range(j, n):
                         A[i, j] -= L[i, k]*L[j, k].conjugate()
             L.set_immutable()
-            self.cache('cholesky', L)
+            self.cache('cholesky_broken', L)
         return L
 
     def cholesky(self):

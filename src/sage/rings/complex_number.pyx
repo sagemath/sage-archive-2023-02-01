@@ -46,6 +46,8 @@ cdef object numpy_object_interface = {'typestr': '|O'}
 cdef mp_rnd_t rnd
 rnd = GMP_RNDN
 
+cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
+
 def set_global_complex_round_mode(n):
     global rnd
     rnd = n
@@ -2230,6 +2232,18 @@ def create_ComplexNumber(s_real, s_imag=None, int pad=0, min_prec=53):
 
         sage: sage.rings.complex_number.create_ComplexNumber(s_real=2,s_imag=1)
         2.00000000000000 + 1.00000000000000*I
+
+    TESTS:
+
+    Make sure we've rounded up log(10,2) enough to guarantee
+    sufficient precision (trac #10164)::
+
+        sage: s = "1." + "0"*10**6 + "1"
+        sage: sage.rings.complex_number.create_ComplexNumber(s,0).real()-1 == 0
+        False
+        sage: sage.rings.complex_number.create_ComplexNumber(0,s).imag()-1 == 0
+        False
+
     """
     if s_imag is None:
         s_imag = 0
@@ -2239,7 +2253,8 @@ def create_ComplexNumber(s_real, s_imag=None, int pad=0, min_prec=53):
     if not isinstance(s_imag, str):
         s_imag = str(s_imag).strip()
     #if base == 10:
-    bits = max(int(3.32192*len(s_real)),int(3.32192*len(s_imag)))
+    bits = max(int(LOG_TEN_TWO_PLUS_EPSILON*len(s_real)),
+               int(LOG_TEN_TWO_PLUS_EPSILON*len(s_imag)))
     #else:
     #    bits = max(int(math.log(base,2)*len(s_imag)),int(math.log(base,2)*len(s_imag)))
 

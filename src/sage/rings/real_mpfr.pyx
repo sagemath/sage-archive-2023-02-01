@@ -352,6 +352,8 @@ mpfr_set_exp_max(mpfr_get_emax_max())
 
 _rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
 
+cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
+
 cdef object RealField_cache = weakref.WeakValueDictionary()
 
 def RealField(int prec=53, int sci_not=0, rnd="RNDN"):
@@ -5066,6 +5068,14 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         53
         sage: RealNumber('-.000000000000000000000000000000001').prec()
         53
+
+    Make sure we've rounded up log(10,2) enough to guarantee
+    sufficient precision (trac #10164)::
+
+        sage: ks = 5*10**5, 10**6
+        sage: all(RealNumber("1." + "0"*k +"1")-1 > 0 for k in ks)
+        True
+
     """
     if not isinstance(s, str):
         s = str(s)
@@ -5094,9 +5104,10 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
             sigfigs -= 1
 
         if base == 10:
-            bits = int(3.32192*sigfigs)+1
+            # hard-code the common case
+            bits = int(LOG_TEN_TWO_PLUS_EPSILON*sigfigs)+1
         else:
-            bits = int(math.log(base,2)*sigfigs)+1
+            bits = int(math.log(base,2)*1.00001*sigfigs)+1
 
         R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
 

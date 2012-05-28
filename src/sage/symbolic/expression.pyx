@@ -149,6 +149,8 @@ from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_i
 from sage.misc.decorators import rename_keyword
 from sage.misc.misc import deprecated_function_alias
 
+LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
+
 """
 SAGE_DOCTEST_ALLOW_TABS
 """
@@ -4158,12 +4160,20 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: cannot evaluate symbolic expression numerically
+
+        Make sure we've rounded up log(10,2) enough to guarantee
+        sufficient precision (trac #10164)::
+
+            sage: ks = 4*10**5, 10**6
+            sage: all(len(str(e.n(digits=k)))-1 >= k for k in ks)
+            True
+
         """
         if prec is None:
             if digits is None:
                 prec = 53
             else:
-                prec = int((digits+1) * 3.32192) + 1
+                prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
         from sage.rings.real_mpfr import RealField
         R = RealField(prec)
         cdef Expression x

@@ -41,6 +41,8 @@ cimport real_mpfr
 
 include "../ext/stdsage.pxi"
 
+cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
+
 def is_ComplexIntervalFieldElement(x):
     return isinstance(x, ComplexIntervalFieldElement)
 
@@ -73,7 +75,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         cdef real_mpfi.RealIntervalFieldElement rr, ii
         self._parent = parent
         self._prec = self._parent._prec
-
         mpfi_init2(self.__re, self._prec)
         mpfi_init2(self.__im, self._prec)
 
@@ -1191,6 +1192,7 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
     (controlled by pad) bits than given by s.
 
     INPUT:
+
         s_real -- a string that defines a real number (or something whose
                   string representation defines a number)
         s_imag -- a string that defines a real number (or something whose
@@ -1199,6 +1201,7 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
         min_prec -- number will have at least this many bits of precision, no matter what.
 
     EXAMPLES:
+
         sage: ComplexIntervalFieldElement('2.3')
         2.300000000000000?
         sage: ComplexIntervalFieldElement('2.3','1.1')
@@ -1213,6 +1216,24 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
         1 + 2*I
         sage: ComplexIntervalFieldElement(1.234567890123456789012345, 5.4321098654321987654321)
         1.234567890123456789012350? + 5.432109865432198765432000?*I
+
+    TESTS:
+
+    Make sure we've rounded up log(10,2) enough to guarantee
+    sufficient precision (trac #10164).  This is a little tricky
+    because at the time of writing, we don't support intervals long
+    enough to trip the error.  However, at least we can make sure that
+    we either do it correctly or fail noisily::
+
+        sage: c_CIFE = sage.rings.complex_interval.create_ComplexIntervalFieldElement
+        sage: for kp in range(2,6):
+        ...       s = '1.' + '0'*10**kp + '1'
+        ...       try:
+        ...           assert c_CIFE(s,0).real()-1 != 0
+        ...           assert c_CIFE(0,s).imag()-1 != 0
+        ...       except TypeError:
+        ...           pass
+
     """
     if s_imag is None:
         s_imag = 0
@@ -1222,10 +1243,10 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
     if not isinstance(s_imag, str):
         s_imag = str(s_imag).strip()
     #if base == 10:
-    bits = max(int(3.32192*len(s_real)),int(3.32192*len(s_imag)))
+    bits = max(int(LOG_TEN_TWO_PLUS_EPSILON*len(s_real)),
+               int(LOG_TEN_TWO_PLUS_EPSILON*len(s_imag)))
     #else:
     #    bits = max(int(math.log(base,2)*len(s_imag)),int(math.log(base,2)*len(s_imag)))
 
     C = complex_interval_field.ComplexIntervalField(prec=max(bits+pad, min_prec))
-
     return ComplexIntervalFieldElement(C, s_real, s_imag)

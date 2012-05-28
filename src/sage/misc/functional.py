@@ -42,6 +42,8 @@ import sage.rings.integer
 
 import __builtin__
 
+LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
+
 ##############################################################################
 # There are many functions on elements of a ring, which mathematicians
 # usually write f(x), e.g., it is weird to write x.log() and natural
@@ -1268,12 +1270,30 @@ def numerical_approx(x, prec=None, digits=None):
         Algebraic Field
         sage: [a.n() for a in E]
         [18.1681536508882, -0.0840768254441065 - 0.219026148480291*I, -0.0840768254441065 + 0.219026148480291*I]
+
+    Make sure we've rounded up log(10,2) enough to guarantee
+    sufficient precision (trac #10164)::
+
+        sage: ks = 4*10**5, 10**6
+        sage: check_str_length = lambda k: len(str(numerical_approx(1+10**-k,digits=k+1)))-1 >= k+1
+        sage: check_precision = lambda k: numerical_approx(1+10**-k,digits=k+1)-1 > 0
+        sage: all(check_str_length(k) and check_precision(k) for k in ks)
+        True
+
+    Testing we have sufficient precision for the golden ratio (trac #12163), note
+    that the decimal point adds 1 to the string length:
+
+        sage: len(str(n(golden_ratio, digits=5000)))
+        5001
+        sage: len(str(n(golden_ratio, digits=5000000)))
+        5000001
+
     """
     if prec is None:
         if digits is None:
             prec = 53
         else:
-            prec = int((digits+1) * 3.32192) + 1
+            prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
     try:
         return x._numerical_approx(prec)
     except AttributeError:

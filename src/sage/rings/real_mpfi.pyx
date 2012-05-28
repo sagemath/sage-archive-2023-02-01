@@ -230,6 +230,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement)
 printing_style = 'question'
 printing_error_digits = 0
 
+cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
+
 #*****************************************************************************
 #
 #       Real Field
@@ -4400,13 +4402,31 @@ def RealInterval(s, upper=None, int base=10, int pad=0, min_prec=53):
         1.23456789012345678901234567890123450?
         sage: RealInterval(29308290382930840239842390482, 3^20).str(style='brackets')
         '[3.48678440100000000000000000000e9 .. 2.93082903829308402398423904820e28]'
+
+    TESTS:
+
+    Make sure we've rounded up log(10,2) enough to guarantee
+    sufficient precision (trac #10164).  This is a little tricky
+    because at the time of writing, we don't support intervals long
+    enough to trip the error.  However, at least we can make sure
+    that we either do it correctly or fail noisily::
+
+        sage: ks = 5*10**5, 10**6
+        sage: for k in ks:
+        ...      try:
+        ...          z = RealInterval("1." + "1"*k)
+        ...          assert len(str(z))-4 >= k
+        ...      except TypeError:
+        ...          pass
+
     """
     if not isinstance(s, str):
         s = str(s)
     if base == 10:
-        bits = int(3.32192*len(s))
+        # hard-code the common case
+        bits = int(LOG_TEN_TWO_PLUS_EPSILON*len(s))
     else:
-        bits = int(math.log(base,2)*len(s))
+        bits = int(math.log(base,2)*1.00001*len(s))
     R = RealIntervalField(prec=max(bits+pad, min_prec))
     return R(s, upper, base)
 

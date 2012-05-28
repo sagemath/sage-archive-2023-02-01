@@ -314,6 +314,21 @@ class SageInteractiveShell(TerminalInteractiveShell):
                 libraries += 'DYLD_LIBRARY_PATH=$$SAGE_ORIG_DYLD_LIBRARY_PATH;'
             return super(SageInteractiveShell, self).system_raw(cmd)
 
+    def run_ast_nodes(self, nodelist, cell_name, interactivity='last_expr'):
+        """
+        Override ``interactivity``
+
+        EXAMPLES::
+
+            sage: from sage.misc.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('for i in range(3): i')  # indirect doctest
+            0
+            1
+            2
+        """
+        super(SageInteractiveShell, self).run_ast_nodes(nodelist, cell_name, interactivity='all')
+
     #######################################
     # Magic functions
     #######################################
@@ -665,6 +680,45 @@ class InterfaceMagicTransformer():
                 return interface + '.interact()'
         return line
 
+class SagePromptDedenter():
+    """
+    Remove leading spaces from the imput line.
+    """
+    def __call__(self, line, line_number, block_start):
+        """
+        Transform ``line``.
+
+        INPUT:
+
+        - ``line`` -- string. The line to be transformed.
+
+        - ``line_number`` -- integer. The line number. For a single-line input, this is always zero.
+
+        - ``block_start`` -- boolean. Whether the line is at the
+          beginning of a new block.
+
+        OUTPUT:
+
+        A string, the transformed line.
+
+        EXAMPLES::
+
+            sage: from sage.misc.interpreter import SagePromptDedenter
+            sage: spd = SagePromptDedenter()
+            sage: spd('  1 + \\', 0, False)
+            '1 + \\'
+            sage: spd('  2',     1, False)
+            '2'
+            sage: spd('3',     2, False)   # try our best with incorrect indentation
+            '3'
+        """
+        if line_number == 0:
+            dedent_line = line.lstrip()
+            self._dedent = len(line) - len(dedent_line)
+            return dedent_line
+        else:
+            dedent = min(len(line)-len(line.lstrip()), self._dedent)
+            return line[dedent:]
 
 ###################################################################
 # Input Splitter
@@ -700,8 +754,9 @@ class SageInputSplitter(InputSplitter):
         InputSplitter.__init__(self, input_mode)
         self._buffer_raw = []
         self._transforms = [
-            InterfaceMagicTransformer(),
+            SagePromptDedenter(),
             SagePromptTransformer(),
+            InterfaceMagicTransformer(),
             LoadAttachTransformer(),
             SagePreparseTransformer() ]
 

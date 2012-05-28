@@ -13,8 +13,17 @@ svn export https://svn.sourceforge.net/svnroot/fastlibnt/trunk/QS/ fastlibnt
 
 == Changelog ==
 
-=== flintqs-20070817.p6 ===
- * make x86_64 systems build with -m64 rather than -march=opteron
+=== flintqs-20070817.p7 (Jeroen Demeyer, 25 May 2012) ===
+ * Trac #12855: Only call log() on float or double types.  This works
+   around a problem with Solaris' libc where log() in C++ is overloaded
+   for float, double and long double but not integer types.
+ * Use `patch` for patching, use standard template for spkg-install.
+ * Don't retry the build upon failure on x86_64, which seems pointless
+   after #11351.
+
+=== flintqs-20070817.p6 (Mariah Lenox, 19 May 2011) ===
+ * Trac #11351: make x86_64 systems build with -m64 rather than
+   -march=opteron.
 
 === flintqs-20070817.p5 ===
  * no record

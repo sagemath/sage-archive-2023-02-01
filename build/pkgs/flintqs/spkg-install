@@ -1,14 +1,21 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage --sh'?"
+    exit 1
 fi
 
-cp patches/lanczos.h  src/
-
 cd src
+
+# Apply patches.
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
 if [ "x$SAGE64" = xyes ]; then
     # Despite being called makefile.osx64, this is a pretty generic
@@ -21,27 +28,13 @@ else
 fi
 
 $MAKE
-
 if [ $? -ne 0 ]; then
     echo "Error building William Hart's Quadratic Sieve"
-    if [ `uname -m` = "x86_64" ]; then
-       $CP makefile.sage makefile
-       $MAKE
-    else
-       exit 1
-    fi
-fi
-
-if [ $? -ne 0 ]; then
-    echo "Error building William Hart's Quadratic Sieve"
-    exit 1
-fi
-
-if [ ! -f QuadraticSieve ]; then
-    echo "Error building William Hart's Quadratic Sieve -- no file QuadraticSieve was produced."
     exit 1
 fi
 
 $CP QuadraticSieve "$SAGE_LOCAL"/bin/
-
-exit 0
+if [ $? -ne 0 ]; then
+    echo "Error copying QuadraticSieve file"
+    exit 1
+fi

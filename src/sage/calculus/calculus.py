@@ -128,6 +128,31 @@ sum command, which also uses Maxima in the background::
     sage: sum(binomial(m,k), k, 0, m)
     2^m
 
+Symbolic matrices can be used as well in various ways,
+including exponentiation::
+
+    sage: M = matrix([[x,x^2],[1/x,x]])
+    sage: M^2
+    [x^2 + x   2*x^3]
+    [      2 x^2 + x]
+    sage: e^M
+    [          1/2*(e^(2*sqrt(x)) + 1)*e^(x - sqrt(x)) 1/2*(x*e^(2*sqrt(x)) - x)*sqrt(x)*e^(x - sqrt(x))]
+    [  1/2*(e^(2*sqrt(x)) - 1)*e^(x - sqrt(x))/x^(3/2)           1/2*(e^(2*sqrt(x)) + 1)*e^(x - sqrt(x))]
+
+And complex exponentiation works now::
+
+    sage: M = i*matrix([[pi]])
+    sage: e^M
+    [-1]
+    sage: M = i*matrix([[pi,0],[0,2*pi]])
+    sage: e^M
+    [-1  0]
+    [ 0  1]
+    sage: M = matrix([[0,pi],[-pi,0]])
+    sage: e^M
+    [-1  0]
+    [ 0 -1]
+
 Substitution works similarly. We can substitute with a python
 dict::
 
@@ -533,13 +558,10 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
 
     .. note::
 
-       #. Sage can currently only understand a subset of the output of Maxima,
-
-          Maple and Mathematica, so even if the chosen backend can perform
-
-          the summation the result might not be convertable into a Sage
-
-          expression.
+       Sage can currently only understand a subset of the output of Maxima,
+       Maple and Mathematica, so even if the chosen backend can perform
+       the summation the result might not be convertable into a Sage
+       expression.
     """
     if not is_SymbolicVariable(v):
         if isinstance(v, str):

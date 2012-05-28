@@ -5151,6 +5151,12 @@ class GenericGraph(GenericGraph_pyx):
             ...           not lp.is_connected()):
             ...           print("Error!")
             ...           break
+
+        :trac:`13019`::
+
+            sage: g = graphs.CompleteGraph(5).to_directed()
+            sage: g.longest_path(s=1,t=2)
+            Subgraph of (Complete graph): Digraph on 5 vertices
         """
         if use_edge_labels:
             algorithm = "MILP"
@@ -5185,14 +5191,14 @@ class GenericGraph(GenericGraph_pyx):
         if (self.order() <= 1 or
             (s is not None and (
                     (s not in self) or
-                    (self._directed and self.degree_out(s) == 0) or
+                    (self._directed and self.out_degree(s) == 0) or
                     (not self._directed and self.degree(s) == 0))) or
             (t is not None and (
                     (t not in self) or
-                    (self._directed and self.degree_in(t) == 0) or
+                    (self._directed and self.in_degree(t) == 0) or
                     (not self._directed and self.degree(t) == 0))) or
             (self._directed and (s is not None) and (t is not None) and
-             len(self.shortest_path(s, t) == 0))):
+             len(self.shortest_path(s, t)) == 0)):
             if self._directed:
                 from sage.graphs.all import DiGraph
                 return [0, DiGraph()] if use_edge_labels else DiGraph()

@@ -2437,16 +2437,23 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         OUTPUT:
 
-        `Q`, `R` -- a pair of matrices such that `A = QR` such that
-        the columns of Q are orthogonal (i.e., `Q^\ast Q = I`),
-        and R is upper triangular, where `Q^\ast` is the
-        conjugate-transpose in the complex case and the transpose
-        in the real case. If `A` is an `m\times n` matrix and
-        ``full=True`` then this method returns a pair of matrices:
-        `Q` is an `m\times m` unitary matrix (meaning its inverse
-        is its conjugate-transpose) and `R` is an `m\times n`
-        upper-triangular matrix.  For a matrix of full rank this
-        factorization is unique up to the sign of the diagonal entries.
+        ``Q``, ``R`` -- a pair of matrices such that if `A`
+        is the original matrix, then
+
+        .. math::
+
+          A = QR, \quad Q^\ast Q = I
+
+        where `R` is upper-triangular.  `Q^\ast` is the
+        conjugate-transpose in the complex case, and just
+        the transpose in the real case. So `Q` is a unitary
+        matrix (or rather, orthogonal, in the real case),
+        or equivalently `Q` has orthogonal columns.  For a
+        matrix of full rank this factorization is unique
+        up to adjustments via multiples of rows and columns
+        by multiples with scalars having modulus `1`.  So
+        in the full-rank case, `R` is unique if the diagonal
+        entries are required to be positive real numbers.
 
         The resulting decomposition is cached.
 
@@ -2457,9 +2464,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES:
 
-        Over the reals, the inverse of `Q` is its transpose,
+        Over the reals, the inverse of ``Q`` is its transpose,
         since including a conjugate has no effect.  In the real
-        case, we say `Q` is orthogonal. ::
+        case, we say ``Q`` is orthogonal. ::
 
             sage: A = matrix(RDF, [[-2, 0, -4, -1, -1],
             ...                    [-2, 1, -6, -3, -1],
@@ -2493,7 +2500,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [0.0 0.0 0.0 0.0 0.0]
 
         Now over the complex numbers, demonstrating that the SciPy libraries
-        are (properly) using the Hermitian inner product, so that `Q` is
+        are (properly) using the Hermitian inner product, so that ``Q`` is
         a unitary matrix (its inverse is the conjugate-transpose).  ::
 
             sage: A = matrix(CDF, [[-8, 4*I + 1, -I + 2, 2*I + 1],
@@ -2525,8 +2532,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         An example of a rectangular matrix that is also rank-deficient.
         If you run this example yourself, you may see a very small, nonzero
         entries in the third row, in the third column, even though the exact
-        version of the matrix has rank 2.  The final two columns of ``Q`` span the left kernel of ``A`` and different platforms will compute different
-        bases so we do not exhibit the actual matrix.  ::
+        version of the matrix has rank 2.  The final two columns of ``Q``
+        span the left kernel of ``A`` (as evidenced by the two zero rows of
+        ``R``).  Different platforms will compute different bases for this
+        left kernel, so we do not exhibit the actual matrix.  ::
 
             sage: Arat = matrix(QQ, [[2, -3, 3],
             ...                      [-1, 1, -1],
@@ -2568,7 +2577,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         TESTS:
 
         Trivial cases return trivial results of the correct size,
-        and we check `Q` itself in one case, verifying a fix for
+        and we check ``Q`` itself in one case, verifying a fix for
         :trac:`10795`.  ::
 
             sage: A = zero_matrix(RDF, 0, 10)

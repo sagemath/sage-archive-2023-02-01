@@ -171,14 +171,18 @@ def initialize_pkgconfig_files():
     PKG = os.path.join(LIB, 'pkgconfig')
     for name in os.listdir(PKG):
         filename = os.path.join(PKG, name)
-        initialize_pkgconfig_file(filename)
+        initialize_pkgconfig_file(filename, SAGE_ROOT_absolute)
 
-def initialize_pkgconfig_file(filename):
+def initialize_pkgconfig_file(filename, SAGE_ROOT_absolute=None,
+                              OLD_SAGE_ROOT_absolute=None):
     """
     Insert a ``SAGE_ROOT`` variable into ``filename`` and replace
     occurrences of its current value by references to it (``${SAGE_ROOT}``).
     """
-    SAGE_ROOT_absolute = os.path.abspath(SAGE_ROOT)
+    if SAGE_ROOT_absolute is None:
+        SAGE_ROOT_absolute = os.path.abspath(SAGE_ROOT)
+    if OLD_SAGE_ROOT_absolute is None:
+        OLD_SAGE_ROOT_absolute = SAGE_ROOT_absolute
     import re
     # Pattern matching a *definition* of SAGE_ROOT:
     def_pat = re.compile(r"^SAGE_ROOT=.*\n", re.MULTILINE)
@@ -212,7 +216,7 @@ def initialize_pkgconfig_file(filename):
 
         # Replace all occurrences of the (current) value of SAGE_ROOT
         # by references to the pkg-config variable SAGE_ROOT:
-        config = config.replace(SAGE_ROOT_absolute, "${SAGE_ROOT}")
+        config = config.replace(OLD_SAGE_ROOT_absolute, "${SAGE_ROOT}")
         # Alternate implementation, *may* be faster:
         # config = use_pat.sub("${SAGE_ROOT}", config)
 
@@ -236,6 +240,16 @@ def update_pkgconfig_files():
     # Pattern matching a *definition* of SAGE_ROOT:
     def_pat = re.compile(r"^SAGE_ROOT=.*\n", re.MULTILINE)
 
+    #Find the old SAGE_ROOT to use for uninitialized pkgconfig files
+    for name in os.listdir(PKG):
+        matches = re.findall(r"^SAGE_ROOT=(.*)\n",
+                             open(os.path.join(PKG, name)).read())
+        if matches:
+            OLD_SAGE_ROOT = matches[0]
+            break
+    else:
+        OLD_SAGE_ROOT = None
+
     for name in os.listdir(PKG):
         filename = os.path.join(PKG, name)
         if os.path.splitext(filename)[1]==".pc":
@@ -247,7 +261,14 @@ def update_pkgconfig_files():
                 # at all.  This should only happend if the user
                 # modified the file or installed the package after
                 # initialize_pkgconfig_files had been initially run.
-                initialize_pkgconfig_file(filename)
+                if OLD_SAGE_ROOT is None:
+                    sys.stderr.write("Cannot find to the previous Sage root to update %s"%filename)
+                else:
+                    initialize_pkgconfig_file(filename, OLD_SAGE_ROOT_absolute=OLD_SAGE_ROOT)
+                    #Since we've changed filename, we have to reload
+                    #the config to make sure it is up to date
+                    with open(filename) as file:
+                        config = file.read()
 
             # Delete all previous definitions of SAGE_ROOT:
             config = def_pat.sub("", config)

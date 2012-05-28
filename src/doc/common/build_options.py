@@ -2,9 +2,9 @@
 # Options for building the Sage documentation #
 ###############################################
 
-import os
+import os, re
 SAGE_DOC = os.environ['SAGE_DOC']
-LANGUAGES = ['de', 'en', 'fr', 'ru','tr']
+LANGUAGES = [d for d in os.listdir(SAGE_DOC) if re.match('^[a-z][a-z]$', d)]
 SPHINXOPTS = ""
 PAPER = ""
 OMIT = ["introspect"]  # docs/dirs to omit when listing and building 'all'

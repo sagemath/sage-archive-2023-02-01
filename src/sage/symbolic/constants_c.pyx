@@ -249,11 +249,21 @@ cdef class E(Expression):
             <built-in function pow>
             sage: u.operands()
             [e, a]
+
+        It also works with matrices::
+
+            sage: m = matrix(QQ, 2, 2, [1,0,0,1])
+            sage: e^m
+            [e 0]
+            [0 e]
         """
         if PY_TYPE_CHECK(left, E):
             if PY_TYPE_CHECK(right, E):
                 return exp_one.exp()
-            return SR(right).exp()
+            try:
+                return right.exp()
+            except AttributeError:
+                return SR(right).exp()
         else:
             return SR(left)**exp_one
 

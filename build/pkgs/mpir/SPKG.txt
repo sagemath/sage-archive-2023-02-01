@@ -57,6 +57,19 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-2.4.0.p4 (Jeroen Demeyer, 26 May 2012) ===
+ * Trac #12954: when SAGE_FAT_BINARY=yes on systems which don't support
+   --enable-fat, compile a generic binary (not assuming any particular
+   CPU) by passing the output of configfsf.guess to the --build option
+   of ./configure.
+ * Disable SAGE_FAT_BINARY when bootstrapping GCC.
+ * Rename MPIR_EXTRA_OPTS to MPIR_CONFIGURE.
+ * Add configure options directly to MPIR_CONFIGURE, no longer use
+   SAGE_CONF_OPTS for this.
+ * When user specifies CFLAGS, append them to MPIR's flags instead of
+   completely replacing MPIR's flags.
+ * Remove $default_cflags and get_processor_specific_cflags().
+
 === mpir-2.4.0.p3 (Jeroen Demeyer, April 26th, 2012) ===
  Trac #11616, reviewer fixes:
  * When the first configure run (with CFLAGS unset) of MPIR fails, bail

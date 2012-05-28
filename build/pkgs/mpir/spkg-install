@@ -58,28 +58,6 @@ remove_32_bit_assembly_code() # MacOS X 10.4 and 10.5 on Intel (x86) only.
     cd "$saved"
 }
 
-get_processor_specific_cflags() # Extract some processor-specific CFLAGS.
-{
-    # Internal sanity check:
-    if [ $# -lt 1 ]; then
-        echo >&2 "Error: get_processor_specific_cflags() requires 'CFLAGS' parameter."
-        exit 1
-    fi
-    flags=$*
-    arch_flags=""
-    for opt in $flags; do
-        case $opt in
-            -march=*|-mcpu=*|-mtune=*|-mpower*|-mno-power*)
-                arch_flags="$arch_flags $opt"
-                ;;
-            # We could add further '-m' or '-f' options here, but note that
-            # this function is also used to determine if the user specified
-            # some, which we don't want to override.
-        esac
-    done
-    echo $arch_flags
-}
-
 ###############################################################################
 # Set up environment variables:
 ###############################################################################
@@ -97,15 +75,12 @@ fi
 
 user_cflags=$CFLAGS # Save them. 'sage-env' sets CC, but not CFLAGS.
 required_cflags=""  # Additional mandatory settings required by Sage, accumulated below.
-default_cflags=""   # Spkg defaults that can and might get overridden.
 user_ldflags=$LDFLAGS # Save them.
 required_ldflags=""   # Additional mandatory settings required by Sage, accumulated below.
 user_abi=$ABI # Just save it.
 # In case we changed CPPFLAGS or CXXFLAGS, too, we should save the user's here as well.
 # We don't have to add (e.g.) '-m64' to CFLAGS/CPPFLAGS/CXXFLAGS/LDFLAGS, since
 # MPIR's 'configure' is smart enough to add it if necessary or appropriate.
-
-SAGE_CONF_OPTS="" # Clear them. (Further options to `configure` are added below.)
 
 
 if [ -z "$CFLAG32" ]; then
@@ -121,9 +96,8 @@ if [ "$SAGE_DEBUG" = yes ]; then
     required_cflags="$required_cflags -g -O0"
     echo >&2 "Warning: Building MPIR with SAGE_DEBUG=yes disables optimization."
 else
-    # Add debug symbols by default, enable optimization, but do not (yet)
-    # add processor-specific flags (these are eventually added later):
-    default_cflags="$default_cflags -g -O3"
+    # Add debug symbols by default
+    required_cflags="$required_cflags -g"
 fi
 
 
@@ -174,25 +148,6 @@ case "$UNAME" in
         # systems:
         required_ldflags="$required_ldflags -Wl,-z,noexecstack"
 
-        if [ "$SAGE_FAT_BINARY" = "yes" ]; then
-            # For now we do the same thing -- namely "--enable-fat" --
-            # on both 64-bit and 32-bit, though this is likely to change.
-            case "`uname -m`" in
-            i[3456]86)
-                echo "** Building with \"fat binary\" support for 32-bit CPUs **"
-                SAGE_CONF_OPTS="$SAGE_CONF_OPTS --enable-fat"
-                ;;
-            x86_64|amd64)
-                echo "** Building with \"fat binary\" support for 64-bit CPUs **"
-                SAGE_CONF_OPTS="$SAGE_CONF_OPTS --enable-fat"
-                ;;
-            *) # e.g. ia64 (Itanium) or PPC (ppc, ppc64)
-                echo >&2 "Warning: A \"fat binary\" build is currently not" \
-                    "supported on this CPU architecture."
-                # XXX exit 1 ?
-            esac
-        fi
-
         # MPIR fails to build on 32-bit operating systems running on
         # 64-bit CPUs if CFLAGS happen to contain '-m32' and ABI is
         # *not* set, so we set it here if necessary:
@@ -204,7 +159,7 @@ case "$UNAME" in
             echo "int main(){return 0;}" > foo.c
             # Try building and running a 64-bit executable:
             # (Building usually succeeds even on 32-bit systems, unless e.g. a 32-bit
-	    # CPU is explicitly selected by CFLAGS, while running does not.)
+            # CPU is explicitly selected by CFLAGS, while running does not.)
             if $CC $CFLAGS $CFLAG64 -o foo foo.c 2>/dev/null && ./foo 2>/dev/null; then
                 # We can run 64-bit executables.
                 # Setting ABI=64 shouldn't be necessary, but shouldn't hurt either.
@@ -254,26 +209,50 @@ export ABI CFLAGS CXXFLAGS LDFLAGS # Partially redundant, but safe(r).
 # Now configure MPIR, eventually modifying CFLAGS [further]:
 ###############################################################################
 
-SAGE_CONF_OPTS="--enable-gmpcompat --enable-shared $SAGE_CONF_OPTS"
+MPIR_CONFIGURE="--enable-gmpcompat --enable-shared $MPIR_CONFIGURE"
 
-# If we're bootstrapping GCC from the GCC spkg, don't build the C++ interface
-# and static libraries in the first place (cf. #12782):
+# If we're bootstrapping GCC from the GCC spkg, don't build the C++
+# interface (cf. #12782), static libraries and disable fat binary.
+# After GCC is built, we will build MPIR again.
 if [ "$SAGE_BUILD_TOOLCHAIN" = yes ]; then
     echo "Building a reduced version of MPIR to bootstrap GCC."
     echo "MPIR will later get rebuilt (with the C++ interface and static libraries"
     echo "enabled) using the new compiler."
-    SAGE_CONF_OPTS="--disable-cxx --disable-static $SAGE_CONF_OPTS"
+    MPIR_CONFIGURE="--disable-cxx --disable-static $MPIR_CONFIGURE"
+    SAGE_FAT_BINARY=no
 else
     # Also build the static library to be used by e.g. ECM:
     echo "Building MPIR with the C++ interface and (also) static libraries."
-    SAGE_CONF_OPTS="--enable-cxx --enable-static $SAGE_CONF_OPTS"
+    MPIR_CONFIGURE="--enable-cxx --enable-static $MPIR_CONFIGURE"
 fi
 # (Further options to 'configure' are added below.)
+
+# If SAGE_FAT_BINARY is enabled, then add --enable-fat to configure
+# options on Linux x86 systems.  On other systems, fat binaries are not
+# supported.  Then we specify a build architecture which doesn't
+# have a CPU name in it.  This means which use the vanilla config.guess
+# (renamed to configfsf.guess in MPIR) file instead of MPIR's version.
+if [ "$SAGE_FAT_BINARY" = "yes" ]; then
+    case "$UNAME-`uname -m`" in
+        Linux-i[3456]86)
+            echo "** Building with \"fat binary\" support for 32-bit CPUs **"
+            MPIR_CONFIGURE="--enable-fat $MPIR_CONFIGURE"
+            ;;
+        Linux-x86_64|Linux-amd64)
+            echo "** Building with \"fat binary\" support for 64-bit CPUs **"
+            MPIR_CONFIGURE="--enable-fat $MPIR_CONFIGURE"
+            ;;
+        *) # Anything else
+            echo "** Building a generic binary (not assuming any specific CPU) **"
+            MPIR_CONFIGURE="--build=`./configfsf.guess` $MPIR_CONFIGURE"
+            ;;
+    esac
+fi
 
 
 # Pre-configure MPIR to get the settings it would use if CFLAGS were empty:
 echo "Checking what CFLAGS MPIR would use if they were empty..."
-(unset CFLAGS CPPFLAGS CXXFLAGS && ./configure $SAGE_CONF_OPTS $MPIR_EXTRA_OPTS) &>configure-empty.log
+(unset CFLAGS CPPFLAGS CXXFLAGS && ./configure $MPIR_CONFIGURE) &>configure-empty.log
 if [ $? -ne 0 ]; then
     # Output the log of the failed configure run
     cat configure-empty.log
@@ -294,7 +273,7 @@ fi
 echo "Settings chosen by MPIR when configuring with CFLAGS unset:"
 echo "  CC:      $mpir_cc"
 echo "  CFLAGS:  $mpir_cflags"
-echo "Settings required to properly build MPIR, taking into account SAGE_DEBUG etc.:"
+echo "Settings added by Sage to build MPIR, taking into account SAGE_DEBUG etc.:"
 echo "  CFLAGS:  $required_cflags"  # Might be empty.
 echo "  LDFLAGS: $required_ldflags" # Might be empty.
 echo "  ABI:     $ABI" # Might be empty, or the one specified by the user.
@@ -305,31 +284,9 @@ echo "  LDFLAGS: $user_ldflags"
 echo "  ABI:     $user_abi"
 echo "  (CPP, CPPFLAGS, CXX and CXXFLAGS are listed below; these don't get modified.)"
 
-if [ -z "$user_cflags" ]; then
-    # No CFLAGS specified by user => Use MPIR's flags, plus those
-    # required by Sage for the package to build properly:
-    echo "Using MPIR's settings (plus mandatory ones)."
-    CFLAGS="$mpir_cflags $required_cflags"
-else
-    # CFLAGS were specified by the user, so don't override them (unless
-    # necessary) and only add some useful ones to improve code generation:
-    echo "Using user-specified settings (overriding defaults), with some additions."
-    CFLAGS="$default_cflags $user_cflags $required_cflags"
-
-    # Now add processor-specific flags if appropriate:
-    if [ -z "`get_processor_specific_cflags $CFLAGS`" ]; then
-        # User didn't specify specific architecture, so try to add such flag(s):
-        # Add MPIR's. Honors '--enable-fat'.
-        echo "Adding processor-specific options from MPIR."
-        CFLAGS="`get_processor_specific_cflags $mpir_cflags` $CFLAGS"
-    else
-        # User did specify some processor-specific CFLAGS.
-        # We *might* prepend all of MPIR's CFLAGS here in addition,
-        # but doing so could raise a conflict.
-        :;
-    fi
-fi
-
+# Finally: use MPIR's flags, plus those required by Sage for the
+# package to build properly, plus those specified by the user.
+CFLAGS="$mpir_cflags $required_cflags $user_cflags"
 LDFLAGS="$required_ldflags $user_ldflags"
 
 echo "Finally using the following settings:"
@@ -350,22 +307,14 @@ echo "(These settings may still get overridden by 'configure' or Makefiles.)"
 # We also add '--libdir="$SAGE_LOCAL/lib"' below, since newer autotools may
 # otherwise put the libraries into .../lib64 on 64-bit systems (cf. #12131).
 
-if [ -z "$MPIR_EXTRA_OPTS" ]; then
-    echo "Configuring MPIR with the following options:"
-    echo "    --prefix=\"$SAGE_LOCAL\" --libdir=\"$SAGE_LOCAL/lib\" $SAGE_CONF_OPTS"
-    echo "You can set MPIR_EXTRA_OPTS to pass additional parameters."
-else
-    echo "Using additional 'configure' options as specified through" \
-        "MPIR_EXTRA_OPTS:"
-    echo "    $MPIR_EXTRA_OPTS"
-    echo "Configuring MPIR with the following options:"
-    echo "    --prefix=\"$SAGE_LOCAL\" --libdir=\"$SAGE_LOCAL/lib\" $SAGE_CONF_OPTS $MPIR_EXTRA_OPTS"
-fi
+echo "Configuring MPIR with the following options:"
+echo "    --prefix=\"$SAGE_LOCAL\" --libdir=\"$SAGE_LOCAL/lib\" $MPIR_CONFIGURE"
+echo "You can set MPIR_CONFIGURE to pass additional parameters."
 
 # Clear the cache of the previous configure run
 find . -name config.cache -exec rm -f {} \;
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $SAGE_CONF_OPTS $MPIR_EXTRA_OPTS
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $MPIR_CONFIGURE
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring MPIR. (See above for the options passed to it.)"
     exit 1

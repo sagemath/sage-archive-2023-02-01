@@ -18,13 +18,6 @@ Interface to the Gnuplot interpreter
 #*****************************************************************************
 
 import os, time
-
-try:
-    import Gnuplot as GP
-except ImportError:
-    # Functionality just won't be available
-    pass
-
 from sage.structure.sage_object import SageObject
 
 class Gnuplot(SageObject):
@@ -36,12 +29,13 @@ class Gnuplot(SageObject):
 
     def gnuplot(self):
         try:
-            return self.__gnuplot
+            return self._gnuplot
         except AttributeError:
             try:
-                self.__gnuplot = GP.Gnuplot()
-                return self.__gnuplot
-            except NameError:
+                import Gnuplot as GP
+                self._gnuplot = GP.Gnuplot()
+                return self._gnuplot
+            except ImportError:
                 raise RuntimeError, "Install the gnuplotpy Python module."
 
     def __call__(self, line):

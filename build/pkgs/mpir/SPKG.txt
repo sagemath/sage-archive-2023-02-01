@@ -54,8 +54,18 @@ See http://www.mpir.org
    bail out with an error when encountering "define(,1)".
    These files were patched using
      find mpn -name '*.asm' -exec sed -i 's/define(\(OPERATION[^,]*\),/define(\`\1'"'"',/' {} \;
+ * configure.patch: add some extra run-time configure tests, remove
+   mentions of Fortran. Re-generated configure (using the same versions
+   of autoconf, automake and libtool as the original files).
 
 == Changelog ==
+
+=== mpir-2.4.0.p5 (Jeroen Demeyer, 27 May 2012) ===
+ * Trac #12970: configure.patch: add some configure tests to check that
+   certain code compiles and runs. In particular, add a runtime test
+   for unsigned long/double division.
+ * Additionally, remove all mentions of Fortran in the configure file.
+   Supposedly, it was there to work around a libtool bug.
 
 === mpir-2.4.0.p4 (Jeroen Demeyer, 26 May 2012) ===
  * Trac #12954: when SAGE_FAT_BINARY=yes on systems which don't support

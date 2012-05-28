@@ -3427,6 +3427,18 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         to be positive definite (perhaps because it is not symmetric
         or Hermitian), then this function raises a ``ValueError``.
 
+        IMPLEMENTATION:
+
+        The existence of a Cholesky decomposition and the
+        positive definite property are equivalent.  So this
+        method and the :meth:`is_positive_definite` method compute and
+        cache both the Cholesky decomposition and the
+        positive-definiteness.  So the :meth:`is_positive_definite`
+        method or catching a ``ValueError`` from the :meth:`cholesky`
+        method are equally expensive computationally and if the
+        decomposition exists, it is cached as a side-effect of either
+        routine.
+
         EXAMPLES:
 
         A real matrix that is symmetric and positive definite.  ::
@@ -3524,14 +3536,18 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         from sage.rings.complex_double import CDF
 
         cdef Matrix_double_dense L
+        cache_cholesky = 'cholesky'
+        cache_posdef = 'positive_definite'
 
         if not self.is_square():
             msg = "Cholesky decomposition requires a square matrix, not a {0} x {1} matrix"
+            self.cache(cache_posdef, False)
             raise ValueError(msg.format(self.nrows(), self.ncols()))
         if self._nrows == 0:   # special case
+            self.cache(cache_posdef, True)
             return self.__copy__()
 
-        L = self.fetch('cholesky')
+        L = self.fetch(cache_cholesky)
         if L is None:
             L = self._new()
             global scipy
@@ -3542,10 +3558,159 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             try:
                 L._matrix_numpy = scipy.linalg.cholesky(self._matrix_numpy, lower=1)
             except LinAlgError:
+                self.cache(cache_posdef, False)
                 raise ValueError("matrix is not positive definite")
             L.set_immutable()
-            self.cache('cholesky', L)
+            self.cache(cache_cholesky, L)
+            self.cache(cache_posdef, True)
         return L
+
+    def is_positive_definite(self):
+        r"""
+        Determines if a matrix is positive definite.
+
+        A matrix `A` is positive definite if it is square,
+        is Hermitian (which reduces to symmetric in the real case),
+        and for every nonzero vector `\vec{x}`,
+
+        .. math::
+
+            \vec{x}^\ast A \vec{x} > 0
+
+        where `\vec{x}^\ast` is the conjugate-transpose in the
+        complex case and just the transpose in the real case.
+        Equivalently, a positive definite matrix has only positive
+        eigenvalues and only positive determinants of leading
+        principal submatrices.
+
+        INPUT:
+
+        Any matrix over ``RDF`` or ``CDF``.
+
+        OUTPUT:
+
+        ``True`` if and only if the matrix is square, Hermitian,
+        and meets the condition above on the quadratic form.
+        The result is cached.
+
+        IMPLEMENTATION:
+
+        The existence of a Cholesky decomposition and the
+        positive definite property are equivalent.  So this
+        method and the :meth:`cholesky` method compute and
+        cache both the Cholesky decomposition and the
+        positive-definiteness.  So the :meth:`is_positive_definite`
+        method or catching a ``ValueError`` from the :meth:`cholesky`
+        method are equally expensive computationally and if the
+        decomposition exists, it is cached as a side-effect of either
+        routine.
+
+        EXAMPLES:
+
+        A matrix over ``RDF`` that is positive definite.  ::
+
+            sage: M = matrix(RDF,[[ 1,  1,    1,     1,     1],
+            ...                   [ 1,  5,   31,   121,   341],
+            ...                   [ 1, 31,  341,  1555,  4681],
+            ...                   [ 1,121, 1555,  7381, 22621],
+            ...                   [ 1,341, 4681, 22621, 69905]])
+            sage: M.is_symmetric()
+            True
+            sage: M.eigenvalues()
+            [77547.66..., 82.44..., 2.41..., 0.46..., 0.011...]
+            sage: [round(M[:i,:i].determinant()) for i in range(1, M.nrows()+1)]
+            [1, 4, 460, 27936, 82944]
+            sage: M.is_positive_definite()
+            True
+
+        A matrix over ``CDF`` that is positive definite.  ::
+
+            sage: C = matrix(CDF, [[        23,  17*I + 3,  24*I + 25,     21*I],
+            ...                    [ -17*I + 3,        38, -69*I + 89, 7*I + 15],
+            ...                    [-24*I + 25, 69*I + 89,        976, 24*I + 6],
+            ...                    [     -21*I, -7*I + 15,  -24*I + 6,       28]])
+            sage: C.is_hermitian()
+            True
+            sage: [x.real() for x in C.eigenvalues()]
+            [991.46..., 55.96..., 3.69..., 13.87...]
+            sage: [round(C[:i,:i].determinant().real()) for i in range(1, C.nrows()+1)]
+            [23, 576, 359540, 2842600]
+            sage: C.is_positive_definite()
+            True
+
+        A matrix over ``RDF`` that is not positive definite.  ::
+
+            sage: A = matrix(RDF, [[ 3,  -6,   9,   6,  -9],
+            ...                    [-6,  11, -16, -11,  17],
+            ...                    [ 9, -16,  28,  16, -40],
+            ...                    [ 6, -11,  16,   9, -19],
+            ...                    [-9,  17, -40, -19,  68]])
+            sage: A.is_symmetric()
+            True
+            sage: A.eigenvalues()
+            [108.07..., 13.02..., -0.02..., -0.70..., -1.37...]
+            sage: [round(A[:i,:i].determinant()) for i in range(1, A.nrows()+1)]
+            [3, -3, -15, 30, -30]
+            sage: A.is_positive_definite()
+            False
+
+        A matrix over ``CDF`` that is not positive definite.  ::
+
+            sage: B = matrix(CDF, [[      2, 4 - 2*I, 2 + 2*I],
+            ...                    [4 + 2*I,       8,    10*I],
+            ...                    [2 - 2*I,   -10*I,      -3]])
+            sage: B.is_hermitian()
+            True
+            sage: [ev.real() for ev in B.eigenvalues()]
+            [15.88..., 0.08..., -8.97...]
+            sage: [round(B[:i,:i].determinant().real()) for i in range(1, B.nrows()+1)]
+            [2, -4, -12]
+            sage: B.is_positive_definite()
+            False
+
+        A large random matrix that is guaranteed by theory to be
+        positive definite. ::
+
+            sage: R = random_matrix(CDF, 200)
+            sage: H = R.conjugate_transpose()*R
+            sage: H.is_positive_definite()
+            True
+
+        TESTS:
+
+        A trivially small case.  ::
+
+            sage: S = matrix(CDF, [])
+            sage: S.nrows(), S.ncols()
+            (0, 0)
+            sage: S.is_positive_definite()
+            True
+
+        A rectangular matrix will never be positive definite.  ::
+
+            sage: R = matrix(RDF, 2, 3, range(6))
+            sage: R.is_positive_definite()
+            False
+
+        A non-Hermitian matrix will never be positive definite.  ::
+
+            sage: T = matrix(CDF, 8, 8, range(64))
+            sage: T.is_positive_definite()
+            False
+
+        AUTHOR:
+
+        - Rob Beezer (2012-05-28)
+        """
+        cache_str = 'positive_definite'
+        posdef = self.fetch(cache_str)
+        if posdef is None:
+            try:
+                self.cholesky()
+            except ValueError:
+                pass
+            posdef = self.fetch(cache_str)
+        return posdef
 
     cdef Vector _vector_times_matrix_(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:

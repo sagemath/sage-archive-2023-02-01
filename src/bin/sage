@@ -88,7 +88,6 @@ usage_advanced() {
     echo "  -ecl [...]          -- run Common Lisp"
     echo "  -gap [...]          -- run Sage's Gap with given arguments"
     echo "  -gdb                -- run Sage under the control of gdb"
-    echo "  -gdb-ipython        -- run Sage's IPython under the control of gdb"
     echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
     echo "  -hg [...]           -- run Sage's Mercurial with given arguments"
     echo "  -ipython [...]      -- run Sage's IPython using the default environment (not"
@@ -305,11 +304,11 @@ sage_setup() {
         sage-location || exit $?
     fi
 
-    export IPYTHONDIR="$DOT_SAGE/ipython"
-    export IPYTHONRC="ipythonrc"
     if [ ! -d "$IPYTHONDIR" ]; then
+        # make sure that $DOT_SAGE exists so that ipython will happily
+        # create its config directories there.  If DOT_SAGE doesn't
+        # exist, ipython complains.
         mkdir -p "$DOT_SAGE"
-        cp -r "$SAGE_ROOT/ipython" "$DOT_SAGE/"
     fi
     sage-cleaner &>/dev/null &
 }
@@ -593,12 +592,6 @@ EOF
         echo >&2 "Fatal error: 'exec \"$SHELL\" \"$@\"' failed!"
     fi
     exit $status
-fi
-
-if [ "$1" = '-gdb-ipython'  -o "$1" = '--gdb-ipython' ]; then
-    shift
-    sage-gdb-ipython "$@"
-    exit $?
 fi
 
 if [ "$1" = '-hg'  -o "$1" = '--hg' ]; then

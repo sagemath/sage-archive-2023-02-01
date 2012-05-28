@@ -3230,22 +3230,21 @@ class GraphGenerators():
             4
             sage: g.diameter()
             2
-            sage: g.show(figsize = [10,10]) # long time
+            sage: g.show(figsize=[10, 10]) # long time
         """
         g = graph.Graph(pos={})
-        n = 16
         x = 0
         for i in range(8):
-            g.add_edge(x%n,(x+1)%n)
-            g.add_edge(x%n,(x+6)%n)
-            g.add_edge(x%n,(x+8)%n)
+            g.add_edge(x % 16, (x + 1) % 16)
+            g.add_edge(x % 16, (x + 6) % 16)
+            g.add_edge(x % 16, (x + 8) % 16)
             x += 1
-            g.add_edge(x%n,(x+3)%n)
-            g.add_edge(x%n,(x+2)%n)
-            g.add_edge(x%n,(x+8)%n)
+            g.add_edge(x % 16, (x + 3) % 16)
+            g.add_edge(x % 16, (x + 2) % 16)
+            g.add_edge(x % 16, (x + 8) % 16)
             x += 1
 
-        _circle_embedding(g, range(16), shift = .5)
+        _circle_embedding(g, range(16), shift=.5)
         g.name("Clebsch graph")
 
         return g
@@ -3268,21 +3267,21 @@ class GraphGenerators():
             3
             sage: g.diameter()
             4
-            sage: g.show(figsize = [10,10]) # long time
+            sage: g.show(figsize=[10, 10]) # long time
         """
         g = graph.Graph({
                 27: [6, 22, 14],
                 24: [0, 7, 18],
                 25: [8, 15, 2],
                 26: [10, 16, 23],
-                },pos={})
+                }, pos={})
 
         g.add_cycle(range(24))
-        g.add_edges([(5,11),(9,20),(12,1),(13,19),(17,4),(3,21)])
+        g.add_edges([(5, 11), (9, 20), (12, 1), (13, 19), (17, 4), (3, 21)])
 
         _circle_embedding(g, range(24))
-        _circle_embedding(g, [24,25,26], radius = .5)
-        g.get_pos()[27] = (0,0)
+        _circle_embedding(g, [24, 25, 26], radius=.5)
+        g.get_pos()[27] = (0, 0)
 
         g.name("Coxeter Graph")
 
@@ -4491,8 +4490,8 @@ class GraphGenerators():
                 13: [15]})
         g.set_pos({})
         _circle_embedding(g, range(8))
-        _circle_embedding(g, range(8, 14), radius = .7, shift = .5)
-        _circle_embedding(g, [14,15], radius = .1)
+        _circle_embedding(g, range(8, 14), radius=.7, shift=.5)
+        _circle_embedding(g, [14, 15], radius=.1)
 
         g.name("Hoffman Graph")
 

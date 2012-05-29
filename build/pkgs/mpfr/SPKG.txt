@@ -58,15 +58,14 @@ The MPFR team can be contacted via the MPFR mailing list: mpfr@loria.fr
  * We should remove the `configure` option `--disable-thread-safe` in case
    the issues without that have meanwhile been fixed.  (Then we should
    actually pass `--enable-thread-safe`.)
- * Check whether the work-around for GCC 4.7 on ia64 is still appropriate, i.e.
-   adapt it in case the issue has been fixed in later GCC versions of the 4.7
-   release series.  (Although the bug currently affects only GCC 4.7.0, it
-   seems unlikely that it will be fixed soon, hence we apply the work-around
-   for any GCC 4.7.x version on ia64.)
-   See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496 for details and the
-   current status of that bug.
 
 == Changelog ==
+
+=== mpfr-3.1.0.p2 (Jeroen Demeyer, 28 May 2012) ===
+ * Trac #12751: Apply the ia64 workaround for gcc-4.7.0 *only* on
+   gcc-4.7.0 and not on other gcc-4.7.x versions.
+ * Remove pointless check for gmp.h.
+ * Rename MPFR_EXTRA_OPTS to MPFR_CONFIGURE for consistency with MPIR.
 
 === mpfr-3.1.0.p1 (Leif Leonhardy, April 13th 2012) ===
  * #12837: Work around GCC 4.7.0 bug on ia64 (Itanium), unfortunately by almost

@@ -150,19 +150,13 @@ else
                     echo >&2 "gcc-4.6.0 and gcc-4.6.1 have known bugs affecting Sage."
                     need_to_install_gcc=yes
                 fi;;
-            4.7.*)
+            4.7.0)
                 # GCC 4.7.0 is very broken on ia64, see
                 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496
+                # This is fixed in GCC 4.7.1.
                 if [ x`uname -m` = xia64 ]; then
                     echo >&2 "Installing GCC because you have $CC version $GCCVERSION on ia64."
                     echo >&2 "gcc-4.7.0 has a serious bug on ia64."
-                    need_to_install_gcc=yes
-                else
-                    # On other systems, GCC 4.7.x works but it is not
-                    # supported by all packages inside Sage, see
-                    # http://trac.sagemath.org/sage_trac/ticket/12751
-                    echo >&2 "Installing GCC because you have $CC version $GCCVERSION."
-                    echo >&2 "gcc-4.7.x is currently not supported in Sage."
                     need_to_install_gcc=yes
                 fi;;
         esac

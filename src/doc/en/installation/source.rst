@@ -660,6 +660,18 @@ process:
   Setting ``SAGE_INSTALL_GCC=no`` will prevent Sage from installing
   GCC.
 
+- :envvar:`SAGE_INSTALL_CCACHE` - by default Sage doesn't install
+  ccache, however by setting ``SAGE_INSTALL_CCACHE=yes`` Sage will
+  install ccache. Because the Sage distribution is quite large, the
+  maximum cache is set to 4G. This can be changed by running
+  ``sage -sh -c "ccache --max-size=SIZE"``, where ``SIZE`` is specified
+  in gigabytes, megabytes, or kilobytes by appending a G, M, or K.
+
+  Sage does not include the sources for ccache since it is an optional
+  package. Because of this, it is necessary to have an internet
+  connection while building Sage with ccache, so that Sage can pull
+  down the necessary sources.
+
 - :envvar:`SAGE_DEBUG` - about half a dozen Sage packages use this
   variable.  If it is unset (the default) or set to "yes", then
   debugging is turned on.  If it is set to anything else, then

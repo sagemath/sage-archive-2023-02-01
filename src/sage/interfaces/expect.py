@@ -271,32 +271,6 @@ class Expect(Interface):
             self._start()
         return self._expect
 
-    def interact(self):
-        r"""
-        This allows you to interactively interact with the child
-        interpreter. Press Ctrl-D or type 'quit' or 'exit' to exit and
-        return to Sage.
-
-        .. note::
-
-           This is completely different than the console() member
-           function. The console function opens a new copy of the
-           child interpreter, whereas the interact function gives you
-           interactive access to the interpreter that is being used by
-           Sage. Use sage(xxx) or interpretername(xxx) to pull objects
-           in from sage to the interpreter.
-        """
-        if self._expect is None:
-            self._start()
-        import sage.misc.preparser_ipython
-        sage.misc.preparser_ipython.switch_interface_general(self)
-
-    def _pre_interact(self):
-        pass
-
-    def _post_interact(self):
-        pass
-
     def pid(self):
         """
         Return the PID of the underlying sub-process.

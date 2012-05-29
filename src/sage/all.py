@@ -255,31 +255,6 @@ def quit_sage(verbose=True):
     from sage.libs.all import symmetrica
     symmetrica.end()
 
-def _quit_sage_(self):
-    import sage.misc.preparser_ipython
-    if sage.misc.preparser_ipython.interface != None:
-        sage.misc.preparser_ipython.switch_interface('sage')
-        self.exit_now = False
-        return
-
-    from IPython.genutils import ask_yes_no
-    if self.rc.confirm_exit:
-        if ask_yes_no('Do you really want to exit ([y]/n)?','y'):
-            self.exit_now = True
-    else:
-        self.exit_now = True
-    if self.exit_now:
-        quit_sage()
-        self.exit_now = True
-
-    return self.exit_now
-
-from IPython.iplib import InteractiveShell
-InteractiveShell.exit = _quit_sage_
-
-import sage.misc.displayhook
-sage.misc.displayhook.install()
-
 from sage.ext.interactive_constructors_c import inject_on, inject_off
 
 sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)

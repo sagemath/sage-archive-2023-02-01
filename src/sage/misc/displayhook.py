@@ -8,9 +8,8 @@ AUTHORS:
 - Bill Cauchois (2009): initial version
 """
 
-import IPython, sys, __builtin__
-from sage.matrix.matrix import is_Matrix
-from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
+import sys, __builtin__
+
 
 # This is used to wrap lines when printing "tall" lists.
 MAX_COLUMN = 70
@@ -138,18 +137,12 @@ def print_obj(out_stream, obj):
     # element is a matrix, or an ArithmeticSubgroupElement (a thin wrapper
     # around a matrix). This should cover most cases.
     if isinstance(obj, (tuple, list)):
+        from sage.matrix.matrix import is_Matrix
+        from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
         if len(obj) > 0 and (is_Matrix(obj[0]) or isinstance(obj[0], ArithmeticSubgroupElement)):
             if _check_tall_list_and_print(out_stream, obj):
                 return
     print >>out_stream, `obj`
-
-def result_display(ip_self, obj):
-    """
-    This function implements the ``result_display`` hook for IPython.
-    """
-    # IPython's default result_display() uses the IPython.genutils.Term.cout stream.
-    # See also local/lib/python2.6/site-packages/IPython/hooks.py.
-    print_obj(IPython.genutils.Term.cout, obj)
 
 def displayhook(obj):
     """
@@ -175,17 +168,3 @@ def displayhook(obj):
     __builtin__._ = None
     print_obj(sys.stdout, obj)
     __builtin__._ = obj
-
-def install():
-    """
-    Install the new displayhook, so that subsequent output from the interpreter
-    will be preprocessed by the mechanisms in this module.
-    """
-    # First, try to install the hook using the IPython hook API.
-    ipapi = IPython.ipapi.get()
-    if ipapi:
-        ipapi.set_hook('result_display', result_display)
-    else:
-        # In certain modes where IPython is not in use, it is necessary to fall
-        # back to setting Python's sys.displayhook.
-        sys.displayhook = displayhook

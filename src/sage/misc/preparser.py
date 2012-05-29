@@ -1137,6 +1137,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 ## Apply the preparser to an entire file
 ######################################################
 
+#TODO: This global variable attached should be associtated with an
+#IPython InteractiveShell as opposed to a global variable in this
+#module.
 attached = {}
 
 load_debug_mode = False

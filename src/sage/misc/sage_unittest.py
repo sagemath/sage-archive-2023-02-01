@@ -105,7 +105,7 @@ class TestSuite(object):
 
      - Don't catch the exceptions if ``TestSuite(..).run()`` is called
        under the debugger, or with ``%pdb`` on (how to detect this? see
-       ``IPython.ipapi.get()``, ``IPython.Magic.shell.call_pdb``, ...)
+       ``get_ipython()``, ``IPython.Magic.shell.call_pdb``, ...)
        In the mean time, see the ``catch=False`` option.
 
      - Run the tests according to the inheritance order, from most

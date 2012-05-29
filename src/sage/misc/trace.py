@@ -75,16 +75,17 @@ def trace(code, preparse=True):
     if EMBEDDED_MODE:
         raise NotImplementedError, "the trace command is not implemented in the Sage notebook; you must use the command line."
 
-    import IPython.Debugger
-    pdb = IPython.Debugger.Pdb()
+    from IPython.core.debugger import Pdb
+    pdb = Pdb()
 
-    import IPython.ipapi
-    _ip = IPython.ipapi.get()
+    try:
+        ipython = get_ipython()
+    except NameError:
+        raise NotImplementedError("the trace command can only be run from the Sage command-line")
 
     import preparser
-
     code = preparser.preparse(code)
-    return pdb.run(code, _ip.user_ns)
+    return pdb.run(code, ipython.user_ns)
 
     # this could also be useful; it drops
     # us into a debugger in an except block:

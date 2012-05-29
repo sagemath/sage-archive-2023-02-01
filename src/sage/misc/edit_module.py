@@ -45,7 +45,6 @@ import sage.misc.sageinspect
 import inspect
 import os
 import re
-import IPython
 
 from string import Template
 
@@ -302,15 +301,10 @@ def edit_devel(self, filename, linenum):
     variable :envvar:`EDITOR`) with the file in which gcd is defined, and when your
     editor supports it, also at the line in wich gcd is defined.
     """
+    import IPython.core.hooks
     sageroot = sage.misc.sageinspect.SAGE_ROOT+'/'
     runpathpattern = '^'+sageroot+'local/lib/python[^/]*/site-packages'
     develbranch = sageroot+'devel/sage'
     filename=re.sub(runpathpattern,develbranch,filename)
-    IPython.hooks.editor(self, filename, linenum)
-
-
-ip = IPython.ipapi.get()
-if ip:
-    ip.set_hook('editor', edit_devel)
-
+    IPython.core.hooks.editor(self, filename, linenum)
 

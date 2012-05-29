@@ -178,7 +178,6 @@ AUTHORS:
 import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.misc.misc import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE, is_64_bit, is_in_string
-from IPython.genutils import page
 import re
 import os
 import pexpect
@@ -1290,6 +1289,7 @@ class Gap(Gap_generic):
             F = open(self._local_tmpfile(),"r")
             help = F.read()
             if pager:
+                from IPython.core.page import page
                 page(help, start = int(sline)-1)
             else:
                 return help

@@ -82,8 +82,14 @@ class Interface(ParentWithBase):
            Sage. Use sage(xxx) or interpretername(xxx) to pull objects
            in from sage to the interpreter.
         """
-        import sage.misc.preparser_ipython
-        sage.misc.preparser_ipython.switch_interface_general(self)
+        from sage.misc.interpreter import interface_shell_embed
+        shell = interface_shell_embed(self)
+        try:
+            ipython = get_ipython()
+        except NameError:
+            shell()
+        else:
+            shell(local_ns=dict(ipython.user_ns))
 
     def _pre_interact(self):
         pass

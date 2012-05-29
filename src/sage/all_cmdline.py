@@ -24,12 +24,5 @@ except ValueError as msg:
     raise ValueError(msg)
 
 
-
-def _init_cmdline(globs):
-    from sage.misc.inline_fortran import InlineFortran
-    fortran = InlineFortran(globs)
-    globs['fortran'] = fortran
-
-
-
 sage.misc.session.init()
+

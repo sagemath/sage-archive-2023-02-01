@@ -30,6 +30,7 @@ Miscellaneous
    sage/misc/dist
    sage/misc/hg
    sage/misc/preparser
+   sage/misc/interpreter
    sage/misc/functional
    sage/misc/html
    sage/misc/log

@@ -7128,6 +7128,94 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.maxima_wrapper import MaximaWrapper
         return MaximaWrapper(self)
 
+    def rectform(self):
+        r"""
+        Convert this symbolic expression to rectangular form; that
+        is, the form `a + bi` where `a` and `b` are real numbers and
+        `i` is the imaginary unit.
+
+        .. note::
+
+           The name \"rectangular\" comes from the fact that, in the
+           complex plane, `a` and `bi` are perpendicular.
+
+        INPUT:
+
+        - ``self`` -- the expression to convert.
+
+        OUTPUT:
+
+        A new expression, equivalent to the original, but expressed in
+        the form `a + bi`.
+
+        ALGORITHM:
+
+        We call Maxima's ``rectform()`` and return the result unmodified.
+
+        EXAMPLES:
+
+        The exponential form of `\sin(x)`::
+
+            sage: f = (e^(I*x) - e^(-I*x)) / (2*I)
+            sage: f.rectform()
+            sin(x)
+
+        And `\cos(x)`::
+
+            sage: f = (e^(I*x) + e^(-I*x)) / 2
+            sage: f.rectform()
+            cos(x)
+
+        In some cases, this will simplify the given expression. For
+        example, here, `e^{ik\pi}`, `\sin(k\pi)=0` should cancel
+        leaving only `\cos(k\pi)` which can then be simplified::
+
+            sage: k = var('k')
+            sage: assume(k, 'integer')
+            sage: f = e^(I*pi*k)
+            sage: f.rectform()
+            (-1)^k
+
+        However, in general, the resulting expression may be more
+        complicated than the original::
+
+            sage: f = e^(I*x)
+            sage: f.rectform()
+            I*sin(x) + cos(x)
+
+        TESTS:
+
+        If the expression is already in rectangular form, it should be
+        left alone::
+
+            sage: a,b = var('a,b')
+            sage: assume((a, 'real'), (b, 'real'))
+            sage: f = a + b*I
+            sage: f.rectform()
+            a + I*b
+            sage: forget()
+
+        We can check with specific real numbers::
+
+            sage: a = RR.random_element()
+            sage: b = RR.random_element()
+            sage: f = a + b*I
+            sage: bool(f.rectform() == a + b*I)
+            True
+
+        If we decompose a complex number into its real and imaginary
+        parts, they should correspond to the real and imaginary terms
+        of the rectangular form::
+
+            sage: z = CC.random_element()
+            sage: a = z.real_part()
+            sage: b = z.imag_part()
+            sage: bool(SR(z).rectform() == a + b*I)
+            True
+
+        """
+        return self.maxima_methods().rectform()
+
     def simplify(self):
         """
         Returns a simplified version of this symbolic expression.

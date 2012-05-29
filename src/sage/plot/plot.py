@@ -1678,18 +1678,18 @@ def list_plot(data, plotjoined=False, **kwargs):
 
     .. warning::
 
-        If ``plotjoined`` is `False` then the axis that is in log scale
+        If ``plotjoined`` is ``False`` then the axis that is in log scale
         must have all points strictly positive. For instance, the following
         plot will show no points in the figure since the points in the
         horizontal axis starts from `(0,1)`.
 
-    ::
+        ::
 
-        sage: list_plot(yl, scale='loglog')         # both axes are log
+            sage: list_plot(yl, scale='loglog')         # both axes are log
 
-    Instead this will work. We drop the point `(0,1)`.::
+        Instead this will work. We drop the point `(0,1)`.::
 
-        sage: list_plot(zip(range(1,len(yl)), yl[1:]), scale='loglog')
+            sage: list_plot(zip(range(1,len(yl)), yl[1:]), scale='loglog')
 
     We use :func:`list_plot_loglog` and plot in a different base.::
 
@@ -1890,19 +1890,19 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
 
     .. warning::
 
-        If ``plotjoined`` is `False` then the axis that is in log scale
+        If ``plotjoined`` is ``False`` then the axis that is in log scale
         must have all points strictly positive. For instance, the following
         plot will show no points in the figure since the points in the
         horizontal axis starts from `(0,1)`.
 
-    ::
+        ::
 
-        sage: yl = [2**k for k in range(20)]
-        sage: list_plot_loglog(yl)
+            sage: yl = [2**k for k in range(20)]
+            sage: list_plot_loglog(yl)
 
-    Instead this will work. We drop the point `(0,1)`.::
+        Instead this will work. We drop the point `(0,1)`.::
 
-        sage: list_plot_loglog(zip(range(1,len(yl)), yl[1:]))
+            sage: list_plot_loglog(zip(range(1,len(yl)), yl[1:]))
 
     """
     return list_plot(data, plotjoined=plotjoined, scale='loglog', **kwds)
@@ -1935,22 +1935,22 @@ def list_plot_semilogx(data, plotjoined=False, **kwds):
 
     .. warning::
 
-        If ``plotjoined`` is `False` then the horizontal axis must have all
+        If ``plotjoined`` is ``False`` then the horizontal axis must have all
         points strictly positive. Otherwise the plot will come up empty.
         For instance the following plot contains a point at `(0,1)`.
 
+        ::
+
+            sage: yl = [2**k for k in range(12)]
+            sage: list_plot_semilogx(yl) # plot is empty because of `(0,1)`
+
+        We remove `(0,1)` to fix this.::
+
+            sage: list_plot_semilogx(zip(range(1, len(yl)), yl[1:]))
+
     ::
 
-        sage: yl = [2**k for k in range(12)]
-        sage: list_plot_semilogx(yl) # plot is empty because of `(0,1)`
-
-    We remove `(0,1)` to fix this.::
-
-        sage: list_plot_semilogx(zip(range(1, len(yl)), yl[1:]))
-
-    ::
-
-        sage: list_plot_semilogx(yl, base=2) # with base 2
+        sage: list_plot_semilogx([(1,2),(3,4),(3,-1),(25,3)], base=2) # with base 2
 
     """
     return list_plot(data, plotjoined=plotjoined, scale='semilogx', **kwds)
@@ -1982,23 +1982,23 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
     .. warning::
 
-        If ``plotjoined`` is `False` then the vertical axis must have all
+        If ``plotjoined`` is ``False`` then the vertical axis must have all
         points strictly positive. Otherwise the plot will come up empty.
         For instance the following plot contains a point at `(1,0)`.
 
+        ::
+
+            sage: xl = [2**k for k in range(12)]; yl = range(len(xl))
+            sage: list_plot_semilogy(zip(xl,yl)) # plot empty due to (1,0)
+
+        We remove `(1,0)` to fix this.::
+
+            sage: list_plot_semilogy(zip(xl[1:],yl[1:]))
+
+
     ::
 
-        sage: xl = [2**k for k in range(12)]; yl = range(len(xl))
-        sage: list_plot_semilogy(zip(xl,yl)) # plot empty due to (1,0)
-
-    We remove `(1,0)` to fix this.::
-
-        sage: list_plot_semilogy(zip(xl[1:],yl[1:]))
-
-
-    ::
-
-        sage: list_plot_semilogy(yl, base=2) # with base 2
+        sage: list_plot_semilogy([2, 4, 6, 8, 16, 31], base=2) # with base 2
 
     """
     return list_plot(data, plotjoined=plotjoined, scale='semilogy', **kwds)

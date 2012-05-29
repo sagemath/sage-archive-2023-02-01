@@ -357,6 +357,11 @@ def point2d(points, **options):
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)]).show(frame=True) # These are equivalent
 
+    For plotting data, we can use a logarithmic scale, as long as we are sure
+    not to include any nonpositive points in the logarithmic direction::
+
+        sage: point([(1,2),(2,4),(3,4),(4,8),(4.5,32)],scale='semilogy',base=2)
+
     Since Sage Version 4.4 (ticket #8599), the size of a 2d point can be
     given by the argument ``size`` instead of ``pointsize``. The argument
     ``pointsize`` is still supported::

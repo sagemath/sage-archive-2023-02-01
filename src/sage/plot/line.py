@@ -214,7 +214,7 @@ class Line(GraphicPrimitive_xydata):
 
         EXAMPLES:
 
-        We create a line, then grab the line primitive as \code{L[0]} and compute
+        We create a line, then grab the line primitive as ``L[0]`` and compute
         its length::
 
             sage: L = line([(1,2), (3,-4), (2, 5), (1,2)])
@@ -287,9 +287,9 @@ def line2d(points, **options):
     r"""
     Create the line through the given list of points.
 
-    Type \code{line2d.options} for a dictionary of the default options for
+    Type ``line2d.options`` for a dictionary of the default options for
     lines.  You can change this to change the defaults for all future
-    lines.  Use \code{line2d.reset()} to reset to the default options.
+    lines.  Use ``line2d.reset()`` to reset to the default options.
 
     INPUT:
 
@@ -344,6 +344,26 @@ def line2d(points, **options):
     - ``markeredgewidth`` -- the size of the marker edge in points
 
     EXAMPLES:
+
+    A line with no points or one point::
+
+        sage: line([])      #returns an empty plot
+        sage: line([(1,1)])
+
+    A line with a legend::
+
+        sage: line([(0,0),(1,1)], legend_label='line')
+
+    Extra options will get passed on to show(), as long as they are valid::
+
+        sage: line([(0,1), (3,4)], figsize=[10, 2])
+        sage: line([(0,1), (3,4)]).show(figsize=[10, 2]) # These are equivalent
+
+    We can also use a logarithmic scale if the data will support it::
+
+        sage: line([(1,2),(2,4),(3,4),(4,8),(4.5,32)],scale='loglog',base=2)
+
+    Many more examples below!
 
     A blue conchoid of Nicomedes::
 
@@ -416,19 +436,6 @@ def line2d(points, **options):
         sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
         sage: G + P + Q   # show the plot
 
-    A line with no points or one point::
-
-        sage: line([])      #returns an empty plot
-        sage: line([(1,1)])
-
-    A line with a legend::
-
-        sage: line([(0,0),(1,1)], legend_label='line')
-
-    Extra options will get passed on to show(), as long as they are valid::
-
-        sage: line([(0,1), (3,4)], figsize=[10, 2])
-        sage: line([(0,1), (3,4)]).show(figsize=[10, 2]) # These are equivalent
     """
     from sage.plot.all import Graphics
     from sage.plot.plot import xydata_from_point_list

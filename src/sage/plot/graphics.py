@@ -96,7 +96,7 @@ def is_Graphics(x):
 
 class Graphics(SageObject):
     """
-    The Graphics object is an empty list of graphics objects It is
+    The Graphics object is an empty list of graphics objects. It is
     useful to use this object when initializing a for loop where
     different graphics object will be added to the empty object.
 

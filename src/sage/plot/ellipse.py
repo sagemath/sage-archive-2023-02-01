@@ -282,6 +282,15 @@ def ellipse(center, r1, r2, angle=0, **options):
     """
     from sage.plot.all import Graphics
     g = Graphics()
+
+    # Reset aspect_ratio to 'automatic' in case scale is 'semilog[xy]'.
+    # Otherwise matplotlib complains.
+    scale = options.get('scale', None)
+    if isinstance(scale, (list, tuple)):
+        scale = scale[0]
+    if scale == 'semilogy' or scale == 'semilogx':
+        options['aspect_ratio'] = 'automatic'
+
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Ellipse(center[0],center[1],r1,r2,angle,options))
     if options['legend_label']:

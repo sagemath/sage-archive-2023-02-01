@@ -507,6 +507,15 @@ def contour_plot(f, xrange, yrange, **options):
         xy_data_array[mask] = numpy.ma.masked
 
     g = Graphics()
+
+    # Reset aspect_ratio to 'automatic' in case scale is 'semilog[xy]'.
+    # Otherwise matplotlib complains.
+    scale = options.get('scale', None)
+    if isinstance(scale, (list, tuple)):
+        scale = scale[0]
+    if scale == 'semilogy' or scale == 'semilogx':
+        options['aspect_ratio'] = 'automatic'
+
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
     g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, options))
     return g
@@ -556,17 +565,18 @@ def implicit_plot(f, xrange, yrange, **options):
       ``basex`` sets the base of the logarithm along the horizontal
       axis and ``basey`` sets the base along the vertical axis.
 
-    - ``scale`` -- (default: `linear`) string. The scale of the axes.
-      Possible values are `linear`, `loglog`, `semilogx`, `semilogy`.
+    - ``scale`` -- (default: ``"linear"``) string. The scale of the axes.
+      Possible values are ``"linear"``, ``"loglog"``, ``"semilogx"``,
+      ``"semilogy"``.
 
       The scale can be also be given as single argument that is a list
       or tuple ``(scale, base)`` or ``(scale, basex, basey)``.
 
-      The `loglog` scale sets both the horizontal and vertical axes to
-      logarithmic scale. The `semilogx` scale sets the horizontal axis
-      to logarithmic scale. The `semilogy` scale sets the vertical axis
-      to logarithmic scale. The `linear` scale is the default value
-      when :class:`Graphics` is initialized.
+      The ``"loglog"`` scale sets both the horizontal and vertical axes to
+      logarithmic scale. The ``"semilogx"`` scale sets the horizontal axis
+      to logarithmic scale. The ``"semilogy"`` scale sets the vertical axis
+      to logarithmic scale. The ``"linear"`` scale is the default value
+      when :class:`~sage.plot.graphics.Graphics` is initialized.
 
     EXAMPLES:
 
@@ -735,17 +745,18 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
       ``basex`` sets the base of the logarithm along the horizontal
       axis and ``basey`` sets the base along the vertical axis.
 
-    - ``scale`` -- (default: `linear`) string. The scale of the axes.
-      Possible values are `linear`, `loglog`, `semilogx`, `semilogy`.
+    - ``scale`` -- (default: ``"linear"``) string. The scale of the axes.
+      Possible values are ``"linear"``, ``"loglog"``, ``"semilogx"``,
+      ``"semilogy"``.
 
       The scale can be also be given as single argument that is a list
       or tuple ``(scale, base)`` or ``(scale, basex, basey)``.
 
-      The `loglog` scale sets both the horizontal and vertical axes to
-      logarithmic scale. The `semilogx` scale sets the horizontal axis
-      to logarithmic scale. The `semilogy` scale sets the vertical axis
-      to logarithmic scale. The `linear` scale is the default value
-      when :class:`Graphics` is initialized.
+      The ``"loglog"`` scale sets both the horizontal and vertical axes to
+      logarithmic scale. The ``"semilogx"`` scale sets the horizontal axis
+      to logarithmic scale. The ``"semilogy"`` scale sets the vertical axis
+      to logarithmic scale. The ``"linear"`` scale is the default value
+      when :class:`~sage.plot.graphics.Graphics` is initialized.
 
 
     EXAMPLES:
@@ -841,6 +852,15 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
     cmap.set_under(incol)
 
     g = Graphics()
+
+    # Reset aspect_ratio to 'automatic' in case scale is 'semilog[xy]'.
+    # Otherwise matplotlib complains.
+    scale = options.get('scale', None)
+    if isinstance(scale, (list, tuple)):
+        scale = scale[0]
+    if scale == 'semilogy' or scale == 'semilogx':
+        options['aspect_ratio'] = 'automatic'
+
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
     g.add_primitive(ContourPlot(xy_data_array, xrange,yrange,
                                 dict(contours=[-1e307, 0, 1e307], cmap=cmap, fill=True, **options)))

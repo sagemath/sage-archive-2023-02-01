@@ -1133,7 +1133,7 @@ class Graphics(SageObject):
         INPUT:
         - ``figure`` -- the matplotlib figure instance.
         - ``scale`` -- the scale of the figure. Values it can take are
-          `"linear"`, `"loglog"`, `"semilogx"`, `"semilogy"`. See
+          ``"linear"``, ``"loglog"``, ``"semilogx"``, ``"semilogy"``. See
           :meth:`show` for other options it can take.
         - ``base`` -- the base of the logarithm if a logarithmic scale is
           set. See :meth:`show` for the options it can take.
@@ -1377,8 +1377,10 @@ class Graphics(SageObject):
             `e`, or `sqrt(2)`, ticks will be formatted nicely at rational
             multiples of this constant.
 
-          .. warning:: This should only be used with the ``ticks`` option
-             using nice rational multiples of that constant!
+          .. warning::
+
+             This should only be used with the ``ticks`` option using nice
+             rational multiples of that constant!
 
           - If one of the entries is the string ``"latex"``, then the
             formatting will be nice typesetting of the ticks.  This is
@@ -1395,22 +1397,30 @@ class Graphics(SageObject):
           ``basex`` sets the base of the logarithm along the horizontal
           axis and ``basey`` sets the base along the vertical axis.
 
-        - ``scale`` -- (default: `"linear"`) string. The scale of the axes.
+        - ``scale`` -- (default: ``"linear"``) string. The scale of the axes.
           Possible values are
 
-          - `"linear"` -- linear scaling of both the axes
-          - `"loglog"` -- sets both the horizontal and vertical axes to
+          - ``"linear"`` -- linear scaling of both the axes
+          - ``"loglog"`` -- sets both the horizontal and vertical axes to
             logarithmic scale
-          - `"semilogx"` -- sets only the horizontal axis to logarithmic
+          - ``"semilogx"`` -- sets only the horizontal axis to logarithmic
             scale.
-          - `"semilogy"` -- sets only the vertical axis to logarithmic
+          - ``"semilogy"`` -- sets only the vertical axis to logarithmic
             scale.
 
           The scale can be also be given as single argument that is a list
           or tuple ``(scale, base)`` or ``(scale, basex, basey)``.
 
-          Note: If the ``scale`` is `"linear"`, then irrespective of what
-          ``base`` is set to, it will default to 10 and will remain unused.
+          .. note::
+
+            - If the ``scale`` is ``"linear"``, then irrespective of what
+              ``base`` is set to, it will default to 10 and will remain
+              unused.
+
+            - Although it is possible to provide a noninteger ``base``, the
+              tick labeling and formatting is not ideal. Hence, in case you
+              do use noninteger ``base`` for the logarithm, then provide
+              your own tick formatter using the option ``tick_formatter``.
 
         EXAMPLES::
 

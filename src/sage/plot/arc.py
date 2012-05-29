@@ -350,6 +350,15 @@ def arc(center, r1, r2=None, angle=0.0, sector=(0.0,2*pi), **options):
         NotImplementedError
     """
     from sage.plot.all import Graphics
+
+    # Reset aspect_ratio to 'automatic' in case scale is 'semilog[xy]'.
+    # Otherwise matplotlib complains.
+    scale = options.get('scale', None)
+    if isinstance(scale, (list, tuple)):
+        scale = scale[0]
+    if scale == 'semilogy' or scale == 'semilogx':
+        options['aspect_ratio'] = 'automatic'
+
     if len(center)==2:
         if r2 is None: r2 = r1
         g = Graphics()

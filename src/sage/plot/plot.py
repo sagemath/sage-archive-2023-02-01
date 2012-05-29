@@ -607,16 +607,17 @@ def plot(funcs, *args, **kwds):
       ``basex`` sets the base of the logarithm along the horizontal
       axis and ``basey`` sets the base along the vertical axis.
 
-    - ``scale`` -- (default: `linear`) string. The scale of the axes.
-      Possible values are `linear`, `loglog`, `semilogx`, `semilogy`.
+    - ``scale`` -- (default: ``"linear"``) string. The scale of the axes.
+      Possible values are ``"linear"``, ``"loglog"``, ``"semilogx"``,
+      ``"semilogy"``.
 
       The scale can be also be given as single argument that is a list
       or tuple ``(scale, base)`` or ``(scale, basex, basey)``.
 
-      The `loglog` scale sets both the horizontal and vertical axes to
-      logarithmic scale. The `semilogx` scale sets the horizontal axis
-      to logarithmic scale. The `semilogy` scale sets the vertical axis
-      to logarithmic scale. The `linear` scale is the default value
+      The ``"loglog"`` scale sets both the horizontal and vertical axes to
+      logarithmic scale. The ``"semilogx"`` scale sets the horizontal axis
+      to logarithmic scale. The ``"semilogy"`` scale sets the vertical axis
+      to logarithmic scale. The ``"linear"`` scale is the default value
       when :class:`~sage.plot.graphics.Graphics` is initialized.
 
     - ``xmin`` - starting x value
@@ -631,6 +632,16 @@ def plot(funcs, *args, **kwds):
       If set to "show" vertical asymptotes are drawn.
 
     - ``legend_label`` - the label for this item in the legend
+
+    .. note::
+
+        - If the ``scale`` is ``"linear"``, then irrespective of what
+          ``base`` is set to, it will default to 10 and will remain unused.
+
+        - Although it is possible to provide a noninteger ``base``, the
+          tick labeling and formatting is not ideal. Hence, in case you do
+          use noninteger ``base`` for the logarithm, then provide your own
+          tick formatter using the option ``tick_formatter``.
 
     APPEARANCE OPTIONS:
 
@@ -818,7 +829,7 @@ def plot(funcs, *args, **kwds):
 
     ::
 
-        sage: plot_loglog(exp, (1, 10), scale='loglog')   # both axes are log
+        sage: plot_loglog(exp, (1, 10))   # both axes are log
 
     ::
 
@@ -1658,20 +1669,31 @@ def list_plot(data, plotjoined=False, **kwargs):
     Plotting in logarithmic scale is possible for 2D list plots.
     There are two different syntaxes available::
 
-        sage: yl = [2**k for k in range(10)]
+        sage: yl = [2**k for k in range(20)]
         sage: list_plot(yl, scale='semilogy')       # log axis on vertical
 
     ::
 
         sage: list_plot_semilogy(yl)       # same
 
+    .. warning::
+
+        If ``plotjoined`` is `False` then the axis that is in log scale
+        must have all points strictly positive. For instance, the following
+        plot will show no points in the figure since the points in the
+        horizontal axis starts from `(0,1)`.
+
     ::
 
         sage: list_plot(yl, scale='loglog')         # both axes are log
 
-    ::
+    Instead this will work. We drop the point `(0,1)`.::
 
-        sage: list_plot_loglog(yl, base=2) # base of log is 2
+        sage: list_plot(zip(range(1,len(yl)), yl[1:]), scale='loglog')
+
+    We use :func:`list_plot_loglog` and plot in a different base.::
+
+        sage: list_plot_loglog(zip(range(1,len(yl)), yl[1:]), base=2)
 
     We can also change the scale of the axes in the graphics just before
     displaying::
@@ -1742,6 +1764,13 @@ def plot_loglog(funcs, *args, **kwds):
 
     For all other inputs, look at the documentation of :func:`plot`.
 
+    .. note::
+
+        - Although it is possible to provide a noninteger ``base``, the
+          tick labeling and formatting is not ideal. Hence, in case you do
+          use noninteger ``base`` for the logarithm, then provide your own
+          tick formatter using the option ``tick_formatter``.
+
     EXAMPLES::
 
         sage: plot_loglog(exp, (1,10)) # plot in loglog scale with base 10
@@ -1772,6 +1801,13 @@ def plot_semilogx(funcs, *args, **kwds):
 
     For all other inputs, look at the documentation of :func:`plot`.
 
+    .. note::
+
+        - Although it is possible to provide a noninteger ``base``, the
+          tick labeling and formatting is not ideal. Hence, in case you do
+          use noninteger ``base`` for the logarithm, then provide your own
+          tick formatter using the option ``tick_formatter``.
+
     EXAMPLES::
 
         sage: plot_semilogx(exp, (1,10)) # plot in semilogx scale, base 10
@@ -1797,6 +1833,13 @@ def plot_semilogy(funcs, *args, **kwds):
     - ``funcs`` -- any Sage object which is acceptable to the :func:`plot`.
 
     For all other inputs, look at the documentation of :func:`plot`.
+
+    .. note::
+
+        - Although it is possible to provide a noninteger ``base``, the
+          tick labeling and formatting is not ideal. Hence, in case you do
+          use noninteger ``base`` for the logarithm, then provide your own
+          tick formatter using the option ``tick_formatter``.
 
     EXAMPLES::
 
@@ -1824,6 +1867,14 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
 
     For all other inputs, look at the documentation of :func:`list_plot`.
 
+
+    .. note::
+
+        - Although it is possible to provide a noninteger ``base``, the
+          tick labeling and formatting is not ideal. Hence, in case you do
+          use noninteger ``base`` for the logarithm, then provide your own
+          tick formatter using the option ``tick_formatter``.
+
     EXAMPLES::
 
         sage: yl = [5**k for k in range(10)]; xl = [2**k for k in range(10)]
@@ -1836,6 +1887,22 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
     ::
 
         sage: list_plot_loglog(zip(xl, yl), base=(2,5))
+
+    .. warning::
+
+        If ``plotjoined`` is `False` then the axis that is in log scale
+        must have all points strictly positive. For instance, the following
+        plot will show no points in the figure since the points in the
+        horizontal axis starts from `(0,1)`.
+
+    ::
+
+        sage: yl = [2**k for k in range(20)]
+        sage: list_plot_loglog(yl)
+
+    Instead this will work. We drop the point `(0,1)`.::
+
+        sage: list_plot_loglog(zip(range(1,len(yl)), yl[1:]))
 
     """
     return list_plot(data, plotjoined=plotjoined, scale='loglog', **kwds)
@@ -1853,10 +1920,33 @@ def list_plot_semilogx(data, plotjoined=False, **kwds):
 
     For all other inputs, look at the documentation of :func:`list_plot`.
 
+    .. note::
+
+        - Although it is possible to provide a noninteger ``base``, the
+          tick labeling and formatting is not ideal. Hence, in case you do
+          use noninteger ``base`` for the logarithm, then provide your own
+          tick formatter using the option ``tick_formatter``.
+
+
     EXAMPLES::
 
-        sage: yl = [5**k for k in range(10)]
-        sage: list_plot_semilogx(yl) # plot in semilogx scale, base 10
+        sage: yl = [2**k for k in range(12)]
+        sage: list_plot_semilogx(zip(yl,yl))
+
+    .. warning::
+
+        If ``plotjoined`` is `False` then the horizontal axis must have all
+        points strictly positive. Otherwise the plot will come up empty.
+        For instance the following plot contains a point at `(0,1)`.
+
+    ::
+
+        sage: yl = [2**k for k in range(12)]
+        sage: list_plot_semilogx(yl) # plot is empty because of `(0,1)`
+
+    We remove `(0,1)` to fix this.::
+
+        sage: list_plot_semilogx(zip(range(1, len(yl)), yl[1:]))
 
     ::
 
@@ -1878,14 +1968,37 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
     For all other inputs, look at the documentation of :func:`list_plot`.
 
+    .. note::
+
+        - Although it is possible to provide a noninteger ``base``, the
+          tick labeling and formatting is not ideal. Hence, in case you do
+          use noninteger ``base`` for the logarithm, then provide your own
+          tick formatter using the option ``tick_formatter``.
+
     EXAMPLES::
 
-        sage: yl = [5**k for k in range(10)]
+        sage: yl = [2**k for k in range(12)]
         sage: list_plot_semilogy(yl) # plot in semilogy scale, base 10
+
+    .. warning::
+
+        If ``plotjoined`` is `False` then the vertical axis must have all
+        points strictly positive. Otherwise the plot will come up empty.
+        For instance the following plot contains a point at `(1,0)`.
 
     ::
 
-        sage: list_plot_semilogy(yl, base=5) # with base 5
+        sage: xl = [2**k for k in range(12)]; yl = range(len(xl))
+        sage: list_plot_semilogy(zip(xl,yl)) # plot empty due to (1,0)
+
+    We remove `(1,0)` to fix this.::
+
+        sage: list_plot_semilogy(zip(xl[1:],yl[1:]))
+
+
+    ::
+
+        sage: list_plot_semilogy(yl, base=2) # with base 2
 
     """
     return list_plot(data, plotjoined=plotjoined, scale='semilogy', **kwds)

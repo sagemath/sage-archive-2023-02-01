@@ -170,7 +170,7 @@ def numerical_integral(func, a, b=None,
     function (which uses GSL) or the native integration (which uses Maxima)::
 
         sage: exp(-1/x).nintegral(x, 1, 2)  # via maxima
-        (0.504792217873184, 5.604319429344075e-15, 21, 0)
+        (0.50479221787318..., 5.60431942934407...e-15, 21, 0)
         sage: numerical_integral(exp(-1/x), 1, 2)
         (0.50479221787318..., 5.60431942934407...e-15)
 

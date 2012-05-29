@@ -34,6 +34,7 @@ from plane_quartics.all import *
 
 from generic.all import *
 
+from toric.all import *
 
 
 

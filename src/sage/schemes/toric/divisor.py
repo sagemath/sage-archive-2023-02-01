@@ -154,31 +154,34 @@ AUTHORS:
 """
 
 
-########################################################################
-#       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2012 Andrey Novoseltsev <novoselt@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
 
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import is_Vector
 from sage.combinat.combination import Combinations
 from sage.geometry.cone import is_Cone
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.toric_lattice_element import is_ToricLatticeElement
 from sage.homology.simplicial_complex import SimplicialComplex
+from sage.matrix.constructor import matrix
 from sage.misc.all import latex, flatten, prod
 from sage.modules.all import vector
-from sage.modules.free_module import FreeModule_ambient_field
+from sage.modules.free_module import (FreeModule_ambient_field,
+                                      FreeModule_ambient_pid)
 from sage.rings.all import QQ, ZZ
-from sage.matrix.constructor import matrix
 from sage.schemes.generic.divisor import Divisor_generic
 from sage.schemes.generic.divisor_group import DivisorGroup_generic
 from sage.schemes.toric.divisor_class import ToricRationalDivisorClass
 from sage.schemes.toric.variety import CohomologyRing, is_ToricVariety
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element import is_Vector
 
 
 #********************************************************
@@ -1984,3 +1987,87 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
 
     # parent does not conform to the new-style coercion model
     __call__ = _element_constructor_
+
+
+class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
+    r"""
+    Construct the basis lattice of the ``group``.
+
+    INPUT:
+
+    - ``group`` -- :class:`toric rational divisor class group
+      <ToricRationalDivisorClassGroup>`.
+
+    OUTPUT:
+
+    - the basis lattice of ``group``.
+
+    EXAMPLES::
+
+        sage: P1xP1 = toric_varieties.P1xP1()
+        sage: L = P1xP1.Kaehler_cone().lattice()
+        sage: L
+        Basis lattice of The toric rational divisor class group of a
+        2-d CPR-Fano toric variety covered by 4 affine patches
+        sage: L.basis()
+        [
+        Divisor class [1, 0],
+        Divisor class [0, 1]
+        ]
+    """
+
+    def __init__(self, group):
+        r"""
+        See :class:`ToricRationalDivisorClassGroup_basis_lattice` for
+        documentation.
+
+        TESTS::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: L = P1xP1.Kaehler_cone().lattice()
+            sage: TestSuite(L).run()
+        """
+        assert isinstance(group, ToricRationalDivisorClassGroup)
+        self._group = group
+        self._variety = group._variety
+        self._lift_matrix = group._lift_matrix
+        super(ToricRationalDivisorClassGroup_basis_lattice, self).__init__(
+            ZZ, group.dimension())
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: L = P1xP1.Kaehler_cone().lattice()
+            sage: print L._repr_()
+            Basis lattice of The toric rational divisor class group of a
+            2-d CPR-Fano toric variety covered by 4 affine patches
+        """
+        return "Basis lattice of {}".format(self._group)
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: L = P1xP1.Kaehler_cone().lattice()
+            sage: print L._latex_()
+            \text{Basis lattice of }
+            \mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}}\right)
+        """
+        return r"\text{{Basis lattice of }} {}".format(latex(self._group))
+
+    _element_class = ToricRationalDivisorClass

@@ -1434,28 +1434,31 @@ class ToricVariety_field(AmbientSpace):
 
         EXAMPLES::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: Kc = P1xP1.Kaehler_cone()
             sage: Kc
             2-d cone in 2-d lattice
             sage: Kc.rays()
             (Divisor class [0, 1], Divisor class [1, 0])
             sage: [ divisor_class.lift() for divisor_class in Kc.rays() ]
-            [V(z1), V(z0)]
+            [V(x), V(s)]
             sage: Kc.lattice()
-            The toric rational divisor class group
-            of a 2-d toric variety covered by 4 affine patches
+            Basis lattice of The toric rational divisor class group of a
+            2-d CPR-Fano toric variety covered by 4 affine patches
         """
         if "_Kaehler_cone" not in self.__dict__:
             fan = self.fan()
             GT = fan.Gale_transform().columns()
+            from sage.schemes.toric.divisor import \
+                ToricRationalDivisorClassGroup_basis_lattice
+            L = ToricRationalDivisorClassGroup_basis_lattice(
+                                                    self.rational_class_group())
             n = fan.nrays()
             K = None
             for cone in fan:
                 sigma = Cone([GT[i] for i in range(n)
                                     if i not in cone.ambient_ray_indices()],
-                             lattice = self.rational_class_group())
+                             lattice=L)
                 K = K.intersection(sigma) if K is not None else sigma
             self._Kaehler_cone = K
         return self._Kaehler_cone
@@ -1797,7 +1800,7 @@ class ToricVariety_field(AmbientSpace):
         OUTPUT:
 
         - :class:`subscheme of a toric variety
-          <sage.schemes.genreric.algebraic_scheme.AlgebraicScheme_subscheme_toric>`.
+          <sage.schemes.generic.algebraic_scheme.AlgebraicScheme_subscheme_toric>`.
 
         EXAMPLES:
 

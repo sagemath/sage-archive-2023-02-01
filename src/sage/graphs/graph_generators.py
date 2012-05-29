@@ -117,6 +117,7 @@ Named Graphs
 - :meth:`GoldnerHararyGraph <GraphGenerators.GoldnerHararyGraph>`
 - :meth:`GrayGraph <GraphGenerators.GrayGraph>`
 - :meth:`GrotzschGraph <GraphGenerators.GrotzschGraph>`
+- :meth:`HallJankoGraph <GraphGenerators.HallJankoGraph>`
 - :meth:`HararyGraph <GraphGenerators.HararyGraph>`
 - :meth:`HarriesGraph <GraphGenerators.HarriesGraph>`
 - :meth:`HarriesWongGraph <GraphGenerators.HarriesWongGraph>`
@@ -1510,6 +1511,142 @@ class GraphGenerators():
                 H.relabel(mapping)
 
         return H
+
+    def HallJankoGraph(self, from_string=True):
+        r"""
+        Returns the Hall-Janko graph.
+
+        For more information on the Hall-Janko graph, see its
+        :wikipedia:`Wikipedia page <Hall-Janko_graph>`.
+
+        The construction used to generate this graph in Sage is by
+        a 100-point permutation representation of the Janko group `J_2`,
+        as described in version 3 of the ATLAS of Finite Group
+        representations, in particular on the page `ATLAS: J2
+        — Permutation representation on 100 points
+        <http://brauer.maths.qmul.ac.uk/Atlas/v3/permrep/J2G1-p100B0>`_.
+
+        INPUT:
+
+        - ``from_string`` (boolean) -- whether to build the graph from
+          its sparse6 string or through GAP. The two methods return the
+          same graph though doing it through GAP takes more time. It is
+          set to ``True`` by default.
+
+        EXAMPLES::
+
+            sage: g = graphs.HallJankoGraph()
+            sage: g.is_regular(36)
+            True
+            sage: g.is_vertex_transitive()
+            True
+
+        Is it really strongly regular with parameters 14, 12? ::
+
+            sage: nu = set(g.neighbors(0))
+            sage: for v in range(1, 100):
+            ...     if v in nu:
+            ...        expected = 14
+            ...     else:
+            ...        expected = 12
+            ...     nv = set(g.neighbors(v))
+            ...     nv.discard(0)
+            ...     if len(nu & nv) != expected:
+            ...        print "Something is wrong here!!!"
+            ...        break
+
+        Some other properties that we know how to check::
+
+            sage: g.diameter()
+            2
+            sage: g.girth()
+            3
+            sage: factor(g.characteristic_polynomial())
+            (x - 36) * (x - 6)^36 * (x + 4)^63
+
+        TESTS::
+
+            sage: gg = graphs.HallJankoGraph(from_string=False) # long time
+            sage: g == gg # long time
+            True
+        """
+
+        string = (":~?@c__E@?g?A?w?A@GCA_?CA`OWF`W?EAW?@?_OD@_[GAgcIaGGB@OcIA"
+                  "wCE@o_K_?GB@?WGAouC@OsN_?GB@O[GB`A@@_e?@OgLB_{Q_?GC@O[GAOs"
+                  "OCWGBA?kKBPA@?_[KB_{OCPKT`o_RD`]A?o[HBOwODW?DA?cIB?wRDP[X`"
+                  "ogKB_{QD@]B@o_KBPWXE`mC@o_JB?{PDPq@?oWGA_{OCPKTDp_YEwCA@_c"
+                  "IBOwOC`OX_OGB@?WPDPcYFg?C@_gKBp?SE@cYF`{_`?SGAOoOC`_\\FwCE"
+                  "A?gKBO{QD@k[FqI??_OFA_oQE@k\\Fq?`GgCB@pGRD@_XFP{a_?SE@ocIA"
+                  "ooNCPOUEqU@?oODA?cJB_{UEqYC@_kLC@CREPk]GAGbHgCA@?SMBpCSD`["
+                  "YFq?`Ga]BA?gPC`KSD`_\\Fa?cHWGB@?[IAooPD`[WF@s^HASeIg?@@OcP"
+                  "C`KYF@w^GQ[h`O[HAooMC@CQCpSVEPk\\GaSeIG?FA?kLB_{OC`OVE@cYG"
+                  "QUA@?WLBp?PC`KVEqKgJg?DA?sMBpCSDP[WEQKfIay@?_KD@_[GC`SUE@k"
+                  "[FaKdHa[k_?OLC@CRD@WVEpo^HAWfIAciIqoo_?CB@?kMCpOUE`o\\GAKg"
+                  "IQgq_?GD@_[GB?{OCpWVE@cYFACaHAWhJR?q_?CC@_kKBpC\\GACdHa[kJ"
+                  "a{o_?CA?oOFBpGRD@o\\GaKdIQonKrOt_?WHA`?PC`KTD`k]FqSeIaolJr"
+                  "CqLWCA@OkKCPGRDpcYGAKdIAgjJAsmJr?t__OE@ogJB_{XEps`HA[gIQwn"
+                  "KWKGAOoMBpGUE`k[Fa?aHqckJbSuLw?@?_SHA_kLC@OTFPw^GaOkLg?B@?"
+                  "[HA_{PDP_XFaCbHa[gIqooKRWx_?CFBpOTE@cZFPw^GACcHQgoKrSvMwWG"
+                  "BOwQCp_YFP{`HASfJAwnKRSx_OSSDP[WEq?aGqSfIQsoKR_zNWCE@o_HA_"
+                  "sREPg^GAGcHQWfIAciKbOxNg?A@__IAooMC`KTD`g\\GAKcIasoKrOtLb["
+                  "wMbyCA?cKBp?TD`[WE`s^GQGbHqcjJrK{NRw~_oODA?sNC@CQCpOZF@s]G"
+                  "QOfIaolJrGsLbk}_?OFA_sRD@SVE`k[HQcjJa{qLb[xMb|?_OOFA?cIAos"
+                  "RDP_ZFa?aGqOfIAsuMbk{Ns@@OsQAA_sPDPWXE`o\\FqKdIQkkJrCuLr_x"
+                  "Mro}NsDAPG?@@OWFApKUE@o`IQolKRKsLrc|NsQC@OWGAOgJCpOWE`o_GQ"
+                  "KiIqwnKr_~OcLCPS]A?oWHA_oMBpKSDP[\\FagjKBWxMbk{OSQ@@O_IAoo"
+                  "LBpCSD`g\\FaGbHQWgIQgmKRKwMRl?PgGC@OWHB@KSE@c[FqCaGqSeIAkk"
+                  "KBCqLBSuMBpGQWCA@?cKBOwRDPWVE@k^GqOfJr?pKbKtLrs}OSHDQwKIBO"
+                  "wPD@WWEQ?`HQWfIQglKBOtLbo}Ns@@OsTE_?kLCpWWHA[gIqomKBGwMRgz"
+                  "NBw~OSPDPc\\H_?CFAOoLCPSVE`o\\GAOeJAwpKbKtMrx?Qcq??OKFA?gJ"
+                  "B`?QDpcYEpo]FqKfIAgjJB?qKr_{NS@A__SE@o_HBO{PC`OTD`{_HaciIq"
+                  "{vMbt?OcPFQCeB@?SKBOwRD@SXE`k[FPw`HQ_lKRKxNRxBPC\\HQclK_?K"
+                  "EB?sOC`OTDa?`GqWgJRCrNBw~OSHFQStMRtDQ_?KC@OoQE`k_GaOdHa[gI"
+                  "q{tMBg|Nb|?OcPMSDDQSwCB@_cJB_{OCpOVFP{dHa[jJQwqKrk}NsHBQCd"
+                  "MRtMA?oSEA_wPDp_YEpo]GAOeIq{pLBk}NsLEQCtNTDU??OKEA_oLC@[[G"
+                  "aKnKBOtLbk~OCPFQStNSDLSTgGKC@GSD`[WEpw_GQGcIAciJAwpKb_xMbk"
+                  "~QShJRc|R`_wNCPcZF@s^GAGbHA_hJR?qKrOvMRg|NsDEPsxTTgCB@?gJB"
+                  "?sMC@CUDp_]FqCaHQcjJQwtLrhCPS\\IRCtQTw?B@?SHA_wPC`_aGqOiJa"
+                  "{oKRKvMRpFQChKRtXVUTi??ocNC@KUE@cYFaGdHa_mJrKsLb[yMro|OcXI"
+                  "RdPTTddZaOgJB@?UEPk[FQCfIaolJrSvMBczNR|AOsXFQCtOTtaB@?WGAP"
+                  "?TEPo\\GAGdHqgmKBCqLR[xMb|?PC`HQs|TTt`XUtu@?o[HB?sNCPGXF@{"
+                  "_GQKcIqolJb_yNCLDPs`MRtDRTTdYUwSEA?kLB`CWF@s]FqGgIqooLRgzN"
+                  "RxFQSlMSDDQTDXVUTi@?_KDAOoLBpKUEQOfIa{oLB_xMrt?Os\\HQcpMST"
+                  "HSTtl[VT}A@ocJBOwSD`_XEpo_Ha_mJrKtLbgzNSTGQspLRtDUUDp\\WG["
+                  "HB`CQCp[WFQGgIQgkJQ{rLbc{Nc@APsdLRt@PSt\\WUtt_Wn")
+
+        if from_string:
+            g = graph.Graph(string, loops = False, multiedges = False)
+        else:
+
+            # The following construction is due to version 3 of the ATLAS of
+            # Finite Group Representations, specifically the page at
+            # http://brauer.maths.qmul.ac.uk/Atlas/v3/permrep/J2G1-p100B0 .
+
+            from sage.interfaces.gap import gap
+            gap.eval("g1 := (1,84)(2,20)(3,48)(4,56)(5,82)(6,67)(7,55)(8,41)"
+                     "(9,35)(10,40)(11,78)(12,100)(13,49)(14,37)(15,94)(16,76)"
+                     "(17,19)(18,44)(21,34)(22,85)(23,92)(24,57)(25,75)(26,28)"
+                     "(27,64)(29,90)(30,97)(31,38)(32,68)(33,69)(36,53)(39,61)"
+                     "(42,73)(43,91)(45,86)(46,81)(47,89)(50,93)(51,96)(52,72)"
+                     "(54,74)(58,99)(59,95)(60,63)(62,83)(65,70)(66,88)(71,87)"
+                     "(77,98)(79,80);")
+
+            gap.eval("g2 := (1,80,22)(2,9,11)(3,53,87)(4,23,78)(5,51,18)"
+                     "(6,37,24)(8,27,60)(10,62,47)(12,65,31)(13,64,19)"
+                     "(14,61,52)(15,98,25)(16,73,32)(17,39,33)(20,97,58)"
+                     "(21,96,67)(26,93,99)(28,57,35)(29,71,55)(30,69,45)"
+                     "(34,86,82)(38,59,94)(40,43,91)(42,68,44)(46,85,89)"
+                     "(48,76,90)(49,92,77)(50,66,88)(54,95,56)(63,74,72)"
+                     "(70,81,75)(79,100,83);")
+
+            gap.eval("G := Group([g1,g2]);")
+            edges = gap('Orbit(G,[1,5],OnSets)').sage()
+            g = graph.Graph([(int(u), int(v)) for u,v in edges])
+            g.relabel()
+
+        _circle_embedding(g, range(100))
+        g.name("Hall-Janko graph")
+        return g
 
     def HararyGraph( self, k, n ):
         r"""
@@ -8908,6 +9045,8 @@ def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
     c_x, c_y = center
     n = len(vertices)
     d = g.get_pos()
+    if d is None:
+        d = {}
 
     for i,v in enumerate(vertices):
         i += shift
@@ -8940,6 +9079,9 @@ def _line_embedding(g, vertices, first=(0, 0), last=(0, 1)):
     dy = (last[1] - first[1])/n
 
     d = g.get_pos()
+    if d is None:
+        d = {}
+
     for v in vertices:
         d[v] = (fx, fy)
         fx += dx

@@ -2537,6 +2537,36 @@ cdef class Matrix(AlgebraElement):
             global coercion_model
             return coercion_model.bin_op(left, right, imul)
 
+    cpdef RingElement _mul_(left, RingElement right):
+        """
+        TESTS::
+
+            sage: m = matrix
+            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
+            sage: 3*a
+            [[ 3  6]
+            [ 9 12] [15 18]
+            [21 24]]
+            [[27 30]
+            [33 36] [39 42]
+            [45 48]]
+
+            sage: m = matrix
+            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
+            sage: a*3
+            [[ 3  6]
+            [ 9 12] [15 18]
+            [21 24]]
+            [[27 30]
+            [33 36] [39 42]
+            [45 48]]
+        """
+        if have_same_parent(left, right):
+            return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
+        else:
+            global coercion_model
+            return coercion_model.bin_op(left, right, mul)
+
     def __mul__(left, right):
         """
         Multiplication of matrix by matrix, vector, or scalar

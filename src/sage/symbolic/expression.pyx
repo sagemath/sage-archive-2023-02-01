@@ -5114,25 +5114,75 @@ cdef class Expression(CommutativeRingElement):
 
     def collect(Expression self, s):
         """
+        Collect the coefficients of ``s`` into a group.
+
         INPUT:
 
-        - ``s`` -- a symbol
+        - ``s`` -- the symbol whose coefficients will be collected.
 
         OUTPUT:
 
-        A symbolic expression.
+        A new expression, equivalent to the original one, with the
+        coefficients of ``s`` grouped.
 
-        EXAMPLES::
+        .. note::
 
-            sage: var('x,y,z')
-            (x, y, z)
+            The expression is not expanded or factored before the
+            grouping takes place. For best results, call :meth:`expand`
+            on the expression before :meth:`collect`.
+
+        EXAMPLES:
+
+        In the first term of `f`, `x` has a coefficient of `4y`. In
+        the second term, `x` has a coefficient of `z`. Therefore, if
+        we collect those coefficients, `x` will have a coefficient of
+        `4y+z`::
+
+            sage: x,y,z = var('x,y,z')
             sage: f = 4*x*y + x*z + 20*y^2 + 21*y*z + 4*z^2 + x^2*y^2*z^2
             sage: f.collect(x)
             x^2*y^2*z^2 + (4*y + z)*x + 20*y^2 + 21*y*z + 4*z^2
+
+        Here we do the same thing for `y` and `z`; however, note that
+        we don't factor the `y^{2}` and `z^{2}` terms before
+        collecting coefficients::
+
             sage: f.collect(y)
             (x^2*z^2 + 20)*y^2 + (4*x + 21*z)*y + x*z + 4*z^2
             sage: f.collect(z)
             (x^2*y^2 + 4)*z^2 + (x + 21*y)*z + 4*x*y + 20*y^2
+
+        Sometimes, we do have to call :meth:`expand()` on the
+        expression first to achieve the desired result::
+
+            sage: f = (x + y)*(x - z)
+            sage: f.collect(x)
+            x^2 + x*y - x*z - y*z
+            sage: f.expand().collect(x)
+            (y - z)*x + x^2 - y*z
+
+        TESTS:
+
+        The output should be equivalent to the input::
+
+            sage: polynomials = QQ['x']
+            sage: f = SR(polynomials.random_element())
+            sage: g = f.collect(x)
+            sage: bool(f == g)
+            True
+
+        If ``s`` is not present in the given expression, the
+        expression should not be modified. The variable `z` will not
+        be present in `f` below since `f` is a random polynomial of
+        maximum degree 10 in `x` and `y`::
+
+            sage: z = var('z')
+            sage: polynomials = QQ['x,y']
+            sage: f = SR(polynomials.random_element(10))
+            sage: g = f.collect(z)
+            sage: bool(str(f) == str(g))
+            True
+
         """
         cdef Expression s0 = self.coerce_in(s)
         cdef GEx x

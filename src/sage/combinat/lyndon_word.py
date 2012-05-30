@@ -256,9 +256,12 @@ class LyndonWords_evaluation(CombinatorialClass):
         """
         if self.e == []:
             return
+        k=0
+        while (self.e[k]==0):
+            k=k+1
 
-        for z in necklace._sfc(self.e, equality=True):
-            yield LyndonWord([i+1 for i in z], check=False)
+        for z in necklace._sfc(self.e[k:], equality=True):
+            yield LyndonWord([i+k+1 for i in z], check=False)
 
 class LyndonWords_nk(FiniteWords_length_k_over_OrderedAlphabet):
     def __init__(self, n, k):

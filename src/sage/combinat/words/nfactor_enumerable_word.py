@@ -434,7 +434,7 @@ class Word_nfactor_enumerable(Word_class):
           Sequences with constant number of return words. Monatsh. Math,
           155 (2008) 251-263.
         """
-        from sage.graphs.all import DiGraph
+        from sage.graphs.digraph import DiGraph
         from copy import copy
         g = copy(self.rauzy_graph(n))
         # Otherwise it changes the rauzy_graph function.

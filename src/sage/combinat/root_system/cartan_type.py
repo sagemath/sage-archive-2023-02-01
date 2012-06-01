@@ -1046,7 +1046,7 @@ class CartanType_crystalographic(CartanType_abstract):
         """
         from sage.rings.infinity import infinity
         scalarproducts_to_order = { 0: 2,  1: 3,  2: 4,  3: 6, 4: infinity }
-        from sage.graphs.all import Graph
+        from sage.graphs.graph import Graph
         coxeter_diagram = Graph(multiedges=False)
         a = self.dynkin_diagram()
         I = self.index_set()
@@ -1176,7 +1176,7 @@ class CartanType_crystalographic(CartanType_abstract):
             AssertionError: The Dynkin diagram should be bipartite
 
         """
-        from sage.graphs.all import Graph
+        from sage.graphs.graph import Graph
         G = Graph(self.dynkin_diagram())
         assert G.is_bipartite(), "The Dynkin diagram should be bipartite"
         return G.bipartite_sets()

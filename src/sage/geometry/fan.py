@@ -265,7 +265,7 @@ from sage.geometry.lattice_polytope import (LatticePolytope,
                                             all_facet_equations)
 from sage.geometry.toric_lattice import is_ToricLattice
 from sage.geometry.toric_plotter import ToricPlotter
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 from sage.matrix.all import matrix
 from sage.misc.all import cached_method, flatten, walltime, prod
 from sage.misc.misc import deprecation

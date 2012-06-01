@@ -365,6 +365,9 @@ ext_modules = [
               depends = ['sage/graphs/modular_decomposition/src/dm.c',
                          'sage/graphs/modular_decomposition/src/dm_english.h']),
 
+    Extension('sage.graphs.weakly_chordal',
+              sources = ['sage/graphs/weakly_chordal.pyx']),
+
     Extension('sage.graphs.matchpoly',
               sources = ['sage/graphs/matchpoly.pyx'],
               libraries = ['gmp', 'flint'],

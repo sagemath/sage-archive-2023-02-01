@@ -39,7 +39,7 @@ from permutation_nk import PermutationsNK
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.prandom import sample
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 import itertools
 import __builtin__
 from combinat import CombinatorialClass, CombinatorialObject, catalan_number, InfiniteAbstractCombinatorialClass

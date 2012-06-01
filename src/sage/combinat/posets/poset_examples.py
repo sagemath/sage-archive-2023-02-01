@@ -23,7 +23,7 @@ import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation
 from sage.combinat.posets.posets import Poset, FinitePosets_n
 from sage.combinat.posets.lattices import LatticePoset
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 from sage.rings.integer import Integer
 
 class Posets(object):

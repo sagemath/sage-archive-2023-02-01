@@ -18,7 +18,7 @@ Hasse diagrams of posets
 #*****************************************************************************
 
 import copy
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.misc.misc import uniq

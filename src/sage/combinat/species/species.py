@@ -676,7 +676,7 @@ class GenericCombinatorialSpecies(SageObject):
             sage: list(sorted(labels.values()))
             [0, 1, 2, 3]
         """
-        from sage.graphs.all import DiGraph
+        from sage.graphs.digraph import DiGraph
         d = DiGraph(multiedges=True)
         self._add_to_digraph(d)
         return d

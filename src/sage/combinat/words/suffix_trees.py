@@ -11,7 +11,7 @@ Suffix Tries and Suffix Trees
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 from sage.sets.set import Set
 from sage.combinat.words.words import Words
 from sage.rings.integer import Integer

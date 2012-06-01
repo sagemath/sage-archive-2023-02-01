@@ -22,7 +22,7 @@ from sage.categories.posets import Posets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 import sage.graphs.linearextensions
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.posets import Poset

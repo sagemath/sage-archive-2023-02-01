@@ -208,7 +208,7 @@ from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
     is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 from sage.matrix.all import matrix, identity_matrix
 from sage.misc.all import cached_method, flatten, latex, prod
 from sage.misc.misc import deprecation

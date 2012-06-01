@@ -100,7 +100,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.graphs.all import Graph
+from sage.graphs.graph import Graph
 from sage.interfaces.all import maxima
 from sage.matrix.all import matrix, is_Matrix
 from sage.misc.all import tmp_filename

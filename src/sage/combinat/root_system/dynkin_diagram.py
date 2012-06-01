@@ -15,7 +15,7 @@ Dynkin diagrams
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 from cartan_type import CartanType, CartanType_abstract
 from cartan_matrix import cartan_matrix
 

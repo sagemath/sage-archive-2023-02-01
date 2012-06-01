@@ -126,7 +126,7 @@ def Hasse_diagram_from_incidences(atom_to_coatoms, coatom_to_atoms,
     :meth:`sage.geometry.cone.ConvexRationalPolyhedralCone.face_lattice` and
     :meth:`sage.geometry.fan.RationalPolyhedralFan._compute_cone_lattice`.
     """
-    from sage.graphs.all import DiGraph
+    from sage.graphs.digraph import DiGraph
     from sage.combinat.posets.posets import FinitePoset
     def default_face_constructor(atoms, coatoms, **kwds):
         return (atoms, coatoms)

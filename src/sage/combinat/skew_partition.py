@@ -142,7 +142,7 @@ import sage.combinat.composition
 import sage.combinat.partition
 from sage.rings.all import QQ
 from sage.sets.set import Set
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 from combinat import CombinatorialClass, CombinatorialObject
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.infinity import PlusInfinity

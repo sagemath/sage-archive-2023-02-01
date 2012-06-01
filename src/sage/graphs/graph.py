@@ -43,13 +43,15 @@ graphs.
 
     :meth:`~Graph.is_prime` | Tests whether the current graph is prime.
     :meth:`~Graph.is_split` | Returns ``True`` if the graph is a Split graph, ``False`` otherwise.
-    :meth:`~Graph.is_triangle_free` | Returns whether ``self`` is triangle-free
+    :meth:`~Graph.is_triangle_free` | Returns whether ``self`` is triangle-free.
     :meth:`~Graph.is_bipartite` | Returns True if graph G is bipartite, False if not.
     :meth:`~Graph.is_line_graph` | Tests wether the graph is a line graph.
     :meth:`~Graph.is_odd_hole_free` | Tests whether ``self`` contains an induced odd hole.
     :meth:`~Graph.is_even_hole_free` | Tests whether ``self`` contains an induced even hole.
     :meth:`~Graph.is_cartesian_product` | Tests whether ``self`` is a cartesian product of graphs.
-
+    :meth:`~Graph.is_long_hole_free` | Tests whether ``self`` contains an induced cycle of length at least 5.
+    :meth:`~Graph.is_long_antihole_free` | Tests whether ``self`` contains an induced anticycle of length at least 5.
+    :meth:`~Graph.is_weakly_chordal` | Tests whether ``self`` is weakly chordal.
 
 
 **Connectivity and orientations:**
@@ -187,6 +189,9 @@ AUTHORS:
 - Nicolas M. Thiery (2010-02): graph layout code refactoring, dot2tex/graphviz interface
 
 - David Coudert (2012-04) : Reduction rules in vertex_cover.
+
+- Birk Eisermann (2012-06): added recognition of weakly chordal graphs and
+                            long-hole-free / long-antihole-free graphs
 
 
 Graph Format
@@ -445,6 +450,8 @@ Show each graph as you iterate through the results:
 
     sage: for g in Q:
     ...     show(g)
+
+
 
 
 Visualization
@@ -5050,6 +5057,15 @@ class Graph(GenericGraph):
             classes_b.append([(u,v) for ((uu,u),(vv,v)) in c])
 
         return classes_b
+
+# Aliases to functions defined in Cython modules
+import types
+
+import sage.graphs.weakly_chordal
+Graph.is_long_hole_free = types.MethodType(sage.graphs.weakly_chordal.is_long_hole_free, None, Graph)
+Graph.is_long_antihole_free = types.MethodType(sage.graphs.weakly_chordal.is_long_antihole_free, None, Graph)
+Graph.is_weakly_chordal = types.MethodType(sage.graphs.weakly_chordal.is_weakly_chordal, None, Graph)
+
 
 def compare_edges(x, y):
     """

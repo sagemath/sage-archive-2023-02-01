@@ -79,6 +79,7 @@ Basic structures
 - :meth:`PathGraph <GraphGenerators.PathGraph>`
 - :meth:`StarGraph <GraphGenerators.StarGraph>`
 - :meth:`ToroidalGrid2dGraph <GraphGenerators.ToroidalGrid2dGraph>`
+- :meth:`Toroidal6RegularGrid2dGraph <GraphGenerators.Toroidal6RegularGrid2dGraph>`
 - :meth:`WheelGraph <GraphGenerators.WheelGraph>`
 
 
@@ -1173,18 +1174,17 @@ class GraphGenerators():
 
     def ToroidalGrid2dGraph(self,n1,n2):
         r"""
-        Returns a toroidal 2-dimensional grid graph with `n_1n_2` nodes
-        (`n_1` rows and `n_2` columns).
+        Returns a toroidal 2-dimensional grid graph with `n_1n_2` nodes (`n_1`
+        rows and `n_2` columns).
 
-        The toroidal 2-dimensional grid with parameters `n_1,n_2` is
-        the 2-dimensional grid graph with identical parameters
-        to which are added the edges `((i,0),(i,n_2-1))` and
-        `((0,i),(n_1-1,i))`.
+        The toroidal 2-dimensional grid with parameters `n_1,n_2` is the
+        2-dimensional grid graph with identical parameters to which are added
+        the edges `((i,0),(i,n_2-1))` and `((0,i),(n_1-1,i))`.
 
         EXAMPLE:
 
-        The toroidal 2-dimensional grid is a regular graph, while
-        the usual 2-dimensional grid is not ::
+        The toroidal 2-dimensional grid is a regular graph, while the usual
+        2-dimensional grid is not ::
 
             sage: tgrid = graphs.ToroidalGrid2dGraph(8,9)
             sage: print tgrid
@@ -1202,6 +1202,72 @@ class GraphGenerators():
 
         g.name("Toroidal 2D Grid Graph with parameters "+str(n1)+","+str(n2))
 
+        d = g.get_pos()
+        n1 += 0.
+        n2 += 0.
+        uf = (n1/2)*(n1/2)
+        vf = (n2/2)*(n2/2)
+        for u,v in d:
+            x,y = d[(u,v)]
+            x +=  0.25*(1.0+u*(u-n1+1)/uf)
+            y +=  0.25*(1+v*(v-n2+1)/vf)
+            d[(u,v)] = (x,y)
+
+        return g
+
+    def Toroidal6RegularGrid2dGraph(self, n1, n2):
+        r"""
+        Returns a toroidal 6-regular grid.
+
+        The toroidal 6-regular grid is a 6-regular graph on `n_1\times n_2`
+        vertices and its elements have coordinates `(i,j)` for `i \in \{0...i-1\}`
+        and `j \in \{0...j-1\}`.
+
+        Its edges are those of the :meth:`ToroidalGrid2dGraph`, to which are
+        added the edges between `(i,j)` and `((i+1)\%n_1, (j+1)\%n_2)`.
+
+        INPUT:
+
+        - ``n1, n2`` (integers) -- see above.
+
+        EXAMPLE:
+
+        The toroidal 6-regular grid on `25` elements::
+
+            sage: g = graphs.Toroidal6RegularGrid2dGraph(5,5)
+            sage: g.is_regular(k=6)
+            True
+            sage: g.is_vertex_transitive()
+            True
+            sage: g.line_graph().is_vertex_transitive()
+            True
+            sage: g.automorphism_group().cardinality()
+            300
+            sage: g.is_hamiltonian()
+            True
+
+        TESTS:
+
+        Senseless input::
+
+            sage: graphs.Toroidal6RegularGrid2dGraph(5,2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Parameters n1 and n2 must be integers larger than 3 !
+            sage: graphs.Toroidal6RegularGrid2dGraph(2,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Parameters n1 and n2 must be integers larger than 3 !
+        """
+
+        if n1 <= 3 or n2 <= 3:
+            raise ValueError("Parameters n1 and n2 must be integers larger than 3 !")
+
+        g = self.ToroidalGrid2dGraph(n1,n2)
+        for u,v in g:
+            g.add_edge((u,v),((u+1)%n1,(v+1)%n2))
+
+        g.name("Toroidal Hexagonal Grid graph on "+str(n1)+"x"+str(n2)+" elements")
         return g
 
     def Grid2dGraph(self, n1, n2):
@@ -1228,7 +1294,24 @@ class GraphGenerators():
 
             sage: g = graphs.Grid2dGraph(5,7)
             sage: g.show() # long time
+
+        TESTS:
+
+        Senseless input::
+
+            sage: graphs.Grid2dGraph(5,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Parameters n1 and n2 must be positive integers !
+            sage: graphs.Grid2dGraph(-1,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Parameters n1 and n2 must be positive integers !
         """
+
+        if n1 <= 0 or n2 <= 0:
+            raise ValueError("Parameters n1 and n2 must be positive integers !")
+
         pos_dict = {}
         for i in range(n1):
             y = -i

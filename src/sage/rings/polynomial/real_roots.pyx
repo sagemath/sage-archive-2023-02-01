@@ -874,7 +874,8 @@ cdef class interval_bernstein_polynomial_integer(interval_bernstein_polynomial):
                 max_err = max_err >> shift
                 err = -((-err) >> shift)
                 lsb = lsb + shift
-            ibp = interval_bernstein_polynomial_integer(ribp, self.lower, self.upper, self.lsign, self.usign, err, lsb, self.level+1, self.slope_err + slope_err)
+            # warning: lsign and usign might have changed, invalidate them to 0
+            ibp = interval_bernstein_polynomial_integer(ribp, self.lower, self.upper, 0, 0, err, lsb, self.level+1, self.slope_err + slope_err)
 
             return (ibp, (indicator, lsb + bitsize(err)))
         else:
@@ -3937,6 +3938,12 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         sage: p = (x - 1) * (x - sqrt(AA(2)))^2 * (x - 2)^3 * sqrt(AA(3))
         sage: real_roots(p, retval='interval')
         [(1.000000000000000?, 1), (1.414213562373095?, 2), (2.000000000000000?, 3)]
+
+    Check that #10803 is fixed ::
+
+        sage: f = 2503841067*x^13 - 15465014877*x^12 + 37514382885*x^11 - 44333754994*x^10 + 24138665092*x^9 - 2059014842*x^8 - 3197810701*x^7 + 803983752*x^6 + 123767204*x^5 - 26596986*x^4 - 2327140*x^3 + 75923*x^2 + 7174*x + 102
+        sage: len(real_roots(f,seed=1))
+        13
     """
     base = p.base_ring()
 

@@ -268,6 +268,25 @@ cdef class Matrix(matrix1.Matrix):
             (4 + 5 + 5^2 + 3*5^3 + O(5^4), 2 + 5 + 3*5^2 + 5^3 + O(5^4), 1 + 5 + O(5^4))
             sage: a * x == v
             True
+
+        Solving a system of linear equation symbolically using symbolic matrices::
+
+            sage: var('a,b,c,d,x,y')
+            (a, b, c, d, x, y)
+            sage: A=matrix(SR,2,[a,b,c,d]); A
+            [a b]
+            [c d]
+            sage: result=vector(SR,[3,5]); result
+            (3, 5)
+            sage: soln=A.solve_right(result)
+            sage: soln
+            (-(3*c/a - 5)*b/((b*c/a - d)*a) + 3/a, (3*c/a - 5)/(b*c/a - d))
+            sage: (a*x+b*y).subs(x=soln[0],y=soln[1]).simplify_full()
+            3
+            sage: (c*x+d*y).subs(x=soln[0],y=soln[1]).simplify_full()
+            5
+            sage: (A*soln).apply_map(lambda x: x.simplify_full())
+            (3, 5)
         """
 
         if is_Vector(B):

@@ -1107,6 +1107,9 @@ cdef class Ring(ParentWithGens):
 
 
         """
+        if self.is_field():
+            return True
+
         if self.is_zero():
             return False
 

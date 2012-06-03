@@ -30,6 +30,14 @@
 
 == Releases/Changelog ==
 
+=== cryptominisat-2.9.4 (Martin Albrecht, May 31th, 2012) ===
+ * new upstream release
+ * manually delete stdint.h
+
+=== cryptominisat-2.9.1 (Martin Albrecht, May 20th, 2011) ===
+ * new upstream release
+ * building shared library
+
 === cryptominisat-2.9.0 (Martin Albrecht, April 30th, 2011) ===
  * new upstream release
 

@@ -1879,6 +1879,14 @@ if is_package_installed('cbc'):
         )
 
 
+if is_package_installed('cryptominisat'):
+    ext_modules.append(
+        Extension("sage.sat.solvers.cryptominisat.cryptominisat",
+                  ["sage/sat/solvers/cryptominisat/cryptominisat.pyx"],
+                  include_dirs = [SAGE_INC, SAGE_INC+"/cryptominisat/mtl", SAGE_INC+"/cryptominisat/Solver"],
+                  language = "c++",
+                  libraries = ['cryptominisat', 'z'])
+        )
 
 # Only include darwin_utilities on OS_X >= 10.5
 UNAME = os.uname()

@@ -984,6 +984,11 @@ code = setup(name = 'sage',
 
                      'sage.sandpiles',
 
+                     'sage.sat',
+                     'sage.sat.converters',
+                     'sage.sat.solvers',
+                     'sage.sat.solvers.cryptominisat',
+
                      'sage.sets',
 
                      'sage.stats',

@@ -1390,7 +1390,8 @@ cdef class CommutativeRing(Ring):
 
     def __pow__(self, n, _):
         """
-        Return the free module of rank `n` over this ring.
+        Return the free module of rank `n` over this ring.  If n is a tuple of
+        two elements, creates a matrix space.
 
         EXAMPLES::
 
@@ -1398,9 +1399,17 @@ cdef class CommutativeRing(Ring):
             Vector space of dimension 5 over Rational Field
             sage: Integers(20)^1000
             Ambient free module of rank 1000 over Ring of integers modulo 20
+
+            sage: QQ^(2,3)
+            Full MatrixSpace of 2 by 3 dense matrices over Rational Field
         """
-        import sage.modules.all
-        return sage.modules.all.FreeModule(self, n)
+        if isinstance(n, tuple):
+            m, n = n
+            from sage.matrix.matrix_space import MatrixSpace
+            return MatrixSpace(self, m, n)
+        else:
+            import sage.modules.all
+            return sage.modules.all.FreeModule(self, n)
 
     def is_commutative(self):
         """

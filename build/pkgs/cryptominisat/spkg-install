@@ -74,7 +74,7 @@ fi
 
 # this should get installed, so we work around it here
 
-rm $SAGE_INCLUDE/cryptominisat/Solver/stdint.h
+rm $SAGE_ROOT/local/include/cryptominisat/Solver/stdint.h
 
 cd ..
 

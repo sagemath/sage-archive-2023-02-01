@@ -9,10 +9,6 @@ if [ "$SAGE64" != "no" ] ; then
 fi
 mv -f src/GNUmakefile src/Makefile
 
-# Updated files that I got from Harald Skarke
-cp -p patches/Polynf.c src/Polynf.c
-cp -p patches/MoriCone.c src/MoriCone.c
-
 cd src
 mv Global.h Global.h-template
 

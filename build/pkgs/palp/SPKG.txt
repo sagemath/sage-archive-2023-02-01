@@ -36,11 +36,16 @@ facet enumeration compares well with existing packages.
 
 == Upstream Contact ==
 
- * Author: Maximilian Kreuzer (kreuzer@hep.itp.tuwien.ac.at)
  * Author: Harald Skarke (skarke@maths.ox.ac.uk)
  * Home page: http://hep.itp.tuwien.ac.at/~kreuzer/CY/CYpalp.html
 
 == Change log ==
+
+=== palp-2.1.p0 (Volker Braun, 4th June 2012) ===
+ * #12088 Updated to the latest upstream version
+ * Solaris sed does not understand character classes (:space:), dumb
+   down even further
+ * Removed the patched Polynf.c and MoriCone.c
 
 === palp-2.0.p2 (Volker Braun, 4th May 2012) ===
  * #12088 change regex in spkg-install from \s to [[:space:]], only

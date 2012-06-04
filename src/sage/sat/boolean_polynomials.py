@@ -10,19 +10,6 @@ def solve(F, converter_cls=None, solver_cls=None, **kwds):
     P = iter(F).next().parent()
     K = P.base_ring()
 
-    # instantiate the ANF to CNF converter
-
-    if converter_cls is None:
-        from sage.sat.converters.polybori import CNFEncoder
-        converter_cls = CNFEncoder
-
-    converter_kwds = {}
-    for k,v in kwds.iteritems():
-        if k.startswith("c_"):
-            converter_kwds[k[2:]] = v
-
-    converter = converter_cls(P, **converter_kwds)
-
     # instantiate the SAT solver
 
     if solver_cls is None:
@@ -36,7 +23,20 @@ def solve(F, converter_cls=None, solver_cls=None, **kwds):
 
     solver = solver_cls(**solver_kwds)
 
-    phi = converter(F, solver, **converter_kwds)
+    # instantiate the ANF to CNF converter
+
+    if converter_cls is None:
+        from sage.sat.converters.polybori import CNFEncoder
+        converter_cls = CNFEncoder
+
+    converter_kwds = {}
+    for k,v in kwds.iteritems():
+        if k.startswith("c_"):
+            converter_kwds[k[2:]] = v
+
+    converter = converter_cls(solver, P, **converter_kwds)
+
+    phi = converter(F, **converter_kwds)
 
     sol = solver(**solver_kwds)
 
@@ -57,19 +57,6 @@ def learn(F, converter_cls=None, solver_cls=None, max_length=3, **kwds):
     P = iter(F).next().parent()
     K = P.base_ring()
 
-    # instantiate the ANF to CNF converter
-
-    if converter_cls is None:
-        from sage.sat.converters.polybori import CNFEncoder
-        converter_cls = CNFEncoder
-
-    converter_kwds = {}
-    for k,v in kwds.iteritems():
-        if k.startswith("c_"):
-            converter_kwds[k[2:]] = v
-
-    converter = converter_cls(P, **converter_kwds)
-
     # instantiate the SAT solver
 
     if solver_cls is None:
@@ -83,7 +70,21 @@ def learn(F, converter_cls=None, solver_cls=None, max_length=3, **kwds):
 
     solver = solver_cls(**solver_kwds)
 
-    phi = converter(F, solver, **converter_kwds)
+    # instantiate the ANF to CNF converter
+
+    if converter_cls is None:
+        from sage.sat.converters.polybori import CNFEncoder
+        converter_cls = CNFEncoder
+
+    converter_kwds = {}
+    for k,v in kwds.iteritems():
+        if k.startswith("c_"):
+            converter_kwds[k[2:]] = v
+
+    converter = converter_cls(solver, P, **converter_kwds)
+
+
+    phi = converter(F, **converter_kwds)
 
     sol = solver(**solver_kwds)
 
@@ -93,8 +94,13 @@ def learn(F, converter_cls=None, solver_cls=None, max_length=3, **kwds):
         learnt1 = solver.unitary_learnt_clauses()
         learnt1 = Sequence((phi[abs(i)-1]+K(i<0)) for i in learnt1)
 
-        learnt2 = solver.learnt_clauses()
-        learnt2 = [converter.to_polynomial(c) for c in learnt2 if len(c) <= max_length]
+        learnt2 = []
+        for c in solver.learnt_clauses():
+            if len(c) <= max_length:
+                try:
+                    learnt2.append( converter.to_polynomial(c) )
+                except ValueError:
+                    pass
 
         learnt = learnt1 + learnt2
     return Sequence(learnt)

@@ -47,8 +47,12 @@ cdef class CryptoMiniSat:
 """%(self._solver.nVars(), self._solver.nLiterals(), self._solver.nClauses(), self._solver.nLearnts(), self._solver.nAssigns())
         return s
 
-    def new_gen(self):
-        cdef Var var = self._solver.newVar()
+    def new_gen(self, decision=None):
+        cdef Var var
+        if decision is None:
+            var = self._solver.newVar()
+        else:
+            var = self._solver.newVar(bool(decision))
         return int(var+1)
 
     def ngens(self):

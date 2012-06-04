@@ -1,16 +1,22 @@
 """
-ANF to CNF Converter based on PolyBoRi's internal representation
+ANF to CNF Converter.
+
+This converter is based on PolyBoRi's internal representation for
+polynomials with few variables and XOR chain splitting for polynomials
+with many variables.
 
 AUTHORS:
 
-- Michael Brickenstein (2009) wrote the first version which is
-  included in PolyBoRi
-
-- Martin Albrecht (2012) adapted to Sage / updated
+- Martin Albrecht - (2008-09) initial version of 'anf2cnf.py'
+- Michael Brickenstein - (2009) 'cnf.py' for PolyBoRi
+- Mate Soos - (2010) improved version of 'anf2cnf.py'
+- Martin Albrecht - (2012) unified and added to Sage
 """
 
 ##############################################################################
+#  Copyright (C) 2008-2009 Martin Albrecht <martinralbrecht@googlemail.com>
 #  Copyright (C) 2009 Michael Brickenstein <brickenstein@mfo.de>
+#  Copyright (C) 2010 Mate Soos
 #  Copyright (C) 2012 Martin Albrecht <martinralbrecht@googlemail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
@@ -19,20 +25,49 @@ AUTHORS:
 
 from random import Random
 from sage.rings.polynomial.pbori import if_then_else as ite
+from sage.rings.integer_ring import ZZ
+from sage.functions.other import ceil
+from sage.misc.cachefunc import cached_method, cached_function
+from sage.combinat.permutation import Permutations
 
 class CNFEncoder(object):
-    def __init__(self, R, random_seed = 16, **kwds):
+    def __init__(self, sat_solver, ring, max_variables=6, cutting_number=4, random_seed = 16, **kwds):
         """
         INPUT:
 
-        - ``R`` - a :cls:`BooleanPolynomialRing`
+        - ``sat_solver`` - a SAT-solver instance
+        - ``ring`` - a :cls:`BooleanPolynomialRing`
+        - ``max_variables`` - maximum number of variables for direct conversion
+        - ``cutting_number`` - maximum length of XOR chains
         - ``random_seed`` - (default: 16)
         - ``**kwds`` - ignored
         """
         self.random_generator = Random(random_seed)
-        self.one_set = R.one().set()
-        self.empty_set = R.zero().set()
-        self.R = R
+        self.one_set = ring.one().set()
+        self.empty_set = ring.zero().set()
+
+        self.sat_solver = sat_solver
+        self.max_variables = max_variables
+        self.cutting_number = cutting_number
+        self.ring = ring
+
+        self._phi = []
+        for x in sorted([x.lm() for x in self.ring.gens()], key=lambda x: x.index()):
+            self.new_gen(x, decision=True)
+
+    def new_gen(self, m, decision=None):
+        self._phi.append(m)
+        return self.sat_solver.new_gen(decision=True)
+
+    def phi(self):
+        """
+        Map CNF variables to ANF variables.
+        """
+        return list(self._phi)
+
+    ##################################################
+    # Encoding based on roots of polynomial
+    ##################################################
 
     def zero_blocks(self, f):
         """
@@ -92,53 +127,18 @@ class CNFEncoder(object):
             res.append(block_dict)
         return res
 
-    def _clauses(self, f):
+    def clauses_sparse(self, f):
         """
-        Return clauses representing f as dictionaries of (variable, sign) pairs.
-
         INPUT:
 
-        - ``f`` - a :cls:BooleanPolynomial
-
-        EXAMPLE::
-
-            sage: B.<x,y,z> = BooleanPolynomialRing()
-            sage: from sage.sat.converters.polybori import CNFEncoder
-            sage: e = CNFEncoder(R)
-            sage: e._clauses(x*y*z)
-            [{y: 0, z: 0, x: 0}]
-            sage: e._clauses(y + x)
-            [{y: 0, x: 1}, {y: 1, x: 0}]
+        - ``f`` - a :cls:`BooleanPolynomial`
         """
-        f_plus_one = f+1
-        blocks = self.zero_blocks(f+1)
-        negated_blocks = [dict([(variable, 1-value) for (variable, value) in b.iteritems()]) for b in blocks ]
-
         # we form an expression for a var configuration *not* lying in
         # the block it is evaluated to 0 by f, iff it is not lying in
         # any zero block of f+1
 
-        return negated_blocks
-
-    def clauses(self, f):
-        """
-        Return clauses representing f as dictionaries of (variable, sign) pairs.
-
-        INPUT:
-
-        - ``f`` - a :cls:BooleanPolynomial
-
-        EXAMPLE::
-
-            sage: B.<x,y,z> = BooleanPolynomialRing()
-            sage: from sage.sat.converters.polybori import CNFEncoder
-            sage: e = CNFEncoder(R)
-            sage: e._clauses(x*y*z)
-            [{y: 0, z: 0, x: 0}]
-            sage: e._clauses(y + x)
-            [{y: 0, x: 1}, {y: 1, x: 0}]
-        """
-        C = self._clauses(f)
+        blocks = self.zero_blocks(f+1)
+        C = [dict([(variable, 1-value) for (variable, value) in b.iteritems()]) for b in blocks ]
 
         def to_dimacs_index(v):
             return v.index()+1
@@ -146,27 +146,106 @@ class CNFEncoder(object):
         def clause(c):
             return [to_dimacs_index(variable) if value == 1 else -to_dimacs_index(variable) for (variable, value) in c.iteritems()]
 
-        return [clause(c) for c in C]
+        for c in C:
+            self.sat_solver.add_clause(clause(c))
 
-    def __call__(self, F, satsolver, **kwds):
+    ###
+    # Indirect conversion, may add new variables
+    ###
+
+    def clauses_dense(self, f):
+        equal_zero = not bool(f.constant_coefficient())
+
+        f = (f - f.constant_coefficient())
+        f = [self.monomial(m) for m in f]
+
+        if f > self.cutting_number:
+            for fpart, this_equal_zero in self.split_xor(f, equal_zero):
+                self.xor_cnf(fpart, this_equal_zero)
+        else:
+            self.xor_cnf(f, equal_zero)
+
+    @cached_method
+    def monomial(self, m):
+        if m.deg() == 1:
+            return m.index()+1
+        else:
+            # we need to encode the relationship between the monomial
+            # and its variables
+            variables = [self.monomial(v) for v in m.variables()]
+            monomial = self.new_gen(m, decision=False)
+
+            # (a | -w) & (b | -w) & (w | -a | -b) <=> w == a*b
+            for v in variables:
+                self.sat_solver.add_clause( (v, -monomial) )
+            self.sat_solver.add_clause( tuple([monomial] + [-v for v in variables]) )
+
+            return monomial
+
+    @cached_function
+    def permutations(length, equal_zero):
+        E = []
+        for num_negated in range(0, length+1) :
+            if (((num_negated % 2) ^ ((length+1) % 2)) == equal_zero) :
+                continue
+            start = []
+            for i in range(num_negated) :
+                start.append(1)
+            for i in range(length - num_negated) :
+                start.append(-1)
+            E.extend(Permutations(start))
+        return E
+
+    def split_xor(self, monomial_list, equal_zero):
+        c = self.cutting_number
+
+        nm = len(monomial_list)
+        step = ceil((c-2)/ZZ(nm) * nm)
+        M = []
+
+        new_variables = []
+        for j in range(0, nm, step):
+            m =  new_variables + monomial_list[j:j+step]
+            if (j + step) < nm:
+                new_variables = [self.new_gen(None, decision=False)]
+                m += new_variables
+            M.append([m, equal_zero])
+            equal_zero = True
+        return M
+
+    def xor_cnf(self, M, equal_zero):
+        ll = len(M)
+        for p in self.permutations(ll, equal_zero):
+            self.sat_solver.add_clause([ p[i]*M[i] for i in range(ll) ])
+
+    ####################################################
+    # Highlevel Functions
+    ###################################################
+    def clauses(self, f):
+        if f.nvariables() <= self.max_variables:
+            self.clauses_sparse(f)
+        else:
+            self.clauses_dense(f)
+
+    def __call__(self, F, **kwds):
         """
-        Encode the polynomial ``F`` for the SAT-solver ``satsolver''.
+        Encode the polynomial ``F`` .
 
         INPUT:
 
         - ``F`` -
-        - ``satsolver`` -
         - ``**kwds`` - ignored
 
         OUTPUT: An inverse map int -> variable
         """
         res = []
         for f in F:
-            clauses = self.clauses(f)
-            for c in clauses:
-                satsolver.add_clause(c)
-        phi = sorted(self.R.gens(), key=lambda x: x.lm().index())
-        return phi
+            self.clauses(f)
+        return self.phi()
+
+    ##
+    # The way back
+    ##
 
     def to_polynomial(self, c):
         def product(l):
@@ -175,10 +254,11 @@ class CNFEncoder(object):
             for p in l[1:]:
                 res = res*p
             return res
-        try:
-            return product([variable + value for (variable, value) in c.iteritems()])
-        except AttributeError:
-            phi = sorted(self.R.gens(), key=lambda x: x.lm().index())
 
-            c = dict((phi[abs(v)-1],int(v>0)) for v in c)
-            return product([variable + value for (variable, value) in c.iteritems()])
+        phi = self.phi()
+        product = self.ring(1)
+        for v in c:
+            if phi[abs(v)-1] is None:
+                raise ValueError("Clause containst an XOR glueing variable.")
+            product *= phi[abs(v)-1] + int(v>0)
+        return product

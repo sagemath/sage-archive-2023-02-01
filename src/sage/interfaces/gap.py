@@ -1533,6 +1533,7 @@ def gap_console(use_workspace_cache=True):
         gap>
     """
     cmd, _ = gap_command(use_workspace_cache=use_workspace_cache)
+    cmd += " %s/extcode/gap/console.g" % SAGE_DATA
     os.system(cmd)
 
 def gap_version():

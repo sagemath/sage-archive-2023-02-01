@@ -162,6 +162,7 @@ Families of graphs
 - :meth:`NKStarGraph <GraphGenerators.NKStarGraph>`
 - :meth:`NStarGraph <GraphGenerators.NStarGraph>`
 - :meth:`OddGraph <GraphGenerators.OddGraph>`
+- :meth:`PaleyGraph <GraphGenerators.PaleyGraph>`
 - :meth:`line_graph_forbidden_subgraphs <GraphGenerators.line_graph_forbidden_subgraphs>`
 - :meth:`PermutationGraph <GraphGenerators.PermutationGraph>`
 - :meth:`trees <GraphGenerators.trees>`
@@ -6589,6 +6590,28 @@ class GraphGenerators():
             raise ValueError, "Parameter n should be an integer strictly greater than 1"
         g = self.KneserGraph(2*n-1,n-1)
         g.name("Odd Graph with parameter %s" % n)
+        return g
+
+    def PaleyGraph(self,q):
+        r"""
+        Paley graph with `q` vertices
+
+        Parameter `q` must be the power of a prime number and congruent
+        to 1 mod 4.
+
+        EXAMPLES::
+
+            sage: G=graphs.PaleyGraph(9);G
+            Paley graph with parameter 9: Graph on 9 vertices
+            sage: G.is_regular()
+            True
+        """
+        from sage.rings.finite_rings.integer_mod import mod
+        from sage.rings.finite_rings.constructor import FiniteField
+        assert q.is_prime_power(), "Parameter q must be a prime power"
+        assert mod(q,4)==1, "Parameter q must be congruent to 1 mod 4"
+        g = graph.Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
+        loops=False, name = "Paley graph with parameter %d"%q)
         return g
 
 

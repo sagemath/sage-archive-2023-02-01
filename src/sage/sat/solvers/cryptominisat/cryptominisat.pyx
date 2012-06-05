@@ -1,3 +1,9 @@
+"""
+CryptoMiniSat Interface.
+
+AUTHORS:
+- Martin Albrecht (2012): first version
+"""
 ##############################################################################
 #  Copyright (C) 2012 Martin Albrecht <martinralbrecht@googlemail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -9,7 +15,7 @@ include "../../../ext/stdsage.pxi"
 include "../../../ext/interrupt.pxi"
 
 from libc.stdint cimport uint32_t
-from decl cimport lbool, Var, Lit, Clause
+from decl cimport lbool, Var, Lit, Clause, l_Undef, l_False
 from decl cimport vec, vector
 from decl cimport get_sorted_learnts_helper
 from decl cimport GaussConf, SolverConf
@@ -18,15 +24,22 @@ from sage.misc.misc import get_verbose
 
 cdef class CryptoMiniSat:
     """
-    An instance of the CryptoMiniSat SAT solver.
+    A CryptoMiniSat SAT-solver instance.
 
     EXAMPLE::
 
-        sage: from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
-        sage: CMS = CryptoMiniSat()
-        sage: CMS.add_clause((1,2,-3))
-        sage: CMS()
+        sage: from sage.sat.solvers.cryptominisat import CryptoMiniSat # optional - cryptominisat
+        sage: CMS = CryptoMiniSat()     # optional - cryptominisat
+        sage: CMS.add_clause((1,2,-3))  # optional - cryptominisat
+        sage: CMS()                     # optional - cryptominisat
         (True, True, False)
+
+    .. note::
+
+        Do not import 'sage.sat.solvers.cryptominisat.cryptominisat'
+        directly, but use 'sage.sat.solvers.cryptominisat' which
+        throws a friendlier error message if CryptoMiniSat is not
+        installed.
     """
     def __cinit__(self, verbosity=0, max_restarts=None, **kwds):
         cdef SolverConf sc
@@ -68,11 +81,13 @@ cdef class CryptoMiniSat:
 
     def __call__(self, **kwds):
         _sig_on
-        cdef bint r = self._solver.solve().getBool()
+        cdef lbool r = self._solver.solve()
         _sig_off
 
-        if r is False:
-            return r
+        if r == l_False:
+            return False
+        if r == l_Undef:
+            return None
 
         return tuple([self._solver.model[i].getBool() for i in range(self._solver.model.size())])
 

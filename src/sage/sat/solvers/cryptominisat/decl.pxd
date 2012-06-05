@@ -14,6 +14,11 @@ cdef extern from "<vector>" namespace "std":
 cdef extern from "Solver.h" namespace "CMSat":
     cdef cppclass lbool:
         bint getBool()
+        bint operator==(lbool b)
+
+    lbool l_True
+    lbool l_False
+    lbool l_Undef
 
     ctypedef uint32_t Var
 

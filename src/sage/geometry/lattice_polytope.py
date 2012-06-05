@@ -1018,7 +1018,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 p.terminate()
             except OSError:
                 pass
-        if len(result) == 0 or result.find("!") != -1:
+        if (not result or
+            "!" in result or
+            "failed." in result or
+            "increase" in result or
+            "Unable" in result):
             raise ValueError, ("Error executing \"%s\" for the given polytope!"
                 + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
                 self, self.vertices(), result)
@@ -2633,7 +2637,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [ 0  0  0  0  0  1  0  0  0  0  0  0 -1  0]
             [ 0  0  0  0  0  0  1  0  0  0  0  0  0 -1]
             Output:
-            increase POLY_Dmax!
+            Please increase POLY_Dmax to at least 7
 
         You cannot call poly.x for polytopes that don't span the space (if you
         could, it would crush anyway)::
@@ -4888,7 +4892,7 @@ def set_palp_dimension(d):
         [ 0  0  0  0  0  1  0  0]
         [ 0  0  0  0  0  0  1  0]
         Output:
-        increase POLY_Dmax!
+        Please increase POLY_Dmax to at least 7
 
     However, we can work with this polytope by changing PALP dimension to 11::
 

@@ -6,15 +6,15 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-echo "Copying updated gmp++.h"
-cp patches/gmp++.h src/src/kernel/gmp++/
-echo "Copying updated gmp++_int.inl"
-cp patches/gmp++_int.inl src/src/kernel/gmp++/
+# echo "Copying updated gmp++.h"
+# cp patches/gmp++.h src/src/kernel/gmp++/
+# echo "Copying updated gmp++_int.inl"
+# cp patches/gmp++_int.inl src/src/kernel/gmp++/
 
-if [ $UNAME = "CYGWIN" ]; then
-    echo "Patching givtablelimits.h for Cygwin (because of missing logb)"
-    cp patches/givtablelimits.h src/src/kernel/zpz/givtablelimits.h
-fi
+# if [ $UNAME = "CYGWIN" ]; then
+#     echo "Patching givtablelimits.h for Cygwin (because of missing logb)"
+#     cp patches/givtablelimits.h src/src/kernel/zpz/givtablelimits.h
+# fi
 
 cd src
 

@@ -1,0 +1,27 @@
+= FFLAS/FFPACK =
+
+== Description ==
+
+FFLAS-FFPACK is a LGPL-2.1+ source code library for dense linear
+algebra over word-size finite fields.
+
+http://linalg.org/projects/fflas-ffpack
+
+== License ==
+LGPL V2.1 or later
+
+== Maintainers ==
+ * Martin Albrecht
+
+== Upstream Contact ==
+ * <ffpack-devel@googlegroups.com>
+
+== Dependencies ==
+ * MPIR
+ * NTL
+ * ATLAS (non-OSX)/The Accelerate FrameWork (on OSX)
+
+== Changelog ==
+
+=== fflas-ffpack-1.5.0 (Martin Albrecht, 6 June 2012) ===
+ * split from LinBox SPKG

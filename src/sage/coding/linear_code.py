@@ -161,7 +161,7 @@ AUTHORS:
 - Kwankyu Lee (2010-01): added methods gen_mat_systematic, information_set, and
   magma interface for linear codes.
 
-- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): :trac:`#3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 TESTS::
 
@@ -689,6 +689,13 @@ class LinearCode(module.Module_old):
        finite ring but the matrices over that ring must have certain
        attributes, such as ``rank``.)
 
+    - ``d`` - (Optional, default: ``None``) the minimum distance of the
+      code. This is an optional parameter.
+
+    .. note::
+        The veracity of the minimum distance ``d``, if provided, is not
+        checked.
+
     OUTPUT:
 
     The linear code of length `n` over `F` having `G` as a generator matrix.
@@ -712,6 +719,16 @@ class LinearCode(module.Module_old):
         [1, 0, 0, 7, 7, 0, 0, 1]
         sage: C.weight_distribution()
         [1, 0, 0, 7, 7, 0, 0, 1]
+
+    The minimum distance of the code, if known, can be provided as an
+    optional parameter.::
+
+        sage: C  = LinearCode(G, d=3)
+        sage: C.minimum_distance()
+        3
+
+    Another example.::
+
         sage: MS = MatrixSpace(GF(5),4,7)
         sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
         sage: C  = LinearCode(G)
@@ -726,7 +743,7 @@ class LinearCode(module.Module_old):
     #    3
     #    sage: C.minimum_distance_why()     # optional (net connection)
     #    Ub(7,4) = 3 follows by the Griesmer bound.
-    def __init__(self, gen_mat):
+    def __init__(self, gen_mat, d=None):
         r"""
         See the docstring for :meth:`LinearCode`.
 
@@ -737,6 +754,13 @@ class LinearCode(module.Module_old):
             sage: C  = LinearCode(G)    # indirect doctest
             sage: C
             Linear code of length 7, dimension 4 over Finite Field of size 2
+
+        The minimum distance of the code, if known, can be provided as an
+        optional parameter.::
+
+            sage: C  = LinearCode(G, d=3)
+            sage: C.minimum_distance()
+            3
         """
         base_ring = gen_mat[0,0].parent()
         ParentWithGens.__init__(self, base_ring)
@@ -744,6 +768,7 @@ class LinearCode(module.Module_old):
         self.__gen_mat = gen_mat
         self.__length = len(gen_mat.row(0))
         self.__dim = gen_mat.rank()
+        self.__distance = d
 
     def _repr_(self):
         r"""
@@ -1837,10 +1862,16 @@ class LinearCode(module.Module_old):
         Raises a ``ValueError`` in case there is no non-zero vector in this
         linear code.
 
+        The minimum distance of the code is stored once it has been
+        computed or provided during the initialization of :class:`LinearCode`.
+        If ``algorithm`` is ``None`` and the stored value of minimum
+        distance is found, then the stored value will be returned without
+        recomputing the minimum distance again.
+
         INPUT:
 
-        - ``algorithm`` - Method to be used, ``None`` or ``"guava"``
-          (default: ``None``)
+        - ``algorithm`` - Method to be used, ``None``, ``"gap"``, or
+          ``"guava"`` (default: ``None``).
 
         OUTPUT:
 
@@ -1853,14 +1884,38 @@ class LinearCode(module.Module_old):
             sage: C = LinearCode(G)
             sage: C.minimum_distance()
             3
+
+        Once the minimum distance has been computed, it's value is stored.
+        Hence the following command will return the value instantly,
+        without further computations.::
+
+            sage: C.minimum_distance()
+            3
+
+        If ``algorithm`` is provided, then the minimum distance will be
+        recomputed even if there is a stored value from a previous run.::
+
+            sage: C.minimum_distance(algorithm="gap")
+            3
             sage: C.minimum_distance(algorithm="guava")  # requires optional GAP package Guava
             3
+
+        Another example.::
+
             sage: C = HammingCode(2,GF(4,"a")); C
             Linear code of length 5, dimension 3 over Finite Field in a of size 2^2
             sage: C.minimum_distance()
             3
 
-        This shows that trac ticket #6486 has been resolved::
+        TESTS::
+
+            sage: C = HammingCode(2,GF(4,"a"))
+            sage: C.minimum_distance(algorithm='something')
+            Traceback (most recent call last):
+            ...
+            ValueError: The algorithm argument must be one of None, 'gap' or 'guava'; got 'something'
+
+        This shows that ticket :trac:`#6486` has been resolved::
 
             sage: G = matrix(GF(2),[[0,0,0]])
             sage: C = LinearCode(G)
@@ -1871,7 +1926,16 @@ class LinearCode(module.Module_old):
         """
         # Special code to handle the case where there is no non-zero vector.
         if self.dimension() == 0:
-            raise ValueError, "this linear code contains no non-zero vector"
+            raise ValueError("this linear code contains no non-zero vector")
+
+        # If the minimum distance has already been computed or provided by
+        # the user then simply return the stored value.
+        # This is done only if algorithm is None.
+        if self.__distance is not None and algorithm is None:
+            return self.__distance
+        if algorithm not in (None, "gap", "guava"):
+            raise ValueError("The algorithm argument must be one of None, "
+                        "'gap' or 'guava'; got '{0}'".format(algorithm))
 
         #sage: C.minimum_distance_upper_bound()  # optional (net connection)
         #5
@@ -1889,7 +1953,8 @@ class LinearCode(module.Module_old):
             #print "Running Guava's MinimumWeight ...\n"
             return ZZ(d)
         Gstr = "%s*Z(%s)^0"%(gapG, q)
-        return hamming_weight(min_wt_vec_gap(Gstr,n,k,F))
+        self.__distance = hamming_weight(min_wt_vec_gap(Gstr,n,k,F))
+        return self.__distance
 
     def module_composition_factors(self, gp):
         r"""
@@ -2717,9 +2782,20 @@ class LinearCode(module.Module_old):
 
     weight_distribution = spectrum
 
-def LinearCodeFromVectorSpace(self):
+def LinearCodeFromVectorSpace(V, d=None):
     """
     Simply converts a vector subspace `V` of `GF(q)^n` into a `LinearCode`.
+
+    INPUT:
+
+    - ``V`` -- The vector space
+
+    - ``d`` -- (Optional, default: ``None``) the minimum distance of the
+      code, if known. This is an optional parameter.
+
+    .. note::
+        The veracity of the minimum distance ``d``, if provided, is not
+        checked.
 
     EXAMPLES::
 
@@ -2731,12 +2807,18 @@ def LinearCodeFromVectorSpace(self):
         [0 0 0 0 1 1 1 1]
         sage: C.minimum_distance()
         4
+
+    Here, we provide the minimum distance of the code.::
+
+        sage: C = LinearCodeFromVectorSpace(L, d=4)
+        sage: C.minimum_distance()
+        4
     """
-    F = self.base_ring()
-    B = self.basis()
+    F = V.base_ring()
+    B = V.basis()
     n = len(B[0].list())
     k = len(B)
     MS = MatrixSpace(F,k,n)
     G = MS([B[i].list() for i in range(k)])
-    return LinearCode(G)
+    return LinearCode(G, d=d)
 

@@ -576,7 +576,9 @@ def BinaryGolayCode():
         sage: C = BinaryGolayCode()
         sage: C
         Linear code of length 23, dimension 12 over Finite Field of size 2
-        sage: C.minimum_distance()               # long time
+        sage: C.minimum_distance()
+        7
+        sage: C.minimum_distance(algorithm='gap') # long time, check d=7
         7
 
     AUTHORS:
@@ -599,7 +601,7 @@ def BinaryGolayCode():
     # MS = MatrixSpace(F,12,23)
     # V = VectorSpace(F,23)
     V = span(B, F)
-    return LinearCodeFromVectorSpace(V)
+    return LinearCodeFromVectorSpace(V, d=7)
 
 
 def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
@@ -827,6 +829,8 @@ def ExtendedBinaryGolayCode():
         Linear code of length 24, dimension 12 over Finite Field of size 2
         sage: C.minimum_distance()
         8
+        sage: C.minimum_distance(algorithm='gap') # long time, check d=8
+        8
 
     AUTHORS:
 
@@ -845,7 +849,7 @@ def ExtendedBinaryGolayCode():
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1],\
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1]]
     V = span(B, GF(2))
-    return LinearCodeFromVectorSpace(V)
+    return LinearCodeFromVectorSpace(V, d=8)
     # C = BinaryGolayCode()
     # return C.extended_code()
 
@@ -904,6 +908,8 @@ def ExtendedTernaryGolayCode():
         Linear code of length 12, dimension 6 over Finite Field of size 3
         sage: C.minimum_distance()
         6
+        sage: C.minimum_distance(algorithm='gap') # long time, check d=6
+        6
 
     AUTHORS:
 
@@ -916,7 +922,7 @@ def ExtendedTernaryGolayCode():
          [0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 0, 1],\
          [0, 0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 1]]
     V = span(B, GF(3))
-    return LinearCodeFromVectorSpace(V)
+    return LinearCodeFromVectorSpace(V, d=6)
     # C = TernaryGolayCode()
     # return C.extended_code()
 
@@ -950,6 +956,8 @@ def HammingCode(r,F):
         Linear code of length 13, dimension 10 over Finite Field of size 3
         sage: C.minimum_distance()
         3
+        sage: C.minimum_distance(algorithm='gap') # long time, check d=3
+        3
         sage: C = HammingCode(3,GF(4,'a')); C
         Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
     """
@@ -961,7 +969,8 @@ def HammingCode(r,F):
     PFn = [list(p) for p in X.point_set(F).points(F)]
     H = MS(PFn).transpose()
     Cd = LinearCode(H)
-    return Cd.dual_code()
+    # Hamming code always has distance 3, so we provide the distance.
+    return LinearCode(Cd.dual_code().gen_mat(), d=3)
 
 
 def LinearCodeFromCheckMatrix(H):
@@ -1220,6 +1229,8 @@ def ReedSolomonCode(n,k,F,pts = None):
         Linear code of length 6, dimension 4 over Finite Field in a of size 2^3
         sage: C.minimum_distance()
         3
+        sage: C.minimum_distance(algorithm='gap') # long time, check d=n-k+1
+        3
         sage: F.<a> = GF(3^2,"a")
         sage: pts = [0,1,a,a^2,2*a,2*a+1]
         sage: len(Set(pts)) == 6 # to make sure there are no duplicates
@@ -1250,7 +1261,7 @@ def ReedSolomonCode(n,k,F,pts = None):
     rowsG = []
     rowsG = [[power(x,j,F) for x in pts] for j in range(k)]
     G = MS(rowsG)
-    return LinearCode(G)
+    return LinearCode(G, d=n-k+1)
 
 
 def TernaryGolayCode():
@@ -1266,6 +1277,8 @@ def TernaryGolayCode():
         Linear code of length 11, dimension 6 over Finite Field of size 3
         sage: C.minimum_distance()
         5
+        sage: C.minimum_distance(algorithm='gap') # long time, check d=5
+        5
 
     AUTHORS:
 
@@ -1279,7 +1292,7 @@ def TernaryGolayCode():
          [0, 0, 0, 0, 2, 0, 1, 2, 1, 1, 0],\
          [0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 1]]
     V = span(B, F)
-    return LinearCodeFromVectorSpace(V)
+    return LinearCodeFromVectorSpace(V, d=5)
 
 def ToricCode(P,F):
     r"""
@@ -1379,6 +1392,10 @@ def WalshCode(m):
         Linear code of length 8, dimension 3 over Finite Field of size 2
         sage: C.spectrum()
         [1, 0, 0, 0, 7, 0, 0, 0, 0]
+        sage: C.minimum_distance()
+        4
+        sage: C.minimum_distance(algorithm='gap') # check d=2^(m-1)
+        4
 
     REFERENCES:
 
@@ -1386,4 +1403,4 @@ def WalshCode(m):
 
     - http://en.wikipedia.org/wiki/Walsh_code
     """
-    return LinearCode(walsh_matrix(m))
+    return LinearCode(walsh_matrix(m), d=2**(m-1))

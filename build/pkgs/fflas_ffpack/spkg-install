@@ -92,8 +92,8 @@ echo "*************************************************"
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-default="$SAGE_LOCAL" \
-    # --with-blas="$LINBOX_BLAS" \
-    --enable-sage --enable-optimization --disable-static
+    --with-blas="$LINBOX_BLAS" \
+    --enable-optimization --disable-static
 
 if [ $? -ne 0 ]; then
     echo "Error configuring linbox"
@@ -111,7 +111,5 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ -f "$SAGE_ROOT"/devel/sage/sage/libs/linbox/linbox.pyx ]; then
-    echo "Touching extensions linked against LinBox"
-    touch "$SAGE_ROOT"/devel/sage/sage/libs/linbox/linbox.pyx
-fi
+echo $LINBOX_BLAS > $SAGE_LOCAL/share/cblas_config
+

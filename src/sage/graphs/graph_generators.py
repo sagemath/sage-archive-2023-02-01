@@ -6605,6 +6605,11 @@ class GraphGenerators():
             Paley graph with parameter 9: Graph on 9 vertices
             sage: G.is_regular()
             True
+
+        A Paley graph is always self-complementary::
+
+            sage: G.complement().is_isomorphic(G)
+            True
         """
         from sage.rings.finite_rings.integer_mod import mod
         from sage.rings.finite_rings.constructor import FiniteField

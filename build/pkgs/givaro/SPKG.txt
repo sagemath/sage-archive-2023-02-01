@@ -21,6 +21,9 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 
 == Changelog ==
 
+=== givaro-3.6.0 (Martin Albrecht, June 6th, 2012) ===
+ * #9511 updated to new upstram release
+
 === givaro-3.2.13.rc1.p3 (Simon King, Dec 10th, 2011) ===
  * #12131: Use --libdir, to make the package work on openSUSE.
 

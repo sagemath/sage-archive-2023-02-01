@@ -13186,6 +13186,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: C = graphs.CycleGraph(5)
             sage: T = C.tensor_product(Z); T
             Graph on 10 vertices
+            sage: T.size()
+            10
             sage: T.plot() # long time
 
         ::
@@ -13194,6 +13196,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: P = graphs.PetersenGraph()
             sage: T = D.tensor_product(P); T
             Graph on 200 vertices
+            sage: T.size()
+            900
             sage: T.plot() # long time
 
         TESTS:
@@ -13204,7 +13208,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = Graph([('a','b')])
             sage: T = G.tensor_product(H)
             sage: T.edges(labels=None)
-            [((0, 'a'), (1, 'b')), ((1, 'a'), (2, 'b'))]
+            [((0, 'a'), (1, 'b')), ((0, 'b'), (1, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'a'))]
             sage: T.is_isomorphic( H.tensor_product(G) )
             True
 
@@ -13238,6 +13242,8 @@ class GenericGraph(GenericGraph_pyx):
         for u,w in self.edges(labels=None):
             for v,x in other.edges(labels=None):
                 G.add_edge((u,v), (w,x))
+                if not G._directed:
+                    G.add_edge((u,x), (w,v))
         return G
 
     categorical_product = tensor_product

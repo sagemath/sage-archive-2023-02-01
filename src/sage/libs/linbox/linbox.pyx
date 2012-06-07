@@ -6,104 +6,6 @@ from sage.rings.integer cimport Integer
 from sage.misc.misc import verbose, get_verbose, cputime, UNAME
 
 ##########################################################################
-## Dense matrices modulo p
-##########################################################################
-
-# LinBox bugs to address:
-#  * charpoly and minpoly don't work randomly
-
-cdef extern from "linbox/linbox-sage.h":
-    void linbox_modn_dense_delete_array(mod_int *f)
-
-    int linbox_modn_dense_echelonize(unsigned long modulus,
-                              mod_int **matrix, size_t nrows, size_t ncols)
-    void linbox_modn_dense_minpoly(unsigned long modulus, mod_int **mp, size_t* degree, size_t n,
-                                   mod_int **matrix, int do_minpoly)
-
-    int  linbox_modn_dense_matrix_matrix_multiply(unsigned long modulus, mod_int **ans,
-                                                  mod_int **A, mod_int **B,
-                                                  size_t A_nr, size_t A_nc,
-                                                  size_t B_nr, size_t B_nc)
-
-    int linbox_modn_dense_rank(unsigned long modulus,
-                               mod_int** matrix, size_t nrows, size_t ncols)
-
-    mod_int linbox_modn_dense_det(mod_int modulus, mod_int** matrix, size_t nrows, size_t ncols)
-
-
-cdef class Linbox_modn_dense:
-    def __init__(self):
-        self.matrix = <mod_int**> 0
-
-    def __dealloc__(self):
-        if self.matrix:
-            for i from 0 <= i < self.nrows:
-                sage_free(self.matrix[i])
-            sage_free(self.matrix)
-
-    cdef set(self, mod_int n, mod_int** matrix,
-             size_t nrows, size_t ncols):
-        self.n = n
-        self.nrows = nrows
-        self.ncols = ncols
-        self.matrix = matrix
-
-    cdef int echelonize(self):
-        cdef int r
-        r = linbox_modn_dense_echelonize(self.n, self.matrix,
-                                         self.nrows, self.ncols)
-        return r
-
-    def minpoly(self):
-        return self._poly(True)
-
-    def charpoly(self):
-        return self._poly(False)
-
-    def _poly(self, minpoly):
-        """
-        INPUT:
-            as given
-
-        OUTPUT:
-            coefficients of charpoly or minpoly as a Python list
-        """
-        cdef mod_int *f
-        cdef size_t degree
-        linbox_modn_dense_minpoly(self.n, &f, &degree,
-                                  self.nrows, self.matrix,
-                                  minpoly)
-        v = []
-        cdef Py_ssize_t i
-        for i from 0 <= i <= degree:
-            v.append(f[i])
-        linbox_modn_dense_delete_array(f)
-        return v
-
-    cdef matrix_matrix_multiply(self,
-                                mod_int **ans,
-                                mod_int **B,
-                                size_t B_nr, size_t B_nc):
-        cdef int e
-        e = linbox_modn_dense_matrix_matrix_multiply(self.n, ans,
-                                                     self.matrix,  B,
-                                                     self.nrows, self.ncols,
-                                                     B_nr, B_nc)
-        if e:
-            raise RuntimeError, "error doing matrix matrix multiply modn using linbox"
-
-
-    cdef unsigned long rank(self) except -1:
-        cdef unsigned long r
-        r = linbox_modn_dense_rank(self.n,   self.matrix, self.nrows, self.ncols)
-        return r
-
-    cpdef mod_int det(self) except -1:
-        cdef mod_int d
-        d = linbox_modn_dense_det(self.n,   self.matrix, self.nrows, self.ncols)
-        return d
-
-##########################################################################
 ## Sparse matrices modulo p.
 ##########################################################################
 
@@ -155,19 +57,13 @@ cdef class Linbox_modn_sparse:
 ##########################################################################
 
 cdef extern from "linbox/linbox-sage.h":
-    void linbox_integer_dense_minpoly_hacked(mpz_t* *minpoly, size_t* degree,
-                                      size_t n, mpz_t** matrix, int do_minpoly)
+    void linbox_integer_dense_minpoly(mpz_t* &minpoly, size_t &degree, size_t n, mpz_t** matrix)
 
-    void linbox_integer_dense_minpoly(mpz_t* *minpoly, size_t* degree,
-                                      size_t n, mpz_t** matrix)
-
-    void linbox_integer_dense_charpoly(mpz_t* *charpoly, size_t* degree,
-                                       size_t n, mpz_t** matrix)
+    void linbox_integer_dense_charpoly(mpz_t* &charpoly, size_t &degree, size_t n, mpz_t** matrix)
 
     void linbox_integer_dense_delete_array(mpz_t* f)
 
-    int linbox_integer_dense_matrix_matrix_multiply(mpz_t** ans, mpz_t **A, mpz_t **B,
-                                      size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc)
+    int linbox_integer_dense_matrix_matrix_multiply(mpz_t** ans, mpz_t **A, mpz_t **B, size_t A_nr, size_t A_nc, size_t B_nc)
 
     unsigned long linbox_integer_dense_rank(mpz_t** matrix, size_t nrows,
                                             size_t ncols)
@@ -186,26 +82,14 @@ cdef class Linbox_integer_dense:
         self.matrix = matrix
 
     def minpoly(self):
-        return self._poly(True)
-
-    def charpoly(self):
-        return self._poly(False)
-
-    def _poly(self, do_minpoly):
         """
-        INPUT:
-            as given
-
         OUTPUT:
-            coefficients of charpoly or minpoly as a Python list
+            coefficients of minpoly as a Python list
         """
         cdef mpz_t* poly
         cdef size_t degree
         verbose("using linbox poly comp")
-        if do_minpoly:
-            linbox_integer_dense_minpoly(&poly, &degree, self.nrows, self.matrix)
-        else:
-            linbox_integer_dense_charpoly(&poly, &degree, self.nrows, self.matrix)
+        linbox_integer_dense_minpoly(poly, degree, self.nrows, self.matrix)
         verbose("computed poly -- now converting back to Sage")
 
         v = []
@@ -218,16 +102,37 @@ cdef class Linbox_integer_dense:
             v.append(k)
         linbox_integer_dense_delete_array(poly)
         return v
+        return self._poly(True)
+
+    def charpoly(self):
+        """
+        OUTPUT:
+            coefficients of charpoly or minpoly as a Python list
+        """
+        cdef mpz_t* poly
+        cdef size_t degree
+        verbose("using linbox poly comp")
+        linbox_integer_dense_charpoly(poly, degree, self.nrows, self.matrix)
+        verbose("computed poly -- now converting back to Sage")
+
+        v = []
+        cdef Integer k
+        cdef size_t n
+        for n from 0 <= n <= degree:
+            k = Integer()
+            mpz_set(k.value, poly[n])
+            mpz_clear(poly[n])
+            v.append(k)
+        linbox_integer_dense_delete_array(poly)
+        return v
+        return self._poly(True)
 
     cdef matrix_matrix_multiply(self,
                                 mpz_t **ans,
                                 mpz_t **B,
                                 size_t B_nr, size_t B_nc):
         cdef int e
-        e = linbox_integer_dense_matrix_matrix_multiply(ans,
-                                                        self.matrix,  B,
-                                                        self.nrows, self.ncols,
-                                                        B_nr, B_nc)
+        e = linbox_integer_dense_matrix_matrix_multiply(ans, self.matrix,  B, self.nrows, self.ncols, B_nc)
         if e:
             raise RuntimeError, "error doing matrix matrix multiply over ZZ using linbox"
 

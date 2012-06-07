@@ -20,8 +20,7 @@ include "../ext/interrupt.pxi"
 # randstate in template needs this
 include '../ext/random.pxi'
 
-from sage.libs.linbox.echelonform cimport BlasMatrix
-
+from sage.libs.linbox.echelonform cimport BlasMatrixFloat as BlasMatrix
 from sage.libs.linbox.modular cimport ModFloatField as ModField, ModFloatFieldElement as ModFieldElement
 from sage.libs.linbox.echelonform cimport EchelonFormDomainFloat as EchelonFormDomain
 

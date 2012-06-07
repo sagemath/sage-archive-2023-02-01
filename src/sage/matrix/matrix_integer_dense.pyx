@@ -129,7 +129,7 @@ ai = arith_int()
 ################
 
 ######### linbox interface ##########
-from sage.libs.linbox.linbox cimport Linbox_integer_dense, Linbox_modn_dense
+from sage.libs.linbox.linbox cimport Linbox_integer_dense
 cdef Linbox_integer_dense linbox
 linbox = Linbox_integer_dense()
 USE_LINBOX_POLY = True
@@ -1341,65 +1341,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage_free(row_list[k])
         sage_free(row_list)
         return res
-
-    def _linbox_modn_det(self, mod_int n):
-        """
-        INPUT:
-
-
-        -  ``n`` - a prime (at most 67108879)
-
-
-        EXAMPLES::
-
-            sage: a = matrix(ZZ, 3, [1,2,5,-7,8,10,192,5,18])
-            sage: a.det()
-            -3669
-            sage: a._linbox_modn_det(5077)
-            1408
-            sage: a._linbox_modn_det(3)
-            0
-            sage: a._linbox_modn_det(2)
-            1
-            sage: a.det()%5077
-            1408
-            sage: a.det()%2
-            1
-            sage: a.det()%3
-            0
-        """
-        d = self._linbox_modn(n).det()
-        return IntegerModRing(n)(d)
-
-    def _linbox_modn(self, mod_int n):
-        """
-        Return modn linbox object associated to this integer matrix.
-
-        EXAMPLES::
-
-            sage: a = matrix(ZZ, 3, [1,2,5,-7,8,10,192,5,18])
-            sage: b = a._linbox_modn(19); b
-            <sage.libs.linbox.linbox.Linbox_modn_dense object at ...>
-            sage: b.charpoly()
-            [2L, 10L, 11L, 1L]
-        """
-        if n > 67108879:   # doesn't work for bigger primes -- experimental observation
-            raise NotImplementedError("modulus to big")
-        cdef mod_int** matrix = <mod_int**>sage_malloc(sizeof(mod_int*) * self._nrows)
-        if matrix == NULL:
-            raise MemoryError("out of memory allocating multi-modular coefficient list")
-
-        cdef Py_ssize_t i, j
-        for i from 0 <= i < self._nrows:
-            matrix[i] = <mod_int *>sage_malloc(sizeof(mod_int) * self._ncols)
-            if matrix[i] == NULL:
-                raise MemoryError("out of memory allocating multi-modular coefficient list")
-            for j from 0 <= j < self._ncols:
-                matrix[i][j] = mpz_fdiv_ui(self._matrix[i][j], n)
-
-        cdef Linbox_modn_dense L = Linbox_modn_dense()
-        L.set(n, matrix, self._nrows, self._ncols)
-        return L
 
     def _echelon_in_place_classical(self):
         cdef Matrix_integer_dense E

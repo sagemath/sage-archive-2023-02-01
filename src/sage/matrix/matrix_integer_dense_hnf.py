@@ -66,7 +66,7 @@ def det_from_modp_and_divisor(A, d, p, z_mod, moduli, z_so_far=ZZ(1), N_so_far=Z
         -377
     """
     tm = verbose("Multimodular stage of det calculation -- using p = %s"%p, level=2)
-    z = A._linbox_modn_det(p) / d
+    z = A.mod(p).det() / d
     z = z.lift()
     z_mod.append(z)
     moduli.append(p)

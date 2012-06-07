@@ -85,6 +85,8 @@ We test corner cases for multiplication::
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
+from libc.stdint cimport uint64_t
+
 from sage.libs.linbox.fflas cimport fflas_trans_enum, fflas_no_trans, fflas_trans, \
     fflas_right, vector, list as std_list
 
@@ -194,8 +196,8 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
 cdef inline linbox_echelonize_efd(celement modulus, celement* entries, Py_ssize_t nrows, Py_ssize_t ncols):
     cdef ModField *F = new ModField(<long>modulus)
     cdef EchelonFormDomain *EF = new EchelonFormDomain(F[0])
-    cdef BlasMatrix[ModFieldElement] *A = new BlasMatrix[ModFieldElement](nrows, ncols)
-    cdef BlasMatrix[ModFieldElement] *E = new BlasMatrix[ModFieldElement](nrows, ncols)
+    cdef BlasMatrix *A = new BlasMatrix(F[0], <uint64_t>nrows, <uint64_t>ncols)
+    cdef BlasMatrix *E = new BlasMatrix(F[0], <uint64_t>nrows, <uint64_t>ncols)
 
     cdef Py_ssize_t i,j
 

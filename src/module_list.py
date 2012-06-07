@@ -618,8 +618,8 @@ ext_modules = [
               sources = ['sage/libs/linbox/linbox.pyx'],
               # For this to work on cygwin, linboxsage *must* be
               # before ntl.
-              libraries = ['linboxsage', 'ntl', 'linbox',
-                           'stdc++', 'givaro', 'gmp', 'gmpxx', BLAS, BLAS2],
+              libraries = ['linboxsage', 'ntl', 'iml', 'linbox',
+                           'stdc++', 'givaro', 'mpfr', 'gmp', 'gmpxx', BLAS, BLAS2],
               language = 'c++',
               extra_compile_args = givaro_extra_compile_args,
               depends = [SAGE_INC + 'givaro/givconfig.h']),
@@ -990,13 +990,13 @@ ext_modules = [
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
               language="c++",
-              libraries = ['linbox', 'givaro', 'gmpxx', 'gmp', BLAS, BLAS2],
+              libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
               extra_compile_args = ['-DDISABLE_COMMENTATOR'] + givaro_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_dense_double',
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
               language="c++",
-              libraries = ['linbox', 'givaro', 'gmpxx', 'gmp', BLAS, BLAS2],
+              libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
               extra_compile_args = ['-DDISABLE_COMMENTATOR'] + givaro_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_sparse',

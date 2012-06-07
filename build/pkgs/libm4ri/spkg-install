@@ -10,6 +10,8 @@ unset RM
 
 ROOT_DIR="`pwd`"
 
+INCLUDES="-I$SAGE_LOCAL/include"
+
 CFLAGS="$CFLAGS $INCLUDES -g"
 
 COMPILER=`testcc.sh $CC`

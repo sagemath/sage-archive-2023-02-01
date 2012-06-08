@@ -1145,7 +1145,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             sage: c.allbsd(12)            # optional - database_cremona_ellcurve
             {}
             sage: c.allbsd(19)['a3']      # optional - database_cremona_ellcurve
-            [1, 4.0792792004649323, 0.4532532444961036, 1.0, 1]
+            [1, 4.079279200464932, 0.4532532444961036, 1.0, 1]
             sage: c.allbsd(12001)['a1']   # optional - database_cremona_ellcurve
             [2, 3.2760813524872185, 1.5491014309050595, 0.23642597118795194, 1]
         """

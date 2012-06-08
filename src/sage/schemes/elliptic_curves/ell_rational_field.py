@@ -3323,7 +3323,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([1, -1, 0, -79, 289])
             sage: E.conductor()
             234446
-            sage: E.cremona_label()  # requires optional database_cremona_ellcurve
+            sage: E.cremona_label()  # optional - database_cremona_ellcurve
             '234446a1'
             sage: E = EllipticCurve((0, 0, 1, -79, 342))
             sage: E.conductor()

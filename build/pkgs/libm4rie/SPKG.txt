@@ -16,17 +16,13 @@ GF(2^k) for 2 <= k <= 10.
 == Upstream Contact ==
 
  * Authors: Martin Albrecht
- * Email:   martinralbrecht@googlemail.com
+ * Email:   <m4ri-devel@googlegroups.com>
  * Website: http://m4ri.sagemath.org
 
 == Dependencies ==
 
- M4RI and for testing: MPIR, Givaro and NTL
-
-== Special Update/Build Instructions ==
- * Delete the upstream Mercurial repositories (file src/.hgtags, directory src/.hg).
- * Delete the directory src/autom4te.cache (if present).
- * Touch src/configure to make sure it is newer than its sources.
+ * M4RI
+ * Givaro
 
 == Releases/Changelog ==
 

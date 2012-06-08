@@ -3315,18 +3315,23 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         The default database only contains conductors up to 10000, so any
         curve with conductor greater than that will cause an error to be
-        raised. The optional package 'database_cremona_ellcurve-20071019'
-        contains more curves, with conductors up to 130000.
+        raised. The optional package 'database_cremona_ellcurve-20120606'
+        contains more curves, with conductors up to 240000.
 
         ::
 
             sage: E = EllipticCurve([1, -1, 0, -79, 289])
             sage: E.conductor()
             234446
+            sage: E.cremona_label()  # requires optional database_cremona_ellcurve
+            '234446a1'
+            sage: E = EllipticCurve((0, 0, 1, -79, 342))
+            sage: E.conductor()
+            19047851
             sage: E.cremona_label()
             Traceback (most recent call last):
             ...
-            RuntimeError: Cremona label not known for Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 79*x + 289 over Rational Field.
+            RuntimeError: Cremona label not known for Elliptic Curve defined by y^2 + y = x^3 - 79*x + 342 over Rational Field.
         """
         try:
             if not space:

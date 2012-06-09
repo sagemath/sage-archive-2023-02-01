@@ -1521,7 +1521,7 @@ cdef class Matrix(matrix0.Matrix):
         * ``check`` - checks whether any index in ``dcols`` is out of range. Defaults to ``True``.
 
         SEE ALSO:
-            The methods :meth:`delete_rows` and :meth:`matrix_from_columns`
+            The methods :meth:`delete_rows` and :meth:`matrix_from_columns` are related.
 
         EXAMPLES::
 
@@ -1534,14 +1534,14 @@ cdef class Matrix(matrix0.Matrix):
             [ 5  7]
             [ 9 11]
 
-        ``dcols`` can be a tuple. But only the underlying set of indices matters.::
+        ``dcols`` can be a tuple. But only the underlying set of indices matters. ::
 
             sage: A.delete_columns((2,0,2))
             [ 1  3]
             [ 5  7]
             [ 9 11]
 
-        The default is to check whether the any index in ``dcols`` is out of range.::
+        The default is to check whether any index in ``dcols`` is out of range. ::
 
             sage: A.delete_columns([-1,2,4])
             Traceback (most recent call last):
@@ -1552,11 +1552,20 @@ cdef class Matrix(matrix0.Matrix):
             [ 4  5  7]
             [ 8  9 11]
 
+        TESTS:
+
+        The list of indices is checked.  ::
+
+            sage: A.delete_columns('junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: The argument must be a list or a tuple, not junk
+
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
         if not (PY_TYPE_CHECK(dcols, list) or PY_TYPE_CHECK(dcols, tuple)):
-            raise TypeError("The argument must be a list or a tuple".format(l=dcols))
+            raise TypeError("The argument must be a list or a tuple, not {l}".format(l=dcols))
         cdef list cols, diff_cols
 
         if check:
@@ -1609,7 +1618,7 @@ cdef class Matrix(matrix0.Matrix):
         * ``check`` - checks whether any index in ``drows`` is out of range. Defaults to ``True``.
 
         SEE ALSO:
-            The methods :meth:`delete_columns` and :meth:`matrix_from_rows`
+            The methods :meth:`delete_columns` and :meth:`matrix_from_rows` are related.
 
         EXAMPLES::
 
@@ -1622,13 +1631,13 @@ cdef class Matrix(matrix0.Matrix):
             [ 3  4  5]
             [ 9 10 11]
 
-        ``drows`` can be a tuple. But only the underlying set of indices matters.::
+        ``drows`` can be a tuple. But only the underlying set of indices matters. ::
 
             sage: A.delete_rows((2,0,2))
             [ 3  4  5]
             [ 9 10 11]
 
-        The default is to check whether the any index in ``drows`` is out of range.::
+        The default is to check whether the any index in ``drows`` is out of range. ::
 
             sage: A.delete_rows([-1,2,4])
             Traceback (most recent call last):
@@ -1639,11 +1648,20 @@ cdef class Matrix(matrix0.Matrix):
             [ 3  4  5]
             [ 9 10 11]
 
+        TESTS:
+
+        The list of indices is checked.  ::
+
+            sage: A.delete_rows('junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: The argument must be a list or a tuple, not junk
+
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
         if not (PY_TYPE_CHECK(drows, list) or PY_TYPE_CHECK(drows, tuple)):
-            raise TypeError("The argument must be a list or a tuple".format(l=drows))
+            raise TypeError("The argument must be a list or a tuple, not {l}".format(l=drows))
         cdef list rows, diff_rows
 
         if check:

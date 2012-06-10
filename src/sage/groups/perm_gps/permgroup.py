@@ -2640,6 +2640,70 @@ class PermutationGroup_generic(group.Group):
                 all_sg.append(PermutationGroup(gap_group=h))
         return all_sg
 
+    def blocks_all(self, representatives = True):
+        r"""
+        Returns the list of block systems of imprimitivity.
+
+        For more information on primitivity, see the :wikipedia:`Wikipedia
+        article on primitive group actions <Primitive_permutation_group>`.
+
+        INPUT:
+
+        - ``representative`` (boolean) -- whether to return all possible blocks
+          systems imprimitivity or only one of their representatives (the block can
+          be obtained by its representative set by `S` by computing the orbit of
+          `S` under ``self``).
+
+          This parameter is set to ``True`` by default (as it is GAP's default
+          behaviour).
+
+        OUTPUT:
+
+        This method returns a description of *all* blocks systems. Hence, the
+        output is a "list of lists of lists" or a "list of lists" depending on
+        the value of ``representatives``. A bit more clearly, output is :
+
+        * A list of length (#number of different block systems) of
+
+           * block systems, each of them being defined as
+
+               * If ``representative = True`` : a list of representatives of
+                 each set of the block system
+
+               * If ``representative = False`` : a partition of the elements
+                 defining an imprimitivity block.
+
+        .. SEEALSO::
+
+            - :meth:`~PermutationGroup_generic.is_primitive`
+
+        EXAMPLE:
+
+        Picking an interesting group::
+
+            sage: g = graphs.DodecahedralGraph()
+            sage: g.is_vertex_transitive()
+            True
+            sage: ag = g.automorphism_group()
+            sage: ag.is_primitive()
+            False
+
+        Computing its blocks representatives::
+
+            sage: ag.blocks_all()
+            [[1, 16]]
+
+        Now the full blocks::
+
+            sage: ag.blocks_all(representatives = False)
+            [[[1, 16], [8, 17], [14, 19], [2, 12], [7, 18], [5, 10], [15, 20], [4, 9], [3, 13], [6, 11]]]
+        """
+        ag = self._gap_()
+        if representatives:
+            return ag.AllBlocks().sage()
+        else:
+            return [ag.Orbit(rep,"OnSets").sage() for rep in ag.AllBlocks()]
+
     def cosets(self, S, side='right'):
         r"""
         Returns a list of the cosets of ``S`` in ``self``.
@@ -3266,7 +3330,6 @@ class PermutationGroup_generic(group.Group):
 
         return self._gap_().IsTransitive(domain).bool()
 
-
     def is_primitive(self, domain=None):
         r"""
         Returns ``True`` if ``self`` acts primitively on ``domain``.
@@ -3280,9 +3343,13 @@ class PermutationGroup_generic(group.Group):
 
         - ``domain`` (optional)
 
+        .. SEEALSO::
+
+            - :meth:`~PermutationGroup_generic.blocks_all`
+
         EXAMPLES:
 
-        By default, test for primitivity of ``self`` on its domain.
+        By default, test for primitivity of ``self`` on its domain::
 
             sage: G = PermutationGroup([[(1,2,3,4)],[(1,2)]])
             sage: G.is_primitive()

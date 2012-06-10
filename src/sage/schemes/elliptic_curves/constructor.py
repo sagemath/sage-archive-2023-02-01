@@ -32,7 +32,7 @@ from sage.symbolic.ring import SR
 from sage.symbolic.expression import is_SymbolicEquation
 
 
-def EllipticCurve(x=None, y=None, j=None):
+def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
     r"""
     There are several ways to construct an elliptic curve:
 
@@ -58,9 +58,8 @@ def EllipticCurve(x=None, y=None, j=None):
       Note that addition need not be defined.
 
 
-    - EllipticCurve(j): Return an elliptic curve with j-invariant
-      `j`.  Warning: this is deprecated.  Use ``EllipticCurve_from_j(j)``
-      or ``EllipticCurve(j=j)`` instead.
+    - EllipticCurve(j=j0) or EllipticCurve_from_j(j0): Return an
+      elliptic curve with j-invariant `j0`.
 
     In each case above where the input is a list of length 2 or 5, one
     can instead give a 2 or 5-tuple instead.
@@ -151,6 +150,34 @@ def EllipticCurve(x=None, y=None, j=None):
         sage: EllipticCurve(GF(144169),j=1728)
         Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 144169
 
+    By default, when a rational value of `j` is given, the constructed
+    curve is a minimal twist (minimal conductor for curves with that
+    `j`-invariant).  This can be changed by setting the optional
+    parameter ``minimal_twist``, which is True by default, to False::
+
+
+        sage: EllipticCurve(j=100)
+        Elliptic Curve defined by y^2 = x^3 + x^2 + 3392*x + 307888 over Rational Field
+        sage: E =EllipticCurve(j=100); E
+        Elliptic Curve defined by y^2 = x^3 + x^2 + 3392*x + 307888 over Rational Field
+        sage: E.conductor()
+        33129800
+        sage: E.j_invariant()
+        100
+        sage: E =EllipticCurve(j=100, minimal_twist=False); E
+        Elliptic Curve defined by y^2 = x^3 + 488400*x - 530076800 over Rational Field
+        sage: E.conductor()
+        298168200
+        sage: E.j_invariant()
+        100
+
+    Without this option, constructing the curve could take a long time
+    since both `j` and `j-1728` have to be factored to compute the
+    minimal twist (see :trac:`13100`)::
+
+       sage: E = EllipticCurve_from_j(2^256+1,minimal_twist=False)
+       sage: E.j_invariant() == 2^256+1
+       True
 
     TESTS::
 
@@ -227,6 +254,14 @@ def EllipticCurve(x=None, y=None, j=None):
         sage: E = EllipticCurve([1..5])
         sage: EllipticCurve(E.a_invariants())
         Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
+
+    See :trac:`11773`::
+
+        sage: E = EllipticCurve()
+        Traceback (most recent call last):
+        ...
+        TypeError: invalid input to EllipticCurve constructor
+
     """
     import ell_generic, ell_field, ell_finite_field, ell_number_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
 
@@ -239,9 +274,10 @@ def EllipticCurve(x=None, y=None, j=None):
                     raise ValueError, "First parameter must be a ring containing %s"%j
             else:
                 raise ValueError, "First parameter (if present) must be a ring when j is specified"
-        return EllipticCurve_from_j(j)
+        return EllipticCurve_from_j(j, minimal_twist)
 
-    assert x is not None
+    if x is None:
+        raise TypeError, "invalid input to EllipticCurve constructor"
 
     if is_SymbolicEquation(x):
         x = x.lhs() - x.rhs()
@@ -309,28 +345,7 @@ def EllipticCurve(x=None, y=None, j=None):
         return ell_rational_field.EllipticCurve_rational_field(x)
 
     if rings.is_RingElement(x) and y is None:
-        from sage.misc.superseded import deprecation
-        deprecation(5673, "'EllipticCurve(j)' is deprecated; use 'EllipticCurve_from_j(j)' or 'EllipticCurve(j=j)' instead.")
-        # Fixed for all characteristics and cases by John Cremona
-        j=x
-        F=j.parent().fraction_field()
-        char=F.characteristic()
-        if char==2:
-            if j==0:
-                return EllipticCurve(F, [ 0, 0, 1, 0, 0 ])
-            else:
-                return EllipticCurve(F, [ 1, 0, 0, 0, 1/j ])
-        if char==3:
-            if j==0:
-                return EllipticCurve(F, [ 0, 0, 0, 1, 0 ])
-            else:
-                return EllipticCurve(F, [ 0, j, 0, 0, -j**2 ])
-        if j == 0:
-            return EllipticCurve(F, [ 0, 0, 0, 0, 1 ])
-        if j == 1728:
-            return EllipticCurve(F, [ 0, 0, 0, 1, 0 ])
-        k=j-1728
-        return EllipticCurve(F, [0,0,0,-3*j*k, -2*j*k**2])
+        raise TypeError, "invalid input to EllipticCurve constructor"
 
     if not isinstance(x, (list, tuple)):
         raise TypeError, "invalid input to EllipticCurve constructor"
@@ -379,9 +394,20 @@ def EllipticCurve_from_c4c6(c4, c6):
         K = K.fraction_field()
     return EllipticCurve([-K(c4)/K(48), -K(c6)/K(864)])
 
-def EllipticCurve_from_j(j):
+def EllipticCurve_from_j(j, minimal_twist=True):
     """
     Return an elliptic curve with given `j`-invariant.
+
+    INPUT:
+
+    - ``j`` -- an element of some field.
+
+    - ``minimal_twist`` (boolean, default True) -- If True and ``j`` is in `\QQ`, the curve returned is a
+      minimal twist, i.e. has minimal conductor.  If `j` is not in `\QQ` this parameter is ignored.
+
+    OUTPUT:
+
+    (elliptic curve) An elliptic curve with `j`-invariant `j`.
 
     EXAMPLES::
 
@@ -398,6 +424,27 @@ def EllipticCurve_from_j(j):
         sage: E = EllipticCurve_from_j(1); E; E.j_invariant()
         Elliptic Curve defined by y^2 + x*y = x^3 + 36*x + 3455 over Rational Field
         1
+
+     The ``minimal_twist`` parameter (ignored except over `\QQ` and
+     True by default) controls whether or not a minimal twist is
+     computed::
+
+        sage: EllipticCurve_from_j(100)
+        Elliptic Curve defined by y^2 = x^3 + x^2 + 3392*x + 307888 over Rational Field
+        sage: _.conductor()
+        33129800
+        sage: EllipticCurve_from_j(100, minimal_twist=False)
+        Elliptic Curve defined by y^2 = x^3 + 488400*x - 530076800 over Rational Field
+        sage: _.conductor()
+        298168200
+
+    Since computing the minimal twist requires factoring both `j` and
+    `j-1728` the following example would take a long time without
+    setting `minimal_twist` to False::
+
+       sage: E = EllipticCurve_from_j(2^256+1,minimal_twist=False)
+       sage: E.j_invariant() == 2^256+1
+       True
 
     """
     try:
@@ -427,6 +474,10 @@ def EllipticCurve_from_j(j):
             return EllipticCurve(K, [ 0, 0, 1, 0, 0 ]) # 27a3
         if j == 1728:
             return EllipticCurve(K, [ 0, 0, 0, -1, 0 ]) # 32a2
+
+        if not minimal_twist:
+            k=j-1728
+            return EllipticCurve(K, [0,0,0,-3*j*k, -2*j*k**2])
 
         n = j.numerator()
         m = n-1728*j.denominator()

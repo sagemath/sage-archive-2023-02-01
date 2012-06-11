@@ -48,6 +48,11 @@ AUTHORS:
   (via :class:`~sage.structure.unique_representation.UniqueRepresentation`)
   and :class:`BooleanMonomial`.
 
+- Charles Bouillaguet <charles.bouillaguet@gmail.com>: minor changes
+  to improve compatibility with MPolynomial and make the variety()
+  function work on ideals of BooleanPolynomial's.
+
+
 EXAMPLES:
 
 Consider the ideal
@@ -455,6 +460,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             1000
         """
         return self._pbring.nVariables()
+
+
 
     def gen(self, i=0):
         """
@@ -2404,9 +2411,17 @@ cdef class BooleanMonomial(MonoidElement):
         """
         return self._pbmonom.deg()
 
-    def degree(BooleanMonomial self):
+
+    def degree(BooleanMonomial self, BooleanPolynomial x=None):
         """
-        Return degree of this monomial.
+        Return the degree of this monomial in ``x``, where
+        ``x`` must be one of the generators of the polynomial ring.
+
+        INPUT:
+
+        - ``x`` - boolean multivariate polynomial (a generator of the
+          polynomial ring). If ``x`` is not specified (or is ``None``),
+          return the total degree of this monomial.
 
         EXAMPLES::
 
@@ -2415,8 +2430,21 @@ cdef class BooleanMonomial(MonoidElement):
             sage: M = BooleanMonomialMonoid(P)
             sage: M(x*y).degree()
             2
+            sage: M(x*y).degree(x)
+            1
+            sage: M(x*y).degree(z)
+            0
         """
-        return self._pbmonom.deg()
+        if not x:
+            return self._pbmonom.deg()
+
+        if not x in self._parent.gens():
+            raise ValueError("x must be one of the generators of the parent.")
+
+        if self.reducible_by( x.lm() ):
+            return 1
+        else:
+            return 0
 
     def divisors(self):
         """
@@ -3684,6 +3712,77 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._pbpoly.nUsedVariables()
 
+
+    def is_univariate(self):
+        """
+        Return ``True`` if self is a univariate polynomial, that is if
+        self contains only one variable.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = BooleanPolynomialRing()
+            sage: f = x + 1
+            sage: f.is_univariate()
+            True
+            sage: f = y*x + 1
+            sage: f.is_univariate()
+            False
+            sage: f = P(0)
+            sage: f.is_univariate()
+            True
+        """
+        return ( self.nvariables() <= 1 )
+
+
+    def univariate_polynomial(self, R=None):
+        """
+        Returns a univariate polynomial associated to this
+        multivariate polynomial.
+
+        If this polynomial is not in at most one variable, then a
+        ``ValueError`` exception is raised.  This is checked using the
+        :meth:`is_univariate()` method.  The new Polynomial is over
+        GF(2)  and in the variable ``x`` if no ring ``R`` is provided.
+
+            sage: R.<x, y> = BooleanPolynomialRing()
+            sage: f = x - y + x*y + 1
+            sage: f.univariate_polynomial()
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial must involve at most one variable
+            sage: g = f.subs({x:0}); g
+            y + 1
+            sage: g.univariate_polynomial ()
+            y + 1
+            sage: g.univariate_polynomial(GF(2)['foo'])
+            foo + 1
+
+        Here's an example with a constant multivariate polynomial::
+
+            sage: g = R(1)
+            sage: h = g.univariate_polynomial(); h
+            1
+            sage: h.parent()
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+        """
+        if not self.is_univariate():
+            raise ValueError, "polynomial must involve at most one variable"
+
+        #construct ring if none
+        if R == None:
+            if self.is_constant():
+                R = GF(2)['x']
+            else:
+                R = GF(2)[str(self.variable(0))]
+
+        coefficients = [0, 0]
+        for m in self.monomials():
+            coefficients[ m.degree() ] = 1
+
+        return R(coefficients)
+
+
+
     def monomials(self):
         r"""
         Return a list of monomials appearing in ``self``
@@ -3704,6 +3803,24 @@ cdef class BooleanPolynomial(MPolynomial):
             [c*b, a]
         """
         return list(self)
+
+
+    def variable(self, i=0):
+        """
+        Return the i-th variable occurring in self. The index i is the
+        index in ``self.variables()``
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: f = x*z + z + 1
+            sage: f.variables()
+            (x, z)
+            sage: f.variable(1)
+            z
+        """
+        return self.variables()[i]
+
 
     def terms(self):
         """

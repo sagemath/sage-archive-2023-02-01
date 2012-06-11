@@ -2,10 +2,10 @@
        Copyright (C) 2006 William Stein <wstein@gmail.com>
                      2006 Martin Albrecht <malb@informatik.uni-bremen.de>
 
-  Distributed under the terms of the GNU General Public License (GPL), Version 2.
-
-  The full text of the GPL is available at:
-                  http://www.gnu.org/licenses/
+   Distributed under the terms of the GNU General Public License (GPL)
+   as published by the Free Software Foundation; either version 2 of
+   the License, or (at your option) any later version.
+                   http://www.gnu.org/licenses/
 
 ******************************************************************************/
 

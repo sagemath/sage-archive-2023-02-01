@@ -3654,12 +3654,12 @@ cdef class BooleanPolynomial(MPolynomial):
         ::
 
             sage: P.one_element().variables()
-            (1,)
+            ()
         """
         P = self.parent()
         o = P.one_element()
         if self is o or self == o:
-            return tuple([o])
+            return tuple()
         return tuple(self.vars_as_monomial())
 
     def nvariables(self):

@@ -9836,10 +9836,6 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.is_symmetric()
             True
             sage: L = A.cholesky()
-            sage: L
-            [            3             0             0]
-            [    4*a^2 + 1             1             0]
-            [      3*a + 2 a^2 + 2*a + 3             3]
             sage: L*L.transpose() == A
             True
 

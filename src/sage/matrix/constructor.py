@@ -1064,8 +1064,8 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
 
         sage: K.<a>=FiniteField(3^2)
         sage: random_matrix(K, 2, 5)
-        [      1     2*a       1   a + 2       2]
-        [      a 2*a + 1       0       2       1]
+        [      1       a       1 2*a + 1       2]
+        [    2*a   a + 2       0       2       1]
 
         sage: random_matrix(RR, 3, 4, density=0.66)
         [ 0.000000000000000 -0.806696574554030 -0.693915509972359  0.000000000000000]

@@ -70,7 +70,7 @@ class FiniteField_givaro(FiniteField):
             sage: sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(9,repr='int').gen()
             3
             sage: sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(9,repr='log').gen()
-            5
+            1
 
             sage: k.<a> = GF(2^3)
             sage: j.<b> = GF(3^4)
@@ -188,13 +188,13 @@ class FiniteField_givaro(FiniteField):
         EXAMPLES:
             sage: k = GF(23**3, 'a')
             sage: e = k.random_element(); e
-            9*a^2 + 10*a + 3
+            2*a^2 + 14*a + 21
             sage: type(e)
             <type 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>
 
             sage: P.<x> = PowerSeriesRing(GF(3^3, 'a'))
             sage: P.random_element(5)
-            a^2 + 2*a + 1 + (a + 1)*x + (a^2 + a + 1)*x^2 + (a^2 + 1)*x^3 + (2*a^2 + a)*x^4 + O(x^5)
+            2*a + 2 + (a^2 + a + 2)*x + (2*a + 1)*x^2 + (2*a^2 + a)*x^3 + 2*a^2*x^4 + O(x^5)
         """
         return self._cache.random_element()
 

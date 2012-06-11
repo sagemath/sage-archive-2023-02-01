@@ -40,8 +40,8 @@ sage: R = GF(9,name='x'); R
 Finite Field in x of size 3^2
 sage: R.polynomial()
 x^2 + 2*x + 2
-sage: [r for r in R]
-[0, 2*x, x + 1, x + 2, 2, x, 2*x + 2, 2*x + 1, 1]
+sage: Set([r for r in R])
+{0, 1, 2, x, x + 1, x + 2, 2*x, 2*x + 1, 2*x + 2}
 sage: Q.<x> = PolynomialRing(GF(3))
 sage: R2 = GF(9,name='x',modulus=x^2+1); R2
 Finite Field in x of size 3^2

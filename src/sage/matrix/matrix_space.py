@@ -1496,9 +1496,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [  -3 -1/3   -1]
             [   0   -1    1]
             sage: Mat(GF(9,'a'),3,sparse=True).random_element()
-            [    2*a       a       1]
-            [      2       1 2*a + 1]
-            [      a       2       2]
+            [    a   2*a     1]
+            [    2     1 a + 2]
+            [  2*a     2     2]
         """
         Z = self.zero_matrix().__copy__()
         if density is None:

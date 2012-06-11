@@ -77,13 +77,13 @@ Finite Fields support iteration, starting with 0.
     sage: k = GF(9, 'a')
     sage: for i,x in enumerate(k):  print i,x
     0 0
-    1 2*a
+    1 a
     2 a + 1
-    3 a + 2
+    3 2*a + 1
     4 2
-    5 a
+    5 2*a
     6 2*a + 2
-    7 2*a + 1
+    7 a + 2
     8 1
     sage: for a in GF(5):
     ...    print a

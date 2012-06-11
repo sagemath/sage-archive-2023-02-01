@@ -216,7 +216,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: A.rational_points()
             [(0), (1), (2)]
             sage: A.rational_points(GF(3^2, 'b'))
-            [(0), (2*b), (b + 1), (b + 2), (2), (b), (2*b + 2), (2*b + 1), (1)]
+            [(0), (b), (b + 1), (2*b + 1), (2), (2*b), (2*b + 2), (b + 2), (1)]
 
             sage: AffineSpace(2, ZZ).rational_points(GF(2))
             [(0, 0), (1, 0), (0, 1), (1, 1)]

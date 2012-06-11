@@ -212,7 +212,7 @@ cdef class Cache_givaro(SageObject):
             sage: sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(9,repr='int').gen()
             3
             sage: sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(9,repr='log').gen()
-            5
+            1
         """
         # we are calling late_import here because this constructor is
         # called at least once before any arithmetic is performed.
@@ -351,13 +351,13 @@ cdef class Cache_givaro(SageObject):
         EXAMPLES:
             sage: k = GF(23**3, 'a')
             sage: e = k._cache.random_element(); e
-            9*a^2 + 10*a + 3
+            2*a^2 + 14*a + 21
             sage: type(e)
             <type 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>
 
             sage: P.<x> = PowerSeriesRing(GF(3^3, 'a'))
             sage: P.random_element(5)
-            a^2 + 2*a + 1 + (a + 1)*x + (a^2 + a + 1)*x^2 + (a^2 + 1)*x^3 + (2*a^2 + a)*x^4 + O(x^5)
+            2*a + 2 + (a^2 + a + 2)*x + (2*a + 1)*x^2 + (2*a^2 + a)*x^3 + 2*a^2*x^4 + O(x^5)
         """
         cdef int seed = current_randstate().c_random()
         cdef int res
@@ -625,18 +625,18 @@ cdef class Cache_givaro(SageObject):
             return self._element_int_repr(e)
 
     def _element_log_repr(self, FiniteField_givaroElement e):
-        r"""
-        Return str(i) where \code{base.gen()^i==self}.
-
-        TODO -- this isn't what it does -- see below.
+        """
+        Return ``str(i)`` where ``self` is ``gen^i`` with ``gen``
+        being the *internal* multiplicative generator of this finite
+        field.
 
         EXAMPLES:
             sage: k.<a> = GF(3^4); k
             Finite Field in a of size 3^4
             sage: k._cache._element_log_repr(a^20)
             '20'
-            sage: k._cache._element_log_repr(a)    # TODO -- why 41 ?? why not 1?
-            '41'
+            sage: k._cache._element_log_repr(a)
+            '1'
         """
         return str(int(e.element))
 
@@ -750,7 +750,7 @@ cdef class Cache_givaro(SageObject):
         """
         cdef int r
 
-        r = self.objectptr.amxy(r , a.element, b.element, c.element, )
+        r = self.objectptr.maxpy(r , a.element, b.element, c.element, )
         return make_FiniteField_givaroElement(self,r)
 
     def __reduce__(self):
@@ -819,7 +819,7 @@ cdef class FiniteField_givaro_iterator:
             sage: i.next()
             0
             sage: i.next()
-            2*a
+            a
         """
 
         self.iterator=self.iterator+1
@@ -899,7 +899,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
             sage: k.<FOOBAR> = GF(3^4,repr='log')
             sage: FOOBAR
-            41
+            1
 
             sage: k.<FOOBAR> = GF(3^4,repr='int')
             sage: FOOBAR
@@ -1478,7 +1478,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: k.<b> = GF(5^2); k
             Finite Field in b of size 5^2
             sage: (b+2).log_repr()
-            '3'
+            '15'
         """
         return self._cache._element_log_repr(self)
 

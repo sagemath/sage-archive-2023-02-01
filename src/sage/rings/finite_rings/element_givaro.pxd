@@ -8,10 +8,10 @@ cdef extern from "givaro/givconfig.h":
     pass
 
 cdef extern from "givaro/givrandom.h":
-    ctypedef struct GivRandom "GivRandom":
+    ctypedef struct GivRandom "Givaro::GivRandom":
         pass
 
-    GivRandom GivRandomSeeded  "GivRandom"(unsigned long seed)
+    GivRandom GivRandomSeeded  "Givaro::GivRandom"(unsigned long seed)
 
 cdef extern from "givaro/givgfq.h":
     ctypedef struct intvec "std::vector<unsigned int>":
@@ -23,7 +23,7 @@ cdef extern from "givaro/givgfq.h":
 
 cdef extern from "givaro/givgfq.h":
 
-    ctypedef struct GivaroGfq "GFqDom<int>":
+    ctypedef struct GivaroGfq "Givaro::GFqDom<int>":
         #attributes
         unsigned int one
         unsigned int zero
@@ -42,24 +42,24 @@ cdef extern from "givaro/givgfq.h":
         int (* random)(GivRandom gen, int res)
         int (* initi "init")(int res, int e)
         int (* initd "init")(int res, double e)
-        int (* axpyin)(int r, int a, int x)
         int (* sage_generator)() # SAGE specific method, not found upstream
         int (* convert)(int r, int p)
         int (* read)(int r, int p)
+        int (* axpyin)(int r, int a, int x)
         int (* axpy)(int r, int a, int b, int c)
         int (* axmy)(int r, int a, int b, int c)
-        int (* amxy)(int r, int a, int b, int c)
+        int (* maxpy)(int r, int a, int b, int c)
         bint (* isZero)(int e)
         bint (* isOne)(int e)
         bint (* isunit)(int e)
 
-    GivaroGfq *gfq_factorypk "new GFqDom<int>" (unsigned int p, unsigned int k)
+    GivaroGfq *gfq_factorypk "new Givaro::GFqDom<int>" (unsigned int p, unsigned int k)
     # SAGE specific method, not found upstream
-    GivaroGfq *gfq_factorypkp "new GFqDom<int>" (unsigned int p, unsigned int k, intvec poly)
-    GivaroGfq *gfq_factorycopy "new GFqDom<int>"(GivaroGfq orig)
+    GivaroGfq *gfq_factorypkp "new Givaro::GFqDom<int>" (unsigned int p, unsigned int k, intvec poly)
+    GivaroGfq *gfq_factorycopy "new Givaro::GFqDom<int>"(GivaroGfq orig)
     GivaroGfq  gfq_deref "*"(GivaroGfq *orig)
     void delete "delete "(void *o)
-    int gfq_element_factory "GFqDom<int>::Element"()
+    int gfq_element_factory "Givaro::GFqDom<int>::Element"()
 
 cdef class FiniteField_givaroElement(FinitePolyExtElement) #forward declaration
 

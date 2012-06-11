@@ -691,7 +691,7 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             sage: P.rational_points()
             [(0 : 1), (1 : 1), (2 : 1), (1 : 0)]
             sage: P.rational_points(GF(3^2, 'b'))
-            [(0 : 1), (2*b : 1), (b + 1 : 1), (b + 2 : 1), (2 : 1), (b : 1), (2*b + 2 : 1), (2*b + 1 : 1), (1 : 1), (1 : 0)]
+            [(0 : 1), (b : 1), (b + 1 : 1), (2*b + 1 : 1), (2 : 1), (2*b : 1), (2*b + 2 : 1), (b + 2 : 1), (1 : 1), (1 : 0)]
         """
         if F == None:
             return [ P for P in self ]

@@ -290,7 +290,7 @@ def cantor_composition(D1,D2,f,h,genus):
     ::
 
         sage: Q = J(H.lift_x(F(a+1))); Q
-        (x + 6*a + 6, y + 2)
+        (x + 6*a + 6, y + 2*a)
         sage: 7*8297*Q # indirect doctest
         (1)
 

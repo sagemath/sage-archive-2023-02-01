@@ -1,0 +1,98 @@
+= Sage Notebook =
+
+== Description ==
+
+The Sage Notebook is a web-based graphical user interface for
+mathematical software.
+
+== License ==
+
+GPLv2+
+
+== SPKG Maintainers ==
+
+ * William Stein
+ * Tim Dumol
+ * Mitesh Patel
+
+== Upstream Contact ==
+
+ * William Stein
+ * Homepage: http://nb.sagemath.org/
+
+== Dependencies ==
+
+ * Python >= 2.6.4
+ * jinja2 >= 2.5.5
+ * Sphinx >= 1.0.4 (pretty docstrings)
+
+ Included dependencies (for specific version numbers, see the
+ spkg-dist file):
+
+ * twisted
+ * pytz
+ * Babel
+ * Werkzeug
+ * speaklater
+ * python-openid
+ * Flask
+ * Flask-Silk
+ * Flask-AutoIndex
+ * Flask-Babel
+ * Flask-OpenID
+ * zope.testbrowser >= 3.8.1 (maybe not anymore?)
+
+== Special Update / Build Instructions ==
+
+ * To release a new spkg, check that
+
+   * All changes are committed.
+   * .hgignore and MANIFEST.in are current.
+   * The patch queue is clear.
+   * The notebook runs.
+   * The doctests pass: sage -t -sagenb
+   * Test for ability to install without internet connection.
+     Any dependencies that must be downloaded can be added in ./spkg-dist and inserted
+     in setup.py. Dependencies of dependencies need not be put in setup.py, but
+     need to be put in ./spkg-dist.
+   * The Selenium tests pass (optional, for now).
+   * The localization file ``sagenb.pot`` is up-to-date .
+      * Run ``pybabel extract -F /path/to/babel.cfg /path/to/project
+        -o /path/to/sagenb.po`` (get pybabel with ``easy_install
+        pybabel``).
+      * Copy the headers from the existing ``sagenb.pot``.
+      * Replace ``sagenb.pot`` with ``sagenb.po``.
+
+   Then,
+
+   * Update the version in setup.py and commit this change.
+   * Run spkg-dist.
+   * Install and test the new spkg: sage -f dist/sagenb-*.spkg
+
+   Contact a maintainer about pushing updates to the public Mercurial
+   repository.
+
+ * Stylesheets (CSS): see sass/readme.txt.
+
+ * To add a locale to an existing install:
+
+   * Create a new locale, or download one from
+     `http://wiki.sagemath.org/i18n`_:
+
+      * To create a new locale:
+
+        * Edit and save a copy of ``sagenb.pot``
+          using your favorite text editor or POEdit (http://poedit.net)
+
+        * (Recommended) Post the new locale to
+          `http://wiki.sagemath.org/i18n`_
+
+   * Compile your copy via ``msgfmt sagenb.pot -o sagenb.mo``
+
+   * Copy ``sagenb.mo`` to ``sagenb/locale/xx_YY/LC_MESSAGES/``,
+     where xx_YY is a locale code (en_US, pt_BR, en_UK, etc.)
+
+
+== Changelog ==
+
+ * For an accurate log of changes, run "hg log" in src/sagenb.

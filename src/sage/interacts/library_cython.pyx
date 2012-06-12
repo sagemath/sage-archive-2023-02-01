@@ -75,8 +75,8 @@ cpdef mandel(ff_m, z, int iterations):
 
 
 cpdef cellular(rule, int N):
-    '''
-    Cythonized helper function for the callular_automata fractal.
+    """
+    Cythonized helper function for the cellular_automata fractal.
     Yields a matrix showing the evolution of a Wolfram's cellular automaton.
     Based on work by Pablo Angulo.
     http://wiki.sagemath.org/interact/misc#CellularAutomata
@@ -91,16 +91,18 @@ cpdef cellular(rule, int N):
         sage: from sage.interacts.library_cython import cellular
         sage: rule = [1, 0, 1, 0, 0, 1, 1, 0]
         sage: N = 3
-        sage: print cellular(rule, 3)
-
-    '''
+        sage: print cellular(rule, N)
+        [[0 0 0 1 0 0 0 0]
+         [1 1 0 1 0 1 0 0]
+         [0 1 1 1 1 1 0 0]]
+    """
     from numpy import zeros
     cdef int j, k, l
-    M=zeros((N, 2*N+1), dtype=int)
+    M=zeros((N, 2*N+2), dtype=int)
     M[0,N]=1
 
     for j in range(1, N):
-        for k in range(N-j, N+j+1):
+        for k in range(0, 2*N):
             l = 4 * M[j-1, k-1] + 2 * M[j-1, k] + M[j-1, k+1]
             M[j,k] = rule[l]
     return M

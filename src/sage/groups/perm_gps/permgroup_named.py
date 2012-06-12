@@ -507,7 +507,7 @@ class DiCyclicGroup(PermutationGroup_unique):
     IMPLEMENTATION:
 
     The presentation above means every element can be written as
-    `a^{i}x^{j}` with `0\leq j<2n`, `j=0,1`.  We code `a^i` as the symbol
+    `a^{i}x^{j}` with `0\leq i<2n`, `j=0,1`.  We code `a^i` as the symbol
     `i+1` and code `a^{i}x` as the symbol `2n+i+1`.  The two generators
     are then represented using a left regular representation.
 

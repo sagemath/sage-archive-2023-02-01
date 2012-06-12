@@ -151,10 +151,6 @@ from sage.misc.superseded import deprecated_function_alias
 
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
-"""
-SAGE_DOCTEST_ALLOW_TABS
-"""
-
 cpdef bint is_Expression(x):
     """
     Returns True if *x* is a symbolic Expression.
@@ -2496,6 +2492,11 @@ cdef class Expression(CommutativeRingElement):
             sage: (y-1)*(y-2)
             (y - 2)*(y - 1)
 
+        Check if Pynac can compute inverses of Python longs (:trac:`13107`)::
+
+            sage: SR(4L)*SR(2L)^(-1)
+            2.0
+
         Check for simplifications when multiplying instances of exp::
 
             sage: exp(x)*exp(y)
@@ -2644,6 +2645,11 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Symbolic division by zero
+
+        Check if Pynac can compute divisions of Python longs (:trac:`13107`)::
+
+            sage: SR(1L)/SR(2L)
+            0.5
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -2829,6 +2835,11 @@ cdef class Expression(CommutativeRingElement):
             2*sqrt(2)
             sage: (t^2)^(1/4)
             2*4^(1/4)
+
+        Test if we can compute inverses of Python longs (:trac:`13107`)::
+
+            sage: SR(2L)^(-1)
+            0.5
         """
         cdef Expression base, nexp
 

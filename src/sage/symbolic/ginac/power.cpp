@@ -593,6 +593,11 @@ ex power::eval(int level) const
 				
 					}
 					return this->hold();
+				} else if (r.is_zero()) {
+					// if r == 0, the following else clause causes the power
+					// constructor to be called again with the same parameter
+					// leading to an infinite loop
+					return num_basis->power(q);
 				} else {
 					// assemble resulting product, but allowing for a re-evaluation,
 					// because otherwise we'll end up with something like

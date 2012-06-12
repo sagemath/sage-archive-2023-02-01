@@ -137,7 +137,7 @@ def learn(F, Converter=None, Solver=None, max_length=3, **kwds):
         for c in solver.learnt_clauses():
             if len(c) <= max_length:
                 try:
-                    learnt2.append( converter.to_polynomial(c) )
+                    learnt.append( converter.to_polynomial(c) )
                 except ValueError:
                     # the solver might have learnt clauses that contain CNF
                     # variables which have no correspondence to variables in our

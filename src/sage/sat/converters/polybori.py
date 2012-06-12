@@ -75,11 +75,11 @@ class CNFEncoder(object):
 
         EXAMPLE::
 
-            sage: from polybori import *
-            sage: r = declare_ring(["x", "y", "z"], dict())
-            sage: e = CNFEncoder(r)
-            sage: e.zero_blocks(Variable(0)*Variable(1)*Variable(2))
-            [{y: 0}, {z: 0}, {x: 0}]
+            sage: B.<a,b,c> = BooleanPolynomialRing()
+            sage: from sage.sat.converters.polybori import CNFEncoder
+            sage: e = CNFEncoder(None, B)
+            sage: e.zero_blocks(a*b*c)
+            [{a: 0}, {b: 0}, {c: 0}]
         """
         variables = f.vars_as_monomial()
 

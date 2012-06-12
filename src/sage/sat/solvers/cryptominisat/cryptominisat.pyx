@@ -1,7 +1,16 @@
 """
-CryptoMiniSat Interface.
+CryptoMiniSat.
+
+"CryptoMiniSat is an LGPL-licenced SAT solver that aims to become a
+premier SAT solver with all the features and speed of successful SAT
+solvers, such as MiniSat and PrecoSat. The long-term goals of
+CryptoMiniSat are to be an efficient sequential, parallel and
+distributed solver. There are solvers that are good at one or the
+other, e.g. ManySat (parallel) or PSolver (distributed), but we wish
+to excel at all." -- http://www.msoos.org/cryptominisat2/
 
 AUTHORS:
+
 - Martin Albrecht (2012): first version
 """
 ##############################################################################
@@ -17,10 +26,13 @@ include "../../../ext/interrupt.pxi"
 from libc.stdint cimport uint32_t
 from decl cimport lbool, Var, Lit, Clause, l_Undef, l_False
 from decl cimport vec, vector
-from decl cimport get_sorted_learnts_helper
-from decl cimport GaussConf, SolverConf
+from decl cimport GaussConf
+from solverconf cimport SolverConf
 
 from sage.misc.misc import get_verbose
+
+cdef extern from "cryptominisat_helper.h":
+     cdef uint32_t** get_sorted_learnts_helper(Solver* solver, uint32_t* num)
 
 cdef class CryptoMiniSat:
     """
@@ -41,15 +53,18 @@ cdef class CryptoMiniSat:
         throws a friendlier error message if CryptoMiniSat is not
         installed.
     """
-    def __cinit__(self, verbosity=0, max_restarts=None, **kwds):
-        cdef SolverConf sc
+    def __cinit__(self, SolverConf sc=None, **kwds):
+        cdef SolverConf _sc
+        if sc is not None:
+             _sc = sc.__copy__()
+        else:
+             _sc = SolverConf()
         cdef GaussConf gc
 
-        sc.verbosity = verbosity
-        if max_restarts is not None:
-            sc.maxRestarts = max_restarts
+        for k,v in kwds.iteritems():
+            _sc[k] = v
 
-        self._solver = new Solver(sc,gc)
+        self._solver = new Solver(_sc._conf[0], gc)
 
     def __dealloc__(self):
         del self._solver

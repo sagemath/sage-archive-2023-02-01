@@ -328,3 +328,5 @@ PolyGUI
 cygdb
 ppl-config
 ppl_pips
+pybtex
+pybtex-convert

@@ -6,7 +6,7 @@ main_arch = uname[0]
 sub_arch = uname[-1]
 print uname, main_arch, sub_arch
 if main_arch == "Darwin":
-    if sub_arch == "i386":
+    if sub_arch == "i386" or sub_arch == "x86_64":
         if uname[2][0]=='8':
             ARCH = "mac_ppc" # Intel binary doesn't work on tiger.
         elif uname[2][0]=='9':

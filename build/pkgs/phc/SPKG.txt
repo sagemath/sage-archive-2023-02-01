@@ -30,6 +30,9 @@ AIX binaries are available at http://www.math.uic.edu/~jan/download.html but sin
 
 == Changelog ==
 
+=== phc-2.3.65.p0 (John H. Palmieri, 12 June 2012) ===
+ * recognize 'x86_64' as valid architecture on Darwin.
+
 === phc-2.3.65 (Marshall Hampton, August 4th, 2011) ===
  * updated binaries to 2.3.65
 

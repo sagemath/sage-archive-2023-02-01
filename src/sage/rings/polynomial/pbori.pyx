@@ -199,6 +199,8 @@ from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 
+from sage.rings.ideal import FieldIdeal
+
 from sage.structure.element cimport Element
 from sage.structure.element cimport RingElement
 from sage.structure.element cimport ModuleElement
@@ -4986,6 +4988,44 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             g.reduction_strategy.opt_red_tail=True
             self.__gb = g
         return Sequence(sorted(gb,reverse=True), self.ring(), check=False, immutable=True)
+
+
+    def variety(self, **kwds):
+        r"""
+        Return the variety of ``self``.
+
+        EXAMPLE::
+
+            sage: R.<x,y,z> = BooleanPolynomialRing()    # Test a simple example
+            sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
+            sage: I.variety()
+            [{y: 1, z: 0, x: 0}, {y: 1, z: 1, x: 1}]
+
+            sage: R = BooleanPolynomialRing(6, ['x%d'%(i+1) for i in range(6)], order='lex')
+            sage: R.inject_variables()
+            Defining...
+            sage: polys = [\
+                   x1*x2 + x1*x4 + x1*x5 + x1*x6 + x1 + x2 + x3*x4 + x3*x5 + x3 + x4*x5 + x4*x6 + x4 + x5 + x6, \
+                   x1*x2 + x1*x3 + x1*x4 + x1*x6 + x2*x3 + x2*x6 + x2 + x3*x4 + x5*x6, \
+                   x1*x3 + x1*x4 + x1*x6 + x1 + x2*x5 + x2*x6 + x3*x4 + x3 + x4*x6 + x4 + x5*x6 + x5 + x6, \
+                   x1*x2 + x1*x3 + x1*x4 + x1*x5 + x2 + x3*x5 + x3*x6 + x3 + x5 + x6, \
+                   x1*x2 + x1*x4 + x1*x5 + x1*x6 + x2*x3 + x2*x4 + x2*x5 + x3*x5 + x5*x6 + x5 + x6, \
+                   x1*x2 + x1*x6 + x2*x4 + x2*x5 + x2*x6 + x3*x6 + x4*x6 + x5*x6 + x5]
+            sage: I = R.ideal( polys )
+            sage: V1 = I.variety()
+
+            sage: R = PolynomialRing(GF(2), 6, ['x%d'%(i+1) for i in range(6)], order='lex')
+            sage: I = R.ideal( polys )
+            sage: V2 = (I + sage.rings.ideal.FieldIdeal(R)).variety()
+            sage: V1 == V2
+            True
+        """
+        R = GF(2)[ self.ring().gens() ]
+        I = R.ideal( [ R( f ) for f in self.groebner_basis() ] )
+        J = FieldIdeal(R)
+        return (I+J).variety(**kwds)
+
+
 
     def reduce(self, f):
         """

@@ -195,7 +195,7 @@ class Animation(SageObject):
             sage: a.show()   # optional -- ImageMagick
             sage: b = animate([circle((0,i),1,hue=0) for i in srange(0,2,0.4)],
             ...                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2])
-            sage: b.show() # optional
+            sage: b.show() # optional -- ImageMagick
             sage: (a*b).show()    # optional -- ImageMagick
             sage: (a+b).show()    # optional -- ImageMagick
         """

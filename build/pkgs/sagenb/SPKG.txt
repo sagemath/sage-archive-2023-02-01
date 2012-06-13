@@ -59,9 +59,9 @@ anachronistic information in it.
    * The doctests pass: sage -t --sagenb
    * The notebook will be possible to install from the new SPKG without an
      internet connection.
-       * Any dependencies that must be downloaded can be added in depdist.sh
+       * Any dependencies that must be downloaded can be added in dist.sh
          and inserted in setup.py. Dependencies of dependencies need not be put
-         in setup.py, but need to be put in depdist.sh (until we can make it
+         in setup.py, but need to be put in dist.sh (until we can make it
          smarter).
    * The Selenium tests pass (optional, for now).
    * The localization file ``sagenb.pot`` is up-to-date .
@@ -74,7 +74,7 @@ anachronistic information in it.
    Then,
 
    * Update the version in setup.py and commit this change.
-   * Run depdist.sh
+   * Run dist.sh
    * Copy the newly generated dist/ directory from the sagenb repo to the
      SPKG's root directory and rename it src/ , replacing the src/ directory
      that is currently there

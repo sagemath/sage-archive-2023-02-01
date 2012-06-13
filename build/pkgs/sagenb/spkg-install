@@ -41,7 +41,7 @@ for PKG in $(cat src/install_order); do
     rm "src/$PKG"
 done
 rm src/install_order
-BASENAME=$(ls -1 src)
+BASENAME=$(ls -1 src | grep sagenb-)
 BASENAME=${BASENAME%.tar.gz}
 
 # Install sagenb into $SAGE_ROOT/devel/
@@ -64,6 +64,9 @@ rm "$CUR/src/$BASENAME.tar.gz"
 mv $BASENAME sagenb-main
 rm -f "$SAGE_ROOT/devel/sagenb"
 ln -s sagenb-main "$SAGE_ROOT/devel/sagenb"
+
+# Install sagenb git repo
+mv "$CUR/src/sagenb.git" ./sagenb/.git
 
 # Install sagenb into Sage's Python
 # Note: We use --egg-path for relocatability

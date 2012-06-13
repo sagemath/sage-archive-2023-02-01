@@ -3,6 +3,8 @@
 
 # Begin boilerplate
 
+CUR=$PWD
+
 die () {
     echo >&2 "$@"
     exit 1
@@ -35,8 +37,12 @@ fi
 
 # Install dependencies
 for PKG in $(cat src/install_order); do
-    easy_install -H None -f src "$PKG" || die "Error installing $PKG !"
+    easy_install -H None "src/$PKG" || die "Error installing $PKG !"
+    rm "src/$PKG"
 done
+rm src/install_order
+BASENAME=$(ls -1 src)
+BASENAME=${BASENAME%.tar.gz}
 
 # Install sagenb into $SAGE_ROOT/devel/
 #
@@ -45,26 +51,25 @@ done
 # it up in an accessible directory themselves.
 #easy_install -H None -f src "sagenb" || die "Error installing sagenb !"
 
-cd src
-
-# Extract sagenb
-tar xf sagenb-*
-
-# Move sagenb into $SAGE_ROOT/devel and set up the symlink
+# Extract sagenb into $SAGE_ROOT/devel and set up the symlink
+cd "$SAGE_ROOT/devel"
 if [ -d "$SAGE_ROOT/devel/sagenb-main" ]; then
     echo "Moving old SageNB package to '$SAGE_ROOT/devel/sagenb-main-old'..."
     rm -rf "$SAGE_ROOT/devel/sagenb-main-old"
     mv "$SAGE_ROOT/devel/sagenb-main" "$SAGE_ROOT/devel/sagenb-main-old" ||
         die "Error moving the old 'sagenb-main' directory."
 fi
-mv sagenb-* "$SAGE_ROOT/devel/sagenb-main"
+tar xf "$CUR/src/$BASENAME.tar.gz"
+rm "$CUR/src/$BASENAME.tar.gz"
+mv $BASENAME sagenb-main
 rm -f "$SAGE_ROOT/devel/sagenb"
-ln -s "sagenb-main" "$SAGE_ROOT/devel/sagenb"
+ln -s sagenb-main "$SAGE_ROOT/devel/sagenb"
 
 # Install sagenb into Sage's Python
 # Note: We use --egg-path for relocatability
-cd "$SAGE_ROOT/devel/sagenb/"
-python setup.py develop --egg-path '../../../../devel/sagenb'
+cd sagenb
+python setup.py develop --egg-path '../../../../devel/sagenb' ||
+    die "Error installing sagenb via setup.py develop"
 
 # Fix some relocatability issues - see #10176, possibly other tickets
 cd "$SAGE_ROOT/local/lib/python/site-packages"
@@ -77,8 +82,8 @@ if ! grep sagenb easy-install.pth > /dev/null ; then
         die "Error adding relative sagenb path to 'easy-install.pth'."
 else
     echo "Making sagenb path in 'easy-install.pth' relative..."
-    sed 's/^.*sagenb.*$/..\/..\/..\/..\/devel\/sagenb/' easy-install.pth > easy-install.pth.$$
-    die "Error patching 'easy-install.pth' to have relative path to SageNB."
+    sed 's/^.*sagenb.*$/..\/..\/..\/..\/devel\/sagenb/' easy-install.pth > easy-install.pth.$$ ||
+        die "Error patching 'easy-install.pth' to have relative path to SageNB."
 fi
 mv -f easy-install.pth.$$ easy-install.pth ||
     die "Error overwriting original 'easy-install.pth'."

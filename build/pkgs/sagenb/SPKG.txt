@@ -13,7 +13,9 @@ GPLv2+
 
  * William Stein
  * Tim Dumol
- * Mitesh Patel
+ * Jason Grout
+ * Keshav Kini
+ * ???
 
 == Upstream Contact ==
 
@@ -21,6 +23,8 @@ GPLv2+
  * Homepage: http://nb.sagemath.org/
 
 == Dependencies ==
+
+This section is outdated.
 
  * Python >= 2.6.4
  * jinja2 >= 2.5.5
@@ -44,33 +48,40 @@ GPLv2+
 
 == Special Update / Build Instructions ==
 
- * To release a new spkg, check that
+Warning: I have tried to update this section but it might still have
+anachronistic information in it.
+
+ * To release a new spkg, go to your sagenb repository and check that:
 
    * All changes are committed.
-   * .hgignore and MANIFEST.in are current.
-   * The patch queue is clear.
+   * .gitignore and MANIFEST.in are current.
    * The notebook runs.
-   * The doctests pass: sage -t -sagenb
-   * Test for ability to install without internet connection.
-     Any dependencies that must be downloaded can be added in ./spkg-dist and inserted
-     in setup.py. Dependencies of dependencies need not be put in setup.py, but
-     need to be put in ./spkg-dist.
+   * The doctests pass: sage -t --sagenb
+   * The notebook will be possible to install from the new SPKG without an
+     internet connection.
+       * Any dependencies that must be downloaded can be added in depdist.sh
+         and inserted in setup.py. Dependencies of dependencies need not be put
+         in setup.py, but need to be put in depdist.sh (until we can make it
+         smarter).
    * The Selenium tests pass (optional, for now).
    * The localization file ``sagenb.pot`` is up-to-date .
-      * Run ``pybabel extract -F /path/to/babel.cfg /path/to/project
-        -o /path/to/sagenb.po`` (get pybabel with ``easy_install
-        pybabel``).
-      * Copy the headers from the existing ``sagenb.pot``.
-      * Replace ``sagenb.pot`` with ``sagenb.po``.
+       * Run ``pybabel extract -F /path/to/babel.cfg /path/to/project
+         -o /path/to/sagenb.po`` (get pybabel with ``easy_install
+         pybabel``).
+       * Copy the headers from the existing ``sagenb.pot``.
+       * Replace ``sagenb.pot`` with ``sagenb.po``.
 
    Then,
 
    * Update the version in setup.py and commit this change.
-   * Run spkg-dist.
-   * Install and test the new spkg: sage -f dist/sagenb-*.spkg
-
-   Contact a maintainer about pushing updates to the public Mercurial
-   repository.
+   * Run depdist.sh
+   * Copy the newly generated dist/ directory from the sagenb repo to the
+     SPKG's root directory and rename it src/ , replacing the src/ directory
+     that is currently there
+   * Pack up the SPKG with `sage --pkg --no-compress` (because everything in
+     src/ is already compressed)
+   * Install and test the new spkg: sage -f sagenb-*.spkg
+   * Don't forget to push all changes in the sagenb repo to github.
 
  * Stylesheets (CSS): see sass/readme.txt.
 
@@ -95,4 +106,4 @@ GPLv2+
 
 == Changelog ==
 
- * For an accurate log of changes, run "hg log" in src/sagenb.
+ * For an accurate log of changes, run `git log` in the sagenb repository.

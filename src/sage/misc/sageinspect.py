@@ -1033,6 +1033,10 @@ def sage_getargspec(obj):
         sage: sage.misc.sageinspect.sage_getargspec(foo)
         ArgSpec(args=['x', 'a', 'b'], varargs=None, keywords=None, defaults=('\')"', {False: 'bar'}))
 
+    The following produced a syntax error before the patch at :trac:`11913`::
+
+        sage: sage.misc.sageinspect.sage_getargspec(r.lm)
+
     AUTHORS:
 
     - William Stein: a modified version of inspect.getargspec from the
@@ -1060,7 +1064,11 @@ def sage_getargspec(obj):
             source = sage_getsource(obj)
             # we try to find the definition and parse it by _sage_getargspec_ast
             proxy = 'def dummy' + _grep_first_pair_of_parentheses(source) + ':\n    return'
-            return _sage_getargspec_from_ast(proxy)
+            try:
+                return _sage_getargspec_from_ast(proxy)
+            except SyntaxError:
+                # To fix trac #10860. See #11913 for more information.
+                return None
         elif isinstance(obj,functools.partial):
             base_spec = sage_getargspec(obj.func)
             return base_spec

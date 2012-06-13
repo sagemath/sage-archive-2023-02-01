@@ -16640,7 +16640,7 @@ class GenericGraph(GenericGraph_pyx):
             True
 
         Ensure that isomorphic looped graphs with non-range vertex labels report
-        correctly (trac #10814, fixed by #8395)::
+        correctly (:trac:`10814`, fixed by :trac:`8395`)::
 
             sage: G1 = Graph([(0,1), (1,1)])
             sage: G2 = Graph([(0,2), (2,2)])
@@ -16659,7 +16659,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.is_isomorphic(D,edge_labels=True, certify = True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
 
-        Ensure that trac #11620 is fixed::
+        Ensure that trac :trac:`11620` is fixed::
 
             sage: G1 = DiGraph([(0, 0, 'c'), (0, 4, 'b'), (0, 5, 'c'),
             ...   (0, 5, 't'), (1, 1, 'c'), (1, 3,'c'), (1, 3, 't'), (1, 5, 'b'),
@@ -16673,6 +16673,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G1.is_isomorphic(G2,edge_labels=True)
             True
 
+        Ensure that :trac:`13114` is fixed ::
+
+            sage: g = Graph([(0, 0, 0), (0, 2, 0), (1, 1, 0), (1, 2, 0), (1, 2, 1), (2, 2, 0)])
+            sage: gg = Graph([(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 2, 0), (2, 2, 0), (2, 2, 1)])
+            sage: g.is_isomorphic(gg)
+            False
         """
         possible = True
         if self._directed != other._directed:
@@ -17073,6 +17079,8 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
     edges = [ edge for edge in edge_iter ]
     edge_labels = sorted([ label for v1,v2,label in edges if not label == standard_label])
     i = 1
+
+    # edge_labels is sorted. We now remove values which are not unique
     while i < len(edge_labels):
         if edge_labels[i] == edge_labels[i-1]:
             edge_labels.pop(i)
@@ -17085,11 +17093,11 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
 
     for u,v,l in edges:
         if not l == standard_label:
-            index = edge_labels.index(l)
             for el, part in edge_partition:
                 if el == l:
                     part.append(i)
                     break
+
             G._backend.add_edge(u,i,None,True)
             G._backend.add_edge(i,v,None,True)
             G.delete_edge(u,v)
@@ -17097,10 +17105,47 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         elif standard_label is not None:
             G._backend.set_edge_label(u,v,None,True)
 
-    edge_partition = [el[1] for el in sorted(edge_partition)]
-
+    # Should we pay attention to edge labels ?
     if ignore_edge_labels:
-        edge_partition = [sum(edge_partition,[])]
+
+        # If there are no multiple edges, we can just say that all edges are
+        # equivalent to each other without any further consideration.
+        if not g_has_multiple_edges:
+            edge_partition = [el[1] for el in sorted(edge_partition)]
+            edge_partition = [sum(edge_partition,[])]
+
+        # An edge between u and v with label l and multiplicity k being encoded
+        # as an uv edge with label [l,k], we must not assume that an edge with
+        # multiplicity 2 is equivalent to a simple edge !
+        # Hence, we still distinguish edges with different multiplicity
+        if g_has_multiple_edges:
+
+            # Compute the multiplicity the label
+            multiplicity = lambda x : sum(map(lambda y:y[1],x))
+
+            # Sort the edge according to their multiplicity
+            edge_partition = sorted([[multiplicity(el),part] for el, part in sorted(edge_partition)])
+
+            # Gather together the edges with same multiplicity
+            i = 1
+            while i < len(edge_partition):
+                if edge_partition[i][0] == edge_partition[i-1][0]:
+                    edge_partition[i-1][1].extend(edge_partition[i][1])
+                    edge_partition.pop(i)
+                else:
+                    i += 1
+
+            # now edge_partition has shape [[multiplicity, list_of_edges],
+            # [multiplicity, liste of edges], ...], and we can flatted it to
+            # [list of edges, list of edges, ...]
+            edge_partition = [el[1] for el in sorted(edge_partition)]
+
+            # Now the edges are partitionned according to the multiplicity they
+            # represent, and edge labels are forgotten.
+
+    else:
+        edge_partition = [el[1] for el in sorted(edge_partition)]
+
     new_partition = [ part for part in partition + edge_partition if not part == [] ]
 
     return_data = []

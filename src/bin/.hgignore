@@ -331,6 +331,7 @@ PolyGUI
 cygdb
 ppl-config
 ppl_pips
+nosetests*
 webassets
 phc
 pybtex

@@ -296,6 +296,55 @@ def process_dollars(s):
             s = s[:m.start()] + "$" + s[m.end():]
     return s
 
+def process_extlinks(s, embedded=False):
+    r"""nodetex
+
+    In docstrings at the command line, process markup related to the
+    Sphinx extlinks extension. For example, replace ``:trac:`NUM```
+    with ``http://trac.sagemath.org/NUM``, and similarly with
+    ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
+    the dictionary ``extlinks`` in SAGE_ROOT/devel/doc/common/conf.py.
+    If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
+    rather than ``TEXT`` to construct the url.
+
+    In the notebook, don't do anything: let sphinxify take care of it.
+
+    INPUT:
+
+    - ``s`` -- string, in practice a docstring
+    - ``embedded`` -- boolean (optional, default False)
+
+    This function is called by :func:`format`, and if in the notebook,
+    it sets ``embedded`` to be ``True``, otherwise ``False``.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sagedoc import process_extlinks
+        sage: process_extlinks('See :trac:`1234` for more information.')
+        'See http://trac.sagemath.org/1234 for more information.'
+        sage: process_extlinks('See :trac:`1234` for more information.', embedded=True)
+        'See :trac:`1234` for more information.'
+        sage: process_extlinks('see :python:`Implementing Descriptors <reference/datamodel.html#implementing-descriptors>` ...')
+        'see http://docs.python.org/release/.../reference/datamodel.html#implementing-descriptors ...'
+    """
+    if embedded:
+        return s
+    oldpath = sys.path
+    sys.path = oldpath + [os.path.join(SAGE_DOC, 'common')]
+    from conf import pythonversion, extlinks
+    sys.path = oldpath
+    for key in extlinks:
+        m = re.search(':%s:`([^`]*)`' % key, s)
+        if m:
+            link = m.group(1)
+            m = re.search('.*<([^>]*)>', link)
+            if m:
+                link = m.group(1)
+            s = re.sub(':%s:`([^`]*)`' % key,
+                       extlinks[key][0].replace('%s', link),
+                       s)
+    return s
+
 def process_mathtt(s, embedded=False):
     r"""nodetex
     Replace \\mathtt{BLAH} with either \\verb|BLAH| (in the notebook) or
@@ -519,6 +568,7 @@ def format(s, embedded=False):
     if 'nodetex' not in directives:
         s = process_dollars(s)
         s = process_mathtt(s, embedded=embedded)
+        s = process_extlinks(s, embedded=embedded)
         s = detex(s, embedded=embedded)
     return embedding_info+s
 

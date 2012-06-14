@@ -6,7 +6,8 @@ import sys, os
 sys.path.append(os.environ['SAGE_DOC'])
 from common.conf import *
 
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.jsmath', 'sphinx.ext.todo']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.jsmath', 'sphinx.ext.todo',
+              'sphinx.ext.extlinks']
 
 templates_path = ['templates']
 html_static_path = ['static']

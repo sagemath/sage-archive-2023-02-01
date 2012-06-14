@@ -127,7 +127,7 @@ pythonversion = sys.version.split(' ')[0]
 # Sage trac ticket shortcuts. For example, :trac:`7549` .
 extlinks = {
     'python': ('http://docs.python.org/release/'+pythonversion+'/%s', ''),
-    'trac': ('http://trac.sagemath.org/sage_trac/ticket/%s', 'trac ticket #'),
+    'trac': ('http://trac.sagemath.org/%s', 'trac ticket #'),
     'wikipedia': ('http://en.wikipedia.org/wiki/%s', 'Wikipedia article ')}
 
 # Options for HTML output

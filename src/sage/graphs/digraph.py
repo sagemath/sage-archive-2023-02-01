@@ -2583,7 +2583,9 @@ class DiGraph(GenericGraph):
     def topological_sort(self, implementation = "default"):
         """
         Returns a topological sort of the digraph if it is acyclic, and raises a
-        TypeError if the digraph contains a directed cycle.
+        TypeError if the digraph contains a directed cycle. As topological
+        sorts are not necessarily unique, different implementations may yield
+        different results.
 
         A topological sort is an ordering of the vertices of the digraph such
         that each vertex comes before all of its successors. That is, if `u`
@@ -2593,8 +2595,9 @@ class DiGraph(GenericGraph):
         INPUT:
 
         - ``implementation`` -- Use the default Cython implementation
-          (``implementation = default``) or the NetworkX library
-          (``implementation = "NetworkX"``)
+          (``implementation = default``), the default NetworkX library
+          (``implementation = "NetworkX"``) or the recursive NetworkX
+          implementation (``implementation = "recursive")
 
         .. SEEALSO::
 
@@ -2620,6 +2623,11 @@ class DiGraph(GenericGraph):
             sage: D.topological_sort(implementation = "NetworkX")
             [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
 
+        Using the NetworkX recursive implementation ::
+
+            sage: D.topological_sort(implementation = "recursive")
+            [4, 5, 6, 9, 0, 3, 2, 7, 1, 8, 10]
+
         ::
 
             sage: D.add_edge(7,4)
@@ -2630,16 +2638,15 @@ class DiGraph(GenericGraph):
 
         .. note::
 
-           There is a recursive version of this in NetworkX, but it has
-           problems::
+           There is a recursive version of this in NetworkX, it used to have problems in earlier versions but they have since been fixed::
 
               sage: import networkx
               sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7], 5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
               sage: N = D.networkx_graph()
               sage: networkx.topological_sort(N)
               [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
-              sage: networkx.topological_sort_recursive(N) is None
-              True
+              sage: networkx.topological_sort_recursive(N)
+              [4, 5, 6, 9, 0, 3, 2, 7, 1, 8, 10]
 
         TESTS:
 
@@ -2658,9 +2665,12 @@ class DiGraph(GenericGraph):
             else:
                 raise TypeError('Digraph is not acyclic-- there is no topological sort.')
 
-        elif implementation == "NetworkX":
+        elif implementation == "NetworkX" or implementation == "recursive":
             import networkx
-            S = networkx.topological_sort(self.networkx_graph(copy=False))
+            if implementation == "NetworkX":
+                S = networkx.topological_sort(self.networkx_graph(copy=False))
+            else:
+                S = networkx.topological_sort_recursive(self.networkx_graph(copy=False))
             if S is None:
                 raise TypeError('Digraph is not acyclic-- there is no topological sort.')
             else:

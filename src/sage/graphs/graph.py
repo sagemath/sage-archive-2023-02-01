@@ -3294,7 +3294,7 @@ class Graph(GenericGraph):
 
     ### Centrality
 
-    def centrality_betweenness(self, normalized=True):
+    def centrality_betweenness(self, k=None, normalized=True, weight=None, endpoints=False, seed=None):
         r"""
         Returns the betweenness centrality (fraction of number of shortest
         paths that go through each vertex) as a dictionary keyed by
@@ -3313,6 +3313,11 @@ class Graph(GenericGraph):
         -  ``normalized`` - boolean (default True) - if set to
            False, result is not normalized.
 
+        - ``k`` - integer or None (default None) - if set to an integer, use ``k`` node samples to estimate betweenness. Higher values give better approximations.
+
+        - ``weight`` - None or string. If set to a string, use that attribute of the nodes as weight. ``weight = True`` is equivalent to ``weight = "weight"``
+
+        - ``endpoints`` - Boolean. If set to True it includes the endpoints in the shortest paths count
 
         REFERENCE:
 
@@ -3334,7 +3339,7 @@ class Graph(GenericGraph):
             {0: 0.16666666666666666, 1: 0.16666666666666666, 2: 0.0, 3: 0.0}
         """
         import networkx
-        return networkx.betweenness_centrality(self.networkx_graph(copy=False), normalized)
+        return networkx.betweenness_centrality(self.networkx_graph(copy=False), k=k,normalized = normalized, weight=weight, endpoints=endpoints, seed=seed )
 
     def centrality_degree(self, v=None):
         r"""

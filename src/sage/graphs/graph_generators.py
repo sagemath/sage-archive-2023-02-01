@@ -5474,31 +5474,26 @@ class GraphGenerators():
 
         TESTS:
 
-        We only consider balanced trees whose root node has degree `r \geq 2`::
+         Normally we would only consider balanced trees whose root node
+         has degree `r \geq 2`, but the construction degenerates gracefully::
 
-            sage: graphs.BalancedTree(1, randint(1, 10^6))
-            Traceback (most recent call last):
-            ...
-            NetworkXError: Invalid graph description, r should be >=2
-            sage: graphs.BalancedTree(randint(-10^6, 1), randint(1, 10^6))
-            Traceback (most recent call last):
-            ...
-            NetworkXError: Invalid graph description, r should be >=2
+            sage: graphs.BalancedTree(1, 10)
+            Balanced tree: Graph on 2 vertices
 
-        The tree must have height `h \geq 1`::
+            sage: graphs.BalancedTree(-1, 10)
+            Balanced tree: Graph on 1 vertex
 
-            sage: graphs.BalancedTree(randint(2, 10^6), 0)
-            Traceback (most recent call last):
-            ...
-            NetworkXError: Invalid graph description, h should be >=1
-            sage: graphs.BalancedTree(randint(2, 10^6), randint(-10^6, 0))
-            Traceback (most recent call last):
-            ...
-            NetworkXError: Invalid graph description, h should be >=1
-            sage: graphs.BalancedTree(randint(-10^6, 1), randint(-10^6, 0))
-            Traceback (most recent call last):
-            ...
-            NetworkXError: Invalid graph description, r should be >=2
+        Similarly, we usually want the tree must have height `h \geq 1`
+        but the algorithm also degenerates gracefully here::
+
+            sage: graphs.BalancedTree(3, 0)
+            Balanced tree: Graph on 1 vertex
+
+            sage: graphs.BalancedTree(5, -2)
+            Balanced tree: Graph on 0 vertices
+
+            sage: graphs.BalancedTree(-2,-2)
+            Balanced tree: Graph on 0 vertices
         """
         import networkx
         return graph.Graph(networkx.balanced_tree(r, h), name="Balanced tree")
@@ -7088,7 +7083,7 @@ class GraphGenerators():
         ::
 
             sage: graphs.RandomHolmeKim(8, 2, 0.5).edges(labels=False)
-            [(0, 2), (0, 4), (1, 2), (1, 3), (2, 3), (3, 4), (3, 5), (3, 6), (3, 7), (4, 5), (4, 6)]
+            [(0, 2), (0, 5), (1, 2), (1, 3), (2, 3), (2, 4), (2, 6), (2, 7), (3, 4), (3, 6), (3, 7), (4, 5)]
 
         ::
 
@@ -8129,7 +8124,7 @@ class GraphGenerators():
 
             sage: G = graphs.DegreeSequenceExpected([1,2,3,2,3])
             sage: G.edges(labels=False)
-            [(0, 2), (1, 1), (1, 3), (2, 2), (2, 4), (3, 3)]
+            [(0, 2), (0, 3), (1, 1), (1, 4), (2, 3), (2, 4), (3, 4), (4, 4)]
             sage: G.show()  # long time
 
         REFERENCE:

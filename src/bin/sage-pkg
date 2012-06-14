@@ -48,59 +48,58 @@ def main():
                       dest="no_compress", action="store_true",
                       help="don't compress the spkg file")
     (options, args) = parser.parse_args()
-    if len(args) != 1:
-        parser.print_usage()
-        sys.exit(1)
+    for path in args:
+        print "Creating {1}Sage package from {0}".format(path,
+                "uncompressed " if options.no_compress else "")
 
-    path = args[0]
-    if not os.path.isdir(path):
-        print "No directory %s" % path
-        sys.exit(1)
-    dir = os.path.basename(path.rstrip("/"))
-    file = dir + ".spkg"
-    s = dir.split("-", 1)
-    try:
-        name = s[0]
-        version = s[1]
-    except IndexError:
-        name = dir
-        version = ""
+        if not os.path.isdir(path):
+            print "No directory %s" % path
+            sys.exit(1)
+        dir = os.path.basename(path.rstrip("/"))
+        file = dir + ".spkg"
+        s = dir.split("-", 1)
+        try:
+            name = s[0]
+            version = s[1]
+        except IndexError:
+            name = dir
+            version = ""
 
-    if len(version) == 0:
-        print "Warning: no version number detected"
-    else:
-        m = re.match(r"[0-9]+[-.0-9a-zA-Z]*(\.p[0-9]+)?$", version)
-        if not m:
-            print "Warning: version number (%s) not of the expected form." % version
-            print """The version number should start with a number and contain only numbers,
+        if len(version) == 0:
+            print "Warning: no version number detected"
+        else:
+            m = re.match(r"[0-9]+[-.0-9a-zA-Z]*(\.p[0-9]+)?$", version)
+            if not m:
+                print "Warning: version number (%s) not of the expected form." % version
+                print """The version number should start with a number and contain only numbers,
 letters, periods, and hyphens.  It may optionally end with a string of
 the form 'pNUM' where NUM is a non-negative integer.
 
 Proceeding anyway..."""
 
-    tar_file(dir, no_compress = options.no_compress)
+        tar_file(dir, no_compress = options.no_compress)
 
-    size = os.path.getsize(file)
-    if size < 1024 * 1024:
-        size = "%sK" % (size / 1024)
-    else:
-        size = "%0.1fM" % (size / (1024 * 1024.0))
+        size = os.path.getsize(file)
+        if size < 1024 * 1024:
+            size = "%sK" % (size / 1024)
+        else:
+            size = "%0.1fM" % (size / (1024 * 1024.0))
 
-    if os.path.exists(os.path.join(dir, "SPKG.txt")):
-        spkg_txt = "Good"
-    else:
-        spkg_txt = "File is missing"
+        if os.path.exists(os.path.join(dir, "SPKG.txt")):
+            spkg_txt = "Good"
+        else:
+            spkg_txt = "File is missing"
 
-    p = Popen("cd '%s' && hg diff" % dir, shell=True, stdout=PIPE, stderr=PIPE)
-    std_out, std_err = p.communicate()
-    if len(std_err) != 0:
-        hgrepo_txt = "Error reading repository"
-    elif len(std_out) != 0:
-        hgrepo_txt = "Unchecked in changes"
-    else:
-        hgrepo_txt = "Good"
+        p = Popen("cd '%s' && hg diff" % dir, shell=True, stdout=PIPE, stderr=PIPE)
+        std_out, std_err = p.communicate()
+        if len(std_err) != 0:
+            hgrepo_txt = "Error reading repository"
+        elif len(std_out) != 0:
+            hgrepo_txt = "Unchecked in changes"
+        else:
+            hgrepo_txt = "Good"
 
-    print """
+        print """
 Created package %(file)s.
 
     NAME: %(name)s
@@ -114,12 +113,12 @@ Please test this package using
    sage -f %(file)s
 
 immediately.""" % {'file': file, 'name': name, 'version': version, 'size': size,
-       'hgrepo': hgrepo_txt, 'spkg': spkg_txt},
-    if options.no_compress:
-        print ""
-        print ""
-    else:
-        print """ Also, note that you can use
+           'hgrepo': hgrepo_txt, 'spkg': spkg_txt},
+        if options.no_compress:
+            print ""
+            print ""
+        else:
+            print """ Also, note that you can use
 
    sage -pkg_nc %(dir)s
 

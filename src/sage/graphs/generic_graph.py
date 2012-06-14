@@ -10827,17 +10827,18 @@ class GenericGraph(GenericGraph_pyx):
 
     def clustering_coeff(self, nodes=None, weight=False, return_vertex_weights=True):
         r"""
-        Returns the clustering coefficient for each vertex in `nodes` as a
-        dictionary keyed by vertex.
+        Returns the clustering coefficient for each vertex in `nodes` as
+        a dictionary keyed by vertex.
 
-        For an unweighted graph, the clustering coefficient of a node `i` is
-        the fraction of possible triangles containing `i` that exist.
-        `c_i = 2\*T(i) / (k_i\*(k_i-1))` where T(i)` the number of triangles
-        through `i` and `k_i` is the degree of vertex `i` [1].
+        For an unweighted graph, the clustering coefficient of a node
+        `i` is the fraction of possible triangles containing `i` that
+        exist. `c_i = 2\*T(i) / (k_i\*(k_i-1))` where T(i)` the number
+        of triangles through `i` and `k_i` is the degree of vertex `i`
+        [1].
 
-        For weighted graphs the clustering is defined as the geometric average
-        of the subgraph edge weights [1], normalized by the maximum weight in
-        the network.
+        For weighted graphs the clustering is defined as the geometric
+        average of the subgraph edge weights [1], normalized by the
+        maximum weight in the network.
 
         The value of `c_i` is assigned to 0 if `k_i < 2`.
 
@@ -10848,16 +10849,16 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        -  ``nodes`` - the vertices to inspect (default
-           None returns data on all vertices in graph)
+        - ``nodes`` - the vertices to inspect (default None returns data
+          on all vertices in graph)
 
-        -  ``weight`` - string or boolean default is False. If it is a string
-        it used the indicated edge property as weight. `weight = True` is
-        equivalent to `weight = weight`
+        - ``weight`` - string or boolean default is False. If it is
+          a string it used the indicated edge property as weight.
+          `weight = True` is equivalent to `weight = weight`
 
         - ``return_vertex_weights`` is a boolean ensuring backwards
-        compatibility with deprecated features of NetworkX 1.2. It
-        should be set to False for all production code.
+          compatibility with deprecated features of NetworkX 1.2. It
+          should be set to False for all production code.
 
         REFERENCE:
 
@@ -10868,30 +10869,62 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: (graphs.FruchtGraph()).clustering_coeff().values()
-            [0.3333333333333333, 0.3333333333333333, 0.0, 0.3333333333333333, 0.3333333333333333, 0.3333333333333333, 0.3333333333333333, 0.3333333333333333, 0.0, 0.3333333333333333, 0.3333333333333333, 0.0]
+            [0.3333333333333333, 0.3333333333333333, 0.0, 0.3333333333333333,
+             0.3333333333333333, 0.3333333333333333, 0.3333333333333333,
+             0.3333333333333333, 0.0, 0.3333333333333333, 0.3333333333333333,
+             0.0]
             sage: (graphs.FruchtGraph()).clustering_coeff()
-            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0, 3: 0.3333333333333333, 4: 0.3333333333333333, 5: 0.3333333333333333, 6: 0.3333333333333333, 7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333, 10: 0.3333333333333333, 11: 0.0}
+            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
+             3: 0.3333333333333333, 4: 0.3333333333333333,
+             5: 0.3333333333333333, 6: 0.3333333333333333,
+             7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
+             10: 0.3333333333333333, 11: 0.0}
 
-            sage: (graphs.FruchtGraph()).clustering_coeff(weight=True, return_vertex_weights=False)
-            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0, 3: 0.3333333333333333, 4: 0.3333333333333333, 5: 0.3333333333333333, 6: 0.3333333333333333, 7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333, 10: 0.3333333333333333, 11: 0.0}
+            sage: (graphs.FruchtGraph()).clustering_coeff(weight=True,
+            ...     return_vertex_weights=False)
+            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
+            3: 0.3333333333333333, 4: 0.3333333333333333,
+            5: 0.3333333333333333, 6: 0.3333333333333333,
+            7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
+            10: 0.3333333333333333, 11: 0.0}
             sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2])
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
-            sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2],weight=True,  return_vertex_weights=False)
+            sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2],
+            ...     weight=True, return_vertex_weights=False)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
-        TESTS::
+        TESTS:
 
-            Failing doctest due to API change, use for backwards compatibility
-            Remove when return_vertex_weights is deprecated
-            sage: (graphs.FruchtGraph()).clustering_coeff(weight=True, return_vertex_weights=True)
-            doctest:...: DeprecationWarning: The option 'return_vertex_weights' has been deprecated. Only offered for backwards compatibility with NetworkX 1.2.
-            ({0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0, 3: 0.3333333333333333, 4: 0.3333333333333333, 5: 0.3333333333333333, 6: 0.3333333333333333, 7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333, 10: 0.3333333333333333, 11: 0.0}, {0: 0.08333333333333333, 1: 0.08333333333333333, 2: 0.08333333333333333, 3: 0.08333333333333333, 4: 0.08333333333333333, 5: 0.08333333333333333, 6: 0.08333333333333333, 7: 0.08333333333333333, 8: 0.08333333333333333, 9: 0.08333333333333333, 10: 0.08333333333333333, 11: 0.08333333333333333})
+        Doctests that demonstrate the deprecation of the two-dictionary
+        return value due to the NetworkX API change after 1.2. The
+        return_vertex_weights keyword is provided with a default value
+        of True for backwards compatibility with older versions of Sage.
+        When the deprecation period has expired and the keyword is
+        removed, these doctests should be removed as well. ::
 
-            sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2], weight=True, return_vertex_weight=True)
-            doctest:...: DeprecationWarning: The option 'return_vertex_weights' has been deprecated. Only offered for backwards compatibility with NetworkX 1.2.
-            ({0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}, {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.3333333333333333})
+            sage: (graphs.FruchtGraph()).clustering_coeff(weight=True,
+            ...     return_vertex_weights=True)
+            doctest:...: DeprecationWarning: The option 'return_vertex_weights'
+            has been deprecated. Only offered for backwards compatibility with
+            NetworkX 1.2.
+            ({0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
+              3: 0.3333333333333333, 4: 0.3333333333333333,
+              5: 0.3333333333333333, 6: 0.3333333333333333,
+              7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
+              10: 0.3333333333333333, 11: 0.0}, {0: 0.08333333333333333,
+              1: 0.08333333333333333, 2: 0.08333333333333333,
+              3: 0.08333333333333333, 4: 0.08333333333333333,
+              5: 0.08333333333333333, 6: 0.08333333333333333,
+              7: 0.08333333333333333, 8: 0.08333333333333333,
+              9: 0.08333333333333333, 10: 0.08333333333333333,
+              11: 0.08333333333333333})
 
+            sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0, 1, 2],
+            ...     weight=True, return_vertex_weights=True)
+            ({0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0},
+             {0: 0.3333333333333333, 1: 0.3333333333333333,
+             2: 0.3333333333333333})
         """
         import networkx
         if weight and return_vertex_weights:

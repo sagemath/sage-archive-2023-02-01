@@ -2582,15 +2582,16 @@ class DiGraph(GenericGraph):
 
     def topological_sort(self, implementation = "default"):
         """
-        Returns a topological sort of the digraph if it is acyclic, and raises a
-        TypeError if the digraph contains a directed cycle. As topological
-        sorts are not necessarily unique, different implementations may yield
-        different results.
+        Returns a topological sort of the digraph if it is acyclic, and
+        raises a TypeError if the digraph contains a directed cycle. As
+        topological sorts are not necessarily unique, different
+        implementations may yield different results.
 
-        A topological sort is an ordering of the vertices of the digraph such
-        that each vertex comes before all of its successors. That is, if `u`
-        comes before `v` in the sort, then there may be a directed path from `u`
-        to `v`, but there will be no directed path from `v` to `u`.
+        A topological sort is an ordering of the vertices of the digraph
+        such that each vertex comes before all of its successors. That
+        is, if `u` comes before `v` in the sort, then there may be
+        a directed path from `u` to `v`, but there will be no directed
+        path from `v` to `u`.
 
         INPUT:
 
@@ -2601,13 +2602,14 @@ class DiGraph(GenericGraph):
 
         .. SEEALSO::
 
-            - :meth:`is_directed_acyclic` -- Tests whether a directed graph is
-              acyclic (can also join a certificate -- a topological sort or a
-              circuit in the graph1).
+            - :meth:`is_directed_acyclic` -- Tests whether a directed
+              graph is acyclic (can also join a certificate --
+              a topological sort or a circuit in the graph1).
 
         EXAMPLES::
 
-            sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7], 5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
+            sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7],
+            ...     5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
             sage: D.plot(layout='circular').show()
             sage: D.topological_sort()
             [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
@@ -2634,14 +2636,18 @@ class DiGraph(GenericGraph):
             sage: D.topological_sort()
             Traceback (most recent call last):
             ...
-            TypeError: Digraph is not acyclic-- there is no topological sort.
+            TypeError: Digraph is not acyclic-- there is no topological
+            sort.
 
         .. note::
 
-           There is a recursive version of this in NetworkX, it used to have problems in earlier versions but they have since been fixed::
+           There is a recursive version of this in NetworkX, it used to
+        have problems in earlier versions but they have since been
+        fixed::
 
               sage: import networkx
-              sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7], 5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
+              sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7],
+              ...     5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
               sage: N = D.networkx_graph()
               sage: networkx.topological_sort(N)
               [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
@@ -2655,7 +2661,8 @@ class DiGraph(GenericGraph):
             sage: D.topological_sort(implementation = "cloud-reading")
             Traceback (most recent call last):
             ...
-            ValueError: implementation must be set to one of "default" or "NetworkX"
+            ValueError: implementation must be set to one of "default"
+            or "NetworkX"
         """
 
         if implementation == "default":

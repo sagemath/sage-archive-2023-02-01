@@ -5475,7 +5475,8 @@ class GraphGenerators():
         TESTS:
 
          Normally we would only consider balanced trees whose root node
-         has degree `r \geq 2`, but the construction degenerates gracefully::
+         has degree `r \geq 2`, but the construction degenerates
+         gracefully::
 
             sage: graphs.BalancedTree(1, 10)
             Balanced tree: Graph on 2 vertices
@@ -7083,7 +7084,8 @@ class GraphGenerators():
         ::
 
             sage: graphs.RandomHolmeKim(8, 2, 0.5).edges(labels=False)
-            [(0, 2), (0, 5), (1, 2), (1, 3), (2, 3), (2, 4), (2, 6), (2, 7), (3, 4), (3, 6), (3, 7), (4, 5)]
+            [(0, 2), (0, 5), (1, 2), (1, 3), (2, 3), (2, 4), (2, 6), (2, 7),
+             (3, 4), (3, 6), (3, 7), (4, 5)]
 
         ::
 

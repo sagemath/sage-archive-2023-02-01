@@ -3294,43 +3294,59 @@ class Graph(GenericGraph):
 
     ### Centrality
 
-    def centrality_betweenness(self, k=None, normalized=True, weight=None, endpoints=False, seed=None):
+    def centrality_betweenness(self, k=None, normalized=True, weight=None,
+            endpoints=False, seed=None):
         r"""
-        Returns the betweenness centrality (fraction of number of shortest
-        paths that go through each vertex) as a dictionary keyed by
-        vertices. The betweenness is normalized by default to be in range
-        (0,1). This wraps NetworkX's implementation of the algorithm
-        described in [Brandes2003]_.
+        Returns the betweenness centrality (fraction of number of
+        shortest paths that go through each vertex) as a dictionary
+        keyed by vertices. The betweenness is normalized by default to
+        be in range (0,1). This wraps NetworkX's implementation of the
+        algorithm described in [Brandes2003]_.
 
-        Measures of the centrality of a vertex within a graph determine the
-        relative importance of that vertex to its graph. Vertices that
-        occur on more shortest paths between other vertices have higher
-        betweenness than vertices that occur on less.
+        Measures of the centrality of a vertex within a graph determine
+        the relative importance of that vertex to its graph. Vertices
+        that occur on more shortest paths between other vertices have
+        higher betweenness than vertices that occur on less.
 
         INPUT:
 
 
-        -  ``normalized`` - boolean (default True) - if set to
-           False, result is not normalized.
+        -  ``normalized`` - boolean (default True) - if set to False,
+           result is not normalized.
 
-        - ``k`` - integer or None (default None) - if set to an integer, use ``k`` node samples to estimate betweenness. Higher values give better approximations.
+        - ``k`` - integer or None (default None) - if set to an integer,
+          use ``k`` node samples to estimate betweenness. Higher values
+          give better approximations.
 
-        - ``weight`` - None or string. If set to a string, use that attribute of the nodes as weight. ``weight = True`` is equivalent to ``weight = "weight"``
+        - ``weight`` - None or string. If set to a string, use that
+          attribute of the nodes as weight. ``weight = True`` is
+          equivalent to ``weight = "weight"``
 
-        - ``endpoints`` - Boolean. If set to True it includes the endpoints in the shortest paths count
+        - ``endpoints`` - Boolean. If set to True it includes the
+          endpoints in the shortest paths count
 
         REFERENCE:
 
         .. [Brandes2003] Ulrik Brandes. (2003). Faster Evaluation of
-          Shortest-Path Based Centrality Indices. [Online] Available:
-          http://citeseer.nj.nec.com/brandes00faster.html
+           Shortest-Path Based Centrality Indices. [Online] Available:
+           http://citeseer.nj.nec.com/brandes00faster.html
 
         EXAMPLES::
 
             sage: (graphs.ChvatalGraph()).centrality_betweenness()
-            {0: 0.06969696969696969, 1: 0.06969696969696969, 2: 0.0606060606060606, 3: 0.0606060606060606, 4: 0.06969696969696969, 5: 0.06969696969696969, 6: 0.0606060606060606, 7: 0.0606060606060606, 8: 0.0606060606060606, 9: 0.0606060606060606, 10: 0.0606060606060606, 11: 0.0606060606060606}
-            sage: (graphs.ChvatalGraph()).centrality_betweenness(normalized=False)
-            {0: 3.833333333333333, 1: 3.833333333333333, 2: 3.333333333333333, 3: 3.333333333333333, 4: 3.833333333333333, 5: 3.833333333333333, 6: 3.333333333333333, 7: 3.333333333333333, 8: 3.333333333333333, 9: 3.333333333333333, 10: 3.333333333333333, 11: 3.333333333333333}
+            {0: 0.06969696969696969, 1: 0.06969696969696969,
+             2: 0.0606060606060606, 3: 0.0606060606060606,
+             4: 0.06969696969696969, 5: 0.06969696969696969,
+             6: 0.0606060606060606, 7: 0.0606060606060606,
+             8: 0.0606060606060606, 9: 0.0606060606060606,
+             10: 0.0606060606060606, 11: 0.0606060606060606}
+            sage: (graphs.ChvatalGraph()).centrality_betweenness(
+            ...     normalized=False)
+            {0: 3.833333333333333, 1: 3.833333333333333, 2: 3.333333333333333,
+             3: 3.333333333333333, 4: 3.833333333333333, 5: 3.833333333333333,
+             6: 3.333333333333333, 7: 3.333333333333333, 8: 3.333333333333333,
+             9: 3.333333333333333, 10: 3.333333333333333,
+             11: 3.333333333333333}
             sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: D.show(figsize=[2,2])
             sage: D = D.to_undirected()
@@ -3339,7 +3355,9 @@ class Graph(GenericGraph):
             {0: 0.16666666666666666, 1: 0.16666666666666666, 2: 0.0, 3: 0.0}
         """
         import networkx
-        return networkx.betweenness_centrality(self.networkx_graph(copy=False), k=k,normalized = normalized, weight=weight, endpoints=endpoints, seed=seed )
+        return networkx.betweenness_centrality(self.networkx_graph(copy=False),
+                k=k, normalized=normalized, weight=weight, endpoints=endpoints,
+                seed=seed)
 
     def centrality_degree(self, v=None):
         r"""

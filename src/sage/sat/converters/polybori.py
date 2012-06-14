@@ -31,13 +31,14 @@ from sage.misc.cachefunc import cached_method, cached_function
 from sage.combinat.permutation import Permutations
 
 class CNFEncoder(object):
-    def __init__(self, sat_solver, ring, max_variables=6, cutting_number=4, random_seed = 16, **kwds):
+    def __init__(self, sat_solver, ring, max_variables=6, use_xor_clauses=None, cutting_number=4, random_seed=16, **kwds):
         """
         INPUT:
 
         - ``sat_solver`` - a SAT-solver instance
         - ``ring`` - a :cls:`BooleanPolynomialRing`
         - ``max_variables`` - maximum number of variables for direct conversion
+        - ``use_xor_clauses`` - use XOR clauses; if ``None`` use if ``sat_solver`` supports it. (default: ``None``)
         - ``cutting_number`` - maximum length of XOR chains
         - ``random_seed`` - (default: 16)
         - ``**kwds`` - ignored
@@ -49,15 +50,20 @@ class CNFEncoder(object):
         self.sat_solver = sat_solver
         self.max_variables = max_variables
         self.cutting_number = cutting_number
+
+        if use_xor_clauses is None:
+            use_xor_clauses = hasattr(sat_solver,"add_xor_clause")
+        self.use_xor_clauses = use_xor_clauses
+
         self.ring = ring
 
-        self._phi = []
+        self._phi = [None]
         for x in sorted([x.lm() for x in self.ring.gens()], key=lambda x: x.index()):
-            self.new_gen(x, decision=True)
+            self.gen(x, decision=True)
 
-    def new_gen(self, m, decision=None):
+    def gen(self, m, decision=None):
         self._phi.append(m)
-        return self.sat_solver.new_gen(decision=True)
+        return self.sat_solver.gen(decision=True)
 
     def phi(self):
         """
@@ -77,9 +83,11 @@ class CNFEncoder(object):
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
-            sage: e = CNFEncoder(None, B)
-            sage: e.zero_blocks(a*b*c)
-            [{a: 0}, {b: 0}, {c: 0}]
+            sage: from sage.sat.solvers.cryptominisat import CryptoMiniSat
+            sage: cms = CryptoMiniSat()
+            sage: e = CNFEncoder(cms, B)
+            sage: sorted(e.zero_blocks(a*b*c))
+            [{c: 0}, {b: 0}, {a: 0}]
         """
         variables = f.vars_as_monomial()
 
@@ -159,7 +167,9 @@ class CNFEncoder(object):
         f = (f - f.constant_coefficient())
         f = [self.monomial(m) for m in f]
 
-        if f > self.cutting_number:
+        if self.use_xor_clauses:
+            self.xor_cnf(f, equal_zero)
+        elif f > self.cutting_number:
             for fpart, this_equal_zero in self.split_xor(f, equal_zero):
                 self.xor_cnf(fpart, this_equal_zero)
         else:
@@ -173,7 +183,7 @@ class CNFEncoder(object):
             # we need to encode the relationship between the monomial
             # and its variables
             variables = [self.monomial(v) for v in m.variables()]
-            monomial = self.new_gen(m, decision=False)
+            monomial = self.gen(m, decision=False)
 
             # (a | -w) & (b | -w) & (w | -a | -b) <=> w == a*b
             for v in variables:
@@ -207,16 +217,19 @@ class CNFEncoder(object):
         for j in range(0, nm, step):
             m =  new_variables + monomial_list[j:j+step]
             if (j + step) < nm:
-                new_variables = [self.new_gen(None, decision=False)]
+                new_variables = [self.gen(None, decision=False)]
                 m += new_variables
             M.append([m, equal_zero])
             equal_zero = True
         return M
 
     def xor_cnf(self, M, equal_zero):
-        ll = len(M)
-        for p in self.permutations(ll, equal_zero):
-            self.sat_solver.add_clause([ p[i]*M[i] for i in range(ll) ])
+        if self.use_xor_clauses:
+            self.sat_solver.add_xor_clause(M, equal_zero)
+        else:
+            ll = len(M)
+            for p in self.permutations(ll, equal_zero):
+                self.sat_solver.add_clause([ p[i]*M[i] for i in range(ll) ])
 
     ####################################################
     # Highlevel Functions
@@ -258,7 +271,7 @@ class CNFEncoder(object):
         phi = self.phi()
         product = self.ring(1)
         for v in c:
-            if phi[abs(v)-1] is None:
+            if phi[abs(v)] is None:
                 raise ValueError("Clause containst an XOR glueing variable.")
-            product *= phi[abs(v)-1] + int(v>0)
+            product *= phi[abs(v)] + int(v>0)
         return product

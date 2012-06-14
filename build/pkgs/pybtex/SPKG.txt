@@ -2,7 +2,8 @@
 
 == Description ==
 
-Pybtex is a drop-in replacement for BibTeX written in Python.
+Pybtex is a drop-in replacement for BibTeX written in Python. That is,
+you can run 'pybtex FILE' instead of 'bibtex FILE'.
 
 We use the bazaar trunk because it is less buggy and more feature-rich.
 The latest version is available through this command:
@@ -29,8 +30,7 @@ http://pybtex.sourceforge.net/
 https://code.launchpad.net/~ero-sennin/pybtex/trunk
 
 == Dependencies ==
-
-This package is self contained.
+ * python
 
 == Special Update/Build Instructions ==
 
@@ -51,4 +51,7 @@ access.
 
 === pybtex-20120522 (Niels Ranosch, May 22, 2012) ===
  * upstream update
+
+=== pybtex-20120614 (Niels Ranosch, June 14, 2012) ===
+ * updated description and dependencies as suggested by John Palmieri
 

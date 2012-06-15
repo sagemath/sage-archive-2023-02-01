@@ -474,6 +474,98 @@ possible, since this is what dominates the Sage startup time, and
 controlling the top-level imports helps to do this.
 
 
+Deprecation
+===========
+
+Sooner or later you will find places in the Sage library that are, in
+hindsight, not designed as well as they could be. Of course you want
+to improve the overall state, but at the same time we don't want to
+pull out the carpet under our users' feet. The process of removing old
+code is called deprecation.
+
+.. note::
+
+    Before removing any functionality, you should keep a deprecation
+    warning in place for at least one year (if possible). The
+    deprecation must include the trac ticket number where it was
+    introduced.
+
+For example, let's say you run across the following while working on a
+module in the Sage library::
+
+    class Foo(SageObject):
+        def terrible_idea(self):
+	    return 1
+        def bad_name(self):
+	    return 1
+        def f(self, weird_keyword=True):
+	    return 1
+
+You note that the ``terrible_idea()`` method does not make any sense,
+and should be removed altogether. You open the trac ticket number 3333
+(say), and replace the code with::
+
+        def terrible_idea(self):
+	    from sage.misc.superseded import deprecation
+	    deprecation(3333, 'You can just call f() instead')
+	    return 1
+
+Later, you come up with a much better name for the second method. You
+open the trac ticket number 4444, and replace it with::
+
+        def much_better_name(self):
+	    return 1
+
+	bad_name = deprecated_function_alias(4444, much_better_name)
+
+Finally, you like the ``f()`` method name but you don't like the
+``weird_keyword`` name. You fix this by opening the trac ticket 5555,
+and replacing it with::
+
+        @rename_keyword(deprecation=5555, weird_keyword='nice_keyword')
+        def f(self, nice_keyword=True):
+	    return 1
+
+Now, any user that still relies on the deprecated functionality will
+be informed that this is about to change, yet the deprecated commands
+still work. With all necessary imports, the final result looks like
+this::
+
+    sage: from sage.misc.superseded import deprecation, deprecated_function_alias
+    sage: from sage.misc.decorators import rename_keyword
+
+    sage: class Foo(SageObject):
+    ...
+    ...     def terrible_idea(self):
+    ... 	    deprecation(3333, 'You can just call f() instead')
+    ... 	    return 1
+    ...
+    ...     def much_better_name(self):
+    ... 	    return 1
+    ...
+    ...     bad_name = deprecated_function_alias(4444, much_better_name)
+    ...
+    ...     @rename_keyword(deprecation=5555, weird_keyword='nice_keyword')
+    ...     def f(self, nice_keyword=True):
+    ... 	    return 1
+
+    sage: foo = Foo()
+    sage: foo.terrible_idea()
+    doctest:...: DeprecationWarning: You can just call f() instead
+    See http://trac.sagemath.org/3333 for details.
+    1
+
+    sage: foo.bad_name()
+    doctest:...: DeprecationWarning: bad_name is deprecated. Please use much_better_name instead.
+    See http://trac.sagemath.org/4444 for details.
+    1
+
+    sage: foo.f(weird_keyword=False)
+    doctest:...: DeprecationWarning: use the option 'nice_keyword' instead of 'weird_keyword'
+    See http://trac.sagemath.org/5555 for details.
+    1
+
+
 Editing existing files
 ======================
 

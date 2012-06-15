@@ -1839,6 +1839,14 @@ ext_modules = [
     Extension('sage.tests.cython',
               sources = ['sage/tests/cython.pyx']),
 
+    ################################
+    ##
+    ## sage.sat
+    ##
+    ################################
+
+    Extension('sage.sat.solvers.satsolver',
+              sources = ['sage/sat/solvers/satsolver.pyx']),
     ]
 
 # Optional extensions :

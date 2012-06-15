@@ -1,4 +1,5 @@
-from decl cimport Solver, Var, Lit
+from sage.sat.solvers.satsolver cimport SatSolver
+from decl cimport Solver
 
-cdef class CryptoMiniSat:
+cdef class CryptoMiniSat(SatSolver):
     cdef Solver *_solver

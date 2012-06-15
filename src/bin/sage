@@ -955,28 +955,14 @@ fi
 if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then
    cd "$CUR"
    shift
-   for PKG in "$@"
-   do
-      echo "Creating Sage package $PKG"
-      sage-pkg "$PKG"
-      if [ $? -ne 0 ]; then
-         exit 1
-      fi
-   done
+   sage-pkg "$@"
    exit $?
 fi
 
 if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
    cd "$CUR"
    shift
-   for PKG in "$@"
-   do
-      echo "Creating Sage package $PKG with no compression"
-      sage-pkg --nocompress "$PKG"
-      if [ $? -ne 0 ]; then
-         exit 1
-      fi
-   done
+   sage-pkg -n "$@"
    exit $?
 fi
 

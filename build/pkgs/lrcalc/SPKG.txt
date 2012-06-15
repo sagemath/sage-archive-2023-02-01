@@ -2,7 +2,7 @@
 
 == Description ==
 
-lrcalc 1.1.6 beta: Littlewood-Richardson Calculator
+lrcalc 1.1.6 beta p0: Littlewood-Richardson Calculator
 
 http://math.rutgers.edu/~asbuch/lrcalc/
 
@@ -24,6 +24,10 @@ Anders S. Buch (asbuch@math.rutgers.edu)
 == Special Update/Build Instructions ==
 
 == Changelog ==
+
+=== lrcalc-1.1.6beta.p0 (Nicolas M. Thiéry, June 2012)  ===
+
+Fixed make -> $MAKE
 
 === lrcalc-1.1.6beta (Nicolas M. Thiéry, January 2012)  ===
 

@@ -11,27 +11,20 @@ GPLv2+
 
 == SPKG Maintainers ==
 
+ * Keshav Kini
+ * Jason Grout
  * William Stein
  * Tim Dumol
- * Jason Grout
- * Keshav Kini
- * ???
 
 == Upstream Contact ==
 
- * William Stein
+ * Keshav Kini
  * Homepage: http://nb.sagemath.org/
 
 == Dependencies ==
 
-This section is outdated.
-
- * Python >= 2.6.4
- * jinja2 >= 2.5.5
- * Sphinx >= 1.0.4 (pretty docstrings)
-
- Included dependencies (for specific version numbers, see the
- spkg-dist file):
+Included dependencies (for specific version numbers, see the file
+util/fetch_deps.py in the sagenb directory):
 
  * twisted
  * pytz
@@ -44,66 +37,24 @@ This section is outdated.
  * Flask-AutoIndex
  * Flask-Babel
  * Flask-OpenID
- * zope.testbrowser >= 3.8.1 (maybe not anymore?)
+ * pyOpenSSL
+ * webassets
 
-== Special Update / Build Instructions ==
+== Packaging Instructions ==
 
-Warning: I have tried to update this section but it might still have
-anachronistic information in it.
+To release a new spkg:
 
- * To release a new spkg, go to your sagenb repository and check that:
-
-   * All changes are committed.
-   * .gitignore and MANIFEST.in are current.
-   * The notebook runs.
-   * The doctests pass: sage -t --sagenb
-   * The notebook will be possible to install from the new SPKG without an
-     internet connection.
-       * Any dependencies that must be downloaded can be added in dist.sh
-         and inserted in setup.py. Dependencies of dependencies need not be put
-         in setup.py, but need to be put in dist.sh (until we can make it
-         smarter).
-   * The Selenium tests pass (optional, for now).
-   * The localization file ``sagenb.pot`` is up-to-date .
-       * Run ``pybabel extract -F /path/to/babel.cfg /path/to/project
-         -o /path/to/sagenb.po`` (get pybabel with ``easy_install
-         pybabel``).
-       * Copy the headers from the existing ``sagenb.pot``.
-       * Replace ``sagenb.pot`` with ``sagenb.po``.
-
-   Then,
-
-   * Update the version in setup.py and commit this change.
-   * Run dist.sh
-   * Copy the newly generated dist/ directory from the sagenb repo to the
-     SPKG's root directory and rename it src/ , replacing the src/ directory
-     that is currently there
-   * Pack up the SPKG with `sage --pkg --no-compress` (because everything in
-     src/ is already compressed)
-   * Install and test the new spkg: sage -f sagenb-*.spkg
-   * Don't forget to push all changes in the sagenb repo to github.
-
- * Stylesheets (CSS): see sass/readme.txt.
-
- * To add a locale to an existing install:
-
-   * Create a new locale, or download one from
-     `http://wiki.sagemath.org/i18n`_:
-
-      * To create a new locale:
-
-        * Edit and save a copy of ``sagenb.pot``
-          using your favorite text editor or POEdit (http://poedit.net)
-
-        * (Recommended) Post the new locale to
-          `http://wiki.sagemath.org/i18n`_
-
-   * Compile your copy via ``msgfmt sagenb.pot -o sagenb.mo``
-
-   * Copy ``sagenb.mo`` to ``sagenb/locale/xx_YY/LC_MESSAGES/``,
-     where xx_YY is a locale code (en_US, pt_BR, en_UK, etc.)
-
+ * Go to your sagenb repository
+ * Run dist.sh
+ * Replace the src/ directory in this SPKG with the newly created dist/
+   directory that has now appeared in your sagenb repository
+ * A winner is you!
 
 == Changelog ==
 
- * For an accurate log of changes, run `git log` in the sagenb repository.
+=== 0.9.1 (Keshav Kini, 2012-06-15) ===
+
+ * Upgraded to 0.9.1
+
+For an full log of changes, look at the history on github:
+http://github.com/sagemath/sagenb

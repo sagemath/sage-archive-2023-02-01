@@ -284,7 +284,7 @@ class RSat(DIMACS):
 
     command = "rsat {input} -v -s"
 
-    def __call__(self, assumptions):
+    def __call__(self, assumptions=None):
         """
         Solve this instance.
 
@@ -307,8 +307,9 @@ class RSat(DIMACS):
            sage: F,s = mq.SR(1,1,1,4,gf2=True,polybori=True).polynomial_system()
            sage: solve_sat(F, solver=sage.sat.solvers.RSat) # not tested, requires RSat in PATH
         """
-        DIMACSSolver.__call__(self)
+        DIMACS.__call__(self)
 
+        s = [None] + [False for _ in range(self.ngens())]
         for line in self._output:
             if line.startswith("c"):
                 continue
@@ -316,7 +317,10 @@ class RSat(DIMACS):
                 if "UNSAT" in line:
                     return False
             if line.startswith("v"):
-                return tuple([0] + map(int, line[2:-2].strip().split(" ")))
+                lits = map(int, line[2:-2].strip().split(" "))
+                for e in lits:
+                    s[abs(e)] = e>0
+        return tuple(s)
 
 class Glucose(DIMACS):
     """
@@ -350,17 +354,18 @@ class Glucose(DIMACS):
            sage: F,s = mq.SR(1,1,1,4,gf2=True,polybori=True).polynomial_system()
            sage: solve_sat(F, solver=sage.sat.solvers.Glucose) # not tested, requires Glucose in PATH
         """
-        DIMACSSolver.__call__(self)
+        DIMACS.__call__(self)
 
         for line in self._output:
-
             if line.startswith("c"):
                 continue
             if line.startswith("s"):
                 if "UNSAT" in line:
                     return False
             try:
-                return tuple([0] + map(int, line[2:-2].strip().split(" ")))
+                s = map(int, line[:-2].strip().split(" "))
+                s = (None,) + tuple(e>0 for e in s)
+                return s
             except ValueError:
                 pass
-        raise ValueError("Could not parse Glucose output.")
+        return False

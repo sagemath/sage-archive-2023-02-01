@@ -3,17 +3,20 @@
 ================
 
 You've discovered a bug or something else you want to change
-in `Sage Notebook`_ .. |emdash| excellent!
+in `Sage Notebook`_ |emdash| excellent!
 
 You've worked out a way to fix it |emdash| even better!
 
 You want to tell us about it |emdash| best of all!
 
 The easiest way is to make a *patch* or set of patches.  Here
-we explain how.  Making a patch is the simplest and quickest,
-but if you're going to be doing anything more than simple
-quick things, please consider following the
-:ref:`git-development` model instead.
+we explain how.
+
+Making a patch is simple and quick, but it is not part of our
+normal workflow. So if you are going to be doing anything more
+than a once-off patch one time, please consider following the
+:ref:`git-development` model instead.  See especially the part
+about "pull requests" at :ref:`edit-flow`.
 
 .. _making-patches:
 
@@ -44,8 +47,11 @@ Overview
    # make the patch files
    git format-patch -M -C master
 
-Then, send the generated patch files to the `Sage Notebook
-mailing list`_ |emdash| where we will thank you warmly.
+You may attach a short generated patch file to the
+`Sage Notebook mailing list`_ or better, open an issue
+at the `Sage Notebook github`_ site (see :ref:`git-development`)
+and cut and paste your patch in a comment there.
+In either case we will thank you warmly.
 
 In detail
 ---------
@@ -100,7 +106,11 @@ In detail
       0001-BF-added-tests-for-Funny-bug.patch
       0002-BF-added-fix-for-Funny-bug.patch
 
-   Send these files to the `Sage Notebook mailing list`_.
+   Although some projects would have you send these files to
+   the `Sage Notebook mailing list`_, we prefer submitting an issue
+   request at the web interface to the `Sage Notebook github`_
+   page. See :ref:`edit-flow` for how to create a "pull request" once you
+   have created a Github account.
 
 When you are done, to switch back to the main copy of the
 code, just return to the ``master`` branch::

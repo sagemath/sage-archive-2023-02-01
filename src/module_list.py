@@ -54,7 +54,7 @@ numpy_include_dirs = [SAGE_LOCAL + '/lib/python/site-packages/numpy/core/include
 numpy_depends = [SAGE_LOCAL + '/lib/python/site-packages/numpy/core/include/numpy/_numpyconfig.h']
 
 flint_depends = [SAGE_INC + 'FLINT/flint.h']
-singular_depends = [SAGE_INC + 'libsingular.h']
+singular_depends = [SAGE_INC + 'libsingular.h', SAGE_INC + 'givaro/givconfig.h']
 ginac_depends = [SAGE_INC + 'pynac/ginac.h']
 
 #########################################################
@@ -597,12 +597,12 @@ ext_modules = [
 
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
-              # For this to work on cygwin, linboxwrap *must* be
+              # For this to work on cygwin, linboxsage *must* be
               # before ntl.
               libraries = ['linboxsage', 'ntl', 'linbox',
                            'stdc++', 'givaro', 'gmp', 'gmpxx', BLAS, BLAS2],
-              language = 'c++'),
-
+              language = 'c++',
+              depends = [SAGE_INC + 'givaro/givconfig.h']),
 
     Extension('sage.libs.lcalc.lcalc_Lfunction',
               sources = ['sage/libs/lcalc/lcalc_Lfunction.pyx'],

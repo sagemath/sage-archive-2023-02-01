@@ -110,7 +110,7 @@ class DIMACS(SatSolver):
         if os.path.exists(self._tail.name):
             os.unlink(self._tail.name)
 
-    def gen(self, decision=None):
+    def var(self, decision=None):
         """
         Return a *new* variable.
 
@@ -122,13 +122,13 @@ class DIMACS(SatSolver):
 
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: solver = DIMACS()
-            sage: solver.gen()
+            sage: solver.var()
             1
         """
         self._var+= 1
         return self._var
 
-    def ngens(self):
+    def nvars(self):
         """
         Return the number of variables.
 
@@ -136,11 +136,11 @@ class DIMACS(SatSolver):
 
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: solver = DIMACS()
-            sage: solver.gen()
+            sage: solver.var()
             1
-            sage: solver.gen(decision=True)
+            sage: solver.var(decision=True)
             2
-            sage: solver.ngens()
+            sage: solver.nvars()
             2
         """
         return self._var
@@ -163,9 +163,9 @@ class DIMACS(SatSolver):
 
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: solver = DIMACS()
-            sage: solver.gen()
+            sage: solver.var()
             1
-            sage: solver.gen(decision=True)
+            sage: solver.var(decision=True)
             2
             sage: solver.add_clause( (1, -2 , 3) )
             sage: solver
@@ -174,8 +174,8 @@ class DIMACS(SatSolver):
         l = []
         for lit in lits:
             lit = int(lit)
-            while abs(lit) > self.ngens():
-                self.gen()
+            while abs(lit) > self.nvars():
+                self.var()
             l.append(str(lit))
         l.append("0\n")
         self._tail.write(" ".join(l) )
@@ -295,7 +295,7 @@ class RSat(DIMACS):
 
         OUTPUT:
 
-        - If this instance is SAT: A tuple of length ``ngens()+1``
+        - If this instance is SAT: A tuple of length ``nvars()+1``
           where the ``i``-th entry holds an assignment for the
           ``i``-th variables (the ``0``-th entry is always ``None``).
 
@@ -309,7 +309,7 @@ class RSat(DIMACS):
         """
         DIMACS.__call__(self)
 
-        s = [None] + [False for _ in range(self.ngens())]
+        s = [None] + [False for _ in range(self.nvars())]
         for line in self._output:
             if line.startswith("c"):
                 continue
@@ -342,7 +342,7 @@ class Glucose(DIMACS):
 
         OUTPUT:
 
-        - If this instance is SAT: A tuple of length ``ngens()+1``
+        - If this instance is SAT: A tuple of length ``nvars()+1``
           where the ``i``-th entry holds an assignment for the
           ``i``-th variables (the ``0``-th entry is always ``None``).
 

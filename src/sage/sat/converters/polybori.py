@@ -134,9 +134,9 @@ class CNFEncoder(ANF2CNFConverter):
         # below, as this relies on phi being sorted like this.
         self._phi = [None]
         for x in sorted([x.lm() for x in self.ring.gens()], key=lambda x: x.index()):
-            self.gen(x, decision=True)
+            self.var(x, decision=True)
 
-    def gen(self, m=None, decision=None):
+    def var(self, m=None, decision=None):
         """
         Return a *new* variable.
 
@@ -155,11 +155,11 @@ class CNFEncoder(ANF2CNFConverter):
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: ce = CNFEncoder(DIMACS(), B)
-            sage: ce.gen()
+            sage: ce.var()
             4
         """
         self._phi.append(m)
-        return self.solver.gen(decision=True)
+        return self.solver.var(decision=True)
 
     @property
     def phi(self):
@@ -172,7 +172,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: ce = CNFEncoder(DIMACS(), B)
-            sage: ce.gen()
+            sage: ce.var()
             4
             sage: ce.phi
             [None, a, b, c, None]
@@ -386,7 +386,7 @@ class CNFEncoder(ANF2CNFConverter):
             # we need to encode the relationship between the monomial
             # and its variables
             variables = [self.monomial(v) for v in m.variables()]
-            monomial = self.gen(m, decision=False)
+            monomial = self.var(m, decision=False)
 
             # (a | -w) & (b | -w) & (w | -a | -b) <=> w == a*b
             for v in variables:
@@ -468,7 +468,7 @@ class CNFEncoder(ANF2CNFConverter):
         for j in range(0, nm, step):
             m =  new_variables + monomial_list[j:j+step]
             if (j + step) < nm:
-                new_variables = [self.gen(None, decision=False)]
+                new_variables = [self.var(None, decision=False)]
                 m += new_variables
             M.append([m, equal_zero])
             equal_zero = True

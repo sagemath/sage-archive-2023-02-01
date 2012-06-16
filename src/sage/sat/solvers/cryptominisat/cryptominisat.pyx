@@ -126,7 +126,7 @@ cdef class CryptoMiniSat(SatSolver):
 """%(self._solver.nVars(), self._solver.nLiterals(), self._solver.nClauses(), self._solver.nLearnts(), self._solver.nAssigns())
          return s
 
-    def gen(self, decision=None):
+    def var(self, decision=None):
         """
         Return a *new* generator.
 
@@ -139,9 +139,9 @@ cdef class CryptoMiniSat(SatSolver):
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
-            sage: cms.gen()                                  # optional - cryptominisat
+            sage: cms.var()                                  # optional - cryptominisat
             1
-            sage: cms.gen(decision=True)                     # optional - cryptominisat
+            sage: cms.var(decision=True)                     # optional - cryptominisat
             2
 
         """
@@ -152,7 +152,7 @@ cdef class CryptoMiniSat(SatSolver):
             var = self._solver.newVar(bool(decision))
         return int(var+1)
 
-    def ngens(self):
+    def nvars(self):
         """
         Return the number of variables.
 
@@ -160,11 +160,11 @@ cdef class CryptoMiniSat(SatSolver):
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
-            sage: cms.gen()                                  # optional - cryptominisat
+            sage: cms.var()                                  # optional - cryptominisat
             1
-            sage: cms.gen(decision=True)                     # optional - cryptominisat
+            sage: cms.var(decision=True)                     # optional - cryptominisat
             2
-            sage: cms.ngens()                                # optional - cryptominisat
+            sage: cms.nvars()                                # optional - cryptominisat
             2
         """
         return int(self._solver.nVars())
@@ -187,9 +187,9 @@ cdef class CryptoMiniSat(SatSolver):
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
-            sage: cms.gen()                                  # optional - cryptominisat
+            sage: cms.var()                                  # optional - cryptominisat
             1
-            sage: cms.gen(decision=True)                     # optional - cryptominisat
+            sage: cms.var(decision=True)                     # optional - cryptominisat
             2
             sage: cms.add_clause( (1, -2 , 3) )              # optional - cryptominisat
             sage: cms                                        # optional - cryptominisat
@@ -223,9 +223,9 @@ cdef class CryptoMiniSat(SatSolver):
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
-            sage: cms.gen()                                  # optional - cryptominisat
+            sage: cms.var()                                  # optional - cryptominisat
             1
-            sage: cms.gen(decision=True)                     # optional - cryptominisat
+            sage: cms.var(decision=True)                     # optional - cryptominisat
             2
             sage: cms.add_xor_clause( (1, -2 , 3), True )    # optional - cryptominisat
             sage: cms                                        # optional - cryptominisat
@@ -249,7 +249,7 @@ cdef class CryptoMiniSat(SatSolver):
 
         OUTPUT:
 
-        - If this instance is SAT: A tuple of length ``ngens()+1``
+        - If this instance is SAT: A tuple of length ``nvars()+1``
           where the ``i``-th entry holds an assignment for the
           ``i``-th variables (the ``0``-th entry is always ``None``).
 

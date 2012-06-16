@@ -27,7 +27,7 @@ cdef class SatSolver:
         """
         pass
 
-    def gen(self, decision=None):
+    def var(self, decision=None):
         """
         Return a *new* variable.
 
@@ -39,14 +39,14 @@ cdef class SatSolver:
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
-            sage: solver.gen()
+            sage: solver.var()
             Traceback (most recent call last):
             ...
             NotImplementedError
         """
         raise NotImplementedError
 
-    def ngens(self):
+    def nvars(self):
         """
         Return the number of variables.
 
@@ -54,7 +54,7 @@ cdef class SatSolver:
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
-            sage: solver.ngens()
+            sage: solver.nvars()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -96,7 +96,7 @@ cdef class SatSolver:
 
         OUTPUT:
 
-        - If this instance is SAT: A tuple of length ``ngens()+1``
+        - If this instance is SAT: A tuple of length ``nvars()+1``
           where the ``i``-th entry holds an assignment for the
           ``i``-th variables (the ``0``-th entry is always ``None``).
 

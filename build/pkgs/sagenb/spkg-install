@@ -38,9 +38,7 @@ fi
 # Install dependencies
 for PKG in $(cat src/install_order); do
     easy_install -H None "src/$PKG" || die "Error installing $PKG !"
-    rm "src/$PKG"
 done
-rm src/install_order
 BASENAME=$(ls -1 src | grep sagenb-)
 BASENAME=${BASENAME%.tar.gz}
 
@@ -48,7 +46,7 @@ BASENAME=${BASENAME%.tar.gz}
 #
 # TODO: let sagenb sit in site_packages like any other component of Sage other
 # than the Sage library; if the user wants to develop sagenb, they should set
-# it up in an accessible directory themselves.
+# it up in an accessible directory themselves:
 #easy_install -H None -f src "sagenb" || die "Error installing sagenb !"
 
 # Extract sagenb into $SAGE_ROOT/devel and set up the symlink
@@ -60,7 +58,6 @@ if [ -d "$SAGE_ROOT/devel/sagenb-main" ]; then
         die "Error moving the old 'sagenb-main' directory."
 fi
 tar xf "$CUR/src/$BASENAME.tar.gz"
-rm "$CUR/src/$BASENAME.tar.gz"
 mv $BASENAME sagenb-main
 rm -f "$SAGE_ROOT/devel/sagenb"
 ln -s sagenb-main "$SAGE_ROOT/devel/sagenb"

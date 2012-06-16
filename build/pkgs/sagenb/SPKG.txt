@@ -42,12 +42,16 @@ util/fetch_deps.py in the sagenb directory):
 
 == Packaging Instructions ==
 
-To release a new spkg:
+To produce a new spkg:
 
  * Go to your sagenb repository
+ * Check out the version of sagenb you want to package
  * Run dist.sh
  * Replace the src/ directory in this SPKG with the newly created dist/
    directory that has now appeared in your sagenb repository
+ * If you don't want to ship the repository, do `rm -rf src/sagenb.git`
+   (this may become standard practice in the future)
+ * `cd .. && sage --pkg --no-compress sagenb-x.y.z`
  * A winner is you!
 
 == Changelog ==

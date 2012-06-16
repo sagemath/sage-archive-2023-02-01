@@ -62,8 +62,10 @@ mv $BASENAME sagenb-main
 rm -f "$SAGE_ROOT/devel/sagenb"
 ln -s sagenb-main "$SAGE_ROOT/devel/sagenb"
 
-# Install sagenb git repo
-mv "$CUR/src/sagenb.git" ./sagenb/.git
+# Install sagenb git repo, if it has been packaged
+if [ -d "$CUR/src/sagenb.git" ]; then
+    mv "$CUR/src/sagenb.git" ./sagenb/.git
+fi
 
 # Install sagenb into Sage's Python
 # Note: We use --egg-path for relocatability

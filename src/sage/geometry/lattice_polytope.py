@@ -104,7 +104,7 @@ from sage.graphs.graph import Graph
 from sage.interfaces.all import maxima
 from sage.matrix.all import matrix, is_Matrix
 from sage.misc.all import tmp_filename
-from sage.misc.misc import SAGE_DATA
+from sage.misc.misc import SAGE_SHARE
 from sage.modules.all import vector
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
@@ -122,7 +122,7 @@ import subprocess
 import StringIO
 
 
-data_location = SAGE_DATA + '/reflexive_polytopes/'
+data_location = os.path.join(SAGE_SHARE,'reflexive_polytopes')
 
 
 class SetOfAllLatticePolytopesClass(Set_generic):
@@ -380,7 +380,7 @@ def ReflexivePolytopes(dim):
         raise NotImplementedError, "only 2- and 3-dimensional reflexive polytopes are available!"
     if _rp[dim] == None:
         rp = read_all_polytopes(
-            data_location+"reflexive_polytopes_%dd" % dim,
+            os.path.join(data_location,"reflexive_polytopes_%dd"%dim),
             desc="Reflexive polytope %4d")
         for n, p in enumerate(rp):
             # Data files have normal form of reflexive polytopes

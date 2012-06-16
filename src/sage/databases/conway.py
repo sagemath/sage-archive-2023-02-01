@@ -32,7 +32,7 @@ Frank Luebeck's tables of Conway polynomials over finite fields
 
 ## Yes, you did exactly the right thing, which I verified as follows:
 
-## (1) delete SAGE_ROOT/data/conway_polynomials/*
+## (1) delete SAGE_SHARE/conway_polynomials/*
 ## (2) put your conway_polynomial.py.bz2 file in a new directory
 ##      /home/was/s/data/src/conway/
 ## (3) Start Sage:
@@ -64,7 +64,7 @@ Frank Luebeck's tables of Conway polynomials over finite fields
 import os
 
 import sage.databases.db   # very important that this be fully qualified
-_CONWAYDATA = "%s/conway_polynomials/"%sage.misc.misc.SAGE_DATA
+_CONWAYDATA = os.path.join(sage.misc.misc.SAGE_SHARE,'conway_polynomials')
 
 
 class ConwayPolynomials(sage.databases.db.Database):

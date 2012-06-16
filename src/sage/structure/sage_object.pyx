@@ -18,8 +18,8 @@ import bz2; comp_other = bz2
 base=None
 
 cdef process(s):
-    if not base is None and (len(s) == 0 or s[0] != '/'):
-        s = base + '/' + s
+    if base is not None and not os.path.isabs(s):
+        s = os.path.join(base,s)
     if s[-5:] != '.sobj':
         return s + '.sobj'
     else:
@@ -1134,7 +1134,8 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     (typically Parents not implementing the ``an_element`` method).
     """
     if dir is None:
-        dir = os.environ['SAGE_DATA'] + '/extcode/pickle_jar/pickle_jar.tar.bz2'
+        from sage.misc.misc import SAGE_EXTCODE
+        dir = os.path.join(SAGE_EXTCODE,'pickle_jar','pickle_jar.tar.bz2')
     i = 0
     j = 0
     failed = []
@@ -1152,16 +1153,16 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     for A in sorted(os.listdir(dir)):
         if A.endswith('.sobj'):
             try:
-                object = load(dir + '/' + A)
+                object = load(os.path.join(dir,A))
                 if run_test_suite:
                     TestSuite(object).run(catch = False)
                 i += 1
             except Exception, msg:
                 j += 1
                 if run_test_suite:
-                    print " * unpickle failure: TestSuite(load('%s')).run()"%(dir+'/'+A)
+                    print " * unpickle failure: TestSuite(load('%s')).run()"%os.path.join(dir,A)
                 else:
-                    print " * unpickle failure: load('%s')"%(dir+'/'+A)
+                    print " * unpickle failure: load('%s')"%os.path.join(dir,A)
                 failed.append(A)
                 if debug:
                     tracebacks.append(sys.exc_info())

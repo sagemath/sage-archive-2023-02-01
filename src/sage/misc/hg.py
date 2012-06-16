@@ -58,7 +58,7 @@ work with the given repository:
   :file:`SAGE_ROOT` and :file:`SAGE_ROOT/spkg`)
 
 - ``hg_extcode`` -- the extcode repository (files in
-  :file:`SAGE_ROOT/data/extcode`)
+  :file:`SAGE_EXTCODE`)
 """
 
 ########################################################################
@@ -1874,6 +1874,7 @@ class HG:
 import misc
 
 SAGE_ROOT = misc.SAGE_ROOT
+SAGE_EXTCODE = misc.SAGE_EXTCODE
 DEFAULT_SERVER = "http://hg.sagemath.org"
 
 SAGE_INCOMING_SERVER = os.getenv("SAGE_INCOMING_SERVER")
@@ -1921,7 +1922,7 @@ hg_scripts = HG('%s/local/bin/'%SAGE_ROOT,
                 push_url='%s/scripts-main/'%SAGE_OUTGOING_SERVER,
                 obj_name='scripts')
 
-hg_extcode = HG('%s/data/extcode'%SAGE_ROOT,
+hg_extcode = HG(SAGE_EXTCODE,
                 'Sage External System Code (e.g., PARI, MAGMA, etc.)',
                 pull_url='%s/extcode-main/'%SAGE_INCOMING_SERVER,
                 push_url='%s/extcode-main/'%SAGE_OUTGOING_SERVER,

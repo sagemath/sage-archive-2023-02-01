@@ -10,7 +10,7 @@ AUTHORS:
 
 TODO:
 
-- add more examples from data/extcode/pari/dokchitser that illustrate
+- add more examples from SAGE_EXTCODE/pari/dokchitser that illustrate
   use with Eisenstein series, number fields, etc.
 
 - plug this code into number fields and modular forms code (elliptic

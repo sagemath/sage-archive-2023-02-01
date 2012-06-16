@@ -1,10 +1,8 @@
 import os
-from sage.misc.misc import SAGE_ROOT
 from sage.misc.cachefunc import cached_function
 from sage.rings.integer import Integer
 from sage.structure.sage_object import load
-
-PATH = os.path.join(SAGE_ROOT,"data","cunningham_tables")
+from sage.misc.misc import SAGE_SHARE
 
 @cached_function
 def cunningham_prime_factors():
@@ -13,7 +11,7 @@ def cunningham_prime_factors():
     They occur in the factorization of numbers of type $b^n+1$ or $b^n-1$ with $b \in \{2,3,5,6,7,10,11,12\}$.
     Data from http://cage.ugent.be/~jdemeyer/cunningham/
     """
-    file = os.path.join(PATH,"cunningham_prime_factors.sobj")
+    file = os.path.join(SAGE_SHARE,'cunningham_tables','cunningham_prime_factors.sobj')
     if os.path.exists(file):
         return map(Integer,load(file))
     else:

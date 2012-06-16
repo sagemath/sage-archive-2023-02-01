@@ -23,7 +23,7 @@ database spkg file, using a command of the form::
     !sage -i database_cremona_ellcurve-*.spkg
 
 Both the mini and full versions of John Cremona's tables are stored in
-SAGE_DATA/cremona as SQLite databases. The mini version has the layout::
+SAGE_SHARE/cremona as SQLite databases. The mini version has the layout::
 
     CREATE TABLE t_class(conductor INTEGER, class TEXT PRIMARY KEY, rank INTEGER);
     CREATE TABLE t_curve(class TEXT, curve TEXT PRIMARY KEY, eqn TEXT UNIQUE, tors INTEGER);
@@ -53,7 +53,7 @@ from sage.misc.prandom import randint
 import sage.schemes.elliptic_curves.constructor as elliptic
 from sql_db import SQLDatabase, verify_column
 from sage.misc.package import optional_packages
-from sage.misc.misc import SAGE_DATA, walltime
+from sage.misc.misc import SAGE_SHARE, walltime
 
 import re
 import string
@@ -115,8 +115,8 @@ def build(name, data_tgz, largest_conductor=0, mini=False, decompress=True):
         sage: d = sage.databases.cremona.build('cremona','ecdata.tgz')   # not tested
     """
     t = name.replace(' ','_')
-    if os.path.exists("%s/cremona/%s.db"%(SAGE_DATA, t)):
-        raise RuntimeError("Please (re)move %s/cremona/%s.db"%(SAGE_DATA, t)
+    if os.path.exists("%s/cremona/%s.db"%(SAGE_SHARE, t)):
+        raise RuntimeError("Please (re)move %s/cremona/%s.db"%(SAGE_SHARE, t)
         + " before rebuilding database.")
     if not os.path.exists(data_tgz):
         raise IOError, "The data file is not at %s"%data_tgz
@@ -591,12 +591,12 @@ class MiniCremonaDatabase(SQLDatabase):
                 raise RuntimeError('The database must not be read_only.')
             self.name = name
             name = name.replace(' ','_')
-            SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_DATA, name), \
+            SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_SHARE, name), \
                 read_only=read_only, skeleton=_miniCremonaSkeleton)
             return
         self.name = name
         name = name.replace(' ','_')
-        SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_DATA, name), \
+        SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_SHARE, name), \
             read_only=read_only)
         if self.get_skeleton() != _miniCremonaSkeleton:
             raise RuntimeError('Database at %s does '%(self.__dblocation__) \
@@ -1313,12 +1313,12 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
                 raise RuntimeError('The database must not be read_only.')
             self.name = name
             name = name.replace(' ','_')
-            SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_DATA, name), \
+            SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_SHARE, name), \
                 read_only=read_only, skeleton=_cremonaSkeleton)
             return
         self.name = name
         name = name.replace(' ','_')
-        SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_DATA, name), \
+        SQLDatabase.__init__(self, '%s/cremona/%s.db'%(SAGE_SHARE, name), \
             read_only=read_only)
         if self.get_skeleton() != _cremonaSkeleton:
             raise RuntimeError('Database at %s does '%(self.__dblocation__) \
@@ -1549,13 +1549,13 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
     if name is None and not set_global:
         return _db
     if set_global and name is None:
-        if os.path.isfile('%s/cremona/cremona.db'%SAGE_DATA):
+        if os.path.isfile('%s/cremona/cremona.db'%SAGE_SHARE):
             name = 'cremona'
-        elif os.path.isfile('%s/cremona/cremona_mini.db'%SAGE_DATA):
+        elif os.path.isfile('%s/cremona/cremona_mini.db'%SAGE_SHARE):
             name = 'cremona mini'
         else:
             raise RuntimeError('Could not find valid cremona database. ' \
-                + 'Please make sure SAGE_DATA is set correctly.')
+                + 'Please make sure SAGE_SHARE is set correctly.')
     if name == 'cremona':
         mini = False
     elif name == 'cremona mini':

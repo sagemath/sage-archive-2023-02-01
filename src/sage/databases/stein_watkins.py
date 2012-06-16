@@ -137,6 +137,7 @@ prime conductor::
 import bz2, os
 
 import sage.databases.db   # very important that this be fully qualified
+from sage.misc.misc import SAGE_SHARE
 
 class SteinWatkinsIsogenyClass:
     def __init__(self, conductor):
@@ -182,7 +183,7 @@ class SteinWatkinsAllData:
             raise RuntimeError, "num (=%s) must be a nonnegative integer"%num
         name = str(num)
         name = '0'*(3-len(name)) + name
-        self._file = "%s/data/stein-watkins-ecdb/a.%s.bz2"%(os.environ["SAGE_ROOT"],name)
+        self._file = os.path.join(SAGE_SHARE, 'stein-watkins-ecdb', 'a.%s.bz2'%name)
         self._iter = self.__iter__()
 
     def __repr__(self):
@@ -274,7 +275,7 @@ class SteinWatkinsPrimeData(SteinWatkinsAllData):
             raise RuntimeError, "num (=%s) must be a nonnegative integer"%num
         name = str(num)
         name = '0'*(2-len(name)) + name
-        self._file = "%s/data/stein-watkins-ecdb/p.%s.bz2"%(os.environ["SAGE_ROOT"], name)
+        self._file = os.path.join(SAGE_SHARE,'stein-watkins-ecdb','p.%s.bz2'%name)
         self._iter = self.__iter__()
 
     def __repr__(self):

@@ -75,7 +75,7 @@ import sage.misc.misc
 from sage.structure.sage_object import load, save
 
 
-JONESDATA = "%s/data/jones/"%sage.misc.misc.SAGE_ROOT
+JONESDATA = os.path.join(sage.misc.misc.SAGE_SHARE, 'jones')
 
 class JonesDatabase:
     def __init__(self):

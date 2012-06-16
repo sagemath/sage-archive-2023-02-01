@@ -65,7 +65,7 @@ from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import RingElement
 
 import sage.misc.sage_eval
-from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
+from sage.misc.misc import SAGE_EXTCODE, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 
 BAD_SESSION = -2
@@ -184,8 +184,7 @@ class Expect(Interface):
         elif script_subdirectory is None:
             self.__path = '.'
         else:
-            self.__path = '%s/data/extcode/%s/%s'%(SAGE_ROOT,name,
-                                                   self.__script_subdirectory)
+            self.__path = os.path.join(SAGE_EXTCODE,name,self.__script_subdirectory)
         self.__initialized = False
         self.__seq = -1
         self._expect = None

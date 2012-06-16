@@ -427,7 +427,7 @@ automatically install it by typing ``sage -i mypackage-version.spkg``.
      since that will copy your package to the lib directory of the old
      version of GAP if GAP is upgraded.
 
-   - External Magma code goes in ``SAGE_ROOT/data/extcode/magma/user``,
+   - External Magma code goes in ``SAGE_ROOT/devel/ext/magma/user``,
      so if you want to redistribute Magma code with Sage as a package
      that Magma-enabled users can use, that is where you would put
      it. You would also want to have relevant Python code to make the

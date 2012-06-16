@@ -160,7 +160,7 @@ class Gp(Expect):
         - ``stacksize`` (int, default 10000000) -- the initial PARI
           stacksize in bytes (default 10MB)
         - ``maxread`` (int, default 100000) -- ??
-        - ``script_subdirectory`` (string, default None) -- name of the subdirectory of SAGE_ROOT/data/extcode/pari from which to read scripts
+        - ``script_subdirectory`` (string, default None) -- name of the subdirectory of SAGE_EXTCODE/pari from which to read scripts
         - ``logfile`` (string, default None) -- log file for the pexpect interface
         - ``server`` -- name of remote server
         - ``server_tmpdir`` -- name of temporary directory on remote server
@@ -185,7 +185,7 @@ class Gp(Expect):
         - ``stacksize`` (int, default 10000000) -- the initial PARI
           stacksize in bytes (default 10MB)
         - ``maxread`` (int, default 100000) -- ??
-        - ``script_subdirectory`` (string, default None) -- name of the subdirectory of SAGE_ROOT/data/extcode/pari from which to read scripts
+        - ``script_subdirectory`` (string, default None) -- name of the subdirectory of SAGE_EXTCODE/pari from which to read scripts
         - ``logfile`` (string, default None) -- log file for the pexpect interface
         - ``server`` -- name of remote server
         - ``server_tmpdir`` -- name of temporary directory on remote server

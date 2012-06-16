@@ -21,7 +21,7 @@ import sage.misc.misc
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-dblocation = '%s/kohel'%sage.misc.misc.SAGE_DATA
+dblocation = os.path.join(sage.misc.misc.SAGE_SHARE,'kohel')
 
 disc_length = 7
 level_length = 3

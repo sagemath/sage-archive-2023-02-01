@@ -93,7 +93,7 @@ Gallileus GmbH                   http://www.gallileus.info/
 import os, shutil, cPickle
 
 import sage.databases.compressed_storage
-from sage.misc.misc import SAGE_DATA
+from sage.misc.misc import SAGE_SHARE
 
 # The following effectively turns off the ZODB logger, which is OK for us.
 # Without this, one gets this annoying error message a lot:
@@ -128,12 +128,12 @@ class Database(_uniq):
         name = self.name
         read_only = self.read_only
         thresh = self._thresh
-        if not os.path.exists("%s/%s"%(SAGE_DATA,name)):
+        if not os.path.exists(os.path.join(SAGE_SHARE,name)):
             try:
-                os.makedirs("%s/%s"%(SAGE_DATA,name))
+                os.makedirs(os.path.join(SAGE_SHARE,name))
             except OSError:    # for online calculator...
                 pass
-        self._dbname = "%s/%s/%s"%(SAGE_DATA, name, name)
+        self._dbname = os.path.join(SAGE_SHARE,name,name)
         if self.read_only and not os.path.exists(self._dbname):
             raise RuntimeError, "The database %s is not installed."%self._dbname
         fs = FileStorage.FileStorage(self._dbname, read_only=self.read_only)
@@ -291,7 +291,7 @@ class Database(_uniq):
         X = self.as_dict(keys)
         print "Dumping %s..."%filename
         s = cPickle.dumps(X,2)
-        dir = "%s/pickles/"%SAGE_DATA
+        dir = os.path.join(SAGE_SHARE,'pickles')
         sage_makedirs(dir)
         open("%s/%s"%(dir,filename), "w").write(s)
 
@@ -311,7 +311,7 @@ class Database(_uniq):
         """
         if self.read_only:
             raise RuntimeError, "%s is read only."%self
-        dir = "%s/pickles/"%SAGE_DATA
+        dir = os.path.join(SAGE_SHARE,'pickles')
         s = open("%s/%s"%(dir,filename)).read()
         print "Restoring %s..."%filename
         X = cPickle.loads(s,2)
@@ -326,7 +326,7 @@ class Database(_uniq):
         Each file is loaded then committed to disk before the next
         file is loaded.
         """
-        X = os.listdir("%s/pickles/"%SAGE_DATA)
+        X = os.listdir(os.path.join(SAGE_SHARE,'pickles'))
         n = len(basename)
         for F in X:
             if F[:n] == basename:
@@ -347,7 +347,7 @@ class Database(_uniq):
         There must not be a database with the new_name already, or a
         RuntimeError exception is raised.
         """
-        if os.path.exists("%s/%s"%(SAGE_DATA,new_name)):
+        if os.path.exists(os.path.join(SAGE_SHARE,new_name)):
             raise RuntimeError, "Cannot clone to %s since that database already exists."%name
-        os.path.makedirs("%s/%s"%(SAGE_DATA,new_name))
-        shutil.copy2("%s/%s/%s"%(SAGE_DATA,name,name), "%s/%s"%(SAGE_DATA,new_name))
+        os.path.makedirs(os.path.join(SAGE_SHARE,new_name))
+        shutil.copy2(os.path.join(SAGE_SHARE,name,name), os.path.join(SAGE_SHARE,new_name))

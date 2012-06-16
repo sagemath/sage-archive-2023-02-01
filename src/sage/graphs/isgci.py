@@ -330,6 +330,7 @@ Methods
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.unknown import Unknown
+from sage.misc.misc import SAGE_SHARE
 
 #*****************************************************************************
 #      Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
@@ -631,19 +632,19 @@ class GraphClasses(UniqueRepresentation):
             sage: graph_classes._download_db() # Not tested -- requires internet
         """
 
-        from sage.misc.misc import SAGE_TMP, SAGE_ROOT
+        from sage.misc.misc import SAGE_TMP
         import urllib2
         u = urllib2.urlopen('http://www.graphclasses.org/data.zip')
-        localFile = open(SAGE_TMP+'isgci.zip', 'w')
+        localFile = open(os.path.join(SAGE_TMP,'isgci.zip'), 'w')
         localFile.write(u.read())
         localFile.close()
         import os, zipfile
-        z = zipfile.ZipFile(SAGE_TMP+'isgci.zip')
+        z = zipfile.ZipFile(os.path.join(SAGE_TMP,'isgci.zip'))
 
         # Save a systemwide updated copy whenever possible
 
         try:
-            z.extract(_XML_FILE, SAGE_ROOT+"/data/graphs/")
+            z.extract(_XML_FILE, os.path.join(SAGE_SHARE,'graphs'))
         except IOError:
             z.extract(_XML_FILE, SAGE_TMP)
 
@@ -658,7 +659,9 @@ class GraphClasses(UniqueRepresentation):
 
         EXAMPLE::
 
-            sage: map(type, graph_classes._parse_db(SAGE_ROOT+"/data/graphs/isgci_sage.xml"))
+            sage: import os
+            sage: from sage.misc.misc import SAGE_SHARE
+            sage: map(type, graph_classes._parse_db(os.path.join(SAGE_SHARE,'graphs','isgci_sage.xml')))
             [<type 'dict'>, <type 'list'>]
         """
         import xml.dom.minidom
@@ -736,7 +739,7 @@ class GraphClasses(UniqueRepresentation):
 
             sage: graph_classes.update_db() # Not tested -- requires internet
         """
-        from sage.misc.misc import SAGE_TMP, SAGE_ROOT, SAGE_LOCAL, SAGE_DB
+        from sage.misc.misc import SAGE_TMP, SAGE_DB
 
         self._download_db()
 
@@ -770,22 +773,22 @@ class GraphClasses(UniqueRepresentation):
 
         import os.path
         from sage.all import save, load
-        from sage.misc.misc import SAGE_TMP, SAGE_ROOT, SAGE_LOCAL, SAGE_DB
+        from sage.misc.misc import SAGE_TMP, SAGE_DB
 
         try:
-            open(SAGE_DB+"/"+_XML_FILE)
+            open(os.path.join(SAGE_DB,_XML_FILE))
 
             # Which copy is the most recent on the disk ?
-            if (os.path.getmtime(SAGE_DB+"/"+_XML_FILE) >
-                os.path.getmtime(SAGE_ROOT+"/data/graphs/"+_XML_FILE)):
+            if (os.path.getmtime(os.path.join(SAGE_DB,_XML_FILE)) >
+                os.path.getmtime(os.path.join(SAGE_SHARE,'graphs',_XML_FILE))):
 
-                filename = SAGE_DB+"/"+_XML_FILE
+                filename = os.path.join(SAGE_DB,_XML_FILE)
 
             else:
-                filename = SAGE_ROOT+"/data/graphs/"+_XML_FILE
+                filename = os.path.join(SAGE_SHARE,'graphs',_XML_FILE)
 
         except IOError as e:
-            filename = SAGE_ROOT+"/data/graphs/"+_XML_FILE
+            filename = os.path.join(SAGE_SHARE,'graphs',_XML_FILE)
 
         return self._parse_db(filename)
 

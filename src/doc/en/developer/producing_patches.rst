@@ -128,7 +128,7 @@ Sage includes these Mercurial repositories:
 
 - ``SAGE_ROOT/devel/sage-*``: the Sage library source code.
 
-- ``SAGE_ROOT/data/extcode``: external system code, i.e. code included
+- ``SAGE_ROOT/devel/ext``: external system code, i.e. code included
   with Sage that is written for the systems with which Sage
   interfaces, e.g. GAP, PARI, etc.
 

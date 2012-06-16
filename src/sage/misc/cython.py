@@ -66,13 +66,13 @@ def atlas():
     else:
         return 'atlas'
 
-include_dirs = ['%sinclude/csage/'%SAGE_LOCAL,
-                '%sinclude/'%SAGE_LOCAL,  \
-                '%sinclude/python%s/'%(SAGE_LOCAL, platform.python_version().rsplit('.', 1)[0]), \
-                '%slib/python%s/site-packages/numpy/core/include'%(SAGE_LOCAL, platform.python_version().rsplit('.', 1)[0]), \
-                '%s/devel/sage/sage/ext/'%SAGE_ROOT, \
-                '%s/devel/sage/'%SAGE_ROOT, \
-                '%s/devel/sage/sage/gsl/'%SAGE_ROOT]
+include_dirs = [os.path.join(SAGE_LOCAL,'include','csage'),
+                os.path.join(SAGE_LOCAL,'include'), \
+                os.path.join(SAGE_LOCAL,'include','python'+platform.python_version().rsplit('.', 1)[0]), \
+                os.path.join(SAGE_LOCAL,'lib','python','site-packages','numpy','core','include'), \
+                os.path.join(SAGE_ROOT,'devel','sage','sage','ext'), \
+                os.path.join(SAGE_ROOT,'devel','sage'), \
+                os.path.join(SAGE_ROOT,'devel','sage','sage','gsl')]
 
 
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
@@ -208,13 +208,13 @@ def pyx_preparse(s):
         ...,
         'ntl',
         'csage'],
-        ['.../local/include/csage/',
-        '.../local/include/',
-        '.../local/include/python2.7/',
-        '.../local/lib/python2.7/site-packages/numpy/core/include',
-        '.../devel/sage/sage/ext/',
-        '.../devel/sage/',
-        '.../devel/sage/sage/gsl/'],
+        ['.../include/csage',
+        '.../include',
+        '.../include/python2.7',
+        '.../lib/python/site-packages/numpy/core/include',
+        '.../devel/sage/sage/ext',
+        '.../devel/sage',
+        '.../devel/sage/sage/gsl'],
         'c',
         [], ['-w', '-O2'])
         sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
@@ -236,13 +236,13 @@ def pyx_preparse(s):
 
         sage: inc
         ['bar',
-        '.../local/include/csage/',
-        '.../local/include/',
-        '.../local/include/python2.7/',
-        '.../local/lib/python2.7/site-packages/numpy/core/include',
-        '.../devel/sage/sage/ext/',
-        '.../devel/sage/',
-        '.../devel/sage/sage/gsl/']
+        '.../include/csage',
+        '.../include',
+        '.../include/python2.7',
+        '.../lib/python/site-packages/numpy/core/include',
+        '.../devel/sage/sage/ext',
+        '.../devel/sage',
+        '.../devel/sage/sage/gsl']
 
         sage: s, libs, inc, lang, f, args = pyx_preparse("# cargs -O3 -ggdb\n")
         sage: args

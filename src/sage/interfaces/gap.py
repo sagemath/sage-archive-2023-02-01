@@ -177,26 +177,24 @@ AUTHORS:
 
 import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.misc.misc import SAGE_ROOT, SAGE_DATA, DOT_SAGE, is_64_bit, is_in_string
+from sage.misc.misc import SAGE_ROOT, SAGE_EXTCODE, DOT_SAGE, is_64_bit, is_in_string
 from IPython.genutils import page
 import re
 import os
 import pexpect
 import time
 
-WORKSPACE = "%s/gap/workspace-%s"%(DOT_SAGE, abs(hash(SAGE_ROOT)))
+GAP_DIR = os.path.join(DOT_SAGE, 'gap')
 
-GAP_STAMP = '%s/local/bin/gap_stamp'%SAGE_ROOT
-if not os.path.exists(GAP_STAMP):
-    open(GAP_STAMP,'w').close()
+WORKSPACE = os.path.join(GAP_DIR, 'workspace-%s'%abs(hash(SAGE_ROOT)))
 
-GAP_DIR = '%s/gap/'%DOT_SAGE
+GAP_STAMP = SAGE_EXTCODE
 
 first_try = True
 
 try:
     os.makedirs(GAP_DIR)
-    open('%s/gap/README.txt'%DOT_SAGE, 'w').write("It is OK to delete all these cache files.  They will be recreated as needed.")
+    open(os.path.join(GAP_DIR, 'README.txt'), 'w').write("It is OK to delete all these cache files.  They will be recreated as needed.")
 except OSError:
     if not os.path.isdir(GAP_DIR):
         raise
@@ -893,7 +891,7 @@ class Gap(Gap_generic):
                 cmd += " -o 9999G"
             else:
                 cmd += " -o 3900m"
-        cmd += " %s/extcode/gap/sage.g"%SAGE_DATA
+        cmd += ' ' + os.path.join(SAGE_EXTCODE,'gap','sage.g')
         Expect.__init__(self,
                         name = 'gap',
                         prompt = 'gap> ',
@@ -1533,7 +1531,7 @@ def gap_console(use_workspace_cache=True):
         gap>
     """
     cmd, _ = gap_command(use_workspace_cache=use_workspace_cache)
-    cmd += " %s/extcode/gap/console.g" % SAGE_DATA
+    cmd += os.path.join(SAGE_EXTCODE,'gap','console.g')
     os.system(cmd)
 
 def gap_version():

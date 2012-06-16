@@ -41,8 +41,10 @@ import sage.misc.prandom as random
 from banner import version, banner
 
 SAGE_ROOT = os.environ["SAGE_ROOT"]
-SAGE_LOCAL = SAGE_ROOT + '/local/'
+SAGE_LOCAL = os.environ["SAGE_LOCAL"]
 SAGE_DOC = os.environ["SAGE_DOC"]
+SAGE_SHARE = os.environ["SAGE_SHARE"]
+SAGE_EXTCODE = os.environ["SAGE_EXTCODE"]
 HOSTNAME = socket.gethostname().replace('-','_').replace('/','_').replace('\\','_')
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
@@ -138,8 +140,6 @@ SAGE_TMP='%s/temp/%s/%s/'%(DOT_SAGE, HOSTNAME, os.getpid())
 
 sage_makedirs(SAGE_TMP)
 
-SAGE_DATA = '%s/data/'%SAGE_ROOT
-SAGE_EXTCODE = '%s/data/extcode/'%SAGE_ROOT
 SPYX_TMP = '%s/spyx/'%SAGE_TMP
 
 

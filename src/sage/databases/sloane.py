@@ -144,6 +144,7 @@ AUTHORS:
 import bz2, os, re, urllib
 
 from sage.misc.all import verbose
+from sage.misc.misc import SAGE_SHARE
 import sage.rings.integer_ring
 ZZ = sage.rings.integer_ring.IntegerRing()
 
@@ -157,9 +158,9 @@ class SloaneEncyclopediaClass:
         """
         Initialize the database but do not load any of the data.
         """
-        self.__path__ = "%s/data/sloane/"%os.environ["SAGE_ROOT"]
-        self.__file__ = "%ssloane-oeis.bz2"%self.__path__
-        self.__file_names__ = "%ssloane-names.bz2"%self.__path__
+        self.__path__ = os.path.join(SAGE_SHARE, 'sloane')
+        self.__file__ = os.path.join(self.__path__, 'sloane-oeis.bz2')
+        self.__file_names__ = os.path.join(self.__path__, 'sloane-names.bz2')
         self.__loaded__ = False
         self.__loaded_names__ = False
 

@@ -940,11 +940,11 @@ class Magma(Expect):
 
         EXAMPLES: Attaching a file that exists is fine::
 
-            sage: magma.attach('%s/data/extcode/magma/sage/basic.m'%SAGE_ROOT)    # optional - magma
+            sage: magma.attach('%s/magma/sage/basic.m'%SAGE_EXTCODE)    # optional - magma
 
         Attaching a file that doesn't exist raises an exception::
 
-            sage: magma.attach('%s/data/extcode/magma/sage/basic2.m'%SAGE_ROOT)     # optional - magma
+            sage: magma.attach('%s/magma/sage/basic2.m'%SAGE_EXTCODE)     # optional - magma
             Traceback (most recent call last):
             ...
             RuntimeError: Error evaluating Magma code...
@@ -968,11 +968,11 @@ class Magma(Expect):
 
         EXAMPLES::
 
-            sage: magma.attach_spec('%s/data/extcode/magma/spec'%SAGE_ROOT)    # optional - magma
-            sage: magma.attach_spec('%s/data/extcode/magma/spec2'%SAGE_ROOT)   # optional - magma
+            sage: magma.attach_spec('%s/magma/spec'%SAGE_EXTCODE)    # optional - magma
+            sage: magma.attach_spec('%s/magma/spec2'%SAGE_EXTCODE)   # optional - magma
             Traceback (most recent call last):
             ...
-            RuntimeError: Can't open package spec file .../data/extcode/magma/spec2 for reading (No such file or directory)
+            RuntimeError: Can't open package spec file .../magma/spec2 for reading (No such file or directory)
         """
         s = self.eval('AttachSpec("%s")'%filename)
         if s:
@@ -1882,7 +1882,7 @@ class MagmaElement(ExpectElement):
         Return Sage version of this object. Use self.sage() to get the Sage
         version.
 
-        Edit extcode/magma/sage.m to add functionality.
+        Edit devel/ext/magma/sage.m to add functionality.
 
         EXAMPLES: Enumerated Sets::
 
@@ -2292,7 +2292,7 @@ class MagmaElement(ExpectElement):
 
 
         IMPLEMENTATION: Calls latex.m, which is in
-        Sage_ROOT/data/extcode/magma/latex.m
+        SAGE_EXTCODE/magma/latex.m
 
         EXAMPLES::
 

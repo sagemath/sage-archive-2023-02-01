@@ -548,10 +548,13 @@ def _qepcad_cmd(memcells=None):
     EXAMPLES::
 
         sage: from sage.interfaces.qepcad import _qepcad_cmd
-        sage: _qepcad_cmd()
-        'env qe=.../local/ qepcad '
-        sage: _qepcad_cmd(memcells=8000000)
-        'env qe=.../local/ qepcad +N8000000'
+        sage: from sage.misc.misc import SAGE_LOCAL
+        sage: s = _qepcad_cmd()
+        sage: s == 'env qe=%s qepcad '%SAGE_LOCAL
+        True
+        sage: s = _qepcad_cmd(memcells=8000000)
+        sage: s == 'env qe=%s qepcad +N8000000'%SAGE_LOCAL
+        True
     """
     if memcells is not None:
         memcells_arg = '+N%s' % memcells
@@ -638,7 +641,7 @@ def _rewrite_qepcadrc():
         sage: _rewrite_qepcadrc()
         sage: from sage.misc.misc import SAGE_LOCAL
         sage: open('%s/default.qepcadrc'%SAGE_LOCAL).readlines()[-1]
-        'SINGULAR .../local//bin'
+        'SINGULAR .../bin'
     """
     global _rewrote_qepcadrc
     if _rewrote_qepcadrc: return

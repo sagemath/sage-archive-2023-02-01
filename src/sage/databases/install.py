@@ -9,7 +9,7 @@ This file defines a command "database_install":
 """
 
 
-from sage.misc.misc import SAGE_DATA
+from sage.misc.misc import SAGE_SHARE
 
 class GenericDatabaseInstaller:
     def __init__(self, name):
@@ -25,7 +25,7 @@ class GenericDatabaseInstaller:
         """
         Returns the directory that contains this database.
         """
-        return "%s/%s"%(SAGE_DATA, self._name)
+        return "%s/%s"%(SAGE_SHARE, self._name)
 
     def archive_filename(self):
         """

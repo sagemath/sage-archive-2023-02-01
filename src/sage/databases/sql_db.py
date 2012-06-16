@@ -253,7 +253,7 @@ def construct_skeleton(database):
     skeleton = {}
     cur = database.__connection__.cursor()
     exe = cur.execute("SELECT name FROM sqlite_master WHERE TYPE='table'")
-    from sage.misc.misc import SAGE_DATA
+    from sage.misc.misc import SAGE_SHARE
     for table in exe.fetchall():
         skeleton[table[0]] = {}
         exe1 = cur.execute("PRAGMA table_info(%s)"%table[0])
@@ -267,7 +267,8 @@ def construct_skeleton(database):
         exe2 = cur.execute("PRAGMA index_list(%s)"%table[0])
         for col in exe2.fetchall():
             if col[1].find('sqlite') == -1:
-                if database.__dblocation__ == SAGE_DATA + '/graphs/graphs.db':
+                if database.__dblocation__ == \
+                        os.path.join(SAGE_SHARE,'graphs','graphs.db'):
                     name = col[1]
                 else:
                     name = col[1][len(table[0])+3:]

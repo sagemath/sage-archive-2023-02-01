@@ -222,11 +222,16 @@ fi
 
 # Setting Sage-related location environment variables.
 export SAGE_LOCAL="$SAGE_ROOT/local"
-export SAGE_DATA="$SAGE_ROOT/data"
+export SAGE_SHARE="$SAGE_LOCAL/share"
+export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_PACKAGES="$SAGE_ROOT/spkg"
 export SAGE_LOGS="$SAGE_ROOT/spkg/logs"
 export SAGE_DOC="$SAGE_ROOT/devel/sage/doc"
 export PATH="$SAGE_PACKAGES/bin:$SAGE_LOCAL/bin:$PATH"
+
+# this is to be compatible with optional packages that haven't
+# been updated to not use SAGE_DATA
+export SAGE_DATA="$SAGE_SHARE"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.

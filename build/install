@@ -7,6 +7,7 @@
 # Assume current directory is SAGE_ROOT/spkg
 SAGE_ROOT=`cd .. && pwd -P`
 SAGE_LOCAL="$SAGE_ROOT/local"
+SAGE_SHARE="$SAGE_LOCAL/share"
 SAGE_LOGS="$SAGE_ROOT/spkg/logs"
 PATH="$SAGE_ROOT/spkg/bin:$SAGE_LOCAL/bin:$PATH"
 PYTHONPATH="$SAGE_LOCAL"
@@ -56,17 +57,30 @@ if [ "$SAGE_UPGRADING" = yes ]; then
     fi
 fi
 
+# Upgrading from a version of Sage with SAGE_DATA
+if [ "$SAGE_UPGRADING" = yes ] && [ -d "$SAGE_ROOT/data" ]; then
+    mkdir -p "$SAGE_ROOT/devel"
+    mv "$SAGE_ROOT/data/extcode" "$SAGE_ROOT/devel/ext-main"
+    mkdir -p "$SAGE_LOCAL/share"
+    mv "$SAGE_ROOT/data/*" "$SAGE_LOCAL/share/"
+    rm -rf "$SAGE_ROOT/data"
+fi
+
 ###############################################################################
 # Create basic directories needed for Sage
 ###############################################################################
 
-mkdir -p "$SAGE_ROOT/data"
 mkdir -p "$SAGE_ROOT/tmp"
 mkdir -p "$SAGE_LOGS"
 mkdir -p "$SAGE_LOCAL/bin"
 mkdir -p "$SAGE_LOCAL/etc"
 mkdir -p "$SAGE_LOCAL/lib"
 mkdir -p "$SAGE_ROOT/spkg/installed"
+mkdir -p "$SAGE_SHARE"
+# symlink old SAGE_DATA to SAGE_SHARE for optional packages that haven't yet
+# been updated
+rm -rf "$SAGE_ROOT/data"
+ln -s local/share "$SAGE_ROOT/data"
 
 ###############################################################################
 # Determine whether to install GCC (gcc, g++, gfortran).

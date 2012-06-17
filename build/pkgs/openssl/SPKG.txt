@@ -1,0 +1,34 @@
+= OpenSSL =
+
+== Description ==
+
+From wikipedia: OpenSSL is an open source implementation of the SSL
+and TLS protocols. The core library (written in the C programming
+language) implements the basic cryptographic functions and provides
+various utility functions. Wrappers allowing the use of the OpenSSL
+library in a variety of computer languages are available.
+
+== License ==
+
+ * Custom GPL-incompatible license
+
+== Maintainers ==
+
+ * William Stein
+
+== Upstream Contact ==
+
+ * None yet
+
+== Changelog ==
+
+=== openssl-1.0.1a (Mariah Lenox, 23 April 2012) ===
+ * upgraded source
+
+=== openssl-1.0.0.p0 (William Stein, June 3, 2010) ===
+ * Fix issue with openssl libraries getting installed to lib64,
+   as recommended by Mariah (the referee).
+
+=== openssl-1.0.0 (William Stein, April 27, 2010) ===
+ * Initial version in modernized format
+

@@ -1,0 +1,31 @@
+#!/bin/sh
+
+cd src/
+
+# this avoids a bug later in the build scripts.
+touch apps/openssl
+touch apps/openssl.exe   # in case user is on Windows
+
+./config --libdir=lib --prefix="$SAGE_LOCAL" --openssldir="$SAGE_LOCAL"/openssl shared
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring openssl."
+    exit 1
+fi
+
+# do not use MAKE environment variable -- if given -j option install breaks
+make
+
+if [ $? -ne 0 ]; then
+    echo "Error building openssl."
+    exit 1
+fi
+
+make install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing openssl."
+    exit 1
+fi
+
+

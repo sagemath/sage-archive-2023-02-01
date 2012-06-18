@@ -39,19 +39,19 @@ access.
 
 == Changelog ==
 
-=== pybtex-0.15 (Burcin Erocal, Niels Ranosch, August 10, 2011) ===
- * initial version
+=== pybtex-20120618 (Niels Ranosch, June 18, 2012) ===
+ * updated SPKG.txt as suggested by John Palmieri
 
-=== pybtex-0.15-r1 (Burcion Erocal, Niels Ranosch, September 27, 2011) ===
- * prevent PyYAML from checking for libyaml
+=== pybtex-20120522 (Niels Ranosch, May 22, 2012) ===
+ * upstream update
 
 === pybtex-20120218 (Niels Ranosch, February 18, 2012) ===
  * switched to the official bazaar trunk (there are much fewer bugs)
  * removed the patches, because they were merged to the trunk
 
-=== pybtex-20120522 (Niels Ranosch, May 22, 2012) ===
- * upstream update
+=== pybtex-0.15-r1 (Burcion Erocal, Niels Ranosch, September 27, 2011) ===
+ * prevent PyYAML from checking for libyaml
 
-=== pybtex-20120614 (Niels Ranosch, June 14, 2012) ===
- * updated description and dependencies as suggested by John Palmieri
+=== pybtex-0.15 (Burcin Erocal, Niels Ranosch, August 10, 2011) ===
+ * initial version
 

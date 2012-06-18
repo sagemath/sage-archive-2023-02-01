@@ -630,13 +630,6 @@ if [ "$1" = '-gdb-ipython'  -o "$1" = '--gdb-ipython' ]; then
     exit $?
 fi
 
-if [ "$1" = '-darcs'  -o "$1" = '--darcs' ]; then
-    cd "$CUR"
-    shift
-    darcs "$@"
-    exit $?
-fi
-
 if [ "$1" = '-hg'  -o "$1" = '--hg' ]; then
     cd "$CUR"
     shift

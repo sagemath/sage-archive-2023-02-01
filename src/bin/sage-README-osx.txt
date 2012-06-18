@@ -148,7 +148,7 @@ SAGE_APP_BUNDLE=yes sage -bdist VERSION
 which will create a version that is bundled with a binary
 distribution.  If you wish to make changes, or create a version which
 does not contain a distribution, then open
-data/extcode/sage/ext/mac-app/Sage.xcodeproj in Xcode.  If you are
+devel/ext/sage/ext/mac-app/Sage.xcodeproj in Xcode.  If you are
 building on OS X 10.4, then you will need to change the SDK by opening
 Project Settings, and in Cross-Develop in General set it to 10.4
 (universal).

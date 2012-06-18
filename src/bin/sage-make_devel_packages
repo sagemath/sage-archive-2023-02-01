@@ -66,8 +66,8 @@ if [ ! -f "$PKG"/sage-"$SAGE_VERSION".spkg ]; then
 fi
 
 # NEW SAGE EXTERNAL CODE PACKAGE
-if [ -d "$SAGE_ROOT"/data/extcode ]; then
-   cd "$SAGE_ROOT"/data/extcode
+if [ -d "$SAGE_ROOT"/devel/ext ]; then
+   cd "$SAGE_ROOT"/devel/ext
    hg diff
    hg status
    hg tag "$SAGE_VERSION"

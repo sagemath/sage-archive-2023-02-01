@@ -1,4 +1,3 @@
-(^|/)\_darcs($|/)
 (^|/)\.hg($|/)
 (^|/)\.hgtags($|/)
 (^|/)\.DS_Store$
@@ -55,7 +54,6 @@ clisp
 conch
 conductor
 cstest
-darcs
 dsage_setup.py
 dsage_worker.py
 ecm

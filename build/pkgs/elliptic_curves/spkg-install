@@ -6,10 +6,10 @@ common_curves = os.path.join(os.getcwd(), 'src', 'common')
 def install_cremona():
     from sqlite3 import connect
 
-    if 'SAGE_DATA' not in os.environ:
-        raise RuntimeError("SAGE_DATA undefined, maybe run `sage -sh`?")
+    if 'SAGE_SHARE' not in os.environ:
+        raise RuntimeError("SAGE_SHARE undefined, maybe run `sage -sh`?")
 
-    cremona_root = os.path.join(os.environ['SAGE_DATA'], 'cremona')
+    cremona_root = os.path.join(os.environ['SAGE_SHARE'], 'cremona')
     if not os.path.exists(cremona_root):
         os.makedirs(cremona_root)
 
@@ -48,10 +48,10 @@ def install_cremona():
 def install_ellcurves():
     import shutil, tempfile
 
-    if 'SAGE_DATA' not in os.environ:
-        raise RuntimeError("SAGE_DATA undefined, maybe run `sage -sh`?")
+    if 'SAGE_SHARE' not in os.environ:
+        raise RuntimeError("SAGE_SHARE undefined, maybe run `sage -sh`?")
 
-    target = os.path.join(os.environ['SAGE_DATA'], 'ellcurves')
+    target = os.path.join(os.environ['SAGE_SHARE'], 'ellcurves')
     if os.path.exists(target):
         try:
             shutil.rmtree(target)

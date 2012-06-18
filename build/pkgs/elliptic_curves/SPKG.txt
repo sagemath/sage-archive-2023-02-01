@@ -11,7 +11,7 @@ Includes two databases:
 
 == SPKG Maintainers ==
 
- * R. Andrew Ohana
+ * R. Andrew Ohana <andrew.ohana@gmail.com>
 
 == Upstream Contact ==
 
@@ -32,6 +32,9 @@ Includes two databases:
  * python
 
 == Changelog ==
+
+=== elliptic_curves-0.7 (R. Andrew Ohana, 2012-05-17) ===
+ * #13123: move SAGE_DATA to SAGE_LOCAL/share
 
 === elliptic_curves-0.6 (R. Andrew Ohana, 2012-03-27) ===
  * #12763: fix permissions for the installed files

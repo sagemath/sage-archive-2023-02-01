@@ -26,6 +26,9 @@ None
 
 == Changelog ==
 
+=== polytopes_db-20100210.p2 (R. Andrew Ohana, 2012-05-17) ===
+* #13123: Move SAGE_DATA to SAGE_LOCAL/share
+
 === polytopes_db-20100210.p1 (Keshav Kini, 2012-03-18) ===
 * #12694: Normalize directory structure
 

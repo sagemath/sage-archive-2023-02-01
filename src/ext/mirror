@@ -1,5 +1,0 @@
-#!/bin/sh
-cd $HOME/sage/web/dist/src/extcode-darcs/
-darcs changes > changelog_darcs.txt
-echo "uploading"
-rsync -axLH --rsh=ssh --delete -r -v  * modular:/home/was/www/sage/dist/src/extcode-darcs

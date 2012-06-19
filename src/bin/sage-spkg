@@ -402,9 +402,10 @@ fi
 # package's spkg-install script can use this variable.
 #
 # Since Python's self-tests seem to fail on all platforms, we disable
-# its test suite by default.
+# its test suite by default. Also, until MPIR is upgraded (see
+# #13137), its self-tests also fail.
 if [ -z "$SAGE_CHECK_PACKAGES" ]; then
-    SAGE_CHECK_PACKAGES='!python'
+    SAGE_CHECK_PACKAGES='!python,!mpir'
 fi
 # Allow spaces, commas, or colons as separator (the documentation suggests commas).
 if echo ",$SAGE_CHECK_PACKAGES," | grep -i "[ ,:]\!$PKG_BASE[ ,:]" > /dev/null ; then

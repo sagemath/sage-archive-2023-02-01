@@ -1,13 +1,19 @@
-The file conway_table.py.bz2 is used to generate the conway polynomial
-database as follows:
+= Conway Polynomials Database =
 
- 1) cd to SAGE_ROOT/data/conway_polynomials
- 2) Delete the file conway_polynomials
- 3) Make sure conway_table.py is not there and that
-    conway_table.py.bz2 is there (and has all relevant data)
- 4) Start SAGE:
-      sage: cp = ConwayPolynomials(read_only=False)
-      sage: cp._init()
-      sage: quit
+== Description ==
 
-Your data should now be in the database.
+ Contains a small database of Conway polynomials.
+
+== SPKG Maintainers ==
+
+ * R. Andrew Ohana <andrew.ohana@gmail.com>
+ * William Stein <wstein@gmail.com>
+
+== Changelog ==
+
+=== conway_polynomials-0.3 (R. Andrew Ohana, 18 June 2012) ===
+ * #13123: Move SAGE_DATA to SAGE_LOCAL/share/sage/data
+
+=== conway_polynomials-early_versions (unknown, unknown) ===
+ * previous version(s)
+ * lost to history

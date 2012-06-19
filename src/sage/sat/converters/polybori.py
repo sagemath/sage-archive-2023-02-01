@@ -31,14 +31,14 @@ class CNFEncoder(ANF2CNFConverter):
     """
     ANF to CNF Converter.
     """
-    def __init__(self, solver, ring, max_variables=6, use_xor_clauses=None, cutting_number=6, random_seed=16, **kwds):
+    def __init__(self, solver, ring, max_vars_sparse=6, use_xor_clauses=None, cutting_number=6, random_seed=16):
         """
         Construct ANF to CNF converter over ``ring`` passing clauses to ``solver``.
 
         This converter distinguishes two classes of
         polynomials.
 
-        1. Sparse polynomials are those with at most ``max_variables``
+        1. Sparse polynomials are those with at most ``max_vars_sparse``
         variables. Those are converted using reduced truth-tables
         based on PolyBoRi's internal representation.
 
@@ -58,7 +58,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``ring`` - a :cls:`BooleanPolynomialRing`
 
-        - ``max_variables`` - maximum number of variables for direct conversion
+        - ``max_vars_sparse`` - maximum number of variables for direct conversion
 
         - ``use_xor_clauses`` - use XOR clauses; if ``None`` use if
           ``solver`` supports it. (default: ``None``)
@@ -68,8 +68,6 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``random_seed`` - the direct conversion method uses
           randomness, this sets the seed (default: 16)
-
-        - ``**kwds`` - ignored
 
         EXAMPLE:
 
@@ -121,7 +119,7 @@ class CNFEncoder(ANF2CNFConverter):
         self.empty_set = ring.zero().set()
 
         self.solver = solver
-        self.max_variables = max_variables
+        self.max_vars_sparse = max_vars_sparse
         self.cutting_number = cutting_number
 
         if use_xor_clauses is None:
@@ -481,7 +479,7 @@ class CNFEncoder(ANF2CNFConverter):
     def clauses(self, f):
         """
         Convert ``f`` using the sparse strategy if f.nvariables() is
-        at most ``max_variables`` and the dense strategy otherwise.
+        at most ``max_vars_sparse`` and the dense strategy otherwise.
 
         INPUT:
 
@@ -494,7 +492,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: fn = tmp_filename()
             sage: solver = DIMACS(filename=fn)
-            sage: e = CNFEncoder(solver, B, max_variables=2)
+            sage: e = CNFEncoder(solver, B, max_vars_sparse=2)
             sage: e.clauses(a*b + a + 1)
             sage: _ = solver.write()
             sage: print open(fn).read()
@@ -509,7 +507,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: fn = tmp_filename()
             sage: solver = DIMACS(filename=fn)
-            sage: e = CNFEncoder(solver, B, max_variables=2)
+            sage: e = CNFEncoder(solver, B, max_vars_sparse=2)
             sage: e.clauses(a*b + a + c)
             sage: _ = solver.write()
             sage: print open(fn).read()
@@ -525,7 +523,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e.phi
             [None, a, b, c, a*b]
         """
-        if f.nvariables() <= self.max_variables:
+        if f.nvariables() <= self.max_vars_sparse:
             self.clauses_sparse(f)
         else:
             self.clauses_dense(f)
@@ -548,7 +546,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: fn = tmp_filename()
             sage: solver = DIMACS(filename=fn)
-            sage: e = CNFEncoder(solver, B, max_variables=2)
+            sage: e = CNFEncoder(solver, B, max_vars_sparse=2)
             sage: e([a*b + a + 1, a*b+ a + c])
             [None, a, b, c, a*b]
             sage: _ = solver.write()
@@ -591,7 +589,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: fn = tmp_filename()
             sage: solver = DIMACS(filename=fn)
-            sage: e = CNFEncoder(solver, B, max_variables=2)
+            sage: e = CNFEncoder(solver, B, max_vars_sparse=2)
             sage: _ = e([a*b + a + 1, a*b+ a + c])
             sage: e.to_polynomial( (1,-2,3) )
             a*b*c + a*b + b*c + b

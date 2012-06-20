@@ -132,7 +132,7 @@ class CNFEncoder(ANF2CNFConverter):
         # below, as this relies on phi being sorted like this.
         self._phi = [None]
         for x in sorted([x.lm() for x in self.ring.gens()], key=lambda x: x.index()):
-            self.var(x, decision=True)
+            self.var(x)
 
     def var(self, m=None, decision=None):
         """
@@ -157,7 +157,7 @@ class CNFEncoder(ANF2CNFConverter):
             4
         """
         self._phi.append(m)
-        return self.solver.var(decision=True)
+        return self.solver.var(decision=decision)
 
     @property
     def phi(self):
@@ -384,7 +384,7 @@ class CNFEncoder(ANF2CNFConverter):
             # we need to encode the relationship between the monomial
             # and its variables
             variables = [self.monomial(v) for v in m.variables()]
-            monomial = self.var(m, decision=False)
+            monomial = self.var(m)
 
             # (a | -w) & (b | -w) & (w | -a | -b) <=> w == a*b
             for v in variables:
@@ -466,7 +466,7 @@ class CNFEncoder(ANF2CNFConverter):
         for j in range(0, nm, step):
             m =  new_variables + monomial_list[j:j+step]
             if (j + step) < nm:
-                new_variables = [self.var(None, decision=False)]
+                new_variables = [self.var(None)]
                 m += new_variables
             M.append([m, equal_zero])
             equal_zero = True

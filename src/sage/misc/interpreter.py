@@ -740,6 +740,7 @@ class SageInputSplitter(InputSplitter):
     # List with lines of raw input accumulated so far.
     _buffer_raw = None
     _magic_interfaces = []
+    cell_magic_parts = None
 
     def __init__(self, input_mode=None):
         """

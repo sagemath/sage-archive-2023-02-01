@@ -145,6 +145,8 @@ cdef class CryptoMiniSat(SatSolver):
             2
 
         """
+        assert(self._solver.okay())
+
         cdef Var var
         if decision is None:
             var = self._solver.newVar()
@@ -196,6 +198,8 @@ cdef class CryptoMiniSat(SatSolver):
             CryptoMiniSat
             #vars:       3, #lits:       3, #clauses:       1, #learnt:       0, #assigns:       0
         """
+        assert(self._solver.okay())
+
         cdef vec[Lit] l
         for lit in lits:
             lit = int(lit)
@@ -232,6 +236,8 @@ cdef class CryptoMiniSat(SatSolver):
             CryptoMiniSat
             #vars:       3, #lits:       3, #clauses:       1, #learnt:       0, #assigns:       0
         """
+        assert(self._solver.okay())
+
         cdef vec[Lit] l
         for lit in lits:
             while abs(lit) > self._solver.nVars():

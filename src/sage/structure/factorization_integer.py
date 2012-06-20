@@ -54,10 +54,17 @@ class IntegerFactorization(Factorization):
 
             sage: factor(15)
             3 * 5
+
+        We check that :trac:`13139` is fixed::
+
+            sage: from sage.structure.factorization_integer import IntegerFactorization
+            sage: IntegerFactorization([(3,1)],unsafe=True)
+            3
         """
         if unsafe:
             if unit is None:
-                self._Factorization__unit = sage.rings.integer.ONE
+                from sage.rings.integer import ONE
+                self._Factorization__unit = ONE
             else:
                 self._Factorization__unit = unit
 

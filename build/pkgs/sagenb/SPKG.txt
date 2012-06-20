@@ -40,6 +40,27 @@ util/fetch_deps.py in the sagenb directory):
  * pyOpenSSL
  * webassets
 
+Dependencies that are not included in this SPKG but are packaged for
+Sage:
+
+ * Python
+ * setuptools
+ * SQLAlchemy
+ * pexpect
+ * jinja2
+ * sphinx
+ * docutils
+
+Dependencies that are not included in this SPKG, and are not packaged
+for Sage by default for licensing reasons:
+
+ * OpenSSL (including headers)
+
+For this last category, please install systemwide using your operating
+system's package manager, or manually install the OpenSSL optional SPKG
+before attempting to install this sagenb SPKG (see the Installation
+section of the Sage documentation for more information).
+
 == Packaging Instructions ==
 
 To produce a new spkg:

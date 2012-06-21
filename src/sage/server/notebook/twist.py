@@ -2462,7 +2462,7 @@ class UserToplevel(Toplevel):
 
     #child_login = RedirectLogin()
 
-    # userchild_* is like Twisted's child_, etc. except:
+    # userchild_* is like Twisted's child_, etc. except StandardError:
     #  (1) it also sets the username in the __init__ method, and
     #  (2) it calls the constructor for the object, i.e., it is
     #      a class rather than an object.

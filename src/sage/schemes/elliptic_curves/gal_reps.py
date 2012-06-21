@@ -1150,7 +1150,7 @@ class GaloisRepresentation(SageObject):
             misc.verbose("field of degree %s.  try to compute galois group"%(d),2)
             try:
                 G = K.galois_group()
-            except:
+            except StandardError:
                 self.__image_type[p] = "The image is a group of order %s."%d
                 return self.__image_type[p]
 

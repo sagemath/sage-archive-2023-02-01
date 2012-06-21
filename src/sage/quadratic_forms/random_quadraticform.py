@@ -107,7 +107,7 @@ def random_quadraticform_with_conditions(R, n, condition_list=[], rand_arg_list=
             ## Check if condition c is satisfied
             try:
                 bool_ans = Q.c()
-            except:
+            except StandardError:
                 bool_ans = c(Q)
 
             ## Create a new quadratic form if a condition fails

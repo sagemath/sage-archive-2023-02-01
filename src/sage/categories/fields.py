@@ -91,7 +91,7 @@ class Fields(Category_singleton):
         """
         try:
             return self._contains_helper(x) or is_Field(x)
-        except:
+        except StandardError:
             return False
 
     @lazy_class_attribute

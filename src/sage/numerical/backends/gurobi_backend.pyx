@@ -47,7 +47,7 @@ cdef class GurobiBackend(GenericBackend):
         check(self.env, error)
 
         if env[0] == NULL:
-            raise Exception("Could not initialize Gurobi environment")
+            raise RuntimeError("Could not initialize Gurobi environment")
 
         self.model = <GRBmodel **> sage_malloc(sizeof(GRBmodel *))
 
@@ -56,7 +56,7 @@ cdef class GurobiBackend(GenericBackend):
         self.env = GRBgetenv (self.model[0])
 
         if error:
-            raise Exception("Could not initialize Gurobi model")
+            raise RuntimeError("Could not initialize Gurobi model")
 
         if maximization:
             error = GRBsetintattr(self.model[0], "ModelSense", -1)

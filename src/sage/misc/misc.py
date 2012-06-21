@@ -1628,7 +1628,7 @@ def is_iterator(it):
     # see trac #7398 for a discussion
     try:
         return it is iter(it)
-    except:
+    except StandardError:
         return False
 
 

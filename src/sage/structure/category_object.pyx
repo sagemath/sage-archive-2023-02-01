@@ -73,7 +73,7 @@ def guess_category(obj):
                     return Algebras(obj._base)
                 else:
                     return Rings()
-    except:
+    except StandardError:
         pass
     from sage.structure.parent import Parent
     #if isinstance(obj, Parent):

@@ -185,7 +185,7 @@ def rank_decomposition(G, verbose = False):
     cdef int i
 
     if sage_graph_to_matrix(G):
-        raise Exception("There has been a mistake while converting the Sage "+
+        raise RuntimeError("There has been a mistake while converting the Sage "+
                         "graph to a C structure. The memory is probably "+
                         "insufficient (2^(n+1) is a *LOT*).")
 

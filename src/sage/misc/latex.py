@@ -2260,7 +2260,7 @@ def repr_lincomb(symbols, coeffs):
                 try:
                     if bv in CC:
                         s += "%s\cdot %s"%(coeff, b)
-                except:
+                except StandardError:
                     s += "%s%s"%(coeff, b)
             first = False
         i += 1

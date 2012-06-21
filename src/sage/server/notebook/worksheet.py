@@ -1995,7 +1995,7 @@ class Worksheet:
                 #print "Saving ", self.directory()
                 self.save()  # make sure the worksheet.txt file is up to date.
                 del d['_Worksheet__cells']
-            except:
+            except StandardError:
                 # It is important to catch all exceptions.  If
                 # *anything* goes wrong here we must catch it or the
                 # whole notebook sobj could get messed up,
@@ -2719,7 +2719,7 @@ class Worksheet:
 
         try:
             os.kill(pid, 9)
-        except:
+        except StandardError:
             pass
 
         del self.__sage
@@ -3349,7 +3349,7 @@ class Worksheet:
                 try:
                     cell = completions[r + l*c]
                     row.append(cell)
-                except:
+                except StandardError:
                     pass
             rows.append(row)
         return format_completions_as_html(id, rows)
@@ -4112,7 +4112,7 @@ def dictify(s):
             a, b = v.strip().split('=')
             try:
                 b = eval(b)
-            except:
+            except StandardError:
                 pass
             w.append([a, b])
     except ValueError:

@@ -134,7 +134,7 @@ class IncidenceStructure(object):
                 y = block[:]
                 y.sort()
                 bs.append(y)
-            except:
+            except StandardError:
                 bs.append(block)
         bs.sort(cmp)
         self.v = v

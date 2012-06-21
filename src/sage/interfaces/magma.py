@@ -1034,7 +1034,7 @@ class Magma(Expect):
         else:
             try:
                 self.eval('Append(~_sage_, 0);')
-            except:
+            except StandardError:
                 # this exception could happen if the Magma process
                 # was interrupted during startup / initialization.
                 self.eval('_sage_ := [* 0 : i in [1..%s] *];'%self.__seq)

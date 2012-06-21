@@ -248,7 +248,7 @@ class StringMonoidElement(FreeMonoidElement):
         """
         try:
             c = self._element_list[n]
-        except:
+        except StandardError:
             raise IndexError("Argument n (= %s) is not a valid index." % n)
         if not isinstance(c, list):
             c = [c]

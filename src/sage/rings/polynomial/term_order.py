@@ -653,7 +653,7 @@ class TermOrder(SageObject):
                 if not isinstance(name, (tuple,list)):
                     name = name.list() # name may be a matrix
                 name = tuple(name)
-            except:
+            except StandardError:
                 raise TypeError, "%s is not a valid term order"%(name,)
 
         self._blocks = tuple()
@@ -672,7 +672,7 @@ class TermOrder(SageObject):
                 if not isinstance(t, TermOrder):
                     try:
                         t = TermOrder(t,force=True)
-                    except:
+                    except StandardError:
                         raise TypeError
                 if t.name() == 'block':
                     blocks = blocks + list(t.blocks())
@@ -1847,7 +1847,7 @@ class TermOrder(SageObject):
         if not isinstance(other, TermOrder):
             try:
                 other = TermOrder(other, force=True)
-            except:
+            except StandardError:
                 return False
 
         return (self._name == other._name       # note that length is not considered.

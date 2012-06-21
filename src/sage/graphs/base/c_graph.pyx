@@ -1168,7 +1168,7 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         return vertex_ints[u]
     try:
         u_int = u
-    except:
+    except StandardError:
         return -1
     if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels:
         return -1
@@ -1825,7 +1825,7 @@ class CGraphBackend(GenericGraphBackend):
         try:
             v = hash(verts)
             is_hashable = True
-        except:
+        except StandardError:
             pass
         if is_hashable and self.has_vertex(verts):
             return iter([verts])

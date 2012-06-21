@@ -366,7 +366,7 @@ class A000001(SloaneSequence):
             return self._small[n-1]
         try:
             return Integer(gap.gap.eval('NumberSmallGroups(%s)'%n))
-        except:  # help, don't know what to do here? Jaap
+        except StandardError:  # help, don't know what to do here? Jaap
             print "Install database_gap first. See optional packages"
 
 

@@ -2214,7 +2214,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # upper is *greater* than the answer
         try:
             upper = rif_log.upper().ceiling()
-        except:
+        except StandardError:
             # ceiling is probably Infinity
             # I'm not sure what to do now
             upper = 0

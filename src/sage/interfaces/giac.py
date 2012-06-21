@@ -1045,7 +1045,7 @@ class GiacElement(ExpectElement):
             try:
                 from sage.symbolic.all import SR
                 return SR(result)
-            except:
+            except StandardError:
                 raise NotImplementedError, "Unable to parse Giac output: %s" % result
         else:
             return [entry.sage() for entry in self]

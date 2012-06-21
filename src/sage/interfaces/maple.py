@@ -701,7 +701,7 @@ connection to a server running Maple; for hints, type
         cmd = 'echo "interface(verboseproc=2): print(%s);" | maple -q'%s
         src = os.popen(cmd).read()
         if src.strip() == s:
-            raise Exception, "no source code could be found"
+            raise RuntimeError, "no source code could be found"
         else:
             return src
 
@@ -1100,7 +1100,7 @@ class MapleElement(ExpectElement):
         try:
             from sage.symbolic.all import SR
             return SR(result)
-        except:
+        except StandardError:
             raise NotImplementedError, "Unable to parse Maple output: %s" % result
 
 # An instance

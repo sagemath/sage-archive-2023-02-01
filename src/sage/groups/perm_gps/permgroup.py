@@ -148,7 +148,7 @@ def load_hap():
     """
     try:
         gap.eval('LoadPackage("hap")')
-    except:
+    except StandardError:
         gap.eval('LoadPackage("hap")')
 
 def hap_decorator(f):
@@ -733,7 +733,7 @@ class PermutationGroup_generic(group.Group):
         """
         try:
             item = self(item, check=True)
-        except:
+        except StandardError:
             return False
         return True
 
@@ -1671,7 +1671,7 @@ class PermutationGroup_generic(group.Group):
         """
         try:
             g = PermutationGroupElement(g)
-        except:
+        except StandardError:
             raise TypeError("{0} does not convert to a permutation group element".format(g))
         return PermutationGroup(gap_group=gap.ConjugateGroup(self, g))
 

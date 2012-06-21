@@ -65,7 +65,7 @@ def Alphabet(data=None, name=None):
     else:
         try:
             return OrderedAlphabet_Finite(data)
-        except:
+        except StandardError:
             raise TypeError, "cannot construct an alphabet from given data"
 
 OrderedAlphabet = Alphabet
@@ -192,7 +192,7 @@ class OrderedAlphabet_Finite(OrderedAlphabet_class):
         """
         try:
             return a in self._alphabet
-        except:
+        except StandardError:
             return False
 
     def __le__(self, other):

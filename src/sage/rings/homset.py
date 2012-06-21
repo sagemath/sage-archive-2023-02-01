@@ -59,12 +59,12 @@ class RingHomset_generic(HomsetWithBase):
         try:
             if isinstance(x, morphism.RingHomomorphism_im_gens) and x.domain().fraction_field().has_coerce_map_from(self.domain()):
                 return morphism.RingHomomorphism_im_gens(self, x.im_gens())
-        except:
+        except StandardError:
             pass
         # Case 3: the homomorphism can be extended by coercion
         try:
             return x.extend_codomain(self.codomain()).extend_domain(self.domain())
-        except:
+        except StandardError:
             pass
         # Last resort, case 4: the homomorphism is induced from the base ring
         if self.domain()==self.domain().base() or self.codomain()==self.codomain().base():
@@ -72,7 +72,7 @@ class RingHomset_generic(HomsetWithBase):
         try:
             x = self.domain().base().Hom(self.codomain().base())(x)
             return morphism.RingHomomorphism_from_base(self, x)
-        except:
+        except StandardError:
             raise TypeError
 
     def __call__(self, im_gens, check=True):

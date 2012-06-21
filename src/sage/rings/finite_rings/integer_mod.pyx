@@ -1245,7 +1245,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...                   L = b.nth_root(e, all=True)
             ...                   if len(L) > 0:
             ...                       c = b.nth_root(e)
-            ...               except:
+            ...               except StandardError:
             ...                   L = [-1]
             ...               M = b._nth_root_naive(e)
             ...               if sorted(L) != M:

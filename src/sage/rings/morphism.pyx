@@ -1381,15 +1381,15 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         P = self.codomain()
         try:
             return P(dict([(a, self.__underlying(b)) for a,b in x.dict().items()]))
-        except:
+        except StandardError:
             pass
         try:
             return P([self.__underlying(b) for b in x])
-        except:
+        except StandardError:
             pass
         try:
             return P(self.__underlying(x.numerator()))/P(self.__underlying(x.denominator()))
-        except:
+        except StandardError:
             raise TypeError, "invalid argument %s"%repr(x)
 
 cdef class RingHomomorphism_cover(RingHomomorphism):

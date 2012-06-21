@@ -1251,7 +1251,7 @@ def linear_arboricity(g, k=1, hex_colors=False, value_only=False, solver = None,
 
     except MIPSolverException:
         if k == (Integer(max(g.degree()))/2).ceil():
-            raise Exception("It looks like you have found a counterexample to a very old conjecture. Please do not loose it ! Please publish it, and send a post to sage-devel to warn us. I implore you ! Nathann Cohen ")
+            raise RuntimeError("It looks like you have found a counterexample to a very old conjecture. Please do not loose it ! Please publish it, and send a post to sage-devel to warn us. I implore you ! Nathann Cohen ")
         else:
             raise ValueError("This graph can not be colored with the given number of colors.")
 
@@ -1405,7 +1405,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
             except ValueError:
                 k = k+1
 
-        raise Exception("This should not happen. Please report a bug !")
+        raise RuntimeError("This should not happen. Please report a bug !")
 
     elif k==0:
         k = max(g.degree())+2
@@ -1456,7 +1456,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
     except MIPSolverException:
         if k == max(g.degree()) + 2:
-            raise Exception("It looks like you have found a counterexample to a very old conjecture. Please do not loose it ! Please publish it, and send a post to sage-devel to warn us. I implore you ! Nathann Cohen ")
+            raise RuntimeError("It looks like you have found a counterexample to a very old conjecture. Please do not loose it ! Please publish it, and send a post to sage-devel to warn us. I implore you ! Nathann Cohen ")
         else:
             raise ValueError("This graph can not be colored with the given number of colors.")
 

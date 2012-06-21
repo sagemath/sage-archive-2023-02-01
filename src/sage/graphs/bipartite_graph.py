@@ -361,7 +361,7 @@ class BipartiteGraph(Graph):
             Graph.__init__(self, data, *args, **kwds)
             try:
                 self.left, self.right = self.bipartite_sets()
-            except:
+            except StandardError:
                 raise TypeError("Input graph is not bipartite!")
         else:
             import networkx
@@ -384,7 +384,7 @@ class BipartiteGraph(Graph):
             if not (hasattr(self, "left") and hasattr(self, "right")):
                 try:
                     self.left, self.right = self.bipartite_sets()
-                except:
+                except StandardError:
                     raise TypeError("Input graph is not bipartite!")
 
         # restore vertex partition checking
@@ -670,10 +670,10 @@ class BipartiteGraph(Graph):
         # vertex)
         try:
             self.left.remove(vertex)
-        except:
+        except StandardError:
             try:
                 self.right.remove(vertex)
-            except:
+            except StandardError:
                 raise RuntimeError(
                     "Vertex (%s) not found in partitions" % vertex)
 
@@ -714,10 +714,10 @@ class BipartiteGraph(Graph):
         for vertex in vertices:
             try:
                 self.left.remove(vertex)
-            except:
+            except StandardError:
                 try:
                     self.right.remove(vertex)
-                except:
+                except StandardError:
                     raise RuntimeError(
                         "Vertex (%s) not found in partitions" % vertex)
 
@@ -771,7 +771,7 @@ class BipartiteGraph(Graph):
             if v is None:
                 try:
                     u, v, label = u
-                except:
+                except StandardError:
                     u, v = u
                     label = None
         else:
@@ -1022,7 +1022,7 @@ class BipartiteGraph(Graph):
             ...                   print "Load/save failed for code with edges:"
             ...                   print b.edges()
             ...                   break
-            ...           except:
+            ...           except StandardError:
             ...               print "Exception encountered for graph of order "+ str(order)
             ...               print "with edges: "
             ...               g.edges()

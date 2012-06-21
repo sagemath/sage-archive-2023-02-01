@@ -93,7 +93,7 @@ def _triangulate(g, comb_emb):
     for face in faces:
         new_face = []
         if len(face) < 3:
-            raise Exception('Triangulate method created face %s with < 3 edges.'%face)
+            raise RuntimeError('Triangulate method created face %s with < 3 edges.'%face)
         if len(face) == 3:
             continue # This face is already triangulated
         elif len(face) == 4:  # In this special case just add diagonal edge to square
@@ -190,8 +190,8 @@ def _normal_label(g, comb_emb, external_face):
     while g.order() > 3:
         try:
             v = contractible.pop()
-        except:
-            raise Exception('Contractible list is empty but graph still has %d vertices.  (Expected 3.)'%g.order())
+        except StandardError:
+            raise RuntimeError('Contractible list is empty but graph still has %d vertices.  (Expected 3.)'%g.order())
 
             break
         # going to contract v
@@ -498,7 +498,7 @@ def _compute_coordinates(g, x):
                 r[i] -= q
 
             if sum(r) != g.order() - 1:
-                raise Exception("Computing coordinates failed: vertex %s's coordinates sum to %s.  Expected %s"%(v,sum(r),g.order()-1))
+                raise RuntimeError("Computing coordinates failed: vertex %s's coordinates sum to %s.  Expected %s"%(v,sum(r),g.order()-1))
 
             coordinates[v] = r[:-1]
 

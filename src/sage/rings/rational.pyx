@@ -2288,7 +2288,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             except AttributeError:
                 try:
                     return type(n)(self)**n
-                except:
+                except StandardError:
                     raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
         except OverflowError:

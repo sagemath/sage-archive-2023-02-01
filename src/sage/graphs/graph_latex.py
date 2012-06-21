@@ -1122,7 +1122,7 @@ class GraphLatex(SageObject):
             elif name in color_options:
                 try:
                     cc.to_rgb(value)
-                except:
+                except StandardError:
                     raise ValueError('%s option needs to be a matplotlib color (always as a string), not %s' % (name, value))
             elif name in boolean_options and not type(value) == bool:
                 raise ValueError('%s option must be True or False, not %s' % (name, value))
@@ -1146,7 +1146,7 @@ class GraphLatex(SageObject):
                     for key, c in value.items():
                         try:
                             cc.to_rgb(c)
-                        except:
+                        except StandardError:
                             raise ValueError('%s option for %s needs to be a matplotlib color (always as a string), not %s' % (name, key, c))
             elif name in positive_scalar_dicts:
                 if not type(value) == dict:

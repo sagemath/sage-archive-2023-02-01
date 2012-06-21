@@ -70,7 +70,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
         ...           continue                                            # long time
         ...       try:                                                    # long time
         ...           _ = g.is_planar(set_embedding=True, set_pos=True)   # long time
-        ...       except:                                                 # long time
+        ...       except StandardError:                                   # long time
         ...           print "There is something wrong here !"             # long time
         ...           break                                               # long time
     """

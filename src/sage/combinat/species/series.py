@@ -54,7 +54,7 @@ class LazyPowerSeriesRing(Algebra):
             raise TypeError, "Argument R must be a ring."
         try:
             z = R(Integer(1))
-        except:
+        except StandardError:
             raise ValueError, "R must have a unit element"
 
         #Take care of the names

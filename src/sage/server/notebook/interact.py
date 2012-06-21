@@ -2269,7 +2269,7 @@ def interact(f):
         ...     try:
         ...         x = A\v
         ...         html('$$%s %s = %s$$'%(latex(A), latex(x), latex(v)))
-        ...     except:
+        ...     except StandardError:
         ...         html('There is no solution to $$%s x=%s$$'%(latex(A), latex(v)))
         <html>...
 
@@ -2521,7 +2521,7 @@ class input_grid(control):
                 try:
                     x = m\v
                     html('$$%s %s = %s$$'%(latex(m), latex(x), latex(v)))
-                except:
+                except StandardError:
                     html('There is no solution to $$%s x=%s$$'%(latex(m), latex(v)))
 
         EXAMPLES::

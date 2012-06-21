@@ -799,7 +799,7 @@ class MathematicaElement(ExpectElement):
         try:
             return symbolic_expression_from_string(res, lsymbols,
                 accept_sequence=True)
-        except:
+        except StandardError:
             raise NotImplementedError, "Unable to parse Mathematica \
                 output: %s" % res
 

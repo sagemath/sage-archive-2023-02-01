@@ -420,7 +420,7 @@ class Factorization(SageObject):
             return cmp(type(self), type(other))
         try:
             return cmp(self.value(), other.value())
-        except:
+        except StandardError:
             c = cmp(self.__unit, other.__unit)
             if c: return c
             return list.__cmp__(self, other)
@@ -583,7 +583,7 @@ class Factorization(SageObject):
         """
         try:
             return self.universe().is_commutative()
-        except:
+        except StandardError:
             # This is not the mathematically correct default, but agrees with
             # history -- we've always assumed factored things commute
             return True

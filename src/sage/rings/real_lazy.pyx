@@ -718,7 +718,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         try:
             return self.eval(complex)
-        except:
+        except StandardError:
             from complex_field import ComplexField
             return complex(self.eval(ComplexField(53)))
 

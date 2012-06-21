@@ -161,7 +161,7 @@ def permutation_iterator_transposition_list(int n):
 
     try:
         T = PyList_New(N-1)
-    except:
+    except StandardError:
         sage_free(c)
         raise MemoryError, "Failed to allocate memory in permutation_iterator_transposition_list"
 

@@ -823,7 +823,7 @@ if not sdist:
     ##     f = open(CYTHON_DEPS_FILE)
     ##     deps = pickle.load(open(CYTHON_DEPS_FILE))
     ##     f.close()
-    ## except:
+    ## except StandardError:
     ##     deps = DependencyTree()
     deps = DependencyTree()
     queue = compile_command_list(ext_modules, deps)

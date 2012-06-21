@@ -3229,7 +3229,7 @@ cdef class Expression(CommutativeRingElement):
             else:
                 B=[A[0],SR(A[1])]
             B.append(Integer(A[len(A)-1]))
-        except:
+        except StandardError:
             raise NotImplementedError, "Wrong arguments passed to taylor. See taylor? for more details."
         l = self._maxima_().taylor(B)
         return self.parent()(l)
@@ -8341,11 +8341,11 @@ cdef class Expression(CommutativeRingElement):
                 from sage.symbolic.relation import solve_ineq
                 try:
                     return(solve_ineq(self)) # trying solve_ineq_univar
-                except:
+                except StandardError:
                     pass
                 try:
                     return(solve_ineq([self])) # trying solve_ineq_fourier
-                except:
+                except StandardError:
                     raise NotImplementedError, "solving only implemented for equalities and few special inequalities, see solve_ineq"
             ex = self
         else:
@@ -8417,7 +8417,7 @@ cdef class Expression(CommutativeRingElement):
                     s = m.to_poly_solve(x)
                     T = string_to_list_of_solutions(repr(s))
                     X = [t[0] for t in T]
-                except: # if that gives an error, stick with no solutions
+                except StandardError: # if that gives an error, stick with no solutions
                     X = []
 
             for eq in X:

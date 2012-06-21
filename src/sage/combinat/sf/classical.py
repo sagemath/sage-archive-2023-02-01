@@ -309,7 +309,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         else:
             try:
                 return eclass(self, {sage.combinat.partition.Partition_class([]):R(x)})
-            except:
+            except StandardError:
                 raise TypeError, "do not know how to make x (= %s) an element of self"%(x)
 
 

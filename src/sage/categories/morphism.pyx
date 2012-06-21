@@ -261,7 +261,7 @@ cdef class SetMorphism(Morphism):
         """
         try:
             return self._function(x, *args, **kwds)
-        except:
+        except StandardError:
             raise TypeError, "Underlying map %s does not accept additional arguments"%type(self._function)
 
     cdef _extra_slots(self, _slots):

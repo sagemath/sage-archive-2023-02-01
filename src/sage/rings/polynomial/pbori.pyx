@@ -974,7 +974,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         try:
             i = int(other)
-        except:
+        except StandardError:
             raise TypeError, "cannot convert %s to BooleanPolynomial"%(type(other))
 
         i = i % 2
@@ -4814,7 +4814,7 @@ cdef class MonomialConstruct:
                 if PY_TYPE_CHECK(x, BooleanPolynomial):
                    return result.lm()
                 return result
-            except:
+            except StandardError:
                 raise TypeError, "Cannot convert to Boolean Monomial %s"%(str(type(x)))
 
 cdef class VariableConstruct:
@@ -8127,7 +8127,7 @@ cdef class MonomialFactory:
                 if PY_TYPE_CHECK(arg, BooleanPolynomial):
                    return result.lm()
                 return result
-            except:
+            except StandardError:
                 raise TypeError, \
                     "Cannot %s convert to Boolean Monomial"%(str(type(arg)))
 

@@ -403,7 +403,7 @@ class ChainComplex(SageObject):
 
         try:
             deg = grading_group(degree)
-        except:
+        except StandardError:
             raise ValueError, "The 'degree' does not appear to be an element of the grading group."
         # check form of data
         new_data = {}

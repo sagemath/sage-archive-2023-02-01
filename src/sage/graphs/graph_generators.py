@@ -7459,7 +7459,7 @@ class GraphGenerators():
             N = networkx.random_regular_graph(d, n, seed=seed)
             if N is False: return False
             return graph.Graph(N, sparse=True)
-        except:
+        except StandardError:
             return False
 
     def RandomShell(self, constructor, seed=None):

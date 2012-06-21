@@ -191,5 +191,5 @@ class IsomorphicObjectOfFiniteEnumeratedSet(UniqueRepresentation, Parent):
         """
         try:
             return self.lift(x) in self.ambient()
-        except:
+        except StandardError:
             return False

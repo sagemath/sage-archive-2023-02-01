@@ -44,7 +44,7 @@ def _apply_function(func, list):
     while True:
         try:
             yield func(list)
-        except:
+        except StandardError:
             break
 
 def Stream(x=None, const=None):

@@ -922,10 +922,10 @@ def py_is_integer_for_doctests(x):
 cdef public bint py_is_even(object x) except +:
     try:
         return not(x%2)
-    except:
+    except StandardError:
         try:
             return not(ZZ(x)%2)
-        except:
+        except StandardError:
             pass
     return 0
 
@@ -968,11 +968,11 @@ import sage.rings.arith
 cdef public bint py_is_prime(object n) except +:
     try:
         return n.is_prime()
-    except:  # yes, I'm doing this on purpose.
+    except StandardError:  # yes, I'm doing this on purpose.
         pass
     try:
         return sage.rings.arith.is_prime(n)
-    except:
+    except StandardError:
         pass
     return False
 

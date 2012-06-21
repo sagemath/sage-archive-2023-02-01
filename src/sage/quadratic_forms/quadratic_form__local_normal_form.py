@@ -354,7 +354,7 @@ def jordan_blocks_by_scale_and_unimodular(self, p, safe_flag=True):
             return copy.deepcopy(self.__jordan_blocks_by_scale_and_unimodular_dict[p])
         else:
             return self.__jordan_blocks_by_scale_and_unimodular_dict[p]
-    except:
+    except StandardError:
         ## Initialize the global dictionary if it doesn't exist
         if not hasattr(self, '__jordan_blocks_by_scale_and_unimodular_dict'):
             self.__jordan_blocks_by_scale_and_unimodular_dict = {}

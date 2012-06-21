@@ -264,7 +264,7 @@ class HG:
         """
         try:
             tmp_branch_list = [s[5:]  for s in os.listdir(SAGE_ROOT + "/devel")  if s.startswith("sage-")]
-        except:
+        except StandardError:
             raise RuntimeError, "Oops!  We had trouble...  Check that SAGE_ROOT gives the correct directory."
 
         if print_flag:

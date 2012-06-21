@@ -115,7 +115,7 @@ class PSage(Sage):
             self.expect().expect(self._prompt)
         try:
             return Sage.eval(self, x, **kwds)
-        except:
+        except StandardError:
             return "<<currently executing code>>"
 
 
@@ -125,7 +125,7 @@ class PSage(Sage):
         """
         try:
             return self.eval('print %s'%var)
-        except:
+        except StandardError:
             return "<<currently executing code>>"
 
     def set(self, var, value):

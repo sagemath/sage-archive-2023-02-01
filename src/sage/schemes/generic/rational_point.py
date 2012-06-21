@@ -368,7 +368,7 @@ def enum_affine_finite_field(X):
     for c in cartesian_product_iterator([F]*n):
         try:
             pts.append(X(c))
-        except:
+        except StandardError:
             pass
     pts.sort()
     return pts

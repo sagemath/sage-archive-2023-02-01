@@ -286,7 +286,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
                 r = self.__call__(Matrix([self.domain().reflection(alp)(x).to_vector() for x in self.domain().basis()]))
                 ret[r] = alp
             return Family(ret)
-        except:
+        except StandardError:
             raise NotImplementedError, "reflections are only implemented for finite Weyl groups"
 
     def gens(self):

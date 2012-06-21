@@ -212,7 +212,7 @@ class JavaScriptCompressor:
                 key = 0
                 try:
                         key = self.__container.index(str)
-                except:
+                except StandardError:
                         key = len(self.__container)
                         self.__container.append(str)
                 return key

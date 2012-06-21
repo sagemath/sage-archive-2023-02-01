@@ -416,7 +416,7 @@ cdef class Function(SageObject):
                     else:
                         try:
                             nargs[i] = SR.coerce(carg)
-                        except:
+                        except StandardError:
                             raise TypeError, "cannot coerce arguments: %s"%(err)
                 args = nargs
         else: # coerce == False

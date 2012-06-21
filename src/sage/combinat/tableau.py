@@ -1262,7 +1262,7 @@ class Tableau_class(CombinatorialObject):
         if not isinstance(tab2, Tableau_class):
             try:
                 tab2 = Tableau_class(tab2)
-            except:
+            except StandardError:
                 raise TypeError, "tab2 must be a standard tableau"
 
         if tab2.size() != n:

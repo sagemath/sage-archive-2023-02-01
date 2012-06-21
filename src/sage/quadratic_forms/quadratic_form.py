@@ -424,7 +424,7 @@ class QuadraticForm():
         ## Verify the size of the matrix is an integer >= 0
         try:
             n = int(n)
-        except:
+        except StandardError:
             raise TypeError, "Oops! The size " + str(n) + " must be an integer."
             if (n < 0):
                 raise TypeError, "Oops! The size " + str(n) + " must be a non-negative integer."
@@ -624,7 +624,7 @@ class QuadraticForm():
         ## Set the entry
         try:
             self.__coeffs[i*self.__n - i*(i-1)/2 + j -i] = self.__base_ring(coeff)
-        except:
+        except StandardError:
             raise RuntimeError, "Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form."
 
 
@@ -752,7 +752,7 @@ class QuadraticForm():
 #        """
 #        try:
 #            c = self.base_ring()(right)
-#        except:
+#        except StandardError:
 #            raise TypeError, "Oh no! The multiplier cannot be coerced into the base ring of the quadratic form. =("
 #
 #        return QuadraticForm(self.base_ring(), self.dim(), [c * self.__coeffs[i]  for i in range(len(self.__coeffs))])
@@ -868,7 +868,7 @@ class QuadraticForm():
             if len(v) > 0:
                 try:
                     x = self.base_ring()(v[0])
-                except:
+                except StandardError:
                     raise TypeError, "Oops!  Your vector is not coercible to the base ring of the quadratic form... =("
 
             ## Attempt to evaluate Q[v]
@@ -932,7 +932,7 @@ class QuadraticForm():
                 for i in range(n):
                     for j in range(i, n):
                         x = R(A[i,j])
-            except:
+            except StandardError:
                 return False
 
         ## Test that the diagonal is even (if 1/2 isn't in R)
@@ -1084,7 +1084,7 @@ class QuadraticForm():
         flag = True
         try:
             self.Gram_matrix()
-        except:
+        except StandardError:
             flag = False
 
         return flag
@@ -1156,7 +1156,7 @@ class QuadraticForm():
         B = self.base_ring()
         try:
             R = PolynomialRing(self.base_ring(),names,n)
-        except:
+        except StandardError:
             raise ValueError, 'Can only create polynomial rings over commutative rings.'
         V = vector(R.gens())
         P = (V*M).dot_product(V)

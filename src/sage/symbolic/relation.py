@@ -423,7 +423,7 @@ def test_relation_maxima(relation):
             if repr( f() ).strip() == "0":
                 return True
                 break
-        except:
+        except StandardError:
             pass
     return False
 
@@ -729,7 +729,7 @@ def solve(f, *args, **kwds):
 
     try:
         s = m.solve(variables)
-    except: # if Maxima gave an error, try its to_poly_solve
+    except StandardError: # if Maxima gave an error, try its to_poly_solve
         try:
             s = m.to_poly_solve(variables)
         except TypeError, mess: # if that gives an error, raise an error.
@@ -741,13 +741,13 @@ def solve(f, *args, **kwds):
     if len(s)==0: # if Maxima's solve gave no solutions, try its to_poly_solve
         try:
             s = m.to_poly_solve(variables)
-        except: # if that gives an error, stick with no solutions
+        except StandardError: # if that gives an error, stick with no solutions
             s = []
 
     if len(s)==0: # if to_poly_solve gave no solutions, try use_grobner
         try:
             s = m.to_poly_solve(variables,'use_grobner=true')
-        except: # if that gives an error, stick with no solutions
+        except StandardError: # if that gives an error, stick with no solutions
             s = []
 
     sol_list = string_to_list_of_solutions(repr(s))

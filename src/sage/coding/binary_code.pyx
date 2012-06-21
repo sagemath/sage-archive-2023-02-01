@@ -1527,7 +1527,7 @@ cdef class PartitionStack:
             self.nrows = <int> arg1
             self.nwords = 1 << self.nrows
             self.ncols = <int> arg2
-        except:
+        except StandardError:
             other = arg1
             self.nrows = other.nrows
             self.nwords = other.nwords

@@ -391,7 +391,7 @@ class ReferenceBuilder(DocBuilder):
         file = open(self.cache_filename(), 'rb')
         try:
             cache = cPickle.load(file)
-        except:
+        except StandardError:
             logger.debug("Cache file '%s' is corrupted; ignoring it..."% filename)
             cache = {}
         else:

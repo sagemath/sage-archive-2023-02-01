@@ -2071,7 +2071,7 @@ def load_notebook(dir, address=None, port=None, secure=None):
     if os.path.exists(dir):
         try:
             nb = load(sobj, compress=False)
-        except:
+        except StandardError:
             backup = '%s/backups/'%dir
             if os.path.exists(backup):
                 print "****************************************************************"

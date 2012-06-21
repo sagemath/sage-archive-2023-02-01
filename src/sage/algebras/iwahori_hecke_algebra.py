@@ -354,7 +354,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
             # avoids accidental coercion into a field of fractions.
             i1 = self._q1.__pow__(-1)
             i2 = self._q2.__pow__(-1)
-        except:
+        except StandardError:
             raise ValueError("%s and %s must be invertible."%(self._q1, self._q2))
         return (-i1*i2)*self.algebra_generator(i)+(i1+i2)
 

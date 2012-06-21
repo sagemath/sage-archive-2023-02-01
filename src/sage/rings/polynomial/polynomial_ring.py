@@ -394,7 +394,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
-            except:
+            except StandardError:
                 raise TypeError, "Unable to coerce singular object"
         elif isinstance(x , str):
             try:

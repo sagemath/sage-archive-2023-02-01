@@ -602,7 +602,7 @@ class tr_data_rel:
                         for a0 in a0s:
                             try:
                                 ind = self.amaxvals[0].remove(a0)
-                            except:
+                            except StandardError:
                                 True
 
                     if verbose:

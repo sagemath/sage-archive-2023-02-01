@@ -1589,7 +1589,7 @@ class OverconvergentModularFormElement(ModuleElement):
         for i in xrange(self.gexp().prec()):
             if 12/ZZ(p - 1)*i*(r - s) - F(self.gexp()[i]).normalized_valuation() == self.r_ord(r):
                 return i
-        raise Exception, "Can't get here"
+        raise RuntimeError, "Can't get here"
 
     def valuation_plot(self, rmax = None):
         r"""

@@ -111,7 +111,8 @@ from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
 # singular rings
-from sage.libs.singular.ring cimport singular_ring_new, singular_ring_delete
+from sage.libs.singular.ring cimport singular_ring_new, singular_ring_delete, wrap_ring
+import sage.libs.singular.ring
 
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport Element, ModuleElement
@@ -2708,12 +2709,26 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
         sage: R = new_CRing(W, H.base_ring())
         sage: R # indirect doctest
         Multivariate Polynomial Ring in x, y, z over Rational Field
+
+    Check that #13145 has been resolved::
+
+        sage: h = hash(R.gen() + 1) # sets currRing
+        sage: from sage.libs.singular.ring import ring_refcount_dict, currRing_wrapper
+        sage: curcnt = ring_refcount_dict[currRing_wrapper()]
+        sage: newR = new_CRing(W, H.base_ring())
+        sage: ring_refcount_dict[currRing_wrapper()] - curcnt
+        1
     """
     assert( rw.is_commutative() )
 
     cdef MPolynomialRing_libsingular self = <MPolynomialRing_libsingular>PY_NEW(MPolynomialRing_libsingular)
 
     self._ring = rw._ring
+
+    wrapped_ring = wrap_ring(self._ring)
+    cur_refcnt = sage.libs.singular.ring.ring_refcount_dict.get(wrapped_ring, 0)
+    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] = cur_refcnt + 1
+
     self._ring.ShortOut = 0
 
     self.__ngens = rw.ngens()
@@ -2776,6 +2791,11 @@ cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
 
     cdef NCPolynomialRing_plural self = <NCPolynomialRing_plural>PY_NEW(NCPolynomialRing_plural)
     self._ring = rw._ring
+
+    wrapped_ring = wrap_ring(self._ring)
+    cur_refcnt = sage.libs.singular.ring.ring_refcount_dict.get(wrapped_ring, 0)
+    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] = cur_refcnt + 1
+
     self._ring.ShortOut = 0
 
     self.__ngens = rw.ngens()

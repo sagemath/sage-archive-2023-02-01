@@ -606,3 +606,15 @@ cpdef print_currRing():
     """
     cdef size_t addr = <size_t>currRing
     print "DEBUG: currRing == "+str(hex(addr))
+
+def currRing_wrapper():
+    """
+    Returns a wrapper for the current ring, for use in debugging ring_refcount_dict.
+
+    EXAMPLES::
+
+        sage: from sage.libs.singular.ring import currRing_wrapper
+        sage: currRing_wrapper()
+        The ring pointer ...
+    """
+    return wrap_ring(currRing)

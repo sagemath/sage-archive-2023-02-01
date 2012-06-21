@@ -1884,8 +1884,8 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 #*******************************************************************
 # Abelian varieties
 #*******************************************************************
-class SchemeMorphism_point_abelian_variety_field\
-        (AdditiveGroupElement, SchemeMorphism_point_projective_field):
+class SchemeMorphism_point_abelian_variety_field(
+       AdditiveGroupElement, SchemeMorphism_point_projective_field):
     """
     A rational point of an abelian variety over a field.
 

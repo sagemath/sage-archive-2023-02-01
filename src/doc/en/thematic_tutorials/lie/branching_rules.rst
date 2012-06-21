@@ -551,7 +551,7 @@ representations. These are permuted by triality:
     D4(0,0,0,1)
 
 By contrast, ``rule="automorphic"`` simply interchanges the two
-spin representations, as it always does in Type D::
+spin representations, as it always does in Type D:
 
 .. link:
 

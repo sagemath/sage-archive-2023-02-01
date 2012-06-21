@@ -208,10 +208,7 @@ class mwrank_EllipticCurve(SageObject):
 
             sage: E = mwrank_EllipticCurve([0, 0, 1, -1, 0])
             sage: E.set_verbose(1)
-            sage: E.saturate() # produces the following output
-
-        ::
-
+            sage: E.saturate() # tol 1e-14
             Basic pair: I=48, J=-432
             disc=255744
             2-adic index bound = 2
@@ -221,14 +218,14 @@ class mwrank_EllipticCurve(SageObject):
             Looking for quartics with I = 48, J = -432
             Looking for Type 2 quartics:
             Trying positive a from 1 up to 1 (square a first...)
-            (1,0,-6,4,1)	--trivial
+            (1,0,-6,4,1)        --trivial
             Trying positive a from 1 up to 1 (...then non-square a)
             Finished looking for Type 2 quartics.
             Looking for Type 1 quartics:
             Trying positive a from 1 up to 2 (square a first...)
-            (1,0,0,4,4)	--nontrivial...(x:y:z) = (1 : 1 : 0)
+            (1,0,0,4,4) --nontrivial...(x:y:z) = (1 : 1 : 0)
             Point = [0:0:1]
-            height = 0.051111408239968840235886099756942021609538202280854
+                height = 0.0511114082399688402358
             Rank of B=im(eps) increases to 1 (The previous point is on the egg)
             Exiting search for Type 1 quartics after finding one which is globally soluble.
             Mordell rank contribution from B=im(eps) = 1
@@ -238,12 +235,12 @@ class mwrank_EllipticCurve(SageObject):
             Selmer  rank contribution from A=ker(eps) = 0
             Sha     rank contribution from A=ker(eps) = 0
             Searching for points (bound = 8)...done:
-            found points of rank 1
-            and regulator 0.051111408239968840235886099756942021609538202280854
+              found points which generate a subgroup of rank 1
+              and regulator 0.0511114082399688402358
             Processing points found during 2-descent...done:
-            now regulator = 0.051111408239968840235886099756942021609538202280854
-            Saturating (bound = -1)...done:
-            points were already saturated.
+              now regulator = 0.0511114082399688402358
+            Saturating (with bound = -1)...done:
+              points were already saturated.
         """
         self.__verbose = verbose
 
@@ -376,6 +373,33 @@ class mwrank_EllipticCurve(SageObject):
         TESTS (see #7992)::
 
             sage: EllipticCurve([0, prod(prime_range(10))]).mwrank_curve().two_descent()
+            Basic pair: I=0, J=-5670
+            disc=-32148900
+            2-adic index bound = 2
+            2-adic index = 2
+            Two (I,J) pairs
+            Looking for quartics with I = 0, J = -5670
+            Looking for Type 3 quartics:
+            Trying positive a from 1 up to 5 (square a first...)
+            Trying positive a from 1 up to 5 (...then non-square a)
+            (2,0,-12,19,-6)	--nontrivial...(x:y:z) = (2 : 4 : 1)
+            Point = [-2488:-4997:512]
+                height = 6.46767239...
+            Rank of B=im(eps) increases to 1
+            Trying negative a from -1 down to -3
+            Finished looking for Type 3 quartics.
+            Looking for quartics with I = 0, J = -362880
+            Looking for Type 3 quartics:
+            Trying positive a from 1 up to 20 (square a first...)
+            Trying positive a from 1 up to 20 (...then non-square a)
+            Trying negative a from -1 down to -13
+            Finished looking for Type 3 quartics.
+            Mordell rank contribution from B=im(eps) = 1
+            Selmer  rank contribution from B=im(eps) = 1
+            Sha     rank contribution from B=im(eps) = 0
+            Mordell rank contribution from A=ker(eps) = 0
+            Selmer  rank contribution from A=ker(eps) = 0
+            Sha     rank contribution from A=ker(eps) = 0
             sage: EllipticCurve([0, prod(prime_range(100))]).mwrank_curve().two_descent()
             Traceback (most recent call last):
             ...
@@ -739,10 +763,7 @@ class mwrank_MordellWeil(SageObject):
         sage: EQ = mwrank_MordellWeil(E)
         sage: EQ
         Subgroup of Mordell-Weil group: []
-        sage: EQ.search(2) # output below
-
-    The previous command produces the following output::
-
+        sage: EQ.search(2)
         P1 = [0:1:0]	 is torsion point, order 1
         P1 = [1:-1:1]	 is torsion point, order 2
         P1 = [2:2:1]	 is torsion point, order 3
@@ -751,6 +772,10 @@ class mwrank_MordellWeil(SageObject):
         sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
         sage: EQ = mwrank_MordellWeil(E)
         sage: EQ.search(2)
+        P1 = [0:1:0]	 is torsion point, order 1
+        P1 = [-3:0:1]	  is generator number 1
+        ...
+        P4 = [-91:804:343]	 = -2*P1 + 2*P2 + 1*P3 (mod torsion)
         sage: EQ
         Subgroup of Mordell-Weil group: [[1:-1:1], [-2:3:1], [-14:25:8]]
 
@@ -758,15 +783,12 @@ class mwrank_MordellWeil(SageObject):
 
         sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
         sage: EQ = mwrank_MordellWeil(E, verbose=False)
-        sage: EQ.search(1) # no output
+        sage: EQ.search(1)
         sage: EQ
         Subgroup of Mordell-Weil group: [[1:-1:1], [-2:3:1], [-14:25:8]]
 
         sage: EQ = mwrank_MordellWeil(E, verbose=True)
-        sage: EQ.search(1) # output below
-
-    The previous command produces the following output::
-
+        sage: EQ.search(1)
         P1 = [0:1:0]	 is torsion point, order 1
         P1 = [-3:0:1]	  is generator number 1
         saturating up to 20...Checking 2-saturation
@@ -941,9 +963,6 @@ class mwrank_MordellWeil(SageObject):
             [[1, -1, 1], [-2, 3, 1], [-14, 25, 8]]
             sage: EQ = mwrank_MordellWeil(E)
             sage: EQ.process([[1, -1, 1], [-2, 3, 1], [-14, 25, 8]])
-
-        Output of previous command::
-
             P1 = [1:-1:1]	  is generator number 1
             P2 = [-2:3:1]	  is generator number 2
             P3 = [-14:25:8]	  is generator number 3
@@ -958,6 +977,10 @@ class mwrank_MordellWeil(SageObject):
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: EQ = mwrank_MordellWeil(E)
             sage: EQ.process([[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]], sat=20)
+            P1 = [1547:-2967:343]	  is generator number 1
+            ...
+            Gained index 5, new generators = [ [-2:3:1] [-14:25:8] [1:-1:1] ]
+
             sage: EQ.points()
             [[-2, 3, 1], [-14, 25, 8], [1, -1, 1]]
 
@@ -967,29 +990,54 @@ class mwrank_MordellWeil(SageObject):
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: EQ = mwrank_MordellWeil(E)
             sage: EQ.process([[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]], sat=0)
+            P1 = [1547:-2967:343]	  is generator number 1
+            P2 = [2707496766203306:864581029138191:2969715140223272]	  is generator number 2
+            P3 = [-13422227300:-49322830557:12167000000]	  is generator number 3
             sage: EQ.points()
             [[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]]
             sage: EQ.regulator()
             375.42919921875
             sage: EQ.saturate(2)  # points were not 2-saturated
+            saturating basis...Saturation index bound = 93
+            WARNING: saturation at primes p > 2 will not be done;
+            ...
+            Gained index 2
+            New regulator =  93.857300720636393209
             (False, 2, '[ ]')
             sage: EQ.points()
             [[-2, 3, 1], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]]
             sage: EQ.regulator()
             93.8572998046875
             sage: EQ.saturate(3)  # points were not 3-saturated
+            saturating basis...Saturation index bound = 46
+            WARNING: saturation at primes p > 3 will not be done;
+            ...
+            Gained index 3
+            New regulator =  10.4285889689595992455
             (False, 3, '[ ]')
             sage: EQ.points()
             [[-2, 3, 1], [-14, 25, 8], [-13422227300, -49322830557, 12167000000]]
             sage: EQ.regulator()
             10.4285888671875
             sage: EQ.saturate(5)  # points were not 5-saturated
+            saturating basis...Saturation index bound = 15
+            WARNING: saturation at primes p > 5 will not be done;
+            ...
+            Gained index 5
+            New regulator =  0.417143558758383969818
             (False, 5, '[ ]')
             sage: EQ.points()
             [[-2, 3, 1], [-14, 25, 8], [1, -1, 1]]
             sage: EQ.regulator()
             0.4171435534954071
             sage: EQ.saturate()   # points are now saturated
+            saturating basis...Saturation index bound = 3
+            Checking saturation at [ 2 3 ]
+            Checking 2-saturation
+            Points were proved 2-saturated (max q used = 11)
+            Checking 3-saturation
+            Points were proved 3-saturated (max q used = 13)
+            done
             (True, 1, '[ ]')
         """
         if not isinstance(v, list):
@@ -1059,6 +1107,11 @@ class mwrank_MordellWeil(SageObject):
         Now we do a very small search::
 
             sage: EQ.search(1)
+            P1 = [0:1:0]	 is torsion point, order 1
+            P1 = [-3:0:1]	  is generator number 1
+            saturating up to 20...Checking 2-saturation
+            ...
+            P4 = [12:35:27]	 = 1*P1 + -1*P2 + -1*P3 (mod torsion)
             sage: EQ
             Subgroup of Mordell-Weil group: [[1:-1:1], [-2:3:1], [-14:25:8]]
             sage: EQ.rank()
@@ -1141,6 +1194,9 @@ class mwrank_MordellWeil(SageObject):
         ``sat`` to 0 (which is in fact the default)::
 
             sage: EQ.process([[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]], sat=0)
+            P1 = [1547:-2967:343]	  is generator number 1
+            P2 = [2707496766203306:864581029138191:2969715140223272]	  is generator number 2
+            P3 = [-13422227300:-49322830557:12167000000]	  is generator number 3
             sage: EQ
             Subgroup of Mordell-Weil group: [[1547:-2967:343], [2707496766203306:864581029138191:2969715140223272], [-13422227300:-49322830557:12167000000]]
             sage: EQ.regulator()
@@ -1149,6 +1205,11 @@ class mwrank_MordellWeil(SageObject):
         Now we saturate at `p=2`, and gain index 2::
 
             sage: EQ.saturate(2)  # points were not 2-saturated
+            saturating basis...Saturation index bound = 93
+            WARNING: saturation at primes p > 2 will not be done;
+            ...
+            Gained index 2
+            New regulator =  93.857300720636393209
             (False, 2, '[ ]')
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [2707496766203306:864581029138191:2969715140223272], [-13422227300:-49322830557:12167000000]]
@@ -1158,6 +1219,11 @@ class mwrank_MordellWeil(SageObject):
         Now we saturate at `p=3`, and gain index 3::
 
             sage: EQ.saturate(3)  # points were not 3-saturated
+            saturating basis...Saturation index bound = 46
+            WARNING: saturation at primes p > 3 will not be done;
+            ...
+            Gained index 3
+            New regulator =  10.4285889689595992455
             (False, 3, '[ ]')
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [-13422227300:-49322830557:12167000000]]
@@ -1167,6 +1233,11 @@ class mwrank_MordellWeil(SageObject):
         Now we saturate at `p=5`, and gain index 5::
 
             sage: EQ.saturate(5)  # points were not 5-saturated
+            saturating basis...Saturation index bound = 15
+            WARNING: saturation at primes p > 5 will not be done;
+            ...
+            Gained index 5
+            New regulator =  0.417143558758383969818
             (False, 5, '[ ]')
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [1:-1:1]]
@@ -1177,6 +1248,13 @@ class mwrank_MordellWeil(SageObject):
         the points are now provably saturated at all primes::
 
             sage: EQ.saturate()   # points are now saturated
+            saturating basis...Saturation index bound = 3
+            Checking saturation at [ 2 3 ]
+            Checking 2-saturation
+            Points were proved 2-saturated (max q used = 11)
+            Checking 3-saturation
+            Points were proved 3-saturated (max q used = 13)
+            done
             (True, 1, '[ ]')
 
         Of course, the :meth:`process()` function would have done all this
@@ -1185,6 +1263,9 @@ class mwrank_MordellWeil(SageObject):
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: EQ = mwrank_MordellWeil(E)
             sage: EQ.process([[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]], sat=5)
+            P1 = [1547:-2967:343]	  is generator number 1
+            ...
+            Gained index 5, new generators = [ [-2:3:1] [-14:25:8] [1:-1:1] ]
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [1:-1:1]]
             sage: EQ.regulator()
@@ -1194,14 +1275,6 @@ class mwrank_MordellWeil(SageObject):
         verify that full saturation has been done::
 
             sage: EQ.saturate()
-            (True, 1, '[ ]')
-
-        The preceding command produces the following output as a
-        side-effect.  It proves that the index of the points in their
-        saturation is at most 3, then proves saturation at 2 and at 3,
-        by reducing the points modulo all primes of good reduction up
-        to 11, respectively 13::
-
             saturating basis...Saturation index bound = 3
             Checking saturation at [ 2 3 ]
             Checking 2-saturation
@@ -1209,6 +1282,12 @@ class mwrank_MordellWeil(SageObject):
             Checking 3-saturation
             Points were proved 3-saturated (max q used = 13)
             done
+            (True, 1, '[ ]')
+
+        Note the output of the preceding command: it proves that the
+        index of the points in their saturation is at most 3, then
+        proves saturation at 2 and at 3, by reducing the points modulo
+        all primes of good reduction up to 11, respectively 13.
         """
         ok, index, unsat = self.__mw.saturate(int(max_prime), odd_primes_only)
         return bool(ok), int(str(index)), unsat
@@ -1250,6 +1329,10 @@ class mwrank_MordellWeil(SageObject):
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: EQ = mwrank_MordellWeil(E)
             sage: EQ.search(1)
+            P1 = [0:1:0]	 is torsion point, order 1
+            P1 = [-3:0:1]	  is generator number 1
+            ...
+            P4 = [12:35:27]	 = 1*P1 + -1*P2 + -1*P3 (mod torsion)
             sage: EQ
             Subgroup of Mordell-Weil group: [[1:-1:1], [-2:3:1], [-14:25:8]]
 
@@ -1259,8 +1342,14 @@ class mwrank_MordellWeil(SageObject):
             sage: E = mwrank_EllipticCurve([0, -1, 0, -18392, -1186248]) #1056g4
             sage: EQ = mwrank_MordellWeil(E)
             sage: EQ.search(11); EQ
+            P1 = [0:1:0]	 is torsion point, order 1
+            P1 = [161:0:1]	 is torsion point, order 2
             Subgroup of Mordell-Weil group: []
             sage: EQ.search(12); EQ
+            P1 = [0:1:0]	 is torsion point, order 1
+            P1 = [161:0:1]	 is torsion point, order 2
+            P1 = [4413270:10381877:27000]	  is generator number 1
+            ...
             Subgroup of Mordell-Weil group: [[4413270:10381877:27000]]
         """
         height_limit = float(height_limit)
@@ -1299,6 +1388,10 @@ class mwrank_MordellWeil(SageObject):
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: EQ = mwrank_MordellWeil(E)
             sage: EQ.search(1)
+            P1 = [0:1:0]	 is torsion point, order 1
+            P1 = [-3:0:1]	  is generator number 1
+            ...
+            P4 = [12:35:27]	 = 1*P1 + -1*P2 + -1*P3 (mod torsion)
             sage: EQ.points()
             [[1, -1, 1], [-2, 3, 1], [-14, 25, 8]]
 

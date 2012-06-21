@@ -814,6 +814,7 @@ class NumberFieldIdeal(Ideal_generic):
             sage: P = EllipticCurve(L, '57a1').lift_x(z_x) * 3
             sage: ideal = L.fractional_ideal(P[0], P[1])
             sage: ideal.is_principal(proof=False)
+              ***   Warning: precision too low for generators, not given.
             True
             sage: len(ideal.gens_reduced(proof=False))
             1

@@ -59,10 +59,10 @@ use it to merge into our own code.
 Just for your own satisfaction, show yourself that you now have a new
 'remote', with ``git remote -v show``, giving you something like::
 
-   upstream	git://github.com/sagemath/sagenb.git (fetch)
-   upstream	git://github.com/sagemath/sagenb.git (push)
-   origin	git@github.com:your-user-name/sagenb.git (fetch)
-   origin	git@github.com:your-user-name/sagenb.git (push)
+   upstream     git://github.com/sagemath/sagenb.git (fetch)
+   upstream     git://github.com/sagemath/sagenb.git (push)
+   origin       git@github.com:your-user-name/sagenb.git (fetch)
+   origin       git@github.com:your-user-name/sagenb.git (push)
 
 .. include:: links.inc
 

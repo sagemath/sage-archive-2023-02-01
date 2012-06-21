@@ -210,6 +210,8 @@ GAP commands. Then the GAP output, which is also a string, must be
 parsed and converted if possible to a corresponding Sage/Python
 object.
 
+.. skip
+
 ::
 
     def cartan_matrix(type, rank):
@@ -439,7 +441,7 @@ interface to Singular:
           -2   # 64-bit
        [2]:
           0    # 32-bit
-          -1   # 64-bit
+          1    # 64-bit
        [3]:
           1
     ...
@@ -450,6 +452,8 @@ separate function to do just that. This requires figuring out how to
 determine where the coordinates of the points are placed in the string
 `L`. Python has some very useful string manipulation commands to do
 just that.
+
+.. skip
 
 ::
 
@@ -512,6 +516,8 @@ moment, there is no "translation" between elements of `GF(p^d)` in
 Singular and Sage unless `d=1`. So, for this reason, we restrict
 ourselves to points of degree one.
 
+.. skip
+
 ::
 
     def places_on_curve(f,F):
@@ -525,7 +531,7 @@ ourselves to points of degree one.
 
         EXAMPLES:
             sage: F=GF(5)
-            sage: R=MPolynomialRing(F,2,names=["x","y"])
+            sage: R=PolynomialRing(F,2,names=["x","y"])
             sage: x,y=R.gens()
             sage: f=y^2-x^9-x
             sage: places_on_curve(f,F)
@@ -580,13 +586,16 @@ computing the places on a curve in a particular case.
     sage: singular.set_ring(R)
     sage: L = singular.new('POINTS')
 
+Note that these elements of L are defined modulo 5 in Singular, and
+they compare differently than you would expect from their print
+representation:
+
 .. link
 
 ::
 
-    sage: [(L[i][1], L[i][2], L[i][3]) for i in range(1,7)]
-    [(0, 1, 0), (2, 2, 1), (0, 0, 1), (-2, -1, 1), (-2, 1, 1), (2, -2, 1)]  # 32-bit
-    [(0, 1, 0), (-2, 1, 1), (-2, -1, 1), (2, 2, 1), (0, 0, 1), (2, -2, 1)]  # 64-bit
+    sage: sorted([(L[i][1], L[i][2], L[i][3]) for i in range(1,7)])
+    [(0, 0, 1), (0, 1, 0), (2, 2, 1), (2, -2, 1), (-2, 1, 1), (-2, -1, 1)]
 
 Next, we implement the general function (for brevity we omit the
 docstring, which is the same as above). Note that the ``point_parser``

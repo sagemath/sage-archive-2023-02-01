@@ -237,8 +237,7 @@ class Order(IntegralDomain):
             sage: k.<a> = NumberField(x^2 + 5077); G = k.class_group(); G
             Class group of order 22 with structure C22 of Number Field in a with defining polynomial x^2 + 5077
             sage: G.0
-            Fractional ideal class (11, a + 7)   # 32-bit
-            Fractional ideal class (23, a + 12)  # 64-bit
+            Fractional ideal class (11, a + 7)
             sage: Ok = k.maximal_order(); Ok
             Maximal Order in Number Field in a with defining polynomial x^2 + 5077
             sage: Ok * (11, a + 7)

@@ -990,7 +990,6 @@ cdef class FpT_iter:
         return self.cur
 
 cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
-    cdef long p
     """
     This class represents the coercion map from GF(p)[t] to GF(p)(t)
 
@@ -1005,6 +1004,8 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.Polyring_FpT_coerce'>
     """
+    cdef long p
+
     def __init__(self, R):
         """
         INPUTS:
@@ -1115,7 +1116,6 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
         return FpT_Polyring_section(self)
 
 cdef class FpT_Polyring_section(Section):
-    cdef long p
     """
     This class represents the section from GF(p)(t) back to GF(p)[t]
 
@@ -1130,6 +1130,8 @@ cdef class FpT_Polyring_section(Section):
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.FpT_Polyring_section'>
     """
+    cdef long p
+
     def __init__(self, Polyring_FpT_coerce f):
         """
         INPUTS:
@@ -1183,7 +1185,6 @@ cdef class FpT_Polyring_section(Section):
         return ans
 
 cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
-    cdef long p
     """
     This class represents the coercion map from GF(p) to GF(p)(t)
 
@@ -1198,6 +1199,8 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.Fp_FpT_coerce'>
     """
+    cdef long p
+
     def __init__(self, R):
         """
         INPUTS:
@@ -1313,7 +1316,6 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
         return FpT_Fp_section(self)
 
 cdef class FpT_Fp_section(Section):
-    cdef long p
     """
     This class represents the section from GF(p)(t) back to GF(p)[t]
 
@@ -1328,6 +1330,8 @@ cdef class FpT_Fp_section(Section):
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.FpT_Fp_section'>
     """
+    cdef long p
+
     def __init__(self, Fp_FpT_coerce f):
         """
         INPUTS:
@@ -1388,7 +1392,6 @@ cdef class FpT_Fp_section(Section):
         return ans
 
 cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
-    cdef long p
     """
     This class represents the coercion map from ZZ to GF(p)(t)
 
@@ -1403,6 +1406,8 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.ZZ_FpT_coerce'>
     """
+    cdef long p
+
     def __init__(self, R):
         """
         INPUTS:

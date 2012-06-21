@@ -855,6 +855,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2,name="OneConstraint")
             sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"))
+            Writing problem data to ...
+            17 records were written
 
         For information about the MPS file format :
         http://en.wikipedia.org/wiki/MPS_%28format%29
@@ -880,6 +882,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
             sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
+            Writing problem data to ...
+            9 lines were written
 
         For more information about the LP file format :
         http://lpsolve.sourceforge.net/5.5/lp-format.htm
@@ -1852,9 +1856,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: b = p.get_backend()
             sage: b.solver_parameter("simplex_or_intopt", "simplex_only")
             sage: b.solver_parameter("verbosity_simplex", "GLP_MSG_ALL")
-            sage: p.solve() # tol 0.00001
+            sage: p.solve()  # tol 0.00001
+            GLPK Simplex Optimizer, v4.44
+            2 rows, 2 columns, 4 non-zeros
+            *     0: obj =   7.000000000e+00  infeas =  0.000e+00 (0)
+            *     2: obj =   9.400000000e+00  infeas =  0.000e+00 (0)
+            OPTIMAL SOLUTION FOUND
             9.4
-
         """
         return self._backend
 

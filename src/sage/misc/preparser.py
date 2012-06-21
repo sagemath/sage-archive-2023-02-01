@@ -1671,26 +1671,33 @@ def load(filename, globals, attach=False):
 
     EXAMPLES:
 
-    Note that .py files are *not* preparsed::
+    Note that ``.py`` files are *not* preparsed::
 
-        sage: t=tmp_filename(ext='.py'); open(t,'w').write("print 'hi',2/3; z=-2/9")
-        sage: sage.misc.preparser.load(t,globals())
+        sage: t = tmp_filename(ext='.py')
+        sage: open(t,'w').write("print 'hi', 2/3; z = -2/7")
+        sage: z = 1
+        sage: sage.misc.preparser.load(t, globals())
         hi 0
         sage: z
         -1
 
-    A .sage file *is* preparsed::
+    A ``.sage`` file *is* preparsed::
 
-        sage: t=tmp_filename(ext='.sage'); open(t,'w').write("print 'hi',2/3; s=-2/7")
-        sage: sage.misc.preparser.load(t,globals())
+        sage: t = tmp_filename(ext='.sage')
+        sage: open(t,'w').write("print 'hi', 2/3; z = -2/7")
+        sage: z = 1
+        sage: sage.misc.preparser.load(t, globals())
         hi 2/3
-        sage: s
+        sage: z
         -2/7
 
     Cython files are *not* preparsed::
 
-        sage: t=tmp_filename(ext='.pyx'); open(t,'w').write("print 'hi',2/3; z=-2/9")
-        sage: z=0; sage.misc.preparser.load(t,globals())
+        sage: t = tmp_filename(ext='.pyx')
+        sage: open(t,'w').write("print 'hi', 2/3; z = -2/7")
+        sage: z = 1
+        sage: sage.misc.preparser.load(t, globals())
+        Compiling ...
         hi 0
         sage: z
         -1

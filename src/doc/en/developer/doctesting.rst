@@ -1,3 +1,5 @@
+.. nodoctest
+
 .. _chapter-doctesting:
 
 ===========================

@@ -277,6 +277,11 @@ cdef class RingWrap:
             sage: l = ringlist(P)
             sage: ring = singular_function("ring")
             sage: ring(l, ring=P)._output()
+            //   characteristic : 0
+            //   number of vars : 3
+            //        block   1 : ordering dp
+            //                  : names    x y z
+            //        block   2 : ordering C
         """
         rPrint(self._ring)
 
@@ -1219,10 +1224,31 @@ cdef class SingularFunction(SageObject):
             sage: I = Ideal(I.groebner_basis())
             sage: hilb = sage.libs.singular.ff.hilb
             sage: hilb(I) # Singular will print // ** _ is no standard basis
+            // ** _ is no standard basis
+            //         1 t^0
+            //        -1 t^5
+            <BLANKLINE>
+            //         1 t^0
+            //         1 t^1
+            //         1 t^2
+            //         1 t^3
+            //         1 t^4
+            // dimension (proj.)  = 1
+            // degree (proj.)   = 5
 
         So we tell Singular that ``I`` is indeed a Groebner basis::
 
             sage: hilb(I,attributes={I:{'isSB':1}}) # no complaint from Singular
+            //         1 t^0
+            //        -1 t^5
+            <BLANKLINE>
+            //         1 t^0
+            //         1 t^1
+            //         1 t^2
+            //         1 t^3
+            //         1 t^4
+            // dimension (proj.)  = 1
+            // degree (proj.)   = 5
 
 
         TESTS:

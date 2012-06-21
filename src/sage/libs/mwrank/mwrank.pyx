@@ -156,10 +156,6 @@ def initprimes(filename, verb=False):
         sage: file = os.path.join(SAGE_TMP, 'PRIMES')
         sage: open(file,'w').write(' '.join([str(p) for p in prime_range(10^7,10^7+20)]))
         sage: mwrank_initprimes(file, verb=True)
-
-    The previous command does produce the following output when run
-    from the command line, but not during a doctest::
-
         Computed 78519 primes, largest is 1000253
         reading primes from file ...
         read extra prime 10000019
@@ -567,6 +563,10 @@ cdef class _mw:
             sage: EQ.search(1)
             sage: EQ = _mw(E, verb=True)
             sage: EQ.search(1)
+            P1 = [0:1:0]	 is torsion point, order 1
+            P1 = [-3:0:1]	  is generator number 1
+            ...
+            P4 = [12:35:27]	 = 1*P1 + -1*P2 + -1*P3 (mod torsion)
 
         The previous command produces the following output::
 
@@ -882,6 +882,10 @@ cdef class _mw:
             sage: EQ = _mw(E)
             sage: EQ.process([494, -5720, 6859]) # 3 times another point
             sage: EQ.saturate(sat_bd=2)
+            Saturation index bound = 10
+            WARNING: saturation at primes p > 2 will not be done;
+            points may be unsaturated at primes between 2 and index bound
+            Failed to saturate MW basis at primes [ ]
             (0, 1, '[ ]')
             sage: EQ
             [[494:-5720:6859]]
@@ -1049,6 +1053,15 @@ cdef class _two_descent:
             sage: from sage.libs.mwrank.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
+            Basic pair: I=336, J=-10800
+            disc=35092224
+            ...
+            Mordell rank contribution from B=im(eps) = 3
+            Selmer  rank contribution from B=im(eps) = 3
+            Sha     rank contribution from B=im(eps) = 0
+            Mordell rank contribution from A=ker(eps) = 0
+            Selmer  rank contribution from A=ker(eps) = 0
+            Sha     rank contribution from A=ker(eps) = 0
             sage: D2.getrank()
             3
             sage: D2.getcertain()
@@ -1078,6 +1091,15 @@ cdef class _two_descent:
             sage: from sage.libs.mwrank.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
+            Basic pair: I=336, J=-10800
+            disc=35092224
+            ...
+            Mordell rank contribution from B=im(eps) = 3
+            Selmer  rank contribution from B=im(eps) = 3
+            Sha     rank contribution from B=im(eps) = 0
+            Mordell rank contribution from A=ker(eps) = 0
+            Selmer  rank contribution from A=ker(eps) = 0
+            Sha     rank contribution from A=ker(eps) = 0
             sage: D2.getrank()
             3
         """
@@ -1103,6 +1125,15 @@ cdef class _two_descent:
             sage: from sage.libs.mwrank.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
+            Basic pair: I=336, J=-10800
+            disc=35092224
+            ...
+            Mordell rank contribution from B=im(eps) = 3
+            Selmer  rank contribution from B=im(eps) = 3
+            Sha     rank contribution from B=im(eps) = 0
+            Mordell rank contribution from A=ker(eps) = 0
+            Selmer  rank contribution from A=ker(eps) = 0
+            Sha     rank contribution from A=ker(eps) = 0
             sage: D2.getrankbound()
             3
         """
@@ -1128,6 +1159,15 @@ cdef class _two_descent:
             sage: from sage.libs.mwrank.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
+            Basic pair: I=336, J=-10800
+            disc=35092224
+            ...
+            Mordell rank contribution from B=im(eps) = 3
+            Selmer  rank contribution from B=im(eps) = 3
+            Sha     rank contribution from B=im(eps) = 0
+            Mordell rank contribution from A=ker(eps) = 0
+            Selmer  rank contribution from A=ker(eps) = 0
+            Sha     rank contribution from A=ker(eps) = 0
             sage: D2.getselmer()
             3
         """
@@ -1152,6 +1192,15 @@ cdef class _two_descent:
             sage: from sage.libs.mwrank.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
+            Basic pair: I=336, J=-10800
+            disc=35092224
+            ...
+            Mordell rank contribution from B=im(eps) = 3
+            Selmer  rank contribution from B=im(eps) = 3
+            Sha     rank contribution from B=im(eps) = 0
+            Mordell rank contribution from A=ker(eps) = 0
+            Selmer  rank contribution from A=ker(eps) = 0
+            Sha     rank contribution from A=ker(eps) = 0
             sage: D2.ok()
             1
         """
@@ -1172,6 +1221,15 @@ cdef class _two_descent:
             sage: from sage.libs.mwrank.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
+            Basic pair: I=336, J=-10800
+            disc=35092224
+            ...
+            Mordell rank contribution from B=im(eps) = 3
+            Selmer  rank contribution from B=im(eps) = 3
+            Sha     rank contribution from B=im(eps) = 0
+            Mordell rank contribution from A=ker(eps) = 0
+            Selmer  rank contribution from A=ker(eps) = 0
+            Sha     rank contribution from A=ker(eps) = 0
             sage: D2.getcertain()
             1
         """
@@ -1192,7 +1250,22 @@ cdef class _two_descent:
             sage: from sage.libs.mwrank.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
+            Basic pair: I=336, J=-10800
+            disc=35092224
+            ...
+            Mordell rank contribution from B=im(eps) = 3
+            Selmer  rank contribution from B=im(eps) = 3
+            Sha     rank contribution from B=im(eps) = 0
+            Mordell rank contribution from A=ker(eps) = 0
+            Selmer  rank contribution from A=ker(eps) = 0
+            Sha     rank contribution from A=ker(eps) = 0
             sage: D2.saturate()
+            Searching for points (bound = 8)...done:
+              found points which generate a subgroup of rank 3
+              and regulator 0.417143558758383969817119544618093396749810106098479
+            Processing points found during 2-descent...done:
+              now regulator = 0.417143558758383969817119544618093396749810106098479
+            No saturation being done
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'
         """
@@ -1224,7 +1297,22 @@ cdef class _two_descent:
             sage: from sage.libs.mwrank.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
+            Basic pair: I=336, J=-10800
+            disc=35092224
+            ...
+            Mordell rank contribution from B=im(eps) = 3
+            Selmer  rank contribution from B=im(eps) = 3
+            Sha     rank contribution from B=im(eps) = 0
+            Mordell rank contribution from A=ker(eps) = 0
+            Selmer  rank contribution from A=ker(eps) = 0
+            Sha     rank contribution from A=ker(eps) = 0
             sage: D2.saturate()
+            Searching for points (bound = 8)...done:
+              found points which generate a subgroup of rank 3
+              and regulator 0.417143558758383969817119544618093396749810106098479
+            Processing points found during 2-descent...done:
+              now regulator = 0.417143558758383969817119544618093396749810106098479
+            No saturation being done
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'
         """
@@ -1246,6 +1334,15 @@ cdef class _two_descent:
             sage: from sage.libs.mwrank.mwrank import _two_descent
             sage: D2 = _two_descent()
             sage: D2.do_descent(CD)
+            Basic pair: I=336, J=-10800
+            disc=35092224
+            ...
+            Mordell rank contribution from B=im(eps) = 3
+            Selmer  rank contribution from B=im(eps) = 3
+            Sha     rank contribution from B=im(eps) = 0
+            Mordell rank contribution from A=ker(eps) = 0
+            Selmer  rank contribution from A=ker(eps) = 0
+            Sha     rank contribution from A=ker(eps) = 0
 
         If called before calling ``saturate()``, a bogus value of 1.0
         is returned::
@@ -1258,6 +1355,12 @@ cdef class _two_descent:
         2-descent::
 
             sage: D2.saturate()
+            Searching for points (bound = 8)...done:
+              found points which generate a subgroup of rank 3
+              and regulator 0.417143558758383969817119544618093396749810106098479
+            Processing points found during 2-descent...done:
+              now regulator = 0.417143558758383969817119544618093396749810106098479
+            No saturation being done
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'
             sage: D2.regulator()

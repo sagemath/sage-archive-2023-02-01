@@ -576,8 +576,8 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 ::
 
     >>> for i in range(5):
-           print(i)
-
+    ...     print(i)
+    ...
     0
     1
     2
@@ -592,7 +592,8 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 ::
 
     sage: for i in range(5):
-    ...       print(i)  # нажмите Enter дважды
+    ....:     print(i)  # нажмите Enter дважды
+    ....:
     0
     1
     2

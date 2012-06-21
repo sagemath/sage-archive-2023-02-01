@@ -358,11 +358,11 @@ class CuspidalSubmodule_eps(CuspidalSubmodule_modsym_qexp):
         sage: f.qexp(1)
         O(q^1)
     """
+    pass
 
     #def _repr_(self):
     #    A = self.ambient_module()
     #    return "Cuspidal subspace of dimension %s of Modular Forms space with character %s and weight %s over %s"%(self.dimension(), self.character(), self.weight(), self.base_ring())
-
 
 
 def _convert_matrix_from_modsyms(symbs, T):

@@ -318,26 +318,26 @@ Tracé en 2D de plusieurs fonctions (n'entrez pas les ``...``) :
 
 ::
 
-    sage: maxima.plot2d('[cos(7*x),cos(23*x)^4,sin(13*x)^3]','[x,0,1]',\
-    ...   '[plot_format,openmath]') # not tested
+    sage: maxima.plot2d('[cos(7*x),cos(23*x)^4,sin(13*x)^3]','[x,0,1]', # not tested
+    ....: '[plot_format,openmath]')
 
 Un graphique 3D interactif, que vous pouvez déplacer à la souris
 (n'entrez pas les ``...``) :
 
 ::
 
-    sage: maxima.plot3d ("2^(-u^2 + v^2)", "[u, -3, 3]", "[v, -2, 2]",\
-    ...   '[plot_format, openmath]') # not tested
-    sage: maxima.plot3d("atan(-x^2 + y^3/4)", "[x, -4, 4]", "[y, -4, 4]",\
-    ...   "[grid, 50, 50]",'[plot_format, openmath]') # not tested
+    sage: maxima.plot3d ("2^(-u^2 + v^2)", "[u, -3, 3]", "[v, -2, 2]", # not tested
+    ....: '[plot_format, openmath]')
+    sage: maxima.plot3d("atan(-x^2 + y^3/4)", "[x, -4, 4]", "[y, -4, 4]", # not tested
+    ....: "[grid, 50, 50]",'[plot_format, openmath]')
 
 Le célèbre ruban de Möbius (n'entrez pas les ``...``) :
 
 ::
 
-    sage: maxima.plot3d("[cos(x)*(3 + y*cos(x/2)), sin(x)*(3 + y*cos(x/2)),\
-    ...   y*sin(x/2)]", "[x, -4, 4]", "[y, -4, 4]",\
-    ...   '[plot_format, openmath]') # not tested
+    sage: maxima.plot3d("[cos(x)*(3 + y*cos(x/2)), sin(x)*(3 + y*cos(x/2)), y*sin(x/2)]", # not tested
+    ....: "[x, -4, 4]", "[y, -4, 4]",
+    ....: '[plot_format, openmath]')
 
 Et la fameuse bouteille de Klein (n'entrez pas les ``...``):
 
@@ -350,7 +350,7 @@ Et la fameuse bouteille de Klein (n'entrez pas les ``...``):
     -5*sin(x)*(sin(x/2)*sin(2*y)+cos(x/2)*cos(y)+3.0)
     sage: maxima("expr_3: 5*(-sin(x/2)*cos(y) + cos(x/2)*sin(2*y))")
     5*(cos(x/2)*sin(2*y)-sin(x/2)*cos(y))
-    sage: maxima.plot3d ("[expr_1, expr_2, expr_3]", "[x, -%pi, %pi]",\
-    ...   "[y, -%pi, %pi]", "['grid, 40, 40]",\
-    ...   '[plot_format, openmath]') # not tested
+    sage: maxima.plot3d ("[expr_1, expr_2, expr_3]", "[x, -%pi, %pi]", # not tested
+    ....: "[y, -%pi, %pi]", "['grid, 40, 40]",
+    ....: '[plot_format, openmath]')
 

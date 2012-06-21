@@ -17,9 +17,7 @@ class Sh:
         the following really only tests that the command doesn't bomb,
         not that it gives the right output::
 
-            sage: sh.eval('''echo "Hello there"\nif [ $? -eq 0 ]; then\necho "good"\nfi''')
-            /...
-            ''
+            sage: sh.eval('''echo "Hello there"\nif [ $? -eq 0 ]; then\necho "good"\nfi''') # random output
         """
         # Print out the current absolute path, which is where the code
         # will be evaluated.    Evidently, users find this comforting,

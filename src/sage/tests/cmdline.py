@@ -332,7 +332,7 @@ def test_executable(args, input="", timeout=50.0, cwd=None):
         sage: (out, err, ret) = test_executable(["sage", "-t", script])
         sage: ret
         128
-        sage: out.find("1 items had failures:") >= 0
+        sage: out.find("1 item had failures:") >= 0
         True
         sage: os.environ['SAGE_TESTDIR'] = OLD_TESTDIR  # just in case
 

@@ -90,6 +90,8 @@ support the command ``latex``.
 
 An example template for a ``_latex_`` method follows:
 
+.. skip
+
 ::
 
     class X:
@@ -136,7 +138,7 @@ Here is an example of the ``_latex_`` and ``_repr_`` functions for the
 
             sage: pi
             pi
-            sage: float(pi)
+            sage: float(pi) # rel tol 1e-10
             3.1415926535897931
         """
         ...

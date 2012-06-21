@@ -1313,12 +1313,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.analytic_rank(algorithm='pari')
             2
             sage: E.analytic_rank(algorithm='rubinstein')
+              ***   Warning: new stack size = ...
             2
             sage: E.analytic_rank(algorithm='sympow')
             2
             sage: E.analytic_rank(algorithm='magma')    # optional - magma
             2
             sage: E.analytic_rank(algorithm='all')
+              ***   Warning: new stack size = ...
             2
 
         With the optional parameter leading_coefficient set to ``True``, a
@@ -2136,6 +2138,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.saturation([P])
             ([(-192128125858676194585718821667542660822323528626273/336995568430319276695106602174283479617040716649 : 70208213492933395764907328787228427430477177498927549075405076353624188436/195630373799784831667835900062564586429333568841391304129067339731164107 : 1)], 1, 113.302910926080)
             sage: E.saturation([2*P]) ## needs higher precision
+            After 10 attempts at enlargement, giving up!
             ...
             ([(1755450733726721618440965414535034458701302721700399/970334851896750960577261378321772998240802013604 : -59636173615502879504846810677646864329901430096139563516090202443694810309127/955833935771565601591243078845907133814963790187832340692216425242529192 : 1)], 2, 113.302910926080)
 

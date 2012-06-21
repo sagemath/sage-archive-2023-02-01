@@ -693,6 +693,7 @@ def cython_create_local_so(filename):
         sage: f.write(s)
         sage: f.close()
         sage: cython_create_local_so('hello.spyx')
+        Compiling hello.spyx...
         sage: sys.path.append('.')
         sage: import hello
         sage: hello.hello()

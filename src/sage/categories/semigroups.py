@@ -441,7 +441,6 @@ class Semigroups(Category_singleton):
 
             @cached_method
             def algebra_generators(self):
-                from sage.sets.family import Family
                 r"""
                 The generators of this algebra, as per
                 :meth:`Algebras.ParentMethods.algebra_generators()
@@ -455,6 +454,7 @@ class Semigroups(Category_singleton):
                     sage: A.algebra_generators()
                     Finite family {0: B['a'], 1: B['b'], 2: B['c'], 3: B['d']}
                 """
+                from sage.sets.family import Family
                 return self.basis().keys().semigroup_generators().map(self.monomial)
 
             def product_on_basis(self, g1, g2):

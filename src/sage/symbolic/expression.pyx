@@ -3525,8 +3525,8 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
-            sage: var('x,y,z,a,b,c,d,e,f')
-            (x, y, z, a, b, c, d, e, f)
+            sage: var('x,y,z,a,b,c,d,f,g')
+            (x, y, z, a, b, c, d, f, g)
             sage: w0 = SR.wild(0); w1 = SR.wild(1); w2 = SR.wild(2)
             sage: ((x+y)^a).match((x+y)^a)  # no wildcards, so empty dict
             {}
@@ -3549,13 +3549,13 @@ cdef class Expression(CommutativeRingElement):
             sage: t = (a*(x+y)+a*z+b).match(a*w0+w1)
             sage: t[w0], t[w1]
             (x + y, a*z + b)
-            sage: print (a+b+c+d+e+f).match(c)
+            sage: print (a+b+c+d+f+g).match(c)
             None
-            sage: (a+b+c+d+e+f).has(c)
+            sage: (a+b+c+d+f+g).has(c)
             True
-            sage: (a+b+c+d+e+f).match(c+w0)
-            {$0: a + b + d + e + f}
-            sage: (a+b+c+d+e+f).match(c+e+w0)
+            sage: (a+b+c+d+f+g).match(c+w0)
+            {$0: a + b + d + f + g}
+            sage: (a+b+c+d+f+g).match(c+g+w0)
             {$0: a + b + d + f}
             sage: (a+b).match(a+b+w0)
             {$0: 0}
@@ -3691,8 +3691,8 @@ cdef class Expression(CommutativeRingElement):
         """
         EXAMPLES::
 
-            sage: var('x,y,z,a,b,c,d,e,f')
-            (x, y, z, a, b, c, d, e, f)
+            sage: var('x,y,z,a,b,c,d,f,g')
+            (x, y, z, a, b, c, d, f, g)
             sage: w0 = SR.wild(0); w1 = SR.wild(1)
             sage: t = a^2 + b^2 + (x+y)^3
 
@@ -3814,8 +3814,8 @@ cdef class Expression(CommutativeRingElement):
         """
         EXAMPLES::
 
-            sage: var('x,y,z,a,b,c,d,e,f')
-            (x, y, z, a, b, c, d, e, f)
+            sage: var('x,y,z,a,b,c,d,f')
+            (x, y, z, a, b, c, d, f)
             sage: w0 = SR.wild(0); w1 = SR.wild(1)
             sage: (a^2 + b^2 + (x+y)^2)._subs_expr(w0^2 == w0^3)
             (x + y)^3 + a^3 + b^3
@@ -6725,13 +6725,9 @@ cdef class Expression(CommutativeRingElement):
 
         ::
 
-            sage: gp('gamma(1+I)') # 32-bit
-            0.4980156681183560427136911175 - 0.1549498283018106851249551305*I
-
-        ::
-
-            sage: gp('gamma(1+I)') # 64-bit
-            0.49801566811835604271369111746219809195 - 0.15494982830181068512495513048388660520*I
+            sage: gp('gamma(1+I)')
+            0.4980156681183560427136911175 - 0.1549498283018106851249551305*I # 32-bit
+            0.49801566811835604271369111746219809195 - 0.15494982830181068512495513048388660520*I # 64-bit
 
         We plot the familiar plot of this log-convex function::
 
@@ -8447,7 +8443,7 @@ cdef class Expression(CommutativeRingElement):
         assumed to be an integer, a real if with ``r``, and so on::
 
             sage: solve( sin(x)==cos(x), x, to_poly_solve=True)
-            [x == 1/4*pi + pi*z74]
+            [x == 1/4*pi + pi*z...]
 
         An effort is made to only return solutions that satisfy the current assumptions::
 
@@ -8487,7 +8483,7 @@ cdef class Expression(CommutativeRingElement):
             sage: from sage.calculus.calculus import maxima
             sage: sol = maxima(cos(x)==0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == -1/2*pi + 2*pi*z86], [x == 1/2*pi + 2*pi*z88]]
+            [[x == -1/2*pi + 2*pi*z...], [x == 1/2*pi + 2*pi*z...]]
 
         If a returned unsolved expression has a denominator, but the
         original one did not, this may also be true::
@@ -8497,7 +8493,7 @@ cdef class Expression(CommutativeRingElement):
             sage: from sage.calculus.calculus import maxima
             sage: sol = maxima(cos(x) * sin(x) == 1/2).to_poly_solve(x)
             sage: sol.sage()
-            [[x == 1/4*pi + pi*z102]]
+            [[x == 1/4*pi + pi*z...]]
 
         Some basic inequalities can be also solved::
 
@@ -8554,7 +8550,7 @@ cdef class Expression(CommutativeRingElement):
         ::
 
             sage: solve(sin(x)==1/2,x,to_poly_solve='force')
-            [x == 5/6*pi + 2*pi*z116, x == 1/6*pi + 2*pi*z114]
+            [x == 5/6*pi + 2*pi*z..., x == 1/6*pi + 2*pi*z...]
 
         :trac:`11618` fixed::
 
@@ -8792,7 +8788,7 @@ cdef class Expression(CommutativeRingElement):
             sage: b.solve(t)
             []
             sage: b.solve(t, to_poly_solve=True)
-            [t == 1/450*I*pi*z128 + 1/900*log(3/4*sqrt(41) + 25/4), t == 1/450*I*pi*z126 + 1/900*log(-3/4*sqrt(41) + 25/4)]
+            [t == 1/450*I*pi*z... + 1/900*log(3/4*sqrt(41) + 25/4), t == 1/450*I*pi*z... + 1/900*log(-3/4*sqrt(41) + 25/4)]
             sage: n(1/900*log(-3/4*sqrt(41) + 25/4))
             0.000411051404934985
 

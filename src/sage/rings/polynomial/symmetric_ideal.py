@@ -462,9 +462,9 @@ class SymmetricIdeal( Ideal_generic ):
             sage: I.interreduction(report=True)
             Symmetric interreduction
             [1/2]  >
-            [2/2] : >
+            [2/2] :>
             [1/2]  >
-            [2/2] T[1] >
+            [2/2] T[1]>
             >
             Symmetric Ideal (-x_1^2, x_2 + x_1) of Infinite polynomial ring in x over Rational Field
 
@@ -824,7 +824,7 @@ class SymmetricIdeal( Ideal_generic ):
             sage: I1.groebner_basis(report=True, reduced=True)
             Symmetric interreduction
             [1/2]  >
-            [2/2] : >
+            [2/2] :>
             [1/2]  >
             [2/2]  >
             Symmetrise 2 polynomials at level 2
@@ -834,7 +834,7 @@ class SymmetricIdeal( Ideal_generic ):
             Symmetric interreduction
             [1/3]  >
             [2/3]  >
-            [3/3] : >
+            [3/3] :>
             -> 0
             [1/2]  >
             [2/2]  >
@@ -854,11 +854,11 @@ class SymmetricIdeal( Ideal_generic ):
             ::>
             Symmetric interreduction
             [1/4]  >
-            [2/4] : >
+            [2/4] :>
             -> 0
-            [3/4] :: >
+            [3/4] ::>
             -> 0
-            [4/4] : >
+            [4/4] :>
             -> 0
             [1/1]  >
             Apply permutations
@@ -881,7 +881,7 @@ class SymmetricIdeal( Ideal_generic ):
             :>
             Symmetric interreduction
             [1/2]  >
-            [2/2] : >
+            [2/2] :>
             -> 0
             [1/1]  >
             Symmetric interreduction

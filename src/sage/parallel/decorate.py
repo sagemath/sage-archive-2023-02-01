@@ -556,7 +556,12 @@ def fork(f=None, timeout=0, verbose=False):
         sage: cython('def f(): print <char*>0')
         sage: @fork
         ... def g(): f()
-        sage: g()
+        sage: print "this works"; g()
+        this works...
+        <BLANKLINE>
+        ------------------------------------------------------------------------
+        Unhandled SIG...
+        ------------------------------------------------------------------------
         'NO DATA'
     """
     F = Fork(timeout=timeout, verbose=verbose)

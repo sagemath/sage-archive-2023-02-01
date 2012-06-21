@@ -244,9 +244,10 @@ def save_session(name='sage_session', verbose=False):
         - creates a file
 
     EXAMPLES:
+
     For testing, we use a temporary file, that will be removed as soon
     as Sage is left. Of course, for permanently saving your session,
-    you should choose a permanent file.::
+    you should choose a permanent file. ::
 
         sage: a = 5
         sage: tmp_f = tmp_filename()
@@ -257,6 +258,7 @@ def save_session(name='sage_session', verbose=False):
         5
 
     We illustrate what happens when one of the variables is a function.::
+
         sage: f = lambda x : x^2
         sage: save_session(tmp_f)
         sage: save_session(tmp_f, verbose=True)
@@ -268,7 +270,6 @@ def save_session(name='sage_session', verbose=False):
 
         sage: g = cython_lambda('double x', 'x*x + 1.5')
         sage: save_session(tmp_f, verbose=True)
-        Saving...
         Not saving g: g is a function, method, class or type
         ...
     """

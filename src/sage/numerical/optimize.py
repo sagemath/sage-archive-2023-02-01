@@ -525,6 +525,8 @@ def linear_program(c,G,h,A=None,b=None,solver=None):
         sage: sol['x']
         (45.000000..., 6.2499999...3, 1.00000000...)
         sage: sol=linear_program(v,m,h,solver='glpk')
+        GLPK Simplex Optimizer...
+        OPTIMAL SOLUTION FOUND
         sage: sol['x']
         (45.0..., 6.25, 1.0...)
     """

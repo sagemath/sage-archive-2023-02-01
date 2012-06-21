@@ -154,8 +154,8 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
             sage: PolynomialRing(ZZ, 'x', implementation='NTL')({2^3: 1})
             x^8
-            sage: PolynomialRing(ZZ, 'x', implementation='NTL')({2^30: 1}) # 32-bit
-            sage: PolynomialRing(ZZ, 'x', implementation='NTL')({2^62: 1}) # 64-bit
+            sage: import sys
+            sage: PolynomialRing(ZZ, 'x', implementation='NTL')({sys.maxint>>1: 1})
             Traceback (most recent call last):
             ...
             OverflowError: Dense NTL integer polynomials have a maximum degree of 268435455    # 32-bit

@@ -65,9 +65,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         (0, 1)
         sage: b.weight()
         (1, 0, 0)
-    """
 
-    r"""
     The following is required, because :class:`DirectSumOfCrystals`
     takes the same arguments as :class:`DisjointUnionEnumeratedSets`
     (which see for details).

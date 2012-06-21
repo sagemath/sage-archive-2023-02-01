@@ -14,9 +14,27 @@ TESTS:
         sage: import inspect
         sage: from sage import *
         sage: frames=[x for x in gc.get_objects() if inspect.isframe(x)]
-        sage: len(frames)
-        11
 
+    We exclude the known files and check to see that there are no others::
+
+        sage: import os
+        sage: allowed = [os.path.join("lib","python","threading.py")]
+        sage: allowed.append(os.path.join("lib","python","multiprocessing"))
+        sage: allowed.append(os.path.join("sage","doctest"))
+        sage: allowed.append(os.path.join("local","bin","sage-runtests"))
+        sage: allowed.append(os.path.join("site-packages","IPython"))
+        sage: allowed.append(os.path.join("local","bin","sage-ipython"))
+        sage: allowed.append("<ipython console>")
+        sage: allowed.append("<doctest sage.all[3]>")
+        sage: allowed.append(os.path.join("sage","combinat","species","generating_series.py"))
+        sage: for i in frames:
+        ....:     filename, lineno, funcname, linelist, indx = inspect.getframeinfo(i)
+        ....:     for nm in allowed:
+        ....:         if nm in filename:
+        ....:             break
+        ....:     else:
+        ....:         print filename
+        ....:
 """
 
 ###############################################################################

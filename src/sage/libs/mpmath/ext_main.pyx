@@ -508,7 +508,7 @@ cdef class Context:
         Creates an mpc from tuple data ::
 
             sage: import mpmath
-            >>> complex(mpmath.mp.make_mpc(((0,1,-1,1), (1,1,-2,1))))
+            sage: complex(mpmath.mp.make_mpc(((0,1,-1,1), (1,1,-2,1))))
             (0.5-0.25j)
         """
         cdef mpc x

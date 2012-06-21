@@ -401,7 +401,27 @@ cdef class Lfunction_I(Lfunction):
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi=DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="int")
-            sage: L._print_data_to_standard_output()
+            sage: L._print_data_to_standard_output() # tol 1e-15
+            -----------------------------------------------
+            <BLANKLINE>
+            Name of L_function:
+            number of dirichlet coefficients = 5
+            coefficients are periodic
+            b[1] = 1
+            b[2] = -1
+            b[3] = -1
+            b[4] = 1
+            b[5] = 0
+            <BLANKLINE>
+            Q = 1.26156626101
+            OMEGA = (1,0)
+            a = 1 (the quasi degree)
+            gamma[1] =0.5    lambda[1] =(0,0)
+            <BLANKLINE>
+            <BLANKLINE>
+            number of poles (of the completed L function) = 0
+            -----------------------------------------------
+            <BLANKLINE>
         """
         (<c_Lfunction_I *>self.thisptr).print_data_L()
 
@@ -509,7 +529,28 @@ cdef class Lfunction_D(Lfunction):
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi=DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="double")
-            sage: L._print_data_to_standard_output()
+            sage: L._print_data_to_standard_output() # tol 1e-15
+            -----------------------------------------------
+            <BLANKLINE>
+            Name of L_function:
+            number of dirichlet coefficients = 5
+            coefficients are periodic
+            b[1] = 1
+            b[2] = -1
+            b[3] = -1
+            b[4] = 1
+            b[5] = 0
+            <BLANKLINE>
+            Q = 1.26156626101
+            OMEGA = (1,0)
+            a = 1 (the quasi degree)
+            gamma[1] =0.5    lambda[1] =(0,0)
+            <BLANKLINE>
+            <BLANKLINE>
+            number of poles (of the completed L function) = 0
+            -----------------------------------------------
+            <BLANKLINE>
+
         """
         (<c_Lfunction_D *>self.thisptr).print_data_L()
 
@@ -622,7 +663,28 @@ cdef class Lfunction_C:
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi=DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi, type="complex")
-            sage: L._print_data_to_standard_output()
+            sage: L._print_data_to_standard_output() # tol 1e-15
+            -----------------------------------------------
+            <BLANKLINE>
+            Name of L_function:
+            number of dirichlet coefficients = 5
+            coefficients are periodic
+            b[1] = (1,0)
+            b[2] = (0,1)
+            b[3] = (0,-1)
+            b[4] = (-1,0)
+            b[5] = (0,0)
+            <BLANKLINE>
+            Q = 1.26156626101
+            OMEGA = (0.850650808352,0.525731112119)
+            a = 1 (the quasi degree)
+            gamma[1] =0.5    lambda[1] =(0.5,0)
+            <BLANKLINE>
+            <BLANKLINE>
+            number of poles (of the completed L function) = 0
+            -----------------------------------------------
+            <BLANKLINE>
+
 
         """
         (<c_Lfunction_C *>self.thisptr).print_data_L()

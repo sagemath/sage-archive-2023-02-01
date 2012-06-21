@@ -1246,29 +1246,30 @@ class Sets(Category_singleton):
                 """
                 return self._realizations
 
-            facade_for = realizations
-            """
-            Returns the parents ``self`` is a facade for, that is
-            the realizations of ``self``
+            def facade_for(self):
+                """
+                Returns the parents ``self`` is a facade for, that is
+                the realizations of ``self``
 
-            EXAMPLES::
+                EXAMPLES::
 
-                sage: A = Sets().WithRealizations().example(); A
-                The subset algebra of {1, 2, 3} over Rational Field
-                sage: A.facade_for()
-                [The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis, The subset algebra of {1, 2, 3} over Rational Field in the In basis, The subset algebra of {1, 2, 3} over Rational Field in the Out basis]
+                    sage: A = Sets().WithRealizations().example(); A
+                    The subset algebra of {1, 2, 3} over Rational Field
+                    sage: A.facade_for()
+                    [The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis, The subset algebra of {1, 2, 3} over Rational Field in the In basis, The subset algebra of {1, 2, 3} over Rational Field in the Out basis]
 
-                sage: A = Sets().WithRealizations().example(); A
-                The subset algebra of {1, 2, 3} over Rational Field
-                sage: f = A.F().an_element(); f
-                F[{}] + 2*F[{1}] + 3*F[{2}] + F[{1, 2}]
-                sage: i = A.In().an_element(); i
-                In[{}] + 2*In[{1}] + 3*In[{2}] + In[{1, 2}]
-                sage: o = A.Out().an_element(); o
-                Out[{}] + 2*Out[{1}] + 3*Out[{2}] + Out[{1, 2}]
-                sage: f in A, i in A, o in A
-                (True, True, True)
-            """
+                    sage: A = Sets().WithRealizations().example(); A
+                    The subset algebra of {1, 2, 3} over Rational Field
+                    sage: f = A.F().an_element(); f
+                    F[{}] + 2*F[{1}] + 3*F[{2}] + F[{1, 2}]
+                    sage: i = A.In().an_element(); i
+                    In[{}] + 2*In[{1}] + 3*In[{2}] + In[{1, 2}]
+                    sage: o = A.Out().an_element(); o
+                    Out[{}] + 2*Out[{1}] + 3*Out[{2}] + Out[{1, 2}]
+                    sage: f in A, i in A, o in A
+                    (True, True, True)
+                """
+                return self.realizations()
 
             # Do we really want this feature?
             class Realizations(Category_realization_of_parent):

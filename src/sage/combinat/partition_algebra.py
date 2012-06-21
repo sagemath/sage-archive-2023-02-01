@@ -51,37 +51,38 @@ def create_set_partition_function(letter, k):
 #A_k#
 #####
 SetPartitionsAk = functools.partial(create_set_partition_function,"A")
-SetPartitionsAk.__doc__ = """
-Returns the combinatorial class of set partitions of type A_k.
+SetPartitionsAk.__doc__ = (
+    """
+    Returns the combinatorial class of set partitions of type A_k.
 
-EXAMPLES::
+    EXAMPLES::
 
-    sage: A3 = SetPartitionsAk(3); A3
-    Set partitions of {1, ..., 3, -1, ..., -3}
+        sage: A3 = SetPartitionsAk(3); A3
+        Set partitions of {1, ..., 3, -1, ..., -3}
 
-    sage: A3.first() #random
-    {{1, 2, 3, -1, -3, -2}}
-    sage: A3.last() #random
-    {{-1}, {-2}, {3}, {1}, {-3}, {2}}
-    sage: A3.random_element()  #random
-    {{1, 3, -3, -1}, {2, -2}}
+        sage: A3.first() #random
+        {{1, 2, 3, -1, -3, -2}}
+        sage: A3.last() #random
+        {{-1}, {-2}, {3}, {1}, {-3}, {2}}
+        sage: A3.random_element()  #random
+        {{1, 3, -3, -1}, {2, -2}}
 
-    sage: A3.cardinality()
-    203
+        sage: A3.cardinality()
+        203
 
-    sage: A2p5 = SetPartitionsAk(2.5); A2p5
-    Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block
-    sage: A2p5.cardinality()
-    52
+        sage: A2p5 = SetPartitionsAk(2.5); A2p5
+        Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block
+        sage: A2p5.cardinality()
+        52
 
-    sage: A2p5.first() #random
-    {{1, 2, 3, -1, -3, -2}}
-    sage: A2p5.last() #random
-    {{-1}, {-2}, {2}, {3, -3}, {1}}
-    sage: A2p5.random_element() #random
-    {{-1}, {-2}, {3, -3}, {1, 2}}
+        sage: A2p5.first() #random
+        {{1, 2, 3, -1, -3, -2}}
+        sage: A2p5.last() #random
+        {{-1}, {-2}, {2}, {3, -3}, {1}}
+        sage: A2p5.random_element() #random
+        {{-1}, {-2}, {3, -3}, {1, 2}}
 
-"""
+    """)
 
 class SetPartitionsAk_k(set_partition.SetPartitions_set):
     def __init__(self, k):
@@ -195,51 +196,52 @@ class SetPartitionsAkhalf_k(CombinatorialClass):
 #S_k#
 #####
 SetPartitionsSk = functools.partial(create_set_partition_function,"S")
-SetPartitionsSk.__doc__ = """
-Returns the combinatorial class of set partitions of type S_k.  There
-is a bijection between these set partitions and the permutations
-of 1, ..., k.
+SetPartitionsSk.__doc__ = (
+    """
+    Returns the combinatorial class of set partitions of type S_k.  There
+    is a bijection between these set partitions and the permutations
+    of 1, ..., k.
 
-EXAMPLES::
+    EXAMPLES::
 
-    sage: S3 = SetPartitionsSk(3); S3
-    Set partitions of {1, ..., 3, -1, ..., -3} with propagating number 3
-    sage: S3.cardinality()
-    6
+        sage: S3 = SetPartitionsSk(3); S3
+        Set partitions of {1, ..., 3, -1, ..., -3} with propagating number 3
+        sage: S3.cardinality()
+        6
 
-    sage: S3.list()  #random
-    [{{2, -2}, {3, -3}, {1, -1}},
-     {{1, -1}, {2, -3}, {3, -2}},
-     {{2, -1}, {3, -3}, {1, -2}},
-     {{1, -2}, {2, -3}, {3, -1}},
-     {{1, -3}, {2, -1}, {3, -2}},
-     {{1, -3}, {2, -2}, {3, -1}}]
-    sage: S3.first() #random
-    {{2, -2}, {3, -3}, {1, -1}}
-    sage: S3.last() #random
-    {{1, -3}, {2, -2}, {3, -1}}
-    sage: S3.random_element() #random
-    {{1, -3}, {2, -1}, {3, -2}}
+        sage: S3.list()  #random
+        [{{2, -2}, {3, -3}, {1, -1}},
+         {{1, -1}, {2, -3}, {3, -2}},
+         {{2, -1}, {3, -3}, {1, -2}},
+         {{1, -2}, {2, -3}, {3, -1}},
+         {{1, -3}, {2, -1}, {3, -2}},
+         {{1, -3}, {2, -2}, {3, -1}}]
+        sage: S3.first() #random
+        {{2, -2}, {3, -3}, {1, -1}}
+        sage: S3.last() #random
+        {{1, -3}, {2, -2}, {3, -1}}
+        sage: S3.random_element() #random
+        {{1, -3}, {2, -1}, {3, -2}}
 
-    sage: S3p5 = SetPartitionsSk(3.5); S3p5
-    Set partitions of {1, ..., 4, -1, ..., -4} with 4 and -4 in the same block and propagating number 4
-    sage: S3p5.cardinality()
-    6
+        sage: S3p5 = SetPartitionsSk(3.5); S3p5
+        Set partitions of {1, ..., 4, -1, ..., -4} with 4 and -4 in the same block and propagating number 4
+        sage: S3p5.cardinality()
+        6
 
-    sage: S3p5.list() #random
-    [{{2, -2}, {3, -3}, {1, -1}, {4, -4}},
-     {{2, -3}, {1, -1}, {4, -4}, {3, -2}},
-     {{2, -1}, {3, -3}, {1, -2}, {4, -4}},
-     {{2, -3}, {1, -2}, {4, -4}, {3, -1}},
-     {{1, -3}, {2, -1}, {4, -4}, {3, -2}},
-     {{1, -3}, {2, -2}, {4, -4}, {3, -1}}]
-    sage: S3p5.first() #random
-    {{2, -2}, {3, -3}, {1, -1}, {4, -4}}
-    sage: S3p5.last() #random
-    {{1, -3}, {2, -2}, {4, -4}, {3, -1}}
-    sage: S3p5.random_element() #random
-    {{1, -3}, {2, -2}, {4, -4}, {3, -1}}
-"""
+        sage: S3p5.list() #random
+        [{{2, -2}, {3, -3}, {1, -1}, {4, -4}},
+         {{2, -3}, {1, -1}, {4, -4}, {3, -2}},
+         {{2, -1}, {3, -3}, {1, -2}, {4, -4}},
+         {{2, -3}, {1, -2}, {4, -4}, {3, -1}},
+         {{1, -3}, {2, -1}, {4, -4}, {3, -2}},
+         {{1, -3}, {2, -2}, {4, -4}, {3, -1}}]
+        sage: S3p5.first() #random
+        {{2, -2}, {3, -3}, {1, -1}, {4, -4}}
+        sage: S3p5.last() #random
+        {{1, -3}, {2, -2}, {4, -4}, {3, -1}}
+        sage: S3p5.random_element() #random
+        {{1, -3}, {2, -2}, {4, -4}, {3, -1}}
+    """)
 class SetPartitionsSk_k(SetPartitionsAk_k):
     def __repr__(self):
         """
@@ -384,39 +386,40 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
 #I_k#
 #####
 SetPartitionsIk = functools.partial(create_set_partition_function,"I")
-SetPartitionsIk.__doc__ = """
-Returns the combinatorial class of set partitions of type I_k.  These
-are set partitions with a propagating number of less than k.  Note
-that the identity set partition {{1, -1}, ..., {k, -k}} is not
-in I_k.
+SetPartitionsIk.__doc__ = (
+    """
+    Returns the combinatorial class of set partitions of type I_k.  These
+    are set partitions with a propagating number of less than k.  Note
+    that the identity set partition {{1, -1}, ..., {k, -k}} is not
+    in I_k.
 
-EXAMPLES::
+    EXAMPLES::
 
-    sage: I3 = SetPartitionsIk(3); I3
-    Set partitions of {1, ..., 3, -1, ..., -3} with propagating number < 3
-    sage: I3.cardinality()
-    197
+        sage: I3 = SetPartitionsIk(3); I3
+        Set partitions of {1, ..., 3, -1, ..., -3} with propagating number < 3
+        sage: I3.cardinality()
+        197
 
-    sage: I3.first() #random
-    {{1, 2, 3, -1, -3, -2}}
-    sage: I3.last() #random
-    {{-1}, {-2}, {3}, {1}, {-3}, {2}}
-    sage: I3.random_element() #random
-    {{-1}, {-3, -2}, {2, 3}, {1}}
+        sage: I3.first() #random
+        {{1, 2, 3, -1, -3, -2}}
+        sage: I3.last() #random
+        {{-1}, {-2}, {3}, {1}, {-3}, {2}}
+        sage: I3.random_element() #random
+        {{-1}, {-3, -2}, {2, 3}, {1}}
 
-    sage: I2p5 = SetPartitionsIk(2.5); I2p5
-    Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and propagating number < 3
-    sage: I2p5.cardinality()
-    50
+        sage: I2p5 = SetPartitionsIk(2.5); I2p5
+        Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and propagating number < 3
+        sage: I2p5.cardinality()
+        50
 
-    sage: I2p5.first() #random
-    {{1, 2, 3, -1, -3, -2}}
-    sage: I2p5.last() #random
-    {{-1}, {-2}, {2}, {3, -3}, {1}}
-    sage: I2p5.random_element() #random
-    {{-1}, {-2}, {1, 3, -3}, {2}}
+        sage: I2p5.first() #random
+        {{1, 2, 3, -1, -3, -2}}
+        sage: I2p5.last() #random
+        {{-1}, {-2}, {2}, {3, -3}, {1}}
+        sage: I2p5.random_element() #random
+        {{-1}, {-2}, {1, 3, -3}, {2}}
 
-"""
+    """)
 class SetPartitionsIk_k(SetPartitionsAk_k):
     def __repr__(self):
         """
@@ -538,38 +541,39 @@ class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
 #B_k#
 #####
 SetPartitionsBk = functools.partial(create_set_partition_function,"B")
-SetPartitionsBk.__doc__ = """
-Returns the combinatorial class of set partitions of type B_k.
-These are the set partitions where every block has size 2.
+SetPartitionsBk.__doc__ = (
+    """
+    Returns the combinatorial class of set partitions of type B_k.
+    These are the set partitions where every block has size 2.
 
-EXAMPLES::
+    EXAMPLES::
 
-    sage: B3 = SetPartitionsBk(3); B3
-    Set partitions of {1, ..., 3, -1, ..., -3} with block size 2
+        sage: B3 = SetPartitionsBk(3); B3
+        Set partitions of {1, ..., 3, -1, ..., -3} with block size 2
 
-    sage: B3.first() #random
-    {{2, -2}, {1, -3}, {3, -1}}
-    sage: B3.last() #random
-    {{1, 2}, {3, -2}, {-3, -1}}
-    sage: B3.random_element() #random
-    {{2, -1}, {1, -3}, {3, -2}}
+        sage: B3.first() #random
+        {{2, -2}, {1, -3}, {3, -1}}
+        sage: B3.last() #random
+        {{1, 2}, {3, -2}, {-3, -1}}
+        sage: B3.random_element() #random
+        {{2, -1}, {1, -3}, {3, -2}}
 
-    sage: B3.cardinality()
-    15
+        sage: B3.cardinality()
+        15
 
-    sage: B2p5 = SetPartitionsBk(2.5); B2p5
-    Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with block size 2
+        sage: B2p5 = SetPartitionsBk(2.5); B2p5
+        Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with block size 2
 
-    sage: B2p5.first() #random
-    {{2, -1}, {3, -3}, {1, -2}}
-    sage: B2p5.last() #random
-    {{1, 2}, {3, -3}, {-1, -2}}
-    sage: B2p5.random_element() #random
-    {{2, -2}, {3, -3}, {1, -1}}
+        sage: B2p5.first() #random
+        {{2, -1}, {3, -3}, {1, -2}}
+        sage: B2p5.last() #random
+        {{1, 2}, {3, -3}, {-1, -2}}
+        sage: B2p5.random_element() #random
+        {{2, -2}, {3, -3}, {1, -1}}
 
-    sage: B2p5.cardinality()
-    3
-"""
+        sage: B2p5.cardinality()
+        3
+    """)
 
 class SetPartitionsBk_k(SetPartitionsAk_k):
     def __repr__(self):
@@ -740,37 +744,38 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
 #P_k#
 #####
 SetPartitionsPk = functools.partial(create_set_partition_function,"P")
-SetPartitionsPk.__doc__ = """
-Returns the combinatorial class of set partitions of type P_k.
-These are the planar set partitions.
+SetPartitionsPk.__doc__ = (
+    """
+    Returns the combinatorial class of set partitions of type P_k.
+    These are the planar set partitions.
 
-EXAMPLES::
+    EXAMPLES::
 
-    sage: P3 = SetPartitionsPk(3); P3
-    Set partitions of {1, ..., 3, -1, ..., -3} that are planar
-    sage: P3.cardinality()
-    132
+        sage: P3 = SetPartitionsPk(3); P3
+        Set partitions of {1, ..., 3, -1, ..., -3} that are planar
+        sage: P3.cardinality()
+        132
 
-    sage: P3.first() #random
-    {{1, 2, 3, -1, -3, -2}}
-    sage: P3.last() #random
-    {{-1}, {-2}, {3}, {1}, {-3}, {2}}
-    sage: P3.random_element() #random
-    {{1, 2, -1}, {-3}, {3, -2}}
+        sage: P3.first() #random
+        {{1, 2, 3, -1, -3, -2}}
+        sage: P3.last() #random
+        {{-1}, {-2}, {3}, {1}, {-3}, {2}}
+        sage: P3.random_element() #random
+        {{1, 2, -1}, {-3}, {3, -2}}
 
-    sage: P2p5 = SetPartitionsPk(2.5); P2p5
-    Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and that are planar
-    sage: P2p5.cardinality()
-    42
+        sage: P2p5 = SetPartitionsPk(2.5); P2p5
+        Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and that are planar
+        sage: P2p5.cardinality()
+        42
 
-    sage: P2p5.first() #random
-    {{1, 2, 3, -1, -3, -2}}
-    sage: P2p5.last() #random
-    {{-1}, {-2}, {2}, {3, -3}, {1}}
-    sage: P2p5.random_element() #random
-    {{1, 2, 3, -3}, {-1, -2}}
+        sage: P2p5.first() #random
+        {{1, 2, 3, -1, -3, -2}}
+        sage: P2p5.last() #random
+        {{-1}, {-2}, {2}, {3, -3}, {1}}
+        sage: P2p5.random_element() #random
+        {{1, 2, 3, -3}, {-1, -2}}
 
-"""
+    """)
 class SetPartitionsPk_k(SetPartitionsAk_k):
     def __repr__(self):
         """
@@ -900,35 +905,36 @@ class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
 #T_k#
 #####
 SetPartitionsTk = functools.partial(create_set_partition_function,"T")
-SetPartitionsTk.__doc__ = """
-Returns the combinatorial class of set partitions of type T_k.
-These are planar set partitions where every block is of size 2.
+SetPartitionsTk.__doc__ = (
+    """
+    Returns the combinatorial class of set partitions of type T_k.
+    These are planar set partitions where every block is of size 2.
 
-EXAMPLES::
+    EXAMPLES::
 
-    sage: T3 = SetPartitionsTk(3); T3
-    Set partitions of {1, ..., 3, -1, ..., -3} with block size 2 and that are planar
-    sage: T3.cardinality()
-    5
+        sage: T3 = SetPartitionsTk(3); T3
+        Set partitions of {1, ..., 3, -1, ..., -3} with block size 2 and that are planar
+        sage: T3.cardinality()
+        5
 
-    sage: T3.first() #random
-    {{1, -3}, {2, 3}, {-1, -2}}
-    sage: T3.last() #random
-    {{1, 2}, {3, -1}, {-3, -2}}
-    sage: T3.random_element() #random
-    {{1, -3}, {2, 3}, {-1, -2}}
+        sage: T3.first() #random
+        {{1, -3}, {2, 3}, {-1, -2}}
+        sage: T3.last() #random
+        {{1, 2}, {3, -1}, {-3, -2}}
+        sage: T3.random_element() #random
+        {{1, -3}, {2, 3}, {-1, -2}}
 
-    sage: T2p5 = SetPartitionsTk(2.5); T2p5
-    Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with block size 2 and that are planar
-    sage: T2p5.cardinality()
-    2
+        sage: T2p5 = SetPartitionsTk(2.5); T2p5
+        Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with block size 2 and that are planar
+        sage: T2p5.cardinality()
+        2
 
-    sage: T2p5.first() #random
-    {{2, -2}, {3, -3}, {1, -1}}
-    sage: T2p5.last() #random
-    {{1, 2}, {3, -3}, {-1, -2}}
+        sage: T2p5.first() #random
+        {{2, -2}, {3, -3}, {1, -1}}
+        sage: T2p5.last() #random
+        {{1, 2}, {3, -3}, {-1, -2}}
 
-"""
+    """)
 class SetPartitionsTk_k(SetPartitionsBk_k):
     def __repr__(self):
         """
@@ -1051,8 +1057,9 @@ class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
 
 
 SetPartitionsRk = functools.partial(create_set_partition_function,"R")
-SetPartitionsRk.__doc__ = """
-"""
+SetPartitionsRk.__doc__ = (
+    """
+    """)
 class SetPartitionsRk_k(SetPartitionsAk_k):
     def __init__(self, k):
         """
@@ -1232,8 +1239,9 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
 
 
 SetPartitionsPRk = functools.partial(create_set_partition_function,"PR")
-SetPartitionsPRk.__doc__ = """
-"""
+SetPartitionsPRk.__doc__ = (
+    """
+    """)
 class SetPartitionsPRk_k(SetPartitionsRk_k):
     def __init__(self, k):
         """

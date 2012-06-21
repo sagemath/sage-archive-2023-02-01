@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 A Sample Session using SymPy
 
@@ -111,18 +112,24 @@ And here are some actual tests of sympy::
     sage: f = e.series(x, 0, 10); f
     1 + 3*x**2/2 + 11*x**4/8 + 241*x**6/240 + 8651*x**8/13440 + O(x**10)
 
-And the pretty-printer::
+And the pretty-printer.  Since unicode characters aren't working on
+some archictures, we disable it::
 
+    sage: from sympy.printing import pprint_use_unicode
+    sage: prev_use = pprint_use_unicode(False)
     sage: pprint(e)
-           1
-        -------
-           3
-        cos (x)
+       1
+    -------
+       3
+    cos (x)
+
     sage: pprint(f)
-               2       4        6         8
-            3*x    11*x    241*x    8651*x
-        1 + ---- + ----- + ------ + ------- + O(x**10)
-             2       8      240      13440
+           2       4        6         8
+        3*x    11*x    241*x    8651*x
+    1 + ---- + ----- + ------ + ------- + O(x**10)
+         2       8      240      13440
+    sage: pprint_use_unicode(prev_use)
+    False
 
 And the functionality to convert from sympy format to Sage format::
 

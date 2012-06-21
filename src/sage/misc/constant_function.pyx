@@ -10,7 +10,6 @@ Constant functions
 
 from sage.structure.sage_object cimport SageObject
 cdef class ConstantFunction(SageObject):
-    cdef object _value
     """
     A class for function objects implementing constant functions.
 
@@ -60,6 +59,8 @@ cdef class ConstantFunction(SageObject):
         sage: { 1: 'a', True: 'b' }
         {1: 'b'}
     """
+    cdef object _value
+
     def __init__(self, value):
         """
         EXAMPLES::

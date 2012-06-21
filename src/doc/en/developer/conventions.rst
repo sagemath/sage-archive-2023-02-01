@@ -449,7 +449,11 @@ a guide.
    therefore whom to contact if they have questions).
 
 Use the following template when documenting functions. Note the
-indentation::
+indentation:
+
+.. skip
+
+::
 
     def point(self, x=1, y=2):
         r"""
@@ -827,24 +831,27 @@ mind:
        sage: N(zeta8)                             # absolute tolerance 1e-10
        0.7071067812 + 0.7071067812*I
 
-   The "tolerance" feature checks for floating-point literals, which
-   may occur anywhere in the doctest output, for example as polynomial
-   coefficients::
-
-       sage: y = polygen(RDF, 'y')
-       sage: p = (y - 10^10) * (y - 1); p
-       y^2 - 10000000001.0*y + 10000000000.0
-       sage: p                           # rel tol 1e-9
-       y^2 - 1e10*y + 1e10
-
-
--  If a line contains ``todo: not implemented``, it is never
-   tested. It is good to include lines like this to make clear what we
-   want Sage to eventually implement:
+   A relative tolerance on a root of a polynomial.  Notice that the
+   root should normally print as ``1e+16``, or something similar.
+   However, the tolerance testing causes the doctest framework to use
+   the output in a *computation*, so other valid text representations
+   of the predicted value may be used.  However, they must fit the
+   pattern defined by the regular expression ``float_regex`` in
+   :mod:`sage.doctest.parsing`.
 
    ::
 
-           sage: factor(x*y - x*z)    # todo: not implemented
+       sage: y = polygen(RDF, 'y')
+       sage: p = (y - 10^16)*(y-10^(-13))*(y-2); p
+       y^3 - 1e+16*y^2 + 2e+16*y - 2000.0
+       sage: p.roots(multiplicities=False)[2]     # relative tol 1e-10
+       10000000000000000
+
+-  If a line contains ``not implemented``, it is never
+   tested. It is good to include lines like this to make clear what we
+   want Sage to eventually implement::
+
+       sage: factor(x*y - x*z)    # todo: not implemented
 
    It is also immediately clear to the user that the indicated example
    does not currently work.

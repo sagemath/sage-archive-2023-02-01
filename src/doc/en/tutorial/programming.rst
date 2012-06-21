@@ -594,8 +594,8 @@ loops. In Python, a ``for`` loop has an indented structure, such as
 ::
 
     >>> for i in range(5):
-           print(i)
-
+    ...     print(i)
+    ...
     0
     1
     2
@@ -611,7 +611,8 @@ Sage, the indentation is automatically put in for you when you hit
 ::
 
     sage: for i in range(5):
-    ...       print(i)  # now hit enter twice
+    ....:     print(i)  # now hit enter twice
+    ....:
     0
     1
     2
@@ -625,8 +626,9 @@ The symbol ``==`` is used to check for equality:
 ::
 
     sage: for i in range(15):
-    ...       if gcd(i,15) == 1:
-    ...           print(i)
+    ....:     if gcd(i,15) == 1:
+    ....:         print(i)
+    ....:
     1
     2
     4

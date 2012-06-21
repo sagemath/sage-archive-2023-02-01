@@ -197,8 +197,8 @@ The following command plots the function
 
 ::
 
-    sage: maxima.plot2d('cos(2*x) + 2*exp(-x)','[x,0,1]',\
-    ...   '[plot_format,openmath]')  # optional -- pops up a window.
+    sage: maxima.plot2d('cos(2*x) + 2*exp(-x)','[x,0,1]', # optional -- pops up a window.
+    ....: '[plot_format,openmath]')
 
 (Mac OS X users: Note that these ``openmath`` commands were run in a
 session of started in an xterm shell, not using the standard Mac
@@ -226,8 +226,8 @@ with your mouse:
 
 ::
 
-    sage: maxima.plot3d ("sin(x^2 + y^2)", "[x, -3, 3]", "[y, -3, 3]",\
-    ...   '[plot_format, openmath]') #optional
+    sage: maxima.plot3d ("sin(x^2 + y^2)", "[x, -3, 3]", "[y, -3, 3]", # optional
+    ....: '[plot_format, openmath]')
 
 By rotating this suitably, you can view the contour plot.
 

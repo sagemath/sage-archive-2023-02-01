@@ -70,7 +70,7 @@ work with the given repository:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-import os, shutil
+import os, shutil, sys
 
 from   viewer import browser
 from   misc   import tmp_filename, branch_current_hg, embedded
@@ -395,6 +395,7 @@ class HG:
         s = 'cd "%s" && sage --hg %s'%(self.__dir, cmd)
         if debug:
             print s
+        sys.stdout.flush()
         if interactive:
             e = os.system(s)
             return e
@@ -1624,7 +1625,7 @@ class HG:
         EXAMPLES::
 
             sage: hg_sage.qseries()
-            cd ... && sage --hg qseries
+            cd ... && sage --hg qseries...
         """
         options = "--summary" if verbose else ""
         self('qseries %s %s' % (options, color(),), debug=debug)
@@ -1643,7 +1644,7 @@ class HG:
         EXAMPLES::
 
             sage: hg_sage.qapplied()
-            cd ... && sage --hg qapplied
+            cd ... && sage --hg qapplied...
         """
         options = "--summary" if verbose else ""
         self('qapplied %s %s' % (options, color(),), debug=debug)
@@ -1662,7 +1663,7 @@ class HG:
         EXAMPLES::
 
             sage: hg_sage.qunapplied()
-            cd ... && sage --hg qunapplied
+            cd ... && sage --hg qunapplied...
         """
         options = "--summary" if verbose else ""
         self('qunapplied %s %s' % (options, color(),), debug=debug)

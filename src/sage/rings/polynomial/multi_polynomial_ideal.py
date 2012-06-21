@@ -3695,6 +3695,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             product criterion:1 chain criterion:0
             [x^3 + y^2, x^2*y + 1, y^3 - x]
             sage: I.groebner_basis(prot=False)
+            std in (0),(x,y),(dp(2),C)
+            [4294967295:2]3ss4s6
+            (S:2)--
+            product criterion:1 chain criterion:0
             [x^3 + y^2, x^2*y + 1, y^3 - x]
             sage: set_verbose(0)
             sage: I.groebner_basis(prot=True)  # not tested

@@ -6,11 +6,20 @@ AUTHOR:
 - John E. Stone
 """
 
+#*****************************************************************************
+#       Copyright (C) 2006 John E. Stone
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.misc.pager import pager
 from sage.misc.misc import tmp_filename
 from sage.misc.sagedoc import format
 import os
+import sys
 
 class TachyonRT:
     """
@@ -98,6 +107,7 @@ class TachyonRT:
             sage: import os
             sage: t(tgen.str(), outfile = os.devnull)
             tachyon ...
+            Tachyon Parallel/Multiprocessor Ray Tracer...
         """
         modelfile = tmp_filename(ext='.dat')
         open(modelfile,'w').write(model)
@@ -130,6 +140,9 @@ class TachyonRT:
 
         if verbose:
             print cmd
+        # One should always flush before system()
+        sys.stdout.flush()
+        sys.stderr.flush()
         os.system(cmd)
 
     def usage(self, use_pager=True):

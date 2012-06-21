@@ -185,6 +185,7 @@ class SageInteractiveShell(TerminalInteractiveShell):
             sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) != 0
             True
             sage: shell.system_raw('R --version')
+            R version ...
             sage: status = shell.user_ns['_exit_code']
             sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) == 0
             True

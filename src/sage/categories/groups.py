@@ -44,20 +44,19 @@ class Groups(Category_singleton):
         return [Monoids()]
 
     def example(self):
-        from sage.rings.rational_field import QQ
-        from sage.groups.matrix_gps.general_linear import GL
         """
         EXAMPLES::
 
             sage: Groups().example()
             General Linear Group of degree 4 over Rational Field
         """
+        from sage.rings.rational_field import QQ
+        from sage.groups.matrix_gps.general_linear import GL
         return GL(4,QQ)
 
     class ParentMethods:
 
         def group_generators(self):
-            from sage.sets.family import Family
             """
             Returns group generators for self.
 
@@ -70,6 +69,7 @@ class Groups(Category_singleton):
                 sage: A.group_generators()
                 Family ((2,3,4), (1,2,3))
             """
+            from sage.sets.family import Family
             return Family(self.gens())
 
         def _test_inverse(self, **options):

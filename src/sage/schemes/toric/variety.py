@@ -1,4 +1,5 @@
-﻿r"""
+# -*- coding: utf-8 -*-
+r"""
 Toric varieties
 
 This module provides support for (normal) toric varieties, corresponding to

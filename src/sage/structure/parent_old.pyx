@@ -57,6 +57,23 @@ cdef class Parent(parent.Parent):
     """
     Parents are the SAGE/mathematical analogues of container objects
     in computer science.
+
+    TESTS::
+
+        sage: V = VectorSpace(GF(2,'a'),2)
+        sage: V.list()
+        [(0, 0), (1, 0), (0, 1), (1, 1)]
+        sage: MatrixSpace(GF(3), 1, 1).list()
+        [[0], [1], [2]]
+        sage: DirichletGroup(3).list()
+        [Dirichlet character modulo 3 of conductor 1 mapping 2 |--> 1,
+        Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1]
+        sage: K = GF(7^6,'a')
+        sage: K.list()[:10] # long time
+        [0, 1, 2, 3, 4, 5, 6, a, a + 1, a + 2]
+        sage: K.<a> = GF(4)
+        sage: K.list()
+        [0, a, a + 1, 1]
     """
 
     def __init__(self, coerce_from=[], actions=[], embeddings=[], category=None):
@@ -400,25 +417,6 @@ cdef class Parent(parent.Parent):
     # This is just a convenient spot to cover the relevant cython parents,
     # without bothering the new parents
     list = parent.Parent._list_from_iterator_cached
-    """
-    TESTS::
-
-        sage: V = VectorSpace(GF(2,'a'),2)
-        sage: V.list()
-        [(0, 0), (1, 0), (0, 1), (1, 1)]
-        sage: MatrixSpace(GF(3), 1, 1).list()
-        [[0], [1], [2]]
-        sage: DirichletGroup(3).list()
-        [Dirichlet character modulo 3 of conductor 1 mapping 2 |--> 1,
-        Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1]
-        sage: K = GF(7^6,'a')
-        sage: K.list()[:10] # long time
-        [0, 1, 2, 3, 4, 5, 6, a, a + 1, a + 2]
-        sage: K.<a> = GF(4)
-        sage: K.list()
-        [0, a, a + 1, 1]
-    """
-
 
 
     ################################################

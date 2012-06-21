@@ -613,8 +613,8 @@ une indentation :
 ::
 
     >>> for i in range(5):
-           print(i)
-
+    ...     print(i)
+    ...
     0
     1
     2
@@ -632,7 +632,7 @@ signe « : », comme illustré ci-dessous.
 ::
 
     sage: for i in range(5):
-    ...       print(i)  # appuyez deux fois sur entrée ici
+    ....:     print(i)  # appuyez deux fois sur entrée ici
     0
     1
     2

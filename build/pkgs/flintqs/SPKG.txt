@@ -13,6 +13,9 @@ svn export https://svn.sourceforge.net/svnroot/fastlibnt/trunk/QS/ fastlibnt
 
 == Changelog ==
 
+=== flintqs-20070817.p8 (Jeroen Demeyer, 21 June 2012) ===
+ * Trac #9544: Add 'stdint.patch' to fix FreeBSD build.
+
 === flintqs-20070817.p7 (Jeroen Demeyer, 25 May 2012) ===
  * Trac #12855: Only call log() on float or double types.  This works
    around a problem with Solaris' libc where log() in C++ is overloaded

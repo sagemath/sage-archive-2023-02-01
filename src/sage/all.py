@@ -65,6 +65,7 @@ from sage.misc.all       import *         # takes a while
 from sage.misc.sh import sh
 
 from sage.libs.all       import *
+from sage.doctest.all    import *
 
 from sage.rings.all      import *
 from sage.matrix.all     import *

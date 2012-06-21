@@ -28,7 +28,7 @@ cdef extern from "gsl/gsl_fit.h":
   int gsl_fit_wmul ( double * x,  size_t xstride,
                      double * w,  size_t wstride,
                      double * y,  size_t ystride,
-  		   size_t n, double * c1, double * cov11, double * sumsq)
+                   size_t n, double * c1, double * cov11, double * sumsq)
 
 
   int gsl_fit_mul_est ( double x, double c1, double c11,

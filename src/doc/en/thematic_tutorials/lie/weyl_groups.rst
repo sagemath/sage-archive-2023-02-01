@@ -276,13 +276,13 @@ file and load the file::
     def find_reflection(u,v):
         bi = W.bruhat_interval(u,v)
         ret = []
-	for r in ref:
+        for r in ref:
             if all( r*x in bi for x in bi):
                 ret.append(r)
         return ret
 
     for v in W:
-    	for u in W.bruhat_interval(1,v):
+        for u in W.bruhat_interval(1,v):
             if u != v:
                 print u,v,find_reflection(u,v)
 

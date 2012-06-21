@@ -124,7 +124,7 @@ The Dynkin diagrams for types `D_n^{(1)}`, `B_n^{(1)}`, `A_{2n-1}^{(2)}` are inv
     sage: C = CartanType(['D',n,1]); C.dynkin_diagram()
       0 O   O 5
         |   |
-	|   |
+        |   |
     O---O---O---O
     1   2   3   4
     D5~

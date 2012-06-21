@@ -324,21 +324,21 @@ Some particular actions modify the data structure of ``el``::
         139813642977744
         sage: el1 = el; id(el1) == id(el)
         True
-	sage: el1 is el
-	True
+        sage: el1 is el
+        True
 
     In Python (and therefore in Sage), two objects with the same
     identity will be equal, but the converse is not true in general.
     Thus the identity function is different from mathematical
     identity::
 
-	sage: el2 = Integer(9)
-	sage: el2 == el1
-	True
-	sage: el2 is el1
+        sage: el2 = Integer(9)
+        sage: el2 == el1
+        True
+        sage: el2 is el1
         False
-	sage: id(el2) == id(el)
-	False
+        sage: id(el2) == id(el)
+        False
 
 Summary
 -------

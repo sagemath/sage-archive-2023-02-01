@@ -24,7 +24,7 @@ The sum on the right is a \emph{number-theoretic transform} of length $(p-1)/2$.
 can be rewritten using the identity $2jk = k^2 + j^2 - (k-j)^2$ as
    $$ b_k = g^{k^2} \sum_{j=0}^{(p-3)/2} c_{k-j} d_j,$$
 where $c_j = g^{-j^2}$ and $d_j = g^{j^2} a_j$. This last sum is a convolution, and so is tantamount to computing the product of the polynomials
-	$$ F(X) = \sum_{j=-(p-3)/2}^{(p-3)/2} c_j X^j \quad \text{and} \quad  G(X) = \sum_{j=0}^{(p-3)/2} d_j X^j. $$
+        $$ F(X) = \sum_{j=-(p-3)/2}^{(p-3)/2} c_j X^j \quad \text{and} \quad  G(X) = \sum_{j=0}^{(p-3)/2} d_j X^j. $$
 In fact one checks that $c_{j+(p-1)/2} = (-1)^{(p-1)/2} c_j$, so
    $$ F(X) = 1 + \left(1 + (-1)^{(p-1)/2}X^{-(p-1)/2}\right) \sum_{j=1}^{(p-3)/2} c_j X^j; $$
 this observation reduces the problem to multiplying two polynomials of length $(p-1)/2$, which we do using NTL.

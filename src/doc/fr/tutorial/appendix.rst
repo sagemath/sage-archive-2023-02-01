@@ -18,10 +18,10 @@ données par priorités croissantes.
 Opérateur                   Description
 ==========================  =================
 or                          ou booléen
-and  	     		    et booléen
-not	     		    négation booléenne
-in, not in   		    appartenance
-is, is not   		    test d'identité
+and                         et booléen
+not                         négation booléenne
+in, not in                  appartenance
+is, is not                  test d'identité
 >, <=, >, >=, ==, !=, <>    comparaisons
 +, -                        addition, soustraction
 \*, /, %                    multiplication, division, reste

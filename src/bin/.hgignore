@@ -315,6 +315,9 @@ gfortran
 .*gfortran-.*
 patch
 zope-testrunner
+vsyasm
+yasm
+ytasm
 homsimpl
 homchain
 homcubes

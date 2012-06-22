@@ -76,9 +76,9 @@ To produce a new spkg:
 
 == Changelog ==
 
-=== 0.9.1 (Keshav Kini, 2012-06-15) ===
+=== 0.10.0 (Keshav Kini, 2012-06-21) ===
 
- * Upgraded to 0.9.1
+ * Upgraded to 0.10.0
 
 For an full log of changes, look at the history on github:
 http://github.com/sagemath/sagenb

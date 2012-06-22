@@ -32,5 +32,8 @@ http://gcc.gnu.org/
 
 == Changelog ==
 
+=== gcc-4.7.2 (Jeroen Demeyer, 30 September 2012) ===
+ * #13150: Upgrade to version 4.7.2 of GCC (as optional package).
+
 === gcc-4.6.3 (Jeroen Demeyer, 7 March 2012) ===
  * #12369: Initial release.

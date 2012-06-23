@@ -20,6 +20,7 @@ cdef class MixedIntegerLinearProgram:
     cdef int __REAL
     cdef int __INTEGER
     cpdef int number_of_constraints(self)
+    cpdef int number_of_variables(self)
     cdef int _check_redundant
     cdef list _constraints
 

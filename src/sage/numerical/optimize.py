@@ -128,12 +128,12 @@ def find_local_maximum(f, a, b, tol=1.48e-08, maxfun=500):
     EXAMPLES::
 
         sage: f = lambda x: x*cos(x)
-        sage: find_local_maximum(f, 0,5)
+        sage: find_local_maximum(f, 0, 5)
         (0.561096338191..., 0.8603335890...)
-        sage: find_local_maximum(f, 0,5, tol=0.1, maxfun=10)
+        sage: find_local_maximum(f, 0, 5, tol=0.1, maxfun=10)
         (0.561090323458..., 0.857926501456...)
         sage: find_local_maximum(fast_float(8*e^(-x)*sin(x) - 1, x), 0, 8)
-        (1.5791755355586754, 0.78539817769603...)
+        (1.579175535558..., 0.78539817...)
     """
     minval, x = find_local_minimum(lambda z: -f(z), a=a, b=b, tol=tol, maxfun=maxfun)
     return -minval, x
@@ -186,12 +186,12 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
     ::
 
         sage: f(x) = -x*sin(x^2)
-        sage: f.find_local_minimum(-2.5, -1)
+        sage: find_local_minimum(f, -2.5, -1)
         (-2.182769784677722, -2.1945027498534686)
 
     Enlarging the interval returns a larger minimum::
 
-        sage: f.find_local_minimum(-2.5, 2)
+        sage: find_local_minimum(f, -2.5, 2)
         (-1.3076194129914434, 1.3552111405712108)
 
     One work-around is to plot the function and grab the minimum from
@@ -216,7 +216,7 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
     - William Stein (2007-12-07)
     """
     try:
-        return f.find_local_minimum(a=a, b=b, tol=tol,maxfun=maxfun)
+        return f.find_local_minimum(a=a, b=b, tol=tol, maxfun=maxfun)
     except AttributeError:
         pass
     a = float(a); b = float(b)

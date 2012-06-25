@@ -4884,6 +4884,24 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         """
         MPolynomialIdeal.__init__(self, ring, gens, coerce)
 
+
+    def dimension(self):
+        """
+        Return the dimension of ``self``, which is always zero.
+
+        TESTS:
+
+        Check that :trac:`13155` is solved::
+
+            sage: R = BooleanPolynomialRing(11, 'x')
+            sage: R2 = PolynomialRing(GF(2), 11, 'x')
+            sage: I = ideal([ R(f) for f in sage.rings.ideal.Cyclic(R2, 11).gens() ])
+            sage: I.dimension()
+            0
+        """
+        return 0
+
+
     def groebner_basis(self, **kwds):
         r"""
         Return a Groebner basis of this ideal.

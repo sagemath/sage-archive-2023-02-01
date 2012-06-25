@@ -270,7 +270,7 @@ ought to be chosen. A typical example is
 ########################################################################
 from function_mangling import ArgumentFixer
 import os
-from sage.misc.sageinspect import sage_getfile, sage_getsourcelines
+from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
 
 def _cached_function_unpickle(module,name):
     """
@@ -532,7 +532,6 @@ cdef class CachedFunction(object):
             False))
 
         """
-        from sage.misc.sageinspect import sage_getargspec
         return sage_getargspec(self.f)
 
     def __call__(self, *args, **kwds):
@@ -1787,13 +1786,22 @@ cdef class CachedMethod(object):
         # Since we have an optimized version for functions that do not accept arguments,
         # we need to analyse the argspec
         f = (<CachedFunction>self._cachedfunc).f
-        from sage.misc.sageinspect import sage_getargspec
-        args, varargs, keywords, defaults = sage_getargspec(f)
-        if varargs is None and keywords is None and len(args)<=1:
+        if self.nargs==0:
+            args, varargs, keywords, defaults = sage_getargspec(f)
+            if varargs is None and keywords is None and len(args)<=1:
+                self.nargs = 1
+                Caller = CachedMethodCallerNoArgs(inst, f, name=name)
+            else:
+                self.nargs = 2 # don't need the exact number
+                Caller = CachedMethodCaller(self, inst,
+                                            cache=self._get_instance_cache(inst),
+                                            name=name)
+        elif self.nargs==1:
             Caller = CachedMethodCallerNoArgs(inst, f, name=name)
         else:
             Caller = CachedMethodCaller(self, inst,
-            cache=self._get_instance_cache(inst), name=name)
+                                        cache=self._get_instance_cache(inst),
+                                        name=name)
         try:
             setattr(inst,name, Caller)
             return Caller

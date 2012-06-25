@@ -23,5 +23,6 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
 cdef class CachedMethod(object):
     cdef str _cache_name
     cdef CachedFunction _cachedfunc
+    cdef int nargs
     cpdef dict _get_instance_cache(self, inst)
 

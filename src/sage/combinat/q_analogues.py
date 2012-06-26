@@ -92,6 +92,8 @@ def q_binomial(n,k,p=None):
         sage: import sage.combinat.q_analogues as q_analogues
         sage: q_analogues.q_binomial(4,2)
         q^4 + q^3 + 2*q^2 + q + 1
+        sage: q_analogues.q_binomial(4,5)
+        0
         sage: p = ZZ['p'].0
         sage: q_analogues.q_binomial(4,2,p)
         p^4 + p^3 + 2*p^2 + p + 1
@@ -107,9 +109,12 @@ def q_binomial(n,k,p=None):
     if n < 0:
         raise NotImplementedError
     if 0 <= k and k <= n:
-        k=min(k, n-k)
-        return (prod(q_int(j, p) for j in range(n-k+1, n+1)) /
-                prod(q_int(j, p) for j in range(1, k+1)))
+        if p == None:
+            R = ZZ['q']
+        else:
+            R = ZZ[p]
+        from sage.functions.all import floor
+        return prod(R.cyclotomic_polynomial(d) for d in range(2,n+1) if floor(n/d)!=floor(k/d)+floor((n-k)/d))
     else:
         return 0
 

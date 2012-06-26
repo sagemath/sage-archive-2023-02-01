@@ -31,6 +31,9 @@ Apache License, Version 2.0
 
 == Changelog ==
 
+=== cython-0.17pre (Robert Bradshaw, 25 June 2012, #13029) ===
+ * Upgrade Cython to 0.17 prerelease.
+
 === cython-0.15.1 (Robert Bradshaw, 3 October 2011, #11761) ===
  * Upgrade Cython to 0.15.1
 

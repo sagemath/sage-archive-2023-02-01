@@ -2474,16 +2474,23 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             ...                    [3, 0, 8, 3, 3],
             ...                    [-1, 1, -6, -6, 5]])
             sage: Q, R = A.QR()
-            sage: Q.round(6).zero_at(10^-6)
-            [-0.458831  0.126051 -0.381212 -0.394574  -0.68744]
-            [-0.458831  -0.47269  0.051983  0.717294 -0.220963]
-            [ 0.229416 -0.661766 -0.661923 -0.180872  0.196411]
-            [ 0.688247 -0.189076  0.204468   0.09663 -0.662889]
-            [-0.229416 -0.535715  0.609939 -0.536422  0.024551]
-            sage: R.round(6).zero_at(10^-6)
+
+        At this point, ``Q`` is only well-defined up to the
+        signs of its columns, and similarly for ``R`` and its
+        rows, so we normalize them::
+
+            sage: Qnorm = Q._normalize_columns()
+            sage: Rnorm = R._normalize_rows()
+            sage: Qnorm.round(6).zero_at(10^-6)
+            [ 0.458831  0.126051  0.381212  0.394574   0.68744]
+            [ 0.458831  -0.47269 -0.051983 -0.717294  0.220963]
+            [-0.229416 -0.661766  0.661923  0.180872 -0.196411]
+            [-0.688247 -0.189076 -0.204468  -0.09663  0.662889]
+            [ 0.229416 -0.535715 -0.609939  0.536422 -0.024551]
+            sage: Rnorm.round(6).zero_at(10^-6)
             [ 4.358899 -0.458831 13.076697  6.194225  2.982405]
-            [      0.0 -1.670172 -0.598741   1.29202 -6.207997]
-            [      0.0       0.0 -5.444402 -5.468661  0.682716]
+            [      0.0  1.670172  0.598741  -1.29202  6.207997]
+            [      0.0       0.0  5.444402  5.468661 -0.682716]
             [      0.0       0.0       0.0  1.027626   -3.6193]
             [      0.0       0.0       0.0       0.0  0.024551]
             sage: (Q*Q.transpose()).zero_at(10^-14)
@@ -2508,15 +2515,15 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             ...                    [I + 7, 2*I + 1, -2*I + 7, -I + 1],
             ...                    [I + 2, 0, I + 12, -1]])
             sage: Q, R = A.QR()
-            sage: Q.round(6).zero_at(10^-6)
-            [             -0.730297  0.207057 + 0.538347*I -0.246305 + 0.076446*I   0.238162 - 0.10366*I]
-            [              0.091287 -0.207057 - 0.377878*I -0.378656 + 0.195222*I  0.701244 - 0.364371*I]
-            [  0.63901 + 0.091287*I  0.170822 + 0.667758*I  0.034115 - 0.040902*I  0.314017 - 0.082519*I]
-            [ 0.182574 + 0.091287*I  -0.036235 + 0.07247*I -0.863228 - 0.063228*I -0.449969 - 0.011612*I]
-            sage: R.round(6).zero_at(10^-6)
+            sage: Q._normalize_columns().round(6).zero_at(10^-6)
+            [              0.730297  0.207057 + 0.538347*I  0.246305 - 0.076446*I   0.238162 - 0.10366*I]
+            [             -0.091287 -0.207057 - 0.377878*I  0.378656 - 0.195222*I  0.701244 - 0.364371*I]
+            [ -0.63901 - 0.091287*I  0.170822 + 0.667758*I -0.034115 + 0.040902*I  0.314017 - 0.082519*I]
+            [-0.182574 - 0.091287*I  -0.036235 + 0.07247*I  0.863228 + 0.063228*I -0.449969 - 0.011612*I]
+            sage: R._normalize_rows().round(6).zero_at(10^-6)
             [             10.954451            -1.917029*I   5.385938 - 2.19089*I  -0.273861 - 2.19089*I]
             [                   0.0               4.829596 -0.869638 - 5.864879*I  0.993872 - 0.305409*I]
-            [                   0.0                    0.0             -12.001608  0.270953 - 0.442063*I]
+            [                   0.0                    0.0              12.001608 -0.270953 + 0.442063*I]
             [                   0.0                    0.0                    0.0               1.942964]
             sage: (Q.conjugate().transpose()*Q).zero_at(10^-15)
             [1.0 0.0 0.0 0.0]
@@ -2545,9 +2552,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             2
             sage: A = Arat.change_ring(CDF)
             sage: Q, R = A.QR()
-            sage: R.round(6).zero_at(10^-6)
-            [-5.567764   2.69408  -2.69408]
-            [      0.0 -3.569585  3.569585]
+            sage: R._normalize_rows().round(6).zero_at(10^-6)
+            [ 5.567764  -2.69408   2.69408]
+            [      0.0  3.569585 -3.569585]
             [      0.0       0.0       0.0]
             [      0.0       0.0       0.0]
             sage: (Q.conjugate_transpose()*Q).zero_at(10^-14)
@@ -4156,3 +4163,72 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         M = self._new()
         M._matrix_numpy = numpy.round(self._matrix_numpy, ndigits)
         return M
+
+    def _normalize_columns(self):
+        """
+        Returns a copy of the matrix where each column has been
+        multiplied by plus or minus 1, to guarantee that the real
+        part of the leading entry of each nonzero column is positive.
+
+        This is useful for modifying output from algorithms which
+        produce matrices which are only well-defined up to signs of
+        the columns, for example an algorithm which should produce an
+        orthogonal matrix.
+
+        OUTPUT:
+
+        A modified copy of the matrix.
+
+        EXAMPLES::
+
+            sage: a=matrix(CDF, [[1, -2+I, 0, -3*I], [2, 2, -2, 2], [-3, -3, -3, -2]])
+            sage: a
+            [         1.0 -2.0 + 1.0*I          0.0       -3.0*I]
+            [         2.0          2.0         -2.0          2.0]
+            [        -3.0         -3.0         -3.0         -2.0]
+            sage: a._normalize_columns()
+            [        1.0 2.0 - 1.0*I        -0.0      -3.0*I]
+            [        2.0        -2.0         2.0         2.0]
+            [       -3.0         3.0         3.0        -2.0]
+        """
+        M = self.__copy__()
+        cdef Py_ssize_t i, j
+        for j from 0 <= j < M.ncols():
+            for i from 0 <= i < M.column(j).degree():
+                a = M.column(j)[i].real()
+                if a != 0:
+                    if a < 0:
+                        M = M.with_rescaled_col(j, -1)
+                    break
+        return M
+
+    def _normalize_rows(self):
+        """
+        Returns a copy of the matrix where each row has been
+        multiplied by plus or minus 1, to guarantee that the real
+        part of the leading entry of each nonzero row is positive.
+
+        This is useful for modifying output from algorithms which
+        produce matrices which are only well-defined up to signs of
+        the rows, for example an algorithm which should produce an
+        upper triangular matrix.
+
+        OUTPUT:
+
+        A modified copy of the matrix.
+
+        EXAMPLES::
+
+            sage: a=matrix(CDF, [[1, 2, -3], [-2+I, 2, -3], [0, -2, -3], [-3*I, 2, -2]])
+            sage: a
+            [         1.0          2.0         -3.0]
+            [-2.0 + 1.0*I          2.0         -3.0]
+            [         0.0         -2.0         -3.0]
+            [      -3.0*I          2.0         -2.0]
+            sage: a._normalize_rows()
+            [        1.0         2.0        -3.0]
+            [2.0 - 1.0*I        -2.0         3.0]
+            [       -0.0         2.0         3.0]
+            [     -3.0*I         2.0        -2.0]
+        """
+        return self.transpose()._normalize_columns().transpose()

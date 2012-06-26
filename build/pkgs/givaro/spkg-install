@@ -6,16 +6,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-# echo "Copying updated gmp++.h"
-# cp patches/gmp++.h src/src/kernel/gmp++/
-# echo "Copying updated gmp++_int.inl"
-# cp patches/gmp++_int.inl src/src/kernel/gmp++/
-
-# if [ $UNAME = "CYGWIN" ]; then
-#     echo "Patching givtablelimits.h for Cygwin (because of missing logb)"
-#     cp patches/givtablelimits.h src/src/kernel/zpz/givtablelimits.h
-# fi
-
 cd src
 
 if [ "$SAGE64" = "yes" ]; then
@@ -46,15 +36,5 @@ $MAKE install
 if [ $? -ne 0 ]; then
     echo "Error installing givaro"
     exit 1
-fi
-
-if [ -f "$SAGE_ROOT"/devel/sage/sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx ]; then
-    echo "Touching extensions linked against Givaro"
-    touch "$SAGE_ROOT"/devel/sage/sage/rings/finite_field_givaro.pyx
-    touch "$SAGE_ROOT"/devel/sage/sage/libs/linbox/linbox.pyx
-    touch "$SAGE_ROOT"/devel/sage/sage/libs/singular/singular.pyx
-    touch "$SAGE_ROOT"/devel/sage/sage/matrix/matrix_mpolynomial_dense.pyx
-    touch "$SAGE_ROOT"/devel/sage/sage/rings/polynomial/multi_polynomial_libsingular.pyx
-    touch "$SAGE_ROOT"/devel/sage/sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx
 fi
 

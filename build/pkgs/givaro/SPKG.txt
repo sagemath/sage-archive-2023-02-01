@@ -14,6 +14,8 @@ multivariate).
 
 Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 
+SPKG Repository: https://bitbucket.org/malb/givaro-spkg
+
 == License ==
  * GPL
 
@@ -25,12 +27,13 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 
 == Maintainers  ==
   * Clement Pernet
-  * Martin Albrecht <malb@informatik.uni-bremen.de>
+  * Martin Albrecht <martinralbrecht@googlemail.com>
 
 == Changelog ==
 
 === givaro-3.7.0 (Martin Albrecht, June 7th, 2012) ===
  * #9511 updated to new upstram release
+ * removed cruft from spkg-install
 
 === givaro-3.6.0 (Martin Albrecht, June 6th, 2012) ===
  * #9511 updated to new upstram release

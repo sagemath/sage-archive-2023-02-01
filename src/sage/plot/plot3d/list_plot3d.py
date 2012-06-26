@@ -363,27 +363,25 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
     y=[float(p[1]) for p in v]
     z=[float(p[2]) for p in v]
 
-    corr_matrix=numpy.corrcoef(x,y)
-
-    if corr_matrix[0,1] > .9 or corr_matrix[0,1] <  -.9:
-        # If the x,y coordinates lie in a one-dimensional subspace
-        # The scipy delauney code segfaults
-        # We compute the correlation of the x and y coordinates
-        # and add small random noise to avoid the problem
-        # if it looks like there is an issue
-
-        ep=float(.000001)
-        x=[float(p[0])+random()*ep for p in v]
-        y=[float(p[1])+random()*ep for p in v]
+    # If the (x,y)-coordinates lie in a one-dimensional subspace, the
+    # matplotlib Delaunay code segfaults.  Therefore, we compute the
+    # correlation of the x- and y-coordinates and add small random
+    # noise to avoid the problem if needed.
+    corr_matrix = numpy.corrcoef(x,y)
+    if corr_matrix[0,1] > 0.9 or corr_matrix[0,1] < -0.9:
+        ep = float(.000001)
+        x = [float(p[0]) + random()*ep for p in v]
+        y = [float(p[1]) + random()*ep for p in v]
 
 
-    #If the list of data points has two points with the exact same x,y coordinate and different z coordinates
-    #then scipy sometimes segfaults. The following block checks for this. alternatively the code in the if block
-    #above which adds random error could be applied to perturb the points, but probably an exception should be raised
-    #The code also removes duplicate points which scipy can't handle.
-
+    # If the list of data points has two points with the exact same
+    # (x,y)-coordinate but different z-coordinates, then we sometimes
+    # get segfaults.  The following block checks for this and raises
+    # an exception if this is the case.
+    # We also remove duplicate points (which matplotlib can't handle).
+    # Alternatively, the code in the if block above which adds random
+    # error could be applied to perturb the points.
     drop_list=[]
-
     for i in range(len(x)):
         for j in range(i+1,len(x)):
             if x[i]==x[j] and y[i]==y[j]:

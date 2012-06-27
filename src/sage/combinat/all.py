@@ -2,6 +2,7 @@ from combinat import *
 from expnums import expnums
 
 from sage.combinat.crystals.all import *
+from rigged_configurations.all import *
 
 from sage.combinat.dlx import DLXMatrix, AllExactCovers, OneExactCover
 

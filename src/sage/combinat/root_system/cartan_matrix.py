@@ -1,5 +1,10 @@
 """
 Cartan matrices
+
+AUTHORS:
+
+- Travis Scrimshaw (2012-04-22): Nicolas M. Thiery moved matrix creation to
+    :class:`CartanType` to prepare cartan_matrix() for deprecation.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -15,9 +20,7 @@ Cartan matrices
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import cartan_type
-from sage.matrix.all import MatrixSpace
-from sage.rings.all import ZZ
+from cartan_type import CartanType
 
 def cartan_matrix(t):
     """
@@ -148,13 +151,11 @@ def cartan_matrix(t):
         [ 2  0 -1]
         [ 0  2 -3]
         [-1 -1  2]
+
+    .. note::
+
+        This function is likely to be deprecated in favor of
+        ``CartanType(...).cartan_matrix()``, to avoid polluting the
+        global namespace.
     """
-    t = cartan_type.CartanType(t)
-    dynkin_diagram = t.dynkin_diagram()
-    index_set = t.index_set()
-    MS = MatrixSpace(ZZ, len(index_set), sparse=True)
-    m = MS(0)
-    for i in range(len(index_set)):
-        for j in range(len(index_set)):
-            m[i,j] = dynkin_diagram[index_set[i],index_set[j]]
-    return m
+    return CartanType(t).cartan_matrix()

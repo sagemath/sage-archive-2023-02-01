@@ -161,6 +161,25 @@ Then we add a couple edges::
 and we get the desired Cartan matrix::
 
     sage: g.cartan_matrix()
+    [2 0 0]
+    [0 2 0]
+    [0 0 2]
+
+Oops, the Cartan matrix did not change! This is because it is cached
+for efficiency (see :class:`cached_method`). In general, a Dynkin
+diagram should not be modified after having been used.
+
+.. warning:: this is not checked currently
+
+.. todo: add a method :meth:`.set_mutable` as, say, for matrices
+
+Here, we can work around this by clearing the cache::
+
+    sage: delattr(g, 'cartan_matrix')
+
+Now we get the desired Cartan matrix::
+
+    sage: g.cartan_matrix()
     [ 2 -1 -1]
     [-2  2 -1]
     [-1 -1  2]
@@ -170,9 +189,6 @@ Note that backward edges have been automatically added::
     sage: g.edges()
     [(1, 2, 2), (1, 3, 1), (2, 1, 1), (2, 3, 1), (3, 1, 1), (3, 2, 1)]
 
-Caveat: the Dynkin diagram should not be modified after having been
-used; this is not checked currently (Todo: add a method
-:meth:`.set_mutable`, as for matrices).
 
 .. rubric:: Reducible Cartan types
 
@@ -1005,6 +1021,7 @@ class CartanType_crystalographic(CartanType_abstract):
         Note: derived subclasses should typically implement this as a cached method
         """
 
+    @cached_method
     def cartan_matrix(self):
         """
         Returns the Cartan matrix associated with self.
@@ -1017,8 +1034,7 @@ class CartanType_crystalographic(CartanType_abstract):
             [ 0 -1  2 -1]
             [ 0  0 -1  2]
         """
-        from sage.combinat.root_system.cartan_matrix import cartan_matrix
-        return cartan_matrix(self)
+        return self.dynkin_diagram().cartan_matrix()
 
     @cached_method
     def coxeter_diagram(self):

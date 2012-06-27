@@ -57,6 +57,7 @@ Combinatorics
 
    crystals
    posets
+   rigged_configurations
    designs
    species
    developer
@@ -64,3 +65,4 @@ Combinatorics
    iet
 
    ../sage/combinat/misc
+

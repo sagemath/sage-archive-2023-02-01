@@ -1,5 +1,11 @@
 """
 Dynkin diagrams
+
+AUTHORS:
+
+- Travis Scrimshaw (2012-04-22): Nicolas M. Thiery moved Cartan matrix creation
+    to here and I cached results for speed.
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -15,9 +21,9 @@ Dynkin diagrams
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.misc.cachefunc import cached_method
 from sage.graphs.digraph import DiGraph
 from cartan_type import CartanType, CartanType_abstract
-from cartan_matrix import cartan_matrix
 
 def DynkinDiagram(*args):
     """
@@ -249,9 +255,10 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         """
         return self
 
+    @cached_method
     def cartan_matrix(self):
         r"""
-        returns the Cartan matrix for this Dynkin diagram
+        Returns the Cartan matrix for this Dynkin diagram
 
         EXAMPLES::
 
@@ -260,7 +267,15 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             [-1  2 -2]
             [ 0 -1  2]
         """
-        return cartan_matrix(self)
+        from sage.matrix.constructor import identity_matrix
+        from sage.rings.all import ZZ
+        index_set = self.index_set()
+        reverse = dict((index_set[i], i) for i in range(len(index_set)))
+        m = 2*identity_matrix(ZZ, len(self.index_set()), sparse=True)
+        for (i,j,l) in self.edge_iterator():
+            m[reverse[j], reverse[i]] = -l
+        m.set_immutable()
+        return m
 
     def dual(self):
         r"""

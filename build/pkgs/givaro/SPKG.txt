@@ -1,17 +1,20 @@
-= givaro =
+= Givaro =
 
 == Description ==
 
-Givaro is a C++ library for arithmetic and algebraic computations. Its main
-features are implementations of the basic arithmetic of many mathematical
-entities: Primes fields, Extensions Fields, Finite Fields, Finite Rings,
-Polynomials, Algebraic numbers, Arbitrary precision integers and rationals
-(C++ wrappers over GMP). It also provides data structures and templated
-classes for the manipulation of basic algebraic objects, such as vectors,
-matrices (dense, sparse, structured), univariate polynomials (and therefore
-recursive multivariate).
+Givaro is a C++ library for arithmetic and algebraic computations. Its
+main features are implementations of the basic arithmetic of many
+mathematical entities: Primes fields, Extensions Fields, Finite
+Fields, Finite Rings, Polynomials, Algebraic numbers, Arbitrary
+precision integers and rationals (C++ wrappers over gmp) It also
+provides data-structures and templated classes for the manipulation of
+basic algebraic objects, such as vectors, matrices (dense, sparse,
+structured), univariate polynomials (and therefore recursive
+multivariate).
 
 Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
+
+SPKG Repository: https://bitbucket.org/malb/givaro-spkg
 
 == License ==
 
@@ -26,27 +29,15 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
  * GNU patch
  * GMP/MPIR
 
-== SPKG Maintainers ==
+== Maintainers  ==
 
   * Clement Pernet
-  * Martin Albrecht <malb@informatik.uni-bremen.de>
-
-== Special Update/Build Instructions ==
-
- * Make sure the patches are still needed and do apply.
-
- * Make sure newer upstream sources conform to C++11, e.g. build with
-   GCC 4.7.x, *without* `-fpermissive`.  Note that some of the Sage library's
-   extension modules use Givaro's headers, hence also check whether `./sage -b`
-   works after installation of a new Givaro spkg.
-   Also test whether Givaro's test suite builds with GCC 4.7.x, since these
-   tests use other code parts than the Sage library does (template instanti-
-   ation!).
-
- * Doesn't seem that `make check` actually *runs* any tests, it just builds
-   a lot.  Perhaps we'd have to extend `spkg-check` regarding that.
+  * Martin Albrecht <martinralbrecht@googlemail.com>
 
 == Changelog ==
+
+=== givaro-3.7.0 (Martin Albrecht, June 7th, 2012) ===
+ * #9511 updated to new upstram release
 
 === givaro-3.2.13.p0 (Jeroen Demeyer, 25 May 2012) ===
  * #12761: Restore upstream sources to vanilla 3.2.13 (the previous

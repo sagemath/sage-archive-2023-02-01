@@ -4862,11 +4862,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: bool(M)
             True
         """
-        z = self._base_ring(0)
         cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
-                if self.get_unsafe(i,j) != z:
+                if self.get_unsafe(i,j):
                     return True
         return False
 

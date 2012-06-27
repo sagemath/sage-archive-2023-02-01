@@ -281,6 +281,17 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
         sage: PermutationGroup([p])
         Permutation Group with generators [(1,2)(3,7)(4,6)(5,8)]
 
+    Permutation groups can work on any domain. In the following
+    examples, the permutations are specified in list notation,
+    according to the order of the elements of the domain::
+
+        sage: list(PermutationGroup([['b','c','a']], domain=['a','b','c']))
+        [(), ('a','b','c'), ('a','c','b')]
+        sage: list(PermutationGroup([['b','c','a']], domain=['b','c','a']))
+        [()]
+        sage: list(PermutationGroup([['b','c','a']], domain=['a','c','b']))
+        [(), ('a','b')]
+
     There is an underlying gap object that implements each
     permutation group::
 

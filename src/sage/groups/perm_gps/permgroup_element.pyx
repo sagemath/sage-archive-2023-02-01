@@ -174,7 +174,7 @@ def standardize_generator(g, convert_dict=None):
     INPUT:
 
     - ``g`` - a list, tuple, string, GapElement,
-      PermuationGroupElement, Permutation
+      PermutationGroupElement, Permutation
 
     - ``convert_dict`` - (optional) a dictionary used to convert the
       points to a number compatible with GAP.

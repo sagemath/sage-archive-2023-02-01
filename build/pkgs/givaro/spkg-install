@@ -34,21 +34,21 @@ export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
 
 cd src/
 
-./configure --prefix=$SAGE_LOCAL --libdir="$SAGE_LOCAL/lib" --with-gmp="$SAGE_LOCAL/" --enable-shared
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-gmp="$SAGE_LOCAL/" --enable-shared
 
 if [ $? -ne 0 ]; then
-    echo "Error configuring givaro"
+    echo >&2 "Error configuring givaro"
     exit 1
 fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-    echo "Error building givaro"
+    echo >&2 "Error building givaro"
 fi
 
 $MAKE install
 if [ $? -ne 0 ]; then
-    echo "Error installing givaro"
+    echo >&2 "Error installing givaro"
     exit 1
 fi
 

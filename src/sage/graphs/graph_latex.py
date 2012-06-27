@@ -227,8 +227,8 @@ Among other things, this supports the flexible ``edge_options`` option
 (see :meth:`sage.graphs.generic_graph.GenericGraph.graphviz_string`);
 here we color in red all edges touching the vertex ``0``::
 
-   sage: G = graphs.PetersenGraph()
-   sage: G.set_latex_options(format="dot2tex", edge_options = lambda (u,v,label): { "color": "red" if u==0 else 1})
+    sage: g = graphs.PetersenGraph()
+    sage: g.set_latex_options(format="dot2tex", edge_options = lambda (u,v,label): {"color": "red"} if u==0 else {})
     sage: latex(g) # optional - requires dot2tex
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...

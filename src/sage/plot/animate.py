@@ -76,7 +76,7 @@ class Animation(SageObject):
     TESTS: This illustrates that ticket #2066 is fixed (setting axes
     ranges when an endpoint is 0)::
 
-        sage: animate([plot(sin, -1,1)], xmin=0, ymin=0)._Animation__kwds['xmin']
+        sage: animate([plot(sin, -1,1)], xmin=0, ymin=0)._kwds['xmin']
         0
 
     We check that Trac #7981 is fixed::
@@ -105,8 +105,8 @@ class Animation(SageObject):
             w.append(x)
         if len(w) == 0:
             w = [sage.plot.graphics.Graphics()]
-        self.__frames = w
-        self.__kwds = kwds
+        self._frames = w
+        self._kwds = kwds
 
     def _combine_kwds(self, *kwds_tuple):
         """
@@ -162,9 +162,9 @@ class Animation(SageObject):
             sage: a[3:7].show() # optional -- ImageMagick
         """
         if isinstance(i, slice):
-            return Animation(self.__frames[i], **self.__kwds)
+            return Animation(self._frames[i], **self._kwds)
         else:
-            return self.__frames[i]
+            return self._frames[i]
 
     def _repr_(self):
         """
@@ -179,7 +179,7 @@ class Animation(SageObject):
             sage: a._repr_()
             'Animation with 10 frames'
         """
-        return "Animation with %s frames"%(len(self.__frames))
+        return "Animation with %s frames"%(len(self._frames))
 
     def __add__(self, other):
         """
@@ -202,12 +202,12 @@ class Animation(SageObject):
         if not isinstance(other, Animation):
             other = Animation(other)
 
-        kwds = self._combine_kwds(self.__kwds, other.__kwds)
+        kwds = self._combine_kwds(self._kwds, other._kwds)
 
         #Combine the frames
-        m = max(len(self.__frames), len(other.__frames))
-        frames = [a+b for a,b in zip(self.__frames, other.__frames)]
-        frames += self.__frames[m:] + other.__frames[m:]
+        m = max(len(self._frames), len(other._frames))
+        frames = [a+b for a,b in zip(self._frames, other._frames)]
+        frames += self._frames[m:] + other._frames[m:]
 
         return Animation(frames, **kwds)
 
@@ -232,9 +232,9 @@ class Animation(SageObject):
         if not isinstance(other, Animation):
             other = Animation(other)
 
-        kwds = self._combine_kwds(self.__kwds, other.__kwds)
+        kwds = self._combine_kwds(self._kwds, other._kwds)
 
-        return Animation(self.__frames + other.__frames, **kwds)
+        return Animation(self._frames + other._frames, **kwds)
 
     def png(self, dir=None):
         """
@@ -249,15 +249,15 @@ class Animation(SageObject):
             ['00000000.png', '00000001.png', '00000002.png', '00000003.png']
         """
         try:
-            return self.__png_dir
+            return self._png_dir
         except AttributeError:
             pass
         d = sage.misc.misc.tmp_dir()
-        G = self.__frames
-        for i, frame in enumerate(self.__frames):
+        G = self._frames
+        for i, frame in enumerate(self._frames):
             filename = '%s/%s'%(d,sage.misc.misc.pad_zeros(i,8))
-            frame.save(filename + '.png', **self.__kwds)
-        self.__png_dir = d
+            frame.save(filename + '.png', **self._kwds)
+        self._png_dir = d
         return d
 
     def graphics_array(self, ncols=3):
@@ -288,9 +288,9 @@ class Animation(SageObject):
             Graphics Array of size 2 x 2
             sage: g.show('sage.png')         # optional
         """
-        n = len(self.__frames)
+        n = len(self._frames)
         ncols = int(ncols)
-        return plot.graphics_array(self.__frames, int(n/ncols),  ncols)
+        return plot.graphics_array(self._frames, int(n/ncols),  ncols)
 
     def gif(self, delay=20, savefile=None, iterations=0, show_path=False,
             use_ffmpeg=False):

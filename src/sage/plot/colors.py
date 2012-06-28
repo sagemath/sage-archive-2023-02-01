@@ -409,9 +409,9 @@ class Color(object):
             RGB color (0.8235294117647058, 0.4117647058823529, 0.11764705882352941)
         """
         if g is None and b is None:
-            self.__rgb = rgbcolor(r)
+            self._rgb = rgbcolor(r)
         else:
-            self.__rgb = rgbcolor((r, g, b), space=space)
+            self._rgb = rgbcolor((r, g, b), space=space)
 
     def __repr__(self):
         """
@@ -428,7 +428,7 @@ class Color(object):
             sage: Color(1, 0.5, 1/16, space='hsl').__repr__()
             'RGB color (0.09375, 0.03125, 0.03125)'
         """
-        return "RGB color %s" % (self.__rgb, )
+        return "RGB color %s" % (self._rgb, )
 
     def __lt__(self, right):
         """
@@ -648,11 +648,11 @@ class Color(object):
         """
         fraction = float(fraction)
         if isinstance(color, Color):
-            color = color.__rgb
+            color = color._rgb
         if isinstance(color, (list, tuple)) and len(color) == 3:
             color = map(float, color)
             return Color(rgbcolor([(1 - fraction) * a + fraction * b
-                                   for a, b in zip(self.__rgb, color)]))
+                                   for a, b in zip(self._rgb, color)]))
         raise TypeError("%s must be a Color or float-convertible 3-tuple/list" % (color, ))
 
     def __add__(self, right):
@@ -748,7 +748,7 @@ class Color(object):
             RGB color (0.764705882352942, 0.1529411764705877, 0.1529411764705877)
         """
         right = float(right)
-        return Color([x * right for x in self.__rgb])
+        return Color([x * right for x in self._rgb])
 
     def __rmul__(self, left):
         """
@@ -883,7 +883,7 @@ class Color(object):
             sage: vector(maroon) == vector(Color(maroon)) == vector(Color('maroon'))
             True
         """
-        return iter(self.__rgb)
+        return iter(self._rgb)
 
     def __getitem__(self, i):
         """
@@ -912,7 +912,7 @@ class Color(object):
             ...
             IndexError: tuple index out of range
         """
-        return self.__rgb[i]
+        return self._rgb[i]
 
     def rgb(self):
         """
@@ -937,7 +937,7 @@ class Color(object):
             sage: Color(1, 0.7, 0.9, space='hsv').rgb()
             (0.9, 0.2700000000000001, 0.2700000000000001)
         """
-        return self.__rgb
+        return self._rgb
 
     def hls(self):
         """
@@ -960,7 +960,7 @@ class Color(object):
             sage: orchid.hls()
             (0.8396226415094339, 0.6470588235294117, 0.5888888888888889)
         """
-        return tuple(map(float, rgb_to_hls(*self.__rgb)))
+        return tuple(map(float, rgb_to_hls(*self._rgb)))
 
     def hsl(self):
         """
@@ -981,7 +981,7 @@ class Color(object):
             sage: Color('#aabbcc').hsl()
             (0.5833333333333334, 0.25000000000000017, 0.7333333333333334)
         """
-        h, l, s = tuple(map(float, rgb_to_hls(*self.__rgb)))
+        h, l, s = tuple(map(float, rgb_to_hls(*self._rgb)))
         return (h, s, l)
 
     def hsv(self):
@@ -1003,7 +1003,7 @@ class Color(object):
             sage: Color('gray').hsv()
             (0.0, 0.0, 0.5019607843137255)
         """
-        return tuple(map(float, rgb_to_hsv(*self.__rgb)))
+        return tuple(map(float, rgb_to_hsv(*self._rgb)))
 
     def html_color(self):
         """
@@ -1025,7 +1025,7 @@ class Color(object):
             sage: honeydew.html_color()
             '#f0fff0'
         """
-        return float_to_html(*self.__rgb)
+        return float_to_html(*self._rgb)
 
     def lighter(self, fraction=1.0/3.0):
         """

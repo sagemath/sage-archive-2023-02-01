@@ -47,7 +47,7 @@ def render_2d(projection, **kwds):
         sage: q1.show() + q2.show() + q3.show() + q4.show()
         sage: from sage.geometry.polyhedron.plot import render_2d
         sage: q = render_2d(p1.projection())
-        sage: q._Graphics__objects
+        sage: q._objects
         [Point set defined by 1 point(s),
          Arrow from (1.0,1.0) to (2.0,2.0),
          Polygon defined by 3 points]
@@ -850,7 +850,7 @@ class Projection(SageObject):
             sage: hex = polytopes.regular_polygon(6)
             sage: proj = hex.projection()
             sage: hex_points = proj.render_points_2d()
-            sage: hex_points._Graphics__objects
+            sage: hex_points._objects
             [Point set defined by 6 point(s)]
         """
         return point2d(self.coordinates_of(self.points), **kwds)
@@ -864,7 +864,7 @@ class Projection(SageObject):
 
             sage: penta = polytopes.regular_polygon(5)
             sage: outline = penta.projection().render_outline_2d()
-            sage: outline._Graphics__objects[0]
+            sage: outline._objects[0]
             Line defined by 2 points
         """
         wireframe = [];

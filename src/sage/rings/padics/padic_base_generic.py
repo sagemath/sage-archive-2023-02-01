@@ -365,6 +365,6 @@ class pAdicBaseGeneric(pAdicGeneric):
             all.append(tuple(p))
         g = points(all, **args)
         # Set default plotting options
-        g._Graphics__show_axes = False
-        g._Graphics__aspect_ratio = 1
+        g.axes(False)
+        g.set_aspect_ratio(1)
         return g

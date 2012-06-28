@@ -2570,7 +2570,7 @@ class Polyhedron_base(SageObject):
 
             sage: p = Polyhedron([[1,2,],[1,1],[0,0]])
             sage: p_wireframe = p.render_wireframe()
-            sage: p_wireframe._Graphics__objects
+            sage: p_wireframe._objects
             [Line defined by 2 points, Line defined by 2 points, Line defined by 2 points]
         """
         proj = self.projection()

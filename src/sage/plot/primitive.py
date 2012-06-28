@@ -48,7 +48,7 @@ class GraphicPrimitive(SageObject):
             sage: GraphicPrimitive({})
             Graphics primitive
         """
-        self.__options = options
+        self._options = options
 
     def _allowed_options(self):
         """
@@ -133,7 +133,7 @@ class GraphicPrimitive(SageObject):
             sage: q.options()['zorder']
             3
         """
-        self.__options['zorder'] = zorder
+        self._options['zorder'] = zorder
 
     def options(self):
         """
@@ -150,7 +150,7 @@ class GraphicPrimitive(SageObject):
         """
         from sage.plot.graphics import do_verify
         from sage.plot.colors import hue
-        O = dict(self.__options)
+        O = dict(self._options)
         if do_verify:
             A = self._allowed_options()
             t = False

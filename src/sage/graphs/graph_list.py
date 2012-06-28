@@ -319,7 +319,7 @@ def to_graphics_arrays(list, **kwds):
         for j in range (rows*cols):
             glist.append(plist[ i*rows*cols + j ])
         ga = graphics_array(glist, rows, cols)
-        ga.__set_figsize__([8,10])
+        ga._set_figsize_([8,10])
         g_arrays.append(ga)
 
     last = len(plist)%20
@@ -332,7 +332,7 @@ def to_graphics_arrays(list, **kwds):
     for i in range (last):
         glist.append(plist[ i + index])
     ga = graphics_array(glist, last_rows, cols)
-    ga.__set_figsize__([8, 2*last_rows])
+    ga._set_figsize_([8, 2*last_rows])
     g_arrays.append(ga)
 
     return g_arrays

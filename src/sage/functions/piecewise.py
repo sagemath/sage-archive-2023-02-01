@@ -1023,7 +1023,7 @@ class PiecewisePolynomial:
             sage: p = f.plot(legend_label='$f(x)$')
             sage: lines = [
             ...     line
-            ...     for line in p._Graphics__objects
+            ...     for line in p._objects
             ...     if line.options()['legend_label'] is not None ]
             sage: len(lines)
             1

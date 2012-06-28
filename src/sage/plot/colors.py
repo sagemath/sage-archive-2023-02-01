@@ -506,7 +506,7 @@ class Color(object):
             False
         """
         if isinstance(right, Color):
-            return self.__rgb == right.__rgb
+            return self._rgb == right._rgb
         else:
             return False
 
@@ -604,7 +604,7 @@ class Color(object):
             sage: hash(Color('red')) == hash(Color((1,0,0)))
             True
         """
-        return hash(self.__rgb)
+        return hash(self._rgb)
 
     def blend(self, color, fraction=0.5):
         """

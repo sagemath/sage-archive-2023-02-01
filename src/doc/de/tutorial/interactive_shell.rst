@@ -653,7 +653,7 @@ Computer Algebra Systeme solche individuellen Objekte zu speichern.
    Sitzungen (z.B. GAP, Magma).
 
 #. **Einheitliche Ein-/Ausgabe:** Bringen Sie jedes Objekt in eine Form, die
-	 Sie wieder einlesen können in (GP/PARI).
+         Sie wieder einlesen können in (GP/PARI).
 
 #. **Eval**: Machen Sie beliebigen Code auswertbar im Interpreter (z.B. Sigular, PARI).
 

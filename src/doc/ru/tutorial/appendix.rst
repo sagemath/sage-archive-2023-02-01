@@ -17,10 +17,10 @@
 Operators                   Description
 ==========================  =================
 or                          boolean or
-and  	     		    boolean and
-not	     		    boolean not
-in, not in   		    membership
-is, is not   		    identity test
+and                         boolean and
+not                         boolean not
+in, not in                  membership
+is, is not                  identity test
 >, <=, >, >=, ==, !=, <>    comparison
 +, -                        addition, subtraction
 \*, /, %                    multiplication, division, remainder

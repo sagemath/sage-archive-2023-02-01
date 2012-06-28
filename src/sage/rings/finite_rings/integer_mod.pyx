@@ -1087,6 +1087,11 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...       except ValueError:
             ...           pass
 
+        We check that #13172 is resolved::
+
+            sage: mod(-1, 4489).nth_root(2, all=True)
+            []
+
         ALGORITHMS:
 
         - The default for prime modulus is currently an algorithm described in the following paper:
@@ -1164,7 +1169,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 else:
                     return K(p**(pval // n) * mod(upart, p**(k-pval)).nth_root(n, algorithm=algorithm).lift())
             from sage.rings.padics.all import ZpFM
-            R = ZpFM(p,k,print_mode='digits')
+            R = ZpFM(p,k)
             self_orig = self
             if p == 2:
                 sign = [1]

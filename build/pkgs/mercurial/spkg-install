@@ -33,7 +33,7 @@ done
 
 python setup.py install --home="$SAGE_LOCAL" --force
 if [ $? -ne 0 ]; then
-    echo "Error building and installing Mercurial"
+    echo >&2 "Error building and installing Mercurial"
     exit 1
 fi
 
@@ -56,17 +56,25 @@ relink =
 attend = annotate, cat, diff, log, glog, qdiff
 HEREDOC
 if [ $? -ne 0 ]; then
-    echo "Error installing custom hgrc"
+    echo >&2 "Error installing custom hgrc"
+    exit 1
 fi
 
 mkdir -p "$SAGE_LOCAL/etc/mercurial/hgrc.d"
 cp contrib/mergetools.hgrc "$SAGE_LOCAL/etc/mercurial/hgrc.d/mergetools.rc"
 if [ $? -ne 0 ]; then
-    echo "Error installing mergetools.rc"
+    echo >&2 "Error installing mergetools.rc"
+    exit 1
 fi
 
-echo "Deleting dead links"
-cd "$SAGE_LOCAL/lib"
-rm -rf python/python2.6 python/python
-
-exit 0
+# As a sanity check that Mercurial works, run "hg log" on the spkg
+# repository and check that it works sensibly.
+# This used to fail with mercurial-1.8.4 on Solaris SPARC.
+cd ..
+if hg log >/dev/null; then
+    echo "Mercurial seems to work correctly."
+else
+    echo >&2 "Mercurial installed correctly, but doesn't seem to work properly."
+    echo >&2 "Running 'hg log' in the directory `pwd` failed."
+    exit 1
+fi

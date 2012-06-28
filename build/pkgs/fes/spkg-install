@@ -1,0 +1,44 @@
+#/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting"
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+unset RM
+
+INCLUDES="-I$SAGE_LOCAL/include"
+LIBDIRS="-L$SAGE_LOCAL/lib"
+
+
+#build libFES
+cd src
+
+./configure --prefix="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+   echo "Error configuring libfes."
+   exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo "Error building libfES"
+    exit 1
+fi
+
+$MAKE check
+if [ $? -ne 0 ]; then
+    echo "Error checking libfes"
+    exit 1
+fi
+
+
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo "Error installing libFES"
+    exit 1
+fi
+
+cd ..
+

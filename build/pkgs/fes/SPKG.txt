@@ -1,0 +1,38 @@
+= libfes (Fast Exhaustive Search) =
+
+== Description ==
+
+This external library implements an efficient implement of exhaustive
+search to solve systems of low-degree boolean equations. Exhaustive
+search is asymptotically faster than computing a Groebner basis,
+except in special cases. This particular implementation is
+particularly efficient (in the good cases it tests 3 candidate
+solutions per CPU cycle on each core).
+
+== License ==
+
+This package is licenced under the GPL
+
+== SPKG Maintainers ==
+
+* Charles Bouillaguet
+
+== Upstream Contact ==
+
+Charles Bouillaguet <charles.bouillaguet@gmail.com>
+Assistant Professor at the university of Lille-1, France
+
+== Dependencies ==
+
+* cython
+
+== Special Update/Build Instructions ==
+
+Normally, the package should compile just fine
+
+== Changelog ==
+
+
+=== fes-0.1 (Charles Bouillaguet, 25 June 2012) ===
+
+ * Initial release, opened trac Ticket #13162.

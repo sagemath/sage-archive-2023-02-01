@@ -4,6 +4,7 @@ Combinatorics
 .. toctree::
    :maxdepth: 2
 
+   ../sage/combinat/tutorial
    ../sage/combinat/combinat
    ../sage/combinat/sloane_functions
    ../sage/combinat/expnums

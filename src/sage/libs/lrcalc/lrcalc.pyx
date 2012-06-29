@@ -16,62 +16,62 @@ The following describes the Sage interface to this library.
 
 EXAMPLES::
 
-    sage: import sage.libs.lrcalc.lrcalc as lrcalc        #optional - lrcalc
+    sage: import sage.libs.lrcalc.lrcalc as lrcalc
 
 Compute a single Littlewood-Richardson coefficient::
 
-    sage: lrcalc.lrcoef([3,2,1],[2,1],[2,1])              #optional - lrcalc
+    sage: lrcalc.lrcoef([3,2,1],[2,1],[2,1])
     2
 
 Compute a product of Schur functions; return the coefficients in the
 Schur expansion::
 
-    sage: lrcalc.mult([2,1], [2,1])                       #optional - lrcalc
+    sage: lrcalc.mult([2,1], [2,1])
     {[3, 3]: 1, [4, 2]: 1, [3, 1, 1, 1]: 1, [4, 1, 1]: 1, [2, 2, 2]: 1, [3, 2, 1]: 2, [2, 2, 1, 1]: 1}
 
 Same product, but include only partitions with at most 3 rows.  This
 corresponds to computing in the representation ring of gl(3)::
 
-    sage: lrcalc.mult([2,1], [2,1], 3)                    #optional - lrcalc
+    sage: lrcalc.mult([2,1], [2,1], 3)
     {[3, 3]: 1, [4, 2]: 1, [3, 2, 1]: 2, [2, 2, 2]: 1, [4, 1, 1]: 1}
 
 We can also compute the fusion product, here for sl(3) and level 2::
 
-    sage: lrcalc.mult([3,2,1], [3,2,1], 3,2)              #optional - lrcalc
+    sage: lrcalc.mult([3,2,1], [3,2,1], 3,2)
     {[4, 4, 4]: 1, [5, 4, 3]: 1}
 
 Compute the expansion of a skew Schur function::
 
-    sage: lrcalc.skew([3,2,1],[2,1])                      #optional - lrcalc
+    sage: lrcalc.skew([3,2,1],[2,1])
     {[3]: 1, [1, 1, 1]: 1, [2, 1]: 2}
 
 Compute the coproduct of a Schur function::
 
-    sage: lrcalc.coprod([3,2,1])                          #optional - lrcalc
+    sage: lrcalc.coprod([3,2,1])
     {([2, 1, 1], [1, 1]): 1, ([3, 1, 1], [1]): 1, ([2, 1], [3]): 1, ([2, 1, 1], [2]): 1, ([3, 2, 1], []): 1,
     ([3, 1], [2]): 1, ([3, 2], [1]): 1, ([2, 1], [2, 1]): 2, ([1, 1, 1], [2, 1]): 1, ([2, 2], [2]): 1, ([2, 2, 1], [1]): 1,
     ([2, 2], [1, 1]): 1, ([3, 1], [1, 1]): 1}
 
 Multiply two Schubert polynomials::
 
-    sage: lrcalc.mult_schubert([4,2,1,3], [1,4,2,5,3])    #optional - lrcalc
+    sage: lrcalc.mult_schubert([4,2,1,3], [1,4,2,5,3])
     {[5, 4, 1, 2, 3]: 1, [5, 3, 1, 4, 2]: 1, [4, 5, 1, 3, 2]: 1, [6, 2, 1, 4, 3, 5]: 1}
 
 Same product, but include only permutations of 5 elements in the result.
 This corresponds to computing in the cohomology ring of Fl(5)::
 
-    sage: lrcalc.mult_schubert([4,2,1,3], [1,4,2,5,3], 5) #optional - lrcalc
+    sage: lrcalc.mult_schubert([4,2,1,3], [1,4,2,5,3], 5)
     {[5, 4, 1, 2, 3]: 1, [5, 3, 1, 4, 2]: 1, [4, 5, 1, 3, 2]: 1}
 
 List all Littlewood-Richardson tableaux of skew shape `\mu/\nu`; in
 this example `\mu=[3,2,1]` and `\nu=[2,1]`. Specifying a third entry
 `maxrows` restricts the alphabet to `\{1,2,\ldots,maxrows\}`::
 
-    sage: list(lrcalc.lrskew([3,2,1],[2,1]))              #optional - lrcalc
+    sage: list(lrcalc.lrskew([3,2,1],[2,1]))
     [[[None, None, 1], [None, 1], [1]], [[None, None, 1], [None, 1], [2]],
     [[None, None, 1], [None, 2], [1]], [[None, None, 1], [None, 2], [3]]]
 
-    sage: list(lrcalc.lrskew([3,2,1],[2,1],maxrows=2))            #optional - lrcalc
+    sage: list(lrcalc.lrskew([3,2,1],[2,1],maxrows=2))
     [[[None, None, 1], [None, 1], [1]], [[None, None, 1], [None, 1], [2]], [[None, None, 1], [None, 2], [1]]]
 
 .. todo:: use this library in the :class:`SymmetricFunctions` code, to
@@ -170,8 +170,8 @@ cdef vector* iterable_to_vector(it):
 
     TESTS::
 
-        sage: from sage.libs.lrcalc.lrcalc import test_iterable_to_vector           #optional -lrcalc
-        sage: x = test_iterable_to_vector(Partition([3,2,1])); x   #indirect doctest optional -lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import test_iterable_to_vector
+        sage: x = test_iterable_to_vector(Partition([3,2,1])); x   #indirect doctest
         [3, 2, 1]
     """
     cdef vector* v
@@ -188,8 +188,8 @@ cdef vector_to_list(vector *v):
 
     TESTS::
 
-        sage: from sage.libs.lrcalc.lrcalc import test_iterable_to_vector #optional -lrcalc
-        sage: x = test_iterable_to_vector([]); x         #indirect doctest optional -lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import test_iterable_to_vector
+        sage: x = test_iterable_to_vector([]); x         #indirect doctest
         []
     """
     cdef int i, n
@@ -206,8 +206,8 @@ def test_iterable_to_vector(it):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import test_iterable_to_vector #optional -lrcalc
-        sage: x = test_iterable_to_vector([3,2,1]); x                     #optional -lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import test_iterable_to_vector
+        sage: x = test_iterable_to_vector([3,2,1]); x
         [3, 2, 1]
     """
     cdef vector *v = iterable_to_vector(it)
@@ -222,8 +222,8 @@ cdef skewtab_to_SkewTableau(skewtab *st):
 
     TESTS::
 
-        sage: from sage.libs.lrcalc.lrcalc import test_skewtab_to_SkewTableau #optional -lrcalc
-        sage: test_skewtab_to_SkewTableau([],[])                              #optional -lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import test_skewtab_to_SkewTableau
+        sage: test_skewtab_to_SkewTableau([],[])
         []
     """
     inner = vector_to_list(st.inner)
@@ -241,10 +241,10 @@ def test_skewtab_to_SkewTableau(outer, inner):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import test_skewtab_to_SkewTableau #optional -lrcalc
-        sage: test_skewtab_to_SkewTableau([3,2,1],[])                         #optional -lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import test_skewtab_to_SkewTableau
+        sage: test_skewtab_to_SkewTableau([3,2,1],[])
         [[1, 1, 1], [2, 2], [3]]
-        sage: test_skewtab_to_SkewTableau([4,3,2,1],[1,1]).pp()               #optional -lrcalc
+        sage: test_skewtab_to_SkewTableau([4,3,2,1],[1,1]).pp()
         .  1  1  1
         .  2  2
         1  3
@@ -262,10 +262,10 @@ cdef sf_hashtab_to_dict(hashtab *ht):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import mult              #optional - lrcalc
-        sage: sorted(mult([1],[1]).items())        #indirect doctest optional - lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import mult
+        sage: sorted(mult([1],[1]).items())        #indirect doctest
         [([1, 1], 1), ([2], 1)]
-        sage: assert isinstance(mult([1],[1]),dict)#indirect doctest optional - lrcalc
+        sage: assert isinstance(mult([1],[1]),dict)#indirect doctest
     """
     cdef hash_itr itr
     result = {}
@@ -283,8 +283,8 @@ cdef schubert_hashtab_to_dict(hashtab *ht):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import mult_schubert     #optional - lrcalc
-        sage: mult_schubert([3,2,1], [1,2,3])      #indirect doctest optional - lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import mult_schubert
+        sage: mult_schubert([3,2,1], [1,2,3])      #indirect doctest
         {[3, 2, 1]: 1}
     """
     cdef hash_itr itr
@@ -304,8 +304,8 @@ cdef vp_hashtab_to_dict(hashtab *ht):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import coprod           #optional - lrcalc
-        sage: coprod([1])      #indirect doctest optional - lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import coprod
+        sage: coprod([1])      #indirect doctest
         {([1], []): 1}
     """
     cdef hash_itr itr
@@ -343,12 +343,12 @@ def lrcoef_unsafe(outer, inner1, inner2):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import lrcoef_unsafe #optional - lrcalc
-        sage: lrcoef_unsafe([3,2,1], [2,1], [2,1])              #optional - lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import lrcoef_unsafe
+        sage: lrcoef_unsafe([3,2,1], [2,1], [2,1])
         2
-        sage: lrcoef_unsafe([3,3], [2,1], [2,1])                #optional - lrcalc
+        sage: lrcoef_unsafe([3,3], [2,1], [2,1])
         1
-        sage: lrcoef_unsafe([2,1,1,1,1], [2,1], [2,1])          #optional - lrcalc
+        sage: lrcoef_unsafe([2,1,1,1,1], [2,1], [2,1])
         0
     """
     cdef long long result
@@ -383,12 +383,12 @@ def lrcoef(outer, inner1, inner2):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import lrcoef   #optional - lrcalc
-        sage: lrcoef([3,2,1], [2,1], [2,1])                #optional - lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import lrcoef
+        sage: lrcoef([3,2,1], [2,1], [2,1])
         2
-        sage: lrcoef([3,3], [2,1], [2,1])                  #optional - lrcalc
+        sage: lrcoef([3,3], [2,1], [2,1])
         1
-        sage: lrcoef([2,1,1,1,1], [2,1], [2,1])            #optional - lrcalc
+        sage: lrcoef([2,1,1,1,1], [2,1], [2,1])
         0
 
     """
@@ -420,20 +420,20 @@ def mult(part1, part2, maxrows=None, level=None):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import mult    #optional - lrcalc
-        sage: mult([2],[])                                #optional - lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import mult
+        sage: mult([2],[])
         {[2]: 1}
-        sage: sorted(mult([2],[2]).items())               #optional - lrcalc
+        sage: sorted(mult([2],[2]).items())
         [([2, 2], 1), ([3, 1], 1), ([4], 1)]
-        sage: sorted(mult([2,1],[2,1]).items())           #optional - lrcalc
+        sage: sorted(mult([2,1],[2,1]).items())
         [([2, 2, 1, 1], 1), ([2, 2, 2], 1), ([3, 1, 1, 1], 1), ([3, 2, 1], 2), ([3, 3], 1), ([4, 1, 1], 1), ([4, 2], 1)]
-        sage: sorted(mult([2,1],[2,1],maxrows=2).items()) #optional - lrcalc
+        sage: sorted(mult([2,1],[2,1],maxrows=2).items())
         [([3, 3], 1), ([4, 2], 1)]
-        sage: mult([2,1],[3,2,1],3)                       #optional - lrcalc
+        sage: mult([2,1],[3,2,1],3)
         {[3, 3, 3]: 1, [5, 2, 2]: 1, [5, 3, 1]: 1, [4, 4, 1]: 1, [4, 3, 2]: 2}
-        sage: mult([2,1],[2,1],3,3)                       #optional - lrcalc
+        sage: mult([2,1],[2,1],3,3)
         {[3, 3]: 1, [3, 2, 1]: 2, [2, 2, 2]: 1, [4, 1, 1]: 1}
-        sage: mult([2,1],[2,1],None,3)                    #optional - lrcalc
+        sage: mult([2,1],[2,1],None,3)
         Traceback (most recent call last):
         ...
         ValueError: maxrows needs to be specified if you specify the level
@@ -473,8 +473,8 @@ def skew(outer, inner, maxrows=0):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import skew  #optional - lrcalc
-        sage: sorted(skew([2,1],[1]).items())           #optional - lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import skew
+        sage: sorted(skew([2,1],[1]).items())
         [([1, 1], 1), ([2], 1)]
     """
     cdef vector* v1 = iterable_to_vector(outer)
@@ -507,8 +507,8 @@ def coprod(part, all=0):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import coprod  #optional - lrcalc
-        sage: sorted(coprod([2,1]).items())               #optional - lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import coprod
+        sage: sorted(coprod([2,1]).items())
         [(([1, 1], [1]), 1), (([2], [1]), 1), (([2, 1], []), 1)]
     """
     cdef vector* v1 = iterable_to_vector(part)
@@ -539,9 +539,9 @@ def mult_schubert(w1, w2, rank=0):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import mult_schubert          #optional - lrcalc
-        sage: result = mult_schubert([3, 1, 5, 2, 4], [3, 5, 2, 1, 4])   #optional - lrcalc
-        sage: sorted(result.items())                                     #optional - lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import mult_schubert
+        sage: result = mult_schubert([3, 1, 5, 2, 4], [3, 5, 2, 1, 4])
+        sage: sorted(result.items())
         [([5, 4, 6, 1, 2, 3], 1), ([5, 6, 3, 1, 2, 4], 1),
          ([5, 7, 2, 1, 3, 4, 6], 1), ([6, 3, 5, 1, 2, 4], 1),
          ([6, 4, 3, 1, 2, 5], 1), ([6, 5, 2, 1, 3, 4], 1),
@@ -576,8 +576,8 @@ def lrskew(outer, inner, weight=None, maxrows=0):
 
     EXAMPLES::
 
-        sage: from sage.libs.lrcalc.lrcalc import lrskew  #optional - lrcalc
-        sage: for st in lrskew([3,2,1],[2]):              #optional - lrcalc
+        sage: from sage.libs.lrcalc.lrcalc import lrskew
+        sage: for st in lrskew([3,2,1],[2]):
         ...       st.pp()
         .  .  1
         1  1
@@ -589,7 +589,7 @@ def lrskew(outer, inner, weight=None, maxrows=0):
         1  2
         3
 
-        sage: for st in lrskew([3,2,1],[2], maxrows=2):   #optional - lrcalc
+        sage: for st in lrskew([3,2,1],[2], maxrows=2):
         ...       st.pp()
         .  .  1
         1  1
@@ -598,7 +598,7 @@ def lrskew(outer, inner, weight=None, maxrows=0):
         1  2
         2
 
-        sage: lrskew([3,2,1],[2], weight=[3,1])           #optional - lrcalc
+        sage: lrskew([3,2,1],[2], weight=[3,1])
         [[[None, None, 1], [1, 1], [2]]]
     """
     cdef vector* o = iterable_to_vector(outer)

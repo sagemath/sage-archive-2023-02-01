@@ -27,6 +27,7 @@ to be aware of the modules described in this chapter.
 
    sage/libs/flint/fmpz_poly
    sage/libs/libecm
+   sage/libs/lrcalc/lrcalc
    sage/libs/pari/gen
    sage/libs/ntl/all
    sage/libs/mwrank/all

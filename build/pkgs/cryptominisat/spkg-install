@@ -72,9 +72,5 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# this should get installed, so we work around it here
-
-rm $SAGE_ROOT/local/include/cryptominisat/Solver/stdint.h
-
 cd ..
 

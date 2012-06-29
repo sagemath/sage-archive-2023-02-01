@@ -41,6 +41,17 @@ from sage.misc.misc import get_verbose
 cdef extern from "cryptominisat_helper.h":
      cdef uint32_t** get_sorted_learnts_helper(Solver* solver, uint32_t* num)
 
+cdef int delete_cryptominisat(Solver *solver) except -1:
+     # the compiler complaints if we put _sig_on/_sig_off in __dealloc__ because
+     # _sig_on might return() but __dealloc__ returns void. Hence, we put it in
+     # a separate function. Note, we want _sig_on/_sig_off here because
+     # CryptoMiniSat uses assert() somewhere in the destructor chain which might
+     # fail if we interrupted the solver.
+     _sig_on
+     del solver
+     _sig_off
+     return 0
+
 cdef class CryptoMiniSat(SatSolver):
     """
     The CryptoMiniSat solver.
@@ -108,9 +119,7 @@ cdef class CryptoMiniSat(SatSolver):
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
             sage: del cms                                    # optional - cryptominisat
         """
-        _sig_on
-        del self._solver
-        _sig_off
+        cdef int r = delete_cryptominisat(self._solver)
 
     def __repr__(self):
          """

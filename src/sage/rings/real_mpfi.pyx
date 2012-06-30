@@ -2691,6 +2691,28 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         else:
             raise ValueError, "interval does not have a unique floor"
 
+    def unique_ceil(self):
+        """
+        Returns the unique ceiling of this interval, if it is well defined,
+        otherwise raises a ValueError.
+
+        EXAMPLES::
+
+            sage: RIF(pi).unique_ceil()
+            4
+            sage: RIF(100*pi).unique_ceil()
+            315
+            sage: RIF(100, 200).unique_ceil()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique floor
+        """
+        a, b = self.lower().ceil(), self.upper().ceil()
+        if a == b:
+            return a
+        else:
+            raise ValueError, "interval does not have a unique floor"
+
     def unique_integer(self):
         """
         Returns the unique integer in this interval, if there is exactly one,

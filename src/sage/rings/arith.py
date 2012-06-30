@@ -3974,10 +3974,43 @@ def continued_fraction_list(x, partial_convergents=False, bits=None, nterms=None
     r"""
     Returns the continued fraction of x as a list.
 
+    The continued fraction expansion of `x` are the coefficients `a_i` in
+
+    .. math::
+
+        x = a_1 + 1/(a_2+1/(...) ... )
+
+    with `a_1` integer and `a_2`, `...` positive integers.
+
     .. note::
 
        This may be slow for real number input, since it's implemented in pure
        Python. For rational number input the PARI C library is used.
+
+    .. SEEALSO::
+
+         :func:`Hirzebruch_Jung_continued_fraction_list` for
+         Hirzebruch-Jung continued fractions.
+
+    INPUT:
+
+    - ``x`` -- exact rational or floating-point number. The number to
+      compute the continued fraction of.
+
+    - ``partial_convergents`` -- boolean. Whether to return the partial convergents.
+
+    - ``bits`` -- integer. the precision of the real interval field
+      that is used internally.
+
+    - ``nterms`` -- integer. The upper bound on the number of terms in
+      the continued fraction expansion to return.
+
+    OUTPUT:
+
+    A lits of integers, the coefficients in the continued fraction
+    expansion of ``x``. If ``partial_convergents=True`` is passed, a
+    pair containing the coefficient list and the partial convergents
+    list is returned.
 
     EXAMPLES::
 
@@ -4085,6 +4118,102 @@ def continued_fraction_list(x, partial_convergents=False, bits=None, nterms=None
         return v, w[2:]
     else:
         return v
+
+
+def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
+    r"""
+    Returns the Hirzebruch-Jung continued fraction of x as a list.
+
+    The Hirzebruch-Jung continued fraction of `x` is similar to the
+    ordinary continued fraction expansion, but with minus signs. That
+    is, the coefficients `a_i` in
+
+    .. math::
+
+        x = a_1 - 1/(a_2-1/(...) ... )
+
+    with `a_1` integer and `a_2`, `...` positive integers.
+
+    .. SEEALSO::
+
+         :func:`continued_fraction_list` for ordinary continued fractions.
+
+    INPUT:
+
+    - ``x`` -- exact rational something that can be numerically
+      evaluated. The number to compute the continued fraction of.
+
+    - ``bits`` -- integer (default: the precision of ``x``). the
+      precision of the real interval field that is used
+      internally. This is only used if ``x`` is not an exact fraction.
+
+    - ``nterms`` -- integer (default: None). The upper bound on the
+      number of terms in the continued fraction expansion to return.
+
+    OUTPUT:
+
+    A lits of integers, the coefficients in the continued fraction
+    expansion of ``x``.
+
+    EXAMPLES::
+
+        sage: Hirzebruch_Jung_continued_fraction_list(17/11)
+        [2, 3, 2, 2, 2, 2]
+        sage: Hirzebruch_Jung_continued_fraction_list(45/17)
+        [3, 3, 6]
+        sage: Hirzebruch_Jung_continued_fraction_list(e, bits=20)
+        [3, 4, 3, 2, 2, 2, 3, 7]
+        sage: Hirzebruch_Jung_continued_fraction_list(e, bits=30)
+        [3, 4, 3, 2, 2, 2, 3, 8, 3, 2, 2, 2, 2, 2, 2, 2, 3]
+        sage: Hirzebruch_Jung_continued_fraction_list(sqrt(2), bits=100)
+        [2, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4,
+         2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 2]
+        sage: Hirzebruch_Jung_continued_fraction_list(sqrt(4/19))
+        [1, 2, 7, 3, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 3, 7,
+         2, 2, 2, 7, 3, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+        sage: Hirzebruch_Jung_continued_fraction_list(pi)
+        [4, 2, 2, 2, 2, 2, 2, 17, 294, 3, 4, 5, 16, 2, 2]
+        sage: Hirzebruch_Jung_continued_fraction_list(e)
+        [3, 4, 3, 2, 2, 2, 3, 8, 3, 2, 2, 2, 2, 2, 2, 2, 3, 12, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 10]
+
+        sage: Hirzebruch_Jung_continued_fraction_list(e, nterms=20)
+        [3, 4, 3, 2, 2, 2, 3, 8, 3, 2, 2, 2, 2, 2, 2, 2, 3, 12, 3, 2]
+        sage: len(_) == 20
+        True
+
+    TESTS::
+
+        sage: Hirzebruch_Jung_continued_fraction_list(1 - 10^-10, nterms=3)
+        [1, 10000000000]
+        sage: Hirzebruch_Jung_continued_fraction_list(1 - 10^-10 - e^-100, bits=100, nterms=5)
+        [1, 10000000000]
+        sage: Hirzebruch_Jung_continued_fraction_list(1 - 10^-20 - e^-100, bits=1000, nterms=5)
+        [1, 100000000000000000000, 2689, 2, 2]
+   """
+    if not sage.rings.rational.is_Rational(x):
+        try:
+            x = QQ(x)
+        except TypeError:
+            # Numerically evaluate x
+            if bits is None:
+                try:
+                    bits = x.prec()
+                except AttributeError:
+                    bits = 53
+            x = QQ(x.n(bits))
+    v = []
+    while True:
+        numer = x.numerator()
+        denom = x.denominator()
+        div, mod = divmod(x.numerator(), x.denominator())
+        if mod == 0:
+            v.append(div)
+            break
+        v.append(div+1)
+        if nterms is not None and len(v) >= nterms:
+            break
+        x = 1/(div+1-x)
+    return v
 
 
 def convergent(v, n):

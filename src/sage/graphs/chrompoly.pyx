@@ -30,12 +30,15 @@ def chromatic_polynomial(G, return_tree_basis = False):
 
     The algorithm used is a recursive one, based on the following observations
     of Read:
-        - The chromatic polynomial of a tree on n vertices is x(x-1)^(n-1).
-        - If e is an edge of G, G' is the result of deleting the edge e, and G''
-        is the result of contracting e, then the chromatic polynomial of G is
-        equal to that of G' minus that of G''.
 
-    EXAMPLES:
+        - The chromatic polynomial of a tree on n vertices is x(x-1)^(n-1).
+
+        - If e is an edge of G, G' is the result of deleting the edge e, and G''
+          is the result of contracting e, then the chromatic polynomial of G is
+          equal to that of G' minus that of G''.
+
+    EXAMPLES::
+
         sage: graphs.CycleGraph(4).chromatic_polynomial()
         x^4 - 4*x^3 + 6*x^2 - 3*x
         sage: graphs.CycleGraph(3).chromatic_polynomial()

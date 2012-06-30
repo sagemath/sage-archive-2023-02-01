@@ -16,7 +16,9 @@ AUTHORS:
 - Robert Miller, Tom Boothby - original implementation
 
 REFERENCE:
- Chris Godsil, Algebraic Combinatorics.
+
+.. [Godsil93] Chris Godsil (1993) Algebraic Combinatorics.
+
 
 Methods
 -------
@@ -51,7 +53,6 @@ def matching_polynomial(G, complement=True, name=None):
     .. MATH::
 
         \mu(x)=\sum_{k \geq 0} (-1)^k p(G,k) x^{n-2k}
-
 
     INPUT:
 
@@ -202,12 +203,6 @@ def matching_polynomial(G, complement=True, name=None):
         x^12 - 66*x^10 + 1485*x^8 - 13860*x^6 + 51975*x^4 - 62370*x^2 + 10395
         sage: matching_polynomial(graphs.CompleteGraph(13), complement=False)
         x^13 - 78*x^11 + 2145*x^9 - 25740*x^7 + 135135*x^5 - 270270*x^3 + 135135*x
-
-    REFERENCE:
-
-    .. [Godsil93] Chris Godsil (1993) Algebraic Combinatorics.
-
-
     """
 
     cdef int nverts, nedges, i, j, v, cur

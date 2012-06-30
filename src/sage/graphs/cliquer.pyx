@@ -11,9 +11,17 @@ AUTHORS:
 
 - Jeroen Demeyer (2011-05-06): Make cliquer interruptible (#11252)
 
+REFERENCE:
+
+.. [NisOst2003] Sampo Niskanen and Patric R. J. Ostergard,
+  "Cliquer User's  Guide, Version 1.0,"
+  Communications Laboratory, Helsinki University of Technology,
+  Espoo, Finland, Tech. Rep. T48, 2003.
+
 Methods
 -------
 """
+
 
 #*****************************************************************************
 #       Copyright (C) 2009 Nathann Cohen <nathann.cohen@gmail.com>
@@ -83,14 +91,36 @@ def all_max_clique(graph):
     """
     Returns the vertex sets of *ALL* the maximum complete subgraphs.
 
-    Currently only implemented for undirected graphs. Use
-    to_undirected to convert a digraph to an undirected graph.
+    Returns the list of all maximum cliques, with each clique represented by a
+    list of vertices. A clique is an induced complete subgraph, and a maximum
+    clique is one of maximal order.
+
+    .. NOTE::
+
+       Currently only implemented for undirected graphs. Use to_undirected
+       to convert a digraph to an undirected graph.
+
+    ALGORITHM:
+
+    This function is based on Cliquer [NisOst2003]_.
 
     EXAMPLES::
 
-          sage: C=graphs.PetersenGraph()
-          sage: all_max_clique(C)
-          [[2, 7], [7, 9], [6, 8], [6, 9], [0, 4], [4, 9], [5, 7], [0, 5], [5, 8], [3, 4], [2, 3], [3, 8], [1, 6], [0, 1], [1, 2]]
+        sage: graphs.ChvatalGraph().cliques_maximum()
+        [[0, 1], [0, 4], [0, 6], [0, 9], [1, 2], [1, 5], [1, 7], [2, 3],
+         [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [4, 5], [4, 8], [5, 10],
+         [5, 11], [6, 10], [6, 11], [7, 8], [7, 11], [8, 10], [9, 10], [9, 11]]
+        sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
+        sage: G.show(figsize=[2,2])
+        sage: G.cliques_maximum()
+        [[0, 1, 2], [0, 1, 3]]
+        sage: C=graphs.PetersenGraph()
+        sage: C.cliques_maximum()
+        [[0, 1], [0, 4], [0, 5], [1, 2], [1, 6], [2, 3], [2, 7], [3, 4],
+         [3, 8], [4, 9], [5, 7], [5, 8], [6, 8], [6, 9], [7, 9]]
+        sage: C = Graph('DJ{')
+        sage: C.cliques_maximum()
+        [[1, 2, 3, 4]]
     """
 
     graph,d = graph.relabel(inplace=False, return_map=True)
@@ -122,7 +152,7 @@ def all_max_clique(graph):
         else:
             b.append(list_composition(c,d_inv))
             c=[]
-    return b
+    return sorted(b)
 
 
 #computes the clique number of a graph

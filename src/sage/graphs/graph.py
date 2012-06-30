@@ -33,7 +33,6 @@ graphs.
     :meth:`~Graph.centrality_betweenness` | Returns the betweenness centrality
 
 
-
 **Graph properties:**
 
 .. csv-table::
@@ -54,6 +53,7 @@ graphs.
     :meth:`~Graph.is_weakly_chordal` | Tests whether ``self`` is weakly chordal.
     :meth:`~Graph.is_strongly_regular` | Tests whether ``self`` is strongly regular.
 
+
 **Connectivity and orientations:**
 
 .. csv-table::
@@ -65,7 +65,6 @@ graphs.
     :meth:`~Graph.bounded_outdegree_orientation` | Computes an orientation of ``self`` such that every vertex `v` has out-degree less than `b(v)`
     :meth:`~Graph.strong_orientation` | Returns a strongly connected orientation of the current graph.
     :meth:`~Graph.degree_constrained_subgraph` | Returns a degree-constrained subgraph.
-
 
 
 **Clique-related methods:**
@@ -451,9 +450,6 @@ Show each graph as you iterate through the results:
     sage: for g in Q:
     ...     show(g)
 
-
-
-
 Visualization
 -------------
 
@@ -494,7 +490,7 @@ Methods
 #*****************************************************************************
 
 from sage.rings.integer import Integer
-
+from sage.misc.superseded import deprecated_function_alias
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
@@ -523,6 +519,7 @@ class Graph(GenericGraph):
 
     * Within a Sage session, type ``graphs.``
       (Do not press "Enter", and do not forget the final period ".")
+
     * Hit "tab".
 
     You will see a list of methods which will construct named graphs. For
@@ -546,6 +543,7 @@ class Graph(GenericGraph):
 
     * Within a Sage session, type ``g.``
       (Do not press "Enter", and do not forget the final period "." )
+
     * Hit "tab".
 
     As usual, you can get some information about what these functions do by
@@ -2654,41 +2652,6 @@ class Graph(GenericGraph):
 
         return left, right
 
-    def chromatic_polynomial(self):
-        """
-        Returns the chromatic polynomial of the graph G.
-
-        EXAMPLES::
-
-            sage: G = Graph({0:[1,2,3],1:[2]})
-            sage: factor(G.chromatic_polynomial())
-            (x - 2) * x * (x - 1)^2
-
-        ::
-
-            sage: g = graphs.trees(5).next()
-            sage: g.chromatic_polynomial().factor()
-            x * (x - 1)^4
-
-        ::
-
-            sage: seven_acre_wood = sum(graphs.trees(7), Graph())
-            sage: seven_acre_wood.chromatic_polynomial()
-            x^77 - 66*x^76 ... - 2515943049305400*x^60 ... - 66*x^12 + x^11
-
-        ::
-
-            sage: for i in range(2,7):
-            ...     graphs.CompleteGraph(i).chromatic_polynomial().factor()
-            (x - 1) * x
-            (x - 2) * (x - 1) * x
-            (x - 3) * (x - 2) * (x - 1) * x
-            (x - 4) * (x - 3) * (x - 2) * (x - 1) * x
-            (x - 5) * (x - 4) * (x - 3) * (x - 2) * (x - 1) * x
-        """
-        from sage.graphs.chrompoly import chromatic_polynomial
-        return chromatic_polynomial(self)
-
     def chromatic_number(self, algorithm="DLX", verbose = 0):
         r"""
         Returns the minimal number of colors needed to color the vertices
@@ -3226,121 +3189,6 @@ class Graph(GenericGraph):
 
         return rs_dict
 
-
-    def rank_decomposition(self, verbose = False):
-        """
-        Returns an rank-decomposition of ``self`` achieving optiml rank-width.
-
-        See the documentation of the ``rankwidth`` module
-        :mod:`rankwidth <sage.graphs.graph_decompositions.rankwidth>`.
-
-        INPUT:
-
-        - ``verbose`` (boolean) -- whether to display progress information while
-           computing the decomposition.
-
-        OUTPUT:
-
-        A pair ``(rankwidth, decomposition_tree)``, where ``rankwidth`` is a
-        numerical value and ``decomposition_tree`` is a ternary tree describing
-        the decomposition (cf. the module's documentation).
-
-        See the documentation of the ``rankwidth`` module for more information
-        on the tree
-        :mod:`rankwidth <sage.graphs.graph_decompositions.rankwidth>`.
-
-        .. WARNING::
-
-            The current implementation cannot handle graphs of more than 32 vertices.
-
-        EXAMPLE::
-
-            sage: g = graphs.PetersenGraph()
-            sage: rw, tree = g.rank_decomposition()
-            sage: rw
-            3
-            sage: tree
-            Graph on 19 vertices
-            sage: tree.is_tree()
-            True
-        """
-
-        from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
-        return rank_decomposition(self, verbose = verbose)
-
-    ### Matching
-
-    def matching_polynomial(self, complement=True, name=None):
-        """
-        Computes the matching polynomial of the graph `G`.
-
-        If `p(G, k)` denotes the number of `k`-matchings (matchings with `k`
-        edges) in `G`, then the matching polynomial is defined as [Godsil93]_:
-
-        .. MATH::
-
-            \mu(x)=\sum_{k \geq 0} (-1)^k p(G,k) x^{n-2k}
-
-
-        INPUT:
-
-        - ``complement`` - (default: ``True``) whether to use Godsil's duality
-          theorem to compute the matching polynomial from that of the graphs
-          complement (see ALGORITHM).
-
-        - ``name`` - optional string for the variable name in the polynomial
-
-        .. NOTE::
-
-            The ``complement`` option uses matching polynomials of complete
-            graphs, which are cached. So if you are crazy enough to try
-            computing the matching polynomial on a graph with millions of
-            vertices, you might not want to use this option, since it will end
-            up caching millions of polynomials of degree in the millions.
-
-        ALGORITHM:
-
-        The algorithm used is a recursive one, based on the following
-        observation [Godsil93]_:
-
-        - If `e` is an edge of `G`, `G'` is the result of deleting the edge `e`,
-          and `G''` is the result of deleting each vertex in `e`, then the
-          matching polynomial of `G` is equal to that of `G'` minus that of
-          `G''`.
-
-          (the algorithm actually computes the *signless* matching polynomial,
-          for which the recursion is the same when one replaces the substraction
-          by an addition. It is then converted into the matching polynomial and
-          returned)
-
-        Depending on the value of ``complement``, Godsil's duality theorem
-        [Godsil93]_ can also be used to compute `\mu(x)` :
-
-        .. MATH::
-
-            \mu(\overline{G}, x) = \sum_{k \geq 0} p(G,k) \mu( K_{n-2k}, x)
-
-
-        Where `\overline{G}` is the complement of `G`, and `K_n` the complete
-        graph on `n` vertices.
-
-        EXAMPLES::
-
-            sage: g = graphs.PetersenGraph()
-            sage: g.matching_polynomial()
-            x^10 - 15*x^8 + 75*x^6 - 145*x^4 + 90*x^2 - 6
-            sage: g.matching_polynomial(complement=False)
-            x^10 - 15*x^8 + 75*x^6 - 145*x^4 + 90*x^2 - 6
-            sage: g.matching_polynomial(name='tom')
-            tom^10 - 15*tom^8 + 75*tom^6 - 145*tom^4 + 90*tom^2 - 6
-            sage: g = Graph()
-            sage: L = [graphs.RandomGNP(8, .3) for i in [1..5]]
-            sage: prod([h.matching_polynomial() for h in L]) == sum(L, g).matching_polynomial()  # long time (7s on sage.math, 2011)
-            True
-        """
-        from matchpoly import matching_polynomial
-        return matching_polynomial(self, complement=complement, name=name)
-
     ### Convexity
 
     def convexity_properties(self):
@@ -3660,11 +3508,11 @@ class Graph(GenericGraph):
 
         .. NOTE::
 
-            * This function can be expected to be *very* slow, especially
-              where the topological minor does not exist.
+            This function can be expected to be *very* slow, especially where
+            the topological minor does not exist.
 
-            (CPLEX seems to be *much* more efficient than GLPK on this
-            kind of problem)
+            (CPLEX seems to be *much* more efficient than GLPK on this kind of
+            problem)
 
         EXAMPLES:
 
@@ -3884,65 +3732,7 @@ class Graph(GenericGraph):
         import networkx
         return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
 
-    def cliques(self):
-        """
-        (Deprecated) alias for ``cliques_maximal``. See that function for more
-        details.
-
-        EXAMPLE::
-
-            sage: C = Graph('DJ{')
-            sage: C.cliques()
-            doctest:...: DeprecationWarning: The function 'cliques' has been deprecated. Use 'cliques_maximal' or 'cliques_maximum'.
-            See http://trac.sagemath.org/5793 for details.
-            [[4, 0], [4, 1, 2, 3]]
-
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(5793, "The function 'cliques' has been deprecated. Use " + \
-                    "'cliques_maximal' or 'cliques_maximum'.")
-        return self.cliques_maximal()
-
-    def cliques_maximum(self):
-        """
-        Returns the list of all maximum cliques, with each clique represented
-        by a list of vertices. A clique is an induced complete subgraph, and a
-        maximum clique is one of maximal order.
-
-        .. NOTE::
-
-            Currently only implemented for undirected graphs. Use to_undirected
-            to convert a digraph to an undirected graph.
-
-        ALGORITHM:
-
-        This function is based on Cliquer [NisOst2003]_.
-
-        REFERENCE:
-
-        .. [NisOst2003] Sampo Niskanen and Patric R. J. Ostergard,
-          "Cliquer User's Guide, Version 1.0," Communications Laboratory,
-          Helsinki University of Technology, Espoo, Finland,
-          Tech. Rep. T48, 2003.
-
-        EXAMPLES::
-
-            sage: graphs.ChvatalGraph().cliques_maximum()
-            [[0, 1], [0, 4], [0, 6], [0, 9], [1, 2], [1, 5], [1, 7], [2, 3], [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [4, 5], [4, 8], [5, 10], [5, 11], [6, 10], [6, 11], [7, 8], [7, 11], [8, 10], [9, 10], [9, 11]]
-            sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
-            sage: G.show(figsize=[2,2])
-            sage: G.cliques_maximum()
-            [[0, 1, 2], [0, 1, 3]]
-            sage: C=graphs.PetersenGraph()
-            sage: C.cliques_maximum()
-            [[0, 1], [0, 4], [0, 5], [1, 2], [1, 6], [2, 3], [2, 7], [3, 4], [3, 8], [4, 9], [5, 7], [5, 8], [6, 8], [6, 9], [7, 9]]
-            sage: C = Graph('DJ{')
-            sage: C.cliques_maximum()
-            [[1, 2, 3, 4]]
-
-        """
-        from sage.graphs.cliquer import all_max_clique
-        return sorted(all_max_clique(self))
+    cliques = deprecated_function_alias(5739, cliques_maximal)
 
     def clique_maximum(self,  algorithm="Cliquer"):
         """
@@ -5031,7 +4821,7 @@ class Graph(GenericGraph):
 
         OUTPUT:
 
-        graph with labeled edges
+        A graph with labeled edges
 
         EXAMPLE:
 
@@ -5151,6 +4941,17 @@ Graph.is_long_hole_free = types.MethodType(sage.graphs.weakly_chordal.is_long_ho
 Graph.is_long_antihole_free = types.MethodType(sage.graphs.weakly_chordal.is_long_antihole_free, None, Graph)
 Graph.is_weakly_chordal = types.MethodType(sage.graphs.weakly_chordal.is_weakly_chordal, None, Graph)
 
+import sage.graphs.chrompoly
+Graph.chromatic_polynomial = types.MethodType(sage.graphs.chrompoly.chromatic_polynomial, None, Graph)
+
+import sage.graphs.graph_decompositions.rankwidth
+Graph.rank_decomposition = types.MethodType(sage.graphs.graph_decompositions.rankwidth.rank_decomposition, None, Graph)
+
+import sage.graphs.matchpoly
+Graph.matching_polynomial = types.MethodType(sage.graphs.matchpoly.matching_polynomial, None, Graph)
+
+import sage.graphs.cliquer
+Graph.cliques_maximum = types.MethodType(sage.graphs.cliquer.all_max_clique, None, Graph)
 
 def compare_edges(x, y):
     """

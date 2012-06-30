@@ -104,6 +104,14 @@ AUTHOR:
 
 - Nathann Cohen (2011)
 
+REFERENCE:
+
+.. [KRG96b] S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
+  Wiener index of graphs. *Applied Mathematics Letters*, 9(5):45--49, 1996.
+
+.. [GYLL93c] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
+  results in the theory of the Wiener number. *Indian Journal of
+  Chemistry*, 32A:651--661, 1993.
 
 Functions
 ---------
@@ -631,15 +639,6 @@ def wiener_index(G):
         sage: w=lambda x: (x*(x*x -1)/6)
         sage: g.wiener_index()==w(10)
         True
-
-    REFERENCE:
-
-    .. [KRG96b] S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
-      Wiener index of graphs. *Applied Mathematics Letters*, 9(5):45--49, 1996.
-
-    .. [GYLL93c] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
-      results in the theory of the Wiener number. *Indian Journal of
-      Chemistry*, 32A:651--661, 1993.
     """
     if not G.is_connected():
         from sage.rings.infinity import Infinity

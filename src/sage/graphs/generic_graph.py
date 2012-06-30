@@ -3278,7 +3278,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.set_planar_positions(test=True)
             True
 
-        This method is deprecated. Please use instead:
+        This method is deprecated since Sage-4.4.1.alpha2. Please use instead:
 
             sage: g.layout(layout = "planar", save_pos = True)
             {0: [1, 1], 1: [2, 2], 2: [3, 2], 3: [1, 4], 4: [5, 1], 5: [0, 5], 6: [1, 0]}
@@ -11495,72 +11495,6 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("The algorithm keyword can be equal to either \"BFS\" or \"Floyd-Warshall\" or \"auto\"")
 
 
-    def distances_distribution(self):
-        r"""
-        Returns the distances distribution of the (di)graph in a dictionary.
-
-        This method *ignores all edge labels*, so that the distance considered
-        is the topological distance.
-
-        OUTPUT:
-
-            A dictionary ``d`` such that the number of pairs of vertices at
-            distance ``k`` (if any) is equal to `d[k] \cdot |V(G)| \cdot
-            (|V(G)|-1)`.
-
-        .. NOTE::
-
-            We consider that two vertices that do not belong to the same
-            connected component are at infinite distance, and we do not take the
-            trivial pairs of vertices `(v, v)` at distance `0` into account.
-            Empty (di)graphs and (di)graphs of order 1 have no paths and so we
-            return the empty dictionary ``{}``.
-
-        EXAMPLES:
-
-        An empty Graph::
-
-            sage: g = Graph()
-            sage: g.distances_distribution()
-            {}
-
-        A Graph of order 1::
-
-            sage: g = Graph()
-            sage: g.add_vertex(1)
-            sage: g.distances_distribution()
-            {}
-
-        A Graph of order 2 without edge::
-
-            sage: g = Graph()
-            sage: g.add_vertices([1,2])
-            sage: g.distances_distribution()
-            {+Infinity: 1}
-
-        The Petersen Graph::
-
-            sage: g = graphs.PetersenGraph()
-            sage: g.distances_distribution()
-            {1: 1/3, 2: 2/3}
-
-        A graph with multiple disconnected components::
-
-            sage: g = graphs.PetersenGraph()
-            sage: g.add_edge('good','wine')
-            sage: g.distances_distribution()
-            {1: 8/33, 2: 5/11, +Infinity: 10/33}
-
-        The de Bruijn digraph dB(2,3)::
-
-            sage: D = digraphs.DeBruijn(2,3)
-            sage: D.distances_distribution()
-            {1: 1/4, 2: 11/28, 3: 5/14}
-        """
-        from sage.graphs.distances_all_pairs import distances_distribution
-        return distances_distribution(self)
-
-
     def eccentricity(self, v=None, dist_dict=None, with_labels=False):
         """
         Return the eccentricity of vertex (or vertices) v.
@@ -12631,45 +12565,6 @@ class GenericGraph(GenericGraph_pyx):
                         pred[u][v] = pred[w][v]
 
         return dist, pred
-
-    def wiener_index(self):
-        r"""
-        Returns the Wiener index of the graph.
-
-        The Wiener index of a graph `G` can be defined in two equivalent
-        ways [KRG96]_ :
-
-        - `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)` where `d(u,v)` denotes the
-          distance between vertices `u` and `v`.
-
-        - Let `\Omega` be a set of `\frac {n(n-1)} 2` paths in `G` such that
-          `\Omega` contains exactly one shortest `u-v` path for each set
-          `\{u,v\}` of vertices in `G`. Besides, `\forall e\in E(G)`, let
-          `\Omega(e)` denote the paths from `\Omega` containing `e`. We then
-          have `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
-
-        EXAMPLE:
-
-        From [GYLL93b]_, cited in [KRG96]_::
-
-            sage: g=graphs.PathGraph(10)
-            sage: w=lambda x: (x*(x*x -1)/6)
-            sage: g.wiener_index()==w(10)
-            True
-
-        REFERENCES:
-
-        .. [KRG96] S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
-          Wiener index of graphs. *Applied Mathematics Letters*, 9(5):45--49,
-          1996.
-
-        .. [GYLL93b] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
-          results in the theory of the Wiener number. *Indian Journal of
-          Chemistry*, 32A:651--661, 1993.
-        """
-        from sage.graphs.distances_all_pairs import wiener_index
-        return wiener_index(self)
-
 
     def average_distance(self):
         r"""
@@ -17063,6 +16958,12 @@ class GenericGraph(GenericGraph_pyx):
             return H, c_new
         else:
             return H
+
+import types
+
+import sage.graphs.distances_all_pairs
+GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all_pairs.distances_distribution, None, GenericGraph)
+GenericGraph.wiener_index = types.MethodType(sage.graphs.distances_all_pairs.wiener_index, None, GenericGraph)
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,

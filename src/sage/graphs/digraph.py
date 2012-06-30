@@ -974,42 +974,6 @@ class DiGraph(GenericGraph):
         """
         return self._backend.is_directed_acyclic(certificate = certificate)
 
-    def is_transitive(self, certificate = False):
-        r"""
-        Tests whether the given digraph is transitive.
-
-        A digraph is transitive if for any pair of vertices `u,v\in G` linked by a
-        `uv`-path the edge `uv` belongs to `G`.
-
-        INPUT:
-
-        - ``certificate`` -- whether to return a certificate for negative answers.
-
-          - If ``certificate = False`` (default), this method returns ``True`` or
-            ``False`` according to the graph.
-
-          - If ``certificate = True``, this method either returns ``True`` answers
-            or yield a pair of vertices `uv` such that there exists a `uv`-path in
-            `G` but `uv\not\in G`.
-
-        EXAMPLE::
-
-            sage: digraphs.Circuit(4).is_transitive()
-            False
-            sage: digraphs.Circuit(4).is_transitive(certificate = True)
-            (0, 2)
-            sage: digraphs.RandomDirectedGNP(30,.2).is_transitive()
-            False
-            sage: digraphs.DeBruijn(5,2).is_transitive()
-            False
-            sage: digraphs.DeBruijn(5,2).is_transitive(certificate = True)
-            ('00', '10')
-            sage: digraphs.RandomDirectedGNP(20,.2).transitive_closure().is_transitive()
-            True
-        """
-        from sage.graphs.comparability import is_transitive
-        return is_transitive(self, certificate = certificate)
-
     def to_directed(self):
         """
         Since the graph is already directed, simply returns a copy of
@@ -3065,5 +3029,7 @@ class DiGraph(GenericGraph):
         except AttributeError:
             return len(self.strongly_connected_components()) == 1
 
+import types
 
-
+import sage.graphs.comparability
+DiGraph.is_transitive = types.MethodType(sage.graphs.comparability.is_transitive, None, DiGraph)

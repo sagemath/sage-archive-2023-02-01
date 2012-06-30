@@ -3978,10 +3978,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if order:
             isoclass = isoclass.reorder(order)
         if use_tuple:
-            from sage.misc.misc import deprecation
-            deprecation("""For elliptic curves E over Q, isogeny_class(use_tuple=False) returns a class
+            from sage.misc.superseded import deprecation
+            deprecation(12768, """For elliptic curves E over Q, isogeny_class(use_tuple=False) returns a class
 that has methods producing the isogeny graph and list of lists of isogenies.
-use_tuple=True (currently default) is deprecated.""", "Sage Version 5.0")
+use_tuple=True (currently default) is deprecated.""")
             # After a year or so (in May 2013) we should switch the default to use_tuple=False as the default and deprecate
             # the keyword argument
             if return_maps:

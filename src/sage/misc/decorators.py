@@ -15,7 +15,7 @@ AUTHORS:
 from functools import partial, update_wrapper, WRAPPER_ASSIGNMENTS, WRAPPER_UPDATES
 from copy import copy
 from sage.misc.sageinspect import sage_getsource, sage_getsourcelines, sage_getargspec
-from sage.misc.misc import verbose, deprecation
+from sage.misc.misc import verbose
 from inspect import ArgSpec
 
 def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATES):
@@ -608,15 +608,15 @@ class options(object):
 
 
 class rename_keyword(object):
-    def __init__(self, deprecated=None, **renames):
+    def __init__(self, deprecated=None, deprecation=None, **renames):
         """
         A decorator which renames keyword arguments and optionally
         deprecates the new keyword.
 
         INPUT:
 
-        - ``deprecated`` - If the option being renamed is deprecated, this
-          is the Sage version where the deprecation initially occurs.
+        - ``deprecation`` -- integer. The trac ticket number where the
+          deprecation was introduced.
 
         - the rest of the arguments is a list of keyword arguments in the
           form ``renamed_option='existing_option'``.  This will have the
@@ -636,10 +636,12 @@ class rename_keyword(object):
 
         To deprecate an old keyword::
 
-            sage: r = rename_keyword(deprecated='Sage version 4.2', color='rgbcolor')
+            sage: r = rename_keyword(deprecation=13109, color='rgbcolor')
         """
+        assert deprecated is None, 'Use @rename_keyword(deprecation=<trac_number>, ...)'
         self.renames = renames
-        self.deprecated=deprecated
+        self.renames = renames
+        self.deprecation = deprecation
 
     def __call__(self, func):
         """
@@ -662,7 +664,7 @@ class rename_keyword(object):
 
         We can also deprecate the renamed keyword::
 
-            sage: r = rename_keyword(deprecated='Sage version 4.2', deprecated_option='new_option')
+            sage: r = rename_keyword(deprecation=13109, deprecated_option='new_option')
             sage: def f(*args, **kwds): print args, kwds
             sage: f = r(f)
             sage: f()
@@ -672,16 +674,18 @@ class rename_keyword(object):
             sage: f(new_option=1)
             () {'new_option': 1}
             sage: f(deprecated_option=1)
-            doctest:...: DeprecationWarning: (Since Sage version 4.2) use the option 'new_option' instead of 'deprecated_option'
+            doctest:...: DeprecationWarning: use the option 'new_option' instead of 'deprecated_option'
+            See http://trac.sagemath.org/13109 for details.
             () {'new_option': 1}
         """
         @sage_wraps(func)
         def wrapper(*args, **kwds):
             for old_name, new_name in self.renames.items():
                 if old_name in kwds and new_name not in kwds:
-                    if self.deprecated is not None:
-                        deprecation("use the option %r instead of %r"%(new_name,old_name),
-                            version=self.deprecated)
+                    if self.deprecation is not None:
+                        from sage.misc.superseded import deprecation
+                        deprecation(self.deprecation,
+                                    "use the option %r instead of %r"%(new_name,old_name))
                     kwds[new_name] = kwds[old_name]
                     del kwds[old_name]
             return func(*args, **kwds)

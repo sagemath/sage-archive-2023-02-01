@@ -1848,8 +1848,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef mzp_t *P, *Q
 
         if algorithm == 'pls':
-            from sage.misc.misc import deprecation
-            deprecation("Parameter 'pls' is deprecated, use 'ple' instead.")
+            from sage.misc.superseded import deprecation
+            deprecation(12840, "Parameter 'pls' is deprecated, use 'ple' instead.")
             P = mzp_init(self._entries.nrows)
             Q = mzp_init(self._entries.ncols)
             r = mzd_ple(A, P, Q, 0)
@@ -2230,8 +2230,8 @@ def ple(Matrix_mod2_dense A, algorithm="standard", int param=0):
         sig_off()
 
     elif algorithm == "mmpf":
-        from sage.misc.misc import deprecation
-        deprecation("Parameter 'mmpf' is deprecated, use 'russian' instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(12840, "Parameter 'mmpf' is deprecated, use 'russian' instead.")
         sig_on()
         _mzd_ple_russian(B._entries, p, q, param)
         sig_off()

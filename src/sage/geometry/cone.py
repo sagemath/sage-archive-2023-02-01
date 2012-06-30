@@ -80,13 +80,14 @@ important ones are, probably, ray accessing methods::
     sage: halfspace.ray(3)
     N(1, 0, 0)
 
-The method :meth:`~ConvexRationalPolyhedralCone.rays` returns
-a :class:`~sage.geometry.point_collection.PointCollection` with the `i`-th
-element being the primitive integral generator of the `i`-th ray. It is possible
-to convert this collection to a matrix with either rows or columns corresponding
-to these generators. You may also change the default
-meth:`~sage.geometry.point_collection.PointCollection.output_format` of all
-point collections such a matrix.
+The method :meth:`~IntegralRayCollection.rays` returns a
+:class:`~sage.geometry.point_collection.PointCollection` with the
+`i`-th element being the primitive integral generator of the `i`-th
+ray. It is possible to convert this collection to a matrix with either
+rows or columns corresponding to these generators. You may also change
+the default
+:meth:`~sage.geometry.point_collection.PointCollection.output_format`
+of all point collections such a matrix.
 
 If you want to do something with each ray of a cone, you can write ::
 
@@ -1046,7 +1047,8 @@ class IntegralRayCollection(SageObject,
 
         OUTPUT:
 
-        - a :class:`PointCollection` of primitive integral ray generators.
+        - a :class:`~sage.geometry.point_collection.PointCollection`
+          of primitive integral ray generators.
 
         EXAMPLES::
 
@@ -1137,6 +1139,85 @@ class IntegralRayCollection(SageObject,
         deprecation(12544, "ray_basis_matrix(...) is deprecated, "
                     "please use rays().basis().column_matrix() instead!")
         return self.rays().basis().column_matrix()
+
+    def virtual_rays(self, *args):
+        r"""
+        Return (some of the) virtual rays of ``self``.
+
+        If the span of the defining rays is strictly
+        smaller-dimensional than the ambient vector space, then the
+        virtual rays are a choice of additional primitive lattice rays
+        to get a complete set of generators. That is, the rays of a
+        maximal cone of the fan together with the virtual rays span
+        the vector space `N_\QQ`. Note that they are not necessarizy a
+        `\ZZ`-basis for `N`.
+
+        If the fan is of dimension `d` and `N_\QQ = \QQ^D` with `d<D`,
+        then the toric variety is of the form `X \times
+        (\CC^\times)^{D-d}`. The virtual rays amount to a choice of
+        splitting the torus factor into individual `\CC^\times`
+        factors.
+
+        INPUT:
+
+        - ``ray_list`` -- a list of integers, the indices of the
+          requested virtual rays. If not specified, a complete choice
+          of virtual rays of ``self`` will be returned. See
+          :meth:`rays`.
+
+        OUTPUT:
+
+        A arbitrary but fixed choice of virtual rays as a
+        :class:`~sage.geometry.point_collection.PointCollection` of
+        primitive integral ray generators. Usually (if the fan is
+        full-dimensional) this will be empty.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0,1,0), (0,1,1,0)])
+            sage: c.virtual_rays()
+            N(0, 0, 0, 1),
+            N(0, 0, 1, 0)
+            in 4-d lattice N
+
+            sage: c.rays()
+            N(1, 0, 1, 0),
+            N(0, 1, 1, 0)
+            in 4-d lattice N
+
+            sage: c.virtual_rays((0,))
+            N(0, 0, 0, 1)
+            in 4-d lattice N
+
+        You can also give virtual array indices directly, without
+        packing them into a list::
+
+            sage: c.virtual_rays(0)
+            N(0, 0, 0, 1)
+            in 4-d lattice N
+
+        TESTS::
+
+            sage: N = ToricLattice(4)
+            sage: for i in range(10):
+            ...           c = Cone([N.random_element() for j in range(i/2)], lattice=N)
+            ...           rays = list(c.rays())
+            ...           virtual = list(c.virtual_rays())
+            ...           assert matrix(rays+virtual).rank() == 4
+            ...           assert c.dim() + len(virtual) == 4
+        """
+        try:
+            virtual = self._virtual_rays
+        except AttributeError:
+            N = self.lattice()
+            quotient = N.quotient(self.rays().matrix().saturation().rows())
+            virtual = [ gen.lift() for gen in quotient.gens() ]
+            virtual = PointCollection(virtual, N)
+            self._virtual_rays = virtual
+        if args:
+            return virtual(*args)
+        else:
+            return virtual
 
 
 # Derived classes MUST allow construction of their objects using ``ambient``
@@ -2347,7 +2428,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        - a :class:`PointCollection`.
+        - a :class:`~sage.geometry.point_collection.PointCollection`.
 
         If the ambient :meth:`~IntegralRayCollection.lattice` of ``self`` is a
         :class:`toric lattice
@@ -3557,10 +3638,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        - a :class:`PointCollection` of lattice points generating the semigroup
-          of lattice points contained in ``self``.
+        - a :class:`~sage.geometry.point_collection.PointCollection`
+          of lattice points generating the semigroup of lattice points
+          contained in ``self``.
 
-        .. note:: No attempt is made to return a minimal set of generators, see
+        .. note::
+
+            No attempt is made to return a minimal set of generators, see
             :meth:`Hilbert_basis` for that.
 
         EXAMPLES:
@@ -3708,8 +3792,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        - a :class:`PointCollection`. The rays of ``self`` are the first
-          ``self.nrays()`` entries.
+        - a
+          :class:`~sage.geometry.point_collection.PointCollection`. The
+          rays of ``self`` are the first ``self.nrays()`` entries.
 
         EXAMPLES:
 
@@ -3833,9 +3918,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         INPUT:
 
-        - ``point`` -- a :meth:`lattice` point in the cone, or
-          something that can be converted to a point. For example, a
-          list or tuple of integers.
+        - ``point`` -- a :meth:`~IntegralRayCollection.lattice` point
+          in the cone, or something that can be converted to a
+          point. For example, a list or tuple of integers.
 
         OUTPUT:
 

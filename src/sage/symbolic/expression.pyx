@@ -8670,10 +8670,8 @@ cdef class Expression(CommutativeRingElement):
         return find_local_minimum(self._fast_float_(var),
                                         a=a, b=b, tol=tol, maxfun=maxfun )
 
-    find_maximum_on_interval = deprecated_function_alias(
-                                    find_local_maximum, "Sage 5.1")
-    find_minimum_on_interval = deprecated_function_alias(
-                                    find_local_minimum, "Sage 5.1")
+    find_maximum_on_interval = deprecated_function_alias(2607, find_local_maximum)
+    find_minimum_on_interval = deprecated_function_alias(2607, find_local_minimum)
 
     ###################
     # Fast Evaluation #

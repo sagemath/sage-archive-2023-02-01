@@ -12,7 +12,7 @@ Functions and Methods
 """
 
 
-from sage.misc.misc import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
@@ -225,10 +225,8 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
     return fval, xmin
 
 
-find_maximum_on_interval = deprecated_function_alias(
-                                    find_local_maximum, "Sage 5.1")
-find_minimum_on_interval = deprecated_function_alias(
-                                    find_local_minimum, "Sage 5.1")
+find_maximum_on_interval = deprecated_function_alias(2607, find_local_maximum)
+find_minimum_on_interval = deprecated_function_alias(2607, find_local_minimum)
 
 
 def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):

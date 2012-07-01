@@ -14,7 +14,7 @@ from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matr
 from sage.rings.all import QQ, RR, ZZ, gcd, lcm
 from sage.combinat.permutation import Permutation
 from sage.combinat.cartesian_product import CartesianProduct
-from sage.misc.all import prod
+from sage.misc.all import prod, uniq
 import copy
 
 ##############################################################################
@@ -346,8 +346,9 @@ def rectangular_box_points(box_min, box_max, polyhedron=None):
     - ``box_max`` -- A list of integers. The maximal value for each
       coordinate of the rectangular bounding box.
 
-    - ``polyhedron`` -- A :class:`~sage.geometry.polyhedra.Polyhedron`
-      or ``None`` (default).
+    - ``polyhedron`` -- A
+      :class:`~sage.geometry.polyhedron.base.Polyhedron_base`, a PPL
+      :class:`~sage.libs.ppl.C_Polyhedron`, or ``None`` (default).
 
     OUTPUT:
 
@@ -443,6 +444,20 @@ def rectangular_box_points(box_min, box_max, polyhedron=None):
          (0, 100000000000000000000000000000000000000000000000001))
         sage: len( rectangular_box_points([0,-100+10^50], [1,100+10^50], halfplane) )
         201
+
+    Using a PPL polyhedron::
+
+        sage: from sage.libs.ppl import Variable, Generator_System, C_Polyhedron, point
+        sage: gs = Generator_System()
+        sage: x = Variable(0); y = Variable(1); z = Variable(2)
+        sage: gs.insert(point(0*x + 1*y + 0*z))
+        sage: gs.insert(point(0*x + 1*y + 3*z))
+        sage: gs.insert(point(3*x + 1*y + 0*z))
+        sage: gs.insert(point(3*x + 1*y + 3*z))
+        sage: poly = C_Polyhedron(gs)
+        sage: rectangular_box_points([0]*3, [3]*3, poly)
+        ((0, 1, 0), (0, 1, 1), (0, 1, 2), (0, 1, 3), (1, 1, 0), (1, 1, 1), (1, 1, 2), (1, 1, 3),
+         (2, 1, 0), (2, 1, 1), (2, 1, 2), (2, 1, 3), (3, 1, 0), (3, 1, 1), (3, 1, 2), (3, 1, 3))
     """
     assert len(box_min)==len(box_max)
     cdef int d = len(box_min)
@@ -551,8 +566,10 @@ cdef class Inequality_generic:
     cdef object b
     cdef object coeff
     cdef object cache
+    # The index of the inequality in the polyhedron H-representation
+    cdef int index
 
-    def __cinit__(self, A, b):
+    def __cinit__(self, A, b, index=-1):
         """
         The Cython constructor
 
@@ -570,6 +587,7 @@ cdef class Inequality_generic:
         self.b = b
         self.coeff = 0
         self.cache = 0
+        self.index = int(index)
 
     def __repr__(self):
         """
@@ -614,8 +632,23 @@ cdef class Inequality_generic:
     cdef bint is_not_satisfied(self, inner_loop_variable):
         r"""
         Test the inequality, using the cached value from :meth:`prepare_inner_loop`
+
+        OUTPUT:
+
+        Boolean. Whether the inequality is not satisfied.
         """
         return inner_loop_variable*self.coeff + self.cache < 0
+
+    cdef bint is_equality(Inequality_generic self, int inner_loop_variable):
+        r"""
+        Test the inequality, using the cached value from :meth:`prepare_inner_loop`
+
+        OUTPUT:
+
+        Boolean. Given the inequality `Ax+b\geq 0`, this method
+        returns whether the equality `Ax+b=0` is satisfied.
+        """
+        return inner_loop_variable*self.coeff + self.cache == 0
 
 
 
@@ -677,12 +710,14 @@ cdef class Inequality_int:
     # the next-to-innermost coefficient
     cdef int coeff_next
     cdef int cache_next
+    # The index of the inequality in the polyhedron H-representation
+    cdef int index
 
     cdef int _to_int(self, x) except? -999:
         if not x in ZZ: raise ValueError('Not integral.')
         return int(x)  # raises OverflowError in Cython if necessary
 
-    def __cinit__(self, A, b, max_abs_coordinates):
+    def __cinit__(self, A, b, max_abs_coordinates, index=-1):
         """
         The Cython constructor
 
@@ -696,6 +731,7 @@ cdef class Inequality_int:
         """
         cdef int i
         self.dim = self._to_int(len(A))
+        self.index = int(index)
         if self.dim<1 or self.dim>INEQ_INT_MAX_DIM:
             raise OverflowError('Dimension limit exceeded.')
         for i in range(0,self.dim):
@@ -751,6 +787,9 @@ cdef class Inequality_int:
 
     cdef bint is_not_satisfied(Inequality_int self, int inner_loop_variable):
         return inner_loop_variable*self.coeff + self.cache < 0
+
+    cdef bint is_equality(Inequality_int self, int inner_loop_variable):
+        return inner_loop_variable*self.coeff + self.cache == 0
 
 
 
@@ -880,31 +919,102 @@ cdef class InequalityCollection:
         self.ineqs_generic = []
         if polyhedron is None:
             return
+
+        try:
+            # polyhedron is a PPL C_Polyhedron class?
+            self._cinit_from_PPL(max_abs_coordinates, permutation, polyhedron)
+        except AttributeError:
+            try:
+                # polyhedron is a Polyhedron class?
+                self._cinit_from_Polyhedron(max_abs_coordinates, permutation, polyhedron)
+            except AttributeError:
+                raise TypeError('Cannot extract Hrepresentation data from polyhedron.')
+
+    cdef _cinit_from_PPL(self, max_abs_coordinates, permutation, polyhedron):
+        """
+        Initialize the inequalities from a PPL C_Polyhedron
+
+        See __cinit__ for a description of the arguments.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Generator_System, C_Polyhedron, point
+            sage: gs = Generator_System()
+            sage: x = Variable(0); y = Variable(1); z = Variable(2)
+            sage: gs.insert(point(0*x + 0*y + 1*z))
+            sage: gs.insert(point(0*x + 3*y + 1*z))
+            sage: gs.insert(point(3*x + 0*y + 1*z))
+            sage: gs.insert(point(3*x + 3*y + 1*z))
+            sage: poly = C_Polyhedron(gs)
+            sage: from sage.geometry.integral_points import InequalityCollection
+            sage: InequalityCollection(poly, Permutation([1,3,2]), [0]*3, [3]*3 )
+            The collection of inequalities
+            integer: (0, 1, 0) x + -1 >= 0
+            integer: (0, -1, 0) x + 1 >= 0
+            integer: (1, 0, 0) x + 0 >= 0
+            integer: (0, 0, 1) x + 0 >= 0
+            integer: (-1, 0, 0) x + 3 >= 0
+            integer: (0, 0, -1) x + 3 >= 0
+        """
+        for index,c in enumerate(polyhedron.minimized_constraints()):
+            A = permutation.action(c.coefficients())
+            b = c.inhomogeneous_term()
+            try:
+                H = Inequality_int(A, b, max_abs_coordinates, index)
+                self.ineqs_int.append(H)
+            except (OverflowError, ValueError):
+                H = Inequality_generic(A, b, index)
+                self.ineqs_generic.append(H)
+            if c.is_equality():
+                A = [ -a for a in A ]
+                b = -b
+                try:
+                    H = Inequality_int(A, b, max_abs_coordinates, index)
+                    self.ineqs_int.append(H)
+                except (OverflowError, ValueError):
+                    H = Inequality_generic(A, b, index)
+                    self.ineqs_generic.append(H)
+
+    cdef _cinit_from_Polyhedron(self, max_abs_coordinates, permutation, polyhedron):
+        """
+        Initialize the inequalities from a Sage Polyhedron
+
+        See __cinit__ for a description of the arguments.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.integral_points import InequalityCollection
+            sage: line = Polyhedron(eqns=[(2,3,7)])
+            sage: InequalityCollection(line, Permutation([1,2]), [0]*2, [1]*2 )
+            The collection of inequalities
+            integer: (3, 7) x + 2 >= 0
+            integer: (-3, -7) x + -2 >= 0
+        """
         for Hrep_obj in polyhedron.inequality_generator():
             A, b = self._make_A_b(Hrep_obj, permutation)
             try:
-                H = Inequality_int(A, b, max_abs_coordinates)
+                H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
             except (OverflowError, ValueError):
-                H = Inequality_generic(A, b)
+                H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
         for Hrep_obj in polyhedron.equation_generator():
             A, b = self._make_A_b(Hrep_obj, permutation)
             # add inequality
             try:
-                H = Inequality_int(A, b, max_abs_coordinates)
+                H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
             except (OverflowError, ValueError):
-                H = Inequality_generic(A, b)
+                H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
             # add sign-reversed inequality
             A = [ -a for a in A ]
             b = -b
             try:
-                H = Inequality_int(A, b, max_abs_coordinates)
+                H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
             except (OverflowError, ValueError):
-                H = Inequality_generic(A, b)
+                H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
 
     def prepare_next_to_inner_loop(self, p):
@@ -1054,6 +1164,48 @@ cdef class InequalityCollection:
                 return False
         return True
 
+    def satisfied_as_equalities(self, inner_loop_variable):
+        """
+        Return the inequalities (by their index) that are satisfied as
+        equalities.
+
+        INPUT:
+
+        - ``inner_loop_variable`` -- Integer. the 0-th coordinate of
+          the lattice point.
+
+        OUTPUT:
+
+        A tuple of integers in ascending order. Each integer is the
+        index of a H-representation object of the
+        polyhedron. Equalities are treated as a pair of opposite
+        inequalities.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.integral_points import InequalityCollection
+            sage: quadrant = Polyhedron(rays=[(1,0), (0,1)])
+            sage: ieqs = InequalityCollection(quadrant, Permutation([1,2]), [-1]*2, [1]*2 )
+            sage: ieqs.prepare_next_to_inner_loop([-1,0])
+            sage: ieqs.prepare_inner_loop([-1,0])
+            sage: ieqs.satisfied_as_equalities(-1)
+            (1,)
+            sage: ieqs.satisfied_as_equalities(0)
+            (0, 1)
+            sage: ieqs.satisfied_as_equalities(1)
+            (1,)
+        """
+        cdef int i
+        result = []
+        for i in range(0,len(self.ineqs_int)):
+            ineq = self.ineqs_int[i]
+            if (<Inequality_int>ineq).is_equality(inner_loop_variable):
+                result.append( (<Inequality_int>ineq).index )
+        for i in range(0,len(self.ineqs_generic)):
+            ineq = self.ineqs_generic[i]
+            if (<Inequality_generic>ineq).is_equality(inner_loop_variable):
+                result.append( (<Inequality_generic>ineq).index )
+        return tuple(uniq(result))
 
 
 

@@ -1573,8 +1573,9 @@ class Graph(GenericGraph):
             edges = self.edges(labels=False)
             for i in range(len(edges)): # replace edge labels with natural numbers (by index in vertices)
                 edges[i] = (vertices.index(edges[i][0]),vertices.index(edges[i][1]))
-            # order edges
-            edges.sort(compare_edges)
+            # order edges 'reverse lexicographically', that is, for
+            # edge (a,b) and edge (c,d) first compare b and d, then a and c;
+            edges.sort(key=lambda e: (e[1],e[0]))
 
             # encode bit vector
             from math import ceil
@@ -5153,22 +5154,22 @@ Graph.is_weakly_chordal = types.MethodType(sage.graphs.weakly_chordal.is_weakly_
 
 def compare_edges(x, y):
     """
+    This function has been deprecated.
+
     Compare edge x to edge y, return -1 if x y, 1 if x y, else 0.
 
-    EXAMPLES::
+    TEST::
 
         sage: G = graphs.PetersenGraph()
         sage: E = G.edges()
         sage: from sage.graphs.graph import compare_edges
         sage: compare_edges(E[0], E[2])
+        doctest:...: DeprecationWarning: compare_edges(x,y) is deprecated.  Use statement 'cmp(x[1],y[1]) or cmp(x[0],y[0])' instead.
+        See http://trac.sagemath.org/13192 for details.
         -1
-        sage: compare_edges(E[0], E[1])
-        -1
-        sage: compare_edges(E[0], E[0])
-        0
-        sage: compare_edges(E[1], E[0])
-        1
     """
+    from sage.misc.superseded import deprecation
+    deprecation(13192, "compare_edges(x,y) is deprecated.  Use statement 'cmp(x[1],y[1]) or cmp(x[0],y[0])' instead.")
     if x[1] < y[1]:
         return -1
     elif x[1] > y[1]:

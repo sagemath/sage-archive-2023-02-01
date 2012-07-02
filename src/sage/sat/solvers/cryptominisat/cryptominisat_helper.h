@@ -20,3 +20,14 @@ uint32_t ** get_sorted_learnts_helper(CMSat::Solver* solver, uint32_t *num) {
   return ret;
 }
 
+
+uint32_t * get_unitary_learnts_helper(CMSat::Solver* solver, uint32_t *num) {
+  const CMSat::vec<CMSat::Lit> learnt = solver->get_unitary_learnts();
+  *num = learnt.size();
+  uint32_t *ret = (uint32_t*)sage_malloc(sizeof(uint32_t) * learnt.size());
+  for(size_t i=0; i<learnt.size(); i++) {
+    ret[i] = learnt[i].toInt();
+  }
+  return ret;
+}
+

@@ -1891,12 +1891,12 @@ if is_package_installed('cryptominisat'):
     ext_modules.extend([
         Extension("sage.sat.solvers.cryptominisat.cryptominisat",
                   ["sage/sat/solvers/cryptominisat/cryptominisat.pyx"],
-                  include_dirs = [SAGE_INC, SAGE_INC+"/cryptominisat/mtl", SAGE_INC+"/cryptominisat/Solver"],
+                  include_dirs = [SAGE_INC, SAGE_INC+"/cmsat"],
                   language = "c++",
                   libraries = ['cryptominisat', 'z']),
         Extension("sage.sat.solvers.cryptominisat.solverconf",
                   ["sage/sat/solvers/cryptominisat/solverconf.pyx", "sage/sat/solvers/cryptominisat/solverconf_helper.cpp"],
-                  include_dirs = [SAGE_INC, SAGE_INC+"/cryptominisat/mtl", SAGE_INC+"/cryptominisat/Solver"],
+                  include_dirs = [SAGE_INC, SAGE_INC+"/cmsat"],
                   language = "c++",
                   libraries = ['cryptominisat', 'z'])
         ])

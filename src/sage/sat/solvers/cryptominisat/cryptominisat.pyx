@@ -32,13 +32,17 @@ include "../../../ext/interrupt.pxi"
 
 from libc.stdint cimport uint32_t
 from decl cimport lbool, Var, Lit, Clause, l_Undef, l_False
-from decl cimport vec, vector
+from decl cimport vec
 from decl cimport GaussConf
 from solverconf cimport SolverConf
 
 from sage.misc.misc import get_verbose
 
 cdef extern from "cryptominisat_helper.h":
+     # Cython doesn't handle cdef vec[Lit] foo = solver.get_unitary_learnts() propertly. It will
+     # declare foo first and then assign the answer of get_unitary_learnts() to foo. This requires
+     # that operator= is available which isn't necessarily the case.
+     cdef uint32_t*  get_unitary_learnts_helper(Solver* solver, uint32_t* num)
      cdef uint32_t** get_sorted_learnts_helper(Solver* solver, uint32_t* num)
 
 cdef int delete_cryptominisat(Solver *solver) except -1:
@@ -413,16 +417,17 @@ cdef class CryptoMiniSat(SatSolver):
 
             Find a more useful example for unitary learnt clauses.
         """
-        cdef vector[Lit] learnt1 = self._solver.get_unitary_learnts()
+        cdef uint32_t num = 0
+        cdef uint32_t *learnt1 = get_unitary_learnts_helper(self._solver,&num)
 
         r = []
-        for i in range(learnt1.size()):
-            r.append( (-1)**learnt1[i].sign() * (learnt1[i].var()+1) )
+        for i in range(num):
+            r.append( (-1)**int(learnt1[i]&1) * (int(learnt1[i]>>1)+1) )
+        sage_free(learnt1)
 
         if unitary_only:
              return tuple(r)
 
-        cdef uint32_t num = 0
         cdef uint32_t **learnt = get_sorted_learnts_helper(self._solver,&num)
         cdef uint32_t *clause = NULL
 

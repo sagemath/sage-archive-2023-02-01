@@ -1,16 +1,5 @@
 from libc.stdint cimport uint32_t, uint64_t
 
-# QUESTIONS:
-# - Why does get_unitary_learnts return vector instead of vec?
-
-cdef extern from "<vector>" namespace "std":
-    cdef cppclass vector[T]:
-        vector()
-        Py_ssize_t size()
-        void push_back(T&)
-        T& operator[](int)
-        T& at(int)
-
 cdef extern from "Solver.h" namespace "CMSat":
     cdef cppclass lbool:
         bint getBool()
@@ -196,5 +185,5 @@ cdef extern from "Solver.h" namespace "CMSat":
         void needStats()            # Prepares the solver to output statistics
         void needProofGraph()       # Prepares the solver to output proof graphs during solving
 
-        vector[Lit] get_unitary_learnts() # return the set of unitary learnt clauses
+        vec[Lit] get_unitary_learnts() # return the set of unitary learnt clauses
 

@@ -14,7 +14,7 @@
  *                  http://www.gnu.org/licenses/
  ****************************************************************************/
 
-#include <cryptominisat/Solver/SolverConf.h>
+#include <cmsat/SolverConf.h>
 
 enum sc_type {
   t_int      = 1<<0,

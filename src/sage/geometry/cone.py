@@ -1220,6 +1220,103 @@ class IntegralRayCollection(SageObject,
             return virtual
 
 
+def classify_cone_2d(ray0, ray1, check=True):
+    """
+    Return `(d,k)` classifying the lattice cone spanned by the two rays.
+
+    INPUT:
+
+    - ``ray0``, ``ray1`` -- two primitive integer vectors. The
+      generators of the two rays generating the two-dimensional cone.
+
+    - ``check`` -- boolean (default: ``True``). Whether to check the
+      input rays for consistency.
+
+    OUTPUT:
+
+    A pair `(d,k)` of integers classifying the cone up to `GL(\ZZ)`
+    equivalence. See Proposition 10.1.1 of [CLS]_ for the
+    definition. We return the unique `(d,k)` with minmial `k`, see
+    Proposition 10.1.3 of [CLS]_.
+
+    EXAMPLES::
+
+        sage: ray0 = vector([1,0])
+        sage: ray1 = vector([2,3])
+        sage: from sage.geometry.cone import classify_cone_2d
+        sage: classify_cone_2d(ray0, ray1)
+        (3, 2)
+
+        sage: ray0 = vector([2,4,5])
+        sage: ray1 = vector([5,19,11])
+        sage: classify_cone_2d(ray0, ray1)
+        (3, 1)
+
+        sage: m = matrix(ZZ, [(19, -14, -115), (-2, 5, 25), (43, -42, -298)])
+        sage: m.det()   # check that it is in GL(3,ZZ)
+        -1
+        sage: classify_cone_2d(m*ray0, m*ray1)
+        (3, 1)
+
+    TESTS:
+
+    Check using the connection between the Hilbert basis of the cone
+    spanned by the two rays (in arbitrary dimension) and the
+    Hirzebruch-Jung continued fraction expansion, see Chapter 10 of
+    [CLS]_ ::
+
+        sage: from sage.geometry.cone import normalize_rays
+        sage: for i in range(10):
+        ...       ray0 = random_vector(ZZ, 3)
+        ...       ray1 = random_vector(ZZ, 3)
+        ...       if ray0.is_zero() or ray1.is_zero(): continue
+        ...       ray0, ray1 = normalize_rays([ray0, ray1], ZZ^3)
+        ...       d, k = classify_cone_2d(ray0, ray1, check=True)
+        ...       assert (d,k) == classify_cone_2d(ray1, ray0)
+        ...       if d == 0: continue
+        ...       frac = Hirzebruch_Jung_continued_fraction_list(k/d)
+        ...       if len(frac)>100: continue   # avoid expensive computation
+        ...       hilb = Cone([ray0, ray1]).Hilbert_basis()
+        ...       assert len(hilb) == len(frac) + 1
+    """
+    if check:
+        assert ray0.parent() is ray1.parent()
+        from sage.structure.element import is_Vector
+        assert ray0.base_ring() is ZZ
+        assert gcd(ray0) == 1
+        assert gcd(ray1) == 1
+        assert not ray0.is_zero() and not ray1.is_zero()
+
+    m = matrix([ray0, ray1])              # dim(ray) x 2 matrix
+    basis = m.saturation().solve_left(m)  # 2-d basis for the span of the cone
+    basis = basis.change_ring(ZZ).transpose()
+    if basis.nrows() < 2:
+        d = 0
+        k = basis[0,1]
+    else:
+        basis.echelonize()                    # columns are the "cone normal form"
+        d = basis[1,1]
+        k = basis[0,1]
+
+    if check:
+        if d == 0:  # degenerate cone
+            assert basis[0,0] == 1
+            assert k == -1 or k == +1
+        else:       # non-degenerate cone
+            assert basis[0,0] == 1 and basis[1,0] == 0
+            assert d > 0
+            assert 0 <= k < d
+            assert gcd(d,k) == 1
+
+    # compute unique k, see Proposition 10.1.3 of [CLS]
+    if d > 0:
+        for ktilde in range(k):
+            if (k*ktilde) % d == 1:
+                k = ktilde
+                break
+    return (d,k)
+
+
 # Derived classes MUST allow construction of their objects using ``ambient``
 # and ``ambient_ray_indices`` keyword parameters. See ``intersection`` method
 # for an example why this is needed.

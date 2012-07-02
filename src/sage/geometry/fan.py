@@ -2252,6 +2252,51 @@ class RationalPolyhedralFan(IntegralRayCollection,
         """
         return self._generating_cones
 
+    @cached_method
+    def vertex_graph(self):
+        """
+        Return the graph of rays and 2-cones.
+
+        OUTPUT:
+
+        A edge-colored graph. The vertices correspond to the rays of
+        the fan. Two vertices are joined by an edge iff the rays span
+        a 2-cone of the fan. The edges are coloured by a pair of
+        integers that classifies the 2-cone up to `GL(2,\ZZ)`
+        transformation, see
+        :func:`~sage.geometry.cone.classify_cone_2d`.
+
+        EXAMPLES::
+
+            sage: dP8 = toric_varieties.dP8()
+            sage: g = dP8.fan().vertex_graph()
+            sage: g
+            Graph on 4 vertices
+            sage: set(dP8.fan(1)) == set(g.vertices())
+            True
+            sage: g.edge_labels()  # all edge labels the same since every cone is smooth
+            [(1, 0), (1, 0), (1, 0), (1, 0)]
+
+            sage: g = toric_varieties.Cube_deformation(10).fan().vertex_graph()
+            sage: g.automorphism_group().order()
+            48
+            sage: g.automorphism_group(edge_labels=True).order()
+            4
+        """
+        from sage.geometry.cone import classify_cone_2d
+        graph = {}
+        cones_1d = list(self(1))
+        while len(cones_1d) > 0:
+            c0 = cones_1d.pop()
+            c0_edges = {}
+            for c1 in c0.adjacent():
+                if c1 not in cones_1d: continue
+                label = classify_cone_2d(c0.ray(0), c1.ray(0), check=False)
+                c0_edges[c1] = label
+            graph[c0] = c0_edges
+        from sage.graphs.graph import Graph
+        return Graph(graph)
+
     def is_complete(self):
         r"""
         Check if ``self`` is complete.
@@ -2353,15 +2398,6 @@ class RationalPolyhedralFan(IntegralRayCollection,
         r"""
         Check if ``self`` is in the same `GL(n, \ZZ)`-orbit as ``other``.
 
-        INPUT:
-
-        - ``other`` - fan.
-
-        OUTPUT:
-
-        - ``True`` if ``self`` and ``other`` are in the same
-          `GL(n, \ZZ)`-orbit, ``False`` otherwise.
-
         There are three different equivalences between fans `F_1` and `F_2`
         in the same lattice:
 
@@ -2375,7 +2411,36 @@ class RationalPolyhedralFan(IntegralRayCollection,
            correspond to isomorphic toric varieties).
            This is tested by ``F1.is_isomorphic(F2)``.
 
+        INPUT:
+
+        - ``other`` -- fan.
+
+        OUTPUT:
+
+        By default, ``True`` if ``self`` and ``other`` are in the same
+        `GL(n, \ZZ)`-orbit, ``False`` otherwise.
+
+        .. SEEALSO::
+
+            If you want to obtain the actual fan isomorphism, use
+            :meth:`isomorphism`.
+
         EXAMPLES:
+
+        Here we pick a `SL(2,\ZZ)` matrix ``m`` and then verify that
+        the image fan is isomorphic::
+
+            sage: rays = ((1, 1), (0, 1), (-1, -1), (1, 0))
+            sage: cones = [(0,1), (1,2), (2,3), (3,0)]
+            sage: fan1 = Fan(cones, rays)
+            sage: m = matrix([[-2,3],[1,-1]])
+            sage: fan2 = Fan(cones, [vector(r)*m for r in rays])
+            sage: fan1.is_isomorphic(fan2)
+            True
+            sage: fan1.is_equivalent(fan2)
+            False
+            sage: fan1 == fan2
+            False
 
         These fans are "mirrors" of each other::
 
@@ -2390,13 +2455,110 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan1.is_equivalent(fan2)
             False
             sage: fan1.is_isomorphic(fan2)
+            True
+            sage: fan1.is_isomorphic(fan1)
+            True
+        """
+        from sage.geometry.fan_isomorphism import \
+            fan_isomorphic_necessary_conditions, fan_isomorphism_generator
+        if not fan_isomorphic_necessary_conditions(self, other):
+            return False
+        if self.lattice_dim() == 2:
+            if self._2d_echelon_forms.get_cache() is None:
+                return self._2d_echelon_form() in other._2d_echelon_forms()
+            else:
+                return other._2d_echelon_form() in self._2d_echelon_forms()
+        generator = fan_isomorphism_generator(self, other)
+        try:
+            generator.next()
+            return True
+        except StopIteration:
+            return False
+
+    @cached_method
+    def _2d_echelon_forms(self):
+        """
+        Return all echelon forms of the cyclically ordered rays of a 2-d fan.
+
+        OUTPUT:
+
+        A set of integer matrices.
+
+        EXAMPLES::
+
+            sage: fan = toric_varieties.dP8().fan()
+            sage: fan._2d_echelon_forms()
+            frozenset([[ 1  0 -1  1]
+                       [ 0  1  0 -1], [ 1  0 -1 -1]
+                                      [ 0  1  0 -1], [ 1  0 -1  0]
+                                                     [ 0  1  1 -1], [ 1  0 -1  0]
+                                                                    [ 0  1 -1 -1]])
+        """
+        from sage.geometry.fan_isomorphism import fan_2d_echelon_forms
+        return fan_2d_echelon_forms(self)
+
+    @cached_method
+    def _2d_echelon_form(self):
+        """
+        Return the echelon form of one particular cyclical order of rays of a 2-d fan.
+
+        OUTPUT:
+
+        An integer matrix whose columns are the rays in the echelon form.
+
+        EXAMPLES::
+
+            sage: fan = toric_varieties.dP8().fan()
+            sage: fan._2d_echelon_form()
+            [ 1  0 -1 -1]
+            [ 0  1  0 -1]
+        """
+        from sage.geometry.fan_isomorphism import fan_2d_echelon_form
+        return fan_2d_echelon_form(self)
+
+    def isomorphism(self, other):
+        r"""
+        Return a fan isomorphism from ``self`` to ``other``.
+
+        INPUT:
+
+        - ``other`` -- fan.
+
+        OUTPUT:
+
+        A fan isomorphism. If no such isomorphism exists, a
+        :class:`~sage.geometry.fan_isomorphism.FanNotIsomorphicError`
+        is raised.
+
+        EXAMPLES::
+
+            sage: rays = ((1, 1), (0, 1), (-1, -1), (1, 0))
+            sage: cones = [(0,1), (1,2), (2,3), (3,0)]
+            sage: fan1 = Fan(cones, rays)
+            sage: m = matrix([[-2,3],[1,-1]])
+            sage: fan2 = Fan(cones, [vector(r)*m for r in rays])
+
+            sage: fan1.isomorphism(fan2)
+            Fan morphism defined by the matrix
+            [-2  3]
+            [ 1 -1]
+            Domain fan: Rational polyhedral fan in 2-d lattice N
+            Codomain fan: Rational polyhedral fan in 2-d lattice N
+
+            sage: fan2.isomorphism(fan1)
+            Fan morphism defined by the matrix
+            [1 3]
+            [1 2]
+            Domain fan: Rational polyhedral fan in 2-d lattice N
+            Codomain fan: Rational polyhedral fan in 2-d lattice N
+
+            sage: fan1.isomorphism(toric_varieties.P2().fan())
             Traceback (most recent call last):
             ...
-            NotImplementedError: fan isomorphism is not implemented yet!
+            FanNotIsomorphicError
         """
-        if self.lattice() != other.lattice():
-            return False
-        raise NotImplementedError("fan isomorphism is not implemented yet!")
+        from sage.geometry.fan_isomorphism import find_isomorphism
+        return find_isomorphism(self, other, check=False)
 
     def is_simplicial(self):
         r"""

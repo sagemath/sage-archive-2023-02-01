@@ -14,8 +14,8 @@
 # zero or omitted, set N to the value of the environment variable
 # SAGE_NUM_THREADS_PARALLEL, which is set in sage-env.
 
-from __future__ import with_statement
 import os
+import shutil
 import sys
 import time
 import pickle

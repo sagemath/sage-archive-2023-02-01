@@ -10772,7 +10772,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The clustering coefficient of a graph is the fraction of possible
         triangles that are triangles, `c_i = triangles_i /
-        (k_i\*(k_i-1)/2)` where `k_i` is the degree of vertex `i`, [1]. A
+        (k_i\*(k_i-1)/2)` where `k_i` is the degree of vertex `i`, [HSSNX]_. A
         coefficient for the whole graph is the average of the `c_i`.
         Transitivity is the fraction of all possible triangles which are
         triangles, T = 3\*triangles/triads, [HSSNX]_.
@@ -10806,14 +10806,14 @@ class GenericGraph(GenericGraph_pyx):
 
         The clustering coefficient of a graph is the fraction of possible
         triangles that are triangles, `c_i = triangles_i /
-        (k_i\*(k_i-1)/2)` where `k_i` is the degree of vertex `i`, [1]. A
+        (k_i\*(k_i-1)/2)` where `k_i` is the degree of vertex `i`, [NTX]_. A
         coefficient for the whole graph is the average of the `c_i`.
         Transitivity is the fraction of all possible triangles which are
-        triangles, T = 3\*triangles/triads, [1].
+        triangles, T = 3\*triangles/triads, [NTX]_.
 
         REFERENCE:
 
-        - [1] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
+        .. [NTX] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
           documentation. [Online] Available:
           https://networkx.lanl.gov/reference/networkx/
 
@@ -10827,17 +10827,17 @@ class GenericGraph(GenericGraph_pyx):
 
     def clustering_coeff(self, nodes=None, weight=False, return_vertex_weights=True):
         r"""
-        Returns the clustering coefficient for each vertex in `nodes` as
+        Returns the clustering coefficient for each vertex in ``nodes`` as
         a dictionary keyed by vertex.
 
         For an unweighted graph, the clustering coefficient of a node
         `i` is the fraction of possible triangles containing `i` that
-        exist. `c_i = 2\*T(i) / (k_i\*(k_i-1))` where T(i)` the number
+        exist. `\frac{2 T(i)}{k_i (k_i-1)}` where `T(i)` the number
         of triangles through `i` and `k_i` is the degree of vertex `i`
-        [1].
+        [NX]_.
 
         For weighted graphs the clustering is defined as the geometric
-        average of the subgraph edge weights [1], normalized by the
+        average of the subgraph edge weights [NX]_, normalized by the
         maximum weight in the network.
 
         The value of `c_i` is assigned to 0 if `k_i < 2`.
@@ -10845,16 +10845,16 @@ class GenericGraph(GenericGraph_pyx):
         A coefficient for the whole graph is the average of the `c_i`.
 
         Transitivity is the fraction of all possible triangles which are
-        triangles, T = 3\*triangles/triads, [1].
+        triangles, T = 3\*triangles/triads, [NX]_.
 
         INPUT:
 
         - ``nodes`` - the vertices to inspect (default None returns data
           on all vertices in graph)
 
-        - ``weight`` - string or boolean default is False. If it is
+        - ``weight`` - string or boolean (default is False). If it is
           a string it used the indicated edge property as weight.
-          `weight = True` is equivalent to `weight = weight`
+          ``weight = True`` is equivalent to ``weight = 'weight'``
 
         - ``return_vertex_weights`` is a boolean ensuring backwards
           compatibility with deprecated features of NetworkX 1.2. It
@@ -10862,7 +10862,7 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCE:
 
-        - [1] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
+        .. [NX] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
           documentation. [Online] Available:
           https://networkx.lanl.gov/reference/networkx/
 
@@ -10960,10 +10960,10 @@ class GenericGraph(GenericGraph_pyx):
 
         The clustering coefficient of a graph is the fraction of possible
         triangles that are triangles, `c_i = triangles_i /
-        (k_i\*(k_i-1)/2)` where `k_i` is the degree of vertex `i`, [1]. A
+        (k_i\*(k_i-1)/2)` where `k_i` is the degree of vertex `i`, [1]_. A
         coefficient for the whole graph is the average of the `c_i`.
         Transitivity is the fraction of all possible triangles which are
-        triangles, T = 3\*triangles/triads, [1].
+        triangles, T = 3\*triangles/triads, [1]_.
 
         REFERENCE:
 

@@ -162,6 +162,7 @@ class DiGraph(GenericGraph):
         ...      g.subgraph(component).plot()
 
     The same methods works for strongly connected components ::
+
         sage: for component in g.strongly_connected_components():
         ...      g.subgraph(component).plot()
 
@@ -2598,7 +2599,7 @@ class DiGraph(GenericGraph):
         - ``implementation`` -- Use the default Cython implementation
           (``implementation = default``), the default NetworkX library
           (``implementation = "NetworkX"``) or the recursive NetworkX
-          implementation (``implementation = "recursive")
+          implementation (``implementation = "recursive"``)
 
         .. SEEALSO::
 
@@ -2642,8 +2643,8 @@ class DiGraph(GenericGraph):
         .. note::
 
            There is a recursive version of this in NetworkX, it used to
-        have problems in earlier versions but they have since been
-        fixed::
+           have problems in earlier versions but they have since been
+           fixed::
 
               sage: import networkx
               sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7],

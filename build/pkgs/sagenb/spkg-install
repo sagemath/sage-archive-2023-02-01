@@ -53,6 +53,7 @@ BASENAME=${BASENAME%.tar.gz}
 #easy_install -H None -f src "sagenb" || die "Error installing sagenb !"
 
 # Extract sagenb into $SAGE_ROOT/devel and set up the symlink
+mkdir -p "$SAGE_ROOT/devel"
 cd "$SAGE_ROOT/devel"
 if [ -d "$SAGE_ROOT/devel/sagenb-main" ]; then
     echo "Moving old SageNB package to '$SAGE_ROOT/devel/sagenb-main-old'..."

@@ -856,12 +856,29 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: e != (e + 1)
             True
 
-        NOTE: that in finite fields `<` and `>` don't make sense and
-        that the result of these operators has no mathematical meaning
-        and may vary across different finite field implementations.
+        .. note::
+
+            Finite fields are unordered. However, we adopt the convention that
+            an element ``e`` is bigger than element ``f`` if its polynomial
+            representation is bigger.
 
         EXAMPLES::
 
+            sage: K.<a> = GF(2^100)
+            sage: a < a^2
+            True
+            sage: a > a^2
+            False
+            sage: a+1 > a^2
+            False
+            sage: a+1 < a^2
+            True
+            sage: a+1 < a
+            False
+            sage: a+1 == a
+            False
+            sage: a == a
+            True
         """
         return (<Element>left)._richcmp(right, op)
 
@@ -874,7 +891,12 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         if c == 1:
             return 0
         else:
-            return 1
+            r = cmp(GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>left).x)), GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>right).x)))
+            if r:
+                return r
+            li = left.integer_representation()
+            ri = right.integer_representation()
+            return cmp(li,ri)
 
     def _integer_(FiniteField_ntl_gf2eElement self, Integer):
         """

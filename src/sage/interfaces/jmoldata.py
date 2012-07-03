@@ -185,7 +185,7 @@ class JmolData(SageObject):
             scratchout = os.path.join(jmolscratch,"jmolout.txt")
             jout=open(scratchout,'w')
             #now call the java application and write the file.
-            result = subprocess.call(["java","-Xmx512m","-jar",jmolpath,"-iox","-g",sizeStr,"-J",launchscript,"-j",imagescript],stdout=jout)
+            result = subprocess.call(["java","-Xmx512m","-Djava.awt.headless=true","-jar",jmolpath,"-iox","-g",sizeStr,"-J",launchscript,"-j",imagescript],stdout=jout)
             jout.close()
         else:
             errStr = "Java Virtual Machine not available.\n"

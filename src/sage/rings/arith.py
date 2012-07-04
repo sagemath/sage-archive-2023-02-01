@@ -15,6 +15,7 @@ import math
 import sys
 import sage.misc.misc as misc
 from sage.libs.pari.gen import pari, vecsmall_to_intlist
+import sage.libs.flint.arith as flint_arith
 
 from sage.rings.rational_field import QQ
 import sage.rings.rational
@@ -5267,3 +5268,101 @@ def squarefree_divisors(x):
     for a in powerset(p_list):
         yield prod(a,1)
 
+def dedekind_sum(p, q, algorithm='default'):
+    r"""
+    Returns the Dedekind sum `s(p,q)` defined for integers `p`, `q` as
+
+    .. MATH::
+
+        s(p,q) = \sum_{i=0}^{q-1} \left(\!\left(\frac{i}{q}\right)\!\right)
+                                  \left(\!\left(\frac{pi}{q}\right)\!\right)
+
+    where
+
+    .. MATH::
+
+        ((x))=\begin{cases}
+            x-\lfloor x\rfloor-1/2 &\mbox{if }
+                x\in\mathbb{Q}\setminus\mathbb{Z}\\
+            0 &\mbox{if } x\in\mathbb{Z}.
+            \end{cases}
+
+    Caution is required as the Dedekind sum sometimes is defined differently
+    or is left undefined when `p` and `q` are not coprime.
+
+    See :wikipedia:`Dedekind\_sum`
+
+    INPUT:
+
+    -  ``p``, ``q`` - integers
+    -  ``algorithm``
+
+       -  ``'default'`` - (default) use FLINT
+       -  ``'flint'`` - use FLINT
+       -  ``'pari'`` - use PARI (gives different results if `p` and `q`
+          are not coprime)
+
+    OUTPUT: a rational number
+
+    EXAMPLES:
+
+    Several small values::
+
+        sage: for q in range(10): print [dedekind_sum(p,q) for p in range(q+1)]
+        [0]
+        [0, 0]
+        [0, 0, 0]
+        [0, 1/18, -1/18, 0]
+        [0, 1/8, 0, -1/8, 0]
+        [0, 1/5, 0, 0, -1/5, 0]
+        [0, 5/18, 1/18, 0, -1/18, -5/18, 0]
+        [0, 5/14, 1/14, -1/14, 1/14, -1/14, -5/14, 0]
+        [0, 7/16, 1/8, 1/16, 0, -1/16, -1/8, -7/16, 0]
+        [0, 14/27, 4/27, 1/18, -4/27, 4/27, -1/18, -4/27, -14/27, 0]
+
+    Check relations for restricted arguments::
+
+        sage: q = 23; dedekind_sum(1, q); (q-1)*(q-2)/(12*q)
+        77/46
+        77/46
+        sage: p, q = 100, 723    # must be coprime
+        sage: dedekind_sum(p, q) + dedekind_sum(q, p)
+        31583/86760
+        sage: -1/4 + (p/q + q/p + 1/(p*q))/12
+        31583/86760
+
+    We check that evaluation works with large input::
+
+        sage: dedekind_sum(3^54 - 1, 2^93 + 1)
+        459340694971839990630374299870/29710560942849126597578981379
+        sage: dedekind_sum(3^54 - 1, 2^93 + 1, algorithm='pari')
+        459340694971839990630374299870/29710560942849126597578981379
+
+    Pari uses a different definition if the inputs are not coprime::
+
+        sage: dedekind_sum(5, 7, algorithm='default')
+        -1/14
+        sage: dedekind_sum(5, 7, algorithm='flint')
+        -1/14
+        sage: dedekind_sum(5, 7, algorithm='pari')
+        -1/14
+        sage: dedekind_sum(6, 8, algorithm='default')
+        -1/8
+        sage: dedekind_sum(6, 8, algorithm='flint')
+        -1/8
+        sage: dedekind_sum(6, 8, algorithm='pari')
+        -1/24
+
+    REFERENCES:
+
+        .. [Apostol] T. Apostol, Modular functions and Dirichlet series
+           in number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
+    """
+    if algorithm == 'default' or algorithm == 'flint':
+        return flint_arith.dedekind_sum(p, q)
+    elif algorithm == 'pari':
+        import sage.interfaces.gp
+        x = sage.interfaces.gp.gp('sumdedekind(%s,%s)' % (p, q))
+        return sage.rings.rational.Rational(x)
+    else:
+        raise ValueError('unknown algorithm')

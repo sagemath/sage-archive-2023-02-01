@@ -225,8 +225,7 @@ class GeneralLinearGroup_finite_field(GeneralLinearGroup_generic, MatrixGroup_ga
         order `1 + 1/q` where `q` is the size of the field. In all
         cases, the expected number of iterations is less than 4.
         """
-        Mspace = self.matrix_space()
-        M = Mspace.random_element()
+        M = self.matrix_space().random_element()
         while not M.is_invertible():
-            M = Mspace.random_element()
+            M.randomize()
         return self(M)

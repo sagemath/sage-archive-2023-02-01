@@ -47,6 +47,7 @@ c_lib/libcsage.la
 c_lib/libcsage.so
 c_lib/.sconsign.dblite
 sage/ext/interpreters/
+sage/libs/pari/gen.h
 sage/rings/integer.h
 sage/rings/rational.h
 sage/rings/complex_double.h

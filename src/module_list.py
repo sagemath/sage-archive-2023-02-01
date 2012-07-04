@@ -623,13 +623,20 @@ ext_modules = [
     Extension('sage.libs.flint.flint',
               sources = ["sage/libs/flint/flint.pyx"],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
-              extra_compile_args=["-std=c99", "-D_XPG6"],
+              extra_compile_args = ["-std=c99", "-D_XPG6"],
               depends = flint_depends),
 
     Extension('sage.libs.flint.fmpz_poly',
               sources = ["sage/libs/flint/fmpz_poly.pyx"],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
-              extra_compile_args=["-std=c99", "-D_XPG6"],
+              extra_compile_args = ["-std=c99", "-D_XPG6"],
+              depends = flint_depends),
+
+    Extension('sage.libs.flint.arith',
+              sources = ["sage/libs/flint/arith.pyx"],
+              libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
+              include_dirs = [SAGE_INC + 'flint/'],
+              extra_compile_args = ["-std=c99", "-D_XPG6"],
               depends = flint_depends),
 
     Extension('sage.libs.fplll.fplll',

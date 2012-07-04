@@ -26,6 +26,7 @@ For display options, see :obj:`Partitions.global_options`.
     - If given coordinates of the form ``(r, c)``, then use Python's
       \*-operator.
 
+
     - Throughout this documentation, for a partition `\lambda` we will denote
       its conjugate partition by `\lambda^{\prime}`. For more on conjugate
       partitions, see :meth:`Partition.conjugate()`.
@@ -272,6 +273,7 @@ We use the lexicographic ordering::
 
 from sage.interfaces.all import gap
 from sage.libs.all import pari
+from sage.libs.flint.arith import number_of_partitions as flint_number_of_partitions
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
@@ -4514,7 +4516,7 @@ class Partitions_n(Partitions):
             lst = [self.n-1, 1]
         return self.element_class(self, lst)
 
-    def cardinality(self, algorithm='bober'):
+    def cardinality(self, algorithm='flint'):
         r"""
         Returns the number of partitions of the specified size.
 
@@ -4523,6 +4525,7 @@ class Partitions_n(Partitions):
         - ``algorithm``  - (default: ``'bober'``)
 
           - ``'bober'`` -- Use Jonathan Bober's implementation (*very* fast).
+          - ``'flint'`` -- use FLINT.
           - ``'gap'`` -- use GAP (VERY *slow*)
           - ``'pari'`` -- use PARI. Speed seems the same as GAP until
             `n` is in the thousands, in which case PARI is faster.
@@ -4546,6 +4549,8 @@ class Partitions_n(Partitions):
             sage: Partitions(5).cardinality(algorithm='pari')
             7
             sage: Partitions(5).cardinality(algorithm='bober')
+            7
+            sage: number_of_partitions(5, algorithm='flint')
             7
 
         The input must be a nonnegative integer or a ``ValueError`` is raised.
@@ -4590,13 +4595,16 @@ class Partitions_n(Partitions):
         if algorithm == 'bober':
             return cached_number_of_partitions(self.n)
 
+        elif algorithm == 'flint':
+            return flint_number_of_partitions(self.n)
+
         elif algorithm == 'gap':
-            return ZZ( gap.eval("NrPartitions(%s)"%(ZZ(self.n))) )
+            return ZZ(gap.eval("NrPartitions(%s)" % (ZZ(self.n))))
 
         elif algorithm == 'pari':
             return ZZ(pari(ZZ(self.n)).numbpart())
 
-        raise ValueError("unknown algorithm '%s'"%algorithm)
+        raise ValueError("unknown algorithm '%s'" % algorithm)
 
     def random_element(self, measure = 'uniform'):
         """
@@ -5928,7 +5936,7 @@ def number_of_partitions_set(S,k):
     deprecation(13072,'number_of_partitions_set is deprecated. Use SetPartitions().cardinality() instead.')
     return sage.combinat.set_partition.SetPartitions(S,k).cardinality()
 
-def number_of_partitions(n,k=None, algorithm='default'):
+def number_of_partitions(n, k=None, algorithm='default'):
     r"""
     Returns the number of partitions of `n` with, optionally, at most `k`
     parts.
@@ -6079,7 +6087,7 @@ def number_of_partitions(n,k=None, algorithm='default'):
 
     if algorithm == 'default':
         if k is None:
-            algorithm = 'bober'
+            algorithm = 'flint'
         else:
             algorithm = 'gap'
 
@@ -6097,6 +6105,9 @@ def number_of_partitions(n,k=None, algorithm='default'):
 
     if algorithm == 'bober':
         return cached_number_of_partitions(n)
+
+    elif algorithm == 'flint':
+        return flint_number_of_partitions(n)
 
     elif algorithm == 'pari':
         deprecation(13072,"sage.combinat.number_of_partitions is deprecated. Use  Partitions().cardinality(algorithm='pari')")

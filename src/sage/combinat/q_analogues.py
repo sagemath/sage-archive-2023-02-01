@@ -87,6 +87,14 @@ def q_binomial(n,k,p=None):
     If ``p`` is unspecified, then it defaults to using the generator ``q`` for
     a univariate polynomial ring over the integers.
 
+    The q-binomials are computed as a product of cyclotomic polynomials (cf. [CH2006]_).
+
+    REFERENCES:
+
+    .. [CH2006] William Y.C. Chen and Qing-Hu Hou, "Factors of the Gaussian
+       coefficients", Discrete Mathematics 306 (2006), 1446-1449.
+       http://dx.doi.org/10.1016/j.disc.2006.03.031
+
     EXAMPLES::
 
         sage: import sage.combinat.q_analogues as q_analogues

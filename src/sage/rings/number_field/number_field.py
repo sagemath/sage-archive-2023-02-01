@@ -77,7 +77,6 @@ We do some arithmetic in a tower of relative number fields::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import with_statement
 from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
 

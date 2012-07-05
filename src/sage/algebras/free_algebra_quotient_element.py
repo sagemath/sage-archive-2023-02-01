@@ -7,8 +7,6 @@ AUTHORS:
 
 """
 
-from __future__ import with_statement
-
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #

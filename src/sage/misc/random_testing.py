@@ -9,8 +9,6 @@ to reproduce the problems when debugging.  This module provides a
 decorator to help write random testers that meet these goals.
 """
 
-from __future__ import with_statement
-
 from functools import wraps
 
 def random_testing(fn):

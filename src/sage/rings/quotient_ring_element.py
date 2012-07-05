@@ -24,9 +24,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import with_statement
-
-
 import ring_element
 
 from sage.interfaces.singular import singular as singular_default

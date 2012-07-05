@@ -17,9 +17,6 @@ Denis Simon's PARI scripts
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import with_statement
-
-
 from sage.structure.parent_gens import localvars
 
 from sage.interfaces.gp import Gp

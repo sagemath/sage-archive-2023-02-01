@@ -19,8 +19,6 @@ TESTS:
 
 """
 
-from __future__ import with_statement
-
 ###############################################################################
 #
 #   SAGE: System for Algebra and Geometry Experimentation

@@ -2916,9 +2916,6 @@ class Worksheet:
             input += 'print "CPU time: %.2f s,  Wall time: %.2f s"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n'
 
         input = self.synchronize(input)
-        # Unfortunately, this has to go here at the beginning of the file until Python 2.6,
-        # in order to support use of the with statement in the notebook.  Very annoying.
-        input = 'from __future__ import with_statement\n' + input
 
         # This magic comment at the very start of the file allows utf8
         # characters in the file

@@ -1,8 +1,5 @@
 """nodoctest"""
 
-from __future__ import with_statement
-
-
 from sage.all import *
 preparser(on=True)
 

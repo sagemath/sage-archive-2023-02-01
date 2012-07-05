@@ -94,8 +94,6 @@ compatibility.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import with_statement
-
 import os
 import re
 from jinja2 import Environment

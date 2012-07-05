@@ -535,11 +535,6 @@ cdef class localvars:
     to the new names.  If you give normalize=True, then the names are
     assumed to be a tuple of the correct number of strings.
 
-    If you're writing Python library code, you currently have
-    to put ``from __future__ import with_statement`` in your file
-    in order to use the ``with`` statement.  This restriction will
-    disappear in Python 2.6.
-
     EXAMPLES::
 
         sage: R.<x,y> = PolynomialRing(QQ,2)

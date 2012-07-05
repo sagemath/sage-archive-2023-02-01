@@ -230,7 +230,6 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import with_statement
 
 from sage.interfaces.all import (singular as singular_default,
                                  macaulay2 as macaulay2_default,
@@ -335,7 +334,6 @@ class SingularDefaultContext:
 
         ::
 
-            sage: from __future__ import with_statement
             sage: with SingularDefaultContext(): rgb = Is.groebner()
             sage: rgb
             84*c^4-40*c^3+c^2+c,

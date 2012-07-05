@@ -74,7 +74,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import with_statement
 from sage.structure.parent_gens import localvars
 
 import sage.libs.ntl.all as ntl

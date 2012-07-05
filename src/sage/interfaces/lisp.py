@@ -49,8 +49,6 @@ AUTHORS:
 #
 ##########################################################################
 
-from __future__ import with_statement
-
 import random
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled

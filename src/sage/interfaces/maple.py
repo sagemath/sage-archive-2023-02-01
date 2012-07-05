@@ -235,8 +235,6 @@ loaded.
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-from __future__ import with_statement
-
 import os
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled

@@ -1216,25 +1216,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         """
         return self.element_class
 
-    @cached_method
-    def basis(self):
-        """
-        Returns the basis of self.
-
-        EXAMPLES::
-
-            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: F.basis()
-            Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
-
-        ::
-
-            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
-            sage: list(QS3.basis())
-            [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
-        """
-        return Family(self._basis_keys, self.monomial) #.
-
     def _an_element_(self):
         """
         EXAMPLES::

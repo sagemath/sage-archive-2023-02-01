@@ -179,6 +179,26 @@ class ModulesWithBasis(Category_over_base_ring):
         return self.base_ring().is_field()
 
     class ParentMethods:
+        @cached_method
+        def basis(self):
+            """
+            Returns the basis of self.
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+                sage: F.basis()
+                Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
+
+            ::
+
+                sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+                sage: list(QS3.basis())
+                [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+            """
+            from sage.combinat.family import Family
+            return Family(self._basis_keys, self.monomial)
+
         def module_morphism(self, on_basis = None, diagonal = None, triangular = None, **keywords):
             r"""
             Constructs morphisms by linearity

@@ -211,7 +211,7 @@ class PermutationSpecies_class(GenericCombinatorialSpecies):
             sage: g.coefficients(10)
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
-        from sage.combinat.partition import number_of_partitions
+        from sage.combinat.partitions import number_of_partitions
         for n in _integers_from(0):
             yield base_ring(number_of_partitions(n))
 

@@ -254,9 +254,8 @@ class Posets(object):
                     if tup not in lc:
                         lc.append(tup)
             return lc
-        from sage.combinat.partition import partitions_list
-        H = DiGraph(dict([[tuple(p),lower_covers(p)] for p in
-            partitions_list(n)]))
+        from sage.combinat.partition import Partitions
+        H = DiGraph(dict([[tuple(p),lower_covers(p)] for p in Partitions(n)]))
         return Poset(H.reverse())
 
     @staticmethod
@@ -294,8 +293,7 @@ class Posets(object):
                             lc.append(tup)
             return lc
         from sage.combinat.partition import Partitions
-        H = DiGraph(dict([[tuple(p),lower_covers(p)] for p in
-            Partitions(n)]))
+        H = DiGraph(dict([[tuple(p),lower_covers(p)] for p in Partitions(n)]))
         return Poset(H.reverse())
 
     @staticmethod

@@ -551,7 +551,7 @@ cdef class CachedFunction(object):
             sage: a is g(10^5)
             True
             sage: a is number_of_partitions(10^5)
-            False
+            True
 
         """
         # We shortcut a common case of no arguments

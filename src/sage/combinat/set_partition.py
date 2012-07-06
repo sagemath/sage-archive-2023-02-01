@@ -491,3 +491,85 @@ def less(s, t):
     return True
 
 
+def cyclic_permutations_of_set_partition(set_part):
+    """
+    Returns all combinations of cyclic permutations of each cell of the
+    set partition.
+
+    AUTHORS:
+
+    - Robert L. Miller
+
+    EXAMPLES::
+
+        sage: from sage.combinat.set_partition import cyclic_permutations_of_set_partition
+        sage: cyclic_permutations_of_set_partition([[1,2,3,4],[5,6,7]])
+        [[[1, 2, 3, 4], [5, 6, 7]],
+         [[1, 2, 4, 3], [5, 6, 7]],
+         [[1, 3, 2, 4], [5, 6, 7]],
+         [[1, 3, 4, 2], [5, 6, 7]],
+         [[1, 4, 2, 3], [5, 6, 7]],
+         [[1, 4, 3, 2], [5, 6, 7]],
+         [[1, 2, 3, 4], [5, 7, 6]],
+         [[1, 2, 4, 3], [5, 7, 6]],
+         [[1, 3, 2, 4], [5, 7, 6]],
+         [[1, 3, 4, 2], [5, 7, 6]],
+         [[1, 4, 2, 3], [5, 7, 6]],
+         [[1, 4, 3, 2], [5, 7, 6]]]
+
+    Note that repeated elements are not considered equal::
+
+        sage: cyclic_permutations_of_set_partition([[1,2,3],[4,4,4]])
+        [[[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]],
+         [[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]]]
+    """
+    return list(cyclic_permutations_of_set_partition_iterator(set_part))
+
+
+def cyclic_permutations_of_set_partition_iterator(set_part):
+    """
+    Iterates over all combinations of cyclic permutations of each cell
+    of the set partition.
+
+    AUTHORS:
+
+    - Robert L. Miller
+
+    EXAMPLES::
+
+        sage: from sage.combinat.set_partition import cyclic_permutations_of_set_partition_iterator
+        sage: list(cyclic_permutations_of_set_partition_iterator([[1,2,3,4],[5,6,7]]))
+        [[[1, 2, 3, 4], [5, 6, 7]],
+         [[1, 2, 4, 3], [5, 6, 7]],
+         [[1, 3, 2, 4], [5, 6, 7]],
+         [[1, 3, 4, 2], [5, 6, 7]],
+         [[1, 4, 2, 3], [5, 6, 7]],
+         [[1, 4, 3, 2], [5, 6, 7]],
+         [[1, 2, 3, 4], [5, 7, 6]],
+         [[1, 2, 4, 3], [5, 7, 6]],
+         [[1, 3, 2, 4], [5, 7, 6]],
+         [[1, 3, 4, 2], [5, 7, 6]],
+         [[1, 4, 2, 3], [5, 7, 6]],
+         [[1, 4, 3, 2], [5, 7, 6]]]
+
+    Note that repeated elements are not considered equal::
+
+        sage: list(cyclic_permutations_of_set_partition_iterator([[1,2,3],[4,4,4]]))
+        [[[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]],
+         [[1, 2, 3], [4, 4, 4]],
+         [[1, 3, 2], [4, 4, 4]]]
+    """
+    from combinat import cyclic_permutations_iterator
+    if len(set_part) == 1:
+        for i in cyclic_permutations_iterator(set_part[0]):
+            yield [i]
+    else:
+        for right in cyclic_permutations_of_set_partition_iterator(set_part[1:]):
+            for perm in cyclic_permutations_iterator(set_part[0]):
+                yield [perm] + right
+
+
+

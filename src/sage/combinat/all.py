@@ -35,19 +35,20 @@ from composition import Composition, Compositions
 from composition_signed import SignedCompositions
 
 #Partitions
-import partition
 from partition import Partition, Partitions, PartitionsInBox,\
-    OrderedPartitions, RestrictedPartitions, PartitionTuples,\
-    PartitionsGreatestLE, PartitionsGreatestEQ, partitions_set,\
-    number_of_partitions_set, number_of_partitions_list, \
-    ordered_partitions, number_of_ordered_partitions, number_of_partitions,\
-    partitions, cyclic_permutations_of_partition,\
-    cyclic_permutations_of_partition_iterator, ferrers_diagram, \
-    partitions_greatest, partitions_greatest_eq, partitions_restricted,\
-    number_of_partitions_restricted, partitions_tuples, \
-    number_of_partitions_tuples, partition_power, partition_sign, \
-    partition_associated, partitions_list
+     OrderedPartitions, PartitionsGreatestLE, PartitionsGreatestEQ,\
+     PartitionsGreatestLE, PartitionsGreatestEQ, number_of_partitions
+#Functions being deprecated from partition
+from partition import partitions_set, RestrictedPartitions, number_of_partitions_set,\
+    ordered_partitions, number_of_ordered_partitions, partitions,\
+     cyclic_permutations_of_partition, cyclic_permutations_of_partition_iterator,\
+     ferrers_diagram, partitions_greatest, partitions_greatest_eq,\
+     partitions_tuples, number_of_partitions_tuples, partition_power
+
+from partition_tuple import PartitionTuple, PartitionTuples
 from skew_partition import SkewPartition, SkewPartitions
+
+#Partition algebra
 from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk
 
 #Cores

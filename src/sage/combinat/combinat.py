@@ -88,9 +88,8 @@ Partitions:
    of set S is a set of pairwise disjoint nonempty sets with union S
    and is represented by a sorted list of such sets.
 
--  Partitions of an integer, ``partitions_list``,
-   ``number_of_partitions_list``. An unordered
-   partition of n is an unordered sum
+-  Partitions of an integer, ``Partitions``.
+   An unordered partition of n is an unordered sum
    `n = p_1+p_2 +\ldots+ p_k` of positive integers and is
    represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
    nonincreasing order, i.e., `p1\geq p_2 ...\geq p_k`.
@@ -103,42 +102,19 @@ Partitions:
    represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
    nonincreasing order, i.e., `p1\geq p_2 ...\geq p_k`.
 
--  Restricted partitions of an integer,
-   ``partitions_restricted``,
-   ``number_of_partitions_restricted``. An unordered
-   restricted partition of n is an unordered sum
-   `n = p_1+p_2 +\ldots+ p_k` of positive integers
-   `p_i` belonging to a given set `S`, and is
-   represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
-   nonincreasing order, i.e., `p1\geq p_2 ...\geq p_k`.
-
 -  ``partitions_greatest`` implements a special type
    of restricted partition.
 
 -  ``partitions_greatest_eq`` is another type of
    restricted partition.
 
--  Tuples of partitions, ``partition_tuples``,
-   ``number_of_partition_tuples``. A `k`-tuple
+-  Tuples of partitions, ``PartitionTuples``. A `k`-tuple
    of partitions is represented by a list of all `k`-tuples of
    partitions which together form a partition of `n`.
 
 -  Powers of a partition, ``partition_power(pi, k)``.
    The power of a partition corresponds to the `k`-th power of
    a permutation with cycle structure `\pi`.
-
--  Sign of a partition, ``partition_sign( pi )`` This
-   means the sign of a permutation with cycle structure given by the
-   partition pi.
-
--  Associated partition, ``partition_associated( pi
-   )`` The "associated" (also called "conjugate" in the
-   literature) partition of the partition pi which is obtained by
-   transposing the corresponding Ferrers diagram.
-
--  Ferrers diagram, ``ferrers_diagram``. Analogous to
-   the Young diagram of an irreducible representation of
-   `S_n`.
 
 
 Related functions:

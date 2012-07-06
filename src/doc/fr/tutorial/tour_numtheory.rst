@@ -107,8 +107,8 @@ Et finalement un exemple d'utilisation du théorème chinois :
     [1, -1, 1, 1, -1, -1, -1, -1, 1, 1, -1, 1]
     sage: n = 10000; sum([moebius(m) for m in range(1,n)])
     -23
-    sage: list(partitions(4))
-    [(1, 1, 1, 1), (1, 1, 2), (2, 2), (1, 3), (4,)]
+    sage: Partitions(4).list()
+    [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
 
 Nombres :math:`p`-adiques
 -------------------------

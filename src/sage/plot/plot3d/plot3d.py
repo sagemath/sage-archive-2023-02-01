@@ -38,6 +38,10 @@ We plot "cape man"::
     sage: cape_man = P.scale(.2) + S.translate(1,0,0)
     sage: cape_man.show(aspect_ratio=[1,1,1])
 
+Or, we plot a very simple function indeed::
+
+    sage: plot3d(pi, (-1,1), (-1,1))
+
 AUTHORS:
 
 - Tom Boothby: adaptive refinement triangles

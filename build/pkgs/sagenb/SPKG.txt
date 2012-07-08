@@ -76,6 +76,10 @@ To produce a new spkg:
 
 == Changelog ==
 
+=== 0.10.1 (Keshav Kini, 2012-07-08) ===
+
+ * Upgraded to 0.10.1 (bugfixes)
+
 === 0.10.0 (Keshav Kini, 2012-06-21) ===
 
  * Upgraded to 0.10.0

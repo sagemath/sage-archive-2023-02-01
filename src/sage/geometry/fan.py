@@ -36,10 +36,19 @@ In addition to giving such lists of cones and rays you can also create cones
 first using :func:`~sage.geometry.cone.Cone` and then combine them into a fan.
 See the documentation of :func:`Fan` for details.
 
-Instead of building a fan from scratch, for this tutorial we will use an easy
-way to get two fans assosiated to :class:`lattice polytopes
-<sage.geometry.lattice_polytope.LatticePolytopeClass>`: :func:`FaceFan` and
-:func:`NormalFan`::
+In 2 dimensions there is a unique maximal fan determined by rays, and
+you can use :func:`Fan2d` to construct it::
+
+    sage: fan2d = Fan2d(rays=[(1,0), (0,1), (-1,0)])
+    sage: fan2d.is_equivalent(fan)
+    True
+
+But keep in mind that in higher dimensions the cone data is essential
+and cannot be omitted. Instead of building a fan from scratch, for
+this tutorial we will use an easy way to get two fans assosiated to
+:class:`lattice polytopes
+<sage.geometry.lattice_polytope.LatticePolytopeClass>`:
+:func:`FaceFan` and :func:`NormalFan`::
 
     sage: fan1 = FaceFan(lattice_polytope.octahedron(3))
     sage: fan2 = NormalFan(lattice_polytope.octahedron(3))
@@ -363,6 +372,13 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
 
     - a :class:`fan <RationalPolyhedralFan>`.
 
+    .. SEEALSO::
+
+        In 2 dimensions you can cyclically order the rays. Hence the
+        rays determine a unique maximal fan without having to specify
+        the cones, and you can use :func:`Fan2d` to construct this
+        fan from just the rays.
+
     EXAMPLES:
 
     Let's construct a fan corresponding to the projective plane in several
@@ -680,6 +696,143 @@ def NormalFan(polytope, lattice=None):
     fan = Fan(cones, rays, lattice=lattice, check=False)
     fan._is_complete = polytope.dim() == polytope.ambient_dim()
     return fan
+
+
+def Fan2d(rays, lattice=None):
+    """
+    Construct the maximal 2-d fan with given ``rays``.
+
+    In two dimensions we can uniquely construct a fan from just rays,
+    just by cyclically ordering the rays and constructing as many
+    cones as possible. This is why we implement a special constructor
+    for this case.
+
+    INPUT:
+
+    - ``rays`` -- list of rays given as list or vectors convertible to
+      the rational extension of ``lattice``. Duplicate rays are
+      removed without changing the ordering of the remaining rays.
+
+    - ``lattice`` -- :class:`ToricLattice
+      <sage.geometry.toric_lattice.ToricLatticeFactory>`, `\ZZ^n`, or any
+      other object that behaves like these. If not specified, an attempt will
+      be made to determine an appropriate toric lattice automatically.
+
+    EXAMPLES::
+
+        sage: Fan2d([(0,1), (1,0)])
+        Rational polyhedral fan in 2-d lattice N
+        sage: Fan2d([], lattice=ToricLattice(2, 'myN'))
+        Rational polyhedral fan in 2-d lattice myN
+
+    The ray order is as specified, even if it is not the cyclic order::
+
+        sage: fan1 = Fan2d([(0,1), (1,0)])
+        sage: fan1.rays()
+        N(0, 1),
+        N(1, 0)
+        in 2-d lattice N
+
+        sage: fan2 = Fan2d([(1,0), (0,1)])
+        sage: fan2.rays()
+        N(1, 0),
+        N(0, 1)
+        in 2-d lattice N
+
+        sage: fan1 == fan2, fan1.is_equivalent(fan2)
+        (False, True)
+
+        sage: fan = Fan2d([(1,1), (-1,-1), (1,-1), (-1,1)])
+        sage: [ cone.ambient_ray_indices() for cone in fan ]
+        [(2, 1), (1, 3), (3, 0), (0, 2)]
+        sage: fan.is_complete()
+        True
+
+    TESTS::
+
+        sage: Fan2d([(0,1), (0,1)]).generating_cones()
+        (1-d cone of Rational polyhedral fan in 2-d lattice N,)
+
+        sage: Fan2d([(1,1), (-1,-1)]).generating_cones()
+        (1-d cone of Rational polyhedral fan in 2-d lattice N,
+         1-d cone of Rational polyhedral fan in 2-d lattice N)
+
+        sage: Fan2d([])
+        Traceback (most recent call last):
+        ...
+        ValueError: you must specify a 2-dimensional lattice
+        when you construct a fan without rays.
+
+        sage: Fan2d([(3,4)]).rays()
+        N(3, 4)
+        in 2-d lattice N
+
+        sage: Fan2d([(0,1,0)])
+        Traceback (most recent call last):
+        ...
+        ValueError: the lattice must be 2-dimensional.
+
+        sage: Fan2d([(0,1), (1,0), (0,0)])
+        Traceback (most recent call last):
+        ...
+        ValueError: only non-zero vectors define rays
+
+        sage: Fan2d([(0, -2), (2, -10), (1, -3), (2, -9), (2, -12), (1, 1),
+        ...          (2, 1), (1, -5), (0, -6), (1, -7), (0, 1), (2, -4),
+        ...          (2, -2), (1, -9), (1, -8), (2, -6), (0, -1), (0, -3),
+        ...          (2, -11), (2, -8), (1, 0), (0, -5), (1, -4), (2, 0),
+        ...          (1, -6), (2, -7), (2, -5), (-1, -3), (1, -1), (1, -2),
+        ...          (0, -4), (2, -3), (2, -1)]).cone_lattice()
+        Finite poset containing 44 elements
+
+        sage: Fan2d([(1,1)]).is_complete()
+        False
+        sage: Fan2d([(1,1), (-1,-1)]).is_complete()
+        False
+        sage: Fan2d([(1,0), (0,1)]).is_complete()
+        False
+    """
+    if len(rays) == 0:
+        if lattice is None or lattice.dimension() != 2:
+            raise ValueError('you must specify a 2-dimensional lattice when you construct a fan without rays.')
+        return RationalPolyhedralFan(cones=((), ), rays=(), lattice=lattice)
+
+    # remove multiple rays without changing order
+    rays = normalize_rays(rays, lattice)
+    rays = sorted( (r,i) for i,r in enumerate(rays) )
+    distinct_rays = [ rays[i] for i in range(len(rays)) if rays[i][0] != rays[i-1][0] ]
+    if distinct_rays:
+        rays = sorted( (i,r) for r,i in distinct_rays )
+        rays = [ r[1] for r in rays ]
+    else: # all given rays were the same
+        rays = [ rays[0][0] ]
+    lattice = rays[0].parent()
+    if lattice.dimension() != 2:
+        raise ValueError('the lattice must be 2-dimensional.')
+
+    import math
+    # each sorted_rays entry = (angle, ray, original_ray_index)
+    sorted_rays = sorted( (math.atan2(r[0],r[1]), r, i) for i,r in enumerate(rays) )
+    sorted_rays = [ r for i,r in enumerate(sorted_rays) if r[1] != sorted_rays[i-1][1] ]
+    cones = []
+    is_complete = True
+    for i in range(len(sorted_rays)):
+        r0 = sorted_rays[i-1][1]
+        r1 = sorted_rays[i][1]
+        if r1.is_zero():
+            raise ValueError('only non-zero vectors define rays')
+        assert r0 != r1
+        cross_prod = r0[0]*r1[1]-r0[1]*r1[0]
+        if cross_prod < 0:
+            r0_index = (i-1) % len(sorted_rays)
+            r1_index = i
+            cones.append((sorted_rays[r0_index][2], sorted_rays[r1_index][2]))
+        else:
+            is_complete = False
+    if cones == []:
+        cones = [ (i,) for i in range(len(rays)) ]
+        is_complete = False
+    return RationalPolyhedralFan(cones, rays, lattice, is_complete)
 
 
 class Cone_of_fan(ConvexRationalPolyhedralCone):

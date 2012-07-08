@@ -1,6 +1,6 @@
 from cone import Cone
 
-from fan import Fan, FaceFan, NormalFan
+from fan import Fan, FaceFan, NormalFan, Fan2d
 
 from fan_morphism import FanMorphism
 

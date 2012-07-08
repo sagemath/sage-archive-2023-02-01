@@ -1512,8 +1512,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (9/4).sqrt_approx()
             3/2
         """
-        from sage.misc.misc import deprecation
-        deprecation("This function is deprecated.  Use sqrt with a given number of bits of precision instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(9859, "This function is deprecated.  Use sqrt with a given number of bits of precision instead.")
         try:
             return self.sqrt(extend=False,all=all)
         except ValueError:

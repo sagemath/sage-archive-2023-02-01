@@ -436,8 +436,8 @@ def MPolynomialRing(*args, **kwds):
     If you have questions regarding this function and its replacement,
     please send your comments to sage-support@googlegroups.com.
     """
-    from sage.misc.misc import deprecation
-    deprecation("MPolynomialRing is deprecated, use PolynomialRing instead!")
+    from sage.misc.superseded import deprecation
+    deprecation(6500, "MPolynomialRing is deprecated, use PolynomialRing instead!")
     return PolynomialRing(*args, **kwds)
 
 def _get_from_cache(key):

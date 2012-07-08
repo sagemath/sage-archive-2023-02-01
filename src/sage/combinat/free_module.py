@@ -1447,8 +1447,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: s.combinatorial_class()
             Partitions
         """
-        from sage.misc.misc import deprecation
-        deprecation('"FM.combinatorial_class()" is deprecated. Use "F.basis().keys()" instead !')
+        from sage.misc.superseded import deprecation
+        deprecation(6136, '"FM.combinatorial_class()" is deprecated. Use "F.basis().keys()" instead !')
         return self._basis_keys
 
     def dimension(self):

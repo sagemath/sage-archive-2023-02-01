@@ -4593,8 +4593,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
             4.78749174278205
         """
-        from sage.misc.misc import deprecation
-        deprecation("The method lngamma() is deprecated. Use log_gamma() instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
         return self.log_gamma()
 
     def log_gamma(self):

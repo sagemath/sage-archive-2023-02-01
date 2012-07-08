@@ -309,8 +309,8 @@ def EllipticCurve(x=None, y=None, j=None):
         return ell_rational_field.EllipticCurve_rational_field(x)
 
     if rings.is_RingElement(x) and y is None:
-        from sage.misc.misc import deprecation
-        deprecation("'EllipticCurve(j)' is deprecated; use 'EllipticCurve_from_j(j)' or 'EllipticCurve(j=j)' instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(5673, "'EllipticCurve(j)' is deprecated; use 'EllipticCurve_from_j(j)' or 'EllipticCurve(j=j)' instead.")
         # Fixed for all characteristics and cases by John Cremona
         j=x
         F=j.parent().fraction_field()

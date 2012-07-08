@@ -3813,8 +3813,8 @@ class Graph(GenericGraph):
             [[4, 0], [4, 1, 2, 3]]
 
         """
-        from sage.misc.misc import deprecation
-        deprecation("The function 'cliques' has been deprecated. Use " + \
+        from sage.misc.superseded import deprecation
+        deprecation(5793, "The function 'cliques' has been deprecated. Use " + \
                     "'cliques_maximal' or 'cliques_maximum'.")
         return self.cliques_maximal()
 

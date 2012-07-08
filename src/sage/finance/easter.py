@@ -16,7 +16,7 @@ EASTER_JULIAN   = 1
 EASTER_ORTHODOX = 2
 EASTER_WESTERN  = 3
 
-@rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+@rename_keyword(deprecation=6094, method="algorithm")
 def easter(year, algorithm=EASTER_WESTERN):
     """
     This function was ported from the work done by GM Arts,

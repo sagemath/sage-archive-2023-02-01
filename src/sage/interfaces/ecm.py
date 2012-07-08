@@ -151,8 +151,7 @@ class ECM:
         """
         return self._recommended_B1_list[self.__B1_table_value(factor_digits)]
 
-
-    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    @rename_keyword(deprecation=6094, method="algorithm")
     def one_curve(self, n, factor_digits=None, B1=2000, algorithm="ECM", **kwds):
         """
         Run one single ECM (or P-1/P+1) curve on input n.

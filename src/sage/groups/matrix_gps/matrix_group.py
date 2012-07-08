@@ -838,7 +838,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
         self._gensG = v
         MatrixGroup_gap.__init__(self, M.nrows(), M.base_ring(), category = category)
 
-    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    @rename_keyword(deprecation=6094, method="algorithm")
     def as_permutation_group(self, algorithm=None):
         r"""
         Return a permutation group representation for the group.
@@ -921,7 +921,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
             C = gap("Image( iso )")
         return PermutationGroup(gap_group=C)
 
-    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    @rename_keyword(deprecation=6094, method="algorithm")
     def module_composition_factors(self, algorithm=None):
         r"""
         Returns a list of triples consisting of [base field, dimension,

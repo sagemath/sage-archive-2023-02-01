@@ -6,7 +6,7 @@ from sage.graphs.all import DiGraph, Graph, graphs, digraphs
 from copy import deepcopy
 from sage.rings.all import PolynomialRing, QQ, ZZ, lcm
 from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
-from sage.misc.misc import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.interfaces.singular import singular
@@ -1446,7 +1446,7 @@ class Sandpile(DiGraph):
         """
         return deepcopy(self._invariant_factors)
 
-    elementary_divisors = deprecated_function_alias(invariant_factors, 'Sage Sandpile Version 2.2')
+    elementary_divisors = deprecated_function_alias(10618, invariant_factors)
 
     def _set_hilbert_function(self):
         """

@@ -299,8 +299,8 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
         # two arguments, must be endpoints
         v, a, b = None, v, a
     if v is None:
-        from sage.misc.misc import deprecation
-        deprecation("Variable of integration should be specified explicitly.")
+        from sage.misc.superseded import deprecation
+        deprecation(12438, "Variable of integration should be specified explicitly.")
         v = f.default_variable()
         if isinstance(f, Function):  # a bare function like sin
             f = f(v)

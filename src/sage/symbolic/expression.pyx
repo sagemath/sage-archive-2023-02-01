@@ -147,7 +147,7 @@ from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
-from sage.misc.misc import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias
 
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
@@ -1487,13 +1487,13 @@ cdef class Expression(CommutativeRingElement):
         return self._maxima_init_()
 
 
-    _is_real     = deprecated_function_alias(is_real,     'Sage 4.7.1')
-    _is_positive = deprecated_function_alias(is_positive, 'Sage 4.7.1')
-    _is_negative = deprecated_function_alias(is_negative, 'Sage 4.7.1')
-    _is_integer  = deprecated_function_alias(is_integer,  'Sage 4.7.1')
-    _is_symbol   = deprecated_function_alias(is_symbol,   'Sage 4.7.1')
-    _is_constant = deprecated_function_alias(is_constant, 'Sage 4.7.1')
-    _is_numeric  = deprecated_function_alias(is_numeric,  'Sage 4.7.1')
+    _is_real     = deprecated_function_alias(10859, is_real)
+    _is_positive = deprecated_function_alias(10859, is_positive)
+    _is_negative = deprecated_function_alias(10859, is_negative)
+    _is_integer  = deprecated_function_alias(10859, is_integer)
+    _is_symbol   = deprecated_function_alias(10859, is_symbol)
+    _is_constant = deprecated_function_alias(10859, is_constant)
+    _is_numeric  = deprecated_function_alias(10859, is_numeric)
 
     def is_real(self):
         """
@@ -6668,8 +6668,8 @@ cdef class Expression(CommutativeRingElement):
             doctest:...: DeprecationWarning: The lgamma() function is deprecated. Use log_gamma() instead.
             log_gamma(x)
         """
-        from sage.misc.misc import deprecation
-        deprecation("The lgamma() function is deprecated. Use log_gamma() instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(6992, "The lgamma() function is deprecated. Use log_gamma() instead.")
         return self.log_gamma(hold=hold)
 
     def log_gamma(self, hold=False):
@@ -7249,7 +7249,7 @@ cdef class Expression(CommutativeRingElement):
 
     trig_simplify = simplify_trig
 
-    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    @rename_keyword(deprecation=6094, method="algorithm")
     def simplify_rational(self,algorithm='full', map=False):
         r"""
         Simplify rational expressions.
@@ -7489,7 +7489,7 @@ cdef class Expression(CommutativeRingElement):
     radical_simplify = simplify_radical
     simplify_exp = exp_simplify = simplify_radical
 
-    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    @rename_keyword(deprecation=6094, method="algorithm")
     def simplify_log(self,algorithm=None):
         r"""
         Simplifies symbolic expression, which can contain logs.
@@ -7634,7 +7634,7 @@ cdef class Expression(CommutativeRingElement):
 
     log_simplify = simplify_log
 
-    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    @rename_keyword(deprecation=6094, method="algorithm")
     def expand_log(self,algorithm='products'):
         r"""
         Simplifies symbolic expression, which can contain logs.

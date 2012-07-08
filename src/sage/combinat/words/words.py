@@ -1100,7 +1100,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             for w in self.iterate_by_length(l):
                 yield w
 
-    @rename_keyword(deprecated='Sage version 4.6.1', l='arg')
+    @rename_keyword(deprecation=10134, l='arg')
     def iter_morphisms(self, arg=None, codomain=None, min_length=1):
         r"""
         Iterate over all morphisms with domain ``self`` and the given
@@ -1579,7 +1579,7 @@ def is_Words(obj):
         sage: is_Words(Words('ab'))
         True
     """
-    from sage.misc.misc import deprecation
-    deprecation("is_Words is deprecated, use isinstance(your_object, Words_all) instead!")
+    from sage.misc.superseded import deprecation
+    deprecation(6519, "is_Words is deprecated, use isinstance(your_object, Words_all) instead!")
     return isinstance(obj, Words_all)
 

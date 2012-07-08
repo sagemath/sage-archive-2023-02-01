@@ -79,7 +79,7 @@ import sage.rings.number_field.all
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.misc.latex as latex
-from sage.misc.misc import deprecation
+from sage.misc.superseded import deprecation
 import sage.misc.mrange
 import sage.modules.free_module_element
 import sage.modules.free_module
@@ -507,7 +507,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
         """
         if rows is not None:
-            deprecation("'rows=True/False' parameter is deprecated!", "Sage 5.1")
+            deprecation(13012, "'rows=True/False' parameter is deprecated!")
             return self.matrix(entries, coerce, copy, rows)
         return self.matrix(entries, coerce, copy)
 
@@ -1298,7 +1298,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             return self.identity_matrix().__copy__()
         m, n, sparse = self.__nrows, self.__ncols, self.__is_sparse
         if rows is not None:
-            deprecation("'rows=True/False' parameter is deprecated!", "Sage 5.1")
+            deprecation(13012, "'rows=True/False' parameter is deprecated!")
         if rows is not None and not rows:
             if not isinstance(x, dict):
                 MT =  MatrixSpace(self.base_ring(), n, m, sparse)

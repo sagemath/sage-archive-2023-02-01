@@ -115,7 +115,7 @@ from misc import (
 
 
 #########################################################################
-@rename_keyword(deprecated='Sage version 4.7.2', field='base_ring')
+@rename_keyword(deprecation=11634, field='base_ring')
 def Polyhedron(vertices=None, rays=None, lines=None,
                ieqs=None, eqns=None,
                base_ring=QQ, minimize=True, verbose=False,

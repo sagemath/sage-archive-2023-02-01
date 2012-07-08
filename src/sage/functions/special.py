@@ -1684,8 +1684,8 @@ def lngamma(t):
         doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
         4.78749174278205
     """
-    from sage.misc.misc import deprecation
-    deprecation("The method lngamma() is deprecated. Use log_gamma() instead.")
+    from sage.misc.superseded import deprecation
+    deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
     return log_gamma(t)
 
 def exp_int(t):
@@ -1700,8 +1700,8 @@ def exp_int(t):
         doctest:...: DeprecationWarning: The method exp_int() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.
         0.000360082452162659
     """
-    from sage.misc.misc import deprecation
-    deprecation("The method exp_int() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.")
+    from sage.misc.superseded import deprecation
+    deprecation(6992, "The method exp_int() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.")
     try:
         return t.eint1()
     except AttributeError:

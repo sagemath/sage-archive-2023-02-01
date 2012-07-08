@@ -440,8 +440,8 @@ class Divisor_curve(Divisor_generic):
             sage: D.coefficient(pts[0])
             1
         """
-        from sage.misc.misc import deprecation
-        deprecation("This method is deprecated. It will be removed in a future release of Sage. Please use the coefficient() method instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(9337, "This method is deprecated. It will be removed in a future release of Sage. Please use the coefficient() method instead.")
         return self.coefficient(P)
 
 

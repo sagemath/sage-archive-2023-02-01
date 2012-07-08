@@ -106,8 +106,8 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
     else:
         vars, free_vars = unify_arguments(funcs)
         if len(free_vars)>1:
-            from sage.misc.misc import deprecation
-            deprecation("Unnamed ranges for more than one variable is deprecated and will be removed from a future release of Sage; you can used named ranges instead, like (x,0,2)")
+            from sage.misc.superseded import deprecation
+            deprecation(7008, "Unnamed ranges for more than one variable is deprecated and will be removed from a future release of Sage; you can used named ranges instead, like (x,0,2)")
 
     # pad the variables if we don't have enough
     nargs = len(ranges)

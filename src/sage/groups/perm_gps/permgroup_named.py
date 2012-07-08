@@ -78,7 +78,7 @@ from sage.rings.integer_ring import ZZ
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.structure.unique_representation import UniqueRepresentation
@@ -179,7 +179,7 @@ class PermutationGroup_symalt(PermutationGroup_unique):
 
         return super(PermutationGroup_symalt, cls).__classcall__(cls, domain=v)
 
-    set = deprecated_function_alias(PermutationGroup_generic.domain, 'Sage Version 4.7.1')
+    set = deprecated_function_alias(10335, PermutationGroup_generic.domain)
 
 class SymmetricGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):

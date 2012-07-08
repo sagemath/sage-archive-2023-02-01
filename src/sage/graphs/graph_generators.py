@@ -8220,11 +8220,11 @@ class GraphGenerators():
           pages 306-324.
         """
         from sage.graphs.all import Graph
-        from sage.misc.misc import deprecation
+        from sage.misc.superseded import deprecation
         from copy import copy as copyfun
 
         if deg_seq is not None:
-            deprecation("The argument name deg_seq is deprecated. It will be "
+            deprecation(11927, "The argument name deg_seq is deprecated. It will be "
                         "removed in a future release of Sage. So, please use "
                         "degree_sequence instead.")
         if degree_sequence is None:

@@ -85,8 +85,8 @@ class OrderedAlphabet_class(CombinatorialClass):
             doctest:1: DeprecationWarning: string_rep is deprecated, use __repr__ instead!
             'Ordered Alphabet [1, 3, 2]'
         """
-        from sage.misc.misc import deprecation
-        deprecation("string_rep is deprecated, use __repr__ instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(6519, "string_rep is deprecated, use __repr__ instead!")
         return self.__repr__()
 
 class OrderedAlphabet_Finite(OrderedAlphabet_class):

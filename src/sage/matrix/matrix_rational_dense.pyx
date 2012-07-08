@@ -629,8 +629,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             ...
             ZeroDivisionError: input matrix must be nonsingular
         """
-        from sage.misc.misc import deprecation
-        deprecation("'invert' is deprecated; use 'inverse' instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(5460, "'invert' is deprecated; use 'inverse' instead.")
         return self.__invert__()
 
     def __invert__(self):

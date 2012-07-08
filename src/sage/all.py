@@ -153,9 +153,10 @@ _init_qqbar()
 #after a few releases, and this code should be removed.
 #--Mike Hansen 9/25/2008
 message = "\nUsing %(name)s from the top level is deprecated since it was designed to be used by developers rather than end users.\nIt most likely does not do what you would expect it to do.  If you really need to use it, import it from the module that it is defined in."
-sage.misc.misc.deprecated_callable_import(None, globals(), locals(),
-                                          [name for name in globals().keys()
-                                           if name.startswith('is_') and name[3].isupper()], message)
+sage.misc.superseded.deprecated_callable_import(
+    10107, None, globals(), locals(),
+    [name for name in globals().keys() if name.startswith('is_') and name[3].isupper()],
+    message)
 
 del message, name
 

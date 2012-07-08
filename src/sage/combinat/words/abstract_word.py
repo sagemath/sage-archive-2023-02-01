@@ -1255,8 +1255,8 @@ class Word_class(SageObject):
             Ordered Alphabet ['4', '5', '6']
 
         """
-        from sage.misc.misc import deprecation
-        deprecation("alphabet() is deprecated, use parent().alphabet() instead")
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "alphabet() is deprecated, use parent().alphabet() instead")
         return self.parent().alphabet()
 
     def _partial_sums_iterator(self, start, mod=None):

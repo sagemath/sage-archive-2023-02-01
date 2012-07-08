@@ -9538,9 +9538,8 @@ cdef class Matrix(matrix1.Matrix):
             [        0.0         0.0]
             [NaN + NaN*I NaN + NaN*I]
         """
-        # deprecation added 2012-05-27
-        from sage.misc.misc import deprecation
-        deprecation("cholesky_decomposition() is deprecated; please use cholesky() instead.", "Sage Version 5.1")
+        from sage.misc.superseded import deprecation
+        deprecation(13045, "cholesky_decomposition() is deprecated; please use cholesky() instead.")
         assert self._nrows == self._ncols, "Can only Cholesky decompose square matrices"
         if self._nrows == 0:
             return self.__copy__()

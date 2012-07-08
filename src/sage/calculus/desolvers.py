@@ -846,7 +846,7 @@ def desolve_system_strings(des,vars,ics=None):
     soln = maxima(cmd)
     return [f.rhs()._maxima_init_() for f in soln]
 
-@rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+@rename_keyword(deprecation=6094, method="algorithm")
 def eulers_method(f,x0,y0,h,x1,algorithm="table"):
     r"""
     This implements Euler's method for finding numerically the
@@ -931,7 +931,7 @@ def eulers_method(f,x0,y0,h,x1,algorithm="table"):
     if algorithm!="table":
         return soln
 
-@rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+@rename_keyword(deprecation=6094, method="algorithm")
 def eulers_method_2x2(f,g, t0, x0, y0, h, t1,algorithm="table"):
     r"""
     This implements Euler's method for finding numerically the

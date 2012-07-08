@@ -5411,8 +5411,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             doctest:...: DeprecationWarning: This function is deprecated. It will be removed in a future release of Sage. Please use the .variable_name() function instead.
             'theta'
         """
-        from sage.misc.misc import deprecation
-        deprecation("This function is deprecated. It will be removed in a future release of Sage. Please use the .variable_name() function instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(4522, "This function is deprecated. It will be removed in a future release of Sage. Please use the .variable_name() function instead.")
         return self.parent().variable_name()
 
 

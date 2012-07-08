@@ -145,8 +145,8 @@ def EnumeratedSet(X):
         ...
         ValueError: X (=Integer Ring) must be finite
     """
-    from sage.misc.misc import deprecation
-    deprecation('EnumeratedSet is deprecated; use Set instead.')
+    from sage.misc.superseded import deprecation
+    deprecation(8930, 'EnumeratedSet is deprecated; use Set instead.')
     try:
         if not X.is_finite():
             raise ValueError, "X (=%s) must be finite"%X

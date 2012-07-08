@@ -290,8 +290,8 @@ class ChristoffelWord_Lower(LowerChristoffelWord):
             doctest:1: DeprecationWarning: ChristoffelWord_Lower is deprecated, use LowerChristoffelWord instead
             word: 1
         """
-        from sage.misc.misc import deprecation
-        deprecation("ChristoffelWord_Lower is deprecated, use LowerChristoffelWord instead")
+        from sage.misc.superseded import deprecation
+        deprecation(6519, "ChristoffelWord_Lower is deprecated, use LowerChristoffelWord instead")
         return LowerChristoffelWord.__new__(cls, *args, **kwds)
 
 class WordGenerator(object):

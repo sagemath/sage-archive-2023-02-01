@@ -187,8 +187,8 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             doctest:1: DeprecationWarning:The function vector is replaced by _vector_.
             (1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
-        from sage.misc.misc import deprecation
-        deprecation("The function vector is replaced by _vector_.")
+        from sage.misc.superseded import deprecation
+        deprecation(8218, "The function vector is replaced by _vector_.")
         return self._vector_()
 
     def _vector_(self, reverse=False):
@@ -268,8 +268,8 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             [0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0]
             [0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1]
         """
-        from sage.misc.misc import deprecation
-        deprecation("The function matrix is replaced by _matrix_.")
+        from sage.misc.superseded import deprecation
+        deprecation(8218, "The function matrix is replaced by _matrix_.")
         return self._matrix_()
 
 

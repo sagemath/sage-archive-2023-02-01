@@ -42,7 +42,7 @@ from sage.rings.all import ZZ, QQ
 from sage.interfaces.gap import gap
 #from sage.misc.cache import Cache
 from sage.misc.cachefunc import cached_method, ClearCacheOnPickle
-from sage.misc.misc import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.matrix.constructor import matrix, diagonal_matrix
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
@@ -501,7 +501,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         """
         return self._domain
 
-    lattice = deprecated_function_alias(domain, 'Sage Version 4.3.4')
+    lattice = deprecated_function_alias(8414, domain)
 
     def simple_reflection(self, i):
         """

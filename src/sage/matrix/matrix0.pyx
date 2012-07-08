@@ -163,8 +163,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             IndexError: polynomials are immutable
         """
-        import sage.misc.misc
-        sage.misc.misc.deprecation("the .copy() method is deprecated; please use the copy() function instead, for example, copy(M)")
+        from sage.misc.superseded import deprecation
+        deprecation(6521, "the .copy() method is deprecated; please use the copy() function instead, for example, copy(M)")
         return self.__copy__()
 
     def list(self):

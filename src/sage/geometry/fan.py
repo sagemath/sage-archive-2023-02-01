@@ -268,7 +268,7 @@ from sage.geometry.toric_plotter import ToricPlotter
 from sage.graphs.digraph import DiGraph
 from sage.matrix.all import matrix
 from sage.misc.all import cached_method, flatten, walltime, prod
-from sage.misc.misc import deprecation
+from sage.misc.superseded import deprecation
 from sage.modules.all import vector
 from sage.rings.all import QQ, RR, ZZ
 from sage.structure.all import Sequence
@@ -474,8 +474,7 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
         0
     """
     if "discard_warning" in kwds:
-        deprecation("discard_warning is deprecated, use discard_faces instead.",
-                    "Sage Version 4.7.2")
+        deprecation(11627, "discard_warning is deprecated, use discard_faces instead.")
         discard_faces = not discard_warning
         kwds.pop(discard_warning)
     if kwds:

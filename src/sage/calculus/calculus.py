@@ -1185,13 +1185,13 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
             l = maxima.sr_limit(ex, v, a)
         elif dir in ['plus', '+', 'right', 'above']:
             if dir == 'above':
-                from sage.misc.misc import deprecation
-                deprecation("the keyword 'above' is deprecated. Please use 'right' or '+' instead.", 'Sage version 4.6')
+                from sage.misc.superseded import deprecation
+                deprecation(9200, "the keyword 'above' is deprecated. Please use 'right' or '+' instead.")
             l = maxima.sr_limit(ex, v, a, 'plus')
         elif dir in ['minus', '-', 'left', 'below']:
             if dir == 'below':
-                from sage.misc.misc import deprecation
-                deprecation("the keyword 'below' is deprecated. Please use 'left' or '-' instead.", 'Sage version 4.6')
+                from sage.misc.superseded import deprecation
+                deprecation(9200, "the keyword 'below' is deprecated. Please use 'left' or '-' instead.")
             l = maxima.sr_limit(ex, v, a, 'minus')
     elif algorithm == 'maxima_taylor':
         if dir is None:

@@ -3100,8 +3100,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             doctest:1: DeprecationWarning: integral_weierstrass_model is deprecated, use integral_short_weierstrass_model instead!
             Elliptic Curve defined by y^2  = x^3 - 11*x - 890 over Rational Field
         """
-        from sage.misc.misc import deprecation
-        deprecation("integral_weierstrass_model is deprecated, use integral_short_weierstrass_model instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(3974, "integral_weierstrass_model is deprecated, use integral_short_weierstrass_model instead!")
         return self.integral_short_weierstrass_model()
 
 
@@ -4584,8 +4584,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             True
 
         """
-        from sage.misc.misc import deprecation
-        deprecation("is_reducible is deprecated, use galois_representation().is_reducible(p) instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8118, "is_reducible is deprecated, use galois_representation().is_reducible(p) instead!")
         return self.galois_representation().is_reducible(p)
 
     # deprecated as it should be the is_irreducible for a scheme (and hence return True always).
@@ -4604,8 +4604,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             True
 
         """
-        from sage.misc.misc import deprecation
-        deprecation("is_irreducible is deprecated, use galois_representation().is_irreducible(p) instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8118, "is_irreducible is deprecated, use galois_representation().is_irreducible(p) instead!")
         return self.galois_representation().is_irreducible(p)
 
     # deprecated
@@ -4624,8 +4624,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             True
 
         """
-        from sage.misc.misc import deprecation
-        deprecation("is_surjective is deprecated, use galois_representation().is_surjective(p) instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8118, "is_surjective is deprecated, use galois_representation().is_surjective(p) instead!")
         return self.galois_representation().is_surjective(p,A)
 
     # deprecated
@@ -4644,8 +4644,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [2,3]
 
        """
-        from sage.misc.misc import deprecation
-        deprecation("reducible_primes is deprecated, use galois_representation().reducible_primes() instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8118, "reducible_primes is deprecated, use galois_representation().reducible_primes() instead!")
         return self.galois_representation().reducible_primes()
 
     # deprecated
@@ -4664,8 +4664,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [2,3]
 
         """
-        from sage.misc.misc import deprecation
-        deprecation("non_surjective is deprecated, use galois_representation().non_surjective() instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8118, "non_surjective is deprecated, use galois_representation().non_surjective() instead!")
         return self.galois_representation().non_surjective()
 
     def is_semistable(self):

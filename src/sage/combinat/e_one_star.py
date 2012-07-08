@@ -816,8 +816,8 @@ class Patch(SageObject):
             sage: P.add([Face((1,2,3), 3), Face((2,3,3), 2)])   #not tested
             Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(1, 2, 3), 3]*, [(2, 3, 3), 2]*]
         """
-        from sage.misc.misc import deprecation
-        deprecation("Objects sage.combinat.e_one_star.Patch " + \
+        from sage.misc.superseded import deprecation
+        deprecation(12384, "Objects sage.combinat.e_one_star.Patch " + \
                     "are immutable since Sage-4.7.1. " + \
                     "Use the usual addition (P + Q) or use the Patch.union method.")
         return self.union(other)
@@ -1039,8 +1039,8 @@ class Patch(SageObject):
         if not isinstance(E, E1Star):
             raise TypeError, "E must be an instance of E1Star"
 
-        from sage.misc.misc import deprecation
-        deprecation("Objects sage.combinat.e_one_star.Patch " + \
+        from sage.misc.superseded import deprecation
+        deprecation(12384, "Objects sage.combinat.e_one_star.Patch " + \
                     "are immutable since Sage-4.7.1. " + \
                     "Use the usual calling method of E1Star (E(P)).")
         return E(self, iterations=iterations)

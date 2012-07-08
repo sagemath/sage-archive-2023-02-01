@@ -34,8 +34,8 @@ from sage.structure.formal_sum import FormalSums, FormalSum
 from sage.sets.set import Set
 
 
-from sage.misc.misc import deprecation
-deprecation("The module group_algebra is deprecated and will be removed in a future version of Sage. Use group_algebra_new instead.")
+from sage.misc.superseded import deprecation
+deprecation(6670, "The module group_algebra is deprecated and will be removed in a future version of Sage. Use group_algebra_new instead.")
 
 
 class GroupAlgebra(Algebra):

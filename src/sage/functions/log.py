@@ -126,8 +126,8 @@ class Function_exp(GinacFunction):
             7.3890560989306502272304274606
         """
         if prec is not None:
-            from sage.misc.misc import deprecation
-            deprecation("The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.")
+            from sage.misc.superseded import deprecation
+            deprecation(7490, "The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.")
             x = GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
                     dont_call_method_on_arg=dont_call_method_on_arg)
             return x.n(prec)

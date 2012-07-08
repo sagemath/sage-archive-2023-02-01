@@ -1387,7 +1387,8 @@ def _plot(funcs, xrange, parametric=False,
 
     # Label?
     if label:
-        sage.misc.misc.deprecation("Consider using legend_label instead")
+        from sage.misc.superseded import deprecation
+        deprecation(4342, "Consider using legend_label instead")
         label = '  '+str(label)
         G += text(label, data[-1], horizontal_alignment='left',
                   vertical_alignment='center')
@@ -1506,8 +1507,8 @@ def parametric_plot(funcs, *args, **kwargs):
             break
 
     if num_ranges==0 and len(args)>=2:
-        from sage.misc.misc import deprecation
-        deprecation("variable ranges to parametric_plot must be given as tuples, like (2,4) or (t,2,3)")
+        from sage.misc.superseded import deprecation
+        deprecation(7008, "variable ranges to parametric_plot must be given as tuples, like (2,4) or (t,2,3)")
         args=tuple(args)
         num_ranges=1
 
@@ -2178,8 +2179,8 @@ def var_and_list_of_values(v, plot_points):
         sage: var_and_list_of_values((2, 5),  2)
         (None, [2.0, 5.0])
     """
-    from sage.misc.misc import deprecation
-    deprecation("var_and_list_of_values is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable")
+    from sage.misc.superseded import deprecation
+    deprecation(7008, "var_and_list_of_values is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable")
     plot_points = int(plot_points)
     if plot_points < 2:
         raise ValueError, "plot_points must be greater than 1"
@@ -2263,8 +2264,8 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
 
 
     """
-    from sage.misc.misc import deprecation
-    deprecation("sage.plot.plot.setup_for_eval_on_grid is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable")
+    from sage.misc.superseded import deprecation
+    deprecation(7008, "sage.plot.plot.setup_for_eval_on_grid is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable")
 
     from sage.plot.misc import setup_for_eval_on_grid as setup
     g, ranges=setup(v, [xrange, yrange], plot_points)

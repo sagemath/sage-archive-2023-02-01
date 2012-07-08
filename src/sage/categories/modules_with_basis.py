@@ -16,7 +16,8 @@ AUTHORS:
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import attrcall, deprecated_function_alias
+from sage.misc.misc import attrcall
+from sage.misc.superseded import deprecated_function_alias
 from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.all import Sets, CommutativeAdditiveSemigroups, Modules, HomCategory, Homset
 from sage.categories.cartesian_product import CartesianProductsCategory
@@ -878,8 +879,8 @@ class ModulesWithBasis(Category_over_base_ring):
             """
             return self.parent().sum_of_terms( f(m,c) for m,c in self )
 
-        map_term = deprecated_function_alias(map_item, 'Sage Version 4.4.2')
-        map_mc   = deprecated_function_alias(map_item, 'Sage Version 4.4.2')
+        map_term = deprecated_function_alias(8890, map_item)
+        map_mc   = deprecated_function_alias(8890, map_item)
 
         def tensor(*elements):
             """

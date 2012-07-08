@@ -238,7 +238,7 @@ import composition
 from integer_vector import IntegerVectors
 from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
-from sage.misc.misc import deprecation, deprecated_function_alias
+from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.misc.prandom import randrange
 
 def Partition(mu=None, **keyword):
@@ -296,7 +296,7 @@ def Partition(mu=None, **keyword):
     elif 'core' in keyword and 'canonical_quotient' in keyword and len(keyword)==2:
         raise NotImplementedError
     elif 'core_and_quotient' in keyword and len(keyword)==1:
-        deprecation('"core_and_quotient=(*)" is deprecated. Use "core=[*], quotient=[*]" instead.')
+        deprecation(5790, '"core_and_quotient=(*)" is deprecated. Use "core=[*], quotient=[*]" instead.')
         return from_core_and_quotient(*keyword['core_and_quotient'])
     else:
         raise ValueError, 'incorrect syntax for Partition()'
@@ -885,8 +885,7 @@ class Partition_class(CombinatorialObject):
         return res
 
 
-    boxes = deprecated_function_alias(cells,
-                'Sage Version 4.3')
+    boxes = deprecated_function_alias(7515, cells)
 
     def generalized_pochhammer_symbol(self, a, alpha):
         r"""
@@ -973,7 +972,7 @@ class Partition_class(CombinatorialObject):
         perm = permutation.Permutation(word)
         return perm.robinson_schensted()[1]
 
-    associated = deprecated_function_alias(conjugate, "Sage Version 4.4")
+    associated = deprecated_function_alias(6655, conjugate)
 
     def arm_length(self, i, j):
         """
@@ -1007,8 +1006,7 @@ class Partition_class(CombinatorialObject):
         else:
             raise ValueError, "The cells is not in the diagram"
 
-    arm = deprecated_function_alias(arm_length,
-        'Sage Version 4.3')
+    arm = deprecated_function_alias(6655, arm_length)
 
     def arm_lengths(self, flat=False):
         """
@@ -1096,8 +1094,7 @@ class Partition_class(CombinatorialObject):
         else:
             raise ValueError, "The cells is not in the diagram"
 
-    leg = deprecated_function_alias(leg_length,
-        'Sage Version 4.3')
+    leg = deprecated_function_alias(6655, leg_length)
 
     def leg_lengths(self, flat=False):
         """
@@ -1251,9 +1248,7 @@ class Partition_class(CombinatorialObject):
         """
         return self.leg_length(i,j)+self.arm_length(i,j)+1
 
-    hook = deprecated_function_alias(hook_length,
-        'Sage Version 4.3')
-
+    hook = deprecated_function_alias(7515, hook_length)
 
     def hooks(self):
         """
@@ -1801,8 +1796,7 @@ class Partition_class(CombinatorialObject):
         #Select the r-core
         return Partition_class(filter(lambda x: x != 0, part))
 
-    r_core = deprecated_function_alias(core,
-        'Sage Version 4.3')
+    r_core = deprecated_function_alias(11165, core)
 
     def quotient(self, length):
         """
@@ -1869,8 +1863,7 @@ class Partition_class(CombinatorialObject):
 
         return tuple(map(Partition_class, result))
 
-    r_quotient = deprecated_function_alias(quotient,
-        'Sage Version 4.3')
+    r_quotient = deprecated_function_alias(7515, quotient)
 
     def is_core(self, k):
         r"""
@@ -1966,8 +1959,7 @@ class Partition_class(CombinatorialObject):
 
         raise ValueError, "[%s, %s] is not an addable cell"%(i,j)
 
-    add_box = deprecated_function_alias(add_cell,
-        'Sage Version 4.3')
+    add_box = deprecated_function_alias(7515, add_cell)
 
     def remove_cell(self, i, j = None):
         """
@@ -2003,9 +1995,7 @@ class Partition_class(CombinatorialObject):
         else:
             return Partition(self[:i] + [ self[i:i+1][0] - 1 ] + self[i+1:])
 
-    remove_box = deprecated_function_alias(remove_cell,
-        'Sage Version 4.3')
-
+    remove_box = deprecated_function_alias(7515, remove_cell)
 
     def k_skew(self, k):
         r"""
@@ -2840,11 +2830,8 @@ def RestrictedPartitions(n, S, k=None):
         sage: RestrictedPartitions(5,[3,2,1],4).list()
         [[2, 1, 1, 1]]
     """
-    import warnings
-    warnings.resetwarnings()
-    warnings.warn('RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.', DeprecationWarning, stacklevel=2)
-    from sage.misc.misc import deprecation
-    deprecation('RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.')
+    from sage.misc.superseded import deprecation
+    deprecation(5478, 'RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.')
     return RestrictedPartitions_nsk(n, S, k)
 
 class RestrictedPartitions_nsk(CombinatorialClass):
@@ -2862,11 +2849,8 @@ class RestrictedPartitions_nsk(CombinatorialClass):
             sage: r == loads(dumps(r))
             True
         """
-        import warnings
-        warnings.resetwarnings()
-        warnings.warn('RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.', DeprecationWarning, stacklevel=2)
-        from sage.misc.misc import deprecation
-        deprecation('RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.')
+        from sage.misc.superseded import deprecation
+        deprecation(5478, 'RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.')
         self.n = n
         self.S = S
         self.S.sort()
@@ -4682,8 +4666,8 @@ def ferrers_diagram(pi):
         **
         *
     """
-    from sage.misc.misc import deprecation
-    deprecation('"ferrers_diagram deprecated. Use Partition(pi).ferrers_diagram() instead')
+    from sage.misc.superseded import deprecation
+    deprecation(5790, '"ferrers_diagram deprecated. Use Partition(pi).ferrers_diagram() instead')
     return Partition(pi).ferrers_diagram()
 
 
@@ -5031,8 +5015,8 @@ def partition_sign(pi):
 
     - http://en.wikipedia.org/wiki/Zolotarev's_lemma
     """
-    from sage.misc.misc import deprecation
-    deprecation('"partition_sign deprecated. Use Partition(pi).sign() instead')
+    from sage.misc.superseded import deprecation
+    deprecation(5790, '"partition_sign deprecated. Use Partition(pi).sign() instead')
     return Partition(pi).sign()
 
 def partition_associated(pi):
@@ -5061,7 +5045,7 @@ def partition_associated(pi):
         *
         *
     """
-    from sage.misc.misc import deprecation
-    deprecation('"partition_associated deprecated. Use Partition(pi).conjugte() instead')
+    from sage.misc.superseded import deprecation
+    deprecation(5790, '"partition_associated deprecated. Use Partition(pi).conjugte() instead')
     return Partition(pi).conjugate()
 

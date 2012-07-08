@@ -1249,7 +1249,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         return resu
 
 
-    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    @rename_keyword(deprecation=6094, method="algorithm")
     def frobenius(self, prec=20, algorithm = "mw"):
         r"""
         This returns a geometric Frobenius `\varphi` on the Diedonne module `D_p(E)`

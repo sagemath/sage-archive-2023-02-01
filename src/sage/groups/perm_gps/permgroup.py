@@ -1811,8 +1811,8 @@ class PermutationGroup_generic(group.Group):
             doctest:...: DeprecationWarning: quotient_group() is deprecated; use quotient() instead.
             Permutation Group with generators [(1,2)]
         """
-        from sage.misc.misc import deprecation
-        deprecation('quotient_group() is deprecated; use quotient() instead.')
+        from sage.misc.superseded import deprecation
+        deprecation(7371, 'quotient_group() is deprecated; use quotient() instead.')
         return self.quotient(N)
 
     def commutator(self, other=None):

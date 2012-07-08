@@ -1141,8 +1141,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             [12]
             [22]
         """
-        from sage.misc.misc import deprecation
-        deprecation('The transpose() method for vectors has been deprecated, use column() instead\n(or check to see if you have a vector when you really want a matrix)', 'Sage Version 4.6.2')
+        from sage.misc.superseded import deprecation
+        deprecation(10541, 'The transpose() method for vectors has been deprecated, use column() instead\n(or check to see if you have a vector when you really want a matrix)')
         return self._matrix_().transpose()
 
     def row(self):

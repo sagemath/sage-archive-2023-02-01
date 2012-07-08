@@ -1076,8 +1076,8 @@ def factor(*args, **kwds):
         doctest:...: DeprecationWarning: This function is deprecated...
         1
     """
-    from sage.misc.misc import deprecation
-    deprecation("This function is deprecated.  Call the factor method of an Integer,"
+    from sage.misc.superseded import deprecation
+    deprecation(5945, "This function is deprecated.  Call the factor method of an Integer,"
                 +"or sage.arith.factor instead.")
     #deprecated 4.6.2
 

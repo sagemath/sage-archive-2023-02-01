@@ -323,9 +323,9 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     ## too many things (padics, elliptic curves) depend on this behavior,
     ## so no warning for now.
     ##
-    # from sage.misc.misc import deprecation
+    # from sage.misc.superseded import deprecation
     # if isinstance(name, (int,long,integer.Integer)) or isinstance(arg2,(int,long,integer.Integer)):
-    #     deprecation("This behavior of PowerSeriesRing is being deprecated in favor of constructing multivariate power series rings. (See Trac ticket #1956.)")
+    #     deprecation(trac_number, "This behavior of PowerSeriesRing is being deprecated in favor of constructing multivariate power series rings. (See Trac ticket #1956.)")
 
 
     # the following is the original, univariate-only code

@@ -1513,16 +1513,16 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
             doctest:...: DeprecationWarning: Use engine("latex") instead.
         """
         if t is None:
-            from sage.misc.misc import deprecation
-            deprecation('Use engine() instead.')
+            from sage.misc.superseded import deprecation
+            deprecation(8486, 'Use engine() instead.')
             return _Latex_prefs._option["engine"] == "pdflatex"
         elif t:
-            from sage.misc.misc import deprecation
-            deprecation('Use engine("pdflatex") instead.')
+            from sage.misc.superseded import deprecation
+            deprecation(8552, 'Use engine("pdflatex") instead.')
             self.engine("pdflatex")
         else:
-            from sage.misc.misc import deprecation
-            deprecation('Use engine("latex") instead.')
+            from sage.misc.superseded import deprecation
+            deprecation(8552, 'Use engine("latex") instead.')
             self.engine("latex")
 
     def engine(self, e = None):
@@ -1907,9 +1907,9 @@ def jsmath(x, mode='display'):
 
     - Bobby Moretti (2006-10): improvements, comments, documentation
     """
-    from sage.misc.misc import deprecation
+    from sage.misc.superseded import deprecation
     from sage.misc.html import html
-    deprecation("The jsmath function is deprecated.  Use html('$math$') for inline mode or html('$$math$$') for display mode.")
+    deprecation(8552, "The jsmath function is deprecated.  Use html('$math$') for inline mode or html('$$math$$') for display mode.")
     if mode == 'display':
         delimiter = '$$'
     elif mode == 'inline':

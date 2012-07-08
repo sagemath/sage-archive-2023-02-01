@@ -768,8 +768,8 @@ class Function_gamma(GinacFunction):
             1.2254167024651776451290983034
         """
         if prec is not None:
-            from sage.misc.misc import deprecation
-            deprecation("The prec keyword argument is deprecated. Explicitly set the precision of the input, for example gamma(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., gamma(1).n(300), instead.")
+            from sage.misc.superseded import deprecation
+            deprecation(7490, "The prec keyword argument is deprecated. Explicitly set the precision of the input, for example gamma(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., gamma(1).n(300), instead.")
             import mpmath
             return mpmath_utils.call(mpmath.gamma, x, prec=prec)
 
@@ -787,8 +787,8 @@ class Function_gamma(GinacFunction):
             if not str(err).startswith("cannot coerce"):
                 raise
 
-            from sage.misc.misc import deprecation
-            deprecation("Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.")
+            from sage.misc.superseded import deprecation
+            deprecation(7490, "Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.")
             parent = RR if prec is None else RealField(prec)
             try:
                 x = parent(x)

@@ -1855,8 +1855,8 @@ class Polyhedron_base(SageObject):
             [[0, [1, 2, 5]], [0, [2, 5, 3]], [0, [5, 3, 4]], [1, [0, 1, 2]],
              [2, [0, 2, 3]], [3, [0, 3, 4]], [4, [0, 4, 5]], [5, [0, 1, 5]]]
         """
-        from sage.misc.misc import deprecation
-        deprecation('This method is deprecated. Use triangulate() instead.', 'Sage Version 4.7.1')
+        from sage.misc.superseded import deprecation
+        deprecation(11634, 'This method is deprecated. Use triangulate() instead.')
         try:
             return self._triangulated_facial_incidences
         except AttributeError:
@@ -1930,9 +1930,8 @@ class Polyhedron_base(SageObject):
             sage: sc
             Simplicial complex with 13 vertices and 20 facets
         """
-        from sage.misc.misc import deprecation
-        deprecation('This method is deprecated. Use triangulate().simplicial_complex() instead.',
-                    'Sage Version 4.7.1')
+        from sage.misc.superseded import deprecation
+        deprecation(11634, 'This method is deprecated. Use triangulate().simplicial_complex() instead.')
         from sage.homology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(vertex_set = self.n_vertices(),
                                  maximal_faces = [x[1] for x in self.triangulated_facial_incidences()])
@@ -2053,8 +2052,8 @@ class Polyhedron_base(SageObject):
             The function union is replaced by convex_hull.
             A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
         """
-        from sage.misc.misc import deprecation
-        deprecation('The function union is replaced by convex_hull.', 'Sage Version 4.4.4')
+        from sage.misc.superseded import deprecation
+        deprecation(11634, 'The function union is replaced by convex_hull.')
         return self.convex_hull(other)
 
 

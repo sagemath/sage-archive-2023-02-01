@@ -409,8 +409,8 @@ def fast_callable(x, domain=None, vars=None,
                         vars = ['EXTRA_VAR0']
                 else:
                     if _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality:
-                        from sage.misc.misc import deprecation
-                        deprecation("Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
+                        from sage.misc.superseded import deprecation
+                        deprecation(5413, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
                     else:
                         raise ValueError, "List of variables must be specified for symbolic expressions"
             from sage.rings.all import is_PolynomialRing, is_MPolynomialRing

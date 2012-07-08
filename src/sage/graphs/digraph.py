@@ -91,7 +91,7 @@ Methods
 """
 
 from sage.rings.integer import Integer
-from sage.misc.misc import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
@@ -1152,7 +1152,7 @@ class DiGraph(GenericGraph):
         """
         return iter(set(self._backend.iterator_in_nbrs(vertex)))
 
-    predecessor_iterator = deprecated_function_alias(neighbor_in_iterator, 'Sage Version 4.3')
+    predecessor_iterator = deprecated_function_alias(7634, neighbor_in_iterator)
 
     def neighbors_in(self, vertex):
         """
@@ -1168,7 +1168,7 @@ class DiGraph(GenericGraph):
         """
         return list(self.neighbor_in_iterator(vertex))
 
-    predecessors = deprecated_function_alias(neighbors_in, 'Sage Version 4.3')
+    predecessors = deprecated_function_alias(7634, neighbors_in)
 
     def neighbor_out_iterator(self, vertex):
         """
@@ -1187,7 +1187,7 @@ class DiGraph(GenericGraph):
         """
         return iter(set(self._backend.iterator_out_nbrs(vertex)))
 
-    successor_iterator = deprecated_function_alias(neighbor_out_iterator, 'Sage Version 4.3')
+    successor_iterator = deprecated_function_alias(7634, neighbor_out_iterator)
 
     def neighbors_out(self, vertex):
         """
@@ -1203,7 +1203,7 @@ class DiGraph(GenericGraph):
         """
         return list(self.neighbor_out_iterator(vertex))
 
-    successors = deprecated_function_alias(neighbors_out, 'Sage Version 4.3')
+    successors = deprecated_function_alias(7634, neighbors_out)
 
     ### Degree functions
 

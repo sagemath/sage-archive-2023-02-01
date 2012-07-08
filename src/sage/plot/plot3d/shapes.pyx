@@ -522,7 +522,7 @@ def LineSegment(start, end, thickness=1, radius=None, **kwds):
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)
 
-@rename_keyword(deprecated='Sage 4.6', deprecated_option='thickness', thickness='width')
+@rename_keyword(deprecation=7154, deprecated_option='thickness', thickness='width')
 def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, **kwds):
     """
     Create a 3d arrow.

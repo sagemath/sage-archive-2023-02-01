@@ -345,8 +345,8 @@ class Function_exp_integral(BuiltinFunction):
             2.16737827956340306615064476647912607220394065907142504328679588538509331805598360907980986
         """
         if prec is not None:
-            from sage.misc.misc import deprecation
-            deprecation("The prec keyword argument is deprecated. Explicitly set the precision of the input, for example Ei(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., Ei(1).n(300), instead.")
+            from sage.misc.superseded import deprecation
+            deprecation(7748, "The prec keyword argument is deprecated. Explicitly set the precision of the input, for example Ei(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., Ei(1).n(300), instead.")
 
             import mpmath
             return mpmath_utils.call(mpmath.ei, x, prec=prec)

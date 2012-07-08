@@ -25,7 +25,7 @@ import random
 import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.misc import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -896,8 +896,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             return self._list[self._element_to_vertex_dict[element]]
         except KeyError:
             if isinstance(element,Integer):
-                import sage.misc.misc
-                sage.misc.misc.deprecation("Accessing the i-th element of a poset as P(i) is deprecated. Please use P[i]")
+                from sage.misc.superseded import deprecation
+                deprecation(13109, "Accessing the i-th element of a poset as P(i) is deprecated. Please use P[i]")
                 if element > -1:
                     return self.element_class(self, \
                         self._elements[element], element)
@@ -1896,7 +1896,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return Integer(self._hasse_diagram.order())
 
-    size = deprecated_function_alias(cardinality, 'Sage Version 4.4 (2010-05)')
+    size = deprecated_function_alias(8735, cardinality)
 
     def mobius_function(self,x,y):
         r"""

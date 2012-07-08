@@ -74,7 +74,7 @@ def tdesign_params(t, v, k, L):
     r = integer_floor(L * x/y)
     return (t, v, b, r, k, L)
 
-@rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+@rename_keyword(deprecation=6094, method="algorithm")
 def ProjectiveGeometryDesign(n, d, F, algorithm=None):
     """
     Input: n is the projective dimension, so the number of points is v

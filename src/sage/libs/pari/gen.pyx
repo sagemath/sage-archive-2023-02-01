@@ -5044,8 +5044,8 @@ cdef class gen(sage.structure.element.RingElement):
             doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
             359.134205369575
         """
-        from sage.misc.misc import deprecation
-        deprecation("The method lngamma() is deprecated. Use log_gamma() instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
         return x.log_gamma(precision)
 
     def log_gamma(gen x, precision=0):

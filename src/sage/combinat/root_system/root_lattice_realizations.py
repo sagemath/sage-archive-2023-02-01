@@ -27,7 +27,7 @@ from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.sets.family import Family
 from sage.rings.all import ZZ, QQ
 from sage.combinat.backtrack import TransitiveIdeal
-from sage.misc.misc import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias
 from copy import copy
 
 class RootLatticeRealizations(Category_over_base_ring):
@@ -934,8 +934,8 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             # _test_not_implemented_methods apparently evaluates all lazy
             # attributes, which means that we can't use deprecation here!
-            # from sage.misc.misc import deprecation
-            # deprecation("The lazy attribute pi is deprecated; please use the simple_projections method.", 'Sage Version 5.0')
+            # from sage.misc.superseded import deprecation
+            # deprecation(trac_number, "The lazy attribute pi is deprecated; please use the simple_projections method.")
             return self.simple_projections()
 
         ##########################################################################
@@ -1462,7 +1462,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                         direction.append(i)
                     self = self.simple_reflection(i)
 
-        to_positive_chamber = deprecated_function_alias(to_dominant_chamber, "Sage 4.8")
+        to_positive_chamber = deprecated_function_alias(12667, to_dominant_chamber)
 
         def reduced_word(self, index_set = None, positive = True):
             r"""

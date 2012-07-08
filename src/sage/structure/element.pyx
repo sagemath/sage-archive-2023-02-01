@@ -1847,8 +1847,8 @@ cdef class RingElement(ModuleElement):
             12
         """
         # deprecation added 2009-05
-        from sage.misc.misc import deprecation
-        deprecation("The function order is deprecated for ring elements; use additive_order or multiplicative_order instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(5716, "The function order is deprecated for ring elements; use additive_order or multiplicative_order instead.")
         return self.additive_order()
 
     def additive_order(self):

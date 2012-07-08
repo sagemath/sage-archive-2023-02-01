@@ -1997,8 +1997,8 @@ class MPolynomialIdeal_singular_repr(
         ``toy_buchberger.inter_reduction`` if conversion to
         Singular fails.
         """
-        from sage.misc.misc import deprecation
-        deprecation("This function is deprecated. It will be removed in a future release of Sage. Please use the interreduced_basis() function instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(5058, "This function is deprecated. It will be removed in a future release of Sage. Please use the interreduced_basis() function instead.")
         return self.interreduced_basis()
 
     @singular_standard_options

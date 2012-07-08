@@ -92,7 +92,7 @@ from sage.rings.integer import Integer
 from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.words import Words_all, Words
 from sage.sets.set import Set
-from sage.misc.misc import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias
 
 class CallableDict(dict):
     r"""
@@ -1570,8 +1570,7 @@ class WordMorphism(SageObject):
                 else:
                     raise StopIteration
 
-    letter_iterator = deprecated_function_alias(_fixed_point_iterator,
-        'Sage Version 4.4')
+    letter_iterator = deprecated_function_alias(8595, _fixed_point_iterator)
 
     def fixed_point(self, letter):
         r"""

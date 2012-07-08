@@ -518,8 +518,8 @@ cdef class CategoryObject(sage_object.SageObject):
         """
         This is a deprecated synonym for :meth:`.inject_variables`.
         """
-        from sage.misc.misc import deprecation
-        deprecation('injvar is deprecated; use inject_variables instead.')
+        from sage.misc.superseded import deprecation
+        deprecation(4143, 'injvar is deprecated; use inject_variables instead.')
         return self.inject_variables(scope=scope, verbose=verbose)
 
     #################################################################################################

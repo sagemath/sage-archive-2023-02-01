@@ -1598,8 +1598,8 @@ def sqrt(x):
         sage: numerical_sqrt(9)
         3
     """
-    from sage.misc.misc import deprecation
-    deprecation("numerical_sqrt is deprecated, use sqrt(x, prec=n) instead")
+    from sage.misc.superseded import deprecation
+    deprecation(5404, "numerical_sqrt is deprecated, use sqrt(x, prec=n) instead")
     try: return x.sqrt()
     except (AttributeError, ValueError):
         try:

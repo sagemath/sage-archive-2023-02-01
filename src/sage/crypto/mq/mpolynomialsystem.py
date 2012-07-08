@@ -226,8 +226,8 @@ def MPolynomialSystem(arg1, arg2=None):
         sage: mq.MPolynomialSystem(I.ring(), I.gens())
         Polynomial System with 4 Polynomials in 4 Variables
     """
-    from sage.misc.misc import deprecation
-    deprecation("This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.","4.6.2")
+    from sage.misc.superseded import deprecation
+    deprecation(1819, "This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.")
 
     if is_MPolynomialRing(arg1):
         R = arg1
@@ -1483,8 +1483,8 @@ class MPolynomialSystem_gf2e(MPolynomialSystem_generic):
 
             This function is deprecated use the :meth:`.weil_restriction()` function instead.
         """
-        from sage.misc.misc import deprecation
-        deprecation("The use of this function is deprecated please use the weil_restriction() function instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(5576, "The use of this function is deprecated please use the weil_restriction() function instead.")
         return self.weil_restriction()
 
     def weil_restriction(self):

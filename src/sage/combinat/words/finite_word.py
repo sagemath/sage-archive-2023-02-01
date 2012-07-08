@@ -595,8 +595,8 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: y.size_of_alphabet()
             3
         """
-        from sage.misc.misc import deprecation
-        deprecation("size_of_alphabet() is deprecated, use parent().size_of_alphabet() instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "size_of_alphabet() is deprecated, use parent().size_of_alphabet() instead!")
         return self.parent().size_of_alphabet()
 
     ###########################################################################
@@ -625,8 +625,8 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word().is_suffix_of(Word())
             True
         """
-        from sage.misc.misc import deprecation
-        deprecation("is_suffix_of is deprecated, use is_suffix instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "is_suffix_of is deprecated, use is_suffix instead!")
         return self.is_suffix(other)
 
     def is_proper_suffix_of(self, other):
@@ -646,8 +646,8 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word('123').is_proper_suffix_of(Word('12'))
             False
         """
-        from sage.misc.misc import deprecation
-        deprecation("is_proper_suffix_of is deprecated, use is_proper_suffix instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "is_proper_suffix_of is deprecated, use is_proper_suffix instead!")
         return self.is_proper_suffix(other)
 
     def is_prefix_of(self, other):
@@ -670,8 +670,8 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word().is_prefix_of(Word())
             True
         """
-        from sage.misc.misc import deprecation
-        deprecation("is_prefix_of is deprecated, use is_prefix instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "is_prefix_of is deprecated, use is_prefix instead!")
         return self.is_prefix(other)
 
     def is_proper_prefix_of(self, other):
@@ -693,8 +693,8 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word().is_proper_prefix_of(Word())
             False
         """
-        from sage.misc.misc import deprecation
-        deprecation("is_proper_prefix_of is deprecated, use is_proper_prefix instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "is_proper_prefix_of is deprecated, use is_proper_prefix instead!")
         return self.is_proper_prefix(other)
 
     # To fix : do not slice here ! (quite expensive in copy)
@@ -1573,8 +1573,8 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word('abbabaab')._lps(f=f)
             word: abbabaab
         """
-        from sage.misc.misc import deprecation
-        deprecation("_lps is deprecated, use lps instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "_lps is deprecated, use lps instead!")
         return self.lps(l=l, f=f)
 
     def lps(self, f=None, l=None):
@@ -2993,8 +2993,8 @@ exponent %s: the length of the word (%s) times the exponent \
             doctest:1: DeprecationWarning: last_position_table is deprecated, use last_position_dict instead!
             {'1': 3, '3': 5, '2': 6}
         """
-        from sage.misc.misc import deprecation
-        deprecation("last_position_table is deprecated, use last_position_dict instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "last_position_table is deprecated, use last_position_dict instead!")
         lpd = self.last_position_dict()
         if self.parent().size_of_alphabet() in ZZ:
             return [lpd.get(a,-1) for a in self.parent().alphabet()]
@@ -3200,8 +3200,8 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: u.is_factor_of(w)
             False
         """
-        from sage.misc.misc import deprecation
-        deprecation("is_factor_of is deprecated, use is_factor instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "is_factor_of is deprecated, use is_factor instead!")
         return self.is_factor(other)
 
     def is_factor(self, other):
@@ -3481,8 +3481,8 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: l
             [word: aba, word: abaaba, word: abaababaaba]
         """
-        from sage.misc.misc import deprecation
-        deprecation("_quasiperiods_list is deprecated, use quasiperiods instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "_quasiperiods_list is deprecated, use quasiperiods instead!")
         return self.quasiperiods()
 
     def quasiperiods(self):
@@ -3614,8 +3614,8 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: f['3'] == 1
             True
         """
-        from sage.misc.misc import deprecation
-        deprecation("freq is deprecated, use evaluation_dict instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "freq is deprecated, use evaluation_dict instead!")
         return self.evaluation_dict()
 
     def evaluation_dict(self):
@@ -4255,8 +4255,8 @@ exponent %s: the length of the word (%s) times the exponent \
         -   A. de Luca, A. De Luca, Pseudopalindrome closure operators
             in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
         """
-        from sage.misc.misc import deprecation
-        deprecation("iterated_palindromic_closure is deprecated, "
+        from sage.misc.superseded import deprecation
+        deprecation(8429, "iterated_palindromic_closure is deprecated, "
                    +"use iterated_left_palindromic_closure or "
                    +"iterated_right_palindromic_closure instead!")
 
@@ -5122,8 +5122,8 @@ exponent %s: the length of the word (%s) times the exponent \
             [(word: 12, word: 2), (word: 1, word: 13), (word: 1, word: 122)]
 
         """
-        from sage.misc.misc import deprecation
-        deprecation("standard_factorization_of_lyndon_factorization(): is "
+        from sage.misc.superseded import deprecation
+        deprecation(12469, "standard_factorization_of_lyndon_factorization(): is "
                     "deprecated since March 2012 and will be removed in "
                     "a later version of Sage.")
         return [x.standard_factorization() for x in self.lyndon_factorization()]

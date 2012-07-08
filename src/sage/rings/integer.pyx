@@ -4971,8 +4971,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 4.sqrt_approx()
             2
         """
-        from sage.misc.misc import deprecation
-        deprecation("This function is deprecated.  Use sqrt with a given number of bits of precision instead.")
+        from sage.misc.superseded import deprecation
+        deprecation(10107, "This function is deprecated.  Use sqrt with a given number of bits of precision instead.")
         try:
             return self.sqrt(extend=False,all=all)
         except ValueError:

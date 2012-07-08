@@ -1,4 +1,4 @@
-from sage.misc.misc import deprecation
+from sage.misc.superseded import deprecation
 import sage.rings.fraction_field_element
 
 def make_element_old(_class, _dict, parent):
@@ -7,7 +7,7 @@ def make_element_old(_class, _dict, parent):
 
     This function is deprecated and is kept only to support old pickles.
     """
-    deprecation("Your data is stored in an old format. Please use the save() function to store your data in a more recent format.")
+    deprecation(4698, "Your data is stored in an old format. Please use the save() function to store your data in a more recent format.")
     if _class is sage.rings.fraction_field_element.FractionFieldElement:
         return sage.rings.fraction_field_element.make_element_old(parent, _dict)
     new_object = _class.__new__(_class)

@@ -78,7 +78,7 @@ def coset_leader(C, v):
             break
     return s,w
 
-@rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+@rename_keyword(deprecation=6094, method="algorithm")
 def decode(C, v, algorithm="syndrome"):
     """
     The vector v represents a received word, so should

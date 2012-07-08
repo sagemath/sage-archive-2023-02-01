@@ -216,7 +216,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     # x * __richcmp__    -- always the same
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
-        sage.misc.misc.deprecation("This class is replaced by Matrix_modn_dense_float/Matrix_modn_dense_double.")
+        from sage.misc.superseded import deprecation
+        deprecation(4260, "This class is replaced by Matrix_modn_dense_float/Matrix_modn_dense_double.")
 
         matrix_dense.Matrix_dense.__init__(self, parent)
 

@@ -791,7 +791,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         linbox.set(self.p, self._nrows, self._ncols,  self.rows)
         sig_off()
 
-    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    @rename_keyword(deprecation=6094, method="algorithm")
     def _rank_linbox(self, algorithm):
         """
         See self.rank().

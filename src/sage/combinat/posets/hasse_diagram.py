@@ -1269,8 +1269,8 @@ class HasseDiagram(DiGraph):
             doctest:1: DeprecationWarning: is_distributive_lattice_fastest is deprecated, use is_distributive_lattice instead!
             False
         """
-        from sage.misc.misc import deprecation
-        deprecation("is_distributive_lattice_fastest is deprecated, use is_distributive_lattice instead!")
+        from sage.misc.superseded import deprecation
+        deprecation(5918, "is_distributive_lattice_fastest is deprecated, use is_distributive_lattice instead!")
         return self.is_distributive_lattice()
 
     def is_complemented_lattice(self):

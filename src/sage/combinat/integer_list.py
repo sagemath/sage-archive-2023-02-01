@@ -356,8 +356,8 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: list(iterator(2,*params))
         [[0, 1, 1], [0, 0, 2]]
     """
-    #from sage.misc.misc import deprecation
-    #deprecation("sage.combinat.integer_list.iterator is deprecated. Please use IntegerListsLex(...)")
+    #from sage.misc.superseded import deprecation
+    #deprecation(trac_number, "sage.combinat.integer_list.iterator is deprecated. Please use IntegerListsLex(...)")
     succ = lambda x: next(x, min_length, max_length, floor, ceiling, min_slope, max_slope)
 
     #Handle the case where n is a list of integers
@@ -460,7 +460,7 @@ def list(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: integer_list.list(4, *compositions)
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
     """
-    #deprecation("sage.combinat.integer_list.list(...) is deprecated. Please use list(IntegerListsLex(...))")
+    #deprecation(trac_number, "sage.combinat.integer_list.list(...) is deprecated. Please use list(IntegerListsLex(...))")
     return __builtin__.list(iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope))
 
 def upper_regular(comp, min_slope, max_slope):

@@ -471,10 +471,16 @@ class SkewPartition_class(CombinatorialObject):
 
 
     def r_quotient(self, length):
-      """ *** deprecate *** """
-      from sage.misc.misc import deprecation
-      deprecation('r_quotient is deprecated. Use quotient instead.')
-      return self.quotient(self,length)
+      """
+      This method is deprecated.
+
+      EXAMPLES::
+
+          sage: SkewPartition([[3, 3, 2, 1], [2, 1]]).r_quotient(2)
+      """
+      from sage.misc.superseded import deprecation
+      deprecation(5790, 'r_quotient is deprecated. Use quotient instead.')
+      return self.quotient(length)
 
     def quotient(self, k):
         """

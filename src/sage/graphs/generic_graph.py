@@ -1551,9 +1551,9 @@ class GenericGraph(GenericGraph_pyx):
             []
 
         """
-        from sage.misc.misc import deprecation
+        from sage.misc.superseded import deprecation
         if new is not None:
-            deprecation("The function loops is replaced by allow_loops and allows_loops.")
+            deprecation(7634, "The function loops is replaced by allow_loops and allows_loops.")
         loops = []
         for v in self:
             loops += self.edge_boundary([v], [v], labels)
@@ -1797,9 +1797,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.multiple_edges(to_undirected=True)
             [(1, 2, 'h'), (2, 1, 'g')]
         """
-        from sage.misc.misc import deprecation
+        from sage.misc.superseded import deprecation
         if new is not None:
-            deprecation("The function multiple_edges is replaced by allow_multiple_edges and allows_multiple_edges.")
+            deprecation(7634, "The function multiple_edges is replaced by allow_multiple_edges and allows_multiple_edges.")
         multi_edges = []
         if self._directed and not to_undirected:
             for v in self:
@@ -10930,8 +10930,8 @@ class GenericGraph(GenericGraph_pyx):
         if weight and return_vertex_weights:
             # Running in compatibility mode with deprecated NetworkX 1.2 features
             # All this code should be removed when the deprecation warning expires
-            from sage.misc.misc import deprecation
-            deprecation("The option 'return_vertex_weights' has been " +\
+            from sage.misc.superseded import deprecation
+            deprecation(12806, "The option 'return_vertex_weights' has been " +\
                         "deprecated. Only offered for backwards" +\
                         " compatibility with NetworkX 1.2.")
             G = self.networkx_graph(copy=False)

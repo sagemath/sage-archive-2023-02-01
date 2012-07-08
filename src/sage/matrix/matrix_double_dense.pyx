@@ -1337,11 +1337,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             ...
             ValueError: algebraic_multiplicity must be set to False for double precision matrices
         """
-        from sage.misc.misc import deprecation
+        from sage.misc.superseded import deprecation
         msg = ('Eigenspaces of RDF/CDF matrices are deprecated as of ',
                'Sage version 5.0',
                ', please use "eigenmatrix_left" instead')
-        deprecation(''.join(msg))
+        deprecation(11603, ''.join(msg))
         # For numerical values we leave decisions about
         # multiplicity to the calling routine
         if algebraic_multiplicity:
@@ -1429,11 +1429,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             ...
             ValueError: algebraic_multiplicity must be set to False for double precision matrices
         """
-        from sage.misc.misc import deprecation
+        from sage.misc.superseded import deprecation
         msg = ('Eigenspaces of RDF/CDF matrices are deprecated as of ',
                'Sage version 5.0',
                ', please use "eigenmatrix_right" instead')
-        deprecation(''.join(msg))
+        deprecation(11603, ''.join(msg))
         # For numerical values we leave decisions about
         # multiplicity to the calling routine
         if algebraic_multiplicity:
@@ -2390,8 +2390,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         cdef Matrix_double_dense U, S, V
 
         if len(args)>0 or len(kwds)>0:
-            from sage.misc.misc import deprecation
-            deprecation("Arguments passed to SVD, but SVD no longer supports different methods (it only uses numpy now).")
+            from sage.misc.superseded import deprecation
+            deprecation(7852, "Arguments passed to SVD, but SVD no longer supports different methods (it only uses numpy now).")
 
         if self._nrows == 0 or self._ncols == 0:
             U_t = self.new_matrix(self._nrows, self._ncols)
@@ -3998,7 +3998,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         d /= 2
         return int(math.ceil(d / math.log(10)))
 
-    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    @rename_keyword(deprecation=6094, method="algorithm")
     def exp(self, algorithm='pade', order=None):
         r"""
         Calculate the exponential of this matrix X, which is the matrix

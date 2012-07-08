@@ -428,8 +428,12 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [1 2]
             [3 4]
             sage: MS([1,2,3,4], rows=True)
-            doctest:...: DeprecationWarning: (Since Sage 5.1)
+            doctest:...: DeprecationWarning:
             'rows=True/False' parameter is deprecated!
+            See http://trac.sagemath.org/13012 for details.
+            doctest:...: DeprecationWarning:
+            'rows=True/False' parameter is deprecated!
+            See http://trac.sagemath.org/13012 for details.
             [1 2]
             [3 4]
             sage: MS([1,2,3,4], rows=False)
@@ -1216,8 +1220,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [1 2]
             [3 4]
             sage: M.matrix([1,2,3,4],rows=False)
-            doctest:...: DeprecationWarning: (Since Sage 5.1)
+            doctest:...: DeprecationWarning:
             'rows=True/False' parameter is deprecated!
+            See http://trac.sagemath.org/13012 for details.
             [1 3]
             [2 4]
 

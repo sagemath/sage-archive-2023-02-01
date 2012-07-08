@@ -485,6 +485,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             [    x^2 y^2 + 2]
             sage: m.is_simplified()
             doctest:...: DeprecationWarning: is_simplified is deprecated
+            See http://trac.sagemath.org/6115 for details.
             False
             sage: ms = m.simplify(); ms
             [      z       1]
@@ -660,6 +661,9 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             [              0 sin(x) + cos(x)]
             sage: h(1)
             doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            See http://trac.sagemath.org/4513 for details.
+            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            See http://trac.sagemath.org/5930 for details.
             [sin(1) + cos(1)               0]
             [              0 sin(1) + cos(1)]
             sage: h(x)

@@ -1809,6 +1809,7 @@ class PermutationGroup_generic(group.Group):
             sage: N = PermutationGroup([(1,2,3)])
             sage: G.quotient_group(N)
             doctest:...: DeprecationWarning: quotient_group() is deprecated; use quotient() instead.
+            See http://trac.sagemath.org/7371 for details.
             Permutation Group with generators [(1,2)]
         """
         from sage.misc.superseded import deprecation

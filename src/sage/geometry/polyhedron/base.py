@@ -1842,16 +1842,18 @@ class Polyhedron_base(SageObject):
 
             sage: Polyhedron(vertices = [[5,0,0],[0,5,0],[5,5,0],[2,2,5]]
             ...             ).triangulated_facial_incidences()
-            doctest:...: DeprecationWarning: (Since Sage Version 4.7.1)
-            This method is deprecated. Use triangulate() instead.
+            doctest:...: DeprecationWarning: This method is
+            deprecated. Use triangulate() instead.
+            See http://trac.sagemath.org/11634 for details.
             [[0, [0, 1, 2]], [1, [0, 1, 3]], [2, [0, 2, 3]], [3, [1, 2, 3]]]
 
         Otherwise some faces get split up to triangles::
 
             sage: Polyhedron(vertices = [[2,0,0],[4,1,0],[0,5,0],[5,5,0],
             ...       [1,1,0],[0,0,1]]).triangulated_facial_incidences()
-            doctest:...: DeprecationWarning: (Since Sage Version 4.7.1)
-            This method is deprecated. Use triangulate() instead.
+            doctest:...: DeprecationWarning: This method is
+            deprecated. Use triangulate() instead.
+            See http://trac.sagemath.org/11634 for details.
             [[0, [1, 2, 5]], [0, [2, 5, 3]], [0, [5, 3, 4]], [1, [0, 1, 2]],
              [2, [0, 2, 3]], [3, [0, 3, 4]], [4, [0, 4, 5]], [5, [0, 1, 5]]]
         """
@@ -1923,10 +1925,12 @@ class Polyhedron_base(SageObject):
 
             sage: p = polytopes.cuboctahedron()
             sage: sc = p.simplicial_complex()
-            doctest:...: DeprecationWarning: (Since Sage Version 4.7.1)
+            doctest:...: DeprecationWarning:
             This method is deprecated. Use triangulate().simplicial_complex() instead.
-            doctest:...: DeprecationWarning: (Since Sage Version 4.7.1)
+            See http://trac.sagemath.org/11634 for details.
+            doctest:...: DeprecationWarning:
             This method is deprecated. Use triangulate() instead.
+            See http://trac.sagemath.org/11634 for details.
             sage: sc
             Simplicial complex with 13 vertices and 20 facets
         """
@@ -2048,8 +2052,9 @@ class Polyhedron_base(SageObject):
         EXAMPLES::
 
             sage: Polyhedron(vertices=[[0]]).union( Polyhedron(vertices=[[1]]) )
-            doctest:...: DeprecationWarning: (Since Sage Version 4.4.4)
+            doctest:...: DeprecationWarning:
             The function union is replaced by convex_hull.
+            See http://trac.sagemath.org/11634 for details.
             A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
         """
         from sage.misc.superseded import deprecation

@@ -9394,8 +9394,9 @@ cdef class Matrix(matrix1.Matrix):
             [    1.0   121.0  1555.0  7381.0 22621.0]
             [    1.0   341.0  4681.0 22621.0 69905.0]
             sage: L = m.cholesky_decomposition(); L
-            doctest:...: DeprecationWarning: (Since Sage Version 5.1)
+            doctest:...: DeprecationWarning:
             cholesky_decomposition() is deprecated; please use cholesky() instead.
+            See http://trac.sagemath.org/13045 for details.
             [          1.0           0.0           0.0           0.0           0.0]
             [          1.0           2.0           0.0           0.0           0.0]
             [          1.0          15.0 10.7238052948           0.0           0.0]

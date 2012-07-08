@@ -1121,8 +1121,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: v = vector(ZZ, [2, 12, 22])
             sage: transpose(vector(v))
-            doctest:...: DeprecationWarning: (Since Sage Version 4.6.2) The transpose() method for vectors has been deprecated, use column() instead
+            doctest:...: DeprecationWarning: The transpose() method for vectors has been deprecated, use column() instead
             (or check to see if you have a vector when you really want a matrix)
+            See http://trac.sagemath.org/10541 for details.
             [ 2]
             [12]
             [22]

@@ -4591,6 +4591,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: RR(6).lngamma()
             doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
+            See http://trac.sagemath.org/6992 for details.
             4.78749174278205
         """
         from sage.misc.superseded import deprecation

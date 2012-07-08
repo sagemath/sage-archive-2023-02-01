@@ -1439,6 +1439,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
             sage: F.combinatorial_class()
             doctest:...: DeprecationWarning: "FM.combinatorial_class()" is deprecated. Use "F.basis().keys()" instead !
+            See http://trac.sagemath.org/6136 for details.
             {'a', 'b', 'c'}
 
         ::

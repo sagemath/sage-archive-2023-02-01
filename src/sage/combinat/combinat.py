@@ -1005,6 +1005,7 @@ class CombinatorialClass(Parent):
             ...
             sage: C().count() #indirect doctest
             doctest:1: DeprecationWarning: The usage of count for combinatorial classes is deprecated. Please use cardinality
+            See http://trac.sagemath.org/5719 for details.
             3
         """
         deprecation(5719, "The usage of count for combinatorial classes is deprecated. Please use cardinality")
@@ -1324,7 +1325,8 @@ class CombinatorialClass(Parent):
 
             sage: p5 = Partitions(3)
             sage: it = p5.iterator()
-            doctest:1: DeprecationWarning: The usage of iterator for combinatorial classes is deprecated. Please use the class itself
+            doctest:...: DeprecationWarning: The usage of iterator for combinatorial classes is deprecated. Please use the class itself
+            See http://trac.sagemath.org/5308 for details.
             sage: [i for i in it]
             [[3], [2, 1], [1, 1, 1]]
             sage: [i for i in p5]

@@ -1984,6 +1984,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
             sage: I.reduced_basis()
             doctest:...: DeprecationWarning: This function is deprecated. It will be removed in a future release of Sage. Please use the interreduced_basis() function instead.
+            See http://trac.sagemath.org/5058 for details.
             [y^3 + z, x*y + z, x*z - z]
 
             sage: R.<x,y,z> = PolynomialRing(QQ,order='negdegrevlex')

@@ -1682,6 +1682,7 @@ def lngamma(t):
 
         sage: lngamma(RR(6))
         doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
+        See http://trac.sagemath.org/6992 for details.
         4.78749174278205
     """
     from sage.misc.superseded import deprecation
@@ -1698,6 +1699,7 @@ def exp_int(t):
 
         sage: exp_int(6)
         doctest:...: DeprecationWarning: The method exp_int() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.
+        See http://trac.sagemath.org/6992 for details.
         0.000360082452162659
     """
     from sage.misc.superseded import deprecation

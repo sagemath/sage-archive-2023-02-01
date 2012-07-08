@@ -1594,6 +1594,7 @@ def sqrt(x):
 
         sage: numerical_sqrt(10.1)
         doctest:1: DeprecationWarning: numerical_sqrt is deprecated, use sqrt(x, prec=n) instead
+        See http://trac.sagemath.org/5404 for details.
         3.17804971641414
         sage: numerical_sqrt(9)
         3

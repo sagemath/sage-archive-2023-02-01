@@ -4965,6 +4965,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: 5.sqrt_approx(prec=200)
             doctest:...: DeprecationWarning: This function is deprecated.  Use sqrt with a given number of bits of precision instead.
+            See http://trac.sagemath.org/10107 for details.
             2.2360679774997896964091736687312762354406183596115257242709
             sage: 5.sqrt_approx()
             2.23606797749979

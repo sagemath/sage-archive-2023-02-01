@@ -121,6 +121,7 @@ def var(*args, **kwds):
         NameError: name 'q' is not defined
         sage: var('q',ns=1)
         doctest:...: DeprecationWarning: The new (Pynac) symbolics are now the only symbolics; please do not use keyword 'ns' any longer.
+        See http://trac.sagemath.org/6559 for details.
         q
     """
     if len(args)==1:

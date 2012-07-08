@@ -865,6 +865,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P(5) == P(-1)
             doctest:...: DeprecationWarning: Accessing the i-th element of a poset as P(i) is deprecated. Please use P[i]
+            See http://trac.sagemath.org/13109 for details.
             True
             sage: Q(5) == Q(-1)
             True

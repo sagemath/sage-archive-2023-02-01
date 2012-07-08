@@ -342,6 +342,7 @@ class Function_exp_integral(BuiltinFunction):
 
             sage: Ei(1.1, prec=300)
             doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example Ei(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., Ei(1).n(300), instead.
+            See http://trac.sagemath.org/7748 for details.
             2.16737827956340306615064476647912607220394065907142504328679588538509331805598360907980986
         """
         if prec is not None:

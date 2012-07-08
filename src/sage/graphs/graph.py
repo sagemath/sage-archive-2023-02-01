@@ -3810,6 +3810,7 @@ class Graph(GenericGraph):
             sage: C = Graph('DJ{')
             sage: C.cliques()
             doctest:...: DeprecationWarning: The function 'cliques' has been deprecated. Use 'cliques_maximal' or 'cliques_maximum'.
+            See http://trac.sagemath.org/5793 for details.
             [[4, 0], [4, 1, 2, 3]]
 
         """

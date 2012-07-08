@@ -10908,6 +10908,7 @@ class GenericGraph(GenericGraph_pyx):
             doctest:...: DeprecationWarning: The option 'return_vertex_weights'
             has been deprecated. Only offered for backwards compatibility with
             NetworkX 1.2.
+            See http://trac.sagemath.org/12806 for details.
             ({0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
               3: 0.3333333333333333, 4: 0.3333333333333333,
               5: 0.3333333333333333, 6: 0.3333333333333333,

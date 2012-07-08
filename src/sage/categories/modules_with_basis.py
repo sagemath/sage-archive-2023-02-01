@@ -871,10 +871,12 @@ class ModulesWithBasis(Category_over_base_ring):
             The following methods are deprecated::
 
                 sage: a.map_term(f)
-                doctest:1: DeprecationWarning: (Since Sage Version 4.4.2) map_term is deprecated. Please use map_item instead.
+                doctest:...: DeprecationWarning: map_term is deprecated. Please use map_item instead.
+                See http://trac.sagemath.org/8890 for details.
                 2*s[2, 1] + 2*s[3]
                 sage: a.map_mc(f)
-                doctest:1: DeprecationWarning: (Since Sage Version 4.4.2) map_mc is deprecated. Please use map_item instead.
+                doctest:...: DeprecationWarning: map_mc is deprecated. Please use map_item instead.
+                See http://trac.sagemath.org/8890 for details.
                 2*s[2, 1] + 2*s[3]
             """
             return self.parent().sum_of_terms( f(m,c) for m,c in self )

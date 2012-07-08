@@ -1844,6 +1844,7 @@ cdef class RingElement(ModuleElement):
             sage: a = Integers(12)(5)
             sage: a.order()
             doctest... DeprecationWarning: The function order is deprecated for ring elements; use additive_order or multiplicative_order instead.
+            See http://trac.sagemath.org/5716 for details.
             12
         """
         # deprecation added 2009-05

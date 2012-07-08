@@ -590,6 +590,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w = Word('abaccefa')
             sage: w.size_of_alphabet()
             doctest:1: DeprecationWarning: size_of_alphabet() is deprecated, use parent().size_of_alphabet() instead!
+            See http://trac.sagemath.org/8429 for details.
             +Infinity
             sage: y = Words('456')('64654564')
             sage: y.size_of_alphabet()
@@ -613,6 +614,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: y = Word('56789')
             sage: y.is_suffix_of(w)
             doctest:1: DeprecationWarning: is_suffix_of is deprecated, use is_suffix instead!
+            See http://trac.sagemath.org/8429 for details.
             True
             sage: w.is_suffix_of(y)
             False
@@ -637,7 +639,9 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: Word('23').is_proper_suffix_of(Word('123'))
             doctest:1: DeprecationWarning: is_proper_suffix_of is deprecated, use is_proper_suffix instead!
+            See http://trac.sagemath.org/8429 for details.
             doctest:...: DeprecationWarning: is_suffix_of is deprecated, use is_suffix instead!
+            See http://trac.sagemath.org/8429 for details.
             True
             sage: Word('12').is_proper_suffix_of(Word('12'))
             False
@@ -660,6 +664,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: y = Word('012345')
             sage: y.is_prefix_of(w)
             doctest:1: DeprecationWarning: is_prefix_of is deprecated, use is_prefix instead!
+            See http://trac.sagemath.org/8429 for details.
             True
             sage: w.is_prefix_of(y)
             False
@@ -682,7 +687,9 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: Word('12').is_proper_prefix_of(Word('123'))
             doctest:1: DeprecationWarning: is_proper_prefix_of is deprecated, use is_proper_prefix instead!
+            See http://trac.sagemath.org/8429 for details.
             doctest:...: DeprecationWarning: is_prefix_of is deprecated, use is_prefix instead!
+            See http://trac.sagemath.org/8429 for details.
             True
             sage: Word('12').is_proper_prefix_of(Word('12'))
             False
@@ -1560,6 +1567,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: Word('0111')._lps()
             doctest:1: DeprecationWarning: _lps is deprecated, use lps instead!
+            See http://trac.sagemath.org/8429 for details.
             word: 111
             sage: Word('011101')._lps()
             word: 101
@@ -2991,6 +2999,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: Word('1231232').last_position_table()
             doctest:1: DeprecationWarning: last_position_table is deprecated, use last_position_dict instead!
+            See http://trac.sagemath.org/8429 for details.
             {'1': 3, '3': 5, '2': 6}
         """
         from sage.misc.superseded import deprecation
@@ -3194,6 +3203,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w = Word('123121332131233121132123')
             sage: u.is_factor_of(w)
             doctest:1: DeprecationWarning: is_factor_of is deprecated, use is_factor instead!
+            See http://trac.sagemath.org/8429 for details.
             True
             sage: u = Word('321')
             sage: w = Word('1231241231312312312')
@@ -3478,6 +3488,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: l = Word('abaababaabaababaaba')._quasiperiods_list()
             doctest:1: DeprecationWarning: _quasiperiods_list is deprecated, use quasiperiods instead!
+            See http://trac.sagemath.org/8429 for details.
             sage: l
             [word: aba, word: abaaba, word: abaababaaba]
         """
@@ -3601,6 +3612,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: f = Word('1213121').freq()
             doctest:1: DeprecationWarning: freq is deprecated, use evaluation_dict instead!
+            See http://trac.sagemath.org/8429 for details.
             sage: f # keys appear in random order
             {'1': 4, '2': 2, '3': 1}
 
@@ -4218,6 +4230,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: Word('123').iterated_palindromic_closure()
             doctest:1: DeprecationWarning: iterated_palindromic_closure is deprecated, use iterated_left_palindromic_closure or iterated_right_palindromic_closure instead!
+            See http://trac.sagemath.org/8429 for details.
             word: 1213121
             sage: Word('123').iterated_palindromic_closure(side='left')
             word: 3231323
@@ -5116,9 +5129,8 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Words('123')('1221131122').standard_factorization_of_lyndon_factorization()
-            doctest:...: DeprecationWarning:
-            standard_factorization_of_lyndon_factorization(): is
-            deprecated since March 2012 and will be removed in a later version of Sage.
+            doctest:...: DeprecationWarning: standard_factorization_of_lyndon_factorization(): is deprecated since March 2012 and will be removed in a later version of Sage.
+            See http://trac.sagemath.org/12469 for details.
             [(word: 12, word: 2), (word: 1, word: 13), (word: 1, word: 122)]
 
         """

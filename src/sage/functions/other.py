@@ -757,6 +757,7 @@ class Function_gamma(GinacFunction):
 
             sage: gamma(6, prec=53)
             doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example gamma(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., gamma(1).n(300), instead.
+            See http://trac.sagemath.org/7490 for details.
             120.000000000000
 
         TESTS::
@@ -1031,6 +1032,7 @@ def gamma(a, *args, **kwds):
             sage: Q.<i> = NumberField(x^2+1)
             sage: gamma(i)
             doctest:...: DeprecationWarning: Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.
+            See http://trac.sagemath.org/7490 for details.
             -0.154949828301811 - 0.498015668118356*I
 
         We make an exception for elements of AA or QQbar, which cannot be

@@ -2171,6 +2171,7 @@ def var_and_list_of_values(v, plot_points):
         sage: from sage.plot.plot import var_and_list_of_values
         sage: var_and_list_of_values((var('theta'), 2, 5),  5)
         doctest:...: DeprecationWarning: var_and_list_of_values is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable
+        See http://trac.sagemath.org/7008 for details.
         (theta, [2.0, 2.75, 3.5, 4.25, 5.0])
         sage: var_and_list_of_values((2, 5),  5)
         (None, [2.0, 2.75, 3.5, 4.25, 5.0])
@@ -2245,6 +2246,7 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
         sage: x,y = var('x,y')
         sage: sage.plot.plot.setup_for_eval_on_grid([x^2 + y^2], (x,0,5), (y,0,pi), 11)
         doctest:...: DeprecationWarning: sage.plot.plot.setup_for_eval_on_grid is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable
+        See http://trac.sagemath.org/7008 for details.
         ([<sage.ext... object at ...>],
          0.5,
          0.3141592653589793,

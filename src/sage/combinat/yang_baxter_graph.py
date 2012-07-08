@@ -316,6 +316,7 @@ class YangBaxterGraph_generic(SageObject):
             Yang-Baxter graph with root vertex (1, 0, 2, 1, 0)
             sage: B = Y.copy(); B
             doctest:...: DeprecationWarning: the .copy() method is deprecated; please use the copy() function instead, for example, copy(g)
+            See http://trac.sagemath.org/6522 for details.
             Yang-Baxter graph with root vertex (1, 0, 2, 1, 0)
         """
         from copy import copy
@@ -624,6 +625,7 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
             Yang-Baxter graph of [3, 2], with top vertex (1, 0, 2, 1, 0)
             sage: B = Y.copy(); B
             doctest:...: DeprecationWarning: the .copy() method is deprecated; please use the copy() function instead, for example, copy(g)
+            See http://trac.sagemath.org/6522 for details.
             Yang-Baxter graph of [3, 2], with top vertex (1, 0, 2, 1, 0)
         """
         from copy import copy

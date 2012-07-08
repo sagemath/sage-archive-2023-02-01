@@ -615,6 +615,7 @@ cdef class SymbolicRing(CommutativeRing):
             x + y
             sage: f(3)
             doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            See http://trac.sagemath.org/5930 for details.
             y + 3
             sage: f(x=3)
             y + 3

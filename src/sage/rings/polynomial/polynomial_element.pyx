@@ -5409,6 +5409,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -theta^3 + 6*theta^2 - 12*theta + 8
             sage: f.name()
             doctest:...: DeprecationWarning: This function is deprecated. It will be removed in a future release of Sage. Please use the .variable_name() function instead.
+            See http://trac.sagemath.org/4522 for details.
             'theta'
         """
         from sage.misc.superseded import deprecation

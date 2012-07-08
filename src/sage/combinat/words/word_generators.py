@@ -288,6 +288,7 @@ class ChristoffelWord_Lower(LowerChristoffelWord):
             sage: from sage.combinat.words.word_generators import ChristoffelWord_Lower
             sage: w = ChristoffelWord_Lower(1,0); w
             doctest:1: DeprecationWarning: ChristoffelWord_Lower is deprecated, use LowerChristoffelWord instead
+            See http://trac.sagemath.org/6519 for details.
             word: 1
         """
         from sage.misc.superseded import deprecation

@@ -3166,7 +3166,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
                 sage: c = Sq(2) * Sq(1)
                 sage: c.basis('milnor')
-                doctest:...: DeprecationWarning: (Since Sage 4.6.2) The .basis() method is deprecated.  Use .change_basis() instead.
+                doctest:...: DeprecationWarning: The .basis() method is deprecated. Use .change_basis() instead.
+                See http://trac.sagemath.org/10052 for details.
                 Sq(0,1) + Sq(3)
             """
             from sage.misc.superseded import deprecation

@@ -1083,7 +1083,11 @@ class FastFloatConverter(Converter):
         deprecated::
 
             sage: f = x._fast_float_()
-            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+            doctest:...: DeprecationWarning: Substitution using
+            function-call syntax and unnamed arguments is deprecated
+            and will be removed from a future release of Sage; you
+            can use named arguments instead, like EXPR(x=..., y=...)
+            See http://trac.sagemath.org/5930 for details.
             sage: f(1.2)
             1.2
 

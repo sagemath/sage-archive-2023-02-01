@@ -280,6 +280,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
         sage: _normalize_integral_input(x^2, [0, 3], None, None)
         doctest:...: DeprecationWarning:
         Variable of integration should be specified explicitly.
+        See http://trac.sagemath.org/12438 for details.
         (x^2, x, 0, 3)
         sage: _normalize_integral_input(x^2, [x], None, None)
         (x^2, x, None, None)
@@ -613,7 +614,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     Test deprecation warning when variable is not specified::
 
         sage: x.integral()
-        doctest:...: DeprecationWarning: Variable of integration should be specified explicitly.
+        doctest:...: DeprecationWarning:
+        Variable of integration should be specified explicitly.
+        See http://trac.sagemath.org/12438 for details.
         1/2*x^2
 
     Test that #8729 is fixed::

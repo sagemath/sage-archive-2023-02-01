@@ -1504,13 +1504,16 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
 
             sage: latex.pdflatex()
             doctest:...: DeprecationWarning: Use engine() instead.
+            See http://trac.sagemath.org/8486 for details.
             False
             sage: latex.pdflatex(True)
             doctest:...: DeprecationWarning: Use engine("pdflatex") instead.
+            See http://trac.sagemath.org/8552 for details.
             sage: latex.pdflatex()
             True
             sage: latex.pdflatex(False)
             doctest:...: DeprecationWarning: Use engine("latex") instead.
+            See http://trac.sagemath.org/8552 for details.
         """
         if t is None:
             from sage.misc.superseded import deprecation
@@ -1895,7 +1898,9 @@ def jsmath(x, mode='display'):
         sage: g = f.integrate()
         sage: jsmath(f)
         doctest:1: DeprecationWarning: The jsmath function is deprecated.  Use html('$math$') for inline mode or html('$$math$$') for display mode.
+        See http://trac.sagemath.org/8552 for details.
         <html><font color='black'><div class="math">{{1}\over{x^2+1}}</div></font></html>
+        <BLANKLINE>
         sage: jsmath(g, 'inline')
         <html><font color='black'><span class="math">\tan^{-1} x</span></font></html>
         sage: jsmath('\int' + latex(f) + '\ dx=' + latex(g))

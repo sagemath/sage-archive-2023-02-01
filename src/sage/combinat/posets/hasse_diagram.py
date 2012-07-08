@@ -1267,6 +1267,7 @@ class HasseDiagram(DiGraph):
             sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
             sage: H.is_distributive_lattice_fastest()
             doctest:1: DeprecationWarning: is_distributive_lattice_fastest is deprecated, use is_distributive_lattice instead!
+            See http://trac.sagemath.org/5918 for details.
             False
         """
         from sage.misc.superseded import deprecation

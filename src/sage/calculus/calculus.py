@@ -176,6 +176,7 @@ but the behavior is deprecated::
     syntax and unnamed arguments is deprecated and will be removed
     from a future release of Sage; you can use named arguments instead,
     like EXPR(x=..., y=...)
+    See http://trac.sagemath.org/5930 for details.
     sin(y)
     sage: f(pi)
     0
@@ -1155,12 +1156,14 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     Check that we give deprecation warnings for 'above' and 'below' #9200::
 
         sage: limit(1/x, x=0, dir='above')
-        doctest:...: DeprecationWarning: (Since Sage version 4.6) the keyword
+        doctest:...: DeprecationWarning: the keyword
         'above' is deprecated. Please use 'right' or '+' instead.
+        See http://trac.sagemath.org/9200 for details.
         +Infinity
         sage: limit(1/x, x=0, dir='below')
-        doctest:...: DeprecationWarning: (Since Sage version 4.6) the keyword
+        doctest:...: DeprecationWarning: the keyword
         'below' is deprecated. Please use 'left' or '-' instead.
+        See http://trac.sagemath.org/9200 for details.
         -Infinity
     """
     if not isinstance(ex, Expression):

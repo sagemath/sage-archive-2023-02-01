@@ -84,6 +84,7 @@ def dynkin_diagram(t):
 
         sage: dynkin_diagram(["A", 3])
         doctest:1: DeprecationWarning: dynkin_diagram is deprecated, use DynkinDiagram instead!
+        See http://trac.sagemath.org/3654 for details.
         O---O---O
         1   2   3
         A3

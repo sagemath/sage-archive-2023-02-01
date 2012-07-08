@@ -138,6 +138,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a = matrix([[1,2],[3,4]])
             sage: b = a.copy()
             doctest:...: DeprecationWarning: the .copy() method is deprecated; please use the copy() function instead, for example, copy(M)
+            See http://trac.sagemath.org/6521 for details.
             sage: b = copy(a)
 
         ::

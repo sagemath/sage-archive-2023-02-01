@@ -496,7 +496,8 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         This method used to be called ``lattice``:
 
             sage: G.lattice()
-            doctest:...: DeprecationWarning: (Since Sage Version 4.3.4) lattice is deprecated. Please use domain instead.
+            doctest:...: DeprecationWarning: lattice is deprecated. Please use domain instead.
+            See http://trac.sagemath.org/8414 for details.
             Root space over the Rational Field of the Root system of type ['A', 3, 1]
         """
         return self._domain

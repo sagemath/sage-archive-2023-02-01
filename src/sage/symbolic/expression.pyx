@@ -6666,6 +6666,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: x.lgamma()
             doctest:...: DeprecationWarning: The lgamma() function is deprecated. Use log_gamma() instead.
+            See http://trac.sagemath.org/6992 for details.
             log_gamma(x)
         """
         from sage.misc.superseded import deprecation

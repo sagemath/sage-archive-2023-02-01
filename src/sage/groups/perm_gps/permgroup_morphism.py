@@ -69,7 +69,8 @@ class PermutationGroupMorphism(Morphism):
             sage: G = PSL(2,7)
             sage: D, iota1, iota2, pr1, pr2 = G.direct_product(G)
             sage: pr1.range()
-            doctest... DeprecationWarning: (Since Sage Version 5.0) range is deprecated. Please use codomain instead.
+            doctest:...: DeprecationWarning: range is deprecated. Please use codomain instead.
+            See http://trac.sagemath.org/10334 for details.
             Permutation Group with generators [(3,7,5)(4,8,6), (1,2,6)(3,4,8)]
         """
         deprecation(10334, 'range is deprecated. Please use codomain instead.')

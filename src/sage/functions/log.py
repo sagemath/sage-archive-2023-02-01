@@ -123,6 +123,7 @@ class Function_exp(GinacFunction):
 
             sage: exp(2,prec=100)
             doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.
+            See http://trac.sagemath.org/7490 for details.
             7.3890560989306502272304274606
         """
         if prec is not None:

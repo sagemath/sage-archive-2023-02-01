@@ -78,7 +78,11 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         ...
         ValueError: Some variable ranges specify variables while others do not
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(1,-1),(-1,1)], plot_points=5)
-        doctest:...: DeprecationWarning: Unnamed ranges for more than one variable is deprecated and will be removed from a future release of Sage; you can used named ranges instead, like (x,0,2)
+        doctest:...: DeprecationWarning:
+        Unnamed ranges for more than one variable is deprecated and
+        will be removed from a future release of Sage; you can used
+        named ranges instead, like (x,0,2)
+        See http://trac.sagemath.org/7008 for details.
         (<sage.ext...>, [(1.0, -1.0, 0.5), (-1.0, 1.0, 0.5)])
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(y,1,-1),(x,-1,1)], plot_points=5)
         (<sage.ext...>, [(1.0, -1.0, 0.5), (-1.0, 1.0, 0.5)])

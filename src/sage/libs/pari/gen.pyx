@@ -5042,6 +5042,7 @@ cdef class gen(sage.structure.element.RingElement):
 
             sage: pari(100).lngamma()
             doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
+            See http://trac.sagemath.org/6992 for details.
             359.134205369575
         """
         from sage.misc.superseded import deprecation

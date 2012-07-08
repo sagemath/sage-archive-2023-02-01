@@ -83,6 +83,7 @@ class OrderedAlphabet_class(CombinatorialClass):
             sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
             sage: OrderedAlphabet_Finite([1, 3, 2]).string_rep()
             doctest:1: DeprecationWarning: string_rep is deprecated, use __repr__ instead!
+            See http://trac.sagemath.org/6519 for details.
             'Ordered Alphabet [1, 3, 2]'
         """
         from sage.misc.superseded import deprecation

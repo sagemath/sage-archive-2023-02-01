@@ -68,7 +68,6 @@ from sage.categories.category import Category
 import morphism
 from sage.structure.parent import Parent, Set_generic
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.cachefunc import cached_function
 import types
 
 ###################################
@@ -157,9 +156,17 @@ def Hom(X, Y, category=None):
 
     TESTS:
 
+    Homset are unique parents::
+
+        sage: k = GF(5)
+        sage: H1 = Hom(k,k)
+        sage: H2 = Hom(k,k)
+        sage: H1 is H2
+        True
+
     Some doc tests in :mod:`sage.rings` (need to) break the unique parent
     assumption. But if domain or codomain are not unique parents, then the hom
-    set won't fit. That's to say, the hom set found in the cache will have a
+    set will not fit. That is to say, the hom set found in the cache will have a
     (co)domain that is equal to, but not identic with, the given (co)domain.
 
     By :trac:`9138`, we abandon the uniqueness of hom sets, if the domain or
@@ -227,7 +234,11 @@ def Hom(X, Y, category=None):
 
     try:
         # Apparently X._Hom_ is supposed to be cached
-        return X._Hom_(Y, category)
+        # but it is not in some cases (e.g. X is a finite field)
+        # To be investigated
+        H = X._Hom_(Y,category)
+        _cache[key] = H
+        return H
     except (AttributeError, TypeError):
         pass
 

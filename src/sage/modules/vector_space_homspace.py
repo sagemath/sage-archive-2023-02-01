@@ -193,7 +193,6 @@ TESTS::
 import inspect
 import sage.matrix.all as matrix
 import sage.modules.free_module_homspace
-import vector_space_morphism
 
 # This module initially overrides just the minimum functionality necessary
 # from  sage.modules.free_module_homspace.FreeModuleHomSpace.
@@ -333,17 +332,19 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
 
             sage: U = QQ^3
             sage: V = QQ^4
-            sage: W = QQ^3
+            sage: W = FreeModule(QQ,3,sparse=True)
             sage: X = QQ^4
             sage: H = Hom(U, V)
             sage: K = Hom(W, X)
+            sage: H is K
+            False
 
             sage: A = matrix(QQ, 3, 4, [0]*12)
             sage: f = H(A)
             sage: B = matrix(QQ, 3, 4, range(12))
             sage: g = K(B)
-            sage: f.parent() is g.parent()
-            False
+            sage: f.parent() is H and g.parent() is K
+            True
 
             sage: h = H(g)
             sage: f.parent() is h.parent()
@@ -362,12 +363,12 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
         Previously the above code resulted in a TypeError because the
         dimensions of the matrix were incorrect.
         """
-        import vector_space_morphism
+        from vector_space_morphism import is_VectorSpaceMorphism, VectorSpaceMorphism
         D = self.domain()
         C = self.codomain()
         if matrix.is_Matrix(A):
             pass
-        elif vector_space_morphism.is_VectorSpaceMorphism(A):
+        elif is_VectorSpaceMorphism(A):
             A = A.matrix()
         elif inspect.isfunction(A):
             try:
@@ -393,7 +394,7 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
         else:
             msg = 'vector space homspace can only coerce matrices, vector space morphisms, functions or lists, not {0}'
             raise TypeError(msg.format(A))
-        return vector_space_morphism.VectorSpaceMorphism(self, A)
+        return VectorSpaceMorphism(self, A)
 
     def _repr_(self):
         r"""

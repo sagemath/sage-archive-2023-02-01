@@ -794,7 +794,8 @@ def Fan2d(rays, lattice=None):
     """
     if len(rays) == 0:
         if lattice is None or lattice.dimension() != 2:
-            raise ValueError('you must specify a 2-dimensional lattice when you construct a fan without rays.')
+            raise ValueError('you must specify a 2-dimensional lattice when '
+                             'you construct a fan without rays.')
         return RationalPolyhedralFan(cones=((), ), rays=(), lattice=lattice)
 
     # remove multiple rays without changing order
@@ -809,14 +810,17 @@ def Fan2d(rays, lattice=None):
     lattice = rays[0].parent()
     if lattice.dimension() != 2:
         raise ValueError('the lattice must be 2-dimensional.')
+    n = len(rays)
+    if n == 1 or n == 2 and rays[0] == -rays[1]:
+        cones = [(i, ) for i in range(n)]
+        return RationalPolyhedralFan(cones, rays, lattice, False)
 
     import math
     # each sorted_rays entry = (angle, ray, original_ray_index)
     sorted_rays = sorted( (math.atan2(r[0],r[1]), r, i) for i,r in enumerate(rays) )
-    sorted_rays = [ r for i,r in enumerate(sorted_rays) if r[1] != sorted_rays[i-1][1] ]
     cones = []
     is_complete = True
-    for i in range(len(sorted_rays)):
+    for i in range(n):
         r0 = sorted_rays[i-1][1]
         r1 = sorted_rays[i][1]
         if r1.is_zero():
@@ -829,9 +833,6 @@ def Fan2d(rays, lattice=None):
             cones.append((sorted_rays[r0_index][2], sorted_rays[r1_index][2]))
         else:
             is_complete = False
-    if cones == []:
-        cones = [ (i,) for i in range(len(rays)) ]
-        is_complete = False
     return RationalPolyhedralFan(cones, rays, lattice, is_complete)
 
 

@@ -13,6 +13,7 @@ AUTHORS:
 
 -  Simon King: Use a faster way of conversion from the base ring.
 
+-  Julian Rueth (2012-05-25): Fixed is_squarefree() for imperfect fields.
 
 TESTS::
 
@@ -5616,29 +5617,83 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_squarefree(self):
         """
-        Return True if this polynomial is square free.
+        Return False if this polynomial is not square-free, i.e., if there is a
+        non-unit `g` in the polynomial ring such that `g^2` divides ``self``.
 
         EXAMPLES::
 
-            sage: x = polygen(QQ)
+            sage: R.<x> = QQ[]
             sage: f = (x-1)*(x-2)*(x^2-5)*(x^17-3); f
             x^21 - 3*x^20 - 3*x^19 + 15*x^18 - 10*x^17 - 3*x^4 + 9*x^3 + 9*x^2 - 45*x + 30
             sage: f.is_squarefree()
             True
             sage: (f*(x^2-5)).is_squarefree()
             False
+
+        A generic implementation is available for polynomials defined over
+        principal ideal domains of characteristic 0; the algorithm relies on
+        gcd computations::
+
             sage: R.<x> = ZZ[]
-            sage: f = 2*x; g = 4*x; h = 2*x^2
-            sage: f.is_squarefree()
+            sage: (2*x).is_squarefree()
             True
-            sage: g.is_squarefree()
+            sage: (4*x).is_squarefree()
             False
-            sage: h.is_squarefree()
+            sage: (2*x^2).is_squarefree()
             False
+            sage: R(0).is_squarefree()
+            False
+
+            sage: S.<y> = QQ[]
+            sage: R.<x> = S[]
+            sage: (2*x*y).is_squarefree() # R does not provide a gcd implementation
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense' object has no attribute 'gcd'
+            sage: (2*x*y^2).is_squarefree()
+            False
+
+        Over principal ideal domains of positive characteristic, we compute the
+        square-free decomposition or a full factorization depending on which is
+        available::
+
+            sage: K.<t> = FunctionField(GF(3))
+            sage: R.<x> = K[]
+            sage: (x^3+2*x).is_squarefree()
+            True
+            sage: (x^3+2).is_squarefree()
+            False
+            sage: (x^3+t).is_squarefree()
+            True
+            sage: R(t^2).is_squarefree()
+            True
+
         """
-        if self.parent().base_ring().is_field():
-            return self.derivative().gcd(self).degree() <= 0
-        return self.derivative().gcd(self).degree() <= 0 and self.content().is_squarefree()
+        if self.parent().base_ring() not in sage.categories.principal_ideal_domains.PrincipalIdealDomains():
+            raise NotImplementedError("is_squarefree() is only implemented for polynomials over principal ideal domains")
+
+        # a square-free polynomial has a square-free content
+        if not self.parent().base_ring().is_field():
+            content = self.content()
+            if content not in self.parent().base_ring():
+                content = content.gen()
+            if not content.is_squarefree():
+                return False
+
+        # separable polynomials are square-free
+        if self.derivative().gcd(self).is_constant():
+            return True
+
+        # for characteristic zero rings, square-free polynomials have to be separable
+        if self.parent().characteristic().is_zero():
+            return False
+
+        # over rings of positive characteristic, we rely on the square-free decomposition if available
+        try:
+            F = self.squarefree_decomposition()
+        except NotImplementedError:
+            F = self.factor()
+        return all([e<=1 for (f,e) in F])
 
     def radical(self):
         """

@@ -595,6 +595,9 @@ class CombinatorialFreeModuleElement(Element):
             sage: f = B['a'] + 2*B['c']
             sage: f.monomials()
             [B['a'], B['c']]
+
+            sage: (F.zero()).monomials()
+            []
         """
         P = self.parent()
         BR = P.base_ring()

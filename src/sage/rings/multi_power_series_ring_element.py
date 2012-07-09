@@ -949,8 +949,8 @@ class MPowerSeries(PowerSeries):
 
     def monomials(self):
         """
-        Return a list of monomials of self.  These are the keys of the dict
-        returned by 'coefficients'.
+        Return a list of monomials of self.  These are the keys of the
+        dict returned by 'coefficients'.
 
         EXAMPLES::
 
@@ -962,8 +962,9 @@ class MPowerSeries(PowerSeries):
             sage: f = 1 + 2*a + 7*b - 2*a*b - 4*b*c - 13*a*c + R.O(4)
             sage: f.monomials()
             [1, b*c, b, a, a*c, a*b]
-
-
+            sage: f = R.zero()
+            sage: f.monomials()
+            []
         """
         return self.coefficients().keys()
 

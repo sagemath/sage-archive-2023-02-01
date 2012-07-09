@@ -490,7 +490,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: R(S.0)
             p
 
-        See trac 2601::
+        See :trac:`2601`::
 
             sage: R.<a,b,c> = PolynomialRing(QQ, 3)
             sage: a._mpoly_dict_recursive(['c', 'b', 'a'])
@@ -736,6 +736,8 @@ cdef class MPolynomial(CommutativeRingElement):
             subclasses.
         """
         M = self.monomials()
+        if M==[]:
+            return True
         d = M.pop().degree()
         for m in M:
             if m.degree() != d:
@@ -920,8 +922,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         TESTS:
 
-        Since trac ticket #10771, the gcd in QQ restricts to the
-        gcd in ZZ.
+        Since :trac:`10771`, the gcd in QQ restricts to the gcd in ZZ.
 
             sage: R.<x,y> = QQ[]
             sage: f = 4*x+6*y

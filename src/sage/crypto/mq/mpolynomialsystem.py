@@ -403,6 +403,10 @@ class MPolynomialRoundSystem_generic(SageObject):
             sage: R1 = mq.MPolynomialRoundSystem(F.ring(),F.part(1))
             sage: sorted(R1.monomials())
             [k003, k002, k001, k000, k003^2, k002^2, k001^2, k000^2]
+
+            sage: R2 = mq.MPolynomialRoundSystem(F.ring(),[])
+            sage: R2.monomials()
+            []
         """
         M = set()
         for f in self._gens:

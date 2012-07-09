@@ -3308,11 +3308,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = x
             sage: f.monomials()
             [x]
+
+        Check if :trac:`12706` is fixed::
+
             sage: f = P(0)
             sage: f.monomials()
-            [0]
+            []
 
-        Check if #7152 is fixed::
+        Check if :trac:`7152` is fixed::
 
             sage: x=var('x')
             sage: K.<rho> = NumberField(x**2 + 1)
@@ -3334,7 +3337,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef poly *t
 
         if p == NULL:
-            return [parent._zero_element]
+            return []
 
         while p:
             t = pNext(p)

@@ -74,9 +74,15 @@ def builder_helper(type):
         output_dir = self._output_dir(type)
         os.chdir(self.dir)
 
+        options = ALLSPHINXOPTS
+
+        if self.name == 'website':
+            # WEBSITESPHINXOPTS is either empty or " -A hide_pdf_links=1 "
+            options += WEBSITESPHINXOPTS
+
         build_command = 'sphinx-build'
         build_command += ' -b %s -d %s %s %s %s'%(type, self._doctrees_dir(),
-                                                  ALLSPHINXOPTS, self.dir,
+                                                  options, self.dir,
                                                   output_dir)
         logger.warning(build_command)
         subprocess.call(build_command, shell=True)
@@ -1058,9 +1064,13 @@ if __name__ == '__main__':
     logger = setup_logger(options.verbose, options.color)
 
     # Process selected options.
-    if (options.mathjax or (os.environ.get('SAGE_DOC_MATHJAX', False))
-        or (os.environ.get('SAGE_DOC_JSMATH', False))):
-        os.environ['SAGE_DOC_MATHJAX'] = "True"
+    #
+    # MathJax: this check usually has no practical effect, since
+    # SAGE_DOC_MATHJAX is set to "True" by the script sage-env.
+    # To disable MathJax, set SAGE_DOC_MATHJAX to "no" or "False".
+    if options.mathjax or (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
+                           and os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'False'):
+        os.environ['SAGE_DOC_MATHJAX'] = 'True'
 
     if options.check_nested:
         os.environ['SAGE_CHECK_NESTED'] = 'True'
@@ -1071,7 +1081,7 @@ if __name__ == '__main__':
     if options.sphinx_opts:
         ALLSPHINXOPTS += options.sphinx_opts.replace(',', ' ') + " "
     if options.no_pdf_links:
-        ALLSPHINXOPTS += "-A hide_pdf_links=1 "
+        WEBSITESPHINXOPTS = " -A hide_pdf_links=1 "
     if options.warn_links:
         ALLSPHINXOPTS += "-n "
 

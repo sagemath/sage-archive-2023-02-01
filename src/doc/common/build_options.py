@@ -16,3 +16,4 @@ else:
 
 #Note that this needs to have the doctrees dir
 ALLSPHINXOPTS   = SPHINXOPTS + " " + PAPEROPTS + " "
+WEBSITESPHINXOPTS = ""

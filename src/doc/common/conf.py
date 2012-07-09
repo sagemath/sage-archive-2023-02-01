@@ -166,11 +166,13 @@ html_favicon = 'favicon.ico'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = [os.path.join(SAGE_DOC, 'common/static'), 'static']
 
-# The environment variable SAGE_DOC_MATHJAX may be set by the user or
-# by the file "builder.py".  If it's set, or if SAGE_DOC_JSMATH is set
-# (for backwards compatibility), use MathJax.
-if (os.environ.get('SAGE_DOC_MATHJAX', False)
-    or os.environ.get('SAGE_DOC_JSMATH', False)):
+# We use MathJax to build the documentation unless the environment
+# variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
+# the user does not set this variable, then the script sage-env sets
+# it to "True".)
+
+if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
+            and os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'False'):
 
     extensions.append('sphinx.ext.mathjax')
     mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'

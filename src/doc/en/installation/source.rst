@@ -681,6 +681,14 @@ process:
   spkgs might also assume that certain programs are available on the
   system (for example, ``latex`` or ``pdflatex``).
 
+- :envvar:`SAGE_DOC_MATHJAX` - By default, any LaTeX code in Sage's
+  documentation is processed by MathJax. If this variable is set to
+  "no", then MathJax is not used -- instead, math is processed using
+  LaTeX and converted by dvipng to image files, and then those files
+  are included into the documentation. Typically, building the
+  documentation using LaTeX and dvipng takes longer and uses more
+  memory and disk space than using MathJax.
+
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each
   spkg in a subdirectory of :file:`$SAGE_ROOT/spkg/build/`; for
   example, build :file:`atlas-3.8.3.p12.spkg` in the directory

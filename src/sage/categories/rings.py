@@ -216,6 +216,47 @@ class Rings(Category_singleton):
                 from sage.rings.noncommutative_ideals import IdealMonoid_nc
                 return IdealMonoid_nc(self)
 
+        def characteristic(self):
+            """
+            Return the characteristic of this ring.
+
+            EXAMPLES::
+
+                sage: QQ.characteristic()
+                0
+                sage: GF(19).characteristic()
+                19
+                sage: Integers(8).characteristic()
+                8
+                sage: Zp(5).characteristic()
+                0
+            """
+            from sage.rings.infinity import infinity
+            from sage.rings.integer_ring import ZZ
+            order_1 = self.one().additive_order()
+            return ZZ.zero() if order_1 is infinity else order_1
+
+        def _test_characteristic(self, **options):
+            """
+            Run generic tests on the method :meth:`characteristic`.
+
+            See also: :class:`TestSuite`.
+
+            EXAMPLES::
+
+                sage: ZZ._test_characteristic()
+            """
+            tester = self._tester(**options)
+            try:
+                characteristic = self.characteristic()
+            except AttributeError:
+                return # raised when self.one() does not have a additive_order()
+            except NotImplementedError:
+                return
+
+            # test that #12988 is fixed
+            tester.assertEqual(type(characteristic),sage.rings.integer.Integer)
+
         def ideal(self, *args, **kwds):
             """
             Create an ideal of this ring.

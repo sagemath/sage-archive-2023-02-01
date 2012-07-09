@@ -395,7 +395,7 @@ cdef class RealDoubleField_class(Field):
             sage: RDF.characteristic()
             0
         """
-        return 0
+        return Integer(0)
 
     cdef _new_c(self, double value):
         cdef RealDoubleElement x

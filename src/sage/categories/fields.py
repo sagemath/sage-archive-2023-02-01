@@ -181,6 +181,36 @@ class Fields(Category_singleton):
             """
             return True
 
+        def _test_characteristic_fields(self, **options):
+            """
+            Run generic tests on the method :meth:`.characteristic`.
+
+            EXAMPLES::
+
+                sage: QQ._test_characteristic_fields()
+
+            .. NOTE::
+
+                We cannot call this method ``_test_characteristic`` since that
+                would overwrite the method in the super category, and for
+                cython classes just calling
+                ``super(sage.categories.fields.Fields().parent_class,
+                self)._test_characteristic`` doesn't have the desired effect.
+
+            .. SEEALSO::
+
+                :meth:`sage.categories.rings.Rings.ParentMethods._test_characteristic`
+            """
+            tester = self._tester(**options)
+            try:
+                char = self.characteristic()
+                tester.assertTrue(char.is_zero() or char.is_prime())
+            except AttributeError:
+                return
+                # raised when self.one() does not have a additive_order() [or when char is an int and not an Integer which is already checked by _test_characteristic for rings]
+            except NotImplementedError:
+                return
+
     class ElementMethods:
         # Fields are unique factorization domains, so, there is gcd and lcm
         # Of course, in general gcd and lcm in a field are not very interesting.

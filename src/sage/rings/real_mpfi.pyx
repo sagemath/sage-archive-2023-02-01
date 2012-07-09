@@ -754,7 +754,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             sage: RealIntervalField(10).characteristic()
             0
         """
-        return 0
+        return Integer(0)
 
     def name(self):
         return "IntervalRealIntervalField%s"%(self.__prec)

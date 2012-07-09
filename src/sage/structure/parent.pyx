@@ -839,6 +839,7 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_an_element() . . . pass
             running ._test_associativity() . . . pass
             running ._test_category() . . . pass
+            running ._test_characteristic() . . . pass
             running ._test_distributivity() . . . pass
             running ._test_elements() . . .
               Running the test suite of self.an_element()
@@ -901,6 +902,7 @@ cdef class Parent(category_object.CategoryObject):
             _test_an_element
             _test_associativity
             _test_category
+            _test_characteristic
             _test_distributivity
             _test_elements
             _test_elements_eq

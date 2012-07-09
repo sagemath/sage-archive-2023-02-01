@@ -109,6 +109,7 @@ cdef class Ring(ParentWithGens):
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_category() . . . pass
+        running ._test_characteristic() . . . pass
         running ._test_distributivity() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -1141,26 +1142,6 @@ cdef class Ring(ParentWithGens):
             True
         """
         raise NotImplementedError
-
-    def characteristic(self):
-        """
-        Return the characteristic of this ring.
-
-        EXAMPLES::
-
-            sage: QQ.characteristic()
-            0
-            sage: GF(19).characteristic()
-            19
-            sage: Integers(8).characteristic()
-            8
-            sage: Zp(5).characteristic()
-            0
-        """
-        from sage.rings.infinity import infinity
-        from sage.rings.integer_ring import ZZ
-        order_1 = self.one_element().additive_order()
-        return ZZ.zero_element() if order_1 is infinity else order_1
 
     def order(self):
         """

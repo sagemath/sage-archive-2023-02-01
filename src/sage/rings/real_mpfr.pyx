@@ -857,7 +857,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RealField(10).characteristic()
             0
         """
-        return 0
+        return Integer(0)
 
     def name(self):
         """

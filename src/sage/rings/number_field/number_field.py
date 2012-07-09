@@ -2867,7 +2867,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: k.characteristic()
             0
         """
-        return 0
+        return ZZ.zero()
 
     def class_group(self, proof=None, names='c'):
         r"""

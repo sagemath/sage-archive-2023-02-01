@@ -230,6 +230,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         19
         sage: ZZ(2 + 3*5 + O(5^3))
         17
+
+    TESTS::
+
+        sage: TestSuite(ZZ).run()
     """
 
     def __init__(self):
@@ -883,14 +887,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def characteristic(self):
         """
-        Return the characteristic of the integers, which is 0
+        Return the characteristic of the integers, which is 0.
 
         EXAMPLE::
 
             sage: ZZ.characteristic()
             0
         """
-        return 0
+        return ZZ.zero()
 
     def krull_dimension(self):
         """

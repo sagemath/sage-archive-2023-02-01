@@ -50,8 +50,11 @@ doc: doc-html
 doc-html: build
 	$(PIPE) "./sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
 
-doc-html-jsmath: build
+doc-html-mathjax: build
 	$(PIPE) "./sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
+
+# Keep target 'doc-html-jsmath' for backwards compatibility.
+doc-html-jsmath: doc-html-mathjax
 
 doc-pdf: build
 	$(PIPE) "./sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a docpdf.log"
@@ -165,7 +168,7 @@ install:
 
 
 .PHONY: all build build-serial start install \
-	doc doc-html doc-html-jsmath doc-pdf \
+	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
 	doc-clean clean	distclean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong

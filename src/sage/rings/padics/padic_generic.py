@@ -190,7 +190,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R = Zp(3, 10,'fixed-mod'); R.characteristic()
             0
         """
-        return 0
+        return Integer(0)
 
     def prime(self):
         """

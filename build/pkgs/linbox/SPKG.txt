@@ -37,6 +37,10 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.6.p11 (Jeroen Demeyer, 19 June 2012) ===
+ * #13118: Don't look at compiler versions, just use the -fpermissive
+   flag whenever the compiler supports it.
+
 === linbox-1.1.6.p10 (Jeroen Demeyer, 25 May 2012) ===
  * #12762 review: Remove the touching of linbox.pyx, since
    Cython knows the dependency of linbox.pyx on linbox-sage.h

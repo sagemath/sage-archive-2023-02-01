@@ -29,12 +29,11 @@ done
 CFLAGS="-g $CFLAGS -fPIC"
 CXXFLAGS="-g $CXXFLAGS -fPIC"
 
-case "`testcxx.sh $CXX`-`$CXX -dumpversion 2>/dev/null`" in
-    GCC-4.7.*)
-        echo "Adding '-fpermissive' to CXXFLAGS to make LinBox build with GCC 4.7.x."
-        echo "This is a temporary fix; LinBox currently doesn't conform to the C++11 standard."
-        CXXFLAGS="-fpermissive $CXXFLAGS" # The user might still override that.
-esac
+# Add -fpermissive flag if the C++ compiler supports it.
+# This is needed to make LinBox build with GCC 4.7.x, because it
+# doesn't fully conform to the C++11 standard.
+# On older GCC versions, it doesn't hurt.
+CXXFLAGS="`CC=$CXX testcflags.sh -fpermissive` $CXXFLAGS"
 
 # Some systems have problems when parts of LinBox are compiled with
 # the commentator enabled and other parts with the commentator

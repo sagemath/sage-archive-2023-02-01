@@ -1018,15 +1018,19 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
 
         EXAMPLES::
 
-            sage: R.<t> = PowerSeriesRing(ZZ)
-            sage: R.laurent_series_ring()
+            sage: R.<t> = PowerSeriesRing(ZZ,default_prec=5)
+            sage: S = R.laurent_series_ring(); S
             Laurent Series Ring in t over Integer Ring
+            sage: S.default_prec()
+            5
+            sage: f = 1+t; g=1/f; g
+            1 - t + t^2 - t^3 + t^4 + O(t^5)
         """
         try:
             return self.__laurent_series_ring
         except AttributeError:
             self.__laurent_series_ring = laurent_series_ring.LaurentSeriesRing(
-                                                 self.base_ring(), self.variable_name(), sparse=self.is_sparse())
+                                                 self.base_ring(), self.variable_name(), default_prec=self.default_prec(), sparse=self.is_sparse())
             return self.__laurent_series_ring
 
 class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):

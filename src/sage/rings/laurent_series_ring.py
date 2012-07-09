@@ -30,7 +30,7 @@ from sage.categories.fields import Fields
 _Fields = Fields()
 
 laurent_series = {}
-def LaurentSeriesRing(base_ring, name=None, names=None, sparse=False):
+def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=False):
     """
     EXAMPLES::
 
@@ -82,23 +82,31 @@ def LaurentSeriesRing(base_ring, name=None, names=None, sparse=False):
         raise TypeError, "You must specify the name of the indeterminate of the Laurent series ring."
 
     global laurent_series
-    key = (base_ring, name, sparse)
+    key = (base_ring, name, default_prec, sparse)
     if laurent_series.has_key(key):
         x = laurent_series[key]()
         if x != None: return x
 
     if isinstance(base_ring, field.Field):
-        R = LaurentSeriesRing_field(base_ring, name, sparse)
+        R = LaurentSeriesRing_field(base_ring, name, default_prec, sparse)
     elif isinstance(base_ring, integral_domain.IntegralDomain):
-        R = LaurentSeriesRing_domain(base_ring, name, sparse)
+        R = LaurentSeriesRing_domain(base_ring, name, default_prec, sparse)
     elif isinstance(base_ring, commutative_ring.CommutativeRing):
-        R = LaurentSeriesRing_generic(base_ring, name, sparse)
+        R = LaurentSeriesRing_generic(base_ring, name, default_prec, sparse)
     else:
         raise TypeError, "base_ring must be a commutative ring"
     laurent_series[key] = weakref.ref(R)
     return R
 
 def is_LaurentSeriesRing(x):
+    """
+    TESTS::
+
+        sage: from sage.rings.laurent_series_ring import is_LaurentSeriesRing
+        sage: K.<q> = LaurentSeriesRing(QQ)
+        sage: is_LaurentSeriesRing(K)
+        True
+    """
     return isinstance(x, LaurentSeriesRing_generic)
 
 class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
@@ -117,15 +125,37 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     """
 
-    def __init__(self, base_ring, name=None, sparse=False):
+    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
+        """
+        Initialization
+
+        EXAMPLES::
+
+            sage: K.<q> = LaurentSeriesRing(QQ,default_prec=4); K
+            Laurent Series Ring in q over Rational Field
+            sage: 1 / (q-q^2)
+            q^-1 + 1 + q + q^2 + O(q^3)
+        """
         commutative_ring.CommutativeRing.__init__(self, base_ring, names=name, category=_Fields)
-        self.__sparse = sparse
+        self._polynomial_ring = polynomial.polynomial_ring_constructor.PolynomialRing(self.base_ring(),
+                                                                                      self.variable_name(),
+                                                                                      sparse=sparse)
+        self._power_series_ring = power_series_ring.PowerSeriesRing(self.base_ring(),
+                                                                     self.variable_name(),
+                                                                     default_prec=default_prec,
+                                                                     sparse=sparse)
 
     def base_extend(self, R):
         """
         Returns the laurent series ring over R in the same variable as
         self, assuming there is a canonical coerce map from the base ring
         of self to R.
+
+        EXAMPLES::
+
+            sage: K.<x> = LaurentSeriesRing(QQ, default_prec=4)
+            sage: K.base_extend(QQ['t'])
+            Laurent Series Ring in x over Univariate Polynomial Ring in t over Rational Field
         """
         if R.has_coerce_map_from(self.base_ring()):
             return self.change_ring(R)
@@ -133,21 +163,62 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             raise TypeError, "no valid base extension defined"
 
     def change_ring(self, R):
-        return LaurentSeriesRing(R, self.variable_name(), sparse=self.__sparse)
+        """
+        EXAMPLES::
+
+            sage: K.<x> = LaurentSeriesRing(QQ, default_prec=4)
+            sage: R = K.change_ring(ZZ); R.default_prec()
+            4
+        """
+        return LaurentSeriesRing(R, self.variable_name(), default_prec=self.default_prec(), sparse=self.is_sparse())
 
     def is_sparse(self):
-        return self.__sparse
+        """
+        EXAMPLES::
+
+            sage: K.<x> = LaurentSeriesRing(QQ, sparse=True)
+            sage: K.is_sparse()
+            True
+        """
+        return self.power_series_ring().is_sparse()
 
     def is_field(self, proof = True):
+        """
+        TESTS::
+
+            sage: LaurentSeriesRing(QQ,'t').is_field()
+            True
+        """
         return True
 
     def is_dense(self):
-        return not self.__sparse
+        """
+        EXAMPLES::
+
+            sage: K.<x> = LaurentSeriesRing(QQ, sparse=True)
+            sage: K.is_dense()
+            False
+        """
+        return self.power_series_ring().is_dense()
 
     def __reduce__(self):
-        return self.__class__, (self.base_ring(), self.variable_name())
+        """
+        TESTS::
 
-    def __repr__(self):
+            sage: K.<q> = LaurentSeriesRing(QQ,default_prec=4)
+            sage: L = loads(dumps(K))
+            sage: L.default_prec()
+            4
+        """
+        return self.__class__, (self.base_ring(), self.variable_name(), self.default_prec(), self.is_sparse())
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: K.<q> = LaurentSeriesRing(QQ,default_prec=4); K # indirect doctest
+            Laurent Series Ring in q over Rational Field
+        """
         s = "Laurent Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
         if self.is_sparse():
             s = 'Sparse ' + s
@@ -262,6 +333,16 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
           over the base ring of R.
 
         - Any ring that canonically coerces to the base ring of R
+
+        EXAMPLES::
+
+            sage: R.<t> = LaurentSeriesRing(ZZ)
+            sage: S.<t> = PowerSeriesRing(QQ)
+            sage: R.has_coerce_map_from(S) # indirect doctest
+            False
+            sage: R.<t> = LaurentSeriesRing(QQ['x'])
+            sage: R.has_coerce_map_from(S)
+            True
         """
         try:
             P = x.parent()
@@ -277,16 +358,56 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         return self._coerce_try(x, [self.power_series_ring(), self.base_ring()])
 
     def __cmp__(self, other):
+        """
+        Compare this Laurent series ring to something else.
+
+        Laurent series rings are considered equal if the base ring, variable
+        names, and default truncation precision are the same.
+
+        First the base rings are compared, then the variable names, then
+        the default precision.
+
+        EXAMPLES::
+
+            sage: R.<t> = LaurentSeriesRing(ZZ)
+            sage: S.<t> = LaurentSeriesRing(ZZ)
+            sage: R is S
+            True
+            sage: R == S
+            True
+            sage: S.<t> = LaurentSeriesRing(ZZ, default_prec=10)
+            sage: R == S
+            False
+            sage: LaurentSeriesRing(ZZ,'t') == LaurentSeriesRing(QQ,'t')
+            False
+            sage: LaurentSeriesRing(QQ,'t') == 5
+            False
+        """
         if not isinstance(other, LaurentSeriesRing_generic):
             return cmp(type(self),type(other))
         c = cmp(self.base_ring(), other.base_ring())
         if c: return c
         c = cmp(self.variable_name(), other.variable_name())
         if c: return c
+        c = cmp(self.default_prec(), other.default_prec())
+        if c: return c
         return 0
 
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = LaurentSeriesRing(GF(17))
+            sage: S.<y> = LaurentSeriesRing(GF(19))
+            sage: R.hom([y], S) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: images do not define a valid homomorphism
+            sage: f = R.hom(x+x^3,R)
+            sage: f(x^2)
+            x^2 + 2*x^4 + x^6
+        """
         ## NOTE: There are no ring homomorphisms from the ring of
         ## all formal power series to most rings, e.g, the p-adic
         ## field, since you can always (mathematically!) construct
@@ -294,22 +415,68 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         ## Note that 0 is not a *ring* homomorphism.
         from power_series_ring import is_PowerSeriesRing
         if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
-            return im_gens[0].valuation() > 0
+            return im_gens[0].valuation() > 0 and codomain.has_coerce_map_from(self.base_ring())
         return False
 
     def characteristic(self):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = LaurentSeriesRing(GF(17))
+            sage: R.characteristic()
+            17
+        """
         return self.base_ring().characteristic()
 
     def set_default_prec(self, n):
+        """
+        Sets the default precision.
+
+        This operation should be discouraged: parents should be
+        immutable and this function may be deprecated in the future.
+
+        TESTS::
+
+            sage: R.<x> = LaurentSeriesRing(QQ)
+            sage: R.set_default_prec(3)
+            sage: 1/(x^5-x^7)
+            x^-5 + x^-3 + O(x^-2)
+        """
         self.power_series_ring().set_default_prec(n)
 
     def default_prec(self):
+        """
+        Sets the precision to which exact elements are truncated when
+        necessary (most frequently when inverting)
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentSeriesRing(QQ, default_prec=5)
+            sage: R.default_prec()
+            5
+        """
         return self.power_series_ring().default_prec()
 
     def is_exact(self):
+        """
+        Laurent series rings are inexact.
+
+        EXAMPLES::
+
+            sage: R = LaurentSeriesRing(QQ, "x")
+            sage: R.is_exact()
+            False
+        """
         return False
 
     def gen(self, n=0):
+        """
+        EXAMPLES::
+
+            sage: R = LaurentSeriesRing(QQ, "x")
+            sage: R.gen()
+            x
+        """
         if n != 0:
             raise IndexError, "Generator n not defined."
         try:
@@ -319,6 +486,15 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             return self.__generator
 
     def ngens(self):
+        """
+        Laurent series rings are univariate.
+
+        EXAMPLES::
+
+            sage: R = LaurentSeriesRing(QQ, "x")
+            sage: R.ngens()
+            1
+        """
         return 1
 
     def polynomial_ring(self):
@@ -332,12 +508,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             sage: R.polynomial_ring()
             Univariate Polynomial Ring in x over Rational Field
         """
-        try:
-            return self.__polynomial_ring
-        except AttributeError:
-            self.__polynomial_ring = polynomial.polynomial_ring_constructor.PolynomialRing( \
-                                         self.base_ring(), self.variable_name(), sparse=self.is_sparse())
-            return self.__polynomial_ring
+        return self._polynomial_ring
 
     def power_series_ring(self):
         r"""
@@ -350,18 +521,27 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             sage: R.power_series_ring()
             Power Series Ring in x over Rational Field
         """
-        try:
-            return self.__power_series_ring
-        except AttributeError:
-            self.__power_series_ring = power_series_ring.PowerSeriesRing(
-                                         self.base_ring(), self.variable_name(), sparse=self.is_sparse())
-            return self.__power_series_ring
+        return self._power_series_ring
 
 class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.IntegralDomain):
-    def __init__(self, base_ring, name=None, sparse=False):
-        LaurentSeriesRing_generic.__init__(self, base_ring, name, sparse)
+    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
+        """
+        Initialization
+
+        TESTS::
+
+            sage: TestSuite(LaurentSeriesRing(ZZ,'t')).run()
+        """
+        LaurentSeriesRing_generic.__init__(self, base_ring, name, default_prec, sparse)
 
 class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
-    def __init__(self, base_ring, name=None, sparse=False):
-        LaurentSeriesRing_generic.__init__(self, base_ring, name, sparse)
+    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
+        """
+        Initialization
+
+        TESTS::
+
+            sage: TestSuite(LaurentSeriesRing(QQ,'t')).run()
+        """
+        LaurentSeriesRing_generic.__init__(self, base_ring, name, default_prec, sparse)
 

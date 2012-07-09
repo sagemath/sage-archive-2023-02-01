@@ -4198,7 +4198,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
                 a = M.column(j)[i].real()
                 if a != 0:
                     if a < 0:
-                        M = M.with_rescaled_col(j, -1)
+                        M.rescale_col(j, -1)
                     break
         return M
 

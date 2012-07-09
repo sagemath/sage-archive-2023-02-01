@@ -1350,11 +1350,19 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         r"""
         The minimal polynomial of this element over `\QQ`.
 
+        INPUT:
+
+        -  ``var`` -- the minimal polynomial is defined over a polynomial ring
+           in a variable with this name. If not specified this defaults to
+           ``x``.
+
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^2+13)
             sage: a.minpoly()
             x^2 + 13
+            sage: a.minpoly('T')
+            T^2 + 13
             sage: (a+1/2-a).minpoly()
             x - 1/2
         """
@@ -1362,7 +1370,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             R = QQ[var]
             return R([-self._rational_(), 1])
         else:
-            return self.charpoly()
+            return self.charpoly(var)
 
 
 cdef class OrderElement_quadratic(NumberFieldElement_quadratic):

@@ -277,6 +277,13 @@ fi
 cat >"$SAGE_LOCAL/bin/sage_fortran" <<EOF
 #!/bin/sh
 
+cat >&2 <<ENDOFWARNING
+WARNING: The sage_fortran script is deprecated since Sage 5.11 and
+might not be supported in future versions of Sage. You should update
+your package to use the standard environment variable \\\$FC instead.
+
+ENDOFWARNING
+
 if [ "x\$FC" = x ]; then
     # Default value determined in spkg/install
     myFC='${FC:-gfortran}'
@@ -372,7 +379,6 @@ PREREQ=`newest_version_base prereq`
 
 # Standard packages
 ATLAS=`newest_version atlas`
-BLAS=`newest_version blas`
 BOEHM_GC=`newest_version boehm_gc`
 BOOST_CROPPED=`newest_version boost_cropped`
 BZIP2=`newest_version bzip2`
@@ -409,7 +415,6 @@ IML=`newest_version iml`
 IPYTHON=`newest_version ipython`
 JINJA2=`newest_version jinja2`
 JMOL=`newest_version jmol`
-LAPACK=`newest_version lapack`
 LCALC=`newest_version lcalc`
 LRCALC=`newest_version lrcalc`
 LIBGAP=`newest_version libgap`

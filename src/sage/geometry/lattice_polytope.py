@@ -4084,7 +4084,7 @@ def _read_nef_x_partitions(data):
 
         sage: o = lattice_polytope.octahedron(3)
         sage: s = o.nef_x("-N -p")
-        sage: print s
+        sage: print s # random
         M:27 8 N:7 6  codim=2 #part=5
          P:0 V:2 4 5       0sec  0cpu
          P:2 V:3 4 5       0sec  0cpu

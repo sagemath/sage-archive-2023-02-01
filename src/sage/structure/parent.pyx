@@ -375,18 +375,25 @@ def dir_with_other_class(self, cls):
         False
         sage: sage.structure.parent.dir_with_other_class(x, B)
         [..., 'a', 'b']
+
+    TESTS:
+
+    Check that #13043 is fixed::
+
+        sage: len(dir(RIF))==len(set(dir(RIF)))
+        True
     """
+    ret = set()
     # This tries to emulate the standard dir function
     # Is there a better way to call dir on self, while ignoring this
     # __dir__? Using dir(super(A, self)) does not work since the
     # attributes coming from subclasses of A will be ignored
-    iterator = dir(self.__class__)
+    ret.update(dir(self.__class__))
     if hasattr(self, "__dict__"):
-        iterator = unique_merge(iterator, self.__dict__.keys())
+        ret.update(self.__dict__.keys())
     if not isinstance(self, cls):
-        iterator = unique_merge(iterator, dir(cls))
-    return list(iterator)
-
+        ret.update(dir(cls))
+    return sorted(ret)
 
 ###############################################################################
 #   Sage: System for Algebra and Geometry Experimentation

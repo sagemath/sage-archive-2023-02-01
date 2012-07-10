@@ -106,6 +106,13 @@ class ChainComplexMorphism(SageObject):
             [0 0 0]
             [0 0 0]}
 
+        Check that the bug in :trac:`13220` has been fixed::
+
+            sage: X = simplicial_complexes.Simplex(1)
+            sage: Y = simplicial_complexes.Simplex(0)
+            sage: g = Hom(X,Y)({0:0, 1:0})
+            sage: g.associated_chain_complex_morphism()
+            Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring to Chain complex with at most 1 nonzero terms over Integer Ring
         """
         if C._grading_group != ZZ:
             raise NotImplementedError, "Chain complex morphisms are not implemented over gradings other than ZZ."
@@ -132,20 +139,20 @@ class ChainComplexMorphism(SageObject):
                     if not matrices[i]*C.differential()[i+1]==D.differential()[i+1]*matrices[i+1]:
                         raise ValueError, "Matrices must define a chain complex morphism."
                 elif (i+1) in C.differential().keys():
-                    if not matrices[i]*C.differential()[i+1].is_zero():
+                    if not (matrices[i]*C.differential()[i+1]).is_zero():
                         raise ValueError, "Matrices must define a chain complex morphism."
                 elif (i+1) in D.differential().keys():
-                    if not D.differential()[i+1]*matrices[i+1].is_zero():
+                    if not (D.differential()[i+1]*matrices[i+1]).is_zero():
                         raise ValueError, "Matrices must define a chain complex morphism."
             else:
                 if i in C.differential().keys() and i in D.differential().keys():
                     if not matrices[i+1]*C.differential()[i]==D.differential()[i]*matrices[i]:
                         raise ValueError, "Matrices must define a chain complex morphism."
                 elif i in C.differential().keys():
-                    if not matrices[i+1]*C.differential()[i].is_zero():
+                    if not (matrices[i+1]*C.differential()[i]).is_zero():
                         raise ValueError, "Matrices must define a chain complex morphism."
                 elif i in D.differential().keys():
-                    if not D.differential()[i]*matrices[i].is_zero():
+                    if not (D.differential()[i]*matrices[i]).is_zero():
                         raise ValueError, "Matrices must define a chain complex morphism."
         self._matrix_dictionary = matrices
         self._domain = C

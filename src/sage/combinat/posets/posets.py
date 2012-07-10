@@ -1756,11 +1756,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_ranked(self):
         r"""
-        Returns True if the poset is ranked, and False otherwise.
+        Returns whether this poset is ranked.
 
         A poset is *ranked* if it admits a rank function. For more information
-        about the rank function, see :meth:`~sage.combinat.posets.hasse_diagram.HasseDiagram.rank_function`
-        and :meth:`~is_graded`.
+        about the rank function, see :meth:`~sage.combinat.posets.hasse_diagram.HasseDiagram.rank_function`.
+
+        .. SEEALSO:: :meth:`is_graded`.
 
         EXAMPLES::
 
@@ -1770,16 +1771,28 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Poset([[1,5],[2,6],[3],[4],[],[6,3],[4]])
             sage: Q.is_ranked()
             False
+            sage: P = Poset( ([1,2,3,4],[[1,2],[2,4],[3,4]] ))
+            sage: P.is_ranked()
+            True
         """
         return bool(self.rank_function())
 
     def is_graded(self):
         r"""
-        Returns True if the poset is graded, and False otherwise.
+        Returns whether this poset is graded.
 
-        A poset is *graded* if it admits a rank function. For more information
-        about the rank function, see :meth:`~sage.combinat.posets.hasse_diagram.HasseDiagram.rank_function`
-        and :meth:`~is_ranked`.
+        A poset is *graded* if all its maximal chains have the same length.
+        There are various competing definitions for graded posets (see
+        :wikipedia:`Graded_poset`). This definition is from section 3.1 of
+        Richard Stanley's *Enumerative Combinatorics, Vol. 1*.
+
+        .. SEEALSO:: :meth:`is_ranked`
+
+        .. TODO::
+
+            The current algorithm has exponential complexity (in time
+            and memory). Someone should really implement a better
+            algorithm. See :trac:`13223`.
 
         EXAMPLES::
 
@@ -1789,8 +1802,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Poset([[1,5],[2,6],[3],[4],[],[6,3],[4]])
             sage: Q.is_graded()
             False
+            sage: P = Poset( ([1,2,3,4],[[1,2],[2,4],[3,4]] ))
+            sage: P.is_graded()
+            False
+
+        TESTS:
+
+        Here we test that the empty poset is graded::
+
+            sage: Poset([[],[]]).is_graded()
+            True
         """
-        return self.is_ranked()
+        maximal_chains = self.maximal_chains()
+        n = len(maximal_chains[0])
+        return all(len(chain) == n for chain in maximal_chains)
 
     def covers(self,x,y):
         """

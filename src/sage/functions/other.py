@@ -15,7 +15,9 @@ import math
 import sage.structure.element
 coercion_model = sage.structure.element.get_coercion_model()
 
-from sage.structure.coerce import parent
+# avoid name conflicts with `parent` as a function parameter
+from sage.structure.coerce import parent as s_parent
+
 from sage.symbolic.constants import pi
 from sage.symbolic.function import is_inexact
 from sage.functions.log import exp
@@ -58,12 +60,13 @@ class Function_erf(BuiltinFunction):
 
     ALGORITHM:
 
-    Sage implements numerical evaluation of the error function via the ``erfc()``
-    function in PARI. Symbolics are handled by Sage and Maxima.
+    Sage implements numerical evaluation of the error function via the
+    ``erf()`` function from mpmath. Symbolics are handled by Sage and Maxima.
 
     REFERENCES:
 
     - http://en.wikipedia.org/wiki/Error_function
+    - http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#error-functions
 
     TESTS:
 
@@ -183,7 +186,7 @@ class Function_erf(BuiltinFunction):
         """
         if not isinstance(x, Expression):
             if is_inexact(x):
-                return self._evalf_(x, parent=parent(x))
+                return self._evalf_(x, parent=s_parent(x))
             elif x == Integer(0):
                 return Integer(0)
         elif x.is_trivial_zero():
@@ -199,7 +202,7 @@ class Function_erf(BuiltinFunction):
             sage: erf(2).n(200)
             0.99532226501895273416206925636725292861089179704006007673835
             sage: erf(pi - 1/2*I).n(100)
-            1.0000111669099367825726058952 + 1.6332655417638522934072124548e-6*I
+            1.0000111669099367825726058952 + 1.6332655417638522934072124547e-6*I
 
         TESTS:
 
@@ -210,12 +213,18 @@ class Function_erf(BuiltinFunction):
             sage: print gp.eval("1 - erfc(1)"); print erf(1).n(200);
             0.84270079294971486934122063508260925929606699796630290845994
             0.84270079294971486934122063508260925929606699796630290845994
+
+        Check that for an imaginary input, the output is also imaginary, see
+        :trac:`13193`::
+
+            sage: erf(3.0*I)
+            1629.99462260157*I
+            sage: erf(33.0*I)
+            1.51286977510409e471*I
         """
-        try:
-            prec = parent.prec()
-        except AttributeError: # not a Sage parent
-            prec = 0
-        return parent(1) - parent(pari(x).erfc(prec))
+        R = parent or s_parent(x)
+        import mpmath
+        return mpmath_utils.call(mpmath.erf, x, parent=R)
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -932,7 +941,7 @@ class Function_gamma_inc(BuiltinFunction):
         if not isinstance(x, Expression) and not isinstance(y, Expression) and \
                (is_inexact(x) or is_inexact(y)):
             x, y = coercion_model.canonical_coercion(x, y)
-            return self._evalf_(x, y, parent(x))
+            return self._evalf_(x, y, s_parent(x))
 
         if y == 0:
             return gamma(x)
@@ -1753,11 +1762,11 @@ class Function_arg(BuiltinFunction):
 
         """
         if not isinstance(x,Expression): # x contains no variables
-            if parent(x)(0)==x: #compatibility with maxima
-                return parent(x)(0)
+            if s_parent(x)(0)==x: #compatibility with maxima
+                return s_parent(x)(0)
             else:
                 if is_inexact(x): # inexact complex numbers, e.g. 2.0+i
-                    return self._evalf_(x, parent(x))
+                    return self._evalf_(x, s_parent(x))
                 else:  # exact complex numbers, e.g. 2+i
                     return arctan2(imag_part(x),real_part(x))
         else:
@@ -1798,7 +1807,7 @@ class Function_arg(BuiltinFunction):
             pass
         # try to find a parent that support .arg()
         if parent_d is None:
-            parent_d = parent(x)
+            parent_d = s_parent(x)
         try:
             parent_d = parent_d.complex_field()
         except AttributeError:

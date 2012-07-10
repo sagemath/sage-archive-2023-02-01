@@ -1067,7 +1067,7 @@ cdef class Expression(CommutativeRingElement):
             sage: complex(I)
             1j
             sage: complex(erf(3*I))
-            (1.0000000000000002+1629.8673238578601j)
+            1629.9946226015657j
         """
         try:
             return self._eval_self(complex)

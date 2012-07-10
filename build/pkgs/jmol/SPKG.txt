@@ -33,7 +33,7 @@ GPLv2+
  * Adds testjava.sh to the jmol directory for checking if java
    is installed.
 
-=== jmol-12.2.21.p4 (Jonathan Gutow, April 8, 2012) ===
+=== jmol-12.2.21.p0 (Jonathan Gutow, April 8, 2012) ===
 
  * update to Jmol-12.2.21 includes updates to .jar files necessary
    for using a headless Jmol to generate static images server-side.

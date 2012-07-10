@@ -32,7 +32,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.arith import divisors, prime_divisors, is_square, euler_phi, gcd
-from sage.rings.all import IntegerRing, RationalField
+from sage.rings.all import Integer, IntegerRing, RationalField
 from sage.groups.group import AbelianGroup
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.formal_sum import FormalSum
@@ -801,53 +801,56 @@ class CuspFamily(SageObject):
         else:
             return "(c_{%s%s})" % (self.width(), ((self.label and (","+self.label)) or ""))
 
-def qexp_eta(ps_ring, n):
+def qexp_eta(ps_ring, prec):
     r"""
     Return the q-expansion of `\eta(q) / q^{1/24}`, where
     `\eta(q)` is Dedekind's function
 
     .. math::
 
-        \eta(q) = q^{1/24}\prod_{i=1}^\infty (1-q^i)
+        \eta(q) = q^{1/24}\prod_{n=1}^\infty (1-q^n),
 
 
-    as an element of ps_ring, to precision n. Completely naive
-    algorithm.
+    as an element of ps_ring, to precision prec.
 
     INPUT:
 
+    -  ``ps_ring`` - (PowerSeriesRing): a power series ring
 
-    -  ``ps_ring`` - (PowerSeriesRing): a power series
-       ring - we pass this as an argument as we frequently need to create
-       multiple series in the same ring.
-
-    -  ``n`` - (integer): the number of terms to compute.
+    -  ``prec`` - (integer): the number of terms to compute.
 
 
     OUTPUT: An element of ps_ring which is the q-expansion of
-    `\eta(q)/q^{1/24}` truncated to n terms.
+    `\eta(q)/q^{1/24}` truncated to prec terms.
 
-    ALGORITHM: Multiply out the product
-    `\prod_{i=1}^n (1 - q^i)`. Could perhaps be sped-up by
-    using the identity
+    ALGORITHM: We use the Euler identity
 
     .. math::
 
-         \eta(q) = q^{1/24}( 1 + \sum_{i \ge 1} (-1)^n (q^{n(3n+1)/2} + q^{n(3n-1)/2}),
+         \eta(q) = q^{1/24}( 1 + \sum_{n \ge 1} (-1)^n (q^{n(3n+1)/2} + q^{n(3n-1)/2})
 
-
-    but I'm lazy.
+    to compute the expansion.
 
     EXAMPLES::
 
         sage: qexp_eta(ZZ[['q']], 100)
         1 - q - q^2 + q^5 + q^7 - q^12 - q^15 + q^22 + q^26 - q^35 - q^40 + q^51 + q^57 - q^70 - q^77 + q^92 + O(q^100)
     """
-    q = ps_ring.gen()
-    t = ps_ring(1).add_bigoh(n)
-    for i in xrange(1,n):
-        t = t*ps_ring( 1 - q**i)
-    return t
+    prec = Integer(prec)
+    assert prec>0, "prec must be a positive integer"
+    v = [Integer(0)] * prec
+    pm = Integer(1)
+    v[0] = pm
+    try:
+        n = 1
+        while True:
+            pm = -pm
+            v[n*(3*n-1)/2] = pm
+            v[n*(3*n+1)/2] = pm
+            n += 1
+    except IndexError:
+        pass
+    return ps_ring(v, prec=prec)
 
 def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     r"""

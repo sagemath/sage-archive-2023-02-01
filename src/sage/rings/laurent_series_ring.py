@@ -141,9 +141,9 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
                                                                                       self.variable_name(),
                                                                                       sparse=sparse)
         self._power_series_ring = power_series_ring.PowerSeriesRing(self.base_ring(),
-                                                                     self.variable_name(),
-                                                                     default_prec=default_prec,
-                                                                     sparse=sparse)
+                                                                    self.variable_name(),
+                                                                    default_prec=default_prec,
+                                                                    sparse=sparse)
 
     def base_extend(self, R):
         """
@@ -167,7 +167,9 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         EXAMPLES::
 
             sage: K.<x> = LaurentSeriesRing(QQ, default_prec=4)
-            sage: R = K.change_ring(ZZ); R.default_prec()
+            sage: R = K.change_ring(ZZ); R
+            Laurent Series Ring in x over Integer Ring
+            sage: R.default_prec()
             4
         """
         return LaurentSeriesRing(R, self.variable_name(), default_prec=self.default_prec(), sparse=self.is_sparse())
@@ -184,12 +186,16 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     def is_field(self, proof = True):
         """
+        A Laurent series ring is a field if and only if the base ring is a field.
+
         TESTS::
 
             sage: LaurentSeriesRing(QQ,'t').is_field()
             True
+            sage: LaurentSeriesRing(ZZ,'t').is_field()
+            False
         """
-        return True
+        return self.base_ring().is_field()
 
     def is_dense(self):
         """
@@ -216,8 +222,10 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         """
         EXAMPLES::
 
-            sage: K.<q> = LaurentSeriesRing(QQ,default_prec=4); K # indirect doctest
+            sage: LaurentSeriesRing(QQ,'q') # indirect doctest
             Laurent Series Ring in q over Rational Field
+            sage: LaurentSeriesRing(ZZ,'t',sparse=True)
+            Sparse Laurent Series Ring in t over Integer Ring
         """
         s = "Laurent Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
         if self.is_sparse():
@@ -340,8 +348,18 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             sage: S.<t> = PowerSeriesRing(QQ)
             sage: R.has_coerce_map_from(S) # indirect doctest
             False
+            sage: R.has_coerce_map_from(R)
+            True
             sage: R.<t> = LaurentSeriesRing(QQ['x'])
             sage: R.has_coerce_map_from(S)
+            True
+            sage: R.has_coerce_map_from(QQ['t'])
+            True
+            sage: R.has_coerce_map_from(ZZ['x']['t'])
+            True
+            sage: R.has_coerce_map_from(ZZ['t']['x'])
+            False
+            sage: R.has_coerce_map_from(ZZ['x'])
             True
         """
         try:

@@ -5344,6 +5344,13 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(str(f) == str(g))
             True
 
+        Check if :trac:`9046` is fixed::
+
+            sage: var('a b x y z')
+            (a, b, x, y, z)
+            sage: p = -a*x^3 - a*x*y^2 + 2*b*x^2*y + 2*y^3 + x^2*z + y^2*z + x^2 + y^2 + a*x
+            sage: p.collect(x)
+            -a*x^3 + (2*b*y + z + 1)*x^2 + 2*y^3 + y^2*z - (a*y^2 - a)*x + y^2
         """
         cdef Expression s0 = self.coerce_in(s)
         cdef GEx x

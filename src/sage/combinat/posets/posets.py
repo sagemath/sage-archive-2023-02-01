@@ -2935,6 +2935,48 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self.linear_extension(self.linear_extension()).evacuation().to_poset()
 
+    def is_slender(self):
+        r"""
+        Returns whether the poset ``self`` is slender or not.
+
+        It is assumed for this method that ``self`` is a finite graded poset.
+        A finite poset `P` is called slender if every rank 2 interval contains three
+        or four elements. See [Sta2009]_.
+
+        REFERENCES:
+
+            .. [Sta2009] Richard Stanley,
+               *Promotion and evacuation*,
+               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of Anders Björner,
+               Research Paper 9, 24 pp.
+
+        EXAMPLES::
+
+            sage: P = Poset(([1,2,3,4],[[1,2],[1,3],[2,4],[3,4]]), facade = True)
+            sage: P.is_slender()
+            True
+            sage: P = Poset(([1,2,3,4,5],[[1,2],[1,3],[1,4],[2,5],[3,5],[4,5]]), facade = True)
+            sage: P.is_slender()
+            False
+
+            sage: W = WeylGroup(['A',2])
+            sage: G = W.bruhat_poset()
+            sage: G.is_slender()
+            True
+            sage: W = WeylGroup(['A',3])
+            sage: G = W.bruhat_poset()
+            sage: G.is_slender()
+            True
+        """
+        for x in self:
+            d = {}
+            S = self.upper_covers(x)
+            Y = [ c for y in S for c in self.upper_covers(y) ]
+            for y in Y:
+                d[y] = d.get(y,0) + 1
+            if not all( d[y]<3 for y in d.keys() ):
+                return False
+        return True
 
 FinitePoset._dual_class = FinitePoset
 

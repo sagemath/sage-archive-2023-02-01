@@ -368,6 +368,8 @@ spaces in its name will also fail.
    be able to safely move or rename that directory. (It's a bug if
    this is not the case)
 
+   See :ref:`section_make` for some options for the ``make`` command.
+
 #. To start Sage, change into the Sage home directory and type:
 
    ::
@@ -550,6 +552,47 @@ spaces in its name will also fail.
 
 
 Have fun! Discover some amazing conjectures!
+
+.. _section_make:
+
+Make targets
+------------
+
+To build Sage from scratch, you would typically give the command
+``make`` to build Sage and its HTML documentation. The ``make`` command
+is pretty smart, so if your build of Sage is interrupted, then running
+``make`` again should cause it to pick up where it left off. The
+``make`` command can also be given options, which control what is built
+and how it is built.
+
+- ``make build`` builds Sage: it compiles all of the Sage packages. It
+  does not build the documentation.
+
+- ``make doc`` builds Sage's documentation in HTML format. Note that
+  this requires that Sage be built first, so it will automatically run
+  ``make build`` first. Thus running ``make doc`` is equivalent to
+  running ``make``.
+
+- ``make doc-pdf`` builds Sage's documentation in PDF format. This also
+  requires that Sage be built first, so it will automatically run ``make
+  build``.
+
+- ``make build-serial`` builds the components of Sage serially, rather
+  than in parallel (parallel building is the default). Running ``make
+  build-serial`` is equivalent to setting the environment variable
+  :envvar:`SAGE_PARALLEL_SPKG_BUILD` to "no" -- see below for
+  information about this variable.
+
+- ``make ptest`` and ``make ptestlong``: these first build Sage and its
+  html documentation, if necessary, and then run Sage's test suite. The
+  second version runs more tests, and so it takes longer. The "p" in
+  "ptest" stands for "parallel": tests are run in parallel. If you want
+  to run tests serially, you can use ``make test`` or ``make testlong``
+  instead.
+
+- ``make distclean`` restores the Sage directory to its state before
+  doing any building: it is equivalent to deleting the entire Sage
+  directory and unpacking the source tarfile.
 
 Environment variables
 ---------------------
@@ -1038,4 +1081,4 @@ Special Notes
   :ref:`installation in a multiuser environment
   <sagetex_installation_multiuser>`.
 
-  **This page was last updated in May 2012 (Sage 5.0)**
+  **This page was last updated in July 2012 (Sage 5.2)**

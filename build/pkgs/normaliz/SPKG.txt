@@ -1,0 +1,37 @@
+= normaliz =
+
+== Description ==
+
+Normaliz is a tool for computations in affine monoids, vector configurations, lattice polytopes,  and rational cones.
+
+For more details see http://www.mathematik.uni-osnabrueck.de/normaliz/
+
+== License ==
+
+ * GPL v3
+
+== SPKG Maintainers ==
+
+ * Andrey Novoseltsev
+
+== Upstream Contact ==
+
+ * Winfried Bruns <wbruns@uos.de>
+ * Bogdan Ichim <bogdan_ichim@yahoo.com>
+ * Christof Söger <csoeger@uos.de>
+
+== Dependencies ==
+
+== Special Update/Build Instructions ==
+
+ * The upstream "basic package" is placed in src/
+
+=== Patches ===
+
+== Changelog ==
+
+=== normaliz-2.8 (Andrey Novoseltsev, July 11 2012) ===
+
+ * Initial release. See Sage Trac #13234.
+
+

@@ -22,7 +22,7 @@ from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set
 from sage.libs.singular.decl cimport number, lnumber, napoly, ring, currRing
 from sage.libs.singular.decl cimport rChangeCurrRing, rCopy0, rComplete, rDelete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omAlloc, omAlloc0Bin,  sip_sring_bin, rnumber_bin
-from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, ringorder_rp, ringorder_ds, ringorder_Ds, ringorder_ls, ringorder_M, ringorder_C, ringorder_wp, ringorder_Wp, ringorder_ws, ringorder_Ws
+from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, ringorder_rp, ringorder_ds, ringorder_Ds, ringorder_ls, ringorder_M, ringorder_C, ringorder_wp, ringorder_Wp, ringorder_ws, ringorder_Ws, ringorder_a
 from sage.libs.singular.decl cimport p_Copy
 
 from sage.rings.integer cimport Integer
@@ -54,6 +54,7 @@ order_dict = {
     "Wp": ringorder_Wp,
     "ws": ringorder_ws,
     "Ws": ringorder_Ws,
+    "a":  ringorder_a,
 }
 
 
@@ -252,7 +253,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
         _ring.minpoly=<number*>nmp
 
-    nblcks = len(order.blocks())
+    cdef nbaseblcks = len(order.blocks())
+    nblcks = nbaseblcks + order.singular_moreblocks()
     offset = 0
 
     _ring.wvhdl  = <int **>omAlloc0((nblcks + 2) * sizeof(int *))
@@ -265,30 +267,48 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     else:
         _ring.OrdSgn = 1
 
-    for i from 0 <= i < nblcks:
+    cdef int idx = 0
+    for i from 0 <= i < nbaseblcks:
         s = order[i].singular_str()
         if s[0] == 'M': # matrix order
-            _ring.order[i] = ringorder_M
+            _ring.order[idx] = ringorder_M
             mtx = order[i].matrix().list()
             wv = <int *>omAlloc0(len(mtx)*sizeof(int))
             for j in range(len(mtx)):
                 wv[j] = int(mtx[j])
-            _ring.wvhdl[i] = wv
+            _ring.wvhdl[idx] = wv
         elif s[0] == 'w' or s[0] == 'W': # weighted degree orders
-            _ring.order[i] = order_dict.get(s[:2], ringorder_dp)
+            _ring.order[idx] = order_dict.get(s[:2], ringorder_dp)
             wts = order[i].weights()
             wv = <int *>omAlloc0(len(wts)*sizeof(int))
             for j in range(len(wts)):
                 wv[j] = int(wts[j])
-            _ring.wvhdl[i] = wv
+            _ring.wvhdl[idx] = wv
+        elif s[0] == '(' and order[i].name() == 'degneglex':  # "(a(1:n),ls(n))"
+            _ring.order[idx] = ringorder_a
+            if len(order[i]) == 0:    # may be zero for arbitrary-length orders
+                nlen = n
+            else:
+                nlen = len(order[i])
+
+            _ring.wvhdl[idx] = <int *>omAlloc0(len(order[i])*sizeof(int))
+            for j in range(nlen):  _ring.wvhdl[idx][j] = 1
+            _ring.block0[idx] = offset + 1     # same like subsequent rp block
+            _ring.block1[idx] = offset + nlen
+
+            idx += 1;                   # we need one more block here
+            _ring.order[idx] = ringorder_rp
+
         else: # ordinary orders
-            _ring.order[i] = order_dict.get(s, ringorder_dp)
-        _ring.block0[i] = offset + 1
+            _ring.order[idx] = order_dict.get(s, ringorder_dp)
+
+        _ring.block0[idx] = offset + 1
         if len(order[i]) == 0: # may be zero in some cases
-            _ring.block1[i] = offset + n
+            _ring.block1[idx] = offset + n
         else:
-            _ring.block1[i] = offset + len(order[i])
-        offset = _ring.block1[i]
+            _ring.block1[idx] = offset + len(order[i])
+        offset = _ring.block1[idx]
+        idx += 1
 
     # TODO: if we construct a free module don't hardcode! This
     # position determines whether we break ties at monomials first or

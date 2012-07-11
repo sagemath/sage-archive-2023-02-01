@@ -1257,6 +1257,17 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             //                  : names    x0 x1
             //        block   2 : ordering C
 
+            sage: R = PolynomialRing(QQ,2,'x', order='degneglex')
+            sage: singular(R)
+            //   characteristic : 0
+            //   number of vars : 2
+            //        block   1 : ordering a
+            //                  : names    x0 x1
+            //                  : weights   1  1
+            //        block   2 : ordering ls
+            //                  : names    x0 x1
+            //        block   3 : ordering C
+
             sage: R = PolynomialRing(QQ,'x')
             sage: singular(R)
             //   characteristic : 0
@@ -1315,7 +1326,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             order = 'lp'
         else:
             _vars = str(self.gens())
-            order = self.term_order().singular_str()
+            order = self.term_order().singular_str()%dict(ngens=self.ngens())
 
         base_ring = self.base_ring()
 

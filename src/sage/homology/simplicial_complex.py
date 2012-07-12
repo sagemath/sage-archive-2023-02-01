@@ -1161,9 +1161,9 @@ class SimplicialComplex(GenericCellComplex):
             sage: T = simplicial_complexes.Torus(); T
             Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 14 facets
             sage: K = simplicial_complexes.KleinBottle(); K
-            Simplicial complex with 9 vertices and 18 facets
+            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets
             sage: T.product(K)      # long time: 5 or 6 seconds
-            Simplicial complex with 63 vertices and 1512 facets
+            Simplicial complex with 56 vertices and 1344 facets
         """
         vertices = []
         for v in self.vertices():

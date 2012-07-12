@@ -84,6 +84,63 @@ def matching(A, B):
                     answer.append(new)
     return answer
 
+def facets_for_RP4():
+    """
+    Return the list of facets for a minimal triangulation of 4-dimensional
+    real projective space. We use vertices numbered 1 through 16, define two
+    facets, and define a certain subgroup `G` of the symmetric group `S_{16}`.
+    Then the set of all facets is the `G`-orbit of the two given facets.
+    See the description in Example 3.12 in Datta [Da2007]_.
+
+    EXAMPLES::
+
+        sage: from sage.homology.examples import facets_for_RP4
+        sage: A = facets_for_RP4()   # long time (1 or 2 seconds)
+        sage: SimplicialComplex(A) == simplicial_complexes.RealProjectiveSpace(4) # long time
+        True
+    """
+    # Define the group:
+    from sage.groups.perm_gps.permgroup import PermutationGroup
+    g1 = '(2,7)(4,10)(5,6)(11,12)'
+    g2 = '(1, 2, 3, 4, 5, 10)(6, 8, 9)(11, 12, 13, 14, 15, 16)'
+    G = PermutationGroup([g1, g2])
+    # Define the two simplices:
+    t1 = (1, 2, 4, 5, 11)
+    t2 = (1, 2, 4, 11, 13)
+    # Apply the group elements to the simplices:
+    facets = []
+    for g in G:
+        d = g.dict()
+        for t in [t1, t2]:
+            new = tuple([d[j] for j in t])
+            if new not in facets:
+                facets.append(new)
+    return facets
+
+def facets_for_K3():
+    """
+    Returns the facets for a minimal triangulation of the K3
+    surface. This is a pure simplicial complex of dimension 4 with 16
+    vertices and 288 facets. The facets are obtained by constructing a
+    few facets and a permutation group `G`, and then computing the
+    `G`-orbit of those facets. See Casella and Kühnel in [CK2001]_ and
+    Spreer and Kühnel [SK2011]_; the construction here uses the
+    labeling from Spreer and Kühnel.
+
+    EXAMPLES::
+
+        sage: from sage.homology.examples import facets_for_K3
+        sage: A = facets_for_K3()   # long time (a few seconds)
+        sage: SimplicialComplex(A) == simplicial_complexes.K3Surface()  # long time
+        True
+    """
+    from sage.groups.perm_gps.permgroup import PermutationGroup
+    G = PermutationGroup([[(1,3,8,4,9,16,15,2,14,12,6,7,13,5,10)],
+                         [(1,11,16),(2,10,14),(3,12,13),(4,9,15),(5,7,8)]])
+    return ([tuple([g(i) for i in (1,2,3,8,12)]) for g in G]
+            +[tuple([g(i) for i in (1,2,5,8,14)]) for g in G])
+
+
 # for backwards compatibility:
 SimplicialSurface = SimplicialComplex
 
@@ -216,17 +273,24 @@ class SimplicialComplexExamples():
 
     def KleinBottle(self):
         """
-        A triangulation of the Klein bottle, formed by taking the
-        connected sum of a real projective plane with itself.  (This is not
-        a minimal triangulation.)
+        A minimal triangulation of the Klein bottle, as presented for example
+        in Davide Cervone's thesis [Ce1994]_.
 
         EXAMPLES::
 
             sage: simplicial_complexes.KleinBottle()
-            Simplicial complex with 9 vertices and 18 facets
+            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets
+
+        REFERENCES:
+
+        .. [Ce1994] D. P. Cervone, "Vertex-minimal simplicial immersions of the Klein
+           bottle in three-space", Geom. Ded. 50 (1994) 117-141,
+           http://www.math.union.edu/~dpvc/papers/1993-03.kb/vmkb.pdf.
         """
-        P = simplicial_complexes.RealProjectivePlane()
-        return P.connected_sum(P)
+        return SimplicialComplex([[2,3,7], [1,2,3], [1,3,5], [1,5,7],
+                                  [1,4,7], [2,4,6], [1,2,6], [1,6,0],
+                                  [1,4,0], [2,4,0], [3,4,7], [3,4,6],
+                                  [3,5,6], [5,6,0], [2,5,0], [2,5,7]])
 
     def SurfaceOfGenus(self, g, orientable=True):
         """
@@ -331,13 +395,13 @@ class SimplicialComplexExamples():
         """
         A minimal triangulation of the complex projective plane.
 
-        This was constructed by Kühnel and Banchoff.
+        This was constructed by Kühnel and Banchoff [KB1983]_.
 
         REFERENCES:
 
-        - W. Kühnel and T. F. Banchoff, "The 9-vertex complex
-          projective plane", Math. Intelligencer 5 (1983), no. 3,
-          11-22.
+        .. [KB1983] W. Kühnel and T. F. Banchoff, "The 9-vertex complex
+           projective plane", Math. Intelligencer 5 (1983), no. 3,
+           11-22.
 
         EXAMPLES::
 
@@ -370,14 +434,14 @@ class SimplicialComplexExamples():
         This is a manifold whose integral homology is identical to the
         ordinary 3-sphere, but it is not simply connected.  The
         triangulation given here has 16 vertices and is due to Björner
-        and Lutz.
+        and Lutz [BL2000]_.
 
         REFERENCES:
 
-        - Anders Björner and Frank H. Lutz, "Simplicial manifolds,
-          bistellar flips and a 16-vertex triangulation of the
-          Poincaré homology 3-sphere", Experiment. Math. 9 (2000),
-          no. 2, 275-289.
+        .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial
+           manifolds, bistellar flips and a 16-vertex triangulation of
+           the Poincaré homology 3-sphere", Experiment. Math. 9
+           (2000), no. 2, 275-289.
 
         EXAMPLES::
 
@@ -432,17 +496,17 @@ class SimplicialComplexExamples():
           triangles.
 
         - `\Bold{R}P^3`: any triangulation has at least 11 vertices by
-          a result of Walkup; this function returns a
-          triangulation with 11 vertices, as given by Lutz.
+          a result of Walkup [Wa1970]_; this function returns a
+          triangulation with 11 vertices, as given by Lutz [Lu2005]_.
 
         - `\Bold{R}P^4`: any triangulation has at least 16 vertices by
           a result of Walkup; this function returns a triangulation
-          with 16 vertices as given by Lutz; see also Datta, Example
-          3.12.
+          with 16 vertices as given by Lutz; see also Datta [Da2007]_,
+          Example 3.12.
 
         - `\Bold{R}P^n`: Lutz has found a triangulation of
           `\Bold{R}P^5` with 24 vertices, but it does not seem to have
-          been published.  Kühnel has described a triangulation of
+          been published.  Kühnel [Ku1987]_ has described a triangulation of
           `\Bold{R}P^n`, in general, with `2^{n+1}-1` vertices; see
           also Datta, Example 3.21.  This triangulation is presumably
           not minimal, but it seems to be the best in the published
@@ -453,7 +517,10 @@ class SimplicialComplexExamples():
         listing the facets.  For `n = 4`, this is constructed by
         specifying 16 vertices, two facets, and a certain subgroup `G`
         of the symmetric group `S_{16}`.  Then the set of all facets
-        is the `G`-orbit of the two given facets.
+        is the `G`-orbit of the two given facets.  This is implemented
+        here by explicitly listing all of the facets; the facets
+        can be computed by the function :func:`facets_for_RP4`, but
+        running the function takes a few seconds.
 
         For `n > 4`, the construction is as follows: let `S` denote
         the simplicial complex structure on the `n`-sphere given by
@@ -475,18 +542,18 @@ class SimplicialComplexExamples():
 
         REFERENCES:
 
-        - Basudeb Datta, "Minimal triangulations of manifolds",
-          J. Indian Inst. Sci. 87 (2007), no. 4, 429-449.
+        .. [Da2007] Basudeb Datta, "Minimal triangulations of manifolds",
+           J. Indian Inst. Sci. 87 (2007), no. 4, 429-449.
 
-        - W. Kühnel, "Minimal triangulations of Kummer varieties",
-          Abh. Math. Sem. Univ. Hamburg 57 (1987), 7-20.
+        .. [Ku1987] W. Kühnel, "Minimal triangulations of Kummer varieties",
+           Abh. Math. Sem. Univ. Hamburg 57 (1987), 7-20.
 
-        - Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
-          Combinatorial Manifolds", preprint (2005),
-          arXiv:math/0506372.
+        .. [Lu2005] Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
+           Combinatorial Manifolds", preprint (2005),
+           arXiv:math/0506372.
 
-        - David W. Walkup, "The lower bound conjecture for 3- and
-          4-manifolds", Acta Math. 125 (1970), 75-107.
+        .. [Wa1970] David W. Walkup, "The lower bound conjecture for 3- and
+           4-manifolds", Acta Math. 125 (1970), 75-107.
 
         EXAMPLES::
 
@@ -495,8 +562,8 @@ class SimplicialComplexExamples():
             [1, 11, 51, 80, 40]
             sage: P3.homology()
             {0: 0, 1: C2, 2: 0, 3: Z}
-            sage: P4 = simplicial_complexes.RealProjectiveSpace(4) # long time (2s on sage.math, 2011)
-            sage: P4.f_vector() # long time
+            sage: P4 = simplicial_complexes.RealProjectiveSpace(4)
+            sage: P4.f_vector()
             [1, 16, 120, 330, 375, 150]
             sage: P4.homology() # long time
             {0: 0, 1: C2, 2: 0, 3: C2, 4: 0}
@@ -543,28 +610,57 @@ class SimplicialComplexExamples():
                  [2, 5, 7, 8], [3, 5, 9, 10], [4, 6, 7, 10], [1, 3, 7, 10],
                  [1, 6, 8, 9], [2, 5, 7, 9], [3, 6, 7, 8], [5, 6, 7, 8]])
         if n == 4:
-            # The facets in RP^4 are constructed by specifying two
-            # simplices on 16 vertices, and then finding their orbit
-            # under a certain subgroup of the permutation group on 16
-            # letters.  See the description in Example 3.12 in Datta.
-            #
-            # Define the group:
-            from sage.groups.perm_gps.permgroup import PermutationGroup
-            g1 = '(2,7)(4,10)(5,6)(11,12)'
-            g2 = '(1, 2, 3, 4, 5, 10)(6, 8, 9)(11, 12, 13, 14, 15, 16)'
-            G = PermutationGroup([g1, g2])
-            # Define the two simplices:
-            t1 = (1, 2, 4, 5, 11)
-            t2 = (1, 2, 4, 11, 13)
-            # Apply the group elements to the simplices:
-            facets = []
-            for g in G:
-                d = g.dict()
-                for t in [t1, t2]:
-                    new = tuple([d[j] for j in t])
-                    if new not in facets:
-                        facets.append(new)
-            return SimplicialComplex(facets)
+            return SimplicialComplex(
+                [(1, 3, 8, 12, 13), (2, 7, 8, 13, 16), (4, 8, 9, 12, 14),
+                 (2, 6, 10, 12, 16), (5, 7, 9, 10, 13), (1, 2, 7, 8, 15),
+                    (1, 3, 9, 11, 16), (5, 6, 8, 13, 16), (1, 3, 8, 11, 13),
+                    (3, 4, 10, 13, 15), (4, 6, 9, 12, 15), (2, 4, 6, 11, 13),
+                    (2, 3, 9, 12, 16), (1, 6, 9, 12, 15), (2, 5, 10, 11, 12),
+                    (1, 7, 8, 12, 15), (2, 6, 9, 13, 16), (1, 5, 9, 11, 15),
+                    (4, 9, 10, 13, 14), (2, 7, 8, 15, 16), (2, 3, 9, 12, 14),
+                    (1, 6, 7, 10, 14), (2, 5, 10, 11, 15), (1, 2, 4, 13, 14),
+                    (1, 6, 10, 14, 16), (2, 6, 9, 12, 16), (1, 3, 9, 12, 16),
+                    (4, 5, 7, 11, 16), (5, 9, 10, 11, 15), (3, 5, 8, 12, 14),
+                    (5, 6, 9, 13, 16), (5, 6, 9, 13, 15), (1, 3, 4, 10, 16),
+                    (1, 6, 10, 12, 16), (2, 4, 6, 9, 13), (2, 4, 6, 9, 12),
+                    (1, 2, 4, 11, 13), (7, 9, 10, 13, 14), (1, 7, 8, 12, 13),
+                    (4, 6, 7, 11, 12), (3, 4, 6, 11, 13), (1, 5, 6, 9, 15),
+                    (1, 6, 7, 14, 15), (2, 3, 7, 14, 15), (2, 6, 10, 11, 12),
+                    (5, 7, 9, 10, 11), (1, 2, 4, 5, 14), (3, 5, 10, 13, 15),
+                    (3, 8, 9, 12, 14), (5, 9, 10, 13, 15), (2, 6, 8, 13, 16),
+                    (1, 2, 7, 13, 14), (1, 7, 10, 12, 13), (3, 4, 6, 13, 15),
+                    (4, 9, 10, 13, 15), (2, 3, 10, 12, 16), (1, 2, 5, 14, 15),
+                    (2, 6, 8, 10, 11), (1, 3, 10, 12, 13), (4, 8, 9, 12, 15),
+                    (1, 3, 8, 9, 11), (4, 6, 7, 12, 15), (1, 8, 9, 11, 15),
+                    (4, 5, 8, 14, 16), (1, 2, 8, 11, 13), (3, 6, 8, 11, 13),
+                    (3, 6, 8, 11, 14), (3, 5, 8, 12, 13), (3, 7, 9, 11, 14),
+                    (4, 6, 9, 13, 15), (2, 3, 5, 10, 12), (4, 7, 8, 15, 16),
+                    (1, 2, 7, 14, 15), (3, 7, 9, 11, 16), (3, 6, 7, 14, 15),
+                    (2, 6, 8, 11, 13), (4, 8, 9, 10, 14), (1, 4, 10, 13, 14),
+                    (4, 8, 9, 10, 15), (2, 7, 9, 13, 16), (1, 6, 9, 12, 16),
+                    (2, 3, 7, 9, 14), (4, 8, 10, 15, 16), (1, 5, 9, 11, 16),
+                    (1, 5, 6, 14, 15), (5, 7, 9, 11, 16), (4, 5, 7, 11, 12),
+                    (5, 7, 10, 11, 12), (2, 3, 10, 15, 16), (1, 2, 7, 8, 13),
+                    (1, 6, 7, 10, 12), (1, 3, 10, 12, 16), (7, 9, 10, 11, 14),
+                    (1, 7, 10, 13, 14), (1, 2, 4, 5, 11), (3, 4, 6, 7, 11),
+                    (1, 6, 7, 12, 15), (1, 3, 4, 10, 13), (1, 4, 10, 14, 16),
+                    (2, 4, 6, 11, 12), (5, 6, 8, 14, 16), (3, 5, 6, 8, 13),
+                    (3, 5, 6, 8, 14), (1, 2, 8, 11, 15), (1, 4, 5, 14, 16),
+                    (2, 3, 7, 15, 16), (8, 9, 10, 11, 14), (1, 3, 4, 11, 16),
+                    (6, 8, 10, 14, 16), (8, 9, 10, 11, 15), (1, 3, 4, 11, 13),
+                    (2, 4, 5, 12, 14), (2, 4, 9, 13, 14), (3, 4, 7, 11, 16),
+                    (3, 6, 7, 11, 14), (3, 8, 9, 11, 14), (2, 8, 10, 11, 15),
+                    (1, 3, 8, 9, 12), (4, 5, 7, 8, 16), (4, 5, 8, 12, 14),
+                    (2, 4, 9, 12, 14), (6, 8, 10, 11, 14), (3, 5, 6, 13, 15),
+                    (1, 4, 5, 11, 16), (3, 5, 6, 14, 15), (2, 4, 5, 11, 12),
+                    (4, 5, 7, 8, 12), (1, 8, 9, 12, 15), (5, 7, 8, 13, 16),
+                    (2, 3, 5, 12, 14), (3, 5, 10, 12, 13), (6, 7, 10, 11, 12),
+                    (5, 7, 9, 13, 16), (6, 7, 10, 11, 14), (5, 7, 10, 12, 13),
+                    (1, 2, 5, 11, 15), (1, 5, 6, 9, 16), (5, 7, 8, 12, 13),
+                    (4, 7, 8, 12, 15), (2, 3, 5, 10, 15), (2, 6, 8, 10, 16),
+                    (3, 4, 10, 15, 16), (1, 5, 6, 14, 16), (2, 3, 5, 14, 15),
+                    (2, 3, 7, 9, 16), (2, 7, 9, 13, 14), (3, 4, 6, 7, 15),
+                    (4, 8, 10, 14, 16), (3, 4, 7, 15, 16), (2, 8, 10, 15, 16)])
         if n >= 5:
             # Use the construction given by Datta in Example 3.21.
             V = set(range(0, n+2))
@@ -586,7 +682,7 @@ class SimplicialComplexExamples():
         Returns a minimal triangulation of the K3 surface. This is
         a pure simplicial complex of dimension 4 with 16 vertices
         and 288 facets. It was constructed by Casella and Kühnel
-        in [CK2001]_.  The construction here uses the labeling from
+        in [CK2001]_. The construction here uses the labeling from
         Spreer and Kühnel [SK2011]_.
 
         REFERENCES:
@@ -605,10 +701,109 @@ class SimplicialComplexExamples():
             Simplicial complex with 16 vertices and 288 facets
             sage: K3.f_vector()
             [1, 16, 120, 560, 720, 288]
+
+        This simplicial complex is implemented just by listing all 288
+        facets. The list of facets can be computed by the function
+        :func:`facets_for_K3`, but running the function takes a few
+        seconds.
         """
-        from sage.groups.perm_gps.permgroup import PermutationGroup
-        G = PermutationGroup([[(1,3,8,4,9,16,15,2,14,12,6,7,13,5,10)],[(1,11,16),(2,10,14),(3,12,13),(4,9,15),(5,7,8)]])
-        return SimplicialComplex([tuple([g(i) for i in (1,2,3,8,12)]) for g in G]+[tuple([g(i) for i in (1,2,5,8,14)]) for g in G])
+        return SimplicialComplex(
+            [(2, 10, 13, 15, 16), (2, 8, 11, 15, 16), (2, 5, 7, 8, 10),
+             (1, 9, 11, 13, 14), (1, 2, 8, 10, 12), (1, 3, 5, 6, 11),
+                (1, 5, 6, 9, 12), (1, 2, 6, 13, 16), (1, 4, 10, 13, 14),
+                (1, 9, 10, 14, 15), (2, 4, 7, 8, 12), (3, 4, 6, 10, 12),
+                (1, 6, 7, 8, 9), (3, 4, 5, 7, 15), (1, 7, 12, 15, 16),
+                (4, 5, 7, 13, 16), (5, 8, 11, 12, 15), (2, 4, 7, 12, 14),
+                (1, 4, 5, 14, 16), (2, 5, 6, 10, 11), (1, 6, 8, 12, 14),
+                (5, 8, 9, 14, 16), (5, 10, 11, 12, 13), (2, 4, 8, 9, 12),
+                (7, 9, 12, 15, 16), (1, 2, 6, 9, 15), (1, 5, 14, 15, 16),
+                (2, 3, 4, 5, 9), (6, 8, 10, 11, 15), (1, 5, 8, 10, 12),
+                (1, 3, 7, 9, 10), (6, 7, 8, 9, 13), (1, 2, 9, 11, 15),
+                (2, 8, 11, 14, 16), (2, 4, 5, 13, 16), (1, 4, 8, 13, 15),
+                (4, 7, 8, 10, 11), (2, 3, 9, 11, 14), (2, 3, 4, 9, 13),
+                (2, 8, 10, 12, 13), (1, 2, 4, 11, 15), (2, 3, 9, 11, 15),
+                (3, 5, 10, 13, 15), (3, 4, 5, 9, 11), (6, 10, 13, 15, 16),
+                (8, 10, 11, 15, 16), (6, 7, 11, 13, 15), (1, 5, 7, 15, 16),
+                (4, 5, 7, 9, 15), (3, 4, 6, 7, 16), (2, 3, 11, 14, 16),
+                (3, 4, 9, 11, 13), (1, 2, 5, 14, 15), (2, 3, 9, 13, 14),
+                (1, 2, 5, 13, 16), (2, 3, 7, 8, 12), (2, 9, 11, 12, 14),
+                (1, 9, 11, 15, 16), (4, 6, 9, 14, 16), (1, 4, 9, 13, 14),
+                (1, 2, 3, 12, 16), (8, 11, 12, 14, 15), (2, 4, 11, 12, 14),
+                (1, 4, 10, 12, 13), (1, 2, 6, 7, 13), (1, 3, 6, 10, 11),
+                (1, 6, 8, 9, 12), (1, 4, 5, 6, 14), (3, 9, 10, 12, 15),
+                (5, 8, 11, 12, 16), (5, 9, 10, 14, 15), (3, 9, 12, 15, 16),
+                (3, 6, 8, 14, 15), (2, 4, 9, 10, 16), (5, 8, 9, 13, 15),
+                (2, 3, 6, 9, 15), (6, 11, 12, 14, 16), (2, 3, 10, 13, 15),
+                (2, 8, 9, 10, 13), (3, 4, 8, 11, 13), (3, 4, 5, 7, 13),
+                (5, 7, 8, 10, 14), (4, 12, 13, 14, 15), (6, 7, 10, 14, 16),
+                (5, 10, 11, 13, 14), (3, 4, 7, 13, 16), (6, 8, 9, 12, 13),
+                (1, 3, 4, 10, 14), (2, 4, 6, 11, 12), (1, 7, 9, 10, 14),
+                (4, 6, 8, 13, 14), (4, 9, 10, 11, 16), (3, 7, 8, 10, 16),
+                (5, 7, 9, 15, 16), (1, 7, 9, 11, 14), (6, 8, 10, 15, 16),
+                (5, 8, 9, 10, 14), (7, 8, 10, 14, 16), (2, 6, 7, 9, 11),
+                (7, 9, 10, 13, 15), (3, 6, 7, 10, 12), (2, 4, 6, 10, 11),
+                (4, 5, 8, 9, 11), (1, 2, 3, 8, 16), (3, 7, 9, 10, 12),
+                (1, 2, 6, 8, 14), (3, 5, 6, 13, 15), (1, 5, 6, 12, 14),
+                (2, 5, 7, 14, 15), (1, 5, 10, 11, 12), (3, 7, 8, 10, 11),
+                (1, 2, 6, 14, 15), (1, 2, 6, 8, 16), (7, 9, 10, 12, 15),
+                (3, 4, 6, 8, 14), (3, 7, 13, 14, 16), (2, 5, 7, 8, 14),
+                (6, 7, 9, 10, 14), (2, 3, 7, 12, 14), (4, 10, 12, 13, 14),
+                (2, 5, 6, 11, 13), (4, 5, 6, 7, 16), (1, 3, 12, 13, 16),
+                (1, 4, 11, 15, 16), (1, 3, 4, 6, 10), (1, 10, 11, 12, 13),
+                (6, 9, 11, 12, 14), (1, 4, 7, 8, 15), (5, 8, 9, 10, 13),
+                (1, 2, 5, 7, 15), (1, 7, 12, 13, 16), (3, 11, 13, 14, 16),
+                (1, 2, 5, 7, 13), (4, 7, 8, 9, 15), (1, 5, 6, 10, 11),
+                (6, 7, 10, 13, 15), (3, 4, 7, 14, 15), (7, 11, 13, 14, 16),
+                (3, 4, 10, 12, 14), (3, 6, 8, 10, 16), (2, 7, 8, 14, 16),
+                (2, 3, 4, 5, 13), (5, 8, 12, 13, 15), (4, 6, 9, 13, 14),
+                (2, 4, 5, 6, 12), (1, 3, 7, 8, 9), (8, 11, 12, 14, 16),
+                (1, 7, 12, 13, 15), (8, 12, 13, 14, 15), (2, 8, 9, 12, 13),
+                (4, 6, 10, 12, 15), (2, 8, 11, 14, 15), (2, 6, 9, 11, 12),
+                (8, 9, 10, 11, 16), (2, 3, 6, 13, 15), (2, 3, 12, 15, 16),
+                (1, 3, 5, 9, 12), (2, 5, 6, 9, 12), (2, 10, 12, 13, 14),
+                (2, 6, 13, 15, 16), (2, 3, 11, 15, 16), (3, 5, 6, 8, 15),
+                (2, 4, 5, 9, 12), (5, 6, 8, 11, 15), (6, 8, 12, 13, 14),
+                (1, 2, 3, 8, 12), (1, 4, 7, 8, 11), (3, 5, 7, 14, 15),
+                (3, 5, 7, 13, 14), (1, 7, 10, 11, 14), (6, 7, 11, 12, 15),
+                (3, 4, 6, 7, 12), (1, 2, 4, 7, 11), (6, 9, 10, 14, 16),
+                (4, 10, 12, 15, 16), (5, 6, 7, 12, 16), (3, 9, 11, 13, 14),
+                (5, 9, 14, 15, 16), (4, 5, 6, 7, 12), (1, 3, 9, 10, 15),
+                (4, 7, 8, 9, 12), (5, 9, 10, 13, 15), (1, 3, 8, 13, 16),
+                (2, 9, 12, 13, 14), (6, 7, 10, 12, 15), (2, 6, 8, 14, 15),
+                (3, 5, 6, 8, 11), (3, 4, 7, 12, 14), (1, 3, 10, 14, 15),
+                (7, 11, 12, 13, 16), (3, 11, 12, 13, 16), (3, 4, 5, 8, 15),
+                (2, 4, 7, 8, 10), (2, 4, 7, 14, 15), (1, 2, 10, 12, 16),
+                (1, 6, 8, 13, 16), (1, 7, 8, 13, 15), (3, 9, 11, 15, 16),
+                (4, 6, 10, 11, 15), (2, 4, 11, 14, 15), (1, 3, 8, 9, 12),
+                (1, 3, 6, 14, 15), (2, 4, 5, 6, 10), (1, 4, 9, 14, 16),
+                (5, 7, 9, 12, 16), (1, 3, 7, 10, 11), (7, 8, 9, 13, 15),
+                (3, 5, 10, 14, 15), (1, 4, 10, 12, 16), (3, 4, 5, 8, 11),
+                (1, 2, 6, 7, 9), (1, 3, 11, 12, 13), (1, 5, 7, 13, 16),
+                (5, 7, 10, 11, 14), (2, 10, 12, 15, 16), (3, 6, 7, 10, 16),
+                (1, 2, 5, 8, 10), (4, 10, 11, 15, 16), (5, 8, 10, 12, 13),
+                (3, 6, 8, 10, 11), (4, 5, 7, 9, 12), (6, 7, 11, 12, 16),
+                (3, 5, 9, 11, 16), (8, 9, 10, 14, 16), (3, 4, 6, 8, 16),
+                (1, 10, 11, 13, 14), (2, 9, 10, 13, 16), (1, 2, 5, 8, 14),
+                (2, 4, 5, 10, 16), (1, 2, 7, 9, 11), (1, 3, 5, 6, 9),
+                (5, 7, 11, 13, 14), (3, 5, 10, 13, 14), (2, 4, 8, 9, 10),
+                (4, 11, 12, 14, 15), (2, 3, 7, 14, 16), (3, 4, 8, 13, 16),
+                (6, 7, 9, 11, 14), (5, 6, 11, 13, 15), (4, 5, 6, 14, 16),
+                (3, 4, 8, 14, 15), (4, 5, 8, 9, 15), (1, 4, 8, 11, 13),
+                (5, 6, 12, 14, 16), (2, 3, 10, 12, 14), (1, 2, 5, 10, 16),
+                (2, 5, 7, 10, 11), (2, 6, 7, 11, 13), (1, 4, 5, 10, 16),
+                (2, 6, 8, 15, 16), (2, 3, 10, 12, 15), (7, 11, 12, 13, 15),
+                (1, 3, 8, 11, 13), (4, 8, 9, 10, 11), (1, 9, 14, 15, 16),
+                (1, 3, 6, 9, 15), (6, 9, 12, 13, 14), (2, 3, 10, 13, 14),
+                (2, 5, 7, 11, 13), (2, 3, 5, 6, 13), (4, 6, 8, 13, 16),
+                (6, 7, 9, 10, 13), (5, 8, 12, 14, 16), (4, 6, 9, 13, 16),
+                (5, 8, 9, 11, 16), (2, 3, 5, 6, 9), (1, 3, 5, 11, 12),
+                (3, 7, 8, 9, 12), (4, 6, 11, 12, 15), (3, 5, 9, 12, 16),
+                (5, 11, 12, 13, 15), (1, 3, 4, 6, 14), (3, 5, 11, 12, 16),
+                (1, 5, 8, 12, 14), (4, 8, 13, 14, 15), (1, 3, 7, 8, 11),
+                (6, 9, 10, 13, 16), (2, 4, 9, 13, 16), (1, 6, 7, 8, 13),
+                (1, 4, 12, 13, 15), (2, 4, 7, 10, 11), (1, 4, 9, 11, 13),
+                (6, 7, 11, 14, 16), (1, 4, 9, 11, 16), (1, 4, 12, 15, 16),
+                (1, 2, 4, 7, 15), (2, 3, 7, 8, 16), (1, 4, 5, 6, 10)])
 
     ###############################################################
     # examples from graph theory:
@@ -635,8 +830,8 @@ class SimplicialComplexExamples():
 
         -  ``n``, ``i`` - non-negative integers with `i` at most `n`
 
-        See Dumas et al. for information on computing its homology by
-        computer, and see Babson et al. for theory.  For example,
+        See Dumas et al. [DHSW2003]_ for information on computing its homology by
+        computer, and see Babson et al. [BBLSW1999]_ for theory.  For example,
         Babson et al. show that when `i=2`, the reduced homology of
         this complex is nonzero only in dimension `2n-5`, where it is
         free abelian of rank `(n-2)!`.
@@ -650,14 +845,14 @@ class SimplicialComplexExamples():
 
         REFERENCES:
 
-        - Babson, Bjorner, Linusson, Shareshian, and Welker,
-          "Complexes of not i-connected graphs," Topology 38 (1999),
-          271-299
+        .. [BBLSW1999] Babson, Bjorner, Linusson, Shareshian, and Welker,
+           "Complexes of not i-connected graphs," Topology 38 (1999),
+           271-299
 
-        - Dumas, Heckenbach, Saunders, Welker, "Computing simplicial
-          homology based on efficient Smith normal form algorithms,"
-          in "Algebra, geometry, and software systems" (2003),
-          177-206.
+        .. [DHSW2003] Dumas, Heckenbach, Saunders, Welker, "Computing simplicial
+           homology based on efficient Smith normal form algorithms,"
+           in "Algebra, geometry, and software systems" (2003),
+           177-206.
         """
         G_list = range(1,n+1)
         G_vertices = Set(G_list)
@@ -699,8 +894,8 @@ class SimplicialComplexExamples():
 
         -  ``n`` - positive integer.
 
-        See Dumas et al. for information on computing its homology by
-        computer, and see Wachs for an expository article about the
+        See Dumas et al. [DHSW2003]_ for information on computing its homology by
+        computer, and see Wachs [Wa2003]_ for an expository article about the
         theory.  For example, the homology of these complexes seems to
         have only mod 3 torsion, and this has been proved for the
         bottom non-vanishing homology group for the matching complex
@@ -719,15 +914,10 @@ class SimplicialComplexExamples():
 
         REFERENCES:
 
-        - Dumas, Heckenbach, Saunders, Welker, "Computing simplicial
-          homology based on efficient Smith normal form algorithms,"
-          in "Algebra, geometry, and software systems" (2003),
-          177-206.
-
-        - Wachs, "Topology of Matching, Chessboard and General Bounded
-          Degree Graph Complexes" (Algebra Universalis Special Issue
-          in Memory of Gian-Carlo Rota, Algebra Universalis, 49 (2003)
-          345-385)
+        .. [Wa2003] Wachs, "Topology of Matching, Chessboard and General Bounded
+           Degree Graph Complexes" (Algebra Universalis Special Issue
+           in Memory of Gian-Carlo Rota, Algebra Universalis, 49 (2003)
+           345-385)
         """
         G_vertices = Set(range(1,n+1))
         E_list = []
@@ -792,9 +982,9 @@ class SimplicialComplexExamples():
 
         -  ``n, i`` - positive integers.
 
-        See Dumas et al. for information on computing its homology by
-        computer, and see Wachs for an expository article about the
-        theory.
+        See Dumas et al. [DHSW2003]_ for information on computing its homology
+        by computer, and see Wachs [Wa2003]_ for an expository article about
+        the theory.
 
         EXAMPLES::
 
@@ -803,18 +993,6 @@ class SimplicialComplexExamples():
             [1, 25, 200, 600, 600, 120]
             sage: simplicial_complexes.ChessboardComplex(3,3).homology()
             {0: 0, 1: Z x Z x Z x Z, 2: 0}
-
-        REFERENCES:
-
-        - Dumas, Heckenbach, Saunders, Welker, "Computing simplicial
-          homology based on efficient Smith normal form algorithms,"
-          in "Algebra, geometry, and software systems" (2003),
-          177-206.
-
-        - Wachs, "Topology of Matching, Chessboard and General Bounded
-          Degree Graph Complexes" (Algebra Universalis Special Issue
-          in Memory of Gian-Carlo Rota, Algebra Universalis, 49 (2003)
-          345-385)
         """
         A = range(n)
         B = range(i)
@@ -846,9 +1024,9 @@ class SimplicialComplexExamples():
            (optional, default 0.5)
 
         A random `d`-dimensional simplicial complex on `n` vertices,
-        as defined for example by Meshulam and Wallach, is constructed
-        as follows: take `n` vertices and include all of the simplices
-        of dimension strictly less than `d`, and then for each
+        as defined for example by Meshulam and Wallach [MW2009]_, is
+        constructed as follows: take `n` vertices and include all of
+        the simplices of dimension strictly less than `d`, and then for each
         possible simplex of dimension `d`, include it with probability
         `p`.
 
@@ -866,8 +1044,8 @@ class SimplicialComplexExamples():
 
         REFERENCES:
 
-        - Meshulam and Wallach, "Homological connectivity of random
-          `k`-dimensional complexes", preprint, math.CO/0609773.
+        .. [MW2009] Meshulam and Wallach, "Homological connectivity of random
+           `k`-dimensional complexes", preprint, math.CO/0609773.
         """
         if d > n+1:
             return simplicial_complexes.Simplex(n+1)

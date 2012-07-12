@@ -158,8 +158,7 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: H = Hom(S,T)
             sage: x = H.an_element()
             sage: x
-            Simplicial complex morphism {0: 0, 1: 0, 2: 0, 'R3': 0, 'L4': 0, 'L5': 0, 'L3': 0, 'R5': 0, 'R4': 0} from Simplicial complex with 9 vertices and 18 facets to Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 7 facets
-
+            Simplicial complex morphism {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0} from Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets to Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 7 facets
         """
         X_vertices = self._domain.vertices().set()
         try:

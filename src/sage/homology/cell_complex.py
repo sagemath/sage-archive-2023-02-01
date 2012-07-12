@@ -180,7 +180,7 @@ class GenericCellComplex(SageObject):
         EXAMPLES::
 
             sage: simplicial_complexes.KleinBottle().f_vector()
-            [1, 9, 27, 18]
+            [1, 8, 24, 16]
             sage: delta_complexes.KleinBottle().f_vector()
             [1, 1, 3, 2]
             sage: cubical_complexes.KleinBottle().f_vector()
@@ -197,7 +197,7 @@ class GenericCellComplex(SageObject):
         EXAMPLES::
 
             sage: simplicial_complexes.KleinBottle()._f_dict()[1]
-            27
+            24
             sage: delta_complexes.KleinBottle()._f_dict()[1]
             3
         """

@@ -37,6 +37,7 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
 from warnings import warn
 import operator, os, stat, socket, sys, signal, time, weakref, resource, math
 import sage.misc.prandom as random
+from lazy_string import lazy_string
 
 from sage.misc.temporary_file import tmp_dir, tmp_filename, delete_tmpfiles
 
@@ -137,13 +138,41 @@ if _mode != _desired_mode:
 # Next we create the Sage temporary directory.
 #################################################
 
-SAGE_TMP = os.path.join(DOT_SAGE, 'tmp', HOSTNAME, str(os.getpid()))
-sage_makedirs(SAGE_TMP)
+@lazy_string
+def SAGE_TMP():
+    """
+    EXAMPLES::
 
-SPYX_TMP = os.path.join(SAGE_TMP, 'spyx')
+        sage: from sage.misc.misc import SAGE_TMP
+        sage: SAGE_TMP
+        l'.../temp/...'
+    """
+    d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
+    sage_makedirs(d)
+    return d
 
-SAGE_TMP_INTERFACE = os.path.join(SAGE_TMP, 'interface')
-sage_makedirs(SAGE_TMP_INTERFACE)
+@lazy_string
+def SPYX_TMP():
+    """
+    EXAMPLES::
+        sage: from sage.misc.misc import SPYX_TMP
+        sage: SPYX_TMP
+        l'.../temp/.../spyx'
+    """
+    return os.path.join(SAGE_TMP, 'spyx')
+
+@lazy_string
+def SAGE_TMP_INTERFACE():
+    """
+    EXAMPLES::
+
+        sage: from sage.misc.misc import SAGE_TMP_INTERFACE
+        sage: SAGE_TMP_INTERFACE
+        l'.../temp/.../interface'
+    """
+    d = os.path.join(SAGE_TMP, 'interface')
+    sage_makedirs(d)
+    return d
 
 SAGE_DB = os.path.join(DOT_SAGE, 'db')
 sage_makedirs(SAGE_DB)

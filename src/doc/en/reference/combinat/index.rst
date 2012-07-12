@@ -22,6 +22,7 @@ Combinatorics
    ../sage/combinat/e_one_star
    ../sage/combinat/finite_class
    ../sage/combinat/integer_list
+   ../sage/combinat/integer_matrices
    ../sage/combinat/integer_vector
    ../sage/combinat/integer_vector_weighted
    ../sage/combinat/integer_vectors_mod_permgroup

@@ -76,6 +76,9 @@ from sage.modules.free_module_element import vector
 from sage.plot.all import line, Graphics, polygon
 from sage.plot.plot3d.shapes2 import line3d
 from sage.geometry.polyhedron.constructor import Polyhedron
+from sage.geometry.fan import Fan
+from sage.matrix.constructor import matrix
+from sage.misc.misc_c import prod
 
 def prefix_check(str_list):
     """
@@ -128,11 +131,11 @@ def _cone_parse(fan_dict_cone):
     EXAMPLES::
 
         sage: R.<x,y,z,w> = PolynomialRing(QQ,4)
-        sage: ts = R.ideal([x^2+y^2+z^2-1,x^4-y^2-z-1,x+y+z,w+x+y])
-        sage: tsg = ts.groebner_fan()
-        sage: tstr = tsg.tropical_intersection()
+        sage: I = R.ideal([x^2+y^2+z^2-1,x^4-y^2-z-1,x+y+z,w+x+y])
+        sage: GF = I.groebner_fan()
+        sage: TI = GF.tropical_intersection()
         sage: from sage.rings.polynomial.groebner_fan import _cone_parse
-        sage: _cone_parse(tstr.fan_dict['CONES'])
+        sage: _cone_parse(TI.fan_dict['CONES'])
         {1: [[0], [1], [2], [3], [4]], 2: [[2, 3]]}
     """
     cone_dict = {}
@@ -277,10 +280,9 @@ class PolyhedralCone(SageObject):
         return self._relative_interior_point
 
 class PolyhedralFan(SageObject):
-    def __init__(self, gfan_polyhedral_fan):
+    def __init__(self, gfan_polyhedral_fan, parameter_indices = []):
         """
         Converts polymake/gfan data on a polyhedral fan into a sage class.
-        Currently (18-03-2008) needs a lot of work.
 
         INPUT:
 
@@ -300,7 +302,7 @@ class PolyhedralFan(SageObject):
         """
         fan_keys = ['AMBIENT_DIM','DIM','LINEALITY_DIM','RAYS','N_RAYS',
                     'LINEALITY_SPACE','ORTH_LINEALITY_SPACE','F_VECTOR',
-                    'CONES','MAXIMAL_CONES','PURE']
+                    'CONES','MAXIMAL_CONES','PURE','SIMPLICIAL','MULTIPLICITIES']
         poly_lines = gfan_polyhedral_fan.split('\n')
         self.fan_dict = {}
         key_ind = 0
@@ -319,8 +321,12 @@ class PolyhedralFan(SageObject):
             temp_ray = ray.split('\t')[0]
             temp_ray = temp_ray.split(' ')
             temp_ray = [int(x) for x in temp_ray]
+            if parameter_indices != []:
+                for q in parameter_indices:
+                    temp_ray = temp_ray[0:q] + [0] + temp_ray[q:]
             self._rays.append(temp_ray)
         self._cone_dict = _cone_parse(self.fan_dict['CONES'])
+        self._maximal_cone_dict = _cone_parse(self.fan_dict['MAXIMAL_CONES'])
         self._str = gfan_polyhedral_fan
 
     def _repr_(self):
@@ -349,7 +355,7 @@ class PolyhedralFan(SageObject):
             sage: gf = R3.ideal([x^8-y^4,y^4-z^2,z^2-2]).groebner_fan()
             sage: pf = gf.polyhedralfan()
             sage: pf._str_()
-            '_application PolyhedralFan\n_version 2.2\n_type PolyhedralFan\n\nAMBIENT_DIM\n3\n\nDIM\n3\n\nLINEALITY_DIM\n0\n\nRAYS\n0 0 1\t# 0\n0 1 0\t# 1\n1 0 0\t# 2\n\nN_RAYS\n3\n\nLINEALITY_SPACE\n\nORTH_LINEALITY_SPACE\n1 0 0\n0 1 0\n0 0 1\n\nF_VECTOR\n1 3 3 1\n\nMY_EULER\n0\n\nSIMPLICIAL\n1\n\nPURE\n1\n\nCONES\n{}\t# Dimension 0\n{0}\t# Dimension 1\n{1}\n{2}\n{0 1}\t# Dimension 2\n{0 2}\n{1 2}\n{0 1 2}\t# Dimension 3\n\nMAXIMAL_CONES\n{0 1 2}\t# Dimension 3\n'
+            '_application fan\n_version 2.2\n_type SymmetricFan\n\nAMBIENT_DIM\n3\n\nDIM\n3\n\nLINEALITY_DIM\n0\n\nRAYS\n0 0 1\t# 0\n0 1 0\t# 1\n1 0 0\t# 2\n\nN_RAYS\n3\n\nLINEALITY_SPACE\n\nORTH_LINEALITY_SPACE\n1 0 0\n0 1 0\n0 0 1\n\nF_VECTOR\n1 3 3 1\n\nSIMPLICIAL\n1\n\nPURE\n1\n\nCONES\n{}\t# Dimension 0\n{0}\t# Dimension 1\n{1}\n{2}\n{0 1}\t# Dimension 2\n{0 2}\n{1 2}\n{0 1 2}\t# Dimension 3\n\nMAXIMAL_CONES\n{0 1 2}\t# Dimension 3\n'
         """
         return self._str
 
@@ -383,9 +389,8 @@ class PolyhedralFan(SageObject):
 
     def lineality_dim(self):
         """
-        Returns the lineality dimension of the Groebner fan. This is
-        just the difference between the ambient dimension and the dimension
-        of the cone.
+        Returns the lineality dimension of the fan. This is the
+        dimension of the largest subspace contained in the fan.
 
         EXAMPLES::
 
@@ -399,7 +404,7 @@ class PolyhedralFan(SageObject):
 
     def rays(self):
         """
-        Returns a list of rays of the polyhedral fan.
+        A list of rays of the polyhedral fan.
 
         EXAMPLES::
 
@@ -412,11 +417,352 @@ class PolyhedralFan(SageObject):
         """
         return sorted(self._rays)
 
+    def cones(self):
+        """
+        A dictionary of cones in which the keys are the cone dimensions.
+        For each dimension, the value is a list of the cones,
+        where each element consists of a list of ray indices.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: f = 1+x+y+x*y
+            sage: I = R.ideal([f+z*f, 2*f+z*f, 3*f+z^2*f])
+            sage: GF = I.groebner_fan()
+            sage: PF = GF.tropical_intersection()
+            sage: PF.cones()
+            {1: [[0], [1], [2], [3], [4], [5]], 2: [[0, 1], [0, 2], [0, 3], [0, 4], [1, 2], [1, 3], [2, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}
+        """
+        return self._cone_dict
+
+    def maximal_cones(self):
+        """
+        A dictionary of the maximal cones in which the keys are the
+        cone dimensions.  For each dimension, the value is a list of
+        the maximal cones, where each element consists of a list of ray indices.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: f = 1+x+y+x*y
+            sage: I = R.ideal([f+z*f, 2*f+z*f, 3*f+z^2*f])
+            sage: GF = I.groebner_fan()
+            sage: PF = GF.tropical_intersection()
+            sage: PF.maximal_cones()
+            {2: [[0, 1], [0, 2], [0, 3], [0, 4], [1, 2], [1, 3], [2, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 5]]}
+        """
+        return self._maximal_cone_dict
+
+    def f_vector(self):
+        """
+        The f-vector of the fan.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: f = 1+x+y+x*y
+            sage: I = R.ideal([f+z*f, 2*f+z*f, 3*f+z^2*f])
+            sage: GF = I.groebner_fan()
+            sage: PF = GF.tropical_intersection()
+            sage: PF.f_vector()
+            [1, 6, 12]
+        """
+        str_data = self.fan_dict['F_VECTOR'][0]
+        fv = [Integer(x) for x in str_data.split(' ')]
+        return fv
+
+    def is_simplicial(self):
+        """
+        Whether the fan is simplicial or not.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: f = 1+x+y+x*y
+            sage: I = R.ideal([f+z*f, 2*f+z*f, 3*f+z^2*f])
+            sage: GF = I.groebner_fan()
+            sage: PF = GF.tropical_intersection()
+            sage: PF.is_simplicial()
+            True
+        """
+        return bool(int(self.fan_dict['SIMPLICIAL'][0]))
+
+    def to_RationalPolyhedralFan(self):
+        """
+        Converts to the RationalPolyhedralFan class, which is more actively
+        maintained.  While the information in each class is essentially the
+        same, the methods and implementation are different.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: f = 1+x+y+x*y
+            sage: I = R.ideal([f+z*f, 2*f+z*f, 3*f+z^2*f])
+            sage: GF = I.groebner_fan()
+            sage: PF = GF.tropical_intersection()
+            sage: fan = PF.to_RationalPolyhedralFan()
+            sage: [q.facet_normals() for q in fan]
+            [(M(0, -1, 0), M(-1, 0, 0)), (M(0, 0, -1), M(-1, 0, 0)), (M(0, 0, 1), M(-1, 0, 0)), (M(0, 1, 0), M(-1, 0, 0)), (M(0, 0, -1), M(0, -1, 0)), (M(0, 0, 1), M(0, -1, 0)), (M(0, 1, 0), M(0, 0, -1)), (M(0, 1, 0), M(0, 0, 1)), (M(1, 0, 0), M(0, -1, 0)), (M(1, 0, 0), M(0, 0, -1)), (M(1, 0, 0), M(0, 0, 1)), (M(1, 0, 0), M(0, 1, 0))]
+
+        Here we use the RationalPolyhedralFan's Gale_transform method on a tropical
+        prevariety.
+
+        .. link
+
+        ::
+
+            sage: fan.Gale_transform()
+            [ 1  0  0  0  0  1 -2]
+            [ 0  1  0  0  1  0 -2]
+            [ 0  0  1  1  0  0 -2]
+
+        """
+        try:
+            return self._fan
+        except:
+            cdnt = []
+            cones = self.cones()
+            for x in cones:
+                if x > 1:
+                    cdnt = cdnt + cones[x]
+            fan = Fan(cones=cdnt, rays = self.rays(), discard_faces=True)
+            self._fan = fan
+            return self._fan
+
+class InitialForm(SageObject):
+    def __init__(self, cone, rays, initial_forms):
+        """
+        A system of initial forms from a polynomial system.
+        To each form is associated a cone and a list of
+        polynomials (the initial form system itself).
+
+        This class is intended for internal use inside of the
+        TropicalPrevariety class.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.groebner_fan import InitialForm
+            sage: R.<x,y> = QQ[]
+            sage: inform = InitialForm([0], [[-1, 0]], [y^2 - 1, y^2 - 2, y^2 - 3])
+            sage: inform._cone
+            [0]
+        """
+        self._cone = cone
+        self._rays = rays
+        self._initial_forms = initial_forms
+
+
+    def cone(self):
+        """
+        The cone associated with the initial form system.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: I = R.ideal([(x+y)^2-1,(x+y)^2-2,(x+y)^2-3])
+            sage: GF = I.groebner_fan()
+            sage: PF = GF.tropical_intersection()
+            sage: pfi0 = PF.initial_form_systems()[0]
+            sage: pfi0.cone()
+            [0]
+        """
+        return self._cone
+
+    def rays(self):
+        """
+        The rays of the cone associated with the initial form system.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: I = R.ideal([(x+y)^2-1,(x+y)^2-2,(x+y)^2-3])
+            sage: GF = I.groebner_fan()
+            sage: PF = GF.tropical_intersection()
+            sage: pfi0 = PF.initial_form_systems()[0]
+            sage: pfi0.rays()
+            [[-1, 0]]
+        """
+        return self._rays
+
+    def internal_ray(self):
+        """
+        A ray internal to the cone associated with the initial form
+        system.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: I = R.ideal([(x+y)^2-1,(x+y)^2-2,(x+y)^2-3])
+            sage: GF = I.groebner_fan()
+            sage: PF = GF.tropical_intersection()
+            sage: pfi0 = PF.initial_form_systems()[0]
+            sage: pfi0.internal_ray()
+            (-1, 0)
+        """
+        return sum([vector(q) for q in self.rays()])
+
+    def initial_forms(self):
+        """
+        The initial forms (polynomials).
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: I = R.ideal([(x+y)^2-1,(x+y)^2-2,(x+y)^2-3])
+            sage: GF = I.groebner_fan()
+            sage: PF = GF.tropical_intersection()
+            sage: pfi0 = PF.initial_form_systems()[0]
+            sage: pfi0.initial_forms()
+            [y^2 - 1, y^2 - 2, y^2 - 3]
+        """
+        return self._initial_forms
+
+def verts_for_normal(normal, poly):
+    """
+    Returns the exponents of the vertices of a newton polytope
+    that make up the supporting hyperplane for the given outward
+    normal.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.groebner_fan import verts_for_normal
+        sage: R.<x,y,z> = PolynomialRing(QQ,3)
+        sage: f1 = x*y*z - 1
+        sage: f2 = f1*(x^2 + y^2 + 1)
+        sage: verts_for_normal([1,1,1],f2)
+        [(3, 1, 1), (1, 3, 1)]
+    """
+    exps = [tuple(x) for x in poly.exponents()]
+    expmat = matrix(exps)
+    vals = expmat*vector(QQ,normal)
+    maxval = max(vals)
+    outverts = []
+    for i in range(len(exps)):
+        if vals[i] == maxval:
+            outverts.append(exps[i])
+    return outverts
+
+class TropicalPrevariety(PolyhedralFan):
+
+    def __init__(self, gfan_polyhedral_fan, polynomial_system, poly_ring, parameters = []):
+        """
+        This class is a subclass of the PolyhedralFan class,
+        with some additional methods for tropical prevarieties.
+
+        INPUT:
+
+
+        -  ``gfan_polyhedral_fan`` - output from gfan of a
+           polyhedral fan.
+        -  ``polynomial_system`` - a list of polynomials
+        -  ``poly_ring`` - the polynomial ring of the list of polynomials
+        -  ``parameters`` (optional) - a list of variables to be considered as parameters
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: I = R.ideal([(x+y+z)^2-1,(x+y+z)-x,(x+y+z)-3])
+            sage: GF = I.groebner_fan()
+            sage: TI = GF.tropical_intersection()
+            sage: TI._polynomial_system
+            [x^2 + 2*x*y + y^2 + 2*x*z + 2*y*z + z^2 - 1, y + z, x + y + z - 3]
+        """
+        parameter_indices = []
+        if parameters != []:
+            allvars = poly_ring.gens()
+            parameter_indices = [allvars.index(q) for q in parameters]
+        PolyhedralFan.__init__(self, gfan_polyhedral_fan, parameter_indices = parameter_indices)
+        self._polynomial_system = polynomial_system
+        self._parameters = parameters
+
+    def initial_form_systems(self):
+        """
+        Returns a list of systems of initial forms for each cone
+        in the tropical prevariety.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: I = R.ideal([(x+y)^2-1,(x+y)^2-2,(x+y)^2-3])
+            sage: GF = I.groebner_fan()
+            sage: PF = GF.tropical_intersection()
+            sage: pfi = PF.initial_form_systems()
+            sage: for q in pfi:
+            ...     print q.initial_forms()
+            [y^2 - 1, y^2 - 2, y^2 - 3]
+            [x^2 - 1, x^2 - 2, x^2 - 3]
+            [x^2 + 2*x*y + y^2, x^2 + 2*x*y + y^2, x^2 + 2*x*y + y^2]
+        """
+        try:
+            return self._initial_form_systems
+        except AttributeError:
+            initial_form_systems = []
+            pvars = self._polynomial_system[0].parent().gens()
+            nvars = len(pvars)
+            for dcone in self.cones():
+                for acone in self.cones()[dcone]:
+                    rays = [self.rays()[i] for i in acone]
+                    repray = sum([vector(q) for q in rays])
+                    iforms = []
+                    for poly in self._polynomial_system:
+                        verts = verts_for_normal(repray, poly)
+                        nform = 0
+                        for x in verts:
+                            factorlist = [pvars[i]**x[i] for i in range(nvars)]
+                            temp_monomial = prod(factorlist)
+                            nform += poly.monomial_coefficient(temp_monomial)*temp_monomial
+                        iforms.append(nform)
+                    initial_form_systems.append(InitialForm(acone, rays, iforms))
+            self._initial_form_systems = initial_form_systems
+            return self._initial_form_systems
+
+def ring_to_gfan_format(input_ring):
+    """
+    Converts a ring to gfan's format.
+
+    EXAMPLES::
+
+        sage: R.<w,x,y,z> = QQ[]
+        sage: from sage.rings.polynomial.groebner_fan import ring_to_gfan_format
+        sage: ring_to_gfan_format(R)
+        'Q[w, x, y, z]'
+        sage: R2.<x,y> = GF(2)[]
+        sage: ring_to_gfan_format(R2)
+        'Z/2Z[x, y]'
+    """
+    if input_ring.base_ring() == QQ:
+        ring_str = 'Q' + str(input_ring.gens()).replace('(','[').replace(')',']')
+    elif input_ring.base_ring() == ZZ:
+        ring_str = 'Z' + str(input_ring.gens()).replace('(','[').replace(')',']')
+    else:
+        ring_str = 'Z/' + str(input_ring.characteristic()) + 'Z'+ str(input_ring.gens()).replace('(','[').replace(')',']')
+    return ring_str
+
+def ideal_to_gfan_format(input_ring, polys):
+    """
+    Return the ideal in gfan's notation.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: polys = [x^2*y - z, y^2*z - x, z^2*x - y]
+            sage: from sage.rings.polynomial.groebner_fan import ideal_to_gfan_format
+            sage: ideal_to_gfan_format(R, polys)
+            'Q[x, y, z]{x^2*y-z,y^2*z-x,x*z^2-y}'
+    """
+    ideal_gen_str = '{' + (str(polys).replace(' ', '').replace("'",""))[1:-1] + '}'
+    ring_str = ring_to_gfan_format(input_ring)
+    output = ring_str + ideal_gen_str
+    return output
 
 class GroebnerFan(SageObject):
 
     def __init__(self, I, is_groebner_basis=False, symmetry=None, verbose=False):
         """
+        This class is used to access capabilities of the program Gfan.  In
+        addition to computing Groebner fans, Gfan can compute other things in
+        tropical geometry such as tropical prevarieties.
+
         INPUT:
 
 
@@ -435,11 +781,25 @@ class GroebnerFan(SageObject):
 
         EXAMPLES::
 
-            sage: R.<x,y,z> = PolynomialRing(QQ, 3, order='lex')
+            sage: R.<x,y,z> = QQ[]
             sage: I = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y])
             sage: G = I.groebner_fan(); G
             Groebner fan of the ideal:
-            Ideal (x^2*y - z, -x + y^2*z, x*z^2 - y) of Multivariate Polynomial Ring in x, y, z over Rational Field
+            Ideal (x^2*y - z, y^2*z - x, x*z^2 - y) of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+        Here is an example of the use of the tropical_intersection command, and then using the RationalPolyhedralFan
+        class to compute the Stanley-Reisner ideal of the tropical prevariety::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: I = R.ideal([(x+y+z)^3-1,(x+y+z)^3-x,(x+y+z)-3])
+            sage: GF = I.groebner_fan()
+            sage: PF = GF.tropical_intersection()
+            sage: PF.rays()
+            [[-1, 0, 0], [0, -1, 0], [0, 0, -1], [1, 1, 1]]
+            sage: RPF = PF.to_RationalPolyhedralFan()
+            sage: RPF.Stanley_Reisner_ideal(PolynomialRing(QQ,4,'A, B, C, D'))
+            Ideal (A*B, A*C, B*C*D) of Multivariate Polynomial Ring in A, B, C, D over Rational Field
+
         """
         self.__is_groebner_basis = is_groebner_basis
         self.__symmetry = symmetry
@@ -452,6 +812,7 @@ class GroebnerFan(SageObject):
             raise RuntimeError, "Ring variables cannot contain each other as prefixes"
         S = I.ring()
         R = S.base_ring()
+        # todo: add support for ZZ, which only works for bases computation, not tropical intersections
         if not R.is_field():
             raise NotImplementedError, "Groebner fan computation only implemented over fields"
         if not (R is QQ or (R.is_finite() and R.is_prime_field() and R.order() <= 32749)):
@@ -566,11 +927,7 @@ class GroebnerFan(SageObject):
             sage: G._gfan_ring()
             'Q[x, y, z]'
         """
-        if self.__ideal.base_ring() == QQ:
-            ring_str = 'Q' + str(self.__ideal.ring().gens()).replace('(','[').replace(')',']')
-        else:
-            ring_str = 'Z/' + str(self.__ideal.base_ring().characteristic()) + 'Z'+ str(self.__ideal.ring().gens()).replace('(','[').replace(')',']')
-        return ring_str
+        return ring_to_gfan_format(self.ring())
 
     def _gfan_ideal(self):
         """
@@ -586,9 +943,7 @@ class GroebnerFan(SageObject):
         try:
             return self.__gfan_ideal
         except AttributeError:
-            ideal_gen_str = '{' + (str(self.__ideal.gens()).replace(' ', '').replace("'",""))[1:-1] + '}'
-            ring_str = self._gfan_ring()
-            self.__gfan_ideal = ring_str + ideal_gen_str
+            self.__gfan_ideal = ideal_to_gfan_format(self.ring(),self.__ideal.gens())
             return self.__gfan_ideal
 
     def weight_vectors(self):
@@ -601,7 +956,7 @@ class GroebnerFan(SageObject):
             sage: r3.<x,y,z> = PolynomialRing(QQ,3)
             sage: g = r3.ideal([x^3+y,y^3-z,z^2-x]).groebner_fan()
             sage: g.weight_vectors()
-            [(3, 7, 1), (5, 1, 2), (7, 1, 4), (1, 1, 4), (1, 1, 1), (1, 4, 1), (1, 4, 10)]
+            [(3, 7, 1), (5, 1, 2), (7, 1, 4), (5, 1, 4), (1, 1, 1), (1, 4, 8), (1, 4, 10)]
             sage: r4.<x,y,z,w> = PolynomialRing(QQ,4)
             sage: g4 = r4.ideal([x^3+y,y^3-z,z^2-x,z^3 - w]).groebner_fan()
             sage: len(g4.weight_vectors())
@@ -641,7 +996,7 @@ class GroebnerFan(SageObject):
         try:
             return self.__gfan_reduced_groebner_bases
         except AttributeError:
-            B = self.gfan()
+            B = self.gfan(cmd='bases')
             B = B.replace('\n','')
             self.__gfan_reduced_groebner_bases = B
             return B
@@ -718,11 +1073,11 @@ class GroebnerFan(SageObject):
             return self.__gfan_mod
         except AttributeError:
             mod = ''
-            p = self.characteristic()
-            if p != 0:
-                mod += ' --mod %s'%p
-            else:
-                mod += ''
+            #p = self.characteristic()
+            #if p != 0:
+            #    mod += ' --mod %s'%p
+            #else:
+            #    mod += ''
 
             if self.__is_groebner_basis:
                 mod += ' -g'
@@ -733,7 +1088,7 @@ class GroebnerFan(SageObject):
             self.__gfan_mod = mod
             return self.__gfan_mod
 
-    def gfan(self, cmd='', I=None, format=True):
+    def gfan(self, cmd='bases', I=None, format=True):
         r"""
         Returns the gfan output as a string given an input cmd; the default
         is to produce the list of reduced Groebner bases in gfan format.
@@ -1128,11 +1483,7 @@ class GroebnerFan(SageObject):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: G = R.ideal([y^3 - x^2, y^2 - 13*x]).groebner_fan()
             sage: G._gfan_stats()
-            {'Number of reduced Groebner bases': 3,
-             'Maximal total degree of a Groebner basis': 4,
-             'Dimension of homogeneity space': 0,
-             'Number of variables': 2,
-             'Minimal total degree of a Groebner basis': 2}
+            {'Number of reduced Groebner bases': 3, 'Number of variables': 2, 'Maximal number of terms in Groebner basis': 6, 'Minimal total degree of a Groebner basis': 2, 'Maximal total degree of a Groebner basis': 4, 'Maximal number of polynomials in Groebner basis': 3, 'Dimension of homogeneity space': 0}
         """
         try:
             return self.__stats
@@ -1280,29 +1631,104 @@ class GroebnerFan(SageObject):
         """
         self[0].interactive(*args, **kwds)
 
-    def tropical_intersection(self, ideal_arg = False, *args, **kwds):
+    def tropical_intersection(self, parameters = [], symmetry_generators = [], *args, **kwds):
         """
         Returns information about the tropical intersection of the
-        polynomials defining the ideal.
+        polynomials defining the ideal.  This is the common refinement
+        of the outward-pointing normal fans of the Newton polytopes of
+        the generators of the ideal. Note that some people use the
+        inward-pointing normal fans.
+
+        INPUT:
+
+        - ``parameters`` (optional) - a list of variables to be considered as parameters
+        - ``symmetry_generators`` (optional) - generators of the symmetry group
+
+        OUTPUT: a TropicalPrevariety object
 
         EXAMPLES::
 
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
-            sage: i1 = ideal(x*z + 6*y*z - z^2, x*y + 6*x*z + y*z - z^2, y^2 + x*z + y*z)
-            sage: gf = i1.groebner_fan()
+            sage: I = R.ideal(x*z + 6*y*z - z^2, x*y + 6*x*z + y*z - z^2, y^2 + x*z + y*z)
+            sage: gf = I.groebner_fan()
             sage: pf = gf.tropical_intersection()
             sage: pf.rays()
             [[-2, 1, 1]]
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: f1 = x*y*z - 1
+            sage: f2 = f1*(x^2 + y^2 + z^2)
+            sage: f3 = f2*(x + y + z - 1)
+            sage: I = R.ideal([f1,f2,f3])
+            sage: gf = I.groebner_fan()
+            sage: pf = gf.tropical_intersection(symmetry_generators = '(1,2,0),(1,0,2)')
+            sage: pf.rays()
+            [[-2, 1, 1], [1, -2, 1], [1, 1, -2]]
+
+            sage: R.<x,y,z> = QQ[]
+            sage: I = R.ideal([(x+y+z)^2-1,(x+y+z)-x,(x+y+z)-3])
+            sage: GF = I.groebner_fan()
+            sage: TI = GF.tropical_intersection()
+            sage: TI.rays()
+            [[-1, 0, 0], [0, -1, -1], [1, 1, 1]]
+            sage: GF = I.groebner_fan()
+            sage: TI = GF.tropical_intersection(parameters=[y])
+            sage: TI.rays()
+            [[-1, 0, 0]]
         """
         try:
             return self.__tropical_intersection
         except AttributeError:
-            f = self.gfan(cmd='tropicalintersection', I = self._gfan_ideal())
-            pf = PolyhedralFan(f)
+            cmd = 'tropicalintersection'
+            id_str = self._gfan_ideal()
+            if parameters != []:
+                allvars = self.ring().gens()
+                truevars = [q for q in allvars if not q in parameters]
+                base_ring = self.ring().base_ring()
+                new_ring = PolynomialRing(base_ring, len(truevars), string.join([str(q) for q in truevars], sep=','))
+                old_polys = self.ideal().gens()
+                new_polys = []
+                sub = dict([[v,1] for v in parameters])
+                for apoly in old_polys:
+                    mons = apoly.monomials()
+                    mons = [m.subs(sub) for m in mons]
+                    new_polys.append(sum(mons))
+                id_str = ideal_to_gfan_format(new_ring, new_polys)
+            if symmetry_generators != []:
+                cmd = cmd + ' --symmetryExploit'
+                id_str = id_str + '{' + symmetry_generators + '}'
+            f = self.gfan(cmd=cmd, I = id_str)
+            pf = TropicalPrevariety(f,self.ideal().gens(), self.ring(), parameters = parameters)
+            pf._gfan_output = f
             self.__tropical_intersection = pf
             return pf
 
 
+    def mixed_volume(self):
+        """
+        Returns the mixed volume of the generators of this ideal (i.e. this is
+        not really an ideal property, it can depend on the generators used).
+        The generators must give a square system (as many polynomials as variables).
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: example_ideal = R.ideal([x^2-y-1,y^2-z-1,z^2-x-1])
+            sage: gf = example_ideal.groebner_fan()
+            sage: mv = gf.mixed_volume()
+            sage: mv
+            8
+
+            sage: R2.<x,y> = QQ[]
+            sage: g1 = 1 - x + x^7*y^3 + 2*x^8*y^4
+            sage: g2 = 2 + y + 3*x^7*y^3 + x^8*y^4
+            sage: example2 = R2.ideal([g1,g2])
+            sage: example2.groebner_fan().mixed_volume()
+            15
+        """
+        if len(self.ring().variable_names()) != self.ideal().ngens():
+            raise UserWarning, 'not a square system'
+        return Integer(self.gfan(cmd='mixedvolume'))
 
 class ReducedGroebnerBasis(SageObject, list):
     def __init__(self, groebner_fan, gens, gfan_gens):

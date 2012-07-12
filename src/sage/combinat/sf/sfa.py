@@ -1812,6 +1812,14 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: zee = sage.combinat.sf.sfa.zee
             sage: zee([4,3,3,2,2,1])/zee([4,3,3,2])
             4
+            sage: s(0).skew_by(s([1]))
+            0
+            sage: s(1).skew_by(s([1]))
+            0
+            sage: s([]).skew_by(s([]))
+            s[]
+            sage: s([]).skew_by(s[1])
+            0
         """
         s = SFASchur(self.parent().base_ring())
         f = lambda part1, part2: s([part1,part2]) if part1.contains(part2) else 0

@@ -93,6 +93,10 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             2*s[]
             sage: s([2,1]) # indirect doctest
             s[2, 1]
+            sage: s([[2,1],[1]])
+            s[1, 1] + s[2]
+            sage: s([[],[]])
+            s[]
 
             sage: McdJ = MacdonaldPolynomialsJ(QQ)
             sage: s = SymmetricFunctions(McdJ.base_ring()).s()
@@ -282,8 +286,9 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         # Skew Partitions #
         ###################
         elif x in sage.combinat.skew_partition.SkewPartitions():
-            skewschur = symmetrica.part_part_skewschur(x[0], x[1])
-            return self(skewschur)
+            import sage.libs.lrcalc.lrcalc as lrcalc
+            skewschur = lrcalc.skew(x[0], x[1])
+            return self._from_dict(skewschur)
 
 
         #############################

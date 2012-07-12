@@ -313,7 +313,7 @@ class AlgebrasWithBasis(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: s = SFASchur(QQ)
+                sage: s = SymmetricFunctions(QQ).schur()
                 sage: a = s([2])
                 sage: s._product_from_combinatorial_algebra_multiply(a,a)
                 s[2, 2] + s[3, 1] + s[4]

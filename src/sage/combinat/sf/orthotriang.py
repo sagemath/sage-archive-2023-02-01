@@ -11,19 +11,21 @@ functions from this definition.
 
     sage: from sage.combinat.sf.sfa import zee
     sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
-    sage: m = SFAMonomial(QQ)
-    sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
+    sage: Sym = SymmetricFunctions(QQ)
+    sage: m = Sym.m()
+    sage: s = SymmetricFunctionAlgebra_orthotriang(Sym, m, zee, 's', 'Schur functions')
     sage: s([2,1])^2
     s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
 
 ::
 
-    sage: s2 = SFASchur(QQ)
+    sage: s2 = SymmetricFunctions(QQ).s()
     sage: s2([2,1])^2
     s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
 """
 #*****************************************************************************
-#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
+#                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -47,14 +49,29 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
         pass
 
 
-    def __init__(self, R, base, scalar, prefix, name, leading_coeff=None):
+    def __init__(self, Sym, base, scalar, prefix, name, leading_coeff=None):
         """
+        Initialization of the symmetric function algebra defined via orthotriangular rules.
+
+        INPUT:
+
+        - ``self`` -- a basis determined by an orthotriangular definition
+        - ``Sym`` -- ring of symmetric functions
+        - ``base`` -- an instance of a basis of the ring of symmetric functions (e.g.
+          the Schur functions)
+        - ``scalar`` -- a function ``zee`` on partitions. The function
+          ``zee`` determines the scalar product on the power sum basis
+          with normalization `<p_\mu, p_\mu> = zee(mu)`.
+        - ``prefix`` -- the prefix used to display the basis
+        - ``name`` -- the name used for the basis
+
         EXAMPLES::
 
             sage: from sage.combinat.sf.sfa import zee
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
-            sage: m = SFAMonomial(QQ)
-            sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: m = Sym.m()
+            sage: s = SymmetricFunctionAlgebra_orthotriang(Sym, m, zee, 's', 'Schur functions')
 
         TESTS::
 
@@ -65,12 +82,13 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
         ``_test_associativity`` and ``_test_prod`` which involve
         (currently?) expensive calculations up to degree 12.
         """
+        self._sym = Sym
         self._sf_base = base
         self._scalar = scalar
         self._prefix = prefix
         self._name = name
         self._leading_coeff = leading_coeff
-        sfa.SymmetricFunctionAlgebra_generic.__init__(self, R)
+        sfa.SymmetricFunctionAlgebra_generic.__init__(self, Sym)
 
         self._self_to_base_cache = {}
         self._base_to_self_cache = {}
@@ -79,14 +97,24 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
 
     def _base_to_self(self, x):
         """
-        Coerce a symmetric function in base into self
+        Coerce a symmetric function in base ``x`` into ``self``.
+
+        INPUT:
+
+        - ``self`` -- a basis determined by an orthotriangular definition
+        - ``x`` -- an element of the basis `base` to which ``self`` is triangularly related
+
+        OUTPUT:
+
+        - an element of ``self`` equivalent to ``x``
 
         EXAMPLES::
 
             sage: from sage.combinat.sf.sfa import zee
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
-            sage: m = SFAMonomial(QQ)
-            sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: m = Sym.m()
+            sage: s = SymmetricFunctionAlgebra_orthotriang(Sym, m, zee, 's', 'Schur functions')
             sage: s._base_to_self(m([2,1]))
             -2*s[1, 1, 1] + s[2, 1]
         """
@@ -94,14 +122,24 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
 
     def _self_to_base(self, x):
         """
-        Coerce a symmetric function in self into base
+        Coerce a symmetric function in ``self`` into base ``x``.
+
+        INPUT:
+
+        - ``self`` -- a basis determined by an orthotriangular definition
+        - ``x`` -- an element of ``self`` as a basis of the ring of symmetric functions.
+
+        OUTPUT:
+
+        - the element ``x`` expressed in the basis to which ``self`` is triangularly related
 
         EXAMPLES::
 
             sage: from sage.combinat.sf.sfa import zee
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
-            sage: m = SFAMonomial(QQ)
-            sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: m = Sym.m()
+            sage: s = SymmetricFunctionAlgebra_orthotriang(Sym, m, zee, 's', 'Schur functions')
             sage: s._self_to_base(s([2,1]))
             2*m[1, 1, 1] + m[2, 1]
         """
@@ -109,15 +147,21 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
 
     def _base_cache(self, n):
         """
-        Computes the change of basis between self and base for the
-        homogenous component of size n.
+        Computes the change of basis between ``self`` and base for the
+        homogenous component of size ``n``
+
+        INPUT:
+
+        - ``self`` -- a basis determined by an orthotriangular definition
+        - ``n`` -- a nonnegative integer
 
         EXAMPLES::
 
             sage: from sage.combinat.sf.sfa import zee
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
-            sage: m = SFAMonomial(QQ)
-            sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: m = Sym.m()
+            sage: s = SymmetricFunctionAlgebra_orthotriang(Sym, m, zee, 's', 'Schur functions')
             sage: s._base_cache(2)
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
             sage: l(s._base_to_self_cache[2])
@@ -137,40 +181,61 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
 
     def _to_base(self, part):
         """
-        Returns a function which takes in a partition part2 and returns the
-        coefficient of a partition in the expansion of self(part) in base.
+        Returns a function which takes in a partition `\mu` and returns the
+        coefficient of a partition in the expansion of ``self`` `(part)` in base.
+
+        INPUT:
+
+        - ``self`` -- a basis determined by an orthotriangular definition
+        - ``part`` -- a partition
 
         .. note::
 
            We assume that self._gram_schmidt has been called before
            self._to_base is called.
 
+        OUTPUT:
+
+        - a function which accepts a partition ``mu`` and returns the coefficients
+          in the expansion of ``self(part)`` in the triangularly related basis.
+
         EXAMPLES::
 
             sage: from sage.combinat.sf.sfa import zee
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
-            sage: m = SFAMonomial(QQ)
-            sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: m = Sym.m()
+            sage: s = SymmetricFunctionAlgebra_orthotriang(Sym, m, zee, 's', 'Schur functions')
             sage: m(s([2,1]))
             2*m[1, 1, 1] + m[2, 1]
             sage: f = s._to_base(Partition([2,1]))
             sage: [f(p) for p in Partitions(3)]
             [0, 1, 2]
         """
-        f = lambda part2: self._self_to_base_cache[part].get(part2, 0)
+        f = lambda mu: self._self_to_base_cache[part].get(mu, 0)
         return f
 
     def _multiply(self, left, right):
         """
-        Returns left\*right by converting both to the base and then
-        converting back to self.
+        Returns ``left`` * ``right`` by converting both to the base and then
+        converting back to ``self``.
+
+        INPUT:
+
+        - ``self`` -- a basis determined by an orthotriangular definition
+        - ``left``, ``right`` -- elements in ``self``
+
+        OUTPUT:
+
+        - the expansion of the product of ``left`` and ``right`` in the basis ``self``.
 
         EXAMPLES::
 
             sage: from sage.combinat.sf.sfa import zee
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
-            sage: m = SFAMonomial(QQ)
-            sage: s =  SymmetricFunctionAlgebra_orthotriang(QQ, m, zee, 's', 'Schur functions')
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: m = Sym.m()
+            sage: s = SymmetricFunctionAlgebra_orthotriang(Sym, m, zee, 's', 'Schur functions')
             sage: s([1])*s([2,1]) #indirect doctest
             s[2, 1, 1] + s[2, 2] + s[3, 1]
         """

@@ -1920,10 +1920,12 @@ cdef class Parent(category_object.CategoryObject):
 
         The following was fixed in :trac:`12969`::
 
-            sage: H = MacdonaldPolynomialsH(QQ)
-            sage: P = MacdonaldPolynomialsP(QQ)
-            sage: m = SFAMonomial(P.base_ring())
-            sage: Ht = MacdonaldPolynomialsHt(QQ)
+            sage: R = QQ['q,t'].fraction_field()
+            sage: Sym = sage.combinat.sf.sf.SymmetricFunctions(R)
+            sage: H = Sym.macdonald().H()
+            sage: P = Sym.macdonald().P()
+            sage: m = Sym.monomial()
+            sage: Ht = Sym.macdonald().Ht()
             sage: phi = m.coerce_map_from(P)
             sage: Ht.coerce_map_from(P)
             Composite map:

@@ -264,8 +264,8 @@ class CycleSpecies_class(GenericCombinatorialSpecies):
              1/5*p[1, 1, 1, 1, 1] + 4/5*p[5],
              1/6*p[1, 1, 1, 1, 1, 1] + 1/6*p[2, 2, 2] + 1/3*p[3, 3] + 1/3*p[6]]
         """
-        from sage.combinat.sf.all import SFAPower
-        p = SFAPower(base_ring)
+        from sage.combinat.sf.sf import SymmetricFunctions
+        p = SymmetricFunctions(base_ring).power()
 
         zero = base_ring(0)
 

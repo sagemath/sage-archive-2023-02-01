@@ -136,7 +136,7 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
             X[1, 3, 4, 6, 2, 5]
             sage: Permutation([1, 3, 4, 6, 2, 5, 7]).to_lehmer_code()
             [0, 1, 1, 2, 0, 0, 0]
-            sage: s = SFASchur(ZZ)
+            sage: s = SymmetricFunctions(ZZ).schur()
             sage: c = s([2,1,1])
             sage: b.scalar_product(a).expand()
             x0^2*x1*x2 + x0*x1^2*x2 + x0*x1*x2^2 + x0^2*x1*x3 + x0*x1^2*x3 + x0^2*x2*x3 + 3*x0*x1*x2*x3 + x1^2*x2*x3 + x0*x2^2*x3 + x1*x2^2*x3 + x0*x1*x3^2 + x0*x2*x3^2 + x1*x2*x3^2

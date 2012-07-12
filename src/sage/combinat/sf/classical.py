@@ -2,7 +2,8 @@
 Classical symmetric functions.
 """
 #*****************************************************************************
-#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
+#                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -71,9 +72,15 @@ init()
 ###################################
 class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
     """
+    The class of classical symmetric functions.
+
     TESTS::
 
         sage: TestSuite(SymmetricFunctions(QQ).s()).run()
+        sage: TestSuite(SymmetricFunctions(QQ).h()).run()
+        sage: TestSuite(SymmetricFunctions(QQ).m()).run()
+        sage: TestSuite(SymmetricFunctions(QQ).e()).run()
+        sage: TestSuite(SymmetricFunctions(QQ).p()).run()
     """
 
     class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
@@ -82,25 +89,48 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         """
         pass
 
-    def _element_constructor_(self, x):
-        """
-        Convert x into self, if coercion failed
+    def degree_on_basis(self, b):
+        r"""
+        Return the degree of the basis element indexed by ``b``.
+
+        INPUT:
+
+        - ``self`` -- a basis of the symmetric functions
+        - ``b`` -- a partition
 
         EXAMPLES::
 
-            sage: s = SFASchur(QQ)
+            sage: m = SymmetricFunctions(QQ).monomial()
+            sage: m.degree_on_basis(Partition([3,2]))
+            5
+        """
+        return sum(b)
+
+    def _element_constructor_(self, x):
+        """
+        Convert ``x`` into ``self``, if coercion failed
+
+        INPUT:
+
+        - ``self`` -- a basis of the symmetric functions
+        - ``x`` -- an element of the symmetric functions
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(QQ).s()
             sage: s(2)
             2*s[]
             sage: s([2,1]) # indirect doctest
             s[2, 1]
+
             sage: s([[2,1],[1]])
             s[1, 1] + s[2]
             sage: s([[],[]])
             s[]
 
-            sage: McdJ = MacdonaldPolynomialsJ(QQ)
+            sage: McdJ = SymmetricFunctions(QQ['q','t'].base_ring())
             sage: s = SymmetricFunctions(McdJ.base_ring()).s()
-            sage: s._element_constructor(McdJ(s[2,1]))
+            sage: s._element_constructor_(McdJ(s[2,1]))
             s[2, 1]
         """
         R = self.base_ring()
@@ -140,7 +170,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         # TODO: find the right idiom
         #
         # One cannot use anymore self.element_class: it is build by
-        # the category mecanism, and depends on the coeff ring.
+        # the category mechanism, and depends on the coeff ring.
 
         elif isinstance(x, self.Element):
             P = x.parent()
@@ -199,7 +229,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             #Q: Convert to P basis and then convert to self
             #
             elif isinstance(x, hall_littlewood.HallLittlewood_q.Element):
-                    return self( x.parent()._P( x ) )
+                return self( x.parent()._P( x ) )
 
         #######
         # LLT #
@@ -220,7 +250,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
                 for part in P._self_to_m_cache[n][m]:
                     z_elt[part] = z_elt.get(part, zero) + BR(c*P._self_to_m_cache[n][m][part].subs(t=P.t))
 
-            m = sfa.SFAMonomial(BR)
+            m = P._sym.monomial()
             return self( m._from_dict(z_elt) )
 
         #########################
@@ -312,12 +342,18 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             except StandardError:
                 raise TypeError, "do not know how to make x (= %s) an element of self"%(x)
 
-
     def is_field(self, proof = True):
         """
+        Returns whether ``self`` is a field.
+
+        INPUT:
+
+        - ``self`` -- a basis of the symmetric functions
+        - ``proof`` -- an optional argument (default value : True)
+
         EXAMPLES::
 
-            sage: s = SFASchur(QQ)
+            sage: s = SymmetricFunctions(QQ).s()
             sage: s.is_field()
             False
         """
@@ -325,11 +361,15 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
 
     def is_commutative(self):
         """
-        Return True if this symmetric function algebra is commutative.
+        Returns whether this symmetric function algebra is commutative.
+
+        INPUT:
+
+        - ``self`` -- a basis of the symmetric functions
 
         EXAMPLES::
 
-            sage: s = SFASchur(QQ)
+            sage: s = SymmetricFunctions(QQ).s()
             sage: s.is_commutative()
             True
         """
@@ -340,28 +380,13 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         """
         Text representation of this symmetric function algebra.
 
+        INPUT:
+
+        - ``self`` -- a basis of the symmetric functions
+
         EXAMPLES::
 
-            sage: SFASchur(QQ)._repr_()
+            sage: SymmetricFunctions(QQ).s()._repr_()
             'Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis'
         """
         return "Symmetric Function Algebra over %s, %s symmetric functions as basis"%(self.base_ring(), self._basis.capitalize())
-
-
-
-
-##     def __pow__(self, n):
-##         """
-##         EXAMPLES:
-
-##         """
-##         if not isinstance(n, (int, Integer)):
-##             raise TypeError, "n must be an integer"
-##         A = self.parent()
-##         z = A(Integer(1))
-##         for i in range(n):
-##             z *= self
-##         return z
-
-
-

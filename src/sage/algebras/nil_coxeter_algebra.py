@@ -187,8 +187,8 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebraT):
         assert self._cartan_type[0] == 'A' and len(self._cartan_type) == 3 and self._cartan_type[2] == 1, "%s is not affine type A."%(self._W)
         assert la in Partitions(), "%s is not a partition."%(la)
         assert (len(la) == 0 or la[0] < self._W.n), "%s is not a %s-bounded partition."%(la, self._W.n-1)
-        ks = kSchurFunctions(self._base_ring,self._n-1,1);
-        SF = SymmetricFunctions(ks.base_ring())
-        h = SF.homogeneous()
+        Sym = SymmetricFunctions(self._base_ring)
+        h = Sym.homogeneous()
+        ks = Sym.kschur(self._n-1,1)
         f = h(ks[la])
         return sum(f.coefficient(x)*self.homogeneous_noncommutative_variables(x) for x in f.support())

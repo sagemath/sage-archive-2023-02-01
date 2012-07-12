@@ -249,8 +249,8 @@ class PermutationSpecies_class(GenericCombinatorialSpecies):
             sage: [g.next() for i in range(10)]
             [p[], 0, p[2], 0, p[2, 2], 0, p[2, 2, 2], 0, p[2, 2, 2, 2], 0]
         """
-        from sage.combinat.sf.all import SFAPower
-        p = SFAPower(base_ring)
+        from sage.combinat.sf.sf import SymmetricFunctions
+        p = SymmetricFunctions(base_ring).power()
 
         pn = p([n])
 

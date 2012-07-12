@@ -2989,7 +2989,7 @@ class SemistandardTableaux_p(CombinatorialClass):
             8
             sage: SemistandardTableaux([2,2,1]).cardinality()
             75
-            sage: s = SFASchur(QQ)
+            sage: s = SymmetricFunctions(QQ).schur()
             sage: s([2,2,1]).expand(5)(1,1,1,1,1)
             75
             sage: SemistandardTableaux([5]).cardinality()

@@ -22,6 +22,7 @@ which can be found at http://www.math.lsa.umich.edu/~jrs/maple.html
 #*****************************************************************************
 
 import sage.combinat.partition
+from sage.rings.arith import factor
 from sage.rings.all import PolynomialRing, ZZ
 
 global_t = PolynomialRing(ZZ, 't').gen()
@@ -29,6 +30,17 @@ global_t = PolynomialRing(ZZ, 't').gen()
 def KostkaFoulkesPolynomial(mu, nu, t=None):
     r"""
     Returns the Kostka-Foulkes polynomial `K_{\mu, \nu}(t)`.
+
+    INPUT:
+
+    - ``mu``, ``nu`` -- partitions
+    - ``t`` -- an optional parameter (default: None)
+
+    OUTPUT:
+
+    - the Koskta-Foulkes polynomial indexed by partitions ``mu`` and ``nu`` and
+      evaluated at the parameter ``t``.  If ``t`` is None the resulting polynomial
+      is in the polynomial ring `ZZ['t']`.
 
     EXAMPLES::
 
@@ -60,6 +72,17 @@ def kfpoly(mu, nu, t=None):
     by generating all rigging sequences for the shape `\mu`, and then
     selecting those of content `\nu`.
 
+    INPUT:
+
+    - ``mu``, ``nu`` -- partitions
+    - ``t`` -- an optional parameter (default: None)
+
+    OUTPUT:
+
+    - the Koskta-Foulkes polynomial indexed by partitions ``mu`` and ``nu`` and
+      evaluated at the parameter ``t``.  If ``t`` is None the resulting polynomial
+      is in the polynomial ring `\mathbb{Z}['t']`.
+
     EXAMPLES::
 
         sage: from sage.combinat.sf.kfpoly import kfpoly
@@ -88,9 +111,18 @@ def kfpoly(mu, nu, t=None):
     return res
 
 def schur_to_hl(mu, t=None):
-    """
-    Returns a dictionary corresponding to `s_\mu` in Hall-Littlewood P
-    basis.
+    r"""
+    Returns a dictionary corresponding to `s_\mu` in Hall-Littlewood `P` basis.
+
+    INPUT:
+
+    - ``mu`` -- a partition
+    - ``t`` -- an optional parameter (default : the generator from `\mathbb{Z}['t']` )
+
+    OUTPUT:
+
+    - a dictionary with the coefficients `K_{\mu\nu}(t)` for `\nu` smaller
+      in dominance order than `\mu`
 
     EXAMPLES::
 
@@ -157,6 +189,14 @@ def riggings(part):
     Generate all possible rigging sequences for a fixed
     sage.combinat.partition.
 
+    INPUT:
+
+    - ``part`` -- a partition
+
+    OUTPUT:
+
+    - returns a list of riggings associated to the partition ``part``
+
     EXAMPLES::
 
         sage: from sage.combinat.sf.kfpoly import *
@@ -194,6 +234,15 @@ def compat(n, mu, nu):
     r"""
     Generate all possible partitions of `n` that can precede `\mu,\nu` in a
     rigging sequence.
+
+    INPUT:
+
+    - ``n`` -- a positive integer
+    - ``mu``, ``nu`` -- partitions
+
+    OUTPUT:
+
+    - a list of partitions
 
     EXAMPLES::
 
@@ -239,6 +288,15 @@ def dom(mu, snu):
     Returns True if ``sum(mu[:i+1]) >= snu[i]`` for all 0 <= i < len(snu);
     otherwise, it returns False.
 
+    INPUT:
+
+    - ``mu`` -- a partition
+    - ``snu`` -- a sequence of positive integers
+
+    OUTPUT:
+
+    - a boolean value
+
     EXAMPLES::
 
         sage: from sage.combinat.sf.kfpoly import *
@@ -264,24 +322,32 @@ def weight(rg, t=None):
     """
     Returns the weight of a rigging.
 
+    INPUT:
+
+    - ``rg`` -- a rigging, a list of partitions
+    - ``t`` -- an optional parameter, (default : uses the generator from `ZZ['t']`)
+
+    OUTPUT:
+
+    - a polynomial in the parameter ``t``
+
     EXAMPLES::
 
         sage: from sage.combinat.sf.kfpoly import *
-        sage: t = PolynomialRing(ZZ, 't').gen()
-        sage: weight([[2,1], [1]], t)
+        sage: weight([[2,1], [1]])
         1
-        sage: weight([[3],[1]], t)
+        sage: weight([[3],[1]])
         t^2 + t
-        sage: weight([[2,1],[3]], t)
+        sage: weight([[2,1],[3]])
         t^4
-        sage: weight([[2, 2], [1, 1]],t)
+        sage: weight([[2, 2], [1, 1]])
         1
-        sage: weight([[3, 1], [1, 1]],t)
+        sage: weight([[3, 1], [1, 1]])
         t
-        sage: weight([[4], [1, 1]],t)
-        t^4
-        sage: weight([[4], [2]],t)
-        t^2
+        sage: weight([[4], [1, 1]], 2)
+        16
+        sage: weight([[4], [2]], t=2)
+        4
     """
     if t is None:
         t = global_t
@@ -301,6 +367,14 @@ def weight(rg, t=None):
 
 def q_bin(a,b,t=None):
     """
+    Returns the `t`-binomial coefficient `[a+b,b]_t`.
+
+    INPUT:
+
+    - ``a``, ``b`` -- two nonnegative integers
+
+    By definition `[a+b,b]_t = (1-t)(1-t)^2 \cdots (1-t^{a+b}) / ((1-) \cdots (1-t^b) (1-t) \cdots (1-t^a))`.
+
     EXAMPLES::
 
         sage: from sage.combinat.sf.kfpoly import *
@@ -310,9 +384,10 @@ def q_bin(a,b,t=None):
         sage: q_bin(4,3, t)
         t^12 + t^11 + 2*t^10 + 3*t^9 + 4*t^8 + 4*t^7 + 5*t^6 + 4*t^5 + 4*t^4 + 3*t^3 + 2*t^2 + t + 1
     """
-    if t is None:
-        t = global_t
-    res = 1
+    res = ZZ['t'].one()
     for i in range(1, min(a,b)+1):
-        res *= (1-t**(a+b+1-i))/(1-t**i)
-    return res
+        res *= (1-global_t**(a+b+1-i))/(1-global_t**i)
+    if t is not None:
+        return ZZ['t'](res).subs(t=t)
+    else:
+        return res

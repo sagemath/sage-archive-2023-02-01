@@ -923,7 +923,7 @@ def Ht(mu, q=None, t=None, pi=None):
     EXAMPLES::
 
         sage: from sage.combinat.sf.ns_macdonald import Ht
-        sage: HHt = MacdonaldPolynomialsHt(QQ)
+        sage: HHt = SymmetricFunctions(QQ['q','t'].fraction_field()).macdonald().Ht()
         sage: Ht([0,0,1])
         x0 + x1 + x2
         sage: HHt([1]).expand(3)

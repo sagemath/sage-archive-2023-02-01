@@ -599,11 +599,11 @@ class SkewPartition_class(CombinatorialObject):
         """
         p = self.outer()
         q = self.inner()
-        import sage.combinat.sf.sfa as sfa
+        from sage.combinat.sf.sf import SymmetricFunctions
         if len(p) == 0 and len(q) == 0:
-            return MatrixSpace(sfa.SFAHomogeneous(QQ), 0)(0)
+            return MatrixSpace(SymmetricFunctions(QQ).homogeneous(), 0)(0)
         nn = len(p)
-        h = sfa.SFAHomogeneous(QQ)
+        h = SymmetricFunctions(QQ).homogeneous()
         H = MatrixSpace(h, nn)
 
         q  = q + [0]*int(nn-len(q))

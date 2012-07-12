@@ -186,8 +186,8 @@ class SetSpecies_class(GenericCombinatorialSpecies):
             sage: [g.next() for i in range(5)]
             [0, p[1], 1/2*p[2], 1/3*p[3], 1/4*p[4]]
         """
-        from sage.combinat.sf.all import SFAPower
-        p = SFAPower(base_ring)
+        from sage.combinat.sf.sf import SymmetricFunctions
+        p = SymmetricFunctions(base_ring).power()
         yield p(0)
         for n in _integers_from(1):
             yield p([n])/n

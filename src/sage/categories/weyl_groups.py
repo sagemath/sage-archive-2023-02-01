@@ -317,5 +317,5 @@ class WeylGroups(Category_singleton):
 
             """
             import sage.combinat.sf
-            m = sage.combinat.sf.all.SFAMonomial(QQ)
+            m = sage.combinat.sf.sf.SymmetricFunctions(QQ).monomial()
             return m.from_polynomial_exp(self.stanley_symmetric_function_as_polynomial())

@@ -792,7 +792,7 @@ class ModulesWithBasis(Category_over_base_ring):
 
             ::
 
-                sage: s = SFASchur(QQ)
+                sage: s = SymmetricFunctions(QQ).schur()
                 sage: a = s([2,1])+2*s([3,2])
                 sage: a.map_coefficients(lambda x: x*2)
                 2*s[2, 1] + 4*s[3, 2]
@@ -824,7 +824,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 sage: x.map_support(lambda i: 1)
                 7*B[1]
 
-                sage: s = SFASchur(QQ)
+                sage: s = SymmetricFunctions(QQ).schur()
                 sage: a = s([2,1])+2*s([3,2])
                 sage: a.map_support(lambda x: x.conjugate())
                 s[2, 1] + 2*s[2, 2, 1]
@@ -862,7 +862,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 sage: x.map_item(lambda i, c: (1, 2*c))
                 14*B[1]
 
-                sage: s = SFASchur(QQ)
+                sage: s = SymmetricFunctions(QQ).schur()
                 sage: f = lambda m,c: (m.conjugate(), 2*c)
                 sage: a = s([2,1]) + s([1,1,1])
                 sage: a.map_item(f)
@@ -1102,7 +1102,122 @@ class ModulesWithBasis(Category_over_base_ring):
             implements operations on elements of tensor products of modules
             with basis
             """
-            pass
+
+            def apply_multilinear_morphism(self, f, codomain = None):
+                r"""
+                Returns the result of applying the morphism induced by ``f`` to ``self``
+
+                INPUT:
+
+                - ``f`` -- a multilinear morphism from the component
+                  modules of the parent tensor product to any module.
+
+                - ``codomain`` -- the codomain of ``f`` (optional)
+
+                By the universal property of the tensor product, ``f``
+                induces a linear morphism from `self.parent()` to the
+                target module. Returns the result of applying that
+                morphism to ``self``.
+
+                The codomain is used for optimizations purposes
+                only. If it's not provided, it's recovered by calling
+                ``f`` on the zero input.
+
+                EXAMPLES:
+
+                We start with simple (admittedly not so interesting)
+                examples, with two modules `A` and `B`::
+
+                    sage: A = CombinatorialFreeModule(ZZ, [1,2], prefix="A"); A.rename("A")
+                    sage: B = CombinatorialFreeModule(ZZ, [3,4], prefix="B"); B.rename("B")
+
+                and `f` the bilinear morphism `(a,b) \mapsto b\otimes
+                a` from `A \times B` to `B \otimes A`::
+
+                    sage: def f(a,b):
+                    ...       return tensor([b,a])
+
+                Now, calling applying `f` on `a\otimes b` returns the same as `f(a,b)`::
+
+                    sage: a = A.monomial(1) + 2 * A.monomial(2); a
+                    A[1] + 2*A[2]
+                    sage: b = B.monomial(3) - 2 * B.monomial(4); b
+                    B[3] - 2*B[4]
+                    sage: f(a,b)
+                    B[3] # A[1] + 2*B[3] # A[2] - 2*B[4] # A[1] - 4*B[4] # A[2]
+                    sage: tensor([a,b]).apply_multilinear_morphism(f)
+                    B[3] # A[1] + 2*B[3] # A[2] - 2*B[4] # A[1] - 4*B[4] # A[2]
+
+                `f` may be a bilinear morphism to any module over the
+                base ring of `A` and `B`. Here the codomain is `\ZZ`::
+
+                    sage: def f(a,b):
+                    ...       return sum(a.coefficients(), 0) * sum(b.coefficients(), 0)
+                    sage: f(a,b)
+                    -3
+                    sage: tensor([a,b]).apply_multilinear_morphism(f)
+                    -3
+
+                Mind the `0` in the sums above; otherwise `f` would
+                not return `0` in `\ZZ`::
+
+                    sage: def f(a,b):
+                    ...       return sum(a.coefficients()) * sum(b.coefficients())
+                    sage: type(f(A.zero(), B.zero()))
+                    <type 'int'>
+
+                Which would be wrong and break this method::
+
+                    sage: tensor([a,b]).apply_multilinear_morphism(f)
+                    Traceback (most recent call last):
+                    ...
+                    AttributeError: 'int' object has no attribute 'parent'
+
+                Here we consider an example where the codomain is a
+                module with basis with a different base ring::
+
+                    sage: C = CombinatorialFreeModule(QQ, [(1,3),(2,4)], prefix="C"); C.rename("C")
+                    sage: def f(a,b):
+                    ...       return C.sum_of_terms( [((1,3), QQ(a[1]*b[3])), ((2,4), QQ(a[2]*b[4]))] )
+                    sage: f(a,b)
+                    C[(1, 3)] - 4*C[(2, 4)]
+                    sage: tensor([a,b]).apply_multilinear_morphism(f)
+                    C[(1, 3)] - 4*C[(2, 4)]
+
+                 We conclude with a real life application, where we
+                 check that the antipode of the Hopf algebra of
+                 Symmetric functions on the Schur basis satisfies its
+                 defining formula::
+
+                    sage: Sym = SymmetricFunctions(QQ)
+                    sage: s = Sym.schur()
+                    sage: def f(a,b): return a*b.antipode()
+                    sage: x = 4*s.an_element(); x
+                    4*s[] + 8*s[1] + 12*s[2]
+                    sage: x.coproduct().apply_multilinear_morphism(f)
+                    4*s[]
+                    sage: x.coproduct().apply_multilinear_morphism(f) == x.counit()
+                    True
+
+                We recover the constant term of `x`, as desired.
+
+                .. TODO:: extract a method to linearize a multilinear
+                    morphism, and delegate the work there.
+                """
+                K = self.parent().base_ring()
+                modules = self.parent()._sets
+                if codomain is None:
+                    try:
+                        codomain = f.codomain()
+                    except AttributeError:
+                        codomain = f(*[module.zero() for module in modules]).parent()
+                if codomain in ModulesWithBasis(K):
+                    return codomain.linear_combination((f(*[module.monomial(t) for (module,t) in zip(modules, m)]), c)
+                                                       for m,c in self)
+                else:
+                    return sum((c * f(*[module.monomial(t) for (module,t) in zip(modules, m)])
+                                for m,c in self),
+                               codomain.zero())
 
     class DualObjects(DualObjectsCategory):
 

@@ -31,8 +31,13 @@ def kSchurFunctions(R, k, t=None):
     EXAMPLES::
 
         sage: ks3 = kSchurFunctions(QQ, 3); ks3
+        doctest:1: DeprecationWarning: Deprecation warning: Please use SymmetricFunctions(QQ).kschur() instead!
+        See http://trac.sagemath.org/5457 for details.
         k-Schur Functions at level 3 over Univariate Polynomial Ring in t over Rational Field
         sage: s = SFASchur(ks3.base_ring()) # Allow 't' coefficients for the Schurs.
+        doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).schur()
+        See http://trac.sagemath.org/5457 for details.
+
         sage: t = ks3.t # Allow 't' as input
         sage: s(ks3([3,2,1]))
         s[3, 2, 1] + t*s[4, 1, 1] + t*s[4, 2] + t^2*s[5, 1]
@@ -103,6 +108,7 @@ def kSchurFunctions(R, k, t=None):
         sage: ks3([2,1])^2
         ks3[2, 2, 1, 1] + ks3[2, 2, 2] + ks3[3, 1, 1, 1]
     """
+    sage.misc.superseded.deprecation(5457,"Deprecation warning: Please use SymmetricFunctions(QQ).kschur() instead!")
     return cache_t(R, k, t)
 
 
@@ -126,6 +132,8 @@ class kSchurFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
         EXAMPLES::
 
             sage: ks3 = kSchurFunctions(QQ, 3)
+            doctest:1: DeprecationWarning: Deprecation warning: Please use SymmetricFunctions(QQ).kschur() instead!
+            See http://trac.sagemath.org/5457 for details.
             sage: ks3._s_cache(3)
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
             sage: d = ks3._self_to_s_cache
@@ -139,7 +147,7 @@ class kSchurFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
         P = el.parent()
         zero = self.base_ring()(0)
         out = {}
-        while el != 0:
+        while not el.is_zero():
             l = el.support()
             l.sort()
             part2 = l[0]
@@ -167,6 +175,8 @@ class kSchurFunctions_generic(sfa.SymmetricFunctionAlgebra_generic):
         EXAMPLES::
 
             sage: ks3 = kSchurFunctions(QQ, 3)
+            doctest:1: DeprecationWarning: Deprecation warning: Please use SymmetricFunctions(QQ).kschur() instead!
+            See http://trac.sagemath.org/5457 for details.
 
         ::
 
@@ -203,6 +213,8 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         EXAMPLES::
 
             sage: kSchurFunctions(QQ, 3).base_ring()
+            doctest:1: DeprecationWarning: Deprecation warning: Please use SymmetricFunctions(QQ).kschur() instead!
+            See http://trac.sagemath.org/5457 for details.
             Univariate Polynomial Ring in t over Rational Field
             sage: kSchurFunctions(QQ, 3, t=1).base_ring()
             Rational Field
@@ -229,11 +241,13 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         self._self_to_s_cache = k_to_s_cache.get(k, {})
 
         # This is an abuse, since kschur functions do not form a basis of Sym
-        sfa.SymmetricFunctionAlgebra_generic.__init__(self, R)
+        from sage.combinat.sf.sf import SymmetricFunctions
+        Sym = SymmetricFunctions(R)
+        sfa.SymmetricFunctionAlgebra_generic.__init__(self, Sym)
         # so we need to take some counter measures
         self._basis_keys = sage.combinat.partition.Partitions(NonNegativeIntegers(), max_part=k)
 
-        self._s = sfa.SFASchur(self.base_ring())
+        self._s = Sym.s()
         # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
         category = sage.categories.all.ModulesWithBasis(self.base_ring())
         # This really should be a conversion, not a coercion (it can fail)
@@ -247,7 +261,11 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         EXAMPLES::
 
             sage: ks3 = kSchurFunctions(QQ, 3)
+            doctest:1: DeprecationWarning: Deprecation warning: Please use SymmetricFunctions(QQ).kschur() instead!
+            See http://trac.sagemath.org/5457 for details.
             sage: s = SFASchur(ks3.base_ring())
+            doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).schur()
+            See http://trac.sagemath.org/5457 for details.
             sage: ks3._s_to_self(s[2, 1, 1] + ks3.t*s[3, 1])
             ks3[2, 1, 1]
             sage: ks3._s_to_self(s[2, 1, 1])
@@ -275,7 +293,11 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         EXAMPLES::
 
             sage: ks3 = kSchurFunctions(QQ, 3)
+            doctest:1: DeprecationWarning: Deprecation warning: Please use SymmetricFunctions(QQ).kschur() instead!
+            See http://trac.sagemath.org/5457 for details.
             sage: s = SFASchur(ks3.base_ring())
+            doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).schur()
+            See http://trac.sagemath.org/5457 for details.
             sage: ks3._self_to_s(ks3[2,1,1])
             s[2, 1, 1] + t*s[3, 1]
 
@@ -293,7 +315,11 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         EXAMPLES::
 
             sage: ks3 = kSchurFunctions(QQ, 3)
+            doctest:1: DeprecationWarning: Deprecation warning: Please use SymmetricFunctions(QQ).kschur() instead!
+            See http://trac.sagemath.org/5457 for details.
             sage: s = SFASchur(ks3.base_ring())
+            doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).schur()
+            See http://trac.sagemath.org/5457 for details.
             sage: ks3([3,3,2,1]) # indirect doctest
             ks3[3, 3, 2, 1]
             sage: ks3([4,3,2,1]) # indirect doctest
@@ -323,6 +349,8 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         EXAMPLES::
 
             sage: ks3 = kSchurFunctions(QQ, 3)
+            doctest:1: DeprecationWarning: Deprecation warning: Please use SymmetricFunctions(QQ).kschur() instead!
+            See http://trac.sagemath.org/5457 for details.
             sage: ks3._s_cache(3)
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
             sage: l(ks3._self_to_s_cache[3])

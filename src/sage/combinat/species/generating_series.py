@@ -17,7 +17,7 @@ TESTS::
 
     sage: from sage.combinat.species.stream import Stream, _integers_from
     sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
-    sage: p = SFAPower(QQ)
+    sage: p = SymmetricFunctions(QQ).power()
     sage: CIS = CycleIndexSeriesRing(QQ)
 
 ::
@@ -77,7 +77,7 @@ from stream import Stream, _integers_from
 from sage.rings.all import Integer, moebius, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
 from functools import partial
-from sage.combinat.sf.all import SFAPower
+from sage.combinat.sf.sf import SymmetricFunctions
 from sage.misc.cachefunc import cached_function
 
 @cached_function
@@ -324,7 +324,7 @@ class CycleIndexSeriesRing_class(LazyPowerSeriesRing):
             sage: R == loads(dumps(R))
             True
         """
-        R = SFAPower(R)
+        R = SymmetricFunctions(R).power()
         LazyPowerSeriesRing.__init__(self, R, CycleIndexSeries)
 
     def __repr__(self):
@@ -347,7 +347,7 @@ class CycleIndexSeries(LazyPowerSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
-            sage: p = SFAPower(QQ)
+            sage: p = SymmetricFunctions(QQ).power()
             sage: CIS = CycleIndexSeriesRing(p)
             sage: f = CIS([0, p([1]), 2*p([1,1]),3*p([2,1])])
             sage: f.count([1])
@@ -367,7 +367,7 @@ class CycleIndexSeries(LazyPowerSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
-            sage: p = SFAPower(QQ)
+            sage: p = SymmetricFunctions(QQ).power()
             sage: CIS = CycleIndexSeriesRing(p)
             sage: f = CIS([0, p([1]), 2*p([1,1]),3*p([2,1])])
             sage: f.coefficient_cycle_type([1])
@@ -402,7 +402,7 @@ class CycleIndexSeries(LazyPowerSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
-            sage: p = SFAPower(QQ)
+            sage: p = SymmetricFunctions(QQ).power()
             sage: CIS = CycleIndexSeriesRing(p)
             sage: f = CIS([p([1])])
             sage: f.stretch(3).coefficients(10)
@@ -415,7 +415,7 @@ class CycleIndexSeries(LazyPowerSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
-            sage: p = SFAPower(QQ)
+            sage: p = SymmetricFunctions(QQ).power()
             sage: CIS = CycleIndexSeriesRing(p)
             sage: f = CIS([p([1])])
             sage: g = f._stretch_gen(2,0)

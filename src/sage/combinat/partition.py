@@ -2432,8 +2432,8 @@ class Partition_class(CombinatorialObject):
             [h[3] h[1]    0]
             [h[4] h[2]  h[]]
             [h[5] h[3] h[1]]
-            sage: s = SFASchur(QQ)
-            sage: h = SFAHomogeneous(QQ)
+            sage: s = SymmetricFunctions(QQ).schur()
+            sage: h = SymmetricFunctions(QQ).homogeneous()
             sage: h( s(part) )
             h[3, 2, 1] - h[3, 3] - h[4, 1, 1] + h[5, 1]
             sage: jt.det()
@@ -2482,9 +2482,10 @@ class Partition_class(CombinatorialObject):
         x = P.gens()
 
         #Expand s_mu in the power sum basis
-        import sf.sfa
-        s = sf.sfa.SFASchur(QQ)
-        p = sf.sfa.SFAPower(QQ)
+        from sage.combinat.sf.sf import SymmetricFunctions
+        Sym = SymmetricFunctions(QQ)
+        s = Sym.schur()
+        p = Sym.power()
         ps_mu = p(s(self))
 
         #Replace each p_i by i*x_i-1

@@ -12,6 +12,7 @@ Hopf algebras with basis
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.all import HopfAlgebras, BialgebrasWithBasis
 from sage.categories.tensor import TensorProductsCategory
+from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
@@ -27,7 +28,7 @@ class HopfAlgebrasWithBasis(Category_over_base_ring):
         sage: C.super_categories()
         [Category of bialgebras with basis over Rational Field, Category of hopf algebras over Rational Field]
 
-    We now show how to use a simple hopf algebra, namely the group algebra of the dihedral group
+    We now show how to use a simple Hopf algebra, namely the group algebra of the dihedral group
     (see also AlgebrasWithBasis)::
 
         sage: A = C.example(); A
@@ -149,12 +150,40 @@ class HopfAlgebrasWithBasis(Category_over_base_ring):
 
     class ParentMethods:
 
+        @abstract_method(optional=True)
+        def antipode_on_basis(self, x):
+            """
+            The antipode of the Hopf algebra on the basis (optional)
+
+            INPUT:
+
+             - ``x`` -- an index of an element of the basis of ``self``
+
+            Returns the antipode of the basis element indexed by ``x``.
+
+            If this method is implemented, then :meth:`antipode` is defined
+            from this by linearity.
+
+            EXAMPLES::
+
+                sage: A = HopfAlgebrasWithBasis(QQ).example()
+                sage: W = A.basis().keys(); W
+                Dihedral group of order 6 as a permutation group
+                sage: w = W.an_element(); w
+                (1,2,3)
+                sage: A.antipode_on_basis(w)
+                B[(1,3,2)]
+            """
+
         @lazy_attribute
         def antipode(self):
             """
-            If :meth:`.antipode_basis` is available, construct the
-            antipode morphism from ``self`` to ``self`` by extending
-            it by linearity
+            The antipode of this Hopf algebra.
+
+            If :meth:`.antipode_basis` is available, this constructs the
+            antipode morphism from ``self`` to ``self`` by extending it by
+            linearity. Otherwise, :meth:`self.antipode_by_coercion` is used, if
+            available.
 
             EXAMPLES::
 
@@ -172,9 +201,12 @@ class HopfAlgebrasWithBasis(Category_over_base_ring):
                 sage: all(A.antipode(x) * x == A.one() for x in A.basis())
                 True
             """
-            if hasattr(self, "antipode_on_basis"):
+            if self.antipode_on_basis is not NotImplemented:
                 # Should give the information that this is an anti-morphism of algebra
                 return self._module_morphism(self.antipode_on_basis, codomain = self)
+            elif hasattr(self, "antipode_by_coercion"):
+                return self.antipode_by_coercion
+
 
     class ElementMethods:
         pass

@@ -159,7 +159,7 @@ class LinearOrderSpecies_class(GenericCombinatorialSpecies):
             sage: g.coefficients(5)
             [p[], p[1], p[1, 1], p[1, 1, 1], p[1, 1, 1, 1]]
         """
-        from sage.combinat.sf.all import SFAPower
-        p = SFAPower(base_ring)
+        from sage.combinat.sf.sf import SymmetricFunctions
+        p = SymmetricFunctions(base_ring).power()
         for n in _integers_from(0):
             yield p([1]*n)

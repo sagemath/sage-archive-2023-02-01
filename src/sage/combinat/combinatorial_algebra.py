@@ -366,8 +366,8 @@ class TestAlgebra(CombinatorialAlgebra):
             sage: a._mul_(a) #indirect doctest
             s[2, 2] + s[3, 1] + s[4]
         """
-        from sage.combinat.sf.sfa import SFASchur
-        S = SFASchur(self.base_ring())
+        from sage.combinat.sf.sf import SymmetricFunctions
+        S = SymmetricFunctions(self.base_ring()).schur()
         return self.sum_of_terms(S(part1) * S(part2))
 
     def prefix(self):

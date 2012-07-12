@@ -2,7 +2,8 @@
 Schur symmetric functions
 """
 #*****************************************************************************
-#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
+#                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -20,37 +21,61 @@ import sage.libs.symmetrica.all as symmetrica
 from sage.rings.all import ZZ, QQ, Integer
 
 class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classical):
-    def __init__(self, R):
+    def __init__(self, Sym):
         """
+        A class for methods related to the Schur symmetric function basis
+
+        INPUT:
+
+        - ``self`` -- a Schur symmetric function basis
+        - ``Sym`` -- an instance of the ring of the symmetric functions
+
         TESTS::
 
-            sage: s = SFASchur(QQ)
+            sage: s = SymmetricFunctions(QQ).s()
             sage: s == loads(dumps(s))
             True
+            sage: TestSuite(s).run(skip=['_test_associativity', '_test_distributivity', '_test_prod'])
+            sage: TestSuite(s).run(elements = [s[1,1]+s[2], s[1]+2*s[1,1]])
         """
-        classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "schur", 's')
-
-    def is_schur_basis(self):
-        """
-        EXAMPLES::
-
-            sage: s = SFASchur(QQ)
-            sage: s.is_schur_basis()
-            True
-        """
-        return True
+        classical.SymmetricFunctionAlgebra_classical.__init__(self, Sym, "schur", 's')
 
     def dual_basis(self, scalar=None, scalar_name="",  prefix=None):
         """
-        The dual basis to the Schur basis with respect to the standard
-        scalar product is the Schur basis since it is self-dual.
+        Returns the dual basis to ``self``.
+
+        INPUT:
+
+        - ``self`` -- a Schur symmetric function basis
+        - ``scalar`` -- optional input which specifies a function ``zee`` on partitions. The function
+          ``zee`` determines the scalar product on the power sum basis
+          with normalization `<p_\mu, p_\mu> = zee(\mu)`.
+          (default: uses standard ``zee`` function)
+        - ``scalar_name`` -- specifies the name of the scalar function (optional)
+        - ``prefix`` -- optional input, specifies the prefix to be used to display the basis.
+
+        This method returns the dual basis to the Schur basis with respect to the standard
+        scalar product. Since the Schur basis is self-dual, it returns itself.
+        If ``zee`` is specified, the modified scalar product is used.
+
+        OUTPUT:
+
+        - This method returns the dual basis of the Schur basis with respect to the
+          standard scalar product (the Schur basis).  If a function ``zee`` is specified,
+          the dual basis is with respect to the modified scalar product.
 
         EXAMPLES::
 
-            sage: s = SFASchur(QQ)
+            sage: s = SymmetricFunctions(QQ).s()
             sage: ds = s.dual_basis()
             sage: s is ds
             True
+
+            sage: zee = lambda x : x.centralizer_size()
+            sage: S = s.dual_basis(zee); S
+            Dual basis to Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+            sage: S[2,1].scalar(s[2,1])
+            1
         """
         if scalar is None:
             return self
@@ -59,9 +84,20 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
     def _multiply(self, left, right): # TODO: factor out this code for all bases (as is done for coercions)
         """
+        Returns the product of ``left`` and ``right``.
+
+        INPUT:
+
+        - ``self`` -- a Schur symmetric function basis
+        - ``left``, ``right`` -- instances of the Schur basis ``self``.
+
+        OUPUT:
+
+        - an element of the Schur basis, the product of ``left`` and ``right``
+
         TESTS::
 
-            sage: s = SFASchur(QQ)
+            sage: s = SymmetricFunctions(QQ).s()
             sage: a = s([2,1]) + 1; a
             s[] + s[2, 1]
             sage: a^2   # indirect doctest
@@ -70,7 +106,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         ::
 
             sage: QQx.<x> = QQ[]
-            sage: s = SFASchur(QQx)
+            sage: s = SymmetricFunctions(QQx).s()
             sage: a = x^2*s([2,1]) + 2*x; a
             2*x*s[] + x^2*s[2, 1]
             sage: a^2
@@ -105,146 +141,208 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                         z_elt[ m ] = c * d[m]
         return A._from_dict(z_elt)
 
+    def coproduct_on_basis(self, mu):
+        r"""
+        Returns the coproduct of ``self(mu)``.
+
+        Here ``self`` is the basis of Schur functions in the ring of symmetric functions.
+
+        INPUT:
+
+        - ``self`` -- a Schur symmetric function basis
+        - ``mu`` -- a partition
+
+        OUTPUT:
+
+        - an element of the tensor square of the Schur basis
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: s = Sym.schur()
+            sage: s.coproduct_on_basis([2])
+            s[] # s[2] + s[1] # s[1] + s[2] # s[]
+        """
+        import sage.libs.lrcalc.lrcalc as lrcalc
+        T = self.tensor_square()
+        return T._from_dict( lrcalc.coprod(mu, all=1) )
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
-        # TODO: fix indentation
+        def __pow__(self, n):
+            """
+            Returns the naive powering of an instance of ``self``.
 
+            INPUT:
 
-      def __pow__(self, n):
-          """
-          Naive powering
+            - ``self`` -- an element of the Schur symmetric function basis
+            - ``n`` -- a nonnegative integer
 
-          See ``Monoids.Element.__pow__`` and ``Monoids.Element._pow_naive``.
+            OUTPUT:
 
-          EXAMPLES::
+            - the ``n`-th power of an instance of ``self`` in the Schur basis
 
-              sage: s = SFASchur(QQ[x])
-              sage: len(s([2,1])^8) # long time (~ 4 s)
-              1485
-              sage: len(s([2,1])^9) # long time (~10 s)
-              2876
+            See ``Monoids.Element.__pow__`` and ``Monoids.Element._pow_naive``.
 
-          Binary exponentiation does not seem to bring any speedup for
-          schur functions. This most likely is because of the
-          explosion of the number of terms.
+            EXAMPLES::
 
-          #    sage: s = SFASchur(QQ); y = s([1])
-          #    sage: n = 24
-          #    sage: %timeit y**n    # using binary exponentiation
-          #    10 loops, best of 3: 1.22 s per loop
-          #    sage: %timeit prod(y for i in range(n))
-          #    10 loops, best of 3: 1.06 s per loop
+                sage: s = SymmetricFunctions(QQ[x]).s()
+                sage: len(s([2,1])^8) # long time (~ 4 s)
+                1485
+                sage: len(s([2,1])^9) # long time (~10 s)
+                2876
 
-          With polynomial coefficients, this is actually much *slower*
-          (although this should be profiled further; there seems to
-          be an unreasonable number of polynomial multiplication involved,
-          besides the fact that 1 * QQ[x].one() currently involves a
-          polynomial multiplication)
+            Binary exponentiation does not seem to bring any speedup for
+            schur functions. This most likely is because of the
+            explosion of the number of terms.
 
-          #    sage: sage: s = SFASchur(QQ[x])
-          #    sage: y = s([2,1])
-          #    sage: %timeit y**7
-          #    10 loops, best of 3: 18.9 s per loop
-          #    sage: %timeit y*y*y*y*y*y*y
-          #    10 loops, best of 3: 1.73 s per loop
+            #    sage: s = SymmetricFunctions(QQ).s(); y = s([1])
+            #    sage: n = 24
+            #    sage: %timeit y**n    # using binary exponentiation
+            #    10 loops, best of 3: 1.22 s per loop
+            #    sage: %timeit prod(y for i in range(n))
+            #    10 loops, best of 3: 1.06 s per loop
 
-          Todo: do the same for the other non multiplicative bases?
+            With polynomial coefficients, this is actually much *slower*
+            (although this should be profiled further; there seems to
+            be an unreasonable number of polynomial multiplication involved,
+            besides the fact that 1 * QQ[x].one() currently involves a
+            polynomial multiplication)
 
-          """
-          return self._pow_naive(n)
+            #    sage: sage: s = SymmetricFunctions(QQ[x]).s()
+            #    sage: y = s([2,1])
+            #    sage: %timeit y**7
+            #    10 loops, best of 3: 18.9 s per loop
+            #    sage: %timeit y*y*y*y*y*y*y
+            #    10 loops, best of 3: 1.73 s per loop
 
-      def omega(self):
-        """
-        Returns the image of self under the Frobenius / omega
-        automorphism.
+            Todo: do the same for the other non multiplicative bases?
 
-        EXAMPLES::
+            """
+            return self._pow_naive(n)
 
-            sage: s = SFASchur(QQ)
-            sage: s([2,1]).omega()
-            s[2, 1]
-            sage: s([2,1,1]).omega()
-            s[3, 1]
-        """
-        conj = lambda part: part.conjugate()
-        return self.map_support(conj)
+        def omega(self):
+            """
+            Returns the image of ``self`` under the Frobenius / omega automorphism.
 
+            INPUT:
 
-      def scalar(self, x):
-        """
-        Returns the standard scalar product between self and x.
+            - ``self`` -- an element of the Schur symmetric function basis
 
-        Note that the Schur functions are self-dual with respect to this
-        scalar product. They are also lower-triangularly related to the
-        monomial symmetric functions with respect to this scalar product.
+            OUTPUT:
 
-        EXAMPLES::
+            - the image of ``self`` under omega as an element of the Schur basis
 
-            sage: s = SFASchur(ZZ)
-            sage: a = s([2,1])
-            sage: b = s([1,1,1])
-            sage: c = 2*s([1,1,1])
-            sage: d = a + b
-            sage: a.scalar(a)
-            1
-            sage: b.scalar(b)
-            1
-            sage: b.scalar(a)
-            0
-            sage: b.scalar(c)
-            2
-            sage: c.scalar(c)
-            4
-            sage: d.scalar(a)
-            1
-            sage: d.scalar(b)
-            1
-            sage: d.scalar(c)
-            2
+            EXAMPLES::
 
-        ::
+                sage: s = SymmetricFunctions(QQ).s()
+                sage: s([2,1]).omega()
+                s[2, 1]
+                sage: s([2,1,1]).omega()
+                s[3, 1]
+            """
+            conj = lambda part: part.conjugate()
+            return self.map_support(conj)
 
-            sage: m = SFAMonomial(ZZ)
-            sage: p4 = Partitions(4)
-            sage: l = [ [s(p).scalar(m(q)) for q in p4] for p in p4]
-            sage: matrix(l)
-            [ 1  0  0  0  0]
-            [-1  1  0  0  0]
-            [ 0 -1  1  0  0]
-            [ 1 -1 -1  1  0]
-            [-1  2  1 -3  1]
-        """
-        s = self.parent()
-        R = s.base_ring()
-        one = R(1)
-        f = lambda p1, p2: one
-        x = s(x)
-        return s._apply_multi_module_morphism(self, x, f, orthogonal=True)
+        def scalar(self, x, zee=None):
+            """
+            Returns the standard scalar product between ``self`` and `x`.
 
-      def expand(self, n, alphabet='x'):
-        """
-        Expands the symmetric function as a symmetric polynomial in n
-        variables.
+            Note that the Schur functions are self-dual with respect to this
+            scalar product. They are also lower-triangularly related to the
+            monomial symmetric functions with respect to this scalar product.
 
-        EXAMPLES::
+            INPUT:
 
-            sage: s = SFASchur(QQ)
-            sage: a = s([2,1])
-            sage: a.expand(2)
-            x0^2*x1 + x0*x1^2
-            sage: a.expand(3)
-            x0^2*x1 + x0*x1^2 + x0^2*x2 + 2*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2
-            sage: a.expand(4)
-            x0^2*x1 + x0*x1^2 + x0^2*x2 + 2*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2 + x0^2*x3 + 2*x0*x1*x3 + x1^2*x3 + 2*x0*x2*x3 + 2*x1*x2*x3 + x2^2*x3 + x0*x3^2 + x1*x3^2 + x2*x3^2
-            sage: a.expand(2, alphabet='y')
-            y0^2*y1 + y0*y1^2
-            sage: a.expand(2, alphabet=['a','b'])
-            a^2*b + a*b^2
-            sage: s([1,1,1,1]).expand(3)
-            0
-        """
-        condition = lambda part: len(part) > n
-        return self._expand(condition, n, alphabet)
+            - ``self`` -- an element of the Schur symmetric function basis
+            - ``x`` -- an element of the symmetric functions
+            - ``zee`` -- an optional function that specifies the scalar product
+              between two power sum symmetric functions indexed by the same
+              partition.  If ``zee`` is not specified.
+
+            OUTPUT:
+
+            - the scalar product between ``self`` and ``x``
+
+            EXAMPLES::
+
+                sage: s = SymmetricFunctions(ZZ).s()
+                sage: a = s([2,1])
+                sage: b = s([1,1,1])
+                sage: c = 2*s([1,1,1])
+                sage: d = a + b
+                sage: a.scalar(a)
+                1
+                sage: b.scalar(b)
+                1
+                sage: b.scalar(a)
+                0
+                sage: b.scalar(c)
+                2
+                sage: c.scalar(c)
+                4
+                sage: d.scalar(a)
+                1
+                sage: d.scalar(b)
+                1
+                sage: d.scalar(c)
+                2
+
+            ::
+
+                sage: m = SymmetricFunctions(ZZ).monomial()
+                sage: p4 = Partitions(4)
+                sage: l = [ [s(p).scalar(m(q)) for q in p4] for p in p4]
+                sage: matrix(l)
+                [ 1  0  0  0  0]
+                [-1  1  0  0  0]
+                [ 0 -1  1  0  0]
+                [ 1 -1 -1  1  0]
+                [-1  2  1 -3  1]
+            """
+            if zee is None:
+                s = self.parent()
+                R = s.base_ring()
+                one = R(1)
+                f = lambda p1, p2: one
+                x = s(x)
+                return s._apply_multi_module_morphism(self, x, f, orthogonal=True)
+            else:
+                p = self.parent().realization_of().power()
+                return p(self).scalar( x, zee=zee )
+
+        def expand(self, n, alphabet='x'):
+            """
+            Expands the symmetric function as a symmetric polynomial in `n` variables.
+
+            INPUT:
+
+            - ``self`` -- an element of the Schur symmetric function basis
+            - ``n`` -- a positive integer
+            - ``alphabet`` -- a variable for the expansion (default: `x`)
+
+            OUTPUT: a monomial expansion of an instance of ``self`` in `n` variables
+
+            EXAMPLES::
+
+                sage: s = SymmetricFunctions(QQ).s()
+                sage: a = s([2,1])
+                sage: a.expand(2)
+                x0^2*x1 + x0*x1^2
+                sage: a.expand(3)
+                x0^2*x1 + x0*x1^2 + x0^2*x2 + 2*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2
+                sage: a.expand(4)
+                x0^2*x1 + x0*x1^2 + x0^2*x2 + 2*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2 + x0^2*x3 + 2*x0*x1*x3 + x1^2*x3 + 2*x0*x2*x3 + 2*x1*x2*x3 + x2^2*x3 + x0*x3^2 + x1*x3^2 + x2*x3^2
+                sage: a.expand(2, alphabet='y')
+                y0^2*y1 + y0*y1^2
+                sage: a.expand(2, alphabet=['a','b'])
+                a^2*b + a*b^2
+                sage: s([1,1,1,1]).expand(3)
+                0
+                sage: (s([]) + 2*s([1])).expand(3)
+                2*x0 + 2*x1 + 2*x2 + 1
+            """
+            condition = lambda part: len(part) > n
+            return self._expand(condition, n, alphabet)
 
 # Backward compatibility for unpickling
 from sage.structure.sage_object import register_unpickle_override

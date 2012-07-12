@@ -87,13 +87,13 @@ class CoalgebrasWithBasis(Category_over_base_ring):
                 1
             """
 
-    class ParentMethods:
         @lazy_attribute
         def coproduct(self):
             """
             If :meth:`coproduct_on_basis` is available, construct the
             coproduct morphism from ``self`` to ``self`` `\otimes`
-            ``self`` by extending it by linearity
+            ``self`` by extending it by linearity. Otherwise, use
+            :meth:`coproduct_by_coercion`, if available.
 
             EXAMPLES::
 
@@ -111,6 +111,8 @@ class CoalgebrasWithBasis(Category_over_base_ring):
                 # to create a morphism of algebras with basis instead
                 # should there be a method self.coproduct_hom_category?
                 return Hom(self, tensor([self, self]), ModulesWithBasis(self.base_ring()))(on_basis = self.coproduct_on_basis)
+            elif hasattr(self, "coproduct_by_coercion"):
+                return self.coproduct_by_coercion
 
         @lazy_attribute
         def counit(self):

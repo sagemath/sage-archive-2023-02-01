@@ -236,8 +236,8 @@ class SubsetSpecies_class(GenericCombinatorialSpecies):
             sage: [g.next() for i in range(5)]
             [0, 2*p[1], p[2], 2/3*p[3], 1/2*p[4]]
         """
-        from sage.combinat.sf.all import SFAPower
-        p = SFAPower(base_ring)
+        from sage.combinat.sf.sf import SymmetricFunctions
+        p = SymmetricFunctions(base_ring).power()
         yield base_ring(0)
         for n in _integers_from(ZZ(1)):
             yield 2*p([n])/n

@@ -18,7 +18,7 @@ Symmetric Functions
    ../sage/combinat/sf/kfpoly
    ../sage/combinat/sf/hall_littlewood
    ../sage/combinat/sf/jack
-   ../sage/combinat/sf/kschur
+   ../sage/combinat/sf/new_kschur
    ../sage/combinat/sf/llt
    ../sage/combinat/sf/macdonald
    ../sage/combinat/sf/ns_macdonald

@@ -191,7 +191,7 @@ class Algebras(Category_over_base_ring):
             """
             EXAMPLES::
 
-                sage: s = SFASchur(QQ)
+                sage: s = SymmetricFunctions(QQ).schur()
                 sage: a = s([2])
                 sage: a._mul_(a) #indirect doctest
                 s[2, 2] + s[3, 1] + s[4]

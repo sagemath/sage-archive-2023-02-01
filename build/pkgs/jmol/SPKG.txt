@@ -26,6 +26,11 @@ GPLv2+
  * Sage Notebook (sagenb)
 
 == Changelog ==
+=== jmol-12.3.27.p1 (Jonathan Gutow, July 12, 2012) ===
+
+ *  update testjava.sh to check java versions (now requires
+    versions 1.5 - 1.7)
+
 === jmol-12.3.27.p0 (Jonathan Gutow, May 27, 2012) ===
 
  * update to Jmol-12.3.27 included fixes to the headless JmolData.jar

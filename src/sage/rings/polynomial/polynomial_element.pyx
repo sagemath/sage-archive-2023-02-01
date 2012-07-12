@@ -1037,11 +1037,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         polynomial 1 and have extra terms with coefficients close to zero. ::
 
             sage: R.<x> = RDF[]
+            sage: epsilon = RDF(1).ulp()*50   # Allow an error of up to 50 ulp
             sage: f = inverse_mod(x^2 + 1, x^5 + x + 1); f
             0.4*x^4 - 0.2*x^3 - 0.4*x^2 + 0.2*x + 0.8
             sage: poly = f * (x^2 + 1) % (x^5 + x + 1)
             sage: # Remove noisy zero terms:
-            sage: parent(poly)([ 0.0 if abs(c)<=1e-14 else c for c in poly.coeffs() ])
+            sage: parent(poly)([ 0.0 if abs(c)<=epsilon else c for c in poly.coeffs() ])
             1.0
             sage: f = inverse_mod(x^3 - x + 1, x - 2); f
             0.142857142857
@@ -1051,7 +1052,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -0.0319636125...*x^3 - 0.0383269759...*x^2 - 0.0463050900...*x + 0.346479687...
             sage: poly = f*g % m
             sage: # Remove noisy zero terms:
-            sage: parent(poly)([ 0.0 if abs(c)<=1e-14 else c for c in poly.coeffs() ])
+            sage: parent(poly)([ 0.0 if abs(c)<=epsilon else c for c in poly.coeffs() ])
             1.0
 
         ALGORITHM: Solve the system as + mt = 1, returning s as the inverse

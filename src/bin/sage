@@ -29,15 +29,13 @@ usage() {
     echo "  -root               -- print the Sage root directory"
     echo "  --nodotsage         -- run Sage without using the user's .sage directory:"
     echo "                         create and use a temporary .sage directory instead"
-    echo "  -t [options] <files|dir>"
-    echo "                      -- test examples in .py, .pyx, .sage or .tex files"
-    echo "                         options:"
-    echo "                           -long  -- include lines with the phrase 'long time'"
-    echo "                           -verbose  -- print debugging output during the test"
-    echo "                           -optional  -- also test all #optional examples"
-    echo "                           -only-optional <tag1,...,tagn>  -- only run tests"
-    echo "                            including one of the #optional tags"
-    echo "                           -randorder[=seed]  -- randomize order of tests"
+    echo "  -t [options] <--all|files|dir>"
+    echo "                      -- test examples in .py, .pyx, .sage, .tex or .rst files"
+    echo "                         selected options:"
+    echo "                           --long - include lines with the phrase 'long time'"
+    echo "                           --verbose - print debugging output during the test"
+    echo "                           --optional - controls which optional tests are run"
+    echo "                           --help - show all testing options"
     echo "  -upgrade [url]      -- download, build and install standard packages from"
     echo "                         given url.  If url not given, automatically selects a"
     echo "                         suitable mirror.  If url='ask', it lets you select"
@@ -157,17 +155,18 @@ usage_advanced() {
     echo "  -startuptime [module]  -- display how long each component of Sage takes to"
     echo "                            start up; optionally specify a module to get more"
     echo "                            details about that particular module"
-    echo "  -t [options] <files|dir>"
-    echo "                      -- test examples in .py, .pyx, .sage or .tex files"
-    echo "                         options:"
-    echo "                           -long  -- include lines with the phrase 'long time'"
-    echo "                           -verbose  -- print debugging output during the test"
-    echo "                           -optional  -- also test all #optional examples"
-    echo "                           -only-optional <tag1,...,tagn>  -- only run tests"
-    echo "                            including one of the #optional tags"
-    echo "                           -randorder[=seed]  -- randomize order of tests"
-    echo "  -tnew [...]         -- like -t above, but only tests files modified since"
-    echo "                         last commit"
+    echo "  -t [options] <--all|files|dir>"
+    echo "                      -- test examples in .py, .pyx, .sage, .tex or .rst files"
+    echo "                         selected options:"
+    echo "                           --long - include lines with the phrase 'long time'"
+    echo "                           --verbose - print debugging output during the test"
+    echo "                           --optional - controls which optional tests are run"
+    echo "                           --randorder[=seed] - randomize order of tests"
+    echo "                           --new - only test files modified since last commit"
+    echo "                           --initial - only show the first failure per block"
+    echo "                           --debug - drop into PDB after an unexpected error"
+    echo "                           --failed - only test files that failed last test"
+    echo "                           --help - show all testing options"
     echo "  -tp <N> [...]       -- like -t above, but tests in parallel using N threads"
     echo "                         with 0 interpreted as a sensible default"
     echo "  -testall [options]  -- test all source files, docs, and examples.  options"
@@ -720,53 +719,40 @@ if [ "$1" = '-clone' -o "$1" = "--clone" ]; then
    exit $?
 fi
 
-if [ "$1" = '-t' -o "$1" = '-bt' ]; then
-   if [ "$1" = '-bt' ]; then
-      build_sage
-   fi
-   if ! [  -f  "$DOT_SAGE"/init.sage ]; then
-      echo >&2 "init.sage does not exist ... creating"
-      touch "$DOT_SAGE"/init.sage
-   fi
-   shift
-   SAGE_BANNER="no"
-   sage_setup
-   sage-test "$@"
-   exit $?
-fi
-
-if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
-   if [ "$1" = '-btp' ]; then
-      build_sage
-   fi
-   if ! [  -f  "$DOT_SAGE"/init.sage ]; then
-      echo >&2 "init.sage does not exist ... creating"
-      touch "$DOT_SAGE"/init.sage
-   fi
-   shift
-   SAGE_BANNER="no"
-   sage_setup
-   sage-ptest "$@"
-   exit $?
+if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
+    if [ "$1" = '-bt' -o "$1" = '-btp' ]; then
+        build_sage
+    fi
+    if [ ! -f  "$DOT_SAGE"/init.sage ]; then
+        echo >&2 "init.sage does not exist ... creating"
+        touch "$DOT_SAGE"/init.sage
+    fi
+    SAGE_BANNER="no"
+    sage_setup
+    if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
+        shift
+        exec sage-runtests -p "$@"
+    else
+        shift
+        exec sage-runtests "$@"
+    fi
 fi
 
 if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
-   if [ "$1" = '-btnew' ]; then
-      build_sage
-   fi
-   shift
-   SAGE_BANNER="no"
-   sage_setup
-   sage-test-new "$@"
-   exit $?
+    if [ "$1" = '-btnew' ]; then
+        build_sage
+    fi
+    shift
+    SAGE_BANNER="no"
+    sage_setup
+    exec sage-runtests --new "$@"
 fi
 
 if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
-   shift
-   SAGE_BANNER="no"
-   sage_setup
-   sage-maketest "$@"
-   exit $?
+    shift
+    SAGE_BANNER="no"
+    sage_setup
+    exec sage-runtests -a "$@"
 fi
 
 if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then

@@ -200,8 +200,9 @@ class HasseDiagram(DiGraph):
         False otherwise.
 
         .. note::
-            If the ``leq_matrix`` has been computed, then this method is
-            redefined to use the cached matrix (see ``_alternate_is_lequal``).
+
+            If the :meth:`lequal_matrix` has been computed, then this method is
+            redefined to use the cached matrix (see :meth:`_alternate_is_lequal`).
 
         TESTS::
 
@@ -804,16 +805,16 @@ class HasseDiagram(DiGraph):
 
     def mobius_function_matrix(self):
         r"""
-        Returns the matrix of the mobius function of this poset
+        Returns the matrix of the Mobius function of this poset
 
-        This returns the sparse matrix over ZZ whose ``(x, y)`` entry
+        This returns the sparse matrix over `\ZZ` whose ``(x, y)`` entry
         is the value of the M\"obius function of ``self`` evaluated on
         ``x`` and ``y``, and redefines :meth:`mobius_function` to use
-        it
+        it.
 
-        .. note::
+        .. NOTE::
 
-            The result is cached in ``self._mobius_function_matrix``.
+            The result is cached in :meth:`_mobius_function_matrix`.
 
         EXAMPLES::
 
@@ -855,7 +856,7 @@ class HasseDiagram(DiGraph):
 
             sage: P = Poset([[1,2,3],[4],[4],[4],[]])
             sage: H = P._hasse_diagram
-            sage: H.mobius_function(0,4)
+            sage: H.mobius_function(0,4) # indirect doctest
             2
             sage: for u,v in P.cover_relations_iterator():
             ...    if P.mobius_function(u,v) != -1:
@@ -1020,9 +1021,10 @@ class HasseDiagram(DiGraph):
         Returns ``True`` if ``i`` is less than or equal to ``j`` in
         ``self``, and ``False`` otherwise.
 
-        .. note::
-            If the ``lequal_matrix`` has been computed, then
-            ``is_lequal`` is redefined to use the cached matrix.
+        .. NOTE::
+
+            If the :meth:`lequal_matrix` has been computed, then
+            :meth:`is_lequal` is redefined to use the cached matrix.
 
         EXAMPLES::
 
@@ -1048,41 +1050,25 @@ class HasseDiagram(DiGraph):
         """
         return bool(self._leq_matrix[i,j])
 
-    def meet_matrix(self):
+    @lazy_attribute
+    def _meet(self):
         r"""
-        Returns the matrix of meets of self. The ``(x,y)``-entry of
+        Computes the matrix of meets of ``self``. The ``(x,y)``-entry of
         this matrix is the meet of ``x`` and ``y`` in ``self``.
-
-        This algorithm is modelled after the algorithm of Freese-Jezek-Nation
-        (p217). It can also be found on page 140 of [Gec81m]_.
-
-        .. note::
-
-            Once the matrix has been computed, it is stored in
-            self._meet_matrix. Delete this attribute if you want to
-            recompute the matrix.
 
         EXAMPLES::
 
-            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
-            sage: H.meet_matrix()
-            [0 0 0 0 0 0 0 0]
-            [0 1 0 0 1 0 0 1]
-            [0 0 2 0 2 2 2 2]
-            [0 0 0 3 0 0 3 3]
-            [0 1 2 0 4 2 2 4]
-            [0 0 2 0 2 5 2 5]
-            [0 0 2 3 2 2 6 6]
-            [0 1 2 3 4 5 6 7]
-
-        REFERENCE:
-
-        .. [Gec81m] Fundamentals of Computation Theory
-          Gecseg, F.
-          Proceedings of the 1981 International Fct-Conference
-          Szeged, Hungaria, August 24-28, vol 117
-          Springer-Verlag, 1981
+           sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+           sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
+           sage: H._meet
+           [0 0 0 0 0 0 0 0]
+           [0 1 0 0 1 0 0 1]
+           [0 0 2 0 2 2 2 2]
+           [0 0 0 3 0 0 3 3]
+           [0 1 2 0 4 2 2 4]
+           [0 0 2 0 2 5 2 5]
+           [0 0 2 3 2 2 6 6]
+           [0 1 2 3 4 5 6 7]
 
         TESTS::
 
@@ -1098,9 +1084,12 @@ class HasseDiagram(DiGraph):
             Traceback (most recent call last):
             ...
             ValueError: No meet for x=...
+
+            sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: P = L.dual()
+            sage: P.meet(2,3)
+            4
         """
-        if hasattr(self,'_meet'):
-            return self._meet
         n = self.cardinality()
         meet = [[0 for x in range(n)] for x in range(n)]
         le = copy(self.lequal_matrix())
@@ -1125,7 +1114,59 @@ class HasseDiagram(DiGraph):
                 meet[x][y] = q
                 meet[y][x] = q
 
-        self._meet = matrix(ZZ,meet)
+        return matrix(ZZ,meet)
+
+    def meet_matrix(self):
+        r"""
+        Returns the matrix of meets of ``self``. The ``(x,y)``-entry of
+        this matrix is the meet of ``x`` and ``y`` in ``self``.
+
+        This algorithm is modelled after the algorithm of Freese-Jezek-Nation
+        (p217). It can also be found on page 140 of [Gec81]_.
+
+        .. NOTE::
+
+            Once the matrix has been computed, it is stored in
+            :meth:`_meet_matrix`. Delete this attribute if you want to
+            recompute the matrix.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
+            sage: H.meet_matrix()
+            [0 0 0 0 0 0 0 0]
+            [0 1 0 0 1 0 0 1]
+            [0 0 2 0 2 2 2 2]
+            [0 0 0 3 0 0 3 3]
+            [0 1 2 0 4 2 2 4]
+            [0 0 2 0 2 5 2 5]
+            [0 0 2 3 2 2 6 6]
+            [0 1 2 3 4 5 6 7]
+
+        REFERENCE:
+
+        .. [Gec81] Fundamentals of Computation Theory
+          Gecseg, F.
+          Proceedings of the 1981 International Fct-Conference
+          Szeged, Hungaria, August 24-28, vol 117
+          Springer-Verlag, 1981
+
+        TESTS::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[2,3],1:[2,3]})
+            sage: H.meet_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: Not a meet-semilattice: no bottom element.
+
+            sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
+            sage: H.meet_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: No meet for x=...
+        """
         return self._meet
 
     def is_meet_semilattice(self):
@@ -1155,24 +1196,17 @@ class HasseDiagram(DiGraph):
         else:
             return True
 
-    def join_matrix(self):
+    @lazy_attribute
+    def _join(self):
         r"""
-        Returns the matrix of joins of ``self``. The ``(x,y)``-entry
-        of this matrix is the join of ``x`` and ``y`` in ``self``.
-
-        This algorithm is modelled after the algorithm of Freese-Jezek-Nation
-        (p217). It can also be found on page 140 of [Gec81j]_.
-
-        .. note::
-            Once the matrix has been computed, it is stored in
-            ``self._join_matrix``. Delete this attribute if you want
-            to recompute the matrix.
+        Computes a matrix whose ``(x,y)``-entry is the join of ``x``
+        and ``y`` in ``self``
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
-            sage: H.join_matrix()
+            sage: H.join_matrix() # indirect doctest
             [0 1 2 3 4 5 6 7]
             [1 1 4 7 4 7 7 7]
             [2 4 2 6 4 5 6 7]
@@ -1181,14 +1215,6 @@ class HasseDiagram(DiGraph):
             [5 7 5 7 7 5 7 7]
             [6 7 6 6 7 7 6 7]
             [7 7 7 7 7 7 7 7]
-
-        REFERENCE:
-
-        .. [Gec81j] Fundamentals of Computation Theory
-          Gecseg, F.
-          Proceedings of the 1981 International Fct-Conference
-          Szeged, Hungaria, August 24-28, vol 117
-          Springer-Verlag, 1981
 
         TESTS::
 
@@ -1204,8 +1230,12 @@ class HasseDiagram(DiGraph):
             Traceback (most recent call last):
             ...
             ValueError: No join for x=...
+
+            sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: P = L.dual()
+            sage: P.join(2,3)
+            0
         """
-        if hasattr(self,'_join'): return self._join
         n = self.cardinality()
         join = [[0 for x in range(n)] for x in range(n)]
         le = copy(self.lequal_matrix())
@@ -1230,8 +1260,51 @@ class HasseDiagram(DiGraph):
                         raise ValueError("No join for x=%s y=%s"%(x,y))
                 join[x][y] = q
                 join[y][x] = q
+        return matrix(ZZ,[[n-1-join[n-1-x][n-1-y] for y in range(n)] for x in range(n)])
 
-        self._join = matrix(ZZ,[[n-1-join[n-1-x][n-1-y] for y in range(n)] for x in range(n)])
+    def join_matrix(self):
+        r"""
+        Returns the matrix of joins of ``self``. The ``(x,y)``-entry
+        of this matrix is the join of ``x`` and ``y`` in ``self``.
+
+        This algorithm is modelled after the algorithm of Freese-Jezek-Nation
+        (p217). It can also be found on page 140 of [Gec81]_.
+
+        .. note::
+
+            Once the matrix has been computed, it is stored in
+            :meth:`_join_matrix`. Delete this attribute if you want
+            to recompute the matrix.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
+            sage: H.join_matrix()
+            [0 1 2 3 4 5 6 7]
+            [1 1 4 7 4 7 7 7]
+            [2 4 2 6 4 5 6 7]
+            [3 7 6 3 7 7 6 7]
+            [4 4 4 7 4 7 7 7]
+            [5 7 5 7 7 5 7 7]
+            [6 7 6 6 7 7 6 7]
+            [7 7 7 7 7 7 7 7]
+
+        TESTS::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[2,3],1:[2,3]})
+            sage: H.join_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: Not a join-semilattice: no top element.
+
+            sage: H = HasseDiagram({0:[2,3],1:[2,3],2:[4],3:[4]})
+            sage: H.join_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: No join for x=...
+        """
         return self._join
 
     def is_join_semilattice(self):

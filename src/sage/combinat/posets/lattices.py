@@ -460,6 +460,100 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
+    def is_upper_semimodular(L):
+        r"""
+        Return ``True`` if ``self`` is an upper semimodular lattice and
+        ``False`` otherwise.
+
+        A lattice is upper semimodular if for any `x` in the poset that is
+        covered by `y` and `z`, both `y` and `z` are covered by their join.
+
+        EXAMPLES::
+
+            sage: L = posets.DiamondPoset(5)
+            sage: L.is_upper_semimodular()
+            True
+
+            sage: L = posets.PentagonPoset()
+            sage: L.is_upper_semimodular()
+            False
+
+            sage: L = posets.ChainPoset(6)
+            sage: L.is_upper_semimodular()
+            True
+
+            sage: L = LatticePoset(posets.IntegerPartitions(4))
+            sage: L.is_upper_semimodular()
+            True
+        """
+        if not L.is_ranked():
+            return False
+        for p in L.list():
+            cover_list = L.upper_covers(p)
+            for (i,q) in enumerate(cover_list):
+                for r in cover_list[i+1:]:
+                    qr = L.join(q,r)
+                    if not (L.covers(q,qr) and L.covers(r,qr)):
+                        return False
+        return True
+
+    def is_lower_semimodular(L):
+        r"""
+        Return ``True`` if ``self`` is a lower semimodular lattice and
+        ``False`` otherwise.
+
+        A lattice is lower semimodular if for any `x` in the poset that covers
+        `y` and `z`, both `y` and `z` cover their meet.
+
+        EXAMPLES::
+
+            sage: L = posets.DiamondPoset(5)
+            sage: L.is_lower_semimodular()
+            True
+
+            sage: L = posets.PentagonPoset()
+            sage: L.is_lower_semimodular()
+            False
+
+            sage: L = posets.ChainPoset(6)
+            sage: L.is_lower_semimodular()
+            True
+        """
+        return L.dual().is_upper_semimodular()
+
+    def is_modular(L):
+        r"""
+        Return ``True`` if ``self`` is a modular lattice and ``False``
+        otherwise.
+
+        A lattice is modular if it is both upper semimodular and lower
+        semimodular.
+
+        See :wikipedia:`Modular lattice`
+
+        See also :meth:`is_upper_semimodular` and :meth:`is_lower_semimodular`
+
+        EXAMPLES::
+
+            sage: L = posets.DiamondPoset(5)
+            sage: L.is_modular()
+            True
+
+            sage: L = posets.PentagonPoset()
+            sage: L.is_modular()
+            False
+
+            sage: L = posets.ChainPoset(6)
+            sage: L.is_modular()
+            True
+
+            sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
+            sage: L.is_modular()
+            False
+        """
+        return L.is_upper_semimodular() and L.is_lower_semimodular()
+
+
 ####################################################################################
 
 FiniteMeetSemilattice._dual_class = FiniteJoinSemilattice

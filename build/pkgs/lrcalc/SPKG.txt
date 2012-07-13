@@ -2,7 +2,7 @@
 
 == Description ==
 
-lrcalc 1.1.6 beta p0: Littlewood-Richardson Calculator
+lrcalc 1.1.6 beta1: Littlewood-Richardson Calculator
 
 http://math.rutgers.edu/~asbuch/lrcalc/
 
@@ -24,6 +24,13 @@ Anders S. Buch (asbuch@math.rutgers.edu)
 == Special Update/Build Instructions ==
 
 == Changelog ==
+
+=== lrcalc-1.1.6beta1 (Nicolas M. Thiéry, June 2012)  ===
+
+ * Updated to lrcalc-1.1.6beta1:
+   * Fixed segmentation fault on Open Solaris (name conflict with hash_insert)
+   * Added quantum and fusion calculations in the README and testsuite
+ * Don't install the lrcalc binaries, only the libraries and headers
 
 === lrcalc-1.1.6beta.p0 (Nicolas M. Thiéry, June 2012)  ===
 

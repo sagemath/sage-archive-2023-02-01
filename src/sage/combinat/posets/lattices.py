@@ -421,6 +421,44 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         return self._hasse_diagram.complements()
 
+    def is_atomic(self):
+        r"""
+        Returns ``True`` if ``self`` is an atomic lattice and ``False`` otherwise.
+
+        A lattice is atomic if every element can be written as a join of atoms.
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: L.is_atomic()
+            True
+
+            sage: L = LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: L.is_atomic()
+            False
+
+        NOTES:
+
+        See [Sta97]_, Section 3.3 for a discussion of atomic lattices.
+
+        REFERENCES:
+
+        .. [Sta97] Stanley, Richard.
+           Enumerative Combinatorics, Vol. 1.
+           Cambridge University Press, 1997
+
+        """
+        bottom_element = self.bottom()
+        for x in self:
+            if x == bottom_element:
+                continue
+            lcovers = self.lower_covers(x)
+            if bottom_element in lcovers:
+                continue
+            if len(lcovers)<=1:
+                return False
+        return True
+
 ####################################################################################
 
 FiniteMeetSemilattice._dual_class = FiniteJoinSemilattice

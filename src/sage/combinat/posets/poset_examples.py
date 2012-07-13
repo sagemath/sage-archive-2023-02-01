@@ -373,6 +373,60 @@ class Posets(object):
         return Poset(D,cover_relations=False)
 
     @staticmethod
+    def SSTPoset(s,f=None):
+        """
+        The poset on semistandard tableaux of shape s and largest entry f that is ordered by componentwise comparison of the entries.
+
+        INPUT:
+
+        - ``s`` - shape of the tableaux
+
+        - ``f`` - maximum fill number.  This is an optional argument.  If no maximal number is given, it will use the number of cells in the shape.
+
+        NOTE: This is basic implementation and most certainly not the most efficient.
+
+        EXAMPLES::
+
+            sage: Posets.SSTPoset([2,1])
+            Finite poset containing 8 elements
+
+            sage: Posets.SSTPoset([2,1],4)
+            Finite poset containing 20 elements
+
+            sage: Posets.SSTPoset([2,1],2).cover_relations()
+            [[[[1, 1], [2]], [[1, 2], [2]]]]
+
+            sage: Posets.SSTPoset([3,2]).bottom()
+            [[1, 1, 1], [2, 2]]
+
+            sage: Posets.SSTPoset([3,2],4).maximal_elements()
+            [[[3, 3, 4], [4, 4]]]
+        """
+        from sage.combinat.tableau import SemistandardTableaux
+        def tableaux_is_less_than(a,b):
+            atstring = []
+            btstring = []
+            c=0
+            d=0
+            for i in range(len(a)):
+                atstring=atstring+a[i]
+            for i in range(len(b)):
+                btstring=btstring+b[i]
+            for i in range(len(atstring)):
+                if atstring[i] > btstring[i]:
+                    c = c+1
+            if c == 0:
+                return True
+            else:
+                return False
+        if f is None:
+            f=0
+            for i in range(len(s)):
+                f = f+s[i]
+        E = SemistandardTableaux(s,max_entry=f)
+        return Poset((E, tableaux_is_less_than ))
+
+    @staticmethod
     def SymmetricGroupBruhatOrderPoset(n):
         """
         The poset of permutations with respect to Bruhat order.

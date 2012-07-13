@@ -66,6 +66,12 @@ Installation
 Simply copy the application to your hard drive as you would any other
 application.
 
+You may also wish to add the sage executable to your PATH for use in a
+normal terminal session.  This can be done from the Preferences window
+and the Add To PATH button.  It will ask whether to add to
+/usr/local/bin or ~/bin.  To remove this, simply delete the symlink in
+whichever location you chose or overwrite it with a new version.
+
 WARNING: When Sage.app is run, it may take a _long_ time for the
 server to start up.  Please don't give up.  If you think it has taken
 too long, use View Log under the Development menu to see if there are

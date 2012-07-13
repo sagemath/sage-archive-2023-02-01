@@ -20,7 +20,7 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-$MAKE install
+$MAKE install-libLTLIBRARIES install-lrcalcincludeHEADERS
 if [ $? -ne 0 ]; then
    echo "Error installing lrcalc."
    exit 1

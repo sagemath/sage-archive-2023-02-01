@@ -45,17 +45,6 @@ cdef extern from "cryptominisat_helper.h":
      cdef uint32_t*  get_unitary_learnts_helper(Solver* solver, uint32_t* num)
      cdef uint32_t** get_sorted_learnts_helper(Solver* solver, uint32_t* num)
 
-cdef int delete_cryptominisat(Solver *solver) except -1:
-     # the compiler complaints if we put _sig_on/_sig_off in __dealloc__ because
-     # _sig_on might return() but __dealloc__ returns void. Hence, we put it in
-     # a separate function. Note, we want _sig_on/_sig_off here because
-     # CryptoMiniSat uses assert() somewhere in the destructor chain which might
-     # fail if we interrupted the solver.
-     _sig_on
-     del solver
-     _sig_off
-     return 0
-
 cdef class CryptoMiniSat(SatSolver):
     """
     The CryptoMiniSat solver.
@@ -123,7 +112,9 @@ cdef class CryptoMiniSat(SatSolver):
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
             sage: del cms                                    # optional - cryptominisat
         """
-        cdef int r = delete_cryptominisat(self._solver)
+        sig_on()
+        del self
+        sig_off()
 
     def __repr__(self):
          """
@@ -309,17 +300,17 @@ cdef class CryptoMiniSat(SatSolver):
         cdef vec[Lit] l
         cdef lbool r
         if assumptions is None:
-             _sig_on
+             sig_on()
              r = self._solver.solve()
-             _sig_off
+             sig_off()
         else:
              for lit in assumptions:
                   while abs(lit) > self._solver.nVars():
                        self._solver.newVar()
                   l.push(Lit(abs(lit)-1,lit<0))
-             _sig_on
+             sig_on()
              r = self._solver.solve(l)
-             _sig_off
+             sig_off()
 
         if r == l_False:
             return False

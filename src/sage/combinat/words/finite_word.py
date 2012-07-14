@@ -1300,7 +1300,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         d = self.parent().size_of_alphabet()
         if d is Infinity:
-            raise TypeError, "The word must be defined over a finite alphabet"
+            raise TypeError("The word must be defined over a finite alphabet")
         if n == 0:
             return 1
         pn = self.number_of_factors(n)
@@ -1374,7 +1374,7 @@ exponent %s: the length of the word (%s) times the exponent \
              (word: , word: , word: c)]
         """
         from sage.graphs.digraph import DiGraph
-        multiedges = True if n == 0 else False
+        multiedges = n == 0
         g = DiGraph(loops=True, multiedges=multiedges)
         if n == self.length():
             g.add_vertex(self)
@@ -1499,7 +1499,7 @@ exponent %s: the length of the word (%s) times the exponent \
         g = copy(self.rauzy_graph(n))
         # Otherwise it changes the rauzy_graph function.
         l = [v for v in g if g.in_degree(v)==1 and g.out_degree(v)==1]
-        if g.num_verts() !=0 and len(l)==g.num_verts():
+        if g.num_verts() != 0 and len(l) == g.num_verts():
             # In this case, the Rauzy graph is simply a cycle.
             g = DiGraph()
             g.allow_loops(True)

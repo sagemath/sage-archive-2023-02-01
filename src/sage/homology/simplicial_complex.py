@@ -2879,9 +2879,147 @@ class SimplicialComplex(GenericCellComplex):
                 cubes.append(cube)
         return CubicalComplex(cubes)
 
+    def connected_component(self, simplex=None):
+        """
+        Return the connected component of this simplicial complex
+        containing ``simplex``. If ``simplex`` is omitted, then return
+        the connected component containing the zeroth vertex in the
+        vertex list. (If the simplicial complex is empty, raise an
+        error.)
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: S1 == S1.connected_component()
+            True
+            sage: X = S1.disjoint_union(S1)
+            sage: X == X.connected_component()
+            False
+            sage: v0 = X.vertices()[0]
+            sage: v1 = X.vertices()[-1]
+            sage: X.connected_component(Simplex([v0])) == X.connected_component(Simplex([v1]))
+            False
+            sage: SimplicialComplex([[]]).connected_component()
+            Traceback (most recent call last):
+            ...
+            ValueError: the empty simplicial complex has no connected components.
+        """
+        if self.dimension() == -1:
+            raise ValueError("the empty simplicial complex has no connected components.")
+        if simplex is None:
+            v = self.vertices()[0]
+        else:
+            v = simplex[0]
+        vertices = self.graph().connected_component_containing_vertex(v)
+        facets = [f for f in self.facets() if f.is_face(Simplex(vertices))]
+        return SimplicialComplex(facets)
+
+    def fundamental_group(self, base_point=None, simplify=True):
+        r"""
+        Return the fundamental group of this simplicial complex.
+
+        INPUT:
+
+        - ``base_point`` (optional, default None) -- if this complex is
+          not path-connected, then specify a vertex; the fundamental
+          group is computed with that vertex as a base point. If the
+          complex is path-connected, then you may specify a vertex or
+          leave this as its default setting of ``None``. (If this
+          complex is path-connected, then this argument is ignored.)
+
+        - ``simplify`` (bool, optional True) -- if False, then return a
+          presentation of the group in terms of generators and
+          relations. If True, the default, simplify as much as GAP is
+          able to.
+
+        Algorithm: we compute the edge-path group -- see
+        :wikipedia:`Fundamental_group`. Choose a spanning tree for the
+        1-skeleton, and then the group's generators are given by the
+        edges in the 1-skeleton; there are two types of relations:
+        `e=1` if `e` is in the spanning tree, and for every 2-simplex,
+        if its edges are `e_0`, `e_1`, and `e_2`, then we impose the
+        relation `e_0 e_1^{-1} e_2 = 1`.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: S1.fundamental_group()
+            Finitely presented group < e |  >
+
+        If we pass the argument ``simplify=False``, we get generators and
+        relations in a form which is not usually very helpful. Here is the
+        cyclic group of order 2, for instance::
+
+            sage: RP2 = simplicial_complexes.RealProjectiveSpace(2)
+            sage: C2 = RP2.fundamental_group(simplify=False)
+            sage: C2
+            Finitely presented group < e0, e1, e2, e3, e4, e5, e6, e7, e8, e9 | e6, e5, e3, e9, e4*e7^-1*e6, e9*e7^-1*e0, e0*e1^-1*e2, e5*e1^-1*e8, e4*e3^-1*e8, e2 >
+            sage: C2.simplified()
+            Finitely presented group < e0 | e0^2 >
+
+        This is the same answer given if the argument ``simplify`` is True
+        (the default)::
+
+            sage: RP2.fundamental_group()
+            Finitely presented group < e0 | e0^2 >
+
+        You must specify a base point to compute the fundamental group
+        of a non-connected complex::
+
+            sage: K = S1.disjoint_union(RP2)
+            sage: K.fundamental_group()
+            Traceback (most recent call last):
+            ...
+            ValueError: this complex is not connected, so you must specify a base point.
+            sage: v0 = list(K.vertices())[0]
+            sage: K.fundamental_group(base_point=v0)
+            Finitely presented group < e |  >
+            sage: v1 = list(K.vertices())[-1]
+            sage: K.fundamental_group(base_point=v1)
+            Finitely presented group < e0 | e0^2 >
+
+        Some other examples::
+
+            sage: S1.wedge(S1).fundamental_group()
+            Finitely presented group < e0, e1 | >
+            sage: simplicial_complexes.Torus().fundamental_group()
+            Finitely presented group < e0, e3 | e0*e3^-1*e0^-1*e3 >
+            sage: simplicial_complexes.MooreSpace(5).fundamental_group()
+            Finitely presented group < e1 | e1^5 >
+        """
+        if not self.is_connected():
+            if base_point is None:
+                raise ValueError("this complex is not connected, so you must specify a base point.")
+            return self.connected_component(Simplex([base_point])).fundamental_group(simplify=simplify)
+
+        from sage.groups.free_group import FreeGroup
+        from sage.interfaces.gap import gap
+        spanning_tree = [e[:2] for e in self.graph().min_spanning_tree()]
+        gens = [tuple(e) for e in self.n_cells(1) if tuple(e) not in spanning_tree]
+
+        if len(gens) == 0:
+            return gap.TrivialGroup()
+
+        gens_dict = dict(zip(gens, range(len(gens))))
+        FG = FreeGroup(len(gens), 'e')
+        rels = []
+        for f in self.n_cells(2):
+            bdry = [tuple(e) for e in f.faces()]
+            z = dict()
+            for i in range(3):
+                if bdry[i] in spanning_tree:
+                    z[i] = FG.one()
+                else:
+                    z[i] = FG.gen(gens_dict[bdry[i]])
+            rels.append(z[0]*z[1].inverse()*z[2])
+        if simplify:
+            return FG.quotient(rels).simplified()
+        else:
+            return FG.quotient(rels)
+
     def category(self):
         """
-        Return the category to which this chain complex belongs: the
+        Return the category to which this simplicial complex belongs: the
         category of all simplicial complexes.
 
         EXAMPLES::

@@ -502,9 +502,10 @@ class SimplicialComplexExamples():
         A triangulation of the Poincare homology 3-sphere.
 
         This is a manifold whose integral homology is identical to the
-        ordinary 3-sphere, but it is not simply connected.  The
-        triangulation given here has 16 vertices and is due to Björner
-        and Lutz [BL2000]_.
+        ordinary 3-sphere, but it is not simply connected. In particular,
+        its fundamental group is the binary icosahedral group, which has
+        order 120. The triangulation given here has 16 vertices and is
+        due to Björner and Lutz [BL2000]_.
 
         REFERENCES:
 
@@ -519,6 +520,8 @@ class SimplicialComplexExamples():
             sage: Sigma3 = simplicial_complexes.PoincareHomologyThreeSphere()
             sage: S3.homology() == Sigma3.homology()
             True
+            sage: Sigma3.fundamental_group().cardinality() # long time
+            120
         """
         return SimplicialComplex(
             [[1, 2, 4, 9], [1, 2, 4, 15], [1, 2, 6, 14], [1, 2, 6, 15],

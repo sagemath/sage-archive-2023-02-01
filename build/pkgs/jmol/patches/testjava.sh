@@ -6,8 +6,8 @@ if [ $OUT -eq 0 ]; then
 #found java now check 1.5<=version<=1.7
 #version >1.7 may be OK just not checked yet.
   java -version 2>&1|grep version.*[1]\.[567]
-#else
-#  echo "1"
+else
+  exit 1
 fi
 #OUT=$?
 #echo $OUT

@@ -26,6 +26,10 @@ GPLv2+
  * Sage Notebook (sagenb)
 
 == Changelog ==
+=== jmol-12.3.27.p2 (Jonathan Gutow, July 14, 2012) ===
+
+  * Fix not exiting with code 1 when java not available.
+
 === jmol-12.3.27.p1 (Jonathan Gutow, July 12, 2012) ===
 
  *  update testjava.sh to check java versions (now requires

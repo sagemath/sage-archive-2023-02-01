@@ -201,7 +201,7 @@ void power::do_print_latex(const print_latex & c, unsigned level) const
 			bool exp_parenthesis = is_a<power>(exponent);
 			if (exp_parenthesis)
 				c.s << "\\left(";
-			exponent.print(c, level);
+			exponent.print(c, 0);
 			if (exp_parenthesis)
 				c.s << "\\right)";
 			c.s << '}';

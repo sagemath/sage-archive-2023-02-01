@@ -224,6 +224,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.connected_components_subgraphs` | Returns a list of connected components as graph objects.
     :meth:`~GenericGraph.connected_component_containing_vertex` | Returns a list of the vertices connected to vertex.
     :meth:`~GenericGraph.blocks_and_cut_vertices` | Computes the blocks and cut vertices of the graph.
+    :meth=`~GenericGraph.is_cut_edge` | Returns True if the input edge is a cut-edge or a bridge.
     :meth:`~GenericGraph.edge_cut` | Returns a minimum edge cut between vertices `s` and `t`
     :meth:`~GenericGraph.vertex_cut` | Returns a minimum vertex cut between non-adjacent vertices `s` and `t`
     :meth:`~GenericGraph.flow` | Returns a maximum flow in the graph from ``x`` to ``y``
@@ -3981,6 +3982,91 @@ class GenericGraph(GenericGraph_pyx):
             v = pv
         return B, C
 
+    def is_cut_edge(self, u, v=None, label=None):
+        """
+        Returns True if the input edge is a cut-edge or a bridge.
+
+        A cut edge (or bridge) is an edge that when removed increases
+        the number of connected components.  This function works with
+        simple graphs as well as graphs with loops and multiedges.  In
+        a digraph, a cut edge is an edge that when removed increases
+        the number of (weakly) connected components.
+
+        INPUT: The following forms are accepted
+
+        - G.is_cut_edge( 1, 2 )
+
+        - G.is_cut_edge( (1, 2) )
+
+        - G.is_cut_edge( 1, 2, 'label' )
+
+        - G.is_cut_edge( (1, 2, 'label') )
+
+        OUTPUT:
+
+        - Returns True if (u,v) is a cut edge, False otherwise
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.is_cut_edge(0,2)
+            False
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.add_edge((0,5,'silly'))
+            sage: G.is_cut_edge((0,5,'silly'))
+            True
+
+            sage: G = Graph([[0,1],[0,2],[3,4],[4,5],[3,5]])
+            sage: G.is_cut_edge((0,1))
+            True
+
+            sage: G = Graph([[0,1],[0,2],[1,1]])
+            sage: G.allow_loops(True)
+            sage: G.is_cut_edge((1,1))
+            False
+
+            sage: G = digraphs.Circuit(5)
+            sage: G.is_cut_edge((0,1))
+            False
+
+            sage: G = graphs.CompleteGraph(6)
+            sage: G.is_cut_edge((0,7))
+            Traceback (most recent call last):
+            ...
+            ValueError: edge not in graph
+        """
+        if label is None:
+            if v is None:
+                try:
+                    u, v, label = u
+                except:
+                    u, v = u
+                    label = None
+
+        if not self.has_edge(u,v):
+            raise ValueError, 'edge not in graph'
+
+        # If edge (u,v) is a pending edge, it is also a cut-edge
+        if self.degree(u) == 1 or self.degree(v) == 1:
+            return True
+        elif self.allows_multiple_edges():
+            # If we have two or more edges between u and v, it is not a cut-edge
+            if len([(uu,vv) for uu,vv,ll in self.edges_incident(u) if uu == v or vv == v]) > 1:
+                return False
+
+        self.delete_edge(u,v,label)
+        if self.is_directed():
+            # (u,v) is a cut-edge if u is not in the connected
+            # component containing v of self-(u,v)
+            sol = not u in self.connected_component_containing_vertex(v)
+        else:
+            # (u,v) is a cut-edge if there is no path from u to v in
+            # self-(u,v)
+            sol = not self.distance(u,v) < self.order()
+
+        self.add_edge(u,v,label)
+        return sol
 
     def steiner_tree(self,vertices, weighted = False, solver = None, verbose = 0):
         r"""

@@ -15,6 +15,7 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.sets_cat import Sets
+from sage.categories.realizations import RealizationsCategory
 from sage.structure.sage_object import have_same_parent
 
 class Magmas(Category_singleton):
@@ -70,7 +71,6 @@ class Magmas(Category_singleton):
             :meth:`.product` in the parent class or ``_mul_`` in the
             element class. By default, the addition method on elements
             ``x._mul_(y)`` calls ``S.product(x,y)``, and reciprocally.
-
 
             As a bonus, ``S.product`` models the binary function from
             ``S`` to ``S``::
@@ -484,3 +484,32 @@ class Magmas(Category_singleton):
                 assert(x in self)
                 assert(y in self)
                 return self.retract(self.lift(x) * self.lift(y))
+    class Realizations(RealizationsCategory):
+
+        class ParentMethods:
+
+            def product_by_coercion(self, left, right):
+                r"""
+                Default implementation of product for realizations.
+
+                This method coerces to the realization specified by
+                ``self.realization_of().a_realization()``, computes
+                the product in that realization, and then coerces
+                back.
+
+                EXAMPLES::
+
+                    sage: Out = Sets().WithRealizations().example().Out(); Out
+                    The subset algebra of {1, 2, 3} over Rational Field on the out basis
+                    sage: Out.product
+                    <bound method SubsetAlgebra.Out_with_category.product_by_coercion of The subset algebra of {1, 2, 3} over Rational Field on the out basis>
+                    sage: Out.product.__module__
+                    'sage.categories.magmas'
+                    sage: x = Out.an_element()
+                    sage: y = Out.an_element()
+                    sage: Out.product(x, y)
+                    Out[{}] + 4*Out[{1}] + 9*Out[{2}] + Out[{1, 2}]
+
+                """
+                R = self.realization_of().a_realization()
+                return self(R(left) * R(right))

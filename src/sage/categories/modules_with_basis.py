@@ -433,7 +433,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 A # A # A
                 sage: A.rename(None)
             """
-            return parents[0].Tensor(parents, category = tensor.category_from_parents(parents))
+            return parents[0].__class__.Tensor(parents, category = tensor.category_from_parents(parents))
 
 
     class ElementMethods:

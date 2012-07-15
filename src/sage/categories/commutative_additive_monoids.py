@@ -13,6 +13,7 @@ from sage.categories.category import Category
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
+from sage.categories.with_realizations import WithRealizationsCategory
 
 # CHANGE: AbelianMonoid does not inherit any more from Monoids
 class CommutativeAdditiveMonoids(Category_singleton):
@@ -157,4 +158,33 @@ class CommutativeAdditiveMonoids(Category_singleton):
 #                 False
 #             """
 #             return self == self.parent().zero()
+
+    class WithRealizations(WithRealizationsCategory):
+
+        class ParentMethods:
+
+            def zero(self):
+                r"""
+                Returns the zero of this additive monomoid
+
+                This default implementation returns the zero of the
+                realization of ``self`` given by :meth:`a_realization`.
+
+                EXAMPLES::
+
+                    sage: A = Sets().WithRealizations().example(); A
+                    The subset algebra of {1, 2, 3} over Rational Field
+                    sage: A.zero.__module__
+                    'sage.categories.commutative_additive_monoids'
+                    sage: A.zero()
+                    0
+
+                TESTS::
+
+                    sage: A.zero() is A.a_realization().zero()
+                    True
+                    sage: A._test_zero()
+                """
+                return self.a_realization().zero()
+
 

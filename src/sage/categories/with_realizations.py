@@ -102,7 +102,7 @@ def WithRealizations(self):
     :class:`~sage.categories.realizations.Category_realization_of_parent`)::
 
         sage: A.Realizations()
-        The category of realizations of The subset algebra of {1, 2, 3} over Rational Field
+        Category of realizations of The subset algebra of {1, 2, 3} over Rational Field
 
     The various parent realizing `A` belong to this category::
 
@@ -157,7 +157,7 @@ def WithRealizations(self):
         is a subcategory of ``self`` by default::
 
             sage: Algebras(QQ).WithRealizations().super_categories()
-            [Category of algebras over Rational Field, Category of sets with realizations]
+            [Category of algebras over Rational Field, Category of commutative additive monoids with realizations, Category of monoids with realizations]
 
         Is this always desirable? For example,
         ``AlgebrasWithBasis(QQ).WithRealizations()`` should certainly

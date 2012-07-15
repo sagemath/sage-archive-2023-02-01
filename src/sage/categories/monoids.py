@@ -20,6 +20,7 @@ from sage.categories.semigroups import Semigroups
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 from sage.categories.algebra_functor import AlgebrasCategory
+from sage.categories.with_realizations import WithRealizationsCategory
 from sage.structure.element import generic_power
 
 class Monoids(Category_singleton):
@@ -239,6 +240,34 @@ class Monoids(Category_singleton):
             for i in range(n-1):
                 result *= self
             return result
+
+    class WithRealizations(WithRealizationsCategory):
+
+        class ParentMethods:
+
+            def one(self):
+                r"""
+                Returns the unit of this monoid
+
+                This default implementation returns the unit of the
+                realization of ``self`` given by :meth:`a_realization`.
+
+                EXAMPLES::
+
+                    sage: A = Sets().WithRealizations().example(); A
+                    The subset algebra of {1, 2, 3} over Rational Field
+                    sage: A.one.__module__
+                    'sage.categories.monoids'
+                    sage: A.one()
+                    F[{}]
+
+                TESTS::
+
+                    sage: A.one() is A.a_realization().one()
+                    True
+                    sage: A._test_one()
+                """
+                return self.a_realization().one()
 
     class Subquotients(SubquotientsCategory):
 

@@ -208,15 +208,14 @@ class Coalgebras(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: Sym = SymmetricFunctions(QQ)
-                    sage: s = Sym.schur()
-                    sage: f = s[2,1]
-                    sage: f.coproduct.__module__
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: S = N.complete()
+                    sage: N.coproduct.__module__
                     'sage.categories.coalgebras'
-                    sage: f.coproduct()
-                    s[] # s[2, 1] + s[1] # s[1, 1] + s[1] # s[2] + s[1, 1] # s[1] + s[2] # s[1] + s[2, 1] # s[]
+                    sage: N.coproduct(S[2])
+                    S[] # S[2] + S[1] # S[1] + S[2] # S[]
                 """
-                return x.parent()(self.a_realization()(x).coproduct())
+                return self.a_realization()(x).coproduct()
 
             def counit(self, x):
                 r"""
@@ -231,6 +230,18 @@ class Coalgebras(Category_over_base_ring):
                     'sage.categories.coalgebras'
                     sage: f.counit()
                     0
+
+                ::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: N.counit.__module__
+                    'sage.categories.coalgebras'
+                    sage: N.counit(N.one())
+                    1
+                    sage: x = N.an_element(); x
+                    2*S[] + 2*S[1] + 3*S[1, 1]
+                    sage: N.counit(x)
+                    2
                 """
                 return self.a_realization()(x).counit()
 
@@ -255,6 +266,19 @@ class Coalgebras(Category_over_base_ring):
                     True
                     sage: f.coproduct()
                     m[] # m[2, 1] + m[1] # m[2] + m[2] # m[1] + m[2, 1] # m[]
+
+                ::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: R = N.ribbon()
+                    sage: R.coproduct_by_coercion.__module__
+                    'sage.categories.coalgebras'
+                    sage: R.coproduct_on_basis
+                    NotImplemented
+                    sage: R.coproduct == R.coproduct_by_coercion
+                    True
+                    sage: R[1].coproduct()
+                    R[] # R[1] + R[1] # R[]
                 """
                 from sage.categories.tensor import tensor
                 R = self.realization_of().a_realization()

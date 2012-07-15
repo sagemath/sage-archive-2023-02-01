@@ -51,6 +51,7 @@ Combinatorics
    algebra
    tableaux
    symmetric_functions
+   ncsf_qsym
    root_systems
 
    ../sage/combinat/kazhdan_lusztig

@@ -13,6 +13,7 @@ from category import Category
 from category_types import Category_over_base_ring
 from sage.categories.bialgebras import Bialgebras
 from sage.categories.tensor import TensorProductsCategory # tensor
+from sage.categories.realizations import RealizationsCategory
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
 
@@ -139,3 +140,35 @@ class HopfAlgebras(Category_over_base_ring):
             #def antipode(self):
             #    self.dual().antipode.dual() # Check that this is the correct formula
             pass
+
+    class Realizations(RealizationsCategory):
+
+        class ParentMethods:
+
+            # TODO:
+            # - Use @conditionally_defined once it's in Sage, for a nicer idiom
+            # - Do the right thing (TM): once we will have proper
+            #   overloaded operators (as in MuPAD-Combinat; see #8900),
+            #   we won't need to specify explicitly to which parent one
+            #   should coerce the input to calculate the antipode; so it
+            #   will be sufficient to put this default implementation in
+            #   HopfAlgebras.ParentMethods.
+            def antipode_by_coercion(self, x):
+                """
+                Returns the image of ``x`` by the antipode
+
+                This default implementation coerces to the default
+                realization, computes the antipode there, and coerces the
+                result back.
+
+                EXAMPLES::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: R = N.ribbon()
+                    sage: R.antipode_by_coercion.__module__
+                    'sage.categories.hopf_algebras'
+                    sage: R.antipode_by_coercion(R[1,3,1])
+                    -R[2, 1, 2]
+                """
+                R = self.realization_of().a_realization()
+                return self(R(x).antipode())

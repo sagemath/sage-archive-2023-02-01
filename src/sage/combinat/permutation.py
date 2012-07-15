@@ -3826,7 +3826,7 @@ class StandardPermutations_descents(CombinatorialClass):
 
          EXAMPLES::
 
-             sage: Permutations(descents=([2,4,0],5)).list()
+             sage: Permutations(descents=([2,0],5)).list()
              [[2, 1, 4, 3, 5],
               [2, 1, 5, 3, 4],
               [3, 1, 4, 2, 5],
@@ -5162,8 +5162,8 @@ def Permutations(n=None,k=None, **kwargs):
 
     ::
 
-        sage: p = Permutations(descents=[1,3]); p
-        Standard permutations of 4 with descents [1, 3]
+        sage: p = Permutations(descents=([1], 4)); p
+        Standard permutations of 4 with descents [1]
         sage: p.list()
         [[1, 3, 2, 4], [1, 4, 2, 3], [2, 3, 1, 4], [2, 4, 1, 3], [3, 4, 1, 2]]
 

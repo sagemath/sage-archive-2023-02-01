@@ -28,6 +28,9 @@ AUTHORS:
 #              http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.structure.parent import Parent
+from sage.misc.misc import deprecated_function_alias
 import sage.combinat.skew_partition
 from combinat import CombinatorialClass, CombinatorialObject, InfiniteAbstractCombinatorialClass
 from cartesian_product import CartesianProduct
@@ -35,7 +38,7 @@ from integer_list import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
 
-def Composition(co=None, descents=None, code=None):
+def Composition(co=None, descents=None, code=None, from_subset=None):
     """
     Integer compositions
 
@@ -56,11 +59,8 @@ def Composition(co=None, descents=None, code=None):
         sage: Composition(i for i in range(2,5))
         [2, 3, 4]
 
-    You can alternatively create a composition from the list of its
-    descents::
+    You can create a composition from the list of its descents::
 
-        sage: Composition([1, 1, 3, 4, 3]).descents()
-        [0, 1, 4, 8, 11]
         sage: Composition(descents=[1,0,4,8,11])
         [1, 1, 3, 4, 3]
 
@@ -74,8 +74,19 @@ def Composition(co=None, descents=None, code=None):
         [1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
         sage: Composition(code=_)
         [3, 1, 2, 3, 5]
-    """
 
+    You can also create the composition of `n` corresponding to a subset of
+    `\{1, 2, \dots, n-1\}` under the bijection that maps the composition
+    `[i_1, i_2, \cdots, i_k]` of `n` to the subset
+    `\{i_1, i_1 + i_2, i_1 + i_2 + i_3, \dots, i_1 + \cdots + i_{k-1}\}`
+    (see :meth:`to_subset`)::
+
+        sage: Composition(from_subset=({1, 2, 4}, 5))
+        [1, 1, 2, 1]
+        sage: Composition([1, 1, 2, 1]).to_subset()
+        {1, 2, 4}
+
+    """
     if descents is not None:
         if isinstance(descents, tuple):
             return from_descents(descents[0], nps=descents[1])
@@ -83,6 +94,8 @@ def Composition(co=None, descents=None, code=None):
             return from_descents(descents)
     elif code is not None:
         return from_code(code)
+    elif from_subset is not None:
+        return composition_from_subset(*from_subset)
     elif isinstance(co, Composition_class):
         return co
     else:
@@ -91,9 +104,19 @@ def Composition(co=None, descents=None, code=None):
         #raise ValueError, "invalid composition"
         return Composition_class(co)
 
-
 class Composition_class(CombinatorialObject):
     __doc__ = Composition.__doc__
+
+    def parent(self):
+        """
+        Returns the combinatorial class of compositions.
+
+        EXAMPLES::
+
+            sage: Composition([3,2,1]).parent()
+            Compositions of non-negative integers
+        """
+        return Compositions()
 
     def conjugate(self):
         r"""
@@ -119,6 +142,19 @@ class Composition_class(CombinatorialObject):
 
         return Composition([cocjg[0]] + [cocjg[i]-cocjg[i-1]+1 for i in range(1,len(cocjg)) ])
 
+    def reversed(self):
+        """
+        Returns the reverse of the composition.
+
+        .. TODO:: lift to words, or ClonableIntArray, or ???
+
+        EXAMPLES::
+
+            sage: Composition([1, 1, 3, 1, 2, 1, 3]).reversed()
+            [3, 1, 2, 1, 3, 1, 1]
+        """
+        return Composition(reversed(self))
+
 
     def complement(self):
         """
@@ -132,7 +168,7 @@ class Composition_class(CombinatorialObject):
             sage: Composition([1, 1, 3, 1, 2, 1, 3]).complement()
             [3, 1, 3, 3, 1, 1]
         """
-        return Composition([element for element in reversed(self.conjugate())])
+        return self.conjugate().reversed()
 
 
     def __add__(self, other):
@@ -309,38 +345,82 @@ class Composition_class(CombinatorialObject):
         """
         return Compositions(len(self)).map(self.fatten)
 
-    def refinement(self, co2):
-        """
-        Returns the refinement composition of self and co2.
+    def refinement_splitting(self, J):
+        r"""
+        Returns the refinement splitting of ``I=self`` according to ``J``.
+
+        INPUT:
+
+        - `J:=(J_1,\dots,J_m)` -- a composition such that `I` is finer than `J`
+
+        OUTPUT:
+
+        - the unique list of compositions `(I^{(p)})_{p=1\ldots m}`,
+          obtained by splitting `I`, such that
+          `|I^{(p)}| = J_p` for all `p = 1, \ldots, m`.
+
+        .. SEEALSO:: :meth:`refinement_splitting_lengths`
 
         EXAMPLES::
 
-            sage: Composition([1,2,2,1,1,2]).refinement([5,1,3])
-            [3, 1, 2]
+            sage: Composition([1,2,2,1,1,2]).refinement_splitting([5,1,3])
+            [[1, 2, 2], [1], [1, 2]]
+            sage: Composition([]).refinement_splitting([])
+            []
+            sage: Composition([3]).refinement_splitting([2])
+            Traceback (most recent call last):
+            ...
+            ValueError: compositions self (= [3]) and J (= [2]) must be of the same size
+            sage: Composition([2,1]).refinement_splitting([1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
         """
-        co1 = self
-        if sum(co1) != sum(co2):
+        I = self
+        if sum(I) != sum(J):
             #Error: compositions are not of the same size
-            raise ValueError, "compositions self (= %s) and co2 (= %s) must be of the same size"%(self, co2)
-
+            raise ValueError, "compositions self (= %s) and J (= %s) must be of the same size"%(I, J)
         sum1 = 0
         sum2 = 0
         i1 = -1
-        result = []
-        for i2 in range(len(co2)):
-            sum2 += co2[i2]
-            i_res = 0
+        decomp = []
+        for i2 in range(len(J)):
+            new_comp = []
+            sum2 += J[i2]
             while sum1 < sum2:
                 i1 += 1
-                sum1 += co1[i1]
-                i_res += 1
-
+                new_comp.append(I[i1])
+                sum1 += new_comp[-1]
             if sum1 > sum2:
-                return None
+                raise ValueError, \
+                    "composition J (= %s) does not refine self (= %s)"%(I, J)
+            decomp.append(Composition(new_comp))
+        return decomp
 
-            result.append(i_res)
+    def refinement_splitting_lengths(self, J):
+        """
+        Returns the lengths of the compositions in the refinement splitting of ``I=self`` according to ``J``.
 
-        return Composition(result)
+        .. SEEALSO:: :meth:`refinement_splitting` for the definition of refinement splitting
+
+        EXAMPLES::
+
+            sage: Composition([1,2,2,1,1,2]).refinement_splitting_lengths([5,1,3])
+            [3, 1, 2]
+            sage: Composition([]).refinement_splitting_lengths([])
+            []
+            sage: Composition([3]).refinement_splitting_lengths([2])
+            Traceback (most recent call last):
+            ...
+            ValueError: compositions self (= [3]) and J (= [2]) must be of the same size
+            sage: Composition([2,1]).refinement_splitting_lengths([1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
+        """
+        return Composition(map(len,self.refinement_splitting(J)))
+
+    refinement = deprecated_function_alias(refinement_splitting_lengths, '5.1')
 
     def major_index(self):
         """
@@ -381,25 +461,124 @@ class Composition_class(CombinatorialObject):
 
         return code
 
+    def partial_sums(self, final=True):
+        r"""
+        The partial sums of the sequence defined by the entries of the
+        composition.
 
-    def descents(self, final_descent=False):
-        """
-        Returns the list of descents of the composition co.
+        If `I = [i_1, \dots, i_m]` is a composition, then the partial sums of
+        the entries of the composition are
+        `[i_1, i_1 + i_2, \dots, i_1 + i_2 + \cdots + i_{m}]`.
+
+        INPUT::
+
+        - ``final`` -- (default: True) whether or not to include the final
+          partial sum, which is always the size of the composition.
+
+        .. SEEALSO:: :meth:`to_subset`
+
+        .. TODO:: generalize to words or something
 
         EXAMPLES::
 
-            sage: Composition([1, 1, 3, 1, 2, 1, 3]).descents()
-            [0, 1, 4, 5, 7, 8, 11]
-        """
-        s = -1
-        d = []
-        for i in range(len(self)):
-            s += self[i]
-            d += [s]
-        if len(self) != 0 and final_descent:
-            d += [len(self)-1]
-        return d
+            sage: Composition([1,1,3,1,2,1,3]).partial_sums()
+            [1, 2, 5, 6, 8, 9, 12]
 
+        With ``final=False``, the last partial sum is not included::
+
+            sage: Composition([1,1,3,1,2,1,3]).partial_sums(final=False)
+            [1, 2, 5, 6, 8, 9]
+
+        """
+        s = 0
+        partial_sums = []
+        for i in self:
+            s += i
+            partial_sums.append(s)
+        if final is False:
+            partial_sums.pop()
+        return partial_sums
+
+    def to_subset(self, final=False):
+        r"""
+        The subset corresponding to ``self`` under the bijection (see below)
+        between compositions of `n` and subsets of `\{1, 2, \dots, n-1\}`.
+
+        The bijection maps a composition `[i_1, \dots, i_k]` of `n` to
+        `\{i_1, i_1 + i_2, i_1 + i_2 + i_3, \dots, i_1 + \cdots + i_{k-1}\}`.
+
+        INPUT::
+
+        - ``final`` -- (default: False) whether or not to include the final
+          partial sum, which is always the size of the composition.
+
+        .. SEEALSO:: :meth:`partial_sums`
+
+        .. TODO:: switch to plain frozen_sets?
+
+        EXAMPLES::
+
+            sage: Composition([1,1,3,1,2,1,3]).to_subset()
+            {1, 2, 5, 6, 8, 9}
+            sage: for I in Compositions(3): print I.to_subset()
+            {1, 2}
+            {1}
+            {2}
+            {}
+
+        With ``final=True``, the sum of all the elements of the composition is
+        included in the subset::
+
+            sage: Composition([1,1,3,1,2,1,3]).to_subset(final=True)
+            {1, 2, 5, 6, 8, 9, 12}
+
+        TESTS:
+
+        We verify that ``to_subset`` is indeed a bijection for compositions of
+        size `n = 8`::
+
+            sage: n = 8
+            sage: all(Composition(from_subset=(S, n)).to_subset() == S \
+            ...       for S in Subsets(n-1))
+            True
+            sage: all(Composition(from_subset=(I.to_subset(), n)) == I \
+            ...       for I in Compositions(n))
+            True
+
+        """
+        from sage.sets.set import Set
+        return Set(self.partial_sums(final=final))
+
+    def descents(self, final_descent=False):
+        r"""
+        This gives one fewer than the partial sums of the composition.
+
+        This is here to maintain some sort of backward compatibility, even
+        through the original implementation was broken (it gave the wrong
+        answer). The same information can be found in :meth:`partial_sums`.
+
+        .. SEEALSO:: :meth:`partial_sums`
+
+        INPUT:
+
+        - ``self`` -- a composition
+        - ``final_descent`` -- (Default: False) a boolean integer
+
+        OUTPUT:
+
+        - Returns the list of partial sums of ``self`` with each part
+          subtracted by `1`. This includes the sum of all entries when
+          ``final_descent`` is true.
+
+        EXAMPLES::
+
+            sage: c = Composition([2,1,3,2])
+            sage: c.descents()
+            [1, 2, 5]
+            sage: c.descents(final_descent=True)
+            [1, 2, 5, 7]
+        """
+        return [i - 1 for i in self.partial_sums(final=final_descent)]
 
     def peaks(self):
         """
@@ -412,9 +591,24 @@ class Composition_class(CombinatorialObject):
             sage: Composition([1, 1, 3, 1, 2, 1, 3]).peaks()
             [4, 7]
         """
-        descents = dict((d,True) for d in self.descents())
+        descents = dict((d-1,True) for d in self.to_subset(final=True))
         return [i+1 for i in range(len(self))
                 if i not in descents and i+1 in descents]
+
+    def to_partition(self):
+        """
+        Sorts ``self`` into decreasing order and returns the corresponding
+        partition.
+
+        EXAMPLES::
+
+            sage: Composition([2,1,3]).to_partition()
+            [3, 2, 1]
+            sage: Composition([4,2,2]).to_partition()
+            [4, 2, 2]
+        """
+        from sage.combinat.partition import Partition
+        return Partition(sorted(self, reverse=True))
 
     def to_skew_partition(self, overlap=1):
         """
@@ -447,6 +641,49 @@ class Composition_class(CombinatorialObject):
             [ filter(lambda x: x != 0, [l for l in reversed(outer)]),
               filter(lambda x: x != 0, [l for l in reversed(inner)])])
 
+
+    def shuffle_product(self, other, overlap=False):
+        r"""
+        The enumerated set of the (overlapping) shuffles of ``self`` and
+        ``other``.
+
+        INPUT:
+
+        -  ``other`` -- composition
+        -  ``overlap`` -- boolean (default: False), whether to return the
+           overlapping shuffle product.
+
+        OUTPUT:
+
+        - enumerated set
+
+        EXAMPLES:
+
+        The shuffle product of `[2,2]` and `[1,1,3]`::
+
+            sage: alph = Composition([2,2])
+            sage: beta = Composition([1,1,3])
+            sage: S = alph.shuffle_product(beta); S
+            Shuffle product of [2, 2] and [1, 1, 3]
+            sage: S.list()
+            [[2, 2, 1, 1, 3], [2, 1, 2, 1, 3], [2, 1, 1, 2, 3], [2, 1, 1, 3, 2], [1, 2, 2, 1, 3], [1, 2, 1, 2, 3], [1, 2, 1, 3, 2], [1, 1, 2, 2, 3], [1, 1, 2, 3, 2], [1, 1, 3, 2, 2]]
+
+        The *overlapping* shuffle product of `[2,2]` and `[1,1,3]`::
+
+            sage: alph = Composition([2,2])
+            sage: beta = Composition([1,1,3])
+            sage: S = alph.shuffle_product(beta, overlap=True); S
+            Overlapping shuffle product of [2, 2] and [1, 1, 3]
+            sage: S.list()
+            [[2, 2, 1, 1, 3], [2, 1, 2, 1, 3], [2, 1, 1, 2, 3], [2, 1, 1, 3, 2], [1, 2, 2, 1, 3], [1, 2, 1, 2, 3], [1, 2, 1, 3, 2], [1, 1, 2, 2, 3], [1, 1, 2, 3, 2], [1, 1, 3, 2, 2], [3, 2, 1, 3], [2, 3, 1, 3], [3, 1, 2, 3], [2, 1, 3, 3], [3, 1, 3, 2], [2, 1, 1, 5], [1, 3, 2, 3], [1, 2, 3, 3], [1, 3, 3, 2], [1, 2, 1, 5], [1, 1, 5, 2], [1, 1, 2, 5], [3, 3, 3], [3, 1, 5], [1, 3, 5]]
+
+        """
+        if overlap:
+            from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping
+            return ShuffleProduct_overlapping(self, other)
+        else:
+            from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
+            return ShuffleProduct_w1w2(self, other)
 
 ##############################################################
 
@@ -746,10 +983,11 @@ class Compositions_all(InfiniteAbstractCombinatorialClass):
         TESTS::
 
             sage: C = Compositions()
-            sage: C == loads(dumps(C))
-            True
+            sage: TestSuite(C).run()
+
         """
-        pass
+        Parent.__init__(self, category = InfiniteEnumeratedSets())
+
     def __repr__(self):
         """
         TESTS::
@@ -760,6 +998,19 @@ class Compositions_all(InfiniteAbstractCombinatorialClass):
         return "Compositions of non-negative integers"
 
     Element = Composition_class
+
+    def subset(self, size = None):
+        """
+
+        EXAMPLES::
+
+            sage: C = Compositions()
+            sage: C.subset(4)
+            Compositions of 4
+        """
+        if size is None:
+            return self
+        return Compositions(size)
 
     def __contains__(self, x):
         """
@@ -881,29 +1132,58 @@ def from_descents(descents, nps=None):
 
     EXAMPLES::
 
-        sage: Composition([1, 1, 3, 4, 3]).descents()
-        [0, 1, 4, 8, 11]
+        sage: [x-1 for x in Composition([1, 1, 3, 4, 3]).to_subset()]
+        [0, 1, 4, 8]
         sage: sage.combinat.composition.from_descents([1,0,4,8],12)
         [1, 1, 3, 4, 3]
         sage: sage.combinat.composition.from_descents([1,0,4,8,11])
         [1, 1, 3, 4, 3]
     """
-
     d = [x+1 for x in descents]
-    d.sort()
+    return composition_from_subset(d, nps)
+
+def composition_from_subset(S, n=None):
+    """
+    The composition of `n` corresponding to the subset ``S`` of
+    `\{1, 2, \dots, n-1\}` under the bijection that maps the composition
+    `[i_1, i_2, \cdots, i_k]` of `n` to the subset
+    `\{i_1, i_1 + i_2, i_1 + i_2 + i_3, \dots, i_1 + \cdots + i_{k-1}\}`
+    (see :meth:`to_subset`).
+
+    INPUT::
+
+    - ``S`` a subset of `n-1`
+    - ``n`` (default: ``None``) an integer or ``None``; if ``None``, then
+
+    EXAMPLES::
+
+        sage: from sage.combinat.composition import composition_from_subset
+        sage: composition_from_subset([2,1,5,9],12)
+        [1, 1, 3, 4, 3]
+        sage: composition_from_subset([2,1,5,9,12])
+        [1, 1, 3, 4, 3]
+
+    TESTS::
+
+        sage: from sage.combinat.composition import composition_from_subset
+        sage: composition_from_subset([2,1,5,9],9)
+        Traceback (most recent call last):
+        ...
+        ValueError: S (=[1, 2, 5, 9]) is not a subset of {1, ..., 8}
+    """
+    d = sorted(S)
 
     if d == []:
-        if nps == 0:
-            return []
+        if n == 0:
+            return Composition([])
         else:
-            return [nps]
+            return Composition([n])
 
-    if nps is not None:
-        if nps < max(d):
-            #Error: d is not included in [1,...,nps-1]
-            return None
-        elif nps > max(d):
-            d.append(nps)
+    if n is not None:
+        if n <= max(d):
+            raise ValueError, "S (=%s) is not a subset of {1, ..., %s}" % (d,n-1)
+        elif n > max(d):
+            d.append(n)
 
     co = [d[0]]
     for i in range(len(d)-1):

@@ -538,7 +538,8 @@ cdef class FiniteField(Field):
         """
         if self.__factored_unit_order is None:
             if self.characteristic() in []: # want to be [2,3,5,7,11] once #7240 is finished.
-                self.__factored_unit_order = [(self.order()-1)._factor_cunningham()]
+                from sage.rings.factorint import factor_cunningham
+                self.__factored_unit_order = [factor_cunningham(self.order()-1)]
             else:
                 self.__factored_unit_order = [(self.order()-1).factor()]
         return self.__factored_unit_order

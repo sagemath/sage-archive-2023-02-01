@@ -4599,6 +4599,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2 * 101^2
             sage: a.squarefree_part(bound=1000)
             2
+            sage: a.squarefree_part(bound=2**14)
+            2
             sage: a = 7^3 * next_prime(2^100)^2 * next_prime(2^200)
             sage: a / a.squarefree_part(bound=1000)
             49
@@ -4633,7 +4635,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if bound == -1:
                 F = self.factor()
             else:
-                F = self._factor_trial_division(bound)
+                from sage.rings.factorint import factor_trial_division
+                F = factor_trial_division(self,bound)
             n = one
             for pp, e in F:
                 if e % 2 != 0:

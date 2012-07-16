@@ -41,6 +41,8 @@ cdef class FiniteRingElement(CommutativeRingElement):
             sage: a = Zmod(17)(13)
             sage: a._nth_root_common(4, True, "Johnston", False)
             [3, 5, 14, 12]
+            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham
+            [3, 5, 14, 12]
         """
         K = self.parent()
         q = K.order()
@@ -69,7 +71,8 @@ cdef class FiniteRingElement(CommutativeRingElement):
             else: raise ValueError, "no nth root"
         self = self**alpha
         if cunningham:
-            F = n._factor_cunningham()
+            from sage.rings.factorint import factor_cunningham
+            F = factor_cunningham(n)
         else:
             F = n.factor()
         from sage.groups.generic import discrete_log

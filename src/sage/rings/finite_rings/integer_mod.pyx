@@ -996,6 +996,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
           CRT and p-adic log techniques are used to reduce to this case.
           'Johnston' is the only currently supported option.
 
+        - ``cunningham`` - bool (default: ``False``); In some cases,
+          factorization of ``n`` is computed. If cunningham is set to ``True``,
+          the factorization of ``n`` is computed using trial division for all
+          primes in the so called Cunningham table. Refer to
+          sage.rings.factorint.factor_cunningham for more information. You need
+          to install an optional package to use this method, this can be done
+          with the following command line ``sage -i cunningham_tables``
+
         OUTPUT:
 
         If self has an `n`\th root, returns one (if ``all`` is ``False``) or a
@@ -1091,6 +1099,12 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
             sage: mod(-1, 4489).nth_root(2, all=True)
             []
+
+        Check that the code path cunningham might be used::
+
+            sage: a = Mod(9,11)
+            sage: a.nth_root(2, False, True, 'Johnston', cunningham = True) # optional - cunningham
+            [3, 8]
 
         ALGORITHMS:
 

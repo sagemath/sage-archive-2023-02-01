@@ -625,7 +625,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex((x^pi)^e)
             {\left(x^{\pi}\right)}^{e}
             sage: latex((x^(pi+1))^e)
-            {\left(x^{{\left(\pi + 1\right)}}\right)}^{e}
+            {\left(x^{\pi + 1}\right)}^{e}
             sage: a,b,c = var('a b c')
             sage: latex(a^(b^c))
             a^{\left(b^{c}\right)}
@@ -697,6 +697,11 @@ cdef class Expression(CommutativeRingElement):
             sage: ratio = i/2* x^2/a
             sage: latex(ratio)
             \frac{i \, x^{2}}{2 \, a}
+
+        Parenthesis in powers, #13262::
+
+            sage: latex(1+x^(2/3)+x^(-2/3))
+            x^{\frac{2}{3}} + \frac{1}{x^{\frac{2}{3}}} + 1
         """
         return self._parent._latex_element_(self)
 

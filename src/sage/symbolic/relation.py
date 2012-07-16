@@ -245,7 +245,7 @@ Variables appearing in the relation::
 LaTeX output::
 
     sage: latex(x^(3/5) >= pi)
-    x^{\left(\frac{3}{5}\right)} \geq \pi
+    x^{\frac{3}{5}} \geq \pi
 
 
 More Examples

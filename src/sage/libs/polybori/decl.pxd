@@ -438,9 +438,10 @@ cdef extern from "pb_wrap.h":
 
 
     ctypedef struct PBConstant "struct BooleConstant":
-        bint is_zero()
-        bint is_one()
-        bint is_constant()
+        bint isZero()
+        bint isOne()
+        bint isConstant()
+        bint hasConstantPart()
         int deg()
 
     PBConstant* PBConstant_construct "Construct_p<BooleConstant, int>" \

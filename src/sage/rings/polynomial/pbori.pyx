@@ -4977,7 +4977,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
         TESTS:
 
-        This examples shows, that a bug in our variable indices was
+        This example shows, that a bug in our variable indices was
         indeed fixed::
 
             sage: R.<a111,a112,a121,a122,b111,b112,b211,b212,c111,c112> = BooleanPolynomialRing(order='lex')
@@ -4987,6 +4987,14 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             [a111 + b212, a112 + b211, a121 + b112, a122 + b111, b111*b112 + b111 + b112 + 1,
              b111*b211 + b111 + b211 + 1, b111*b212 + b112*b211 + 1, b112*b212 + b112 + b212 + 1,
              b211*b212 + b211 + b212 + 1, c111 + 1, c112 + 1]
+
+
+        The following example shows whether boolean constants are handled correctly.
+
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: I = Ideal([x*z + y*z + z, x*y + x*z + x + y*z + y + z])
+            sage: I.groebner_basis()
+            [x, y, z]
 
         """
         try:
@@ -7800,10 +7808,118 @@ def unpickle_BooleanPolynomialRing(n, names, order):
 
 cdef class BooleConstant:
     def __init__(self, int value):
-       PBConstant_construct(&self._pbconst, value)
+        """
+        Construct a boolean constant (modulo 2) from integer value:
+
+        INPUT:
+
+        -  ``i`` - an integer
+
+        EXAMPLE::
+
+            sage: from polybori import BooleConstant
+            sage: [BooleConstant(i) for i in range(5)]
+            [0, 1, 0, 1, 0]
+        """
+        PBConstant_construct(&self._pbconst, value)
+
+    def __repr__(self):
+        """
+        EXAMPLE::
+
+            sage: from polybori import BooleConstant
+            sage: repr((BooleConstant(0),BooleConstant(1))) # indirect doctest
+            '(0, 1)'
+
+        """
+        if self.is_one():
+            return '1'
+        return '0'
 
     def deg(self):
+        """
+        Get degree of boolean constant.
+
+        EXAMPLE::
+
+            sage: from polybori import BooleConstant
+            sage: BooleConstant(0).deg()
+            -1
+            sage: BooleConstant(1).deg()
+            0
+        """
         return self._pbconst.deg()
+
+    def variables(self):
+        """
+        Get variables (return always and empty tuple).
+
+        EXAMPLE::
+
+            sage: from polybori import BooleConstant
+            sage: BooleConstant(0).variables()
+            ()
+            sage: BooleConstant(1).variables()
+            ()
+        """
+        return tuple()
+
+    def is_one(self):
+        """
+        Check whether boolean constant is one.
+
+        EXAMPLE::
+
+            sage: from polybori import BooleConstant
+            sage: BooleConstant(0).is_one()
+            False
+            sage: BooleConstant(1).is_one()
+            True
+        """
+        return self._pbconst.isOne()
+
+    def is_zero(self):
+        """
+        Check whether boolean constant is zero.
+
+        EXAMPLE::
+
+            sage: from polybori import BooleConstant
+            sage: BooleConstant(1).is_zero()
+            False
+            sage: BooleConstant(0).is_zero()
+            True
+        """
+        return self._pbconst.isZero()
+
+    def is_constant(self):
+        """
+        This is always true for in this case.
+
+        EXAMPLE::
+
+            sage: from polybori import BooleConstant
+            sage: BooleConstant(1).is_constant()
+            True
+            sage: BooleConstant(0).is_constant()
+            True
+        """
+        return True
+
+    def has_constant_part(self):
+        """
+        This is true for for `BooleConstant(1)`.
+
+        EXAMPLE::
+
+            sage: from polybori import BooleConstant
+            sage: BooleConstant(1).has_constant_part()
+            True
+            sage: BooleConstant(0).has_constant_part()
+            False
+        """
+        return self._pbconst.hasConstantPart()
+
 
 cdef object pb_block_order(n, order_str,blocks):
     T = [TermOrder(order_str, blockend-blockstart, force=True)

@@ -161,8 +161,8 @@ class JmolData(SageObject):
             sage: D.export_jmol(archive_name)  #not scaled properly...need some more steps.
             sage: testfile = os.path.join(SAGE_TMP, "testimage.png")
             sage: script = 'set defaultdirectory "%s"\n script SCRIPT\n'%archive_name
-            sage: JData.export_image(targetfile =testfile,datafile = script, image_type="PNG")
-            sage: print os.path.exists(testfile)
+            sage: JData.export_image(targetfile =testfile,datafile = script, image_type="PNG") # optional -- java
+            sage: print os.path.exists(testfile) # optional -- java
             True
 
          """

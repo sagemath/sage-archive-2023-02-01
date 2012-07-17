@@ -144,9 +144,7 @@ TODO List
   ::
 
         sage: P( [2, 1+t] )
-        Traceback (most recent call last):
-        ...
-        NotImplementedError
+        (2 : t + 1 : 1)
 
   In fact, we need a test ``R.ideal([2,1+t]) == R.ideal([1])`` in order
   to make this meaningful.

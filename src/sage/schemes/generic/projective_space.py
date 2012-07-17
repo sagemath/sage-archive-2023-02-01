@@ -82,7 +82,7 @@ from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import prepare
 
 from ambient_space import AmbientSpace
-import homset
+from homset import (SchemeHomset_points_projective_ring, SchemeHomset_points_projective_field)
 import morphism
 
 
@@ -146,6 +146,22 @@ def ProjectiveSpace(n, R=None, names='x'):
         Multivariate Polynomial Ring in x, y, z over Finite Field of size 7
         sage: P.coordinate_ring() is R
         True
+
+    ::
+
+        sage: ProjectiveSpace(3, Zp(5), 'y')
+        Projective Space of dimension 3 over 5-adic Ring with capped relative precision 20
+
+    ::
+
+        sage: ProjectiveSpace(2,QQ,'x,y,z')
+        Projective Space of dimension 2 over Rational Field
+
+    ::
+
+        sage: PS.<x,y>=ProjectiveSpace(1,CC)
+        sage: PS
+        Projective Space of dimension 1 over Complex Field with 53 bits of precision
 
     Projective spaces are not cached, i.e., there can be several with
     the same base ring and dimension (to facilitate gluing
@@ -231,24 +247,36 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P = ProjectiveSpace(2, ZZ)
             sage: P._check_satisfies_equations([1, 1, 0])
             True
-            sage: P._check_satisfies_equations((0, 1, 0))
+
+        ::
+
+            sage: P = ProjectiveSpace(1, QQ)
+            sage: P._check_satisfies_equations((1/2, 0))
             True
+
+        ::
+
+            sage: P = ProjectiveSpace(2, ZZ)
             sage: P._check_satisfies_equations([0, 0, 0])
             Traceback (most recent call last):
             ...
             TypeError: The zero vector is not a point in projective space
-            sage: P._check_satisfies_equations([1, 2, 3, 4, 5])
+
+        ::
+
+            sage: P = ProjectiveSpace(2, ZZ)
+            sage: P._check_satisfies_equations((1, 0))
             Traceback (most recent call last):
             ...
-            TypeError: The list v=[1, 2, 3, 4, 5] must have 3 components
-            sage: P._check_satisfies_equations([1/2, 1, 1])
+            TypeError: The list v=(1, 0) must have 3 components
+
+        ::
+
+            sage: P = ProjectiveSpace(2, ZZ)
+            sage: P._check_satisfies_equations([1/2, 0, 1])
             Traceback (most recent call last):
             ...
-            TypeError: The components of v=[1/2, 1, 1] must be elements of Integer Ring
-            sage: P._check_satisfies_equations(5)
-            Traceback (most recent call last):
-            ...
-            TypeError: The argument v=5 must be a list or tuple
+            TypeError: The components of v=[1/2, 0, 1] must be elements of Integer Ring
         """
         if not isinstance(v, (list, tuple)):
             raise TypeError, 'The argument v=%s must be a list or tuple'%v
@@ -309,13 +337,27 @@ class ProjectiveSpace_ring(AmbientSpace):
         EXAMPLES::
 
             sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
-            sage: P._validate((x*y - z^2, x))
-            (x*y - z^2, x)
+            sage: P._validate([x*y - z^2, x])
+            [x*y - z^2, x]
+
+       ::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
             sage: P._validate((x*y - z, x))
             Traceback (most recent call last):
             ...
             TypeError: x*y - z is not a homogeneous polynomial!
+
+      ::
+
+            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
+            sage: P._validate(x*y - z)
+            Traceback (most recent call last):
+            ...
+            TypeError: The argument polynomials=x*y - z must be a list or tuple
         """
+        if not isinstance(polynomials, (list, tuple)):
+            raise TypeError, 'The argument polynomials=%s must be a list or tuple'%polynomials
         for f in polynomials:
             if not f.is_homogeneous():
                 raise TypeError("%s is not a homogeneous polynomial!" % f)
@@ -513,7 +555,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P2._point_homset(Spec(GF(3)), P2)
             Set of rational points of Projective Space of dimension 2 over Finite Field of size 3
         """
-        return homset.SchemeHomset_points_projective_ring(*args, **kwds)
+        return SchemeHomset_points_projective_ring(*args, **kwds)
 
     def _point(self, *args, **kwds):
         """
@@ -681,7 +723,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         OUTPUT:
 
-        An ambient affine space with fixed projective_embedding map.
+        - An ambient affine space with fixed projective_embedding map.
 
         EXAMPLES::
 
@@ -733,7 +775,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: P2._point_homset(Spec(GF(3)), P2)
             Set of rational points of Projective Space of dimension 2 over Finite Field of size 3
         """
-        return homset.SchemeHomset_points_projective_field(*args, **kwds)
+        return SchemeHomset_points_projective_field(*args, **kwds)
 
     def _point(self, *args, **kwds):
         """
@@ -757,9 +799,9 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         Return iterator over the elements of this projective space.
 
         Note that iteration is over the decomposition
-        `\PP^n = \mathbb{A}A^n \cup \PP^n-1`, where
+        `\mathbb{P}^n = \mathbb{A}A^n \cup \mathbb{P}^n-1`, where
         `\mathbb{A}A^n` is the `n`-th affine patch and
-        `\PP^n-1` is the hyperplane at infinity
+        `\mathbb{P}^n-1` is the hyperplane at infinity
         `x_n = 0`.
 
         EXAMPLES::
@@ -869,6 +911,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
             1), (-1/2 : 1 : 1), (1/2 : 1 : 1), (-2 : 1 : 0), (-1 : 1 : 0), (0 : 1 :
             0), (1 : 1 : 0), (2 : 1 : 0), (-1/2 : 1 : 0), (1/2 : 1 : 0), (1 : 0 :
             0)]
+
 
         .. note::
 

@@ -21,6 +21,8 @@ AUTHORS:
 - William Stein (2006): initial version.
 
 - Volker Braun (2011-08-11): significant improvement and refactoring.
+
+- Ben Hutz (June 2012): added support for projective ring
 """
 
 
@@ -45,10 +47,8 @@ from sage.schemes.generic.scheme import is_Scheme
 from sage.schemes.generic.spec import Spec, is_Spec
 from sage.schemes.generic.morphism import (
     SchemeMorphism,
-    SchemeMorphism_structure_map, SchemeMorphism_spec,
-    SchemeMorphism_point_affine,
-    SchemeMorphism_point_projective_ring,
-    SchemeMorphism_point_projective_field )
+    SchemeMorphism_structure_map,
+    SchemeMorphism_spec )
 
 
 def is_SchemeHomset(H):
@@ -716,30 +716,6 @@ class SchemeHomset_points_projective_ring(SchemeHomset_points):
         sage: SchemeHomset_points_projective_ring(Spec(ZZ), ProjectiveSpace(ZZ,2))
         Set of rational points of Projective Space of dimension 2 over Integer Ring
     """
-    def _element_constructor_(self, *v, **kwds):
-        r"""
-        The element constructor.
-
-        This is currently not implemented.
-
-        EXAMPLES::
-
-            sage: from sage.schemes.generic.homset import SchemeHomset_points_projective_ring
-            sage: Hom = SchemeHomset_points_projective_ring(Spec(ZZ), ProjectiveSpace(ZZ,2))
-            sage: Hom(1,2,3)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        TESTS::
-
-            sage: Hom._element_constructor_(1,2,3)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        check = kwds.get('check', True)
-        raise NotImplementedError
 
     def points(self, B=0):
         """
@@ -750,25 +726,45 @@ class SchemeHomset_points_projective_ring(SchemeHomset_points):
         - `B` -- integer (optional, default=0). The bound for the
           coordinates.
 
-        OUTPUT:
-
-        This is currently not implemented and will raise ``NotImplementedError``.
-
         EXAMPLES::
 
             sage: from sage.schemes.generic.homset import SchemeHomset_points_projective_ring
-            sage: Hom = SchemeHomset_points_projective_ring(Spec(ZZ), ProjectiveSpace(ZZ,2))
-            sage: Hom.points(5)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: H = SchemeHomset_points_projective_ring(Spec(ZZ), ProjectiveSpace(ZZ,2))
+            sage: H.points(3)
+            [(0 : 0 : 1), (0 : 1 : -3), (0 : 1 : -2), (0 : 1 : -1), (0 : 1 : 0), (0
+            : 1 : 1), (0 : 1 : 2), (0 : 1 : 3), (0 : 2 : -3), (0 : 2 : -1), (0 : 2 :
+            1), (0 : 2 : 3), (0 : 3 : -2), (0 : 3 : -1), (0 : 3 : 1), (0 : 3 : 2),
+            (1 : -3 : -3), (1 : -3 : -2), (1 : -3 : -1), (1 : -3 : 0), (1 : -3 : 1),
+            (1 : -3 : 2), (1 : -3 : 3), (1 : -2 : -3), (1 : -2 : -2), (1 : -2 : -1),
+            (1 : -2 : 0), (1 : -2 : 1), (1 : -2 : 2), (1 : -2 : 3), (1 : -1 : -3),
+            (1 : -1 : -2), (1 : -1 : -1), (1 : -1 : 0), (1 : -1 : 1), (1 : -1 : 2),
+            (1 : -1 : 3), (1 : 0 : -3), (1 : 0 : -2), (1 : 0 : -1), (1 : 0 : 0), (1
+            : 0 : 1), (1 : 0 : 2), (1 : 0 : 3), (1 : 1 : -3), (1 : 1 : -2), (1 : 1 :
+            -1), (1 : 1 : 0), (1 : 1 : 1), (1 : 1 : 2), (1 : 1 : 3), (1 : 2 : -3),
+            (1 : 2 : -2), (1 : 2 : -1), (1 : 2 : 0), (1 : 2 : 1), (1 : 2 : 2), (1 :
+            2 : 3), (1 : 3 : -3), (1 : 3 : -2), (1 : 3 : -1), (1 : 3 : 0), (1 : 3 :
+            1), (1 : 3 : 2), (1 : 3 : 3), (2 : -3 : -3), (2 : -3 : -2), (2 : -3 :
+            -1), (2 : -3 : 0), (2 : -3 : 1), (2 : -3 : 2), (2 : -3 : 3), (2 : -2 :
+            -3), (2 : -2 : -1), (2 : -2 : 1), (2 : -2 : 3), (2 : -1 : -3), (2 : -1 :
+            -2), (2 : -1 : -1), (2 : -1 : 0), (2 : -1 : 1), (2 : -1 : 2), (2 : -1 :
+            3), (2 : 0 : -3), (2 : 0 : -1), (2 : 0 : 1), (2 : 0 : 3), (2 : 1 : -3),
+            (2 : 1 : -2), (2 : 1 : -1), (2 : 1 : 0), (2 : 1 : 1), (2 : 1 : 2), (2 :
+            1 : 3), (2 : 2 : -3), (2 : 2 : -1), (2 : 2 : 1), (2 : 2 : 3), (2 : 3 :
+            -3), (2 : 3 : -2), (2 : 3 : -1), (2 : 3 : 0), (2 : 3 : 1), (2 : 3 : 2),
+            (2 : 3 : 3), (3 : -3 : -2), (3 : -3 : -1), (3 : -3 : 1), (3 : -3 : 2),
+            (3 : -2 : -3), (3 : -2 : -2), (3 : -2 : -1), (3 : -2 : 0), (3 : -2 : 1),
+            (3 : -2 : 2), (3 : -2 : 3), (3 : -1 : -3), (3 : -1 : -2), (3 : -1 : -1),
+            (3 : -1 : 0), (3 : -1 : 1), (3 : -1 : 2), (3 : -1 : 3), (3 : 0 : -2), (3
+            : 0 : -1), (3 : 0 : 1), (3 : 0 : 2), (3 : 1 : -3), (3 : 1 : -2), (3 : 1
+            : -1), (3 : 1 : 0), (3 : 1 : 1), (3 : 1 : 2), (3 : 1 : 3), (3 : 2 : -3),
+            (3 : 2 : -2), (3 : 2 : -1), (3 : 2 : 0), (3 : 2 : 1), (3 : 2 : 2), (3 :
+            2 : 3), (3 : 3 : -2), (3 : 3 : -1), (3 : 3 : 1), (3 : 3 : 2)]
         """
-        raise NotImplementedError # fixed when _element_constructor_ is defined.
         R = self.value_ring()
         if R == ZZ:
             if not B > 0:
                 raise TypeError, "A positive bound B (= %s) must be specified."%B
-            from sage.schemes.generic.rational_points import enum_projective_rational_field
+            from sage.schemes.generic.rational_point import enum_projective_rational_field
             return enum_projective_rational_field(self,B)
         else:
             raise TypeError, "Unable to enumerate points over %s."%R

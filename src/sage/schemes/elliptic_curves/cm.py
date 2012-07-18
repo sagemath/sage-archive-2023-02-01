@@ -173,8 +173,8 @@ def cm_j_invariants(K, proof=None):
 
     Over imaginary quadratic fields there are no more than over `QQ`::
 
-        sage: cm_j_invariants(QuadraticField(-1, 'i'))   # sorted differently since QQ[i] sorts funny
-        [-12288000, 54000, 0, 287496, 1728, 16581375, -3375, 8000, -32768, -884736, -884736000, -147197952000, -262537412640768000]
+        sage: cm_j_invariants(QuadraticField(-1, 'i'))
+        [-262537412640768000, -147197952000, -884736000, -12288000, -884736, -32768, -3375, 0, 1728, 8000, 54000, 287496, 16581375]
 
     Over real quadratic fields there may be more, for example::
 

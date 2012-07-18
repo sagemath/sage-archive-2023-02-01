@@ -2260,10 +2260,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: K.<a> = NumberField(x^2+3) # adjoin roots of unity
             sage: E.automorphisms(K)
             [Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
-            Via:  (u,r,s,t) = (1, 0, 0, 0),
+            Via:  (u,r,s,t) = (-1, 0, 0, -1),
             ...
             Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
-            Via:  (u,r,s,t) = (-1/2*a - 1/2, 0, 0, 0)]
+            Via:  (u,r,s,t) = (1, 0, 0, 0)]
 
         ::
 

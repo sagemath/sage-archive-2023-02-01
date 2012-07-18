@@ -250,7 +250,7 @@ def ModularSymbols(group  = 1,
         sage: f = M.T(2).charpoly('x'); f
         x^4 + (-zeta6 - 1)*x^3 - 8*zeta6*x^2 + (10*zeta6 - 5)*x + 21*zeta6 - 21
         sage: f.factor()
-        (x - 2*zeta6 - 1) * (x - zeta6 - 2) * (x + zeta6 + 1)^2
+        (x - zeta6 - 2) * (x - 2*zeta6 - 1) * (x + zeta6 + 1)^2
 
     We create a space with character over a larger base ring than the values of the character::
 

@@ -7671,6 +7671,13 @@ class NumberField_cyclotomic(NumberField_absolute):
             self.__zeta_order = n
         ## quadratic number fields require this:
         if f.degree() == 2:
+            # define a boolean flag as for NumberField_quadratic to know, which
+            # square root we choose (True means no embedding or positive
+            # imaginary value).
+            # Note that the test is done with NumberFieldElement and not with
+            # NumberFieldElement_quadratic which requires somehow this flag.
+            self._standard_embedding = not CDF.has_coerce_map_from(self) or CDF(self.gen()).imag() > 0
+
             self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
             if n == 4:
                 self._D = ZZ(-1)
@@ -8855,6 +8862,7 @@ class NumberField_quadratic(NumberField_absolute):
         NumberField_absolute.__init__(self, polynomial, name=name, check=check,
                                       embedding=embedding, latex_name=latex_name,
                                       assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+        self._standard_embedding = True
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]
         # set the generator
@@ -8864,17 +8872,10 @@ class NumberField_quadratic(NumberField_absolute):
         parts = -b/(2*a), (Dpoly/D).sqrt()/(2*a)
         self._NumberField_generic__gen = self._element_class(self, parts)
 
-        # NumberField_absolute.__init__(...) set _zero_element and
-        # _one_element to NumberFieldElement_absolute values, which is
-        # wrong (and dangerous; such elements can actually be used to
-        # crash Sage: see #5316).  Overwrite them with correct values.
-        self._zero_element = self(0)
-        self._one_element =  self(1)
-
+        # we must set the flag _standard_embedding *before* any element creation
+        # Note that in the following code, no element is built.
         emb = self.coerce_embedding()
-        if emb is None:
-            self._standard_embedding = True
-        else:
+        if emb is not None:
             rootD = number_field_element_quadratic.NumberFieldElement_quadratic(self, (QQ(0),QQ(1)))
             if D > 0:
                 from sage.rings.real_double import RDF
@@ -8882,6 +8883,19 @@ class NumberField_quadratic(NumberField_absolute):
             else:
                 from sage.rings.complex_double import CDF
                 self._standard_embedding = CDF.has_coerce_map_from(self) and CDF(rootD).imag() > 0
+
+        # we reset _NumberField_generic__gen has the flag standard_embedding
+        # might be modified
+        self._NumberField_generic__gen = self._element_class(self, parts)
+
+
+        # NumberField_absolute.__init__(...) set _zero_element and
+        # _one_element to NumberFieldElement_absolute values, which is
+        # wrong (and dangerous; such elements can actually be used to
+        # crash Sage: see #5316).  Overwrite them with correct values.
+        self._zero_element = self(0)
+        self._one_element =  self(1)
+
 
     def _coerce_map_from_(self, K):
         """

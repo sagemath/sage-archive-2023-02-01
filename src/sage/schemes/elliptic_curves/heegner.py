@@ -1433,16 +1433,16 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
             sage: G = K3.galois_group(K1)
             sage: orb = sorted([g.alpha() for g in G]); orb # random (the sign depends on the database being installed or not)
             [1, 1/2*sqrt_minus_52 + 1, -1/2*sqrt_minus_52, 1/2*sqrt_minus_52 - 1]
-            sage: [x^2 for x in orb] # this is just for testing
-            [1, sqrt_minus_52 - 12, -13, -sqrt_minus_52 - 12]
+            sage: sorted([x^2 for x in orb]) # this is just for testing
+            [-13, -sqrt_minus_52 - 12, sqrt_minus_52 - 12, 1]
 
             sage: K5 = heegner_points(389,-52,5).ring_class_field()
             sage: K1 = heegner_points(389,-52,1).ring_class_field()
             sage: G = K5.galois_group(K1)
             sage: orb = sorted([g.alpha() for g in G]); orb # random (the sign depends on the database being installed or not)
             [1, -1/2*sqrt_minus_52, 1/2*sqrt_minus_52 + 1, 1/2*sqrt_minus_52 - 1, 1/2*sqrt_minus_52 - 2, -1/2*sqrt_minus_52 - 2]
-            sage: [x^2 for x in orb] # just for testing
-            [1, -13, sqrt_minus_52 - 12, -sqrt_minus_52 - 12, -2*sqrt_minus_52 - 9, 2*sqrt_minus_52 - 9]
+            sage: sorted([x^2 for x in orb]) # just for testing
+            [-13, -sqrt_minus_52 - 12, sqrt_minus_52 - 12, -2*sqrt_minus_52 - 9, 2*sqrt_minus_52 - 9, 1]
 
         """
         if self.__alpha is None:
@@ -6185,7 +6185,7 @@ def ell_heegner_point(self, D, c=ZZ(1), f=None, check=True):
         sage: P.curve()
         Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         sage: P = E.heegner_point(-40).point_exact(); P
-        (a : a - 2 : 1)
+        (a : -a + 1 : 1)
         sage: P = E.heegner_point(-47).point_exact(); P
         (a : a^4 + a - 1 : 1)
         sage: P[0].parent()

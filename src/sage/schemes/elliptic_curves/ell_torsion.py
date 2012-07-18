@@ -108,7 +108,7 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
         sage: T.ngens()
         1
         sage: T.gen(0)
-        (16 : 60 : 1)
+        (5 : -6 : 1)
 
     Note: this class is normally constructed indirectly as follows::
 
@@ -276,6 +276,6 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
             sage: E = EllipticCurve(K,[0,0,0,1,0])
             sage: tor = E.torsion_subgroup()
             sage: tor.points()
-            [(0 : 1 : 0), (0 : 0 : 1), (i : 0 : 1), (-i : 0 : 1)]
+            [(0 : 1 : 0), (-i : 0 : 1), (0 : 0 : 1), (i : 0 : 1)]
         """
         return [x.element() for x in self]

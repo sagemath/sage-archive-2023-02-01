@@ -1022,6 +1022,9 @@ class AbsoluteOrder(Order):
 
         if K.degree() == 2:
             self._element_type = OrderElement_quadratic
+            # adding the following attribute makes the comparison of elements
+            # faster.
+            self._standard_embedding = K._standard_embedding
         else:
             self._element_type = OrderElement_absolute
 

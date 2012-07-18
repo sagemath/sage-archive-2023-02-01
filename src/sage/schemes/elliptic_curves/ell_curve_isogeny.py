@@ -738,9 +738,8 @@ class EllipticCurveIsogeny(Morphism):
         sage: phi.codomain() == phi.domain()
         True
         sage: phi.rational_maps()
-        (((-4/25*i - 3/25)*x^5 + (-4/5*i + 2/5)*x^3 + x)/(x^4 + (-4/5*i + 2/5)*x^2 + (-4/25*i - 3/25)),
-        ((2/125*i - 11/125)*x^6*y + (64/125*i + 23/125)*x^4*y + (162/125*i - 141/125)*x^2*y + (-4/25*i - 3/25)*y)/(x^6 + (-6/5*i + 3/5)*x^4 + (-12/25*i - 9/25)*x^2 + (2/125*i - 11/125)))
-
+        (((4/25*i + 3/25)*x^5 + (4/5*i - 2/5)*x^3 - x)/(x^4 + (-4/5*i + 2/5)*x^2 + (-4/25*i - 3/25)),
+         ((11/125*i + 2/125)*x^6*y + (-23/125*i + 64/125)*x^4*y + (141/125*i + 162/125)*x^2*y + (3/25*i - 4/25)*y)/(x^6 + (-6/5*i + 3/5)*x^4 + (-12/25*i - 9/25)*x^2 + (2/125*i - 11/125)))
     """
 
     ####################
@@ -4513,8 +4512,8 @@ def isogenies_5_1728(E):
         [Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1,
         Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1]
         sage: _[0].rational_maps()
-        (((-4/25*i - 3/25)*x^5 + (-4/5*i + 2/5)*x^3 + x)/(x^4 + (-4/5*i + 2/5)*x^2 + (-4/25*i - 3/25)),
-        ((2/125*i - 11/125)*x^6*y + (64/125*i + 23/125)*x^4*y + (162/125*i - 141/125)*x^2*y + (-4/25*i - 3/25)*y)/(x^6 + (-6/5*i + 3/5)*x^4 + (-12/25*i - 9/25)*x^2 + (2/125*i - 11/125)))
+        (((4/25*i + 3/25)*x^5 + (4/5*i - 2/5)*x^3 - x)/(x^4 + (-4/5*i + 2/5)*x^2 + (-4/25*i - 3/25)),
+         ((11/125*i + 2/125)*x^6*y + (-23/125*i + 64/125)*x^4*y + (141/125*i + 162/125)*x^2*y + (3/25*i - 4/25)*y)/(x^6 + (-6/5*i + 3/5)*x^4 + (-12/25*i - 9/25)*x^2 + (2/125*i - 11/125)))
 
     An example of 5-isogenies over a number field::
 
@@ -4774,7 +4773,7 @@ def isogenies_13_0(E):
         [Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + r over Number Field in r with defining polynomial x^2 + 3 to Elliptic Curve defined by y^2 = x^3 + r over Number Field in r with defining polynomial x^2 + 3,
         Isogeny of degree 13 from Elliptic Curve defined by y^2 = x^3 + r over Number Field in r with defining polynomial x^2 + 3 to Elliptic Curve defined by y^2 = x^3 + r over Number Field in r with defining polynomial x^2 + 3]
         sage: isogenies_13_0(E)[0].rational_maps()
-        (((-4/169*r - 11/169)*x^13 + (-128/13*r - 456/13)*x^10 + (-1224/13*r - 2664/13)*x^7 + (-2208/13*r + 5472/13)*x^4 + (1152/13*r - 8064/13)*x)/(x^12 + (4*r - 36)*x^9 + (-1080/13*r + 3816/13)*x^6 + (2112/13*r + 5184/13)*x^3 + (17280/169*r - 1152/169)), ((18/2197*r - 35/2197)*x^18*y + (-23142/2197*r + 35478/2197)*x^15*y + (-1127520/2197*r + 1559664/2197)*x^12*y + (87744/2197*r + 5992704/2197)*x^9*y + (-6625152/2197*r + 9085824/2197)*x^6*y + (28919808/2197*r - 2239488/2197)*x^3*y + (-1990656/2197*r + 3870720/2197)*y)/(x^18 + (6*r - 54)*x^15 + (-3024/13*r + 11808/13)*x^12 + (31296/13*r - 51840/13)*x^9 + (-487296/169*r - 2070144/169)*x^6 + (-940032/169*r - 248832/169)*x^3 + (-1990656/2197*r + 3870720/2197)))
+        (((7/338*r + 23/338)*x^13 + (-164/13*r - 420/13)*x^10 + (720/13*r + 3168/13)*x^7 + (3840/13*r - 576/13)*x^4 + (4608/13*r + 2304/13)*x)/(x^12 + (4*r + 36)*x^9 + (1080/13*r + 3816/13)*x^6 + (2112/13*r - 5184/13)*x^3 + (-17280/169*r - 1152/169)), ((18/2197*r + 35/2197)*x^18*y + (23142/2197*r + 35478/2197)*x^15*y + (-1127520/2197*r - 1559664/2197)*x^12*y + (-87744/2197*r + 5992704/2197)*x^9*y + (-6625152/2197*r - 9085824/2197)*x^6*y + (-28919808/2197*r - 2239488/2197)*x^3*y + (-1990656/2197*r - 3870720/2197)*y)/(x^18 + (6*r + 54)*x^15 + (3024/13*r + 11808/13)*x^12 + (31296/13*r + 51840/13)*x^9 + (487296/169*r - 2070144/169)*x^6 + (-940032/169*r + 248832/169)*x^3 + (1990656/2197*r + 3870720/2197)))
 
     An example of endomorphisms over a finite field::
 

@@ -14,10 +14,12 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
     # (a + b sqrt(D)) / denom
     cdef mpz_t a, b, denom
     cdef Integer D
+    cdef bint standard_embedding
     cdef NumberFieldElement conjugate_c(self)
     cdef bint is_sqrt_disc(self)
 
     cdef int _randomize(self, num_bound, den_bound, distribution) except -1
+
 
 cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
     pass

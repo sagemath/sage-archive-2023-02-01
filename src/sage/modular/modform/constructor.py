@@ -214,7 +214,7 @@ def ModularForms(group  = 1,
         sage: f = M.T(2).charpoly('x'); f
         x^3 + (-2*zeta6 - 2)*x^2 - 2*zeta6*x + 14*zeta6 - 7
         sage: f.factor()
-        (x - 2*zeta6 - 1) * (x - zeta6 - 2) * (x + zeta6 + 1)
+        (x - zeta6 - 2) * (x - 2*zeta6 - 1) * (x + zeta6 + 1)
 
     We can also create spaces corresponding to the groups `\Gamma_H(N)` intermediate
     between `\Gamma_0(N)` and `\Gamma_1(N)`::

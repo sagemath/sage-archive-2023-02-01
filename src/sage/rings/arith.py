@@ -2438,7 +2438,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
         sage: K.<i> = QuadraticField(-1)
         sage: factor(122 - 454*i)
-        (-1) * (-3*i - 2) * (-i - 4) * (i + 1)^3 * (-i - 2)^3
+        (-1) * (-i - 4) * (-3*i - 2) * (-i - 2)^3 * (i + 1)^3
 
     To access the data in a factorization::
 

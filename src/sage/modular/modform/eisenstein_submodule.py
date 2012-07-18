@@ -543,9 +543,9 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
         q + (-zeta6 - 1)*q^2 + (zeta6 + 2)*q^4 + (zeta6 - 5)*q^5 + O(q^6)
         ]
         sage: M.eisenstein_subspace().T(2).matrix().fcp()
-        (x + zeta3 + 2) * (x + 2*zeta3 + 1) * (x - 2*zeta3 - 1)^2 * (x - zeta3 - 2)^2
+        (x + 2*zeta3 + 1) * (x + zeta3 + 2) * (x - zeta3 - 2)^2 * (x - 2*zeta3 - 1)^2
         sage: ModularSymbols(e,2).eisenstein_subspace().T(2).matrix().fcp()
-        (x + zeta3 + 2) * (x + 2*zeta3 + 1) * (x - 2*zeta3 - 1)^2 * (x - zeta3 - 2)^2
+        (x + 2*zeta3 + 1) * (x + zeta3 + 2) * (x - zeta3 - 2)^2 * (x - 2*zeta3 - 1)^2
 
         sage: M.basis()
         [

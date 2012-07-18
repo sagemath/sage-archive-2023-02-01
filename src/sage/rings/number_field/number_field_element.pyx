@@ -1411,7 +1411,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<a> = NumberField(x^2-10)
             sage: factor(169*a + 531)
-            (-6*a - 19) * (-2*a + 9) * (-3*a - 1)
+            (-6*a - 19) * (-3*a - 1) * (-2*a + 9)
             sage: factor(K(3))
             Traceback (most recent call last):
             ...

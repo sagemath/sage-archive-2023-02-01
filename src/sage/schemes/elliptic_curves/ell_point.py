@@ -839,7 +839,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: tor = E.torsion_points(); len(tor)
             8
             sage: [T.order() for T in tor]
-            [4, 2, 4, 2, 4, 2, 4, 1]
+            [2, 4, 4, 2, 1, 2, 4, 4]
             sage: all([T.is_divisible_by(3) for T in tor])
             True
             sage: Set([T for T in tor if T.is_divisible_by(2)])
@@ -2505,7 +2505,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: K.<i> = NumberField(x^2+1)
             sage: E = EllipticCurve(K, [0,0,4,6*i,0])
             sage: Q = E.lift_x(-9/4); Q
-            (-9/4 : 27/8*i - 4 : 1)
+            (-9/4 : -27/8*i : 1)
             sage: Q.height()
             2.69518560017909
             sage: (15*Q).height() / Q.height()
@@ -2641,7 +2641,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             0.510184995162373
 
             sage: Q = E.lift_x(-9/4); Q
-            (-9/4 : 27/8*i - 4 : 1)
+            (-9/4 : -27/8*i : 1)
             sage: Q.archimedian_local_height(K.places()[0]) / 2
             0.654445619529600
 
@@ -2775,7 +2775,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             0
 
             sage: Q = E.lift_x(-9/4); Q
-            (-9/4 : 27/8*i - 4 : 1)
+            (-9/4 : -27/8*i : 1)
             sage: Q.nonarchimedian_local_height(K.ideal(1+i))
             2*log(2)
             sage: Q.nonarchimedian_local_height(K.ideal(3))

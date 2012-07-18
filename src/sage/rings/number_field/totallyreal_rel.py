@@ -125,8 +125,7 @@ def integral_elements_in_box(K, C):
 
         sage: v = sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, C)
         sage: sorted(v)
-        [-alpha + 3, -alpha + 2, 5, 4, 3, 2, 1, 0, alpha + 6, alpha + 5, alpha + 4, alpha + 3, alpha + 2, 2*alpha + 7, 2*alpha + 6, 2*alpha + 5, 2*alpha + 4, 2*alpha + 3, 3*alpha + 5]
-
+         [0, -alpha + 2, 1, -alpha + 3, 2, 3, alpha + 2, 4, alpha + 3, 5, alpha + 4, 2*alpha + 3, alpha + 5, 2*alpha + 4, alpha + 6, 2*alpha + 5, 2*alpha + 6, 3*alpha + 5, 2*alpha + 7]
 
     A cubic field::
 
@@ -141,7 +140,6 @@ def integral_elements_in_box(K, C):
 
         sage: sorted(v)
         [-1/2*a + 2, 1/4*a^2 + 1/2*a, 0, 1, 2, 3, 4,...-1/4*a^2 - 1/2*a + 5, 1/2*a + 3, -1/4*a^2 + 5]
-
     """
     d = K.degree()
     Z_F = K.maximal_order()

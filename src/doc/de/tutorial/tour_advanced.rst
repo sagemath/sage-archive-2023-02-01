@@ -481,7 +481,7 @@ Wir können sogar Räume von Modulsymbolen mit Charakteren berechnen.
     Modular Symbols space of dimension 4 and level 13, weight 2, character
     [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
     sage: M.T(2).charpoly('x').factor()
-    (x - 2*zeta6 - 1) * (x - zeta6 - 2) * (x + zeta6 + 1)^2
+    (x - zeta6 - 2) * (x - 2*zeta6 - 1) * (x + zeta6 + 1)^2
     sage: S = M.cuspidal_submodule(); S
     Modular Symbols subspace of dimension 2 of Modular Symbols space of
     dimension 4 and level 13, weight 2, character [zeta6], sign 0, over

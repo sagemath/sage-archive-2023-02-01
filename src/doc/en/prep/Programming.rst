@@ -547,21 +547,17 @@ nothing else.
    There *is* a way to get around this, but it unleashes a horde of
    potential misuse. See the cells below if you are interested in this.
 
-.. skip
-
    ::
 
-       sage: automatic_names(True)
-       sage: trig_expand((2*x + 4*y + sin(2*theta))^2)
+       sage: automatic_names(True) # not tested
+       sage: trig_expand((2*x + 4*y + sin(2*theta))^2) # not tested
        4*(sin(theta)*cos(theta) + x + 2*y)^2
 
-   This only works in the notebook.
-
-.. skip
+   This only works in the notebook.  Now we'll turn it off.
 
    ::
 
-       sage: automatic_names(False)
+       sage: automatic_names(False) # not tested
 
 Another related issue is that a few names are "reserved" by Python/Sage,
 and which aren't allowed as variable names.

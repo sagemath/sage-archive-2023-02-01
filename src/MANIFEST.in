@@ -35,6 +35,7 @@ include doc/tr/a_tour_of_sage/eigen_plot.png
 include doc/tr/a_tour_of_sage/sin_plot.png
 graft   doc/en/reference/media
 graft   doc/en/thematic_tutorials/media
+graft   doc/en/prep/media
 prune   doc/en/reference/sage
 prune   doc/en/reference/sagenb
 prune   doc/output

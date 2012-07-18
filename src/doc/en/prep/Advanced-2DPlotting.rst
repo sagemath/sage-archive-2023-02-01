@@ -408,7 +408,7 @@ worksheet or pedagogical situation.
 Here are the options for contour plots.
 
 - They are given as an "attribute" \- no parentheses \- of the
-  `contour_plot` object.
+  ``contour_plot`` object.
 
 - They are given as a dictionary (see :ref:`the programming tutorial
   <Advanced>`).

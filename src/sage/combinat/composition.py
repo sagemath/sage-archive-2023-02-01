@@ -30,7 +30,7 @@ AUTHORS:
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.parent import Parent
-from sage.misc.misc import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias
 import sage.combinat.skew_partition
 from combinat import CombinatorialClass, CombinatorialObject, InfiniteAbstractCombinatorialClass
 from cartesian_product import CartesianProduct
@@ -420,7 +420,7 @@ class Composition_class(CombinatorialObject):
         """
         return Composition(map(len,self.refinement_splitting(J)))
 
-    refinement = deprecated_function_alias(refinement_splitting_lengths, '5.1')
+    refinement = deprecated_function_alias(13243, refinement_splitting_lengths)
 
     def major_index(self):
         """

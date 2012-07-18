@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 r"""
 Graphics objects
 
@@ -626,6 +627,24 @@ class Graphics(SageObject):
         typeset::
 
             sage: plot(sin(x), (x, 0, 10), axes_labels=['x','y'])
+
+        TESTS:
+
+        Unicode strings are acceptable; see :trac:`13161`. Note that
+        this does not guarantee that matplotlib will handle the strings
+        properly, although it should.
+
+        ::
+
+            sage: c = circle((0,0), 1)
+            sage: c.axes_labels(['z',u'é'])
+            sage: c._axes_labels
+            ('z', u'\xc3\xa9')
+
+            sage: c.axes_labels([u'an accent : é', 'Y'])
+            sage: c._axes_labels
+            (u'an accent : \xc3\xa9', 'Y')
+
         """
         if l is None:
             try:
@@ -637,7 +656,7 @@ class Graphics(SageObject):
             raise TypeError, "l must be a list or tuple"
         if len(l) != 2:
             raise ValueError, "l must have length 2"
-        self._axes_labels = (str(l[0]), str(l[1]))
+        self._axes_labels = tuple(l)
 
     def axes_label_color(self, c=None):
         r"""

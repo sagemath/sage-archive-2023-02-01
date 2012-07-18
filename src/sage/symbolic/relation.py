@@ -496,9 +496,9 @@ def solve(f, *args, **kwds):
        Maxima's ``to_poly_solver`` package to search for more possible
        solutions, but possibly encounter approximate solutions.
        This keyword is incompatible with ``multiplicities=True``
-       and is not used when solving inequality. Setting ``to_poly_solve``
+       and is not used when solving inequalities. Setting ``to_poly_solve``
        to 'force' (string) omits Maxima's solve command (useful when
-       some solution of trigonometric equations are lost).
+       some solutions of trigonometric equations are lost).
 
 
     EXAMPLES::

@@ -210,7 +210,7 @@ from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
     is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import column_matrix, matrix, identity_matrix
+from sage.matrix.all import matrix, identity_matrix
 from sage.misc.all import cached_method, flatten, latex, prod
 from sage.misc.superseded import deprecation
 from sage.modules.all import span, vector
@@ -3202,7 +3202,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: C2_Z2 = Cone([(1,0),(1,2)])
             sage: C2_Z2._split_ambient_lattice()
             sage: C2_Z2._sublattice
-            Sublattice <N(1, 0), N(0, 1)>
+            Sublattice <N(1, 2), N(0, -1)>
 
         Trivial cone::
 
@@ -3217,9 +3217,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         n = N.dimension()
         basis = self.rays().basis()
         r = len(basis)
-        Nsigma = column_matrix(ZZ, r, n, [N.coordinates(v) for v in basis])
+        Nsigma = matrix(ZZ, r, n, [N.coordinates(v) for v in basis])
         D, U, V = Nsigma.smith_form()  # D = U*N*V <=> N = Uinv*D*Vinv
-        basis = (N.basis_matrix().transpose() * U.inverse()).columns()
+        basis = (V.inverse() * N.basis_matrix()).rows()
         # spanned lattice N_sigma
         self._sublattice = N.submodule_with_basis(basis[:r])
         # complement to the spanned lattice, isomorphic to N(sigma)
@@ -3273,9 +3273,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: cone.rays().basis().matrix().det()
             -4
             sage: cone.sublattice()
-            Sublattice <N(1, 1, 1), N(0, 1, 0), N(1, 0, 0)>
+            Sublattice <N(-1, -1, 1), N(1, 0, 0), N(1, 1, 0)>
             sage: matrix( cone.sublattice().gens() ).det()
-            -1
+            1
 
         Another example::
 
@@ -3287,7 +3287,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             N(4, -5, 1)
             in 3-d lattice N
             sage: c.sublattice()
-            Sublattice <N(1, 2, 3), N(0, 13, 11)>
+            Sublattice <N(1, 2, 3), N(4, -5, 1)>
             sage: c.sublattice(5, -3, 4)
             N(5, -3, 4)
             sage: c.sublattice(1, 0, 0)
@@ -3383,14 +3383,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: c = Cone([(1,2,3), (4,-5,1)])
             sage: c.sublattice()
-            Sublattice <N(1, 2, 3), N(0, 13, 11)>
+            Sublattice <N(1, 2, 3), N(4, -5, 1)>
             sage: c.sublattice_complement()
-            Sublattice <N(-7, -8, -16)>
+            Sublattice <N(0, -6, -5)>
             sage: m = matrix( c.sublattice().gens() + c.sublattice_complement().gens() )
             sage: m
-            [  1   2   3]
-            [  0  13  11]
-            [ -7  -8 -16]
+            [ 1  2  3]
+            [ 4 -5  1]
+            [ 0 -6 -5]
             sage: m.det()
             -1
             """
@@ -3434,7 +3434,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Sublattice <>
             sage: c12 = Cone([(1,1,1), (1,-1,1)])
             sage: c12.sublattice()
-            Sublattice <N(1, 1, 1), N(0, 1, 0)>
+            Sublattice <N(1, -1, 1), N(0, 1, 0)>
             sage: c12.orthogonal_sublattice()
             Sublattice <M(1, 0, -1)>
         """
@@ -3484,15 +3484,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: sigma = Cone([(1,1,1,3),(1,-1,1,3),(-1,-1,1,3),(-1,1,1,3)])
             sage: rho   = Cone([(-1, -1, 1, 3), (-1, 1, 1, 3)])
             sage: sigma.sublattice()
-            Sublattice <N(1, 1, 1, 3), N(1, 0, 0, 0), N(0, 1, 0, 0)>
+            Sublattice <N(-1, -1, 1, 3), N(1, 0, 0, 0), N(1, 1, 0, 0)>
             sage: rho.sublattice()
-            Sublattice <N(-1, 1, 1, 3), N(0, 1, 0, 0)>
+            Sublattice <N(-1, 1, 1, 3), N(0, -1, 0, 0)>
             sage: sigma.relative_quotient(rho)
             1-d lattice, quotient
-            of Sublattice <N(1, 1, 1, 3), N(1, 0, 0, 0), N(0, 1, 0, 0)>
+            of Sublattice <N(-1, -1, 1, 3), N(1, 0, 0, 0), N(1, 1, 0, 0)>
             by Sublattice <N(1, 0, -1, -3), N(0, 1, 0, 0)>
             sage: sigma.relative_quotient(rho).gens()
-            (N[1, 0, 0, 0],)
+            (N[1, 1, 0, 0],)
 
         More complicated example::
 
@@ -3500,12 +3500,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: sigma = Cone([(1, 2, 3), (1, -1, 1), (-1, 1, 1), (-1, -1, 1)])
             sage: N_sigma = sigma.sublattice()
             sage: N_sigma
-            Sublattice <N(3, 0, 1), N(2, 1, 0), N(1, 0, 0)>
+            Sublattice <N(-1, 1, 1), N(1, 2, 3), N(0, 1, 1)>
             sage: N_rho = rho.sublattice()
             sage: N_rho
-            Sublattice <N(1, -1, 1), N(0, 3, 2)>
+            Sublattice <N(1, -1, 1), N(1, 2, 3)>
             sage: sigma.relative_quotient(rho).gens()
-            (N[0, -2, -1],)
+            (N[0, 1, 1],)
             sage: N = rho.lattice()
             sage: N_sigma == N.span(N_rho.gens() + tuple(q.lift()
             ...              for q in sigma.relative_quotient(rho).gens()))
@@ -3517,15 +3517,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: sigma2 = Cone([(1, 1, -1), (1, 2, 3), (1, -1, 1), (1, -1, -1)])  # 3d
             sage: rho = sigma1.intersection(sigma2)
             sage: rho.sublattice()
-            Sublattice <N(1, -1, 1), N(0, 3, 2)>
+            Sublattice <N(1, -1, 1), N(1, 2, 3)>
             sage: sigma1.relative_quotient(rho)
             1-d lattice, quotient
-            of Sublattice <N(3, 0, 1), N(2, 1, 0), N(1, 0, 0)>
+            of Sublattice <N(-1, 1, 1), N(1, 2, 3), N(0, 1, 1)>
             by Sublattice <N(1, 2, 3), N(0, 3, 2)>
             sage: sigma1.relative_quotient(rho).gens()
-            (N[0, -2, -1],)
+            (N[0, 1, 1],)
             sage: sigma2.relative_quotient(rho).gens()
-            (N[0, -1, -1],)
+            (N[-1, 0, -2],)
         """
         try:
             cached_values = self._relative_quotient

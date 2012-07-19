@@ -133,6 +133,10 @@ have a preference::
 
     sage: plot(x^2,(x,300,500),ticks=[None,50000])
 
+You can even have custom tick labels along with custom positioning. ::
+
+    sage: plot(x**2, (x,0,3), ticks=[[1,2.5],pi/2], tick_formatter=[["$x_1$","$x_2$"],pi])
+
 We construct a plot involving several graphics objects::
 
     sage: G = plot(cos(x), (x, -5, 5), thickness=5, color='green', title='A plot')
@@ -1001,6 +1005,10 @@ def plot(funcs, *args, **kwds):
     ::
 
         sage: plot(sin(x),(x,0,2*pi),ticks=pi/3,tick_formatter=pi)
+
+    You can even have custom tick labels along with custom positioning. ::
+
+        sage: plot(x**2, (x,0,3), ticks=[[1,2.5],[0.5,1,2]], tick_formatter=[["$x_1$","$x_2$"],["$y_1$","$y_2$","$y_3$"]])
 
     A example with excluded values::
 

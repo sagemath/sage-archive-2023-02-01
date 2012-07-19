@@ -1418,6 +1418,17 @@ class Graphics(SageObject):
             title along the horizontal direction, but will place the title
             a fraction `0.1` times above the plot.
 
+          - If the first entry is a list of strings (or numbers), then the
+            formatting for the horizontal axis will be typeset with the strings
+            present in the list. Each entry of the list of strings must be
+            provided with a corresponding number in the first entry of
+            ``ticks`` to indicate its position on the axis. To typeset the
+            strings with ``"latex"`` enclose them within ``"$"`` symbols. To
+            have similar custom formatting of the labels along the vertical
+            axis, the second entry must be a list of strings and the second
+            entry of ``ticks`` must also be a list of numbers which give the
+            positions of the labels. See the examples below.
+
         - ``show_legend`` - (default: None) If True, show the legend
 
         - ``legend_*`` - all the options valid for :meth:`set_legend_options`
@@ -1730,6 +1741,25 @@ class Graphics(SageObject):
 
             sage: plot(arcsin(x),(x,-1,1),ticks=[None,pi/6],tick_formatter=[None,pi]) # Not so nice-looking
 
+        Custom tick labels can be provided by providing the keyword
+        ``tick_formatter`` with the list of labels, and simultaneously
+        providing the keyword ``ticks`` with the positions of the labels. ::
+
+            sage: plot(x, (x,0,3), ticks=[[1,2.5],[0.5,1,2]], tick_formatter=[["$x_1$","$x_2$"],["$y_1$","$y_2$","$y_3$"]])
+
+        The following sets the custom tick labels only along the horizontal
+        axis. ::
+
+            sage: plot(x**2, (x,0,2), ticks=[[1,2], None], tick_formatter=[["$x_1$","$x_2$"], None])
+
+        If the number of tick labels do not match the number of positions of
+        tick labels, then it results in an error.::
+
+            sage: plot(x**2, (x,0,2), ticks=[[2], None], tick_formatter=[["$x_1$","$x_2$"], None])
+            Traceback (most recent call last):
+            ...
+            ValueError: If the first component of the list `tick_formatter` is a list then the first component of `ticks` must also be a list of equal length.
+
         When using logarithmic scale along the axis, make sure to have
         enough room for two ticks so that the user can tell what the scale
         is. This can be effected by increasing the range of the independent
@@ -1964,7 +1994,7 @@ class Graphics(SageObject):
                 '(option `ticks`).')
 
         x_formatter, y_formatter = tick_formatter
-        from matplotlib.ticker import FuncFormatter
+        from matplotlib.ticker import FuncFormatter, FixedFormatter
         from sage.misc.latex import latex
         from sage.symbolic.ring import SR
         #---------------------- Formatting x-ticks ----------------------#
@@ -1986,6 +2016,13 @@ class Graphics(SageObject):
                                                         "\\mathdefault",""))
             else:
                 x_formatter = FuncFormatter(lambda n,pos: '$%s$'%latex(n))
+        elif isinstance(x_formatter, (list, tuple)):
+            if (not isinstance(ticks[0], (list, tuple)) or
+                    len(ticks[0]) != len(x_formatter)):
+                raise ValueError("If the first component of the list "
+                    "`tick_formatter` is a list then the first component "
+                    "of `ticks` must also be a list of equal length.")
+            x_formatter = FixedFormatter(x_formatter)
         #---------------------- Formatting y-ticks ----------------------#
         if y_formatter is None:
             if scale[1] == 'log':
@@ -2005,6 +2042,13 @@ class Graphics(SageObject):
                                                         "\\mathdefault",""))
             else:
                 y_formatter = FuncFormatter(lambda n,pos: '$%s$'%latex(n))
+        elif isinstance(y_formatter, (list, tuple)):
+            if (not isinstance(ticks[1], (list, tuple)) or
+                    len(ticks[1]) != len(y_formatter)):
+                raise ValueError("If the second component of the list "
+                    "`tick_formatter` is a list then the second component "
+                    "of `ticks` must also be a list of equal length.")
+            y_formatter = FixedFormatter(y_formatter)
 
         subplot.xaxis.set_major_locator(x_locator)
         subplot.yaxis.set_major_locator(y_locator)

@@ -2762,14 +2762,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 X[i] = c
         return X
 
-    def factor(self, proof=True):
+    def factor(self, **kwargs):
         r"""
-        Return the factorization of self over the base ring of this
-        polynomial. Factoring polynomials over
-        `\ZZ/n\ZZ` for `n` composite is at
-        the moment not implemented.
+        Return the factorization of self over the base ring of this polynomial.
+        Factoring polynomials over `\ZZ/n\ZZ` for `n` composite is at the
+        moment not implemented.
 
-        INPUT: a polynomial
+        INPUT:
+
+        - ``kwargs`` -- any keyword arguments are passed to the method
+          ``_factor_univariate_polynomial`` of the base ring if it defines such
+          a method.
 
         OUTPUT:
 
@@ -2832,7 +2835,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
              sage: R.<x> = QQ[]
              sage: (x^2 + 1).factor()
              x^2 + 1
-             sage: QQ._factor_univariate_polynomial = lambda f, proof: f.change_ring(CDF).factor()
+             sage: QQ._factor_univariate_polynomial = lambda f: f.change_ring(CDF).factor()
              sage: fz = (x^2 + 1).factor(); fz # random order of factors, with noise
              (x - ... + I) * (x - I)
              sage: # Change noisy zero term which affects the order of factors:
@@ -3178,7 +3181,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         R = self.parent().base_ring()
         if hasattr(R, '_factor_univariate_polynomial'):
-            return R._factor_univariate_polynomial(self,proof=proof)
+            return R._factor_univariate_polynomial(self,**kwargs)
 
         G = None
         ch = R.characteristic()

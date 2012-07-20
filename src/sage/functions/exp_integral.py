@@ -1149,6 +1149,18 @@ class Function_exp_integral(BuiltinFunction):
 
     ALGORITHM: Uses mpmath.
 
+    TESTS:
+
+    Show that the evaluation and limit issue in :trac:`13271` is fixed::
+
+        sage: var('Z')
+        Z
+        sage: (Ei(-Z)).limit(Z=oo)
+        0
+        sage: (Ei(-Z)).limit(Z=1000)
+        Ei(-1000)
+        sage: (Ei(-Z)).limit(Z=1000).n()
+        -5.07089306023517e-438
     """
     def __init__(self):
         """

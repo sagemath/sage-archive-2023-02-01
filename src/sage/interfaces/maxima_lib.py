@@ -1165,7 +1165,6 @@ max_li=EclObject("$LI")
 max_psi=EclObject("$PSI")
 max_array=EclObject("ARRAY")
 mdiff=EclObject("%DERIVATIVE")
-max_gamma_incomplete=sage_op_dict[sage.functions.other.gamma_inc]
 max_lambert_w=sage_op_dict[sage.functions.log.lambert_w]
 
 def mrat_to_sage(expr):
@@ -1358,7 +1357,6 @@ special_sage_to_max={
     sage.functions.log.polylog : lambda N,X : [[mqapply],[[max_li, max_array],N],X],
     sage.functions.other.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
     sage.functions.other.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
-    sage.functions.exp_integral.Ei : lambda X : [[max_gamma_incomplete], 0, X],
     sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X]
 }
 

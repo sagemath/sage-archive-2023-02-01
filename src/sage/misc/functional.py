@@ -1291,7 +1291,7 @@ def numerical_approx(x, prec=None, digits=None):
         [ 8.0  9.0  10.  11. 0.00  1.0  2.0  3.0]
         [ 4.0  5.0  6.0  7.0  8.0  9.0  10.  11.]
 
-    Internally numerical approximations of real numbers are stored in base-2.
+    Internally, numerical approximations of real numbers are stored in base-2.
     Therefore, numbers which look the same in their decimal expansion might be
     different::
 
@@ -1306,17 +1306,21 @@ def numerical_approx(x, prec=None, digits=None):
         sage: y.str(base=2)
         '11.001000111101'
 
-    As an exceptional case, ``digits=1`` leads to 2 digits in the decimal
-    output (see :trac:`11647`)::
+    As an exceptional case, ``digits=1`` usually leads to 2 digits (one
+    significant) in the decimal output (see :trac:`11647`)::
 
         sage: N(pi, digits=1)
         3.2
         sage: N(pi, digits=2)
         3.1
+        sage: N(100*pi, digits=1)
+        320.
+        sage: N(100*pi, digits=2)
+        310.
 
 
     In the following example, ``pi`` and ``3`` are both approximated to two
-    bits of precision and then subtracted which kills two bits of precision::
+    bits of precision and then subtracted, which kills two bits of precision::
 
         sage: N(pi, prec=2)
         3.0

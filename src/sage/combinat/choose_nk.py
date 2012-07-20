@@ -1,5 +1,12 @@
 """
 Low-level Combinations
+
+AUTHORS:
+
+- Mike Hansen (2007): initial implementation
+
+- Vincent Delecroix (2011): call itertools for faster iteration, bug
+  corrections, doctests.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -19,14 +26,18 @@ import sage.misc.prandom as rnd
 from sage.rings.arith import binomial
 from sage.misc.misc import uniq
 from combinat import CombinatorialClass
+import itertools
+from sage.rings.integer import Integer
 
 class ChooseNK(CombinatorialClass):
     """
     Low level combinatorial class of all possible choices of k elements out of
-    range(n) without repetitions.
+    range(n) without repetitions. The elements of the output are tuples of
+    Python int (and not Sage Integer).
+
 
     This is a low-level combinatorial class, with a simplistic interface by
-    design. It aim at speed. It's element are returned as plain list of python
+    design. It aims at speed. It's element are returned as plain list of python
     int.
 
     EXAMPLES::
@@ -34,11 +45,11 @@ class ChooseNK(CombinatorialClass):
         sage: from sage.combinat.choose_nk import ChooseNK
         sage: c = ChooseNK(4,2)
         sage: c.first()
-        [0, 1]
+        (0, 1)
         sage: c.list()
-        [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
+        [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
         sage: type(c.list()[1])
-        <type 'list'>
+        <type 'tuple'>
         sage: type(c.list()[1][1])
         <type 'int'>
     """
@@ -66,15 +77,36 @@ class ChooseNK(CombinatorialClass):
             False
             sage: [0,1,3] in c52
             False
+
+        TESTS::
+
+            sage: from sage.combinat.choose_nk import ChooseNK
+            sage: c52 = ChooseNK(5,2)
+            sage: [0,2] in c52   # trac 10534
+            True
+            sage: [0,5] in c52
+            False
         """
         try:
-            x = list(x)
+            x = map(int,x)
         except TypeError:
             return False
 
-        r = range(len(x))
-        return all(i in r for i in x) and len(uniq(x)) == self._k
+        # test if the length is the good one
+        r = len(x)
+        if r != self._k:
+            return False
 
+        # test if there is any repetition
+        x = set(x)
+        if len(x) != r:
+            return False
+
+        # test if x is a subset of {0,1,...,n-1}
+        if x.difference(xrange(self._n)):
+            return False
+
+        return True
 
     def cardinality(self):
         """
@@ -97,53 +129,19 @@ class ChooseNK(CombinatorialClass):
         EXAMPLES::
 
             sage: from sage.combinat.choose_nk import ChooseNK
-            sage: [c for c in ChooseNK(5,2)]
-            [[0, 1],
-             [0, 2],
-             [0, 3],
-             [0, 4],
-             [1, 2],
-             [1, 3],
-             [1, 4],
-             [2, 3],
-             [2, 4],
-             [3, 4]]
+            sage: list(ChooseNK(5,2))
+            [(0, 1),
+             (0, 2),
+             (0, 3),
+             (0, 4),
+             (1, 2),
+             (1, 3),
+             (1, 4),
+             (2, 3),
+             (2, 4),
+             (3, 4)]
         """
-        k = self._k
-        n = self._n
-        dif = 1
-        if k == 0:
-            yield []
-            return
-
-        if n < 1+(k-1)*dif:
-            return
-        else:
-            subword = [ i*dif for i in range(k) ]
-
-        yield subword[:]
-        finished = False
-
-        while not finished:
-            #Find the biggest element that can be increased
-            if subword[-1] < n-1:
-                subword[-1] += 1
-                yield subword[:]
-                continue
-
-            finished = True
-            for i in reversed(range(k-1)):
-                if subword[i]+dif < subword[i+1]:
-                    subword[i] += 1
-                    #Reset the bigger elements
-                    for j in range(1,k-i):
-                        subword[i+j] = subword[i]+j*dif
-                    yield subword[:]
-                    finished = False
-                    break
-
-        return
-
+        return itertools.combinations(range(self._n), self._k)
 
     def random_element(self):
         """
@@ -153,10 +151,13 @@ class ChooseNK(CombinatorialClass):
 
             sage: from sage.combinat.choose_nk import ChooseNK
             sage: ChooseNK(5,2).random_element()
-            [0, 2]
+            (0, 2)
         """
-        r = sorted(rnd.sample(xrange(self._n),self._k))
-        return r
+        return tuple(rnd.sample(range(self._n), self._k))
+
+        # r.sort() removed in trac 10534
+        # it is not needed to sort because sage.misc.prandom.sample returns
+        # ordered subword
 
     def unrank(self, r):
         """
@@ -168,7 +169,7 @@ class ChooseNK(CombinatorialClass):
             True
         """
         if r < 0 or r >= self.cardinality():
-            raise ValueError("rank must be between 0 and %s (inclusive)"%(self.cardinality()-1))
+            raise ValueError("rank must be between 0 and %d (inclusive)"%(self.cardinality() - 1))
         return from_rank(r, self._n, self._k)
 
     def rank(self, x):
@@ -180,13 +181,13 @@ class ChooseNK(CombinatorialClass):
             sage: range(c52.cardinality()) == map(c52.rank, c52)
             True
         """
-        if len(x) != self._k:
-            return
+        if x not in self:
+            raise ValueError, "%s not in Choose(%d,%d)" %(str(x),self._n,self._k)
 
         return rank(x, self._n)
 
 
-def rank(comb, n):
+def rank(comb, n, check=True):
     """
     Returns the rank of comb in the subsets of range(n) of size k.
 
@@ -196,40 +197,52 @@ def rank(comb, n):
     EXAMPLES::
 
         sage: import sage.combinat.choose_nk as choose_nk
-        sage: choose_nk.rank([], 3)
+        sage: choose_nk.rank((), 3)
         0
-        sage: choose_nk.rank([0], 3)
+        sage: choose_nk.rank((0,), 3)
         0
-        sage: choose_nk.rank([1], 3)
+        sage: choose_nk.rank((1,), 3)
         1
-        sage: choose_nk.rank([2], 3)
+        sage: choose_nk.rank((2,), 3)
         2
-        sage: choose_nk.rank([0,1], 3)
+        sage: choose_nk.rank((0,1), 3)
         0
-        sage: choose_nk.rank([0,2], 3)
+        sage: choose_nk.rank((0,2), 3)
         1
-        sage: choose_nk.rank([1,2], 3)
+        sage: choose_nk.rank((1,2), 3)
         2
-        sage: choose_nk.rank([0,1,2], 3)
+        sage: choose_nk.rank((0,1,2), 3)
         0
-    """
 
+        sage: choose_nk.rank((0,1,2,3), 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: len(comb) must be <= n
+        sage: choose_nk.rank((0,0), 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: comb must be a subword of (0,1,...,n)
+    """
     k = len(comb)
-    if k > n:
-        raise ValueError("len(comb) must be <= n")
+    if check:
+        if k > n:
+            raise ValueError("len(comb) must be <= n")
+        comb = map(int, comb)
+        for i in xrange(k - 1):
+            if comb[i + 1] <= comb[i]:
+                raise ValueError("comb must be a subword of (0,1,...,n)")
 
     #Generate the combinadic from the
     #combination
-    w = [0]*k
-    for i in range(k):
-        w[i] = (n-1) - comb[i]
+
+    #w = [n-1-comb[i] for i in xrange(k)]
 
     #Calculate the integer that is the dual of
     #the lexicographic index of the combination
     r = k
     t = 0
     for i in range(k):
-        t += binomial(w[i],r)
+        t += binomial(n - 1 - comb[i], r)
         r -= 1
 
     return binomial(n,k)-t-1
@@ -267,21 +280,21 @@ def from_rank(r, n, k):
 
         sage: import sage.combinat.choose_nk as choose_nk
         sage: choose_nk.from_rank(0,3,0)
-        []
+        ()
         sage: choose_nk.from_rank(0,3,1)
-        [0]
+        (0,)
         sage: choose_nk.from_rank(1,3,1)
-        [1]
+        (1,)
         sage: choose_nk.from_rank(2,3,1)
-        [2]
+        (2,)
         sage: choose_nk.from_rank(0,3,2)
-        [0, 1]
+        (0, 1)
         sage: choose_nk.from_rank(1,3,2)
-        [0, 2]
+        (0, 2)
         sage: choose_nk.from_rank(2,3,2)
-        [1, 2]
+        (1, 2)
         sage: choose_nk.from_rank(0,3,3)
-        [0, 1, 2]
+        (0, 1, 2)
     """
     if k < 0:
         raise ValueError("k must be > 0")
@@ -290,17 +303,17 @@ def from_rank(r, n, k):
 
     a = n
     b = k
-    x = binomial(n,k) - 1 - r # x is the 'dual' of m
+    x = binomial(n, k) - 1 - r  # x is the 'dual' of m
     comb = [None]*k
 
-    for i in range(k):
+    for i in xrange(k):
         comb[i] = _comb_largest(a,b,x)
         x = x - binomial(comb[i], b)
         a = comb[i]
         b = b -1
 
-    for i in range(k):
+    for i in xrange(k):
         comb[i] = (n-1)-comb[i]
 
-    return comb
+    return tuple(comb)
 

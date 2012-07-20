@@ -1,5 +1,11 @@
 """
 Low-level splits
+
+Authors:
+
+- Mike Hansen (2007): original version
+
+- Vincent Delecroix (2011): improvements
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -32,20 +38,20 @@ def SplitNK(n, k):
         sage: S = SplitNK(5,2); S
         Splits of {0, ..., 4} into a set of size 2 and one of size 3
         sage: S.first()
-        [[0, 1], [2, 3, 4]]
+        [(0, 1), (2, 3, 4)]
         sage: S.last()
-        [[3, 4], [0, 1, 2]]
+        [(3, 4), (0, 1, 2)]
         sage: S.list()
-        [[[0, 1], [2, 3, 4]],
-         [[0, 2], [1, 3, 4]],
-         [[0, 3], [1, 2, 4]],
-         [[0, 4], [1, 2, 3]],
-         [[1, 2], [0, 3, 4]],
-         [[1, 3], [0, 2, 4]],
-         [[1, 4], [0, 2, 3]],
-         [[2, 3], [0, 1, 4]],
-         [[2, 4], [0, 1, 3]],
-         [[3, 4], [0, 1, 2]]]
+        [[(0, 1), (2, 3, 4)],
+         [(0, 2), (1, 3, 4)],
+         [(0, 3), (1, 2, 4)],
+         [(0, 4), (1, 2, 3)],
+         [(1, 2), (0, 3, 4)],
+         [(1, 3), (0, 2, 4)],
+         [(1, 4), (0, 2, 3)],
+         [(2, 3), (0, 1, 4)],
+         [(2, 4), (0, 1, 3)],
+         [(3, 4), (0, 1, 2)]]
     """
     return SplitNK_nk(n,k)
 
@@ -62,12 +68,12 @@ class SplitNK_nk(CombinatorialClass):
         self._n = n
         self._k = k
 
-    def __repr__(self):
+    def _repr_(self):
         """
         TESTS::
 
             sage: from sage.combinat.split_nk import SplitNK
-            sage: repr(SplitNK(5,2))
+            sage: repr(SplitNK(5,2)) #indirect doctest
             'Splits of {0, ..., 4} into a set of size 2 and one of size 3'
         """
         return "Splits of {0, ..., %s} into a set of size %s and one of size %s"%(self._n-1, self._k, self._n-self._k)
@@ -93,22 +99,21 @@ class SplitNK_nk(CombinatorialClass):
         EXAMPLES::
 
             sage: from sage.combinat.split_nk import SplitNK
-            sage: [c for c in SplitNK(5,2)]
-            [[[0, 1], [2, 3, 4]],
-             [[0, 2], [1, 3, 4]],
-             [[0, 3], [1, 2, 4]],
-             [[0, 4], [1, 2, 3]],
-             [[1, 2], [0, 3, 4]],
-             [[1, 3], [0, 2, 4]],
-             [[1, 4], [0, 2, 3]],
-             [[2, 3], [0, 1, 4]],
-             [[2, 4], [0, 1, 3]],
-             [[3, 4], [0, 1, 2]]]
+            sage: for c in SplitNK(5,2): print c
+            [(0, 1), (2, 3, 4)]
+            [(0, 2), (1, 3, 4)]
+            [(0, 3), (1, 2, 4)]
+            [(0, 4), (1, 2, 3)]
+            [(1, 2), (0, 3, 4)]
+            [(1, 3), (0, 2, 4)]
+            [(1, 4), (0, 2, 3)]
+            [(2, 3), (0, 1, 4)]
+            [(2, 4), (0, 1, 3)]
+            [(3, 4), (0, 1, 2)]
         """
         range_n = range(self._n)
         for kset in choose_nk.ChooseNK(self._n,self._k):
-            yield [ kset, filter(lambda x: x not in kset, range_n) ]
-
+            yield [ kset, tuple(filter(lambda x: x not in kset, range_n))]
 
     def random_element(self):
         """
@@ -119,11 +124,11 @@ class SplitNK_nk(CombinatorialClass):
 
             sage: from sage.combinat.split_nk import SplitNK
             sage: SplitNK(5,2).random_element()
-            [[0, 2], [1, 3, 4]]
+            [(0, 2), (1, 3, 4)]
         """
         r = rnd.sample(xrange(self._n),self._n)
         r0 = r[:self._k]
         r1 = r[self._k:]
         r0.sort()
         r1.sort()
-        return [ r0, r1 ]
+        return [ tuple(r0), tuple(r1) ]

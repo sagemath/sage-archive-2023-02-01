@@ -1,5 +1,12 @@
 r"""
 Combinations
+
+AUTHORS:
+
+- Mike Hansen (2007): initial implementation
+
+- Vincent Delecroix (2011): cleaning, bug corrections, doctests
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -139,6 +146,14 @@ def Combinations(mset, k=None):
 
         sage: Combinations([vector([1,1]), vector([2,2]), vector([3,3])], 2).list()
         [[(1, 1), (2, 2)], [(1, 1), (3, 3)], [(2, 2), (3, 3)]]
+
+    TESTS:
+
+    We check that the code works even for non mutable objects::
+
+        sage: l = [vector((0,0)), vector((0,1))]
+        sage: Combinations(l).list()
+        [[], [(0, 0)], [(0, 1)], [(0, 0), (0, 1)]]
     """
 
 

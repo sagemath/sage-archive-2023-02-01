@@ -653,18 +653,28 @@ class Composition_class(CombinatorialObject):
 
     def shuffle_product(self, other, overlap=False):
         r"""
-        The enumerated set of the (overlapping) shuffles of ``self`` and
-        ``other``.
+        The (overlapping) shuffles of ``self`` and ``other``.
+
+        Suppose `I = [i_1, \dots, i_k]` and `J = [j_1, \dots, j_l]` are two
+        compositions. A *shuffle* of `I` and `J` is a composition of length
+        `k + l` that contains both `I` and `J` as subsequences.
+
+        More generally, an *overlapping shuffle* of `I` and `J` is obtained by
+        distributing the elements of `I` and `J` (preserving the relative
+        ordering of these elements) among the positions of an empty list; an
+        element of `I` and an element of `J` are permitted to share the same
+        position, in which case they are replaced by their sum. In particular,
+        a shuffle of `I` and `J` is an overlapping shuffle of `I` and `J`.
 
         INPUT:
 
         -  ``other`` -- composition
-        -  ``overlap`` -- boolean (default: False), whether to return the
-           overlapping shuffle product.
+        -  ``overlap`` -- boolean (default: ``False``); if ``True``, the
+           overlapping shuffle product is returned.
 
         OUTPUT:
 
-        - enumerated set
+        - enumerated set (allowing for mutliplicities)
 
         EXAMPLES:
 
@@ -681,10 +691,28 @@ class Composition_class(CombinatorialObject):
 
             sage: alph = Composition([2,2])
             sage: beta = Composition([1,1,3])
-            sage: S = alph.shuffle_product(beta, overlap=True); S
+            sage: O = alph.shuffle_product(beta, overlap=True); O
             Overlapping shuffle product of [2, 2] and [1, 1, 3]
-            sage: S.list()
+            sage: O.list()
             [[2, 2, 1, 1, 3], [2, 1, 2, 1, 3], [2, 1, 1, 2, 3], [2, 1, 1, 3, 2], [1, 2, 2, 1, 3], [1, 2, 1, 2, 3], [1, 2, 1, 3, 2], [1, 1, 2, 2, 3], [1, 1, 2, 3, 2], [1, 1, 3, 2, 2], [3, 2, 1, 3], [2, 3, 1, 3], [3, 1, 2, 3], [2, 1, 3, 3], [3, 1, 3, 2], [2, 1, 1, 5], [1, 3, 2, 3], [1, 2, 3, 3], [1, 3, 3, 2], [1, 2, 1, 5], [1, 1, 5, 2], [1, 1, 2, 5], [3, 3, 3], [3, 1, 5], [1, 3, 5]]
+
+        Note that the shuffle product of two compositions can include the same
+        composition more than once since a composition can be a shuffle of two
+        compositions in several ways. For example::
+
+            sage: S = Composition([1]).shuffle_product([1]); S
+            Shuffle product of [1] and [1]
+            sage: S.list()
+            [[1, 1], [1, 1]]
+            sage: O = Composition([1]).shuffle_product([1], overlap=True); O
+            Overlapping shuffle product of [1] and [1]
+            sage: O.list()
+            [[1, 1], [1, 1], [2]]
+
+        TESTS::
+
+            sage: Composition([]).shuffle_product([]).list()
+            [[]]
 
         """
         if overlap:

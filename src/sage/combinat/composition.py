@@ -45,8 +45,6 @@ def Composition(co=None, descents=None, code=None, from_subset=None):
     A composition of a nonnegative integer `n` is a list
     `(i_1,\dots,i_k)` of positive integers with total sum `n`.
 
-    TODO: mathematical definition of descents, code, ...
-
     EXAMPLES:
 
     The simplest way to create a composition is by specifying its
@@ -59,12 +57,12 @@ def Composition(co=None, descents=None, code=None, from_subset=None):
         sage: Composition(i for i in range(2,5))
         [2, 3, 4]
 
-    You can create a composition from the list of its descents::
+    You can also create a composition from its code. The *code* of
+    a composition `[i_1, i_2, \cdots, i_k]` of `n` is a list of length `n`
+    that consists of a `1` followed by `i_1-1` zeros, then a `1` followed
+    by `i_2-1` zeros, and so on.
 
-        sage: Composition(descents=[1,0,4,8,11])
-        [1, 1, 3, 4, 3]
-
-    You can also create a composition from its code::
+    ::
 
         sage: Composition([4,1,2,3,5]).to_code()
         [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
@@ -85,6 +83,23 @@ def Composition(co=None, descents=None, code=None, from_subset=None):
         [1, 1, 2, 1]
         sage: Composition([1, 1, 2, 1]).to_subset()
         {1, 2, 4}
+
+    The following notation equivalently specifies the composition from the set
+    `\{i_1 - 1, i_1 + i_2 - 1, i_1 + i_2 + i_3 - 1, \dots, i_1 + \cdots
+    + i_{k-1} - 1, n-1\}` or `\{i_1 - 1, i_1 + i_2 - 1, i_1 + i_2 + i_3
+    - 1, \dots, i_1 + \cdots + i_{k-1} - 1\}` and `n`. This provides
+    compatibility with Python's `0`-indexing.
+
+    ::
+
+        sage: Composition(descents=[1,0,4,8,11])
+        [1, 1, 3, 4, 3]
+        sage: Composition(descents=[0,1,3,4])
+        [1, 1, 2, 1]
+        sage: Composition(descents=([0,1,3],5))
+        [1, 1, 2, 1]
+        sage: Composition(descents=({0,1,3},5))
+        [1, 1, 2, 1]
 
     """
     if descents is not None:
@@ -145,8 +160,6 @@ class Composition_class(CombinatorialObject):
     def reversed(self):
         """
         Returns the reverse of the composition.
-
-        .. TODO:: lift to words, or ClonableIntArray, or ???
 
         EXAMPLES::
 
@@ -477,8 +490,6 @@ class Composition_class(CombinatorialObject):
 
         .. SEEALSO:: :meth:`to_subset`
 
-        .. TODO:: generalize to words or something
-
         EXAMPLES::
 
             sage: Composition([1,1,3,1,2,1,3]).partial_sums()
@@ -513,8 +524,6 @@ class Composition_class(CombinatorialObject):
           partial sum, which is always the size of the composition.
 
         .. SEEALSO:: :meth:`partial_sums`
-
-        .. TODO:: switch to plain frozen_sets?
 
         EXAMPLES::
 
@@ -1193,7 +1202,7 @@ def composition_from_subset(S, n=None):
 
 def from_code(code):
     """
-    Return the composition from its code.The code of a composition is a
+    Return the composition from its code. The code of a composition is a
     list of length self.size() of 1s and 0s such that there is a 1
     wherever a new part starts.
 

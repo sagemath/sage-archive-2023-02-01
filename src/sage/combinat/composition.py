@@ -58,7 +58,7 @@ def Composition(co=None, descents=None, code=None, from_subset=None):
         [2, 3, 4]
 
     You can also create a composition from its code. The *code* of
-    a composition `[i_1, i_2, \cdots, i_k]` of `n` is a list of length `n`
+    a composition `[i_1, i_2, \dots, i_k]` of `n` is a list of length `n`
     that consists of a `1` followed by `i_1-1` zeros, then a `1` followed
     by `i_2-1` zeros, and so on.
 
@@ -75,7 +75,7 @@ def Composition(co=None, descents=None, code=None, from_subset=None):
 
     You can also create the composition of `n` corresponding to a subset of
     `\{1, 2, \dots, n-1\}` under the bijection that maps the composition
-    `[i_1, i_2, \cdots, i_k]` of `n` to the subset
+    `[i_1, i_2, \dots, i_k]` of `n` to the subset
     `\{i_1, i_1 + i_2, i_1 + i_2 + i_3, \dots, i_1 + \cdots + i_{k-1}\}`
     (see :meth:`to_subset`)::
 
@@ -483,9 +483,9 @@ class Composition_class(CombinatorialObject):
         the entries of the composition are
         `[i_1, i_1 + i_2, \dots, i_1 + i_2 + \cdots + i_{m}]`.
 
-        INPUT::
+        INPUT:
 
-        - ``final`` -- (default: True) whether or not to include the final
+        - ``final`` -- (default: ``True``) whether or not to include the final
           partial sum, which is always the size of the composition.
 
         .. SEEALSO:: :meth:`to_subset`
@@ -518,9 +518,9 @@ class Composition_class(CombinatorialObject):
         The bijection maps a composition `[i_1, \dots, i_k]` of `n` to
         `\{i_1, i_1 + i_2, i_1 + i_2 + i_3, \dots, i_1 + \cdots + i_{k-1}\}`.
 
-        INPUT::
+        INPUT:
 
-        - ``final`` -- (default: False) whether or not to include the final
+        - ``final`` -- (default: ``False``) whether or not to include the final
           partial sum, which is always the size of the composition.
 
         .. SEEALSO:: :meth:`partial_sums`
@@ -1008,14 +1008,17 @@ class Compositions_all(InfiniteAbstractCombinatorialClass):
 
     Element = Composition_class
 
-    def subset(self, size = None):
+    def subset(self, size=None):
         """
+        Returns the set of compositions of the given size.
 
         EXAMPLES::
 
             sage: C = Compositions()
             sage: C.subset(4)
             Compositions of 4
+            sage: C.subset(size=3)
+            Compositions of 3
         """
         if size is None:
             return self
@@ -1139,6 +1142,12 @@ def from_descents(descents, nps=None):
     """
     Returns a composition from the list of descents.
 
+    INPUT:
+
+    - ``descents`` -- an iterable
+    - ``nps`` -- (default: ``None``) an integer or ``None``; if ``None``, then
+      ``nps`` is taken to be `1` plus the maximum element of ``descents``.
+
     EXAMPLES::
 
         sage: [x-1 for x in Composition([1, 1, 3, 4, 3]).to_subset()]
@@ -1148,28 +1157,30 @@ def from_descents(descents, nps=None):
         sage: sage.combinat.composition.from_descents([1,0,4,8,11])
         [1, 1, 3, 4, 3]
     """
-    d = [x+1 for x in descents]
+    d = [x+1 for x in sorted(descents)]
+    if nps is None:
+        nps = d.pop()
     return composition_from_subset(d, nps)
 
-def composition_from_subset(S, n=None):
+def composition_from_subset(S, n):
     """
     The composition of `n` corresponding to the subset ``S`` of
     `\{1, 2, \dots, n-1\}` under the bijection that maps the composition
-    `[i_1, i_2, \cdots, i_k]` of `n` to the subset
+    `[i_1, i_2, \dots, i_k]` of `n` to the subset
     `\{i_1, i_1 + i_2, i_1 + i_2 + i_3, \dots, i_1 + \cdots + i_{k-1}\}`
     (see :meth:`to_subset`).
 
-    INPUT::
+    INPUT:
 
-    - ``S`` a subset of `n-1`
-    - ``n`` (default: ``None``) an integer or ``None``; if ``None``, then
+    - ``S`` -- an iterable, a subset of `n-1`
+    - ``n`` -- an integer
 
     EXAMPLES::
 
         sage: from sage.combinat.composition import composition_from_subset
-        sage: composition_from_subset([2,1,5,9],12)
+        sage: composition_from_subset([2,1,5,9], 12)
         [1, 1, 3, 4, 3]
-        sage: composition_from_subset([2,1,5,9,12])
+        sage: composition_from_subset({2,1,5,9}, 12)
         [1, 1, 3, 4, 3]
 
     TESTS::
@@ -1188,11 +1199,10 @@ def composition_from_subset(S, n=None):
         else:
             return Composition([n])
 
-    if n is not None:
-        if n <= max(d):
-            raise ValueError, "S (=%s) is not a subset of {1, ..., %s}" % (d,n-1)
-        elif n > max(d):
-            d.append(n)
+    if n <= max(d):
+        raise ValueError, "S (=%s) is not a subset of {1, ..., %s}" % (d,n-1)
+    elif n > max(d):
+        d.append(n)
 
     co = [d[0]]
     for i in range(len(d)-1):

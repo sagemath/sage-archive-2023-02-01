@@ -1103,6 +1103,17 @@ def hecke_series(p,N,klist,m, modformsring = False, weightbound = 6):
         sage: hecke_series(19,1,[10000,10018],5)
         [1694173*x^4 + 2442526*x^3 + 1367943*x^2 + 1923654*x + 1,
         130321*x^4 + 958816*x^3 + 2278233*x^2 + 1584827*x + 1]
+
+    Check that silly weights are handled correctly::
+
+        sage: hecke_series(5, 7, [2, 3], 5)
+        Traceback (most recent call last):
+        ...
+        ValueError: List of weights must be all congruent modulo p-1 = 4, but given list contains 2 and 3 which are not congruent
+        sage: hecke_series(5, 7, [3], 5)
+        [1]
+        sage: hecke_series(5, 7, 3, 5)
+        1
     """
     # convert to sage integers
     p = ZZ(p)
@@ -1127,7 +1138,10 @@ def hecke_series(p,N,klist,m, modformsring = False, weightbound = 6):
 
     # return all 1 list for odd weights
     if klist[0] % 2 == 1:
-        return [1 for i in xrange(len(klist))]
+        if oneweight:
+            return 1
+        else:
+            return [1 for i in xrange(len(klist))]
 
     if N == 1:
         Alist = level1_UpGj(p,klist,m)
@@ -1143,5 +1157,3 @@ def hecke_series(p,N,klist,m, modformsring = False, weightbound = 6):
         return Plist[0]
     else:
         return Plist
-
-

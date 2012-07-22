@@ -1967,6 +1967,15 @@ ext_modules = [
 
 from sage.misc.package import is_package_installed
 
+if is_package_installed('fes'):
+    ext_modules.extend([
+       Extension("sage.libs.fes",
+                 ["sage/libs/fes.pyx"],
+                 include_dirs = [SAGE_INC, "sage/c_lib/include/"],
+                 language = "c",
+                 libraries = ['csage', 'fes'])
+       ])
+
 
 if (os.path.isfile(SAGE_INC + "gurobi_c.h") and
     os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")):

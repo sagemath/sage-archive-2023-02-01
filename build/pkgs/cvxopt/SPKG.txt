@@ -44,14 +44,6 @@ GNU Lesser General Public License, v2.1.  See src/LICENSE for more details.
    instead of /usr.  Add fortran, blas,... libraries if needed.
    Build with GSL and GLPK support.
 
- * dense.c.patch: this incorporates upstream changes from version
-   1.1.5, fixing a bug to allow self-tests to pass on OS X 10.7
-   (Lion). When upgrading CVXOPT to version 1.1.5, this patch can be
-   removed.
-
- * TODO: incorporate docs buiding into spkg-install, and/or merge into
-   Sage documentation
-
  * TODO: Add more tests in spkg-check
 
  * TODO: one might want to enhance the code to allow other Sage
@@ -60,6 +52,11 @@ GNU Lesser General Public License, v2.1.  See src/LICENSE for more details.
    construct.
 
 == Changelog ==
+
+=== cvxopt-1.1.5 (François Bissey, 25 June 2012) ===
+ * update to 1.1.5, drop dense.c patch as it is not needed anymore.
+ * rewrite and simplify the patch for setup.py. Keep the necessary linking minimal.
+ * First attempt at doc building
 
 === cvxopt-1.1.4.p1 (Jeroen Demeyer, 3 April 2012) ===
  * Trac #12011: edit cvxopt.h.patch to apply with all GCC versions.

@@ -7,6 +7,9 @@ if [[ -z "$SAGE_LOCAL" ]]; then
 fi
 
 
+# set LDFLAGS with proper flags to link against gmp/mpir and cddlib
+LDFLAGS="-L$SAGE_LOCAL/lib -lcddgmp -lgmp -lm"
+
 if [[ -z $CFLAG64 ]]; then
     CFLAG64=-m64
 fi
@@ -24,53 +27,28 @@ else
     unset CXXFLAG64 # Might come from the "global" environment.
 fi
 
-export CC CXX CFLAGS CXXFLAGS
+export CC CXX CFLAGS CXXFLAGS LDFLAGS
 
+cd src
 
 # Patch the Makefile so it can build in Sage:
 echo "Copying a revised Makefile, to improve portability..."
-cp patches/Makefile src/
+patch -p0 <../patches/Makefile.patch
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error: Patch to improve portability did not copy correctly."
     exit 1
 fi
 
-# Patch polynomial.cpp to fix a bug, as suggested by Anders Jensen.
-# This should not be necessary any more (and can be removed) in
-# the next release of gfan (following 0.4plus).
-echo "Copying a patched polynomial.cpp..."
-cp patches/polynomial.cpp src/
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error: Patch to fix polynomial.cpp did not copy correctly."
-    exit 1
-fi
-
-echo "Copying patched files to fix issues with GCC 4.5.0..."
-cp patches/linalg.cpp patches/matrix.h src/
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error: Patch to fix GCC 4.5.0 issues did not copy correctly."
-    exit 1
-fi
-
 echo "Copying patched file to fix an issue with GCC 4.7.0..."
-cp patches/app_minkowski.cpp src/
+patch -p0 <../patches/app_minkowski.cpp.patch
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error: Patch to fix GCC 4.7.0 issue did not copy correctly."
     exit 1
 fi
 
-
-cd src/
-
-
-# TODO: Should only be done *after* a *successful* (re)build,
-#       although not necessary anyway:
-echo "Removing old version of gfan (if any)..."
-rm -f "$SAGE_LOCAL/bin/gfan*"
-
-
 echo "Now building gfan..."
-$MAKE cddpath="$SAGE_LOCAL"
+# We don't use the makefile to install gfan so we don't need to set PREFIX
+$MAKE CPPFLAGS="-I$SAGE_LOCAL/include"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error building gfan."
     exit 1
@@ -81,6 +59,10 @@ if [[ ! -f gfan ]]; then
     exit 1
 fi
 
+echo "Removing old version of gfan (if any)..."
+rm -f "$SAGE_LOCAL"/bin/gfan*
+
+
 cp -pf gfan "$SAGE_LOCAL/bin/"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error copying gfan executable."
@@ -88,7 +70,6 @@ if [[ $? -ne 0 ]]; then
 fi
 
 cd "$SAGE_LOCAL/bin/"
-rm -f gfan_* # remove old links
 echo "Now running gfan to install links in '$SAGE_LOCAL/bin/'..."
 ./gfan installlinks
 # XXX How about [just] checking $? here?

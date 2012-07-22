@@ -1,6 +1,33 @@
---- src/app_minkowski.cpp	2009-10-22 01:25:58.000000000 +0200
-+++ patches/app_minkowski.cpp	2012-03-25 22:59:21.592666699 +0200
-@@ -160,7 +160,7 @@
+--- app_minkowski.cpp.orig	2011-01-24 06:21:47.000000000 +1300
++++ app_minkowski.cpp	2012-07-23 11:43:29.172776129 +1200
+@@ -64,9 +64,9 @@
+     registerOptions();
+     optionPartOne.hide();
+     optionPartTwo.hide();
+-  }
++  }    
+ 
+-  const char *name()
++  char *name()
+   {
+     return "_minkowskisum";
+   }
+@@ -74,7 +74,7 @@
+   int main()
+   {
+     LexicographicTermOrder myOrder;
+-
++    
+     PolynomialSet g=FileParser(Stdin).parsePolynomialSetWithRing();
+     g.sort_();
+     g.markAndScale(myOrder);
+@@ -155,12 +155,12 @@
+ 	    IntegerVectorList empty;
+ 	    PolyhedralCone c(inequalities,empty,n);
+ 	      */
+-
++		    
+ 	    c.canonicalize();
  	    //log0 fprintf(Stderr,"4");
  	    f.insert(c);
  	    //log0 fprintf(Stderr,"5\n");

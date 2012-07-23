@@ -289,6 +289,19 @@ class AlgebrasWithBasis(Category_over_base_ring):
 
         # Provides a product using the product_on_basis by calling linear_combination only once
         def _product_from_product_on_basis_multiply( self, left, right ):
+            r"""
+            Computes the product of two elements by extending
+            bilinearly the method :meth:`product_on_basis`.
+
+            EXAMPLES::
+
+                sage: A = AlgebrasWithBasis(QQ).example(); A
+                An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
+                sage: (a,b,c) = A.algebra_generators()
+                sage: A._product_from_product_on_basis_multiply(a*b + 2*c, a - b)
+                B[word: aba] - B[word: abb] + 2*B[word: ca] - 2*B[word: cb]
+
+            """
             return self.linear_combination( ( self.product_on_basis( mon_left, mon_right ), coeff_left * coeff_right ) for ( mon_left, coeff_left ) in left.monomial_coefficients().iteritems() for ( mon_right, coeff_right ) in right.monomial_coefficients().iteritems() )
 
         # Backward compatibility temporary cruft to help migrating form CombinatorialAlgebra

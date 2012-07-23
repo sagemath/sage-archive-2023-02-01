@@ -1915,6 +1915,35 @@ cdef class Parent(category_object.CategoryObject):
             Natural morphism:
               From: Integer Ring
               To:   Rational Field
+
+        TESTS:
+
+        The following was fixed in :trac:`12969`::
+
+            sage: H = MacdonaldPolynomialsH(QQ)
+            sage: P = MacdonaldPolynomialsP(QQ)
+            sage: m = SFAMonomial(P.base_ring())
+            sage: Ht = MacdonaldPolynomialsHt(QQ)
+            sage: phi = m.coerce_map_from(P)
+            sage: Ht.coerce_map_from(P)
+            Composite map:
+              From: Macdonald polynomials in the P basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+              To:   Macdonald polynomials in the Ht basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+              Defn:   Composite map:
+                      From: Macdonald polynomials in the P basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+                      To:   Symmetric Function Algebra over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field, Schur symmetric functions as basis
+                      Defn:   Generic morphism:
+                              From: Macdonald polynomials in the P basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+                              To:   Macdonald polynomials in the J basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+                            then
+                              Generic morphism:
+                              From: Macdonald polynomials in the J basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+                              To:   Symmetric Function Algebra over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field, Schur symmetric functions as basis
+                    then
+                      Generic morphism:
+                      From: Symmetric Function Algebra over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field, Schur symmetric functions as basis
+                      To:   Macdonald polynomials in the Ht basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+
         """
         self._coercions_used = True
         cdef map.Map mor
@@ -1954,7 +1983,13 @@ cdef class Parent(category_object.CategoryObject):
                 # NOTE: this line is what makes the coercion detection stateful
                 # self._coerce_from_list.append(mor)
                 pass
-            self._coerce_from_hash[S] = mor
+            # It may be that the only coercion from S to self is
+            # via another parent X. But if the pair (S,X) is temporarily
+            # disregarded (using _register_pair, to avoid infinite recursion)
+            # then we are not allowed to cache the absence of a coercion
+            # from S to self. See #12969
+            if (mor is not None) or _may_cache_none(self, S, "coerce"):
+                self._coerce_from_hash[S] = mor
             return mor
         except CoercionException, ex:
             _record_exception()
@@ -2675,7 +2710,7 @@ cdef class Set_PythonType_class(Set_generic):
 # _act_on_, _acted_upon_ do not in turn call __mul__ on their
 # arguments, leading to an infinite loop.
 
-cdef object _coerce_test_dict = {}
+cdef dict _coerce_test_dict = {}
 
 cdef class EltPair:
     cdef x, y, tag
@@ -2708,7 +2743,22 @@ cdef class EltPair:
     def __repr__(self):
         return "%r: %r (%r), %r (%r)" % (self.tag, self.x, type(self.x), self.y, type(self.y))
 
+cdef bint _may_cache_none(x, y, tag) except -1:
+    # Are we allowed to cache the absence of a coercion
+    # from y to x? We are only allowed, if y is *not*
+    # part of any coerce path that is temporarily disregarded,
+    # with the only exception of the path from y to x.
+    # See #12969.
+    cdef EltPair P
+    for P in _coerce_test_dict.iterkeys():
+        if (P.y is y) and (P.x is not x) and (P.tag is tag):
+            return 0
+    return 1
+
 cdef bint _register_pair(x, y, tag) except -1:
+    # Means: We will temporarily disregard coercions from
+    # y to x when looking for a coercion path by depth first
+    # search. This is to avoid infinite recursion.
     both = EltPair(x,y,tag)
 
     if both in _coerce_test_dict:

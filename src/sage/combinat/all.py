@@ -1,3 +1,5 @@
+from sage.misc.lazy_import import lazy_import
+
 from combinat import *
 from expnums import expnums
 
@@ -147,6 +149,9 @@ from species.all import *
 from multichoose_nk import MultichooseNK
 
 from kazhdan_lusztig import KazhdanLusztigPolynomial
+
+# from constellation import Constellation, Constellations
+lazy_import("sage.combinat.constellation", ["Constellation", "Constellations"])
 
 from degree_sequences import DegreeSequences
 

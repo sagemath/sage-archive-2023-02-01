@@ -14,6 +14,7 @@ Combinatorics
    sage/combinat/combination
    sage/combinat/composition_signed
    sage/combinat/composition
+   sage/combinat/constellation
    sage/combinat/core
    sage/combinat/debruijn_sequence
    sage/combinat/degree_sequences

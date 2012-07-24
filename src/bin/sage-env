@@ -426,6 +426,8 @@ fi
 if [ -z "$CXX" ]; then
     CXX=g++
 fi
+# We may set CPP, FC, F77 (to sage_fortran?) etc. here as well;
+# letting at least CPP have a default value ('cpp') probably makes sense.
 
 # An Objective-C compiler is needed for R on Darwin.
 # On Darwin, /usr/bin/cc supports Objective-C.  The gcc shipped with
@@ -439,14 +441,24 @@ if [ "$UNAME" = "Darwin" ]; then
     fi
 fi
 
-# Override CC and CXX if the gcc spkg was installed.
+# Override CC, CPP, CXX, FC, F77 and F95 if the GCC spkg was installed:
+# (We *may* also just unset FC/F77/F95 in case $SAGE_LOCAL/bin/gfortran is
+# present.)
 if [ -x "$SAGE_LOCAL/bin/gcc" ]; then
     CC=gcc
+fi
+if [ -x "$SAGE_LOCAL/bin/cpp" ]; then
+    CPP=cpp
 fi
 if [ -x "$SAGE_LOCAL/bin/g++" ]; then
     CXX=g++
 fi
-export CC CXX
+export CC CPP CXX
+if [ -x "$SAGE_LOCAL/bin/gfortran" ]; then
+    for var in FC F77 F95; do
+        export ${var}=gfortran
+    done
+fi
 
 
 if [ "$LD" = "" ]; then

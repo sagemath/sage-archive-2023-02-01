@@ -40,8 +40,9 @@ from sage.structure.sage_object import SageObject
 
 from sage.matrix.all import matrix, identity_matrix
 from sage.geometry.fan import Fan
+from sage.geometry.toric_lattice import ToricLattice
 from sage.geometry.lattice_polytope import LatticePolytope
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ, is_Field, gcd
 from sage.schemes.toric.variety import (DEFAULT_PREFIX,
                                         ToricVariety,
                                         normalize_names)
@@ -1283,5 +1284,94 @@ class ToricVarietyFactory(SageObject):
         """
         return self._make_CPRFanoToricVariety('P4_11133_resolved', names)
 
+    def WP(self, *q, **kw):
+        # Specific keyword arguments instead of **kw would be preferable,
+        # later versions of Python might support specific (optional) keyword
+        # arguments after *q.
+        r"""
+        Construct weighted projective `n`-space over a field.
+
+        INPUT:
+
+        - ``q`` -- a sequence of positive integers relatively prime to
+          one another. The weights ``q`` can be given either as a list
+          or tuple, or as positional arguments.
+
+        Two keyword arguments:
+
+        - ``K`` -- a field (default: `\QQ`).
+        - ``names`` -- string or list (tuple) of strings (default 'z+'). See
+          :func:`~sage.schemes.toric.variety.normalize_names` for
+          acceptable formats.
+
+        OUTPUT:
+
+        - A :class:`toric variety
+          <sage.schemes.toric.variety.ToricVariety_field>`.
+          If `q=(q_0,\dots,q_n)`, then the output is the weighted projective
+          space `\mathbb{P}(q_0,\dots,q_n)` over `K`. ``names`` are the names
+          of the generators of the homogeneous coordinate ring.
+
+        EXAMPLES:
+
+        A hyperelliptic curve `C` of genus 2 as a subscheme of the weighted
+        projective plane `\mathbb{P}(1,3,1)`::
+
+            sage: X = toric_varieties.WP([1,3,1], names='x y z')
+            sage: X.inject_variables()
+            Defining x, y, z
+            sage: g = y^2-(x^6-z^6)
+            sage: C = X.subscheme([g]); C
+            Closed subscheme of 2-d toric variety covered by 3 affine patches defined by:
+              -x^6 + z^6 + y^2
+        """
+        if len(q)==1:
+            # tuples and lists of weights are acceptable input
+            if isinstance(q[0], (list, tuple)):
+                q = q[0]
+        q = list(q)
+        m = len(q)
+        # allow case q=[1]? (not allowed presently)
+        if m < 2:
+            raise ValueError("more than one weight must be provided (got %s)" % q)
+        for i in range(m):
+            try:
+                q[i] = ZZ(q[i])
+            except(TypeError):
+                raise TypeError("the weights (=%s) must be integers" % q)
+            if q[i] <= 0:
+                raise ValueError("the weights (=%s) must be positive integers" % q)
+        if not gcd(q) == 1:
+            raise ValueError("the weights (=%s) must be relatively prime" % q)
+
+        # set default values for K and names
+        K = QQ
+        names = 'z+'
+        for key in kw:
+            if key == 'K':
+                K = kw['K']
+                if not is_Field(K):
+                    raise TypeError("K (=%r) must be a field" % K)
+            elif key == 'names':
+                names = kw['names']
+                names = normalize_names(names, m, DEFAULT_PREFIX)
+            else:
+                raise TypeError("got an unexpected keyword argument %r" % key)
+
+        L = ToricLattice(m)
+        L_sub = L.submodule([L(q)])
+        Q = L/L_sub
+        rays = []
+        cones = []
+        w = range(m)
+        L_basis = L.basis()
+        for i in w:
+            b = L_basis[i]
+            v = Q.coordinate_vector(Q(b))
+            rays = rays + [v]
+            w_c = w[:i] + w[i+1:]
+            cones = cones + [tuple(w_c)]
+        fan = Fan(cones,rays)
+        return ToricVariety(fan, coordinate_names=names, base_field=K)
 
 toric_varieties = ToricVarietyFactory()

@@ -149,6 +149,9 @@ cdef class Parent(parent.Parent):
         if mor is None and isinstance(S, type):
             #Convert Python types to native Sage types
             sage_type = py_scalar_parent(S)
+            if sage_type is None:
+                self._coerce_from_hash[S] = None
+                return None
             mor = self.coerce_map_from_c(sage_type)
             if mor is not None:
                 mor = mor * sage_type.coerce_map_from(S)

@@ -31,12 +31,6 @@ See http://www.mpir.org
    into LDFLAGS might not be necessary for later versions.
  * Perhaps make sure we still delete the correct files on 32-bit MacOS X
    on Intel hardware (x86) to not break PIC there.
- * The work-around for the broken GCC 4.7.0 on Linux ia64 (Itanium) is current-
-   ly applied for any 4.7.x version (of course only on that platform), as it
-   seems unlikely that the bug which breaks the build of MPIR gets fixed soon.
-   In case GCC 4.7.1 or a later version is meanwhile released, one should check
-   whether the build is still broken with this or these, and eventually change
-   the version pattern accordingly.
  * Remove some files / directories not needed for Sage from upstream:
      rm -rf src/build.vc*             # Microsoft Visual C build files
      rm -rf src/yasm/Mkfiles/{dj,vc*} # DJGPP, Microsoft Visual C
@@ -59,6 +53,10 @@ See http://www.mpir.org
    of autoconf, automake and libtool as the original files).
 
 == Changelog ==
+
+=== mpir-2.4.0.p6 (Jeroen Demeyer, 28 May 2012) ===
+ * Trac #12751: Apply the ia64 workaround for gcc-4.7.0 *only* on
+   gcc-4.7.0 and not on other gcc-4.7.x versions.
 
 === mpir-2.4.0.p5 (Jeroen Demeyer, 27 May 2012) ===
  * Trac #12970: configure.patch: add some configure tests to check that

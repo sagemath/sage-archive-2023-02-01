@@ -61,18 +61,18 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
     The three bases of ``A``::
 
         sage: F   = A.F()  ; F
-        The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+        The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
         sage: In  = A.In() ; In
-        The subset algebra of {1, 2, 3} over Rational Field on the in basis
+        The subset algebra of {1, 2, 3} over Rational Field on the In basis
         sage: Out = A.Out(); Out
-        The subset algebra of {1, 2, 3} over Rational Field on the out basis
+        The subset algebra of {1, 2, 3} over Rational Field on the Out basis
 
     One can quickly define all the bases using the following shortcut::
 
         sage: A.inject_shorthands()
-        Injecting F as shorthand for The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+        Injecting F as shorthand for The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
         ...
-        Injecting In as shorthand for The subset algebra of {1, 2, 3} over Rational Field on the in basis
+        Injecting In as shorthand for The subset algebra of {1, 2, 3} over Rational Field on the In basis
         ...
 
     Accessing the basis elements is done with :meth:`basis()` method::
@@ -143,26 +143,26 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             <class 'sage.categories.modules_with_basis.TriangularModuleMorphism'>
             sage: In.coerce_map_from(Out)
             Composite map:
-              From: The subset algebra of {1, 2, 3} over Rational Field on the out basis
-              To:   The subset algebra of {1, 2, 3} over Rational Field on the in basis
+              From: The subset algebra of {1, 2, 3} over Rational Field on the Out basis
+              To:   The subset algebra of {1, 2, 3} over Rational Field on the In basis
               Defn:   Generic morphism:
-                      From: The subset algebra of {1, 2, 3} over Rational Field on the out basis
-                      To:   The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+                      From: The subset algebra of {1, 2, 3} over Rational Field on the Out basis
+                      To:   The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
                     then
                       Generic morphism:
-                      From: The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
-                      To:   The subset algebra of {1, 2, 3} over Rational Field on the in basis
+                      From: The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
+                      To:   The subset algebra of {1, 2, 3} over Rational Field on the In basis
             sage: Out.coerce_map_from(In)
             Composite map:
-              From: The subset algebra of {1, 2, 3} over Rational Field on the in basis
-              To:   The subset algebra of {1, 2, 3} over Rational Field on the out basis
+              From: The subset algebra of {1, 2, 3} over Rational Field on the In basis
+              To:   The subset algebra of {1, 2, 3} over Rational Field on the Out basis
               Defn:   Generic morphism:
-                      From: The subset algebra of {1, 2, 3} over Rational Field on the in basis
-                      To:   The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+                      From: The subset algebra of {1, 2, 3} over Rational Field on the In basis
+                      To:   The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
                     then
                       Generic morphism:
-                      From: The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
-                      To:   The subset algebra of {1, 2, 3} over Rational Field on the out basis
+                      From: The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
+                      To:   The subset algebra of {1, 2, 3} over Rational Field on the Out basis
         """
         assert(R in Rings())
         self._base = R # Won't be needed when CategoryObject won't override anymore base_ring
@@ -201,7 +201,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             sage: A = Sets().WithRealizations().example(); A
             The subset algebra of {1, 2, 3} over Rational Field
             sage: A.a_realization()
-            The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+            The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
         """
         return self.F()
 
@@ -308,7 +308,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
                 EXAMPLES::
 
                     sage: In = Sets().WithRealizations().example().In(); In
-                    The subset algebra of {1, 2, 3} over Rational Field on the in basis
+                    The subset algebra of {1, 2, 3} over Rational Field on the In basis
                     sage: In.from_set(2,3)
                     In[{2, 3}]
 
@@ -347,7 +347,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
                 EXAMPLES::
 
                     sage: Sets().WithRealizations().example().In()  # indirect doctest
-                    The subset algebra of {1, 2, 3} over Rational Field on the in basis
+                    The subset algebra of {1, 2, 3} over Rational Field on the In basis
                 """
                 return "%s %s"%(self.realization_of(), "on the %s basis"%(self._realization_name()))
 
@@ -384,9 +384,9 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
 
             sage: A = Sets().WithRealizations().example()
             sage: A.F()
-            The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+            The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
             sage: A.Fundamental()
-            The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+            The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
         """
 
         def __init__(self, A):
@@ -396,7 +396,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
                 sage: A = Sets().WithRealizations().example(); A
                 The subset algebra of {1, 2, 3} over Rational Field
                 sage: F = A.F(); F
-                The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+                The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
                 sage: TestSuite(F).run()
             """
             CombinatorialFreeModule.__init__(self,
@@ -414,7 +414,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: F = Sets().WithRealizations().example().F(); F
-                The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+                The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
                 sage: S = F.basis().keys(); S
                 Subsets of {1, 2, 3}
                 sage: F.product_on_basis(S([]), S([]))
@@ -433,7 +433,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: F = Sets().WithRealizations().example().F(); F
-                The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+                The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
                 sage: F.one_basis()
                 {}
                 sage: F.one()
@@ -460,7 +460,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
 
             sage: A = Sets().WithRealizations().example()
             sage: A.In()
-            The subset algebra of {1, 2, 3} over Rational Field on the in basis
+            The subset algebra of {1, 2, 3} over Rational Field on the In basis
 
         TESTS:
 
@@ -468,7 +468,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
         basis, computing the product there, and then converting back::
 
             sage: In = Sets().WithRealizations().example().In(); In
-            The subset algebra of {1, 2, 3} over Rational Field on the in basis
+            The subset algebra of {1, 2, 3} over Rational Field on the In basis
             sage: x = In.an_element()
             sage: y = In.an_element()
             sage: In.product
@@ -484,7 +484,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: In = Sets().WithRealizations().example().In(); In
-                The subset algebra of {1, 2, 3} over Rational Field on the in basis
+                The subset algebra of {1, 2, 3} over Rational Field on the In basis
                 sage: TestSuite(In).run()
             """
             CombinatorialFreeModule.__init__(self,
@@ -503,7 +503,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
 
             sage: A = Sets().WithRealizations().example()
             sage: A.Out()
-            The subset algebra of {1, 2, 3} over Rational Field on the out basis
+            The subset algebra of {1, 2, 3} over Rational Field on the Out basis
 
         TESTS:
 
@@ -511,7 +511,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
         basis, computing the product there, and then converting back::
 
             sage: Out = Sets().WithRealizations().example().Out(); Out
-            The subset algebra of {1, 2, 3} over Rational Field on the out basis
+            The subset algebra of {1, 2, 3} over Rational Field on the Out basis
             sage: x = Out.an_element()
             sage: y = Out.an_element()
             sage: Out.product
@@ -527,7 +527,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: Out = Sets().WithRealizations().example().Out(); Out
-                The subset algebra of {1, 2, 3} over Rational Field on the out basis
+                The subset algebra of {1, 2, 3} over Rational Field on the Out basis
                 sage: TestSuite(Out).run()
             """
             CombinatorialFreeModule.__init__(self,

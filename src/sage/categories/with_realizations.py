@@ -62,11 +62,11 @@ def WithRealizations(self):
     the basis `B`::
 
         sage: A.F()
-        The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+        The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
         sage: A.Out()
-        The subset algebra of {1, 2, 3} over Rational Field on the out basis
+        The subset algebra of {1, 2, 3} over Rational Field on the Out basis
         sage: A.In()
-        The subset algebra of {1, 2, 3} over Rational Field on the in basis
+        The subset algebra of {1, 2, 3} over Rational Field on the In basis
 
         sage: A.an_element()
         F[{}] + 2*F[{1}] + 3*F[{2}] + F[{1, 2}]
@@ -82,8 +82,8 @@ def WithRealizations(self):
         7*F[{}] + 3*F[{1}] + 4*F[{2}] + F[{1, 2}]
         sage: F.coerce_map_from(Out)
         Generic morphism:
-          From: The subset algebra of {1, 2, 3} over Rational Field on the out basis
-          To:   The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis
+          From: The subset algebra of {1, 2, 3} over Rational Field on the Out basis
+          To:   The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis
 
     allowing for mixed arithmetic::
 
@@ -93,9 +93,9 @@ def WithRealizations(self):
     In our example, there are three realizations::
 
         sage: A.realizations()
-        [The subset algebra of {1, 2, 3} over Rational Field on the fundamental basis,
-         The subset algebra of {1, 2, 3} over Rational Field on the in basis,
-         The subset algebra of {1, 2, 3} over Rational Field on the out basis]
+        [The subset algebra of {1, 2, 3} over Rational Field on the Fundamental basis,
+         The subset algebra of {1, 2, 3} over Rational Field on the In basis,
+         The subset algebra of {1, 2, 3} over Rational Field on the Out basis]
 
     The set of all realizations of `A`, together with the coercion morphisms
     is a category (whose class inherits from

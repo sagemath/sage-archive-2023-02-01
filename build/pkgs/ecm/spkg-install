@@ -87,8 +87,8 @@ fi
 # for the *static* library (which the Sage library links to unless
 # we also build the shared one). The following only handles the
 # most common cases, not all variations with '=yes' or '=no' etc.:
-if ! (echo $ECM_EXTRA_OPTS | egrep -- "--enable-shared|--with-pic" >/dev/null) ||
-     (echo $ECM_EXTRA_OPTS | egrep -- "--disable-shared" >/dev/null);
+if ! (echo $ECM_CONFIGURE | egrep -- "--enable-shared|--with-pic" >/dev/null) ||
+     (echo $ECM_CONFIGURE | egrep -- "--disable-shared" >/dev/null);
 then
     echo "Adding '-fPIC' to CFLAGS since we don't (also) build a shared library."
     CFLAGS="$CFLAGS -fPIC" # alternatively add '--with-pic' to 'configure' options
@@ -97,17 +97,17 @@ else
     # library (unless '--with-pic' was given). libtool does the right thing
     # for the shared one we also build, which then will be used by Sage.
     echo "Not adding '-fPIC' since we also build a shared library Sage will link"
-    echo "to, or '--with-pic' was given in ECM_EXTRA_OPTS."
+    echo "to, or '--with-pic' was given in ECM_CONFIGURE."
 fi
 
 
 if [ "$SAGE_DEBUG" = yes ]; then
     # Add debug symbols and disable optimization:
     echo >&2 "Warning: Setting SAGE_DEBUG=yes completely disables optimization."
-    CFLAGS="$CFLAGS -g -O0"
+    CFLAGS="-g -O0 $CFLAGS"
     echo "You may in addition (or instead) pass '--enable-assert' and/or"
     echo "'--enable-memory-debug' to GMP-ECM's 'configure' by setting (and"
-    echo "of course exporting) ECM_EXTRA_OPTS accordingly."
+    echo "of course exporting) ECM_CONFIGURE accordingly."
 else
     # Enable optimization, may be overridden by user settings:
     case "`uname -srm | tr ' ' '-'`" in
@@ -129,29 +129,12 @@ else
 fi
 
 
-# Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs with
-# '-O3', '-O2' and '-O1' (cf. #12765, #12751, and the bug URL below.)
-if [ "`uname -m`" = ia64 ] && [ "`testcc.sh $CC`" = GCC ]; then
-    gcc_version=`$CC -dumpversion`
-    case "$gcc_version" in
-      4.7.*)
-        CFLAGS="$CFLAGS -O0 -finline-functions -fschedule-insns"
-        echo >&2 "Warning: Disabling almost all optimization due to a bug in (at least)"
-        echo >&2 "         GCC 4.7.0 on Itanium, which otherwise would break the build."
-        echo >&2 "         See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496"
-        echo >&2 "         for current status and further details."
-        echo >&2 "         (And please report to e.g. sage-devel in case you feel this bug"
-        echo >&2 "          should already be fixed in GCC $gcc_version.)"
-    esac
-fi
-
-
 if [ "$SAGE_FAT_BINARY" = yes ]; then
     # XXX Disable SSE2 on x86? (by passing '--enable-sse2=no' to 'configure')
     # XXX Disable asm-redc? Or pass some "generic" '--host=...' to 'configure'?
     echo >&2 "Warning: SAGE_FAT_BINARY is currently not really supported by this package."
     echo >&2 "         Add e.g. '--disable-asm-redc' and/or '--enable-sse2=no'"
-    echo >&2 "         to ECM_EXTRA_OPTS if you run into problems."
+    echo >&2 "         to ECM_CONFIGURE if you run into problems."
 else
     # Tune the code generation to the machine we build on:
     cpu_params=""; other_gmp_cflags=""
@@ -237,30 +220,28 @@ unset RM
 # Now configure ECM:
 # (Note: Building (also) a *shared* library is disabled by default.
 #        Add "--enable-shared" below if you want it, though one can
-#        now pass extra 'configure' options through ECM_EXTRA_OPTS.)
+#        now pass extra 'configure' options through ECM_CONFIGURE.)
 #        If you do so, i.e. add '--enable-shared' by default, also
 #        adapt the logic regarding '-fPIC' above.
 ###############################################################################
 
-SAGE_CONF_OPTS="" # XXX Move this up in case you add options above!
-
 echo
-if [ -z "$ECM_EXTRA_OPTS" ]; then
+if [ -z "$ECM_CONFIGURE" ]; then
     echo "Now configuring GMP-ECM with the following options:"
 else
     echo "Now configuring GMP-ECM with additional options as specified by" \
-        "ECM_EXTRA_OPTS:"
-    echo "  $ECM_EXTRA_OPTS"
+        "ECM_CONFIGURE:"
+    echo "  $ECM_CONFIGURE"
     echo "Finally configuring GMP-ECM with the following options:"
 fi
 echo "  --prefix=\"$SAGE_LOCAL\""
 echo "  --libdir=\"$SAGE_LOCAL/lib\""
 echo "  --with-gmp=\"$SAGE_LOCAL\""
-for opt in $SAGE_CONF_OPTS $ECM_EXTRA_OPTS; do
+for opt in $ECM_CONFIGURE; do
     echo "  $opt"
 done
-if [ -z "$ECM_EXTRA_OPTS" ]; then
-    echo "You can set ECM_EXTRA_OPTS to pass additional parameters,"
+if [ -z "$ECM_CONFIGURE" ]; then
+    echo "You can set ECM_CONFIGURE to pass additional parameters,"
     echo "e.g. \"--enable-shared\" to also build a *shared* library,"
     echo "or \"--disable-sse2\" if you encounter problems on a Pentium III system."
 fi
@@ -268,7 +249,7 @@ echo
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
             --with-gmp="$SAGE_LOCAL" \
-            $SAGE_CONF_OPTS $ECM_EXTRA_OPTS
+            $ECM_CONFIGURE
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring GMP-ECM."
     echo >&2 "(See above for the options passed to its 'configure'.)"

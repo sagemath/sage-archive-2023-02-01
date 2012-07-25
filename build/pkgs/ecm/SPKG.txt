@@ -54,13 +54,6 @@ LGPL V2+
    "-mcpu=...", and perhaps pass a more generic "--host=..." to
    'configure'. (MPIR honors '--enable-fat' to some extent, but this
    option isn't used on anything other than x86 / x86_64.)
- * Check whether the work-around for GCC 4.7 on ia64 is still appropriate, i.e.
-   adapt it in case the issue has been fixed in later GCC versions of the 4.7
-   release series.  (Although the bug currently affects only GCC 4.7.0, it
-   seems unlikely that it will be fixed soon, hence we apply the work-around
-   for any GCC 4.7.x version on ia64.)
-   See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496 for details and the
-   current status of that bug.
  * We could save some space by removing the `src/build.vc9/` directory which
    isn't used in Sage.  (It gets probably more worth in case also directories /
    files for later versions of Microsoft Visual C get added.)
@@ -82,6 +75,14 @@ LGPL V2+
 
 
 == Changelog ==
+
+=== ecm-6.3.p8 (Jeroen Demeyer, 28 May 2012) ===
+ * Trac #12751: remove the gcc-4.7.0 workaround for ia64 since this bug
+   has been fixed in gcc-4.7.1 and we will not support building Sage
+   with gcc-4.7.0 on Itanium.
+ * Remove unused variable SAGE_CONF_OPTS.
+ * Rename ECM_EXTRA_OPTS to ECM_CONFIGURE for consistency with MPIR.
+ * Don't override user-set CFLAGS.
 
 === ecm-6.3.p7 (Leif Leonhardy, April 19th 2012) ===
  * #12830: Add `-m[no-]power*` to the processor-specific options recognized;

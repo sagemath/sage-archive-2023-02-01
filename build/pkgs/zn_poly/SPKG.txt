@@ -34,13 +34,6 @@ the file src/COPYING for details.
    `spkg-install` (and perhaps also `spkg-check`).
  * There's also a `--use-flint` option to `configure`; no idea what it does,
    and we currently don't use it either.
- * Check whether the work-around for GCC 4.7 on ia64 is still appropriate, i.e.
-   adapt it in case the issue has been fixed in later GCC versions of the 4.7
-   release series.  (Although the bug currently affects only GCC 4.7.0, it
-   seems unlikely that it will be fixed soon, hence we apply the work-around
-   for any GCC 4.7.x version on ia64.)
-   See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496 for details and the
-   current status of that bug.
  * TODO:
    - Use `make install` instead of manually "installing" (copying and sym-
      linking) the [shared] libraries and header files.  This requires further
@@ -63,6 +56,12 @@ the file src/COPYING for details.
    (See #8771).
 
 == Changelog ==
+
+=== zn_poly-0.9.p9 (Jeroen Demeyer, 28 May 2012) ===
+ * Trac #12751: remove the gcc-4.7.0 workaround for ia64 since this bug
+   has been fixed in gcc-4.7.1 and we will not fully support building
+   Sage with gcc-4.7.0 on Itanium.
+ * Don't override user-set CFLAGS and CXXFLAGS.
 
 === zn_poly-0.9.p8 (Leif Leonhardy, April 20th, 2012) ===
  * #12433: Further reviewer changes / additions.

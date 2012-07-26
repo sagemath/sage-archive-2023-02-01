@@ -72,7 +72,7 @@ Then, for installing the latest "official" version of our package (2.1.2), do
     sage: install_package('p_group_cohomology')
 
 The latest version (2.1.3) can be installed on the command line
-(hence, <i>not</i> in a running Sage session) by
+(hence, *not* in a running Sage session) by
 ::
 
     sage -i http://sage.math.washington.edu/home/SimonKing/Cohomology/p_group_cohomology-2.1.3.spkg

@@ -1554,7 +1554,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         INPUT:
 
         - self -- a p-adic element
-        - absprec -- an integer or None
+        - absprec -- (default: None) an integer or None
 
         OUTPUT:
 
@@ -1573,12 +1573,20 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             Traceback (most recent call last):
             ...
             PrecisionError: Not enough precision to determine if element is zero
+
+        TESTS:
+
+        Check that :trac:`12549` is fixed::
+
+            sage: a = Zp(5)(1) + Zp(5)(-1)
+            sage: a.is_zero()
+            True
         """
+        self._normalize()
         if absprec is None:
             return mpz_sgn(self.unit) <= 0
         if mpz_sgn(self.unit) == -1:
             return True
-        self._normalize()
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
         elif mpz_sgn(self.unit) == 0:

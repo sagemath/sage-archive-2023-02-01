@@ -1,5 +1,5 @@
-<i>p</i>-Group Cohomology Package
-=================================
+*p*-Group Cohomology Package
+============================
 
 This is the documentation for our `Sage <http://www.sagemath.org/>`_ package
 on the computation of modular cohomology rings of finite groups.

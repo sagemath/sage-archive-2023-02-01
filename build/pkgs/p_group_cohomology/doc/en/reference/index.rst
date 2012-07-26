@@ -15,8 +15,7 @@ The source code consists of
  * a modified version of parts of the Aachen `C MeatAxe <http://www.math.rwth-aachen.de/homes/MTX/>`_.
 
 The package comprises a data base of the cohomology rings of all groups of
-order 64, and can access a repository (due to a hardware problem, the
-repository was unavailable as of March 2012), of the cohomology rings of
+order 64, and can access a repository of the cohomology rings of
 all groups of order 128 all but 6 groups of order 243, of the Sylow
 2-subgroup of the Higman-Sims group, and of the Sylow 2-subgroup of the
 third Conway group. These data were produced with our package.

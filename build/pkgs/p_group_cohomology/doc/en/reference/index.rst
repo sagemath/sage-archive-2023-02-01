@@ -1,5 +1,5 @@
-`p`-Group Cohomology Package
-============================
+<i>p</i>-Group Cohomology Package
+=================================
 
 This is the documentation for our `Sage <http://www.sagemath.org/>`_ package
 on the computation of modular cohomology rings of finite groups.
@@ -66,16 +66,16 @@ installed in your copy of Sage. You can install it during a Sage session by
 
     sage: install_package('database_gap')
 
-Then, for installing the latest "official" version of our package (2.0), do
+Then, for installing the latest "official" version of our package (2.1.2), do
 ::
 
     sage: install_package('p_group_cohomology')
 
-The latest experimental version (2.1.2) can be installed on the command line
+The latest version (2.1.3) can be installed on the command line
 (hence, <i>not</i> in a running Sage session) by
 ::
 
-    sage -i http://sage.math.washington.edu/home/SimonKing/Cohomology/p_group_cohomology-2.1.2.spkg
+    sage -i http://sage.math.washington.edu/home/SimonKing/Cohomology/p_group_cohomology-2.1.3.spkg
 
 We are sorry for the long installation time. Since version 2.1, the package
 works both on little and big endian machines.
@@ -83,17 +83,15 @@ works both on little and big endian machines.
 Testing
 -------
 
-The Cython and Python part of the package have 100% doctest coverage.
-If the environment variable ``SAGE_CHECK`` is set to ``yes``, a test script
-is launched right after installing the package.
+The Cython and Python parts of the package have 100% doctest coverage, but.
+be warned that running the test suite requires a considerable amount of
+time (easily one hour if a single thread is used). If the environment variable
+``SAGE_CHECK`` is set to ``yes``, the test script is launched right after
+installing the package.
 
-The tests are parallelised, provided that the patch of Sage trac ticket
-`#10004 <http://trac.sagemath.org/sage_trac/ticket/10004>`_ is applied;
-without it, all GAP and Singular interface instances would share some
-temporary file to read long command lines from, and so parallel tests
-would be highly unstable without that patch.
-The number of threads can be bounded using the environment variable
-``SAGE_NUMBER_THREADS``.
+The tests are parallelised, provided that Sage version at least 4.6
+is used. The number of threads can be bounded using the environment
+variable ``SAGE_NUMBER_THREADS``.
 
 Documentation
 -------------
@@ -135,6 +133,14 @@ suggesting to use the Poincare series in a completeness criterion.
 Versions
 --------
 
+  * v2.1.3: Cope with Cython's new "name mangling" for double underscore
+    attributes. Allow storing of "permanent results" that are indexed
+    in terms of data in Gap. In some situations, use a lower bound for
+    the depth, if the actual depth is too difficult to obtain. Switch
+    to a new location for the public web repository, which became
+    necessary by a hardware problem. Fix the creation of symbolic links
+    from a private data base to a public data base of cohomoloy rings.
+    Fix comparison of an MTX matrix with None.
   * v2.1.2: Cope with the new versions of Cython and Singular. Use Sage's
     coercion model more properly. Build the documentation locally.
   * v2.1.1: Usage of symbolic links to the public database, so that

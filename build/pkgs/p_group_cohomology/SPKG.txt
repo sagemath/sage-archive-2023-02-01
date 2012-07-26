@@ -1,4 +1,4 @@
-= p_group_cohomology-2.1.2 =
+= p_group_cohomology-2.1.3 =
 
 == Description ==
 
@@ -114,6 +114,18 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
 
 == Changelog ==
 
+  * 2.1.3 (Simon King, July 2012):
+    - Cope with another change of Cython, by avoiding double underscore
+      attributes that would now involve name mangling.
+    - If a "permanent result" is indexed by data in the Gap interface,
+      then these results can now be pickled, provided that the data
+      in Gap can be reconstructed from string representation.
+    - Use a lower bound for the depth, if the actual depth is too difficult
+      to obtain.
+    - Switch the public web repository to a new location.
+    - Fix the creation of symbolic links from a private data base to
+      a public data base.
+    - Fix comparison of MTX matrices (comparison with None used to fail).
   * 2.1.2 (Simon King, March 2012):
     - Some fixes needed with the new version of Cython used by sage-5.0.
     - Some fixes needed with Singular 3-1-3.

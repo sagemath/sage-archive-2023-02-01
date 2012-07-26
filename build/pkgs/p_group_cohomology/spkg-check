@@ -195,7 +195,7 @@ def get_docstring(f,cl):
         OUT.append(p)
     return ''
 
-import os
+import os, sys
 from sage.all import gap,singular
 NCPUS = os.environ.get('SAGE_NUMBER_THREADS')
 if not NCPUS:
@@ -248,7 +248,6 @@ def one_test(s,cl,lfd_nr):
                     prob = ''
                     break
     from sage.all import walltime
-    import os
     f = file(test_dir+'/file_%d.py'%lfd_nr,'w')
     f.write('"""\n'+s+'\n"""')
     os.fsync(f)
@@ -258,10 +257,9 @@ def one_test(s,cl,lfd_nr):
     wt = walltime(wt)
     os.unlink(f.name)
     if Res.split('\n')[-3]!='All tests passed!':
-        print cl+" fails"
+        print cl + " fails"
         return (Res,prob,wt)
-    print cl+" passes in %.2f s"%wt
-    import sys
+    print cl + " passes in %.2f s"%wt
     sys.stdout.flush()
     return ('',prob,wt)
 

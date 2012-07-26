@@ -44,6 +44,9 @@ This method is much faster, but won't include any potential fixes old entries.
 
 == Changelog ==
 
+=== database_cremona_ellcurve-20120623 (John Cremona, 23 July 2012) ===
+ * #13298: Updated the tables to include all conductors up to 250000
+
 === database_cremona_ellcurve-20120606 (John Cremona, 6 June 2012) ===
  * #13095: Updated the tables to include all conductors up to 240000
 

@@ -89,17 +89,7 @@ from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
 from sage.rings.polynomial.multi_polynomial_ideal_libsingular cimport sage_ideal_to_singular_ideal, singular_ideal_to_sage_sequence
 
-from sage.libs.singular.decl cimport leftv, idhdl, poly, ideal, ring, number, intvec, lists
-from sage.libs.singular.decl cimport sleftv_bin, omAllocBin, omFreeBin, omStrDup, slists_bin, omAlloc0Bin
-from sage.libs.singular.decl cimport iiMake_proc, iiExprArith1, iiExprArith2, iiExprArith3, iiExprArithM, iiLibCmd
-from sage.libs.singular.decl cimport ggetid, IDEAL_CMD, CMD_M, POLY_CMD, PROC_CMD, RING_CMD, QRING_CMD, NUMBER_CMD, INT_CMD, INTVEC_CMD, RESOLUTION_CMD
-from sage.libs.singular.decl cimport MODUL_CMD, LIST_CMD, MATRIX_CMD, VECTOR_CMD, STRING_CMD, V_LOAD_LIB, V_REDEFINE, INTMAT_CMD, NONE, PACKAGE_CMD
-from sage.libs.singular.decl cimport IsCmd, rChangeCurrRing, currRing, p_Copy, rIsPluralRing, rPrint, rOrderingString
-from sage.libs.singular.decl cimport IDROOT, enterid, currRingHdl, memcpy, IDNEXT, IDTYP, IDPACKAGE
-from sage.libs.singular.decl cimport errorreported, verbose, Sy_bit, currentVoice, myynest
-from sage.libs.singular.decl cimport intvec_new_int3, intvec_new, matrix, mpNew
-from sage.libs.singular.decl cimport p_Add_q, p_SetComp, p_GetComp, pNext, p_Setm, IDELEMS
-from sage.libs.singular.decl cimport idInit, syStrategy, atSet, atGet, setFlag, FLAG_STD
+from sage.libs.singular.decl cimport *
 
 from sage.libs.singular.option import opt_ctx
 from sage.libs.singular.polynomial cimport singular_vector_maximal_component, singular_polynomial_check
@@ -1080,24 +1070,36 @@ cdef class KernelCallHandler(BaseCallHandler):
         cdef leftv *arg1
         cdef leftv *arg2
         cdef leftv *arg3
-        if self.arity != CMD_M:
-            number_of_arguments=len(argument_list)
 
-            if number_of_arguments == 1:
+        cdef int number_of_arguments = len(argument_list)
+
+        # Handle functions with an arbitrary number of arguments, sent
+        # by an argument list.
+        if self.arity in [CMD_M, ROOT_DECL_LIST, RING_DECL_LIST]:
+            if _ring != currRing: rChangeCurrRing(_ring)
+            iiExprArithM(res, argument_list.args, self.cmd_n)
+            return res
+
+        if number_of_arguments == 1:
+            if self.arity in [CMD_1, CMD_12, CMD_13, CMD_123, RING_CMD]:
                 arg1 = argument_list.pop_front()
                 if _ring != currRing: rChangeCurrRing(_ring)
                 iiExprArith1(res, arg1, self.cmd_n)
                 free_leftv(arg1)
+                return res
 
-            elif number_of_arguments == 2:
+        elif number_of_arguments == 2:
+            if self.arity in [CMD_2, CMD_12, CMD_23, CMD_123]:
                 arg1 = argument_list.pop_front()
                 arg2 = argument_list.pop_front()
                 if _ring != currRing: rChangeCurrRing(_ring)
-                iiExprArith2(res, arg1, self.cmd_n, arg2, self.cmd_n>255)
+                iiExprArith2(res, arg1, self.cmd_n, arg2, True)
                 free_leftv(arg1)
                 free_leftv(arg2)
+                return res
 
-            elif number_of_arguments == 3:
+        elif number_of_arguments == 3:
+            if self.arity in [CMD_3, CMD_13, CMD_23, CMD_123, RING_CMD]:
                 arg1 = argument_list.pop_front()
                 arg2 = argument_list.pop_front()
                 arg3 = argument_list.pop_front()
@@ -1106,11 +1108,14 @@ cdef class KernelCallHandler(BaseCallHandler):
                 free_leftv(arg1)
                 free_leftv(arg2)
                 free_leftv(arg3)
-        else:
-            if _ring != currRing: rChangeCurrRing(_ring)
-            iiExprArithM(res, argument_list.args, self.cmd_n)
+                return res
 
-        return res
+        global errorreported
+        global error_messages
+
+        errorreported += 1
+        error_messages.append("Wrong number of arguments")
+        return NULL
 
     cdef bint free_res(self):
         """
@@ -1203,8 +1208,7 @@ cdef class SingularFunction(SageObject):
             Traceback (most recent call last):
             ...
             RuntimeError: Error in Singular function call 'size':
-             size(`int`,`int`) failed
-
+             Wrong number of arguments
             sage: size('foobar', ring=P)
             6
 
@@ -1434,9 +1438,8 @@ cdef inline call_function(SingularFunction self, tuple args, object R, bint sign
 
     if errorreported:
         errorreported = 0
-        error_msg = " " + "\n ".join(error_messages)
-        raise RuntimeError("Error in Singular function call '%s':\n%s"%(self._name,
-                                                                           error_msg))
+        raise RuntimeError("Error in Singular function call '%s':\n %s"%
+            (self._name, "\n ".join(error_messages)))
 
     res = argument_list.to_python(_res)
 
@@ -1539,35 +1542,21 @@ def singular_function(name):
 
     INPUT:
 
-    - ``name`` - the name of the function
+    - ``name`` -- the name of the function
 
-    EXAMPLE::
+    EXAMPLES::
 
-        sage: from sage.libs.singular.function import singular_function
         sage: P.<x,y,z> = PolynomialRing(QQ)
         sage: f = 3*x*y + 2*z + 1
         sage: g = 2*x + 1/2
         sage: I = Ideal([f,g])
 
-        sage: number_foobar = singular_function('number_foobar');
-        Traceback (most recent call last):
-        ...
-        NameError: Function 'number_foobar' is not defined.
+    ::
 
-        sage: from sage.libs.singular.function import lib as singular_lib
-        sage: singular_lib('general.lib')
-        sage: number_e = singular_function('number_e')
-        sage: number_e(10r,ring=P)
-        67957045707/25000000000
-        sage: RR(number_e(10r,ring=P))
-        2.71828182828000
-
+        sage: from sage.libs.singular.function import singular_function
         sage: std = singular_function("std")
         sage: std(I)
         [3*y - 8*z - 4, 4*x + 1]
-        sage: singular_list = singular_function("list")
-        sage: singular_list(2, 3, 6, ring=P)
-        [2, 3, 6]
         sage: size = singular_function("size")
         sage: size([2, 3, 3], ring=P)
         3
@@ -1578,6 +1567,59 @@ def singular_function(name):
         sage: factorize = singular_function("factorize")
         sage: factorize(f)
         [[1, 3*x*y + 2*z + 1], (1, 1)]
+        sage: factorize(f, 1)
+        [3*x*y + 2*z + 1]
+
+    We give a wrong number of arguments::
+
+        sage: factorize(ring=P)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Error in Singular function call 'factorize':
+         Wrong number of arguments
+        sage: factorize(f, 1, 2)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Error in Singular function call 'factorize':
+         Wrong number of arguments
+        sage: factorize(f, 1, 2, 3)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Error in Singular function call 'factorize':
+         Wrong number of arguments
+
+    The Singular function ``list`` can be called with any number of
+    arguments::
+
+        sage: singular_list = singular_function("list")
+        sage: singular_list(2, 3, 6, ring=P)
+        [2, 3, 6]
+        sage: singular_list(ring=P)
+        []
+        sage: singular_list(1, ring=P)
+        [1]
+        sage: singular_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ring=P)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+    We try to define a non-existing function::
+
+        sage: number_foobar = singular_function('number_foobar');
+        Traceback (most recent call last):
+        ...
+        NameError: Function 'number_foobar' is not defined.
+
+    ::
+
+        sage: from sage.libs.singular.function import lib as singular_lib
+        sage: singular_lib('general.lib')
+        sage: number_e = singular_function('number_e')
+        sage: number_e(10r,ring=P)
+        67957045707/25000000000
+        sage: RR(number_e(10r,ring=P))
+        2.71828182828000
+
+    ::
+
         sage: singular_lib('primdec.lib')
         sage: primdecGTZ = singular_function("primdecGTZ")
         sage: primdecGTZ(I)

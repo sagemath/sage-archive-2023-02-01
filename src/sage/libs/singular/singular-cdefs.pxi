@@ -899,7 +899,18 @@ cdef extern from "libsingular.h":
     # tail reduction
     poly *redtailBba(poly *p, int index, skStrategy *strat)
 
+    cdef int CMD_1
+    cdef int CMD_2
+    cdef int CMD_12
+    cdef int CMD_3
+    cdef int CMD_13
+    cdef int CMD_23
+    cdef int CMD_123
     cdef int CMD_M
+    cdef int ROOT_DECL
+    cdef int ROOT_DECL_LIST
+    cdef int RING_DECL
+    cdef int RING_DECL_LIST
     cdef int INT_CMD
     cdef int INTMAT_CMD
     cdef int POLY_CMD

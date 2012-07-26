@@ -3869,7 +3869,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: R.<a,b,c,d> = QQ[]
             sage: f =  (-2) * (a - d) * (-a + b) * (b - d) * (a - c) * (b - c) * (c - d)
             sage: F = f.factor(); F
-            (-2) * (c - d) * (b - d) * (b - c) * (-a + b) * (a - d) * (a - c)
+            (-2) * (c - d) * (-b + c) * (b - d) * (-a + c) * (-a + b) * (a - d)
             sage: F[0][0]
             c - d
             sage: F.unit()
@@ -3903,14 +3903,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         TESTS:
 
-        This shows that ticket \#10270 is fixed::
+        This shows that :trac:`10270` is fixed::
 
             sage: R.<x,y,z> = GF(3)[]
             sage: f = x^2*z^2+x*y*z-y^2
             sage: f.factor()
             x^2*z^2 + x*y*z - y^2
 
-        This checks that ticket \#11838 is fixed::
+        This checks that :trac:`11838` is fixed::
 
             sage: K = GF(4,'a')
             sage: a = K.gens()[0]
@@ -3921,10 +3921,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.factor()
             x * y^3 * (y^8 + (a)*y^7 + (a + 1)*x) * (x^7*y^3 + x*y^9 + (a)*x^8 + (a)*y^4)
 
-             ...
-             NotImplementedError: Factorization of multivariate polynomials over non-fields is not implemented.
-
-        We test several examples which were known to return wrong results in the past (\#10902)::
+        We test several examples which were known to return wrong
+        results in the past (see :trac:`10902`)::
 
             sage: R.<x,y> = GF(2)[]
             sage: p = x^3*y^7 + x^2*y^6 + x^2*y^3

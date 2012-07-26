@@ -116,6 +116,15 @@ class Polynomial_padic_flat(Polynomial_generic_dense):
             sage: g = EK.division_polynomial_0(3)
             sage: g.factor()
             (3 + O(7^10)) * ((1 + O(7^10))*x + (1 + 2*7 + 4*7^2 + 2*7^3 + 5*7^4 + 7^5 + 5*7^6 + 3*7^7 + 5*7^8 + 3*7^9 + O(7^10))) * ((1 + O(7^10))*x^3 + (6 + 4*7 + 2*7^2 + 4*7^3 + 7^4 + 5*7^5 + 7^6 + 3*7^7 + 7^8 + 3*7^9 + O(7^10))*x^2 + (6 + 3*7 + 5*7^2 + 2*7^4 + 7^5 + 7^6 + 2*7^8 + 3*7^9 + O(7^10))*x + (2 + 5*7 + 4*7^2 + 2*7^3 + 6*7^4 + 3*7^5 + 7^6 + 4*7^7 + O(7^10)))
+
+        TESTS:
+
+        Check that :trac:`13293` is fixed::
+
+            sage: R.<T>=Qp(3)[]
+            sage: f=1926*T^2 + 312*T + 387
+            sage: f.factor()
+            (1 + 2*3 + 2*3^2 + 3^3 + 2*3^4 + O(3^20)) * ((3 + O(3^21))) * ((1 + O(3^20))*T + (2*3 + 3^2 + 3^3 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^10 + 3^11 + 2*3^12 + 2*3^14 + 2*3^15 + 2*3^17 + 2*3^18 + 3^20 + O(3^21))) * ((3 + O(3^21))*T + (2 + 3^2 + 3^3 + 2*3^6 + 2*3^7 + 2*3^8 + 3^9 + 3^10 + 2*3^12 + 3^16 + 3^18 + O(3^20)))
         """
         if self == 0:
             raise ValueError, "Factorization of 0 not defined"
@@ -160,5 +169,5 @@ class Polynomial_padic_flat(Polynomial_generic_dense):
             c -= lval * F[i][1]
         if c != 0:
             F.append((self.parent()(self.base_ring().prime_pow(c)), 1))
-            u = u.add_big_oh(absprec - c)
+            u = u.add_bigoh(absprec - c)
         return Factorization(F, u)

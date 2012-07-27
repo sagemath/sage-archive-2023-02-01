@@ -16,13 +16,13 @@ Next we make a univariate polynomial ring over
 
 ::
 
-    sage: S.<y> = S[]
+    sage: S1.<y> = S[]
 
 And, we quotient out that by `y^2 + a`.
 
 ::
 
-    sage: T.<z> = S.quotient(y^2+a)
+    sage: T.<z> = S1.quotient(y^2+a)
 
 In the quotient `z^2` is `-a`.
 
@@ -288,11 +288,90 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         return int(self._polynomial)
 
+    def is_unit(self):
+        """
+        Return ``True`` if ``self`` is invertible.
+
+        .. WARNING::
+
+            Only implemented when the base ring is a field.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R.quotient(x^2 + 2*x + 1)
+            sage: (2*y).is_unit()
+            True
+            sage: (y+1).is_unit()
+            False
+
+        TESTS:
+
+        Raise an exception if the base ring is not a field
+        (see :trac:`13303`)::
+
+            sage: Z16x.<x> = Integers(16)[]
+            sage: S.<y> =  Z16x.quotient(x^2 + x + 1)
+            sage: (2*y).is_unit()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The base ring (=Ring of integers modulo 16) is not a field
+        """
+        if self._polynomial.is_zero():
+            return False
+        if self._polynomial.is_one():
+            return True
+        parent = self.parent()
+        base = parent.base_ring()
+        if not base.is_field():
+            raise NotImplementedError("The base ring (=%s) is not a field" % base)
+        g = parent.modulus().gcd(self._polynomial)
+        return g.degree() == 0
+
     def __invert__(self):
+        """
+        Return the inverse of this element.
+
+        .. WARNING::
+
+            Only implemented when the base ring is a field.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R.quotient(x^2 + 2*x + 1)
+            sage: (2*y)^(-1)
+            -1/2*y - 1
+
+        Raises a ``ZeroDivisionError`` if this element is not a unit::
+
+            sage: (y+1)^(-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: element y + 1 of quotient polynomial ring not invertible
+
+        TESTS:
+
+        An element is not invertable if the base ring is not a field
+        (see :trac:`13303`)::
+
+            sage: Z16x.<x> = Integers(16)[]
+            sage: S.<y> =  Z16x.quotient(x^2 + x + 1)
+            sage: (2*y)^(-1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The base ring (=Ring of integers modulo 16) is not a field
+        """
         if self._polynomial.is_zero():
             raise ZeroDivisionError, \
                "element %s of quotient polynomial ring not invertible"%self
-        g, _, a = self.parent().modulus().xgcd(self._polynomial)
+        if self._polynomial.is_one():
+            return self
+        parent = self.parent()
+        base = parent.base_ring()
+        if not base.is_field():
+            raise NotImplementedError("The base ring (=%s) is not a field" % base)
+        g, _, a = parent.modulus().xgcd(self._polynomial)
         if g.degree() != 0:
             raise ZeroDivisionError, \
                "element %s of quotient polynomial ring not invertible"%self

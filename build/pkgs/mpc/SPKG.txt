@@ -3,7 +3,7 @@
 == Description ==
 
 From http://www.multiprecision.org/mpc:
-Gnu Mpc is a C library for the arithmetic of complex numbers with
+GNU MPC is a C library for the arithmetic of complex numbers with
 arbitrarily high precision and correct rounding of the result. It
 extends the principles of the IEEE-754 standard for fixed precision real
 floating point numbers to complex numbers, providing well-defined

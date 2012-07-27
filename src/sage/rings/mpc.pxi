@@ -99,14 +99,14 @@ cdef extern from "mpc.h":
     int  mpc_fr_div (mpc_t, mpfr_t, mpc_t, mpc_rnd_t)
     int  mpc_div_ui (mpc_t, mpc_t, unsigned long int, mpc_rnd_t)
     int  mpc_ui_div (mpc_t, unsigned long int, mpc_t, mpc_rnd_t)
-    int  mpc_div_2exp (mpc_t, mpc_t, unsigned long int, mpc_rnd_t)
-    int  mpc_mul_2exp (mpc_t, mpc_t, unsigned long int, mpc_rnd_t)
+    int  mpc_div_2ui (mpc_t, mpc_t, unsigned long int, mpc_rnd_t)
+    int  mpc_div_2si (mpc_t, mpc_t, long int, mpc_rnd_t)
+    int  mpc_mul_2ui (mpc_t, mpc_t, unsigned long int, mpc_rnd_t)
+    int  mpc_mul_2si (mpc_t, mpc_t, long int, mpc_rnd_t)
     #
     int  mpc_abs (mpfr_t, mpc_t, mp_rnd_t)
     int  mpc_norm (mpfr_t, mpc_t, mp_rnd_t)
 
-    int mpc_mul_2exp (mpc_t rop, mpc_t op1, unsigned long int op2, mpc_rnd_t rnd)
-    int mpc_div_2exp (mpc_t rop, mpc_t op1, unsigned long int op2, mpc_rnd_t rnd)
 
     # Power functions and logarithm
     int  mpc_sqrt (mpc_t, mpc_t, mpc_rnd_t)

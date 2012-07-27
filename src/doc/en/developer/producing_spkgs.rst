@@ -194,74 +194,75 @@ package. In this script, you may make the following assumptions:
 The ``spkg-install`` script should copy your files to the appropriate
 place after doing any build that is necessary.  Here is a template::
 
-       #!/usr/bin/env bash
+    #!/usr/bin/env bash
 
-       if [ -z "$SAGE_LOCAL" ]; then
-           echo >&2 "SAGE_LOCAL undefined ... exiting"
-           echo >&2 "Maybe run 'sage --sh'?"
-           exit 1
-       fi
+    if [ -z "$SAGE_LOCAL" ]; then
+        echo >&2 "SAGE_LOCAL undefined ... exiting"
+        echo >&2 "Maybe run 'sage --sh'?"
+        exit 1
+    fi
 
-       cd src
+    cd src
 
-       # Apply patches.  See SPKG.txt for information about what each patch
-       # does.
-       for patch in ../patches/*.patch; do
-           patch -p1 <"$patch"
-           if [ $? -ne 0 ]; then
-               echo >&2 "Error applying '$patch'"
-               exit 1
-           fi
-       done
+    # Apply patches.  See SPKG.txt for information about what each patch
+    # does.
+    for patch in ../patches/*.patch; do
+        [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+        patch -p1 <"$patch"
+        if [ $? -ne 0 ]; then
+            echo >&2 "Error applying '$patch'"
+            exit 1
+        fi
+    done
 
-       ./configure --prefix="$SAGE_LOCAL"
-       if [ $? -ne 0 ]; then
-           echo >&2 "Error configuring PACKAGE_NAME."
-           exit 1
-       fi
+    ./configure --prefix="$SAGE_LOCAL"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error configuring PACKAGE_NAME."
+        exit 1
+    fi
 
-       $MAKE
-       if [ $? -ne 0 ]; then
-           echo >&2 "Error building PACKAGE_NAME."
-           exit 1
-       fi
+    $MAKE
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error building PACKAGE_NAME."
+        exit 1
+    fi
 
-       $MAKE install
-       if [ $? -ne 0 ]; then
-           echo >&2 "Error installing PACKAGE_NAME."
-           exit 1
-       fi
+    $MAKE install
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error installing PACKAGE_NAME."
+        exit 1
+    fi
 
-       if [ "$SAGE_SPKG_INSTALL_DOCS" = yes ] ; then
-          # Before trying to build the documentation, check if any
-          # needed programs are present. In the example below, we
-          # check for 'latex', but this will depend on the package.
-          # Some packages may need no extra tools installed, others
-          # may require some.  We use 'command -v' for testing this,
-          # and not 'which' since 'which' is not portable, whereas
-          # 'command -v' is defined by POSIX.
+    if [ "$SAGE_SPKG_INSTALL_DOCS" = yes ] ; then
+        # Before trying to build the documentation, check if any
+        # needed programs are present. In the example below, we
+        # check for 'latex', but this will depend on the package.
+        # Some packages may need no extra tools installed, others
+        # may require some.  We use 'command -v' for testing this,
+        # and not 'which' since 'which' is not portable, whereas
+        # 'command -v' is defined by POSIX.
 
-          # if [ `command -v latex` ] ; then
-          #    echo "Good, latex was found, so building the documentation"
-          # else
-          #    echo "Sorry, can't build the documentation for PACKAGE_NAME as latex is not installed"
-          #    exit 1
-          # fi
+        # if [ `command -v latex` ] ; then
+        #    echo "Good, latex was found, so building the documentation"
+        # else
+        #    echo "Sorry, can't build the documentation for PACKAGE_NAME as latex is not installed"
+        #    exit 1
+        # fi
 
 
-          # make the documentation in a package-specific way
-          # for example, we might have
-          # cd doc
-          # $MAKE html
+        # make the documentation in a package-specific way
+        # for example, we might have
+        # cd doc
+        # $MAKE html
 
-          if [ $? -ne 0 ]; then
-              echo >&2 "Error building PACKAGE_NAME docs."
-              exit 1
-          fi
-          mkdir -p $SAGE_ROOT/local/share/doc/PACKAGE_NAME
-          # assuming the docs are in doc/*
-          cp -r doc/* $SAGE_ROOT/local/share/doc/PACKAGE_NAME/
-       fi
+        if [ $? -ne 0 ]; then
+            echo >&2 "Error building PACKAGE_NAME docs."
+            exit 1
+        fi
+        mkdir -p "$SAGE_ROOT/local/share/doc/PACKAGE_NAME"
+        # assuming the docs are in doc/*
+        cp -R doc/* "$SAGE_ROOT/local/share/doc/PACKAGE_NAME"
+    fi
 
 
 Note that the first line is ``#!/usr/bin/env bash``; this is important

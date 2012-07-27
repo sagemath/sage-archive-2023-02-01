@@ -6,13 +6,4 @@ if [ "$SAGE_LOCAL" = "" ]; then
     exit 1
 fi
 
-# Unset RM because it messes with libtool
-unset RM
-
-cd src
-
-$MAKE check
-if [ $? -ne 0 ]; then
-    echo >&2 "Error checking MPC."
-    exit 1
-fi
+cd src && $MAKE check

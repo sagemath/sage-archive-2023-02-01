@@ -6,20 +6,17 @@ if [ "$SAGE_LOCAL" = "" ]; then
     exit 1
 fi
 
-# Unset RM since it messes with libtool
-unset RM
-
 cd src
 
 # Apply patches.  See SPKG.txt for information about what each patch
-# does.
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+# does.  Currently, there are no patches.
+#for patch in ../patches/*.patch; do
+#    patch -p1 <"$patch"
+#    if [ $? -ne 0 ]; then
+#        echo >&2 "Error applying '$patch'"
+#        exit 1
+#    fi
+#done
 
 
 # Unset CC and CFLAGS.  This will make mpc use the same configuration

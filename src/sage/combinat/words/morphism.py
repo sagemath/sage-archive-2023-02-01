@@ -93,6 +93,12 @@ from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.words import Words_all, Words
 from sage.sets.set import Set
 from sage.misc.superseded import deprecated_function_alias
+from sage.modules.free_module_element import vector
+from sage.rings.real_mpfr import RealField
+from sage.rings.number_field.number_field import NumberField
+from sage.rings.qqbar import QQbar
+from sage.modules.free_module import VectorSpace
+from sage.all import lift, gen
 
 class CallableDict(dict):
     r"""
@@ -2083,4 +2089,425 @@ class WordMorphism(SageObject):
             raise NotImplementedError("The dual map E_k^*" +
                  " is implemented only for k = 1 (not %s)" % k)
 
+    def rauzy_fractal_points(self, n=None, exchange=False, eig=None, translate=None, prec=53, basis_proj=False):
+        #TODO: plot_vectors_proj
+        r"""
+        Returns a dictionnary of list of points associated with the pieces
+        of the Rauzy fractal of ``self``.
+        If option ``basis_proj`` is set to ``True``, a dictionnary giving the projection
+        of the canonical basis is also returned.
+
+        See the method ``rauzy_fractal_plot`` for a description
+        of the options and more examples.
+
+        EXAMPLES:
+
+        #. The Rauzy fractal of the Tribonacci substitution
+           and the number of points in the piece of the fractal
+           associated with ``'1'``, ``'2'`` and ``'3'`` are respectively::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: D = s.rauzy_fractal_points(n=10000)
+            sage: len(D['1'])
+            5437
+            sage: len(D['2'])
+            2956
+            sage: len(D['3'])
+            1607
+            sage: s.rauzy_fractal_points(100,basis_proj=True)[1]
+            {'1': (1.00..., 0.00...), '3': (-0.77..., 1.11...), '2': (-1.41..., -0.60...)}
+
+        AUTHOR:
+
+            Timo Jolivet (2012-06-16)
+        """
+        alphabet = self.domain().alphabet()
+        size_alphabet = len(alphabet)
+
+        # Eigenvalues
+        if eig is None:
+            beta = max(self.incidence_matrix().eigenvalues(), key=abs)
+        else:
+            beta = eig
+
+        # Test is deg(beta) >= 2
+        if beta.degree() < 2:
+            raise ValueError, "The algebraic degree of ``eig`` must be at least two."
+
+        # Algebraic conjugates of beta
+        beta_conjugates = beta.minpoly().roots(QQbar, multiplicities=False)
+        if not beta.imag():
+            beta_conjugates.remove(beta)
+        for x in beta_conjugates:
+            if x.imag():
+                beta_conjugates.remove(x.conjugate())
+
+        # Left eigenvector vb in the number field Q(beta)
+        K = NumberField(beta.minpoly(), 'b')
+        vb = (self.incidence_matrix()-K.gen()).kernel().basis()[0]
+
+        # Projections of canonical base vectors from R^size_alphabet to C, using vb
+        canonical_basis = VectorSpace(K,size_alphabet).basis()
+        canonical_basis_proj = {}
+
+        for a, x in zip(alphabet, canonical_basis):
+            v = []
+            for y in beta_conjugates:
+                # if y has nonzero imaginary part
+                if y.imag():
+                    z = (vb*x).lift()(y)
+                    z1, z2 = z.real(), z.imag()
+                    v += [RealField(prec)(z1), RealField(prec)(z2)]
+                # if y is real
+                else:
+                    z = (vb*x).lift()(y)
+                    v += [RealField(prec)(z)]
+            if exchange:
+                canonical_basis_proj[a] = -vector(v)
+            else:
+                canonical_basis_proj[a] = vector(v)
+
+        # Compute a fixed point u
+        if exchange:
+            u = iter(self.reversal().periodic_points()[0][0])
+        else:
+            u = iter(self.periodic_points()[0][0])
+
+        # Manage various options in function of dimension
+        dim_fractal = len(canonical_basis_proj[alphabet[0]])
+        if dim_fractal == 1:
+            if n is None:
+                 n = 1000
+        elif dim_fractal == 2:
+            if n is None:
+                 n = 50000
+        elif dim_fractal == 3:
+            if n is None:
+                 n = 5000
+        else:
+            n = 50000
+
+        # Compute orbit points to plot
+        S = 0
+        orbit_points = dict([(a,[]) for a in alphabet])
+        for _ in xrange(n):
+            a = u.next()
+            S += canonical_basis_proj[a]
+            orbit_points[a].append(S)
+
+        # Manage translated copies
+        if translate is not None:
+
+            if isinstance(translate, dict):
+                for a in translate.keys():
+                    translate[a] = [vector(RealField(prec), v) for v in translate[a]]
+
+            else:
+                translate = [vector(RealField(prec), v) for v in translate]
+
+            for a in alphabet:
+                translated_copies = dict([(i,[]) for i in alphabet])
+
+                if isinstance(translate, list):
+                    to_treat = translate
+
+                elif isinstance(translate, dict):
+                    try:
+                        to_treat = translate[a]
+                    except KeyError:
+                        to_treat = []
+
+                for x in to_treat:
+                    v = 0
+                    for i,z in zip(alphabet,x):
+                        v += z*canonical_basis_proj[i]
+                    translated_copies[a] += [vector(v) + w for w in orbit_points[a]]
+
+                orbit_points[a] = translated_copies[a]
+
+        if basis_proj:
+            return orbit_points, canonical_basis_proj
+        else:
+            return orbit_points
+
+    def rauzy_fractal_plot(self, n=None, exchange=False, eig=None, translate=None, prec=53, \
+                           color='hsv', opacity=None, plot_origin=None, plot_basis=False, point_size=None):
+        r"""
+        Returns a plot of the Rauzy fractal associated with a substitution.
+        The substitution does not have to be irreducible.
+        The definition used can be found found for example in [1].
+        The usual definition of a Rauzy fractal requires that
+        its dominant eigenvalue is a Pisot number but the present method
+        doesn't require this, allowing to plot some interesting pictures
+        in the non-Pisot case (see the examples below).
+
+        Plots with less than 100,000 points take a few seconds,
+        and several millions of points can be plotted in reasonable time.
+
+        Other ways to draw Rauzy fractals (and more generally projections of paths)
+        can be found in ``sage.combinat.words.paths.FiniteWordPath_3d.plot_projection``
+        or in ``sage.combinat.e_one_star``.
+
+        OUTPUT:
+
+        A Graphics object.
+
+        INPUT:
+
+        - ``n`` - integer (default: ``None``)
+          The number of points used to plot the fractal.
+          Default values: ``1000`` for a 1D fractal,
+          ``50000`` for a 2D fractal, ``10000`` for a 3D fractal.
+
+        - ``exchange`` - boolean (default: ``False``).
+          Plot the Rauzy fractal with domain exchange.
+
+        - ``eig`` - a real element of ``QQbar`` of degree >= 2 (default: ``None``).
+          The eigenvalue used to plot the fractal.
+          It must be an eigenvalue of ``self.incidence_matrix()``.
+          The one used by default the maximal eigenvalue of
+          ``self.incidence_matrix()`` (usually a Pisot number),
+          but for substitutions with more than 3 letters
+          other interesting choices are sometimes possible.
+
+        - ``translate`` - a list of vectors of ``RR^size_alphabet``,
+          or a dictionary from the alphabet to lists of vectors (default: ``None``).
+          Plot translated copies of the fractal.
+          This option allows to plot tilings easily.
+          The projection used for these vectors is the same as
+          the projection used for the canonical basis to plot the fractal.
+          If the input is a list, all the pieces will be translated and plotted.
+          If the input is a dictionary, each piece will be translated and plotted
+          accordingly to the vectors associated with each letter in the dictionary.
+          Note: by default, the Rauzy fractal placed at the origin
+          is not plotted with the ``translate`` option;
+          the vector ``(0,0,...,0)`` has to be added manually.
+
+        - ``prec`` - integer (default: ``53``).
+          The number of bits used in the floating point representations
+          of the points of the fractal.
+
+        - ``color`` - color map or dictionary (default: ``'hsv'``).
+          It can be one of the following :
+
+           - ``string`` - a coloring map. For available coloring map names type:
+             ``sorted(colormaps)``
+
+           - ``dict`` - a dictionary of the alphabet mapped to colors.
+
+        - ``opacity`` - a dictionary from the alphabet to the real interval [0,1] (default: ``None``).
+          If none is specified, all letters are plotted with opacity ``1``.
+
+        - ``plot_origin`` - a couple ``(k,c)`` (default: ``None``).
+          If specified, mark the origin by a point of size ``k`` and color ``c``.
+
+        - ``plot_basis`` - boolean (default: ``False``).
+          Plot the projection of the canonical basis with the fractal.
+
+        - ``point_size`` - float (default: ``None``).
+          The size of the points used to plot the fractal.
+
+        EXAMPLES:
+
+        #. The Rauzy fractal of the Tribonacci substitution::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: s.rauzy_fractal_plot()
+
+        #. The "Hokkaido" fractal. We tweak the plot using the plotting options
+           to get a nice reusable picture, in which we mark the origin by a black dot::
+
+            sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
+            sage: s.rauzy_fractal_plot(n=100000, point_size=3, plot_origin=(50,"black")).show(figsize=10, axes=false)     # optional long time
+
+        #. Another "Hokkaido" fractal and its domain exchange::
+
+            sage: s = WordMorphism({1:[2], 2:[4,3], 3:[4], 4:[5,3], 5:[6], 6:[1]})
+            sage: s.rauzy_fractal_plot()     # optional long time
+            sage: s.rauzy_fractal_plot(exchange=True)    # optional long time
+
+        #. A three-dimensional Rauzy fractal::
+
+            sage: s = WordMorphism('1->12,2->13,3->14,4->1')
+            sage: s.rauzy_fractal_plot()    # optional long time
+
+        #. A one-dimensional Rauzy fractal (very scattered)::
+
+            sage: s = WordMorphism('1->2122,2->1')
+            sage: s.rauzy_fractal_plot().show(figsize=20)    # optional long time
+
+        #. A high resolution plot of a complicated fractal::
+
+            sage: s = WordMorphism('1->23,2->123,3->1122233')
+            sage: G = s.rauzy_fractal_plot(n=300000)    # optional long time
+            sage: G.show(axes=false, figsize=20)    # optional long time
+
+        #. A nice colorful animation of a domain exchange::
+
+            sage: s = WordMorphism('1->21,2->3,3->4,4->25,5->6,6->7,7->1')
+            sage: L = [s.rauzy_fractal_plot(), s.rauzy_fractal_plot(exchange=True)]    # optional long time
+            sage: animate(L, axes=false).show(delay=100)    # optional long time
+
+        #. Plotting with only one color::
+
+            sage: s = WordMorphism('1->12,2->31,3->1')
+            sage: s.rauzy_fractal_plot(color={'1':'black', '2':'black', '3':'black'})    # optional long time
+
+        #. Different fractals can be obtained by choosing another (non-Pisot) eigenvalue::
+
+            sage: s = WordMorphism('1->12,2->3,3->45,4->5,5->6,6->7,7->8,8->1')
+            sage: E = s.incidence_matrix().eigenvalues()
+            sage: x = [x for x in E if -0.8 < x < -0.7][0]
+            sage: s.rauzy_fractal_plot()    # optional long time
+            sage: s.rauzy_fractal_plot(eig=x)    # optional long time
+
+        #. A Pisot reducible substitution with seemingly overlapping tiles::
+
+            sage: s = WordMorphism({1:[1,2], 2:[2,3], 3:[4], 4:[5], 5:[6], 6:[7], 7:[8], 8:[9], 9:[10], 10:[1]})
+            sage: s.rauzy_fractal_plot()    # optional long time
+
+        #. A non-Pisot reducible substitution with a strange Rauzy fractal::
+
+            sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
+            sage: s.rauzy_fractal_plot()    # optional long time
+
+        #. A substitution with overlapping tiles. We use the options ``color`` and ``opacity``
+           to study how the tiles overlap::
+
+            sage: s = WordMorphism('1->213,2->4,3->5,4->1,5->21')
+            sage: s.rauzy_fractal_plot()    # optional long time
+            sage: s.rauzy_fractal_plot(color={'1':'red', '4':'purple'})    # optional long time
+            sage: s.rauzy_fractal_plot(opacity={'1':0.1,'2':1,'3':0.1,'4':0.1,'5':0.1}, n=150000)    # optional long time
+
+        #. Funny experiments by playing with the precision of the float numbers used to plot the fractal::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: s.rauzy_fractal_plot(prec=6)
+            sage: s.rauzy_fractal_plot(prec=9)     # optional long time
+            sage: s.rauzy_fractal_plot(prec=15)     # optional long time
+            sage: s.rauzy_fractal_plot(prec=19)     # optional long time
+            sage: s.rauzy_fractal_plot(prec=25)     # optional long time
+
+        #. Using the ``translate`` option to plot periodic tilings::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: s.rauzy_fractal_plot(n=10000, translate=[(0,0,0),(-1,0,1),(0,-1,1),(1,-1,0),(1,0,-1),(0,1,-1),(-1,1,0)])     # optional long time
+            sage: t = WordMorphism("a->aC,b->d,C->de,d->a,e->ab")   # substitution found by Julien Bernat
+            sage: V = [vector((0,0,1,0,-1)), vector((0,0,1,-1,0))]
+            sage: S = set(map(tuple, [i*V[0] + j*V[1] for i in [-1,0,1] for j in [-1,0,1]]))
+            sage: t.rauzy_fractal_plot(n=10000, translate=S, exchange=true)     # optional long time
+
+        #. Using the ``translate`` option to plot arbitrary tilings with the fractal pieces.
+           This can be used for example to plot the self-replicating tiling of the Rauzy fractal::
+
+            sage: s = WordMorphism({1:[1,2], 2:[3], 3:[4,3], 4:[5], 5:[6], 6:[1]})
+            sage: s.rauzy_fractal_plot()
+            sage: D = {1:[(0,0,0,0,0,0), (0,1,0,0,0,0)], 3:[(0,0,0,0,0,0), (0,1,0,0,0,0)], 6:[(0,1,0,0,0,0)]}
+            sage: s.rauzy_fractal_plot(n=30000, translate=D)
+
+        #. Plot the projection of the canonical basis with the fractal::
+
+            sage: s = WordMorphism({1:[2,1], 2:[3], 3:[6,4], 4:[5,1], 5:[6], 6:[7], 7:[8], 8:[9], 9:[1]})
+            sage: s.rauzy_fractal_plot(plot_basis=True)     # optional long time
+
+        REFERENCES:
+
+        - [1] Anne Siegel and Valerie Berthe,
+          Tilings associated with beta-numeration and substitutions,
+          Integers 5 (3), 2005.
+          http://www.integers-ejcnt.org/vol5-3.html
+
+        AUTHOR:
+
+            Timo Jolivet (2012-06-16)
+        """
+        alphabet = self.domain().alphabet()
+        size_alphabet = len(alphabet)
+
+        if plot_basis:
+            orbit_points, canonical_basis_proj= self.rauzy_fractal_points(n=n, exchange=exchange, eig=eig, translate=translate, prec=prec, basis_proj=True)
+        else:
+            orbit_points = self.rauzy_fractal_points(n=n, exchange=exchange, eig=eig, translate=translate, prec=prec)
+
+        dim_fractal = len(orbit_points[alphabet[0]][0])
+
+        # Manage colors and opacity
+        if isinstance(color, dict):
+            col_dict = color
+
+        elif isinstance(color, str):
+            from matplotlib import cm
+
+            if not color in cm.datad.keys():
+                raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % color)
+
+            color = cm.__dict__[color]
+            col_dict = {}
+            for i, a in enumerate(alphabet):
+                col_dict[a] = color(float(i)/float(size_alphabet))[:3]
+
+        else:
+            raise TypeError, "Type of option color (=%s) must be dict or str"%color
+
+        if opacity is None:
+            opacity = dict([(a,1) for a in alphabet])
+
+        elif not isinstance(opacity, dict):
+            raise TypeError, "Type of option opacity (=%s) must be dict"%color
+
+        # Plot points size
+        if point_size is None:
+            if dim_fractal == 1 or dim_fractal == 2:
+                point_size = 1
+            elif dim_fractal == 3:
+                point_size = 8
+
+        # Make graphics
+        from sage.plot.plot import Graphics
+        G = Graphics()
+
+        from sage.plot.point import points
+
+        # 1D plots
+        if dim_fractal == 1:
+            from sage.all import plot
+            for a in col_dict.keys():
+                # We plot only the points with a color in col_dict and with positive opacity
+                if (a in col_dict.keys()) and (opacity[a] > 0):
+                    G += plot([x[0] for x in orbit_points[a]], color=col_dict[a], alpha=opacity[a], thickness=point_size)
+            if plot_basis:
+                from matplotlib import cm
+                from sage.plot.arrow import arrow
+
+                for i,a in enumerate(alphabet):
+                    x = canonical_basis_proj[a]
+                    G += arrow((-1.1,0), (-1.1,x[0]), color=cm.__dict__["gist_gray"](0.75*float(i)/float(size_alphabet))[:3])
+
+        # 2D or 3D plots
+        else:
+            if point_size is None and dim_fractal == 2:
+                point_size = 1
+            elif point_size is None and dim_fractal == 3:
+                point_size = 8
+
+            for a in col_dict.keys():
+                # We plot only the points with a color in col_dict and with positive opacity
+                if (a in col_dict.keys()) and (opacity[a] > 0):
+                    G += points(orbit_points[a], color=col_dict[a], alpha=opacity[a], size=point_size)
+
+            if plot_basis:
+                from matplotlib import cm
+                from sage.plot.arrow import arrow
+
+                for i,a in enumerate(alphabet):
+                    x = canonical_basis_proj[a]
+                    G += arrow([0]*dim_fractal, x, color=cm.__dict__["gist_gray"](0.75*float(i)/float(size_alphabet))[:3])
+
+        if plot_origin:
+            G += points([(0,0)], size=plot_origin[0], color=plot_origin[1])
+
+        if dim_fractal == 1 or dim_fractal == 2:
+            G.set_aspect_ratio(1)
+
+        return G
 

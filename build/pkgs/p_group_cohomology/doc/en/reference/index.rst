@@ -16,7 +16,7 @@ The source code consists of
 
 The package comprises a data base of the cohomology rings of all groups of
 order 64, and can access a repository of the cohomology rings of
-all groups of order 128 all but 6 groups of order 243, of the Sylow
+all groups of order 128, all but 6 groups of order 243, of the Sylow
 2-subgroup of the Higman-Sims group, and of the Sylow 2-subgroup of the
 third Conway group. These data were produced with our package.
 
@@ -82,7 +82,7 @@ works both on little and big endian machines.
 Testing
 -------
 
-The Cython and Python parts of the package have 100% doctest coverage, but.
+The Cython and Python parts of the package have 100% doctest coverage, but
 be warned that running the test suite requires a considerable amount of
 time (easily one hour if a single thread is used). If the environment variable
 ``SAGE_CHECK`` is set to ``yes``, the test script is launched right after
@@ -132,14 +132,15 @@ suggesting to use the Poincare series in a completeness criterion.
 Versions
 --------
 
-  * v2.1.3: Cope with Cython's new "name mangling" for double underscore
-    attributes. Allow storing of "permanent results" that are indexed
-    in terms of data in Gap. In some situations, use a lower bound for
-    the depth, if the actual depth is too difficult to obtain. Switch
-    to a new location for the public web repository, which became
-    necessary by a hardware problem. Fix the creation of symbolic links
-    from a private data base to a public data base of cohomoloy rings.
-    Fix comparison of an MTX matrix with None.
+  * v2.1.3: Improved heuristics to choose between Hilbert-Poincare
+    and Symonds criteria. Cope with Cython's new "name mangling" for
+    double underscore attributes. Allow storing of "permanent results"
+    that are indexed in terms of data in Gap. In some situations, use
+    a lower bound for the depth, if the actual depth is too difficult
+    to obtain. Switch to a new location for the public web repository,
+    which became necessary by a hardware problem. Fix the creation of
+    symbolic links from a private data base to a public data base of
+    cohomoloy rings. Fix comparison of an MTX matrix with None.
   * v2.1.2: Cope with the new versions of Cython and Singular. Use Sage's
     coercion model more properly. Build the documentation locally.
   * v2.1.1: Usage of symbolic links to the public database, so that

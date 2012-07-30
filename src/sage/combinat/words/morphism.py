@@ -85,6 +85,7 @@ Many other functionalities...::
 #*****************************************************************************
 from itertools import ifilterfalse
 from sage.structure.sage_object import SageObject
+from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 from sage.matrix.constructor import Matrix
 from sage.rings.integer_ring import IntegerRing
@@ -2084,42 +2085,36 @@ class WordMorphism(SageObject):
             raise NotImplementedError("The dual map E_k^*" +
                  " is implemented only for k = 1 (not %s)" % k)
 
-    def rauzy_fractal_points(self, n=None, exchange=False, eig=None, translate=None, prec=53, basis_proj=False):
+    @cached_method
+    def rauzy_fractal_projection(self, eig=None, prec=53):
         r"""
-        Returns a dictionary of list of points associated with the pieces
-        of the Rauzy fractal of ``self``.
-
-        If option ``basis_proj`` is set to ``True``, a dictionary giving the projection
-        of the canonical basis is also returned.
+        Returns a dictionary giving the projection of the canonical basis.
 
         INPUT:
 
-            See the method :meth:`rauzy_fractal_plot` for a description
-            of the options and more examples.
+        - ``eig`` - a real element of ``QQbar`` of degree >= 2 (default: ``None``).
+          The eigenvalue used for the projection.
+          It must be an eigenvalue of ``self.incidence_matrix()``.
+          The one used by default the maximal eigenvalue of
+          ``self.incidence_matrix()`` (usually a Pisot number),
+          but for substitutions with more than 3 letters
+          other interesting choices are sometimes possible.
+
+        - ``prec`` - integer (default: ``53``).
+          The number of bits used in the floating point representations
+          of the coordinates.
 
         OUTPUT:
 
-            dictionary of list of points
-
-        or the tuple
-
-            dictionary of list of points, dictionary giving the projection
+            dictionary, letter -> vector, giving the projection
 
         EXAMPLES:
 
-        #. The Rauzy fractal of the Tribonacci substitution
-           and the number of points in the piece of the fractal
-           associated with ``'1'``, ``'2'`` and ``'3'`` are respectively::
+        The projection for the Rauzy fractal of the Tribonacci substitution
+        is::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: D = s.rauzy_fractal_points(n=10000)
-            sage: len(D['1'])
-            5437
-            sage: len(D['2'])
-            2956
-            sage: len(D['3'])
-            1607
-            sage: s.rauzy_fractal_points(100,basis_proj=True)[1]
+            sage: s.rauzy_fractal_projection()
             {'1': (1.00..., 0.00...), '3': (-0.77..., 1.11...), '2': (-1.41..., -0.60...)}
 
         AUTHOR:
@@ -2159,6 +2154,7 @@ class WordMorphism(SageObject):
         canonical_basis_proj = {}
 
         from sage.rings.real_mpfr import RealField
+        RealField_prec = RealField(prec)
         for a, x in zip(alphabet, canonical_basis):
             v = []
             for y in beta_conjugates:
@@ -2166,15 +2162,55 @@ class WordMorphism(SageObject):
                 if y.imag():
                     z = (vb*x).lift()(y)
                     z1, z2 = z.real(), z.imag()
-                    v += [RealField(prec)(z1), RealField(prec)(z2)]
+                    v += [RealField_prec(z1), RealField_prec(z2)]
                 # if y is real
                 else:
                     z = (vb*x).lift()(y)
-                    v += [RealField(prec)(z)]
-            if exchange:
-                canonical_basis_proj[a] = -vector(v)
-            else:
-                canonical_basis_proj[a] = vector(v)
+                    v += [RealField_prec(z)]
+            canonical_basis_proj[a] = vector(v)
+
+        return canonical_basis_proj
+
+    def rauzy_fractal_points(self, n=None, exchange=False, eig=None, translate=None, prec=53):
+        r"""
+        Returns a dictionary of list of points associated with the pieces
+        of the Rauzy fractal of ``self``.
+
+        INPUT:
+
+            See the method :meth:`rauzy_fractal_plot` for a description
+            of the options and more examples.
+
+        OUTPUT:
+
+            dictionary of list of points
+
+        EXAMPLES:
+
+        #. The Rauzy fractal of the Tribonacci substitution
+           and the number of points in the piece of the fractal
+           associated with ``'1'``, ``'2'`` and ``'3'`` are respectively::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: D = s.rauzy_fractal_points(n=10000)
+            sage: len(D['1'])
+            5437
+            sage: len(D['2'])
+            2956
+            sage: len(D['3'])
+            1607
+
+        AUTHOR:
+
+            Timo Jolivet (2012-06-16)
+        """
+        alphabet = self.domain().alphabet()
+        canonical_basis_proj = self.rauzy_fractal_projection(eig=eig, prec=prec)
+
+        # if exchange, set the projection to its opposite
+        if exchange:
+            for a in canonical_basis_proj:
+                canonical_basis_proj[a] = - canonical_basis_proj[a]
 
         # Compute a fixed point u
         if exchange:
@@ -2183,18 +2219,16 @@ class WordMorphism(SageObject):
             u = iter(self.periodic_points()[0][0])
 
         # Manage various options in function of dimension
-        dim_fractal = len(canonical_basis_proj[alphabet[0]])
-        if dim_fractal == 1:
-            if n is None:
+        if n is None:
+            dim_fractal = len(canonical_basis_proj[alphabet[0]])
+            if dim_fractal == 1:
                  n = 1000
-        elif dim_fractal == 2:
-            if n is None:
+            elif dim_fractal == 2:
                  n = 50000
-        elif dim_fractal == 3:
-            if n is None:
+            elif dim_fractal == 3:
                  n = 5000
-        else:
-            n = 50000
+            else:
+                n = 50000
 
         # Compute orbit points to plot
         S = 0
@@ -2205,14 +2239,16 @@ class WordMorphism(SageObject):
             orbit_points[a].append(S)
 
         # Manage translated copies
+        from sage.rings.real_mpfr import RealField
+        RealField_prec = RealField(prec)
         if translate is not None:
 
             if isinstance(translate, dict):
                 for a in translate.keys():
-                    translate[a] = [vector(RealField(prec), v) for v in translate[a]]
+                    translate[a] = [vector(RealField_prec, v) for v in translate[a]]
 
             else:
-                translate = [vector(RealField(prec), v) for v in translate]
+                translate = [vector(RealField_prec, v) for v in translate]
 
             for a in alphabet:
                 translated_copies = dict([(i,[]) for i in alphabet])
@@ -2234,10 +2270,7 @@ class WordMorphism(SageObject):
 
                 orbit_points[a] = translated_copies[a]
 
-        if basis_proj:
-            return orbit_points, canonical_basis_proj
-        else:
-            return orbit_points
+        return orbit_points
 
     def rauzy_fractal_plot(self, n=None, exchange=False, eig=None, translate=None, prec=53, \
                            color='hsv', opacity=None, plot_origin=None, plot_basis=False, point_size=None):
@@ -2437,10 +2470,7 @@ class WordMorphism(SageObject):
         alphabet = self.domain().alphabet()
         size_alphabet = len(alphabet)
 
-        if plot_basis:
-            orbit_points, canonical_basis_proj= self.rauzy_fractal_points(n=n, exchange=exchange, eig=eig, translate=translate, prec=prec, basis_proj=True)
-        else:
-            orbit_points = self.rauzy_fractal_points(n=n, exchange=exchange, eig=eig, translate=translate, prec=prec)
+        orbit_points = self.rauzy_fractal_points(n=n, exchange=exchange, eig=eig, translate=translate, prec=prec)
 
         dim_fractal = len(orbit_points[alphabet[0]][0])
 
@@ -2491,7 +2521,7 @@ class WordMorphism(SageObject):
             if plot_basis:
                 from matplotlib import cm
                 from sage.plot.arrow import arrow
-
+                canonical_basis_proj = self.rauzy_fractal_projection(eig=eig, prec=prec)
                 for i,a in enumerate(alphabet):
                     x = canonical_basis_proj[a]
                     G += arrow((-1.1,0), (-1.1,x[0]), color=cm.__dict__["gist_gray"](0.75*float(i)/float(size_alphabet))[:3])
@@ -2511,7 +2541,7 @@ class WordMorphism(SageObject):
             if plot_basis:
                 from matplotlib import cm
                 from sage.plot.arrow import arrow
-
+                canonical_basis_proj = self.rauzy_fractal_projection(eig=eig, prec=prec)
                 for i,a in enumerate(alphabet):
                     x = canonical_basis_proj[a]
                     G += arrow([0]*dim_fractal, x, color=cm.__dict__["gist_gray"](0.75*float(i)/float(size_alphabet))[:3])

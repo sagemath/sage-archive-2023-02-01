@@ -94,11 +94,6 @@ from sage.combinat.words.words import Words_all, Words
 from sage.sets.set import Set
 from sage.misc.superseded import deprecated_function_alias
 from sage.modules.free_module_element import vector
-from sage.rings.real_mpfr import RealField
-from sage.rings.number_field.number_field import NumberField
-from sage.rings.qqbar import QQbar
-from sage.modules.free_module import VectorSpace
-from sage.all import lift, gen
 
 class CallableDict(dict):
     r"""
@@ -2090,15 +2085,25 @@ class WordMorphism(SageObject):
                  " is implemented only for k = 1 (not %s)" % k)
 
     def rauzy_fractal_points(self, n=None, exchange=False, eig=None, translate=None, prec=53, basis_proj=False):
-        #TODO: plot_vectors_proj
         r"""
-        Returns a dictionnary of list of points associated with the pieces
+        Returns a dictionary of list of points associated with the pieces
         of the Rauzy fractal of ``self``.
-        If option ``basis_proj`` is set to ``True``, a dictionnary giving the projection
+
+        If option ``basis_proj`` is set to ``True``, a dictionary giving the projection
         of the canonical basis is also returned.
 
-        See the method ``rauzy_fractal_plot`` for a description
-        of the options and more examples.
+        INPUT:
+
+            See the method :meth:`rauzy_fractal_plot` for a description
+            of the options and more examples.
+
+        OUTPUT:
+
+            dictionary of list of points
+
+        or the tuple
+
+            dictionary of list of points, dictionary giving the projection
 
         EXAMPLES:
 
@@ -2135,6 +2140,7 @@ class WordMorphism(SageObject):
             raise ValueError, "The algebraic degree of ``eig`` must be at least two."
 
         # Algebraic conjugates of beta
+        from sage.rings.qqbar import QQbar
         beta_conjugates = beta.minpoly().roots(QQbar, multiplicities=False)
         if not beta.imag():
             beta_conjugates.remove(beta)
@@ -2143,13 +2149,16 @@ class WordMorphism(SageObject):
                 beta_conjugates.remove(x.conjugate())
 
         # Left eigenvector vb in the number field Q(beta)
+        from sage.rings.number_field.number_field import NumberField
         K = NumberField(beta.minpoly(), 'b')
         vb = (self.incidence_matrix()-K.gen()).kernel().basis()[0]
 
         # Projections of canonical base vectors from R^size_alphabet to C, using vb
+        from sage.modules.free_module import VectorSpace
         canonical_basis = VectorSpace(K,size_alphabet).basis()
         canonical_basis_proj = {}
 
+        from sage.rings.real_mpfr import RealField
         for a, x in zip(alphabet, canonical_basis):
             v = []
             for y in beta_conjugates:
@@ -2234,6 +2243,7 @@ class WordMorphism(SageObject):
                            color='hsv', opacity=None, plot_origin=None, plot_basis=False, point_size=None):
         r"""
         Returns a plot of the Rauzy fractal associated with a substitution.
+
         The substitution does not have to be irreducible.
         The definition used can be found found for example in [1].
         The usual definition of a Rauzy fractal requires that
@@ -2245,8 +2255,8 @@ class WordMorphism(SageObject):
         and several millions of points can be plotted in reasonable time.
 
         Other ways to draw Rauzy fractals (and more generally projections of paths)
-        can be found in ``sage.combinat.words.paths.FiniteWordPath_3d.plot_projection``
-        or in ``sage.combinat.e_one_star``.
+        can be found in :meth:`sage.combinat.words.paths.FiniteWordPath_all.plot_projection`
+        or in :meth:`sage.combinat.e_one_star`.
 
         OUTPUT:
 
@@ -2392,6 +2402,9 @@ class WordMorphism(SageObject):
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: s.rauzy_fractal_plot(n=10000, translate=[(0,0,0),(-1,0,1),(0,-1,1),(1,-1,0),(1,0,-1),(0,1,-1),(-1,1,0)])     # optional long time
+
+           ::
+
             sage: t = WordMorphism("a->aC,b->d,C->de,d->a,e->ab")   # substitution found by Julien Bernat
             sage: V = [vector((0,0,1,0,-1)), vector((0,0,1,-1,0))]
             sage: S = set(map(tuple, [i*V[0] + j*V[1] for i in [-1,0,1] for j in [-1,0,1]]))

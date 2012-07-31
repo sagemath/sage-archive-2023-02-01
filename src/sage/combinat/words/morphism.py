@@ -2089,6 +2089,7 @@ class WordMorphism(SageObject):
     def rauzy_fractal_projection(self, eig=None, prec=53):
         r"""
         Returns a dictionary giving the projection of the canonical basis.
+
         See the method :meth:`rauzy_fractal_plot` for more details about the projection.
 
         INPUT:
@@ -2096,7 +2097,7 @@ class WordMorphism(SageObject):
         - ``eig`` - a real element of ``QQbar`` of degree >= 2 (default: ``None``).
           The eigenvalue used for the projection.
           It must be an eigenvalue of ``self.incidence_matrix()``.
-          The one used by default the maximal eigenvalue of
+          The one used by default is the maximal eigenvalue of
           ``self.incidence_matrix()`` (usually a Pisot number),
           but for substitutions with more than 3 letters
           other interesting choices are sometimes possible.
@@ -2111,14 +2112,14 @@ class WordMorphism(SageObject):
 
         EXAMPLES:
 
-        #. The projection for the Rauzy fractal of the Tribonacci substitution
+        The projection for the Rauzy fractal of the Tribonacci substitution
         is::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: s.rauzy_fractal_projection()
             {'1': (1.00..., 0.00...), '3': (-0.77..., 1.11...), '2': (-1.41..., -0.60...)}
 
-        #. Testing options::
+        TESTS::
 
             sage: t = WordMorphism('1->12,2->3,3->45,4->5,5->6,6->7,7->8,8->1')
             sage: E = t.incidence_matrix().eigenvalues()
@@ -2198,9 +2199,9 @@ class WordMorphism(SageObject):
 
         EXAMPLES:
 
-        #. The Rauzy fractal of the Tribonacci substitution
-           and the number of points in the piece of the fractal
-           associated with ``'1'``, ``'2'`` and ``'3'`` are respectively::
+        The Rauzy fractal of the Tribonacci substitution and the number of
+        points in the piece of the fractal associated with ``'1'``, ``'2'``
+        and ``'3'`` are respectively::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: D = s.rauzy_fractal_points(n=100)
@@ -2211,13 +2212,12 @@ class WordMorphism(SageObject):
             sage: len(D['3'])
             16
 
-        #. Testing options::
+        TESTS::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: D = s.rauzy_fractal_points(n=100, exchange=True, translate=[(3,1,-2), (5,-33,8)], prec=40)
             sage: len(D['1'])
             108
-
 
         AUTHOR:
 
@@ -2292,7 +2292,7 @@ class WordMorphism(SageObject):
         return orbit_points
 
     def rauzy_fractal_plot(self, n=None, exchange=False, eig=None, translate=None, prec=53, \
-                           color='hsv', opacity=None, plot_origin=None, plot_basis=False, point_size=None):
+                           colormap='hsv', opacity=None, plot_origin=None, plot_basis=False, point_size=None):
         r"""
         Returns a plot of the Rauzy fractal associated with a substitution.
 
@@ -2351,7 +2351,7 @@ class WordMorphism(SageObject):
           The number of bits used in the floating point representations
           of the points of the fractal.
 
-        - ``color`` - color map or dictionary (default: ``'hsv'``).
+        - ``colormap`` - color map or dictionary (default: ``'hsv'``).
           It can be one of the following :
 
            - ``string`` - a coloring map. For available coloring map names type:
@@ -2376,18 +2376,19 @@ class WordMorphism(SageObject):
         #. The Rauzy fractal of the Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: s.rauzy_fractal_plot()     # not tested takes > 1 second
+            sage: s.rauzy_fractal_plot()     # long time
 
         #. The "Hokkaido" fractal. We tweak the plot using the plotting options
            to get a nice reusable picture, in which we mark the origin by a black dot::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
-            sage: s.rauzy_fractal_plot(n=100000, point_size=3, plot_origin=(50,"black")).show(figsize=10, axes=false)     # not tested takes > 1 second
+            sage: G = s.rauzy_fractal_plot(n=100000, point_size=3, plot_origin=(50,"black"))  # not tested
+            sage: G.show(figsize=10, axes=false) # not tested
 
         #. Another "Hokkaido" fractal and its domain exchange::
 
             sage: s = WordMorphism({1:[2], 2:[4,3], 3:[4], 4:[5,3], 5:[6], 6:[1]})
-            sage: s.rauzy_fractal_plot()     # not tested takes > 1 second
+            sage: s.rauzy_fractal_plot()                  # not tested takes > 1 second
             sage: s.rauzy_fractal_plot(exchange=True)     # not tested takes > 1 second
 
         #. A three-dimensional Rauzy fractal::
@@ -2403,8 +2404,8 @@ class WordMorphism(SageObject):
         #. A high resolution plot of a complicated fractal::
 
             sage: s = WordMorphism('1->23,2->123,3->1122233')
-            sage: G = s.rauzy_fractal_plot(n=300000)     # not tested takes > 1 second
-            sage: G.show(axes=false, figsize=20)     # not tested takes > 1 second
+            sage: G = s.rauzy_fractal_plot(n=300000)  # not tested takes > 1 second
+            sage: G.show(axes=false, figsize=20)      # not tested takes > 1 second
 
         #. A nice colorful animation of a domain exchange::
 
@@ -2415,14 +2416,14 @@ class WordMorphism(SageObject):
         #. Plotting with only one color::
 
             sage: s = WordMorphism('1->12,2->31,3->1')
-            sage: s.rauzy_fractal_plot(color={'1':'black', '2':'black', '3':'black'})     # not tested takes > 1 second
+            sage: s.rauzy_fractal_plot(colormap={'1':'black', '2':'black', '3':'black'})     # not tested takes > 1 second
 
         #. Different fractals can be obtained by choosing another (non-Pisot) eigenvalue::
 
             sage: s = WordMorphism('1->12,2->3,3->45,4->5,5->6,6->7,7->8,8->1')
             sage: E = s.incidence_matrix().eigenvalues()
             sage: x = [x for x in E if -0.8 < x < -0.7][0]
-            sage: s.rauzy_fractal_plot()     # not tested takes > 1 second
+            sage: s.rauzy_fractal_plot()          # not tested takes > 1 second
             sage: s.rauzy_fractal_plot(eig=x)     # not tested takes > 1 second
 
         #. A Pisot reducible substitution with seemingly overlapping tiles::
@@ -2435,19 +2436,19 @@ class WordMorphism(SageObject):
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
             sage: s.rauzy_fractal_plot()     # not tested takes > 1 second
 
-        #. A substitution with overlapping tiles. We use the options ``color`` and ``opacity``
-           to study how the tiles overlap::
+        #. A substitution with overlapping tiles. We use the options
+           ``colormap`` and ``opacity`` to study how the tiles overlap::
 
             sage: s = WordMorphism('1->213,2->4,3->5,4->1,5->21')
-            sage: s.rauzy_fractal_plot()     # not tested takes > 1 second
-            sage: s.rauzy_fractal_plot(color={'1':'red', '4':'purple'})     # not tested takes > 1 second
+            sage: s.rauzy_fractal_plot()                                   # not tested takes > 1 second
+            sage: s.rauzy_fractal_plot(colormap={'1':'red', '4':'purple'})     # not tested takes > 1 second
             sage: s.rauzy_fractal_plot(opacity={'1':0.1,'2':1,'3':0.1,'4':0.1,'5':0.1}, n=150000)     # not tested takes > 1 second
 
         #. Funny experiments by playing with the precision of the float numbers used to plot the fractal::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: s.rauzy_fractal_plot(prec=6)     # not tested
-            sage: s.rauzy_fractal_plot(prec=9)     # not tested
+            sage: s.rauzy_fractal_plot(prec=6)      # not tested
+            sage: s.rauzy_fractal_plot(prec=9)      # not tested
             sage: s.rauzy_fractal_plot(prec=15)     # not tested
             sage: s.rauzy_fractal_plot(prec=19)     # not tested
             sage: s.rauzy_fractal_plot(prec=25)     # not tested
@@ -2457,7 +2458,7 @@ class WordMorphism(SageObject):
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: s.rauzy_fractal_plot(n=10000, translate=[(0,0,0),(-1,0,1),(0,-1,1),(1,-1,0),(1,0,-1),(0,1,-1),(-1,1,0)])     # not tested takes > 1 second
 
-        ::
+           ::
 
             sage: t = WordMorphism("a->aC,b->d,C->de,d->a,e->ab")   # substitution found by Julien Bernat
             sage: V = [vector((0,0,1,0,-1)), vector((0,0,1,-1,0))]
@@ -2477,10 +2478,10 @@ class WordMorphism(SageObject):
             sage: s = WordMorphism({1:[2,1], 2:[3], 3:[6,4], 4:[5,1], 5:[6], 6:[7], 7:[8], 8:[9], 9:[1]})
             sage: s.rauzy_fractal_plot(plot_basis=True)     # not tested takes > 1 second
 
-        #. Testing options::
+        TESTS::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
-            sage: s.rauzy_fractal_plot(n=1000, color='Set1', opacity={'a':0.5,'b':1,'c':0.7,'d':0,'e':0.2}, plot_origin=(100,"black"), plot_basis=True, point_size=2.5)
+            sage: s.rauzy_fractal_plot(n=1000, colormap='Set1', opacity={'a':0.5,'b':1,'c':0.7,'d':0,'e':0.2}, plot_origin=(100,"black"), plot_basis=True, point_size=2.5)
 
         REFERENCES:
 
@@ -2501,28 +2502,28 @@ class WordMorphism(SageObject):
         dim_fractal = len(orbit_points[alphabet[0]][0])
 
         # Manage colors and opacity
-        if isinstance(color, dict):
-            col_dict = color
+        if isinstance(colormap, dict):
+            col_dict = colormap
 
-        elif isinstance(color, str):
+        elif isinstance(colormap, str):
             from matplotlib import cm
 
-            if not color in cm.datad.keys():
-                raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % color)
+            if not colormap in cm.datad.keys():
+                raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % colormap)
 
-            color = cm.__dict__[color]
+            colormap = cm.__dict__[colormap]
             col_dict = {}
             for i, a in enumerate(alphabet):
-                col_dict[a] = color(float(i)/float(size_alphabet))[:3]
+                col_dict[a] = colormap(float(i)/float(size_alphabet))[:3]
 
         else:
-            raise TypeError, "Type of option color (=%s) must be dict or str"%color
+            raise TypeError("Type of option colormap (=%s) must be dict or str" % colormap)
 
         if opacity is None:
             opacity = dict([(a,1) for a in alphabet])
 
         elif not isinstance(opacity, dict):
-            raise TypeError, "Type of option opacity (=%s) must be dict"%color
+            raise TypeError("Type of option opacity (=%s) must be dict" % opacity)
 
         # Plot points size
         if point_size is None:

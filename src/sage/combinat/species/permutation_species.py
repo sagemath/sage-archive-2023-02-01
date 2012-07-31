@@ -18,7 +18,7 @@ Permutation species
 from species import GenericCombinatorialSpecies
 from structure import GenericSpeciesStructure
 from generating_series import _integers_from
-
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_function
 from sage.combinat.permutation import Permutation, Permutations
@@ -103,26 +103,30 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
         p = self.permutation_group_element()
         return PermutationGroup(S.centralizer(p).gens())
 
-@accept_size
-@cached_function
-def PermutationSpecies(*args, **kwds):
-    """
-    Returns the species of permutations.
 
-    EXAMPLES::
-
-        sage: P = species.PermutationSpecies()
-        sage: P.generating_series().coefficients(5)
-        [1, 1, 1, 1, 1]
-        sage: P.isotype_generating_series().coefficients(5)
-        [1, 1, 2, 3, 5]
-    """
-    return PermutationSpecies_class(*args, **kwds)
-
-class PermutationSpecies_class(GenericCombinatorialSpecies):
-    def __init__(self, min=None, max=None, weight=None):
+class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
+    @staticmethod
+    @accept_size
+    def __classcall__(cls, *args, **kwds):
         """
         EXAMPLES::
+
+            sage: P = species.PermutationSpecies(); P
+            Permutation species
+      """
+        return super(PermutationSpecies, cls).__classcall__(cls, *args, **kwds)
+
+    def __init__(self, min=None, max=None, weight=None):
+        """
+        Returns the species of permutations.
+
+        EXAMPLES::
+
+            sage: P = species.PermutationSpecies()
+            sage: P.generating_series().coefficients(5)
+            [1, 1, 1, 1, 1]
+            sage: P.isotype_generating_series().coefficients(5)
+            [1, 1, 2, 3, 5]
 
             sage: P = species.PermutationSpecies()
             sage: c = P.generating_series().coefficients(3)
@@ -135,8 +139,6 @@ class PermutationSpecies_class(GenericCombinatorialSpecies):
         self._name = "Permutation species"
 
     _default_structure_class = PermutationSpeciesStructure
-
-    _cached_constructor = staticmethod(PermutationSpecies)
 
     def _structures(self, structure_class, labels):
         """
@@ -261,3 +263,6 @@ class PermutationSpecies_class(GenericCombinatorialSpecies):
             for i in range(n):
                 yield base_ring(0)
             yield pn**k
+
+#Backward compatibility
+PermutationSpecies_class = PermutationSpecies

@@ -126,7 +126,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             sage: L.define(E+X*L)
             sage: L._unique_info()
             (<class 'sage.combinat.species.recursive_species.CombinatorialSpecies'>,
-             <class 'sage.combinat.species.sum_species.SumSpecies_class'>,
+             <class 'sage.combinat.species.sum_species.SumSpecies'>,
              None,
              None,
              1,

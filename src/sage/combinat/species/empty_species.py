@@ -18,26 +18,12 @@ Empty Species
 from species import GenericCombinatorialSpecies
 from sage.misc.cachefunc import cached_function
 from series_order import inf
+from sage.structure.unique_representation import UniqueRepresentation
 
-@cached_function
-def EmptySpecies(*args, **kwds):
+class EmptySpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     """
     Returns the empty species. This species has no structure at all.
-    It is the zeros or the semi-ring of species. See the documentation of the
-    class ``EmptySpecies_class`` for more information.
-
-    EXAMPLES::
-
-        sage: species.EmptySpecies()
-        Empty species
-    """
-    return EmptySpecies_class(*args, **kwds)
-
-
-class EmptySpecies_class(GenericCombinatorialSpecies):
-    """
-    Returns the empty species. This species has no structure at all.
-    It is the zeros or the semi-ring of species.
+    It is the zero of the semi-ring of species.
 
     EXAMPLES::
 
@@ -110,9 +96,6 @@ class EmptySpecies_class(GenericCombinatorialSpecies):
         GenericCombinatorialSpecies.__init__(self, weight=weight)
         self._name = "Empty species"
 
-
-    _cached_constructor = staticmethod(EmptySpecies)
-
     def _gs(self, series_ring, base_ring):
         """
         Return the generating series for self.
@@ -178,3 +161,5 @@ class EmptySpecies_class(GenericCombinatorialSpecies):
             0
         """
         return 0
+
+EmptySpecies_class = EmptySpecies

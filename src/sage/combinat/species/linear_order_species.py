@@ -18,7 +18,7 @@ Linear-order Species
 from species import GenericCombinatorialSpecies
 from structure import GenericSpeciesStructure
 from generating_series import _integers_from
-
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
 
@@ -67,24 +67,28 @@ class LinearOrderSpeciesStructure(GenericSpeciesStructure):
         from sage.groups.all import SymmetricGroup
         return SymmetricGroup(1)
 
-@accept_size
-@cached_function
-def LinearOrderSpecies(*args, **kwds):
-    """
-    Returns the species of linear orders.
 
-    EXAMPLES::
+class LinearOrderSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
+    @staticmethod
+    @accept_size
+    def __classcall__(cls, *args, **kwds):
+        r"""
+        EXAMPLES::
 
-        sage: L = species.LinearOrderSpecies()
-        sage: L.generating_series().coefficients(5)
-        [1, 1, 1, 1, 1]
-    """
-    return LinearOrderSpecies_class(*args, **kwds)
+            sage: L = species.LinearOrderSpecies(); L
+            Linear order species
+        """
+        return super(LinearOrderSpecies, cls).__classcall__(cls, *args, **kwds)
 
-class LinearOrderSpecies_class(GenericCombinatorialSpecies):
     def __init__(self, min=None, max=None, weight=None):
         """
+        Returns the species of linear orders.
+
         EXAMPLES::
+
+            sage: L = species.LinearOrderSpecies()
+            sage: L.generating_series().coefficients(5)
+            [1, 1, 1, 1, 1]
 
             sage: L = species.LinearOrderSpecies()
             sage: L._check()
@@ -96,8 +100,6 @@ class LinearOrderSpecies_class(GenericCombinatorialSpecies):
         self._name = "Linear order species"
 
     _default_structure_class = LinearOrderSpeciesStructure
-
-    _cached_constructor = staticmethod(LinearOrderSpecies)
 
     def _structures(self, structure_class, labels):
         """
@@ -163,3 +165,6 @@ class LinearOrderSpecies_class(GenericCombinatorialSpecies):
         p = SymmetricFunctions(base_ring).power()
         for n in _integers_from(0):
             yield p([1]*n)
+
+#Backward compatibility
+LinearOrderSpecies_class = LinearOrderSpecies

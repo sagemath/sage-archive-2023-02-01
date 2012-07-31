@@ -32,6 +32,10 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.5 (Jean-Pierre Flori, 31 July 2012) ===
+ * Trac #13316: update to verson 0.2.5.
+ * Trac #13107: fix division by Python longs.
+
 === pynac-0.2.4 (Jean-Pierre Flori, 23 May 2012) ===
  * Trac #12950: Include patches to fix:
   * Trac #11155: abs(pi + I) -> pi + I

@@ -203,13 +203,14 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
             sage: X._element_constructor_(Permutation([2,1,3]))
             X[2, 1]
 
-        ::
-
             sage: R.<x1, x2, x3> = QQ[]
             sage: X(x1^2*x2)
             X[3, 2, 1]
 
-        TESTS for trac 12924::
+        TESTS:
+
+        We check that :trac:`12924` is fixed::
+
             sage: X = SchubertPolynomialRing(QQ)
             sage: X._element_constructor_([1,2,1])
             Traceback (most recent call last):

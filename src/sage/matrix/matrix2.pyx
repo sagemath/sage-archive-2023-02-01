@@ -4738,7 +4738,14 @@ cdef class Matrix(matrix1.Matrix):
             [               1 6*b*a0 + 3*b + 1])
             ]
 
-        TESTS::
+        TESTS:
+
+        We make sure that :trac:`13308` is fixed. ::
+
+            sage: M = ModularSymbols(Gamma1(23), sign=1)
+            sage: m = M.cuspidal_subspace().hecke_matrix(2)
+            sage: [j*m==i[0]*j for i in m.eigenspaces_left(format='all') for j in i[1].basis()] # long time (4s)
+            [True, True, True, True, True, True, True, True, True, True, True, True]
 
             sage: B = matrix(QQ, 2, 3, range(6))
             sage: B.eigenspaces_left()
@@ -4817,7 +4824,7 @@ cdef class Matrix(matrix1.Matrix):
                     for ev in alpha_conj:
                         m = sage.categories.homset.hom(alpha.parent(), ev.parent(), ev)
                         space = (ev.parent())**self.nrows()
-                        evec_list = [(space)([m(i) for i in v]) for v in WB]
+                        evec_list = [(space)([m(v_j) for v_j in v]) for v in WB]
                         V.append((ev, space.span_of_basis(evec_list, already_echelonized=True), e))
         V = Sequence(V, cr=True, check=False)
         self.cache(key, V)

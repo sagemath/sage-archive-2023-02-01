@@ -25,9 +25,20 @@ http://www.zeromq.org
 
 == Special Update/Build Instructions ==
 
-N/A
+ * Here is a description of patches on top of pyzmq-2.1.11
+
+   - patches/buildutils.patch: This patches the file src/buildutils.py. It
+     remove the option -arch for gcc which was broken on MacOSX 10.5.8.
+     The reason to this is that Sage's gcc spkg does not build a compiler which
+     understands the option -arch of Apple's clone of gcc.
+     https://groups.google.com/forum/?fromgroups#!topic/sage-devel/CuZNKclprIQ
+     http://trac.sagemath.org/sage_trac/ticket/13313
 
 == Changelog ==
+
+=== pyzmq-2.1.11.p1 (Sebastien Labbe, 27 July 2012) ===
+
+ * Patch buildutils.py
 
 === pyzmq-2.1.11.p0 (Volker Braun, William Stein, 14 April 2012) ===
 

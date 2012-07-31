@@ -1,0 +1,17 @@
+--- src/buildutils.py	2011-12-19 04:21:14.000000000 -0500
++++ src-patched/buildutils.py	2012-07-31 13:59:46.000000000 -0400
+@@ -111,13 +111,7 @@
+     
+     cpreargs = lpreargs = None
+     if sys.platform == 'darwin':
+-        # use appropriate arch for comiler
+-        if platform.architecture()[0]=='32bit':
+-            cpreargs = ['-arch','i386']
+-            lpreargs = ['-arch', 'i386', '-undefined', 'dynamic_lookup']
+-        else:
+-            # allow for missing UB arch, since it will still work:
+-            lpreargs = ['-undefined', 'dynamic_lookup']
++        lpreargs = ['-undefined', 'dynamic_lookup']
+ 
+     objs = cc.compile([cfile],extra_preargs=cpreargs)
+     cc.link_executable(objs, efile, extra_preargs=lpreargs)

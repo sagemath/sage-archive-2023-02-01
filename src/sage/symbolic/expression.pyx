@@ -8284,7 +8284,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Trac #7325 (solving inequalities)::
+        :trac:`7325` (solving inequalities)::
 
             sage: (x^2>1).solve(x)
             [[x < -1], [x > 1]]
@@ -8299,7 +8299,7 @@ cdef class Expression(CommutativeRingElement):
             sage: solve(acot(x),x,to_poly_solve=True)
             []
 
-        Trac #7491 fixed::
+        :trac:`7491` fixed::
 
             sage: y=var('y')
             sage: solve(y==y,y)
@@ -8313,7 +8313,7 @@ cdef class Expression(CommutativeRingElement):
             []
             sage: forget()
 
-        Trac #8390 fixed::
+        :trac:`8390` fixed::
 
             sage: solve(sin(x)==1/2,x)
             [x == 1/6*pi]
@@ -8328,11 +8328,16 @@ cdef class Expression(CommutativeRingElement):
             sage: solve(sin(x)==1/2,x,to_poly_solve='force')
             [x == 5/6*pi + 2*pi*z116, x == 1/6*pi + 2*pi*z114]
 
-        Trac #11618 fixed::
+        :trac:`11618` fixed::
 
             sage: g(x)=0
             sage: solve(g(x)==0,x,solution_dict=True)
             [{x: r1}]
+
+        :trac:`13286` fixed::
+
+            sage: solve([x-4], [x])
+            [x == 4]
         """
         import operator
         cdef Expression ex
@@ -8353,6 +8358,14 @@ cdef class Expression(CommutativeRingElement):
 
         if multiplicities and to_poly_solve:
             raise NotImplementedError, "to_poly_solve does not return multiplicities"
+
+        # Take care of cases like solve([x^2-1], [x]) for consistency with
+        # multiple variable input in sage.symbolic.relation.solve().
+        # There *should* be only one variable in the list, since it is
+        # passed from sage.symbolic.relation.solve() and multiple variables
+        # there don't call this function.
+        if isinstance(x, (list, tuple)):
+            x = x[0]
 
         if x is None:
             v = ex.variables()

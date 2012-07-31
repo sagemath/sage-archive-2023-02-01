@@ -1,35 +1,25 @@
-recursive-include * *.c *.cc *.h *.hh *.hpp *.pyx *.pxd *.pxi *.txt *.tex *.i *.d 00*
-recursive-include doc *.rst *.py *.inc
-include c_lib c_lib/* c_lib/src/*
-include MANIFEST.in README.txt
-include .hgignore .hg .hg/* .hgtags
+global-include *.c *.cc *.cpp *.h *.hh *.hpp *.py *.pyx *.pxd *.pxi *.txt *.tex
+
+graft   .hg
+include .hgignore .hgtags
+include MANIFEST.in
 include bundle export install pull sage-push
-include module_list.py
-include fpickle_setup.py
 include spkg-delauto spkg-dist spkg-install
+
+include c_lib/SConstruct
+include sage/ext/mac-app/README
 include sage/graphs/graph_decompositions/rankwidth_c/README
-include sage/libs/gmp/__init__.py
-include sage/libs/linbox/matrix_rational_dense_linbox.cpp
-include sage/libs/polybori/__init__.py
-include sage/libs/polybori/decl.pxd
-include sage/matrix/padics/__init__.py
-include sage/numerical/test.py
-include sage/rings/bernmm/README.txt
-include sage/rings/bernmm/bernmm-test.cpp
-include sage/rings/polynomial/padics/__init__.py
 include sage/schemes/hyperelliptic_curves/hypellfrob/README
-include sage/server/notebook/templates/*
-include sage/server/notebook/templates/css/*
-include sage/server/notebook/templates/notebook/*
-include sage/server/notebook/templates/worksheet/*
+graft   sage/server/notebook/templates
 include sage/tests/french_book/README
+
+recursive-include doc *.rst *.inc
+graft   doc/common/static
+graft   doc/common/themes
 include doc/common/python.inv
 include doc/common/update-python-inv.sh
-include doc/common/templates/layout.html
 include doc/en/introspect/static/empty
 include doc/en/introspect/templates/layout.html
-include doc/en/numerical_sage/errors
-include doc/en/tutorial/Makefile
 include doc/en/website/static/pdf.png
 include doc/en/website/templates/index.html
 include doc/en/a_tour_of_sage/eigen_plot.png
@@ -43,11 +33,8 @@ include doc/fr/a_tour_of_sage/eigen_plot.png
 include doc/fr/a_tour_of_sage/sin_plot.png
 include doc/tr/a_tour_of_sage/eigen_plot.png
 include doc/tr/a_tour_of_sage/sin_plot.png
-recursive-include doc/en/reference/media *
-recursive-include doc/en/thematic_tutorials/media *
-recursive-include doc/common/static *
-recursive-include doc/common/themes *
-prune doc/output
-prune doc/en/reference/sage
-prune doc/en/reference/sagenb
-include sage/ext/mac-app/README
+graft   doc/en/reference/media
+graft   doc/en/thematic_tutorials/media
+prune   doc/en/reference/sage
+prune   doc/en/reference/sagenb
+prune   doc/output

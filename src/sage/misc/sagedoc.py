@@ -320,8 +320,8 @@ def process_extlinks(s, embedded=False):
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import process_extlinks
-        sage: process_extlinks('See :trac:`1234` for more information.')
-        'See http://trac.sagemath.org/1234 for more information.'
+        sage: process_extlinks('See :trac:`1234`, :wikipedia:`Wikipedia <Sage_(mathematics_software)>`, and :trac:`4321` ...')
+        'See http://trac.sagemath.org/1234, http://en.wikipedia.org/wiki/Sage_(mathematics_software), and http://trac.sagemath.org/4321 ...'
         sage: process_extlinks('See :trac:`1234` for more information.', embedded=True)
         'See :trac:`1234` for more information.'
         sage: process_extlinks('see :python:`Implementing Descriptors <reference/datamodel.html#implementing-descriptors>` ...')
@@ -334,15 +334,17 @@ def process_extlinks(s, embedded=False):
     from conf import pythonversion, extlinks
     sys.path = oldpath
     for key in extlinks:
-        m = re.search(':%s:`([^`]*)`' % key, s)
-        if m:
+        while True:
+            m = re.search(':%s:`([^`]*)`' % key, s)
+            if not m:
+                break
             link = m.group(1)
             m = re.search('.*<([^>]*)>', link)
             if m:
                 link = m.group(1)
             s = re.sub(':%s:`([^`]*)`' % key,
                        extlinks[key][0].replace('%s', link),
-                       s)
+                       s, count=1)
     return s
 
 def process_mathtt(s, embedded=False):

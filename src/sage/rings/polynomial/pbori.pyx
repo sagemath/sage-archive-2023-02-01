@@ -619,6 +619,13 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: ZZ['a'].gen() + c
             a + c
 
+        Check that :trac:`13284` is fixed:
+
+            sage: from sage.rings.ideal import Cyclic
+            sage: R = BooleanPolynomialRing(10, 'x')
+            sage: I = Cyclic(R)
+            sage: len(I.groebner_basis())
+            10
         """
         if self._base.has_coerce_map_from(S):
             return True
@@ -975,7 +982,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         try:
             i = int(other)
         except StandardError:
-            raise TypeError, "cannot convert %s to BooleanPolynomial"%(type(other))
+            try:    # last chance: try Sage's conversions over GF(2), Trac #13284
+                return self._coerce_c_impl(self.cover_ring()(other))
+            except:
+                raise TypeError, "cannot convert %s to BooleanPolynomial"%(type(other))
 
         i = i % 2
         if i == 1:
@@ -4012,7 +4022,7 @@ cdef class BooleanPolynomial(MPolynomial):
             for i in range(N):
                 arg = args[i]
                 try:
-                    arg = P(arg)
+                    arg = P.coerce(arg)
                     if arg.constant():
                         # TODO: We should collect those and reduce once only
                         self = ll_red_nf_redsb(self, (P.gen(i) + arg).set())

@@ -52,7 +52,7 @@ graphs.
     :meth:`~Graph.is_long_hole_free` | Tests whether ``self`` contains an induced cycle of length at least 5.
     :meth:`~Graph.is_long_antihole_free` | Tests whether ``self`` contains an induced anticycle of length at least 5.
     :meth:`~Graph.is_weakly_chordal` | Tests whether ``self`` is weakly chordal.
-
+    :meth:`~Graph.is_strongly_regular` | Tests whether ``self`` is strongly regular.
 
 **Connectivity and orientations:**
 
@@ -2162,6 +2162,89 @@ class Graph(GenericGraph):
         else:
             return counter_example is None
 
+    def is_strongly_regular(self, return_parameters=False):
+        r"""
+        Tests whether ``self`` is strongly regular.
+
+        A graph `G` is said to be strongly regular with parameters `(k, \lambda,
+        \mu)` if and only if:
+
+            * `G` is `k`-regular
+
+            * Any two adjacent vertices of `G` have `\lambda` common neighbors.
+
+            * Any two non-adjacent vertices of `G` have `\mu` common neighbors.
+
+        INPUT:
+
+        - ``return_parameters`` (boolean) -- whether to return the triple
+          `(k,\lambda,\mu)`. If ``return_parameters = False`` (default), this
+          method only returns ``True`` and ``False`` answers. If
+          ``return_parameters=True``, the ``True`` answers are replaced by
+          triples `(k,\lambda,\mu)`. See definition above.
+
+        EXAMPLES:
+
+        Petersen's graph is strongly regular::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_strongly_regular()
+            True
+            sage: g.is_strongly_regular(return_parameters = True)
+            (3, 0, 1)
+
+        And Clebsch's graph is too::
+
+            sage: g = graphs.ClebschGraph()
+            sage: g.is_strongly_regular()
+            True
+            sage: g.is_strongly_regular(return_parameters = True)
+            (5, 0, 2)
+
+        But Chvatal's graph is not::
+
+            sage: g = graphs.ChvatalGraph()
+            sage: g.is_strongly_regular()
+            False
+        """
+        degree = self.degree()
+        k = degree[0]
+        if not all(d == k for d in degree):
+            return False
+
+        if self.is_clique():
+            l = self.order()-2
+            m = 0
+        elif self.size() == 0:
+            l = 0
+            m = 0
+        else:
+            l = m = None
+            for u in self:
+                nu = set(self.neighbors(u))
+                for v in self:
+                    if u == v:
+                        continue
+                    nv = set(self.neighbors(v))
+                    inter = len(nu&nv)
+
+                    if v in nu:
+                        if l is None:
+                            l = inter
+                        else:
+                            if l != inter:
+                                return False
+                    else:
+                        if m is None:
+                            m = inter
+                        else:
+                            if m != inter:
+                                return False
+
+            if return_parameters:
+                return (k,l,m)
+            else:
+                return True
 
     def degree_constrained_subgraph(self, bounds=None, solver=None, verbose=0):
         r"""

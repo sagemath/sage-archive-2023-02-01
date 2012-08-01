@@ -132,12 +132,12 @@ end intrinsic;
 
 intrinsic Sage(X::FldReElt) -> MonStgElt, BoolElt
 {}
-    return Sprintf("%o(%o)", Sage(Parent(X)), X), false;
+    return Sprintf("%o(%o)", Sage(Parent(X)), X), true;
 end intrinsic;
 
 intrinsic Sage(X::FldComElt) -> MonStgElt, BoolElt
 {}
-  return Sprintf("%o([%o, %o])", Sage(Parent(X)), Sage(Real(X)), Sage(Imaginary(X))), false;
+  return Sprintf("%o([%o, %o])", Sage(Parent(X)), Sage(Real(X)), Sage(Imaginary(X))), true;
 end intrinsic;
 
 /* Polynomials */

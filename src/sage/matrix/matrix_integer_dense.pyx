@@ -4955,20 +4955,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 2 3]
             [0 3 6]
             sage: matrix(ZZ,3,[1..9])._hnf_pari(4, include_zero_rows=False)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Pari flag=4 is currently broken.
+            [1 2 3]
+            [0 3 6]
 
-        The following tests for the Pari bug in trac #12280. Expected
-        output is ``Mat(1), [1, 0; 0, 1]]``. Once this gets fixed we
-        can remove the ``NotImplementedError`` below. This is trac
-        #12346 ::
+        Check that :trac:`12346` is fixed::
 
             sage: pari('mathnf(Mat([0,1]), 4)')
-            [Mat([0, 1]), [1, 0; 0, 1]]
+            [Mat(1), [1, 0; 0, 1]]
         """
-        if not include_zero_rows and flag==4:
-            raise NotImplementedError('Pari flag=4 is currently broken.')
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef GEN A
         sig_on()
@@ -5029,19 +5023,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 2 3]
             [0 3 6]
             sage: matrix(ZZ,3,[1..9])._hnf_pari_big(4, include_zero_rows=False)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Pari flag=4 is currently broken.
-
-        The following tests for the Pari bug in trac #12280. Expected output
-        is ``Mat(1), [1, 0; 0, 1]]``. If this gets fixed we can remove
-        the ``NotImplementedError`` below. This is trac #12346 ::
-
-            sage: pari('mathnf(Mat([0,1]), 4)')
-            [Mat([0, 1]), [1, 0; 0, 1]]
+            [1 2 3]
+            [0 3 6]
         """
-        if (not include_zero_rows and flag==4):
-            raise NotImplementedError('Pari flag=4 is currently broken.')
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef gen H = P.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)

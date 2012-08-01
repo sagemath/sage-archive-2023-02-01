@@ -1,5 +1,5 @@
 """
-Find isomorphisms between fans
+Find isomorphisms between fans.
 """
 
 
@@ -15,7 +15,7 @@ Find isomorphisms between fans
 from exceptions import Exception
 
 from sage.rings.all import ZZ
-from sage.matrix.constructor import matrix
+from sage.matrix.constructor import column_matrix, matrix
 
 
 
@@ -53,9 +53,9 @@ def fan_isomorphic_necessary_conditions(fan1, fan2):
         return False
     if fan1.nrays() != fan2.nrays():
         return False
-    if fan1.is_complete() != fan2.is_complete():
-        return False
     if fan1.ngenerating_cones() != fan2.ngenerating_cones():
+        return False
+    if fan1.is_complete() != fan2.is_complete():
         return False
     return True
 
@@ -76,8 +76,7 @@ def fan_isomorphism_generator(fan1, fan2):
 
     OUTPUT:
 
-    Yields the fan isomorphisms as matrices. If there is no such
-    isomorphism, a :class:`FanNotIsomorphicError` is raised.
+    Yields the fan isomorphisms as matrices.
 
     EXAMPLES::
 
@@ -110,26 +109,23 @@ def fan_isomorphism_generator(fan1, fan2):
     graph_iso = graph1.is_isomorphic(graph2, edge_labels=True, certify=True)
     if not graph_iso[0]:
         return
-    graph_iso = dict( (k.ray(0), v.ambient_ray_indices()[0]) for k,v in graph_iso[1].iteritems() )
-
-    fan1_virtual_rays = list(fan1.virtual_rays())
-    fan2_virtual_rays = list(fan2.virtual_rays())
+    graph_iso = dict( (k.ray(0), v.ambient_ray_indices()[0])
+                      for k,v in graph_iso[1].iteritems() )
 
     max_cone = fan1(fan1.dim())[0]
-    fan1_pivot_rays = list(max_cone.rays())
-    fan1_basis = fan1_pivot_rays + fan1_virtual_rays   # A (random) QQ_basis for N_1
+    fan1_pivot_rays = max_cone.rays()
+    fan1_basis = fan1_pivot_rays + fan1.virtual_rays()   # A QQ-basis for N_1
 
     # The fan2 cones as set(set(integers))
     fan2_cones = frozenset(
         frozenset(cone.ambient_ray_indices())
         for cone in fan2.generating_cones() )
 
-    # iterater over all graph isomorphisms graph1 -> graph2
+    # iterate over all graph isomorphisms graph1 -> graph2
     for perm in graph2.automorphism_group(edge_labels=True):
         # find a candidate m that maps max_cone to the graph image cone
         image_ray_indices = [ perm(graph_iso[r]+1)-1 for r in fan1_pivot_rays ]
-        fan2_image_rays = list(fan2.rays(image_ray_indices))
-        fan2_basis = fan2_image_rays + fan2_virtual_rays
+        fan2_basis = fan2.rays(image_ray_indices) + fan2.virtual_rays()
         try:
             m = matrix(fan1_basis).solve_right(matrix(fan2_basis))
             m = m.change_ring(ZZ)
@@ -139,7 +135,8 @@ def fan_isomorphism_generator(fan1, fan2):
         # check that the candidate m lifts the vertex graph homomorphism
         graph_image_ray_indices = [ perm(graph_iso[r]+1)-1 for r in fan1.rays() ]
         try:
-            matrix_image_ray_indices = [ fan2.rays().index(fan1.ray(i)*m) for i in range(fan1.nrays()) ]
+            matrix_image_ray_indices = [ fan2.rays().index(fan1.ray(i)*m)
+                                         for i in range(fan1.nrays()) ]
         except ValueError:
             continue
         if graph_image_ray_indices != matrix_image_ray_indices:
@@ -147,7 +144,8 @@ def fan_isomorphism_generator(fan1, fan2):
 
         # check that the candidate m maps generating cone to generating cone
         image_cones = frozenset( # The image(fan1) cones as set(set(integers)
-            frozenset(graph_image_ray_indices[i] for i in cone.ambient_ray_indices())
+            frozenset(graph_image_ray_indices[i]
+                      for i in cone.ambient_ray_indices())
             for cone in fan1.generating_cones() )
         if image_cones == fan2_cones:
             yield m
@@ -206,11 +204,11 @@ def find_isomorphism(fan1, fan2, check=False):
 
 def fan_2d_cyclically_ordered_rays(fan):
     """
-    Return the rays of a 2-dimensional fan in cyclic order
+    Return the rays of a 2-dimensional ``fan`` in cyclic order.
 
     INPUT:
 
-    - ``fan`` -- a fan.
+    - ``fan`` -- a 2-dimensional fan.
 
     OUTPUT:
 
@@ -254,7 +252,7 @@ def fan_2d_cyclically_ordered_rays(fan):
 
 def fan_2d_echelon_forms(fan):
     """
-    All echelon forms of cyclically ordered ray matrices
+    Return echelon forms of all cyclically ordered ray matrices.
 
     Note that the echelon form of the ordered ray matrices are unique
     up to different cyclic orderings.
@@ -311,8 +309,7 @@ def fan_2d_echelon_forms(fan):
     echelon_forms = []
     for i in range(2):
         for j in range(len(rays)):
-            ray_matrix = matrix(rays)
-            echelon_forms.append(ray_matrix.transpose().echelon_form())
+            echelon_forms.append(column_matrix(rays).echelon_form())
             first = rays.pop(0)
             rays.append(first)
         rays.reverse()
@@ -321,7 +318,7 @@ def fan_2d_echelon_forms(fan):
 
 def fan_2d_echelon_form(fan):
     """
-    One echelon form of cyclically ordered ray matrices
+    Return echelon form of a cyclically ordered ray matrix.
 
     INPUT:
 

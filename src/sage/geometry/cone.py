@@ -87,7 +87,7 @@ ray. It is possible to convert this collection to a matrix with either
 rows or columns corresponding to these generators. You may also change
 the default
 :meth:`~sage.geometry.point_collection.PointCollection.output_format`
-of all point collections such a matrix.
+of all point collections to be such a matrix.
 
 If you want to do something with each ray of a cone, you can write ::
 
@@ -636,8 +636,10 @@ class IntegralRayCollection(SageObject,
             over the principal ideal domain Integer Ring
             sage: TestSuite(c).run()
         """
+        if lattice is None:
+            lattice = rays[0].parent()
         self._rays = PointCollection(rays, lattice)
-        self._lattice = self._rays[0].parent() if lattice is None else lattice
+        self._lattice = lattice
 
     def __cmp__(self, right):
         r"""
@@ -1140,85 +1142,6 @@ class IntegralRayCollection(SageObject,
                     "please use rays().basis().column_matrix() instead!")
         return self.rays().basis().column_matrix()
 
-    def virtual_rays(self, *args):
-        r"""
-        Return (some of the) virtual rays of ``self``.
-
-        If the span of the defining rays is strictly
-        smaller-dimensional than the ambient vector space, then the
-        virtual rays are a choice of additional primitive lattice rays
-        to get a complete set of generators. That is, the rays of a
-        maximal cone of the fan together with the virtual rays span
-        the vector space `N_\QQ`. Note that they are not necessarizy a
-        `\ZZ`-basis for `N`.
-
-        If the fan is of dimension `d` and `N_\QQ = \QQ^D` with `d<D`,
-        then the toric variety is of the form `X \times
-        (\CC^\times)^{D-d}`. The virtual rays amount to a choice of
-        splitting the torus factor into individual `\CC^\times`
-        factors.
-
-        INPUT:
-
-        - ``ray_list`` -- a list of integers, the indices of the
-          requested virtual rays. If not specified, a complete choice
-          of virtual rays of ``self`` will be returned. See
-          :meth:`rays`.
-
-        OUTPUT:
-
-        A arbitrary but fixed choice of virtual rays as a
-        :class:`~sage.geometry.point_collection.PointCollection` of
-        primitive integral ray generators. Usually (if the fan is
-        full-dimensional) this will be empty.
-
-        EXAMPLES::
-
-            sage: c = Cone([(1,0,1,0), (0,1,1,0)])
-            sage: c.virtual_rays()
-            N(0, 0, 0, 1),
-            N(0, 0, 1, 0)
-            in 4-d lattice N
-
-            sage: c.rays()
-            N(1, 0, 1, 0),
-            N(0, 1, 1, 0)
-            in 4-d lattice N
-
-            sage: c.virtual_rays((0,))
-            N(0, 0, 0, 1)
-            in 4-d lattice N
-
-        You can also give virtual array indices directly, without
-        packing them into a list::
-
-            sage: c.virtual_rays(0)
-            N(0, 0, 0, 1)
-            in 4-d lattice N
-
-        TESTS::
-
-            sage: N = ToricLattice(4)
-            sage: for i in range(10):
-            ...           c = Cone([N.random_element() for j in range(i/2)], lattice=N)
-            ...           rays = list(c.rays())
-            ...           virtual = list(c.virtual_rays())
-            ...           assert matrix(rays+virtual).rank() == 4
-            ...           assert c.dim() + len(virtual) == 4
-        """
-        try:
-            virtual = self._virtual_rays
-        except AttributeError:
-            N = self.lattice()
-            quotient = N.quotient(self.rays().matrix().saturation().rows())
-            virtual = [ gen.lift() for gen in quotient.gens() ]
-            virtual = PointCollection(virtual, N)
-            self._virtual_rays = virtual
-        if args:
-            return virtual(*args)
-        else:
-            return virtual
-
 
 def classify_cone_2d(ray0, ray1, check=True):
     """
@@ -1234,7 +1157,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 
     OUTPUT:
 
-    A pair `(d,k)` of integers classifying the cone up to `GL(\ZZ)`
+    A pair `(d,k)` of integers classifying the cone up to `GL(2, \ZZ)`
     equivalence. See Proposition 10.1.1 of [CLS]_ for the
     definition. We return the unique `(d,k)` with minmial `k`, see
     Proposition 10.1.3 of [CLS]_.
@@ -1281,7 +1204,6 @@ def classify_cone_2d(ray0, ray1, check=True):
     """
     if check:
         assert ray0.parent() is ray1.parent()
-        from sage.structure.element import is_Vector
         assert ray0.base_ring() is ZZ
         assert gcd(ray0) == 1
         assert gcd(ray1) == 1

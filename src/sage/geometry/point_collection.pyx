@@ -170,6 +170,44 @@ cdef class PointCollection(SageObject):
         self._points = tuple(points)
         self._module = self._points[0].parent() if module is None else module
 
+    def __add__(left, right):
+        r"""
+        Return the joint point collection.
+
+        INPUT:
+
+        - ``left`` -- a :class:`PointCollection`;
+
+        - ``right`` -- a :class:`PointCollection`.
+
+        OUTPUT:
+
+        - a :class:`PointCollection`.
+
+        TESTS::
+
+            sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
+            sage: c + c
+            N(0, 0, 1),
+            N(1, 0, 1),
+            N(0, 1, 1),
+            N(1, 1, 1),
+            N(0, 0, 1),
+            N(1, 0, 1),
+            N(0, 1, 1),
+            N(1, 1, 1)
+            in 3-d lattice N
+        """
+        if not (isinstance(left, PointCollection) and
+                isinstance(right, PointCollection)):
+            raise NotImplementedError
+        cdef PointCollection left_pc = left
+        cdef PointCollection right_pc = right
+        if not left_pc._module is right_pc._module:
+            raise NotImplementedError
+        return PointCollection(left_pc._points + right_pc._points,
+                               left_pc._module)
+
     def __call__(self, *args):
         r"""
         Return a subcollection of ``self``.

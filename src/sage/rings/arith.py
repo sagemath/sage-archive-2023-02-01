@@ -4045,7 +4045,9 @@ def continued_fraction_list(x, partial_convergents=False, bits=None, nterms=None
         sage: continued_fraction_list(RR(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1]
         sage: continued_fraction_list(RealField(200)(e))
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1,
+         14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1,
+         26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
 
     TESTS::
 
@@ -4122,7 +4124,7 @@ def continued_fraction_list(x, partial_convergents=False, bits=None, nterms=None
 
 def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
     r"""
-    Returns the Hirzebruch-Jung continued fraction of x as a list.
+    Return the Hirzebruch-Jung continued fraction of ``x`` as a list.
 
     The Hirzebruch-Jung continued fraction of `x` is similar to the
     ordinary continued fraction expansion, but with minus signs. That
@@ -4140,7 +4142,7 @@ def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
 
     INPUT:
 
-    - ``x`` -- exact rational something that can be numerically
+    - ``x`` -- exact rational or something that can be numerically
       evaluated. The number to compute the continued fraction of.
 
     - ``bits`` -- integer (default: the precision of ``x``). the
@@ -4152,8 +4154,8 @@ def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
 
     OUTPUT:
 
-    A lits of integers, the coefficients in the continued fraction
-    expansion of ``x``.
+    A lits of integers, the coefficients in the Hirzebruch-Jung continued
+    fraction expansion of ``x``.
 
     EXAMPLES::
 
@@ -4174,8 +4176,8 @@ def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
         sage: Hirzebruch_Jung_continued_fraction_list(pi)
         [4, 2, 2, 2, 2, 2, 2, 17, 294, 3, 4, 5, 16, 2, 2]
         sage: Hirzebruch_Jung_continued_fraction_list(e)
-        [3, 4, 3, 2, 2, 2, 3, 8, 3, 2, 2, 2, 2, 2, 2, 2, 3, 12, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 10]
-
+        [3, 4, 3, 2, 2, 2, 3, 8, 3, 2, 2, 2, 2, 2, 2, 2,
+         3, 12, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 10]
         sage: Hirzebruch_Jung_continued_fraction_list(e, nterms=20)
         [3, 4, 3, 2, 2, 2, 3, 8, 3, 2, 2, 2, 2, 2, 2, 2, 3, 12, 3, 2]
         sage: len(_) == 20
@@ -4190,7 +4192,7 @@ def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
         sage: Hirzebruch_Jung_continued_fraction_list(1 - 10^-20 - e^-100, bits=1000, nterms=5)
         [1, 100000000000000000000, 2689, 2, 2]
    """
-    if not sage.rings.rational.is_Rational(x):
+    if not isinstance(x, sage.rings.rational.Rational):
         try:
             x = QQ(x)
         except TypeError:
@@ -4203,8 +4205,6 @@ def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
             x = QQ(x.n(bits))
     v = []
     while True:
-        numer = x.numerator()
-        denom = x.denominator()
         div, mod = divmod(x.numerator(), x.denominator())
         if mod == 0:
             v.append(div)

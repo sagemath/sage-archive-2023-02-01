@@ -52,6 +52,9 @@ def GL(n, R, var='a'):
     Return the general linear group of degree `n` over the ring
     `R`.
 
+    .. note::
+        This group is also available via ``groups.matrix.GL()``.
+
     EXAMPLES::
 
         sage: G = GL(6,GF(5))
@@ -99,6 +102,11 @@ def GL(n, R, var='a'):
         [2 1]
         [2 0]
         ]
+
+    TESTS::
+
+        sage: groups.matrix.GL(2, 3)
+        General Linear Group of degree 2 over Finite Field of size 3
     """
     if isinstance(R, (int, long, Integer)):
         R = FiniteField(R, var)

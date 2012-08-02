@@ -6,6 +6,7 @@ Groups
 .. toctree::
    :maxdepth: 2
 
+   sage/groups/groups_catalog
    sage/groups/group
    sage/groups/generic
    sage/groups/abelian_gps/abelian_group
@@ -29,5 +30,6 @@ Groups
    sage/groups/matrix_gps/orthogonal
    sage/groups/matrix_gps/symplectic
    sage/groups/matrix_gps/unitary
+   sage/groups/misc_gps/misc_groups
 
 

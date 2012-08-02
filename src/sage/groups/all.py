@@ -12,3 +12,5 @@ from generic import *
 from class_function import ClassFunction
 
 from additive_abelian.all import *
+
+import groups_catalog as groups

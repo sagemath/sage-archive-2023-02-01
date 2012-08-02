@@ -69,6 +69,9 @@ def SL(n, R, var='a'):
     Return the special linear group of degree `n` over the ring
     `R`.
 
+    .. note::
+        This group is also available via ``groups.matrix.SL()``.
+
     EXAMPLES::
 
         sage: SL(3,GF(2))
@@ -111,6 +114,11 @@ def SL(n, R, var='a'):
         ]
 
         sage: TestSuite(G).run()
+
+    TESTS::
+
+        sage: groups.matrix.SL(2, 3)
+        Special Linear Group of degree 2 over Finite Field of size 3
     """
     if isinstance(R, (int, long, Integer)):
         R = FiniteField(R, var)

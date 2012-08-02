@@ -63,6 +63,9 @@ def GU(n, F, var='a'):
        quadratic extension of F, if needed.
 
 
+    .. note::
+        This group is also available via ``groups.matrix.GU()``.
+
     EXAMPLES::
 
         sage: G = GU(3,GF(7)); G
@@ -93,6 +96,11 @@ def GU(n, F, var='a'):
         [     4      4      0]
         [     1      0      0]
         ]
+
+    TESTS::
+
+        sage: groups.matrix.GU(2, 3)
+        General Unitary Group of degree 2 over Finite Field of size 3
     """
     if isinstance(F, (int, long, Integer)):
         F = GF(F,var)
@@ -176,6 +184,9 @@ def SU(n, F, var='a'):
     Return the special unitary group of degree `n` over
     `F`.
 
+    .. note::
+        This group is also available via ``groups.matrix.SU()``.
+
     EXAMPLES::
 
         sage: SU(3,5)
@@ -184,6 +195,11 @@ def SU(n, F, var='a'):
         Traceback (most recent call last):
         ...
         NotImplementedError: special unitary group only implemented over finite fields
+
+    TESTS::
+
+        sage: groups.matrix.SU(2, 3)
+        Special Unitary Group of degree 2 over Finite Field of size 3
     """
     if isinstance(F, (int, long, Integer)):
         F = GF(F,var)

@@ -66,6 +66,9 @@ def SO(n, R, e=0, var='a'):
        depending on the invariant form
 
 
+    .. note::
+        This group is also available via ``groups.matrix.SO()``.
+
     EXAMPLES::
 
         sage: G = SO(3,GF(5))
@@ -85,6 +88,11 @@ def SO(n, R, e=0, var='a'):
         sage: G.as_matrix_group()
         Matrix group over Finite Field of size 5 with 3 generators:
         [[[2, 0, 0], [0, 3, 0], [0, 0, 1]], [[3, 2, 3], [0, 2, 0], [0, 3, 1]], [[1, 4, 4], [4, 0, 0], [2, 0, 4]]]
+
+    TESTS::
+
+        sage: groups.matrix.SO(2, 3, e=1)
+        Special Orthogonal Group of degree 2, form parameter 1, over the Finite Field of size 3
     """
     if isinstance(R, (int, long, Integer)):
         R = FiniteField(R, var)
@@ -220,7 +228,15 @@ def GO( n , R , e=0 ):
     """
     Return the general orthogonal group.
 
+    .. note::
+        This group is also available via ``groups.matrix.GO()``.
+
     EXAMPLES:
+
+    TESTS::
+
+        sage: groups.matrix.GO(2, 3, e=-1)
+        General Orthogonal Group of degree 2, form parameter -1, over the Finite Field of size 3
     """
     if n%2!=0 and e!=0:
         raise ValueError, "if e = 0, then n must be even."

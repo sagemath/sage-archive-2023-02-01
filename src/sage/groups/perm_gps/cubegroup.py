@@ -419,6 +419,9 @@ class CubeGroup(PermutationGroup_generic):
     """
     A python class to help compute Rubik's cube group actions.
 
+    .. note::
+        This group is also available via ``groups.permutation.RubiksCube()``.
+
     EXAMPLES: If G denotes the cube group then it may be regarded as a
     subgroup of SymmetricGroup(48), where the 48 facets are labeled as
     follows.
@@ -447,6 +450,11 @@ class CubeGroup(PermutationGroup_generic):
         The PermutationGroup of all legal moves of the Rubik's cube.
         sage: print rubik
         The Rubik's cube group with generators R,L,F,B,U,D in SymmetricGroup(48).
+
+        TESTS::
+
+            sage: groups.permutation.RubiksCube()
+            The PermutationGroup of all legal moves of the Rubik's cube.
     """
     def __init__(self):
         U = "( 1, 3, 8, 6)( 2, 5, 7, 4)( 9,33,25,17)(10,34,26,18)(11,35,27,19)" ## U = top

@@ -36,6 +36,9 @@ def Sp(n, R, var='a'):
     """
     Return the symplectic group of degree n over R.
 
+    .. note::
+        This group is also available via ``groups.matrix.Sp()``.
+
     EXAMPLES::
 
         sage: Sp(4,5)
@@ -44,6 +47,11 @@ def Sp(n, R, var='a'):
         Traceback (most recent call last):
         ...
         ValueError: the degree n (=3) must be even
+
+    TESTS::
+
+        sage: groups.matrix.Sp(2, 3)
+        Symplectic Group of rank 1 over Finite Field of size 3
     """
     if n%2!=0:
         raise ValueError, "the degree n (=%s) must be even"%n

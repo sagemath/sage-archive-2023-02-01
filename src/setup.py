@@ -920,6 +920,7 @@ code = setup(name = 'sage',
                      'sage.groups.abelian_gps',
                      'sage.groups.additive_abelian',
                      'sage.groups.matrix_gps',
+                     'sage.groups.misc_gps',
                      'sage.groups.perm_gps',
                      'sage.groups.perm_gps.partn_ref',
 

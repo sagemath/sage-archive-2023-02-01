@@ -21,7 +21,7 @@
 +elif os.environ['UNAME'] == 'Darwin':
 +  BLAS_LIB =['blas','gfortran','m']
 +else:
-+  BLAS_LIB =['blas','cblas','gfortran','atlas','m']
++  BLAS_LIB =['f77blas','cblas','gfortran','atlas','m']
 +
  # Set environment variable BLAS_NOUNDERSCORES=1 if your BLAS/LAPACK do
  # not use trailing underscores

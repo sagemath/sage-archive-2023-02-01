@@ -38,7 +38,7 @@
  
  # Directory containing the GSL header files (used only when BUILD_GSL = 1).
 -GSL_INC_DIR = '/usr/include/gsl'
-+GSL_INC_DIR = SAGE_INCLUDE + '/gsl'
++GSL_INC_DIR = SAGE_INCLUDE
  
  # Set to 1 if you are installing the fftw module.
 -BUILD_FFTW = 0 

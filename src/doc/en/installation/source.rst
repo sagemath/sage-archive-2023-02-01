@@ -1064,21 +1064,8 @@ Sometimes the ATLAS spkg can fail to build.  Some things to check for:
 Special Notes
 -------------
 
--  (Found by Peter Jipsen) If you get an error like
-
-   ::
-
-       ImportError: /home/jipsen/Desktop/sage-1.3.3.1/local/lib/libpari-gmp.so.2:
-            cannot restore segment prot after reloc:
-       Permission denied
-
-   then your `SELinux <http://fedoraproject.org/wiki/SELinux>`_ configuration is preventing Sage from launching. To
-   rectify this issue, you can either change the default security
-   context for Sage (??) or disable SELinux altogether by setting the
-   line ``SELINUX=disabled`` in your ``/etc/sysconfig/selinux`` file.
-
 - To make SageTeX available to your users, see the instructions for
   :ref:`installation in a multiuser environment
   <sagetex_installation_multiuser>`.
 
-  **This page was last updated in July 2012 (Sage 5.2)**
+  **This page was last updated in August 2012 (Sage 5.2)**

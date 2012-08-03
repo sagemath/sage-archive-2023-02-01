@@ -4,7 +4,7 @@
 ###########################################
 
 
-TARGET=prereq-1.0
+TARGET=prereq-1.1
 if [ "x$SAGE_BUILD_DIR" = x ]; then
     SAGE_BUILD_DIR="$SAGE_ROOT/spkg/build"
 fi
@@ -149,8 +149,14 @@ if [ -f "$prereq_tarball" ]; then
 
     if [ $? -ne 0 ]; then
         echo >&2 "You do not have all of the prerequisites needed to build Sage"
-        echo >&2 "from source.  See the errors above."
-        exit 1
+        echo >&2 "from source. See the errors above."
+        if [ "x$SAGE_PORT" = x ]; then
+            echo >&2 "If you would like to try the build anyway (to help porting)"
+            echo >&2 "export the variable 'SAGE_PORT' to something non-empty."
+            exit 1
+        else
+            echo >&2 "However, since 'SAGE_PORT' is set, we will try to build anyway."
+        fi
     fi
 else
     echo >&2 "The file '$prereq_tarball' does not exist."

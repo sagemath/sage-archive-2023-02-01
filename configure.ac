@@ -227,8 +227,7 @@ then
     AC_MSG_WARN([You do not have 'dpkg-architecture', which is requred to build])
     AC_MSG_WARN([Python on multi-arch debian systems. This is definitely requried])
     AC_MSG_WARN([in recent Debian and Ubuntu versions.])
-    # don't error out for now since I don't know know when multiarch was introduced
-    #AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires dpkg-architecture on debian])
+    AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires dpkg-architecture on debian])
 fi
 
 # Next one should check for libraries

@@ -202,7 +202,6 @@ fi
 # Check for Latex, the use of which is less important in Sage than
 # it used to be, as it was at one time required to build any documentation
 # but this is no longer so.
-
 AC_CHECK_PROG(found_latex,latex,[yes],[no],[])
 if test x$found_latex  != xyes
 then
@@ -216,7 +215,21 @@ fi
 # requires version >= 5.8.0.  The R package *used* to require it, but
 # not anymore. -- Jeroen Demeyer
 AC_PATH_PROG([PERL],[perl])
-AX_PROG_PERL_VERSION([5.8.0],[],[AC_MSG_ERROR([Sorry, your version of perl is too old]) ])
+AX_PROG_PERL_VERSION([5.8.0],[],[
+    AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires perl-5.8.0 or later])
+])
+
+# To build python you need dpkg-architecture on debian-based systems
+AC_CHECK_PROG(found_dpkg, dpkg,[yes],[no],[])
+AC_CHECK_PROG(found_dpkg_arch, dpkg-architecture,[yes],[no],[])
+if test x$found_dpkg  == xyes && test x$found_dpkg_arch == xno
+then
+    AC_MSG_WARN([You do not have 'dpkg-architecture', which is requred to build])
+    AC_MSG_WARN([Python on multi-arch debian systems. This is definitely requried])
+    AC_MSG_WARN([in recent Debian and Ubuntu versions.])
+    # don't error out for now since I don't know know when multiarch was introduced
+    #AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires dpkg-architecture on debian])
+fi
 
 # Next one should check for libraries
 # No unusual libraries are needed. Sage comes with everything it needs.
@@ -224,8 +237,17 @@ AX_PROG_PERL_VERSION([5.8.0],[],[AC_MSG_ERROR([Sorry, your version of perl is to
 # Next one should check for header files.
 # complex.h is one that might not exist on older systems.
 AC_CHECK_HEADER([complex.h],[],[
-     AC_MSG_WARN([complex.h not found. You don't have all the headers to build])
-     AC_MSG_WARN([AC_PACKAGE_NAME, but the build will continue, to aid porting efforts])
+    AC_MSG_ERROR([Exiting, since you do not have the 'complex.h' header file.])
+])
+
+# The Sage Notebook requires OpenSSL headers. 
+AC_CHECK_HEADER([openssl/ssl.h],[],[
+    AC_MSG_NOTICE([The OpenSSL library is required to build the Sage Notebook.])
+    AC_MSG_NOTICE([You might need to execute one of the following (or the equivalent for your])
+    AC_MSG_NOTICE([operating system):])
+    AC_MSG_NOTICE([  sudo apt-get install libssl-dev])
+    AC_MSG_NOTICE([  sudo yum install openssl-devel])
+    AC_MSG_ERROR([Exiting, since the OpenSSL headers were not found.])
 ])
 
 # Next one should check for types.
@@ -302,11 +324,11 @@ then
     [
     AC_MSG_NOTICE([gcc ($GCC_VERSION) and g++ ($GXX_VERSION) are not the same version])
     AC_MSG_NOTICE([which they must be. Check your setting of CC and CXX])
-    AC_MSG_ERROR([Exiting since the C and C++ compilers have different versions])
+    AC_MSG_ERROR([Exiting, since the C and C++ compilers have different versions])
     ],[],[
     AC_MSG_NOTICE([gcc ($GCC_VERSION) and g++ ($GXX_VERSION) are not the same version])
     AC_MSG_NOTICE([which they must be. Check your setting of CC and CXX])
-    AC_MSG_ERROR([Exiting since the C and C++ compilers have different versions])])
+    AC_MSG_ERROR([Exiting, since the C and C++ compilers have different versions])])
 
     # In the paragraph below, 'gfortran' is used to indicate the GNU Fortran
     # compiler, though it might be called something else.
@@ -349,7 +371,7 @@ then
         echo ""
         $FC --version 2>&1
         echo ""
-        AC_MSG_ERROR([Exiting since the Fortran compiler is not the same version as the C and C++ compilers])
+        AC_MSG_ERROR([Exiting, since the Fortran compiler is not the same version as the C and C++ compilers])
     else
         AC_MSG_NOTICE([Excellent, the C, C++ and Fortran compilers are all GCC $GCC_VERSION])
     fi
@@ -360,7 +382,7 @@ then
         AC_MSG_NOTICE([GCC $GCC_VERSION is too old and can not build AC_PACKAGE_NAME. ])
         AC_MSG_NOTICE([Please use a GCC of at least $minimum_gcc_version_for_no_hassle ])
         AC_MSG_NOTICE([There are no plans whatsoever to support GCC $GCC_VERSION])
-        AC_MSG_ERROR([Exiting due to the use of a version of GCC that is too old])
+        AC_MSG_ERROR([Exiting, due to the use of a version of GCC that is too old])
     ], [],[])
 
     # Exit if Sage is *precisely* version $buggy_gcc_version1, as that is very buggy.
@@ -371,7 +393,7 @@ then
     AS_VERSION_COMPARE([$GCC_VERSION], [$buggy_gcc_version1],[],[
         AC_MSG_NOTICE([GCC $buggy_gcc_version1  is very buggy and can not build AC_PACKAGE_NAME.])
         AC_MSG_NOTICE([Please use a gcc of at least $minimum_gcc_version_for_no_hassle.])
-        AC_MSG_ERROR([Exiting due to the use of a version of GCC that is too buggy])
+        AC_MSG_ERROR([Exiting, due to the use of a version of GCC that is too buggy])
      ],[])
 
     # Issue a warning if gcc is too old to work with all packages, but
@@ -399,7 +421,7 @@ then
            AC_MSG_NOTICE([empty. But if you just want Sage to work, upgrade GCC ])
            AC_MSG_NOTICE([******************************************************])
            AC_MSG_NOTICE([******************************************************])
-           AC_MSG_ERROR([Exiting due to the use of a version of GCC that is too old])
+           AC_MSG_ERROR([Exiting, due to the use of a version of GCC that is too old])
         fi
     ],
 [
@@ -445,8 +467,18 @@ AC_CHECK_LIB(m,sqrt,[],[
 # Next check for something more obscure (sqrtl) that may not exist on all maths libraries
 # but which is needed to build Sage.
 AC_CHECK_LIB(m,sqrtl,[],[
-     AC_MSG_WARN([library function sqrtl() not found. You don't have all the functions])
-     AC_MSG_WARN([to build AC_PACKAGE_NAME, but the build will continue, to aid porting efforts])
+    AC_MSG_NOTICE([You have an outdated and/or broken math library.])
+    AC_MSG_ERROR([Exiting, since the library function 'sqrtl()' was not found.])
+])
+
+# OpenSSL is a prerequisite for the notebook.
+AC_CHECK_LIB(ssl, SSL_library_init, [], [
+    AC_MSG_NOTICE([The OpenSSL library is required to build the Sage Notebook.])
+    AC_MSG_NOTICE([You might need to execute one of the following (or the equivalent for your])
+    AC_MSG_NOTICE([operating system):])
+    AC_MSG_NOTICE([  sudo apt-get install libssl-dev])
+    AC_MSG_NOTICE([  sudo yum install openssl-devel])
+    AC_MSG_ERROR([Exiting, since the OpenSSL library was not found.])
 ])
 
 # Next check for system services

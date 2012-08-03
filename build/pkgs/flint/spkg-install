@@ -74,10 +74,13 @@ FLINT_LINK_OPTIONS=""
 export FLINT_LINK_OPTIONS
 
 # Apply all patches
+if [ $UNAME = "CYGWIN" ]; then
+    PATCH_FLAG=--binary
+fi
 cd src
 echo "Patching Flint"
 for p in ../patches/*.patch; do
-    patch -p1 <"$p"
+    patch $PATCH_FLAG -p1 <"$p"
     if [ $? -ne 0 ]; then
         echo "Applying patch $p failed"
         exit 1

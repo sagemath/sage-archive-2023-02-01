@@ -36,6 +36,10 @@ GPL V2+
 
 == Changelog ==
 
+=== flint-1.5.2.p1 (Jean-Pierre Flori, 3 August 2012) ===
+  * #13330: Pass --binary flag to patch on Cygwin to deal with file terminators
+            mess.
+
 === flint-1.5.2.p0 (Dima Pasechnik, March 24th 2012) ===
   * bumped up the version to reflect the fact that we patch the source
 

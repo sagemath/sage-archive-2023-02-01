@@ -907,7 +907,7 @@ code = setup(name = 'sage',
                      'sage.graphs.base',
                      'sage.graphs.modular_decomposition',
                      'sage.graphs.graph_decompositions',
-                     'sage.graphs.graph_decompositions',
+                     'sage.graphs.generators',
 
                      'sage.groups',
                      'sage.groups.abelian_gps',

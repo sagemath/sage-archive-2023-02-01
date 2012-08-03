@@ -167,6 +167,12 @@ Families of graphs
 - :meth:`PermutationGraph <GraphGenerators.PermutationGraph>`
 - :meth:`trees <GraphGenerators.trees>`
 
+- :meth:`BishopGraph <GraphGenerators.BishopGraph>`
+- :meth:`KingGraph <GraphGenerators.KingGraph>`
+- :meth:`KnightGraph <GraphGenerators.KnightGraph>`
+- :meth:`QueenGraph <GraphGenerators.QueenGraph>`
+- :meth:`RookGraph <GraphGenerators.RookGraph>`
+
 
 Pseudofractal graphs
 --------------------
@@ -249,6 +255,9 @@ AUTHORS:
 - Keshav Kini (2011-02-16): added Shrikhande and Dyck graphs
 
 - David Coudert (2012-02-10): new RandomGNP generator
+
+- David Coudert (2012-08-02): added chessboard graphs: Queen, King,
+  Knight, Bishop, and Rook graphs
 """
 
 ###########################################################################
@@ -8633,6 +8642,18 @@ class GraphGenerators():
                 cospectral_graphs.append(g_list)
 
         return cospectral_graphs
+
+###########################################################################
+# Chessboard graphs
+###########################################################################
+
+    import sage.graphs.generators.chessboard
+    ChessboardGraphGenerator = sage.graphs.generators.chessboard.ChessboardGraphGenerator
+    BishopGraph = sage.graphs.generators.chessboard.BishopGraph
+    KingGraph = sage.graphs.generators.chessboard.KingGraph
+    KnightGraph = sage.graphs.generators.chessboard.KnightGraph
+    QueenGraph = sage.graphs.generators.chessboard.QueenGraph
+    RookGraph = sage.graphs.generators.chessboard.RookGraph
 
 
 def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=False, implementation='c_graph', sparse=True):

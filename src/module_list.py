@@ -582,7 +582,7 @@ ext_modules = [
 
     Extension('sage.libs.ecl',
               sources = ["sage/libs/ecl.pyx"],
-              libraries = ["ecl"],
+              libraries = ["ecl", "gmp"],
               include_dirs = [SAGE_INC + 'ecl/'],
               depends = [SAGE_INC + 'ecl/ecl.h']),
 

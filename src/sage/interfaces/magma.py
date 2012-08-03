@@ -1960,6 +1960,22 @@ class MagmaElement(ExpectElement):
             sage: parent(f) == parent(g)             # optional - magma
             True
 
+        Real and complex numbers::
+
+            sage: m = magma(RealField(200)(1/3))     # optional - magma
+            sage: m.sage()         # indirect doctest, optional - magma
+            0.33333333333333333333333333333333333333333333333333333333333
+            sage: m = magma(RealField(1000)(1/3))    # optional - magma
+            sage: m.sage()         # indirect doctest, optional - magma
+            0.333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
+
+            sage: m = magma(ComplexField(200)).1; m  # optional - magma
+            1.00000000000000000000000000000000000000000000000000000000000*$.1
+            sage: s = m.Sqrt(); s                    # optional - magma
+            0.707106781186547524400844362104849039284835937688474036588340 + 0.707106781186547524400844362104849039284835937688474036588340*$.1
+            sage: s.sage()         # indirect doctest, optional - magma
+            0.70710678118654752440084436210484903928483593768847403658834 + 0.70710678118654752440084436210484903928483593768847403658834*I
+
         Number fields and their elements::
 
             sage: x = var('x')

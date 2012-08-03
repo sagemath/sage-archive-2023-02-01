@@ -1248,12 +1248,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: magma(RR(10.5)) # optional - magma
+            sage: magma(RR(10.5)) # indirect doctest, optional - magma
             10.5000000000000
-            sage: RealField(200)(10.5) # optional - magma
-            10.500000000000000000000000000000000000000000000000000000000
+            sage: magma(RealField(200)(1/3)) # indirect, optional - magma
+            0.333333333333333333333333333333333333333333333333333333333333
+            sage: magma(RealField(1000)(1/3)) # indirect, optional - magma
+            0.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
         """
-        return "%s!%s" % (self.parent()._magma_init_(magma), self)
+        real_string = self.str(truncate=False)
+        digit_precision_upper_bound = len(real_string)
+        return "%s!%sp%s" % (self.parent()._magma_init_(magma),
+                             real_string, digit_precision_upper_bound)
 
     property __array_interface__:
         def __get__(self):

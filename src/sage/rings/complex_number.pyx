@@ -742,14 +742,30 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         r"""
         EXAMPLES::
 
-            sage: magma(CC([1, 2])) # optional - magma
+            sage: magma(CC([1, 2])) # indirect doctest, optional - magma
             1.00000000000000 + 2.00000000000000*$.1
-            sage: v = magma(CC([1, 2])).sage(); v # optional - magma
+            sage: v = magma(CC([1, 2])).sage(); v # indirect, optional - magma
             1.00000000000000 + 2.00000000000000*I
             sage: v.parent() # optional - magma
             Complex Field with 53 bits of precision
+
+            sage: i = ComplexField(200).gen()
+            sage: sqrt(i)
+            0.70710678118654752440084436210484903928483593768847403658834 + 0.70710678118654752440084436210484903928483593768847403658834*I
+            sage: magma(sqrt(i)) # indirect, optional - magma
+            0.707106781186547524400844362104849039284835937688474036588340 + 0.707106781186547524400844362104849039284835937688474036588340*$.1
+            sage: magma(i).Sqrt() # indirect, optional - magma
+            0.707106781186547524400844362104849039284835937688474036588340 + 0.707106781186547524400844362104849039284835937688474036588340*$.1
+
+            sage: magma(ComplexField(200)(1/3)) # indirect, optional - magma
+            0.333333333333333333333333333333333333333333333333333333333333
         """
-        return "%s![%s, %s]" % (self.parent()._magma_init_(magma), self.real(), self.imag())
+        real_string = self.real().str(truncate=False)
+        imag_string = self.imag().str(truncate=False)
+        digit_precision_bound = len(real_string)
+        return "%s![%sp%s, %sp%s]" % (self.parent()._magma_init_(magma),
+                                      real_string, digit_precision_bound,
+                                      imag_string, digit_precision_bound)
 
     def __nonzero__(self):
         """

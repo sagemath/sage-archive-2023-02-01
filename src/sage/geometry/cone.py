@@ -2870,17 +2870,26 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         EXAMPLES::
 
             sage: cone1 = Cone([(1,0), (0, 3)])
+            sage: m = matrix(ZZ, [(1, -5), (-1, 4)]) # a GL(2,ZZ)-matrix
+            sage: cone2 = Cone([m*r for r in cone1.rays()])
+            sage: cone1.is_isomorphic(cone2)
+            True
+
+            sage: cone1 = Cone([(1,0), (0, 3)])
             sage: cone2 = Cone([(-1,3), (1, 0)])
             sage: cone1.is_isomorphic(cone2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: cone isomorphism is not implemented yet!
+            False
+
+        TESTS::
+
+            sage: from sage.geometry.cone import classify_cone_2d
+            sage: classify_cone_2d(*cone1.rays())
+            (1, 0)
+            sage: classify_cone_2d(*cone2.rays())
+            (3, 2)
         """
-        if self is other:
-            return True
-        if self.lattice() != other.lattice():
-            return False
-        raise NotImplementedError("cone isomorphism is not implemented yet!")
+        from sage.geometry.fan import Fan
+        return Fan([self]).is_isomorphic(Fan([other]))
 
     def is_simplicial(self):
         r"""

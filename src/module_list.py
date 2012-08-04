@@ -1857,6 +1857,7 @@ ext_modules = [
 
     Extension('sage.tests.stl_vector',
               sources = ['sage/tests/stl_vector.pyx'],
+              libraries = ['gmp'],
               language = 'c++'),
 
     Extension('sage.tests.cython',

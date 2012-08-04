@@ -178,11 +178,11 @@ cdef extern from "ginac_wrap.h":
             (void *mem, char* name) except +
 
     # Infinities
-    bint is_a_infinity "is_a<infinity>" (GEx e)
+    bint is_a_infinity "is_a<GiNaC::infinity>" (GEx e)
     GEx g_UnsignedInfinity "UnsignedInfinity"
     GEx g_Infinity "Infinity"
     GEx g_mInfinity "-Infinity"
-    GInfinity ex_to_infinity "ex_to<infinity>" (GEx e)
+    GInfinity ex_to_infinity "ex_to<GiNaC::infinity>" (GEx e)
 
     # I is not a constant, but a numeric object
     # we declare it here for easy reference

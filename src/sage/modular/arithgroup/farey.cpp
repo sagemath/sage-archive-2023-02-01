@@ -29,7 +29,13 @@
 #include <Python.h>
 
 #include "farey.hpp"
-#include "farey_symbol.h"
+
+extern "C" long convert_to_long(PyObject *);
+extern "C" PyObject *convert_to_Integer(mpz_class);
+extern "C" PyObject *convert_to_rational(mpq_class);
+extern "C" PyObject *convert_to_cusp(mpq_class);
+extern "C" PyObject *convert_to_SL2Z(SL2Z);
+
 
 using namespace std;
 

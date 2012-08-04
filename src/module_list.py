@@ -1143,7 +1143,7 @@ ext_modules = [
               sources = ['sage/modular/arithgroup/farey_symbol.pyx',
                          'sage/modular/arithgroup/farey.cpp',
                          'sage/modular/arithgroup/sl2z.cpp'],
-              libraries = ['gmpxx'],
+              libraries = ['gmpxx', 'gmp'],
               language = 'c++'),
 
     Extension('sage.modular.modform.eis_series_cython',

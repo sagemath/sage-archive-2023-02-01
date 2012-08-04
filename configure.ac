@@ -219,19 +219,32 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
     AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires perl-5.8.0 or later])
 ])
 
-# To build python you need dpkg-architecture on debian-based systems
+# To build Python on multi-arch Debian-based systems, we need
+# dpkg-architecture. Since we need dpkg-architecture to determine
+# whether we're on a multi-arch system and require dpkg-architecture,
+# we simply require it always on Debian-based systems.
 AC_CHECK_PROG(found_dpkg, dpkg,[yes],[no],[])
 AC_CHECK_PROG(found_dpkg_arch, dpkg-architecture,[yes],[no],[])
-if test x$found_dpkg  == xyes && test x$found_dpkg_arch == xno
+if test x$found_dpkg = xyes && test x$found_dpkg_arch = xno
 then
-    AC_MSG_WARN([You do not have 'dpkg-architecture', which is requred to build])
-    AC_MSG_WARN([Python on multi-arch debian systems. This is definitely requried])
-    AC_MSG_WARN([in recent Debian and Ubuntu versions.])
-    AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires dpkg-architecture on debian])
+    AC_MSG_NOTICE([You do not have 'dpkg-architecture', which is required to build])
+    AC_MSG_NOTICE([Python on multi-arch Debian-based systems. This includes all recent])
+    AC_MSG_NOTICE([Debian and Ubuntu systems. You can install this with:])
+    AC_MSG_NOTICE([  sudo apt-get install dpkg-dev])
+    AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires dpkg-architecture on Debian])
 fi
 
-# Next one should check for libraries
-# No unusual libraries are needed. Sage comes with everything it needs.
+# Next one should check for libraries.
+# OpenSSL is a prerequisite for the notebook.
+AC_CHECK_LIB(ssl, SSL_library_init, [], [
+    AC_MSG_NOTICE([The OpenSSL library is required to build the Sage Notebook.])
+    AC_MSG_NOTICE([You might need to execute one of the following (or the equivalent for your])
+    AC_MSG_NOTICE([operating system):])
+    AC_MSG_NOTICE([  sudo apt-get install libssl-dev])
+    AC_MSG_NOTICE([  sudo yum install openssl-devel])
+    AC_MSG_ERROR([Exiting, since the OpenSSL library was not found.])
+])
+
 
 # Next one should check for header files.
 # complex.h is one that might not exist on older systems.
@@ -468,16 +481,6 @@ AC_CHECK_LIB(m,sqrt,[],[
 AC_CHECK_LIB(m,sqrtl,[],[
     AC_MSG_NOTICE([You have an outdated and/or broken math library.])
     AC_MSG_ERROR([Exiting, since the library function 'sqrtl()' was not found.])
-])
-
-# OpenSSL is a prerequisite for the notebook.
-AC_CHECK_LIB(ssl, SSL_library_init, [], [
-    AC_MSG_NOTICE([The OpenSSL library is required to build the Sage Notebook.])
-    AC_MSG_NOTICE([You might need to execute one of the following (or the equivalent for your])
-    AC_MSG_NOTICE([operating system):])
-    AC_MSG_NOTICE([  sudo apt-get install libssl-dev])
-    AC_MSG_NOTICE([  sudo yum install openssl-devel])
-    AC_MSG_ERROR([Exiting, since the OpenSSL library was not found.])
 ])
 
 # Next check for system services

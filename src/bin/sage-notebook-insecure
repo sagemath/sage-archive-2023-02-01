@@ -13,4 +13,4 @@ print "..."
 if len(sys.argv) > 1:
     notebook(secure=False, *sys.argv[1:])
 else:
-    notebook(port=8000, secure=False)
+    notebook(secure=False)

@@ -949,7 +949,7 @@ ext_modules = [
               extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
               depends = [SAGE_INC + 'm4ri/m4ri.h'],
               # order matters for cygwin!!
-              libraries = ['iml', 'pari', 'm', 'gmp', BLAS, BLAS2]),
+              libraries = ['iml', 'pari', 'gmp', 'm', BLAS, BLAS2]),
 
     Extension('sage.matrix.matrix_integer_sparse',
               sources = ['sage/matrix/matrix_integer_sparse.pyx'],
@@ -976,13 +976,13 @@ ext_modules = [
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
               language="c++",
-              libraries = ['gmp', 'linbox', 'givaro', BLAS, BLAS2],
+              libraries = ['linbox', 'givaro', 'gmpxx', 'gmp', BLAS, BLAS2],
               extra_compile_args = ['-DDISABLE_COMMENTATOR']),
 
     Extension('sage.matrix.matrix_modn_dense_double',
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
               language="c++",
-              libraries = ['gmp', 'linbox', 'givaro', BLAS, BLAS2],
+              libraries = ['linbox', 'givaro', 'gmpxx', 'gmp', BLAS, BLAS2],
               extra_compile_args = ['-DDISABLE_COMMENTATOR']),
 
     Extension('sage.matrix.matrix_modn_sparse',

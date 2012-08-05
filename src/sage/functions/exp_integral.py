@@ -485,6 +485,192 @@ class Function_log_integral(BuiltinFunction):
 
 li = log_integral = Function_log_integral()
 
+class Function_log_integral_offset(BuiltinFunction):
+    r"""
+    The offset logarithmic integral, or Eulerian logarithmic integral,
+    `\operatorname{Li}(x)` is defined by
+
+    .. math::
+
+        \operatorname{Li}(x) = \int_2^x \frac{dt}{ln(t)} =
+        \operatorname{li}(x)-\operatorname{li}(2)
+
+    for `x \ge 2`.
+
+    The offset logarithmic integral should also not be confused with the
+    polylogarithm (also denoted by `\operatorname{Li}(x)` ), which is
+    implemented as :class:`sage.functions.log.Function_polylog`.
+
+    `\operatorname{Li}(x)` is identical to `\operatorname{li}(x)` except that
+    the lower limit of integration is `2` rather than `0` to avoid the
+    singularity at `x = 1` of
+
+    .. math::
+
+        \frac{1}{ln(t)}
+
+    See :class:`Function_log_integral` for details of `\operatorname{li}(x)`.
+    Thus `\operatorname{Li}(x)` can also be represented by
+
+    .. math::
+
+        \operatorname{Li}(x) = \operatorname{li}(x)-\operatorname{li}(2)
+
+    So we have::
+
+        sage: li(4.5)-li(2.0)-Li(4.5)
+        0.000000000000000
+
+    `\operatorname{Li}(x)` is extended to complex arguments `z`
+    by analytic continuation (see [AS]_ 5.1.3)::
+
+        sage: Li(6.6+5.4*I)
+        3.97032201503632 + 2.62311237593572*I
+
+    The function `\operatorname{Li}` is an approximation for the number of
+    primes up to `x`. In fact, the famous Riemann Hypothesis is
+
+    .. math::
+
+        |\pi(x) - \operatorname{Li}(x)| \leq \sqrt{x} \log(x).
+
+    For "small" `x`, `\operatorname{Li}(x)` is always slightly bigger
+    than `\pi(x)`. However it is a theorem that there are very
+    large values of `x` (e.g., around `10^{316}`), such that
+    `\exists x: \pi(x) > \operatorname{Li}(x)`.  See "A new bound for the
+    smallest x with `\pi(x) > \operatorname{li}(x)`",
+    Bays and Hudson, Mathematics of Computation, 69 (2000) 1285-1296.
+
+    Here is a test from the mpmath documentation.
+    There are 1,925,320,391,606,803,968,923 prime numbers less than 1e23.
+    The value of ``log_integral_offset(1e23)`` is very close to this::
+
+        sage: log_integral_offset(1e23)
+        1.92532039161405e21
+
+    EXAMPLES:
+
+    Numerical evaluation for real and complex arguments is handled using mpmath::
+
+        sage: N(log_integral_offset(3))
+        1.11842481454970
+        sage: N(log_integral_offset(3), digits=30)
+        1.11842481454969918803233347815
+        sage: log_integral_offset(ComplexField(100)(3+I))
+        1.2428254968641898308632562019 + 0.87232935488528370139883806779*I
+        sage: log_integral_offset(2)
+        0
+        sage: for n in range(1,7):
+        ...    print '%-10s%-10s%-20s'%(10^n, prime_pi(10^n), N(Li(10^n)))
+        10        4         5.12043572466980
+        100       25        29.0809778039621
+        1000      168       176.564494210035
+        10000     1229      1245.09205211927
+        100000    9592      9628.76383727068
+        1000000   78498     78626.5039956821
+
+    Symbolic derivatives are handled by Sage and integration by Maxima::
+
+        sage: x = var('x')
+        sage: f = log_integral_offset(x)
+        sage: f.diff(x)
+        1/log(x)
+
+        sage: f.integrate(x)
+        -x*log_integral(2) + x*log_integral(x) - Ei(2*log(x))
+
+        sage: Li(x).integrate(x,2.0,4.5)
+        -2.5*log_integral(2) + 5.79932114741
+
+        sage: N(f.integrate(x,2.0,3.0))
+        0.601621785860587
+
+    Note:  Definite integration returns a part symbolic and part
+           numerical result.  This is because when Li(x) is evaluated it is
+           passed as li(x)-li(2).
+
+    ALGORITHM:
+
+    Numerical evaluation is handled using mpmath, but symbolics are handled
+    by Sage and Maxima.
+
+    REFERENCES:
+
+    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
+    - mpmath documentation: `logarithmic-integral`_
+
+    .. _`logarithmic-integral`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#logarithmic-integral
+    """
+
+    def __init__(self):
+        """
+        See the docstring for ``Function_log_integral-offset``.
+
+        EXAMPLES::
+
+            sage: log_integral_offset(3)
+            -log_integral(2) + log_integral(3)
+
+        """
+        BuiltinFunction.__init__(self, "log_integral_offset", nargs=1,
+                                 latex_name=r'log_integral_offset')
+
+    def _eval_(self,z):
+        """
+        EXAMPLES::
+
+            sage: z = var('z')
+            sage: log_integral_offset(z)
+            -log_integral(2) + log_integral(z)
+            sage: log_integral_offset(3.0)
+            1.11842481454970
+            sage: log_integral_offset(2)
+            0
+
+        """
+        if not isinstance(z,Expression) and is_inexact(z):
+            return self._evalf_(z,parent(z))
+        if z==2:
+            import sage.symbolic.ring
+            return sage.symbolic.ring.SR(0)
+        return li(z)-li(2)
+        # If we return:(li(z)-li(2)) we get correct symbolic integration.
+        # But on definite integration it returns x.xxxx-li(2).
+
+    def _evalf_(self, z, parent=None):
+        """
+        EXAMPLES::
+
+            sage: N(log_integral_offset(1e6))
+            78626.5039956821
+            sage: log_integral_offset(RealField(200)(1e6))
+            78626.503995682064427078066159058066548185351766843615873183
+            sage: li(4.5)-li(2.0)-Li(4.5)
+            0.000000000000000
+
+        """
+        import mpmath
+        return mpmath_utils_call(mpmath.li, z, offset=True, parent=parent)
+
+    def _derivative_(self, z, diff_param=None):
+        """
+        The derivative of `\operatorname{Li}(z) is `1/log(z)`.
+
+        EXAMPLES::
+
+            sage: x = var('x')
+            sage: f = log_integral_offset(x)
+            sage: f.diff(x)
+            1/log(x)
+
+            sage: f = log_integral_offset(x^2)
+            sage: f.diff(x)
+            2*x/log(x^2)
+
+        """
+        return 1/log(z)
+
+Li = log_integral_offset = Function_log_integral_offset()
 
 class Function_sin_integral(BuiltinFunction):
     r"""
@@ -552,6 +738,7 @@ class Function_sin_integral(BuiltinFunction):
 
         sage: integrate(sin(x)/x, x)
         1/2*I*Ei(-I*x) - 1/2*I*Ei(I*x)
+
 
     Compare values of the functions `\operatorname{Si}(x)` and
     `f(x) = (1/2)i \cdot \operatorname{Ei}(-ix) - (1/2)i \cdot

@@ -232,19 +232,20 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_interna
     EXAMPLES::
 
         sage: from sage.symbolic.random_tests import *
-        sage: set_random_seed(2)
+        sage: set_random_seed(1)
         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element) # random
-        (euler_gamma - v3^(-e) + (v2 - e^(-e/v2))^(((2.85879036573 -
-        1.18163393202*I)*v2 + (2.85879036573 - 1.18163393202*I)*v3)*pi
-        - 0.247786879678 + 0.931826724898*I)*arccsc((0.891138386848 -
-        0.0936820840629*I)/v1) - (0.553423153995 - 0.5481180572*I)*v3
-        + 0.149683576515 - 0.155746451854*I)*v1 + arccsch(pi +
-        e)*elliptic_eu(khinchin*v2, 1.4656989704 + 0.863754357069*I)
+        (v1^(0.97134084277 + 0.195868299334*I)/csc(-pi + v1^2 + v3) + sgn(1/
+        ((-v3 - 0.760455994772 - 0.554367254855*I)*erf(v3 + 0.982759757946 -
+        0.0352136502348*I)) + binomial(arccoth(v1^pi), 0.760455994772 +
+        0.554367254855*I) + arccosh(2*v2 - (v2 + 0.841911550437 -
+        0.303757179824*I)/sinh_integral(pi) + arccoth(v3 + 0.530133230474 +
+        0.532140303485*I))))/v2
         sage: random_expr(5, verbose=True) # random
-        About to apply dilog to [1]
-        About to apply arcsec to [0]
-        About to apply <built-in function add> to [1/6*pi^2, arcsec(0)]
-        1/6*pi^2 + arcsec(0)
+        About to apply <built-in function inv> to [31]
+        About to apply sgn to [v1]
+        About to apply <built-in function add> to [1/31, sgn(v1)]
+        sgn(v1) + 1/31
+
     """
     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
     if ncoeffs is None:

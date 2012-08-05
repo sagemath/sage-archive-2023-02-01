@@ -970,7 +970,7 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
     ``search_src(string, interact=False).splitlines()`` gives the
     number of matches. ::
 
-        sage: len(search_src('log', 'derivative', interact=False).splitlines()) < 9
+        sage: len(search_src('log', 'derivative', interact=False).splitlines()) < 10
         True
         sage: len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
         True
@@ -992,7 +992,7 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         misc/sagedoc.py:... s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=True); s.find('x') > 0
-        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 9
+        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 10
         misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
         misc/sagedoc.py:... print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time

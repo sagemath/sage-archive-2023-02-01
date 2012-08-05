@@ -24,8 +24,7 @@ from other import ( ceil, floor, gamma, psi, factorial, beta,
 from log import (exp, log, ln, polylog, dilog, lambert_w)
 
 
-from transcendental import (zeta, zetaderiv, zeta_symmetric,
-                            Li, dickman_rho)
+from transcendental import (zeta, zetaderiv, zeta_symmetric, dickman_rho)
 
 from special import (bessel_I, bessel_J, bessel_K, bessel_Y,
                      hypergeometric_U, Bessel,
@@ -63,7 +62,8 @@ from generalized import (dirac_delta, heaviside, unit_step, sgn, sign,
 
 from min_max import max_symbolic, min_symbolic
 
-from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li,
+from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li,
+                          log_integral_offset,
                           sin_integral, cos_integral, Si, Ci,
                           sinh_integral, cosh_integral, Shi, Chi,
                           exponential_integral_1, Ei)

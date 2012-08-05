@@ -129,7 +129,8 @@ def indent_lines(n, text):
 
     Indents each line in text by n spaces.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import indent_lines
         sage: indent_lines(3, "foo")
         '   foo'
@@ -159,7 +160,8 @@ def je(template, **kwargs):
     template on each call; don't use it in situations where
     performance is important.)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import je
         sage: je("{{ a }} > {{ b }} * {{ c }}", a='"a suffusion of yellow"', b=3, c=7)
         u'"a suffusion of yellow" > 3 * 7'
@@ -223,7 +225,8 @@ class StorageType(object):
         A string giving variable declarations that must be local variables
         in Cython methods using this storage type.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.class_member_declarations
             ''
@@ -259,7 +262,8 @@ class StorageType(object):
         of output locations are passed into the instruction and the
         instruction writes outputs directly in the final location.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.cheap_copies()
             True
@@ -280,7 +284,8 @@ class StorageType(object):
         like "generate an incref" and "generate a decref".  But as
         long as we only support Python, this way is probably simpler.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.python_refcounted()
             False
@@ -293,7 +298,8 @@ class StorageType(object):
         r"""
         Gives the Cython type for a single value of this type (as a string).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.cython_decl_type()
             'double'
@@ -309,7 +315,8 @@ class StorageType(object):
         Gives the Cython type for referring to an array of values of
         this type (as a string).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.cython_array_type()
             'double*'
@@ -331,7 +338,8 @@ class StorageType(object):
         generate empty loops, which are ugly and potentially might not
         be optimized away.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.needs_cython_init_clear()
             False
@@ -346,7 +354,8 @@ class StorageType(object):
         r"""
         Gives the C type for a single value of this type (as a string).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.c_decl_type()
             'double'
@@ -362,7 +371,8 @@ class StorageType(object):
         Gives the C type for a pointer to this type (as a reference to
         either a single value or an array) (as a string).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.c_ptr_type()
             'double*'
@@ -380,7 +390,8 @@ class StorageType(object):
         same as c_decl_type; for auto-reference types, this is the
         pointer type.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.c_local_type()
             'double'
@@ -397,7 +408,8 @@ class StorageType(object):
         and a Python expression, generate code to assign to the Cython
         variable from the Python expression.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.assign_c_from_py('foo', 'bar')
             u'foo = bar'
@@ -414,7 +426,8 @@ class StorageType(object):
         in a wrapper class for a memory chunk with this storage type
         and the given name.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_mpfr.declare_chunk_class_members('args')
             u'    cdef int _n_args\n    cdef mpfr_t* _args\n'
@@ -430,7 +443,8 @@ class StorageType(object):
         Returns a string allocating the memory for the class members for
         a memory chunk with this storage type and the given name.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: print ty_mpfr.alloc_chunk_data('args', 'MY_LENGTH')
                     self._n_args = MY_LENGTH
@@ -456,7 +470,8 @@ class StorageType(object):
         wrapper class using a memory chunk with this storage type, to
         deallocate the corresponding class members.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: print ty_double.dealloc_chunk_data('args')
                     if self._args:
@@ -490,7 +505,8 @@ class StorageTypeAssignable(StorageType):
         as well as the properties described in the documentation for
         StorageType.__init__.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.class_member_declarations
             ''
@@ -516,7 +532,8 @@ class StorageTypeAssignable(StorageType):
         Since having cheap copies is essentially the definition of
         StorageTypeAssignable, this always returns True.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.cheap_copies()
             True
@@ -529,7 +546,8 @@ class StorageTypeAssignable(StorageType):
         r"""
         Gives the C type for a single value of this type (as a string).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.c_decl_type()
             'double'
@@ -545,7 +563,8 @@ class StorageTypeAssignable(StorageType):
         same as c_decl_type; for auto-reference types, this is the
         pointer type.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_double.c_local_type()
             'double'
@@ -617,7 +636,8 @@ class StorageTypePython(StorageTypeAssignable):
         for StorageTypeAssignable.__init__.  The type is always
         'PyObject*'.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_python.class_member_declarations
             ''
@@ -637,7 +657,8 @@ class StorageTypePython(StorageTypeAssignable):
 
         Returns True.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_python.python_refcounted()
             True
@@ -648,7 +669,8 @@ class StorageTypePython(StorageTypeAssignable):
         r"""
         Gives the Cython type for a single value of this type (as a string).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_python.cython_decl_type()
             'object'
@@ -661,7 +683,8 @@ class StorageTypePython(StorageTypeAssignable):
         in a wrapper class for a memory chunk with this storage type
         and the given name.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_python.declare_chunk_class_members('args')
             u'    cdef object _list_args\n    cdef int _n_args\n    cdef PyObject** _args\n'
@@ -677,7 +700,8 @@ class StorageTypePython(StorageTypeAssignable):
         Returns a string allocating the memory for the class members for
         a memory chunk with this storage type and the given name.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: print ty_python.alloc_chunk_data('args', 'MY_LENGTH')
                     self._n_args = MY_LENGTH
@@ -700,7 +724,8 @@ class StorageTypePython(StorageTypeAssignable):
         Our array was allocated as a Python list; this means we actually
         don't need to do anything to deallocate it.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_python.dealloc_chunk_data('args')
             ''
@@ -714,7 +739,8 @@ class StorageTypePython(StorageTypeAssignable):
 
         Returns True.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_python.needs_cython_init_clear()
             True
@@ -727,7 +753,8 @@ class StorageTypePython(StorageTypeAssignable):
         and a Python expression, generate code to assign to the Cython
         variable from the Python expression.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_python.assign_c_from_py('foo[i]', 'bar[j]')
             u'foo[i] = <PyObject *>bar[j]; Py_INCREF(foo[i])'
@@ -740,7 +767,8 @@ class StorageTypePython(StorageTypeAssignable):
         Generates code to initialize a variable (or array reference)
         holding a PyObject*.  Sets it to NULL.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_python.cython_init('foo[i]')
             u'foo[i] = NULL'
@@ -752,7 +780,8 @@ class StorageTypePython(StorageTypeAssignable):
         Generates code to clear a variable (or array reference) holding
         a PyObject*.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_python.cython_clear('foo[i]')
             u'Py_CLEAR(foo[i])'
@@ -778,7 +807,8 @@ class StorageTypeAutoReference(StorageType):
         respectively), as well as the properties described in
         the documentation for StorageType.__init__.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_mpfr.class_member_declarations
             'cdef RealField_class domain\n'
@@ -799,7 +829,8 @@ class StorageTypeAutoReference(StorageType):
         r"""
         Gives the C type for a single value of this type (as a string).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_mpfr.c_decl_type()
             'mpfr_t'
@@ -813,7 +844,8 @@ class StorageTypeAutoReference(StorageType):
         same as c_decl_type; for auto-reference types, this is the
         pointer type.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_mpfr.c_local_type()
             'mpfr_ptr'
@@ -828,7 +860,8 @@ class StorageTypeAutoReference(StorageType):
         All known examples of auto-reference types do need a special
         initialization call, so this always returns True.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_mpfr.needs_cython_init_clear()
             True
@@ -860,7 +893,8 @@ class StorageTypeMPFR(StorageTypeAutoReference):
         variable names that don't conflict.  (The id system has
         never actually been used, so bugs probably remain.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_mpfr.class_member_declarations
             'cdef RealField_class domain\n'
@@ -873,7 +907,8 @@ class StorageTypeMPFR(StorageTypeAutoReference):
             sage: ty_mpfr.ref_type
             'mpfr_ptr'
 
-        TESTS:
+        TESTS::
+
             sage: ty_mpfr2 = StorageTypeMPFR(id='_the_second')
             sage: ty_mpfr2.class_member_declarations
             'cdef RealField_class domain_the_second\n'
@@ -894,7 +929,8 @@ class StorageTypeMPFR(StorageTypeAutoReference):
         Generates code to initialize an mpfr_t reference (a variable, an
         array reference, etc.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_mpfr.cython_init('foo[i]')
             u'mpfr_init2(foo[i], self.domain.prec())'
@@ -907,7 +943,8 @@ class StorageTypeMPFR(StorageTypeAutoReference):
         Generates code to clear an mpfr_t reference (a variable, an
         array reference, etc.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_mpfr.cython_clear('foo[i]')
             'mpfr_clear(foo[i])'
@@ -920,7 +957,8 @@ class StorageTypeMPFR(StorageTypeAutoReference):
         and a Python expression, generate code to assign to the Cython
         variable from the Python expression.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: ty_mpfr.assign_c_from_py('foo[i]', 'bar[j]')
             u'rn = self.domain(bar[j])\nmpfr_set(foo[i], rn.value, GMP_RNDN)'
@@ -961,7 +999,8 @@ class MemoryChunk(object):
         used in generated variable names, etc.) and "storage_type",
         which is a StorageType object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkArguments('args', ty_mpfr)
             sage: mc.name
@@ -976,7 +1015,8 @@ class MemoryChunk(object):
         r"""
         Give a string representation of this memory chunk.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkArguments('args', ty_mpfr)
             sage: mc
@@ -991,7 +1031,8 @@ class MemoryChunk(object):
         Returns a string giving the declarations of the class members
         in a wrapper class for this memory chunk.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkArguments('args', ty_mpfr)
             sage: mc.declare_class_members()
@@ -1005,7 +1046,8 @@ class MemoryChunk(object):
         class using this memory chunk, to initialize the corresponding
         class members.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkArguments('args', ty_mpfr)
             sage: print mc.init_class_members()
@@ -1025,7 +1067,8 @@ class MemoryChunk(object):
         class using this memory chunk, to deallocate the corresponding
         class members.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkArguments('args', ty_mpfr)
             sage: print mc.dealloc_class_members()
@@ -1042,7 +1085,8 @@ class MemoryChunk(object):
         Returns the string to use to declare the interpreter parameter
         corresponding to this memory chunk.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkArguments('args', ty_mpfr)
             sage: mc.declare_parameter()
@@ -1055,7 +1099,8 @@ class MemoryChunk(object):
         Returns a string to put in the __call__ method of a wrapper
         class using this memory chunk, to allocate local variables.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkRRRetval('retval', ty_mpfr)
             sage: mc.declare_call_locals()
@@ -1068,7 +1113,8 @@ class MemoryChunk(object):
         Returns the string to pass the argument corresponding to this
         memory chunk to the interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkConstants('constants', ty_mpfr)
             sage: mc.pass_argument()
@@ -1082,7 +1128,8 @@ class MemoryChunk(object):
         memory chunk to the interpreter, for use in the call_c method.
         Almost always the same as pass_argument.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkConstants('constants', ty_mpfr)
             sage: mc.pass_call_c_argument()
@@ -1101,7 +1148,8 @@ class MemoryChunk(object):
         This method returns True if this memory chunk is modified by the
         interpreter and needs some sort of cleanup when an error happens.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkConstants('constants', ty_mpfr)
             sage: mc.needs_cleanup_on_error()
@@ -1123,7 +1171,8 @@ class MemoryChunk(object):
                 ... hardcoded non-stack code
         but that hasn't been done yet.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkScratch('scratch', ty_mpfr)
             sage: mc.is_stack()
@@ -1144,7 +1193,8 @@ class MemoryChunk(object):
         INCREF/DECREF and didn't have to explicitly test
         is_python_refcounted_stack.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkScratch('args', ty_python)
             sage: mc.is_python_refcounted_stack()
@@ -1171,7 +1221,8 @@ class MemoryChunkLonglivedArray(MemoryChunk):
         class using this memory chunk, to initialize the corresponding
         class members.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkArguments('args', ty_double)
             sage: print mc.init_class_members()
@@ -1192,7 +1243,8 @@ class MemoryChunkLonglivedArray(MemoryChunk):
         class using this memory chunk, to deallocate the corresponding
         class members.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkArguments('args', ty_mpfr)
             sage: print mc.dealloc_class_members()
@@ -1209,7 +1261,8 @@ class MemoryChunkLonglivedArray(MemoryChunk):
         Returns the string to pass the argument corresponding to this
         memory chunk to the interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkConstants('constants', ty_mpfr)
             sage: mc.pass_argument()
@@ -1231,7 +1284,8 @@ class MemoryChunkConstants(MemoryChunkLonglivedArray):
         class using this memory chunk, to initialize the corresponding
         class members.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkConstants('constants', ty_mpfr)
             sage: print mc.init_class_members()
@@ -1268,7 +1322,8 @@ class MemoryChunkArguments(MemoryChunkLonglivedArray):
         Handle the arguments of __call__ -- copy them into a pre-allocated
         array, ready to pass to the interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkArguments('args', ty_mpfr)
             sage: print mc.setup_args()
@@ -1291,7 +1346,8 @@ for i from 0 <= i < len(args):
         Returns the string to pass the argument corresponding to this
         memory chunk to the interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkArguments('args', ty_mpfr)
             sage: mc.pass_argument()
@@ -1316,7 +1372,8 @@ class MemoryChunkScratch(MemoryChunkLonglivedArray):
         the properties described in the documentation for
         MemoryChunk.__init__.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkScratch('stack', ty_double, is_stack=True)
             sage: mc.name
@@ -1334,7 +1391,8 @@ class MemoryChunkScratch(MemoryChunkLonglivedArray):
         Says whether this memory chunk is a stack.  This affects code
         generation for instructions using this memory chunk.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkScratch('stack', ty_mpfr, is_stack=True)
             sage: mc.is_stack()
@@ -1353,7 +1411,8 @@ class MemoryChunkScratch(MemoryChunkLonglivedArray):
         This method returns True if this memory chunk is modified by the
         interpreter and needs some sort of cleanup when an error happens.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkScratch('registers', ty_python)
             sage: mc.needs_cleanup_on_error()
@@ -1371,7 +1430,8 @@ class MemoryChunkScratch(MemoryChunkLonglivedArray):
         have left values in the chunk, so we need to go through
         the chunk and Py_CLEAR it.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkScratch('registers', ty_python)
             sage: print mc.handle_cleanup()
@@ -1397,7 +1457,8 @@ class MemoryChunkRRRetval(MemoryChunk):
         Returns a string giving the declarations of the class members
         in a wrapper class for this memory chunk.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkRRRetval('retval', ty_mpfr)
             sage: mc.declare_class_members()
@@ -1410,7 +1471,8 @@ class MemoryChunkRRRetval(MemoryChunk):
         Returns a string to put in the __call__ method of a wrapper
         class using this memory chunk, to allocate local variables.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkRRRetval('retval', ty_mpfr)
             sage: mc.declare_call_locals()
@@ -1425,7 +1487,8 @@ class MemoryChunkRRRetval(MemoryChunk):
         Returns the string to pass the argument corresponding to this
         memory chunk to the interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkRRRetval('retval', ty_mpfr)
             sage: mc.pass_argument()
@@ -1438,7 +1501,8 @@ class MemoryChunkRRRetval(MemoryChunk):
         Returns the string to pass the argument corresponding to this
         memory chunk to the interpreter, for use in the call_c method.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkRRRetval('retval', ty_mpfr)
             sage: mc.pass_call_c_argument()
@@ -1459,7 +1523,8 @@ class MemoryChunkPythonArguments(MemoryChunk):
         Returns a string giving the declarations of the class members
         in a wrapper class for this memory chunk.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkPythonArguments('args', ty_python)
         """
@@ -1471,7 +1536,8 @@ class MemoryChunkPythonArguments(MemoryChunk):
         class using this memory chunk, to initialize the corresponding
         class members.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkPythonArguments('args', ty_python)
             sage: mc.init_class_members()
@@ -1486,7 +1552,8 @@ class MemoryChunkPythonArguments(MemoryChunk):
         r"""
         Handle the arguments of __call__.  Nothing to do.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkPythonArguments('args', ty_python)
             sage: mc.setup_args()
@@ -1498,7 +1565,8 @@ class MemoryChunkPythonArguments(MemoryChunk):
         r"""
         Pass the innards of the argument tuple to the interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkPythonArguments('args', ty_python)
             sage: mc.pass_argument()
@@ -1524,7 +1592,8 @@ class MemoryChunkElementArguments(MemoryChunkPythonArguments):
         Handle the arguments of __call__.  Note: This hardcodes
         "self._domain".
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkElementArguments('args', ty_python)
             sage: mc.setup_args()
@@ -1536,7 +1605,8 @@ class MemoryChunkElementArguments(MemoryChunkPythonArguments):
         r"""
         Pass the innards of the argument tuple to the interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkElementArguments('args', ty_python)
             sage: mc.pass_argument()
@@ -1556,7 +1626,8 @@ class MemoryChunkPyConstant(MemoryChunk):
 
         Always uses the type ty_python.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkPyConstant('domain')
             sage: mc.name
@@ -1571,7 +1642,8 @@ class MemoryChunkPyConstant(MemoryChunk):
         Returns a string giving the declarations of the class members
         in a wrapper class for this memory chunk.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkPyConstant('domain')
             sage: mc.declare_class_members()
@@ -1587,7 +1659,8 @@ class MemoryChunkPyConstant(MemoryChunk):
         class using this memory chunk, to initialize the corresponding
         class members.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkPyConstant('domain')
             sage: mc.init_class_members()
@@ -1602,7 +1675,8 @@ class MemoryChunkPyConstant(MemoryChunk):
         Returns the string to use to declare the interpreter parameter
         corresponding to this memory chunk.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkPyConstant('domain')
             sage: mc.declare_parameter()
@@ -1615,7 +1689,8 @@ class MemoryChunkPyConstant(MemoryChunk):
         Returns the string to pass the argument corresponding to this
         memory chunk to the interpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: mc = MemoryChunkPyConstant('domain')
             sage: mc.pass_argument()
@@ -1659,7 +1734,8 @@ def params_gen(**chunks):
     for a number n (meaning to use that many arguments), or '@C', where
     C is the code chunk.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import *
         sage: mc_stack = MemoryChunkScratch('stack', ty_double, is_stack=True)
         sage: mc_args = MemoryChunkArguments('args', ty_double)
@@ -1729,7 +1805,8 @@ def string_of_addr(a):
     address or length.  (See the docstring for params_gen for more
     information on parameter specifications.)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import *
         sage: mc_code = MemoryChunkConstants('code', ty_int)
         sage: string_of_addr(mc_code)
@@ -1807,7 +1884,8 @@ class InstrSpec(object):
     rules are described in the docstring of the PythonInterpreter
     class.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import *
         sage: pg = RDFInterpreter().pg
         sage: InstrSpec('add', pg('SS','S'), code='o0 = i0+i1;')
@@ -1830,7 +1908,8 @@ class InstrSpec(object):
                                   objects and includes its own
                                   reference-counting
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
 
             sage: pg = RDFInterpreter().pg
@@ -1904,7 +1983,8 @@ class InstrSpec(object):
         of its name, a brief stack specification, and its code
         (possibly abbreviated).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: pg = RDFInterpreter().pg
             sage: InstrSpec('add', pg('SS','S'), code='o0 = i0+i1;')
@@ -1924,7 +2004,8 @@ def instr_infix(name, io, op):
     A helper function for creating instructions implemented by
     a single infix binary operator.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import *
         sage: pg = RDFInterpreter().pg
         sage: instr_infix('mul', pg('SS', 'S'), '*')
@@ -1937,7 +2018,8 @@ def instr_funcall_2args(name, io, op):
     A helper function for creating instructions implemented by
     a two-argument function call.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import *
         sage: pg = RDFInterpreter().pg
         sage: instr_funcall_2args('atan2', pg('SS', 'S'), 'atan2')
@@ -1950,7 +2032,8 @@ def instr_unary(name, io, op):
     A helper function for creating instructions with one input
     and one output.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import *
         sage: pg = RDFInterpreter().pg
         sage: instr_unary('sin', pg('S','S'), 'sin(i0)')
@@ -1965,7 +2048,8 @@ def instr_funcall_2args_mpfr(name, io, op):
     A helper function for creating MPFR instructions with two inputs
     and one output.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import *
         sage: pg = RRInterpreter().pg
         sage: instr_funcall_2args_mpfr('add', pg('SS','S'), 'mpfr_add')
@@ -1978,7 +2062,8 @@ def instr_funcall_1arg_mpfr(name, io, op):
     A helper function for creating MPFR instructions with one input
     and one output.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import *
         sage: pg = RRInterpreter().pg
         sage: instr_funcall_1arg_mpfr('exp', pg('S','S'), 'mpfr_exp')
@@ -1998,7 +2083,10 @@ class InterpreterSpec(object):
 
         Initializes the following fields:
 
-        header -- a code snippet to go at the top of the C interpreter
+        h_header -- a code snippet to go at the top of the C interpreter
+                  header file
+
+        c_header -- a code snippet to go at the top of the C interpreter
                   source file
         pxd_header -- a code snippet to go at the top of the wrapper
                       class .pxd file
@@ -2011,11 +2099,14 @@ class InterpreterSpec(object):
                                don't correspond to memory chunks
         extra_members_initialize -- Code to initialize extra_class_members
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = RDFInterpreter()
-            sage: interp.header
+            sage: interp.h_header
             '\n#include <gsl/gsl_math.h>\n'
+            sage: interp.c_header
+            ''
             sage: interp.pxd_header
             ''
             sage: interp.pyx_header
@@ -2030,7 +2121,8 @@ class InterpreterSpec(object):
             sage: interp.extra_members_initialize
             ''
         """
-        self.header = ''
+        self.h_header = ''
+        self.c_header = ''
         self.pxd_header = ''
         self.pyx_header = ''
         self.err_return = 'NULL'
@@ -2045,7 +2137,8 @@ class InterpreterSpec(object):
         Must be called at the end of __init__ by any subclass of
         InterpreterSpec.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = RDFInterpreter()
             sage: interp.instr_descs[5].opcode
@@ -2087,7 +2180,8 @@ class StackInterpreter(InterpreterSpec):
                             method (that bypasses the Python call overhead)
                             (default True)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: rdf = RDFInterpreter()
             sage: rr = RRInterpreter()
@@ -2135,7 +2229,8 @@ class RDFInterpreter(StackInterpreter):
         r"""
         Initialize an RDFInterpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = RDFInterpreter()
             sage: interp.name
@@ -2187,7 +2282,7 @@ class RDFInterpreter(StackInterpreter):
         pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
                         S=self.mc_stack, P=self.mc_py_constants)
         self.pg = pg
-        self.header = """
+        self.h_header = """
 #include <gsl/gsl_math.h>
 """
         instrs = [
@@ -2265,7 +2360,8 @@ class CDFInterpreter(StackInterpreter):
         r"""
         Initialize a CDFInterpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = CDFInterpreter()
             sage: interp.name
@@ -2297,14 +2393,13 @@ class CDFInterpreter(StackInterpreter):
         pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
                         S=self.mc_stack, P=self.mc_py_constants)
         self.pg = pg
-        self.header = """
+        self.h_header = """
 #include <stdlib.h>
 #include <complex.h>
 
 typedef double complex double_complex;
 
 extern int cdf_py_call_helper(PyObject*, int, double complex*, double complex*);
-
 """
         self.pxd_header = """
 # This is to work around a header ordering bug in Cython < 0.11
@@ -2402,7 +2497,8 @@ class RRInterpreter(StackInterpreter):
         r"""
         Initialize an RDFInterpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = RRInterpreter()
             sage: interp.name
@@ -2421,7 +2517,7 @@ class RRInterpreter(StackInterpreter):
 
         That py_call instruction is particularly interesting, and
         demonstrates a useful technique to let you use Cython code
-        in an interpreter.  Let's look more closely:
+        in an interpreter.  Let's look more closely::
 
             sage: print instrs['py_call'].code
             if (!rr_py_call_helper(domain, i0, n_i1, i1, o0)) {
@@ -2429,13 +2525,15 @@ class RRInterpreter(StackInterpreter):
             }
 
         This instruction makes use of the function rr_py_call_helper,
-        which is declared...
+        which is declared::
 
-            sage: print interp.header
+            sage: print interp.h_header
+            <BLANKLINE>
             #include <mpfr.h>
+            <BLANKLINE>
             extern int rr_py_call_helper(PyObject*, PyObject*, int, mpfr_t*, mpfr_t*);
 
-        In particular, rr_py_call_helper comes from:
+        In particular, rr_py_call_helper comes from::
 
             sage: print interp.pyx_header
             cdef public bint rr_py_call_helper(object domain, object fn,
@@ -2469,11 +2567,11 @@ class RRInterpreter(StackInterpreter):
                         S=self.mc_stack,
                         P=self.mc_py_constants)
         self.pg = pg
-        self.header = """
+        self.h_header = """
 #include <mpfr.h>
-extern int rr_py_call_helper(PyObject*, PyObject*, int, mpfr_t*, mpfr_t*);
-""".strip()
 
+extern int rr_py_call_helper(PyObject*, PyObject*, int, mpfr_t*, mpfr_t*);
+"""
         self.pxd_header = """
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.libs.mpfr cimport *
@@ -2572,7 +2670,8 @@ class PythonInterpreter(StackInterpreter):
         r"""
         Initialize a PythonInterpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = PythonInterpreter()
             sage: interp.name
@@ -2598,8 +2697,7 @@ class PythonInterpreter(StackInterpreter):
         pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
                         S=self.mc_stack)
         self.pg = pg
-        self.header = """
-#include <Python.h>
+        self.h_header = """
 #define CHECK(x) (x != NULL)
 """
         instrs = [
@@ -2664,7 +2762,8 @@ class ElementInterpreter(PythonInterpreter):
         r"""
         Initialize an ElementInterpreter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = ElementInterpreter()
             sage: interp.name
@@ -2688,9 +2787,7 @@ class ElementInterpreter(PythonInterpreter):
         self.mc_domain_info = MemoryChunkPyConstant('domain')
         self.chunks = [self.mc_args, self.mc_constants, self.mc_stack,
                        self.mc_domain_info, self.mc_code]
-        self.header = """
-#include <Python.h>
-
+        self.h_header = """
 extern PyObject* el_check_element(PyObject*, PyObject*);
 
 #define CHECK(x) do_check(&(x), domain)
@@ -2735,7 +2832,8 @@ class InterpreterGenerator(object):
         INPUTS:
             spec -- an InterpreterSpec
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = RDFInterpreter()
             sage: gen = InterpreterGenerator(interp)
@@ -2763,7 +2861,8 @@ class InterpreterGenerator(object):
         See the documentation for the get_interpreter method for more
         information.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = RDFInterpreter()
             sage: gen = InterpreterGenerator(interp)
@@ -2909,7 +3008,8 @@ class InterpreterGenerator(object):
         wrapper) or the definition (in the C interpreter) of the interpreter
         function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = ElementInterpreter()
             sage: gen = InterpreterGenerator(interp)
@@ -2938,6 +3038,31 @@ class InterpreterGenerator(object):
         {% endif %}{{ ch.declare_parameter() }}
 {%- endfor %})""", ret_ty=ret_ty, s=s)
 
+    def write_interpreter_header(self, write):
+        r"""
+        Generate the header code for the C interpreter.
+
+        EXAMPLES::
+
+            sage: from sage.ext.gen_interpreters import *
+            sage: interp = RDFInterpreter()
+            sage: gen = InterpreterGenerator(interp)
+            sage: import cStringIO
+            sage: buff = cStringIO.StringIO()
+            sage: gen.write_interpreter_header(buff.write)
+            sage: print buff.getvalue()
+            /* Automatically generated by ext/gen_interpreters.py.  Do not edit! */ ...
+        """
+        s = self._spec
+        w = write
+        w(je("""
+/* Automatically generated by ext/gen_interpreters.py.  Do not edit! */
+#include <Python.h>
+{% print s.h_header %}
+
+{{ myself.func_header() }};
+""", s=s, i=indent_lines, myself=self))
+
     def write_interpreter(self, write):
         r"""
         Generate the code for the C interpreter.
@@ -2949,7 +3074,8 @@ class InterpreterGenerator(object):
         See the documentation for the get_interpreter method for more
         information.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = RDFInterpreter()
             sage: gen = InterpreterGenerator(interp)
@@ -2963,8 +3089,9 @@ class InterpreterGenerator(object):
         w = write
         w(je("""
 /* Automatically generated by ext/gen_interpreters.py.  Do not edit! */
-#include <Python.h>
-{% print s.header %}
+#include "interp_{{ s.name }}.h"
+{% print s.c_header %}
+
 {{ myself.func_header() }} {
   while (1) {
     switch (*code++) {
@@ -2992,7 +3119,8 @@ error:
         See the documentation for the get_wrapper method for more
         information.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = RDFInterpreter()
             sage: gen = InterpreterGenerator(interp)
@@ -3057,9 +3185,10 @@ cdef extern from "tupleobject.h":
 from sage.ext.fast_callable cimport Wrapper
 {% print s.pyx_header %}
 
-cdef extern {{ myself.func_header(cython=true) -}}
+cdef extern from "interp_{{ s.name }}.h":
+    {{ myself.func_header(cython=true) -}}
 {% if s.err_return != 'NULL' %}
- except? {{ s.err_return -}}
+ except? {{ s.err_return }}
 {% endif %}
 
 cdef class Wrapper_{{ s.name }}(Wrapper):
@@ -3156,7 +3285,8 @@ metadata = InterpreterMetadata(by_opname={
         See the documentation for the get_pxd method for more
         information.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.gen_interpreters import *
             sage: interp = RDFInterpreter()
             sage: gen = InterpreterGenerator(interp)
@@ -3199,19 +3329,78 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 {% endif %}
 """, s=s, myself=self, types=types, indent_lines=indent_lines, arg_ch=arg_ch))
 
+    def get_interpreter_header(self):
+        r"""
+        Returns the header code for the C interpreter.
+
+        EXAMPLES:
+
+        First we get the InterpreterSpec for several interpreters::
+
+            sage: from sage.ext.gen_interpreters import *
+            sage: rdf_spec = RDFInterpreter()
+            sage: rr_spec = RRInterpreter()
+            sage: cdf_spec = CDFInterpreter()
+            sage: el_spec = ElementInterpreter()
+
+        Then we get the actual interpreter code::
+
+            sage: rdf_interp_h = InterpreterGenerator(rdf_spec).get_interpreter_header()
+            sage: rr_interp_h = InterpreterGenerator(rr_spec).get_interpreter_header()
+            sage: cdf_interp_h = InterpreterGenerator(cdf_spec).get_interpreter_header()
+            sage: el_interp_h = InterpreterGenerator(el_spec).get_interpreter_header()
+
+        Each interpreter starts with a file header; this can be
+        customized on a per-interpreter basis::
+
+            sage: print rdf_interp_h
+            /* Automatically generated by ext/gen_interpreters.py.  Do not edit! */
+            #include <Python.h>
+            <BLANKLINE>
+            #include <gsl/gsl_math.h>
+            ...
+            sage: print rr_interp_h
+            /* Automatically generated by ext/gen_interpreters.py.  Do not edit! */
+            #include <Python.h>
+            <BLANKLINE>
+            #include <mpfr.h>
+            ...
+            sage: print cdf_interp_h
+            /* Automatically generated by ext/gen_interpreters.py.  Do not edit! */
+            #include <Python.h>
+            <BLANKLINE>
+            #include <stdlib.h>
+            #include <complex.h>
+            ...
+            sage: print el_interp_h
+            /* Automatically generated by ext/gen_interpreters.py.  Do not edit! */
+            #include <Python.h>
+            <BLANKLINE>
+            extern PyObject* el_check_element(PyObject*, PyObject*);
+            <BLANKLINE>
+            #define CHECK(x) do_check(&(x), domain)
+            ...
+        """
+        import cStringIO
+        buff = cStringIO.StringIO()
+        self.write_interpreter_header(buff.write)
+        return buff.getvalue()
+
     def get_interpreter(self):
         r"""
         Returns the code for the C interpreter.
 
         EXAMPLES:
 
-        First we get the InterpreterSpec for several interpreters:
+        First we get the InterpreterSpec for several interpreters::
+
             sage: from sage.ext.gen_interpreters import *
             sage: rdf_spec = RDFInterpreter()
             sage: rr_spec = RRInterpreter()
             sage: el_spec = ElementInterpreter()
 
-        Then we get the actual interpreter code:
+        Then we get the actual interpreter code::
+
             sage: rdf_interp = InterpreterGenerator(rdf_spec).get_interpreter()
             sage: rr_interp = InterpreterGenerator(rr_spec).get_interpreter()
             sage: el_interp = InterpreterGenerator(el_spec).get_interpreter()
@@ -3219,15 +3408,16 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
         Now we can look through these interpreters.
 
         Each interpreter starts with a file header; this can be
-        customized on a per-interpreter basis:
+        customized on a per-interpreter basis::
+
             sage: print rr_interp
             /* Automatically generated by ext/gen_interpreters.py.  Do not edit! */
-            #include <Python.h>
-            #include <mpfr.h>
+            #include "interp_rr.h"
             ...
 
         Next is the function header, with one argument per memory chunk
-        in the interpreter spec.
+        in the interpreter spec::
+
             sage: print el_interp
             /* ... */ ...
             PyObject* interp_el(PyObject** args,
@@ -3239,7 +3429,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         Currently, the interpreters have a very simple structure; just
         grab the next instruction and execute it, in a switch
-        statement.
+        statement::
+
             sage: print rdf_interp
             /* ... */ ...
               while (1) {
@@ -3247,7 +3438,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
             ...
 
         Then comes the code for each instruction.  Here is one of the
-        simplest instructions:
+        simplest instructions::
+
             sage: print rdf_interp
             /* ... */ ...
                 case 10: /* neg */
@@ -3265,7 +3457,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         Let's look at the MPFR-based version of this instruction.
         This is an example of an interpreter with an auto-reference
-        type.
+        type::
+
             sage: print rr_interp
             /* ... */ ...
                 case 10: /* neg */
@@ -3284,7 +3477,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
         mpfr_t variables.
 
         For completeness, let's look at this instruction in the
-        Python-object element interpreter.
+        Python-object element interpreter::
+
             sage: print el_interp
             /* ... */ ...
                 case 10: /* neg */
@@ -3321,13 +3515,15 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         EXAMPLES:
 
-        First we get the InterpreterSpec for several interpreters:
+        First we get the InterpreterSpec for several interpreters::
+
             sage: from sage.ext.gen_interpreters import *
             sage: rdf_spec = RDFInterpreter()
             sage: rr_spec = RRInterpreter()
             sage: el_spec = ElementInterpreter()
 
-        Then we get the actual wrapper code:
+        Then we get the actual wrapper code::
+
             sage: rdf_wrapper = InterpreterGenerator(rdf_spec).get_wrapper()
             sage: rr_wrapper = InterpreterGenerator(rr_spec).get_wrapper()
             sage: el_wrapper = InterpreterGenerator(el_spec).get_wrapper()
@@ -3336,7 +3532,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         Each wrapper starts with a file header; this can be
         customized on a per-interpreter basis (some blank lines have been
-        elided below):
+        elided below)::
+
             sage: print rdf_wrapper
             # Automatically generated by ext/gen_interpreters.py.  Do not edit!
             include "../stdsage.pxi"
@@ -3355,10 +3552,12 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
             from sage.ext.fast_callable cimport Wrapper
             ...
 
-        Next is the declaration of the C interpreter function.
+        Next is the declaration of the C interpreter function::
+
             sage: print rdf_wrapper
             # ...
-            cdef extern double interp_rdf(double* args,
+            cdef extern from "interp_rdf.h":
+                double interp_rdf(double* args,
                     double* constants,
                     PyObject** py_constants,
                     double* stack,
@@ -3375,14 +3574,16 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         Next comes the actual wrapper class.  The member declarations
         are in the corresponding pxd file; see the documentation for
-        get_pxd to see them.
+        get_pxd to see them::
+
             sage: print rdf_wrapper
             # ...
             cdef class Wrapper_rdf(Wrapper):
                 # attributes are declared in corresponding .pxd file
             ...
 
-        Next is the __init__ method, which starts like this:
+        Next is the __init__ method, which starts like this::
+
             sage: print rdf_wrapper
             # ...
                 def __init__(self, args):
@@ -3412,7 +3613,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         Basically the same code is repeated, with minor variations, for
         each memory chunk; for brevity, we'll only show the code
-        for 'constants'.
+        for 'constants'::
 
             sage: print rdf_wrapper
             # ...
@@ -3428,7 +3629,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
         double*.
 
         The RRInterpreter version is more complicated, because it has to
-        call mpfr_init.
+        call mpfr_init::
+
             sage: print rr_wrapper
             # ...
                     cdef RealNumber rn
@@ -3446,7 +3648,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         And as described in the documentation for get_pxd, in
         Python-object based interpreters we actually allocate the
-        memory as a Python list.
+        memory as a Python list::
+
             sage: print el_wrapper
             # ...
                     val = args['constants']
@@ -3458,7 +3661,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
             ...
 
         Of course, once we've allocated the memory, we eventually have
-        to free it.  (Again, we'll only look at 'constants'.)
+        to free it.  (Again, we'll only look at 'constants'.)::
+
             sage: print rdf_wrapper
             # ...
                 def __dealloc__(self):
@@ -3468,7 +3672,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
             ...
 
         The RRInterpreter code is more complicated again because it has
-        to call mpfr_clear.
+        to call mpfr_clear::
+
             sage: print rr_wrapper
             # ...
                 def __dealloc__(self):
@@ -3492,7 +3697,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
         We optionally adjust the return value of the interpreter
         (currently only the RDF/float interpreter performs this step;
         this is the only place where domain=RDF differs than
-        domain=float):
+        domain=float)::
 
             sage: print rdf_wrapper
             # ...
@@ -3518,7 +3723,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
         stack totally clear when the interpreter finishes.  However,
         this doesn't happen if the C interpreter raises an exception.
         In that case, we have to clear out any remnants from the stack
-        in the wrapper.
+        in the wrapper::
+
             sage: print el_wrapper
             # ...
                     try:
@@ -3536,7 +3742,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         Finally, we define a cdef call_c method, for quickly calling
         this object from Cython.  (The method is omitted from
-        Python-object based interpreters.)
+        Python-object based interpreters.)::
             sage: print rdf_wrapper
             # ...
                 cdef bint call_c(self,
@@ -3553,7 +3759,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         The method for the RR interpreter is slightly different, because
         the interpreter takes a pointer to a result location instead of
-        returning the value.
+        returning the value::
+
             sage: print rr_wrapper
             # ...
                 cdef bint call_c(self,
@@ -3586,7 +3793,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
         ipow instruction is defined over.
 
         First the part that maps instruction names to
-        (CompilerInstrSpec, opcode) pairs.
+        (CompilerInstrSpec, opcode) pairs::
 
             sage: print rdf_wrapper
             # ...
@@ -3605,7 +3812,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
              }, ...)
 
         There's also a table that maps opcodes to (instruction name,
-        CompilerInstrSpec) pairs:
+        CompilerInstrSpec) pairs::
+
             sage: print rdf_wrapper
             # ...
             metadata = InterpreterMetadata(...,  by_opcode=[
@@ -3621,7 +3829,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
             ...
              ], ...)
 
-        And then the ipow range:
+        And then the ipow range::
+
             sage: print rdf_wrapper
             # ...
             metadata = InterpreterMetadata(...,
@@ -3641,12 +3850,14 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
         EXAMPLES:
 
         First we get the InterpreterSpec for several interpreters:
+
             sage: from sage.ext.gen_interpreters import *
             sage: rdf_spec = RDFInterpreter()
             sage: rr_spec = RRInterpreter()
             sage: el_spec = ElementInterpreter()
 
-        Then we get the corresponding .pxd:
+        Then we get the corresponding .pxd::
+
             sage: rdf_pxd = InterpreterGenerator(rdf_spec).get_pxd()
             sage: rr_pxd = InterpreterGenerator(rr_spec).get_pxd()
             sage: el_pxd = InterpreterGenerator(el_spec).get_pxd()
@@ -3655,7 +3866,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         Each .pxd starts with a file header; this can be
         customized on a per-interpreter basis (some blank lines have been
-        elided below):
+        elided below)::
+
             sage: print rdf_pxd
             # Automatically generated by ext/gen_interpreters.py.  Do not edit!
             from cpython cimport PyObject
@@ -3668,7 +3880,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
             ...
 
         Next and last is the declaration of the wrapper class, which
-        starts off with a list of member declarations.
+        starts off with a list of member declarations::
+
             sage: print rdf_pxd
             # ...
             cdef class Wrapper_rdf(Wrapper):
@@ -3689,7 +3902,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
         ElementInterpreter version.  To simplify our handling of
         reference counting and garbage collection, in a Python-object
         based interpreter, we allocate arrays as Python lists,
-        and then pull the array out of the innards of the list.
+        and then pull the array out of the innards of the list::
+
             sage: print el_pxd
             # ...
                 cdef object _list_stack
@@ -3699,7 +3913,8 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
         Then, at the end of the wrapper class, we declare a cdef method
         for quickly calling the wrapper object from Cython.  (This method
-        is omitted from Python-object based interpreters.)
+        is omitted from Python-object based interpreters.)::
+
             sage: print rdf_pxd
             # ...
                 cdef bint call_c(self,
@@ -3722,7 +3937,8 @@ def write_if_changed(fn, value):
     Writes value to the file named fn, if value is different than
     the current contents.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import *
         sage: def last_modification(fn): return os.stat(fn).st_mtime
         sage: fn = tmp_filename('gen_interp')
@@ -3768,7 +3984,8 @@ def build_interp(interp_spec, dir):
     Given an InterpreterSpec, writes the C interpreter and the Cython
     wrapper (generates a pyx and a pxd file).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import *
         sage: testdir = tmp_filename()
         sage: os.mkdir(testdir)
@@ -3779,12 +3996,15 @@ def build_interp(interp_spec, dir):
     """
     ig = InterpreterGenerator(interp_spec)
     interp_fn = '%s/interp_%s.c' % (dir, interp_spec.name)
+    header_fn = '%s/interp_%s.h' % (dir, interp_spec.name)
     wrapper_fn = '%s/wrapper_%s.pyx' % (dir, interp_spec.name)
     pxd_fn = '%s/wrapper_%s.pxd' % (dir, interp_spec.name)
     interp = ig.get_interpreter()
+    header = ig.get_interpreter_header()
     wrapper = ig.get_wrapper()
     pxd = ig.get_pxd()
     write_if_changed(interp_fn, interp)
+    write_if_changed(header_fn, header)
     write_if_changed(wrapper_fn, wrapper)
     write_if_changed(pxd_fn, pxd)
 
@@ -3793,7 +4013,8 @@ def rebuild(dir):
     Check whether the interpreter and wrapper sources have been written
     since the last time this module was changed.  If not, write them.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.gen_interpreters import *
         sage: testdir = tmp_filename()
         sage: os.mkdir(testdir)

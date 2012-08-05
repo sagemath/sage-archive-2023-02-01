@@ -55,6 +55,9 @@ Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
 
 == Changelog ==
 
+=== gap-4.4.12.p8 (Jean-Pierre Flori, Leif Leonhardy, 5 August 2012) ===
+ * #13341: Only create symbolic link to gap.exe on Cygwin if needed.
+
 === gap-4.4.12.p7 (Leif Leonhardy, March 22nd 2012) ===
  * #7041: Only unset `CC` and `CXX` if really necessary (i.e., if they
    contain spaces, which is what currently would break the build).

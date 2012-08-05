@@ -95,18 +95,33 @@ build()
         exit 1
     fi
 
-    # On a Windows machine the GAP build creates a file "gap.exe",
-    # but no file named "gap".  This breaks the build, since it
-    # then tries to strip gap, but can't since the file is missing!
+    # On Cygwin installations the GAP build creates a file 'gap.exe',
+    # and then tries to strip the file 'gap'.
+    # This broke the build on old Cygwin installations.
+    # On newer Cygwins, 'gap' is automatically "translated" to 'gap.exe'.
     if [[ "$UNAME" = CYGWIN ]]; then
+        echo "Creating a dummy 'gap.exe' in 'bin/i686-pc-cygwin-gcc'..."
         mkdir -p bin/i686-pc-cygwin-gcc &&
         cd bin/i686-pc-cygwin-gcc &&
-        touch gap.exe &&
-        ln -s gap.exe gap
+        touch gap.exe
         if [[ $? -ne 0 ]]; then
-            echo >&2 "Error creating dummy 'gap.exe' and/or a link from 'gap' to it."
+            # Something really went wrong.
+            echo >&2 "Error creating a dummy gap.exe file."
             exit 1
         fi
+
+        # Check if 'gap' is automatically "translated" to 'gap.exe'.
+        # If not, create a symbolic link from 'gap' to 'gap.exe'.
+        if [[ ! -f gap ]]; then
+            echo "Creating a symbolic link from 'gap' to 'gap.exe'..."
+            ln -s gap.exe gap
+            if [[ $? -ne 0 ]]; then
+                # Something really went wrong.
+                echo >&2 "Error creating the symbolic link."
+                exit 1
+            fi
+        fi
+
         cd ../..
     fi
 

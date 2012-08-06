@@ -166,10 +166,10 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: d = []
             sage: c = []
             sage: c = [Conic(a) for a in m if a != [0,0,0]]
-            sage: d = [C.has_rational_point(algorithm = 'rnfisnorm', point = True) for C in c] # long time: 6 seconds
+            sage: d = [C.has_rational_point(algorithm = 'rnfisnorm', point = True) for C in c] # long time: 3.3 seconds
             sage: all([c[k].defining_polynomial()(Sequence(d[k][1])) == 0 for k in range(len(d)) if d[k][0]])
             True
-            sage: [C.has_rational_point(algorithm = 'magma', read_cache=False) for C in c] == [o[0] for o in d] # long time, optional - magma
+            sage: [C.has_rational_point(algorithm = 'magma', read_cache=False) for C in c] == [o[0] for o in d] # long time: 3 seconds, optional - magma
             True
 
         Create a bunch of conics that are known to have rational points
@@ -181,9 +181,9 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: L.<b> = QuadraticField(19)
             sage: M.<c> = NumberField(x^5+3*x+1)
             sage: m = [[F(b) for b in a] for a in l for F in [K, L, M]]
-            sage: c = [Conic(a) for a in m if a != [0,0,0] and a != [1,1,1] and a != [-1,-1,-1]] # long time 0.4 seconds
-            sage: assert all([C.has_rational_point(algorithm = 'rnfisnorm') for C in c]) # long time: 3.5 seconds
-            sage: assert all([C.defining_polynomial()(Sequence(C.has_rational_point(point = True)[1])) == 0 for C in c]) # uses cache, long time if previous line isn't run
+            sage: c = [Conic(a) for a in m if a != [0,0,0] and a != [1,1,1] and a != [-1,-1,-1]]
+            sage: assert all([C.has_rational_point(algorithm = 'rnfisnorm') for C in c])
+            sage: assert all([C.defining_polynomial()(Sequence(C.has_rational_point(point = True)[1])) == 0 for C in c])
         """
         if read_cache:
             if self._rational_point is not None:
@@ -231,8 +231,9 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         if algorithm == 'rnfisnorm':
             from sage.modules.free_module_element import vector
             if obstruction:
-                raise ValueError, "Algorithm rnfisnorm cannot be combined with " \
-                                  "obstruction = True in has_rational_point"
+                raise ValueError, "Algorithm rnfisnorm cannot be combined " \
+                                  "with obstruction = True in " \
+                                  "has_rational_point"
             D, T = self.diagonal_matrix()
             abc = [D[0,0], D[1,1], D[2,2]]
             for j in range(3):
@@ -276,7 +277,8 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             raise TypeError, "Algorithm qfsolve in has_rational_point only " \
                                  "for conics over QQ, not over %s" % B
         if obstruction:
-            raise ValueError, "Invalid combination: obstruction=True and algorithm=%s" % algorithm
+            raise ValueError, "Invalid combination: obstruction=True and " \
+                                 "algorithm=%s" % algorithm
 
         return ProjectiveConic_field.has_rational_point(self, point = point,
                            algorithm = algorithm, read_cache = False)

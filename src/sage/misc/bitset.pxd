@@ -13,6 +13,7 @@ cdef class FrozenBitset:
     cpdef intersection(self, FrozenBitset other)
     cpdef difference(self, FrozenBitset other)
     cpdef symmetric_difference(self, FrozenBitset other)
+    cpdef complement(self)
     cpdef __copy__(self)
 
 cdef class Bitset(FrozenBitset):

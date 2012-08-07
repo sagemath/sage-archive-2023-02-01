@@ -820,6 +820,52 @@ cdef class FrozenBitset:
         """
         return self.symmetric_difference(other)
 
+    cpdef complement(self):
+        """
+        Return the complement of self.
+
+        EXAMPLES::
+
+            sage: ~FrozenBitset('10101')
+            01010
+            sage: ~FrozenBitset('11111'*10)
+            00000000000000000000000000000000000000000000000000
+            sage: x = FrozenBitset('10'*40)
+            sage: x == ~x
+            False
+            sage: x == ~~x
+            True
+            sage: x|(~x) == FrozenBitset('11'*40)
+            True
+            sage: ~x == FrozenBitset('01'*40)
+            True
+        """
+        cdef FrozenBitset temp = self._new(self._bitset.size)
+        bitset_complement(temp._bitset, self._bitset)
+        return temp
+
+    def __invert__(self):
+        """
+        Return the complement of self.
+
+        EXAMPLES::
+
+            sage: ~FrozenBitset('10101')
+            01010
+            sage: ~FrozenBitset('11111'*10)
+            00000000000000000000000000000000000000000000000000
+            sage: x = FrozenBitset('10'*40)
+            sage: x == ~x
+            False
+            sage: x == ~~x
+            True
+            sage: x|(~x) == FrozenBitset('11'*40)
+            True
+            sage: ~x == FrozenBitset('01'*40)
+            True
+        """
+        return self.complement()
+
     cpdef  __copy__(self):
         """
         Return self (since self is immutable).

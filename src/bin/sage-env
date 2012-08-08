@@ -537,7 +537,7 @@ if [ "$TOUCH" = "" ]; then
 fi
 
 if [ "$UNAME" = "CYGWIN" ]; then
-    PATH="$PATH:$SAGE_LOCAL/lib" && export PATH
+    PATH="$PATH:$SAGE_LOCAL/lib:$SAGE_LOCAL/lib/R/lib" && export PATH
 fi
 
 # See trac 7186 -- this is needed if ecl is moved

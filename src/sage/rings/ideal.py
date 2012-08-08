@@ -290,6 +290,23 @@ class Ideal_generic(MonoidElement):
         return "Ideal %s of %s"%(self._repr_short(), self.ring())
 
     def __cmp__(self, other):
+        """
+        Compares the generators of two ideals.
+
+        INPUT:
+
+        - ``other`` -- an ideal
+
+        OUTPUT:
+
+        - 0 if ``self`` and ``other`` have the same generators, 1 otherwise.
+
+        EXAMPLE::
+
+            sage: R = ZZ; I = ZZ*2; J = ZZ*(-2)
+            sage: cmp(I,J)
+            0
+        """
         S = set(self.gens())
         T = set(other.gens())
         if S == T:

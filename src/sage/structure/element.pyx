@@ -368,7 +368,7 @@ cdef class Element(sage_object.SageObject):
             sage: R.<x,y> = QQ[]
             sage: i = ideal(x^2 - y^2 + 1)
             sage: i.__getstate__()
-            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Rational Field, {'_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Rational Field, '_Ideal_generic__gens': (x^2 - y^2 + 1,)})
+            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Rational Field, {'_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Rational Field, '_Ideal_generic__gens': (x^2 - y^2 + 1,), '_gb_by_ordering': {}})
         """
         return (self._parent, self.__dict__)
 

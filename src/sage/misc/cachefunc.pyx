@@ -2487,9 +2487,9 @@ class ClearCacheOnPickle(object):
         And here is why the example works::
 
             sage: ST = I.__getstate__(); ST[0],sorted(ST[1].items())
-            (Monoid of ideals of Multivariate Polynomial Ring in a, b, c, d over Rational Field, [('_Ideal_generic__gens', (a, b)), ('_Ideal_generic__ring', Multivariate Polynomial Ring in a, b, c, d over Rational Field), ('_cache__groebner_basis', {(('singular', None, None, False), ()): 'foo'}), ('gens', Cached version of <function gens at 0x...>), ('groebner_basis', Cached version of <function groebner_basis at 0x...>)])
+            (Monoid of ideals of Multivariate Polynomial Ring in a, b, c, d over Rational Field, [('_Ideal_generic__gens', (a, b)), ('_Ideal_generic__ring', Multivariate Polynomial Ring in a, b, c, d over Rational Field), ('_cache__groebner_basis', {(('singular', None, None, False), ()): 'foo'}), ('_gb_by_ordering', {}), ('gens', Cached version of <function gens at 0x...>), ('groebner_basis', Cached version of <function groebner_basis at 0x...>)])
             sage: ST = A.__getstate__(); ST[0],sorted(ST[1].items())
-            (Monoid of ideals of Multivariate Polynomial Ring in a, b, c, d over Rational Field, [('_Ideal_generic__gens', (a, b)), ('_Ideal_generic__ring', Multivariate Polynomial Ring in a, b, c, d over Rational Field)])
+            (Monoid of ideals of Multivariate Polynomial Ring in a, b, c, d over Rational Field, [('_Ideal_generic__gens', (a, b)), ('_Ideal_generic__ring', Multivariate Polynomial Ring in a, b, c, d over Rational Field), ('_gb_by_ordering', {})])
 
         """
         OrigState = super(ClearCacheOnPickle, self).__getstate__()

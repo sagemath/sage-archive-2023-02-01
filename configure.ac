@@ -36,10 +36,14 @@ minimum_gcc_version_for_debugging_purposes="3.4.0"
 AC_ARG_ENABLE([compiler-checks], [Check versions and presence of C, C++ and Fortran compilers (default: yes)],
     [enable_compiler_checks=$enableval], [enable_compiler_checks=yes])
 
-# Import three environment variables.
+# Import environment variables.
+AC_ARG_VAR([SAGE_LOCAL],[Prefix to search for libraries and include files])
 AC_ARG_VAR([SAGE_FORTRAN_LIB],[The path to the fortran library])
 AC_ARG_VAR([SAGE_FORTRAN],[The path to the fortran compiler])
 AC_ARG_VAR([SAGE64],[If building 64-bit])
+
+CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
+LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 
 # Check if SAGE_FORTRAN is set, and if so set 'FC' to it, as
 # 'FC' is just the Fortran equivalent of CC and CXX.
@@ -236,6 +240,10 @@ fi
 
 # Next one should check for libraries.
 # OpenSSL is a prerequisite for the notebook.
+# Before checking OpenSSL, we check for -ldl and -lcrypto (which are
+# needed on some systems to link -lssl).
+AC_SEARCH_LIBS([dlopen], [dl])
+AC_SEARCH_LIBS([CRYPTO_free], [crypto])
 AC_CHECK_LIB(ssl, SSL_library_init, [], [
     AC_MSG_NOTICE([The OpenSSL library is required to build the Sage Notebook.])
     AC_MSG_NOTICE([You might need to execute one of the following (or the equivalent for your])

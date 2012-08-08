@@ -4773,7 +4773,7 @@ def triangle_sandpile(n):
     pos = {}
     for x in T.nonsink_vertices():
         coords = list(x)
-        coords[0]+=1/2*coords[1]
+        coords[0]+=QQ(1)/2*coords[1]
         pos[x] = coords
     pos['sink'] = (-1,-1)
     T.set_pos(pos)
@@ -4834,7 +4834,7 @@ def aztec_sandpile(n):
                 aztec_sandpile['sink'][vert] = out_degree
     return aztec_sandpile
 
-def random_digraph(num_verts, p=1/2, directed=True, weight_max=1):
+def random_digraph(num_verts, p=0.5, directed=True, weight_max=1):
     """
     A random weighted digraph with a directed spanning tree rooted at `0`.  If
     ``directed = False``, the only difference is that if `(i,j,w)` is an edge with
@@ -4857,6 +4857,14 @@ def random_digraph(num_verts, p=1/2, directed=True, weight_max=1):
         sage: g = random_digraph(6,0.2,True,3)
         sage: S = Sandpile(g,0)
         sage: S.show(edge_labels = True)
+
+    TESTS:
+
+    Check that we can construct a random digraph with the
+    default arguments (:trac:`12181`)::
+
+        sage: random_digraph(5)
+        Digraph on 5 vertices
     """
 
     a = digraphs.RandomDirectedGN(num_verts)
@@ -4874,7 +4882,7 @@ def random_digraph(num_verts, p=1/2, directed=True, weight_max=1):
         a.set_edge_label(i,j,ZZ.random_element(weight_max)+1)
     return a
 
-def random_DAG(num_verts, p=1/2, weight_max=1):
+def random_DAG(num_verts, p=0.5, weight_max=1):
     r"""
     A random directed acyclic graph with ``num_verts`` vertices.
     The method starts with the sink vertex and adds vertices one at a time.
@@ -4886,19 +4894,43 @@ def random_DAG(num_verts, p=1/2, weight_max=1):
     INPUT:
 
      - ``num_verts`` - positive integer
-     - ``p`` - number between `0` and `1`
-     - ``weight_max`` -- integer greater than `0`
+     - ``p`` - real number such that `0 < p \leq 1`
+     - ``weight_max`` - positive integer
 
     OUTPUT:
 
-    directed acyclic graph with sink `0`
+    a dictionary, encoding the edges of a directed acyclic graph with sink `0`
 
     EXAMPLES::
 
-        sage: S = random_DAG(5, 0.3)
+        sage: d = DiGraph(random_DAG(5, .5));d
+        Digraph on 5 vertices
+
+    TESTS:
+
+    Check that we can construct a random DAG with the
+    default arguments (:trac:`12181`)::
+
+        sage: g = random_DAG(5);DiGraph(g)
+        Digraph on 5 vertices
+
+    Check that bad inputs are rejected::
+        sage: g = random_DAG(5,1.1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameter p must satisfy 0 < p <= 1.
+        sage: g = random_DAG(5,0.1,-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameter weight_max must be positive.
     """
+    if not(0 < p and p <= 1):
+        raise ValueError("The parameter p must satisfy 0 < p <= 1.")
+    weight_max=ZZ(weight_max)
+    if not(0 < weight_max):
+        raise ValueError("The parameter weight_max must be positive.")
     g = {0:{}}
-    for i in range(1,num_verts+1):
+    for i in range(1,num_verts):
         out_edges = {}
         while out_edges == {}:
             for j in range(i):

@@ -678,7 +678,7 @@ ext_modules = [
               sources = ['sage/libs/lcalc/lcalc_Lfunction.pyx'],
               libraries = ['m', 'ntl', 'mpfr', 'gmp', 'gmpxx',
                            'Lfunction', 'stdc++'],
-              include_dirs = [SAGE_INC + "lcalc/"],
+              include_dirs = [SAGE_INC + "libLfunction/"],
               extra_compile_args=["-O3", "-ffast-math"],
               language = 'c++'),
 

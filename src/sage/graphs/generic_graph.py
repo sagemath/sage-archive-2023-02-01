@@ -7549,7 +7549,7 @@ class GenericGraph(GenericGraph_pyx):
         if in_order:
             vertex = self.vertices()[vertex]
         if vertex not in self:
-            raise RuntimeError("Vertex (%s) not in the graph."%vertex)
+            raise RuntimeError("Vertex (%s) not in the graph."%str(vertex))
 
         attributes_to_update = ('_pos', '_assoc', '_embedding')
         for attr in attributes_to_update:
@@ -7580,7 +7580,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         for vertex in vertices:
             if vertex not in self:
-                raise RuntimeError("Vertex (%s) not in the graph."%vertex)
+                raise RuntimeError("Vertex (%s) not in the graph."%str(vertex))
         attributes_to_update = ('_pos', '_assoc', '_embedding')
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:

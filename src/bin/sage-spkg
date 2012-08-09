@@ -160,9 +160,8 @@ if [ $1 = '-f' ]; then
     shift
 fi
 
-DELETE_TMP=1
 if [ $1 = '-s' ]; then
-    DELETE_TMP=0
+    export SAGE_KEEP_BUILT_SPKGS=yes
     shift
 fi
 
@@ -170,10 +169,6 @@ if [ $1 = '-c' ]; then
     export SAGE_CHECK=yes
     SAGE_CHECK_PACKAGES=x  # nonempty, so not set to '!python' later
     shift
-fi
-
-if [ "x$SAGE_KEEP_BUILT_SPKGS" = "xyes" ]; then
-    DELETE_TMP=0
 fi
 
 # Don't verbosely extract files from spkgs by default (#10040):
@@ -327,7 +322,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ $DELETE_TMP -eq 1 ]; then
+if [ "x$SAGE_KEEP_BUILT_SPKGS" != "xyes" ]; then
     rm -rf "$PKG_NAME"
 else
     if [ -e "$PKG_NAME" ]; then
@@ -474,7 +469,7 @@ cat "$SAGE_ROOT/VERSION.txt" >> "$PKG_NAME_INSTALLED"
 ##################################################################
 # Delete the temporary build directory if required
 ##################################################################
-if [ $DELETE_TMP -eq 1 ]; then
+if [ "x$SAGE_KEEP_BUILT_SPKGS" != "xyes" ]; then
     echo "Deleting temporary build directory"
     echo "$SAGE_BUILD_DIR/$PKG_NAME"
     # On Solaris, the current working directory cannot be deleted,

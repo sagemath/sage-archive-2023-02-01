@@ -51,4 +51,3 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error installing givaro"
     exit 1
 fi
-

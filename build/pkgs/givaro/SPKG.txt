@@ -36,8 +36,11 @@ SPKG Repository: https://bitbucket.org/malb/givaro-spkg
 
 == Changelog ==
 
+=== givaro-3.7.1 (Jean-Pierre Flori, 9 August 2012) ===
+ * #13164: updated to new upstream release.
+
 === givaro-3.7.0 (Martin Albrecht, June 7th, 2012) ===
- * #9511 updated to new upstram release
+ * #9511: updated to new upstream release.
 
 === givaro-3.2.13.p0 (Jeroen Demeyer, 25 May 2012) ===
  * #12761: Restore upstream sources to vanilla 3.2.13 (the previous
@@ -161,4 +164,3 @@ SPKG Repository: https://bitbucket.org/malb/givaro-spkg
 === 2006-10-21 (Martin Albrecht) ===
  * ported constructor with modulus parameter from linbox to givaro
  * added sage_generator() which returns the generator == cardinality if interpreted as an integer not a random one
-

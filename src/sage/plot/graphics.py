@@ -637,13 +637,9 @@ class Graphics(SageObject):
         ::
 
             sage: c = circle((0,0), 1)
-            sage: c.axes_labels(['z',u'é'])
+            sage: c.axes_labels(['axe des abscisses', u'axe des ordonnées'])
             sage: c._axes_labels
-            ('z', u'\xc3\xa9')
-
-            sage: c.axes_labels([u'an accent : é', 'Y'])
-            sage: c._axes_labels
-            (u'an accent : \xc3\xa9', 'Y')
+            ('axe des abscisses', u'axe des ordonn\xc3\xa9es')
 
         """
         if l is None:

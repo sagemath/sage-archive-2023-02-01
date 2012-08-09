@@ -2043,6 +2043,11 @@ class Graphics(SageObject):
             sage: p.legend(True)
             sage: pm = p.matplotlib()
             sage: pm = p.matplotlib(legend_options={'font_size':'small'})
+
+        The title should not overlap with the axes labels nor the frame in
+        the following plot (see :trac:`10512`)::
+
+            sage: plot(sin(x^2), (x, -3, 3), title='Plot of sin(x^2)', axes_labels=['x','y'],frame=True)
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
@@ -2443,6 +2448,7 @@ class Graphics(SageObject):
             if (frame) or (axes_labels is None):
                 subplot.set_title(title, fontsize=fontsize)
             else: # frame is false axes is not None, and neither is axes_labels
+                # Then, the title is moved up to avoid overlap with axes labels
                 subplot.set_title(title, fontsize=fontsize, position=(0.5,1.05))
 
         return figure

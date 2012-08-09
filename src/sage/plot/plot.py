@@ -961,8 +961,8 @@ def plot(funcs, *args, **kwds):
 
     Extra options will get passed on to show(), as long as they are valid::
 
-        sage: plot(sin(x^2), (x, -3, 3), title='Plot of $\sin(x)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
-        sage: plot(sin(x^2), (x, -3, 3), title='Plot of sin(x)', axes_labels=['x','y']) # These will not
+        sage: plot(sin(x^2), (x, -3, 3), title='Plot of $\sin(x^2)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
+        sage: plot(sin(x^2), (x, -3, 3), title='Plot of sin(x^2)', axes_labels=['x','y']) # These will not
 
     ::
 

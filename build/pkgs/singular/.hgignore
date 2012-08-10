@@ -2,4 +2,3 @@
 syntax: glob
 src
 shared
-*~

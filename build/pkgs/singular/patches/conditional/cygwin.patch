@@ -1,8 +1,9 @@
---- src/IntegerProgramming/Makefile.in	2010-01-29 09:10:49.000000000 +0000
-+++ src/IntegerProgramming/Makefile.in	2010-07-15 17:14:33.000000000 +0100
-@@ -58,11 +58,11 @@
+diff -ru src/IntegerProgramming/Makefile.in b/IntegerProgramming/Makefile.in
+--- src/IntegerProgramming/Makefile.in	2012-06-19 11:00:05.000000000 +0200
++++ b/IntegerProgramming/Makefile.in	2012-07-12 17:00:42.253780191 +0200
+@@ -64,11 +64,11 @@
  
- install: $(MAIN1) $(MAIN2) $(MAIN3) $(MAIN4) $(LLL)
+ install install-libsingular: $(MAIN1) $(MAIN2) $(MAIN3) $(MAIN4) $(LLL)
  	${MKINSTALLDIRS} ${bindir}
 -	${INSTALL_PROGRAM} $(MAIN1) ${bindir}
 -	${INSTALL_PROGRAM} $(MAIN2) ${bindir}

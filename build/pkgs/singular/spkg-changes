@@ -3,9 +3,9 @@
 # Changes to upstream singular
 
 cd src
-rm -rf ntl
-rm -rf modules
-rm -rf MP
-rm -rf Tst
+rm -r ntl
+rm -r modules
+rm -r MP
+rm -r Tst
 gzip -9 omalloc/Misc/dlmalloc/malloc.ps
-rm -rf Singular/LIB/surfex
+rm -r Singular/LIB/surfex

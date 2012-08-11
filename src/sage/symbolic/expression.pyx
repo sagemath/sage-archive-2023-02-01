@@ -2034,11 +2034,11 @@ cdef class Expression(CommutativeRingElement):
 
             # If assumptions are involved, falsification is more complicated...
             need_assumptions = False
-            vars = self.variables()
-            if len(vars) > 0:
-                from sage.symbolic.assumptions import assumptions
-                assumption_list = assumptions()
-                if len(assumption_list) > 0:
+            from sage.symbolic.assumptions import assumptions
+            assumption_list = assumptions()
+            if len(assumption_list) > 0:
+                vars = self.variables()
+                if len(vars) > 0:
                     assumption_var_list = []
                     for eqn in assumption_list:
                         try:

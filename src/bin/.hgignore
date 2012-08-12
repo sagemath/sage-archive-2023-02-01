@@ -63,6 +63,7 @@ ecm
 easy_install
 easy_install-2.5
 findinf
+fflas-ffpack-config
 fourier
 fourier_gmp
 fplll

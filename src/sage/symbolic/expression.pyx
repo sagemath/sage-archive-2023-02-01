@@ -2036,9 +2036,9 @@ cdef class Expression(CommutativeRingElement):
             need_assumptions = False
             from sage.symbolic.assumptions import assumptions
             assumption_list = assumptions()
-            if len(assumption_list) > 0:
+            if assumption_list:
                 vars = self.variables()
-                if len(vars) > 0:
+                if vars:
                     assumption_var_list = []
                     for eqn in assumption_list:
                         try:

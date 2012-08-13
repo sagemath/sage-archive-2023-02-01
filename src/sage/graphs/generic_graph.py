@@ -6586,6 +6586,26 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = Graph()
             sage: g.add_edge(0,1)
             sage: f = g._build_flow_graph({(0,1):1}, True)
+
+        The method removes zero-cost flow cycles and updates the values accordingly::
+
+            sage: g = digraphs.DeBruijn(2,3)
+            sage: flow = {('001','010'):1,('010','100'):1,('010','101'):1,('101','010'):1}
+            sage: flow_graph = g._build_flow_graph(flow,True)
+            sage: flow_graph.edges()
+            [('001', '010', 1), ('010', '100', 1)]
+            sage: flow = {('001','010'):2,('010','101'):3,('101','011'):2,('101','010'):1}
+            sage: flow_graph = g._build_flow_graph(flow,True)
+            sage: flow_graph.edges()
+            [('001', '010', 2), ('010', '101', 2), ('101', '011', 2)]
+
+        Isolated zero-cost flow cycles are also removed::
+
+            sage: g = digraphs.DeBruijn(2,3)
+            sage: flow = {('000','001'):1,('010','101'):1,('101','010'):1}
+            sage: flow_graph = g._build_flow_graph(flow,True)
+            sage: flow_graph.edges()
+            [('000', '001', 1)]
         """
 
         from sage.graphs.digraph import DiGraph
@@ -6621,7 +6641,7 @@ class GenericGraph(GenericGraph_pyx):
                         if l == 0:
                             g.delete_edge(sp[i],sp[i+1])
                         else:
-                            g.set_edge_label(l)
+                            g.set_edge_label(sp[i],sp[i+1],l)
 
         # if integer is set, round values and deletes zeroes
         if integer:
@@ -6629,9 +6649,9 @@ class GenericGraph(GenericGraph_pyx):
                 if l<.5:
                     g.delete_edge(u,v)
                 else:
-                    g.set_edge_label(u,v, round(l))
+                    g.set_edge_label(u,v, int(round(l)))
 
-        # returning a graph with the same embedding, the corersponding name, etc ...
+        # returning a graph with the same embedding, the corresponding name, etc ...
         h = self.subgraph(edges=[])
         h.delete_vertices([v for v in self if (v not in g) or g.degree(v)==0])
         h.add_edges(g.edges())

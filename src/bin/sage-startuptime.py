@@ -1,67 +1,126 @@
 #!/usr/bin/env python
-###########################################################
-# Based on a script by Andrew Dalke:
+
+########################################################################
+# Originally based on a script by Andrew Dalke:
 #    http://projects.scipy.org/pipermail/numpy-discussion/2008-July/035415.html
 #
-# From: Andrew Dalke <dalke@dalkescientific.com>
-# Date: Sun, Jul 6, 2008 at 10:07 AM
-# To: Mike Hansen <mhansen@gmail.com>
-# "This work written by Andrew Dalke and released into the public
-# domain in 2008.  No copyright protection is asserted."
+# 2012: Total rewrite by Volker Braun
+########################################################################
+
+
+########################################################################
+#       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #
-# Included in Sage by Mike Hansen and William Stein
-###########################################################
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+########################################################################
 
-
+import sys
 import time
+import gc
 
-seen = set()
-import_order = []
-elapsed_times = {}
-global_level = 0
+cmdline_args = sys.argv[2:]
+have_cmdline_args = (len(cmdline_args) > 0)
+
+direct_children_time = 0
+import_counter = 0
 parent = None
-children = {}
+index_to_parent = dict()
+all_modules = dict()
 
 def new_import(name, globals={}, locals={}, fromlist=[], level=-1):
-     global global_level, parent
-     if name in seen:
-         return old_import(name, globals, locals, fromlist)
-     seen.add(name)
-     import_order.append((name, global_level, parent))
-     t1 = time.time()
+     """"
+     The new import function
+
+     Note that ``name`` is not unique, it can be `sage.foo.bar` or `bar`.
+     """
+     global all_modules, import_counter, parent, direct_children_time
+     old_direct_children_time = direct_children_time
+     direct_children_time = 0
      old_parent = parent
-     parent = name
-     global_level += 1
+     parent = this_import_counter = import_counter
+     import_counter += 1
+     t1 = time.time()
      module = old_import(name, globals, locals, fromlist, level)
-     global_level -= 1
-     parent = old_parent
      t2 = time.time()
-     elapsed_times[name] = t2-t1
+     parent = old_parent
+     elapsed_time = t2-t1
+     module_time = elapsed_time - direct_children_time
+     direct_children_time = old_direct_children_time + elapsed_time
+     index_to_parent[this_import_counter] = module
+     data = all_modules.get(module, None)
+     if data is not None:
+          data['parents'].append(parent)
+          data['import_names'].add(name)
+          data['cumulative_time'] += elapsed_time
+          data['time'] += module_time
+          return module
+     data = {
+          'cumulative_time': elapsed_time,
+          'time': module_time,
+          'import_names': set([name]),
+          'parents': [parent] }
+     all_modules[module] = data
      return module
 
 old_import = __builtins__.__import__
-
 __builtins__.__import__ = new_import
-
+gc.disable()
 from sage.all import *
+gc.enable()
+__builtins__.__import__ = old_import
 
-parents = {}
-for name, level, parent in import_order:
-     parents[name] = parent
+for data in all_modules.values():
+     data['parents'] = set( index_to_parent.get(i,None) for i in data['parents'] )
 
-print "== Tree =="
-for name, level,parent in import_order:
-     try:
-          print "%s%s: %.3f (%s)" % (" "*level, name, elapsed_times[name],
-parent)
-     except KeyError:
-          pass
-
-print "\n"
-print "== Slowest (including children) =="
-slowest = sorted((t, name) for (name, t) in elapsed_times.items())[-50:]
-for elapsed_time, name in slowest[::-1]:
-     print "%.3f %s (%s)" % (elapsed_time, name, parents[name])
+module_by_speed = sorted([ (data['time'], module, data)
+                           for module,data in all_modules.iteritems() ])
 
 
+def print_separator():
+     print '='*72
+
+def print_headline(line):
+     print '=={0:=<68}=='.format(' '+line+' ')
+
+width = 10
+fmt_header = '{0:>'+str(width)+   '} {1:>'+str(width)+   '} {2:>'+str(width)+'}  {3}'
+fmt_number = '{0:>'+str(width)+'.3f} {1:>'+str(width)+'.3f} {2:>'+str(width)+'}  {3}'
+def print_table(module_list, limit):
+     global fmt_header, fmt_number
+     print fmt_header.format('exclude/ms', 'include/ms', '#parents', 'module name')
+     for t, module, data in module_list[-limit:]:
+          print fmt_number.format(1000*t, 1000*data['cumulative_time'], len(data['parents']), module.__name__)
+
+
+if not have_cmdline_args:
+     print '== Slowest module imports (excluding / including children) =='
+     print_table(module_by_speed, 50)
+     print 'Total time (sum over exclusive time): {:.3f}ms'.format(1000*sum(data[0] for data in module_by_speed))
+     print 'Use sage -startuptime <module_name> to get more details about <module_name>.'
+else:
+     for module_arg in cmdline_args:
+          matching_modules = [m for m in all_modules if m.__name__ == module_arg]
+          if matching_modules == []:
+               matching_modules = [m for m in all_modules if m.__name__.endswith(module_arg)]
+               if len(matching_modules) != 1:
+                    print matching_modules
+                    raise ValueError('"'+module_arg+'" does not uniquely determine Sage module.')
+          module_arg = matching_modules[0]
+          parents = all_modules[module_arg]['parents']
+          print
+          print_separator()
+          print_headline('Slowest modules importing {0}'.format(module_arg.__name__))
+          print_table([m for m in module_by_speed if m[1] in parents], 10)
+          print
+          print_headline('Slowest modules imported by {0}'.format(module_arg.__name__))
+          print_table([m for m in module_by_speed if module_arg in m[2]['parents']], 10)
+          print
+          data = all_modules[module_arg]
+          print_headline('module '+module_arg.__name__)
+          print 'Time to import:  {0:.3f}ms'.format(1000*data['time'])
+          print 'Cumulative time: {0:.3f}ms'.format(1000*data['cumulative_time'])
+          print 'Names: {0}'.format(', '.join(data['import_names']))
+          print 'File: {0}'.format(module_arg.__file__)
 

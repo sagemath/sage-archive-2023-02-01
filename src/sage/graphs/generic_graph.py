@@ -225,6 +225,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.connected_component_containing_vertex` | Returns a list of the vertices connected to vertex.
     :meth:`~GenericGraph.blocks_and_cut_vertices` | Computes the blocks and cut vertices of the graph.
     :meth=`~GenericGraph.is_cut_edge` | Returns True if the input edge is a cut-edge or a bridge.
+    :meth:`~GenericGraph.is_cut_vertex` | Returns True if the input vertex is a cut-vertex.
     :meth:`~GenericGraph.edge_cut` | Returns a minimum edge cut between vertices `s` and `t`
     :meth:`~GenericGraph.vertex_cut` | Returns a minimum vertex cut between non-adjacent vertices `s` and `t`
     :meth:`~GenericGraph.flow` | Returns a maximum flow in the graph from ``x`` to ``y``
@@ -4068,6 +4069,112 @@ class GenericGraph(GenericGraph_pyx):
 
         self.add_edge(u,v,label)
         return sol
+
+
+    def is_cut_vertex(self, u, weak=False):
+        r"""
+        Returns True if the input vertex is a cut-vertex.
+
+        A vertex is a cut-vertex if its removal from the (di)graph increases the
+        number of (strongly) connected components. Isolated vertices or leafs
+        are not cut-vertices. This function works with simple graphs as well as
+        graphs with loops and multiple edges.
+
+        INPUT:
+
+        - ``u`` -- a vertex
+
+        - ``weak`` -- (default: ``False``) boolean set to `True` if the
+          connectivity of directed graphs is to be taken in the weak sense, that
+          is ignoring edges orientations.
+
+        OUTPUT:
+
+        Returns True if ``u`` is a cut-vertex, and False otherwise.
+
+        EXAMPLES:
+
+        Giving a LollipopGraph(4,2), that is a complete graph with 4 vertices with a pending edge::
+
+            sage: G = graphs.LollipopGraph(4,2)
+            sage: G.is_cut_vertex(0)
+            False
+            sage: G.is_cut_vertex(3)
+            True
+
+        Comparing the weak and strong connectivity of a digraph::
+
+            sage: D = digraphs.Circuit(6)
+            sage: D.is_strongly_connected()
+            True
+            sage: D.is_cut_vertex(2)
+            True
+            sage: D.is_cut_vertex(2, weak=True)
+            False
+
+        Giving a vertex that is not in the graph::
+
+            sage: G = graphs.CompleteGraph(6)
+            sage: G.is_cut_vertex(7)
+            Traceback (most recent call last):
+            ...
+            ValueError: The input vertex is not in the vertex set.
+        """
+        if not u in self:
+            raise ValueError('The input vertex is not in the vertex set.')
+
+        # Initialization
+        if not self.is_directed() or weak:
+            # Weak connectivity
+
+            if self.degree(u) < 2:
+                # An isolated or a leaf vertex is not a cut vertex
+                return False
+
+            neighbors_func = [self.neighbor_iterator]
+            start = self.neighbor_iterator(u).next()
+            CC = set(self.vertex_iterator())
+
+        else:
+            # Strong connectivity for digraphs
+
+            if self.out_degree(u) == 0 or self.in_degree(u) == 0:
+                # A vertex without in or out neighbors is not a cut vertex
+                return False
+
+            # We consider only the strongly connected component containing u
+            CC = set(self.strongly_connected_component_containing_vertex(u))
+
+            # We perform two DFS starting from an out neighbor of u and avoiding
+            # u. The first DFS follows the edges directions, and the second is
+            # in the reverse order. If both allow to reach all neighbors of u,
+            # then u is not a cut vertex
+            neighbors_func = [self.neighbor_out_iterator, self.neighbor_in_iterator]
+            start = self.neighbor_out_iterator(u).next()
+
+        CC.discard(u)
+        CC.discard(start)
+        for neighbors in neighbors_func:
+
+            # We perform a DFS starting from a neighbor of u and avoiding u
+            queue = [start]
+            seen = set(queue)
+            targets = set(self.neighbor_iterator(u))&CC
+            targets.discard(start)
+            while queue and targets:
+                v = queue.pop()
+                for w in neighbors(v):
+                    if not w in seen and w in CC:
+                        seen.add(w)
+                        queue.append(w)
+                        targets.discard(w)
+
+            # If some neighbors cannot be reached, u is a cut vertex.
+            if targets:
+                return True
+
+        return False
+
 
     def steiner_tree(self,vertices, weighted = False, solver = None, verbose = 0):
         r"""

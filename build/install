@@ -329,6 +329,7 @@ ECLIB=`newest_version eclib`
 ECM=`newest_version ecm`
 ELLIPTIC_CURVES=`newest_version elliptic_curves`
 EXTCODE=`newest_version extcode`
+FFLASFFPACK=`newest_version fflas_ffpack`
 FLINT=`newest_version flint`
 FLINTQS=`newest_version flintqs`
 FPLLL=`newest_version libfplll`

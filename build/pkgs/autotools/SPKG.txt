@@ -1,0 +1,63 @@
+= autotools =
+
+== Description ==
+
+This package contains a recent version of GNU m4 and help2man.
+It contains the git repository of autoconf, automake and libtool.
+
+For the latter 3 packages (commonly referred to as "autotools"),
+many different versions are installed, by checking out the versions
+from the git repo and building/installing them separately. Since the
+complete git repository is shipped in the spkg, this does not require
+internet access.
+
+For m4 and help2man, just one version is installed. This is because
+they are prerequisites for autotools. Even though m4 is already a
+prerequisite of Sage, autoconf requires an up-to-date version of GNU m4.
+
+The package makes wrapper scripts in $SAGE_LOCAL/bin for the various
+autotools, which call the "correct" version. This means that, if a file
+"configure" already exists in the current directory, the same autoconf
+version is run which created the original file. Otherwise, the latest
+version is run. The goal of all this is to make it easier to patch
+configure.ac or Makefile.am files inside a spkg. By using the same
+version of autotools as originally used, the patch files should be
+relatively small.
+
+== License ==
+
+GNU General Public License version 3 or later.
+
+== SPKG Maintainers ==
+
+* Jeroen Demeyer
+
+== Upstream Contact ==
+
+* http://www.gnu.org/software/m4/
+* http://www.gnu.org/software/help2man/
+* http://www.gnu.org/software/autoconf/
+* http://www.gnu.org/software/automake/
+* http://www.gnu.org/software/libtool/
+
+== Dependencies ==
+
+* GNU coreutils
+* Perl
+* Git
+
+== Special Update/Build Instructions ==
+
+This package has only been tested on GNU/Linux systems and will likely
+fail to build on other systems. Since this package is only intended for
+package developers, that should not be a big problem.
+
+The file spkg-src can be used to automatically create or update the git
+repositories. This obviously requires internet access.
+
+== Changelog ==
+
+=== autotools-20120810 (Jeroen Demeyer, 10 August 2012) ===
+
+ * Trac #13357: Initial release, contains m4-1.4.16, help2man-1.40.11
+   and git sources for autoconf, automake and libtool.

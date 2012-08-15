@@ -1,5 +1,7 @@
 from sage.structure.parent_gens cimport ParentWithGens
 
+cpdef bint _is_Field(x)
+
 cdef class Ring(ParentWithGens):
     cdef public object _zero_element
     cdef public object _one_element

@@ -97,10 +97,12 @@ from sage.modules.module      import Module_old
 from sage.modules.free_module import is_FreeModule
 from sage.structure.element   import ModuleElement
 from sage.structure.sequence  import Sequence
-from sage.rings.all           import gcd, lcm, QQ, ZZ, QQbar, is_Field, Integer, composite_field
+from sage.rings.all           import gcd, lcm, QQ, ZZ, QQbar, Integer, composite_field
 from sage.misc.misc           import prod
 
 import abvar as abelian_variety
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 class FiniteSubgroup(Module_old):
     def __init__(self, abvar, field_of_definition=QQ):
@@ -130,7 +132,7 @@ class FiniteSubgroup(Module_old):
             sage: isinstance(G, FiniteSubgroup)
             True
         """
-        if not is_Field(field_of_definition):
+        if field_of_definition not in _Fields:
             raise TypeError, "field_of_definition must be a field"
         if not abelian_variety.is_ModularAbelianVariety(abvar):
             raise TypeError, "abvar must be a modular abelian variety"

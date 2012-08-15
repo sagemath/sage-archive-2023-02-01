@@ -18,6 +18,9 @@ Miscellaneous matrix functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.fields import Fields
+_Fields = Fields()
+
 def row_iterator(A):
     for i in xrange(A.nrows()):
         yield A.row(i)
@@ -75,11 +78,8 @@ def weak_popov_form(M,ascend=True):
     # determine whether M has polynomial or rational function coefficients
     R0 = M.base_ring()
 
-    from sage.rings.ring import is_Field
-
     #Compute the base polynomial ring
-
-    if is_Field(R0):
+    if R0 in _Fields:
         R = R0.base()
     else:
         R = R0
@@ -94,7 +94,7 @@ def weak_popov_form(M,ascend=True):
     from sage.rings.arith import lcm
     from sage.matrix.constructor import matrix
     from sage.misc.functional import numerator
-    if is_Field(R0):
+    if R0 in _Fields:
         den = lcm([a.denominator() for a in M.list()])
         num = matrix([(lambda x : map(numerator,  x))(v) for v in map(list,(M*den).rows())])
     else:

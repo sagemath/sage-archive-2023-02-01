@@ -2355,8 +2355,8 @@ class QuotientFunctor(ConstructionFunctor):
         I = self.I
         from sage.all import QQ
         if not I.is_zero():
-            from sage.rings.field import is_Field
-            if is_Field(R):
+            from sage.categories.fields import Fields
+            if R in Fields():
                 from sage.all import Integers
                 return Integers(1)
         if I.ring() != R:

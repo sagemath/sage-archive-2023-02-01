@@ -116,7 +116,8 @@ from sage.libs.all import PariError
 from sage.misc.functional import sqrt, log
 from sage.rings.arith import integer_ceil as ceil
 
-from sage.rings.ring import is_Field
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 from sage.misc.derivative import multi_derivative
 
@@ -1088,7 +1089,7 @@ cdef class PowerSeries(AlgebraElement):
             return False
         elif not self[val].is_square():
             return False
-        elif is_Field(self.base_ring()):
+        elif self.base_ring() in _Fields:
             return True
         else:
             try:
@@ -1312,7 +1313,7 @@ cdef class PowerSeries(AlgebraElement):
             raise ValueError, "Square root not defined for power series of odd valuation."
         elif not self[val].is_square():
             raise ValueError, "Square root does not live in this ring."
-        elif is_Field(self.base_ring()):
+        elif self.base_ring() in _Fields:
             return self.sqrt()
         else:
             try:

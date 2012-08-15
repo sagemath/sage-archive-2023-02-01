@@ -8,7 +8,8 @@ Base class for Jacobians of curves
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-from sage.rings.all import is_Field
+from sage.categories.fields import Fields
+_Fields = Fields()
 from sage.schemes.generic.scheme import Scheme, is_Scheme
 
 def is_Jacobian(J):
@@ -96,7 +97,7 @@ class Jacobian_generic(Scheme):
         """
         if not is_Scheme(C):
             raise TypeError, "Argument (=%s) must be a scheme."%C
-        if not is_Field(C.base_ring()):
+        if C.base_ring() not in _Fields:
             raise TypeError, "C (=%s) must be defined over a field."%C
         if C.dimension() != 1:
             raise ValueError, "C (=%s) must have dimension 1."%C
@@ -227,7 +228,7 @@ class Jacobian_generic(Scheme):
             Jacobian of Hyperelliptic Curve over Number Field in a with defining
             polynomial x^2 + 1 defined by y^2 = x^3 - 10*x + 9
         """
-        if not is_Field(R):
+        if R not in _Fields:
             raise ValueError('Not a field: '+str(R))
         if self.base_ring() is R:
             return self

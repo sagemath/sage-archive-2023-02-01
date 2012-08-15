@@ -14,7 +14,9 @@ from sage.structure.element import get_coercion_model
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module import is_FreeModule
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import ZZ, QQ, RDF, is_Field, is_CommutativeRing
+from sage.rings.all import ZZ, QQ, RDF, is_CommutativeRing
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 from sage.geometry.polyhedron.base import Polyhedron_base, is_Polyhedron
 from representation import Inequality, Equation, Vertex, Ray, Line
@@ -295,7 +297,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: Polyhedra(QQ, 4).ambient_space()
             Vector space of dimension 4 over Rational Field
         """
-        if is_Field(self.base_ring()):
+        if self.base_ring() in _Fields:
             from sage.modules.free_module import VectorSpace
             return VectorSpace(self.base_ring(), self.ambient_dim())
         else:
@@ -319,7 +321,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: Polyhedra(ZZ, 2).Hrepresentation_space()
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
-        if is_Field(self.base_ring()):
+        if self.base_ring() in _Fields:
             from sage.modules.free_module import VectorSpace
             return VectorSpace(self.base_ring(), self.ambient_dim()+1)
         else:

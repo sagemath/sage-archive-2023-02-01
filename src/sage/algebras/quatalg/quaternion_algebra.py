@@ -43,7 +43,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
 from sage.rings.finite_rings.constructor import GF
 
-from sage.rings.ring import Algebra, is_Field
+from sage.rings.ring import Algebra
 from sage.rings.ideal import Ideal_fractional
 from sage.rings.rational_field import is_RationalField, QQ
 from sage.rings.infinity import infinity
@@ -64,6 +64,9 @@ import quaternion_algebra_cython
 from sage.modular.modsym.p1list import P1List
 
 from sage.misc.cachefunc import cached_method
+
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 ########################################################
 # Constructor
@@ -220,7 +223,7 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
     # QuaternionAlgebra(K, a, b)
     else:
         K = arg0
-        if not is_Field(K):
+        if K not in _Fields:
             raise TypeError("base ring of quaternion algebra must be a field")
         a = K(arg1)
         b = K(arg2)
@@ -589,7 +592,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         ParentWithGens.__init__(self, base_ring, names=names)
         self._a = a
         self._b = b
-        if not is_Field(base_ring):
+        if base_ring not in _Fields:
             raise TypeError("base ring of quaternion algebra must be a field")
         if is_RationalField(base_ring) and a.denominator() == 1 and b.denominator() == 1:
             element_constructor = quaternion_algebra_element.QuaternionAlgebraElement_rational_field

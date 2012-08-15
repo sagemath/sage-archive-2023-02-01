@@ -25,8 +25,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.all import (PolynomialRing,
-                            is_ComplexField, is_RealField,
-                            is_Field)
+                            is_ComplexField, is_RealField)
 from sage.modules.free_module_element import vector
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
@@ -35,6 +34,9 @@ from sage.matrix.constructor import Matrix
 from sage.matrix.matrix import is_Matrix
 
 from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_generic
+
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 class ProjectiveConic_field(ProjectiveCurve_generic):
     r"""
@@ -107,7 +109,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             sage: d.rational_point(algorithm = 'rnfisnorm')
             (i : 1 : 0)
         """
-        if is_Field(S):
+        if S in _Fields:
             B = self.base_ring()
             if B == S:
                 return self

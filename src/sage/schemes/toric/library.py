@@ -42,12 +42,13 @@ from sage.matrix.all import matrix, identity_matrix
 from sage.geometry.fan import Fan
 from sage.geometry.toric_lattice import ToricLattice
 from sage.geometry.lattice_polytope import LatticePolytope
-from sage.rings.all import ZZ, QQ, is_Field, gcd
+from sage.rings.all import ZZ, QQ, gcd
 from sage.schemes.toric.variety import (DEFAULT_PREFIX,
                                         ToricVariety,
                                         normalize_names)
 from sage.schemes.toric.fano_variety import CPRFanoToricVariety
-
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 
 
@@ -1350,7 +1351,7 @@ class ToricVarietyFactory(SageObject):
         for key in kw:
             if key == 'K':
                 K = kw['K']
-                if not is_Field(K):
+                if K not in _Fields:
                     raise TypeError("K (=%r) must be a field" % K)
             elif key == 'names':
                 names = kw['names']

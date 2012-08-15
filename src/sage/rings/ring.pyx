@@ -73,6 +73,7 @@ import re
 from types import GeneratorType
 
 from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.misc.superseded import deprecation
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.category_object import check_default_category
@@ -2008,38 +2009,59 @@ cdef class EuclideanDomain(PrincipalIdealDomain):
        """
         raise NotImplementedError
 
-cdef dict _is_Field_cache = {}
-
-def is_Field(x):
+cpdef bint _is_Field(x):
     """
     Return True if x is a field.
 
     EXAMPLES::
 
-        sage: from sage.rings.ring import is_Field
-        sage: is_Field(QQ)
+        sage: from sage.rings.ring import _is_Field
+        sage: _is_Field(QQ)
         True
-        sage: is_Field(ZZ)
+        sage: _is_Field(ZZ)
         False
-        sage: is_Field(pAdicField(2))
+        sage: _is_Field(pAdicField(2))
         True
-        sage: is_Field(5)
+        sage: _is_Field(5)
         False
+
+    NOTE:
+
+    ``_is_Field(R)`` is of internal use. It is better (and faster) to
+    use ``R in Fields()`` instead.
     """
-    try:
-        result = _is_Field_cache[x]
-    except (TypeError,KeyError):
-        pass
-    # The cached result is not immediately returned, since otherwise
-    # a non-unique parent's category would be refined only once.
+    # The result is not immediately returned, since we want to refine
+    # x's category, so that calling x in Fields() will be faster next time.
     try:
         result = isinstance(x, Field) or x.is_field()
     except AttributeError:
         result = False
-    _is_Field_cache[x] = result
     if result:
         x._refine_category_(_Fields)
     return result
+
+def is_Field(x):
+    """
+    Deprecated test of an object being a field.
+
+    NOTE:
+
+    For testing whether ``R`` is a field, use ``R in Fields()``,
+    not ``is_Field(R)``. See :trac:`13370`.
+
+    TESTS::
+
+        sage: from sage.rings.ring import is_Field
+        sage: is_Field(ZZ)
+        doctest:...: DeprecationWarning: use 'R in Fields()', not 'is_Field(R)'
+        See http://trac.sagemath.org/13370 for details.
+        False
+        sage: is_Field(ZZ.quotient(5))
+        True
+
+    """
+    deprecation(13370, "use 'R in Fields()', not 'is_Field(R)'")
+    return _is_Field(x)
 
 # This imports is_Field, so must be executed after is_Field is defined.
 from sage.categories.algebras import Algebras

@@ -156,13 +156,15 @@ implementing them on your own as a patch for inclusion!
 from sage.geometry.all import Cone, FaceFan, Fan, LatticePolytope
 from sage.misc.all import latex, prod
 from sage.rings.all import (PolynomialRing, QQ,
-                            is_FractionField, is_Field,
+                            is_FractionField,
                             is_MPolynomialRing, is_PolynomialRing)
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_toric
 from sage.schemes.toric.variety import (
                                             ToricVariety_field,
                                             normalize_names)
 from sage.symbolic.all import SR
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 
 # Default coefficient for anticanonical hypersurfaces
@@ -628,7 +630,7 @@ def CPRFanoToricVariety(Delta=None,
     # Check/normalize base_field
     if base_field is None:
         base_field = QQ
-    elif not is_Field(base_field):
+    elif base_field not in _Fields:
         raise TypeError("need a field to construct a Fano toric variety!"
                         "\n Got %s" % base_field)
     fan._is_complete = True     # At this point it must be for sure

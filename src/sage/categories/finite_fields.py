@@ -13,7 +13,8 @@ Finite Fields
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
-from sage.rings.field import is_Field
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 class FiniteFields(Category):
     """
@@ -60,7 +61,7 @@ class FiniteFields(Category):
             sage: IntegerModRing(4) in FiniteFields()
             False
         """
-        return is_Field(x) and x.is_finite()
+        return x in _Fields and x.is_finite()
 
     # As is, this does no more than the usual __call__ of Category, but for the error message
     def _call_(self, x):

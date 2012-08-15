@@ -17,7 +17,7 @@ Abstract base class for fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.ring import Field, is_Field
+from sage.rings.ring import Field
 
 def is_PrimeField(R):
     """

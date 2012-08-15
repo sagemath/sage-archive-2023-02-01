@@ -328,13 +328,14 @@ from sage.matrix.all import matrix
 from sage.misc.all import latex, prod, uniq, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
-from sage.rings.all import PolynomialRing, ZZ, QQ, is_Field
+from sage.rings.all import PolynomialRing, ZZ, QQ
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.generic.affine_space import AffineSpace
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.toric.homset import SchemeHomset_points_toric_field
-
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 
 # Default prefix for indexed coordinates
@@ -464,7 +465,7 @@ def ToricVariety(fan,
         if coordinate_names is not None:
             raise ValueError('You must not specify both coordinate_names and names!')
         coordinate_names = names
-    if not is_Field(base_field):
+    if base_field not in _Fields:
         raise TypeError("need a field to construct a toric variety!\n Got %s"
                         % base_field)
     return ToricVariety_field(fan, coordinate_names, coordinate_indices,

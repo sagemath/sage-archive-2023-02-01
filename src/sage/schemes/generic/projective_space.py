@@ -60,7 +60,6 @@ two lines.
 #*****************************************************************************
 
 from sage.rings.all import (PolynomialRing,
-                            is_Field,
                             is_FiniteField,
                             is_RationalField,
                             is_Ring,
@@ -68,6 +67,9 @@ from sage.rings.all import (PolynomialRing,
                             is_MPolynomialRing,
                             Integer,
                             ZZ)
+
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 from sage.misc.all import (latex,
                            prod)
@@ -157,7 +159,7 @@ def ProjectiveSpace(n, R=None, names='x'):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
-    if is_Field(R):
+    if R in _Fields:
         if is_FiniteField(R):
             return ProjectiveSpace_finite_field(n, R, names)
         if is_RationalField(R):

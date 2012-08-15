@@ -19,7 +19,7 @@ from sage.categories.division_rings import DivisionRings
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_class_attribute
-from sage.rings.field import is_Field
+import sage.rings.ring
 
 class Fields(Category_singleton):
     """
@@ -88,9 +88,22 @@ class Fields(Category_singleton):
             sage: GR.category = lambda : Fields()
             sage: GR in Fields()
             True
+
+        The following tests against a memory leak fixed in :trac:`13370`::
+
+            sage: import gc
+            sage: _ = gc.collect()
+            sage: n = len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)])
+            sage: for i in prime_range(100):
+            ...     R = ZZ.quotient(i)
+            ...     t = R in Fields()
+            sage: _ = gc.collect()
+            sage: len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]) - n
+            1
+
         """
         try:
-            return self._contains_helper(x) or is_Field(x)
+            return self._contains_helper(x) or sage.rings.ring._is_Field(x)
         except StandardError:
             return False
 

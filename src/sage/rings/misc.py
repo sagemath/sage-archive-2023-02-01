@@ -5,7 +5,8 @@
 ###########################################################################
 
 from sage.structure.sequence import Sequence
-from sage.rings.ring import is_Field
+from sage.categories.fields import Fields
+_Fields = Fields()
 
 def composite_field(K, L):
     """
@@ -31,6 +32,6 @@ def composite_field(K, L):
         ValueError: unable to find a common field
     """
     C = Sequence([K(0), L(0)]).universe()
-    if not is_Field(C):
+    if C not in _Fields:
         raise ValueError, "unable to find a common field"
     return C

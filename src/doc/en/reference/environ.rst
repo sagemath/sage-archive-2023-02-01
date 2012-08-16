@@ -29,8 +29,7 @@ Installation Guide for more about those.)
   ``SAGE_SERVER/packages/optional/``,
   ``SAGE_SERVER/packages/experimental/``, and
   ``SAGE_SERVER/packages/archive/`` for packages.  See the script
-  :file:`$SAGE_ROOT/local/bin/sage-download_package` for the
-  implementation.
+  :file:`$SAGE_ROOT/spkg/bin/sage-spkg` for the implementation.
 
 - :envvar:`SAGE_PATH` -- a colon-separated list of directories which
   Sage searches when trying to locate Python libraries.

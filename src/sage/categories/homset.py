@@ -73,7 +73,7 @@ import types
 # Use the weak "triple" dictionary
 # introduced in trac ticket #715
 
-import weakref
+from weakref import KeyedRef
 from sage.structure.coerce_dict import TripleDict
 _cache = TripleDict(53)
 
@@ -209,13 +209,12 @@ def Hom(X, Y, category=None):
     # However it breaks somehow the coercion (see e.g. sage -t sage.rings.real_mpfr)
     # To be investigated.
     global _cache
-    cat_ref = weakref.ref(category) if category is not None else None
-    key = (X,Y,cat_ref)
+    key = (X,Y,category)
     try:
         H = _cache[key]()
     except KeyError:
         H = None
-    if H:
+    if H is not None:
         # Are domain or codomain breaking the unique parent condition?
         if H.domain() is X and H.codomain() is Y:
             return H
@@ -238,13 +237,12 @@ def Hom(X, Y, category=None):
     else:
         raise TypeError, "Argument category (= %s) must be a category."%category
     # Now, as the category may have changed, we try to find the hom set in the cache, again:
-    cat_ref = weakref.ref(category) if category is not None else None
-    key = (X,Y,cat_ref)
+    key = (X,Y,category)
     try:
         H = _cache[key]()
     except KeyError:
         H = None
-    if H:
+    if H is not None:
         # Are domain or codomain breaking the unique parent condition?
         if H.domain() is X and H.codomain() is Y:
             return H
@@ -260,7 +258,7 @@ def Hom(X, Y, category=None):
     H = category.hom_category().parent_class(X, Y, category = category)
 
     ##_cache[key] = weakref.ref(H)
-    _cache[key] = weakref.ref(H)
+    _cache[key] = KeyedRef(H, _cache.eraser, (id(X),id(Y),id(category)))
     return H
 
 def hom(X, Y, f):

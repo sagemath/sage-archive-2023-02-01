@@ -88,6 +88,9 @@ class Groups(Category_singleton):
                 tester.assertEquals(x * ~x, self.one())
                 tester.assertEquals(~x * x, self.one())
 
+        def semidirect_product(self, N, mapping, check = True):
+            raise NotImplementedError, "semidirect product of %s and %s not yet implemented"%(self, N)
+
         def cayley_table(self, names='letters', elements=None):
             r"""
             Returns the "multiplication" table of this multiplicative group,

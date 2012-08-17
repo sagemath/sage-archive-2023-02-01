@@ -36,6 +36,11 @@ You can construct the following permutation groups:
 
 -- QuaternionGroup, non-abelian group of order `8`, `\{\pm 1, \pm I, \pm J, \pm K\}`
 
+-- SplitMetacyclicGroup, nonabelian groups of order `p^m` with cyclic
+subgroups of index p
+
+-- SemidihedralGroup, nonabelian 2-groups with cyclic subgroups of index 2
+
 -- PGL(n,q), projective general linear group of $n\times n$ matrices over
              the finite field GF(q)
 
@@ -96,6 +101,7 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
+from sage.sets.primes import Primes
 
 class PermutationGroup_unique(UniqueRepresentation, PermutationGroup_generic):
     @staticmethod
@@ -1084,6 +1090,266 @@ class DihedralGroup(PermutationGroup_unique):
         return "Dihedral group of order %s as a permutation group"%self.order()
 
 
+
+class SplitMetacyclicGroup(PermutationGroup_unique):
+    def __init__(self, p, m):
+        r"""
+        The split metacyclic group of order `p^m`.
+
+        INPUT:
+
+        - ``p`` - a prime number that is the prime underlying this
+          p-group
+
+        - ``m`` - a positive integer such that the order of this
+          group is the `p^m`. Be aware that, for even `p`, `m` must be
+          greater than 3, while for odd `p`, `m` must be greater than
+          2.
+
+        OUTPUT:
+
+        The split metacyclic group of order `p^m`. This family of
+        groups has presentation
+
+        .. MATH::
+
+            \langle x, y\mid x^{p^{m-1}}, y^{p}, y^{-1}xy=x^{1+p^{m-2}} \rangle
+
+        This family is notable because, for odd `p`, these are the
+        only `p`-groups with a cyclic subgroup of index `p`, a
+        result proven in [GORENSTEIN]_. It is also shown in
+        [GORENSTEIN]_ that this is one of four families containing
+        nonabelian 2-groups with a cyclic subgroup of index 2
+        (with the others being the dicyclic groups, the dihedral
+        groups, and the semidihedral groups).
+
+        EXAMPLES:
+
+        Using the last relation in the group's presentation,
+        one can see that the elements of the form `y^{i}x`,
+        `0 \leq i \leq p-1` all have order `p^{m-1}`, as it can be
+        shown that their `p` th powers are all `x^{p^{m-2}+p}`,
+        an element with order `p^{m-2}`. Manipulation of the same
+        relation shows that none of these elements are powers of
+        any other. Thus, there are `p` cyclic maximal subgroups in
+        each split metacyclic group. It is also proven in
+        [GORENSTEIN]_ that this family has commutator subgroup
+        of order `p`, and the Frattini subgroup is equal to the
+        center, with this group being cyclic of order `p^{m-2}`.
+        These characteristics are necessary to identify these
+        groups in the case that `p=2`, although the possession of
+        a cyclic maximal subgroup in a non-abelian `p`-group is
+        enough for odd `p` given the group's order. ::
+
+            sage: G = SplitMetacyclicGroup(2,8)
+            sage: G.order() == 2**8
+            True
+            sage: G.is_abelian()
+            False
+            sage: len([H for H in G.subgroups() if H.order() == 2^7 and H.is_cyclic()])
+            2
+            sage: G.commutator().order()
+            2
+            sage: G.frattini_subgroup() == G.center()
+            True
+            sage: G.center().order() == 2^6
+            True
+            sage: G.center().is_cyclic()
+            True
+
+            sage: G = SplitMetacyclicGroup(3,3)
+            sage: len([H for H in G.subgroups() if H.order() == 3^2 and H.is_cyclic()])
+            3
+            sage: G.commutator().order()
+            3
+            sage: G.frattini_subgroup() == G.center()
+            True
+            sage: G.center().order()
+            3
+
+        TESTS::
+
+            sage: G = SplitMetacyclicGroup(3,2.5)
+            Traceback (most recent call last):
+            ...
+            TypeError: both p and m must be integers
+
+            sage: G = SplitMetacyclicGroup(4,3)
+            Traceback (most recent call last):
+            ...
+            ValueError: p must be prime, 4 is not prime
+
+            sage: G = SplitMetacyclicGroup(2,2)
+            Traceback (most recent call last):
+            ...
+            ValueError: if prime is 2, the exponent must be greater than 3, not 2
+
+            sage: G = SplitMetacyclicGroup(11,2)
+            Traceback (most recent call last):
+            ...
+            ValueError: if prime is odd, the exponent must be greater than 2, not 2
+
+        REFERENCES:
+
+        .. [GORENSTEIN] Daniel Gorenstein, Finite Groups (New York: Chelsea Publishing, 1980)
+
+        AUTHOR:
+
+        - Kevin Halasz (2012-8-7)
+
+        """
+
+        if not isinstance(p, Integer) or not isinstance(m, Integer):
+            raise TypeError, 'both p and m must be integers'
+
+        if not p in Primes():
+            raise ValueError, 'p must be prime, %s is not prime'%p
+
+        if p == 2 and m <= 3:
+            raise ValueError, 'if prime is 2, the exponent must be greater than 3, not %s'%m
+
+        if p%2 == 1 and m <= 2:
+            raise ValueError, 'if prime is odd, the exponent must be greater than 2, not %s'%m
+
+        self.p = p
+        self.m = m
+
+        # x is created with list, rather than cycle, notation
+        x = range(2, p**(m-1)+1)
+        x.append(1)
+        # y is also created with list notation, where the list
+        # used is equivalent to the cycle notation representation of
+        # x^(1+p^(m-2)). This technique is inspired by exercise 5.30
+        # Judson's "Abstract Algebra" (abstract.pugetsound.edu).
+        y = [1]
+        point = 1
+        for i in range(p**(m-1)-1):
+            next = (point + 1 + p**(m-2))%(p**(m-1))
+            if next == 0:
+                next = p**(m-1)
+            y.append(next)
+            point = next
+        PermutationGroup_unique.__init__(self, gens = [x,y])
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+            sage: G = SplitMetacyclicGroup(7,4);G
+            The split metacyclic group of order 7 ^ 4
+        """
+        return 'The split metacyclic group of order %s ^ %s'%(self.p,self.m)
+
+class SemidihedralGroup(PermutationGroup_unique):
+    def __init__(self,m):
+        r"""
+        The semidihedral group of order `2^m`.
+
+        INPUT:
+
+        - ``m`` - a positive integer; the power of 2 that is the
+          group's order
+
+        OUTPUT:
+
+        The semidihedral group of order `2^m`. These groups can be
+        thought of as a semidirect product of `C_{2^{m-1}}` with
+        `C_2`, where the nontrivial element of `C_2` is sent to
+        the element of the automorphism group of `C_{2^{m-1}}` that
+        sends elements to their `-1+2^{m-2}` th power. Thus, the
+        group has the presentation:
+
+        .. MATH::
+
+            \langle x, y\mid x^{2^{m-1}}, y^{2}, y^{-1}xy=x^{-1+2^{m-2}} \rangle
+
+        This family is notable because it is made up of non-abelian
+        2-groups that all contain cyclic subgroups of index 2. It
+        is one of only four such families.
+
+        EXAMPLES:
+
+        In [GORENSTEIN1980]_ it is shown that the semidihedral groups
+        have center of order 2. It is also shown that they have a
+        Frattini subgroup equal to their commutator, which is a
+        cyclic subgroup of order `2^{m-2}`. ::
+
+            sage: G = SemidihedralGroup(12)
+            sage: G.order() == 2^12
+            True
+            sage: G.commutator() == G.frattini_subgroup()
+            True
+            sage: G.commutator().order() == 2^10
+            True
+            sage: G.commutator().is_cyclic()
+            True
+            sage: G.center().order()
+            2
+
+            sage: G = SemidihedralGroup(4)
+            sage: len([H for H in G.subgroups() if H.is_cyclic() and H.order() == 8])
+            1
+            sage: G.gens()
+            [(2,4)(3,7)(6,8), (1,2,3,4,5,6,7,8)]
+            sage: x = G.gens()[1]; y = G.gens()[0]
+            sage: x.order() == 2^3; y.order() == 2
+            True
+            True
+            sage: y*x*y == x^(-1+2^2)
+            True
+
+        TESTS::
+
+            sage: G = SemidihedralGroup(4.4)
+            Traceback (most recent call last):
+            ...
+            TypeError: m must be an integer, not 4.40000000000000
+
+            sage: G = SemidihedralGroup(-5)
+            Traceback (most recent call last):
+            ...
+            ValueError: the exponent must be greater than 3, not -5
+
+        REFERENCES:
+
+        .. [GORENSTEIN1980] Daniel Gorenstein, Finite Groups (New York: Chelsea Publishing, 1980)
+
+        AUTHOR:
+
+        - Kevin Halasz (2012-8-7)
+
+        """
+        if not isinstance(m, Integer):
+            raise TypeError, 'm must be an integer, not %s'%m
+
+        if m <= 3:
+            raise ValueError, 'the exponent must be greater than 3, not %s'%m
+
+        self.m = m
+
+        # x is created with list, rather than cycle, notation
+        x = range(2, 2**(m-1)+1)
+        x.append(1)
+        # y is also created with list notation, where the list
+        # used is equivalent to the cycle notation representation of
+        # x^(1+p^(m-2)). This technique is inspired by exercise 5.30
+        # Judson's "Abstract Algebra" (abstract.pugetsound.edu).
+        y = [1]
+        k = 1
+        for i in range(2**(m-1)-1):
+            next = (k - 1 + 2**(m-2))%(2**(m-1))
+            if next == 0:
+                next = 2**(m-1)
+            y.append(next)
+            k = next
+        PermutationGroup_unique.__init__(self, gens = [x,y])
+
+    def _repr_(self):
+        r"""
+        EXAMPLES::
+            sage: G = SemidihedralGroup(6); G
+            The semidiheral group of order 64
+        """
+        return 'The semidiheral group of order %s'%(2**self.m)
 
 class MathieuGroup(PermutationGroup_unique):
     def __init__(self, n):

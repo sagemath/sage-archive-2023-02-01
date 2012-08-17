@@ -2,7 +2,7 @@
 import permgroup as pg
 
 from permgroup_named import (SymmetricGroup, AlternatingGroup,
-                       DihedralGroup, CyclicPermutationGroup,
+                       DihedralGroup, SplitMetacyclicGroup, SemidihedralGroup, CyclicPermutationGroup,
                        DiCyclicGroup, TransitiveGroup, PGL, PSL, PSp,PSU,PGU,
                        MathieuGroup, KleinFourGroup, QuaternionGroup,
                        PrimitiveGroup, PrimitiveGroups,

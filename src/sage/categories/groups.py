@@ -91,6 +91,9 @@ class Groups(Category_singleton):
         def semidirect_product(self, N, mapping, check = True):
             raise NotImplementedError, "semidirect product of %s and %s not yet implemented"%(self, N)
 
+        def holomorph(self):
+            raise NotImplementedError, "can't compute the holomorph of %s"%self
+
         def cayley_table(self, names='letters', elements=None):
             r"""
             Returns the "multiplication" table of this multiplicative group,

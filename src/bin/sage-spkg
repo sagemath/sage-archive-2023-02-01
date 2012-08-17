@@ -243,28 +243,57 @@ if [ ! -f "$PKG_SRC" ]; then
     mkdir -p "$SAGE_PACKAGES/optional"
     cd "$SAGE_PACKAGES/optional"
 
-    # Handle case 3 above, where the package name contains no version
-    # number and no full path.  Reduce to case 2a.
-    if [ "$PKG_BASE" = "$PKG_NAME" -a -z "$PKG_HAS_PATH" ]; then
-        # No version number found
-        echo "Searching for latest online version of $PKG_BASE"
-        PKG_NAME=`sage-latest-online-package "$PKG_BASE"`
-        if [ $? -ne 0 ]; then
+    # Reduce everything to case 4: full URL.
+    if [ -n "$PKG_HAS_PATH" ]; then
+        PKG_URL="$PKG_SRC"
+    else
+        # Handle cases 2a and 3, where the package name is something
+        # like "foo" or "foo-1.2.3".
+        URL_BASE="${SAGE_SERVER}packages"
+        for repo in optional experimental standard archive; do
+            # Download the list of packages.
+            echo ">>> Checking online list of $repo packages."
+            repolist="${repo}.list"
+            sage-download-file "$URL_BASE/$repo/list" >$repolist
+            if [ $? -ne 0 ]; then
+                echo >&2 "Error: failed to download $URL_BASE/$repo/list, aborting"
+                rm -f $repolist
+                exit 1
+            fi
+
+            # The contrived sed commands print out either ${PKG_NAME} if
+            # it appears as a complete line or some string starting with
+            # ${PKG_NAME}- whichever occurs first.
+            # Tested with GNU sed, BSD sed (on OS X) and Solaris sed.
+            pkg=`sed -n -f <( echo "/^${PKG_NAME}\$/{p;q;}" && echo "/^${PKG_NAME}-/{p;q;}" ) $repolist`
+            rm -f $repolist
+            if [ -n "$pkg" ]; then
+                PKG_NAME=$pkg
+                PKG_URL="$URL_BASE/$repo/$pkg.spkg"
+                break
+            fi
+        done
+        if [ -z "$PKG_URL" ]; then
+            echo >&2 "Error: could not find a package matching $PKG_NAME in $URL_BASE"
             exit 1
         fi
-        echo "Found $PKG_NAME"
-        PKG_SRC="$PKG_NAME"
+        echo ">>> Found $PKG_NAME."
     fi
 
-    # This script can handle either full URLs (case 4) or a package
-    # name with version (case 2a).
-    sage-download_package "$PKG_SRC"
-
-    if [ ! -f "$PKG_NAME.spkg" ]; then
-        echo >&2 "Error: Failed to download package $PKG_NAME from $SAGE_SERVER"
+    # Download to a temporary file (such that we don't end up with a
+    # corrupted .spkg file).
+    PKG_TMP="$PKG_NAME.tmp"
+    echo ">>> Downloading $PKG_NAME.spkg."
+    sage-download-file "$PKG_URL" >"$PKG_TMP"
+    if [ $? -ne 0 ]; then
+        # Delete failed download
+        rm -f "$PKG_TMP"
+        echo >&2 "Error: failed to download package $PKG_NAME"
         exit 1
     fi
+
     PKG_SRC="`pwd`/$PKG_NAME.spkg"
+    mv -f "$PKG_TMP" "$PKG_SRC"
 fi
 
 # Do a final check that PKG_SRC is a file with an absolute path

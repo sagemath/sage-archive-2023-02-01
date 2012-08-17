@@ -312,6 +312,8 @@ cdef class GLPKBackend(GenericBackend):
                 return n
 
         else:
+            if len(name) > 255:
+                raise ValueError("Problem name for GLPK must not be longer than 255 characters.")
             glp_set_prob_name(self.lp, name)
 
     cpdef set_objective(self, list coeff, d = 0.0):

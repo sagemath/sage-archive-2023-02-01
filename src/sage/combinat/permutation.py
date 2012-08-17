@@ -12,6 +12,8 @@ AUTHORS:
 - Dan Drake (2008-04-07): allow Permutation() to take lists of tuples
 
 - Sebastien Labbe (2009-03-17): added robinson_schensted_inverse
+
+- Travis Scrimshaw (2012-08-16): to_standard() no longer modifies input
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -4328,18 +4330,29 @@ def to_standard(p):
         [1, 2, 3]
         sage: permutation.to_standard([])
         []
+
+    TESTS:
+
+    Does not mutate the list::
+
+        sage: a = [1,2,4]
+        sage: permutation.to_standard(a)
+        [1, 2, 3]
+        sage: a
+        [1, 2, 4]
     """
     if not p:
         return Permutation([])
-    s = p[:]
+    s = [0]*len(p)
+    c = p[:]
     biggest = max(p) + 1
     i = 1
-    for _ in range(len(p)):
-        smallest = min(p)
-        smallest_index = p.index(smallest)
+    for _ in range(len(c)):
+        smallest = min(c)
+        smallest_index = c.index(smallest)
         s[smallest_index] = i
         i += 1
-        p[smallest_index] = biggest
+        c[smallest_index] = biggest
 
     return Permutation(s)
 

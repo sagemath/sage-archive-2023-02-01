@@ -3461,9 +3461,41 @@ cdef class Polynomial(CommutativeAlgebraElement):
               To:   Number Field in b with defining polynomial t^6 + 2
               Defn: a |--> b^2
 
+        An example over a finite field::
+
+            sage: P.<x> = PolynomialRing(GF(7))
+            sage: t = x^2 + 1
+            sage: t.splitting_field('b')
+            Finite Field in b of size 7^2
+
+            sage: P.<x> = PolynomialRing(GF(7^3, 'a'))
+            sage: t = x^2 + 1
+            sage: t.splitting_field('b', map=True)
+            (Finite Field in b of size 7^6,
+             Ring morphism:
+               From: Finite Field in a of size 7^3
+               To:   Finite Field in b of size 7^6
+               Defn: a |--> 4*b^5 + 4*b^4 + 4*b^3 + 2*b^2 + 4*b + 5)
+
+        If the extension is trivial and the generators have the same
+        name, the map will be the identity::
+
+            sage: t = 24*x^13 + 2*x^12 + 14
+            sage: t.splitting_field('a', map=True)
+            (Finite Field in a of size 7^3,
+             Identity endomorphism of Finite Field in a of size 7^3)
+
+            sage: t = x^56 - 14*x^3
+            sage: t.splitting_field('b', map=True)
+            (Finite Field in b of size 7^3,
+             Ring morphism:
+             From: Finite Field in a of size 7^3
+               To:   Finite Field in b of size 7^3
+               Defn: a |--> b)
+
         .. SEEALSO::
         
-            :func:`sage.rings.number_field.splitting_field.splitting_field` for more examples
+            :func:`sage.rings.number_field.splitting_field.splitting_field` for more examples over number fields
 
         TESTS::
 
@@ -3474,11 +3506,57 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: polygen(RR).splitting_field('x')
             Traceback (most recent call last):
             ...
-            NotImplementedError: splitting_field() is only implemented over number fields
+            NotImplementedError: splitting_field() is only implemented over number fields and finite fields
+
+            sage: P.<x> = PolynomialRing(GF(11^5, 'a'))
+            sage: t = x^2 + 1
+            sage: t.splitting_field('b')
+            Finite Field in b of size 11^10
+            sage: t = 24*x^13 + 2*x^12 + 14
+            sage: t.splitting_field('b')
+            Finite Field in b of size 11^30
+            sage: t = x^56 - 14*x^3
+            sage: t.splitting_field('b')
+            Finite Field in b of size 11^130
+
+            sage: P.<x> = PolynomialRing(GF(19^6, 'a'))
+            sage: t = -x^6 + x^2 + 1
+            sage: t.splitting_field('b')
+            Finite Field in b of size 19^6
+            sage: t = 24*x^13 + 2*x^12 + 14
+            sage: t.splitting_field('b')
+            Finite Field in b of size 19^18
+            sage: t = x^56 - 14*x^3
+            sage: t.splitting_field('b')
+            Finite Field in b of size 19^156
+
+            sage: P.<x> = PolynomialRing(GF(83^6, 'a'))
+            sage: t = 2*x^14 - 5 + 6*x
+            sage: t.splitting_field('b')
+            Finite Field in b of size 83^84
+            sage: t = 24*x^13 + 2*x^12 + 14
+            sage: t.splitting_field('b')
+            Finite Field in b of size 83^78
+            sage: t = x^56 - 14*x^3
+            sage: t.splitting_field('b')
+            Finite Field in b of size 83^12
+
+            sage: P.<x> = PolynomialRing(GF(401^13, 'a'))
+            sage: t = 2*x^14 - 5 + 6*x
+            sage: t.splitting_field('b')
+            Finite Field in b of size 401^104
+            sage: t = 24*x^13 + 2*x^12 + 14
+            sage: t.splitting_field('b')
+            Finite Field in b of size 401^156
+            sage: t = x^56 - 14*x^3
+            sage: t.splitting_field('b')
+            Finite Field in b of size 401^52
+
         """
         name = sage.structure.parent_gens.normalize_names(1, names)[0]
 
         from sage.rings.number_field.all import is_NumberField
+        from sage.rings.finite_rings.all import is_FiniteField
 
         f = self.monic()            # Given polynomial, made monic
         F = f.parent().base_ring()  # Base field
@@ -3489,8 +3567,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if is_NumberField(F):
             from sage.rings.number_field.splitting_field import splitting_field
             return splitting_field(f, name, map, **kwds)
+        elif is_FiniteField(F):
+            degree = sage.rings.arith.lcm([f.degree() for f, _ in self.factor()])
+            return F.extension(degree, name, map=map, **kwds)
 
-        raise NotImplementedError, "splitting_field() is only implemented over number fields"
+        raise NotImplementedError("splitting_field() is only implemented over number fields and finite fields")
 
     @coerce_binop
     def lcm(self, other):

@@ -5969,6 +5969,115 @@ cdef class Polynomial(CommutativeAlgebraElement):
             R = R.change_ring(f.codomain())
         return R(dict([(k,f(v)) for (k,v) in self.dict().items()]))
 
+    def is_cyclotomic(self):
+        r"""
+        Returns ``True`` if ``self`` is cyclotomic, i.e., monic, irreducible and such that
+        all roots are roots of unity.
+
+        ALGORITHM:
+
+        The first cyclotomic polynomial ``x-1`` is treated apart, otherwise the first
+        algorithm of [1]_ is used.
+
+        EXAMPLES:
+
+        Quick tests::
+
+            sage: P.<x> = ZZ[x]
+            sage: (x - 1).is_cyclotomic()
+            True
+            sage: (x + 1).is_cyclotomic()
+            True
+            sage: (x^2 - 1).is_cyclotomic()
+            False
+
+        Test first 100 cyclotomic polynomials::
+
+            sage: all(cyclotomic_polynomial(i).is_cyclotomic() for i in xrange(1,101))
+            True
+
+        Some more tests::
+
+            sage: (x^16 + x^14 - x^10 + x^8 - x^6 + x^2 + 1).is_cyclotomic()
+            False
+            sage: (x^16 + x^14 - x^10 - x^8 - x^6 + x^2 + 1).is_cyclotomic()
+            True
+            sage: y = polygen(QQ)
+            sage: (y/2 - 1/2).is_cyclotomic()
+            False
+            sage: (2*(y/2 - 1/2)).is_cyclotomic()
+            True
+
+        Test using other rings::
+
+            sage: F.<g> = GF(4,'g')
+            sage: z = polygen(F)
+            sage: (z - 1).is_cyclotomic()
+            False
+
+        REFERENCES:
+
+        ..  [1] R. J. Bradford and J. H. Davenport, Effective tests for cyclotomic
+            polynomials, Symbolic and Algebraic Computation (1989) pp. 244 -- 251
+
+        """
+
+        if self.base_ring().characteristic() != 0:
+            return False
+        if self.base_ring() != ZZ:
+            try:
+                f = self.change_ring(ZZ)
+                return f.is_cyclotomic()
+            except TypeError,ValueError:
+                return False
+
+        if not self.is_irreducible():
+            return False
+
+        if not self.is_monic():
+            return False
+
+        gen = self.parent().gen()
+
+        if(self == gen - 1):  # the first cyc. pol. is treated apart
+            return True
+
+        coefs = self.coeffs()
+        if coefs[0] != 1:
+            return False
+
+        # construct the odd and even part of self
+        po_odd = 0*gen
+        po_even = 0*gen
+
+        for i in xrange(1,len(coefs),2):
+            po_odd += coefs[i]*(gen**((i-1)/2))
+        for i in xrange(0,len(coefs),2):
+            po_even += coefs[i]*(gen**(i/2))
+
+        # f1 = graeffe(self)
+        f1  = po_even**2 - gen*(po_odd**2)
+
+        # 1st case
+        if f1 == self:
+            return True
+
+        # 2nd case
+        selfminus = self(-gen)
+        if f1 == selfminus:
+            if selfminus.leading_coefficient() < 0 and ((-1)*selfminus).is_cyclotomic():
+                return True
+            elif selfminus.is_cyclotomic():
+                return True
+
+        # 3rd case, we need to factorise
+        ff1 = f1.factor()
+        if len(ff1) == 1 and ff1[0][1] == 2 and ff1[0][0].is_cyclotomic():
+            return True
+
+        # otherwise not cyclotomic
+        return False
+
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function
 

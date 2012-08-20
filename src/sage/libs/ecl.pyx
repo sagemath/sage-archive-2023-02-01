@@ -247,7 +247,7 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
         sage: inf_loop()
         Traceback (most recent call last):
         ...
-        RuntimeError: ECL says: Console interrupt
+        RuntimeError: ECL says: Console interrupt.
     """
     ecl_sig_on()
     cl_funcall(2,safe_eval_clobj,form)

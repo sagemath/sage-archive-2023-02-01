@@ -1,22 +1,28 @@
-= pyopenssl =
+= pyOpenSSL =
 
 == Description ==
 
-Python bindings for openssl.
-http://pyopenssl.sourceforge.net/
+Python interface to the OpenSSL library
 
 == License ==
 
 APL2
 
 == SPKG Maintainer ==
- * William Stein
+
+ * Keshav Kini
+ * Homepage: https://launchpad.net/pyopenssl
 
 == Dependencies ==
+
  * OpenSSL (preferably systemwide)
  * Python
 
-== ChangeLog ==
+== Changelog ==
+
+=== pyOpenSSL-0.13.p0 (Keshav Kini, 2012-08-20) ===
+
+ * Upgrade to 0.13, add a patch for building on systems with old OpenSSL
 
 === pyopenssl-0.12 (Keshav Kini, 2012-04-17) ===
  * Commit the files in the SPKG repo

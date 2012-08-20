@@ -72,6 +72,32 @@ mkdir -p "$SAGE_ROOT/spkg/installed"
 # Determine whether to install GCC (gcc, g++, gfortran).
 ###############################################################################
 
+# Give a deprecation message whenever SAGE_FORTRAN or SAGE_FORTRAN_LIB
+# is set to something. See Trac #13349.
+if [ -n "$SAGE_FORTRAN" ] || [ -n "$SAGE_FORTRAN_LIB" ]; then
+cat >&2 <<EOF
+WARNING: the environment variables SAGE_FORTRAN and SAGE_FORTRAN_LIB
+are deprecated since sage-5.3.
+
+The GNU Compiler Collection (GCC) is included in Sage and will be
+installed if you do not have a Fortran compiler. If you do have a
+Fortran compiler installed and you want to specify its path, you can
+use the standard environment variable FC (instead of SAGE_FORTRAN) to
+point to the Fortran compiler.
+
+As replacement to SAGE_FORTRAN_LIB, you can either add the directory
+containing the Fortran library to LIBRARY_PATH and/or LD_LIBRARY_PATH,
+or copy/symlink the Fortran library into \$SAGE_ROOT/local/lib. In most
+cases, none of this is needed as the compiler/linker should find the
+Fortran library by itself.
+
+Support for SAGE_FORTRAN and SAGE_FORTRAN_LIB might be removed from
+future versions of Sage. Moreover, these variables are not tested
+anymore and might not work as you expect.
+EOF
+sleep 5
+fi
+
 # Determine various compilers.  These variables should not be exported,
 # they are only used in this spkg/install script to determine whether to
 # install GCC.  The "real" $CC, $CXX,... variables for building Sage are
@@ -87,13 +113,15 @@ if [ -z "$CXX" ]; then
     fi
 fi
 
-if [ -z "$SAGE_FORTRAN" ]; then
-    if command -v gfortran >/dev/null 2>/dev/null; then
-        SAGE_FORTRAN=gfortran
+if [ -z "$FC" ]; then
+    if [ -n "$SAGE_FORTRAN" ]; then
+        FC="$SAGE_FORTRAN"
+    elif command -v gfortran >/dev/null 2>/dev/null; then
+        FC=gfortran
     elif command -v g95 >/dev/null 2>/dev/null; then
-        SAGE_FORTRAN=g95
+        FC=g95
     elif command -v g77 >/dev/null 2>/dev/null; then
-        SAGE_FORTRAN=g77
+        FC=g77
     fi
 fi
 
@@ -168,7 +196,7 @@ else
         need_to_install_gcc=yes
     fi
 
-    if [ -z "$SAGE_FORTRAN" ]; then
+    if [ -z "$FC" ]; then
         echo >&2 "Installing GCC because a Fortran compiler is missing."
         need_to_install_gcc=yes
     fi
@@ -178,27 +206,32 @@ fi
 # Create the sage_fortran script.
 ###############################################################################
 
-# Don't use SAGE_FORTRAN and SAGE_FORTRAN_LIB if we are installing GCC
-# or have installed gfortran, as that can cause compatibility problems.
+# Don't use FC and SAGE_FORTRAN_LIB if we are installing GCC or have
+# installed gfortran, as that can cause compatibility problems.
 # We want to use the Fortran compiler that we build as part of GCC.
 if [ "$need_to_install_gcc" = yes ] || [ -x "$SAGE_LOCAL/bin/gfortran" ]; then
-    SAGE_FORTRAN=gfortran
+    unset FC
     unset SAGE_FORTRAN_LIB
-fi
-
-# Use "gfortran" as fallback if SAGE_FORTRAN is still unset.
-if [ -z "$SAGE_FORTRAN" ] ; then
-    SAGE_FORTRAN=gfortran
 fi
 
 # Write sage_fortran script.
 cat >"$SAGE_LOCAL/bin/sage_fortran" <<EOF
 #!/bin/sh
 
-if [ "\$SAGE64" = yes ]; then
-    exec $SAGE_FORTRAN -m64 -fPIC "\$@"
+if [ "x\$FC" = x ]; then
+    # Default value determined in spkg/install
+    myFC='${FC:-gfortran}'
 else
-    exec $SAGE_FORTRAN -fPIC "\$@"
+    myFC="\$FC"
+fi
+
+# unset FC to avoid an infinite loop in the case that FC=sage_fortran.
+unset FC
+
+if [ "\$SAGE64" = yes ]; then
+    exec \$myFC -m64 -fPIC "\$@"
+else
+    exec \$myFC -fPIC "\$@"
 fi
 EOF
 chmod +x "$SAGE_LOCAL/bin/sage_fortran"

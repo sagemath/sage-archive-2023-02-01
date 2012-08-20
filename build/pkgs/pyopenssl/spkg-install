@@ -20,3 +20,6 @@ Check that OpenSSL development headers are installed,
 or install the OpenSSL SPKG into your Sage installation.'
 
 ./setup.py install || die 'Error installing pyOpenSSL!'
+
+# If pyOpenSSL 0.12 was previously installed, this clears it from the load path
+easy_install -H None pyOpenSSL

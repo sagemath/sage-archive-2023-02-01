@@ -45,7 +45,6 @@ command-line development tools must be installed on your computer.
   versions may or may not work.  On Solaris or OpenSolaris systems,
   the Sun compiler should also work.
 - **make**: GNU make, version 3.80 or later
-- **OpenSSL with dev headers**
 - **m4**
 - **perl**: version 5.8.0 or later
 - **tar**: GNU tar version 1.17 or later, or BSD tar
@@ -62,19 +61,46 @@ Recommended but not strictly required:
 - **ffmpeg**
 - **ssh-keygen**: needed to run the notebook in secure mode
 
-.. note:: If you cannot install OpenSSL and its development headers
-   systemwide, another option is to install the optional OpenSSL spkg
-   into your Sage installation. Unfortunately this is not possible to
-   do immediately after extracting the tarball, so you will need to
-   follow the build instructions as normal, wait for the build to
-   *fail*, then run ``sage -i openssl`` and run ``make`` again.
-
 Sage also needs a C++ compiler and a Fortran compiler.
 However, it contains a `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_
-package, such that C, C++ and Fortran compilers will be built if needed
+package, so C, C++ and Fortran compilers will be built if needed
 (you can also use the environment variable :envvar:`SAGE_INSTALL_GCC` to
 control whether or not to install GCC).
 You always need some C compiler to build GCC and its prerequisites itself.
+
+.. note::
+
+    Optional: Read this if you are intending to run a Sage notebook server
+    for multiple users. For security (i.e., to run
+    ``notebook(secure=True)``) you may wish users to access the server using
+    the HTTPS protocol. You also may want to use OpenID for user
+    authentication. The first of these requires you to install pyOpenSSL,
+    and they both require OpenSSL. If you have OpenSSL and the OpenSSL
+    development headers installed on your system, you can install
+    pyOpenSSL by building Sage and then typing ::
+
+        ./sage -i pyopenssl
+
+    Note that this command requires internet access.  Alternatively, ``make
+    ssl`` builds Sage and installs pyOpenSSL.  If you are missing either
+    OpenSSL or OpenSSL's development headers, you can install a local copy
+    of both into your Sage installation first. Ideally, this should be
+    done before installing Sage; otherwise, you should at least rebuild
+    Sage's Python, and ideally any part of Sage relying on it. So the
+    procedure is as follows (again, with a computer connected to the
+    internet). Starting from a fresh Sage tarball::
+
+        ./sage -i patch openssl  # install patch and openssl
+        make ssl
+
+    Alternatively, if you've already built Sage::
+
+        ./sage -i openssl
+        ./sage -f python   # rebuild Python
+        SAGE_UPGRADING=yes make ssl
+
+    The third line will rebuild all parts of Sage that depend on Python;
+    this can take a while.
 
 To check if you have ``perl`` installed, for example, type
 
@@ -1031,4 +1057,4 @@ Special Notes
   :ref:`installation in a multiuser environment
   <sagetex_installation_multiuser>`.
 
-  **This page was last updated in August 2012 (Sage 5.2)**
+  **This page was last updated in August 2012 (Sage 5.3).**

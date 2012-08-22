@@ -22,7 +22,8 @@ make CC="$CC" || die "Error building LiE."
 
 # relocating
 cd ..
-sed -i -e "s'$PWD/src'$SAGE_LOCAL/lib/LiE'" src/lie
+sed -e "s'$PWD/src'$SAGE_LOCAL/lib/LiE'" src/lie > src/lie~
+mv src/lie~ src/lie
 rm -rf "$SAGE_LOCAL"/lib/lie # clean up old versions
 rm -rf "$SAGE_LOCAL"/bin/lie "$SAGE_LOCAL"/lib/LiE
 mv src/lie "$SAGE_LOCAL"/bin/

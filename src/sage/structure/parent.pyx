@@ -836,11 +836,10 @@ cdef class Parent(category_object.CategoryObject):
         if self._convert_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
         cdef map.Map mor
-        cdef PyObject* mor_ptr = PyDict_GetItem(self._convert_from_hash, R)
-        if mor_ptr != NULL:
-            mor = <map.Map>mor_ptr
-        else:
-            mor = <map.Map>self.convert_map_from(R)
+        try:
+            mor = <map.Map> self._convert_from_hash.get(R)
+        except KeyError:
+            mor = <map.Map> self.convert_map_from(R)
 
         if mor is not None:
             if no_extra_args:
@@ -1601,7 +1600,7 @@ cdef class Parent(category_object.CategoryObject):
 
         assert not (self._coercions_used and mor.domain() in self._coerce_from_hash), "coercion from %s to %s already registered or discovered"%(mor.domain(), self)
         self._coerce_from_list.append(mor)
-        self._coerce_from_hash[mor.domain()] = mor
+        self._coerce_from_hash.set(mor.domain(),mor)
 
     cpdef register_action(self, action):
         r"""
@@ -1696,13 +1695,13 @@ cdef class Parent(category_object.CategoryObject):
             if mor.codomain() is not self:
                 raise ValueError("Map's codomain must be self")
             self._convert_from_list.append(mor)
-            self._convert_from_hash[mor.domain()] = mor
+            self._convert_from_hash.set(mor.domain(),mor)
         elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
             t = mor
             mor = self._generic_convert_map(mor)
             self._convert_from_list.append(mor)
-            self._convert_from_hash[t] = mor
-            self._convert_from_hash[mor.domain()] = mor
+            self._convert_from_hash.set(t, mor)
+            self._convert_from_hash.set(mor.domain(), mor)
         else:
             raise TypeError("conversions must be parents or maps")
 
@@ -2033,7 +2032,7 @@ cdef class Parent(category_object.CategoryObject):
             self.init_coerce(False)
         #cdef object ret
         try:
-            return self._coerce_from_hash[S]
+            return self._coerce_from_hash.get(S)
         except KeyError:
             pass
 
@@ -2065,7 +2064,7 @@ cdef class Parent(category_object.CategoryObject):
             # then we are not allowed to cache the absence of a coercion
             # from S to self. See #12969
             if (mor is not None) or _may_cache_none(self, S, "coerce"):
-                self._coerce_from_hash[S] = mor
+                self._coerce_from_hash.set(S,mor)
             return mor
         except CoercionException, ex:
             _record_exception()
@@ -2224,11 +2223,11 @@ cdef class Parent(category_object.CategoryObject):
         if self._convert_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
         try:
-            return self._convert_from_hash[S]
+            return self._convert_from_hash.get(S)
         except KeyError:
             mor = self.discover_convert_map_from(S)
             self._convert_from_list.append(mor)
-            self._convert_from_hash[S] = mor
+            self._convert_from_hash.set(S, mor)
             return mor
 
     cdef discover_convert_map_from(self, S):

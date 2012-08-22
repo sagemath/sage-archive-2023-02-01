@@ -39,6 +39,28 @@ include "../ext/python_list.pxi"
 
 from weakref import KeyedRef, ref
 
+cdef extern from "Python.h":
+    Py_ssize_t PyInt_AsSsize_t(PyObject* io)
+    PyObject* PyWeakref_GetObject(object ref)
+    PyObject* Py_None
+
+############################################
+# A note about how to store "id" keys in python structures:
+#
+# In python a "pointer length integer" (size_t) normally, is encoded
+# as a *signed* integer, of type Py_ssize_t. This has an advantage in that
+# if the value gets encoded as a *python integer* it can do so in a sign-preserving
+# way and still make use of all the bits that python offers to store (small) integers.
+#
+# There is one place where we have to be careful about signs:
+# Our hash values most naturally live in Py_ssize_t. We convert those into
+# an index into our bucket list by taking the hash modulo the number of buckets.
+# However, the modulo operator in C preserves the sign of the number we take the
+# modulus of, which is not what we want.
+# The solution is to always do
+# (<size_t) h)% modulus
+# to ensure we're doing an unsigned modulus.
+
 ############################################
 # The following code is responsible for
 # removing dead references from the cache
@@ -115,27 +137,31 @@ cdef class MonoDictEraser:
         # and it knows the stored key of the unique singleton r() had been part
         # of.
         # We remove that unique tuple from self.D -- if self.D is still there!
-        cdef MonoDict D = self.D()
+
+        #WARNING! These callbacks can happen during the addition of items to the same
+        #dictionary. The addition code may then be in the process of adding a new entry
+        #(one PyList_Append call at a time) to the relevant bucket.
+        #The "PyList_GET_SIZE(bucket) by 3" call should mean that we round down and hence not look
+        #at incomplete entries. Furthermore, deleting a slice out of a buck should still be OK.
+        #this callback code should absolutely not resize the dictionary, because that would wreak
+        #complete havoc.
+
+        cdef MonoDict D = <object> PyWeakref_GetObject(self.D)
         if D is None:
             return
         cdef list buckets = D.buckets
         if buckets is None:
             return
-        cdef size_t k = r.key
-        cdef size_t h = k % PyList_GET_SIZE(buckets)
-        cdef list bucket = <object>PyList_GET_ITEM(buckets,h)
+        cdef Py_ssize_t h = r.key
+        cdef list bucket = <object>PyList_GET_ITEM(buckets, (<size_t>h) % PyList_GET_SIZE(buckets))
         cdef Py_ssize_t i
-        for i from 0 <= i < PyList_GET_SIZE(bucket) by 2:
-            if <size_t><object>PyList_GET_ITEM(bucket,i)==k:
-                del bucket[i:i+2]
+        for i from 0 <= i < PyList_GET_SIZE(bucket) by 3:
+            if PyInt_AsSsize_t(PyList_GET_ITEM(bucket,i))==h:
+                del bucket[i:i+3]
                 D._size -= 1
                 break
-        try:
-            D._refcache.__delitem__(k)
-        except KeyError:
-            pass
 
-cdef class TripleDictEraser(MonoDictEraser):
+cdef class TripleDictEraser:
     """
     Erases items from a :class:`TripleDict` when a weak reference becomes
     invalid.
@@ -207,7 +233,16 @@ cdef class TripleDictEraser(MonoDictEraser):
             sage: len(T)    # indirect doctest
             0
         """
-        cdef TripleDict D = self.D()
+
+        #WARNING! These callbacks can happen during the addition of items to the same
+        #dictionary. The addition code may then be in the process of adding a new entry
+        #(one PyList_Append call at a time) to the relevant bucket.
+        #The "PyList_GET_SIZE(bucket) by 3" call should mean that we round down and hence not look
+        #at incomplete entries. Furthermore, deleting a slice out of a buck should still be OK.
+        #this callback code should absolutely not resize the dictionary, because that would wreak
+        #complete havoc.
+
+        cdef TripleDict D = <object>PyWeakref_GetObject(self.D)
         if D is None:
             return
         cdef list buckets = D.buckets
@@ -216,32 +251,30 @@ cdef class TripleDictEraser(MonoDictEraser):
         # r is a (weak) reference (typically to a parent), and it knows the
         # stored key of the unique triple r() had been part of.
         # We remove that unique triple from self.D
-        cdef size_t k1,k2,k3
+        cdef Py_ssize_t k1,k2,k3
         k1,k2,k3 = r.key
-        cdef size_t h = (k1 + 13*k2 ^ 503*k3)
-        cdef list bucket = <object>PyList_GET_ITEM(buckets, h % PyList_GET_SIZE(buckets))
+        cdef Py_ssize_t h = (k1 + 13*k2 ^ 503*k3)
+        cdef list bucket = <object>PyList_GET_ITEM(buckets, (<size_t>h) % PyList_GET_SIZE(buckets))
         cdef Py_ssize_t i
-        for i from 0 <= i < PyList_GET_SIZE(bucket) by 4:
-            if <size_t><object>PyList_GET_ITEM(bucket, i)==k1 and \
-               <size_t><object>PyList_GET_ITEM(bucket, i+1)==k2 and \
-               <size_t><object>PyList_GET_ITEM(bucket, i+2)==k3:
-                del bucket[i:i+4]
+        for i from 0 <= i < PyList_GET_SIZE(bucket) by 7:
+            if PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i))==k1 and \
+               PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+1))==k2 and \
+               PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+2))==k3:
+                del bucket[i:i+7]
                 D._size -= 1
                 break
-        try:
-            D._refcache.__delitem__((k1,k2,k3))
-        except KeyError:
-            pass
 
 cdef class MonoDict:
     """
     This is a hashtable specifically designed for (read) speed in
     the coercion model.
 
-    It differs from a python dict in the following important way:
+    It differs from a python WeakKeyDictionary in the following important way:
 
        - Comparison is done using the 'is' rather than '==' operator.
-       - There are only weak references (if possible) to the keys.
+       - Only weak references to the keys are stored if at all possible.
+         Keys that do not allow for weak references are stored with a normal
+         refcounted reference.
 
     There are special cdef set/get methods for faster access.
     It is bare-bones in the sense that not all dictionary methods are
@@ -249,8 +282,14 @@ cdef class MonoDict:
 
     It is implemented as a list of lists (hereafter called buckets). The bucket
     is chosen according to a very simple hash based on the object pointer,
-    and each bucket is of the form [id(k1), value1, id(k2), value2, ...], on
-    which a linear search is performed.
+    and each bucket is of the form [id(k1), r1, value1, id(k2), r2, value2, ...],
+    on which a linear search is performed.
+
+    If ki supports weak references then ri is a weak reference to ki with a
+    callback to remove the entry from the dictionary if ki gets garbage
+    collected. If ki is does not support weak references then ri is identical to ki.
+    In the latter case the presence of the key in the dictionary prevents it from
+    being garbage collected.
 
     To spread objects evenly, the size should ideally be a prime, and certainly
     not divisible by 2.
@@ -320,7 +359,7 @@ cdef class MonoDict:
 
     The following illustrates why even sizes are bad::
 
-        sage: L = MonoDict(4, L)
+        sage: L = MonoDict(4, L, threshold=0)
         sage: L.stats()
         (0, 250.5, 1002)
         sage: L.bucket_lens()
@@ -348,8 +387,9 @@ cdef class MonoDict:
     AUTHOR:
 
     - Simon King (2012-01)
+    - Nils Bruin (2012-08)
     """
-    def __init__(self, size, data=None, threshold=0):
+    def __init__(self, size, data=None, threshold=0.7):
         """
         Create a special dict using singletons for keys.
 
@@ -367,10 +407,9 @@ cdef class MonoDict:
         self.buckets = [[] for i from 0 <= i < size]
         self._size = 0
         self.eraser = MonoDictEraser(self)
-        self._refcache = {}
         if data is not None:
             for k, v in data.iteritems():
-                self[k] = v
+                self.set(k,v)
 
     def __len__(self):
         """
@@ -410,7 +449,7 @@ cdef class MonoDict:
             sage: L.stats() # random
             (0, 0.03325573661456601, 1)
 
-            sage: L = MonoDict(1)
+            sage: L = MonoDict(1,threshold=0)
             sage: for i in range(100): L[i] = None
             sage: L.stats()
             (100, 100.0, 100)
@@ -419,7 +458,7 @@ cdef class MonoDict:
         cdef Py_ssize_t cur, min = size, max = 0
         for bucket in self.buckets:
             if bucket:
-                cur = len(bucket)/2
+                cur = len(bucket)/3
                 if cur < min: min = cur
                 if cur > max: max = cur
             else:
@@ -444,12 +483,12 @@ cdef class MonoDict:
             sage: sum(L.bucket_lens())
             100
 
-            sage: L = MonoDict(1)
+            sage: L = MonoDict(1,threshold=0)
             sage: for i in range(100): L[i] = None
             sage: L.bucket_lens()
             [100]
         """
-        return [len(self.buckets[i])/2 for i from 0 <= i < len(self.buckets)]
+        return [len(self.buckets[i])/3 for i from 0 <= i < len(self.buckets)]
 
     def _get_buckets(self):
         """
@@ -457,11 +496,11 @@ cdef class MonoDict:
 
         EXAMPLE::
 
-            sage: from sage.structure.coerce_dict import TripleDict
-            sage: L = TripleDict(3)
-            sage: L[0,0,0] = None
+            sage: from sage.structure.coerce_dict import MonoDict
+            sage: L = MonoDict(3)
+            sage: L[0] = None
             sage: L._get_buckets() # random
-            [[0, 0, 0, None], [], []]
+            [[0, None], [], []]
         """
         return self.buckets
 
@@ -487,13 +526,19 @@ cdef class MonoDict:
             sage: 15 in L
             False
         """
-        cdef size_t h = <size_t><void *>k
+        cdef Py_ssize_t h = <Py_ssize_t><void *>k
+        cdef Py_ssize_t i
+        cdef list all_buckets = self.buckets
+        cdef list bucket = <object>PyList_GET_ITEM(all_buckets, (<size_t>h)% PyList_GET_SIZE(all_buckets))
         cdef object r
-        try:
-            r = self._refcache[h]
-        except KeyError:
-            return False
-        return not (isinstance(r,KeyedRef) and r() is None)
+        for i from 0 <= i < PyList_GET_SIZE(bucket) by 3:
+            if PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i)) == h:
+                r = <object>PyList_GET_ITEM(bucket, i+1)
+                if isinstance(r, KeyedRef) and PyWeakref_GetObject(r) == Py_None:
+                    return False
+                else:
+                    return True
+        return False
 
     def __getitem__(self, k):
         """
@@ -521,22 +566,21 @@ cdef class MonoDict:
             ...
             KeyError: 15
         """
-        cdef size_t h = <size_t><void *>k
-        cdef object r
-        try:
-            r = self._refcache[h]
-        except KeyError:
-            raise KeyError, k
-        if isinstance(r, KeyedRef) and r() is None:
-            raise KeyError, k
+        return self.get(k)
+
+    cdef get(self, object k):
+        cdef Py_ssize_t h =<Py_ssize_t><void *>k
         cdef Py_ssize_t i
         cdef list all_buckets = self.buckets
-        cdef list bucket = <object>PyList_GET_ITEM(all_buckets, h % PyList_GET_SIZE(all_buckets))
-        cdef object tmp
-        for i from 0 <= i < PyList_GET_SIZE(bucket) by 2:
-            tmp = <object>PyList_GET_ITEM(bucket, i)
-            if <size_t>tmp == h:
-                return <object>PyList_GET_ITEM(bucket, i+1)
+        cdef list bucket = <object>PyList_GET_ITEM(all_buckets, (<size_t>h) % PyList_GET_SIZE(all_buckets))
+        cdef object r
+        for i from 0 <= i < PyList_GET_SIZE(bucket) by 3:
+            if PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i)) == h:
+                r = <object>PyList_GET_ITEM(bucket, i+1)
+                if isinstance(r, KeyedRef) and PyWeakref_GetObject(r) == Py_None:
+                    raise KeyError, k
+                else:
+                    return <object>PyList_GET_ITEM(bucket, i+2)
         raise KeyError, k
 
     def __setitem__(self, k, value):
@@ -557,28 +601,52 @@ cdef class MonoDict:
             sage: len(L)
             1
         """
+        self.set(k,value)
+
+    cdef set(self,object k, value):
         if self.threshold and self._size > len(self.buckets) * self.threshold:
             self.resize()
-        cdef size_t h = <size_t><void *>k
+        cdef Py_ssize_t h = <Py_ssize_t><void *>k
         cdef Py_ssize_t i
-        cdef list bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
-        cdef object tmp
-        for i from 0 <= i < PyList_GET_SIZE(bucket) by 2:
-            tmp = <object>PyList_GET_ITEM(bucket, i)
-            if <size_t>tmp == h:
-                r = self._refcache[h]
-                if isinstance(r, KeyedRef) and r() is None:
-                    del bucket[i:i+2]
-                    self._size -= 1
+        cdef list bucket = <object>PyList_GET_ITEM(self.buckets,(<size_t> h) % PyList_GET_SIZE(self.buckets))
+        cdef object r
+        for i from 0 <= i < PyList_GET_SIZE(bucket) by 3:
+            if PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i)) == h:
+                r = <object>PyList_GET_ITEM(bucket, i+1)
+                if isinstance(r, KeyedRef) and PyWeakref_GetObject(r) == Py_None:
+                    #uh oh, an entry has died and has not received a callback yet.
+                    #that callback might still be out there! safest thing is to simply remove the entry and
+                    #append a new one below.
+
+                    #We checked that slice deletion is safe: Python will save references the the removed items,
+                    #rearrange the list (so no references exist there anymore!) and only THEN delete the
+                    #items. Therefore, any code that executes upon deallocation will see the bucket in its
+                    #new, consistent form already.
+                    del bucket[i:i+3]
+                    self._size -=1
+                    #by now we believe dangling weakref is well and truly gone. If python still has its callback
+                    #scheduled somewhere, we think it's in breach of contract.
                     break
-                bucket[i+1] = value
-                return
+                else:
+                    #key is present and still alive. We can just store the value.
+                    bucket[i+2] = value
+                    return
+        #key id was not present, or was storing a dead reference, which has now been removed.
+
+        #the following code fragment may allocate new memory and hence may trigger garbage collections.
+        #that means it can also trigger callbacks that removes entries from the bucket
+        #we are adding to. However, as long as such callbacks never ADD anything to buckets,
+        #we're still OK building up our entry by adding entries at the end of it.
+        #Note that the bucket list will only have increased by a multiple of 3 in length
+        #after `value` has successfully been added, i.e, once the entry is complete. That means any
+        #search in the bucket list by a callback will round len(bucket)/3 DOWN and hence not
+        #investigate our partial entry.
         PyList_Append(bucket, h)
-        PyList_Append(bucket, value)
         try:
-            self._refcache[h] = KeyedRef(k,self.eraser,h)
+            PyList_Append(bucket, KeyedRef(k,self.eraser,h))
         except TypeError:
-            self._refcache[h] = k
+            PyList_Append(bucket, k)
+        PyList_Append(bucket, value)
         self._size += 1
 
     def __delitem__(self, k):
@@ -609,26 +677,22 @@ cdef class MonoDict:
             sage: a in L
             False
         """
-        cdef size_t h = <size_t><void *>k
-        try:
-            r = self._refcache[h]
-        except KeyError:
-            raise KeyError, k
-        try:
-            del self._refcache[h]
-        except KeyError:
-            raise KeyError, k
-        if isinstance(r,KeyedRef) and r() is None:
-            raise KeyError, k
+        cdef Py_ssize_t h = <Py_ssize_t><void *>k
+        cdef object r
         cdef Py_ssize_t i
         cdef object tmp
-        cdef list bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
-        for i from 0 <= i < PyList_GET_SIZE(bucket) by 2:
-            tmp = <object>PyList_GET_ITEM(bucket, i)
-            if <size_t>tmp == h:
-                del bucket[i:i+2]
+        cdef list all_buckets = self.buckets
+        cdef list bucket = <object>PyList_GET_ITEM(all_buckets, (<size_t>h) % PyList_GET_SIZE(all_buckets))
+        for i from 0 <= i < PyList_GET_SIZE(bucket) by 3:
+            if PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i)) == h:
+                r = <object>PyList_GET_ITEM(bucket, i+1)
+                del bucket[i:i+3]
                 self._size -= 1
-                return
+                if isinstance(r, KeyedRef) and PyWeakref_GetObject(r) == Py_None:
+                    break
+                else:
+                    return
+        raise KeyError, k
 
     def resize(self, int buckets=0):
         """
@@ -656,14 +720,16 @@ cdef class MonoDict:
         cdef list old_buckets = self.buckets
         cdef list bucket
         cdef Py_ssize_t i
-        cdef size_t k
+        cdef Py_ssize_t h
         self.buckets = [[] for i from 0 <= i <  buckets]
+        cdef object r
         cdef object v
         for bucket in old_buckets:
-            for i from 0 <= i < PyList_GET_SIZE(bucket) by 2:
-                k = <size_t><object>PyList_GET_ITEM(bucket,i)
-                v  = <object>PyList_GET_ITEM(bucket,i+1)
-                self.buckets[k % buckets] += [k,v]
+            for i from 0 <= i < PyList_GET_SIZE(bucket) by 3:
+                h = PyInt_AsSsize_t(PyList_GET_ITEM(bucket,i))
+                r  = <object>PyList_GET_ITEM(bucket,i+1)
+                v  = <object>PyList_GET_ITEM(bucket,i+2)
+                self.buckets[(<size_t>h) % buckets] += [h,r,v]
 
     def iteritems(self):
         """
@@ -677,25 +743,19 @@ cdef class MonoDict:
             [(1, None), (2, True)]
         """
         cdef list bucket
-        cdef size_t i, h
+        cdef Py_ssize_t i
         # We test whether the references are still valid.
         # However, we must not delete them, since we are
         # iterating.
         for bucket in self.buckets:
-            for i from 0<=i<len(bucket) by 2:
-                h = <object>PyList_GET_ITEM(bucket,i)
-                try:
-                    r = self._refcache[h]
-                except KeyError:
-                    # That should not happen, unless there is a nasty
-                    # race condition. Anyway, the item isn't there,
-                    # hence:
-                    continue
+            for i from 0<=i<len(bucket) by 3:
+                r = <object>PyList_GET_ITEM(bucket,i+1)
                 if isinstance(r, KeyedRef):
-                    r = r()
+                    r = <object>PyWeakref_GetObject(r)
                     if r is None:
                         continue
-                yield r, <object>PyList_GET_ITEM(bucket,i+1)
+                yield r, <object>PyList_GET_ITEM(bucket,i+2)
+
 
     def __reduce__(self):
         """
@@ -714,7 +774,7 @@ cdef class MonoDict:
         """
         return MonoDict, (len(self.buckets), dict(self.iteritems()), self.threshold)
 
-cdef class TripleDict(MonoDict):
+cdef class TripleDict:
     """
     This is a hashtable specifically designed for (read) speed in
     the coercion model.
@@ -729,10 +789,16 @@ cdef class TripleDict(MonoDict):
     It is bare-bones in the sense that not all dictionary methods are
     implemented.
 
-    It is implemented as a list of lists (hereafter called buckets). The bucket
-    is chosen according to a very simple hash based on the object pointer,
-    and each bucket is of the form [id(k1), id(k2), id(k3), value, id(k1),
-    id(k2), id(k3), value, ...], on which a linear search is performed.
+    It is implemented as a list of lists (hereafter called buckets). The bucket is
+    chosen according to a very simple hash based on the object pointer, and each
+    bucket is of the form [id(k1), id(k2), id(k3), r1, r2, r3, value, id(k1),
+    id(k2), id(k3), r1, r2, r3, value, ...], on which a linear search is performed.
+    If a key component ki supports weak references then ri is a weak reference to
+    ki; otherwise ri is identical to ki.
+
+    If any of the key components k1,k2,k3 (this can happen for a key component that
+    supports weak references) gets garbage collected then the entire entry
+    disappears. In that sense this structure behaves like a nested WeakKeyDictionary.
 
     To spread objects evenly, the size should ideally be a prime, and certainly
     not divisible by 2.
@@ -821,27 +887,28 @@ cdef class TripleDict(MonoDict):
 
         .. MATH::
 
-            h = id(k1) + 13*id(k2) \oplus 503 id(k3)
+            h = id(k1) + 13*id(k2) xor 503 id(k3)
 
-        Indeed, although the PyList_GetItem function and corresponding
-        PyList_GET_ITEM macro take a value of signed type Py_ssize_t as input
-        for the index, they do not accept negative inputs as the higher level
-        Python functions. Moreover, the above formula can overflow so that `h`
-        might be considered as negative. Even though this value is taken
-        modulo the size of the buckets' list before accessing the corresponding
-        item, the Cython "%" operator behaves for values of type size_t and
-        Py_ssize_t like the C "%" operator, rather than like the Python "%"
-        operator as it does for values of type int. That is, it returns a
-        result of the same sign as its input. Therefore, if `h` was defined as
-        a signed value, we might access the list at a negative index and raise
-        a segfault (and this has been observed on 32 bits systems, see
-        :trac:`715` for details).
+        The natural type for this quantity is Py_ssize_t, which is a signed
+        quantity with the same length as size_t. Storing it in a signed way gives the most
+        efficient storage into PyInt, while preserving sign information.
+
+        As usual for a hashtable, we take h modulo some integer to obtain the bucket
+        number into which to store the key/value pair. A problem here is that C mandates
+        sign-preservation for the modulo operator "%". We cast to an unsigned type, i.e.,
+        (<size_t> h)% N
+        If we don't do this we may end up indexing lists with negative indices, which may lead to
+        segfaults if using the non-error-checking python macros, as happens here.
+
+        This has been observed on 32 bits systems, see :trac:`715` for details.
 
     AUTHORS:
 
     - Robert Bradshaw, 2007-08
 
     - Simon King, 2012-01
+
+    - Nils Bruin, 2012-08
     """
 
     def __init__(self, size, data=None, threshold=0.7):
@@ -862,7 +929,6 @@ cdef class TripleDict(MonoDict):
         self.buckets = [[] for i from 0 <= i <  size]
         self._size = 0
         self.eraser = TripleDictEraser(self)
-        self._refcache = {}
         if data is not None:
             for (k1,k2,k3), v in data.iteritems():
                 self.set(k1,k2,k3, v)
@@ -918,7 +984,7 @@ cdef class TripleDict(MonoDict):
         cdef Py_ssize_t cur, min = size, max = 0
         for bucket in self.buckets:
             if bucket:
-                cur = len(bucket)/4
+                cur = len(bucket)/7
                 if cur < min: min = cur
                 if cur > max: max = cur
             else:
@@ -951,7 +1017,21 @@ cdef class TripleDict(MonoDict):
             sage: L.bucket_lens()
             [100]
         """
-        return [len(self.buckets[i])/4 for i from 0 <= i < len(self.buckets)]
+        return [len(self.buckets[i])/7 for i from 0 <= i < len(self.buckets)]
+
+    def _get_buckets(self):
+        """
+        The actual buckets of self, for debugging.
+
+        EXAMPLE::
+
+            sage: from sage.structure.coerce_dict import TripleDict
+            sage: L = TripleDict(3)
+            sage: L[0,0,0] = None
+            sage: L._get_buckets() # random
+            [[0, 0, 0, None], [], []]
+        """
+        return self.buckets
 
     def __contains__(self, k):
         """
@@ -978,14 +1058,9 @@ cdef class TripleDict(MonoDict):
             k1, k2, k3 = k
         except (TypeError,ValueError):
             return False
-        cdef object r1,r2,r3
         try:
-            r1,r2,r3 = self._refcache[<size_t><void *>k1,<size_t><void *>k2,<size_t><void *>k3]
+            self.get(k1,k2,k3)
         except KeyError:
-            return False
-        if (isinstance(r1,KeyedRef) and r1() is None) or \
-           (isinstance(r2,KeyedRef) and r2() is None) or \
-           (isinstance(r3,KeyedRef) and r3() is None):
             return False
         return True
 
@@ -1010,32 +1085,29 @@ cdef class TripleDict(MonoDict):
         return self.get(k1, k2, k3)
 
     cdef get(self, object k1, object k2, object k3):
-        cdef size_t h1,h2,h3
-        h1 = <size_t><void *>k1
-        h2 = <size_t><void *>k2
-        h3 = <size_t><void *>k3
+        cdef Py_ssize_t h1 = <Py_ssize_t><void *>k1
+        cdef Py_ssize_t h2 = <Py_ssize_t><void *>k2
+        cdef Py_ssize_t h3 = <Py_ssize_t><void *>k3
+        cdef Py_ssize_t h = (h1 + 13*h2 ^ 503*h3)
+
         cdef object r1,r2,r3
-        try:
-            r1,r2,r3 = self._refcache[h1,h2,h3]
-        except KeyError:
-            raise KeyError, (k1,k2,k3)
-        if (isinstance(r1,KeyedRef) and r1() is None) or \
-           (isinstance(r2,KeyedRef) and r2() is None) or \
-           (isinstance(r3,KeyedRef) and r3() is None):
-            raise KeyError, (k1,k2,k3)
-        cdef size_t h = (h1 + 13*h2 ^ 503*h3)
         cdef Py_ssize_t i
         cdef list all_buckets = self.buckets
-        cdef list bucket = <object>PyList_GET_ITEM(all_buckets, h % PyList_GET_SIZE(all_buckets))
-        cdef object tmp
-        for i from 0 <= i < PyList_GET_SIZE(bucket) by 4:
+        cdef list bucket = <object>PyList_GET_ITEM(all_buckets, (<size_t>h )% PyList_GET_SIZE(all_buckets))
+        for i from 0 <= i < PyList_GET_SIZE(bucket) by 7:
             tmp = <object>PyList_GET_ITEM(bucket, i)
-            if <size_t>tmp == <size_t><void *>k1:
-                tmp = <object>PyList_GET_ITEM(bucket, i+1)
-                if <size_t>tmp == <size_t><void *>k2:
-                    tmp = <object>PyList_GET_ITEM(bucket, i+2)
-                    if <size_t>tmp == <size_t><void *>k3:
-                        return <object>PyList_GET_ITEM(bucket, i+3)
+            if PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i)) == h1 and \
+                   PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+1)) == h2 and \
+                   PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+2)) == h3:
+                r1 = <object>PyList_GET_ITEM(bucket, i+3)
+                r2 = <object>PyList_GET_ITEM(bucket, i+4)
+                r3 = <object>PyList_GET_ITEM(bucket, i+5)
+                if (isinstance(r1,KeyedRef) and PyWeakref_GetObject(r1) == Py_None) or \
+                        (isinstance(r2,KeyedRef) and PyWeakref_GetObject(r2) == Py_None) or \
+                        (isinstance(r3,KeyedRef) and PyWeakref_GetObject(r3) == Py_None):
+                    raise KeyError, (k1,k2,k3)
+                else:
+                    return <object>PyList_GET_ITEM(bucket, i+6)
         raise KeyError, (k1, k2, k3)
 
     def __setitem__(self, k, value):
@@ -1061,53 +1133,65 @@ cdef class TripleDict(MonoDict):
     cdef set(self, object k1, object k2, object k3, value):
         if self.threshold and self._size > len(self.buckets) * self.threshold:
             self.resize()
-        cdef size_t h1 = <size_t><void *>k1
-        cdef size_t h2 = <size_t><void *>k2
-        cdef size_t h3 = <size_t><void *>k3
-        cdef size_t h = (h1 + 13*h2 ^ 503*h3)
+        cdef Py_ssize_t h1 = <Py_ssize_t><void *>k1
+        cdef Py_ssize_t h2 = <Py_ssize_t><void *>k2
+        cdef Py_ssize_t h3 = <Py_ssize_t><void *>k3
+        cdef Py_ssize_t h = (h1 + 13*h2 ^ 503*h3)
+
+        cdef object r1,r2,r3
         cdef Py_ssize_t i
-        cdef list bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
-        cdef object tmp
-        for i from 0 <= i < PyList_GET_SIZE(bucket) by 4:
+        cdef list all_buckets = self.buckets
+        cdef list bucket = <object>PyList_GET_ITEM(all_buckets, (<size_t>h) % PyList_GET_SIZE(all_buckets))
+        for i from 0 <= i < PyList_GET_SIZE(bucket) by 7:
             tmp = <object>PyList_GET_ITEM(bucket, i)
-            if <size_t>tmp == h1:
-                tmp = <object>PyList_GET_ITEM(bucket, i+1)
-                if <size_t>tmp == h2:
-                    tmp = <object>PyList_GET_ITEM(bucket, i+2)
-                    if <size_t>tmp == h3:
-                        # Test whether the old references are still active
-                        r1,r2,r3 = <tuple>(self._refcache[h1,h2,h3])
-                        if (isinstance(r1,KeyedRef) and r1() is None) or \
-                           (isinstance(r2,KeyedRef) and r2() is None) or \
-                           (isinstance(r3,KeyedRef) and r3() is None):
-                            del bucket [i:i+4]
-                            self._size -= 1
-                            break
-                        bucket[i+3] = value
-                        return
+            if PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i)) == h1 and \
+                   PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+1)) == h2 and \
+                   PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+2)) == h3:
+                r1 = <object>PyList_GET_ITEM(bucket, i+3)
+                r2 = <object>PyList_GET_ITEM(bucket, i+4)
+                r3 = <object>PyList_GET_ITEM(bucket, i+5)
+                if (isinstance(r1,KeyedRef) and PyWeakref_GetObject(r1) == Py_None) or \
+                        (isinstance(r2,KeyedRef) and PyWeakref_GetObject(r2) == Py_None) or \
+                        (isinstance(r3,KeyedRef) and PyWeakref_GetObject(r3) == Py_None):
+                    #apparently one of the keys has died but the callback hasn't executed yet.
+                    #we delete the whole entry (including the weakrefs) and hope that this
+                    #purges the callbacks too (it should, because the weakref doesn't
+                    #exist anymore. In particular it cannot be passed as a parameter to
+                    #the callback anymore)
+                    del bucket[i:i+7]
+                    self._size -= 1
+                else:
+                    #keys are present and alive, so we can just store the new value
+                    bucket[i+6]=value
+                    return
+
+        #at this point the key triple isn't present so we append a new entry.
+        #we first form the appropriate weakrefs to receive callbacks on.
+        try:
+            r1 = KeyedRef(k1,self.eraser,(h1, h2, h3))
+        except TypeError:
+            r1 = k1
+        if k2 is not k1:
+            try:
+                r2 = KeyedRef(k2,self.eraser,(h1, h2, h3))
+            except TypeError:
+                r2 = k2
+        else:
+            r2 = None
+        if k3 is not k2 or k3 is not k1:
+            try:
+                r3 = KeyedRef(k3,self.eraser,(h1, h2, h3))
+            except TypeError:
+                r3 = k3
+        else:
+            r3 = None
         PyList_Append(bucket, h1)
         PyList_Append(bucket, h2)
         PyList_Append(bucket, h3)
+        PyList_Append(bucket, r1)
+        PyList_Append(bucket, r2)
+        PyList_Append(bucket, r3)
         PyList_Append(bucket, value)
-        try:
-            ref1 = KeyedRef(k1,self.eraser,(h1, h2, h3))
-        except TypeError:
-            ref1 = k1
-        if k2 is not k1:
-            try:
-                ref2 = KeyedRef(k2,self.eraser,(h1, h2, h3))
-            except TypeError:
-                ref2 = k2
-        else:
-            ref2 = None
-        if k3 is not k2 or k3 is not k1:
-            try:
-                ref3 = KeyedRef(k3,self.eraser,(h1, h2, h3))
-            except TypeError:
-                ref3 = k3
-        else:
-            ref3 = None
-        self._refcache[h1,h2,h3] = (ref1,ref2,ref3)
         self._size += 1
 
     def __delitem__(self, k):
@@ -1129,36 +1213,35 @@ cdef class TripleDict(MonoDict):
             False
         """
         cdef object k1,k2,k3
+        cdef object r1,r2,r3
         try:
             k1, k2, k3 = k
         except (TypeError,ValueError):
             raise KeyError, k
-        try:
-            r1,r2,r3 = self._refcache[<size_t><void *>k1,<size_t><void *>k2,<size_t><void *>k3]
-        except KeyError:
-            raise KeyError, k
-        if (isinstance(r1,KeyedRef) and r1() is None) or \
-           (isinstance(r2,KeyedRef) and r2() is None) or \
-           (isinstance(r3,KeyedRef) and r3() is None):
-            raise KeyError, k
-        try:
-            del self._refcache[<size_t><void *>k1,<size_t><void *>k2,<size_t><void *>k3]
-        except KeyError:
-            # This is to cope with a potential racing condition - if garbage
-            # collection and weakref callback happens right between the
-            # "if (isinstance(r1,..." and the "del", then the previously
-            # existing entry might already be gone.
-            raise KeyError, k
-        cdef size_t h = (<size_t><void *>k1 + 13*<size_t><void *>k2 ^ 503*<size_t><void *>k3)
+        cdef Py_ssize_t h1 = <Py_ssize_t><void *>k1
+        cdef Py_ssize_t h2 = <Py_ssize_t><void *>k2
+        cdef Py_ssize_t h3 = <Py_ssize_t><void *>k3
+        cdef Py_ssize_t h = (h1 + 13*h2 ^ 503*h3)
+
         cdef Py_ssize_t i
-        cdef list bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
-        for i from 0 <= i < PyList_GET_SIZE(bucket) by 4:
-            if <size_t><object>PyList_GET_ITEM(bucket, i) == <size_t><void *>k1 and \
-               <size_t><object>PyList_GET_ITEM(bucket, i+1) == <size_t><void *>k2 and \
-               <size_t><object>PyList_GET_ITEM(bucket, i+2) == <size_t><void *>k3:
-                del bucket[i:i+4]
+        cdef list all_buckets = self.buckets
+        cdef list bucket = <object>PyList_GET_ITEM(all_buckets, (<size_t>h) % PyList_GET_SIZE(all_buckets))
+        for i from 0 <= i < PyList_GET_SIZE(bucket) by 7:
+            if PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i)) == h1 and \
+                   PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+1)) == h2 and \
+                   PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+2)) == h3:
+                r1 = <object>PyList_GET_ITEM(bucket, i+3)
+                r2 = <object>PyList_GET_ITEM(bucket, i+4)
+                r3 = <object>PyList_GET_ITEM(bucket, i+5)
+                del bucket[i:i+7]
                 self._size -= 1
-                return
+                if (isinstance(r1,KeyedRef) and PyWeakref_GetObject(r1) == Py_None) or \
+                        (isinstance(r2,KeyedRef) and PyWeakref_GetObject(r2) == Py_None) or \
+                        (isinstance(r3,KeyedRef) and PyWeakref_GetObject(r3) == Py_None):
+                    #the entry was already dead
+                    break
+                else:
+                    return
         raise KeyError, k
 
     def resize(self, int buckets=0):
@@ -1186,18 +1269,16 @@ cdef class TripleDict(MonoDict):
         cdef list old_buckets = self.buckets
         cdef list bucket
         cdef Py_ssize_t i
-        cdef size_t h
+        cdef Py_ssize_t h
         self.buckets = [[] for i from 0 <= i <  buckets]
-        cdef size_t k1,k2,k3
-        cdef object v
+        cdef Py_ssize_t k1,k2,k3
         for bucket in old_buckets:
-            for i from 0 <= i < PyList_GET_SIZE(bucket) by 4:
-                k1 = <size_t><object>PyList_GET_ITEM(bucket, i)
-                k2 = <size_t><object>PyList_GET_ITEM(bucket, i+1)
-                k3 = <size_t><object>PyList_GET_ITEM(bucket, i+2)
-                v  = <object>PyList_GET_ITEM(bucket, i+3)
+            for i from 0 <= i < PyList_GET_SIZE(bucket) by 7:
+                k1 = PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i))
+                k2 = PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+1))
+                k3 = PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+2))
                 h = (k1 + 13*k2 ^ 503*k3)
-                self.buckets[h % buckets] += [k1,k2,k3,v]
+                self.buckets[(<size_t> h) % buckets] += bucket[i:i+7]
 
     def iteritems(self):
         """
@@ -1210,32 +1291,27 @@ cdef class TripleDict(MonoDict):
             [((1, 2, 3), None)]
         """
         cdef list bucket
-        cdef size_t i, h1,h2,h3
+        cdef Py_ssize_t i
+        cdef object r1,r2,r3
         # We test whether the references are still valid.
         # However, we must not delete them, since we are
         # iterating.
         for bucket in self.buckets:
-            for i from 0<=i<len(bucket) by 4:
-                h1,h2,h3 = bucket[i:i+3]
-                try:
-                    r1,r2,r3 = self._refcache[h1,h2,h3]
-                except KeyError:
-                    # That can only happen under a race condition.
-                    # Anyway, it means the item is not there.
-                    continue
+            for i from 0<=i<len(bucket) by 7:
+                r1,r2,r3 = bucket[i+3:i+6]
                 if isinstance(r1, KeyedRef):
-                    r1 = r1()
+                    r1 = <object>PyWeakref_GetObject(r1)
                     if r1 is None:
                         continue
                 if isinstance(r2, KeyedRef):
-                    r2 = r2()
+                    r2 = <object>PyWeakref_GetObject(r2)
                     if r2 is None:
                         continue
                 if isinstance(r3, KeyedRef):
-                    r3 = r3()
+                    r3 = <object>PyWeakref_GetObject(r3)
                     if r3 is None:
                         continue
-                yield (r1,r2,r3), <object>PyList_GET_ITEM(bucket,i+3)
+                yield (r1,r2,r3), <object>PyList_GET_ITEM(bucket,i+6)
 
     def __reduce__(self):
         """

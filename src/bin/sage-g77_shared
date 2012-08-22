@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-if [ "$UNAME" = "Darwin" ]; then
-    sage_fortran -v -bundle -undefined dynamic_lookup $@
-else
-    sage_fortran -shared $@
-fi
-
-exit $?

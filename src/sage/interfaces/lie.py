@@ -387,7 +387,7 @@ class LiE(Expect):
 
 
         for f in filenames:
-            filename = SAGE_LOCAL + "/lib/lie/" + f
+            filename = SAGE_LOCAL + "/lib/LiE/" + f
             info = open(filename)
             prev_command = ""
             help_text = ""
@@ -894,7 +894,7 @@ def lie_version():
         sage: lie_version() # optional - lie
         '2.1'
     """
-    f = open(SAGE_LOCAL + 'lib/lie/INFO.0')
+    f = open(SAGE_LOCAL + 'lib/LiE/INFO.0')
     lines = f.readlines()
     f.close()
     i = lines.index('@version()\n')

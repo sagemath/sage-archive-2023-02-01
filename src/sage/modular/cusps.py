@@ -997,17 +997,16 @@ class Cusp(Element):
 
     def galois_action(self, t, N):
         r"""
-        Suppose this cusp is `\alpha`, `G` is the congruence subgroup
-        `\Gamma_0(N)` of level `N`, and `\sigma` is the automorphism in
-        the Galois group of `\QQ(\zeta_N)/\QQ` that sends `\zeta_N` to
-        `\zeta_N^t`.  Then this function computes a cusp `\beta` such
-        that `\sigma([\alpha]) = [\beta]`, where `[\alpha]` is the
-        equivalence class of `\alpha` modulo `G`.
+        Suppose this cusp is `\alpha`, `G` a congruence subgroup of level `N`
+        and `\sigma` is the automorphism in the Galois group of
+        `\QQ(\zeta_N)/\QQ` that sends `\zeta_N` to `\zeta_N^t`. Then this
+        function computes a cusp `\beta` such that `\sigma([\alpha]) = [\beta]`,
+        where `[\alpha]` is the equivalence class of `\alpha` modulo `G`.
 
-        BIG WARNING: Despite its general name, this function only
-        computes something that defines an action on `\Gamma_0(N)`
-        equivalence classes; it does not compute the action on
-        `\Gamma_1(N)` classes (see trac 8998).
+        This code only needs as input the level and not the group since the
+        action of galois for a congruence group `G` of level `N` is compatible
+        with the action of the full congruence group `\Gamma(N)`.
+
 
         INPUT:
 
@@ -1019,17 +1018,43 @@ class Cusp(Element):
 
            - a cusp
 
+
+        .. WARNING::
+
+            In some cases `N` must fit in a long long, i.e., there
+            are cases where this algorithm isn't fully implemented.
+
+        .. NOTE::
+
+            Modular curves can have multiple non-isomorphic models over `\QQ`.
+            The action of galois depends on such a model. The model over `\QQ`
+            of `X(G)` used here is the model where the function field
+            `\QQ(X(G))` is given by the functions whose fourier expansion at
+            `\infty` have their coefficients in `\QQ`. For `X(N):=X(\Gamma(N))`
+            the corresponding moduli interpretation over `\ZZ[1/N]` is that
+            `X(N)` parametrizes pairs `(E,a)` where `E` is a (generalized)
+            elliptic curve and `a: \ZZ / N\ZZ \times \mu_N \to E` is a closed
+            immersion such that the weil pairing of `a(1,1)` and `a(0,\zeta_N)`
+            is `\zeta_N`. In this parameterisation the point `z \in H`
+            corresponds to the pair `(E_z,a_z)` with `E_z=\CC/(z \ZZ+\ZZ)` and
+            `a_z: \ZZ / N\ZZ \times \mu_N \to E` given by `a_z(1,1) = z/N` and
+            `a_z(0,\zeta_N) = 1/N`.
+            Similarly `X_1(N):=X(\Gamma_1(N))` parametrizes pairs `(E,a)` where
+            `a: \mu_N \to E` is a closed immersion.
+
         EXAMPLES::
 
             sage: Cusp(1/10).galois_action(3, 50)
             1/170
             sage: Cusp(oo).galois_action(3, 50)
             Infinity
-            sage: Cusp(0).galois_action(3, 50)
+            sage: c=Cusp(0).galois_action(3, 50); c
+            50/67
+            sage: Gamma0(50).reduce_cusp(c)
             0
 
-        Here we compute explicitly the permutations of the action for
-        t=3 on cusps for Gamma0(50)::
+        Here we compute the permutations of the action for t=3 on cusps for
+        Gamma0(50). ::
 
             sage: N = 50; t=3; G = Gamma0(N); C = G.cusps()
             sage: cl = lambda z: exists(C, lambda y:y.is_gamma0_equiv(z, N))[1]
@@ -1040,21 +1065,37 @@ class Cusp(Element):
             3 27 [0, 1/25, 3/10, 3/5, 9/10, 1/5, 1/2, 4/5, 1/10, 2/5, 7/10, Infinity]
             4 81 [0, 1/25, 1/10, 1/5, 3/10, 2/5, 1/2, 3/5, 7/10, 4/5, 9/10, Infinity]
 
+        TESTS:
+
+        Here we check that the galois action is indeed a permutation on the
+        cusps of Gamma1(48) and check that :trac:`13253` is fixed. ::
+
+            sage: G=Gamma1(48)
+            sage: C=G.cusps()
+            sage: for i in Integers(48).unit_gens():
+            ...     C_permuted = [G.reduce_cusp(c.galois_action(i,48)) for c in C]
+            ...     assert len(set(C_permuted))==len(C)
+
+        We test that Gamma1(19) has 9 rational cusps and check that :trac:`8998`
+        is fixed. ::
+
+            sage: G = Gamma1(19)
+            sage: [c for c in G.cusps() if c.galois_action(2,19).is_gamma1_equiv(c,19)[0]]
+            [2/19, 3/19, 4/19, 5/19, 6/19, 7/19, 8/19, 9/19, Infinity]
+
+
         REFERENCES:
 
             - Section 1.3 of Glenn Stevens, "Arithmetic on Modular Curves"
 
             - There is a long comment about our algorithm in the source code for this function.
 
-        WARNING: In some cases `N` must fit in a long long, i.e., there
-                 are cases where this algorithm isn't fully implemented.
-
         AUTHORS:
 
             - William Stein, 2009-04-18
 
         """
-        if self.is_infinity() or not self.__a: return self
+        if self.is_infinity(): return self
         if not isinstance(t, Integer): t = Integer(t)
 
         # Our algorithm for computing the Galois action works as

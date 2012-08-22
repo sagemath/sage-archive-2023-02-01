@@ -944,6 +944,8 @@ def Compositions(n=None, **kwargs):
         [[1, 3], [1, 2, 1]]
         sage: Compositions(4, inner=[1,1,1]).list()
         [[2, 1, 1], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+        sage: Compositions(4, inner=Composition([1,2])).list()
+        [[2, 2], [1, 3], [1, 2, 1]]
         sage: Compositions(4, min_slope=0).list()
         [[4], [2, 2], [1, 3], [1, 1, 2], [1, 1, 1, 1]]
         sage: Compositions(4, min_slope=-1, max_slope=1).list()
@@ -981,7 +983,7 @@ def Compositions(n=None, **kwargs):
                 del kwargs['outer']
 
             if 'inner' in kwargs:
-                inner = kwargs['inner']
+                inner = list(kwargs['inner'])
                 kwargs['floor'] = inner
                 del kwargs['inner']
                 # Should this be handled by integer lists lex?

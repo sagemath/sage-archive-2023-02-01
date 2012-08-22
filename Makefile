@@ -19,6 +19,14 @@ build:
 		"tee -a ../install.log"
 	./sage -b
 
+# ssl: build Sage, and also install pyOpenSSL. This is necessary for
+# running the secure notebook. This make target requires internet
+# access. Note that this requires that your system have OpenSSL
+# libraries and headers installed. See README.txt for more
+# information.
+ssl: all
+	./sage -i pyopenssl
+
 build-serial: SAGE_PARALLEL_SPKG_BUILD = no
 build-serial: build
 

@@ -237,6 +237,39 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
     ImageMagick tools (e.g. the "convert" command) installed since some
     plotting functionality benefits from it.
 
+11. OPTIONAL: Read this if you are intending to run a Sage notebook
+    server for multiple users. For security (i.e., to run
+    "notebook(secure=True)") you may wish users to access the server
+    using the HTTPS protocol. You also may want to use OpenID for user
+    authentication. The first of these requires you to install
+    pyOpenSSL, and they both require OpenSSL. If you have OpenSSL and
+    the OpenSSL development headers installed on your system, you can
+    install pyOpenSSL by building Sage and then typing
+
+        ./sage -i pyopenssl
+
+    Note that this command requires internet access.  Alternatively,
+    "make ssl" builds Sage and installs pyOpenSSL.  If you are missing
+    either OpenSSL or OpenSSL's development headers, you can install a
+    local copy of both into your Sage installation first. Ideally,
+    this should be done before installing Sage; otherwise, you should
+    at least rebuild Sage's Python, and ideally any part of Sage
+    relying on it. So the procedure is as follows (again, with a
+    computer connected to the internet). Starting from a fresh Sage
+    tarball:
+
+        ./sage -i patch
+        ./sage -i openssl
+        make ssl
+
+    Alternatively, if you've already built Sage:
+
+        ./sage -i openssl
+        ./sage -f python   # rebuilds Python
+        SAGE_UPGRADING=yes make ssl
+
+    The third line will rebuild all parts of Sage that depend on
+    Python; this can take a while.
 
 PROBLEMS
 --------

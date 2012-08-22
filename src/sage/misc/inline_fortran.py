@@ -19,18 +19,25 @@ class InlineFortran:
     def __call__(self, *args, **kwds):
         return self.eval(*args, **kwds)
 
-    def eval(self,x,globals=None, locals=None):
+    def eval(self, x, globals=None, locals=None):
         """
         EXAMPLES::
 
             sage: from sage.misc.inline_fortran import InlineFortran, _example
-            sage: test_fortran = InlineFortran(globals())   # optional -- fortran
-            sage: test_fortran(_example)                    # optional -- fortran
+            sage: fortran = InlineFortran(globals())
+            sage: fortran(_example)
             sage: import numpy
             sage: n = numpy.array(range(10),dtype=float)
-            sage: fib(n,int(10))                            # optional -- fortran
-            sage: n                                         # optional -- fortran
+            sage: fib(n,int(10))
+            sage: n
             array([  0.,   1.,   1.,   2.,   3.,   5.,   8.,  13.,  21.,  34.])
+
+        TESTS::
+
+            sage: fortran.eval("SYNTAX ERROR !@#$")
+            Traceback (most recent call last):
+            ...
+            RuntimeError: failed to compile Fortran code:...
         """
         if len(x.splitlines()) == 1 and os.path.exists(x):
             filename = x
@@ -38,9 +45,7 @@ class InlineFortran:
             if filename.lower().endswith('.f90'):
                 x = '!f90\n' + x
         global count
-        # On linux g77_shared should be a script that runs sage_fortran -shared
-        # On OS X it should be a script that runs gfortran -bundle -undefined dynamic_lookup
-        path = os.environ['SAGE_LOCAL']+'/bin/sage-g77_shared'
+
         from numpy import f2py
         old_import_path=os.sys.path
         cwd=os.getcwd()
@@ -66,8 +71,8 @@ class InlineFortran:
             fname = os.path.join(tmp_filename() +'.f')
 
         log = tmp_filename()
-        extra_args = '--quiet --f77exec=%s --f90exec=%s %s %s  1>&2 >"%s"'%(
-                    path, path, s_lib_path, s_lib, log)
+        extra_args = '--quiet --f77exec=sage-inline-fortran --f90exec=sage-inline-fortran %s %s >"%s" 2>&1'%(
+            s_lib_path, s_lib, log)
 
         f2py.compile(x, name, extra_args = extra_args, source_fn=fname)
 
@@ -75,6 +80,14 @@ class InlineFortran:
 
         os.unlink(log)
         os.unlink(fname)
+
+        # f2py.compile() doesn't raise any exception if it fails.
+        # So we manually check whether the compiled file exists.
+        # NOTE: the .so extension is used, even on OS X where .dylib
+        # would be expected.
+        soname = name + '.so'
+        if not os.path.isfile(soname):
+            raise RuntimeError("failed to compile Fortran code:\n" + log_string)
 
         if self.verbose:
             print log_string
@@ -88,7 +101,7 @@ class InlineFortran:
             return
         finally:
             os.sys.path=old_import_path
-            os.unlink(name + '.so')
+            os.unlink(soname)
 
         for k, x in m.__dict__.iteritems():
             if k[0] != '_':

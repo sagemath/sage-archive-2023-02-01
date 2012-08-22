@@ -50,7 +50,8 @@ command-line development tools must be installed on your computer.
 - **perl**: version 5.8.0 or later
 - **tar**: GNU tar version 1.17 or later, or BSD tar
 - **ranlib**
-- On recent Debian or Ubuntu systems: the **dpkg-dev** package for
+- On recent Debian or Ubuntu systems:
+  **g++**, **gfortran** and the **dpkg-dev** package for
   `multiarch <http://wiki.debian.org/Multiarch>`_ support
 
 Recommended but not strictly required:
@@ -212,61 +213,6 @@ the source distributions for everything on which Sage depends. We
 emphasize that all of this software is included with Sage, so you
 do not have to worry about trying to download and install any one
 of these packages (such as GAP, for example) yourself.
-
-.. _section_fortran:
-
-Fortran
--------
-
-Sage includes the C, C++ and Fortran compilers of the
-`GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_.
-If a Fortran compiler is missing, it will be installed (within Sage)
-automatically.
-
-If you want to use an existing Fortran compiler on the system, you
-can tell Sage
-about the Fortran compiler and library location. Do this by typing ::
-
-    export SAGE_FORTRAN=/exact/path/to/gfortran
-    export SAGE_FORTRAN_LIB=/path/to/fortran/libs/libgfortran.so
-
-The :envvar:`SAGE_FORTRAN` environment variable is read when doing
-``make``.  It is not checked if you simply install one package using
-``./sage -i lapack`` or similar.  The :envvar:`SAGE_FORTRAN`
-environment variable does not mean "build any spkg that uses Fortran
-using this Fortran".  It means "when setting up the Sage build, create
-the ``sage_fortran`` script to run the Fortran compiler specified by
-the :envvar:`SAGE_FORTRAN` variable".
-
-On operating systems such as `AIX <http://en.wikipedia.org/wiki/IBM_AIX>`_,
-`HP-UX <http://en.wikipedia.org/wiki/HP-UX>`_, Solaris and OpenSolaris, where both 32-bit and
-64-bit builds are supported, the library path variable
-:envvar:`SAGE_FORTRAN_LIB` must point to the 32-bit library if you are
-building Sage in 32-bit. Also, :envvar:`SAGE_FORTRAN_LIB` must point to a
-64-bit library if you are building Sage in 64-bit. For example, on
-Solaris & OpenSolaris, the variables :envvar:`SAGE_FORTRAN`,
-:envvar:`SAGE_FORTRAN_LIB` and :envvar:`SAGE64` could be set as follows::
-
-    # SPARC, x86 and x64.
-    SAGE_FORTRAN=/path/to/gcc/install/directory/bin/gfortran
-
-    # 32-bit SPARC
-    SAGE_FORTRAN_LIB=/path/to/gcc/install/directory/lib/libgfortran.so
-
-    # 64-bit SPARC
-    SAGE_FORTRAN_LIB=/path/to/gcc/install/directory/lib/sparcv9/libgfortran.so
-    SAGE64=yes
-
-    # 32-bit x86
-    SAGE_FORTRAN_LIB=/path/to/gcc/install/directory/lib/libgfortran.so
-
-    # 64-bit x64
-    SAGE_FORTRAN_LIB=/path/to/gcc/install/directory/lib/amd64/libgfortran.so
-    SAGE64=yes
-
-(It should be noted that Sage is not supported on AIX or HP-UX, although some
-efforts have been made to `port Sage to AIX <http://wiki.sagemath.org/AIX>`_ and
-to `port Sage to HP-UX <http://wiki.sagemath.org/HP-UX>`_.)
 
 Steps to Install from Source
 ----------------------------
@@ -680,10 +626,6 @@ process:
   typically be set automatically, based on the setting of
   :envvar:`SAGE64`, for example.
 
-- :envvar:`SAGE_FORTRAN` - see :ref:`section_fortran`.
-
-- :envvar:`SAGE_FORTRAN_LIB` - see :ref:`section_fortran`.
-
 - :envvar:`SAGE_INSTALL_GCC` - by default, Sage will automatically
   detect whether to install the
   `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_
@@ -891,21 +833,43 @@ Environment variables dealing with specific Sage packages:
   minute on many systems -- so allowing it to build twice is not a
   serious issue.)
 
-Some standard environment variables which you should probably **not**
-set:
+Some standard environment variables which are used by Sage:
 
 - :envvar:`CC` - while some programs allow you to use this to specify
-  your C compiler, the Sage packages do **not** all recognize this.
-  In fact, setting this variable for building Sage is likely to cause
-  the build process to fail.
+  your C compiler, **not every Sage package recognizes this**.
+  If GCC is installed within Sage, :envvar:`CC` is ignored and Sage's
+  ``gcc`` is used instead.
 
-- :envvar:`CXX` - similarly, this will set the C++ complier for some
+- :envvar:`CXX` - similarly, this will set the C++ compiler for some
   Sage packages, and similarly, using it is likely quite risky.
+  If GCC is installed within Sage, :envvar:`CXX` is ignored and Sage's
+  ``g++`` is used instead.
 
-- :envvar:`CFLAGS`, :envvar:`CXXFLAGS` - the flags for the C compiler
-  and the C++ compiler, respectively.  The same comments apply to
-  these: setting them may cause problems, because they are not
-  universally respected among the Sage packages.
+- :envvar:`FC` - similarly, this will set the Fortran compiler.
+  This is supported by all Sage packages which have Fortran code.
+  However, for historical reasons, the value is hardcoded during the
+  initial ``make`` and subsequent changes to ``$FC`` might be ignored
+  (in which case, the original value will be used instead).
+  If GCC is installed within Sage, :envvar:`FC` is ignored and Sage's
+  ``gfortran`` is used instead.
+
+- :envvar:`CFLAGS`, :envvar:`CXXFLAGS` and :envvar:`FCFLAGS` - the
+  flags for the C compiler, the C++ compiler and the Fortran compiler,
+  respectively.  The same comments apply to these: setting them may
+  cause problems, because they are not universally respected among the
+  Sage packages.
+
+The following Fortran-related environment variables are **deprecated**
+since Sage 5.3 and support for these will likely be removed.
+They are still recognized, but should not be used for new setups.
+
+- :envvar:`SAGE_FORTRAN` - the path to the Fortran compiler.
+  Deprecated, use :envvar:`FC` instead.
+
+- :envvar:`SAGE_FORTRAN_LIB` - the path to the Fortran runtime library.
+  Normally, you don't need to set this. If you really need to,
+  you can add the directory containing the library to
+  :envvar:`LIBRARY_PATH` and/or :envvar:`LD_LIBRARY_PATH`.
 
 Sage uses the following environment variables when it runs:
 

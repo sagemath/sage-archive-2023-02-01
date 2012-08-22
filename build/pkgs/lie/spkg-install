@@ -25,5 +25,5 @@ cd ..
 sed -i -e "s'$PWD/src'$SAGE_LOCAL/lib/LiE'" src/lie
 rm -rf "$SAGE_LOCAL"/lib/lie # clean up old versions
 rm -rf "$SAGE_LOCAL"/bin/lie "$SAGE_LOCAL"/lib/LiE
-mv src/lie -t "$SAGE_LOCAL"/bin/
-mv src/ -T "$SAGE_LOCAL"/lib/LiE
+mv src/lie "$SAGE_LOCAL"/bin/
+mv src/ "$SAGE_LOCAL"/lib/LiE

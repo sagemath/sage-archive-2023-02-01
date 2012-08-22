@@ -51,6 +51,9 @@ GNU Lesser General Public License (LGPL), version unspecified
 
 == Changelog ==
 
+=== lie-2.2.2.p5 (Keshav Kini, 2012-08-23) ===
+ * Make usage of `mv` more portable
+
 === lie-2.2.2.p4 (Keshav Kini, 2012-05-24) ===
  * Commit changes to package repo
  * Track all non-upstream files

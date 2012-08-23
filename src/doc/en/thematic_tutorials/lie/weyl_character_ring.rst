@@ -305,8 +305,26 @@ we see that the spin representations of `spin(3)` and `spin(5)` are
 symplectic, while those of `spin(7)` and `spin(9)` are orthogonal.
 
 
-Symmetric and exterior square
+Symmetric and exterior powers
 -----------------------------
+
+Sage can compute symmetric and exterior powers of a representation::
+
+    sage: B3 = WeylCharacterRing("B3",style="coroots")
+    sage: spin=B3(0,0,1); spin.degree()
+    8
+    sage: spin.exterior_power(2)
+    B3(1,0,0) + B3(0,1,0)
+    sage: spin.exterior_square()
+    B3(1,0,0) + B3(0,1,0)
+    sage: spin.exterior_power(5)
+    B3(0,0,1) + B3(1,0,1)
+    sage: spin.symmetric_power(5)
+    B3(0,0,1) + B3(0,0,3) + B3(0,0,5)
+
+The `k`-th exterior square of a representation is zero if `k`
+is greater than the degree of the representation. However the
+`k`-th symmetric power is nonzero for all `k`.
 
 The tensor square of any representation decomposes as the direct sum
 of the symmetric and exterior squares::
@@ -523,46 +541,6 @@ large. What if we fix `n` and vary `k`?
         [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
 
 
-Symmetric and Exterior Powers
------------------------------
-
-We have seen that WeylCharacterRing elements have built-in
-methods for symmetric and exterior square. If you want to
-obtain higher symmetric or exterior powers, you may do it
-as follows. Let us consider the eight dimensional adjoint
-representation of `SL(3)`. We will compute the symmetric
-fifth power and the exterior fourth powers of this.
-The adjoint representation is a homomorphism from `SL(3)`
-to `SL(8)`, so the relevant WeylCharacterRings are `A2`
-and `A7`. First we construct the symmetric fifth power
-and exterior fourth power representations of `A7` ::
-
-        sage: A2 = WeylCharacterRing("A2",style="coroots")
-        sage: A7 = WeylCharacterRing("A7",style="coroots")
-        sage: s = A7.fundamental_weights()[1]; s
-        (1, 0, 0, 0, 0, 0, 0, 0)
-        sage: e = A7.fundamental_weights()[4]; e
-        (1, 1, 1, 1, 0, 0, 0, 0)
-        sage: A7(5*s).degree()
-        792
-        sage: A7(e).degree()
-        70
-
-Now we may branch these representations down to `SL(2)`
-along the adjoint representation. This computes the
-symmetric and exterior powers of `ad`.
-
-.. link
-
-::
-
-       sage: ad=A2(1,1); ad.degree()
-       8
-       sage: sym5 = A7(5*s).branch(A2,rule=branching_rule_from_plethysm(ad,"A7")); sym5 # long time
-       A2(0,0) + A2(0,3) + 2*A2(1,1) + A2(3,0) + A2(1,4) + 2*A2(2,2) + A2(4,1) + A2(2,5) + 2*A2(3,3) + A2(5,2) + A2(4,4) + A2(5,5)
-       sage: ext4 = A7(e).branch(A2,rule=branching_rule_from_plethysm(ad,"A7")); ext4
-       2*A2(1,1) + 2*A2(2,2)
-
 Invariants and multiplicities
 -----------------------------
 
@@ -574,10 +552,12 @@ representation in some character. This may be found by the method
 
 ::
 
-      sage: sym5.invariant_degree() # long time
-      1
-      sage: ext4.invariant_degree()
-      0
+	sage: A2=WeylCharacterRing("A2",style="coroots")
+	sage: ad = A2(1,1)
+	sage: [ad.symmetric_power(k).invariant_degree() for k in [0..6]]
+	[1, 0, 1, 1, 1, 1, 2]
+	sage: [ad.exterior_power(k).invariant_degree() for k in [0..6]]
+	[1, 0, 0, 1, 0, 1, 0]
 
 If we want the multiplicity of some other representation, we may
 obtain that using the method ``multiplicity``::
@@ -586,6 +566,6 @@ obtain that using the method ``multiplicity``::
 
 ::
 
-     sage: [rep.multiplicity(A2(3,3)) for rep in [sym5, ext4]] # long time
-     [2, 0]
+	sage: (ad^3).multiplicity(ad)
+	8
 

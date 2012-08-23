@@ -179,7 +179,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         The embedding of ``self`` into its weight ring
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: A2 = WeylCharacterRing("A2")
             sage: A2.lift
@@ -288,7 +288,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         EXAMPLES::
 
-            sage: WeylCharacterRing("A3")
+            sage: WeylCharacterRing("A3") # indirect doctest
             The Weyl Character Ring of Type ['A', 3] with Integer Ring coefficients
 
         """
@@ -374,35 +374,98 @@ class WeylCharacterRing(CombinatorialFreeModule):
         return self.monomial(weight)
 
     def product_on_basis(self, a, b):
-        """
+        r"""
+        This computes the tensor product of two irreducible representations
+        using the Brauer-Klimyk method.
+
         EXAMPLES::
 
             sage: D4 = WeylCharacterRing(['D',4])
             sage: spin_plus = D4(1/2,1/2,1/2,1/2)
             sage: spin_minus = D4(1/2,1/2,1/2,-1/2)
-            sage: spin_plus*spin_minus
+            sage: spin_plus*spin_minus # indirect doctest
             D4(1,0,0,0) + D4(1,1,1,0)
             sage: spin_minus*spin_plus
             D4(1,0,0,0) + D4(1,1,1,0)
         """
+        # The method is asymmetrical, and as a rule of thumb
+        # it is fastest to switch the factors so that the
+        # smaller character is the one that is decomposed
+        # into weights.
+        if sum(a.coefficients()) > sum(b.coefficients()):
+            a,b = b,a
+        return self._product_helper(self._irr_weights(a), b)
+
+    def _product_helper(self, d1, b):
+        """
+        INPUT:
+
+        - ``d1`` -- a dictionary of weight multiplicities
+        - ``b`` -- a dominant weight
+
+        If ``d1`` is the dictionary of weight multiplicities of a character,
+        returns the product of that character by the irreducible character
+        with highest weight ``b``.
+
+        EXAMPLES::
+
+            sage: A2 = WeylCharacterRing("A2")
+            sage: r = A2(1,0,0)
+            sage: [A2._product_helper(r.weight_multiplicities(),x) for x in A2.space().fundamental_weights()]
+            [A2(1,1,0) + A2(2,0,0), A2(1,1,1) + A2(2,1,0)]
+        """
         d = {}
-        d1 = self._irr_weights(a)
-        d2 = self._irr_weights(b)
         for k in d1:
-            for l in d2:
-                m = k+l
-                if m in d:
-                    d[m] += d1[k]*d2[l]
-                else:
-                    d[m] = d1[k]*d2[l]
-        for k in d.keys():
-            if d[k] == 0:
-                del d[k]
-        return self.char_from_weights(d)
+            [epsilon,g] = self.dot_reduce(b+k)
+            if epsilon == 1:
+                d[g] = d.get(g,0) + d1[k]
+            elif epsilon == -1:
+                d[g] = d.get(g,0)- d1[k]
+        return self._from_dict(d)
+
+    def dot_reduce(self, a):
+        r"""
+        Auxiliary function for product_on_basis.
+
+        INPUT:
+
+        - ``a`` -- a weight.
+
+        Returns a pair `[\epsilon,b]` where `b` is a dominant weight and
+        `\epsilon` is 0,1 or -1. To describe `b`, let `w` be an element of
+        the Weyl group such that `w(a+\rho)` is dominant. If
+        `w(a+\rho)-\rho` is dominant, then `\epsilon` is the sign of
+        `w` and `b` is `w(a+\rho)-\rho`. Otherwise, `\epsilon` is zero.
+
+        EXAMPLES::
+
+            sage: A2=WeylCharacterRing("A2")
+            sage: weights=A2(2,1,0).weight_multiplicities().keys(); weights
+            [(1, 2, 0), (2, 1, 0), (0, 2, 1), (2, 0, 1), (0, 1, 2), (1, 1, 1), (1, 0, 2)]
+            sage: [A2.dot_reduce(x) for x in weights]
+            [[0, (0, 0, 0)], [1, (2, 1, 0)], [-1, (1, 1, 1)], [0, (0, 0, 0)], [0, (0, 0, 0)], [1, (1, 1, 1)], [-1, (1, 1, 1)]]
+        """
+        alphacheck = self._space.simple_coroots()
+        alpha = self._space.simple_roots()
+        sr = self._space.weyl_group().simple_reflections()
+        [epsilon, ret] = [1,a]
+        done = False
+        while not done:
+            done = True
+            for i in self._space.index_set():
+                c = ret.inner_product(alphacheck[i])
+                if c == -1:
+                    return [0, self._space.zero()]
+                elif c < -1:
+                    epsilon = -epsilon
+                    ret -= (1+c)*alpha[i]
+                    done = False
+                    break
+        return [epsilon, ret]
 
     def some_elements(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: WeylCharacterRing("A3").some_elements()
             [A3(1,0,0,0), A3(1,1,0,0), A3(1,1,1,0)]
@@ -412,7 +475,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
     def one_basis(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: WeylCharacterRing("A3").one_basis()
             (0, 0, 0, 0)
@@ -429,7 +492,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         with highest weight vector hwv. This method is cached
         for efficiency.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A2=WeylCharacterRing("A2")
             sage: v = A2.fundamental_weights()[1]; v
@@ -445,7 +508,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         Produces the dictionary of weight multiplicities for the
         WeylCharacter x. The character x does not have to be irreducible.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B2=WeylCharacterRing("B2",style="coroots")
             sage: chi=2*B2(1,0)
@@ -509,9 +572,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         Representation of the monomial corresponding to a weight t.
 
-        EXAMPLES ::
+        EXAMPLES::
 
-            sage: G2=WeylCharacterRing("G2")
+            sage: G2=WeylCharacterRing("G2") # indirect doctest
             sage: [G2._repr_term(x) for x in G2.fundamental_weights()]
             ['G2(1,0,-1)', 'G2(2,-1,-1)']
         """
@@ -556,8 +619,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: WeylCharacterRing("G2").simple_roots()
-            Finite family {1: (0, 1, -1), 2: (1, -2, 1)}
+            sage: WeylCharacterRing("G2").simple_coroots()
+            Finite family {1: (0, 1, -1), 2: (1/3, -2/3, 1/3)}
         """
         return self._space.simple_coroots()
 
@@ -650,7 +713,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         OUTPUT: the corresponding Weyl character
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: A2 = WeylCharacterRing("A2")
             sage: v = A2._space([3,1,0]); v
@@ -732,10 +795,10 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
             INPUT:
 
-             - ``S`` - a Weyl character ring for a Lie subgroup or
+             - ``S`` -- a Weyl character ring for a Lie subgroup or
                subalgebra
 
-             -  ``rule`` - a branching rule.
+             -  ``rule`` -- a branching rule.
 
             See :func:`branch_weyl_character` for more information
             about branching rules.
@@ -751,6 +814,25 @@ class WeylCharacterRing(CombinatorialFreeModule):
             """
             return branch_weyl_character(self, self.parent(), S, rule=rule)
 
+        def __pow__(self, n):
+            """
+            We override the method in monoids.py since using the Brauer-Klimyk algorithm,
+            it is more efficient to compute a*(a*(a*a)) than (a*a)*(a*a).
+
+            EXAMPLES::
+
+                sage: B4=WeylCharacterRing("B4",style="coroots")
+                sage: spin = B4(0,0,0,1)
+                sage: [spin^k for k in [0,1,3]]
+                [B4(0,0,0,0), B4(0,0,0,1), 5*B4(0,0,0,1) + 4*B4(1,0,0,1) + 3*B4(0,1,0,1) + 2*B4(0,0,1,1) + B4(0,0,0,3)]
+            """
+            if n == 0:
+                return self.parent().one()
+            elif n == 1:
+                return self
+            else:
+                return self*self.__pow__(n-1)
+
         def is_irreducible(self):
             """
             Returns whether ``self`` is an irreducible character.
@@ -765,6 +847,127 @@ class WeylCharacterRing(CombinatorialFreeModule):
             """
             return self.coefficients() == [1]
 
+        @cached_method
+        def symmetric_power(self, k):
+            r"""
+            Returns the `k`-th symmetric power of ``self``.
+
+            INPUT:
+
+            - `k` -- a nonnegative integer
+
+            The algorithm is based on the
+            identity `k h_k = \sum_{r=1}^k p_k h_{k-r}` relating the power-sum and
+            complete symmetric polynomials. Applying this to the eigenvalues of
+            an element of the parent Lie group in the representation ``self``, the
+            `h_k ` become symmetric powers and the `p_k` become adams operations,
+            giving an efficient recursive implementation.
+
+            EXAMPLES::
+
+                sage: B3=WeylCharacterRing("B3",style="coroots")
+                sage: spin=B3(0,0,1)
+                sage: spin.symmetric_power(6)
+                B3(0,0,0) + B3(0,0,2) + B3(0,0,4) + B3(0,0,6)
+            """
+            par = self.parent()
+            if k == 0:
+                return par.one()
+            if k == 1:
+                return self
+            ret = par.zero()
+            for r in range(1,k+1):
+                adam_r = self._adams_operation_helper(r)
+                ret += par.linear_combination( (par._product_helper(adam_r, l), c) for (l, c) in self.symmetric_power(k-r))
+            dd = {}
+            m = ret.weight_multiplicities()
+            for l in m:
+                dd[l] = m[l]/k
+            return self.parent().char_from_weights(dd)
+
+        @cached_method
+        def exterior_power(self, k):
+            r"""
+            Returns the `k`-th exterior power of ``self``.
+
+            INPUT:
+
+            - ``k`` -- a nonnegative integer
+
+            The algorithm is based on the
+            identity `k e_k = \sum_{r=1}^k (-1)^{k-1} p_k e_{k-r}` relating the
+            power-sum and elementary symmetric polynomials. Applying this to the eigenvalues of
+            an element of the parent Lie group in the representation self, the
+            `e_k ` become exterior powers and the `p_k` become adams operations,
+            giving an efficient recursive implementation.
+
+            EXAMPLES::
+
+                sage: B3=WeylCharacterRing("B3",style="coroots")
+                sage: spin=B3(0,0,1)
+                sage: spin.exterior_power(6)
+                B3(1,0,0) + B3(0,1,0)
+            """
+            par = self.parent()
+            if k == 0:
+                return par.one()
+            if k == 1:
+                return self
+            ret = par.zero()
+            for r in range(1,k+1):
+                adam_r = self._adams_operation_helper(r)
+                if is_even(r):
+                    ret -= par.linear_combination( (par._product_helper(adam_r, l), c) for (l, c) in self.exterior_power(k-r))
+                else:
+                    ret += par.linear_combination( (par._product_helper(adam_r, l), c) for (l, c) in self.exterior_power(k-r))
+            dd = {}
+            m = ret.weight_multiplicities()
+            for l in m:
+                dd[l] = m[l]/k
+            return self.parent().char_from_weights(dd)
+
+        def adams_operation(self, r):
+            """
+            Returns the `r`-th Adams operation of ``self``.
+
+            INPUT:
+
+            - ``r`` -- a positive integer
+
+            This is a virtual character,
+            whose weights are the weights of ``self``, each multiplied by `r`.
+
+            EXAMPLES::
+
+                sage: A2=WeylCharacterRing("A2")
+                sage: A2(1,1,0).adams_operation(3)
+                A2(2,2,2) - A2(3,2,1) + A2(3,3,0)
+            """
+            return self.parent().char_from_weights(self._adams_operation_helper(r))
+
+        def _adams_operation_helper(self, r):
+            """
+            Helper function for Adams operations.
+
+            INPUT:
+
+            - ``r`` -- a positive integer
+
+            Returns the dictionary of weight multiplicities for the Adams operation, needed for
+            internal use by symmetric and exterior powers.
+
+            EXAMPLES::
+
+                sage: A2=WeylCharacterRing("A2")
+                sage: A2(1,1,0)._adams_operation_helper(3)
+                {(3, 3, 0): 1, (0, 3, 3): 1, (3, 0, 3): 1}
+            """
+            d = self.weight_multiplicities()
+            dd = {}
+            for k in d:
+                dd[r*k] = d[k]
+            return dd
+
         def symmetric_square(self):
             """
             Returns the symmetric square of the character.
@@ -776,14 +979,11 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 A2(2,0)
             """
             # Conceptually, this converts self to the weight ring,
-            # computes its square there, and convert the result back,
-            # similar to what is done by product_on_basis. So in
-            # principle, one could just return self^2.
+            # computes its square there, and converts the result back.
             #
             # This implementation uses that this is a squaring (and not
             # a generic product) in the weight ring to optimize by
             # running only through pairs of weights instead of couples.
-            # Worth it?
             c = self.weight_multiplicities()
             ckeys = c.keys()
             d = {}
@@ -879,7 +1079,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             Produces the dictionary of weight multiplicities for the
             WeylCharacter self. The character does not have to be irreducible.
 
-            EXAMPLE ::
+            EXAMPLES::
 
                 sage: B2=WeylCharacterRing("B2",style="coroots")
                 sage: B2(0,1).weight_multiplicities()
@@ -895,7 +1095,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             interpreted as functions on a compact Lie group,
             by Schur orthogonality.
 
-            EXAMPLES ::
+            EXAMPLES::
 
                 sage: A2 = WeylCharacterRing("A2")
                 sage: [f1,f2]=A2.fundamental_weights()
@@ -914,7 +1114,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             in self. Multiplicities of other irreducibles may be
             obtained using the method ``multiplicity.``
 
-            EXAMPLE ::
+            EXAMPLES::
 
                 sage: A2 = WeylCharacterRing("A2",style="coroots")
                 sage: rep = A2(1,0)^2*A2(0,1)^2; rep
@@ -932,7 +1132,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
             Returns the multiplicity of the irreducible other in self.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: B2 = WeylCharacterRing("B2",style="coroots")
                 sage: rep = B2(1,1)^2; rep
@@ -962,6 +1162,11 @@ def irreducible_character_freudenthal(hwv, L, debug=False):
     - ``hwv`` - a dominant weight in a weight lattice.
 
     - ``L`` - the ambient space
+
+    EXAMPLES::
+
+        sage: WeylCharacterRing("A2")(2,1,0).weight_multiplicities() # indirect doctest
+        {(1, 2, 0): 1, (2, 1, 0): 1, (0, 2, 1): 1, (2, 0, 1): 1, (0, 1, 2): 1, (1, 1, 1): 2, (1, 0, 2): 1}
     """
     rho = L.rho()
     mdict = {}
@@ -1646,12 +1851,18 @@ def get_branching_rule(Rtype, Stype, rule):
     """
     INPUT:
 
-    - ``R`` - the Weyl Character Ring of G
+    - ``R`` -- the Weyl Character Ring of G
 
-    - ``S`` - the Weyl Character Ring of H
+    - ``S`` -- the Weyl Character Ring of H
 
-    - ``rule`` - a string describing the branching rule as a map from
+    - ``rule`` -- a string describing the branching rule as a map from
       the weight space of S to the weight space of R.
+
+    EXAMPLES::
+
+       sage: rule = get_branching_rule(CartanType("A3"),CartanType("C2"),"symmetric")
+       sage: [rule(x) for x in WeylCharacterRing("A3").fundamental_weights()]
+       [[1, 0], [1, 1], [1, 0]]
     """
     r = Rtype.rank()
     s = Stype.rank()
@@ -2057,7 +2268,7 @@ def branching_rule_from_plethysm(chi, cartan_type, return_matrix = False):
 
     Returns a branching rule for this plethysm.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The adjoint representation SL(3) --> GL(8) factors
     through SO(8). The branching rule in question will
@@ -2141,7 +2352,7 @@ class WeightRing(CombinatorialFreeModule):
     is that one may conduct calculations in the WeightRing that
     involve sums of weights that are not Weyl Group invariant.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: A2 = WeylCharacterRing(['A',2])
         sage: a2 = WeightRing(A2)
@@ -2166,6 +2377,12 @@ class WeightRing(CombinatorialFreeModule):
     @staticmethod
     def __classcall__(cls, parent, prefix=None):
         """
+        TESTS::
+
+            sage: A3 = WeylCharacterRing("A3", style="coroots")
+            sage: a3 = WeightRing(A3)
+            sage: a3.cartan_type(), a3.base_ring(), a3.parent()
+            (['A', 3], Integer Ring, The Weyl Character Ring of Type ['A', 3] with Integer Ring coefficients)
         """
         return super(WeightRing, cls).__classcall__(cls, parent, prefix=prefix)
 
@@ -2214,7 +2431,7 @@ class WeightRing(CombinatorialFreeModule):
 
             sage: P.<q>=QQ[]
             sage: G2 = WeylCharacterRing(['G',2], base_ring = P)
-            sage: WeightRing(G2)
+            sage: WeightRing(G2) # indirect doctest
             The Weight ring attached to The Weyl Character Ring of Type ['G', 2] with Univariate Polynomial Ring in q over Rational Field coefficients
         """
         return "The Weight ring attached to %s"%self._parent
@@ -2279,18 +2496,18 @@ class WeightRing(CombinatorialFreeModule):
 
     def product_on_basis(self, a, b):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A2=WeylCharacterRing("A2")
             sage: a2=WeightRing(A2)
-            sage: a2(1,0,0)*a2(0,1,0)
+            sage: a2(1,0,0)*a2(0,1,0) # indirect doctest
             a2(1,1,0)
         """
         return self(a+b)
 
     def some_elements(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A3=WeylCharacterRing("A3")
             sage: a3=WeightRing(A3)
@@ -2301,7 +2518,7 @@ class WeightRing(CombinatorialFreeModule):
 
     def one_basis(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A3=WeylCharacterRing("A3")
             sage: WeightRing(A3).one_basis()
@@ -2315,7 +2532,7 @@ class WeightRing(CombinatorialFreeModule):
         """
         Returns the parent Weyl Character Ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A2=WeylCharacterRing("A2")
             sage: a2=WeightRing(A2)
@@ -2331,7 +2548,7 @@ class WeightRing(CombinatorialFreeModule):
         """
         Returns the parent Weyl Character Ring. A synonym for self.parent().
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A2=WeylCharacterRing("A2")
             sage: a2=WeightRing(A2)
@@ -2423,7 +2640,7 @@ class WeightRing(CombinatorialFreeModule):
 
             sage: G2=WeylCharacterRing("G2")
             sage: g2=WeightRing(G2)
-            sage: [g2(x) for x in g2.fundamental_weights()]
+            sage: [g2(x) for x in g2.fundamental_weights()] # indirect doctest
             [g2(1,0,-1), g2(2,-1,-1)]
         """
         return self.wt_repr(t)
@@ -2435,6 +2652,7 @@ class WeightRing(CombinatorialFreeModule):
         def cartan_type(self):
             """
             Returns the Cartan type.
+
             EXAMPLES::
 
                 sage: A2=WeylCharacterRing("A2")

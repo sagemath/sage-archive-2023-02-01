@@ -8628,6 +8628,7 @@ class GenericGraph(GenericGraph_pyx):
         - G.has_edge( 1, 2 )
         - G.has_edge( (1, 2) )
         - G.has_edge( 1, 2, 'label' )
+        - G.has_edge( (1, 2, 'label') )
 
         EXAMPLES::
 
@@ -10809,45 +10810,94 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self.subgraph(vertices).to_simple().size()==0
 
-    def is_subgraph(self, other):
+    def is_subgraph(self, other, induced=True):
         """
-        Tests whether self is an induced subgraph of other.
+        Tests whether ``self`` is a subgraph of ``other``.
 
         .. WARNING::
 
             Please note that this method does not check whether ``self``
             contains a subgraph *isomorphic* to ``other``, but only if it
-            directly contains it as a subgraph ! This means that this method
-            returns ``True`` only if the vertices of ``other`` are also vertices
-            of ``self``, and that the edges of ``other`` are equal to the edges
-            of ``self`` between the vertices contained in ``other``.
+            directly contains it as a subgraph !
+
+            By default ``induced`` is ``True`` for backwards compatibility.
+
+        INPUT:
+
+        - ``induced`` - boolean (default: ``True``) If set to ``True`` tests
+          whether ``self`` is an *induced* subgraph of ``other`` that is if
+          the vertices of ``self`` are also vertices of ``other``, and the
+          edges of  ``self`` are equal to the edges of ``other`` between the
+          vertices contained in ``self`.
+          If set to ``False`` tests whether ``self`` is a subgraph of ``other``
+          that is if all vertices of ``self`` are also in ``other`` and all
+          edges of ``self`` are also in ``other``.
+
+        OUTPUT:
+
+        boolean -- ``True`` iff ``self`` is a (possibly induced) subgraph of ``other``.
 
         .. SEEALSO::
 
-            If you are interested in the (possibly induced) subgraphs of
-            ``self`` to ``other``, you are looking for the following methods:
+            If you are interested in the (possibly induced) subgraphs isomorphic
+            to ``self`` in ``other``, you are looking for the following methods:
 
-            - :meth:`~GenericGraph.subgraph_search` -- finds an subgraph
-              isomorphic to `H` inside of a graph `G`
+            - :meth:`~GenericGraph.subgraph_search` -- finds a subgraph
+              isomorphic to `G` inside of a `self`
 
             - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
               of such copies.
 
             - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate over all
-              the copies of `H` contained in `G`.
+              the copies of `G` contained in `self`.
 
-        EXAMPLES::
+        EXAMPLES:
 
             sage: P = graphs.PetersenGraph()
             sage: G = P.subgraph(range(6))
             sage: G.is_subgraph(P)
             True
+
+            sage: H=graphs.CycleGraph(5)
+            sage: G=graphs.PathGraph(5)
+            sage: G.is_subgraph(H)
+            False
+            sage: G.is_subgraph(H, induced=False)
+            True
+            sage: H.is_subgraph(G, induced=False)
+            False
+
+        TESTS:
+
+        Raise an error when self and other are of different types::
+
+            sage: Graph([(0,1)]).is_subgraph( DiGraph([(0,1)]) )
+            Traceback (most recent call last):
+            ...
+            ValueError: The input parameter must be a Graph.
+            sage: DiGraph([(0,1)]).is_subgraph( Graph([(0,1)]) )
+            Traceback (most recent call last):
+            ...
+            ValueError: The input parameter must be a DiGraph.
         """
-        self_verts = self.vertices()
-        for v in self_verts:
-            if v not in other:
-                return False
-        return other.subgraph(self_verts) == self
+        from sage.graphs.graph import Graph
+        from sage.graphs.digraph import DiGraph
+        if isinstance(self,Graph) and not isinstance(other,Graph):
+            raise ValueError('The input parameter must be a Graph.')
+
+        if isinstance(self,DiGraph) and not isinstance(other,DiGraph):
+            raise ValueError('The input parameter must be a DiGraph.')
+
+        if self.num_verts() > other.num_verts():
+            return False
+
+        if any(v not in other for v in self.vertex_iterator()):
+            return False
+
+        if induced:
+            return other.subgraph(self.vertices()) == self
+        else:
+            return all(other.has_edge(e) for e in self.edge_iterator())
 
     ### Cluster
 

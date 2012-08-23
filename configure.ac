@@ -238,36 +238,10 @@ then
     AC_MSG_ERROR([Exiting, since AC_PACKAGE_NAME requires dpkg-architecture on Debian])
 fi
 
-# Next one should check for libraries.
-# OpenSSL is a prerequisite for the notebook.
-# Before checking OpenSSL, we check for -ldl and -lcrypto (which are
-# needed on some systems to link -lssl).
-AC_SEARCH_LIBS([dlopen], [dl])
-AC_SEARCH_LIBS([CRYPTO_free], [crypto])
-AC_CHECK_LIB(ssl, SSL_library_init, [], [
-    AC_MSG_NOTICE([The OpenSSL library is required to build the Sage Notebook.])
-    AC_MSG_NOTICE([You might need to execute one of the following (or the equivalent for your])
-    AC_MSG_NOTICE([operating system):])
-    AC_MSG_NOTICE([  sudo apt-get install libssl-dev])
-    AC_MSG_NOTICE([  sudo yum install openssl-devel])
-    AC_MSG_ERROR([Exiting, since the OpenSSL library was not found.])
-])
-
-
 # Next one should check for header files.
 # complex.h is one that might not exist on older systems.
 AC_CHECK_HEADER([complex.h],[],[
     AC_MSG_ERROR([Exiting, since you do not have the 'complex.h' header file.])
-])
-
-# The Sage Notebook requires OpenSSL headers. 
-AC_CHECK_HEADER([openssl/ssl.h],[],[
-    AC_MSG_NOTICE([The OpenSSL library is required to build the Sage Notebook.])
-    AC_MSG_NOTICE([You might need to execute one of the following (or the equivalent for your])
-    AC_MSG_NOTICE([operating system):])
-    AC_MSG_NOTICE([  sudo apt-get install libssl-dev])
-    AC_MSG_NOTICE([  sudo yum install openssl-devel])
-    AC_MSG_ERROR([Exiting, since the OpenSSL headers were not found.])
 ])
 
 # Next one should check for types.

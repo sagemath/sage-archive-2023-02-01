@@ -16,6 +16,9 @@ AUTHORS:
 
 - Jeroen Demeyer (2010-07, 2011-04): Upgrade PARI (#9343, #10430, #11130)
 
+- Robert Harron (2012-08): added is_CM(), complex_conjugation(), and
+  maximal_totally_real_subfield()
+
 .. note::
 
    Unlike in PARI/GP, class group computations *in Sage* do *not* by default
@@ -94,6 +97,8 @@ import sage.rings.real_double
 import sage.rings.real_lazy
 
 from sage.rings.finite_rings.integer_mod import mod
+from sage.misc.functional import is_odd
+from sage.categories.homset import End
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
@@ -1732,6 +1737,330 @@ class NumberField_generic(number_field_base.NumberField):
             False
         """
         return self.signature()[0] == 0
+
+    def is_CM(self):
+        r"""
+        Return True if self is a CM field (i.e. a totally imaginary
+        quadratic extension of a totally real field).
+
+        EXAMPLES::
+
+            sage: Q.<a> = NumberField(x - 1)
+            sage: Q.is_CM()
+            False
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.is_CM()
+            True
+            sage: L.<zeta20> = CyclotomicField(20)
+            sage: L.is_CM()
+            True
+            sage: K.<omega> = QuadraticField(-3)
+            sage: K.is_CM()
+            True
+            sage: L.<sqrt5> = QuadraticField(5)
+            sage: L.is_CM()
+            False
+            sage: F.<a> = NumberField(x^3 - 2)
+            sage: F.is_CM()
+            False
+            sage: F.<a> = NumberField(x^4-x^3-3*x^2+x+1)
+            sage: F.is_CM()
+            False
+
+        The following are non-CM totally imaginary fields.
+
+        ::
+
+            sage: F.<a> = NumberField(x^4 + x^3 - x^2 - x + 1)
+            sage: F.is_totally_imaginary()
+            True
+            sage: F.is_CM()
+            False
+            sage: F2.<a> = NumberField(x^12 - 5*x^11 + 8*x^10 - 5*x^9 - \
+                                       x^8 + 9*x^7 + 7*x^6 - 3*x^5 + 5*x^4 + \
+                                       7*x^3 - 4*x^2 - 7*x + 7)
+            sage: F2.is_totally_imaginary()
+            True
+            sage: F2.is_CM()
+            False
+
+        The following is a non-cyclotomic CM field.
+
+        ::
+
+            sage: M.<a> = NumberField(x^4 - x^3 - x^2 - 2*x + 4)
+            sage: M.is_CM()
+            True
+
+        Now, we construct a totally imaginary quadratic extension of a
+        totally real field (which is not cyclotomic).
+
+        ::
+
+            sage: E_0.<a> = NumberField(x^7 - 4*x^6 - 4*x^5 + 10*x^4 + 4*x^3 - \
+                                        6*x^2 - x + 1)
+            sage: E_0.is_totally_real()
+            True
+            sage: E.<b> = E_0.extension(x^2 + 1)
+            sage: E.is_CM()
+            True
+
+        Finally, a CM field that is given as an extension that is not CM.
+
+        ::
+
+            sage: E_0.<a> = NumberField(x^2 - 4*x + 16)
+            sage: y = polygen(E_0)
+            sage: E.<z> = E_0.extension(y^2 - E_0.gen() / 2)
+            sage: E.is_CM()
+            True
+            sage: E.is_CM_extension()
+            False
+
+        """
+
+        #Return cached answer if available
+        try:
+            return self.__is_CM
+        except(AttributeError):
+            pass
+
+        #Then, deal with simple cases
+        if is_odd(self.absolute_degree()):
+            self.__is_CM = False
+            return False
+        if isinstance(
+           self, sage.rings.number_field.number_field.NumberField_quadratic):
+            self.__is_CM = (self.discriminant() < 0)
+            return self.__is_CM
+        if isinstance(
+           self, sage.rings.number_field.number_field.NumberField_cyclotomic):
+            self.__is_CM = True
+            return True
+        if not self.is_totally_imaginary():
+            self.__is_CM = False
+            return False
+        if self.is_absolute():
+            K = self
+        else:
+            F = self.base_field()
+            if F.absolute_degree() == self.absolute_degree() / 2:
+                if F.is_totally_real():
+                    self.__is_CM = True
+                    self.__max_tot_real_sub = [F, self.coerce_map_from(F)]
+                    return True
+            K = self.absolute_field('z')
+
+        #Check for index 2 subextensions that are totally real
+        possibilities = K.subfields(K.absolute_degree()/2)
+        for F, phi, _ in possibilities:
+            if F.is_totally_real():
+                self.__is_CM = True
+                if self.is_relative():
+                    phi = phi.post_compose(K.structure()[0])
+                self.__max_tot_real_sub = [F, phi]
+                return True
+        self.__is_CM = False
+        return False
+
+    def complex_conjugation(self):
+        """
+        Return the complex conjugation of self.
+
+        This is only well-defined for fields contained in CM fields
+        (i.e. for totally real fields and CM fields). Recall that a CM
+        field is a totally imaginary quadratic extension of a totally
+        real field. For other fields, a ValueError is raised.
+
+        EXAMPLES::
+
+            sage: QuadraticField(-1, 'I').complex_conjugation()
+            Ring endomorphism of Number Field in I with defining polynomial x^2 + 1
+              Defn: I |--> -I
+            sage: CyclotomicField(8).complex_conjugation()
+            Ring endomorphism of Cyclotomic Field of order 8 and degree 4
+              Defn: zeta8 |--> -zeta8^3
+            sage: QuadraticField(5, 'a').complex_conjugation()
+            Identity endomorphism of Number Field in a with defining polynomial x^2 - 5
+            sage: F = NumberField(x^4 + x^3 - 3*x^2 - x + 1, 'a')
+            sage: F.is_totally_real()
+            True
+            sage: F.complex_conjugation()
+            Identity endomorphism of Number Field in a with defining polynomial x^4 + x^3 - 3*x^2 - x + 1
+            sage: F.<b> = NumberField(x^2 - 2)
+            sage: F.extension(x^2 + 1, 'a').complex_conjugation()
+            Relative number field endomorphism of Number Field in a with defining polynomial x^2 + 1 over its base field
+              Defn: a |--> -a
+                    b |--> b
+            sage: F2.<b> = NumberField(x^2 + 2)
+            sage: K2.<a> = F2.extension(x^2 + 1)
+            sage: cc = K2.complex_conjugation()
+            sage: cc(a)
+            -a
+            sage: cc(b)
+            -b
+
+        """
+
+        #Return cached answer if available
+        try:
+            return self.__complex_conjugation
+        except(AttributeError):
+            pass
+
+        #Then, deal with simple cases
+        if isinstance(
+           self, sage.rings.number_field.number_field.NumberField_quadratic):
+            disc = self.discriminant()
+            if disc > 0:
+                self.__complex_conjugation = self.coerce_map_from(self)
+                return self.__complex_conjugation
+            else:
+                a = self.gen()
+                r = a.trace()
+                iy = a - r / 2
+                self.__complex_conjugation = self.hom([a - 2 * iy])
+            return self.__complex_conjugation
+        if isinstance(
+           self, sage.rings.number_field.number_field.NumberField_cyclotomic):
+            zeta = self.gen()
+            self.__complex_conjugation = self.hom([zeta ** (-1)])
+            return self.__complex_conjugation
+        if self.is_totally_real():
+            self.__complex_conjugation = self.coerce_map_from(self)
+            return self.__complex_conjugation
+
+        if not self.is_CM():
+            raise ValueError('Complex conjugation is only well-defined for fields contained in CM fields.')
+
+        #In the remaining case, self.is_CM() should have cached __max_tot_real_sub
+        try:
+            F, phi = self.__max_tot_real_sub
+        except(AttributeError):
+            F, phi = self.maximal_totally_real_subfield()
+        if self.is_absolute():
+            K_rel = self.relativize(phi, self.variable_name() * 2)
+            to_abs, from_abs = K_rel.structure()
+            self.__complex_conjugation = K_rel.automorphisms()[1].pre_compose( \
+               from_abs).post_compose(to_abs)
+            self.__complex_conjugation = self.hom([self.__complex_conjugation(self.gen())])
+            return self.__complex_conjugation
+        else:
+            if self.is_CM_extension():
+                return self.automorphisms()[1]
+            K_abs = self.absolute_field(self.variable_name() * 2)
+            to_self, from_self = K_abs.structure()
+            K_rel = K_abs.relativize(phi.post_compose(from_self), self.variable_name() * 3)
+            to_abs, from_abs = K_rel.structure()
+            self.__complex_conjugation = K_rel.automorphisms()[1].pre_compose(from_abs).post_compose(to_abs)
+            self.__complex_conjugation = K_abs.hom([self.__complex_conjugation(K_abs.gen())])
+            self.__complex_conjugation = self.__complex_conjugation.pre_compose(from_self).post_compose(to_self)
+            return self.__complex_conjugation
+
+    def maximal_totally_real_subfield(self):
+        """
+        Return the maximal totally real subfield of self together with an embedding of it into self.
+
+        EXAMPLES::
+
+            sage: F.<a> = QuadraticField(11)
+            sage: F.maximal_totally_real_subfield()
+            [Number Field in a with defining polynomial x^2 - 11, Identity endomorphism of Number Field in a with defining polynomial x^2 - 11]
+            sage: F.<a> = QuadraticField(-15)
+            sage: F.maximal_totally_real_subfield()
+            [Rational Field, Natural morphism:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 + 15]
+            sage: F.<a> = CyclotomicField(29)
+            sage: F.maximal_totally_real_subfield()
+            (Number Field in a0 with defining polynomial x^14 + x^13 - 13*x^12 - 12*x^11 + 66*x^10 + 55*x^9 - 165*x^8 - 120*x^7 + 210*x^6 + 126*x^5 - 126*x^4 - 56*x^3 + 28*x^2 + 7*x - 1, Ring morphism:
+              From: Number Field in a0 with defining polynomial x^14 + x^13 - 13*x^12 - 12*x^11 + 66*x^10 + 55*x^9 - 165*x^8 - 120*x^7 + 210*x^6 + 126*x^5 - 126*x^4 - 56*x^3 + 28*x^2 + 7*x - 1
+              To:   Cyclotomic Field of order 29 and degree 28
+              Defn: a0 |--> -a^27 - a^26 - a^25 - a^24 - a^23 - a^22 - a^21 - a^20 - a^19 - a^18 - a^17 - a^16 - a^15 - a^14 - a^13 - a^12 - a^11 - a^10 - a^9 - a^8 - a^7 - a^6 - a^5 - a^4 - a^3 - a^2 - 1)
+            sage: F.<a> = NumberField(x^3 - 2)
+            sage: F.maximal_totally_real_subfield()
+            [Rational Field, Conversion map:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^3 - 2]
+            sage: F.<a> = NumberField(x^4 - x^3 - x^2 + x + 1)
+            sage: F.maximal_totally_real_subfield()
+            [Rational Field, Conversion map:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^4 - x^3 - x^2 + x + 1]
+            sage: F.<a> = NumberField(x^4 - x^3 + 2*x^2 + x + 1)
+            sage: F.maximal_totally_real_subfield()
+            [Number Field in a1 with defining polynomial x^2 - x - 1, Ring morphism:
+              From: Number Field in a1 with defining polynomial x^2 - x - 1
+              To:   Number Field in a with defining polynomial x^4 - x^3 + 2*x^2 + x + 1
+              Defn: a1 |--> -1/2*a^3 - 1/2]
+            sage: F.<a> = NumberField(x^4-4*x^2-x+1)
+            sage: F.maximal_totally_real_subfield()
+            [Number Field in a with defining polynomial x^4 - 4*x^2 - x + 1, Identity endomorphism of Number Field in a with defining polynomial x^4 - 4*x^2 - x + 1]
+
+        An example of a relative extension where the base field is not the maximal totally real subfield.
+
+        ::
+
+            sage: E_0.<a> = NumberField(x^2 - 4*x + 16)
+            sage: y = polygen(E_0)
+            sage: E.<z> = E_0.extension(y^2 - E_0.gen() / 2)
+            sage: E.maximal_totally_real_subfield()
+            [Number Field in z2 with defining polynomial x^2 - 6, Composite map:
+              From: Number Field in z2 with defining polynomial x^2 - 6
+              To:   Number Field in z with defining polynomial x^2 - 1/2*a over its base field
+              Defn:   Ring morphism:
+                      From: Number Field in z2 with defining polynomial x^2 - 6
+                      To:   Number Field in z with defining polynomial x^4 - 2*x^2 + 4
+                      Defn: z2 |--> -1/2*z^3 + 2*z
+                    then
+                      Isomorphism map:
+                      From: Number Field in z with defining polynomial x^4 - 2*x^2 + 4
+                      To:   Number Field in z with defining polynomial x^2 - 1/2*a over its base field]
+
+        """
+
+        try:
+            return self.__max_tot_real_sub
+        except(AttributeError):
+            pass
+
+        if isinstance(
+           self, sage.rings.number_field.number_field.NumberField_quadratic):
+            if self.discriminant() > 0:
+                self.__max_tot_real_sub = [self, self.coerce_map_from(self)]
+                return self.__max_tot_real_sub
+            else:
+                self.__max_tot_real_sub = [QQ, self.coerce_map_from(QQ)]
+            return self.__max_tot_real_sub
+        if isinstance(
+           self, sage.rings.number_field.number_field.NumberField_cyclotomic):
+            zeta = self.gen()
+            self.__max_tot_real_sub = self.subfield(zeta + zeta ** (-1))
+            return self.__max_tot_real_sub
+        if self.is_totally_real():
+            self.__max_tot_real_sub = [self, self.coerce_map_from(self)]
+            return self.__max_tot_real_sub
+        if self.is_absolute():
+            K = self
+        else:
+            if self.is_CM_extension():
+                self.__max_tot_real_sub = [self.base_field(), self.coerce_map_from(self.base_field())]
+                return self.__max_tot_real_sub
+            K = self.absolute_field('z')
+
+        d = K.absolute_degree()
+        divs = d.divisors()[1:-1]
+        divs.reverse()
+        for i in divs:
+            possibilities = K.subfields(i)
+            for F, phi, _ in possibilities:
+                if F.is_totally_real():
+                    if self.is_relative():
+                        phi = phi.post_compose(K.structure()[0])
+                    self.__max_tot_real_sub = [F, phi]
+                    return self.__max_tot_real_sub
+        self.__max_tot_real_sub = [QQ, self.coerce_map_from(QQ)]
+        return self.__max_tot_real_sub
 
     def complex_embeddings(self, prec=53):
         r"""

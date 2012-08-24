@@ -8,6 +8,7 @@ AUTHORS:
 - William Stein (2007-09-04): major rewrite and documentation
 - Robert Bradshaw (2008-10): specified embeddings into ambient fields
 - Nick Alexander (2009-01): modernize coercion implementation
+- Robert Harron (2012-08): added is_CM_extension
 
 This example follows one in the Magma reference manual::
 
@@ -1200,6 +1201,54 @@ class NumberField_relative(NumberField_generic):
         """
         f = self.absolute_polynomial()
         return f.galois_group(pari_group=True).order() == self.absolute_degree()
+
+    def is_CM_extension(self):
+        """
+        Return True is this is a CM extension, i.e. a totally imaginary
+        quadratic extension of a totally real field.
+
+        EXAMPLES::
+
+            sage: F.<a> = NumberField(x^2 - 5)
+            sage: K.<z> = F.extension(x^2 + 7)
+            sage: K.is_CM_extension()
+            True
+            sage: K = CyclotomicField(7)
+            sage: K_rel = K.relativize(K.gen() + K.gen()^(-1), 'z')
+            sage: K_rel.is_CM_extension()
+            True
+            sage: F = CyclotomicField(3)
+            sage: K.<z> = F.extension(x^3 - 2)
+            sage: K.is_CM_extension()
+            False
+
+        A CM field K such that K/F is not a CM extension
+
+        ::
+
+            sage: F.<a> = NumberField(x^2 + 1)
+            sage: K.<z> = F.extension(x^2 - 3)
+            sage: K.is_CM_extension()
+            False
+            sage: K.is_CM()
+            True
+
+        """
+
+        try:
+            return self.__is_CM_extension
+        except(AttributeError):
+            pass
+
+        if self.relative_degree() == 2:
+            if self.base_field().is_totally_real():
+                if self.is_totally_imaginary():
+                    self.__is_CM_extension = True
+                    self.__is_CM = True
+                    self.__max_tot_real_sub = [self.base_field(), self.coerce_map_from(self.base_field())]
+                    return True
+        self.__is_CM_extension = False
+        return False
 
     def relative_vector_space(self):
         """

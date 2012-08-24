@@ -15,6 +15,9 @@ AUTHORS:
 - John Cremona (2009-05-15): added support for local and global
   logarithmic heights.
 
+- Robert Harron (2012-08): conjugate() now works for all fields contained in
+  CM fields
+
 """
 #*****************************************************************************
 #       Copyright (C) 2004, 2007 William Stein <wstein@gmail.com>
@@ -2206,9 +2209,11 @@ cdef class NumberFieldElement(FieldElement):
     def conjugate(self):
         """
         Return the complex conjugate of the number field element.
-        Currently, this is implemented for cyclotomic fields and quadratic
-        extensions of Q. It seems likely that there are other number fields
-        for which the idea of a conjugate would be easy to compute.
+
+        This is only well-defined for fields contained in CM fields
+        (i.e. for totally real fields and CM fields). Recall that a CM
+        field is a totally imaginary quadratic extension of a totally
+        real field. For other fields, a ValueError is raised.
 
         EXAMPLES::
 
@@ -2217,14 +2222,20 @@ cdef class NumberFieldElement(FieldElement):
             -I
             sage: (I/(1+I)).conjugate()
             -1/2*I + 1/2
-            sage: z6=CyclotomicField(6).gen(0)
+            sage: z6 = CyclotomicField(6).gen(0)
             sage: (2*z6).conjugate()
             -2*zeta6 + 2
-            sage: K.<j,b> = QQ[sqrt(-1), sqrt(2)]
+
+        The following example now works.
+
+        ::
+
+            sage: F.<b> = NumberField(x^2 - 2)
+            sage: K.<j> = F.extension(x^2 + 1)
             sage: j.conjugate()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: complex conjugation is not implemented (or doesn't make sense).
+            -j
+
+        Raise a ValueError if the field is not contained in a CM field.
 
         ::
 
@@ -2232,24 +2243,30 @@ cdef class NumberFieldElement(FieldElement):
             sage: b.conjugate()
             Traceback (most recent call last):
             ...
-            NotImplementedError: complex conjugation is not implemented (or doesn't make sense).
+            ValueError: Complex conjugation is only well-defined for fields contained in CM fields.
+
+        An example of a non-quadratic totally real field.
+
+        ::
+
+            sage: F.<a> = NumberField(x^4 + x^3 - 3*x^2 - x + 1)
+            sage: a.conjugate()
+            a
+
+        An example of a non-cyclotomic CM field.
+
+        ::
+
+            sage: K.<a> = NumberField(x^4 - x^3 + 2*x^2 + x + 1)
+            sage: a.conjugate()
+            -1/2*a^3 - a - 1/2
+            sage: (2*a^2 - 1).conjugate()
+            a^3 - 2*a^2 - 2
+
         """
-        coeffs = self.number_field().absolute_polynomial().list()
-        if len(coeffs) == 3 and coeffs[2] == 1 and coeffs[1] == 0:
-            # polynomial looks like x^2+d
-            # i.e. we live in a quadratic extension of QQ
-            if coeffs[0] > 0:
-                gen = self.number_field().gen()
-                return self.polynomial()(-gen)
-            else:
-                return self
-        elif isinstance(self.number_field(), number_field.NumberField_cyclotomic):
-            # We are in a cyclotomic field
-            # Replace the generator zeta_n with (zeta_n)^(n-1)
-            gen = self.number_field().gen()
-            return self.polynomial()(gen ** (gen.multiplicative_order()-1))
-        else:
-            raise NotImplementedError, "complex conjugation is not implemented (or doesn't make sense)."
+
+        nf = self.number_field()
+        return nf.complex_conjugation()(self)
 
     def polynomial(self, var='x'):
         """

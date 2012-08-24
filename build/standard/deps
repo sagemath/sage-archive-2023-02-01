@@ -219,7 +219,10 @@ $(INST)/$(POLYBORI): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SCONS) \
 $(INST)/$(POLYTOPES_DB): $(BASE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(POLYTOPES_DB) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYTOPES_DB).log"
 
-$(INST)/$(PPL): $(BASE) $(INST)/$(MPIR)
+# PPL depends on SAGE_ROOT_REPO because it *executes* C++ code at
+# build time.  Therefore, it needs an up-to-date version of sage-env
+# which adds $SAGE_LOCAL/lib64 to the LD_LIBRARY_PATH.
+$(INST)/$(PPL): $(BASE) $(INST)/$(MPIR) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(PPL) 2>&1" "tee -a $(SAGE_LOGS)/$(PPL).log"
 
 $(INST)/$(MPC): $(BASE) $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(PATCH)
@@ -327,7 +330,6 @@ $(INST)/$(ZLIB): $(BASE) $(INST)/$(PATCH)
 $(INST)/$(JMOL): $(BASE) $(INST)/$(SAGENB) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(JMOL) 2>&1" "tee -a $(SAGE_LOGS)/$(JMOL).log"
 
-##  << NON-GUI matplotlib >>
 $(INST)/$(FREETYPE): $(BASE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(FREETYPE) 2>&1" "tee -a $(SAGE_LOGS)/$(FREETYPE).log"
 
@@ -338,12 +340,15 @@ $(INST)/$(MATPLOTLIB): $(BASE) $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
 		       $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \
 		       $(INST)/$(GDMODULE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(MATPLOTLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(MATPLOTLIB).log"
-####
 
 $(INST)/$(CDDLIB): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(CDDLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(CDDLIB).log"
 
-$(INST)/$(GFAN): $(BASE) $(INST)/$(MPIR) $(INST)/$(CDDLIB) $(INST)/$(PATCH)
+# Gfan depends on SAGE_ROOT_REPO because it *executes* C++ code at
+# build time.  Therefore, it needs an up-to-date version of sage-env
+# which adds $SAGE_LOCAL/lib64 to the LD_LIBRARY_PATH.
+$(INST)/$(GFAN): $(BASE) $(INST)/$(MPIR) $(INST)/$(CDDLIB) $(INST)/$(PATCH) \
+		$(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(GFAN) 2>&1" "tee -a $(SAGE_LOGS)/$(GFAN).log"
 
 $(INST)/$(TACHYON): $(BASE) $(INST)/$(LIBPNG) $(INST)/$(PATCH)
@@ -363,8 +368,10 @@ $(INST)/$(MAXIMA): $(BASE) $(INST)/$(ECL) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(MAXIMA) 2>&1" "tee -a $(SAGE_LOGS)/$(MAXIMA).log"
 
 # Note that even with a separate RPy spkg (#9906), Sage's R will still depend on
-# Python (but does no longer on SAGE_SCRIPTS, #10016):
-$(INST)/$(R): $(BASE) $(INST)/$(PYTHON) $(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(PATCH)
+# Python.  R depends on SAGE_ROOT_REPO because it needs an up-to-date
+# sage-env script which sets $OBJC on OS X.
+$(INST)/$(R): $(BASE) $(INST)/$(PYTHON) $(INST)/$(ATLAS) $(INST)/$(ICONV) \
+		$(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(R) 2>&1" "tee -a $(SAGE_LOGS)/$(R).log"
 
 # Needed when #9906 gets merged (moving RPy out of R's spkg):
@@ -497,7 +504,10 @@ $(INST)/$(GCC): $(BASE) $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
 $(INST)/$(PIL): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(PIL) 2>&1" "tee -a $(SAGE_LOGS)/$(PIL).log"
 
-$(INST)/$(LAPACK): $(BASE) $(INST)/$(PATCH)
+# Lapack depends on SAGE_ROOT_REPO because it *executes* Fortran code at
+# build time.  Therefore, it needs an up-to-date version of sage-env
+# which adds $SAGE_LOCAL/lib64 to the LD_LIBRARY_PATH.
+$(INST)/$(LAPACK): $(BASE) $(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(LAPACK) 2>&1" "tee -a $(SAGE_LOGS)/$(LAPACK).log"
 
 $(INST)/$(BLAS): $(BASE) $(INST)/$(PATCH)

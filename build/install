@@ -40,20 +40,20 @@ fi
 # If spkg/bin/sage-env doesn't exist, we are surely upgrading (sage-env
 # was moved to spkg/bin in sage-5.0).  Manually set SAGE_UPGRADING=yes,
 # as old versions of sage-upgrade didn't do this.
-# Also avoid RM being set to "rm":
-#   http://trac.sagemath.org/sage_trac/ticket/3537
 if [ ! -f "$SAGE_ROOT/spkg/bin/sage-env" ]; then
     SAGE_UPGRADING=yes
-    if [ "$RM" = rm ]; then
-        export RM="rm -f"
-    fi
 fi
 
 if [ "$SAGE_UPGRADING" = yes ]; then
-    # We're doing an upgrade.
-    # Let the Makefile (spkg/standard/deps) call sage-spkg with "-f"
-    # to force rebuilding dependent packages, too:
+    # We're doing an upgrade. Let spkg/Makefile call sage-spkg with
+    # "-f" to force rebuilding dependent packages, too:
     export SAGE_SPKG_OPTS="-f"
+
+    # Avoid RM being set to "rm" (older versions of Sage did this):
+    #   http://trac.sagemath.org/sage_trac/ticket/3537
+    if [ "$RM" = rm ]; then
+        export RM="rm -f"
+    fi
 fi
 
 ###############################################################################
@@ -125,9 +125,23 @@ if [ -z "$FC" ]; then
     fi
 fi
 
-# We obviously don't need to do anything if gcc is already installed
 if [ -f "$SAGE_LOCAL/bin/gcc" ]; then
-    need_to_install_gcc=no
+    # GCC is already installed. Normally we don't need to re-install
+    # GCC, unless this is an upgrade. To disable unneeded rebuilding
+    # of GCC, we touch the installed file for GCC, such that it will
+    # really only be built if one of its dependencies has been upgraded.
+    if [ "$SAGE_UPGRADING" = yes ]; then
+        echo >&2 "We are upgrading Sage and GCC was installed before, it will get"
+        echo >&2 "re-installed if needed."
+        need_to_install_gcc=yes
+        for f in "$SAGE_ROOT/spkg/installed"/gcc-*; do
+            if [ -f "$f" ]; then
+                touch "$f"
+            fi
+        done
+    else
+        need_to_install_gcc=no
+    fi
 elif [ -n "$SAGE_INSTALL_GCC" ]; then
     # Check the value of the environment variable SAGE_INSTALL_GCC
     case "$SAGE_INSTALL_GCC" in

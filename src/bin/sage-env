@@ -3,26 +3,26 @@
 ###########################################################################
 #
 #  Set environment variables for building and/or running Sage.
-#  You must *source* this instead of executing; see below!
 #
-#  IMPORTANT: use "return" instead of "exit" to signal a failure when
-#             sourcing this script.  An "exit" here will actually exit
-#             spkg/bin/sage, which is probably not intented.
-#
-#  AUTHORS:   William Stein                            2005-12
-#             David Kirkby <david.kirkby@onetel.net>   2005-12-17
-#
-###########################################################################
-
-##########################################################################
+#  NOTES:
+#  - You must *source* this script instead of executing.
+#  - Use "return" instead of "exit" to signal a failure.  Since this
+#    file is sourced, an "exit" here will actually exit spkg/bin/sage,
+#    which is probably not intended.
+#  - All environment variables set here should be *exported*, otherwise
+#    they won't be available in child programs.
+#  - This script has a version number such that a newer version of
+#    sage-env can be sourced when upgrading.  See below.
 #
 #  If you want to set all environment variables for your shell like
 #  they are during the build of Sage packages, type
 #
-#             source spkg/bin/sage-env
+#             . spkg/bin/sage-env
 #
-#  from the SAGE_ROOT directory.   To do the same from a /bin/bash
-#  script use ". spkg/bin/sage-env".
+#  from the SAGE_ROOT directory.
+#
+#  AUTHORS: William Stein, David Kirkby, Jeroen Demeyer,
+#           J. H. Palmieri, Leif Leonhardy and others.
 #
 ##########################################################################
 
@@ -146,28 +146,35 @@ if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" ]; then
     echo >&2 "New SAGE_ROOT=$NEW_SAGE_ROOT"
 fi
 
-# Don't execute the commands more than once.  Check this after
-# checking the validity of SAGE_ROOT, but before modifying its value.
+# Don't execute the commands more than once for the same version of
+# sage-env.  Check this after checking the validity of SAGE_ROOT, but
+# before modifying its value.
 #
-# NOTE: This requires all environment variables to be exported, otherwise
-#       they won't be available / set in subshells which do not (fully)
-#       source sage-env themselves.
-if [ "x$SAGE_ENV_SOURCED" = "x" ]; then
-    SAGE_ENV_SOURCED=1
-    export SAGE_ENV_SOURCED
-else
+# The idea of versioning is that SAGE_ENV_SOURCED will be set to a
+# "version number" of sage-env.  If a different version of sage-env was
+# sourced earlier (when upgrading), we still source the new version.
+# The sage-env version should be increased whenever a newer sage-env is
+# required for upgrading.  Note that spkg/standard/deps might also need
+# to be changed: the packages which need the new sage-env must depend on
+# SAGE_ROOT_REPO (the root repo contains sage-env).
+#
+# sage-env version history:
+# - sage-4.7.1: version 1 (#10469)
+# - sage-5.4:   version 2 (#13395)
+#
+SAGE_ENV_VERSION=2
+if [ "$SAGE_ENV_SOURCED" = "$SAGE_ENV_VERSION" ]; then
     # Already sourced, nothing to do.
     return 0
 fi
+export SAGE_ENV_SOURCED=$SAGE_ENV_VERSION
 
-SAGE_ROOT="$NEW_SAGE_ROOT"
-export SAGE_ROOT
+export SAGE_ROOT="$NEW_SAGE_ROOT"
 
 
 # Call with: contains_spaces X${VAR}X
 # i.e., WITHOUT quotes but some character(s) around the environment variable to test.
 # (This function does return false for empty/unset variables.)
-
 contains_spaces()
 {
     if [ $# -ne 1 ]; then

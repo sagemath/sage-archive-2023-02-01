@@ -53,7 +53,6 @@ all: $(BASE) \
      $(INST)/$(GFAN) \
      $(INST)/$(GIVARO) \
      $(INST)/$(GLPK) \
-     $(INST)/$(GNUTLS) \
      $(INST)/$(GRAPHS) \
      $(INST)/$(GSL) \
      $(INST)/$(ICONV) \
@@ -64,8 +63,6 @@ all: $(BASE) \
      $(INST)/$(LAPACK) \
      $(INST)/$(LCALC) \
      $(INST)/$(LRCALC) \
-     $(INST)/$(LIBGCRYPT) \
-     $(INST)/$(LIBGPG_ERROR) \
      $(INST)/$(M4RI) \
      $(INST)/$(M4RIE) \
      $(INST)/$(LIBPNG) \
@@ -81,7 +78,6 @@ all: $(BASE) \
      $(INST)/$(NETWORKX) \
      $(INST)/$(NTL) \
      $(INST)/$(NUMPY) \
-     $(INST)/$(OPENCDK) \
      $(INST)/$(PALP) \
      $(INST)/$(PARI) \
      $(INST)/$(PATCH) \
@@ -94,7 +90,6 @@ all: $(BASE) \
      $(INST)/$(PYGMENTS) \
      $(INST)/$(PYNAC) \
      $(INST)/$(PYTHON) \
-     $(INST)/$(PYTHON_GNUTLS) \
      $(INST)/$(RATPOINTS) \
      $(INST)/$(R) \
      $(INST)/$(READLINE) \
@@ -193,7 +188,7 @@ $(INST)/$(GLPK): $(BASE) $(INST)/$(MPIR) $(INST)/$(ZLIB) $(INST)/$(PATCH)
 
 $(INST)/$(PYTHON): $(BASE) $(INST)/$(ZLIB) \
 		   $(INST)/$(READLINE) $(INST)/$(SQLITE) \
-		   $(INST)/$(GNUTLS) $(INST)/$(LIBPNG) $(INST)/$(PATCH)
+		   $(INST)/$(LIBPNG) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(PYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(PYTHON).log"
 
 $(INST)/$(PATCH): $(BASE)
@@ -284,22 +279,6 @@ $(INST)/$(GD): $(BASE) $(INST)/$(LIBPNG) $(INST)/$(FREETYPE) $(INST)/$(ICONV) $(
 
 $(INST)/$(GDMODULE): $(BASE) $(INST)/$(PYTHON) $(INST)/$(GD) $(INST)/$(ICONV) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(GDMODULE) 2>&1" "tee -a $(SAGE_LOGS)/$(GDMODULE).log"
-
-$(INST)/$(OPENCDK): $(BASE) $(INST)/$(ZLIB) $(INST)/$(LIBGCRYPT) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(OPENCDK) 2>&1" "tee -a $(SAGE_LOGS)/$(OPENCDK).log"
-
-$(INST)/$(LIBGPG_ERROR): $(BASE) $(INST)/$(ICONV)  $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(LIBGPG_ERROR) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBGPG_ERROR).log"
-
-$(INST)/$(LIBGCRYPT): $(BASE) $(INST)/$(LIBGPG_ERROR) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(LIBGCRYPT) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBGCRYPT).log"
-
-$(INST)/$(GNUTLS): $(BASE) $(INST)/$(ZLIB) $(INST)/$(OPENCDK) \
-		   $(INST)/$(LIBGCRYPT) $(INST)/$(LIBGPG_ERROR)  $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(GNUTLS) 2>&1" "tee -a $(SAGE_LOGS)/$(GNUTLS).log"
-
-$(INST)/$(PYTHON_GNUTLS): $(BASE) $(INST)/$(GNUTLS) $(INST)/$(PYTHON) $(INST)/$(PATCH)
-	+$(PIPE) "$(SAGE_SPKG) $(PYTHON_GNUTLS) 2>&1" "tee -a $(SAGE_LOGS)/$(PYTHON_GNUTLS).log"
 
 $(INST)/$(SCONS): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(SCONS) 2>&1" "tee -a $(SAGE_LOGS)/$(SCONS).log"

@@ -21,41 +21,51 @@ from sage.rings.all import ZZ
 from dyck_word import DyckWords
 
 def q_int(n, p=None):
-    """
-    Returns the ``q``-analogue of the integer ``n``.
+    r"""
+    Returns the `q`-analogue of the integer `n` which is given by
 
-    If ``p`` is unspecified, then it defaults to using the generator ``q`` for
-    a univariate polynomial ring over the integers.
+    .. MATH::
+
+            [n]_q =  \begin{cases}
+            1+q+\dots+q^{n-1},  & \text{if }n\ge 0, \\
+            -q^{-n} [-n]_q,     & \text{if }n\le 0.
+            \end{cases}
+
+    Consequently, if `q=1` then `[n]_1=n` and if `q\ne1` then `[n]_q=(q^n-1)/(q-1)`.
+
+    If the argument `p` is not specified then it defaults to the generator `q`
+    of the univariate polynomial ring over the integers.
 
     EXAMPLES::
 
         sage: import sage.combinat.q_analogues as q_analogues
         sage: q_analogues.q_int(3)
         q^2 + q + 1
+        sage: q_analogues.q_int(-3)
+        (-q^2 - q - 1)/q^3
         sage: p = ZZ['p'].0
         sage: q_analogues.q_int(3,p)
         p^2 + p + 1
-
-    The ``q``-analogue of ``n`` is only defined for ``n`` a nonnegative
-    integer (trac #11411)::
-
-        sage: q_analogues.q_int(-2)
+        sage: q_analogues.q_int(3/2)
         Traceback (most recent call last):
         ...
-        ValueError: Argument (-2) must be a nonnegative integer.
+        ValueError: 3/2 must be an integer
     """
-    if n in ZZ and n >= 0:
-        if p == None:
-            p = ZZ['q'].gens()[0]
-        return sum([p**i for i in range(n)])
+    if not n in ZZ:
+        raise ValueError, '%s must be an integer' % n
+
+    if p == None:
+        p = ZZ['q'].gens()[0]
+    if n >= 0:
+        return sum(p**i for i in range(n))
     else:
-        raise ValueError, "Argument (%s) must be a nonnegative integer." %n
+        return -p**n*sum(p**i for i in  range(-n))
 
 def q_factorial(n, p=None):
     """
-    Returns the ``q``-analogue of the factorial ``n!``.
+    Returns the `q`-analogue of the factorial `n!`.
 
-    If ``p`` is unspecified, then it defaults to using the generator ``q`` for
+    If `p` is unspecified, then it defaults to using the generator `q` for
     a univariate polynomial ring over the integers.
 
     EXAMPLES::
@@ -67,13 +77,14 @@ def q_factorial(n, p=None):
         sage: q_analogues.q_factorial(3, p)
         p^3 + 2*p^2 + 2*p + 1
 
-    The ``q``-analogue of ``n!`` is only defined for ``n`` a nonnegative
+    The `q`-analogue of `n!` is only defined for `n` a nonnegative
     integer (trac #11411)::
 
         sage: q_analogues.q_factorial(-2)
         Traceback (most recent call last):
         ...
         ValueError: Argument (-2) must be a nonnegative integer.
+
     """
     if n in ZZ and n >= 0:
         return prod([q_int(i, p) for i in range(1, n+1)])
@@ -82,9 +93,9 @@ def q_factorial(n, p=None):
 
 def q_binomial(n,k,p=None):
     """
-    Returns the ``q``-binomial coefficient.
+    Returns the `q`-binomial coefficient.
 
-    If ``p`` is unspecified, then it defaults to using the generator ``q`` for
+    If `p` is unspecified, then it defaults to using the generator `q` for
     a univariate polynomial ring over the integers.
 
     The q-binomials are computed as a product of cyclotomic polynomials (cf. [CH2006]_).
@@ -105,9 +116,11 @@ def q_binomial(n,k,p=None):
         sage: p = ZZ['p'].0
         sage: q_analogues.q_binomial(4,2,p)
         p^4 + p^3 + 2*p^2 + p + 1
+        sage: q_analogues.q_binomial(2,3)
+        0
 
-    The ``q``-analogue of ``binomial(n,k)`` is currently only defined for
-    ``n`` a nonnegative integer, it is zero for negative k  (trac #11411)::
+    The `q`-analogue of ``binomial(n,k)`` is currently only defined for
+    `n` a nonnegative integer, it is zero for negative k  (trac #11411)::
 
         sage: q_analogues.q_binomial(5, -1)
         0
@@ -128,13 +141,13 @@ def q_binomial(n,k,p=None):
 
 def q_catalan_number(n,p=None):
     """
-    Returns the ``q``-Catalan number of index ``n``.
+    Returns the `q`-Catalan number of index `n`.
 
-    If ``p`` is unspecified, then it defaults to using the generator ``q`` for
+    If `p` is unspecified, then it defaults to using the generator `q` for
     a univariate polynomial ring over the integers.
 
-    There are several ``q``-Catalan numbers. This procedure
-    returns the one which can be written using the ``q``-binomial coefficients.
+    There are several `q`-Catalan numbers. This procedure
+    returns the one which can be written using the `q`-binomial coefficients.
 
     EXAMPLES::
 
@@ -145,7 +158,7 @@ def q_catalan_number(n,p=None):
         sage: q_analogues.q_catalan_number(4,p)
         p^12 + p^10 + p^9 + 2*p^8 + p^7 + 2*p^6 + p^5 + 2*p^4 + p^3 + p^2 + 1
 
-    The ``q``-Catalan number of index ``n`` is only defined for ``n`` a
+    The `q`-Catalan number of index `n` is only defined for `n` a
     nonnegative integer (trac #11411)::
 
         sage: q_analogues.q_catalan_number(-2)
@@ -160,7 +173,7 @@ def q_catalan_number(n,p=None):
 
 def qt_catalan_number(n):
     """
-    Returns the ``q,t``-Catalan number of index ``n``.
+    Returns the ``q,t``-Catalan number of index `n`.
 
     EXAMPLES::
 
@@ -174,7 +187,7 @@ def qt_catalan_number(n):
         sage: q_analogues.qt_catalan_number(4)
         q^6 + q^5*t + q^4*t^2 + q^3*t^3 + q^2*t^4 + q*t^5 + t^6 + q^4*t + q^3*t^2 + q^2*t^3 + q*t^4 + q^3*t + q^2*t^2 + q*t^3
 
-    The ``q,t``-Catalan number of index ``n`` is only defined for ``n`` a
+    The ``q,t``-Catalan number of index `n` is only defined for `n` a
     nonnegative integer (trac #11411)::
 
         sage: q_analogues.qt_catalan_number(-2)

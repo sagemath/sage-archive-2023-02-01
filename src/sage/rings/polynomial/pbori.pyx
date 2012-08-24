@@ -6246,6 +6246,7 @@ cdef class ReductionStrategy:
             sage: red = ReductionStrategy(B)
         """
         self._strat = PBRedStrategy_new((<BooleanPolynomialRing>ring)._pbring)
+        self._borrowed = False
         self._parent = ring
 
     def __dealloc__(self):
@@ -6257,7 +6258,7 @@ cdef class ReductionStrategy:
             sage: red = ReductionStrategy(B)
             sage: del(red)
         """
-        if self._strat:
+        if self._strat and not self._borrowed:
             PBRedStrategy_delete(self._strat)
 
     def add_generator(self, BooleanPolynomial p):
@@ -6626,6 +6627,7 @@ cdef class GroebnerStrategy:
         self.reduction_strategy = ReductionStrategy(self._parent)
         PBRedStrategy_delete(self.reduction_strategy._strat)
         self.reduction_strategy._strat =  &self._strat.generators
+        self.reduction_strategy._borrowed = True
 
     def __dealloc__(self):
         """
@@ -6638,7 +6640,10 @@ cdef class GroebnerStrategy:
             sage: del G
             sage: del H
         """
-        self.reduction_strategy._strat = NULL
+        # See trac #12313 and #13746:
+        # self.reduction_strategy will be deleted by Python,
+        # and thus self.reduction_strategy._strat will be freed there.
+        #self.reduction_strategy._strat = NULL
         if self._count.released():
             del self._strat
 

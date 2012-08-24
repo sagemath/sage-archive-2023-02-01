@@ -224,6 +224,10 @@ def quit_sage(verbose=True):
         t2m = int(t2/60); t2s=t2-t2m*60
         print "Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)."%(
                t1m,t1s,t2m,t2s)
+
+    import gc
+    gc.collect()
+
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=verbose)
 

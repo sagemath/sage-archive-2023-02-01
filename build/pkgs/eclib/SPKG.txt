@@ -23,24 +23,11 @@ over 25 years of hard work.
  * PARI
  * NTL
 
-== Distribution ==
-
-=== Padus ===
-
- * Contact: Ismail Dönmez
- * EMail: ismail@pardus.org.tr
- * Website: N/A
-
-== Special Update/Build Instructions ==
-
- * The makefiles do use GNU extensions. This causes build failures on
-   systems like FreeBSD where GNU's make is usually called `gmake`. A
-   work-around is to create a symlink from `gmake` to `make` in e.g. `~/bin/`
-   and to add that directory to `PATH` before the directory that
-   contains the BSD make. [This comment may be obsolete now that
-   autotools are used.]
-
 == Changelog ==
+
+=== eclib-20120830 (Jean-Pierre Flori, 5 September 2012) ===
+ * #13325: Source code updated to version 2012-08-30.
+ * Now builds correctly on Cygwin.
 
 === eclib-20120428 (John Cremona, 28 April 2012) ===
  * Source code update to revision 7fcd812213df  (as at 25 April 2012), from

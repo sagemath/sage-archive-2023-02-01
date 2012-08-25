@@ -222,36 +222,6 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         return self.sum_of_terms((Partition(exp=monomial), coeff)
                                  for (monomial, coeff) in p.dict().iteritems())
 
-    def coproduct_by_coercion(self, elt):
-        r"""
-        Returns the coproduct of the element ``elt`` by coercion to the Schur basis.
-
-        INPUT:
-
-        - ``self`` -- a monomial symmetric function basis
-        - ``elt`` -- an instance of monomial basis
-
-        OUTPUT:
-
-        - The coproduct acting on ``elt``, the result is an element of the
-          tensor squared of the monomial symmetric function basis
-
-
-        EXAMPLES::
-
-            sage: m = SymmetricFunctions(QQ).m()
-            sage: m[3,1,1].coproduct()
-            m[] # m[3, 1, 1] + m[1] # m[3, 1] + m[1, 1] # m[3] + m[3] # m[1, 1] + m[3, 1] # m[1] + m[3, 1, 1] # m[]
-            sage: m.coproduct_by_coercion(m[2,1])
-            m[] # m[2, 1] + m[1] # m[2] + m[2] # m[1] + m[2, 1] # m[]
-            sage: m.coproduct_by_coercion(m[2,1]) == m([2,1]).coproduct()
-            True
-        """
-        from sage.categories.tensor import tensor
-        s = self.realization_of().schur()
-        return self.tensor_square().sum(coeff * tensor([self(s[x]), self(s[y])])
-                                        for ((x,y), coeff) in s(elt).coproduct())
-
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def expand(self, n, alphabet='x'):

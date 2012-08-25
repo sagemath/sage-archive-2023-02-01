@@ -26,6 +26,7 @@ from sage.categories.graded_coalgebras import GradedCoalgebras
 from sage.categories.graded_coalgebras_with_basis import GradedCoalgebrasWithBasis
 from sage.categories.magmas import Magmas
 from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
+from sage.categories.tensor import tensor
 from sage.combinat.partition import Partition, Partitions, Partition_class
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.categories.morphism import SetMorphism
@@ -413,8 +414,9 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             Method for multiplying two elements.
 
             When `t=1`, the `k`-bounded subspace is an algebra, so the product of two elements
-            is always in the space. For generic `t`, the result is returned in the ring
-            of symmetric functions since the `k`-bounded subspace is not closed under multiplication.
+            is always in the space. For generic `t`, the `k`-bounded subspace is not closed under
+            multiplication, so the result is returned in the `k`-bounded subspace if possible and
+            else in the ring of symmetric functions.
 
             EXAMPLES::
 
@@ -439,19 +441,116 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 ks3[3, 2, 1] + ks3[3, 3]
                 sage: f.parent()
                 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1
+
+            TESTS::
+
+                sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
+                sage: ks2 = Sym.kschur(2)
+                sage: ks3 = Sym.kschur(3)
+                sage: ks5 = Sym.kschur(5)
+                sage: ks5(ks3[2]) * ks5(ks2[2,1])
+                ks5[2, 2, 1] + ks5[3, 1, 1] + (t+1)*ks5[3, 2] + (t+1)*ks5[4, 1] + t*ks5[5]
             """
             if self.parent().realization_of().t == 1:
                 return self.parent()(self.lift()*other.lift())
-            return self.lift()*other.lift()
+            result = self.lift()*other.lift()
+            try:
+                result = self.parent()(result)
+            except ValueError:
+                pass
+            return result
+
+        def hl_creation_operator(self, nu, t = None):
+            r"""
+            This is the vertex operator that generalizes Jing's operator.
+
+            It is a linear operator that raises the degree by
+            `|\nu|`. This creation operator is a t-analogue of
+            multiplication by ``s(nu)`` .
+
+            .. SEEALSO:: Proposition 5 in [SZ.2001]_.
+
+            INPUT:
+
+            -  ``nu`` -- a partition
+
+            - ``t`` -- a parameter (default: None, in this case `t` is used)
+
+            REFERENCES:
+
+            .. [SZ.2001] M. Shimozono, M. Zabrocki,
+               Hall-Littlewood vertex operators and generalized Kostka polynomials.
+               Adv. Math. 158 (2001), no. 1, 66-85.
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
+                sage: ks = Sym.kschur(4)
+                sage: s = Sym.schur()
+                sage: s(ks([3,1,1]).hl_creation_operator([1]))
+                (t-1)*s[2, 2, 1, 1] + t^2*s[3, 1, 1, 1] + (t^3+t^2-t)*s[3, 2, 1] + (t^3-t^2)*s[3, 3] + (t^4+t^3)*s[4, 1, 1] + t^4*s[4, 2] + t^5*s[5, 1]
+                sage: ks([3,1,1]).hl_creation_operator([1])
+                (t-1)*ks4[2, 2, 1, 1] + t^2*ks4[3, 1, 1, 1] + t^3*ks4[3, 2, 1] + (t^3-t^2)*ks4[3, 3] + t^4*ks4[4, 1, 1]
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: ks = Sym.kschur(4,t=1)
+                sage: ks([3,1,1]).hl_creation_operator([1])
+                ks4[3, 1, 1, 1] + ks4[3, 2, 1] + ks4[4, 1, 1]
+            """
+            if t is None:
+                t = self.parent().realization_of().t
+            return self.parent()(self.lift().hl_creation_operator(nu,t=t))
+
+        def coproduct(self):
+            r"""
+            Returns the coproduct operation on ``self``.
+
+            The coproduct is first computed on the homogeneous basis if `t=1` and
+            on the Hall-Littlewood ``Qp`` basis otherwise.  The result is computed
+            then converted to the tensor squared of ``self.parent()``
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: ks3 = Sym.kschur(3,1)
+                sage: ks3[2,1].coproduct()
+                ks3[] # ks3[2, 1] + ks3[1] # ks3[1, 1] + ks3[1] # ks3[2] + ks3[1, 1] # ks3[1] + ks3[2] # ks3[1] + ks3[2, 1] # ks3[]
+                sage: h3 = Sym.khomogeneous(3)
+                sage: h3[2,1].coproduct()
+                h3[] # h3[2, 1] + h3[1] # h3[1, 1] + h3[1] # h3[2] + h3[1, 1] # h3[1] + h3[2] # h3[1] + h3[2, 1] # h3[]
+                sage: ks3t = SymmetricFunctions(FractionField(QQ['t'])).kschur(3)
+                sage: ks3t[2,1].coproduct()
+                ks3[] # ks3[2, 1] + ks3[1] # ks3[1, 1] + ks3[1] # ks3[2] + ks3[1, 1] # ks3[1] + ks3[2] # ks3[1] + ks3[2, 1] # ks3[]
+                sage: ks3t[3,1].coproduct()
+                ks3[] # ks3[3, 1] + ks3[1] # ks3[2, 1] + (t+1)*ks3[1] # ks3[3] + ks3[1, 1] # ks3[2] + ks3[2] # ks3[1, 1]
+                + (t+1)*ks3[2] # ks3[2] + ks3[2, 1] # ks3[1] + (t+1)*ks3[3] # ks3[1] + ks3[3, 1] # ks3[]
+            """
+            lifted = self.lift()
+            target_basis = self.parent()
+            ambient = self.parent().realization_of().ambient()
+            t = self.parent().realization_of().t
+            if t==1:
+                source_basis = ambient.h()
+            else:
+                source_basis = ambient.hall_littlewood(t=t).Qp()
+            cpfunc = lambda x,y: tensor([ target_basis(x), target_basis(y) ])
+            return source_basis(lifted).coproduct().apply_multilinear_morphism( cpfunc )
+
 
         def omega(self):
             r"""
             Returns the `\omega` operator on ``self``.
 
-            `\omega` maps the `k`-Schur function `s_\lambda` to `s_{\lambda^{(k)}}`, where
+            At `t=1`, `\omega` maps the `k`-Schur function `s^{(k)}_\lambda` to `s^{(k)}_{\lambda^{(k)}}`, where
             `\lambda^{(k)}` is the `k`-conjugate of the partition `\lambda`.
 
             .. SEEALSO:: :meth:`~sage.combinat.partition.Partition_class.k_conjugate`.
+
+            For generic `t`, `\omega` sends `s^{(k)}_\lambda[X;t]` to `t^d s^{(k)}_{\lambda^{(k)}}[X;1/t]`,
+            where `d` is the size of the core of `\lambda` minus the size of `\lambda`. Most of the time,
+            this result is not in the `k`-bounded subspace.
+
+            .. SEEALSO:: :meth:`omega_t_inverse`.
 
             EXAMPLES::
 
@@ -463,14 +562,38 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 sage: kh[3].omega()
                 h3[1, 1, 1] - 2*h3[2, 1] + h3[3]
 
-                sage: Sym = SymmetricFunctions(QQ['t'])
-                sage: ks = Sym.kschur(4)
-                sage: ks[2,2,1,1].omega()
-                ks4[3, 2, 1]
+                sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
+                sage: ks = Sym.kschur(3)
+                sage: ks[3,1,1].omega()
+                Traceback (most recent call last):
+                ...
+                ValueError: t*s[2, 1, 1, 1] + s[3, 1, 1] is not in the image of Generic morphism:
+                From: 3-bounded Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
+                To:   Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Schur basis
             """
-            ks = kSchur(self.parent().realization_of())
-            f = ks(self)
-            return self.parent()(f.map_support( lambda p: p.k_conjugate(self.parent().k) ))
+            return self.parent()(self.lift().omega())
+
+        def omega_t_inverse(self):
+            r"""
+            Returns the map `t\to 1/t` composed with `\omega` on ``self``.
+
+            Unlike the map :meth:`omega`, the result of :meth:`omega_t_inverse` lives in the
+            `k`-bounded subspace and hence will return an element even for generic `t`. For `t=1`,
+            :meth:`omega` and :meth:`omega_t_inverse` return the same result.
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
+                sage: ks = Sym.kschur(3)
+                sage: ks[3,1,1].omega_t_inverse()
+                1/t*ks3[2, 1, 1, 1]
+                sage: ks[3,2].omega_t_inverse()
+                1/t^2*ks3[1, 1, 1, 1, 1]
+            """
+            s = self.parent().realization_of().ambient()
+            t = s.base_ring().gen()
+            invert = lambda x: s.base_ring()(x.subs(t=1/t))
+            return self.parent()(s(self).map_coefficients(invert).omega())
 
         def is_schur_positive(self, *args, **kwargs):
             r"""

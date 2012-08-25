@@ -1740,6 +1740,46 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         m = sage.combinat.sf.sf.SymmetricFunctions(self.base_ring()).m()
         return self(m.from_polynomial(poly, check=check))
 
+    def coproduct_by_coercion(self, elt):
+        r"""
+        Returns the coproduct of the element ``elt`` by coercion to the Schur basis.
+
+        INPUT:
+
+        - ``self`` -- a symmetric function basis
+        - ``elt`` -- an instance of this basis
+
+        OUTPUT:
+
+        - The coproduct acting on ``elt``, the result is an element of the
+          tensor squared of the basis ``self``
+
+        EXAMPLES::
+
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: m[3,1,1].coproduct()
+            m[] # m[3, 1, 1] + m[1] # m[3, 1] + m[1, 1] # m[3] + m[3] # m[1, 1] + m[3, 1] # m[1] + m[3, 1, 1] # m[]
+            sage: m.coproduct_by_coercion(m[2,1])
+            m[] # m[2, 1] + m[1] # m[2] + m[2] # m[1] + m[2, 1] # m[]
+            sage: m.coproduct_by_coercion(m[2,1]) == m([2,1]).coproduct()
+            True
+            sage: McdH = SymmetricFunctions(QQ['q','t'].fraction_field()).macdonald().H()
+            sage: McdH[2,1].coproduct()
+            McdH[] # McdH[2, 1] + ((q^2*t-1)/(q*t-1))*McdH[1] # McdH[1, 1] + ((q*t^2-1)/(q*t-1))*McdH[1] # McdH[2] + ((q^2*t-1)/(q*t-1))*McdH[1, 1] # McdH[1] + ((q*t^2-1)/(q*t-1))*McdH[2] # McdH[1] + McdH[2, 1] # McdH[]
+            sage: HLQp = SymmetricFunctions(QQ['t'].fraction_field()).hall_littlewood().Qp()
+            sage: HLQp[2,1].coproduct()
+            HLQp[] # HLQp[2, 1] + HLQp[1] # HLQp[1, 1] + HLQp[1] # HLQp[2] + HLQp[1, 1] # HLQp[1] + HLQp[2] # HLQp[1] + HLQp[2, 1] # HLQp[]
+            sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
+            sage: LLT = Sym.llt(3)
+            sage: LLT.cospin([3,2,1]).coproduct()
+            (t+1)*m[] # m[1, 1] + m[] # m[2] + (t+1)*m[1] # m[1] + (t+1)*m[1, 1] # m[] + m[2] # m[]
+        """
+        from sage.categories.tensor import tensor
+        s = self.realization_of().schur()
+        return self.tensor_square().sum(coeff * tensor([self(s[x]), self(s[y])])
+                                        for ((x,y), coeff) in s(elt).coproduct())
+
+
 class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
     r"""
     Class of generic elements for the symmetric function algebra.
@@ -2851,8 +2891,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         This is the vertex operator that generalizes Jing's operator.
 
         It is a linear operator that raises the degree by
-        sum(nu). This creation operator is a t-analogue of
-        multiplication by s(nu)
+        `|\nu|`. This creation operator is a t-analogue of
+        multiplication by ``s(nu)`` .
 
         .. SEEALSO:: Proposition 5 in [SZ2001]_.
 
@@ -2890,12 +2930,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         TESTS::
 
-            sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
-            sage: ks = Sym.kschur(4)
-            sage: ks([3,1,1]).lift().hl_creation_operator([1])
-            (t-1)*s[2, 2, 1, 1] + t^2*s[3, 1, 1, 1] + (t^3+t^2-t)*s[3, 2, 1] + (t^3-t^2)*s[3, 3] + (t^4+t^3)*s[4, 1, 1] + t^4*s[4, 2] + t^5*s[5, 1]
-            sage: ks(ks([3,1,1]).lift().hl_creation_operator([1]))
-            (t-1)*ks4[2, 2, 1, 1] + t^2*ks4[3, 1, 1, 1] + t^3*ks4[3, 2, 1] + (t^3-t^2)*ks4[3, 3] + t^4*ks4[4, 1, 1]
             sage: s(0).hl_creation_operator([1])
             0
         """
@@ -2913,6 +2947,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                         for d in range(self.degree())
                         for mu in Partitions(d+1, max_length=len(nu)) )
                 )
+
 
 SymmetricFunctionAlgebra_generic.Element = SymmetricFunctionAlgebra_generic_Element
 

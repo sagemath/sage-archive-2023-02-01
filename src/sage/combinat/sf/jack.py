@@ -59,7 +59,7 @@ class Jack(UniqueRepresentation):
         - ``Sym`` -- a ring of symmetric functions
         - ``t`` -- an optional parameter (default : 't')
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: SymmetricFunctions(FractionField(QQ['t'])).jack()
             Jack polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
@@ -87,7 +87,7 @@ class Jack(UniqueRepresentation):
 
         - returns the name of the family of bases
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: SymmetricFunctions(QQ).jack(1)
             Jack polynomials with t=1 over Rational Field
@@ -107,7 +107,7 @@ class Jack(UniqueRepresentation):
 
         - the base ring of the symmetric functions ring of ``self``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: J2 = SymmetricFunctions(QQ).jack(t=2)
             sage: J2.base_ring()
@@ -128,7 +128,7 @@ class Jack(UniqueRepresentation):
 
         - the symmetric functions ring of ``self``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Jacks = SymmetricFunctions(FractionField(QQ['t'])).jack()
             sage: Jacks.symmetric_function_ring()
@@ -148,7 +148,7 @@ class Jack(UniqueRepresentation):
 
         - the `P` basis of the Jack symmetric functions
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: JP = Sym.jack().P(); JP
@@ -251,7 +251,7 @@ class Jack(UniqueRepresentation):
 
         - the `Q` basis of the Jack symmetric functions
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: JQ = Sym.jack().Q(); JQ
@@ -290,7 +290,7 @@ class Jack(UniqueRepresentation):
 
         OUTPUT: the `J` basis of the Jack symmetric functions
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: JJ = Sym.jack().J(); JJ
@@ -356,7 +356,7 @@ class Jack(UniqueRepresentation):
 
         - the `Q'` basis of the Jack symmetric functions
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: JP = Sym.jack().P()
@@ -368,11 +368,11 @@ class Jack(UniqueRepresentation):
             sage: a.scalar(JP([1,1]))
             0
             sage: JP(JQp([2]))                        # todo: missing auto normalization
-            ((2*t-2)/(2*t+2))*JackP[1, 1] + JackP[2]
+            ((-t+1)/(-t-1))*JackP[1, 1] + JackP[2]
             sage: JP._normalize(JP(JQp([2])))
-            ((t-1)/(t+1))*JackP[1, 1] + JackP[2]
+            ((-t+1)/(-t-1))*JackP[1, 1] + JackP[2]
         """
-        return self.P().dual_basis(prefix="JackQp", basis_name = "Jack Qp"+ self._name_suffix)
+        return JackPolynomials_qp(self)
 
 #############################
 # to be deprecated
@@ -573,9 +573,9 @@ def JackPolynomialsQp(R, t=None):
         0
         sage: s = P.realization_of().s()
         sage: P(Qp([2]))                        # todo: missing auto normalization
-        ((2*t-2)/(2*t+2))*JackP[1, 1] + JackP[2]
+        ((-t+1)/(-t-1))*JackP[1, 1] + JackP[2]
         sage: P._normalize(P(Qp([2])))
-        ((t-1)/(t+1))*JackP[1, 1] + JackP[2]
+        ((-t+1)/(-t-1))*JackP[1, 1] + JackP[2]
     """
     (R, t) = NoneConvention(R, t)
     sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).jack(t=%s).Qp()"%(t))
@@ -621,7 +621,7 @@ def c1(part, t):
     - a polynomial in the parameter ``t`` which is equal to the scalar
       product of ``J(part)`` and ``P(part)``
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from sage.combinat.sf.jack import c1
         sage: t = QQ['t'].gen()
@@ -647,7 +647,7 @@ def c2(part, t):
     - a polynomial in the parameter ``t`` which is equal to the scalar
       product of ``J(part)`` and ``Q(part)``
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from sage.combinat.sf.jack import c2
         sage: t = QQ['t'].gen()
@@ -656,6 +656,60 @@ def c2(part, t):
     """
     return prod([t+t*part.arm_lengths(flat=True)[i]+part.leg_lengths(flat=True)[i] for i in range(sum(part))],
                 t.parent().one())
+
+def normalize_coefficients(self, c):
+    r"""
+    If our coefficient ring is the field of fractions over a univariate
+    polynomial ring over the rationals, then we should clear both the
+    numerator and denominator of the denominators of their
+    coefficients.
+
+    INPUT:
+
+    - ``self`` -- a Jack basis of the symmetric functions
+    - ``c`` -- a coefficient in the base ring of ``self``
+
+    OUTPUT:
+
+    - divide numerator and denominator by the greatest common divisor
+
+    EXAMPLES::
+
+        sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
+        sage: t = JP.base_ring().gen()
+        sage: a = 2/(1/2*t+1/2)
+        sage: JP._normalize_coefficients(a)
+        4/(t + 1)
+        sage: a = 1/(1/3+1/6*t)
+        sage: JP._normalize_coefficients(a)
+        6/(t + 2)
+        sage: a = 24/(4*t^2 + 12*t + 8)
+        sage: JP._normalize_coefficients(a)
+        6/(t^2 + 3*t + 2)
+    """
+    BR = self.base_ring()
+    if is_FractionField(BR) and BR.base_ring() == QQ:
+        denom = c.denominator()
+        numer = c.numerator()
+
+        #Clear the denominators
+        a = lcm([i.denominator() for i in denom.coeffs()])
+        b = lcm([i.denominator() for i in numer.coeffs()])
+        l = Integer(a).lcm(Integer(b))
+        denom *= l
+        numer *= l
+
+        #Divide through by the gcd of the numerators
+        a = gcd([i.numerator() for i in denom.coeffs()])
+        b = gcd([i.numerator() for i in numer.coeffs()])
+        l = Integer(a).gcd(Integer(b))
+
+        denom = denom / l
+        numer = numer / l
+
+        return c.parent()(numer, denom)
+    else:
+        return c
 
 ####################################################################
 
@@ -695,6 +749,12 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
             self._m = self._sym.monomial()
             self   .register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
             self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))
+        if hasattr(self, "_h_cache"):
+            # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
+            category = sage.categories.all.ModulesWithBasis(self._sym.base_ring())
+            self._h = self._sym.homogeneous()
+            self   .register_coercion(SetMorphism(Hom(self._h, self, category), self._h_to_self))
+            self._h.register_coercion(SetMorphism(Hom(self, self._h, category), self._self_to_h))
 
     def _m_to_self(self, x):
         r"""
@@ -792,7 +852,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
         - a polynomial in the parameter ``t`` which is equal to the scalar
           product of ``J(part)`` and ``Q(part)``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
             sage: JP.c2(Partition([2,1]))
@@ -800,59 +860,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
         """
         return c2(part, self.t)
 
-    def _normalize_coefficients(self, c):
-        r"""
-        If our coefficient ring is the field of fractions over a univariate
-        polynomial ring over the rationals, then we should clear both the
-        numerator and denominator of the denominators of their
-        coefficients.
-
-        INPUT:
-
-        - ``self`` -- a Jack basis of the symmetric functions
-        - ``c`` -- a coefficient in the base ring of ``self``
-
-        OUTPUT:
-
-        - divide numerator and denominator by the greatest common divisor
-
-        EXAMPLES ::
-
-            sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
-            sage: t = JP.base_ring().gen()
-            sage: a = 2/(1/2*t+1/2)
-            sage: JP._normalize_coefficients(a)
-            4/(t + 1)
-            sage: a = 1/(1/3+1/6*t)
-            sage: JP._normalize_coefficients(a)
-            6/(t + 2)
-            sage: a = 24/(4*t^2 + 12*t + 8)
-            sage: JP._normalize_coefficients(a)
-            6/(t^2 + 3*t + 2)
-        """
-        BR = self.base_ring()
-        if is_FractionField(BR) and BR.base_ring() == QQ:
-            denom = c.denominator()
-            numer = c.numerator()
-
-            #Clear the denominators
-            a = lcm([i.denominator() for i in denom.coeffs()])
-            b = lcm([i.denominator() for i in numer.coeffs()])
-            l = Integer(a).lcm(Integer(b))
-            denom *= l
-            numer *= l
-
-            #Divide through by the gcd of the numerators
-            a = gcd([i.numerator() for i in denom.coeffs()])
-            b = gcd([i.numerator() for i in numer.coeffs()])
-            l = Integer(a).gcd(Integer(b))
-
-            denom = denom / l
-            numer = numer / l
-
-            return c.parent()(numer, denom)
-        else:
-            return c
+    _normalize_coefficients = normalize_coefficients
 
     def _normalize(self, x):
         r"""
@@ -867,7 +875,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         - returns ``x`` with _normalize_coefficient applied to each of the coefficients
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
             sage: t = JP.base_ring().gen()
@@ -894,7 +902,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         - the normalized morphism
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
             sage: normal = JP._normalize_morphism(AlgebrasWithBasis(JP.base_ring()))
@@ -930,7 +938,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         - returns the product of ``left`` and ``right`` expanded in the basis ``self``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: JJ = SymmetricFunctions(FractionField(QQ['t'])).jack().J()
             sage: JJ([1])^2              # indirect doctest
@@ -957,7 +965,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         - the family of Jack symmetric functions associated to ``self``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: JackP = SymmetricFunctions(QQ).jack(t=2).P()
             sage: JackP.jack_family()
@@ -965,8 +973,36 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
         """
         return self._jack
 
+    def coproduct_by_coercion(self, elt):
+        r"""
+        Returns the coproduct of the element ``elt`` by coercion to the Schur basis.
+
+        INPUT:
+
+        - ``self`` -- a Jack symmetric function basis
+        - ``elt`` -- an instance of this basis
+
+        OUTPUT:
+
+        - The coproduct acting on ``elt``, the result is an element of the
+          tensor squared of the Jack symmetric function basis
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ['t'].fraction_field())
+            sage: Sym.jack().P()[2,2].coproduct() #indirect doctest
+            JackP[] # JackP[2, 2] + (2/(t+1))*JackP[1] # JackP[2, 1] + ((-8*t-4)/(-t^3-4*t^2-5*t-2))*JackP[1, 1] # JackP[1, 1] + JackP[2] # JackP[2] + (2/(t+1))*JackP[2, 1] # JackP[1] + JackP[2, 2] # JackP[]
+        """
+        from sage.categories.tensor import tensor
+        s = self.realization_of().schur()
+        g = self.tensor_square().sum(coeff*tensor([self(s[x]), self(s[y])])
+                                        for ((x,y), coeff) in s(elt).coproduct())
+        normalize = self._normalize_coefficients
+        return self.tensor_square().sum(normalize(coeff)*tensor([self(x), self(y)])
+                    for ((x,y), coeff) in g)
+
+
     class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
-        pass
         def scalar_jack(self, x, t=None):
             r"""
             A scalar product where the power sums are orthogonal and
@@ -983,7 +1019,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
             - returns the Jack scalar product between ``x`` and ``self``
 
-            EXAMPLES ::
+            EXAMPLES::
 
                 sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
                 sage: JP = Sym.jack().P()
@@ -1015,7 +1051,7 @@ def part_scalar_jack(part1, part2, t):
 
     - returns the scalar product between the power sum indexed by ``part1`` and ``part2``
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: Q.<t> = QQ[]
         sage: from sage.combinat.sf.jack import part_scalar_jack
@@ -1045,7 +1081,7 @@ class JackPolynomials_p(JackPolynomials_generic):
         - ``self`` -- an instance of the Jack `P` basis of the symmetric functions
         - ``jack`` -- a family of Jack symmetric function bases
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: P = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
             sage: TestSuite(P).run(skip=['_test_associativity', '_test_distributivity', '_test_prod']) # products are too expensive
@@ -1069,7 +1105,7 @@ class JackPolynomials_p(JackPolynomials_generic):
         - ``self`` -- an instance of the Jack `P` basis of the symmetric functions
         - ``n`` -- a positive integer indicating the degree
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
@@ -1120,7 +1156,7 @@ class JackPolynomials_p(JackPolynomials_generic):
         - returns a function that accepts a partition and returns the coefficients
           of the expansion of the element of ``P(part)`` in the monomial basis
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
             sage: JP._m_cache(3)
@@ -1148,7 +1184,7 @@ class JackPolynomials_p(JackPolynomials_generic):
 
         - returns the product of ``left`` and ``right`` expanded in the basis ``self``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
             sage: m = JP.symmetric_function_ring().m()
@@ -1187,7 +1223,7 @@ class JackPolynomials_p(JackPolynomials_generic):
                The Clarendon Press, Oxford University Press, New York, 1995, With contributions
                by A. Zelevinsky, Oxford Science Publications.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
             sage: JJ = SymmetricFunctions(FractionField(QQ['t'])).jack().J()
@@ -1243,14 +1279,14 @@ class JackPolynomials_j(JackPolynomials_generic):
 
     def __init__(self, jack):
         r"""
-        The J basis is a defined as a normalized form of the P basis
+        The `J` basis is a defined as a normalized form of the `P` basis
 
         INPUT:
 
         - ``self`` -- an instance of the Jack `P` basis of the symmetric functions
         - ``jack`` -- a family of Jack symmetric function bases
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: J = SymmetricFunctions(FractionField(QQ['t'])).jack().J()
             sage: TestSuite(J).run(skip=['_test_associativity', '_test_distributivity', '_test_prod']) # products are too expensive
@@ -1279,16 +1315,16 @@ class JackPolynomials_q(JackPolynomials_generic):
 
     def __init__(self, jack):
         r"""
-        The `Q` basis is defined as a normalized form of the P basis
+        The `Q` basis is defined as a normalized form of the `P` basis
 
         INPUT:
 
-        - ``self`` -- an instance of the Jack `P` basis of the symmetric functions
+        - ``self`` -- an instance of the Jack `Q` basis of the symmetric functions
         - ``jack`` -- a family of Jack symmetric function bases
 
-        EXAMPLES ::
+        EXAMPLES::
 
-            sage: Q = SymmetricFunctions(FractionField(QQ['t'])).jack().J()
+            sage: Q = SymmetricFunctions(FractionField(QQ['t'])).jack().Q()
             sage: TestSuite(Q).run(skip=['_test_associativity', '_test_distributivity', '_test_prod']) # products are too expensive
             sage: TestSuite(Q).run(elements = [Q.t*Q[1,1]+Q[2], Q[1]+(1+Q.t)*Q[1,1]])  # long time (3s on sage.math, 2012)
         """
@@ -1303,6 +1339,196 @@ class JackPolynomials_q(JackPolynomials_generic):
         phi = self._P.module_morphism(diagonal = self._P.scalar_jack_basis, codomain = self, category = category)
         self   .register_coercion(self   ._normalize_morphism(category) *  phi)
         self._P.register_coercion(self._P._normalize_morphism(category) * ~phi)
+
+    class Element(JackPolynomials_generic.Element):
+        pass
+
+qp_to_h_cache = {}
+h_to_qp_cache = {}
+class JackPolynomials_qp(JackPolynomials_generic):
+    def __init__(self, jack):
+        r"""
+        The `Qp` basis is the dual basis to the `P` basis with respect to the
+        standard scalar product
+
+        INPUT:
+
+        - ``self`` -- an instance of the Jack `Qp` basis of the symmetric functions
+        - ``jack`` -- a family of Jack symmetric function bases
+
+        EXAMPLES::
+
+            sage: Qp = SymmetricFunctions(FractionField(QQ['t'])).jack().Qp()
+            sage: TestSuite(Qp).run(skip=['_test_associativity', '_test_distributivity', '_test_prod']) # products are too expensive
+            sage: TestSuite(Qp).run(elements = [Qp.t*Qp[1,1]+Qp[2], Qp[1]+(1+Qp.t)*Qp[1,1]])  # long time (3s on sage.math, 2012)
+        """
+        self._name = "Jack polynomials in the Qp basis"
+        self._prefix = "JackQp"
+        JackPolynomials_generic.__init__(self, jack)
+        self._P = self._jack.P()
+        self._self_to_h_cache = qp_to_h_cache
+        self._h_to_self_cache = h_to_qp_cache
+
+    def _multiply(self, left, right):
+        r"""
+        The product of two Jack symmetric functions is done by multiplying the
+        elements in the monomial basis and then expressing the elements
+        the basis ``self``.
+
+        INPUT:
+
+        - ``self`` -- an instance of the Jack `Qp` basis of the symmetric functions
+        - ``left``, ``right`` -- symmetric function elements
+
+        OUTPUT:
+
+        - returns the product of ``left`` and ``right`` expanded in the basis ``self``
+
+        EXAMPLES::
+
+            sage: JQp = SymmetricFunctions(FractionField(QQ['t'])).jack().Qp()
+            sage: h = JQp.symmetric_function_ring().h()
+            sage: JQp([1])^2 # indirect doctest
+            JackQp[1, 1] + (-2/(-t-1))*JackQp[2]
+            sage: h(_)
+            h[1, 1]
+            sage: JQp = SymmetricFunctions(QQ).jack(t=2).Qp()
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: JQp([2,1])^2
+            JackQp[2, 2, 1, 1] + 2/3*JackQp[2, 2, 2] + 2/3*JackQp[3, 1, 1, 1] + 48/35*JackQp[3, 2, 1] + 28/75*JackQp[3, 3] + 128/225*JackQp[4, 1, 1] + 28/75*JackQp[4, 2]
+            sage: h(_)
+            h[2, 2, 1, 1] - 6/5*h[3, 2, 1] + 9/25*h[3, 3]
+        """
+        return self( self._h(left)*self._h(right) )
+
+    def _h_cache(self, n):
+        r"""
+        Computes the change of basis between the Jack polynomials in the `Qp`
+        basis and the homogeneous symmetric functions. This uses the coefficients
+        in the change of basis between the Jack `P` basis and the monomial basis.
+
+        INPUT:
+
+        - ``self`` -- an instance of the Jack `Qp` basis of the symmetric functions
+        - ``n`` -- a positive integer indicating the degree
+
+        EXAMPLES::
+
+            sage: JQp = SymmetricFunctions(FractionField(QQ['t'])).jack().Qp()
+            sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
+            sage: JQp._h_cache(2)
+            sage: l(JQp._self_to_h_cache[2])
+            [([1, 1], [([1, 1], 1), ([2], 2/(-t - 1))]), ([2], [([2], 1)])]
+            sage: l(JQp._h_to_self_cache[2])
+            [([1, 1], [([1, 1], 1), ([2], -2/(-t - 1))]), ([2], [([2], 1)])]
+            sage: JQp._h_cache(3)
+            sage: l(JQp._h_to_self_cache[3])
+            [([1, 1, 1], [([1, 1, 1], 1), ([2, 1], 6/(t + 2)), ([3], -6/(-2*t^2 - 3*t - 1))]), ([2, 1], [([2, 1], 1), ([3], 3/(2*t + 1))]), ([3], [([3], 1)])]
+            sage: l(JQp._self_to_h_cache[3])
+            [([1, 1, 1], [([1, 1, 1], 1), ([2, 1], -6/(t + 2)), ([3], -6/(-t^2 - 3*t - 2))]), ([2, 1], [([2, 1], 1), ([3], -3/(2*t + 1))]), ([3], [([3], 1)])]
+        """
+        if n in self._self_to_h_cache:
+            return
+        else:
+            self._self_to_h_cache[n] = {}
+            self._h_to_self_cache[n] = {}
+        self._P._m_cache(n)
+        from_cache_1 = self._P._self_to_m_cache[n]
+        to_cache_1 = self._self_to_h_cache[n]
+        from_cache_2 = self._P._m_to_self_cache[n]
+        to_cache_2 = self._h_to_self_cache[n]
+        for mu in from_cache_1.keys():
+            for la in from_cache_1[mu].keys():
+                if not la in to_cache_1:
+                    to_cache_1[la] = {}
+                    to_cache_2[la] = {}
+                to_cache_2[la][mu] = from_cache_1[mu][la]
+                to_cache_1[la][mu] = from_cache_2[mu][la]
+
+    def _self_to_h( self, x ):
+        r"""
+        Isomorphism from self to the homogeneous basis
+
+        INPUT:
+
+        - ``self`` -- a Jack `Qp` basis of the symmetric functions
+        - ``x`` -- an element of the Jack `Qp` basis
+
+        OUTPUT:
+
+        - an element of the homogeneous basis equivalent to ``x``
+
+        EXAMPLES ::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: JQp = Sym.jack(t=2).Qp()
+            sage: h = Sym.homogeneous()
+            sage: JQp._self_to_h(JQp[2,1])
+            h[2, 1] - 3/5*h[3]
+
+        This is for internal use only. Please use instead::
+
+            sage: h(JQp[2,1])
+            h[2, 1] - 3/5*h[3]
+        """
+        return self._h._from_cache(x, self._h_cache, self._self_to_h_cache, t = self.t)
+
+    def _h_to_self( self, x ):
+        r"""
+        Isomorphism from the homogeneous basis into ``self``
+
+        INPUT:
+
+        - ``self`` -- a Jack `Qp` basis of the symmetric functions
+        - ``x`` -- element of the homogeneous basis
+
+        OUTPUT:
+
+        - an element of the Jack `Qp` basis equivalent to ``x``
+
+        EXAMPLES ::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: JQp = Sym.jack(t=2).Qp()
+            sage: h = Sym.homogeneous()
+            sage: JQp._h_to_self(h[2,1])
+            JackQp[2, 1] + 3/5*JackQp[3]
+
+        This is for internal use only. Please use instead::
+
+            sage: JQp(h[2,1])
+            JackQp[2, 1] + 3/5*JackQp[3]
+        """
+        return self._from_cache(x, self._h_cache, self._h_to_self_cache, t = self.t)
+
+    def coproduct_by_coercion( self, elt ):
+        r"""
+        Returns the coproduct of the element ``elt`` by coercion to the Schur basis.
+
+        INPUT:
+
+        - ``elt`` -- an instance of the ``Qp`` basis
+
+        OUTPUT:
+
+        - The coproduct acting on ``elt``, the result is an element of the
+          tensor squared of the ``Qp`` symmetric function basis
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ['t'].fraction_field())
+            sage: JQp = Sym.jack().Qp()
+            sage: JQp[2,2].coproduct()   #indirect doctest
+            JackQp[] # JackQp[2, 2] + (2*t/(t+1))*JackQp[1] # JackQp[2, 1] + JackQp[1, 1] # JackQp[1, 1] + ((-4*t^3-8*t^2)/(-2*t^3-5*t^2-4*t-1))*JackQp[2] # JackQp[2] + (2*t/(t+1))*JackQp[2, 1] # JackQp[1] + JackQp[2, 2] # JackQp[]
+        """
+        h = elt.parent().realization_of().h()
+        parent = elt.parent()
+        from sage.categories.tensor import tensor
+        cfunc = lambda x, y: tensor([parent(x), parent(y)])
+        cprod = h(elt).coproduct().apply_multilinear_morphism( cfunc )
+        normalize = lambda c: normalize_coefficients( parent, c )
+        return cprod.parent().sum(normalize(coeff)*tensor([parent(x), parent(y)])
+                        for ((x,y), coeff) in cprod)
 
     class Element(JackPolynomials_generic.Element):
         pass
@@ -1414,6 +1640,7 @@ class SymmetricFunctionAlgebra_zonal(sfa.SymmetricFunctionAlgebra_generic):
 
 # Backward compatibility for unpickling
 from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.sf.jack', 'JackPolynomial_qp', JackPolynomials_qp.Element)
 register_unpickle_override('sage.combinat.sf.jack', 'JackPolynomial_j', JackPolynomials_j.Element)
 register_unpickle_override('sage.combinat.sf.jack', 'JackPolynomial_p', JackPolynomials_p.Element)
 register_unpickle_override('sage.combinat.sf.jack', 'JackPolynomial_q', JackPolynomials_q.Element)

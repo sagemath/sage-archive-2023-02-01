@@ -1,0 +1,11 @@
+syntax: glob
+
+*.log
+*.pyc
+*~
+
+*.spkg
+src
+.git
+.gitignore
+README.txt

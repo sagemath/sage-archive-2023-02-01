@@ -22,7 +22,7 @@ and                         boolean and
 not                         boolean not
 in, not in                  membership
 is, is not                  identity test
->, <=, >, >=, ==, !=, <>    comparison
+>, <=, >, >=, ==, !=        comparison
 +, -                        addition, subtraction
 \*, /, %                    multiplication, division, remainder
 \*\*, ^                     exponentiation

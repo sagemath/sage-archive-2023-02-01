@@ -384,7 +384,7 @@ but that would obscure the main points being made here.)
                x = QQ(x)
            for p, e in x.denominator().factor():
                if p not in self._primes:
-                   raise ValueError, "Not integral at %s" % p
+                   raise ValueError("Not integral at %s" % p)
            return LocalizationElement(self, x)
 
        def _coerce_map_from_(self, S):

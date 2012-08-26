@@ -333,7 +333,7 @@ class Documenter(object):
                 obj = self.get_attr(obj, part)
             self.object = obj
             return True
-        except (SyntaxError, ImportError, AttributeError), err:
+        except (SyntaxError, ImportError, AttributeError) as err:
             self.directive.warn(
                 'autodoc can\'t import/find %s %r, it reported error: '
                 '"%s", please check your spelling and sys.path' %
@@ -633,7 +633,7 @@ class Documenter(object):
             # parse right now, to get PycodeErrors on parsing (results will
             # be cached anyway)
             self.analyzer.find_attr_docs()
-        except PycodeError, err:
+        except PycodeError as err:
             # no source file -- e.g. for builtin and C modules
             self.analyzer = None
             # at least add the module.__file__ as a dependency
@@ -655,7 +655,7 @@ class Documenter(object):
         # format the object's signature, if any
         try:
             sig = self.format_signature()
-        except Exception, err:
+        except Exception as err:
             self.directive.warn('error while formatting signature for '
                                 '%s: %s' % (self.fullname, err))
             sig = ''

@@ -79,12 +79,11 @@ tcl/tk development library. On Ubuntu, this is the command ::
 
 or something along that line. Next, reinstall Sage's Python::
 
-    sage -f python-2.5.2.p8
+    sage -f python
 
-Replace the part "2.5.2.p8" with the exact version number as
-appropriate. This will pick up the tcl/tk library automatically. After
-successfully reinstalling Sage's Python, from within the Sage command
-line interface, issue these commands::
+This will pick up the tcl/tk library automatically. After successfully
+reinstalling Sage's Python, from within the Sage command line interface,
+issue these commands::
 
     import _tkinter
     import Tkinter

@@ -22,7 +22,7 @@ and                         et booléen
 not                         négation booléenne
 in, not in                  appartenance
 is, is not                  test d'identité
->, <=, >, >=, ==, !=, <>    comparaisons
+>, <=, >, >=, ==, !=        comparaisons
 +, -                        addition, soustraction
 \*, /, %                    multiplication, division, reste
 \*\*, ^                     exponentiation

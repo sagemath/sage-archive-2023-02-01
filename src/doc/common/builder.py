@@ -58,7 +58,7 @@ def copytree(src, dst, symlinks=False, ignore_errors=False):
     except OSError as why:
         errors.extend((src, dst, str(why)))
     if errors and not ignore_errors:
-        raise shutil.Error, errors
+        raise shutil.Error(errors)
 
 
 

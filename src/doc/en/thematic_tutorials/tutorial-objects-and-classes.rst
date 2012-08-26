@@ -607,7 +607,7 @@ Solutions to the exercises
     ...           return self._beverage
     ...       def fill(self, beverage = "water"):
     ...           if not self.is_clean():
-    ...               raise ValueError, "Don't want to fill a dirty glass"
+    ...               raise ValueError("Don't want to fill a dirty glass")
     ...           self._clean = False
     ...           self._content = self._size
     ...           self._beverage = beverage
@@ -617,9 +617,9 @@ Solutions to the exercises
     ...           return self._content == 0.0
     ...       def drink(self, amount):
     ...           if amount <= 0.0:
-    ...               raise ValueError, "amount must be positive"
+    ...               raise ValueError("amount must be positive")
     ...           elif amount > self._content:
-    ...               raise ValueError, "not enough beverage in the glass"
+    ...               raise ValueError("not enough beverage in the glass")
     ...           else:
     ...               self._content -= float(amount)
     ...       def is_clean(self):
@@ -715,15 +715,15 @@ Solutions to the exercises
     ...           return self._beverage
     ...       def fill(self, beverage = "water"):
     ...           if not self.is_clean():
-    ...               raise ValueError, "Don't want to fill a dirty glass"
+    ...               raise ValueError("Don't want to fill a dirty glass")
     ...           self._make_dirty()
     ...           self._content = self._size
     ...           self._beverage = beverage
     ...       def drink(self, amount):
     ...           if amount <= 0.0:
-    ...               raise ValueError, "amount must be positive"
+    ...               raise ValueError("amount must be positive")
     ...           elif amount > self._content:
-    ...               raise ValueError, "not enough beverage in the glass"
+    ...               raise ValueError("not enough beverage in the glass")
     ...           else:
     ...               self._content -= float(amount)
     ...       def wash(self):

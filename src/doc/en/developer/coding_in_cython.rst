@@ -327,7 +327,7 @@ If you need to *raise* an exception yourself, call a ``sig_off()`` before it::
         # (some long computation)
         if (something_failed):
             sig_off()
-            raise RuntimeError, "something failed"
+            raise RuntimeError("something failed")
         # (some more computation)
         sig_off()
         return something

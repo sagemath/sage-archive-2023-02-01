@@ -402,7 +402,7 @@ Instead, catch specific exceptions. For example,
 
     try:
         return self.__coordinate_ring
-    except (AttributeError, OtherExceptions), msg:           # Good
+    except (AttributeError, OtherExceptions) as msg:           # Good
         more_code_to_compute_something()
 
 Note that the syntax in ``except`` is to list all the exceptions that

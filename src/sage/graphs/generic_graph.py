@@ -6876,7 +6876,7 @@ class GenericGraph(GenericGraph_pyx):
                     return sum([weight(self.edge_label(u, v))
                                 for u, v in d.iteritems()]) * 0.5
                 else:
-                    return Integer(len(d))
+                    return Integer(len(d)/2)
             else:
                 return [(u, v, self.edge_label(u, v))
                         for u, v in d.iteritems() if u < v]

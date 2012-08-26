@@ -528,6 +528,24 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         """
         return self._polynomial_ring
 
+    def laurent_polynomial_ring(self):
+        r"""
+        If this is the Laurent series ring `R((t))`, return the Laurent
+        polynomial ring `R[t,1/t]`.
+
+        EXAMPLES::
+
+            sage: R = LaurentSeriesRing(QQ, "x")
+            sage: R.laurent_polynomial_ring()
+            Univariate Laurent Polynomial Ring in x over Rational Field
+        """
+        try:
+            return self.__laurent_polynomial_ring
+        except AttributeError:
+            self.__laurent_polynomial_ring = polynomial.laurent_polynomial_ring.LaurentPolynomialRing( \
+                                         self.base_ring(), self.variable_name(), sparse=self.is_sparse())
+            return self.__laurent_polynomial_ring
+
     def power_series_ring(self):
         r"""
         If this is the Laurent series ring `R((t))`, return the

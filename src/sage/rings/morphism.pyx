@@ -276,11 +276,7 @@ EXAMPLE: Homomorphism of Laurent series ring.
     Ring endomorphism of Laurent Series Ring in t over Rational Field
       Defn: t |--> t^3
     sage: f(s)
-    2*t^-6 + 1 - t^3 + t^6 - t^9 + t^12 - t^15 + t^18 - t^21 + t^24 - t^27
-    sage: s = 2/t^2 + 1/(1 + t); s
-    2*t^-2 + 1 - t + t^2 - t^3 + t^4 - t^5 + t^6 - t^7 + t^8 - t^9 + O(t^10)
-    sage: f(s)
-    2*t^-6 + 1 - t^3 + t^6 - t^9 + t^12 - t^15 + t^18 - t^21 + t^24 - t^27
+    2*t^-6 + 1 - t^3 + t^6 - t^9 + t^12 - t^15 + t^18 - t^21 + t^24 - t^27 + O(t^30)
 
 Note that the homomorphism must result in a converging Laurent
 series, so the valuation of the image of the generator must be

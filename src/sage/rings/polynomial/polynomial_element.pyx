@@ -428,7 +428,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             6
             sage: f(w=5)
             6
-            sage: f(x=10)   # x isn't mention
+            sage: f(x=10)   # x isn't mentioned
             w^3 + 3*w + 2
 
         Nested polynomial ring elements can be called like multi-variate
@@ -500,7 +500,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS:
 
-        The following shows that \#2360 is indeed fixed. ::
+        The following shows that :trac:`2360` is indeed fixed. ::
 
             sage: R.<x,y> = ZZ[]
             sage: P.<a> = ZZ[]
@@ -515,13 +515,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(x)
             6*x^4
 
-        The following shows that \#9006 is also fixed. ::
+        The following shows that :trac:`9006` is also fixed. ::
 
             sage: f = ZZ['x'](1000000 * [1])
             sage: f(1)
             1000000
 
-        The following test came up in 9051::
+        The following test came up in :trac:`9051`::
 
             sage: Cif = ComplexIntervalField(64)
             sage: R.<x> = Cif[]
@@ -529,6 +529,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: jj = Cif(RIF(0,2))
             sage: f(jj).center(), f(jj).diameter()
             (1.00000000000000000, 4.00000000000000000)
+
+        The following failed before the patch to :trac:`3979`
+
+        ::
+
+            sage: R.<x> = ZZ[]
+            sage: S.<y> = R[]
+            sage: g = x*y + 1
+            sage: g(x=3)
+            3*y + 1
 
         AUTHORS:
 
@@ -546,6 +556,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
            CompiledPolynomialFunction
 
         -  William Stein (2007-06-03): add support for keyword arguments.
+
+        -  Francis Clarke (2012-08-26): fix keyword substitution in the
+           leading coefficient.
         """
         cdef long i, d = self.degree()
 
@@ -568,7 +581,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 except TypeError:
                     return a
             else:
-                result = self[d]
+                try:
+                    result = self[d](**kwds)
+                except TypeError:
+                    result = self[d]
                 a = P.gen()
                 i = d - 1
                 while i >= 0:
@@ -5378,7 +5394,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             k = k + 1
             self = self.__floordiv__(p)
         return sage.rings.integer.Integer(k)
-        raise RuntimeError("bug in computing valuation of polynomial")
 
     def ord(self, p=None):
         r"""
@@ -5392,6 +5407,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1
         """
         return self.valuation(p)
+
+    def add_bigoh(self, prec):
+        r"""
+        Returns the power series of precision at most prec got by adding
+        `O(q^\text{prec})` to self, where q is its variable.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: f = 1 + 4*x + x^3
+            sage: f.add_bigoh(7)
+            1 + 4*x + x^3 + O(x^7)
+            sage: f.add_bigoh(2)
+            1 + 4*x + O(x^2)
+            sage: f.add_bigoh(2).parent()
+            Power Series Ring in x over Integer Ring
+        """
+        return self.parent().completion(self.parent().gen())(self).add_bigoh(prec)
 
     def name(self):
         """
@@ -5486,7 +5519,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R(0).is_irreducible()
             False
 
-        See \#5140,
+        See :trac:`5140`,
 
         ::
 

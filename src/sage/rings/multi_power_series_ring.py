@@ -1006,9 +1006,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             sage: fg = M._send_to_fg(bg.add_bigoh(2)); fg
             4 + 4*f0 + 4*f2
         """
-
-        return self._poly_ring(f.subs({self._bg_indeterminate:1}))
-
+        return self._poly_ring(f.polynomial().subs({self._bg_indeterminate:1}))
 
 
 def unpickle_multi_power_series_ring_v0(base_ring, num_gens, names, order, default_prec, sparse):

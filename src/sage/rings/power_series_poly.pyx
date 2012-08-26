@@ -134,10 +134,13 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: (-t^8 + O(t^11)).valuation()
             8
             sage: O(t^7).valuation()
-            +Infinity
+            7
             sage: R(0).valuation()
             +Infinity
         """
+        if self.__f == 0:
+            return self._prec
+
         return self.__f.valuation()
 
     def degree(self):
@@ -175,38 +178,200 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         return not not self.__f
 
-    def __call__(self, *xs):
+    def __call__(self, *x, **kwds):
         """
+        Evaluate the series at x=a.
+
+        INPUT:
+
+        -  ``x``:
+
+           - a tuple of elements the first of which can be meaningfully
+             substituted in self, with the remainder used for substitution
+             in the coefficients of self.
+
+           - a dictionary for kwds:value pairs. If the variable name of
+             self is a keyword it is substituted for.  Other keywords
+             are used for substitution in the coefficients of self.
+
+        OUTPUT: the value of self after substitution.
+
         EXAMPLES::
 
-            sage: R.<t> = GF(7)[[]]
-            sage: f = 3 - t^3 + O(t^5)
-            sage: f(1)
-            2
+            sage: R.<t> = ZZ[[]]
+            sage: f = t^2 + t^3 + O(t^6)
+            sage: f(t^3)
+            t^6 + t^9 + O(t^18)
+            sage: f(t=t^3)
+            t^6 + t^9 + O(t^18)
             sage: f(f)
-            4 + 6*t^3 + O(t^5)
+            t^4 + 2*t^5 + 2*t^6 + 3*t^7 + O(t^8)
+            sage: f(f)(f) == f(f(f))
+            True
 
-            sage: S.<w> = R[[]]
-            sage: g = w + 2*w^3 + t*w^4 + O(w^5)
-            sage: g(1)
-            3 + t
-            sage: g(1)(1)
-            4
+        The following demonstrates that the problems raised in :trac:`3979`
+        and :trac:`5367` are solved::
+
+            sage: [f(t^2 + O(t^n)) for n in [9, 10, 11]]
+            [t^4 + t^6 + O(t^11), t^4 + t^6 + O(t^12), t^4 + t^6 + O(t^12)]
+            sage: f(t^2)
+            t^4 + t^6 + O(t^12)
+
+        It is possible to substitute a series for which only the precision
+        is defined::
+
+            sage: f(O(t^5))
+            O(t^10)
+
+        or to substitute a polynomial (the result belonging to the power
+        series ring over the same base ring)::
+
+            sage: P.<z> = ZZ[]
+            sage: g = f(z + z^3); g
+            z^2 + z^3 + 2*z^4 + 3*z^5 + O(z^6)
+            sage: g.parent()
+            Power Series Ring in z over Integer Ring
+
+        A series defined over another ring can be substituted::
+
+            sage: S.<u> = GF(7)[[]]
+            sage: f(2*u + u^3 + O(u^5))
+            4*u^2 + u^3 + 4*u^4 + 5*u^5 + O(u^6)
+
+        As can a p-adic integer as long as the coefficient ring is compatible::
+
+            sage: f(100 + O(5^7))
+            5^4 + 3*5^5 + 4*5^6 + 2*5^7 + 2*5^8 + O(5^9)
+            sage: f.change_ring(Zp(5))(100 + O(5^7))
+            5^4 + 3*5^5 + 4*5^6 + 2*5^7 + 2*5^8 + O(5^9)
+            sage: f.change_ring(Zp(5))(100 + O(2^7))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute this value
+
+        To substitute a value it must have valuation at least 1::
+
+            sage: f(0)
+            0
+            sage: f(1 + t)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute this value
+            sage: f(2 + O(5^3))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute this value
+            sage: f(t^-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute this value
+
+        Unless, of course, it is being substituted in a series with infinite
+        precision, i.e., a polynomial::
+
+            sage: g = t^2 + t^3
+            sage: g(1 + t + O(t^2))
+            2 + 5*t + O(t^2)
+            sage: g(3)
+            36
+
+        Arguments beyond the first can refer to the base ring::
+
+            sage: P.<x> = GF(5)[]
+            sage: Q.<y> = P[[]]
+            sage: h = (1 - x*y)^-1 + O(y^7); h
+            1 + x*y + x^2*y^2 + x^3*y^3 + x^4*y^4 + x^5*y^5 + x^6*y^6 + O(y^7)
+            sage: h(y^2, 3)
+            1 + 3*y^2 + 4*y^4 + 2*y^6 + y^8 + 3*y^10 + 4*y^12 + O(y^14)
+
+        These secondary values can also be specified using keywords::
+
+            sage: h(y=y^2, x=3)
+            1 + 3*y^2 + 4*y^4 + 2*y^6 + y^8 + 3*y^10 + 4*y^12 + O(y^14)
+            sage: h(y^2, x=3)
+            1 + 3*y^2 + 4*y^4 + 2*y^6 + y^8 + 3*y^10 + 4*y^12 + O(y^14)
         """
-        if isinstance(xs[0], tuple):
-            xs = xs[0]
-        x = xs[0]
+        P = self.parent()
+
+        if len(kwds) >= 1:
+            name = P.variable_name()
+            if kwds.has_key(name): # a keyword specifies the power series generator
+                if len(x) > 0:
+                    raise ValueError, "must not specify %s keyword and positional argument" % name
+                a = self(kwds[name])
+                del kwds[name]
+                try:
+                    return a(**kwds)
+                except TypeError:
+                    return a
+            elif len(x) > 0:       # both keywords and positional arguments
+                a = self(*x)
+                try:
+                    return a(**kwds)
+                except TypeError:
+                    return a
+            else:                  # keywords but no positional arguments
+                return P(self.__f(**kwds)).add_bigoh(self._prec)
+
+        if len(x) == 0:
+            return self
+
+        if isinstance(x[0], tuple):
+            x = x[0]
+        a = x[0]
+
+        s = self._prec
+        if s == infinity:
+            return self.__f(x)
+
+        Q = a.parent()
+
+        from sage.rings.padics.padic_generic import pAdicGeneric
+        padic = isinstance(Q, pAdicGeneric)
+        if padic:
+            p = Q.prime()
+
         try:
-            if x.parent() is self._parent:
-                if not (self.prec() is infinity):
-                    if x.valuation() == 0:
-                        x = x.add_bigoh(self.prec())
-                    else:
-                        x = x.add_bigoh(self.prec()*x.valuation())
-                    xs = list(xs); xs[0] = x; xs = tuple(xs) # tuples are immutable
+            t = a.valuation()
+        except (TypeError, AttributeError):
+            if a.is_zero():
+                t = infinity
+            else:
+                t = 0
+
+        if t == infinity:
+            return self[0]
+
+        if t <= 0:
+            raise ValueError, "Cannot substitute this value"
+
+        if not Q.has_coerce_map_from(P.base_ring()):
+            from sage.structure.element import canonical_coercion
+            try:
+                R = canonical_coercion(P.base_ring()(0), Q.base_ring()(0))[0].parent()
+                self = self.change_ring(R)
+            except TypeError:
+                raise ValueError, "Cannot substitute this value"
+
+        r = (self - self[0]).valuation()
+        if r == s:                 # self is constant + O(x^s)
+            if padic:
+                from sage.rings.big_oh import O
+                return self[0] + O(p**(s*t))
+            else:
+                return P(self[0]).add_bigoh(s*t)
+
+        try:
+            u = a.prec()
         except AttributeError:
-            pass
-        return self.__f(xs)
+            u = a.precision_absolute()
+        n = (s - r + 1)*t
+        if n < u:
+            a = a.add_bigoh(n)
+            x = list(x)
+            x[0] = a
+            x = tuple(x)
+        return self.__f(x)
 
     def _unsafe_mutate(self, i, value):
         """
@@ -373,7 +538,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         TESTS:
 
-        In the past this could die with EXC_BAD_ACCESS (trac #8029)::
+        In the past this could die with EXC_BAD_ACCESS (:trac:`8029`)::
 
             sage: A.<x> = RR['x']
             sage: B.<t> = PowerSeriesRing(A)
@@ -792,8 +957,6 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: f = 2*b*t + b*t^2 + 3*b^2*t^3 + O(t^4)
             sage: g = f.reversion(); g
             1/(2*b)*t - 1/(8*b^2)*t^2 + ((-3*b + 1)/(16*b^3))*t^3 + O(t^4)
-            sage: g.base_ring()
-            Fraction Field of Univariate Polynomial Ring in b over Integer Ring
             sage: f(g)
             t + O(t^4)
             sage: g(f)

@@ -16,7 +16,8 @@ cdef class PowerSeries_mpoly(PowerSeries):
 
     def __init__(self, parent, f=0, prec=infinity, int check=1, is_gen=0):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: S.<x> = QQ[]
             sage: R.<y> = S[[]]
             sage: f = x + 2*y + x*y
@@ -72,14 +73,6 @@ cdef class PowerSeries_mpoly(PowerSeries):
         return make_powerseries_mpoly_v0, (self._parent, self.__f, self._prec, self.__is_gen)
 
     def __call__(self, *args, **kwds):
-        """
-        EXAMPLE:
-            sage: S.<x> = GF(7)
-            sage: R.<t> = S[[]]
-            sage: f = 3 - x*t^3 + O(t^5)
-            sage: f(1)
-            2
-        """
         if len(kwds) == 0 and len(args) == 1:
             R = self.parent()._mpoly_ring()
             return self.__f.substitute({R.gen(0):args[0]})

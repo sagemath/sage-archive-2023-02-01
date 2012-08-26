@@ -424,12 +424,13 @@ class EllipticCurveFormalGroup(SageObject):
 
         EXAMPLES::
 
-            sage: e = EllipticCurve([1, 2])
-            sage: F = e.formal_group().group_law(5)
-            sage: i = e.formal_group().inverse(5)
-            sage: Fx = F.base_extend(F.base_ring().base_extend(i.parent()))
-            sage: Fx (i) (i.parent().gen())
-            O(t^5)
+            sage: P.<a1, a2, a3, a4, a6> = ZZ[]
+            sage: E = EllipticCurve(list(P.gens()))
+            sage: i = E.formal_group().inverse(6); i
+            -t - a1*t^2 - a1^2*t^3 + (-a1^3 - a3)*t^4 + (-a1^4 - 3*a1*a3)*t^5 + O(t^6)
+            sage: F = E.formal_group().group_law(6)
+            sage: F(i.parent().gen(), i)
+            O(t^6)
         """
         prec = max(prec,0)
         try:
@@ -457,8 +458,8 @@ class EllipticCurveFormalGroup(SageObject):
         -  ``prec`` - integer (default 10)
 
 
-        OUTPUT: a power series with given precision in
-        ZZ[[ ZZ[['t1']],'t2']]
+        OUTPUT: a power series with given precision in R[['t1','t2']], where
+        the curve is defined over R.
 
         DETAILS: Return the formal power series
 
@@ -467,65 +468,63 @@ class EllipticCurveFormalGroup(SageObject):
            F(t_1, t_2) = t_1 + t_2 - a_1 t_1 t_2 - \cdots
 
 
-        to precision `O(t^{prec})` of page 115 of [Silverman AEC1].
+        to precision `O(t1,t2)^{prec}` of page 115 of [Silverman AEC1].
 
-        The result is cached, and a cached version is returned if
-        possible.
+        The result is cached, and a cached version is returned if possible.
 
-        .. warning::
-
-           The resulting power series will have precision prec, but
-           its parent PowerSeriesRing will have default precision 20
-           (or whatever the default default is).
 
         AUTHORS:
 
         - Nick Alexander: minor fixes, docstring
 
+        - Francis Clarke (2012-08): modified to use two-variable power series ring
+
         EXAMPLES::
 
             sage: e = EllipticCurve([1, 2])
-            sage: e.formal_group().group_law(5)
-            t1 + O(t1^5) + (1 - 2*t1^4 + O(t1^5))*t2 + (-4*t1^3 + O(t1^5))*t2^2 + (-4*t1^2 - 30*t1^4 + O(t1^5))*t2^3 + (-2*t1 - 30*t1^3 + O(t1^5))*t2^4 + O(t2^5)
+            sage: e.formal_group().group_law(6)
+            t1 + t2 - 2*t1^4*t2 - 4*t1^3*t2^2 - 4*t1^2*t2^3 - 2*t1*t2^4 + O(t1, t2)^6
 
             sage: e = EllipticCurve('14a1')
             sage: ehat = e.formal()
             sage: ehat.group_law(3)
-            t1 + O(t1^3) + (1 - t1 - 4*t1^2 + O(t1^3))*t2 + (-4*t1 + O(t1^3))*t2^2 + O(t2^3)
+            t1 + t2 - t1*t2 + O(t1, t2)^3
             sage: ehat.group_law(5)
-            t1 + O(t1^5) + (1 - t1 - 2*t1^3 - 32*t1^4 + O(t1^5))*t2 + (-3*t1^2 - 59*t1^3 - 120*t1^4 + O(t1^5))*t2^2 + (-2*t1 - 59*t1^2 - 141*t1^3 - 347*t1^4 + O(t1^5))*t2^3 + (-32*t1 - 120*t1^2 - 347*t1^3 - 951*t1^4 + O(t1^5))*t2^4 + O(t2^5)
+            t1 + t2 - t1*t2 - 2*t1^3*t2 - 3*t1^2*t2^2 - 2*t1*t2^3 + O(t1, t2)^5
 
-            sage: e = EllipticCurve(GF(7),[3,4])
+            sage: e = EllipticCurve(GF(7), [3, 4])
             sage: ehat = e.formal()
             sage: ehat.group_law(3)
-            t1 + O(t1^3) + (1 + O(t1^3))*t2 + O(t2^3)
+            t1 + t2 + O(t1, t2)^3
             sage: F = ehat.group_law(7); F
-            t1 + O(t1^7) + (1 + t1^4 + 2*t1^6 + O(t1^7))*t2 + (2*t1^3 + 6*t1^5 + O(t1^7))*t2^2 + (2*t1^2 + 3*t1^4 + 2*t1^6 + O(t1^7))*t2^3 + (t1 + 3*t1^3 + 4*t1^5 + O(t1^7))*t2^4 + (6*t1^2 + 4*t1^4 + O(t1^7))*t2^5 + (2*t1 + 2*t1^3 + O(t1^7))*t2^6 + O(t2^7)
+            t1 + t2 + t1^4*t2 + 2*t1^3*t2^2 + 2*t1^2*t2^3 + t1*t2^4 + O(t1, t2)^7
 
         TESTS::
 
-            sage: i = e.formal_group().inverse(7)
-            sage: Fx = F.base_extend(F.base_ring().base_extend(i.parent()))
-            sage: Fx (i.parent().gen()) (i)
-            O(t^7)
+            sage: R.<x,y,z> = GF(7)[[]]
+            sage: F(x, ehat.inverse()(x))
+            0 + O(x, y, z)^7
+            sage: F(x, y) == F(y, x)
+            True
+            sage: F(x, F(y, z)) == F(F(x, y), z)
+            True
 
         Let's ensure caching with changed precision is working::
 
             sage: e.formal_group().group_law(4)
-            t1 + O(t1^4) + (1 + O(t1^4))*t2 + (2*t1^3 + O(t1^4))*t2^2 + (2*t1^2 + O(t1^4))*t2^3 + O(t2^4)
+            t1 + t2 + O(t1, t2)^4
 
-        Test for trac ticket 9646::
+        Test for :trac:`9646`::
 
             sage: P.<a1, a2, a3, a4, a6> = PolynomialRing(ZZ, 5)
             sage: E = EllipticCurve(list(P.gens()))
-            sage: F = E.formal().group_law(prec = 4)
-            sage: t2 = F.parent().gen()
-            sage: t1 = F.parent().base_ring().gen()
+            sage: F = E.formal().group_law(prec=5)
+            sage: t1, t2 = F.parent().gens()
             sage: F(t1, 0)
-            t1
+            t1 + O(t1, t2)^5
             sage: F(0, t2)
-            t2
-            sage: F[2][1]
+            t2 + O(t1, t2)^5
+            sage: F.coefficients()[t1*t2^2]
             -a2
 
         """
@@ -533,42 +532,36 @@ class EllipticCurveFormalGroup(SageObject):
         if prec <= 0:
             raise ValueError, "The precision must be positive."
 
-        R1 = rings.PowerSeriesRing(self.curve().base_ring(),"t1")
-        R2 = rings.PowerSeriesRing(R1,"t2")
-        t1 = R1.gen().add_bigoh(prec)
-        t2 = R2.gen().add_bigoh(prec)
+        R = rings.PowerSeriesRing(self.curve().base_ring(), 2, 't1,t2')
+        t1, t2 = R.gens()
 
         if prec == 1:
-            return R2(O(t2))
+            return R(0)
         elif prec == 2:
-            return R2(t1+t2 - self.curve().a1()*t1*t2)
-
-        fix_prec = lambda F, final_prec: R2([ c + O(t1**final_prec) for c in F ]) + O(t2**final_prec)
+            return t1 + t2 - self.curve().a1()*t1*t2
 
         try:
             pr, F = self.__group_law
+            if prec <= pr:
+                return F.add_bigoh(prec)
         except AttributeError:
-            pr = -1
-        if prec <= pr:
-            # we have to 'fix up' coefficient precisions
-            return fix_prec(F, prec)
+            pass
 
         w = self.w(prec+1)
-        tsum = lambda n: sum([t2**m * t1**(n-m-1) for m in range(n)])
-        lam = sum([tsum(n)*w[n] for n in range(3,prec+1)])
-        w1 = R1(w, prec+1)
-        nu = w1 - lam*t1 + O(t1**prec)
+        lam = sum([w[n]*sum(t2**m * t1**(n-m-1) for m in range(n)) for n in range(3, prec+1)])
+        lam = lam.add_bigoh(prec)
+        nu = w(t1) - lam*t1
         a1, a2, a3, a4, a6 = self.curve().ainvs()
         lam2 = lam*lam
         lam3 = lam2*lam
-        # note that the following formula differs from the one in Silverman page 119. See trac ticket 9646 for the explanation and justification.
+        # note that the following formula differs from the one in Silverman page 119.
+        # See trac ticket 9646 for the explanation and justification.
         t3 = -t1 - t2 - \
              (a1*lam + a3*lam2 + a2*nu + 2*a4*lam*nu + 3*a6*lam2*nu)/  \
              (1 + a2*lam + a4*lam2 + a6*lam3)
         inv = self.inverse(prec)
 
-        # we have to 'fix up' precision issues
-        F = fix_prec(inv(t3), prec)
+        F = inv(t3).add_bigoh(prec)
         self.__group_law = (prec, F)
         return F
 
@@ -611,6 +604,9 @@ class EllipticCurveFormalGroup(SageObject):
           non char 0 field case.
 
         - Tom Boothby (2009-06): slight improvement to double-and-add
+
+        - Francis Clarke (2012-08): adjustments and simplifications using group_law
+          code as modified to yield a two-variable power series.
 
         EXAMPLES::
 
@@ -683,35 +679,35 @@ class EllipticCurveFormalGroup(SageObject):
 
         # Now the general case, not necessarily over a field.
 
-        # For unknown reasons, this seems to lose one place of precision:
-        # the coefficient of t**(prec-1) seems off.  So we apply the easy fix.
-        orig_prec = max(prec, 0)
-        prec = orig_prec + 1
-
-        R = rings.PowerSeriesRing(self.curve().base_ring(),"t")
+        R = rings.PowerSeriesRing(self.curve().base_ring(), "t")
         t = R.gen()
+
         if n == 1:
-            return t + O(t**orig_prec)
+            return t.add_bigoh(prec)
+
         if n == 0:
-            return R(0) + O(t**orig_prec)
+            return R(0).add_bigoh(prec)
+
         if n == -1:
-            return R(self.inverse(orig_prec))
+            return R(self.inverse(prec))
+
         if n < 0:
-            F = self.inverse(prec)(self.mult_by_n(-n,orig_prec))
-            return R(F.add_bigoh(orig_prec))
+            return self.inverse(prec)(self.mult_by_n(-n, prec))
+
         F = self.group_law(prec)
-        g = F.parent().base_ring().gen()
+
+        result = t
+        if n < 4:
+            for m in range(n - 1):
+                result = F(result, t)
+            return result
 
         # Double and add is faster than the naive method when n >= 4.
-        if n < 4:
-            for m in range(2,n+1):
-                g = F(g)
-            return R(g.add_bigoh(orig_prec))
-
-        if n&1:
+        g = t
+        if n & 1:
             result = g
         else:
-            result = F.parent().base_ring()(0)
+            result = 0
         n = n >> 1
 
         while n > 0:
@@ -720,7 +716,7 @@ class EllipticCurveFormalGroup(SageObject):
                 result = F(result, g)
             n = n >> 1
 
-        return R(result.add_bigoh(orig_prec))
+        return result
 
     def sigma(self, prec=10):
         """

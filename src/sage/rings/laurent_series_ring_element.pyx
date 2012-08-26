@@ -443,6 +443,22 @@ cdef class LaurentSeries(AlgebraElement):
         v = self.valuation()
         return [i+v for i in range(len(l)) if l[i] != zero]
 
+    def laurent_polynomial(self):
+        """
+        Return the corresponding Laurent polynomial.
+
+        EXAMPLES::
+
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = t^-3 + t + 7*t^2 + O(t^5)
+            sage: g = f.laurent_polynomial(); g
+            7*t^2 + t + t^-3
+            sage: g.parent()
+            Univariate Laurent Polynomial Ring in t over Rational Field
+        """
+        R = self.parent().laurent_polynomial_ring()
+        return R(self.__u.polynomial())*R.gen()**(self.__n)
+
     def __setitem__(self, n, value):
         """
         EXAMPLES::
@@ -1149,25 +1165,68 @@ cdef class LaurentSeries(AlgebraElement):
         t = u.parent().gen()
         return t**(self.__n) * u
 
-    def __call__(self, *x):
+    def __call__(self, *x, **kwds):
         """
         Compute value of this Laurent series at x.
 
         EXAMPLES::
 
-            sage: R.<t> = LaurentSeriesRing(ZZ)
-            sage: f = t^(-2) + t^2 + O(t^8)
-            sage: f(2)
-            17/4
-            sage: f(-1)
-            2
-            sage: f(1/3)
-            82/9
-        """
+            sage: P.<x, y> = ZZ[]
+            sage: R.<t> = LaurentSeriesRing(P)
+            sage: f = x*t^-2 + y*t^2 + O(t^8)
+            sage: f(t^3)
+            x*t^-6 + y*t^6 + O(t^24)
+            sage: f(t=t^3)
+            x*t^-6 + y*t^6 + O(t^24)
+            sage: f(t + O(t^5))
+            x*t^-2 + O(t^2)
+            sage: f(y=x)
+            x*t^-2 + x*t^2 + O(t^8)
+            sage: f(t^3, x=2, y=x+x^2)
+            2*t^-6 + (x^2 + x)*t^6 + O(t^24)
+            sage: f(t^3, 2, x+x^2)
+            2*t^-6 + (x^2 + x)*t^6 + O(t^24)
+            sage: f(x=2, t=t^3, y=x+x^2)
+            2*t^-6 + (x^2 + x)*t^6 + O(t^24)
+            sage: f(2, x+x^2, t=t^3)
+            Traceback (most recent call last):
+            ...
+            ValueError: must not specify t keyword and positional argument
+
+        It is only possible to substitute elements of positive valuation::
+
+            sage: f(t^-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute this value
+            """
+        if len(kwds) >= 1:
+            name = self.parent().variable_name()
+            if kwds.has_key(name): # a keyword specifies the Laurent series generator
+                if len(x) > 0:
+                    raise ValueError, "must not specify %s keyword and positional argument" % name
+                a = self(kwds[name])
+                del kwds[name]
+                try:
+                    return a(**kwds)
+                except TypeError:
+                    return a
+            elif len(x) > 0:       # both keywords and positional arguments
+                a = self(*x)
+                try:
+                    return a(**kwds)
+                except TypeError:
+                    return a
+            else:                  # keywords but no positional arguments
+                return self.__u(**kwds)*(self.parent().gen()**self.__n)
+
+        if len(x) == 0:
+            return self
+
         if isinstance(x[0], tuple):
             x = x[0]
-        return self.__u(x) * (x[0]**self.__n)
 
+        return self.__u(x)*(x[0]**self.__n)
 
 def make_element_from_parent(parent, *args):
     return parent(*args)

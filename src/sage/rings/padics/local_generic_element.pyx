@@ -135,8 +135,21 @@ cdef class LocalGenericElement(CommutativeRingElement):
         # this doctest doesn't actually test this function, since _sub_ is overridden.
         return self + (-right)
 
-    #def add_bigoh(self, prec):
-    #    return self.slice(None, prec)
+    def add_bigoh(self, prec):
+        """
+        Returns self to reduced precision ``prec``.
+
+        EXAMPLES::
+            sage: K = Qp(11, 5)
+            sage: L.<a> = K.extension(x^20 - 11)
+            sage: b = a^3 + 3*a^5; b
+            a^3 + 3*a^5 + O(a^103)
+            sage: b.add_bigoh(17)
+            a^3 + 3*a^5 + O(a^17)
+            sage: b.add_bigoh(150)
+            a^3 + 3*a^5 + O(a^103)
+        """
+        return self.parent()(self, absprec=prec)
 
     #def copy(self):
     #    raise NotImplementedError

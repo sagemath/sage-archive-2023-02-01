@@ -56,7 +56,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: P = HK(0,3)
             sage: Q = HK(5, 3 + 3*5^2 + 2*5^3 + 3*5^4 + 2*5^5 + 2*5^6 + 3*5^7 + O(5^8))
             sage: x,y,z, = HK.local_analytic_interpolation(P,Q)
-            sage: x(0) == P[0], x(1) == Q[0], y(0) == P[1], y(1) == Q[1]
+            sage: x(0) == P[0], x(1) == Q[0], y(0) == P[1], y.polynomial()(1) == Q[1]
             (True, True, True, True)
 
         A finite Weierstrass disc::
@@ -64,7 +64,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: P = HK.lift_x(1 + 2*5^2)
             sage: Q = HK.lift_x(1 + 3*5^2)
             sage: x,y,z = HK.local_analytic_interpolation(P,Q)
-            sage: x(0) == P[0], x(1) == Q[0], y(0) == P[1], y(1) == Q[1]
+            sage: x(0) == P[0], x.polynomial()(1) == Q[0], y(0) == P[1], y(1) == Q[1]
             (True, True, True, True)
 
         The infinite disc::
@@ -117,7 +117,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             a = P[1]
             b = Q[1] - P[1]
             y = a + b*t
-            x = x(y)
+            x = x.polynomial()(y).add_bigoh(x.prec())
             return (x, y, 1)
 
     def weierstrass_points(self):
@@ -372,7 +372,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             if x.valuation() != -2:
                 I = sum([f_dt[n]/(n+1) for n in xrange(f_dt.degree()+1)]) # \int_0^1 f dt
             else:
-                If_dt = f_dt.integral()
+                If_dt = f_dt.integral().laurent_polynomial()
                 I = If_dt(Q[0]**g/Q[1]) - If_dt(P[0]**g/P[1])
             integrals.append(I)
         return vector(integrals)
@@ -784,7 +784,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             5 + O(5^9)
             sage: xloc,yloc,zloc = HK.local_analytic_interpolation(P,Q)
             sage: I2 = (xloc.derivative()/(2*yloc)).integral()
-            sage: I2(1)-I2(0)
+            sage: I2.polynomial()(1) - I2(0)
             3*5 + 2*5^2 + 2*5^3 + 5^4 + 4*5^6 + 5^7 + O(5^9)
             sage: HK.coleman_integral(w,P,Q)
             3*5 + 2*5^2 + 2*5^3 + 5^4 + 4*5^6 + 5^7 + O(5^9)
@@ -1067,7 +1067,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: HJ  = H.change_ring(J)
             sage: S = HK.get_boundary_point(HJ,P)
             sage: S
-            (1 + 2*a^2 + 2*a^6 + 2*a^18 + a^32 + a^34 + a^36 + 2*a^38 + 2*a^40 + a^42 + 2*a^44 + a^48 + 2*a^50 + 2*a^52 + a^54 + a^56 + 2*a^60 + 2*a^62 + a^70 + 2*a^72 + a^76 + 2*a^78 + a^82 + a^88 + a^96 + 2*a^98 + 2*a^102 + a^104 + 2*a^106 + a^108 + 2*a^110 + a^112 + 2*a^116 + a^126 + 2*a^130 + 2*a^132 + a^144 + 2*a^148 + 2*a^150 + a^152 + 2*a^154 + a^162 + a^164 + a^166 + a^168 + a^170 + a^176 + a^178 + O(a^180) : a + O(a^181) : 1 + O(a^180))
+            (1 + 2*a^2 + 2*a^6 + 2*a^18 + a^32 + a^34 + a^36 + 2*a^38 + 2*a^40 + a^42 + 2*a^44 + a^48 + 2*a^50 + 2*a^52 + a^54 + a^56 + 2*a^60 + 2*a^62 + a^70 + 2*a^72 + a^76 + 2*a^78 + a^82 + a^88 + a^96 + 2*a^98 + 2*a^102 + a^104 + 2*a^106 + a^108 + 2*a^110 + a^112 + 2*a^116 + a^126 + 2*a^130 + 2*a^132 + a^144 + 2*a^148 + 2*a^150 + a^152 + 2*a^154 + a^162 + a^164 + a^166 + a^168 + a^170 + a^176 + a^178 + O(a^180) : a + O(a^180) : 1 + O(a^180))
 
         AUTHOR:
 
@@ -1104,7 +1104,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: HJ = HK.curve_over_ram_extn(10)
             sage: S = HK.get_boundary_point(HJ,P)
             sage: HK.P_to_S(P, S)
-            (2*a + 4*a^3 + 2*a^11 + 4*a^13 + 2*a^17 + 2*a^19 + a^21 + 4*a^23 + a^25 + 2*a^27 + 2*a^29 + 3*a^31 + 4*a^33 + O(a^35), a^-5 + 2*a + 2*a^3 + a^7 + 3*a^11 + a^13 + 3*a^15 + 3*a^17 + 2*a^19 + 4*a^21 + 4*a^23 + 4*a^25 + 2*a^27 + a^29 + a^31 + 3*a^33 + O(a^35))
+            (2*a + 4*a^3 + 2*a^11 + 4*a^13 + 2*a^17 + 2*a^19 + a^21 + 4*a^23 + a^25 + 2*a^27 + 2*a^29 + 3*a^31 + 4*a^33 + O(a^35), a^-5 + 2*a + 2*a^3 + a^7 + 3*a^11 + a^13 + 3*a^15 + 3*a^17 + 2*a^19 + 4*a^21 + 4*a^23 + 4*a^25 + 2*a^27 + a^29 + a^31 + O(a^33))
 
         AUTHOR:
 
@@ -1199,7 +1199,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: P_to_S = HK.P_to_S(P,S)
             sage: S_to_Q = HJ.S_to_Q(S,Q)
             sage: P_to_S + S_to_Q
-            (2*a^40 + a^80 + a^100 + O(a^105), a^20 + 2*a^40 + 4*a^60 + 2*a^80 + O(a^105))
+            (2*a^40 + a^80 + a^100 + O(a^105), a^20 + 2*a^40 + 4*a^60 + 2*a^80 + O(a^103))
             sage: HK.coleman_integrals_on_basis(P,Q)
             (2*5^2 + 5^4 + 5^5 + 3*5^6 + O(5^7), 5 + 2*5^2 + 4*5^3 + 2*5^4 + 5^6 + O(5^7))
 
@@ -1233,7 +1233,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             P = self(ZZ(FS[0][0]),ZZ(FS[1][0]))
             x,y = self.local_coord(P,prec2)
             integrals = [(x**i*x.derivative()/(2*y)).integral() for i in range(dim)]
-            S_to_FS = vector([I(FS[1])-I(S[1]) for I in integrals])
+            S_to_FS = vector([I.polynomial()(FS[1]) - I.polynomial()(S[1]) for I in integrals])
         if HJ(Q[0],Q[1]) == HJ(FQ):
             FQ_to_Q = V(dim*[0])
         else:
@@ -1284,7 +1284,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: P_to_S = HK.coleman_integral_P_to_S(y.diff(),P,S)
             sage: S_to_Q = HJ.coleman_integral_S_to_Q(y.diff(),S,Q)
             sage: P_to_S  + S_to_Q
-            3 + O(a^120)
+            3 + O(a^119)
             sage: HK.coleman_integral(y.diff(),P,Q)
             3 + O(5^6)
 
@@ -1336,7 +1336,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: Q = HK(0,3)
             sage: x,y = HK.monsky_washnitzer_gens()
             sage: HK.coleman_integral_from_weierstrass_via_boundary(y.diff(),P,Q,20)
-            3 + O(a^120)
+            3 + O(a^119)
             sage: HK.coleman_integral(y.diff(),P,Q)
             3 + O(5^6)
             sage: w = HK.invariant_differential()

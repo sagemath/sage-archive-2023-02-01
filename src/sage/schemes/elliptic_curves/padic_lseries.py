@@ -584,7 +584,7 @@ class pAdicLseries(SageObject):
         while True:
             f = self.series(n)
             v = f.valuation()
-            if v < r:
+            if v < n and v < r:
                 raise RuntimeError, "while computing p-adic order of vanishing, got a contradiction: the curve is %s, the curve has rank %s, but the p-adic L-series vanishes to order <= %s"%(E, r, v)
             if v == r:
                 self.__ord = v
@@ -1418,8 +1418,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
-            sage: L.bernardi_sigma_function(5) # Todo: some sort of consistency check!?
-            z + 1/24*z^3 + 29/384*z^5 - 8399/322560*z^7 - 291743/92897280*z^9 - 4364831/5225472*z^10 + 2172371753/955514880*z^11 - 17875714529/6897623040*z^12 + 2839176621047/1605264998400*z^13 + 32012675789849/10042939146240*z^14 - 367444910151047/89894839910400*z^15 + 973773806885959/241030539509760*z^16 - 33997971208432501/17259809262796800*z^17 - 10331978660756704339/842918229599846400*z^18 + 18601407947897364480389/950670294194847744000*z^19 - 118837570440101901119321/8071784966648129126400*z^20 + O(z^21)
+            sage: L.bernardi_sigma_function(prec=5) # Todo: some sort of consistency check!?
+            z + 1/24*z^3 + 29/384*z^5 - 8399/322560*z^7 - 291743/92897280*z^9 + O(z^10)
         """
         E = self._E
         p = self._p

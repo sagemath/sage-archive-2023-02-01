@@ -357,7 +357,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         MW = m_w.MonskyWashnitzerDifferentialRing(S)
         return MW.invariant_differential()
 
-    def local_coordinates_at_nonweierstrass(self, P, prec = 20, name = 't'):
+    def local_coordinates_at_nonweierstrass(self, P, prec=20, name='t'):
         """
         For a non-Weierstrass point P = (a,b) on the hyperelliptic
         curve y^2 = f(x), returns (x(t), y(t)) such that (y(t))^2 = f(x(t)),
@@ -410,7 +410,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             d = (d + f/d)/2
         return t+b+O(t**(prec)), d + O(t**(prec))
 
-    def local_coordinates_at_weierstrass(self, P,  prec = 20, name = 't'):
+    def local_coordinates_at_weierstrass(self, P, prec=20, name='t'):
         """
         For a finite Weierstrass point on the hyperelliptic
         curve y^2 = f(x), returns (x(t), y(t)) such that
@@ -429,39 +429,39 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         EXAMPLES:
             sage: R.<x> = QQ['x']
             sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
-            sage: A = H(4,0)
-            sage: x,y = H.local_coordinates_at_weierstrass(A,prec =5)
+            sage: A = H(4, 0)
+
+            sage: x, y = H.local_coordinates_at_weierstrass(A, prec=7)
+
             sage: x
             4 + 1/360*t^2 - 191/23328000*t^4 + 7579/188956800000*t^6 + O(t^7)
             sage: y
             t + O(t^7)
-            sage: B = H(-5,0)
-            sage: x,y = H.local_coordinates_at_weierstrass(B,prec = 5)
+            sage: B = H(-5, 0)
+            sage: x, y = H.local_coordinates_at_weierstrass(B, prec=5)
             sage: x
-            -5 + 1/1260*t^2 + 887/2000376000*t^4  + 643759/1587898468800000*t^6 + O(t^7)
+            -5 + 1/1260*t^2 + 887/2000376000*t^4 + O(t^5)
             sage: y
-            t + O(t^7)
+            t + O(t^5)
 
         AUTHOR:
             - Jennifer Balakrishnan (2007-12)
+
+            - Francis Clarke (2012-08-26)
         """
         if P[1] != 0:
             raise TypeError, "P = %s is not a finite Weierstrass point. Use local_coordinates_at_nonweierstrass instead!"%P
-        pol = self.hyperelliptic_polynomials()[0]
         L = PowerSeriesRing(self.base_ring(), name)
         t = L.gen()
-        L.set_default_prec(prec+2)
-        K = PowerSeriesRing(L, 'x')
-        pol = K(pol)
-        x = K.gen()
+        pol = self.hyperelliptic_polynomials()[0]
+        pol_prime = pol.derivative()
         b = P[0]
-        g = pol/(x-b)
-        c = b+1/g(b)*t**2
-        f = pol - t**2
-        fprime = f.derivative()
-        for i in range((RR(log(prec+2)/log(2))).ceil()):
-            c = c-f(c)/fprime(c)
-        return c + O(t**(prec+2)),t+O(t**(prec+2))
+        t2  = t**2
+        c = b + t2/pol_prime(b)
+        c = c.add_bigoh(prec)
+        for _ in range(1 + log(prec, 2)):
+            c -= (pol(c) - t2)/pol_prime(c)
+        return (c, t.add_bigoh(prec))
 
     def local_coordinates_at_infinity(self, prec = 20, name = 't'):
         """
@@ -531,11 +531,11 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         EXAMPLES:
             sage: R.<x> = QQ['x']
             sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
-            sage: H.local_coord(H(1,6),prec=5)
+            sage: H.local_coord(H(1 ,6), prec=5)
             (1 + t + O(t^5), 6 + t - 7/2*t^2 - 1/2*t^3 - 25/48*t^4 + O(t^5))
-            sage: H.local_coord(H(4,0),prec=5)
+            sage: H.local_coord(H(4, 0), prec=7)
             (4 + 1/360*t^2 - 191/23328000*t^4 + 7579/188956800000*t^6 + O(t^7), t + O(t^7))
-            sage: H.local_coord(H(0,1,0),prec=5)
+            sage: H.local_coord(H(0, 1, 0), prec=5)
             (t^-2 + 23*t^2 - 18*t^4 - 569*t^6 + O(t^7), t^-5 + 46*t^-1 - 36*t - 609*t^3 + 1656*t^5 + O(t^6))
 
         AUTHOR:

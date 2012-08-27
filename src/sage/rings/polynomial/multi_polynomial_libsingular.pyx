@@ -3973,6 +3973,35 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f=p*q
             sage: f-f.factor()
             0
+
+        The following examples used to give a Segmentation Fault, see
+        :trac:`12918` and :trac:`13129`::
+
+            sage: R.<x,y> = GF(2)[]
+            sage: f = x^6 + x^5 + y^5 + y^4
+            sage: f.factor()
+            x^6 + x^5 + y^5 + y^4
+            sage: f = x^16*y + x^10*y + x^9*y + x^6*y + x^5 + x*y + y^2
+            sage: f.factor()
+            x^16*y + x^10*y + x^9*y + x^6*y + x^5 + x*y + y^2
+
+        Test :trac:`12928`::
+
+            sage: R.<x,y> = GF(2)[]
+            sage: p = x^2 + y^2 + x + 1
+            sage: q = x^4 + x^2*y^2 + y^4 + x*y^2 + x^2 + y^2 + 1
+            sage: factor(p*q)
+            (x^2 + y^2 + x + 1) * (x^4 + x^2*y^2 + y^4 + x*y^2 + x^2 + y^2 + 1)
+
+        The following used to sometimes take a very long time or get
+        stuck, see :trac:`12846`. These 100 iterations should take less
+        than 1 second::
+
+            sage: K.<a> = GF(4)
+            sage: R.<x,y> = K[]
+            sage: f = (a + 1)*x^145*y^84 + (a + 1)*x^205*y^17 + x^32*y^112 + x^92*y^45
+            sage: for i in range(100):
+            ...       assert len(f.factor()) == 4
         """
         cdef ring *_ring = self._parent_ring
         cdef poly *ptemp

@@ -571,11 +571,11 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC):
 
             sage: isocls = EllipticCurve('389a1').isogeny_class(use_tuple=False); isocls
             Elliptic curve isogeny class 389a
-            sage: E = EllipticCurve([1, -1, 0, -53594, 4788959]) # conductor 10001
+            sage: E = EllipticCurve([0, 0, 0, 0, 1001]) # conductor 108216108
             sage: E.isogeny_class(use_tuple=False, order='database')
             Traceback (most recent call last):
             ...
-            RuntimeError: unable to to find Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 53594*x + 4788959 over Rational Field in the database
+            RuntimeError: unable to to find Elliptic Curve defined by y^2 = x^3 + 1001 over Rational Field in the database
             sage: TestSuite(isocls).run()
         """
         self._algorithm = algorithm

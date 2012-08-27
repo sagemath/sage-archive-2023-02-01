@@ -14,6 +14,8 @@ sources) are included again.  (Not sure whether all of this intentionally.)
  * Robert Miller
  * David Joyner
  * Dmitrii Pasechnik
+ * Martin Albrecht
+ * Volker Braun
 
 == Upstream Contact ==
 
@@ -51,9 +53,33 @@ Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
    Otherwise unsetting `CC` and `CXX` can be removed, which is an odd work-
    around anyway.
 
- * `spkg-install` contains further instructions and hints.
+This is a stripped-down version of GAP.  The databases, which are arch
+independent, are in a separate package and doc and tests are removed.
+
+** IMPORTANT **:
+   When you update this package, be sure to put the guava package
+   in the package directory!!
+
+Delete some of the documentation:
+  cd doc
+  rm *.bbl *.aux *.dvi *.idx *.ilg *.l* *.m* *.pdf *.toc  *.blg *.ind
+  rm */*.bbl */*.aux */*.dvi */*.idx */*.ilg */*.l* */*.m* */*.pdf */*.ind */*.toc */*.blg
+
+DATABASES (separated out to database_gap.spkg) except GAPDoc which is required:
+  rm -rf small prim trans
+  cd pkg
+  rm -rf !(GAPDoc*)
+
+Stuff that isn't GAP sources:
+  rm -rf extern bin/*
+
+
 
 == Changelog ==
+
+=== gap-4.5.5 (Volker Braun, 26 August 2012) ===
+ * Update to latest upstream version
+ * Added spkg-check
 
 === gap-4.4.12.p8 (Jean-Pierre Flori, Leif Leonhardy, 5 August 2012) ===
  * #13341: Only create symbolic link to gap.exe on Cygwin if needed.
@@ -151,29 +177,3 @@ ad/970aa0dc8fa56ab7?lnk=raot
 Upgraded to gap-4.4.10.  Had to change files in the patches directory that
 hard code gap-4.4.9.
 
---------------------
-
-
-This is a stripped-down version of GAP.  The databases, which are arch
-independent, are in a separate package and doc and tests are removed.
-
-PACKAGE MAINTAINERS: William Stein, Martin Albrecht, and David Joyner
-
-** IMPORTANT **:
-   When you update this package, be sure to put the guava package
-   in the package directory!!
-
-DELETED:
-   doc -- some of documentation:
- rm *.bbl *.aux *.dvi *.idx *.ilg *.l* *.m* *.pdf *.toc  *.blg *.ind
- rm */*.bbl */*.aux */*.dvi */*.idx */*.ilg */*.l* */*.m* */*.pdf */*.ind */*.toc */*.blg
-
-   tst -- tests
-   bin -- some BIG windows programs, which we don't need since GAP
-          is only going to be used via expect
-
-DATABASES (separated out):
-   small -- small group's database; will distribute separately.
-   pkg/tomlib -- just contains the "Table of Marks"; distribute separately.
-   prim
-   trans

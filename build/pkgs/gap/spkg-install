@@ -4,6 +4,8 @@
 ## GAP
 ###########################################
 
+SPKG_ROOT=`pwd` # Save GAP's spkg build directory.
+
 if [[ -z "$SAGE_LOCAL" ]]; then
     echo >&2 "SAGE_LOCAL undefined - exiting..."
     echo >&2 "Maybe run 'sage -sh'?"
@@ -29,7 +31,15 @@ if [[ "`echo $CXX | wc -w`" -ne 1 ]]; then
     unset CXX
 fi
 
-TARGET="gap-4.4.12"  # NOTE: Be sure to also update patches/gap*
+# be sure to update this to the
+VERSION=`grep AC_INIT $SPKG_ROOT/src/cnf/configure.in | cut -d '[' -f 3 | cut -d ']' -f 1`
+GAP_DIR="gap-$VERSION"
+INSTALL_DIR="$SAGE_LOCAL/$GAP_DIR"
+
+echo "spkg-install is using"
+echo "VERSION = $VERSION"
+echo "GAP_DIR = $GAP_DIR"
+echo "INSTALL_DIR = $INSTALL_DIR"
 
 if [[ "$SAGE64" = yes ]]; then
     if [[ -z $CFLAG64 ]]; then
@@ -38,160 +48,113 @@ if [[ "$SAGE64" = yes ]]; then
     CFLAGS="$CFLAGS $CFLAG64"
     CXXFLAGS="$CXXFLAGS $CFLAG64"
     echo "Building a 64-bit version of GAP (with '$CFLAG64')."
-    # Most probably redundant, as sage-env should already have exported these:
-    export CFLAGS CXXFLAGS
 fi
-
-# We should in principle handle SAGE_DEBUG etc. here as well, but although
-# CFLAGS, CPPFLAGS and LDFLAGS are passed to GAP's second-stage 'configure',
-# GAP apparently ignores these...
-
 
 # Indicate that GAP has somehow been updated, which invalidates all workspaces:
 touch "$SAGE_LOCAL/bin/gap_stamp"
-# (If we do that this way, does GAP's installation still depend on Sage?
-# Cf. SPKG.txt, dependencies section.)
 
+# workaround for MPIR missing macro issue
+CFLAGS="$CFLAGS -D__GMP_MP_RELEASE=50002"
 
 # Apply patches:
 echo "Copying over patched GAP files..."
-cp -f patches/gap.c patches/saveload.c patches/streams.c src/src/ &&
-cp -f patches/sysfiles.h patches/sysfiles.c src/src/
+cd "$SPKG_ROOT"
+cp patches/gap.shi src/
+cp patches/testinstall.g src/tst/
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error copying over patched GAP files."
     exit 1
 fi
 
+echo "Configuring GAP..."
+cd "$SPKG_ROOT/src"
+./configure \
+    --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
+    --with-gmp="$SAGE_LOCAL" \
+    CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error configuring GAP."
+    exit 1
+fi
 
-build()
-{
-    CUR=`pwd` # Save GAP's spkg build directory.
-    INSTALL_DIR="$SAGE_LOCAL"/lib/$TARGET
-    rm -rf "$INSTALL_DIR"
+# On Cygwin installations the GAP build creates a file 'gap.exe',
+# and then tries to strip the file 'gap'.
+# This broke the build on old Cygwin installations.
+# On newer Cygwins, 'gap' is automatically "translated" to 'gap.exe'.
+if [[ "$UNAME" = CYGWIN ]]; then
+    echo "Creating a dummy 'gap.exe' in 'bin/i686-pc-cygwin-gcc'..."
+    cd "$SPKG_ROOT/src"
+    mkdir -p bin/i686-pc-cygwin-gcc &&
+    cd bin/i686-pc-cygwin-gcc &&
+    touch gap.exe
     if [[ $? -ne 0 ]]; then
-        echo >&2 "Error removing (old) installation directory:"
-        echo >&2 "    $INSTALL_DIR"
+        # Something really went wrong.
+        echo >&2 "Error creating a dummy gap.exe file."
         exit 1
     fi
-
-    cd src/
-
-    # Since there are warnings about setting CFLAGS, the following is only down
-    # on 64-bit Solaris. I don't want to screw things up for anyone else,
-    # on MacOS X for example. (Dave Kirkby)
-    # TODO: Also "exporting" CFLAGS and CXXFLAGS (i.e., passing them to
-    #       `configure`) should be checked. -leif
-    if [[ "$UNAME" = SunOS ]] && [[ "$SAGE64" = yes ]]; then
-        echo "Configuring GAP for a 64-bit Solaris or OpenSolaris build..."
-        ./configure --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
-                    CC="$CC $CFLAG64" CXX="$CXX $CFLAG64"
-    else
-        echo "Configuring GAP..."
-        ./configure --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
-                    CC="$CC" CXX="$CXX"
-    fi
-    if [[ $? -ne 0 ]]; then
-        echo >&2 "Error configuring GAP."
-        exit 1
-    fi
-
-    # On Cygwin installations the GAP build creates a file 'gap.exe',
-    # and then tries to strip the file 'gap'.
-    # This broke the build on old Cygwin installations.
-    # On newer Cygwins, 'gap' is automatically "translated" to 'gap.exe'.
-    if [[ "$UNAME" = CYGWIN ]]; then
-        echo "Creating a dummy 'gap.exe' in 'bin/i686-pc-cygwin-gcc'..."
-        mkdir -p bin/i686-pc-cygwin-gcc &&
-        cd bin/i686-pc-cygwin-gcc &&
-        touch gap.exe
+    # Check if 'gap' is automatically "translated" to 'gap.exe'.
+    # If not, create a symbolic link from 'gap' to 'gap.exe'.
+    if [[ ! -f gap ]]; then
+        echo "Creating a symbolic link from 'gap' to 'gap.exe'..."
+        ln -s gap.exe gap
         if [[ $? -ne 0 ]]; then
             # Something really went wrong.
-            echo >&2 "Error creating a dummy gap.exe file."
-            exit 1
-        fi
-
-        # Check if 'gap' is automatically "translated" to 'gap.exe'.
-        # If not, create a symbolic link from 'gap' to 'gap.exe'.
-        if [[ ! -f gap ]]; then
-            echo "Creating a symbolic link from 'gap' to 'gap.exe'..."
-            ln -s gap.exe gap
-            if [[ $? -ne 0 ]]; then
-                # Something really went wrong.
-                echo >&2 "Error creating the symbolic link."
-                exit 1
-            fi
-        fi
-
-        cd ../..
-    fi
-
-    echo "Now building and installing $TARGET..."
-    $MAKE
-    if [[ $? -ne 0 ]]; then
-        echo >&2 "Error building GAP."
-        exit 1
-    fi
-
-    echo "Build succeeded.  Now copying files and creating links..."
-    mkdir -p "$INSTALL_DIR" &&
-    cp -r * "$INSTALL_DIR" # XXX Do we really want to copy everything?!
-    if [[ $? -ne 0 ]]; then
-        echo >&2 "Error copying built GAP files."
-        exit 1
-    fi
-
-    cd "$SAGE_LOCAL"/bin
-    rm -f gap
-    if [[ ! -f "$SAGE_LOCAL"/lib/$TARGET/bin/gap.sh ]]; then
-        echo "Error building GAP ('gap.sh' not found)."
-        exit 1
-    fi
-    # '-f' is superfluous here if we remove 'gap' in advance (see above):
-    ln -sf "../lib/$TARGET/bin/gap.sh" gap
-    if [[ $? -ne 0 ]]; then
-        echo >&2 "Error creating symbolic link (from '`pwd`/gap'"
-        echo >&2 "to '`pwd`/../lib/$TARGET/bin/gap.sh')."
-        exit 1
-    fi
-    cd "$CUR" # back into GAP's spkg build directory
-
-    echo "Copying customized GAP startup script..."
-    # The following overwrites the target of the symbolic link we just
-    # created (i.e., '$SAGE_LOCAL/lib/$TARGET/bin/gap.sh').
-    if [[ "$UNAME" = CYGWIN ]]; then
-        cp patches/gap_cygwin "$SAGE_LOCAL"/bin/gap
-    else
-        cp patches/gap "$SAGE_LOCAL"/bin/gap
-    fi
-    if [[ $? -ne 0 ]]; then
-        echo >&2 "Error copying customized GAP startup script."
-        exit 1
-    fi
-
-    # [Build and] install docs if requested:
-    if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
-        # The (pre-built) HTML documentation is currently (GAP 4.4.12.p7)
-        # included, so we don't have to /build/ it here.
-        # echo "Now building GAP's documentation..."
-        # <COMMAND TO BUILD THE [HTML] DOCUMENTATION>
-	# if [[ $? -ne 0 ]]; then
-	#     echo >&2 "Error building GAP documentation."
-	#     exit 1
-	# fi
-        echo "Now copying GAP's (HTML) documentation..."
-	mkdir -p "$SAGE_LOCAL"/share/doc/gap &&
-	cp -r src/doc/htm "$SAGE_LOCAL"/share/doc/gap/html
-        if [[ $? -ne 0 ]]; then
-            echo >&2 "Error copying GAP's HTML documentation."
+            echo >&2 "Error creating the symbolic link."
             exit 1
         fi
     fi
-} # end of build() function
+fi
 
-build
+echo "Building GAP..."
+cd "$SPKG_ROOT/src"
+$MAKE -j1
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error building GAP."
+    exit 1
+fi
+if [[ ! -f bin/gap.sh ]]; then
+    echo "Error building GAP ('gap.sh' not found)."
+    exit 1
+fi
 
-# All errors are catched in build(), so no need to test $? here.
+echo "Installing (copying) files..."
+# gap has no notion of installing itself (similar to sage), copy everything
+mkdir -p "$INSTALL_DIR" &&
+cp -r "$SPKG_ROOT/src"/* "$INSTALL_DIR"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error copying built GAP files."
+    exit 1
+fi
 
-# Delete the old version if it is still there:
-rm -rf "$SAGE_LOCAL"/lib/gap-4.4.10
-exit 0
+echo "Creating symlink to new GAP installation..."
+cd "$SAGE_LOCAL"
+ln -sf "$GAP_DIR" gap-newest
+
+echo "Copying GAP startup script..."
+rm -f "$SAGE_LOCAL/bin/gap"
+cd "$SPKG_ROOT"
+if [[ "$UNAME" = CYGWIN ]]; then
+    cp patches/gap_cygwin "$SAGE_LOCAL/bin/gap"
+else
+    cp src/bin/gap.sh "$SAGE_LOCAL/bin/gap"
+fi
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error copying customized GAP startup script."
+    exit 1
+fi
+
+if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
+    # The (pre-built) HTML documentation is currently (GAP 4.4.12.p7)
+    # included, so we don't have to /build/ it here.
+    # echo "Now building GAP's documentation..."
+    # <COMMAND TO BUILD THE [HTML] DOCUMENTATION>
+    echo "Now copying GAP's (HTML) documentation..."
+    cd "$SPKG_ROOT"
+    mkdir -p "$SAGE_LOCAL/share/doc/gap" &&
+    cp -r src/doc/ref src/doc/tut "$SAGE_LOCAL/share/doc/gap/"
+    if [[ $? -ne 0 ]]; then
+        echo >&2 "Error copying GAP's HTML documentation."
+        exit 1
+    fi
+fi
+

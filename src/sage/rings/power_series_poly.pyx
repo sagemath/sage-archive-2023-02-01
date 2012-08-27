@@ -256,15 +256,15 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: f(1 + t)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot substitute this value
+            ValueError: Can only substitute elements of positive valuation
             sage: f(2 + O(5^3))
             Traceback (most recent call last):
             ...
-            ValueError: Cannot substitute this value
+            ValueError: Can only substitute elements of positive valuation
             sage: f(t^-2)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot substitute this value
+            ValueError: Can only substitute elements of positive valuation
 
         Unless, of course, it is being substituted in a series with infinite
         precision, i.e., a polynomial::
@@ -343,7 +343,7 @@ cdef class PowerSeries_poly(PowerSeries):
             return self[0]
 
         if t <= 0:
-            raise ValueError, "Cannot substitute this value"
+            raise ValueError, "Can only substitute elements of positive valuation"
 
         if not Q.has_coerce_map_from(P.base_ring()):
             from sage.structure.element import canonical_coercion

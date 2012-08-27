@@ -1198,7 +1198,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f(t^-2)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot substitute this value
+            ValueError: Can only substitute elements of positive valuation
             """
         if len(kwds) >= 1:
             name = self.parent().variable_name()

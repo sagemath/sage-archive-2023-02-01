@@ -6,7 +6,7 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-touch "$SAGE_LOCAL"/bin/gap_stamp
+touch "$SAGE_LOCAL/bin/gap_stamp"
 
 GAP=`echo 'Print(Concatenation("gap-", GAPInfo.Version));' | gap -q`
 if [ -z "$GAP" ]; then
@@ -23,50 +23,37 @@ echo "********************************************************************"
 
 cd src/
 
-rm -rf "$SAGE_ROOT"/local/lib/$GAP/small
-mv small "$SAGE_ROOT"/local/lib/$GAP/
-
+rm -rf "$SAGE_LOCAL/gap-newest/small"
+cp -rp small "$SAGE_LOCAL/gap-newest/"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing small group database."
     exit 1
 fi
 echo "Installed small group database."
 
-rm -rf "$SAGE_ROOT"/local/lib/$GAP/prim
-
-mv prim "$SAGE_ROOT"/local/lib/$GAP/
-
+rm -rf "$SAGE_LOCAL/gap-newest/prim"
+cp -rp prim "$SAGE_LOCAL/gap-newest/"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing prim database."
     exit 1
 fi
 echo "Installed prim database."
 
-rm -rf "$SAGE_ROOT"/local/lib/$GAP/trans
-mv trans "$SAGE_ROOT"/local/lib/$GAP/
-
+rm -rf "$SAGE_LOCAL/gap-newest/trans"
+cp -rp trans "$SAGE_LOCAL/gap-newest/"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing trans database."
     exit 1
 fi
-
 echo "Installed trans database."
 
-rm -rf "$SAGE_ROOT"/local/lib/$GAP/pkg/tomlib
-mv pkg/tomlib "$SAGE_ROOT"/local/lib/$GAP/pkg/
-
+rm -rf "$SAGE_LOCAL/gap-newest/pkg/tomlib"
+cp -rp pkg/tomlib "$SAGE_LOCAL/gap-newest/pkg/"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing tomlib database."
     exit 1
 fi
-
 echo "Installed tomlib database."
 
 sage -c "gap_reset_workspace()"
 
-# Test taken from Simon King's p-group cohomology spkg:
-SMALL_GROUPS=`echo "SmallGroup(13,1); quit;" | $SAGE_ROOT/sage -gap -b -T | grep "13"`
-if [ "$SMALL_GROUPS" = "" ]; then
-    echo >&2 "Error installing the database_gap spkg."
-    exit 1
-fi

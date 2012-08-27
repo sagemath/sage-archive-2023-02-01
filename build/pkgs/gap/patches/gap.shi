@@ -23,7 +23,7 @@ fi
 ##  You won't have to change this unless you move the installation.
 ##
 if [ "x$GAP_DIR" = "x" ];  then
-    GAP_DIR="$SAGE_LOCAL/gap-newest"
+    GAP_DIR="$SAGE_LOCAL/gap/latest"
 fi
 
 

@@ -34,7 +34,7 @@ fi
 # be sure to update this to the
 VERSION=`grep AC_INIT $SPKG_ROOT/src/cnf/configure.in | cut -d '[' -f 3 | cut -d ']' -f 1`
 GAP_DIR="gap-$VERSION"
-INSTALL_DIR="$SAGE_LOCAL/$GAP_DIR"
+INSTALL_DIR="$SAGE_LOCAL/gap/$GAP_DIR"
 
 echo "spkg-install is using"
 echo "VERSION = $VERSION"
@@ -127,8 +127,8 @@ if [[ $? -ne 0 ]]; then
 fi
 
 echo "Creating symlink to new GAP installation..."
-cd "$SAGE_LOCAL"
-ln -sf "$GAP_DIR" gap-newest
+cd "$SAGE_LOCAL/gap"
+ln -sf "$GAP_DIR" latest
 
 echo "Copying GAP startup script..."
 rm -f "$SAGE_LOCAL/bin/gap"

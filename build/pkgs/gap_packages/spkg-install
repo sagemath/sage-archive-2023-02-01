@@ -11,18 +11,10 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-GAP=`echo 'Print(Concatenation("gap-", GAPInfo.Version));' | gap -q`
-if [ -z "$GAP" ]; then
-    echo >&2 "Error determining the version of GAP installed in Sage."
-    exit 1
-fi
-# GAP should now be set to installed gap version - eg, GAP=gap-4.4.12
+GAP_DIR="$SAGE_LOCAL/gap-newest"
+PKG_DIR="$GAP_DIR/pkg"
 
-
-rm -rf "$SAGE_ROOT/local/lib/$GAP/pkg/"
-mkdir "$SAGE_ROOT/local/lib/$GAP/pkg/"
-
-$CP -p SPKG.txt "$SAGE_ROOT/local/lib/$GAP/pkg/"
+$CP -p SPKG.txt "$PKG_DIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Error copying SPKG.txt"
     exit 1
@@ -32,21 +24,23 @@ fi
 cd src/
 
 # HAPprime should be added in the future?
-for p in braid crime ctbllib design factint GAPDoc grape guava Hap HAPcryst laguna polymaking sonata toric
+for p in \
+    braid-1.1 crime ctbllib design factint grape \
+    guava-3.12 Hap1.10 HAPcryst laguna polymaking \
+    sonata toric1.8
 do
-    echo "Copying $p package"
-    $CP -pr $p "$SAGE_ROOT/local/lib/$GAP/pkg/"
+    echo "Copying package $p"
+    $CP -pr $p "$PKG_DIR"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error copying $p package."
+        echo >&2 "Error copying package $p."
         exit 1
     fi
 done
 
 
 # Build GRAPE package
-cd "$SAGE_ROOT/local/lib/$GAP/pkg/grape/"
+cd "$PKG_DIR/grape"
 rm -rf bin   # added since rebuilding breaks otherwise
-
 ./configure ../..
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring GRAPE package."
@@ -60,7 +54,7 @@ fi
 
 
 # Build GUAVA package
-cd "$SAGE_ROOT/local/lib/$GAP/pkg/guava/"
+cd "$PKG_DIR/guava"
 ./configure ../../ --enable-libsuffix=64
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring GUAVA packagae."
@@ -73,4 +67,5 @@ if [ $? -ne 0 ]; then
 fi
 
 
-touch "$SAGE_LOCAL"/bin/gap_stamp
+touch "$SAGE_LOCAL/bin/gap_stamp"
+

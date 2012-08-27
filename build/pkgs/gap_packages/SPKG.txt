@@ -24,14 +24,15 @@ http://www.gap-system.org/Packages/packages.html
 
 == Changelog ==
 
-=== gap_packages-4.4.12.p1 (Jeroen Demeyer, 27 March 2012) ===
+=== gap-4.5.5 (Volker Braun, 26 August 2012) ===
+ * Update to latest upstream version
 
+=== gap_packages-4.4.12.p1 (Jeroen Demeyer, 27 March 2012) ===
  * Trac #12758: do not use "newest_version" in spkg-install.  This is
    needed since "newest_version" was deleted in #10492.
  * Clean up spkg-install: use a for loop to copy packages.
 
 === gap_packages-4.4.12.p0 (Dima Pasechnik, 17 March 2010) ===
-
  * fixed a GNU-ism in spkg-install, that made in break on Solaris 10
  * started proper version numbering.
 

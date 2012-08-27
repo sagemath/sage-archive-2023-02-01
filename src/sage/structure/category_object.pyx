@@ -319,6 +319,28 @@ cdef class CategoryObject(sage_object.SageObject):
             self._gens_dict = v
          return v
 
+    def gens_dict_recursive(self):
+        r"""
+        Return the dictionary of generators of ``self`` and its base rings.
+
+        OUTPUT:
+
+        - a dictionary with string names of generators as keys and generators of
+          ``self`` and its base rings as values.
+
+        EXAMPLES::
+
+            sage: R = QQ['x,y']['z,w']
+            sage: sorted(R.gens_dict_recursive().items())
+            [('w', w), ('x', x), ('y', y), ('z', z)]
+        """
+        B = self.base_ring()
+        if B is self:
+            return {}
+        GDR = B.gens_dict_recursive()
+        GDR.update(self.gens_dict())
+        return GDR
+
     def objgens(self):
         """
         Return the tuple ``(self, self.gens())``.

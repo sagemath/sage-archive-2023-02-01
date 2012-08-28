@@ -7,6 +7,7 @@ Combinatorial Algebras
    ../sage/combinat/free_module
    ../sage/combinat/combinatorial_algebra
    ../sage/combinat/symmetric_group_algebra
+   ../sage/combinat/symmetric_group_representations
    ../sage/combinat/schubert_polynomial
    ../sage/combinat/partition_algebra
    ../sage/algebras/iwahori_hecke_algebra

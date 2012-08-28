@@ -151,8 +151,8 @@ def SymmetricGroupRepresentation(partition, implementation="specht",
 
     REFERENCES:
 
-    - [Las] Alain Lascoux, `Young representations of the symmetric group
-        <http://phalanstere.univ-mlv.fr/~al/ARTICLES/ProcCrac.ps.gz/>`_.
+    - [Las] Alain Lascoux, 'Young representations of the symmetric group.'
+       http://phalanstere.univ-mlv.fr/~al/ARTICLES/ProcCrac.ps.gz
 
     AUTHORS:
 
@@ -234,8 +234,8 @@ def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
 
     REFERENCES:
 
-    - [Las] Alain Lascoux, `Young representations of the symmetric group
-        <http://phalanstere.univ-mlv.fr/~al/ARTICLES/ProcCrac.ps.gz/>`_.
+    - [Las] Alain Lascoux, 'Young representations of the symmetric group.'
+       http://phalanstere.univ-mlv.fr/~al/ARTICLES/ProcCrac.ps.gz
 
     AUTHORS:
 

@@ -190,6 +190,35 @@ from sage.categories.category import Category
 from sage.structure.dynamic_class import dynamic_class
 Sets_parent_class = Sets().parent_class
 
+cdef inline bint good_as_coerce_domain(S):
+    """
+    Determine whether the input can be the domain of a map.
+
+    NOTE:
+
+    This is the same as being an object in a category, or
+    being a type. Namely, in Sage, we do consider coercion maps
+    from the type ``<int>`` to, say, `ZZ`.
+
+    TESTS:
+
+    If an instance `S` is not suitable as domain of a map, then
+    the non-existence of a coercion or conversion map from `S`
+    to some other parent is not cached, by :trac:`13378`::
+
+        sage: P.<x,y> = QQ[]
+        sage: P.is_coercion_cached(x)
+        False
+        sage: P.coerce_map_from(x)
+        sage: P.is_coercion_cached(x)  # indirect doctest
+        False
+
+    """
+    return isinstance(S,CategoryObject) or isinstance(S,type)
+
+cdef inline bint good_as_convert_domain(S):
+    return isinstance(S,SageObject) or isinstance(S,type)
+
 cdef class Parent(category_object.CategoryObject):
     """
     Parents are the Sage/mathematical analogues of container objects
@@ -1947,6 +1976,8 @@ cdef class Parent(category_object.CategoryObject):
                       To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
 
         """
+        if not good_as_coerce_domain(S):
+            return None
         self._coercions_used = True
         cdef map.Map mor
         if S is self:
@@ -2145,6 +2176,8 @@ cdef class Parent(category_object.CategoryObject):
             sage: parent(m(-35/7))
             Integer Ring
         """
+        if not good_as_convert_domain(S):
+            return None
         if self._convert_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
         try:

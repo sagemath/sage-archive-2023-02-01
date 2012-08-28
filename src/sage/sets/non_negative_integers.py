@@ -102,9 +102,12 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
             False
             sage: x in NN
             False
+            sage: None in NN
+            False
         """
         try:
-            return Integer(elt) >= Integer(0)
+            i = Integer(elt)
+            return  i >= Integer(0) and i == elt
         except TypeError:
             return False
 

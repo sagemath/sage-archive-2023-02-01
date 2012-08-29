@@ -77,7 +77,7 @@ include_dirs = [os.path.join(SAGE_LOCAL,'include','csage'),
 
 
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
-                 'jc', 'gsl', cblas(), atlas(), 'ntl', 'csage']
+                 'ec', 'gsl', cblas(), atlas(), 'ntl', 'csage']
 
 offset = 0
 
@@ -203,7 +203,7 @@ def pyx_preparse(s):
         'stdc++',
         'pari',
         'm',
-        'jc',
+        'ec',
         'gsl',
         '...blas',
         ...,
@@ -228,7 +228,7 @@ def pyx_preparse(s):
         'stdc++',
         'pari',
         'm',
-        'jc',
+        'ec',
         'gsl', '...blas', ...,
         'ntl',
         'csage']

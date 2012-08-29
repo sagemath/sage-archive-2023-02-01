@@ -6,7 +6,7 @@
 # and its subdirectories!
 #
 # HOW TO MAKE THE SPKG:
-# 1) ./spkg-make
+# 1) ./spkg-src
 # 2) rm -rf parigit    (For final distribution, not necessary for testing)
 # 3) cd ..; sage --spkg pari-2.5.1.whatever_the_name_of_the_package_is
 #
@@ -38,7 +38,7 @@ set -e
 
 
 # Sanity check: must be run from current directory
-if ! [ -f spkg-make ]; then
+if ! [ -f spkg-src ]; then
     echo >&2 "This script must be run from its own source directory!"
     exit 1
 fi
@@ -64,7 +64,7 @@ wget --timestamping http://pari.math.u-bordeaux.fr/pub/pari/packages/seadata-sma
 
 
 # Use the specified git version
-git checkout pari-2.5.1
+git checkout pari-2.5.2
 
 
 # make pari (must run bison, etc...) but disable optimization to speed
@@ -82,7 +82,7 @@ tar -c -T <( config/get_MANIFEST && echo src/desc/pari.desc ) | ( cd ../src && t
 
 # Hardcode version number in config/version.
 vcsversion=git-`git log -1 --pretty=format:%h`
-sed "s/^vcsversion=$/vcsversion=$vcsversion    # hardcoded by spkg-make/" <config/version >../src/config/version
+sed "s/^vcsversion=$/vcsversion=$vcsversion    # hardcoded by spkg-src/" <config/version >../src/config/version
 
 
 # Extract the tgz files

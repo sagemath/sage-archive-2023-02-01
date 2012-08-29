@@ -38,21 +38,23 @@ GPL version 2+
 
 == Special Update/Build Instructions ==
 
+See patches/README.txt for a list of patches.
+
 Most of the building of a new version of the PARI spkg is automated
-in the script spkg-make.  Normally, the following should work.  In case
-of doubt, have a look at the file spkg-make.
+in the script spkg-src.  Normally, the following should work.  In case
+of doubt, have a look at the file spkg-src.
 
-  0) Edit the line "git checkout pari-2.5.1".
+  0) Edit the line "git checkout pari-2.5.2".
 
-  1) ./spkg-make
+  1) ./spkg-src
      This will download the git sources to the directory parigit/
      and will also download galdata.tgz and ellsea-small.tgz.
      Then, a src/ directory will be created.
      WARNING: This script will remove any existing src/ directory.
-     NOTES: The script ./spkg-make will actually compile PARI/GP, but
+     NOTES: The script ./spkg-src will actually compile PARI/GP, but
      the compiled files are not used for the spkg.  We only need a few
      files, in particular those created by bison.
-     Running spkg-make should be done on a reasonably standard machine
+     Running spkg-src should be done on a reasonably standard machine
      on which PARI/GP compiles out of the box.
 
   2) Check that everything is okay somehow.  In particular, look at
@@ -65,19 +67,15 @@ of doubt, have a look at the file spkg-make.
 
   4) cd ..; sage --spkg pari-version-name
 
-Note from David Kirkby that could be relevant to building on Solaris:
-
-Since PARI is using -xarch=native, which implies -xarch=v8plusa on my
-box, but I set -xarch=v8plus (without the last a), this probably means
-there will be different types of object files and so they may not link
-together.  Ick.  Feel free to tell me how to modify the configure
-script.
-
-I got around it by setting CFLAGS -xarch=v8plus myself, so they were
-all the same. But it is not right. I have not looked at PARI to see
-exactly where it says native, but I would expect a grep to find it.
-
 == Changelog ==
+
+=== pari-2.5.2.p0 (Jeroen Demeyer, 1 August 2012) ===
+ * Ticket #13320: upgrade to version 2.5.2
+ * Rename spkg-make to spkg-src
+ * Remove various upstreamed patches:
+    - pari_1302.patch
+    - pari_1304.patch
+    - reorder_init_opts.patch
 
 === pari-2.5.1.p3 (Jeroen Demeyer, 20 March 2012) ===
  * Ticket #12638: add upstream patch pari_1304.patch for issquarefree(0),

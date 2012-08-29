@@ -31,6 +31,8 @@ See spkg-changes for how to delete unnecessary stuff under src/
 
 Several patches are applied.
  * assert.patch: logic seems to be broken on some platforms
+ * install_table.patch: install singular/table.h header file, needed
+   for the libsing GAP package.
  * Minor.h.patch: needs to have <time.h> included on Cygwin
  * NTL_negate.patch: change negate() to NTL::negate() to fix a conflict
    with std::negate(). See
@@ -69,6 +71,9 @@ Other notes
    (configure --with-flint="$SAGE_LOCAL").
 
 == ChangeLog ==
+
+=== singular-3-1-5.p1 (Simon King, 29 August 2012) ===
+ * Trac #13237: add patch install_table.patch
 
 === singular-3-1-5.p0 (Jeroen Demeyer, Alexander Dreyer, 10 August 2012) ===
  * Trac #13237: Upgrade to version 3-1-5.

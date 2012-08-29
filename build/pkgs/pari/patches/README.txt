@@ -42,3 +42,4 @@ C files:
   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49330
   This bug manifests itself as a Bus Error on OS X 10.4 PPC with
   gcc-4.6.3.
+* rootpol.patch: fixes a Segmentation Fault in Sage "roots" (#13314)

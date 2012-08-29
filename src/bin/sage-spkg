@@ -142,30 +142,29 @@ fi
 ##################################################################
 if [ $# -eq 0 ]; then
     echo "Currently installed packages:"
-    ls -1 "$INSTALLED"
-    exit 0
+    exec ls -1 "$INSTALLED"
 fi
 
 # Options have to come in a specific order,
 # this is ensured by spkg/bin/sage.
 INFO=0
-if [ $1 = '--info' ]; then
+if [ "$1" = '--info' ]; then
     INFO=1
     shift
 fi
 
 FORCE=0
-if [ $1 = '-f' ]; then
+if [ "$1" = '-f' ]; then
     FORCE=1
     shift
 fi
 
-if [ $1 = '-s' ]; then
+if [ "$1" = '-s' ]; then
     export SAGE_KEEP_BUILT_SPKGS=yes
     shift
 fi
 
-if [ $1 = '-c' ]; then
+if [ "$1" = '-c' ]; then
     export SAGE_CHECK=yes
     SAGE_CHECK_PACKAGES=x  # nonempty, so not set to '!python' later
     shift
@@ -230,6 +229,7 @@ elif [ -z "$PKG_HAS_PATH" ]; then
     for spkg in `ls -1t */${PKG_NAME}.spkg */${PKG_NAME}-*.spkg 2>/dev/null`; do
         if [ -f "$spkg" ]; then
             # Found a good package
+            echo "Found package $PKG_NAME in spkg/$spkg"
             PKG_SRC="`pwd`/$spkg"
             PKG_NAME=`basename "$spkg" | sed 's/\.spkg$//'`
             break

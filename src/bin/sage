@@ -125,6 +125,7 @@ usage_advanced() {
     echo "                                 if they are already installed"
     echo "                           -s -- do not delete the spkg/build directories"
     echo "                                 after a successful build"
+    echo "  -info [packages]    -- print the SPKG.txt of the given packages"
     echo "  -optional           -- list all optional packages that can be installed"
     echo "  -standard           -- list all standard packages that can be installed"
    #echo "  -update             -- download latest non-optional Sage packages (do not build them)"
@@ -906,14 +907,19 @@ install() {
                 continue;;
             --check) OPTC="-c"
                 continue;;
+            -info) OPTINFO="--info"
+                continue;;
+            --info) OPTINFO="--info"
+                continue;;
+            -*) echo >&2 "Error: unknown option '$PKG'"
+                exit 2;;
         esac
 
-        echo "Calling sage-spkg on '$PKG'"
         PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
         PKG_NAME=`basename "$PKG_NAME"`
 
         "$SAGE_ROOT"/spkg/pipestatus \
-            "sage-spkg $OPTF $OPTS $OPTC '$PKG' 2>&1" \
+            "sage-spkg $OPTINFO $OPTF $OPTS $OPTC '$PKG' 2>&1" \
             "(trap '' SIGINT; tee -a '$SAGE_ROOT/install.log' '$SAGE_LOGS/$PKG_NAME.log')"
         # Do not try to install further packages if one failed
         if [ $? -ne 0 ]; then
@@ -956,6 +962,16 @@ if [ "$1" = '-f' ]; then
         exec sage-spkg
     fi
     install -f "$@"
+fi
+
+if [ "$1" = '-info' -o "$1" = '--info' ]; then
+    shift
+    # If there are no further arguments, simply list all installed
+    # packages.
+    if [ $# -eq 0 ]; then
+        exec sage-spkg
+    fi
+    install --info "$@"
 fi
 
 if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then

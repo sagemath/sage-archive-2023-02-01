@@ -7,16 +7,15 @@ over any Sage base ring.
 AUTHORS:
 
 - William Stein
-
 - David Harvey (2006-09-11): added solve_linear_de() method
-
 - Robert Bradshaw (2007-04): sqrt, rmul, lmul, shifting
-
 - Robert Bradshaw (2007-04): Cython version
+- Simon King (2012-08): use category and coercion framework, :trac:`13412`
 
 EXAMPLE::
 
     sage: R.<x> = PowerSeriesRing(ZZ)
+    sage: TestSuite(R).run()
     sage: R([1,2,3])
     1 + 2*x + 3*x^2
     sage: R([1,2,3], 10)
@@ -1880,8 +1879,12 @@ def _solve_linear_de(R, N, L, a, b, f0):
 
 
 def make_powerseries_poly_v0(parent,  f, prec, is_gen):
+    # This is only used to unpickle old pickles. The new pickling
+    # works differently!
     import power_series_poly
     return power_series_poly.PowerSeries_poly(parent, f, prec, 0, is_gen)
 
 def make_element_from_parent_v0(parent, *args):
+    # This is only used to unpickle old pickles. The new pickling
+    # works differently!
     return parent(*args)

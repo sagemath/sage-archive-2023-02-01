@@ -88,8 +88,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: f == loads(dumps(f)) # indirect doctest
             True
         """
-        # do *not* delete old versions.
-        return make_powerseries_poly_v0, (self._parent, self.__f, self._prec, self.__is_gen)
+        return self.__class__, (self._parent, self.__f, self._prec, self.__is_gen)
 
     def __richcmp__(left, right, int op):
        """

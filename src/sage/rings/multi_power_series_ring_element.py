@@ -150,6 +150,7 @@ Inversion::
 AUTHORS:
 
 - Niles Johnson (07/2010): initial code
+- Simon King (08/2012): Use category and coercion framework, :trac:`13412`
 
 """
 
@@ -195,7 +196,7 @@ def is_MPowerSeries(f):
 
         """
 
-    return type(f) == MPowerSeries
+    return isinstance(f, MPowerSeries)
 
 
 
@@ -420,9 +421,7 @@ class MPowerSeries(PowerSeries):
             sage: loads(dumps(f)) == f
             True
         """
-
-        from sage.rings.power_series_ring_element import make_element_from_parent_v0
-        return make_element_from_parent_v0, (self._parent,self._bg_value,self._prec)
+        return self.__class__, (self._parent,self._bg_value,self._prec)
 
     def __call__(self, *x, **kwds):
         """

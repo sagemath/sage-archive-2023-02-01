@@ -9,6 +9,7 @@ Construct rings and elements::
 
     sage: R.<t,u,v> = PowerSeriesRing(QQ); R
     Multivariate Power Series Ring in t, u, v over Rational Field
+    sage: TestSuite(R).run()
     sage: p = -t + 1/2*t^3*u - 1/4*t^4*u + 2/3*v^5 + R.O(6); p
     -t + 1/2*t^3*u - 1/4*t^4*u + 2/3*v^5 + O(t, u, v)^6
     sage: p in R
@@ -43,10 +44,16 @@ Construct multivariate power series rings over various base rings.
 
     sage: M = PowerSeriesRing(QQ, 4, 'k'); M
     Multivariate Power Series Ring in k0, k1, k2, k3 over Rational Field
+    sage: loads(dumps(M)) is M
+    True
+    sage: TestSuite(M).run()
 
     sage: H = PowerSeriesRing(PolynomialRing(ZZ,3,'z'),4,'f'); H
     Multivariate Power Series Ring in f0, f1, f2, f3 over Multivariate
     Polynomial Ring in z0, z1, z2 over Integer Ring
+    sage: TestSuite(H).run()
+    sage: loads(dumps(H)) is H
+    True
 
     sage: z = H.base_ring().gens()
     sage: f = H.gens()
@@ -73,6 +80,9 @@ Construct multivariate power series rings over various base rings.
     -30077*x + 9485*x*y - 6260*y^3 + 12870*x^2*y^2 - 20289*y^4 + O(x, y)^5
     sage: s in S
     True
+    sage: TestSuite(S).run()
+    sage: loads(dumps(S)) is S
+    True
 
 - Use double square bracket notation::
 
@@ -87,6 +97,9 @@ Variable ordering determines how series are displayed.
 
     sage: T.<a,b> = PowerSeriesRing(ZZ,order='deglex'); T
     Multivariate Power Series Ring in a, b over Integer Ring
+    sage: TestSuite(T).run()
+    sage: loads(dumps(T)) is T
+    True
     sage: T.term_order()
     Degree lexicographic term order
     sage: p = - 2*b^6 + a^5*b^2 + a^7 - b^2 - a*b^3 + T.O(9); p
@@ -151,7 +164,7 @@ Coercion from symbolic ring::
     sage: type(x)
     <type 'sage.symbolic.expression.Expression'>
     sage: type(S(x))
-    <class 'sage.rings.multi_power_series_ring_element.MPowerSeries'>
+    <class 'sage.rings.multi_power_series_ring_element.MPowerSeriesRing_generic_with_category.element_class'>
 
     sage: f = S(2/7 -100*x^2 + 1/3*x*y + y^2).O(3); f
     5 - x^2 + 4*x*y + y^2 + O(x, y)^3
@@ -164,6 +177,7 @@ Coercion from symbolic ring::
 AUTHORS:
 
 - Niles Johnson (2010-07): initial code
+- Simon King (2012-08): Use category and coercion framework, :trac:`13412`
 
 
 """
@@ -177,7 +191,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.commutative_ring import is_CommutativeRing, CommutativeRing
 from sage.rings.polynomial.all import PolynomialRing, is_MPolynomialRing, is_PolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.power_series_ring import PowerSeriesRing, PowerSeriesRing_generic, is_PowerSeriesRing
@@ -185,8 +199,6 @@ from sage.rings.power_series_ring import PowerSeriesRing, PowerSeriesRing_generi
 from sage.rings.infinity import infinity
 import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
-
-from sage.structure.parent_gens import ParentWithGens
 
 from sage.rings.multi_power_series_ring_element import MPowerSeries
 
@@ -211,7 +223,7 @@ def is_MPowerSeriesRing(x):
         False
 
     """
-    return type(x) == MPowerSeriesRing_generic
+    return isinstance(x, MPowerSeriesRing_generic)
 
 
 class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
@@ -230,8 +242,6 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
     ### methods from PowerSeriesRing_generic that we *don't* override:
     #
     # variable_names_recursive : works just fine
-    #
-    # __call__ : works just fine
     #
     # __contains__ : works just fine
     #
@@ -253,11 +263,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
     #### notes
     #
     # sparse setting may not be implemented completely
-    #
-
-
-
-
+    Element = MPowerSeries
     def __init__(self, base_ring, num_gens, name_list,
                  order='negdeglex', default_prec=10, sparse=False):
         """
@@ -302,7 +308,10 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             raise ValueError("Multivariate Polynomial Rings must have more than 0 variables.")
         self._ngens = n
         self._has_singular = False #cannot convert to Singular by default
-        ParentWithGens.__init__(self, base_ring, name_list)
+        # Multivariate power series rings inherit from power series rings. But
+        # apparently we can not call their initialisation. Instead, initialise
+        # CommutativeRing and Nonexact:
+        CommutativeRing.__init__(self, base_ring, name_list)
         Nonexact.__init__(self, default_prec)
 
         # underlying polynomial ring in which to represent elements
@@ -314,31 +323,10 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         self._bg_power_series_ring = PowerSeriesRing(self._poly_ring_, 'Tbg', sparse=sparse, default_prec=default_prec)
         self._bg_indeterminate = self._bg_power_series_ring.gen()
 
-        ## use the following in PowerSeriesRing_generic.__call__
-        self._PowerSeriesRing_generic__power_series_class = MPowerSeries
-
         self._is_sparse = sparse
         self._params = (base_ring, num_gens, name_list,
                          order, default_prec, sparse)
         self._populate_coercion_lists_()
-
-    def __reduce__(self):
-        """
-        EXAMPLES::
-
-            sage: R.<t,u,v> = PowerSeriesRing(ZZ)
-            sage: S = loads(dumps(R)); S
-            Multivariate Power Series Ring in t, u, v over Integer Ring
-            sage: type(S)
-            <class 'sage.rings.multi_power_series_ring.MPowerSeriesRing_generic'>
-            sage: R.<x,y,z> = PowerSeriesRing(QQ, default_prec=10, sparse=True)
-            sage: S = loads(dumps(R)); S
-            Sparse Multivariate Power Series Ring in x, y, z over Rational Field
-            sage: type(S)
-            <class 'sage.rings.multi_power_series_ring.MPowerSeriesRing_generic'>
-        """
-        return unpickle_multi_power_series_ring_v0, self._params
-
 
     def _repr_(self):
         """
@@ -675,6 +663,25 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
 
             - any ring that coerces into the foreground polynomial ring of this ring
 
+        EXAMPLES::
+
+            sage: A = GF(17)[['x','y']]
+            sage: A.has_coerce_map_from(ZZ)
+            True
+            sage: A.has_coerce_map_from(ZZ['x'])
+            True
+            sage: A.has_coerce_map_from(ZZ['y','x'])
+            True
+            sage: A.has_coerce_map_from(ZZ[['x']])
+            True
+            sage: A.has_coerce_map_from(ZZ[['y','x']])
+            True
+            sage: A.has_coerce_map_from(ZZ['x','z'])
+            False
+            sage: A.has_coerce_map_from(GF(3)['x','y'])
+            False
+            sage: A.has_coerce_map_from(Frac(ZZ['y','x']))
+            False
 
         TESTS::
 
@@ -719,7 +726,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         return self._poly_ring().has_coerce_map_from(P)
 
 
-    def _element_constructor_(self,f):
+    def _element_constructor_(self,f,prec=None):
         """
         TESTS::
 
@@ -740,11 +747,12 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             Multivariate Power Series Ring in t0, t1, t2, t3, t4 over
             Integer Ring
         """
-        try:
-            prec = f.prec()
-        except AttributeError:
-            prec = infinity
-        return MPowerSeries(self, f, prec)
+        if prec is None:
+            try:
+                prec = f.prec()
+            except AttributeError:
+                prec = infinity
+        return self.element_class(parent=self, x=f, prec=prec)
 
     def __cmp__(self, other):
         """
@@ -899,7 +907,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         if n < 0 or n >= self._ngens:
             raise ValueError("Generator not defined.")
         #return self(self._poly_ring().gens()[int(n)])
-        return MPowerSeries(self,self._poly_ring().gens()[int(n)], is_gen=True)
+        return self.element_class(parent=self,x=self._poly_ring().gens()[int(n)], is_gen=True)
 
     def ngens(self):
         """

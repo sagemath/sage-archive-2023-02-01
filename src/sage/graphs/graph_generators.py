@@ -126,6 +126,7 @@ Named Graphs
 - :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
 - :meth:`HoffmanSingletonGraph <GraphGenerators.HoffmanSingletonGraph>`
 - :meth:`HoffmanGraph <GraphGenerators.HoffmanGraph>`
+- :meth:`HoltGraph <GraphGenerators.HoltGraph>`
 - :meth:`LjubljanaGraph <GraphGenerators.LjubljanaGraph>`
 - :meth:`McGeeGraph <GraphGenerators.McGeeGraph>`
 - :meth:`MoebiusKantorGraph <GraphGenerators.MoebiusKantorGraph>`
@@ -4646,14 +4647,19 @@ class GraphGenerators():
 
     def HoltGraph(self):
         r"""
-        Returns the Holt Graph.
+        Returns the Holt graph (also called the Doyle graph)
 
         See the :wikipedia:`Wikipedia page on the Holt graph
         <Holt_graph>`.
 
         EXAMPLES::
 
-            sage: g = graphs.HoltGraph()
+            sage: g = graphs.HoltGraph();g
+            Holt graph: Graph on 27 vertices
+            sage: g.is_regular()
+            True
+            sage: g.is_vertex_transitive()
+            True
             sage: g.chromatic_number()
             3
             sage: g.is_hamiltonian() # long time
@@ -4661,35 +4667,21 @@ class GraphGenerators():
             sage: g.radius()
             3
             sage: g.diameter()
-            4
+            3
             sage: g.girth()
             5
             sage: g.automorphism_group().cardinality()
-            18
+            54
         """
-        g = graph.Graph({
-                0: [9, 12],
-                1: [11, 14],
-                2: [13, 16],
-                3: [15, 18],
-                4: [17, 20],
-                5: [19, 22],
-                6: [21, 24],
-                7: [23, 26],
-                8: [10, 25]
-                },pos={})
-
-        g.add_vertices(range(27))
-        g.add_cycle(range(9))
-
-        g.add_cycle([13,21,11,19,9,17,25,15,23])
-        g.add_cycle([12,16,20, 24, 10, 14, 18, 22, 26])
-
-        _circle_embedding(g, range(9), shift = .75)
-        _circle_embedding(g, range(9, 27), radius = .7, shift = 0)
-
-        g.name("Holt graph")
-
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        from sage.combinat.cartesian_product import CartesianProduct
+        g = graph.Graph(loops=False, name = "Holt graph", pos={})
+        for x,y in CartesianProduct(Zmod(9),Zmod(3)):
+            g.add_edge((x,y),(4*x+1,y-1))
+            g.add_edge((x,y),(4*x-1,y-1))
+            g.add_edge((x,y),(7*x+7,y+1))
+            g.add_edge((x,y),(7*x-7,y+1))
+            _circle_embedding(g, [(x,y) for y in Zmod(3) for x in Zmod(9)])
         return g
 
     def LjubljanaGraph(self, embedding=1):
@@ -6627,7 +6619,6 @@ class GraphGenerators():
         g = graph.Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
         loops=False, name = "Paley graph with parameter %d"%q)
         return g
-
 
     def PermutationGraph(self, second_permutation, first_permutation = None):
         r"""

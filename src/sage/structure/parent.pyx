@@ -1887,16 +1887,12 @@ cdef class Parent(category_object.CategoryObject):
             [1 0 0]
             [0 1 0]
 
-        By default, one can't mix matrices and permutations::
+        In general one can't mix matrices and permutations::
 
             sage: G(p)
             Traceback (most recent call last):
             ...
             TypeError: entries must be coercible to a list or integer
-            sage: G(1) * p
-            Traceback (most recent call last):
-            ...
-            TypeError: ...
             sage: phi = S3.hom(lambda p: G(p.matrix()), codomain = G)
             sage: phi(p)
             [0 0 1]
@@ -1917,7 +1913,13 @@ cdef class Parent(category_object.CategoryObject):
         parents (see :trac:`14014`)::
 
             sage: G(p)                               # todo: not implemented
-            sage: G(1) * p                           # todo: not implemented
+
+        Though one can have a permutation act on the rows of a matrix::
+
+            sage: G(1) * p
+            [0 0 1]
+            [1 0 0]
+            [0 1 0]
 
         Some more advanced examples::
 

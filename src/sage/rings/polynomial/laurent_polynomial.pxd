@@ -5,6 +5,7 @@ from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 
 cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
+    cdef LaurentPolynomial_mpair _normal_form
     cdef ETuple _mon
     cdef MPolynomial _poly
     cdef PolyDict _prod

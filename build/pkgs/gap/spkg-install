@@ -56,6 +56,12 @@ touch "$SAGE_LOCAL/bin/gap_stamp"
 # workaround for MPIR missing macro issue
 CFLAGS="$CFLAGS -D__GMP_MP_RELEASE=50002"
 
+# enable debug info if possible
+# Note that -g3 allows you to use preprocessor macros in gdb which are widely used
+if [ "$SAGE_DEBUG" == "yes" ] ; then
+    export CFLAGS="-O0 -g3 -DDEBUG_MASTERPOINTERS -DDEBUG_GLOBAL_BAGS -DDEBUG_FUNCTIONS_BAGS"
+fi
+
 # Apply patches:
 echo "Copying over patched GAP files..."
 cd "$SPKG_ROOT"

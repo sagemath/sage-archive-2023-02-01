@@ -352,12 +352,14 @@ def do_update():
                           stderr=subprocess.PIPE)
     root_repo_intact = (err == 0)
     if root_repo_intact:
-        P = subprocess.Popen('hg status', shell=True,
+        # -q means: ignore untracked files
+        P = subprocess.Popen('hg status -q', shell=True,
                              stdout=subprocess.PIPE)
         output = P.communicate()[0]
-        if len(output) > 0: # uncommitted changes
-            print ("There are uncommitted changes in the "
-                   + "Sage root repository. Aborting.")
+        if len(output) > 0:
+            print "There are uncommitted changes in the Sage root repository:"
+            print output
+            print "Aborting."
             sys.exit(2)
 
     os.chdir(os.path.join(SPKG_ROOT, "standard"))

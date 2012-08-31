@@ -93,3 +93,8 @@ else
 fi
 mv -f easy-install.pth.$$ easy-install.pth ||
     die "Error overwriting original 'easy-install.pth'."
+
+# Remove old reference manual to fix upgrading from sage-5.1 or
+# earlier.  Some old .rst files might try to import modules which no
+# longer exist, see #13405.
+rm -rf "$SAGE_ROOT/devel/sage/doc/en/reference/sagenb"

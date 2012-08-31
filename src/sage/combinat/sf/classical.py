@@ -38,7 +38,7 @@ import kschur
 ZZ = IntegerRing()
 QQ = RationalField()
 
-translate = {'monomial':'MONOMIAL', 'homogeneous':'HOMSYM', 'power':'POWSYM', 'elementary':'ELMSYM', 'schur':'SCHUR'}
+translate = {'monomial':'MONOMIAL', 'homogeneous':'HOMSYM', 'powersum':'POWSYM', 'elementary':'ELMSYM', 'Schur':'SCHUR'}
 
 conversion_functions = {}
 
@@ -51,7 +51,7 @@ def init():
         sage: from sage.combinat.sf.classical import init
         sage: sage.combinat.sf.classical.conversion_functions = {}
         sage: init()
-        sage: sage.combinat.sf.classical.conversion_functions[('schur', 'power')]
+        sage: sage.combinat.sf.classical.conversion_functions[('Schur', 'powersum')]
         <built-in function t_SCHUR_POWSYM_symmetrica>
     """
     for other_basis in translate:
@@ -74,6 +74,8 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
     """
     The class of classical symmetric functions.
 
+    .. TODO:: delete this class once all coercions will be handled by Sage's coercion model
+
     TESTS::
 
         sage: TestSuite(SymmetricFunctions(QQ).s()).run()
@@ -82,29 +84,6 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         sage: TestSuite(SymmetricFunctions(QQ).e()).run()
         sage: TestSuite(SymmetricFunctions(QQ).p()).run()
     """
-
-    class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
-        """
-        A symmetric function.
-        """
-        pass
-
-    def degree_on_basis(self, b):
-        r"""
-        Return the degree of the basis element indexed by ``b``.
-
-        INPUT:
-
-        - ``self`` -- a basis of the symmetric functions
-        - ``b`` -- a partition
-
-        EXAMPLES::
-
-            sage: m = SymmetricFunctions(QQ).monomial()
-            sage: m.degree_on_basis(Partition([3,2]))
-            5
-        """
-        return sum(b)
 
     def _element_constructor_(self, x):
         """
@@ -342,51 +321,10 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             except StandardError:
                 raise TypeError, "do not know how to make x (= %s) an element of self"%(x)
 
-    def is_field(self, proof = True):
+    # This subclass is currently needed for the test above:
+    #    isinstance(x, SymmetricFunctionAlgebra_classical.Element):
+    class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
         """
-        Returns whether ``self`` is a field.
-
-        INPUT:
-
-        - ``self`` -- a basis of the symmetric functions
-        - ``proof`` -- an optional argument (default value : True)
-
-        EXAMPLES::
-
-            sage: s = SymmetricFunctions(QQ).s()
-            sage: s.is_field()
-            False
+        A symmetric function.
         """
-        return False
-
-    def is_commutative(self):
-        """
-        Returns whether this symmetric function algebra is commutative.
-
-        INPUT:
-
-        - ``self`` -- a basis of the symmetric functions
-
-        EXAMPLES::
-
-            sage: s = SymmetricFunctions(QQ).s()
-            sage: s.is_commutative()
-            True
-        """
-        return self.base_ring().is_commutative()
-
-
-    def _repr_(self):
-        """
-        Text representation of this symmetric function algebra.
-
-        INPUT:
-
-        - ``self`` -- a basis of the symmetric functions
-
-        EXAMPLES::
-
-            sage: SymmetricFunctions(QQ).s()._repr_()
-            'Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis'
-        """
-        return "Symmetric Function Algebra over %s, %s symmetric functions as basis"%(self.base_ring(), self._basis.capitalize())
+        pass

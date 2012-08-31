@@ -47,6 +47,27 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
         """
         classical.SymmetricFunctionAlgebra_classical.__init__(self, Sym, "elementary", 'e')
 
+    def _dual_basis_default(self):
+        """
+        Returns the default value for ``self.dual_basis()``
+
+        This method returns the dual basis to the elementary basis
+        with respect to the standard scalar product, that is the
+        forgotten basis.
+
+        EXAMPLES::
+
+            sage: e = SymmetricFunctions(QQ).e()
+            sage: e.dual_basis()
+            Symmetric Functions over Rational Field in the forgotten basis
+
+        TESTS::
+
+            sage: e._dual_basis_default() is e.dual_basis()
+            True
+        """
+        return self.dual_basis(scalar = None, prefix="f", basis_name = "forgotten")
+
     def coproduct_on_generators(self, i):
         r"""
         Returns the coproduct on ``self[i]``.
@@ -72,7 +93,6 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
         def P(i): return Partition([i]) if i else Partition([])
         T = self.tensor_square()
         return T.sum_of_monomials( (P(j), P(i-j)) for j in range(i+1) )
-
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def omega(self):

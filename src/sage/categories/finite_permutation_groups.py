@@ -131,7 +131,7 @@ class FinitePermutationGroups(Category):
             basis::
 
                 sage: P.parent()
-                Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
+                Symmetric Functions over Rational Field in the powersum basis
 
             This symmetric function can have some nice properties; for
             example, for the symmetric group `S_n`, we get the complete

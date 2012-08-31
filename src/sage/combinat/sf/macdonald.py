@@ -115,6 +115,10 @@ class Macdonald(UniqueRepresentation):
 
             sage: t = QQ['t'].gen(); SymmetricFunctions(QQ['t'].fraction_field()).macdonald(q=t,t=1)
             Macdonald polynomials with q=t and t=1 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            sage: Sym = SymmetricFunctions(FractionField(QQ['t'])).macdonald()
+            Traceback (most recent call last):
+            ...
+            ValueError: parameter q must be in the base ring
         """
         self._sym = Sym
         self._s = Sym.s()
@@ -195,7 +199,7 @@ class Macdonald(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
             sage: P = Sym.macdonald().P(); P
-            Macdonald polynomials in the P basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+            Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
             sage: P[2]
             McdP[2]
 
@@ -204,7 +208,7 @@ class Macdonald(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
             sage: P = Sym.macdonald().P(); P
-            Macdonald polynomials in the P basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+            Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
             sage: m = Sym.monomial()
             sage: P.transition_matrix(m,2)
             [                          1 (q*t - q + t - 1)/(q*t - 1)]
@@ -223,7 +227,7 @@ class Macdonald(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: P = Sym.macdonald(q=0).P(); P
-            Macdonald polynomials in the P basis with q=0 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Macdonald P with q=0 basis
             sage: P([2])^2
             (t+1)*McdP[2, 2] + (-t+1)*McdP[3, 1] + McdP[4]
             sage: HLP = Sym.hall_littlewood().P()
@@ -302,7 +306,7 @@ class Macdonald(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
             sage: Q = Sym.macdonald().Q(); Q
-            Macdonald polynomials in the Q basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+            Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Q basis
             sage: P = Sym.macdonald().P()
             sage: Q([2]).scalar_qt(P([2]))
             1
@@ -369,7 +373,7 @@ class Macdonald(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
             sage: J = Sym.macdonald().J(); J
-            Macdonald polynomials in the J basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+            Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
             sage: P = Sym.macdonald().P()
             sage: Q = Sym.macdonald().Q()
             sage: P(J([2]))
@@ -426,7 +430,7 @@ class Macdonald(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
             sage: H = Sym.macdonald().H(); H
-            Macdonald polynomials in the H basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+            Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald H basis
             sage: s = Sym.schur()
             sage: s(H([2]))
             q*s[1, 1] + s[2]
@@ -461,7 +465,7 @@ class Macdonald(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
             sage: Ht = Sym.macdonald().Ht(); Ht
-            Macdonald polynomials in the Ht basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+            Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
             sage: [Ht(p).nabla() for p in Partitions(3)]
             [q^3*McdHt[3], q*t*McdHt[2, 1], t^3*McdHt[1, 1, 1]]
 
@@ -509,7 +513,7 @@ class Macdonald(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
             sage: S = Sym.macdonald().S(); S
-            Macdonald polynomials in the S basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+            Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald S basis
             sage: p = Sym.power()
             sage: p(S[2,1])
             ((1/3*t^3-t^2+t-1/3)/(q^3-3*q^2+3*q-1))*p[1, 1, 1] + ((-1/3*t^3+1/3)/(q^3-1))*p[3]
@@ -607,7 +611,7 @@ def MacdonaldPolynomialsP(R, q=None, t=None):
         sage: P = MacdonaldPolynomialsP(QQ); P
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).macdonald(q=q,t=t).P()
         See http://trac.sagemath.org/5457 for details.
-        Macdonald polynomials in the P basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+        Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
         sage: m = P.realization_of().monomial()
         sage: P.transition_matrix(m,2)
         [                          1 (q*t - q + t - 1)/(q*t - 1)]
@@ -688,7 +692,7 @@ def MacdonaldPolynomialsQ(R, q=None, t=None):
         sage: Q = MacdonaldPolynomialsQ(QQ); Q
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).macdonald(q=q,t=t).Q()
         See http://trac.sagemath.org/5457 for details.
-        Macdonald polynomials in the Q basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+        Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Q basis
         sage: P = MacdonaldPolynomialsP(QQ)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).macdonald(q=q,t=t).P()
         See http://trac.sagemath.org/5457 for details.
@@ -754,7 +758,7 @@ def MacdonaldPolynomialsJ(R, q=None, t=None):
         sage: J = MacdonaldPolynomialsJ(QQ); J
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).macdonald(q=q,t=t).J()
         See http://trac.sagemath.org/5457 for details.
-        Macdonald polynomials in the J basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+        Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
         sage: P = MacdonaldPolynomialsP(QQ)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).macdonald(q=q,t=t).P()
         See http://trac.sagemath.org/5457 for details.
@@ -887,7 +891,7 @@ def MacdonaldPolynomialsS(R, q=None, t=None):
         sage: MacdonaldPolynomialsS(QQ)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).macdonald(q=q,t=t).S()
         See http://trac.sagemath.org/5457 for details.
-        Macdonald polynomials in the S basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+        Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald S basis
     """
     (R, q, t) = NoneConvention(R, q, t)
     sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).macdonald(q=%s,t=%s).S()"%(q,t))
@@ -1012,22 +1016,26 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         EXAMPLES::
 
-            sage: SymmetricFunctions(FractionField(QQ['q','t'])).macdonald().P()
-            Macdonald polynomials in the P basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
-            sage: SymmetricFunctions(FractionField(QQ['q','t'])).macdonald(t=2).P()
-            Macdonald polynomials in the P basis with t=2 over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
-            sage: SymmetricFunctions(FractionField(QQ['q','t'])).macdonald(q=2).P()
-            Macdonald polynomials in the P basis with q=2 over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
-            sage: SymmetricFunctions(FractionField(QQ['q','t'])).macdonald(q=2, t=2).P()
-            Macdonald polynomials in the P basis with q=2 and t=2 over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
-            sage: Sym = SymmetricFunctions(FractionField(QQ['t'])).macdonald()
-            Traceback (most recent call last):
-            ...
-            ValueError: parameter q must be in the base ring
-        """
-        sfa.SymmetricFunctionAlgebra_generic.__init__(self, macdonald._sym)
+            sage: Sym = SymmetricFunctions(FractionField(QQ['q,t'])); Sym.rename("Sym"); Sym
+            Sym
+            sage: Sym.macdonald().P()
+            Sym in the Macdonald P basis
+            sage: Sym.macdonald(t=2).P()
+            Sym in the Macdonald P with t=2 basis
+            sage: Sym.rename()
 
-        self._name += macdonald._name_suffix
+        TESTS::
+
+            sage: Sym.macdonald().P()._prefix
+            'McdP'
+            sage: Sym.macdonald().Ht()._prefix
+            'McdHt'
+        """
+        s = self.__class__.__name__[21:].capitalize()
+        sfa.SymmetricFunctionAlgebra_generic.__init__(
+            self, macdonald._sym,
+            basis_name = "Macdonald " + s + macdonald._name_suffix,
+            prefix = "Mcd"+s)
         self.q = macdonald.q
         self.t = macdonald.t
         self._sym = macdonald._sym
@@ -1278,8 +1286,6 @@ class MacdonaldPolynomials_p(MacdonaldPolynomials_generic):
             sage: TestSuite(P).run(skip=["_test_associativity","_test_distributivity","_test_prod"])  # long time (20s on sage.math, 2012)
             sage: TestSuite(P).run(elements = [P.t*P[1,1]+P.q*P[2], P[1]+(P.q+P.t)*P[1,1]])  # long time (depends on previous)
         """
-        self._name = "Macdonald polynomials in the P basis"
-        self._prefix = "McdP"
         MacdonaldPolynomials_generic.__init__(self, macdonald)
 
         self._J = macdonald.J()
@@ -1349,8 +1355,6 @@ class MacdonaldPolynomials_q(MacdonaldPolynomials_generic):
             sage: TestSuite(Q).run(skip=["_test_associativity","_test_distributivity","_test_prod"])  # long time (29s on sage.math, 2012)
             sage: TestSuite(Q).run(elements = [Q.t*Q[1,1]+Q.q*Q[2], Q[1]+(Q.q+Q.t)*Q[1,1]])  # long time (depends on previous)
         """
-        self._name = "Macdonald polynomials in the Q basis"
-        self._prefix = "McdQ"
         MacdonaldPolynomials_generic.__init__(self, macdonald)
 
         self._J = macdonald.J()
@@ -1384,8 +1388,6 @@ class MacdonaldPolynomials_j(MacdonaldPolynomials_generic):
             sage: TestSuite(J).run(skip=["_test_associativity","_test_distributivity","_test_prod"])  # long time (19s on sage.math, 2012)
             sage: TestSuite(J).run(elements = [J.t*J[1,1]+J.q*J[2], J[1]+(J.q+J.t)*J[1,1]])  # long time (depends on previous)
         """
-        self._name = "Macdonald polynomials in the J basis"
-        self._prefix = "McdJ"
         self._self_to_s_cache = _j_to_s_cache
         self._s_to_self_cache = _s_to_j_cache
         MacdonaldPolynomials_generic.__init__(self, macdonald)
@@ -1483,8 +1485,6 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             sage: TestSuite(H).run(skip=["_test_associativity","_test_distributivity","_test_prod"])
             sage: TestSuite(H).run(elements = [H.t*H[1,1]+H.q*H[2], H[1]+(H.q+H.t)*H[1,1]])  # long time (26s on sage.math, 2012)
         """
-        self._name = "Macdonald polynomials in the H basis"
-        self._prefix = "McdH"
         self._self_to_s_cache = _h_to_s_cache
         self._s_to_self_cache = _s_to_h_cache
         MacdonaldPolynomials_generic.__init__(self, macdonald)
@@ -1579,8 +1579,6 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             sage: TestSuite(Ht).run(skip=["_test_associativity","_test_distributivity","_test_prod"])  # long time (26s on sage.math, 2012)
             sage: TestSuite(Ht).run(elements = [Ht.t*Ht[1,1]+Ht.q*Ht[2], Ht[1]+(Ht.q+Ht.t)*Ht[1,1]])  # long time (depends on previous)
         """
-        self._name = "Macdonald polynomials in the Ht basis"
-        self._prefix = "McdHt"
         MacdonaldPolynomials_generic.__init__(self, macdonald)
         self._self_to_s_cache = _ht_to_s_cache
         self._s_to_self_cache = _s_to_ht_cache
@@ -1739,8 +1737,6 @@ class MacdonaldPolynomials_s(MacdonaldPolynomials_generic):
             sage: TestSuite(S).run(elements = [S.t*S[1,1]+S.q*S[2], S[1]+(S.q+S.t)*S[1,1]])
 
         """
-        self._name = "Macdonald polynomials in the S basis"
-        self._prefix = "McdS"
         MacdonaldPolynomials_generic.__init__(self, macdonald)
         self._s = macdonald._sym.schur()
         self._p = macdonald._sym.power()

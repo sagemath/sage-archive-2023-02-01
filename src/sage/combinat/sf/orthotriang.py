@@ -49,7 +49,7 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
         pass
 
 
-    def __init__(self, Sym, base, scalar, prefix, name, leading_coeff=None):
+    def __init__(self, Sym, base, scalar, prefix, basis_name, leading_coeff=None):
         """
         Initialization of the symmetric function algebra defined via orthotriangular rules.
 
@@ -63,7 +63,7 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
           ``zee`` determines the scalar product on the power sum basis
           with normalization `<p_\mu, p_\mu> = zee(mu)`.
         - ``prefix`` -- the prefix used to display the basis
-        - ``name`` -- the name used for the basis
+        - ``basis_name`` -- the name used for the basis
 
         EXAMPLES::
 
@@ -71,7 +71,8 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
             sage: from sage.combinat.sf.orthotriang import SymmetricFunctionAlgebra_orthotriang
             sage: Sym = SymmetricFunctions(QQ)
             sage: m = Sym.m()
-            sage: s = SymmetricFunctionAlgebra_orthotriang(Sym, m, zee, 's', 'Schur functions')
+            sage: s = SymmetricFunctionAlgebra_orthotriang(Sym, m, zee, 's', 'Schur'); s
+            Symmetric Functions over Rational Field in the Schur basis
 
         TESTS::
 
@@ -85,10 +86,8 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
         self._sym = Sym
         self._sf_base = base
         self._scalar = scalar
-        self._prefix = prefix
-        self._name = name
         self._leading_coeff = leading_coeff
-        sfa.SymmetricFunctionAlgebra_generic.__init__(self, Sym)
+        sfa.SymmetricFunctionAlgebra_generic.__init__(self, Sym, prefix=prefix, basis_name=basis_name)
 
         self._self_to_base_cache = {}
         self._base_to_self_cache = {}

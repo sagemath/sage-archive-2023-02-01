@@ -493,7 +493,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: R.to_symmetric_function
                     Generic morphism:
                       From: Non-Commutative Symmetric Functions over the Rational Field in the Ribbon basis
-                      To:   Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+                      To:   Symmetric Functions over Rational Field in the Schur basis
                 """
                 on_basis = self.to_symmetric_function_on_basis
                 codomain = on_basis(self.one_basis()).parent()

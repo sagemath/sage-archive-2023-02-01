@@ -38,31 +38,14 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: TestSuite(s).run(skip=['_test_associativity', '_test_distributivity', '_test_prod'])
             sage: TestSuite(s).run(elements = [s[1,1]+s[2], s[1]+2*s[1,1]])
         """
-        classical.SymmetricFunctionAlgebra_classical.__init__(self, Sym, "schur", 's')
+        classical.SymmetricFunctionAlgebra_classical.__init__(self, Sym, "Schur", 's')
 
-    def dual_basis(self, scalar=None, scalar_name="",  prefix=None):
+    def _dual_basis_default(self):
         """
-        Returns the dual basis to ``self``.
-
-        INPUT:
-
-        - ``self`` -- a Schur symmetric function basis
-        - ``scalar`` -- optional input which specifies a function ``zee`` on partitions. The function
-          ``zee`` determines the scalar product on the power sum basis
-          with normalization `<p_\mu, p_\mu> = zee(\mu)`.
-          (default: uses standard ``zee`` function)
-        - ``scalar_name`` -- specifies the name of the scalar function (optional)
-        - ``prefix`` -- optional input, specifies the prefix to be used to display the basis.
+        Returns the default value for ``self.dual_basis()``
 
         This method returns the dual basis to the Schur basis with respect to the standard
         scalar product. Since the Schur basis is self-dual, it returns itself.
-        If ``zee`` is specified, the modified scalar product is used.
-
-        OUTPUT:
-
-        - This method returns the dual basis of the Schur basis with respect to the
-          standard scalar product (the Schur basis).  If a function ``zee`` is specified,
-          the dual basis is with respect to the modified scalar product.
 
         EXAMPLES::
 
@@ -73,14 +56,16 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             sage: zee = lambda x : x.centralizer_size()
             sage: S = s.dual_basis(zee); S
-            Dual basis to Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+            Dual basis to Symmetric Functions over Rational Field in the Schur basis
             sage: S[2,1].scalar(s[2,1])
             1
+
+        TESTS::
+
+            sage: s._dual_basis_default() is s.dual_basis()
+            True
         """
-        if scalar is None:
-            return self
-        else:
-            return dual.SymmetricFunctionAlgebra_dual(self, scalar, scalar_name, prefix)
+        return self
 
     def _multiply(self, left, right): # TODO: factor out this code for all bases (as is done for coercions)
         """

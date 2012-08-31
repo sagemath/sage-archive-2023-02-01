@@ -1929,22 +1929,22 @@ cdef class Parent(category_object.CategoryObject):
             sage: phi = m.coerce_map_from(P)
             sage: Ht.coerce_map_from(P)
             Composite map:
-              From: Macdonald polynomials in the P basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
-              To:   Macdonald polynomials in the Ht basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
+              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
               Defn:   Composite map:
-                      From: Macdonald polynomials in the P basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
-                      To:   Symmetric Function Algebra over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field, Schur symmetric functions as basis
+                      From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
+                      To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
                       Defn:   Generic morphism:
-                              From: Macdonald polynomials in the P basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
-                              To:   Macdonald polynomials in the J basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+                              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
+                              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
                             then
                               Generic morphism:
-                              From: Macdonald polynomials in the J basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
-                              To:   Symmetric Function Algebra over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field, Schur symmetric functions as basis
+                              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
+                              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
                     then
                       Generic morphism:
-                      From: Symmetric Function Algebra over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field, Schur symmetric functions as basis
-                      To:   Macdonald polynomials in the Ht basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+                      From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
+                      To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
 
         """
         self._coercions_used = True

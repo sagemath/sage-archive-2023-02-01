@@ -93,11 +93,11 @@ def LLT(R, k, t=None):
         sage: L3 = LLT(QQ,3); L3
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).llt(3,t=None)
         See http://trac.sagemath.org/5457 for details.
-        LLT polynomials at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        level 3 LLT polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: L3.cospin([3,2,1])
         (t+1)*m[1, 1] + m[2]
         sage: L3.hcospin()
-        LLT polynomials in the HCosp basis at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT cospin basis
     """
     sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).llt(%s,t=%s)"%(k,t))
     (R, t) = NoneConvention(R, t)
@@ -119,15 +119,15 @@ def LLTHSpin(R, level, t=None):
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).llt(3,t=None).hspin()
         See http://trac.sagemath.org/5457 for details.
         sage: HSp3([1])^2
-        HSp[1, 1] + (-t+1)*HSp[2]
+        HSp3[1, 1] + (-t+1)*HSp3[2]
 
         sage: s = SFASchur(HSp3.base_ring())
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).schur()
         See http://trac.sagemath.org/5457 for details.
         sage: HSp3(s([2]))
-        HSp[2]
+        HSp3[2]
         sage: HSp3(s([1,1]))
-        HSp[1, 1] - t*HSp[2]
+        HSp3[1, 1] - t*HSp3[2]
     """
     sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).llt(%s,t=%s).hspin()"%(level,t))
     (R, t) = NoneConvention(R, t)
@@ -183,11 +183,11 @@ class LLT_class(UniqueRepresentation):
 
         sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
         sage: L3 = Sym.llt(3); L3
-        LLT polynomials at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        level 3 LLT polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: L3.cospin([3,2,1])
         (t+1)*m[1, 1] + m[2]
         sage: HC3 = L3.hcospin(); HC3
-        LLT polynomials in the HCosp basis at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT cospin basis
         sage: m = Sym.monomial()
         sage: m( HC3[1,1] )
         (t+1)*m[1, 1] + m[2]
@@ -206,13 +206,13 @@ class LLT_class(UniqueRepresentation):
         sage: s(HS3t[2,1])
         s[2, 1] + t*s[3]
         sage: HS3x(HS3t[2,1])
-        HSp[2, 1] + (-x+t)*HSp[3]
+        HSp3[2, 1] + (-x+t)*HSp3[3]
         sage: s(HS3x(HS3t[2,1]))
         s[2, 1] + t*s[3]
         sage: LLT3t2 = Symxt.llt(3,t=2)
         sage: HC3t2 = LLT3t2.hcospin()
         sage: HS3x(HC3t2[3,1])
-        2*HSp[3, 1] + (-2*x+1)*HSp[4]
+        2*HSp3[3, 1] + (-2*x+1)*HSp3[4]
     """
 
     def __init__(self, Sym, k, t='t'):
@@ -244,7 +244,7 @@ class LLT_class(UniqueRepresentation):
         """
         self._k = k
         self._sym = Sym
-        self._name = "LLT polynomials at level %s"%self._k
+        self._name = "level %s LLT polynomials"%self._k
         if not (t in Sym.base_ring() or var(t) in Sym.base_ring()):
             raise ValueError, "parameter t must be in the base ring"
         self.t = Sym.base_ring()(t)
@@ -269,9 +269,9 @@ class LLT_class(UniqueRepresentation):
         EXAMPLES::
 
             sage: SymmetricFunctions(FractionField(QQ['t'])).llt(3)
-            LLT polynomials at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            level 3 LLT polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
             sage: SymmetricFunctions(QQ).llt(3,t=2)
-            LLT polynomials at level 3 with t=2 over Rational Field
+            level 3 LLT polynomials with t=2 over Rational Field
         """
         return self._name
 
@@ -477,7 +477,7 @@ class LLT_class(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: HCosp3 = Sym.llt(3).hcospin(); HCosp3
-            LLT polynomials in the HCosp basis at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT cospin basis
             sage: HCosp3([1])^2
             1/t*HCosp3[1, 1] + ((t-1)/t)*HCosp3[2]
 
@@ -508,15 +508,15 @@ class LLT_class(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: HSp3 = Sym.llt(3).hspin(); HSp3
-            LLT polynomials in the HSp basis at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT spin basis
             sage: HSp3([1])^2
-            HSp[1, 1] + (-t+1)*HSp[2]
+            HSp3[1, 1] + (-t+1)*HSp3[2]
 
             sage: s = Sym.schur()
             sage: HSp3(s([2]))
-            HSp[2]
+            HSp3[2]
             sage: HSp3(s([1,1]))
-            HSp[1, 1] - t*HSp[2]
+            HSp3[1, 1] - t*HSp3[2]
             sage: s(HSp3([2,1]))
             s[2, 1] + t*s[3]
         """
@@ -526,7 +526,7 @@ class LLT_class(UniqueRepresentation):
 
 class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
 
-    def __init__(self, llt):
+    def __init__(self, llt, prefix):
         r"""
         A class of methods which are common to both the hspin and hcospin
         of the LLT symmetric functions.
@@ -539,14 +539,19 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
         EXAMPLES::
 
             sage: SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
-            LLT polynomials in the HSp basis at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT spin basis
             sage: SymmetricFunctions(QQ).llt(3,t=2).hspin()
-            LLT polynomials in the HSp basis at level 3 with t=2 over Rational Field
+            Symmetric Functions over Rational Field in the level 3 LLT spin with t=2 basis
             sage: QQz = FractionField(QQ['z']); z = QQz.gen()
             sage: SymmetricFunctions(QQz).llt(3,t=z).hspin()
-            LLT polynomials in the HSp basis at level 3 with t=z over Fraction Field of Univariate Polynomial Ring in z over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in z over Rational Field in the level 3 LLT spin with t=z basis
         """
-        self._name += llt._name_suffix
+        s = self.__class__.__name__[4:]
+        sfa.SymmetricFunctionAlgebra_generic.__init__(
+            self, llt._sym,
+            basis_name = "level %s LLT "%llt.level() + s + llt._name_suffix,
+            prefix = prefix)
+
         self.t = llt.t
         self._sym = llt._sym
         self._llt = llt
@@ -579,12 +584,12 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
             sage: HSp3 = Sym.llt(3).hspin()
             sage: m = Sym.monomial()
             sage: HSp3._m_to_self(m[2,1])
-            -2*HSp[1, 1, 1] + (2*t^2+2*t+1)*HSp[2, 1] + (-2*t^2-t)*HSp[3]
+            -2*HSp3[1, 1, 1] + (2*t^2+2*t+1)*HSp3[2, 1] + (-2*t^2-t)*HSp3[3]
 
         This is for internal use only. Please use instead::
 
             sage: HSp3(m[2,1])
-            -2*HSp[1, 1, 1] + (2*t^2+2*t+1)*HSp[2, 1] + (-2*t^2-t)*HSp[3]
+            -2*HSp3[1, 1, 1] + (2*t^2+2*t+1)*HSp3[2, 1] + (-2*t^2-t)*HSp3[3]
         """
         return self._from_cache(x, self._m_cache, self._m_to_self_cache, t = self.t)
 
@@ -653,7 +658,7 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
 
             sage: HSp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
             sage: HSp3.llt_family()
-            LLT polynomials at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            level 3 LLT polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         """
         return self._llt
 
@@ -675,7 +680,7 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
 
             sage: HSp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
             sage: HSp3._multiply(HSp3([1]), HSp3([2]))
-            HSp[2, 1] + (-t+1)*HSp[3]
+            HSp3[2, 1] + (-t+1)*HSp3[3]
             sage: HCosp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hcospin()
             sage: HCosp3._multiply(HCosp3([1]), HSp3([2]))
             1/t*HCosp3[2, 1] + ((t-1)/t)*HCosp3[3]
@@ -746,15 +751,13 @@ class LLT_spin(LLT_generic):
             sage: TestSuite(HS3x).run(elements = [HS3x.t*HS3x[1,1]+HS3x.t*HS3x[2], HS3x[1]+(1+HS3x.t)*HS3x[1,1]])  # long time (depends on previous)
         """
         level = llt._k
-        self._name = "LLT polynomials in the HSp basis at level %s"%level
-        self._prefix = "HSp"
         if level not in hsp_to_m_cache:
             hsp_to_m_cache[level] = {}
             m_to_hsp_cache[level] = {}
         self._self_to_m_cache = hsp_to_m_cache[level]
         self._m_to_self_cache = m_to_hsp_cache[level]
 
-        LLT_generic.__init__(self, llt)
+        LLT_generic.__init__(self, llt, prefix="HSp%s"%level)
 
 
     def _to_m(self, part):
@@ -818,15 +821,12 @@ class LLT_cospin(LLT_generic):
             sage: TestSuite(HC3x).run(elements = [HC3x.t*HC3x[1,1]+HC3x.t*HC3x[2], HC3x[1]+(1+HC3x.t)*HC3x[1,1]])  # long time (depends on previous)
         """
         level = llt._k
-        self._name = "LLT polynomials in the HCosp basis at level %s"%level
-        self._prefix = "HCosp"+str(level)
-
         if level not in hcosp_to_m_cache:
             hcosp_to_m_cache[level] = {}
             m_to_hcosp_cache[level] = {}
         self._self_to_m_cache = hcosp_to_m_cache[level]
         self._m_to_self_cache = m_to_hcosp_cache[level]
-        LLT_generic.__init__(self, llt)
+        LLT_generic.__init__(self, llt, prefix= "HCosp%s"%level)
 
     def _to_m(self, part):
         r"""

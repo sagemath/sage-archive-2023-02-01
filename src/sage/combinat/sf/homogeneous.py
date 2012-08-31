@@ -46,7 +46,7 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
         """
         classical.SymmetricFunctionAlgebra_classical.__init__(self, Sym, "homogeneous", 'h')
 
-    def dual_basis(self, scalar = None, scalar_name = "", prefix = None):
+    def _dual_basis_default(self):
         """
         Returns the dual basis to ``self``.
 
@@ -75,16 +75,18 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
             sage: zee = lambda x : 2
             sage: hh = h.dual_basis(zee); hh
-            Dual basis to Symmetric Function Algebra over Rational Field, Homogeneous symmetric functions as basis
+            Dual basis to Symmetric Functions over Rational Field in the homogeneous basis
             sage: hh[2,1].scalar(h[2,1])
             1
             sage: hh[2,2].scalar(h[2,2])
             4
+
+        TESTS::
+
+            sage: h._dual_basis_default() is h.dual_basis()
+            True
         """
-        if scalar is None:
-            return sage.combinat.sf.sf.SymmetricFunctions(self.base_ring()).m()
-        else:
-            return dual.SymmetricFunctionAlgebra_dual(self, scalar, scalar_name, prefix)
+        return self.realization_of().m()
 
     def coproduct_on_generators(self, i):
         r"""

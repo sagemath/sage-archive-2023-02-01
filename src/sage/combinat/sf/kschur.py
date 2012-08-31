@@ -246,6 +246,10 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         sfa.SymmetricFunctionAlgebra_generic.__init__(self, Sym)
         # so we need to take some counter measures
         self._basis_keys = sage.combinat.partition.Partitions(NonNegativeIntegers(), max_part=k)
+        # The following line is just a temporary workaround to keep
+        # the repr of those k-schur as they were before #13404; since
+        # they are deprecated, there is no need to bother about them.
+        self.rename(self._name+" over %s"%self.base_ring())
 
         self._s = Sym.s()
         # temporary until Hom(GradedHopfAlgebrasWithBasis work better)

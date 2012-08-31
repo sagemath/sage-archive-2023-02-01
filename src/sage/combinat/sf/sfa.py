@@ -50,7 +50,7 @@ We can also do computations with various bases::
     sage: f
     3*p[]
     sage: f.parent()
-    Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
+    Symmetric Functions over Rational Field in the powersum basis
     sage: f + p([3,2])
     3*p[] + p[3, 2]
 
@@ -226,17 +226,17 @@ def SymmetricFunctionAlgebra(R, basis="schur"):
     EXAMPLES::
 
         sage: SymmetricFunctionAlgebra(QQ)
-        Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+        Symmetric Functions over Rational Field in the Schur basis
 
     ::
 
         sage: SymmetricFunctionAlgebra(QQ, basis='m')
-        Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis
+        Symmetric Functions over Rational Field in the monomial basis
 
     ::
 
         sage: SymmetricFunctionAlgebra(QQ, basis='power')
-        Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
+        Symmetric Functions over Rational Field in the powersum basis
     """
     # Todo: this is a backward compatibility function, and should be deprecated
     from sage.combinat.sf.sf import SymmetricFunctions
@@ -265,7 +265,7 @@ def SFAPower(R):
     EXAMPLES::
 
         sage: SymmetricFunctions(QQ).power()
-        Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
+        Symmetric Functions over Rational Field in the powersum basis
 
     TESTS::
 
@@ -288,7 +288,7 @@ def SFAElementary(R):
     EXAMPLES::
 
         sage: SymmetricFunctions(QQ).elementary()
-        Symmetric Function Algebra over Rational Field, Elementary symmetric functions as basis
+        Symmetric Functions over Rational Field in the elementary basis
 
     TESTS::
 
@@ -311,7 +311,7 @@ def SFAHomogeneous(R):
     EXAMPLES::
 
         sage: SymmetricFunctions(QQ).homogeneous()
-        Symmetric Function Algebra over Rational Field, Homogeneous symmetric functions as basis
+        Symmetric Functions over Rational Field in the homogeneous basis
 
     TESTS::
 
@@ -334,7 +334,7 @@ def SFASchur(R):
     EXAMPLES::
 
         sage: SymmetricFunctions(QQ).schur()
-        Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+        Symmetric Functions over Rational Field in the Schur basis
 
     TESTS::
 
@@ -357,7 +357,7 @@ def SFAMonomial(R):
     EXAMPLES::
 
         sage: SymmetricFunctions(QQ).monomial()
-        Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis
+        Symmetric Functions over Rational Field in the monomial basis
 
     TESTS::
 
@@ -499,6 +499,203 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 CommutativeRings()]
 
     class ParentMethods:
+
+        def is_field(self, proof = True):
+            """
+            Returns whether ``self`` is a field.
+
+            INPUT:
+
+            - ``self`` -- a basis of the symmetric functions
+            - ``proof`` -- an optional argument (default value : True)
+
+            EXAMPLES::
+
+                sage: s = SymmetricFunctions(QQ).s()
+                sage: s.is_field()
+                False
+            """
+            return False
+
+        def is_commutative(self):
+            """
+            Returns whether this symmetric function algebra is commutative.
+
+            INPUT:
+
+            - ``self`` -- a basis of the symmetric functions
+
+            EXAMPLES::
+
+                sage: s = SymmetricFunctions(QQ).s()
+                sage: s.is_commutative()
+                True
+            """
+            return self.base_ring().is_commutative()
+
+        def _repr_(self):
+            """
+            Text representation of this basis of symmetric functions
+
+            INPUT:
+
+            - ``self`` -- a basis of the symmetric functions
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(FractionField(QQ['q,t'])); Sym
+                Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+                sage: Sym.p()
+                Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the powersum basis
+
+            In the following examples, we rename {{{Sym}}} for brevity::
+
+                sage: Sym.rename("Sym"); Sym
+                Sym
+
+            Classical bases::
+
+                sage: Sym.s()
+                Sym in the Schur basis
+                sage: Sym.p()
+                Sym in the powersum basis
+                sage: Sym.m()
+                Sym in the monomial basis
+                sage: Sym.e()
+                Sym in the elementary basis
+                sage: Sym.h()
+                Sym in the homogeneous basis
+                sage: Sym.f()
+                Sym in the forgotten basis
+
+            Macdonald polynomials::
+
+                sage: Sym.macdonald().P()
+                Sym in the Macdonald P basis
+                sage: Sym.macdonald().Q()
+                Sym in the Macdonald Q basis
+                sage: Sym.macdonald().J()
+                Sym in the Macdonald J basis
+                sage: Sym.macdonald().H()
+                Sym in the Macdonald H basis
+                sage: Sym.macdonald().Ht()
+                Sym in the Macdonald Ht basis
+                sage: Sym.macdonald().S()
+                Sym in the Macdonald S basis
+
+            Macdonald polynomials, with specialized parameters::
+
+                sage: Sym.macdonald(q=1).S()
+                Sym in the Macdonald S with q=1 basis
+                sage: Sym.macdonald(q=1,t=3).P()
+                Sym in the Macdonald P with q=1 and t=3 basis
+
+            Hall-Littlewood polynomials:
+
+                sage: Sym.hall_littlewood().P()
+                Sym in the Hall-Littlewood P basis
+                sage: Sym.hall_littlewood().Q()
+                Sym in the Hall-Littlewood Q basis
+                sage: Sym.hall_littlewood().Qp()
+                Sym in the Hall-Littlewood Qp basis
+
+            Hall-Littlewood polynomials, with specialized parameter::
+
+                sage: Sym.hall_littlewood(t=1).P()
+                Sym in the Hall-Littlewood P with t=1 basis
+
+            Jack polynomials::
+
+                sage: Sym.jack().J()
+                Sym in the Jack J basis
+                sage: Sym.jack().P()
+                Sym in the Jack P basis
+                sage: Sym.jack().Q()
+                Sym in the Jack Q basis
+                sage: Sym.jack().Qp()
+                Sym in the Jack Qp basis
+
+            Jack polynomials, with specialized parameter::
+
+                sage: Sym.jack(t=1).J()
+                Sym in the Jack J with t=1 basis
+
+            Zonal polynomials::
+
+                sage: Sym.zonal()
+                Sym in the zonal basis
+
+            LLT polynomials::
+
+                sage: Sym.llt(3).hspin()
+                Sym in the level 3 LLT spin basis
+                sage: Sym.llt(3).hcospin()
+                Sym in the level 3 LLT cospin basis
+
+            LLT polynomials, with specialized parameter::
+
+                sage: Sym.llt(3, t=1).hspin()
+                Sym in the level 3 LLT spin with t=1 basis
+                sage: Sym.llt(3, t=1).hcospin()
+                Sym in the level 3 LLT cospin with t=1 basis
+
+            TESTS::
+
+                sage: Sym.s()._repr_()
+                'Sym in the Schur basis'
+                sage: Sym.s()._repr_.__module__
+                'sage.combinat.sf.sfa'
+
+            ::
+
+                sage: Sym.rename()
+            """
+            return "%s in the %s basis"%(self.realization_of(), self.basis_name())
+
+        @cached_method
+        def one_basis(self):
+            r"""
+            Returns the empty partition, as per ``AlgebrasWithBasis.ParentMethods.one_basis``
+
+            INPUT:
+
+            - ``self`` -- a basis of the ring of symmetric functions
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ['t'].fraction_field())
+                sage: s = Sym.s()
+                sage: s.one_basis()
+                []
+                sage: Q = Sym.hall_littlewood().Q()
+                sage: Q.one_basis()
+                []
+
+            .. TODO:: generalize to Modules.Graded.Connected.ParentMethods
+            """
+            return sage.combinat.partition.Partition([])
+
+        def degree_on_basis(self, b):
+            r"""
+            Return the degree of the basis element indexed by ``b``.
+
+            INPUT:
+
+            - ``self`` -- a basis of the symmetric functions
+            - ``b`` -- a partition
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ['q,t'].fraction_field())
+                sage: m = Sym.monomial()
+                sage: m.degree_on_basis(Partition([3,2]))
+                5
+                sage: P = Sym.macdonald().P()
+                sage: P.degree_on_basis(Partition([]))
+                0
+            """
+            return sum(b)
+
         def antipode_by_coercion(self, element):
             r"""
             The antipode of ``element`` via coercion to and from the powersum basis.
@@ -567,6 +764,9 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
 class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
     r"""
+
+    .. TODO:: most of the methods in this class are generic (manipulations of morphisms, ...) and should be generalized (or removed)
+
     TESTS::
 
         sage: s = SymmetricFunctions(QQ).s()
@@ -611,27 +811,6 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, Sym.base_ring(), sage.combinat.partition.Partitions(),
                                          category = SymmetricFunctionsBases(Sym),
                                          bracket = "", prefix = prefix)
-
-    @cached_method
-    def one_basis(self):
-        r"""
-        Returns the empty partition, as per ``AlgebrasWithBasis.ParentMethods.one_basis``
-
-        INPUT:
-
-        - ``self`` -- a basis of the ring of symmetric functions
-
-        EXAMPLES::
-
-            sage: SymmetricFunctions(QQ).s().one_basis()
-            []
-
-        TESTS::
-
-            sage: SymmetricFunctions(QQ).s().one_basis() == Partition([])
-            True
-        """
-        return sage.combinat.partition.Partitions()([])
 
     _print_style = 'lex'
 
@@ -1337,7 +1516,39 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                 cache[l[i]][l[j]] = res.coefficient(l[j])
 
 
-    def dual_basis(self, scalar=None, scalar_name="", prefix=None):
+    def _dual_basis_default(self):
+        """
+        Returns the default value for ``self.dual_basis()``
+
+        .. SEEALSO:: :meth:`dual_basis`
+
+        EXAMPLES:
+
+        This default implementation constructs the dual basis using
+        the standard (Hall) scalar product::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: Sym.p()._dual_basis_default()
+            Dual basis to Symmetric Functions over Rational Field in the powersum basis with respect to the Hall scalar product
+
+        This is meant to be overiden by subclasses for which an
+        explicit dual basis is known::
+
+            sage: Sym.s()._dual_basis_default()
+            Symmetric Functions over Rational Field in the Schur basis
+            sage: Sym.h()._dual_basis_default()
+            Symmetric Functions over Rational Field in the monomial basis
+            sage: Sym.m()._dual_basis_default()
+            Symmetric Functions over Rational Field in the homogeneous basis
+            sage: Sym.f()._dual_basis_default()
+            Symmetric Functions over Rational Field in the elementary basis
+            sage: Sym.e()._dual_basis_default()
+            Symmetric Functions over Rational Field in the forgotten basis
+        """
+        return self.dual_basis(scalar=zee, scalar_name = "Hall scalar product")
+
+
+    def dual_basis(self, scalar=None, scalar_name="", basis_name=None, prefix=None):
         r"""
         Returns the dual basis of ``self`` with respect to the scalar product ``scalar``.
 
@@ -1358,7 +1569,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
             sage: e = SymmetricFunctions(QQ).e()
             sage: f = e.dual_basis(prefix='f'); f
-            Dual basis to Symmetric Function Algebra over Rational Field, Elementary symmetric functions as basis with respect to the Hall scalar product
+            Dual basis to Symmetric Functions over Rational Field in the elementary basis with respect to the Hall scalar product
             sage: f([2,1])^2
             4*f[2, 2, 1, 1] + 6*f[2, 2, 2] + 2*f[3, 2, 1] + 2*f[3, 3] + 2*f[4, 1, 1] + f[4, 2]
             sage: f([2,1]).scalar(e([2,1]))
@@ -1374,7 +1585,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
             sage: p = SymmetricFunctions(QQ).p()
             sage: q = p.dual_basis(prefix='q'); q
-            Dual basis to Symmetric Function Algebra over Rational Field, Power symmetric functions as basis with respect to the Hall scalar product
+            Dual basis to Symmetric Functions over Rational Field in the powersum basis with respect to the Hall scalar product
             sage: q([2,1])^2
             4*q[2, 2, 1, 1]
             sage: p([2,1]).scalar(q([2,1]))
@@ -1384,14 +1595,20 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         """
         import dual
         if scalar is None:
+            if basis_name is None and prefix is None:
+                return self._dual_basis_default()
             scalar = zee
             scalar_name = "Hall scalar product"
-        return dual.SymmetricFunctionAlgebra_dual(self, scalar, scalar_name, prefix)
-
+        return dual.SymmetricFunctionAlgebra_dual(self, scalar, scalar_name,
+                                                  basis_name = basis_name,
+                                                  prefix = prefix)
 
     def basis_name(self):
         r"""
         Returns the name of the basis of ``self``.
+
+        This is used for output and, for the classical basis of
+        symmetric functions to connect this base with Symmetrica.
 
         INPUT:
 
@@ -1402,10 +1619,10 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: Sym = SymmetricFunctions(QQ)
             sage: s = Sym.s()
             sage: s.basis_name()
-            'schur'
+            'Schur'
             sage: p = Sym.p()
             sage: p.basis_name()
-            'power'
+            'powersum'
             sage: h = Sym.h()
             sage: h.basis_name()
             'homogeneous'
@@ -1416,10 +1633,10 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: m.basis_name()
             'monomial'
         """
-        try:
-            return self._basis
-        except AttributeError:
-            return self._prefix.lower()
+        #try:
+        return self._basis
+        #except AttributeError:
+        #    return self._prefix.lower()
 
     def get_print_style(self):
         r"""

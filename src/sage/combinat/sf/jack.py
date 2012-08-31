@@ -152,11 +152,11 @@ class Jack(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: JP = Sym.jack().P(); JP
-            Jack polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack P basis
             sage: Sym.jack(t=-1).P()
-            Jack polynomials in the P basis with t=-1 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack P with t=-1 basis
 
-        At `t = 1`, the Jack polynomials on the `P` basis are the Schur
+        At `t = 1`, the Jack polynomials in the `P` basis are the Schur
         symmetric functions.
 
         ::
@@ -169,7 +169,7 @@ class Jack(UniqueRepresentation):
             sage: JP(s([2,2,1]))
             JackP[2, 2, 1]
 
-        At `t = 2`, the Jack polynomials on the `P` basis are the zonal
+        At `t = 2`, the Jack polynomials in the `P` basis are the zonal
         polynomials.
 
         ::
@@ -255,10 +255,10 @@ class Jack(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: JQ = Sym.jack().Q(); JQ
-            Jack polynomials in the Q basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack Q basis
             sage: Sym = SymmetricFunctions(QQ)
             sage: Sym.jack(t=-1).Q()
-            Jack polynomials in the Q basis with t=-1 over Rational Field
+            Symmetric Functions over Rational Field in the Jack Q with t=-1 basis
 
         ::
 
@@ -294,16 +294,14 @@ class Jack(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: JJ = Sym.jack().J(); JJ
-            Jack polynomials in the J basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack J basis
             sage: Sym = SymmetricFunctions(QQ)
             sage: Sym.jack(t=-1).J()
-            Jack polynomials in the J basis with t=-1 over Rational Field
+            Symmetric Functions over Rational Field in the Jack J with t=-1 basis
 
         At `t = 1`, the Jack polynomials in the `J` basis are scalar multiples
         of the Schur functions with the scalar given by a Partition's
-        hook_product method at 1.
-
-        ::
+        hook_product method at 1::
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: JJ = Sym.jack(t=1).J()
@@ -312,7 +310,7 @@ class Jack(UniqueRepresentation):
             sage: s(JJ(p)) == p.hook_product(1)*s(p)  # long time (4s on sage.math, 2012)
             True
 
-        At `t = 2`, the Jack polynomials on the `J` basis are scalar multiples
+        At `t = 2`, the Jack polynomials in the `J` basis are scalar multiples
         of the zonal polynomials with the scalar given by a Partition's
         hook_product method at 1.
 
@@ -363,21 +361,18 @@ class Jack(UniqueRepresentation):
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: JP = Sym.jack().P()
             sage: JQp = Sym.jack().Qp(); JQp
-            Jack polynomials in the Qp basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack Qp basis
             sage: a = JQp([2])
             sage: a.scalar(JP([2]))
             1
             sage: a.scalar(JP([1,1]))
             0
             sage: JP(JQp([2]))                        # todo: missing auto normalization
-            ((-t+1)/(-t-1))*JackP[1, 1] + JackP[2]
+            ((2*t-2)/(2*t+2))*JackP[1, 1] + JackP[2]
             sage: JP._normalize(JP(JQp([2])))
-            ((-t+1)/(-t-1))*JackP[1, 1] + JackP[2]
+            ((t-1)/(t+1))*JackP[1, 1] + JackP[2]
         """
-        res = self._sym.jack(t=self.t).P().dual_basis(prefix="JackQp")
-        res._use_basis_name = True
-        res._name = "Jack polynomials in the Qp basis"+self._name_suffix+" over "+self._sym.base_ring().__repr__()
-        return res
+        return self.P().dual_basis(prefix="JackQp", basis_name = "Jack Qp"+ self._name_suffix)
 
 #############################
 # to be deprecated
@@ -424,11 +419,11 @@ def JackPolynomialsP(R, t=None):
         sage: JackPolynomialsP(QQ)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).jack(t=t).P()
         See http://trac.sagemath.org/5457 for details.
-        Jack polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack P basis
         sage: JackPolynomialsP(QQ,t=-1)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).jack(t=-1).P()
         See http://trac.sagemath.org/5457 for details.
-        Jack polynomials in the P basis with t=-1 over Rational Field
+        Symmetric Functions over Rational Field in the Jack P with t=-1 basis
 
     At `t = 1`, the Jack polynomials on the P basis are the Schur
     symmetric functions.
@@ -438,7 +433,7 @@ def JackPolynomialsP(R, t=None):
         sage: P = JackPolynomialsP(QQ,t=1); P
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).jack(t=1).P()
         See http://trac.sagemath.org/5457 for details.
-        Jack polynomials in the P basis with t=1 over Rational Field
+        Symmetric Functions over Rational Field in the Jack P with t=1 basis
         sage: s = SymmetricFunctions(QQ).s()
         sage: P([2,1])^2
         JackP[2, 2, 1, 1] + JackP[2, 2, 2] + JackP[3, 1, 1, 1] + 2*JackP[3, 2, 1] + JackP[3, 3] + JackP[4, 1, 1] + JackP[4, 2]
@@ -485,11 +480,11 @@ def JackPolynomialsQ(R, t=None):
         sage: JackPolynomialsQ(QQ)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).jack(t=t).Q()
         See http://trac.sagemath.org/5457 for details.
-        Jack polynomials in the Q basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack Q basis
         sage: JackPolynomialsQ(QQ,t=-1)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).jack(t=-1).Q()
         See http://trac.sagemath.org/5457 for details.
-        Jack polynomials in the Q basis with t=-1 over Rational Field
+        Symmetric Functions over Rational Field in the Jack Q with t=-1 basis
     """
     (R, t) = NoneConvention(R, t)
     sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).jack(t=%s).Q()"%(t))
@@ -511,22 +506,20 @@ def JackPolynomialsJ(R, t=None):
         sage: JackPolynomialsJ(QQ)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).jack(t=t).J()
         See http://trac.sagemath.org/5457 for details.
-        Jack polynomials in the J basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack J basis
         sage: JackPolynomialsJ(QQ,t=-1)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).jack(t=-1).J()
         See http://trac.sagemath.org/5457 for details.
-        Jack polynomials in the J basis with t=-1 over Rational Field
+        Symmetric Functions over Rational Field in the Jack J with t=-1 basis
 
     At `t = 1`, the Jack polynomials in the J basis are scalar multiples
     of the Schur functions with the scalar given by a Partition's
-    hook_product method at 1.
-
-    ::
+    hook_product method at 1::
 
         sage: J = JackPolynomialsJ(QQ,t=1); J
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).jack(t=1).J()
         See http://trac.sagemath.org/5457 for details.
-        Jack polynomials in the J basis with t=1 over Rational Field
+        Symmetric Functions over Rational Field in the Jack J with t=1 basis
         sage: s = SymmetricFunctions(QQ).s()
         sage: p = Partition([3,2,1,1])
         sage: s(J(p)) == p.hook_product(1)*s(p)  # long time (4s on sage.math, 2012)
@@ -685,12 +678,14 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
             sage: JP = Sym.jack(t=2).P(); JP.base_ring()
             Rational Field
         """
-        self._name += jack._name_suffix
+        s = self.__class__.__name__[16:].capitalize()
+        sfa.SymmetricFunctionAlgebra_generic.__init__(
+            self, jack._sym,
+            basis_name = "Jack " + s + jack._name_suffix,
+            prefix = "Jack"+s)
         self.t = jack.t
         self._sym = jack._sym
         self._jack = jack
-
-        sfa.SymmetricFunctionAlgebra_generic.__init__(self, jack._sym)
 
         # Bases defined by orthotriangularity should inherit from some
         # common category BasesByOrthotriangularity (shared with Jack, HL, orthotriang, Mcdo)
@@ -904,7 +899,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
             sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
             sage: normal = JP._normalize_morphism(AlgebrasWithBasis(JP.base_ring()))
             sage: normal.parent()
-            Set of Homomorphisms from Jack polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field to Jack polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Set of Homomorphisms from Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack P basis to Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack P basis
             sage: normal.category_for()
             Category of algebras with basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
 
@@ -1337,9 +1332,8 @@ class SymmetricFunctionAlgebra_zonal(sfa.SymmetricFunctionAlgebra_generic):
         self._P = self._jack.P()
         #self._m_to_self_cache = {} Now that we compute Jacks once, there is a global cache
         #self._self_to_m_cache = {} and we don't need to compute it separately for zonals
-        self._prefix = "Z"
-        self._name = "Zonal polynomials"
-        sfa.SymmetricFunctionAlgebra_generic.__init__(self, self._sym)
+        sfa.SymmetricFunctionAlgebra_generic.__init__(self, self._sym,
+                                                      prefix="Z", basis_name="zonal")
         category = sage.categories.all.ModulesWithBasis(self._sym.base_ring())
         self   .register_coercion(SetMorphism(Hom(self._P, self, category), self.sum_of_terms))
         self._P.register_coercion(SetMorphism(Hom(self, self._P, category), self._P.sum_of_terms))

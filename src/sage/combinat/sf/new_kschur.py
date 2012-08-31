@@ -48,18 +48,17 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
     EXAMPLES::
 
         sage: Sym = SymmetricFunctions(QQ)
-        sage: from sage.combinat.sf.new_kschur import KBoundedSubspace
-        sage: KB = KBoundedSubspace(Sym,3,1); KB
-        3-bounded Symmetric Functions over Rational Field
+        sage: KB = Sym.kBoundedSubspace(3,1); KB
+        3-bounded Symmetric Functions over Rational Field with t=1
 
         sage: Sym = SymmetricFunctions(QQ['t'])
-        sage: KB = KBoundedSubspace(Sym,3); KB
+        sage: KB = Sym.kBoundedSubspace(3); KB
         3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field
 
     The `k`-Schur function basis can be constructed as follows::
 
         sage: ks = KB.kschur(); ks
-        3-Schur functions with t=t
+        3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
     """
 
     def __init__(self, Sym, k, t='t'):
@@ -75,13 +74,13 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             sage: from sage.combinat.sf.new_kschur import KBoundedSubspace
             sage: L3 = KBoundedSubspace(Sym,3,1)
             sage: TestSuite(L3).run(skip=["_test_not_implemented_methods"])
-            sage: KBoundedSubspace(Sym,0,1)
+            sage: Sym.kBoundedSubspace(0,1)
             Traceback (most recent call last):
             ...
             ValueError: k must be a positive integer
 
             sage: Sym = SymmetricFunctions(QQ['t'])
-            sage: TestSuite(KBoundedSubspace(Sym,1)).run(skip=["_test_not_implemented_methods"])
+            sage: TestSuite(Sym.kBoundedSubspace(1)).run(skip=["_test_not_implemented_methods"])
         """
         if not isinstance(k, (int, Integer)) or (k < 1):
             raise ValueError, "k must be a positive integer"
@@ -138,17 +137,16 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: s = Sym.schur()
-            sage: from sage.combinat.sf.new_kschur import KBoundedSubspace
             sage: KB = Sym.kBoundedSubspace(3,1); KB
-            3-bounded Symmetric Functions over Rational Field
+            3-bounded Symmetric Functions over Rational Field with t=1
             sage: KB.retract(s[2]+s[3])
             ks3[2] + ks3[3]
             sage: KB.retract(s[2,1,1])
             Traceback (most recent call last):
             ...
             ValueError: s[2, 1, 1] is not in the image of Generic morphism:
-            From: 3-Schur functions with t=1
-            To:   Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+              From: 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1
+              To:   Symmetric Functions over Rational Field in the Schur basis
         """
         s = self.ambient().schur()
         ks = self.kschur()
@@ -161,10 +159,10 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).kBoundedSubspace(3,1).realizations()
-            [3-Schur functions with t=1, 3-bounded complete homogeneous symmetric functions]
+            [3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1, 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-bounded homogeneous basis]
 
             sage: SymmetricFunctions(QQ['t']).kBoundedSubspace(3).realizations()
-            [3-Schur functions with t=t]
+            [3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis]
         """
         if self.t == 1:
             return [self.kschur(), self.khomogeneous()]
@@ -205,12 +203,15 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).kBoundedSubspace(3,1) # indirect doctest
-            3-bounded Symmetric Functions over Rational Field
+            3-bounded Symmetric Functions over Rational Field with t=1
 
             sage: SymmetricFunctions(QQ['t']).kBoundedSubspace(3)
             3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field
         """
-        return "%s-bounded %s"%(self.k, self.ambient())
+        ending = ""
+        if str(self.t)!='t':
+            ending = ' with t=%s'%(self.t)
+        return "%s-bounded %s"%(self.k, self.ambient())+ending
 
 
 class KBoundedSubspaceBases(Category_realization_of_parent):
@@ -230,11 +231,11 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
         TESTS::
 
             sage: Sym = SymmetricFunctions(QQ['t'])
-            sage: from sage.combinat.sf.new_kschur import KBoundedSubspace, KBoundedSubspaceBases
-            sage: KB = KBoundedSubspace(Sym,3)
+            sage: from sage.combinat.sf.new_kschur import KBoundedSubspaceBases
+            sage: KB = Sym.kBoundedSubspace(3)
             sage: ks = KB.kschur()
             sage: KBB = KBoundedSubspaceBases(ks); KBB
-            Category of k bounded subspace bases of 3-Schur functions with t=t
+            Category of k bounded subspace bases of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
         """
         self.t = t
         Category_realization_of_parent.__init__(self, base)
@@ -246,8 +247,8 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
         EXAMPLES::
 
             sage: Sym = SymmetricFunctions(QQ['t'])
-            sage: from sage.combinat.sf.new_kschur import KBoundedSubspace, KBoundedSubspaceBases
-            sage: KB = KBoundedSubspace(Sym,3)
+            sage: from sage.combinat.sf.new_kschur import KBoundedSubspaceBases
+            sage: KB = Sym.kBoundedSubspace(3)
             sage: KBB = KBoundedSubspaceBases(KB); KBB
             Category of k bounded subspace bases of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field
             sage: KBB.super_categories()
@@ -424,20 +425,20 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 sage: f = ks[2]*ks[3,1]; f
                 s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + (t+1)*s[4, 2] + (t+1)*s[5, 1] + t*s[6]
                 sage: f.parent()
-                Symmetric Function Algebra over Univariate Polynomial Ring in t over Rational Field, Schur symmetric functions as basis
+                Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the Schur basis
                 sage: ks(f)
                 Traceback (most recent call last):
                 ...
                 ValueError: s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + (t+1)*s[4, 2] + (t+1)*s[5, 1] + t*s[6] is not in the image of Generic morphism:
-                From: 3-Schur functions with t=t
-                To:   Symmetric Function Algebra over Univariate Polynomial Ring in t over Rational Field, Schur symmetric functions as basis
+                  From: 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
+                  To:   Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the Schur basis
 
                 sage: Sym = SymmetricFunctions(QQ)
                 sage: ks = Sym.kschur(3,1)
                 sage: f = ks[2]*ks[3,1]; f
                 ks3[3, 2, 1] + ks3[3, 3]
                 sage: f.parent()
-                3-Schur functions with t=1
+                3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1
             """
             if self.parent().realization_of().t == 1:
                 return self.parent()(self.lift()*other.lift())
@@ -533,10 +534,10 @@ class kSchur(CombinatorialFreeModule):
         TESTS::
 
             sage: Sym = SymmetricFunctions(QQ)
-            sage: from sage.combinat.sf.new_kschur import KBoundedSubspace, kSchur
-            sage: KB = KBoundedSubspace(Sym,3,t=1)
+            sage: from sage.combinat.sf.new_kschur import kSchur
+            sage: KB = Sym.kBoundedSubspace(3,t=1)
             sage: kSchur(KB)
-            3-Schur functions with t=1
+            3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1
         """
         CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
             kBoundedRing.indices(),
@@ -576,13 +577,16 @@ class kSchur(CombinatorialFreeModule):
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: ks = Sym.kschur(4,1); ks      # indirect doctest
-            4-Schur functions with t=1
+            4-bounded Symmetric Functions over Rational Field with t=1 in the 4-Schur basis also with t=1
 
             sage: Sym = SymmetricFunctions(QQ['t'])
             sage: ks = Sym.kschur(4); ks
-            4-Schur functions with t=t
+            4-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 4-Schur basis
         """
-        return '%s-Schur functions with t=%s'%(self.k, self.realization_of().t)
+        ending = ''
+        if str(self.realization_of().t)!='t':
+            ending = ' also with t=%s'%(self.realization_of().t)
+        return self.realization_of()._repr_()+' in the %s-Schur basis'%(self.k)+ending
 
     @cached_method
     def _to_schur_on_basis(self, p):
@@ -617,9 +621,7 @@ class kHomogeneous(CombinatorialFreeModule):
     EXAMPLES::
 
         sage: Sym = SymmetricFunctions(QQ)
-        sage: from sage.combinat.sf.new_kschur import KBoundedSubspace, kHomogeneous
-        sage: KB = KBoundedSubspace(Sym,3,t=1)
-        sage: kH = kHomogeneous(KB)
+        sage: kH = Sym.khomogeneous(3)
         sage: kH[2]
         h3[2]
         sage: kH[2].lift()
@@ -631,10 +633,10 @@ class kHomogeneous(CombinatorialFreeModule):
         TESTS::
 
             sage: Sym = SymmetricFunctions(QQ)
-            sage: from sage.combinat.sf.new_kschur import KBoundedSubspace, kHomogeneous
-            sage: KB = KBoundedSubspace(Sym,3,t=1)
+            sage: from sage.combinat.sf.new_kschur import kHomogeneous
+            sage: KB = Sym.kBoundedSubspace(3,t=1)
             sage: kHomogeneous(KB)
-            3-bounded complete homogeneous symmetric functions
+            3-bounded Symmetric Functions over Rational Field with t=1 in the 3-bounded homogeneous basis
         """
         CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
             kBoundedRing.indices(),
@@ -672,10 +674,8 @@ class kHomogeneous(CombinatorialFreeModule):
         TESTS::
 
             sage: Sym = SymmetricFunctions(QQ)
-            sage: from sage.combinat.sf.new_kschur import KBoundedSubspace, kHomogeneous
-            sage: KB = KBoundedSubspace(Sym,3,t=1)
-            sage: kH = kHomogeneous(KB)
+            sage: kH = Sym.khomogeneous(3)
             sage: kH._repr_()
-            '3-bounded complete homogeneous symmetric functions'
+            '3-bounded Symmetric Functions over Rational Field with t=1 in the 3-bounded homogeneous basis'
         """
-        return '%s-bounded complete homogeneous symmetric functions'%self.k
+        return self.realization_of()._repr_()+' in the %s-bounded homogeneous basis'%(self.k)

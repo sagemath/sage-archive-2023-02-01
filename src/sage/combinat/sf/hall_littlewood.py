@@ -156,9 +156,9 @@ class HallLittlewood(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: HLP = Sym.hall_littlewood().P(); HLP
-            Hall-Littlewood polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood P basis
             sage: SP = Sym.hall_littlewood(t=-1).P(); SP
-            Hall-Littlewood polynomials in the P basis with t=-1 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood P with t=-1 basis
             sage: s = Sym.schur()
             sage: s(HLP([2,1]))
             (-t^2-t)*s[1, 1, 1] + s[2, 1]
@@ -320,9 +320,9 @@ class HallLittlewood(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: HLQ = Sym.hall_littlewood().Q(); HLQ
-            Hall-Littlewood polynomials in the Q basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood Q basis
             sage: SQ = SymmetricFunctions(QQ).hall_littlewood(t=-1).Q(); SQ
-            Hall-Littlewood polynomials in the Q basis with t=-1 over Rational Field
+            Symmetric Functions over Rational Field in the Hall-Littlewood Q with t=-1 basis
         """
         return HallLittlewood_q(self)
 
@@ -347,7 +347,7 @@ class HallLittlewood(UniqueRepresentation):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: HLQp = Sym.hall_littlewood().Qp(); HLQp
-            Hall-Littlewood polynomials in the Qp basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood Qp basis
         """
         return HallLittlewood_qp(self)
 
@@ -402,11 +402,11 @@ def HallLittlewoodP(R,t = None):
         sage: HallLittlewoodP(QQ)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=t).P()
         See http://trac.sagemath.org/5457 for details.
-        Hall-Littlewood polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood P basis
         sage: HallLittlewoodP(QQ,t=-1)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=-1).P()
         See http://trac.sagemath.org/5457 for details.
-        Hall-Littlewood polynomials in the P basis with t=-1 over Rational Field
+        Symmetric Functions over Rational Field in the Hall-Littlewood P with t=-1 basis
         sage: HLP = HallLittlewoodP(QQ)
         sage: s = HLP.realization_of().s()
         sage: s(HLP([2,1]))
@@ -493,11 +493,11 @@ def HallLittlewoodQ(R,t = None):
         sage: HallLittlewoodQ(QQ)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=t).Q()
         See http://trac.sagemath.org/5457 for details.
-        Hall-Littlewood polynomials in the Q basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood Q basis
         sage: HallLittlewoodQ(QQ,t=-1)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=-1).Q()
         See http://trac.sagemath.org/5457 for details.
-        Hall-Littlewood polynomials in the Q basis with t=-1 over Rational Field
+        Symmetric Functions over Rational Field in the Hall-Littlewood Q with t=-1 basis
     """
     (R, t) = NoneConvention(R, t)
     sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=%s).Q()"%(t))
@@ -518,11 +518,11 @@ def HallLittlewoodQp(R,t = None):
         sage: HallLittlewoodQp(QQ)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=t).Qp()
         See http://trac.sagemath.org/5457 for details.
-        Hall-Littlewood polynomials in the Qp basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood Qp basis
         sage: HallLittlewoodQp(QQ,t=-1)
         doctest:1: DeprecationWarning: Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=-1).Qp()
         See http://trac.sagemath.org/5457 for details.
-        Hall-Littlewood polynomials in the Qp basis with t=-1 over Rational Field
+        Symmetric Functions over Rational Field in the Hall-Littlewood Qp with t=-1 basis
     """
     (R, t) = NoneConvention(R, t)
     sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).hall_littlewood(t=%s).Qp()"%(t))
@@ -547,17 +547,19 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
         TESTS::
 
             sage: SymmetricFunctions(QQ['t'].fraction_field()).hall_littlewood().P()
-            Hall-Littlewood polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood P basis
             sage: SymmetricFunctions(QQ).hall_littlewood(t=2).P()
-            Hall-Littlewood polynomials in the P basis with t=2 over Rational Field
+            Symmetric Functions over Rational Field in the Hall-Littlewood P with t=2 basis
         """
-        self._name += hall_littlewood._name_suffix
+        s = self.__class__.__name__[15:].capitalize()
+        sfa.SymmetricFunctionAlgebra_generic.__init__(
+            self, hall_littlewood._sym,
+            basis_name = "Hall-Littlewood " + s + hall_littlewood._name_suffix,
+            prefix = "HL"+s)
         self.t = hall_littlewood.t
         self._sym = hall_littlewood._sym
         self._hall_littlewood = hall_littlewood
         self._s = self._sym.schur()
-
-        sfa.SymmetricFunctionAlgebra_generic.__init__(self, hall_littlewood._sym)
 
         # This coercion is broken: HLP = HallLittlewoodP(QQ); HLP(HLP._s[1])
 
@@ -886,12 +888,9 @@ class HallLittlewood_p(HallLittlewood_generic):
             sage: TestSuite(P).run(skip=['_test_associativity', '_test_distributivity', '_test_prod']) # products are too expensive
             sage: TestSuite(P).run(elements = [P.t*P[1,1]+P[2], P[1]+(1+P.t)*P[1,1]])
         """
-        self._name = "Hall-Littlewood polynomials in the P basis"
-        self._prefix = "HLP"
-
+        HallLittlewood_generic.__init__(self, hall_littlewood)
         self._self_to_s_cache = p_to_s_cache
         self._s_to_self_cache = s_to_p_cache
-        HallLittlewood_generic.__init__(self, hall_littlewood)
 
     def _q_to_p_normalization(self, m):
         r"""
@@ -1027,9 +1026,6 @@ class HallLittlewood_q(HallLittlewood_generic):
             sage: HLQ(p([2]))
             (1/(t^2-1))*HLQ[1, 1] + (1/(-t+1))*HLQ[2]
         """
-        self._name = "Hall-Littlewood polynomials in the Q basis"
-        self._prefix = "HLQ"
-
         HallLittlewood_generic.__init__(self, hall_littlewood)
 
         self._P = self._hall_littlewood.P()
@@ -1126,12 +1122,9 @@ class HallLittlewood_qp(HallLittlewood_generic):
             [      0       1 t^2 + t]
             [      0       0       1]
         """
-        self._name = "Hall-Littlewood polynomials in the Qp basis"
-        self._prefix = "HLQp"
-
+        HallLittlewood_generic.__init__(self, hall_littlewood)
         self._self_to_s_cache = qp_to_s_cache
         self._s_to_self_cache = s_to_qp_cache
-        HallLittlewood_generic.__init__(self, hall_littlewood)
 
     def _to_s(self, part):
         r"""

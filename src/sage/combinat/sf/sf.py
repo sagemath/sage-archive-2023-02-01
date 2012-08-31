@@ -81,13 +81,13 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: p = Sym.powersum()
         sage: p
-        Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
+        Symmetric Functions over Rational Field in the powersum basis
 
     ``p`` now represents the realization of the symmetric function algebra on
     the power sum basis.  The basis itself is accessible through::
 
         sage: p.basis()
-        Lazy family (Term map from Partitions to Symmetric Function Algebra over Rational Field, Power symmetric functions as basis(i))_{i in Partitions}
+        Lazy family (Term map from Partitions to Symmetric Functions over Rational Field in the powersum basis(i))_{i in Partitions}
         sage: p.basis().keys()
         Partitions
 
@@ -565,8 +565,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         Traceback (most recent call last):
         ...
         ValueError: s[2, 1, 1] is not in the image of Generic morphism:
-        From: 3-Schur functions with t=1
-        To:   Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+          From: 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1
+          To:   Symmetric Functions over Rational Field in the Schur basis
 
     .. rubric:: Implementing new bases
 
@@ -658,7 +658,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: Sym.a_realization()
-            Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+            Symmetric Functions over Rational Field in the Schur basis
         """
         return self.schur()
 
@@ -680,10 +680,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).schur()
-            Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+            Symmetric Functions over Rational Field in the Schur basis
         """
         return schur.SymmetricFunctionAlgebra_schur(self)
     s = schur
+    Schur = schur # Currently needed by SymmetricFunctions.__init_extra__
 
     def powersum(self):
         r"""
@@ -692,7 +693,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).powersum()
-            Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
+            Symmetric Functions over Rational Field in the powersum basis
         """
         return powersum.SymmetricFunctionAlgebra_power(self)
     p = powersum
@@ -705,7 +706,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).complete()
-            Symmetric Function Algebra over Rational Field, Homogeneous symmetric functions as basis
+            Symmetric Functions over Rational Field in the homogeneous basis
         """
         return homogeneous.SymmetricFunctionAlgebra_homogeneous(self)
     h = complete
@@ -718,7 +719,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).elementary()
-            Symmetric Function Algebra over Rational Field, Elementary symmetric functions as basis
+            Symmetric Functions over Rational Field in the elementary basis
         """
         return elementary.SymmetricFunctionAlgebra_elementary(self)
     e = elementary
@@ -730,7 +731,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).monomial()
-            Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis
+            Symmetric Functions over Rational Field in the monomial basis
         """
         return monomial.SymmetricFunctionAlgebra_monomial(self)
     m = monomial
@@ -743,12 +744,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).forgotten()
-            Symmetric Functions over Rational Field, Forgotten symmetric functions as basis
+            Symmetric Functions over Rational Field in the forgotten basis
         """
-        f = self.elementary().dual_basis(prefix='f')
-        f._name = f.symmetric_function_ring().__repr__()+", Forgotten symmetric functions as basis"
-        f._use_basis_name = True
-        return f
+        return self.elementary().dual_basis()
     f = forgotten
 
     def macdonald(self, q='q', t='t'):
@@ -769,11 +767,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
             sage: P = Sym.macdonald().P(); P
-            Macdonald polynomials in the P basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+            Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
             sage: P[2]
             McdP[2]
             sage: Q = Sym.macdonald().Q(); Q
-            Macdonald polynomials in the Q basis over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
+            Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Q basis
             sage: S = Sym.macdonald().S()
             sage: s = Sym.schur()
             sage: matrix([[S(la).scalar_qt(s(mu)) for la in Partitions(3)] for mu in Partitions(3)])
@@ -816,15 +814,15 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: P = Sym.hall_littlewood().P(); P
-            Hall-Littlewood polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood P basis
             sage: P[2]
             HLP[2]
             sage: Q = Sym.hall_littlewood().Q(); Q
-            Hall-Littlewood polynomials in the Q basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood Q basis
             sage: Q[2]
             HLQ[2]
             sage: Qp = Sym.hall_littlewood().Qp(); Qp
-            Hall-Littlewood polynomials in the Qp basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Hall-Littlewood Qp basis
             sage: Qp[2]
             HLQp[2]
         """
@@ -846,13 +844,13 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: JP = Sym.jack().P(); JP
-            Jack polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack P basis
             sage: JQ = Sym.jack().Q(); JQ
-            Jack polynomials in the Q basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack Q basis
             sage: JJ = Sym.jack().J(); JJ
-            Jack polynomials in the J basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack J basis
             sage: JQp = Sym.jack().Qp(); JQp
-            Jack polynomials in the Qp basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Jack Qp basis
         """
         return jack.Jack( self, t=t )
 
@@ -863,7 +861,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).zonal()
-            Zonal polynomials over Rational Field
+            Symmetric Functions over Rational Field in the zonal basis
         """
         return jack.SymmetricFunctionAlgebra_zonal( self )
 
@@ -881,13 +879,13 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: llt3 = SymmetricFunctions(QQ['t'].fraction_field()).llt(3); llt3
-            LLT polynomials at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            level 3 LLT polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
             sage: llt3.hspin()
-            LLT polynomials in the HSp basis at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT spin basis
             sage: llt3.hcospin()
-            LLT polynomials in the HCosp basis at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT cospin basis
             sage: llt3.hcospin()
-            LLT polynomials in the HCosp basis at level 3 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the level 3 LLT cospin basis
         """
         return llt.LLT_class( self, k, t=t )
 
@@ -962,11 +960,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: s[1] + e[2] * p[1,1] + 2*h[3] + m[2,1]
             s[1] - 2*s[1, 1, 1] + s[1, 1, 1, 1] + s[2, 1] + 2*s[2, 1, 1] + s[2, 2] + 2*s[3] + s[3, 1]
             sage: e
-            Symmetric Function Algebra over Integer Ring, Elementary symmetric functions as basis
+            Symmetric Functions over Integer Ring in the elementary basis
             sage: p
-            Symmetric Function Algebra over Integer Ring, Power symmetric functions as basis
+            Symmetric Functions over Integer Ring in the powersum basis
             sage: s
-            Symmetric Function Algebra over Integer Ring, Schur symmetric functions as basis
+            Symmetric Functions over Integer Ring in the Schur basis
 
             sage: e == S.e(), h == S.h(), m == S.m(), p == S.p(), s == S.s()
             (True, True, True, True, True)
@@ -976,14 +974,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: S = SymmetricFunctions(QQ)
             sage: S.inject_shorthands(['p', 's'])
             sage: p
-            Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
+            Symmetric Functions over Rational Field in the powersum basis
             sage: s
-            Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+            Symmetric Functions over Rational Field in the Schur basis
 
         Note that ``e`` is left unchanged::
 
             sage: e
-            Symmetric Function Algebra over Integer Ring, Elementary symmetric functions as basis
+            Symmetric Functions over Integer Ring in the elementary basis
         """
         from sage.misc.misc import inject_variable
         for shorthand in shorthands:
@@ -1000,8 +998,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: s = Sym.s(); p = Sym.p()
             sage: s.coerce_map_from(p)
             Generic morphism:
-              From: Symmetric Function Algebra over Rational Field, Power symmetric functions as basis
-              To:   Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
+              From: Symmetric Functions over Rational Field in the powersum basis
+              To:   Symmetric Functions over Rational Field in the Schur basis
         """
         powersum   = self.powersum  ()
         complete   = self.complete  ()
@@ -1044,7 +1042,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: KB = Sym.kBoundedSubspace(3,1); KB
-            3-bounded Symmetric Functions over Rational Field
+            3-bounded Symmetric Functions over Rational Field with t=1
 
             sage: Sym = SymmetricFunctions(QQ['t'])
             sage: Sym.kBoundedSubspace(3)
@@ -1053,7 +1051,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: Sym = SymmetricFunctions(QQ['z'])
             sage: z = Sym.base_ring().gens()[0]
             sage: Sym.kBoundedSubspace(3,t=z)
-            3-bounded Symmetric Functions over Univariate Polynomial Ring in z over Rational Field
+            3-bounded Symmetric Functions over Univariate Polynomial Ring in z over Rational Field with t=z
         """
         from sage.combinat.sf.new_kschur import KBoundedSubspace
         return KBoundedSubspace(self, k, t=t)

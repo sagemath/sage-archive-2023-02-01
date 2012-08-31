@@ -24,7 +24,7 @@ from sage.combinat.dict_addition import dict_linear_combination
 import sfa, classical
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
-    def __init__(self, dual_basis, scalar, scalar_name="", prefix=None):
+    def __init__(self, dual_basis, scalar, scalar_name="", basis_name=None, prefix=None):
         """
         Generic dual base of a basis of symmetric functions.
 
@@ -42,10 +42,8 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         EXAMPLES::
 
             sage: e = SymmetricFunctions(QQ).e()
-            sage: f = e.dual_basis(prefix = "m")
-            sage: f._name = "Forgotten symmetric functions"
-            sage: f._use_basis_name = True; f
-            Forgotten symmetric functions
+            sage: f = e.dual_basis(prefix = "m", basis_name="Forgotten symmetric functions"); f
+            Symmetric Functions over Rational Field in the Forgotten symmetric functions basis
             sage: TestSuite(f).run(elements = [f[1,1]+2*f[2], f[1]+3*f[1,1]])
             sage: TestSuite(f).run() # long time (11s on sage.math, 2011)
 
@@ -95,7 +93,6 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         self._dual_basis = dual_basis
         self._scalar = scalar
         self._scalar_name = scalar_name
-        self._use_basis_name = False
 
         #Set up the cache
         self._to_self_cache = {}
@@ -113,7 +110,9 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         if prefix is None:
             prefix = 'd_'+dual_basis.prefix()
 
-        classical.SymmetricFunctionAlgebra_classical.__init__(self, self._sym, "dual_"+dual_basis.basis_name(), prefix)
+        classical.SymmetricFunctionAlgebra_classical.__init__(self, self._sym,
+                                                              basis_name = basis_name,
+                                                              prefix = prefix)
 
         # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
         category = sage.categories.all.ModulesWithBasis(self.base_ring())
@@ -193,26 +192,17 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         """
         return x.dual()
 
-
-    def dual_basis(self, scalar=None, scalar_name="", prefix=None):
+    def _dual_basis_default(self):
         """
-        Return the dual basis to ``self``.
+        Returns the default value for ``self.dual_basis()``
 
-        INPUT:
+        This returns the basis ``self`` has been built from by
+        duality.
 
-        - ``self`` -- a dual basis of the symmetric functions
-        - ``scalar`` -- optional input which should specify a function `zee` on partitions which determines the
-          scalar product on the power sum basis with normalization `<p_\mu, p_\mu> = zee(\mu)`.
-          If the scalar option is not passed, then it returns the dual basis with respect to
-          the scalar product used to define ``self``.
-        - ``scalar_name`` -- specifies the name of the scalar function (optional)
-        - ``prefix`` -- optional input, specifies the prefix to be used to display the basis.
+        .. WARNING::
 
-        OUTPUT:
-
-        - returns the dual basis to ``self`` with respect to the scalar product
-          ``scalar``.  If ``scalar`` is not specified, then the dual basis with respect
-          the scalar product used to define ``self`` is returned.
+            This is not necessarily the dual basis for the standard
+            (Hall) scalar product!
 
         EXAMPLES::
 
@@ -220,19 +210,21 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(scalar=zee)
             sage: h.dual_basis()
-            Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis
+            Symmetric Functions over Rational Field in the monomial basis
             sage: m2 = h.dual_basis(zee, prefix='m2')
             sage: m([2])^2
             2*m[2, 2] + m[4]
             sage: m2([2])^2
             2*m2[2, 2] + m2[4]
-        """
-        if scalar is None:
-            return self._dual_basis
-        else:
-            return SymmetricFunctionAlgebra_dual(self, scalar, scalar_name, prefix)
 
-    def __repr__(self):
+        TESTS::
+
+            sage: h.dual_basis() is h._dual_basis_default()
+            True
+        """
+        return self._dual_basis
+
+    def _repr_(self):
         """
         Representation of ``self``.
 
@@ -249,12 +241,12 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             sage: m = SymmetricFunctions(QQ).monomial()
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(scalar=zee); h #indirect doctests
-            Dual basis to Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis
+            Dual basis to Symmetric Functions over Rational Field in the monomial basis
             sage: h = m.dual_basis(scalar=zee, scalar_name='Hall scalar product'); h #indirect doctest
-            Dual basis to Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis with respect to the Hall scalar product
+            Dual basis to Symmetric Functions over Rational Field in the monomial basis with respect to the Hall scalar product
         """
-        if self._use_basis_name:
-            return self._name
+        if hasattr(self, "_basis"):
+            return super(SymmetricFunctionAlgebra_dual, self)._repr_()
         if self._scalar_name:
             return "Dual basis to %s"%self._dual_basis + " with respect to the " + self._scalar_name
         else:
@@ -555,7 +547,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
                 sage: h = m.dual_basis(scalar=zee)
                 sage: a = h([2,1])
                 sage: a.parent()
-                Dual basis to Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis
+                Dual basis to Symmetric Functions over Rational Field in the monomial basis
                 sage: a.dual()
                 3*m[1, 1, 1] + 2*m[2, 1] + m[3]
             """

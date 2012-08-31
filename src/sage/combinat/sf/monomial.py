@@ -44,25 +44,13 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         """
         classical.SymmetricFunctionAlgebra_classical.__init__(self, Sym, "monomial", 'm')
 
-    def dual_basis(self, scalar = None, scalar_name="",  prefix=None):
+    def _dual_basis_default(self):
         """
-        Returns the dual basis to ``self``.
+        Returns the default dual basis to ``self`` when no scalar product is specified
 
-        INPUT:
-
-        - ``self`` -- a monomial symmetric function basis
-        - ``scalar`` -- optional input which specifies a function ``zee`` on partitions. The function
-          ``zee`` determines the scalar product on the power sum basis
-          with normalization `<p_\mu, p_\mu> = zee(mu)`.
-          (default: uses standard ``zee`` function)
-        - ``scalar_name`` -- specifies the name of the scalar function (optional)
-        - ``prefix`` -- optional input, specifies the prefix to be used to display the basis.
-
-        OUTPUT:
-
-        - This method returns the dual basis of the monomial basis with respect to the
-          standard scalar product, which is the homogeneous basis. If ``zee`` is specified,
-          the modified scalar product is used.
+        This method returns the dual basis of the monomial basis with
+        respect to the standard scalar product, which is the
+        homogeneous basis.
 
         EXAMPLES::
 
@@ -71,6 +59,10 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: m.dual_basis() == h
             True
 
+        TESTS::
+
+            sage: m._dual_basis_default() is m.dual_basis()
+            True
             sage: zee = lambda x : x.centralizer_size()
             sage: dm = m.dual_basis(zee)
             sage: dm[3,1].scalar(m[2,1,1])
@@ -78,10 +70,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: m[2,1,1].scalar(dm[3,1])
             0
         """
-        if scalar is None:
-            return sage.combinat.sf.sf.SymmetricFunctions(self.base_ring()).h()
-        else:
-            return dual.SymmetricFunctionAlgebra_dual(self, scalar, scalar_name, prefix)
+        return self.realization_of().h()
 
     def _multiply(self, left, right):
         """

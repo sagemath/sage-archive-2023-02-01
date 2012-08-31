@@ -13,25 +13,58 @@ from sage.rings.all import is_MPolynomial
 
 from quartic_generic import QuarticCurve_generic
 
-#from sage.rings.all import is_FiniteField, is_RationalField
+def QuarticCurve(F, PP=None, check=False):
+    """
+    Returns the quartic curve defined by the polynomial F.
 
-def QuarticCurve(F,PP=None,check=False):
+    INPUT:
+
+    - F -- a polynomial in three variables, homogeneous of degree 4
+
+    - PP -- a projective plane (default:None)
+
+    - check -- whether to check for smoothness or not (default:False)
+
+    EXAMPLES::
+
+        sage: x,y,z=PolynomialRing(QQ,['x','y','z']).gens()
+        sage: QuarticCurve(x**4+y**4+z**4)
+        Quartic Curve over Rational Field defined by x^4 + y^4 + z^4
+
+    TESTS::
+
+        sage: QuarticCurve(x**3+y**3)
+        Traceback (most recent call last):
+        ...
+        ValueError: Argument F (=x^3 + y^3) must be a homogeneous polynomial of degree 4
+
+        sage: QuarticCurve(x**4+y**4+z**3)
+        Traceback (most recent call last):
+        ...
+        ValueError: Argument F (=x^4 + y^4 + z^3) must be a homogeneous polynomial of degree 4
+
+        sage: x,y=PolynomialRing(QQ,['x','y']).gens()
+        sage: QuarticCurve(x**4+y**4)
+        Traceback (most recent call last):
+        ...
+        ValueError: Argument F (=x^4 + y^4) must be a polynomial in 3 variables
+
     """
-    Returns the quartic curve defined by F.
-    """
+    if not is_MPolynomial(F):
+        raise ValueError, "Argument F (=%s) must be a multivariate polynomial"%F
+    P = F.parent()
+    if not P.ngens() == 3:
+        raise ValueError, "Argument F (=%s) must be a polynomial in 3 variables"%F
+    if not(F.is_homogeneous() and F.degree()==4):
+        raise ValueError, "Argument F (=%s) must be a homogeneous polynomial of degree 4"%F
+
     if not PP is None:
         if not is_ProjectiveSpace(PP) and PP.dimension == 2:
-            raise TypeError, "Argument PP (=%s) must be a projective plane"%PP
-    elif not is_MPolynomial(F):
-        raise TypeError, \
-              "Argument F (=%s) must be a homogeneous multivariate polynomial"%F
+            raise ValueError, "Argument PP (=%s) must be a projective plane"%PP
     else:
-        if not F.is_homogeneous():
-            "Argument F (=%s) must be a homogeneous polynomial"%F
-        P = F.parent()
-        if P.ngens() != 3:
-            "Argument F (=%s) must be a homogeneous multivariate polynomial in 3 variables"%F
         PP = ProjectiveSpace(P)
+
     if check:
-        raise TypeError, "Argument checking (for nonsingularity) is not implemented."
+        raise NotImplementedError, "Argument checking (for nonsingularity) is not implemented."
+
     return QuarticCurve_generic(PP, F)

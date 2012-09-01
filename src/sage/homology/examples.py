@@ -500,7 +500,7 @@ class SimplicialComplexExamples():
             [1, 16, 120, 330, 375, 150]
             sage: P4.homology() # long time
             {0: 0, 1: C2, 2: 0, 3: C2, 4: 0}
-            sage: P5 = simplicial_complexes.RealProjectiveSpace(5) # long time (40s on sage.math, 2011)
+            sage: P5 = simplicial_complexes.RealProjectiveSpace(5)  # long time (44s on sage.math, 2012)
             sage: P5.f_vector()  # long time
             [1, 63, 903, 4200, 8400, 7560, 2520]
 
@@ -714,7 +714,7 @@ class SimplicialComplexExamples():
             {0: 0, 1: C3, 2: Z^20}
             sage: H[2].ngens()
             20
-            sage: simplicial_complexes.MatchingComplex(8).homology(2)  # long time (a few seconds)
+            sage: simplicial_complexes.MatchingComplex(8).homology(2)  # long time (6s on sage.math, 2012)
             Z^132
 
         REFERENCES:

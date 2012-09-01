@@ -1627,7 +1627,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             4
             sage: EllipticCurve([0, 0, 1, -79, 342]).rank(proof=False)
             5
-            sage: EllipticCurve([0, 0, 1, -79, 342]).simon_two_descent()[0]
+            sage: EllipticCurve([0, 0, 1, -79, 342]).simon_two_descent()[0]  # long time (7s on sage.math, 2012)
             5
 
         Examples with denominators in defining equations::

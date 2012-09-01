@@ -3351,7 +3351,7 @@ def test_consistency(max_n=2, **kwargs):
     has a more reasonable memory usage. ::
 
         sage: from sage.crypto.mq.sr import test_consistency
-        sage: test_consistency(1)  # long time (71s on sage.math, 2012)
+        sage: test_consistency(1)  # long time (65s on sage.math, 2012)
         True
     """
     consistent = True

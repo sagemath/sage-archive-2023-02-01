@@ -396,7 +396,7 @@ class Posets(object):
             sage: Posets.SSTPoset([2,1],2).cover_relations()
             [[[[1, 1], [2]], [[1, 2], [2]]]]
 
-            sage: Posets.SSTPoset([3,2]).bottom()
+            sage: Posets.SSTPoset([3,2]).bottom()  # long time (6s on sage.math, 2012)
             [[1, 1, 1], [2, 2]]
 
             sage: Posets.SSTPoset([3,2],4).maximal_elements()

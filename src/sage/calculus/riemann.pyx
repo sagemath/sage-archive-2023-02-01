@@ -807,7 +807,7 @@ cdef class Riemann_Map:
 
         High resolution plot::
 
-            sage: m.plot_colored(plot_points=1000)  # long time (30s on sage.math, 2011)
+            sage: m.plot_colored(plot_points=1000)  # long time (29s on sage.math, 2012)
 
         To generate the unit circle map, it's helpful to see what the
         colors correspond to::

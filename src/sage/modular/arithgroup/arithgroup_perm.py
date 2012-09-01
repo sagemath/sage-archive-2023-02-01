@@ -1331,7 +1331,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             Congruence subgroup of SL(2,Z) of level 3, preimage of:
              Matrix group over Ring of integers modulo 3 with 2 generators:
               [[[1, 2], [0, 1]], [[1, 1], [0, 1]]]
-            sage: sage.modular.arithgroup.arithgroup_perm.HsuExample10().congruence_closure() # long time (40 sec)
+            sage: sage.modular.arithgroup.arithgroup_perm.HsuExample10().congruence_closure()  # long time (11s on sage.math, 2012)
             Modular Group SL(2,Z)
         """
         if self.is_even():
@@ -2517,7 +2517,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
 
         Subgroups of large index may take a very long time::
 
-            sage: len(GammaH(11,[-1]).as_permutation_group().odd_subgroups()) # long time (15s)
+            sage: len(GammaH(11,[-1]).as_permutation_group().odd_subgroups())  # long time (up to 51s on sage.math, 2012)
             2048
         """
         if self.nu2() != 0:

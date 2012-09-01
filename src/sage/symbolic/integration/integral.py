@@ -651,7 +651,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     the previous (wrong) answer of zero. See :trac:`10914`::
 
         sage: f = abs(sin(x))
-        sage: integrate(f, x, 0, 2*pi)
+        sage: integrate(f, x, 0, 2*pi)  # long time (4s on sage.math, 2012)
         integrate(abs(sin(x)), x, 0, 2*pi)
 
     Another incorrect integral fixed upstream in Maxima, from

@@ -344,14 +344,14 @@ taken to be the sum of the number of times each vertex fires.
     sage: S = grid_sandpile(10,10)
     sage: m = S.max_stable()
     sage: a = []
-    sage: for i in range(10000):
+    sage: for i in range(10000):  # long time (15s on sage.math, 2012)
     ...       m = m.add_random()
     ...       m, f = m.stabilize(true)
     ...       a.append(sum(f.values()))
     ...
-    sage: p = list_plot([[log(i+1),log(a.count(i))] for i in [0..max(a)] if a.count(i)])
-    sage: p.axes_labels(['log(N)','log(D(N))'])
-    sage: p
+    sage: p = list_plot([[log(i+1),log(a.count(i))] for i in [0..max(a)] if a.count(i)])  # long time
+    sage: p.axes_labels(['log(N)','log(D(N))'])  # long time
+    sage: p  # long time
 
 .. figure:: media/sandpile/btw.png
    :align: center

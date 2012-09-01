@@ -793,7 +793,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     Comparison with Different values of the integrality parameter::
 
         sage: from sage.graphs.graph_decompositions import vertex_separation
-        sage: for i in range(10):
+        sage: for i in range(10):  # long time (11s on sage.math, 2012)
         ...       G = digraphs.RandomDirectedGNP(10, 0.2)
         ...       va, la = vertex_separation.vertex_separation_MILP(G, integrality = False)
         ...       vb, lb = vertex_separation.vertex_separation_MILP(G, integrality = True)

@@ -279,9 +279,9 @@ Although computationally less efficient, we can do the same
 computations with the rational Chow group::
 
     sage: AA = P4_11133.Chow_group(QQ)
-    sage: map(AA, P4_11133.fan(1))
+    sage: map(AA, P4_11133.fan(1))  # long time (5s on sage.math, 2012)
     [( 0 | 0 | 0 | 3 | 0 ), ( 0 | 0 | 0 | 3 | 0 ), ( 0 | 0 | 0 | 1 | 0 ), ( 0 | 0 | 0 | 1 | 0 ), ( 0 | 0 | 0 | 1 | 0 )]
-    sage: map(AA, P4_11133.fan(4))
+    sage: map(AA, P4_11133.fan(4))  # long time (5s on sage.math, 2012)
     [( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 )]
     sage: AA(cone).intersection_with_divisor(D)
     ( 1 | 0 | 0 | 0 | 0 )

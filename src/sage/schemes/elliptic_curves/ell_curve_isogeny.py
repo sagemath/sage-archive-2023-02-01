@@ -2236,7 +2236,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: f = (E.isogenies_prime_degree()[0]).kernel_polynomial()
             sage: f.degree()
             81
-            sage: E.isogeny(kernel=f) # long time (21s)
+            sage: E.isogeny(kernel=f)  # long time (25s on sage.math, 2012)
             Isogeny of degree 163 from Elliptic Curve defined by y^2 + y = x^3 - 2174420*x + 1234136692 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - 57772164980*x - 5344733777551611 over Rational Field
 
         """

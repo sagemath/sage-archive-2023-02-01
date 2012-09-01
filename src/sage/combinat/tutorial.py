@@ -661,7 +661,7 @@ calculate its cardinality (`2^{2^{2^4}}`)::
 
     sage: E = Set([1,2,3,4])
     sage: S = Subsets(Subsets(Subsets(E)))
-    sage: n = S.cardinality(); n              # long time (10s, 2012)
+    sage: n = S.cardinality(); n              # long time (10s on sage.math, 2012)
     2003529930406846464979072351560255750447825475569751419265016973...
 
 which is roughly `2\cdot 10^{19728}`::

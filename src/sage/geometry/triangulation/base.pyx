@@ -937,10 +937,10 @@ cdef class ConnectedTriangulationsIterator(SageObject):
             sage: p = PointConfiguration([[0,4],[2,3],[3,2],[4,0],[3,-2],[2,-3],[0,-4],[-2,-3],[-3,-2],[-4,0],[-3,2],[-2,3]])
             sage: from sage.geometry.triangulation.base import ConnectedTriangulationsIterator
             sage: ci = ConnectedTriangulationsIterator(p)
-            sage: len(list(ci))    # long time (23s on sage.math, 2011)
+            sage: len(list(ci))  # long time (26s on sage.math, 2012)
             16796
             sage: ci = ConnectedTriangulationsIterator(p, star=3)
-            sage: len(list(ci))    # long time (23s on sage.math, 2011)
+            sage: len(list(ci))  # long time (26s on sage.math, 2012)
             1
         """
         if star==None:

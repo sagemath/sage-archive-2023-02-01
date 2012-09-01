@@ -768,7 +768,7 @@ class GraphClasses(UniqueRepresentation):
 
         EXAMPLE::
 
-            sage: classes, inclusions = graph_classes._get_ISGCI()
+            sage: classes, inclusions = graph_classes._get_ISGCI()  # long time (4s on sage.math, 2012)
         """
 
         import os.path

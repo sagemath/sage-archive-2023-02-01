@@ -129,7 +129,7 @@ class OptimalSolver:
         EXAMPLES:
             sage: from sage.interfaces.rubik import *
             sage: solver = DikSolver()
-            sage: solver = OptimalSolver() # long time
+            sage: solver = OptimalSolver()  # long time (28s on sage.math, 2012)
             Initializing tables...
             Done.
             sage: C = RubiksCube("R U")

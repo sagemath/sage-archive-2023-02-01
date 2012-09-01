@@ -1569,21 +1569,21 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [ 1  0 -1]
             [ 0  1  2]
 
-        A case that checks the bug in trac #3500. ::
+        A case that checks the bug in :trac:`3500`::
 
             sage: cf4 = CyclotomicField(4) ; z4 = cf4.0
             sage: A = Matrix(cf4, 1, 2, [-z4, 1])
             sage: A.echelon_form()
             [    1 zeta4]
 
-        Verify that matrix on Trac #10281 works::
+        Verify that the matrix on :trac:`10281` works::
 
             sage: K.<rho> = CyclotomicField(106)
            sage: coeffs = [(18603/107*rho^51 - 11583/107*rho^50 - 19907/107*rho^49 - 13588/107*rho^48 - 8722/107*rho^47 + 2857/107*rho^46 - 19279/107*rho^45 - 16666/107*rho^44 - 11327/107*rho^43 + 3802/107*rho^42 + 18998/107*rho^41 - 10798/107*rho^40 + 16210/107*rho^39 - 13768/107*rho^38 + 15063/107*rho^37 - 14433/107*rho^36 - 19434/107*rho^35 - 12606/107*rho^34 + 3786/107*rho^33 - 17996/107*rho^32 + 12341/107*rho^31 - 15656/107*rho^30 - 19092/107*rho^29 + 8382/107*rho^28 - 18147/107*rho^27 + 14024/107*rho^26 + 18751/107*rho^25 - 8301/107*rho^24 - 20112/107*rho^23 - 14483/107*rho^22 + 4715/107*rho^21 + 20065/107*rho^20 + 15293/107*rho^19 + 10072/107*rho^18 + 4775/107*rho^17 - 953/107*rho^16 - 19782/107*rho^15 - 16020/107*rho^14 + 5633/107*rho^13 - 17618/107*rho^12 - 18187/107*rho^11 + 7492/107*rho^10 + 19165/107*rho^9 - 9988/107*rho^8 - 20042/107*rho^7 + 10109/107*rho^6 - 17677/107*rho^5 - 17723/107*rho^4 - 12489/107*rho^3 - 6321/107*rho^2 - 4082/107*rho - 1378/107, 1, 4*rho + 1), (0, 1, rho + 4)]
             sage: m = matrix(2, coeffs)
             sage: a = m.echelon_form(algorithm='classical')
-            sage: b = m.echelon_form(algorithm='multimodular')        # long: about 5-10 seconds
-            sage: a == b                                              # long: depends on above
+            sage: b = m.echelon_form(algorithm='multimodular')  # long time (5s on sage.math, 2012)
+            sage: a == b  # long time (depends on previous)
             True
         """
         key = 'echelon_form-%s'%algorithm

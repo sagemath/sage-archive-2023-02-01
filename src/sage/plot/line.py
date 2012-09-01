@@ -128,7 +128,7 @@ class Line(GraphicPrimitive_xydata):
 
             sage: E = EllipticCurve('37a').plot(thickness=5).plot3d()
             sage: F = EllipticCurve('37a').plot(thickness=5).plot3d(z=2)
-            sage: E + F
+            sage: E + F  # long time (5s on sage.math, 2012)
         """
         from sage.plot.plot3d.shapes2 import line3d
         options = self._plot3d_options()

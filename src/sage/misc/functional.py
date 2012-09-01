@@ -1365,7 +1365,7 @@ def numerical_approx(x, prec=None, digits=None):
 
         sage: len(str(n(golden_ratio, digits=5000)))
         5001
-        sage: len(str(n(golden_ratio, digits=5000000)))
+        sage: len(str(n(golden_ratio, digits=5000000)))  # long time (4s on sage.math, 2012)
         5000001
 
     """

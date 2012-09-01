@@ -102,13 +102,10 @@ cdef class PolynomialRealDense(Polynomial):
         elif isinstance(x, pari_gen):
             x = [self._base_ring(w) for w in x.list()]
         elif not isinstance(x, list):
-            sig_on()
             try:
                 x = list(x)
             except TypeError:  # x is not iterable
                 x = [self._base_ring(x)]
-            finally:
-                sig_off()
 
         sig_on()
         degree = len(x) - 1

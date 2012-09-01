@@ -40,13 +40,13 @@ modular forms of level 3 and weight 1000::
 The characteristic series of the U_7 operator modulo 7^5 on the space of 7-adic overconvergent
 modular forms of level 5 and weight 1000. Here the optional parameter ``modformsring`` is set to true::
 
-    sage: hecke_series(7,5,1000,5,modformsring = True)
+    sage: hecke_series(7,5,1000,5,modformsring = True)  # long time (21s on sage.math, 2012)
     12005*x^7 + 10633*x^6 + 6321*x^5 + 6216*x^4 + 5412*x^3 + 4927*x^2 + 4906*x + 1
 
 The characteristic series of the U_13 operator modulo 13^5 on the space of 13-adic overconvergent
 modular forms of level 2 and weight 10000. Here the optional parameter ``weightbound`` is set to 4::
 
-    sage: hecke_series(13,2,10000,5,weightbound = 4)
+    sage: hecke_series(13,2,10000,5,weightbound = 4)  # long time (17s on sage.math, 2012)
     325156*x^5 + 109681*x^4 + 188617*x^3 + 220858*x^2 + 269566*x + 1
 
 A list containing the characteristic series of the U_23 operator modulo 23^10 on the spaces of

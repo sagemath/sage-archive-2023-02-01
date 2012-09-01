@@ -24,8 +24,10 @@ https://github.com/robertwb/sage-patchbot/
 
 == Changelog ==
 
-Provide a changelog of the spkg here, where the entries have this format:
+=== Sage Patchbot 1.1 (Robert Bradshaw, August 2012) ===
 
-=== Sage Patchbot 1.0 ===
+ * Robustness, server, and plugin improvements.  See Sage trac #13410.
+
+=== Sage Patchbot 1.0 (Robert Bradshaw, August 2012) ===
 
  * Initial release.  See Sage trac #12486.

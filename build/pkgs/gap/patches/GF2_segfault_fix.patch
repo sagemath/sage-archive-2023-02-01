@@ -1,0 +1,16 @@
+Hallo Volker,
+vielen Dank für das Beispiel. Das Problem wurde von Steve Linton
+behoben, der Fix wird in GAP 4.5.6 enthalten sein.
+
+diff -ur old/src/vecgf2.c src/src/vecgf2.c
+--- old/src/vecgf2.c	2012-07-16 18:27:25.000000000 +0100
++++ src/src/vecgf2.c	2012-09-02 10:32:29.535094828 +0100
+@@ -3573,7 +3573,7 @@
+ 	bd=di;
+ 	bv = BLOCKS_GF2VEC(obv);
+ 	end = bv+((len+BIPEB-1)/BIPEB);
+-	while (bv<=end) 
++	while (bv<end) 
+ 	  *bv++=*sum++;
+ 	sum = BLOCKS_GF2VEC(osum);
+ 	if (coords != (Obj) 0)

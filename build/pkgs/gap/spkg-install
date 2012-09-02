@@ -62,16 +62,19 @@ if [ "$SAGE_DEBUG" == "yes" ] ; then
     export CFLAGS="-O0 -g3 -DDEBUG_MASTERPOINTERS -DDEBUG_GLOBAL_BAGS -DDEBUG_FUNCTIONS_BAGS"
 fi
 
-# Apply patches:
-echo "Copying over patched GAP files..."
-cd "$SPKG_ROOT"
-cp patches/gap.shi src/
-cp patches/testinstall.g src/tst/
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error copying over patched GAP files."
-    exit 1
-fi
+# Apply fixes to upstream source
+echo "Applying patches..."
+cd "$SPKG_ROOT/src"
+ls ../patches/*.patch &>/dev/null && \
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+       echo >&2 "Error applying '$patch'"
+       exit 1
+    fi
+done
 
+# Configure
 echo "Configuring GAP..."
 cd "$SPKG_ROOT/src"
 ./configure \
@@ -125,6 +128,7 @@ fi
 
 echo "Installing (copying) files..."
 # gap has no notion of installing itself (similar to sage), copy everything
+# See http://trac.sagemath.org/13211 for rationale of the filesystem layout
 mkdir -p "$INSTALL_DIR" &&
 cp -r "$SPKG_ROOT/src"/* "$INSTALL_DIR"
 if [[ $? -ne 0 ]]; then
@@ -150,7 +154,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
-    # The (pre-built) HTML documentation is currently (GAP 4.4.12.p7)
+    # The (pre-built) HTML documentation is currently (GAP 4.5.5)
     # included, so we don't have to /build/ it here.
     # echo "Now building GAP's documentation..."
     # <COMMAND TO BUILD THE [HTML] DOCUMENTATION>

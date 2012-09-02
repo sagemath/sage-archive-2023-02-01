@@ -79,6 +79,8 @@ Stuff that isn't GAP sources:
 
 === gap-4.5.5 (Volker Braun, 26 August 2012) ===
  * Update to latest upstream version
+ * New (saner) filesystem layout, everything goes to
+   "$SAGE_LOCAL/gap/gap-x.y.z" with a "latest" symlink.
  * Added spkg-check
 
 === gap-4.4.12.p8 (Jean-Pierre Flori, Leif Leonhardy, 5 August 2012) ===

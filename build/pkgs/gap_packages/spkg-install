@@ -25,7 +25,7 @@ cd src/
 
 # HAPprime should be added in the future?
 for p in \
-    braid-1.1 crime ctbllib design factint grape \
+    braid-1.2 crime ctbllib design factint grape \
     guava-3.12 Hap1.10 HAPcryst laguna polymaking \
     sonata toric1.8
 do

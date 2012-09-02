@@ -26,6 +26,7 @@ http://www.gap-system.org/Packages/packages.html
 
 === gap-4.5.5 (Volker Braun, 26 August 2012) ===
  * Update to latest upstream version
+ * Forked braid-1.2 to fix a function name clash
 
 === gap_packages-4.4.12.p1 (Jeroen Demeyer, 27 March 2012) ===
  * Trac #12758: do not use "newest_version" in spkg-install.  This is

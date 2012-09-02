@@ -106,7 +106,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         sage: F[2]*M[3]
         F[1, 1, 1, 2] - F[1, 2, 2] + F[2, 1, 1, 1] - F[2, 1, 2] - F[2, 2, 1] + F[5]
 
-    There is a coproduct on this ring as well, which on the Monomial basis acts by
+    There is a coproduct on this ring as well, which in the Monomial basis acts by
     cutting the composition into a left half and a right half.  The
     co-product is non-co-commutative.
     ::
@@ -128,7 +128,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     ::
 
         sage: S = M.dual(); S
-        Non-Commutative Symmetric Functions over the Rational Field on the Complete basis
+        Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
         sage: M[1,3,1].duality_pairing( S[1,3,1] )
         1
         sage: M.duality_pairing_matrix( S, degree=4 )
@@ -274,9 +274,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: The antipode
 
-    The antipode on the fundamental bases sends an element of the Fundamental basis indexed
-    by the composition `I` to `-1` to the size of `I` times the Fundamental
-    basis indexed by the conjugate composition to `I`.
+    The antipode sends the Fundamental basis element indexed by the
+    composition `I` to `-1` to the size of `I` times the Fundamental
+    basis element indexed by the conjugate composition to `I`.
     ::
 
         sage: F[3,2,2].antipode()
@@ -364,7 +364,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         sage: F(Ht[2,1])
         Traceback (most recent call last):
         ...
-        TypeError: do not know how to make x (= McdHt[2, 1]) an element of self (=Quasisymmetric functions over the Rational Field on the Fundamental basis)
+        TypeError: do not know how to make x (= McdHt[2, 1]) an element of self (=Quasisymmetric functions over the Rational Field in the Fundamental basis)
 
     .. rubric:: The map to the ring of polynomials
 
@@ -419,7 +419,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         Monomial   .module_morphism(Fundamental.alternating_sum_of_finer_compositions,
                                     codomain=Fundamental, category=category
                                     ).register_as_coercion()
-        # Embedding of Sym into QSym on the monomial bases
+        # Embedding of Sym into QSym in the monomial bases
         Sym = SymmetricFunctions(self.base_ring())
         Sym_m_to_M = Sym.m().module_morphism(Monomial.sum_of_partition_rearrangements,
                                            triangular='upper', inverse_on_support=Monomial._comp_to_par,
@@ -433,7 +433,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: M = QuasiSymmetricFunctions(ZZ).M()
             sage: M._repr_()
-            'Quasisymmetric functions over the Integer Ring on the Monomial basis'
+            'Quasisymmetric functions over the Integer Ring in the Monomial basis'
         """
         return "Quasisymmetric functions over the %s"%self.base_ring()
 
@@ -448,7 +448,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: QuasiSymmetricFunctions(QQ).a_realization()
-            Quasisymmetric functions over the Rational Field on the Monomial basis
+            Quasisymmetric functions over the Rational Field in the Monomial basis
         """
         return self.Monomial()
 
@@ -740,7 +740,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     class Monomial(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of quasi-symmetric function on the Monomial basis.
+        The Hopf algebra of quasi-symmetric function in the Monomial basis.
 
         EXAMPLES::
 
@@ -760,7 +760,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         The following is an alias for this basis::
 
             sage: QSym.Monomial()
-            Quasisymmetric functions over the Rational Field on the Monomial basis
+            Quasisymmetric functions over the Rational Field in the Monomial basis
 
         TESTS::
 
@@ -776,7 +776,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: M = QuasiSymmetricFunctions(QQ).Monomial(); M
-                Quasisymmetric functions over the Rational Field on the Monomial basis
+                Quasisymmetric functions over the Rational Field in the Monomial basis
                 sage: TestSuite(M).run()
             """
             CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
@@ -796,7 +796,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: M = QuasiSymmetricFunctions(QQ).M()
                 sage: M.dual()
-                Non-Commutative Symmetric Functions over the Rational Field on the Complete basis
+                Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
             """
             return self.realization_of().dual().Complete()
 
@@ -1027,7 +1027,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     class Fundamental(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of quasi-symmetric function on the Fundamental basis.
+        The Hopf algebra of quasi-symmetric function in the Fundamental basis.
 
         EXAMPLES::
 
@@ -1047,7 +1047,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         The following is an alias for this basis::
 
             sage: QSym.Fundamental()
-            Quasisymmetric functions over the Rational Field on the Fundamental basis
+            Quasisymmetric functions over the Rational Field in the Fundamental basis
 
         TESTS::
 
@@ -1065,7 +1065,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: F = QuasiSymmetricFunctions(QQ).Fundamental(); F
-                Quasisymmetric functions over the Rational Field on the Fundamental basis
+                Quasisymmetric functions over the Rational Field in the Fundamental basis
                 sage: TestSuite(F).run()
             """
             CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
@@ -1085,7 +1085,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: F = QuasiSymmetricFunctions(QQ).F()
                 sage: F.dual()
-                Non-Commutative Symmetric Functions over the Rational Field on the Ribbon basis
+                Non-Commutative Symmetric Functions over the Rational Field in the Ribbon basis
             """
             return self.realization_of().dual().Ribbon()
 

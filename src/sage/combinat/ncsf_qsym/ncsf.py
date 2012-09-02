@@ -75,7 +75,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: Psi = NCSF.Psi()
         sage: Psi
-        NCSF on the Psi basis
+        NCSF in the Psi basis
 
     Elements of Psi are linear combinations of such compositions::
 
@@ -162,7 +162,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: Psi[1,2].coproduct()
         Psi[] # Psi[1, 2] + Psi[1] # Psi[2] + Psi[1, 2] # Psi[] + Psi[2] # Psi[1]
 
-    The antipode is an anti-algebra morphism; on the ``Psi`` basis, it sends
+    The antipode is an anti-algebra morphism; in the ``Psi`` basis, it sends
     the generators to their opposite::
 
         sage: Psi[3].antipode()
@@ -242,12 +242,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: f = complete.coerce_map_from(elementary); f
         Generic morphism:
-          From: NCSF on the Elementary basis
-          To:   NCSF on the Complete basis
+          From: NCSF in the Elementary basis
+          To:   NCSF in the Complete basis
         sage: g = elementary.coerce_map_from(complete); g
         Generic morphism:
-          From: NCSF on the Complete basis
-          To:   NCSF on the Elementary basis
+          From: NCSF in the Complete basis
+          To:   NCSF in the Elementary basis
         sage: f.category()
         Category of hom sets in Category of modules with basis over Rational Field
         sage: f(elementary[1,2,2])
@@ -256,15 +256,15 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         L[1, 1, 1, 1, 1] - L[1, 1, 1, 2] - L[1, 2, 1, 1] + L[1, 2, 2]
         sage: h = f*g; h
         Composite map:
-          From: NCSF on the Complete basis
-          To:   NCSF on the Complete basis
+          From: NCSF in the Complete basis
+          To:   NCSF in the Complete basis
           Defn:   Generic morphism:
-                  From: NCSF on the Complete basis
-                  To:   NCSF on the Elementary basis
+                  From: NCSF in the Complete basis
+                  To:   NCSF in the Elementary basis
                 then
                   Generic morphism:
-                  From: NCSF on the Elementary basis
-                  To:   NCSF on the Complete basis
+                  From: NCSF in the Elementary basis
+                  To:   NCSF in the Complete basis
         sage: h(complete[1,3,2])
         S[1, 3, 2]
 
@@ -343,13 +343,13 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - The realization of the non-commutative symmetric functions on the
+        - The realization of the non-commutative symmetric functions in the
           complete basis.
 
         EXAMPLES::
 
             sage: NonCommutativeSymmetricFunctions(ZZ).a_realization()
-            Non-Commutative Symmetric Functions over the Integer Ring on the Complete basis
+            Non-Commutative Symmetric Functions over the Integer Ring in the Complete basis
         """
         return self.complete()
 
@@ -492,7 +492,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     h[1, 1, 1, 1] - 3*h[2, 1, 1] + 3*h[3, 1]
                     sage: R.to_symmetric_function
                     Generic morphism:
-                      From: Non-Commutative Symmetric Functions over the Rational Field on the Ribbon basis
+                      From: Non-Commutative Symmetric Functions over the Rational Field in the Ribbon basis
                       To:   Symmetric Function Algebra over Rational Field, Schur symmetric functions as basis
                 """
                 on_basis = self.to_symmetric_function_on_basis
@@ -625,7 +625,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 OUTPUT:
 
                 - The product of the two non-commutative symmetric functions
-                  indexed by ``composition1`` and ``composition2`` on the
+                  indexed by ``composition1`` and ``composition2`` in the
                   multiplicative basis ``self``. This will be again
                   a non-commutative symmetric function.
 
@@ -654,7 +654,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 OUTPUT:
 
                 - The module morphism of ``self`` which is defined by
-                  ``on_generators`` on the basis ``self``.
+                  ``on_generators`` in the basis ``self``.
 
                 EXAMPLES::
 
@@ -664,7 +664,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     ...
                     sage: f = Psi.algebra_morphism(double, codomain = Psi)
                     sage: f
-                    Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field on the Psi basis
+                    Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
                     sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
                     2*Psi[] + 3*Psi[1, 1, 3, 3, 2, 2] + Psi[2, 2, 4, 4]
                     sage: f.category()
@@ -676,7 +676,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: def negate(i): return -Psi[i]
                     sage: f = Psi.algebra_morphism(negate, codomain = Psi, category = GradedHopfAlgebrasWithBasis(QQ))
                     sage: f
-                    Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field on the Psi basis
+                    Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
                     sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
                     2*Psi[] - 3*Psi[1, 3, 2] + Psi[2, 4]
                     sage: f.category()
@@ -686,7 +686,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                     sage: f = Psi.algebra_morphism(double, codomain = Psi, anti=True)
                     sage: f
-                    Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field on the Psi basis
+                    Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
                     sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
                     2*Psi[] + 3*Psi[2, 2, 3, 3, 1, 1] + Psi[4, 4, 2, 2]
                     sage: f.category()
@@ -699,7 +699,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             @lazy_attribute
             def antipode(self):
                 r"""
-                Gives the antipode morphism on the basis.
+                Gives the antipode morphism in the basis.
 
                 OUTPUT:
 
@@ -710,7 +710,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                     sage: S=NonCommutativeSymmetricFunctions(QQ).S()
                     sage: S.antipode
-                    Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field on the Complete basis
+                    Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
                 """
                 if hasattr(self, "antipode_on_generators"):
                     return self.algebra_morphism(self.antipode_on_generators, codomain = self, anti = True)
@@ -720,7 +720,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             @lazy_attribute
             def coproduct(self):
                 r"""
-                Gives the coproduct morphism on the basis.
+                Gives the coproduct morphism in the basis.
 
                 OUTPUT:
 
@@ -732,8 +732,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: S=NonCommutativeSymmetricFunctions(QQ).S()
                     sage: S.coproduct
                     Generic morphism:
-                      From: Non-Commutative Symmetric Functions over the Rational Field on the Complete basis
-                      To:   Non-Commutative Symmetric Functions over the Rational Field on the Complete basis # Non-Commutative Symmetric Functions over the Rational Field on the Complete basis
+                      From: Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
+                      To:   Non-Commutative Symmetric Functions over the Rational Field in the Complete basis # Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
                 """
                 from sage.categories.all import tensor
                 if hasattr(self, "coproduct_on_generators"):
@@ -945,29 +945,29 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     class Ribbon(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of non-commutative symmetric functions on the Ribbon basis.
+        The Hopf algebra of non-commutative symmetric functions in the Ribbon basis.
 
         EXAMPLES::
 
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
             sage: R = NCSF.Ribbon(); R
-            Non-Commutative Symmetric Functions over the Rational Field on the Ribbon basis
+            Non-Commutative Symmetric Functions over the Rational Field in the Ribbon basis
             sage: R.an_element()
             2*R[] + 2*R[1] + 3*R[1, 1]
 
         The following are aliases for this basis::
 
             sage: NCSF.ribbon()
-            Non-Commutative Symmetric Functions over the Rational Field on the Ribbon basis
+            Non-Commutative Symmetric Functions over the Rational Field in the Ribbon basis
             sage: NCSF.R()
-            Non-Commutative Symmetric Functions over the Rational Field on the Ribbon basis
+            Non-Commutative Symmetric Functions over the Rational Field in the Ribbon basis
         """
         def __init__(self, NCSF):
             r"""
             EXAMPLES::
 
                 sage: R = NonCommutativeSymmetricFunctions(ZZ).ribbon(); R
-                Non-Commutative Symmetric Functions over the Integer Ring on the Ribbon basis
+                Non-Commutative Symmetric Functions over the Integer Ring in the Ribbon basis
                 sage: TestSuite(R).run()
 
             TESTS::
@@ -1014,7 +1014,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: R=NonCommutativeSymmetricFunctions(QQ).ribbon()
                 sage: R.dual()
-                Quasisymmetric functions over the Rational Field on the Fundamental basis
+                Quasisymmetric functions over the Rational Field in the Fundamental basis
             """
             return self.realization_of().dual().Fundamental()
 
@@ -1091,22 +1091,22 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     class Complete(CombinatorialFreeModule, BindableClass):
         """
-        The Hopf algebra of non-commutative symmetric functions on the Complete basis.
+        The Hopf algebra of non-commutative symmetric functions in the Complete basis.
 
         EXAMPLES::
 
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
             sage: S = NCSF.Complete(); S
-            Non-Commutative Symmetric Functions over the Rational Field on the Complete basis
+            Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
             sage: S.an_element()
             2*S[] + 2*S[1] + 3*S[1, 1]
 
         The following are aliases for this basis::
 
             sage: NCSF.complete()
-            Non-Commutative Symmetric Functions over the Rational Field on the Complete basis
+            Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
             sage: NCSF.S()
-            Non-Commutative Symmetric Functions over the Rational Field on the Complete basis
+            Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
         """
         def __init__(self, NCSF):
             r"""
@@ -1159,7 +1159,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                 sage: S.dual()
-                Quasisymmetric functions over the Rational Field on the Monomial basis
+                Quasisymmetric functions over the Rational Field in the Monomial basis
             """
             return self.realization_of().dual().Monomial()
 
@@ -1258,29 +1258,29 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     class Elementary(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of non-commutative symmetric functions on the Elementary basis.
+        The Hopf algebra of non-commutative symmetric functions in the Elementary basis.
 
         EXAMPLES::
 
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
             sage: L = NCSF.Elementary(); L
-            Non-Commutative Symmetric Functions over the Rational Field on the Elementary basis
+            Non-Commutative Symmetric Functions over the Rational Field in the Elementary basis
             sage: L.an_element()
             2*L[] + 2*L[1] + 3*L[1, 1]
 
         The following are aliases for this basis::
 
             sage: NCSF.elementary()
-            Non-Commutative Symmetric Functions over the Rational Field on the Elementary basis
+            Non-Commutative Symmetric Functions over the Rational Field in the Elementary basis
             sage: NCSF.L()
-            Non-Commutative Symmetric Functions over the Rational Field on the Elementary basis
+            Non-Commutative Symmetric Functions over the Rational Field in the Elementary basis
         """
         def __init__(self, NCSF):
             r"""
             EXAMPLES::
 
                 sage: NonCommutativeSymmetricFunctions(ZZ).elementary()
-                Non-Commutative Symmetric Functions over the Integer Ring on the Elementary basis
+                Non-Commutative Symmetric Functions over the Integer Ring in the Elementary basis
 
             TESTS::
 
@@ -1348,13 +1348,13 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     class Psi(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of non-commutative symmetric functions on the Psi basis.
+        The Hopf algebra of non-commutative symmetric functions in the Psi basis.
 
         EXAMPLES::
 
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
             sage: Psi = NCSF.Psi(); Psi
-            Non-Commutative Symmetric Functions over the Rational Field on the Psi basis
+            Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
             sage: Psi.an_element()
             2*Psi[] + 2*Psi[1] + 3*Psi[1, 1]
         """
@@ -1367,7 +1367,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
                 sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi(); Psi
-                Non-Commutative Symmetric Functions over the Rational Field on the Psi basis
+                Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
                 sage: all(S(Psi(S[comp])) == S[comp] for comp in Compositions(5))
                 True
                 sage: all(Psi(S(Psi[comp])) == Psi[comp] for comp in Compositions(5))
@@ -1487,13 +1487,13 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     class Phi(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of non-commutative symmetric functions on the Phi basis.
+        The Hopf algebra of non-commutative symmetric functions in the Phi basis.
 
         EXAMPLES::
 
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
             sage: Phi = NCSF.Phi(); Phi
-            Non-Commutative Symmetric Functions over the Rational Field on the Phi basis
+            Non-Commutative Symmetric Functions over the Rational Field in the Phi basis
             sage: Phi.an_element()
             2*Phi[] + 2*Phi[1] + 3*Phi[1, 1]
         """
@@ -1506,7 +1506,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
                 sage: Phi = NonCommutativeSymmetricFunctions(QQ).Phi(); Phi
-                Non-Commutative Symmetric Functions over the Rational Field on the Phi basis
+                Non-Commutative Symmetric Functions over the Rational Field in the Phi basis
                 sage: all(S(Phi(S[comp])) == S[comp] for comp in Compositions(5))
                 True
                 sage: all(Phi(S(Phi[comp])) == Phi[comp] for comp in Compositions(5))

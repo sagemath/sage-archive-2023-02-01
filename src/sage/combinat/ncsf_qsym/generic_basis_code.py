@@ -82,13 +82,12 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
                 sage: S._repr_()
-                'Non-Commutative Symmetric Functions over the Rational Field on the Complete basis'
+                'Non-Commutative Symmetric Functions over the Rational Field in the Complete basis'
                 sage: F = QuasiSymmetricFunctions(ZZ).Fundamental()
                 sage: F._repr_()
-                'Quasisymmetric functions over the Integer Ring on the Fundamental basis'
+                'Quasisymmetric functions over the Integer Ring in the Fundamental basis'
             """
-            return "%s on the %s basis" % (self.realization_of(),
-                                           self._realization_name())
+            return "%s in the %s basis" % (self.realization_of(), self._realization_name())
 
         def __getitem__(self, c, *rest):
             """
@@ -806,7 +805,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             sage: Psi = NCSF.Psi()
             sage: f = AlgebraMorphism(Psi, attrcall('conjugate'), codomain=Psi)
             sage: f
-            Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field on the Psi basis
+            Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
 
         Usually, however, one constructs algebra morphisms
         using the ``algebra_morphism`` method for an algebra::
@@ -816,7 +815,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             sage: def double(i) : return Psi[i,i]
             sage: f = Psi.algebra_morphism(double, codomain = Psi)
             sage: f
-            Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field on the Psi basis
+            Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
             sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
             2*Psi[] + 3*Psi[1, 1, 3, 3, 2, 2] + Psi[2, 2, 4, 4]
             sage: f.category()
@@ -828,7 +827,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             sage: def negate(i): return -Psi[i]
             sage: f = Psi.algebra_morphism(negate, codomain = Psi, category = GradedHopfAlgebrasWithBasis(QQ))
             sage: f
-            Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field on the Psi basis
+            Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
             sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
             2*Psi[] - 3*Psi[1, 3, 2] + Psi[2, 4]
             sage: f.category()
@@ -838,7 +837,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
 
             sage: f = Psi.algebra_morphism(double, codomain = Psi, anti=True)
             sage: f
-            Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field on the Psi basis
+            Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
             sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
             2*Psi[] + 3*Psi[2, 2, 3, 3, 1, 1] + Psi[4, 4, 2, 2]
             sage: f.category()
@@ -971,7 +970,7 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
                 sage: N = NonCommutativeSymmetricFunctions(QQ)
                 sage: S = N.complete()
                 sage: S.internal_product
-                Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field on the Complete basis
+                Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
                 sage: S.internal_product(S[2,2], S[1,2,1])
                 2*S[1, 1, 1, 1] + S[1, 1, 2] + S[2, 1, 1]
                 sage: S.internal_product(S[2,2], S[1,2])

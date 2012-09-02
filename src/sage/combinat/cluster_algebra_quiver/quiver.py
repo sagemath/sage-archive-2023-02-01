@@ -14,6 +14,7 @@ AUTHORS:
 - Christian Stump
 
 .. seealso:: For mutation types of combinatorial quivers, see :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`.
+.. seealso:: For mutation types of combinatorial quivers, see :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`.
 """
 
 #*****************************************************************************
@@ -179,6 +180,7 @@ class ClusterQuiver(SageObject):
             sage: Q = ClusterQuiver(['A',4])
             sage: TestSuite(Q).run()
         """
+        from cluster_seed import ClusterSeed
         from sage.matrix.matrix import Matrix
 
         # constructs a quiver from a mutation type
@@ -238,6 +240,10 @@ class ClusterQuiver(SageObject):
                     self.__init__( mutation_type.standard_quiver() )
             else:
                 self.__init__( mutation_type.standard_quiver() )
+
+         # constructs a quiver from a cluster seed
+        elif type(data) is ClusterSeed:
+            self.__init__( data.quiver() )
 
         # constructs a quiver from a quiver
         elif type(data) is ClusterQuiver:

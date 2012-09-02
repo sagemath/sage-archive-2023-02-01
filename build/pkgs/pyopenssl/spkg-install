@@ -8,7 +8,7 @@ die () {
 [ -n "$SAGE_LOCAL" ] || die 'Error: $SAGE_LOCAL not set. Source sage-env or run this script from `sage -sh`.'
 
 cd src
-patch -p1 < ../patches/00-check-missing-new-features.patch
+patch -p1 < ../patches/00-check-missing-new-features.patch || die "Error: Couldn't apply patch."
 
 if [ ! -d /usr/include/openssl ]; then
     FLAGS="-I'$SAGE_LOCAL'/include -L'$SAGE_LOCAL'/lib"

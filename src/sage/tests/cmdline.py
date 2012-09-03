@@ -418,7 +418,7 @@ def test_executable(args, input="", timeout=50.0, cwd=None):
         sage: (out, err, ret) = test_executable(["sage", "--gap", "-q"], "Size(SymmetricGroup(5));\n")
         sage: out
         '120\n'
-        sage: err
+        sage: err.replace('gap: halving pool size.', '').strip()
         ''
         sage: ret
         0
@@ -546,7 +546,12 @@ def test_executable(args, input="", timeout=50.0, cwd=None):
         True
 
     """
-    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)
+    pexpect_env = dict(os.environ)
+    try:
+        del pexpect_env["TERM"]
+    except KeyError:
+        pass
+    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd, env=pexpect_env)
     if input:
         p.stdin.write(input)
     p.stdin.close()

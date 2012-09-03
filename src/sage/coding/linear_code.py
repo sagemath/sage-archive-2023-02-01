@@ -392,14 +392,15 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
     zerovec = [0 for i in range(n)]
     zerovecstr = "Z("+qstr+")*"+str(zerovec)
     all = []
+    gap.eval('Gmat:='+Gmat)
     for i in range(1,k+1):
-        P = gap.eval("P:=AClosestVectorCombinationsMatFFEVecFFECoords("+Gmat+", GF("+qstr+"),"+zerovecstr+","+str(i)+","+str(0)+"); d:=WeightVecFFE(P[1])")
-        v = gap("[List(P[1], i->i)]")
-        m = gap("[List(P[2], i->i)]")
-        dist = gap.eval("d")
+        gap.eval("P:=AClosestVectorCombinationsMatFFEVecFFECoords(Gmat, GF("+qstr+"),"+zerovecstr+","+str(i)+",0); d:=WeightVecFFE(P[1])")
+        v = gap("[P[1]]")
+        m = gap("[P[2]]")
+        dist = gap("d")
         #print v,m,dist
         #print [gap.eval("v["+str(i+1)+"]") for i in range(n)]
-        all.append([v._matrix_(F),m._matrix_(F),int(dist)])
+        all.append([v._matrix_(F), m._matrix_(F), int(dist)])
     ans = all[0]
     for x in all:
         if x[2]<ans[2] and x[2]>0:

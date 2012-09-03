@@ -14,10 +14,10 @@ EXAMPLES::
     sage: G
     Symplectic Group of rank 2 over Finite Field of size 7
     sage: G.random_element()
-    [1 6 5 5]
-    [2 1 4 5]
-    [1 2 4 5]
-    [4 0 2 2]
+    [5 4 6 0]
+    [1 1 6 2]
+    [5 5 0 6]
+    [5 4 5 1]
     sage: G.order()
     276595200
 """

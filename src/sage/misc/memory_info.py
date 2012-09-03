@@ -1,0 +1,426 @@
+"""
+Information about available RAM/swap
+
+There is no portable way to figure these out, nor should you generally
+have to. But GAP currently needs to allocate a cache of fixed size
+upon startup, and we would like a certain fraction of the swap address
+space.
+
+EXAMPLES::
+
+    sage: from sage.misc.memory_info import MemoryInfo, MemoryInfo_proc
+    sage: mem = MemoryInfo()
+    sage: mem.total_ram()          # random output
+    16708194304
+    sage: mem.available_ram()      # random output
+    1690738688
+    sage: mem.total_swap()         # random output
+    15728635904
+    sage: mem.available_swap()     # random output
+    15340593152
+"""
+
+########################################################################
+#       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+########################################################################
+
+import subprocess
+from sage.structure.sage_object import SageObject
+
+memory_info_instance = None
+
+def MemoryInfo():
+    """
+    Provide information about memory
+
+    OUTPUT:
+
+    A class that is encapsulates memory information. If no method for
+    the particular host OS is provided, reasonable guesses are given.
+
+    EXAMPLES::
+
+        sage: from sage.misc.memory_info import MemoryInfo, MemoryInfo_proc
+        sage: mem = MemoryInfo()
+        sage: mem.total_ram()       # random output
+        16708194304
+        sage: mem.available_ram()   # random output
+        1690738688
+        sage: mem.total_swap()      # random output
+        15728635904
+        sage: mem.available_swap()  # random output
+        15340593152
+    """
+    global memory_info_instance
+    if memory_info_instance is not None:
+        return memory_info_instance
+    import platform
+    system = platform.system()
+    if memory_info_instance is None and \
+            system != 'Darwin':
+        try:
+            memory_info_instance = MemoryInfo_proc()
+        except OSError:
+            pass
+    if memory_info_instance is None and \
+            system == 'Darwin':
+        try:
+            memory_info_instance = MemoryInfo_OSX()
+        except OSError:
+            pass
+    if memory_info_instance is None:
+        memory_info_instance = MemoryInfo_guess()
+    return memory_info_instance
+
+
+class MemoryInfo_proc(SageObject):
+    """
+    Provide information from ``/proc/`` pseudo-filesystem on most UNIXes
+
+    EXAMPLES::
+
+        sage: from sage.misc.memory_info import MemoryInfo
+        sage: mem = MemoryInfo()
+        sage: mem.total_ram()   # random output
+        16708194304
+    """
+
+    def __init__(self):
+        try:
+            self._parse_proc_meminfo()
+        except (IOError, ValueError):
+            raise OSError('/proc/meminfo is not available')
+
+    def _parse_proc_meminfo(self):
+        """
+        Parse ``/proc/meminfo``
+
+        OUTPUT:
+
+        A dictionary. All sizes are in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo, MemoryInfo_proc
+            sage: mem = MemoryInfo()
+            sage: if isinstance(mem, MemoryInfo_proc):
+            ...       info = mem._parse_proc_meminfo()
+            ... else:
+            ...       info = None
+            sage: info   # random output
+            {'available_ram': 1749782528,
+             'total_swap': 15728635904,
+             'available_swap': 15340572672,
+             'total_ram': 16708194304}
+            sage: keys = set(['available_ram', 'total_swap', 'available_swap', 'total_ram'])
+            sage: (info is None) or keys.issubset(info.keys())
+            True
+        """
+        kb = 1024
+        result = dict()
+        meminfo = open('/proc/meminfo', 'r')
+        for line in meminfo.readlines():
+            line = line.split()
+            if line[0].startswith('MemTotal') and line[2] == 'kB':
+                result['total_ram'] = int(line[1]) * kb
+            if line[0].startswith('MemFree') and line[2] == 'kB':
+                result['available_ram'] = int(line[1]) * kb
+            if line[0].startswith('SwapTotal') and line[2] == 'kB':
+                result['total_swap'] = int(line[1]) * kb
+            if line[0].startswith('SwapFree') and line[2] == 'kB':
+                result['available_swap'] = int(line[1]) * kb
+            if line[0].startswith('Committed_AS') and line[2] == 'kB':
+                result['Committed_AS'] = int(line[1]) * kb
+        meminfo.close()
+        required = set(['available_ram', 'total_swap', 'available_swap', 'total_ram'])
+        if not required.issubset(result.keys()):
+            raise OSError('failed to parse /proc/meminfo correctly')
+        return result
+
+    def total_ram(self):
+        """
+        Return the total RAM size
+
+        OUTPUT:
+
+        Integer. The RAM size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().total_ram() > 0
+            True
+        """
+        return self._parse_proc_meminfo()['total_ram']
+
+    def available_ram(self):
+        """
+        Return the available (free) RAM size
+
+        OUTPUT:
+
+        Integer. The free RAM size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().available_ram() > 0
+            True
+        """
+        return self._parse_proc_meminfo()['available_ram']
+
+    def total_swap(self):
+        """
+        Return the total swap size
+
+        OUTPUT:
+
+        Integer. The swap size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().total_swap() > 0
+            True
+        """
+        return self._parse_proc_meminfo()['total_swap']
+
+    def available_swap(self):
+        """
+        Return the available (free) swap size
+
+        OUTPUT:
+
+        Integer. The free swap size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().available_swap() > 0
+            True
+        """
+        info = self._parse_proc_meminfo()
+        try:
+            return info['total_swap'] - info['Committed_AS']
+        except KeyError:
+            return info['available_swap']
+
+
+class MemoryInfo_OSX(SageObject):
+    """
+    Memory info on OSX
+
+    TESTS::
+
+        sage: from sage.misc.memory_info import MemoryInfo_OSX
+    """
+
+    def __init__(self):
+        self._maxage = 10   # cache result for 10 seconds
+        self._age = -self._maxage
+        try:
+            self._parse_top()
+        except (IOError, ValueError, subprocess.CalledProcessError, KeyError):
+            raise OSError('failed to parse OSX "top" output')
+
+    def _parse_top(self):
+        """
+        Parse ``top`` output
+
+        OUTPUT:
+
+        A dictionary. All sizes are in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo, MemoryInfo_OSX
+            sage: mem = MemoryInfo()
+            sage: if isinstance(mem, MemoryInfo_OSX):
+            ...       info = mem._parse_top()
+            ... else:
+            ...       info = None
+            sage: info   # random output
+            {'available_ram': 1749782528,
+             'total_ram': 16708194304}
+            sage: keys = set(['available_ram', 'total_ram'])
+            sage: (info is None) or (set(info.keys()) == keys)
+            True
+        """
+        import time
+        if (time.time()-self._age) < self._maxage:
+            return self._parse_top_cache
+        units = { 'K': 1024, 'M':1024**2, 'G':1024**3 }
+        result = dict()
+        meminfo = subprocess.check_output(['top', '-l', '1'],
+                                          stderr=subprocess.STDOUT)
+        for line in meminfo.splitlines():
+            if not line.startswith('PhysMem:'):
+                continue
+            line = line.split()
+            if not line[-1].startswith('free') or not line[-3].startswith('used'):
+                raise OSError('failed to parse PhysMem: line in "top" output')
+            used_ram = line[-4]
+            free_ram = line[-2]
+            used_ram = int(used_ram[:-1]) * units[used_ram[-1]]
+            free_ram = int(free_ram[:-1]) * units[free_ram[-1]]
+            result = { 'total_ram': used_ram + free_ram,
+                       'available_ram': free_ram }
+            self._age = time.time()
+            self._parse_top_cache = result
+            return result
+        raise OSError('failed to parse "top" output, no PhysMem: section')
+
+    def total_ram(self):
+        """
+        Return the total RAM size
+
+        OUTPUT:
+
+        Integer. The RAM size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().total_ram() > 0
+            True
+        """
+        return self._parse_top()['total_ram']
+
+    def available_ram(self):
+        """
+        Return the available (free) RAM size
+
+        OUTPUT:
+
+        Integer. The free RAM size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().available_ram() > 0
+            True
+        """
+        return self._parse_top()['available_ram']
+
+    def total_swap(self):
+        """
+        Return the total swap size
+
+        The OSX swap file is growing dynamically, so we just return
+        twice the total ram.
+
+        OUTPUT:
+
+        Integer. The swap size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().total_swap() > 0
+            True
+        """
+        return 2*self.total_ram()
+
+    def available_swap(self):
+        """
+        Return the available (free) swap size
+
+        The OSX swap file is growing dynamically, so we just return
+        twice the available ram.
+
+        OUTPUT:
+
+        Integer. The free swap size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().available_swap() > 0
+            True
+        """
+        return 2*self.available_ram()
+
+
+class MemoryInfo_guess(SageObject):
+    """
+    Guess memory as a fallback.
+
+    TESTS::
+
+        sage: from sage.misc.memory_info import MemoryInfo_guess
+        sage: mem = MemoryInfo_guess()
+        sage: mem.total_ram()
+        4294967296       # 64-bit
+        4294967296L      # 32-bit
+    """
+    def total_ram(self):
+        """
+        Return the total RAM size
+
+        OUTPUT:
+
+        Integer. The RAM size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().total_ram() > 0
+            True
+        """
+        GB = 1024 * 1024 * 1024
+        return 4*GB
+
+    def available_ram(self):
+        """
+        Return the available (free) RAM size
+
+        OUTPUT:
+
+        Integer. The free RAM size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().available_ram() > 0
+            True
+        """
+        return self.total_ram()
+
+    def total_swap(self):
+        """
+        Return the total swap size
+
+        OUTPUT:
+
+        Integer. The swap size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().total_swap() > 0
+            True
+        """
+        GB = 1024 * 1024 * 1024
+        return 4*GB
+
+    def available_swap(self):
+        """
+        Return the available (free) swap size
+
+        OUTPUT:
+
+        Integer. The free swap size in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: MemoryInfo().available_swap() > 0
+            True
+        """
+        return self.total_swap()
+
+

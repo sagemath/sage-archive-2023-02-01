@@ -1029,11 +1029,6 @@ If this all works, you can then make calls like:
             Control-C pressed.  Interrupting PARI/GP interpreter. Please wait a few seconds...
             ...
             KeyboardInterrupt: computation timed out because alarm was set for 1 seconds
-
-        Here is a doc test related with trac ticket #10296::
-
-            sage: gap._synchronize()
-
         """
         if expr is None:
             # the following works around gap._prompt_wait not being defined

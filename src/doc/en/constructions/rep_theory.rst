@@ -75,7 +75,7 @@ Here is another example:
     X.4     3 -1  .  .
     <BLANKLINE>
     A = E(3)^2
-      = (-1-ER(-3))/2 = -1-b3
+      = (-1-Sqrt(-3))/2 = -1-b3
 
 where :math:`E(3)` denotes a cube root of unity, :math:`ER(-3)`
 denotes a square root of :math:`-3`, say :math:`i\sqrt{3}`, and
@@ -122,22 +122,22 @@ table prints nicely.
     sage: gap.eval("T := CharacterTable(G)")
     'CharacterTable( Alt( [ 1 .. 4 ] ) )'
     sage: gap.eval("Display(T)")
-    CT1
-
+    CT3
+    <BLANKLINE>
          2  2  2  .  .
          3  1  .  1  1
-
+    <BLANKLINE>
            1a 2a 3a 3b
         2P 1a 1a 3b 3a
         3P 1a 2a 1a 1a
-
+    <BLANKLINE>
     X.1     1  1  1  1
     X.2     1  1  A /A
     X.3     1  1 /A  A
     X.4     3 -1  .  .
-
+    <BLANKLINE>
     A = E(3)^2
-      = (-1-ER(-3))/2 = -1-b3
+      = (-1-Sqrt(-3))/2 = -1-b3
     sage: gap.eval("irr := Irr(G)")
     [ Character( CharacterTable( Alt( [ 1 .. 4 ] ) ), [ 1, 1, 1, 1 ] ),
       Character( CharacterTable( Alt( [ 1 .. 4 ] ) ), [ 1, 1, E(3)^2, E(3) ] ),
@@ -204,4 +204,4 @@ The example below using the GAP interface illustrates the syntax.
     X.4     3 -1  .  .
     <BLANKLINE>
     A = E(3)^2
-      = (-1-ER(-3))/2 = -1-b3
+      = (-1-Sqrt(-3))/2 = -1-b3

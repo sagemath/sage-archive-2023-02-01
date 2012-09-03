@@ -6,7 +6,7 @@ from axiom import Axiom, axiom, axiom_console
 from fricas import FriCAS, fricas, fricas_console
 
 from expect import is_ExpectElement
-from gap import gap, gap_reset_workspace, gap_console, gap_version, is_GapElement, Gap
+from gap import gap, gap_reset_workspace, gap_console, gap_version, set_gap_memory_pool_size, is_GapElement, Gap
 from gap3 import gap3, gap3_console, gap3_version, Gap3
 from genus2reduction import genus2reduction, Genus2reduction
 from gfan import gfan,  Gfan

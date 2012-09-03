@@ -590,10 +590,10 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
         EXAMPLE::
 
             sage: GroupAlgebra(DihedralGroup(6), QQ).random_element()
-            -97/190*(1,6)(2,5)(3,4)
+            -1/95*(2,6)(3,5) - 1/2*(1,3)(4,6)
             sage: GroupAlgebra(SU(2, 13), QQ).random_element(1)
-            1/2*[       8 11*a + 1]
-            [   a + 6        3]
+            1/2*[      1 9*a + 2]
+            [9*a + 2      12]
         """
         a = self(0)
         for i in range(n):

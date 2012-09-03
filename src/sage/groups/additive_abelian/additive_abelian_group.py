@@ -440,7 +440,7 @@ class AdditiveAbelianGroup_fixed_gens(AdditiveAbelianGroup_class):
 
             sage: G = AdditiveAbelianGroup([2, 3])
             sage: G.permutation_group()
-            Permutation Group with generators [(1,4,2,5,3,6)]
+            Permutation Group with generators [(3,4,5), (1,2)]
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
         s = 'Image(IsomorphismPermGroup(AbelianGroup(%s)))'%(list(self.invariants()),)

@@ -1491,12 +1491,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: R.<z> = PolynomialRing(CC,1)
             sage: f = z^4 - 6*z + 3
             sage: f.factor()
-            (z - 1.60443920904349 - 2.91339356278998e-26*I) * (z - 0.511399619393097 + 6.96082630860956e-26*I) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)  # 32-bit
-            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)  # 64-bit
+            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
 
         TESTS:
 
-        Check if we can handle polynomials with no variables, #7950::
+        Check if we can handle polynomials with no variables, see :trac:`7950`::
 
             sage: P = PolynomialRing(ZZ,0,'')
             sage: res = P(10).factor(); res
@@ -1513,13 +1512,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             ...
             ArithmeticError: Prime factorization of 0 not defined.
 
-        Check if we can factor constant polynomial, #8207::
+        Check if we can factor a constant polynomial, see :trac:`8207`::
 
             sage: R.<x,y> = CC[]
             sage: R(1).factor()
             1.00000000000000
 
-        Check that we prohibit too large moduli, #11829::
+        Check that we prohibit too large moduli, :trac:`11829`::
 
             sage: R.<x,y> = GF(previous_prime(2^31))[]
             sage: factor(x+y+1,proof=False)

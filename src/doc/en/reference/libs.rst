@@ -25,6 +25,8 @@ to be aware of the modules described in this chapter.
 .. toctree::
    :maxdepth: 2
 
+   sage/libs/gap/libgap
+   sage/libs/gap/element
    sage/libs/flint/fmpz_poly
    sage/libs/libecm
    sage/libs/lrcalc/lrcalc

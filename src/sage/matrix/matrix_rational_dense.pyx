@@ -1667,7 +1667,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return misc.matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
 
-    def _echelon_in_place_classical(self):
+    def _echelon_in_place_classical(self, steps=None):
         """
         Compute the echelon form of self using classical algorithm and
         set the pivots of self.  This is useful when the input matrix
@@ -1701,8 +1701,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     # rescale row r by multiplying by tmp
                     for i in range(c, nc):
                         mpq_mul(self._matrix[r][i], self._matrix[r][i], tmp)
+                    if steps is not None: steps.append(self.copy())
                     # swap rows r and start_row
                     self.swap_rows_c(r, start_row)
+                    if steps is not None: steps.append(self.copy())
                     # clear column
                     for i in range(nr):
                         if i != start_row:
@@ -1712,6 +1714,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                                 for j in range(c, nc):
                                     mpq_mul(tmp2, self._matrix[start_row][j], tmp)
                                     mpq_add(self._matrix[i][j], self._matrix[i][j], tmp2)
+                    if steps is not None: steps.append(self.copy())
                     start_row += 1
                     break
         mpq_clear(tmp); mpq_clear(tmp2)

@@ -94,7 +94,7 @@ class QuiverMutationTypeFactory(SageObject):
                 else:
                     data = ('D',max(data[1]),None)
             elif data[0] == 'GR' and data[2] == None and type(data[1]) == tuple and len(data[1]) == 2 and data[1][1] > data[1][0]:
-                if min(data[1]) > max(data[1])/2 and max(data[1]) <> min(data[1])+1:
+                if min(data[1]) > max(data[1])/2 and max(data[1]) != min(data[1])+1:
                     data = (data[0],(max(data[1])-min(data[1]),max(data[1])),data[2])
                 if min(data[1]) == 2 and max(data[1]) > 3:
                     data = ('A',max(data[1])-3,None)
@@ -1066,7 +1066,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 self._info['simply_laced'] = True
                 self._info['skew_symmetric'] = True
                 self._info['finite'] = True
-            elif twist==1 and type(rank) is list and len(rank) == 2 and all( rank[i] in ZZ and rank[i] >= 0 for i in [0,1] ) and rank <> [0,0]:
+            elif twist==1 and type(rank) is list and len(rank) == 2 and all( rank[i] in ZZ and rank[i] >= 0 for i in [0,1] ) and rank != [0,0]:
                 if type( rank ) == tuple:
                     rank = list( rank )
                     data[1] = rank
@@ -1944,6 +1944,172 @@ class QuiverMutationType_Reducible(QuiverMutationType_abstract,UniqueRepresentat
         """
         comps = self.irreducible_components()
         return QuiverMutationType( [comp.dual() for comp in comps ] )
+
+def _construct_classical_mutation_classes(n):
+    r"""
+    Returns a dict with keys being tuples representing regular QuiverMutationTypes of the given rank, and with values being
+    lists or sets containing all mutation equivalent quivers as dig6 data.
+
+    EXAMPLES::
+
+    sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_classical_mutation_classes
+    sage: rank_2_classes = _construct_classical_mutation_classes(2) # long time
+    sage: for mut_class in sorted(rank_2_classes.keys()): # long time
+    ...     print mut_class, rank_2_classes[mut_class]
+    ('A', 2) [('AO', ())]
+    ('A', (1, 1), 1) [('AO', (((0, 1), (2, -2)),))]
+    ('B', 2) [('AO', (((0, 1), (1, -2)),)), ('AO', (((0, 1), (2, -1)),))]
+    ('BC', 1, 1) [('AO', (((0, 1), (1, -4)),)), ('AO', (((0, 1), (4, -1)),))]
+    """
+    from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
+    data = {}
+
+    # finite A
+    data[ ('A',n) ] = ClusterQuiver(['A',n]).mutation_class(data_type='dig6')
+    # affine A
+    for j in range(1, n/2+1):
+        data[ ('A',(n-j,j),1) ] = ClusterQuiver(['A',[n-j,j],1]).mutation_class(data_type='dig6')
+    # finite B
+    if n > 1:
+        data[ ('B',n) ] = ClusterQuiver(['B',n]).mutation_class(data_type='dig6')
+    # affine B
+    if n > 2:
+        data[ ('BB',n-1,1) ] = ClusterQuiver(['BB',n-1,1]).mutation_class(data_type='dig6')
+    # finite C
+    if n > 2:
+        data[ ('C',n) ] = ClusterQuiver(['C',n]).mutation_class(data_type='dig6')
+    # affine C
+    if n > 1:
+        data[ ('BC',n-1,1) ] = ClusterQuiver(['BC',n-1,1]).mutation_class(data_type='dig6')
+    # affine CC
+    if n > 2:
+        data[ ('CC',n-1,1) ] = ClusterQuiver(['CC',n-1,1]).mutation_class(data_type='dig6')
+    # affine BD
+    if n > 3:
+        data[ ('BD',n-1,1) ] = ClusterQuiver(['BD',n-1,1]).mutation_class(data_type='dig6')
+    # affine CD
+    if n > 3:
+        data[ ('CD',n-1,1) ] = ClusterQuiver(['CD',n-1,1]).mutation_class(data_type='dig6')
+    # finite D
+    if n > 3:
+        data[ ('D',n) ] = ClusterQuiver(['D',n]).mutation_class(data_type='dig6')
+    # affine D
+    if n > 4:
+        data[ ('D',n-1,1) ] = ClusterQuiver(['D',n-1,1]).mutation_class(data_type='dig6')
+
+    return data
+
+def _construct_exceptional_mutation_classes(n):
+    r"""
+    Returns a dict with keys being tuples representing exceptional QuiverMutationTypes
+    of the given rank, and with values being lists or sets containing all
+    mutation equivalent quivers as dig6 data.
+
+    EXAMPLES::
+
+    sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_exceptional_mutation_classes
+    sage: rank_3_exceptional = _construct_exceptional_mutation_classes(3) # long time
+    sage: for mut_class in sorted(rank_3_exceptional.keys()): # long time
+    ...     print mut_class, rank_3_exceptional[mut_class]
+    ('G', 2, -1) [('BH?', (((1, 2), (1, -3)),)), ('BGO', (((2, 1), (3, -1)),)), ('BW?', (((0, 1), (3, -1)),)), ('BP?', (((0, 1), (1, -3)),)),
+     ('BP_', (((0, 1), (1, -3)), ((2, 0), (3, -1)))), ('BP_', (((0, 1), (3, -1)), ((1, 2), (1, -3)), ((2, 0), (2, -2))))]
+    ('G', 2, 1) [('BH?', (((1, 2), (3, -1)),)), ('BGO', (((2, 1), (1, -3)),)), ('BW?', (((0, 1), (1, -3)),)), ('BP?', (((0, 1), (3, -1)),)),
+     ('BKO', (((1, 0), (3, -1)), ((2, 1), (1, -3)))), ('BP_', (((0, 1), (2, -2)), ((1, 2), (1, -3)), ((2, 0), (3, -1))))]
+    """
+    from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
+    data = {}
+    # finite E
+    if n in [6,7,8]:
+        data[ ('E',n) ] = ClusterQuiver(['E',n]).mutation_class(data_type='dig6')
+    # affine E
+    if n in [7,8,9]:
+        data[ ('E',n-1,1) ] = ClusterQuiver(['E',n-1,1]).mutation_class(data_type='dig6')
+    # elliptic E
+    if n in [8,9,10]:
+        data[ ('E',n-2,(1,1)) ] = ClusterQuiver(['E',n-2,[1,1]]).mutation_class(data_type='dig6')
+    # finite F
+    if n == 4:
+        data[ ('F',4) ] = ClusterQuiver(['F',4]).mutation_class(data_type='dig6')
+    # affine F
+    if n == 5:
+        data[ ('F',4,1) ] = ClusterQuiver(['F',4,1]).mutation_class(data_type='dig6')
+        data[ ('F',4,-1) ] = ClusterQuiver(['F',4,-1]).mutation_class(data_type='dig6')
+    # finite G
+    if n == 2:
+        data[ ('G',2) ] = ClusterQuiver(['G',2]).mutation_class(data_type='dig6')
+    # affine G
+    if n == 3:
+        data[ ('G',2,1) ] = ClusterQuiver(['G',2,1]).mutation_class(data_type='dig6')
+        data[ ('G',2,-1) ] = ClusterQuiver(['G',2,-1]).mutation_class(data_type='dig6')
+    # elliptic G
+    if n == 4:
+        data[ ('G',2,(1,3)) ] = ClusterQuiver(['G',2,(1,3)]).mutation_class(data_type='dig6')
+        data[ ('G',2,(1,1)) ] = ClusterQuiver(['G',2,(1,1)]).mutation_class(data_type='dig6')
+        data[ ('G',2,(3,3)) ] = ClusterQuiver(['G',2,(3,3)]).mutation_class(data_type='dig6')
+    # X
+    if n in [6,7]:
+        data[ ('X',n) ] = ClusterQuiver(['X',n]).mutation_class(data_type='dig6')
+    # elliptic F
+    if n == 6:
+        data[ ('F',4,(1,2)) ] = ClusterQuiver(['F',4,(1,2)]).mutation_class(data_type='dig6')
+        data[ ('F',4,(1,1)) ] = ClusterQuiver(['F',4,(1,1)]).mutation_class(data_type='dig6')
+        data[ ('F',4,(2,2)) ] = ClusterQuiver(['F',4,(2,2)]).mutation_class(data_type='dig6')
+
+    return data
+
+def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
+    """
+    Saves all exceptional mutation classes as dig6 data into the file ``exc_classes_n.dig6`` in the folder ``SAGE_SHARE``.
+    """
+    import os.path
+    import cPickle
+    data = {}
+    possible_types = ['Classical','ClassicalExceptional','Exceptional']
+    if types not in possible_types:
+        raise ValueError, 'The third input must be either ClassicalExceptional (default), Classical, or Exceptional.'
+
+    if types in possible_types[:2]:
+        data.update(_construct_classical_mutation_classes(n))
+    if types in possible_types[1:]:
+        data.update(_construct_exceptional_mutation_classes(n))
+
+    from sage.misc.misc import SAGE_SHARE
+    types_path = os.path.join(SAGE_SHARE, 'cluster_algebra_quiver')
+    types_file = types_path+'/mutation_classes_%s.dig6'%n
+    if not os.path.exists(types_path):
+        os.makedirs(types_path)
+    f = open(types_file,'w')
+    cPickle.dump(data, f)
+    f.close()
+    if verbose:
+        keys = data.keys()
+        keys.sort()
+        print "\nThe following types are saved to file", types_file,"and will now be used to determine quiver mutation types:"
+        print keys
+
+def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
+    r"""
+    Saves mutation classes of certain quivers of ranks up to and equal to ``n`` or equal to ``n``
+    to ``SAGE_SHARE/cluster_algebra_quiver/mutation_classes_n.dig6.
+
+    This data will then be used to determine quiver mutation types.
+
+    INPUT:
+
+    - ``n``: the rank (or the upper limit on the rank) of the mutation classes that are being saved.
+
+    - ``up_to`` -- (default:True) if True, saves data for ranks smaller than or equal to ``n``.
+      If False, saves data for rank exactly ``n``.
+
+    - ``types`` -- (default:'ClassicalExceptional') if all, saves data for both exceptional mutation-finite quivers and for classical quiver.
+      The input 'Exceptional' or 'Classical' is also allowed to save only part of this data.
+    """
+    if up_to is True:
+        ranks = range(1,n+1)
+    elif up_to is False:
+        ranks = [n]
+    for i in ranks:
+        _save_data_dig6(i,types=types,verbose=verbose)
 
 def _bipartite_graph_to_digraph( g ):
     """

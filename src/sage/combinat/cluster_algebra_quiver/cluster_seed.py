@@ -34,6 +34,7 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.sets.all import Set
 from sage.graphs.all import Graph, DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible
+from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, is_mutation_finite
 from sage.groups.perm_gps.permgroup import PermutationGroup
 
 class ClusterSeed(SageObject):
@@ -170,7 +171,7 @@ class ClusterSeed(SageObject):
         if self._mutation_type:
             if type( self._mutation_type ) in [QuiverMutationType_Irreducible,QuiverMutationType_Reducible]:
                 name += ' of type ' + str(self._mutation_type)
-            # the following case will be relevant later on after ticket 13425 (mutation type checking) is applied
+            # the following case allows description of 'undetermined finite mutation type'
             else:
                 name += ' of ' + self._mutation_type
         if self._is_principal:
@@ -372,7 +373,7 @@ class ClusterSeed(SageObject):
         """
         if k in range(self._n):
             x = self._R.gens()[k]
-            return ClusterVariable( x.parent(), x.numerator(), x.denominator(), variable_type='cluster variable' )
+            return ClusterVariable( x.parent(), x.numerator(), x.denominator(), mutation_type=self._mutation_type, variable_type='cluster variable' )
         else:
             raise ValueError("The input is not in an index of a cluster variable.")
 
@@ -395,26 +396,9 @@ class ClusterSeed(SageObject):
         """
         if k in range(self._m):
             x = self._R.gens()[self._n+k]
-            return ClusterVariable( x.parent(), x.numerator(), x.denominator(), variable_type='frozen variable' )
+            return ClusterVariable( x.parent(), x.numerator(), x.denominator(), mutation_type=self._mutation_type, variable_type='frozen variable' )
         else:
             raise ValueError("The input is not in an index of a frozen variable.")
-
-    def mutation_type(self):
-        """
-        Returns the mutation type of self.
-
-        EXAMPLES::
-
-            sage: ClusterSeed(['A',4]).mutation_type()
-            ['A', 4]
-            sage: ClusterSeed(['A',(3,1),1]).mutation_type()
-            ['A', [1, 3], 1]
-            sage: ClusterSeed(['C',2]).mutation_type()
-            ['B', 2]
-            sage: ClusterSeed(['B',4,1]).mutation_type()
-            ['BD', 4, 1]
-        """
-        return self._mutation_type
 
     def n(self):
         r"""
@@ -462,7 +446,7 @@ class ClusterSeed(SageObject):
         if k not in range(self._n):
             raise ValueError("The cluster seed does not have a cluster variable of index %s."%k)
         f = self._cluster[k]
-        return ClusterVariable( f.parent(), f.numerator(), f.denominator(), variable_type='cluster variable' )
+        return ClusterVariable( f.parent(), f.numerator(), f.denominator(), mutation_type=self._mutation_type, variable_type='cluster variable' )
 
     def cluster(self):
         r"""
@@ -1016,12 +1000,20 @@ class ClusterSeed(SageObject):
         EXAMPLES::
 
             sage: S = ClusterSeed(['A',[2,3],1])
+            sage: S.mutation_type()
+            ['A', [2, 3], 1]
 
             sage: S.reorient([(0,1),(2,3)])
+            sage: S.mutation_type()
+            ['D', 5]
 
             sage: S.reorient([(1,0),(2,3)])
+            sage: S.mutation_type()
+            ['A', [1, 4], 1]
 
             sage: S.reorient([0,1,2,3,4])
+            sage: S.mutation_type()
+            ['A', [1, 4], 1]
         """
         if not self._quiver:
             self.quiver()
@@ -1321,7 +1313,8 @@ class ClusterSeed(SageObject):
 
             sage: A = ClusterSeed(['A',3]).mutation_class()
         """
-        # runs forever without the mutation type recognition patch applied
+        if depth is infinity:
+            assert self.is_finite(), 'The mutation class can - for infinite types - only be computed up to a given depth'
         return list( S for S in self.mutation_class_iter( depth=depth, show_depth=show_depth, return_paths=return_paths, up_to_equivalence=up_to_equivalence, only_sink_source=only_sink_source ) )
 
     def cluster_class_iter(self, depth=infinity, show_depth=False, up_to_equivalence=True):
@@ -1455,7 +1448,9 @@ class ClusterSeed(SageObject):
 
             sage: A = ClusterSeed(['A',3]).cluster_class()
         """
-        # runs forever without the mutation type recognition patch applied
+        if depth is infinity:
+            assert self.is_finite(), 'The variable class can - for infinite types - only be computed up to a given depth'
+
         return [ c for c in self.cluster_class_iter(depth=depth, show_depth=show_depth, up_to_equivalence=up_to_equivalence) ]
 
     def b_matrix_class_iter(self, depth=infinity, up_to_equivalence=True):
@@ -1605,7 +1600,9 @@ class ClusterSeed(SageObject):
             sage: A = ClusterSeed(['A',3]).b_matrix_class()
             sage: A = ClusterSeed(['A',[2,1],1]).b_matrix_class()
         """
-        # runs forever without the mutation type recognition patch applied
+        if depth is infinity:
+            assert self.is_mutation_finite(), 'The B-matrix class can - for infinite mutation types - only be computed up to a given depth'
+
         return [ M for M in self.b_matrix_class_iter( depth=depth, up_to_equivalence=up_to_equivalence ) ]
 
     def variable_class_iter(self, depth=infinity, ignore_bipartite_belt=False):
@@ -1703,7 +1700,7 @@ class ClusterSeed(SageObject):
                 seed2 = ClusterSeed(seed)
                 for c in seed._cluster:
                     if c not in var_class:
-                        yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), variable_type='cluster variable' )
+                        yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), mutation_type=self._mutation_type, variable_type='cluster variable' )
                 var_class = var_class.union( seed._cluster )
 
                 init_cluster = set(seed._cluster)
@@ -1716,7 +1713,7 @@ class ClusterSeed(SageObject):
                     if not end:
                         for c in seed._cluster:
                             if c not in var_class:
-                                yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), variable_type='cluster variable' )
+                                yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), mutation_type=self._mutation_type, variable_type='cluster variable' )
                         var_class = var_class.union( seed._cluster )
                         seed2.mutate(bipartition[1])
                         seed2.mutate(bipartition[0])
@@ -1725,13 +1722,13 @@ class ClusterSeed(SageObject):
                         if not end:
                             for c in seed2._cluster:
                                 if c not in var_class:
-                                    yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), variable_type='cluster variable' )
+                                    yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), mutation_type=self._mutation_type, variable_type='cluster variable' )
                             var_class = var_class.union(seed2._cluster)
                 return
             else:
                 for c in seed._cluster:
                     if c not in var_class:
-                        yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), variable_type='cluster variable' )
+                        yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), mutation_type=self._mutation_type, variable_type='cluster variable' )
                 var_class = var_class.union(seed._cluster)
 
     def variable_class(self, depth=infinity, ignore_bipartite_belt=False):
@@ -1752,19 +1749,154 @@ class ClusterSeed(SageObject):
 
             sage: A = ClusterSeed(['A',3]).variable_class()
         """
-        # runs forever without the mutation type recognition patch applied
+        if depth is infinity:
+            assert self.is_finite(), 'The variable class can - for infinite types - only be computed up to a given depth'
+
         var_iter = self.variable_class_iter( depth=depth, ignore_bipartite_belt=ignore_bipartite_belt )
         Vs = [ var for var in var_iter ]
         Vs.sort(cmp=cmp)
         return Vs
+
+    def is_finite( self ):
+        r"""
+        Returns True if ``self`` is of finite type.
+
+        EXAMPLES::
+
+            sage: S = ClusterSeed(['A',3])
+            sage: S.is_finite()
+            True
+
+            sage: S = ClusterSeed(['A',[2,2],1])
+            sage: S.is_finite()
+            False
+        """
+        mt = self.mutation_type()
+        if type(mt) is str:
+            return False
+        else:
+            return mt.is_finite()
+
+    def is_mutation_finite( self, nr_of_checks=None, return_path=False ):
+        r"""
+        Returns True if ``self`` is of finite mutation type.
+
+        INPUT:
+
+        - ``nr_of_checks`` -- (default: None) number of mutations applied. Standard is 500*(number of vertices of self).
+        - ``return_path`` -- (default: False) if True, in case of self not being mutation finite, a path from self to a quiver with an edge label (a,-b) and a*b > 4 is returned.
+
+        ALGORITHM:
+
+        - A cluster seed is mutation infinite if and only if every `b_{ij}*b_{ji} > -4`. Thus, we apply random mutations in random directions
+
+        WARNING:
+
+        - Uses a non-deterministic method by random mutations in various directions.
+        - In theory, it can return a wrong True.
+
+        EXAMPLES::
+
+            sage: S = ClusterSeed(['A',10])
+            sage: S._mutation_type = None
+            sage: S.is_mutation_finite()
+            True
+
+            sage: S = ClusterSeed([(0,1),(1,2),(2,3),(3,4),(4,5),(5,6),(6,7),(7,8),(2,9)])
+            sage: S.is_mutation_finite()
+            False
+        """
+        is_finite, path = is_mutation_finite(copy(self._M),nr_of_checks=nr_of_checks)
+        if return_path:
+            return is_finite, path
+        else:
+            return is_finite
+
+    def mutation_type(self):
+        r"""
+        Returns the mutation_type of each connected component of ``self``, if it can be determined.
+        Otherwise, the mutation type of this component is set to be unknown.
+
+        The mutation types of the components are ordered by vertex labels.
+
+        WARNING:
+
+        - All finite types can be detected,
+        - All affine types can be detected, EXCEPT affine type D (the algorithm is not yet implemented)
+        - All exceptional types can be detected.
+
+        - Might fail to work if it is used within different Sage processes simultaneously (that happend in the doctesting).
+
+        EXAMPLES:
+
+        - finite types::
+
+            sage: S = ClusterSeed(['A',5])
+            sage: S._mutation_type = S._quiver._mutation_type = None
+            sage: S.mutation_type()
+            ['A', 5]
+
+            sage: S = ClusterSeed([(0,1),(1,2),(2,3),(3,4)])
+            sage: S.mutation_type()
+            ['A', 5]
+
+        - affine types::
+
+            sage: S = ClusterSeed(['E',8,[1,1]]); S
+            A seed for a cluster algebra of rank 10 of type ['E', 8, [1, 1]]
+            sage: S._mutation_type = S._quiver._mutation_type = None; S
+            A seed for a cluster algebra of rank 10
+            sage: S.mutation_type() # long time
+            ['E', 8, [1, 1]]
+
+        - the not yet working affine type D::
+
+            sage: S = ClusterSeed(['D',4,1])
+            sage: S._mutation_type = S._quiver._mutation_type = None
+            sage: S.mutation_type()    #indirect doctest
+            'undetermined finite mutation type'
+
+        - the exceptional types::
+
+            sage: S = ClusterSeed(['X',6])
+            sage: S._mutation_type = S._quiver._mutation_type = None
+            sage: S.mutation_type() # long time
+            ['X', 6]
+
+        -  infinite types::
+
+            sage: S = ClusterSeed(['GR',[4,9]])
+            sage: S._mutation_type = S._quiver._mutation_type = None
+            sage: S.mutation_type()
+            'undetermined infinite mutation type'
+        """
+        if self._mutation_type is None:
+            if self._quiver is None:
+                self.quiver()
+            self._mutation_type = self._quiver.mutation_type()
+        return self._mutation_type
 
 class ClusterVariable(FractionFieldElement):
     r"""
     This class is a thin wrapper for cluster variables in cluster seeds.
 
     It provides the extra feature to store if a variable is frozen or not.
+
+    - the associated positive root::
+
+        sage: S = ClusterSeed(['A',3])
+        sage: for T in S.variable_class_iter(): print T, T.almost_positive_root()
+        x0 -alpha[1]
+        x1 -alpha[2]
+        x2 -alpha[3]
+        (x1 + 1)/x0 alpha[1]
+        (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2) alpha[1] + alpha[2] + alpha[3]
+        (x1 + 1)/x2 alpha[3]
+        (x0*x2 + x1 + 1)/(x0*x1) alpha[1] + alpha[2]
+        (x0*x2 + 1)/x1 alpha[2]
+        (x0*x2 + x1 + 1)/(x1*x2) alpha[2] + alpha[3]
     """
-    def __init__( self, parent, numerator, denominator, coerce=True, reduce=True, variable_type=None ):
+    def __init__( self, parent, numerator, denominator, coerce=True, reduce=True, mutation_type=None, variable_type=None ):
         r"""
         Initializes a cluster variable in the same way that elements in the field of rational functions are initialized.
 
@@ -1782,4 +1914,42 @@ class ClusterVariable(FractionFieldElement):
             [(x0 + x1 + 1)/(x0*x1), (x1 + 1)/x0, (x0 + 1)/x1, x1, x0]
         """
         FractionFieldElement.__init__( self, parent, numerator, denominator, coerce=coerce, reduce=reduce )
+        self._mutation_type = mutation_type
         self._variable_type = variable_type
+
+    def almost_positive_root( self ):
+        r"""
+        Returns the *almost positive root* associated to ``self`` if ``self`` is of finite type.
+
+        EXAMPLES::
+
+            sage: S = ClusterSeed(['A',3])
+            sage: for T in S.variable_class_iter(): print T, T.almost_positive_root()
+            x0 -alpha[1]
+            x1 -alpha[2]
+            x2 -alpha[3]
+            (x1 + 1)/x0 alpha[1]
+            (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2) alpha[1] + alpha[2] + alpha[3]
+            (x1 + 1)/x2 alpha[3]
+            (x0*x2 + x1 + 1)/(x0*x1) alpha[1] + alpha[2]
+            (x0*x2 + 1)/x1 alpha[2]
+            (x0*x2 + x1 + 1)/(x1*x2) alpha[2] + alpha[3]
+        """
+        if self._variable_type == 'frozen variable':
+            raise ValueError('The variable is frozen.')
+        if type(self._mutation_type) is str:
+            raise ValueError('The cluster algebra for %s is not of finite type.'%self._repr_())
+        else:
+            if self._mutation_type is None:
+                self._mutation_type = self.parent().mutation_type()
+            if self._mutation_type.is_finite():
+                from sage.combinat.root_system.root_system import RootSystem
+                exec "Phi = RootSystem("+self._mutation_type._repr_()+")"
+                Phiplus = Phi.root_lattice().simple_roots()
+                if self.denominator() == 1:
+                    return -Phiplus[ self.numerator().degrees().index(1) + 1 ]
+                else:
+                    root = self.denominator().degrees()
+                    return sum( [ root[i]*Phiplus[ i+1 ] for i in range(len(root)) ] )
+            else:
+                raise ValueError('The cluster algebra for %s is not of finite type.'%self._repr_())

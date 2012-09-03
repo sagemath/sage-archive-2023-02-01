@@ -13,7 +13,6 @@ AUTHORS:
 - Gregg Musiker
 - Christian Stump
 
-.. seealso:: For mutation types of combinatorial quivers, see :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`.
 .. seealso:: For mutation types of combinatorial quivers, see :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`.
 """
 
@@ -31,7 +30,9 @@ from sage.misc.all import cached_method
 from sage.rings.all import ZZ, CC, infinity
 from sage.graphs.all import Graph, DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
-from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter
+from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
+from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
+
 from sage.groups.perm_gps.permgroup import PermutationGroup
 
 class ClusterQuiver(SageObject):
@@ -72,6 +73,8 @@ class ClusterQuiver(SageObject):
 
             sage: Q = ClusterQuiver(['A', [5,0],1]); Q
             Quiver on 5 vertices of type ['D', 5]
+            sage: Q.is_finite()
+            True
             sage: Q.is_acyclic()
             False
 
@@ -312,7 +315,7 @@ class ClusterQuiver(SageObject):
                 elif edge[2] in ZZ:
                     dg.set_edge_label( edge[0], edge[1], (edge[2],-edge[2]) )
                     edge = (edge[0],edge[1],(edge[2],-edge[2]))
-                elif type(edge[2]) == list and len(edge[2]) <> 2:
+                elif type(edge[2]) == list and len(edge[2]) != 2:
                     raise ValueError("The input digraph contains an edge with the wrong type of list as a label.")
                 elif type(edge[2]) == list and len(edge[2]) == 2:
                     dg.set_edge_label( edge[0], edge[1], (edge[2][0], edge[2][1]))
@@ -373,10 +376,10 @@ class ClusterQuiver(SageObject):
         """
         name = self._description
         if self._mutation_type:
-            if type( self._mutation_type ) in [QuiverMutationType_Irreducible,QuiverMutationType_Reducible]:
-                name += ' of type ' + str(self._mutation_type)
-            else:
+            if type( self._mutation_type ) is str:
                 name += ' of ' + self._mutation_type
+            else:
+                name += ' of type ' + str(self._mutation_type)
         if self._m == 1:
             name += ' with %s frozen vertex'%self._m
         elif self._m > 1:
@@ -601,7 +604,7 @@ class ClusterQuiver(SageObject):
             self._default_filename = filename
         except AttributeError:
             pass
-        if filename[-4:] <> '.qmu':
+        if filename[-4:] != '.qmu':
             filename = filename + '.qmu'
         myfile = open(filename, 'w')
         myfile.write('//Number of points'); myfile.write('\n')
@@ -696,6 +699,21 @@ class ClusterQuiver(SageObject):
         """
         Returns the mutation type of ``self``.
 
+        Returns the mutation_type of each connected component of self if it can be determined,
+        otherwise, the mutation type of this component is set to be unknown.
+
+        The mutation types of the components are ordered by vertex labels.
+
+        If you do many type recognitions, you should consider to save
+        exceptional mutation types using
+        `meth`:sage.combinat.cluster_algebra_quiver.quiver_mutation_type.save_exceptional_data
+
+        WARNING:
+
+        - All finite types can be detected,
+        - All affine types can be detected, EXCEPT affine type D (the algorithm is not yet implemented)
+        - All exceptional types can be detected.
+
         EXAMPLES::
 
             sage: ClusterQuiver(['A',4]).mutation_type()
@@ -706,7 +724,145 @@ class ClusterQuiver(SageObject):
             ['B', 2]
             sage: ClusterQuiver(['B',4,1]).mutation_type()
             ['BD', 4, 1]
+
+        - finite types::
+
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q._mutation_type = None
+            sage: Q.mutation_type()
+            ['A', 5]
+
+            sage: Q = ClusterQuiver([(0,1),(1,2),(2,3),(3,4)])
+            sage: Q.mutation_type()
+            ['A', 5]
+
+        - affine types::
+
+            sage: Q = ClusterQuiver(['E',8,[1,1]]); Q
+            Quiver on 10 vertices of type ['E', 8, [1, 1]]
+            sage: Q._mutation_type = None; Q
+            Quiver on 10 vertices
+            sage: Q.mutation_type() # long time
+            ['E', 8, [1, 1]]
+
+        - the not yet working affine type D (unless user has saved small classical quiver data)::
+
+            sage: Q = ClusterQuiver(['D',4,1])
+            sage: Q._mutation_type = None
+            sage: Q.mutation_type()    #indirect doctest
+            'undetermined finite mutation type'
+
+        - the exceptional types::
+
+            sage: Q = ClusterQuiver(['X',6])
+            sage: Q._mutation_type = None
+            sage: Q.mutation_type() # long time
+            ['X', 6]
+
+        - examples from page 8 of Keller's article "Cluster algebras, quiver representations
+        and triangulated categories" (arXiv:0807.1960)::
+
+            sage: dg = DiGraph(); dg.add_edges([(9,0),(9,4),(4,6),(6,7),(7,8),(8,3),(3,5),(5,6),(8,1),(2,3)])
+            sage: ClusterQuiver( dg ).mutation_type() # long time
+            ['E', 8, [1, 1]]
+
+            sage: dg = DiGraph( { 0:[3], 1:[0,4], 2:[0,6], 3:[1,2,7], 4:[3,8], 5:[2], 6:[3,5], 7:[4,6], 8:[7] } )
+            sage: ClusterQuiver( dg ).mutation_type() # long time
+            ['E', 8, 1]
+
+            sage: dg = DiGraph( { 0:[3,9], 1:[0,4], 2:[0,6], 3:[1,2,7], 4:[3,8], 5:[2], 6:[3,5], 7:[4,6], 8:[7], 9:[1] } )
+            sage: ClusterQuiver( dg ).mutation_type() # long time
+            ['E', 8, [1, 1]]
+
+        - infinite types::
+
+            sage: Q = ClusterQuiver(['GR',[4,9]])
+            sage: Q._mutation_type = None
+            sage: Q.mutation_type()
+            'undetermined infinite mutation type'
+
+        - reducible types::
+            sage: Q = ClusterQuiver([['A', 3], ['B', 3]])
+            sage: Q._mutation_type = None
+            sage: Q.mutation_type()
+            [ ['A', 3], ['B', 3] ]
+
+            sage: Q = ClusterQuiver([['A', 3], ['T', [4,4,4]]])
+            sage: Q._mutation_type = None
+            sage: Q.mutation_type()
+            [['A', 3], 'undetermined infinite mutation type']
+
+            sage: Q = ClusterQuiver([['A', 3], ['B', 3], ['T', [4,4,4]]])
+            sage: Q._mutation_type = None
+            sage: Q.mutation_type()
+            [['A', 3], ['B', 3], 'undetermined infinite mutation type']
+
+            sage: Q = ClusterQuiver([[0,1,2],[1,2,2],[2,0,2],[3,4,1],[4,5,1]])
+            sage: Q.mutation_type()
+            ['undetermined finite mutation type', ['A', 3]]
+
+        TESTS::
+            sage: Q = ClusterQuiver(matrix([[0, 3], [-1, 0], [1, 0], [0, 1]]))
+            sage: Q.mutation_type()
+            ['G', 2]
+            sage: Q = ClusterQuiver(matrix([[0, -1, -1, 1, 0], [1, 0, 1, 0, 1], [1, -1, 0, -1, 0], [-1, 0, 1, 0, 1], [0, -1, 0, -1, 0], [0, 1, 0, -1, -1], [0, 1, -1, 0, 0]]))
+            sage: Q.mutation_type()
+            'undetermined infinite mutation type'
         """
+        # checking if the mutation type is known already
+        if self._mutation_type is None:
+            # checking mutation type only for the principal part
+            if self._m > 0:
+                dg = self._digraph.subgraph( range(self._n) )
+            else:
+                dg = self._digraph
+
+            # checking the type for each connected component
+            mutation_type = []
+            connected_components = dg.connected_components()
+            connected_components.sort()
+            for component in connected_components:
+                # constructing the digraph for this component
+                dg_component = dg.subgraph( component )
+                dg_component.relabel()
+                # turning dg_component into a canonical form
+                iso, orbits = _dg_canonical_form( dg_component, dg_component.num_verts(), 0 )
+                # turning dg_component into a canonical form
+                dig6 = _digraph_to_dig6( dg_component, hashable=True )
+                # and getting the corresponding matrix
+                M = _dig6_to_matrix(dig6)
+
+                # checking if this quiver is mutation infinite
+                is_finite, path = is_mutation_finite(M)
+                if is_finite is False:
+                    mut_type_part = 'undetermined infinite mutation type'
+                else:
+                    # checking if this quiver is in the database
+                    mut_type_part = _mutation_type_from_data( dg_component.order(), dig6, compute_if_necessary=False )
+                    # checking if the algorithm can determine the mutation type
+                    if mut_type_part == 'unknown':
+                        mut_type_part = _connected_mutation_type(dg_component)
+                    # checking if this quiver is of exceptional type by computing the exceptional mutation classes
+                    if mut_type_part == 'unknown':
+                        mut_type_part = _mutation_type_from_data(dg_component.order(), dig6, compute_if_necessary=True)
+                    if mut_type_part == 'unknown':
+                        mut_type_part = 'undetermined finite mutation type'
+                mutation_type.append( mut_type_part )
+
+            # the empty quiver case
+            if len( mutation_type ) == 0:
+                Warning('Quiver has no vertices')
+                mutation_type = None
+            # the connected quiver case
+            elif len( mutation_type ) == 1:
+                mutation_type = mutation_type[0]
+            # the reducible quiver case
+            elif len( mutation_type ) > 1:
+                if any( type(mut_type_part) is str for mut_type_part in mutation_type ):
+                    pass
+                else:
+                    mutation_type = QuiverMutationType( mutation_type )
+            self._mutation_type = mutation_type
         return self._mutation_type
 
     def n(self):
@@ -1067,10 +1223,16 @@ class ClusterQuiver(SageObject):
         EXAMPLES::
 
             sage: Q = ClusterQuiver(['A',(2,3),1])
+            sage: Q.mutation_type()
+            ['A', [2, 3], 1]
 
             sage: Q.reorient([(0,1),(1,2),(2,3),(3,4)])
+            sage: Q.mutation_type()
+            ['D', 5]
 
             sage: Q.reorient([0,1,2,3,4])
+            sage: Q.mutation_type()
+            ['A', [1, 4], 1]
         """
         if all( 0 <= i and i < self._n + self._m for i in data ) and len( set( data ) ) == self._n+self._m :
             dg_new = DiGraph()
@@ -1321,5 +1483,98 @@ class ClusterQuiver(SageObject):
             sage: all( len(ClusterQuiver(['B',n]).mutation_class()) == ClusterQuiver(['B',n]).mutation_type().class_size() for n in [2..6])
             True
         """
-        # runs forever without the mutation type recognition patch applied
+        if depth is infinity:
+            assert self.is_mutation_finite(), 'The mutation class can - for infinite mutation types - only be computed up to a given depth'
         return [ Q for Q in self.mutation_class_iter( depth=depth, show_depth=show_depth, return_paths=return_paths, data_type=data_type, up_to_equivalence=up_to_equivalence, sink_source=sink_source ) ]
+
+    def is_finite( self ):
+        """
+        Returns True if self is of finite type.
+
+        EXAMPLES::
+
+        sage: Q = ClusterQuiver(['A',3])
+        sage: Q.is_finite()
+        True
+        sage: Q = ClusterQuiver(['A',[2,2],1])
+        sage: Q.is_finite()
+        False
+        sage: Q = ClusterQuiver([['A',3],['B',3]])
+        sage: Q.is_finite()
+        True
+        sage: Q = ClusterQuiver(['T',[4,4,4]])
+        sage: Q.is_finite()
+        False
+        sage: Q = ClusterQuiver([['A',3],['T',[4,4,4]]])
+        sage: Q.is_finite()
+        False
+        sage: Q = ClusterQuiver([['A',3],['T',[2,2,3]]])
+        sage: Q.is_finite()
+        True
+        sage: Q = ClusterQuiver([['A',3],['D',5]])
+        sage: Q.is_finite()
+        True
+        sage: Q = ClusterQuiver([['A',3],['D',5,1]])
+        sage: Q.is_finite()
+        False
+
+        sage: Q = ClusterQuiver([[0,1,2],[1,2,2],[2,0,2]])
+        sage: Q.is_finite()
+        False
+
+        sage: Q = ClusterQuiver([[0,1,2],[1,2,2],[2,0,2],[3,4,1],[4,5,1]])
+        sage: Q.is_finite()
+        False
+        """
+        mt = self.mutation_type()
+        if type(mt) in (str, list) :
+            return False
+        else:
+            return mt.is_finite()
+
+    def is_mutation_finite( self, nr_of_checks=None, return_path=False ):
+        """
+        Uses a non-deterministic method by random mutations in various directions. Can result in a wrong answer.
+
+        INPUT:
+
+        - ``nr_of_checks`` -- (default: None) number of mutations applied. Standard is 500*(number of vertices of self).
+        - ``return_path`` -- (default: False) if True, in case of self not being mutation finite, a path from self to a quiver with an edge label (a,-b) and a*b > 4 is returned.
+
+        ALGORITHM:
+
+        A quiver is mutation infinite if and only if every edge label (a,-b) satisfy a*b > 4.
+        Thus, we apply random mutations in random directions
+
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',10])
+            sage: Q._mutation_type = None
+            sage: Q.is_mutation_finite()
+            True
+
+            sage: Q = ClusterQuiver([(0,1),(1,2),(2,3),(3,4),(4,5),(5,6),(6,7),(7,8),(2,9)])
+            sage: Q.is_mutation_finite()
+            False
+        """
+        if self._n <= 2:
+            is_finite = True
+            path = None
+        elif not return_path and self._mutation_type == 'undetermined infinite mutation type':
+            is_finite = False
+        elif type( self._mutation_type ) in [QuiverMutationType_Irreducible, QuiverMutationType_Reducible] and self._mutation_type.is_mutation_finite():
+            is_finite = True
+            path = None
+        elif not return_path and type( self._mutation_type ) in [QuiverMutationType_Irreducible, QuiverMutationType_Reducible] and not self._mutation_type.is_mutation_finite():
+            is_finite = False
+        else:
+            # turning dg_component into a canonical form
+            dig6 = _digraph_to_dig6(self.digraph())
+            # and getting the corresponding matrix
+            M = _dig6_to_matrix(dig6)
+
+            is_finite, path = is_mutation_finite(M,nr_of_checks=nr_of_checks)
+        if return_path:
+            return is_finite, path
+        else:
+            return is_finite

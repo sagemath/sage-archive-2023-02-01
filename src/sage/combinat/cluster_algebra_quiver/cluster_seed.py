@@ -374,7 +374,7 @@ class ClusterSeed(SageObject):
             x = self._R.gens()[k]
             return ClusterVariable( x.parent(), x.numerator(), x.denominator(), variable_type='cluster variable' )
         else:
-            raise ValueError, "The input is not in an index of a cluster variable."
+            raise ValueError("The input is not in an index of a cluster variable.")
 
     def y(self,k):
         r"""
@@ -397,7 +397,7 @@ class ClusterSeed(SageObject):
             x = self._R.gens()[self._n+k]
             return ClusterVariable( x.parent(), x.numerator(), x.denominator(), variable_type='frozen variable' )
         else:
-            raise ValueError, "The input is not in an index of a frozen variable."
+            raise ValueError("The input is not in an index of a frozen variable.")
 
     def mutation_type(self):
         """
@@ -834,12 +834,12 @@ class ClusterSeed(SageObject):
         if type( seq ) is tuple:
             seq = list( seq )
         if not type( seq ) is list:
-            raise ValueError, 'The quiver can only be mutated at a vertex or at a sequence of vertices'
+            raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
         if not type(inplace) is bool:
-            raise ValueError, 'The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.'
+            raise ValueError('The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.')
         if any( v not in V for v in seq ):
             v = filter( lambda v: v not in V, seq )[0]
-            raise ValueError, 'The quiver cannot be mutated at the vertex ' + str( v )
+            raise ValueError('The quiver cannot be mutated at the vertex ' + str( v ))
 
         for k in seq:
             M = seed._M
@@ -914,7 +914,7 @@ class ClusterSeed(SageObject):
         elif return_output=='var':
             return new_clust_var
         else:
-            raise ValueError, 'The parameter `return_output` can only be `seed`, `matrix`, or `var`.'
+            raise ValueError('The parameter `return_output` can only be `seed`, `matrix`, or `var`.')
 
     def exchangeable_part(self):
         r"""
@@ -1129,6 +1129,635 @@ class ClusterSeed(SageObject):
         self._quiver = None
         self._is_principal = None
 
+    def mutation_class_iter( self, depth=infinity, show_depth=False, return_paths=False, up_to_equivalence=True, only_sink_source=False ):
+        r"""
+        Returns an iterator for the mutation class of ``self`` with respect to certain constrains.
+
+        INPUT:
+
+        - ``depth`` -- (default: infinity) integer or infinity, only seeds with distance at most ``depth`` from ``self`` are returned.
+        - ``show_depth`` -- (default: False) if True, the current depth of the mutation is shown while computing.
+        - ``return_paths`` -- (default: False) if True, a shortest path of mutations from ``self`` to the given quiver is returned as well.
+        - ``up_to_equivalence`` -- (default: True) if True, only one seed up to simultaneous permutation of rows and columns of the exchange matrix is recorded.
+        - ``sink_source`` -- (default: False) if True, only mutations at sinks and sources are applied.
+
+        EXAMPLES:
+
+        A standard finite type example::
+
+            sage: S = ClusterSeed(['A',3])
+            sage: it = S.mutation_class_iter()
+            sage: for T in it: print T
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+
+        A finite type example with given depth::
+
+            sage: it = S.mutation_class_iter(depth=1)
+            sage: for T in it: print T
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+            A seed for a cluster algebra of rank 3 of type ['A', 3]
+
+        A finite type example where the depth is shown while computing::
+
+            sage: it = S.mutation_class_iter(show_depth=True)
+            sage: for T in it: pass
+            Depth: 0     found: 1          Time: ... s
+            Depth: 1     found: 4          Time: ... s
+            Depth: 2     found: 9          Time: ... s
+            Depth: 3     found: 13         Time: ... s
+            Depth: 4     found: 14         Time: ... s
+
+        A finite type example with shortest paths returned::
+
+            sage: it = S.mutation_class_iter(return_paths=True)
+            sage: for T in it: print T
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [2])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [1])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [2, 1])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0, 2])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0, 1])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [1, 2])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [1, 0])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0, 2, 1])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0, 1, 2])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [2, 1, 0])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [1, 0, 2])
+            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0, 1, 2, 0])
+
+        Finite type examples not considered up to equivalence::
+
+            sage: it = S.mutation_class_iter(up_to_equivalence=False)
+            sage: len( [ T for T in it ] )
+            84
+
+            sage: it = ClusterSeed(['A',2]).mutation_class_iter(return_paths=True,up_to_equivalence=False)
+            sage: for T in it: print T
+            (A seed for a cluster algebra of rank 2 of type ['A', 2], [])
+            (A seed for a cluster algebra of rank 2 of type ['A', 2], [1])
+            (A seed for a cluster algebra of rank 2 of type ['A', 2], [0])
+            (A seed for a cluster algebra of rank 2 of type ['A', 2], [0, 1])
+            (A seed for a cluster algebra of rank 2 of type ['A', 2], [1, 0])
+            (A seed for a cluster algebra of rank 2 of type ['A', 2], [1, 0, 1])
+            (A seed for a cluster algebra of rank 2 of type ['A', 2], [0, 1, 0])
+            (A seed for a cluster algebra of rank 2 of type ['A', 2], [1, 0, 1, 0])
+            (A seed for a cluster algebra of rank 2 of type ['A', 2], [0, 1, 0, 1])
+            (A seed for a cluster algebra of rank 2 of type ['A', 2], [1, 0, 1, 0, 1])
+
+        Infinite type examples::
+
+            sage: S = ClusterSeed(['A',[1,1],1])
+            sage: it = S.mutation_class_iter()
+            sage: it.next()
+            A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
+            sage: it.next()
+            A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
+            sage: it.next()
+            A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
+            sage: it.next()
+            A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
+
+            sage: it = S.mutation_class_iter(depth=3, return_paths=True)
+            sage: for T in it: print T
+            (A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1], [])
+            (A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1], [1])
+            (A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1], [0])
+            (A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1], [1, 0])
+            (A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1], [0, 1])
+            (A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1], [1, 0, 1])
+            (A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1], [0, 1, 0])
+        """
+        depth_counter = 0
+        n = self._n
+        timer = time.time()
+        if return_paths:
+            yield (self,[])
+        else:
+            yield self
+        if up_to_equivalence:
+            cl = Set( self._cluster )
+        else:
+            cl = tuple( self._cluster )
+        clusters = {}
+        clusters[ cl ] = [ self, range(n), [] ]
+        gets_bigger = True
+        if show_depth:
+            timer2 = time.time()
+            dc = str(depth_counter)
+            dc += ' ' * (5-len(dc))
+            nr = str(len(clusters))
+            nr += ' ' * (10-len(nr))
+            print "Depth: %s found: %s Time: %.2f s"%(dc,nr,timer2-timer)
+        while gets_bigger and depth_counter < depth:
+            gets_bigger = False
+            keys = clusters.keys()
+            for key in keys:
+                sd = clusters[key]
+                while sd[1]:
+                    i = sd[1].pop()
+                    if not only_sink_source or all( entry >= 0 for entry in sd[0]._M.row( i ) ) or all( entry <= 0 for entry in sd[0]._M.row( i ) ):
+                        sd2  = sd[0].mutate( i, inplace=False )
+                        if up_to_equivalence:
+                            cl2 = Set(sd2._cluster)
+                        else:
+                            cl2 = tuple(sd2._cluster)
+                        if cl2 in clusters:
+                            if i in clusters[cl2][1]:
+                                clusters[cl2][1].remove(i)
+                        else:
+                            gets_bigger = True
+                            if only_sink_source:
+                                orbits = range(n)
+                            else:
+                                orbits = [ index for index in xrange(n) if index > i or sd2._M[index,i] != 0 ]
+
+                            clusters[ cl2 ] = [ sd2, orbits, clusters[key][2]+[i] ]
+                            if return_paths:
+                                yield (sd2,clusters[cl2][2])
+                            else:
+                                yield sd2
+            depth_counter += 1
+            if show_depth and gets_bigger:
+                timer2 = time.time()
+                dc = str(depth_counter)
+                dc += ' ' * (5-len(dc))
+                nr = str(len(clusters))
+                nr += ' ' * (10-len(nr))
+                print "Depth: %s found: %s Time: %.2f s"%(dc,nr,timer2-timer)
+
+    def mutation_class( self, depth=infinity, show_depth=False, return_paths=False, up_to_equivalence=True, only_sink_source=False ):
+        r"""
+        Returns the mutation class of ``self`` with respect to certain constraints.
+
+        INPUT:
+
+        - ``depth`` -- (default: infinity) integer, only seeds with distance at most depth from self are returned.
+        - ``show_depth`` -- (default: False) if True, the actual depth of the mutation is shown.
+        - ``return_paths`` -- (default: False) if True, a shortest path of mutation sequences from self to the given quiver is returned as well.
+        - ``up_to_equivalence`` -- (default: True) if True, only seeds up to equivalence are considered.
+        - ``sink_source`` -- (default: False) if True, only mutations at sinks and sources are applied.
+
+        EXAMPLES:
+
+        - for examples see :meth:`mutation_class_iter`
+
+        TESTS::
+
+            sage: A = ClusterSeed(['A',3]).mutation_class()
+        """
+        # runs forever without the mutation type recognition patch applied
+        return list( S for S in self.mutation_class_iter( depth=depth, show_depth=show_depth, return_paths=return_paths, up_to_equivalence=up_to_equivalence, only_sink_source=only_sink_source ) )
+
+    def cluster_class_iter(self, depth=infinity, show_depth=False, up_to_equivalence=True):
+        r"""
+        Returns an iterator through all clusters in the mutation class of ``self``.
+
+        INPUT:
+
+        - ``depth`` -- (default: infinity) integer or infinity, only seeds with distance at most depth from self are returned
+        - ``show_depth`` -- (default False) - if True, ignored if depth is set; returns the depth of the mutation class, i.e., the maximal distance from self of an element in the mutation class
+        - ``up_to_equivalence`` -- (default: True) if True, only clusters up to equivalence are considered.
+
+        EXAMPLES:
+
+        A standard finite type example::
+
+            sage: S = ClusterSeed(['A',3])
+            sage: it = S.cluster_class_iter()
+            sage: for T in it: print T
+            [x0, x1, x2]
+            [x0, x1, (x1 + 1)/x2]
+            [x0, (x0*x2 + 1)/x1, x2]
+            [(x1 + 1)/x0, x1, x2]
+            [x0, (x0*x2 + x1 + 1)/(x1*x2), (x1 + 1)/x2]
+            [(x1 + 1)/x0, x1, (x1 + 1)/x2]
+            [(x1 + 1)/x0, (x0*x2 + x1 + 1)/(x0*x1), x2]
+            [x0, (x0*x2 + 1)/x1, (x0*x2 + x1 + 1)/(x1*x2)]
+            [(x0*x2 + x1 + 1)/(x0*x1), (x0*x2 + 1)/x1, x2]
+            [(x1 + 1)/x0, (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2), (x1 + 1)/x2]
+            [(x1 + 1)/x0, (x0*x2 + x1 + 1)/(x0*x1), (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2)]
+            [(x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2), (x0*x2 + x1 + 1)/(x1*x2), (x1 + 1)/x2]
+            [(x0*x2 + x1 + 1)/(x0*x1), (x0*x2 + 1)/x1, (x0*x2 + x1 + 1)/(x1*x2)]
+            [(x0*x2 + x1 + 1)/(x1*x2), (x0*x2 + x1 + 1)/(x0*x1), (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2)]
+
+        A finite type example with given depth::
+
+            sage: it = S.cluster_class_iter(depth=1)
+            sage: for T in it: print T
+            [x0, x1, x2]
+            [x0, x1, (x1 + 1)/x2]
+            [x0, (x0*x2 + 1)/x1, x2]
+            [(x1 + 1)/x0, x1, x2]
+
+        A finite type example where the depth is returned while computing::
+
+            sage: it = S.cluster_class_iter(show_depth=True)
+            sage: for T in it: print T
+            [x0, x1, x2]
+            Depth: 0     found: 1          Time: ... s
+            [x0, x1, (x1 + 1)/x2]
+            [x0, (x0*x2 + 1)/x1, x2]
+            [(x1 + 1)/x0, x1, x2]
+            Depth: 1     found: 4          Time: ... s
+            [x0, (x0*x2 + x1 + 1)/(x1*x2), (x1 + 1)/x2]
+            [(x1 + 1)/x0, x1, (x1 + 1)/x2]
+            [(x1 + 1)/x0, (x0*x2 + x1 + 1)/(x0*x1), x2]
+            [x0, (x0*x2 + 1)/x1, (x0*x2 + x1 + 1)/(x1*x2)]
+            [(x0*x2 + x1 + 1)/(x0*x1), (x0*x2 + 1)/x1, x2]
+            Depth: 2     found: 9          Time: ... s
+            [(x1 + 1)/x0, (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2), (x1 + 1)/x2]
+            [(x1 + 1)/x0, (x0*x2 + x1 + 1)/(x0*x1), (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2)]
+            [(x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2), (x0*x2 + x1 + 1)/(x1*x2), (x1 + 1)/x2]
+            [(x0*x2 + x1 + 1)/(x0*x1), (x0*x2 + 1)/x1, (x0*x2 + x1 + 1)/(x1*x2)]
+            Depth: 3     found: 13         Time: ... s
+            [(x0*x2 + x1 + 1)/(x1*x2), (x0*x2 + x1 + 1)/(x0*x1), (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2)]
+            Depth: 4     found: 14         Time: ... s
+
+        Finite type examples not considered up to equivalence::
+
+            sage: it = S.cluster_class_iter(up_to_equivalence=False)
+            sage: len( [ T for T in it ] )
+            84
+
+            sage: it = ClusterSeed(['A',2]).cluster_class_iter(up_to_equivalence=False)
+            sage: for T in it: print T
+            [x0, x1]
+            [x0, (x0 + 1)/x1]
+            [(x1 + 1)/x0, x1]
+            [(x1 + 1)/x0, (x0 + x1 + 1)/(x0*x1)]
+            [(x0 + x1 + 1)/(x0*x1), (x0 + 1)/x1]
+            [(x0 + x1 + 1)/(x0*x1), (x1 + 1)/x0]
+            [(x0 + 1)/x1, (x0 + x1 + 1)/(x0*x1)]
+            [x1, (x1 + 1)/x0]
+            [(x0 + 1)/x1, x0]
+            [x1, x0]
+
+        Infinite type examples::
+
+            sage: S = ClusterSeed(['A',[1,1],1])
+            sage: it = S.cluster_class_iter()
+            sage: it.next()
+            [x0, x1]
+            sage: it.next()
+            [x0, (x0^2 + 1)/x1]
+            sage: it.next()
+            [(x1^2 + 1)/x0, x1]
+            sage: it.next()
+            [(x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2), (x0^2 + 1)/x1]
+            sage: it.next()
+            [(x1^2 + 1)/x0, (x1^4 + x0^2 + 2*x1^2 + 1)/(x0^2*x1)]
+
+            sage: it = S.cluster_class_iter(depth=3)
+            sage: for T in it: print T
+            [x0, x1]
+            [x0, (x0^2 + 1)/x1]
+            [(x1^2 + 1)/x0, x1]
+            [(x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2), (x0^2 + 1)/x1]
+            [(x1^2 + 1)/x0, (x1^4 + x0^2 + 2*x1^2 + 1)/(x0^2*x1)]
+            [(x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2), (x0^6 + 3*x0^4 + 2*x0^2*x1^2 + x1^4 + 3*x0^2 + 2*x1^2 + 1)/(x0^2*x1^3)]
+            [(x1^6 + x0^4 + 2*x0^2*x1^2 + 3*x1^4 + 2*x0^2 + 3*x1^2 + 1)/(x0^3*x1^2), (x1^4 + x0^2 + 2*x1^2 + 1)/(x0^2*x1)]
+        """
+        mc_iter = self.mutation_class_iter( depth=depth, show_depth=show_depth, up_to_equivalence=up_to_equivalence )
+        for c in mc_iter:
+            yield c.cluster()
+
+    def cluster_class(self, depth=infinity, show_depth=False, up_to_equivalence=True):
+        r"""
+        Returns the cluster class of ``self`` with respect to certain constraints.
+
+        INPUT:
+
+        - ``depth`` -- (default: infinity) integer, only seeds with distance at most depth from self are returned
+        - ``return_depth`` -- (default False) - if True, ignored if depth is set; returns the depth of the mutation class, i.e., the maximal distance from self of an element in the mutation class
+        - ``up_to_equivalence`` -- (default: True) if True, only clusters up to equivalence are considered.
+
+        EXAMPLES:
+
+        - for examples see :meth:`cluster_class_iter`
+
+        TESTS::
+
+            sage: A = ClusterSeed(['A',3]).cluster_class()
+        """
+        # runs forever without the mutation type recognition patch applied
+        return [ c for c in self.cluster_class_iter(depth=depth, show_depth=show_depth, up_to_equivalence=up_to_equivalence) ]
+
+    def b_matrix_class_iter(self, depth=infinity, up_to_equivalence=True):
+        r"""
+        Returns an iterator through all `B`-matrices in the mutation class of ``self``.
+
+        INPUT:
+
+        - ``depth`` -- (default:infinity) integer or infinity, only seeds with distance at most depth from self are returned
+        - ``up_to_equivalence`` -- (default: True) if True, only 'B'-matrices up to equivalence are considered.
+
+        EXAMPLES:
+
+        A standard finite type example::
+
+            sage: S = ClusterSeed(['A',4])
+            sage: it = S.b_matrix_class_iter()
+            sage: for T in it: print T
+            [ 0  0  0  1]
+            [ 0  0  1  1]
+            [ 0 -1  0  0]
+            [-1 -1  0  0]
+            [ 0  0  0  1]
+            [ 0  0  1  0]
+            [ 0 -1  0  1]
+            [-1  0 -1  0]
+            [ 0  0  1  1]
+            [ 0  0  0 -1]
+            [-1  0  0  0]
+            [-1  1  0  0]
+            [ 0  0  0  1]
+            [ 0  0 -1  1]
+            [ 0  1  0 -1]
+            [-1 -1  1  0]
+            [ 0  0  0  1]
+            [ 0  0 -1  0]
+            [ 0  1  0 -1]
+            [-1  0  1  0]
+            [ 0  0  0 -1]
+            [ 0  0 -1  1]
+            [ 0  1  0 -1]
+            [ 1 -1  1  0]
+
+        A finite type example with given depth::
+
+            sage: it = S.b_matrix_class_iter(depth=1)
+            sage: for T in it: print T
+            [ 0  0  0  1]
+            [ 0  0  1  1]
+            [ 0 -1  0  0]
+            [-1 -1  0  0]
+            [ 0  0  0  1]
+            [ 0  0  1  0]
+            [ 0 -1  0  1]
+            [-1  0 -1  0]
+            [ 0  0  1  1]
+            [ 0  0  0 -1]
+            [-1  0  0  0]
+            [-1  1  0  0]
+
+        Finite type example not considered up to equivalence::
+
+            sage: S = ClusterSeed(['A',3])
+            sage: it = S.b_matrix_class_iter(up_to_equivalence=False)
+            sage: for T in it: print T
+            [ 0  1  0]
+            [-1  0 -1]
+            [ 0  1  0]
+            [ 0  1  0]
+            [-1  0  1]
+            [ 0 -1  0]
+            [ 0 -1  0]
+            [ 1  0  1]
+            [ 0 -1  0]
+            [ 0 -1  0]
+            [ 1  0 -1]
+            [ 0  1  0]
+            [ 0 -1  1]
+            [ 1  0 -1]
+            [-1  1  0]
+            [ 0  1 -1]
+            [-1  0  1]
+            [ 1 -1  0]
+            [ 0  0  1]
+            [ 0  0 -1]
+            [-1  1  0]
+            [ 0 -1  1]
+            [ 1  0  0]
+            [-1  0  0]
+            [ 0  0 -1]
+            [ 0  0  1]
+            [ 1 -1  0]
+            [ 0  1 -1]
+            [-1  0  0]
+            [ 1  0  0]
+            [ 0  1  1]
+            [-1  0  0]
+            [-1  0  0]
+            [ 0 -1 -1]
+            [ 1  0  0]
+            [ 1  0  0]
+            [ 0  0 -1]
+            [ 0  0 -1]
+            [ 1  1  0]
+            [ 0  0  1]
+            [ 0  0  1]
+            [-1 -1  0]
+
+        Infinite (but finite mutation) type example::
+
+            sage: S = ClusterSeed(['A',[1,2],1])
+            sage: it = S.b_matrix_class_iter()
+            sage: for T in it: print T
+            [ 0  1  1]
+            [-1  0  1]
+            [-1 -1  0]
+            [ 0 -2  1]
+            [ 2  0 -1]
+            [-1  1  0]
+
+        Infinite mutation type example::
+
+            sage: S = ClusterSeed(['E',10])
+            sage: it = S.b_matrix_class_iter(depth=3)
+            sage: len ( [T for T in it] )
+            266
+        """
+        Q = self.quiver()
+        for M in Q.mutation_class_iter( depth=depth, up_to_equivalence=up_to_equivalence, data_type='matrix' ):
+            yield M
+
+    def b_matrix_class(self, depth=infinity, up_to_equivalence=True):
+        r"""
+        Returns all `B`-matrices in the mutation class of ``self``.
+
+        INPUT:
+
+        - ``depth`` -- (default:infinity) integer or infinity, only seeds with distance at most depth from self are returned
+        - ``up_to_equivalence`` -- (default: True) if True, only 'B'-matrices up to equivalence are considered.
+
+        EXAMPLES:
+
+        - for examples see :meth:`b_matrix_class_iter`
+
+        TESTS::
+
+            sage: A = ClusterSeed(['A',3]).b_matrix_class()
+            sage: A = ClusterSeed(['A',[2,1],1]).b_matrix_class()
+        """
+        # runs forever without the mutation type recognition patch applied
+        return [ M for M in self.b_matrix_class_iter( depth=depth, up_to_equivalence=up_to_equivalence ) ]
+
+    def variable_class_iter(self, depth=infinity, ignore_bipartite_belt=False):
+        r"""
+        Returns an iterator for all cluster variables in the mutation class of ``self``.
+
+        INPUT:
+
+            - ``depth`` -- (default:infinity) integer, only seeds with distance at most depth from self are returned
+            - ``ignore_bipartite_belt`` -- (default:False) if True, the algorithms does not use the bipartite belt
+
+        EXAMPLES:
+
+        A standard finite type example::
+
+            sage: S = ClusterSeed(['A',3])
+            sage: it = S.variable_class_iter()
+            sage: for T in it: print T
+            x0
+            x1
+            x2
+            (x1 + 1)/x0
+            (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2)
+            (x1 + 1)/x2
+            (x0*x2 + x1 + 1)/(x0*x1)
+            (x0*x2 + 1)/x1
+            (x0*x2 + x1 + 1)/(x1*x2)
+
+        Finite type examples with given depth::
+
+            sage: it = S.variable_class_iter(depth=1)
+            sage: for T in it: print T
+            Found a bipartite seed - restarting the depth counter at zero and constructing the variable class using its bipartite belt.
+            x0
+            x1
+            x2
+            (x1 + 1)/x0
+            (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2)
+            (x1 + 1)/x2
+            (x0*x2 + x1 + 1)/(x0*x1)
+            (x0*x2 + 1)/x1
+            (x0*x2 + x1 + 1)/(x1*x2)
+
+        Note that the notion of *depth* depends on whether a bipartite seed is found or not, or if it is manually ignored::
+
+            sage: it = S.variable_class_iter(depth=1,ignore_bipartite_belt=True)
+            sage: for T in it: print T
+            x0
+            x1
+            x2
+            (x1 + 1)/x2
+            (x0*x2 + 1)/x1
+            (x1 + 1)/x0
+
+            sage: S.mutate([0,1])
+            sage: it2 = S.variable_class_iter(depth=1)
+            sage: for T in it2: print T
+            (x1 + 1)/x0
+            (x0*x2 + x1 + 1)/(x0*x1)
+            x2
+            (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2)
+            x1
+            (x0*x2 + 1)/x1
+
+        Infinite type examples::
+
+            sage: S = ClusterSeed(['A',[1,1],1])
+            sage: it = S.variable_class_iter(depth=2)
+            sage: for T in it: print T
+            Found a bipartite seed - restarting the depth counter at zero and constructing the variable class using its bipartite belt.
+            x0
+            x1
+            (x1^2 + 1)/x0
+            (x1^4 + x0^2 + 2*x1^2 + 1)/(x0^2*x1)
+            (x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2)
+            (x0^2 + 1)/x1
+            (x1^6 + x0^4 + 2*x0^2*x1^2 + 3*x1^4 + 2*x0^2 + 3*x1^2 + 1)/(x0^3*x1^2)
+            (x1^8 + x0^6 + 2*x0^4*x1^2 + 3*x0^2*x1^4 + 4*x1^6 + 3*x0^4 + 6*x0^2*x1^2 + 6*x1^4 + 3*x0^2 + 4*x1^2 + 1)/(x0^4*x1^3)
+            (x0^8 + 4*x0^6 + 3*x0^4*x1^2 + 2*x0^2*x1^4 + x1^6 + 6*x0^4 + 6*x0^2*x1^2 + 3*x1^4 + 4*x0^2 + 3*x1^2 + 1)/(x0^3*x1^4)
+            (x0^6 + 3*x0^4 + 2*x0^2*x1^2 + x1^4 + 3*x0^2 + 2*x1^2 + 1)/(x0^2*x1^3)
+        """
+        mut_iter = self.mutation_class_iter( depth=depth,show_depth=False )
+        var_class = set()
+
+        for seed in mut_iter:
+            if seed is self:
+                seed = ClusterSeed(seed)
+            if not ignore_bipartite_belt and seed.is_bipartite():
+                bipartition = seed.is_bipartite(return_bipartition=True)
+                bipartition = (list(bipartition[0]),list(bipartition[1]))
+                if depth is not infinity:
+                    print "Found a bipartite seed - restarting the depth counter at zero and constructing the variable class using its bipartite belt."
+                depth_counter = 0
+                end = False
+                seed2 = ClusterSeed(seed)
+                for c in seed._cluster:
+                    if c not in var_class:
+                        yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), variable_type='cluster variable' )
+                var_class = var_class.union( seed._cluster )
+
+                init_cluster = set(seed._cluster)
+                while not end and depth_counter < depth:
+                    depth_counter += 1
+                    seed.mutate(bipartition[0])
+                    seed.mutate(bipartition[1])
+                    if set(seed._cluster) in [set(seed2._cluster),init_cluster]:
+                        end = True
+                    if not end:
+                        for c in seed._cluster:
+                            if c not in var_class:
+                                yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), variable_type='cluster variable' )
+                        var_class = var_class.union( seed._cluster )
+                        seed2.mutate(bipartition[1])
+                        seed2.mutate(bipartition[0])
+                        if set(seed2._cluster) in [set(seed._cluster),init_cluster]:
+                            end = True
+                        if not end:
+                            for c in seed2._cluster:
+                                if c not in var_class:
+                                    yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), variable_type='cluster variable' )
+                            var_class = var_class.union(seed2._cluster)
+                return
+            else:
+                for c in seed._cluster:
+                    if c not in var_class:
+                        yield ClusterVariable( c.parent(), c.numerator(), c.denominator(), variable_type='cluster variable' )
+                var_class = var_class.union(seed._cluster)
+
+    def variable_class(self, depth=infinity, ignore_bipartite_belt=False):
+        r"""
+        Returns all cluster variables in the mutation class of ``self``.
+
+        INPUT:
+
+            - ``depth`` -- (default:infinity) integer, only seeds with distance at most depth from self are returned
+            - ``ignore_bipartite_belt`` -- (default:False) if True, the algorithms does not use the bipartite belt
+
+
+        EXAMPLES:
+
+        - for examples see :meth:`variable_class_iter`
+
+        TESTS::
+
+            sage: A = ClusterSeed(['A',3]).variable_class()
+        """
+        # runs forever without the mutation type recognition patch applied
+        var_iter = self.variable_class_iter( depth=depth, ignore_bipartite_belt=ignore_bipartite_belt )
+        Vs = [ var for var in var_iter ]
+        Vs.sort(cmp=cmp)
+        return Vs
+
 class ClusterVariable(FractionFieldElement):
     r"""
     This class is a thin wrapper for cluster variables in cluster seeds.
@@ -1148,6 +1777,9 @@ class ClusterVariable(FractionFieldElement):
             ...     print type(f)
             <class 'sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterVariable'>
             <class 'sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterVariable'>
+
+            sage: S.variable_class()
+            [(x0 + x1 + 1)/(x0*x1), (x1 + 1)/x0, (x0 + 1)/x1, x1, x0]
         """
         FractionFieldElement.__init__( self, parent, numerator, denominator, coerce=coerce, reduce=reduce )
         self._variable_type = variable_type

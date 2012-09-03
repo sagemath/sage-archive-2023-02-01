@@ -31,7 +31,7 @@ from sage.misc.all import cached_method
 from sage.rings.all import ZZ, CC, infinity
 from sage.graphs.all import Graph, DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
-from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form
+from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter
 from sage.groups.perm_gps.permgroup import PermutationGroup
 
 class ClusterQuiver(SageObject):
@@ -260,7 +260,7 @@ class ClusterQuiver(SageObject):
         # constructs a quiver from a matrix
         elif isinstance(data, Matrix):
             if not _principal_part(data).is_skew_symmetrizable( positive=True ):
-                raise ValueError, 'The principal part of the matrix data must be skew-symmetrizable.'
+                raise ValueError('The principal part of the matrix data must be skew-symmetrizable.')
             if frozen is not None:
                 print 'The input data is a matrix, therefore the additional parameter frozen is ignored.'
 
@@ -287,16 +287,16 @@ class ClusterQuiver(SageObject):
             dg = copy( data )
             edges = data.edges(labels=False)
             if any( (a,a) in edges for a in data.vertices() ):
-                raise ValueError, "The input DiGraph contains a loop"
+                raise ValueError("The input DiGraph contains a loop")
             if any( (b,a) in edges for (a,b) in edges ):
-                raise ValueError, "The input DiGraph contains two-cycles"
+                raise ValueError("The input DiGraph contains two-cycles")
             if not set(dg.vertices()) == set(range(n+m)):
                 dg.relabel()
             if dg.has_multiple_edges():
                 multi_edges = {}
                 for v1,v2,label in dg.multiple_edges():
                     if label not in ZZ:
-                        raise ValueError, "The input DiGraph contains multiple edges labeled by non-integers"
+                        raise ValueError("The input DiGraph contains multiple edges labeled by non-integers")
                     elif (v1,v2) in multi_edges:
                         multi_edges[(v1,v2)] += label
                     else:
@@ -305,7 +305,7 @@ class ClusterQuiver(SageObject):
                 dg.add_edges( [ (v1,v2,multi_edges[(v1,v2)]) for v1,v2 in multi_edges ] )
             for edge in dg.edge_iterator():
                 if edge[0] >= n and edge[1] >= n:
-                    raise ValueError, "The input digraph contains edges within the frozen vertices"
+                    raise ValueError("The input digraph contains edges within the frozen vertices")
                 if edge[2] is None:
                     dg.set_edge_label( edge[0], edge[1], (1,-1) )
                     edge = (edge[0],edge[1],(1,-1))
@@ -313,18 +313,18 @@ class ClusterQuiver(SageObject):
                     dg.set_edge_label( edge[0], edge[1], (edge[2],-edge[2]) )
                     edge = (edge[0],edge[1],(edge[2],-edge[2]))
                 elif type(edge[2]) == list and len(edge[2]) <> 2:
-                    raise ValueError, "The input digraph contains an edge with the wrong type of list as a label."
+                    raise ValueError("The input digraph contains an edge with the wrong type of list as a label.")
                 elif type(edge[2]) == list and len(edge[2]) == 2:
                     dg.set_edge_label( edge[0], edge[1], (edge[2][0], edge[2][1]))
                     edge = (edge[0],edge[1],(edge[2][0],edge[2][1]))
                 elif ( edge[0] >= n or edge[1] >= n ) and not edge[2][0] == - edge[2][1]:
-                    raise ValueError, "The input digraph contains an edge to or from a frozen vertex which is not skew-symmetric."
+                    raise ValueError("The input digraph contains an edge to or from a frozen vertex which is not skew-symmetric.")
                 if edge[2][0] < 0:
-                    raise ValueError, "The input digraph contains an edge of the form (a,-b) with negative a."
+                    raise ValueError("The input digraph contains an edge of the form (a,-b) with negative a.")
 
             M = _edge_list_to_matrix( dg.edge_iterator(), n, m )
             if not _principal_part(M).is_skew_symmetrizable( positive=True ):
-                raise ValueError, "The input digraph must be skew-symmetrizable"
+                raise ValueError("The input digraph must be skew-symmetrizable")
             self._digraph = dg
             self._M = M
             if n+m == 0:
@@ -343,7 +343,7 @@ class ClusterQuiver(SageObject):
 
         # otherwise, an error is raised
         else:
-            raise ValueError, "The input data was not recognized."
+            raise ValueError("The input data was not recognized.")
 
     def __eq__(self, other):
         """
@@ -446,7 +446,7 @@ class ClusterQuiver(SageObject):
             elif mark > n:
                 partition = (range(n),range(n,mark)+range(mark+1,n+m),[mark])
             else:
-                raise ValueError, "The given mark is not a vertex of self."
+                raise ValueError("The given mark is not a vertex of self.")
         else:
             partition = (range(n),range(n,n+m),[])
         vertex_color_dict = {}
@@ -965,12 +965,12 @@ class ClusterQuiver(SageObject):
         if type( seq ) is tuple:
             seq = list( seq )
         if not type( seq ) is list:
-            raise ValueError, 'The quiver can only be mutated at a vertex or at a sequence of vertices'
+            raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
         if not type(inplace) is bool:
-            raise ValueError, 'The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.'
+            raise ValueError('The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.')
         if any( v not in V for v in seq ):
             v = filter( lambda v: v not in V, seq )[0]
-            raise ValueError, 'The quiver cannot be mutated at the vertex ' + str( v )
+            raise ValueError('The quiver cannot be mutated at the vertex %s'%v)
 
         for v in seq:
             dg = _digraph_mutate( dg, v, n, m )
@@ -1021,10 +1021,10 @@ class ClusterQuiver(SageObject):
         if type( sequence ) is tuple:
             sequence = list( sequence )
         if not type( sequence ) is list:
-            raise ValueError, 'The quiver can only be mutated at a vertex or at a sequence of vertices'
+            raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
         if any( v not in V for v in sequence ):
             v = filter( lambda v: v not in V, sequence )[0]
-            raise ValueError, 'The quiver can only be mutated at the vertex ' + str( v )
+            raise ValueError('The quiver can only be mutated at the vertex %s'%v )
 
         quiver = copy( self )
         quiver_sequence = []
@@ -1092,4 +1092,234 @@ class ClusterQuiver(SageObject):
             self._M = _edge_list_to_matrix( self._digraph.edges(), self._n, self._m )
             self._mutation_type = None
         else:
-            raise ValueError, 'The order is no total order on the vertices of the quiver or a list of edges to be oriented.'
+            raise ValueError('The order is no total order on the vertices of the quiver or a list of edges to be oriented.')
+
+    def mutation_class_iter( self, depth=infinity, show_depth=False, return_paths=False, data_type="quiver", up_to_equivalence=True, sink_source=False ):
+        """
+        Returns an iterator for the mutation class of self together with certain constrains.
+
+        INPUT:
+
+        - ``depth`` -- (default: infinity) integer, only quivers with distance at most depth from self are returned.
+        - ``show_depth`` -- (default: False) if True, the actual depth of the mutation is shown.
+        - ``return_paths`` -- (default: False) if True, a shortest path of mutation sequences from self to the given quiver is returned as well.
+        - ``data_type`` -- (default: "quiver") can be one of the following::
+
+            * "quiver"
+            * "matrix"
+            * "digraph"
+            * "dig6"
+            * "path"
+
+        - ``up_to_equivalence`` -- (default: True) if True, only one quiver for each graph-isomorphism class is recorded.
+        - ``sink_source`` -- (default: False) if True, only mutations at sinks and sources are applied.
+
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',3])
+            sage: it = Q.mutation_class_iter()
+            sage: for T in it: print T
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+
+            sage: it = Q.mutation_class_iter(depth=1)
+            sage: for T in it: print T
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+
+            sage: it = Q.mutation_class_iter(show_depth=True)
+            sage: for T in it: pass
+            Depth: 0     found: 1          Time: ... s
+            Depth: 1     found: 3          Time: ... s
+            Depth: 2     found: 4          Time: ... s
+
+            sage: it = Q.mutation_class_iter(return_paths=True)
+            sage: for T in it: print T
+            (Quiver on 3 vertices of type ['A', 3], [])
+            (Quiver on 3 vertices of type ['A', 3], [1])
+            (Quiver on 3 vertices of type ['A', 3], [0])
+            (Quiver on 3 vertices of type ['A', 3], [0, 1])
+
+            sage: it = Q.mutation_class_iter(up_to_equivalence=False)
+            sage: for T in it: print T
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+
+            sage: it = Q.mutation_class_iter(return_paths=True,up_to_equivalence=False)
+            sage: for T in it: print T
+            (Quiver on 3 vertices of type ['A', 3], [])
+            (Quiver on 3 vertices of type ['A', 3], [2])
+            (Quiver on 3 vertices of type ['A', 3], [1])
+            (Quiver on 3 vertices of type ['A', 3], [0])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1])
+            (Quiver on 3 vertices of type ['A', 3], [0, 1])
+            (Quiver on 3 vertices of type ['A', 3], [0, 1, 2])
+            (Quiver on 3 vertices of type ['A', 3], [0, 1, 0])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 2])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 1])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 1])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 0])
+
+            sage: Q = ClusterQuiver(['A',3])
+            sage: it = Q.mutation_class_iter(data_type='path')
+            sage: for T in it: print T
+            []
+            [1]
+            [0]
+            [0, 1]
+
+            sage: Q = ClusterQuiver(['A',3])
+            sage: it = Q.mutation_class_iter(return_paths=True,data_type='matrix')
+            sage: it.next()
+            (
+            [ 0  0  1]
+            [ 0  0  1]
+            [-1 -1  0], []
+            )
+
+        """
+        if data_type == 'path':
+            return_paths = False
+        if data_type == "dig6":
+            return_dig6 = True
+        else:
+            return_dig6 = False
+        dg = DiGraph( self._digraph )
+        MC_iter = _mutation_class_iter( dg, self._n, self._m, depth=depth, return_dig6=return_dig6, show_depth=show_depth, up_to_equivalence=up_to_equivalence, sink_source=sink_source )
+        for data in MC_iter:
+            if data_type == "quiver":
+                next_element = ClusterQuiver( data[0], frozen=self._m )
+                next_element._mutation_type = self._mutation_type
+            elif data_type == "matrix":
+                next_element = ClusterQuiver( data[0], frozen=self._m )._M
+            elif data_type == "digraph":
+                next_element = data[0]
+            elif data_type == "dig6":
+                next_element =  data[0]
+            elif data_type == "path":
+                next_element =  data[1]
+            else:
+                raise ValueError("The parameter for data_type was not recognized.")
+            if return_paths:
+                yield ( next_element, data[1] )
+            else:
+                yield next_element
+
+    def mutation_class( self, depth=infinity, show_depth=False, return_paths=False, data_type="quiver", up_to_equivalence=True, sink_source=False ):
+        """
+        Returns the mutation class of self together with certain constrains.
+
+        INPUT:
+
+        - ``depth`` -- (default: infinity) integer, only seeds with distance at most depth from self are returned.
+        - ``show_depth`` -- (default: False) if True, the actual depth of the mutation is shown.
+        - ``return_paths`` -- (default: False) if True, a shortest path of mutation sequences from self to the given quiver is returned as well.
+        - ``data_type`` -- (default: "quiver") can be one of the following::
+
+            * "quiver" -- the quiver is returned
+            * "dig6" -- the dig6-data is returned
+            * "path" -- shortest paths of mutation sequences from self are returned
+
+        - ``sink_source`` -- (default: False) if True, only mutations at sinks and sources are applied.
+
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',3])
+            sage: Ts = Q.mutation_class()
+            sage: for T in Ts: print T
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+
+            sage: Ts = Q.mutation_class(depth=1)
+            sage: for T in Ts: print T
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+
+            sage: Ts = Q.mutation_class(show_depth=True)
+            Depth: 0     found: 1          Time: ... s
+            Depth: 1     found: 3          Time: ... s
+            Depth: 2     found: 4          Time: ... s
+
+            sage: Ts = Q.mutation_class(return_paths=True)
+            sage: for T in Ts: print T
+            (Quiver on 3 vertices of type ['A', 3], [])
+            (Quiver on 3 vertices of type ['A', 3], [1])
+            (Quiver on 3 vertices of type ['A', 3], [0])
+            (Quiver on 3 vertices of type ['A', 3], [0, 1])
+
+            sage: Ts = Q.mutation_class(up_to_equivalence=False)
+            sage: for T in Ts: print T
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+            Quiver on 3 vertices of type ['A', 3]
+
+            sage: Ts = Q.mutation_class(return_paths=True,up_to_equivalence=False)
+            sage: for T in Ts: print T
+            (Quiver on 3 vertices of type ['A', 3], [])
+            (Quiver on 3 vertices of type ['A', 3], [2])
+            (Quiver on 3 vertices of type ['A', 3], [1])
+            (Quiver on 3 vertices of type ['A', 3], [0])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1])
+            (Quiver on 3 vertices of type ['A', 3], [0, 1])
+            (Quiver on 3 vertices of type ['A', 3], [0, 1, 2])
+            (Quiver on 3 vertices of type ['A', 3], [0, 1, 0])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 2])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 1])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 1])
+            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 0])
+
+            sage: Ts = Q.mutation_class(show_depth=True)
+            Depth: 0     found: 1          Time: ... s
+            Depth: 1     found: 3          Time: ... s
+            Depth: 2     found: 4          Time: ... s
+
+            sage: Ts = Q.mutation_class(show_depth=True, up_to_equivalence=False)
+            Depth: 0     found: 1          Time: ... s
+            Depth: 1     found: 4          Time: ... s
+            Depth: 2     found: 6          Time: ... s
+            Depth: 3     found: 10        Time: ... s
+            Depth: 4     found: 14        Time: ... s
+
+        TESTS::
+
+            sage: all( len(ClusterQuiver(['A',n]).mutation_class()) == ClusterQuiver(['A',n]).mutation_type().class_size() for n in [2..6])
+            True
+
+            sage: all( len(ClusterQuiver(['B',n]).mutation_class()) == ClusterQuiver(['B',n]).mutation_type().class_size() for n in [2..6])
+            True
+        """
+        # runs forever without the mutation type recognition patch applied
+        return [ Q for Q in self.mutation_class_iter( depth=depth, show_depth=show_depth, return_paths=return_paths, data_type=data_type, up_to_equivalence=up_to_equivalence, sink_source=sink_source ) ]

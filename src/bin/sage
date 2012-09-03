@@ -1118,9 +1118,8 @@ fi
 
 if [ $# -ge 1 ]; then
    T=`echo "$1" | sed -e "s/.*\.//"`
-   if [ "$T " = "spkg " ]; then
-       install "" "$@"
-       exit $?
+   if [ "$T" = "spkg" ]; then
+       install "$@"
    fi
    cd "$SAGE_LOCAL/bin/"
    SAGE_BANNER="no"

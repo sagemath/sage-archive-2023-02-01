@@ -382,6 +382,9 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
       of the path (using 0 will swap headpoint and tailpoint).  This is ignored
       in 3D plotting.
 
+    - ``linestyle`` - The style of the line, which is one of 'dashed',
+      'dotted', 'solid', 'dashdot'.
+
     - ``width`` - (default: 2) the width of the arrow shaft, in points
 
     - ``color`` - (default: (0,0,1)) the color of the arrow (as an RGB tuple or a string)
@@ -412,6 +415,10 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
     You can change the width of an arrow::
 
         sage: arrow2d((1, 1), (3, 3), width=5, arrowsize=15)
+
+    Use a dashed line instead of a solid one for the arrow::
+
+        sage: arrow2d((1, 1), (3, 3), linestyle='dashed')
 
     A pretty circle of arrows::
 

@@ -271,8 +271,7 @@ $(INST)/$(SYMPOW): $(BASE) $(INST)/$(PATCH)
 $(INST)/$(SYMMETRICA): $(BASE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(SYMMETRICA) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMMETRICA).log"
 
-# GAP requires Sage so that gap_reset_workspace works:
-$(INST)/$(GAP): $(BASE) $(INST)/$(READLINE) $(INST)/$(SAGE) $(INST)/$(PATCH)
+$(INST)/$(GAP): $(BASE) $(INST)/$(TERMCAP) $(INST)/$(READLINE) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(GAP) 2>&1" "tee -a $(SAGE_LOGS)/$(GAP).log"
 
 $(INST)/$(IPYTHON): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)

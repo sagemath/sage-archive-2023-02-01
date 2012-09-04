@@ -61,7 +61,7 @@ if [ -d "$SAGE_ROOT/devel/sagenb-main" ]; then
     mv "$SAGE_ROOT/devel/sagenb-main" "$SAGE_ROOT/devel/sagenb-main-old" ||
         die "Error moving the old 'sagenb-main' directory."
 fi
-tar xf "$CUR/src/$BASENAME.tar.gz"
+tar xzf "$CUR/src/$BASENAME.tar.gz" || die "Error: cannot extract $BASENAME.tar.gz"
 mv $BASENAME sagenb-main
 rm -f "$SAGE_ROOT/devel/sagenb"
 ln -s sagenb-main "$SAGE_ROOT/devel/sagenb"

@@ -15,17 +15,20 @@ INST = installed
 SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
 PIPE = $(SAGE_ROOT)/spkg/pipestatus
 
-###############################################################################
-# The base system; required in order to run sage-spkg
-###############################################################################
-BASE = $(INST)/$(PREREQ) $(INST)/$(BZIP2)
+# Tell make not to look for files with these names:
+.PHONY: all all-sage base toolchain
 
-# Tell make not to look for files with these (base)names:
-.PHONY: all base scripts toolchain
+# Make the 3 build phases: base, toolchain, all-sage
+# During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
+# such that packages can do different things when they are built
+# as prerequisite of GCC.
+all:
+	$(MAKE) base
+	env SAGE_BUILD_TOOLCHAIN=yes $(MAKE) toolchain
+	$(MAKE) all-sage
 
-# Targets
-all: \
-     $(INST)/$(SAGE_SCRIPTS) \
+# All targets except for the base packages
+all-sage: \
      $(INST)/$(ATLAS) \
      $(INST)/$(BLAS) \
      $(INST)/$(BOEHM_GC) \
@@ -81,7 +84,6 @@ all: \
      $(INST)/$(NUMPY) \
      $(INST)/$(PALP) \
      $(INST)/$(PARI) \
- \
      $(INST)/$(PEXPECT) \
      $(INST)/$(PIL) \
      $(INST)/$(POLYBORI) \
@@ -97,6 +99,7 @@ all: \
      $(INST)/$(READLINE) \
      $(INST)/$(RUBIKS) \
      $(INST)/$(SAGE) \
+     $(INST)/$(SAGE_SCRIPTS) \
      $(INST)/$(SAGE_ROOT_REPO) \
      $(INST)/$(SAGENB) \
      $(INST)/$(SAGETEX) \
@@ -116,10 +119,7 @@ all: \
      $(INST)/$(ZNPOLY) \
      $(INST)/$(ZODB)
 
-base:
-
-scripts: $(INST)/$(SAGE_SCRIPTS) # depends on
-
+# TOOLCHAIN consists of dependencies determined by spkg/install
 toolchain: $(TOOLCHAIN)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
@@ -129,20 +129,30 @@ SAGERUNTIME = $(INST)/$(SAGE_SCRIPTS) $(INST)/$(SAGE) $(INST)/$(SAGENB) \
 
 ###############################################################################
 # Building the base system
+#
+# This consists of packages which are required for the Sage build system
+# but not for Sage itself.  Since nothing explicitly depends on these,
+# an update of these packages will not trigger a rebuild of every other
+# package during an upgrade, see #13415.
 ###############################################################################
+base: $(INST)/$(PREREQ) $(INST)/$(BZIP2) $(INST)/$(PATCH)
+
 $(INST)/$(PREREQ):
 	$(PIPE) "base/$(PREREQ)-install 2>&1" "tee -a $(SAGE_LOGS)/$(PREREQ).log"
 
 # If we are upgrading from a version 4.x of Sage, don't build bzip2.
 # This is because the old sage-spkg script cannot install the new bzip2
 # spkg (which is gzip compressed).  We continue using the old bzip2
-# installation, which is fine.
+# installation (which is version 1.0.5 since sage-3.3), which is fine.
 $(INST)/$(BZIP2): $(INST)/$(PREREQ)
 	+if [ -f "$(SAGE_ROOT)/spkg/bin/sage-spkg" ] ; then \
 	    $(PIPE) "$(SAGE_SPKG) $(BZIP2) 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"; \
 	else \
 	    touch "$@"; \
 	fi
+
+$(INST)/$(PATCH): $(INST)/$(BZIP2)
+	+$(PIPE) "$(SAGE_SPKG) $(PATCH) 2>&1" "tee -a $(SAGE_LOGS)/$(PATCH).log"
 
 ###############################################################################
 # Building normal packages
@@ -190,13 +200,14 @@ $(INST)/$(GRAPHS): $(INST)/$(SAGE_ROOT_REPO)
 $(INST)/$(GLPK): $(INST)/$(MPIR) $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GLPK) 2>&1" "tee -a $(SAGE_LOGS)/$(GLPK).log"
 
+# Python links against -lbz2.  Technically speaking, we should add
+# BZIP2 as dependency here.  But we don't do that to avoid needless
+# recompiles of Python when upgrading.  Since bzip2 is part of the
+# "base" target, we are guaranteed anyway that some version of bzip2
+# is present.
 $(INST)/$(PYTHON): $(INST)/$(ZLIB) \
-		   $(INST)/$(READLINE) $(INST)/$(SQLITE) \
-		   $(INST)/$(LIBPNG)
+		   $(INST)/$(READLINE) $(INST)/$(SQLITE) $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(PYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(PYTHON).log"
-
-:
-	+$(PIPE) "$(SAGE_SPKG) $(PATCH) 2>&1" "tee -a $(SAGE_LOGS)/$(PATCH).log"
 
 $(INST)/$(MPIR): $(INST)/$(ICONV)
 	+$(PIPE) "$(SAGE_SPKG) $(MPIR) 2>&1" "tee -a $(SAGE_LOGS)/$(MPIR).log"
@@ -210,8 +221,7 @@ $(INST)/$(NTL): $(INST)/$(MPIR)
 $(INST)/$(FPLLL): $(INST)/$(MPIR) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(FPLLL) 2>&1" "tee -a $(SAGE_LOGS)/$(FPLLL).log"
 
-$(INST)/$(PARI): $(INST)/$(READLINE) \
-		 $(INST)/$(MPIR)
+$(INST)/$(PARI): $(INST)/$(READLINE) $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(PARI) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI).log"
 
 $(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(SCONS) \
@@ -365,8 +375,7 @@ $(INST)/$(ECM): $(INST)/$(MPIR)
 $(INST)/$(RATPOINTS): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(RATPOINTS) 2>&1" "tee -a $(SAGE_LOGS)/$(RATPOINTS).log"
 
-$(INST)/$(ECL): $(INST)/$(MPIR) \
-		$(INST)/$(READLINE) $(INST)/$(BOEHM_GC)
+$(INST)/$(ECL): $(INST)/$(MPIR) $(INST)/$(READLINE) $(INST)/$(BOEHM_GC)
 	+$(PIPE) "$(SAGE_SPKG) $(ECL) 2>&1" "tee -a $(SAGE_LOGS)/$(ECL).log"
 
 $(INST)/$(MAXIMA): $(INST)/$(ECL)
@@ -435,12 +444,10 @@ $(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 $(INST)/$(ZODB): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(ZODB) 2>&1" "tee -a $(SAGE_LOGS)/$(ZODB).log"
 
-########################################################################
 # List all *build-time* dependencies of the Sage library.  These are,
 # on the one hand, programs needed for the build/install process of the
 # Sage library (e.g. SAGE_SCRIPTS, SCONS, MERCURIAL, JINJA2), and on the
 # other hand all dependencies for Cython files (e.g. PARI, NTL, MPIR).
-########################################################################
 $(INST)/$(SAGE): \
 		 $(INST)/$(ATLAS) \
 		 $(INST)/$(CEPHES) \
@@ -483,23 +490,12 @@ $(INST)/$(SAGE): \
 		 $(INST)/$(ZNPOLY)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGE) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE).log"
 
-# Rather than making *all* standard packages depend on SAGE_SCRIPTS (which
-# triggers the rebuild of *every* package on an upgrade), add SAGE_SCRIPTS
-# to the dependencies of only those packages that rely on them.
-# These are (as of Sage 4.7.2):
-# - The Sage library, $(SAGE)
-# - sagetex, but this in turn depends on $(SAGE)
-#
 # Because of ticket #11073 (remove the base repo), merged in sage-5.0,
 # a version 5.x scripts repo does not work together with a version 4.x
 # root repo.  When upgrading, we must therefore install the new root
 # repo before the scripts repo.
 $(INST)/$(SAGE_SCRIPTS): $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGE_SCRIPTS) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_SCRIPTS).log"
-
-###############################################################################
-# Further receipts for normal packages:
-###############################################################################
 
 $(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
                 $(INST)/$(ZLIB)
@@ -521,8 +517,7 @@ $(INST)/$(NUMPY): $(INST)/$(PYTHON) \
 		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(NUMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(NUMPY).log"
 
-$(INST)/$(SCIPY): \
-		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY)
+$(INST)/$(SCIPY): $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY)
 	+$(PIPE) "$(SAGE_SPKG) $(SCIPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SCIPY).log"
 
 # matplotlib is needed to test cvxopt (i.e., if SAGE_CHECK=yes). See #12742.

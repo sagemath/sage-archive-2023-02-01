@@ -440,6 +440,9 @@ EOF
 # $(TOOLCHAIN) variable containing prerequisites for the build
 if [ "$need_to_install_gcc" = yes ]; then
     echo >&3 'TOOLCHAIN=$(INST)/$(GCC)'
+    # Use this option for the prereq configure script, such that it
+    # will skip all compiler checks.
+    export PREREQ_OPTIONS="--disable-compiler-checks $PREREQ_OPTIONS"
 else
     echo >&3 'TOOLCHAIN='
 fi
@@ -477,7 +480,7 @@ fi
 #   which doesn't check MAKEFLAGS.
 #   See Trac #12248 and also #12016.
 if [ -f "$SAGE_ROOT/spkg/bin/sage-spkg" ]; then
-    if $MAKE -q $1; then
+    if $MAKE -q "$@"; then
         echo "Nothing to (re)build / all up-to-date."
         exit 0
     fi
@@ -491,11 +494,7 @@ echo "***********************************************"
 ###############################################################################
 # NOW do the actual build:
 ###############################################################################
-# Build "toolchain" before everything else.
-# During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes such
-# that packages can do different things when they are built as
-# prerequisite of GCC.
-time { env SAGE_BUILD_TOOLCHAIN=yes $MAKE toolchain && $MAKE $1 ; }
+time $MAKE "$@"
 if [ $? -ne 0 ]; then
     echo >&2 "Error building Sage."
     exit 1

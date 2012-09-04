@@ -137,11 +137,6 @@ if [ -f "$prereq_tarball" ]; then
         exit 1
     fi
 
-    # If we are installing GCC, skip all compiler checks in ./configure
-    if [ "x$SAGE_BUILD_TOOLCHAIN" = xyes ]; then
-        PREREQ_OPTIONS="--disable-compiler-checks $PREREQ_OPTIONS"
-    fi
-
     # A reasonably sophisticated test is performed in a configure
     # script, which checks compilers exist, their version numbers,
     # the fact GNU and non-GNU compilers are not mixed etc.

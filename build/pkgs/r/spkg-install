@@ -18,7 +18,6 @@ if [ "$UNAME" = "Darwin" ]; then
    cp patches/javac "$SAGE_LOCAL"/bin
 fi
 
-CUR=`pwd`
 
 # set CPPFLAGS so that Sage's readline & iconv are picked up
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"; export CPPFLAGS
@@ -145,32 +144,8 @@ fi
 #    exit 1
 #fi
 
-cd "$CUR"
-
-
-RPY_VER=rpy2-2.0.8
-
-echo "Now installing the contained Rpy ($RPY_VER) spkg..."
-
-# TODO: Rpy should get removed from this spkg (#9906)
-
-# Avoid trouble with pipestatus and spaces in the spkg's pathname:
-export RPY_PKG=$CUR/$RPY_VER.spkg
-
-# sage-spkg is in the PATH (but not pipestatus):
-"$SAGE_ROOT/spkg/pipestatus" \
-    "sage-spkg -f '$RPY_PKG' 2>&1" \
-    "tee -a '$SAGE_ROOT/spkg/logs/'$RPY_VER.log"
-
-if [ $? -ne 0 ] || [ ! -f "$SAGE_ROOT"/spkg/installed/"$RPY_VER" ]; then
-    echo "Error installing Rpy, which is part of the R spkg."
-    exit 1
-fi
-
 if [ "$UNAME" = "Darwin" ]; then
-    echo "Copying fake java and javac compiler on OSX"
+    echo "Removing fake java and javac compiler"
     rm -f "$SAGE_LOCAL"/bin/java
     rm -f "$SAGE_LOCAL"/bin/javac
 fi
-
-

@@ -1,11 +1,17 @@
 = R =
 
 == Description ==
- * website: http://www.r-project.org/
- * From the "Introdution to R" from the above website: R is a language and environment for statistical computing and graphics. It is a GNU project which is similar to the S language and environment which was developed at Bell Laboratories (formerly AT&T, now Lucent Technologies) by John Chambers and colleagues. R can be considered as a different implementation of S. There are some important differences, but much code written for S runs unaltered under R.
+R is a language and environment for statistical computing and graphics.
+It is a GNU project which is similar to the S language and environment
+which was developed at Bell Laboratories (formerly AT&T, now Lucent
+Technologies) by John Chambers and colleagues. R can be considered as a
+different implementation of S. There are some important differences, but
+much code written for S runs unaltered under R.
+
+(taken from http://www.r-project.org/)
 
 == License ==
- * GPL 2 (2.10.1 release)
+ * GPL 2 (2.14.0 release)
 
 == SPKG Maintainers ==
 
@@ -23,9 +29,6 @@
  * ATLAS
 
 == Special Update/Build Instructions ==
- * TODO: Remove the contained Rpy spkg and ship (and maintain)
-   it separately, for many reasons. (#9906 addresses this.)
-
  * Patches:
    - configure.patch: Use -### instead of -v to detect linker options.
      See Sage ticket #12787 and upstream ticket
@@ -38,7 +41,10 @@
 
 == Changelog ==
 
-=== r-2.14.0.p4 (Jeroen Demeyer, 4 September 2012 ===
+=== r-2.14.0.p5 (Jeroen Demeyer, 4 September 2012) ===
+ * #9906: separate the rpy2 spkg.
+
+=== r-2.14.0.p4 (Jeroen Demeyer, 4 September 2012) ===
  * #13428: add patch install_parallel.patch
 
 === r-2.14.0.p3 (Jeroen Demeyer, 30 March 2012) ===

@@ -33,8 +33,13 @@
      The corresponding patch to m4/clibs.m4 is not included, as
      autoconf-2.68 gives errors, even on the clean upstream sources.
    - R.sh.in: Set R_HOME_DIR to "${SAGE_LOCAL}/lib/R/" when running R.
+   - install_parallel.patch: fix parallel installation, see
+     https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=15041
 
 == Changelog ==
+
+=== r-2.14.0.p4 (Jeroen Demeyer, 4 September 2012 ===
+ * #13428: add patch install_parallel.patch
 
 === r-2.14.0.p3 (Jeroen Demeyer, 30 March 2012) ===
  * #12787: use -### instead of -v to detect linker options

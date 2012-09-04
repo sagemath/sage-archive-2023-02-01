@@ -1,0 +1,12 @@
+diff -ru R-2.15.1/src/include/Makefile.in R-2.15.1-fixed/src/include/Makefile.in
+--- R-2.15.1/src/include/Makefile.in	2011-02-27 00:05:04.000000000 +0100
++++ R-2.15.1-fixed/src/include/Makefile.in	2012-09-04 11:30:54.004362821 +0200
+@@ -93,7 +93,7 @@
+ 	done
+ installdirs:
+ 	@$(MKINSTALLDIRS) "$(DESTDIR)$(rincludedir)@R_ARCH@"
+-install-intl-yes:
++install-intl-yes: installdirs
+ 	@$(INSTALL_DATA) libintl.h "$(DESTDIR)$(rincludedir)@R_ARCH@"
+ install-intl-no:
+ 

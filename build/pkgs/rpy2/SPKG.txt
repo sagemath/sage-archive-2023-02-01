@@ -1,8 +1,11 @@
 = rpy2 =
 
 == Description ==
- * website: http://rpy.sourceforge.net/rpy2.html
- * From "About" from the above website: rpy2 is a redesign and rewrite of rpy. It is providing a low-level interface to R, a proposed high-level interface, including wrappers to graphical libraries, as well as R-like structures and functions.
+rpy2 is a redesign and rewrite of rpy. It is providing a low-level
+interface to R, a proposed high-level interface, including wrappers to
+graphical libraries, as well as R-like structures and functions.
+
+Website: http://rpy.sourceforge.net/rpy2.html
 
 == License ==
  * GPL 2+
@@ -20,6 +23,9 @@
  * does this need to be reported upstream, or is it Sage-specific?
 
 == Changelog ==
+
+=== rpy2-2.0.8.p0 (Jeroen Demeyer, 4 September 2012) ===
+ * Trac #9906: use standard template for spkg-install
 
 === rpy2-2.0.8 (Karl-Dieter Crisman, December 23, 2009) ===
  * upgrade

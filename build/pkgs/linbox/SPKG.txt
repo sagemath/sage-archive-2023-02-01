@@ -7,35 +7,52 @@ high-performance linear algebra computation with dense, sparse, and
 structured matrices over the integers and over finite fields.
 
 == License ==
+
 LGPL V2 or later
 
 == Maintainers ==
+
  * Clement Pernet
  * William Stein
 
 == Upstream Contact ==
- * Clement Pernet
- * The Google groups linbox-devel and linbox-use
+
+ * <linbox-devel@googlegroups.com>
+ * <linbox-use@googlegroups.com>
+
+== SPKG Repository ==
+
+ https://bitbucket.org/malb/linbox-spkg
 
 == Dependencies ==
+
  * GNU patch
  * GMP/MPIR
+ * MPFR
  * NTL
+ * fpLLL
+ * IML
+ * M4RI
+ * M4RIE
  * Givaro
+ * FFLAS/FFPACK
+ * ATLAS (non-OSX)/The Accelerate FrameWork (on OSX)
  * ATLAS (non-MacOS X) / The Accelerate FrameWork (on MacOS X), or GSL's CBLAS
 
 == Special Update/Build Instructions ==
- * Make sure the patches still apply.
-   (They are currently quite self-explanatory; `bit-vector.inl.patch` fixes a
-    scoping error, `gf2.inl.patch` an automatic type conversion error, both
-    needed to make the test suite build, at least with newer versions of GCC.)
- * TODO:
-   - Check whether `make fullcheck` works/builds, is worth running, and doesn't
-     take ages.  (Version 1.1.6 doesn't seem to have such a target.)
-   - If upstream doesn't, or hasn't yet, perhaps make the sources comply with
-     C++11, submit a patch to upstream, and remove the GCC 4.7.x work-around.
+
+TODO:
+  - spkg-check is disabled for now, should work in the next release
+    after 1.3.2.
+  - Check whether `make fullcheck` works/builds, is worth running, and doesn't
+    take ages.  (Version 1.1.6 doesn't seem to have such a target.)
 
 == Changelog ==
+
+=== linbox-1.3.2 (Martin Albrecht, Volker Braun, 15 August 2012) ===
+ * Trac: 12883: New upstream release
+ * split off fflas/ffpack SPKG
+ * The whole -fpermissive stuff isn't required any more
 
 === linbox-1.1.6.p11 (Jeroen Demeyer, 19 June 2012) ===
  * #13118: Don't look at compiler versions, just use the -fpermissive

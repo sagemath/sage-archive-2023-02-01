@@ -12,9 +12,8 @@ cd src/
 # Apply patches (if any):
 ###############################################################################
 
-echo "Applying patches (if any) to upstream source..."
+ls ../patches/*.patch &>/dev/null && \
 for patch in ../patches/*.patch; do
-    basename "$patch"
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'."
@@ -25,20 +24,16 @@ done
 ###############################################################################
 # Set up environment variables:
 ###############################################################################
+LD_CBLAS=`cat $SAGE_LOCAL/share/cblas_config`
+LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib $LD_CBLAS"
 
-CFLAGS="-g $CFLAGS -fPIC"
-CXXFLAGS="-g $CXXFLAGS -fPIC"
-
-# Add -fpermissive flag if the C++ compiler supports it.
-# This is needed to make LinBox build with GCC 4.7.x, because it
-# doesn't fully conform to the C++11 standard.
-# On older GCC versions, it doesn't hurt.
-CXXFLAGS="`CC=$CXX testcflags.sh -fpermissive` $CXXFLAGS"
+export CFLAGS="$CFLAGS -g -fPIC"
+export CXXFLAGS="$CXXFLAGS -g -fPIC"
 
 # Some systems have problems when parts of LinBox are compiled with
 # the commentator enabled and other parts with the commentator
-# disabled.  Therefore, disable it always:
-CPPFLAGS="$CPPFLAGS -DDISABLE_COMMENTATOR"
+# disabled.  Therefore, disable it always.
+export CPPFLAGS="$CPPFLAGS -DDISABLE_COMMENTATOR"
 
 if [ "$SAGE64" = yes ]; then
     echo "Building a 64-bit version of LinBox."
@@ -51,70 +46,25 @@ if [ "$SAGE64" = yes ]; then
     LDFLAGS="$LDFLAGS $CFLAG64"
 fi
 
-export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
-
-
-if [ -n "$LINBOX_BLAS" ]; then
-    echo "Using environment variable LINBOX_BLAS (=\"$LINBOX_BLAS\")."
-else
-    case "$UNAME" in
-        Darwin)
-            so_ext=dylib
-            if [ -f /usr/lib/libcblas.dylib ]; then
-                echo "Using the system-wide CBLAS library."
-                LINBOX_BLAS=/usr/lib/libcblas.dylib
-            fi;;
-        Linux|SunOS|FreeBSD) # Other OSs could be added here as well.
-            so_ext=so
-            if [ -f "$SAGE_LOCAL"/lib/libcblas.a -o -f "$SAGE_LOCAL"/lib/libcblas.so ]; then
-                LINBOX_BLAS="-lcblas -latlas"
-            fi;;
-        CYGWIN)
-            echo "Using the system-wide Cygwin LAPACK BLAS library."
-            if [ ! -f /usr/lib/libblas.a ]; then
-                echo >&2 "Error: BLAS library not found."
-		echo >&2 "On Cygwin you must install the standard LAPACK Cygwin package"
-		echo >&2 "via the Cygwin setup.exe program in the 'Math' category."
-                exit 1
-            fi
-            LINBOX_BLAS="-lblas"
-            ;;
-        *) # We may issue a warning here, or just (try to) use Sage's ATLAS lib.
-            so_ext=so # Most common.
-            echo >&2 "Warning: Your operating system ($UNAME) is not explicitly supported"
-            echo >&2 "         by Sage / LinBox's 'spkg-install'."
-            echo >&2 "         Not trying to use Sage's ATLAS library."
-    esac
-    if [ -z "$LINBOX_BLAS" ]; then
-        echo >&2 "Warning: Using the frickin' slow GSL CBLAS library."
-        LINBOX_BLAS="$SAGE_LOCAL"/lib/libgslcblas.${so_ext}
-    fi
-fi
-
-echo "Using \"$LINBOX_BLAS\" for the BLAS library."
 
 ###############################################################################
 # Configure, build and install LinBox:
 ###############################################################################
 
-echo "Now configuring LinBox..."
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-            --with-givaro="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
-            --with-ntl="$SAGE_LOCAL" --with-blas="$LINBOX_BLAS" \
+            --with-default="$SAGE_LOCAL" \
             --enable-sage --enable-optimization --disable-static
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring LinBox."
     exit 1
 fi
 
-echo "Now building LinBox..."
 $MAKE
 if [ $? -ne 0 ]; then
     echo >&2 "Error building LinBox."
     exit 1
 fi
 
-echo "Now installing LinBox..."
 $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing LinBox."

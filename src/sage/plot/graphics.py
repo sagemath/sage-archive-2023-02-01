@@ -1557,15 +1557,6 @@ class Graphics(SageObject):
             sage: G =  plot_vector_field((2^x,y^2),(x,1,10),(y,1,100))
             sage: G.show(scale='semilogx',base=2)
 
-        But be sure to only plot things that will have a wide enough range
-        for the logarithmic scale to be interpretable::
-
-            sage: G = arc((2,3), 2, 1, angle=pi/2, sector=(0,pi/2))
-            sage: G.show(scale=('loglog', 2))
-            Traceback (most recent call last):
-            ...
-            ValueError: Either expand the range of the dependent variable to allow two different integer powers of your `base`, or change your `base` to a smaller number.
-
         Add grid lines at the major ticks of the axes.
 
         ::
@@ -1765,14 +1756,23 @@ class Graphics(SageObject):
         When using logarithmic scale along the axis, make sure to have
         enough room for two ticks so that the user can tell what the scale
         is. This can be effected by increasing the range of the independent
-        variable, or by changing the ``base``.::
+        variable, or by changing the ``base``, or by providing enough tick
+        locations by using the ``ticks`` parameter.::
 
-            sage: p = list_plot(range(1, 10), plotjoined=True)
-            sage: p.show(scale='loglog')
+            sage: list_plot_loglog([(1,2),(2,3)], plotjoined=True, ticks=[None,[1]])
             Traceback (most recent call last):
             ...
-            ValueError: Either expand the range of the dependent variable to allow two different integer powers of your `base`, or change your `base` to a smaller number.
-            sage: p.show(scale='loglog', base=8) # this works.
+            ValueError: Either expand the range of the dependent variable to allow two different integer powers of your `base`, or change your `base` to a smaller number, or provide sufficent number of ticks by using the `ticks` parameter.
+
+        This one works, since the horizontal axis is automatically expanded
+        to contain two ticks and the vertical axis is provided with two ticks::
+
+            sage: list_plot_loglog([(1,2),(2,3)], plotjoined=True, ticks=[None,[1,10]])
+
+        Another example in the log scale where both the axes are automatically
+        expanded to show two major ticks::
+
+            sage: list_plot_loglog([(2,0.5), (3, 4)], plotjoined=True)
 
         When using ``title_pos``, it must be ensured that a list or a tuple
         of length two is used. Otherwise, an error is raised.::
@@ -2057,23 +2057,21 @@ class Graphics(SageObject):
         subplot.yaxis.set_major_formatter(y_formatter)
 
         # Check for whether there will be too few ticks in the log scale case
-        # If part of the data is nonpositive, we assume there are enough ticks
-        if scale[0] == 'log' and xmin > 0:
-            import math
-            base0 = base[0]
-            if (math.floor(math.log(xmax)/math.log(base0)) -
-                    math.ceil(math.log(xmin)/math.log(base0)) < 1):
-                raise ValueError('Either expand the range of the independent '
-                'variable to allow two different integer powers of your `base`, '
-                'or change your `base` to a smaller number.')
-        if scale[1] == 'log' and ymin > 0:
-            import math
-            base1 = base[1]
-            if (math.floor(math.log(ymax)/math.log(base1)) -
-                    math.ceil(math.log(ymin)/math.log(base1)) < 1):
-                raise ValueError('Either expand the range of the dependent '
-                'variable to allow two different integer powers of your `base`, '
-                'or change your `base` to a smaller number.')
+        # We want to exclude the case where the user explicitly chose no
+        # ticks by passing ticks=[[],[]] for instance.
+        if (scale[0] == 'log' and not isinstance(x_locator, NullLocator)
+                and len(subplot.xaxis.get_ticklocs()) < 2):
+            raise ValueError('Either expand the range of the independent '
+            'variable to allow two different integer powers of your `base`, '
+            'or change your `base` to a smaller number, or provide sufficent'
+            ' number of ticks by using the `ticks` parameter.')
+
+        if (scale[1] == 'log' and not isinstance(y_locator, NullLocator)
+                and len(subplot.yaxis.get_ticklocs()) < 2):
+            raise ValueError('Either expand the range of the dependent '
+            'variable to allow two different integer powers of your `base`, '
+            'or change your `base` to a smaller number, or provide sufficent'
+            ' number of ticks by using the `ticks` parameter.')
 
         return (subplot, x_locator, y_locator, x_formatter, y_formatter)
 
@@ -2235,6 +2233,44 @@ class Graphics(SageObject):
         #--------------------------- Set the scale -----------------------#
         xscale, yscale, basex, basey = self._set_scale(figure, scale=scale,
                                                        base=base)
+
+        # Check for whether there will be too few ticks in the log scale case
+        # * If part of the data is negative, we assume there are enough ticks
+        # * If the user has entered custom ticks but there are too few of
+        #   them, an error will be raised later.
+        # * We check if this case occurs (for e.g. assuming xmin < xmax):
+        #   floor(logxmin)              ceil(logxmax)
+        #   ----|---------+----------+----------|----------------------|--
+        #              logxmin     logxmax
+        #   or if this case occurs (assuming xmin < xmax):
+        #   floor(logxmin)             floor(logxmax)         ceil(logxmax)
+        #   ----|---------+---------------------|-----+----------------|--
+        #              logxmin                     logxmax
+        def get_vmin_vmax(vmin, vmax, basev):
+            # It is a must to have vmin < vmax
+            import math
+            logvmin = math.log(vmin)/math.log(basev)
+            logvmax = math.log(vmax)/math.log(basev)
+            if math.floor(logvmax) - math.ceil(logvmin) < 0:
+                    vmax = basev**math.ceil(logvmax)
+                    vmin = basev**math.floor(logvmin)
+            elif math.floor(logvmax) - math.ceil(logvmin) < 1:
+                if logvmax-math.floor(logvmax) > math.ceil(logvmin)-logvmin:
+                    vmax = basev**math.ceil(logvmax)
+                else:
+                    vmin = basev**math.floor(logvmin)
+            return vmin,vmax
+
+        if xscale == 'log' and min(xmin, xmax) > 0:
+            if xmin < xmax:
+                xmin, xmax = get_vmin_vmax(xmin, xmax, basex)
+            else:
+                xmax, xmin = get_vmin_vmax(xmax, xmin, basex)
+        if yscale == 'log' and min(ymin, ymax) > 0:
+            if ymin < ymax:
+                ymin, ymax = get_vmin_vmax(ymin, ymax, basey)
+            else:
+                ymax, ymin = get_vmin_vmax(ymax, ymin, basey)
 
         #-------------------------- Set the legend -----------------------#
         if show_legend is None:

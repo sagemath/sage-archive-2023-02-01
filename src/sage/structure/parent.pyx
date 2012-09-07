@@ -818,7 +818,6 @@ cdef class Parent(category_object.CategoryObject):
 
         EXAMPLE::
 
-            sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: MS = MatrixSpace(QQ,2,2)
 
         This matrix space is in fact an algebra, and in particular

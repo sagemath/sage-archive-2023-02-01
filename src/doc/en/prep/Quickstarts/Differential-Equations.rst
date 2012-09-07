@@ -47,7 +47,8 @@ things one needs to solve a differential equation symbolically:
 
 Since we did not specify any initial conditions, Sage (from Maxima) puts
 in a parameter.  If we want to put in an initial condition, we use
-``ics`` (for **i**\ nitial **c**\ ondition\ **s**).
+``ics`` (for **i**\ nitial **c**\ ondition\ **s**). For example, we
+set ``ics=[0,3]`` to specify that when `x=0`, `y=3`.
 
 ::
 
@@ -79,7 +80,7 @@ slope field.
      which is much trickier to accomplish with a computer.
 
 There are many other differential equation facilities in Sage.  We can't
-cover all the variants of this in a Quickstart, but the documentation is
+cover all the variants of this in a quickstart, but the documentation is
 good for symbolic solvers.
 
 .. skip

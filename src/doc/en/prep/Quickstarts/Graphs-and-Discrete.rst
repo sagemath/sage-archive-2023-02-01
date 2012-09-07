@@ -38,9 +38,8 @@ Visualizing a graph is similar to plotting functions.
 Defining your own graph is easy.  One way is the following.
 
 - Put a vertex next to a list (recall this concept from the programming
-  tutorial) with a colon, to show its adjacent vertices.
-
- - Example \- vertex 4 is next to vertices 0 and 2, so ``4:[0,2]``.
+  tutorial) with a colon, to show its adjacent vertices. For example,
+  to put vertex 4 next to vertices 0 and 2, use ``4:[0,2]``.
 
 - Now combine all these in curly braces (in the advanced appendix to the
   programming tutorial, this is called a *dictionary* ).
@@ -77,7 +76,7 @@ Vertices can be lots of things, for example the codewords of an
 error\-correcting code.
 
 .. note::
-   Technical caveat: they need to be "immutable", like Python's tuples.)
+   Technical caveat: they need to be "immutable", like Python's tuples.
 
 Here we have a matrix over the integers and a matrix of variables as
 vertices.
@@ -128,7 +127,7 @@ cube.
     [3, 1, 1, 1, -1, -1, -1, -3]
 
 There is a huge amount of LaTeX support for graphs.  The following
-graphic shows what can be done.
+graphic shows an example of what can be done; this is the Heawood graph.
 
 .. image:: ../media/heawood-graph-latex.png
     :align: center
@@ -152,7 +151,7 @@ switched over to Sage shortly before MuPad was sold.
 Simple Combinatorics
 ~~~~~~~~~~~~~~~~~~~~~
 
-Sage can work with basic combinatorial ideas like combination and
+Sage can work with basic combinatorial structures like combinations and
 permutations.
 
 ::
@@ -206,7 +205,7 @@ Others somewhat less so:
     sage: D[:5]
     [[2, 2, 1, 1, 4, 5, 3], [2, 2, 1, 1, 5, 3, 4], [2, 2, 1, 3, 1, 5, 4], [2, 2, 1, 3, 4, 5, 1], [2, 2, 1, 3, 5, 1, 4]]
 
-And some somewhat more advanced \- in this case, symmetric polynomials.
+And some somewhat more advanced -- in this case, symmetric polynomials.
 
 ::
 
@@ -246,8 +245,8 @@ Do you recognize this famous identity?
 Cryptography (for education)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is also briefly mentioned in the :doc:`number theory quickstart
-<Number-Theory>`. Again, Sage has a number of good pedagogical resources
+This is also briefly mentioned in the :doc:`Number theory quickstart
+<Number-Theory>`. Sage has a number of good pedagogical resources
 for cryptography.
 
 .. skip
@@ -298,7 +297,7 @@ Coding Theory
 
 Here is a brief example of a linear binary code (group code).
 
-Start with a generator matrix over :math:`\ZZ_2`.
+Start with a generator matrix over :math:`\ZZ/2\ZZ`.
 
 ::
 

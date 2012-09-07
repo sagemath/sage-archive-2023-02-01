@@ -15,8 +15,8 @@ Linear algebra underpins a lot of Sage's algorithms, so it is fast,
 robust and comprehensive.  We've already seen some basic linear algebra,
 including matrices, determinants, and the ``.rref()`` method for
 row-reduced echelon form in the :doc:`Programming Tutorial
-<../Programming>`, so this continues from there to some extent in
-content.
+<../Programming>`, so the content here continues from there to some
+extent.
 
 Matrices and Vectors
 --------------------
@@ -59,8 +59,9 @@ over the rationals.
     sage: D = matrix(CC, 20, range(400)); D
     20 x 20 dense matrix over Complex Field with 53 bits of precision (type 'print D.str()' to see all of the entries)
 
-Don't forget that you can click to the left of the matrix in order to
-cycle between "wrapped", "unwrapped" and "hidden" modes of output.
+Don't forget that when viewing this in the notebook, you can click to
+the left of the matrix in order to cycle between "wrapped",
+"unwrapped" and "hidden" modes of output.
 
 ::
 
@@ -173,7 +174,7 @@ them as appropriate in multiplication contexts.
     (14, 20)
 
 Although our "vectors" (especially over rings other than fields) might
-be considered as free module elements, they basically behave as vectors
+be considered as elements of an appropriate free module, they basically behave as vectors
 for our purposes.
 
 ::
@@ -195,8 +196,9 @@ Left\-Handed or Right\-handed?
 -------------------------------
 
 Sage "prefers" rows to columns.  For example, the ``kernel`` method
-computes the left kernel (which Sage knows is a vector space), and
-prints out the vectors as the rows of a matrix.
+for a matrix `A` computes the left kernel -- the vector space of all
+vectors `v` for which `v \cdot A = 0` -- and prints out the vectors as
+the rows of a matrix.
 
 ::
 
@@ -212,6 +214,9 @@ prints out the vectors as the rows of a matrix.
     Vector space of degree 2 and dimension 1 over Rational Field
     Basis matrix:
     [   1 -1/2]
+
+The ``right_kernel`` method computes the space of vectors `w` so that
+`A \cdot w = 0`, of course.
 
 Vector Spaces
 --------------
@@ -234,25 +239,19 @@ that make sense for a vector space.
     2
 
 Here we compute the coordinate vector of :math:`(1,4,-3)` relative to
-:math:`V`.
-
-::
+:math:`V`::
 
     sage: V.coordinate_vector([1,4,-3])
     (1, 4)
 
 Here we get the basis matrix (note that the basis vectors are the *rows*
-of the matrix.
-
-::
+of the matrix)::
 
     sage: V.basis_matrix()
     [   1    0 -1/3]
     [   0    1 -2/3]
 
-Or we can get the basis vectors explicitly as a list of vectors.
-
-::
+Or we can get the basis vectors explicitly as a list of vectors::
 
     sage: V.basis()
     [
@@ -291,9 +290,9 @@ As you might expect, random matrices are random.
     sage: H.eigenvalues() # random
     [-10.08361801792048?, -2.682220984496031?, 4.739405672111427?, -1.320116668180795? - 10.88676412262347?*I, -1.320116668180795? + 10.88676412262347?*I]
 
-Read the :doc:`Numerical Analysis Quickstart <NumAnalysis>` to see what
-the question marks above are.  Basically, they say that the actual
-number is really inside the interval found by incrementing and
+According to the :doc:`Numerical analysis quickstart <NumAnalysis>`,
+the question marks indicate that the actual
+number is inside the interval found by incrementing and
 decrementing the last digit of the printed number.  So 9.1? is a number
 between 9.0 and 9.2.  Sage knows exactly what number this is (since it's
 a root of a polynomial), but uses interval notation to print an
@@ -308,7 +307,7 @@ eigenvalue.
     sage: H.eigenvectors_right() # random
     [(-10.08361801792048?, [(1, -0.3820692683963385?, -0.4659857618614747?, -0.1264082922197715?, -0.3548156445133095?)], 1), (-2.682220984496031?, [(1, -1.855347152382563?, -0.4203899923232704?, 0.004411201577480876?, -0.5050698736445243?)], 1), (4.739405672111427?, [(1, 0.3284800982819703?, 2.059182569319718?, -1.428547399599918?, 0.5455069936349178?)], 1), (-1.320116668180795? - 10.88676412262347?*I, [(1, 0.710831790589076? + 0.2646474741698805?*I, 0.4504038344112447? + 3.145667601780920?*I, 2.763061217778457? + 0.9994136057023008?*I, 3.092272491890536? - 2.105461094305392?*I)], 1), (-1.320116668180795? + 10.88676412262347?*I, [(1, 0.710831790589076? - 0.2646474741698805?*I, 0.4504038344112447? - 3.145667601780920?*I, 2.763061217778457? - 0.9994136057023008?*I, 3.092272491890536? + 2.105461094305392?*I)], 1)]
 
-It may be more convenient to use the eigenmatrix_right command, which
+It may be more convenient to use the ``eigenmatrix_right`` command, which
 gives a diagonal matrix of eigenvalues and a column matrix of
 eigenvectors.
 
@@ -344,6 +343,5 @@ We can easily solve linear equations using the backslash, like in Matlab.
 
 For *lots* more (concise) information, see the Sage `Linear Algebra
 Quick Reference
-<http://wiki.sagemath.org/quickref?action=AttachFile&do=get&target=quickref-linalg.pdf>`_
-.
+<http://wiki.sagemath.org/quickref?action=AttachFile&do=get&target=quickref-linalg.pdf>`_.
 

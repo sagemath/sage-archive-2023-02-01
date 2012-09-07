@@ -68,8 +68,8 @@ different plot.
     sage: myplot(x^3)
 
 So far, we've only defined a new function, so this was review.  To make
-a control to enter the function, we just preface the function with
-@interact.
+a "control" to allow the user to interactively enter the function, we just preface the function with
+``@interact``.
 
 .. skip
 
@@ -80,7 +80,7 @@ a control to enter the function, we just preface the function with
     ...       show(plot(f,(x,-3,3)))
 
 .. note::
-   Technically what the ``@interact`` does is wrap the function, so the
+   Technically what ``@interact`` does is wrap the function, so the
    above is equivalent to::
 
        def myplot(..): ...
@@ -97,7 +97,7 @@ Adding Complexity
 -----------------
 
 We can go ahead and replace other parts of the expression with
-variables.  Note the ``_`` is the function name now. That is a just
+variables.  Note that ``_`` is the function name now. That is a just
 convention for throw\-away names that we don't care about.
 
 .. skip
@@ -112,7 +112,7 @@ If we pass ``('label', default_value)`` in for a control, then the
 control gets the label when printed. Here, we've put in some text for
 all three of them.  Remember that the text must be in quotes!  Otherwise
 Sage will think that you are referring (for example) to some variable
-called lower, which it will think you forgot to define.
+called "lower", which it will think you forgot to define.
 
 .. skip
 

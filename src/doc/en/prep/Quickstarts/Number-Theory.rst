@@ -19,12 +19,11 @@ just enjoyable to explore elementary number theory by computer.
 Modular Arithmetic
 ------------------
 
-One of the most important things in Sage is that the ring of integers
-modulo :math:`n` is available without further effort, so one can do
-examples in modular arithmetic very easily.
-
-- For instance, we can create a number in :math:`\mathbb{Z}_n`.  The
-  ``type`` command tells us that :math:`a` is not a regular integer.
+Conveniently, the ring of integers
+modulo :math:`n` is always available in Sage, so we can do
+modular arithmetic very easily.
+For instance, we can create a number in :math:`\ZZ/11\ZZ`.  The
+``type`` command tells us that :math:`a` is not a regular integer.
 
 ::
 
@@ -115,10 +114,9 @@ Are these really fifth roots of unity?
     [1, 1, 1, 1]
 
 Luckily, it checked out.
-
-- (If you didn't get any, then your random prime ended up being one for
-  which there *are* no fifth roots of unity \- try doing the sequence
-  over again!)
+(If you didn't get any, then your random prime ended up being one for
+which there *are* no fifth roots of unity -- try doing the sequence
+over again!)
 
 More basic functionality
 ------------------------
@@ -138,7 +136,7 @@ access at the elementary level, such as
 
 A good way to use Sage in this context is to allow students to
 experiment with pencil and paper first, then use Sage to see whether
-patterns they discover hold true before one attempts to prove them.
+patterns they discover hold true before attempting to prove them.
 
 ::
 
@@ -200,9 +198,8 @@ One more very useful object is the prime counting function
 A very nice aspect of Sage is combining several aspects of mathematics
 together.  It can be very eye\-opening to students to see analytic
 aspects of number theory early on.
-
-- (Note that we have to reassign :math:`x` to a variable, since above it
-  was a cryptographic key!)
+(Note that we have to reassign :math:`x` to a variable, since above it
+was a cryptographic key!)
 
 ::
 
@@ -216,8 +213,8 @@ Advanced Number Theory
 For those who are interested, more advanced number\-theoretic objects
 are easy to come by; we end with a brief sampler of these.
 
-In the first example, K is the field extension
-:math:`\mathbb{Q}(\sqrt{-14})`, where the symbol ``a`` plays the role of
+In the first example, `K` is the field extension
+:math:`\QQ(\sqrt{-14})`, where the symbol ``a`` plays the role of
 :math:`\sqrt{-14}`; we discover several basic facts about :math:`K` in
 the next several cells.
 

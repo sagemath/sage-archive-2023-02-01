@@ -83,7 +83,7 @@ The following makes the derivative also a vector\-valued expression.
     sage: velocity
     (2, 2*t, 3/4*t^2)
 
-Currently, it does *not* function as a function, so we need to
+Currently, this expression does *not* function as a function, so we need to
 substitute explicitly.
 
 ::
@@ -103,7 +103,7 @@ substitute explicitly.
 Here we compute the arclength between :math:`t=0` and :math:`t=1` by
 integrating the normalized derivative. As pointed out in the
 :doc:`calculus tutorial <../Calculus>`, the syntax for
-``numerical_integral`` is slightly nonstandard \- we just put in the
+``numerical_integral`` is slightly nonstandard -- we just put in the
 endpoints, not the variable.
 
 ::
@@ -120,7 +120,7 @@ We can also plot vector fields, even in three dimensions.
     sage: plot_vector_field3d((x*cos(z),-y*cos(z),sin(z)), (x,0,pi), (y,0,pi), (z,0,pi),colors=['red','green','blue'])
 
 If we know a little vector calculus, we can also do line integrals.
-Here, in an example based on one by Ben Woodruff of BYU-Idaho, we
+Here, based on an example by Ben Woodruff of BYU-Idaho, we
 compute a number of quantities in a physical three-dimensional setting.
 
 Try to read through the entire code.  We make an auxiliary function that
@@ -163,7 +163,7 @@ the integrands.
 
 Finally, we can display everything in a nice :ref:`table <Tables>`.
 Recall that we use the ``r"stuff"`` syntax to indicate "raw" strings
-where LaTeX won't cause trouble.
+so that backslashes from LaTeX won't cause trouble.
 
 .. skip
 
@@ -207,7 +207,7 @@ Partial Differentiation
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 The following exercise is from Hass, Weir, and Thomas, University
-Calculus, Exercise 12.7.35.  It has a local minimum at :math:`(4,-2)`.
+Calculus, Exercise 12.7.35.  This function has a local minimum at :math:`(4,-2)`.
 
 ::
 

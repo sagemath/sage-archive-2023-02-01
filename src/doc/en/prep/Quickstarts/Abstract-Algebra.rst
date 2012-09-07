@@ -17,7 +17,8 @@ set of generators is natural to implement and explore.
 Group Theory
 -------------
 
-Many common groups are pre\-defined, usually as permutation groups.
+Many common groups are pre-defined, usually as permutation groups:
+that is, explicitly described as subgroups of symmetric groups.
 
 - Every group of order 15 or less is available as a permutation group.
 
@@ -121,7 +122,7 @@ There are some matrix groups as well, both finite and infinite.
     sage: S
     Special Linear Group of degree 2 over Finite Field of size 3
 
-We can print them *all* out if we use a little bit of a Python trick we
+We can print out *all* of the elements of this group if we use a small Python trick we
 haven't mentioned before.  The string ``\n`` represents a new line.
 
 ::
@@ -159,7 +160,7 @@ Rings
 ------
 
 Sage has many pre\-defined rings to experiment with.  Here is how one
-would access :math:`\mathbb{Z}_{12}`, for instance.
+would access :math:`\ZZ/12\ZZ`, for instance.
 
 ::
 
@@ -180,10 +181,8 @@ would access :math:`\mathbb{Z}_{12}`, for instance.
 Quaternions, and generalizations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We can define generalized quaternion algebras, where :math:`i^2=?`,
-:math:`j^2=?`, then :math:`k=i\cdot j`, all over :math:`\QQ`
-
-::
+We can define generalized quaternion algebras, where :math:`i^2=a`,
+:math:`j^2=b`, and :math:`k=i\cdot j`, all over :math:`\QQ`::
 
     sage: quat = QuaternionAlgebra(-1, -1)
     sage: quat
@@ -221,7 +220,7 @@ We can define generalized quaternion algebras, where :math:`i^2=?`,
 Polynomial Rings
 ~~~~~~~~~~~~~~~~
 
-A big thing that researchers use Sage for is polynomial arithmetic.
+Polynomial arithmetic in Sage is a very important tool.
 
 The first cell brings us back to the symbolic world.  This is **not the
 same thing** as polynomials!
@@ -289,7 +288,7 @@ syntax is a little unusual, but you will see it often.
 Fields
 ------
 
-Support for finite fields and extensions of the rationals is superb.
+Sage has superb support for finite fields and extensions of the rationals.
 
 Finite Fields
 ~~~~~~~~~~~~~
@@ -300,7 +299,7 @@ Finite Fields
     sage: F
     Finite Field in a of size 3^4
 
-The generator satisfies a Conway polynomial, by default \- or the
+The generator satisfies a Conway polynomial, by default, or the
 polynomial can be specified.
 
 ::
@@ -319,8 +318,8 @@ polynomial can be specified.
     2*a^3 + a^2 + a + 1
 
 :math:`F` should be the splitting field of the polynomial
-::math:`x^{81}-x`, so it is very good that we get no output from the
-:following cell, which combines a loop and a conditional statement.
+:math:`x^{81}-x`, so it is very good that we get no output from the
+following cell, which combines a loop and a conditional statement.
 
 ::
 

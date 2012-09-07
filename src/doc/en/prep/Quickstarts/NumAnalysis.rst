@@ -168,7 +168,8 @@ Note that ``c`` has 11 bits, which is exactly what we want.
     sage: len(c)
     11
 
-Here are the first 52 binary digits after the decimal point of the
+Evaluating ``mantissa[2:54]`` will give
+the first 52 binary digits after the decimal point of the
 mantissa.  Note that we don't need to store the leading 1 before the
 decimal point because it will always be there from the way we normalized
 things.  This lets us get 53\-bit precision using only 52 bits of

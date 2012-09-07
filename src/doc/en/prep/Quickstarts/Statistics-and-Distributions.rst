@@ -19,7 +19,7 @@ powerful statistical techniques at our disposal.
 Basic Descriptive Statistics
 ----------------------------
 
-Some basic things are built right in.
+Some basic statistical functions are built right in.
 
 ::
 
@@ -32,7 +32,7 @@ Some basic things are built right in.
     sqrt(19/3)
 
 Once we get beyond such things, there are usually several ways to
-accomplish things \- which can be complicated, but also powerful.
+accomplish things -- which can be complicated, but also powerful.
 
 Distributions
 -------------
@@ -85,17 +85,16 @@ plot a histogram with 10 bins.
     sage: T.plot_histogram(normalize=False,bins=10)
 
 To access discrete distributions, we access another part of Sage which
-has statistics built in \- `Scipy <http://www.scipy.org>`_ .
+has statistics built in: `Scipy <http://www.scipy.org>`_.
 
-- We have to ``import`` this.
+- We have to ``import`` this module.
 
-- We are call ``binom_dist`` the binomial distribution with 20 trials
+- We use ``binom_dist`` to denote the binomial distribution with 20 trials
   and 5% expected failure rate.
 
 - The ``.pmf(x)`` method gives the probability of :math:`x` failures,
   which we then plot in a bar chart for :math:`x` from 0 to 20.
-
- - Don't forget that ``range(21)`` means all integers from  *zero to twenty*.
+  (Don't forget that ``range(21)`` means all integers from *zero to twenty*.)
 
 ::
 

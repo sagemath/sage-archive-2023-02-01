@@ -2036,6 +2036,23 @@ cdef class Parent(category_object.CategoryObject):
             sage: A(d)
             'a'
 
+        Another test::
+
+            sage: K = NumberField([x^2-2, x^2-3], 'a,b')
+            sage: M = K.absolute_field('c')
+            sage: M_to_K, K_to_M = M.structure()
+            sage: M.register_coercion(K_to_M)
+            sage: K.register_coercion(M_to_K)
+            sage: phi = M.coerce_map_from(QQ)
+            sage: p = QQ.random_element()
+            sage: c = phi(p) - p; c
+            0
+            sage: c.parent() is M
+            True
+            sage: K.coerce_map_from(QQ)
+            Conversion map:
+            From: Rational Field
+            To:   Number Field in a with defining polynomial x^2 - 2 over its base field
         """
         best_mor = None
         if PY_TYPE_CHECK(S, Parent) and (<Parent>S)._embedding is not None:

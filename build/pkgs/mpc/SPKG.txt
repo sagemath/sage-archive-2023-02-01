@@ -33,9 +33,15 @@ The MPC team can be contact via the MPC mailing list:
 
 == Special Update/Build Instructions ==
 
-None.
+Patches:
+ * configure.patch: move AM_PROG_AR after MPC_GMP_CC_CFLAGS, see
+   https://gforge.inria.fr/tracker/?func=detail&group_id=131&aid=14669&atid=607
+   (patch scheduled to be merged upstream in mpc-1.0.1)
 
 == Changelog ==
+
+=== mpc-1.0.p0 (Jeroen Demeyer, 1 August 2012) ===
+ * Trac #13290: add configure.patch (see above).
 
 === mpc-1.0 (Jeroen Demeyer, 27 July 2012) ===
  * Trac #13290: upgrade to stable version 1.0.

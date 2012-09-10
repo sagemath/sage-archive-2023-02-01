@@ -41,6 +41,13 @@ much code written for S runs unaltered under R.
 
 == Changelog ==
 
+=== r-2.14.0.p6 (Jeroen Demeyer, 10 September 2012) ===
+ * #13443: some clean up of spkg-install.
+ * Compile R with optimization (at -O2 level).
+ * No longer pass -I and -L options to gcc (see #13348).
+ * No longer use sage_fortran (see #13349).
+ * Re-enable parallel make install, which works now (see #13428).
+
 === r-2.14.0.p5 (Jeroen Demeyer, 4 September 2012) ===
  * #9906: separate the rpy2 spkg.
 

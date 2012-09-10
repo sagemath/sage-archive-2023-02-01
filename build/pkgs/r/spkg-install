@@ -1,26 +1,45 @@
 #!/usr/bin/env bash
 
 if [ -z "$SAGE_LOCAL" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage --sh'?"
+    exit 1
 fi
 
-if [ "x$SAGE64" = xyes  ]; then
-   echo "Building R 64 bit."
-   CFLAGS="-O2 -g -m64 "; export CFLAGS
-   LDFLAGS="-m64 "; export LDFLAGS
+
+# Make sure CPPFLAGS and LDFLAGS are set to something (even the empty
+# string) to prevent R from overriding them.
+CPPFLAGS="$CPPFLAGS"
+LDFLAGS="$LDFLAGS"
+
+# Optimization flags
+if [ "$SAGE_DEBUG" = yes ]; then
+    CFLAGS="-g -O0 $CFLAGS"
+    FCFLAGS="-g -O0 $FCFLAGS"
+else
+    CFLAGS="-g -O2 $CFLAGS"
+    FCFLAGS="-g -O2 $FCFLAGS"
 fi
+
+if [ "$SAGE64" = yes ]; then
+   echo "Building R 64 bit."
+   CFLAGS="-m64 $CFLAGS"
+   FCFLAGS="-m64 $FCFLAGS"
+   LDFLAGS="-m64 $LDFLAGS"
+fi
+
+export CFLAGS CPPFLAGS FCFLAGS LDFLAGS
 
 if [ "$UNAME" = "Darwin" ]; then
-   echo "Copying fake java and javac compiler on OSX"
+   echo "Copying fake java and javac compiler on OS X"
    cp patches/java "$SAGE_LOCAL"/bin
    cp patches/javac "$SAGE_LOCAL"/bin
 fi
 
 
-# set CPPFLAGS so that Sage's readline & iconv are picked up
-CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"; export CPPFLAGS
+# Determine special configure options $R_CONFIGURE (don't put paths in
+# this variable as this can cause problems with quoting)
+R_CONFIGURE="--enable-R-shlib $R_CONFIGURE"
 
 # Note by Karl-Dieter Crisman, April 12th 2010. X support would be nice
 # to have in OSX, but see
@@ -39,21 +58,22 @@ if [ "$UNAME" = "Darwin" ]; then
     XSUPPORT=no
 elif [ -f /usr/include/X11/Xwindows.h ]; then
     XSUPPORT=yes
+elif [ "$UNAME" = "SunOS" ] && [ -f /usr/X11/lib/libXv.so ] ; then
+    XSUPPORT=yes
 else
-   if [ "$UNAME" = "SunOS" ] && [ -f /usr/X11/lib/libXv.so ] ; then
-       XSUPPORT=yes
-   else
-       XSUPPORT=no
-   fi
+    XSUPPORT=no
 fi
+R_CONFIGURE="--with-x=$XSUPPORT $R_CONFIGURE"
 
-OSXFW=
 if [ "$UNAME" = "Darwin" ]; then
     # We don't want to install R as a library framework on OSX
-    OSXFW="--enable-R-framework=no"
+    R_CONFIGURE="--enable-R-framework=no $R_CONFIGURE"
 fi
 
-if [ "$UNAME" = "SunOS" ]; then
+if [ "$SAGE_FAT_BINARY" = yes ]; then
+    echo "Disabling ICU for a binary build"
+    R_CONFIGURE="--without-ICU $R_CONFIGURE"
+elif [ "$UNAME" = "SunOS" ]; then
     # Note by David Kirkby, 16th Feb 2010. Even after adding the iconv library
     # R would not build properly on Solaris 10, complaining of undefined symbols
     # uiter_setUTF8 and  ucol_strcollIter
@@ -63,17 +83,8 @@ if [ "$UNAME" = "SunOS" ]; then
 
     echo "Disabling ICU on Solaris, using an undocumented option --without-ICU"
     echo "since the ICU library is not included on Solaris."
-    SUN_FLAGS="--without-ICU"; export SUN_FLAGS
+    R_CONFIGURE="--without-ICU $R_CONFIGURE"
 fi
-
-# let's remove old install, even the wrongly installed ones
-rm -rf "$SAGE_LOCAL"/lib/r
-rm -rf "$SAGE_LOCAL"/lib/R
-rm -rf "$SAGE_LOCAL"/lib64/R
-rm -rf "$SAGE_LOCAL"/lib64/r
-# and let's also nuke some leftovers on SAGE_LOCAL/lib
-rm -rf "$SAGE_LOCAL"/lib/libRblas.so "$SAGE_LOCAL"/lib/libRlapack.so "$SAGE_LOCAL"/lib/libR.so
-rm -rf "$SAGE_LOCAL"/lib/libRblas.dylib "$SAGE_LOCAL"/lib/libRlapack.dylib "$SAGE_LOCAL"/lib/libR.dylib
 
 cd src
 
@@ -91,32 +102,24 @@ done
 # See patches/R.sh.patch
 export SAGE_BUILDING_R=yes
 
-# make sure the prefix is always lib, not lib64 on 64 bit linux
-LIBnn="lib"; export LIBnn
-
-FC=sage_fortran; export FC
-F77=sage_fortran; export F77
-
-# These flags are *critical* so that R will be built against Sage's
-# copy of readline and ATLAS.
-CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib/ $CFLAGS"; export CFLAGS
-LDFLAGS="-L$SAGE_LOCAL/lib/ $LDFLAGS"; export LDFLAGS
 
 if [ "$UNAME" = "Darwin" ]; then
-     echo "Configuring R for OSX"
-    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" $OSXFW
+    echo "Configuring R without ATLAS for OS X"
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $R_CONFIGURE \
+        --with-readline="$SAGE_LOCAL"
 else
-     echo "Configuring R with ATLAS"
-     if [ "x$SAGE_FAT_BINARY" = xyes ] ; then
-      ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" --with-ICU=no
-     else
-      ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" $SUN_FLAGS
-     fi
+    echo "Configuring R with ATLAS"
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $R_CONFIGURE \
+        --with-readline="$SAGE_LOCAL" \
+        --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" \
+        --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas"
 fi
 
 if [ $? -ne 0 ]; then
-     echo "Configuring R with fallback options"
-    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL" $OSXFW $SUN_FLAGS
+    echo "Configuring R with fallback options"
+    R_CONFIGURE=`echo "$R_CONFIGURE" | sed 's/--with-x=yes/--with-x=no/' `
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $R_CONFIGURE \
+        --with-readline="$SAGE_LOCAL"
 fi
 
 if [ $? -ne 0 ]; then
@@ -130,19 +133,18 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Disable parallel make install, which is supposedly broken
-$MAKE -j1 vignettes  # Needed for help system
-$MAKE -j1 install
+# Remove old install
+rm -rf "$SAGE_LOCAL"/lib/r
+rm -rf "$SAGE_LOCAL"/lib/R
+rm -rf "$SAGE_LOCAL"/lib/libRblas.* "$SAGE_LOCAL"/lib/libRlapack.* "$SAGE_LOCAL"/lib/libR.*
+
+
+$MAKE vignettes   # needed for help system
+$MAKE install
 if [ $? -ne 0 ]; then
     echo "Error installing R."
     exit 1
 fi
-
-#$MAKE install-libR
-#if [ $? -ne 0 ]; then
-#    echo "Error installing libR."
-#    exit 1
-#fi
 
 if [ "$UNAME" = "Darwin" ]; then
     echo "Removing fake java and javac compiler"

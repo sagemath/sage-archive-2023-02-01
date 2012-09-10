@@ -236,9 +236,6 @@ fi
 
 # Mac OS X-specific setup
 if [ `uname` = "Darwin" ]; then
-    # For a framework Python build on OS X, Python's bin directory is not local/bin
-    PATH="$SAGE_LOCAL/Frameworks/Python.framework/Versions/2.5/bin:$PATH" && export PATH
-
     # set MACOSX_DEPLOYMENT_TARGET -- if set incorrectly, this can
     # cause lots of random "Abort trap" issues on OSX. see trac
     # #7095 for an example.
@@ -247,13 +244,17 @@ if [ `uname` = "Darwin" ]; then
     export MACOSX_DEPLOYMENT_TARGET
 fi
 
-if [ "$LIBRARY_PATH" != "" ]; then
-    LIBRARY_PATH="$SAGE_LOCAL/lib/:$LIBRARY_PATH"
-else
-    LIBRARY_PATH="$SAGE_LOCAL/lib/"
-fi
-export LIBRARY_PATH
+# Compile-time path for libraries.  This is the equivalent of
+# adding the gcc option -L $SAGE_LOCAL/lib.
+[ -z "$LIBRARY_PATH" ] || LIBRARY_PATH="${LIBRARY_PATH}:"
+export LIBRARY_PATH="${LIBRARY_PATH}$SAGE_LOCAL/lib"
 
+# Compile-time path for include files.  This is the equivalent of
+# adding the gcc option -I $SAGE_LOCAL/include.
+[ -z "$CPATH" ] || CPATH="${CPATH}:"
+export CPATH="${CPATH}$SAGE_LOCAL/include"
+
+# For PARI/GP
 GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
 GPHELP="$SAGE_LOCAL/bin/gphelp" && export GPHELP
 GPDOCDIR="$SAGE_LOCAL/share/pari/doc" && export GPDOCDIR

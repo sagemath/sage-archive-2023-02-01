@@ -747,13 +747,21 @@ class Permutation_class(CombinatorialObject):
         r"""
         Returns the signature of a permutation.
 
+        .. NOTE::
+
+            sign may be used as an alias to signature.
+
         EXAMPLES::
 
             sage: Permutation([4, 2, 3, 1, 5]).signature()
             -1
+            sage: Permutation([1,3,2,5,4]).sign()
+            1
         """
         return (-1)**(len(p)-len(p.to_cycles()))
 
+    #one can also use sign as an alias for signature
+    sign = signature
 
     def is_even(self):
         r"""

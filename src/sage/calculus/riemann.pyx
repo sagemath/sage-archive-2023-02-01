@@ -106,7 +106,7 @@ cdef class Riemann_Map:
       the origin of the unit disc. Note that ``a`` MUST be within
       the region in order for the results to be mathematically valid.
 
-    The following inputs must all be passed in as named parameters:
+    The following inputs may be passed in as named parameters:
 
     - ``N`` -- integer (default: ``500``), the number of collocation points
       used to compute the map. More points will give more accurate results,
@@ -137,6 +137,13 @@ cdef class Riemann_Map:
         sage: f(t) = e^(I*t)
         sage: fprime(t) = I*e^(I*t)
         sage: m = Riemann_Map([f], [fprime], 0)  # long time (4 sec)
+        sage: m.plot_colored() + m.plot_spiderweb()  # long time
+
+    The exterior map for the unit circle::
+
+        sage: m = Riemann_Map([f], [fprime], 0, exterior=True)  # long time (4 sec)
+        sage: #spiderwebs are not supported for exterior maps
+        sage: m.plot_colored() # long time
 
     The unit circle with a small hole::
 
@@ -145,7 +152,9 @@ cdef class Riemann_Map:
         sage: hf(t) = 0.5*e^(-I*t)
         sage: hfprime(t) = 0.5*-I*e^(-I*t)
         sage: m = Riemann_Map([f, hf], [fprime, hfprime], 0.5 + 0.5*I)
-        sage: m.plot_colored() + m.plot_spiderweb()  # long time
+        sage: #spiderweb and color plots cannot be added for multiply
+        sage: #connected regions. Instead we do this.
+        sage: m.plot_spiderweb(withcolor = True)  # long time
 
     A square::
 
@@ -225,7 +234,7 @@ cdef class Riemann_Map:
             self.tk2[i] = self.tk[i]
         self.tk2[N] = TWOPI
         self.B = len(fs) # number of boundaries of the figure
-        if exterior and (self.B > 1):
+        if self.exterior and (self.B > 1):
             raise ValueError(
                 "The exterior map is undefined for multiply connected domains")
         cdef np.ndarray[COMPLEX_T,ndim=2] cps = np.zeros([self.B, N],
@@ -244,7 +253,7 @@ cdef class Riemann_Map:
                 for i in xrange(N):
                     cps[k, i] = np.complex(fs[k](self.tk[i]))
                     dps[k, i] = np.complex(fprimes[k](self.tk[i]))
-        if exterior:
+        if self.exterior:
             xmax = (1/cps).real.max()
             xmin = (1/cps).real.min()
             ymax = (1/cps).imag.max()
@@ -369,7 +378,7 @@ cdef class Riemann_Map:
 
         INPUT:
 
-        The following inputs must all be passed in as named parameters:
+        The following inputs may be passed in as named parameters:
 
         - ``boundary`` -- integer (default: ``-1``) if < 0,
           :meth:`get_theta_points` will return the points for all boundaries.
@@ -699,7 +708,7 @@ cdef class Riemann_Map:
 
         INPUT:
 
-        The following inputs must all be passed in as named parameters:
+        The following inputs may be passed in as named parameters:
 
         - ``plotjoined`` -- boolean (default: ``True``) If ``False``,
           discrete points will be drawn; otherwise they will be connected
@@ -818,12 +827,18 @@ cdef class Riemann_Map:
         may exhibit erratic behavior near the boundary; if this occurs,
         decreasing ``linescale`` may mitigate the problem.
 
-        Note that this method requires significantly more computation for
-        multiply connected domains.
+        For multiply connected domains the spiderweb is by necessity
+        generated using the forward mapping. This method is more
+        computationally intensive. In addition, these spiderwebs cannot
+        be ``added`` to color plots. Instead the ``withcolor`` option
+        must be used.
+
+        In addition, spiderweb plots are not currently supported for
+        exterior maps.
 
         INPUT:
 
-        The following inputs must all be passed in as named parameters:
+        The following inputs may be passed in as named parameters:
 
         - ``spokes`` -- integer (default: ``16``) the number of equally
           spaced radial lines to plot.
@@ -889,6 +904,9 @@ cdef class Riemann_Map:
             sage: m.plot_spiderweb()
         """
         cdef int k, i
+        if self.exterior:
+            raise ValueError(
+                "Spiderwebs for exterior maps are not currently    supported")
         if self.B == 1: #The efficient simply connected
             edge = self.plot_boundaries(plotjoined=plotjoined,
                 rgbcolor=rgbcolor, thickness=thickness)
@@ -955,7 +973,7 @@ cdef class Riemann_Map:
 
         INPUT:
 
-        The following inputs must all be passed in as named parameters:
+        The following inputs may be passed in as named parameters:
 
         - ``plot_range`` -- (default: ``[]``) list of 4 values
           ``(xmin, xmax, ymin, ymax)``. Declare if you do not want the plot
@@ -1076,8 +1094,8 @@ cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,
     jmax = len(z_values[0])-2
     #(f(x+delta)-f(x-delta))/2delta
     xderiv = (z_values[1:-1,2:]-z_values[1:-1,:-2])/(2*xstep)
-    #b/c the function is analytic, we know its abs(derivative) is equal
-    #in all directions
+    #b/c the function is analytic, we know the magnitude of its
+    #derivative is equal in all directions
     dr = np.abs(xderiv)
     # the abs(derivative) scaled by distance from origin
     zabs = np.abs(z_values[1:-1,1:-1])
@@ -1301,7 +1319,7 @@ cpdef complex_to_rgb(np.ndarray[COMPLEX_T, ndim = 2] z_values):
     sig_off()
     return rgb
 
-cpdef analytic_boundary(FLOAT_T t, int n):
+cpdef analytic_boundary(FLOAT_T t, int n, FLOAT_T epsilon):
     """
     Provides an exact (for n = infinity) Riemann boundary
     correspondence for the ellipse with axes 1 + epsilon and 1 - epsilon. The
@@ -1315,6 +1333,8 @@ cpdef analytic_boundary(FLOAT_T t, int n):
     - ``n`` -- integer - the number of terms to include.
       10 is fairly accurate, 20 is very accurate.
 
+    - ``epsilon`` -- float - the skew of the ellipse (0 is circular)
+
     OUTPUT:
 
     A theta value from 0 to 2*pi, corresponding to the point on the
@@ -1325,10 +1345,10 @@ cpdef analytic_boundary(FLOAT_T t, int n):
     Checking the accuracy of this function for different n values::
 
         sage: from sage.calculus.riemann import analytic_boundary
-        sage: t100 = analytic_boundary(pi/2,100)
-        sage: abs(analytic_boundary(pi/2,10) - t100) < 10^-8
+        sage: t100 = analytic_boundary(pi/2, 100, .3)
+        sage: abs(analytic_boundary(pi/2, 10, .3) - t100) < 10^-8
         True
-        sage: abs(analytic_boundary(pi/2,20) - t100) < 10^-15
+        sage: abs(analytic_boundary(pi/2, 20, .3) - t100) < 10^-15
         True
 
     Using this to check the accuracy of the Riemann_Map boundary::
@@ -1338,13 +1358,13 @@ cpdef analytic_boundary(FLOAT_T t, int n):
         sage: m = Riemann_Map([f], [fp],0,200)
         sage: s = spline(m.get_theta_points())
         sage: test_pt = uniform(0,2*pi)
-        sage: s(test_pt) - analytic_boundary(test_pt,20) < 10^-4
+        sage: s(test_pt) - analytic_boundary(test_pt,20, .3) < 10^-4
         True
     """
     cdef FLOAT_T i
     cdef FLOAT_T result = t
     for i from 1 <= i < n+1:
-        result += (2*(-1)**i/i)*(.3**i/(1+.3**(2*i)))*sin(2*i*t)
+        result += (2*(-1)**i/i)*(epsilon**i/(1+epsilon**(2*i)))*sin(2*i*t)
     return result
 
 
@@ -1358,6 +1378,8 @@ cpdef cauchy_kernel(t, args):
     - ``t`` -- The boundary parameter, meant to be integrated over
 
     - ``args`` -- a tuple containing:
+
+      - ``epsilon`` -- float - the skew of the ellipse (0 is circular)
 
       - ``z`` -- complex - the point to be mapped.
 
@@ -1373,15 +1395,16 @@ cpdef cauchy_kernel(t, args):
     Here is a simple test::
 
         sage: from sage.calculus.riemann import cauchy_kernel
-        sage: cauchy_kernel(.5,(.1+.2*I, 10,'c'))
+        sage: cauchy_kernel(.5,(.3, .1+.2*I, 10,'c'))
         (-0.584136405997...+0.5948650858950...j)
     """
     cdef COMPLEX_T result
-    cdef COMPLEX_T z = args[0]
-    cdef int n = args[1]
-    part = args[2]
-    result = exp(I*analytic_boundary(t,n))/(exp(I*t)+.3*exp(-I*t)-z) *  \
-        (I*exp(I*t)-I*.3*exp(-I*t))
+    cdef FLOAT_T epsilon = args[0]
+    cdef COMPLEX_T z = args[1]
+    cdef int n = args[2]
+    part = args[3]
+    result = exp(I*analytic_boundary(t,n, epsilon))/(exp(I*t)+epsilon*exp(-I*t)-z) *  \
+        (I*exp(I*t)-I*epsilon*exp(-I*t))
     if part == 'c':
         return result
     elif part == 'r':
@@ -1390,7 +1413,7 @@ cpdef cauchy_kernel(t, args):
         return result.imag
     else: return None
 
-cpdef analytic_interior(COMPLEX_T z, int n):
+cpdef analytic_interior(COMPLEX_T z, int n, FLOAT_T epsilon):
     """
     Provides a nearly exact compuation of the Riemann Map of an interior
     point of the ellipse with axes 1 + epsilon and 1 - epsilon. It is
@@ -1411,16 +1434,16 @@ cpdef analytic_interior(COMPLEX_T z, int n):
         sage: f(t) = e^(I*t)+.3*e^(-I*t)
         sage: fp(t) = I*e^(I*t)-I*.3*e^(-I*t)
         sage: m = Riemann_Map([f],[fp],0,200)
-        sage: abs(m.riemann_map(.5)-analytic_interior(.5,20)) < 10^-4
+        sage: abs(m.riemann_map(.5)-analytic_interior(.5, 20, .3)) < 10^-4
         True
         sage: m = Riemann_Map([f],[fp],0,2000)
-        sage: abs(m.riemann_map(.5)-analytic_interior(.5,20)) < 10^-6
+        sage: abs(m.riemann_map(.5)-analytic_interior(.5, 20, .3)) < 10^-6
         True
     """
     # evaluates the cauchy integral of the boundary, split into the real
     # and imaginary results because numerical_integral can't handle complex data.
     rp = 1/(TWOPI)*numerical_integral(cauchy_kernel,0,2*pi,
-        params = [z,n,'i'])[0]
+        params = [epsilon,z,n,'i'])[0]
     ip = 1/(TWOPI*I)*numerical_integral(cauchy_kernel,0,2*pi,
-        params = [z,n,'r'])[0]
+        params = [epsilon,z,n,'r'])[0]
     return rp + ip

@@ -1409,7 +1409,7 @@ def quaternion_order_with_given_level(A, level):
     from sage.modular.quatalg.brandt import maximal_order
 
     if len(A.ramified_primes()) > 1:
-        raise NotImplementedError, "Currently this algorithm only works when the quaternion algebra is only ramified at one prime."
+        raise NotImplementedError, "Currently this algorithm only works when the quaternion algebra is only ramified at one finite prime."
 
     # (The algorithm we use is similar to that in Magma (by David Kohel).)
     # in the following magma code, M denotes is the level

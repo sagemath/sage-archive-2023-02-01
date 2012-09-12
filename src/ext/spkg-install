@@ -1,8 +1,7 @@
-#!/bin/sh
-# This is the spkg-install script which will be emplaced within the SPKG for
-# the extcode repository whenever it is packaged.
+#!/usr/bin/env bash
 
-echo "Copying Extcode package to '$SAGE_ROOT/devel/ext-main'..."
+# This is the spkg-install script which will be emplaced within the SPKG for
+# the Extcode repository whenever it is packaged.
 
 if [ -d "$SAGE_ROOT/devel/ext-main" ]; then
     echo "Moving old Extcode package to '$SAGE_ROOT/devel/ext-main-old'..."
@@ -14,25 +13,27 @@ if [ -d "$SAGE_ROOT/devel/ext-main" ]; then
     fi
 fi
 
-rm -f "$SAGE_ROOT/devel/ext" # Delete just the link itself (if it exists)
+echo "Copying Extcode package to '$SAGE_ROOT/devel/ext-main'..."
 
 mkdir -p "$SAGE_ROOT/devel/ext-main"
-cp -pR * "$SAGE_ROOT/devel/ext-main/" # Creates new ext-main dir
+cp -pR * .hg* "$SAGE_ROOT/devel/ext-main/"
 if [ $? -ne 0 ]; then
-    echo >&2 "Error copying the new extcode package."
+    echo >&2 "Error copying the new Extcode package."
     exit 1
 fi
 
-cp -pR .hg* "$SAGE_ROOT/devel/ext-main/" || exit $?
 # Create an appropriate hgrc file for the target
 echo -e "[diff]\ngit = true" > "$SAGE_ROOT/devel/ext-main/.hg/hgrc"
 
-ln -s ext-main "$SAGE_ROOT/devel/ext" # Create new symbolic link (deleted above)
+# Create the symbolic link ext -> ext-main
+rm -f "$SAGE_ROOT/devel/ext"
+ln -s ext-main "$SAGE_ROOT/devel/ext"
 if [ $? -ne 0 ]; then
     echo >&2 "Error creating symbolic link to '$SAGE_ROOT/devel/ext-main'."
     exit 1
 fi
 
-rm -f "$SAGE_EXTCODE"
+# Create a symbolic link from SAGE_ROOT/local/share/sage/ext to SAGE_ROOT/devel/ext
 mkdir -p "$SAGE_SHARE/sage"
+rm -f "$SAGE_EXTCODE"
 ln -s ../../../devel/ext "$SAGE_EXTCODE"

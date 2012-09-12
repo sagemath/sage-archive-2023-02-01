@@ -1,30 +1,33 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+set -e  # Automatically exit on errors
+
+
 if [ $# -ne 2 ]; then
-    echo "Usage: $0 <SAGE_VERSION> <SAGE_ROOT>"
-    echo "Build SAGE package in the extcode directory."
-    exit 0
+    echo >&2 "Usage: $0 <SAGE_VERSION> <SAGE_ROOT>"
+    echo >&2 "Build SAGE package in the extcode directory."
+    exit 2
 fi
 
-E=extcode
 SAGE_VERSION=$1
 SAGE_ROOT=$2
-DIR=$E-$SAGE_VERSION
+SAGE_EXTCODE=`pwd`
+DIR="extcode-$SAGE_VERSION"
 
-cd "$SAGE_ROOT/data/"
-if [ -d $DIR ]; then
-   rm -rf $DIR
-fi
-mkdir $DIR
+# Copy the extcode repo to ${SAGE_EXTCODE}/../extcode-${SAGE_VERSION}
+rm -rf ../$DIR
+mkdir ../$DIR
 
-cd $E
-cp -pr * .hg .hgignore .hgtags "../$DIR/"
-cd "../$DIR"
+cp -pR * .hg* ../$DIR
+
+# Delete some unneeded files
+cd ../$DIR
 rm -f *.spkg
 rm -f magma/*.dat magma/*.sig magma/*/*.dat magma/*/*.sig magma/*/*/*.dat magma/*/*/*.sig
-rm -rf octave/user/tmp
 rm -rf octave/user/*
 
+# Make the spkg and store it inside $SAGE_EXTCODE
 cd ..
-$SAGE_ROOT/sage -pkg $DIR
-rm -rf $DIR
-mv $DIR.spkg extcode
+"$SAGE_ROOT/sage" --pkg $DIR
+rm -r $DIR
+mv $DIR.spkg $SAGE_EXTCODE

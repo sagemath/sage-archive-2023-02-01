@@ -32,7 +32,7 @@ def zeta_zeros():
     In order to use ``zeta_zeros()``, you will need to
     install the optional Odlyzko database package: ``sage -i
     database_odlyzko_zeta``. You can see a list of all
-    available optional packages with ``sage -optional``.
+    available optional packages with ``sage --optional``.
 
     REFERENCES:
 
@@ -48,9 +48,9 @@ def zeta_zeros():
 
     ::
 
-        sage: zz = zeta_zeros() # optional
-        sage: zz[12]            # optional
-        59.347044003000001
+        sage: zz = zeta_zeros() # optional - database_odlyzko_zeta
+        sage: zz[12]            # optional - database_odlyzko_zeta
+        59.347044003...
     """
     path = os.path.join(misc.SAGE_SHARE,'odlyzko')
     file = os.path.join(path,'zeros1')

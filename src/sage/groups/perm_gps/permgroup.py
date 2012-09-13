@@ -1449,6 +1449,60 @@ class PermutationGroup_generic(group.Group):
         """
         return self.group_id()
 
+    def group_primitive_id(self):
+        """
+        Returns the index of this group in the GAP database of primitive groups
+        if this group is primitive.
+        Requires "optional" database_gap-4.4.x package.
+
+        EXAMPLES::
+
+            sage: G = PermutationGroup([[(1,2,3,4,5)], [(1,5),(2,4)]])
+            sage: G.group_primitive_id()    # optional - database_gap
+            2
+            sage: G.degree()
+            5
+
+        From the information of the degree and the identification number,
+        you can recover the isomorphism class of your group in the GAP
+        database::
+
+            sage: H = PrimitiveGroup(5,2)  # optional - database_gap
+            sage: G == H                     # optional - database_gap
+            False
+            sage: G.is_isomorphic(H)         # optional - database_gap
+            True
+        """
+        assert self.is_primitive(), 'Group is not primitive'
+        return Integer(self._gap_().PrimitiveIdentification())
+
+    def primitive_id(self):
+        """
+        (Same as ``self.group_primitive_id()``.) Returns the index of this group
+        in the GAP database of primitive groups if this group is primitive.
+        Requires "optional" database_gap-4.4.x package.
+
+        EXAMPLES::
+
+            sage: G = PermutationGroup([[(1,2,3,4,5)], [(1,5),(2,4)]])
+            sage: G.group_primitive_id()    # optional - database_gap
+            2
+            sage: G.degree()
+            5
+
+        From the information of the degree and the identification number,
+        you can recover the isomorphism class of your group in the GAP
+        database::
+
+            sage: H = PrimitiveGroup(5,2)  # optional - database_gap
+            sage: G == H                     # optional - database_gap
+            False
+            sage: G.is_isomorphic(H)         # optional - database_gap
+            True
+
+        """
+        return self.group_primitive_id()
+
     def center(self):
         """
         Return the subgroup of elements that commute with every element

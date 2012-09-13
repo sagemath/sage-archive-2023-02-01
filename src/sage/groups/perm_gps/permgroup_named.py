@@ -24,6 +24,12 @@ You can construct the following permutation groups:
 
 -- TransitiveGroups(d), TransitiveGroups(), set of all of the above
 
+-- PrimitiveGroup, $n^{th}$ primitive group of degree $d$
+                      from the GAP tables of primitive groups (requires
+                      the "optional" package database_gap)
+
+-- PrimitiveGroups(d), PrimitiveGroups(), set of all of the above
+
 -- MathieuGroup(degree), Mathieu group of degree 9, 10, 11, 12, 21, 22, 23, or 24.
 
 -- KleinFourGroup, subgroup of $S_4$ of order $4$ which is not $C_2 \times C_2$
@@ -76,7 +82,6 @@ from sage.rings.all      import Integer
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.rings.arith import factor
-from sage.rings.integer_ring import ZZ
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method
@@ -1128,8 +1133,9 @@ class TransitiveGroup(PermutationGroup_unique):
         The transitive group from the GAP tables of transitive groups.
 
         INPUT:
-            d -- positive integer; the degree
-            n -- positive integer; the number
+            d -- non-negative integer; the degree
+            n -- positive integer; the index of the group in the GAP database, starting at 1
+
 
         OUTPUT:
             the n-th transitive group of degree d
@@ -1176,8 +1182,8 @@ class TransitiveGroup(PermutationGroup_unique):
             ...
             AssertionError: n should be in {1,..,1}
         """
-        d = ZZ(d)
-        n = ZZ(n)
+        d = Integer(d)
+        n = Integer(n)
         assert d >= 0
         assert n > 0
         max_n = TransitiveGroups(d).cardinality()
@@ -1208,8 +1214,8 @@ def TransitiveGroups(d=None):
      - ``d`` -- an integer (optional)
 
     Returns the set of all transitive groups of a given degree
-    ``d``. If ``d`` is not specified, it returns the set of all
-    transitive groups.
+    ``d`` up to isomorphisms. If ``d`` is not specified, it returns the set of all
+    transitive groups up to isomorphisms.
 
     Warning: TransitiveGroups requires the optional GAP database
     package. Please install it with ``sage -i database_gap``.
@@ -1244,7 +1250,7 @@ def TransitiveGroups(d=None):
 
 class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
     """
-    The infinite set of all transitive groups.
+    The infinite set of all transitive groups up to isomorphisms.
 
     EXAMPLES::
 
@@ -1295,20 +1301,9 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         """
         return isinstance(G,TransitiveGroup)
 
-    def _an_element_(self):
-        """
-        Returns an element of ``self``.
-
-        EXAMPLES::
-
-            sage: TransitiveGroups(5).an_element() # requires optional database_gap # indirect doctest
-            Transitive group number 1 of degree 5
-        """
-        return TransitiveGroup(7,3)
-
 class TransitiveGroupsOfDegree(UniqueRepresentation, Parent):
     """
-    The set of all transitive groups of a given (small) degree.
+    The set of all transitive groups of a given (small) degree up to isomorphisms.
 
     EXAMPLES::
 
@@ -1406,8 +1401,6 @@ class TransitiveGroupsOfDegree(UniqueRepresentation, Parent):
         for n in xrange(1, self.cardinality() + 1):
             yield self[n]
 
-    _an_element_ = EnumeratedSets.ParentMethods._an_element_
-
     @cached_method
     def cardinality(self):
         r"""
@@ -1449,7 +1442,7 @@ class TransitiveGroupsOfDegree(UniqueRepresentation, Parent):
         # While we are at it, and since Sage also handles the
         # transitive group of degree 1, we may as well handle 1
         if self._degree <= 1:
-            return ZZ(1)
+            return Integer(1)
         else:
             try:
                 return Integer(gap.NrTransitiveGroups(gap(self._degree)))
@@ -1458,6 +1451,346 @@ class TransitiveGroupsOfDegree(UniqueRepresentation, Parent):
                 verbose("Warning: TransitiveGroups requires the GAP database package. Please install it with ``sage -i database_gap``.", level=0)
             except TypeError:
                 raise NotImplementedError, "Only the transitive groups of order less than 30 are available in GAP's database"
+
+class PrimitiveGroup(PermutationGroup_unique):
+    def __init__(self, d, n):
+        """
+        The primitive group from the GAP tables of primitive groups.
+
+        INPUT:
+            - ``d`` -- non-negative integer; the degree
+            - ``n`` -- positive integer; the index of the group in the GAP database, starting at 1
+
+        OUTPUT:
+            the ``n``-th primitive group of degree ``d``
+
+        EXAMPLES::
+
+            sage: PrimitiveGroup(0,1)
+            Trivial group
+            sage: PrimitiveGroup(1,1)
+            Trivial group
+            sage: G = PrimitiveGroup(5, 2); G           # requires optional database_gap
+            D(2*5)
+            sage: G.gens()                              # requires optional database_gap
+            [(2,4)(3,5), (1,2,3,5,4)]
+
+            sage: G.category()                          # requires optional database_gap
+            Category of finite permutation groups
+
+        .. warning:: this follows GAP's naming convention of indexing
+          the primitive groups starting from ``1``::
+
+            sage: PrimitiveGroup(5,0)
+            Traceback (most recent call last):
+            ...
+            AssertionError: group database index starts at 1
+
+        .. warning:: only primitive groups of "small" degree are
+          available in GAP's database::
+
+            sage: PrimitiveGroup(2500,1)                # requires optional database_gap
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only the primitive groups of degree less than 2500 are available in GAP's database
+
+        TESTS::
+
+            sage: TestSuite(PrimitiveGroup(0,1)).run()
+            sage: TestSuite(PrimitiveGroup(1,1)).run()
+            sage: TestSuite(PrimitiveGroup(5,2)).run()  # requires optional database_gap
+
+            sage: PrimitiveGroup(6,5)
+            Traceback (most recent call last):
+            ...
+            AssertionError: n should be in {1,..,4}
+        """
+        d = Integer(d)
+        n = Integer(n)
+        assert d >= 0
+        assert n > 0, "group database index starts at 1"
+        max_n = PrimitiveGroups(d).cardinality()
+        assert n <= max_n, "n should be in {1,..,%s}"%max_n
+        if d in [0,1]:
+            gap_group = gap.Group("[()]")
+            self._pretty_name = "Trivial group"
+        else:
+            gap_group = gap.PrimitiveGroup(d, n)
+            self._pretty_name = gap_group.str()
+        try:
+            PermutationGroup_generic.__init__(self, gap_group=gap_group)
+        except RuntimeError:
+            from sage.misc.misc import verbose
+            verbose("Warning: Computing with PrimitiveGroups requires the optional database_gap package. Please install it.", level=0)
+
+        self._d = d
+        self._n = n
+        self._domain = range(1, d+1)
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+            sage: G = PrimitiveGroup(5,1); G
+            C(5)
+        """
+        return self._pretty_name
+
+    def group_primitive_id(self):
+        """
+        EXAMPLES::
+            sage: G = PrimitiveGroup(5,2); G.group_primitive_id()
+            2
+        """
+        return self._n
+
+def PrimitiveGroups(d=None):
+    """
+    INPUT:
+
+        - ``d`` -- an integer (optional)
+
+    OUTPUT:
+
+        Returns the set of all primitive groups of a given degree
+        ``d`` up to isomorphisms using GAP. If ``d`` is not specified,
+        it returns the set of all primitive groups up to isomorphisms
+        stored in GAP.
+
+        Warning: PrimitiveGroups requires the optional GAP database
+        package. Please install it with ``sage -i database_gap``.
+
+    EXAMPLES::
+
+        sage: PrimitiveGroups(3)
+        Primitive Groups of degree 3
+        sage: PrimitiveGroups(7)
+        Primitive Groups of degree 7
+        sage: PrimitiveGroups(8)
+        Primitive Groups of degree 8
+
+        sage: PrimitiveGroups()
+        Primitive Groups
+
+    .. warning:: in practice, the database currently only contains
+      primitive groups up to degree 2499::
+
+        sage: PrimitiveGroups(2500).cardinality() # requires optional database_gap
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Only the primitive groups of degree less than 2500 are available in GAP's database
+
+    TODO::
+
+        This enumeration helper could be extended based on ``PrimitiveGroupsIterator`` in GAP.
+        This method allows to enumerate groups with specified properties such as transitivity,
+        solvability &c., without creating all groups.
+    """
+    if d == None:
+        return PrimitiveGroupsAll()
+    else:
+        d == Integer(d)
+        assert d >= 0, "A primitive group acts on a non negative integer number of positions"
+        return PrimitiveGroupsOfDegree(d)
+
+class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
+    """
+    The infinite set of all primitive groups up to isomorphisms.
+
+    EXAMPLES::
+
+        sage: L = PrimitiveGroups(); L
+        Primitive Groups
+        sage: L.category()
+        Category of infinite enumerated sets
+        sage: L.cardinality()
+        +Infinity
+
+        sage: p = L.__iter__()            # requires optional database_gap
+        sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()) # requires optional database_gap
+        (Trivial group, Trivial group, S(2), A(3), S(3), A(4), S(4), C(5))
+
+    TESTS::
+
+        sage: TestSuite(PrimitiveGroups()).run() # requires optional database_gap # long time
+    """
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: S = PrimitiveGroups() # requires optional database_gap
+            sage: S.category() # requires optional database_gap
+            Category of infinite enumerated sets
+        """
+        DisjointUnionEnumeratedSets.__init__(self, Family(NonNegativeIntegers(), lambda i: PrimitiveGroups(i)) )
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: PrimitiveGroups() # requires optional database_gap # indirect doctest
+            Primitive Groups
+        """
+        return "Primitive Groups"
+
+    def __contains__(self, G):
+        r"""
+        EXAMPLES::
+
+            sage: PrimitiveGroup(5,2) in PrimitiveGroups() # requires optional database_gap
+            True
+            sage: PrimitiveGroup(6,4) in PrimitiveGroups() # requires optional database_gap
+            True
+            sage: 1 in PrimitiveGroups() # requires optional database_gap
+            False
+        """
+        return isinstance(G,PrimitiveGroup)
+
+class PrimitiveGroupsOfDegree(UniqueRepresentation, Parent):
+    """
+    The set of all primitive groups of a given degree up to isomorphisms.
+
+    EXAMPLES::
+
+        sage: S = PrimitiveGroups(5); S       # requires optional database_gap
+        Primitive Groups of degree 5
+        sage: S.list()                          # requires optional database_gap
+        [C(5), D(2*5), AGL(1, 5), A(5), S(5)]
+        sage: S.an_element() # requires optional database_gap
+        C(5)
+
+    We write the cardinality of all primitive groups of degree 5::
+
+        sage: for G in PrimitiveGroups(5):    # requires optional database_gap
+        ...       print G.cardinality()
+        5
+        10
+        20
+        60
+        120
+
+    TESTS::
+
+        sage: TestSuite(PrimitiveGroups(3)).run() # requires optional database_gap
+    """
+    def __init__(self, n):
+        """
+        TESTS::
+
+            sage: S = PrimitiveGroups(4) # requires optional database_gap
+            sage: S.category() # requires optional database_gap
+            Category of finite enumerated sets
+        """
+        self._degree = n
+        Parent.__init__(self, category = FiniteEnumeratedSets())
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: PrimitiveGroups(6) # requires optional database_gap
+            Primitive Groups of degree 6
+        """
+        return "Primitive Groups of degree %s"%(self._degree)
+
+    def __contains__(self, G):
+        r"""
+        EXAMPLES::
+
+            sage: PrimitiveGroup(6,4) in PrimitiveGroups(4) # requires optional database_gap
+            False
+            sage: PrimitiveGroup(4,2) in PrimitiveGroups(4) # requires optional database_gap
+            True
+            sage: 1 in PrimitiveGroups(4) # requires optional database_gap
+            False
+        """
+        if isinstance(G,PrimitiveGroup):
+            return G._d == self._degree
+        else:
+            False
+
+    def __getitem__(self, n):
+        r"""
+        INPUT:
+
+         - ``n`` -- a positive integer
+
+        Returns the `n`-th primitive group of a given degree.
+
+        EXAMPLES::
+
+            sage: PrimitiveGroups(5)[3]          # requires optional database_gap
+            AGL(1, 5)
+
+        .. warning:: this follows GAP's naming convention of indexing
+        the primitive groups starting from ``1``::
+
+            sage: PrimitiveGroups(5)[0]
+            Traceback (most recent call last):
+            ...
+            AssertionError: group database index starts at 1
+        """
+        return PrimitiveGroup(self._degree, n)
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: list(PrimitiveGroups(5)) # indirect doctest # requires optional database_gap
+            [C(5), D(2*5), AGL(1, 5), A(5), S(5)]
+        """
+        for n in xrange(1, self.cardinality() + 1):
+            yield self[n]
+
+    @cached_method
+    def cardinality(self):
+        r"""
+        Returns the cardinality of ``self``, that is the number of
+        primitive groups of a given degree up to isomorphisms.
+
+        EXAMPLES::
+
+            sage: PrimitiveGroups(0).cardinality()                      # requires optional database_gap
+            1
+            sage: PrimitiveGroups(2).cardinality()                      # requires optional database_gap
+            1
+            sage: PrimitiveGroups(7).cardinality()                      # requires optional database_gap
+            7
+            sage: PrimitiveGroups(12).cardinality()                     # requires optional database_gap
+            6
+            sage: [PrimitiveGroups(i).cardinality() for i in range(11)] # requires optional database_gap
+            [1, 1, 1, 2, 2, 5, 4, 7, 7, 11, 9]
+
+        .. warning::
+
+            The database_gap contains all primitive groups
+            up to degree 2499::
+
+                sage: PrimitiveGroups(2500).cardinality()                     # requires optional database_gap
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: Only the primitive groups of degree less than 2500 are available in GAP's database
+
+        TESTS::
+
+            sage: type(PrimitiveGroups(12).cardinality())               # requires optional database_gap
+            <type 'sage.rings.integer.Integer'>
+            sage: type(PrimitiveGroups(0).cardinality())
+            <type 'sage.rings.integer.Integer'>
+        """
+        # gap.NrPrimitiveGroups(0) fails, so Sage needs to handle this
+
+        # While we are at it, and since Sage also handles the
+        # primitive group of degree 1, we may as well handle 1
+        if self._degree <= 1:
+            return Integer(1)
+        elif self._degree >= 2500:
+            raise NotImplementedError, "Only the primitive groups of degree less than 2500 are available in GAP's database"
+        else:
+            try:
+                return Integer(gap.NrPrimitiveGroups(gap(self._degree)))
+            except RuntimeError:
+                from sage.misc.misc import verbose
+                verbose("Warning: PrimitiveGroups requires the GAP database package. Please install it with ``sage -i database_gap``.", level=0)
 
 class PermutationGroup_plg(PermutationGroup_unique):
     def base_ring(self):

@@ -34,7 +34,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
     representations by their highest weight vectors. For this theory of Weyl,
     see (for example):
 
-    * J. F. Adams, Lectures on Lie groups
+    * Adams, Lectures on Lie groups
     * Broecker and Tom Dieck, Representations of Compact Lie groups
     * Bump, Lie Groups
     * Fulton and Harris, Representation Theory
@@ -127,6 +127,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 prefix = ct.__repr__()
         self._prefix = prefix
         self._style = style
+        if style == "coroots":
+            self._word = self._space.weyl_group().long_element().reduced_word()
         # TODO: remove the Category.join once not needed anymore (bug in CombinatorialFreeModule)
         # TODO: use GradedAlgebrasWithBasis
         category = Category.join([AlgebrasWithBasis(base_ring), Algebras(base_ring).Subobjects()])
@@ -153,8 +155,11 @@ class WeylCharacterRing(CombinatorialFreeModule):
     # than on _irr_weights. Or just to merge this method and _irr_weights
     def lift_on_basis(self, irr):
         """
-        Expands the basis element indexed by the weight ``irr`` into
-        the weight ring of ``self``.
+        Expands the basis element indexed by the weight ``irr`` into the weight ring of ``self``.
+
+        INPUT:
+
+        - ``irr`` -- a dominant weight
 
         This is used to implement :meth:`lift`.
 
@@ -173,6 +178,41 @@ class WeylCharacterRing(CombinatorialFreeModule):
             x0^2*x1 + x0*x1^2 + x0^2*x2 + 2*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2
         """
         return self.ambient()._from_dict(self._irr_weights(irr))
+
+    def demazure_character(self, hwv, word, debug=False):
+        r"""
+        Efficiently computes the Demazure character.
+
+        INPUT:
+
+        - ``hwv`` -- a (usually dominant) weight
+        - ``word`` -- a WeylGroup word
+
+        Produces the Demazure character with highest weight hwv and word as an element
+        of the weight ring. Only available if style=="coroots". The Demazure operators
+        are also available as methods of WeightRing elements, and as methods of crystals.
+        Given a CrystalOfTableaux with given highest weight vector, the Demazure method
+        on the crystal will give the equivalent of this method, except that the
+        Demazure character of the crystal is given as a sum of monomials instead of an
+        element of the WeightRing.
+
+        See :meth:`WeightRing.Element.demazure` and
+        :meth:`sage.categories.classical_crystals.ClassicalCrystals.ParentMethods.demazure_character`
+
+        EXAMPLES::
+
+            sage: A2=WeylCharacterRing("A2",style="coroots")
+            sage: h=sum(A2.fundamental_weights()); h
+            (2, 1, 0)
+            sage: A2.demazure_character(h,word=[1,2])
+            a2(0,0) + a2(-2,1) + a2(2,-1) + a2(1,1) + a2(-1,2)
+            sage: A2.demazure_character((1,1),word=[1,2])
+            a2(0,0) + a2(-2,1) + a2(2,-1) + a2(1,1) + a2(-1,2)
+        """
+        if self._style != "coroots":
+            raise ValueError, r"""demazure method unavailable. Use style="coroots"."""
+        hwv = self._space.from_vector_notation(hwv, style = "coroots")
+        return self.ambient()._from_dict(self._demazure_weights(hwv, word=word, debug=debug))
 
     @lazy_attribute
     def lift(self):
@@ -207,7 +247,6 @@ class WeylCharacterRing(CombinatorialFreeModule):
         return self.module_morphism(self.lift_on_basis,
                                     codomain = self.ambient(),
                                     category = AlgebrasWithBasis(self.base_ring()))
-
 
     def _retract(self, chi):
         """
@@ -351,7 +390,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
     def _element_constructor_(self, weight):
         """
-        Construct a monomial from a weight
+        Construct a monomial from a dominant weight.
 
         INPUT:
 
@@ -375,8 +414,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
     def product_on_basis(self, a, b):
         r"""
-        This computes the tensor product of two irreducible representations
-        using the Brauer-Klimyk method.
+        Computes the tensor product of two irreducible representations.
 
         EXAMPLES::
 
@@ -387,6 +425,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
             D4(1,0,0,0) + D4(1,1,1,0)
             sage: spin_minus*spin_plus
             D4(1,0,0,0) + D4(1,1,1,0)
+
+        Uses the Brauer-Klimyk method.
+
         """
         # The method is asymmetrical, and as a rule of thumb
         # it is fastest to switch the factors so that the
@@ -398,6 +439,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
     def _product_helper(self, d1, b):
         """
+        Helper function for :meth:`product_on_basis`.
+
         INPUT:
 
         - ``d1`` -- a dictionary of weight multiplicities
@@ -425,7 +468,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
     def dot_reduce(self, a):
         r"""
-        Auxiliary function for product_on_basis.
+        Auxiliary function for :meth:`product_on_basis`.
 
         INPUT:
 
@@ -487,10 +530,11 @@ class WeylCharacterRing(CombinatorialFreeModule):
     @cached_method
     def _irr_weights(self, hwv):
         """
-        Given a dominant weight hwv, produce the dictionary of
-        weight multiplicities for the irreducible representation
-        with highest weight vector hwv. This method is cached
-        for efficiency.
+        Computes the weights of an irreducible as a dictionary.
+
+        INPUT:
+
+        - ``hwv`` -- a dominant weight
 
         EXAMPLES::
 
@@ -499,14 +543,115 @@ class WeylCharacterRing(CombinatorialFreeModule):
             (1, 0, 0)
             sage: A2._irr_weights(v)
             {(0, 1, 0): 1, (1, 0, 0): 1, (0, 0, 1): 1}
+
+        Given a dominant weight hwv, produces the dictionary of
+        weight multiplicities for the irreducible representation
+        with highest weight vector hwv. This method is cached
+        for efficiency.
         """
-        return irreducible_character_freudenthal(hwv, self._space)
+        if self._style == "coroots":
+            return self._demazure_weights(hwv)
+        else:
+            return irreducible_character_freudenthal(hwv)
+
+    def _demazure_weights(self, hwv, word="long", debug=False):
+        """
+        Computes the weights of a Demazure character.
+
+        INPUT:
+
+        - ``hwv`` -- a dominant weight
+
+        This method duplicates the functionality of _irr_weights, under
+        the assumption that style=="coroots", but allows an optional parameter
+        word. (This is not allowed in _irr_weights since it would interfere
+        with the @cached_method.) Produces the dictionary of weights
+        for the irreducible character with highest weight hwv when word
+        is omitted, or for the Demazure character if word is included.
+
+        EXAMPLES ::
+
+            sage: B2=WeylCharacterRing("B2", style="coroots")
+            sage: [B2._demazure_weights(v, word=[1,2]) for v in B2.fundamental_weights()]
+            [{(0, 1): 1, (1, 0): 1}, {(-1/2, 1/2): 1, (1/2, -1/2): 1, (1/2, 1/2): 1}]
+        """
+        alphacheck = self._space.simple_coroots()
+        alpha = self._space.simple_roots()
+        dd = {}
+        h = tuple(int(hwv.inner_product(alphacheck[j])) for j in self._space.index_set())
+        dd[h] = int(1)
+        return self._demazure_helper(dd, word=word, debug=debug)
+
+    def _demazure_helper(self, dd, word="long", debug=False):
+        r"""
+        Assumes style="coroots". If the optional parameter ``word`` is
+        specified, produces a Demazure character (defaults to the long Weyl
+        group element.
+
+        INPUT:
+
+        - ``dd`` -- a dictionary of weights
+
+        OPTIONAL:
+
+        - ``word`` -- a Weyl group reduced word.
+
+        EXAMPLES ::
+
+            sage: A2=WeylCharacterRing("A2",style="coroots")
+            sage: dd = {}; dd[(1,1)]=int(1)
+            sage: A2._demazure_helper(dd,word=[1,2])
+            {(1, -1, 0): 1, (-1, 1, 0): 1, (1, 0, -1): 1, (0, 0, 0): 1, (0, 1, -1): 1}
+        """
+        if self._style != "coroots":
+            raise ValueError, r"""_demazure_helper method unavailable. Use style="coroots"."""
+        index_set = self._space.index_set()
+        alphacheck = self._space.simple_coroots()
+        alpha = self._space.simple_roots()
+        r = self.rank()
+        cm = {}
+        for i in index_set:
+            cm[i] = tuple(int(alpha[i].inner_product(alphacheck[j])) for j in index_set)
+            if debug:
+                print "cm[%s]=%s"%(i,cm[i])
+        accum = dd
+        if word == "long":
+            word = self._word
+        for i in reversed(word):
+            if debug:
+                print "i=%s"%i
+            next = {}
+            for v in accum:
+                coroot = v[i-1]
+                if debug:
+                    print "   v=%s, coroot=%s"%(v, coroot)
+                if coroot >= 0:
+                    mu = v
+                    for j in range(coroot+1):
+                        next[mu] = next.get(mu,0)+accum[v]
+                        if debug:
+                            print "     mu=%s, next[mu]=%s"%(mu, next[mu])
+                        mu = tuple(mu[k] - cm[i][k] for k in range(r))
+                else:
+                    mu = v
+                    for j in range(-1-coroot):
+                        mu = tuple(mu[k] + cm[i][k] for k in range(r))
+                        next[mu] = next.get(mu,0)-accum[v]
+                        if debug:
+                            print "     mu=%s, next[mu]=%s"%(mu, next[mu])
+            accum = {}
+            for v in next:
+                accum[v] = next[v]
+        ret = {}
+        for v in accum:
+            if accum[v]:
+                ret[self._space.from_vector_notation(v, style="coroots")] = accum[v]
+        return ret
 
     @cached_method
     def _weight_multiplicities(self, x):
         """
-        Produces the dictionary of weight multiplicities for the
-        WeylCharacter x. The character x does not have to be irreducible.
+        Produces weight multiplicities for the (possibly reducible) WeylCharacter x.
 
         EXAMPLES::
 
@@ -545,8 +690,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
     def irr_repr(self, hwv):
         """
-        Return a string representing the irreducible character with highest
-        weight vector hwv.
+        Return a string representing the irreducible character with highest weight vector hwv.
 
         EXAMPLES::
 
@@ -557,16 +701,34 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: [B3.irr_repr(v) for v in B3.fundamental_weights()]
             ['B3(1,0,0)', 'B3(0,1,0)', 'B3(0,0,1)']
         """
+        return self._prefix+self._wt_repr(hwv)
+
+    def _wt_repr(self, wt):
+        """
+        Produces a representation of a vector in either coweight or
+        lattice notation (following the appendices in Bourbaki, Lie Groups and
+        Lie Algebras, Chapters 4,5,6), depending on whether the parent
+        WeylCharacterRing is created with style="coweights" or not.
+
+        EXAMPLES ::
+
+            sage: [fw1,fw2]=RootSystem("G2").ambient_space().fundamental_weights(); fw1,fw2
+            ((1, 0, -1), (2, -1, -1))
+            sage: [WeylCharacterRing("G2")._wt_repr(v) for v in [fw1,fw2]]
+            ['(1,0,-1)', '(2,-1,-1)']
+            sage: [WeylCharacterRing("G2",style="coroots")._wt_repr(v) for v in [fw1,fw2]]
+            ['(1,0)', '(0,1)']
+        """
         if self._style == "lattice":
-            vec = hwv.to_vector()
+            vec = wt.to_vector()
         elif self._style == "coroots":
-            vec = [hwv.inner_product(x) for x in self.simple_coroots()]
+            vec = [wt.inner_product(x) for x in self.simple_coroots()]
         else:
             raise ValueError, "unknown style"
         hstring = str(vec[0])
         for i in range(1,len(vec)):
             hstring=hstring+","+str(vec[i])
-        return self._prefix+"("+hstring+")"
+        return "("+hstring+")"
 
     def _repr_term(self, t):
         """
@@ -727,9 +889,17 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
     def _char_from_weights(self, mdict):
         """
-        Helper method for char_from_weights. The output of this method is a
-        dictionary whose keys are dominant weights that is the same as the
-        monomial_coefficients method of self.char_from_weights().
+        Helper method for :meth:'char_from_weights'.
+
+        INPUT:
+
+        - ``mdict`` -- a dictionary of weight multiplicities
+
+        The output of this method is a dictionary whose keys are dominant
+        weights that is the same as the monomial_coefficients method of
+        self.char_from_weights().
+
+        EXAMPLES::
 
             sage: A2 = WeylCharacterRing("A2")
             sage: v = A2._space([3,1,0])
@@ -860,7 +1030,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             identity `k h_k = \sum_{r=1}^k p_k h_{k-r}` relating the power-sum and
             complete symmetric polynomials. Applying this to the eigenvalues of
             an element of the parent Lie group in the representation ``self``, the
-            `h_k ` become symmetric powers and the `p_k` become adams operations,
+            `h_k` become symmetric powers and the `p_k` become Adams operations,
             giving an efficient recursive implementation.
 
             EXAMPLES::
@@ -1089,11 +1259,15 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         def inner_product(self, other):
             """
-            Computes the inner product with another character. The
-            irreducible characters are an orthonormal basis with
-            respect to the usual inner product of characters,
-            interpreted as functions on a compact Lie group,
-            by Schur orthogonality.
+            Computes the inner product with another character.
+
+            INPUT:
+
+            - ``other`` -- another character.
+
+            The irreducible characters are an orthonormal basis with respect
+            to the usual inner product of characters, interpreted as functions
+            on a compact Lie group, by Schur orthogonality.
 
             EXAMPLES::
 
@@ -1110,9 +1284,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         def invariant_degree(self):
             """
-            Returns the multiplicity of the trivial representation
-            in self. Multiplicities of other irreducibles may be
-            obtained using the method ``multiplicity.``
+            Returns the multiplicity of the trivial representation in self.
+
+            Multiplicities of other irreducibles may be obtained using :meth:`multiplicity`.
 
             EXAMPLES::
 
@@ -1126,11 +1300,11 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         def multiplicity(self, other):
             """
+            Returns the multiplicity of the irreducible `other` in self.
+
             INPUT:
 
             - ``other`` - an irreducible character.
-
-            Returns the multiplicity of the irreducible other in self.
 
             EXAMPLES::
 
@@ -1144,7 +1318,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 raise ValueError, "%s is not irreducible"%other
             return self.coefficient(other.support()[0])
 
-def irreducible_character_freudenthal(hwv, L, debug=False):
+def irreducible_character_freudenthal(hwv, debug=False):
     """
     Returns the dictionary of multiplicities for the irreducible
     character with highest weight lamb. The weight multiplicities are
@@ -1168,6 +1342,7 @@ def irreducible_character_freudenthal(hwv, L, debug=False):
         sage: WeylCharacterRing("A2")(2,1,0).weight_multiplicities() # indirect doctest
         {(1, 2, 0): 1, (2, 1, 0): 1, (0, 2, 1): 1, (2, 0, 1): 1, (0, 1, 2): 1, (1, 1, 1): 2, (1, 0, 2): 1}
     """
+    L = hwv.parent()
     rho = L.rho()
     mdict = {}
     current_layer = {hwv:1}
@@ -1193,7 +1368,6 @@ def irreducible_character_freudenthal(hwv, L, debug=False):
                     while mu_plus_i_alpha in mdict:
                         accum += mdict[mu_plus_i_alpha]*(mu_plus_i_alpha).inner_product(alpha)
                         mu_plus_i_alpha += alpha
-
                 if accum == 0:
                     next_layer[mu] = 0
                 else:
@@ -1849,6 +2023,8 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
 def get_branching_rule(Rtype, Stype, rule):
     """
+    Creates a branching rule.
+
     INPUT:
 
     - ``R`` -- the Weyl Character Ring of G
@@ -2255,9 +2431,10 @@ def get_branching_rule(Rtype, Stype, rule):
         else:
             raise ValueError, "Rule not found"
 
-
 def branching_rule_from_plethysm(chi, cartan_type, return_matrix = False):
     """
+    Creates the branching rule of a plethysm.
+
     INPUT:
 
     - ``chi`` - the character of an irreducible representation pi of a group G
@@ -2474,7 +2651,7 @@ class WeightRing(CombinatorialFreeModule):
 
     def _element_constructor_(self, weight):
         """
-        Construct a monomial from a weight
+        Construct a monomial from a weight.
 
         INPUT:
 
@@ -2616,21 +2793,21 @@ class WeightRing(CombinatorialFreeModule):
         return self._space.positive_roots()
 
     def wt_repr(self, wt):
-        """
+        r"""
         Returns a string representing the irreducible character with
-        highest weight vector wt.
+        highest weight vector wt. Uses coroot notation if the associated
+        WeylCharacterRing is defined with style="coroots"
 
         EXAMPLES::
 
-            sage: G2 = WeylCharacterRing(['G',2])
-            sage: g2 = WeightRing(G2)
-            sage: g2.wt_repr([1,0,0])
-            'g2(1,0,0)'
+            sage: G2 = WeylCharacterRing("G2")
+            sage: [G2.ambient().wt_repr(x) for x in G2.fundamental_weights()]
+            ['g2(1,0,-1)', 'g2(2,-1,-1)']
+            sage: G2 = WeylCharacterRing("G2",style="coroots")
+            sage: [G2.ambient().wt_repr(x) for x in G2.fundamental_weights()]
+            ['g2(1,0)', 'g2(0,1)']
         """
-        hstring = str(wt[0])
-        for i in range(1,self._space.n):
-            hstring=hstring+","+str(wt[i])
-        return self._prefix+"("+hstring+")"
+        return self._prefix+self.parent()._wt_repr(wt)
 
     def _repr_term(self, t):
         """
@@ -2696,4 +2873,155 @@ class WeightRing(CombinatorialFreeModule):
             """
             return self.parent().parent().char_from_weights(self.monomial_coefficients())
 
+        def scale(self, k):
+            """
+            INPUT:
 
+            - ``k`` -- a nonzero integer
+
+            Multiplies a weight by `k`. The operation is extended by linearity
+            to the weight ring.
+
+            EXAMPLES::
+
+                sage: g2 = WeylCharacterRing("G2",style="coroots").ambient()
+                sage: g2(2,3).scale(2)
+                g2(4,6)
+            """
+            if k == 0:
+                raise ValueError, "parameter must be nonzero"
+            d1 = self.monomial_coefficients()
+            d2 = {}
+            for mu in d1:
+                d2[k*mu]=d1[mu]
+            return self.parent()._from_dict(d2)
+
+        def shift(self, mu):
+            """
+            Adds `\mu` to any weight. Extended by linearity to the weight ring.
+
+            INPUT:
+
+            - ``mu`` -- a weight.
+
+            EXAMPLES::
+
+                sage: g2 = WeylCharacterRing("G2",style="coroots").ambient()
+                sage: [g2(1,2).shift(fw) for fw in g2.fundamental_weights()]
+                [g2(2,2), g2(1,3)]
+            """
+            d1 = self.monomial_coefficients()
+            d2 = {}
+            for nu in d1:
+                d2[mu+nu]=d1[nu]
+            return self.parent()._from_dict(d2)
+
+        def demazure(self, w, debug=False):
+            """
+            Returns the result of applying the Demazure operator `\partial_w` to self.
+
+            INPUT:
+
+                - ``w`` -- a Weyl group element, or its reduced word.
+
+
+            If `w=s_i` is a simple reflection, the operation `\partial_w` sends the weight
+            `\lambda` to `(\\text{self}[\lambda]-\\text{self}[s_i\cdot\lambda - \\alpha_i])/(1-\\text{self}[- \\alpha_i])`
+            where the numerator is divisible the denominator in the weight ring. This
+            is extended by multiplicativity to all `w` in the Weyl group.
+
+            EXAMPLES::
+
+                sage: B2 = WeylCharacterRing("B2",style="coroots")
+                sage: b2=WeightRing(B2)
+                sage: b2(1,0).demazure([1])
+                b2(1,0) + b2(-1,2)
+                sage: b2(1,0).demazure([2])
+                b2(1,0)
+                sage: r=b2(1,0).demazure([1,2]); r
+                b2(1,0) + b2(-1,2)
+                sage: r.demazure([1])
+                b2(1,0) + b2(-1,2)
+                sage: r.demazure([2])
+                b2(0,0) + b2(1,0) + b2(1,-2) + b2(-1,2)
+            """
+            if type(w) is list:
+                word = w
+            else:
+                word = w.reduced_word()
+            d1 = self.monomial_coefficients()
+            d = {}
+            alphacheck = self.parent()._space.simple_coroots()
+            for v in d1:
+                d[tuple(v.inner_product(alphacheck[j]) for j in self.parent().space().index_set())]=d1[v]
+            return self.parent()._from_dict(self.parent().parent()._demazure_helper(d, word, debug=debug))
+
+        def demazure_lusztig(self, i, v):
+            """
+            Returns the result of applying the Demazure-Lusztig operator `T_i` to self.
+
+            INPUT:
+
+                - ``i`` -- an element of the index set (or a reduced word or Weyl group element)
+                - ``v`` -- an element of the base ring
+
+            If `R` is the parent WeightRing, the Demazure-Lusztig operator `T_i` is the
+            linear map `R\\rightarrow R` that sends (for a weight `\lambda`) `R(\lambda)` to
+
+            .. MATH::
+
+                (R(\\alpha_i)-1)^{-1}
+                (R(\lambda)-R(s_i\lambda)-v(R(\lambda)-R(\\alpha_i+s_i\lambda))
+
+            where the numerator is divisible by the denominator in `R`. The Demazure-Lusztig
+            operators give a representation of the Iwahori Hecke algebra associated to the
+            Weyl group. See
+
+            * Lusztig, Equivariant K-theory and representations of Hecke algebras,
+              Proc. Amer. Math. Soc. 94 (1985), no. 2, 337-342.
+            * Cherednik, Nonsymmetric Macdonald polynomials. IMRN 10, 483-515 (1995).
+
+            In the examples, we confirm the braid and quadratic relations for type B2.
+
+            EXAMPLES::
+
+                sage: P.<v> = PolynomialRing(QQ)
+                sage: B2 = WeylCharacterRing("B2",style="coroots",base_ring=P); b2 = B2.ambient()
+                sage: def T1(f) : return f.demazure_lusztig(1,v)
+                sage: def T2(f) : return f.demazure_lusztig(2,v)
+                sage: T1(T2(T1(T2(b2(1,-1)))))
+                (v^2-v)*b2(0,-1) + v^2*b2(-1,1)
+                sage: [T1(T1(f))==(v-1)*T1(f)+v*f for f in [b2(0,0), b2(1,0), b2(2,3)]]
+                [True, True, True]
+                sage: [T1(T2(T1(T2(b2(i,j))))) == T2(T1(T2(T1(b2(i,j))))) for i in [-2..2] for j in [-1,1]]
+                [True, True, True, True, True, True, True, True, True, True]
+
+            Instead of an index `i` one may use a reduced word or Weyl group element:
+
+            .. link
+
+            ::
+
+                sage: b2(1,0).demazure_lusztig([2,1],v)==T2(T1(b2(1,0)))
+                True
+                sage: W = B2.space().weyl_group(prefix="s")
+                sage: [s1,s2]=W.simple_reflections()
+                sage: b2(1,0).demazure_lusztig(s2*s1,v)==T2(T1(b2(1,0)))
+                True
+            """
+            if i in self.parent().space().index_set():
+                rho = self.parent().space().from_vector_notation(self.parent().space().rho(),style="coroots")
+                inv = self.scale(-1)
+                return (-inv.shift(-rho).demazure([i]).shift(rho)+v*inv.demazure([i])).scale(-1)
+            elif type(i) is list:
+                if len(i)==0:
+                    return self
+                elif len(i)==1:
+                    return self.demazure_lusztig(i[0],v)
+                else:
+                    return self.demazure_lusztig(i[1:],v).demazure_lusztig(i[:1],v)
+            else:
+                try:
+                    return self.demazure_lusztig(i.reduced_word(),v)
+                except:
+                    raise ValueError, "unknown index %s"%i

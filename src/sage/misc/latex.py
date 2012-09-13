@@ -1840,12 +1840,10 @@ class MathJax:
             sage: MathJax().eval(3, mode='inline')
             <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
             sage: MathJax().eval(type(3), mode='inline')
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|&lt;type|\phantom{\verb!x!}\verb|'sage.rings.integer.Integer'&gt;|</script></html>
+            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<type|\phantom{\verb!x!}\verb|'sage.rings.integer.Integer'>|</script></html>
         """
-        # Get a regular LaTeX representation of x...
+        # Get a regular LaTeX representation of x
         x = latex(x, combine_all=combine_all)
-        # ... and make it suitable for MathJax and html
-        x = x.replace('<', '&lt;').replace('>', '&gt;')
         # In MathJax:
         #   inline math: <script type="math/tex">...</script>
         #   displaymath: <script type="math/tex; mode=display">...</script>
@@ -1863,7 +1861,7 @@ class MathJax:
                          + _Latex_prefs._option['macros']
                          + '{0}</script></html>'.format(x))
 
-def view(objects, title='SAGE', debug=False, sep='', tiny=False,
+def view(objects, title='Sage', debug=False, sep='', tiny=False,
         pdflatex=None, engine=None, viewer = None, tightpage = None,
         mode='inline', combine_all=False, **kwds):
     r"""nodetex
@@ -2304,7 +2302,7 @@ def pretty_print_default(enable=True):
 
         sage: pretty_print_default(True)
         sage: sys.displayhook
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|&lt;function|\phantom{\verb!x!}\verb|pretty_print|\phantom{\verb!x!}\verb|at|\phantom{\verb!x!}\verb|...|</script></html>
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<function|\phantom{\verb!x!}\verb|pretty_print|\phantom{\verb!x!}\verb|at|\phantom{\verb!x!}\verb|...|</script></html>
         sage: pretty_print_default(False)
         sage: sys.displayhook == sys.__displayhook__
         True

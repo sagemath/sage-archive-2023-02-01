@@ -92,7 +92,7 @@ def _check_tall_list_and_print(out_stream, the_list):
     # Output any remaining entries.
     if len(running_lines[0]) > 0:
         _print_tall_list_row(out_stream, running_lines, True)
-    print >>out_stream, parens[1]
+    out_stream.write(str(parens[1]))
     return True
 
 # This helper function for _print_tall_list processes and outputs the
@@ -109,9 +109,41 @@ def _print_tall_list_row(out_stream, running_lines, last_row=False):
     if not last_row:
         print >>out_stream
 
+def format_obj(obj):
+    """
+    Return a string if we want to print it in a special way; otherwise, return None.
+
+    EXAMPLES::
+
+        sage: import sage.misc.displayhook
+
+    For most objects, nothing is done (None is returned):
+
+        sage: sage.misc.displayhook.format_obj('Hello, world!')
+        sage: sage.misc.displayhook.format_obj((1, 2, 3, 4))
+
+    We demonstrate the special format for lists of matrices::
+
+        sage: sage.misc.displayhook.format_obj( \
+                [matrix([[1], [2]]), matrix([[3], [4]])])
+        '[\n[1]  [3]\n[2], [4]\n]'
+    """
+    # We only apply the special formatting to lists (or tuples) where the first
+    # element is a matrix, or an ArithmeticSubgroupElement (a thin wrapper
+    # around a matrix). This should cover most cases.
+    if isinstance(obj, (tuple, list)):
+        from sage.matrix.matrix import is_Matrix
+        from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
+        if len(obj) > 0 and (is_Matrix(obj[0]) or isinstance(obj[0], ArithmeticSubgroupElement)):
+            from cStringIO import StringIO
+            s = StringIO()
+            if _check_tall_list_and_print(s, obj):
+                return s.getvalue()
+    return None
+
 def print_obj(out_stream, obj):
     """
-    Print an object. This function is used internally by the displayhook.
+    Return a string if we want to print it in a special way; otherwise, return False.
 
     EXAMPLES::
 
@@ -133,16 +165,10 @@ def print_obj(out_stream, obj):
         [2], [4]
         ]
     """
-    # We only apply the special formatting to lists (or tuples) where the first
-    # element is a matrix, or an ArithmeticSubgroupElement (a thin wrapper
-    # around a matrix). This should cover most cases.
-    if isinstance(obj, (tuple, list)):
-        from sage.matrix.matrix import is_Matrix
-        from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
-        if len(obj) > 0 and (is_Matrix(obj[0]) or isinstance(obj[0], ArithmeticSubgroupElement)):
-            if _check_tall_list_and_print(out_stream, obj):
-                return
-    print >>out_stream, `obj`
+    s = format_obj(obj)
+    if s is None:
+        s = repr(obj)
+    print >>out_stream, s
 
 def displayhook(obj):
     """

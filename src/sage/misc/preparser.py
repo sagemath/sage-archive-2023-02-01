@@ -1145,7 +1145,16 @@ attached = {}
 load_debug_mode = False
 attach_debug_mode = True
 
-def preparse_file(contents, globals=None, numeric_literals=True):
+def load_attached():
+    contents = ""
+    for F, tm in attached.iteritems():
+        new_tm = os.path.getmtime(F)
+        if os.path.exists(F) and new_tm > tm:
+            contents += load_wrap(F, attach=True)
+    return contents
+
+
+def preparse_file(contents, globals=None, numeric_literals=True, run_attached=True):
     """
     Preparses input, attending to numeric literals and load/attach
     file directives.
@@ -1180,16 +1189,18 @@ def preparse_file(contents, globals=None, numeric_literals=True):
     """
     if globals is None: globals = {}
 
-    if not isinstance(contents, str):
+    if not isinstance(contents, basestring):
         raise TypeError, "contents must be a string"
 
-    assert isinstance(contents, str)
+    assert isinstance(contents, basestring)
 
     # Reload attached files that have changed
-    for F, tm in attached.iteritems():
-        new_tm = os.path.getmtime(F)
-        if os.path.exists(F) and new_tm > tm:
-            contents = 'attach "%s"\n'%F + contents
+    if run_attached:
+        for F, tm in attached.iteritems():
+            new_tm = os.path.getmtime(F)
+            if os.path.exists(F) and new_tm > tm:
+                contents = ' "%s"\n'%F + contents
+
 
     # We keep track of which files have been loaded so far
     # in order to avoid a recursive load that would result
@@ -1601,7 +1612,7 @@ def handle_encoding_declaration(contents, out):
     out.write("# -*- coding: utf-8 -*-\n")
     return contents
 
-def preparse_file_named_to_stream(name, out):
+def preparse_file_named_to_stream(name, out, run_attached=True):
     r"""
     Preparse file named \code{name} (presumably a .sage file), outputting to
     stream \code{out}.
@@ -1612,7 +1623,7 @@ def preparse_file_named_to_stream(name, out):
     os.chdir(dir)
     contents = open(name).read()
     contents = handle_encoding_declaration(contents, out)
-    parsed = preparse_file(contents)
+    parsed = preparse_file(contents, run_attached=run_attached)
     os.chdir(cur)
     out.write("# -*- encoding: utf-8 -*-\n")
     out.write('#'*70+'\n')
@@ -1620,7 +1631,7 @@ def preparse_file_named_to_stream(name, out):
     out.write('#'*70+'\n')
     out.write(parsed)
 
-def preparse_file_named(name):
+def preparse_file_named(name, run_attached=True):
     r"""
     Preparse file named \code{name} (presumably a .sage file), outputting to a
     temporary file.  Returns name of temporary file.
@@ -1629,7 +1640,7 @@ def preparse_file_named(name):
     name = os.path.abspath(name)
     tmpfilename = os.path.abspath(sage.misc.misc.tmp_filename(name) + ".py")
     out = open(tmpfilename,'w')
-    preparse_file_named_to_stream(name, out)
+    preparse_file_named_to_stream(name, out, run_attached=run_attached)
     out.close()
     return tmpfilename
 
@@ -1808,10 +1819,10 @@ def load(filename, globals, attach=False):
             # code snippets. Use preparse_file_named to make
             # the file name appear in the traceback as well.
             # See Trac 11812.
-            execfile(preparse_file_named(fpath), globals)
+            execfile(preparse_file_named(fpath, run_attached=False), globals)
         else:
             # Preparse in memory only for speed.
-            exec(preparse_file(open(fpath).read()) + "\n", globals)
+            exec(preparse_file(open(fpath).read(), run_attached=False) + "\n", globals)
     elif fpath.endswith('.spyx') or fpath.endswith('.pyx'):
         exec(load_cython(fpath), globals)
     elif fpath.endswith('.m'):

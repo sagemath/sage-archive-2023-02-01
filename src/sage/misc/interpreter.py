@@ -2,7 +2,7 @@ r"""
 Sage's IPython Modifications
 
 This module contains all of Sage's customizations to the IPython
-interpreter.  These changes consist of the following magjor components:
+interpreter.  These changes consist of the following major components:
 
   - :class:`SageTerminalApp`
   - :class:`SageInteractiveShell`
@@ -18,11 +18,11 @@ command-line.  It's primary purpose is to
   - Initialize the :class:`SageInteractiveShell`.
 
   - Provide default configuration options for the shell, and its
-    subcomponents.  These work with (and can be overrided by)
+    subcomponents.  These work with (and can be overridden by)
     IPython's configuration system.
 
-  - Monkey-patch IPython in order to support Sage's customization when
-    introspecting objects.
+  - Load the Sage ipython extension (which does things like preparsing,
+    add magics, etc.).
 
   - Provide a custom :class:`SageCrashHandler` to give the user
     instructions on how to report the crash to the Sage support
@@ -39,22 +39,6 @@ this object can be retrieved by running::
 
 The :class:`SageInteractiveShell` provides the following
 customizations:
-
-  - Modifying the input before it is evaluated. This is done in
-    :class:`SageInputSplitter`, which uses
-    :class:`SagePromptTransformer`, :class:`SagePreparseTransformer`,
-    :class:`LoadAttachTransformer`, and
-    :class:`InterfaceMagicTransformer` to do the actual work.
-
-  - Provide a number of IPython magic functions that work with Sage
-    and its preparser.  See :meth:`~SageInteractiveShell.magic_timeit`,
-    :meth:`~SageInteractiveShell.magic_prun`,
-    :meth:`~SageInteractiveShell.magic_load`,
-    :meth:`~SageInteractiveShell.magic_attach`, and
-    :meth:`~SageInteractiveShell.magic_iload`.
-
-  - Adding support for attached files.  See
-    :meth:`~SageInteractiveShell.run_cell`.
 
   - Cleanly deinitialize the Sage library before exiting.  See
     :meth:`~SageInteractiveShell.ask_exit`.
@@ -147,13 +131,13 @@ def set_sage_prompt(s):
         sage: from sage.misc.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: shell.run_cell('from sage.misc.interpreter import set_sage_prompt')
-        sage: shell.run_cell('set_sage_prompt(u"new: ")')
+        sage: shell.run_cell('set_sage_prompt(u"new")')
         sage: shell.prompt_manager.in_template
         u'new: '
-        sage: shell.run_cell('set_sage_prompt(u"sage: ")')
+        sage: shell.run_cell('set_sage_prompt(u"sage")')
     """
     ipython = get_ipython()
-    ipython.prompt_manager.in_template = s
+    ipython.prompt_manager.in_template = s+': '
 
 def sage_prompt():
     """
@@ -164,60 +148,10 @@ def sage_prompt():
         sage: from sage.misc.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: shell.run_cell('sage_prompt()')
-        u'sage: '
+        u'sage'
     """
     ipython = get_ipython()
-    return ipython.prompt_manager.in_template
-
-###############
-# Displayhook #
-###############
-from IPython.core.displayhook import DisplayHook
-class SageDisplayHook(DisplayHook):
-    """
-    A replacement for ``sys.displayhook`` which correctly print lists
-    of matrices.
-
-    EXAMPLES::
-
-        sage: from sage.misc.interpreter import SageDisplayHook, get_test_shell
-        sage: shell = get_test_shell()
-        sage: shell.displayhook
-        <sage.misc.interpreter.SageDisplayHook object at 0x...>
-        sage: shell.run_cell('a = identity_matrix(ZZ, 2); [a,a]')
-        [
-        [1 0]  [1 0]
-        [0 1], [0 1]
-        ]
-    """
-    def compute_format_data(self, result):
-        r"""
-        Computes the format data of ``result``.  If the
-        :func:`sage.misc.displayhook.print_obj` writes a string, then
-        we override IPython's :class:`DisplayHook` formatting.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import get_test_shell
-            sage: shell = get_test_shell()
-            sage: shell.displayhook
-            <sage.misc.interpreter.SageDisplayHook object at 0x...>
-            sage: shell.displayhook.compute_format_data(2)
-            {u'text/plain': '2'}
-            sage: a = identity_matrix(ZZ, 2)
-            sage: shell.displayhook.compute_format_data([a,a])
-            {u'text/plain': '[\n[1 0]  [1 0]\n[0 1], [0 1]\n]'}
-        """
-        format_data = super(SageDisplayHook, self).compute_format_data(result)
-
-        from cStringIO import StringIO
-        s = StringIO()
-        from sage.misc.displayhook import print_obj
-        print_obj(s, result)
-        if s:
-            format_data['text/plain'] = s.getvalue().strip()
-        return format_data
-
+    return ipython.prompt_manager.in_template[:-2]
 
 ####################
 # InteractiveShell #
@@ -225,39 +159,28 @@ class SageDisplayHook(DisplayHook):
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 class SageInteractiveShell(TerminalInteractiveShell):
 
-    # used by init_displayhook
-    displayhook_class = Type(SageDisplayHook)
-
-    # Input splitter, to split entire cells of input into either individual
-    # interactive statements or whole blocks.
-    input_splitter = Instance('sage.misc.interpreter.SageInputSplitter', (), {})
-
-    def run_cell(self, *args, **kwds):
-        r"""
-        This method loads all modified attached files before executing
-        any code.  Any arguments and keyword arguments are passed to
-        :meth:`TerminalInteractiveShell.run_cell`.
+    def system_raw(self, cmd):
+        """
+        Adjust the libraries before calling system commands.  See Trac
+        #975 for a discussion of this function.
 
         EXAMPLES::
 
-            sage: import os
             sage: from sage.misc.interpreter import get_test_shell
-            sage: from sage.misc.misc import tmp_dir
             sage: shell = get_test_shell()
-            sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
-            sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
-            sage: shell.run_cell('%attach ' + tmp)
-            sage: shell.run_cell('a')
-            2
-            sage: import time; time.sleep(1)
-            sage: f = open(tmp, 'w'); f.write('a = 3\n'); f.close()
-            sage: shell.run_cell('a')
-            3
-            sage: os.remove(tmp)
+            sage: shell.system_raw('false')
+            sage: shell.user_ns['_exit_code']
+            256
         """
-        for f in modified_attached_files():
-            super(SageInteractiveShell, self).run_cell('%%load "%s"'%f)
-        return super(SageInteractiveShell, self).run_cell(*args, **kwds)
+        sage_commands = os.listdir(os.environ['SAGE_ROOT']+"/local/bin/")
+        DARWIN_SYSTEM = os.uname()[0]=='Darwin'
+        if cmd in sage_commands:
+            return super(SageInteractiveShell, self).system_raw(cmd)
+        else:
+            libraries = 'LD_LIBRARY_PATH=$$SAGE_ORIG_LD_LIBRARY_PATH;'
+            if DARWIN_SYSTEM:
+                libraries += 'DYLD_LIBRARY_PATH=$$SAGE_ORIG_DYLD_LIBRARY_PATH;'
+            return super(SageInteractiveShell, self).system_raw(cmd)
 
     def ask_exit(self):
         """
@@ -291,193 +214,6 @@ class SageInteractiveShell(TerminalInteractiveShell):
         quit_sage()
         super(SageInteractiveShell, self).ask_exit()
 
-    def system_raw(self, cmd):
-        """
-        Adjust the libraries before calling system commands.  See Trac
-        #975 for a discussion of this function.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import get_test_shell
-            sage: shell = get_test_shell()
-            sage: shell.system_raw('false')
-            sage: shell.user_ns['_exit_code']
-            256
-        """
-        sage_commands = os.listdir(os.environ['SAGE_ROOT']+"/local/bin/")
-        DARWIN_SYSTEM = os.uname()[0]=='Darwin'
-        if cmd in sage_commands:
-            return super(SageInteractiveShell, self).system_raw(cmd)
-        else:
-            libraries = 'LD_LIBRARY_PATH=$$SAGE_ORIG_LD_LIBRARY_PATH;'
-            if DARWIN_SYSTEM:
-                libraries += 'DYLD_LIBRARY_PATH=$$SAGE_ORIG_DYLD_LIBRARY_PATH;'
-            return super(SageInteractiveShell, self).system_raw(cmd)
-
-    def run_ast_nodes(self, nodelist, cell_name, interactivity='last_expr'):
-        """
-        Override ``interactivity``
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import get_test_shell
-            sage: shell = get_test_shell()
-            sage: shell.run_cell('for i in range(3): i')  # indirect doctest
-            0
-            1
-            2
-        """
-        super(SageInteractiveShell, self).run_ast_nodes(nodelist, cell_name, interactivity='all')
-
-    #######################################
-    # Magic functions
-    #######################################
-    def magic_timeit(self, s):
-        """
-        Runs :func:`sage_timeit` on the code s.  This is designed to
-        be used from the command line as ``%timeit 2+2``.
-
-        :param s: code to be timed
-        :type s: string
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import get_test_shell
-            sage: shell = get_test_shell()
-            sage: shell.magic_timeit('2+2') #random output
-            625 loops, best of 3: 525 ns per loop
-            sage: shell.magic_timeit('2r+2r').__class__
-            <class sage.misc.sage_timeit.SageTimeitResult at 0x...>
-        """
-        from sage.misc.sage_timeit import sage_timeit
-        return sage_timeit(s, self.user_ns)
-
-    def magic_prun(self, parameter_s='', **kwds):
-        """
-        Profiles the code contained in ``parameter_s``. This is
-        designed to be used from the command line as ``%prun 2+2``.
-
-        :param parameter_s: code to be profiled
-        :type parameter_s: string
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import get_test_shell
-            sage: shell = get_test_shell()
-            sage: shell.magic_prun('2+2')
-                     2 function calls in 0.000 seconds
-            <BLANKLINE>
-               Ordered by: internal time
-            <BLANKLINE>
-               ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-                    1    0.000    0.000    0.000    0.000 <string>:1(<module>)
-                    1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
-        """
-        return super(SageInteractiveShell, self).magic_prun(parameter_s=preparse(parameter_s),
-                                                            **kwds)
-
-    def magic_load(self, s):
-        r"""
-        Loads the code contained in the file ``s``. This is designed
-        to be used from the command line as ``%load /path/to/file``.
-
-        :param s: file to be loaded
-        :type s: string
-
-        EXAMPLES::
-
-            sage: import os
-            sage: from sage.misc.interpreter import get_test_shell
-            sage: from sage.misc.misc import tmp_dir
-            sage: shell = get_test_shell()
-            sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
-            sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
-            sage: shell.magic_load(tmp)
-            sage: shell.run_cell('a')
-            2
-        """
-        from sage.misc.preparser import load_wrap
-        return self.ex(load_wrap(s, attach=False))
-
-    def magic_attach(self, s):
-        r"""
-        Attaches the code contained in the file ``s``. This is
-        designed to be used from the command line as
-        ``%attach /path/to/file``.
-
-        :param s: file to be attached
-        :type s: string
-
-        EXAMPLES::
-
-            sage: import os
-            sage: from sage.misc.interpreter import get_test_shell
-            sage: from sage.misc.misc import tmp_dir
-            sage: shell = get_test_shell()
-            sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
-            sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
-            sage: shell.magic_attach(tmp)
-            sage: shell.run_cell('a')
-            2
-            sage: import time; time.sleep(1)
-            sage: f = open(tmp, 'a'); f.write('a = 3\n'); f.close()
-            sage: shell.run_cell('a')
-            3
-        """
-        from sage.misc.preparser import load_wrap
-        return self.ex(load_wrap(s, attach=True))
-
-    def magic_iload(self, s):
-        """
-        A magic command to interactively load a file as in MAGMA.
-
-        :param s: the file to be interactively loaded
-        :type s: string
-
-        .. note::
-
-            Currently, this cannot be completely doctested as it
-            relies on :func:`raw_input`.
-
-        EXAMPLES::
-
-            sage: ip = get_ipython()           # not tested: works only in interactive shell
-            sage: ip.magic_iload('/dev/null')  # not tested: works only in interactive shell
-            Interactively loading "/dev/null"  # not tested: works only in interactive shell
-        """
-        try:
-            name = str(eval(s))
-        except Exception:
-            name = s.strip()
-
-        try:
-            F = open(name)
-        except IOError:
-            raise ImportError, 'could not open file "%s"'%name
-
-        #We need to update the execution count so that the history for the
-        #iload command and the history for the first line of the loaded
-        #file are not written to the history database with the same line
-        #number (execution count).  This happens since the execution count
-        #is updated only after the magic command is run.
-        self.execution_count += 1
-
-        print 'Interactively loading "%s"'%name
-
-        # The following code is base on IPython's
-        # InteractiveShell.interact,
-        more = False
-        for line in F.readlines():
-            prompt = self.prompt_manager.render('in' if not more else 'in2', color=True)
-            raw_input(prompt.encode('utf-8') + ' ' + line.rstrip())
-
-            self.input_splitter.push(line)
-            more = self.input_splitter.push_accepts_more()
-            if not more:
-                source, source_raw = self.input_splitter.source_raw_reset()
-                self.run_cell(source_raw, store_history=True)
-
-
 ###################################################################
 # Transformers used in the SageInputSplitter
 ###################################################################
@@ -489,18 +225,13 @@ class SagePreparseTransformer():
     """
     Preparse the line of code before it get evaluated by IPython.
     """
-    def __call__(self, line, line_number, block_start):
+    def __call__(self, line, line_number):
         """
         Transform ``line``.
 
         INPUT:
 
         - ``line`` -- string. The line to be transformed.
-
-        - ``line_number`` -- integer. The line number. For a single-line input, this is always zero.
-
-        - ``block_start`` -- boolean. Whether the line is at the
-          beginning of a new block.
 
         OUTPUT:
 
@@ -510,19 +241,21 @@ class SagePreparseTransformer():
 
             sage: from sage.misc.interpreter import SagePreparseTransformer
             sage: spt = SagePreparseTransformer()
-            sage: spt('2', 0, False)
+            sage: spt('2', 0)
             'Integer(2)'
             sage: preparser(False)
-            sage: spt('2', 0, False)
+            sage: spt('2', 0)
             '2'
             sage: preparser(True)
         """
         if do_preparse and not line.startswith('%'):
-            return preparse(line)
+            # we use preparse_file instead of just preparse because preparse_file
+            # automatically prepends attached files
+            return preparse(line, reset=(line_number==0))
         else:
             return line
 
-class LoadAttachTransformer():
+class MagicTransformer():
     r"""
     Handle input lines that start out like ``load ...`` or ``attach
     ...``.
@@ -532,18 +265,16 @@ class LoadAttachTransformer():
     into ``%load ...`` and ``%attach ...``, respectively.  Thus, we
     have to do it manually.
     """
-    def __call__(self, line, line_number, block_start):
+    deprecations = {'load': '%runfile',
+                    'attach': '%attach',
+                    'time': '%time'}
+    def __call__(self, line, line_number):
         """
         Transform ``line``.
 
         INPUT:
 
         - ``line`` -- string. The line to be transformed.
-
-        - ``line_number`` -- integer. The line number. For a single-line input, this is always zero.
-
-        - ``block_start`` -- boolean. Whether the line is at the
-          beginning of a new block.
 
         OUTPUT:
 
@@ -551,38 +282,41 @@ class LoadAttachTransformer():
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import get_test_shell, LoadAttachTransformer
-            sage: lat = LoadAttachTransformer()
-            sage: lat('load /path/to/file', 0, False)
-            '%load /path/to/file'
-            sage: lat('attach /path/to/file', 0, False)
+            sage: from sage.misc.interpreter import get_test_shell, MagicTransformer
+            sage: mt = MagicTransformer()
+            sage: mt('load /path/to/file', 0)
+            doctest:1: DeprecationWarning: Use %runfile instead of load.
+            See http://trac.sagemath.org/12719 for details.
+            '%runfile /path/to/file'
+            sage: mt('attach /path/to/file', 0)
+            doctest:1: DeprecationWarning: Use %attach instead of attach.
+            See http://trac.sagemath.org/12719 for details.
             '%attach /path/to/file'
+            sage: mt('time 1+2', 0)
+            doctest:1: DeprecationWarning: Use %time instead of time.
+            See http://trac.sagemath.org/12719 for details.
+            '%time 1+2'
         """
-        if line_number>0:
-            return line
-        for cmd in ['load', 'attach']:
-            if line.startswith(cmd + ' '):
-                return '%' + line
+        for old,new in self.deprecations.items():
+            if line.startswith(old+' '):
+                from sage.misc.superseded import deprecation
+                deprecation(12719, 'Use %s instead of %s.'%(new,old))
+                return new+line[len(old):]
         return line
 
 class SagePromptTransformer():
     """
-    Remove Sage prompts from the imput line.
+    Remove Sage prompts from the input line.
     """
     _sage_prompt_re = re.compile(r'(^[ \t]*sage: |^[ \t]*\.+:? )+')
 
-    def __call__(self, line, line_number, block_start):
+    def __call__(self, line, line_number):
         """
         Transform ``line``.
 
         INPUT:
 
         - ``line`` -- string. The line to be transformed.
-
-        - ``line_number`` -- integer. The line number. For a single-line input, this is always zero.
-
-        - ``block_start`` -- boolean. Whether the line is at the
-          beginning of a new block.
 
         OUTPUT:
 
@@ -592,13 +326,13 @@ class SagePromptTransformer():
 
             sage: from sage.misc.interpreter import SagePromptTransformer
             sage: spt = SagePromptTransformer()
-            sage: spt("sage: sage: 2 + 2", 0, False)
+            sage: spt("sage: sage: 2 + 2", 0)
             '2 + 2'
-            sage: spt('', 0, False)
+            sage: spt('', 0)
             ''
-            sage: spt("      sage: 2+2", 0, False)
+            sage: spt("      sage: 2+2", 0)
             '2+2'
-            sage: spt("      ... 2+2", 0, False)
+            sage: spt("      ... 2+2", 0)
             '2+2'
         """
         if not line or line.isspace() or line.strip() == '...':
@@ -614,77 +348,11 @@ class SagePromptTransformer():
                 break
         return line
 
-class InterfaceMagicTransformer():
-    """
-    This transformer is for handling commands like ``%maxima`` to
-    switch to a Maxima shell.
-    """
-    _magic_command_re = re.compile(r"get_ipython\(\).magic\(u'([^\d\W]\w+)'\)", re.UNICODE)
-
-    def interfaces(self):
-        """
-        Return the list of interfaces
-
-        OUTPUT:
-
-        A list of stings.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import InterfaceMagicTransformer
-            sage: imt = InterfaceMagicTransformer()
-            sage: imt.interfaces()
-            ['LiE', 'Lisp', 'MuPAD', 'axiom', 'fricas', 'gap', 'gap3', 'giac',
-             'kash', 'macaulay2', 'magma', 'maple', 'mathematica', 'matlab',
-             'maxima', 'mwrank', 'octave', 'pari', 'r', 'sage', 'scilab', 'singular']
-        """
-        if '_interfaces' in self.__dict__:
-            return self._interfaces
-        import sage.interfaces
-        self._interfaces = sorted([ obj.name()
-                                    for obj in sage.interfaces.all.__dict__.values()
-                                    if isinstance(obj, sage.interfaces.interface.Interface) ])
-        return self._interfaces
-
-    def __call__(self, line, line_number, block_start):
-        """
-        Transform ``line``.
-
-        INPUT:
-
-        - ``line`` -- string. The line to be transformed.
-
-        - ``line_number`` -- integer. The line number. For a single-line input, this is always zero.
-
-        - ``block_start`` -- boolean. Whether the line is at the
-          beginning of a new block.
-
-        OUTPUT:
-
-        A string, the transformed line.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import InterfaceMagicTransformer
-            sage: imt = InterfaceMagicTransformer()
-            sage: imt('%maxima', 0, False)
-            'maxima.interact()'
-            sage: imt('%prun', 0, False)
-            '%prun'
-        """
-        if line_number>0:
-            return line
-        if line.startswith('%'):
-            interface = line[1:].strip()
-            if interface in self.interfaces():
-                return interface + '.interact()'
-        return line
-
 class SagePromptDedenter():
     """
-    Remove leading spaces from the imput line.
+    Remove leading spaces from the input line.
     """
-    def __call__(self, line, line_number, block_start):
+    def __call__(self, line, line_number):
         """
         Transform ``line``.
 
@@ -693,9 +361,6 @@ class SagePromptDedenter():
         - ``line`` -- string. The line to be transformed.
 
         - ``line_number`` -- integer. The line number. For a single-line input, this is always zero.
-
-        - ``block_start`` -- boolean. Whether the line is at the
-          beginning of a new block.
 
         OUTPUT:
 
@@ -705,11 +370,11 @@ class SagePromptDedenter():
 
             sage: from sage.misc.interpreter import SagePromptDedenter
             sage: spd = SagePromptDedenter()
-            sage: spd('  1 + \\', 0, False)
+            sage: spd('  1 + \\', 0)
             '1 + \\'
-            sage: spd('  2',     1, False)
+            sage: spd('  2', 1)
             '2'
-            sage: spd('3',     2, False)   # try our best with incorrect indentation
+            sage: spd('3', 2)   # try our best with incorrect indentation
             '3'
         """
         if line_number == 0:
@@ -719,162 +384,6 @@ class SagePromptDedenter():
         else:
             dedent = min(len(line)-len(line.lstrip()), self._dedent)
             return line[dedent:]
-
-###################################################################
-# Input Splitter
-###################################################################
-# the main entry point for input handling in Sage
-
-from IPython.core.inputsplitter import InputSplitter
-class SageInputSplitter(InputSplitter):
-    """
-    An input splitter for Sage syntax
-    """
-    # Whether a multi-line input is complete, i.e. line = empty line at the end
-    _is_complete = False
-
-    # String with raw, untransformed input.
-    source_raw = ''
-
-    ### Private attributes
-    # List with lines of raw input accumulated so far.
-    _buffer_raw = None
-    _magic_interfaces = []
-    cell_magic_parts = None
-
-    def __init__(self, input_mode=None):
-        """
-        The Python constructor
-
-        TESTS::
-
-            sage: from sage.misc.interpreter import SageInputSplitter
-            sage: SageInputSplitter()
-            <sage.misc.interpreter.SageInputSplitter object at 0x...>
-        """
-        InputSplitter.__init__(self, input_mode)
-        self._buffer_raw = []
-        self._transforms = [
-            SagePromptDedenter(),
-            SagePromptTransformer(),
-            InterfaceMagicTransformer(),
-            LoadAttachTransformer(),
-            SagePreparseTransformer() ]
-
-    def reset(self):
-        """
-        Reset the input buffer and associated state.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import SageInputSplitter
-            sage: sis = SageInputSplitter()
-            sage: sis.push('1')
-            True
-            sage: sis._buffer
-            [u'Integer(1)\n']
-            sage: sis.reset()
-            sage: sis._buffer
-            []
-        """
-        # print 'SageInputSplitter.reset buf = '+str(self._buffer)
-        InputSplitter.reset(self)
-        self._buffer_raw[:] = []
-        self.source_raw = ''
-
-    def source_raw_reset(self):
-        """
-        Return input and raw source and perform a full reset.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import SageInputSplitter
-            sage: sis = SageInputSplitter()
-            sage: sis.push('1')
-            True
-            sage: sis._buffer
-            [u'Integer(1)\n']
-            sage: sis.source_raw_reset()
-            (u'Integer(1)\n', u'1\n')
-            sage: sis._buffer
-            []
-        """
-        # print 'SageInputSplitter.source_raw_reset'
-        out = self.source
-        out_r = self.source_raw
-        self.reset()
-        return out, out_r
-
-    def push(self, lines):
-        """
-        Push one or more lines of Sage input.
-
-        This is mostly copy & paste from IPython, but with different transformers
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import SageInputSplitter
-            sage: sis = SageInputSplitter()
-            sage: sis._buffer
-            []
-            sage: sis.push('1')
-            True
-            sage: sis._buffer
-            [u'Integer(1)\n']
-        """
-        # print 'SageInputSplitter.push '+lines+' ('+str(len(self._buffer))+')'  # dbg
-
-        if not lines:
-            return super(SageInputSplitter, self).push(lines)
-
-        # We must ensure all input is pure unicode
-        lines = cast_unicode(lines, self.encoding)
-        lines_list = lines.splitlines()
-
-        # Transform logic
-        #
-        # We only apply the line transformers to the input if we have either no
-        # input yet, or complete input, or if the last line of the buffer ends
-        # with ':' (opening an indented block).  This prevents the accidental
-        # transformation of escapes inside multiline expressions like
-        # triple-quoted strings or parenthesized expressions.
-        #
-        # The last heuristic, while ugly, ensures that the first line of an
-        # indented block is correctly transformed.
-        #
-        # FIXME: try to find a cleaner approach for this last bit.
-        # If we were in 'block' mode, since we're going to pump the parent
-        # class by hand line by line, we need to temporarily switch out to
-        # 'line' mode, do a single manual reset and then feed the lines one
-        # by one.  Note that this only matters if the input has more than one
-        # line.
-        saved_input_mode = None
-        if self.input_mode != 'line':
-            saved_input_mode = self.input_mode
-            self.reset()
-            self.input_mode = 'line'
-
-        # Store raw source before applying any transformations to it.  Note
-        # that this must be done *after* the reset() call that would otherwise
-        # flush the buffer.
-        self._store(lines, self._buffer_raw, 'source_raw')
-
-        push = super(SageInputSplitter, self).push
-        buf = self._buffer
-        try:
-            for line in lines_list:
-                line_number = len(buf)
-                block_start = self._is_complete or not buf or \
-                    (buf and (buf[-1].rstrip().endswith(':') or
-                              buf[-1].rstrip().endswith(',')) )
-                for f in self._transforms:
-                    line = f(line, line_number, block_start)
-                out = push(line)
-        finally:
-            if saved_input_mode is not None:
-                self.input_mode = saved_input_mode
-        return out
-
 
 ###################
 # Interface shell #
@@ -1043,7 +552,7 @@ def interface_shell_embed(interface):
     try:
         cfg = Config(get_ipython().config)
     except NameError:
-        cfg = Config(SageTerminalApp.DEFAULT_SAGE_CONFIG)
+        cfg = Config(DEFAULT_SAGE_CONFIG)
     cfg.PromptManager['in_template'] = interface.name() + ': '
 
     ipshell = InteractiveShellEmbed(config=cfg,
@@ -1067,8 +576,6 @@ def get_test_shell():
     Returns a IPython shell that can be used in testing the functions
     in this module.
 
-    :keyword sage_ext: load the Sage extension
-    :type sage_ext: bool
     :returns: an IPython shell
 
     EXAMPLES::
@@ -1077,7 +584,7 @@ def get_test_shell():
         sage: shell = get_test_shell(); shell
         <sage.misc.interpreter.SageInteractiveShell object at 0x...>
     """
-    app = SageTerminalApp.instance()
+    app = SageTerminalApp.instance(config=DEFAULT_SAGE_CONFIG)
     app.test_shell = True
     if app.shell is None:
         app.initialize()
@@ -1117,23 +624,34 @@ class SageCrashHandler(IPAppCrashHandler):
             app, contact_name, contact_email, bug_tracker, show_crash_traceback=False)
         self.crash_report_fname = 'Sage_crash_report.txt'
 
+DEFAULT_SAGE_CONFIG = Config(PromptManager = Config(in_template = 'sage: ',
+                                                    in2_template = '....: ',
+                                                    justify = False,
+                                                    out_template = ''),
+                            TerminalIPythonApp = Config(display_banner = False,
+                                                        verbose_crash = True),
+                            TerminalInteractiveShell = Config(ast_node_interactivity = 'all',
+                                                              colors = 'NoColor',
+                                                              confirm_exit = False,
+                                                              separate_in = ''),
+                            # The extension is *always* loaded for SageTerminalApp
+                            # See the code for SageTerminalApp.init_shell
+                            #InteractiveShellApp = Config(extensions=['sage.misc.sage_extension']),
+    )
+
 class SageTerminalApp(TerminalIPythonApp):
     name = u'Sage'
     crash_handler_class = SageCrashHandler
-    verbose_crash = True   # Needed to use Sage Crash Handler
-    display_banner = False
     test_shell = False
 
-    DEFAULT_SAGE_CONFIG = Config(
-        {'PromptManager':    {'in_template':  u'sage: ',
-                              'in2_template': u'....: ',
-                              'out_template': u'',
-                              'justify':      False},
-         'InteractiveShell': {'separate_in':  u'',
-                              'autoindent':   True,
-                              'confirm_exit': False,
-                              'colors':       'NoColor'},
-         })
+    def __init__(self, **kwargs):
+        # Overwrite the default Sage configuration with the user's.
+        new_config = Config()
+        new_config._merge(DEFAULT_SAGE_CONFIG)
+        new_config._merge(kwargs.get('config', Config()))
+        kwargs['config']=new_config
+        super(SageTerminalApp, self).__init__(**kwargs)
+
 
     def init_shell(self):
         r"""
@@ -1142,11 +660,6 @@ class SageTerminalApp(TerminalIPythonApp):
 
           - Merges the default shell configuration with the user's.
 
-          - Monkey-patch :mod:`IPython.core.oinspect` to add Sage
-            introspection functions.
-
-          - Run additional Sage startup code.
-
         .. note::
 
             This code is based on
@@ -1154,68 +667,22 @@ class SageTerminalApp(TerminalIPythonApp):
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import SageTerminalApp
-            sage: app = SageTerminalApp.instance()
+            sage: from sage.misc.interpreter import SageTerminalApp, DEFAULT_SAGE_CONFIG
+            sage: app = SageTerminalApp(config=DEFAULT_SAGE_CONFIG)
             sage: app.initialize() #indirect doctest
             sage: app.shell
             <sage.misc.interpreter.SageInteractiveShell object at 0x...>
         """
-        import sys
-        sys.path.insert(0, '')
+        # We need verbose crashes for the Sage crash handler.  We set it here
+        # so that we don't overwrite the traitlet attribute
+        self.verbose_crash = True
 
-        # Overwrite the default Sage configuration with the user's.
-        new_config = Config()
-        new_config._merge(self.DEFAULT_SAGE_CONFIG)
-        new_config._merge(self.config)
+        # what is the purpose behind this??
+        os.chdir(os.environ["CUR"])
 
         # Shell initialization
-        self.shell = SageInteractiveShell.instance(config=new_config,
+        self.shell = SageInteractiveShell.instance(config=self.config,
                         display_banner=False, profile_dir=self.profile_dir,
                         ipython_dir=self.ipython_dir)
         self.shell.configurables.append(self)
-
-
-        # Ideally, these would just be methods of the Inspector class
-        # that we could override; however, IPython looks them up in
-        # the global :class:`IPython.core.oinspect` module namespace.
-        # Thus, we have to monkey-patch.
-        import sagedoc, sageinspect, IPython.core.oinspect
-        IPython.core.oinspect.getdoc = sageinspect.sage_getdoc #sagedoc.my_getdoc
-        IPython.core.oinspect.getsource = sagedoc.my_getsource
-        IPython.core.oinspect.getargspec = sageinspect.sage_getargspec
-
-        from sage.misc.edit_module import edit_devel
-        self.shell.set_hook('editor', edit_devel)
-
-        # Additional initalization code
-        preparser(True)
-        os.chdir(os.environ["CUR"])
-
-        from sage.misc.misc import branch_current_hg_notice, branch_current_hg
-        branch = branch_current_hg_notice(branch_current_hg())
-        if branch and self.test_shell is False:
-            print branch
-
-        try:
-            self.shell.ex('from sage.all import Integer, RealNumber')
-        except Exception:
-            import traceback
-            print "Error importing the Sage library"
-            traceback.print_exc()
-            print
-            print "To debug this, you can run:"
-            print 'sage -ipython -i -c "import sage.all"'
-            print 'and then type "%debug" to enter the interactive debugger'
-            sys.exit(1)
-
-        self.shell.push(dict(sage_prompt=sage_prompt))
-
-        if os.environ.get('SAGE_IMPORTALL', 'yes') != 'yes':
-            return
-
-        self.shell.ex('from sage.all_cmdline import *')
-        startup_file = os.environ.get('SAGE_STARTUP_FILE', '')
-
-        if os.path.exists(startup_file):
-            self.shell.run_cell('%%load "%s"'%startup_file)
-
+        self.shell.extension_manager.load_extension('sage.misc.sage_extension')

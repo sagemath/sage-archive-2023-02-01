@@ -371,6 +371,8 @@ class QuaternionAlgebra_abstract(Algebra):
             ...
             NotImplementedError: base field must be rational numbers
         """
+        if not is_RationalField(self.base_ring()):
+            raise NotImplementedError("base field must be rational numbers")
         return self.discriminant() != 1
 
     def is_matrix_ring(self):
@@ -393,6 +395,8 @@ class QuaternionAlgebra_abstract(Algebra):
             NotImplementedError: base field must be rational numbers
 
         """
+        if not is_RationalField(self.base_ring()):
+            raise NotImplementedError("base field must be rational numbers")
         return self.discriminant() == 1
 
     def is_exact(self):
@@ -953,8 +957,8 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
 
     def discriminant(self):
         """
-        Given a quaternion algebra `A` defined over the field of
-        rational numbers, return the discriminant of `A`, i.e. the
+        Given a quaternion algebra `A` defined over a number field,
+        return the discriminant of `A`, i.e. the
         product of the ramified primes of `A`.
 
         EXAMPLES::
@@ -964,19 +968,23 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             sage: QuaternionAlgebra(19).discriminant()
             19
 
-        This raises a ``NotImplementedError`` if the base field is not
-        the rational numbers::
+            sage: F.<a> = NumberField(x^2-x-1)
+            sage: B.<i,j,k> = QuaternionAlgebra(F, 2*a,F(-1))
+            sage: B.discriminant()
+            Fractional ideal (2)
 
             sage: QuaternionAlgebra(QQ[sqrt(2)],3,19).discriminant()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: base field must be rational numbers
+            Fractional ideal (1)
         """
         try: return self.__discriminant
         except AttributeError: pass
         if not is_RationalField(self.base_ring()):
-            raise NotImplementedError("base field must be rational numbers")
-        self.__discriminant = hilbert_conductor(self._a, self._b)
+            try:
+                F = self.base_ring()
+                self.__discriminant = F.hilbert_conductor(self._a,self._b)
+            except NotImplementedError: raise "base field must be rational numbers or number field"
+        else:
+            self.__discriminant = hilbert_conductor(self._a, self._b)
         return self.__discriminant
 
     def ramified_primes(self):

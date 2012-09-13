@@ -97,6 +97,7 @@ from sage.rings.finite_rings.integer_mod import mod
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
+from sage.misc.misc import union
 
 from unit_group import UnitGroup
 from class_group import ClassGroup
@@ -7115,6 +7116,44 @@ class NumberField_absolute(NumberField_generic):
         # We MUST convert a and b to pari before calling the function
         # to work around Trac #11868 -- Jeroen Demeyer
         return pari(self).nfhilbert(pari(a), pari(b), P.pari_prime())
+
+    def hilbert_conductor(self,a,b):
+        """
+        This is the product of all (finite) primes where the Hilbert symbol is -1.
+        What is the same, this is the (reduced) discriminant of the quaternion
+        algebra `(a,b)` over a number field.
+
+        INPUT:
+
+        -``a``,``b`` -- elements of the number field `self`
+
+        OUTPUT:
+
+        - squarefree ideal of the ring of integers of `self`
+
+        EXAMPLES::
+
+            sage: F.<a> = NumberField(x^2-x-1)
+            sage: F.hilbert_conductor(2*a,F(-1))
+            Fractional ideal (2)
+            sage: K.<b> = NumberField(x^3-4*x+2)
+            sage: K.hilbert_conductor(K(2),K(-2))
+            Fractional ideal (1)
+            sage: K.hilbert_conductor(K(2*b),K(-2))
+            Fractional ideal (-b^2 - b + 2)
+
+
+        AUTHOR:
+
+        - Aly Deines
+
+        """
+        a, b = self(a), self(b)
+        d = self.ideal(1)
+        for p in union(union( self.ideal(2).prime_factors(), self.ideal(a).prime_factors()), self.ideal(b).prime_factors()):
+            if self.hilbert_symbol(a,b,p) == -1:
+                d *= p
+        return d
 
 
 class NumberField_cyclotomic(NumberField_absolute):

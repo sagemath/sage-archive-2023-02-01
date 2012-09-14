@@ -14,29 +14,28 @@ import sys, __builtin__
 # This is used to wrap lines when printing "tall" lists.
 MAX_COLUMN = 70
 
-def _check_tall_list_and_print(out_stream, the_list):
+def _check_tall_list_and_format(the_list):
     """
-    First check whether a list is "tall" -- whether the reprs of the elements of
-    the list will span multiple lines and cause the list to be printed awkwardly.
-    If not, this function returns False and does nothing; you should revert back
-    to the normal method for printing an object (its repr). If so, return True and
-    print the list in the special format. Note that the special format isn't just
-    for matrices. Any object with a multiline repr will be formatted.
+    First check whether a list is "tall" -- whether the reprs of the
+    elements of the list will span multiple lines and cause the list
+    to be printed awkwardly.  If not, this function returns None and
+    does nothing; you should revert back to the normal method for
+    printing an object (its repr). If so, return the string in the
+    special format. Note that the special format isn't just for
+    matrices. Any object with a multiline repr will be formatted.
 
     INPUT:
-
-    - ``out_stream`` - The output stream to use.
 
     - ``the_list`` - The list (or a tuple).
 
     TESTS::
 
-        sage: import sage.misc.displayhook, sys
+        sage: from sage.misc.displayhook import format_obj
 
-    We test _check_tall_list_and_print() indirectly by calling print_obj() on
+    We test _check_tall_list_and_format() indirectly by calling format_obj() on
     a list of matrices::
 
-        sage: sage.misc.displayhook.print_obj(sys.stdout, \
+        sage: print sage.misc.displayhook.format_obj( \
                 [matrix([[1, 2, 3, 4], [5, 6, 7, 8]]) for i in xrange(7)])
         [
         [1 2 3 4]  [1 2 3 4]  [1 2 3 4]  [1 2 3 4]  [1 2 3 4]  [1 2 3 4]
@@ -45,6 +44,11 @@ def _check_tall_list_and_print(out_stream, the_list):
         [1 2 3 4]
         [5 6 7 8]
         ]
+
+    We return None if we don't have anything special to do::
+
+        sage: format_obj('one-line string')
+        sage: format_obj(matrix([[1,2,3]]))
     """
     # For every object to be printed, split its repr on newlines and store the
     # result in this list.
@@ -56,7 +60,7 @@ def _check_tall_list_and_print(out_stream, the_list):
             # Meanwhile, check to make sure the list is actually "tall".
             tall = True
     if not tall:
-        return False
+        return None
     # Figure out which type of parenthesis to use, based on the type of the_list.
     if isinstance(the_list, tuple):
         parens = '()'
@@ -71,11 +75,11 @@ def _check_tall_list_and_print(out_stream, the_list):
     # and output running_lines using _print_tall_list_row.
     running_lines = [[]]
     current_column = 0
-    print >>out_stream, parens[0]
+    s = [parens[0]]
     for split_repr in split_reprs:
         width = max(len(x) for x in split_repr)
         if current_column + width > MAX_COLUMN and not (width > MAX_COLUMN):
-            _print_tall_list_row(out_stream, running_lines)
+            s.extend(_tall_list_row(running_lines))
             running_lines = [[]]
             current_column = 0
         current_column += width + 2
@@ -91,23 +95,25 @@ def _check_tall_list_and_print(out_stream, the_list):
             running_lines[i].append(' ' * width)
     # Output any remaining entries.
     if len(running_lines[0]) > 0:
-        _print_tall_list_row(out_stream, running_lines, True)
-    out_stream.write(str(parens[1]))
-    return True
+        s.extend(_tall_list_row(running_lines, True))
+    s.append(parens[1])
+    return "\n".join(s)
 
 # This helper function for _print_tall_list processes and outputs the
 # contents of the running_lines array.
-def _print_tall_list_row(out_stream, running_lines, last_row=False):
+def _tall_list_row(running_lines, last_row=False):
+    s=[]
     for i, line in enumerate(running_lines):
         if i + 1 != len(running_lines):
             sep, tail = '  ', ''
         else:
             # The commas go on the bottom line of this row.
             sep, tail = ', ', '' if last_row else ','
-        print >>out_stream, sep.join(line) + tail
+        s.append(sep.join(line) + tail)
     # Separate rows with a newline to make them stand out.
     if not last_row:
-        print >>out_stream
+        s.append("")
+    return s
 
 def format_obj(obj):
     """
@@ -135,85 +141,5 @@ def format_obj(obj):
         from sage.matrix.matrix import is_Matrix
         from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
         if len(obj) > 0 and (is_Matrix(obj[0]) or isinstance(obj[0], ArithmeticSubgroupElement)):
-            from cStringIO import StringIO
-            s = StringIO()
-            if _check_tall_list_and_print(s, obj):
-                return s.getvalue()
+            return _check_tall_list_and_format(obj)
     return None
-
-def print_obj(out_stream, obj):
-    """
-    Return a string if we want to print it in a special way; otherwise, return False.
-
-    EXAMPLES::
-
-        sage: import sage.misc.displayhook, sys
-
-    For most objects, printing is done simply using their repr::
-
-        sage: sage.misc.displayhook.print_obj(sys.stdout, 'Hello, world!')
-        'Hello, world!'
-        sage: sage.misc.displayhook.print_obj(sys.stdout, (1, 2, 3, 4))
-        (1, 2, 3, 4)
-
-    We demonstrate the special format for lists of matrices::
-
-        sage: sage.misc.displayhook.print_obj(sys.stdout, \
-                [matrix([[1], [2]]), matrix([[3], [4]])])
-        [
-        [1]  [3]
-        [2], [4]
-        ]
-    """
-    s = format_obj(obj)
-    if s is None:
-        s = repr(obj)
-    print >>out_stream, s
-
-def displayhook(obj):
-    """
-    This function adheres to the displayhook protocol described in `PEP 217`_.
-    In order to mimic the behavior of the default displayhook, we update the
-    variable ``__builtin__._`` every time an object is printed.
-
-    .. _`PEP 217`: http://www.python.org/dev/peps/pep-0217/
-
-    TESTS::
-
-        sage: import sage.misc.displayhook, sys
-        sage: sage.misc.displayhook.displayhook(1)
-        1
-        sage: print _
-        1
-        sage: sage.misc.displayhook.displayhook(None)
-        sage: print _
-        1
-    """
-    if obj is None:
-        return
-    __builtin__._ = None
-    print_obj(sys.stdout, obj)
-    __builtin__._ = obj
-
-
-def install():
-    """
-    Install the Sage displayhook into Python
-
-    In a full Sage session, IPython will override this setting later
-    during the startup. But if you run `from sage.all_cmdline import *`
-    in a python session, then this function will determine the
-    displayhook. Importantly, this is what the doctest runner does!
-
-    TESTS::
-
-        sage: sys.displayhook
-        <function displayhook at 0x...>
-
-    Note that you will get a `sage.misc.interpreter.SageDisplayHook`
-    object if you run this in an interactive Sage shell. At some point
-    in the future, the doctest framework will actually run in a Sage
-    shell and this doctest will change.
-    """
-    sys.displayhook = displayhook
-

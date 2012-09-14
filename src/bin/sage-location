@@ -6,6 +6,7 @@ SAGE_ROOT     = os.path.realpath(os.environ['SAGE_ROOT'])
 SAGE_LOCAL    = os.environ['SAGE_LOCAL']
 
 location_file = os.path.join(SAGE_LOCAL, 'lib', 'sage-current-location.txt')
+force_file    = os.path.join(SAGE_LOCAL, 'lib', 'sage-force-relocate.txt')
 flags_file    = os.path.join(SAGE_LOCAL, 'lib', 'sage-flags.txt')
 
 
@@ -181,6 +182,39 @@ def update_pkgconfig_file(filename):
         f.write(definition + config)
 
 
+def make_scripts_relative():
+    """
+    For all interpreter scripts in ``$SAGE_LOCAL/bin`` running python,
+    replace first line by "#!/usr/bin/env python"
+    """
+    os.chdir(os.path.join(SAGE_LOCAL, 'bin'))
+    for filename in os.listdir('.'):
+        # Only ordinary files
+        if not os.path.isfile(filename):
+            continue
+
+        try:
+            with open(filename, 'r+') as f:
+                # Read at most 512 bytes, this should be more than enough.
+                # If we don't find '\n' in the first 512 bytes, we most likely
+                # have a binary file.
+                L = f.readline(512)
+                # Make sure we read a complete line
+                if len(L) < 1 or L[-1] != '\n':
+                    continue
+                # Is the first line "#!.../python"?
+                if L.startswith("#!") and L.find("/python") >= 0:
+                    # Read the rest of the file
+                    script = f.read()
+
+                    # Write the file again with a proper interpreter line
+                    f.seek(0)
+                    f.truncate()
+                    f.write("#!/usr/bin/env python\n" + script)
+        except IOError:
+            pass
+
+
 def remove_files(path, remove_extensions):
     """
     Walk the tree starting at ``path``, and remove all files with
@@ -210,6 +244,7 @@ def sage_relocate():
     check_processor_flags()
     update_library_files()
     update_pkgconfig_files()
+    make_scripts_relative()
 
     # Compiled python files need to be regenerated, so we remove them:
     remove_files(os.path.join(SAGE_LOCAL, 'lib', 'python'),
@@ -226,9 +261,19 @@ if __name__ == '__main__':
     # OLD_SAGE_ROOT is None if this is a first-time install.
     OLD_SAGE_ROOT = read_location_file()
 
-    if OLD_SAGE_ROOT != SAGE_ROOT:
+    # If the force file exists (test that by deleting it),
+    # then always run sage_locate().
+    try:
+        os.unlink(force_file)
+        force_relocate = True
+    except OSError:
+        force_relocate = False
+
+    if OLD_SAGE_ROOT != SAGE_ROOT or force_relocate:
         if OLD_SAGE_ROOT is None:
             print "This looks like the first time you are running Sage."
+        elif force_relocate:
+            print "Forcing sage-location, probably because a new package was installed."
         else:
             print "The Sage installation tree has moved"
             print "from %s" % OLD_SAGE_ROOT

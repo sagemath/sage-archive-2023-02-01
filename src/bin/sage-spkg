@@ -511,14 +511,10 @@ else
 fi
 
 
-# 'sage-make_relative' is currently a Python script.
-# Only run it if Sage's Python is already installed (cf. #9992) and if
-# sage_scripts (which includes sage-make_relative) is installed.
-# This must be run from the directory SAGE_LOCAL/bin
-cd "$SAGE_LOCAL/bin"
-if [ -x ./python -a -f sage-make_relative ]; then
-    echo "Making Python scripts relocatable..."
-    ./python sage-make_relative
-fi
+# Touch this file to force a sage-location run next time Sage is
+# started.  This is needed to make some of the installed libraries and
+# scripts independent of the SAGE_ROOT path.
+touch "$SAGE_LOCAL/lib/sage-force-relocate.txt"
+
 
 echo "Finished installing $PKG_NAME.spkg"

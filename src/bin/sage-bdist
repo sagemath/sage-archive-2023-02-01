@@ -47,7 +47,7 @@ echo "Done copying root repository."
 
 
 echo "Copying files over to tmp directory"
-cp $CP_OPT local data "$TMP"/
+cp $CP_OPT local "$TMP"/
 
 # Copy devel/ subdirectories (only active branch)
 mkdir "$TMP/devel/"
@@ -69,6 +69,12 @@ if [ -d devel/sagenb ]; then
     echo "Copying Sage Notebook"
     cp $CP_OPT -L devel/sagenb "$TMP/devel/sagenb-main"
     ln -s sagenb-main "$TMP/devel/sagenb"
+fi
+
+if [ -d devel/ext ]; then
+    echo "Copying Extcode"
+    cp $CP_OPT -L devel/ext "$TMP/devel/ext-main"
+    ln -s ext-main "$TMP/devel/ext"
 fi
 
 

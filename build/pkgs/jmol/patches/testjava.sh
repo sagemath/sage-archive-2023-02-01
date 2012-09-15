@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 type -atp java
 OUT=$?
 #echo $OUT

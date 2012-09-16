@@ -57,15 +57,6 @@ if [ "$SAGE_UPGRADING" = yes ]; then
     fi
 fi
 
-# Upgrading from a version of Sage with SAGE_DATA
-if [ "$SAGE_UPGRADING" = yes ] && [ -d "$SAGE_ROOT/data" ]; then
-    mkdir -p "$SAGE_ROOT/devel"
-    mv "$SAGE_ROOT/data/extcode" "$SAGE_ROOT/devel/ext-main"
-    mkdir -p "$SAGE_LOCAL/share"
-    mv "$SAGE_ROOT/data/*" "$SAGE_LOCAL/share/"
-    rm -rf "$SAGE_ROOT/data"
-fi
-
 ###############################################################################
 # Create basic directories needed for Sage
 ###############################################################################
@@ -77,9 +68,20 @@ mkdir -p "$SAGE_LOCAL/etc"
 mkdir -p "$SAGE_LOCAL/lib"
 mkdir -p "$SAGE_ROOT/spkg/installed"
 mkdir -p "$SAGE_SHARE"
-# symlink old SAGE_DATA to SAGE_SHARE for optional packages that haven't yet
-# been updated
-rm -rf "$SAGE_ROOT/data"
+
+# If we are upgrading from an old version of Sage where $SAGE_SHARE
+# was stored at $SAGE_ROOT/data, move it to the right location.
+# Check that $SAGE_ROOT/data is an existing directory and not a symlink.
+if [ -d "$SAGE_ROOT/data" ] && [ ! -h "$SAGE_ROOT/data" ]; then
+    mkdir -p "$SAGE_ROOT/devel"
+    mv "$SAGE_ROOT"/data/extcode "$SAGE_ROOT/devel/ext-main"
+    mv "$SAGE_ROOT"/data/* "$SAGE_SHARE"
+    rm -rf "$SAGE_ROOT/data"
+fi
+
+# Symlink old SAGE_DATA to SAGE_SHARE for optional/experimental
+# packages that haven't yet been updated.
+rm -f "$SAGE_ROOT/data"
 ln -s local/share "$SAGE_ROOT/data"
 
 ###############################################################################

@@ -171,14 +171,20 @@ $(INST)/$(ICONV): $(BASE) $(INST)/$(PATCH)
 $(INST)/$(DOCUTILS): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(DOCUTILS) 2>&1" "tee -a $(SAGE_LOGS)/$(DOCUTILS).log"
 
+# ELLIPTIC_CURVES depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
+# to be set in sage-env.
 $(INST)/$(ELLIPTIC_CURVES): $(BASE) $(INST)/$(PATCH) $(INST)/$(PYTHON) \
-        $(INST)/$(SQLITE)
+        $(INST)/$(SQLITE) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(ELLIPTIC_CURVES) 2>&1" "tee -a $(SAGE_LOGS)/$(ELLIPTIC_CURVES).log"
 
-$(INST)/$(CONWAY): $(BASE) $(INST)/$(PATCH)
+# CONWAY depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
+# to be set in sage-env.
+$(INST)/$(CONWAY): $(BASE) $(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(CONWAY) 2>&1" "tee -a $(SAGE_LOGS)/$(CONWAY).log"
 
-$(INST)/$(GRAPHS): $(BASE) $(INST)/$(PATCH)
+# GRAPHS depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
+# to be set in sage-env.
+$(INST)/$(GRAPHS): $(BASE) $(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(GRAPHS) 2>&1" "tee -a $(SAGE_LOGS)/$(GRAPHS).log"
 
 $(INST)/$(GLPK): $(BASE) $(INST)/$(MPIR) $(INST)/$(ZLIB) $(INST)/$(PATCH)
@@ -213,7 +219,9 @@ $(INST)/$(POLYBORI): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SCONS) \
 		     $(INST)/$(GD) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(POLYBORI) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYBORI).log"
 
-$(INST)/$(POLYTOPES_DB): $(BASE) $(INST)/$(PATCH)
+# POLYTOPES_DB depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
+# to be set in sage-env.
+$(INST)/$(POLYTOPES_DB): $(BASE) $(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(POLYTOPES_DB) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYTOPES_DB).log"
 
 # PPL depends on SAGE_ROOT_REPO because it *executes* C++ code at
@@ -385,8 +393,9 @@ $(INST)/$(FLINTQS): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
 $(INST)/$(FLINT): $(BASE) $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINT) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINT).log"
 
-# Mercurial must be built before building extcode. See trac ticket #6508.
-$(INST)/$(EXTCODE): $(BASE) $(INST)/$(MERCURIAL)
+# EXTCODE depends on SAGE_ROOT_REPO because it needs SAGE_EXTCODE
+# to be set in sage-env.
+$(INST)/$(EXTCODE): $(BASE) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(EXTCODE) 2>&1" "tee -a $(SAGE_LOGS)/$(EXTCODE).log"
 
 $(INST)/$(M4RI): $(BASE) $(INST)/$(PATCH) $(INST)/$(LIBPNG)

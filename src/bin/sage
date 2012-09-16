@@ -236,13 +236,6 @@ usage_advanced() {
     exit 0
 }
 
-# Save the current directory, so we can change back after startup
-# If pwd fails, we fall back to SAGE_ROOT
-CUR=`pwd` || CUR="$SAGE_ROOT"
-export CUR
-
-cd "$SAGE_ROOT"
-
 # Check for '--nodotsage' before sourcing sage-env; otherwise sage-env
 # will already have set some environment variables with the old
 # setting for DOT_SAGE.
@@ -257,7 +250,7 @@ fi
 
 # Do NOT redirect stderr and stdout to /dev/null,
 # since sage-env might print important error messages:
-. spkg/bin/sage-env
+. "$SAGE_ROOT/spkg/bin/sage-env"
 if [ $? -ne 0 ]; then
    echo >&2 "Error setting environment variables by sourcing '$SAGE_ROOT/spkg/bin/sage-env';"
    echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
@@ -295,36 +288,16 @@ sage_setup() {
 
     # Check to see if the whole Sage install tree has moved.
     # If so, change various hardcoded paths.
-    "$SAGE_ROOT/local/bin/"sage-location
-    if [ $? -ne 0 ]; then
-        exit 1
-    fi
+    sage-location || exit $?
 
-    cd "$SAGE_ROOT/local/bin"
-    IPYTHONDIR="$DOT_SAGE/ipython" && export IPYTHONDIR
-    IPYTHONRC="ipythonrc" && export IPYTHONRC
+    export IPYTHONDIR="$DOT_SAGE/ipython"
+    export IPYTHONRC="ipythonrc"
     if [ ! -d "$IPYTHONDIR" ]; then
         mkdir -p "$DOT_SAGE"
         cp -r "$SAGE_ROOT/ipython" "$DOT_SAGE/"
     fi
     sage-cleaner &>/dev/null &
 }
-
-
-# Below the command
-# _=sage.misc.interpreter.do_prefilter_paste('',False)
-
-# It is very important in the following assignments
-# that there is no whitespace after the backslashes.
-
-########################################################
-# Regarding printing the branch below:
-#   We print a message with the library branch that
-#   Sage is currently being run from. If they are using
-#   main branch, we print nothing, otherwise users get
-#   very confused about what branch they are using.
-########################################################
-
 
 
 if [ $# -gt 0 ]; then
@@ -372,7 +345,8 @@ if [ "$1" = '-root'  -o "$1" = '--root' ]; then
 fi
 
 if [ "$1" = '-branch'  -o "$1" = '--branch' ]; then
-    cd "$SAGE_ROOT/devel/sage" && pwd -P | sed 's|.*/||; s|^sage-||'
+    cd "$SAGE_ROOT/devel/sage"
+    pwd -P | sed 's|.*/||; s|^sage-||'
     exit $?
 fi
 
@@ -381,126 +355,108 @@ fi
 #####################################################################
 
 if [ "$1" = '-axiom' -o "$1" = '--axiom' ]; then
-    cd "$CUR"
     shift
     axiom "$@"
     exit $?
 fi
 
 if [ "$1" = '-combinat' -o "$1" = '--combinat' ]; then
-    cd "$CUR"
     shift
     sage-combinat "$@"
     exit $?
 fi
 
 if [ "$1" = '-gap' -o "$1" = '--gap' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/gap" "$@"
     exit $?
 fi
 
 if [ "$1" = '-gp'  -o "$1" = '--gp' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/gp" "$@"
     exit $?
 fi
 
 if [ "$1" = '-singular'  -o "$1" = '--singular' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/singular" "$@"
     exit $?
 fi
 
 if [ "$1" = '-sqlite3'  -o "$1" = '--sqlite3' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/sqlite3" "$@"
     exit $?
 fi
 
 if [ "$1" = '-twistd'  -o "$1" = '--twistd' ]; then
-    cd "$CUR"
     shift
     python $(which twistd) "$@"
     exit $?
 fi
 
 if [ "$1" = '-ecl'  -o "$1" = '--ecl' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/ecl" "$@"
     exit $?
 fi
 
 if [ "$1" = '-lisp'  -o "$1" = '--lisp' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/ecl" "$@"
     exit $?
 fi
 
 if [ "$1" = '-kash'  -o "$1" = '--kash' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/kash" "$@"
     exit $?
 fi
 
 if [ "$1" = '-fixdoctests' -o "$1" = '--fixdoctests' ]; then
-    cd "$CUR"
     shift
     sage-fixdoctests "$@"
     exit $?
 fi
 
 if [ "$1" = '-maxima'  -o "$1" = '--maxima' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/maxima" "$@"
     exit $?
 fi
 
 if [ "$1" = '-mwrank'  -o "$1" = '--mwrank' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/mwrank" "$@"
     exit $?
 fi
 
 if [ "$1" = '-M2'  -o "$1" = '--M2' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/M2" "$@"
     exit $?
 fi
 
 if [ "$1" = '-scons'  -o "$1" = '--scons' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/scons" "$@"
     exit $?
 fi
 
 if [ "$1" = '-python'  -o "$1" = '--python' ]; then
-    cd "$CUR"
     shift
     python "$@"
     exit $?
 fi
 
 if [ "$1" = '-R'  -o "$1" = '--R' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/R" "$@"
     exit $?
 fi
 
 if [ "$1" = '-ipython'  -o "$1" = '--ipython' ]; then
-    cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/ipython" "$@"
     exit $?
@@ -513,7 +469,6 @@ if [ "$1" = '-sh'  -o "$1" = '--sh' ]; then
     # - Martin Albrecht: fix zshell prompt (#11866)
     # - John Palmieri: shorten the prompts, and don't print messages if
     #   there are more arguments to 'sage -sh' (#11790)
-    cd "$CUR"
     shift
     # If $SHELL is unset, default to bash
     if [ -z "$SHELL" ]; then
@@ -626,14 +581,12 @@ EOF
 fi
 
 if [ "$1" = '-gdb-ipython'  -o "$1" = '--gdb-ipython' ]; then
-    cd "$CUR"
     shift
     sage-gdb-ipython "$@"
     exit $?
 fi
 
 if [ "$1" = '-hg'  -o "$1" = '--hg' ]; then
-    cd "$CUR"
     shift
     # Disable HGPLAIN, so we use all user defaults
     # (both in $SAGE_LOCAL/etc/mercurial and $HOME/.hgrc)
@@ -643,7 +596,6 @@ if [ "$1" = '-hg'  -o "$1" = '--hg' ]; then
 fi
 
 if [ "$1" = '-merge' ]; then
-    cd "$CUR"
     shift
     sage-apply-ticket "$@"
     exit $?
@@ -654,14 +606,12 @@ fi
 #####################################################################
 
 if [ "$1" = "-coverage" -o "$1" = "--coverage" ]; then
-   cd "$CUR"
    shift
    sage-coverage "$@"
    exit $?
 fi
 
 if [ "$1" = "-coverageall" -o "$1" = "--coverageall" ]; then
-   cd "$CUR"
    shift
    sage-coverageall "$@"
    exit $?
@@ -672,14 +622,12 @@ fi
 #####################################################################
 
 if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
-    cd "$CUR"
     shift
     sage-rst2txt "$@"
     exit $?
 fi
 
 if [ "$1" = '-rst2sws' -o "$1" = '--rst2sws' ]; then
-    cd "$CUR"
     shift
     sage-rst2sws "$@"
     exit $?
@@ -691,7 +639,6 @@ fi
 
 if [ "$1" = "-crap" -o "$1" = "--crap" ]; then
    shift
-   cd "$CUR"
    sage-crap $@
    exit $?
 fi
@@ -705,7 +652,6 @@ build_sage() {
 }
 
 if [ "$1" = "-notebook"  -o "$1" = '--notebook' -o "$1" = '-n' ]; then
-   cd "$CUR"
    shift
    sage-cleaner &>/dev/null &
    sage-notebook "$@"
@@ -713,7 +659,6 @@ if [ "$1" = "-notebook"  -o "$1" = '--notebook' -o "$1" = '-n' ]; then
 fi
 
 if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then
-    cd "$CUR"
     shift
     sage-cleaner &>/dev/null &
     build_sage
@@ -722,7 +667,6 @@ if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then
 fi
 
 if [ "$1" = "-inotebook"  -o "$1" = '--inotebook' ]; then
-   cd "$CUR"
    shift
    sage-cleaner &>/dev/null &
    sage-notebook-insecure "$@"
@@ -787,7 +731,6 @@ if [ "$1" = '-r' ]; then
       # remove the correct file.
       rm -f "$SAGE_ROOT/devel/sage"
       ln -s "sage-$1" sage
-      cd "$SAGE_ROOT"
    fi
    sage
    exit $?
@@ -820,6 +763,7 @@ fi
 
 if [ "$1" = '-sync-build' -o "$1" = '--sync-build' ]; then
    shift
+   cd "$SAGE_ROOT"
    python "$SAGE_LOCAL"/bin/sage-sync-build.py "$@"
    exit $?
 fi
@@ -838,7 +782,6 @@ if [ "$1" = '-t' -o "$1" = '-bt' ]; then
       echo >&2 "init.sage does not exist ... creating"
       touch "$DOT_SAGE"/init.sage
    fi
-   cd "$CUR"
    shift
    sage-test "$@"
    exit $?
@@ -852,7 +795,6 @@ if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
       echo >&2 "init.sage does not exist ... creating"
       touch "$DOT_SAGE"/init.sage
    fi
-   cd "$CUR"
    shift
    sage-ptest "$@"
    exit $?
@@ -862,7 +804,6 @@ if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
    if [ "$1" = '-btnew' ]; then
       build_sage
    fi
-   cd "$CUR"
    shift
    sage-test-new "$@"
    exit $?
@@ -876,12 +817,12 @@ fi
 
 if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
    shift
+   cd "$SAGE_ROOT"
    "$SAGE_LOCAL/bin/patchbot/patchbot.py" "$@"
    exit $?
 fi
 
 if [ "$1" = '-c' ]; then
-   cd "$CUR"
    shift
    SAGE_BANNER="no"
    sage_setup
@@ -891,7 +832,6 @@ if [ "$1" = '-c' ]; then
 fi
 
 install() {
-    cd "$CUR"
     mkdir -p "$SAGE_LOGS"
     for PKG in "$@"
     do
@@ -976,14 +916,12 @@ if [ "$1" = '-info' -o "$1" = '--info' ]; then
 fi
 
 if [ "$1" = '-pkg' -o "$1" = '-spkg' -o "$1" = "--pkg" -o "$1" = "--spkg" ]; then
-   cd "$CUR"
    shift
    sage-pkg "$@"
    exit $?
 fi
 
 if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
-   cd "$CUR"
    shift
    sage-pkg -n "$@"
    exit $?
@@ -1012,6 +950,7 @@ if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
        echo >&2 "** MISSING VERSION NUMBER! **"
        exit 1
    fi
+   cd "$SAGE_ROOT"
    sage-bdist $2 "$SAGE_ROOT"
    exit $?
 fi
@@ -1029,6 +968,7 @@ fi
 
 if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
     shift
+    cd "$SAGE_ROOT"
 
     # People often move the Sage install right before doing the upgrade, so it's
     # important to fix any path hardcoding issues first, or certain library
@@ -1051,7 +991,6 @@ if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
 fi
 
 if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
-   cd "$CUR"
    shift
    python "$SAGE_ROOT"/devel/sage/doc/common/builder.py $@
    exit $?
@@ -1066,14 +1005,12 @@ fi
 
 if [ "$1" = '-preparse' -o "$1" = "--preparse" ]; then
     shift
-    cd "$SAGE_LOCAL/bin/"
-    sage-preparse "$CUR" "$@"
+    sage-preparse "$@"
     exit $?
 fi
 
 if [ "$1" = "-cython" -o "$1" = '--cython' -o "$1" = '-pyrex' -o "$1" = "--pyrex" ]; then
     shift
-    cd "$CUR"
     sage-cython "$@"
     exit $?
 fi
@@ -1122,10 +1059,9 @@ if [ $# -ge 1 ]; then
    if [ "$T" = "spkg" ]; then
        install "$@"
    fi
-   cd "$SAGE_LOCAL/bin/"
    SAGE_BANNER="no"
    sage_setup
    unset TERM  # See Trac #12263
-   sage-run "$CUR" "$@"
+   sage-run "$@"
    exit $?
 fi

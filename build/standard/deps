@@ -24,7 +24,7 @@ BASE = $(INST)/$(PREREQ) $(INST)/$(BZIP2)
 .PHONY: all base scripts toolchain
 
 # Targets
-all: $(BASE) \
+all: \
      $(INST)/$(SAGE_SCRIPTS) \
      $(INST)/$(ATLAS) \
      $(INST)/$(BLAS) \
@@ -81,7 +81,7 @@ all: $(BASE) \
      $(INST)/$(NUMPY) \
      $(INST)/$(PALP) \
      $(INST)/$(PARI) \
-     $(INST)/$(PATCH) \
+ \
      $(INST)/$(PEXPECT) \
      $(INST)/$(PIL) \
      $(INST)/$(POLYBORI) \
@@ -116,9 +116,9 @@ all: $(BASE) \
      $(INST)/$(ZNPOLY) \
      $(INST)/$(ZODB)
 
-base: $(BASE)
+base:
 
-scripts: $(INST)/$(SAGE_SCRIPTS) # depends on $(BASE)
+scripts: $(INST)/$(SAGE_SCRIPTS) # depends on
 
 toolchain: $(TOOLCHAIN)
 
@@ -147,292 +147,292 @@ $(INST)/$(BZIP2): $(INST)/$(PREREQ)
 ###############################################################################
 # Building normal packages
 ###############################################################################
-$(INST)/$(ATLAS): $(BASE) $(INST)/$(LAPACK) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(ATLAS): $(INST)/$(LAPACK) $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(ATLAS) 2>&1" "tee -a $(SAGE_LOGS)/$(ATLAS).log"
 
-$(INST)/$(BOEHM_GC): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(BOEHM_GC):
 	+$(PIPE) "$(SAGE_SPKG) $(BOEHM_GC) 2>&1" "tee -a $(SAGE_LOGS)/$(BOEHM_GC).log"
 
-$(INST)/$(BOOST_CROPPED): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(BOOST_CROPPED):
 	+$(PIPE) "$(SAGE_SPKG) $(BOOST_CROPPED) 2>&1" "tee -a $(SAGE_LOGS)/$(BOOST_CROPPED).log"
 
-$(INST)/$(CLIQUER): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(CLIQUER):
 	+$(PIPE) "$(SAGE_SPKG) $(CLIQUER) 2>&1" "tee -a $(SAGE_LOGS)/$(CLIQUER).log"
 
-$(INST)/$(TERMCAP): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(TERMCAP):
 	+$(PIPE) "$(SAGE_SPKG) $(TERMCAP) 2>&1" "tee -a $(SAGE_LOGS)/$(TERMCAP).log"
 
-$(INST)/$(READLINE): $(BASE) $(INST)/$(PATCH) $(INST)/$(TERMCAP)
+$(INST)/$(READLINE): $(INST)/$(TERMCAP)
 	+$(PIPE) "$(SAGE_SPKG) $(READLINE) 2>&1" "tee -a $(SAGE_LOGS)/$(READLINE).log"
 
-$(INST)/$(ICONV): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(ICONV):
 	+$(PIPE) "$(SAGE_SPKG) $(ICONV) 2>&1" "tee -a $(SAGE_LOGS)/$(ICONV).log"
 
-$(INST)/$(DOCUTILS): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(DOCUTILS): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(DOCUTILS) 2>&1" "tee -a $(SAGE_LOGS)/$(DOCUTILS).log"
 
 # ELLIPTIC_CURVES depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
 # to be set in sage-env.
-$(INST)/$(ELLIPTIC_CURVES): $(BASE) $(INST)/$(PATCH) $(INST)/$(PYTHON) \
+$(INST)/$(ELLIPTIC_CURVES): $(INST)/$(PYTHON) \
         $(INST)/$(SQLITE) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(ELLIPTIC_CURVES) 2>&1" "tee -a $(SAGE_LOGS)/$(ELLIPTIC_CURVES).log"
 
 # CONWAY depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
 # to be set in sage-env.
-$(INST)/$(CONWAY): $(BASE) $(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(CONWAY): $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(CONWAY) 2>&1" "tee -a $(SAGE_LOGS)/$(CONWAY).log"
 
 # GRAPHS depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
 # to be set in sage-env.
-$(INST)/$(GRAPHS): $(BASE) $(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(GRAPHS): $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(GRAPHS) 2>&1" "tee -a $(SAGE_LOGS)/$(GRAPHS).log"
 
-$(INST)/$(GLPK): $(BASE) $(INST)/$(MPIR) $(INST)/$(ZLIB) $(INST)/$(PATCH)
+$(INST)/$(GLPK): $(INST)/$(MPIR) $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GLPK) 2>&1" "tee -a $(SAGE_LOGS)/$(GLPK).log"
 
-$(INST)/$(PYTHON): $(BASE) $(INST)/$(ZLIB) \
+$(INST)/$(PYTHON): $(INST)/$(ZLIB) \
 		   $(INST)/$(READLINE) $(INST)/$(SQLITE) \
-		   $(INST)/$(LIBPNG) $(INST)/$(PATCH)
+		   $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(PYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(PYTHON).log"
 
-$(INST)/$(PATCH): $(BASE)
+:
 	+$(PIPE) "$(SAGE_SPKG) $(PATCH) 2>&1" "tee -a $(SAGE_LOGS)/$(PATCH).log"
 
-$(INST)/$(MPIR): $(BASE) $(INST)/$(ICONV) $(INST)/$(PATCH)
+$(INST)/$(MPIR): $(INST)/$(ICONV)
 	+$(PIPE) "$(SAGE_SPKG) $(MPIR) 2>&1" "tee -a $(SAGE_LOGS)/$(MPIR).log"
 
-$(INST)/$(GSL): $(BASE) $(INST)/$(ATLAS) $(INST)/$(PATCH)
+$(INST)/$(GSL): $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(GSL) 2>&1" "tee -a $(SAGE_LOGS)/$(GSL).log"
 
-$(INST)/$(NTL): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
+$(INST)/$(NTL): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(NTL) 2>&1" "tee -a $(SAGE_LOGS)/$(NTL).log"
 
-$(INST)/$(FPLLL): $(BASE) $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(PATCH)
+$(INST)/$(FPLLL): $(INST)/$(MPIR) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(FPLLL) 2>&1" "tee -a $(SAGE_LOGS)/$(FPLLL).log"
 
-$(INST)/$(PARI): $(BASE) $(INST)/$(READLINE) \
-		 $(INST)/$(MPIR) $(INST)/$(PATCH)
+$(INST)/$(PARI): $(INST)/$(READLINE) \
+		 $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(PARI) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI).log"
 
-$(INST)/$(POLYBORI): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SCONS) \
+$(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(SCONS) \
 		     $(INST)/$(BOOST_CROPPED) $(INST)/$(M4RI) \
-		     $(INST)/$(GD) $(INST)/$(PATCH)
+		     $(INST)/$(GD)
 	+$(PIPE) "$(SAGE_SPKG) $(POLYBORI) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYBORI).log"
 
 # POLYTOPES_DB depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
 # to be set in sage-env.
-$(INST)/$(POLYTOPES_DB): $(BASE) $(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(POLYTOPES_DB): $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(POLYTOPES_DB) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYTOPES_DB).log"
 
 # PPL depends on SAGE_ROOT_REPO because it *executes* C++ code at
 # build time.  Therefore, it needs an up-to-date version of sage-env
 # which adds $SAGE_LOCAL/lib64 to the LD_LIBRARY_PATH.
-$(INST)/$(PPL): $(BASE) $(INST)/$(MPIR) $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(PPL): $(INST)/$(MPIR) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(PPL) 2>&1" "tee -a $(SAGE_LOGS)/$(PPL).log"
 
-$(INST)/$(MPC): $(BASE) $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(PATCH)
+$(INST)/$(MPC): $(INST)/$(MPIR) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(MPC) 2>&1" "tee -a $(SAGE_LOGS)/$(MPC).log"
 
-$(INST)/$(MPFR): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
+$(INST)/$(MPFR): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(MPFR) 2>&1" "tee -a $(SAGE_LOGS)/$(MPFR).log"
 
-$(INST)/$(MPFI): $(BASE) $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(PATCH)
+$(INST)/$(MPFI): $(INST)/$(MPIR) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(MPFI) 2>&1" "tee -a $(SAGE_LOGS)/$(MPFI).log"
 
-$(INST)/$(GIVARO): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
+$(INST)/$(GIVARO): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(GIVARO) 2>&1" "tee -a $(SAGE_LOGS)/$(GIVARO).log"
 
-$(INST)/$(FFLASFFPACK): $(BASE) $(INST)/$(MPIR) $(INST)/$(GIVARO) \
-	$(INST)/$(GSL) $(INST)/$(ATLAS) $(INST)/$(PATCH)
+$(INST)/$(FFLASFFPACK): $(INST)/$(MPIR) $(INST)/$(GIVARO) \
+	$(INST)/$(GSL) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(FFLASFFPACK) 2>&1" "tee -a $(SAGE_LOGS)/$(FFLASFFPACK).log"
 
-$(INST)/$(LINBOX): $(BASE) $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(GIVARO) \
+$(INST)/$(LINBOX): $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(GIVARO) \
                    $(INST)/$(MPFR) $(INST)/$(FPLLL) $(INST)/$(IML) \
                    $(INST)/$(M4RI) $(INST)/$(M4RIE) $(INST)/$(FFLASFFPACK) \
-		   $(INST)/$(PATCH)
+
 	+$(PIPE) "$(SAGE_SPKG) $(LINBOX) 2>&1" "tee -a $(SAGE_LOGS)/$(LINBOX).log"
 
-$(INST)/$(IML): $(BASE) $(INST)/$(MPIR) $(INST)/$(GSL) $(INST)/$(ATLAS) $(INST)/$(PATCH)
+$(INST)/$(IML): $(INST)/$(MPIR) $(INST)/$(GSL) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(IML) 2>&1" "tee -a $(SAGE_LOGS)/$(IML).log"
 
-$(INST)/$(ECLIB): $(BASE) $(INST)/$(MPIR) $(INST)/$(PARI) $(INST)/$(NTL) $(INST)/$(PATCH)
+$(INST)/$(ECLIB): $(INST)/$(MPIR) $(INST)/$(PARI) $(INST)/$(NTL)
 	+$(PIPE) "$(SAGE_SPKG) $(ECLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ECLIB).log"
 
-$(INST)/$(GENUS2REDUCTION): $(BASE) $(INST)/$(PARI) $(INST)/$(PATCH)
+$(INST)/$(GENUS2REDUCTION): $(INST)/$(PARI)
 	+$(PIPE) "$(SAGE_SPKG) $(GENUS2REDUCTION) 2>&1" "tee -a $(SAGE_LOGS)/$(GENUS2REDUCTION).log"
 
-$(INST)/$(PALP): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(PALP):
 	+$(PIPE) "$(SAGE_SPKG) $(PALP) 2>&1" "tee -a $(SAGE_LOGS)/$(PALP).log"
 
-$(INST)/$(LCALC): $(BASE) $(INST)/$(PARI) $(INST)/$(MPFR) $(INST)/$(PATCH)
+$(INST)/$(LCALC): $(INST)/$(PARI) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(LCALC) 2>&1" "tee -a $(SAGE_LOGS)/$(LCALC).log"
 
-$(INST)/$(LRCALC):  $(BASE) $(INST)/$(PATCH)
+$(INST)/$(LRCALC):
 	+$(PIPE) "$(SAGE_SPKG) $(LRCALC) 2>&1" "tee -a $(SAGE_LOGS)/$(LRCALC).log"
 
-$(INST)/$(PYNAC): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(PYNAC): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(PYNAC) 2>&1" "tee -a $(SAGE_LOGS)/$(PYNAC).log"
 
-$(INST)/$(SYMPOW): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(SYMPOW):
 	+$(PIPE) "$(SAGE_SPKG) $(SYMPOW) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMPOW).log"
 
-$(INST)/$(SYMMETRICA): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(SYMMETRICA):
 	+$(PIPE) "$(SAGE_SPKG) $(SYMMETRICA) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMMETRICA).log"
 
-$(INST)/$(GAP): $(BASE) $(INST)/$(TERMCAP) $(INST)/$(READLINE) $(INST)/$(PATCH)
+$(INST)/$(GAP): $(INST)/$(TERMCAP) $(INST)/$(READLINE)
 	+$(PIPE) "$(SAGE_SPKG) $(GAP) 2>&1" "tee -a $(SAGE_LOGS)/$(GAP).log"
 
-$(INST)/$(IPYTHON): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(IPYTHON): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(IPYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(IPYTHON).log"
 
-$(INST)/$(PEXPECT): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(PEXPECT): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(PEXPECT) 2>&1" "tee -a $(SAGE_LOGS)/$(PEXPECT).log"
 
-$(INST)/$(GD): $(BASE) $(INST)/$(LIBPNG) $(INST)/$(FREETYPE) $(INST)/$(ICONV) $(INST)/$(PATCH)
+$(INST)/$(GD): $(INST)/$(LIBPNG) $(INST)/$(FREETYPE) $(INST)/$(ICONV)
 	+$(PIPE) "$(SAGE_SPKG) $(GD) 2>&1" "tee -a $(SAGE_LOGS)/$(GD).log"
 
-$(INST)/$(GDMODULE): $(BASE) $(INST)/$(PYTHON) $(INST)/$(GD) $(INST)/$(ICONV) $(INST)/$(PATCH)
+$(INST)/$(GDMODULE): $(INST)/$(PYTHON) $(INST)/$(GD) $(INST)/$(ICONV)
 	+$(PIPE) "$(SAGE_SPKG) $(GDMODULE) 2>&1" "tee -a $(SAGE_LOGS)/$(GDMODULE).log"
 
-$(INST)/$(SCONS): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(SCONS): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(SCONS) 2>&1" "tee -a $(SAGE_LOGS)/$(SCONS).log"
 
-$(INST)/$(RUBIKS): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(RUBIKS):
 	+$(PIPE) "$(SAGE_SPKG) $(RUBIKS) 2>&1" "tee -a $(SAGE_LOGS)/$(RUBIKS).log"
 
-$(INST)/$(SQLITE): $(BASE) $(INST)/$(READLINE) $(INST)/$(PATCH)
+$(INST)/$(SQLITE): $(INST)/$(READLINE)
 	+$(PIPE) "$(SAGE_SPKG) $(SQLITE) 2>&1" "tee -a $(SAGE_LOGS)/$(SQLITE).log"
 
-$(INST)/$(MERCURIAL): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(MERCURIAL): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(MERCURIAL) 2>&1" "tee -a $(SAGE_LOGS)/$(MERCURIAL).log"
 
 # To build SageTeX, you just need Python, but to test (SAGE_CHECK=yes)
 # SageTeX, you actually need to run sage, produce plots,...
-$(INST)/$(SAGETEX): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH) \
+$(INST)/$(SAGETEX): $(INST)/$(PYTHON) \
                     $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(SCIPY) \
                     $(INST)/$(MATPLOTLIB) $(INST)/$(PIL) $(INST)/$(TACHYON)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGETEX) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGETEX).log"
 
-$(INST)/$(SETUPTOOLS): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(SETUPTOOLS): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(SETUPTOOLS) 2>&1" "tee -a $(SAGE_LOGS)/$(SETUPTOOLS).log"
 
-$(INST)/$(SINGULAR): $(BASE) $(INST)/$(MPIR) $(INST)/$(NTL) \
-		     $(INST)/$(READLINE) $(INST)/$(MPFR)  $(INST)/$(PATCH)
+$(INST)/$(SINGULAR): $(INST)/$(MPIR) $(INST)/$(NTL) \
+		     $(INST)/$(READLINE) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(SINGULAR) 2>&1" "tee -a $(SAGE_LOGS)/$(SINGULAR).log"
 
-$(INST)/$(PYCRYPTO): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(PYCRYPTO): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(PYCRYPTO) 2>&1" "tee -a $(SAGE_LOGS)/$(PYCRYPTO).log"
 
-$(INST)/$(NETWORKX): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(NETWORKX): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(NETWORKX) 2>&1" "tee -a $(SAGE_LOGS)/$(NETWORKX).log"
 
-$(INST)/$(MPMATH): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(MPMATH): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(MPMATH) 2>&1" "tee -a $(SAGE_LOGS)/$(MPMATH).log"
 
-$(INST)/$(ZLIB): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(ZLIB):
 	+$(PIPE) "$(SAGE_SPKG) $(ZLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ZLIB).log"
 
-$(INST)/$(JMOL): $(BASE) $(INST)/$(SAGENB) $(INST)/$(PATCH)
+$(INST)/$(JMOL): $(INST)/$(SAGENB)
 	+$(PIPE) "$(SAGE_SPKG) $(JMOL) 2>&1" "tee -a $(SAGE_LOGS)/$(JMOL).log"
 
-$(INST)/$(FREETYPE): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(FREETYPE):
 	+$(PIPE) "$(SAGE_SPKG) $(FREETYPE) 2>&1" "tee -a $(SAGE_LOGS)/$(FREETYPE).log"
 
-$(INST)/$(LIBPNG): $(BASE) $(INST)/$(ZLIB) $(INST)/$(PATCH)
+$(INST)/$(LIBPNG): $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBPNG) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBPNG).log"
 
-$(INST)/$(MATPLOTLIB): $(BASE) $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
+$(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
 		       $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \
-		       $(INST)/$(GDMODULE) $(INST)/$(PATCH)
+		       $(INST)/$(GDMODULE)
 	+$(PIPE) "$(SAGE_SPKG) $(MATPLOTLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(MATPLOTLIB).log"
 
-$(INST)/$(CDDLIB): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
+$(INST)/$(CDDLIB): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(CDDLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(CDDLIB).log"
 
 # Gfan depends on SAGE_ROOT_REPO because it *executes* C++ code at
 # build time.  Therefore, it needs an up-to-date version of sage-env
 # which adds $SAGE_LOCAL/lib64 to the LD_LIBRARY_PATH.
-$(INST)/$(GFAN): $(BASE) $(INST)/$(MPIR) $(INST)/$(CDDLIB) $(INST)/$(PATCH) \
+$(INST)/$(GFAN): $(INST)/$(MPIR) $(INST)/$(CDDLIB) \
 		$(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(GFAN) 2>&1" "tee -a $(SAGE_LOGS)/$(GFAN).log"
 
-$(INST)/$(TACHYON): $(BASE) $(INST)/$(LIBPNG) $(INST)/$(PATCH)
+$(INST)/$(TACHYON): $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(TACHYON) 2>&1" "tee -a $(SAGE_LOGS)/$(TACHYON).log"
 
-$(INST)/$(ECM): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
+$(INST)/$(ECM): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(ECM) 2>&1" "tee -a $(SAGE_LOGS)/$(ECM).log"
 
-$(INST)/$(RATPOINTS): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
+$(INST)/$(RATPOINTS): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(RATPOINTS) 2>&1" "tee -a $(SAGE_LOGS)/$(RATPOINTS).log"
 
-$(INST)/$(ECL): $(BASE) $(INST)/$(MPIR) \
-		$(INST)/$(READLINE) $(INST)/$(BOEHM_GC) $(INST)/$(PATCH)
+$(INST)/$(ECL): $(INST)/$(MPIR) \
+		$(INST)/$(READLINE) $(INST)/$(BOEHM_GC)
 	+$(PIPE) "$(SAGE_SPKG) $(ECL) 2>&1" "tee -a $(SAGE_LOGS)/$(ECL).log"
 
-$(INST)/$(MAXIMA): $(BASE) $(INST)/$(ECL) $(INST)/$(PATCH)
+$(INST)/$(MAXIMA): $(INST)/$(ECL)
 	+$(PIPE) "$(SAGE_SPKG) $(MAXIMA) 2>&1" "tee -a $(SAGE_LOGS)/$(MAXIMA).log"
 
 # R depends on SAGE_ROOT_REPO because it needs an up-to-date
 # sage-env script which sets $OBJC on OS X.
-$(INST)/$(R): $(BASE) $(INST)/$(ATLAS) $(INST)/$(ICONV) \
-		$(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO) $(INST)/$(READLINE)
+$(INST)/$(R): $(INST)/$(ATLAS) $(INST)/$(ICONV) \
+		 $(INST)/$(SAGE_ROOT_REPO) $(INST)/$(READLINE)
 	+$(PIPE) "$(SAGE_SPKG) $(R) 2>&1" "tee -a $(SAGE_LOGS)/$(R).log"
 
-$(INST)/$(RPY): $(BASE) $(INST)/$(PYTHON) $(INST)/$(R) $(INST)/$(PATCH)
+$(INST)/$(RPY): $(INST)/$(PYTHON) $(INST)/$(R)
 	+$(PIPE) "$(SAGE_SPKG) $(RPY) 2>&1" "tee -a $(SAGE_LOGS)/$(RPY).log"
 
-$(INST)/$(SYMPY): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(SYMPY): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(SYMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMPY).log"
 
-$(INST)/$(CYTHON): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(CYTHON): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(CYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(CYTHON).log"
 
-$(INST)/$(FLINTQS): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
+$(INST)/$(FLINTQS): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINTQS) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINTQS).log"
 
-$(INST)/$(FLINT): $(BASE) $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(PATCH)
+$(INST)/$(FLINT): $(INST)/$(MPIR) $(INST)/$(NTL)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINT) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINT).log"
 
 # EXTCODE depends on SAGE_ROOT_REPO because it needs SAGE_EXTCODE
 # to be set in sage-env.
-$(INST)/$(EXTCODE): $(BASE) $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(EXTCODE): $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(EXTCODE) 2>&1" "tee -a $(SAGE_LOGS)/$(EXTCODE).log"
 
-$(INST)/$(M4RI): $(BASE) $(INST)/$(PATCH) $(INST)/$(LIBPNG)
+$(INST)/$(M4RI): $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(M4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(M4RI).log"
 
-$(INST)/$(M4RIE): $(BASE) $(INST)/$(PATCH) $(INST)/$(M4RI) $(INST)/$(GIVARO) $(INST)/$(NTL)
+$(INST)/$(M4RIE): $(INST)/$(M4RI) $(INST)/$(GIVARO) $(INST)/$(NTL)
 	+$(PIPE) "$(SAGE_SPKG) $(M4RIE) 2>&1" "tee -a $(SAGE_LOGS)/$(M4RIE).log"
 
 # zn_poly really does depend on Python, despite this is far from obvious.
 # The 'configure' script in zn_poly calls Python to make a 'makefile'.
-$(INST)/$(ZNPOLY): $(BASE) $(INST)/$(MPIR) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(ZNPOLY): $(INST)/$(MPIR) $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(ZNPOLY) 2>&1" "tee -a $(SAGE_LOGS)/$(ZNPOLY).log"
 
 # the spkg-install file for the root repo uses many 'hg' commands, so
 # build mercurial first.
-$(INST)/$(SAGE_ROOT_REPO): $(BASE) $(INST)/$(MERCURIAL)
+$(INST)/$(SAGE_ROOT_REPO): $(INST)/$(MERCURIAL)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGE_ROOT_REPO) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_ROOT_REPO).log"
 
-$(INST)/$(SAGENB): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PEXPECT) \
+$(INST)/$(SAGENB): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PEXPECT) \
                    $(INST)/$(JINJA2) $(INST)/$(SPHINX) $(INST)/$(DOCUTILS)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGENB) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGENB).log"
 
-$(INST)/$(SQLALCHEMY): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PATCH)
+$(INST)/$(SQLALCHEMY): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(SQLALCHEMY) 2>&1" "tee -a $(SAGE_LOGS)/$(SQLALCHEMY).log"
 
-$(INST)/$(SPHINX): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS) \
-                   $(INST)/$(JINJA2) $(INST)/$(PYGMENTS) $(INST)/$(PATCH)
+$(INST)/$(SPHINX): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS) \
+                   $(INST)/$(JINJA2) $(INST)/$(PYGMENTS)
 	+$(PIPE) "$(SAGE_SPKG) $(SPHINX) 2>&1" "tee -a $(SAGE_LOGS)/$(SPHINX).log"
 
-$(INST)/$(JINJA2): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS) \
-                   $(INST)/$(PATCH)
+$(INST)/$(JINJA2): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS) \
+
 	+$(PIPE) "$(SAGE_SPKG) $(JINJA2) 2>&1" "tee -a $(SAGE_LOGS)/$(JINJA2).log"
 
-$(INST)/$(PYGMENTS): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PATCH)
+$(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PYGMENTS) 2>&1" "tee -a $(SAGE_LOGS)/$(PYGMENTS).log"
 
-$(INST)/$(ZODB): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PATCH)
+$(INST)/$(ZODB): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(ZODB) 2>&1" "tee -a $(SAGE_LOGS)/$(ZODB).log"
 
 ########################################################################
@@ -441,7 +441,7 @@ $(INST)/$(ZODB): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PATCH
 # Sage library (e.g. SAGE_SCRIPTS, SCONS, MERCURIAL, JINJA2), and on the
 # other hand all dependencies for Cython files (e.g. PARI, NTL, MPIR).
 ########################################################################
-$(INST)/$(SAGE): $(BASE) \
+$(INST)/$(SAGE): \
 		 $(INST)/$(ATLAS) \
 		 $(INST)/$(CEPHES) \
 		 $(INST)/$(CLIQUER) \
@@ -494,45 +494,45 @@ $(INST)/$(SAGE): $(BASE) \
 # a version 5.x scripts repo does not work together with a version 4.x
 # root repo.  When upgrading, we must therefore install the new root
 # repo before the scripts repo.
-$(INST)/$(SAGE_SCRIPTS): $(BASE) $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(SAGE_SCRIPTS): $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGE_SCRIPTS) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_SCRIPTS).log"
 
 ###############################################################################
 # Further receipts for normal packages:
 ###############################################################################
 
-$(INST)/$(GCC): $(BASE) $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
-                $(INST)/$(ZLIB) $(INST)/$(PATCH)
+$(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
+                $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GCC) 2>&1" "tee -a $(SAGE_LOGS)/$(GCC).log"
 
-$(INST)/$(PIL): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
+$(INST)/$(PIL): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(PIL) 2>&1" "tee -a $(SAGE_LOGS)/$(PIL).log"
 
 # Lapack depends on SAGE_ROOT_REPO because it *executes* Fortran code at
 # build time.  Therefore, it needs an up-to-date version of sage-env
 # which adds $SAGE_LOCAL/lib64 to the LD_LIBRARY_PATH.
-$(INST)/$(LAPACK): $(BASE) $(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(LAPACK): $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(LAPACK) 2>&1" "tee -a $(SAGE_LOGS)/$(LAPACK).log"
 
-$(INST)/$(BLAS): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(BLAS):
 	+$(PIPE) "$(SAGE_SPKG) $(BLAS) 2>&1" "tee -a $(SAGE_LOGS)/$(BLAS).log"
 
-$(INST)/$(NUMPY): $(BASE) $(INST)/$(PYTHON) \
-		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(ATLAS) $(INST)/$(PATCH)
+$(INST)/$(NUMPY): $(INST)/$(PYTHON) \
+		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(NUMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(NUMPY).log"
 
-$(INST)/$(SCIPY): $(BASE) \
-		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) $(INST)/$(PATCH)
+$(INST)/$(SCIPY): \
+		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY)
 	+$(PIPE) "$(SAGE_SPKG) $(SCIPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SCIPY).log"
 
 # matplotlib is needed to test cvxopt (i.e., if SAGE_CHECK=yes). See #12742.
-$(INST)/$(CVXOPT): $(BASE) \
+$(INST)/$(CVXOPT): \
 		   $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) \
-		   $(INST)/$(ATLAS) $(INST)/$(CEPHES) $(INST)/$(PATCH) \
+		   $(INST)/$(ATLAS) $(INST)/$(CEPHES) \
 		   $(INST)/$(GSL) $(INST)/$(GLPK) $(INST)/$(MATPLOTLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(CVXOPT) 2>&1" "tee -a $(SAGE_LOGS)/$(CVXOPT).log"
 
-$(INST)/$(CEPHES): $(BASE) $(INST)/$(PATCH)
+$(INST)/$(CEPHES):
 	+$(PIPE) "$(SAGE_SPKG) $(CEPHES) 2>&1" "tee -a $(SAGE_LOGS)/$(CEPHES).log"
 
 ###############################################################################

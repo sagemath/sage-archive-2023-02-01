@@ -7,12 +7,6 @@
 # Released under the GNU GPL-v2+ -- (c) William Stein
 ########################################################
 
-sage -c "print 'Sage works!'"
-if [ $? -ne 0 ]; then
-    echo "Sage doesn't even start.  Refusing to make a binary."
-    exit 1
-fi
-
 PKGDIR=spkg
 
 CUR=`pwd`
@@ -29,59 +23,59 @@ export SAGE_VERSION=`echo "$1" | sed 's/^sage-//'`
 export SAGE_ROOT=$2
 
 TARGET=sage-"$SAGE_VERSION"-`uname -m`-`uname`
-TARGET=`echo $TARGET | sed -e 's/ //'`     #no blank spaces
+TARGET=`echo $TARGET | sed 's/ //g'`   # Remove spaces
 TMP="$CUR/tmp/$TARGET"
 
-mkdir -p "$CUR/tmp"
-
 rm -rf "$TMP"
-mkdir "$TMP"
+mkdir -p "$TMP"
 
-# copy sage root repo over:
+
+# Copy sage_root repository
 cd "$SAGE_ROOT"
-
 echo "Copying root repository..."
 hg clone --pull . "$TMP"
-
 if [ $? -ne 0 ]; then
     echo "Error copying Sage root repository."
     exit 1
 fi
 
 rm "$TMP"/.hg/hgrc
+
+# Copy VERSION.txt (which is untracked)
+cp -p VERSION.txt "$TMP/"
 echo "Done copying root repository."
 
-cd "$SAGE_ROOT"
 
 echo "Copying files over to tmp directory"
 cp $CP_OPT local data "$TMP"/
 
-if [ -d devel/sage-main ]; then
-   echo "Copying Sage library over"
-   mkdir "$TMP"/devel/
-   # The currently active branch will become the default branch in
-   # the bdisted tarball.  We need the -L option, otherwise "cp" would
-   # simply copy the symbolic link.
-   cp $CP_OPT -L devel/sagenb "$TMP"/devel/sagenb-main
-   cp $CP_OPT -L devel/sage "$TMP"/devel/sage-main
-   cd "$TMP"/devel
-   ln -s sage-main sage
-   ln -s sagenb-main sagenb
-   cd sage
-   # Delete cython hash, so that "sage -br" works the first time.
-   rm -f .cython_hash
-   cd "$TMP"/local/lib/python/site-packages && \
-   rm -rf sage
-   ln -sf ../../../../devel/sage/build/sage .
+# Copy devel/ subdirectories (only active branch)
+mkdir "$TMP/devel/"
+if [ -d devel/sage ]; then
+    echo "Copying Sage library"
+    # The currently active branch will become the default branch in
+    # the bdisted tarball.  We need the -L option, otherwise "cp" would
+    # simply copy the symbolic link.
+    cp $CP_OPT -L devel/sage "$TMP/devel/sage-main"
+    ln -s sage-main "$TMP/devel/sage"
+
+    cd "$TMP"/local/lib/python/site-packages && \
+    rm -rf sage
+    ln -sf ../../../../devel/sage/build/sage .
 fi
 
 cd "$SAGE_ROOT"
+if [ -d devel/sagenb ]; then
+    echo "Copying Sage Notebook"
+    cp $CP_OPT -L devel/sagenb "$TMP/devel/sagenb-main"
+    ln -s sagenb-main "$TMP/devel/sagenb"
+fi
+
 
 if [ -d "$PKGDIR" ]; then
    echo "Making empty spkg's"
    cd "$PKGDIR"
    mkdir "$TMP/$PKGDIR"/build
-   mkdir "$TMP/$PKGDIR"/optional
    cp $CP_OPT installed "$TMP/$PKGDIR/"
    cp $CP_OPT standard "$TMP/$PKGDIR/"
    cd "$TMP/$PKGDIR"/standard/
@@ -96,11 +90,12 @@ fi
 cd "$CUR"/tmp/
 if [ "$UNAME" = "Darwin" ]; then
     cd "$TARGET"
-    mkdir x
-    echo "There will be an error about x below that you can safely ignore."
-    mv * .hg* x
-    mv x sage
-    cp sage/local/bin/sage-README-osx.txt README.txt
+    # Move everything into a subdirectory sage, but first name it
+    # .sage_tmp to avoid it being globbed by *.
+    mkdir .sage_tmp
+    mv * .hg* .sage_tmp
+    mv .sage_tmp sage
+    cp -p sage/local/bin/sage-README-osx.txt README.txt
 
     if [ "$SAGE_APP_BUNDLE" = "yes" ]; then
 
@@ -150,21 +145,20 @@ if [ "$UNAME" = "Darwin" ]; then
     # Go back to the right directory for later copying
     cd "$CUR"/tmp/
     if [ "$SAGE_APP_DMG" != "no" ]; then
-        echo "Creating dmg"
+        echo "Creating $TARGET.dmg"
         echo "(If you don't wish to create a disk image please set SAGE_APP_DMG=no)"
         DYLD_LIBRARY_PATH="$SAGE_ORIG_DYLD_LIBRARY_PATH"; export DYLD_LIBRARY_PATH
         hdiutil create -srcfolder "$TARGET" -format UDBZ "$TARGET".dmg
     else
         echo 'If you wish to create a disk image please set'
         echo 'SAGE_APP_DMG=yes'
-        echo '(or to anything else but the current SAGE_APP_DMG=no,'
-        echo ' or completely unset SAGE_APP_DMG)'
-        echo "Creating tar.gz"
-        tar zcvf "$TARGET".tar.gz "$TARGET"
+        echo '(or unset SAGE_APP_DMG since SAGE_APP_DMG=yes is the default)'
+        echo "Creating $TARGET.tar.gz ..."
+        tar zcf "$TARGET".tar.gz "$TARGET"
     fi
 else
-    echo "Creating tar.gz"
-    tar zcvf "$TARGET".tar.gz "$TARGET"
+    echo "Creating $TARGET.tar.gz ..."
+    tar zcf "$TARGET".tar.gz "$TARGET"
 fi
 
 mkdir -p "$SAGE_ROOT"/dist

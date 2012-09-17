@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([TOPCOM],[0.16.2])
+AC_INIT([TOPCOM],[0.17.4])
 AM_INIT_AUTOMAKE
 AC_CONFIG_MACRO_DIR([m4])
 

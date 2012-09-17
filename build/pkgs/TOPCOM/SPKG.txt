@@ -39,6 +39,9 @@ From clean upstream sources:
 
 == Changelog ==
 
+=== TOPCOM-0.17.4 (Volker Braun, September 17th, 2012) ===
+ * Update to latest upstream version
+
 === TOPCOM-0.16.2.p2 (Volker Braun, September 25th, 2010) ===
  * Fix build issues on Mac OS X. Tested on 10.6.4 with Xcode 3.2.2
 

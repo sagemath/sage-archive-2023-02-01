@@ -1,4 +1,8 @@
 bin_PROGRAMS = \
+bench \
+B_A \
+B_A_center \
+B_D \
 chiro2allfinetriangs \
 chiro2alltriangs \
 chiro2circuits \
@@ -33,10 +37,15 @@ points2nflips \
 points2ntriangs \
 points2placingtriang \
 points2triangs \
+points2volume \
 santos_triang \
 santos_dim4_triang \
 santos_22_triang
 
+bench_SOURCES                      = bench.cc
+B_A_SOURCES                        = B_A.cc
+B_A_center_SOURCES                 = B_A_center.cc
+B_D_SOURCES                        = B_D.cc
 chiro2allfinetriangs_SOURCES       = chiro2allfinetriangs.cc
 chiro2alltriangs_SOURCES           = chiro2alltriangs.cc
 chiro2circuits_SOURCES             = chiro2circuits.cc
@@ -71,6 +80,7 @@ points2nflips_SOURCES              = points2nflips.cc
 points2ntriangs_SOURCES            = points2ntriangs.cc
 points2placingtriang_SOURCES       = points2placingtriang.cc
 points2triangs_SOURCES             = points2triangs.cc
+points2volume_SOURCES              = points2volume.cc
 santos_triang_SOURCES              = santos_triang.cc
 santos_dim4_triang_SOURCES         = santos_dim4_triang.cc
 santos_22_triang_SOURCES           = santos_22_triang.cc

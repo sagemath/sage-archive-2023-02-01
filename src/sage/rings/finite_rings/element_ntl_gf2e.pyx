@@ -284,6 +284,13 @@ cdef class Cache_ntl_gf2e(SageObject):
             a^13 + a^8 + a^5 + 1
             sage: k._cache.import_data(V(v))
             a^13 + a^8 + a^5 + 1
+
+        TESTS:
+
+        We check that :trac:`12584` is fixed::
+
+            sage: k(2^63)
+            0
         """
         if PY_TYPE_CHECK(e, FiniteField_ntl_gf2eElement) and e.parent() is self._parent: return e
         cdef FiniteField_ntl_gf2eElement res = self._new()
@@ -291,10 +298,12 @@ cdef class Cache_ntl_gf2e(SageObject):
         cdef FiniteField_ntl_gf2eElement g
         cdef Py_ssize_t i
 
+        if is_IntegerMod(e):
+            e = e.lift()
         if PY_TYPE_CHECK(e, int) or \
              PY_TYPE_CHECK(e, Integer) or \
-             PY_TYPE_CHECK(e, long) or is_IntegerMod(e):
-            GF2E_conv_long(res.x,int(e))
+             PY_TYPE_CHECK(e, long):
+            GF2E_conv_long(res.x,int(e&1))
             return res
 
         elif PY_TYPE_CHECK(e, float):

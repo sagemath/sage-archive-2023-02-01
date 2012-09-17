@@ -134,6 +134,9 @@ from sage.rings.ring import is_Ring as is_Ring_slow
 cdef is_Ring(R):
     return isinstance(R, Ring) or is_Ring_slow(R)
 
+#For the norm function, we cache a Sage integer "one"
+__one__ = sage.rings.integer.Integer(1)
+
 def is_FreeModuleElement(x):
     """
     EXAMPLES::
@@ -1536,6 +1539,12 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             Traceback (most recent call last):
             ...
             ValueError: 0.990000 is not greater than or equal to 1
+
+        Norm works with python integers (see :trac:`13502`). ::
+
+            sage: v = vector(QQ, [1,2])
+            sage: v.norm(int(2))
+            sqrt(5)
         """
         abs_self = [abs(x) for x in self]
         if p == Infinity:
@@ -1548,7 +1557,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             pass
 
         s = sum([a**p for a in abs_self])
-        return s**(1/p)
+        return s**(__one__/p)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """

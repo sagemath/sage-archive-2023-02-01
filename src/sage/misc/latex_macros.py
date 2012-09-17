@@ -76,7 +76,7 @@ def produce_latex_macro(name, *sample_args):
          sage: produce_latex_macro('sage.rings.finite_rings.constructor.FiniteField', 3)
          '\\newcommand{\\FiniteField}[1]{\\Bold{F}_{#1}}'
     """
-    from sage.misc.latex import latex
+    from sage.misc.latex import LatexCall
     names_split = name.rsplit('.', 1)
     if len(names_split) == 1:
         module = 'sage.all'
@@ -93,9 +93,9 @@ def produce_latex_macro(name, *sample_args):
     exec('from ' + module + ' import ' + real_name)
     if count > 0:
         defn = '[' + str(count) + ']{'
-        defn += eval('str(latex(' + real_name + args + '))') + '}'
+        defn += eval('str(LatexCall()(' + real_name + args + '))') + '}'
     else:
-        defn = '{' + eval('str(latex(' + real_name + '))') + '}'
+        defn = '{' + eval('str(LatexCall()(' + real_name + '))') + '}'
     count = 0
     for x in sample_args:
         count += 1
@@ -173,13 +173,36 @@ macros = [["ZZ"],
           ["CFF"],
           ]
 
-sage_latex_macros = [produce_latex_macro(*x) for x in macros]
 # The following is to allow customization of typesetting of rings:
 # mathbf vs mathbb.  See latex.py for more information.
 sage_configurable_latex_macros = ["\\newcommand{\\Bold}[1]{\\mathbf{#1}}"]
 
-sage_latex_macros += sage_configurable_latex_macros
+def sage_latex_macros():
+    r"""
+    Return list of LaTeX macros for Sage. This just runs the function
+    :func:`produce_latex_macro` on the list ``macros`` defined in this
+    file, and appends ``sage_configurable_latex_macros``. To add a new
+    macro for permanent use in Sage, modify ``macros``.
 
-# MathJax macro definitions as JavaScript, e.g., to include in HTML
-# script elements.
-sage_mathjax_macros = [convert_latex_macro_to_mathjax(m) for m in sage_latex_macros]
+    EXAMPLES::
+
+        sage: from sage.misc.latex_macros import sage_latex_macros
+        sage: sage_latex_macros()
+        ['\\newcommand{\\ZZ}{\\Bold{Z}}', '\\newcommand{\\NN}{\\Bold{N}}', ...
+    """
+    return [produce_latex_macro(*x) for x in macros] + sage_configurable_latex_macros
+
+def sage_mathjax_macros():
+    r"""
+    Return list of MathJax macro definitions for Sage as
+    JavaScript. This feeds each item output by
+    :func:`sage_latex_macros` to
+    :func:`convert_latex_macro_to_mathjax`.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex_macros import sage_mathjax_macros
+        sage: sage_mathjax_macros()
+        ['ZZ: "\\\\Bold{Z}"', 'NN: "\\\\Bold{N}"', ...
+    """
+    return [convert_latex_macro_to_mathjax(m) for m in sage_latex_macros()]

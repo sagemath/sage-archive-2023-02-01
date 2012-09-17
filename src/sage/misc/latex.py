@@ -625,7 +625,7 @@ def latex_extra_preamble():
     """
     from sage.misc.latex_macros import sage_latex_macros
     return "\n".join([_Latex_prefs._option['preamble'],
-                     "\n".join(sage_latex_macros),
+                     "\n".join(sage_latex_macros()),
                      _Latex_prefs._option['macros']])
 
 def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_in_background=False):
@@ -852,7 +852,66 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         return "Error latexing slide."
     return return_suffix
 
-class Latex:
+class LatexCall:
+    """
+    Typeset Sage objects via a ``__call__`` method to this class,
+    typically by calling those objects' ``_latex_`` methods.  The
+    class :class:`Latex` inherits from this. This class is used in
+    :mod:`~sage.misc.latex_macros`, while functions from
+    :mod:`~sage.misc.latex_macros` are used in :class:`Latex`, so this
+    is here primarily to avoid circular imports.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import LatexCall
+        sage: LatexCall()(ZZ)
+        \Bold{Z}
+        sage: LatexCall().__call__(ZZ)
+        \Bold{Z}
+
+    This returns an instance of the class :class:`LatexExpr`::
+
+        sage: type(LatexCall()(ZZ))
+        <class 'sage.misc.latex.LatexExpr'>
+    """
+    def __call__(self, x, combine_all=False):
+        r"""
+        Return a :class:`LatexExpr` built out of the argument ``x``.
+
+        INPUT:
+
+        - ``x`` - a Sage object
+
+        - ``combine_all`` - boolean (Default: False) If combine_all is True
+          and the input is a tuple, then it does not return a tuple and
+          instead returns a string with all the elements separated by
+          a single space.
+
+        OUTPUT: a LatexExpr built from ``x``
+
+        EXAMPLES::
+
+            sage: latex(Integer(3))  # indirect doctest
+            3
+            sage: latex(1==0)
+            \mathrm{False}
+            sage: print latex([x,2])
+            \left[x, 2\right]
+            sage: latex((x,2), combine_all=True) # trac 11775
+            x 2
+        """
+        if has_latex_attr(x):
+            return LatexExpr(x._latex_())
+        try:
+            f = latex_table[type(x)]
+            if type(x) == tuple:
+                return LatexExpr(f(x, combine_all=combine_all))
+            return LatexExpr(f(x))
+        except KeyError:
+            return LatexExpr(str_function(str(x)))
+
+
+class Latex(LatexCall):
     r"""nodetex
     Enter, e.g.,
 
@@ -898,42 +957,6 @@ class Latex:
         self.__pdflatex = pdflatex
         self.__engine = engine
         self.__density = density
-
-    def __call__(self, x, combine_all=False):
-        r"""
-        Return a :class:`LatexExpr` built out of the argument ``x``.
-
-        INPUT:
-
-        - ``x`` - a Sage object
-
-        - ``combine_all`` - boolean (Default: False) If combine_all is True
-          and the input is a tuple, then it does not return a tuple and
-          instead returns a string with all the elements separated by
-          a single space.
-
-        OUTPUT: a LatexExpr built from ``x``
-
-        EXAMPLES::
-
-            sage: latex(Integer(3))  # indirect doctest
-            3
-            sage: latex(1==0)
-            \mathrm{False}
-            sage: print latex([x,2])
-            \left[x, 2\right]
-            sage: latex((x,2), combine_all=True) # trac 11775
-            x 2
-        """
-        if has_latex_attr(x):
-            return LatexExpr(x._latex_())
-        try:
-            f = latex_table[type(x)]
-            if type(x) == tuple:
-                return LatexExpr(f(x, combine_all=combine_all))
-            return LatexExpr(f(x))
-        except KeyError:
-            return LatexExpr(str_function(str(x)))
 
     def _relation_symbols(self):
         """
@@ -1087,9 +1110,8 @@ class Latex:
         """
         if t is None:
             return _Latex_prefs._option["blackboard_bold"]
-        from latex_macros import sage_latex_macros, sage_mathjax_macros, sage_configurable_latex_macros, convert_latex_macro_to_mathjax
-        global sage_latex_macros
-        global sage_mathjax_macros
+        from latex_macros import sage_configurable_latex_macros
+        global sage_configurable_latex_macros
         old = _Latex_prefs._option["blackboard_bold"]
         _Latex_prefs._option["blackboard_bold"] = bool(t)
         if bool(old) != bool(t):
@@ -1101,12 +1123,8 @@ class Latex:
                 macro = "\\newcommand{\\Bold}[1]{\\mathbb{#1}}"
             else:
                 macro = "\\newcommand{\\Bold}[1]{\\mathbf{#1}}"
-            sage_latex_macros.remove(old_macro)
             sage_configurable_latex_macros.remove(old_macro)
-            sage_latex_macros.append(macro)
             sage_configurable_latex_macros.append(macro)
-            sage_mathjax_macros.remove(convert_latex_macro_to_mathjax(old_macro))
-            sage_mathjax_macros.append(convert_latex_macro_to_mathjax(macro))
 
     def matrix_delimiters(self, left=None, right=None):
         r"""nodetex

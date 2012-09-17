@@ -178,7 +178,7 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
     mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
 
     from sage.misc.latex_macros import sage_mathjax_macros
-    html_theme_options['mathjax_macros'] = sage_mathjax_macros
+    html_theme_options['mathjax_macros'] = sage_mathjax_macros()
 
     from pkg_resources import Requirement, working_set
     sagenb_path = working_set.find(Requirement.parse('sagenb')).location
@@ -290,7 +290,7 @@ try:
 except NameError:
     pngmath_latex_preamble = ""
 
-for macro in sage_latex_macros:
+for macro in sage_latex_macros():
     # used when building latex and pdf versions
     latex_elements['preamble'] += macro + '\n'
     # used when building html version

@@ -198,9 +198,16 @@ def test_executable(args, input="", timeout=50.0):
         sage: ret
         0
 
-    Test ``sage --info [packages]``::
+    Test ``sage --info [packages]``, unless this is a binary (bdist)
+    distribution which doesn't ship spkgs::
 
-        sage: (out, err, ret) = test_executable(["sage", "--info", "sqlalchemy"])
+        sage: if os.path.isfile(os.path.join(SAGE_ROOT, 'spkg', 'standard', '.from_bdist')):
+        ...     out = "Found package sqlalchemy in spkg/standard/sqlalchemy-...spkg\n= SQLAlchemy =\n...\nSQLAlchemy is the Python SQL toolkit..."
+        ...     err = ''
+        ...     ret = 0
+        ... else:
+        ...     (out, err, ret) = test_executable(["sage", "--info", "sqlalchemy"])
+        ...
         sage: print out
         Found package sqlalchemy in spkg/standard/sqlalchemy-...spkg
         = SQLAlchemy =

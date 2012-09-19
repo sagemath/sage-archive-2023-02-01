@@ -77,18 +77,31 @@ am__uninstall_files_from_dir = { \
   }
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libTOPCOM_la_LIBADD =
-am_libTOPCOM_la_OBJECTS = Admissibles.lo CheckTriang.lo Circuits.lo \
-	Cocircuits.lo CommandlineOptions.lo CompressedIntegerSet.lo \
-	ComputeTriangs.lo Facets.lo FastSimplicialComplex.lo Field.lo \
-	FineTriang.lo Flip.lo IndexTableArray.lo IntegerSet.lo \
-	InteriorFacets.lo MarkedFlips.lo Matrix.lo Permutation.lo \
-	PlacingTriang.lo PointConfiguration.lo RealChiro.lo \
-	SimplicialComplex.lo SimplicialComplexTemplate.lo \
-	SparseIntegerSet.lo SparseSimplicialComplex.lo \
-	StairCaseMatrix.lo SymmetricBFS.lo Symmetry.lo TriangFlips.lo \
-	TriangNode.lo Vector.lo VertexFacetTable.lo \
-	VertexFacetTableArray.lo VirtualChiro.lo
+am__DEPENDENCIES_1 =
+libTOPCOM_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+am_libTOPCOM_la_OBJECTS = libTOPCOM_la-Admissibles.lo \
+	libTOPCOM_la-CheckTriang.lo libTOPCOM_la-Circuits.lo \
+	libTOPCOM_la-Cocircuits.lo libTOPCOM_la-CommandlineOptions.lo \
+	libTOPCOM_la-CompressedIntegerSet.lo \
+	libTOPCOM_la-ComputeTriangs.lo libTOPCOM_la-Facets.lo \
+	libTOPCOM_la-FastSimplicialComplex.lo libTOPCOM_la-Field.lo \
+	libTOPCOM_la-FineTriang.lo libTOPCOM_la-Flip.lo \
+	libTOPCOM_la-IndexTableArray.lo libTOPCOM_la-IntegerSet.lo \
+	libTOPCOM_la-InteriorFacets.lo libTOPCOM_la-MarkedFlips.lo \
+	libTOPCOM_la-Matrix.lo libTOPCOM_la-Permutation.lo \
+	libTOPCOM_la-PlacingTriang.lo \
+	libTOPCOM_la-PointConfiguration.lo libTOPCOM_la-RealChiro.lo \
+	libTOPCOM_la-SimplicialComplex.lo \
+	libTOPCOM_la-SimplicialComplexTemplate.lo \
+	libTOPCOM_la-SparseIntegerSet.lo \
+	libTOPCOM_la-SparseSimplicialComplex.lo \
+	libTOPCOM_la-StairCaseMatrix.lo libTOPCOM_la-SymmetricBFS.lo \
+	libTOPCOM_la-Symmetry.lo libTOPCOM_la-TriangFlips.lo \
+	libTOPCOM_la-TriangNode.lo libTOPCOM_la-Vector.lo \
+	libTOPCOM_la-VertexFacetTable.lo \
+	libTOPCOM_la-VertexFacetTableArray.lo \
+	libTOPCOM_la-VirtualChiro.lo
 libTOPCOM_la_OBJECTS = $(am_libTOPCOM_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -322,7 +335,8 @@ VirtualChiro.hh
 
 INCLUDES = $(GMP_CFLAGS) $(CDD_CFLAGS) -I../lib-src-reg \
 	-I../wrap-gmp-gmpxx
-AM_CPPFLAGS = -DVERBOSE -DGMPRATIONAL -ftemplate-depth-35
+libTOPCOM_la_CPPFLAGS = -DVERBOSE -DGMPRATIONAL -ftemplate-depth-35
+libTOPCOM_la_LIBADD = $(GMP_LIBS) $(CDD_LIBS)
 all: all-am
 
 .SUFFIXES:
@@ -397,40 +411,40 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Admissibles.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CheckTriang.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Circuits.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Cocircuits.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CommandlineOptions.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CompressedIntegerSet.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ComputeTriangs.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Facets.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FastSimplicialComplex.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Field.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FineTriang.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Flip.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IndexTableArray.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IntegerSet.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InteriorFacets.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MarkedFlips.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Matrix.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Permutation.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlacingTriang.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PointConfiguration.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RealChiro.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SimplicialComplex.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SimplicialComplexTemplate.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SparseIntegerSet.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SparseSimplicialComplex.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StairCaseMatrix.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SymmetricBFS.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Symmetry.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TriangFlips.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TriangNode.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Vector.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VertexFacetTable.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VertexFacetTableArray.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VirtualChiro.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-Admissibles.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-CheckTriang.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-Circuits.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-Cocircuits.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-CommandlineOptions.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-CompressedIntegerSet.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-ComputeTriangs.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-Facets.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-FastSimplicialComplex.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-Field.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-FineTriang.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-Flip.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-IndexTableArray.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-IntegerSet.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-InteriorFacets.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-MarkedFlips.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-Matrix.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-Permutation.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-PlacingTriang.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-PointConfiguration.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-RealChiro.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-SimplicialComplex.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-SimplicialComplexTemplate.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-SparseIntegerSet.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-SparseSimplicialComplex.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-StairCaseMatrix.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-SymmetricBFS.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-Symmetry.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-TriangFlips.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-TriangNode.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-Vector.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-VertexFacetTable.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-VertexFacetTableArray.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libTOPCOM_la-VirtualChiro.Plo@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -452,6 +466,244 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+libTOPCOM_la-Admissibles.lo: Admissibles.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-Admissibles.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-Admissibles.Tpo -c -o libTOPCOM_la-Admissibles.lo `test -f 'Admissibles.cc' || echo '$(srcdir)/'`Admissibles.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-Admissibles.Tpo $(DEPDIR)/libTOPCOM_la-Admissibles.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Admissibles.cc' object='libTOPCOM_la-Admissibles.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-Admissibles.lo `test -f 'Admissibles.cc' || echo '$(srcdir)/'`Admissibles.cc
+
+libTOPCOM_la-CheckTriang.lo: CheckTriang.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-CheckTriang.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-CheckTriang.Tpo -c -o libTOPCOM_la-CheckTriang.lo `test -f 'CheckTriang.cc' || echo '$(srcdir)/'`CheckTriang.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-CheckTriang.Tpo $(DEPDIR)/libTOPCOM_la-CheckTriang.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CheckTriang.cc' object='libTOPCOM_la-CheckTriang.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-CheckTriang.lo `test -f 'CheckTriang.cc' || echo '$(srcdir)/'`CheckTriang.cc
+
+libTOPCOM_la-Circuits.lo: Circuits.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-Circuits.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-Circuits.Tpo -c -o libTOPCOM_la-Circuits.lo `test -f 'Circuits.cc' || echo '$(srcdir)/'`Circuits.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-Circuits.Tpo $(DEPDIR)/libTOPCOM_la-Circuits.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Circuits.cc' object='libTOPCOM_la-Circuits.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-Circuits.lo `test -f 'Circuits.cc' || echo '$(srcdir)/'`Circuits.cc
+
+libTOPCOM_la-Cocircuits.lo: Cocircuits.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-Cocircuits.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-Cocircuits.Tpo -c -o libTOPCOM_la-Cocircuits.lo `test -f 'Cocircuits.cc' || echo '$(srcdir)/'`Cocircuits.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-Cocircuits.Tpo $(DEPDIR)/libTOPCOM_la-Cocircuits.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Cocircuits.cc' object='libTOPCOM_la-Cocircuits.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-Cocircuits.lo `test -f 'Cocircuits.cc' || echo '$(srcdir)/'`Cocircuits.cc
+
+libTOPCOM_la-CommandlineOptions.lo: CommandlineOptions.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-CommandlineOptions.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-CommandlineOptions.Tpo -c -o libTOPCOM_la-CommandlineOptions.lo `test -f 'CommandlineOptions.cc' || echo '$(srcdir)/'`CommandlineOptions.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-CommandlineOptions.Tpo $(DEPDIR)/libTOPCOM_la-CommandlineOptions.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CommandlineOptions.cc' object='libTOPCOM_la-CommandlineOptions.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-CommandlineOptions.lo `test -f 'CommandlineOptions.cc' || echo '$(srcdir)/'`CommandlineOptions.cc
+
+libTOPCOM_la-CompressedIntegerSet.lo: CompressedIntegerSet.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-CompressedIntegerSet.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-CompressedIntegerSet.Tpo -c -o libTOPCOM_la-CompressedIntegerSet.lo `test -f 'CompressedIntegerSet.cc' || echo '$(srcdir)/'`CompressedIntegerSet.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-CompressedIntegerSet.Tpo $(DEPDIR)/libTOPCOM_la-CompressedIntegerSet.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CompressedIntegerSet.cc' object='libTOPCOM_la-CompressedIntegerSet.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-CompressedIntegerSet.lo `test -f 'CompressedIntegerSet.cc' || echo '$(srcdir)/'`CompressedIntegerSet.cc
+
+libTOPCOM_la-ComputeTriangs.lo: ComputeTriangs.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-ComputeTriangs.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-ComputeTriangs.Tpo -c -o libTOPCOM_la-ComputeTriangs.lo `test -f 'ComputeTriangs.cc' || echo '$(srcdir)/'`ComputeTriangs.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-ComputeTriangs.Tpo $(DEPDIR)/libTOPCOM_la-ComputeTriangs.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ComputeTriangs.cc' object='libTOPCOM_la-ComputeTriangs.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-ComputeTriangs.lo `test -f 'ComputeTriangs.cc' || echo '$(srcdir)/'`ComputeTriangs.cc
+
+libTOPCOM_la-Facets.lo: Facets.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-Facets.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-Facets.Tpo -c -o libTOPCOM_la-Facets.lo `test -f 'Facets.cc' || echo '$(srcdir)/'`Facets.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-Facets.Tpo $(DEPDIR)/libTOPCOM_la-Facets.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Facets.cc' object='libTOPCOM_la-Facets.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-Facets.lo `test -f 'Facets.cc' || echo '$(srcdir)/'`Facets.cc
+
+libTOPCOM_la-FastSimplicialComplex.lo: FastSimplicialComplex.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-FastSimplicialComplex.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-FastSimplicialComplex.Tpo -c -o libTOPCOM_la-FastSimplicialComplex.lo `test -f 'FastSimplicialComplex.cc' || echo '$(srcdir)/'`FastSimplicialComplex.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-FastSimplicialComplex.Tpo $(DEPDIR)/libTOPCOM_la-FastSimplicialComplex.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FastSimplicialComplex.cc' object='libTOPCOM_la-FastSimplicialComplex.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-FastSimplicialComplex.lo `test -f 'FastSimplicialComplex.cc' || echo '$(srcdir)/'`FastSimplicialComplex.cc
+
+libTOPCOM_la-Field.lo: Field.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-Field.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-Field.Tpo -c -o libTOPCOM_la-Field.lo `test -f 'Field.cc' || echo '$(srcdir)/'`Field.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-Field.Tpo $(DEPDIR)/libTOPCOM_la-Field.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Field.cc' object='libTOPCOM_la-Field.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-Field.lo `test -f 'Field.cc' || echo '$(srcdir)/'`Field.cc
+
+libTOPCOM_la-FineTriang.lo: FineTriang.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-FineTriang.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-FineTriang.Tpo -c -o libTOPCOM_la-FineTriang.lo `test -f 'FineTriang.cc' || echo '$(srcdir)/'`FineTriang.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-FineTriang.Tpo $(DEPDIR)/libTOPCOM_la-FineTriang.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='FineTriang.cc' object='libTOPCOM_la-FineTriang.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-FineTriang.lo `test -f 'FineTriang.cc' || echo '$(srcdir)/'`FineTriang.cc
+
+libTOPCOM_la-Flip.lo: Flip.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-Flip.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-Flip.Tpo -c -o libTOPCOM_la-Flip.lo `test -f 'Flip.cc' || echo '$(srcdir)/'`Flip.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-Flip.Tpo $(DEPDIR)/libTOPCOM_la-Flip.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Flip.cc' object='libTOPCOM_la-Flip.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-Flip.lo `test -f 'Flip.cc' || echo '$(srcdir)/'`Flip.cc
+
+libTOPCOM_la-IndexTableArray.lo: IndexTableArray.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-IndexTableArray.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-IndexTableArray.Tpo -c -o libTOPCOM_la-IndexTableArray.lo `test -f 'IndexTableArray.cc' || echo '$(srcdir)/'`IndexTableArray.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-IndexTableArray.Tpo $(DEPDIR)/libTOPCOM_la-IndexTableArray.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IndexTableArray.cc' object='libTOPCOM_la-IndexTableArray.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-IndexTableArray.lo `test -f 'IndexTableArray.cc' || echo '$(srcdir)/'`IndexTableArray.cc
+
+libTOPCOM_la-IntegerSet.lo: IntegerSet.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-IntegerSet.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-IntegerSet.Tpo -c -o libTOPCOM_la-IntegerSet.lo `test -f 'IntegerSet.cc' || echo '$(srcdir)/'`IntegerSet.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-IntegerSet.Tpo $(DEPDIR)/libTOPCOM_la-IntegerSet.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='IntegerSet.cc' object='libTOPCOM_la-IntegerSet.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-IntegerSet.lo `test -f 'IntegerSet.cc' || echo '$(srcdir)/'`IntegerSet.cc
+
+libTOPCOM_la-InteriorFacets.lo: InteriorFacets.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-InteriorFacets.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-InteriorFacets.Tpo -c -o libTOPCOM_la-InteriorFacets.lo `test -f 'InteriorFacets.cc' || echo '$(srcdir)/'`InteriorFacets.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-InteriorFacets.Tpo $(DEPDIR)/libTOPCOM_la-InteriorFacets.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='InteriorFacets.cc' object='libTOPCOM_la-InteriorFacets.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-InteriorFacets.lo `test -f 'InteriorFacets.cc' || echo '$(srcdir)/'`InteriorFacets.cc
+
+libTOPCOM_la-MarkedFlips.lo: MarkedFlips.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-MarkedFlips.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-MarkedFlips.Tpo -c -o libTOPCOM_la-MarkedFlips.lo `test -f 'MarkedFlips.cc' || echo '$(srcdir)/'`MarkedFlips.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-MarkedFlips.Tpo $(DEPDIR)/libTOPCOM_la-MarkedFlips.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='MarkedFlips.cc' object='libTOPCOM_la-MarkedFlips.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-MarkedFlips.lo `test -f 'MarkedFlips.cc' || echo '$(srcdir)/'`MarkedFlips.cc
+
+libTOPCOM_la-Matrix.lo: Matrix.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-Matrix.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-Matrix.Tpo -c -o libTOPCOM_la-Matrix.lo `test -f 'Matrix.cc' || echo '$(srcdir)/'`Matrix.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-Matrix.Tpo $(DEPDIR)/libTOPCOM_la-Matrix.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Matrix.cc' object='libTOPCOM_la-Matrix.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-Matrix.lo `test -f 'Matrix.cc' || echo '$(srcdir)/'`Matrix.cc
+
+libTOPCOM_la-Permutation.lo: Permutation.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-Permutation.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-Permutation.Tpo -c -o libTOPCOM_la-Permutation.lo `test -f 'Permutation.cc' || echo '$(srcdir)/'`Permutation.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-Permutation.Tpo $(DEPDIR)/libTOPCOM_la-Permutation.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Permutation.cc' object='libTOPCOM_la-Permutation.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-Permutation.lo `test -f 'Permutation.cc' || echo '$(srcdir)/'`Permutation.cc
+
+libTOPCOM_la-PlacingTriang.lo: PlacingTriang.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-PlacingTriang.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-PlacingTriang.Tpo -c -o libTOPCOM_la-PlacingTriang.lo `test -f 'PlacingTriang.cc' || echo '$(srcdir)/'`PlacingTriang.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-PlacingTriang.Tpo $(DEPDIR)/libTOPCOM_la-PlacingTriang.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PlacingTriang.cc' object='libTOPCOM_la-PlacingTriang.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-PlacingTriang.lo `test -f 'PlacingTriang.cc' || echo '$(srcdir)/'`PlacingTriang.cc
+
+libTOPCOM_la-PointConfiguration.lo: PointConfiguration.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-PointConfiguration.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-PointConfiguration.Tpo -c -o libTOPCOM_la-PointConfiguration.lo `test -f 'PointConfiguration.cc' || echo '$(srcdir)/'`PointConfiguration.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-PointConfiguration.Tpo $(DEPDIR)/libTOPCOM_la-PointConfiguration.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PointConfiguration.cc' object='libTOPCOM_la-PointConfiguration.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-PointConfiguration.lo `test -f 'PointConfiguration.cc' || echo '$(srcdir)/'`PointConfiguration.cc
+
+libTOPCOM_la-RealChiro.lo: RealChiro.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-RealChiro.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-RealChiro.Tpo -c -o libTOPCOM_la-RealChiro.lo `test -f 'RealChiro.cc' || echo '$(srcdir)/'`RealChiro.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-RealChiro.Tpo $(DEPDIR)/libTOPCOM_la-RealChiro.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RealChiro.cc' object='libTOPCOM_la-RealChiro.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-RealChiro.lo `test -f 'RealChiro.cc' || echo '$(srcdir)/'`RealChiro.cc
+
+libTOPCOM_la-SimplicialComplex.lo: SimplicialComplex.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-SimplicialComplex.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-SimplicialComplex.Tpo -c -o libTOPCOM_la-SimplicialComplex.lo `test -f 'SimplicialComplex.cc' || echo '$(srcdir)/'`SimplicialComplex.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-SimplicialComplex.Tpo $(DEPDIR)/libTOPCOM_la-SimplicialComplex.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SimplicialComplex.cc' object='libTOPCOM_la-SimplicialComplex.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-SimplicialComplex.lo `test -f 'SimplicialComplex.cc' || echo '$(srcdir)/'`SimplicialComplex.cc
+
+libTOPCOM_la-SimplicialComplexTemplate.lo: SimplicialComplexTemplate.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-SimplicialComplexTemplate.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-SimplicialComplexTemplate.Tpo -c -o libTOPCOM_la-SimplicialComplexTemplate.lo `test -f 'SimplicialComplexTemplate.cc' || echo '$(srcdir)/'`SimplicialComplexTemplate.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-SimplicialComplexTemplate.Tpo $(DEPDIR)/libTOPCOM_la-SimplicialComplexTemplate.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SimplicialComplexTemplate.cc' object='libTOPCOM_la-SimplicialComplexTemplate.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-SimplicialComplexTemplate.lo `test -f 'SimplicialComplexTemplate.cc' || echo '$(srcdir)/'`SimplicialComplexTemplate.cc
+
+libTOPCOM_la-SparseIntegerSet.lo: SparseIntegerSet.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-SparseIntegerSet.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-SparseIntegerSet.Tpo -c -o libTOPCOM_la-SparseIntegerSet.lo `test -f 'SparseIntegerSet.cc' || echo '$(srcdir)/'`SparseIntegerSet.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-SparseIntegerSet.Tpo $(DEPDIR)/libTOPCOM_la-SparseIntegerSet.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SparseIntegerSet.cc' object='libTOPCOM_la-SparseIntegerSet.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-SparseIntegerSet.lo `test -f 'SparseIntegerSet.cc' || echo '$(srcdir)/'`SparseIntegerSet.cc
+
+libTOPCOM_la-SparseSimplicialComplex.lo: SparseSimplicialComplex.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-SparseSimplicialComplex.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-SparseSimplicialComplex.Tpo -c -o libTOPCOM_la-SparseSimplicialComplex.lo `test -f 'SparseSimplicialComplex.cc' || echo '$(srcdir)/'`SparseSimplicialComplex.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-SparseSimplicialComplex.Tpo $(DEPDIR)/libTOPCOM_la-SparseSimplicialComplex.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SparseSimplicialComplex.cc' object='libTOPCOM_la-SparseSimplicialComplex.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-SparseSimplicialComplex.lo `test -f 'SparseSimplicialComplex.cc' || echo '$(srcdir)/'`SparseSimplicialComplex.cc
+
+libTOPCOM_la-StairCaseMatrix.lo: StairCaseMatrix.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-StairCaseMatrix.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-StairCaseMatrix.Tpo -c -o libTOPCOM_la-StairCaseMatrix.lo `test -f 'StairCaseMatrix.cc' || echo '$(srcdir)/'`StairCaseMatrix.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-StairCaseMatrix.Tpo $(DEPDIR)/libTOPCOM_la-StairCaseMatrix.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='StairCaseMatrix.cc' object='libTOPCOM_la-StairCaseMatrix.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-StairCaseMatrix.lo `test -f 'StairCaseMatrix.cc' || echo '$(srcdir)/'`StairCaseMatrix.cc
+
+libTOPCOM_la-SymmetricBFS.lo: SymmetricBFS.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-SymmetricBFS.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-SymmetricBFS.Tpo -c -o libTOPCOM_la-SymmetricBFS.lo `test -f 'SymmetricBFS.cc' || echo '$(srcdir)/'`SymmetricBFS.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-SymmetricBFS.Tpo $(DEPDIR)/libTOPCOM_la-SymmetricBFS.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SymmetricBFS.cc' object='libTOPCOM_la-SymmetricBFS.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-SymmetricBFS.lo `test -f 'SymmetricBFS.cc' || echo '$(srcdir)/'`SymmetricBFS.cc
+
+libTOPCOM_la-Symmetry.lo: Symmetry.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-Symmetry.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-Symmetry.Tpo -c -o libTOPCOM_la-Symmetry.lo `test -f 'Symmetry.cc' || echo '$(srcdir)/'`Symmetry.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-Symmetry.Tpo $(DEPDIR)/libTOPCOM_la-Symmetry.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Symmetry.cc' object='libTOPCOM_la-Symmetry.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-Symmetry.lo `test -f 'Symmetry.cc' || echo '$(srcdir)/'`Symmetry.cc
+
+libTOPCOM_la-TriangFlips.lo: TriangFlips.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-TriangFlips.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-TriangFlips.Tpo -c -o libTOPCOM_la-TriangFlips.lo `test -f 'TriangFlips.cc' || echo '$(srcdir)/'`TriangFlips.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-TriangFlips.Tpo $(DEPDIR)/libTOPCOM_la-TriangFlips.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TriangFlips.cc' object='libTOPCOM_la-TriangFlips.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-TriangFlips.lo `test -f 'TriangFlips.cc' || echo '$(srcdir)/'`TriangFlips.cc
+
+libTOPCOM_la-TriangNode.lo: TriangNode.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-TriangNode.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-TriangNode.Tpo -c -o libTOPCOM_la-TriangNode.lo `test -f 'TriangNode.cc' || echo '$(srcdir)/'`TriangNode.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-TriangNode.Tpo $(DEPDIR)/libTOPCOM_la-TriangNode.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='TriangNode.cc' object='libTOPCOM_la-TriangNode.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-TriangNode.lo `test -f 'TriangNode.cc' || echo '$(srcdir)/'`TriangNode.cc
+
+libTOPCOM_la-Vector.lo: Vector.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-Vector.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-Vector.Tpo -c -o libTOPCOM_la-Vector.lo `test -f 'Vector.cc' || echo '$(srcdir)/'`Vector.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-Vector.Tpo $(DEPDIR)/libTOPCOM_la-Vector.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='Vector.cc' object='libTOPCOM_la-Vector.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-Vector.lo `test -f 'Vector.cc' || echo '$(srcdir)/'`Vector.cc
+
+libTOPCOM_la-VertexFacetTable.lo: VertexFacetTable.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-VertexFacetTable.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-VertexFacetTable.Tpo -c -o libTOPCOM_la-VertexFacetTable.lo `test -f 'VertexFacetTable.cc' || echo '$(srcdir)/'`VertexFacetTable.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-VertexFacetTable.Tpo $(DEPDIR)/libTOPCOM_la-VertexFacetTable.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='VertexFacetTable.cc' object='libTOPCOM_la-VertexFacetTable.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-VertexFacetTable.lo `test -f 'VertexFacetTable.cc' || echo '$(srcdir)/'`VertexFacetTable.cc
+
+libTOPCOM_la-VertexFacetTableArray.lo: VertexFacetTableArray.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-VertexFacetTableArray.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-VertexFacetTableArray.Tpo -c -o libTOPCOM_la-VertexFacetTableArray.lo `test -f 'VertexFacetTableArray.cc' || echo '$(srcdir)/'`VertexFacetTableArray.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-VertexFacetTableArray.Tpo $(DEPDIR)/libTOPCOM_la-VertexFacetTableArray.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='VertexFacetTableArray.cc' object='libTOPCOM_la-VertexFacetTableArray.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-VertexFacetTableArray.lo `test -f 'VertexFacetTableArray.cc' || echo '$(srcdir)/'`VertexFacetTableArray.cc
+
+libTOPCOM_la-VirtualChiro.lo: VirtualChiro.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libTOPCOM_la-VirtualChiro.lo -MD -MP -MF $(DEPDIR)/libTOPCOM_la-VirtualChiro.Tpo -c -o libTOPCOM_la-VirtualChiro.lo `test -f 'VirtualChiro.cc' || echo '$(srcdir)/'`VirtualChiro.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libTOPCOM_la-VirtualChiro.Tpo $(DEPDIR)/libTOPCOM_la-VirtualChiro.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='VirtualChiro.cc' object='libTOPCOM_la-VirtualChiro.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libTOPCOM_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libTOPCOM_la-VirtualChiro.lo `test -f 'VirtualChiro.cc' || echo '$(srcdir)/'`VirtualChiro.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo

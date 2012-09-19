@@ -77,9 +77,11 @@ am__uninstall_files_from_dir = { \
   }
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libCHECKREG_la_LIBADD =
-am_libCHECKREG_la_OBJECTS = SPXinterface.lo LPinterface.lo \
-	RegularityCheck.lo
+am__DEPENDENCIES_1 =
+libCHECKREG_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am_libCHECKREG_la_OBJECTS = libCHECKREG_la-SPXinterface.lo \
+	libCHECKREG_la-LPinterface.lo \
+	libCHECKREG_la-RegularityCheck.lo
 libCHECKREG_la_OBJECTS = $(am_libCHECKREG_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -235,7 +237,8 @@ LPinterface.hh
 
 INCLUDES = $(GMP_CFLAGS) $(CDD_CFLAGS) -I../lib-src \
 	-I../wrap-gmp-gmpxx
-AM_CPPFLAGS = -DVERBOSE -DGMPRATIONAL -ftemplate-depth-30
+libCHECKREG_la_CPPFLAGS = -DVERBOSE -DGMPRATIONAL -ftemplate-depth-30
+libCHECKREG_la_LIBADD = $(CDD_LIBS)
 all: all-am
 
 .SUFFIXES:
@@ -310,9 +313,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LPinterface.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RegularityCheck.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SPXinterface.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCHECKREG_la-LPinterface.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCHECKREG_la-RegularityCheck.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libCHECKREG_la-SPXinterface.Plo@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -334,6 +337,27 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+libCHECKREG_la-SPXinterface.lo: SPXinterface.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCHECKREG_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libCHECKREG_la-SPXinterface.lo -MD -MP -MF $(DEPDIR)/libCHECKREG_la-SPXinterface.Tpo -c -o libCHECKREG_la-SPXinterface.lo `test -f 'SPXinterface.cc' || echo '$(srcdir)/'`SPXinterface.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libCHECKREG_la-SPXinterface.Tpo $(DEPDIR)/libCHECKREG_la-SPXinterface.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SPXinterface.cc' object='libCHECKREG_la-SPXinterface.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCHECKREG_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libCHECKREG_la-SPXinterface.lo `test -f 'SPXinterface.cc' || echo '$(srcdir)/'`SPXinterface.cc
+
+libCHECKREG_la-LPinterface.lo: LPinterface.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCHECKREG_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libCHECKREG_la-LPinterface.lo -MD -MP -MF $(DEPDIR)/libCHECKREG_la-LPinterface.Tpo -c -o libCHECKREG_la-LPinterface.lo `test -f 'LPinterface.cc' || echo '$(srcdir)/'`LPinterface.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libCHECKREG_la-LPinterface.Tpo $(DEPDIR)/libCHECKREG_la-LPinterface.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='LPinterface.cc' object='libCHECKREG_la-LPinterface.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCHECKREG_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libCHECKREG_la-LPinterface.lo `test -f 'LPinterface.cc' || echo '$(srcdir)/'`LPinterface.cc
+
+libCHECKREG_la-RegularityCheck.lo: RegularityCheck.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCHECKREG_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libCHECKREG_la-RegularityCheck.lo -MD -MP -MF $(DEPDIR)/libCHECKREG_la-RegularityCheck.Tpo -c -o libCHECKREG_la-RegularityCheck.lo `test -f 'RegularityCheck.cc' || echo '$(srcdir)/'`RegularityCheck.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libCHECKREG_la-RegularityCheck.Tpo $(DEPDIR)/libCHECKREG_la-RegularityCheck.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RegularityCheck.cc' object='libCHECKREG_la-RegularityCheck.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libCHECKREG_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libCHECKREG_la-RegularityCheck.lo `test -f 'RegularityCheck.cc' || echo '$(srcdir)/'`RegularityCheck.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo

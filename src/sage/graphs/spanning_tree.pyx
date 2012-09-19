@@ -6,6 +6,11 @@ the collection are algorithms for minimum spanning trees. See the book
 [JoynerNguyenCohen2010]_ for descriptions of spanning tree algorithms,
 including minimum spanning trees.
 
+.. SEEALSO::
+
+   * :meth:`GenericGraph.min_spanning_tree
+     <sage.graphs.generic_graph.GenericGraph.min_spanning_tree>`.
+
 **Todo**
 
 * Rewrite :func:`kruskal` to use priority queues. Once Cython has support

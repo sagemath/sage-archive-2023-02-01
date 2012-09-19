@@ -225,10 +225,10 @@ def number_of_n_colorings(G,n):
     """
     #Take care of the stupid stuff
     if n == 1:
-        return int(len(G.edges()) == 0)
+        return int(G.size() == 0)
     if n < 1:
         if n == 0:
-            return int(len(G.vertices()) == 0)
+            return int(G.order() == 0)
         else:
             #negative colors?? what does that even mean?
             return 0
@@ -272,7 +272,7 @@ def chromatic_number(G):
     o = G.order()
     if o == 0:
         return 0
-    if len(G.edges()) == 0:
+    if G.size() == 0:
         return 1
     elif G.is_bipartite(): #can we do it in linear time?
         return 2

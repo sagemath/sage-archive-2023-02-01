@@ -2231,14 +2231,16 @@ class Graph(GenericGraph):
         else:
             return counter_example is None
 
-    def is_strongly_regular(self, return_parameters=False):
+    def is_strongly_regular(self, parameters=False):
         r"""
         Tests whether ``self`` is strongly regular.
 
-        A graph `G` is said to be strongly regular with parameters `(k, \lambda,
-        \mu)` if and only if:
+        A graph `G` is said to be strongly regular with parameters (n, k,
+        \lambda, \mu)` if and only if:
 
-            * `G` is `k`-regular
+            * `G` has `n` vertices.
+
+            * `G` is `k`-regular.
 
             * Any two adjacent vertices of `G` have `\lambda` common neighbors.
 
@@ -2246,11 +2248,11 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``return_parameters`` (boolean) -- whether to return the triple
-          `(k,\lambda,\mu)`. If ``return_parameters = False`` (default), this
-          method only returns ``True`` and ``False`` answers. If
-          ``return_parameters=True``, the ``True`` answers are replaced by
-          triples `(k,\lambda,\mu)`. See definition above.
+        - ``parameters`` (boolean) -- whether to return the quadruple `(n,
+          k,\lambda,\mu)`. If ``parameters = False`` (default), this method only
+          returns ``True`` and ``False`` answers. If ``parameters=True``, the
+          ``True`` answers are replaced by quadruples `(n, k,\lambda,\mu)`. See
+          definition above.
 
         EXAMPLES:
 
@@ -2259,16 +2261,16 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: g.is_strongly_regular()
             True
-            sage: g.is_strongly_regular(return_parameters = True)
-            (3, 0, 1)
+            sage: g.is_strongly_regular(parameters = True)
+            (10, 3, 0, 1)
 
         And Clebsch's graph is too::
 
             sage: g = graphs.ClebschGraph()
             sage: g.is_strongly_regular()
             True
-            sage: g.is_strongly_regular(return_parameters = True)
-            (5, 0, 2)
+            sage: g.is_strongly_regular(parameters = True)
+            (16, 5, 0, 2)
 
         But Chvatal's graph is not::
 
@@ -2310,8 +2312,8 @@ class Graph(GenericGraph):
                             if m != inter:
                                 return False
 
-            if return_parameters:
-                return (k,l,m)
+            if parameters:
+                return (self.order(),k,l,m)
             else:
                 return True
 

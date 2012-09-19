@@ -139,7 +139,7 @@ def test_executable(args, input="", timeout=50.0):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--startuptime"])
-        sage: out.find("sage.all: ") >= 0
+        sage: out.find("Slowest module import") >= 0
         True
         sage: err
         ''

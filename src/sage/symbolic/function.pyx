@@ -143,9 +143,6 @@ cdef class Function(SageObject):
         """
         cdef GFunctionOpt opt
         opt = g_function_options_args(self._name, self._nargs)
-        # This next call sets some magic in motion that allows
-        # (un)pickling to work.
-        opt.set_python_func()
 
         if hasattr(self, '_eval_'):
             opt.eval_func(self)

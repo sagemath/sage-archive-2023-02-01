@@ -1335,8 +1335,8 @@ class Tableau(CombinatorialObject, Element):
 
     def promotion_inverse(self, n):
         """
-        Inverse promotion operator defined on rectangular tableaux using
-        jeu de taquin
+        Inverse promotion operator defined on rectangular tableaux
+        using jeu de taquin
 
         EXAMPLES::
 
@@ -1346,9 +1346,18 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([[1,2],[2,3]])
             sage: t.promotion_inverse(2)
             [[1, 1], [2, 3]]
+
+        TESTS:
+
+        A test for :trac:`13203`::
+
+            sage: T = Tableau([[1]])
+            sage: type(T.promotion_inverse(2)[0][0])
+            <type 'sage.rings.integer.Integer'>
         """
         if not self.is_rectangular():
             raise ValueError, "Tableau is not rectangular"
+        n = Integer(n)
         s = self.shape()[0]
         l = self.weight()[0]
         word = [i for i in self.to_word() if i>1]

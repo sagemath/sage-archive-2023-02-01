@@ -209,6 +209,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             True
             sage: E.simon_two_descent()
             (2, 2, [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)])
+            sage: E.simon_two_descent(lim1=3, lim3=20, limtriv=5, maxprob=7, limbigprime=10)
+            (2, 2, [(-1 : 0 : 1), (-1/8*a + 5/8 : -3/16*a - 9/16 : 1)])
 
         ::
 
@@ -267,6 +269,26 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(K, '15a')
             sage: v = E.simon_two_descent(); v  # long time (about 10 seconds), points can vary
             (1, 3, [...])
+
+        A failure in the PARI/GP script ell.gp (VERSION 25/03/2009) is reported::
+
+            sage: K = CyclotomicField(43).subfields(3)[0][0]
+            sage: E = EllipticCurve(K, '37')
+            sage: E.simon_two_descent()
+            Traceback (most recent call last):
+            ...
+            RuntimeError:
+              ***   at top-level: ans=bnfellrank(K,[0,0,1,
+              ***                     ^--------------------
+              ***   in function bnfellrank: ...eqtheta,rnfeq,bbnf];rang=
+              ***   bnfell2descent_gen(b
+              ***   ^--------------------
+              ***   in function bnfell2descent_gen: ...riv,r=nfsqrt(nf,norm(zc))
+              ***   [1];if(DEBUGLEVEL_el
+              ***   ^--------------------
+              ***   array index (1) out of allowed range [none].
+            An error occurred while running Simon's 2-descent program
+
         """
 
         try:
@@ -275,8 +297,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 return result
         except AttributeError:
             self._simon_two_descent_data = {}
+        except KeyError:
+            pass
 
-        x = PolynomialRing(self.base_ring(), 'x').gen(0)
         t = simon_two_descent(self,
                               verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)

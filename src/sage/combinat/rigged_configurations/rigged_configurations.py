@@ -778,7 +778,7 @@ class RiggedConfigurations(AbstractRiggedConfigurations):
             0[ ][ ]0
             sage: RC
             Rigged configurations of type ['A', 3, 1] and factors ((3, 2), (1, 2), (1, 1))
-            sage: TestSuite(RC).run()
+            sage: TestSuite(RC).run()  # long time (4s on sage.math, 2012)
         """
         from tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux # For circular imports
         AbstractRiggedConfigurations.__init__(self, cartan_type, B, TensorProductOfKirillovReshetikhinTableaux)

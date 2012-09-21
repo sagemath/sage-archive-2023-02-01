@@ -100,7 +100,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
             sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 3); KRT
             Kirillov-Reshetikhin tableaux of type ['A', 4, 1] and shape (2, 3)
-            sage: TestSuite(KRT).run()
+            sage: TestSuite(KRT).run()  # long time (4s on sage.math, 2012)
         """
         assert cartan_type.is_affine()
 

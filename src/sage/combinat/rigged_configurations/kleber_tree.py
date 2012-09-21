@@ -269,11 +269,11 @@ class KleberTree(Parent, UniqueRepresentation):
 
     EXAMPLES::
 
-        sage: KT = KleberTree(['E', 6], [[4, 2]])
-        sage: KT.cardinality()
+        sage: KT = KleberTree(['E', 6], [[4, 2]])  # long time (9s on sage.math, 2012)
+        sage: KT.cardinality()  # long time
         12
-        sage: KT = KleberTree(['A', 3], [[3,2], [1,1]])
-        sage: KT.list()
+        sage: KT = KleberTree(['A', 3], [[3,2], [1,1]])  # long time
+        sage: KT.list()  # long time
         [Kleber tree node with weight [1, 0, 2] and upwards edge root [0, 0, 0],
         Kleber tree node with weight [0, 0, 1] and upwards edge root [1, 1, 1]]
     """

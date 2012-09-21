@@ -1625,8 +1625,23 @@ class PartitionTuples_level_size(PartitionTuples):
             sage: PartitionTuples(2,8).cardinality()
             185
 
+        TESTS:
+
+        The following calls used to fail (:trac:`11476`)::
+
+            sage: PartitionTuples(17,2).cardinality()
+            170
+            sage: PartitionTuples(2,17).cardinality()
+            8470
+            sage: PartitionTuples(100,13).cardinality()
+            110320020147886800
+            sage: PartitionTuples(13,90).cardinality()
+            91506473741200186152352843611
+
+        These answers were checked against Gap4 (the last of which takes an
+        awful long time for gap to compute).
         """
-        return ZZ(gp.eval('polcoeff((1/eta(x))^%s, %s, x)'%(self.level(), self.size())))
+        return ZZ(gp.eval('polcoeff((1/eta(x+O(x^%s)))^%s, %s, x)'%(self.size()+1,self.level(), self.size())))
 
     def __setstate__(self, state):
         """

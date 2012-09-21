@@ -259,6 +259,14 @@ export LIBRARY_PATH="${LIBRARY_PATH}$SAGE_LOCAL/lib"
 [ -z "$CPATH" ] || CPATH="${CPATH}:"
 export CPATH="${CPATH}$SAGE_LOCAL/include"
 
+# Add Debian multi-arch directories if applicable.
+# See http://wiki.debian.org/Multiarch
+MULTI_ARCH=`dpkg-architecture -qDEB_BUILD_MULTIARCH 2>/dev/null`
+if [ -n "$MULTI_ARCH" ]; then
+    LIBRARY_PATH="${LIBRARY_PATH}:/usr/lib/$MULTI_ARCH"
+    CPATH="${CPATH}:/usr/include/$MULTI_ARCH"
+fi
+
 # For PARI/GP
 GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
 GPHELP="$SAGE_LOCAL/bin/gphelp" && export GPHELP

@@ -195,19 +195,9 @@ else
                 # known to give trouble within Sage:
                 # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48702
                 # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48774
-                #
-                # Detect a Debian multi-arch install.  In this case, some
-                # include files will be in /usr/include/x86_64-linux-gnu for
-                # example.  We detect whether GCC searches for include files
-                # in /usr/include/*.  If so, we don't install GCC.
-                if $CC -x c /dev/null -E -v -o /dev/null 2>&1 |grep '^ */usr/include/.' >/dev/null; then
-                    echo >&2 "Not installing GCC as your system $CC is looking for include files"
-                    echo >&2 "in unusual directories."
-                else
-                    echo >&2 "Installing GCC because you have $CC version $GCCVERSION."
-                    echo >&2 "gcc-4.6.0 and gcc-4.6.1 have known bugs affecting Sage."
-                    need_to_install_gcc=yes
-                fi;;
+                echo >&2 "Installing GCC because you have $CC version $GCCVERSION."
+                echo >&2 "gcc-4.6.0 and gcc-4.6.1 have known bugs affecting Sage."
+                need_to_install_gcc=yes;;
             4.7.0)
                 # GCC 4.7.0 is very broken on ia64, see
                 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496

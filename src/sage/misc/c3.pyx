@@ -111,10 +111,66 @@ cpdef list C3_algorithm(object start, str bases, str attribute, bint proper):
         sage: C.element_class.mro() == [x.element_class for x in C.all_super_categories()]+[object]
         True
 
+    TESTS:
+
+    Regression test for bug #1 of :trac:`13501`::
+
+        sage: class C(object): pass
+        sage: class F(object): pass
+        sage: class G(object): pass
+        sage: class B(C,F):    pass
+        sage: class D(F,G):    pass
+        sage: class E(F):      pass
+        sage: class A(B,D,E):  pass
+        sage: [cls.__name__ for cls in A.mro()]
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'object']
+
+        sage: class Cs(Category):
+        ...     def super_categories(self): return []
+        sage: class Fs(Category):
+        ...       def super_categories(self): return []
+        sage: class Gs(Category):
+        ...       def super_categories(self): return []
+        sage: class Bs(Category):
+        ...       def super_categories(self): return [Cs(), Fs()]
+        sage: class Ds(Category):
+        ...       def super_categories(self): return [Fs(), Gs()]
+        sage: class Es(Category):
+        ...       def super_categories(self): return [Fs()]
+        sage: class As(Category):
+        ...       def super_categories(self): return [Bs(), Ds(), Es()]
+        sage: As().all_super_categories()
+        [Category of as, Category of bs, Category of cs, Category of ds, Category of es, Category of fs, Category of gs]
+        sage: TestSuite(As()).run(skip=["_test_pickling"])
+
+    Regression test for bug #2 of :trac:`13501`. The following should
+    fail since ``A`` asks for ``B`` to come before ``C``, where as
+    ``B`` is a super class of ``C``::
+
+        sage: class B(object): pass
+        sage: class C(B): pass
+        sage: class A(B, C): pass
+        Traceback (most recent call last):
+        ...
+        TypeError: Error when calling the metaclass bases
+            Cannot create a consistent method resolution
+        order (MRO) for bases ...
+
+        sage: class Bs(Category):
+        ...       def super_categories(self): return []
+        sage: class Cs(Category):
+        ...       def super_categories(self): return [Bs()]
+        sage: class As(Category):
+        ...       def super_categories(self): return [Bs(), Cs()]
+        ...       class subcategory_class(object): # Quick hack to skip the failure when computing the mro for subcategory_class
+        ...            pass
+        sage: As()
+        Category of as
+        sage: As().all_super_categories()
+        Traceback (most recent call last):
+        ...
+        ValueError: Can not merge the items Category of bs, Category of cs, Category of bs.
     """
-    # The lists in the arguments are reverted,
-    # so that we can do pop() in lieue of pop(0).
-    # In addition, containedness in the tail is tested using lists.
     cdef list out
     if proper:
         out = []
@@ -123,73 +179,57 @@ cpdef list C3_algorithm(object start, str bases, str attribute, bint proper):
     cdef list args = getattr(start,bases)
     if not args:
         return out
-    cdef list curr_tail, tmp_tail
-    cdef set curr_set, tmp_set
-    cdef object curr_obj
-    cdef bint next_item_found
-    cdef list heads = []
-    cdef list tails = []
-    cdef list tailsets = []
-    for curr_obj in args:
-        curr_tail = getattr(curr_obj, attribute)
-        heads.append(curr_tail[0])
-        tmp_tail = PyList_GetSlice(curr_tail,1,PyList_GET_SIZE(curr_tail))
-        PyList_Reverse(tmp_tail)
-        tails.append(tmp_tail)
-        tailsets.append(set(tmp_tail))
-    cdef int i,j, lenargs
-    lenargs = len(heads)
-    for i from 0<=i<lenargs:
-        curr_tail = <list>PyList_GET_ITEM(tails,i)
-        if curr_tail is None:
-            continue
-        curr_set = <set>PyList_GET_ITEM(tailsets,i)
-        O = <object>PyList_GET_ITEM(heads,i)
-        next_item_found=True
-        for j from 0<=j<i:
-            tmp_tail = <list>PyList_GET_ITEM(tails,j)
-            if tmp_tail is None:
-                continue
-            tmp_set = <set>PyList_GET_ITEM(tailsets,j)
-            X = <object>PyList_GET_ITEM(heads,j)
-            if X is O:
-                try:
-                    X = tmp_tail.pop()
-                    heads[j] = X
-                    tmp_set.remove(X)
-                except IndexError:
-                    tails[j] = None
-            elif O in tmp_set:
-                next_item_found=False
-                break
-        if next_item_found:
-            for j from i<j<lenargs:
-                tmp_tail = <list>PyList_GET_ITEM(tails,j)
-                if tmp_tail is None:
-                    continue
-                tmp_set = <set>PyList_GET_ITEM(tailsets,j)
-                X = <object>PyList_GET_ITEM(heads,j)
-                if X is O:
-                    try:
-                        X = tmp_tail.pop()
-                        heads[j] = X
-                        tmp_set.remove(X)
-                    except IndexError:
-                        tails[j] = None
-                elif O in tmp_set:
-                    next_item_found=False
-                    break
-        if next_item_found:
-            out.append(O)
-            try:
-                O = curr_tail.pop()
-                heads[i] = O
-                curr_set.remove(O)
-            except IndexError:
-                tails[i] = None
+    # Data structure / invariants:
+    # We will be working with the MRO's of the super objects
+    # together with the list of bases of ``self``.
+    # Each list is split between its head (in ``heads``) and tail (in
+    # ``tails'') . Each tail is stored reversed, so that we can use a
+    # cheap pop() in lieue of pop(0). A duplicate of the tail is
+    # stored as a set in ``tailsets`` for cheap membership testing.
+    # Since we actually want comparison by identity, not equality,
+    # what we store is the set of memory locations of objects
+    cdef object O, X
+    cdef list tails = [getattr(obj, attribute) for obj in args]
+    tails.append(args)
+    tails              = [list(reversed(tail))                   for tail in tails]
+    cdef list heads    = [tail.pop()                             for tail in tails]
+    cdef list tailsets = [set([<size_t><void *>O for O in tail]) for tail in tails]
 
-            i = -1
-    # Either we need to raise an error, or the list is done.
-    if tails.count(None)<lenargs:
-        raise ValueError, "Can not merge the items %s."%', '.join([repr(heads[i]) for i,t in enumerate(tails) if t is not None])
+    cdef int i, j, nbheads
+    nbheads = len(heads)
+    cdef bint next_item_found
+    cdef list tail_list
+
+    while nbheads:
+        for i from 0 <= i < nbheads:
+            O = heads[i]
+            # Does O appear in none of the tails?  ``all(O not in tail for tail in tailsets)``
+            next_item_found = True
+            for j from 0 <= j < nbheads:
+                if j == i:
+                    continue
+                if <size_t><void *>O in <set>tailsets[j]:
+                    next_item_found = False
+                    break
+            if next_item_found:
+                out.append(O)
+                # Clear O from other heads, removing the line altogether
+                # if the tail is already empty.
+                # j goes down so that ``del heads[j]`` does not screw up the numbering
+                for j from nbheads > j >= 0:
+                    if heads[j] is O:
+                        tail_list = tails[j]
+                        if tail_list:
+                            X = tail_list.pop()
+                            heads[j] = X
+                            <set>tailsets[j].remove(<size_t><void *>X)
+                        else:
+                            del heads[j]
+                            del tails[j]
+                            del tailsets[j]
+                            nbheads -= 1
+                break
+        if not next_item_found:
+            # No head is available
+            raise ValueError, "Can not merge the items %s."%', '.join([repr(head) for head in heads])
     return out

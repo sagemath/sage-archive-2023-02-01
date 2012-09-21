@@ -51,19 +51,12 @@ not interfere with your surrounding system. It ships together with
 everything necessary to develop Sage, the source code, all its
 dependencies and the complete changelog. On Linux systems like
 Debian/Ubuntu, you may have to install the ``build essential``
-package, the ``m4`` macro processor, and ``gfortran``. Your system
-needs to have a working
-`GCC <http://gcc.gnu.org>`_
-installation (gcc, g++, and gfortran) if you want to compile Sage
-from source. So far, Sage has not been successfully built with a
-compiler suite other than GCC. You might also consider installing the
-``readline`` package and its corresponding development headers. These
-packages make it easier to work with the Sage command line interface
-by providing text editing features at the command line level. On
+package and the ``m4`` macro processor. Your system
+needs to have a working C compiler if you want to compile Sage
+from source. On
 Debian/Ubuntu, you can install these prerequisites as follows::
 
-    sudo apt-get install build-essential m4 gfortran
-    sudo apt-get install readline-common libreadline-dev
+    sudo apt-get install build-essential m4
 
 If you have a multi-core system, you can opt for a parallel build of
 Sage. The command ::

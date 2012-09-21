@@ -49,8 +49,7 @@ command-line development tools must be installed on your computer.
 - **perl**: version 5.8.0 or later
 - **tar**: GNU tar version 1.17 or later, or BSD tar
 - **ranlib**
-- On recent Debian or Ubuntu systems:
-  **g++**, **gfortran** and the **dpkg-dev** package for
+- On recent Debian or Ubuntu systems: the **dpkg-dev** package for
   `multiarch <http://wiki.debian.org/Multiarch>`_ support
 
 Recommended but not strictly required:
@@ -144,7 +143,7 @@ but on a `Debian <http://www.debian.org/>`_ based system (e.g. `Ubuntu <http://w
 
 ::
 
-     sudo apt-get install build-essential gfortran
+     sudo apt-get install build-essential
 
 (this was tested on Ubuntu 9.04).
 

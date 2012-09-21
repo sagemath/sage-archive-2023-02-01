@@ -36,19 +36,17 @@ Here is a list of some of the software included with Sage:
 
 * flint: fast library for number theory
 
-* fortran: the Fortran programming language
-
 * GAP: A System for Computational Discrete Algebra
+
+* GCC: GNU compiler collection containing C, C++ and Fortran compilers
 
 * genus2reduction: Reduction information about genus 2 curves
 
 * gfan: Computation of Groebner fans and toric varieties
 
-* ghmm: the hidden Markov model library
-
 * givaro: a C++ library for arithmetic and algebraic computations
 
-* gmp-mpir: MPIR is an open source multiprecision integer library derived from
+* mpir: MPIR is an open source multiprecision integer library derived from
   GMP (the GNU multiprecision library)
 
 * gsl: GNU Scientific Library is a numerical library for C and C++
@@ -61,8 +59,6 @@ Here is a list of some of the software included with Sage:
 
 * jmol: a Java molecular viewer for three-dimensional chemical
   structures
-
-* jsmath: include mathematics in HTML
 
 * lapack: a library of Fortran 77 subroutines for solving the most
   commonly occurring problems in numerical linear algebra.
@@ -77,6 +73,8 @@ Here is a list of some of the software included with Sage:
 
 * linbox: C++ template library for exact, high-performance linear
   algebra computation
+
+* mathjax: Javascript display engine for mathematics
 
 * matplotlib: a Python 2-D plotting library
 
@@ -109,6 +107,8 @@ Here is a list of some of the software included with Sage:
   monomials, exponent vectors, as well as for the underlying
   polynomial rings and subsets of the power set of the Boolean
   variables
+
+* PPL: The Parma Polyhedra Library
 
 * pynac: a modified version of GiNaC (a C++ library for symbolic
   mathematical calculations) that replaces the dependency on CLN by

@@ -24,7 +24,10 @@ http://www.gap-system.org/Packages/packages.html
 
 == Changelog ==
 
-=== gap-4.5.5 (Volker Braun, 26 August 2012) ===
+=== gap_packages-4.5.6 (Volker Braun, 22 September 2012) ===
+ * Update to latest upstream version
+
+=== gap_packages-4.5.5 (Volker Braun, 26 August 2012) ===
  * Update to latest upstream version
  * Forked braid-1.2 to fix a function name clash
 

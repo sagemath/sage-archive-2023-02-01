@@ -41,12 +41,12 @@ done
 # Build GRAPE package
 cd "$PKG_DIR/grape"
 rm -rf bin   # added since rebuilding breaks otherwise
-./configure ../..
+./configure "$GAP_DIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring GRAPE package."
     exit 1
 fi
-$MAKE
+$MAKE -j1
 if [ $? -ne 0 ]; then
     echo >&2 "Error building GRAPE package."
     exit 1
@@ -54,13 +54,13 @@ fi
 
 
 # Build GUAVA package
-cd "$PKG_DIR/guava"
-./configure ../../ --enable-libsuffix=64
+cd "$PKG_DIR/guava-3.12"
+./configure "$GAP_DIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring GUAVA packagae."
     exit 1
 fi
-$MAKE
+$MAKE -j1
 if [ $? -ne 0 ]; then
     echo >&2 "Error building GUAVA package."
     exit 1

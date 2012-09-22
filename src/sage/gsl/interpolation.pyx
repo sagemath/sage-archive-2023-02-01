@@ -8,15 +8,48 @@ cdef class Spline:
     """
     Create a spline interpolation object.
 
-    Given a list v of pairs, s = spline(v) is an object s such that
-    s(x) is the value of the spline interpolation through the points
-    in v at the point x.
+    Given a list `v` of pairs, ``s = spline(v)`` is an object ``s`` such that
+    `s(x)` is the value of the spline interpolation through the points
+    in `v` at the point `x`.
 
-    The values in v do not have to be sorted.  Moreover, one can append
-    values to v, delete values from v, or change values in v, and the
+    The values in `v` do not have to be sorted.  Moreover, one can append
+    values to `v`, delete values from `v`, or change values in `v`, and the
     spline is recomputed.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: S = spline([(0, 1), (1, 2), (4, 5), (5, 3)]); S
+        [(0, 1), (1, 2), (4, 5), (5, 3)]
+        sage: S(1.5)
+        2.76136363636...
+
+    Changing the points of the spline causes the spline to be recomputed::
+
+        sage: S[0] = (0, 2); S
+        [(0, 2), (1, 2), (4, 5), (5, 3)]
+        sage: S(1.5)
+        2.507575757575...
+
+    We may delete interpolation points of the spline::
+
+        sage: del S[2]; S
+        [(0, 2), (1, 2), (5, 3)]
+        sage: S(1.5)
+        2.04296875
+
+    We may append to the list of interpolation points::
+
+        sage: S.append((4, 5)); S
+        [(0, 2), (1, 2), (5, 3), (4, 5)]
+        sage: S(1.5)
+        2.507575757575...
+
+    If we set the `n`-th interpolation point, where `n` is larger than
+    ``len(S)``, then points `(0, 0)` will be inserted between the
+    interpolation points and the point to be added::
+
+        sage: S[6] = (6, 3); S
+        [(0, 2), (1, 2), (5, 3), (4, 5), (0, 0), (0, 0), (6, 3)]
 
     This example is in the GSL documentation::
 
@@ -48,16 +81,16 @@ cdef class Spline:
             sage: S(1.5)
             2.0625
 
-        Replace 0th point, which changes the spline::
+        Replace `0`-th point, which changes the spline::
 
             sage: S[0]=(0,1); S
             [(0, 1), (2, 3), (4, 5)]
             sage: S(1.5)
             2.5
 
-        If you set the n-th point and n > len(S), then (0,0) points
-        are inserted and the n-th entry is set (which may be a weird
-        thing to do, but that is what happens)::
+        If you set the `n`-th point and `n` is larger than ``len(S)``,
+        then `(0,0)` points are inserted and the `n`-th entry is set
+        (which may be a weird thing to do, but that is what happens)::
 
             sage: S[4] = (6,10)
             sage: S
@@ -94,8 +127,21 @@ cdef class Spline:
             sage: del S[1]
             sage: S
             [(1, 1), (4, 5)]
+
+        The spline is recomputed when points are deleted (:trac:`13519`)::
+
+            sage: S = spline([(1,1), (2,3), (4,5), (5, 5)]); S
+            [(1, 1), (2, 3), (4, 5), (5, 5)]
+            sage: S(3)
+            4.375
+            sage: del S[0]; S
+            [(2, 3), (4, 5), (5, 5)]
+            sage: S(3)
+            4.25
+
         """
         del self.v[i]
+        self.stop_interp()
 
     def append(self, xy):
         """
@@ -103,8 +149,21 @@ cdef class Spline:
 
             sage: S = spline([(1,1), (2,3), (4,5)]); S.append((5,7)); S
             [(1, 1), (2, 3), (4, 5), (5, 7)]
+
+        The spline is recomputed when points are appended (:trac:`13519`)::
+
+            sage: S = spline([(1,1), (2,3), (4,5)]); S
+            [(1, 1), (2, 3), (4, 5)]
+            sage: S(3)
+            4.25
+            sage: S.append((5, 5)); S
+            [(1, 1), (2, 3), (4, 5), (5, 5)]
+            sage: S(3)
+            4.375
+
         """
         self.v.append(xy)
+        self.stop_interp()
 
     def list(self):
         """
@@ -177,7 +236,7 @@ cdef class Spline:
 
     def __call__(self, double x):
         """
-        Value of the spline function at x.
+        Value of the spline function at `x`.
 
         EXAMPLES::
 

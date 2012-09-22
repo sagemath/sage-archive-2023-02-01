@@ -56,6 +56,40 @@ cdef class Spline:
         sage: v = [(i + sin(i)/2, i+cos(i^2)) for i in range(10)]
         sage: s = spline(v)
         sage: show(point(v) + plot(s,0,9, hue=.8))
+
+    We compute the area underneath the spline::
+
+        sage: s.definite_integral(0, 9)
+        41.196516041067...
+
+    The definite integral is additive::
+
+        sage: s.definite_integral(0, 4) + s.definite_integral(4, 9)
+        41.196516041067...
+
+    Switching the order of the bounds changes the sign of the integral::
+
+        sage: s.definite_integral(9, 0)
+        -41.196516041067...
+
+    We compute the first and second-order derivatives at a few points::
+
+        sage: s.derivative(5)
+        -0.16230085261803...
+        sage: s.derivative(6)
+        0.20997986285714...
+        sage: s.derivative(5, order=2)
+        -3.08747074561380...
+        sage: s.derivative(6, order=2)
+        2.61876848274853...
+
+    Only the first two derivatives are supported::
+
+        sage: s.derivative(4, order=3)
+        Traceback (most recent call last):
+        ...
+        ValueError: Order of derivative must be 1 or 2.
+
     """
     def __init__(self, v=[]):
         """
@@ -256,5 +290,89 @@ cdef class Spline:
         y = gsl_spline_eval(self.spline, x, self.acc)
         sig_off()
         return y
+
+    def derivative(self, double x, int order=1):
+        """
+        Value of the first or second derivative of the spline at `x`.
+
+        INPUT:
+
+        - ``x`` -- value at which to evaluate the derivative.
+
+        - ``order`` (default: 1) -- order of the derivative. Must be 1 or 2.
+
+        EXAMPLES:
+
+        We draw a cubic spline through three points and compute the
+        derivatives::
+
+            sage: s = spline([(0, 0), (2, 3), (4, 0)])
+            sage: s.derivative(0)
+            2.25
+            sage: s.derivative(2)
+            0.0
+            sage: s.derivative(4)
+            -2.25
+            sage: s.derivative(1, order=2)
+            -1.125
+            sage: s.derivative(3, order=2)
+            -1.125
+
+        """
+        if (order!=1) and (order!=2):
+            raise ValueError("Order of derivative must be 1 or 2.")
+
+        if not self.started:
+            self.start_interp()
+        sig_on()
+
+        if order == 1:
+            d = gsl_spline_eval_deriv(self.spline, x, self.acc)
+        else:
+            d = gsl_spline_eval_deriv2(self.spline, x, self.acc)
+
+        sig_off()
+        return d
+
+    def definite_integral(self, double a, double b):
+        """
+        Value of the definite integral between `a` and `b`.
+
+        INPUT:
+
+        - ``a`` -- Lower bound for the integral.
+
+        - ``b`` -- Upper bound for the integral.
+
+        EXAMPLES:
+
+        We draw a cubic spline through three points and compute the
+        area underneath the curve::
+
+            sage: s = spline([(0, 0), (1, 3), (2, 0)])
+            sage: s.definite_integral(0, 2)
+            3.75
+            sage: s.definite_integral(0, 1)
+            1.875
+            sage: s.definite_integral(0, 1) + s.definite_integral(1, 2)
+            3.75
+            sage: s.definite_integral(2, 0)
+            -3.75
+
+        """
+        # GSL chokes when the upper bound is smaller than the lower bound
+        bounds_swapped = False
+        if b < a:
+            a, b = b, a
+            bounds_swapped = True
+
+        if not self.started:
+            self.start_interp()
+        sig_on()
+        I = gsl_spline_eval_integ(self.spline, a, b, self.acc)
+        sig_off()
+
+        if bounds_swapped: I = -I
+        return I
 
 spline = Spline

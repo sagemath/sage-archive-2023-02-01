@@ -30,17 +30,12 @@ Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
 == Special Update/Build Instructions ==
 
  * TODO:
-   - Use `patch` instead of copying patched files.
-     (Then also add `patch` to the dependencies above.)
-   - "Flatten" (i.e. remove) the `build()` function.
    - Perhaps check whether we can fix GAP's configure / build scripts
      w.r.t. brokenness of multiple words in `CC` (and `CXX`?) and its
      ignorance concerning `CFLAGS`, `CPPFLAGS` and `LDFLAGS`.
-     (Then also support `SAGE_DEBUG` in `spkg-install`, and probably
-     set up reasonable default `CFLAGS`.)
 
  * Do we really want to copy everything from the build directory???
-   (Cf. comment in `spkg-install`.)
+   You need the full GAP tree to compile/install many GAP packages.
 
  * There's apparently a command missing (in `spkg-install`) building the
    (HTML?) documentation.  Earlier changelog entries as well as the description
@@ -76,6 +71,9 @@ Stuff that isn't GAP sources:
 
 
 == Changelog ==
+
+=== gap-4.5.6 (Volker Braun, 22 September 2012) ===
+ * Update to latest upstream version
 
 === gap-4.5.5 (Volker Braun, 26 August 2012) ===
  * Update to latest upstream version

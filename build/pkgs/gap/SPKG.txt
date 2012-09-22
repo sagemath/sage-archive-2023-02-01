@@ -66,8 +66,9 @@ DATABASES (separated out to database_gap.spkg) except GAPDoc which is required:
   rm -rf !(GAPDoc*)
 
 Stuff that isn't GAP sources:
-  rm -rf extern bin/*
-
+  rm -rf bin/*
+  cd extern
+  rm -rf !Makefile.in
 
 
 == Changelog ==

@@ -390,6 +390,7 @@ JMOL=`newest_version jmol`
 LAPACK=`newest_version lapack`
 LCALC=`newest_version lcalc`
 LRCALC=`newest_version lrcalc`
+LIBGAP=`newest_version libgap`
 LIBPNG=`newest_version libpng`
 LINBOX=`newest_version linbox`
 M4RI=`newest_version libm4ri`

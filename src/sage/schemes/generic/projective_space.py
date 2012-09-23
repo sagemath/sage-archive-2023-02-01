@@ -356,8 +356,8 @@ class ProjectiveSpace_ring(AmbientSpace):
     def _linear_system_as_kernel(self, d, pt, m):
         """
         Return a matrix whose kernel consists of the coefficient vectors
-        of the degree d hypersurfaces (wrt degree reverse lexicographic
-        ordering of its monomials) with multiplicity at least m at pt.
+        of the degree d hypersurfaces (wrt lexicographic ordering of its
+        monomials) with multiplicity at least m at pt.
 
         INPUT:
 
@@ -448,20 +448,20 @@ class ProjectiveSpace_ring(AmbientSpace):
             raise ValueError('The integer d=%s must be nonnegative'%d)
         if not isinstance(pt, (list, tuple, \
                                morphism.SchemeMorphism_point_projective_ring)):
-            raise TypeError('The argument pt=%s must be a list, tuple, or \
-                              point on a projective space'%pt)
+            raise TypeError('The argument pt=%s must be a list, tuple, or '
+                            'point on a projective space'%pt)
         pt, R = prepare(pt, None)
         n = self.dimension_relative()
         if not len(pt) == n+1:
-            raise TypeError('The sequence pt=%s must have %s \
-                              components'%(pt, n))
+            raise TypeError('The sequence pt=%s must have %s '
+                            'components'%(pt, n + 1))
         if not R.has_coerce_map_from(self.base_ring()):
             raise TypeError('Unable to find a common ring for all elements')
         try:
             i = pt.index(1)
         except:
-            raise TypeError('At least one component of pt=%s must be equal \
-                              to 1'%pt)
+            raise TypeError('At least one component of pt=%s must be equal '
+                            'to 1'%pt)
         pt = pt[:i] + pt[i+1:]
         if not isinstance(m, (int, Integer)):
             raise TypeError('The argument m=%s must be an integer'%m)
@@ -470,8 +470,8 @@ class ProjectiveSpace_ring(AmbientSpace):
         # the components of partials correspond to partial derivatives
         # of order at most m-1 with respect to n variables
         partials = IntegerVectors(m-1,n+1).list()
-        # the components of monoms correspond to homogeneous monomials of
-        # degree at most d in n variables
+        # the components of monoms correspond to monomials of degree
+        # at most d in n variables
         monoms = IntegerVectors(d,n+1).list()
         M = matrix(R,len(partials),len(monoms))
         for row in range(M.nrows()):

@@ -243,6 +243,9 @@ class SageInputSplitter(IPythonInputSplitter):
 
     # a direct copy of the IPython splitter, except that the
     # transforms are called with the line numbers, and the transforms come from the class attribute
+    # and except that we add a .startswith('@') in the test to see if we should transform a line
+    # (see http://mail.scipy.org/pipermail/ipython-dev/2012-September/010329.html; the current behavior
+    # doesn't run the preparser on a 'def' line following an decorator.
     def push(self, lines):
         """Push one or more lines of IPython input.
 
@@ -322,8 +325,8 @@ class SageInputSplitter(IPythonInputSplitter):
             buf = self._buffer
             for line in lines_list:
                 line_number = len(buf)
-                if self._is_complete or not buf or \
-                       (buf and buf[-1].rstrip().endswith((':', ','))):
+                if (self._is_complete or not buf or
+                    buf[-1].rstrip().endswith((':', ',')) or buf[-1].lstrip().startswith('@')):
                     for f in self.transforms:
                         line = f(line, line_number)
                 out = push(line)

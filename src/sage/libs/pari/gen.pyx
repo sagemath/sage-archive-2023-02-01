@@ -7424,6 +7424,75 @@ cdef class gen(sage.structure.element.RingElement):
         return r
 
 
+    def nfhnf(self,x):
+        """
+        nfhnf(nf,x) : given a pseudo-matrix (A, I) or an integral pseudo-matrix (A,I,J), finds a
+        pseudo-basis in Hermite normal form of the module it generates.
+
+        A pseudo-matrix is a 2-component row vector (A, I) where A is a relative m x n matrix and
+        I an ideal list of length n. An integral pseudo-matrix is a 3-component row vector (A, I, J).
+
+        .. NOTE::
+
+            The definition of a pseudo-basis ([Cohen]_):
+            Let M be a finitely generated, torsion-free R-module, and set V = KM.  If `\mathfrak{a}_i` are
+            fractional ideals of R and `w_i` are elements of V, we say that
+            `(w_i, \mathfrak{a}_k)_{1 \leq i \leq k}`
+            is a pseudo-basis of M if
+            `M = \mathfrak{a}_1 w_1 \oplus \cdots \oplus \mathfrak{a}_k w_k.`
+
+        REFERENCES:
+
+        .. [Cohen] Cohen, "Advanced Topics in Computational Number Theory"
+
+        EXAMPLES::
+
+            sage: F.<a> = NumberField(x^2-x-1)
+            sage: Fp = pari(F)
+            sage: A = matrix(F,[[1,2,a,3],[3,0,a+2,0],[0,0,a,2],[3+a,a,0,1]])
+            sage: I = [F.ideal(-2*a+1),F.ideal(7), F.ideal(3),F.ideal(1)]
+            sage: Fp.nfhnf([pari(A),[pari(P) for P in I]])
+            [[1, [-969/5, -1/15]~, [15, -2]~, [-1938, -3]~; 0, 1, 0, 0; 0, 0, 1, 0;
+            0, 0, 0, 1], [[3997, 1911; 0, 7], [15, 6; 0, 3], [1, 0; 0, 1], [1, 0; 0,
+            1]]]
+            sage: K.<b> = NumberField(x^3-2)
+            sage: Kp = pari(K)
+            sage: A = matrix(K,[[1,0,0,5*b],[1,2*b^2,b,57],[0,2,1,b^2-3],[2,0,0,b]])
+            sage: I = [K.ideal(2),K.ideal(3+b^2),K.ideal(1),K.ideal(1)]
+            sage: Kp.nfhnf([pari(A),[pari(P) for P in I]])
+            [[1, -225, 72, -31; 0, 1, [0, -1, 0]~, [0, 0, -1/2]~; 0, 0, 1, [0, 0,
+            -1/2]~; 0, 0, 0, 1], [[1116, 756, 612; 0, 18, 0; 0, 0, 18], [2, 0, 0; 0,
+            2, 0; 0, 0, 2], [1, 0, 0; 0, 1, 0; 0, 0, 1], [2, 0, 0; 0, 1, 0; 0, 0,
+            1]]]
+
+        An example where the ring of integers of the number field is not a PID::
+
+            sage: K.<b> = NumberField(x^2+5)
+            sage: Kp = pari(K)
+            sage: A = matrix(K,[[1,0,0,5*b],[1,2*b^2,b,57],[0,2,1,b^2-3],[2,0,0,b]])
+            sage: I = [K.ideal(2),K.ideal(3+b^2),K.ideal(1),K.ideal(1)]
+            sage: Kp.nfhnf([pari(A),[pari(P) for P in I]])
+            [[1, [15, 6]~, [0, -54]~, [113, 72]~; 0, 1, [-4, -1]~, [0, -1]~; 0, 0,
+            1, 0; 0, 0, 0, 1], [[360, 180; 0, 180], [6, 4; 0, 2], [1, 0; 0, 1], [1,
+            0; 0, 1]]]
+            sage: A = matrix(K,[[1,0,0,5*b],[1,2*b,b,57],[0,2,1,b-3],[2,0,b,b]])
+            sage: I = [K.ideal(2).factor()[0][0],K.ideal(3+b),K.ideal(1),K.ideal(1)]
+            sage: Kp.nfhnf([pari(A),[pari(P) for P in I]])
+            [[1, [7605, 4]~, [5610, 5]~, [7913, -6]~; 0, 1, 0, -1; 0, 0, 1, 0; 0, 0,
+            0, 1], [[19320, 13720; 0, 56], [2, 1; 0, 1], [1, 0; 0, 1], [1, 0; 0,
+            1]]]
+
+        AUTHORS:
+
+        - Aly Deines (2012-09-19)
+        """
+        t0GEN(x)
+        sig_on()
+        return self.new_gen(nfhnf(self.g,t0))
+
+
+
+
     def nfinit(self, long flag=0, long precision=0):
         """
         nfinit(pol, {flag=0}): ``pol`` being a nonconstant irreducible

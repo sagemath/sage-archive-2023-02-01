@@ -527,6 +527,7 @@ cdef extern from 'pari/pari.h':
     GEN     minideal(GEN nf,GEN ix,GEN vdir,long prec)
     GEN     mul_content(GEN cx, GEN cy)
     GEN     nfdetint(GEN nf,GEN pseudo)
+    GEN     nfhnf(GEN nf, GEN x)
     GEN     nfkermodpr(GEN nf, GEN x, GEN modpr)
     GEN     nfsnf(GEN nf, GEN x)
     GEN     nfsolvemodpr(GEN nf, GEN a, GEN b, GEN modpr)

@@ -1,5 +1,5 @@
-from sage.misc.sagex_ds import BinaryTree
-from sage.misc.sagex_ds cimport BinaryTree
+from sage.misc.binary_tree import BinaryTree
+from sage.misc.binary_tree cimport BinaryTree
 include "../../ext/interrupt.pxi"
 
 

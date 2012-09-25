@@ -1133,8 +1133,8 @@ ext_modules = [
     Extension('sage.misc.classcall_metaclass',
               sources = ['sage/misc/classcall_metaclass.pyx']),
 
-    Extension('sage.misc.sagex_ds',
-              sources = ['sage/misc/sagex_ds.pyx']),
+    Extension('sage.misc.binary_tree',
+              sources = ['sage/misc/binary_tree.pyx']),
 
     Extension('sage.misc.search',
               sources = ['sage/misc/search.pyx']),

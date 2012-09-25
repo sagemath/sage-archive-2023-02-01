@@ -14,7 +14,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-from sage.misc.sagex_ds cimport BinaryTree
+from sage.misc.binary_tree cimport BinaryTree
 from sage.misc.decorators import rename_keyword
 
 cdef class CompiledPolynomialFunction:

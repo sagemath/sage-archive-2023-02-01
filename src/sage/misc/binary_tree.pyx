@@ -1,8 +1,9 @@
 """
-Implements a few data structures in Cython (SageX).
+Implements a binary tree in Cython.
 
 AUTHORS:
-    -- Tom Boothby (2007-02-15).  Initial version free for any use (public domain).
+
+- Tom Boothby (2007-02-15).  Initial version free for any use (public domain).
 """
 
 include '../ext/stdsage.pxi'
@@ -193,7 +194,9 @@ cdef class BinaryTree:
         """
         Inserts a key-value pair into the BinaryTree.  Duplicate keys are ignored.
         The first parameter, key, should be an int, or coercible (one-to-one) into an int.
-        Example:
+
+        EXAMPLES::
+
             sage: t = BinaryTree()
             sage: t.insert(1)
             sage: t.insert(0)
@@ -214,7 +217,9 @@ cdef class BinaryTree:
         """
         Removes a the node corresponding to key, and returns the value
         associated with it.
-        Example:
+
+        EXAMPLES::
+
             sage: t = BinaryTree()
             sage: t.insert(3,3)
             sage: t.insert(1,1)
@@ -253,7 +258,9 @@ cdef class BinaryTree:
     def get(BinaryTree self, int key):
         """
         Returns the value associated with the key given.
-        Example:
+
+        EXAMPLES::
+
             sage: t = BinaryTree()
             sage: t.insert(0,Matrix([[0,0],[1,1]]))
             sage: t.insert(0,1)
@@ -269,7 +276,9 @@ cdef class BinaryTree:
         """
         Returns True if a node with the given key exists
         in the tree, and False otherwise.
-        Example:
+
+        EXAMPLES::
+
             sage: t = BinaryTree()
             sage: t.contains(1)
             False
@@ -311,7 +320,8 @@ cdef class BinaryTree:
         Returns the value of the node with the maximal key value,
         and removes that node from the tree.
 
-        Example:
+        EXAMPLES::
+
             sage: t = BinaryTree()
             sage: t.insert(4,'e')
             sage: t.insert(2,'c')
@@ -348,7 +358,9 @@ cdef class BinaryTree:
         """
         Returns the value of the node with the minimal key value,
         and removes that node from the tree.
-        Example:
+
+        EXAMPLES::
+
             sage: t = BinaryTree()
             sage: t.insert(4,'e')
             sage: t.insert(2,'c')
@@ -384,7 +396,9 @@ cdef class BinaryTree:
     def is_empty(BinaryTree self):
         """
         Returns True if the tree has no nodes.
-        Example:
+
+        EXAMPLES::
+
             sage: t = BinaryTree()
             sage: t.is_empty()
             True
@@ -449,9 +463,15 @@ class Test:
         at least 100 times as large as values, or the delete, contains,
         and get methods won't hit very often.
 
-        Input:
-            values: number of possible values to use
-            cycles: number of operations to perform
+        INPUT:
+
+        - ``values`` -- number of possible values to use
+
+        - ``cycles`` -- number of operations to perform
+
+        TESTS::
+
+            sage: sage.misc.binary_tree.Test().random()
         """
         from sage.misc.prandom import randint
         t = BinaryTree()
@@ -476,7 +496,3 @@ class Test:
                 t.pop_max()
             else:
                 t.delete(s)
-
-
-
-

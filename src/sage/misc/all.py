@@ -158,7 +158,7 @@ from lazy_import import lazy_import
 
 from abstract_method import abstract_method
 
-from sagex_ds import BinaryTree
+from binary_tree import BinaryTree
 
 from randstate import seed, set_random_seed, initial_seed, current_randstate
 

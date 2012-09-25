@@ -11894,6 +11894,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.trees(9).next().girth()
             +Infinity
 
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.graph.Graph.odd_girth` -- computes
+              the odd girth of a graph.
+
         TESTS:
 
         Prior to Trac #12243, the girth computation assumed

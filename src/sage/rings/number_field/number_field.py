@@ -1919,12 +1919,12 @@ class NumberField_generic(number_field_base.NumberField):
                 a = self.gen()
                 r = a.trace()
                 iy = a - r / 2
-                self.__complex_conjugation = self.hom([a - 2 * iy])
+                self.__complex_conjugation = self.hom([a - 2 * iy], check=False)
             return self.__complex_conjugation
         if isinstance(
            self, sage.rings.number_field.number_field.NumberField_cyclotomic):
             zeta = self.gen()
-            self.__complex_conjugation = self.hom([zeta ** (-1)])
+            self.__complex_conjugation = self.hom([zeta ** (-1)], check=False)
             return self.__complex_conjugation
         if self.is_totally_real():
             self.__complex_conjugation = self.coerce_map_from(self)
@@ -1943,7 +1943,7 @@ class NumberField_generic(number_field_base.NumberField):
             to_abs, from_abs = K_rel.structure()
             self.__complex_conjugation = K_rel.automorphisms()[1].pre_compose( \
                from_abs).post_compose(to_abs)
-            self.__complex_conjugation = self.hom([self.__complex_conjugation(self.gen())])
+            self.__complex_conjugation = self.hom([self.__complex_conjugation(self.gen())], check=False)
             return self.__complex_conjugation
         else:
             if self.is_CM_extension():
@@ -1953,7 +1953,7 @@ class NumberField_generic(number_field_base.NumberField):
             K_rel = K_abs.relativize(phi.post_compose(from_self), self.variable_name() * 3)
             to_abs, from_abs = K_rel.structure()
             self.__complex_conjugation = K_rel.automorphisms()[1].pre_compose(from_abs).post_compose(to_abs)
-            self.__complex_conjugation = K_abs.hom([self.__complex_conjugation(K_abs.gen())])
+            self.__complex_conjugation = K_abs.hom([self.__complex_conjugation(K_abs.gen())], check=False)
             self.__complex_conjugation = self.__complex_conjugation.pre_compose(from_self).post_compose(to_self)
             return self.__complex_conjugation
 

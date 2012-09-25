@@ -22,7 +22,7 @@ if fn.endswith('.sage'):
     if call(['sage', '-preparse', fn]) != 0:
         sys.exit(1)
     os.execv(os.path.join(binpath, 'sage-python'), ['sage-python', fn[:-5] + '.py'] + opts)
-elif fn.endswith('.spyx'):
-    os.execv(os.path.join(binpath, 'sage-sagex'), ['sage-sagex', fn] + opts)
+elif fn.endswith('.pyx') or fn.endswith('.spyx'):
+    os.execv(os.path.join(binpath, 'sage-run-cython'), ['sage-run-cython', fn] + opts)
 else:
     os.execv(os.path.join(binpath, 'sage-python'), ['sage-python', fn] + opts)

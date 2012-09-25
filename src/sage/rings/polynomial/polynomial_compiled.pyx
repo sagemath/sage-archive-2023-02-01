@@ -31,7 +31,7 @@ cdef class CompiledPolynomialFunction:
         [ ] Recursive calling
         [ ] Faster casting of coefficients / argument
         [ ] Multivariate polynomials
-        [ ] SageX implementation of Pippenger's Algorithm that doesn't
+        [ ] Cython implementation of Pippenger's Algorithm that doesn't
             depend heavily upon dicts.
         [ ] Computation of parameter sequence suggested by Pippenger
         [ ] Univariate exponentiation can use Brauer's method to improve

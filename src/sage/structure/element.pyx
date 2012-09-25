@@ -923,7 +923,7 @@ cdef class Element(sage_object.SageObject):
         return left._rich_to_bool(op, left._cmp_c_impl(right))
 
     cdef int _cmp_c_impl(left, Element right) except -2:
-        ### For derived SageX code, you *MUST* ALSO COPY the __richcmp__ above
+        ### For derived Cython code, you *MUST* ALSO COPY the __richcmp__ above
         ### into your class!!!  For Python code just use __cmp__.
         raise NotImplementedError, "BUG: sort algorithm for elements of '%s' not implemented"%right.parent()
 

@@ -590,10 +590,6 @@ def cython_lambda(vars, expr,
     Create a compiled function which evaluates ``expr`` assuming machine values
     for ``vars``.
 
-    .. warning::
-
-        This implementation is not well tested.
-
     INPUT:
 
     - ``vars`` - list of pairs (variable name, c-data type), where the variable
@@ -604,6 +600,10 @@ def cython_lambda(vars, expr,
       objects defined in the current module scope ``globals()`` using
       ``sage.object_name``.
 
+    .. warning::
+
+        Accessing ``globals()`` doesn't actually work, see :trac:`12446`.
+
     EXAMPLES:
 
     We create a Lambda function in pure Python (using the r to make sure the 3.2
@@ -613,20 +613,20 @@ def cython_lambda(vars, expr,
 
     We make the same Lambda function, but in a compiled form. ::
 
-        sage: g = cython_lambda('double x, double y', 'x*x + y*y + x + y + 17*x + 3.2')  # optional -- gcc
-        sage: g(2,3)                                                                     # optional -- gcc
-        55.200000000000003
-        sage: g(0,0)                                                                     # optional -- gcc
-        3.2000000000000002
+        sage: g = cython_lambda('double x, double y', 'x*x + y*y + x + y + 17*x + 3.2')
+        sage: g(2,3)
+        55.2
+        sage: g(0,0)
+        3.2
 
-    We access a global function and variable. ::
+    The following should work but doesn't, see :trac:`12446`::
 
         sage: a = 25
-        sage: f = cython_lambda('double x', 'sage.math.sin(x) + sage.a')                 # optional -- gcc
-        sage: f(10)                                                                      # optional -- gcc
+        sage: f = cython_lambda('double x', 'sage.math.sin(x) + sage.a')
+        sage: f(10)  # known bug
         24.455978889110629
         sage: a = 50
-        sage: f(10)                                                                      # optional -- gcc
+        sage: f(10)  # known bug
         49.455978889110632
     """
     if isinstance(vars, str):
@@ -664,7 +664,7 @@ def cython_create_local_so(filename):
 
     INPUT:
 
-    - ``filename`` - string: a Cython (formerly SageX) (.spyx) file
+    - ``filename`` - string: a Cython (.spyx) file
 
     OUTPUT: None
 
@@ -689,11 +689,11 @@ def cython_create_local_so(filename):
         sage: s = "def hello():\n  print 'hello'\n"
         sage: f.write(s)
         sage: f.close()
-        sage: cython_create_local_so('hello.spyx')                            # optional -- gcc
+        sage: cython_create_local_so('hello.spyx')
         Compiling hello.spyx...
-        sage: sys.path.append('.')                                            # optional -- gcc
-        sage: import hello                                                    # optional -- gcc
-        sage: hello.hello()                                                   # optional -- gcc
+        sage: sys.path.append('.')
+        sage: import hello
+        sage: hello.hello()
         hello
         sage: os.chdir(curdir)
 

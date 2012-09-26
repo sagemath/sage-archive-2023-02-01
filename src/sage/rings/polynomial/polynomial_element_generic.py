@@ -781,12 +781,6 @@ class Polynomial_padic_field_dense(Polynomial_padic_generic_dense, Polynomial_ge
         else:
             return self.base_ring()(0)
 
-    def _xgcd(self, other):
-        H = Polynomial_generic_dense_field._xgcd(self, other)
-        c = ~H[0].leading_coefficient()
-        return c * H[0], c * H[1], c * H[2]
-
-
 class Polynomial_padic_ring_lazy_dense(Polynomial_padic_ring_dense):
     pass
 

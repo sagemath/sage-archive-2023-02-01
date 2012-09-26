@@ -280,15 +280,19 @@ class Tableau(CombinatorialObject, Element):
             [[None, 2, 3], [None, 4], [5]]
             sage: t/[3,1]
             [[None, None, None], [None, 4], [5]]
+            sage: t/[2,1,1,1]
+            Traceback (most recent call last):
+            ...
+            ValueError: the shape of the tableau must contain the partition
         """
 
         #if t is a list, convert to to a partition first
         if isinstance(t, list):
             t = sage.combinat.partition.Partition(t)
 
-        #Check to make sure that
-        if not self.shape().dominates(t):
-            raise ValueError, "the partition must dominate t"
+        #Check to make sure that tableau shape contains t
+        if not self.shape().contains(t):
+            raise ValueError, "the shape of the tableau must contain the partition"
 
         st = copy.deepcopy(self._list)
 

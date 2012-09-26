@@ -494,9 +494,14 @@ class Partition_class(CombinatorialObject):
             [[3, 2, 1], [3, 2, 1]]
             sage: p/Partition([1,1])
             [[3, 2, 1], [1, 1]]
+            sage: p/[2,2,2]
+            Traceback (most recent call last):
+            ...
+            ValueError: To form a skew partition p/q, q must be contained in p.
         """
-        if not self.dominates(p):
-            raise ValueError, "the partition must dominate p"
+        if not self.contains(p):
+            raise ValueError, "To form a skew partition p/q,\
+                q must be contained in p."
 
         return sage.combinat.skew_partition.SkewPartition([self[:], p])
 

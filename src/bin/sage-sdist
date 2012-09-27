@@ -39,8 +39,6 @@ fi
 
 TARGET="sage-$SAGE_VERSION"
 
-CUR=`pwd`
-
 SAGE_RELEASE_DATE=`date -u +'%Y-%m-%d'`
 
 # Update Sage version file in SAGE_ROOT.
@@ -58,8 +56,6 @@ fi
 
 cd "$SAGE_ROOT"/local/bin/
 echo "import sage.misc.banner; sage.misc.banner.banner()" | ./python > sage-banner
-
-cd "$CUR"
 
 # Copy sage root directory.  Cloning needs to be done in an empty
 # directory, so we do this now.  Creating the sage_root spkg is done

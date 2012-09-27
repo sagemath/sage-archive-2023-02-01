@@ -24,16 +24,15 @@ build() {
       # install
       echo ""
       echo "Installing c_lib"
-      CUR=`pwd`
-      cd "c_lib"
+      cd c_lib
       scons -Q install
       # make sure c_lib install went okay
       if [ $? -ne 0 ]; then
           echo >&2 "Error building c_lib."
           exit 1
       fi
-      cd "$CUR"
 
+      cd "$SAGE_ROOT/devel/$1/"
       ./install "$SAGE_ROOT"
       if [ $? -ne 0 ]; then
          echo >&2 "Error installing modified $1 library code."
@@ -73,13 +72,11 @@ if [ ! -d "$SAGE_ROOT/devel/sage" ]; then
 fi
 
 if [ $DO_BUILD_ALL = 1 ]; then
-    CUR=`pwd`
     cd "$SAGE_ROOT/devel/sage/sage"
     echo "*** TOUCHING ALL CYTHON (.pyx) FILES ***"
     touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx 2> /dev/null
     cd ../c_lib
     scons -Q install
-    cd "$CUR"
 fi
 
 build "sage"

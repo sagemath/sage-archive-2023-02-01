@@ -8,7 +8,6 @@ if 'SAGE_CLEAN' not in os.environ:
     sage.all_cmdline._init_cmdline(globals())
 
     _ip.ex('from sage.all import Integer, RealNumber')
-    os.chdir(os.environ["CUR"])
     import sage.misc.interpreter
 
     from sage.misc.interpreter import attached_files

@@ -3,14 +3,12 @@
 import os, sys
 from subprocess import call
 
-os.chdir(sys.argv[1])
-
-if len(sys.argv) < 3:
+if len(sys.argv) < 2:
     print "You must give a file argument"
     sys.exit(1)
 
-fn = sys.argv[2]
-opts = sys.argv[3:]
+fn = sys.argv[1]
+opts = sys.argv[2:]
 
 if fn.startswith('-'):
     print "sage-run received unknown option: %s " % fn

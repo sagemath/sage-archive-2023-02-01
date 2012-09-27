@@ -1,17 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-SAGE IPython startup script.
-
+Sage IPython startup script.
 """
 
 import os
 import sys
 
-#Make sure we're using the Sage profile
-#is one isn't specified
+# Make sure we're using the Sage profile if one isn't specified.
 if '-p' not in sys.argv:
     sys.argv.extend(['-p', 'sage'])
+
+
+# Import the Sage module before starting IPython, to ensure we import
+# Sage from the correct directory (in site-packages).
+#
+# IPython adds the current working directory to sys.path.  If the
+# current working directory is $SAGE_ROOT/devel/sage, sage would be
+# imported from $SAGE_ROOT/devel/sage/sage, which is bad for example
+# because it does not contain the Cython modules.  Importing sage before
+# IPython changes sys.path avoids these problems.
+import sage
+
 
 __SAGE_AUTOINJECT__ = True
 
@@ -23,7 +33,7 @@ ipy_sage = IPython.Shell.start()
 sageCH = CrashHandler(ipy_sage.IP, 'Sage', 'sage-support',
                       'sage-support@googlegroups.com',
                       'http://trac.sagemath.org/sage_trac',
-		      'Sage_crash_report.txt',
+                      'Sage_crash_report.txt',
                       show_crash_traceback=False)
 
 ipy_sage.IP.set_crash_handler(sageCH)

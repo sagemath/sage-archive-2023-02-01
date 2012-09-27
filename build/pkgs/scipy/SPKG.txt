@@ -29,12 +29,12 @@ BSD terms. See http://www.scipy.org/License_Compatibility
  * GNU patch
 
 == Special Update/Build Instructions ==
- * Make sure the patches still apply.
-   The ones added in the scipy-0.9.p0 spkg (#11886) were all taken from
-   (unstable) upstream, so can presumably be removed once we upgrade to
-   a new stable version.
+ * None.
 
 == Changelog ==
+
+=== scipy-0.11.0 (John Palmieri, 25 September 2012) ===
+ * #13309: update to 0.11.0. No patches needed; old patches removed.
 
 === scipy-0.9.p1 (Leif Leonhardy, November 1st 2011) ===
  * #11886: Reviewer changes (mostly cosmetic).

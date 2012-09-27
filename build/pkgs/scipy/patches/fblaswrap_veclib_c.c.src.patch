@@ -1,7 +1,0 @@
---- src/scipy/lib/blas/fblaswrap_veclib_c.c.src	2011-02-27 02:57:02.000000000 -0800
-+++ src/scipy/lib/blas/fblaswrap_veclib_c.c.src	2011-09-30 14:38:33.000000000 -0700
-@@ -1,3 +1,4 @@
-+#include <complex.h>
- #include <vecLib/vecLib.h>
- 
- //#define WRAP_F77(a) wcblas_##a##_

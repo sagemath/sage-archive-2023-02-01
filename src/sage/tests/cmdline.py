@@ -8,6 +8,8 @@ test.py
 /path/to/test.py
 test.sage
 /path/to/test.sage
+test.spyx
+/path/to/test.spyx
 --advanced
 --branch
 -c
@@ -264,6 +266,28 @@ def test_executable(args, input="", timeout=50.0, cwd=None):
         1
         sage: err
         ''
+        sage: ret
+        0
+
+    Test running a ``.spyx`` file::
+
+        sage: dir = tmp_dir(); name = 'sage_test_file.spyx'
+        sage: fullname = os.path.join(dir, name)
+        sage: F = open(fullname, 'w')
+        sage: F.write("cdef long i, s = 0\nfor i in range(1000): s += i\nprint s")
+        sage: F.close()
+        sage: (out, err, ret) = test_executable(["sage", fullname])
+        sage: print out
+        499500
+        sage: err
+        'Compiling ...spyx...'
+        sage: ret
+        0
+        sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
+        sage: print out
+        499500
+        sage: err
+        'Compiling ...spyx...'
         sage: ret
         0
 

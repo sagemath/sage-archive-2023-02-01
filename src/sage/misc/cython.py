@@ -7,7 +7,6 @@ AUTHORS:
 - William Stein (2007-07-28): update from sagex to cython
 - Martin Albrecht & William Stein (2011-08): cfile & cargs
 """
-
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -15,6 +14,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from __future__ import print_function
 
 import os, sys, platform
 
@@ -308,7 +309,7 @@ def cython(filename, verbose=False, compile_message=False,
       information.
 
     - ``compile_message`` (bool, default False) - if True, print
-      ``'Compiling <filename>...'``
+      ``'Compiling <filename>...'`` to the standard error.
 
     - ``use_cache`` (bool, default False) - if True, check the
       temporary build directory to see if there is already a
@@ -355,7 +356,7 @@ def cython(filename, verbose=False, compile_message=False,
 
     """
     if not filename.endswith('pyx'):
-        print "File (=%s) should have extension .pyx"%filename
+        print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)
 
     # base is the name of the .so module that we create. If we are
     # creating a local shared object file, we use a more natural
@@ -407,7 +408,7 @@ def cython(filename, verbose=False, compile_message=False,
             os.unlink("%s/setup.py" % build_dir)
 
     if compile_message:
-        print "Compiling %s..."%filename
+        print("Compiling {}...".format(filename), file=sys.stderr)
 
     F = open(filename).read()
 
@@ -490,7 +491,7 @@ setup(ext_modules = ext_modules,
             cmd += " && cp '%s.html' '%s'"%(name, target_html)
 
     if verbose:
-        print cmd
+        print(cmd)
     if os.system(cmd):
         log = open('%s/log'%build_dir).read()
         err = subtract_from_line_numbers(open('%s/err'%build_dir).read(), offset)
@@ -532,7 +533,8 @@ setup(ext_modules = ext_modules,
 
 
     cmd = 'cd %s && python setup.py build 1>log 2>err'%build_dir
-    if verbose: print cmd
+    if verbose:
+        print(cmd)
     if os.system(cmd):
         log = open('%s/log'%build_dir).read()
         err = open('%s/err'%build_dir).read()
@@ -540,7 +542,8 @@ setup(ext_modules = ext_modules,
 
     # Move from lib directory.
     cmd = 'mv %s/build/lib.*/* %s'%(build_dir, build_dir)
-    if verbose: print cmd
+    if verbose:
+        print(cmd)
     if os.system(cmd):
         raise RuntimeError, "Error copying extension module for %s"%filename
 
@@ -645,7 +648,7 @@ def f(%s):
  return %s
     """%(v, expr)
     if verbose:
-        print s
+        print(s)
     import sage.misc.misc
     tmpfile = sage.misc.temporary_file.tmp_filename(ext=".spyx")
     open(tmpfile,'w').write(s)
@@ -690,7 +693,6 @@ def cython_create_local_so(filename):
         sage: f.write(s)
         sage: f.close()
         sage: cython_create_local_so('hello.spyx')
-        Compiling hello.spyx...
         sage: sys.path.append('.')
         sage: import hello
         sage: hello.hello()

@@ -201,15 +201,26 @@ cdef class Spline:
 
     def list(self):
         """
-        Underlying list of points that this spline goes through.  This
-        is a reference to the list, not a copy.
+        Underlying list of points that this spline goes through.
 
         EXAMPLES::
 
             sage: S = spline([(1,1), (2,3), (4,5)]); S.list()
             [(1, 1), (2, 3), (4, 5)]
+
+        This is a copy of the list, not a reference (:trac:`13530`)::
+
+            sage: S = spline([(1,1), (2,3), (4,5)])
+            sage: L = S.list(); L
+            [(1, 1), (2, 3), (4, 5)]
+            sage: L[2] = (3, 2)
+            sage: L
+            [(1, 1), (2, 3), (3, 2)]
+            sage: S.list()
+            [(1, 1), (2, 3), (4, 5)]
+
         """
-        return self.v
+        return self.v[:]
 
     def __len__(self):
         """

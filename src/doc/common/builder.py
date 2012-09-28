@@ -260,7 +260,8 @@ class AllBuilder(object):
         documents = []
         for lang in LANGUAGES:
             for document in os.listdir(os.path.join(SAGE_DOC, lang)):
-                if document not in OMIT:
+                if (document not in OMIT
+                    and os.path.isdir(os.path.join(SAGE_DOC, lang, document))):
                     documents.append(os.path.join(lang, document))
 
         # Ensure that the reference guide is compiled first so that links from

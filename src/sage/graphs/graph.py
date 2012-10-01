@@ -2180,6 +2180,22 @@ class Graph(GenericGraph):
             sage: g.is_perfect(certificate = True)
             Subgraph of (Petersen graph): Graph on 5 vertices
 
+        TEST:
+
+        Check that :trac:`13546` has been fixed::
+
+            sage: Graph(':FgGE@I@GxGs').is_perfect()
+            False
+            sage: g = Graph({0: [2, 3, 4, 5],
+            ...              1: [3, 4, 5, 6],
+            ...              2: [0, 4, 5, 6],
+            ...              3: [0, 1, 5, 6],
+            ...              4: [0, 1, 2, 6],
+            ...              5: [0, 1, 2, 3],
+            ...              6: [1, 2, 3, 4]})
+            sage: g.is_perfect()
+            False
+
         REFERENCES:
 
         .. [SPGT] M. Chudnovsky, N. Robertson, P. Seymour, R. Thomas.
@@ -2187,66 +2203,45 @@ class Graph(GenericGraph):
           Annals of Mathematics
           vol 164, number 1, pages 51--230
           2006
+
+        TESTS::
+
+            sage: Graph(':Ab').is_perfect()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is only defined for simple graphs, and yours is not one of them !
+            sage: g = Graph()
+            sage: g.allow_loops(True)
+            sage: g.add_edge(0,0)
+            sage: g.edges()
+            [(0, 0, None)]
+            sage: g.is_perfect()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is only defined for simple graphs, and yours is not one of them !
+
         """
 
-        from sage.graphs.bipartite_graph import BipartiteGraph
+        if self.has_multiple_edges() or self.has_loops():
+            raise ValueError("This method is only defined for simple graphs,"
+                             " and yours is not one of them !")
+        if self.is_bipartite():
 
-        if isinstance(self, BipartiteGraph) or self.is_bipartite():
             return True if not certificate else None
 
         self_complement = self.complement()
 
-        start_complement = self_complement.odd_girth()
-        start_self = self.odd_girth()
+        self_complement.remove_loops()
+        self_complement.remove_multiple_edges()
 
-        from sage.graphs.graph_generators import graphs
+        if self_complement.is_bipartite():
+            return True if not certificate else None
 
+        answer = self.is_odd_hole_free(certificate = certificate)
+        if not (answer is True):
+            return answer
 
-        # In these cases, we know the graph is no perfect.
-        if start_self == 5:
-            if certificate:
-                return self.subgraph_search(graphs.CycleGraph(5), induced = True)
-            else:
-                return False
-
-        if start_complement == 5:
-            if certificate:
-                return self_complement.subgraph_search(graphs.CycleGraph(5), induced = True).complement()
-            else:
-                return False
-
-        # We are only looking for odd holes of size at least 5
-        from sage.rings.finite_rings.integer_mod import Mod
-
-        start = lambda x : (x+1) if Mod(x,2) == 0 else ( 5 if x == 3 else x )
-
-        # these values are possibly the infinity !!!!
-
-        start_self = start(start_self) if start_self <= self.order() else self.order()+2
-        start_complement = start(start_complement) if start_complement <= self.order() else self.order()+2
-
-        counter_example = None
-
-        for i in range(min(start_self, start_complement), self.order()+1,2):
-
-            # trying in self
-            if i >= start_self:
-                counter_example = self.subgraph_search(graphs.CycleGraph(i), induced = True)
-
-                if counter_example is not None:
-                    break
-
-            # trying in the complement
-            if i >= start_complement:
-                counter_example = self.subgraph_search(graphs.CycleGraph(i), induced = True)
-                if counter_example is not None:
-                    counter_example = counter_example.complement()
-                    break
-
-        if certificate:
-            return counter_example
-        else:
-            return counter_example is None
+        return self_complement.is_odd_hole_free(certificate = certificate)
 
     def is_strongly_regular(self, parameters=False):
         r"""

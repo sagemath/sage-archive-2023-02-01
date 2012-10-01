@@ -69,7 +69,7 @@ Hyperbolicity of a graph
 
         hyp(a, b, c, d) =& S_1 - \max\{S_2, S_3\}\\
         \leq& S_1 - \frac{S_2+ S_3}{2}\\
-        =& S_1 - dist(a, b)\\
+        \leq& S_1 - dist(a, b)\\
         =& dist(c, d)\\
 
       We obtain similarly that `hyp(a, b, c, d) \leq dist(a, b)`.  Consequently,
@@ -106,11 +106,11 @@ REFERENCES:
 
 .. [CCL12] N. Cohen, D. Coudert, and A. Lancin. Exact and approximate algorithms
    for computing the hyperbolicity of large-scale graphs.  Research Report
-   RR-8074, Sep. 2012. [http://hal.inria.fr/hal-00735481].
+   RR-8074, Sep. 2012. [`<http://hal.inria.fr/hal-00735481>`_].
 
 .. [FIV12] H. Fournier, A. Ismail, and A. Vigneron. Computing the Gromov
    hyperbolicity of a discrete metric space. ArXiv, Tech. Rep. arXiv:1210.3323,
-   Oct. 2012. [http://arxiv.org/abs/1210.3323].
+   Oct. 2012. [`<http://arxiv.org/abs/1210.3323>`_].
 
 .. [Gromov87] M. Gromov. Hyperbolic groups. Essays in Group Theory, 8:75--263,
    1987.

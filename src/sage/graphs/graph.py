@@ -1788,18 +1788,17 @@ class Graph(GenericGraph):
         """
         from sage.graphs.graph_generators import GraphGenerators
 
-        girth = self.girth()
+        girth = self.odd_girth()
 
-        if girth > self.order() or girth == 3:
+        if girth > self.order():
+            return True
+        if girth == 3:
             start = 5
 
-        elif girth % 2 == 1:
+        else:
             if not certificate:
                 return False
             start = girth
-
-        else:
-            start = girth + 1
 
         while start <= self.order():
 
@@ -1811,7 +1810,7 @@ class Graph(GenericGraph):
                 else:
                     return False
 
-            start = start + 2
+            start += 2
 
         return True
 
@@ -2294,12 +2293,19 @@ class Graph(GenericGraph):
 
         .. [Biggs93] Biggs, N. L. Algebraic Graph Theory, 2nd ed. Cambridge,
           England: Cambridge University Press, pp. 45, 1993.
+
+        TESTS::
+
+            sage: graphs.CycleGraph(5).odd_girth()
+            5
+            sage: graphs.CycleGraph(11).odd_girth()
+            11
         """
         ch = ((self.am()).charpoly()).coeffs()
         n = self.order()
 
-        for i in xrange(n-1,0,-1):
-            if ch[i] != 0 and (n-i) % 2 == 1:
+        for i in xrange(n-1,-1,-2):
+            if ch[i] != 0:
                 return n-i
 
         from sage.rings.infinity import Infinity

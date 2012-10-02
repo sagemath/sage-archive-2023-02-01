@@ -27,9 +27,18 @@ need to do so, please use an external version of git.
 
 == Changelog ==
 
+=== git-1.7.12.2.p0 (Jeroen Demeyer, 2012-10-02) ===
+
+ * #12707: Upgrade to git-1.7.12.2
+ * Disable Tcl/Tk GUI (otherwise Tcl/Tk is a dependency)
+ * Various fixes to spkg-install
+ * Keep SANE_TOOL_PATH empty to ensure the PATH isn't changed
+ * Figure out *correct* path to "install"
+ * Add patch no-autoconf.patch to prevent running autoconf
+
 === git-1.7.10 (Keshav Kini, 2012-04-20) ===
 
- * Upgrade to latest stable
+ * #12707: Upgrade to latest stable
  * Fix building on OS X by making the installer ignore Fink and Darwin
    Ports
  * Make sure not to use the system Python for anything

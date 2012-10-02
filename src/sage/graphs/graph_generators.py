@@ -4673,15 +4673,19 @@ class GraphGenerators():
             sage: g.automorphism_group().cardinality()
             54
         """
-        from sage.rings.finite_rings.integer_mod_ring import Zmod
-        from sage.combinat.cartesian_product import CartesianProduct
         g = graph.Graph(loops=False, name = "Holt graph", pos={})
-        for x,y in CartesianProduct(Zmod(9),Zmod(3)):
-            g.add_edge((x,y),(4*x+1,y-1))
-            g.add_edge((x,y),(4*x-1,y-1))
-            g.add_edge((x,y),(7*x+7,y+1))
-            g.add_edge((x,y),(7*x-7,y+1))
-            _circle_embedding(g, [(x,y) for y in Zmod(3) for x in Zmod(9)])
+        for x in range(9):
+            for y in range(3):
+                g.add_edge((x,y),((4*x+1)%9,(y-1)%3))
+                g.add_edge((x,y),((4*x-1)%9,(y-1)%3))
+                g.add_edge((x,y),((7*x+7)%9,(y+1)%3))
+                g.add_edge((x,y),((7*x-7)%9,(y+1)%3))
+
+        for j in range(0,6,2):
+            _line_embedding(g, [(x,j/2) for x in range(9)],
+                            first=(cos(2*j*pi/6),sin(2*j*pi/6)),
+                            last=(cos(2*(j+1)*pi/6),sin(2*(j+1)*pi/6)))
+
         return g
 
     def LjubljanaGraph(self, embedding=1):

@@ -28,14 +28,14 @@ AUTHORS:
 def ChessboardGraphGenerator(self, dim_list,
                              rook = True,    rook_radius = None,
                              bishop = True,  bishop_radius = None,
-                             knight = False, knight_x = 1, knight_y = 2,
+                             knight = True, knight_x = 1, knight_y = 2,
                              relabel = False):
     r"""
-    Returns a Graph built on a d-dimensional chessboard with prescribed
+    Returns a Graph built on a `d`-dimensional chessboard with prescribed
     dimensions and interconnections.
 
     This function allows to generate many kinds of graphs corresponding to legal
-    movements on a d-dimensional chessboard: Queen Graph, King Graph, Knight
+    movements on a `d`-dimensional chessboard: Queen Graph, King Graph, Knight
     Graphs, Bishop Graph, and many generalizations. It also allows to avoid
     redondant code.
 
@@ -57,7 +57,7 @@ def ChessboardGraphGenerator(self, dim_list,
     - ``bishop_radius`` -- (default: None) integer value restricting the
       bishop-like movements to distance at most `bishop_radius`.
 
-    - ``knight`` -- (default: ``False``) boolean value indicating if the chess
+    - ``knight`` -- (default: ``True``) boolean value indicating if the chess
       piece is able to move like a knight.
 
     - ``knight_x`` -- (default: 1) integer indicating the number on steps the
@@ -71,7 +71,7 @@ def ChessboardGraphGenerator(self, dim_list,
 
     OUTPUTS:
 
-    - A Graph build on a d-dimensional chessboard with prescribed dimensions,
+    - A Graph build on a `d`-dimensional chessboard with prescribed dimensions,
       and with edges according given parameters.
 
     - A string encoding the dimensions. This is mainly useful for providing
@@ -79,13 +79,14 @@ def ChessboardGraphGenerator(self, dim_list,
 
     EXAMPLES:
 
-    A (2,2)-King Graph is isomorphic to the complete graph on 4 vertices::
+    A `(2,2)`-King Graph is isomorphic to the complete graph on 4 vertices::
 
         sage: G, _ = graphs.ChessboardGraphGenerator( [2,2] )
         sage: G.is_isomorphic( graphs.CompleteGraph(4) )
         True
 
-    A Rook's Graph in 2 dimensions is isomporphic to the cartesian product of 2 complete graphs::
+    A Rook's Graph in 2 dimensions is isomporphic to the cartesian product of 2
+    complete graphs::
 
         sage: G, _ = graphs.ChessboardGraphGenerator( [3,4], rook=True, rook_radius=None, bishop=False, knight=False )
         sage: H = ( graphs.CompleteGraph(3) ).cartesian_product( graphs.CompleteGraph(4) )
@@ -127,23 +128,20 @@ def ChessboardGraphGenerator(self, dim_list,
         sage: graphs.ChessboardGraphGenerator( [2, 3], rook=True, rook_radius=0 )
         Traceback (most recent call last):
         ...
-        ValueError: The rook_radius must be either None or have an integer value least 1.
+        ValueError: The rook_radius must be either None or have an integer value >= 1.
 
     Giving wrong values for knights movements::
 
         sage: graphs.ChessboardGraphGenerator( [2, 3], rook=False, bishop=False, knight=True, knight_x=1, knight_y=-1 )
         Traceback (most recent call last):
         ...
-        ValueError: The knight_x and knight_y values must be integers at least 1.
+        ValueError: The knight_x and knight_y values must be integers of value >= 1.
     """
     from sage.rings.integer_ring import ZZ
 
     # We decode the dimensions of the chessboard
     try:
-        if isinstance(dim_list,dict):
-            dim = [dim_list[a] for a in sorted(dim_list)]
-        else:
-            dim = list(dim_list)
+        dim = list(dim_list)
         nb_dim = len(dim)
     except TypeError:
         raise TypeError('The first parameter must be an iterable object.')
@@ -158,25 +156,18 @@ def ChessboardGraphGenerator(self, dim_list,
         if rook_radius is None:
             rook_radius = max(dim)
         elif not rook_radius in ZZ or rook_radius < 1:
-            raise ValueError('The rook_radius must be either None or have an integer value least 1.')
+            raise ValueError('The rook_radius must be either None or have an integer value >= 1.')
     if bishop:
         if bishop_radius is None:
             bishop_radius = max(dim)
         elif not bishop_radius in ZZ or bishop_radius < 1:
-            raise ValueError('The bishop_radius must be either None or have an integer value at least 1.')
+            raise ValueError('The bishop_radius must be either None or have an integer value >= 1.')
     if knight and ( not knight_x in ZZ or not knight_y in ZZ or knight_x < 1 or knight_y < 1 ):
-        raise ValueError('The knight_x and knight_y values must be integers at least 1.')
+        raise ValueError('The knight_x and knight_y values must be integers of value >= 1.')
 
     # We build the set of vertices of the d-dimensionnal chessboard
-    V = [ [0]*nb_dim ]
-    for a in xrange(nb_dim):
-        VV = []
-        for v in V:
-            for i in xrange(1,dim[a]):
-                u = v[:]
-                u[a] = i
-                VV.append(u)
-        V.extend(VV)
+    from itertools import product
+    V = map(list,list(product(*map(range,dim))))
 
     from sage.combinat.combinat import combinations
     combin = combinations(range(nb_dim),2)
@@ -246,15 +237,15 @@ def ChessboardGraphGenerator(self, dim_list,
 
 def QueenGraph(self, dim_list, radius=None, relabel=False):
     r"""
-    Returns the d-dimensional Queen Graph with prescribed dimensions.
+    Returns the `d`-dimensional Queen Graph with prescribed dimensions.
 
     The 2-dimensional Queen Graph of parameters `n` and `m` is a graph with `nm`
     vertices in which each vertex represents a square in an `n \times m`
     chessboard, and each edge corresponds to a legal move by a queen.
 
-    The d-dimensional Queen Graph with `d >= 2` has for vertex set the cells of
-    a d-dimensional grid with prescribed dimensions, and each edge corresponds
-    to a legal move by a queen in either one or two dimensions.
+    The `d`-dimensional Queen Graph with `d >= 2` has for vertex set the cells
+    of a `d`-dimensional grid with prescribed dimensions, and each edge
+    corresponds to a legal move by a queen in either one or two dimensions.
 
     All 2-dimensional Queen Graphs are Hamiltonian and biconnected. The
     chromatic number of a `(n,n)`-Queen Graph is at least `n`, and it is exactly
@@ -274,7 +265,7 @@ def QueenGraph(self, dim_list, radius=None, relabel=False):
 
     EXAMPLES:
 
-    The (2,2)-Queen Graph is isomorphic to the complete graph on 4 vertices::
+    The `(2,2)`-Queen Graph is isomorphic to the complete graph on 4 vertices::
 
         sage: G = graphs.QueenGraph( [2, 2] )
         sage: G.is_isomorphic( graphs.CompleteGraph(4) )
@@ -308,7 +299,7 @@ def QueenGraph(self, dim_list, radius=None, relabel=False):
 
 def KingGraph(self, dim_list, radius=None, relabel=False):
     r"""
-    Returns the d-dimensional King Graph with prescribed dimensions.
+    Returns the `d`-dimensional King Graph with prescribed dimensions.
 
     The 2-dimensional King Graph of parameters `n` and `m` is a graph with `nm`
     vertices in which each vertex represents a square in an `n \times m`
@@ -336,7 +327,7 @@ def KingGraph(self, dim_list, radius=None, relabel=False):
 
     EXAMPLES:
 
-    The (2,2)-King Graph is isomorphic to the complete graph on 4 vertices::
+    The `(2,2)`-King Graph is isomorphic to the complete graph on 4 vertices::
 
         sage: G = graphs.QueenGraph( [2, 2] )
         sage: G.is_isomorphic( graphs.CompleteGraph(4) )
@@ -398,20 +389,20 @@ def KnightGraph(self, dim_list, one=1, two=2, relabel=False):
 
     EXAMPLES:
 
-    The (3,3)-Knight Graph has an isolated vertex::
+    The `(3,3)`-Knight Graph has an isolated vertex::
 
         sage: G = graphs.KnightGraph( [3, 3] )
         sage: G.degree( (1,1) )
         0
 
-    The (3,3)-Knight Graph minus vertex (1,1) is a cycle of order 8::
+    The `(3,3)`-Knight Graph minus vertex (1,1) is a cycle of order 8::
 
         sage: G = graphs.KnightGraph( [3, 3] )
         sage: G.delete_vertex( (1,1) )
         sage: G.is_isomorphic( graphs.CycleGraph(8) )
         True
 
-    The (6,6)-Knight Graph is Hamiltonian::
+    The `(6,6)`-Knight Graph is Hamiltonian::
 
         sage: G = graphs.KnightGraph( [6, 6] )
         sage: G.is_hamiltonian()
@@ -430,15 +421,15 @@ def KnightGraph(self, dim_list, one=1, two=2, relabel=False):
 
 def RookGraph(self, dim_list, radius=None, relabel=False):
     r"""
-    Returns the d-dimensional Rook's Graph with prescribed dimensions.
+    Returns the `d`-dimensional Rook's Graph with prescribed dimensions.
 
     The 2-dimensional Rook's Graph of parameters `n` and `m` is a graph with
     `nm` vertices in which each vertex represents a square in an `n \times m`
     chessboard, and each edge corresponds to a legal move by a rook.
 
-    The d-dimensional Rook Graph with `d >= 2` has for vertex set the cells of a
-    d-dimensional grid with prescribed dimensions, and each edge corresponds to
-    a legal move by a rook in any of the dimensions.
+    The `d`-dimensional Rook Graph with `d >= 2` has for vertex set the cells of
+    a `d`-dimensional grid with prescribed dimensions, and each edge corresponds
+    to a legal move by a rook in any of the dimensions.
 
     The Rook's Graph for an `n\times m` chessboard may also be defined as the
     Cartesian product of two complete graphs `K_n \square K_m`.
@@ -457,7 +448,8 @@ def RookGraph(self, dim_list, radius=None, relabel=False):
 
     EXAMPLES:
 
-    The (n,m)-Rook's Graph is isomorphic to the cartesian product of two complete graphs::
+    The `(n,m)`-Rook's Graph is isomorphic to the cartesian product of two
+    complete graphs::
 
         sage: G = graphs.RookGraph( [3, 4] )
         sage: H = ( graphs.CompleteGraph(3) ).cartesian_product( graphs.CompleteGraph(4) )
@@ -484,15 +476,15 @@ def RookGraph(self, dim_list, radius=None, relabel=False):
 
 def BishopGraph(self, dim_list, radius=None, relabel=False):
     r"""
-    Returns the d-dimensional Bishop Graph with prescribed dimensions.
+    Returns the `d`-dimensional Bishop Graph with prescribed dimensions.
 
     The 2-dimensional Bishop Graph of parameters `n` and `m` is a graph with
     `nm` vertices in which each vertex represents a square in an `n \times m`
     chessboard, and each edge corresponds to a legal move by a bishop.
 
-    The d-dimensional Bishop Graph with `d >= 2` has for vertex set the cells of
-    a d-dimensional grid with prescribed dimensions, and each edge corresponds
-    to a legal move by a bishop in any pairs of dimensions.
+    The `d`-dimensional Bishop Graph with `d >= 2` has for vertex set the cells
+    of a `d`-dimensional grid with prescribed dimensions, and each edge
+    corresponds to a legal move by a bishop in any pairs of dimensions.
 
     The Bishop Graph is not connected.
 

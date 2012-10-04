@@ -1,11 +1,16 @@
 r"""
 Representations of the Symmetric Group
 
-TODO:
+.. TODO::
 
-- construct the product of two irreducible representations.
+    - construct the product of two irreducible representations.
 
-- implement Induction/Restriction of representations.
+    - implement Induction/Restriction of representations.
+
+.. WARNING::
+
+    This code uses a different convention than in Sagan's book "The Symmetric
+    Group"
 
 """
 #*****************************************************************************
@@ -47,16 +52,16 @@ def SymmetricGroupRepresentation(partition, implementation="specht",
 
     INPUT:
 
-    - ``partition`` - a partition of a positive integer
+    - ``partition`` -- a partition of a positive integer
 
-    - ``implementation`` - string (default: "specht"), one of:
-      - "seminormal": for Young's seminormal representation
-      - "orthogonal": for Young's orthogonal representation
-      - "specht": for Specht's representation
+    - ``implementation`` -- string (default: ``"specht"``), one of:
+        - ``"seminormal"`` - for Young's seminormal representation
+        - ``"orthogonal"`` - for Young's orthogonal representation
+        - ``"specht"`` - for Specht's representation
 
-    - ``ring`` - the ring over which the representation is defined.
+    - ``ring`` -- the ring over which the representation is defined.
 
-    - ``cache_matrices`` - boolean (default: True) if True, then any
+    - ``cache_matrices`` -- boolean (default: ``True``) if ``True``, then any
       representation matrices that are computed are cached.
 
     EXAMPLES:
@@ -145,13 +150,13 @@ def SymmetricGroupRepresentation(partition, implementation="specht",
         sage: hasattr(spc, '_cache__representation_matrix')
         False
 
-    NOTES:
+    .. NOTE::
 
-    The implementation is based on the paper [Las].
+        The implementation is based on the paper [Las]_.
 
     REFERENCES:
 
-    - [Las] Alain Lascoux, 'Young representations of the symmetric group.'
+    .. [Las] Alain Lascoux, 'Young representations of the symmetric group.'
        http://phalanstere.univ-mlv.fr/~al/ARTICLES/ProcCrac.ps.gz
 
     AUTHORS:
@@ -178,16 +183,16 @@ def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
 
     INPUT:
 
-    - ``n`` - positive integer
+    - ``n`` -- positive integer
 
-    - ``implementation`` - string (default: "specht"), one of:
-      - "seminormal": Young's seminormal representation
-      - "orthogonal": Young's orthogonal representation
-      - "specht": essentially Specht's representation
+    - ``implementation`` -- string (default: ``"specht"``), one of:
+        - ``"seminormal"`` - for Young's seminormal representation
+        - ``"orthogonal"`` - for Young's orthogonal representation
+        - ``"specht"`` - for Specht's representation
 
-    - ``ring`` - the ring over which the representation is defined.
+    - ``ring`` -- the ring over which the representation is defined.
 
-    - ``cache_matrices`` - boolean (default: True) if True, then any
+    - ``cache_matrices`` -- boolean (default: ``True``) if ``True``, then any
       representation matrices that are computed are cached.
 
     EXAMPLES:
@@ -228,14 +233,9 @@ def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
         [ 0  1 -1 -1  1]
         [ 0  1  0 -1  1]
 
-    NOTES:
+    .. NOTE::
 
-    The implementation is based on the paper [Las].
-
-    REFERENCES:
-
-    - [Las] Alain Lascoux, 'Young representations of the symmetric group.'
-       http://phalanstere.univ-mlv.fr/~al/ARTICLES/ProcCrac.ps.gz
+        The implementation is based on the paper [Las]_.
 
     AUTHORS:
 
@@ -264,7 +264,7 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         to ``partition``.
 
         For more information, see the documentation for
-        ``SymmetricGroupRepresentation``.
+        :func:`SymmetricGroupRepresentation`.
 
         EXAMPLES::
 
@@ -309,8 +309,7 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
 
         TESTS:
 
-        The following tests against some bug that was fixed in trac
-        ticket #8611::
+        The following tests against some bug that was fixed in :trac:`8611`::
 
             sage: spc = SymmetricGroupRepresentation([3])
             sage: spc.important_info = 'Sage rules'
@@ -425,7 +424,7 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
             sage: all(chi(g) == g.sign() for g in SymmetricGroup(3))
             True
 
-        The defining representation:
+        The defining representation::
 
             sage: triv = SymmetricGroupRepresentation([4])
             sage: hook = SymmetricGroupRepresentation([3,1])
@@ -450,10 +449,11 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         r"""
         Irreducible representations of the symmetric group.
 
-        See the documentation for SymmetricGroupRepresentations
+        See the documentation for :func:`SymmetricGroupRepresentations`
         for more information.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: snorm = SymmetricGroupRepresentations(3, "seminormal")
             sage: snorm == loads(dumps(snorm))
             True
@@ -899,9 +899,9 @@ class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
         Returns the matrix representing the ``permutation`` in this
         irreducible representation.
 
-        NOTE:
+        .. NOTE::
 
-        This method caches the results.
+            This method caches the results.
 
         EXAMPLES::
 

@@ -69,6 +69,13 @@ of doubt, have a look at the file spkg-src.
 
 == Changelog ==
 
+=== pari-2.5.3.p0 (Jeroen Demeyer, 5 October 2012) ===
+ * Ticket #13534: upgrade to version 2.5.3
+ * Remove upstreamed patch rootpol.patch
+
+=== pari-2.5.2.p2 (Jean-Pierre Flori, 30 September 2012) ===
+ * Ticket #13333: add upstream patch to copy libpari.dll.a on Cygwin.
+
 === pari-2.5.2.p1 (Paul Zimmermann, 28 August 2012) ===
  * Ticket #13314: add upstream patch rootpol.patch for rootpol().
 

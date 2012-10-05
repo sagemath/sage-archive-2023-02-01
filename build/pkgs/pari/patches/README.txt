@@ -27,6 +27,7 @@ Patches to configuration files:
   files).  So simply not doing install-doc doesn't work.
 * perl_path.patch: jdemeyer: change first line of all perl scripts
   to "#!/usr/bin/env perl" (#10559).
+* cygwin_dll_a.patch: jpflori: copy libpari.dll.a on Cygwin (#13333).
 
 C files:
 * src/kernel/gmp/mp.c:
@@ -42,4 +43,3 @@ C files:
   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49330
   This bug manifests itself as a Bus Error on OS X 10.4 PPC with
   gcc-4.6.3.
-* rootpol.patch: fixes a Segmentation Fault in Sage "roots" (#13314)

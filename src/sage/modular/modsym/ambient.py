@@ -1344,11 +1344,14 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
         EXAMPLES::
 
-            sage: ModularSymbols(20,2).boundary_space()
+            sage: M = ModularSymbols(20, 2)
+            sage: B = M.boundary_space(); B
             Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(20) of weight 2 and over Rational Field
-            sage: ModularSymbols(20,2).dimension()
+            sage: M.cusps()
+            [Infinity, 0, -1/4, 1/5, -1/2, 1/10]
+            sage: M.dimension()
             7
-            sage: ModularSymbols(20,2).boundary_space().dimension()
+            sage: B.dimension()
             6
         """
         raise NotImplementedError

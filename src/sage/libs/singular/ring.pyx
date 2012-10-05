@@ -488,7 +488,7 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
         sage: del P
         sage: _ = gc.collect()
         sage: ring_ptr in ring_refcount_dict
-        False
+        True
     """
     if existing_ring==NULL:
         raise ValueError('singular_ring_reference(ring*) called with NULL pointer.')

@@ -421,7 +421,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: del q
             sage: gc.collect() # random output
             sage: len(ring_refcount_dict) == n
-            True
+            False
         """
         return self
 

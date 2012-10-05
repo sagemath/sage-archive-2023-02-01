@@ -28,7 +28,10 @@ cdef cparent get_cparent(parent) except? NULL:
     if parent is None:
         return NULL
     cdef ntl_ZZ_pEContext_class c
-    c = parent._modulus
+    try:
+        c = parent._modulus
+    except AttributeError:
+        return NULL
     return &(c.x)
 
 # first we include the definitions

@@ -994,6 +994,7 @@ class CrystalOfTableaux(CrystalOfWords):
         B = CrystalOfTableaux(cartan_type, shapes = shapes)
         T = TensorProductOfCrystals(S,B, generators=[[S.module_generators[0],x] for x in B.module_generators])
         T.rename("The crystal of tableaux of type %s and shape(s) %s"%(cartan_type, list(list(shape) for shape in spin_shapes)))
+        T.shapes = spin_shapes
         return T
 
 
@@ -1016,6 +1017,7 @@ class CrystalOfTableaux(CrystalOfWords):
 #        super(CrystalOfTableaux, self).__init__(category = FiniteEnumeratedSets())
         Parent.__init__(self, category = ClassicalCrystals())
         self.letters = CrystalOfLetters(cartan_type)
+        self.shapes = shapes
         self.module_generators = tuple(self.module_generator(la) for la in shapes)
         self.rename("The crystal of tableaux of type %s and shape(s) %s"%(cartan_type, list(list(shape) for shape in shapes)))
 
@@ -1042,6 +1044,17 @@ class CrystalOfTableaux(CrystalOfWords):
             sage: T = CrystalOfTableaux(['D',3], shape = [1,1])
             sage: T.module_generator([1,1])
             [[1], [2]]
+
+            sage: T = CrystalOfTableaux(['D',4],shape=[2,2,2,-2])
+            sage: T.module_generator(tuple([2,2,2,-2]))
+            [[1, 1], [2, 2], [3, 3], [-4, -4]]
+            sage: T.cardinality()
+            294
+            sage: T = CrystalOfTableaux(['D',4],shape=[2,2,2,2])
+            sage: T.module_generator(tuple([2,2,2,2]))
+            [[1, 1], [2, 2], [3, 3], [4, 4]]
+            sage: T.cardinality()
+            294
         """
         type = self.cartan_type()
         if type[0] == 'D' and len(shape) == type[1] and shape[type[1]-1] < 0:
@@ -1053,9 +1066,8 @@ class CrystalOfTableaux(CrystalOfWords):
         # The column canonical tableau, read by columns
         module_generator = flatten([[p[j]-i for i in range(p[j])] for j in range(len(p))])
         if invert:
-            for i in range(type[1]):
-                if module_generator[i] == type[1]:
-                    module_generator[i] = -type[1]
+            f = lambda x : -x if x == type[1] else x
+            module_generator = map(f, module_generator)
         return self(list=[self.letters(x) for x in module_generator])
 
     def _element_constructor_(self, *args, **options):

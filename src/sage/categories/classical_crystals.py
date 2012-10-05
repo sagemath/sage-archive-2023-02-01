@@ -115,20 +115,30 @@ class ClassicalCrystals(Category_singleton):
             alpha = L.simple_roots()
             return dict( (i, (w0.action(alpha[i])).leading_support()) for i in self.index_set() )
 
-        def demazure_character(self, weight, reduced_word = False):
+        def demazure_character(self, w, f = None):
             r"""
-            Returns the Demazure character associated to the specified
-            weight in the ambient weight lattice.
+            Returns the Demazure character associated to ``w``.
 
             INPUT:
 
-                - ``weight`` -- an element of the weight lattice
-                  realization of the crystal, or a reduced word
-                - ``reduced_word`` -- a boolean (default: ``False``)
-                  whether ``weight`` is given as a reduced word
+                - ``w`` -- an element of the ambient weight lattice
+                  realization of the crystal, or a reduced word, or an element
+                  in the associated Weyl group
 
-            This is currently only supported for crystals whose
-            underlying weight space is the ambient space.
+            OPTIONAL:
+
+                - ``f`` -- a function from the crystal to a module.
+
+            This is currently only supported for crystals whose underlying
+            weight space is the ambient space.
+
+            The Demazure character is obtained by applying the Demazure operator
+            `D_w` (see :meth:`sage.categories.crystals.Crystals.ParentMethods.demazure_operator`)
+            to the highest weight element of the classical crystal. The simple
+            Demazure operators `D_i` (see :meth:`sage.categories.crystals.Crystals.ElementMethods.demazure_operator_simple`)
+            do not braid on the level of crystals, but on the level of characters they do.
+            That is why it makes sense to input ``w`` either as a weight, a reduced word,
+            or as an element of the underlying Weyl group.
 
             EXAMPLES::
 
@@ -141,7 +151,11 @@ class ClassicalCrystals(Category_singleton):
                 x1^2*x2 + x1^2*x3 + x1*x2^2 + x1*x2*x3 + x1*x3^2
 
                 sage: T = CrystalOfTableaux(['A',3],shape=[2,1])
-                sage: T.demazure_character([1,2,3], reduced_word = True)
+                sage: T.demazure_character([1,2,3])
+                x1^2*x2 + x1^2*x3 + x1*x2^2 + x1*x2*x3 + x2^2*x3
+                sage: W = WeylGroup(['A',3])
+                sage: w = W.from_reduced_word([1,2,3])
+                sage: T.demazure_character(w)
                 x1^2*x2 + x1^2*x3 + x1*x2^2 + x1*x2*x3 + x2^2*x3
 
                 sage: T = CrystalOfTableaux(['B',2], shape = [2])
@@ -150,8 +164,10 @@ class ClassicalCrystals(Category_singleton):
                 sage: T.demazure_character(weight)
                 x1^2 + x1*x2 + x2^2 + x1 + x2 + x1/x2 + 1/x2 + 1/x2^2 + 1
 
-            TODO: detect automatically if weight is a reduced word,
-            and remove the (untested!) ``reduced_word`` option.
+                sage: T = CrystalOfTableaux("B2",shape=[1/2,1/2])
+                sage: b2=WeylCharacterRing("B2",base_ring=QQ).ambient()
+                sage: T.demazure_character([1,2],f=lambda x:b2(x.weight()))
+                b2(-1/2,1/2) + b2(1/2,-1/2) + b2(1/2,1/2)
 
             REFERENCES::
 
@@ -164,20 +180,22 @@ class ClassicalCrystals(Category_singleton):
 
             """
             from sage.misc.misc_c import prod
-            from sage.rings.rational_field import QQ
+            from sage.rings.integer_ring import ZZ
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            if reduced_word:
-                word = weight
+            if hasattr(w, 'reduced_word'):
+                word = w.reduced_word()
             else:
-                word = weight.reduced_word()
+                word = w
             n = self.weight_lattice_realization().n
-            u = list( self.module_generators )
-            for i in reversed(word):
-                u = u + sum((x.demazure_operator(i, truncated = True) for x in u), [])
-            x = ['x%s'%i for i in range(1,n+1)]
-            P = PolynomialRing(QQ, x)
-            u = [b.weight() for b in u]
-            return sum((prod((x[i]**(la[i]) for i in range(n)), P.one()) for la in u), P.zero())
+            u = self.algebra(ZZ).sum_of_monomials(self.module_generators)
+            u = self.demazure_operator(u, word)
+            if f is None:
+                x = ['x%s'%i for i in range(1,n+1)]
+                P = PolynomialRing(ZZ, x)
+                # TODO: use P.linear_combination when PolynomialRing will be a ModulesWithBasis
+                return sum((coeff*prod((x[i]**(c.weight()[i]) for i in range(n)), P.one()) for c, coeff in u), P.zero())
+            else:
+                return sum((coeff*f(c)) for c, coeff in u)
 
         def character(self, R=None):
             """

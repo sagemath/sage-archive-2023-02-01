@@ -673,32 +673,54 @@ class Crystals(Category_singleton):
             G = self.digraph(**options)
             return G.plot3d()
 
-        def demazure_elements(self, element_list, reduced_word, raising = False):
+        # TODO: this could be a method in Crystals.Algebras.ElementMethods, so that
+        # one could do:
+        #   sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
+        #   sage: M = C.algebra(QQ)
+        #   sage: m = M.an_element()
+        #   sage: m.demazure_operator([1,4,2])
+        def demazure_operator(self, element, reduced_word):
             r"""
-            Returns elements obtained from ``element_list`` by lowering operators from ``reduced_word``.
+            Returns the application of Demazure operators `D_i` for `i` from ``reduced_word`` on ``element``.
 
-            Returns the list of the elements of the form `f_{i_1}^{m_1} \cdots f_{i_l}^{m_l} v`
-            where `v` is in ``element_list``, ``reduced_word`` is `[i_1,i_2,\ldots,i_l]`, and
-            the `m_i` are nonnegative integers. If ``raising`` is True, use `e_i` instead of `f_i`.
+            INPUT:
+
+            - ``element`` -- an element of a free module indexed by the underlying crystal
+            - ``reduced_word`` -- a reduced word of the Weyl group of the same type as the underlying crystal
+
+            OUTPUT:
+
+            - an element of the free module indexed by the underlying crystal
 
             EXAMPLES::
 
-                sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
-                sage: element_list = [C.highest_weight_vector()]
-                sage: C.demazure_elements(element_list, [1,2,1])
-                set([[[1, 2], [3]], [[2, 2], [3]], [[1, 3], [3]], [[2, 3], [3]], [[1, 2], [2]], [[1, 1], [2]], [[1, 3], [2]], [[1, 1], [3]]])
+                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: C = CombinatorialFreeModule(QQ,T)
+                sage: t = T.highest_weight_vector()
+                sage: b = 2*C(t)
+                sage: T.demazure_operator(b,[1,2,1])
+                2*B[[[1, 2], [3]]] + 2*B[[[2, 2], [3]]] + 2*B[[[1, 3], [3]]] + 2*B[[[2, 3], [3]]]
+                + 2*B[[[1, 2], [2]]] + 2*B[[[1, 1], [2]]] + 2*B[[[1, 3], [2]]] + 2*B[[[1, 1], [3]]]
 
+            The Demazure operator is idempotent::
+
+                sage: T = CrystalOfTableaux("A1",shape=[4])
+                sage: C = CombinatorialFreeModule(QQ,T)
+                sage: b = C(T.module_generators[0]); b
+                B[[[1, 1, 1, 1]]]
+                sage: e = T.demazure_operator(b,[1]); e
+                B[[[1, 1, 1, 1]]] + B[[[1, 1, 1, 2]]] + B[[[2, 2, 2, 2]]] + B[[[1, 1, 2, 2]]] + B[[[1, 2, 2, 2]]]
+                sage: e == T.demazure_operator(e,[1])
+                True
+
+                sage: all(T.demazure_operator(T.demazure_operator(C(t),[1]),[1]) == T.demazure_operator(C(t),[1]) for t in T)
+                True
             """
-
-            element_list = set(element_list)
-            for ix in range(len(reduced_word)):
-                i = reduced_word[-ix-1]
-                # go backwards through the reduced word
-                new_elements = []
-                for x in element_list:
-                    new_elements += x.demazure_operator(i, raising = raising)
-                element_list = set(new_elements)
-            return element_list
+            M = element.parent()
+            for i in reversed(reduced_word):
+                element = M.linear_combination((c.demazure_operator_simple(i), coeff)
+                                               for c, coeff in element)
+            return element
 
     class ElementMethods:
 
@@ -922,12 +944,26 @@ class Crystals(Category_singleton):
                     b = b.e(i)
             return b
 
-        def demazure_operator(self, i, truncated = False, raising = False):
+        def demazure_operator_simple(self, i, ring = None):
             r"""
-            Returns the list of the elements one can obtain from
-            ``self`` by application of `f_i`.  If the option
-            "truncated" is set to True, then ``self`` is not included
-            in the list. If `raising` is True, use `e_i` instead of `f_i`.
+            Returns the Demazure operator `D_i` applied on ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the index set of the underlying crystal
+            - ``ring`` -- (default: ``QQ``) a ring
+
+            OUTPUT:
+
+            - an element of the ``ring``-free module indexed by the underlying crystal
+
+            Let `r=\langle wt(self), \alpha^\vee_i \rangle`.
+
+            If `r\ge 0`, this returns the sum of the elements obtained
+            from ``self`` by application of `f_i^k` for `0\le k\le r`.
+
+            If `r<0`, this returns the opposite of the sum of the
+            elements obtained by application of `e_i^k` for `0<k<-r`.
 
             REFERENCES:
 
@@ -941,42 +977,48 @@ class Crystals(Category_singleton):
 
                 sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
                 sage: t=T(rows=[[1,2],[2]])
-                sage: t.demazure_operator(2)
-                [[[1, 2], [2]], [[1, 3], [2]], [[1, 3], [3]]]
-                sage: t.demazure_operator(2, truncated = True)
-                [[[1, 3], [2]], [[1, 3], [3]]]
-                sage: t.demazure_operator(1, truncated = True)
-                []
-                sage: t.demazure_operator(1)
-                [[[1, 2], [2]]]
-                sage: t.demazure_operator(1, raising = True)
-                [[[1, 2], [2]], [[1, 1], [2]]]
-                sage: t.demazure_operator(1, truncated = True, raising = True)
-                [[[1, 1], [2]]]
-                sage: t.demazure_operator(2, truncated = True, raising = True)
-                []
+                sage: t.demazure_operator_simple(2)
+                B[[[1, 2], [2]]] + B[[[1, 3], [2]]] + B[[[1, 3], [3]]]
+                sage: t.demazure_operator_simple(2).parent()
+                Free module generated by The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]] over Integer Ring
+
+                sage: t.demazure_operator_simple(1)
+                0
 
                 sage: K = KirillovReshetikhinCrystal(['A',2,1],2,1)
                 sage: t = K(rows=[[3],[2]])
-                sage: t.demazure_operator(0)
-                [[[2, 3]], [[1, 2]]]
+                sage: t.demazure_operator_simple(0)
+                B[[[2, 3]]] + B[[[1, 2]]]
+
+            TESTS::
+
+                sage: K = KirillovReshetikhinCrystal(['A',2,1],1,1)
+                sage: x = K.an_element(); x
+                [[1]]
+                sage: x.demazure_operator_simple(0)
+                0
+                sage: x.demazure_operator_simple(0, ring = QQ).parent()
+                Free module generated by Kirillov-Reshetikhin crystal of type ['A', 2, 1] with (r,s)=(1,1) over Rational Field
             """
-            if truncated:
-                l = []
-            else:
+            from sage.rings.integer_ring import ZZ
+            if ring is None:
+                ring = ZZ
+            C = self.parent().algebra(ring)
+            r = self.phi(i) - self.epsilon(i)
+            if r >= 0:
                 l = [self]
-            curr = self
-            if raising:
-                for k in range(self.epsilon(i)):
-                    new_element = curr.e(i)
-                    l.append(new_element)
-                    curr = new_element
+                element = self
+                for k in range(r):
+                    element = element.f(i)
+                    l.append(element)
+                return C.sum_of_monomials(l)
             else:
-                for k in range(self.phi(i)):
-                    new_element = curr.f(i)
-                    l.append(new_element)
-                    curr = new_element
-            return l
+                l = []
+                element = self
+                for k in range(-r-1):
+                    element = element.e(i)
+                    l.append(element)
+                return - C.sum_of_monomials(l)
 
         def stembridgeDelta_depth(self,i,j):
             r"""

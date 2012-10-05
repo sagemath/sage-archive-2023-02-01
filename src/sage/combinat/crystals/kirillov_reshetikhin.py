@@ -211,8 +211,13 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
     if ct.is_untwisted_affine():
         if ct.type() == 'A':
             return KR_type_A(ct, r, s)
-        elif ct.type() == 'D' and r<ct.rank()-2:
-            return KR_type_vertical(ct, r, s)
+        elif ct.type() == 'D':
+            if r<ct.rank()-2:
+                return KR_type_vertical(ct, r, s)
+            elif r in {ct.rank()-2,ct.rank()-1}:
+                return KR_type_spin(ct, r, s)
+            else:
+                raise ValueError("wrong range of parameters")
         elif ct.type() == 'B':
             if r<ct.rank()-1:
                 return KR_type_vertical(ct, r, s)
@@ -2432,6 +2437,223 @@ class KR_type_Dn_twistedElement(AffineCrystalFromClassicalElement):
 
 KR_type_Dn_twisted.Element = KR_type_Dn_twistedElement
 
+class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
+    r"""
+    Class of Kirillov-Reshetikhin crystals `B^{n,s}` of type `D_n^{1)}`.
+
+    EXAMPLES::
+
+        sage: K = KirillovReshetikhinCrystal(['D',4,1],4,1); K
+        Kirillov-Reshetikhin crystal of type ['D', 4, 1] with (r,s)=(4,1)
+        sage: [[b,b.f(0)] for b in K]
+        [[[++++, []], None], [[++--, []], None], [[+-+-, []], None], [[-++-, []], None],
+        [[+--+, []], None], [[-+-+, []], None], [[--++, []], [++++, []]], [[----, []], [++--, []]]]
+
+        sage: K = KirillovReshetikhinCrystal(['D',4,1],4,2); K
+        Kirillov-Reshetikhin crystal of type ['D', 4, 1] with (r,s)=(4,2)
+        sage: [[b,b.f(0)] for b in K]
+        [[[[1], [2], [3], [4]], None], [[[1], [2], [-4], [4]], None], [[[1], [3], [-4], [4]], None],
+        [[[2], [3], [-4], [4]], None], [[[1], [4], [-4], [4]], None], [[[2], [4], [-4], [4]], None],
+        [[[3], [4], [-4], [4]], [[1], [2], [3], [4]]], [[[-4], [4], [-4], [4]], [[1], [2], [-4], [4]]],
+        [[[-4], [4], [-4], [-3]], [[1], [2], [-4], [-3]]], [[[-4], [4], [-4], [-2]], [[1], [3], [-4], [-3]]],
+        [[[-4], [4], [-4], [-1]], [[2], [3], [-4], [-3]]], [[[-4], [4], [-3], [-2]], [[1], [4], [-4], [-3]]],
+        [[[-4], [4], [-3], [-1]], [[2], [4], [-4], [-3]]], [[[-4], [4], [-2], [-1]], [[-4], [4], [-4], [4]]],
+        [[[-4], [-3], [-2], [-1]], [[-4], [4], [-4], [-3]]], [[[1], [2], [-4], [-3]], None], [[[1], [3], [-4], [-3]], None],
+        [[[2], [3], [-4], [-3]], None], [[[1], [3], [-4], [-2]], None], [[[2], [3], [-4], [-2]], None],
+        [[[2], [3], [-4], [-1]], None], [[[1], [4], [-4], [-3]], None], [[[2], [4], [-4], [-3]], None],
+        [[[3], [4], [-4], [-3]], None], [[[3], [4], [-4], [-2]], [[1], [3], [-4], [4]]],
+        [[[3], [4], [-4], [-1]], [[2], [3], [-4], [4]]], [[[1], [4], [-4], [-2]], None], [[[2], [4], [-4], [-2]], None],
+        [[[2], [4], [-4], [-1]], None], [[[1], [4], [-3], [-2]], None], [[[2], [4], [-3], [-2]], None],
+        [[[2], [4], [-3], [-1]], None], [[[3], [4], [-3], [-2]], [[1], [4], [-4], [4]]],
+        [[[3], [4], [-3], [-1]], [[2], [4], [-4], [4]]], [[[3], [4], [-2], [-1]], [[3], [4], [-4], [4]]]]
+
+    TESTS::
+
+        sage: K = KirillovReshetikhinCrystal(['D',4,1],3,1)
+        sage: all(b.e(0).f(0) == b for b in K if b.epsilon(0)>0)
+        True
+
+        sage: K = KirillovReshetikhinCrystal(['D',5,1],5,2)
+        sage: all(b.f(0).e(0) == b for b in K if b.phi(0)>0)
+        True
+    """
+    def classical_decomposition(self):
+        r"""
+        Returns the classical crystal underlying the Kirillov-Reshetikhin crystal `B^{r,s}`
+        of type `D_n^{(1)}` for `r=n-1,n`. It is given by `B^{n,s} \cong B(s \Lambda_r)`.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['D',4,1],4,1)
+            sage: K.classical_decomposition()
+            The crystal of tableaux of type ['D', 4] and shape(s) [[1/2, 1/2, 1/2, 1/2]]
+            sage: K = KirillovReshetikhinCrystal(['D',4,1],3,1)
+            sage: K.classical_decomposition()
+            The crystal of tableaux of type ['D', 4] and shape(s) [[1/2, 1/2, 1/2, -1/2]]
+            sage: K = KirillovReshetikhinCrystal(['D',4,1],3,2)
+            sage: K.classical_decomposition()
+            The crystal of tableaux of type ['D', 4] and shape(s) [[1, 1, 1, -1]]
+        """
+        C = self.cartan_type().classical()
+        s = self.s()
+        if self.r() == C.n:
+            c = [s/2]*C.n
+        else:
+            c = [s/2]*(C.n-1)+[-s/2]
+        return CrystalOfTableaux(C, shape = c)
+
+    def dynkin_diagram_automorphism(self, i):
+        """
+        Specifies the Dynkin diagram automorphism underlying the promotion action on the crystal
+        elements. The automorphism needs to map node 0 to some other Dynkin node.
+
+        Here we use the Dynkin diagram automorphism which interchanges nodes 0 and 1 and leaves
+        all other nodes unchanged.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['D',4,1],4,1)
+            sage: K.dynkin_diagram_automorphism(0)
+            1
+            sage: K.dynkin_diagram_automorphism(1)
+            0
+            sage: K.dynkin_diagram_automorphism(4)
+            4
+        """
+        aut = [1,0]+range(2,self.cartan_type().rank())
+        return aut[i]
+
+    def promotion_on_highest_weight_vectors(self):
+        r"""
+        Returns the promotion operator on `\{2,3,\ldots,n\}`-highest weight vectors.
+
+        A `\{2,3,\ldots,n\}`-highest weight vector in `B(s\Lambda_n)` of weight
+        `w=(w_1,\ldots,w_n)` is mapped to a `\{2,3,\ldots,n\}`-highest weight vector in `B(s\Lambda_{n-1})`
+        of weight `(-w_1,w_2,\ldots,w_n)` and vice versa.
+
+        See also :meth:`promotion_on_highest_weight_vectors_inverse` and :meth:`promotion`.
+
+        EXAMPLES::
+
+            sage: KR = KirillovReshetikhinCrystal(['D',4,1],4,2)
+            sage: prom = KR.promotion_on_highest_weight_vectors()
+            sage: T = KR.classical_decomposition()
+            sage: HW = [t for t in T if t.is_highest_weight([2,3,4])]
+            sage: for t in HW:
+            ...     print t, prom[t]
+            ...
+            [4, 3, 2, 1] [-1, 4, 3, 2]
+            [4, -4, 3, 2] [-4, 4, 3, 2]
+            [-1, -4, 3, 2] [-4, 3, 2, 1]
+
+            sage: KR = KirillovReshetikhinCrystal(['D',4,1],4,1)
+            sage: prom = KR.promotion_on_highest_weight_vectors()
+            sage: T = KR.classical_decomposition()
+            sage: HW = [t for t in T if t.is_highest_weight([2,3,4])]
+            sage: for t in HW:
+            ...     print t, prom[t]
+            ...
+            [++++, []] [-+++, []]
+            [-++-, []] [+++-, []]
+        """
+        T = self.classical_decomposition()
+        ind = T.index_set()
+        ind.remove(1)
+        C = T.cartan_type()
+        n = C.n
+        sh = [ i for i in T.shapes[0] ]
+        sh[n-1] = -sh[n-1]
+        T_dual = CrystalOfTableaux(C, shape = sh)
+        hw = [ t for t in T if t.is_highest_weight(index_set = ind) ]
+        hw_dual = [ t for t in T_dual if t.is_highest_weight(index_set = ind) ]
+        dic_weight = {tuple(t.weight().to_vector()) : t for t in hw}
+        dic_weight_dual = {tuple(t.weight().to_vector()) : t for t in hw_dual}
+        def neg(x):
+            y = [i for i in x]
+            y[0] = -y[0]
+            return tuple(y)
+        return dict( (dic_weight[w], dic_weight_dual[neg(w)]) for w in dic_weight.keys() )
+
+    def promotion_on_highest_weight_vectors_inverse(self):
+        r"""
+        Returns the inverse promotion operator on `\{2,3,\ldots,n\}`-highest weight vectors.
+
+        See also :meth:`promotion_on_highest_weight_vectors` and :meth:`promotion_inverse`.
+
+        EXAMPLES::
+
+            sage: KR = KirillovReshetikhinCrystal(['D',4,1],3,2)
+            sage: prom = KR.promotion_on_highest_weight_vectors()
+            sage: prom_inv = KR.promotion_on_highest_weight_vectors_inverse()
+            sage: T = KR.classical_decomposition()
+            sage: HW = [t for t in T if t.is_highest_weight([2,3,4])]
+            sage: all(prom_inv[prom[t]] == t for t in HW)
+            True
+        """
+        D = self.promotion_on_highest_weight_vectors()
+        return dict( (D[t],t) for t in D.keys())
+
+    def promotion(self):
+        """
+        Returns the promotion operator on `B^{r,s}` of type `D_n^{(1)}` for `r=n-1,n`.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['D',4,1],3,1)
+            sage: T = K.classical_decomposition()
+            sage: promotion = K.promotion()
+            sage: for t in T:
+            ...     print t, promotion(t)
+            ...
+            [+++-, []] [-++-, []]
+            [++-+, []] [-+-+, []]
+            [+-++, []] [--++, []]
+            [-+++, []] [++++, []]
+            [+---, []] [----, []]
+            [-+--, []] [++--, []]
+            [--+-, []] [+-+-, []]
+            [---+, []] [+--+, []]
+        """
+        T = self.classical_decomposition()
+        ind = T.index_set()
+        ind.remove(1)
+        C = T.cartan_type()
+        n = C.n
+        def aut(i):
+            if i==n:
+                return n-1
+            elif i==n-1:
+                return n
+            return i
+        return T.crystal_morphism( self.promotion_on_highest_weight_vectors(), index_set = ind)
+
+    def promotion_inverse(self):
+        r"""
+        Returns the inverse promotion operator on `B^{r,s}` of type `D_n^{(1)}` for `r=n-1,n`.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['D',4,1],3,1)
+            sage: T = K.classical_decomposition()
+            sage: promotion = K.promotion()
+            sage: promotion_inverse = K.promotion_inverse()
+            sage: all(promotion_inverse(promotion(t)) == t for t in T)
+            True
+        """
+        D = self.promotion_on_highest_weight_vectors_inverse()
+        T = D.keys()[0].parent()
+        ind = T.index_set()
+        ind.remove(1)
+        C = T.cartan_type()
+        n = C.n
+        def aut(i):
+            if i==n:
+                return n-1
+            elif i==n-1:
+                return n
+            return i
+        return T.crystal_morphism( self.promotion_on_highest_weight_vectors_inverse(), index_set = ind)
+
 #####################################################################
 
 class PMDiagram(CombinatorialObject):
@@ -2661,6 +2883,8 @@ class PMDiagram(CombinatorialObject):
         pm = self.pm_diagram
         return PMDiagram([list(reversed(a)) for a in pm])
 
+
+#####################################################################################
 
 def partitions_in_box(r, s):
     """

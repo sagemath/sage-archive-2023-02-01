@@ -4,7 +4,7 @@ Sage .spkg files
 The directory SAGE_ROOT/spkg/standard contains spkg's. In a source
 install, these are all Sage spkg files (actually .tar or .tar.bz2
 files), which are the source code that defines Sage. In a binary
-install some of these may be small placeholder files to save space.
+install, these files are omitted to save space.
 
 Sage packages are distributed as .spkg files, which are .tar.bz2 files
 (or tar files) but have the extension .spkg to discourage

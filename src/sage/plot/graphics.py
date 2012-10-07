@@ -1216,7 +1216,7 @@ class Graphics(SageObject):
 
     SHOW_OPTIONS = dict(filename=None,
                         # axes options
-                        axes=None, axes_labels=None, axes_pad=.02,
+                        axes=None, axes_labels=None, axes_pad=None,
                         base=None, scale=None,
                         xmin=None, xmax=None, ymin=None, ymax=None,
                         # Figure options
@@ -1318,11 +1318,21 @@ class Graphics(SageObject):
 
         - ``transparent`` - (default: False) If True, make the background transparent.
 
-        - ``axes_pad`` - (default: 0.02) The percentage of the axis
-          range that is added to each end of each axis.  This helps
-          avoid problems like clipping lines because of line-width,
-          etc.  To get axes that are exactly the specified limits, set
-          ``axes_pad`` to zero.
+        - ``axes_pad`` - (default: 0.02 on ``"linear"`` scale, 1 on
+          ``"log"`` scale).
+
+          - In the ``"linear"`` scale, it determines the percentage of the
+            axis range that is added to each end of each axis. This helps
+            avoid problems like clipping lines because of line-width, etc.
+            To get axes that are exactly the specified limits, set
+            ``axes_pad`` to zero.
+
+          - On the ``"log"`` scale, it determines the exponent of the
+            fraction of the minimum (resp. maximum) that is subtracted from
+            the minimum (resp. added to the maximum) value of the axis. For
+            instance if the minimum is `m` and the base of the axis is `b`
+            then the new minimum after padding the axis will be
+            `m - m/b^{axes_pad}`.
 
         - ``ticks_integer`` - (default: False) guarantee that the ticks
           are integers (the ``ticks`` option, if specified, will
@@ -1675,6 +1685,19 @@ class Graphics(SageObject):
 
             sage: plot(sin(x), (x, -pi, pi),thickness=2)+point((pi, -1), pointsize=15)
             sage: plot(sin(x), (x, -pi, pi),thickness=2,axes_pad=0)+point((pi, -1), pointsize=15)
+
+        The behavior of the ``axes_pad`` parameter is different if the axis
+        is in the ``"log"`` scale. If `b` is the base of the axis, the
+        minimum value of the axis, is decreased by the factor
+        `1/b^{axes_pad}` of the minimum and the maximum value of the axis
+        is increased by the same factor of the maximum value.  Compare the
+        axes in the following two plots to see the difference.
+
+        ::
+
+            sage: plot_loglog(x, (1.1*10**-2, 9990))
+
+            sage: plot_loglog(x, (1.1*10**-2, 9990), axes_pad=0)
 
         Via matplotlib, Sage allows setting of custom ticks.  See above
         for more details.
@@ -2084,7 +2107,7 @@ class Graphics(SageObject):
                    gridlines=None, gridlinesstyle=None,
                    vgridlinesstyle=None, hgridlinesstyle=None,
                    show_legend=None, legend_options={},
-                   axes_pad=0.02, ticks_integer=None,
+                   axes_pad=None, ticks_integer=None,
                    tick_formatter=None, ticks=None, title=None,
                    title_pos=None, base=None, scale=None,
                    typeset='default'):
@@ -2162,21 +2185,6 @@ class Graphics(SageObject):
             else:
                 tick_formatter = (tick_formatter, None)
 
-        self.set_axes_range(xmin, xmax, ymin, ymax)
-        d = self.get_axes_range()
-        xmin = d['xmin']
-        xmax = d['xmax']
-        ymin = d['ymin']
-        ymax = d['ymax']
-
-        x_pad=(xmax-xmin)*float(axes_pad)
-        y_pad=(ymax-ymin)*float(axes_pad)
-
-        xmin-=x_pad
-        xmax+=x_pad
-        ymin-=y_pad
-        ymax+=y_pad
-
         global do_verify
         do_verify = verify
 
@@ -2230,7 +2238,14 @@ class Graphics(SageObject):
             if hasattr(g, '_bbox_extra_artists'):
                 self._bbox_extra_artists.extend(g._bbox_extra_artists)
 
-        #--------------------------- Set the scale -----------------------#
+        #---------------- Set the axes limits and scale ------------------#
+        self.set_axes_range(xmin, xmax, ymin, ymax)
+        d = self.get_axes_range()
+        xmin = d['xmin']
+        xmax = d['xmax']
+        ymin = d['ymin']
+        ymax = d['ymax']
+
         xscale, yscale, basex, basey = self._set_scale(figure, scale=scale,
                                                        base=base)
 
@@ -2246,31 +2261,54 @@ class Graphics(SageObject):
         #   floor(logxmin)             floor(logxmax)         ceil(logxmax)
         #   ----|---------+---------------------|-----+----------------|--
         #              logxmin                     logxmax
-        def get_vmin_vmax(vmin, vmax, basev):
+        def get_vmin_vmax(vmin, vmax, basev, axes_pad):
             # It is a must to have vmin < vmax
             import math
-            logvmin = math.log(vmin)/math.log(basev)
-            logvmax = math.log(vmax)/math.log(basev)
+            if axes_pad is None:
+                axes_pad = 1
+            else:
+                axes_pad = float(abs(axes_pad))
+
+            logvmin = math.log(vmin, basev)
+            logvmax = math.log(vmax, basev)
             if math.floor(logvmax) - math.ceil(logvmin) < 0:
                     vmax = basev**math.ceil(logvmax)
                     vmin = basev**math.floor(logvmin)
             elif math.floor(logvmax) - math.ceil(logvmin) < 1:
                 if logvmax-math.floor(logvmax) > math.ceil(logvmin)-logvmin:
                     vmax = basev**math.ceil(logvmax)
+                    if axes_pad > 0:
+                        vmin -= vmin * basev**(-axes_pad)
                 else:
                     vmin = basev**math.floor(logvmin)
+                    if axes_pad > 0:
+                        vmax += vmax * basev**(-axes_pad)
+            elif axes_pad > 0:
+                # pad the axes if we haven't expanded the axes earlier.
+                vmin -= vmin * basev**(-axes_pad)
+                vmax += vmax * basev**(-axes_pad)
             return vmin,vmax
 
         if xscale == 'log' and min(xmin, xmax) > 0:
             if xmin < xmax:
-                xmin, xmax = get_vmin_vmax(xmin, xmax, basex)
+                xmin, xmax = get_vmin_vmax(xmin, xmax, basex, axes_pad)
             else:
-                xmax, xmin = get_vmin_vmax(xmax, xmin, basex)
+                xmax, xmin = get_vmin_vmax(xmax, xmin, basex, axes_pad)
+        else:
+            xpad = 0.02 if axes_pad is None else axes_pad
+            xpad = (xmax - xmin)*float(xpad)
+            xmax += xpad
+            xmin -= xpad
         if yscale == 'log' and min(ymin, ymax) > 0:
             if ymin < ymax:
-                ymin, ymax = get_vmin_vmax(ymin, ymax, basey)
+                ymin, ymax = get_vmin_vmax(ymin, ymax, basey, axes_pad)
             else:
-                ymax, ymin = get_vmin_vmax(ymax, ymin, basey)
+                ymax, ymin = get_vmin_vmax(ymax, ymin, basey, axes_pad)
+        else:
+            ypad = 0.02 if axes_pad is None else axes_pad
+            ypad = (ymax - ymin)*float(ypad)
+            ymax += ypad
+            ymin -= ypad
 
         #-------------------------- Set the legend -----------------------#
         if show_legend is None:

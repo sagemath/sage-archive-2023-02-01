@@ -154,7 +154,6 @@ Families of graphs
 - :meth:`FuzzyBallGraph <GraphGenerators.FuzzyBallGraph>`
 - :meth:`GeneralizedPetersenGraph <GraphGenerators.GeneralizedPetersenGraph>`
 - :meth:`HanoiTowerGraph <GraphGenerators.HanoiTowerGraph>`
-
 - :meth:`HyperStarGraph <GraphGenerators.HyperStarGraph>`
 - :meth:`KneserGraph <GraphGenerators.KneserGraph>`
 - :meth:`LCFGraph <GraphGenerators.LCFGraph>`
@@ -164,9 +163,12 @@ Families of graphs
 - :meth:`NStarGraph <GraphGenerators.NStarGraph>`
 - :meth:`OddGraph <GraphGenerators.OddGraph>`
 - :meth:`PaleyGraph <GraphGenerators.PaleyGraph>`
+- :meth:`RingedTree <GraphGenerators.RingedTree>`
 - :meth:`line_graph_forbidden_subgraphs <GraphGenerators.line_graph_forbidden_subgraphs>`
 - :meth:`PermutationGraph <GraphGenerators.PermutationGraph>`
 - :meth:`trees <GraphGenerators.trees>`
+
+Chessboard graphs :
 
 - :meth:`BishopGraph <GraphGenerators.BishopGraph>`
 - :meth:`KingGraph <GraphGenerators.KingGraph>`
@@ -174,14 +176,10 @@ Families of graphs
 - :meth:`QueenGraph <GraphGenerators.QueenGraph>`
 - :meth:`RookGraph <GraphGenerators.RookGraph>`
 
-- :meth:`RingedTree <GraphGenerators.RingedTree>`
-
-
 Pseudofractal graphs
 --------------------
 
 - :meth:`DorogovtsevGoltsevMendesGraph <GraphGenerators.DorogovtsevGoltsevMendesGraph>`
-
 
 Random graphs
 -------------

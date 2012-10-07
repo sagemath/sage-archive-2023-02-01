@@ -174,6 +174,8 @@ Families of graphs
 - :meth:`QueenGraph <GraphGenerators.QueenGraph>`
 - :meth:`RookGraph <GraphGenerators.RookGraph>`
 
+- :meth:`RingedTree <GraphGenerators.RingedTree>`
+
 
 Pseudofractal graphs
 --------------------
@@ -8649,6 +8651,9 @@ class GraphGenerators():
     KnightGraph = sage.graphs.generators.chessboard.KnightGraph
     QueenGraph = sage.graphs.generators.chessboard.QueenGraph
     RookGraph = sage.graphs.generators.chessboard.RookGraph
+
+    import sage.graphs.generators.families
+    RingedTree = sage.graphs.generators.families.RingedTree
 
 
 def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=False, implementation='c_graph', sparse=True):

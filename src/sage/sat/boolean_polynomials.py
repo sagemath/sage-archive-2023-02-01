@@ -18,7 +18,7 @@ from sage.rings.infinity import PlusInfinity
 from sage.sat.solvers import SatSolver
 from sage.sat.converters import ANF2CNFConverter
 
-def solve(F, converter=None, solver=None, n=1, **kwds):
+def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     """
     Solve system of Boolean polynomials ``F`` by solving the
     SAT-problem -- produced by ``converter`` -- using ``solver``.
@@ -41,6 +41,14 @@ def solve(F, converter=None, solver=None, n=1, **kwds):
     - ``solver`` - a SAT-solver class or object. If ``solver`` is
       ``None`` then cls:`sage.sat.solvers.cryptominisat.CryptoMiniSat`
       is used to construct a new converter.  (default: ``None``)
+
+    - ``target_variables`` - a list of variables. The elements of the list are
+      used to exclude a particular combination of variable assignments of a
+      solution from any further solution. Furthermore ``target_variables``
+      denotes which variable-value pairs appear in the solutions. If
+      ``target_variables`` is ``None`` all variables appearing in the
+      polynomials of ``F`` are used to construct exclusion clauses.
+      (default: ``None``)
 
     - ``**kwds`` - parameters can be passed to the converter and the
        solver by prefixing them with 'c_' and 's_' respectively. For
@@ -91,6 +99,23 @@ def solve(F, converter=None, solver=None, n=1, **kwds):
         sage: sorted(solve_sat([a*b],n=infinity))  # optional - cryptominisat
         [{b: 0, a: 0}, {b: 0, a: 1}, {b: 1, a: 0}]
 
+    In the next example we see how the ``target_variables`` parameter works::
+
+        sage: from sage.sat.boolean_polynomials import solve as solve_sat # optional - cryptominisat
+        sage: R.<a,b,c,d> = BooleanPolynomialRing()                       # optional - cryptominisat
+        sage: F = [a+b,a+c+d]                                             # optional - cryptominisat
+
+    First the normal use case::
+
+        sage: solve_sat(F,n=infinity)                                     # optional - cryptominisat
+        [{d: 0, b: 0, c: 0, a: 0}, {d: 1, b: 1, c: 0, a: 1},
+         {d: 1, b: 0, c: 1, a: 0}, {d: 0, b: 1, c: 1, a: 1}]
+
+    Now we are only interested in the solutions of the variables a and b::
+
+        sage: solve_sat(F,n=infinity,target_variables=[a,b])              # optional - cryptominisat
+        [{b: 0, a: 0}, {b: 1, a: 1}]
+
     .. note::
 
        Although supported, passing converter and solver objects
@@ -107,6 +132,12 @@ def solve(F, converter=None, solver=None, n=1, **kwds):
 
     P = iter(F).next().parent()
     K = P.base_ring()
+
+    if target_variables is None:
+      target_variables = Sequence(F).variables()
+    else:
+      target_variables = Sequence(target_variables).variables()
+      assert(set(target_variables).issubset(set(P.gens())))
 
     # instantiate the SAT solver
 
@@ -143,12 +174,12 @@ def solve(F, converter=None, solver=None, n=1, **kwds):
         s = solver()
 
         if s:
-            S.append( dict( (x, K(s[rho[x]])) for x in P.gens() ) )
+            S.append( dict( (x, K(s[rho[x]])) for x in target_variables ) )
 
             if n is not None and len(S) == n:
                 break
 
-            exclude_solution = tuple(-rho[x]  if s[rho[x]] else rho[x] for x in P.gens())
+            exclude_solution = tuple(-rho[x]  if s[rho[x]] else rho[x] for x in target_variables)
             solver.add_clause(exclude_solution)
 
         else:

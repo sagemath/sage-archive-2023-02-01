@@ -805,6 +805,26 @@ cdef class BuiltinFunction(Function):
                 evalf_params_first)
 
     cdef _is_registered(self):
+        """
+        TESTS:
+
+        Check if :trac:`13586` is fixed::
+
+            sage: from sage.symbolic.function import BuiltinFunction
+            sage: class AFunction(BuiltinFunction):
+            ...         def __init__(self, name, exp=1):
+            ...             self.exponent=exp
+            ...             BuiltinFunction.__init__(self, name, nargs=1)
+            ...         def _eval_(self, arg):
+            ...                 return arg**self.exponent
+            ...
+            sage: p2 = AFunction('p2', 2)
+            sage: p2(x)
+            x^2
+            sage: p3 = AFunction('p3', 3)
+            sage: p3(x)
+            x^3
+        """
         # check if already defined
         cdef int serial = -1
 
@@ -824,7 +844,7 @@ cdef class BuiltinFunction(Function):
 
         # search the function table to check if any of this type
         for key, val in sfunction_serial_dict.iteritems():
-            if val.__class__ == self.__class__:
+            if key == self._name and val.__class__ == self.__class__:
                 self._serial = key
                 return True
 

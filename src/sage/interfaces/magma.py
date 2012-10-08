@@ -243,14 +243,15 @@ def extcode_dir():
     in a writable directory owned by the user, since when attached,
     Magma has to write sig and lck files.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.interfaces.magma.extcode_dir()
         '...dir_.../data/'
     """
     global EXTCODE_DIR
     if not EXTCODE_DIR:
         import shutil
-        tmp = sage.misc.misc.tmp_dir()
+        tmp = sage.misc.temporary_file.tmp_dir()
         shutil.copytree('%s/magma/'%sage.misc.misc.SAGE_EXTCODE, tmp + '/data')
         EXTCODE_DIR = "%s/data/"%tmp
     return EXTCODE_DIR

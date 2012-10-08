@@ -284,9 +284,9 @@ class Sage(Expect):
         EXAMPLES::
 
             sage: sage0._quit_string()
-            'from sage.misc.misc import delete_tmpfiles; delete_tmpfiles()'
+            ''
         """
-        return 'from sage.misc.misc import delete_tmpfiles; delete_tmpfiles()'
+        return ""
 
     def preparse(self, x):
         """

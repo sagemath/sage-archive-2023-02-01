@@ -647,7 +647,7 @@ def f(%s):
     if verbose:
         print s
     import sage.misc.misc
-    tmpfile = sage.misc.misc.tmp_filename() + ".spyx"
+    tmpfile = sage.misc.temporary_file.tmp_filename(ext=".spyx")
     open(tmpfile,'w').write(s)
 
     import sage.server.support
@@ -748,8 +748,8 @@ def compile_and_load(code):
         sage: module.f(10)
         100
     """
-    from sage.misc.misc import tmp_filename
-    file = tmp_filename() + ".pyx"
+    from sage.misc.temporary_file import tmp_filename
+    file = tmp_filename(ext=".pyx")
     open(file,'w').write(code)
     from sage.server.support import cython_import
     return cython_import(file, create_local_c_file=False)

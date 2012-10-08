@@ -56,7 +56,7 @@ def cython(code,
         Need to create a clever caching system so code only gets
         compiled once.
     """
-    tmpfile = sage.misc.misc.tmp_filename() + ".spyx"
+    tmpfile = sage.misc.temporary_file.tmp_filename(ext=".spyx")
     open(tmpfile,'w').write(code)
     sage.server.support.cython_import_all(tmpfile, globals(),
                                          verbose=verbose, compile_message=compile_message,

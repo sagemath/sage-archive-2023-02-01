@@ -35,7 +35,8 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sequence import Sequence
 from sage.combinat.combinat import combinations_iterator
 from sage.structure.element import is_Vector
-from sage.misc.misc import verbose, get_verbose, graphics_filename
+from sage.misc.misc import verbose, get_verbose
+from sage.misc.temporary_file import graphics_filename
 from sage.rings.number_field.all import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer

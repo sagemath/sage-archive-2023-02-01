@@ -2036,12 +2036,12 @@ class FileCache:
             sage: FC[((1,2),())] = 2
             sage: FC[((1,),(('a',1),))] = 3
             sage: for f in sorted(FC.file_list()): print f[len(dir):]
-            /t-.key.sobj
-            /t-.sobj
-            /t-1_2.key.sobj
-            /t-1_2.sobj
-            /t-a-1.1.key.sobj
-            /t-a-1.1.sobj
+            t-.key.sobj
+            t-.sobj
+            t-1_2.key.sobj
+            t-1_2.sobj
+            t-a-1.1.key.sobj
+            t-a-1.1.sobj
         """
         files = []
         prefix = self._prefix
@@ -2138,7 +2138,7 @@ class FileCache:
         EXAMPLES::
 
             sage: from sage.misc.cachefunc import FileCache
-            sage: dir = tmp_dir() + '/'
+            sage: dir = tmp_dir()
             sage: FC = FileCache(dir, memory_cache = False, prefix='foo')
             sage: N = FC._filename(((1,2), (('a',1),('b',2))))
             sage: print N[len(dir):]
@@ -2166,7 +2166,7 @@ class FileCache:
         EXAMPLES::
 
             sage: from sage.misc.cachefunc import FileCache
-            sage: dir = tmp_dir() + '/'
+            sage: dir = tmp_dir()
             sage: FC = FileCache(dir, memory_cache = False, prefix='foo')
             sage: k = ((),(('a',1),))
             sage: FC[k] = True
@@ -2185,7 +2185,7 @@ class FileCache:
         EXAMPLES::
 
             sage: from sage.misc.cachefunc import FileCache
-            sage: dir = tmp_dir() + '/'
+            sage: dir = tmp_dir()
             sage: FC1 = FileCache(dir, memory_cache = False, prefix='foo')
             sage: FC2 = FileCache(dir, memory_cache = False, prefix='foo')
             sage: k = ((),(('a',1),))
@@ -2226,7 +2226,7 @@ class FileCache:
         EXAMPLES::
 
             sage: from sage.misc.cachefunc import FileCache
-            sage: dir = tmp_dir() + '/'
+            sage: dir = tmp_dir()
             sage: FC1 = FileCache(dir, memory_cache = False, prefix='foo')
             sage: FC2 = FileCache(dir, memory_cache = False, prefix='foo')
             sage: k = ((),(('a',1),))
@@ -2255,7 +2255,7 @@ class FileCache:
         EXAMPLES::
 
             sage: from sage.misc.cachefunc import FileCache
-            sage: dir = tmp_dir() + '/'
+            sage: dir = tmp_dir()
             sage: FC1 = FileCache(dir, memory_cache = False, prefix='foo')
             sage: FC2 = FileCache(dir, memory_cache = False, prefix='foo')
             sage: k = ((),(('a',1),))

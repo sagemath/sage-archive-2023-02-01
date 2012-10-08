@@ -99,7 +99,7 @@ class TachyonRT:
             sage: t(tgen.str(), outfile = os.devnull)
             tachyon ...
         """
-        modelfile = tmp_filename() + '.dat'
+        modelfile = tmp_filename(ext='.dat')
         open(modelfile,'w').write(model)
         opts = ''
         ext = outfile[-4:].lower()

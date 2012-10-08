@@ -1,7 +1,7 @@
 import __builtin__
 import os
 
-from sage.misc.misc import tmp_filename
+from sage.misc.temporary_file import tmp_filename
 
 count=0
 
@@ -66,9 +66,9 @@ class InlineFortran:
         # if the first line has !f90 as a comment gfortran will treat it as
         # fortran 90 code
         if x.startswith('!f90'):
-            fname = os.path.join(tmp_filename() +'.f90')
+            fname = tmp_filename(ext='.f90')
         else:
-            fname = os.path.join(tmp_filename() +'.f')
+            fname = tmp_filename(ext='.f')
 
         log = tmp_filename()
         extra_args = '--quiet --f77exec=sage-inline-fortran --f90exec=sage-inline-fortran %s %s >"%s" 2>&1'%(

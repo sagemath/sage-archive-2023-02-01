@@ -52,7 +52,8 @@ AUTHORS:
 from subprocess import *
 import os, select
 
-def test_executable(args, input="", timeout=50.0):
+
+def test_executable(args, input="", timeout=50.0, cwd=None):
     """
     Run the program defined by ``args`` using the string ``input`` on
     the standard input.
@@ -67,6 +68,9 @@ def test_executable(args, input="", timeout=50.0):
 
     - ``timeout`` -- if the program produces no output for ``timeout``
       seconds, a RuntimeError is raised.
+
+    - ``cwd`` -- (default: ``None``) if not None, run the program from
+      the given directory.
 
     OUTPUT: a tuple ``(out, err, ret)`` with the standard output,
     standard error and exitcode of the program run.
@@ -220,69 +224,62 @@ def test_executable(args, input="", timeout=50.0):
 
     Test ``sage-run`` on a Python file, both with an absolute and with a relative path::
 
-        sage: import tempfile
-        sage: F = tempfile.NamedTemporaryFile(suffix=".py")
+        sage: dir = tmp_dir(); name = 'python_test_file.py'
+        sage: fullname = os.path.join(dir, name)
+        sage: F = open(fullname, 'w')
         sage: F.write("print 3^33\n")
-        sage: F.flush()
-        sage: (out, err, ret) = test_executable(["sage", F.name])
+        sage: F.close()
+        sage: (out, err, ret) = test_executable(["sage", fullname])
         sage: print out
         34
         sage: err
         ''
         sage: ret
         0
-        sage: (dir,filename) = os.path.split(F.name)
-        sage: os.chdir(dir)
-        sage: (out, err, ret) = test_executable(["sage", filename])
+        sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
         sage: print out
         34
         sage: err
         ''
         sage: ret
         0
-        sage: del F   # Close and delete the file
 
     The same as above, but now with a ``.sage`` file.  This indirectly
     also tests the preparser::
 
-        sage: import tempfile
-        sage: F = tempfile.NamedTemporaryFile(suffix=".sage")
-        sage: py_file = F.name[:-5] + ".py"  # Will be created by the preparser
+        sage: dir = tmp_dir(); name = 'sage_test_file.sage'
+        sage: fullname = os.path.join(dir, name)
+        sage: F = open(fullname, 'w')
         sage: F.write("k.<a> = GF(5^3); print a^124\n")
-        sage: F.flush()
-        sage: (out, err, ret) = test_executable(["sage", F.name])
-        sage: os.unlink(py_file)
+        sage: F.close()
+        sage: (out, err, ret) = test_executable(["sage", fullname])
         sage: print out
         1
         sage: err
         ''
         sage: ret
         0
-        sage: (dir,filename) = os.path.split(F.name)
-        sage: os.chdir(dir)
-        sage: (out, err, ret) = test_executable(["sage", filename])
-        sage: os.unlink(py_file)
+        sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
         sage: print out
         1
         sage: err
         ''
         sage: ret
         0
-        sage: del F   # Close and delete the file
 
-    Testing "sage --preparse FILE" and "sage -t FILE".  First create a file and preparse it::
+    Testing ``sage --preparse FILE`` and ``sage -t FILE``.  First create
+    a file and preparse it::
 
-        sage: import os
         sage: s = '\"\"\"\nThis is a test file.\n\"\"\"\ndef my_add(a,b):\n    \"\"\"\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        \"\"\"\n    return a+b\n'
-        sage: script = os.path.join(SAGE_TMP, 'my_script.sage')
+        sage: script = os.path.join(tmp_dir(), 'my_script.sage')
+        sage: script_py = script[:-5] + '.py'
         sage: F = open(script, 'w')
         sage: F.write(s)
         sage: F.close()
-        sage: os.chdir(SAGE_TMP)
         sage: (out, err, ret) = test_executable(["sage", "--preparse", script])
         sage: ret
         0
-        sage: os.path.exists(os.path.join(SAGE_TMP, 'my_script.py'))
+        sage: os.path.isfile(script_py)
         True
 
     Now test my_script.sage and the preparsed version my_script.py::
@@ -292,7 +289,7 @@ def test_executable(args, input="", timeout=50.0):
         0
         sage: out.find("All tests passed!") >= 0
         True
-        sage: (out, err, ret) = test_executable(["sage", "-t", os.path.join(SAGE_TMP, 'my_script.py')])
+        sage: (out, err, ret) = test_executable(["sage", "-t", script_py])
         sage: ret
         0
         sage: out.find("All tests passed!") >= 0
@@ -307,13 +304,31 @@ def test_executable(args, input="", timeout=50.0):
         sage: F.write(s)
         sage: F.close()
         sage: OLD_TESTDIR = os.environ['SAGE_TESTDIR']
-        sage: os.environ['SAGE_TESTDIR'] = SAGE_TMP
+        sage: os.environ['SAGE_TESTDIR'] = tmp_dir()
         sage: (out, err, ret) = test_executable(["sage", "-t", script])
         sage: ret
         128
         sage: out.find("1 items had failures:") >= 0
         True
         sage: os.environ['SAGE_TESTDIR'] = OLD_TESTDIR  # just in case
+
+    Check that Sage refuses to run doctests from a directory whose
+    permissions are too loose.  We create a world-writable directory
+    inside a safe temporary directory to test this::
+
+        sage: d = os.path.join(tmp_dir(), "test")
+        sage: os.mkdir(d)
+        sage: os.chmod(d, 0o777)
+        sage: (out, err, ret) = test_executable(["sage", "-t", "nonexisting.py"], cwd=d)
+        sage: print err
+        Traceback (most recent call last):
+        ...
+        RuntimeError: refusing to run doctests...
+        sage: (out, err, ret) = test_executable(["sage", "-tp", "1", "nonexisting.py"], cwd=d)
+        sage: print err
+        Traceback (most recent call last):
+        ...
+        RuntimeError: refusing to run doctests...
 
     Test external programs being called by Sage::
 
@@ -507,8 +522,9 @@ def test_executable(args, input="", timeout=50.0):
         True
 
     """
-    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    if input: p.stdin.write(input)
+    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)
+    if input:
+        p.stdin.write(input)
     p.stdin.close()
     fdout = p.stdout.fileno()
     fderr = p.stderr.fileno()

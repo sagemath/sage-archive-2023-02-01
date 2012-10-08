@@ -28,6 +28,7 @@ AUTHORS:
 import os
 import sage.misc.misc
 from sage.misc.html import html
+from sage.misc.temporary_file import tmp_filename, graphics_filename
 from sage.structure.sage_object import SageObject
 from sage.misc.decorators import suboptions
 from colors import rgbcolor
@@ -1731,14 +1732,14 @@ class Graphics(SageObject):
             kwds.pop('filename', None)
             self.save(DOCTEST_MODE_FILE, **kwds)
         elif sage.plot.plot.EMBEDDED_MODE:
-            kwds.setdefault('filename', sage.misc.misc.graphics_filename())
+            kwds.setdefault('filename', graphics_filename())
             self.save(**kwds)
             if linkmode == True:
                 return "<img src='cell://%s'>" % kwds['filename']
             else:
                 html("<img src='cell://%s'>" % kwds['filename'])
         else:
-            kwds.setdefault('filename', sage.misc.misc.tmp_filename() + '.png')
+            kwds.setdefault('filename', tmp_filename(ext='.png'))
             self.save(**kwds)
             os.system('%s %s 2>/dev/null 1>/dev/null &'
                       % (sage.misc.viewer.browser(), kwds['filename']))
@@ -2533,8 +2534,7 @@ class Graphics(SageObject):
         You can also pass extra options to the plot command instead of this
         method, e.g. ::
 
-            sage: plot(x^2 - 5, (x, 0, 5), ymin=0).save(
-            ...       sage.misc.misc.tmp_filename() + '.png')
+            sage: plot(x^2 - 5, (x, 0, 5), ymin=0).save(tmp_filename(ext='.png'))
 
         will save the same plot as the one shown by this command::
 
@@ -2572,7 +2572,7 @@ class Graphics(SageObject):
         if filename is None:
             filename = options.pop('filename')
         if filename is None:
-            filename = sage.misc.misc.graphics_filename()
+            filename = graphics_filename()
         ext = os.path.splitext(filename)[1].lower()
 
         if ext not in ALLOWED_EXTENSIONS:
@@ -2921,7 +2921,7 @@ class GraphicsArray(SageObject):
 
         EXAMPLES::
 
-            sage: F = sage.misc.misc.tmp_filename()+'.png'
+            sage: F = tmp_filename(ext='.png')
             sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in [1..3]]
             sage: G = graphics_array(L)
             sage: G.save(F,500,axes=False)  # long time (6s on sage.math, 2012)
@@ -2966,7 +2966,7 @@ class GraphicsArray(SageObject):
             self.save(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
             return
         if filename is None:
-            filename = sage.misc.misc.tmp_filename() + '.png'
+            filename = tmp_filename(ext='.png')
         self._render(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.browser(), filename))

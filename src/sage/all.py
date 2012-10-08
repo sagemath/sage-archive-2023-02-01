@@ -235,26 +235,6 @@ def quit_sage(verbose=True):
 
     pari._unsafe_deallocate_pari_stack()
 
-    ### The following is removed -- since it would cleanup
-    ### the tmp directory that the sage cleaner depends upon.
-    # The following code close all open file descriptors,
-    # so that on shared file systems the delete_tmpfiles
-    # command below works.
-    # AUTHOR:
-    #    * Kate Minola (2007-05-03)
-    #import resource             # Resource usage information.
-    #maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
-    #if maxfd != resource.RLIM_INFINITY:
-        # Iterate through and close all file descriptors.
-    #    for fd in range(0, maxfd):
-    #        try:
-    #            os.close(fd)
-    #        except OSError:  # ERROR, fd wasn't open to begin with (ignored)
-    #            pass
-    # Now delete the temp files
-    #from sage.misc.misc import delete_tmpfiles
-    #delete_tmpfiles()
-
     # stop the twisted reactor
     try:
        from twisted.internet import reactor

@@ -38,6 +38,8 @@ from warnings import warn
 import operator, os, stat, socket, sys, signal, time, weakref, resource, math
 import sage.misc.prandom as random
 
+from sage.misc.temporary_file import tmp_dir, tmp_filename, delete_tmpfiles
+
 from banner import version, banner
 
 SAGE_ROOT = os.environ["SAGE_ROOT"]
@@ -136,27 +138,15 @@ if _mode != _desired_mode:
 # It is called temp instead of tmp mainly for
 # "historical reasons"...
 
-SAGE_TMP='%s/temp/%s/%s/'%(DOT_SAGE, HOSTNAME, os.getpid())
-
+SAGE_TMP = os.path.join(DOT_SAGE, 'tmp', HOSTNAME, str(os.getpid()))
 sage_makedirs(SAGE_TMP)
 
-SPYX_TMP = '%s/spyx/'%SAGE_TMP
+SPYX_TMP = os.path.join(SAGE_TMP, 'spyx/')
 
-
-def delete_tmpfiles():
-    # !!!If you change this, see also SAGE_ROOT/local/bin/sage-doctest!!!
-    import shutil
-    try:
-        if os.path.exists(SAGE_TMP):
-            shutil.rmtree(SAGE_TMP)
-    except OSError, msg:
-        print msg
-        pass
-
-SAGE_TMP_INTERFACE='%s/interface/'%SAGE_TMP
+SAGE_TMP_INTERFACE = os.path.join(SAGE_TMP, 'interface/')
 sage_makedirs(SAGE_TMP_INTERFACE)
 
-SAGE_DB = '%s/db'%DOT_SAGE
+SAGE_DB = os.path.join(DOT_SAGE, 'db')
 sage_makedirs(SAGE_DB)
 
 try:
@@ -1964,70 +1954,6 @@ def cancel_alarm():
 import pdb
 set_trace = pdb.set_trace
 
-
-#################################################################
-# temporary directory
-#################################################################
-
-def tmp_dir(name='dir'):
-    r"""
-    Create and return a temporary directory in
-    ``$HOME/.sage/temp/hostname/pid/``
-    """
-    name = str(name)
-    n = 0
-    while True:
-        tmp = "%s/%s_%s"%(SAGE_TMP, name, n)
-        if not os.path.exists(tmp):
-            break
-        n += 1
-    try:
-        os.makedirs(tmp)
-    except IOError:
-        # Put in local directory instead, e.g., because user doesn't
-        # have privileges to write in Sage's tmp directory.  That's OK.
-        n = 0
-        while True:
-            tmp = "/temp/tmp_%s_%s"%(name, n)
-            if not os.path.exists(tmp):
-                break
-            n += 1
-        os.makedirs(tmp)
-    return os.path.abspath(tmp)
-
-
-#################################################################
-# temporary filename
-#################################################################
-
-__tmp_n = 0
-
-def tmp_filename(name='tmp'):
-    name = list(str(name))
-    for i in range(len(name)):
-        # protect against paths with slashes, colons, etc
-        if not (name[i].isalpha() or name[i].isdigit()):
-            name[i] = '_'
-    name = ''.join(name)
-
-    global __tmp_n
-    while True:
-        tmp = "%s/%s_%s"%(SAGE_TMP, name, __tmp_n)
-        __tmp_n += 1
-        if not os.path.exists(tmp):
-            break
-    return tmp
-
-def graphics_filename(ext='png'):
-    """
-    Return the next available canonical filename for a plot/graphics
-    file.
-    """
-    i = 0
-    while os.path.exists('sage%d.%s'%(i,ext)):
-        i += 1
-    filename = 'sage%d.%s'%(i,ext)
-    return filename
 
 
 #################################################################

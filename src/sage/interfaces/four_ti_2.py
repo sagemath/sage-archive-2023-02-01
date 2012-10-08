@@ -76,7 +76,7 @@ class FourTi2(object):
             sage: f.directory()
             '/tmp/'
         """
-        from sage.misc.misc import tmp_dir
+        from sage.misc.temporary_file import tmp_dir
         if self._directory is None:
             # we have to put this here rather than in the __init__
             # method since apparently importing sage.misc.misc does not

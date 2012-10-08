@@ -3586,7 +3586,7 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
-            sage: P.write_to_eps(tmp_dir() + 'sage.eps')
+            sage: P.write_to_eps(tmp_filename(ext='.eps'))
 
         It is relatively simple to include this file in a LaTeX
         document.  ``\usepackagegraphics`` must appear in the

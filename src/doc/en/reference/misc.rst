@@ -17,6 +17,7 @@ Miscellaneous
    sage/misc/function_mangling
    sage/misc/exceptions
    sage/misc/misc
+   sage/misc/temporary_file
    sage/misc/bitset
    sage/misc/constant_function
    sage/misc/package

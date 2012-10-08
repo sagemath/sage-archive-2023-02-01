@@ -42,6 +42,7 @@ from sage.modules.free_module_element import vector
 
 from sage.rings.real_double import RDF
 from sage.misc.functional import sqrt, atan, acos
+from sage.misc.temporary_file import tmp_filename
 
 from texture import Texture, is_Texture
 from transform cimport Transformation, point_c, face_c
@@ -564,7 +565,7 @@ end_scene""" % (render_params.antialiasing,
 
         EXAMPLES::
 
-            sage: out_file = sage.misc.misc.tmp_filename() + ".jmol"
+            sage: out_file = tmp_filename(ext=".jmol")
             sage: G = sphere((1, 2, 3), 5) + cube() + sage.plot.plot3d.shapes.Text("hi")
             sage: G.export_jmol(out_file)
             sage: import zipfile
@@ -1073,7 +1074,7 @@ end_scene""" % (render_params.antialiasing,
             filename = kwds['filename']
             del kwds['filename']
         else:
-            filename = sage.misc.misc.tmp_filename()
+            filename = tmp_filename()
 
         from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
         ext = None
@@ -1084,7 +1085,7 @@ end_scene""" % (render_params.antialiasing,
             filename = sage.misc.misc.SAGE_TMP + "/tmp"
         elif EMBEDDED_MODE:
             opts = '-res %s %s'%(figsize[0]*100, figsize[1]*100)
-            filename = sage.misc.misc.graphics_filename()[:-4]
+            filename = sage.misc.temporary_file.graphics_filename()[:-4]
         else:
             opts = '-res %s %s'%(figsize[0]*100, figsize[1]*100)
 
@@ -1222,7 +1223,7 @@ end_scene""" % (render_params.antialiasing,
         Since Tachyon only outputs PNG images, PIL will be used to convert to
         alternate formats::
 
-            sage: cube().save(tmp_filename() + '.gif')
+            sage: cube().save(tmp_filename(ext='.gif'))
         """
         ext = os.path.splitext(filename)[1].lower()
         if ext == '' or ext == '.sobj':
@@ -1240,7 +1241,7 @@ end_scene""" % (render_params.antialiasing,
                 out_filename = filename
             else:
                 # Save to a temporary file, and then convert using PIL
-                out_filename = sage.misc.misc.tmp_filename()
+                out_filename = sage.misc.temporary_file.tmp_filename(ext=ext)
             tachyon_rt(T.tachyon(), out_filename, opts['verbosity'], True,
                 '-res %s %s' % (opts['figsize'][0]*100, opts['figsize'][1]*100))
             if ext != 'png':

@@ -84,7 +84,8 @@ cimport matrix_sparse
 cimport matrix_dense
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
-from sage.misc.misc import verbose, get_verbose, graphics_filename
+from sage.misc.misc import verbose, get_verbose
+from sage.misc.temporary_file import graphics_filename
 
 import sage.rings.all as rings
 

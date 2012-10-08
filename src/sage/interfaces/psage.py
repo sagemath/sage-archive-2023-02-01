@@ -54,7 +54,7 @@ class PSage(Sage):
             raise NotImplementedError, "PSage doesn't work on remote server yet."
         Sage.__init__(self, **kwds)
         import sage.misc.misc
-        T = sage.misc.misc.tmp_dir('sage_smp')
+        T = sage.misc.temporary_file.tmp_dir('sage_smp')
         self.__tmp_dir = T
         self.__tmp = '%s/lock'%T
         self._unlock()

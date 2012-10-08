@@ -1506,7 +1506,7 @@ def load(filename, globals, attach=False):
 
     Note that .py files are *not* preparsed::
 
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hi',2/3; z=-2/9")
+        sage: t=tmp_filename(ext='.py'); open(t,'w').write("print 'hi',2/3; z=-2/9")
         sage: sage.misc.preparser.load(t,globals())
         hi 0
         sage: z
@@ -1514,7 +1514,7 @@ def load(filename, globals, attach=False):
 
     A .sage file *is* preparsed::
 
-        sage: t=tmp_filename()+'.sage'; open(t,'w').write("print 'hi',2/3; s=-2/7")
+        sage: t=tmp_filename(ext='.sage'); open(t,'w').write("print 'hi',2/3; s=-2/7")
         sage: sage.misc.preparser.load(t,globals())
         hi 2/3
         sage: s
@@ -1522,7 +1522,7 @@ def load(filename, globals, attach=False):
 
     Cython files are *not* preparsed::
 
-        sage: t=tmp_filename()+'.pyx'; open(t,'w').write("print 'hi',2/3; z=-2/9")
+        sage: t=tmp_filename(ext='.pyx'); open(t,'w').write("print 'hi',2/3; z=-2/9")
         sage: z=0; sage.misc.preparser.load(t,globals())
         Compiling ....pyx...
         hi 0
@@ -1540,7 +1540,7 @@ def load(filename, globals, attach=False):
     A filename given as an expression get evaluated.  This ensures
     that ``load DATA+'foo.sage'`` works in the Notebook, say::
 
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
+        sage: t=tmp_filename(ext='.py'); open(t,'w').write("print 'hello world'")
         sage: sage.misc.preparser.load(t, globals())
         hello world
 
@@ -1555,10 +1555,11 @@ def load(filename, globals, attach=False):
 
     We attach a file::
 
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
+        sage: t = tmp_filename(ext='.py')
+        sage: open(t,'w').write("print 'hello world'")
         sage: sage.misc.preparser.load(t, globals(), attach=True)
         hello world
-        sage: os.path.normpath(t) in sage.misc.preparser.attached
+        sage: t in sage.misc.preparser.attached
         True
 
     You can't attach remote URLs (yet)::
@@ -1593,7 +1594,7 @@ def load(filename, globals, attach=False):
 
     Make sure that load handles filenames with spaces in the name or path::
 
-        sage: t = tmp_filename() + ' b.sage'; open(t,'w').write("print 2")
+        sage: t = tmp_filename(ext=' b.sage'); open(t,'w').write("print 2")
         sage: sage.misc.preparser.load(t, globals())
         2
     """
@@ -1842,7 +1843,7 @@ def modified_attached_files():
     EXAMPLES::
 
         sage: sage.misc.reset.reset_attached()
-        sage: t=tmp_filename()+'.py';
+        sage: t=tmp_filename(ext='.py');
         sage: a = 0
         sage: f = open(t,'w'); f.write("a = 5"); f.close()
         sage: attach(t)
@@ -1879,8 +1880,8 @@ def attached_files():
     EXAMPLES::
 
         sage: sage.misc.reset.reset_attached()
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
-        sage: t = os.path.normpath(t)
+        sage: t = tmp_filename(ext='.py')
+        sage: open(t,'w').write("print 'hello world'")
         sage: attach(t)
         hello world
         sage: attached_files() == [t]
@@ -1899,8 +1900,8 @@ def detach(filename):
     EXAMPLES::
 
         sage: sage.misc.reset.reset_attached()
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
-        sage: t = os.path.normpath(t)
+        sage: t = tmp_filename(ext='.py')
+        sage: open(t,'w').write("print 'hello world'")
         sage: attach(t)
         hello world
         sage: attached_files() == [t]

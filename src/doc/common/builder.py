@@ -9,6 +9,7 @@ except ValueError:
     pass
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc import sage_makedirs as mkdir
 
 # Read options
 execfile(os.path.join(os.getenv('SAGE_ROOT'), 'devel', 'sage', 'doc', 'common' , 'build_options.py'))
@@ -16,28 +17,6 @@ execfile(os.path.join(os.getenv('SAGE_ROOT'), 'devel', 'sage', 'doc', 'common' ,
 ##########################################
 #          Utility Functions             #
 ##########################################
-def mkdir(path):
-    """
-    Makes the directory at path if it doesn't exist and returns the
-    string path.
-
-    EXAMPLES::
-
-        sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
-        sage: d = tmp_filename(); d
-        '/.../tmp_...'
-        sage: os.path.exists(d)
-        False
-        sage: dd = builder.mkdir(d)
-        sage: d == dd
-        True
-        sage: os.path.exists(d)
-        True
-    """
-    if not os.path.exists(path):
-        os.makedirs(path)
-    return path
-
 def copytree(src, dst, symlinks=False, ignore_errors=False):
     """
     Recursively copy a directory tree using copy2().
@@ -141,7 +120,9 @@ class DocBuilder(object):
             sage: b._output_dir('html')
             '.../devel/sage/doc/output/html/en/tutorial'
         """
-        return mkdir(os.path.join(SAGE_DOC, "output", type, self.lang, self.name))
+        d = os.path.join(SAGE_DOC, "output", type, self.lang, self.name)
+        mkdir(d)
+        return d
 
     def _doctrees_dir(self):
         """
@@ -156,7 +137,9 @@ class DocBuilder(object):
             sage: b._doctrees_dir()
             '.../devel/sage/doc/output/doctrees/en/tutorial'
         """
-        return mkdir(os.path.join(SAGE_DOC, "output", 'doctrees', self.lang, self.name))
+        d = os.path.join(SAGE_DOC, "output", 'doctrees', self.lang, self.name)
+        mkdir(d)
+        return d
 
     def _output_formats(self):
         """

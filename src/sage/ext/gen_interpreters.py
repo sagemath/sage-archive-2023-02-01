@@ -3987,8 +3987,7 @@ def build_interp(interp_spec, dir):
     EXAMPLES::
 
         sage: from sage.ext.gen_interpreters import *
-        sage: testdir = tmp_filename()
-        sage: os.mkdir(testdir)
+        sage: testdir = tmp_dir()
         sage: rdf_interp = RDFInterpreter()
         sage: build_interp(rdf_interp, testdir)
         sage: open(testdir + '/interp_rdf.c').readline()
@@ -4016,8 +4015,7 @@ def rebuild(dir):
     EXAMPLES::
 
         sage: from sage.ext.gen_interpreters import *
-        sage: testdir = tmp_filename()
-        sage: os.mkdir(testdir)
+        sage: testdir = tmp_dir()
         sage: rebuild(testdir)
         Building interpreters for fast_callable
         sage: rebuild(testdir)
@@ -4052,7 +4050,7 @@ def rebuild(dir):
     build_interp(interp, dir)
 
     # Do this last, so we don't do it if there's an error above.
-    with open(dir + '/timestamp', 'w'):
+    with open(os.path.join(dir, 'timestamp'), 'w'):
         pass
 
 # This list of modules gets added to the list in module_list.py.

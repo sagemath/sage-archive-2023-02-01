@@ -380,7 +380,7 @@ def preparse_file_named(name):
     """
     import sage.misc.misc
     name = os.path.abspath(name)
-    tmpfilename = os.path.abspath(sage.misc.misc.tmp_filename(name) + ".py")
+    tmpfilename = sage.misc.misc.tmp_filename('preparse', ext='.py')
     out = open(tmpfilename,'w')
     preparse_file_named_to_stream(name, out)
     out.close()

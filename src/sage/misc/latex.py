@@ -54,7 +54,7 @@ import random
 import subprocess
 import types
 
-from misc import tmp_dir, graphics_filename
+from sage.misc.temporary_file import tmp_dir, graphics_filename
 import sage_eval
 from sage.misc.sage_ostools import have_program
 from sage.misc.cachefunc import cached_function, cached_method

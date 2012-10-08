@@ -368,8 +368,6 @@ import re
 from expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement, AsciiArtString)
 
-from sage.misc.misc import graphics_filename
-
 def clean_output(s):
     if s is None:
         return ''
@@ -837,6 +835,7 @@ class MathematicaElement(ExpectElement):
         P = self._check_valid()
         if P.eval('InputForm[%s]' % self.name()).strip().startswith('Graphics['):
             if filename is None:
+                from sage.misc.temporary_file import graphics_filename
                 filename = graphics_filename()
             orig_dir = P.eval('Directory[]').strip()
             P.chdir(os.path.abspath("."))

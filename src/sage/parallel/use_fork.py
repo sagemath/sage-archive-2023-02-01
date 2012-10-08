@@ -84,7 +84,7 @@ class p_iter_fork:
         v = list(inputs)
         import os, sys, signal
         from sage.structure.sage_object import load
-        from sage.misc.misc import tmp_dir, walltime
+        from sage.misc.all import tmp_dir, walltime
         dir = tmp_dir()
         timeout = self.timeout
         # Subprocesses shouldn't inherit unflushed buffers (cf. #11778):

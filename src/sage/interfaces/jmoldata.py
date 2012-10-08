@@ -144,7 +144,7 @@ class JmolData(SageObject):
             sage: from sage.interfaces.jmoldata import JmolData
             sage: JData = JmolData()
             sage: script = "load =1lcd;display DNA;moveto 0.0 { -473 -713 -518 59.94} 100.0 0.0 0.0 {21.17 26.72 27.295} 27.544636 {0.0 0.0 0.0} -25.287832 64.8414 0.0;"
-            sage: testfile = tmp_filename()+"DNA.png"
+            sage: testfile = tmp_filename(ext="DNA.png")
             sage: JData.export_image(targetfile=testfile,datafile=script,image_type="PNG") # optional -- internet
             sage: print os.path.exists(testfile) # optional -- internet
             True

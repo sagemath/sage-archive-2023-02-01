@@ -55,6 +55,7 @@ from sage.interfaces.tachyon import tachyon_rt
 from sage.structure.sage_object import SageObject
 
 from sage.misc.misc import SAGE_TMP
+from sage.misc.temporary_file import tmp_filename, graphics_filename
 
 #from sage.ext import fast_tachyon_routines
 
@@ -312,14 +313,14 @@ class Tachyon(SageObject):
         """
         import sage.plot.plot
         if sage.plot.plot.DOCTEST_MODE:
-            filename = sage.misc.misc.graphics_filename()
+            filename = graphics_filename()
             self.save(SAGE_TMP + '/test.png', verbose=verbose, extra_opts=extra_opts)
             return
         if sage.plot.plot.EMBEDDED_MODE:
-            filename = sage.misc.misc.graphics_filename()
+            filename = graphics_filename()
             self.save(filename, verbose=verbose, extra_opts=extra_opts)
             return
-        filename = sage.misc.misc.tmp_filename() + '.png'
+        filename = tmp_filename(ext='.png')
         self.save(filename, verbose=verbose, extra_opts=extra_opts)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
 

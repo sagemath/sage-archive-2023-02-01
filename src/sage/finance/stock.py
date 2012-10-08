@@ -424,7 +424,7 @@ class Stock:
         ``AAPL-minutely.csv``. One can load this information into a Stock
         object like so. Note that the path must be explicit::
 
-            sage: filename = tmp_filename() + '.csv'
+            sage: filename = tmp_filename(ext='.csv')
             sage: open(filename,'w').write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
             sage: finance.Stock('aapl').load_from_file(filename)[:5]
             [
@@ -471,7 +471,7 @@ class Stock:
 
         This indirectly tests ``_load_from_csv()``::
 
-            sage: filename = tmp_filename() + '.csv'
+            sage: filename = tmp_filename(ext='.csv')
             sage: open(filename,'w').write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
             sage: finance.Stock('aapl').load_from_file(filename)
             [

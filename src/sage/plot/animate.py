@@ -2,6 +2,7 @@
 Animated plots
 
 EXAMPLES:
+
 We plot a circle shooting up to the right::
 
     sage: a = animate([circle((i,i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
@@ -18,7 +19,7 @@ We plot a circle shooting up to the right::
 import os
 
 from sage.structure.sage_object import SageObject
-
+from sage.misc.temporary_file import tmp_filename, tmp_dir
 import plot
 import sage.misc.misc
 import sage.misc.viewer
@@ -252,7 +253,7 @@ class Animation(SageObject):
             return self._png_dir
         except AttributeError:
             pass
-        d = sage.misc.misc.tmp_dir()
+        d = tmp_dir()
         G = self._frames
         for i, frame in enumerate(self._frames):
             filename = '%s/%s'%(d,sage.misc.misc.pad_zeros(i,8))
@@ -331,7 +332,7 @@ class Animation(SageObject):
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ...                xmin=0, xmax=2*pi, figsize=[2,1])
-            sage: dir = tmp_dir() + '/'
+            sage: dir = tmp_dir()
             sage: a.gif()              # not tested
             sage: a.gif(savefile=dir + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
             sage: a.gif(savefile=dir + 'my_animation.gif', show_path=True) # optional -- ImageMagick
@@ -449,14 +450,14 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
         if plot.DOCTEST_MODE:
-            filename = sage.misc.misc.tmp_filename() + '.gif'
+            filename = tmp_filename(ext='.gif')
             self.gif(savefile=filename, delay=delay, iterations=iterations)
             return
 
         if plot.EMBEDDED_MODE:
             self.gif(delay = delay, iterations = iterations)
         else:
-            filename = sage.misc.misc.tmp_filename() + '.gif'
+            filename = tmp_filename(ext='.gif')
             self.gif(delay=delay, savefile=filename, iterations=iterations)
             os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                 sage.misc.viewer.browser(), filename))
@@ -526,7 +527,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ...                xmin=0, xmax=2*pi, figsize=[2,1])
-            sage: dir = tmp_dir() + '/'
+            sage: dir = tmp_dir()
             sage: a.ffmpeg(savefile=dir + 'new.mpg')       # optional -- ffmpeg
             sage: a.ffmpeg(savefile=dir + 'new.avi')       # optional -- ffmpeg
             sage: a.ffmpeg(savefile=dir + 'new.gif')       # optional -- ffmpeg
@@ -620,7 +621,7 @@ please install it and try again."""
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ...                xmin=0, xmax=2*pi, figsize=[2,1])
-            sage: dir = tmp_dir() + '/'
+            sage: dir = tmp_dir()
             sage: a.save()         # not tested
             sage: a.save(dir + 'wave.gif')   # optional -- ImageMagick
             sage: a.save(dir + 'wave.gif', show_path=True)   # optional -- ImageMagick

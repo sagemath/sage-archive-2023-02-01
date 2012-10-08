@@ -31,7 +31,7 @@ def reset(vars=None, attached=False):
         sage: x
         x
 
-        sage: fn = os.path.normpath(tmp_filename() + 'foo.py')
+        sage: fn = tmp_filename(ext='foo.py')
         sage: sage.misc.reset.EXCLUDE.add('fn')
         sage: open(fn, 'w').write('a = 111')
         sage: attach(fn)
@@ -167,8 +167,8 @@ def reset_attached():
     EXAMPLES::
 
         sage: sage.misc.reset.reset_attached()
-        sage: t = tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
-        sage: t = os.path.normpath(t)
+        sage: t = tmp_filename(ext='.py')
+        sage: open(t,'w').write("print 'hello world'")
         sage: attach(t)
         hello world
         sage: attached_files() == [t]

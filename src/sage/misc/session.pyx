@@ -378,15 +378,15 @@ def attach(*files):
     Here we test attaching multiple files at once::
 
         sage: sage.misc.reset.reset_attached()
-        sage: t1=tmp_filename()+'.py'; open(t1,'w').write("print 'hello world'")
-        sage: t2=tmp_filename()+'.py'; open(t2,'w').write("print 'hi there xxx'")
-        sage: t1, t2 = map(os.path.normpath, (t1, t2))
+        sage: t1 = tmp_filename(ext='.py')
+        sage: open(t1,'w').write("print 'hello world'")
+        sage: t2 = tmp_filename(ext='.py')
+        sage: open(t2,'w').write("print 'hi there xxx'")
         sage: attach(t1, t2)
         hello world
         hi there xxx
-        sage: attached_files() == [t1,t2]
+        sage: set(attached_files()) == set([t1,t2])
         True
-
 
     The contents of the file are then loaded, which means they are
     read into the running Sage session. For example, if ``foo.sage``

@@ -16,7 +16,7 @@ AUTHORS:
 LaTeX Versions of Graphs
 -------------------------------------
 
-.. image:: ../../media/heawood-graph-latex.png
+.. image:: ../../media/graphs/heawood-graph-latex.png
    :align: center
 
 Many mathematical objects in Sage have LaTeX representations, and graphs are no exception.  For a graph ``g``, the command ``view(g)``, issued at the Sage command line or in the notebook, will create a graphic version of ``g``.  Similarly, ``latex(g)`` will return a (long) string that is a representation of the graph in LaTeX.  Other ways of employing LaTeX in Sage, such as ``%latex`` in a notebook cell, or the Typeset checkbox in the notebook, will handle ``g`` appropriately.

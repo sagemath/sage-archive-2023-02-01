@@ -64,24 +64,7 @@ we must ensure several things.
 
   A contradiction indeed.
 
-  .. MATH::
-
-      \begin{picture}(200,200)(-100,-100)
-      \put(-50,0){\circle*{5}}
-      \put(50,0){\circle*{5}}
-      \put(-25,-35){\circle*{5}}
-      \put(25,-35){\circle*{5}}
-      \put(-25,35){\circle*{5}}
-      \put(25,35){\circle*{5}}
-      \qbezier(-50,0)(-37.5, 17.5)(-25,35)
-      \qbezier(-50,0)(-37.5, -17.5)(-25,-35)
-      \qbezier(50,0)(37.5, 17.5)(25,35)
-      \qbezier(50,0)(37.5, -17.5)(25,-35)
-      \qbezier(-25,35)(0,35)(25,35)
-      \linethickness{1.5pt}
-      \qbezier[10](-25,-35)(0,-35)(25,-35)
-      \put(0,0){\makebox(0,0){No way !!!}}
-      \end{picture}
+  .. image:: ../../../media/graphs/cycle.png
 
   That means that, for instance, the edges of a triangle necessarily have the
   same color.
@@ -93,23 +76,7 @@ we must ensure several things.
   In this situation, opposed edges necessarily have the same colors because of
   the previous remark.
 
-  .. MATH::
-
-    \begin{picture}(200,200)(-100,-100)
-    \put(-50,0){\circle*{5}}
-    \put(50,0){\circle*{5}}
-    \put(0,50){\circle*{5}}
-    \put(0,-50){\circle*{5}}
-    \qbezier(50,0)(25,25)(0,50)
-    \qbezier(-50,0)(-25,-25)(0,-50)
-    \linethickness{1.5pt}
-    \qbezier[10](0,50)(-25,25)(-50,0)
-    \qbezier[10](0,-50)(25,-25)(50,0)
-    \put(0,55){\makebox(0,0)[b]{$u_3=(g',h')$}}
-    \put(0,-55){\makebox(0,0)[t]{$u_1=(g,h)$}}
-    \put(55,0){\makebox(0,0)[l]{$u_4=(g,h')$}}
-    \put(-55,0){\makebox(0,0)[r]{$u_2=(g',h)$}}
-    \end{picture}
+  .. image:: ../../../media/graphs/square.png
 
   **1st criterion** : As a corollary, we know that:
 

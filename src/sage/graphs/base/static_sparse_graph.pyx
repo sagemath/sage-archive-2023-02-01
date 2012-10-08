@@ -24,41 +24,7 @@ Author:
 Data structure
 --------------
 
-.. MATH::
-
-    \begin{picture}(600,400)(0,0)
-    \multiput(0, 0)(15, 0){31}{\line(0, 1){15}}
-    \multiput(0, 0)(0, 15){2}{\line(1, 0){450}}
-    \put(-70,2){\makebox(0,0)[b]{edges}}
-    \put(-20,-50){\makebox(0,0)[b]{neighbors[0]}}
-    \put(100,-50){\makebox(0,0)[b]{neighbors[1]}}
-    \put(250,-50){\makebox(0,0)[b]{neighbors[i]}}
-    \put(400,-50){\makebox(0,0)[b]{neighbors[n-1]}}
-    \put(500,-30){\makebox(0,0)[b]{neighbors[n]}}
-    \multiput(450, 0)(15, 0){2}{\qbezier[8](0,0)(0,7.5)(0,15)}
-    \multiput(450, 0)(0, 15){2}{\qbezier[8](0,0)(7.5,0)(15,0)}
-    \put(0,0){\makebox(15,15){2}}
-    \put(15,0){\makebox(15,15){3}}
-    \put(30,0){\makebox(15,15){5}}
-    \put(45,0){\makebox(15,15){7}}
-    \put(60,0){\makebox(15,15){8}}
-    \put(75,0){\makebox(15,15){9}}
-    \put(90,0){\makebox(15,15){4}}
-    \put(105,0){\makebox(15,15){8}}
-    \multiput(120, 0)(15, 0){18}{\makebox(15,15){$\cdot$}}
-    \put(390,0){\makebox(15,15){2}}
-    \put(405,0){\makebox(15,15){5}}
-    \put(420,0){\makebox(15,15){8}}
-    \put(435,0){\makebox(15,15){9}}
-    \thicklines
-    \put(-50, 7.5){\vector(1, 0){40}}
-    \put(-18, -28){\vector(2, 3){16}}
-    \put(97, -25){\vector(0, 1){20}}
-    \put(247, -25){\vector(0, 1){20}}
-    \put(397, -25){\vector(0, 1){20}}
-    \put(490, -5){\vector(-2, 1){20}}
-    \end{picture}
-
+.. image:: ../../../media/graphs/structure.png
 
 The data structure is actually pretty simple and compact. ``short_digraph`` has
 three fields

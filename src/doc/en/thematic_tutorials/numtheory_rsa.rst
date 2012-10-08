@@ -198,7 +198,7 @@ Formally, let
 
     \Sigma
     =
-    \{ \texttt{A}, \texttt{B}, \texttt{C}, \dots, \texttt{Z} \}
+    \{ \mathtt{A}, \mathtt{B}, \mathtt{C}, \dots, \mathtt{Z} \}
 
 be the set of capital letters of the English alphabet. Furthermore,
 let

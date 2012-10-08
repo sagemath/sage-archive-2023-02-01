@@ -252,7 +252,11 @@ fi
 
 # If we haven't found the package yet, we must download it
 if [ ! -f "$PKG_SRC" ]; then
-    echo "Attempting to download package $PKG_NAME"
+    if [ $INFO -eq 0 ]; then
+        echo "Attempting to download package $PKG_NAME"
+    else
+        echo "Attempting to get on-line info for package $PKG_NAME"
+    fi
     mkdir -p "$SAGE_PACKAGES/optional"
     cd "$SAGE_PACKAGES/optional"
 
@@ -281,7 +285,15 @@ if [ ! -f "$PKG_SRC" ]; then
             pkg=`sed -n -f <( echo "/^${PKG_NAME}\$/{p;q;}" && echo "/^${PKG_NAME}-/{p;q;}" ) $repolist`
             rm -f $repolist
             if [ -n "$pkg" ]; then
+                echo ">>> Found $pkg"
                 PKG_NAME=$pkg
+                # If INFO is set, try downloading only the .txt file
+                if [ $INFO -eq 1 ]; then
+                    PKG_URL="$URL_BASE/$repo/$pkg.txt"
+                    sage-download-file 2>/dev/null "$PKG_URL" && exit 0
+                    # If the download failed (for whatever reason),
+                    # fall through and use the .spkg file.
+                fi
                 PKG_URL="$URL_BASE/$repo/$pkg.spkg"
                 break
             fi
@@ -290,7 +302,6 @@ if [ ! -f "$PKG_SRC" ]; then
             echo >&2 "Error: could not find a package matching $PKG_NAME in $URL_BASE"
             exit 1
         fi
-        echo ">>> Found $PKG_NAME."
 
         # Check a second time whether the package is already installed.
         if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$INSTALLED/$PKG_NAME" ]; then

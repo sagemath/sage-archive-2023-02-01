@@ -926,25 +926,61 @@ When you run ``sage -t <filename.py>``, Sage makes a copy of
 ``<filename.py>`` with all the ``sage`` prompts replaced by ``>>>``,
 then uses the standard Python doctest framework to test the
 documentation. More precisely, the Python script
-``SAGE_LOCAL/bin/sage-doctest`` implements documentation testing. It
+``SAGE_LOCAL/bin/sage-doctest`` implements documentation testing, and it
 does the following when asked to test a file ``foo.py`` or
 ``foo.sage``.
 
-#. Creates the directory ``.doctest`` if it does not exist and the
-   file ``.doctest/foo.py``.
+#. Create the directory given by the environment variable
+   :envvar:`SAGE_TESTDIR` if it does not already exist. By default,
+   this variable points to ``$DOT_SAGE/tmp``, and ``$DOT_SAGE`` has
+   the default value of ``~/.sage``. See the `Sage Installation Guide
+   <http://sagemath.org/doc/installation/source.html#environment-variables>`_
+   for full descriptions of the environment variables used by Sage.
 
-#. The file ``.doctest_foo.py`` contains functions for each docstring
-   in ``foo.py``, but with all Sage preparsing applied and with
-   ``from sage.all import *`` at the top. The function documentation
-   is thus standard Python with ``>>>`` prompts.
+#. If doctesting ``foo.py``: if it is not a file from the Sage
+   library, then copy it to ``$SAGE_TESTDIR/foo_PID_orig.py``, where
+   ``PID`` is the id number of the testing process. (This new name is
+   intended to avoid possible race conditions: you can safely doctest
+   the same file simultaneously in several different windows.)
+   Regardless, create a file ``$SAGE_TESTDIR/foo_PID.py``.
+
+#. If doctesting ``foo.sage`` (necessarily a non-Sage library file),
+   then copy it to ``$SAGE_TESTDIR/foo_PID.sage`` and preparse it to
+   create a file ``$SAGE_TESTDIR/foo_PID_preparsed.py``. Also create a
+   file ``$SAGE_TESTDIR/foo_PID.py``.
+
+#. The file ``$SAGE_TESTDIR/foo_PID.py`` contains functions for each
+   docstring in ``foo.py`` or ``foo.sage``, but with ``from sage.all
+   import *`` at the top. For non-library files, it also imports
+   ``foo_PID_orig.py`` or ``foo_PID_preparsed.py``.  Each function's
+   documentation is standard Python with ``>>>`` prompts, along with
+   annotations giving information like its location in the original
+   file. For example, a doctest like ::
+
+       sage: 2+4
+       6
+
+   might get translated to
+
+       >>> Integer(2)+Integer(4)###line 4:_sage_    >>> 2+4
+       6
 
 #. The script ``SAGE_LOCAL/bin/sage-doctest`` then runs Sage's Python
-   interpreter on ``.doctest_foo.py``.
+   interpreter on ``$SAGE_TESTDIR/foo_PID.py``.
 
 Your file passes these tests if the code in it will run when entered
 at the ``sage:`` prompt with no special imports. Thus users are
 guaranteed to be able to exactly copy code out of the examples you
-write for the documentation and have them work.
+write for the documentation and have them work. If all tests pass,
+then these temporary files are deleted; if tests fail, then the files
+are kept.
+
+(If doctesting many files in parallel using ``sage -tp ...`` -- see
+:ref:`chapter-doctesting` -- then all of this is done in a further
+subdirectory of ``$SAGE_TESTDIR`` with a name like
+``sage.math.washington.edu-10345``: the name has the form
+``HOSTNAME-PID``, where ``PID`` is the id of the main testing
+process.)
 
 
 Testing ReST documentation

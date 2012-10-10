@@ -15,7 +15,6 @@ A Sage extension which adds sage-specific features:
 
 from IPython.core.hooks import TryNext
 from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.core.plugin import Plugin
 import os
 import sys
 import sage
@@ -340,22 +339,20 @@ class SageInputSplitter(IPythonInputSplitter):
 #
 
 
-class SagePlugin(Plugin):
+class SageCustomizations(object):
     startup_code = """from sage.all_cmdline import *
 from sage.misc.interpreter import sage_prompt
 """
 
-    def __init__(self, shell=None, config=None):
+    def __init__(self, shell=None):
         """
         Initialize the Sage plugin.
         """
-
-        super(SagePlugin, self).__init__(shell=shell, config=config)
         self.shell = shell
         self.auto_magics = SageMagics(shell)
         shell.register_magics(self.auto_magics)
         shell.set_hook('pre_run_code_hook', self.auto_magics.pre_run_code_hook)
-        shell.display_formatter.formatters['text/plain'] = SagePlainTextFormatter(config=config)
+        shell.display_formatter.formatters['text/plain'] = SagePlainTextFormatter(config=shell.config)
         from sage.misc.edit_module import edit_devel
         self.shell.set_hook('editor', edit_devel)
         self.init_inspector()
@@ -491,5 +488,5 @@ def run_once(f):
 @run_once
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-    plugin = SagePlugin(shell=ip, config=ip.config)
-    ip.plugin_manager.register_plugin('sage', plugin)
+    # this modifies ip
+    SageCustomizations(shell=ip)

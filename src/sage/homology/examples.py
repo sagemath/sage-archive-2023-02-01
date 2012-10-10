@@ -1032,28 +1032,30 @@ class SimplicialComplexExamples():
 
         EXAMPLES::
 
-            sage: simplicial_complexes.RandomComplex(6, 2)
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 15 facets
+            sage: X = simplicial_complexes.RandomComplex(6, 2); X
+            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and 10 facets
+            sage: len(list(X.vertices()))
+            6
 
-        If `d` is too large (if `d > n+1`, so that there are no
+        If `d` is too large (if `d+1 > n`, so that there are no
         `d`-dimensional simplices), then return the simplicial complex
         with a single `(n+1)`-dimensional simplex::
 
-            sage: simplicial_complexes.RandomComplex(6,12)
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6, 7) and facets {(0, 1, 2, 3, 4, 5, 6, 7)}
+            sage: simplicial_complexes.RandomComplex(6, 12)
+            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and facets {(0, 1, 2, 3, 4, 5)}
 
         REFERENCES:
 
         .. [MW2009] Meshulam and Wallach, "Homological connectivity of random
            `k`-dimensional complexes", preprint, math.CO/0609773.
         """
-        if d > n+1:
-            return simplicial_complexes.Simplex(n+1)
+        if d+1 > n:
+            return simplicial_complexes.Simplex(n-1)
         else:
-            vertices = range(n+1)
+            vertices = range(n)
             facets = Subsets(vertices, d).list()
             maybe = Subsets(vertices, d+1)
             facets.extend([f for f in maybe if random.random() <= p])
-            return SimplicialComplex(n, facets)
+            return SimplicialComplex(n-1, facets)
 
 simplicial_complexes = SimplicialComplexExamples()

@@ -102,8 +102,9 @@ displayed on screen and can also be find in SAGEROOT/install.log.
 
 The script allows for parallel testing. By default, the number of threads
 equals one third of the available CPUs. The default can be changed by
-exporting the environment variable SAGE_NUMBER_THREAD (for example:
-``export SAGE_NUMBER_THREADS=2``.
+exporting the environment variable SAGE_NUM_THREAD (for example:
+``export SAGE_NUM_THREADS=2`` or the environment variable MAKE (for
+example: ``export MAKE="make -j2"``.
 
 == Documentation ==
 

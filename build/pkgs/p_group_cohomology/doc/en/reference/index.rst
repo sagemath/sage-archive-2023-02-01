@@ -90,7 +90,8 @@ installing the package.
 
 The tests are parallelised, provided that Sage version at least 4.6
 is used. The number of threads can be bounded using the environment
-variable ``SAGE_NUMBER_THREADS``.
+variable ``SAGE_NUM_THREADS`` or ``MAKE``. For example, do
+``export MAKE="make -j2"``.
 
 Documentation
 -------------

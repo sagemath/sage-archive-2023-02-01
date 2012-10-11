@@ -48,6 +48,35 @@ cdef class LocalGenericElement(CommutativeRingElement):
     #def __getitem__(self, n):
     #    raise NotImplementedError
 
+    def __iter__(self):
+        """
+        Local elements should not be iterable, so this method correspondingly
+        raises a ``TypeError``.
+
+        .. NOTE::
+
+            Typically, local elements provide a implementation for
+            ``__getitem__``. If they do not provide a method ``__iter__``, then
+            iterating over them is realized by calling ``__getitem__``,
+            starting from index 0. However, there are several issues with this.
+            For example, terms with negative valuation would be excluded from
+            the iteration, and an exact value of zero would lead to an infinite
+            iterable.
+
+            There doesn't seem to be an obvious behaviour that iteration over
+            such elements should produce, so it is disabled; see :trac:`13592`.
+
+        TESTS::
+
+            sage: x = Qp(3).zero()
+            sage: for v in x: pass
+            Traceback (most recent call last):
+            ...
+            TypeError: this local element is not iterable
+
+        """
+        raise TypeError("this local element is not iterable")
+
     def slice(self, i, j, k = 1):
         r"""
         Returns the sum of the `p^{i + FOO * k}` terms of the series expansion

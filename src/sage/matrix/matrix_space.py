@@ -1293,6 +1293,14 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             Full MatrixSpace of 4 by 2 dense matrices over Integer Ring
             from [[1 2]
             [3 4], (5, 6), (7, 8)]!
+
+        Check that :trac:`13302` is fixed::
+
+            sage: MatrixSpace(Qp(3),1,1)([Qp(3).zero()])
+            [0]
+            sage: MatrixSpace(Qp(3),1,1)([Qp(3)(4/3)])
+            [3^-1 + 1 + O(3^19)]
+
         """
         if x is None or isinstance(x, (int, integer.Integer)) and x == 0:
             if self._copy_zero: # faster to copy than to create a new one.

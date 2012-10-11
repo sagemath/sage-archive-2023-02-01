@@ -490,6 +490,9 @@ def extract_doc(file_name, library_code=False):
 
 """  % os.path.join(os.getcwd(), file_name)
     s += "from sage.all_cmdline import *; \n"
+    s += "import sage.misc.displayhook\n"
+    s += "import sys\n"
+    s += "sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)\n"
     s += "import sage.plot.plot; sage.plot.plot.DOCTEST_MODE=True\n"  # turn off image popup
     s += r"""
 def warning_function(f):

@@ -143,3 +143,48 @@ def format_obj(obj):
         if len(obj) > 0 and (is_Matrix(obj[0]) or isinstance(obj[0], ArithmeticSubgroupElement)):
             return _check_tall_list_and_format(obj)
     return None
+
+class DisplayHook(object):
+    """
+    Display hook for Sage.
+
+    This is not used directly in interactive Sage (where we use the
+    IPython system for display hooks).  This class provides a way to
+    use the Sage display formatting when not using interactive Sage.
+    """
+    def __init__(self, oldhook = sys.__displayhook__):
+        """
+        Set the old display hook (default to repr)
+
+        EXAMPLES::
+
+            sage: from sage.misc.displayhook import DisplayHook
+            sage: def f(o): print repr(o)[:5], "..."
+            sage: d = DisplayHook(f)
+            sage: d(range(10))
+            [0, 1 ...
+        """
+        self.oldhook = oldhook
+
+    def __call__(self, obj):
+        """
+        Format the object using Sage's formatting, or format it using the old
+        display hook if Sage does not want to handle the object.
+
+        EXAMPLES::
+
+            sage: from sage.misc.displayhook import DisplayHook
+            sage: d = DisplayHook()
+            sage: d((identity_matrix(3), identity_matrix(3)))
+            (
+            [1 0 0]  [1 0 0]
+            [0 1 0]  [0 1 0]
+            [0 0 1], [0 0 1]
+            )
+        """
+        s = format_obj(obj)
+        if s is not None:
+            print s
+            __builtin__._ = obj
+        else:
+            self.oldhook(obj)

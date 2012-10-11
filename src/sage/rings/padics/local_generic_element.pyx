@@ -391,21 +391,100 @@ cdef class LocalGenericElement(CommutativeRingElement):
         # this doctest doesn't actually test this function, since _sub_ is overridden.
         return self + (-right)
 
-    def add_bigoh(self, prec):
+    def add_bigoh(self, absprec):
         """
-        Returns self to reduced precision ``prec``.
+        Returns a copy of ``self`` with absolute precision decreased to
+        ``absprec``.
+
+        INPUT:
+
+            - ``absprec`` -- an integer or positive infinity
+
+        OUTPUT:
+
+            a copy of ``self`` with absolute precision set to the minimum of
+            ``absprec`` and the precisions of ``self``
 
         EXAMPLES::
-            sage: K = Qp(11, 5)
-            sage: L.<a> = K.extension(x^20 - 11)
-            sage: b = a^3 + 3*a^5; b
-            a^3 + 3*a^5 + O(a^103)
-            sage: b.add_bigoh(17)
-            a^3 + 3*a^5 + O(a^17)
-            sage: b.add_bigoh(150)
-            a^3 + 3*a^5 + O(a^103)
+
+            sage: K = QpCR(3,4)
+            sage: o = K(1); o
+            1 + O(3^4)
+            sage: o.add_bigoh(2)
+            1 + O(3^2)
+            sage: o.add_bigoh(-5)
+            O(3^-5)
+
+        One cannot use ``add_bigoh`` to lift to a higher precision; this
+        can be accomplished with :meth:`lift_to_precision`::
+
+            sage: o.add_bigoh(5)
+            1 + O(3^4)
+
+        Only over a field, negative values for ``absprec`` are allowed::
+
+            sage: R = ZpCA(3,4)
+            sage: R(3).add_bigoh(-5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The precision of a local element can not be negative unless it is defined over a field.
+
+        The precision of fixed-mod elements can not be decreased::
+
+            sage: R = ZpFM(3,4)
+            sage: R(3).add_bigoh(5)
+            3 + O(3^4)
+            sage: R(3).add_bigoh(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The precision of a local element with a fixed modulus can not be decreased.
+
+        TESTS:
+
+        Test that this also works for infinity::
+
+            sage: R = ZpCR(3,4)
+            sage: R(3).add_bigoh(infinity)
+            3 + O(3^5)
+            sage: R(0).add_bigoh(infinity)
+            0
+
+        Test that this works over unramified extensions::
+
+            sage: R = ZpCA(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
+            sage: (t + 3).add_bigoh(1)
+            t + O(3)
+
+            sage: R = ZpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
+            sage: (t + 3).add_bigoh(1)
+            t + O(3)
+
+            sage: R = QpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
+            sage: (t + 3).add_bigoh(1)
+            t + O(3)
+
+        Test that this works over Eisenstein extensions::
+
+            sage: R = ZpCA(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
+            sage: (t + 3).add_bigoh(2)
+            t + O(t^2)
+
+            sage: R = ZpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
+            sage: (t + 3).add_bigoh(2)
+            t + O(t^2)
+
+            sage: R = QpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
+            sage: (t + 3).add_bigoh(2)
+            t + O(t^2)
+
         """
-        return self.parent()(self, absprec=prec)
+        if not self.parent().is_field() and absprec < 0:
+            raise ValueError("The precision of a local element can not be negative unless it is defined over a field.")
+        if absprec >= self.precision_absolute():
+            return self
+        if self.parent().is_fixed_mod():
+            raise ValueError("The precision of a local element with a fixed modulus can not be decreased.")
+        return self.parent()(self, absprec=absprec)
 
     #def copy(self):
     #    raise NotImplementedError

@@ -84,3 +84,10 @@ void delete_cs_iterator(cs_iterator_ptr csi_ptr)
   delete csi_ptr;
 }
 
+
+/************************************************************/
+Generator* new_MIP_optimizing_point(const MIP_Problem& problem)
+{
+  return new Generator(problem.optimizing_point());
+}
+

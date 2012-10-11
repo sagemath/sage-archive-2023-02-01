@@ -83,6 +83,11 @@ The following example shows all these steps::
     w_1 = 10
     w_2 = 3
     w_3 = 2
+
+
+AUTHORS:
+
+- Risan (2012/02): added extension for exact computation
 """
 
 include "../ext/stdsage.pxi"
@@ -126,6 +131,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
         <http://www.ilog.com/products/cplex/>`_ web site.
 
       - Gurobi (``solver="Gurobi"``). See the `Gurobi <http://www.gurobi.com/>`_
+          web site.
+
+      - PPL (``solver="PPL"``). See the 'PPL<http://bugseng.com/products/ppl>'_
           web site.
 
       - If ``solver=None`` (default), the default solver is used (see
@@ -182,6 +190,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
           - Gurobi (``solver="Gurobi"``). See the `Gurobi
             <http://www.gurobi.com/>`_ web site.
+
+          - PPL (``solver="PPL"``). See the `PPL
+            <http://bugseng.com/products/ppl>`_ web site.
 
           -If ``solver=None`` (default), the default solver is used (see
            ``default_mip_solver`` method.
@@ -686,8 +697,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
                    ),
             first = False
 
-        if b.obj_constant_term > 0.0: print "+", b.obj_constant_term
-        elif b.obj_constant_term < 0.0: print "-", -b.obj_constant_term
+        if b.obj_constant_term > self._backend.zero(): print "+", b.obj_constant_term
+        elif b.obj_constant_term < self._backend.zero(): print "-", -b.obj_constant_term
 
         print
 
@@ -881,6 +892,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             elif self._variables.has_key(l):
                 #val.append(self._values[l])
                 val.append(self._backend.get_variable_value(self._variables[l]))
+
         if len(lists) == 1:
             return val[0]
         else:
@@ -935,10 +947,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
         else:
             f = {-1 : 0}
 
-        cdef double d = f.pop(-1,0.0)
+        d = f.pop(-1,self._backend.zero())
 
         for i in range(self._backend.ncols()):
-            values.append(f.get(i,0.0))
+            values.append(f.get(i,self._backend.zero()))
 
         self._backend.set_objective(values, d)
 
@@ -1887,8 +1899,8 @@ cdef class MIPVariable(SageObject):
         if self._dict.has_key(i):
             return self._dict[i]
         elif self._dim == 1:
-
-            j = self._p._backend.add_variable(0.0, None, False, True, False, 0.0,
+            zero = self._p._backend.zero()
+            j = self._p._backend.add_variable(zero , None, False, True, False, zero,
                                               (str(self._name) + "[" + str(i) + "]")
                                                if self._hasname else None)
 

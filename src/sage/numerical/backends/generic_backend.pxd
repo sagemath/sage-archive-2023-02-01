@@ -11,7 +11,7 @@ cdef class GenericBackend:
     cpdef set_variable_type(self, int variable, int vtype)
     cpdef set_sense(self, int sense)
     cpdef objective_coefficient(self, int variable, coeff=*)
-    cpdef set_objective(self, list coeff, double d=*)
+    cpdef set_objective(self, list coeff, d=*)
     cpdef set_verbosity(self, int level)
     cpdef add_linear_constraint(self, constraints, lower_bound, upper_bound, name=*)
     cpdef remove_constraint(self, int)
@@ -19,8 +19,8 @@ cdef class GenericBackend:
     cpdef add_col(self, list indices, list coeffs)
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=*)
     cpdef int solve(self) except -1
-    cpdef double get_objective_value(self) except? -1.0
-    cpdef double get_variable_value(self, int variable) except? -1.0
+    cpdef get_objective_value(self)
+    cpdef get_variable_value(self, int variable)
     cpdef bint is_maximization(self)
     cpdef write_lp(self, char * name)
     cpdef write_mps(self, char * name, int modern)
@@ -38,7 +38,8 @@ cdef class GenericBackend:
     cpdef variable_upper_bound(self, int index, value = *)
     cpdef variable_lower_bound(self, int index, value = *)
     cpdef solver_parameter(self, name, value=*)
+    cpdef zero(self)
 
-    cdef double obj_constant_term
+    cpdef obj_constant_term
 
 cpdef GenericBackend get_solver(constraint_generation = ?, solver = ?)

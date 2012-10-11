@@ -136,6 +136,7 @@ necessarily some differences. The main ones are:
 AUTHORS:
 
 - Volker Braun (2010-10-08): initial version.
+- Risan (2012-02-19): extension for MIP_Problem class
 """
 
 #*****************************************************************************
@@ -143,12 +144,13 @@ AUTHORS:
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+#  the License, or (at youroption) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.libs.gmp.mpz cimport mpz_t, mpz_set
 from sage.rings.integer cimport Integer
+from sage.rings.rational import Rational
 
 include '../ext/interrupt.pxi'
 include "../ext/stdsage.pxi"
@@ -193,6 +195,12 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library::Constraint":
     ctypedef enum PPL_ConstraintType:
         EQUALITY, NONSTRICT_INEQUALITY, STRICT_INEQUALITY
 
+cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library::MIP_Problem":
+    ctypedef enum PPL_MIP_Problem_Control_Parameter_Name:
+        PRICING
+    ctypedef enum PPL_MIP_Problem_Control_Parameter_Value:
+        PRICING_STEEPEST_EDGE_FLOAT, PRICING_STEEPEST_EDGE_EXACT, PRICING_TEXTBOOK
+
 
 ####################################################
 cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
@@ -210,6 +218,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
     cdef cppclass PPL_NNC_Polyhedron    "Parma_Polyhedra_Library::NNC_Polyhedron" (PPL_Polyhedron)
     cdef cppclass PPL_Poly_Gen_Relation "Parma_Polyhedra_Library::Poly_Gen_Relation"
     cdef cppclass PPL_Poly_Con_Relation "Parma_Polyhedra_Library::Poly_Con_Relation"
+    cdef cppclass PPL_MIP_Problem       "Parma_Polyhedra_Library::MIP_Problem"
 
     cdef cppclass PPL_Variable:
         PPL_Variable(PPL_dimension_type i)
@@ -317,6 +326,12 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
     cdef enum PPL_Degenerate_Element:
         UNIVERSE, EMPTY
 
+    cdef enum PPL_Optimization_Mode:
+        MINIMIZATION, MAXIMIZATION
+
+    cdef enum PPL_MIP_Problem_Status:
+        UNFEASIBLE_MIP_PROBLEM, UNBOUNDED_MIP_PROBLEM, OPTIMIZED_MIP_PROBLEM
+
     cdef cppclass PPL_Polyhedron:
         PPL_dimension_type space_dimension()
         PPL_dimension_type affine_dimension()
@@ -398,6 +413,28 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
         void ascii_dump()
         bint OK()
 
+    cdef cppclass PPL_MIP_Problem:
+        PPL_MIP_Problem(PPL_MIP_Problem &cpy_from)
+        PPL_MIP_Problem(PPL_dimension_type dim) except +ValueError
+        PPL_MIP_Problem(PPL_dimension_type dim, PPL_Constraint_System &cs, PPL_Linear_Expression &obj, PPL_Optimization_Mode) except +ValueError
+        PPL_dimension_type space_dimension()
+        PPL_Linear_Expression& objective_function()
+        void clear()
+        void add_space_dimensions_and_embed(PPL_dimension_type m) except +ValueError
+        void add_constraint(PPL_Constraint &c) except +ValueError
+        void add_constraints(PPL_Constraint_System &cs) except +ValueError
+        void set_objective_function(PPL_Linear_Expression &obj) except +ValueError
+        void set_optimization_mode(PPL_Optimization_Mode mode)
+        PPL_Optimization_Mode optimization_mode()
+        bint is_satisfiable()
+        PPL_MIP_Problem_Status solve()
+        void evaluate_objective_function(PPL_Generator evaluating_point, PPL_Coefficient &num, PPL_Coefficient &den) except +ValueError
+        PPL_Generator& feasible_point()
+        PPL_Generator optimizing_point() except +ValueError
+        void optimal_value(PPL_Coefficient &num, PPL_Coefficient &den) except +ValueError
+        bint OK()
+        PPL_MIP_Problem_Control_Parameter_Value get_control_parameter(PPL_MIP_Problem_Control_Parameter_Name name)
+        void set_control_parameter(PPL_MIP_Problem_Control_Parameter_Value value)
 
 cdef extern from "ppl.hh":
     PPL_Generator PPL_line          "Parma_Polyhedra_Library::line"          (PPL_Linear_Expression &e) except +ValueError
@@ -443,8 +480,7 @@ cdef class C_Polyhedron(Polyhedron)
 cdef class NNC_Polyhedron(Polyhedron)
 cdef class Poly_Gen_Relation(object)
 cdef class Poly_Con_Relation(object)
-
-
+cdef class MIP_Problem(_mutable_or_immutable)
 
 
 ####################################################
@@ -572,6 +608,540 @@ cdef class _mutable_or_immutable(object):
         if not self._is_mutable:
             raise ValueError(msg)
 
+####################################################
+### MIP_Problem ####################################
+####################################################
+cdef class MIP_Problem(_mutable_or_immutable):
+    r"""
+    wrapper for PPL's MIP_Problem class
+
+    An object of the class MIP_Problem represents a Mixed Integer
+    (Linear) Program problem.
+
+    INPUT:
+
+    - ``dim`` -- integer
+    - ``args`` -- an array of the defining data of the MIP_Problem.
+      For each element, any one of the following is accepted:
+
+      * A :class:`Constraint_System`.
+
+      * A :class:`Linear_Expression`.
+
+    OUTPUT:
+
+    A :class:`MIP_Problem`.
+
+    EXAMPLES::
+
+        sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+        sage: x = Variable(0)
+        sage: y = Variable(1)
+        sage: cs = Constraint_System()
+        sage: cs.insert( x >= 0)
+        sage: cs.insert( y >= 0 )
+        sage: cs.insert( 3 * x + 5 * y <= 10 )
+        sage: m = MIP_Problem(2, cs, x + y)
+        sage: m.optimal_value()
+        10/3
+        sage: m.optimizing_point()
+        point(10/3, 0/3)
+    """
+    cdef PPL_MIP_Problem *thisptr
+
+    def __repr__(self):
+        """
+        String representation of MIP Problem.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0 )
+            sage: cs.insert( y >= 0 )
+            sage: cs.insert( 3 * x + 5 * y <= 10 )
+            sage: m = MIP_Problem(2, cs, x + y)
+            sage: m
+            A MIP_Problem
+            Maximize: x0+x1
+            Subject to constraints
+        """
+        ret = 'A MIP_Problem\n'
+        if self.optimization_mode() == 'maximization':
+            ret += 'Maximize'
+        else:
+            ret += 'Minimize'
+        ret += ': ' + str(self.objective_function()) + '\n'
+        ret += 'Subject to constraints\n'
+
+        return ret
+
+    def __cinit__(self, PPL_dimension_type dim = 0, *args):
+        """
+        The Cython constructor.
+
+        TESTS::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: MIP_Problem(0)
+            A MIP_Problem
+            Maximize: 0
+            Subject to constraints
+        """
+        if len(args) == 0:
+            self.thisptr = new PPL_MIP_Problem(dim)
+        elif len(args) == 2:
+            cs = <Constraint_System>args[0]
+            obj = <Linear_Expression>args[1]
+            self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], MAXIMIZATION)
+        elif len(args) == 3:
+            cs = <Constraint_System>args[0]
+            obj = <Linear_Expression>args[1]
+
+            mode = str(args[2])
+            if mode == 'maximization':
+                self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], MAXIMIZATION)
+            elif mode == 'minimization':
+                self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], MINIMIZATION)
+            else:
+                raise ValueError, 'Unknown value: mode='+str(mode)+'.'
+        else:
+            raise ValueError, 'Cannot initialize with '+str(args)+'.'
+
+    def __dealloc__(self):
+        """
+        The Cython destructor
+        """
+        del self.thisptr
+
+    def optimization_mode(self):
+        """
+        Return the optimization mode used in the MIP_Problem.
+
+        It will return "maximization" if the MIP_Problem was set
+        to MAXIMIZATION mode, and "minimization" otherwise.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import MIP_Problem
+            sage: m = MIP_Problem()
+            sage: m.optimization_mode()
+            'maximization'
+        """
+        if self.thisptr.optimization_mode() == MAXIMIZATION:
+            return "maximization"
+        elif self.thisptr.optimization_mode() == MINIMIZATION:
+            return "minimization"
+
+    def optimal_value(self):
+        """
+        Return the optimal value of the MIP_Problem. ValueError thrown if self does not
+        have an optimizing point, i.e., if the MIP problem is unbounded or not satisfiable.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0 )
+            sage: cs.insert( y >= 0 )
+            sage: cs.insert( 3 * x + 5 * y <= 10 )
+            sage: m = MIP_Problem(2, cs, x + y)
+            sage: m.optimal_value()
+            10/3
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0 )
+            sage: m = MIP_Problem(1, cs, x + x )
+            sage: m.optimal_value()
+            Traceback (most recent call last):
+            ...
+            ValueError: PPL::MIP_Problem::optimizing_point():
+            *this doesn't have an optimizing point.
+        """
+        cdef PPL_Coefficient sup_n
+        cdef PPL_Coefficient sup_d
+
+        try:
+            sig_on()
+            self.thisptr.optimal_value(sup_n, sup_d)
+        except ValueError, msg:
+            raise ValueError, msg
+        finally:
+            sig_off()
+
+        cdef Integer Int_sup_n = Integer(0)
+        mpz_set(Int_sup_n.value, sup_n.get_mpz_t())
+        cdef Integer Int_sup_d = Integer(0)
+        mpz_set(Int_sup_d.value, sup_d.get_mpz_t())
+
+        return Rational((Int_sup_n, Int_sup_d))
+
+    def space_dimension(self):
+        """
+        Return the space dimension of the MIP_Problem.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0)
+            sage: cs.insert( y >= 0 )
+            sage: cs.insert( 3 * x + 5 * y <= 10 )
+            sage: m = MIP_Problem(2, cs, x + y)
+            sage: m.space_dimension()
+            2
+        """
+        return self.thisptr.space_dimension()
+
+    def objective_function(self):
+        """
+        Return the optimal value of the MIP_Problem.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0)
+            sage: cs.insert( y >= 0 )
+            sage: cs.insert( 3 * x + 5 * y <= 10 )
+            sage: m = MIP_Problem(2, cs, x + y)
+            sage: m.objective_function()
+            x0+x1
+        """
+        rc = Linear_Expression()
+        rc.thisptr[0] = self.thisptr.objective_function()
+        return rc
+
+    def clear(self):
+        """
+        Reset the MIP_Problem to be equal to the trivial MIP_Problem.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0)
+            sage: cs.insert( y >= 0 )
+            sage: cs.insert( 3 * x + 5 * y <= 10 )
+            sage: m = MIP_Problem(2, cs, x + y)
+            sage: m.objective_function()
+            x0+x1
+            sage: m.clear()
+            sage: m.objective_function()
+            0
+        """
+        self.thisptr.clear()
+
+    def add_space_dimensions_and_embed(self, PPL_dimension_type m):
+        """
+        Adds m new space dimensions and embeds the old MIP problem in the new vector space.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0)
+            sage: cs.insert( y >= 0 )
+            sage: cs.insert( 3 * x + 5 * y <= 10 )
+            sage: m = MIP_Problem(2, cs, x + y)
+            sage: m.add_space_dimensions_and_embed(5)
+            sage: m.space_dimension()
+            7
+        """
+        self.assert_mutable("The MIP_Problem is not mutable!");
+        sig_on()
+        self.thisptr.add_space_dimensions_and_embed(m)
+        sig_off()
+
+    def add_constraint(self, Constraint c):
+        """
+        Adds a copy of constraint c to the MIP problem.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: m = MIP_Problem()
+            sage: m.add_space_dimensions_and_embed(2)
+            sage: m.add_constraint(x >= 0)
+            sage: m.add_constraint(y >= 0)
+            sage: m.add_constraint(3 * x + 5 * y <= 10)
+            sage: m.set_objective_function(x + y)
+            sage: m.optimal_value()
+            10/3
+
+        TESTS::
+
+            sage: z = Variable(2)
+            sage: m.add_constraint(z >= -3)
+            Traceback (most recent call last):
+            ...
+            ValueError: PPL::MIP_Problem::add_constraint(c):
+            c.space_dimension() == 3 exceeds this->space_dimension == 2.
+        """
+        self.assert_mutable("The MIP_Problem is not mutable!");
+        try:
+            sig_on()
+            self.thisptr.add_constraint(c.thisptr[0])
+        except ValueError, msg:
+            raise ValueError, msg
+        finally:
+            sig_off()
+
+    def add_constraints(self, Constraint_System cs):
+        """
+        Adds a copy of the constraints in cs to the MIP problem.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0)
+            sage: cs.insert( y >= 0 )
+            sage: cs.insert( 3 * x + 5 * y <= 10 )
+            sage: m = MIP_Problem(2)
+            sage: m.set_objective_function(x + y)
+            sage: m.add_constraints(cs)
+            sage: m.optimal_value()
+            10/3
+
+        TESTS::
+
+            sage: p = Variable(9)
+            sage: cs.insert(p >= -3)
+            sage: m.add_constraints(cs)
+            Traceback (most recent call last):
+            ...
+            ValueError: PPL::MIP_Problem::add_constraints(cs):
+            cs.space_dimension() == 10 exceeds this->space_dimension() == 2.
+        """
+        self.assert_mutable("The MIP_Problem is not mutable!");
+        try:
+            sig_on()
+            self.thisptr.add_constraints(cs.thisptr[0])
+        except ValueError, msg:
+            raise ValueError, msg
+        finally:
+            sig_off()
+
+    def set_objective_function(self, Linear_Expression obj):
+        """
+        Sets the objective function to obj.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: m = MIP_Problem()
+            sage: m.add_space_dimensions_and_embed(2)
+            sage: m.add_constraint(x >= 0)
+            sage: m.add_constraint(y >= 0)
+            sage: m.add_constraint(3 * x + 5 * y <= 10)
+            sage: m.set_objective_function(x + y)
+            sage: m.optimal_value()
+            10/3
+
+        TESTS::
+
+            sage: z = Variable(2)
+            sage: m.set_objective_function(x + y + z)
+            Traceback (most recent call last):
+            ...
+            ValueError: PPL::MIP_Problem::set_objective_function(obj):
+            obj.space_dimension() == 3 exceeds this->space_dimension == 2.
+        """
+        self.assert_mutable("The MIP_Problem is not mutable!");
+        self.thisptr.set_objective_function(obj.thisptr[0])
+
+    def set_optimization_mode(self, mode):
+        """
+        Sets the optimization mode to mode.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import MIP_Problem
+            sage: m = MIP_Problem()
+            sage: m.optimization_mode()
+            'maximization'
+            sage: m.set_optimization_mode('minimization')
+            sage: m.optimization_mode()
+            'minimization'
+
+        TESTS::
+
+            sage: m.set_optimization_mode('max')
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown value: mode=max.
+        """
+        if mode == 'minimization':
+            self.thisptr.set_optimization_mode(MINIMIZATION)
+        elif mode == 'maximization':
+            self.thisptr.set_optimization_mode(MAXIMIZATION)
+        else:
+            raise ValueError, 'Unknown value: mode='+str(mode)+'.'
+
+    def is_satisfiable(self):
+        """
+        Check if the MIP_Problem is satisfiable
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: m = MIP_Problem()
+            sage: m.add_space_dimensions_and_embed(2)
+            sage: m.add_constraint(x >= 0)
+            sage: m.add_constraint(y >= 0)
+            sage: m.add_constraint(3 * x + 5 * y <= 10)
+            sage: m.is_satisfiable()
+            True
+        """
+        ret = self.thisptr.is_satisfiable()
+
+        return ret
+
+    def evaluate_objective_function(self, Generator evaluating_point):
+        """
+        Return the result of evaluating the objective function on evaluating_point. ValueError thrown
+        if self and evaluating_point are dimension-incompatible or if the generator evaluating_point is not a point.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem, Generator
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: m = MIP_Problem()
+            sage: m.add_space_dimensions_and_embed(2)
+            sage: m.add_constraint(x >= 0)
+            sage: m.add_constraint(y >= 0)
+            sage: m.add_constraint(3 * x + 5 * y <= 10)
+            sage: m.set_objective_function(x + y)
+            sage: g = Generator.point(5 * x - 2 * y, 7)
+            sage: m.evaluate_objective_function(g)
+            3/7
+            sage: z = Variable(2)
+            sage: g = Generator.point(5 * x - 2 * z, 7)
+            sage: m.evaluate_objective_function(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: PPL::MIP_Problem::evaluate_objective_function(p, n, d):
+            *this and p are dimension incompatible.
+        """
+        cdef PPL_Coefficient sup_n
+        cdef PPL_Coefficient sup_d
+
+        try:
+            sig_on()
+            self.thisptr.evaluate_objective_function(evaluating_point.thisptr[0], sup_n, sup_d)
+        except ValueError, msg:
+            raise ValueError, msg
+        finally:
+            sig_off()
+
+        cdef Integer Int_sup_n = Integer(0)
+        mpz_set(Int_sup_n.value, sup_n.get_mpz_t())
+        cdef Integer Int_sup_d = Integer(0)
+        mpz_set(Int_sup_d.value, sup_d.get_mpz_t())
+
+        return Rational((Int_sup_n, Int_sup_d))
+
+    def solve(self):
+        """
+        Optimizes the MIP_Problem
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: m = MIP_Problem()
+            sage: m.add_space_dimensions_and_embed(2)
+            sage: m.add_constraint(x >= 0)
+            sage: m.add_constraint(y >= 0)
+            sage: m.add_constraint(3 * x + 5 * y <= 10)
+            sage: m.set_objective_function(x + y)
+            sage: m.solve()
+            {'status': 'optimized'}
+        """
+        try:
+            sig_on()
+            tmp = self.thisptr.solve()
+        except ValueError, msg:
+            raise ValueError, msg
+        finally:
+            sig_off()
+        if tmp == UNFEASIBLE_MIP_PROBLEM:
+            return { 'status':'unfeasible' }
+        elif tmp == UNBOUNDED_MIP_PROBLEM:
+            return { 'status':'unbounded' }
+        else:
+            return { 'status':'optimized' }
+
+    def optimizing_point(self):
+        """
+        Returns an optimal point for the MIP_Problem, if it exists.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: m = MIP_Problem()
+            sage: m.add_space_dimensions_and_embed(2)
+            sage: m.add_constraint(x >= 0)
+            sage: m.add_constraint(y >= 0)
+            sage: m.add_constraint(3 * x + 5 * y <= 10)
+            sage: m.set_objective_function(x + y)
+            sage: m.optimizing_point()
+            point(10/3, 0/3)
+        """
+        cdef PPL_Generator *g
+        try:
+            sig_on()
+            g = new_MIP_optimizing_point(self.thisptr[0])
+        except ValueError, msg:
+            raise ValueError, msg
+        finally:
+            sig_off()
+        return _wrap_Generator(g[0])
+
+    def OK(self):
+        """
+        Check if all the invariants are satisfied.
+
+        OUTPUT:
+
+        ``True`` if and only if ``self`` satisfies all the invariants.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: m = MIP_Problem()
+            sage: m.add_space_dimensions_and_embed(2)
+            sage: m.add_constraint(x >= 0)
+            sage: m.OK()
+            True
+        """
+        return self.thisptr.OK()
 
 ####################################################
 ### Polyhedron #####################################
@@ -3633,6 +4203,7 @@ cdef extern from "ppl_shim.hh":
     PPL_Generator* new_ray(PPL_Linear_Expression &e) except +ValueError
     PPL_Generator* new_point(PPL_Linear_Expression &e, PPL_Coefficient d) except +ValueError
     PPL_Generator* new_closure_point(PPL_Linear_Expression &e, PPL_Coefficient d) except +ValueError
+    PPL_Generator* new_MIP_optimizing_point(PPL_MIP_Problem &problem) except +ValueError
 
 
 ####################################################
@@ -6123,7 +6694,6 @@ cdef class Poly_Con_Relation(object):
             return ', '.join(rel)
         else:
             return 'nothing'
-
 
 
 ####################################################

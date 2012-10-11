@@ -1265,6 +1265,11 @@ ext_modules = [
               language = 'c++',
               libraries=["csage", "stdc++", "glpk", "gmp", "z"]),
 
+    Extension("sage.numerical.backends.ppl_backend",
+              ["sage/numerical/backends/ppl_backend.pyx"],
+              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
+              libraries=["csage", "stdc++"]),
+
     ################################
     ##
     ## sage.plot
@@ -1963,4 +1968,3 @@ if is_package_installed('lrcalc'):
                   libraries = ["lrcalc"],
                   depends = [SAGE_LOCAL + "/include/lrcalc/symfcn.h"]), # should include all .h
         )
-

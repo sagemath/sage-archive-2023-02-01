@@ -473,6 +473,10 @@ following libraries are currently supported:
 
   Proprietary, but free for researchers and students.
 
+* `PPL <http://bugseng.com/products/ppl>`_: A solver from bugSeng.
+
+  Licensed under the GPLv3. This solver provides exact (arbitrary precision) computation.
+
 
 Using CPLEX or GUROBI through Sage
 ----------------------------------

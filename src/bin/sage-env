@@ -373,7 +373,8 @@ for d in lib/openmpi lib/R/lib lib32 lib64 lib; do
     libdir="$SAGE_LOCAL/$d"
     # Add only existing directories
     if [ -d "$libdir" ]; then
-        LD_LIBRARY_PATH="$libdir:$LD_LIBRARY_PATH"
+        [ -z "$LD_LIBRARY_PATH" ] || LD_LIBRARY_PATH=":${LD_LIBRARY_PATH}"
+        LD_LIBRARY_PATH="${libdir}$LD_LIBRARY_PATH"
     fi
 done
 export LD_LIBRARY_PATH

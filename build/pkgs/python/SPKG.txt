@@ -57,8 +57,14 @@ http://www.python.org/community/
  * socket.py.patch: Work around an SSL issue.
  * Makefile.pre.in.patch: Changes the permission of installed libraries
    to 0755 (like any other library) instead of 0555.
+ * sys_path_security.patch: ensure that the current working directory
+   or the script directory is prepended to sys.path only if there is no
+   security risk in doing so.
 
 == Changelog ==
+
+=== python-2.7.3.p1 (Jeroen Demeyer, 14 October 2012) ===
+ * Trac #13579: add sys_path_security.patch.
 
 === python-2.7.3.p0 (Volker Braun, May 25 2012) ===
  * Trac #13013: Update to latest upstream Python-2.x version

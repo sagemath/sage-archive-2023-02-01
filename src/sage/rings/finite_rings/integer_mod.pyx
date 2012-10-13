@@ -69,6 +69,7 @@ TESTS::
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/stdsage.pxi"
+
 from cpython.int cimport *
 from cpython.list cimport *
 from cpython.ref cimport *
@@ -783,6 +784,15 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: Mod(1/25, 2^40).is_square()
             True
 
+            sage: for p,q,r in cartesian_product_iterator([[3,5],[11,13],[17,19]]): # long time
+            ....:     for ep,eq,er in cartesian_product_iterator([[0,1,2,3],[0,1,2,3],[0,1,2,3]]):
+            ....:         for e2 in [0, 1, 2, 3, 4]:
+            ....:             n = p^ep * q^eq * r^er * 2^e2
+            ....:             for _ in range(2):
+            ....:                 a = Zmod(n).random_element()
+            ....:                 if a.is_square().__xor__(a._pari_().issquare()):
+            ....:                     print a, n
+
         ALGORITHM: Calculate the Jacobi symbol
         `(\mathtt{self}/p)` at each prime `p`
         dividing `n`. It must be 1 or 0 for each prime, and if it
@@ -799,34 +809,27 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         return self.is_square_c()
 
     cdef bint is_square_c(self) except -2:
+        cdef int l2, m2
         if self.is_zero() or self.is_one():
             return 1
-        moduli = self.parent().factored_order()
-        cdef int val, e
+        # We first try to rule out self being a square without
+        # factoring the modulus.
         lift = self.lift()
-        if len(moduli) == 1:
-            p, e = moduli[0]
-            if e == 1:
-                return lift.jacobi(p) != -1
-            elif p == 2:
-                return self._pari_().issquare() # TODO: implement directly
-            elif self % p == 0:
-                val = lift.valuation(p)
-                return val >= e or (val % 2 == 0 and (lift // p**val).jacobi(p) != -1)
-            else:
-                return lift.jacobi(p) != -1
-        else:
-            for p, e in moduli:
-                if p == 2:
-                    if e > 1 and not self._pari_().issquare(): # TODO: implement directly
-                        return 0
-                elif e > 1 and lift % p == 0:
-                    val = lift.valuation(p)
-                    if val < e and (val % 2 == 1 or (lift // p**val).jacobi(p) == -1):
-                        return 0
-                elif lift.jacobi(p) == -1:
-                    return 0
-            return 1
+        m2, modd = self.modulus().val_unit(2)
+        if m2 == 2:
+            if lift & 2 == 2:  # lift = 2 or 3 (mod 4)
+                return 0
+        elif m2 > 2:
+            l2, lodd = lift.val_unit(2)
+            if l2 < m2 and (l2 % 2 == 1 or lodd % (1 << min(3, m2 - l2)) != 1):
+                return 0
+        # self is a square modulo 2^m2.  We compute the Jacobi symbol
+        # modulo modd.  If this is -1, then self is not a square.
+        if lift.jacobi(modd) == -1:
+            return 0
+        # We need to factor the modulus.  We do it here instead of
+        # letting PARI do it, so that we can cache the factorisation.
+        return lift._pari_().Zn_issquare(self._parent.factored_order()._pari_())
 
     def sqrt(self, extend=True, all=False):
         r"""
@@ -2678,36 +2681,27 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return hash(self.ivalue)
 
     cdef bint is_square_c(self) except -2:
+        cdef int_fast32_t l2, lodd, m2, modd
         if self.ivalue <= 1:
             return 1
-        moduli = self._parent.factored_order()
-        cdef int val, e
-        cdef int_fast32_t p
-        if len(moduli) == 1:
-            sage_p, e = moduli[0]
-            p = sage_p
-            if e == 1:
-                return jacobi_int(self.ivalue, p) != -1
-            elif p == 2:
-                return self._pari_().issquare() # TODO: implement directly
-            elif self.ivalue % p == 0:
-                val = self.lift().valuation(sage_p)
-                return val >= e or (val % 2 == 0 and jacobi_int(self.ivalue / int(sage_p**val), p) != -1)
-            else:
-                return jacobi_int(self.ivalue, p) != -1
-        else:
-            for sage_p, e in moduli:
-                p = sage_p
-                if p == 2:
-                    if e > 1 and not self._pari_().issquare(): # TODO: implement directly
-                        return 0
-                elif e > 1 and self.ivalue % p == 0:
-                    val = self.lift().valuation(sage_p)
-                    if val < e and (val % 2 == 1 or jacobi_int(self.ivalue / int(sage_p**val), p) == -1):
-                        return 0
-                elif jacobi_int(self.ivalue, p) == -1:
-                    return 0
-            return 1
+        # We first try to rule out self being a square without
+        # factoring the modulus.
+        lift = self.lift()
+        m2, modd = self.modulus().val_unit(2)
+        if m2 == 2:
+            if self.ivalue & 2 == 2:  # self.ivalue = 2 or 3 (mod 4)
+                return 0
+        elif m2 > 2:
+            l2, lodd = lift.val_unit(2)
+            if l2 < m2 and (l2 % 2 == 1 or lodd % (1 << min(3, m2 - l2)) != 1):
+                return 0
+        # self is a square modulo 2^m2.  We compute the Jacobi symbol
+        # modulo modd.  If this is -1, then self is not a square.
+        if jacobi_int(self.ivalue, modd) == -1:
+            return 0
+        # We need to factor the modulus.  We do it here instead of
+        # letting PARI do it, so that we can cache the factorisation.
+        return lift._pari_().Zn_issquare(self._parent.factored_order()._pari_())
 
     def sqrt(self, extend=True, all=False):
         r"""

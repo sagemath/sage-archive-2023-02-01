@@ -2,8 +2,8 @@ r"""
 Products of graphs
 
 This module gathers everything related to graph products. At the moment it
-contains different implementations of recognition algorithms for graphs that can
-be written as a cartesian product of smaller ones.
+contains an implementation of a recognition algorithm for graphs that can be
+written as a cartesian product of smaller ones.
 
 References:
 
@@ -28,7 +28,7 @@ First, a definition:
   if and only if :
 
   - `g=g'` and `hh'\in H`; or
-  - `h=h'` and `gg'\in H`
+  - `h=h'` and `gg'\in G`
 
 Two remarks follow :
 
@@ -46,7 +46,7 @@ This problem can actually be solved, and the resulting factorization is
 unique. What is explained below can be found in the book *Handbook of Product
 Graphs* [HIK11]_.
 
-Everything is actually based on a simple observation. Given a graph `G`, finding
+Everything is actually based on simple observations. Given a graph `G`, finding
 out whether `G` can be written as the product of several graphs can be attempted
 by trying to color its edges according to some rules. Indeed, if we are to color
 the edges of `G` in such a way that each color class represents a factor of `G`,
@@ -111,14 +111,24 @@ we must ensure several things.
     \put(-55,0){\makebox(0,0)[r]{$u_2=(g',h)$}}
     \end{picture}
 
-  As a corollary, we also know that:
+  **1st criterion** : As a corollary, we know that:
 
   #. If two vertices `u,v` have a *unique* common neighbor `x`, then `ux` and
-     `uv` have the same color.
+     `xv` have the same color.
 
   #. If two vertices `u, v` have more that two common neighbors `x_1, ...,
      x_k` then all edges between the `x_i` and the vertices of `u,v` have the
      same color. This is also a consequence of the first remark.
+
+  **2nd criterion** : if two edges `uv` and `u'v'` of the product graph
+  `G\square H` are such that `d(u,u')+d(v,v')\neq d(u,v') + d(v,u')` then the
+  two edges `uv` and `u'v'` necessarily have the same color.
+
+    This is a consequence of the fact that for any two vertices `u,v` of
+    `G\square H` (where `u=(u_G,u_H)` and `v=(v_G,v_H)`), we have `d(u,v) =
+    d_G(u_G,v_G)+d_H(u_H,v_H)`. Indeed, a shortest path from `u` to `v` in
+    `G\square H` contains the information of a shortest path from `u_G` to `v_G`
+    in `G`, and a shortest path from `u_H` to `v_H` in `H`.
 
 The algorithm
 ^^^^^^^^^^^^^
@@ -135,6 +145,14 @@ connected component indicates that the graph has no factorization.
 
 Then again, please refer to [HIK11]_ for any technical question.
 
+To Do
+^^^^^
+
+This implementation is made at Python level, and some parts of the algorithm
+could be rewritten in Cython to save time. Especially when enumerating all pairs
+of edges and computing their distances. This can easily be done in C with the
+functions from the :mod:`sage.graphs.distances_all_pairs` module.
+
 Methods
 -------
 """
@@ -146,9 +164,9 @@ Methods
 #                         http://www.gnu.org/licenses/                        *
 #******************************************************************************
 
-def is_cartesian_product(g, certificate = False):
+def is_cartesian_product(g, certificate = False, relabeling = False):
     r"""
-    Tests whether the graph can be factorized.
+    Tests whether the graph is a cartesian product.
 
     INPUT:
 
@@ -157,9 +175,25 @@ def is_cartesian_product(g, certificate = False):
       True``, the ``True`` answers are replaced by the list of the factors of
       the graph.
 
+    - ``relabeling`` (boolean) -- if ``relabeling = True`` (implies
+      ``certificate = True``), the method also returns a dictionary associating
+      to each vertex its natural coordinates as a vertex of a product graph. If
+      `g` is not a cartesian product, ``None`` is returned instead.
+
+      This is set to ``False`` by default.
+
     .. SEEALSO::
 
-        - :meth:`~sage.graphs.generic_graph.GenericGraph.cartesian_product`
+        - :meth:`sage.graphs.generic_graph.GenericGraph.cartesian_product`
+
+        - :mod:`~sage.graphs.graph_decompositions.graph_products` -- a module on
+          graph products.
+
+    .. NOTE::
+
+        This algorithm may run faster whenever the graph's vertices are integers
+        (see :meth:`~sage.graphs.generic_graph.GenericGraph.relabel`). Give it a
+        try if it is too slow !
 
     EXAMPLE:
 
@@ -179,6 +213,18 @@ def is_cartesian_product(g, certificate = False):
         sage: p2.is_isomorphic(graphs.PathGraph(5))
         True
 
+    Forgetting the graph's labels, then finding them back::
+
+        sage: g.relabel()
+        sage: g.is_cartesian_product(g, relabeling = True)
+        (True, {0: (0, 0), 1: (0, 1), 2: (0, 2), 3: (0, 3),
+                4: (0, 4), 5: (5, 0), 6: (5, 1), 7: (5, 2),
+                8: (5, 3), 9: (5, 4), 10: (10, 0), 11: (10, 1),
+                12: (10, 2), 13: (10, 3), 14: (10, 4), 15: (15, 0),
+                16: (15, 1), 17: (15, 2), 18: (15, 3), 19: (15, 4),
+                20: (20, 0), 21: (20, 1), 22: (20, 2), 23: (20, 3),
+                24: (20, 4)})
+
     And of course, we find the factors back when we build a graph from a
     product::
 
@@ -188,13 +234,24 @@ def is_cartesian_product(g, certificate = False):
         True
         sage: any( x.is_isomorphic(graphs.CycleGraph(3)) for x in [g1,g2])
         True
+
+    TESTS:
+
+    Wagner's Graph (:trac:`13599`)::
+
+        sage: g = graphs.WagnerGraph()
+        sage: g.is_cartesian_product()
+        False
     """
+    if relabeling:
+        certificate = True
+
     from sage.rings.integer import Integer
     H = g
 
     # Of course the number of vertices of g can not be prime !
     if Integer(g.order()).is_prime():
-        return False
+        return (False, None) if relabeling else False
     if not g.is_connected():
         raise ValueError("The graph must be connected !")
 
@@ -255,12 +312,30 @@ def is_cartesian_product(g, certificate = False):
             else:
                 h.add_path([r(u,x) for x in intersect] + [r(v,x) for x in intersect])
 
+    # Edges uv and u'v' such that d(u,u')+d(v,v') != d(u,v')+d(v,u') are also
+    # equivalent
+
+    edges = g.edges(labels = False)
+    d = g.distance_all_pairs()
+    for i,(u,v) in enumerate(edges):
+        du = d[u]
+        dv = d[v]
+        for j in range(i+1,len(edges)):
+            uu,vv = edges[j]
+            if du[uu]+dv[vv] != du[vv] + dv[uu]:
+                h.add_edge(r(u,v),r(uu,vv))
+
     # Gathering the connected components, relabeling the vertices on-the-fly
     edges = map(lambda x:map(lambda y : (t[y[0]],t[y[1]]),x),h.connected_components())
 
+    #Print the graph, distinguishing the edges according to their color classes
+    #
+    #from sage.plot.colors import rainbow
+    #g.show(edge_colors = dict(zip(rainbow(len(edges)),edges)))
+
     # Only one connected component ?
     if len(edges) == 1:
-        return False
+        return (False, None) if relabeling else False
 
     # Building the list of factors
     factors = []
@@ -275,11 +350,13 @@ def is_cartesian_product(g, certificate = False):
         answer = answer.cartesian_product(factors[i])
 
     # Checking that the resulting graph is indeed isomorphic to what we have.
-    if not answer.is_isomorphic(g):
+    isiso, dictt = g.is_isomorphic(answer, certify = True)
+    if not isiso:
         raise ValueError("Something weird happened during the algorithm... "+
                          "Please report the bug and give us the graph instance"+
                          " that made it fail !!!")
-
+    if relabeling:
+        return isiso, dictt
     if certificate:
         return factors
     else:

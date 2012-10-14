@@ -4614,55 +4614,6 @@ class Graph(GenericGraph):
 
         return D[0] == "Prime" and len(D[1]) == self.order()
 
-    def is_cartesian_product(self, certificate = False):
-        r"""
-        Tests whether ``self`` is a cartesian product of graphs.
-
-        INPUT:
-
-        - ``certificate`` (boolean) -- if ``certificate = False`` (default) the
-          method only returns ``True`` or ``False`` answers. If ``certificate =
-          True``, the ``True`` answers are replaced by the list of the factors of
-          the graph.
-
-        .. SEEALSO::
-
-            - :meth:`~sage.graphs.generic_graph.GenericGraph.cartesian_product`
-
-            - :mod:`~sage.graphs.graph_decompositions.graph_products` -- a
-              module on graph products.
-
-        EXAMPLE:
-
-        The Petersen graph is prime::
-
-            sage: g = graphs.PetersenGraph()
-            sage: g.is_cartesian_product()
-            False
-
-        A 2d grid is the product of paths::
-
-            sage: g = graphs.Grid2dGraph(5,5)
-            sage: p1, p2 = g.is_cartesian_product(certificate = True)
-            sage: p1.is_isomorphic(graphs.PathGraph(5))
-            True
-            sage: p2.is_isomorphic(graphs.PathGraph(5))
-            True
-
-        And of course, we find the factors back when we build a graph from a
-        product::
-
-            sage: g = graphs.PetersenGraph().cartesian_product(graphs.CycleGraph(3))
-            sage: g1, g2 = g.is_cartesian_product(certificate = True)
-            sage: any( x.is_isomorphic(graphs.PetersenGraph()) for x in [g1,g2])
-            True
-            sage: any( x.is_isomorphic(graphs.CycleGraph(3)) for x in [g1,g2])
-            True
-        """
-        from sage.graphs.graph_decompositions.graph_products import is_cartesian_product
-        return is_cartesian_product(self, certificate = certificate)
-
-
     def _gomory_hu_tree(self, vertices=None, method="FF"):
         r"""
         Returns a Gomory-Hu tree associated to self.
@@ -4933,6 +4884,7 @@ class Graph(GenericGraph):
 
         return classes_b
 
+
 # Aliases to functions defined in Cython modules
 import types
 
@@ -4952,6 +4904,9 @@ Graph.matching_polynomial = types.MethodType(sage.graphs.matchpoly.matching_poly
 
 import sage.graphs.cliquer
 Graph.cliques_maximum = types.MethodType(sage.graphs.cliquer.all_max_clique, None, Graph)
+
+import sage.graphs.graph_decompositions.graph_products
+Graph.is_cartesian_product = types.MethodType(sage.graphs.graph_decompositions.graph_products.is_cartesian_product, None, Graph)
 
 def compare_edges(x, y):
     """

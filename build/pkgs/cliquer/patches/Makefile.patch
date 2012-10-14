@@ -6,7 +6,7 @@ diff -ur src/Makefile src.patched/Makefile
  ##### Configurable options:
  
 +# Don't need to set any of these compiler variables. They have already been
-+# set when running SAGE_ROOT/spkg/bin/sage-env as part of installing a
++# set when running SAGE_ROOT/local/bin/sage-env as part of installing a
 +# package.
  ## Compiler:
 -CC=gcc

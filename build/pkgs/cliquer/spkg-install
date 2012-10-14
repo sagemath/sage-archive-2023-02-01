@@ -178,6 +178,11 @@ cd src
 # cliquer as a dynamic shared library, instead of a stand alone program.
 patch -p1 <../patches/Makefile.patch
 
+# Add to the source the code we need
+patch <../patches/graph.c.patch
+patch <../patches/cl.c.patch
+cp ../patches/cl.h .
+
 #Do not exit script if there is an error, but instead print an
 # informative error message.
 set +e

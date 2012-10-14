@@ -24,6 +24,15 @@ http://users.tkk.fi/pat/cliquer.html
 
 == Changelog ==
 
+=== cliquer-1.21.p0 (Nathann Cohen, 4 May 2012) ===
+ * Solved memory leaks reported on #12905
+ * Incidentally updated Cliquer to version 1.21
+ * Incidentally removed Sage's code that was formerly directly
+   inserted in the original files. This code is now inserted during
+   installation from patches located in the patches/ folder. A bit
+   cleaner. A long way to go. But God this code really is messy and
+   full of global variables.
+
 === cliquer-1.2.p11 (John Palmieri, 23 March 2012) ===
  * #12311: Remove explicit path to testcc.sh in spkg-install.
 

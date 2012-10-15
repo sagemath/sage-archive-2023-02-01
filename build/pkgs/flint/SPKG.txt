@@ -33,8 +33,12 @@ GPL V2+
    This is not an officially supported option because flint is pure C
    and the NTL interface requires C++.
  * Remove the '.svn' directories from upstream ('src/') if present.
+ * Remove the 'src/zn_poly/demo/bernoulli/.DS_Store' file
 
 == Changelog ==
+
+=== flint-1.5.2.p2 (Paul-Olivier Dehaye, 16 October 2012) ===
+  * #9697: Remove the file 'src/zn_poly/demo/bernoulli/.DS_Store'
 
 === flint-1.5.2.p1 (Jean-Pierre Flori, 3 August 2012) ===
   * #13330: Pass --binary flag to patch on Cygwin to deal with file terminators

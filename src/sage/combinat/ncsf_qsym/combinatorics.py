@@ -11,6 +11,7 @@ REFERENCES:
 
 from sage.misc.misc_c import prod
 from sage.functions.other import factorial
+from sage.misc.cachefunc import cached_method, cached_function
 from sage.combinat.composition import Composition, Compositions
 
 # The following might call for defining a morphism from ``structure
@@ -140,3 +141,39 @@ def m_to_s_stat(R, I, K):
             pp = prod( R( len(I) - pvec[i] ) for i in range( len(pvec)-1 ) )
             stat += R((-1)**(len(I)-len(K)) / pp * coeff_lp(K,J))
     return stat
+
+@cached_function
+def number_of_fCT(content_comp, shape_comp):
+    r"""
+    Returns the number of Immaculate tableau of shape ``shape_comp`` and content ``content_comp``.
+
+    INPUT:
+
+    - ``content_comp``, ``shape_comp`` -- compositions
+
+    OUTPUT:
+
+    - An integer
+
+    EXAMPLES::
+
+        sage: from sage.combinat.ncsf_qsym.combinatorics import number_of_fCT
+        sage: number_of_fCT(Composition([3,1]), Composition([1,3]))
+        0
+        sage: number_of_fCT(Composition([1,2,1]), Composition([1,3]))
+        1
+        sage: number_of_fCT(Composition([1,1,3,1]), Composition([2,1,3]))
+        2
+
+    """
+    if content_comp.to_partition().length() == 1:
+        if shape_comp.to_partition().length() == 1:
+            return 1
+        else:
+            return 0
+    C = Compositions(content_comp.size()-content_comp[-1], outer = list(shape_comp))
+    s = 0
+    for x in C:
+        if len(x) >= len(shape_comp)-1:
+            s += number_of_fCT(Composition(content_comp[:-1]),x)
+    return s

@@ -11,6 +11,7 @@ REFERENCES:
 
 from sage.misc.misc_c import prod
 from sage.functions.other import factorial
+from sage.combinat.composition import Composition, Compositions
 
 # The following might call for defining a morphism from ``structure
 # coefficients'' / matrix using something like:
@@ -109,3 +110,33 @@ def coeff_sp(J,I):
     """
     return prod(factorial(len(K))*prod(K) for K in J.refinement_splitting(I))
 
+def m_to_s_stat(R, I, K):
+    r"""
+    Returns the statistic for the expansion of the Monomial basis element indexed by two
+    compositions, as in formula (36) of Tevlin's "Noncommutative Analogs of Monomial Symmetric
+    Functions, Cauchy Identity, and Hall Scalar Product".
+
+    INPUT:
+
+    - ``R`` -- A ring
+    - ``I``, ``K`` -- compositions
+
+    OUTPUT:
+
+    - An integer
+
+    EXAMPLES::
+
+        sage: from sage.combinat.ncsf_qsym.combinatorics import m_to_s_stat
+        sage: m_to_s_stat(QQ,Composition([2,1]), Composition([1,1,1]))
+        -1
+        sage: m_to_s_stat(QQ,Composition([3]), Composition([1,2]))
+        -2
+    """
+    stat = 0
+    for J in Compositions(I.size()):
+        if (I.is_finer(J) and  K.is_finer(J)):
+            pvec = [0] + Composition(I).refinement_splitting_lengths(J).partial_sums()
+            pp = prod( R( len(I) - pvec[i] ) for i in range( len(pvec)-1 ) )
+            stat += R((-1)**(len(I)-len(K)) / pp * coeff_lp(K,J))
+    return stat

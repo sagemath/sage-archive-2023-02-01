@@ -2147,6 +2147,28 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         return self*other - other*self
 
+    def anticommutator(self, other):
+        r"""
+        Return the anticommutator ``self`` and ``other``.
+
+        The *anticommutator* of two `n \times n` matrices `A` and `B`
+        is defined as `\{A, B\} := AB + BA` (sometimes this is written as
+        `[A, B]_+`).
+
+        EXAMPLES::
+
+            sage: A = Matrix(ZZ, 2, 2, range(4))
+            sage: B = Matrix(ZZ, 2, 2, [0, 1, 0, 0])
+            sage: A.anticommutator(B)
+            [2 3]
+            [0 2]
+            sage: A.anticommutator(B) == B.anticommutator(A)
+            True
+            sage: A.commutator(B) + B.anticommutator(A) == 2*A*B
+            True
+        """
+        return self*other + other*self
+
     ###################################################
     # Row and column operations
     # The _c versions do no bounds checking.

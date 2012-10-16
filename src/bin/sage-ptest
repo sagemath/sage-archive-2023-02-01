@@ -66,6 +66,19 @@ print 'File iterations: ' + str(numiteration)
 # Exit status for the whole run.
 err = 0
 
+# Check that the current directory is sufficiently safe to run Python
+# code from.  We use the check added to Python for this, which gives a
+# warning when the current directory is considered unsafe.  We promote
+# this warning to an error with -Werror.  See sage/tests/cmdline.py
+# for a doctest that this works, see also Sage Trac #13579.
+import subprocess
+with open(os.devnull, 'w') as dev_null:
+    if subprocess.call(['python', '-Werror', '-c', ''], stdout=dev_null, stderr=dev_null) != 0:
+        raise RuntimeError("refusing to run doctests from the current "\
+            "directory '{}' since untrusted users could put files in "\
+            "this directory, making it unsafe to run Sage code from"\
+            .format(os.getcwd()))
+
 def strip_automount_prefix(filename):
     """
     Strip prefixes added on automounted filesystems in some cases,

@@ -38,6 +38,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
 from sage.combinat.ncsf_qsym.combinatorics import *
+from sage.combinat.ncsf_qsym.ncsf import *
 from sage.sets.set import Set
 
 class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
@@ -411,6 +412,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         # Bases
         Monomial    = self.Monomial()
         Fundamental = self.Fundamental()
+        dualImmaculate = self.dualImmaculate()
 
         # Change of bases
         Fundamental.module_morphism(Monomial.sum_of_finer_compositions,
@@ -419,6 +421,14 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         Monomial   .module_morphism(Fundamental.alternating_sum_of_finer_compositions,
                                     codomain=Fundamental, category=category
                                     ).register_as_coercion()
+        #This changes dualImmaculate into Monomial
+        dualImmaculate.module_morphism(dualImmaculate._to_Monomial_on_basis,
+                                          codomain = Monomial, category = category
+                                          ).register_as_coercion()
+        #This changes Monomial into dualImmaculate
+        Monomial.module_morphism(dualImmaculate._from_Monomial_on_basis,
+                                          codomain = dualImmaculate, category = category
+                                          ).register_as_coercion()
         # Embedding of Sym into QSym in the monomial bases
         Sym = SymmetricFunctions(self.base_ring())
         Sym_m_to_M = Sym.m().module_morphism(Monomial.sum_of_partition_rearrangements,
@@ -452,7 +462,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.Monomial()
 
-    _shorthands = set(['M', 'F'])
+    _shorthands = tuple(['M', 'F', 'dI'])
 
     def dual(self):
         r"""
@@ -1148,3 +1158,121 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                        for j in range(1, compo[i]) )
 
     F = Fundamental
+
+    class dualImmaculate(CombinatorialFreeModule, BindableClass):
+        def __init__(self, QSym):
+            r"""
+            The dual immaculate basis of the non-commutative symmetric functions. This basis first
+            appears in Berg, Bergeron, Saliola, Serrano and Zabrocki's " A lift of the Schur and Hall-Littlewood
+            bases to non-commutative symmetric functions".
+
+            EXAMPLES ::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: dI = QSym.dI()
+                sage: dI([1,3,2])*dI([1])
+                dI[1, 1, 3, 2] + dI[2, 3, 2]
+                sage: dI([1,3])*dI([1,1])
+                dI[1, 1, 1, 3] + dI[1, 1, 4] + dI[1, 2, 3] - dI[1, 3, 2] - dI[1, 4, 1] - dI[1, 5] + dI[2, 3, 1] + dI[2, 4]
+                sage: dI([3,1])*dI([2,1])
+                dI[1, 1, 5] - dI[1, 4, 1, 1] - dI[1, 4, 2] - 2*dI[1, 5, 1] - dI[1, 6] - dI[2, 4, 1] - dI[2, 5] - dI[3, 1, 3] + dI[3, 2, 1, 1] + dI[3, 2, 2] + dI[3, 3, 1] + dI[4, 1, 1, 1] + 2*dI[4, 2, 1] + dI[4, 3] + dI[5, 1, 1] + dI[5, 2]
+                sage: F = QSym.F()
+                sage: dI(F[1,3,1])
+                -dI[1, 1, 1, 2] + dI[1, 1, 2, 1] - dI[1, 2, 2] + dI[1, 3, 1]
+                sage: F(dI(F([2,1,3])))
+                F[2, 1, 3]
+            """
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+                                             prefix='dI', bracket=False,
+                                             category=QSym.Bases())
+
+        def _to_Monomial_on_basis(self, J):
+            r"""
+            Given a dual immaculate function, this method returns the expansion of the function in the quasi-symmetric monomial basis.
+
+            INPUT:
+
+            - ``J`` -- a composition
+
+            OUTPUT:
+
+            - A quasi-symmetric function in the monomial basis.
+
+            EXAMPLES::
+
+            sage: dI = QuasiSymmetricFunctions(QQ).dI()
+            sage: dI._to_Monomial_on_basis(Composition([1,3]))
+            M[1, 1, 1, 1] + M[1, 1, 2] + M[1, 2, 1] + M[1, 3]
+            sage: dI._to_Monomial_on_basis(Composition([]))
+            M[]
+            sage: dI._to_Monomial_on_basis(Composition([2,1,2]))
+            4*M[1, 1, 1, 1, 1] + 3*M[1, 1, 1, 2] + 2*M[1, 1, 2, 1] + M[1, 1, 3] + M[1, 2, 1, 1] + M[1, 2, 2] + M[2, 1, 1, 1] + M[2, 1, 2]
+            """
+            M = self.realization_of().Monomial()
+            if J == []:
+                return M([])
+            return M.sum_of_terms((I, number_of_fCT( I, J) ) for I in Compositions(J.size()))
+
+        @cached_method
+        def _matrix_monomial_to_dual_immaculate(self, n):
+            r"""
+            This function caches the change of basis matrix from the quasisymmetric monomial basis to the dual immaculate basis.
+
+            INPUT:
+
+            - ``J`` -- a composition
+
+            OUTPUT:
+
+            - A list. Each entry in the list is a row in the change of basis matrix.
+
+            EXAMPLES::
+
+                sage: dI = QuasiSymmetricFunctions(QQ).dI()
+                sage: dI._matrix_monomial_to_dual_immaculate(3)
+                [[1, -1, -1, 1], [0, 1, -1, 0], [0, 0, 1, -1], [0, 0, 0, 1]]
+                sage: dI._matrix_monomial_to_dual_immaculate(0)
+                [[1]]
+            """
+            N = NonCommutativeSymmetricFunctions(self.base_ring())
+            I = N.I()
+            S = N.S()
+            mat = []
+            for alp in Compositions(n):
+                row = []
+                expansion = S(I(alp))
+                for bet in Compositions(n):
+                    row.append(expansion.coefficient(Composition(bet)))
+                mat.append(row)
+            return mat
+
+        def _from_Monomial_on_basis(self, J):
+            r"""
+            Given a quasi-symmetric monomial function, this method returns the expansion into the dual immaculate basis.
+
+            INPUT:
+
+            - ``J`` -- a composition
+
+            OUTPUT:
+
+            - A quasi-symmetric function in the dual immaculate basis.
+
+            EXAMPLES:
+
+                sage: dI = QuasiSymmetricFunctions(QQ).dI()
+                sage: dI._from_Monomial_on_basis(Composition([]))
+                dI[]
+                sage: dI._from_Monomial_on_basis(Composition([2,1]))
+                -dI[1, 1, 1] - dI[1, 2] + dI[2, 1]
+                sage: dI._from_Monomial_on_basis(Composition([3,1,2]))
+                -dI[1, 1, 1, 1, 1, 1] + dI[1, 1, 1, 1, 2] + dI[1, 1, 1, 3] - dI[1, 1, 4] - dI[1, 2, 1, 1, 1] + dI[1, 2, 3] + dI[2, 1, 1, 1, 1] - dI[2, 1, 1, 2] + dI[2, 2, 1, 1] - dI[2, 2, 2] - dI[3, 1, 1, 1] + dI[3, 1, 2]
+            """
+            n = J.size()
+            C= Compositions(n)
+            mat = self._matrix_monomial_to_dual_immaculate(n)
+            column = C.list().index(J)
+            return self.sum_of_terms( (I, mat[C.list().index(I)][column])
+                                            for I in Compositions(n))
+
+    dI = dualImmaculate

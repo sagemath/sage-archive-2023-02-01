@@ -13,6 +13,7 @@ from sage.misc.misc_c import prod
 from sage.functions.other import factorial
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.combinat.composition import Composition, Compositions
+from sage.combinat.permutation import Permutations
 
 # The following might call for defining a morphism from ``structure
 # coefficients'' / matrix using something like:

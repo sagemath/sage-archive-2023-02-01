@@ -1753,14 +1753,14 @@ class PermutationGroup_generic(group.Group):
             pr2 = PermutationGroupMorphism_from_gap(D, other, G.Projection(2))
             return D, iota1, iota2, pr1, pr2
 
-    def semidirect_product(self,N,mapping, check = True):
+    def semidirect_product(self, N, mapping, check=True):
         r"""
         The semidirect product of ``self`` with ``N``.
 
         INPUT:
 
-        - ``N`` - A group which is acted on by ``self`` and is
-          isomorphic to the normal subgroup of the outputted semidirect
+        - ``N`` - A group which is acted on by ``self`` and
+          naturally embeds as a normal subgroup of the returned semidirect
           product.
 
         - ``mapping`` - A pair of lists that together define a
@@ -1769,9 +1769,9 @@ class PermutationGroup_generic(group.Group):
           in the order given in the first list.
 
         - ``check`` - A boolean that, if set to False, will skip the
-          initial tests. This may be beneficial for large ``N``, as
-          in such cases the fourth test will be very time inefficient.
-          Set to True by default.
+          initial tests which are made on ``mapping``. This may be beneficial
+          for large ``N``, since in such cases the injectivity test can be
+          expensive. Set to True by default.
 
         OUTPUT:
 
@@ -1789,17 +1789,16 @@ class PermutationGroup_generic(group.Group):
 
                 (h_1,n_1)(h_2,n_2) = (h_{1}h_{2}, n_{1}^{h_2}n_2)
 
-        This particular method is a wrapping of GAP's
-        ``SemidirectProduct`` command. The outputted permutation group
-        is built upon a permutation representation of the semidirect
-        product of ``self`` and ``N`` on a set of size `\mid N \mid`.
-        The generators of ``N`` are given as their right regular
-        representations, while the generators of ``self`` are defined
-        by the underlying action of ``self`` on ``N``. It should be
-        noted that the defining action is not always faithful, and in
-        this case the inputted representations of the generators of
-        ``self`` are placed on additional letters and adjoined to the
-        output's generators of ``self``.
+        This function is a wrapper for GAP's ``SemidirectProduct``
+        command. The permutation group returned is built upon a
+        permutation representation of the semidirect product of ``self``
+        and ``N`` on a set of size `\mid N \mid`. The generators of
+        ``N`` are given as their right regular representations, while the
+        generators of ``self`` are defined by the underlying action of
+        ``self`` on ``N``. It should be noted that the defining action is
+        not always faithful, and in this case the inputted representations
+        of the generators of ``self`` are placed on additional letters
+        and adjoined to the output's generators of ``self``.
 
 
         EXAMPLES:

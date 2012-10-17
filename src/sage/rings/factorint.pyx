@@ -236,7 +236,7 @@ cpdef factor_trial_division(m, long limit=LONG_MAX):
         [(2, 3)]
 
     """
-    cdef Integer n = PY_NEW(Integer), unit = PY_NEW(Integer), p
+    cdef Integer n = PY_NEW(Integer), unit = PY_NEW(Integer), p = Integer(2)
     cdef long e
 
     n = Integer(m)
@@ -248,7 +248,7 @@ cpdef factor_trial_division(m, long limit=LONG_MAX):
 
     F = []
     while mpz_cmpabs_ui(n.value, 1):
-        p = n.trial_division(bound=limit)
+        p = n.trial_division(bound=limit,start=mpz_get_ui(p.value))
         e = mpz_remove(n.value, n.value, p.value)
         F.append((p,e))
 

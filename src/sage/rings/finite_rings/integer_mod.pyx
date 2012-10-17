@@ -1437,6 +1437,78 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         n = self.__modulus.sageInteger
         return sage.rings.integer.Integer(n.__floordiv__(self.lift().gcd(n)))
 
+    def is_primitive_root(self):
+        """
+        Determines whether this element generates the group of units modulo n.
+
+        This is only possible if the group of units is cyclic, which occurs if
+        n is 2, 4, a power of an odd prime or twice a power of an odd prime.
+
+        EXAMPLES::
+
+            sage: mod(1,2).is_primitive_root()
+            True
+            sage: mod(3,4).is_primitive_root()
+            True
+            sage: mod(2,7).is_primitive_root()
+            False
+            sage: mod(3,98).is_primitive_root()
+            True
+            sage: mod(11,1009^2).is_primitive_root()
+            True
+
+        TESTS::
+
+            sage: for p in prime_range(3,12):
+            ...     for k in range(1,4):
+            ...         for even in [1,2]:
+            ...             n = even*p^k
+            ...             phin = euler_phi(n)
+            ...             for _ in range(6):
+            ...                 a = Zmod(n).random_element()
+            ...                 if not a.is_unit(): continue
+            ...                 if a.is_primitive_root().__xor__(a.multiplicative_order()==phin):
+            ...                     print "mod(%s,%s) incorrect"%(a,n)
+        """
+        cdef Integer p1, q = Integer(2)
+        m = self.modulus()
+        if m == 2:
+            return self == 1
+        if m == 4:
+            return self == 3
+        pow2, odd = m.val_unit(2)
+        if pow2 > 1:
+            return False
+        if pow2 == 1:
+            if self % 2 == 0:
+                return False
+            self = self % odd
+        p, k = odd.perfect_power()
+        if not p.is_prime():
+            return False
+        if k > 1:
+            if self**((p-1)*p**(k-2)) == 1:
+                return False
+            # self**(p**(k-1)*(p-1)//q) = 1 for some q
+            # iff mod(self,p)**((p-1)//q) = 1 for some q
+            self = self % p
+        # Now self is modulo a prime and need the factorization of p-1.
+        p1 = p - 1
+        while mpz_cmpabs_ui(p1.value, 1):
+            q = p1.trial_division(bound=1000, start=mpz_get_ui(q.value))
+            if q == p1:
+                break
+            if self**((p-1)//q) == 1:
+                return False
+            mpz_remove(p1.value, p1.value, q.value)
+        if q.is_prime():
+            return self**((p-1)//q) != 1
+        # No small factors remain: we need to do some real work.
+        for qq, e in q.factor():
+            if self**((p-1)//qq) == 1:
+                return False
+        return True
+
     def multiplicative_order(self):
         """
         Returns the multiplicative order of self.

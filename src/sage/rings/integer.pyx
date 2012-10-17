@@ -3204,14 +3204,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_pythonhash(self.value)
 
-    def trial_division(self, long bound=LONG_MAX):
+    def trial_division(self, long bound=LONG_MAX, long start=2):
         """
-        Return smallest prime divisor of self up to bound,
-        or abs(self) if no such divisor is found.
+        Return smallest prime divisor of self up to bound, beginning
+        checking at start, or abs(self) if no such divisor is found.
 
         INPUT:
 
             - ``bound`` -- a positive integer that fits in a C signed long
+            - ``start`` -- a positive integer that fits in a C signed long
 
         OUTPUT:
 
@@ -3258,24 +3259,48 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             3
             sage: n = 5 * next_prime(10^4); n.trial_division()
             5
+
+        You can specify a starting point::
+
+            sage: n = 3*5*101*103
+            sage: n.trial_division(start=50)
+            101
         """
         if bound <= 0:
             raise ValueError, "bound must be positive"
         if mpz_sgn(self.value) == 0:
             raise ValueError, "self must be nonzero"
         cdef unsigned long n, m=7, i=1, limit, dif[8]
+        if start > 7:
+            # We need to find i.
+            m = start % 30
+            if 0 <= m <= 1:
+                i = 0; m = start + (1-m)
+            elif 1 < m <= 7:
+                i = 1; m = start + (7-m)
+            elif 7 < m <= 11:
+                i = 2; m = start + (11-m)
+            elif 11 < m <= 13:
+                i = 3; m = start + (13-m)
+            elif 13 < m <= 17:
+                i = 4; m = start + (17-m)
+            elif 17 < m <= 19:
+                i = 5; m = start + (19-m)
+            elif 19 < m <= 23:
+                i = 6; m = start + (23-m)
+            elif 23 < m <= 29:
+                i = 7; m = start + (29-m)
         dif[0]=6;dif[1]=4;dif[2]=2;dif[3]=4;dif[4]=2;dif[5]=4;dif[6]=6;dif[7]=2
         cdef Integer x = PY_NEW(Integer)
         if mpz_fits_ulong_p(self.value):
             n = mpz_get_ui(self.value)   # ignores the sign automatically
             if n == 1: return one
-            if n%2==0:
+            if start <= 2 and n%2==0:
                 mpz_set_ui(x.value,2); return x
-            if n%3==0:
+            if start <= 3 and n%3==0:
                 mpz_set_ui(x.value,3); return x
-            if n%5==0:
+            if start <= 5 and n%5==0:
                 mpz_set_ui(x.value,5); return x
-
             limit = <unsigned long> sqrt_double(<double> n)
             if bound < limit: limit = bound
             # Algorithm: only trial divide by numbers that
@@ -3289,11 +3314,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return x
         else:
             # self is big -- it doesn't fit in unsigned long.
-            if mpz_even_p(self.value):
+            if start <= 2 and mpz_even_p(self.value):
                 mpz_set_ui(x.value,2); return x
-            if  mpz_divisible_ui_p(self.value,3):
+            if start <= 3 and mpz_divisible_ui_p(self.value,3):
                 mpz_set_ui(x.value,3); return x
-            if  mpz_divisible_ui_p(self.value,5):
+            if start <= 5 and mpz_divisible_ui_p(self.value,5):
                 mpz_set_ui(x.value,5); return x
 
             # x.value = floor(sqrt(self.value))

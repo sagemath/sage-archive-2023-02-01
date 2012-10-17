@@ -1226,5 +1226,10 @@ def StandardSkewTableaux_n(*args, **kargs):
     deprecation(9265,'this class is deprecated. Use StandardSkewTableaux_size instead')
     return StandardSkewTableaux(*args, **kargs)
 
-
-
+# October 2012: fixing outdated pickles which use the classes being deprecated
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_n',  StandardSkewTableaux_size)
+register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_n',  SemistandardSkewTableaux_size)
+register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_nmu',  SemistandardSkewTableaux_size_weight)
+register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_p',  SemistandardSkewTableaux_shape)
+register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_pmu',  SemistandardSkewTableaux_shape_weight)

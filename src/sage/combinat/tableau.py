@@ -207,6 +207,25 @@ class Tableau(CombinatorialObject, Element):
         if not map(len,t) in sage.combinat.partition.Partitions_all():
             raise ValueError, "A tableau must be a list of lists of weakly decreasing length."
 
+    def __setstate__(self, state):
+        """
+        In order to maintain backwards compatibility and be able to unpickle a
+        old pickle from Tableau_class we have to override the default
+        __setstate__.
+
+        TESTS::
+
+            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+IL\xcaIM,\xe5\n\x81\xd0\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl![l!;\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x9031\xb14I\x0f\x00\xf6\xae)7')        # indirect doctest for unpickling a Tableau_class element
+            [[1]]
+            sage: loads(dumps( Tableau([[1]]) ))  # indirect doctest for unpickling a Tableau element
+            [[1]]
+        """
+        if isinstance(state, dict):   # for old pickles from Tableau_class
+            self._set_parent(Tableaux())
+            self.__dict__ = state
+        else:
+            self._set_parent(state[0])
+            self.__dict__ = state[1]
 
     def _latex_(self):
         r"""
@@ -4251,5 +4270,16 @@ def StandardTableaux_partition(*args, **kargs):
     """
     deprecation(9265,'this class is deprecated. Use StandardTableaux_shape instead')
     return StandardTableaux(*args, **kargs)
+
+# October 2012: fixing outdated pickles which use classed being deprecated
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.tableau', 'Tableau_class',  Tableau)
+register_unpickle_override('sage.combinat.tableau', 'Tableaux_n',  Tableaux_size)
+register_unpickle_override('sage.combinat.tableau', 'StandardTableaux_n',  StandardTableaux_size)
+register_unpickle_override('sage.combinat.tableau', 'StandardTableaux_partition',  StandardTableaux_shape)
+register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_n',  SemistandardTableaux_size)
+register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_p',  SemistandardTableaux_shape)
+register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_nmu',  SemistandardTableaux_size_weight)
+register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu',  SemistandardTableaux_shape_weight)
 
 

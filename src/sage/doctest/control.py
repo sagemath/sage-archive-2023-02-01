@@ -898,6 +898,8 @@ def run_doctests(module, options=None):
     # We need the following if we're not in DOCTEST_MODE
     # Tell IPython to avoid colors: it screws up the output checking.
     if not save_dtmode:
+        if options.debug:
+            raise ValueError("You should not try to run doctests with a debugger from within Sage: IPython objects to embedded shells")
         IP = get_ipython()
         old_color = IP.colors
         IP.run_line_magic('colors', 'NoColor')

@@ -1016,10 +1016,95 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 1764
             Got:
                 BAD ANSWER
+
+        TESTS:
+
+        If debugging is turned on this function starts an IPython
+        prompt when a test returns an incorrect answer::
+
+            sage: import os
+            sage: os.environ['SAGE_PEXPECT_LOG'] = "1"
+            sage: sage0.quit()
+            sage: _ = sage0.eval("import doctest, sys, os, multiprocessing, subprocess")
+            sage: _ = sage0.eval("from sage.doctest.parsing import SageOutputChecker")
+            sage: _ = sage0.eval("import sage.doctest.forker as sdf")
+            sage: _ = sage0.eval("from sage.doctest.control import DocTestDefaults")
+            sage: _ = sage0.eval("DD = DocTestDefaults(debug=True)")
+            sage: _ = sage0.eval("ex1 = doctest.Example('a = 17', '')")
+            sage: _ = sage0.eval("ex2 = doctest.Example('2*a', '1')")
+            sage: _ = sage0.eval("DT = doctest.DocTest([ex1,ex2], globals(), 'doubling', None, 0, None)")
+            sage: _ = sage0.eval("DTR = sdf.SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)")
+            sage: sage0._prompt = r"debug: "
+            sage: print sage0.eval("DTR.run(DT, clear_globs=False)") # indirect doctest
+            **********************************************************************
+            Line 1, in doubling
+            Failed example:
+                2*a
+            Expected:
+                1
+            Got:
+                34
+            ********************************************************************************
+            Previously executed commands:
+            ...
+            sage: sage0.eval("a")
+            '...17'
+            sage: sage0._prompt = "sage: "
+            sage: sage0.eval("quit")
+            'Returning to doctests...TestResults(failed=1, attempted=2)'
         """
         if not self.options.initial or self.no_failure_yet:
             self.no_failure_yet = False
-            doctest.DocTestRunner.report_failure(self, out, test, example, got)
+            returnval = doctest.DocTestRunner.report_failure(self, out, test, example, got)
+            if self.options.debug:
+                self._fakeout.stop_spoofing()
+                restore_tcpgrp = None
+                try:
+                    if os.isatty(0):
+                        # In order to read from the terminal, we need
+                        # to make the current process group the
+                        # foreground group.
+                        restore_tcpgrp = os.tcgetpgrp(0)
+                        signal.signal(signal.SIGTTIN, signal.SIG_IGN)
+                        signal.signal(signal.SIGTTOU, signal.SIG_IGN)
+                        os.tcsetpgrp(0, os.getpgrp())
+                    print("*" * 80)
+                    print("Previously executed commands:")
+                    for ex in test.examples:
+                        if ex is example:
+                            break
+                        if hasattr(ex, 'sage_source'):
+                            src = '    sage: ' + ex.sage_source
+                        else:
+                            src = '    sage: ' + ex.source
+                        if src[-1] == '\n':
+                            src = src[:-1]
+                        src = src.replace('\n', '\n    ....: ')
+                        print(src)
+                        if ex.want:
+                            print(doctest._indent(ex.want[:-1]))
+                    from sage.misc.interpreter import DEFAULT_SAGE_CONFIG
+                    from IPython import embed
+                    cfg = DEFAULT_SAGE_CONFIG.copy()
+                    prompt_config = cfg.PromptManager
+                    prompt_config.in_template = 'debug: '
+                    prompt_config.in2_template = '.....: '
+                    embed(config=cfg, banner1='', user_ns=dict(globs))
+                except KeyboardInterrupt:
+                    # Assume this is a *real* interrupt. We need to
+                    # escalate this to the master docbuilding process.
+                    if not self.options.serial:
+                        os.kill(os.getppid(), signal.SIGINT)
+                    raise
+                finally:
+                    # Restore the foreground process group.
+                    if restore_tcpgrp is not None:
+                        os.tcsetpgrp(0, restore_tcpgrp)
+                        signal.signal(signal.SIGTTIN, signal.SIG_DFL)
+                        signal.signal(signal.SIGTTOU, signal.SIG_DFL)
+                    print("Returning to doctests...")
+                    self._fakeout.start_spoofing()
+            return returnval
 
     def report_overtime(self, out, test, example, got):
         r"""

@@ -704,9 +704,26 @@ def valuation(m,*args1, **args2):
 
 def prime_powers(start, stop=None):
     r"""
-    List of all positive primes powers between start and stop-1,
-    inclusive. If the second argument is omitted, returns the primes up
-    to the first argument.
+    List of all positive primes powers between ``start`` and
+    ``stop``-1, inclusive. If the second argument is omitted, returns
+    the prime powers up to the first argument.
+
+    INPUT:
+
+    - ``start`` - an integer. If two inputs are given, a lower bound
+      for the returned set of prime powers. If this is the only input,
+      then it is an upper bound.
+
+    - ``stop`` - an integer (default: ``None``) An upper bound for the
+      returned set of prime powers.
+
+    OUTPUT:
+
+    The set of all prime powers between ``start`` and ``stop`` or, if
+    only one argument is passed, the set of all prime powers between 1
+    and ``start``. Note that we will here say that the number `n` is a
+    prime power if `n=p^k`, where `p` is a prime number and `k` is a
+    nonnegative integer. Thus, `1` is a prime power, as `1 = 2^0`.
 
     EXAMPLES::
 
@@ -728,40 +745,73 @@ def prime_powers(start, stop=None):
         [97, 101, 103, 107, 109, 113, 121, 125, 127, 128]
         sage: a == b
         True
+        sage: prime_powers(10,7)
+        []
+        sage: prime_powers(-5)
+        []
+        sage: prime_powers(-1,2)
+        [1]
 
     TESTS::
 
         sage: v = prime_powers(10)
         sage: type(v[0])      # trac #922
         <type 'sage.rings.integer.Integer'>
-    """
-    if stop is None:
-        start, stop = 1, integer.Integer(start)
-    from math import log
-    from bisect import bisect
-    v = fast_arith.prime_range(stop)
-    i = bisect(v, start)
-    if start > 2:
-        if v[i] == start:
-            i -= 1
-        w = list(v[i:])
-    else:
-        w = list(v)
-    if start <= 1:
-        w.insert(0, integer.Integer(1))
-    log_stop = log(stop)
-    for p in v:
-        q = p*p
-        n = int(log(stop)/log(p))
-        if n <= 1:
-            break
-        for i in xrange(1,n):
-            if q >= start:
-                w.append(q)
-            q *= p
-    w.sort()
-    return w
 
+        sage: prime_powers("foo")
+        Traceback (most recent call last):
+        ...
+        TypeError: start must be an integer, foo is not an integer
+
+        sage: prime_powers(6, "bar")
+        Traceback (most recent call last):
+        ...
+        TypeError: stop must be an integer, bar is not an integer
+
+    """
+    from sage.rings.integer import Integer
+    # check to ensure that both inputs are positive integers
+    if not isinstance(start, (int, Integer)):
+        raise TypeError("start must be an integer, {} is not an integer".format(start))
+    if not (isinstance(stop, (int, Integer)) or stop is None):
+        raise TypeError("stop must be an integer, {} is not an integer".format(stop))
+
+    # coerce inputs that are ints into Integers for efficiency
+    start = Integer(start)
+    if(stop is not None):
+        stop = Integer(stop)
+
+    # deal with the case in which only one input is given
+    if stop is None:
+        start, stop = 1, Integer(start)
+
+    # inserted to prevent an error from occurring
+    if stop < 1:
+        return [];
+
+    # find all the primes in the given range
+    from fast_arith import prime_range
+    temp = prime_range(stop)
+    output = [p for p in temp if p>=start]
+
+    if start <= 1:
+        output.append(Integer(1))
+
+    s = stop.sqrt()
+    for p in temp:
+        # if p > the square root of stop, p^2 will be outside the given
+        # range
+        if p > s:
+            break
+        q = p*p
+        # check if each power of p falls within the given range
+        while q < stop:
+            if start <= q:
+                output.append(q)
+            q *= p
+
+    output.sort()
+    return output
 
 def primes_first_n(n, leave_pari=False):
     r"""

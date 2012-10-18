@@ -3262,11 +3262,12 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
     def matrix_mod_pn(self):
         """
-        Returns the matrix of right multiplication by the element on
-        the power basis `1, x, x^2, \ldots, x^{d-1}` for this
-        extension field.  Thus the *rows* of this matrix give the
-        images of each of the `x^i`.  The entries of the matrices are
-        IntegerMod elements, defined modulo ``p^(self.absprec() / e)``.
+        Returns the matrix of right multiplication by the element on the power
+        basis `1, x, x^2, \ldots, x^{d-1}` for this extension field.  Thus the
+        *rows* of this matrix give the images of each of the `x^i`.  The
+        entries of the matrices are IntegerMod elements, defined modulo
+        ``p^(self.absprec() / e)`` (unless ``self`` is zero to arbitrary
+        precision; in that case the entries are integer zeros.)
 
         Raises an error if ``self`` has negative valuation.
 
@@ -3283,12 +3284,27 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             [ 500   50 3007 2358  318]
             [1590 1375 1695 1032 2358]
             [2415  590 2370 2970 1032]
+
+        TESTS:
+
+        Check that :trac:`13617` has been fixed::
+
+            sage: W.zero().matrix_mod_pn()
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+
         """
         if self.valuation_c() < 0:
             raise ValueError, "self must be integral"
-        from sage.matrix.all import matrix
-        R = IntegerModRing(self.prime_pow.pow_Integer(self.prime_pow.capdiv(self.ordp + self.relprec)))
         n = self.prime_pow.deg
+        from sage.matrix.all import matrix
+        if self._is_exact_zero():
+            from sage.rings.integer_ring import IntegerRing
+            return matrix(IntegerRing(), n, n)
+        R = IntegerModRing(self.prime_pow.pow_Integer(self.prime_pow.capdiv(self.ordp + self.relprec)))
         L = []
         cdef ntl_ZZ_pX cur = <ntl_ZZ_pX>self._ntl_rep_abs()[0]
         cur.c.restore_c()

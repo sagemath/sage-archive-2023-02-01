@@ -491,3 +491,43 @@ the function ``factor()`` can be interrupted::
     ... except KeyboardInterrupt:
     ...     print "ok!"
     ok!
+
+Unpickling cython code
+======================
+
+Pickling for python classes and extension classes, such as cython, is different.
+This is discussed in the `python pickling documentation`_. For the unpickling of
+extension classes you need to write a :meth:`__reduce__` method which typically
+returns a tuple ``(f, args,...)`` such that ``f(*args)`` returns (a copy of) the
+original object. As an example, the following code snippet is the
+:meth:`~sage.rings.integer.Integer.__reduce__` method from
+:class:`sage.rings.integer.Integer`.
+
+.. code-block:: python
+
+    def __reduce__(self):
+        '''
+        This is used when pickling integers.
+
+        EXAMPLES::
+
+            sage: n = 5
+            sage: t = n.__reduce__(); t
+            (<built-in function make_integer>, ('5',))
+            sage: t[0](*t[1])
+            5
+            sage: loads(dumps(n)) == n
+            True
+        '''
+        # This single line below took me HOURS to figure out.
+        # It is the *trick* needed to pickle Cython extension types.
+        # The trick is that you must put a pure Python function
+        # as the first argument, and that function must return
+        # the result of unpickling with the argument in the second
+        # tuple as input. All kinds of problems happen
+        # if we don't do this.
+        return sage.rings.integer.make_integer, (self.str(32),)
+
+
+.. _python pickling documentation: http://docs.python.org/library/pickle.html#pickle-protocol
+

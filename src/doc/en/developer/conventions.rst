@@ -1020,6 +1020,51 @@ See the files in ``SAGE_ROOT/devel/sage/doc/en/tutorial/`` for many
 examples of how to include automated testing in ReST documentation
 for Sage.
 
+.. _chapter-picklejar:
+
+The pickle jar
+==============
+
+Sage maintains a pickle jar at
+``SAGE_ROOT/data/extcode/pickle_jar/pickle_jar.tar.bz2`` which is a tar file of
+"standard" pickles created by ``sage``. This pickle jar is used to ensure that
+sage maintains backward compatibility by have having
+:func:`sage.structure.sage_object.unpickle_all` check that ``sage`` can always
+unpickle all of the pickles in the pickle jar as part of the standard doc
+testing framework.
+
+Most people first become aware of the pickle_jar when their patch breaks the
+unpickling of one of the "standard" pickles in the pickle jar due to the
+failure of the doctest::
+
+    sage -t devel/sage-main/sage/structure/sage_object.pyx
+
+When this happens an error message is printed which contains the following
+hints for fixing the uneatable pickle::
+
+    ----------------------------------------------------------------------
+    ** This error is probably due to an old pickle failing to unpickle.
+    ** See sage.structure.sage_object.register_unpickle_override for
+    ** how to override the default unpickling methods for (old) pickles.
+    ** NOTE: pickles should never be removed from the pickle_jar!
+    ----------------------------------------------------------------------
+
+For more details about how to fix unpickling errors in the pickle jar
+see :func:`sage.structure.sage_object.register_unpickle_override`
+
+.. NOTE::
+
+    Every so often the standard pickle jar should be updated by running the
+    doctest suite with the environment variable ``SAGE_PICKLE_JAR`` set, then
+    copying the files from ``SAGE_ROOT/tmp/pickle_jar*`` into the standard pickle
+    jar.
+
+.. WARNING::
+
+    Sage's pickle jar helps to ensure backward compatibility in sage. Pickles should
+    **only** be removed from the pickle jar after the corresponding objects
+    have been properly deprecated. Any proposal to remove pickles from the
+    pickle jar should first be discussed on sage-devel.
 
 .. _chapter-randomtesting:
 
@@ -1037,6 +1082,5 @@ regular basis.
 
 For example, see the file
 ``SAGE_ROOT/devel/sage/sage/modular/modsym/tests.py``.
-
 
 .. [2]  See http://www.sagemath.org/development-map.html

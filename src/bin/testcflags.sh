@@ -76,8 +76,23 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-cd "${TMPDIR:-/tmp}" || exit 2
+if [ -z "$SAGE_ROOT" ]; then
+    echo "The SAGE_ROOT environment variable must be set to"
+    echo "the root of the Sage installation"
+    exit 1
+fi
 
+mkdir -p "$SAGE_ROOT/spkg/build"
+if [ $? -ne 0 ]; then
+    echo "Error while trying to create the build directory."
+    exit 1
+fi
+
+cd "$SAGE_ROOT/spkg/build"
+if [ $? -ne 0 ]; then
+    echo "Error while trying to change into the build directory."
+    exit 1
+fi
 outfile=sage-testcflags-$$
 cfile=$outfile.c
 

@@ -830,13 +830,25 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             Traceback (most recent call last):
             ...
             ValueError: cannot invert non-unit
+
+        We check that :trac:`11403` has been resolved::
+
+            sage: R.<t> = Zq(8,2,'fixed-mod')
+            sage: 1/(t+t^2)
+            (t + 1) + t^2*2 + O(2^2)
+
         """
         cdef pAdicZZpXFMElement right = <pAdicZZpXFMElement>_right
         if right.valuation_c() > 0:
             raise ValueError, "cannot invert non-unit"
         cdef pAdicZZpXFMElement ans = self._new_c()
-        ZZ_pX_PowerMod_long_pre(ans.value, right.value, -1, self.prime_pow.get_top_modulus()[0])
+        sig_on()
+        if self.prime_pow.e == 1:
+            ZZ_pX_InvMod_newton_unram(ans.value, right.value, self.prime_pow.get_top_modulus()[0], self.prime_pow.get_top_context().x, self.prime_pow.get_context(1).x)
+        else:
+            ZZ_pX_InvMod_newton_ram(ans.value, right.value, self.prime_pow.get_top_modulus()[0], self.prime_pow.get_top_context().x)
         ZZ_pX_MulMod_pre(ans.value, self.value, ans.value, self.prime_pow.get_top_modulus()[0])
+        sig_off()
         return ans
 
     def __copy__(self):
@@ -1831,7 +1843,6 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
                 return self.prime_pow.ram_prec_cap
             else:
                 return index + valuation * self.prime_pow.e
-            return index + valuation * self.prime_pow.e
 
     cdef ext_p_list(self, bint pos):
         """

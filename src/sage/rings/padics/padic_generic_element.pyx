@@ -11,7 +11,7 @@ AUTHORS:
 
 - David Harvey: doctests
 
-- Julian Rueth: fixes for exp() and log(), implement gcd
+- Julian Rueth: fixes for exp() and log(), implement gcd, xgcd
 
 """
 
@@ -756,6 +756,142 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return self.parent().one()
 
         return self.parent().uniformiser_pow( min(self.valuation(),other.valuation()) )
+
+    @coerce_binop
+    def xgcd(self, other):
+        r"""
+        Compute the extended gcd of ``self`` and ``other``.
+
+        INPUT:
+
+         - ``other`` -- an element which coerces to the an element in the
+           parent of ``self``
+
+        OUTPUT:
+
+        A tuple ``r``, ``s``, ``t`` such that ``r`` is a greatest common
+        divisor of ``self`` and ``other`` and ``r = s*self + t*other``.
+
+        AUTHORS:
+
+            - Julian Rueth (2012-10-19): initial version
+
+        .. NOTE::
+
+            Since ``self`` and ``other`` are only given with finite precision,
+            their greatest common divisor is in general not unique (not even up
+            to units). For example `O(3)` is a representative for the elements
+            0 and 3 in the 3-adic ring `\mathbb{Z}_3`. The greatest common
+            divisior of `O(3)` and `O(3)` could be (among others) 3 or 0 which
+            have different valuation. The algorithm implemented here, will
+            return an element of minimal valuation among the possible greatest
+            common divisors.
+
+        EXAMPLES:
+
+        The greatest common divisor is either zero or a power of the
+        uniformizing paramter::
+
+            sage: R = Zp(3)
+            sage: R.zero().xgcd(R.zero())
+            (0, 1 + O(3^20), 0)
+            sage: R(3).xgcd(9)
+            (3 + O(3^21), 1 + O(3^20), 0)
+
+        Unlike for :meth:`gcd`, the result is not lifted to the maximal
+        precision possible in the ring; it is such that ``r = s*self +
+        t*other`` holds true::
+
+            sage: a = R(3,2); a
+            3 + O(3^2)
+            sage: b = R(9,3); b
+            3^2 + O(3^3)
+            sage: a.xgcd(b)
+            (3 + O(3^2), 1 + O(3), 0)
+            sage: a.xgcd(0)
+            (3 + O(3^2), 1 + O(3), 0)
+
+        If both ``self`` and ``other`` are zero, then the result is zero with
+        the precision set to the smallest of their precisions::
+
+            sage: a = R.zero(); a
+            0
+            sage: b = R(0,2); b
+            O(3^2)
+            sage: a.xgcd(b)
+            (O(3^2), 0, 1 + O(3^20))
+
+        Over a field, the greatest common divisor is either zero (possibly with
+        finite precision) or one::
+
+            sage: K = Qp(3)
+            sage: K(3).xgcd(0)
+            (1 + O(3^20), 3^-1 + O(3^19), 0)
+            sage: K.zero().xgcd(0)
+            (0, 1 + O(3^20), 0)
+            sage: K.zero().xgcd(K(0,2))
+            (O(3^2), 0, 1 + O(3^20))
+            sage: K(3).xgcd(4)
+            (1 + O(3^20), 3^-1 + O(3^19), 0)
+
+        TESTS:
+
+        The implementation also works over extensions::
+
+            sage: K = Qp(3)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^3-3)
+            sage: (a+3).xgcd(3)
+            (1 + O(a^60), a^-1 + 2*a + a^3 + 2*a^4 + 2*a^5 + 2*a^8 + 2*a^9 + 2*a^12 + 2*a^13 + 2*a^16 + 2*a^17 + 2*a^20 + 2*a^21 + 2*a^24 + 2*a^25 + 2*a^28 + 2*a^29 + 2*a^32 + 2*a^33 + 2*a^36 + 2*a^37 + 2*a^40 + 2*a^41 + 2*a^44 + 2*a^45 + 2*a^48 + 2*a^49 + 2*a^52 + 2*a^53 + 2*a^56 + 2*a^57 + O(a^59), 0)
+
+            sage: R = Zp(3)
+            sage: S.<a> = R[]
+            sage: S.<a> = R.extension(a^3-3)
+            sage: (a+3).xgcd(3)
+            (a + O(a^61), 1 + 2*a^2 + a^4 + 2*a^5 + 2*a^6 + 2*a^9 + 2*a^10 + 2*a^13 + 2*a^14 + 2*a^17 + 2*a^18 + 2*a^21 + 2*a^22 + 2*a^25 + 2*a^26 + 2*a^29 + 2*a^30 + 2*a^33 + 2*a^34 + 2*a^37 + 2*a^38 + 2*a^41 + 2*a^42 + 2*a^45 + 2*a^46 + 2*a^49 + 2*a^50 + 2*a^53 + 2*a^54 + 2*a^57 + 2*a^58 + O(a^60), 0)
+
+            sage: K = Qp(3)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2-2)
+            sage: (a+3).xgcd(3)
+            (1 + O(3^20), 2*a + (a + 1)*3 + (2*a + 1)*3^2 + (a + 2)*3^4 + 3^5 + (2*a + 2)*3^6 + a*3^7 + (2*a + 1)*3^8 + (a + 2)*3^10 + 3^11 + (2*a + 2)*3^12 + a*3^13 + (2*a + 1)*3^14 + (a + 2)*3^16 + 3^17 + (2*a + 2)*3^18 + a*3^19 + O(3^20), 0)
+
+            sage: R = Zp(3)
+            sage: S.<a> = R[]
+            sage: S.<a> = R.extension(a^2-2)
+            sage: (a+3).xgcd(3)
+            (1 + O(3^20), 2*a + (a + 1)*3 + (2*a + 1)*3^2 + (a + 2)*3^4 + 3^5 + (2*a + 2)*3^6 + a*3^7 + (2*a + 1)*3^8 + (a + 2)*3^10 + 3^11 + (2*a + 2)*3^12 + a*3^13 + (2*a + 1)*3^14 + (a + 2)*3^16 + 3^17 + (2*a + 2)*3^18 + a*3^19 + O(3^20), 0)
+
+        For elements with a fixed modulus::
+
+            sage: R = ZpFM(3)
+            sage: R(3).xgcd(9)
+            (3 + O(3^20), 1 + O(3^20), O(3^20))
+
+        And elements with a capped absolute precision::
+
+            sage: R = ZpCA(3)
+            sage: R(3).xgcd(9)
+            (3 + O(3^20), 1 + O(3^19), O(3^20))
+
+        """
+        s,t = self.parent().zero(), self.parent().zero()
+        if self.is_zero() and other.is_zero():
+            if self.valuation() <= other.valuation():
+                s = self.parent().one()
+            else:
+                t = self.parent().one()
+        elif self.parent().is_field():
+            if not self.is_zero():
+                s = ~self
+            else:
+                t = ~other
+        elif self.valuation() < other.valuation():
+            s = self.unit_part().inverse_of_unit()
+        else:
+            t = other.unit_part().inverse_of_unit()
+
+        return s*self+t*other,s,t
 
     def is_square(self): #should be overridden for lazy elements
         """

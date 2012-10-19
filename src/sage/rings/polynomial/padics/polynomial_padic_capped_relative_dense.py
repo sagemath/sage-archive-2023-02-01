@@ -43,6 +43,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: T.<t> = ZZ[]
             sage: R(t + 2)
             (1 + O(13^7))*t + (2 + O(13^7))
+
+        Check that :trac:`13620` has been fixed::
+
+            sage: f = R.zero()
+            sage: R(f.dict())
+            0
+
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         parentbr = parent.base_ring()
@@ -97,7 +104,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
                 check = False
         elif isinstance(x, dict):
             zero = parentbr.zero_element()
-            n = max(x.keys())
+            n = max(x.keys()) if len(x) else 0
             v = [zero for _ in xrange(n + 1)]
             for i, z in x.iteritems():
                 v[i] = z

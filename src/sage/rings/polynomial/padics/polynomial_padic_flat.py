@@ -49,7 +49,7 @@ class Polynomial_padic_flat(Polynomial_generic_dense, Polynomial_padic):
             if check:
                 m = infinity
                 zero = R(0)
-                n = max(x.keys()) if len(x) else 0
+                n = max(x.keys()) if x else 0
                 v = [zero for _ in xrange(n+1)]
                 for i, z in x.iteritems():
                     v[i] = R(z)

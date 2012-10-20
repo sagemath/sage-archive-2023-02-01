@@ -176,6 +176,10 @@ We can add a title to a graph::
     sage: x = var('x')
     sage: plot(x^2, (x,-2,2), title='A plot of $x^2$')
 
+We can set the position of the title::
+
+    sage: plot(x^2, (-2,2), title='Plot of $x^2$', title_pos=(0.5,-0.05))
+
 We plot the Riemann zeta function along the critical line and see
 the first few zeros::
 

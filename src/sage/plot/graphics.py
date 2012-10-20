@@ -1244,7 +1244,7 @@ class Graphics(SageObject):
                         # Figure options
                         aspect_ratio=None, dpi=DEFAULT_DPI, fig_tight=True,
                         figsize=None, fontsize=None, frame=False,
-                        title=None, transparent=False,
+                        title=None, title_pos=None, transparent=False,
                         # Grid options
                         gridlines=None, gridlinesstyle=None,
                         hgridlinesstyle=None, vgridlinesstyle=None,
@@ -1405,9 +1405,23 @@ class Graphics(SageObject):
 
         - ``title`` - (default: None) The title for the plot
 
+        - ``title_pos`` - (default: None) The position of the title for the
+            plot. It must be a tuple or a list of two real numbers
+            ``(x_pos, y_pos)`` which indicate the relative position of the
+            title within the plot. The plot itself can be considered to
+            occupy, in relative terms, the region within a unit square
+            ` [0,1]\\times[0,1]`.  The title text is centered around the
+            horizontal factor ``x_pos`` of the plot. The baseline of the
+            title text is present at the vertical factor ``y_pos`` of the
+            plot. Hence, ``title_pos=(0.5, 0.5)`` will center the title in
+            the plot, whereas ``title_pos=(0.5, 1.1)`` will center the
+            title along the horizontal direction, but will place the title
+            a fraction `0.1` times above the plot.
+
         - ``show_legend`` - (default: None) If True, show the legend
 
-        - ``legend_*`` - all the options valid for :meth:`set_legend_options` prefixed with ``legend_``
+        - ``legend_*`` - all the options valid for :meth:`set_legend_options`
+            prefixed with ``legend_``
 
         - ``base`` - (default: 10) the base of the logarithm if
           a logarithmic scale is set. This must be greater than 1. The base
@@ -1461,6 +1475,11 @@ class Graphics(SageObject):
         You can add a title to a plot::
 
             sage: show(plot(sin,-4,4), title='A plot of $\sin(x)$')
+
+        You can also provide the position for the title to the plot. In the
+        plot below the title is placed on the bottom left of the figure.::
+
+            sage: plot(sin, -4, 4, title='Plot sin(x)', title_pos=(0.05,-0.05))
 
         You can turn on the drawing of a frame around the plots::
 
@@ -1722,6 +1741,14 @@ class Graphics(SageObject):
             ...
             ValueError: Either expand the range of the dependent variable to allow two different integer powers of your `base`, or change your `base` to a smaller number.
             sage: p.show(scale='loglog', base=8) # this works.
+
+        When using ``title_pos``, it must be ensured that a list or a tuple
+        of length two is used. Otherwise, an error is raised.::
+
+            sage; plot(x, -4, 4, title='Plot x', title_pos=0.05)
+            Traceback (most recent call last):
+            ...
+            ValueError: 'title_pos' must be a list or tuple of two real numbers.
 
         """
 
@@ -2016,7 +2043,7 @@ class Graphics(SageObject):
                    show_legend=None, legend_options={},
                    axes_pad=0.02, ticks_integer=None,
                    tick_formatter=None, ticks=None, title=None,
-                   base=None, scale=None):
+                   title_pos=None, base=None, scale=None):
         r"""
         Return a matplotlib figure object representing the graphic
 
@@ -2461,11 +2488,24 @@ class Graphics(SageObject):
         # free limits autoscale
         #subplot.autoscale_view(tight=True)
         if title is not None:
+            if title_pos is not None:
+                if ((not isinstance(title_pos, (list, tuple)))
+                    or (len(title_pos) != 2)):
+                    raise ValueError("'title_pos' must be a list or tuple "
+                                     "of two real numbers.")
+                title_pos = (float(title_pos[0]), float(title_pos[1]))
+
             if (frame) or (axes_labels is None):
-                subplot.set_title(title, fontsize=fontsize)
+                if title_pos is not None:
+                    subplot.set_title(title, fontsize=fontsize,
+                                      position=title_pos)
+                else:
+                    subplot.set_title(title, fontsize=fontsize)
             else: # frame is false axes is not None, and neither is axes_labels
                 # Then, the title is moved up to avoid overlap with axes labels
-                subplot.set_title(title, fontsize=fontsize, position=(0.5,1.05))
+                if title_pos is None:
+                    title_pos = (0.5, 1.05)
+                subplot.set_title(title, fontsize=fontsize, position=title_pos)
 
         return figure
 

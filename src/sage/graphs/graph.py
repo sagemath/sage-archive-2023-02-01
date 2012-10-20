@@ -1948,9 +1948,22 @@ class Graph(GenericGraph):
         else:
             return True
 
-    def is_triangle_free(self):
+    def is_triangle_free(self, algorithm='bitset'):
         r"""
         Returns whether ``self`` is triangle-free
+
+        INPUT:
+
+        - ``algorithm`` -- (default: ``'bitset'``) specifies the algorithm to
+          use among:
+
+            - ``'matrix'`` -- tests if the trace of the adjacency matrix is
+              positive.
+
+            - ``'bitset'`` -- encodes adjacencies into bitsets and uses fast
+              bitset operations to test if the input graph contains a
+              triangle. This method is generaly faster than stantard matrix
+              multiplication.
 
         EXAMPLE:
 
@@ -1962,20 +1975,69 @@ class Graph(GenericGraph):
 
         or a complete Bipartite Graph::
 
-            sage: g = graphs.CompleteBipartiteGraph(5,6)
-            sage: g.is_triangle_free()
+            sage: G = graphs.CompleteBipartiteGraph(5,6)
+            sage: G.is_triangle_free(algorithm='matrix')
+            True
+            sage: G.is_triangle_free(algorithm='bitset')
             True
 
-        a tripartite graph, though, contains many triangles ::
+        a tripartite graph, though, contains many triangles::
 
-            sage: g = (3 * graphs.CompleteGraph(5)).complement()
-            sage: g.is_triangle_free()
+            sage: G = (3 * graphs.CompleteGraph(5)).complement()
+            sage: G.is_triangle_free(algorithm='matrix')
             False
+            sage: G.is_triangle_free(algorithm='bitset')
+            False
+
+        TESTS:
+
+        Comparison of algorithms::
+
+            sage: for i in xrange(10): # long test
+            ...       G = graphs.RandomBarabasiAlbert(50,2)
+            ...       bm = G.is_triangle_free(algorithm='matrix')
+            ...       bb = G.is_triangle_free(algorithm='bitset')
+            ...       if bm != bb:
+            ...          print "That's not good!"
+
+        Asking for an unknown algorithm::
+            sage: g.is_triangle_free(algorithm='tip top')
+            Traceback (most recent call last):
+            ...
+            ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
         """
+        if algorithm=='bitset':
+            from sage.misc.bitset import Bitset
+            N = self.num_verts()
+            map = {}
+            i = 0
+            B = {}
+            for u in self.vertex_iterator():
+                map[u] = i
+                i += 1
+                B[u] = Bitset(capacity=N)
+            # map adjacency to bitsets
+            for u,v in self.edge_iterator(labels=None):
+                B[u].add(map[v])
+                B[v].add(map[u])
+            # map lengths 2 paths to bitsets
+            BB = Bitset(capacity=N)
+            for u in self.vertex_iterator():
+                BB.clear()
+                for v in self.vertex_iterator():
+                    if B[u]&B[v]:
+                        BB.add(map[v])
+                # search for triangles
+                if B[u]&BB:
+                    return False
+            return True
 
-        from sage.graphs.graph_generators import graphs
+        elif algorithm=='matrix':
+            return (self.adjacency_matrix()**3).trace() == 0
 
-        return (self.subgraph_search(graphs.CompleteGraph(3)) is None)
+        else:
+            raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
+
 
     def is_split(self):
         r"""

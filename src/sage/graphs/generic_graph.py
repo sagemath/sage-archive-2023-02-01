@@ -113,6 +113,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.cycle_basis` | Returns a list of cycles which form a basis of the cycle space of ``self``.
     :meth:`~GenericGraph.interior_paths` | Returns an exhaustive list of paths (also lists) through only interior vertices from vertex start to vertex end in the (di)graph.
     :meth:`~GenericGraph.all_paths` | Returns a list of all paths (also lists) between a pair of vertices in the (di)graph.
+    :meth:`~GenericGraph.triangles_count` | Returns the number of triangles in the (di)graph.
 
 **Linear algebra:**
 
@@ -11676,6 +11677,87 @@ class GenericGraph(GenericGraph_pyx):
                     done = True                 # ... so we are done
         return all_paths
 
+
+    def triangles_count(self, algorithm='iter'):
+        """
+        Returns the number of triangles in the (di)graph.
+
+        For digraphs, we count the number of directed circuit of length 3.
+
+        INPUT:
+
+        - ``algorithm`` -- (default: ``'matrix'``) specifies the algorithm to
+          use among:
+
+            - ``'matrix'`` uses the trace of the cube of the adjacency matrix.
+
+            - ``'iter'`` iterates over the pairs of neighbors of each
+              vertex. This is faster for sparse graphs.
+
+        EXAMPLES:
+
+        The Petersen graph is triangle free and thus::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.triangles_count()
+            0
+
+        Any triple of vertices in the complete graph induces a triangle so we have::
+
+            sage: G = graphs.CompleteGraph(150)
+            sage: G.triangles_count() == binomial(150,3)
+            True
+
+        The 2-dimensional DeBruijn graph of 2 symbols has 2 directed C3::
+
+            sage: G = digraphs.DeBruijn(2,2)
+            sage: G.triangles_count()
+            2
+
+        The directed n-cycle is trivially triangle free for n > 3::
+
+            sage: G = digraphs.Circuit(10)
+            sage: G.triangles_count()
+            0
+
+        TESTS:
+
+        Comparison on algorithms::
+
+            sage: for i in xrange(10): # long test
+            ...       G = graphs.RandomBarabasiAlbert(50,2)
+            ...       tm = G.triangles_count(algorithm='matrix')
+            ...       te = G.triangles_count(algorithm='iter')
+            ...       if tm!=te:
+            ...          print "That's not good!"
+
+        Asking for an unknown algorithm::
+
+            sage: G = Graph()
+            sage: G.triangles_count(algorithm='tip top')
+            Traceback (most recent call last):
+            ...
+            ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
+
+        """
+        if self.is_directed():
+            from sage.graphs.digraph_generators import digraphs
+            return self.subgraph_search_count(digraphs.Circuit(3))/3
+
+        else:
+            if algorithm=='iter':
+                from sage.combinat.combinat import combinations_iterator
+                tr = 0
+                ggnx = self.networkx_graph()
+                for u in ggnx.nodes_iter():
+                    tr += sum(ggnx.has_edge(v,w) for v,w in combinations_iterator(ggnx.neighbors(u),2))
+                return tr/3
+
+            elif algorithm=='matrix':
+                return (self.adjacency_matrix()**3).trace()/6
+
+            else:
+                raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
 
     def shortest_path(self, u, v, by_weight=False, bidirectional=True):
         """

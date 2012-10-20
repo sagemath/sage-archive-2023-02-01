@@ -194,6 +194,33 @@ class Fields(Category_singleton):
             """
             return True
 
+        def _gcd_univariate_polynomial(self, f, g):
+            """
+            Return the greatest common divisor of ``f`` and ``g``, as a
+            monic polynomial.
+
+            INPUT:
+
+                - ``f``, ``g`` -- two polynomials defined over ``self``
+
+            .. NOTE::
+
+                This is a helper method for
+                :meth:`sage.rings.polynomial.polynomial_element.Polynomial.gcd`.
+
+            EXAMPLES::
+
+                sage: R.<x> = QQbar[]
+                sage: QQbar._gcd_univariate_polynomial(2*x,2*x^2)
+                x
+
+            """
+            ret = EuclideanDomains().ElementMethods().gcd(f,g)
+            c = ret.leading_coefficient()
+            if c.is_unit():
+                return (1/c)*ret
+            return ret
+
         def _test_characteristic_fields(self, **options):
             """
             Run generic tests on the method :meth:`.characteristic`.

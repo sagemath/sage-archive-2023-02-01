@@ -3396,6 +3396,61 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return Factorization(F, unit)
 
     @coerce_binop
+    def gcd(self, other):
+        """
+        Compute a greatest common divisor of ``self`` and ``other``.
+
+        INPUT:
+
+            - ``other`` -- a polynomial in the same ring as ``self``
+
+        OUTPUT:
+
+            A greatest common divisor of ``self`` and ``other`` as a polynomial
+            in the same ring as ``self``. Over a field, the return value will
+            be a monic polynomial.
+
+        .. NOTE::
+
+            The actual algorithm for computing greatest common divisors depends
+            on the base ring underlying the polynomial ring. If the base ring
+            defines a method ``_gcd_univariate_polynomial``, then this method
+            will be called (see examples below).
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: (2*x^2).gcd(2*x)
+            x
+            sage: R.zero().gcd(0)
+            0
+            sage: (2*x).gcd(0)
+            x
+
+            One can easily add gcd functionality to new rings by providing a
+            method ``_gcd_univariate_polynomial``::
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: h1 = y*x
+            sage: h2 = y^2*x^2
+            sage: h1.gcd(h2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Univariate Polynomial Ring in x over Rational Field does not provide a gcd implementation for univariate polynomials
+            sage: T.<x,y> = QQ[]
+            sage: R._gcd_univariate_polynomial = lambda f,g: S(T(f).gcd(g))
+            sage: h1.gcd(h2)
+            x*y
+            sage: del R._gcd_univariate_polynomial
+
+        """
+        if hasattr(self.base_ring(), '_gcd_univariate_polynomial'):
+            return self.base_ring()._gcd_univariate_polynomial(self, other)
+        else:
+            raise NotImplementedError("%s does not provide a gcd implementation for univariate polynomials"%self.base_ring())
+
+    @coerce_binop
     def lcm(self, other):
         """
         Let f and g be two polynomials. Then this function returns the
@@ -5999,7 +6054,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (2*x*y).is_squarefree() # R does not provide a gcd implementation
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense' object has no attribute 'gcd'
+            NotImplementedError: Univariate Polynomial Ring in y over Rational Field does not provide a gcd implementation for univariate polynomials
             sage: (2*x*y^2).is_squarefree()
             False
 

@@ -367,7 +367,9 @@ def py_latex_function_pystring(id, args, fname_paren=False):
         sage: py_latex_function_pystring(i, (x,y^z))
         '{\\rm foo}\\left(x, y^{z}\\right)'
         sage: py_latex_function_pystring(i, (x,y^z), True)
-         '\\left({\\rm foo}\\right)\\left(x, y^{z}\\right)'
+        '\\left({\\rm foo}\\right)\\left(x, y^{z}\\right)'
+        sage: py_latex_function_pystring(i, (int(0),x))
+        '{\\rm foo}\\left(0, x\\right)'
 
     Test latex_name::
 
@@ -425,7 +427,8 @@ def py_latex_function_pystring(id, args, fname_paren=False):
     else:
         olist = [name]
     # print the arguments
-    olist.extend([r'\left(', ', '.join([x._latex_() for x in args]),
+    from sage.misc.latex import latex
+    olist.extend([r'\left(', ', '.join([latex(x) for x in args]),
         r'\right)'] )
     return ''.join(olist)
 

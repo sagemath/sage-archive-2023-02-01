@@ -634,6 +634,7 @@ class GraphClasses(UniqueRepresentation):
 
         from sage.misc.misc import SAGE_TMP
         import urllib2
+        import os.path
         u = urllib2.urlopen('http://www.graphclasses.org/data.zip')
         localFile = open(os.path.join(SAGE_TMP,'isgci.zip'), 'w')
         localFile.write(u.read())

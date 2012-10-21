@@ -11,6 +11,8 @@ AUTHORS:
 
 - Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
+- Travis Scrimshaw (2012-10-20): Fixing scientific notation output
+  to fix :trac:`13634`.
 
 This is a straightforward binding to the MPFI library; it may be
 useful to refer to its documentation for more details.
@@ -887,14 +889,25 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
 
     def scientific_notation(self, status=None):
         """
-        Set or return the scientific notation printing flag. If this flag
-        is True then real numbers with this space as parent print using
-        scientific notation.
+        Set or return the scientific notation printing flag.
+
+        If this flag is ``True`` then real numbers with this space as parent
+        print using scientific notation.
 
         INPUT:
 
-
         -  ``status`` - (bool -) optional flag
+
+        EXAMPLES::
+
+            sage: RIF(0.025)
+            0.025000000000000002?
+            sage: RIF.scientific_notation(True)
+            sage: RIF(0.025)
+            2.5000000000000002?e-2
+            sage: RIF.scientific_notation(False)
+            sage: RIF(0.025)
+            0.025000000000000002?
         """
         if status is None:
             return self.sci_not
@@ -1092,7 +1105,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: (c.lower(), c.upper()) == (b.lower(), b.upper())
             True
             sage: b = R('[2 .. 3]'); b.str(error_digits=1)
-            '2.5?5'
+            '2.5?5e0'
             sage: cmp(loads(dumps(b)), b)
             0
             sage: R = RealIntervalField(4000)
@@ -1228,26 +1241,26 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
     # sides.
     def str(self, int base=10, style=None, no_sci=None, e=None, error_digits=None):
         r"""
+        Return a string representation of ``self``.
+
         INPUT:
 
+        -  ``base`` -- base for output
 
-        -  ``base`` - base for output
+        -  ``style`` -- The printing style; either 'brackets' or
+           'question' (or ``None``, to use the current default).
 
-        -  ``style`` - The printing style; either 'brackets' or
-           'question' (or None, to use the current default).
+        -  ``no_sci`` -- if ``True`` do not print using scientific
+           notation; if ``False`` print with scientific notation; if ``None``
+           (the default), print how the parent prints.
 
-        -  ``no_sci`` - if True do not print using scientific
-           notation; if False print with scientific notation; if None (the
-           default), print how the parent prints.
+        -  ``e`` -- symbol used in scientific notation
 
-        -  ``e`` - symbol used in scientific notation
-
-        -  ``error_digits`` - The number of digits of error to
+        -  ``error_digits`` -- The number of digits of error to
            print, in 'question' style.
 
-
-        We support two different styles of printing; 'question' style and
-        'brackets' style. In question style (the default), we print the
+        We support two different styles of printing; ``'question'`` style and
+        ``'brackets'`` style. In question style (the default), we print the
         "known correct" part of the number, followed by a question mark::
 
             sage: RIF(pi).str()
@@ -1258,9 +1271,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             '3.142?'
 
         However, if the interval is precisely equal to some integer that's
-        not too large, we just return that integer.
-
-        ::
+        not too large, we just return that integer::
 
             sage: RIF(-42).str()
             '-42'
@@ -1270,9 +1281,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             '110122100000'
 
         Very large integers, however, revert to the normal question-style
-        printing.
-
-        ::
+        printing::
 
             sage: RIF(3^7).str()
             '2187'
@@ -1292,7 +1301,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         internal binary interval.)
 
         For instance, we find the best 10-bit floating point representation
-        of 1/3::
+        of ``1/3``::
 
             sage: RR10 = RealField(10)
             sage: RR(RR10(1/3))
@@ -1306,9 +1315,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: RIF10(RR10(1/3)).str(style='brackets')
             '[0.33349 .. 0.33350]'
 
-        We always use brackets style for NaN and infinities.
-
-        ::
+        We always use brackets style for ``NaN`` and infinities::
 
             sage: RIF(pi, infinity)
             [3.1415926535897931 .. +infinity]
@@ -1332,15 +1339,14 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         We define the "precision" of a floating-point printed
         representation to be the positional value of the last digit of the
-        mantissa. For instance, in 2.7?e5, the precision is `10^4`;
-        in 8.?, the precision is `10^0`; and in 9.35? the precision
+        mantissa. For instance, in ``2.7?e5``, the precision is `10^4`;
+        in ``8.?``, the precision is `10^0`; and in ``9.35?`` the precision
         is `10^{-2}`. This precision will always be `10^k`
-        for some `k` (or, for an arbitrary base `b`,
-        `b^k`).
+        for some `k` (or, for an arbitrary base `b`, `b^k`).
 
         Then the interval is contained in the interval:
 
-        .. math::
+        .. MATH::
 
             \text{mantissa}*b^{\text{exponent}} - \text{error}*b^k ..
             \text{mantissa}*b^{\text{exponent}} + \text{error}*b^k
@@ -1358,9 +1364,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         possible result, given these restrictions. When there are two
         possible results of equal precision and with the same error width,
         then we pick the one which is farther from zero. (For instance,
-        RIF(0, 123) with two error digits could print as 61.?62 or 62.?62.
-        We prefer the latter because it makes it clear that the interval is
-        known not to be negative.)
+        ``RIF(0, 123)`` with two error digits could print as ``61.?62`` or
+        ``62.?62``. We prefer the latter because it makes it clear that the
+        interval is known not to be negative.)
 
         EXAMPLES::
 
@@ -1399,6 +1405,19 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             1.732050807568878?
             sage: RIF(0, 3^-150)
             1.?e-71
+
+        TESTS:
+
+        Check that :trac:`13634` is fixed::
+
+            sage: RIF(0.025)
+            0.025000000000000002?
+            sage: RIF.scientific_notation(True)
+            sage: RIF(0.025)
+            2.5000000000000002?e-2
+            sage: RIF.scientific_notation(False)
+            sage: RIF(0.025)
+            0.025000000000000002?
         """
         if base < 2 or base > 36:
             raise ValueError, "the base (=%s) must be between 2 and 36"%base
@@ -1431,7 +1450,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             return "[%s .. %s]"%(t1, t2)
 
         elif style == 'question':
-            if no_sci == False:
+            if no_sci is None:
+                prefer_sci = self.parent().scientific_notation()
+            elif not no_sci:
                 prefer_sci = True
             else:
                 prefer_sci = False

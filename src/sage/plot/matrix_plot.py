@@ -418,6 +418,15 @@ def matrix_plot(mat, **options):
         sage: import numpy
         sage: matrix_plot(numpy.random.rand(10, 10))
 
+    A plot title can be added to the matrix plot.::
+
+        sage: matrix_plot(identity_matrix(50), origin='lower', title='not identity')
+
+    The title position is adjusted upwards if the ``origin`` keyword is set
+    to ``"upper"`` (this is the default).::
+
+        sage: matrix_plot(identity_matrix(50), title='identity')
+
     TESTS::
 
         sage: P.<t> = RR[]
@@ -487,6 +496,10 @@ def matrix_plot(mat, **options):
 
     if options['subdivisions'] and options['subdivision_options']['boundaries'] is None:
         options['subdivision_options']['boundaries']=orig_mat.get_subdivisions()
+
+    # Custom position the title. Otherwise it overlaps with tick labels
+    if options['origin'] == 'upper' and 'title_pos' not in options:
+        options['title_pos'] = (0.5, 1.05)
 
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

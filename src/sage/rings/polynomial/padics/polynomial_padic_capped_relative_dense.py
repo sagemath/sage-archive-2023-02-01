@@ -312,26 +312,29 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
 
     def content(self):
         """
-        Returns the content of self.
+        Computes the content of ``self``.
 
-        The content is returned to maximum precision: since it's only
-        defined up to a unit, we can choose p^k as the representative.
+        OUTPUT:
 
-        Returns an error if the base ring is actually a field: this is
-        probably not a function you want to be using then, since any
-        nonzero answer will be correct.
-
-        The content of the exact zero polynomial is zero.
+        If ``self`` is zero, return ``self`` as an element of the base
+        ring.
+        Otherwise, since the content is only defined up to a unit, return
+        the content as `p^k` with maximal precision.
 
         EXAMPLES::
 
             sage: K = Zp(13,7)
             sage: R.<t> = K[]
-            sage: a = 13^7*t^3 + K(169,4)*t - 13^4
-            sage: a.content()
+            sage: f = 13^7*t^3 + K(169,4)*t - 13^4
+            sage: f.content()
             13^2 + O(13^9)
             sage: R(0).content()
             0
+            sage: f = R(K(0,3)); f
+            (O(13^3))
+            sage: f.content()
+            O(13^3)
+
             sage: P.<x> = ZZ[]
             sage: f = x + 2
             sage: f.content()
@@ -343,9 +346,25 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             1 + O(2^10)
             sage: (2*fp).content()
             2 + O(2^11)
+
+        Over a field, the content is the base ring's one unless it is zero::
+
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: f = 13^7*t^3 + K(169,4)*t - 13^4
+            sage: f.content()
+            1 + O(13^7)
+            sage: f = R.zero()
+            sage: f.content()
+            0
+            sage: f = R(K(0,3))
+            sage: f.content()
+            O(13^3)
         """
+        if self.is_zero():
+            return self[0]
         if self.base_ring().is_field():
-            raise TypeError, "ground ring is a field.  Answer is only defined up to units."
+            return self.base_ring().one()
         if self._normalized:
             return self.base_ring()(self.base_ring().prime_pow(self._valbase))
         if self._valaddeds is None:

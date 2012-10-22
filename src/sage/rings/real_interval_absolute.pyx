@@ -19,7 +19,8 @@ cdef Integer one = Integer(1)
 
 cpdef inline Integer shift_floor(Integer x, long shift):
     r"""
-    Returns $x / 2^{shift}$, rounded towards -infinity. For internal use.
+    Return `x / 2^s` where `s` is the value of ``shift``, rounded towards
+    `-\infty`. For internal use.
 
     EXAMPLES::
 
@@ -35,7 +36,8 @@ cpdef inline Integer shift_floor(Integer x, long shift):
 
 cpdef inline Integer shift_ceil(Integer x, long shift):
     r"""
-    Returns $x / 2^{shift}$, rounded towards +infinity. For internal use.
+    Return `x / 2^s` where `s` is the value of ``shift``, rounded towards
+    `+\infty`. For internal use.
 
     EXAMPLES::
 
@@ -65,6 +67,7 @@ class Factory(UniqueFactory):
             1000
         """
         return prec
+
     def create_object(self, version, prec):
         """
         Ensures uniqueness.
@@ -72,7 +75,7 @@ class Factory(UniqueFactory):
         TESTS::
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
-            sage: RealIntervalAbsoluteField(23) is RealIntervalAbsoluteField(23)
+            sage: RealIntervalAbsoluteField(23) is RealIntervalAbsoluteField(23) # indirect doctest
             True
         """
         return RealIntervalAbsoluteField_class(prec)
@@ -82,7 +85,7 @@ RealIntervalAbsoluteField.__doc__ = RealIntervalAbsoluteField_class.__doc__
 
 cdef class RealIntervalAbsoluteField_class(Field):
     """
-    This field is similar to the RealIntervalField except instead of
+    This field is similar to the :class:`RealIntervalField` except instead of
     truncating everything to a fixed relative precision, it maintains a
     fixed absolute precision.
 
@@ -108,6 +111,8 @@ cdef class RealIntervalAbsoluteField_class(Field):
 
     def __init__(self, absprec):
         """
+        Initialize ``self``.
+
         EXAMPLES::
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
@@ -138,11 +143,13 @@ cdef class RealIntervalAbsoluteField_class(Field):
 
     def _element_constructor_(self, x):
         """
+        Construct an element with ``self`` as the parent.
+
         TESTS::
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(100)
-            sage: R(1/2)
+            sage: R(1/2) # indirect doctest
             0.50000000000000000000000000000000?
         """
         return RealIntervalAbsoluteElement(self, x)
@@ -155,7 +162,7 @@ cdef class RealIntervalAbsoluteField_class(Field):
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(100)
-            sage: R.has_coerce_map_from(RR)
+            sage: R.has_coerce_map_from(RR) # indirect doctest
             True
             sage: R.has_coerce_map_from(QQ)
             True
@@ -180,6 +187,8 @@ cdef class RealIntervalAbsoluteField_class(Field):
 
     def _repr_(self):
         """
+        Return the string representation of ``self``.
+
         TESTS::
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
@@ -209,7 +218,7 @@ cdef class RealIntervalAbsoluteField_class(Field):
 
 cdef inline shift_left(value, shift):
     """
-    Utility function for operands that don't support the << operator.
+    Utility function for operands that don't support the ``<<`` operator.
     """
     try:
         return value << shift
@@ -228,7 +237,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     def __init__(self, RealIntervalAbsoluteField_class parent, value):
         """
-        Create a RealIntervalAbsoluteElement.
+        Create a :class:`RealIntervalAbsoluteElement`.
 
         EXAMPLES::
 
@@ -281,7 +290,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             self._mantissa = floor(value)
             self._diameter = ceil(upper) - self._mantissa
         except OverflowError:
-            raise TypeError, type(value)
+            raise TypeError(type(value))
 
     def __reduce__(self):
         """
@@ -311,9 +320,10 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cpdef lower(self):
         """
-        Returns the lower bound of self.
+        Return the lower bound of ``self``.
 
         EXAMPLES::
+
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(50)
             sage: R(1/4).lower()
@@ -323,9 +333,10 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cpdef midpoint(self):
         """
-        Returns the midpoint of self.
+        Return the midpoint of ``self``.
 
         EXAMPLES::
+
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(100)
             sage: R(1/4).midpoint()
@@ -339,9 +350,10 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cpdef upper(self):
         """
-        Returns the upper bound of self.
+        Return the upper bound of ``self``.
 
         EXAMPLES::
+
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(50)
             sage: R(1/4).upper()
@@ -351,9 +363,10 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cpdef absolute_diameter(self):
         """
-        Returns the diameter self.
+        Return the diameter ``self``.
 
         EXAMPLES::
+
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(10)
             sage: R(1/4).absolute_diameter()
@@ -370,7 +383,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cpdef endpoints(self):
         """
-        Returns the left and right endpoints of self, as a tuple.
+        Return the left and right endpoints of ``self``, as a tuple.
 
         EXAMPLES::
 
@@ -402,7 +415,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cpdef long mpfi_prec(self):
         """
-        Returns the precision needed to represent this value as an mpfi interval.
+        Return the precision needed to represent this value as an mpfi interval.
 
         EXAMPLES::
 
@@ -423,7 +436,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(10)
-            sage: R(1/3)
+            sage: R(1/3) # indirect doctest
             0.334?
             sage: R(10^50/3)
             3.3333333333333333333333333333333333333333333333333334?e49
@@ -438,6 +451,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         Hash to the midpoint of the interval.
 
         TESTS::
+
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(10)
             sage: hash(R(10))
@@ -453,7 +467,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     def __contains__(self, x):
         """
-        Returns whether the given value lies in this interval.
+        Return whether the given value lies in this interval.
 
         EXAMPLES::
 
@@ -473,7 +487,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cpdef bint is_positive(self):
         """
-        Returns whether self is definitely positive.
+        Return whether ``self`` is definitely positive.
 
         EXAMPLES::
 
@@ -496,7 +510,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cpdef bint contains_zero(self):
         """
-        Returns whether self contains zero.
+        Return whether ``self`` contains zero.
 
         EXAMPLES::
 
@@ -522,7 +536,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cpdef bint is_negative(self):
         """
-        Returns whether self is definitely negative.
+        Return whether ``self`` is definitely negative.
 
         EXAMPLES::
 
@@ -549,7 +563,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     def __nonzero__(self):
         """
-        Returns True for anything except exact zero.
+        Return ``True`` for anything except exact zero.
 
         EXAMPLES::
 
@@ -590,6 +604,8 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cpdef abs(self):
         """
+        Return the absolute value of ``self``.
+
         EXAMPLES::
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
@@ -618,7 +634,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(10)
-            sage: R(1) + R(2)
+            sage: R(1) + R(2) # indirect doctest
             3
             sage: R(1e100) + R(0.1) + R(-1e100)
             0.100?
@@ -636,7 +652,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(10)
-            sage: R(1) - R(2)
+            sage: R(1) - R(2) # indirect doctest
             -1
             sage: R(1e100) - R(0.1) - R(1e100)
             -0.100?
@@ -656,7 +672,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(10)
-            sage: R(2) * R(3)
+            sage: R(2) * R(3) # indirect doctest
             6
             sage: R(2) * R(-3)
             -6
@@ -707,7 +723,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     cpdef _acted_upon_(self, x, bint self_on_left):
         """
-        Absprec * relprec -> absprec works better than coercing both
+        ``Absprec * relprec -> absprec`` works better than coercing both
         operands to absolute precision first.
 
         EXAMPLES::
@@ -816,7 +832,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
             sage: R = RealIntervalAbsoluteField(10)
-            sage: R(5)/R(2)
+            sage: R(5)/R(2) # indirect doctest
             2.5000?
             sage: a = R((5,6))/R((2,4))
             sage: a.endpoints()
@@ -971,6 +987,8 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
 
     def sqrt(self):
         """
+        Return the square root of ``self``.
+
         EXAMPLES::
 
             sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField

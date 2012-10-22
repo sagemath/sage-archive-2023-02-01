@@ -1705,12 +1705,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f^3
             x^3 - 3*x^2 + 3*x - 1
 
-            sage: R = PolynomialRing(GF(2), x)
-            sage: f = R(x^9 + x^7 + x^6 + x^5 + x^4 + x^2 + x)
-            sage: h = R(x^10 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + 1)
-            sage: pow(f, 2, h)
-            x^9 + x^8 + x^7 + x^5 + x^3
-
         TESTS::
 
             sage: x^(1/2)
@@ -1724,6 +1718,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: non-integral exponents not supported
+
+        ::
+
+            sage: k = GF(5)
+            sage: l.<x> = k.extension(x^2 + 2)
+            sage: R.<t> = l[]
+            sage: f = t^4 + (2*x - 1)*t^3 + (2*x + 1)*t^2 + 3
+            sage: h = t^4 - x*t^3 + (3*x + 1)*t^2 + 2*t + 2*x - 1
+            sage: pow(f, 2, h)
+            3*t^3 + (2*x + 3)*t^2 + (2*x + 2)*t + 2*x + 2
+            sage: pow(f, 10**7, h)    # fast
+            4*x*t^3 + 2*x*t^2 + 4*x*t + 4
         """
         if not PY_TYPE_CHECK_EXACT(right, Integer) or \
                 PY_TYPE_CHECK_EXACT(right, int):
@@ -1733,9 +1739,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         raise TypeError("non-integral exponents not supported")
 
         if self.degree() <= 0:
-            r = self.parent()(self[0]**right)
+            return self.parent()(self[0]**right)
         elif right < 0:
-            r = (~self)**(-right)
+            return (~self)**(-right)
+        elif modulus:
+            from sage.rings.arith import power_mod
+            return power_mod(self, right, modulus)
         elif (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
@@ -1743,13 +1752,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 v = {right:R.one_element()}
             else:
                 v = [R.zero_element()]*right + [R.one_element()]
-            r = self.parent()(v, check=False)
+            return self.parent()(v, check=False)
         else:
-            r = generic_power(self, right)
-        if modulus:
-            return r % modulus
-        else:
-            return r
+            return generic_power(self,right)
 
     def _pow(self, right):
         # TODO: fit __pow__ into the arithmetic structure

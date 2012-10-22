@@ -272,6 +272,67 @@ class Fields(Category_singleton):
             from sage.modules.all import FreeModule
             return FreeModule(self, n)
 
+        def _xgcd_univariate_polynomial(self, other):
+            r"""
+            Extended gcd of ``self`` and ``other``.
+
+            INPUT:
+
+                - ``other`` -- a polynomial in the same ring as ``self``
+
+            OUTPUT:
+
+            Polynomials ``g``, ``u``, and ``v`` such that ``g = u*self + v*other``
+
+            .. NOTE::
+
+                This is a helper method for
+                :meth:`sage.rings.polynomial.polynomial_element.xgcd`
+
+            EXAMPLES::
+
+                sage: P.<x> = QQ[]
+                sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
+                sage: g, u, v = QQ._xgcd_univariate_polynomial(F,G)
+                sage: g, u, v
+                (x^2 + 2, 1/27, -1/27*x^2 - 1/9*x - 1/3)
+                sage: u*F + v*G
+                x^2 + 2
+
+            ::
+
+                sage: g, u, v = QQ._xgcd_univariate_polynomial(x,P(0)); g, u, v
+                (x, 1, 0)
+                sage: g == u*x + v*P(0)
+                True
+                sage: g, u, v = QQ._xgcd_univariate_polynomial(P(0),x); g, u, v
+                (x, 0, 1)
+                sage: g == u*P(0) + v*x
+                True
+
+            """
+            R = self.parent()
+            if other.is_zero():
+                return self, R.one_element(), R.zero_element()
+            # Algorithm 3.2.2 of Cohen, GTM 138
+            A = self
+            B = other
+            U = R.one_element()
+            G = A
+            V1 = R.zero_element()
+            V3 = B
+            while not V3.is_zero():
+                Q, R = G.quo_rem(V3)
+                T = U - V1*Q
+                U = V1
+                G = V3
+                V1 = T
+                V3 = R
+            V = (G-A*U)//B
+            lc = G.leading_coefficient()
+            return G/lc, U/lc, V/lc
+
+
     class ElementMethods:
 
         def is_unit( self ):

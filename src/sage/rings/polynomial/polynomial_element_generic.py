@@ -656,64 +656,6 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             return (1/c)*g
         return g
 
-    @coerce_binop
-    def xgcd(self, other):
-        r"""
-        Extended gcd of ``self`` and polynomial ``other``.
-
-        INPUT:
-
-        - ``other`` -- a polynomial defined over the same ring as ``self``
-
-        OUTPUT:
-
-        Polynomials ``g``, ``u``, and ``v`` such that ``g = u * self + v * other``.
-
-        EXAMPLES::
-
-            sage: P.<x> = QQ[]
-            sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
-            sage: g, u, v = F.xgcd(G)
-            sage: g, u, v
-            (x^2 + 2, 1/27, -1/27*x^2 - 1/9*x - 1/3)
-            sage: u*F + v*G
-            x^2 + 2
-
-        ::
-
-            sage: g, u, v = x.xgcd(P(0)); g, u, v
-            (x, 1, 0)
-            sage: g == u*x + v*P(0)
-            True
-            sage: g, u, v = P(0).xgcd(x); g, u, v
-            (x, 0, 1)
-            sage: g == u*P(0) + v*x
-            True
-
-        """
-        if other.is_zero():
-            R = self.parent()
-            return self, R.one_element(), R.zero_element()
-        # Algorithm 3.2.2 of Cohen, GTM 138
-        R = self.parent()
-        A = self
-        B = other
-        U = R.one_element()
-        G = A
-        V1 = R.zero_element()
-        V3 = B
-        while not V3.is_zero():
-            Q, R = G.quo_rem(V3)
-            T = U - V1*Q
-            U = V1
-            G = V3
-            V1 = T
-            V3 = R
-        V = (G-A*U)//B
-        lc = G.leading_coefficient()
-        return G/lc, U/lc, V/lc
-
-
 class Polynomial_generic_sparse_field(Polynomial_generic_sparse, Polynomial_generic_field):
     """
     EXAMPLES::

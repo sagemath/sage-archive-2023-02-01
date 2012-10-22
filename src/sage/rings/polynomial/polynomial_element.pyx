@@ -5652,6 +5652,66 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.parent().variable_name()
 
+    @coerce_binop
+    def xgcd(self, other):
+        r"""
+        Compute an extended gcd for ``self`` and ``other``.
+
+        INPUT:
+
+            - ``other`` -- a polynomial in the same ring as ``self``
+
+        OUTPUT:
+
+            A tuple ``(r,s,t)`` where ``r`` is a greatest common divisor of
+            ``self`` and ``other``, and ``s`` and ``t`` are such that ``r =
+            s*self + t*other`` holds.
+
+        .. NOTE::
+
+            The actual algorithm for computing the extended gcd depends on the
+            base ring underlying the polynomial ring. If the base ring defines
+            a method ``_xgcd_univariate_polynomial``, then this method will be
+            called (see examples below).
+
+        EXAMPLES::
+
+            sage: R.<x> = QQbar[]
+            sage: (2*x^2).gcd(2*x)
+            x
+            sage: R.zero().gcd(0)
+            0
+            sage: (2*x).gcd(0)
+            x
+
+        One can easily add xgcd functionality to new rings by providing a
+        method ``_xgcd_univariate_polynomial``::
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: h1 = y*x
+            sage: h2 = y^2*x^2
+            sage: h1.xgcd(h2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Univariate Polynomial Ring in x over Rational Field does not provide an xgcd implementation for univariate polynomials
+            sage: T.<x,y> = QQ[]
+            sage: def poor_xgcd(f,g):
+            ...       ret = S(T(f).gcd(g))
+            ...       if ret == f: return ret,S.one(),S.zero()
+            ...       if ret == g: return ret,S.zero(),S.one()
+            ...       raise NotImplementedError
+            sage: R._xgcd_univariate_polynomial = poor_xgcd
+            sage: h1.xgcd(h2)
+            (x*y, 1, 0)
+            sage: del R._xgcd_univariate_polynomial
+
+        """
+        if hasattr(self.base_ring(), '_xgcd_univariate_polynomial'):
+            return self.base_ring()._xgcd_univariate_polynomial(self, other)
+        else:
+            raise NotImplementedError("%s does not provide an xgcd implementation for univariate polynomials"%self.base_ring())
+
     def variables(self):
         """
         Returns the tuple of variables occurring in this polynomial.

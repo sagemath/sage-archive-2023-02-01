@@ -6,8 +6,19 @@ series elements.
 
 AUTHORS:
 
-- David Roe
+- David Roe: initial version
+
+- Julian Rueth (2012-10-15): added inverse_of_unit()
 """
+#*****************************************************************************
+#       Copyright (C) 2007,2008,2009 David Roe <roed@math.harvard.edu>
+#                     2012 Julian Rueth <julian.rueth@fsfe.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.rings.infinity import infinity
 from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
@@ -44,6 +55,109 @@ cdef class LocalGenericElement(CommutativeRingElement):
         """
         # this doctest doesn't actually test the function, since it's overridden.
         return self * right.__invert__()
+
+    def inverse_of_unit(self):
+        r"""
+        Returns the inverse of ``self`` if ``self`` is a unit.
+
+        OUTPUT:
+
+            - an element in the same ring as ``self``
+
+        EXAMPLES::
+
+            sage: R = ZpCA(3,5)
+            sage: a = R(2); a
+            2 + O(3^5)
+            sage: b = a.inverse_of_unit(); b
+            2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
+
+        A ``ZeroDivisionError`` is raised if an element has no inverse in the
+        ring::
+
+            sage: R(3).inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+
+        Unlike the usual inverse of an element, the result is in the same ring
+        as ``self`` and not just in its fraction field::
+
+            sage: c = ~a; c
+            2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
+            sage: a.parent()
+            3-adic Ring with capped absolute precision 5
+            sage: b.parent()
+            3-adic Ring with capped absolute precision 5
+            sage: c.parent()
+            3-adic Field with capped relative precision 5
+
+        For fields this does of course not make any difference::
+
+            sage: R = QpCR(3,5)
+            sage: a = R(2)
+            sage: b = a.inverse_of_unit()
+            sage: c = ~a
+            sage: a.parent()
+            3-adic Field with capped relative precision 5
+            sage: b.parent()
+            3-adic Field with capped relative precision 5
+            sage: c.parent()
+            3-adic Field with capped relative precision 5
+
+        TESTS:
+
+        Test that this works for all kinds of p-adic base elements::
+
+            sage: ZpCA(3,5)(2).inverse_of_unit()
+            2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
+            sage: ZpCR(3,5)(2).inverse_of_unit()
+            2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
+            sage: ZpFM(3,5)(2).inverse_of_unit()
+            2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
+            sage: QpCR(3,5)(2).inverse_of_unit()
+            2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
+
+        Over unramified extensions::
+
+            sage: R = ZpCA(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
+            sage: t.inverse_of_unit()
+            2*t + 2*t*3 + 2*t*3^2 + 2*t*3^3 + 2*t*3^4 + O(3^5)
+
+            sage: R = ZpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
+            sage: t.inverse_of_unit()
+            2*t + 2*t*3 + 2*t*3^2 + 2*t*3^3 + 2*t*3^4 + O(3^5)
+
+            sage: R = ZpFM(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
+            sage: t.inverse_of_unit()
+            2*t + 2*t*3 + 2*t*3^2 + 2*t*3^3 + 2*t*3^4 + O(3^5)
+
+            sage: R = QpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
+            sage: t.inverse_of_unit()
+            2*t + 2*t*3 + 2*t*3^2 + 2*t*3^3 + 2*t*3^4 + O(3^5)
+
+        Over Eisenstein extensions::
+
+            sage: R = ZpCA(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
+            sage: (t - 1).inverse_of_unit()
+            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + O(t^8)
+
+            sage: R = ZpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
+            sage: (t - 1).inverse_of_unit()
+            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9 + O(t^10)
+
+            sage: R = ZpFM(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
+            sage: (t - 1).inverse_of_unit()
+            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9 + O(t^10)
+
+            sage: R = QpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
+            sage: (t - 1).inverse_of_unit()
+            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9 + O(t^10)
+
+        """
+        if not self.is_unit():
+            raise ZeroDivisionError("Inverse does not exist.")
+        return self.parent()(~self)
 
     #def __getitem__(self, n):
     #    raise NotImplementedError

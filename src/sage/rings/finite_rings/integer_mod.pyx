@@ -197,8 +197,7 @@ def makeNativeIntStruct(sage.rings.integer.Integer z):
 
     .. note::
 
-       This function seems completely redundant, and is not used
-       anywhere.
+       This function is only used for the unpickle override below.
     """
     return NativeIntStruct(z)
 
@@ -229,8 +228,28 @@ cdef class NativeIntStruct:
         """
         Function to compute and cache all elements of this class.
 
-        If inverses==True, also computes and caches the inverses of the
-        invertible elements
+        If ``inverses == True``, also computes and caches the inverses
+        of the invertible elements.
+
+        EXAMPLES:
+
+        This is used by the :class:`sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic` constructor::
+
+            sage: from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+            sage: R = IntegerModRing_generic(39, cache=False)
+            sage: R(5)^-1
+            8
+            sage: R(5)^-1 is R(8)
+            False
+            sage: R = IntegerModRing_generic(39, cache=True)  # indirect doctest
+            sage: R(5)^-1 is R(8)
+            True
+
+        Check that the inverse of 0 modulo 1 works, see :trac:`13639`::
+
+            sage: R = IntegerModRing_generic(1, cache=True)  # indirect doctest
+            sage: R(0)^-1 is R(0)
+            True
         """
         self.table = PyList_New(self.int64)
         cdef Py_ssize_t i
@@ -244,13 +263,17 @@ cdef class NativeIntStruct:
                 Py_INCREF(z); PyList_SET_ITEM(self.table, i, z)
 
         if inverses:
-            tmp = [None] * self.int64
-            for i from 1 <= i < self.int64:
-                try:
-                    tmp[i] = ~self.table[i]
-                except ZeroDivisionError:
-                    pass
-            self.inverses = tmp
+            if self.int64 == 1:
+                # Special case for integers modulo 1
+                self.inverses = self.table
+            else:
+                tmp = [None] * self.int64
+                for i from 1 <= i < self.int64:
+                    try:
+                        tmp[i] = ~self.table[i]
+                    except ZeroDivisionError:
+                        pass
+                self.inverses = tmp
 
     def _get_table(self):
         return self.table
@@ -2417,6 +2440,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
             sage: ~mod(7,100)
             43
+            sage: Mod(0,1)^-1
+            0
         """
         if self.__modulus.inverses is not None:
             x = self.__modulus.inverses[self.ivalue]
@@ -2676,6 +2701,8 @@ cdef int_fast32_t mod_inverse_int(int_fast32_t x, int_fast32_t n) except 0:
     - Robert Bradshaw
     """
     cdef int_fast32_t tmp, a, b, last_t, t, next_t, q
+    if n == 1:
+        return 0
     a = n
     b = x
     t = 0
@@ -2777,16 +2804,6 @@ cdef int jacobi_int(int_fast32_t a, int_fast32_t m) except -2:
             jacobi = -jacobi
         a = m % b
         m = b
-#
-# These two functions are never used:
-#
-#def test_gcd(a, b):
-#    return gcd_int(int(a), int(b))
-#
-#def test_mod_inverse(a, b):
-#    return mod_inverse_int(int(a), int(b))
-#
-
 
 ######################################################################
 #      class IntegerMod_int64

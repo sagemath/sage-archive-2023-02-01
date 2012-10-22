@@ -28,10 +28,11 @@ For more details see http://www.mathematik.uni-osnabrueck.de/normaliz/
 
 === Patches ===
 
+ * 00-remove-static-option.patch ensures MacOS compatibility.
+
 == Changelog ==
 
-=== normaliz-2.8 (Andrey Novoseltsev, July 11 2012) ===
+=== normaliz-2.8 (Andrey Novoseltsev, October 21 2012) ===
 
  * Initial release. See Sage Trac #13234.
-
 

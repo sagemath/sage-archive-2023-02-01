@@ -140,15 +140,18 @@ the ZZ_pX_c, you can get errors.
 
 AUTHORS:
 
-- David Roe  (2008-01-01) initial version
+- David Roe (2008-01-01): initial version
 
-- Robert Harron (2011-09) fixes/enhancements
+- Robert Harron (2011-09): fixes/enhancements
+
+- Julian Rueth (2012-10-15): fixed an initialization bug
 
 """
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed@math.harvard.edu>
 #                          William Stein <wstein@gmail.com>
+#                     2012 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -219,6 +222,19 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             3 + O(w^15)
             sage: W(w, 14)
             w + O(w^14)
+
+        TESTS:
+
+        Check that :trac:`13600` is fixed::
+
+            sage: K = W.fraction_field()
+            sage: W(K.zero())
+            O(w^25)
+            sage: W(K.one())
+            1 + O(w^25)
+            sage: W(K.zero().add_bigoh(3))
+            O(w^3)
+
         """
         pAdicZZpXElement.__init__(self, parent)
         cdef long aprec, rprec, ctx_prec
@@ -334,6 +350,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             if 1 < aprec:
                 aprec = 1
         cdef pAdicZZpXCAElement _x
+        cdef pAdicZZpXCRElement __x
         if PY_TYPE_CHECK(x, Integer):
             if relprec is infinity:
                 self._set_from_mpz_abs((<Integer>x).value, aprec)
@@ -364,24 +381,24 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 else:
                     self._set(&_x.value, aprec)
             elif x.parent() is parent.fraction_field():
-                _x = <pAdicZZpXCRElement>x
-                if _x.relprec < 0:
-                    _x._normalize()
-                if _x._is_exact_zero():
+                __x = <pAdicZZpXCRElement>x
+                if __x.relprec < 0:
+                    __x._normalize()
+                if __x._is_exact_zero():
                     self._set_inexact_zero(self.prime_pow.ram_prec_cap)
-                elif _x.ordp < 0:
+                elif __x.ordp < 0:
                     raise ValueError, "x has negative valuation"
-                elif _x._is_inexact_zero():
-                    if _x.ordp <= self.prime_pow.ram_prec_cap:
-                        self._set_inexact_zero(_x.ordp)
+                elif __x._is_inexact_zero():
+                    if __x.ordp <= self.prime_pow.ram_prec_cap:
+                        self._set_inexact_zero(__x.ordp)
                     else:
                         self._set_inexact_zero(self.prime_pow.ram_prec_cap)
                 else:
-                    poly = _x._ntl_rep_abs()[0]
-                    if _x.relprec < rprec:
-                        rprec = _x.relprec
-                    if rprec + _x.ordp < aprec:
-                        aprec = rprec + _x.ordp
+                    poly = __x._ntl_rep_abs()[0]
+                    if __x.relprec < rprec:
+                        rprec = __x.relprec
+                    if rprec + __x.ordp < aprec:
+                        aprec = rprec + __x.ordp
                     self._set(&(<ntl_ZZ_pX>poly).x, aprec)
             else:
                 raise NotImplementedError, "Conversion from different p-adic extensions not yet supported"

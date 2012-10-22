@@ -756,7 +756,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         else:
             return sage.rings.real_double.RDF(c)
 
-    def norm(self, p='frob'):
+    def norm(self, p=None):
         r"""
         Returns the norm of the matrix.
 
@@ -764,8 +764,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         - ``p`` - default: 'frob' - controls which norm is computed,
           allowable values are 'frob' (for the Frobenius norm),
-          integers -2, -1, 1, 2, positive and negative infinity.
-          See output discussion for specifics.
+          integers -2, -1, 1, 2, positive and negative infinity.  See
+          output discussion for specifics.  The default (``p='frob'``)
+          is deprecated and will change to a default of ``p=2`` soon.
 
         OUTPUT:
 
@@ -776,7 +777,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Singular values are the "diagonal" entries of the "S" matrix in
         the singular value decomposition.
 
-        - ``p = 'frob'``: the default, the Frobenius norm, which for
+        - ``p = 'frob'``: the Frobenius norm, which for
           a matrix `A=(a_{ij})` computes
 
           .. math::
@@ -787,7 +788,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         - ``p = -Infinity`` or ``p = -oo``: the minimum column sum.
         - ``p = 1``: the maximum column sum.
         - ``p = -1``: the minimum column sum.
-        - ``p = 2``: the 2-norm, equal to the maximum singular value.
+        - ``p = 2``: the induced 2-norm, equal to the maximum singular value.
         - ``p = -2``: the minimum singular value.
 
         ALGORITHM:
@@ -804,6 +805,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 0.0  1.0  2.0]
             [ 3.0  4.0  5.0]
             sage: A.norm()
+            doctest:...: DeprecationWarning: The default norm will be changing from p='frob' to p=2.  Use p='frob' explicitly to continue calculating the Frobenius norm.
+            See http://trac.sagemath.org/13643 for details.
             8.30662386...
             sage: A.norm(p='frob')
             8.30662386...
@@ -873,6 +876,14 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         global numpy
         if numpy is None:
             import numpy
+
+        if p is None:
+            from sage.misc.superseded import deprecation
+            msg = "The default norm will be changing from p='frob' to p=2.  Use p='frob' explicitly to continue calculating the Frobenius norm."
+            deprecation(13643, msg)
+            # change to default of p=2 when deprecation period has elapsed
+            p='frob'
+
         import sage.rings.infinity
         import sage.rings.integer
         import sage.rings.real_double

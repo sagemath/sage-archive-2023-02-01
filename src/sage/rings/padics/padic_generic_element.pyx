@@ -11,13 +11,14 @@ AUTHORS:
 
 - David Harvey: doctests
 
-- Julian Rueth (2013-02-14): fixes for exp() and log()
+- Julian Rueth: fixes for exp() and log(), implement gcd
 
 """
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Roe <roed@math.harvard.edu>
-#                          William Stein <wstein@gmail.com>
+#                     2007 William Stein <wstein@gmail.com>
+#                     2013 Julian Rueth <julian.rueth@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -38,6 +39,7 @@ from sage.rings.infinity import infinity
 from sage.libs.pari.gen import pari
 from sage.libs.pari.gen import PariError
 import sage.rings.rational_field
+from sage.structure.element import coerce_binop
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
@@ -619,6 +621,141 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     #def gamma(self):
     #    raise NotImplementedError
+
+    @coerce_binop
+    def gcd(self, other):
+        """
+        Return a greatest common divisor of ``self`` and ``other``.
+
+        INPUT:
+
+            - ``other`` -- an element in the same ring as ``self``
+
+        AUTHORS:
+
+            - Julian Rueth (2012-10-19): initial version
+
+        .. NOTE::
+
+            Since ``self`` and ``other`` are only given with finite precision,
+            their greatest common divisor is in general not unique (not even up
+            to units). For example `O(3)` is a representative for the elements
+            0 and 3 in the 3-adic ring `\mathbb{Z}_3`. The greatest common
+            divisior of `O(3)` and `O(3)` could be (among others) 3 or 0 which
+            have different valuation. The algorithm implemented here, will
+            return an element of minimal valuation among the possible greatest
+            common divisors.
+
+        EXAMPLES:
+
+        The greatest common divisor is either zero or a power of the
+        uniformizing paramter::
+
+            sage: R = Zp(3)
+            sage: R.zero().gcd(R.zero())
+            0
+            sage: R(3).gcd(9)
+            3 + O(3^21)
+
+        A non-zero result is always lifted to the maximal precision possible in
+        the ring::
+
+            sage: a = R(3,2); a
+            3 + O(3^2)
+            sage: b = R(9,3); b
+            3^2 + O(3^3)
+            sage: a.gcd(b)
+            3 + O(3^21)
+            sage: a.gcd(0)
+            3 + O(3^21)
+
+        If both ``self`` and ``other`` are zero, then the result is zero with
+        the precision set to the smallest of their precisions::
+
+            sage: a = R.zero(); a
+            0
+            sage: b = R(0,2); b
+            O(3^2)
+            sage: a.gcd(b)
+            O(3^2)
+
+        One could argue that it is mathematically correct to return ``9 +
+        O(3^22)`` instead. However, this would lead to some confusing
+        behaviour::
+
+            sage: alternative_gcd = R(9,22); alternative_gcd
+            3^2 + O(3^22)
+            sage: a.is_zero()
+            True
+            sage: b.is_zero()
+            True
+            sage: alternative_gcd.is_zero()
+            False
+
+        Over a field, the greatest common divisor is either zero (possibly with
+        finite precision) or one::
+
+            sage: K = Qp(3)
+            sage: K(3).gcd(0)
+            1 + O(3^20)
+            sage: K.zero().gcd(0)
+            0
+            sage: K.zero().gcd(K(0,2))
+            O(3^2)
+            sage: K(3).gcd(4)
+            1 + O(3^20)
+
+        TESTS:
+
+        The implementation also works over extensions::
+
+            sage: K = Qp(3)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^3-3)
+            sage: (a+3).gcd(3)
+            1 + O(a^60)
+
+            sage: R = Zp(3)
+            sage: S.<a> = R[]
+            sage: S.<a> = R.extension(a^3-3)
+            sage: (a+3).gcd(3)
+            a + O(a^61)
+
+            sage: K = Qp(3)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2-2)
+            sage: (a+3).gcd(3)
+            1 + O(3^20)
+
+            sage: R = Zp(3)
+            sage: S.<a> = R[]
+            sage: S.<a> = R.extension(a^2-2)
+            sage: (a+3).gcd(3)
+            1 + O(3^20)
+
+        For elements with a fixed modulus::
+
+            sage: R = ZpFM(3)
+            sage: R(3).gcd(9)
+            3 + O(3^20)
+
+        And elements with a capped absolute precision::
+
+            sage: R = ZpCA(3)
+            sage: R(3).gcd(9)
+            3 + O(3^20)
+
+        """
+        if self.is_zero() and other.is_zero():
+            if self.valuation() < other.valuation():
+                return self
+            else:
+                return other
+
+        if self.parent().is_field():
+            return self.parent().one()
+
+        return self.parent().uniformiser_pow( min(self.valuation(),other.valuation()) )
 
     def is_square(self): #should be overridden for lazy elements
         """

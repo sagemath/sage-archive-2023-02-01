@@ -40,6 +40,9 @@ ipython-user@scipy.org
 
 == Changelog ==
 
+=== ipython-0.13.1 (Jason Grout, Oct 23, 2012) ===
+ * Upgrade to 0.13.1
+
 === ipython-0.13 (Jason Grout, June 30, 2012) ===
  * Upgrade to 0.13
 

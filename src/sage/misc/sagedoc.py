@@ -830,11 +830,8 @@ You can build this with 'sage -docbuild %s html'.""" % s
                           extra2, extra3, extra4, extra5] if s])
         print format_search_as_html(title, results, terms)
     else:
-        # hard-code a 25-line screen into the pager; this works around a
-        # problem with doctests: see
-        # http://trac.sagemath.org/sage_trac/ticket/5806#comment:11
-        from IPython.genutils import page
-        page(results, screen_lines = 25)
+        import pager
+        pager.pager()(results)
 
 
 def search_src(string, extra1='', extra2='', extra3='', extra4='',

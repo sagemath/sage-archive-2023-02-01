@@ -490,8 +490,8 @@ class Gap3(Gap_generic):
         # merge the help text into one string and print it.
         helptext = "".join(helptext).strip()
         if pager is True:
-            import IPython.genutils
-            IPython.genutils.page(helptext)
+            import sage.misc.pager
+            pager.pager()(helptext)
         else:
             print helptext
 

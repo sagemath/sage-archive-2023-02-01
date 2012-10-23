@@ -38,6 +38,13 @@ ipython-user@scipy.org
 
 == Special Update/Build Instructions ==
 
+== Patches ==
+
+ * prun_timeit_magics.patch: See https://github.com/ipython/ipython/pull/2403.
+   This patch allows Sage to preparse %prun and %timeit commands.  It will
+   probably not be needed with IPython 0.14, since the input splitter will need
+   to be rewritten.
+
 == Changelog ==
 
 === ipython-0.13.1 (Jason Grout, Oct 23, 2012) ===

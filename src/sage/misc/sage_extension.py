@@ -11,6 +11,35 @@ A Sage extension which adds sage-specific features:
 * running init.sage
 * changing prompt to Sage prompt
 * Display hook
+
+TESTS:
+
+We test that preparsing is off for ``%runfile``, on for ``%time``::
+
+    sage: import os, re
+    sage: from sage.misc.interpreter import get_test_shell
+    sage: from sage.misc.misc import tmp_dir
+    sage: shell = get_test_shell()
+    sage: TMP = tmp_dir()
+
+The temporary directory should have a name of the form
+``.../12345/...``, to demonstrate that file names are not
+preparsed when calling ``%runfile``. ::
+
+    sage: bool(re.search('/[0-9]+/', TMP))
+    True
+    sage: tmp = os.path.join(TMP, 'run_cell.py')
+    sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
+    sage: shell.run_cell('%runfile '+tmp)
+    sage: shell.run_cell('a')
+    2
+
+In contrast, input to the ``%time`` magic command is preparsed::
+
+    sage: shell.run_cell('%time 594.factor()')
+    CPU times: user ...
+    Wall time: ...
+    2 * 3^3 * 11
 """
 
 from IPython.core.hooks import TryNext

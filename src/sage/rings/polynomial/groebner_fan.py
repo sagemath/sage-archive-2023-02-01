@@ -501,7 +501,7 @@ class PolyhedralFan(SageObject):
             sage: GF = I.groebner_fan()
             sage: PF = GF.tropical_intersection()
             sage: fan = PF.to_RationalPolyhedralFan()
-            sage: [q.facet_normals() for q in fan]
+            sage: [tuple(q.facet_normals()) for q in fan]
             [(M(0, -1, 0), M(-1, 0, 0)), (M(0, 0, -1), M(-1, 0, 0)), (M(0, 0, 1), M(-1, 0, 0)), (M(0, 1, 0), M(-1, 0, 0)), (M(0, 0, -1), M(0, -1, 0)), (M(0, 0, 1), M(0, -1, 0)), (M(0, 1, 0), M(0, 0, -1)), (M(0, 1, 0), M(0, 0, 1)), (M(1, 0, 0), M(0, -1, 0)), (M(1, 0, 0), M(0, 0, -1)), (M(1, 0, 0), M(0, 0, 1)), (M(1, 0, 0), M(0, 1, 0))]
 
         Here we use the RationalPolyhedralFan's Gale_transform method on a tropical

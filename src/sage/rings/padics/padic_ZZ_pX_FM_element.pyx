@@ -1792,6 +1792,13 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         Returns the unit part of ``self``, ie
         ``self / uniformizer^(self.valuation())``
 
+        .. WARNING::
+
+            If this element has positive valuation then the unit part
+            is not defined to the full precision of the ring.  Asking
+            for the unit part of ZpFM(5)(0) will not raise an error,
+            but rather return itself.
+
         EXAMPLES::
 
             sage: R = ZpFM(5,5)
@@ -1808,6 +1815,12 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             15
             sage: a.unit_part()
             3 + 2*w^2 + w^4 + w^6 + w^7 + 3*w^8 + 3*w^9 + 2*w^11 + 3*w^12 + 3*w^13 + w^15 + 4*w^16 + 2*w^17 + w^18 + w^22 + 3*w^24 + O(w^25)
+
+        The unit part inserts nonsense digits if this element has
+        positive valuation::
+
+            sage: (a-a).unit_part()
+            O(w^25)
         """
         return self._rshift_c(self.valuation_c())
 

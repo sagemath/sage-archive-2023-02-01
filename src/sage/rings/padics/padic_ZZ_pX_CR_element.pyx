@@ -3528,11 +3528,22 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             9
             sage: a.unit_part()
             3 + 2*w^2 + w^4 + w^6 + w^7 + 3*w^8 + O(w^9)
+
+        TESTS:
+
+        We check that :trac:`13616` is resolved::
+
+            sage: z = (1+w)^5
+            sage: y = z - 1
+            sage: t=y-y
+            sage: t.unit_part()
+            O(w^0)
         """
         self._normalize()
         cdef pAdicZZpXCRElement ans = self._new_c(self.relprec)
         ans.ordp = 0
-        ans.unit = self.unit
+        if self.relprec != 0:
+            ans.unit = self.unit
         return ans
 
     cdef ext_p_list(self, bint pos):

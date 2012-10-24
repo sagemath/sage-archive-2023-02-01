@@ -56,6 +56,13 @@ cdef class PPLBackend(GenericBackend):
         else:
             self.set_sense(-1)
 
+    cpdef base_ring(self):
+        from sage.rings.all import QQ
+        return QQ
+
+    cpdef zero(self):
+        return self.base_ring()(0)
+
     def init_mip(self):
         """
         Converting the matrix form of the MIP Problem to PPL MIP_Problem.
@@ -64,6 +71,10 @@ cdef class PPLBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "PPL")
+            sage: p.base_ring()
+            Rational Field
+            sage: type(p.zero())
+            <type 'sage.rings.rational.Rational'>
             sage: p.init_mip()
 
         """
@@ -865,6 +876,3 @@ cdef class PPLBackend(GenericBackend):
             self.col_lower_bound[index] = value
         else:
             return self.col_lower_bound[index]
-
-    cpdef zero(self):
-        return 0

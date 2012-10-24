@@ -28,8 +28,12 @@ AUTHORS:
 
 cdef class GenericBackend:
 
+    cpdef base_ring(self):
+        from sage.rings.all import RDF
+        return RDF
+
     cpdef zero(self):
-        return 0.0
+        return self.base_ring()(0)
 
     cpdef int add_variable(self, lower_bound=None, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, name=None) except -1:
         """

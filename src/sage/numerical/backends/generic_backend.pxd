@@ -39,6 +39,7 @@ cdef class GenericBackend:
     cpdef variable_lower_bound(self, int index, value = *)
     cpdef solver_parameter(self, name, value=*)
     cpdef zero(self)
+    cpdef base_ring(self)
 
     cpdef obj_constant_term
 

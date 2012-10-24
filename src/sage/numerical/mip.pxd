@@ -31,6 +31,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 cdef class LinearFunctionsParent_class(Parent):
     cpdef _element_constructor_(self, x)
     cpdef _coerce_map_from_(self, R)
+    cdef object _multiplication_symbol
+    cpdef object _get_multiplication_symbol(self)
 
 cdef class LinearFunction(ModuleElement):
     cdef dict _f

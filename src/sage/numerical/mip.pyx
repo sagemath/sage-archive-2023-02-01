@@ -84,6 +84,21 @@ The following example shows all these steps::
     w_2 = 3
     w_3 = 2
 
+Different backends compute with different base fields, for example:
+
+    sage: p = MixedIntegerLinearProgram(maximization=False, solver = 'GLPK')
+    sage: p.base_ring()
+    Real Double Field
+    sage: x = p.new_variable()
+    sage: 0.5 + 3/2*x[1]
+    0.5 + 1.5*x_0
+
+    sage: p = MixedIntegerLinearProgram(maximization=False, solver = 'ppl')
+    sage: p.base_ring()
+    Rational Field
+    sage: x = p.new_variable()
+    sage: 0.5 + 3/2*x[1]
+    1/2 + 3/2*x_0
 
 AUTHORS:
 
@@ -280,8 +295,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
              Linear functions over Real Double Field
         """
         if self._linear_functions_parent is None:
-            from sage.rings.all import RDF
-            base_ring = RDF   # FIXME: let the solver determine the most suitable base ring
+            base_ring = self._backend.base_ring()
             self._linear_functions_parent = LinearFunctionsParent(base_ring)
         return self._linear_functions_parent
 
@@ -293,12 +307,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
              sage: p = MixedIntegerLinearProgram()
              sage: p.linear_function({1:3, 4:5})
-             3 x_1 +5 x_4
+             3*x_1 + 5*x_4
 
         This is equivalent to::
 
             sage: p({1:3, 4:5})
-            3 x_1 +5 x_4
+            3*x_1 + 5*x_4
         """
         parent = self.linear_functions_parent()
         return parent(x)
@@ -387,6 +401,25 @@ cdef class MixedIntegerLinearProgram(SageObject):
         except TypeError:
             self._default_mipvariable = self.new_variable()
             return self._default_mipvariable[v]
+
+    def base_ring(self):
+        """
+        Return the base ring.
+
+        OUTPUT:
+
+        A ring. The coefficients that the chosen solver supports.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: p.base_ring()
+            Real Double Field
+            sage: p = MixedIntegerLinearProgram(solver='ppl')
+            sage: p.base_ring()
+            Rational Field
+        """
+        return self._backend.base_ring()
 
     def set_problem_name(self,name):
         r"""
@@ -2027,6 +2060,51 @@ cdef class LinearFunctionsParent_class(Parent):
         """
         from sage.categories.modules_with_basis import ModulesWithBasis
         Parent.__init__(self, base=base_ring, category=ModulesWithBasis(base_ring))
+        self._multiplication_symbol = '*'
+
+    def set_multiplication_symbol(self, symbol='*'):
+        """
+        Set the multiplication symbol when pretty-printing linear functions.
+
+        INPUT:
+
+        - ``symbol`` -- string, default: ``'*'``. The multiplication
+          symbol to be used.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: x = p.new_variable()
+            sage: f = -1-2*x[0]-3*x[1]
+            sage: LF = f.parent()
+            sage: LF._get_multiplication_symbol()
+            '*'
+            sage: f
+            -1 - 2*x_0 - 3*x_1
+            sage: LF.set_multiplication_symbol(' ')
+            sage: f
+            -1 - 2 x_0 - 3 x_1
+            sage: LF.set_multiplication_symbol()
+            sage: f
+            -1 - 2*x_0 - 3*x_1
+        """
+        self._multiplication_symbol = symbol
+
+    cpdef _get_multiplication_symbol(self):
+        """
+        Return the multiplication symbol.
+
+        OUTPUT:
+
+        String. By default, this is ``'*'``.
+
+        EXAMPLES::
+
+            sage: LF = MixedIntegerLinearProgram().linear_functions_parent()
+            sage: LF._get_multiplication_symbol()
+            '*'
+        """
+        return self._multiplication_symbol
 
     def _repr_(self):
         """
@@ -2084,9 +2162,9 @@ cdef class LinearFunctionsParent_class(Parent):
 
             sage: p = MixedIntegerLinearProgram().linear_functions_parent()
             sage: p._an_element_()
-            5 x_2 +7 x_5
+            5*x_2 + 7*x_5
             sage: p.an_element()   # indirect doctest
-            5 x_2 +7 x_5
+            5*x_2 + 7*x_5
         """
         return self._element_constructor_({2:5, 5:7})
 
@@ -2108,19 +2186,19 @@ cdef class LinearFunction(ModuleElement):
 
         sage: p = MixedIntegerLinearProgram()
         sage: p({0 : 1, 3 : -8})
-        x_0 -8 x_3
+        x_0 - 8*x_3
 
     or this::
 
         sage: parent = p.linear_functions_parent()
         sage: parent({0 : 1, 3 : -8})
-        x_0 -8 x_3
+        x_0 - 8*x_3
 
     instead of this::
 
         sage: from sage.numerical.mip import LinearFunction
         sage: LinearFunction(p.linear_functions_parent(), {0 : 1, 3 : -8})
-        x_0 -8 x_3
+        x_0 - 8*x_3
     """
 
     def __init__(self, parent, f):
@@ -2138,7 +2216,7 @@ cdef class LinearFunction(ModuleElement):
 
             sage: p = MixedIntegerLinearProgram()
             sage: p({0 : 1, 3 : -8})
-            x_0 -8 x_3
+            x_0 - 8*x_3
 
         Using the constructor with a numerical value::
 
@@ -2147,10 +2225,11 @@ cdef class LinearFunction(ModuleElement):
             25
         """
         ModuleElement.__init__(self, parent)
+        R = self.base_ring()
         if isinstance(f, dict):
-            self._f = f
+            self._f = dict( (int(key), R(value)) for key, value in f.iteritems() )
         else:
-            self._f = {-1:f}
+            self._f = {-1: R(f)}
 
     def dict(self):
         r"""
@@ -2166,7 +2245,7 @@ cdef class LinearFunction(ModuleElement):
             sage: p = MixedIntegerLinearProgram()
             sage: lf = p({0 : 1, 3 : -8})
             sage: lf.dict()
-            {0: 1, 3: -8}
+            {0: 1.0, 3: -8.0}
         """
         return self._f
 
@@ -2178,7 +2257,7 @@ cdef class LinearFunction(ModuleElement):
 
             sage: p = MixedIntegerLinearProgram()
             sage: p({0 : 1, 3 : -8}) + p({2 : 5, 3 : 2}) - 16
-            -16 +x_0 +5 x_2 -6 x_3
+            -16 + x_0 + 5*x_2 - 6*x_3
         """
         e = dict(self._f)
         for (id,coeff) in b.dict().iteritems():
@@ -2194,7 +2273,7 @@ cdef class LinearFunction(ModuleElement):
 
             sage: p = MixedIntegerLinearProgram()
             sage: - p({0 : 1, 3 : -8})
-            -1 x_0 +8 x_3
+            -1*x_0 + 8*x_3
         """
         P = self.parent()
         return P(dict([(id,-coeff) for (id, coeff) in self._f.iteritems()]))
@@ -2207,9 +2286,9 @@ cdef class LinearFunction(ModuleElement):
 
             sage: p = MixedIntegerLinearProgram()
             sage: p({2 : 5, 3 : 2}) - 3
-            -3 +5 x_2 +2 x_3
+            -3 + 5*x_2 + 2*x_3
             sage: p({0 : 1, 3 : -8}) - p({2 : 5, 3 : 2}) - 16
-            -16 +x_0 -5 x_2 -10 x_3
+            -16 + x_0 - 5*x_2 - 10*x_3
         """
         e = dict(self._f)
         for (id,coeff) in b.dict().iteritems():
@@ -2225,7 +2304,7 @@ cdef class LinearFunction(ModuleElement):
 
             sage: p = MixedIntegerLinearProgram()
             sage: p({2 : 5, 3 : 2}) * 3
-            15.0 x_2 +6.0 x_3
+            15*x_2 + 6*x_3
         """
         P = self.parent()
         return P(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
@@ -2238,9 +2317,50 @@ cdef class LinearFunction(ModuleElement):
 
             sage: p = MixedIntegerLinearProgram()
             sage: 3 * p({2 : 5, 3 : 2})
-            15.0 x_2 +6.0 x_3
+            15*x_2 + 6*x_3
         """
         return self._rmul_(b)
+
+    def _coeff_formatter(self, coeff, constant_term=False):
+        """
+        Pretty-print multiplicative coefficient ``x``
+
+        OUTPUT:
+
+        String, including a trailing space if the coefficient is not
+        one. Empty string otherwise.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: f = p(1);  type(f)
+            <type 'sage.numerical.mip.LinearFunction'>
+            sage: f._coeff_formatter(1)
+            ''
+            sage: f._coeff_formatter(1, constant_term=True)
+            '1'
+            sage: f._coeff_formatter(RDF(12.0))
+            '12*'
+            sage: f._coeff_formatter(RDF(12.3))
+            '12.3*'
+
+            sage: q = MixedIntegerLinearProgram(solver='ppl')
+            sage: f = p(1)
+            sage: f._coeff_formatter(13/45)
+            '13/45*'
+        """
+        R = self.base_ring()
+        if coeff == R.one() and not constant_term:
+            return ''
+        try:
+            from sage.rings.all import ZZ
+            coeff = ZZ(coeff)    # print as integer if possible
+        except TypeError:
+            pass
+        if constant_term:
+            return str(coeff)
+        else:
+            return str(coeff) + self.parent()._get_multiplication_symbol()
 
     def _repr_(self):
         r"""
@@ -2248,9 +2368,12 @@ cdef class LinearFunction(ModuleElement):
 
         EXAMPLE::
 
-            sage: p = MixedIntegerLinearProgram()
-            sage: p({2 : 5, 3 : 2})
-            5 x_2 +2 x_3
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: p({-1: -15, 2 : -5.1, 3 : 2/3})
+            -15 - 5.1*x_2 + 0.666666666667*x_3
+            sage: p = MixedIntegerLinearProgram(solver='ppl')
+            sage: p({-1: -15, 2 : -5.1, 3 : 2/3})
+            -15 - 51/10*x_2 + 2/3*x_3
         """
         cdef dict d = dict(self._f)
         cdef bint first = True
@@ -2259,18 +2382,23 @@ cdef class LinearFunction(ModuleElement):
         if d.has_key(-1):
             coeff = d.pop(-1)
             if coeff!=0:
-                t = str(coeff)
+                t = self._coeff_formatter(coeff, constant_term=True)
                 first = False
 
         cdef list l = sorted(d.items())
         for id,coeff in l:
-            if coeff!=0:
-                if not first:
-                    t += " "
-                t += ("+" if (not first and coeff >= 0) else "") + \
-                    (str(coeff) + " " if coeff != 1 else "") + \
-                    "x_" + str(id)
-                first = False
+            sign = cmp(coeff,0)
+            if sign == 0:
+                continue
+            if not first:
+                if sign == -1:
+                    t += ' - '
+                if sign == +1:
+                    t += ' + '
+                t += self._coeff_formatter(abs(coeff)) + 'x_' + str(id)
+            else:
+                t += self._coeff_formatter(coeff) + 'x_' + str(id)
+            first = False
         return t
 
     def __richcmp__(left, right, int op):
@@ -2285,13 +2413,13 @@ cdef class LinearFunction(ModuleElement):
             sage: p = MixedIntegerLinearProgram()
             sage: from sage.numerical.mip import LinearFunction
             sage: p({2 : 5, 3 : 2}) <= p({2 : 3, 9 : 2})
-            5 x_2 +2 x_3 <= 3 x_2 +2 x_9
+            5*x_2 + 2*x_3 <= 3*x_2 + 2*x_9
 
             sage: p({2 : 5, 3 : 2}) >= p({2 : 3, 9 : 2})
-            3 x_2 +2 x_9 <= 5 x_2 +2 x_3
+            3*x_2 + 2*x_9 <= 5*x_2 + 2*x_3
 
             sage: p({2 : 5, 3 : 2}) == p({2 : 3, 9 : 2})
-            5 x_2 +2 x_3 = 3 x_2 +2 x_9
+            5*x_2 + 2*x_3 = 3*x_2 + 2*x_9
 
             sage: p({2 : 5, 3 : 2}) < p({2 : 3, 9 : 2})
             Traceback (most recent call last):
@@ -2388,7 +2516,7 @@ class LinearConstraint(SageObject):
         sage: p = MixedIntegerLinearProgram()
         sage: b = p.new_variable()
         sage: b[2]+2*b[3] <= b[8]-5
-        x_0 +2.0 x_1 <= -5 +x_2
+        x_0 + 2*x_1 <= -5 + x_2
     """
 
     def __init__(self, c):
@@ -2404,7 +2532,7 @@ class LinearConstraint(SageObject):
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()
             sage: b[2]+2*b[3] <= b[8]-5
-            x_0 +2.0 x_1 <= -5 +x_2
+            x_0 + 2*x_1 <= -5 + x_2
         """
         self.equality = False
         self.constraints = []
@@ -2420,7 +2548,7 @@ class LinearConstraint(SageObject):
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()
             sage: print b[3] <= b[8] + 9
-            x_0 <= 9 +x_1
+            x_0 <= 9 + x_1
         """
         if self.equality:
             return str(self.constraints[0]) + " = " + str(self.constraints[1])
@@ -2441,7 +2569,7 @@ class LinearConstraint(SageObject):
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()
             sage: print b[3] == b[8] + 9
-            x_0 = 9 +x_1
+            x_0 = 9 + x_1
         """
         if not isinstance(other, LinearConstraint):
             other = LinearConstraint(other)
@@ -2462,7 +2590,7 @@ class LinearConstraint(SageObject):
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()
             sage: print b[3] <= b[8] + 9
-            x_0 <= 9 +x_1
+            x_0 <= 9 + x_1
         """
 
         if not isinstance(other, LinearConstraint):
@@ -2504,7 +2632,7 @@ class LinearConstraint(SageObject):
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()
             sage: print b[3] >= b[8] + 9
-            9 +x_1 <= x_0
+            9 + x_1 <= x_0
         """
         if not isinstance(other, LinearConstraint):
             other = LinearConstraint(other)

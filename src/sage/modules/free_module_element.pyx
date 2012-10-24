@@ -932,7 +932,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             2
         """
         from numpy import array
-        return array(self, dtype=dtype)
+        try:
+            return array(self, dtype=dtype)
+        except ValueError as e:
+            raise ValueError(
+                "Could not convert vector to numpy array of type %s: %s" % (dtype, e))
 
     def __hash__(self):
         """

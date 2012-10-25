@@ -848,7 +848,7 @@ class PHC:
 
         # Get three temporary file names (these will be in SAGE_HOME/.sage/tmp/pid)
         input_filename = sage.misc.misc.tmp_filename()
-        output_filename = sage.misc.misc.tmp_filename()
+        output_filename = input_filename + ".phc"
         log_filename = sage.misc.misc.tmp_filename()
 
         # Get the input polynomial text
@@ -885,10 +885,6 @@ class PHC:
 
         # Read the output produced by PHC
         out = open(output_filename).read()
-
-        # Delete the temporary files
-        os.unlink(input_filename)
-        os.unlink(output_filename)
 
         # All done
         return PHC_Object(out, input_ring)

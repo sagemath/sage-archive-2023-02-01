@@ -1285,7 +1285,7 @@ cdef class ModuleElement(Element):
         if PyInt_CheckExact(left):
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         if have_same_parent(left, right):
-            raise arith_error_message(left, right, mul)
+            raise TypeError, arith_error_message(left, right, mul)
         # Always do this
         global coercion_model
         return coercion_model.bin_op(left, right, mul)

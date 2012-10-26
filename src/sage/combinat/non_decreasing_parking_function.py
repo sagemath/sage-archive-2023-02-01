@@ -14,6 +14,7 @@ the set of :mod:`Dyck words<sage.combinat.dyck_word>` of size `n`.
 AUTHORS:
 
     - Florent Hivert (2009-04)
+    - Christian Stump (2012-11) added pretty printing
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
@@ -446,14 +447,13 @@ class NonDecreasingParkingFunction(CombinatorialObject):
         Take a non decreasing parking function, say [1,1,2,4,5,5], and draw
         its graph::
 
-                                                 .
-                                              .  |
-                                           .__.__|
-                                        .__|  .  .
-                                     .  |  .  .  .
-                                  .  .__|  .  .  .
-                               .__.__|  .  .  .  .
-                                 1  1  2  4  5  5
+                     ___
+                    |  . 5
+                   _|  . 5
+               ___|  . . 4
+             _|  . . . . 2
+            |  . . . . . 1
+            |  . . . . . 1
 
         The corresponding Dyck word [1,1,0,1,0,0,1,0,1,1,0,0] is then read off
         from the sequence of horizontal and vertical steps. The converse
@@ -478,8 +478,8 @@ class NonDecreasingParkingFunction(CombinatorialObject):
             sage: list(ndpf) == [pf.to_dyck_word().to_non_decreasing_parking_function() for pf in ndpf]
             True
         """
-        from sage.combinat.dyck_word import DyckWord_class
-        return DyckWord_class.from_non_decreasing_parking_function(self)
+        from sage.combinat.dyck_word import DyckWord_complete
+        return DyckWord_complete.from_non_decreasing_parking_function(self)
 
     @classmethod
     def from_dyck_word(cls, dw):

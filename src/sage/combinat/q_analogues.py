@@ -199,7 +199,7 @@ def qt_catalan_number(n):
         ZZqt = ZZ['q','t']
         d = {}
         for dw in DyckWords(n):
-            tup = (dw.a_statistic(),dw.b_statistic())
+            tup = (dw.area(),dw.bounce())
             d[tup] = d.get(tup,0)+1
         return ZZqt(d)
     else:

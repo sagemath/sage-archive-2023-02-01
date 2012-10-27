@@ -163,9 +163,9 @@ class LinearExtensionOfPoset(ClonableArray):
             sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]))
             sage: p = P.linear_extension([1,2,3,4])
             sage: p._latex_()
-            '\\texttt{(1, 2, 3, 4)}'
+            '\\mathtt{(1, 2, 3, 4)}'
         """
-        return "\\texttt{"+str(tuple(self))+"}"
+        return "\\mathtt{"+str(tuple(self))+"}"
 
     def to_poset(self):
         r"""

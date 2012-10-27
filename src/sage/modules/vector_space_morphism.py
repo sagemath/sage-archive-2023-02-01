@@ -925,16 +925,16 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             sage: H = Hom(QQ^3, QQ^2)
             sage: f = H(matrix(3, 2, range(6)))
             sage: f._latex_().split(' ')
-            ['\\texttt{vector', 'space', 'morphism', 'from',
-            '}\n\\Bold{Q}^{3}\\texttt{', 'to', '}\n\\Bold{Q}^{2}\\texttt{',
+            ['\\text{vector', 'space', 'morphism', 'from',
+            '}\n\\Bold{Q}^{3}\\text{', 'to', '}\n\\Bold{Q}^{2}\\text{',
             'represented', 'by', 'the', 'matrix',
             '}\n\\left(\\begin{array}{rr}\n0', '&', '1',
             '\\\\\n2', '&', '3', '\\\\\n4', '&', '5\n\\end{array}\\right)']
         """
         from sage.misc.latex import latex
-        s = ('\\texttt{vector space morphism from }\n', self.domain()._latex_(),
-             '\\texttt{ to }\n', self.codomain()._latex_(),
-             '\\texttt{ represented by the matrix }\n', self.matrix()._latex_())
+        s = ('\\text{vector space morphism from }\n', self.domain()._latex_(),
+             '\\text{ to }\n', self.codomain()._latex_(),
+             '\\text{ represented by the matrix }\n', self.matrix()._latex_())
         return ''.join(s)
 
     def _repr_(self):

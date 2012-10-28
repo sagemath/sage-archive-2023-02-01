@@ -3877,6 +3877,12 @@ class GenericGraph(GenericGraph_pyx):
         a list of vertices and the blocks are the corresponding induced
         subgraphs-and ``C`` is a list of cut vertices.
 
+        ALGORITHM:
+
+          We implement the algorithm proposed by Tarjan in [Tarjan72]_. The
+          original version is recursive. We emulate the recursion using a stack.
+
+
         EXAMPLES::
 
             sage: graphs.PetersenGraph().blocks_and_cut_vertices()
@@ -3906,10 +3912,6 @@ class GenericGraph(GenericGraph_pyx):
             ...
             NotImplementedError: ...
 
-        ALGORITHM: We implement the algorithm proposed by Tarjan in
-        [Tarjan72]_. The original version is recursive. We emulate the recursion
-        using a stack.
-
         REFERENCE:
 
         .. [Tarjan72] R.E. Tarjan. Depth-First Search and Linear Graph
@@ -3926,11 +3928,21 @@ class GenericGraph(GenericGraph_pyx):
         if not self.is_connected():
             raise NotImplementedError("Blocks and cut vertices is currently only implemented for connected graphs.")
 
+        # Each vertex is number with an integer from 1...|V(G)|, corresponding
+        # to the order in which it is discovered during the DFS.
         number = {}
+
+        # Associates to each vertex v the smallest number of a vertex that can
+        # be reached from v in the orientation of the graph that the algorithm
+        # creates.
         low_point = {}
+
+        # Associates to each vertex an iterator over its neighbors
         neighbors = {}
+
         blocks = []
         cut_vertices = set()
+
         stack = [start]
         edge_stack = []
         top = 0
@@ -3940,35 +3952,48 @@ class GenericGraph(GenericGraph_pyx):
         while stack:
             v = stack[top]
 
+            # The first time we meet v
             if not v in number:
-                # We number the vertices in the order they are reached during DFS
+                # We number the vertices in the order they are reached during
+                # DFS
                 number[v] = num
                 neighbors[v] = self.neighbor_iterator(v)
                 low_point[v] = num
                 num += 1
 
             try:
+                # We consider the next of its neighbors
                 w = neighbors[v].next()
 
+                # If we never met w before, we remember the direction of edge
+                # vw, and add w to the stack.
                 if not w in number:
                     edge_stack.append( (v,w) )
                     stack.append(w)
                     top += 1
 
+                # If w is an ancestor of v in the DFS tree, we remember the direction of edge vw
                 elif number[w]<number[v]:
                     edge_stack.append( (v,w) )
                     low_point[v] = min(low_point[v], number[w])
 
+            # We went through all of v's neighbors
             except StopIteration:
                 w = stack.pop()
                 top -= 1
 
                 if stack:
                     v = stack[top]
+
+                    # Propagating the information : low_point[vertex] indicates
+                    # the smallest vertex (the vertex x with smallest number[x])
+                    # that can be reached from vertex
                     low_point[v] = min( low_point[v], low_point[w] )
 
+                    # The situation in which there is no path from w to an
+                    # ancestor of v : we have identified a new biconnected
+                    # component
                     if low_point[w] >= number[v]:
-                        # We have identified a new biconnected component
                         new_block = set()
                         nw = number[w]
                         u1,u2 = edge_stack.pop()
@@ -3978,9 +4003,11 @@ class GenericGraph(GenericGraph_pyx):
                         new_block.add(u1)
                         blocks.append(sorted(list(new_block)))
 
-                        # We update the set of cut vertices. If v is start, then
-                        # we add it only if it belongs to several blocks.
-                        if not v is start or start_already_seen:
+                        # We update the set of cut vertices.
+                        #
+                        # If v is start, then we add it only if it belongs to
+                        # several blocks.
+                        if (not v is start) or start_already_seen:
                             cut_vertices.add(v)
                         else:
                             start_already_seen = True

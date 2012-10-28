@@ -3931,6 +3931,7 @@ class GenericGraph(GenericGraph_pyx):
         # Each vertex is number with an integer from 1...|V(G)|, corresponding
         # to the order in which it is discovered during the DFS.
         number = {}
+        num = 1
 
         # Associates to each vertex v the smallest number of a vertex that can
         # be reached from v in the orientation of the graph that the algorithm
@@ -3945,12 +3946,10 @@ class GenericGraph(GenericGraph_pyx):
 
         stack = [start]
         edge_stack = []
-        top = 0
-        num = 0
         start_already_seen = False
 
         while stack:
-            v = stack[top]
+            v = stack[-1]
 
             # The first time we meet v
             if not v in number:
@@ -3970,47 +3969,49 @@ class GenericGraph(GenericGraph_pyx):
                 if not w in number:
                     edge_stack.append( (v,w) )
                     stack.append(w)
-                    top += 1
 
-                # If w is an ancestor of v in the DFS tree, we remember the direction of edge vw
+                # If w is an ancestor of v in the DFS tree, we remember the
+                # direction of edge vw
                 elif number[w]<number[v]:
                     edge_stack.append( (v,w) )
                     low_point[v] = min(low_point[v], number[w])
 
             # We went through all of v's neighbors
             except StopIteration:
+                # We trackback, so w takes the value of v and we pop the stack
                 w = stack.pop()
-                top -= 1
 
-                if stack:
-                    v = stack[top]
+                # Test termination of the algorithm
+                if not stack:
+                    break
 
-                    # Propagating the information : low_point[vertex] indicates
-                    # the smallest vertex (the vertex x with smallest number[x])
-                    # that can be reached from vertex
-                    low_point[v] = min( low_point[v], low_point[w] )
+                v = stack[-1]
 
-                    # The situation in which there is no path from w to an
-                    # ancestor of v : we have identified a new biconnected
-                    # component
-                    if low_point[w] >= number[v]:
-                        new_block = set()
-                        nw = number[w]
-                        u1,u2 = edge_stack.pop()
-                        while number[u1] >= nw:
-                            new_block.add(u1)
-                            u1,u2 = edge_stack.pop()
+                # Propagating the information : low_point[v] indicates the
+                # smallest vertex (the vertex x with smallest number[x]) that
+                # can be reached from v
+                low_point[v] = min(low_point[v], low_point[w])
+
+                # The situation in which there is no path from w to an ancestor
+                # of v : we have identified a new biconnected component
+                if low_point[w] >= number[v]:
+                    new_block = set()
+                    nw = number[w]
+                    u1,u2 = edge_stack.pop()
+                    while number[u1] >= nw:
                         new_block.add(u1)
-                        blocks.append(sorted(list(new_block)))
+                        u1,u2 = edge_stack.pop()
+                    new_block.add(u1)
+                    blocks.append(sorted(list(new_block)))
 
-                        # We update the set of cut vertices.
-                        #
-                        # If v is start, then we add it only if it belongs to
-                        # several blocks.
-                        if (not v is start) or start_already_seen:
-                            cut_vertices.add(v)
-                        else:
-                            start_already_seen = True
+                    # We update the set of cut vertices.
+                    #
+                    # If v is start, then we add it only if it belongs to
+                    # several blocks.
+                    if (not v is start) or start_already_seen:
+                        cut_vertices.add(v)
+                    else:
+                        start_already_seen = True
 
         return blocks,sorted(list(cut_vertices))
 

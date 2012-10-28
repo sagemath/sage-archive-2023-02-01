@@ -55,3 +55,6 @@ from linear_code import (LinearCode, LinearCodeFromVectorSpace,
 
 from sd_codes import self_dual_codes_binary
 
+from delsarte_bounds import (Krawtchouk,
+                             delsarte_bound_hamming_space,
+                             delsarte_bound_additive_hamming_space)

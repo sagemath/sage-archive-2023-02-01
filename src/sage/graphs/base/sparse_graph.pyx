@@ -1622,6 +1622,8 @@ class SparseGraphBackend(CGraphBackend):
                 return
             else:
                 self._cg.del_all_arcs(u_int, v_int)
+                if not directed:
+                    self._cg.del_all_arcs(v_int, u_int)
         if directed:
             self._cg.add_arc_label(u_int, v_int, l_int)
             self._cg_rev.add_arc_label(v_int, u_int, l_int)

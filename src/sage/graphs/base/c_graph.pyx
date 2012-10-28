@@ -1312,7 +1312,7 @@ class CGraphBackend(GenericGraphBackend):
 
         TESTS:
 
-        Ensure that ticket #8395 is fixed. ::
+        Ensure that ticket :trac:`8395` is fixed. ::
 
             sage: def my_add_edges(G, m, n):
             ...       for i in range(m):
@@ -1407,6 +1407,17 @@ class CGraphBackend(GenericGraphBackend):
             sage: G.degree(1)
             3
 
+        Ensure that :trac:`13664` is fixed ::
+
+            sage: W = WeylGroup(["A",1])
+            sage: G = W.cayley_graph()
+            sage: Graph(G).degree()
+            [1, 1]
+            sage: h = Graph()
+            sage: h.add_edge(1,2,"a")
+            sage: h.add_edge(1,2,"a")
+            sage: h.degree()
+            [1, 1]
         """
         cdef v_int = get_vertex(v,
                                 self.vertex_ints,

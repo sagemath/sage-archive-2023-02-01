@@ -1807,6 +1807,18 @@ class LinearCode(module.Module_old):
                 return False
         return True
 
+    def __len__(self):
+        r"""
+        Return the size of this code.
+
+        EXAMPLES::
+
+            sage: C = HammingCode(3, GF(2))
+            sage: len(C)
+            16
+        """
+        return self.base_ring().order()**self.dimension()
+
     def length(self):
         r"""
         Returns the length of this code.

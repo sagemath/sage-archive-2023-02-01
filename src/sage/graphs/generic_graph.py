@@ -3880,20 +3880,20 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: graphs.PetersenGraph().blocks_and_cut_vertices()
-            ([[6, 4, 9, 7, 5, 8, 3, 2, 1, 0]], [])
+            ([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], [])
             sage: graphs.PathGraph(6).blocks_and_cut_vertices()
-            ([[5, 4], [4, 3], [3, 2], [2, 1], [1, 0]], [4, 3, 2, 1])
+            ([[4, 5], [3, 4], [2, 3], [1, 2], [0, 1]], [1, 2, 3, 4])
             sage: graphs.CycleGraph(7).blocks_and_cut_vertices()
-            ([[6, 5, 4, 3, 2, 1, 0]], [])
+            ([[0, 1, 2, 3, 4, 5, 6]], [])
             sage: graphs.KrackhardtKiteGraph().blocks_and_cut_vertices()
-            ([[9, 8], [8, 7], [7, 4, 6, 5, 2, 3, 1, 0]], [8, 7])
+            ([[8, 9], [7, 8], [0, 1, 2, 3, 4, 5, 6, 7]], [7, 8])
             sage: G=Graph()  # make a bowtie graph where 0 is a cut vertex
             sage: G.add_vertices(range(5))
             sage: G.add_edges([(0,1),(0,2),(0,3),(0,4),(1,2),(3,4)])
             sage: G.blocks_and_cut_vertices()
-            ([[2, 1, 0], [4, 3, 0]], [0])
+            ([[0, 1, 2], [0, 3, 4]], [0])
             sage: graphs.StarGraph(3).blocks_and_cut_vertices()
-            ([[1, 0], [2, 0], [3, 0]], [0])
+            ([[0, 1], [0, 2], [0, 3]], [0])
 
         TESTS::
 
@@ -3906,83 +3906,87 @@ class GenericGraph(GenericGraph_pyx):
             ...
             NotImplementedError: ...
 
-        ALGORITHM: 8.3.8 in [Jungnickel05]_. Notice that the termination condition on
-        line (23) of the algorithm uses ``p[v] == 0`` which in the book
-        means that the parent is undefined; in this case, `v` must be the
-        root `s`.  Since our vertex names start with `0`, we substitute instead
-        the condition ``v == s``.  This is the terminating condition used
-        in the general Depth First Search tree in Algorithm 8.2.1.
+        ALGORITHM: We implement the algorithm proposed by Tarjan in
+        [Tarjan72]_. The original version is recursive. We emulate the recursion
+        using a stack.
 
         REFERENCE:
 
-        .. [Jungnickel05] D. Jungnickel, Graphs, Networks and Algorithms,
-          Springer, 2005.
+        .. [Tarjan72] R.E. Tarjan. Depth-First Search and Linear Graph
+          Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
         """
         if not self: # empty graph
             return [],[]
 
-        s = self.vertex_iterator().next() # source
+        start = self.vertex_iterator().next() # source
 
         if len(self) == 1: # only one vertex
-            return [s],[]
+            return [start],[]
 
         if not self.is_connected():
             raise NotImplementedError("Blocks and cut vertices is currently only implemented for connected graphs.")
 
-        nr = {} # enumerate
-        p = {} # predecessors
-        L = {}
-        visited_edges = set()
-        i = 1
-        v = s # visited
-        nr[s] = 1
-        L[s] = 1
-        C = [] # cuts
-        B = [] # blocks
-        S = [s] #stack
-        its = {}
-        while True:
-            while True:
-                for u in self.neighbor_iterator(v):
-                    if not (v,u) in visited_edges: break
-                else:
-                    break
-                visited_edges.add((v,u))
-                visited_edges.add((u,v))
-                if u not in nr:
-                    p[u] = v
-                    i += 1
-                    nr[u] = i
-                    L[u] = i
-                    S.append(u)
-                    v = u
-                else:
-                    L[v] = min( L[v], nr[u] )
+        number = {}
+        low_point = {}
+        neighbors = {}
+        blocks = []
+        cut_vertices = set()
+        stack = [start]
+        edge_stack = []
+        top = 0
+        num = 0
+        start_already_seen = False
 
-            if v is s:
-                break
+        while stack:
+            v = stack[top]
 
-            pv = p[v]
-            if L[v] < nr[pv]:
-                L[pv] = min( L[pv], L[v] )
-                v = pv
-                continue
+            if not v in number:
+                # We number the vertices in the order they are reached during DFS
+                number[v] = num
+                neighbors[v] = self.neighbor_iterator(v)
+                low_point[v] = num
+                num += 1
 
-            if pv not in C:
-                if pv is not s or\
-                        not all([(s,u) in visited_edges for u in self.neighbor_iterator(s)]):
-                    C.append(pv)
+            try:
+                w = neighbors[v].next()
 
-            B_k = []
-            while True:
-                u = S.pop()
-                B_k.append(u)
-                if u == v: break
-            B_k.append(pv)
-            B.append(B_k)
+                if not w in number:
+                    edge_stack.append( (v,w) )
+                    stack.append(w)
+                    top += 1
 
-            v = pv
-        return B, C
+                elif number[w]<number[v]:
+                    edge_stack.append( (v,w) )
+                    low_point[v] = min(low_point[v], number[w])
+
+            except StopIteration:
+                w = stack.pop()
+                top -= 1
+
+                if stack:
+                    v = stack[top]
+                    low_point[v] = min( low_point[v], low_point[w] )
+
+                    if low_point[w] >= number[v]:
+                        # We have identified a new biconnected component
+                        new_block = set()
+                        nw = number[w]
+                        u1,u2 = edge_stack.pop()
+                        while number[u1] >= nw:
+                            new_block.add(u1)
+                            u1,u2 = edge_stack.pop()
+                        new_block.add(u1)
+                        blocks.append(sorted(list(new_block)))
+
+                        # We update the set of cut vertices. If v is start, then
+                        # we add it only if it belongs to several blocks.
+                        if not v is start or start_already_seen:
+                            cut_vertices.add(v)
+                        else:
+                            start_already_seen = True
+
+        return blocks,sorted(list(cut_vertices))
+
 
     def is_cut_edge(self, u, v=None, label=None):
         """

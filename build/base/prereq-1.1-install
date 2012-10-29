@@ -131,7 +131,7 @@ fi
 # test.
 prereq_tarball="$SAGE_ROOT/spkg/base/$TARGET.tar.gz"
 if [ -f "$prereq_tarball" ]; then
-    gzip -cd "$prereq_tarball" | tar xf -
+    gzip -cd "$prereq_tarball" | tar xf - --no-same-owner
     if [ $? -ne 0 ]; then
         echo >&2 "Error: failed to extract '$prereq_tarball'"
         exit 1

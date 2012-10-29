@@ -374,7 +374,7 @@ fi
 echo "Extracting package $PKG_SRC"
 ls -l "$PKG_SRC"
 
-uncompress_spkg "$PKG_SRC" | tar x${UNTAR_VERBOSE}f -
+uncompress_spkg "$PKG_SRC" | tar x${UNTAR_VERBOSE}f - --no-same-owner
 if [ $? -ne 0 ]; then
     echo >&2 "Error: failed to extract $PKG_SRC"
     exit 1

@@ -1,6 +1,6 @@
 diff -ru src/Python/sysmodule.c b/Python/sysmodule.c
 --- src/Python/sysmodule.c	2012-04-10 01:07:35.000000000 +0200
-+++ b/Python/sysmodule.c	2012-10-15 22:56:39.167513055 +0200
++++ b/Python/sysmodule.c	2012-10-29 22:18:46.337514322 +0100
 @@ -46,6 +46,10 @@
  #include <langinfo.h>
  #endif
@@ -152,7 +152,7 @@ diff -ru src/Python/sysmodule.c b/Python/sysmodule.c
  #endif /* RISCOS */
  #if SEP == '/' /* Special case for Unix filename syntax */
              if (n > 1)
-@@ -1691,12 +1688,139 @@
+@@ -1691,12 +1688,146 @@
  #endif /* Unix */
          }
  #endif /* All others */
@@ -202,9 +202,16 @@ diff -ru src/Python/sysmodule.c b/Python/sysmodule.c
 +            arg_stat.st_mode |= parent_stat.st_mode;
 +    } else {
 +        /* given_arg was "" or stat() failed, manually set relevant
-+         * stat members to safe values. */
-+        arg_stat.st_mode = 0644;
++         * stat members to sensible values.  Set the mode to whatever
++         * it would be if we would create a new file, keeping in mind
++         * the current umask. */
++        unsigned int mask = umask(0777); umask(mask);
++        arg_stat.st_mode = 0666 & ~mask;
 +        arg_stat.st_uid = 0;
++        /* Only keep group bit if the current group ID is the same as
++         * the group of "parent" */
++        if (getgid() != parent_stat.st_gid)
++            arg_stat.st_mode &= 0707;
 +    }
 +
 +    if (stat(Py_GetProgramFullPath(), &program_stat) == 0) {

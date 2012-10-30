@@ -996,10 +996,10 @@ if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
    exit $?
 fi
 
-
 if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
+    shift
     sage_setup
-    sage-gdb
+    gdb -x "$SAGE_ROOT/local/bin/sage-gdb-commands" -args python "$SAGE_ROOT/local/bin/sage-ipython" "$@" -i
     exit $?
 fi
 

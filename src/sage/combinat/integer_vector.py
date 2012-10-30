@@ -408,14 +408,14 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             return A0
 
         elif algorithm == "gale":
-          from sage.numerical.mip import MixedIntegerLinearProgram, Sum
+          from sage.numerical.mip import MixedIntegerLinearProgram
           k1, k2=len(p1), len(p2)
           p = MixedIntegerLinearProgram()
           b = p.new_variable(dim=2)
           for (i,c) in enumerate(p1):
-              p.add_constraint(Sum([b[i][j] for j in xrange(k2)]),min=c,max=c)
+              p.add_constraint(p.sum([b[i][j] for j in xrange(k2)]),min=c,max=c)
           for (i,c) in enumerate(p2):
-              p.add_constraint(Sum([b[j][i] for j in xrange(k1)]),min=c,max=c)
+              p.add_constraint(p.sum([b[j][i] for j in xrange(k1)]),min=c,max=c)
           p.set_objective(None)
           p.set_binary(b)
           p.solve()

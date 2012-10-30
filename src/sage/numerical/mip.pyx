@@ -88,9 +88,16 @@ The following example shows all these steps::
 include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
-from copy import copy,deepcopy
 
-cdef class MixedIntegerLinearProgram:
+from sage.structure.sage_object cimport SageObject
+from sage.structure.parent cimport Parent
+from sage.structure.element cimport ModuleElement, Element
+from sage.misc.cachefunc import cached_function
+from sage.misc.cachefunc import cached_method
+
+
+
+cdef class MixedIntegerLinearProgram(SageObject):
     r"""
     The ``MixedIntegerLinearProgram`` class is the link between Sage, linear
     programming (LP) and mixed integer programming (MIP) solvers.
@@ -154,7 +161,8 @@ cdef class MixedIntegerLinearProgram:
          4.0
     """
 
-    def __init__(self, solver = None, maximization=True, constraint_generation = False, check_redundant = False):
+    def __init__(self, solver=None, maximization=True,
+                 constraint_generation=False, check_redundant=False):
         r"""
         Constructor for the ``MixedIntegerLinearProgram`` class.
 
@@ -218,7 +226,7 @@ cdef class MixedIntegerLinearProgram:
             sage: C = sage.numerical.mip.MixedIntegerLinearProgram
             sage: import gc
             sage: _ = gc.collect()  # avoid side effects of other doc tests
-            sage: len([x for x in gc.get_objects() if isinstance(x,C)])
+            sage: sum([1 for x in gc.get_objects() if isinstance(x,C)])
             0
 
         We now disable the cyclic garbage collector. Since :trac:`12616` avoids
@@ -228,23 +236,19 @@ cdef class MixedIntegerLinearProgram:
 
             sage: gc.disable()
             sage: just_create_variables()
-            sage: len([x for x in gc.get_objects() if isinstance(x,C)])
+            sage: sum([1 for x in gc.get_objects() if isinstance(x,C)])
             0
             sage: gc.enable()
         """
-
-        from sage.numerical.backends.generic_backend import get_solver
-
-        self._backend = get_solver(solver=solver,
-                                   constraint_generation=constraint_generation)
-
-        if not maximization:
-            self._backend.set_sense(-1)
-
         self.__BINARY = 0
         self.__REAL = -1
         self.__INTEGER = 1
 
+        from sage.numerical.backends.generic_backend import get_solver
+        self._backend = get_solver(solver=solver,
+                                   constraint_generation=constraint_generation)
+        if not maximization:
+            self._backend.set_sense(-1)
 
         # Associates an index to the variables
         self._variables = {}
@@ -254,7 +258,43 @@ cdef class MixedIntegerLinearProgram:
         if check_redundant:
             self._constraints = list()
 
-    def __repr__(self):
+    def linear_functions_parent(self):
+        """
+        Return the parent for all linear functions
+
+        EXAMPLES::
+
+             sage: p = MixedIntegerLinearProgram()
+             sage: p.linear_functions_parent()
+             Linear functions over Real Double Field
+        """
+        if self._linear_functions_parent is None:
+            from sage.rings.all import RDF
+            base_ring = RDF   # FIXME: let the solver determine the most suitable base ring
+            self._linear_functions_parent = LinearFunctionsParent(base_ring)
+        return self._linear_functions_parent
+
+    def __call__(self, x):
+        """
+        Construct a new linear function
+
+        EXAMPLES::
+
+             sage: p = MixedIntegerLinearProgram()
+             sage: p.linear_function({1:3, 4:5})
+             3 x_1 +5 x_4
+
+        This is equivalent to::
+
+            sage: p({1:3, 4:5})
+            3 x_1 +5 x_4
+        """
+        parent = self.linear_functions_parent()
+        return parent(x)
+
+    linear_function = __call__
+
+    def _repr_(self):
          r"""
          Returns a short description of the ``MixedIntegerLinearProgram``.
 
@@ -290,8 +330,9 @@ cdef class MixedIntegerLinearProgram:
         sage: q.number_of_constraints()
         1
         """
-        cdef MixedIntegerLinearProgram p = MixedIntegerLinearProgram(solver="GLPK")
-
+        cdef MixedIntegerLinearProgram p = \
+            MixedIntegerLinearProgram(solver="GLPK")
+        from copy import copy
         try:
             p._variables = copy(self._variables)
         except AttributeError:
@@ -352,7 +393,6 @@ cdef class MixedIntegerLinearProgram:
             sage: p
             Mixed Integer Program "Test program" ( maximization, 0 variables, 0 constraints )
         """
-
         self._backend.problem_name(name)
 
     def new_variable(self, real=False, binary=False, integer=False, dim=1,name=""):
@@ -432,6 +472,7 @@ cdef class MixedIntegerLinearProgram:
       Returns the number of constraints assigned so far.
 
       EXAMPLE::
+
             sage: p = MixedIntegerLinearProgram()
             sage: p.add_constraint(p[0] - p[2], min = 1, max = 4)
             sage: p.add_constraint(p[0] - 2*p[1], min = 1)
@@ -442,14 +483,17 @@ cdef class MixedIntegerLinearProgram:
 
     cpdef int number_of_variables(self):
       r"""
-      Returns the number of variables used so far. Note that this is
-      backend-dependent, i.e. we count solver's variables rather than
-      user's variables. An example of the latter can be seen below:
-      Gurobi converts double inequalities, i.e. inequalities like
-      `m <= c^T x <= M`, with `m<M`,  into equations, by adding extra
-      variables: `c^T x + y = M`, `0 <= y <= M-m`.
+      Returns the number of variables used so far.
+
+      Note that this is backend-dependent, i.e. we count solver's
+      variables rather than user's variables. An example of the latter
+      can be seen below: Gurobi converts double inequalities,
+      i.e. inequalities like `m <= c^T x <= M`, with `m<M`, into
+      equations, by adding extra variables: `c^T x + y = M`, `0 <= y
+      <= M-m`.
 
       EXAMPLE::
+
             sage: p = MixedIntegerLinearProgram()
             sage: p.add_constraint(p[0] - p[2], max = 4)
             sage: p.number_of_variables()
@@ -886,7 +930,7 @@ cdef class MixedIntegerLinearProgram:
 
         cdef int i
 
-        if obj != None:
+        if obj is not None:
             f = obj.dict()
         else:
             f = {-1 : 0}
@@ -1042,21 +1086,29 @@ cdef class MixedIntegerLinearProgram:
               Variables:
                 x_0 is a continuous variable (min=0.0, max=+oo)
                 x_1 is a continuous variable (min=0.0, max=+oo)
+
+        TESTS:
+
+        Catch ``True`` / ``False`` as INPUT (:trac:`13646`)::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: x = p.new_variable()
+            sage: p.add_constraint(True)
+            Traceback (most recent call last):
+            ...
+            ValueError: argument must be a linear function, got True
         """
-        if linear_function is None or linear_function is 0:
-            return None
+        if linear_function is 0:
+            return
 
         # Raising an exception when min/max are not as expected
         from sage.rings.all import RR
         if ((min is not None and min not in RR)
             or (max is not None and max not in RR)):
-
             raise ValueError("min and max arguments are required to be numerical")
 
         if isinstance(linear_function, LinearFunction):
-
             f = linear_function.dict()
-
             constant_coefficient = f.get(-1,0)
 
             # We do not want to ignore the constant coefficient
@@ -1091,7 +1143,7 @@ cdef class MixedIntegerLinearProgram:
 
             self._backend.add_linear_constraint(C, min, max, name)
 
-        elif isinstance(linear_function,LinearConstraint):
+        elif isinstance(linear_function, LinearConstraint):
             functions = linear_function.constraints
 
             if linear_function.equality:
@@ -1103,6 +1155,9 @@ cdef class MixedIntegerLinearProgram:
             else:
                 self.add_constraint(functions[0] - functions[1], max=0, name=name)
                 self.add_constraint(functions[1] - functions[2], max=0, name=name)
+
+        else:
+            raise ValueError('argument must be a linear function, got '+str(linear_function))
 
     def remove_constraint(self, int i):
         r"""
@@ -1342,7 +1397,6 @@ cdef class MixedIntegerLinearProgram:
             sage: p.is_integer(v[1])
             True
         """
-
         return self._backend.is_variable_integer(self._variables[e])
 
     def set_real(self,ee):
@@ -1414,7 +1468,6 @@ cdef class MixedIntegerLinearProgram:
             sage: p.is_real(v[1])
             True
         """
-
         return self._backend.is_variable_continuous(self._variables[e])
 
     def solve(self, solver=None, log=None, objective_only=False):
@@ -1480,7 +1533,7 @@ cdef class MixedIntegerLinearProgram:
             sage: p.solve(objective_only=True)
             4.0
 
-        Constraints in the objective function are respected:
+        Constraints in the objective function are respected::
 
             sage: p = MixedIntegerLinearProgram()
             sage: x, y = p[0], p[1]
@@ -1491,7 +1544,6 @@ cdef class MixedIntegerLinearProgram:
             sage: p.solve()
             9.0
         """
-
         if solver != None:
             raise ValueError("Solver argument deprecated. This parameter now has to be set when calling the class' constructor")
 
@@ -1549,7 +1601,6 @@ cdef class MixedIntegerLinearProgram:
             sage: p.get_max(v[1])
             6.0
         """
-
         self._backend.variable_upper_bound(self._variables[v], max)
 
     def get_min(self, v):
@@ -1578,7 +1629,6 @@ cdef class MixedIntegerLinearProgram:
             sage: p.set_min(v[1], None)
             sage: p.get_min(v[1])
         """
-
         return self._backend.variable_lower_bound(self._variables[v])
 
     def get_max(self, v):
@@ -1604,7 +1654,6 @@ cdef class MixedIntegerLinearProgram:
             sage: p.get_max(v[1])
             6.0
         """
-
         return self._backend.variable_upper_bound(self._variables[v])
 
     def solver_parameter(self, name, value = None):
@@ -1667,6 +1716,42 @@ cdef class MixedIntegerLinearProgram:
             return self._backend.solver_parameter(name)
         else:
             self._backend.solver_parameter(name, value)
+
+    cpdef sum(self, L):
+        r"""
+        Efficiently computes the sum of a sequence of
+        :class:`LinearFunction` elements
+
+        INPUT:
+
+        - ``mip`` -- the :class:`MixedIntegerLinearProgram` parent.
+
+        - ``L`` -- list of :class:`LinearFunction` instances.
+
+        .. NOTE::
+
+            The use of the regular ``sum`` function is not recommended
+            as it is much less efficient than this one
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: v = p.new_variable()
+
+        The following command::
+
+            sage: s = p.sum([v[i] for i in xrange(90)])
+
+        is much more efficient than::
+
+            sage: s = sum([v[i] for i in xrange(90)])
+        """
+        d = {}
+        for v in L:
+            for (id,coeff) in (<LinearFunction>v)._f.iteritems():
+                d[id] = coeff + d.get(id,0)
+        return self.linear_functions_parent()(d)
+
 
 class MIPSolverException(RuntimeError):
     r"""
@@ -1733,7 +1818,7 @@ class MIPSolverException(RuntimeError):
         """
         return repr(self.value)
 
-cdef class MIPVariable:
+cdef class MIPVariable(SageObject):
     r"""
     ``MIPVariable`` is a variable used by the class
     ``MixedIntegerLinearProgram``.
@@ -1807,7 +1892,7 @@ cdef class MIPVariable:
                                               (str(self._name) + "[" + str(i) + "]")
                                                if self._hasname else None)
 
-            v = LinearFunction({j : 1})
+            v = self._p.linear_function({j : 1})
             self._p._variables[v] = j
             self._p._backend.set_variable_type(j,self._vtype)
             self._dict[i] = v
@@ -1824,7 +1909,7 @@ cdef class MIPVariable:
 
             return self._dict[i]
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Returns a representation of self.
 
@@ -1898,12 +1983,135 @@ cdef class MIPVariable:
         return self._dict.values()
 
 
-class LinearFunction:
+
+@cached_function
+def LinearFunctionsParent(base_ring):
+    """
+    Return the parent for linear functions over ``base_ring``.
+
+    The output is cached, so only a single parent is ever constructed
+    for a given base ring.
+    """
+    return LinearFunctionsParent_class(base_ring)
+
+
+cdef class LinearFunctionsParent_class(Parent):
     r"""
-    An elementary algebra to represent symbolic linear functions.
+    The parent for all linear functions over a fixed base ring.
+
+    You should use :func:`LinearFunctionsParent` to construct
+    instances of this class.
     """
 
-    def __init__(self,f):
+    def __init__(self, base_ring):
+        """
+        The Python constructor
+
+        TESTS::
+
+            sage: from sage.numerical.mip import LinearFunctionsParent_class
+            sage: LinearFunctionsParent_class(RDF)
+            Linear functions over Real Double Field
+        """
+        from sage.categories.modules_with_basis import ModulesWithBasis
+        Parent.__init__(self, base=base_ring, category=ModulesWithBasis(base_ring))
+
+    def _repr_(self):
+        """
+        Return as string representation
+
+        EXAMPLES::
+
+            sage: MixedIntegerLinearProgram().linear_functions_parent()
+            Linear functions over Real Double Field
+        """
+        return 'Linear functions over '+str(self.base_ring())
+
+    cpdef _element_constructor_(self, x):
+        """
+        Construt a :class:`LinearFunction` from ``x``.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram().linear_functions_parent()
+            sage: p._element_constructor_(123)
+            123
+            sage: p(123)    # indirect doctest
+            123
+            sage: type(_)
+            <type 'sage.numerical.mip.LinearFunction'>
+        """
+        return LinearFunction(self, x)
+
+    cpdef _coerce_map_from_(self, R):
+        """
+        Allow coercion of scalars into linear functions.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: parent = p.linear_functions_parent()
+            sage: parent.coerce(int(2))
+            2
+            sage: parent._coerce_map_from_(int)
+            True
+        """
+        if R in [int, float, long, complex]:
+            return True
+        from sage.rings.real_mpfr import mpfr_prec_min
+        from sage.rings.all import RealField
+        if RealField(mpfr_prec_min()).has_coerce_map_from(R):
+            return True
+        return False
+
+    def _an_element_(self):
+        """
+        Returns an element
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram().linear_functions_parent()
+            sage: p._an_element_()
+            5 x_2 +7 x_5
+            sage: p.an_element()   # indirect doctest
+            5 x_2 +7 x_5
+        """
+        return self._element_constructor_({2:5, 5:7})
+
+
+cdef class LinearFunction(ModuleElement):
+    r"""
+    An elementary algebra to represent symbolic linear functions.
+
+    .. warning::
+
+        You should never instantiate :class:`LinearFunction`
+        manually. Use the element constructor in the parent
+        instead. For convenience, you can also call the
+        :class:`MixedIntegerLinearProgram` instance directly.
+
+    EXAMPLES:
+
+    For example, do this::
+
+        sage: p = MixedIntegerLinearProgram()
+        sage: p({0 : 1, 3 : -8})
+        x_0 -8 x_3
+
+    or this::
+
+        sage: parent = p.linear_functions_parent()
+        sage: parent({0 : 1, 3 : -8})
+        x_0 -8 x_3
+
+    instead of this::
+
+        sage: from sage.numerical.mip import LinearFunction
+        sage: LinearFunction(p.linear_functions_parent(), {0 : 1, 3 : -8})
+        x_0 -8 x_3
+    """
+
+    def __init__(self, parent, f):
         r"""
         Constructor taking a dictionary or a numerical value as its argument.
 
@@ -1916,16 +2124,17 @@ class LinearFunction:
 
         With a dictionary::
 
-            sage: from sage.numerical.mip import LinearFunction
-            sage: LinearFunction({0 : 1, 3 : -8})
+            sage: p = MixedIntegerLinearProgram()
+            sage: p({0 : 1, 3 : -8})
             x_0 -8 x_3
 
         Using the constructor with a numerical value::
 
-            sage: from sage.numerical.mip import LinearFunction
-            sage: LinearFunction(25)
+            sage: p = MixedIntegerLinearProgram()
+            sage: p(25)
             25
         """
+        ModuleElement.__init__(self, parent)
         if isinstance(f, dict):
             self._f = f
         else:
@@ -1942,132 +2151,96 @@ class LinearFunction:
 
         EXAMPLE::
 
-            sage: from sage.numerical.mip import LinearFunction
-            sage: lf = LinearFunction({0 : 1, 3 : -8})
+            sage: p = MixedIntegerLinearProgram()
+            sage: lf = p({0 : 1, 3 : -8})
             sage: lf.dict()
             {0: 1, 3: -8}
         """
         return self._f
 
-    def __add__(self,b):
+    cpdef ModuleElement _add_(self, ModuleElement b):
         r"""
         Defining the + operator
 
         EXAMPLE::
 
-            sage: from sage.numerical.mip import LinearFunction
-            sage: LinearFunction({0 : 1, 3 : -8}) + LinearFunction({2 : 5, 3 : 2}) - 16
+            sage: p = MixedIntegerLinearProgram()
+            sage: p({0 : 1, 3 : -8}) + p({2 : 5, 3 : 2}) - 16
             -16 +x_0 +5 x_2 -6 x_3
         """
-        if isinstance(b, LinearFunction):
-            e = deepcopy(self._f)
-            for (id,coeff) in b.dict().iteritems():
-                e[id] = self._f.get(id,0) + coeff
-            return LinearFunction(e)
-        else:
-            el = deepcopy(self)
-            el.dict()[-1] = el.dict().get(-1,0) + b
-            return el
+        e = dict(self._f)
+        for (id,coeff) in b.dict().iteritems():
+            e[id] = self._f.get(id,0) + coeff
+        P = self.parent()
+        return P(e)
 
-    def __neg__(self):
+    cpdef ModuleElement _neg_(self):
         r"""
         Defining the - operator (opposite).
 
         EXAMPLE::
 
-            sage: from sage.numerical.mip import LinearFunction
-            sage: -LinearFunction({0 : 1, 3 : -8})
+            sage: p = MixedIntegerLinearProgram()
+            sage: - p({0 : 1, 3 : -8})
             -1 x_0 +8 x_3
         """
-        return LinearFunction(dict([(id,-coeff) for (id, coeff) in self._f.iteritems()]))
+        P = self.parent()
+        return P(dict([(id,-coeff) for (id, coeff) in self._f.iteritems()]))
 
-    def __sub__(self,b):
+    cpdef ModuleElement _sub_(self, ModuleElement b):
         r"""
         Defining the - operator (substraction).
 
         EXAMPLE::
 
-            sage: from sage.numerical.mip import LinearFunction
-            sage: LinearFunction({2 : 5, 3 : 2}) - 3
+            sage: p = MixedIntegerLinearProgram()
+            sage: p({2 : 5, 3 : 2}) - 3
             -3 +5 x_2 +2 x_3
-            sage: LinearFunction({0 : 1, 3 : -8}) - LinearFunction({2 : 5, 3 : 2}) - 16
+            sage: p({0 : 1, 3 : -8}) - p({2 : 5, 3 : 2}) - 16
             -16 +x_0 -5 x_2 -10 x_3
         """
-        if isinstance(b, LinearFunction):
-            e = deepcopy(self._f)
-            for (id,coeff) in b.dict().iteritems():
-                e[id] = self._f.get(id,0) - coeff
-            return LinearFunction(e)
-        else:
-            el = deepcopy(self)
-            el.dict()[-1] = self._f.get(-1,0) - b
-            return el
+        e = dict(self._f)
+        for (id,coeff) in b.dict().iteritems():
+            e[id] = self._f.get(id,0) - coeff
+        P = self.parent()
+        return P(e)
 
-    def __radd__(self,b):
+    cpdef ModuleElement _rmul_(self, RingElement b):
         r"""
-        Defining the + operator (right side).
+        Left multiplication by scalars
 
         EXAMPLE::
 
-            sage: from sage.numerical.mip import LinearFunction
-            sage: 3 + LinearFunction({2 : 5, 3 : 2})
-            3 +5 x_2 +2 x_3
+            sage: p = MixedIntegerLinearProgram()
+            sage: p({2 : 5, 3 : 2}) * 3
+            15.0 x_2 +6.0 x_3
         """
-        if isinstance(self,LinearFunction):
-            return self.__add__(b)
-        else:
-            return b.__add__(self)
+        P = self.parent()
+        return P(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
 
-    def __rsub__(self,b):
+    cpdef ModuleElement _lmul_(self, RingElement b):
         r"""
-        Defining the - operator (right side).
+        Right multiplication by scalars
 
         EXAMPLE::
 
-            sage: from sage.numerical.mip import LinearFunction
-            sage: 3 - LinearFunction({2 : 5, 3 : 2})
-            3 -5 x_2 -2 x_3
+            sage: p = MixedIntegerLinearProgram()
+            sage: 3 * p({2 : 5, 3 : 2})
+            15.0 x_2 +6.0 x_3
         """
-        if isinstance(self,LinearFunction):
-            return (-self).__add__(b)
-        else:
-            return b.__sub__(self)
+        return self._rmul_(b)
 
-    def __mul__(self,b):
-        r"""
-        Defining the * operator.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.mip import LinearFunction
-            sage: LinearFunction({2 : 5, 3 : 2}) * 3
-            15 x_2 +6 x_3
-        """
-        return LinearFunction(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
-
-    def __rmul__(self,b):
-        r"""
-        Defining the * operator (right side).
-
-        EXAMPLE::
-
-            sage: from sage.numerical.mip import LinearFunction
-            sage: 3 * LinearFunction({2 : 5, 3 : 2})
-            15 x_2 +6 x_3
-        """
-        return self.__mul__(b)
-
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Returns a string version of the linear function.
 
         EXAMPLE::
 
-            sage: from sage.numerical.mip import LinearFunction
-            sage: LinearFunction({2 : 5, 3 : 2})
+            sage: p = MixedIntegerLinearProgram()
+            sage: p({2 : 5, 3 : 2})
             5 x_2 +2 x_3
         """
-        cdef dict d = deepcopy(self._f)
+        cdef dict d = dict(self._f)
         cdef bint first = True
         t = ""
 
@@ -2082,62 +2255,83 @@ class LinearFunction:
             if coeff!=0:
                 if not first:
                     t += " "
-                t += ("+" if (not first and coeff >= 0) else "") + (str(coeff) + " " if coeff != 1 else "") + "x_" + str(id)
+                t += ("+" if (not first and coeff >= 0) else "") + \
+                    (str(coeff) + " " if coeff != 1 else "") + \
+                    "x_" + str(id)
                 first = False
         return t
 
-    def __le__(self,other):
-        r"""
-        Defines the <= operator
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    cdef _richcmp(left, right, int op):
+        """
+        Create a inequality or equality object.
 
         EXAMPLE::
 
+            sage: p = MixedIntegerLinearProgram()
             sage: from sage.numerical.mip import LinearFunction
-            sage: LinearFunction({2 : 5, 3 : 2}) <= LinearFunction({2 : 3, 9 : 2})
+            sage: p({2 : 5, 3 : 2}) <= p({2 : 3, 9 : 2})
             5 x_2 +2 x_3 <= 3 x_2 +2 x_9
-        """
-        return LinearConstraint(self).__le__(other)
 
-    def __lt__(self,other):
-        r"""
-        Defines the < operator
-
-        EXAMPLE::
-
-            sage: from sage.numerical.mip import LinearFunction
-            sage: LinearFunction({2 : 5, 3 : 2}) < LinearFunction({2 : 3, 9 : 2})
-            Traceback (most recent call last):
-            ...
-            ValueError: The strict operators are not defined. Use <= and >= instead.
-        """
-        return LinearConstraint(self).__lt__(other)
-
-    def __gt__(self,other):
-        r"""
-        Defines the > operator
-
-        EXAMPLE::
-
-            sage: from sage.numerical.mip import LinearFunction
-            sage: LinearFunction({2 : 5, 3 : 2}) > LinearFunction({2 : 3, 9 : 2})
-            Traceback (most recent call last):
-            ...
-            ValueError: The strict operators are not defined. Use <= and >= instead.
-        """
-        return LinearConstraint(self).__gt__(other)
-
-
-    def __ge__(self,other):
-        r"""
-        Defines the >= operator
-
-        EXAMPLE::
-
-            sage: from sage.numerical.mip import LinearFunction
-            sage: LinearFunction({2 : 5, 3 : 2}) >= LinearFunction({2 : 3, 9 : 2})
+            sage: p({2 : 5, 3 : 2}) >= p({2 : 3, 9 : 2})
             3 x_2 +2 x_9 <= 5 x_2 +2 x_3
-        """
-        return LinearConstraint(self).__ge__(other)
+
+            sage: p({2 : 5, 3 : 2}) == p({2 : 3, 9 : 2})
+            5 x_2 +2 x_3 = 3 x_2 +2 x_9
+
+            sage: p({2 : 5, 3 : 2}) < p({2 : 3, 9 : 2})
+            Traceback (most recent call last):
+            ...
+            ValueError: The strict operators are not defined. Use <= and >= instead.
+
+            sage: p({2 : 5, 3 : 2}) > p({2 : 3, 9 : 2})
+            Traceback (most recent call last):
+            ...
+            ValueError: The strict operators are not defined. Use <= and >= instead.
+
+        TESTS::
+
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.explain(10, p(1), operator.le)
+            Coercion on left operand via
+                Conversion map:
+                  From: Integer Ring
+                  To:   Linear functions over Real Double Field
+            Arithmetic performed after coercions.
+            Result lives in Linear functions over Real Double Field
+            Linear functions over Real Double Field
+
+            sage: x = p.new_variable()
+            sage: operator.le(10, x[0])
+            10 <= x_0
+            sage: x[0] <= 1
+            x_0 <= 1
+            sage: x[0] >= 1
+            1 <= x_0
+            sage: 1 <= x[0]
+            1 <= x_0
+            sage: 1 >= x[0]
+            x_0 <= 1
+       """
+        P = left.parent()
+        if not isinstance(right, LinearFunction) or right.parent() != P:
+            right = P(right)
+        if op == Py_LT:
+            return LinearConstraint(left).__lt__(right)
+        elif op == Py_EQ:
+            return LinearConstraint(left).__eq__(right)
+        elif op == Py_GT:
+            return LinearConstraint(left).__gt__(right)
+        elif op == Py_LE:
+            return LinearConstraint(left).__le__(right)
+        elif op == Py_NE:
+            raise NotImplementedError('!= is not implemented')
+        elif op == Py_GE:
+            return LinearConstraint(left).__ge__(right)
+        else:
+            raise TypeError
 
     def __hash__(self):
         r"""
@@ -2145,63 +2339,17 @@ class LinearFunction:
 
         EXAMPLE::
 
-            sage: from sage.numerical.mip import LinearFunction
+            sage: p = MixedIntegerLinearProgram()
+            sage: f = p({2 : 5, 3 : 2})
+            sage: f.__hash__()   # random output
+            103987752
             sage: d = {}
-            sage: d[LinearFunction({2 : 5, 3 : 2})] = 3
+            sage: d[f] = 3
         """
         return id(self)
 
-    def __eq__(self,other):
-        r"""
-        Defines the == operator
 
-        EXAMPLE::
-
-            sage: from sage.numerical.mip import LinearFunction
-            sage: LinearFunction({2 : 5, 3 : 2}) == LinearFunction({2 : 3, 9 : 2})
-            5 x_2 +2 x_3 = 3 x_2 +2 x_9
-        """
-        return LinearConstraint(self).__eq__(other)
-
-def Sum(L):
-    r"""
-    Efficiently computes the sum of a sequence of
-    ``LinearFunction`` elements
-
-    INPUT:
-
-    - ``L`` a list of ``LinearFunction`` instances.
-
-    .. NOTE::
-
-        The use of the regular ``sum`` function is not recommended as it is much less efficient than this one
-
-    EXAMPLES::
-
-        sage: p = MixedIntegerLinearProgram()
-        sage: v = p.new_variable()
-
-    The following command::
-
-        sage: from sage.numerical.mip import Sum
-        sage: s = Sum([v[i] for i in xrange(90)])
-
-    is much more efficient than::
-
-        sage: s = sum([v[i] for i in xrange(90)])
-
-    """
-
-    d = {}
-    for v in L:
-        for (id,coeff) in v._f.iteritems():
-            d[id] = coeff + d.get(id,0)
-
-    return LinearFunction(d)
-
-
-
-class LinearConstraint:
+class LinearConstraint(SageObject):
     """
     A class to represent formal Linear Constraints.
 
@@ -2213,20 +2361,22 @@ class LinearConstraint:
     inequalities (``(A <= B <= C``), or even equalities
     like ``A == B``.
 
-    This class has no reason to be instanciated by the
-    user, and is meant to be used by instances of
-    MixedIntegerLinearProgram.
+    .. warning::
+
+        This class has no reason to be instanciated by the user, and
+        is meant to be used by instances of
+        :class:`MixedIntegerLinearProgram`.
 
     INPUT:
 
-    - ``c`` -- A ``LinearFunction``
+    - ``c`` -- A :class:`LinearFunction`
 
     EXAMPLE::
 
         sage: p = MixedIntegerLinearProgram()
         sage: b = p.new_variable()
         sage: b[2]+2*b[3] <= b[8]-5
-        x_0 +2 x_1 <= -5 +x_2
+        x_0 +2.0 x_1 <= -5 +x_2
     """
 
     def __init__(self, c):
@@ -2242,16 +2392,14 @@ class LinearConstraint:
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()
             sage: b[2]+2*b[3] <= b[8]-5
-            x_0 +2 x_1 <= -5 +x_2
+            x_0 +2.0 x_1 <= -5 +x_2
         """
         self.equality = False
         self.constraints = []
-        if isinstance(c, LinearFunction):
-            self.constraints.append(c)
-        else:
-            self.constraints.append(LinearFunction(c))
+        assert isinstance(c, LinearFunction)
+        self.constraints.append(c)
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Returns a string representation of the constraint.
 
@@ -2355,3 +2503,21 @@ class LinearConstraint:
         self.constraints = other.constraints + self.constraints
         return self
 
+
+def Sum(x):
+    """
+    Only for legacy support, use :meth:`MixedIntegerLinearProgram.sum` instead.
+
+    EXAMPLES::
+
+        sage: from sage.numerical.mip import Sum
+        sage: Sum([])
+        doctest:...: DeprecationWarning: use MixedIntegerLinearProgram.sum() instead
+        See http://trac.sagemath.org/13646 for details.
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(13646, 'use MixedIntegerLinearProgram.sum() instead')
+    if not x:
+        return None
+    parent = x[0]
+    return parent.sum(x)

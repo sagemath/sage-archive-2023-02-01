@@ -796,7 +796,7 @@ def binpacking(items,maximum=1,k=None):
             except MIPSolverException:
                 k = k + 1
 
-    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException, Sum
+    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
     p=MixedIntegerLinearProgram()
 
     # Boolean variable indicating whether
@@ -805,11 +805,11 @@ def binpacking(items,maximum=1,k=None):
 
     # Each bin contains at most max
     for b in range(k):
-        p.add_constraint(Sum([items[i]*box[i][b] for i in range(len(items))]),max=maximum)
+        p.add_constraint(p.sum([items[i]*box[i][b] for i in range(len(items))]),max=maximum)
 
     # Each item is assigned exactly one bin
     for i in range(len(items)):
-        p.add_constraint(Sum([box[i][b] for b in range(k)]),min=1,max=1)
+        p.add_constraint(p.sum([box[i][b] for b in range(k)]),min=1,max=1)
 
     p.set_objective(None)
     p.set_binary(box)

@@ -812,7 +812,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     if not isinstance(G, DiGraph):
         raise ValueError("The first input parameter must be a DiGraph.")
 
-    from sage.numerical.mip import MixedIntegerLinearProgram, Sum, MIPSolverException
+    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
     p = MixedIntegerLinearProgram( maximization = False, solver = solver )
 
     # Declaration of variables.
@@ -839,7 +839,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
 
     # (5) sum_{v in V} y[v][t] == t+1 for t:=0..N-1
     for t in xrange(N):
-        p.add_constraint( Sum([ y[v][t] for v in V ]) == t+1 )
+        p.add_constraint( p.sum([ y[v][t] for v in V ]) == t+1 )
 
     # (6) u[v][t] >= x[v][t]-y[v][t]    for all v in V, and for all t:=0..N-1
     for v in V:
@@ -848,7 +848,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
 
     # (7) z >= sum_{v in V} u[v][t]   for all t:=0..N-1
     for t in xrange(N):
-        p.add_constraint( Sum([ u[v][t] for v in V ]) - z['z'] <= 0 )
+        p.add_constraint( p.sum([ u[v][t] for v in V ]) - z['z'] <= 0 )
 
     # (8)(9) 0 <= x[v][t] and u[v][t] <= 1
     if not integrality:

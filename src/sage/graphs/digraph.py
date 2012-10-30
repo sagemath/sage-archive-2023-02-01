@@ -1489,7 +1489,7 @@ class DiGraph(GenericGraph):
         if self.is_directed_acyclic():
             return 0 if value_only else []
 
-        from sage.numerical.mip import MixedIntegerLinearProgram, Sum
+        from sage.numerical.mip import MixedIntegerLinearProgram
 
         ########################################
         # Constraint Generation Implementation #
@@ -1504,7 +1504,7 @@ class DiGraph(GenericGraph):
 
             # Variables are binary, and their coefficient in the objective is 1
 
-            p.set_objective( Sum( b[u][v]
+            p.set_objective( p.sum( b[u][v]
                                   for u,v in self.edges(labels = False)))
 
             p.solve(log = verbose)
@@ -1533,7 +1533,7 @@ class DiGraph(GenericGraph):
                 # constraint !
 
                 p.add_constraint(
-                    Sum( b[u][v] for u,v in
+                    p.sum( b[u][v] for u,v in
                          zip(certificate, certificate[1:] + [certificate[0]])),
                     min = 1)
 
@@ -1565,7 +1565,7 @@ class DiGraph(GenericGraph):
             for v in self:
                 p.add_constraint(d[v] <= n)
 
-            p.set_objective(Sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
+            p.set_objective(p.sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
 
             if value_only:
                 return Integer(round(p.solve(objective_only=True, log=verbose)))
@@ -1697,7 +1697,7 @@ class DiGraph(GenericGraph):
                 return 0
             return []
 
-        from sage.numerical.mip import MixedIntegerLinearProgram, Sum
+        from sage.numerical.mip import MixedIntegerLinearProgram
 
         ########################################
         # Constraint Generation Implementation #
@@ -1712,7 +1712,7 @@ class DiGraph(GenericGraph):
 
             # Variables are binary, and their coefficient in the objective is 1
 
-            p.set_objective( Sum( b[v] for v in self))
+            p.set_objective( p.sum( b[v] for v in self))
 
             p.solve(log = verbose)
 
@@ -1737,7 +1737,7 @@ class DiGraph(GenericGraph):
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
 
-                p.add_constraint( Sum( b[v] for v in certificate), min = 1)
+                p.add_constraint( p.sum( b[v] for v in certificate), min = 1)
 
                 obj = p.solve(log = verbose)
 
@@ -1769,7 +1769,7 @@ class DiGraph(GenericGraph):
             for u in self:
                 p.add_constraint(d[u],max=n)
 
-            p.set_objective(Sum([b[v] for v in self]))
+            p.set_objective(p.sum([b[v] for v in self]))
 
             if value_only:
                 return Integer(round(p.solve(objective_only=True, log=verbose)))

@@ -31,11 +31,71 @@ from copy import copy
 
 import sage.categories.pushout
 
-def matrix(*args, **kwds):
+def matrix_method(func=None, name=None):
+    """
+    Allows a function to be tab-completed on the global matrix
+    constructor object.
+
+    INPUT:
+
+    - ``*function`` -- a single argument. The function that is being
+      decorated.
+
+    - ``**kwds`` -- a single optional keyword argument
+      ``name=<string>``. The name of the corresponding method in the
+      global matrix constructor object. If not given, it is derived
+      from the function name.
+
+    EXAMPLES::
+
+        sage: from sage.matrix.constructor import matrix_method
+        sage: def foo_matrix(n): return matrix.diagonal(range(n))
+        sage: matrix_method(foo_matrix)
+        <function foo_matrix at ...>
+        sage: matrix.foo(5)
+        [0 0 0 0 0]
+        [0 1 0 0 0]
+        [0 0 2 0 0]
+        [0 0 0 3 0]
+        [0 0 0 0 4]
+        sage: matrix_method(foo_matrix, name='bar')
+        <function foo_matrix at ...>
+        sage: matrix.bar(3)
+        [0 0 0]
+        [0 1 0]
+        [0 0 2]
+    """
+    if func is not None:
+        if name is None:
+            name = func.__name__.replace('matrix', '').strip('_')
+        prefix = "    This function is available as %s(...) and matrix.%s(...)." % (
+            func.__name__, name)
+        func.__doc__ = "%s\n\n%s" % (prefix, func.__doc__)
+        setattr(matrix, name, func)
+        return func
+    else:
+        return lambda func: matrix_method(func, name=name)
+
+def _matrix_constructor(*args, **kwds):
     """
     Create a matrix.
 
-    INPUT: The matrix command takes the entries of a matrix, optionally
+    This implements the ``matrix`` constructor::
+
+        sage: matrix([[1,2],[3,4]])
+        [1 2]
+        [3 4]
+
+    It also contains methods to create special types of matrices, see
+    ``matrix.[tab]`` for more options. For example::
+
+        sage: matrix.identity(2)
+        [1 0]
+        [0 1]
+
+    INPUT:
+
+    The matrix command takes the entries of a matrix, optionally
     preceded by a ring and the dimensions of the matrix, and returns a
     matrix.
 
@@ -668,6 +728,31 @@ def matrix(*args, **kwds):
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse=sparse)(entries)
 
 
+class MatrixFactory(object):
+    """
+    The class of the ``matrix`` object.
+
+    See :func:`_matrix_constructor` for the implementation of the call
+    interface.  Implemented as a class for nicer tab completion.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_getdoc, sage_getsource
+        sage: sage_getdoc(matrix)       # used in output of matrix?
+        '   Create a matrix.\n\n   This implements the "matrix" ...'
+        sage: sage_getsource(matrix)    # used in output of matrix??
+        'def _matrix_constructor(*args, **kwds):...'
+    """
+
+    __doc__ = _matrix_constructor.__doc__
+    __call__ = staticmethod(_matrix_constructor)
+
+    def _sage_src_(self):
+        from sage.misc.sageinspect import sage_getsource
+        return sage_getsource(_matrix_constructor)
+
+Matrix = matrix = MatrixFactory()
+
 
 def prepare(w):
     """
@@ -799,40 +884,41 @@ def ncols_from_dict(d):
         return 0
     return max([0] + [ij[1] for ij in d.keys()]) + 1
 
-Matrix = matrix
 
+@matrix_method
 def column_matrix(*args, **kwds):
     r"""
     Constructs a matrix, and then swaps rows for columns and columns for rows.
 
     .. note::
 
-        Linear algebra in Sage favors rows over columns.  So, generally,
-        when creating a matrix, input vectors and lists are treated as rows.
-        This function is a convenience that turns around this convention
-        when creating a matrix.  If you are not familiar with the usual
-        :func:`matrix` constructor, you might want to consider it first.
+        Linear algebra in Sage favors rows over columns.  So,
+        generally, when creating a matrix, input vectors and lists are
+        treated as rows.  This function is a convenience that turns
+        around this convention when creating a matrix.  If you are not
+        familiar with the usual :class:`matrix <MatrixFactory>`
+        constructor, you might want to consider it first.
 
     INPUT:
 
-    Inputs are almost exactly the same as for the :func:`matrix`
-    constructor, which are documented there.  But see examples below
-    for how dimensions are handled.
+    Inputs are almost exactly the same as for the :class:`matrix
+    <MatrixFactory>` constructor, which are documented there.  But see
+    examples below for how dimensions are handled.
 
     OUTPUT:
 
-    Output is exactly the transpose of what the :func:`matrix`
-    constructor would return.  In other words, the ``matrix``
-    constructor builds a matrix and then this function exchanges
-    rows for columns, and columns for rows.
+    Output is exactly the transpose of what the :class:`matrix
+    <MatrixFactory>` constructor would return.  In other words, the
+    ``matrix`` constructor builds a matrix and then this function
+    exchanges rows for columns, and columns for rows.
 
     EXAMPLES:
 
-    The most compelling use of this function is when you have
-    a collection of lists or vectors that you would like to
-    become the columns of a matrix. In almost any other
-    situation, the :func:`matrix` constructor can probably do
-    the job just as easily, or easier. ::
+    The most compelling use of this function is when you have a
+    collection of lists or vectors that you would like to become the
+    columns of a matrix. In almost any other situation, the
+    :class:`matrix <MatrixFactory>` constructor can probably do the
+    job just as easily, or easier. ::
 
         sage: col_1 = [1,2,3]
         sage: col_2 = [4,5,6]
@@ -886,6 +972,7 @@ def column_matrix(*args, **kwds):
     return matrix(*args, **kwds).transpose()
 
 
+@matrix_method
 def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds):
     r"""
     Return a random matrix with entries in a specified ring, and possibly with additional properties.
@@ -1262,6 +1349,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         raise ValueError('random matrix algorithm "%s" is not recognized' % algorithm)
 
 
+@matrix_method
 def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     r"""
     Return a square matrix with specified diagonal entries, and zeros elsewhere.
@@ -1481,6 +1569,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         return matrix(ring, nrows, nrows, w, sparse=sparse)
 
 
+@matrix_method
 def identity_matrix(ring, n=0, sparse=False):
     r"""
     Return the `n \times n` identity matrix over the given
@@ -1517,6 +1606,7 @@ def identity_matrix(ring, n=0, sparse=False):
     return matrix_space.MatrixSpace(ring, n, n, sparse)(1)
 
 
+@matrix_method
 def zero_matrix(ring, nrows, ncols=None, sparse=False):
     r"""
     Return the `nrows \times ncols` zero matrix over the given
@@ -1552,6 +1642,8 @@ def zero_matrix(ring, nrows, ncols=None, sparse=False):
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse)(0)
 
+
+@matrix_method
 def ones_matrix(ring, nrows=None, ncols=None, sparse=False):
     r"""
     Return a matrix with all entries equal to 1.
@@ -1643,6 +1735,8 @@ def ones_matrix(ring, nrows=None, ncols=None, sparse=False):
     one = ring(1)
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse).matrix([one]*nents)
 
+
+@matrix_method
 def elementary_matrix(arg0, arg1=None, **kwds):
     r"""
     Creates a square matrix that corresponds to a row operation or a column operation.
@@ -2247,6 +2341,8 @@ def _determine_block_matrix_rows(sub_matrices):
     # If we got this far, then everything fits
     return (row_heights, zero_widths, total_width)
 
+
+@matrix_method
 def block_matrix(*args, **kwds):
     r"""
     Returns a larger matrix made by concatenating submatrices
@@ -2620,6 +2716,8 @@ def block_matrix(*args, **kwds):
 
     return big
 
+
+@matrix_method
 def block_diagonal_matrix(*sub_matrices, **kwds):
     """
     Create a block matrix whose diagonal block entries are given by
@@ -2655,6 +2753,8 @@ def block_diagonal_matrix(*sub_matrices, **kwds):
         entries[n*i+i] = sub_matrices[i]
     return block_matrix(n, n, entries, **kwds)
 
+
+@matrix_method
 def jordan_block(eigenvalue, size, sparse=False):
     r"""
     Returns the Jordan block for the given eigenvalue with given size.
@@ -2697,6 +2797,8 @@ def jordan_block(eigenvalue, size, sparse=False):
         block[i,i+1]=1
     return block
 
+
+@matrix_method
 def companion_matrix(poly, format='right'):
     r"""
     Create a companion matrix from a monic polynomial.
@@ -2893,6 +2995,7 @@ def companion_matrix(poly, format='right'):
         raise TypeError("unable to find common ring for coefficients from polynomial")
     return M
 
+@matrix_method
 def random_rref_matrix(parent, num_pivots):
     r"""
     Generate a matrix in reduced row-echelon form with a specified number of non-zero rows.
@@ -3058,6 +3161,7 @@ def random_rref_matrix(parent, num_pivots):
                     return_matrix[rest_entries,rest_non_pivot_column]=ring.random_element()
     return return_matrix
 
+@matrix_method
 def random_echelonizable_matrix(parent, rank, upper_bound=None):
     r"""
     Generate a matrix of a desired size and rank, over a desired ring, whose reduced
@@ -3246,6 +3350,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
             matrix.add_multiple_of_row(0,randint(1,rows-1),ring.random_element())
     return matrix
 
+@matrix_method
 def random_subspaces_matrix(parent, rank=None):
     r"""
     Create a matrix of the designated size and rank whose right and
@@ -3427,6 +3532,7 @@ def random_subspaces_matrix(parent, rank=None):
     # K matrix to the identity matrix.
     return J.inverse()*B
 
+@matrix_method
 def random_unimodular_matrix(parent, upper_bound=None):
     """
     Generate a random unimodular (determinant 1) matrix of a desired size over a desired ring.
@@ -3526,6 +3632,7 @@ def random_unimodular_matrix(parent, upper_bound=None):
         return random_matrix(ring, size,algorithm='echelonizable',rank=size, upper_bound=upper_bound)
 
 
+@matrix_method
 def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
     """
     Create a random matrix that diagonalizes nicely.
@@ -3772,6 +3879,8 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
             eigenvector_matrix.add_multiple_of_row(upper_row,row,randint(-4,4))
     return eigenvector_matrix*diagonal_matrix*(eigenvector_matrix.inverse())
 
+
+@matrix_method
 def vector_on_axis_rotation_matrix(v, i, ring=None):
     r"""
     Return a rotation matrix `M` such that `det(M)=1` sending the vector
@@ -3845,6 +3954,8 @@ def vector_on_axis_rotation_matrix(v, i, ring=None):
         m = rot * m
     return m
 
+
+@matrix_method
 def ith_to_zero_rotation_matrix(v, i, ring=None):
     r"""
     Return a rotation matrix that sends the i-th coordinates of the

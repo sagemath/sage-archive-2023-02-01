@@ -83,7 +83,7 @@ Many other functionalities...::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from itertools import ifilterfalse
+import itertools
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
@@ -113,10 +113,10 @@ class CallableDict(dict):
 
         EXAMPLES::
 
-        sage: from sage.combinat.words.morphism import CallableDict
-        sage: d = CallableDict({'one': 1, 'zwei': 2, 'trois': 3})
-        sage: d('one'), d('zwei'), d('trois')
-        (1, 2, 3)
+            sage: from sage.combinat.words.morphism import CallableDict
+            sage: d = CallableDict({'one': 1, 'zwei': 2, 'trois': 3})
+            sage: d('one'), d('zwei'), d('trois')
+            (1, 2, 3)
         """
         return self[key]
 
@@ -1608,14 +1608,14 @@ class WordMorphism(SageObject):
 
         INPUT:
 
-        -  ``self`` - an endomorphism, must be prolongable on
+        - ``self`` - an endomorphism, must be prolongable on
            letter
 
-        -  ``letter`` - a letter in the domain of ``self``
+        - ``letter`` - a letter in the domain of ``self``
 
         OUTPUT:
 
-        -  ``iterator`` - iterator of the fixed point
+        - iterator of the fixed point
 
         EXAMPLES::
 
@@ -1623,12 +1623,11 @@ class WordMorphism(SageObject):
             sage: list(m._fixed_point_iterator('a'))
             ['a', 'b', 'c']
 
-        The morphism must be prolongable on the letter::
+        The morphism must be prolongable on the letter or the iterator will
+        be empty::
 
             sage: list(m._fixed_point_iterator('b'))
-            Traceback (most recent call last):
-            ...
-            IndexError: pop from empty list
+            []
 
         The morphism must be an endomorphism::
 
@@ -1644,16 +1643,23 @@ class WordMorphism(SageObject):
             sage: it = s._fixed_point_iterator(('a',1))
             sage: it.next()
             ('a', 1)
+
+        This shows that ticket :trac:`13668` has been resolved::
+
+            sage: s = WordMorphism({1:[1,2],2:[2,3],3:[4],4:[5],5:[6],6:[7],7:[8],8:[9],9:[10],10:[1]})
+            sage: s7 = s^7
+            sage: s7r = s7.reversal()
+            sage: s7r10 = s7r^10
+            sage: s7r10.fixed_point(1)
+            word: 1,10,9,8,7,6,5,4,3,2,10,9,8,7,6,5,4,3,2,9,8,7,6,5,...
         """
-        w = list(self.image(letter))
+        w = iter(self.image(letter))
         while True:
-            for a in self.image(w.pop(0)):
+            for a in self.image(next(w)):
                 yield a
             else:
-                if w:
-                    w.extend(self.image(w[0]))
-                else:
-                    raise StopIteration
+                next_w = next(w)
+                w = itertools.chain([next_w], w, self.image(next_w))
 
     letter_iterator = deprecated_function_alias(8595, _fixed_point_iterator)
 
@@ -1765,8 +1771,31 @@ class WordMorphism(SageObject):
             sage: f = WordMorphism('a->ab,b->cab,c->bcc')
             sage: for w in f.fixed_points(): print w
             abcabbccabcabcabbccbccabcabbccabcabbccab...
+
+        This shows that ticket :trac:`13668` has been resolved::
+
+            sage: d = {1:[1,2],2:[2,3],3:[4],4:[5],5:[6],6:[7],7:[8],8:[9],9:[10],10:[1]}
+            sage: s = WordMorphism(d)
+            sage: s7 = s^7
+            sage: s7.fixed_points()
+            [word: 12232342..., word: 2,3,4,5,6,7,8...]
+            sage: s7r = s7.reversal()
+            sage: s7r.fixed_points()
+            []
+
+        This shows that ticket :trac:`13668` has been resolved::
+
+            sage: s = "1->321331332133133,2->133321331332133133,3->2133133133321331332133133"
+            sage: s = WordMorphism(s)
+            sage: (s^2).fixed_points()
+            []
+
         """
-        return [p[0] for p in self.periodic_points() if len(p) == 1]
+        L = []
+        for letter in self.domain().alphabet():
+            if self.is_prolongable(letter=letter):
+                L.append(self.fixed_point(letter=letter))
+        return L
 
     def periodic_point(self, letter):
         r"""
@@ -1813,6 +1842,25 @@ class WordMorphism(SageObject):
             2 , aababaaaababaababbabaababaababbabaababaa...
             sage: f.fixed_points()
             []
+
+        This shows that ticket :trac:`13668` has been resolved::
+
+            sage: d = {1:[1,2],2:[2,3],3:[4],4:[5],5:[6],6:[7],7:[8],8:[9],9:[10],10:[1]}
+            sage: s = WordMorphism(d)
+            sage: s7 = s^7
+            sage: s7r = s7.reversal()
+            sage: s7r10 = s7r^10
+            sage: for p in s7r10.periodic_points(): p
+            [word: 1,10,9,8,7,6,5,4,3,2,10,9,8,7,6,5,4,3,2,...]
+            [word: 2,1,1,10,9,8,7,6,5,4,3,2,1,10,9,8,7,6,5,...]
+            [word: 3,2,2,1,2,1,1,10,9,8,7,6,5,4,3,2,2,1,1,1...]
+            [word: 4,3,2,3,2,2,1,3,2,2,1,2,1,1,10,9,8,7,6,5...]
+            [word: 5,4,3,2,4,3,2,3,2,2,1,4,3,2,3,2,2,1,3,2,...]
+            [word: 6543254324323221543243232214323221322121...]
+            [word: 7654326543254324323221654325432432322154...]
+            [word: 8765432765432654325432432322176543265432...]
+            [word: 9876543287654327654326543254324323221876...]
+            [word: 10,9,8,7,6,5,4,3,2,9,8,7,6,5,4,3,2,8,7,6...]
         """
         assert self.is_endomorphism(), "f should be an endomorphism"
 
@@ -1876,7 +1924,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->abbab,b->abb,c->').has_left_conjugate()
             True
         """
-        I = ifilterfalse(FiniteWord_class.is_empty, self.images())
+        I = itertools.ifilterfalse(FiniteWord_class.is_empty, self.images())
 
         try:
             letter = I.next()[0]

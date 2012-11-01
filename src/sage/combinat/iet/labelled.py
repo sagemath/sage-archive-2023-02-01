@@ -74,10 +74,10 @@ TESTS::
     sage: g.is_full()
     True
     sage: s1 = g.orbit_substitution()
-    sage: print s1
+    sage: s1
     WordMorphism: a->adbd, b->adbdbd, c->adccd, d->adcd
     sage: s2 = g.interval_substitution()
-    sage: print s2
+    sage: s2
     WordMorphism: a->abcd, b->bab, c->cdc, d->dcbababcd
     sage: s1.incidence_matrix() == s2.incidence_matrix().transpose()
     True
@@ -973,13 +973,13 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
         EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
-            sage: print p.rauzy_move_interval_substitution('top','right')
+            sage: p.rauzy_move_interval_substitution('top','right')
             WordMorphism: a->a, b->ba
-            sage: print p.rauzy_move_interval_substitution('bottom','right')
+            sage: p.rauzy_move_interval_substitution('bottom','right')
             WordMorphism: a->ab, b->b
-            sage: print p.rauzy_move_interval_substitution('top','left')
+            sage: p.rauzy_move_interval_substitution('top','left')
             WordMorphism: a->ba, b->b
-            sage: print p.rauzy_move_interval_substitution('bottom','left')
+            sage: p.rauzy_move_interval_substitution('bottom','left')
             WordMorphism: a->a, b->ab
         """
         d = dict([(letter,letter) for letter in self.letters()])
@@ -1019,13 +1019,13 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
         EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
-            sage: print p.rauzy_move_orbit_substitution('top','right')
+            sage: p.rauzy_move_orbit_substitution('top','right')
             WordMorphism: a->ab, b->b
-            sage: print p.rauzy_move_orbit_substitution('bottom','right')
+            sage: p.rauzy_move_orbit_substitution('bottom','right')
             WordMorphism: a->a, b->ab
-            sage: print p.rauzy_move_orbit_substitution('top','left')
+            sage: p.rauzy_move_orbit_substitution('top','left')
             WordMorphism: a->a, b->ba
-            sage: print p.rauzy_move_orbit_substitution('bottom','left')
+            sage: p.rauzy_move_orbit_substitution('bottom','left')
             WordMorphism: a->ba, b->b
         """
         d = dict([(letter,letter) for letter in self.letters()])
@@ -2149,11 +2149,11 @@ class LabelledRauzyDiagram(RauzyDiagram):
                 sage: r = p.rauzy_diagram()
                 sage: p0 = r.path(p,0)
                 sage: s0 = p0.interval_substitution()
-                sage: print s0
+                sage: s0
                 WordMorphism: a->a, b->ba
                 sage: p1 = r.path(p,1)
                 sage: s1 = p1.interval_substitution()
-                sage: print s1
+                sage: s1
                 WordMorphism: a->ab, b->b
                 sage: (p0 + p1).interval_substitution() == s1 * s0
                 True
@@ -2176,11 +2176,11 @@ class LabelledRauzyDiagram(RauzyDiagram):
                 sage: d = p.rauzy_diagram()
                 sage: g0 = d.path(p,'top')
                 sage: s0 = g0.orbit_substitution()
-                sage: print s0
+                sage: s0
                 WordMorphism: a->ab, b->b
                 sage: g1 = d.path(p,'bottom')
                 sage: s1 = g1.orbit_substitution()
-                sage: print s1
+                sage: s1
                 WordMorphism: a->a, b->ab
                 sage: (g0 + g1).orbit_substitution() == s0 * s1
                 True
@@ -2231,11 +2231,11 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
             sage: p = iet.Permutation('a b c','c b a')
             sage: r = p.rauzy_diagram()
-            sage: print r.edge_to_interval_substitution(None,None)
+            sage: r.edge_to_interval_substitution(None,None)
             WordMorphism: a->a, b->b, c->c
-            sage: print r.edge_to_interval_substitution(p,0)
+            sage: r.edge_to_interval_substitution(p,0)
             WordMorphism: a->a, b->b, c->ca
-            sage: print r.edge_to_interval_substitution(p,1)
+            sage: r.edge_to_interval_substitution(p,1)
             WordMorphism: a->ac, b->b, c->c
         """
         if p is None and edge_type is None:
@@ -2261,11 +2261,11 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
             sage: p = iet.Permutation('a b c','c b a')
             sage: r = p.rauzy_diagram()
-            sage: print r.edge_to_orbit_substitution(None,None)
+            sage: r.edge_to_orbit_substitution(None,None)
             WordMorphism: a->a, b->b, c->c
-            sage: print r.edge_to_orbit_substitution(p,0)
+            sage: r.edge_to_orbit_substitution(p,0)
             WordMorphism: a->ac, b->b, c->c
-            sage: print r.edge_to_orbit_substitution(p,1)
+            sage: r.edge_to_orbit_substitution(p,1)
             WordMorphism: a->a, b->b, c->ac
         """
         if p is None and edge_type is None:

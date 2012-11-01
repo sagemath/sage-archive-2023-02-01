@@ -726,7 +726,7 @@ def RauzyDiagram(*args, **kargs):
         [2 4 1]
         [2 3 2]
         sage: s = g.orbit_substitution()
-        sage: print s
+        sage: s
         WordMorphism: a->acbbc, b->acbbcbbc, c->acbc
         sage: s.incidence_matrix() == m
         True

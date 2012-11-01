@@ -2415,6 +2415,14 @@ class CDFInterpreter(StackInterpreter):
 #include <stdlib.h>
 #include <complex.h>
 
+/* On Solaris, we need to define _Imaginary_I when compiling with GCC,
+ * otherwise the constant I doesn't work. The definition below is based
+ * on glibc. */
+#ifdef __GNUC__
+#undef  _Imaginary_I
+#define _Imaginary_I  (__extension__ 1.0iF)
+#endif
+
 typedef double complex double_complex;
 
 extern int cdf_py_call_helper(PyObject*, int, double complex*, double complex*);

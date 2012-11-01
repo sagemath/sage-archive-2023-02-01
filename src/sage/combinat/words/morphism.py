@@ -455,35 +455,59 @@ class WordMorphism(SageObject):
 
     def __repr__(self):
         r"""
-        Returns the morphism in str (for display).
+        Returns the string representation of the morphism.
 
         EXAMPLES::
 
             sage: WordMorphism('a->ab,b->ba')
-            Morphism from Words over Ordered Alphabet ['a', 'b'] to Words over Ordered Alphabet ['a', 'b']
-            sage: d = {0:[0,1],1:[1,0]}
-            sage: WordMorphism(d)
-            Morphism from Words over Ordered Alphabet [0, 1] to Words over Ordered Alphabet [0, 1]
+            WordMorphism: a->ab, b->ba
+            sage: WordMorphism({0:[0,1],1:[1,0]})
+            WordMorphism: 0->01, 1->10
+
+        TESTS::
+
+            sage: s = WordMorphism('a->ab,b->ba')
+            sage: repr(s)
+            'WordMorphism: a->ab, b->ba'
         """
-        return "Morphism from %s to %s" %(self.domain(),self.codomain())
+        return "WordMorphism: %s" % str(self)
 
     def __str__(self):
         r"""
-        Returns the morphism in str (for display).
+        Returns the morphism in str.
 
         EXAMPLES::
 
             sage: print WordMorphism('a->ab,b->ba')
-            WordMorphism: a->ab, b->ba
-            sage: print WordMorphism('b->ba,a->ab')
-            WordMorphism: a->ab, b->ba
-            sage: d = {0:[0,1],1:[1,0]}
-            sage: print WordMorphism(d)
-            WordMorphism: 0->01, 1->10
-        """
-        l = [str(lettre) + '->' + image.string_rep() for lettre,image in self._morph.iteritems()]
+            a->ab, b->ba
+            sage: print WordMorphism({0:[0,1],1:[1,0]})
+            0->01, 1->10
 
-        return "WordMorphism: %s" % ', '.join(sorted(l))
+        The output is sorted to make it unique::
+
+            sage: print WordMorphism('b->ba,a->ab')
+            a->ab, b->ba
+
+        The str method is used for string formatting::
+
+            sage: s = WordMorphism('a->ab,b->ba')
+            sage: "Here is a map : %s" % s
+            'Here is a map : a->ab, b->ba'
+
+        ::
+
+            sage: s = WordMorphism({1:[1,2],2:[1]})
+            sage: s.dual_map()
+            E_1^*(1->12, 2->1)
+
+        TESTS::
+
+            sage: s = WordMorphism('a->ab,b->ba')
+            sage: str(s)
+            'a->ab, b->ba'
+        """
+        L = [str(lettre) + '->' + image.string_rep() for lettre,image in self._morph.iteritems()]
+        return ', '.join(sorted(L))
 
     def __call__(self, w, order=1, datatype='iter'):
         r"""

@@ -925,13 +925,13 @@ class Words_over_Alphabet(Words_all):
         EXAMPLES::
 
             sage: W = Words('ab')
-            sage: print W.identity_morphism()
+            sage: W.identity_morphism()
             WordMorphism: a->a, b->b
 
         ::
 
             sage: W = Words(range(3))
-            sage: print W.identity_morphism()
+            sage: W.identity_morphism()
             WordMorphism: 0->0, 1->1, 2->2
 
         There is no support yet for infinite alphabet::
@@ -1139,7 +1139,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
             sage: W = Words('ab')
             sage: it = W.iter_morphisms()
-            sage: for _ in range(7): print it.next()
+            sage: for _ in range(7): it.next()
             WordMorphism: a->a, b->a
             WordMorphism: a->a, b->b
             WordMorphism: a->b, b->a
@@ -1152,7 +1152,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
             sage: W = Words('ab')
             sage: it = W.iter_morphisms(min_length=0)
-            sage: for _ in range(7): print it.next()
+            sage: for _ in range(7): it.next()
             WordMorphism: a->, b->
             WordMorphism: a->a, b->
             WordMorphism: a->b, b->
@@ -1164,7 +1164,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         Iterator over morphisms where the sum of the lengths of the images
         of the letters is in a specific range::
 
-            sage: for m in W.iter_morphisms((0, 3), min_length=0): print m
+            sage: for m in W.iter_morphisms((0, 3), min_length=0): m
             WordMorphism: a->, b->
             WordMorphism: a->a, b->
             WordMorphism: a->b, b->
@@ -1185,7 +1185,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
         ::
 
-            sage: for m in W.iter_morphisms( (2, 4) ): print m
+            sage: for m in W.iter_morphisms( (2, 4) ): m
             WordMorphism: a->a, b->a
             WordMorphism: a->a, b->b
             WordMorphism: a->b, b->a
@@ -1209,12 +1209,12 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
         Iterator over morphisms with specific image lengths::
 
-            sage: for m in W.iter_morphisms([0, 0]): print m
+            sage: for m in W.iter_morphisms([0, 0]): m
             WordMorphism: a->, b->
-            sage: for m in W.iter_morphisms([0, 1]): print m
+            sage: for m in W.iter_morphisms([0, 1]): m
             WordMorphism: a->, b->a
             WordMorphism: a->, b->b
-            sage: for m in W.iter_morphisms([2, 1]): print m
+            sage: for m in W.iter_morphisms([2, 1]): m
             WordMorphism: a->aa, b->a
             WordMorphism: a->aa, b->b
             WordMorphism: a->ab, b->a
@@ -1223,7 +1223,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             WordMorphism: a->ba, b->b
             WordMorphism: a->bb, b->a
             WordMorphism: a->bb, b->b
-            sage: for m in W.iter_morphisms([2, 2]): print m
+            sage: for m in W.iter_morphisms([2, 2]): m
             WordMorphism: a->aa, b->aa
             WordMorphism: a->aa, b->ab
             WordMorphism: a->aa, b->ba
@@ -1244,7 +1244,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         The codomain may be specified as well::
 
             sage: Y = Words('xyz')
-            sage: for m in W.iter_morphisms([0, 2], codomain=Y): print m
+            sage: for m in W.iter_morphisms([0, 2], codomain=Y): m
             WordMorphism: a->, b->xx
             WordMorphism: a->, b->xy
             WordMorphism: a->, b->xz
@@ -1254,7 +1254,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             WordMorphism: a->, b->zx
             WordMorphism: a->, b->zy
             WordMorphism: a->, b->zz
-            sage: for m in Y.iter_morphisms([0,2,1], codomain=W): print m
+            sage: for m in Y.iter_morphisms([0,2,1], codomain=W): m
             WordMorphism: x->, y->aa, z->a
             WordMorphism: x->, y->aa, z->b
             WordMorphism: x->, y->ab, z->a
@@ -1264,7 +1264,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             WordMorphism: x->, y->bb, z->a
             WordMorphism: x->, y->bb, z->b
             sage: it = W.iter_morphisms(codomain=Y)
-            sage: for _ in range(10): print it.next()
+            sage: for _ in range(10): it.next()
             WordMorphism: a->x, b->x
             WordMorphism: a->x, b->y
             WordMorphism: a->x, b->z
@@ -1279,9 +1279,9 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         TESTS::
 
             sage: list(W.iter_morphisms([1,0]))
-            [Morphism from Words over Ordered Alphabet ['a', 'b'] to Words over Ordered Alphabet ['a', 'b'], Morphism from Words over Ordered Alphabet ['a', 'b'] to Words over Ordered Alphabet ['a', 'b']]
+            [WordMorphism: a->a, b->, WordMorphism: a->b, b->]
             sage: list(W.iter_morphisms([0,0], codomain=Y))
-            [Morphism from Words over Ordered Alphabet ['a', 'b'] to Words over Ordered Alphabet ['x', 'y', 'z']]
+            [WordMorphism: a->, b->]
             sage: list(W.iter_morphisms([0, 1, 2]))
             Traceback (most recent call last):
             ...

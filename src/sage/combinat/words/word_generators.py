@@ -1593,7 +1593,7 @@ class WordGenerator(object):
             sage: Word(words._s_adic_iterator([m1,m2,m3],'ecb'))
             Traceback (most recent call last):
             ...
-            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 3-th letter (=b) under the 3-th morphism (=WordMorphism: a->cd, b->dc) should start with the 2-th letter (=c).
+            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 3-th letter (=b) under the 3-th morphism (=a->cd, b->dc) should start with the 2-th letter (=c).
 
         Two examples of infinite s-adic words::
 
@@ -1620,7 +1620,7 @@ class WordGenerator(object):
             sage: Word(words._s_adic_iterator(repeat(sigma),repeat('a')))
             Traceback (most recent call last):
             ...
-            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 2-th letter (=a) under the 2-th morphism (=WordMorphism: a->ba, b->b) should start with the 1-th letter (=a).
+            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 2-th letter (=a) under the 2-th morphism (=a->ba, b->b) should start with the 1-th letter (=a).
 
         AUTHORS:
 
@@ -1712,7 +1712,7 @@ class WordGenerator(object):
             sage: words.s_adic([m1,m2,m3],'ecb')
             Traceback (most recent call last):
             ...
-            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 3-th letter (=b) under the 3-th morphism (=WordMorphism: a->cd, b->dc) should start with the 2-th letter (=c).
+            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 3-th letter (=b) under the 3-th morphism (=a->cd, b->dc) should start with the 2-th letter (=c).
 
         Let's define the Thue-Morse morphism and the Fibonacci morphism
         which will be used below to illustrate more examples and let's import
@@ -1792,7 +1792,7 @@ class WordGenerator(object):
             sage: words.s_adic(repeat(sigma),repeat('a'))
             Traceback (most recent call last):
             ...
-            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 2-th letter (=a) under the 2-th morphism (=WordMorphism: a->ba, b->b) should start with the 1-th letter (=a).
+            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 2-th letter (=a) under the 2-th morphism (=a->ba, b->b) should start with the 1-th letter (=a).
             sage: words.s_adic([sigma],'a')
             word: ba
             sage: words.s_adic([sigma,sigma],'a')
@@ -1813,10 +1813,10 @@ class WordGenerator(object):
 
             sage: x = lambda h:WordMorphism({1:[2],2:[3]+[1]*(h+1),3:[3]+[1]*h})
             sage: for h in [0,1,2,3]: print h, x(h)
-            0 WordMorphism: 1->2, 2->31, 3->3
-            1 WordMorphism: 1->2, 2->311, 3->31
-            2 WordMorphism: 1->2, 2->3111, 3->311
-            3 WordMorphism: 1->2, 2->31111, 3->3111
+            0 1->2, 2->31, 3->3
+            1 1->2, 2->311, 3->31
+            2 1->2, 2->3111, 3->311
+            3 1->2, 2->31111, 3->3111
             sage: w = Word(lambda n : valuation(n+1, 2) ); w
             word: 0102010301020104010201030102010501020103...
             sage: s = words.s_adic(w, repeat(3), x); s
@@ -1856,7 +1856,7 @@ class WordGenerator(object):
             sage: words.s_adic([fib,fib],'bb')
             Traceback (most recent call last):
             ...
-            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 2-th letter (=b) under the 2-th morphism (=WordMorphism: a->ab, b->a) should start with the 1-th letter (=b).
+            ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 2-th letter (=b) under the 2-th morphism (=a->ab, b->a) should start with the 1-th letter (=b).
 
         Test on different letters::
 

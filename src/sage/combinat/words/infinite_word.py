@@ -50,7 +50,7 @@ Infinite words from morphism
 For example, let `A=\{a,b\}` and `\mu : A^* \rightarrow A^*`
 be the morphism defined by `a\mapsto ab, b\mapsto ba`::
 
-    sage: mu = WordMorphism('a->ab,b->ba'); print mu
+    sage: mu = WordMorphism('a->ab,b->ba'); mu
     WordMorphism: a->ab, b->ba
     sage: mu.fixed_point('a')
     word: abbabaabbaababbabaababbaabbabaabbaababba...

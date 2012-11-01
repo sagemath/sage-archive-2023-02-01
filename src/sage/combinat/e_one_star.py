@@ -176,7 +176,7 @@ which only work in dimension two or three)::
     sage: sigma = WordMorphism({1:[1,2],2:[1,3],3:[1,4],4:[1,5],5:[1,6],6:[1,7],7:[1,8],8:[1,9],9:[1,10],10:[1,11],11:[1,12],12:[1]})
     sage: E = E1Star(sigma)
     sage: E
-    E_1^*(WordMorphism: 1->12, 10->1,11, 11->1,12, 12->1, 2->13, 3->14, 4->15, 5->16, 6->17, 7->18, 8->19, 9->1,10)
+    E_1^*(1->12, 10->1,11, 11->1,12, 12->1, 2->13, 3->14, 4->15, 5->16, 6->17, 7->18, 8->19, 9->1,10)
     sage: P = Patch([Face((0,0,0,0,0,0,0,0,0,0,0,0),t) for t in [1,2,3]])
     sage: for x in sorted(list(E(P)), key=lambda x : (x.vector(),x.type())): print x
     [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 1]*
@@ -1440,7 +1440,7 @@ class E1Star(SageObject):
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
             sage: E
-            E_1^*(WordMorphism: 1->12, 2->13, 3->1)
+            E_1^*(1->12, 2->13, 3->1)
         """
         if not isinstance(sigma, WordMorphism):
             raise TypeError, "sigma (=%s) must be an instance of WordMorphism"%sigma
@@ -1570,9 +1570,9 @@ class E1Star(SageObject):
             sage: s = WordMorphism({1:[2],2:[3],3:[1,2]})
             sage: t = WordMorphism({1:[1,3,1],2:[1],3:[1,1,3,2]})
             sage: E1Star(s) * E1Star(t)
-            E_1^*(WordMorphism: 1->1, 2->1132, 3->1311)
+            E_1^*(1->1, 2->1132, 3->1311)
             sage: E1Star(t * s)
-            E_1^*(WordMorphism: 1->1, 2->1132, 3->1311)
+            E_1^*(1->1, 2->1132, 3->1311)
         """
         if not isinstance(other, E1Star):
             raise TypeError, "other (=%s) must be an instance of E1Star" % other
@@ -1588,7 +1588,7 @@ class E1Star(SageObject):
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
             sage: E
-            E_1^*(WordMorphism: 1->12, 2->13, 3->1)
+            E_1^*(1->12, 2->13, 3->1)
         """
         return "E_1^*(%s)" % str(self._sigma)
 
@@ -1665,7 +1665,7 @@ class E1Star(SageObject):
             sage: from sage.combinat.e_one_star import E1Star, Face, Patch
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
-            sage: print E.sigma()
+            sage: E.sigma()
             WordMorphism: 1->12, 2->13, 3->1
         """
         return self._sigma

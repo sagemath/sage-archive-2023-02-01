@@ -26,18 +26,18 @@ Creation of a morphism from a dictionary or a string::
 ::
 
     sage: n
-    Morphism from Words over Ordered Alphabet [0, 1, 2] to Words over Ordered Alphabet [0, 1, 2]
+    WordMorphism: 0->0221, 1->02, 2->221
     sage: m
-    Morphism from Words over Ordered Alphabet ['s', 'x', 'y'] to Words over Ordered Alphabet ['s', 'x', 'y']
+    WordMorphism: s->xyss, x->xyxsxss, y->ys
 
 The codomain may be specified::
 
     sage: WordMorphism({0:[0,2,2,1],1:[0,2],2:[2,2,1]}, codomain=Words([0,1,2,3,4]))
-    Morphism from Words over Ordered Alphabet [0, 1, 2] to Words over Ordered Alphabet [0, 1, 2, 3, 4]
+    WordMorphism: 0->0221, 1->02, 2->221
 
 Power of a morphism::
 
-    sage: print n^2
+    sage: n^2
     WordMorphism: 0->022122122102, 1->0221221, 2->22122102
 
 Image under a morphism::
@@ -174,7 +174,7 @@ class WordMorphism(SageObject):
 
     Power of a morphism::
 
-        sage: print n^2
+        sage: n^2
         WordMorphism: 0->022122122102, 1->0221221, 2->22122102
 
     Image under a morphism::
@@ -228,22 +228,22 @@ class WordMorphism(SageObject):
 
         1. If data is a str::
 
-            sage: print WordMorphism('a->ab,b->ba')
+            sage: WordMorphism('a->ab,b->ba')
             WordMorphism: a->ab, b->ba
-            sage: print WordMorphism('a->ab,b->ba')
+            sage: WordMorphism('a->ab,b->ba')
             WordMorphism: a->ab, b->ba
-            sage: print WordMorphism('a->abc,b->bca,c->cab')
+            sage: WordMorphism('a->abc,b->bca,c->cab')
             WordMorphism: a->abc, b->bca, c->cab
-            sage: print WordMorphism('a->abdsf,b->hahdad,c->asdhasd')
+            sage: WordMorphism('a->abdsf,b->hahdad,c->asdhasd')
             WordMorphism: a->abdsf, b->hahdad, c->asdhasd
-            sage: print WordMorphism('(->(),)->)(')
+            sage: WordMorphism('(->(),)->)(')
             WordMorphism: (->(), )->)(
-            sage: print WordMorphism('a->53k,b->y5?,$->49i')
+            sage: WordMorphism('a->53k,b->y5?,$->49i')
             WordMorphism: $->49i, a->53k, b->y5?
 
         An erasing morphism::
 
-            sage: print WordMorphism('a->ab,b->')
+            sage: WordMorphism('a->ab,b->')
             WordMorphism: a->ab, b->
 
         Use the arrows ('->') correctly::
@@ -270,37 +270,37 @@ class WordMorphism(SageObject):
 
         2. From a dictionary::
 
-            sage: print WordMorphism({"a":"ab","b":"ba"})
+            sage: WordMorphism({"a":"ab","b":"ba"})
             WordMorphism: a->ab, b->ba
-            sage: print WordMorphism({2:[4,5,6],3:[1,2,3]})
+            sage: WordMorphism({2:[4,5,6],3:[1,2,3]})
             WordMorphism: 2->456, 3->123
-            sage: print WordMorphism({'a':['a',6,'a'],6:[6,6,6,'a']})
+            sage: WordMorphism({'a':['a',6,'a'],6:[6,6,6,'a']})
             WordMorphism: 6->666a, a->a6a
 
         The image of a letter can be a set, but the order is not
         preserved::
 
-            sage: print WordMorphism({2:[4,5,6],3:set([4,1,8])}) #random results
+            sage: WordMorphism({2:[4,5,6],3:set([4,1,8])}) #random results
             WordMorphism: 2->456, 3->814
 
         If the image of a letter is not iterable, it is considered as a
         letter::
 
-            sage: print WordMorphism({0:1, 1:0})
+            sage: WordMorphism({0:1, 1:0})
             WordMorphism: 0->1, 1->0
-            sage: print WordMorphism({0:123, 1:789})
+            sage: WordMorphism({0:123, 1:789})
             WordMorphism: 0->123, 1->789
-            sage: print WordMorphism({2:[4,5,6], 3:123})
+            sage: WordMorphism({2:[4,5,6], 3:123})
             WordMorphism: 2->456, 3->123
 
         3. From a WordMorphism::
 
-            sage: print WordMorphism(WordMorphism('a->ab,b->ba'))
+            sage: WordMorphism(WordMorphism('a->ab,b->ba'))
             WordMorphism: a->ab, b->ba
 
         TESTS::
 
-            sage: print WordMorphism(',,,a->ab,,,b->ba,,')
+            sage: WordMorphism(',,,a->ab,,,b->ba,,')
             WordMorphism: a->ab, b->ba
         """
         if isinstance(data, WordMorphism):
@@ -418,9 +418,9 @@ class WordMorphism(SageObject):
             True
             sage: WordMorphism('b->ba,a->ab') == WordMorphism({"a":"ab","b":"ba"})
             True
-            sage: m = WordMorphism({0:[1,2,3],1:[4,5,6]}); print m
+            sage: m = WordMorphism({0:[1,2,3],1:[4,5,6]}); m
             WordMorphism: 0->123, 1->456
-            sage: o = WordMorphism('0->123,1->456'); print o
+            sage: o = WordMorphism('0->123,1->456'); o
             WordMorphism: 0->123, 1->456
             sage: m == o
             False
@@ -804,18 +804,18 @@ class WordMorphism(SageObject):
 
             sage: m = WordMorphism('a->ab,b->ba')
             sage: fibo = WordMorphism('a->ab,b->a')
-            sage: print fibo*m
+            sage: fibo*m
             WordMorphism: a->aba, b->aab
-            sage: print fibo*fibo
+            sage: fibo*fibo
             WordMorphism: a->aba, b->ab
-            sage: print m*fibo
+            sage: m*fibo
             WordMorphism: a->abba, b->ab
 
         ::
 
             sage: n = WordMorphism('a->a,b->aa,c->aaa')
             sage: p1 = n*m
-            sage: print p1
+            sage: p1
             WordMorphism: a->aaa, b->aaa
             sage: p1.domain()
             Words over Ordered Alphabet ['a', 'b']
@@ -825,7 +825,7 @@ class WordMorphism(SageObject):
         ::
 
             sage: p2 = m*n
-            sage: print p2
+            sage: p2
             WordMorphism: a->ab, b->abab, c->ababab
             sage: p2.domain()
             Words over Ordered Alphabet ['a', 'b', 'c']
@@ -847,7 +847,7 @@ class WordMorphism(SageObject):
             Traceback (most recent call last):
             ...
             KeyError: 'b'
-            sage: print m * WordMorphism('')
+            sage: m * WordMorphism('')
             WordMorphism:
         """
         return WordMorphism(dict((key, self(w)) for (key, w) in other._morph.iteritems()), codomain=self.codomain())
@@ -863,11 +863,11 @@ class WordMorphism(SageObject):
         EXAMPLES::
 
             sage: m = WordMorphism('a->ab,b->ba')
-            sage: print m^1
+            sage: m^1
             WordMorphism: a->ab, b->ba
-            sage: print m^2
+            sage: m^2
             WordMorphism: a->abba, b->baab
-            sage: print m^3
+            sage: m^3
             WordMorphism: a->abbabaab, b->baababba
 
         The exponent must be a positive integer::
@@ -876,7 +876,7 @@ class WordMorphism(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: exponent (1.50000000000000) must be an integer
-            sage: print m^-2
+            sage: m^-2
             Traceback (most recent call last):
             ...
             ValueError: exponent (-2) must be strictly positive
@@ -930,11 +930,11 @@ class WordMorphism(SageObject):
 
             sage: m = WordMorphism('a->ab,b->ba')
             sage: n = WordMorphism({0:1,1:0,'a':5})
-            sage: print m.extend_by(n)
+            sage: m.extend_by(n)
             WordMorphism: 0->1, 1->0, a->ab, b->ba
-            sage: print n.extend_by(m)
+            sage: n.extend_by(m)
             WordMorphism: 0->1, 1->0, a->5, b->ba
-            sage: print m.extend_by(m)
+            sage: m.extend_by(m)
             WordMorphism: a->ab, b->ba
 
         TESTS::
@@ -974,18 +974,18 @@ class WordMorphism(SageObject):
         EXAMPLES::
 
             sage: m = WordMorphism('a->b,b->a')
-            sage: print m.restrict_domain('a')
+            sage: m.restrict_domain('a')
             WordMorphism: a->b
-            sage: print m.restrict_domain('')
+            sage: m.restrict_domain('')
             WordMorphism:
-            sage: print m.restrict_domain('A')
+            sage: m.restrict_domain('A')
             WordMorphism:
-            sage: print m.restrict_domain('Aa')
+            sage: m.restrict_domain('Aa')
             WordMorphism: a->b
 
         The input alphabet must be iterable::
 
-            sage: print m.restrict_domain(66)
+            sage: m.restrict_domain(66)
             Traceback (most recent call last):
             ...
             TypeError: 'sage.rings.integer.Integer' object is not iterable
@@ -1171,9 +1171,9 @@ class WordMorphism(SageObject):
 
         EXAMPLES::
 
-            sage: print WordMorphism('6->ab,y->5,0->asd').reversal()
+            sage: WordMorphism('6->ab,y->5,0->asd').reversal()
             WordMorphism: 0->dsa, 6->ba, y->5
-            sage: print WordMorphism('a->ab,b->a').reversal()
+            sage: WordMorphism('a->ab,b->a').reversal()
             WordMorphism: a->ba, b->a
         """
         return WordMorphism(dict((key, w.reversal()) for (key, w) in self._morph.iteritems()))
@@ -1340,7 +1340,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism({0:1,1:0,2:3}).is_involution()
             Traceback (most recent call last):
             ...
-            TypeError: self (=WordMorphism: 0->1, 1->0, 2->3) is not a endomorphism
+            TypeError: self (=0->1, 1->0, 2->3) is not a endomorphism
         """
         if not self.is_endomorphism():
             raise TypeError, "self (=%s) is not a endomorphism"%self
@@ -1424,7 +1424,7 @@ class WordMorphism(SageObject):
             sage: fibo = WordMorphism('a->ab,b->a')
             sage: fibo._check_primitive()
             False
-            sage: print WordMorphism({2:[4,5,6],3:[4,1,8]})
+            sage: WordMorphism({2:[4,5,6],3:[4,1,8]})
             WordMorphism: 2->456, 3->418
             sage: WordMorphism({2:[4,5,6],3:[4,1,8]})._check_primitive()
             False
@@ -1491,7 +1491,7 @@ class WordMorphism(SageObject):
             sage: m.is_primitive()
             Traceback (most recent call last):
             ...
-            TypeError: self (=WordMorphism: a->bb, b->aac) is not a endomorphism
+            TypeError: self (=a->bb, b->aac) is not a endomorphism
             sage: m = WordMorphism('a->,b->',codomain=Words('ab'))
             sage: m.is_primitive()
             False
@@ -1760,7 +1760,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->aa,b->aac').fixed_point(letter='a')
             Traceback (most recent call last):
             ...
-            TypeError: self (=WordMorphism: a->aa, b->aac) is not a endomorphism
+            TypeError: self (=a->aa, b->aac) is not a endomorphism
         """
         if not self.is_endomorphism():
             raise TypeError, "self (=%s) is not a endomorphism"%self
@@ -1915,14 +1915,14 @@ class WordMorphism(SageObject):
             sage: m = WordMorphism('a->abcde')
             sage: m.conjugate(0) == m
             True
-            sage: print m.conjugate(1)
+            sage: m.conjugate(1)
             WordMorphism: a->bcdea
-            sage: print m.conjugate(3)
+            sage: m.conjugate(3)
             WordMorphism: a->deabc
-            sage: print WordMorphism('').conjugate(4)
+            sage: WordMorphism('').conjugate(4)
             WordMorphism:
             sage: m = WordMorphism('a->abcde,b->xyz')
-            sage: print m.conjugate(2)
+            sage: m.conjugate(2)
             WordMorphism: a->cdeab, b->zxy
         """
         return WordMorphism(dict((key, w.conjugate(pos)) for (key, w) in self._morph.iteritems()))
@@ -2018,33 +2018,33 @@ class WordMorphism(SageObject):
         EXAMPLES::
 
             sage: m = WordMorphism('a->abbab,b->abb')
-            sage: map(str, m.list_of_conjugates())
-            ['WordMorphism: a->babba, b->bab',
-            'WordMorphism: a->abbab, b->abb',
-            'WordMorphism: a->bbaba, b->bba',
-            'WordMorphism: a->babab, b->bab',
-            'WordMorphism: a->ababb, b->abb',
-            'WordMorphism: a->babba, b->bba',
-            'WordMorphism: a->abbab, b->bab']
+            sage: m.list_of_conjugates()
+            [WordMorphism: a->babba, b->bab,
+            WordMorphism: a->abbab, b->abb,
+            WordMorphism: a->bbaba, b->bba,
+            WordMorphism: a->babab, b->bab,
+            WordMorphism: a->ababb, b->abb,
+            WordMorphism: a->babba, b->bba,
+            WordMorphism: a->abbab, b->bab]
             sage: m = WordMorphism('a->aaa,b->aa')
-            sage: map(str, m.list_of_conjugates())
-            ['WordMorphism: a->aaa, b->aa']
+            sage: m.list_of_conjugates()
+            [WordMorphism: a->aaa, b->aa]
             sage: WordMorphism('').list_of_conjugates()
-            [Morphism from Words over Ordered Alphabet [] to Words over Ordered Alphabet []]
+            [WordMorphism: ]
             sage: m = WordMorphism('a->aba,b->aba')
-            sage: map(str, m.list_of_conjugates())
-            ['WordMorphism: a->baa, b->baa',
-            'WordMorphism: a->aab, b->aab',
-            'WordMorphism: a->aba, b->aba']
+            sage: m.list_of_conjugates()
+            [WordMorphism: a->baa, b->baa,
+            WordMorphism: a->aab, b->aab,
+            WordMorphism: a->aba, b->aba]
             sage: m = WordMorphism('a->abb,b->abbab,c->')
-            sage: map(str, m.list_of_conjugates())
-            ['WordMorphism: a->bab, b->babba, c->',
-            'WordMorphism: a->abb, b->abbab, c->',
-            'WordMorphism: a->bba, b->bbaba, c->',
-            'WordMorphism: a->bab, b->babab, c->',
-            'WordMorphism: a->abb, b->ababb, c->',
-            'WordMorphism: a->bba, b->babba, c->',
-            'WordMorphism: a->bab, b->abbab, c->']
+            sage: m.list_of_conjugates()
+            [WordMorphism: a->bab, b->babba, c->,
+            WordMorphism: a->abb, b->abbab, c->,
+            WordMorphism: a->bba, b->bbaba, c->,
+            WordMorphism: a->bab, b->babab, c->,
+            WordMorphism: a->abb, b->ababb, c->,
+            WordMorphism: a->bba, b->babba, c->,
+            WordMorphism: a->bab, b->abbab, c->]
         """
         if self.is_empty():
             return [self]
@@ -2218,7 +2218,7 @@ class WordMorphism(SageObject):
 
             sage: sigma = WordMorphism({1:[2],2:[3],3:[1,2]})
             sage: sigma.dual_map()
-            E_1^*(WordMorphism: 1->2, 2->3, 3->12)
+            E_1^*(1->2, 2->3, 3->12)
 
         ::
 

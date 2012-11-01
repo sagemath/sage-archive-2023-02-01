@@ -100,10 +100,11 @@ questions" is equivalent to determining `A_2(n,d)`! Using
 Sage, you can determine the best known estimates for this number in
 2 ways:
 
-(1) Indirectly, using minimum_distance_lower_bound(n,k,F) and
-minimum_distance_upper_bound(n,k,F) (both of which which connect
-to the internet using Steven Sivek's linear_code_bound(q,n,k))
-(2) codesize_upper_bound(n,d,q), dimension_upper_bound(n,d,q).
+(1) Indirectly, using best_known_linear_code_www(n, k, F),
+    which connects to the website http://www.codetables.de by Markus Grassl;
+
+(2) codesize_upper_bound(n,d,q), dimension_upper_bound(n,d,q),
+    and best_known_linear_code(n, k, F).
 
 This module implements:
 

@@ -689,6 +689,89 @@ class WordMorphism(SageObject):
         else:
             raise TypeError, "order (%s) must be a positive integer or plus Infinity" % order
 
+    def latex_layout(self, layout=None):
+        r"""
+        Get or set the actual latex layout (oneliner vs array).
+
+        INPUT:
+
+        - ``layout`` - string (default: ``None``), can take one of the
+          following values:
+
+          - ``None`` - Returns the actual latex layout. By default, the
+            layout is ``'array'``
+          - ``'oneliner'`` - Set the layout to ``'oneliner'``
+          - ``'array'`` - Set the layout to ``'array'``
+
+        EXAMPLES::
+
+            sage: s = WordMorphism('a->ab,b->ba')
+            sage: s.latex_layout()
+            'array'
+            sage: s.latex_layout('oneliner')
+            sage: s.latex_layout()
+            'oneliner'
+        """
+        if layout is None:
+            # return the layout
+            if not hasattr(self, '_latex_layout'):
+                self._latex_layout = 'array'
+            return self._latex_layout
+        else:
+            # change the layout
+            self._latex_layout = layout
+
+    def _latex_(self):
+        r"""
+        Returns the latex representation of the morphism.
+
+        Use :method:`latex_layout` to change latex layout (oneliner vs
+        array). The default is an latex array.
+
+        EXAMPLES::
+
+            sage: s = WordMorphism('a->ab,b->ba')
+            sage: s._latex_()
+            \begin{array}{l}
+            a \mapsto ab\\
+            b \mapsto ba
+            \end{array}
+
+        Change the latex layout to a one liner::
+
+            sage: s.latex_layout('oneliner')
+            sage: s._latex_()
+            a \mapsto ab,b \mapsto ba
+
+        TESTS:
+
+        Unknown latex style::
+
+            sage: s.latex_layout('tabular')
+            sage: s._latex_()
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown latex_layout(=tabular)
+
+        """
+        from sage.misc.latex import LatexExpr
+        A = self.domain().alphabet()
+        latex_layout = self.latex_layout()
+        if latex_layout == 'oneliner':
+            L = [r"%s \mapsto %s" % (a, self.image(a)) for a in A]
+            return LatexExpr(r','.join(L))
+        elif latex_layout == 'array':
+            s =  r""
+            s += r"\begin{array}{l}" + '\n'
+            lines = []
+            for a in A:
+                lines.append(r"%s \mapsto %s"% (a, self.image(a)))
+            s += '\\\\\n'.join(lines)
+            s += '\n' + "\end{array}"
+            return LatexExpr(s)
+        else:
+            raise ValueError, 'unknown latex_layout(=%s)' % latex_layout
+
     def __mul__(self, other):
         r"""
         Returns the morphism ``self``\*``other``.

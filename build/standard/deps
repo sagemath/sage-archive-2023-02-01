@@ -289,7 +289,7 @@ $(INST)/$(SYMPOW):
 $(INST)/$(SYMMETRICA):
 	+$(PIPE) "$(SAGE_SPKG) $(SYMMETRICA) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMMETRICA).log"
 
-$(INST)/$(GAP): $(INST)/$(TERMCAP) $(INST)/$(READLINE)
+$(INST)/$(GAP): $(INST)/$(TERMCAP) $(INST)/$(READLINE) $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(GAP) 2>&1" "tee -a $(SAGE_LOGS)/$(GAP).log"
 
 $(INST)/$(IPYTHON): $(INST)/$(PYTHON)

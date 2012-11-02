@@ -183,6 +183,7 @@ import re
 import os
 import pexpect
 import time
+import platform
 
 GAP_DIR = os.path.join(DOT_SAGE, 'gap')
 
@@ -200,6 +201,9 @@ except OSError:
         raise
 
 gap_cmd = "gap -r"
+if platform.processor() == 'ia64' and os.path.exists('/usr/bin/prctl'):
+    # suppress unaligned access to 0x..., ip=0x... warnings
+    gap_cmd = 'prctl --unaligned=silent ' + gap_cmd
 
 def gap_command(use_workspace_cache=True, local=True):
     if use_workspace_cache:

@@ -485,13 +485,12 @@ class QuotientRingElement(ring_element.RingElement):
             sage: S(2/3).__invert__()
             3/2
 
-        Note that a is not invertible as an element of R, and
-        extending the base field is implemented yet::
+        Note that a is not invertible as an element of R::
 
             sage: a.__invert__()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            ArithmeticError: element is non-invertible
         """
         try:
             inv = self.__rep.inverse_mod(self.parent().defining_ideal())

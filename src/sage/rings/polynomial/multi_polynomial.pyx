@@ -922,7 +922,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         TESTS:
 
-        Since :trac:`10771`, the gcd in QQ restricts to the gcd in ZZ.
+        Since :trac:`10771`, the gcd in QQ restricts to the gcd in ZZ::
 
             sage: R.<x,y> = QQ[]
             sage: f = 4*x+6*y
@@ -1344,6 +1344,64 @@ cdef class MPolynomial(CommutativeRingElement):
             True
         """
         return self * self.denominator()
+
+    def lift(self, I):
+        """
+        given an ideal ``I = (f_1,...,f_r)`` and some ``g (== self)`` in ``I``,
+        find ``s_1,...,s_r`` such that ``g = s_1 f_1 + ... + s_r f_r``.
+
+        EXAMPLE::
+
+            sage: A.<x,y> = PolynomialRing(CC,2,order='degrevlex')
+            sage: I = A.ideal([x^10 + x^9*y^2, y^8 - x^2*y^7 ])
+            sage: f = x*y^13 + y^12
+            sage: M = f.lift(I)
+            sage: M
+            [y^7, x^7*y^2 + x^8 + x^5*y^3 + x^6*y + x^3*y^4 + x^4*y^2 + x*y^5 + x^2*y^3 + y^4]
+            sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
+            True
+        """
+        raise NotImplementedError
+
+    def inverse_mod(self, I):
+       """
+       Returns an inverse of self modulo the polynomial ideal `I`,
+       namely a multivariate polynomial `f` such that
+       ``self * f - 1`` belongs to `I`.
+
+       INPUT:
+        - ``I`` -- an ideal of the polynomial ring in which self lives
+
+       OUTPUT:
+
+        - a multivariate polynomial representing the inverse of ``f`` modulo ``I``
+
+       EXAMPLES::
+
+          sage: R.<x1,x2> = QQ[]
+          sage: I = R.ideal(x2**2 + x1 - 2, x1**2 - 1)
+          sage: f = x1 + 3*x2^2; g = f.inverse_mod(I); g
+          1/16*x1 + 3/16
+          sage: (f*g).reduce(I)
+          1
+
+       Test a non-invertible element::
+
+          sage: R.<x1,x2> = QQ[]
+          sage: I = R.ideal(x2**2 + x1 - 2, x1**2 - 1)
+          sage: f = x1 + x2
+          sage: f.inverse_mod(I)
+          Traceback (most recent call last):
+          ...
+          ArithmeticError: element is non-invertible
+       """
+       P = self.parent()
+       B  = I.gens()
+       try:
+           XY = P.one().lift((self,) + tuple(B))
+           return P(XY[0])
+       except ValueError:
+           raise ArithmeticError, "element is non-invertible"
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

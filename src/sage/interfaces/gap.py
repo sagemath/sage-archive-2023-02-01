@@ -1437,7 +1437,8 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
     for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
-                'toric', 'laguna', 'braid']:   # NOTE: Do *not* autoload hap - it screws up PolynomialRing(Rationals,2)
+                'toric', 'laguna', 'braid']:
+        # NOTE: Do *not* autoload hap - it screws up PolynomialRing(Rationals,2)
         try:
             g.load_package(pkg, verbose=verbose)
         except RuntimeError, msg:
@@ -1446,6 +1447,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
             pass
     # end for
     g.save_workspace()
+    g.quit()
 
 
 # Check to see if we need to auto-regenerate the gap workspace, i.e.,

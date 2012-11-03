@@ -1430,9 +1430,9 @@ def sage_getsourcelines(obj, is_binary=False):
         source_lines = open(filename).readlines()
     except IOError:
         try:
-            from sage.all import SAGE_TMP
+            from sage.misc.misc import SPYX_TMP
             raw_name = filename.split('/')[-1]
-            newname = SAGE_TMP+'/spyx/'+'_'.join(raw_name.split('_')[:-1])+'/'+raw_name
+            newname = os.path.join(SPYX_TMP, '_'.join(raw_name.split('_')[:-1]), raw_name)
             source_lines = open(newname).readlines()
         except IOError:
             return None

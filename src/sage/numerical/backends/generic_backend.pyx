@@ -554,7 +554,7 @@ cdef class GenericBackend:
             2
             sage: p.add_linear_constraint([(0, 1], (1, 2)], None, 3) # optional - Nonexistent_LP_solver
             sage: p.set_objective([2, 5])                          # optional - Nonexistent_LP_solver
-            sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")            # optional - Nonexistent_LP_solver
+            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))            # optional - Nonexistent_LP_solver
         """
         raise NotImplementedError()
 
@@ -574,7 +574,7 @@ cdef class GenericBackend:
             2
             sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3) # optional - Nonexistent_LP_solver
             sage: p.set_objective([2, 5])                          # optional - Nonexistent_LP_solver
-            sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")            # optional - Nonexistent_LP_solver
+            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))            # optional - Nonexistent_LP_solver
         """
         raise NotImplementedError()
 

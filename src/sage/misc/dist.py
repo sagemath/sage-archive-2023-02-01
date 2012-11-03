@@ -70,7 +70,7 @@ def install_scripts(directory=None, ignore_existing=False):
 
     EXAMPLES::
 
-        sage: install_scripts(SAGE_TMP, ignore_existing=True)
+        sage: install_scripts(str(SAGE_TMP), ignore_existing=True)
         Checking that Sage has the command 'gap' installed
         ...
     """

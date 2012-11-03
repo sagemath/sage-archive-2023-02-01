@@ -1035,7 +1035,7 @@ cdef class CoinBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - Coin
             sage: p.set_objective([2, 5])                          # optional - Coin
-            sage: p.write_mps(SAGE_TMP+"/lp_problem.mps", 0)       # optional - Coin
+            sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"), 0)       # optional - Coin
         """
 
         cdef char * mps = "mps"
@@ -1057,7 +1057,7 @@ cdef class CoinBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - Coin
             sage: p.set_objective([2, 5])                          # optional - Coin
-            sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")       # optional - Coin
+            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))       # optional - Coin
         """
 
         cdef char * lp = "lp"

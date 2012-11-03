@@ -1026,7 +1026,7 @@ class Gap(Gap_generic):
         workspace file contains more than 82 characters) is fixed::
 
             sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
-            sage: sage.interfaces.gap.WORKSPACE = SAGE_TMP + "gap" + "0"*(80-len(SAGE_TMP))
+            sage: sage.interfaces.gap.WORKSPACE = os.path.join(SAGE_TMP, "gap" + "0"*(80-len(SAGE_TMP)))
             sage: gap = Gap()
             sage: gap('3+2')
             5

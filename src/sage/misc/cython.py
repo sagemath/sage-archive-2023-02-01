@@ -373,7 +373,7 @@ def cython(filename, verbose=False, compile_message=False,
     # This is the *temporary* directory where we build the pyx file.
     # This is deleted when sage exits, which means pyx files must be
     # rebuilt every time Sage is restarted at present.
-    build_dir = '%s/%s'%(SPYX_TMP, base)
+    build_dir = os.path.join(SPYX_TMP, base)
 
     if os.path.exists(build_dir):
         # There is already a module here. Maybe we do not have to rebuild?

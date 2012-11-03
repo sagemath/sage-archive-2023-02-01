@@ -72,21 +72,6 @@ BAD_SESSION = -2
 
 failed_to_start = []
 
-#tmp_expect_interface_local='%s/tmp'%SAGE_TMP_INTERFACE
-
-#def tmp_expect_interface_local():
-#    return '%s/tmp'%SAGE_TMP_INTERFACE + str(os.getpid())
-
-## On some platforms, e.g., windows, this can easily take 10 seconds!?!  Terrible.  And
-## it should not be necessary or used anyways.
-## def _absolute(cmd):
-##     c = cmd.split()
-##     s  = c[0]
-##     t = os.popen('which %s'%s).read().strip()
-##     if len(t) == 0:
-##         raise RuntimeError
-##     return ' '.join([t] + c[1:])
-
 # The subprocess is a shared resource.  In a multi-threaded
 # environment, there would have to be a lock to control access to the
 # subprocess.  Fortunately, Sage does not use Python threads.
@@ -613,11 +598,10 @@ If this all works, you can then make calls like:
         - Simon King (2010-09): Making the tmp-file unique for the interface instance
 
         """
-        #return '%s/tmp'%SAGE_TMP_INTERFACE + str(self.pid())
         try:
             return self.__local_tmpfile
         except AttributeError:
-            self.__local_tmpfile = '%s/tmp'%SAGE_TMP_INTERFACE + str(self.pid())
+            self.__local_tmpfile = os.path.join(SAGE_TMP_INTERFACE, 'tmp' + str(self.pid()))
             return self.__local_tmpfile
 
     def _remote_tmpdir(self):

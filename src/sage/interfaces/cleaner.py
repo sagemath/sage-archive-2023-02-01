@@ -15,16 +15,16 @@
 import os
 
 import sage.misc.misc as misc
-F = '%s/spawned_processes'%misc.SAGE_TMP
 
 def cleaner(pid, cmd=''):
     if cmd != '':
         cmd = cmd.strip().split()[0]
     # This is safe, since only this process writes to this file.
+    F = os.path.join(misc.SAGE_TMP, 'spawned_processes')
     if os.path.exists(F):
         o = open(F,'a')
     else:
-        if not os.path.exists(misc.SAGE_TMP):
+        if not os.path.exists(str(misc.SAGE_TMP)):
             return
         o = open(F,'w')
     o.write('%s %s\n'%(pid, cmd))

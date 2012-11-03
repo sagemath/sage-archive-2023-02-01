@@ -1082,7 +1082,7 @@ end_scene""" % (render_params.antialiasing,
         # Tachyon resolution options
         if DOCTEST_MODE:
             opts = '-res 10 10'
-            filename = sage.misc.misc.SAGE_TMP + "/tmp"
+            filename = os.path.join(sage.misc.misc.SAGE_TMP, "tmp")
         elif EMBEDDED_MODE:
             opts = '-res %s %s'%(figsize[0]*100, figsize[1]*100)
             filename = sage.misc.temporary_file.graphics_filename()[:-4]

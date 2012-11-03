@@ -117,8 +117,7 @@ def get_precision():
 
         sage: from sage.libs.mwrank.mwrank import get_precision
         sage: get_precision()
-	50
-
+        50
     """
     return mwrank_get_precision()
 
@@ -154,7 +153,7 @@ def initprimes(filename, verb=False):
 
     EXAMPLES::
 
-        sage: file= SAGE_TMP + '/PRIMES'
+        sage: file = os.path.join(SAGE_TMP, 'PRIMES')
         sage: open(file,'w').write(' '.join([str(p) for p in prime_range(10^7,10^7+20)]))
         sage: mwrank_initprimes(file, verb=True)
 

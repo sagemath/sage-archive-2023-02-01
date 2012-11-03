@@ -724,7 +724,7 @@ cdef class MixedIntegerLinearProgram:
             sage: x = p.new_variable()
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2,name="OneConstraint")
-            sage: p.write_mps(SAGE_TMP+"/lp_problem.mps")
+            sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"))
 
         For information about the MPS file format :
         http://en.wikipedia.org/wiki/MPS_%28format%29
@@ -749,7 +749,7 @@ cdef class MixedIntegerLinearProgram:
             sage: x = p.new_variable()
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
-            sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")
+            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
 
         For more information about the LP file format :
         http://lpsolve.sourceforge.net/5.5/lp-format.htm

@@ -1274,7 +1274,7 @@ cdef class CPLEXBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - CPLEX
             sage: p.set_objective([2, 5])                          # optional - CPLEX
-            sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")            # optional - CPLEX
+            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))            # optional - CPLEX
         """
 
         cdef int status
@@ -1298,7 +1298,7 @@ cdef class CPLEXBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - CPLEX
             sage: p.set_objective([2, 5])                          # optional - CPLEX
-            sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")            # optional - CPLEX
+            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))            # optional - CPLEX
         """
 
         cdef int status

@@ -17,11 +17,11 @@ We next save this session. We are using a file in SAGE_TMP. We do this
 save your session permanently, since SAGE_TMP will be removed when
 leaving Sage!::
 
-    sage: save_session(SAGE_TMP+'session')
+    sage: save_session(os.path.join(SAGE_TMP, 'session'))
 
 This saves a dictionary with $w$ as one of the keys::
 
-    sage: z = load(SAGE_TMP+'session')
+    sage: z = load(os.path.join(SAGE_TMP, 'session'))
     sage: z.keys()
     ['w']
     sage: z['w']
@@ -32,7 +32,7 @@ Next we reset the session, verify this, and load the session back.::
     sage: reset()
     sage: show_identifiers()
     []
-    sage: load_session(SAGE_TMP+'session')
+    sage: load_session(os.path.join(SAGE_TMP, 'session'))
 
 Indeed $w$ is now defined again.::
 

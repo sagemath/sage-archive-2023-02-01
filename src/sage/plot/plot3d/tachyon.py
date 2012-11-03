@@ -314,7 +314,7 @@ class Tachyon(SageObject):
         import sage.plot.plot
         if sage.plot.plot.DOCTEST_MODE:
             filename = graphics_filename()
-            self.save(SAGE_TMP + '/test.png', verbose=verbose, extra_opts=extra_opts)
+            self.save(os.path.join(SAGE_TMP, 'test.png'), verbose=verbose, extra_opts=extra_opts)
             return
         if sage.plot.plot.EMBEDDED_MODE:
             filename = graphics_filename()

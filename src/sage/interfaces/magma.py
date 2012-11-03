@@ -1001,9 +1001,10 @@ class Magma(Expect):
 
         EXAMPLES::
 
-            sage: open(SAGE_TMP + 'a.m','w').write('function f(n) return n^2; end function;\nprint "hi";')
-            sage: print magma.load(SAGE_TMP + 'a.m')      # optional - magma
-            Loading ".../.sage//temp/.../a.m"
+            sage: filename = os.path.join(SAGE_TMP, 'a.m')
+            sage: open(filename, 'w').write('function f(n) return n^2; end function;\nprint "hi";')
+            sage: print magma.load(filename)      # optional - magma
+            Loading ".../tmp/.../a.m"
             hi
             sage: magma('f(12)')       # optional - magma
             144

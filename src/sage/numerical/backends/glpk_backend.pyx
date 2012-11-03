@@ -1211,7 +1211,7 @@ cdef class GLPKBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
-            sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")
+            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
         """
         glp_write_lp(self.lp, NULL, filename)
 
@@ -1231,7 +1231,7 @@ cdef class GLPKBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
-            sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")
+            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
         """
         glp_write_mps(self.lp, modern, NULL,  filename)
 

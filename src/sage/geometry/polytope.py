@@ -50,7 +50,7 @@ polymake_command = path + 'polymake'
 if os.path.exists(path):
     os.environ['PATH'] = '%s:'%path + os.environ['PATH']
 
-tmp_file = '%s/tmp.poly'%SAGE_TMP
+tmp_file = os.path.join(SAGE_TMP, 'tmp.poly')
 
 class Polytope(SageObject):
     """

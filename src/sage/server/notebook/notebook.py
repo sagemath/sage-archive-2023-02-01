@@ -1180,7 +1180,7 @@ class Notebook(SageObject):
 
         ::
 
-            sage: savefile = SAGE_TMP + 'tmp.sws'
+            sage: savefile = os.path.join(SAGE_TMP, 'tmp.sws')
 
             sage: nb.export_worksheet(W.filename(),  savefile, verbose=False)
 

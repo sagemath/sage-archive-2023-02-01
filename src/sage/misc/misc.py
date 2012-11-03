@@ -135,15 +135,14 @@ if _mode != _desired_mode:
 
 #################################################
 # Next we create the Sage temporary directory.
-# It is called temp instead of tmp mainly for
-# "historical reasons"...
+#################################################
 
 SAGE_TMP = os.path.join(DOT_SAGE, 'tmp', HOSTNAME, str(os.getpid()))
 sage_makedirs(SAGE_TMP)
 
-SPYX_TMP = os.path.join(SAGE_TMP, 'spyx/')
+SPYX_TMP = os.path.join(SAGE_TMP, 'spyx')
 
-SAGE_TMP_INTERFACE = os.path.join(SAGE_TMP, 'interface/')
+SAGE_TMP_INTERFACE = os.path.join(SAGE_TMP, 'interface')
 sage_makedirs(SAGE_TMP_INTERFACE)
 
 SAGE_DB = os.path.join(DOT_SAGE, 'db')

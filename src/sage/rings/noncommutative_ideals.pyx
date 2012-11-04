@@ -8,7 +8,7 @@
 ###############################################################################
 
 """
-Generic implementation of one- and twosided ideals of non-commutative rings.
+Generic implementation of one- and two-sided ideals of non-commutative rings.
 
 AUTHOR:
 
@@ -43,7 +43,7 @@ See :mod:`~sage.algebras.letterplace.letterplace_ideal` for a more
 elaborate implementation in the special case of ideals in free
 algebras.
 
-TEST::
+TESTS::
 
     sage: A = SteenrodAlgebra(2)
     sage: IL = A*[A.1+A.2,A.1^2]; IL
@@ -65,12 +65,13 @@ class IdealMonoid_nc(IdealMonoid_c):
     """
     Base class for the monoid of ideals over a non-commutative ring.
 
-    NOTE:
+    .. NOTE::
 
-    This class is essentially the same as :class:`~sage.rings.ideal_monoid.IdealMonoid_c`,
-    but does not complain about non-commutative rings.
+        This class is essentially the same as
+        :class:`~sage.rings.ideal_monoid.IdealMonoid_c`,
+        but does not complain about non-commutative rings.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: MS = MatrixSpace(ZZ,2,2)
         sage: MS.ideal_monoid()
@@ -79,11 +80,13 @@ class IdealMonoid_nc(IdealMonoid_c):
     """
     def __init__(self, R):
         """
+        Initialize ``self``.
+
         INPUT:
 
-        A ring.
+        - ``R`` -- A ring.
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.noncommutative_ideals import IdealMonoid_nc
             sage: MS = MatrixSpace(ZZ,2,2)
@@ -95,17 +98,18 @@ class IdealMonoid_nc(IdealMonoid_c):
         Parent.__init__(self, base = sage.rings.integer_ring.ZZ,
                         category = Monoids())
         self._populate_coercion_lists_()
+
     def _element_constructor_(self, x):
         r"""
         Create an ideal in this monoid from ``x``.
 
         INPUT:
 
-        An ideal, or a list of elements.
+        - ``x`` -- An ideal, or a list of elements.
 
         TESTS::
 
-            sage: A = SteenrodAlgebra(2)
+            sage: A = SteenrodAlgebra(2) # indirect doctest
             sage: IL = A*[A.1+A.2,A.1^2]; IL
             Left Ideal (Sq(2) + Sq(4), Sq(1,1)) of mod 2 Steenrod algebra, milnor basis
             sage: IR = [A.1+A.2,A.1^2]*A; IR
@@ -144,7 +148,7 @@ class Ideal_nc(Ideal_generic):
     implemented in sub-classes. See :class:`~sage.algebras.letterplace.letterplace_ideal.LetterplaceIdeal`
     for an example.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: MS = MatrixSpace(QQ,2,2)
         sage: I = MS*[MS.1,MS.2]; I
@@ -181,17 +185,22 @@ class Ideal_nc(Ideal_generic):
     """
     def __init__(self, ring, gens, coerce=True, side = "twosided"):
         """
+        Initialize ``self``.
+
         INPUT:
 
-        - A ring.
-        - A list or tuple of elements.
+        - ``ring`` -- A ring.
+
+        - ``gens`` -- A list or tuple of elements.
+
         - ``coerce`` (optional bool, default ``True``): First coerce the given
           list of elements into the given ring.
-        - ``side`` (option string, default ``"twosided"``): Must be ``"left"``,
-          ``"right"`` or ``"twosided"``. Determines whether the ideal is a left,
-          right or twosided ideal.
 
-        TEST::
+        - ``side`` (option string, default ``"twosided"``): Must be ``"left"``,
+          ``"right"`` or ``"twosided"``. Determines whether the ideal is a
+          left, right or twosided ideal.
+
+        TESTS::
 
             sage: MS = MatrixSpace(ZZ,2,2)
             sage: from sage.rings.noncommutative_ideals import Ideal_nc
@@ -221,9 +230,12 @@ class Ideal_nc(Ideal_generic):
             raise ValueError, "Ideals are left, right or twosided, but not %s"%side
         self.__side = side
         Ideal_generic.__init__(self, ring, gens, coerce=coerce)
+
     def __repr__(self):
         """
-        TEST::
+        Return a string representation of ``self``.
+
+        TESTS::
 
             sage: A = SteenrodAlgebra(2)
             sage: A*[A.1+A.2,A.1^2]      # indirect doctest
@@ -241,7 +253,7 @@ class Ideal_nc(Ideal_generic):
         Ideals of different sidedness do not compare equal. Apart from
         that, the generators are compared.
 
-        EXAMPLE::
+        EXAMPLES::
 
              sage: A = SteenrodAlgebra(2)
              sage: IR = [A.1+A.2,A.1^2]*A
@@ -282,6 +294,7 @@ class Ideal_nc(Ideal_generic):
 
         """
         return self.__side
+
     def __mul__(self, other):
         """
         Multiplication of a one-sided ideal with its ring from the other side

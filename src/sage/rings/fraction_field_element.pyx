@@ -10,9 +10,9 @@ AUTHORS:
 
 REFERENCES:
 
-- [Ho72] E. Horowitz, "Algorithms for Rational Function Arithmetic
-  Operations", Annual ACM Symposium on Theory of Computing, Proceedings of
-  the Fourth Annual ACM Symposium on Theory of Computing, pp. 108--118, 1972
+.. [Ho72] E. Horowitz, "Algorithms for Rational Function Arithmetic
+   Operations", Annual ACM Symposium on Theory of Computing, Proceedings of
+   the Fourth Annual ACM Symposium on Theory of Computing, pp. 108--118, 1972
 
 """
 
@@ -48,7 +48,7 @@ import sage.misc.latex as latex
 
 def is_FractionFieldElement(x):
     """
-    Returns whether or not x is of type FractionFieldElement.
+    Returns whether or not ``x`` is a :class`FractionFieldElement`.
 
     EXAMPLES::
 
@@ -79,14 +79,14 @@ cdef class FractionFieldElement(FieldElement):
 
     TESTS:
 
-    Test if #5451 is fixed::
+    Test if :trac:`5451` is fixed::
 
         sage: A = FiniteField(9,'theta')['t']
         sage: K.<t> = FractionField(A)
         sage: f= 2/(t^2+2*t); g =t^9/(t^18 + t^10 + t^2);f+g
         (2*t^15 + 2*t^14 + 2*t^13 + 2*t^12 + 2*t^11 + 2*t^10 + 2*t^9 + t^7 + t^6 + t^5 + t^4 + t^3 + t^2 + t + 1)/(t^17 + t^9 + t)
 
-    Test if #8671 is fixed::
+    Test if :trac:`8671` is fixed::
 
         sage: P.<n> = QQ[]
         sage: F = P.fraction_field()
@@ -101,6 +101,8 @@ cdef class FractionFieldElement(FieldElement):
     def __init__(self, parent, numerator, denominator=1,
                  coerce=True, reduce=True):
         """
+        Initialize ``self``.
+
         EXAMPLES::
 
             sage: from sage.rings.fraction_field_element import FractionFieldElement
@@ -119,7 +121,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: K(355/113)
             355/113
 
-        The next example failed before #4376::
+        The next example failed before :trac:`4376`::
 
             sage: K(pari((x + 1)/(x^2 + x + 1)))
             (x + 1)/(x^2 + x + 1)
@@ -211,10 +213,12 @@ cdef class FractionFieldElement(FieldElement):
         except TypeError:
             raise ArithmeticError, "unable to reduce because gcd algorithm doesn't work on input"
         except NotImplementedError:
-            raise ArithmeticError, "unable to reduce because gcd algorithm not implemented on input"
+            raise ArithmeticError("unable to reduce because gcd algorithm not implemented on input")
 
     def __copy__(self):
         """
+        Make a copy of ``self``.
+
         EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
@@ -228,6 +232,8 @@ cdef class FractionFieldElement(FieldElement):
 
     def numerator(self):
         """
+        Return the numerator of ``self``.
+
         EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
@@ -240,6 +246,8 @@ cdef class FractionFieldElement(FieldElement):
 
     def denominator(self):
         """
+        Return the denominator of ``self``.
+
         EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
@@ -253,19 +261,16 @@ cdef class FractionFieldElement(FieldElement):
 
     def is_square(self,root=False):
         """
-        Returns whether or not self is a perfect square. If the optional
-        argument root is True, then also returns a square root (or None,
-        if the fraction field element is not square).
+        Returns whether or not ``self`` is a perfect square. If the optional
+        argument ``root`` is ``True``, then also returns a square root (or
+        ``None``, if the fraction field element is not square).
 
         INPUT:
 
-
-        -  ``root`` - whether or not to also return a square
-           root (default: False)
-
+        -  ``root`` -- whether or not to also return a square
+           root (default: ``False``)
 
         OUTPUT:
-
 
         -  ``bool`` - whether or not a square
 
@@ -404,10 +409,12 @@ cdef class FractionFieldElement(FieldElement):
 
     def _repr_(self):
         """
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: K.<x> = Frac(ZZ['x'])
-            sage: repr(x+1)
+            sage: repr(x+1) # indirect doctest
             'x + 1'
             sage: repr((x+1)/(x-1))
             '(x + 1)/(x - 1)'
@@ -437,7 +444,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: F = R.fraction_field()
             sage: x = F.gen()
             sage: a = x^2 / 1
-            sage: latex(a)
+            sage: latex(a) # indirect doctest
             x^{2}
             sage: latex(x^2/(x^2+1))
             \frac{x^{2}}{x^{2} + 1}
@@ -455,7 +462,7 @@ cdef class FractionFieldElement(FieldElement):
             True
             sage: z.denominator() == R.gen()
             True
-            sage: latex(z)
+            sage: latex(z) # indirect doctest
             0
         """
         if self.is_zero():
@@ -472,7 +479,7 @@ cdef class FractionFieldElement(FieldElement):
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
-            sage: magma((x^2 + x + 1)/(x + 1))          # optional - magma
+            sage: magma((x^2 + x + 1)/(x + 1)) # optional - magma # indirect doctest
             (x^2 + x + 1)/(x + 1)
 
         ::
@@ -495,16 +502,16 @@ cdef class FractionFieldElement(FieldElement):
 
         INPUT:
 
-            - ``right`` - ModuleElement to add to ``self``
+        - ``right`` -- ``ModuleElement`` to add to ``self``
 
         OUTPUT:
 
-            - Sum of ``self`` and ``right``
+        - Sum of ``self`` and ``right``
 
         EXAMPLES::
 
             sage: K.<x,y> = Frac(ZZ['x,y'])
-            sage: x+y
+            sage: x+y # indirect doctest
             x + y
             sage: 1/x + 1/y
             (x + y)/(x*y)
@@ -574,16 +581,16 @@ cdef class FractionFieldElement(FieldElement):
 
         INPUT:
 
-            - ``right`` - ModuleElement to subtract from ``self``
+        - ``right`` - ``ModuleElement`` to subtract from ``self``
 
         OUTPUT:
 
-            - Difference of ``self`` and ``right``
+        - Difference of ``self`` and ``right``
 
         EXAMPLES::
 
             sage: K.<t> = Frac(GF(7)['t'])
-            sage: t - 1/t
+            sage: t - 1/t # indirect doctest
             (t^2 + 6)/t
         """
         return self._add_(-right)
@@ -594,18 +601,18 @@ cdef class FractionFieldElement(FieldElement):
 
         INPUT:
 
-            - ``right`` - RingElement to multiply with ``self``
+        - ``right`` - ``RingElement`` to multiply with ``self``
 
         OUTPUT:
 
-            - Product of ``self`` and ``right``
+        - Product of ``self`` and ``right``
 
         EXAMPLES::
 
             sage: K.<t> = Frac(GF(7)['t'])
             sage: a = t/(1+t)
             sage: b = 3/t
-            sage: a*b
+            sage: a*b # indirect doctest
             3/(t + 1)
         """
         rnum = self.__numerator
@@ -659,16 +666,16 @@ cdef class FractionFieldElement(FieldElement):
 
         INPUT:
 
-            - ``right`` - RingElement that is the divisor
+        - ``right`` -- ``RingElement`` that is the divisor
 
         OUTPUT:
 
-            - Quotient of ``self`` and ``right``
+        Quotient of ``self`` and ``right``
 
         EXAMPLES::
 
             sage: K.<x,y,z> = Frac(ZZ['x,y,z'])
-            sage: a = (x+1)*(x+y)/(z-3)
+            sage: a = (x+1)*(x+y)/(z-3) # indirect doctest
             sage: b = (x+y)/(z-1)
             sage: a/b
             (x*z - x + z - 1)/(z - 3)
@@ -752,7 +759,7 @@ cdef class FractionFieldElement(FieldElement):
         Returns self raised to the `right^{th}` power.
 
         Note that we need to check whether or not right is negative so we
-        don't set __numerator or __denominator to an element of the
+        don't set ``__numerator`` or ``__denominator`` to an element of the
         fraction field instead of the underlying ring.
 
         EXAMPLES::
@@ -876,7 +883,7 @@ cdef class FractionFieldElement(FieldElement):
 
     def valuation(self, v=None):
         """
-        Return the valuation of self, assuming that the numerator and
+        Return the valuation of ``self``, assuming that the numerator and
         denominator have valuation functions defined on them.
 
         EXAMPLES::
@@ -894,7 +901,7 @@ cdef class FractionFieldElement(FieldElement):
 
     def __nonzero__(self):
         """
-        Returns True if this element is nonzero.
+        Return ``True`` if this element is nonzero.
 
         EXAMPLES::
 
@@ -913,7 +920,7 @@ cdef class FractionFieldElement(FieldElement):
 
     def is_zero(self):
         """
-        Returns True if this element is equal to zero.
+        Return ``True`` if this element is equal to zero.
 
         EXAMPLES::
 
@@ -932,7 +939,7 @@ cdef class FractionFieldElement(FieldElement):
 
     def is_one(self):
         """
-        Returns True if this element is equal to one.
+        Return ``True`` if this element is equal to one.
 
         EXAMPLES::
 
@@ -946,10 +953,28 @@ cdef class FractionFieldElement(FieldElement):
         return self.__numerator == self.__denominator
 
     def _symbolic_(self, ring):
+        """
+        Return ``self`` as a fraction in the ring ``ring``. Used for
+        :func:`symbolic_expression` in creating a symbolic expression of
+        ``self``.
+
+        EXAMPLES::
+
+            sage: F = ZZ['x,y'].fraction_field()
+            sage: x,y = F.gens()
+            sage: elt = (2*x + 2*y) / (3*x - 3*y); elt
+            (2*x + 2*y)/(3*x - 3*y)
+            sage: elt._symbolic_(SR)
+            2/3*(x + y)/(x - y)
+            sage: symbolic_expression(elt)
+            2/3*(x + y)/(x - y)
+        """
         return ring(self.__numerator)/ring(self.__denominator)
 
     def __reduce__(self):
         """
+        For pickling.
+
         EXAMPLES::
 
             sage: F = ZZ['x,y'].fraction_field()
@@ -963,7 +988,8 @@ cdef class FractionFieldElement(FieldElement):
 
 class FractionFieldElement_1poly_field(FractionFieldElement):
     """
-    A fraction field element where the parent is the fraction field of a univariate polynomial ring.
+    A fraction field element where the parent is the fraction field of a
+    univariate polynomial ring.
 
     Many of the functions here are included for coherence with number fields.
     """
@@ -973,16 +999,24 @@ class FractionFieldElement_1poly_field(FractionFieldElement):
 
         EXAMPLES::
 
-            sage: R.<t> = GF(5)[]
-            sage: K = R.fraction_field
+            sage: R.<t> = QQ[]
+            sage: elt = (t^2 + t - 2) / (t + 2); elt # == (t + 2)*(t - 1)/(t + 2)
+            t - 1
+            sage: elt.is_integral()
+            True
+            sage: elt = (t^2 - t) / (t+2); elt # == t*(t - 1)/(t + 2)
+            (t^2 - t)/(t + 2)
+            sage: elt.is_integral()
+            False
         """
-        if self.__denominator != 1:
+        if self.denominator() != 1:
             self.reduce()
-        return self.__denominator == 1
+        return self.denominator() == 1
 
     def support(self):
         """
-        Returns a sorted list of primes dividing either the numerator or denominator of this element.
+        Returns a sorted list of primes dividing either the numerator or
+        denominator of this element.
 
         EXAMPLES::
 
@@ -996,10 +1030,9 @@ class FractionFieldElement_1poly_field(FractionFieldElement):
         return L
 
 
-
 def make_element(parent, numerator, denominator):
     """
-    Used for unpickling FractionFieldElement objects (and subclasses).
+    Used for unpickling :class:`FractionFieldElement` objects (and subclasses).
 
     EXAMPLES::
 
@@ -1015,7 +1048,7 @@ def make_element(parent, numerator, denominator):
 
 def make_element_old(parent, cdict):
     """
-    Used for unpickling old FractionFieldElement pickles.
+    Used for unpickling old :class:`FractionFieldElement` pickles.
 
     EXAMPLES::
 

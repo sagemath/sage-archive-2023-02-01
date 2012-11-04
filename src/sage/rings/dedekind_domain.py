@@ -20,4 +20,12 @@ Base class for Dedekind domains
 from sage.rings.ring import DedekindDomain
 
 def is_DedekindDomain(R):
+    """
+    Check to see if ``R`` is a :class:`DedekindDomain`.
+
+    EXAMPLES::
+
+        sage: sage.rings.dedekind_domain.is_DedekindDomain(DedekindDomain(QQ))
+        True
+    """
     return isinstance(R, DedekindDomain)

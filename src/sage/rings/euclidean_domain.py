@@ -20,4 +20,12 @@ Abstract base class for Euclidean domains
 from sage.rings.ring import EuclideanDomain
 
 def is_EuclideanDomain(R):
+    """
+    Check to see if ``R`` is a :class:`EuclideanDomain`.
+
+    EXAMPLES::
+
+        sage: sage.rings.euclidean_domain.is_EuclideanDomain(EuclideanDomain(ZZ))
+        True
+    """
     return isinstance(R, EuclideanDomain)

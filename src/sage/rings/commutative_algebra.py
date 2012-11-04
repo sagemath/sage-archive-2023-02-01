@@ -20,4 +20,12 @@ Abstract base class for commutative algebras
 from sage.rings.ring import CommutativeAlgebra
 
 def is_CommutativeAlgebra(x):
+    """
+    Check to see if ``x`` is a :class:`CommutativeAlgebra`.
+
+    EXAMPLES::
+
+        sage: sage.rings.commutative_algebra.is_CommutativeAlgebra(sage.rings.ring.CommutativeAlgebra(ZZ))
+        True
+    """
     return isinstance(x, CommutativeAlgebra)

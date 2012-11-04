@@ -20,4 +20,12 @@ Base class for Euclidean domain elements
 from sage.structure.element import EuclideanDomainElement
 
 def is_EuclideanDomainElement(x):
+    """
+    Check to see if ``x`` is a :class:`EuclideanDomainElement`.
+
+    EXAMPLES::
+
+        sage: sage.rings.euclidean_domain_element.is_EuclideanDomainElement(EuclideanDomainElement(ZZ))
+        True
+    """
     return isinstance(x, EuclideanDomainElement)

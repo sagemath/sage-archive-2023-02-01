@@ -1,4 +1,4 @@
-"""
+r"""
 Quotient Rings
 
 AUTHORS:
@@ -21,12 +21,12 @@ TESTS::
 
         sage: TestSuite(S).run(skip=['_test_nonzero_equal', '_test_elements', '_test_zero'])
 
-In trac ticket #11068, non-commutative quotient rings `R/I` were
+In :trac:`11068`, non-commutative quotient rings `R/I` were
 implemented.  The only requirement is that the two-sided ideal `I`
 provides a ``reduce`` method so that ``I.reduce(x)`` is the normal
 form of an element `x` with respect to `I` (i.e., we have
-``I.reduce(x)==I.reduce(y)`` if `x-y\\in I`, and
-``x-I.reduce(x) in I``). Here is a toy example::
+``I.reduce(x) == I.reduce(y)`` if `x-y \in I`, and
+``x - I.reduce(x) in I``). Here is a toy example::
 
     sage: from sage.rings.noncommutative_ideals import Ideal_nc
     sage: class PowerIdeal(Ideal_nc):
@@ -78,7 +78,7 @@ quotient ring is commutative::
     sage: (a+b+2)^4
     16 + 32*a + 32*b
 
-Since trac ticket #7797, there is an implementation of free algebras
+Since :trac:`7797`, there is an implementation of free algebras
 based on Singular's implementation of the Letterplace Algebra. Our
 letterplace wrapper allows to provide the above toy example more
 easily::
@@ -127,16 +127,16 @@ def QuotientRing(R, I, names=None):
     of a polynomial ring).  If ``names`` isn't given, 'bar' will be appended
     to the variable names in `R`.
 
-    INPUTS:
+    INPUT:
 
-    - ``R`` - a ring.
+    - ``R`` -- a ring.
 
-    - ``I`` - a twosided ideal of `R`.
+    - ``I`` -- a twosided ideal of `R`.
 
-    - ``names`` (optional) - a list of strings to be used as names for
+    - ``names`` -- (optional) a list of strings to be used as names for
       the variables in the quotient ring `R/I`.
 
-    OUTPUTS: `R/I` - the quotient ring `R` mod the ideal `I`
+    OUTPUT: `R/I` - the quotient ring `R` mod the ideal `I`
 
     ASSUMPTION:
 
@@ -165,10 +165,8 @@ def QuotientRing(R, I, names=None):
         sage: 2*S(4)
         0
 
-    With polynomial rings: (note that the variable name of the quotient
-    ring can be specified as shown below)
-
-    ::
+    With polynomial rings (note that the variable name of the quotient
+    ring can be specified as shown below)::
 
         sage: R.<xx> = QuotientRing(QQ[x], QQ[x].ideal(x^2 + 1)); R
         Univariate Quotient Polynomial Ring in xx over Rational Field with modulus x^2 + 1
@@ -221,7 +219,7 @@ def QuotientRing(R, I, names=None):
 
     TESTS:
 
-    By trac ticket #11068, the following does not return a generic
+    By :trac:`11068`, the following does not return a generic
     quotient ring but a usual quotient of the integer ring::
 
         sage: R = Integers(8)
@@ -346,9 +344,11 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
     """
     The quotient ring of `R` by a twosided ideal `I`.
 
+    This class is for rings that do not inherit from
+    :class:`~sage.rings.ring.CommutativeRing`.
+
     EXAMPLES:
 
-    This class is for rings that do not inherit from :class:`~sage.rings.ring.CommutativeRing`.
     Here is a quotient of a free algebra by a twosided homogeneous ideal::
 
         sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
@@ -371,8 +371,9 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         sage: j^3
         -j*k*i - j*k*j - j*k*k
 
-    For rings that *do* inherit from :class:`~sage.rings.ring.CommutativeRing`, we provide
-    a subclass :class:`QuotientRing_generic`, for backwards compatibility.
+    For rings that *do* inherit from :class:`~sage.rings.ring.CommutativeRing`,
+    we provide a subclass :class:`QuotientRing_generic`, for backwards
+    compatibility.
 
     EXAMPLES::
 
@@ -410,9 +411,11 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         INPUT:
 
-        -  ``R`` - a ring.
-        -  ``I`` - a twosided ideal of `R`.
-        - ``names`` - a list of generator names.
+        -  ``R`` -- a ring.
+
+        -  ``I`` -- a twosided ideal of `R`.
+
+        - ``names`` -- a list of generator names.
 
         EXAMPLES::
 
@@ -455,6 +458,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
     def construction(self):
         """
+        Returns the functorial construction of ``self``.
+
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ,'x')
@@ -490,6 +495,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
     def _repr_(self):
         """
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ,'x')
@@ -501,6 +508,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
     def _latex_(self):
         """
+        Return a latex representation of ``self``.
+
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ,'x')
@@ -514,12 +523,12 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         """
         Tell whether this quotient ring is commutative.
 
-        NOTE:
+        .. NOTE::
 
-        This is certainly the case if the cover ring is commutative.
-        Otherwise, if this ring has a finite number of generators, it
-        is tested whether they commute. If the number of generators is
-        infinite, a ``NotImplementedError`` is raised.
+            This is certainly the case if the cover ring is commutative.
+            Otherwise, if this ring has a finite number of generators, it
+            is tested whether they commute. If the number of generators is
+            infinite, a ``NotImplementedError`` is raised.
 
         AUTHOR:
 
@@ -586,7 +595,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             2
             sage: l = pi.lift()
 
-        EXAMPLES::
+        ::
 
             sage: R.<x,y>  = PolynomialRing(QQ)
             sage: Q = R.quo( (x^2,y^2) )
@@ -639,9 +648,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             y
 
         Note that some reduction may be applied so that the lift of a
-        reduction need not equal the original element.
-
-        ::
+        reduction need not equal the original element::
 
             sage: z = pi(x^3 + 2*y^2); z
             -xbar*ybar^2 + 2*ybar^2
@@ -651,8 +658,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             False
 
         Test that there also is a lift for rings that are no
-        instances of :class:`~sage.rings.ring.Ring` (see trac
-        ticket #11068)::
+        instances of :class:`~sage.rings.ring.Ring` (see :trac:`11068`)::
 
             sage: MS = MatrixSpace(GF(5),2,2)
             sage: I = MS*[MS.0*MS.1,MS.2+MS.3]*MS
@@ -687,12 +693,12 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         Return the lifting map to the cover, or the image
         of an element under the lifting map.
 
-        NOTE:
+        .. NOTE::
 
-        The category framework imposes that ``Q.lift(x)`` returns
-        the image of an element `x` under the lifting map. For
-        backwards compatibility, we let ``Q.lift()`` return the
-        lifting map.
+            The category framework imposes that ``Q.lift(x)`` returns
+            the image of an element `x` under the lifting map. For
+            backwards compatibility, we let ``Q.lift()`` return the
+            lifting map.
 
         EXAMPLES::
 
@@ -717,7 +723,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         INPUT:
 
-        An element of the cover ring
+        - ``x`` -- An element of the cover ring
 
         OUTPUT:
 
@@ -737,7 +743,9 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         r"""
         Return the characteristic of the quotient ring.
 
-        TODO: Not yet implemented!
+        .. TODO::
+
+            Not yet implemented!
 
         EXAMPLES::
 
@@ -812,8 +820,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         When ``proof`` is ``False``, if ``True`` is returned, then self is
         definitely an integral domain.  If the function returns ``False``,
-        then either self is not an integral domain or it was unable to
-        determine whether or not self is an integral domain.
+        then either ``self`` is not an integral domain or it was unable to
+        determine whether or not ``self`` is an integral domain.
 
         EXAMPLES::
 
@@ -876,10 +884,6 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         raise NotImplementedError
 
-    # This is to make the category framework happy
-    def ambient(self):
-        return self.__R
-
     def cover_ring(self):
         r"""
         Returns the cover ring of the quotient ring: that is, the original
@@ -899,9 +903,12 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         """
         return self.__R
 
+    # This is to make the category framework happy
+    ambient = cover_ring
+
     def ideal(self, *gens, **kwds):
         """
-        Return the ideal of self with the given generators.
+        Return the ideal of ``self`` with the given generators.
 
         EXAMPLES::
 
@@ -914,7 +921,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         TESTS:
 
-        We create an ideal of a fairly generic integer ring (see trac 5666)::
+        We create an ideal of a fairly generic integer ring (see
+        :trac:`5666`)::
 
             sage: R = Integers(10)
             sage: R.ideal(1)
@@ -938,11 +946,13 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
     def _element_constructor_(self, x, coerce=True):
         """
+        Construct an element with ``self`` as the parent.
+
         EXAMPLES::
 
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: S = R.quotient_ring(x^2+y^2)
-            sage: S(x)
+            sage: S(x) # indirect doctest
             xbar
             sage: S(x^2 + y^2)
             0
@@ -984,7 +994,21 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
     def _coerce_map_from_(self, R):
         """
-        Returns True if there is a coercion map from R to self.
+        Returns ``True`` if there is a coercion map from ``R`` to ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: S = R.quotient_ring(x^2+y^2)
+            sage: S.has_coerce_map_from(R) # indirect doctest
+            True
+            sage: S.has_coerce_map_from(QQ)
+            True
+            sage: T = S.quotient_ring(x^3 - y)
+            sage: S.has_coerce_map_from(T)
+            False
+            sage: T.has_coerce_map_from(R)
+            True
         """
         return self.cover_ring().has_coerce_map_from(R)
 
@@ -1018,11 +1042,13 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         r"""
         Returns the number of generators for this quotient ring.
 
-        TODO: Note that ``ngens`` counts 0 as a generator. Does
-        this make sense? That is, since 0 only generates itself and the
-        fact that this is true for all rings, is there a way to "knock it
-        off" of the generators list if a generator of some original ring is
-        modded out?
+        .. TODO::
+
+            Note that ``ngens`` counts 0 as a generator. Does
+            this make sense? That is, since 0 only generates itself and the
+            fact that this is true for all rings, is there a way to "knock it
+            off" of the generators list if a generator of some original ring is
+            modded out?
 
         EXAMPLES::
 
@@ -1081,7 +1107,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
     def _singular_(self, singular=singular_default):
         """
-        Returns the Singular quotient ring of self if the base ring is
+        Returns the Singular quotient ring of ``self`` if the base ring is
         coercible to Singular.
 
         If a valid Singular representation is found it is used otherwise a
@@ -1089,14 +1115,12 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         INPUT:
 
-
         -  ``singular`` - Singular instance (default: the
            default Singular instance)
 
+        .. NOTE::
 
-        .. note::
-
-           This method also sets the current ring in Singular to self
+           This method also sets the current ring in Singular to ``self``
 
         EXAMPLES::
 
@@ -1122,10 +1146,10 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
     def _singular_init_(self,singular=singular_default):
         """
-        Returns a newly created Singular quotient ring matching self if the
-        base ring is coercible to Singular.
+        Returns a newly created Singular quotient ring matching ``self`` if
+        the base ring is coercible to Singular.
 
-        See self._singular_
+        See ``_singular_``
 
         EXAMPLES::
 
@@ -1148,15 +1172,13 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         INPUT:
 
-
         -  ``magma`` - a Magma instance
 
-
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y> = PolynomialRing(GF(2))
             sage: Q = P.quotient(sage.rings.ideal.FieldIdeal(P))
-            sage: magma(Q)                                         # optional - magma
+            sage: magma(Q)                    # optional - magma # indirect doctest
             Affine Algebra of rank 2 over GF(2)
             Graded Reverse Lexicographical Order
             Variables: x, y
@@ -1174,7 +1196,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         """
         Return the term order of this ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c> = PolynomialRing(QQ)
             sage: I = Ideal([a^2 - a, b^2 - b, c^2 - c])
@@ -1194,21 +1216,24 @@ class QuotientRing_generic(QuotientRing_nc, sage.rings.commutative_ring.Commutat
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
         sage: S = R.quotient_ring(I); S
         Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)
-
     """
+
     def __init__(self, R, I, names, category=None):
         """
+        Initialize ``self``.
+
         INPUT:
 
-        -  ``R`` - a ring that is of type <sage.rings.ring.CommutativeRing>.
-        -  ``I`` - an ideal of `R`.
-        - ``names`` - a list of generator names.
+        -  ``R`` -- a ring that is a :class:`~sage.rings.ring.CommutativeRing`.
 
-        TEST::
+        -  ``I`` -- an ideal of `R`.
+
+        - ``names`` -- a list of generator names.
+
+        TESTS::
 
             sage: isinstance(ZZ.quo(2), sage.rings.ring.CommutativeRing)  # indirect doctest
             True
-
         """
         if not isinstance(R, sage.rings.commutative_ring.CommutativeRing):
             raise TypeError, "This class is for quotients of commutative rings only.\n    For non-commutative rings, use <sage.rings.quotient_ring.QuotientRing_nc>"

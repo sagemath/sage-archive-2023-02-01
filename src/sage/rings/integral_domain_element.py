@@ -20,4 +20,12 @@ Base class for integral domain elements
 from sage.structure.element import IntegralDomainElement
 
 def is_IntegralDomainElement(x):
+    """
+    Check if ``x`` is an element of :class:`IntegralDomainElement`.
+
+    EXAMPLES::
+
+        sage: sage.rings.integral_domain_element.is_IntegralDomainElement(ZZ(2))
+        True
+    """
     return isinstance(x, IntegralDomainElement)

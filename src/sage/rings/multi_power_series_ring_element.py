@@ -2,8 +2,7 @@ r"""
 Multivariate Power Series
 
 Construct and manipulate multivariate power series over a given commutative
-ring.  Multivariate power series are implemented with total-degree
-precision.
+ring. Multivariate power series are implemented with total-degree precision.
 
 EXAMPLES:
 
@@ -36,10 +35,8 @@ Power series arithmetic, tracking precision::
     sage: (f%2).parent()
     Multivariate Power Series Ring in s, t over Ring of integers modulo 2
 
-Comparisons: As with univariate power series, comparison of f and g is done
-up to the minimum precision of f and g.
-
-::
+As with univariate power series, comparison of `f` and `g` is
+done up to the minimum precision of `f` and `g`::
 
     sage: f = 1 + t + s + s*t + R.O(3); f
     1 + s + t + s*t + O(s, t)^3
@@ -63,8 +60,8 @@ Calling::
     sage: f(t^2,s^2)
     s^2*t^2 + t^4 + s^2*t^4 + t^6 + 3*s^2*t^6 + 3*t^8 + O(s, t)^10
 
-- Substitution is defined only for elements of positive valuation, unless f
-  has infinite precision::
+Substitution is defined only for elements of positive valuation, unless `f`
+has infinite precision::
 
     sage: f(t^2,s^2+1)
     Traceback (most recent call last):
@@ -78,14 +75,14 @@ Calling::
     sage: g(t^2,(s^2+1).O(3))
     t^2 + s^2*t^2 + 2*t^4 + O(s, t)^5
 
-- 0 has valuation +Infinity::
+0 has valuation ``+Infinity``::
 
     sage: f(t^2,0)
     t^4 + t^6 + 3*t^8 + O(s, t)^10
     sage: f(t^2,s^2+s)
     s*t^2 + s^2*t^2 + t^4 + O(s, t)^5
 
-- Substitution of power series with finite precision works too::
+Substitution of power series with finite precision works too::
 
     sage: f(s.O(2),t)
     s^2 + s*t + O(s, t)^3
@@ -97,7 +94,7 @@ Calling::
     sage: t(0,f) == s(f,0)
     True
 
-- subs works as expected::
+Subs works as expected::
 
     sage: r0 = -t^2 - s*t^3 - 2*t^6 + s^7 + s^5*t^2 + R.O(10)
     sage: r1 = s^4 - s*t^4 + s^6*t - 4*s^2*t^5 - 6*s^3*t^5 + R.O(10)
@@ -108,7 +105,7 @@ Calling::
     sage: r0.subs({t:r2,s:r1}) == r0(r1,r2)
     True
 
-- construct ring homomorphisms from one power series ring to another::
+Construct ring homomorphisms from one power series ring to another::
 
     sage: A.<a,b> = PowerSeriesRing(QQ)
     sage: X.<x,y> = PowerSeriesRing(QQ)
@@ -177,7 +174,7 @@ from sage.rings.infinity import infinity, is_Infinite
 
 def is_MPowerSeries(f):
     """
-        Return true if input is a multivariate power series.
+    Return ``True`` if input is a multivariate power series.
 
     TESTS::
 
@@ -235,25 +232,22 @@ class MPowerSeries(PowerSeries):
     Multivariate power series; these are the elements of Multivariate Power
     Series Rings.
 
-    INPUT
+    INPUT:
 
-        - ``parent`` - A multivariate power series.
+    - ``parent`` -- A multivariate power series.
 
-        - ``x`` - The element (default: 0).  This can be another
-          MPowerSeries object, or an element of one of the following:
+    - ``x`` -- The element (default: 0).  This can be another
+      :class:`MPowerSeries` object, or an element of one of the following:
 
-            - the background univariate power series ring
+      - the background univariate power series ring
+      - the foreground polynomial ring
+      - a ring that coerces to one of the above two
 
-            - the foreground polynomial ring
+    - ``prec`` -- (default: ``infinity``) The precision
 
-            - a ring that coerces to one of the above two
+    - ``is_gen`` -- (default: ``False``) Is this element one of the generators?
 
-        - ``prec`` - the precision (default: infinity)
-
-        - ``is_gen`` - is this element one of the generators? (default: False)
-
-        - ``check`` - needed by univariate power series class (default: False)
-
+    - ``check`` -- (default: ``False``) Needed by univariate power series class
 
     EXAMPLES:
 
@@ -305,20 +299,15 @@ class MPowerSeries(PowerSeries):
         Multivariate Polynomial Ring in t0, t1, t2, t3, t4 over Integer Ring
         sage: r in T
         True
-
     """
-
 
     def __init__(self, parent, x=0, prec=infinity, is_gen=False, check=False):
         """
-        input x can be an MPowerSeries, or an element of
+        Input ``x`` can be an :class:`MPowerSeries`, or an element of
 
-          - the background univariate power series ring
-
-          - the foreground polynomial ring
-
-          - a ring that coerces to one of the above two
-
+            - the background univariate power series ring
+            - the foreground polynomial ring
+            - a ring that coerces to one of the above two
 
         TESTS::
 
@@ -414,6 +403,8 @@ class MPowerSeries(PowerSeries):
 
     def __reduce__(self):
         """
+        For pickling.
+
         EXAMPLES::
 
             sage: K.<s,t> = PowerSeriesRing(QQ)
@@ -425,6 +416,8 @@ class MPowerSeries(PowerSeries):
 
     def __call__(self, *x, **kwds):
         """
+        Evaluate ``self``.
+
         EXAMPLES::
 
             sage: R.<s,t> = PowerSeriesRing(ZZ); R
@@ -470,14 +463,14 @@ class MPowerSeries(PowerSeries):
             newprec = self.prec()*min(valn_list)
         return self._value().subs(sub_dict).add_bigoh(newprec)
 
-    def _subs_formal(self,*x,**kwds):
+    def _subs_formal(self, *x, **kwds):
         """
-        Substitution of inputs as variables of self.  This is formal
+        Substitution of inputs as variables of ``self``.  This is formal
         in the sense that the inputs do not need to be elements of
-        same multivariate power series ring as self.  They can be any
+        same multivariate power series ring as ``self``.  They can be any
         objects which support addition and multiplication with
-        eachother and with the coefficients of self.  If self has
-        finite precision, the inputs must also support an `add_bigoh`
+        each other and with the coefficients of ``self``.  If ``self`` has
+        finite precision, the inputs must also support an ``add_bigoh``
         method.
 
         TESTS::
@@ -536,7 +529,7 @@ class MPowerSeries(PowerSeries):
 
     def _value(self):
         """
-        Return the value of self in the foreground polynomial ring.
+        Return the value of ``self`` in the foreground polynomial ring.
 
         EXAMPLES::
 
@@ -549,13 +542,12 @@ class MPowerSeries(PowerSeries):
             1 + a + b - a*b
             sage: f._value().parent()
             Multivariate Polynomial Ring in a, b, c over Finite Field of size 5
-
         """
         return self._go_to_fg(self._bg_value)
 
     def _repr_(self):
         """
-        Return string representation of self.
+        Return string representation of ``self``.
 
         EXAMPLES::
 
@@ -563,7 +555,6 @@ class MPowerSeries(PowerSeries):
             sage: e = 1 + s - s*t + t*v/2 - 2*s*t*v/8 + B.O(4)
             sage: e._repr_()
             '1 + s - s*t + 1/2*t*v - 1/4*s*t*v + O(s, t, v)^4'
-
         """
         if self._prec == infinity:
             return "%s" % self._value()
@@ -577,9 +568,9 @@ class MPowerSeries(PowerSeries):
         Return latex representation of this multivariate power series.
 
         EXAMPLES::
+
             sage: M = PowerSeriesRing(GF(5),3,'t'); M
-            Multivariate Power Series Ring in t0, t1, t2 over Finite Field
-            of size 5
+            Multivariate Power Series Ring in t0, t1, t2 over Finite Field of size 5
             sage: t = M.gens()
             sage: f = -t[0]^4*t[1]^3*t[2]^4 - 2*t[0]*t[1]^4*t[2]^7 \
             + 2*t[1]*t[2]^12 + 2*t[0]^7*t[1]^5*t[2]^2 + M.O(15)
@@ -602,7 +593,7 @@ class MPowerSeries(PowerSeries):
     def _im_gens_(self, codomain, im_gens):
         """
         Returns the image of this series under the map that sends the
-        generators to im_gens. This is used internally for computing
+        generators to ``im_gens``. This is used internally for computing
         homomorphisms.
 
         EXAMPLES::
@@ -623,7 +614,7 @@ class MPowerSeries(PowerSeries):
 
     def __getitem__(self,n):
         """
-        Return summand of total degree n.
+        Return summand of total degree ``n``.
 
         TESTS::
 
@@ -668,6 +659,8 @@ class MPowerSeries(PowerSeries):
     ## comparisons
     def __cmp__(self, other):
         """
+        Compare ``self`` to ``other``.
+
         EXAMPLES::
 
             sage: R.<a,b,c> = PowerSeriesRing(GF(5)); R
@@ -699,10 +692,11 @@ class MPowerSeries(PowerSeries):
         return cmp(self._bg_value,other._bg_value)
 
 
-
     ## arithmetic
     def _add_(left, right):
         """
+        Add ``left`` to ``right``.
+
         TESTS::
 
             sage: R.<a,b,c> = PowerSeriesRing(ZZ)
@@ -721,6 +715,8 @@ class MPowerSeries(PowerSeries):
 
     def _sub_(left, right):
         """
+        Subtract ``right`` from ``left``.
+
         TESTS::
 
             sage: R.<a,b,c> = PowerSeriesRing(ZZ)
@@ -739,6 +735,8 @@ class MPowerSeries(PowerSeries):
 
     def _mul_(left, right):
         """
+        Multiply ``left`` and ``right``.
+
         TESTS::
 
             sage: R.<a,b,c> = PowerSeriesRing(ZZ)
@@ -751,7 +749,7 @@ class MPowerSeries(PowerSeries):
             True
 
         The power series product and polynomial product agree up to
-        total degree < precision of g::
+        total degree < precision of `g`::
 
             sage: diff = g.polynomial() - f0.polynomial() * f1.polynomial()
             sage: all(S >= g.prec() for S in [sum(e) for e in diff.exponents()])
@@ -766,6 +764,8 @@ class MPowerSeries(PowerSeries):
 
     def _lmul_(self, c):
         """
+        Multiply ``self`` with ``c`` on the left.
+
         TESTS::
 
             sage: R.<a,b,c> = PowerSeriesRing(ZZ)
@@ -788,7 +788,7 @@ class MPowerSeries(PowerSeries):
 
     def _div_(self, denom_r):
         """
-        division by a unit works, but cancellation doesn't
+        Division by a unit works, but cancellation doesn't.
 
         TESTS::
 
@@ -882,12 +882,10 @@ class MPowerSeries(PowerSeries):
             sage: M.inject_variables()
             Defining t0, t1, t2, t3
 
-            sage: m = 2/3*t0*t1^15*t3^48 \
-            - t0^15*t1^21*t2^28*t3^5 \
-            + 1/2*t0^12*t1^29*t2^46*t3^6 \
-            - 1/4*t0^39*t1^5*t2^23*t3^30 \
-            + M.O(100)
-            sage: m.dict()
+            sage: m = 2/3*t0*t1^15*t3^48 - t0^15*t1^21*t2^28*t3^5
+            sage: m2 = 1/2*t0^12*t1^29*t2^46*t3^6 - 1/4*t0^39*t1^5*t2^23*t3^30 + M.O(100)
+            sage: s = m + m2
+            sage: s.dict()
             {(1, 15, 0, 48): 2/3, (15, 21, 28, 5): -1, (12, 29, 46, 6): 1/2, (39, 5, 23, 30): -1/4}
         """
         out_dict = {}
@@ -897,7 +895,7 @@ class MPowerSeries(PowerSeries):
 
     def polynomial(self):
         """
-        Return underlying polynomial of self as an element of underlying
+        Return underlying polynomial of ``self`` as an element of underlying
         multivariate polynomial ring.
 
         EXAMPLES::
@@ -930,7 +928,7 @@ class MPowerSeries(PowerSeries):
 
     def variables(self):
         """
-        Return tuple of variables occuring in self.
+        Return tuple of variables occurring in ``self``.
 
         EXAMPLES::
 
@@ -948,8 +946,9 @@ class MPowerSeries(PowerSeries):
 
     def monomials(self):
         """
-        Return a list of monomials of self.  These are the keys of the
-        dict returned by 'coefficients'.
+        Return a list of monomials of ``self``.
+
+        These are the keys of the dict returned by :meth:`coefficients`.
 
         EXAMPLES::
 
@@ -999,7 +998,7 @@ class MPowerSeries(PowerSeries):
 
     def constant_coefficient(self):
         """
-        Return constant coefficient of self.
+        Return constant coefficient of ``self``.
 
         EXAMPLES::
 
@@ -1015,7 +1014,8 @@ class MPowerSeries(PowerSeries):
 
     def exponents(self):
         """
-        Return a list of tuples which hold the exponents of each monomial of self.
+        Return a list of tuples which hold the exponents of each monomial
+        of ``self``.
 
         EXAMPLES::
 
@@ -1034,11 +1034,20 @@ class MPowerSeries(PowerSeries):
 
     def V(self, n):
         r"""
-        If `f = \sum a_{m_0, \ldots, m_k} x_0^{m_0} \cdots x_k^{m_k}`,
-        then this function returns
-        `\sum a_{m_0, \ldots, m_k} x_0^{n m_0} \cdots x_n^{n m_k}`.
+        If
 
-        The total-degree precision of the output is ``n`` times the precision of self.
+        .. MATH::
+
+            f = \sum a_{m_0, \ldots, m_k} x_0^{m_0} \cdots x_k^{m_k},
+
+        then this function returns
+
+        .. MATH::
+
+            \sum a_{m_0, \ldots, m_k} x_0^{n m_0} \cdots x_n^{n m_k}.
+
+        The total-degree precision of the output is ``n`` times the precision
+        of ``self``.
 
         EXAMPLES::
 
@@ -1055,7 +1064,7 @@ class MPowerSeries(PowerSeries):
 
     def prec(self):
         """
-        Return precision of self.
+        Return precision of ``self``.
 
         EXAMPLES::
 
@@ -1069,10 +1078,11 @@ class MPowerSeries(PowerSeries):
         """
         return self._prec
 
-    def add_bigoh(self,prec):
+    def add_bigoh(self, prec):
         """
-        Return a multivariate power series of total precision prec obtained
-        by truncating self at precision ``prec``.  This is the same as 'O'.
+        Return a multivariate power series of total precision
+        obtained by truncating self at precision ``prec``.  This
+        is the same as :meth:`O`.
 
         EXAMPLES::
 
@@ -1084,7 +1094,7 @@ class MPowerSeries(PowerSeries):
             sage: r.add_bigoh(2)
             1 + O(x, y)^2
 
-        Note that this does not change self::
+        Note that this does not change ``self``::
 
             sage: r
             1 + x^2 - x*y
@@ -1094,10 +1104,9 @@ class MPowerSeries(PowerSeries):
 
     def O(self, prec):
         """
-        Return a multivariate power series of total precision prec obtained
-        by truncating self at precision ``prec``.  This is the same as
-        'add_bigoh'.
-
+        Return a multivariate power series of total precision obtained
+        by truncating ``self`` at precision ``prec``. This is the same
+        as :meth:`add_bigoh`.
 
         EXAMPLES::
 
@@ -1109,7 +1118,7 @@ class MPowerSeries(PowerSeries):
             sage: r.O(2)
             1 + O(x, y)^2
 
-        Note that this does not change self::
+        Note that this does not change ``self``::
 
             sage: r
             1 + x^2 - x*y
@@ -1119,7 +1128,7 @@ class MPowerSeries(PowerSeries):
     def truncate(self, prec=infinity):
         """
         Return infinite precision multivariate power series formed by
-        truncating self at precision ``prec``.
+        truncating ``self`` at precision ``prec``.
 
         EXAMPLES::
 
@@ -1149,7 +1158,7 @@ class MPowerSeries(PowerSeries):
 
     def valuation(self):
         """
-        Return valuation of self.
+        Return valuation of ``self``.
 
         EXAMPLES::
 
@@ -1177,13 +1186,12 @@ class MPowerSeries(PowerSeries):
 
     def is_nilpotent(self):
         """
-        Return True if self is nilpotent.  This occurs if
+        Return ``True`` if ``self`` is nilpotent. This occurs if
 
-            - self has finite precision and positive valuation
+        - ``self`` has finite precision and positive valuation
+        - ``self`` is constant and nilpotent in base ring
 
-            - self is constant and nilpotent in base ring
-
-        otherwise, return False.
+        otherwise, return ``False``.
 
         EXAMPLES::
 
@@ -1221,7 +1229,7 @@ class MPowerSeries(PowerSeries):
 
     def degree(self):
         """
-        Return degree of underlying polynomial of self.
+        Return degree of underlying polynomial of ``self``.
 
         EXAMPLES::
 
@@ -1233,7 +1241,6 @@ class MPowerSeries(PowerSeries):
             1 + x^2 - x*y + O(x, y)^4
             sage: r.degree()
             2
-
         """
         return self._value().degree()
 
@@ -1260,7 +1267,7 @@ class MPowerSeries(PowerSeries):
 
     def padded_list(self):
         """
-        Method from univariate power series not yet implemented
+        Method from univariate power series not yet implemented.
 
         TESTS::
 
@@ -1275,7 +1282,7 @@ class MPowerSeries(PowerSeries):
 
     def is_square(self):
         """
-        Method from univariate power series not yet implemented
+        Method from univariate power series not yet implemented.
 
         TESTS::
 
@@ -1287,22 +1294,6 @@ class MPowerSeries(PowerSeries):
             NotImplementedError: is_square
         """
         raise NotImplementedError("is_square")
-
-    def sqrt(self):
-        """
-        Method from univariate power series not yet implemented
-        (An alias for ``square_root``.)
-
-        TESTS::
-
-            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
-            sage: f = a + b + a*b + T.O(5)
-            sage: f.sqrt()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: square_root
-        """
-        return self.square_root()
 
     def square_root(self):
         """
@@ -1319,6 +1310,8 @@ class MPowerSeries(PowerSeries):
             NotImplementedError: square_root
         """
         raise NotImplementedError("square_root")
+
+    sqrt = square_root
 
     def derivative(self, *args):
         """
@@ -1539,9 +1532,9 @@ class MPowerSeries(PowerSeries):
             0 + O(a, b)^3
 
         If the power series has a constant coefficient `c` and
-        `exp(c)` is transcendental, then `exp(f)` would have to be a
-        power series over the Symbolic Ring. These are not yet
-        implemented and therefore such cases raise an error::
+        `\exp(c)` is transcendental, then `\exp(f)` would have to be a
+        power series over the :class:`~sage.symbolic.ring.SymbolicRing`. These
+        are not yet implemented and therefore such cases raise an error::
 
             sage: g = 2+f
             sage: exp(g)
@@ -1551,10 +1544,8 @@ class MPowerSeries(PowerSeries):
             'Power Series Ring in Tbg over Multivariate Polynomial Ring in a, b
             over Rational Field'
 
-
         Another workaround for this limitation is to change base ring
-        to one which is closed under exponentiation, such as `\RR` or
-        `\CC` ::
+        to one which is closed under exponentiation, such as `\RR` or `\CC`::
 
             sage: exp(g.change_ring(RDF))
             7.38905609... + 7.38905609...*a + 7.38905609...*b + 3.69452804...*a^2 +
@@ -1630,9 +1621,9 @@ class MPowerSeries(PowerSeries):
             0 + O(a, b)^5
 
         If the power series has a constant coefficient `c` and
-        `exp(c)` is transcendental, then `exp(f)` would have to be a
-        power series over the Symbolic Ring. These are not yet
-        implemented and therefore such cases raise an error::
+        `\exp(c)` is transcendental, then `\exp(f)` would have to be a
+        power series over the :class:`~sage.symbolic.ring.SymbolicRing`. These
+        are not yet implemented and therefore such cases raise an error::
 
             sage: g = 2+f
             sage: log(g)
@@ -1642,8 +1633,7 @@ class MPowerSeries(PowerSeries):
             Series Ring in Tbg over Multivariate Polynomial Ring in a, b over Rational Field'
 
         Another workaround for this limitation is to change base ring
-        to one which is closed under exponentiation, such as `\RR` or
-        `\CC` ::
+        to one which is closed under exponentiation, such as `\RR` or `\CC`::
 
             sage: log(g.change_ring(RDF))
             1.09861228... + 0.333333333...*a + 0.333333333...*b - 0.0555555555...*a^2
@@ -1738,8 +1728,27 @@ class MO(object):
         1 + 2*a + O(a, b, c)^2
     """
     def __init__(self,x):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: R.<u,v> = QQ[[]]
+            sage: m = O(u, v)
+        """
         self._vars = x
+
     def __pow__(self, prec):
+        """
+        Raise ``self`` to the given precision ``prec``.
+
+        EXAMPLES::
+
+            sage: R.<u,v> = QQ[[]]
+            sage: m = O(u, v)
+            sage: m^4
+            0 + O(u, v)^4
+        """
         parent = self._vars[0].parent()
         if self._vars != parent.gens():
             raise NotImplementedError

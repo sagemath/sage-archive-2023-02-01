@@ -20,4 +20,12 @@ Base class for commutative ring elements
 from sage.structure.element import CommutativeRingElement
 
 def is_CommutativeRingElement(x):
+    """
+    Check to see if ``x`` is a :class:`CommutativeRingElement`.
+
+    EXAMPLES::
+
+        sage: sage.rings.commutative_ring_element.is_CommutativeRingElement(ZZ(2))
+        True
+    """
     return isinstance(x, CommutativeRingElement)

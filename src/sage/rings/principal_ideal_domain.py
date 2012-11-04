@@ -20,4 +20,15 @@ Abstract base class for principal ideal domains
 from sage.rings.ring import PrincipalIdealDomain
 
 def is_PrincipalIdealDomain(R):
+    """
+    Check if ``R`` is a :class:`PrincipalIdealDomain`.
+
+    EXAMPLES::
+
+        sage: sage.rings.principal_ideal_domain.is_PrincipalIdealDomain(ZZ)
+        True
+        sage: R.<x,y> = QQ[]
+        sage: sage.rings.principal_ideal_domain.is_PrincipalIdealDomain(R)
+        False
+    """
     return isinstance(R, PrincipalIdealDomain)

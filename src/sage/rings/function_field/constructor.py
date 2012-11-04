@@ -3,11 +3,13 @@ Factories to construct Function Fields
 
 AUTHORS:
 
-    - William Stein (2010): initial version
+- William Stein (2010): initial version
 
-    - Maarten Derickx (2011-09-11): added FunctionField_polymod_Constructor, use @cached_function
+- Maarten Derickx (2011-09-11): added ``FunctionField_polymod_Constructor``,
+  use ``@cached_function``
 
-    - Julian Rueth (2011-09-14): replaced @cached_function with UniqueFactory
+- Julian Rueth (2011-09-14): replaced ``@cached_function`` with
+  ``UniqueFactory``
 
 EXAMPLES::
 
@@ -33,14 +35,16 @@ from sage.structure.factory import UniqueFactory
 
 class FunctionFieldFactory(UniqueFactory):
     """
-    Return the function field in one variable with constant field ``F``. The function
-    field returned is unique in the sense that if you call this function twice
-    with the same base field and name then you get the same python object back.
+    Return the function field in one variable with constant field ``F``. The
+    function field returned is unique in the sense that if you call this
+    function twice with the same base field and name then you get the same
+    python object back.
 
     INPUT:
 
-        - ``F`` -- a field
-        - ``names`` -- name of variable as a string or a tuple containg a string
+    - ``F`` -- a field
+
+    - ``names`` -- name of variable as a string or a tuple containing a string
 
     EXAMPLES::
 
@@ -65,16 +69,35 @@ class FunctionFieldFactory(UniqueFactory):
         sage: K is N
         False
     """
-    def create_key(self, F, names):
+    def create_key(self,F,names):
+        """
+        Given the arguments and keywords, create a key that uniquely
+        determines this object.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ) # indirect doctest
+        """
         if not isinstance(names,tuple):
-            names = (names,)
+            names=(names,)
         return (F,names)
 
-    def create_object(self, version, key, **extra_args):
-        from function_field import RationalFunctionField
-        return RationalFunctionField(key[0], names=key[1])
+    def create_object(self,version,key,**extra_args):
+        """
+        Create the object from the key and extra arguments. This is only
+        called if the object was not found in the cache.
 
-FunctionField = FunctionFieldFactory("sage.rings.function_field.constructor.FunctionField")
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: L.<x> = FunctionField(QQ)
+            sage: K is L
+            True
+        """
+        from function_field import RationalFunctionField
+        return RationalFunctionField(key[0],names=key[1])
+
+FunctionField=FunctionFieldFactory("sage.rings.function_field.constructor.FunctionField")
 
 class FunctionFieldPolymodFactory(UniqueFactory):
     """
@@ -86,9 +109,11 @@ class FunctionFieldPolymodFactory(UniqueFactory):
 
     INPUT:
 
-        - ``polynomial`` -- a univariate polynomial over a function field
-        - ``names`` -- variable names (as a tuple of length 1 or string)
-        - ``category`` -- a category (defaults to category of function fields)
+    - ``polynomial`` -- a univariate polynomial over a function field
+
+    - ``names`` -- variable names (as a tuple of length 1 or string)
+
+    - ``category`` -- a category (defaults to category of function fields)
 
     EXAMPLES::
 
@@ -97,20 +122,44 @@ class FunctionFieldPolymodFactory(UniqueFactory):
         sage: y2 = y*1
         sage: y2 is y
         False
-        sage: L.<w>=K.extension(x-y^2) #indirect doctest
-        sage: M.<w>=K.extension(x-y2^2) #indirect doctest
+        sage: L.<w>=K.extension(x-y^2)
+        sage: M.<w>=K.extension(x-y2^2)
         sage: L is M
         True
     """
-    def create_key(self, polynomial, names):
+    def create_key(self,polynomial,names):
+        """
+        Given the arguments and keywords, create a key that uniquely
+        determines this object.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y>=K[]
+            sage: L.<w> = K.extension(x-y^2) # indirect doctest
+        """
         if names is None:
-            names = polynomial.variable_name()
+            names=polynomial.variable_name()
         if not isinstance(names,tuple):
-            names = (names,)
+            names=(names,)
         return (polynomial,names)
 
-    def create_object(self, version, key, **extra_args):
-        from function_field import FunctionField_polymod
-        return FunctionField_polymod(key[0], names=key[1])
+    def create_object(self,version,key,**extra_args):
+        """
+        Create the object from the key and extra arguments. This is only
+        called if the object was not found in the cache.
 
-FunctionField_polymod = FunctionFieldPolymodFactory("sage.rings.function_field.constructor.FunctionField_polymod")
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y>=K[]
+            sage: L.<w> = K.extension(x-y^2) # indirect doctest
+            sage: y2 = y*1
+            sage: M.<w> = K.extension(x-y2^2) # indirect doctest
+            sage: L is M
+            True
+        """
+        from function_field import FunctionField_polymod
+        return FunctionField_polymod(key[0],names=key[1])
+
+FunctionField_polymod=FunctionFieldPolymodFactory("sage.rings.function_field.constructor.FunctionField_polymod")

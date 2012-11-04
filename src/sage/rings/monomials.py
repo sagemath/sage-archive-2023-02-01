@@ -1,5 +1,16 @@
 
 def _monomials(gens, R, n, i):
+    """
+    Given two lists ``gens`` and ``n`` of exactly the same length,
+    return all monomials in the elements of ``gens`` in ``R`` where
+    the ``i``-th generator in the monomial appears to degree strictly
+    less than ``n[i]``.
+
+    EXAMPLES::
+
+        sage: monomials([x], [3]) # indirect doctest
+        [1, x, x^2]
+    """
     # each power of the ith generator times all products
     # not involving the ith generator.
     if len(gens) == 1:
@@ -26,16 +37,19 @@ from sage.structure.sequence import Sequence
 
 def monomials(v, n):
     """
-    Given two lists v and n, of exactly the same length,
-    return all monomials in the elements of v, where
-    variable i (i.e., v[i]) appears in the monomial
-    appears to degree strictly less than n[i].
+    Given two lists ``v`` and ``n``, of exactly the same length,
+    return all monomials in the elements of ``v``, where
+    variable ``i`` (i.e., ``v[i]``) in the monomial appears to
+    degree strictly less than ``n[i]``.
 
     INPUT:
-        v -- list of ring elements
-        n -- list of integers
 
-    EXAMPLES:
+    - ``v`` -- list of ring elements
+
+    - ``n`` -- list of integers
+
+    EXAMPLES::
+
         sage: monomials([x], [3])
         [1, x, x^2]
         sage: R.<x,y,z> = QQ[]

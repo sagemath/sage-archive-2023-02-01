@@ -1,7 +1,8 @@
 """
 This module implements residue fields for various kinds of rings.
 
-We can take the residue field of prime ideals in maximal order of number fields:
+We can take the residue field of prime ideals in maximal order of number
+fields.
 
 EXAMPLES::
 
@@ -26,7 +27,7 @@ monogenic (i.e., 2 is an essential discriminant divisor)::
     sage: F[2][0].residue_field()
     Residue field of Fractional ideal (3/2*a^2 - 5/2*a + 4)
 
-We can also form residue fields from ZZ::
+We can also form residue fields from `\ZZ`::
 
     sage: ZZ.residue_field(17)
     Residue field of Integers modulo 17
@@ -39,11 +40,13 @@ We can also form residue fields from ZZ::
     #Residue field in tbar of Principal ideal (t^2 + 2) of Univariate Polynomial Ring in t over Finite Field of size 5
 
 AUTHORS:
-    -- David Roe (2007-10-3): initial version
-    -- William Stein (2007-12): bug fixes
-    -- John Cremona (2008-9): extend reduction maps to the whole valuation ring
-                              add support for residue fields of ZZ
-    -- David Roe (2009-12): added support for GF(p)(t) and moved to new coercion framework.
+
+- David Roe (2007-10-3): initial version
+- William Stein (2007-12): bug fixes
+- John Cremona (2008-9): extend reduction maps to the whole valuation ring
+  add support for residue fields of ZZ
+- David Roe (2009-12): added support for `GF(p)(t)` and moved to new coercion
+  framework.
 
 TESTS::
 
@@ -77,7 +80,8 @@ Reducing a curve modulo a prime::
     #sage: E.base_extend(ff)
     #Elliptic Curve defined by y^2 = x^3 + x + a over Residue field in a of Principal ideal (t^3 + t + 4) of Univariate Polynomial Ring in t over Finite Field of size 11
 
-Calculating Groebner bases over various residue fields.  First over a small non-prime field::
+Calculating Groebner bases over various residue fields.
+First over a small non-prime field::
 
     sage: F1.<u> = NumberField(x^6 + 6*x^5 + 124*x^4 + 452*x^3 + 4336*x^2 + 8200*x + 42316)
     sage: reduct_id = F1.factor(47)[0][0]
@@ -159,21 +163,23 @@ residue_field_cache = {}
 
 class ResidueFieldFactory(UniqueFactory):
     """
-    A factory that returns the residue class field of a prime ideal p
+    A factory that returns the residue class field of a prime ideal `p`
     of the ring of integers of a number field, or of a polynomial ring
     over a finite field.
 
     INPUT:
 
         - ``p`` -- a prime ideal of an order in a number field.
+
         - ``names`` -- the variable name for the finite field created.
           Defaults to the name of the number field variable but with
           bar placed after it.
-        - ``check`` -- whether or not to check if p is prime.
+
+        - ``check`` -- whether or not to check if `p` is prime.
 
     OUTPUT:
 
-         - The residue field at the prime p.
+         - The residue field at the prime `p`.
 
     EXAMPLES::
 
@@ -232,7 +238,7 @@ class ResidueFieldFactory(UniqueFactory):
         #5
 
     In this example, 2 is an inessential discriminant divisor, so divides
-    the index of ZZ[a] in the maximal order for all a::
+    the index of ``ZZ[a]`` in the maximal order for all ``a``::
 
         sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8); P = K.ideal(2).factor()[0][0]; P
         Fractional ideal (-1/2*a^2 + 1/2*a - 1)
@@ -259,6 +265,16 @@ class ResidueFieldFactory(UniqueFactory):
 
     """
     def create_key_and_extra_args(self, p, names = None, check=True, impl=None, **kwds):
+        """
+        Return a tuple containing the key (uniquely defining data)
+        and any extra arguments.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3-7)
+            sage: ResidueField(K.ideal(29).factor()[0][0]) # indirect doctest
+            Residue field in abar of Fractional ideal (2*a^2 + 3*a - 10)
+        """
         if check:
             if not is_Ideal(p):
                 if isinstance(p, (int, Integer, Rational)):
@@ -296,6 +312,17 @@ class ResidueFieldFactory(UniqueFactory):
         return key, kwds
 
     def create_object(self, version, key, **kwds):
+        """
+        Create the object from the key and extra arguments. This is only
+        called if the object was not found in the cache.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3-7)
+            sage: P = K.ideal(29).factor()[0][0]
+            sage: ResidueField(P) is ResidueField(P) # indirect doctest
+            True
+        """
         p, names, impl = key
         pring = p.ring()
 
@@ -399,9 +426,14 @@ class ResidueField_generic(Field):
     """
     def __init__(self, p):
         """
-        NOTE!
-        This function does not call up the __init__ chain, since many residue fields use multiple inheritance and will be calling __init__ via their other superclass.
-        If this is not the case, one should call Parent.__init__ manually for any subclass.
+        .. WARNING::
+
+            This function does not call up the ``__init__`` chain, since many
+            residue fields use multiple inheritance and will be calling
+            ``__init__`` via their other superclass.
+
+            If this is not the case, one should call ``Parent.__init__``
+            manually for any subclass.
 
         INPUT:
 
@@ -456,19 +488,19 @@ class ResidueField_generic(Field):
 
     def _element_constructor_(self, x):
         """
-        This is called after x fails to convert into ``self`` as
+        This is called after ``x`` fails to convert into ``self`` as
         abstract finite field (without considering the underlying
         number field).
 
         So the strategy is to try to convert into the number field,
         and then proceed to the residue field.
 
-        NOTE:
+        .. NOTE::
 
-        The behaviour of this method was changed in trac ticket #8800.
-        Before, an error was raised if there was no coercion. Now,
-        a conversion is possible even when there is no coercion.
-        This is like for different finite fields.
+            The behaviour of this method was changed in :trac:`8800`.
+            Before, an error was raised if there was no coercion. Now,
+            a conversion is possible even when there is no coercion.
+            This is like for different finite fields.
 
         EXAMPLES::
 
@@ -480,13 +512,13 @@ class ResidueField_generic(Field):
             sage: ResidueField_generic._element_constructor_(F, i)
             8
 
-        With ticket #8800, we also have::
+        With :trac:`8800`, we also have::
 
             sage: ResidueField_generic._element_constructor_(F, GF(13)(8))
             8
 
         Here is a test that was temporarily removed, but newly introduced
-        in ticket #8800::
+        in :trac:`8800`::
 
             sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
             sage: k.<a> = P.residue_field()
@@ -519,6 +551,8 @@ class ResidueField_generic(Field):
 
     def _coerce_map_from_(self, R):
         """
+        Returns ``True`` if there is a coercion map from ``R`` to ``self``.
+
         EXAMPLES::
 
             sage: K.<i> = NumberField(x^2+1)
@@ -527,7 +561,12 @@ class ResidueField_generic(Field):
             sage: F = OK.residue_field(P)
             sage: F.has_coerce_map_from(GF(13)) # indirect doctest
             True
-            sage: GF(13).has_coerce_map_from(F)  # See trac 11319
+
+        TESTS:
+
+        Checking :trac:`11319` is fixed::
+
+            sage: GF(13).has_coerce_map_from(F)
             True
 
             #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
@@ -565,8 +604,8 @@ class ResidueField_generic(Field):
 
     def lift(self, x):
         """
-        Returns a lift of x to the Order, returning a "polynomial" in the
-        generator with coefficients between 0 and $p-1$.
+        Returns a lift of ``x`` to the Order, returning a "polynomial" in the
+        generator with coefficients between 0 and `p-1`.
 
         EXAMPLES::
 
@@ -635,7 +674,8 @@ class ResidueField_generic(Field):
 
     def lift_map(self):
         """
-        Returns the standard map from this residue field up to the ring of integers lifting the canonical projection.
+        Returns the standard map from this residue field up to the ring of
+        integers lifting the canonical projection.
 
         EXAMPLES::
 
@@ -701,7 +741,7 @@ class ResidueField_generic(Field):
 
     def __hash__(self):
         r"""
-        Return the hash of self.
+        Return the hash of ``self``.
 
         EXAMPLES::
 
@@ -718,10 +758,11 @@ class ResidueField_generic(Field):
 
 cdef class ReductionMap(Map):
     """
-    A reduction map from a (subset) of a number field or function field to this residue
-    class field.
+    A reduction map from a (subset) of a number field or function field to
+    this residue class field.
 
-    It will be defined on those elements of the field with non-negative valuation at the specified prime.
+    It will be defined on those elements of the field with non-negative
+    valuation at the specified prime.
 
     EXAMPLES::
 
@@ -780,10 +821,11 @@ cdef class ReductionMap(Map):
 
     cpdef Element _call_(self, x):
         """
-        Apply this reduction map to an element that coerces into the global field.
+        Apply this reduction map to an element that coerces into the global
+        field.
 
-        If x doesn't map because it has negative valuation, then a
-        ZeroDivisionError exception is raised.
+        If ``x`` doesn't map because it has negative valuation, then a
+        ``ZeroDivisionError`` exception is raised.
 
         EXAMPLES::
 
@@ -812,7 +854,7 @@ cdef class ReductionMap(Map):
             #...
             #ZeroDivisionError: division by zero in finite field.
 
-        An example to show that the issue raised in trac \#1951
+        An example to show that the issue raised in :trac:`1951`
         has been fixed::
 
             sage: K.<i> = NumberField(x^2 + 1)
@@ -884,7 +926,8 @@ cdef class ReductionMap(Map):
 
     def section(self):
         """
-        Computes a section of the map, namely a map that lifts elements of the residue field to elements of the field.
+        Computes a section of the map, namely a map that lifts elements of the
+        residue field to elements of the field.
 
         EXAMPLES::
 
@@ -957,10 +1000,15 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
     """
     def __init__(self, K, F, to_vs, to_order, PB, PBinv):
         """
+        Initialize ``self``.
+
         INPUT:
-           k -- The residue field that is the codomain of this morphism.
-           p -- The prime ideal defining this residue field
-           im_gen -- The image of the generator of the number field.
+
+        - ``k`` -- The residue field that is the codomain of this morphism
+
+        - ``p`` -- The prime ideal defining this residue field
+
+        - ``im_gen`` -- The image of the generator of the number field
 
         EXAMPLES:
 
@@ -983,7 +1031,6 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             #sage: k = P.residue_field(); f = k.coerce_map_from(R)
             #sage: f(t^10)
             #tbar^6 + tbar^3 + tbar^2
-
         """
         self._K = K
         self._F = F   # finite field
@@ -1033,7 +1080,8 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
 
     def section(self):
         """
-        Computes a section of the map, namely a map that lifts elements of the residue field to elements of the ring of integers.
+        Computes a section of the map, namely a map that lifts elements of
+        the residue field to elements of the ring of integers.
 
         EXAMPLES::
 
@@ -1071,8 +1119,8 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
 
     def lift(self, x):
         """
-        Returns a lift of x to the Order, returning a "polynomial" in
-        the generator with coefficients between 0 and p-1.
+        Returns a lift of ``x`` to the Order, returning a "polynomial" in
+        the generator with coefficients between 0 and `p-1`.
 
         EXAMPLES::
 
@@ -1225,7 +1273,8 @@ cdef class LiftingMap(Section):
 
 class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn):
     """
-    The class representing residue fields of number fields that have prime order.
+    The class representing residue fields of number fields that have
+    prime order.
 
     EXAMPLES::
 
@@ -1259,11 +1308,15 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
     """
     def __init__(self, p, name, intp, to_vs, to_order, PB):
         """
+        Initialize ``self``.
+
         INPUT:
 
-           - ``p`` -- A prime ideal of a number field.
-           - ``name`` -- the name of the generator of this extension
-           - ``intp`` -- the rational prime that `p` lies over.
+        - ``p`` -- A prime ideal of a number field
+
+        - ``name`` -- the name of the generator of this extension
+
+        - ``intp`` -- the rational prime that ``p`` lies over
 
         EXAMPLES::
 
@@ -1299,9 +1352,11 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
 
     def _element_constructor_(self, x):
         """
+        Construct and/or coerce ``x`` into an element of ``self``.
+
         INPUT:
 
-           - ``x`` -- something to cast in to self.
+           - ``x`` -- something to cast in to ``self``.
 
         EXAMPLES::
 
@@ -1337,7 +1392,8 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
 
 class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
     """
-    The class representing residue fields of number fields that have non-prime order >= 2^16.
+    The class representing residue fields of number fields that have non-prime
+    order at least `2^16`.
 
     EXAMPLES::
 
@@ -1365,6 +1421,8 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
     """
     def __init__(self, p, q, name, modulus, to_vs, to_order, PB):
         """
+        Initialize ``self``.
+
         EXAMPLES::
 
         We create an ext_pari residue field::
@@ -1389,7 +1447,7 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
 
     def _element_constructor_(self, x):
         """
-        Coerce x into self.
+        Coerce ``x`` into ``self``.
 
         EXAMPLES::
 
@@ -1423,7 +1481,8 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
 
 class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
     """
-    The class representing residue fields of number fields that have non-prime order < 2**16.
+    The class representing residue fields of number fields that have non-prime
+    order strictly less than `2^16`.
 
     EXAMPLES::
 
@@ -1448,16 +1507,23 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
         #5*a
     """
     def __init__(self, p, q, name, modulus, to_vs, to_order, PB):
-        """
+        r"""
         INPUT:
 
-           - ``p`` -- the prime ideal defining this residue field
-           - ``q`` -- the order of this residue field (a power of intp)
-           - ``name`` -- the name of the generator of this extension
-           - ``modulus`` -- the polynomial modulus for this extension
-           - ``to_vs`` -- the map from the number field (or function field) to the appropriate vector space (over Q or F_p(t))
-           - ``to_order`` -- the map from a lattice in that vector space to the maximal order
-           - ``PB`` -- a matrix used in defining the reduction and lifting maps.
+        - ``p`` -- the prime ideal defining this residue field
+
+        - ``q`` -- the order of this residue field (a power of intp)
+
+        - ``name`` -- the name of the generator of this extension
+
+        - ``modulus`` -- the polynomial modulus for this extension
+
+        - ``to_vs`` -- the map from the number field (or function field) to
+          the appropriate vector space (over `\QQ` or `F_p(t)`)
+
+        - ``to_order`` -- the map from a lattice in that vector space to the maximal order
+
+        - ``PB`` -- a matrix used in defining the reduction and lifting maps.
 
         EXAMPLES::
 
@@ -1470,7 +1536,6 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
             #<class 'sage.rings.residue_field.ResidueFiniteField_givaro'>
             #sage: a^5
             #a^3 + 2*a^2 + a + 2
-
         """
         ResidueField_generic.__init__(self, p)
         FiniteField_givaro.__init__(self, q, name, modulus)
@@ -1489,7 +1554,7 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
         """
         INPUT::
 
-            - ``x`` -- Something to cast into self.
+            - ``x`` -- Something to cast into ``self``.
 
         EXAMPLES::
 
@@ -1551,12 +1616,20 @@ class ResidueFiniteField_ntl_gf2e(ResidueField_generic, FiniteField_ntl_gf2e):
         INPUT:
 
         - ``p`` -- the prime ideal defining this residue field
+
         - ``q`` -- the order of this residue field
+
         - ``name`` -- the name of the generator of this extension
+
         - ``modulus`` -- the polynomial modulus for this extension
-        - ``to_vs`` -- the map from the number field (or function field) to the appropriate vector space (over Q or F_p(t))
-        - ``to_order`` -- the map from a lattice in that vector space to the maximal order
-        - ``PB`` -- a matrix used in defining the reduction and lifting maps.
+
+        - ``to_vs`` -- the map from the number field (or function field) to
+          the appropriate vector space (over `\QQ` or `F_p(t)`)
+
+        - ``to_order`` -- the map from a lattice in that vector space to the
+          maximal order
+
+        - ``PB`` -- a matrix used in defining the reduction and lifting maps
 
         EXAMPLES::
 
@@ -1587,7 +1660,7 @@ class ResidueFiniteField_ntl_gf2e(ResidueField_generic, FiniteField_ntl_gf2e):
         """
         INPUT:
 
-        - ``x`` -- Something to cast into self.
+        - ``x`` -- Something to cast into ``self``.
 
         EXAMPLES::
 

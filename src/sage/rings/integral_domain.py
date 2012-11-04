@@ -20,4 +20,14 @@ Abstract base class for integral domains
 from sage.rings.ring import IntegralDomain
 
 def is_IntegralDomain(R):
+    """
+    Check if ``R`` is an instance of :class:`~sage.rings.ring.IntegralDomain`.
+
+    EXAMPLES::
+
+        sage: sage.rings.integral_domain.is_IntegralDomain(QQ)
+        True
+        sage: sage.rings.integral_domain.is_IntegralDomain(ZZ)
+        True
+    """
     return isinstance(R, IntegralDomain)

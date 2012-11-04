@@ -20,4 +20,12 @@ Base class for field elements
 from sage.structure.element import FieldElement
 
 def is_FieldElement(x):
+    """
+    Check to see if ``R`` is a :class:`FieldElement`.
+
+    EXAMPLES::
+
+        sage: sage.rings.field_element.is_FieldElement(QQ(2))
+        True
+    """
     return isinstance(x, FieldElement)

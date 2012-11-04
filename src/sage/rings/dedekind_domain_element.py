@@ -20,4 +20,12 @@ Base class for Dedekind domain elements
 from sage.structure.element import DedekindDomainElement
 
 def is_DedekindDomainElement(x):
+    """
+    Check to see if ``x`` is a :class:`DedekindDomainElement`.
+
+    EXAMPLES::
+
+        sage: sage.rings.dedekind_domain_element.is_DedekindDomainElement(DedekindDomainElement(QQ))
+        True
+    """
     return isinstance(x, DedekindDomainElement)

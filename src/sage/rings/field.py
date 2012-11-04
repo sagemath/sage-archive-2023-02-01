@@ -1,4 +1,4 @@
-"""
+r"""
 Abstract base class for fields
 """
 
@@ -20,30 +20,24 @@ Abstract base class for fields
 from sage.rings.ring import Field
 
 def is_PrimeField(R):
-    """
-    Determine if R is a field that is equal to its own prime subfield.
+    r"""
+    Determine if ``R`` is a field that is equal to its own prime subfield.
 
     INPUT:
 
-    - R - a ring or field
+    - ``R`` -- a ring or field
 
     OUTPUT:
 
-    - True - if R is `\QQ` or a finite field `GF(p)` for p prime.
-    - False - otherwise
+    - ``True`` if R is `\QQ` or a finite field `\GF{p}` for `p` prime,
+      ``False`` otherwise.
 
     EXAMPLES::
 
         sage: sage.rings.field.is_PrimeField(QQ)
         True
-
-    ::
-
         sage: sage.rings.field.is_PrimeField(GF(7))
         True
-
-    ::
-
         sage: sage.rings.field.is_PrimeField(GF(7^2,'t'))
         False
     """
@@ -55,3 +49,4 @@ def is_PrimeField(R):
     if is_FiniteField(R):
         return R.degree() == 1
     return False
+

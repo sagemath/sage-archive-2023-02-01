@@ -11,7 +11,7 @@ from sage.categories.monoids import Monoids
 
 def IdealMonoid(R):
     r"""
-    Return the monoid of ideals in the ring R.
+    Return the monoid of ideals in the ring ``R``.
 
     EXAMPLE::
 
@@ -41,6 +41,8 @@ class IdealMonoid_c(Parent):
 
     def __init__(self, R):
         r"""
+        Initialize ``self``.
+
         TESTS::
 
             sage: R = QuadraticField(-23, 'a')
@@ -53,6 +55,8 @@ class IdealMonoid_c(Parent):
 
     def _repr_(self):
         r"""
+        Return a string representation of ``self``.
+
         TESTS::
 
             sage: R = QuadraticField(-23, 'a')
@@ -109,7 +113,7 @@ class IdealMonoid_c(Parent):
 
             sage: R = QuadraticField(-23, 'a')
             sage: M = R.ideal_monoid()
-            sage: M.has_coerce_map_from(R)
+            sage: M.has_coerce_map_from(R) # indirect doctest
             True
             sage: M.has_coerce_map_from(QQ.ideal_monoid())
             True
@@ -118,7 +122,6 @@ class IdealMonoid_c(Parent):
             sage: M.has_coerce_map_from(loads(dumps(M)))
             True
         """
-
         if isinstance(x, IdealMonoid_c):
             return self.ring().has_coerce_map_from(x.ring())
         else:

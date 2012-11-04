@@ -20,4 +20,12 @@ Base class for principal ideal domain elements
 from sage.structure.element import PrincipalIdealDomainElement
 
 def is_PrincipalIdealDomainElement(x):
+    """
+    Check to see if ``x`` is a :class:`PrincipalIdealDomainElement`.
+
+    EXAMPLES::
+
+        sage: sage.rings.principal_ideal_domain_element.is_PrincipalIdealDomainElement(ZZ(2))
+        True
+    """
     return isinstance(x, PrincipalIdealDomainElement)

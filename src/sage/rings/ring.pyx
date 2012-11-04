@@ -5,12 +5,12 @@ This module provides the abstract base class :class:`Ring` from which
 all rings in Sage (used to) derive, as well as a selection of more
 specific base classes.
 
-.. warning::
+.. WARNING::
 
-    Those classes, except maybe for the lowest ones like Ring,
-    CommutativeRing, Algebra and CommutativeAlgebra, are being
-    progressively deprecated in favor of the corresponding categories.
-    which are more flexible, in particular with respect to multiple
+    Those classes, except maybe for the lowest ones like :class:`Ring`,
+    :class:`CommutativeRing`, :class:`Algebra` and :class:`CommutativeAlgebra`,
+    are being progressively deprecated in favor of the corresponding
+    categories. which are more flexible, in particular with respect to multiple
     inheritance.
 
 The class inheritance hierarchy is:
@@ -32,7 +32,7 @@ Subclasses of :class:`PrincipalIdealDomain` are
 - :class:`EuclideanDomain`
 - :class:`Field`
 
-  - :class:`FiniteField`
+  - :class:`~sage.rings.finite_rings.finite_field_base.FiniteField`
 
 Some aspects of this structure may seem strange, but this is an unfortunate
 consequence of the fact that Cython classes do not support multiple
@@ -44,7 +44,7 @@ are Noetherian PIDs.
 advance* whether or not a ring belongs in one of these classes; e.g. some
 orders in number fields are Dedekind domains, but others are not, and we still
 want to offer a unified interface, so orders are never instances of the
-DedekindDomain class.)
+:class:`DedekindDomain` class.)
 
 AUTHORS:
 
@@ -93,7 +93,7 @@ cdef class Ring(ParentWithGens):
 
     TESTS:
 
-    This is to test against the bug fixed in trac ticket #9138::
+    This is to test against the bug fixed in :trac:`9138`::
 
         sage: R.<x> = QQ[]
         sage: R.sum([x,x])
@@ -128,7 +128,7 @@ cdef class Ring(ParentWithGens):
         sage: TestSuite(ZZ['x','y']).run()
         sage: TestSuite(ZZ['x','y']['t']).run()
 
-    Test agaings another bug fixed in trac ticket #9944::
+    Test agaings another bug fixed in :trac:`9944`::
 
         sage: QQ['x'].category()
         Join of Category of euclidean domains and Category of commutative algebras over Rational Field
@@ -149,6 +149,17 @@ cdef class Ring(ParentWithGens):
          False
      """
     def __init__(self, base, names=None, normalize=True, category = None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: ZZ
+            Integer Ring
+            sage: R.<x,y> = QQ[]
+            sage: R
+            Multivariate Polynomial Ring in x, y over Rational Field
+        """
         # Unfortunately, ParentWithGens inherits from sage.structure.parent_old.Parent.
         # Its __init__ method does *not* call Parent.__init__, since this would somehow
         # yield an infinite recursion. But when we call it from here, it works.
@@ -165,7 +176,8 @@ cdef class Ring(ParentWithGens):
 
     def __iter__(self):
         r"""
-        Return an iterator through the elements of self. Not implemented in general.
+        Return an iterator through the elements of ``self``.
+        Not implemented in general.
 
         EXAMPLES::
 
@@ -178,9 +190,10 @@ cdef class Ring(ParentWithGens):
 
     def __len__(self):
         r"""
-        Return the cardinality of this ring if it is finite, else raise a TypeError.
+        Return the cardinality of this ring if it is finite, else raise
+        a ``TypeError``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: len(Integers(24))
             24
@@ -195,11 +208,11 @@ cdef class Ring(ParentWithGens):
 
     def __getitem__(self, x):
         """
-        Create a polynomial or power series ring over self and inject
+        Create a polynomial or power series ring over ``self`` and inject
         the variables into the global module scope.
 
-        If x is an algebraic element, this will return an extension of self
-        that contains x.
+        If ``x`` is an algebraic element, this will return an extension of
+        ``self`` that contains ``x``.
 
         EXAMPLES:
 
@@ -345,10 +358,10 @@ cdef class Ring(ParentWithGens):
 
     def __xor__(self, n):
         r"""
-        Trap the operation ^. It's next to impossible to test this since ^ is
-        intercepted first by the preparser.
+        Trap the operation ``^``. It's next to impossible to test this since
+        ``^`` is intercepted first by the preparser.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RR^3 # not tested
         """
@@ -374,13 +387,13 @@ cdef class Ring(ParentWithGens):
         """
         Return the category to which this ring belongs.
 
-        NOTE:
+        .. NOTE::
 
-        This method exists because sometimes a ring is its own base ring.
-        During initialisation of a ring `R`, it may be checked whether the
-        base ring (hence, the ring itself) is a ring. Hence, it is necessary
-        that ``R.category()`` tells that ``R`` is a ring, even *before*
-        its category is properly initialised.
+            This method exists because sometimes a ring is its own base ring.
+            During initialisation of a ring `R`, it may be checked whether the
+            base ring (hence, the ring itself) is a ring. Hence, it is
+            necessary that ``R.category()`` tells that ``R`` is a ring, even
+            *before* its category is properly initialised.
 
         EXAMPLES::
 
@@ -436,20 +449,24 @@ cdef class Ring(ParentWithGens):
 
     def ideal(self, *args, **kwds):
         """
-        Return the ideal defined by x, i.e., generated by x.
+        Return the ideal defined by ``x``, i.e., generated by ``x``.
 
         INPUT:
 
         - ``*x`` -- list or tuple of generators (or several input arguments)
-        - ``coerce`` -- bool (default: True); this must be a keyword argument.
-          Only set it to False if you are certain that each generator is
-          already in the ring.
-        - ``ideal_class`` -- callable (default: self._ideal_class_()); this must be a keyword argument.
-          A constructor for ideals, taking the ring as the first argument and then the generators.
+
+        - ``coerce`` -- bool (default: ``True``); this must be a keyword
+          argument. Only set it to ``False`` if you are certain that each
+          generator is already in the ring.
+
+        - ``ideal_class`` -- callable (default: ``self._ideal_class_()``);
+          this must be a keyword argument. A constructor for ideals, taking
+          the ring as the first argument and then the generators.
           Usually a subclass of :class:`~sage.rings.ideal.Ideal_generic` or
           :class:`~sage.rings.noncommutative_ideals.Ideal_nc`.
-        - Further named arguments (such as ``side`` in the case of non-commutative
-          rings) are forwarded to the ideal class.
+
+        - Further named arguments (such as ``side`` in the case of
+          non-commutative rings) are forwarded to the ideal class.
 
         EXAMPLES::
 
@@ -471,7 +488,7 @@ cdef class Ring(ParentWithGens):
 
         TESTS:
 
-        Make sure that ticket #11139 is fixed::
+        Make sure that :trac:`11139` is fixed::
 
             sage: R.<x> = QQ[]
             sage: R.ideal([])
@@ -540,8 +557,8 @@ cdef class Ring(ParentWithGens):
 
     def __mul__(self, x):
         """
-        Return the ideal x*R generated by x, where x is either an element
-        or tuple or list of elements.
+        Return the ideal ``x*R`` generated by ``x``, where ``x`` is either an
+        element or tuple or list of elements.
 
         EXAMPLES::
 
@@ -700,11 +717,12 @@ cdef class Ring(ParentWithGens):
 
     def quotient(self, I, names=None):
         """
-        Create the quotient of this ring by a twosided ideal I.
+        Create the quotient of this ring by a twosided ideal ``I``.
 
         INPUT:
 
         - ``I`` -- a twosided ideal of this ring, `R`.
+
         - ``names`` -- (optional) names of the generators of the quotient (if
           there are multiple generators, you can specify a single character
           string and the generators are named in sequence starting with 0).
@@ -731,7 +749,7 @@ cdef class Ring(ParentWithGens):
 
     def quo(self, I, names=None):
         """
-        Create the quotient of R by the ideal I.  This is a synonym for
+        Create the quotient of `R` by the ideal `I`.  This is a synonym for
         :meth:`.quotient`
 
         EXAMPLES::
@@ -764,20 +782,20 @@ cdef class Ring(ParentWithGens):
 
     def quotient_ring(self, I, names=None):
         """
-        Return the quotient of self by the ideal I of self.
-        (Synonym for self.quotient(I).)
+        Return the quotient of self by the ideal `I` of ``self``.
+        (Synonym for ``self.quotient(I)``.)
 
         INPUT:
 
-        - ``self`` -- a ring R
-        - ``I`` -- an ideal of R
+        - ``I`` -- an ideal of `R`
+
         - ``names`` -- (optional) names of the generators of the quotient. (If
           there are multiple generators, you can specify a single character
           string and the generators are named in sequence starting with 0.)
 
         OUTPUT:
 
-        - R/I -- the quotient ring of R by the ideal I
+        - ``R/I`` -- the quotient ring of `R` by the ideal `I`
 
         EXAMPLES::
 
@@ -852,7 +870,7 @@ cdef class Ring(ParentWithGens):
 
     def is_zero(self):
         """
-        True if this is the zero ring.
+        Return ``True`` if this is the zero ring.
 
         EXAMPLES::
 
@@ -875,7 +893,7 @@ cdef class Ring(ParentWithGens):
 
     def is_commutative(self):
         """
-        Return True if this ring is commutative.
+        Return ``True`` if this ring is commutative.
 
         EXAMPLES::
 
@@ -893,11 +911,12 @@ cdef class Ring(ParentWithGens):
 
     def is_field(self, proof = True):
         """
-        Return True if this ring is a field.
+        Return ``True`` if this ring is a field.
 
         INPUT:
 
-        - proof - Determines what to do in unknown cases (default: ``True``)
+        - ``proof`` -- (default: ``True``) Determines what to do in unknown
+          cases
 
         ALGORITHM:
 
@@ -940,13 +959,13 @@ cdef class Ring(ParentWithGens):
 
     cpdef bint is_exact(self) except -2:
         """
-        Return True if elements of this ring are represented exactly, i.e.,
+        Return ``True`` if elements of this ring are represented exactly, i.e.,
         there is no precision loss when doing arithmetic.
 
-        .. note::
+        .. NOTE::
 
-            This defaults to True, so even if it does return True you have
-            no guarantee (unless the ring has properly overloaded this).
+            This defaults to ``True``, so even if it does return ``True`` you
+            have no guarantee (unless the ring has properly overloaded this).
 
         EXAMPLES::
 
@@ -963,9 +982,10 @@ cdef class Ring(ParentWithGens):
 
     def is_subring(self, other):
         """
-        Return True if the canonical map from self to other is injective.
+        Return ``True`` if the canonical map from ``self`` to ``other`` is
+        injective.
 
-        Raises a NotImplementedError if not known.
+        Raises a ``NotImplementedError`` if not known.
 
         EXAMPLES::
 
@@ -981,7 +1001,7 @@ cdef class Ring(ParentWithGens):
 
     def is_prime_field(self):
         r"""
-        Return True if this ring is one of the prime fields `\QQ` or
+        Return ``True`` if this ring is one of the prime fields `\QQ` or
         `\GF{p}`.
 
         EXAMPLES::
@@ -1003,7 +1023,7 @@ cdef class Ring(ParentWithGens):
 
     def is_finite(self):
         """
-        Return True if this ring is finite.
+        Return ``True`` if this ring is finite.
 
         EXAMPLES::
 
@@ -1044,18 +1064,19 @@ cdef class Ring(ParentWithGens):
 
     def is_integral_domain(self, proof = True):
         """
-        Return True if this ring is an integral domain.
+        Return ``True`` if this ring is an integral domain.
 
         INPUT:
 
-        - proof - Determines what to do in unknown cases (default: ``True``)
+        - ``proof`` -- (default: ``True``) Determines what to do in unknown
+          cases
 
         ALGORITHM:
 
         If the parameter ``proof`` is set to ``True``, the returned value is
         correct but the method might throw an error.  Otherwise, if it is set
-        to ``False``, the method returns True if it can establish that self is
-        an integral domain and False otherwise.
+        to ``False``, the method returns ``True`` if it can establish that self
+        is an integral domain and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -1089,7 +1110,7 @@ cdef class Ring(ParentWithGens):
 
         TESTS:
 
-        Make sure #10481 is fixed::
+        Make sure :trac:`10481` is fixed::
 
             sage: var(x)
             x
@@ -1102,8 +1123,6 @@ cdef class Ring(ParentWithGens):
             Traceback (most recent call last):
             ...
             NotImplementedError
-
-
         """
         if self.is_field():
             return True
@@ -1118,7 +1137,7 @@ cdef class Ring(ParentWithGens):
 
     def is_ring(self):
         """
-        Return True since self is a ring.
+        Return ``True`` since ``self`` is a ring.
 
         EXAMPLES::
 
@@ -1129,7 +1148,7 @@ cdef class Ring(ParentWithGens):
 
     def is_noetherian(self):
         """
-        Return True if this ring is Noetherian.
+        Return ``True`` if this ring is Noetherian.
 
         EXAMPLES::
 
@@ -1142,7 +1161,7 @@ cdef class Ring(ParentWithGens):
 
     def order(self):
         """
-        The number of elements of self.
+        The number of elements of ``self``.
 
         EXAMPLES::
 
@@ -1157,8 +1176,8 @@ cdef class Ring(ParentWithGens):
 
     def zeta(self, n=2, all=False):
         """
-        Return an n-th root of unity in self if there is one,
-        or raise an ArithmeticError otherwise.
+        Return an ``n``-th root of unity in ``self`` if there is one,
+        or raise an ``ArithmeticError`` otherwise.
 
         INPUT:
 
@@ -1168,7 +1187,7 @@ cdef class Ring(ParentWithGens):
 
         OUTPUT:
 
-        element of self of finite order
+        Element of ``self`` of finite order
 
         EXAMPLES::
 
@@ -1222,7 +1241,7 @@ cdef class Ring(ParentWithGens):
 
     def zeta_order(self):
         """
-        Return the order of the distinguished root of unity in self.
+        Return the order of the distinguished root of unity in ``self``.
 
         EXAMPLES::
 
@@ -1240,11 +1259,11 @@ cdef class Ring(ParentWithGens):
     def random_element(self, bound=2):
         """
         Return a random integer coerced into this ring, where the
-        integer is chosen uniformly from the interval [-bound,bound].
+        integer is chosen uniformly from the interval ``[-bound,bound]``.
 
         INPUT:
 
-        - bound -- integer (default: 2)
+        - ``bound`` -- integer (default: 2)
 
         ALGORITHM:
 
@@ -1319,6 +1338,14 @@ cdef class CommutativeRing(Ring):
     Generic commutative ring.
     """
     def __init__(self, base_ring, names=None, normalize=True, category=None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: Integers(389)['x,y']
+            Multivariate Polynomial Ring in x, y over Ring of integers modulo 389
+        """
         try:
             if not base_ring.is_commutative():
                 raise TypeError, "base ring %s is no commutative ring"%base_ring
@@ -1334,7 +1361,7 @@ cdef class CommutativeRing(Ring):
 
     def fraction_field(self):
         """
-        Return the fraction field of self.
+        Return the fraction field of ``self``.
 
         EXAMPLES::
 
@@ -1363,9 +1390,9 @@ cdef class CommutativeRing(Ring):
 
     def _pseudo_fraction_field(self):
         r"""
-        This method is used by the coercion model to determine if a / b should
-        be treated as a * (1/b), for example when dividing an element of
-        `\ZZ[x]` by an element of `\ZZ`.
+        This method is used by the coercion model to determine if `a / b`
+        should be treated as `a * (1/b)`, for example when dividing an element
+        of `\ZZ[x]` by an element of `\ZZ`.
 
         The default is to return the same value as ``self.fraction_field()``,
         but it may return some other domain in which division is usually
@@ -1411,7 +1438,7 @@ cdef class CommutativeRing(Ring):
 
     def is_commutative(self):
         """
-        Return True, since this ring is commutative.
+        Return ``True``, since this ring is commutative.
 
         EXAMPLES::
 
@@ -1492,18 +1519,20 @@ cdef class CommutativeRing(Ring):
 
     def extension(self, poly, name=None, names=None, embedding=None):
         """
-        Algebraically extends self by taking the quotient self[x] / (f(x)).
+        Algebraically extends self by taking the quotient ``self[x] / (f(x))``.
 
         INPUT:
 
-        - ``poly`` -- A polynomial whose coefficients are coercible into self
-        - ``name`` -- (optional) name for the root of f
+        - ``poly`` -- A polynomial whose coefficients are coercible into
+          ``self``
 
-        NOTE:
+        - ``name`` -- (optional) name for the root of `f`
 
-        Using this method on an algebraically complete field does *not*
-        return this field; the construction self[x] / (f(x)) is done
-        anyway.
+        .. NOTE::
+
+            Using this method on an algebraically complete field does *not*
+            return this field; the construction ``self[x] / (f(x))`` is done
+            anyway.
 
         EXAMPLES::
 
@@ -1542,16 +1571,19 @@ cdef class IntegralDomain(CommutativeRing):
     """
     Generic integral domain class.
 
-    This class is deprecated. Please use the :class:`IntegralDomains`
+    This class is deprecated. Please use the
+    :class:`sage.categories.integral_domains.IntegralDomains`
     category instead.
     """
     _default_category = IntegralDomains()
 
     def __init__(self, base_ring, names=None, normalize=True, category=None):
         """
+        Initialize ``self``.
+
         INPUT:
 
-         - ``category`` -- a category, or None (default: None)
+         - ``category`` (default: ``None``) -- a category, or ``None``
 
         This method is used by all the abstract subclasses of
         :class:`IntegralDomain`, like :class:`NoetherianRing`,
@@ -1606,7 +1638,7 @@ cdef class IntegralDomain(CommutativeRing):
 
     def is_integral_domain(self, proof = True):
         """
-        Return True, since this ring is an integral domain.
+        Return ``True``, since this ring is an integral domain.
 
         (This is a naive implementation for objects with type
         ``IntegralDomain``)
@@ -1624,11 +1656,11 @@ cdef class IntegralDomain(CommutativeRing):
 
     def is_integrally_closed(self):
         r"""
-        Return True if this ring is integrally closed in its field of
-        fractions; otherwise return False.
+        Return ``True`` if this ring is integrally closed in its field of
+        fractions; otherwise return ``False``.
 
         When no algorithm is implemented for this, then this
-        function raises a NotImplementedError.
+        function raises a ``NotImplementedError``.
 
         Note that ``is_integrally_closed`` has a naive implementation
         in fields. For every field `F`, `F` is its own field of fractions,
@@ -1655,7 +1687,7 @@ cdef class IntegralDomain(CommutativeRing):
 
     def is_field(self, proof = True):
         r"""
-        Return True if this ring is a field.
+        Return ``True`` if this ring is a field.
 
         EXAMPLES::
 
@@ -1670,7 +1702,7 @@ cdef class IntegralDomain(CommutativeRing):
             sage: R.<x> = PolynomialRing(QQ); R.is_field()
             False
 
-        An example where we raise a NotImplementedError::
+        An example where we raise a ``NotImplementedError``::
 
             sage: R = IntegralDomain(ZZ)
             sage: R.is_field()
@@ -1699,7 +1731,7 @@ cdef class NoetherianRing(CommutativeRing):
     """
     def is_noetherian(self):
         """
-        Return True since this ring is Noetherian.
+        Return ``True`` since this ring is Noetherian.
 
         EXAMPLES::
 
@@ -1768,7 +1800,7 @@ cdef class DedekindDomain(IntegralDomain):
 
     def is_integrally_closed(self):
         """
-        Return True since Dedekind domains are integrally closed.
+        Return ``True`` since Dedekind domains are integrally closed.
 
         EXAMPLES:
 
@@ -1800,7 +1832,7 @@ cdef class DedekindDomain(IntegralDomain):
 
     def integral_closure(self):
         r"""
-        Return self since Dedekind domains are integrally closed.
+        Return ``self`` since Dedekind domains are integrally closed.
 
         EXAMPLES::
 
@@ -1818,7 +1850,7 @@ cdef class DedekindDomain(IntegralDomain):
 
     def is_noetherian(self):
         r"""
-        Return True since Dedekind domains are Noetherian.
+        Return ``True`` since Dedekind domains are Noetherian.
 
         EXAMPLES:
 
@@ -1842,13 +1874,14 @@ cdef class PrincipalIdealDomain(IntegralDomain):
     Generic principal ideal domain.
 
     This class is deprecated. Please use the
-    :class:`PrincipleIdealDomains` category instead.
+    :class:`~sage.categories.principal_ideal_domains.PrincipalIdealDomains`
+    category instead.
     """
     _default_category = PrincipalIdealDomains()
 
     def is_noetherian(self):
         """
-        Every principal ideal domain is noetherian, so we return True.
+        Every principal ideal domain is noetherian, so we return ``True``.
 
         EXAMPLES::
 
@@ -1871,8 +1904,8 @@ cdef class PrincipalIdealDomain(IntegralDomain):
 
     def gcd(self, x, y, coerce=True):
         r"""
-        Return the greatest common divisor of x and y, as elements
-        of self.
+        Return the greatest common divisor of ``x`` and ``y``, as elements
+        of ``self``.
 
         EXAMPLES:
 
@@ -1890,8 +1923,8 @@ cdef class PrincipalIdealDomain(IntegralDomain):
 
         In a field, any nonzero element is a GCD of any nonempty set
         of nonzero elements. In previous versions, Sage used to return
-        1 in the case of the rational field. However, since trac
-        ticket #10771, the rational field is considered as the
+        1 in the case of the rational field. However, since :trac:`10771`,
+        the rational field is considered as the
         *fraction field* of the integer ring. For the fraction field
         of an integral domain that provides both GCD and LCM, it is
         possible to pick a GCD that is compatible with the GCD of the
@@ -1934,8 +1967,8 @@ cdef class PrincipalIdealDomain(IntegralDomain):
 
     def content(self, x, y, coerce=True):
         r"""
-        Return the content of x and y, i.e. the unique element c of
-        self such that x/c and y/c are coprime and integral.
+        Return the content of `x` and `y`, i.e. the unique element `c` of
+        ``self`` such that `x/c` and `y/c` are coprime and integral.
 
         EXAMPLES::
 
@@ -1975,6 +2008,11 @@ cdef class PrincipalIdealDomain(IntegralDomain):
     def _ideal_class_(self, n=0):
         """
         Ideals in PIDs have their own special class.
+
+        EXAMPLES::
+
+            sage: ZZ._ideal_class_()
+            <class 'sage.rings.ideal.Ideal_pid'>
         """
         from sage.rings.ideal import Ideal_pid
         return Ideal_pid
@@ -1984,7 +2022,8 @@ cdef class EuclideanDomain(PrincipalIdealDomain):
     Generic Euclidean domain class.
 
     This class is deprecated. Please use the
-    :class:`EuclideanDomains` category instead.
+    :class:`~sage.categories.euclidean_domains.EuclideanDomains`
+    category instead.
     """
     _default_category = EuclideanDomains()
 
@@ -2002,7 +2041,7 @@ cdef class EuclideanDomain(PrincipalIdealDomain):
 
 cpdef bint _is_Field(x) except -2:
     """
-    Return True if x is a field.
+    Return ``True`` if ``x`` is a field.
 
     EXAMPLES::
 
@@ -2068,7 +2107,7 @@ cdef class Field(PrincipalIdealDomain):
 
     def fraction_field(self):
         """
-        Return the fraction field of self.
+        Return the fraction field of ``self``.
 
         EXAMPLES:
 
@@ -2090,7 +2129,7 @@ cdef class Field(PrincipalIdealDomain):
 
     def _pseudo_fraction_field(self):
         """
-        The fraction field of self is always available as self.
+        The fraction field of ``self`` is always available as ``self``.
 
         EXAMPLES::
 
@@ -2106,9 +2145,9 @@ cdef class Field(PrincipalIdealDomain):
 
     def divides(self, x, y, coerce=True):
         """
-        Return True if x divides y in this field (usually True in a
-        field!).  If ``coerce`` is True (the default), first coerce x and
-        y into self.
+        Return ``True`` if ``x`` divides ``y`` in this field (usually ``True``
+        in a field!).  If ``coerce`` is ``True`` (the default), first coerce
+        ``x`` and ``y`` into ``self``.
 
         EXAMPLES::
 
@@ -2160,7 +2199,7 @@ cdef class Field(PrincipalIdealDomain):
 
     def is_field(self, proof = True):
         """
-        Return True since this is a field.
+        Return ``True`` since this is a field.
 
         EXAMPLES::
 
@@ -2171,7 +2210,7 @@ cdef class Field(PrincipalIdealDomain):
 
     def is_integrally_closed(self):
         """
-        Return True since fields are trivially integrally closed in
+        Return ``True`` since fields are trivially integrally closed in
         their fraction field (since they are their own fraction field).
 
         EXAMPLES::
@@ -2183,7 +2222,7 @@ cdef class Field(PrincipalIdealDomain):
 
     def is_noetherian(self):
         """
-        Return True since fields are Noetherian rings.
+        Return ``True`` since fields are Noetherian rings.
 
         EXAMPLES::
 
@@ -2207,7 +2246,7 @@ cdef class Field(PrincipalIdealDomain):
 
     def prime_subfield(self):
         """
-        Return the prime subfield of self.
+        Return the prime subfield of ``self``.
 
         EXAMPLES::
 
@@ -2224,9 +2263,9 @@ cdef class Field(PrincipalIdealDomain):
 
     def algebraic_closure(self):
         """
-        Return the algebraic closure of self.
+        Return the algebraic closure of ``self``.
 
-        .. note::
+        .. NOTE::
 
            This is only implemented for certain classes of field.
 
@@ -2246,6 +2285,14 @@ cdef class Algebra(Ring):
     Generic algebra
     """
     def __init__(self, base_ring, names=None, normalize=True, category=None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: A = Algebra(ZZ); A
+            <type 'sage.rings.ring.Algebra'>
+        """
         # This is a low-level class. For performance, we trust that the category
         # is fine, if it is provided. If it isn't, we use the category of Algebras(base_ring).
         if category is None:
@@ -2259,7 +2306,7 @@ cdef class Algebra(Ring):
         as the characteristic of its base ring.
 
         See objects with the ``base_ring`` attribute for additional examples.
-        Here are some examples that explicitly use the ``Algebra`` class.
+        Here are some examples that explicitly use the :class:`Algebra` class.
 
         EXAMPLES::
 
@@ -2361,7 +2408,7 @@ cdef class CommutativeAlgebra(CommutativeRing):
 
     def is_commutative(self):
         """
-        Return True since this algebra is commutative.
+        Return ``True`` since this algebra is commutative.
 
         EXAMPLES:
 
@@ -2381,7 +2428,7 @@ cdef class CommutativeAlgebra(CommutativeRing):
 
 def is_Ring(x):
     """
-    Return True if x is a ring.
+    Return ``True`` if ``x`` is a ring.
 
     EXAMPLES::
 
@@ -2391,7 +2438,6 @@ def is_Ring(x):
         sage: MS = MatrixSpace(QQ,2)
         sage: is_Ring(MS)
         True
-
     """
     # TODO: use the idiom `x in _Rings` as soon as all rings will be
     # in the category Rings()
@@ -2402,10 +2448,10 @@ from sage.structure.parent_gens import _certify_names
 def gen_name(x, name_chr):
     r"""
     Used to find a name for a generator when rings are created using the
-    ``__getitem__`` syntax, e.g. ``ZZ['x']``. If x is a symbolic variable,
-    return the name of x; if x is the symbolic square root of a positive
-    integer d, return "sqrtd"; else, return a letter of the alphabet and
-    increment a counter to avoid that letter being used again.
+    ``__getitem__`` syntax, e.g. ``ZZ['x']``. If ``x`` is a symbolic variable,
+    return the name of ``x``; if ``x`` is the symbolic square root of a
+    positive integer `d`, return "sqrtd"; else, return a letter of the
+    alphabet and increment a counter to avoid that letter being used again.
 
     EXAMPLES::
 

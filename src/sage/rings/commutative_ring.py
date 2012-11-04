@@ -20,4 +20,12 @@ Abstract base class for commutative rings
 from sage.rings.ring import CommutativeRing
 
 def is_CommutativeRing(R):
+    """
+    Check to see if ``R`` is a :class:`CommutativeRing`.
+
+    EXAMPLES::
+
+        sage: sage.rings.commutative_ring.is_CommutativeRing(ZZ)
+        True
+    """
     return isinstance(R, CommutativeRing)

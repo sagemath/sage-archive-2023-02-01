@@ -32,23 +32,16 @@ the infinite elements to infinity and the non-infinite elements to
 "a number less than infinity." Any ordered ring coerces to the
 infinity ring in the obvious way.
 
-Note: the shorthand oo is predefined in Sage to be the same as
-+Infinity in the infinity ring. It is considered equal to, but not
-the same as Infinity in the UnsignedInfinityRing::
+.. NOTE::
 
-    sage: oo
-    +Infinity
-    sage: oo is InfinityRing.0
-    True
-    sage: oo is UnsignedInfinityRing.0
-    False
-    sage: oo == UnsignedInfinityRing.0
-    True
+    The shorthand ``oo`` is predefined in Sage to be the same as
+    ``+Infinity`` in the infinity ring. It is considered equal to, but not
+    the same as ``Infinity`` in the
+    :class:`UnsignedInfinityRing<UnsignedInfinityRing_class>`.
 
 EXAMPLES:
 
-We fetch the unsigned infinity ring and create some
-elements::
+We fetch the unsigned infinity ring and create some elements::
 
     sage: P = UnsignedInfinityRing; P
     The Unsigned Infinity Ring
@@ -70,12 +63,23 @@ We compare finite numbers with infinity::
     sage: unsigned_oo > 5
     True
 
+Demonstrating the shorthand ``oo`` versus ``Infinity``::
+
+    sage: oo
+    +Infinity
+    sage: oo is InfinityRing.0
+    True
+    sage: oo is UnsignedInfinityRing.0
+    False
+    sage: oo == UnsignedInfinityRing.0
+    True
+
 We do arithmetic::
 
     sage: unsigned_oo + 5
     Infinity
 
-We make 1 / unsigned_oo return the integer 0 so that arithmetic of
+We make ``1 / unsigned_oo`` return the integer 0 so that arithmetic of
 the following type works::
 
     sage: (1/unsigned_oo) + 2
@@ -118,7 +122,7 @@ numbers by infinity, etc.
     sage: P(5)
     A positive finite number
 
-The symbol oo is predefined as a shorthand for +Infinity::
+The symbol ``oo`` is predefined as a shorthand for ``+Infinity``::
 
     sage: oo
     +Infinity
@@ -147,7 +151,7 @@ We can do more arithmetic than in the unsigned infinity ring::
     sage: -1 / oo
     0
 
-We make 1 / oo and 1 / -oo return the integer 0 instead of the
+We make ``1 / oo`` and ``1 / -oo`` return the integer 0 instead of the
 infinity ring Zero so that arithmetic of the following type works::
 
     sage: (1/oo) + 2
@@ -183,8 +187,7 @@ TESTS::
     True
 
 The following is assumed in a lot of code (i.e., "is" is used for
-testing whether something is infinity), so make sure it is
-satisfied::
+testing whether something is infinity), so make sure it is satisfied::
 
     sage: loads(dumps(infinity)) is infinity
     True
@@ -221,6 +224,8 @@ class AnInfinity:
 
     def _repr_(self):
         """
+        Return a string representation of ``self``.
+
         TESTS::
 
             sage: [x._repr_() for x in [unsigned_infinity, oo, -oo]]
@@ -232,8 +237,8 @@ class AnInfinity:
         """
         TESTS::
 
-            sage: [x._repr_() for x in [unsigned_infinity, oo, -oo]]
-            ['Infinity', '+Infinity', '-Infinity']
+            sage: [x._giac_init_() for x in [unsigned_infinity, oo, -oo]]
+            ['infinity', '+infinity', '-infinity']
         """
         return self._sign_char + "infinity"
 
@@ -253,14 +258,14 @@ class AnInfinity:
 
     def _pari_(self):
         """
-        Convert self to a Pari object.
+        Convert ``self`` to a Pari object.
 
         This always raises an exception since Pari does not have
         infinities.
 
         TESTS::
 
-            sage: pari(-oo)
+            sage: pari(-oo) # indirect doctest
             Traceback (most recent call last):
             ...
             TypeError: cannot convert infinity to Pari
@@ -272,10 +277,12 @@ class AnInfinity:
         raise TypeError, 'cannot convert infinity to Pari'
 
     def _latex_(self):
-        """
+        r"""
+        Return a latex representation of ``self``.
+
         EXAMPLES::
 
-            sage: latex(oo)
+            sage: latex(oo) # indirect doctest
             +\infty
             sage: [x._latex_() for x in [unsigned_infinity, oo, -oo]]
             ['\\infty', '+\\infty', '-\\infty']
@@ -284,6 +291,8 @@ class AnInfinity:
 
     def __cmp__(self, other):
         """
+        Compare ``self`` to ``other``.
+
         EXAMPLES::
 
             sage: oo == oo
@@ -320,9 +329,11 @@ class AnInfinity:
 
     def _add_(self, other):
         """
+        Add ``self`` to ``other``.
+
         EXAMPLES::
 
-            sage: -oo + -oo
+            sage: -oo + -oo # indirect doctest
             -Infinity
             sage: -oo + 3
             -Infinity
@@ -348,7 +359,7 @@ class AnInfinity:
         """
         EXAMPLES::
 
-            sage: -oo - oo
+            sage: -oo - oo # indirect doctest
             -Infinity
             sage: oo - -oo
             +Infinity
@@ -378,7 +389,7 @@ class AnInfinity:
         """
         EXAMPLES::
 
-            sage: oo * 19
+            sage: oo * 19 # indirect doctest
             +Infinity
             sage: oo * oo
             +Infinity
@@ -403,7 +414,7 @@ class AnInfinity:
         """
         EXAMPLES::
 
-            sage: 1.5 / oo
+            sage: 1.5 / oo # indirect doctest
             0
             sage: oo / -4
             -Infinity
@@ -447,8 +458,8 @@ class AnInfinity:
 
     def lcm(self, x):
         """
-        Return the least common multiple of oo and x, which
-        is by definition oo unless x is 0.
+        Return the least common multiple of ``oo`` and ``x``, which
+        is by definition oo unless ``x`` is 0.
 
         EXAMPLES::
 
@@ -473,6 +484,8 @@ class UnsignedInfinityRing_class(_uniq, Ring):
 
     def __init__(self):
         """
+        Initialize ``self``.
+
         TESTS::
 
             sage: sage.rings.infinity.UnsignedInfinityRing_class() is sage.rings.infinity.UnsignedInfinityRing_class() is UnsignedInfinityRing
@@ -508,7 +521,7 @@ class UnsignedInfinityRing_class(_uniq, Ring):
 
     def gen(self, n=0):
         """
-        The "generator" of self is the infinity object.
+        The "generator" of ``self`` is the infinity object.
 
         EXAMPLES::
 
@@ -530,7 +543,7 @@ class UnsignedInfinityRing_class(_uniq, Ring):
 
     def gens(self):
         """
-        The "generator" of self is the infinity object.
+        The "generator" of ``self`` is the infinity object.
 
         EXAMPLES::
 
@@ -558,6 +571,8 @@ class UnsignedInfinityRing_class(_uniq, Ring):
 
     def _repr_(self):
         """
+        Return a string representation of ``self``.
+
         TESTS::
 
             sage: UnsignedInfinityRing._repr_()
@@ -567,6 +582,8 @@ class UnsignedInfinityRing_class(_uniq, Ring):
 
     def __cmp__(self, right):
         """
+        Compare ``self`` to ``right``.
+
         TESTS::
 
             sage: infinity == UnsignedInfinityRing.gen()
@@ -582,7 +599,7 @@ class UnsignedInfinityRing_class(_uniq, Ring):
         """
         TESTS::
 
-            sage: UnsignedInfinityRing(2)
+            sage: UnsignedInfinityRing(2) # indirect doctest
             A number less than infinity
             sage: UnsignedInfinityRing(I)
             A number less than infinity
@@ -609,7 +626,7 @@ class UnsignedInfinityRing_class(_uniq, Ring):
         """
         EXAMPLES::
 
-            sage: UnsignedInfinityRing.has_coerce_map_from(int)
+            sage: UnsignedInfinityRing.has_coerce_map_from(int) # indirect doctest
             True
             sage: UnsignedInfinityRing.has_coerce_map_from(CC)
             True
@@ -627,6 +644,8 @@ UnsignedInfinityRing = UnsignedInfinityRing_class()
 class LessThanInfinity(_uniq, RingElement):
     def __init__(self, parent=UnsignedInfinityRing):
         """
+        Initialize ``self``.
+
         EXAMPLES::
 
             sage: sage.rings.infinity.LessThanInfinity() is UnsignedInfinityRing(5)
@@ -636,6 +655,8 @@ class LessThanInfinity(_uniq, RingElement):
 
     def _repr_(self):
         """
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: UnsignedInfinityRing(5)._repr_()
@@ -645,6 +666,8 @@ class LessThanInfinity(_uniq, RingElement):
 
     def _latex_(self):
         """
+        Return a latex representation of ``self``.
+
         EXAMPLES::
 
             sage: UnsignedInfinityRing(5)._latex_()
@@ -656,7 +679,7 @@ class LessThanInfinity(_uniq, RingElement):
         """
         EXAMPLES::
 
-            sage: UnsignedInfinityRing(5) + UnsignedInfinityRing(-3)
+            sage: UnsignedInfinityRing(5) + UnsignedInfinityRing(-3) # indirect doctest
             A number less than infinity
             sage: UnsignedInfinityRing(5) + unsigned_infinity
             Infinity
@@ -669,7 +692,7 @@ class LessThanInfinity(_uniq, RingElement):
         """
         EXAMPLES::
 
-            sage: UnsignedInfinityRing(5) - UnsignedInfinityRing(-3)
+            sage: UnsignedInfinityRing(5) - UnsignedInfinityRing(-3) # indirect doctest
             A number less than infinity
             sage: UnsignedInfinityRing(5) - unsigned_infinity
             Infinity
@@ -682,7 +705,7 @@ class LessThanInfinity(_uniq, RingElement):
         """
         EXAMPLES::
 
-            sage: UnsignedInfinityRing(4) * UnsignedInfinityRing(-3)
+            sage: UnsignedInfinityRing(4) * UnsignedInfinityRing(-3) # indirect doctest
             A number less than infinity
             sage: 5 * unsigned_infinity
             Traceback (most recent call last):
@@ -701,7 +724,7 @@ class LessThanInfinity(_uniq, RingElement):
 
         EXAMPLES::
 
-            sage: UnsignedInfinityRing(2) / UnsignedInfinityRing(5)
+            sage: UnsignedInfinityRing(2) / UnsignedInfinityRing(5) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: quotient of number < oo by number < oo not defined
@@ -714,6 +737,8 @@ class LessThanInfinity(_uniq, RingElement):
 
     def __cmp__(self, other):
         """
+        Compare ``self`` to ``other``.
+
         EXAMPLES::
 
             sage: 1 == unsigned_infinity
@@ -731,6 +756,8 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
 
     def __init__(self):
         """
+        Initialize ``self``.
+
         TESTS::
 
             sage: sage.rings.infinity.UnsignedInfinity() is sage.rings.infinity.UnsignedInfinity() is unsigned_infinity
@@ -744,7 +771,7 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
 
         EXAMPLES::
 
-            sage: unsigned_infinity * unsigned_infinity
+            sage: unsigned_infinity * unsigned_infinity # indirect doctest
             Infinity
             sage: unsigned_infinity * 0
             Traceback (most recent call last):
@@ -785,11 +812,16 @@ def is_Infinite(x):
     return isinstance(x, InfinityElement)
 
 class SignError(ArithmeticError):
+    """
+    Sign error exception.
+    """
     pass
 
 class InfinityRing_class(_uniq, Ring):
     def __init__(self):
         """
+        Initialize ``self``.
+
         TEST::
 
             sage: sage.rings.infinity.InfinityRing_class() is sage.rings.infinity.InfinityRing_class() is InfinityRing
@@ -866,6 +898,8 @@ class InfinityRing_class(_uniq, Ring):
 
     def _repr_(self):
         """
+        Return a string representation of ``self``.
+
         TEST::
 
             sage: InfinityRing._repr_()
@@ -875,6 +909,8 @@ class InfinityRing_class(_uniq, Ring):
 
     def __cmp__(self, right):
         """
+        Compare ``self`` to ``right``.
+
         TESTS::
 
             sage: InfinityRing == InfinityRing
@@ -890,7 +926,7 @@ class InfinityRing_class(_uniq, Ring):
         """
         TESTS::
 
-            sage: InfinityRing(-oo)
+            sage: InfinityRing(-oo) # indirect doctest
             -Infinity
             sage: InfinityRing(3)
             A positive finite number
@@ -948,7 +984,7 @@ class InfinityRing_class(_uniq, Ring):
 
         EXAMPLES::
 
-            sage: InfinityRing.has_coerce_map_from(int)
+            sage: InfinityRing.has_coerce_map_from(int) # indirect doctest
             True
             sage: InfinityRing.has_coerce_map_from(AA)
             True
@@ -962,6 +998,8 @@ class InfinityRing_class(_uniq, Ring):
 class FiniteNumber(RingElement):
     def __init__(self, parent, x):
         """
+        Initialize ``self``.
+
         TESTS::
 
             sage: sage.rings.infinity.FiniteNumber(InfinityRing, 1)
@@ -976,6 +1014,8 @@ class FiniteNumber(RingElement):
 
     def __cmp__(self, other):
         """
+        Compare ``self`` and ``other``.
+
         EXAMPLES::
 
             sage: P = InfinityRing
@@ -997,7 +1037,7 @@ class FiniteNumber(RingElement):
         EXAMPLES::
 
             sage: P = InfinityRing
-            sage: 4 + oo
+            sage: 4 + oo # indirect doctest
             +Infinity
             sage: P(4) + P(2)
             A positive finite number
@@ -1017,7 +1057,7 @@ class FiniteNumber(RingElement):
         EXAMPLES::
 
             sage: P = InfinityRing
-            sage: 0 * oo
+            sage: 0 * oo # indirect doctest
             Traceback (most recent call last):
             ...
             SignError: cannot multiply infinity by zero
@@ -1056,7 +1096,7 @@ class FiniteNumber(RingElement):
         EXAMPLES::
 
             sage: P = InfinityRing
-            sage: 1 / oo
+            sage: 1 / oo # indirect doctest
             0
             sage: oo / 4
             +Infinity
@@ -1072,7 +1112,7 @@ class FiniteNumber(RingElement):
         EXAMPLES::
 
             sage: P = InfinityRing
-            sage: 4 - oo
+            sage: 4 - oo # indirect doctest
             -Infinity
             sage: 5 - -oo
             +Infinity
@@ -1109,7 +1149,7 @@ class FiniteNumber(RingElement):
 
             sage: a = InfinityRing(5); a
             A positive finite number
-            sage: -a
+            sage: -a # indirect doctest
             A negative finite number
             sage: -(-a) == a
             True
@@ -1120,6 +1160,8 @@ class FiniteNumber(RingElement):
 
     def _repr_(self):
         """
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: InfinityRing(-2)._repr_()
@@ -1137,6 +1179,8 @@ class FiniteNumber(RingElement):
 
     def _latex_(self):
         """
+        Return a latex representation of ``self``.
+
         TESTS::
 
             sage: a = InfinityRing(pi); a
@@ -1187,6 +1231,8 @@ class MinusInfinity(_uniq, AnInfinity, MinusInfinityElement):
 
     def __init__(self):
         """
+        Initialize ``self``.
+
         TESTS::
 
             sage: sage.rings.infinity.MinusInfinity() is sage.rings.infinity.MinusInfinity() is -oo
@@ -1198,7 +1244,7 @@ class MinusInfinity(_uniq, AnInfinity, MinusInfinityElement):
         """
         EXAMPLES::
 
-            sage: -(-oo)
+            sage: -(-oo) # indirect doctest
             +Infinity
         """
         return self.parent().gen(0)
@@ -1216,12 +1262,12 @@ class MinusInfinity(_uniq, AnInfinity, MinusInfinityElement):
 
     def _sympy_(self):
         """
-        Converts -oo to sympy -oo.
+        Converts ``-oo`` to sympy ``-oo``.
 
-        Then you don't have to worry which oo you use, like in these
+        Then you don't have to worry which ``oo`` you use, like in these
         examples:
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sympy
             sage: bool(-oo == -sympy.oo)
@@ -1243,6 +1289,8 @@ class PlusInfinity(_uniq, AnInfinity, PlusInfinityElement):
 
     def __init__(self):
         """
+        Initialize ``self``.
+
         TESTS::
 
             sage: sage.rings.infinity.PlusInfinity() is sage.rings.infinity.PlusInfinity() is oo
@@ -1254,13 +1302,17 @@ class PlusInfinity(_uniq, AnInfinity, PlusInfinityElement):
         """
         TESTS::
 
-            sage: -oo
+            sage: -oo # indirect doctest
             -Infinity
         """
         return self.parent().gen(1)
 
     def sqrt(self):
         """
+        The square root of ``self``.
+
+        The square root of infinity is infinity.
+
         EXAMPLES::
 
             sage: oo.sqrt()
@@ -1270,9 +1322,9 @@ class PlusInfinity(_uniq, AnInfinity, PlusInfinityElement):
 
     def _sympy_(self):
         """
-        Converts oo to sympy oo.
+        Converts ``oo`` to sympy ``oo``.
 
-        Then you don't have to worry which oo you use, like in these
+        Then you don't have to worry which ``oo`` you use, like in these
         examples:
 
         EXAMPLE::
@@ -1290,19 +1342,4 @@ InfinityRing = InfinityRing_class()
 infinity = InfinityRing.gen(0)
 Infinity = infinity
 minus_infinity = InfinityRing.gen(1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

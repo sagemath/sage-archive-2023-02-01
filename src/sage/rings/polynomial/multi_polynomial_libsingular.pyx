@@ -172,6 +172,7 @@ from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing
 
 # singular functions
 from sage.libs.singular.decl cimport (
+    errorreported,
     p_ISet, rChangeCurrRing, p_Copy, p_Init, p_SetCoeff, p_Setm, p_SetExp, p_Add_q,
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
     omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
@@ -4053,6 +4054,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         given an ideal ``I = (f_1,...,f_r)`` and some ``g (== self)`` in ``I``,
         find ``s_1,...,s_r`` such that ``g = s_1 f_1 + ... + s_r f_r``.
 
+        A ``ValueError`` exception is raised if ``g (== self)`` does not belong to ``I``.
+
         EXAMPLES::
 
             sage: A.<x,y> = PolynomialRing(QQ,2,order='degrevlex')
@@ -4063,7 +4066,22 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             [y^7, x^7*y^2 + x^8 + x^5*y^3 + x^6*y + x^3*y^4 + x^4*y^2 + x*y^5 + x^2*y^3 + y^4]
             sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
             True
+
+        Check that :trac:`13671` is fixed::
+
+            sage: R.<x1,x2> = QQ[]
+            sage: I = R.ideal(x2**2 + x1 - 2, x1**2 - 1)
+            sage: f = I.gen(0) + x2*I.gen(1)
+            sage: f.lift(I)
+            [1, x2]
+            sage: (f+1).lift(I)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial is not in the ideal
+            sage: f.lift(I)
+            [1, x2]
         """
+        global errorreported
         if not self._parent._base.is_field():
             raise NotImplementedError, "Lifting of multivariate polynomials over non-fields is not implemented."
 
@@ -4097,6 +4115,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if r!=currRing: rChangeCurrRing(r)  # idLift
         res = idLift(_I, fI, NULL, 0, 0, 0)
+        if errorreported != 0:
+            errorcode = errorreported
+            errorreported = 0
+            if errorcode == 1:
+                raise ValueError("polynomial is not in the ideal")
+            raise RuntimeError
+
         l = []
         for i from 0 <= i < IDELEMS(res):
             for j from 1 <= j <= IDELEMS(_I):

@@ -129,4 +129,5 @@ from finite_crystals import FiniteCrystals
 from classical_crystals import ClassicalCrystals
 
 # polyhedra
-from polyhedra import PolyhedralSets
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.categories.polyhedra', 'PolyhedralSets')

@@ -5,11 +5,7 @@ cdef extern from *:
     cdef int INTEGER = 0
 
 from sage.structure.sage_object cimport SageObject
-from sage.structure.parent cimport Parent
-from sage.structure.element cimport ModuleElement, RingElement, Element
-
 from sage.numerical.backends.generic_backend cimport GenericBackend
-
 cdef class MIPVariable
 
 
@@ -22,26 +18,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
     cdef int __REAL
     cdef int __INTEGER
     cdef object _linear_functions_parent
+    cdef object _linear_constraints_parent
     cpdef int number_of_constraints(self)
     cpdef int number_of_variables(self)
     cdef int _check_redundant
     cdef list _constraints
     cpdef sum(self, L)
-
-cdef class LinearFunctionsParent_class(Parent):
-    cpdef _element_constructor_(self, x)
-    cpdef _coerce_map_from_(self, R)
-    cdef object _multiplication_symbol
-    cpdef object _get_multiplication_symbol(self)
-
-cdef class LinearFunction(ModuleElement):
-    cdef dict _f
-    cpdef ModuleElement _add_(self, ModuleElement b)
-    cpdef ModuleElement _sub_(self, ModuleElement b)
-    cpdef ModuleElement _lmul_(self, RingElement b)
-    cpdef ModuleElement _rmul_(self, RingElement b)
-    cpdef ModuleElement _neg_(self)
-    cdef _richcmp(left, right, int op)
 
 cdef class MIPVariable(SageObject):
     cdef MixedIntegerLinearProgram _p

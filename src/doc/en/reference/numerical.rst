@@ -6,6 +6,7 @@ Numerical Optimization
 
    sage/numerical/knapsack
    sage/numerical/mip
+   sage/numerical/linear_functions
    sage/numerical/optimize
 
 LP Solver backends

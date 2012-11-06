@@ -13,4 +13,8 @@ from class_function import ClassFunction
 
 from additive_abelian.all import *
 
+from sage.misc.lazy_import import lazy_import
+
+lazy_import('sage.groups.free_group', 'FreeGroup')
+
 import groups_catalog as groups

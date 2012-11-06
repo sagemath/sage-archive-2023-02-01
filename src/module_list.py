@@ -494,6 +494,9 @@ ext_modules = [
     Extension('sage.groups.old',
               sources = ['sage/groups/old.pyx']),
 
+    Extension('sage.groups.libgap_wrapper',
+              sources = ['sage/groups/libgap_wrapper.pyx']),
+
     Extension('sage.groups.perm_gps.permgroup_element',
               sources = ['sage/groups/perm_gps/permgroup_element.pyx']),
 

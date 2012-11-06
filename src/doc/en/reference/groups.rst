@@ -8,7 +8,10 @@ Groups
 
    sage/groups/groups_catalog
    sage/groups/group
+   sage/groups/libgap_wrapper
    sage/groups/generic
+   sage/groups/free_group
+   sage/groups/finitely_presented
    sage/groups/abelian_gps/abelian_group
    sage/groups/abelian_gps/values
    sage/groups/abelian_gps/dual_abelian_group

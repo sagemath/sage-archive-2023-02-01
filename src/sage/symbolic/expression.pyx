@@ -9007,6 +9007,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: solve([x-4], [x])
             [x == 4]
+
+        :trac:`13645`: fixed::
+
+            sage: x.solve((1,2))
+            Traceback (most recent call last):
+            ...
+            TypeError: 1 is not a valid variable.
         """
         import operator
         cdef Expression ex
@@ -9046,7 +9053,7 @@ cdef class Expression(CommutativeRingElement):
             x = v[0]
 
         if not isinstance(x, Expression):
-            raise TypeError, "%s is not a valid variable."%x
+            raise TypeError("%s is not a valid variable."%repr(x))
 
         m = ex._maxima_()
         P = m.parent()

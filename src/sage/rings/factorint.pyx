@@ -257,9 +257,18 @@ cpdef factor_trial_division(m, long limit=LONG_MAX):
         2 * 11 * 41835640583745019265831379463815822381094652231
         sage: factor_trial_division(n, 2000)
         2 * 11 * 1531 * 27325696005058797691594630609938486205809701
+
+    TESTS:
+
+    Test that :trac:`13692` is solved::
+
+        sage: from sage.rings.factorint import factor_trial_division
+        sage: list(factor_trial_division(8))
+        [(2, 3)]
+
     """
     cdef Integer n = PY_NEW(Integer), unit = PY_NEW(Integer), p
-    cdef unsigned long e
+    cdef long e
 
     n = Integer(m)
     if mpz_sgn(n.value) > 0:

@@ -103,6 +103,7 @@ graphs.
     :meth:`~Graph.minor` | Returns the vertices of a minor isomorphic to `H` in the current graph.
     :meth:`~Graph.independent_set_of_representatives` | Returns an independent set of representatives.
     :meth:`~Graph.coloring` | Returns the first (optimal) proper vertex-coloring found.
+    :meth:`~Graph.has_homomorphism_to` | Checks whether there is a morphism between two graphs.
     :meth:`~Graph.chromatic_number` | Returns the minimal number of colors needed to color the vertices of the graph.
     :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial of the graph.
     :meth:`~Graph.is_perfect` | Tests whether the graph is perfect.
@@ -3171,6 +3172,113 @@ class Graph(GenericGraph):
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
 
+    def has_homomorphism_to(self, H, core = False, solver = None, verbose = 0):
+        r"""
+        Checks whether there is a homomorphism between two graphs.
+
+        A homomorphism from a graph `G` to a graph `H` is a function
+        `\phi:V(G)\mapsto V(H)` such that for any edge `uv \in E(G)` the pair
+        `\phi(u)\phi(v)` is an edge of `H`.
+
+        Saying that a graph can be `k`-colored is equivalent to saying that it
+        has a homomorphism to `K_k`, the complete graph on `k` elements.
+
+        For more information, see the `Wikipedia article on graph homomorphisms
+        <Graph_homomorphism>`_.
+
+        INPUT:
+
+        - ``H`` -- the graph to which ``self`` should be sent.
+
+        - ``core`` (boolean) -- whether to minimize the size of the mapping's
+          image (see note below). This is set to ``False`` by default.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        .. NOTE::
+
+           One can compute the core of a graph (with respect to homomorphism)
+           with this method ::
+
+               sage: g = graphs.CycleGraph(10)
+               sage: mapping = g.has_homomorphism_to(g, core = True)
+               sage: print "The size of the core is",len(set(mapping.values()))
+               The size of the core is 2
+
+        OUTPUT:
+
+        This method returns ``False`` when the homomorphism does not exist, and
+        returns the homomorphism otherwise as a dictionnary associating a vertex
+        of `H` to a vertex of `G`.
+
+        EXAMPLE:
+
+        Is Petersen's graph 3-colorable::
+
+            sage: P = graphs.PetersenGraph()
+            sage: P.has_homomorphism_to(graphs.CompleteGraph(3)) is not False
+            True
+
+        An odd cycle admits a homomorphism to a smaller odd cycle, but not to an
+        even cycle::
+
+            sage: g = graphs.CycleGraph(9)
+            sage: g.has_homomorphism_to(graphs.CycleGraph(5)) is not False
+            True
+            sage: g.has_homomorphism_to(graphs.CycleGraph(7)) is not False
+            True
+            sage: g.has_homomorphism_to(graphs.CycleGraph(4)) is not False
+            False
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+        p = MixedIntegerLinearProgram(solver=solver, maximization = False)
+        b = p.new_variable(binary = True)
+
+        # Each vertex has an image
+        for ug in self:
+            p.add_constraint(p.sum([b[ug,uh] for uh in H]) == 1)
+
+        nonedges = H.complement().edges(labels = False)
+        for ug,vg in self.edges(labels = False):
+            # Two adjacent vertices cannot be mapped to the same element
+            for uh in H:
+                p.add_constraint(b[ug,uh] + b[vg,uh] <= 1)
+
+            # Two adjacent vertices cannot be mapped to no adjacent vertices
+            for uh,vh in nonedges:
+                p.add_constraint(b[ug,uh] + b[vg,vh] <= 1)
+                p.add_constraint(b[ug,vh] + b[vg,uh] <= 1)
+
+        # Minimize the mapping's size
+        if core:
+
+            # the value of m is one if the corresponding vertex of h is used.
+            m = p.new_variable()
+            for uh in H:
+                for ug in self:
+                    p.add_constraint(b[ug,uh] <= m[uh])
+
+            p.set_objective(p.sum([m[vh] for vh in H]))
+
+        try:
+            p.solve(log = verbose)
+            b = p.get_values(b)
+            mapping = dict(map(lambda y:y[0],filter(lambda x:x[1], b.items())))
+            return mapping
+
+        except MIPSolverException:
+            return False
+
     def fractional_chromatic_index(self, verbose_constraints = 0, verbose = 0):
         r"""
         Computes the fractional chromatic index of ``self``
@@ -4950,6 +5058,8 @@ class Graph(GenericGraph):
         """
         Returns the core number for each vertex in an ordered list.
 
+        (for homomorphisms cores, see the :meth:`Graph.has_homomorphism_to`
+        method)
 
         **DEFINITIONS**
 
@@ -5008,6 +5118,11 @@ class Graph(GenericGraph):
              vertices, and whose values are the corresponding core numbers.
 
              By default, ``with_labels = False``.
+
+        .. SEEALSO::
+
+           * Graph cores is also a notion related to graph homomorphisms. For
+             this second meaning, see :meth:`Graph.has_homomorphism_to`.
 
         REFERENCE:
 

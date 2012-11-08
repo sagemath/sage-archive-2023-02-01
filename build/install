@@ -55,6 +55,21 @@ if [ "$SAGE_UPGRADING" = yes ]; then
     if [ "$RM" = rm ]; then
         export RM="rm -f"
     fi
+
+    # If we have an old version of sage-location,
+    # then manually fix the .la (libtool) files.
+    if grep 'lib64' "$SAGE_LOCAL/bin/sage-location" &>/dev/null; then
+        # sage-location does check lib64, so everything is fine.
+        true
+    else
+        echo "Found an old version of sage-location, manually fixing some Libtool files."
+        for d in "$SAGE_LOCAL/lib32" "$SAGE_LOCAL/lib64"; do
+            for la_file in "$d"/*.la; do
+                [ -w "$la_file" ] || continue
+                sed -i "s ^libdir=.* libdir='$d' " "$la_file"
+            done
+        done
+    fi
 fi
 
 ###############################################################################

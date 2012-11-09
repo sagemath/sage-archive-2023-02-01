@@ -1542,6 +1542,101 @@ class LinearCode(module.Module_old):
         G = MS([Grref.row(i) for i in range(r)])
         return LinearCode(G)
 
+    def __getitem__(self, i):
+        r"""
+        Returns the `i`-th codeword of this code.
+
+        The implementation of this depends on the implementation of the
+        :meth:`.__iter__` method.
+
+        The implementation is as follows. Suppose that:
+
+        - the primitive element of the base_ring of this code is `a`,
+        - the prime subfield is `p`,
+        - the field has order `p^m`,
+        - the code has dimension `k`,
+        - and the generator matrix is `G`.
+
+        Then the :meth:`.__iter__` method returns the elements in this order:
+
+        1. first, the following ordered list is returned:
+           ``[i*a^0 * G[0] for i in range(p)]``
+        2. Next, the following ordered list is returned:
+           ``[i*a^0 * G[0] + a^1*G[0] for i in range(p)]``
+        3. This continues till we get
+           ``[(i*a^0 +(p-1)*a^1 +...+ (p-1)*a^(m-1))*G[0] for i in range(p)]``
+        4. Then, we move to G[1]:
+           ``[i*a^0 * G[0] + a^0*G[1] for i in range(p)]``,
+         and so on.
+         Hence the `i`-th element can be obtained by the p-adic expansion
+         of `i` as ``[i_0, i_1, ...,i_{m-1}, i_m, i_{m+1}, ..., i_{km-1}].``
+         The element that is generated is:
+
+        .. math::
+
+             \begin{aligned}
+             & (i_0 a^0 + i_1 a^1 + \cdots + i_{m-1} a^{m-1}) G[0] + \\
+             & (i_m a^0 + i_{m+1} a^1 + \cdots + i_{2m-1} a^{m-1}) G[1] + \\
+             & \vdots\\
+             & (i_{(k-1)m} a^0 + \cdots + i_{km-1} a^{m-1}) G[k-1]
+             \end{aligned}
+
+        EXAMPLES::
+
+            sage: RS = ReedSolomonCode(7, 3, GF(8, 'a'))
+            sage: RS[24]
+            (0, a^2 + a, a^2 + a + 1, a^2 + 1, 1, a, a^2)
+            sage: RS[24] == RS.list()[24]
+            True
+
+        TESTS::
+
+            sage: C = random_matrix(GF(25,'a'), 2, 7).row_space()
+            sage: C = LinearCode(C.basis_matrix())
+            sage: Clist = C.list()
+            sage: all([C[i]==Clist[i] for i in xrange(len(C))])
+            True
+
+        Check that only the indices less than the size of the code are
+        allowed::
+
+            sage: C[25**2]
+            Traceback (most recent call last):
+            ...
+            IndexError: The value of the index 'i' (=625) must be between
+            0 and 'q^k -1' (=624), inclusive, where 'q' is the size of the
+            base field and 'k' is the dimension of the code.
+
+        """
+        # IMPORTANT: If the __iter__() function implementation is changed
+        # then the implementation here must also be changed so that
+        # list(self)[i] and self[i] both return the same element.
+
+        from sage.rings.padics.factory import Zp
+        F = self.base_ring()
+        maxindex = F.order()**self.dimension()-1
+        if i < 0 or i > maxindex:
+            raise IndexError("The value of the index 'i' (={}) must be between "
+                             "0 and 'q^k -1' (={}), inclusive, where 'q' is "
+                             "the size of the base field and 'k' is the "
+                             "dimension of the code.".format(i, maxindex))
+
+        a = F.primitive_element()
+        m = F.degree()
+        p = F.prime_subfield().order()
+        A = [a**k for k in xrange(m)]
+        G = self.gen_mat()
+        N = self.dimension()*F.degree() # the total length of p-adic vector
+        Z = Zp(p, N)
+        ivec = Z(i).padded_list(N)
+
+        codeword = 0
+        row = 0
+        for g in G:
+            codeword += sum([ivec[j+row*m]*A[j] for j in xrange(m)])*g
+            row += 1
+        return codeword
+
     def gen_mat(self):
         r"""
         Return a generator matrix of this code.

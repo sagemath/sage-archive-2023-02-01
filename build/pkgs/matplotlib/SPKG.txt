@@ -47,13 +47,6 @@ The patches are applied during the build process.
    of libpng, as above; otherwise it uses libpng, which is the
    behavior before the patch. See Sage trac #4774 and #11686.
 
- * mkdir-race-condition.patch: instead
-   of "if not.os.path.exists(DIR): os.mkdir(DIR)", do "try
-   os.mkdir(DIR)" and then catch the error if the directory already
-   exists.  This is safer in general, and should avoid problems if two
-   doctests try to create the directory at the same time.  These patches
-   have been submitted upstream at https://github.com/matplotlib/matplotlib/pull/629
-
  * NOTE: as of matplotlib-1.0.0 and Sage 4.6, Sage does not use
    $HOME/.matplotlib (or whatever the user has set in MPLCONFIGDIR).
    Instead, it sets MPLCONFIGDIR to $DOT_SAGE/matplotlib-VER, where
@@ -81,6 +74,11 @@ The patches are applied during the build process.
    src/lib/matplotlib/tests/baseline_images/*
 
 == Changelog ==
+
+=== matplotlib-1.1.0 (Jason Grout, 09 Nov 2012) ===
+ * Update to matplotlib 1.2.0.
+
+ * Delete the mkdir race condition patch; it's been incorporated upstream.
 
 === matplotlib-1.1.0 (Jason Grout, 15 Dec 2011) ===
  * Update matplotlib to 1.1.0.  See Sage trac #11915.

@@ -328,6 +328,16 @@ class QuotientRingElement(ring_element.RingElement):
             sage: 1/a
             a
 
+        Check that :trac:`13670` is fixed (i.e. that the error message
+        actually describes what happens when the result of division is not defined)::
+
+            sage: R.<x1,x2> = QQ[]
+            sage: S = R.quotient_ring( R.ideal(x2**2 + x1 - 2, x1**2 - 1) )
+            sage: 1 / S(x1 + x2)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Division failed. The numerator is not a multiple of the denominator.
+
         An example over a polynomial ring over a polynomial ring,
         which doesn't work (yet; obviously, this could be made to work
         by converting to a single polynomial quotient ring
@@ -369,11 +379,15 @@ class QuotientRingElement(ring_element.RingElement):
         # here explicitly purely for efficiency reasons, since it
         # makes the implicit Groebner basis computation of [R]+B
         # that is done in the lift command below faster.
+
         B  = I.groebner_basis()
-        XY = L.lift((R,) + tuple(B))
-        if XY == [0]*len(XY):
-            raise NotImplementedError
+        try:
+            XY = L.lift((R,) + tuple(B))
+        except ValueError:
+             raise ArithmeticError("Division failed. The numerator is not "
+                                   "a multiple of the denominator.")
         return P(XY[0])
+
 
     def __int__(self):
         """

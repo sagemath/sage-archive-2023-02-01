@@ -75,7 +75,7 @@ The patches are applied during the build process.
 
 == Changelog ==
 
-=== matplotlib-1.1.0 (Jason Grout, 09 Nov 2012) ===
+=== matplotlib-1.2.0 (Jason Grout, 09 Nov 2012) ===
  * Update to matplotlib 1.2.0.
 
  * Delete the mkdir race condition patch; it's been incorporated upstream.

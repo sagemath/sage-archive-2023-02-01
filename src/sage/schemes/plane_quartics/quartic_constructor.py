@@ -51,20 +51,20 @@ def QuarticCurve(F, PP=None, check=False):
 
     """
     if not is_MPolynomial(F):
-        raise ValueError, "Argument F (=%s) must be a multivariate polynomial"%F
+        raise ValueError("Argument F (=%s) must be a multivariate polynomial"%F)
     P = F.parent()
     if not P.ngens() == 3:
-        raise ValueError, "Argument F (=%s) must be a polynomial in 3 variables"%F
+        raise ValueError("Argument F (=%s) must be a polynomial in 3 variables"%F)
     if not(F.is_homogeneous() and F.degree()==4):
-        raise ValueError, "Argument F (=%s) must be a homogeneous polynomial of degree 4"%F
+        raise ValueError("Argument F (=%s) must be a homogeneous polynomial of degree 4"%F)
 
     if not PP is None:
         if not is_ProjectiveSpace(PP) and PP.dimension == 2:
-            raise ValueError, "Argument PP (=%s) must be a projective plane"%PP
+            raise ValueError("Argument PP (=%s) must be a projective plane"%PP)
     else:
         PP = ProjectiveSpace(P)
 
     if check:
-        raise NotImplementedError, "Argument checking (for nonsingularity) is not implemented."
+        raise NotImplementedError("Argument checking (for nonsingularity) is not implemented.")
 
     return QuarticCurve_generic(PP, F)

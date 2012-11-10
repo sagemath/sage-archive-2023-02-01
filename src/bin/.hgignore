@@ -240,6 +240,7 @@ gnutls-serv
 ipcluster
 ipcontroller
 ipengine
+iplogger
 ipresults
 iptest
 ipwebserver

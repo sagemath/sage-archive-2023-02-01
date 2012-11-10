@@ -31,6 +31,7 @@ Miscellaneous
    sage/misc/interpreter
    sage/misc/functional
    sage/misc/html
+   sage/misc/table
    sage/misc/log
    sage/misc/persist
    sage/misc/unknown

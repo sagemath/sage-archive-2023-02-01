@@ -153,12 +153,24 @@ class HTML:
 
     def eval(self, s, globals=None, locals=None):
         r"""
+        Return an html representation for an object ``s``.
+
+        If ``s`` has a method ``_html_()``, call that. Otherwise, call
+        :func:`math_parse` on ``str(s)``, evaluate any variables in
+        the result, and add some html preamble and postamble.
+
+        In any case, *print* the resulting html string. This method
+        always *returns* an empty string.
+
         EXAMPLES::
 
             sage: html.eval('<hr>')
             <html><font color='black'><hr></font></html>
             ''
         """
+        if hasattr(s, '_html_'):
+            s._html_()
+            return ''
         if globals is None:
             globals = {}
         if locals is None:
@@ -227,25 +239,6 @@ class HTML:
             </div>
             </html>
 
-            sage: html.table(["Functions $f(x)$", sin(x), cos(x)], header = True)
-            <html>
-            <div class="notruncate">
-            <table class="table_form">
-            <tbody>
-            <tr>
-            <th>Functions <script type="math/tex">f(x)</script></th>
-            </tr>
-            <tr class ="row-a">
-            <td><script type="math/tex">\sin\left(x\right)</script></td>
-            </tr>
-            <tr class ="row-b">
-            <td><script type="math/tex">\cos\left(x\right)</script></td>
-            </tr>
-            </tbody>
-            </table>
-            </div>
-            </html>
-
             sage: html.table([(x,n(sin(x), digits=2)) for x in [0..3]], header = ["$x$", "$\sin(x)$"])
             <html>
             <div class="notruncate">
@@ -277,63 +270,8 @@ class HTML:
             </html>
 
         """
-        import types
-        from sage.misc.all import latex
-        from itertools import cycle
-        if isinstance(x, types.GeneratorType):
-            x = list(x)
-        if isinstance(x, (list, tuple)):
-            rows = len(x)
-            if rows > 0:
-                # if the table has less then 100 rows, don't truncate the output in the notebook
-                if rows <= 100:
-                    print "<html>\n<div class=\"notruncate\">\n<table class=\"table_form\">\n<tbody>"
-                else:
-                    print "<html>\n<div class=\"truncate\">\n<table class=\"table_form\">\n<tbody>"
-
-                if header is True:
-                    header=x[0]
-                    x = list(x[1:])
-
-                if header is not False:
-                    print "<tr>"
-                    self._table_columns(header, True)
-                    print "</tr>"
-
-                for row_class, row in zip(cycle(["row-a", "row-b"]), x):
-                    print "<tr class =\"%s\">" % row_class
-                    self._table_columns(row, False)
-                    print "</tr>"
-                print "</tbody>\n</table>\n</div>\n</html>"
-
-    def _table_columns(self, row, header=False):
-        r"""
-        Print the items of a list as the columns of a HTML table.
-
-        TESTS::
-
-            sage: html._table_columns(["a $x^2$",1, sin(x)])
-            <td>a <script type="math/tex">x^2</script></td>
-            <td><script type="math/tex">1</script></td>
-            <td><script type="math/tex">\sin\left(x\right)</script></td>
-            sage: html._table_columns("a", header=True)
-            <th>a</th>
-        """
-        column_tag = "<th>%s</th>" if header else "<td>%s</td>"
-        from sage.plot.all import Graphics
-        import types
-        if isinstance(row, types.GeneratorType):
-            row = list(row)
-        elif not isinstance(row, (list, tuple)):
-            row = [row]
-
-        for column in xrange(len(row)):
-            if isinstance(row[column], Graphics):
-                print column_tag % row[column].show(linkmode = True)
-            elif isinstance(row[column], str):
-                print column_tag % math_parse(row[column])
-            else:
-                print column_tag % ('<script type="math/tex">%s</script>' % latex(row[column]))
+        from table import table
+        table(x, header_row=header)._html_()
 
     def iframe(self, url, height=400, width=800):
         r"""

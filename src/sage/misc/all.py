@@ -18,6 +18,8 @@ from dev_tools import runsnake, import_statements
 
 from html import html
 
+from table import table
+
 from sage_timeit_class import timeit
 
 from edit_module import edit, set_edit_template

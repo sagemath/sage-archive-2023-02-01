@@ -13533,9 +13533,10 @@ class GenericGraph(GenericGraph_pyx):
         Returns the lexicographic product of self and other.
 
         The lexicographic product of `G` and `H` is the graph `L` with vertex
-        set `V(L)` equal to the Cartesian product of the vertices `V(G)` and
-        `V(H)`, and `((u,v), (w,x))` is an edge iff - `(u, w)` is an edge of
-        self, or - `u = w` and `(v, x)` is an edge of other.
+        set `V(L)=V(G)\times V(H)`, and `((u,v), (w,x))` is an edge iff :
+
+        * `(u, w)` is an edge of `G`, or
+        * `u = w` and `(v, x)` is an edge of `H`.
 
         EXAMPLES::
 
@@ -13598,12 +13599,15 @@ class GenericGraph(GenericGraph_pyx):
         Returns the strong product of self and other.
 
         The strong product of `G` and `H` is the graph `L` with vertex set
-        `V(L)` equal to the Cartesian product of the vertices `V(G)` and `V(H)`,
-        and `((u,v), (w,x))` is an edge iff either - `(u, w)` is an edge of self
-        and `v = x`, or - `(v, x)` is an edge of other and `u = w`, or - `(u,
-        w)` is an edge of self and `(v, x)` is an edge of other. In other words,
-        the edges of the strong product is the union of the edges of the tensor
-        and Cartesian products.
+        `V(L)=V(G)\times V(H)`, and `((u,v), (w,x))` is an edge of `L` iff
+        either :
+
+        * `(u, w)` is an edge of `G` and `v = x`, or
+        * `(v, x)` is an edge of `H` and `u = w`, or
+        * `(u, w)` is an edge of `G` and `(v, x)` is an edge of `H`.
+
+        In other words, the edges of the strong product is the union of the
+        edges of the tensor and Cartesian products.
 
         EXAMPLES::
 
@@ -13623,25 +13627,32 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Strong product of graphs::
+        Strong product of graphs is commutative::
 
             sage: G = Graph([(0,1), (1,2)])
             sage: H = Graph([('a','b')])
             sage: T = G.strong_product(H)
-            sage: T.edges(labels=None)
-            [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'b'), (1, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
             sage: T.is_isomorphic( H.strong_product(G) )
             True
 
-        Strong product of digraphs::
+        Strong product of digraphs is commutative::
 
             sage: I = DiGraph([(0,1), (1,2)])
             sage: J = DiGraph([('a','b')])
             sage: T = I.strong_product(J)
-            sage: T.edges(labels=None)
-            [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'b'), (1, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
             sage: T.is_isomorphic( J.strong_product(I) )
             True
+
+        Counting the edges (see :trac:`13699`)::
+
+            sage: g = graphs.RandomGNP(5,.5)
+            sage: gn,gm = g.order(), g.size()
+            sage: h = graphs.RandomGNP(5,.5)
+            sage: hn,hm = h.order(), h.size()
+            sage: product_size = g.strong_product(h).size()
+            sage: expected = gm*hn + hm*gn + 2*gm*hm
+            sage: if product_size != expected:
+            ...       print "Something is really wrong here...", product_size, "!=", expected
         """
         if self._directed and other._directed:
             from sage.graphs.all import DiGraph
@@ -13658,6 +13669,8 @@ class GenericGraph(GenericGraph_pyx):
                 G.add_edge((u,v), (w,v))
             for v,x in other.edges(labels=None):
                 G.add_edge((u,v), (w,x))
+                if not self._directed:
+                    G.add_edge((w,v), (u,x))
         for v,x in other.edges(labels=None):
             for u in self:
                 G.add_edge((u,v), (u,x))
@@ -13668,9 +13681,10 @@ class GenericGraph(GenericGraph_pyx):
         Returns the disjunctive product of self and other.
 
         The disjunctive product of `G` and `H` is the graph `L` with vertex set
-        `V(L)` equal to the Cartesian product of the vertices `V(G)` and `V(H)`,
-        and `((u,v), (w,x))` is an edge iff either - `(u, w)` is an edge of
-        self, or - `(v, x)` is an edge of other.
+        `V(L)=V(G)\times V(H)`, and `((u,v), (w,x))` is an edge iff either :
+
+        * `(u, w)` is an edge of `G`, or
+        * `(v, x)` is an edge of `H`.
 
         EXAMPLES::
 

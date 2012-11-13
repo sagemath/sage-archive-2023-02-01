@@ -1157,7 +1157,7 @@ class Gap(Gap_generic):
             if self.__use_workspace_cache and first_try:
                 print "A workspace appears to have been corrupted... automatically rebuilding (this is harmless)."
                 first_try = False
-                self._expect = None
+                self.quit(timeout=0)
                 expect.failed_to_start.remove(self.name())
                 gap_reset_workspace(verbose=False)
                 Expect._start(self, "Failed to start GAP.")

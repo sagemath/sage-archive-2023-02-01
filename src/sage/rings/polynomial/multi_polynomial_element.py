@@ -278,9 +278,18 @@ class MPolynomial_element(MPolynomial):
             sage: f.parent()
             Multivariate Polynomial Ring in x, y over Complex Field with
             53 bits of precision
+
+        TESTS:
+
+        Ensure that :trac:`13704` is fixed.::
+
+            sage: R.<t>=PolynomialRing(QQ)
+            sage: S.<x,y>=PolynomialRing(R)
+            sage: x/S(2)
+            1/2*x
         """
         if right in self.base_ring():
-            inv = 1/self.base_ring()(right)
+            inv = self.base_ring().one()/self.base_ring()(right)
             return inv*self
         return self.parent().fraction_field()(self, right, coerce=False)
 

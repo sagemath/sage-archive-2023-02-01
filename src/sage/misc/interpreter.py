@@ -677,9 +677,6 @@ class SageTerminalApp(TerminalIPythonApp):
         # so that we don't overwrite the traitlet attribute
         self.verbose_crash = True
 
-        # what is the purpose behind this??
-        os.chdir(os.environ["CUR"])
-
         # Shell initialization
         self.shell = SageInteractiveShell.instance(config=self.config,
                         display_banner=False, profile_dir=self.profile_dir,

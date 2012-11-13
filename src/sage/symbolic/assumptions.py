@@ -446,13 +446,22 @@ def forget(*args):
             except KeyError:
                 raise TypeError, "forget not defined for objects of type '%s'"%type(x)
 
-def assumptions():
+def assumptions(*args):
     """
     List all current symbolic assumptions.
 
-    EXAMPLES::
+    INPUT:
 
-        sage: var('x,y,z, w')
+        - ``args`` - list of variables which can be empty.
+
+    OUTPUT:
+
+        - list of assumptions on variables. If args is empty it returns all
+          assumptions
+
+    EXAMPLES:
+
+        sage: var('x,y,z,w')
         (x, y, z, w)
         sage: forget()
         sage: assume(x^2+y^2 > 0)
@@ -468,8 +477,38 @@ def assumptions():
         sage: forget()
         sage: assumptions()
         []
+
+    It is also possible to ask the assumptions of variables independently.
+
+        sage: x, y, z = var('x y z')
+        sage: assume(x, 'integer')
+        sage: assume(y > 0)
+        sage: assume(y**2 + z**2 == 1)
+        sage: assume(x < 0)
+        sage: assumptions()
+        [x is integer, y > 0, y^2 + z^2 == 1, x < 0]
+        sage: assumptions(x)
+        ['integer', x < 0]
+        sage: assumptions(x, y)
+        [x is integer, x < 0, y > 0, y^2 + z^2 == 1]
+        sage: assumptions(z)
+        [y^2 + z^2 == 1]
     """
-    return list(_assumptions)
+    if len(args) == 0:
+        return list(_assumptions)
+
+    result = []
+    if len(args) == 1:
+        for statement in list(_assumptions):
+            if '%s is integer' % str(args[0]) in str(statement):
+                result.append('integer')
+            elif str(args[0]) in str(statement):
+                result.append(statement)
+    else:
+        for v in args:
+            result += [ statement for statement in list(_assumptions) \
+                            if str(v) in str(statement) ]
+    return result
 
 def _forget_all():
     """

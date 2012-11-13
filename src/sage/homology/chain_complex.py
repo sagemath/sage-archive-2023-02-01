@@ -48,15 +48,16 @@ from sage.rings.all import GF, prime_range
 def dhsw_snf(mat, verbose=False):
     """
     Preprocess a matrix using the "Elimination algorithm" described by
-    Dumas et al., and then call ``elementary_divisors`` on the
+    Dumas et al. [DHSW]_, and then call ``elementary_divisors`` on the
     resulting (smaller) matrix.
 
-    'dhsw' stands for 'Dumas, Heckenbach, Saunders, Welker,' and 'snf'
-    stands for 'Smith Normal Form.'
+    .. NOTE::
+
+        'snf' stands for 'Smith Normal Form.'
 
     INPUT:
 
-    -  ``mat`` - an integer matrix, either sparse or dense.
+    -  ``mat`` -- an integer matrix, either sparse or dense.
 
     (They use the transpose of the matrix considered here, so they use
     rows instead of columns.)
@@ -64,12 +65,10 @@ def dhsw_snf(mat, verbose=False):
     Algorithm: go through ``mat`` one column at a time.  For each
     column, add multiples of previous columns to it until either
 
-      - it's zero, in which case it should be deleted.
-
-      - its first nonzero entry is 1 or -1, in which case it should be kept.
-
-      - its first nonzero entry is something else, in which case it is
-        deferred until the second pass.
+    - it's zero, in which case it should be deleted.
+    - its first nonzero entry is 1 or -1, in which case it should be kept.
+    - its first nonzero entry is something else, in which case it is
+      deferred until the second pass.
 
     Then do a second pass on the deferred columns.
 
@@ -94,9 +93,9 @@ def dhsw_snf(mat, verbose=False):
 
     REFERENCES:
 
-    - Dumas, Heckenbach, Saunders, Welker, "Computing simplicial
-      homology based on efficient Smith normal form algorithms," in
-      "Algebra, geometry, and software systems" (2003), 177-206.
+    .. [DHSW] Dumas, Heckenbach, Saunders, Welker, "Computing simplicial
+        homology based on efficient Smith normal form algorithms," in
+        "Algebra, geometry, and software systems" (2003), 177-206.
     """
     ring = mat.base_ring()
     rows = mat.nrows()
@@ -239,8 +238,8 @@ def _latex_module(R, m):
 
     INPUT:
 
-    - ``R`` - a commutative ring
-    - ``m`` - non-negative integer
+    - ``R`` -- a commutative ring
+    - ``m`` -- non-negative integer
 
     This is used by the ``_latex_`` method for chain complexes.
 
@@ -260,41 +259,41 @@ def _latex_module(R, m):
         return str(latex(FreeModule(R, m)))
 
 class ChainComplex(SageObject):
-    """
+    r"""
     Define a chain complex.
 
     INPUT:
 
-    -  ``data`` - the data defining the chain complex; see below for
+    -  ``data`` -- the data defining the chain complex; see below for
        more details.
 
-    -  ``base_ring`` - a commutative ring (optional), the ring over
+    -  ``base_ring`` -- a commutative ring (optional), the ring over
        which the chain complex is defined. If this is not specified,
        it is determined by the data defining the chain complex.
 
-    -  ``grading_group`` - a free abelian group (optional, default
-       ZZ), the group over which the chain complex is indexed.
+    -  ``grading_group`` -- a free abelian group (optional, default
+       ``ZZ``), the group over which the chain complex is indexed.
 
-    -  ``degree`` - element of grading_group (optional, default 1),
+    -  ``degree`` -- element of grading_group (optional, default 1),
        the degree of the differential.
 
-    -  ``check_products`` - boolean (optional, default True).  If True,
-       check that each consecutive pair of differentials are
+    -  ``check_products`` -- boolean (optional, default ``True``). If
+       ``True``, check that each consecutive pair of differentials are
        composable and have composite equal to zero.
 
     OUTPUT: a chain complex
 
-    .. warning::
+    .. WARNING::
 
        Right now, homology calculations will only work if the base
-       ring is either ZZ or a field, so please take this into account
+       ring is either `\ZZ` or a field, so please take this into account
        when defining a chain complex.
 
     Use data to define the chain complex.  This may be in any of the
     following forms.
 
     1. a dictionary with integers (or more generally, elements of
-       grading_group) for keys, and with data[n] a matrix representing
+       grading_group) for keys, and with ``data[n]`` a matrix representing
        (via left multiplication) the differential coming from degree
        `n`.  (Note that the shape of the matrix then determines the
        rank of the free modules `C_n` and `C_{n+d}`.)
@@ -302,18 +301,18 @@ class ChainComplex(SageObject):
     2. a list or tuple of the form `[C_0, d_0, C_1, d_1, C_2, d_2,
        ...]`, where each `C_i` is a free module and each `d_i` is a
        matrix, as above.  This only makes sense if ``grading_group``
-       is `\\ZZ` and ``degree`` is 1.
+       is `\ZZ` and ``degree`` is 1.
 
     3. a list or tuple of the form `[r_0, d_0, r_1, d_1, r_2, d_2,
        ...]`, where `r_i` is the rank of the free module `C_i` and
        each `d_i` is a matrix, as above.  This only makes sense if
-       ``grading_group`` is `\\ZZ` and ``degree`` is 1.
+       ``grading_group`` is `\ZZ` and ``degree`` is 1.
 
     4. a list or tuple of the form `[d_0, d_1, d_2, ...]` where each
        `d_i` is a matrix, as above.  This only makes sense if
-       ``grading_group`` is `\\ZZ` and ``degree`` is 1.
+       ``grading_group`` is `\ZZ` and ``degree`` is 1.
 
-    .. note::
+    .. NOTE::
 
        In fact, the free modules `C_i` in case 2 and the ranks `r_i`
        in case 3 are ignored: only the matrices are kept, and from
@@ -386,7 +385,7 @@ class ChainComplex(SageObject):
 
     def __init__(self, data=None, **kwds):
         """
-        See ``ChainComplex`` for full documentation.
+        See :mod:`ChainComplex` for full documentation.
 
         EXAMPLES::
 
@@ -495,8 +494,8 @@ class ChainComplex(SageObject):
         INPUT:
 
         -  ``dim`` - element of the grading group (optional, default
-           None).  If this is None, return a dictionary of all of the
-           differentials.  If this is a single element, return the
+           ``None``).  If this is ``None``, return a dictionary of all
+           of the differentials.  If this is a single element, return the
            differential starting in that dimension.
 
         OUTPUT: either a dictionary of all of the differentials or a single
@@ -578,7 +577,7 @@ class ChainComplex(SageObject):
 
     def __cmp__(self, other):
         """
-        Return True iff this chain complex is the same as other: that
+        Return ``True`` iff this chain complex is the same as other: that
         is, if the base rings and the matrices of the two are the
         same.
 
@@ -607,32 +606,35 @@ class ChainComplex(SageObject):
         return -1
 
     def homology(self, dim=None, **kwds):
-        """
+        r"""
         The homology of the chain complex in the given dimension.
 
         INPUT:
 
-        -  ``dim`` - an element of the grading group for the chain
-           complex (optional, default None): the degree in which to
-           compute homology. If this is None, return the homology in
+        -  ``dim`` -- an element of the grading group for the chain
+           complex (optional, default ``None``): the degree in which to
+           compute homology. If this is ``None``, return the homology in
            every dimension in which the chain complex is possibly
            nonzero.
 
-        -  ``base_ring`` - a commutative ring (optional, default is the
+        -  ``base_ring`` -- a commutative ring (optional, default is the
            base ring for the chain complex).  Must be either the
-           integers `\\ZZ` or a field.
+           integers `\ZZ` or a field.
 
-        -  ``generators`` - boolean (optional, default False).  If
+        -  ``generators`` -- boolean (optional, default False).  If
            True, return generators for the homology groups along with
-           the groups.  NOTE: this is only implemented if the CHomP
-           package is available.
+           the groups.
 
-        -  ``verbose`` - boolean (optional, default False).  If True,
-           print some messages as the homology is computed.
+           .. NOTE::
 
-        -  ``algorithm`` - string (optional, default 'auto').  The
-           options are 'auto', 'dhsw', 'pari' or 'no_chomp'.  See
-           below for descriptions.
+               This is only implemented if the CHomP package is available.
+
+        -  ``verbose`` - boolean (optional, default ``False``).  If
+           ``True``, print some messages as the homology is computed.
+
+        -  ``algorithm`` - string (optional, default ``'auto'``).  The
+           options are ``'auto'``, ``'dhsw'``, ``'pari'`` or ``'no_chomp'``.
+           See below for descriptions.
 
         OUTPUT: if dim is specified, the homology in dimension dim.
         Otherwise, the homology in every dimension as a dictionary
@@ -640,7 +642,7 @@ class ChainComplex(SageObject):
 
         ALGORITHM:
 
-        If ``algorithm`` is set to 'auto' (the default), then use
+        If ``algorithm`` is set to ``'auto'`` (the default), then use
         CHomP if available.  (CHomP is available at the web page
         http://chomp.rutgers.edu/.  It is also an experimental package
         for Sage.)
@@ -660,23 +662,23 @@ class ChainComplex(SageObject):
         dimensions of the homology groups as vector spaces.  Over the
         integers, compute Smith normal form of the boundary matrices
         defining the chain complex according to the value of
-        ``algorithm``.  If ``algorithm`` is 'auto' or 'no_chomp', then
-        for each relatively small matrix, use the standard Sage
+        ``algorithm``.  If ``algorithm`` is ``'auto'`` or ``'no_chomp'``,
+        then for each relatively small matrix, use the standard Sage
         method, which calls the Pari package.  For any large matrix,
         reduce it using the Dumas, Heckenbach, Saunders, and Welker
-        elimination algorithm: see
-        :func:`sage.homology.chain_complex.dhsw_snf` for details.
+        elimination algorithm [DHSW]_: see
+        :func:`~sage.homology.chain_complex.dhsw_snf` for details.
 
-        Finally, ``algorithm`` may also be 'pari' or 'dhsw', which
+        Finally, ``algorithm`` may also be ``'pari'`` or ``'dhsw'``, which
         forces the named algorithm to be used regardless of the size
         of the matrices and regardless of whether CHomP is available.
 
         As of this writing, CHomP is by far the fastest option,
-        followed by the 'auto' or 'no_chomp' setting of using the
+        followed by the ``'auto'`` or ``'no_chomp'`` setting of using the
         Dumas, Heckenbach, Saunders, and Welker elimination algorithm
-        for large matrices and Pari for small ones.
+        [DHSW]_ for large matrices and Pari for small ones.
 
-        .. warning::
+        .. WARNING::
 
            This only works if the base ring is the integers or a
            field.  Other values will return an error.
@@ -876,13 +878,13 @@ class ChainComplex(SageObject):
 
         INPUT:
 
-        -  ``dim`` - an element of the grading group for the chain
-           complex or None (optional, default None).  If None, then
-           return every Betti number, as a dictionary indexed by
+        -  ``dim`` -- an element of the grading group for the chain
+           complex or None (optional, default ``None``).  If ``None``,
+           then return every Betti number, as a dictionary indexed by
            degree.  If an element of the grading group, then return
            the Betti number in that dimension.
 
-        -  ``base_ring`` - a commutative ring (optional, default is the
+        -  ``base_ring`` -- a commutative ring (optional, default is the
            base ring for the chain complex).  Compute homology with
            these coefficients.  Must be either the integers or a
            field.
@@ -917,16 +919,16 @@ class ChainComplex(SageObject):
             raise NotImplementedError, "Not implemented: unable to compute Betti numbers if the base ring is not ZZ or a field."
 
     def torsion_list(self, max_prime, min_prime=2):
-        """
+        r"""
         Look for torsion in this chain complex by computing its mod `p`
         homology for a range of primes `p`.
 
         INPUT:
 
-        -  ``max_prime`` - prime number: search for torsion mod `p` for
+        -  ``max_prime`` -- prime number: search for torsion mod `p` for
            all `p` strictly less than this number.
 
-        -  ``min_prime`` - prime (optional, default 2): search for
+        -  ``min_prime`` -- prime (optional, default 2): search for
            torsion mod `p` for primes at least as big as this.
 
         Return a list of pairs (`p`, ``dims``) where `p` is a prime at
@@ -940,7 +942,7 @@ class ChainComplex(SageObject):
         ``max_prime``.  Compute the mod `P` homology of `C`, and use
         this as the base-line computation: the assumption is that this
         is isomorphic to the integral homology tensored with
-        `\\GF{P}`.  Then compute the mod `p` homology for a range of
+        `\GF{P}`.  Then compute the mod `p` homology for a range of
         primes `p`, and record whenever the answer differs from the
         base-line answer.
 
@@ -1024,9 +1026,8 @@ class ChainComplex(SageObject):
     def _flip_(self):
         """
         Flip chain complex upside down (degree `n` gets changed to
-        degree `-n`), thus turning a chain complex into a cochain
-        complex without changing the homology (except for flipping it,
-        too).
+        degree `-n`), thus turning a chain complex into a cochain complex
+        without changing the homology (except for flipping it, too).
 
         EXAMPLES::
 
@@ -1050,7 +1051,7 @@ class ChainComplex(SageObject):
 
     def _chomp_repr_(self):
         r"""
-        String representation of self suitable for use by the CHomP
+        String representation of ``self`` suitable for use by the CHomP
         program.
 
         Since CHomP can only handle chain complexes, not cochain
@@ -1178,7 +1179,7 @@ class ChainComplex(SageObject):
 class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
     """
     Abelian group on `n` generators. This class inherits from
-    ``AdditiveAbelianGroup``; see that for more documentation. The main
+    :class:`AdditiveAbelianGroup`; see that for more documentation. The main
     difference between the classes is in the print representation.
 
     EXAMPLES::
@@ -1199,7 +1200,7 @@ class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
     """
     def __init__(self, n, invfac):
         """
-        See ``HomologyGroup`` for full documentation.
+        See :func:`HomologyGroup` for full documentation.
 
         EXAMPLES::
 
@@ -1288,9 +1289,7 @@ class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
 
 def HomologyGroup(n, invfac=None):
     """
-    Abelian group on `n` generators. This class inherits from
-    ``AdditiveAbelianGroup``; see that for more documentation.  The main
-    difference between the classes is in the print representation.
+    Abelian group on `n` generators.
 
     EXAMPLES::
 

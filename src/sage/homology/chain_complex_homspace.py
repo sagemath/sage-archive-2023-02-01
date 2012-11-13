@@ -4,9 +4,9 @@ Homspaces between chain complexes
 Note that some significant functionality is lacking. Namely, the homspaces
 are not actually modules over the base ring. It will be necessary to
 enrich some of the structure of chain complexes for this to be naturally
-available. On other hand, there are various overloaded operators. __mul__
-acts as composition. One can __add__, and one can __mul__ with a ring element
-on the right.
+available. On other hand, there are various overloaded operators. ``__mul__``
+acts as composition. One can ``__add__``, and one can ``__mul__`` with a ring
+element on the right.
 
 EXAMPLES::
 
@@ -71,7 +71,7 @@ EXAMPLES::
     sage: C = S.chain_complex()
     sage: G = Hom(C,C)
     sage: w = G(f)
-    sage: w==x
+    sage: w == x
     True
 
 """
@@ -97,13 +97,13 @@ import sage.homology.chain_complex_morphism as chain_complex_morphism
 
 def is_ChainComplexHomspace(x):
     """
-    Returns True if and only if x is a morphism of chain complexes.
+    Returns ``True`` if and only if ``x`` is a morphism of chain complexes.
 
     EXAMPLES::
 
         sage: from sage.homology.chain_complex_homspace import is_ChainComplexHomspace
-        sage: T = SimplicialComplex(17,[[1,2,3,4],[7,8,9]])
-        sage: C = T.chain_complex(augmented=True,cochain=True)
+        sage: T = SimplicialComplex([[1,2,3,4],[7,8,9]])
+        sage: C = T.chain_complex(augmented=True, cochain=True)
         sage: G = Hom(C,C)
         sage: is_ChainComplexHomspace(G)
         True
@@ -117,8 +117,8 @@ class ChainComplexHomspace(sage.categories.homset.Homset):
 
     EXAMPLES::
 
-        sage: T = SimplicialComplex(17,[[1,2,3,4],[7,8,9]])
-        sage: C = T.chain_complex(augmented=True,cochain=True)
+        sage: T = SimplicialComplex([[1,2,3,4],[7,8,9]])
+        sage: C = T.chain_complex(augmented=True, cochain=True)
         sage: G = Hom(C,C)
         sage: G
         Set of Morphisms from Chain complex with at most 5 nonzero terms over Integer Ring to Chain complex with at most 5 nonzero terms over Integer Ring in Category of chain complexes over Integer Ring
@@ -126,7 +126,7 @@ class ChainComplexHomspace(sage.categories.homset.Homset):
     """
     def __call__(self, f):
         """
-        f is a dictionary of matrices in the basis of the chain complex.
+        `f` is a dictionary of matrices in the basis of the chain complex.
 
         EXAMPLES::
 
@@ -138,7 +138,7 @@ class ChainComplexHomspace(sage.categories.homset.Homset):
             sage: x = i.associated_chain_complex_morphism()
             sage: f = x._matrix_dictionary
             sage: y = G(f)
-            sage: x==y
+            sage: x == y
             True
 
         """

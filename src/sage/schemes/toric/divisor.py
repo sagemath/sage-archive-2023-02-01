@@ -1501,8 +1501,7 @@ class ToricDivisor_generic(Divisor_generic):
             sage: D = -D0 + 2*D2 - D3
             sage: M = dP6.fan().dual_lattice()
             sage: D._sheaf_complex( M(1,0) )
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5)
-            and facets {(3,), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 3) and facets {(3,), (0, 1)}
         """
         fan = self.parent().scheme().fan()
         ray_is_negative = [ m*ray + self.coefficient(i) < 0
@@ -1512,8 +1511,7 @@ class ToricDivisor_generic(Divisor_generic):
                 return False
             return all(ray_is_negative[i] for i in cone.ambient_ray_indices())
         negative_cones = filter(cone_is_negative, flatten(fan.cones()))
-        return SimplicialComplex(fan.nrays() - 1, [c.ambient_ray_indices()
-                                                   for c in negative_cones])
+        return SimplicialComplex([c.ambient_ray_indices() for c in negative_cones])
 
     def _sheaf_cohomology(self, cplx):
         """
@@ -1534,9 +1532,9 @@ class ToricDivisor_generic(Divisor_generic):
 
             sage: dP6 = toric_varieties.dP6()
             sage: D = dP6.divisor(1)
-            sage: D._sheaf_cohomology( SimplicialComplex([1],[]) )
+            sage: D._sheaf_cohomology( SimplicialComplex() )
             (1, 0, 0)
-            sage: D._sheaf_cohomology( SimplicialComplex([1,2,3],[[1,2],[2,3],[3,1]]) )
+            sage: D._sheaf_cohomology( SimplicialComplex([[1,2],[2,3],[3,1]]) )
             (0, 0, 1)
 
         A more complicated example to test that trac #10731 is fixed::

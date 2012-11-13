@@ -1,6 +1,11 @@
 r"""
 Homsets between simplicial complexes
 
+AUTHORS:
+
+- Travis Scrimshaw (2012-08-18): Made all simplicial complexes immutable to
+  work with the homset cache.
+
 EXAMPLES:
 
 ::
@@ -54,13 +59,15 @@ import sage.homology.simplicial_complex_morphism as simplicial_complex_morphism
 
 def is_SimplicialComplexHomset(x):
     """
-    Return True if and only if x is a simplicial complex homspace.
+    Return ``True`` if and only if ``x`` is a simplicial complex homspace.
 
     EXAMPLES::
 
-        sage: H = Hom(SimplicialComplex(2),SimplicialComplex(3))
+        sage: S = SimplicialComplex(is_mutable=False)
+        sage: T = SimplicialComplex(is_mutable=False)
+        sage: H = Hom(S, T)
         sage: H
-        Set of Morphisms from Simplicial complex with vertex set (0, 1, 2) and facets {()} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {()} in Category of simplicial complexes
+        Set of Morphisms from Simplicial complex with vertex set () and facets {()} to Simplicial complex with vertex set () and facets {()} in Category of simplicial complexes
         sage: from sage.homology.simplicial_complex_homset import is_SimplicialComplexHomset
         sage: is_SimplicialComplexHomset(H)
         True
@@ -71,9 +78,11 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
     def __call__(self, f):
         """
         INPUT:
-            f -- a dictionary with keys exactly the vertices of the domain and values vertices of the codomain
 
-        EXAMPLE::
+        - ``f`` -- a dictionary with keys exactly the vertices of the domain
+           and values vertices of the codomain
+
+        EXAMPLES::
 
             sage: S = simplicial_complexes.Sphere(3)
             sage: T = simplicial_complexes.Sphere(2)
@@ -82,30 +91,31 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: x = H(f)
             sage: x
             Simplicial complex morphism {0: 0, 1: 1, 2: 2, 3: 2, 4: 2} from Simplicial complex with vertex set (0, 1, 2, 3, 4) and 5 facets to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
-
-
         """
         return simplicial_complex_morphism.SimplicialComplexMorphism(f,self.domain(),self.codomain())
 
     def diagonal_morphism(self,rename_vertices=True):
-        """
-        Returns the diagonal morphism in Hom(S,SxS).
+        r"""
+        Returns the diagonal morphism in `Hom(S, S \times S)`.
 
         EXAMPLES::
 
             sage: S = simplicial_complexes.Sphere(2)
-            sage: H = Hom(S,S.product(S))
+            sage: H = Hom(S,S.product(S, is_mutable=False))
             sage: d = H.diagonal_morphism()
             sage: d
-            Simplicial complex morphism {0: 'L0R0', 1: 'L1R1', 2: 'L2R2', 3: 'L3R3'} from Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)} to Simplicial complex with 16 vertices and 96 facets
+            Simplicial complex morphism {0: 'L0R0', 1: 'L1R1', 2: 'L2R2', 3: 'L3R3'} from
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            to Simplicial complex with 16 vertices and 96 facets
 
-            sage: T = SimplicialComplex(3)
-            sage: U = T.product(T,rename_vertices = False)
+            sage: T = SimplicialComplex([[0], [1]], is_mutable=False)
+            sage: U = T.product(T,rename_vertices = False, is_mutable=False)
             sage: G = Hom(T,U)
             sage: e = G.diagonal_morphism(rename_vertices = False)
             sage: e
-            Simplicial complex morphism {0: (0, 0), 1: (1, 1), 2: (2, 2), 3: (3, 3)} from Simplicial complex with vertex set (0, 1, 2, 3) and facets {()} to Simplicial complex with 16 vertices and facets {()}
-
+            Simplicial complex morphism {0: (0, 0), 1: (1, 1)} from
+            Simplicial complex with vertex set (0, 1) and facets {(0,), (1,)}
+            to Simplicial complex with 4 vertices and facets {((1, 1),), ((1, 0),), ((0, 0),), ((0, 1),)}
         """
 
         if self._codomain == self._domain.product(self._domain,rename_vertices=rename_vertices):
@@ -117,13 +127,13 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             else:
                 for i in self._domain.vertices().set():
                     f[i] = (i,i)
-            return simplicial_complex_morphism.SimplicialComplexMorphism(f,self._domain,X)
+            return simplicial_complex_morphism.SimplicialComplexMorphism(f, self._domain,X)
         else:
             raise TypeError, "Diagonal morphism is only defined for Hom(X,XxX)."
 
     def identity(self):
         """
-        Returns the identity morphism of Hom(S,S).
+        Returns the identity morphism of `Hom(S,S)`.
 
         EXAMPLES::
 
@@ -133,11 +143,12 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: i.is_identity()
             True
 
-            sage: T = SimplicialComplex(3,[[0,1]])
+            sage: T = SimplicialComplex([[0,1]], is_mutable=False)
             sage: G = Hom(T,T)
             sage: G.identity()
-            Simplicial complex morphism {0: 0, 1: 1, 2: 2, 3: 3} from Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1)}
-
+            Simplicial complex morphism {0: 0, 1: 1} from
+            Simplicial complex with vertex set (0, 1) and facets {(0, 1)} to
+            Simplicial complex with vertex set (0, 1) and facets {(0, 1)}
         """
         if self.is_endomorphism_set():
             f = dict()
@@ -145,11 +156,11 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
                 f[i]=i
             return simplicial_complex_morphism.SimplicialComplexMorphism(f,self._domain,self._codomain)
         else:
-            raise TypeError, "Identity map is only defined for endomorphism sets."
+            raise TypeError("Identity map is only defined for endomorphism sets.")
 
     def an_element(self):
         """
-        Returns a (non-random) element of self.
+        Returns a (non-random) element of ``self``.
 
         EXAMPLES::
 

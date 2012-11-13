@@ -601,10 +601,7 @@ class Triangulation(Element):
             {0: 0, 1: 0, 2: 0, 3: 0}
         """
         from sage.homology.simplicial_complex import SimplicialComplex
-        from sage.misc.all import flatten
-        vertex_set = set(flatten(self))
-        return SimplicialComplex(vertex_set = vertex_set,
-                                 maximal_faces = self)
+        return SimplicialComplex(self)
 
 
     @cached_method

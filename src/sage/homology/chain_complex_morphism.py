@@ -5,8 +5,12 @@ AUTHORS:
 
 - Benjamin Antieau <d.ben.antieau@gmail.com> (2009.06)
 
-This module implements morphisms of chain complexes. The input is a dictionary whose
-keys are in the grading group of the chain complex and whose values are matrix morphisms.
+- Travis Scrimshaw (2012-08-18): Made all simplicial complexes immutable to
+  work with the homset cache.
+
+This module implements morphisms of chain complexes. The input is a dictionary
+whose keys are in the grading group of the chain complex and whose values are
+matrix morphisms.
 
 EXAMPLES::
 
@@ -55,7 +59,7 @@ from sage.rings.integer_ring import ZZ
 
 def is_ChainComplexMorphism(x):
     """
-    Returns True if and only if x is a chain complex morphism.
+    Returns ``True`` if and only if ``x`` is a chain complex morphism.
 
     EXAMPLES::
 
@@ -160,7 +164,7 @@ class ChainComplexMorphism(SageObject):
 
     def __neg__(self):
         """
-        Returns -x.
+        Returns ``-x``.
 
         EXAMPLES::
 
@@ -193,7 +197,7 @@ class ChainComplexMorphism(SageObject):
 
     def __add__(self,x):
         """
-        Returns self+x.
+        Returns ``self + x``.
 
         EXAMPLES::
 
@@ -228,7 +232,8 @@ class ChainComplexMorphism(SageObject):
 
     def __mul__(self,x):
         """
-        Returns self*x if self and x are composable morphisms or if x is an element of the base_ring.
+        Returns ``self * x`` if ``self`` and ``x`` are composable morphisms
+        or if ``x`` is an element of the base ring.
 
         EXAMPLES::
 
@@ -286,7 +291,7 @@ class ChainComplexMorphism(SageObject):
 
     def __rmul__(self,x):
         """
-        Returns x*self if x is an element of the base_ring.
+        Returns ``x * self`` if ``x`` is an element of the base ring.
 
         EXAMPLES::
 
@@ -310,7 +315,7 @@ class ChainComplexMorphism(SageObject):
 
     def __sub__(self,x):
         """
-        Returns self-x.
+        Returns ``self - x``.
 
         EXAMPLES::
 
@@ -340,11 +345,11 @@ class ChainComplexMorphism(SageObject):
 
     def __eq__(self,x):
         """
-        Returns True if and only if self==x.
+        Returns ``True`` if and only if ``self == x``.
 
         EXAMPLES::
 
-            sage: S = SimplicialComplex(3)
+            sage: S = SimplicialComplex(is_mutable=False)
             sage: H = Hom(S,S)
             sage: i = H.identity()
             sage: x = i.associated_chain_complex_morphism()
@@ -354,7 +359,7 @@ class ChainComplexMorphism(SageObject):
             sage: C = S.chain_complex()
             sage: G = Hom(C,C)
             sage: y = G(f)
-            sage: x==y
+            sage: x == y
             True
 
         """
@@ -365,11 +370,11 @@ class ChainComplexMorphism(SageObject):
 
     def _repr_(self):
         """
-        Returns the string representation of self.
+        Returns the string representation of ``self``.
 
         EXAMPLES::
 
-            sage: S = SimplicialComplex(3)
+            sage: S = SimplicialComplex(is_mutable=False)
             sage: H = Hom(S,S)
             sage: i = H.identity()
             sage: x = i.associated_chain_complex_morphism()

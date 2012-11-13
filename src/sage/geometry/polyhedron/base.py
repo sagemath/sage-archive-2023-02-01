@@ -1932,13 +1932,12 @@ class Polyhedron_base(SageObject):
             This method is deprecated. Use triangulate() instead.
             See http://trac.sagemath.org/11634 for details.
             sage: sc
-            Simplicial complex with 13 vertices and 20 facets
+            Simplicial complex with 12 vertices and 20 facets
         """
         from sage.misc.superseded import deprecation
         deprecation(11634, 'This method is deprecated. Use triangulate().simplicial_complex() instead.')
         from sage.homology.simplicial_complex import SimplicialComplex
-        return SimplicialComplex(vertex_set = self.n_vertices(),
-                                 maximal_faces = [x[1] for x in self.triangulated_facial_incidences()])
+        return SimplicialComplex([x[1] for x in self.triangulated_facial_incidences()])
 
     def __add__(self, other):
         """

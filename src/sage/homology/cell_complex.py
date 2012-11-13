@@ -13,10 +13,10 @@ is meant as a base class from which other classes (like
 such, most of its properties are not implemented.  It is meant for use
 by developers producing new classes, not casual users.
 
-.. note::
+.. NOTE::
 
-    Keywords for :meth:`GenericCellComplex.chain_complex`,
-    :meth:`GenericCellComplex.homology`, etc.: any keywords given to
+    Keywords for :meth:`~GenericCellComplex.chain_complex`,
+    :meth:`~GenericCellComplex.homology`, etc.: any keywords given to
     the :meth:`~GenericCellComplex.homology` method get passed on to
     the :meth:`~GenericCellComplex.chain_complex` method and also to
     the constructor for chain complexes in
@@ -89,7 +89,7 @@ class GenericCellComplex(SageObject):
         """
         The cells of this cell complex, in the form of a dictionary:
         the keys are integers, representing dimension, and the value
-        associated to an integer d is the set of d-cells.  If the
+        associated to an integer `d` is the set of `d`-cells.  If the
         optional argument ``subcomplex`` is present, then return only
         the faces which are *not* in the subcomplex.
 
@@ -120,7 +120,7 @@ class GenericCellComplex(SageObject):
         The dimension of this cell complex: the maximum
         dimension of its cells.
 
-        .. warning::
+        .. WARNING::
 
           If the :meth:`cells` method calls :meth:`dimension`,
           then you'll get an infinite loop.  So either don't use
@@ -143,7 +143,7 @@ class GenericCellComplex(SageObject):
 
     def n_cells(self, n, subcomplex=None):
         """
-        List of cells of dimension n of this cell complex.
+        List of cells of dimension ``n`` of this cell complex.
         If the optional argument ``subcomplex`` is present, then
         return the ``n``-dimensional faces which are *not* in the
         subcomplex.
@@ -152,7 +152,7 @@ class GenericCellComplex(SageObject):
         :type n: non-negative integer
         :param subcomplex: a subcomplex of this cell complex. Return
            the cells which are not in this subcomplex.
-        :type subcomplex: optional, default None
+        :type subcomplex: optional, default ``None``
 
         EXAMPLES::
 
@@ -592,7 +592,7 @@ class GenericCellComplex(SageObject):
         except that :meth:`homology` accepts a ``cohomology`` key
         word, while this function does not: ``cohomology`` is
         automatically true here.  Indeed, this function just calls
-        :meth:`homology` with ``cohomology`` set to True.
+        :meth:`homology` with ``cohomology`` set to ``True``.
 
         :param dim:
         :param base_ring:
@@ -602,12 +602,12 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: circle = SimplicialComplex(2, [[0,1], [1,2], [0, 2]])
+            sage: circle = SimplicialComplex([[0,1], [1,2], [0, 2]])
             sage: circle.cohomology(0)
             0
             sage: circle.cohomology(1)
             Z
-            sage: P2 = SimplicialComplex(5, [[0,1,2], [0,2,3], [0,1,5], [0,4,5], [0,3,4], [1,2,4], [1,3,4], [1,3,5], [2,3,5], [2,4,5]])   # projective plane
+            sage: P2 = SimplicialComplex([[0,1,2], [0,2,3], [0,1,5], [0,4,5], [0,3,4], [1,2,4], [1,3,4], [1,3,5], [2,3,5], [2,4,5]])   # projective plane
             sage: P2.cohomology(2)
             C2
             sage: P2.cohomology(2, base_ring=GF(2))
@@ -620,8 +620,8 @@ class GenericCellComplex(SageObject):
 
         Relative cohomology::
 
-            sage: T = SimplicialComplex(1, [[0,1]])
-            sage: U = SimplicialComplex(1, [[0], [1]])
+            sage: T = SimplicialComplex([[0,1]])
+            sage: U = SimplicialComplex([[0], [1]])
             sage: T.cohomology(1, subcomplex=U)
             Z
 
@@ -639,24 +639,25 @@ class GenericCellComplex(SageObject):
         (or a single Betti number, if only one dimension is given):
         the ith Betti number is the rank of the ith homology group.
 
-        :param dim: If None, then return every Betti number, as
+        :param dim: If ``None``, then return every Betti number, as
            a dictionary with keys the non-negative integers.  If
            ``dim`` is an integer or list, return the Betti number for
            each given dimension.  (Actually, if ``dim`` is a list,
            return the Betti numbers, as a dictionary, in the range
            from ``min(dim)`` to ``max(dim)``.  If ``dim`` is a number,
            return the Betti number in that dimension.)
-        :type dim: integer or list of integers or None; optional,
-           default None
+        :type dim: integer or list of integers or ``None``; optional,
+           default ``None``
         :param subcomplex: a subcomplex of this cell complex.  Compute
-           the Betti numbers of the homology relative to this
-           subcomplex.
-        :type subcomplex: optional, default None
+           the Betti numbers of the homology relative to this subcomplex.
+        :type subcomplex: optional, default ``None``
 
-        EXAMPLES: Build the two-sphere as a three-fold join of a
+        EXAMPLES:
+
+        Build the two-sphere as a three-fold join of a
         two-point space with itself::
 
-            sage: S = SimplicialComplex(1, [[0], [1]])
+            sage: S = SimplicialComplex([[0], [1]])
             sage: (S*S*S).betti()
             {0: 1, 1: 0, 2: 1}
             sage: (S*S*S).betti([1,2])
@@ -704,7 +705,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: P = SimplicialComplex(3, [[0, 1], [1,2], [2,3]]).face_poset(); P
+            sage: P = SimplicialComplex([[0, 1], [1,2], [2,3]]).face_poset(); P
             Finite poset containing 7 elements
             sage: P.list()
             [(3,), (2,), (2, 3), (1,), (0,), (0, 1), (1, 2)]

@@ -33,7 +33,7 @@ from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.arith import divisors, prime_divisors, is_square, euler_phi, gcd
 from sage.rings.all import Integer, IntegerRing, RationalField
-from sage.groups.group import AbelianGroup
+from sage.groups.old import AbelianGroup
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.formal_sum import FormalSum
 from sage.rings.finite_rings.integer_mod import Mod

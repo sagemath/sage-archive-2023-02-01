@@ -23,7 +23,7 @@ We create a couple of categories::
     sage: Sets()
     Category of sets
     sage: GSets(AbelianGroup([2,4,9]))
-    Category of G-sets for Multiplicative Abelian Group isomorphic to C2 x C4 x C9
+    Category of G-sets for Multiplicative Abelian group isomorphic to C2 x C4 x C9
     sage: Semigroups()
     Category of semigroups
     sage: VectorSpaces(FiniteField(11))

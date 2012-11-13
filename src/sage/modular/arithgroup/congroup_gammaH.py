@@ -134,8 +134,6 @@ def _normalize_H(H, level):
         sage: sage.modular.arithgroup.congroup_gammaH._normalize_H([-1,7,9], 10)
         [7, 9]
     """
-    if not isinstance(H, list):
-        raise TypeError, "H must be a list."
     H = [ZZ(h) for h in H]
     for h in H:
         if gcd(h, level) > 1:

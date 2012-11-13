@@ -2162,7 +2162,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         G = self.idealstar(2)
 
         invs = G.invariants()
-        g = G.gens()
+        g = G.gens_values()
         n = G.ngens()
 
         from sage.matrix.all import Matrix, diagonal_matrix
@@ -2452,12 +2452,23 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: k.<a> = NumberField(x^3 - 11)
             sage: A = k.ideal(5)
             sage: G = A.idealstar(); G
-            Multiplicative Abelian Group isomorphic to C24 x C4
+            Multiplicative Abelian group isomorphic to C24 x C4
             sage: G.gens()
             (f0, f1)
+
             sage: G = A.idealstar(2)
-            sage: all([G.gens()[i] in k for i in range(G.ngens())])
+            sage: G.gens()
+            (f0, f1)
+            sage: G.gens_values()   # random output
+            (2*a^2 - 1, 2*a^2 + 2*a - 2)
+            sage: all([G.gen(i).value() in k for i in range(G.ngens())])
             True
+
+        TESTS::
+
+            sage: k.<a> = NumberField(x^2 + 1)
+            sage: k.ideal(a+1).idealstar(2)
+            Trivial Abelian group
 
         ALGORITHM: Uses Pari function ``idealstar``
         """
@@ -2468,11 +2479,13 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             G = self._pari_bid_(flag)
         inv = [ZZ(c) for c in G.bid_get_cyc()]
 
-        from sage.groups.abelian_gps.abelian_group import AbelianGroup
-        AG = AbelianGroup(len(inv), inv)
         if flag == 2 or flag == 0:
+            from sage.groups.abelian_gps.values import AbelianGroupWithValues
             g = G.bid_get_gen()
-            AG._gens = tuple(map(k, g))
+            AG = AbelianGroupWithValues(tuple(map(k, g)), inv, values_group=k)
+        else:
+            from sage.groups.abelian_gps.abelian_group import AbelianGroup
+            AG = AbelianGroup(inv)
         return AG
 
     def ideallog(self, x, gens=None, check=True):
@@ -2512,7 +2525,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: A = k.ideal(5)
             sage: G = A.idealstar(2)
             sage: l = A.ideallog(a^2 +3)
-            sage: r = prod([G.gens()[i]**l[i] for i in range(len(l))])
+            sage: r = G(l).value()
             sage: (a^2 + 3) - r in A
             True
             sage: A.small_residue(r) # random

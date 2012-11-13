@@ -11,9 +11,12 @@ AUTHORS:
 
 - David Joyner (2009-02): Fixed bug in order.
 
-EXAMPLES: Recall an example from abelian groups.
+- Volker Braun (2012-11) port to new Parent base. Use tuples for immutables.
 
-::
+
+EXAMPLES:
+
+Recall an example from abelian groups::
 
     sage: F = AbelianGroup(5,[4,5,5,7,8],names = list("abcde"))
     sage: (a,b,c,d,e) = F.gens()
@@ -30,23 +33,12 @@ EXAMPLES: Recall an example from abelian groups.
     a^3*b*c*d^5*e^4
     sage: x.list()
     [2, 2, 3, 6, 4]
-
-It is important to note that lists are mutable and the returned
-list is not a copy. As a result, reassignment of an element of the
-list changes the object.
-
-::
-
-    sage: x.list()[0] = 3
-    sage: x.list()
-    [3, 2, 3, 6, 4]
-    sage: x
-    a^3*b^2*c^3*d^6*e^4
 """
 
 ###########################################################################
 #  Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Copyright (C) 2006 David Joyner
+#  Copyright (C) 2006 David Joyner  <wdjoyner@gmail.com>
+#  Copyright (C) 2012 Volker Braun  <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -54,9 +46,9 @@ list changes the object.
 
 
 from sage.rings.integer import Integer
-from sage.structure.element import MultiplicativeGroupElement
 from sage.rings.infinity import infinity
 from sage.rings.arith import LCM, GCD
+from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
 
 def is_AbelianGroupElement(x):
     """
@@ -75,144 +67,32 @@ def is_AbelianGroupElement(x):
     """
     return isinstance(x, AbelianGroupElement)
 
-class AbelianGroupElement(MultiplicativeGroupElement):
-    def __init__(self, F, x):
-        """
-        Create the element x of the AbelianGroup F.
 
-        EXAMPLES::
+class AbelianGroupElement(AbelianGroupElementBase):
+    """
+    Elements of an
+    :class:`~sage.groups.abelian_gps.abelian_group.AbelianGroup`
 
-            sage: F = AbelianGroup(5, [3,4,5,8,7], 'abcde')
-            sage: a, b, c, d, e = F.gens()
-            sage: a^2 * b^3 * a^2 * b^-4
-            a*b^3
-            sage: b^-11
-            b
-            sage: a^-11
-            a
-            sage: a*b in F
-            True
-        """
-        MultiplicativeGroupElement.__init__(self, F)
-        self.__repr = None
-        n = F.ngens()
-        if isinstance(x, (int, Integer)) and x == 1:
-            self.__element_vector = [ 0 for i in range(n) ]
-        elif isinstance(x, list):
-            if len(x) != n:
-                raise IndexError, \
-                      "Argument length (= %s) must be %s."%(len(x), n)
-            self.__element_vector = x
-        else:
-            raise TypeError, "Argument x (= %s) is of wrong type."%x
+    INPUT:
 
-    def _repr_(self):
-        """
-        EXAMPLES::
+    - ``x`` -- list/tuple/iterable of integers (the element vector)
 
-            sage: AbelianGroupElement(AbelianGroup(1, [1], names='e'),[0])
-            1
-            sage: AbelianGroupElement(AbelianGroup(3, [2,3,4], names='e'),[1,2,3])
-            e0*e1^2*e2^3
-        """
-        s = ""
-        A = self.parent()
-        n = A.ngens()
-        x = A.variable_names()
-        v = self.__element_vector
-        for i in range(n):
-            if v[i] == 0:
-                continue
-            elif v[i] == 1:
-                if len(s) > 0: s += "*"
-                s += "%s"%x[i]
-            else:
-                if len(s) > 0: s += "*"
-                s += "%s^%s"%(x[i],v[i])
-        if len(s) == 0: s = str(1)
-        return s
+    - ``parent`` -- the parent
+      :class:`~sage.groups.abelian_gps.abelian_group.AbelianGroup`
 
-    def _div_(self, y):
-        """
-        TESTS::
+    EXAMPLES::
 
-            sage: G.<a,b> = AbelianGroup(2)
-            sage: a/b
-            a*b^-1
-        """
-        return self*y.inverse()
-
-    def _mul_(self, y):
-        #Same as _mul_ in FreeAbelianMonoidElement except that the
-        #exponents get reduced mod the invariant.
-
-        M = self.parent()
-        n = M.ngens()
-        invs = M.invariants()
-        z = M(1)
-        xelt = self.__element_vector
-        yelt = y.__element_vector
-        zelt = [ xelt[i]+yelt[i] for i in range(len(xelt)) ]
-        if len(invs) >= n:
-            L =  []
-            for i in range(len(xelt)):
-                if invs[i]!=0:
-                    L.append(zelt[i]%invs[i])
-                if invs[i]==0:
-                    L.append(zelt[i])
-            z.__element_vector = L
-        if len(invs) < n:
-            L1 =  []
-            for i in range(len(invs)):
-                if invs[i]!=0:
-                    L1.append(zelt[i]%invs[i])
-                if invs[i]==0:
-                    L1.append(zelt[i])
-            L2 =  [ zelt[i] for i in range(len(invs),len(xelt)) ]
-            z.__element_vector = L1+L2
-        return z
-
-    def __pow__(self, _n):
-        """
-        requires that len(invs) = n
-        """
-        n = int(_n)
-        if n != _n:
-            raise TypeError, "Argument n (= %s) must be an integer."%n
-        M = self.parent()
-        N = M.ngens()
-        invs = M.invariants()
-        z = M(1)
-        for i in xrange(len(invs)):
-            if invs[i] == 0:
-                z.__element_vector[i] = self.__element_vector[i]*n
-            else:
-                z.__element_vector[i] = (self.__element_vector[i]*n)%invs[i]
-        return z
-
-    def inverse(self):
-        """
-        Returns the inverse element.
-
-        EXAMPLE::
-
-            sage: G.<a,b> = AbelianGroup(2)
-            sage: a^-1
-            a^-1
-            sage: a.list()
-            [1, 0]
-            sage: a.inverse().list()
-            [-1, 0]
-            sage: a.inverse()
-            a^-1
-        """
-        new_list = [-1*n for n in self.list()]
-        par_inv = self.parent().invariants()
-        for i in xrange(len(par_inv)):
-            if par_inv[i] != 0 and new_list[i] < 0:
-                while new_list[i] < 0:
-                    new_list[i] += abs(par_inv[i])
-        return AbelianGroupElement(self.parent(), new_list)
+        sage: F = AbelianGroup(5, [3,4,5,8,7], 'abcde')
+        sage: a, b, c, d, e = F.gens()
+        sage: a^2 * b^3 * a^2 * b^-4
+        a*b^3
+        sage: b^-11
+        b
+        sage: a^-11
+        a
+        sage: a*b in F
+        True
+    """
 
     def as_permutation(self):
         r"""
@@ -222,7 +102,7 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: G = AbelianGroup(3,[2,3,4],names="abc"); G
-            Multiplicative Abelian Group isomorphic to C2 x C3 x C4
+            Multiplicative Abelian group isomorphic to C2 x C3 x C4
             sage: a,b,c=G.gens()
             sage: Gp = G.permutation_group(); Gp
             Permutation Group with generators [(6,7,8,9), (3,4,5), (1,2)]
@@ -236,7 +116,7 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         from sage.groups.perm_gps.permgroup import PermutationGroup
         from sage.interfaces.all import gap
         G = self.parent()
-        invs = G.invariants()
+        invs = list(G.gens_orders())
         s1 = 'A:=AbelianGroup(%s)'%invs
         gap.eval(s1)
         s2 = 'phi:=IsomorphismPermGroup(A)'
@@ -251,75 +131,6 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         Gp = G.permutation_group()
         gp = Gp(pg)
         return gp
-
-    def list(self):
-        """
-        Return (a reference to) the underlying list used to represent this
-        element. If this is a word in an abelian group on `n`
-        generators, then this is a list of nonnegative integers of length
-        `n`.
-
-        EXAMPLES::
-
-            sage: F = AbelianGroup(5, [3,4,5,8,7], 'abcde')
-            sage: (a, b, c, d, e) = F.gens()
-            sage: a.list()
-            [1, 0, 0, 0, 0]
-        """
-        return self.__element_vector
-
-    def __cmp__(self,other):
-        if (self.list() != other.list()):
-                return -1
-        return 0
-
-    def order(self):
-        """
-        Returns the (finite) order of this element or Infinity if this
-        element does not have finite order.
-
-        EXAMPLES::
-
-            sage: F = AbelianGroup(3,[7,8,9]); F
-            Multiplicative Abelian Group isomorphic to C7 x C8 x C9
-            sage: F.gens()[2].order()
-            9
-            sage: a,b,c = F.gens()
-            sage: (b*c).order()
-            72
-            sage: G = AbelianGroup(3,[7,8,9])
-            sage: type((G.0 * G.1).order())==Integer
-            True
-        """
-        M = self.parent()
-        if self == M(1):
-            return Integer(1)
-        invs = M.invariants()
-        if self in M.gens():
-            o = invs[list(M.gens()).index(self)]
-            if o == 0:
-                return infinity
-            return o
-        L = list(self.list())
-        N = LCM([invs[i]//GCD(invs[i],L[i]) for i in range(len(invs)) if L[i]!=0])
-        if N == 0:
-            return infinity
-        else:
-            return Integer(N)
-
-    def random_element(self):
-        """
-        Return a random element of this dual group.
-        """
-        if not(self.is_finite()):
-            raise NotImplementedError, "Only implemented for finite groups"
-        gens = self.gens()
-        g = gens[0]**0
-        for i in range(len(gens)):
-            g = g*gens[i]**(random(gens[i].order()))
-        return g
-
-
 
     def word_problem(self, words):
         """
@@ -351,7 +162,6 @@ class AbelianGroupElement(MultiplicativeGroupElement):
             [[x, 1], [y, 1]]
             sage: prod([x^i for x,i in v]) == y*x
             True
-
         """
         from sage.groups.abelian_gps.abelian_group import AbelianGroup, word_problem
         return word_problem(words,self)

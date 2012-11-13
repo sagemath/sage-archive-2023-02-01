@@ -1377,7 +1377,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: Emod = E.change_ring(OKmodP); Emod
             Elliptic Curve defined by y^2  = x^3 + ibar*x + (ibar+3) over Residue field in ibar of Fractional ideal (10007)
             sage: Emod.abelian_group() #random generators
-            (Multiplicative Abelian Group isomorphic to C50067594 x C2,
+            (Multiplicative Abelian group isomorphic to C50067594 x C2,
             ((3152*ibar + 7679 : 7330*ibar + 7913 : 1), (8466*ibar + 1770 : 0 : 1)))
         """
         if not debug:

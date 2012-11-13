@@ -30,6 +30,7 @@ from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 from sage.rings.all import IntegerRing
 from sage.groups.group import Group
+from sage.groups.old import Group as OldGroup
 from sage.structure.formal_sum import FormalSums, FormalSum
 from sage.sets.set import Set
 
@@ -67,7 +68,7 @@ class GroupAlgebra(Algebra):
         if not base_ring.is_commutative():
             raise NotImplementedError("Base ring must be commutative")
 
-        if not isinstance(group, Group):
+        if not isinstance(group, (Group, OldGroup)):
             raise TypeError('"%s" is not a group' % group)
 
         ParentWithGens.__init__(self, base_ring, category = GroupAlgebras(base_ring))
@@ -251,7 +252,7 @@ class GroupAlgebra(Algebra):
             sage: ZG(1) == ZG(G(1))
             True
             sage: ZG(FormalSum([(1,f), (2, f**2)]))
-            2*f^2 + f
+            f + 2*f^2
             sage: G = GL(2,7)
             sage: OG = GroupAlgebra(G, ZZ[sqrt(5)])
             sage: OG(2)

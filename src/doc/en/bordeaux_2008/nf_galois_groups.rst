@@ -311,7 +311,7 @@ ideal classes containing :math:`(5,\sqrt{-30})` and
     sage: category(C)
     Category of groups
     sage: C.gens()
-    [Fractional ideal class (5, a), Fractional ideal class (3, a)]
+    (Fractional ideal class (5, a), Fractional ideal class (3, a))
 
 
 Arithmetic in the class group

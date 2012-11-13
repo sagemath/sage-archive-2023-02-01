@@ -280,7 +280,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e(7)
             -zeta4
             sage: Integers(60).unit_gens()
-            [31, 41, 37]
+            (31, 41, 37)
             sage: e(31)
             -1
             sage: e(41)
@@ -1656,7 +1656,7 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None,
         sage: G.gens()
         (Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1, Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4)
         sage: G.unit_gens()
-        [11, 17]
+        (11, 17)
         sage: G.zeta()
         zeta4
         sage: G.zeta_order()
@@ -2327,13 +2327,13 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         EXAMPLES::
 
             sage: DirichletGroup(37).unit_gens()
-            [2]
+            (2,)
             sage: DirichletGroup(20).unit_gens()
-            [11, 17]
+            (11, 17)
             sage: DirichletGroup(60).unit_gens()
-            [31, 41, 37]
+            (31, 41, 37)
             sage: DirichletGroup(20,QQ).unit_gens()
-            [11, 17]
+            (11, 17)
         """
         return self._integers.unit_gens()
 

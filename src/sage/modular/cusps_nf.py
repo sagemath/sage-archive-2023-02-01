@@ -1323,7 +1323,7 @@ def units_mod_ideal(I):
     k = I.number_field()
     Uk = k.unit_group()
     Istar = I.idealstar(2)
-    ulist = Uk.gens()
+    ulist = Uk.gens_values()
     elist = [Istar(I.ideallog(u)).order() for u in ulist]
 
     from sage.misc.mrange import xmrange

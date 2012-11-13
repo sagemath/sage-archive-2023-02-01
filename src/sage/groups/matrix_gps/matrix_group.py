@@ -79,7 +79,7 @@ from sage.categories.groups import Groups
 from sage.categories.finite_groups import FiniteGroups
 from sage.structure.parent import Parent
 from matrix_group_element import MatrixGroupElement
-from sage.groups.group import Group
+from sage.groups.old import Group
 from sage.rings.all import is_Ring, infinity
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.interfaces.gap import gap

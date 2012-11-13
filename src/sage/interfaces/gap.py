@@ -1083,6 +1083,7 @@ class Gap(Gap_generic):
             max_workspace_size = _get_gap_memory_pool_size_MB()
         cmd += ' -o ' + str(max_workspace_size)
         cmd += ' -s ' + str(max_workspace_size)
+        cmd += ' -m 64m '   # attempt at a workaround for http://tracker.gap-system.org/issues/224
         cmd += ' ' + os.path.join(SAGE_EXTCODE,'gap','sage.g')
         Expect.__init__(self,
                         name='gap',

@@ -80,10 +80,10 @@ Sage также включает в себя классические и мат�
     sage: d * b**2 * c**3
     b^2*c^3*d
     sage: F = AbelianGroup(3,[2]*3); F
-    Multiplicative Abelian Group isomorphic to C2 x C2 x C2
+    Multiplicative Abelian group isomorphic to C2 x C2 x C2
     sage: H = AbelianGroup([2,3], names="xy"); H
-    Multiplicative Abelian Group isomorphic to C2 x C3
+    Multiplicative Abelian group isomorphic to C2 x C3
     sage: AbelianGroup(5)
-    Multiplicative Abelian Group isomorphic to Z x Z x Z x Z x Z
+    Multiplicative Abelian group isomorphic to Z x Z x Z x Z x Z
     sage: AbelianGroup(5).order()
     +Infinity

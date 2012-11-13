@@ -17,48 +17,37 @@ Base class for groups
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+doc="""
+Base class for all groups
+"""
+
 import random
 
-from sage.structure.parent cimport Parent
-from sage.rings.infinity import infinity
-from sage.rings.integer_ring import ZZ
+from   sage.rings.infinity import infinity
+import sage.rings.integer_ring
 
-cdef class Group(Parent):
+cdef class Group(sage.structure.parent_gens.ParentWithGens):
     """
-    Base class for all groups
-
-    TESTS::
-
-        sage: from sage.groups.group import Group
-        sage: G = Group()
-        sage: TestSuite(G).run()
-        Failure in _test_an_element:
-        Traceback (most recent call last):
-        ...
-        The following tests failed:
-        _test_an_element, _test_associativity, _test_elements,
-        _test_elements_eq, _test_inverse, _test_one,
-        _test_pickling, _test_prod, _test_some_elements
+    Generic group class
     """
-    def __init__(self, gens=None, category=None):
+    def __init__(self, category = None):
         """
-        The Python constructor
 
         TESTS::
 
-            sage: from sage.groups.group import Group
+            sage: from sage.groups.old import Group
             sage: G = Group()
             sage: G.category()
             Category of groups
-            sage: G = Group(category=Groups()) # todo: do the same test with some subcategory of Groups when there will exist one
+            sage: G = Group(category = Groups()) # todo: do the same test with some subcategory of Groups when there will exist one
             sage: G.category()
             Category of groups
             sage: G = Group(category = CommutativeAdditiveGroups())
             Traceback (most recent call last):
             ...
-            ValueError: Category of commutative additive groups is not a subcategory of Category of groups
+            AssertionError: Category of commutative additive groups is not a subcategory of Category of groups
 
-        Check for #8119::
+         Check for #8119::
 
             sage: G = SymmetricGroup(2)
             sage: h = hash(G)
@@ -66,29 +55,28 @@ cdef class Group(Parent):
             sage: h == hash(G)
             True
         """
-        from sage.categories.groups import Groups
+        from sage.categories.basic import Groups
         if category is None:
             category = Groups()
         else:
-            if not category.is_subcategory(Groups()):
-                raise ValueError("%s is not a subcategory of %s"%(category, Groups()))
-        Parent.__init__(self, base=ZZ, gens=gens, category=category)
+            assert category.is_subcategory(Groups()), "%s is not a subcategory of %s"%(category, Groups())
+
+        sage.structure.parent_gens.ParentWithGens.__init__(self,
+                sage.rings.integer_ring.ZZ, category = category)
+
+    #def __call__(self, x): # this gets in the way of the coercion mechanism
+    #    """
+    #    Coerce x into this group.
+    #    """
+    #    raise NotImplementedError
 
     def __contains__(self, x):
         r"""
-        Test whether `x` defines a group element.
-
-        INPUT:
-
-        - ``x`` -- anything.
-
-        OUTPUT:
-
-        Boolean.
+        True if coercion of `x` into self is defined.
 
         EXAMPLES::
 
-            sage: from sage.groups.group import Group
+            sage: from sage.groups.old import Group
             sage: G = Group()
             sage: 4 in G               #indirect doctest
             Traceback (most recent call last):
@@ -101,6 +89,13 @@ cdef class Group(Parent):
             return False
         return True
 
+#    def category(self):
+#        """
+#        The category of all groups
+#        """
+#        import sage.categories.all
+#        return sage.categories.all.Groups()
+
     def is_atomic_repr(self):
         """
         True if the elements of this group have atomic string
@@ -109,7 +104,7 @@ cdef class Group(Parent):
 
         EXAMPLES::
 
-            sage: from sage.groups.group import Group
+            sage: from sage.groups.old import Group
             sage: G = Group()
             sage: G.is_atomic_repr()
             False
@@ -118,11 +113,11 @@ cdef class Group(Parent):
 
     def is_abelian(self):
         """
-        Test whether this group is abelian.
+        Return True if this group is abelian.
 
         EXAMPLES::
 
-            sage: from sage.groups.group import Group
+            sage: from sage.groups.old import Group
             sage: G = Group()
             sage: G.is_abelian()
             Traceback (most recent call last):
@@ -133,10 +128,9 @@ cdef class Group(Parent):
 
     def is_commutative(self):
         r"""
-        Test whether this group is commutative.
-
-        This is an alias for is_abelian, largely to make groups work
-        well with the Factorization class.
+        Return True if this group is commutative. This is an alias for
+        is_abelian, largely to make groups work well with the Factorization
+        class.
 
         (Note for developers: Derived classes should override is_abelian, not
         is_commutative.)
@@ -155,7 +149,7 @@ cdef class Group(Parent):
 
         EXAMPLES::
 
-            sage: from sage.groups.group import Group
+            sage: from sage.groups.old import Group
             sage: G = Group()
             sage: G.order()
             Traceback (most recent call last):
@@ -170,7 +164,7 @@ cdef class Group(Parent):
 
         EXAMPLES::
 
-            sage: from sage.groups.group import Group
+            sage: from sage.groups.old import Group
             sage: G = Group()
             sage: G.is_finite()
             Traceback (most recent call last):
@@ -188,29 +182,12 @@ cdef class Group(Parent):
 
         EXAMPLES::
 
-            sage: from sage.groups.group import Group
+            sage: from sage.groups.old import Group
             sage: G = Group()
             sage: G.is_multiplicative()
             True
         """
         return True
-
-    def _an_element_(self):
-        """
-        Return an element
-
-        OUTPUT:
-
-        An element of the group.
-
-        EXAMPLES:
-
-            sage: G = AbelianGroup([2,3,4,5])
-            sage: G.an_element()
-            f0*f1*f2*f3
-        """
-        from sage.misc.misc import prod
-        return prod(self.gens())
 
     def random_element(self, bound=None):
         """
@@ -218,7 +195,7 @@ cdef class Group(Parent):
 
         EXAMPLES::
 
-            sage: from sage.groups.group import Group
+            sage: from sage.groups.old import Group
             sage: G = Group()
             sage: G.random_element()
             Traceback (most recent call last):
@@ -234,7 +211,7 @@ cdef class Group(Parent):
 
         EXAMPLES::
 
-            sage: from sage.groups.group import Group
+            sage: from sage.groups.old import Group
             sage: G = Group()
             sage: G.quotient(G)
             Traceback (most recent call last):
@@ -253,7 +230,7 @@ cdef class AbelianGroup(Group):
 
         EXAMPLES::
 
-            sage: from sage.groups.group import AbelianGroup
+            sage: from sage.groups.old import AbelianGroup
             sage: G = AbelianGroup()
             sage: G.is_abelian()
             True
@@ -270,7 +247,7 @@ cdef class FiniteGroup(Group):
 
         EXAMPLES::
 
-            sage: from sage.groups.group import FiniteGroup
+            sage: from sage.groups.old import FiniteGroup
             sage: G = FiniteGroup()
             sage: G.is_finite()
             True
@@ -279,17 +256,13 @@ cdef class FiniteGroup(Group):
 
     def cayley_graph(self, connecting_set=None):
         """
-        Return the Cayley graph for this finite group.
+        Returns the cayley graph for this finite group, as a Sage DiGraph
+        object. To plot the graph with with different colors
 
-        INPUT:
+        INPUT::
 
-        - ``connecting_set`` -- (optional) list of elements to use for
-          edges, default is the stored generators
-
-        OUTPUT:
-
-        The Cayley graph as a Sage DiGraph object. To plot the graph
-        with with different colors
+            `connecting_set` - (optional) list of elements to use for edges,
+                               default is the stored generators
 
         EXAMPLES::
 
@@ -311,19 +284,25 @@ cdef class FiniteGroup(Group):
             sage: g.cayley_graph(connecting_set=[(1,2),(2,3)])
             Digraph on 120 vertices
 
+        ::
+
             sage: s1 = SymmetricGroup(1); s = s1.cayley_graph(); s.vertices()
             [()]
 
         AUTHORS:
 
         - Bobby Moretti (2007-08-10)
+
         - Robert Miller (2008-05-01): editing
         """
         if connecting_set is None:
             connecting_set = self.gens()
         else:
-            if any(g not in self for g in connecting_set):
-                raise ValueError("Each element of the connecting set must be in the group!")
+            try:
+                for g in connecting_set:
+                    assert g in self
+            except AssertionError:
+                raise RuntimeError("Each element of the connecting set must be in the group!")
             connecting_set = [self(g) for g in connecting_set]
         from sage.graphs.all import DiGraph
         arrows = {}
@@ -336,3 +315,7 @@ cdef class FiniteGroup(Group):
 
         return DiGraph(arrows, implementation='networkx')
 
+cdef class AlgebraicGroup(Group):
+    """
+    Generic algebraic group.
+    """

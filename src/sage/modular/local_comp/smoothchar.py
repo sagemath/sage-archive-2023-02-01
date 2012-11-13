@@ -1505,7 +1505,7 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
             # topologically cyclic. I don't know an explicit set of good
             # generators here, so we let Pari do the work and put up with the
             # rather arbitrary (nondeterministic?) results.
-            return list(self.ideal(c).idealstar(2).gens()) + [s]
+            return list(self.ideal(c).idealstar(2).gens_values()) + [s]
 
     def exponents(self, c):
         r"""
@@ -1517,24 +1517,24 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
             sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupRamifiedQuadratic
             sage: G = SmoothCharacterGroupRamifiedQuadratic(5, 0, QQ)
             sage: G.exponents(0)
-            [0]
+            (0,)
             sage: G.exponents(1)
-            [4, 0]
+            (4, 0)
             sage: G.exponents(8)
-            [500, 625, 0]
+            (500, 625, 0)
         """
         c = ZZ(c)
         d = ceil(c / 2)
         p = self.prime()
         if c == 0:
-            return [0]
+            return tuple([0])
         elif c == 1:
-            return [p - 1, 0]
+            return tuple([p - 1, 0])
         elif p > 3 or self._unif_sqr == 3 or c <= 3:
-            return [p**(d-1)*(p - 1), p**ceil((c - 1)/2), 0]
+            return tuple([p**(d-1)*(p - 1), p**ceil((c - 1)/2), 0])
         else:
             # awkward case, see above
-            return self.ideal(c).idealstar(2).invariants() + [0]
+            return self.ideal(c).idealstar(2).gens_orders() + (0,)
 
     def subgroup_gens(self, level):
         r"""

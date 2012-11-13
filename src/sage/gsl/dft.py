@@ -224,7 +224,7 @@ class IndexedSequence(SageObject):
             sage: s = IndexedSequence([1,2,3,4,5,6],J)
             sage: s.dft()   # the precision of output is somewhat random and architecture dependent.
             Indexed sequence: [21.0000000000000, -2.99999999999997 - 1.73205080756885*I, -2.99999999999999 + 1.73205080756888*I, -9.00000000000000 + 0.0000000000000485744257349999*I, -0.00000000000000976996261670137 - 0.0000000000000159872115546022*I, -0.00000000000000621724893790087 - 0.0000000000000106581410364015*I]
-                indexed by Multiplicative Abelian Group isomorphic to C2 x C3
+                indexed by Multiplicative Abelian group isomorphic to C2 x C3
             sage: J = CyclicPermutationGroup(6)
             sage: s = IndexedSequence([1,2,3,4,5,6],J)
             sage: s.dft()   # the precision of output is somewhat random and architecture dependent.

@@ -216,8 +216,9 @@ cdef class InverseAction(Action):
     An action that acts as the inverse of the given action.
 
     TESTS:
+
     This illustrates a shortcoming in the current coercion model.
-    See the comments in _call_ below.
+    See the comments in _call_ below::
 
         sage: x = polygen(QQ,'x')
         sage: a = 2*x^2+2; a
@@ -231,10 +232,11 @@ cdef class InverseAction(Action):
     def __init__(self, Action action):
         G = action.G
         try:
+            from sage.groups.old import Group as OldGroup
             from sage.groups.group import Group
             # We must be in the case that parent(~a) == parent(a)
             # so we can invert in call_c code below.
-            if (PY_TYPE_CHECK(G, Group) and G.is_multiplicative()) or G.is_field():
+            if (isinstance(G, (Group, OldGroup)) and G.is_multiplicative()) or G.is_field():
                 Action.__init__(self, G, action.underlying_set(), action._is_left)
                 self._action = action
                 return

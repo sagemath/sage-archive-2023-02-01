@@ -123,7 +123,7 @@ REFERENCES:
 from functools import wraps
 
 from sage.misc.randstate import current_randstate
-import sage.groups.group as group
+import sage.groups.old as group
 
 from sage.rings.all import QQ, Integer
 from sage.interfaces.all import is_ExpectElement
@@ -2130,14 +2130,14 @@ class PermutationGroup_generic(group.Group):
 
             sage: G = SymmetricGroup(4)
             sage: G.cohomology(1,2)                            # optional - gap_packages
-            Multiplicative Abelian Group isomorphic to C2
+            Multiplicative Abelian group isomorphic to C2
             sage: G = SymmetricGroup(3)
             sage: G.cohomology(5)                              # optional - gap_packages
-            Trivial Abelian Group
+            Trivial Abelian group
             sage: G.cohomology(5,2)                            # optional - gap_packages
-            Multiplicative Abelian Group isomorphic to C2
+            Multiplicative Abelian group isomorphic to C2
             sage: G.homology(5,3)                              # optional - gap_packages
-            Trivial Abelian Group
+            Trivial Abelian group
             sage: G.homology(5,4)                              # optional - gap_packages
             Traceback (most recent call last):
             ...
@@ -2180,10 +2180,10 @@ class PermutationGroup_generic(group.Group):
 
             sage: G = SymmetricGroup(5)
             sage: G.cohomology_part(7,2)                   # optional - gap_packages
-            Multiplicative Abelian Group isomorphic to C2 x C2 x C2
+            Multiplicative Abelian group isomorphic to C2 x C2 x C2
             sage: G = SymmetricGroup(3)
             sage: G.cohomology_part(2,3)                   # optional - gap_packages
-            Multiplicative Abelian Group isomorphic to C3
+            Multiplicative Abelian group isomorphic to C3
 
         AUTHORS:
 
@@ -2224,13 +2224,13 @@ class PermutationGroup_generic(group.Group):
 
             sage: G = SymmetricGroup(5)
             sage: G.homology(7)                              # optional - gap_packages
-            Multiplicative Abelian Group isomorphic to C2 x C2 x C4 x C3 x C5
+            Multiplicative Abelian group isomorphic to C2 x C2 x C4 x C3 x C5
             sage: G.homology(7,2)                              # optional - gap_packages
-            Multiplicative Abelian Group isomorphic to C2 x C2 x C2 x C2 x C2
+            Multiplicative Abelian group isomorphic to C2 x C2 x C2 x C2 x C2
             sage: G.homology(7,3)                              # optional - gap_packages
-            Multiplicative Abelian Group isomorphic to C3
+            Multiplicative Abelian group isomorphic to C3
             sage: G.homology(7,5)                              # optional - gap_packages
-            Multiplicative Abelian Group isomorphic to C5
+            Multiplicative Abelian group isomorphic to C5
 
         REFERENCES:
 
@@ -2262,7 +2262,7 @@ class PermutationGroup_generic(group.Group):
 
             sage: G = SymmetricGroup(5)
             sage: G.homology_part(7,2)                              # optional - gap_packages
-            Multiplicative Abelian Group isomorphic to C2 x C2 x C2 x C2 x C4
+            Multiplicative Abelian group isomorphic to C2 x C2 x C2 x C2 x C4
 
         AUTHORS:
 

@@ -1,6 +1,6 @@
-from sage.structure.parent cimport Parent
+cimport sage.structure.parent_gens
 
-cdef class Group(Parent):
+cdef class Group(sage.structure.parent_gens.ParentWithGens):
     pass
 
 cdef class AbelianGroup(Group):

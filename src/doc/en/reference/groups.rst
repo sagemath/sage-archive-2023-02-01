@@ -10,9 +10,12 @@ Groups
    sage/groups/group
    sage/groups/generic
    sage/groups/abelian_gps/abelian_group
-   sage/groups/abelian_gps/abelian_group_element
-   sage/groups/abelian_gps/abelian_group_morphism
+   sage/groups/abelian_gps/values
    sage/groups/abelian_gps/dual_abelian_group
+   sage/groups/abelian_gps/element_base
+   sage/groups/abelian_gps/abelian_group_element
+   sage/groups/abelian_gps/dual_abelian_group_element
+   sage/groups/abelian_gps/abelian_group_morphism
    sage/groups/additive_abelian/additive_abelian_group
    sage/groups/additive_abelian/additive_abelian_wrapper
    sage/groups/perm_gps/permgroup

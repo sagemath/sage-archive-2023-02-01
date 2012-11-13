@@ -362,7 +362,7 @@ Nun berechnen wir mehrere Invarianten von ``G``:
     Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> i)
 
     sage: G.unit_gens()
-    [11, 17]
+    (11, 17)
     sage: G.zeta()
     i
     sage: G.zeta_order()

@@ -3224,7 +3224,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: G.0
             Fractional ideal class (2, 1/2*a - 1/2)
             sage: G.gens()
-            [Fractional ideal class (2, 1/2*a - 1/2)]
+            (Fractional ideal class (2, 1/2*a - 1/2),)
 
         ::
 
@@ -3235,7 +3235,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: G is K.class_group(proof=False)
             False
             sage: G.gens()
-            [Fractional ideal class (2, 1/2*a - 1/2)]
+            (Fractional ideal class (2, 1/2*a - 1/2),)
 
         There can be multiple generators::
 
@@ -3267,10 +3267,10 @@ class NumberField_generic(number_field_base.NumberField):
         except AttributeError:
             self.__class_group = {}
         k = self.pari_bnf(proof)
-        cycle_structure = [ZZ(c) for c in k.bnf_get_cyc()]
+        cycle_structure = tuple( ZZ(c) for c in k.bnf_get_cyc() )
 
         # Gens is a list of ideals (the generators)
-        gens = [self.ideal(hnf) for hnf in k.bnf_get_gen()]
+        gens = tuple( self.ideal(hnf) for hnf in k.bnf_get_gen() )
 
         G = ClassGroup(cycle_structure, names, self, gens, proof=proof)
         self.__class_group[proof, names] = G
@@ -3350,7 +3350,8 @@ class NumberField_generic(number_field_base.NumberField):
             Slist = zip([g.ideal() for g in C.gens()], C.invariants())
         else:
             Slist = self._S_class_group_and_units(tuple(S), proof=proof)[1]
-        return SClassGroup([s[1] for s in Slist], names, self, [s[0] for s in Slist], S)
+        return SClassGroup(tuple(s[1] for s in Slist), names, self,
+                           tuple(s[0] for s in Slist), tuple(S))
 
     def S_units(self, S, proof=True):
         """
@@ -3432,7 +3433,7 @@ class NumberField_generic(number_field_base.NumberField):
         S_pari = [p.pari_prime() for p in S]
 
         result = K_pari.bnfsunit(S_pari)
-        units = map(self, result[0]) + self.unit_group().gens()
+        units = map(self, result[0]) + self.unit_group().gens_values()
 
         pari_cyc = result[4][1]
         pari_gens = result[4][2]
@@ -4764,7 +4765,7 @@ class NumberField_generic(number_field_base.NumberField):
         EXAMPLES::
 
             sage: NumberField(x^3+x+9, 'a').narrow_class_group()
-            Multiplicative Abelian Group isomorphic to C2
+            Multiplicative Abelian group isomorphic to C2
         """
         proof = proof_flag(proof)
         try:
@@ -5192,9 +5193,11 @@ class NumberField_generic(number_field_base.NumberField):
             sage: U = K.unit_group(); U
             Unit group with structure C10 x Z of Number Field in a with defining polynomial x^4 - 10*x^3 + 100*x^2 - 375*x + 1375
             sage: U.gens()
+            (u0, u1)
+            sage: U.gens_values()
             [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 6/275*a^3 - 9/55*a^2 + 14/11*a - 2]
             sage: U.invariants()
-            [10, 0]
+            (10, 0)
             sage: [u.multiplicative_order() for u in U.gens()]
             [10, +Infinity]
 
@@ -5209,7 +5212,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: U = K.unit_group(proof=False)
             sage: U
             Unit group with structure C2 x Z x Z x Z x Z x Z x Z x Z x Z of Number Field in a with defining polynomial x^17 + 3
-            sage: U.gens()  # result not independently verified
+            sage: U.gens()
+            (u0, u1, u2, u3, u4, u5, u6, u7, u8)
+            sage: U.gens_values()  # result not independently verified
             [-1, a^9 + a - 1, a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1, 2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4, a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1, a^16 + a^15 + a^14 + a^13 + a^12 + a^11 + a^10 + a^9 + a^8 + a^7 + a^6 + a^5 + a^4 + a^3 + a^2 - 2, 2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4, a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2, 2*a^16 + a^15 - a^11 - 3*a^10 - 4*a^9 - 4*a^8 - 4*a^7 - 5*a^6 - 7*a^5 - 8*a^4 - 6*a^3 - 5*a^2 - 6*a - 7]
         """
         try:

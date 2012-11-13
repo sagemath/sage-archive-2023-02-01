@@ -20,12 +20,10 @@ all.py -- export of abelian groups to Sage
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from dual_abelian_group import *
-from dual_abelian_group_element import *
+#from dual_abelian_group import DualAbelianGroup
+from abelian_group import AbelianGroup, is_AbelianGroup, word_problem
+from values import AbelianGroupWithValues
 
-from abelian_group import AbelianGroup,is_AbelianGroup,AbelianGroup_class,AbelianGroup_subgroup, word_problem
-
-from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
-
-from abelian_group_morphism import is_AbelianGroupMorphism,AbelianGroupMap,AbelianGroupMorphism_id,AbelianGroupMorphism,AbelianGroupMorphism
-
+# TODO:
+# Implement group homset, conversion of generator images to morphism
+from abelian_group_morphism import AbelianGroupMorphism

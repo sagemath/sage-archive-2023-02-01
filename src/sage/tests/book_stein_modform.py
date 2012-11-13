@@ -298,17 +298,17 @@ sage: R = Integers(49)
 sage: R
 Ring of integers modulo 49
 sage: R.unit_gens()
-[3]
+(3,)
 sage: Integers(25).unit_gens()
-[2]
+(2,)
 sage: Integers(100).unit_gens()
-[51, 77]
+(51, 77)
 sage: Integers(200).unit_gens()
-[151, 101, 177]
+(151, 101, 177)
 sage: Integers(2005).unit_gens()
-[402, 1206]
+(402, 1206)
 sage: Integers(200000000).unit_gens()
-[174218751, 51562501, 187109377]
+(174218751, 51562501, 187109377)
 sage: list(DirichletGroup(5))
 [Dirichlet character modulo 5 of conductor 1 mapping 2 |--> 1,
 Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4,
@@ -363,7 +363,7 @@ sage: eps = G.0      # 0th generator for Dirichlet group
 sage: eps
 Dirichlet character modulo 11 of conductor 11 mapping 2 |--> -1
 sage: G.unit_gens()
-[2]
+(2,)
 sage: eps(2)
 -1
 sage: eps(3)

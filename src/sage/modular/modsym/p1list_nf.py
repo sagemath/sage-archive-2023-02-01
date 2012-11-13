@@ -939,7 +939,7 @@ class P1NFList(SageObject):
             sage: k.<a> = NumberField(x^3 + 11)
             sage: N = k.ideal(5, a + 1)
             sage: P = P1NFList(N)
-            sage: u = k.unit_group().gens(); u
+            sage: u = k.unit_group().gens_values(); u
             [-1, 2*a^2 + 4*a - 1]
             sage: P.apply_J_epsilon(4, -1)
             2
@@ -951,7 +951,7 @@ class P1NFList(SageObject):
             sage: k.<a> = NumberField(x^4 + 13*x - 7)
             sage: N = k.ideal(a + 1)
             sage: P = P1NFList(N)
-            sage: u = k.unit_group().gens(); u
+            sage: u = k.unit_group().gens_values(); u
             [-1, a^3 + a^2 + a + 12, a^3 + 3*a^2 - 1]
             sage: P.apply_J_epsilon(3, u[2]^2)==P.apply_J_epsilon(P.apply_J_epsilon(3, u[2]),u[2])
             True

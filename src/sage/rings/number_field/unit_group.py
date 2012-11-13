@@ -10,13 +10,20 @@ EXAMPLES::
 
 The first generator is a primitive root of unity in the field::
 
-    sage: UK.gens()  # random
+    sage: UK.gens()
+    (u0, u1)
+    sage: UK.gens_values()  # random
     [-1/12*a^3 + 1/6*a, 1/24*a^3 + 1/4*a^2 - 1/12*a - 1]
-    sage: UK.gens()[0]
+    sage: UK.gen(0).value()
     -1/12*a^3 + 1/6*a
+
+    sage: UK.gen(0)
+    u0
+    sage: UK.gen(0) + K.one()   # coerce abstract generator into number field
+    -1/12*a^3 + 1/6*a + 1
+
     sage: [u.multiplicative_order() for u in UK.gens()]
     [4, +Infinity]
-
     sage: UK.rank()
     1
     sage: UK.ngens()
@@ -34,7 +41,9 @@ as elements of an abstract multiplicative group::
 
     sage: UK.fundamental_units() # random
     [1/24*a^3 + 1/4*a^2 - 1/12*a - 1]
-    sage: UK.torsion_generator()
+    sage: torsion_gen = UK.torsion_generator();  torsion_gen
+    u0
+    sage: torsion_gen.value()
     -1/12*a^3 + 1/6*a
     sage: UK.zeta_order()
     4
@@ -47,11 +56,11 @@ vectors with respect to the generators::
     sage: u = UK.exp([13,10]); u # random
     -41/8*a^3 - 55/4*a^2 + 41/4*a + 55
     sage: UK.log(u)
-    [1, 10]
+    (1, 10)
     sage: u = UK.fundamental_units()[0]
-    sage: [UK.log(u^k) == [0,k] for k in range(10)]
+    sage: [UK.log(u^k) == (0,k) for k in range(10)]
     [True, True, True, True, True, True, True, True, True, True]
-    sage: all([UK.log(u^k) == [0,k] for k in range(10)])
+    sage: all([UK.log(u^k) == (0,k) for k in range(10)])
     True
 
     sage: K.<a> = NumberField(x^5-2,'a')
@@ -66,7 +75,7 @@ A relative number field example::
     sage: L.<a, b> = NumberField([x^2 + x + 1, x^4 + 1])
     sage: UL = L.unit_group(); UL
     Unit group with structure C24 x Z x Z x Z of Number Field in a with defining polynomial x^2 + x + 1 over its base field
-    sage: UL.gens() # random
+    sage: UL.gens_values() # random
     [-b^3*a - b^3, -b^3*a + b, (-b^3 - b^2 - b)*a - b - 1, (-b^3 - 1)*a - b^2 + b - 1]
     sage: UL.zeta_order()
     24
@@ -108,19 +117,60 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
-from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
-
+from sage.groups.abelian_gps.values import AbelianGroupWithValues_class
 from sage.structure.sequence import Sequence
 from sage.structure.proof.proof import get_flag
 from sage.libs.all import pari
 from sage.misc.misc import prod
 from sage.rings.integer_ring import ZZ
 
-class UnitGroup(AbelianGroup_class):
+class UnitGroup(AbelianGroupWithValues_class):
     """
     The unit group of a number field.
+
+    TESTS::
+
+        sage: x = polygen(QQ)
+        sage: K.<a> = NumberField(x^4 + 23)
+        sage: UK = K.unit_group()
+        sage: u = UK.an_element();  u
+        u0*u1
+        sage: u.value()
+        -1/4*a^3 - 7/4*a^2 - 17/4*a - 19/4
+
+        sage: x = polygen(QQ)
+        sage: K.<a> = NumberField(x^4 + 23)
+        sage: K.unit_group().gens_values() # random
+        [-1, 1/4*a^3 - 7/4*a^2 + 17/4*a - 19/4]
+
+        sage: x = polygen(QQ)
+        sage: U = NumberField(x^2 + x + 23899, 'a').unit_group(); U
+        Unit group with structure C2 of Number Field in a with defining polynomial x^2 + x + 23899
+        sage: U.ngens()
+        1
+
+        sage: K.<z> = CyclotomicField(13)
+        sage: UK = K.unit_group()
+        sage: UK.ngens()
+        6
+        sage: UK.gen(0) # random
+        -z^11
+        sage: UK.gen(1) # random
+        z^5 + z^3
+        sage: UK.gen(2) # random
+        z^6 + z^5
+        sage: UK.gen(3) # random
+        z^9 + z^7 + z^5
+        sage: UK.gen(4) # random
+        z^9 + z^5 + z^4 + 1
+        sage: UK.gen(5) # random
+        z^5 + z
     """
+    # This structure is not a parent in the usual sense. The
+    # "elements" are NumberFieldElement_absolute. Instead, they should
+    # derive from AbelianGroupElement and coerce into
+    # NumberFieldElement_absolute.
+
     def __init__(self, number_field, proof=True):
         """
         Create a unit group of a number field.
@@ -141,18 +191,24 @@ class UnitGroup(AbelianGroup_class):
             sage: UK = K.unit_group(); UK
             Unit group with structure C2 x Z of Number Field in a with defining polynomial x^2 - 38
             sage: UK.gens()
+            (u0, u1)
+            sage: UK.gens_values()
             [-1, 6*a - 37]
 
             sage: K.<a> = QuadraticField(-3)
             sage: UK = K.unit_group(); UK
             Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
             sage: UK.gens()
+            (u,)
+            sage: UK.gens_values()
             [-1/2*a + 1/2]
 
             sage: K.<z> = CyclotomicField(13)
             sage: UK = K.unit_group(); UK
             Unit group with structure C26 x Z x Z x Z x Z x Z of Cyclotomic Field of order 13 and degree 12
-            sage: UK.gens() # random
+            sage: UK.gens()
+            (u0, u1, u2, u3, u4, u5)
+            sage: UK.gens_values() # random
             [-z^11, z^5 + z^3, z^6 + z^5, z^9 + z^7 + z^5, z^9 + z^5 + z^4 + 1, z^5 + z]
             """
         proof = get_flag(proof, "number_field")
@@ -174,13 +230,12 @@ class UnitGroup(AbelianGroup_class):
 
         # Store the actual generators (torsion first):
         gens = [z] + fu
-        self.__nfu = len(fu)
-        self.__gens = Sequence(gens, immutable=True, universe=self, check=False)
+        values = Sequence(gens, immutable=True, universe=self, check=False)
         # Construct the abtract group:
-        AbelianGroup_class.__init__(self, 1+len(fu), [n]+[0]*len(fu), 'u')
+        gens_orders = tuple([ZZ(n)]+[ZZ(0)]*len(fu))
+        AbelianGroupWithValues_class.__init__(self, gens_orders, 'u', values, number_field)
 
-
-    def __call__(self, u):
+    def _element_constructor_(self, u):
         """
         Returns the abstract group element corresponding to the unit u.
 
@@ -201,20 +256,21 @@ class UnitGroup(AbelianGroup_class):
             sage: UK(-1)
             u0
             sage: UK.gens()
+            (u0, u1)
+            sage: UK.gens_values()
             [-1, 6*a - 37]
             sage: UK.ngens()
             2
             sage: [UK(u) for u in UK.gens()]
             [u0, u1]
-            sage: [UK(u).list() for u in UK.gens()]
-            [[1, 0], [0, 1]]
+            sage: [UK(u).exponents() for u in UK.gens()]
+            [(1, 0), (0, 1)]
             sage: UK(a)
             Traceback (most recent call last):
             ...
             ValueError: a is not a unit
         """
         K = self.__number_field
-
         try:
             u = K(u)
         except TypeError:
@@ -226,48 +282,7 @@ class UnitGroup(AbelianGroup_class):
         m = [ZZ(m[0,i].python()) for i in range(m.ncols())]
         # NB pari puts the torsion at the end!
         m.insert(0,m.pop())
-        return AbelianGroupElement(self, m)
-
-# Commented out, because for any Sage parent X, _coerce_impl needs to either
-# work on all of X or raise an error on every element of X, which this doesn't.
-#
-#    def _coerce_impl(self, x):
-#        """
-#        Canonical coercion of ``x`` into this unit group.
-#
-#        EXAMPLES:
-#
-#            sage: K.<z> = CyclotomicField(9)
-#            sage: K.unit_group().coerce(z)
-#        """
-#        return self(x)
-
-    def gens(self):
-        """
-        Return generators for the unit group, as a list.
-
-        EXAMPLES::
-
-            sage: x = polygen(QQ)
-            sage: K.<a> = NumberField(x^4 + 23)
-            sage: K.unit_group().gens() # random
-            [-1, 1/4*a^3 - 7/4*a^2 + 17/4*a - 19/4]
-        """
-        return self.__gens
-
-    def ngens(self):
-        """
-        Return the number of generators of the unit group.
-
-        EXAMPLES::
-
-            sage: x = polygen(QQ)
-            sage: U = NumberField(x^2 + x + 23899, 'a').unit_group(); U
-            Unit group with structure C2 of Number Field in a with defining polynomial x^2 + x + 23899
-            sage: U.ngens()
-            1
-        """
-        return len(self.__gens)
+        return self.element_class(m, self)
 
     def rank(self):
         """
@@ -279,38 +294,7 @@ class UnitGroup(AbelianGroup_class):
             sage: UnitGroup(K).rank()
             5
         """
-        return len(self.__gens)-1
-
-    def gen(self, i=0):
-        """
-        Return the `i`'th generator for this unit group.
-
-        .. note::
-
-           `i=0` gives the torsion generator, i.e. a primitive root of unity.
-
-        EXAMPLES::
-
-            sage: K.<z> = CyclotomicField(13)
-            sage: UK = K.unit_group()
-            sage: UK.ngens()
-            6
-            sage: UK.gen(0) # random
-            -z^11
-            sage: UK.gen(1) # random
-            z^5 + z^3
-            sage: UK.gen(2) # random
-            z^6 + z^5
-            sage: UK.gen(3) # random
-            z^9 + z^7 + z^5
-            sage: UK.gen(4) # random
-            z^9 + z^5 + z^4 + 1
-            sage: UK.gen(5) # random
-            z^5 + z
-        """
-        if i < 0 or i >= len(self.__gens):
-            raise IndexError
-        return self.__gens[i]
+        return self.ngens()-1
 
     def _repr_(self):
         """
@@ -326,7 +310,7 @@ class UnitGroup(AbelianGroup_class):
             'Unit group with structure C2 x Z of Number Field in a with defining polynomial x^3 - 2'
         """
         return 'Unit group with structure %s of %s'%(
-            self._group_notation(self.invariants()),
+            self._group_notation(self.gens_orders()),
             self.number_field())
 
     def fundamental_units(self):
@@ -341,7 +325,7 @@ class UnitGroup(AbelianGroup_class):
             sage: U.fundamental_units()  # random
             [1/4*a^3 - 7/4*a^2 + 17/4*a - 19/4]
         """
-        return self.__gens[1:]
+        return self.gens_values()[1:]
 
     def roots_of_unity(self):
         """
@@ -357,7 +341,7 @@ class UnitGroup(AbelianGroup_class):
             sage: [ z**U.zeta_order() for z in zs ]
             [1, 1, 1, 1]
         """
-        z = self.__gens[0]
+        z = self.gen(0).value()
         n = self.__ntu
         return [ z**k for k in range(1, n+1) ]
 
@@ -370,10 +354,12 @@ class UnitGroup(AbelianGroup_class):
             sage: x = polygen(QQ)
             sage: K.<a> = NumberField(x^4 - x^2 + 4)
             sage: U = UnitGroup(K)
-            sage: U.torsion_generator() # random
+            sage: U.torsion_generator()
+            u0
+            sage: U.torsion_generator().value() # random
             -1/4*a^3 - 1/4*a + 1/2
         """
-        return self.__gens[0]
+        return self.gen(0)
 
     def zeta_order(self):
         """
@@ -444,7 +430,7 @@ class UnitGroup(AbelianGroup_class):
             else:
                 return K(-1)
         if n.divides(N):
-            z = self.torsion_generator() ** (N//n)
+            z = self.torsion_generator().value() ** (N//n)
             if all:
                 return [z**i for i in n.coprime_integers(n)]
             else:
@@ -490,19 +476,19 @@ class UnitGroup(AbelianGroup_class):
             sage: K.<z> = CyclotomicField(13)
             sage: UK = UnitGroup(K)
             sage: [UK.log(u) for u in UK.gens()]
-            [[1, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0, 1]]
+            [(1, 0, 0, 0, 0, 0),
+             (0, 1, 0, 0, 0, 0),
+             (0, 0, 1, 0, 0, 0),
+             (0, 0, 0, 1, 0, 0),
+             (0, 0, 0, 0, 1, 0),
+             (0, 0, 0, 0, 0, 1)]
             sage: vec = [65,6,7,8,9,10]
             sage: unit = UK.exp(vec); unit  # random
             -253576*z^11 + 7003*z^10 - 395532*z^9 - 35275*z^8 - 500326*z^7 - 35275*z^6 - 395532*z^5 + 7003*z^4 - 253576*z^3 - 59925*z - 59925
             sage: UK.log(unit)
-            [13, 6, 7, 8, 9, 10]
+            (13, 6, 7, 8, 9, 10)
         """
-        return self(u).list()
+        return self(u).exponents()
 
     def exp(self, exponents):
         r"""
@@ -524,19 +510,19 @@ class UnitGroup(AbelianGroup_class):
             sage: K.<z> = CyclotomicField(13)
             sage: UK = UnitGroup(K)
             sage: [UK.log(u) for u in UK.gens()]
-            [[1, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0, 1]]
+            [(1, 0, 0, 0, 0, 0),
+             (0, 1, 0, 0, 0, 0),
+             (0, 0, 1, 0, 0, 0),
+             (0, 0, 0, 1, 0, 0),
+             (0, 0, 0, 0, 1, 0),
+             (0, 0, 0, 0, 0, 1)]
             sage: vec = [65,6,7,8,9,10]
             sage: unit = UK.exp(vec)
             sage: UK.log(unit)
-            [13, 6, 7, 8, 9, 10]
-            sage: UK.exp(UK.log(u)) == u
+            (13, 6, 7, 8, 9, 10)
+            sage: UK.exp(UK.log(u)) == u.value()
             True
         """
-        return prod([u**e for u,e in zip(self.gens(),exponents)], self.number_field().one_element())
+        return prod([u**e for u,e in zip(self.gens_values(),exponents)], self.number_field().one_element())
 
 

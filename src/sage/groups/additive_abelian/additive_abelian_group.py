@@ -6,7 +6,7 @@ module derive from those in the module :mod:`sage.modules.fg_pid`. The only
 major differences are in the way elements are printed.
 """
 
-from sage.groups.group import AbelianGroup
+from sage.groups.old import AbelianGroup
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import FGP_Element
 from sage.rings.all import ZZ

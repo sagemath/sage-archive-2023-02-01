@@ -256,10 +256,11 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
             Group algebra of group "General Linear Group of degree 3 over Finite Field of size 7" over base ring Integer Ring
         """
         from sage.groups.group import Group
+        from sage.groups.old import Group as OldGroup
         if not base_ring.is_commutative():
             raise NotImplementedError("Base ring must be commutative")
 
-        if not isinstance(group, Group):
+        if not isinstance(group, (Group, OldGroup)):
             raise TypeError('"%s" is not a group' % group)
 
         self._group = group
@@ -680,7 +681,7 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
             True
         """
         from sage.rings.all import is_Ring
-        from sage.groups.group import Group
+        from sage.groups.old import Group
         k = self.base_ring()
         G = self.group()
         if isinstance(S, GroupAlgebra):
@@ -732,7 +733,7 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
             [0 1]
         """
         from sage.rings.all import is_Ring
-        from sage.groups.group import Group
+        from sage.groups.old import Group
         from sage.structure.formal_sum import FormalSum
         k = self.base_ring()
         G = self.group()

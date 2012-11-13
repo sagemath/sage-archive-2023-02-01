@@ -2,12 +2,12 @@ r"""
 PARI Groups
 """
 
-import group
+from sage.groups.old import Group
 from sage.libs.all import pari_gen
 from sage.rings.all import Integer
 from sage.structure.parent import Parent
 
-class PariGroup(group.Group):
+class PariGroup(Group):
     def __init__(self, x, degree=None):
         """
         EXAMPLES::

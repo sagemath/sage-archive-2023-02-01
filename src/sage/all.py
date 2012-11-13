@@ -42,6 +42,7 @@ quit = "Use Ctrl-D (i.e. EOF), %Exit, or %Quit to exit without confirmation."
 exit = quit
 
 import os, sys
+import operator
 
 if 'SAGE_ROOT' not in os.environ:
     raise RuntimeError("To use the Sage libraries, set the environment variable SAGE_ROOT to the Sage build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib")

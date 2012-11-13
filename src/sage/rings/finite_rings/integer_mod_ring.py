@@ -268,7 +268,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             16
             sage: gens = Z16.unit_gens()
             sage: gens
-            [15, 5]
+            (15, 5)
             sage: a = gens[0]
             sage: b = gens[1]
             sage: def powa(i): return a**i
@@ -454,25 +454,30 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         EXAMPLES::
 
             sage: Integers(5).multiplicative_subgroups()
-            ([2], [4], [])
+            ((2,), (4,), ())
             sage: Integers(15).multiplicative_subgroups()
-            ([11, 7], [4, 11], [8], [11], [14], [7], [4], [])
+            ((11, 7), (4, 11), (8,), (11,), (14,), (7,), (4,), ())
             sage: Integers(2).multiplicative_subgroups()
-            ([],)
+            ((),)
             sage: len(Integers(341).multiplicative_subgroups())
             80
+
+        TESTS::
+
+            sage: IntegerModRing(1).multiplicative_subgroups()
+            ((0,),)
+            sage: IntegerModRing(2).multiplicative_subgroups()
+            ((),)
+            sage: IntegerModRing(3).multiplicative_subgroups()
+            ((2,), ())
         """
-        from sage.groups.abelian_gps.abelian_group import AbelianGroup
-        from sage.misc.misc import mul
+        from sage.groups.abelian_gps.values import AbelianGroupWithValues
         U = self.unit_gens()
-        G = AbelianGroup([x.multiplicative_order() for x in U])
-        rawsubs = G.subgroups()
+        G = AbelianGroupWithValues(U, [x.multiplicative_order() for x in U], values_group=self)
         mysubs = []
-        for G in rawsubs:
-            mysubs.append([])
-            for s in G.gens():
-                mysubs[-1].append(mul([U[i] ** s.list()[i] for i in xrange(len(U))]))
-        return tuple(mysubs) # make it immutable, so that we can cache
+        for Gsub in G.subgroups():
+            mysubs.append(tuple( g.value() for g in Gsub.gens() ))
+        return tuple(mysubs)
 
     def is_finite(self):
         """
@@ -641,9 +646,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             ...
             ValueError: multiplicative group of this ring is not cyclic
             sage: Integers(25*3).unit_gens()
-            [26, 52]
+            (26, 52)
             sage: Integers(162).unit_gens()
-            [83]
+            (83,)
         """
         try:
             return self.__mult_gen
@@ -1113,6 +1118,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                     return [a]
             assert False, "p=%s, r=%s, couldn't find generator"%(p,r)
 
+    @cached_method
     def unit_gens(self):
         r"""
         Returns generators for the unit group `(\ZZ/N\ZZ)^*`.
@@ -1123,38 +1129,41 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         there will be 0, 1 or 2 generators according to whether 2 divides N to
         order 1, 2 or `\ge 3`.
 
-        INPUT: (none)
-
         OUTPUT:
 
-        -  ``list`` - a list of elements of self
+        A tuple containing the units of ``self``.
 
         EXAMPLES::
 
             sage: R = IntegerModRing(18)
             sage: R.unit_gens()
-            [11]
+            (11,)
             sage: R = IntegerModRing(17)
             sage: R.unit_gens()
-            [3]
+            (3,)
             sage: IntegerModRing(next_prime(10^30)).unit_gens()
-            [5]
+            (5,)
+
+        TESTS::
+
+            sage: IntegerModRing(2).unit_gens()
+            ()
+            sage: IntegerModRing(4).unit_gens()
+            (3,)
+            sage: IntegerModRing(8).unit_gens()
+            (7, 5)
         """
-        try:
-            return self.__unit_gens
-        except AttributeError:
-            self.__unit_gens = []
         n = self.__order
         if n == 1:
-            self.__unit_gens = [self(1)]
-            return self.__unit_gens
+            return (self(1),)
+        unit_gens = []
         for p,r in self.factored_order():
             m = n/(p**r)
             for g in self.__unit_gens_primepowercase(p, r):
                 x = g.crt(integer_mod.Mod(1,m))
                 if x != 1:
-                    self.__unit_gens.append(x)
-        return self.__unit_gens
+                    unit_gens.append(x)
+        return tuple(unit_gens)
 
     def unit_group_exponent(self):
         """

@@ -161,26 +161,41 @@ class SageInteractiveShell(TerminalInteractiveShell):
 
     def system_raw(self, cmd):
         """
-        Adjust the libraries before calling system commands.  See Trac
-        #975 for a discussion of this function.
+        Run a system command.
+
+        If the command is not a sage-specific binary, adjust the library paths before calling
+        system commands.  See Trac #975 for a discussion of running system commands.
+
+        This is equivalent to the sage-native-execute shell script.
 
         EXAMPLES::
 
             sage: from sage.misc.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.system_raw('false')
-            sage: shell.user_ns['_exit_code']
-            256
+            sage: status = shell.user_ns['_exit_code']
+            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) != 0
+            True
+            sage: shell.system_raw('true')
+            sage: status = shell.user_ns['_exit_code']
+            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) == 0
+            True
+            sage: shell.system_raw('env | grep "^LD_LIBRARY_PATH=" | grep $SAGE_LOCAL')
+            sage: status = shell.user_ns['_exit_code']
+            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) != 0
+            True
+            sage: shell.system_raw('R --version')
+            sage: status = shell.user_ns['_exit_code']
+            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) == 0
+            True
         """
-        sage_commands = os.listdir(os.environ['SAGE_ROOT']+"/local/bin/")
-        DARWIN_SYSTEM = os.uname()[0]=='Darwin'
-        if cmd in sage_commands:
-            return super(SageInteractiveShell, self).system_raw(cmd)
-        else:
-            libraries = 'LD_LIBRARY_PATH=$$SAGE_ORIG_LD_LIBRARY_PATH;'
-            if DARWIN_SYSTEM:
-                libraries += 'DYLD_LIBRARY_PATH=$$SAGE_ORIG_DYLD_LIBRARY_PATH;'
-            return super(SageInteractiveShell, self).system_raw(cmd)
+        path = os.path.join(os.environ['SAGE_LOCAL'],'bin',cmd.split(' |\n\t;&',1)[0])
+        if not os.access(path, os.X_OK):
+            libraries = 'LD_LIBRARY_PATH="$SAGE_ORIG_LD_LIBRARY_PATH";export LD_LIBRARY_PATH;'
+            if os.uname()[0]=='Darwin':
+                libraries += 'DYLD_LIBRARY_PATH="$SAGE_ORIG_DYLD_LIBRARY_PATH";export DYLD_LIBRARY_PATH;'
+            cmd = libraries+cmd
+        return super(SageInteractiveShell, self).system_raw(cmd)
 
     def ask_exit(self):
         """

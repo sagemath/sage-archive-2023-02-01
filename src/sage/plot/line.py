@@ -437,6 +437,13 @@ def line2d(points, **options):
         sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
         sage: G + P + Q   # show the plot
 
+    TESTS:
+
+    Check that :trac:`13690` is fixed. The legend label should have circles
+    as markers.::
+
+        sage: line(enumerate(range(2)), marker='o', legend_label='circle')
+
     """
     from sage.plot.all import Graphics
     from sage.plot.plot import xydata_from_point_list

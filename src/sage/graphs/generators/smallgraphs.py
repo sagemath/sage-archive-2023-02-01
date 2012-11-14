@@ -2202,7 +2202,7 @@ def HoffmanSingletonGraph():
 
     REFERENCES:
 
-    - [1] Godsil, C. and Royle, G. Algebraic Graph Theory.
+    .. [GodsilRoyle] Godsil, C. and Royle, G. Algebraic Graph Theory.
       Springer, 2001.
 
     EXAMPLES::
@@ -2699,14 +2699,64 @@ def PetersenGraph():
     P.name("Petersen graph")
     return P
 
+def SchlaefliGraph():
+    r"""
+    Returns the Schläfli graph.
+
+    The Schläfli graph is the only strongly regular graphs of parameters
+    `(27,16,10,8)` (see [GodsilRoyle]_).
+
+    For more information, see the :wikipedia:`Wikipedia article on the
+    Schläfli graph <Schläfli_graph>`.
+
+    .. SEEALSO::
+
+        :meth:`Graph.is_strongly_regular` -- tests whether a graph is strongly
+        regular and/or returns its parameters.
+
+    .. TODO::
+
+        Find a beautiful layout for this beautiful graph.
+
+    EXAMPLE:
+
+    Checking that the method actually returns the Schläfli graph::
+
+        sage: S = graphs.SchlaefliGraph()
+        sage: S.is_strongly_regular(parameters = True)
+        (27, 16, 10, 8)
+
+    The graph is vertex-transitive::
+
+        sage: S.is_vertex_transitive()
+        True
+
+    The neighborhood of each vertex is isomorphic to the complement of the
+    Clebsch graph::
+
+        sage: neighborhood = S.subgraph(vertices = S.neighbors(0))
+        sage: graphs.ClebschGraph().complement().is_isomorphic(neighborhood)
+        True
+    """
+    from sage.graphs.graph import Graph
+    G = Graph('ZBXzr|}^z~TTitjLth|dmkrmsl|if}TmbJMhrJX]YfFyTbmsseztKTvyhDvw')
+    order = [1,8,5,10,2,6,11,15,17,13,18,12,9,24,25,3,26,7,16,20,23,0,21,14,22,4,19]
+    _circle_embedding(G, order)
+    G.name("Schläfli graph")
+    return G
+
 def ShrikhandeGraph():
     """
     Returns the Shrikhande graph.
 
     For more information, see the `MathWorld article on the Shrikhande graph
-    <http://mathworld.wolfram.com/ShrikhandeGraph.html>`_ or the `Wikipedia
-    article on the Shrikhande graph
-    <http://en.wikipedia.org/wiki/Shrikhande_graph>`_.
+    <http://mathworld.wolfram.com/ShrikhandeGraph.html>`_ or the
+    :wikipedia:`Wikipedia article on the Shrikhande graph <Shrikhande_graph>`.
+
+    .. SEEALSO::
+
+        :meth:`Graph.is_strongly_regular` -- tests whether a graph is strongly
+        regular and/or returns its parameters.
 
     EXAMPLES:
 

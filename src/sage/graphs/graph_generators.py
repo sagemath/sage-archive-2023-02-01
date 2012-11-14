@@ -129,6 +129,7 @@ __append_to_doc(
      "NauruGraph",
      "PappusGraph",
      "PetersenGraph",
+     "SchlaefliGraph",
      "ShrikhandeGraph",
      "ThomsenGraph",
      "Tutte12Cage",
@@ -720,6 +721,11 @@ class GraphGenerators():
         These will be simple graphs: no loops, no multiple edges, no
         directed edges.
 
+        .. SEEALSO::
+
+            :meth:`Graph.is_strongly_regular` -- tests whether a graph is
+            strongly regular and/or returns its parameters.
+
         EXAMPLES:
 
         The generator can be used to construct graphs for testing,
@@ -812,6 +818,11 @@ class GraphGenerators():
            A list of lists of graphs.  Each sublist will be a list of
            cospectral graphs (lists of cadinality 1 being omitted).
 
+
+        .. SEEALSO::
+
+            :meth:`Graph.is_strongly_regular` -- tests whether a graph is
+            strongly regular and/or returns its parameters.
 
         EXAMPLES::
 
@@ -976,6 +987,7 @@ class GraphGenerators():
     NauruGraph               = staticmethod(sage.graphs.generators.smallgraphs.NauruGraph)
     PappusGraph              = staticmethod(sage.graphs.generators.smallgraphs.PappusGraph)
     PetersenGraph            = staticmethod(sage.graphs.generators.smallgraphs.PetersenGraph)
+    SchlaefliGraph           = staticmethod(sage.graphs.generators.smallgraphs.SchlaefliGraph)
     ShrikhandeGraph          = staticmethod(sage.graphs.generators.smallgraphs.ShrikhandeGraph)
     ThomsenGraph             = staticmethod(sage.graphs.generators.smallgraphs.ThomsenGraph)
     Tutte12Cage              = staticmethod(sage.graphs.generators.smallgraphs.Tutte12Cage)

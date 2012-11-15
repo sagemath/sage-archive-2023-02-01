@@ -2,11 +2,19 @@
 
 == Description ==
 
-This is a stripped-down version of GAP.  The databases, which are architecture-
-independent, are in a separate package and doc and tests are removed.
+GAP is a system for computational discrete algebra, with particular
+emphasis on Computational Group Theory. GAP provides a programming
+language, a library of thousands of functions implementing algebraic
+algorithms written in the GAP language as well as large data libraries
+of algebraic objects. See also the overview and the description of the
+mathematical capabilities. GAP is used in research and teaching for
+studying groups and their representations, rings, vector spaces,
+algebras, combinatorial structures, and more. The system, including
+source, is distributed freely. You can study and easily modify or
+extend it for your special use.
 
-As of GAP 4.4.12.p6, the tests and documentation (pre-built HTML and LaTeX
-sources) are included again.  (Not sure whether all of this intentionally.)
+This is a stripped-down version of GAP.  The databases, which are
+architecture-independent, are in a separate package.
 
 == SPKG Maintainers ==
 
@@ -24,15 +32,13 @@ Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
 
 == Dependencies ==
 
- * readline (according to spkg/standard/deps)
- * Sage (? also according to deps, "so that gap_reset_workspace works")
+ * Readline
 
 == Special Update/Build Instructions ==
 
- * TODO:
-   - Perhaps check whether we can fix GAP's configure / build scripts
-     w.r.t. brokenness of multiple words in `CC` (and `CXX`?) and its
-     ignorance concerning `CFLAGS`, `CPPFLAGS` and `LDFLAGS`.
+This is a stripped-down version of GAP. The downloading of the sources
+and removal of unneeded parts is done by the script spkg-src. When you
+update GAP, please also update and use the spkg-src script.
 
  * Do we really want to copy everything from the build directory???
    You need the full GAP tree to compile/install many GAP packages.
@@ -48,33 +54,21 @@ Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
    Otherwise unsetting `CC` and `CXX` can be removed, which is an odd work-
    around anyway.
 
-This is a stripped-down version of GAP.  The databases, which are arch
-independent, are in a separate package and doc and tests are removed.
-
-** IMPORTANT **:
-   When you update this package, be sure to put the guava package
-   in the package directory!!
-
-Delete some of the documentation:
-  cd doc
-  rm *.bbl *.aux *.dvi *.idx *.ilg *.l* *.m* *.pdf *.toc  *.blg *.ind
-  rm */*.bbl */*.aux */*.dvi */*.idx */*.ilg */*.l* */*.m* */*.pdf */*.ind */*.toc */*.blg
-
-DATABASES (separated out to database_gap.spkg) except GAPDoc which is required:
-  rm -rf small prim trans
-  cd pkg
-  rm -rf !(GAPDoc*)
-
-Stuff that isn't GAP sources:
-  rm -rf bin/*
-  cd extern
-  rm -rf !Makefile.in
-
-
 == Changelog ==
 
+=== gap-4.5.7.p0 (Jeroen Demeyer, 20 December 2012) ===
+ * #13211: update to version 4.5.7.
+ * Add spkg-src script to download and clean up the src files.
+ * writeandcheck.patch: fix infinite loop in writeandcheck() when
+   writing an error message fails.
+ * cflags.patch: allow user-supplied CFLAGS to override
+   configure-guessed flags.
+ * siginterrupt.patch: make interrupt behaviour portable: an interrupt
+   while reading stdin shouldn't cause GAP to exit (it does cause an
+   error in the next command, which is a different bug).
+
 === gap-4.5.6 (Volker Braun, 22 September 2012) ===
- * Update to latest upstream version
+ * #13211: Update to latest upstream version
 
 === gap-4.5.5 (Volker Braun, 26 August 2012) ===
  * Update to latest upstream version

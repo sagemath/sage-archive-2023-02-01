@@ -60,8 +60,43 @@ cdef class Morphism(Map):
             s += "\n  Defn: %s"%('\n        '.join(self._repr_defn().split('\n')))
         return s
 
+    def _repr_short(self):
+        """
+        Return a short string representation of this morphism.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: f = R.hom([t+1])
+            sage: f
+            Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+              Defn: t |--> t + 1
+            sage: f._repr_short()
+            't |--> t + 1'
+            sage: print f._repr_short()
+            t |--> t + 1
+
+            sage: R.<u,v> = ZZ[]
+            sage: f = R.hom([v,u+v])
+            sage: f
+            Ring endomorphism of Multivariate Polynomial Ring in u, v over Integer Ring
+              Defn: u |--> v
+                    v |--> u + v
+            sage: print f._repr_short()
+            u |--> v, v |--> u + v
+
+        AUTHOR:
+
+        - Xavier Caruso (2012-06-29)
+        """
+        d = self._repr_defn()
+        if d == "":
+            return self._repr_()
+        else:
+            return ", ".join(d.split("\n"))
+
     def category(self):
-        return self.parent().category() # Shouln't it be Category of elements of ...?
+        return self.parent().category() # Shouldn't it be Category of elements of ...?
 
     def is_endomorphism(self):
         return self.parent().is_endomorphism_set()

@@ -16,5 +16,6 @@ from additive_abelian.all import *
 from sage.misc.lazy_import import lazy_import
 
 lazy_import('sage.groups.free_group', 'FreeGroup')
+lazy_import('sage.groups.braid', 'BraidGroup')
 
 import groups_catalog as groups

@@ -427,6 +427,35 @@ cdef class LaurentSeries(AlgebraElement):
         zero = self.parent().base_ring().zero_element()
         return [c for c in self.list() if c != zero]
 
+    def residue(self):
+        r"""
+        Return the residue of ``self``.
+
+        Consider the Laurent series
+
+        .. MATH::
+
+            f = \sum_{n \in \ZZ} a_n t^n
+            = \cdots + \frac{a_{-2}}{t^2} + \frac{a_{-1}}{t} + a_0
+            + a_1 t + a_2 t^2 + \cdots,
+
+        then the residue of `f` is `a_{-1}`. Alternatively this is the
+        coefficient of `1/t`.
+
+        EXAMPLES::
+
+            sage: t = LaurentSeriesRing(ZZ,'t').gen()
+            sage: f = 1/t**2+2/t+3+4*t
+            sage: f.residue()
+            2
+            sage: f = t+t**2
+            sage: f.residue()
+            0
+            sage: f.residue().parent()
+            Integer Ring
+        """
+        return self[-1]
+
     def exponents(self):
         """
         Return the exponents appearing in self with nonzero coefficients.

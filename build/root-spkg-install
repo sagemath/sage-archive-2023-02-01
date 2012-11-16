@@ -67,7 +67,7 @@ else
 
     # Now just copy all the files over.
     cd "$CUR"
-    cp -pR .hg* COPYING.txt README.txt sage Makefile ipython spkg "$TARGET"
+    cp -pR .hg* COPYING.txt README.txt sage Makefile spkg "$TARGET"
     if [ $? -ne 0 ]; then
         echo "Root repo: Error copying files from Sage root repo to $TARGET"
         exit 1

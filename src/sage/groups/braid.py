@@ -41,9 +41,9 @@ EXAMPLES::
     sage: F=FreeGroup(4)
     sage: F.inject_variables()
     Defining x0, x1, x2, x3
-    sage: A=MappingClassGroupAction(B, F)
+    sage: A=B.MappingClassAction(F)
     sage: A
-    Right action by Braid group on 4 strands on Free Group on generators ('x0', 'x1', 'x2', 'x3')
+    Right action by Braid group on 4 strands on Free Group on generators {x0, x1, x2, x3}
     sage: A(x0, s1)
     x0
     sage: A(x1, s1)
@@ -67,32 +67,32 @@ AUTHOR:
 ##############################################################################
 
 
-from sage.groups import group
-from sage.structure.element import Element, MultiplicativeGroupElement
-from sage.categories.basic import Groups
+from sage.groups.group import Group
+from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent_gens import ParentWithGens
+from sage.libs.gap.libgap import libgap
+from sage.libs.gap.element import GapElement
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import IntegerRing
+from sage.misc.cachefunc import cached_method
+from sage.groups.free_group import FreeGroupElement, FreeGroup
+
+from sage.structure.element import Element, MultiplicativeGroupElement
 from sage.interfaces.gap import gap
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
+from sage.functions.generalized import sign
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.matrix.constructor import identity_matrix, matrix
 from sage.combinat.permutation import Permutation
 from sage.categories.action import Action
-from sage.plot.bezier_path import bezier_path
-from sage.plot.plot import Graphics, line
 from sage.sets.set import Set
-from sage.rings.fraction_field import FractionField
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.plot.plot3d.shapes2 import bezier3d
-from sage.rings.infinity import Infinity
-from sage.structure.parent import normalize_names
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.groups.finitely_presented import FinitelyPresentedGroupElement
 from sage.misc.cachefunc import cached_method
-import re
+#import re
 import operator
+from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
 
 
 class Braid(FinitelyPresentedGroupElement):
@@ -127,10 +127,10 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B([]).__cmp__(B.one())
             0
         """
-        if self.TietzeList()==other.TietzeList():
+        if self.Tietze()==other.Tietze():
             return 0
-        nfself = map(lambda i: i.TietzeList(), self.left_normal_form())
-        nfother = map(lambda i: i.TietzeList(), other.left_normal_form())
+        nfself = map(lambda i: i.Tietze(), self.left_normal_form())
+        nfother = map(lambda i: i.Tietze(), other.left_normal_form())
         return cmp(nfself, nfother)
 
     def _latex_(self):
@@ -143,7 +143,7 @@ class Braid(FinitelyPresentedGroupElement):
             '\\sigma_{1}\\sigma_{2}\\sigma_{3}\\sigma_{1}^{-1}\\sigma_{2}\\sigma_{3}^{-1}'
         """
         latexrepr=''
-        for i in self.TietzeList():
+        for i in self.Tietze():
             if i>0:
                 latexrepr=latexrepr+"\sigma_{%s}"%i
             if i<0:
@@ -197,7 +197,7 @@ class Braid(FinitelyPresentedGroupElement):
         R=LaurentPolynomialRing(IntegerRing(), var)
         t=R.gen()
         M=identity_matrix(R, self.strands())
-        for i in self.TietzeList():
+        for i in self.Tietze():
             A=identity_matrix(R, self.strands())
             if i>0:
                 A[i-1, i-1]=1-t
@@ -226,7 +226,7 @@ class Braid(FinitelyPresentedGroupElement):
             [4, 1, 3, 2]
         """
         per=Permutation((()))
-        for i in self.TietzeList():
+        for i in self.Tietze():
             j=abs(i)
             per=per*Permutation(((j, j+1)))
         return per
@@ -255,6 +255,8 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b.plot()
 
         """
+        from sage.plot.bezier_path import bezier_path
+        from sage.plot.plot import Graphics, line
         if orientation=='top-bottom':
             orx=0
             ory=-1
@@ -271,7 +273,7 @@ class Braid(FinitelyPresentedGroupElement):
             nx=1
             ny=0
         col=color
-        br=self.TietzeList()
+        br=self.Tietze()
         n=self.strands()
         a=Graphics()
         op=gap
@@ -305,8 +307,9 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b.plot3d()
 
         """
+        from sage.plot.plot3d.shapes2 import bezier3d
         b=[]
-        braid=self.TietzeList()
+        braid=self.Tietze()
         n=self.strands()
         for i in range(len(braid)):
             m=braid[i]
@@ -357,7 +360,7 @@ class Braid(FinitelyPresentedGroupElement):
         .. [Bigelow] Bigelow, Stephen J. The Lawrence-Krammer representation. arXiv:math/0204057v1
 
         """
-        return self.parent()._LKB_matrix_(tuple(self.TietzeList()), variab=variables)
+        return self.parent()._LKB_matrix_(tuple(self.Tietze()), variab=variables)
 
     @cached_method
     def left_normal_form(self):
@@ -376,7 +379,7 @@ class Braid(FinitelyPresentedGroupElement):
             [s0^-1*s1^-1*s2^-1*s0^-1*s1^-1*s0^-1, s0*s1*s2*s1*s0, s0*s2*s1]
             sage: c=B([1])
             sage: c.left_normal_form()
-            [<identity ...>, s0]
+            [1, s0]
         """
         lnfp=self._left_normal_form_perm_()
         a=lnfp[0]
@@ -404,7 +407,7 @@ class Braid(FinitelyPresentedGroupElement):
         n=self.parent().strands()
         delta=0
         Delta=Permutation([n-i for i in range(n)])
-        l=list(self.TietzeList())
+        l=list(self.Tietze())
         if l==[]:
             return [0]
         form=[]
@@ -443,7 +446,7 @@ class Braid(FinitelyPresentedGroupElement):
         return [-delta]+form
 
 
-class BraidGroup(FinitelyPresentedGroup):
+class BraidGroup_class(FinitelyPresentedGroup):
     """
     The braid group on n strands.
 
@@ -460,7 +463,7 @@ class BraidGroup(FinitelyPresentedGroup):
     """
     Element=Braid
 
-    def __init__(self, n, names='s'):
+    def __init__(self, names):
         """
         TESTS::
 
@@ -469,23 +472,20 @@ class BraidGroup(FinitelyPresentedGroup):
             sage: B1
             Braid group on 5 strands
         """
+        n=len(names)
         if not n in IntegerRing() or n<2:
             raise ValueError, "n must be an integer bigger than one"
-        self._freegroup_=FreeGroup(n-1, names)
+        self._free_group=FreeGroup(names)
         self._names_=names
         rels=[]
         for i in range(1, n):
             if i<n-1:
-                rels.append(self._freegroup_([i, i+1, i, -i-1, -i, -i-1]))
+                rels.append(self._free_group([i, i+1, i, -i-1, -i, -i-1]))
             for j in range(i+2, n):
-                rels.append(self._freegroup_([i, j, -i, -j]))
+                rels.append(self._free_group([i, j, -i, -j]))
         self._rels_=tuple(rels)
-        lis=libgap([i.gap() for i in rels])
-        self._gap_repr_=self._freegroup_.gap()/lis
-        #group.Group.__init__(self)
-        #self._assign_names(self._freegroup_._gens_str_)
-        Parent.__init__(self,gens=self._freegroup_._gens_str_,category=Groups())
-        self._nstrands_=n
+        FinitelyPresentedGroup.__init__(self,self._free_group,self._rels_)
+        self._nstrands_=n+1
 
     def __reduce__(self):
         """
@@ -493,15 +493,13 @@ class BraidGroup(FinitelyPresentedGroup):
 
             sage: B=BraidGroup(3)
             sage: B.__reduce__()
-            (<class 'sage.groups.braid.BraidGroup'>, (3,))
+            (<class 'sage.groups.braid.BraidGroup_class'>, ('s0', 's1'))
             sage: B=BraidGroup(3, 'sigma')
             sage: B.__reduce__()
-            (<class 'sage.groups.braid.BraidGroup'>, (3, 'sigma'))
+            (<class 'sage.groups.braid.BraidGroup_class'>, ('sigma0', 'sigma1'))
 
         """
-        if self._names_=='s':
-            return (BraidGroup, (self._nstrands_, ))
-        return (BraidGroup, (self._nstrands_, self._names_))
+        return (BraidGroup_class, (self._names_))
 
     def _repr_(self):
         """
@@ -521,6 +519,7 @@ class BraidGroup(FinitelyPresentedGroup):
             sage: B1.size()
             +Infinity
         """
+        from sage.rings.infinity import Infinity
         return Infinity
     cardinality=size
     order=size
@@ -729,6 +728,83 @@ class BraidGroup(FinitelyPresentedGroup):
             #M=matrix(len(l), len(l), ML)
             #return M
 
+    def MappingClassAction(self,F):
+        """
+        Return the action of self in the free group F as mapping class group.
+        This action corresponds to the action of the braid over the punctured disk,
+        whose fundamental group is the free group on as many generators as strands.
+
+        EXAMPLES ::
+
+            sage: B=BraidGroup(3)
+            sage: B.inject_variables()
+            Defining s0, s1
+            sage: F.<a,b,c>=FreeGroup(3)
+            sage: A=B.MappingClassAction(F)
+            sage: A(a,s0)
+            a*b*a^-1
+        """
+        return MappingClassGroupAction(self,F)
+
+def BraidGroup(n=None, names='s'):
+    """
+    Construct a Braid Group
+
+    INPUT:
+
+        - ``n`` -- integer or ``None`` (default). The number of
+        strands. If not specified the ``names`` are counted and
+        the group is assumed to have one more strand than generators.
+
+        - ``names`` -- string or list/tuple/iterable of strings (default:
+            ``'x'``). The generator names or name prefix.
+
+    EXAMPLES::
+
+        sage: B.<a,b> = BraidGroup();  B
+        Braid group on 3 strands
+        sage: H = BraidGroup('a, b')
+        sage: B is H
+        True
+        sage: BraidGroup(3)
+        Braid group on 3 strands
+
+    The entry can be either a string with the names of the generators,
+    or the number of generators and the prefix of the names to be
+    given. The default prefix is ``'s'`` ::
+
+        sage: B=BraidGroup(3); B.generators()
+        (s0, s1)
+        sage: BraidGroup(3, 'g').generators()
+        (g0, g1)
+
+    TESTS::
+
+        sage: G1 = BraidGroup(3, 'a,b')
+        sage: G2 = BraidGroup('a,b')
+        sage: G3.<a,b> = BraidGroup()
+        sage: G1 is G2, G2 is G3
+        (True, True)
+        """
+        # Support Freegroup('a,b') syntax
+    if n is not None:
+        try:
+            n = Integer(n)-1
+        except TypeError:
+            names = n
+            n = None
+    # derive n from counting names
+    if n is None:
+        if isinstance(names, basestring):
+            n = len(names.split(','))
+        else:
+            names = list(names)
+            n = len(names)
+    from sage.structure.parent import normalize_names
+    names = tuple(normalize_names(n, names))
+    return BraidGroup_class(names)
+
+
 
 class MappingClassGroupAction(Action):
     r"""
@@ -755,9 +831,9 @@ class MappingClassGroupAction(Action):
         sage: F=FreeGroup(4)
         sage: F.inject_variables()
         Defining x0, x1, x2, x3
-        sage: A=MappingClassGroupAction(B, F)
+        sage: A=B.MappingClassAction(F)
         sage: A
-        Right action by Braid group on 4 strands on Free Group on generators ('x0', 'x1', 'x2', 'x3')
+        Right action by Braid group on 4 strands on Free Group on generators {x0, x1, x2, x3}
         sage: A(x0, s1)
         x0
         sage: A(x1, s1)
@@ -782,8 +858,8 @@ class MappingClassGroupAction(Action):
 
             sage: B=BraidGroup(3)
             sage: G=FreeGroup('a, b, c')
-            sage: MappingClassGroupAction(B, G) # indirect doctest
-            Right action by Braid group on 3 strands on Free Group on generators ('a', 'b', 'c')
+            sage: B.MappingClassAction(G) # indirect doctest
+            Right action by Braid group on 3 strands on Free Group on generators {a, b, c}
         """
         Action.__init__(self, G, M, is_left, operator.mul)
 
@@ -793,14 +869,14 @@ class MappingClassGroupAction(Action):
 
             sage: B=BraidGroup(3)
             sage: G=FreeGroup('a, b, c')
-            sage: A=MappingClassGroupAction(B, G)
+            sage: A=B.MappingClassAction(G)
             sage: A(G.0, B.0) # indirect doctest
             a*b*a^-1
             sage: A(G.1, B.0) # indirect doctest
             a
         """
-        t=list(x.TietzeList())
-        for j in b.TietzeList():
+        t=list(x.Tietze())
+        for j in b.Tietze():
             s=[]
             for i in t:
                 if j==i and i>0:

@@ -1,4 +1,6 @@
 """
+Base Classes for Finite Fields
+
 TESTS::
 
     sage: K.<a> = NumberField(x^2 + 1)
@@ -14,17 +16,18 @@ from sage.rings.finite_rings.homset import FiniteFieldHomset
 
 cdef class FiniteFieldIterator:
     r"""
-    An iterator over a finite field. This should only be used when the field is
-    an extension of a smaller field which already has a separate iterator function.
+    An iterator over a finite field. This should only be used when the field
+    is an extension of a smaller field which already has a separate iterator
+    function.
     """
     cdef object iter
     cdef FiniteField parent
 
     def __init__(self,FiniteField parent):
         r"""
-        Standard init function.
+        Initialize ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = iter(FiniteField_ext_pari(9, 'a')) # indirect doctest
@@ -49,6 +52,7 @@ cdef class FiniteFieldIterator:
 
     def __iter__(self):
         """
+        Return ``self`` since this is an interator class.
 
         EXAMPLES::
 
@@ -73,8 +77,13 @@ cdef class FiniteFieldIterator:
 from sage.categories.finite_fields import FiniteFields
 _FiniteFields = FiniteFields()
 cdef class FiniteField(Field):
+    """
+    Abstract base class for finite fields.
+    """
     def __init__(self, base, names, normalize):
         """
+        Initialize ``self``.
+
         EXAMPLES::
 
             sage: K = GF(7); K
@@ -121,7 +130,7 @@ cdef class FiniteField(Field):
         r"""
         Returns a string denoting the name of the field in LaTeX.
 
-        The :func:`sage.misc.latex.latex` function calls the
+        The :func:`~sage.misc.latex.latex` function calls the
         ``_latex_`` attribute when available.
 
         EXAMPLES:
@@ -157,18 +166,18 @@ cdef class FiniteField(Field):
 
     def _magma_init_(self, magma):
         """
-        Return string representation of self that Magma can
+        Return string representation of ``self`` that Magma can
         understand.
 
         EXAMPLES::
 
-            sage: GF(97,'a')._magma_init_(magma)              # optional - magma
+            sage: GF(97,'a')._magma_init_(magma)            # optional - magma
             'GF(97)'
-            sage: GF(9,'a')._magma_init_(magma)               # optional - magma
+            sage: GF(9,'a')._magma_init_(magma)             # optional - magma
             'SageCreateWithNames(ext<GF(3)|_sage_[...]![GF(3)!2,GF(3)!2,GF(3)!1]>,["a"])'
-            sage: magma(GF(9,'a'))                            # optional - magma
+            sage: magma(GF(9,'a'))                          # optional - magma
             Finite field of size 3^2
-            sage: magma(GF(9,'a')).1                          # optional - magma
+            sage: magma(GF(9,'a')).1                        # optional - magma
             a
         """
         if self.degree() == 1:
@@ -180,7 +189,7 @@ cdef class FiniteField(Field):
 
     def _macaulay2_init_(self):
         """
-        Returns the string representation of self that Macaulay2 can
+        Returns the string representation of ``self`` that Macaulay2 can
         understand.
 
         EXAMPLES::
@@ -235,7 +244,7 @@ cdef class FiniteField(Field):
         """
         Compares this finite field with other.
 
-        .. warning::
+        .. WARNING::
 
             The notation of equality of finite fields in Sage is
             currently not stable, i.e., it may change in a future version.
@@ -247,7 +256,8 @@ cdef class FiniteField(Field):
             sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'c')
             True
 
-        The variable name is (currently) relevant for comparison of finite fields::
+        The variable name is (currently) relevant for comparison of finite
+        fields::
 
             sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'd')
             False
@@ -272,7 +282,7 @@ cdef class FiniteField(Field):
         class; derived classes may implement their own more sophisticated
         replacements.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(8, 'a')
@@ -287,9 +297,9 @@ cdef class FiniteField(Field):
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
-        Return True if the map from self to codomain sending
-        self.0 to the unique element of im_gens is a valid field
-        homomorphism. Otherwise, return False.
+        Return ``True`` if the map from self to codomain sending
+        ``self.0`` to the unique element of ``im_gens`` is a valid field
+        homomorphism. Otherwise, return ``False``.
 
         EXAMPLES::
 
@@ -322,10 +332,11 @@ cdef class FiniteField(Field):
 
     def _Hom_(self, codomain, cat=None):
         """
-        Return homset of homomorphisms from self to the finite field codomain.
-        This function is implicitly called by the Hom method or function.
+        Return homset of homomorphisms from ``self`` to the finite field
+        codomain. This function is implicitly called by the Hom method or
+        function.
 
-        The cat option is currently ignored.
+        The ``cat`` option is currently ignored.
 
         EXAMPLES::
 
@@ -338,10 +349,10 @@ cdef class FiniteField(Field):
 
     def gen(self):
         r"""
-        Return a generator of this field (over its prime field). As this is an abstract base class,
-        this just raises a NotImplementedError.
+        Return a generator of this field (over its prime field). As this is an
+        abstract base class, this just raises a ``NotImplementedError``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = GF(17)
             sage: sage.rings.finite_rings.finite_field_base.FiniteField.gen(K)
@@ -353,7 +364,7 @@ cdef class FiniteField(Field):
 
     def zeta_order(self):
         """
-        Return the order of the distinguished root of unity in self.
+        Return the order of the distinguished root of unity in ``self``.
 
         EXAMPLES::
 
@@ -368,8 +379,8 @@ cdef class FiniteField(Field):
 
     def zeta(self, n=None):
         """
-        Returns an element of multiplicative order n in this
-        finite field, if there is one.  Raises a ValueError if there
+        Returns an element of multiplicative order ``n`` in this
+        finite field, if there is one.  Raises a ``ValueError`` if there
         is not.
 
         EXAMPLES::
@@ -416,8 +427,8 @@ cdef class FiniteField(Field):
         Return a primitive element of this finite field, i.e. a generator
         of the multiplicative group.
 
-        You can use ``self.multiplicative_generator()`` or
-        ``self.primitive_element()``, these mean the same thing.
+        You can use :meth:`multiplicative_generator()` or
+        :meth:`primitive_element()`, these mean the same thing.
 
         .. WARNING::
 
@@ -437,7 +448,7 @@ cdef class FiniteField(Field):
 
         TESTS:
 
-        Check that large characteristics work (Trac #11946)::
+        Check that large characteristics work (:trac:`11946`)::
 
             sage: p = 10^20 + 39
             sage: x = polygen(GF(p))
@@ -483,7 +494,7 @@ cdef class FiniteField(Field):
     def is_field(self, proof = True):
         """
         Returns whether or not the finite field is a field, i.e.,
-        always returns True.
+        always returns ``True``.
 
         EXAMPLES::
 
@@ -495,7 +506,7 @@ cdef class FiniteField(Field):
 
     def is_finite(self):
         """
-        Return True since a finite field is finite.
+        Return ``True`` since a finite field is finite.
 
         EXAMPLES::
 
@@ -517,7 +528,8 @@ cdef class FiniteField(Field):
 
     def factored_order(self):
         """
-        Returns the factored order of this field.  For compatibility with IntegerModRing.
+        Returns the factored order of this field.  For compatibility with
+        :mod:`~sage.rings.finite_rings.integer_mod_ring`.
 
         EXAMPLES::
 
@@ -529,7 +541,10 @@ cdef class FiniteField(Field):
 
     def factored_unit_order(self):
         """
-        Returns the factorization of ``self.order()-1``, as a 1-element list.  The format is for compatibility with IntegerModRing.
+        Returns the factorization of ``self.order()-1``, as a 1-element list.
+
+        The format is for compatibility with
+        :mod:`~sage.rings.finite_rings.integer_mod_ring`.
 
         EXAMPLES::
 
@@ -546,7 +561,9 @@ cdef class FiniteField(Field):
 
     def cardinality(self):
         """
-        Return the order of this finite field (same as self.order()).
+        Return the cardinality of ``self``.
+
+        Same as :meth:`order`.
 
         EXAMPLES::
 
@@ -555,20 +572,11 @@ cdef class FiniteField(Field):
         """
         return self.order()
 
-    def __len__(self):
-        """
-        len(k) returns the cardinality of k, i.e., the number of elements in k.
-
-        EXAMPLE::
-
-            sage: len(GF(8,'a'))
-            8
-        """
-        return self.order()
+    __len__ = cardinality
 
     def is_prime_field(self):
         """
-        Return True if self is a prime field, i.e., has degree 1.
+        Return ``True`` if ``self`` is a prime field, i.e., has degree 1.
 
         EXAMPLES::
 
@@ -600,7 +608,7 @@ cdef class FiniteField(Field):
 
         Although `f` is irreducible over the base field, we can double-check
         whether or not `f` factors in `F` as follows. The command
-        `F[x](f)` coerces `f` as a polynomial with coefficients in `F`.
+        ``F[x](f)`` coerces `f` as a polynomial with coefficients in `F`.
         (Instead of a polynomial with coefficients over the base field.)
 
         ::
@@ -662,7 +670,8 @@ cdef class FiniteField(Field):
 
     def some_elements(self):
         """
-        Returns a collection of elements of this finite field for use in unit testing.
+        Returns a collection of elements of this finite field for use in unit
+        testing.
 
         EXAMPLES::
 
@@ -740,9 +749,9 @@ cdef class FiniteField(Field):
 
     def algebraic_closure(self):
         """
-        Return the algebraic closure of self (not implemented).
+        Return the algebraic closure of ``self`` (not implemented).
 
-        .. note::
+        .. NOTE::
 
            This is not yet implemented for finite fields.
 
@@ -761,7 +770,7 @@ def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):
     Used to unpickle extensions of finite fields. Now superseded (hence no
     doctest), but kept around for backward compatibility.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: # not tested
     """
@@ -781,7 +790,7 @@ def unpickle_FiniteField_prm(_type, order, variable_name, kwargs):
 
 def is_FiniteField(x):
     """
-    Return True if x is of type finite field, and False otherwise.
+    Return ``True`` if ``x`` is of type finite field, and ``False`` otherwise.
 
     EXAMPLES::
 
@@ -792,7 +801,7 @@ def is_FiniteField(x):
         True
 
     Note that the integers modulo n are not of type finite field,
-    so this function returns False::
+    so this function returns ``False``::
 
         sage: is_FiniteField(Integers(7))
         False

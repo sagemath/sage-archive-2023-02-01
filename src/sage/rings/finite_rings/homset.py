@@ -1,3 +1,40 @@
+"""
+Homset for Finite Fields
+
+This is the set of all field homomorphisms between two finite fields.
+
+EXAMPLES::
+
+    sage: R.<t> = ZZ[]
+    sage: E.<a> = GF(25, modulus = t^2 - 2)
+    sage: F.<b> = GF(625)
+    sage: H = Hom(E, F)
+    sage: f = H([4*b^3 + 4*b^2 + 4*b]); f
+    Ring morphism:
+      From: Finite Field in a of size 5^2
+      To:   Finite Field in b of size 5^4
+      Defn: a |--> 4*b^3 + 4*b^2 + 4*b
+    sage: f(2)
+    2
+    sage: f(a)
+    4*b^3 + 4*b^2 + 4*b
+    sage: len(H)
+    2
+    sage: [phi(2*a)^2 for phi in Hom(E, F)]
+    [3, 3]
+
+We can also create endomorphisms::
+
+    sage: End(E)
+    Automorphism group of Finite Field in a of size 5^2
+    sage: End(GF(7))[0]
+    Ring endomorphism of Finite Field of size 7
+      Defn: 1 |--> 1
+    sage: H = Hom(GF(7), GF(49, 'c'))
+    sage: H[0](2)
+    2
+"""
+
 from sage.rings.homset import RingHomset_generic
 from sage.rings.morphism import RingHomomorphism_im_gens
 from sage.rings.integer import Integer
@@ -9,6 +46,8 @@ class FiniteFieldHomset(RingHomset_generic):
     """
     def __call__(self, im_gens, check=True):
         """
+        Construct the homomorphism defined by ``im_gens``.
+
         EXAMPLES::
 
             sage: R.<t> = ZZ[]
@@ -81,6 +120,8 @@ class FiniteFieldHomset(RingHomset_generic):
 
     def _repr_(self):
         """
+        Return a string represention of ``self``.
+
         EXAMPLES::
 
             sage: Hom(GF(4, 'a'), GF(16, 'b'))._repr_()
@@ -99,6 +140,8 @@ class FiniteFieldHomset(RingHomset_generic):
 
     def is_aut(self):
         """
+        Check if ``self`` is an automorphism
+
         EXAMPLES::
 
             sage: Hom(GF(4, 'a'), GF(16, 'b')).is_aut()
@@ -158,7 +201,7 @@ class FiniteFieldHomset(RingHomset_generic):
 
         TESTS:
 
-        Check that Trac #11390 is fixed::
+        Check that :trac:`11390` is fixed::
 
             sage: K = GF(1<<16,'a'); L = GF(1<<32,'b')
             sage: K.Hom(L)[0]
@@ -210,6 +253,8 @@ class FiniteFieldHomset(RingHomset_generic):
 
     def index(self, item):
         """
+        Return the index of ``self``.
+
         EXAMPLES::
 
             sage: K.<z> = GF(1024)

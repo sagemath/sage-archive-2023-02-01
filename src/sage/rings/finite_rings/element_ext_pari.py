@@ -46,9 +46,9 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
     """
     An element of a finite field.
 
-    Create elements by first defining the finite field F, then use the
-    notation F(n), for n an integer. or let a = F.gen() and write the
-    element in terms of a.
+    Create elements by first defining the finite field ``F``, then use the
+    notation ``F(n)``, for ``n`` an integer, or let ``a = F.gen()`` and
+    write the element in terms of ``a``.
 
     EXAMPLES::
 
@@ -86,24 +86,27 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         INPUT:
 
-        - ``parent``: A finite field, the parent of this element.
-        - ``value``: Anything that can be converted into the PARI
+        - ``parent`` -- A finite field, the parent of this element.
+
+        - ``value`` -- Anything that can be converted into the PARI
           interface and can be interpreted as an element of ``parent``.
-        - ``value_from_pari``: optional bool, default False. If it evaluates
-          as true, then ``value`` *must* be an element of the
+
+        - ``value_from_pari`` -- optional bool, default ``False``. If it
+          evaluates as ``True``, then ``value`` *must* be an element of the
           PARI interface, and there will be no conversion.
 
-        NOTE:
+        .. NOTE::
 
-        If the given value is a list or an element of the vector space
-        associated with the given parent, then it is interpreted as
-        the list of coefficients of a polynomial over the prime subfield,
-        and that polynomial is interpreted as an element of the given
-        parent. The empty list results in zero.
+            If the given value is a list or an element of the vector space
+            associated with the given parent, then it is interpreted as
+            the list of coefficients of a polynomial over the prime subfield,
+            and that polynomial is interpreted as an element of the given
+            parent. The empty list results in zero.
 
-        If ``value_from_pari==True`` then it is assumed that the given value
-        is a suitable representation of the element in PARI, and there is no
-        conversion. Hence, it is very fast, but must be used with care.
+            If ``value_from_pari`` is ``True`` then it is assumed that the
+            given value is a suitable representation of the element in PARI,
+            and there is no conversion. Hence, it is very fast, but must be
+            used with care.
 
         EXAMPLES::
 
@@ -117,7 +120,8 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: k(v)
             2*a + 1
 
-        We create elements using a list and verify that #10486 has been fixed::
+        We create elements using a list and verify that :trac:`10486` has
+        been fixed::
 
             sage: k = FiniteField_ext_pari(3^11, 't')
             sage: x = k([1,0,2,1]); x
@@ -138,7 +142,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             Mod(Mod(2, 5)*a, Mod(1, 5)*a^2 + Mod(3, 5))
 
         When initializing from a list, the elements are first coerced
-        to the prime field (#11685)::
+        to the prime field (:trac:`11685`)::
 
             sage: k = FiniteField_ext_pari(3^11, 't')
             sage: k([ 0, 1/2 ])
@@ -170,7 +174,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         TESTS:
 
-        Check that zeros are created correctly (#11685)::
+        Check that zeros are created correctly (:trac:`11685`)::
 
             sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: K = FiniteField_ext_pari(3^11, 't'); a = K.0
@@ -207,10 +211,10 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: v = a*0; pari(K(v)).lift()
             Mod(0, 3)
 
-        The following test documents the optional argument ``value_from_pari``. It is
-        for internal use only and greatly improves the speed in arithmetic
-        operations. However, the example shows why it must only be used
-        carefully::
+        The following test documents the optional argument ``value_from_pari``.
+        It is for internal use only and greatly improves the speed in
+        arithmetic operations. However, the example shows why it must only be
+        used carefully::
 
             sage: from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
             sage: a = FiniteField_ext_pariElement(K,pari(0),value_from_pari=True)
@@ -219,8 +223,8 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: a == K(0)
             False
 
-        The reason is that the pari elements representing ``a`` and ``K(0)`` are
-        different::
+        The reason is that the pari elements representing ``a`` and ``K(0)``
+        are different::
 
             sage: pari(a).lift()
             0
@@ -327,16 +331,14 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES:
 
-        The default variable is a::
+        The default variable is ``a``::
 
             sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**2,'a')
             sage: k.gen().polynomial()
             a
 
-        The variable can be any string.
-
-        ::
+        The variable can be any string::
 
             sage: k = FiniteField(3**4, "alpha")
             sage: a = k.gen()
@@ -351,7 +353,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
     def is_square(self):
         """
-        Returns True if and only if this element is a perfect square.
+        Returns ``True`` if and only if this element is a perfect square.
 
         EXAMPLES::
 
@@ -391,18 +393,20 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         INPUT:
 
 
-        -  ``extend`` - bool (default: True); if True, return a
+        -  ``extend`` -- bool (default: ``True``); if ``True``, return a
            square root in an extension ring, if necessary. Otherwise, raise a
-           ValueError if the root is not in the base ring. Warning: this
-           option is not implemented!
+           ValueError if the root is not in the base ring.
 
-        -  ``all`` - bool (default: False); if True, return all
-           square roots of self, instead of just one.
+           .. WARNING::
 
+               This option is not implemented!
 
-        .. warning::
+        -  ``all`` - bool (default: ``False``); if ``True``, return all
+           square roots of ``self``, instead of just one.
 
-           The 'extend' option is not implemented (yet).
+        .. WARNING::
+
+           The ``'extend'`` option is not implemented (yet).
 
         EXAMPLES::
 
@@ -571,7 +575,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: GF(7)(3)._magma_init_(magma)                 # optional - magma
+            sage: GF(7)(3)._magma_init_(magma)            # optional - magma
             'GF(7)!3'
         """
         km = magma(self.parent())
@@ -579,13 +583,13 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         return ("%s"%(self.__value.lift().lift())).replace('a',vn)
 
     def _gap_init_(self):
-        """
+        r"""
         Supports returning corresponding GAP object. This can be slow since
         non-prime GAP finite field elements are represented as powers of a
         generator for the multiplicative group, so the discrete log problem
         must be solved.
 
-        .. note::
+        .. NOTE::
 
            The order of the parent field must be `\leq 65536`.
 
@@ -768,15 +772,15 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: K.<a> = GF(5^10)
             sage: n = (2*a)/a
 
-        Naively compute n^-15 in PARI, note that the result is `1/3`.
+        Naively compute `n^{-15}` in PARI, note that the result is `1/3`.
         This is mathematically correct (modulo 5), but not what we want.
         In particular, comparisons will fail::
 
             sage: pari(n)^-15
             Mod(1/Mod(3, 5), Mod(1, 5)*a^10 + Mod(3, 5)*a^5 + Mod(3, 5)*a^4 + Mod(2, 5)*a^3 + Mod(4, 5)*a^2 + Mod(1, 5)*a + Mod(2, 5))
 
-        We need to ``simplify()`` the result (which is done in the
-        ``FiniteField_ext_pariElement()`` constructor::
+        We need to :meth:`simplify()` the result (which is done in the
+        :class:`FiniteField_ext_pariElement` constructor::
 
             sage: n^-15
             2
@@ -899,16 +903,13 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         INPUT:
 
-
-        -  ``self`` - finite field element
-
-        -  ``b`` - finite field element that generates the
+        -  ``b`` -- finite field element that generates the
            multiplicative group.
 
+        OUTPUT:
 
-        OUTPUT: Integer `x` such that `a^x = b`, if it
-        exists. Raises a ValueError exception if no such `x`
-        exists.
+        Integer `x` such that `a^x = b`, if it exists. Raises a
+        ``ValueError`` exception if no such `x` exists.
 
         EXAMPLES::
 

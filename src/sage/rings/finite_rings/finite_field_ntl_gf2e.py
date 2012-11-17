@@ -1,4 +1,6 @@
-
+"""
+Finite Fields of Characteristic 2
+"""
 
 
 from sage.rings.finite_rings.finite_field_base import FiniteField
@@ -45,53 +47,64 @@ def late_import():
     is_Polynomial = sage.rings.polynomial.polynomial_element.is_Polynomial
 
 class FiniteField_ntl_gf2e(FiniteField):
+    """
+    Finite Field of characteristic 2 and order `2^n`.
+
+    INPUT:
+
+    - ``q`` -- `2^n` (must be 2 power)
+
+    - ``names`` -- variable used for poly_repr (default: ``'a'``)
+
+    - ``modulus`` -- you may provide a polynomial to use for reduction or
+      a string:
+
+      - ``'conway'`` -- force the use of a Conway polynomial, will
+        raise a ``RuntimeError`` if ``None`` is found in the database;
+      - ``'minimal_weight'`` -- use a minimal weight polynomial, should
+        result in faster arithmetic;
+      - ``'random'`` -- use a random irreducible polynomial.
+      - ``'default'`` -- a Conway polynomial is used if found. Otherwise
+        a sparse polynomial is used.
+
+    - ``repr`` -- controls the way elements are printed to the user:
+                 (default: ``'poly'``)
+
+      - ``'poly'``: polynomial representation
+
+    OUTPUT:
+
+    Finite field with characteristic 2 and cardinality `2^n`.
+
+    EXAMPLES::
+
+        sage: k.<a> = GF(2^16)
+        sage: type(k)
+        <class 'sage.rings.finite_rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e_with_category'>
+        sage: k.<a> = GF(2^1024)
+        sage: k.modulus()
+        x^1024 + x^19 + x^6 + x + 1
+        sage: set_random_seed(0)
+        sage: k.<a> = GF(2^17, modulus='random')
+        sage: k.modulus()
+        x^17 + x^16 + x^15 + x^10 + x^8 + x^6 + x^4 + x^3 + x^2 + x + 1
+        sage: k.modulus().is_irreducible()
+        True
+        sage: k.<a> = GF(2^211, modulus='minimal_weight')
+        sage: k.modulus()
+        x^211 + x^11 + x^10 + x^8 + 1
+        sage: k.<a> = GF(2^211, modulus='conway')
+        sage: k.modulus()
+        x^211 + x^9 + x^6 + x^5 + x^3 + x + 1
+        sage: k.<a> = GF(2^411, modulus='conway')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: requested conway polynomial not in database.
+    """
+
     def __init__(self, q, names="a",  modulus=None, repr="poly"):
         """
-        Finite Field for characteristic 2 and order >= 2.
-
-        INPUT:
-            q       -- 2^n (must be 2 power)
-            names   -- variable used for poly_repr (default: 'a')
-            modulus -- you may provide a polynomial to use for reduction or
-                     a string:
-                     'conway': force the use of a Conway polynomial, will
-                     raise a RuntimeError if none is found in the database;
-                     'minimal_weight': use a minimal weight polynomial, should
-                     result in faster arithmetic;
-                     'random': use a random irreducible polynomial.
-                     'default':a Conway polynomial is used if found. Otherwise
-                     a sparse polynomial is used.
-            repr  -- controls the way elements are printed to the user:
-                     (default: 'poly')
-                     'poly': polynomial representation
-
-        OUTPUT:
-            Finite field with characteristic 2 and cardinality 2^n.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^16)
-            sage: type(k)
-            <class 'sage.rings.finite_rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e_with_category'>
-            sage: k.<a> = GF(2^1024)
-            sage: k.modulus()
-            x^1024 + x^19 + x^6 + x + 1
-            sage: set_random_seed(0)
-            sage: k.<a> = GF(2^17, modulus='random')
-            sage: k.modulus()
-            x^17 + x^16 + x^15 + x^10 + x^8 + x^6 + x^4 + x^3 + x^2 + x + 1
-            sage: k.modulus().is_irreducible()
-            True
-            sage: k.<a> = GF(2^211, modulus='minimal_weight')
-            sage: k.modulus()
-            x^211 + x^11 + x^10 + x^8 + 1
-            sage: k.<a> = GF(2^211, modulus='conway')
-            sage: k.modulus()
-            x^211 + x^9 + x^6 + x^5 + x^3 + x + 1
-            sage: k.<a> = GF(2^411, modulus='conway')
-            Traceback (most recent call last):
-            ...
-            RuntimeError: requested conway polynomial not in database.
+        Initialize ``self``.
 
         TESTS::
 
@@ -110,6 +123,8 @@ class FiniteField_ntl_gf2e(FiniteField):
             sage: k3 = k1._finite_field_ext_pari_()
             sage: k1 == k3
             False
+
+            sage: TestSuite(k).run()
         """
         late_import()
         q = Integer(q)
@@ -139,7 +154,7 @@ class FiniteField_ntl_gf2e(FiniteField):
 
     def characteristic(self):
         """
-        Return 2.
+        Return the characteristic of ``self`` which is 2.
 
         EXAMPLES::
 
@@ -175,7 +190,7 @@ class FiniteField_ntl_gf2e(FiniteField):
 
     def is_atomic_repr(self):
         """
-        Return whether elements of self are printed using an atomic
+        Return whether elements of ``self`` are printed using an atomic
         representation.
 
         EXAMPLES::
@@ -191,10 +206,11 @@ class FiniteField_ntl_gf2e(FiniteField):
 
     def _element_constructor_(self, e):
         """
-        Coerces several data types to self.
+        Coerces several data types to ``self``.
 
         INPUT:
-            e -- data to coerce
+
+        - ``e`` -- data to coerce
 
         EXAMPLES::
 
@@ -230,7 +246,8 @@ class FiniteField_ntl_gf2e(FiniteField):
 
     def _coerce_map_from_(self, R):
         """
-        Coercion accepts elements of self.parent(), ints, and prime subfield elements.
+        Coercion accepts elements of :meth:`parent`, ints, and prime subfield
+        elements.
 
         EXAMPLES::
 
@@ -260,7 +277,7 @@ class FiniteField_ntl_gf2e(FiniteField):
 
     def gen(self, ignored=None):
         r"""
-        Return a generator of self.
+        Return a generator of ``self``.
 
         EXAMPLES::
 
@@ -274,7 +291,8 @@ class FiniteField_ntl_gf2e(FiniteField):
 
     def prime_subfield(self):
         r"""
-        Return the prime subfield `\FF_p` of self if self is `\FF_{p^n}`.
+        Return the prime subfield `\GF{p}` of ``self`` if ``self`` is
+        `\GF{p^n}`.
 
         EXAMPLES::
 
@@ -286,14 +304,14 @@ class FiniteField_ntl_gf2e(FiniteField):
 
     def fetch_int(self, number):
         r"""
-        Given an integer ``n < self.cardinality()`` with base `2`
-        representation `a_0 + 2\cdot a_1 + \cdots 2^k a_k`, returns
-        `a_0 + a_1 \cdot x + \cdots a_k x^k`, where `x` is the
+        Given an integer `n` less than :meth:`cardinality` with base `2`
+        representation `a_0 + 2 \cdot a_1 + \cdots + 2^k a_k`, returns
+        `a_0 + a_1 \cdot x + \cdots + a_k x^k`, where `x` is the
         generator of this finite field.
 
         INPUT:
 
-        - number -- an integer
+        - ``number`` -- an integer
 
         EXAMPLES::
 
@@ -310,13 +328,14 @@ class FiniteField_ntl_gf2e(FiniteField):
     def polynomial(self, name=None):
         """
         Return the defining polynomial of this field as an element of
-        self.polynomial_ring().
+        :class:`PolynomialRing`.
 
         This is the same as the characteristic polynomial of the
-        generator of self.
+        generator of ``self``.
 
         INPUT:
-            name -- optional variable name
+
+        ``name`` -- optional variable name
 
         EXAMPLES::
 
@@ -339,11 +358,13 @@ class FiniteField_ntl_gf2e(FiniteField):
 
     def _finite_field_ext_pari_(self):
         """
-        Return a FiniteField_ext_pari isomorphic to self with the same
-        defining polynomial.
+        Return a :class:`FiniteField_ext_pari` isomorphic to ``self`` with
+        the same defining polynomial.
 
-        This method will vanish eventually because that implementation of
-        finite fields will be deprecated.
+        .. NOTE::
+
+            This method will vanish eventually because that implementation of
+            finite fields will be deprecated.
 
         EXAMPLES::
 
@@ -359,6 +380,10 @@ class FiniteField_ntl_gf2e(FiniteField):
 
     def __hash__(self):
         """
+        Return the hash value of ``self``.
+
+        EXAMPLES::
+
             sage: k1.<a> = GF(2^16)
             sage: {k1:1} # indirect doctest
             {Finite Field in a of size 2^16: 1}
@@ -372,7 +397,7 @@ class FiniteField_ntl_gf2e(FiniteField):
     def _pari_modulus(self):
         """
         Return PARI object which is equivalent to the
-        polynomial/modulus of self.
+        polynomial/modulus of ``self``.
 
         EXAMPLES::
 

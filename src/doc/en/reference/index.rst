@@ -70,6 +70,7 @@ Enjoy Sage!
    rings
    rings_standard
    rings_numerical
+   finite_rings
    number_fields
    function_fields
    padics

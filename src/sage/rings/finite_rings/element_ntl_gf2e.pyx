@@ -1,11 +1,12 @@
 r"""
-Finite Fields of characteristic 2 and order > 2.
+Finite Fields of characteristic 2 and order strictly greater than 2.
 
 This implementation uses NTL's GF2E class to perform the arithmetic
-and is the standard implementation for `GF(2^n)` for `n >= 16`.
+and is the standard implementation for ``GF(2^n)`` for ``n >= 16``.
 
 AUTHORS:
-     -- Martin Albrecht <malb@informatik.uni-bremen.de> (2007-10)
+
+- Martin Albrecht <malb@informatik.uni-bremen.de> (2007-10)
 """
 
 #*****************************************************************************
@@ -145,9 +146,9 @@ cdef class Cache_ntl_gf2e(SageObject):
     class so that elements can access it quickly.
 
     It's modeled on
-    :class:`sage.rings.finite_rings.integer_mod.NativeIntStruct`,
+    :class:`~sage.rings.finite_rings.integer_mod.NativeIntStruct`,
     but includes many functions that were previously included in
-    the parent (see #12062).
+    the parent (see :trac:`12062`).
     """
     def __init__(self, parent, k, modulus):
         """
@@ -194,13 +195,14 @@ cdef class Cache_ntl_gf2e(SageObject):
 
     def _doctest_for_5340(self):
         r"""
-        Every bug fix should have a doctest.  But #5340 only happens when
-        a garbage collection happens between restoring the modulus and
+        Every bug fix should have a doctest.  But :trac:`5340` only happens
+        when a garbage collection happens between restoring the modulus and
         using it, so it can't be reliably doctested using any of the
         existing Cython functions in this module.  The sole purpose of
-        this method is to doctest the fix for #5340.
+        this method is to doctest the fix for :trac:`5340`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<a> = GF(2^20)
             sage: k._cache._doctest_for_5340()
             [1 1 0 0 1 1 1 1 0 1 1 0 0 0 0 0 0 0 0 0 1]
@@ -237,7 +239,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
     cdef FiniteField_ntl_gf2eElement _new(self):
         """
-        Return a new element in self. Use this method to construct
+        Return a new element in ``self``. Use this method to construct
         'empty' elements.
         """
         cdef FiniteField_ntl_gf2eElement y
@@ -385,14 +387,14 @@ cdef class Cache_ntl_gf2e(SageObject):
 
     cpdef FiniteField_ntl_gf2eElement fetch_int(self, number):
         """
-        Given an integer ``n < self.cardinality()`` with base `2`
-        representation `a_0 + 2\cdot a_1 + \cdots 2^k a_k`, returns
-        `a_0 + a_1 \cdot x + \cdots a_k x^k`, where `x` is the
+        Given an integer less than `p^n` with base `2`
+        representation `a_0 + a_1 \cdot 2 + \cdots + a_k 2^k`, this returns
+        `a_0 + a_1 x + \cdots + a_k x^k`, where `x` is the
         generator of this finite field.
 
         INPUT:
 
-        - number -- an integer, of size less than the cardinality
+        - ``number`` -- an integer, of size less than the cardinality
 
         EXAMPLES::
 
@@ -430,7 +432,8 @@ cdef class Cache_ntl_gf2e(SageObject):
 
     def polynomial(self):
         """
-        Returns the list of 0's and 1's giving the defining polynomial of the field.
+        Returns the list of 0's and 1's giving the defining polynomial of the
+        field.
 
         EXAMPLES::
 
@@ -470,10 +473,12 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         it doesn't make much sense.
 
         INPUT:
-            parent -- base field
+
+        - ``parent`` -- base field
 
         OUTPUT:
-            finite field element.
+
+        A finite field element.
 
         EXAMPLES::
 
@@ -516,7 +521,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def __repr__(FiniteField_ntl_gf2eElement self):
         """
-        Polynomial representation of self.
+        Polynomial representation of ``self``.
 
         EXAMPLES::
 
@@ -555,7 +560,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def __nonzero__(FiniteField_ntl_gf2eElement self):
         r"""
-        Return True if \code{self != k(0)}.
+        Return ``True`` if ``self != k(0)``.
 
         EXAMPLES::
 
@@ -572,9 +577,9 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def is_one(FiniteField_ntl_gf2eElement self):
         r"""
-        Return True if \code{self == k(1)}.
+        Return ``True`` if ``self == k(1)``.
 
-        Return True if \code{self != k(0)}.
+        Equivalent to ``self != k(0)``.
 
         EXAMPLES::
 
@@ -590,7 +595,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def is_unit(FiniteField_ntl_gf2eElement self):
         """
-        Return True if self is nonzero, so it is a unit as an element
+        Return ``True`` if ``self`` is nonzero, so it is a unit as an element
         of the finite field.
 
         EXAMPLES::
@@ -608,8 +613,8 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             return False
 
     def is_square(FiniteField_ntl_gf2eElement self):
-        """
-        Return True as every element in GF(2^n) is a square.
+        r"""
+        Return ``True`` as every element in `\GF{2^n}` is a square.
 
         EXAMPLES::
 
@@ -640,7 +645,8 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: a.sqrt()^2 == a
             True
 
-        This failed before \#4899:
+        This failed before :trac:`4899`::
+
             sage: GF(2^16,'a')(1).sqrt()
             1
 
@@ -816,6 +822,8 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def __pow__(FiniteField_ntl_gf2eElement self, exp, other):
         """
+        EXAMPLES::
+
             sage: k.<a> = GF(2^63)
             sage: a^2
             a^2
@@ -856,7 +864,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: e != (e + 1)
             True
 
-        .. note::
+        .. NOTE::
 
             Finite fields are unordered. However, we adopt the convention that
             an element ``e`` is bigger than element ``f`` if its polynomial
@@ -900,7 +908,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def _integer_(FiniteField_ntl_gf2eElement self, Integer):
         """
-        Convert self to an integer if it is in the prime subfield.
+        Convert ``self`` to an integer if it is in the prime subfield.
 
         EXAMPLES::
 
@@ -924,9 +932,9 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def __int__(FiniteField_ntl_gf2eElement self):
         """
-        Return the int representation of self.  When self is in the
-        prime subfield, the integer returned is equal to self and otherwise
-        raises an error.
+        Return the int representation of ``self``.  When ``self`` is in the
+        prime subfield, the integer returned is equal to ``self`` and
+        otherwise raises an error.
 
         EXAMPLES::
 
@@ -953,14 +961,14 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             raise TypeError("Cannot coerce element to an integer.")
 
     def integer_representation(FiniteField_ntl_gf2eElement self):
-        """
-        Return the int representation of self.  When self is in the
-        prime subfield, the integer returned is equal to self and not
-        to \code{log_repr}.
+        r"""
+        Return the int representation of ``self``.  When ``self`` is in the
+        prime subfield, the integer returned is equal to ``self`` and not
+        to ``log_repr``.
 
         Elements of this field are represented as ints in as follows:
-        for `e \in \FF_p[x]` with `e = a_0 + a_1x + a_2x^2 + \cdots `, `e` is
-        represented as: `n= a_0 + a_1  p + a_2  p^2 + \cdots`.
+        for `e \in \GF{p}[x]` with `e = a_0 + a_1 x + a_2 x^2 + \cdots`,
+        `e` is represented as: `n = a_0 + a_1  p + a_2  p^2 + \cdots`.
 
         EXAMPLES::
 
@@ -1002,11 +1010,12 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def polynomial(FiniteField_ntl_gf2eElement self, name=None):
         r"""
-        Return self viewed as a polynomial over
-        \code{self.parent().prime_subfield()}.
+        Return ``self`` viewed as a polynomial over
+        ``self.parent().prime_subfield()``.
 
         INPUT:
-            name -- (optional) variable name
+
+        - ``name`` -- (optional) variable name
 
         EXAMPLES::
 
@@ -1032,15 +1041,19 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def charpoly(self, var='x'):
         r"""
-        Return the characteristic polynomial of self as a polynomial
+        Return the characteristic polynomial of ``self`` as a polynomial
         in var over the prime subfield.
 
         INPUT:
-            var -- string (default: 'x')
-        OUTPUT:
-            polynomial
 
-        EXAMPLES:
+        - ``var`` -- string (default: ``'x'``)
+
+        OUTPUT:
+
+        polynomial
+
+        EXAMPLES::
+
             sage: k.<a> = GF(2^8)
             sage: b = a^3 + a
             sage: b.minpoly()
@@ -1060,16 +1073,19 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def minpoly(self, var='x'):
         r"""
-        Return the minimal polynomial of self, which is the smallest
-        degree polynomial `f \in \GF{2}[x]` such that
-        `f(self) = 0`.
+        Return the minimal polynomial of ``self``, which is the smallest
+        degree polynomial `f \in \GF{2}[x]` such that ``f(self) == 0``.
 
         INPUT:
-            var -- string (default: 'x')
-        OUTPUT:
-            polynomial
 
-        EXAMPLES:
+        - ``var`` -- string (default: ``'x'``)
+
+        OUTPUT:
+
+        polynomial
+
+        EXAMPLES::
+
             sage: K.<a> = GF(2^100)
             sage: f = a.minpoly(); f
             x^100 + x^57 + x^56 + x^55 + x^52 + x^48 + x^47 + x^46 + x^45 + x^44 + x^43 + x^41 + x^37 + x^36 + x^35 + x^34 + x^31 + x^30 + x^27 + x^25 + x^24 + x^22 + x^20 + x^19 + x^16 + x^15 + x^11 + x^9 + x^8 + x^6 + x^5 + x^3 + 1
@@ -1089,9 +1105,10 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def trace(self):
         """
-        Return the trace of self.
+        Return the trace of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = GF(2^25)
             sage: a.trace()
             0
@@ -1114,9 +1131,10 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
     def weight(self):
         """
         Returns the number of non-zero coefficients in the polynomial
-        representation of self.
+        representation of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = GF(2^21)
             sage: a.weight()
             1
@@ -1131,15 +1149,20 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def _finite_field_ext_pari_element(FiniteField_ntl_gf2eElement self, k=None):
         r"""
-        Return an element of \var{k} supposed to match this
-        element. No checks if \var{k} equals \code{self.parent()} are
-        performed.
+        Return an element of ``k`` supposed to match this
+        element.
+
+        .. WANRING::
+
+            No checks if ``k`` equals ``self.parent()`` are performed.
 
         INPUT:
-            k -- (optional) FiniteField_ext_pari
+
+        - ``k`` -- (optional) :class:`FiniteField_ext_pari`
 
         OUTPUT:
-            equivalent of self in k
+
+        equivalent of ``self in k``
 
         EXAMPLES::
 
@@ -1164,7 +1187,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def _magma_init_(self, magma):
         r"""
-        Return a string representation of self that \MAGMA can
+        Return a string representation of ``self`` that MAGMA can
         understand.
 
         EXAMPLES::
@@ -1173,7 +1196,9 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: a._magma_init_(magma)      # random; optional - magma
             '_sage_[...]'
 
-        NOTE: This method calls \MAGMA to setup the parent.
+        .. NOTE::
+
+            This method calls MAGMA to setup the parent.
         """
         km = magma(self.parent())
         vn_m = km.gen(1).name()
@@ -1182,7 +1207,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def __copy__(self):
         """
-        Return a copy of this element.  Actually just returns self, since
+        Return a copy of this element.  Actually just returns ``self``, since
         finite field elements are immutable.
 
         EXAMPLES::
@@ -1199,10 +1224,9 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         INPUT:
 
-            ``var`` -- optional variable string (default: ``None``)
+        - ``var`` -- (default: ``None``) optional variable string
 
         EXAMPLES::
-:
 
             sage: k.<a> = GF(2^17)
             sage: e = a^3 + a + 1
@@ -1228,11 +1252,11 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def _gap_init_(self):
         r"""
-        Return a string that evaluates to the \GAP representation of
+        Return a string that evaluates to the GAP representation of
         this element.
 
-        A \code{NotImplementedError} is raised if
-        \code{self.parent().modulus()} is not a Conway polynomial, as
+        A ``NotImplementedError`` is raised if
+        ``self.parent().modulus()`` is not a Conway polynomial, as
         the isomorphism of finite fields is not implemented yet.
 
         EXAMPLES::
@@ -1268,13 +1292,14 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def _vector_(FiniteField_ntl_gf2eElement self, reverse=False):
         r"""
-        Return a vector in \code{self.parent().vector_space()}
-        matching \code{self}. The most significant bit is to the
+        Return a vector in ``self.parent().vector_space()``
+        matching ``self``. The most significant bit is to the
         right.
 
         INPUT:
-            reverse -- reverse the order of the bits
-                       from little endian to big endian.
+
+        - ``reverse`` -- reverse the order of the bits from little endian to
+          big endian.
 
         EXAMPLES::
 
@@ -1320,14 +1345,17 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         is the base.
 
         INPUT:
-            self -- finite field element
-            b -- finite field element that generates the multiplicative group.
+
+        - ``base`` -- finite field element that generates the multiplicative
+          group.
 
         OUTPUT:
-            Integer `x` such that `a^x = b`, if it exists.
-            Raises a ValueError exception if no such `x` exists.
 
-        EXAMPLES:
+        Integer `x` such that `a^x = b`, if it exists.
+        Raises a ``ValueError`` exception if no such `x` exists.
+
+        EXAMPLES::
+
             sage: F = GF(17)
             sage: F(3^11).log(F(3))
             11

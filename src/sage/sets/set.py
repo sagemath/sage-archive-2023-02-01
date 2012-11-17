@@ -429,7 +429,7 @@ class Set_object(Set_generic):
 
     def difference(self, X):
         r"""
-        Return the intersection of self and X.
+        Return the set difference ``self - X``.
 
         EXAMPLES::
 

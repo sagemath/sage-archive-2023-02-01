@@ -2457,7 +2457,7 @@ class SimplicialComplex(GenericCellComplex):
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2, 3, 4)}
             sage: Y.add_face([0,1,2,3,4])
             sage: Y.stanley_reisner_ring(base_ring=QQ)
-            Quotient of Multivariate Polynomial Ring in x0, x1, x2, x3, x4 over Rational Field by the ideal (0)
+            Multivariate Polynomial Ring in x0, x1, x2, x3, x4 over Rational Field
         """
         R = self._stanley_reisner_base_ring(base_ring)
         products = []

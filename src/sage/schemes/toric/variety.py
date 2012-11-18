@@ -2599,8 +2599,7 @@ class ToricVariety_field(AmbientSpace):
 
             sage: quadrant = Cone([(1,0),(0,1)])
             sage: AffineToricVariety(quadrant).Spec()
-            Spectrum of Quotient of Multivariate Polynomial Ring
-            in z0, z1 over Rational Field by the ideal (0)
+            Spectrum of Multivariate Polynomial Ring in z0, z1 over Rational Field
 
         A more interesting example::
 

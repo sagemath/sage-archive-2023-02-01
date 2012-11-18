@@ -248,6 +248,18 @@ def QuotientRing(R, I, names=None):
         sage: j^3
         -j*k*i - j*k*j - j*k*k
 
+    Check that :trac:`5978` is fixed by if we quotient by the zero ideal `(0)`
+    then we just return ``R``::
+
+        sage: R = QQ['x']
+        sage: R.quotient(R.zero_ideal())
+        Univariate Polynomial Ring in x over Rational Field
+        sage: R.<x> = PolynomialRing(ZZ)
+        sage: R is R.quotient(R.zero_ideal())
+        True
+        sage: I = R.ideal(0)
+        sage: R is R.quotient(I)
+        True
     """
     # 1. Not all rings inherit from the base class of rings.
     # 2. We want to support quotients of free algebras by homogeneous two-sided ideals.
@@ -269,6 +281,8 @@ def QuotientRing(R, I, names=None):
         names = sage.structure.parent_gens.normalize_names(R.ngens(), names)
     if not isinstance(I, ideal.Ideal_generic) or I.ring() != R:
         I = R.ideal(I)
+    if I.is_zero():
+        return R
     try:
         if I.is_principal():
             return R.quotient_by_principal_ideal(I.gen(), names)

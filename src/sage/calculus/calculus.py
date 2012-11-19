@@ -1569,7 +1569,7 @@ def dummy_inverse_laplace(*args):
 #
 #######################################################
 
-def _limit_latex_(self, f, x, a):
+def _limit_latex_(self, f, x, a, direction=None):
     r"""
     Return latex expression for limit of a symbolic function.
 
@@ -1578,14 +1578,49 @@ def _limit_latex_(self, f, x, a):
         sage: from sage.calculus.calculus import _limit_latex_
         sage: var('x,a')
         (x, a)
-        sage: f = function('f',x)
-        sage: _limit_latex_(0, f, x, a)
+        sage: f = function('f')
+        sage: _limit_latex_(0, f(x), x, a)
         '\\lim_{x \\to a}\\, f\\left(x\\right)'
-        sage: latex(limit(f, x=oo))
+        sage: latex(limit(f(x), x=oo))
         \lim_{x \to +\infty}\, f\left(x\right)
 
+    TESTS:
+
+    When one-sided limits are converted back from maxima, the direction
+    argument becomes a symbolic variable. We check if typesetting these works::
+
+        sage: var('minus,plus')
+        (minus, plus)
+        sage: _limit_latex_(0, f(x), x, a, minus)
+        '\\lim_{x \\to a^-}\\, f\\left(x\\right)'
+        sage: _limit_latex_(0, f(x), x, a, plus)
+        '\\lim_{x \\to a^+}\\, f\\left(x\\right)'
+        sage: latex(limit(f(x),x=a,dir='+'))
+        \lim_{x \to a^+}\, f\left(x\right)
+        sage: latex(limit(f(x),x=a,dir='right'))
+        \lim_{x \to a^+}\, f\left(x\right)
+        sage: latex(limit(f(x),x=a,dir='-'))
+        \lim_{x \to a^-}\, f\left(x\right)
+        sage: latex(limit(f(x),x=a,dir='left'))
+        \lim_{x \to a^-}\, f\left(x\right)
+
+    Check if :trac:`13181` is fixed::
+
+        sage: t = var('t')
+        sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='-'))
+        \lim_{t \to x^-}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+        sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='+'))
+        \lim_{t \to x^+}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+        sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x))
+        \lim_{t \to x}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
     """
-    return "\\lim_{%s \\to %s}\\, %s"%(latex(x), latex(a), latex(f))
+    if repr(direction) == 'minus':
+        dir_str = '^-'
+    elif repr(direction) == 'plus':
+        dir_str = '^+'
+    else:
+        dir_str = ''
+    return "\\lim_{%s \\to %s%s}\\, %s"%(latex(x), latex(a), dir_str, latex(f))
 
 def _laplace_latex_(self, *args):
     r"""

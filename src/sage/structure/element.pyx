@@ -2799,24 +2799,6 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
 
-    def xgcd(self, right):
-        r"""
-        Return the extended gcd of self and other, i.e., elements `r, s, t` such that
-        .. math::
-
-           r = s \cdot self + t \cdot other.
-
-        .. note::
-
-           There is no guarantee on minimality of the cofactors.  In
-           the integer case, see documentation for Integer._xgcd() to
-           obtain minimal cofactors.
-        """
-        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            return coercion_model.bin_op(self, right, xgcd)
-        return self._xgcd(right)
-
-
 # This is pretty nasty low level stuff. The idea is to speed up construction
 # of EuclideanDomainElements (in particular Integers) by skipping some tp_new
 # calls up the inheritance tree.
@@ -2925,16 +2907,6 @@ cdef class FieldElement(CommutativeRingElement):
             return self
         else:
             return self._parent(1)
-
-    def _xgcd(self, FieldElement other):
-        R = self._parent
-        if not self.is_zero():
-            return R(1), ~self, R(0)
-        elif not other.is_zero():
-            return R(1), R(0), ~self
-        else: # both are 0
-            return self, self, self
-
 
     def quo_rem(self, right):
         r"""

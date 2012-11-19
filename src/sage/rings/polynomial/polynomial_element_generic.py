@@ -656,7 +656,8 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             return (1/c)*g
         return g
 
-    def _xgcd(self, other):
+    @coerce_binop
+    def xgcd(self, other):
         r"""
         Extended gcd of ``self`` and polynomial ``other``.
 

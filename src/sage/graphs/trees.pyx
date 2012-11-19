@@ -85,8 +85,10 @@ cdef class TreeIterator:
         """
         if self.l != NULL:
             sage_free(self.l)
+            self.l = NULL
         if self.current_level_sequence != NULL:
             sage_free(self.current_level_sequence)
+            self.current_level_sequence = NULL
 
     def __str__(self):
         r"""
@@ -122,20 +124,35 @@ cdef class TreeIterator:
             sage: T = TreeIterator(5)
             sage: [t for t in T] # indirect doctest
             [Graph on 5 vertices, Graph on 5 vertices, Graph on 5 vertices]
+
+
+        TESTS:
+
+        This used to be broken for trees with no vertices
+        and was fixed in :trac:`13719` ::
+
+            sage: from sage.graphs.trees import TreeIterator
+            sage: T = TreeIterator(0)
+            sage: [t for t in T] # indirect doctest
+            [Graph on 0 vertices]
         """
 
         if not self.first_time and self.q == 0:
             raise StopIteration
 
         if self.first_time == 1:
-            self.l = <int *>sage_malloc(self.vertices * sizeof(int))
-            self.current_level_sequence = <int *>sage_malloc(self.vertices * sizeof(int))
+            if self.vertices == 0:
+                self.first_time = 0
+                self.q = 0
+            else:
+                self.l = <int *>sage_malloc(self.vertices * sizeof(int))
+                self.current_level_sequence = <int *>sage_malloc(self.vertices * sizeof(int))
 
-            if self.l == NULL or self.current_level_sequence == NULL:
-                raise MemoryError
+                if self.l == NULL or self.current_level_sequence == NULL:
+                    raise MemoryError
 
-            self.generate_first_level_sequence()
-            self.first_time = 0
+                self.generate_first_level_sequence()
+                self.first_time = 0
         else:
             self.generate_next_level_sequence()
 

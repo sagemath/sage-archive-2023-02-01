@@ -243,6 +243,7 @@ cdef class GapElement(RingElement):
             1
         """
         self.value = NULL
+        self._compare_by_id = False
 
 
     def __init__(self):
@@ -259,9 +260,9 @@ cdef class GapElement(RingElement):
             sage: GapElement()
             Traceback (most recent call last):
             ...
-            TypeError: This class cannot be instantiated from Python
+            TypeError: this class cannot be instantiated from Python
         """
-        raise TypeError('This class cannot be instantiated from Python')
+        raise TypeError('this class cannot be instantiated from Python')
 
 
     cdef _initialize(self, parent, libGAP_Obj obj):
@@ -356,28 +357,29 @@ cdef class GapElement(RingElement):
             sage: lst.Adddddd(1)
             Traceback (most recent call last):
             ...
-            AttributeError: Name "Adddddd" is not defined in GAP.
+            AttributeError: name "Adddddd" is not defined in GAP.
 
             sage: libgap.eval('some_name := 1')
             1
             sage: lst.some_name
             Traceback (most recent call last):
             ...
-            AttributeError: Name "some_name" does not define a GAP function.
+            AttributeError: name "some_name" does not define a GAP function.
         """
+        # print '__getattr__', name
+        if name in ('__dict__', '_getAttributeNames', '__custom_name', 'keys'):
+            raise AttributeError('Python special name, not a GAP function.')
         try:
-            sig_on()
             proxy = make_GapElement_MethodProxy\
                 (self.parent(), gap_eval(name), self)
-            sig_off()
-        except RuntimeError:
-            raise AttributeError, 'Name "'+str(name)+'" is not defined in GAP.'
+        except ValueError:
+            raise AttributeError('name "'+str(name)+'" is not defined in GAP.')
         if not proxy.is_function():
-            raise AttributeError, 'Name "'+str(name)+'" does not define a GAP function.'
+            raise AttributeError('name "'+str(name)+'" does not define a GAP function.')
         return proxy
 
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Return a string representation of ``self``.
 
@@ -389,6 +391,8 @@ cdef class GapElement(RingElement):
             NULL
             sage: libgap(0)
             0
+            sage: libgap(0)._repr_()
+            '0'
         """
         if  self.value == NULL:
             return 'NULL'
@@ -403,13 +407,86 @@ cdef class GapElement(RingElement):
             libgap_exit()
 
 
-    cdef int _cmp_c_impl(self, Element other):
+    cpdef _set_compare_by_id(self):
         """
-        Compare ``self`` with ``other``.
+        Set comparison to compare by ``id``
+
+        By default, GAP is used to compare libGAP objects. However,
+        this is not defined for all GAP objects. To have libGAP play
+        nice with ``UniqueRepresentation``, comparison must always
+        work. This method allows one to override the comparison to
+        sort by the (unique) Python ``id``.
+
+        Obviously it is a bad idea to change the comparison of objects
+        after you have inserted them into a set/dict. You also must
+        not mix libGAP objects with different sort methods in the same
+        container.
+
+        EXAMPLES::
+
+            sage: F1 = libgap.FreeGroup(['a'])
+            sage: F2 = libgap.FreeGroup(['a'])
+            sage: F1 == F2
+            Traceback (most recent call last):
+            ...
+            ValueError: libGAP: cannot compare: Error, no method found!
+            Error, no 1st choice method found for `<' on 2 arguments
+
+            sage: F1._set_compare_by_id()
+            sage: F1 == F2
+            Traceback (most recent call last):
+            ...
+            ValueError: comparison style must be the same for both operands
+
+            sage: F1._set_compare_by_id()
+            sage: F2._set_compare_by_id()
+            sage: F1 == F2
+            False
+        """
+        self._compare_by_id = True
+
+
+    cpdef _assert_compare_by_id(self):
+        """
+        Ensure that comparison is by ``id``
+
+        See :meth:`_set_compare_by_id`.
 
         OUTPUT:
 
-        Boolean.
+        This method returns nothing. A ``ValueError`` is raised if
+        :meth:`_set_compare_by_id` has not been called on this libgap
+        object.
+
+        EXAMPLES::
+
+            sage: x = libgap.FreeGroup(1)
+            sage: x._assert_compare_by_id()
+            Traceback (most recent call last):
+            ...
+            ValueError: requires a libGAP objects whose comparison is by "id"
+
+            sage: x._set_compare_by_id()
+            sage: x._assert_compare_by_id()
+        """
+        if not self._compare_by_id:
+            raise ValueError('requires a libGAP objects whose comparison is by "id"')
+
+
+    cdef int _cmp_c_impl(self, Element other) except -2:
+        """
+        Compare ``self`` with ``other``.
+
+        Uses the GAP comparison by default, or the Python ``id`` if
+        :meth:`_set_compare_by_id` was called.
+
+        OUTPUT:
+
+        `-1`, `0`, or `+1` depending on the comparison value of
+        ``self`` and ``other``.  Raises a ``ValueError`` if GAP does
+        not support comparison of ``self`` and ``other``, unless
+        :meth:`_set_compare_by_id` was called on both ``self`` and
+        ``other``.
 
         EXAMPLES::
 
@@ -421,15 +498,47 @@ cdef class GapElement(RingElement):
             True
             sage: a._cmp_(libgap(123))
             0
+
+        GAP does not have a comparison function for two ``FreeGroup``
+        objects. LibGAP signals this by raising a ``ValueError`` ::
+
+            sage: F1 = libgap.FreeGroup(['a'])
+            sage: F2 = libgap.FreeGroup(['a'])
+            sage: F1 == F2
+            Traceback (most recent call last):
+            ...
+            ValueError: libGAP: cannot compare: Error, no method found!
+            Error, no 1st choice method found for `<' on 2 arguments
+
+            sage: F1._set_compare_by_id()
+            sage: F1 == F2
+            Traceback (most recent call last):
+            ...
+            ValueError: comparison style must be the same for both operands
+
+            sage: F1._set_compare_by_id()
+            sage: F2._set_compare_by_id()
+            sage: F1 == F2
+            False
         """
+        if self._compare_by_id != (<GapElement>other)._compare_by_id:
+            raise ValueError('comparison style must be the same for both operands')
+        if self._compare_by_id:
+            return cmp(id(self), id(other))
         cdef GapElement c_other = <GapElement>other
         libgap_enter()
-        equal = libGAP_EQ(self.value, c_other.value)
-        if equal:
+        try:
+            sig_on()
+            equal = libGAP_EQ(self.value, c_other.value)
+            if equal:
+                sig_off()
+                return 0
+            less = libGAP_LT(self.value, c_other.value)
+            sig_off()
+        except RuntimeError, msg:
+            raise ValueError('libGAP: cannot compare: '+str(msg))
+        finally:
             libgap_exit()
-            return 0
-        less = libGAP_LT(self.value, c_other.value)
-        libgap_exit()
         return -1 if less else +1
 
 
@@ -450,7 +559,6 @@ cdef class GapElement(RingElement):
             Traceback (most recent call last):
             ...
             ValueError: libGAP: Error, no method found!
-            For debugging hints type ?Recovery from NoMethodFound
             Error, no 1st choice method found for `+' on 2 arguments
         """
         cdef libGAP_Obj result
@@ -461,7 +569,7 @@ cdef class GapElement(RingElement):
             sig_off()
         except RuntimeError, msg:
             libGAP_ClearError()
-            raise ValueError, 'libGAP: '+str(msg)
+            raise ValueError('libGAP: '+str(msg))
         finally:
             libgap_exit()
         return make_any_gap_element(self.parent(), result)
@@ -483,7 +591,7 @@ cdef class GapElement(RingElement):
             sage: libgap(1) - libgap.CyclicGroup(2)
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, no method found! For debugging hints type ?Recovery from NoMethodFound
+            ValueError: libGAP: Error, no method found!
             Error, no 1st choice method found for `-' on 2 arguments
         """
         cdef libGAP_Obj result
@@ -516,7 +624,7 @@ cdef class GapElement(RingElement):
             sage: libgap(1) * libgap.CyclicGroup(2)
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, no method found! For debugging hints type ?Recovery from NoMethodFound
+            ValueError: libGAP: Error, no method found!
             Error, no 1st choice method found for `*' on 2 arguments
         """
         cdef libGAP_Obj result
@@ -549,7 +657,7 @@ cdef class GapElement(RingElement):
             sage: libgap(1) / libgap.CyclicGroup(2)
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, no method found! For debugging hints type ?Recovery from NoMethodFound
+            ValueError: libGAP: Error, no method found!
             Error, no 1st choice method found for `/' on 2 arguments
 
             sage: libgap(1) / libgap(0)
@@ -585,7 +693,7 @@ cdef class GapElement(RingElement):
             sage: libgap(1) % libgap.CyclicGroup(2)
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, no method found! For debugging hints type ?Recovery from NoMethodFound
+            ValueError: libGAP: Error, no method found!
             Error, no 1st choice method found for `mod' on 2 arguments
         """
         cdef libGAP_Obj result
@@ -616,7 +724,7 @@ cdef class GapElement(RingElement):
             sage: libgap.CyclicGroup(2) ^ 2
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, no method found! For debugging hints type ?Recovery from NoMethodFound
+            ValueError: libGAP: Error, no method found!
             Error, no 1st choice method found for `^' on 2 arguments
 
             sage: libgap(3) ^ Infinity
@@ -983,6 +1091,33 @@ cdef class GapElement_Boolean(GapElement):
         raise ValueError('the GAP boolean value "fail" cannot be represented in Sage')
 
 
+    def __nonzero__(self):
+        """
+        Check that the boolean is "true".
+
+        This is syntactic sugar for using libgap. See the examples below.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: gap_bool = [libgap.eval('true'), libgap.eval('false'), libgap.eval('fail')]
+            sage: for x in gap_bool:
+            ...       if x:     # this calls __nonzero__
+            ...           print x, type(x)
+            true <type 'sage.libs.gap.element.GapElement_Boolean'>
+
+            sage: for x in gap_bool:
+            ...       if not x:     # this calls __nonzero__
+            ...           print x, type(x)
+            false <type 'sage.libs.gap.element.GapElement_Boolean'>
+            fail <type 'sage.libs.gap.element.GapElement_Boolean'>
+       """
+        return self.value == libGAP_True
+
+
 ############################################################################
 ### GapElement_String ####################################################
 ############################################################################
@@ -1174,7 +1309,7 @@ cdef class GapElement_Function(GapElement):
             sage: s(libgap(1), libgap(2))
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, no method found! For debugging hints type ?Recovery from NoMethodFound
+            ValueError: libGAP: Error, no method found!
             Error, no 1st choice method found for `SumOp' on 2 arguments
 
             sage: for i in range(0,100):
@@ -1241,7 +1376,7 @@ cdef class GapElement_Function(GapElement):
                 result = libGAP_CALL_XARGS(self.value, arg_list)
             sig_off()
         except RuntimeError, msg:
-            raise ValueError, 'libGAP: '+str(msg)
+            raise ValueError('libGAP: '+str(msg))
         finally:
             libgap_exit()
 
@@ -1414,7 +1549,7 @@ cdef class GapElement_List(GapElement):
         sage: lst[10]
         Traceback (most recent call last):
         ...
-        IndexError: Index out of range.
+        IndexError: index out of range.
     """
 
     def __len__(self):
@@ -1456,7 +1591,7 @@ cdef class GapElement_List(GapElement):
             "first"
         """
         if i<0 or i>=len(self):
-            raise IndexError, 'Index out of range.'
+            raise IndexError('index out of range.')
         return make_any_gap_element(self.parent(),
                                     libGAP_ELM_PLIST(self.value, i+1))
 
@@ -1676,7 +1811,7 @@ cdef class GapElement_Record(GapElement):
             result = libGAP_ELM_REC(self.value, i)
             sig_off()
         except RuntimeError, msg:
-            raise IndexError, 'libGAP: '+str(msg)
+            raise IndexError('libGAP: '+str(msg))
         return make_any_gap_element(self.parent(), result)
 
 

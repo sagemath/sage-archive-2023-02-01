@@ -33,8 +33,13 @@ cdef class GapElement(RingElement):
     # the pointer to the GAP object (memory managed by GASMAN)
     cdef libGAP_Obj value
 
+    # comparison
+    cdef bint _compare_by_id
+    cdef int _cmp_c_impl(self, Element other) except -2
+    cpdef _set_compare_by_id(self)
+    cpdef _assert_compare_by_id(self)
+
     cdef _initialize(self, parent, libGAP_Obj obj)
-    cdef int _cmp_c_impl(self, Element other)
     cpdef ModuleElement _add_(self, ModuleElement right)
     cpdef ModuleElement _sub_(self, ModuleElement right)
     cpdef RingElement _mul_(self, RingElement right)

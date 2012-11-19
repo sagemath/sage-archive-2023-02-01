@@ -160,7 +160,7 @@ def gap_root():
     gapdir = os.path.join(SAGE_LOCAL, 'gap', 'latest')
     if os.path.exists(gapdir):
         return gapdir
-    print 'The gap-4.5.5.spkg (or later) seems to be missing!'
+    print 'The gap-4.5.5.spkg (or later) seems to be not installed!'
     gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
     gapdir = filter(lambda dir:dir.strip().startswith('GAP_DIR'), gap_sh)[0]
     gapdir = gapdir.split('"')[1]
@@ -168,15 +168,10 @@ def gap_root():
     return gapdir
 
 
-cdef void initialize():
+cdef initialize():
     """
     Initialize the GAP library, if it hasn't already been
     initialized.  It is safe to call this multiple times.
-
-    INPUT:
-
-    - ``max_workspace_size`` -- string. The size hint for GAP's memory
-      pool. Same syntax as GAP's ``-o`` command line option.
 
     TESTS::
 
@@ -195,12 +190,10 @@ cdef void initialize():
     s = gap_root()
     argv[2] = s
 
+    from sage.interfaces.gap import get_gap_memory_pool_size
+    memory_pool = str(get_gap_memory_pool_size())
     argv[3] = "-o"
-    import platform
-    if platform.architecture()[0] == '32bit':
-        argv[4] = "3900m"
-    else:
-        argv[4] = "16384G"
+    argv[4] = memory_pool
 
     argv[5] = "-m"
     argv[6] = "64m"
@@ -209,16 +202,26 @@ cdef void initialize():
     argv[8] = "-T"    # no debug loop
     argv[9] = NULL
     cdef int argc = 9
+
+    # Initialize GAP and capture any error messages
+    # The initialization just prints error and does not use the error handler
+    libgap_start_interaction('')
     libgap_initialize(argc, argv)
+    gap_error_msg = str(libgap_get_output())
+    libgap_finish_interaction()
+    if gap_error_msg:
+        raise RuntimeError('libGAP initialization failed\n' + gap_error_msg)
+
+    # The error handler is called if a GAP evaluation fails, e.g. 1/0
     libgap_set_error_handler(&error_handler)
-    libgap_enter()
 
     # Prepare global GAP variable to hold temporary GAP objects
     global reference_holder
+    libgap_enter()
     reference_holder = libGAP_GVarName("$SAGE_libgap_reference_holder")
+    libgap_exit()
 
     # Finished!
-    libgap_exit()
     _gap_is_initialized = True
 
 
@@ -325,9 +328,14 @@ cdef void error_handler(char* msg):
     The libgap error handler
 
     We call ``abort()`` which causes us to jump back to the Sage
-    signal handler.
+    signal handler. Since we wrap libGAP C calls in ``sig_on`` /
+    ``sig_off`` blocks, this then jumps back to the ``sig_on`` and
+    raises a Python ``RuntimeError``.
     """
-    sig_str(msg)
+    # print 'error_handler:', msg
+    msg_py = msg
+    msg_py = msg_py.replace('For debugging hints type ?Recovery from NoMethodFound\n', '')
+    sig_str(msg_py)
     abort()
     sig_off()
 

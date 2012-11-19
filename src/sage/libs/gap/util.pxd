@@ -39,7 +39,7 @@ cdef void gasman_callback()
 
 # To ensure that we call initialize_libgap only once.
 cdef bint _gap_is_initialized = False
-cdef void initialize()
+cdef initialize()
 
 
 ############################################################################

@@ -3792,6 +3792,15 @@ cdef class Expression(CommutativeRingElement):
 
             sage: exp(x).subs(x=log(x))
             x
+
+        Check if :trac:`13587` is fixed::
+
+            sage: t = tan(x)^2 - tan(x)
+            sage: t.subs(x=pi/2)
+            Infinity
+            sage: u = gamma(x) - gamma(x-1)
+            sage: u.subs(x=-1)
+            Infinity
         """
         cdef dict sdict = {}
         if in_dict is not None:

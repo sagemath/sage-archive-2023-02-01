@@ -31,6 +31,9 @@
 
 #include <string>
 #include <stdexcept>
+#ifdef DO_GINAC_ASSERT
+#  include <typeinfo>
+#endif
 
 namespace GiNaC {
 

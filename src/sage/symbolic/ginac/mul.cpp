@@ -41,6 +41,9 @@
 #include <limits>
 #include <cmath>
 #include <sstream>
+#ifdef DO_GINAC_ASSERT
+#  include <typeinfo>
+#endif
 
 namespace GiNaC {
 

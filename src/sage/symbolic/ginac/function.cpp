@@ -46,6 +46,9 @@
 #include <stdexcept>
 #include <list>
 #include <limits>
+#ifdef DO_GINAC_ASSERT
+#  include <typeinfo>
+#endif
 
 namespace GiNaC {
 

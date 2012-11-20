@@ -31,8 +31,8 @@
 #include "operators.h"
 #include "utils.h"
 #include "indexed.h"
-#include "constant.h"
 #include "infinity.h"
+#include "compiler.h"
 
 #include <iostream>
 #include <algorithm>
@@ -867,17 +867,18 @@ void expairseq::construct_from_2_ex(const ex &lh, const ex &rh)
 			seq.push_back(split_ex_to_pair(rh));
 		}
 	} else {
-           if (is_exactly_a<numeric>(rh)) {
+		if (is_exactly_a<numeric>(rh)) {
 			combine_overall_coeff(rh);
 			seq.push_back(split_ex_to_pair(lh));
 		} else {
 			expair p1 = split_ex_to_pair(lh);
 			expair p2 = split_ex_to_pair(rh);
-			
+
 			int cmpval = p1.rest.compare(p2.rest);
-			if (cmpval==0 && !p1.rest.is_equal(UnsignedInfinity)) {
+			if (cmpval==0 && unlikely(!is_a<infinity>(p1.rest))) {
 				p1.coeff = ex_to<numeric>(p1.coeff).add_dyn(ex_to<numeric>(p2.coeff));
 				if (!ex_to<numeric>(p1.coeff).is_zero()) {
+
 					// no further processing is necessary, since this
 					// one element will usually be recombined in eval()
 					seq.push_back(p1);
@@ -897,7 +898,7 @@ void expairseq::construct_from_2_ex(const ex &lh, const ex &rh)
 }
 
 void expairseq::construct_from_2_expairseq(const expairseq &s1,
-										   const expairseq &s2)
+		const expairseq &s2)
 {
 	combine_overall_coeff(s1.overall_coeff);
 	combine_overall_coeff(s2.overall_coeff);
@@ -915,13 +916,20 @@ void expairseq::construct_from_2_expairseq(const expairseq &s1,
 		int cmpval = (*first1).rest.compare((*first2).rest);
 
 		if (cmpval==0) {
-			// combine terms
-			const numeric &newcoeff = ex_to<numeric>(first1->coeff).
-			                           add(ex_to<numeric>(first2->coeff));
-			if (!newcoeff.is_zero()) {
-				seq.push_back(expair(first1->rest,newcoeff));
-				if (expair_needs_further_processing(seq.end()-1)) {
-					needs_further_processing = true;
+			// infinity evaluation is handled in the eval() method
+			// do not let infinities cancel each other here
+			if (unlikely(is_a<infinity>(first1->rest))) {
+				seq.push_back(*first1);
+				seq.push_back(*first2);
+			} else {
+				// combine terms
+				const numeric &newcoeff = ex_to<numeric>(first1->coeff).
+					add(ex_to<numeric>(first2->coeff));
+				if (!newcoeff.is_zero()) {
+					seq.push_back(expair(first1->rest,newcoeff));
+					if (expair_needs_further_processing(seq.end()-1)) {
+						needs_further_processing = true;
+					}
 				}
 			}
 			++first1;
@@ -952,7 +960,7 @@ void expairseq::construct_from_2_expairseq(const expairseq &s1,
 }
 
 void expairseq::construct_from_expairseq_ex(const expairseq &s,
-											const ex &e)
+			const ex &e)
 {
 	combine_overall_coeff(s.overall_coeff);
 	if (is_exactly_a<numeric>(e)) {
@@ -964,6 +972,13 @@ void expairseq::construct_from_expairseq_ex(const expairseq &s,
 	epvector::const_iterator first = s.seq.begin();
 	epvector::const_iterator last = s.seq.end();
 	expair p = split_ex_to_pair(e);
+	// infinity evaluation is handled in eval()
+	// do not let infinities cancel each other here
+	if (unlikely(is_a<infinity>(p.rest))) {
+		seq.push_back(p);
+		seq.insert(seq.end(), first, last);
+		return;
+	}
 	
 	seq.reserve(s.seq.size()+1);
 	bool p_pushed = false;
@@ -1189,7 +1204,8 @@ void expairseq::combine_same_terms_sorted_seq()
 	// possible from then on the sequence has changed and must be compacted
 	bool must_copy = false;
 	while (itin2!=last) {
-		if (itin1->rest.compare(itin2->rest)==0) {
+		if (itin1->rest.compare(itin2->rest)==0 &&
+				unlikely(!is_a<infinity>(itin1->rest))) {
 			itin1->coeff = ex_to<numeric>(itin1->coeff).
 			               add_dyn(ex_to<numeric>(itin2->coeff));
 			if (expair_needs_further_processing(itin1))

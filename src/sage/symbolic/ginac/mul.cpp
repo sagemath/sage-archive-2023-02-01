@@ -717,8 +717,13 @@ ex mul::eval(int level) const
 				++j;
 			}
 
-			if (! unit_normal)
-				c = c.mul(*_num_1_p);
+			if (! unit_normal) {
+				if(unlikely(c.get_parent_char() == 2) && c == *_num1_p) {
+					c = *_num_1_p;
+				} else {
+					c = c.mul(*_num_1_p);
+				}
+			}
 
 			oc = oc.mul(c);
 

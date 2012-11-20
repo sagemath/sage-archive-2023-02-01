@@ -504,6 +504,18 @@ cdef class Expression(CommutativeRingElement):
             sage: f = pi + I*e
             sage: f._pari_init_()
             '(Pi)+((exp(1))*(I))'
+
+        TESTS:
+
+        Check if complex numbers are converted to Maxima correctly
+        :trac:`7557`::
+
+            sage: SR(1.5*I)._maxima_init_()
+            '1.5000000000000000*%i'
+            sage: SR(CC.0)._maxima_init_()
+            '1.0000000000000000*%i'
+            sage: SR(CDF.0)._maxima_init_()
+            '1.0000000000000000*%i'
         """
         from sage.symbolic.expression_conversions import InterfaceInit
         return InterfaceInit(I)(self)
@@ -5301,6 +5313,17 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a = SR(-5).abs(hold=True); a.simplify()
             5
+
+        TESTS:
+
+        From :trac:`7557`::
+
+            sage: var('y', domain='real')
+            y
+            sage: abs(exp(1.1*y*I)).simplify()
+            1
+            sage: var('y', domain='complex') # reset the domain for other tests
+            y
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_abs, self._gobj, hold))

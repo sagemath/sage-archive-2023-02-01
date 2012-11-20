@@ -200,6 +200,20 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self.str(truncate=False)
 
+    def _maxima_init_(self, I=None):
+        """
+        Return a string representation of this complex number in the syntax of
+        Maxima. That is, use ``%i`` to represent the complex unit.
+
+        EXAMPLES::
+
+            sage: CC.0._maxima_init_()
+            '1.0000000000000000*%i'
+            sage: CC(.5 + I)._maxima_init_()
+            '0.50000000000000000 + 1.0000000000000000*%i'
+        """
+        return self.str(truncate=False, istr='%i')
+
     property __array_interface__:
         def __get__(self):
             """
@@ -421,7 +435,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         self._multiplicative_order = integer.Integer(n)
 
-    def str(self, base=10, truncate=True):
+    def str(self, base=10, truncate=True, istr='I'):
         r"""
         Return a string representation of this number.
 
@@ -431,6 +445,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         - ``truncate`` - (default: ``True``) Whether to print fewer
           digits than are available, to mask errors in the last bits.
+
+        - ``istr`` - (default: ``I``) string representation of the complex unit
 
         EXAMPLES::
 
@@ -449,8 +465,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             '3.53i5ab8p5fc + 2.puw5nggjf8f*I'
             sage: CC(0)
             0.000000000000000
+            sage: CC.0.str(istr='%i')
+            '1.00000000000000*%i'
         """
-
         s = ""
         if self.real() != 0:
             s = self.real().str(base, truncate=truncate)
@@ -462,7 +479,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                     y = -y
                 else:
                     s = s+" + "
-            s = s+"%s*I"%y.str(base, truncate=truncate)
+            s = s+"{ystr}*{istr}".format(ystr=y.str(base, truncate=truncate),
+                    istr=istr)
         if len(s) == 0:
             s = self.real().str(base, truncate=truncate)
         return s

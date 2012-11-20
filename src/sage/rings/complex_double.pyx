@@ -888,6 +888,20 @@ cdef class ComplexDoubleElement(FieldElement):
         # Sending to another computer algebra system is slow anyway, right?
         return CC(self)._interface_init_(I)
 
+    def _maxima_init_(self, I=None):
+        """
+        Return a string representation of this complex number in the syntax of
+        Maxima. That is, use ``%i`` to represent the complex unit.
+
+        EXAMPLES::
+
+            sage: CDF.0._maxima_init_()
+            '1.0000000000000000*%i'
+            sage: CDF(.5 + I)._maxima_init_()
+            '0.50000000000000000 + 1.0000000000000000*%i'
+        """
+        return CC(self)._maxima_init_(I)
+
     def __repr__(self):
         """
         Return print version of self.

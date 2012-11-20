@@ -471,6 +471,17 @@ class MaximaFunction(BuiltinFunction):
             sage: f = MaximaFunction("jacobi_sn")
             sage: f._maxima_init_evaled_(1/2, 1/2)
             'jacobi_sn(1/2, 1/2)'
+
+        TESTS:
+
+        Check if complex numbers in the arguments are converted to maxima
+        correctly :trac:`7557`::
+
+            sage: t = jacobi('sn',1.2+2*I*elliptic_kc(1-.5),.5)
+            sage: t._maxima_init_(maxima)
+            '0.88771548861927996 - 1.7919528880467190e-15*%i'
+            sage: t.n()
+            0.887715488619280 - 1.79195288804672e-15*I
         """
         args_maxima = []
         for a in args:

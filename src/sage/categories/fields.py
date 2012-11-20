@@ -211,7 +211,67 @@ class Fields(Category_singleton):
             except NotImplementedError:
                 return
 
+        def is_integral_domain(self):
+            r"""
+
+            Returns ``True``, as fields are integral domains.
+
+            EXAMPLES::
+
+                sage: QQ.is_integral_domain()
+                True
+            """
+            return True
+
+        def is_field( self, proof=True ):
+            r"""
+            Returns True as ``self`` is a field.
+
+            EXAMPLES::
+
+                sage: QQ.is_field()
+                True
+            """
+            return True
+
+        def fraction_field(self):
+            r"""
+            Returns the *fraction field* of ``self``, which is ``self``.
+
+            EXAMPLES::
+
+                sage: QQ.fraction_field() is QQ
+                True
+            """
+            return self
+
+        def __pow__(self, n):
+            r"""
+            Returns the vector space of dimension `n` over ``self``.
+
+            EXAMPLES::
+
+                sage: QQ^4
+                Vector space of dimension 4 over Rational Field
+            """
+            from sage.modules.all import FreeModule
+            return FreeModule(self, n)
+
     class ElementMethods:
+
+        def is_unit( self ):
+            r"""
+            Returns True if ``self`` has a multiplicative inverse.
+
+            EXAMPLES::
+
+                sage: QQ(2).is_unit()
+                True
+                sage: QQ(0).is_unit()
+                False
+            """
+            return not self.is_zero()
+
         # Fields are unique factorization domains, so, there is gcd and lcm
         # Of course, in general gcd and lcm in a field are not very interesting.
         # However, they should be implemented!

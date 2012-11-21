@@ -453,11 +453,11 @@ class Simplex(SageObject):
 
     def face(self, n):
         """
-        The nth face of this simplex.
+        The `n`-th face of this simplex.
 
         :param n: an integer between 0 and the dimension of this simplex
         :type n: integer
-        :return: the simplex obtained by removing the ``n``-th vertex from this
+        :return: the simplex obtained by removing the `n`-th vertex from this
             simplex
 
         EXAMPLES::
@@ -564,7 +564,7 @@ class Simplex(SageObject):
             vertex names like (0,1) are not suitable for that, while
             vertex names like "L0R1" are.
 
-        :type rename-vertices: boolean; optional, default ``True``
+        :type rename_vertices: boolean; optional, default ``True``
 
         Algorithm: see Hatcher, p. 277-278 [Hat]_ (who in turn refers to
         Eilenberg-Steenrod, p. 68): given ``S = Simplex(m)`` and
@@ -1465,7 +1465,7 @@ class SimplicialComplex(GenericCellComplex):
                     new_facets.append(f.join(w, rename_vertices=False))
                 return SimplicialComplex(new_facets)
             else:
-                return self.join(SimplicialComplex(["0", "1"], [["0"], ["1"]], is_mutable=is_mutable),
+                return self.join(SimplicialComplex([["0"], ["1"]], is_mutable=is_mutable),
                                  rename_vertices = True)
         return self.suspension(is_mutable).suspension(int(n-1), is_mutable)
 

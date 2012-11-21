@@ -89,6 +89,7 @@ from real_lazy import RealLazyField, RLF, ComplexLazyField, CLF
 # Polynomial Rings and Polynomial Quotient Rings
 from polynomial.all import *
 
+
 # Algebraic numbers
 from qqbar import (AlgebraicRealField, is_AlgebraicRealField, AA,
                    AlgebraicReal, is_AlgebraicReal,
@@ -160,6 +161,9 @@ from residue_field import ResidueField
 from misc import composite_field
 
 import tests
+
+# Universal Cyclotomic Field
+from sage.rings.universal_cyclotomic_field.all import *
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.invariant_theory', 'invariant_theory')

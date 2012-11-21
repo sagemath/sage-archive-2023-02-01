@@ -19,6 +19,8 @@ AUTHORS:
 - Robert Harron (2012-08): added is_CM(), complex_conjugation(), and
   maximal_totally_real_subfield()
 
+- Christian Stump (2012-11): added conversion to universal cyclotomic field
+
 .. note::
 
    Unlike in PARI/GP, class group computations *in Sage* do *not* by default
@@ -781,22 +783,33 @@ def is_QuadraticField(x):
 
 
 _cyclo_cache = {}
-def CyclotomicField(n, names=None, embedding=True):
+def CyclotomicField(n=0, names=None, bracket="()", embedding=True):
     r"""
-    Return the n-th cyclotomic field, where n is a positive integer.
+    Return the `n`-th cyclotomic field, where n is a positive integer,
+    or the universal cyclotomic field if ``n==0``.
+
+    For the documentation of the universal cyclotomic field, see :class:`~sage.rings.universal_cyclotomic_field.universal_cyclotomic_field.UniversalCyclotomicField`.
 
     INPUT:
 
-    -  ``n`` - a positive integer
+    -  ``n`` - a nonnegative integer, default:``0``
 
-    -  ``names`` - name of generator (optional - defaults
-       to zetan).
+    -  ``names`` - name of generator (optional - defaults to zetan)
+
+    - ``bracket`` - Defines the brackets in the case of ``n==0``, and
+      is ignored otherwise. Can be any even length string, with ``"()"`` being the default.
 
     -  ``embedding`` - bool or n-th root of unity in an
        ambient field (default True)
 
+    EXAMPLES:
 
-    EXAMPLES: We create the `7`\th cyclotomic field
+    If called without a parameter, we get the :class:`universal cyclotomic field<sage.rings.universal_cyclotomic_field.universal_cyclotomic_field.UniversalCyclotomicField>`::
+
+        sage: CyclotomicField()
+        Universal Cyclotomic Field
+
+    We create the `7`\th cyclotomic field
     `\QQ(\zeta_7)` with the default generator name.
 
     ::
@@ -839,14 +852,14 @@ def CyclotomicField(n, names=None, embedding=True):
         ...
         TypeError: no conversion of this rational to integer
 
-    The degree must be positive.
+    The degree must be nonnegative.
 
     ::
 
-        sage: CyclotomicField(0)
+        sage: CyclotomicField(-1)
         Traceback (most recent call last):
         ...
-        ValueError: n (=0) must be a positive integer
+        ValueError: n (=-1) must be a positive integer
 
     The special case `n=1` does *not* return the rational
     numbers::
@@ -886,7 +899,10 @@ def CyclotomicField(n, names=None, embedding=True):
         zeta9^3
     """
     n = ZZ(n)
-    if n <= 0:
+    if n == 0:
+        from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
+        return UniversalCyclotomicField(names=names, bracket=bracket, embedding=embedding)
+    if n < 0:
         raise ValueError, "n (=%s) must be a positive integer"%n
 
     if names is None:
@@ -1255,6 +1271,60 @@ class NumberField_generic(number_field_base.NumberField):
             return self(w)
         else:
             return w
+
+    def _coerce_from_universal_cyclotomic_field(self, x):
+        """
+        Coerce an element of the universal cyclotomic field
+        into this cyclotomic field.
+
+        EXAMPLES::
+
+            sage: CF = CyclotomicField(5)
+            sage: UCF.<E> = UniversalCyclotomicField()
+
+            sage: CF(E(5)) # indirect doctest
+            zeta5
+
+            sage: CF = CyclotomicField(7)
+            sage: CF(E(5)) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: The element E(5) cannot be converted to Cyclotomic Field of order 7 and degree 6
+
+            sage: CF = CyclotomicField(10)
+            sage: CF(E(5)) # indirect doctest
+            zeta10^2
+
+        Matrices are correctly dealt with::
+
+            sage: M = Matrix(UCF,2,[E(3),E(4),E(5),E(6)]); M
+            [   E(3)    E(4)]
+            [   E(5) -E(3)^2]
+
+            sage: Matrix(CyclotomicField(60),M) # indirect doctest
+            [zeta60^10 - 1     zeta60^15]
+            [    zeta60^12     zeta60^10]
+
+        Using a non-standard embedding::
+
+            sage: CF = CyclotomicField(5,embedding=CC(exp(4*pi*i/5)))
+            sage: x = E(5)
+            sage: CC(x)
+            0.309016994374947 + 0.951056516295154*I
+            sage: CC(CF(x))
+            0.309016994374947 + 0.951056516295154*I
+
+            sage: UCF.<E> = UniversalCyclotomicField(embedding=None)
+            sage: CF(E(5))
+            Traceback (most recent call last):
+            ...
+            TypeError: The element E(5) cannot be converted to Cyclotomic Field of order 5 and degree 4
+        """
+        from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
+        assert isinstance(x,UniversalCyclotomicField.Element)
+        if not x.parent()._has_standard_embedding or self._n() % x.field_order():
+            raise TypeError("The element %s cannot be converted to %s"%(x,self))
+        return self(x.to_cyclotomic_field())
 
     def _Hom_(self, codomain, cat=None):
         """
@@ -7954,7 +8024,18 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: k6(b^2)
             zeta6 - 1
 
-        Coercion of GAP cyclotomic elements is also supported::
+        Conversion of elements of the :class:`~sage.rings.universal_cyclotomic_field.universal_cyclotomic_field.UniversalCyclotomicField`::
+
+            sage: CF = CyclotomicField(5)
+            sage: UCF.<E> = UniversalCyclotomicField()
+            sage: CF(E(5))
+            zeta5
+
+            sage: CF = CyclotomicField(10)
+            sage: CF(E(5))
+            zeta10^2
+
+       Coercion of GAP cyclotomic elements is also supported::
 
             sage: CyclotomicField(18)(gap('E(3)')) # indirect doctest
             zeta18^3 - 1
@@ -7968,6 +8049,8 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: K(O.1^2 + O.1 - 2)
             z^2 + z - 2
         """
+        from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
+
         if isinstance(x, number_field_element.NumberFieldElement):
             if isinstance(x.parent(), NumberField_cyclotomic):
                 return self._coerce_from_other_cyclotomic_field(x)
@@ -7975,6 +8058,8 @@ class NumberField_cyclotomic(NumberField_absolute):
                 return NumberField_absolute._element_constructor_(self, x)
         elif sage.interfaces.gap.is_GapElement(x):
             return self._coerce_from_gap(x)
+        elif isinstance(x,UniversalCyclotomicField.Element):
+            return self._coerce_from_universal_cyclotomic_field(x)
         elif isinstance(x,str):
             return self._coerce_from_str(x)
         else:

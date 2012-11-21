@@ -181,6 +181,7 @@ import sage.rings.infinity
 import sage.rings.integer
 import sage.structure.parent_gens as gens
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
+from sage.categories.commutative_rings import CommutativeRings
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
 

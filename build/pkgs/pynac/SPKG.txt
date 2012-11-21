@@ -32,8 +32,14 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.6 (Jean-Pierre Flori, 21 November 2012) ===
+ * Trac #13729: update to version 0.2.6.
+ * Trac #13609: normalization of content in GF(2^k) leads to infinite loop.
+ * Trac #13587: invalid cancellation of infinities.
+ * Trac #13262: printing of parenthesis around exponent of power objects.
+
 === pynac-0.2.5 (Jean-Pierre Flori, 31 July 2012) ===
- * Trac #13316: update to verson 0.2.5.
+ * Trac #13316: update to version 0.2.5.
  * Trac #13107: fix division by Python longs.
 
 === pynac-0.2.4 (Jean-Pierre Flori, 23 May 2012) ===

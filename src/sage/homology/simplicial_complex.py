@@ -593,11 +593,6 @@ class Simplex(SageObject):
             [('L0R0', 'L0R1', 'L1R1'), ('L0R0', 'L1R0', 'L1R1')]
             sage: Simplex(1).product(Simplex(1), rename_vertices=False)
             [((0, 0), (0, 1), (1, 1)), ((0, 0), (1, 0), (1, 1))]
-
-        REFERENCES:
-
-        .. [Hat] A. Hatcher, "Algebraic Topology", Cambridge University Press
-           (2002).
         """
         if not rename_vertices:
             return [Simplex(x) for x in lattice_paths(self.tuple(), other.tuple())]
@@ -713,6 +708,13 @@ class SimplicialComplex(GenericCellComplex):
     -- use this if you plan to use the Stanley-Reisner ring for the
     simplicial complex.
 
+    .. WARNING::
+
+        Earlier versions of Sage supported a ``vertex_set`` argument
+        to specify the vertices. This is now deprecated -- see
+        :trac:`12587` -- the set of vertices is determined from the
+        maximal faces.
+
     EXAMPLES::
 
         sage: SimplicialComplex([[1,2], [1,4]])
@@ -725,16 +727,7 @@ class SimplicialComplex(GenericCellComplex):
         sage: S
         Simplicial complex with vertex set ('a', 'b', 'c') and facets {('b', 'c'), ('a', 'c'), ('a', 'b')}
 
-    You can also omit the ``vertex_set`` argument -- if the first
-    argument is a list of lists (or anything similar -- something
-    which looks like it should be ``maximal_faces``), then it is used
-    for ``maximal_faces``, and the set of vertices is deduced from the
-    vertices used therein::
-
-        sage: SimplicialComplex([[0,2], [0,3], [0,6]])
-        Simplicial complex with vertex set (0, 2, 3, 6) and facets {(0, 6), (0, 2), (0, 3)}
-
-    Finally, if ``vertex_set`` is the only argument and it is a
+    Finally, if there is only one argument and it is a
     simplicial complex, return that complex.  If it is an object with
     a built-in conversion to simplicial complexes (via a
     ``_simplicial_`` method), then the resulting simplicial complex is
@@ -781,6 +774,13 @@ class SimplicialComplex(GenericCellComplex):
             sage: S3 = SimplicialComplex(maximal_faces=[[1,4], [2,4]])
             sage: S == S3
             True
+
+            sage: Y = SimplicialComplex([1,2,3,4], [[1,2], [2,3], [3,4]])
+            doctest:1: DeprecationWarning: vertex_set is deprecated.
+            See http://trac.sagemath.org/12587 for details.
+            sage: Y = SimplicialComplex([1,2,3,4], [[1,2], [2,3], [3,4]], vertex_check=False)
+            doctest:1: DeprecationWarning: vertex_check is deprecated.
+            See http://trac.sagemath.org/12587 for details.
         """
         from sage.misc.misc import union
         # process kwds
@@ -2125,6 +2125,10 @@ class SimplicialComplex(GenericCellComplex):
         """
         The set of vertices belonging to some face. Returns the list of
         vertices.
+
+        .. WARNING::
+
+            This method is deprecated. See :trac:`12587`.
 
         EXAMPLES::
 

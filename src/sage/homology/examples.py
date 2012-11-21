@@ -155,7 +155,7 @@ class SimplicialComplexExamples():
     Some examples of simplicial complexes.
 
     Here are the available examples; you can also type
-    ``simplicial_complexes.``  and hit tab to get a list::
+    ``simplicial_complexes.``  and hit tab to get a list:
 
     - :meth:`ChessboardComplex`
     - :meth:`ComplexProjectivePlane`

@@ -209,7 +209,7 @@ class CHomP:
             elif simplicial:
                 m = re.search(r'\(([^,]*),', data)
                 v = int(m.group(1))
-                subcomplex = SimplicialComplex([v], [[v]])
+                subcomplex = SimplicialComplex([[v]])
         else:
             # replace subcomplex with [0,1] x subcomplex.
             if cubical:

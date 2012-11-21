@@ -245,7 +245,7 @@ cdef extern from "ginac_wrap.h":
     int ginac_error()
     GEx gadd "ADD_WRAP" (GEx left, GEx right) except +
     GEx gsub "SUB_WRAP" (GEx left, GEx right) except +
-    GEx gmul "MUL_WRAP" (GEx left, GEx right) except +ArithmeticError
+    GEx gmul "MUL_WRAP" (GEx left, GEx right) except +
     GEx gdiv "DIV_WRAP" (GEx left, GEx right) except +
     GEx g_pow "pow" (GEx left, GEx exp)      except +
 

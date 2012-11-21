@@ -2533,7 +2533,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x*oo
             Traceback (most recent call last):
             ...
-            ArithmeticError: indeterminate expression: infinity * f(x) encountered.
+            RuntimeError: indeterminate expression: infinity * f(x) encountered.
             sage: x*unsigned_infinity
             Traceback (most recent call last):
             ...
@@ -2547,6 +2547,31 @@ cdef class Expression(CommutativeRingElement):
             -Infinity
             sage: SR(unsigned_infinity)*SR(oo)
             Infinity
+
+        Check if we are returning informative error messages in case of
+        nonsensical arithmetic :trac:`13739`::
+
+            sage: t = GF(5)(3)
+            sage: u = GF(7)(4)
+            sage: var('y')
+            y
+            sage: e = t*x + u*y
+            sage: t*e
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Finite Field
+            of size 7' and 'Finite Field of size 5'
+
+        The same issue (with a different test case) was reported in
+        :trac:`10960`::
+
+            sage: K.<b> = FiniteField(9)
+            sage: i*b
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Number Field
+            in I with defining polynomial x^2 + 1' and 'Finite Field in b of
+            size 3^2'
 
         """
         cdef GEx x

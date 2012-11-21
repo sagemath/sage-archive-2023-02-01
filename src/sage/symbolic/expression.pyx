@@ -314,6 +314,45 @@ cdef class Expression(CommutativeRingElement):
         ar_str = GArchive_to_str(&ar)
         return (0, map(repr, self.variables()), ar_str)
 
+    def _dbgprint(self):
+        r"""
+        Print pynac debug output to ``stderr``.
+
+        EXAMPLES::
+
+            sage: (1+x)._dbgprint() # not tested
+            x + 1
+        """
+        self._gobj.dbgprint()
+
+    def _dbgprinttree(self):
+        r"""
+        Print pynac debug output to ``stderr``.
+
+        EXAMPLES::
+
+            sage: (1+x+exp(x+1))._dbgprinttree()    # not tested
+            add @0x65e5960, hash=0x4727e01a, flags=0x3, nops=3
+                x (symbol) @0x6209150, serial=6, hash=0x2057b15e, flags=0xf, domain=0
+                1 (numeric) @0x3474cf0, hash=0x0, flags=0x7
+                -----
+                function exp @0x24835d0, hash=0x765c2165, flags=0xb, nops=1
+                    add @0x65df570, hash=0x420740d2, flags=0xb, nops=2
+                        x (symbol) @0x6209150, serial=6, hash=0x2057b15e, flags=0xf, domain=0
+                        1 (numeric) @0x3474cf0, hash=0x0, flags=0x7
+                        -----
+                        overall_coeff
+                        1 (numeric) @0x65e4df0, hash=0x7fd3, flags=0x7
+                        =====
+                    =====
+                1 (numeric) @0x3474cf0, hash=0x0, flags=0x7
+                -----
+                overall_coeff
+                1 (numeric) @0x663cc40, hash=0x7fd3, flags=0x7
+                =====
+        """
+        self._gobj.dbgprinttree();
+
     def __setstate__(self, state):
         """
         Initializes the state of the object from data saved in a pickle.

@@ -102,6 +102,8 @@ cdef extern from "ginac_wrap.h":
         GEx real_part()               except +
         GEx imag_part()               except +
         bint info(unsigned)           except +
+        void dbgprint()
+        void dbgprinttree()
 
     GExPair make_pair "std::make_pair" (GEx, GEx)
 

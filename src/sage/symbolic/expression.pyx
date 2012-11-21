@@ -4995,6 +4995,33 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression ss = self.coerce_in(s)
         return self._gobj.degree(ss._gobj)
 
+    def _content(self, s):
+        """
+        Return the content of this expression with respect to the
+        expression ``s``.
+
+        .. warning::
+
+            The values returned by this function may not be compatible with
+            the output of the ``content()`` method provided by various
+            polynomial rings in Sage.
+
+        EXAMPLES::
+
+            sage: (2*x+4)._content(x)
+            2
+            sage: (2*x+1)._content(x)
+            1
+            sage: (2*x+1/2)._content(x)
+            1/2
+            sage: var('y')
+            y
+            sage: (2*x + 4*sin(y))._content(sin(y))
+            2
+        """
+        cdef Expression ss = self.coerce_in(s)
+        return new_Expression_from_GEx(self._parent, self._gobj.content(ss._gobj))
+
     def poly(self, x=None):
         r"""
         Express this symbolic expression as a polynomial in *x*. If

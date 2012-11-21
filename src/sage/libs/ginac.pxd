@@ -88,6 +88,7 @@ cdef extern from "ginac_wrap.h":
         GEx numer_denom()             except +
         int degree(GEx expr)          except +
         int ldegree(GEx expr)         except +
+        GEx content(GEx expr)         except +
         GEx rhs()                     except +
         GEx lhs()                     except +
         int nops()                    except +

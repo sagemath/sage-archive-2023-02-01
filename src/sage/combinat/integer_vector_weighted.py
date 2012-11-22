@@ -1,5 +1,11 @@
 """
 Weighted Integer Vectors
+
+.. WARNING::
+
+   This file uses the :class:`Permutation_class` class with the flag
+   ``check_input = False``. It should not. Do not trust the
+   results. See :trac:`13742`.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -157,5 +163,5 @@ class WeightedIntegerVectors_nweight(CombinatorialClass):
 
         perm = Word(self.weight).standard_permutation()
         l = [x for x in sorted(self.weight)]
-        return [perm._left_to_right_multiply_on_right(Permutation_class(x)) for x in self._recfun(self.n,l)]
+        return [perm._left_to_right_multiply_on_right(Permutation_class(x, check_input = False)) for x in self._recfun(self.n,l)]
 

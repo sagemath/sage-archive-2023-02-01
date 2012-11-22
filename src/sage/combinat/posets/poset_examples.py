@@ -459,8 +459,8 @@ class Posets(object):
         Any interval is rank symmetric if and only if it avoids these
         permutations::
 
-            sage: P1 = Posets.SymmetricGroupBruhatIntervalPoset([0,1,2,3], [2,3,0,1])
-            sage: P2 = Posets.SymmetricGroupBruhatIntervalPoset([0,1,2,3], [3,1,2,0])
+            sage: P1 = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [3,4,1,2])
+            sage: P2 = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [4,2,3,1])
             sage: ranks1 = [P1.rank(v) for v in P1]
             sage: ranks2 = [P2.rank(v) for v in P2]
             sage: [ranks1.count(i) for i in uniq(ranks1)]

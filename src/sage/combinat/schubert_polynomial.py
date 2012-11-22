@@ -216,10 +216,6 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
             Traceback (most recent call last):
             ...
             ValueError: The input [1, 2, 1] is not a valid permutation
-            sage: X._element_constructor_(Permutation([1,2,1]))
-            Traceback (most recent call last):
-            ...
-            ValueError: The input [1, 2, 1] is not a valid permutation
         """
         if isinstance(x, list):
             #checking the input to avoid symmetrica crashing Sage, see trac 12924

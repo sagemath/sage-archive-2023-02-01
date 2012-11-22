@@ -111,16 +111,16 @@ Here is the formulation:
 
 .. MATH::
 
-    \mbox{Maximize : }&\mbox{Nothing}\\[2mm]
+    \mbox{Maximize : }&\mbox{Nothing}\\
     \mbox{Such that : }&\\
     &\forall uv\in G\\
-    &\cdot o_{uv}+o_{vu} = 1\\[2mm]
+    &\cdot o_{uv}+o_{vu} = 1\\
     &\forall u\in G, \forall v,v'\in N(v)\text{ such that }vv'\not\in G\\
     &\cdot o_{uv} + o_{v'u} - o_{v'v} \leq 1\\
-    &\cdot o_{uv'} + o_{vu} - o_{vv'} \leq 1\\[2mm]
+    &\cdot o_{uv'} + o_{vu} - o_{vv'} \leq 1\\
     &\forall u\in G, \forall v,v'\in N(v)\text{ such that }vv'\in G\\
     &\cdot o_{uv} + o_{v'u} \leq  1\\
-    &\cdot o_{uv'} + o_{vu} \leq  1\\[2mm]
+    &\cdot o_{uv'} + o_{vu} \leq  1\\
     &o_{uv}\text{ is a binary variable}\\
 
 .. NOTE::
@@ -607,7 +607,8 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
     Plotting the realization as an intersection graph of segments::
 
         sage: true, perm = is_permutation(g, certificate = True)
-        sage: p1, p2 = map(Permutation, perm)
+        sage: p1 = Permutation([nn+1 for nn in perm[0]])
+        sage: p2 = Permutation([nn+1 for nn in perm[1]])
         sage: p = p2 * p1.inverse()
         sage: p.show(representation = "braid")
 

@@ -127,7 +127,7 @@ class HasseDiagram(DiGraph):
 
         ::
 
-            sage: P = Posets.SymmetricGroupBruhatIntervalPoset([0,1,2,3], [2,3,0,1])
+            sage: P = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [3,4,1,2])
             sage: P._hasse_diagram.plot()
         """
         # Set element_labels to default to the vertex set.

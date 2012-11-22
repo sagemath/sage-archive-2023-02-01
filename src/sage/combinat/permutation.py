@@ -5,6 +5,15 @@ The Permutations module. Use Permutation? to get information about
 the Permutation class, and Permutations? to get information about
 the combinatorial class of permutations.
 
+.. WARNING::
+
+   This file defined :class:`Permutation_class` which depends upon
+   :class:`CombinatorialObject` despite it being deprecated (see
+   :trac:`13742`). This is dangerous. In particular, the
+   :meth:`Permutation_class._left_to_right_multiply_on_right` method (which can
+   be called trough multiplication) disables the input checks (see
+   :method:`Permutation`). This should not happen. Do not trust the results.
+
 AUTHORS:
 
 - Mike Hansen
@@ -121,30 +130,38 @@ def PermutationOptions(**kwargs):
         else:
             permutation_options['display'] = kwargs['display']
 
-
-def Permutation(l):
+def Permutation(l, check_input = True):
     """
-    Converts l to a permutation.
+    Converts ``l`` to a permutation on `1...n`
 
     INPUT:
 
+    -  an instance of :class:`Permutation_class`,
 
-    -  an instance of Permutation_class,
+    - list of integers, viewed as one-line permutation notation,
 
-    -  list of integers, viewed as one-line
-       permutation notation,
+    - string, expressing the permutation in cycle notation,
 
-    -  string, expressing the permutation in cycle
-       notation,
+    - list of tuples of integers, the permutation in cycle notation.
 
-    -  list of tuples of integers, the permutation
-       in cycle notation.
+    - a :class:`PermutationGroupElement`
 
-    -  a PermutationGroupElement
+    - a pair of two tableaux of the same shape, where the second one is
+      standard. This uses the inverse of Robinson Schensted algorithm.
 
-    -  a pair of two tableaux of the same shape, where the second one is
-       standard. This uses the inverse of Robinson Schensted algorithm.
+    - ``check_input`` (boolean) -- whether to check that input is correct. Slows
+       the function down, but ensures that nothing bad happens. This is set to
+       ``True`` by default.
 
+    .. WARNING::
+
+       Since :trac:`13742` the input is checked for correctness : it is not
+       accepted unless actually is a permutation on `1...n`. It means that some
+       :meth:`Permutation` objects cannot be created anymore without setting
+       ``check_input = False``, as there is no certainty that its functions can
+       handle them, and this should be fixed in a much better way ASAP (the
+       functions should be rewritten to handle those cases, and new tests be
+       added).
 
     OUTPUT:
 
@@ -245,6 +262,7 @@ def Permutation(l):
         cycle_list = []
         for c in cycles:
             cycle_list.append(map(int, c.split(",")))
+
         return from_cycles(max([max(c) for c in cycle_list]), cycle_list)
 
     #if l is a pair of tableaux or a pair of lists
@@ -275,9 +293,89 @@ def Permutation(l):
             raise ValueError, "cannot convert l (= %s) to a Permutation"%l
 
     # otherwise, it gets processed by CombinatorialObject's __init__.
-    return Permutation_class(l)
+    return Permutation_class(l, check_input = check_input)
 
 class Permutation_class(CombinatorialObject):
+    def __init__(self, l, check_input = True):
+        """
+        Constructor. Checks that INPUT is not a mess, and calls
+        :class:`CombinatorialObject`. It should not, because
+        :class:`CombinatorialObject` is deprecated.
+
+        INPUT:
+
+        - ``l`` -- a list of ``int`` variables.
+
+        - ``check_input`` (boolean) -- whether to check that input is
+          correct. Slows the function down, but ensures that nothing bad
+          happens.
+
+          This is set to ``True`` by default.
+
+        TESTS::
+
+            sage: from sage.combinat.permutation import Permutation_class
+            sage: Permutation_class([1,2,3])
+            [1, 2, 3]
+            sage: Permutation_class([1,2,2,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: An element appears twice in the input. It should not.
+            sage: Permutation_class([1,2,4,-1])
+            Traceback (most recent call last):
+            ...
+            ValueError: The elements must be strictly positive integers.
+            sage: Permutation_class([1,2,4,5])
+            Traceback (most recent call last):
+            ...
+            ValueError: The permutation has length 4 but its maximal element is
+            5. Some element may be repeated, or an element is missing, but there
+            is something wrong with its length.
+        """
+        if check_input:
+            l = list(l)
+            # Is input a list of positive integers ?
+            for i in l:
+                try:
+                    i=int(i)
+                except TypeError:
+                    raise ValueError("The elements must be integer variables")
+                if i < 1:
+                    print i
+                    raise ValueError("The elements must be strictly positive integers.")
+
+
+            sorted_copy = list(l)
+
+            # Empty list ?
+            if len(sorted_copy) == 0:
+                CombinatorialObject.__init__(self, l)
+
+
+            else:
+                sorted_copy.sort()
+                # Is the maximum element of the permutation the length of input,
+                # or is some integer missing ?
+                if int(sorted_copy[-1]) != len(l):
+                    raise ValueError("The permutation has length "+str(len(l))+
+                                     " but its maximal element is "+
+                                     str(int(sorted_copy[-1]))+". Some element "+
+                                     "may be repeated, or an element is missing"+
+                                     ", but there is something wrong with its length.")
+
+                # Do the elements appear only once ?
+                previous = sorted_copy[0]-1
+
+                for i in sorted_copy:
+                    if i == previous:
+                        raise ValueError("An element appears twice in the input. It should not.")
+                    else:
+                        previous = i
+
+                CombinatorialObject.__init__(self, l)
+        else:
+            CombinatorialObject.__init__(self, l)
+
     def __hash__(self):
         """
         TESTS::
@@ -521,10 +619,11 @@ class Permutation_class(CombinatorialObject):
         TESTS::
 
             sage: from sage.combinat.permutation import from_cycles
-            sage: all(from_cycles(n, p.to_cycles()) == p
-            ...     for n in range(6) for p in Permutations(n))
-            True
-
+            sage: for n in range(1,6):
+            ...      for p in Permutations(n):
+            ...         if from_cycles(n, p.to_cycles()) != p:
+            ...            print "There is a problem with ",p
+            ...            break
             sage: size = 10000
             sage: sample = (Permutations(size).random_element() for i in range(5))
             sage: all(from_cycles(size, p.to_cycles()) == p for p in sample)
@@ -888,7 +987,6 @@ class Permutation_class(CombinatorialObject):
         new_p1 = self[:] + [i+1 for i in range(len(self), len(lp))]
         return Permutation([ new_p1[i-1] for i in new_lp ])
 
-
     def _left_to_right_multiply_on_right(self, rp):
         """
         EXAMPLES::
@@ -904,7 +1002,7 @@ class Permutation_class(CombinatorialObject):
         #different sizes
         new_rp = rp[:] + [i+1 for i in range(len(rp), len(self))]
         new_p1 = self[:] + [i+1 for i in range(len(self), len(rp))]
-        return Permutation([ new_rp[i-1] for i in new_p1 ])
+        return Permutation([ new_rp[i-1] for i in new_p1 ], check_input = False)
 
     def __call__(self, i):
         r"""
@@ -2610,15 +2708,20 @@ class Permutation_class(CombinatorialObject):
         Returns the pair of standard tableaux obtained by running the
         Robinson-Schensted Algorithm on self.
 
+        .. WARNING::
+
+            The following examples do not check their input. This is wrong. See
+            :trac:`13742`.
+
         EXAMPLES::
 
-            sage: Permutation([6,2,3,1,7,5,4]).robinson_schensted()
+            sage: Permutation([6,2,3,1,7,5,4], check_input = False).robinson_schensted()
             [[[1, 3, 4], [2, 5], [6, 7]], [[1, 3, 5], [2, 6], [4, 7]]]
 
         It also works in the case of repeated letters. In this case only the
         second tableau is standard::
 
-            sage: Permutation([2,3,3,2,1,3,2,3]).robinson_schensted()
+            sage: Permutation([2,3,3,2,1,3,2,3], check_input = False).robinson_schensted()
             [[[1, 2, 2, 3, 3], [2, 3], [3]], [[1, 2, 3, 6, 8], [4, 7], [5]]]
 
         TESTS:
@@ -3534,14 +3637,67 @@ def from_cycles(n, cycles):
     r"""
     Returns the permutation corresponding to cycles.
 
+    This function checks that its input is correct (i.e. that the cycles are
+    disjoint and its elements integers among `1...n`). It raises an exception
+    otherwise.
+
+    .. WARNING::
+
+        It assumes that the elements are of ``int`` type.
+
     EXAMPLES::
 
         sage: import sage.combinat.permutation as permutation
         sage: permutation.from_cycles(4, [[1,2]])
         [2, 1, 3, 4]
+
+    Bad input (see :trac:`13742`)::
+
+        sage: Permutation("(-12,2)(3,4)")
+        Traceback (most recent call last):
+        ...
+        ValueError: All elements should be strictly positive integers, and I just found a negative one.
+        sage: Permutation("(1,2)(2,4)")
+        Traceback (most recent call last):
+        ...
+        ValueError: An element appears twice. It should not.
+        sage: permutation.from_cycles(4, [[1,18]])
+        Traceback (most recent call last):
+        ...
+        ValueError: You claimed that this was a permutation on 1...4 but it contains 18
     """
 
     p = range(1,n+1)
+
+    # Is it really a permutation on 1...n ?
+    flattened_and_sorted = []
+    for c in cycles:
+        flattened_and_sorted.extend(c)
+    flattened_and_sorted.sort()
+
+    # Empty input
+    if len(flattened_and_sorted) == 0:
+        # This is not consistent with Permutaion([]). See #13742
+        return Permutation([1])
+
+    # Only positive elements
+    if int(flattened_and_sorted[0]) < 1:
+        raise ValueError("All elements should be strictly positive "
+                         "integers, and I just found a negative one.")
+
+    # Really smaller than n ?
+    if flattened_and_sorted[-1] > n:
+        raise ValueError("You claimed that this was a permutation on 1..."+
+                         str(n)+" but it contains "+str(flattened_and_sorted[-1]))
+
+    # Disjoint cycles ?
+    previous = flattened_and_sorted[0]-1
+    for i in flattened_and_sorted:
+        if i == previous:
+            raise ValueError("An element appears twice. It should not.")
+        else:
+            previous = i
+
     for cycle in cycles:
         if not cycle:
             continue
@@ -3549,6 +3705,7 @@ def from_cycles(n, cycles):
         for i in range(len(cycle)-1):
             p[cycle[i]-1] = cycle[i+1]
         p[cycle[-1]-1] = first
+
     return Permutation(p)
 
 def from_lehmer_code(lehmer):
@@ -3598,6 +3755,12 @@ def robinson_schensted_inverse(p, q):
     r"""
     Returns the permutation corresponding to the pair of tableaux `(p,q)`
     using the inverse of Robinson-Schensted algorithm.
+
+    .. WARNING::
+
+       This function uses the :class:`Permutation_class` class in a way it is
+       *NOT MEANT* to be used (i.e. the permutations are not permutations of
+       integers). Do not trust it. See :trac:`13742`.
 
     INPUT:
 
@@ -3678,7 +3841,7 @@ def robinson_schensted_inverse(p, q):
             y = bisect(row,x) - 1
             x, row[y] = row[y], x
         permutation.append(x)
-    return Permutation(reversed(permutation))
+    return Permutation(reversed(permutation), check_input = False)
 
 def bistochastic_as_sum_of_permutations(M, check = True):
     r"""
@@ -4151,6 +4314,14 @@ def from_major_code(mc, final_descent=False):
     r"""
     Returns the permutation corresponding to major code mc.
 
+    .. WARNING::
+
+       This function creates illegal permutations (i.e. ``Permutation([9])``,
+       and this is dangerous as the :meth:`Permutation` class is only designed
+       to handle permutations on `1...n`. This will have to be changed when Sage
+       permutations will be able to handle anything, but right now this should
+       be fixed. Be careful with the results.
+
     REFERENCES:
 
     - Skandera, M. 'An Eulerian Partner for Inversions', Sem.
@@ -4174,11 +4345,12 @@ def from_major_code(mc, final_descent=False):
     #for i=n-1,..,1 let w^i be the unique word obtained by inserting
     #the letter i into the word w^(i+1) in such a way that
     #maj(w^i)-maj(w^(i+1)) = mc[i]
+
     for i in reversed(range(1,len(mc))):
         #Lemma 2.2 in Skandera
 
         #Get the descents of w and place them in reverse order
-        d = Permutation(w).descents(final_descent=final_descent)
+        d = Permutation(w, check_input = False).descents(final_descent=final_descent)
         d.reverse()
 
         #a is the list of all positions which are not descents

@@ -358,14 +358,42 @@ def attach(*files):
     Attach a file or files to a running instance of Sage and also load
     that file.
 
+    USAGE:
+
+    ``attach file1 ...`` - space-separated list of ``.py``, ``.pyx``,
+    and ``.sage`` files, or ``attach('file1', 'file2')`` - filenames as
+    strings, given as arguments to :func:`attach`.
+
+    :meth:`~sage.misc.preparser.load` is the same as :func:`attach`, but doesn't
+    automatically reload a file when it changes.
+
     .. note::
 
        In addition to ``attach('foo.sage')``, from the sage prompt
        you can also just type ``attach "foo.sage"``.  However this
        second common usage is not part of the Python language.
 
-    ``load`` is the same as attach, but doesn't automatically reload a
-    file when it changes.
+    EFFECT:
+
+    Each file is read in and added to an internal list of watched files.
+    The meaning of reading in a file depends on the file type:
+
+    -  ``.py`` files are read in with no preparsing (so, e.g., ``2^3`` is 2
+       bit-xor 3);
+
+    -  ``.sage`` files are preparsed, then the result is read in;
+
+    - ``.pyx`` files are *not* preparsed, but rather are compiled to a
+       module ``m`` and then ``from m import *`` is executed.
+
+    The contents of the file are then loaded, which means they are read
+    into the running Sage session. For example, if ``foo.sage`` contains
+    ``x=5``, after attaching ``foo.sage`` the variable ``x`` will be set
+    to 5. Moreover, any time you change ``foo.sage``, before you execute
+    a command, the attached file will be re-read automatically (with no
+    intervention on your part).
+
+    EXAMPLES:
 
     You attach a file, e.g., ``foo.sage`` or ``foo.py`` or
     ``foo.pyx``, to a running Sage session by typing::
@@ -389,40 +417,17 @@ def attach(*files):
         sage: set(attached_files()) == set([t1,t2])
         True
 
-    The contents of the file are then loaded, which means they are
-    read into the running Sage session. For example, if ``foo.sage``
-    contains ``x=5``, after attaching ``foo.sage`` the variable ``x``
-    will be set to 5. Moreover, any time you change ``foo.sage``,
-    before you execute a command, the attached file will be re-read
-    automatically (with no intervention on your part).
+    .. SEEALSO::
 
-    USAGE: ``attach file1 ...`` - space-separated list of .py, .pyx,
-    and .sage files.
+        - :meth:`~sage.misc.preparser.attached_files` returns a list of
+          all currently attached files.
 
-    EFFECT: Each file is read in and added to an internal list of
-    watched files. The meaning of reading a file in depends on the file
-    type:
+        - :meth:`~sage.misc.preparser.detach` instructs Sage to remove a
+          file from the internal list of watched files.
 
-
-    -  read in with no preparsing (so, e.g., ``23`` is 2
-       bit-xor 3),
-
-    -  preparsed then the result is read in
-
-    -  *not* preparsed. Compiled to a module ``m`` then
-       ``from m import *`` is executed.
-
-
-    Type ``attached_files()`` for a list of all currently
-    attached files.
-
-    Use ``detach(...)`` to instruct Sage to remove a file from the internal
-    list watched files.
-
-    .. note::
-
-        ``attach`` is exactly the same as load, except it keeps track of
-        the loaded file and automatically reloads it when it changes.
+        - :meth:`~sage.misc.preparser.load_attach_path` allows you to
+          get or modify the current search path for loading and attaching
+          files.
     """
     import preparser
     for filename in files:

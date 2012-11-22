@@ -50,6 +50,7 @@ Miscellaneous
    sage/misc/cython
    sage/misc/messaging
    sage/misc/viewer
+   sage/misc/session
 
 LaTeX
 -----

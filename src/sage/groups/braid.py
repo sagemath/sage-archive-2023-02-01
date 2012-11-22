@@ -537,12 +537,12 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
             sage: B = BraidGroup(3)
             sage: B.__reduce__()
-            (<class 'sage.groups.braid.BraidGroup_class'>, ('s0', 's1'))
+            (<class 'sage.groups.braid.BraidGroup_class'>, (('s0', 's1'),))
             sage: B = BraidGroup(3, 'sigma')
             sage: B.__reduce__()
-            (<class 'sage.groups.braid.BraidGroup_class'>, ('sigma0', 'sigma1'))
+            (<class 'sage.groups.braid.BraidGroup_class'>, (('sigma0', 'sigma1'),))
         """
-        return (BraidGroup_class, (self.variable_names()))
+        return (BraidGroup_class, (self.variable_names(), ))
 
     def _repr_(self):
         """

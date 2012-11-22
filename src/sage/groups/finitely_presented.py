@@ -154,7 +154,7 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
             a*b
 
             sage: TestSuite(G).run()
-            sage: TestSuite(x).run()
+            sage: TestSuite(H).run()
 
             sage: G.<a,b> = FreeGroup()
             sage: H = G / (G([1]), G([2, 2, 2]))

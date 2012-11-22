@@ -1,9 +1,10 @@
 r"""
 Rubinstein's `L`-function Calculator
 
-This a standard part of Sage. This interface provides complete
+This interface provides complete
 access to Rubinstein's lcalc calculator with extra PARI
-functionality compiled in.
+functionality compiled in
+and is a standard part of Sage.
 
 .. note::
 

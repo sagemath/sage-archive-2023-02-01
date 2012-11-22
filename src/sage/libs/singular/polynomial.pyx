@@ -493,7 +493,7 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
         p = pNext(p)
     return deg
 
-cdef inline int singular_polynomial_length_bounded(poly *p, int bound):
+cdef int singular_polynomial_length_bounded(poly *p, int bound):
     """
     Return the number of monomials in ``p`` but stop counting at
     ``bound``.

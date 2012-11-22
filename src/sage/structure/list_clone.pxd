@@ -8,31 +8,36 @@
 from sage.structure.element cimport Element
 
 
+# Cython-0.17.2 disallows inline cpdef in non-final classes
+# This restriction will be lifted at one point, then we can set
+# some of the methods to be inline again, that is,
+# revert the patch form http://trac.sagemath.org/13740
+
 cdef class ClonableElement(Element):
     cdef bint _is_immutable
     cdef bint _needs_check
     cdef long int  _hash
 
-    cpdef inline bint _require_mutable(self) except -2
-    cpdef inline bint is_mutable(self)
-    cpdef inline bint is_immutable(self)
-    cpdef inline set_immutable(self)
+    cpdef bint _require_mutable(self) except -2
+    cpdef bint is_mutable(self)
+    cpdef bint is_immutable(self)
+    cpdef set_immutable(self)
 
-    cpdef inline _set_mutable(self)
+    cpdef _set_mutable(self)
 
-    cpdef inline ClonableElement clone(self, bint check=?)
-    cpdef inline ClonableElement __enter__(self)
-    cpdef inline bint __exit__(self, typ, value, tracback) except -2
+    cpdef ClonableElement clone(self, bint check=?)
+    cpdef ClonableElement __enter__(self)
+    cpdef bint __exit__(self, typ, value, tracback) except -2
 
 cdef class ClonableArray(ClonableElement):
     cdef list _list
 
-    cpdef inline list _get_list(self)
-    cpdef inline _set_list(self, list lst)
+    cpdef list _get_list(self)
+    cpdef _set_list(self, list lst)
     cpdef ClonableArray __copy__(self)
     cpdef check(self)
-    cpdef inline object _getitem(self, int key)
-    cpdef inline _setitem(self, int key, value)
+    cpdef object _getitem(self, int key)
+    cpdef _setitem(self, int key, value)
     cpdef int index(self, key, start=*, stop=*) except -1
     cpdef int count(self, key) except -1
     cpdef long int _hash_(self) except 0
@@ -51,8 +56,8 @@ cdef class ClonableIntArray(ClonableElement):
     cpdef _alloc_(self, int size)
     cpdef ClonableIntArray __copy__(self)
     cpdef check(self)
-    cpdef inline object _getitem(self, int key)
-    cpdef inline _setitem(self, int item, value)
+    cpdef object _getitem(self, int key)
+    cpdef _setitem(self, int item, value)
     cpdef int index(self, int item) except -1
     cpdef long int _hash_(self) except 0
-    cpdef inline list list(self)
+    cpdef list list(self)

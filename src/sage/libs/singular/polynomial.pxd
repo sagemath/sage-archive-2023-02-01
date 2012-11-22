@@ -32,5 +32,5 @@ cdef object singular_polynomial_str(poly *p, ring *r)
 cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, object varnames)
 cdef long singular_polynomial_deg(poly *p, poly *x, ring *r)
 
-cdef inline int singular_polynomial_length_bounded(poly *p, int bound)
+cdef int singular_polynomial_length_bounded(poly *p, int bound)
 cdef int singular_vector_maximal_component(poly *v, ring *r) except -1

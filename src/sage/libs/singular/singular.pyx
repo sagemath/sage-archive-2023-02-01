@@ -629,7 +629,7 @@ cdef extern from "dlfcn.h":
 # Our attempt at avoiding exponent overflows.
 cdef unsigned int max_exponent_size
 
-cdef inline int overflow_check(long e, ring *_ring) except -1:
+cdef int overflow_check(long e, ring *_ring) except -1:
     """
     Raises an ``OverflowError`` if e is > ``max_exponent_size``,
     or if it is not acceptable for Singular as exponent of the

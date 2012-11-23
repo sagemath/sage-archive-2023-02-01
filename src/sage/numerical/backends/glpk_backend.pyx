@@ -6,6 +6,7 @@ AUTHORS:
 - Nathann Cohen (2010-10): initial implementation
 - John Perry (2012-01): glp_simplex preprocessing
 - John Perry and Raniere Gaia Silva (2012-03): solver parameters
+- Christian Kuper (2012-10): Additions for sensitivity analysis
 """
 
 ##############################################################################
@@ -1231,7 +1232,7 @@ cdef class GLPKBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
-            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
+            sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"), 2)
         """
         glp_write_mps(self.lp, modern, NULL,  filename)
 
@@ -1455,7 +1456,7 @@ cdef class GLPKBackend(GenericBackend):
 
          * - ``iteration_limit``
 
-           - (int) iteration limit of the simplex algorithn.  The default is
+           - (int) iteration limit of the simplex algorithm.  The default is
              ``INT_MAX``.
 
          * - ``presolve_simplex``
@@ -1702,6 +1703,187 @@ cdef class GLPKBackend(GenericBackend):
 
         else:
             raise ValueError("This parameter is not available.")
+
+
+    cpdef int print_ranges(self, char * filename = NULL) except -1:
+        r"""
+        Print results of a sensitivity analysis
+
+        If no filename is given as an input the results of the
+        sensitivity analysis are displayed on the screen. If a
+        filename is given they are written to a file.
+
+        INPUT:
+
+        - ``filename`` -- (optional) name of the file
+
+        OUTPUT:
+
+        Zero if the operations was successful otherwise nonzero.
+
+        .. NOTE::
+
+            This method is only effective if an optimal solution has been found
+            for the lp using the simplex algorithm. In all other cases an error
+            message is printed.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "GLPK")
+            sage: p.add_variables(2)
+            1
+            sage: p.add_linear_constraint(zip([0, 1], [1, 2]), None, 3)
+            sage: p.set_objective([2, 5])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: p.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: p.print_ranges()
+            ...
+            1
+            sage: p.solve()
+            0
+            sage: p.print_ranges()
+            GLPK ... - SENSITIVITY ANALYSIS REPORT                                                                         Page   1
+            <BLANKLINE>
+            Problem:
+            Objective:  7.5 (MAXimum)
+            <BLANKLINE>
+               No. Row name     St      Activity         Slack   Lower bound       Activity      Obj coef  Obj value at Limiting
+                                                      Marginal   Upper bound          range         range   break point variable
+            ------ ------------ -- ------------- ------------- -------------  ------------- ------------- ------------- ------------
+                 1              NU       3.00000        .               -Inf         .           -2.50000        .
+                                                       2.50000       3.00000           +Inf          +Inf          +Inf
+            <BLANKLINE>
+            GLPK ... - SENSITIVITY ANALYSIS REPORT                                                                         Page   2
+            <BLANKLINE>
+            Problem:
+            Objective:  7.5 (MAXimum)
+            <BLANKLINE>
+               No. Column name  St      Activity      Obj coef   Lower bound       Activity      Obj coef  Obj value at Limiting
+                                                      Marginal   Upper bound          range         range   break point variable
+            ------ ------------ -- ------------- ------------- -------------  ------------- ------------- ------------- ------------
+                 1              NL        .            2.00000        .                -Inf          -Inf          +Inf
+                                                       -.50000          +Inf        3.00000       2.50000       6.00000
+            <BLANKLINE>
+                 2              BS       1.50000       5.00000        .                -Inf       4.00000       6.00000
+                                                        .               +Inf        1.50000          +Inf          +Inf
+            <BLANKLINE>
+            End of report
+            <BLANKLINE>
+            0
+
+
+        """
+
+        from sage.misc.all import SAGE_TMP
+
+        if filename == NULL:
+            fname = SAGE_TMP+"/ranges.tmp"
+        else:
+            fname = filename
+
+        res = glp_print_ranges(self.lp, 0, 0, 0, fname)
+
+        if filename == NULL:
+            if res == 0:
+                with open(fname) as f:
+                    for line in f:
+                        print line,
+                print
+
+        return res
+
+    cpdef double get_row_dual(self, int variable):
+        r"""
+        Returns the dual value of a constraint.
+
+        The dual value of the ith row is also the value of the ith variable
+        of the dual problem.
+
+        The dual value of a constraint is the shadow price of the constraint.
+        The shadow price is the amount by which the objective value will change
+        if the constraints bounds change by one unit under the precondition
+        that the basis remains the same.
+
+        INPUT:
+
+        - ``variable`` -- The number of the constraint
+
+        .. NOTE::
+
+           Behaviour is undefined unless ``solve`` has been called before.
+           If the simplex algorithm has not been used for solving 0.0 will
+           be returned.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: lp = get_solver(solver = "GLPK")
+            sage: lp.add_variables(3)
+            2
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: lp.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: lp.solve()
+            0
+            sage: lp.get_row_dual(0)   # tolerance 0.00001
+            0.0
+            sage: lp.get_row_dual(1)   # tolerance 0.00001
+            10.0
+
+
+        """
+
+        if self.simplex_or_intopt == simplex_only:
+            return glp_get_row_dual(self.lp, variable+1)
+        else:
+            return 0.0
+
+    cpdef double get_col_dual(self, int variable):
+        """
+        Returns the dual value (reduced cost) of a variable
+
+        The dual value is the reduced cost of a variable.
+        The reduced cost is the amount by which the objective coefficient
+        of a non basic variable has to change to become a basic variable.
+
+        INPUT:
+
+        - ``variable`` -- The number of the variable
+
+        .. NOTE::
+
+           Behaviour is undefined unless ``solve`` has been called before.
+           If the simplex algorithm has not been used for solving just a
+           0.0 will be returned.
+
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "GLPK")
+            sage: p.add_variables(3)
+            2
+            sage: p.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
+            sage: p.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
+            sage: p.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
+            sage: p.set_objective([60, 30, 20])
+            sage: import sage.numerical.backends.glpk_backend as backend
+            sage: p.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
+            sage: p.solve()
+            0
+            sage: p.get_col_dual(1)
+            -5.0
+
+        """
+        if self.simplex_or_intopt == simplex_only:
+            return glp_get_col_dual(self.lp, variable+1)
+        else:
+            return 0.0
+
 
     def __dealloc__(self):
         """

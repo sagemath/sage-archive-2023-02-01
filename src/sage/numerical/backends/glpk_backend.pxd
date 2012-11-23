@@ -76,6 +76,9 @@ cdef extern from "../../../local/include/glpk.h":
      void glp_delete_prob(c_glp_prob *)
      double glp_get_col_prim(c_glp_prob *, int)
      double glp_get_obj_val(c_glp_prob *)
+     double glp_get_col_dual(c_glp_prob *, int)
+     double glp_get_row_dual(c_glp_prob *, int)
+     int glp_print_ranges(c_glp_prob *lp, int,int, int, char *fname)
      int glp_get_num_rows(c_glp_prob *)
      int glp_get_num_cols(c_glp_prob *)
      double glp_mip_col_val(c_glp_prob *, int)
@@ -203,3 +206,7 @@ cdef class GLPKBackend(GenericBackend):
     cdef c_glp_smcp * smcp
     cdef int simplex_or_intopt
     cpdef GLPKBackend copy(self)
+
+    cpdef int print_ranges(self, char * filename = *) except -1
+    cpdef double get_row_dual(self, int variable)
+    cpdef double get_col_dual(self, int variable)

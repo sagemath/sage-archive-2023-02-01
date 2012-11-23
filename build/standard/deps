@@ -415,7 +415,7 @@ $(INST)/$(CYTHON): $(INST)/$(PYTHON)
 $(INST)/$(FLINTQS): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINTQS) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINTQS).log"
 
-$(INST)/$(FLINT): $(INST)/$(MPIR) $(INST)/$(NTL)
+$(INST)/$(FLINT): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(NTL)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINT) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINT).log"
 
 # EXTCODE depends on SAGE_ROOT_REPO because it needs SAGE_EXTCODE

@@ -914,7 +914,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
         sage: GeneralDihedralGroup([3, 1.5])
         Traceback (most recent call last):
         ...
-        TypeError: the input list must contain all Integers
+        TypeError: the input list must consist of Integers
 
         sage: GeneralDihedralGroup([4, -8])
         Traceback (most recent call last):
@@ -951,7 +951,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
             raise ValueError, 'there must be at least one direct factor in the abelian group being dihedralized'
 
         if not all(isinstance(x, Integer) for x in factors):
-            raise TypeError, 'the input list must contain all Integers'
+            raise TypeError, 'the input list must consist of Integers'
 
         if not all(x >= 2 for x in factors):
             s = 'all direct factors must be greater than 1'
@@ -976,7 +976,8 @@ class GeneralDihedralGroup(PermutationGroup_generic):
             # make contribution to the generator that dihedralizes the
             # abelian group
             for i in range(1, (a//2)+1):
-                genx.append(tuple((jumppoint+i, jumppoint+a-i)))
+                if i != a-i:
+                   genx.append(tuple((jumppoint+i, jumppoint+a-i)))
             jumppoint = jumppoint + a
         # If all of the direct factors are C2, then the action turning
         # each element into its inverse is trivial, and the

@@ -329,7 +329,8 @@ def LatticePoset(data, *args, **options):
     P = Poset(data, *args, **options)
     if not P.is_lattice():
         raise ValueError, "Not a lattice."
-    return FiniteLatticePoset(P, category = FiniteLatticePosets())
+
+    return FiniteLatticePoset(P, category = FiniteLatticePosets(), facade = P._is_facade)
 
 class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
     """

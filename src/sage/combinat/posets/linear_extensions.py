@@ -50,7 +50,7 @@ class LinearExtensionOfPoset(ClonableArray):
 
     EXAMPLES::
 
-        sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True)
+        sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True, facade = False)
         sage: p = P.linear_extension([1,4,2,3]); p
         [1, 4, 2, 3]
         sage: p.parent()
@@ -183,7 +183,7 @@ class LinearExtensionOfPoset(ClonableArray):
 
         EXAMPLES::
 
-            sage: P = Poset(([1,2,3,4], [[1,2],[1,3],[3,4]]))
+            sage: P = Poset(([1,2,3,4], [[1,2],[1,3],[3,4]]), facade = False)
             sage: p = P.linear_extension([1,3,4,2])
             sage: Q = p.to_poset(); Q
             Finite poset containing 4 elements

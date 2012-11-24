@@ -32,18 +32,17 @@ def Associahedron(cartan_type):
 
     An Associahedron
 
-    The generalized associahedron is a polytopal complex with vertices
-    in one-to-one correspondence with clusters in the cluster complex,
-    and with edges between two vertices if and only if the associated
-    two clusters intersect in codimension 1.
+    The generalized associahedron is a polytopal complex with vertices in
+    one-to-one correspondence with clusters in the cluster complex, and with
+    edges between two vertices if and only if the associated two clusters
+    intersect in codimension 1.
 
-    The associahedron of type `A_n` is one way to realize the
-    classical associahedron as defined in
+    The associahedron of type `A_n` is one way to realize the classical
+    associahedron as defined in :wikipedia:`Associahedron`
 
-    http://en.wikipedia.org/wiki/Associahedron.
-
-    A polytopal realization of the associahedron can be found in [CFZ].
-    The implementation is based on [CFZ, Theorem 1.5, Remark 1.6, and Corollary 1.9.].
+    A polytopal realization of the associahedron can be found in [CFZ].  The
+    implementation is based on [CFZ, Theorem 1.5, Remark 1.6, and Corollary
+    1.9.].
 
     EXAMPLES::
 

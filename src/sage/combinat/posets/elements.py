@@ -38,7 +38,7 @@ class PosetElement(Element):
         TESTS::
 
             sage: from sage.combinat.posets.elements import PosetElement
-            sage: P = Poset([[1,2],[4],[3],[4],[]])
+            sage: P = Poset([[1,2],[4],[3],[4],[]], facade = False)
             sage: e = P(0)
             sage: e.parent() is P
             True
@@ -55,7 +55,7 @@ class PosetElement(Element):
         """
         TESTS::
 
-            sage: Poset([[1,2],[4],[3],[4],[]])(0)._repr_()
+            sage: Poset([[1,2],[4],[3],[4],[]], facade = False)(0)._repr_()
             '0'
         """
         return "%s" %str(self.element)
@@ -68,7 +68,7 @@ class PosetElement(Element):
 
             sage: m = matrix(2,[1,2,3,4])
             sage: m.set_immutable()
-            sage: P = Poset(([m],[]))
+            sage: P = Poset(([m],[]), facade = False)
             sage: [e] = P
             sage: type(e)
             <class 'sage.combinat.posets.elements.FinitePoset_with_category.element_class'>
@@ -85,8 +85,8 @@ class PosetElement(Element):
         """
         TESTS::
 
-            sage: P = Poset([["a","b"],["d"],["c"],["d"],[]])
-            sage: Q = Poset([["a","b"],["d"],["c"],[],[]])
+            sage: P = Poset([["a","b"],["d"],["c"],["d"],[]], facade = False)
+            sage: Q = Poset([["a","b"],["d"],["c"],[],[]], facade = False)
             sage: P(0).__eq__(P(4))
             False
             sage: from sage.combinat.posets.elements import PosetElement
@@ -142,7 +142,7 @@ class PosetElement(Element):
         """
         TESTS::
 
-            sage: P = Poset([[1,2],[4],[3],[4],[]])
+            sage: P = Poset([[1,2],[4],[3],[4],[]], facade = False)
             sage: P(0)._cmp(P(4))
             -1
             sage: P(4)._cmp(P(0))
@@ -175,7 +175,7 @@ class PosetElement(Element):
 
         TESTS::
 
-            sage: P = Poset([[1,2],[4],[3],[4],[]])
+            sage: P = Poset([[1,2],[4],[3],[4],[]], facade = False)
             sage: P(0).__cmp__(P(4))
             -1
             sage: P(4).__cmp__(P(0))
@@ -211,7 +211,7 @@ class PosetElement(Element):
         ::
 
             sage: dag = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
-            sage: P = Poset(dag)
+            sage: P = Poset(dag, facade = False)
             sage: P(0) < P(1)
             False
             sage: P(4) < P(1)
@@ -228,7 +228,7 @@ class PosetElement(Element):
         ::
 
             sage: dag = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
-            sage: P = Poset(dag)
+            sage: P = Poset(dag, facade = False)
             sage: P(1) <= P(0)
             False
             sage: P(0) <= P(1)

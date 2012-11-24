@@ -270,7 +270,7 @@ class Polyhedron_base(Element):
 
         face_lattice = self.face_lattice()
         for face in face_lattice:
-            Vrep = face.element.ambient_Vrepresentation()
+            Vrep = face.ambient_Vrepresentation()
             if len(Vrep) == 2:
                 set_adjacent(Vrep[0], Vrep[1])
         return M

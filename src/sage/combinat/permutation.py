@@ -14,6 +14,161 @@ the combinatorial class of permutations.
    be called trough multiplication) disables the input checks (see
    :meth:`Permutation`). This should not happen. Do not trust the results.
 
+What does this file defines ?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The main part of this file consists in te definition of permutation objects,
+i.e. the :meth:`Permutation` method and the
+:class:`~sage.combinat.permutation.Permutation_class` class. Global options for
+elements of the permutation class can be set through the
+:meth:`PermutationOptions` method.
+
+Below are listed all methods and classes defined in this file.
+
+**Methods of Permutations objects**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~sage.combinat.permutation.Permutation_class.size` | Returns the size of the permutation 'self'.
+    :meth:`~sage.combinat.permutation.Permutation_class.cycle_string` | Returns a string of the permutation in cycle notation.
+    :meth:`~sage.combinat.permutation.Permutation_class.next` | Returns the permutation that follows p in lexicographic order.
+    :meth:`~sage.combinat.permutation.Permutation_class.prev` | Returns the permutation that comes directly before p in lexicographic order.
+    :meth:`~sage.combinat.permutation.Permutation_class.to_tableau_by_shape` | Returns a tableau of shape shape with the entries in self.
+    :meth:`~sage.combinat.permutation.Permutation_class.to_cycles` | Returns the permutation p as a list of disjoint cycles.
+    :meth:`~sage.combinat.permutation.Permutation_class.to_permutation_group_element` | Returns a PermutationGroupElement equal to self.
+    :meth:`~sage.combinat.permutation.Permutation_class.signature` | Returns the signature of a permutation.
+    :meth:`~sage.combinat.permutation.Permutation_class.is_even` | Returns True if the permutation p is even and false otherwise.
+    :meth:`~sage.combinat.permutation.Permutation_class.to_matrix` | Returns a matrix representing the permutation.
+    :meth:`~sage.combinat.permutation.Permutation_class.rank` | Returns the rank of a permutation in lexicographic ordering.
+    :meth:`~sage.combinat.permutation.Permutation_class.to_inversion_vector` | Returns the inversion vector of a permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.inversions` | Returns a list of the inversions of permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.show` | Displays the permutation as a drawing.
+    :meth:`~sage.combinat.permutation.Permutation_class.number_of_inversions` | Returns the number of inversions in the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.length` | Returns the Coxeter length of a permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.inverse` | Returns the inverse of a permutation
+    :meth:`~sage.combinat.permutation.Permutation_class.ishift` | Returns an the i-shift of self.
+    :meth:`~sage.combinat.permutation.Permutation_class.iswitch` | Returns an the i-switch of self.
+    :meth:`~sage.combinat.permutation.Permutation_class.runs` | Returns a list of the runs in the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.longest_increasing_subsequence_length` | Returns the length of the longest increasing subsequences
+    :meth:`~sage.combinat.permutation.Permutation_class.longest_increasing_subsequences` | Returns the list of the longest increasing subsequences
+    :meth:`~sage.combinat.permutation.Permutation_class.cycle_type` | Returns a partition of len(p) corresponding to the cycle type of p.
+    :meth:`~sage.combinat.permutation.Permutation_class.to_lehmer_code` | Returns the Lehmer code of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.to_lehmer_cocode` | Returns the Lehmer cocode of p.
+    :meth:`~sage.combinat.permutation.Permutation_class.reduced_word` | Returns the reduced word of a permutation.
+    :meth:`~sage.combinat.permutation.Permutation_class.reduced_words` | Returns a list of the reduced words of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.reduced_word_lexmin` | Returns a lexicographically minimal reduced word of a permutation.
+    :meth:`~sage.combinat.permutation.Permutation_class.fixed_points` | Returns a list of the fixed points of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.number_of_fixed_points` | Returns the number of fixed points of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.recoils` | Returns the list of the positions of the recoils of the permutation
+    :meth:`~sage.combinat.permutation.Permutation_class.number_of_recoils` | Returns the number of recoils of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.recoils_composition` | Returns the composition corresponding to recoils
+    :meth:`~sage.combinat.permutation.Permutation_class.descents` | Returns the list of the descents of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.idescents` | Returns a list of the idescents of self
+    :meth:`~sage.combinat.permutation.Permutation_class.idescents_signature` | Each position in self is mapped to -1 if it is an idescent and 1 if it is not an idescent.
+    :meth:`~sage.combinat.permutation.Permutation_class.number_of_descents` | Returns the number of descents of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.number_of_idescents` | Returns the number of descents of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.descents_composition` | Returns the composition corresponding to the descents.
+    :meth:`~sage.combinat.permutation.Permutation_class.descent_polynomial` | Returns the descent polynomial of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.major_index` | Returns the major index of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.imajor_index` | Returns the inverse major index of the permutation self.
+    :meth:`~sage.combinat.permutation.Permutation_class.to_major_code` | Returns the major code of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.peaks` | Returns a list of the peaks of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.number_of_peaks` | Returns the number of peaks of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.saliances` | Returns a list of the saliances of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.number_of_saliances` | Returns the number of saliances of the permutation p.
+    :meth:`~sage.combinat.permutation.Permutation_class.bruhat_lequal` | Returns True if self is less than p2 in the Bruhat order.
+    :meth:`~sage.combinat.permutation.Permutation_class.weak_excedences` | Returns all the numbers self[i] such that self[i] >= i+1.
+    :meth:`~sage.combinat.permutation.Permutation_class.bruhat_inversions` | Returns the list of inversions of p such that the application of this inversion to p decrements its number of inversions.
+    :meth:`~sage.combinat.permutation.Permutation_class.bruhat_inversions_iterator` | Returns an iterator over Bruhat inversions
+    :meth:`~sage.combinat.permutation.Permutation_class.bruhat_succ` | Returns a list of the permutations strictly greater than p in the Bruhat order such that there is no permutation between one of those and p.
+    :meth:`~sage.combinat.permutation.Permutation_class.bruhat_succ_iterator` | An iterator for the permutations that are strictly greater than p in the Bruhat order such that there is no permutation between one of those and p.
+    :meth:`~sage.combinat.permutation.Permutation_class.bruhat_pred` | Returns a list of the permutations strictly smaller than p in the Bruhat order such that there is no permutation between one of those and p.
+    :meth:`~sage.combinat.permutation.Permutation_class.bruhat_pred_iterator` | An iterator for the permutations strictly smaller than p in the Bruhat order such that there is no permutation between one of those and p.
+    :meth:`~sage.combinat.permutation.Permutation_class.bruhat_smaller` | Returns a the combinatorial class of permutations smaller than or equal to p in the Bruhat order.
+    :meth:`~sage.combinat.permutation.Permutation_class.bruhat_greater` | Returns the combinatorial class of permutations greater than or equal to p in the Bruhat order.
+    :meth:`~sage.combinat.permutation.Permutation_class.permutohedron_lequal` | Returns True if self is less than p2 in the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation_class.permutohedron_succ` | Returns a list of the permutations strictly greater than p in the permutohedron order such that there is no permutation between one of those and p.
+    :meth:`~sage.combinat.permutation.Permutation_class.permutohedron_pred` | Returns a list of the permutations strictly smaller than p in the permutohedron order such that there is no permutation between one of those and p.
+    :meth:`~sage.combinat.permutation.Permutation_class.permutohedron_smaller` | Returns a list of permutations smaller than or equal to p in the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation_class.permutohedron_greater` | Returns a list of permutations greater than or equal to p in the permutohedron order.
+    :meth:`~sage.combinat.permutation.Permutation_class.has_pattern` | Tests whether the permutation matches the pattern.
+    :meth:`~sage.combinat.permutation.Permutation_class.avoids` | Tests whether the permutation avoids the pattern.
+    :meth:`~sage.combinat.permutation.Permutation_class.pattern_positions` | Returns the list of positions where the pattern patt appears in p.
+    :meth:`~sage.combinat.permutation.Permutation_class.reverse` | Returns the permutation obtained by reversing the list.
+    :meth:`~sage.combinat.permutation.Permutation_class.complement` | Returns the complement of the permutation which is obtained by replacing each value `x` in the list with `n - x + 1`
+    :meth:`~sage.combinat.permutation.Permutation_class.dict` | Returns a dictionary corresponding to the permutation.
+    :meth:`~sage.combinat.permutation.Permutation_class.action` | Returns the action of the permutation on a list.
+    :meth:`~sage.combinat.permutation.Permutation_class.robinson_schensted` | Returns the pair of standard tableaux obtained by running the Robinson-Schensted Algorithm on self.
+    :meth:`~sage.combinat.permutation.Permutation_class.left_tableau` | Returns the right standard tableau after performing the RSK
+    :meth:`~sage.combinat.permutation.Permutation_class.right_tableau` | Returns the right standard tableau after performing the RSK
+    :meth:`~sage.combinat.permutation.Permutation_class.remove_extra_fixed_points` | Returns the permutation obtained by removing any fixed points at the end of self.
+    :meth:`~sage.combinat.permutation.Permutation_class.hyperoctahedral_double_coset_type` | Returns the coset-type of ``self`` as a partition.
+
+**Other classes defined in this file**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :class:`Permutations_nk` |
+    :class:`Permutations_mset` |
+    :class:`Permutations_set` |
+    :class:`Permutations_msetk` |
+    :class:`Permutations_setk` |
+    :meth:`Arrangements` |
+    :class:`Arrangements_msetk` |
+    :class:`Arrangements_setk` |
+    :class:`StandardPermutations_all` |
+    :class:`StandardPermutations_n` |
+    :class:`StandardPermutations_descents` |
+    :class:`StandardPermutations_recoilsfiner` |
+    :class:`StandardPermutations_recoilsfatter` |
+    :class:`StandardPermutations_recoils` |
+    :class:`StandardPermutations_bruhat_smaller` |
+    :class:`StandardPermutations_bruhat_greater` |
+    :class:`CyclicPermutations_mset` |
+    :meth:`CyclicPermutations` |
+    :meth:`CyclicPermutationsOfPartition` |
+    :class:`CyclicPermutationsOfPartition_partition` |
+    :class:`StandardPermutations_avoiding_12` |
+    :class:`StandardPermutations_avoiding_21` |
+    :class:`StandardPermutations_avoiding_132` |
+    :class:`StandardPermutations_avoiding_123` |
+    :class:`StandardPermutations_avoiding_321` |
+    :class:`StandardPermutations_avoiding_231` |
+    :class:`StandardPermutations_avoiding_312` |
+    :class:`StandardPermutations_avoiding_213` |
+    :class:`StandardPermutations_avoiding_generic` |
+    :class:`PatternAvoider` |
+    :meth:`Permutations` |
+
+**Functions defined in this file**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`from_major_code` | Returns the permutation corresponding to major code mc.
+    :meth:`from_permutation_group_element` | Returns a Permutation give a PermutationGroupElement pge.
+    :meth:`from_rank` | Returns the permutation with the specified lexicographic rank. The
+    :meth:`from_inversion_vector` | Returns the permutation corresponding to inversion vector iv.
+    :meth:`from_cycles` | Returns the permutation corresponding to cycles.
+    :meth:`from_lehmer_code` | Returns the permutation with Lehmer code lehmer.
+    :meth:`from_reduced_word` | Returns the permutation corresponding to the reduced word rw.
+    :meth:`robinson_schensted_inverse` | Returns the permutation corresponding to the pair of tableaux `(p,q)`
+    :meth:`bistochastic_as_sum_of_permutations` | Returns the matrix as a linear combination of permutations.
+    :meth:`descents_composition_list` | Returns a list of all the permutations that have a descent
+    :meth:`descents_composition_first` | Computes the smallest element of a descent class having a descent
+    :meth:`descents_composition_last` | Returns the largest element of a descent class having a descent
+    :meth:`bruhat_lequal` | Returns True if p1 is less than p2 in the Bruhat order.
+    :meth:`permutohedron_lequal` | Returns True if p1 is less than p2 in the permutohedron order.
+    :meth:`to_standard` | Returns a standard permutation corresponding to the permutation p.
+
 AUTHORS:
 
 - Mike Hansen
@@ -23,6 +178,9 @@ AUTHORS:
 - Sebastien Labbe (2009-03-17): added robinson_schensted_inverse
 
 - Travis Scrimshaw (2012-08-16): to_standard() no longer modifies input
+
+Classes and methods
+===================
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -2582,8 +2740,7 @@ class Permutation_class(CombinatorialObject):
 
     def has_pattern(self, patt):
         r"""
-        Returns the boolean answering the question 'Is patt a pattern
-        appearing in permutation p?'
+        Tests whether the permutation matches the pattern.
 
         EXAMPLES::
 
@@ -2602,8 +2759,7 @@ class Permutation_class(CombinatorialObject):
 
     def avoids(self, patt):
         """
-        Returns True if the permutation avoid the pattern patt and False
-        otherwise.
+        Tests whether the permutation avoids the pattern.
 
         EXAMPLES::
 

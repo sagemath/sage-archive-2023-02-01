@@ -12,7 +12,7 @@ the combinatorial class of permutations.
    :trac:`13742`). This is dangerous. In particular, the
    :meth:`Permutation_class._left_to_right_multiply_on_right` method (which can
    be called trough multiplication) disables the input checks (see
-   :method:`Permutation`). This should not happen. Do not trust the results.
+   :meth:`Permutation`). This should not happen. Do not trust the results.
 
 AUTHORS:
 
@@ -1002,7 +1002,7 @@ class Permutation_class(CombinatorialObject):
         #different sizes
         new_rp = rp[:] + [i+1 for i in range(len(rp), len(self))]
         new_p1 = self[:] + [i+1 for i in range(len(self), len(rp))]
-        return Permutation([ new_rp[i-1] for i in new_p1 ], check_input = False)
+        return Permutation([ new_rp[i-1] for i in new_p1 ])
 
     def __call__(self, i):
         r"""
@@ -2708,15 +2708,13 @@ class Permutation_class(CombinatorialObject):
         Returns the pair of standard tableaux obtained by running the
         Robinson-Schensted Algorithm on self.
 
-        .. WARNING::
-
-            The following examples do not check their input. This is wrong. See
-            :trac:`13742`.
-
         EXAMPLES::
 
-            sage: Permutation([6,2,3,1,7,5,4], check_input = False).robinson_schensted()
+            sage: Permutation([6,2,3,1,7,5,4]).robinson_schensted()
             [[[1, 3, 4], [2, 5], [6, 7]], [[1, 3, 5], [2, 6], [4, 7]]]
+
+        The following example does not check their input. This is wrong. See
+        :trac:`13742`.
 
         It also works in the case of repeated letters. In this case only the
         second tableau is standard::

@@ -3,9 +3,8 @@ Weighted Integer Vectors
 
 .. WARNING::
 
-   This file uses the :class:`Permutation_class` class with the flag
-   ``check_input = False``. It should not. Do not trust the
-   results. See :trac:`13742`.
+   The list(self) function in this file used the :class:`Permutation_class` class improperly, returning
+   the list of, generally speaking, invalid permutations (repeated entries, including 0).
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -31,7 +30,8 @@ from permutation import Permutation_class
 def WeightedIntegerVectors(n, weight):
     """
     Returns the combinatorial class of integer vectors of n weighted by
-    weight.
+    weight, that is, the nonnegative integer vectors `(v_1,\\dots,v_{length(weight)})`
+    satisfying `\\sum_i v_i weight[i]==n`.
 
     EXAMPLES::
 
@@ -163,5 +163,4 @@ class WeightedIntegerVectors_nweight(CombinatorialClass):
 
         perm = Word(self.weight).standard_permutation()
         l = [x for x in sorted(self.weight)]
-        return [perm._left_to_right_multiply_on_right(Permutation_class(x, check_input = False)) for x in self._recfun(self.n,l)]
-
+        return [perm.action(_) for _ in self._recfun(self.n,l)]

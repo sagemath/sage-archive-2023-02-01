@@ -27,6 +27,7 @@ from sage.misc.all import lazy_attribute
 from sage.categories.poor_man_map import PoorManMap
 from sage.categories.all import ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
+from sage.sets.family import Family
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 class CombinatorialFreeModuleElement(Element):
@@ -1848,8 +1849,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
 
     def _apply_module_morphism( self, x, on_basis, codomain=False ):
         """
-        Returns the image of x under the module morphism defined by
-        extending f by linearity.
+        Returns the image of ``x`` under the module morphism defined by
+        extending :func:`on_basis` by linearity.
 
         INPUT:
 
@@ -1860,8 +1861,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
           object indexing a basis element and returns an element of the
           codomain
 
-        - ``codomain`` (optional) - the codomain of the morphism, otherwise it is computed using on_basis
+        - ``codomain`` (optional) - the codomain of the morphism, otherwise it is computed
+          using :func:`on_basis`
 
+        If ``codomain`` is not specified, then the function tries to compute the codomain
+        of the module morphism by finding the image of one of the elements in the
+        support, hence :func:`on_basis` should return an element whose parent is the
+        codomain.
 
         EXAMPLES::
 
@@ -1873,25 +1879,35 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             6
             sage: s._apply_module_morphism(b, f) #2*(1+2+3)
             12
+            sage: s._apply_module_morphism(s(0), f)
+            0
+            sage: s._apply_module_morphism(s(1), f)
+            0
+            sage: s._apply_module_morphism(s(1), lambda part: len(part), ZZ)
+            0
+            sage: s._apply_module_morphism(s(1), lambda part: len(part))
+            Traceback (most recent call last):
+            ...
+            ValueError: Codomain could not be determined
         """
 
         if x == self.zero():
             if not codomain:
-                B = self.basis()
-                keys = list( B.keys() )
-                if len( keys ) > 0:
-                    key = keys[0]
-                    codomain = on_basis( key ).parent()
-                else:
-                    raise ValueError, 'Codomain could not be determined'
-
+                B = Family(self.basis())
+                try:
+                    z = B.first()
+                except StopIteration:
+                    raise ValueError('Codomain could not be determined')
+                codomain = on_basis(z).parent()
             return codomain.zero()
-
         else:
             if not codomain:
                 keys = x.support()
                 key = keys[0]
-                codomain = on_basis( key ).parent()
+                if hasattr(on_basis( key ), 'parent'):
+                    codomain = on_basis( key ).parent()
+                else:
+                    raise ValueError('Codomain could not be determined')
 
             if hasattr( codomain, 'linear_combination' ):
                 return codomain.linear_combination( ( on_basis( key ), coeff ) for key, coeff in x._monomial_coefficients.iteritems() )

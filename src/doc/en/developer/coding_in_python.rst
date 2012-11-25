@@ -96,7 +96,7 @@ An example template for a ``_latex_`` method follows:
        ...
        def _latex_(self):
            r"""
-           Returns the LaTeX representation of X.
+           Return the LaTeX representation of X.
 
            EXAMPLES::
 
@@ -132,7 +132,8 @@ Here is an example of the ``_latex_`` and ``_repr_`` functions for the
         """
         The ratio of a circle's circumference to its diameter.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pi
             pi
             sage: float(pi)

@@ -216,10 +216,10 @@ contains the implementation for :math:`\ZZ`.
         sage: 'sage'*Integer(3)
         'sagesagesage'
 
-    COERCIONS: Returns version of this integer in the multi-precision
-    floating real field R.
+    COERCIONS:
 
-    ::
+    Return a version of this integer in the multi-precision floating
+    real field R::
 
         sage: n = 9390823
         sage: RR = RealField(200)
@@ -265,8 +265,10 @@ information. Source files in the Sage library contain numerous
 examples on how to format your documentation, so you could use them as
 a guide.
 
--  A one-sentence description of the function, followed by a blank
-   line.
+-  A one-sentence description of the function, followed by a blank line
+   and ending in a period. It prescribes the function or method's
+   effect as a command ("Do this", "Return that"), not as a
+   description; e.g. don't write "Returns the pathname ..."
 
 -  An INPUT and an OUTPUT block for input and output arguments (see
    below for format). The type names should be descriptive, but do not
@@ -310,15 +312,15 @@ a guide.
    functions without these doctests will not be accepted for inclusion
    with Sage.
 
-- A SEEALSO block (optional) with links to related things in Sage. A SEEALSO
-  block should start with ``.. SEEALSO::``. It can also be the lower-case form
-  ``.. seealso::``. However, you are encouraged to use the upper-case form
-  ``.. SEEALSO::``. See :ref:`chapter-sage_manuals_links` for details on how
-  to setup link in Sage.  Here's an example of a SEEALSO block::
+-  A SEEALSO block (optional) with links to related things in Sage. A SEEALSO
+   block should start with ``.. SEEALSO::``. It can also be the lower-case form
+   ``.. seealso::``. However, you are encouraged to use the upper-case form
+   ``.. SEEALSO::``. See :ref:`chapter-sage_manuals_links` for details on how
+   to setup link in Sage.  Here's an example of a SEEALSO block::
 
-      .. SEEALSO::
+       .. SEEALSO::
 
-          :ref:`chapter-sage_manuals_links`
+           :ref:`chapter-sage_manuals_links`
 
 -  An ALGORITHM block (optional) which indicates what software
    and/or what algorithm is used. For example
@@ -440,15 +442,15 @@ indentation::
 
     def point(self, x=1, y=2):
         r"""
-        This function returns the point `(x^5,y)`.
+        Return the point `(x^5,y)`.
 
         INPUT:
 
-         - ``x`` - integer (default: 1) the description of the
+         - ``x`` -- integer (default: 1) the description of the
 	   argument x goes here.  If it contains multiple lines, all
 	   the lines after the first need to be indented.
 
-         - ``y`` - integer (default: 2) the ...
+         - ``y`` -- integer (default: 2) the ...
 
         OUTPUT:
 
@@ -504,7 +506,7 @@ docstring would look like this::
 
     def point(self, x=1, y=2):
         r"""
-        This function returns the point `(x^5,y)`.
+        Return the point `(x^5,y)`.
 
         :param x: the description of the argument x goes here.
 	   If it contains multiple lines, all the lines after the
@@ -530,12 +532,12 @@ You are strongly encouraged to:
 
        def cos(x):
            """
-           Returns `\\cos(x)`.
+           Return `\\cos(x)`.
            """
 
        def sin(x):
            r"""
-           Returns `\sin(x)`.
+           Return `\sin(x)`.
            """
 
    You can also use the MATH block to format complicated mathematical
@@ -624,9 +626,9 @@ You are strongly encouraged to:
 
         INPUT:
 
-        - ``S`` - a string monoid over some alphabet
+        - ``S`` -- a string monoid over some alphabet
 
-        - ``m`` - integer `> 0`; the block length of matrices that specify
+        - ``m`` -- integer `> 0`; the block length of matrices that specify
           block permutations
 
         OUTPUT:

@@ -14,7 +14,7 @@ the combinatorial class of permutations.
    be called trough multiplication) disables the input checks (see
    :meth:`Permutation`). This should not happen. Do not trust the results.
 
-What does this file defines ?
+What does this file define ?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The main part of this file consists in te definition of permutation objects,
@@ -2869,8 +2869,10 @@ class Permutation_class(CombinatorialObject):
             sage: Permutation([6,2,3,1,7,5,4]).robinson_schensted()
             [[[1, 3, 4], [2, 5], [6, 7]], [[1, 3, 5], [2, 6], [4, 7]]]
 
-        The following example does not check their input. This is wrong. See
-        :trac:`13742`.
+        .. WARNING::
+
+            The following example does not check their input. This is wrong. See
+            :trac:`13742`.
 
         It also works in the case of repeated letters. In this case only the
         second tableau is standard::

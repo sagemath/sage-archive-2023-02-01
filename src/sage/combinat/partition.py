@@ -3727,11 +3727,17 @@ def Partitions(n=None, **kwargs):
         Traceback (most recent call last):
         ...
         ValueError: the size must be specified with any keyword argument
+
+        sage: Partitions(max_part = 3)
+        3-Bounded Partitions
     """
     if n == infinity:
         raise ValueError, "n cannot be infinite"
     if n is None:
         if len(kwargs) > 0:
+            if len(kwargs) == 1:
+                if 'max_part' in kwargs:
+                    return Partitions_all_bounded(kwargs['max_part'])
             raise ValueError, 'the size must be specified with any keyword argument'
         return Partitions_all()
     else:
@@ -3882,8 +3888,88 @@ class Partitions_all(InfiniteAbstractCombinatorialClass):
             sage: it = iter(Partitions())    # indirect doctest
             sage: [it.next() for i in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [4], [3, 1], [2, 2]]
-         """
+        """
         return Partitions_n(n)
+
+class Partitions_all_bounded(InfiniteAbstractCombinatorialClass):
+    def __init__(self, k):
+        """
+        TESTS::
+
+            sage: from sage.combinat.sf.k_dual import Partitions_all_bounded
+            sage: P = Partitions_all_bounded(3)
+            sage: P == loads(dumps(P))
+            True
+        """
+        self.k = k
+
+    Element = Partition_class
+
+    def cardinality(self):
+        """
+        Returns the cardinality of the set of bounded integer partitions.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.sf.k_dual import Partitions_all_bounded
+            sage: Partitions_all_bounded(3).cardinality()
+            +Infinity
+        """
+        return infinity
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: from sage.combinat.sf.k_dual import Partitions_all_bounded
+            sage: P = Partitions_all_bounded(3)
+            sage: Partition([2,1]) in P
+            True
+            sage: [2,1] in P
+            True
+            sage: [3,2,1] in P
+            True
+            sage: [1,2] in P
+            False
+            sage: [5,1] in P
+            False
+            sage: [0] in P
+            False
+            sage: [] in P
+            True
+            sage: x in P
+            False
+        """
+        try:
+            return Partitions()(x).get_part(0) <= self.k
+        except (ValueError, TypeError):
+            return False
+
+    def __repr__(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.sf.k_dual import Partitions_all_bounded
+            sage: repr(Partitions_all_bounded(3))
+            '3-Bounded Partitions'
+        """
+        return "%d-Bounded Partitions"%self.k
+
+    def _infinite_cclass_slice(self, n):
+        """
+        Needed by InfiniteAbstractCombinatorialClass to build __iter__.
+
+        TESTS::
+
+            sage: from sage.combinat.sf.k_dual import Partitions_all_bounded
+            sage: Partitions_all_bounded(3)._infinite_cclass_slice(4) == Partitions(4, max_part = 3)
+            True
+            sage: it = iter(Partitions_all_bounded(3))    # indirect doctest
+            sage: [it.next() for i in range(10)]
+            [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [3, 1], [2, 2], [2, 1, 1]]
+        """
+        return Partitions(n, max_part = self.k)
+
 
 
 class Partitions_n(CombinatorialClass):

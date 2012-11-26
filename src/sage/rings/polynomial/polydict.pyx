@@ -104,7 +104,7 @@ cdef class PolyDict:
             new_pdict = {}
             if remove_zero:
                 for k, c in pdict.iteritems():
-                    if c != zero:
+                    if not c == zero:
                         new_pdict[ETuple(map(int,k))] = c
             else:
                 for k, c in pdict.iteritems():
@@ -440,7 +440,7 @@ cdef class PolyDict:
             neg_one = -1
         for e in E:
             c = self.__repn[e]
-            if c != self.__zero:
+            if not c == self.__zero:
                 sign_switch = False
                 # First determine the multinomial:
                 multi = " ".join([vars[j] +
@@ -527,7 +527,7 @@ cdef class PolyDict:
 
         for e in E:
             c = self.__repn[e]
-            if c != self.__zero:
+            if not c == self.__zero:
                 sign_switch = False
                 # First determine the multinomial:
                 multi = ""
@@ -549,7 +549,7 @@ cdef class PolyDict:
                         sign_switch = True
                     else:
                         multi = "-%s"%(multi)
-                elif c != pos_one:
+                elif not c == pos_one:
                     if not atomic_coefficients:
                         c = str(c)
                         if c.find("+") != -1 or c.find("-") != -1 or c.find(" ") != -1:
@@ -663,7 +663,7 @@ cdef class PolyDict:
         """
         v = {}
         # if s is 0, then all the products will be zero
-        if s != self.__zero:
+        if not s == self.__zero:
             for e, c in self.__repn.iteritems():
                 v[e] = c*s
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
@@ -685,7 +685,7 @@ cdef class PolyDict:
         """
         v = {}
         # if s is 0, then all the products will be zero
-        if s != self.__zero:
+        if not s == self.__zero:
             for e, c in self.__repn.iteritems():
                 v[e] = s*c
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)

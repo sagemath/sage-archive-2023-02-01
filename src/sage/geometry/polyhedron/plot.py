@@ -161,6 +161,10 @@ def cyclic_sort_vertices_2d(Vlist):
     two others. For example, any 2-dimensional polyhedron satisfies
     this.
 
+    See
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_adjacency_matrix`
+    for a discussion of "adjacent".
+
     EXAMPLES::
 
         sage: from sage.geometry.polyhedron.plot import cyclic_sort_vertices_2d
@@ -176,18 +180,71 @@ def cyclic_sort_vertices_2d(Vlist):
          A vertex at (0, -1),
          A vertex at (-1, 0),
          A vertex at (0, 1)]
+
+    Rays are allowed, too::
+
+        sage: P = Polyhedron(vertices=[(0, 1), (1, 0), (2, 0), (3, 0), (4, 1)], rays=[(0,1)])
+        sage: P.adjacency_matrix()
+        [0 1 0 1 0]
+        [1 0 1 0 0]
+        [0 1 0 0 1]
+        [1 0 0 0 1]
+        [0 0 1 1 0]
+        sage: cyclic_sort_vertices_2d(P.Vrepresentation())
+        [A vertex at (3, 0),
+         A vertex at (1, 0),
+         A vertex at (0, 1),
+         A ray in the direction (0, 1),
+         A vertex at (4, 1)]
+
+        sage: P = Polyhedron(vertices=[(0, 1), (1, 0), (2, 0), (3, 0), (4, 1)], rays=[(0,1), (1,1)])
+        sage: P.adjacency_matrix()
+        [0 1 0 0 0]
+        [1 0 1 0 0]
+        [0 1 0 0 1]
+        [0 0 0 0 1]
+        [0 0 1 1 0]
+        sage: cyclic_sort_vertices_2d(P.Vrepresentation())
+        [A ray in the direction (1, 1),
+         A vertex at (3, 0),
+         A vertex at (1, 0),
+         A vertex at (0, 1),
+         A ray in the direction (0, 1)]
+
+        sage: P = Polyhedron(vertices=[(1,2)], rays=[(0,1)], lines=[(1,0)])
+        sage: P.adjacency_matrix()
+        [0 0 1]
+        [0 0 0]
+        [1 0 0]
+        sage: cyclic_sort_vertices_2d(P.Vrepresentation())
+        [A vertex at (0, 2),
+         A line in the direction (1, 0),
+         A ray in the direction (0, 1)]
     """
     if len(Vlist)==0: return Vlist
-
+    Vlist = list(Vlist)
+    result = []
     adjacency_matrix = Vlist[0].polyhedron().vertex_adjacency_matrix()
-    result = [ Vlist.pop() ]
+
+    # Any object in Vlist has 0,1, or 2 adjacencies. Break into connected chains:
+    chain = [ Vlist.pop() ]
     while len(Vlist)>0:
-        for i in range(len(Vlist)):
-            if adjacency_matrix[Vlist[i].index(), result[-1].index()] == 1:
-                result.append( Vlist.pop(i) )
+        first_index = chain[0].index()
+        last_index = chain[-1].index()
+        for v in Vlist:
+            v_index = v.index()
+            if adjacency_matrix[last_index, v_index] == 1:
+                chain = chain + [v]
+                Vlist.remove(v)
+                break;
+            if adjacency_matrix[first_index, v.index()] == 1:
+                chain = [v] + chain
+                Vlist.remove(v)
                 break;
         else:
-            raise ValueError
+            result += chain
+            chain = [ Vlist.pop() ]
+    result += chain
     return result
 
 
@@ -481,7 +538,7 @@ class Projection(SageObject):
 
     def stereographic(self, projection_point=None):
         r"""
-        Rteurn the stereographic projection.
+        Return the stereographic projection.
 
         INPUT:
 
@@ -682,12 +739,12 @@ class Projection(SageObject):
             sage: p = Polyhedron(ieqs = [[1, 0, 0, 1],[1,1,0,0]])
             sage: pp = p.projection()
             sage: pp.arrows
-            [[0, 1], [0, 2], [0, 3], [0, 4]]
+            [[0, 1], [0, 2]]
             sage: del pp.arrows
             sage: pp.arrows = Sequence([])
             sage: pp._init_lines_arrows(p)
             sage: pp.arrows
-            [[0, 1], [0, 2], [0, 3], [0, 4]]
+            [[0, 1], [0, 2]]
         """
         obj = polyhedron.Vrepresentation()
         for i in range(len(obj)):

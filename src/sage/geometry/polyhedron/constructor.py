@@ -11,8 +11,9 @@ complementary representations of the same data:
     This describes a polyhedron as the common solution set of a
     finite number of
 
-        * linear inequalities `A \vec{x} + b \geq 0`, and
-        * linear equations  `C \vec{x} + d = 0`.
+    * linear **inequalities** `A \vec{x} + b \geq 0`, and
+
+    * linear **equations**  `C \vec{x} + d = 0`.
 
 
 **V(ertex)-representation**
@@ -28,12 +29,70 @@ complementary representations of the same data:
 
     where
 
-        * `v_1`, `\dots`, `v_k` are a finite number of vertices,
-        * `r_1`, `\dots`, `r_m` are generators of rays,
-        * and `\ell_1`, `\dots`, `\ell_n` are generators of full lines.
+    * **vertices** `v_1`, `\dots`, `v_k` are a finite number of
+      points. Each vertex is specified by an arbitrary vector, and two
+      points are equal if and only if the vector is the same.
 
+    * **rays** `r_1`, `\dots`, `r_m` are a finite number of directions
+      (directions of infinity). Each ray is specified by a non-zero
+      vector, and two rays are equal if and only if the vectors are
+      the same up to rescaling with a positive constant.
 
-A polytope is defined as a bounded polyhedron.
+    * **lines** `\ell_1`, `\dots`, `\ell_n` are a finite number of
+      unoriented directions. In other words, a line is equivalent to
+      the set `\{r, -r\}` for a ray `r`. Each line is specified by a
+      non-zero vector, and two lines are equivalent if and only if the
+      vectors are the same up to rescaling with a non-zero (possibly
+      negative) constant.
+
+When specifying a polyhedron, you can input a non-minimal set of
+inequalities/equations or generating vertices/rays/lines. The
+non-minimal generators are usually called points, non-extremal rays,
+and non-extremal lines, but for our purposes it is more convenient to
+always talk about vertices/rays/lines. Sage will remove any
+superfluous representation objects and always return a minimal
+representation. For example, `(0,0)` is a superfluous vertex here::
+
+    sage: triangle = Polyhedron(vertices=[(0,2), (-1,0), (1,0), (0,0)])
+    sage: triangle.vertices()
+    (A vertex at (-1, 0), A vertex at (1, 0), A vertex at (0, 2))
+
+A polytope is defined as a bounded polyhedron. In this case, the
+minimal representation is unique and a vertex of the minimal
+representation is equivalent to a 0-dimensional face of the
+polytope. This is why one generally does not distinguish vertices and
+0-dimensional faces. But for non-bounded polyhedra we have to allow
+for a more general notion of "vertex" in order to make sense of the
+Minkowsi sum presentation::
+
+    sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
+    sage: half_plane.Hrepresentation()
+    (An inequality (1, 0) x + 0 >= 0,)
+    sage: half_plane.Vrepresentation()
+    (A line in the direction (0, 1), A ray in the direction (1, 0), A vertex at (0, 0))
+
+Note how we need a point in the above example to anchor the ray and
+line. But any point on the boundary of the half-plane would serve the
+purpose just as well. Sage picked the origin here, but this choice is
+not unique. Similarly, the choice of ray is arbitrary but necessary to
+generate the half-plane.
+
+Finally, note that while rays and lines generate unbounded edges of
+the polyhedron they are not in a one-to-one correspondence with
+them. For example, the infinite strip has two infinite edges (1-faces)
+but only one generating line::
+
+    sage: strip = Polyhedron(vertices=[(1,0),(-1,0)], lines=[(0,1)])
+    sage: strip.Hrepresentation()
+    (An inequality (1, 0) x + 1 >= 0, An inequality (-1, 0) x + 1 >= 0)
+    sage: strip.lines()
+    (A line in the direction (0, 1),)
+    sage: strip.faces(1)
+    (<0,1>, <0,2>)
+    sage: for face in strip.faces(1):
+    ...      print face, '=', face.as_polyhedron().Vrepresentation()
+    <0,1> = (A line in the direction (0, 1), A vertex at (-1, 0))
+    <0,2> = (A line in the direction (0, 1), A vertex at (1, 0))
 
 EXAMPLES::
 
@@ -64,13 +123,13 @@ EXAMPLES::
     A ray in the direction (0, 1)
     sage: r.vector()
     (0, 1)
-    sage: [x for x in v.neighbors()]
-    [A ray in the direction (0, 1), A ray in the direction (1, 0), A vertex at (1, 0)]
+    sage: list( v.neighbors() )
+    [A ray in the direction (0, 1), A vertex at (1, 0)]
 
 Inequalities `A \vec{x} + b \geq 0` (and, similarly, equations) are
 specified by a list ``[b, A]``::
 
-    sage: Polyhedron(ieqs = [[0,1,0],[0,0,1],[1,-1,-1]]).Hrepresentation()
+    sage: Polyhedron(ieqs=[(0,1,0),(0,0,1),(1,-1,-1)]).Hrepresentation()
     (An inequality (-1, -1) x + 1 >= 0,
      An inequality (1, 0) x + 0 >= 0,
      An inequality (0, 1) x + 0 >= 0)

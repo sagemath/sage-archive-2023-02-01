@@ -87,11 +87,11 @@ class Polyhedron_base(Element):
     - ``parent`` -- the parent, an instance of
       :class:`~sage.geometry.polyhedron.parent.Polyhedra`.
 
-    - ``Vrep`` -- a list `[vertices, rays, lines]`` or ``None``. The
+    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``. The
       V-representation of the polyhedron. If ``None``, the polyhedron
       is determined by the H-representation.
 
-    - ``Hrep`` -- a list `[ieqs, eqns]`` or ``None``. The
+    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``. The
       H-representation of the polyhedron. If ``None``, the polyhedron
       is determined by the V-representation.
 
@@ -273,13 +273,6 @@ class Polyhedron_base(Element):
             Vrep = face.element.ambient_Vrepresentation()
             if len(Vrep) == 2:
                 set_adjacent(Vrep[0], Vrep[1])
-
-        for l in self.line_generator():
-            for vrep in self.Vrep_generator():
-                set_adjacent(l, vrep)
-        for r in self.ray_generator():
-            for vrep in self.Vrep_generator():
-                set_adjacent(r, vrep)
         return M
 
     def delete(self):
@@ -727,6 +720,9 @@ class Polyhedron_base(Element):
         Return the objects of the V-representation. Each entry is
         either a vertex, a ray, or a line.
 
+        See :mod:`sage.geometry.polyhedron.constructor` for a
+        definition of vertex/ray/line.
+
         INPUT:
 
         - ``index`` -- either an integer or ``None``.
@@ -894,6 +890,13 @@ class Polyhedron_base(Element):
 
             Instead of working with vertex indices, you can use the
             V-representation objects directly (see examples).
+
+        Two V-representation objects are adjacent if they generate a
+        (1-dimensional) face of the polyhedron. Examples are two
+        vertices of a polytope that bound an edge, or a vertex and a
+        ray of a polyhedron that generate a bounding half-line of the
+        polyhedron. See :meth:`vertex_adjacency_matrix` for a more
+        detailed discussion.
 
         OUTPUT:
 
@@ -1462,6 +1465,98 @@ class Polyhedron_base(Element):
             [1 1 0 1 1]
             [1 1 1 0 1]
             [1 1 1 1 0]
+
+        The rows and columns of the vertex adjacency matrix correspond
+        to the :meth:`Vrepresentation` objects: vertices, rays, and
+        lines. The `(i,j)` matrix entry equals `1` if the `i`-th and
+        `j`-th V-representation object are adjacent.
+
+        Two vertices are adjacent if they are the endpoints of an
+        edge, that is, a one-dimensional face. For unbounded polyhedra
+        this clearly needs to be generalized and we define two
+        V-representation objects (see
+        :mod:`sage.geometry.polyhedron.constructor`) to be adjacent if
+        they together generate a one-face. There are three possible
+        combinations:
+
+        * Two vertices can bound a finite-length edge.
+
+        * A vertex and a ray can generate a half-infinite edge
+          starting at the vertex and with the direction given by the
+          ray.
+
+        * A vertex and a line can generate an infinite edge. The
+          position of the vertex on the line is arbitrary in this
+          case, only its transverse position matters. The direction of
+          the edge is given by the line generator.
+
+        For example, take the half-plane::
+
+            sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
+            sage: half_plane.Hrepresentation()
+            (An inequality (1, 0) x + 0 >= 0,)
+
+        Its (non-unique) V-representation consists of a vertex, a ray,
+        and a line. The only edge is spanned by the vertex and the
+        line generator, so they are adjacent::
+
+            sage: half_plane.Vrepresentation()
+            (A line in the direction (0, 1), A ray in the direction (1, 0), A vertex at (0, 0))
+            sage: half_plane.vertex_adjacency_matrix()
+            [0 0 1]
+            [0 0 0]
+            [1 0 0]
+
+        In one dimension higher, that is for a half-space in 3
+        dimensions, there is no one-dimensional face. Hence nothing is
+        adjacent::
+
+            sage: Polyhedron(ieqs=[(0,1,0,0)]).vertex_adjacency_matrix()
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+
+        EXAMPLES:
+
+        In a bounded polygon, every vertex has precisely two adjacent ones::
+
+            sage: P = Polyhedron(vertices=[(0, 1), (1, 0), (3, 0), (4, 1)])
+            sage: for v in P.Vrep_generator():
+            ...      print P.adjacency_matrix().row(v.index()), v
+            (0, 1, 0, 1) A vertex at (0, 1)
+            (1, 0, 1, 0) A vertex at (1, 0)
+            (0, 1, 0, 1) A vertex at (3, 0)
+            (1, 0, 1, 0) A vertex at (4, 1)
+
+        If the V-representation of the polygon contains vertices and
+        one ray, then each V-representation object is adjacent to two
+        V-representation objects::
+
+            sage: P = Polyhedron(vertices=[(0, 1), (1, 0), (3, 0), (4, 1)],
+            ...                  rays=[(0,1)])
+            sage: for v in P.Vrep_generator():
+            ...       print P.adjacency_matrix().row(v.index()), v
+            (0, 1, 0, 0, 1) A ray in the direction (0, 1)
+            (1, 0, 1, 0, 0) A vertex at (0, 1)
+            (0, 1, 0, 1, 0) A vertex at (1, 0)
+            (0, 0, 1, 0, 1) A vertex at (3, 0)
+            (1, 0, 0, 1, 0) A vertex at (4, 1)
+
+        If the V-representation of the polygon contains vertices and
+        two distinct rays, then each vertex is adjacent to two
+        V-representation objects (which can now be vertices or
+        rays). The two rays are not adjacent to each other::
+
+            sage: P = Polyhedron(vertices=[(0, 1), (1, 0), (3, 0), (4, 1)],
+            ...                  rays=[(0,1), (1,1)])
+            sage: for v in P.Vrep_generator():
+            ...       print P.adjacency_matrix().row(v.index()), v
+            (0, 1, 0, 0, 0) A ray in the direction (0, 1)
+            (1, 0, 1, 0, 0) A vertex at (0, 1)
+            (0, 1, 0, 0, 1) A vertex at (1, 0)
+            (0, 0, 0, 0, 1) A ray in the direction (1, 1)
+            (0, 0, 1, 1, 0) A vertex at (3, 0)
         """
         return self._vertex_adjacency_matrix()
 

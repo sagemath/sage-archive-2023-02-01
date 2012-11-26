@@ -2042,10 +2042,10 @@ class PermutationGroup_generic(group.Group):
             sage: len(S1.conjugacy_classes_representatives())
             9
 
-        If your normal subgroup is large, and you are fairly confident
-        your inputs will succesfully create a semidirect product, then
+        If your normal subgroup is large, and you are confident that
+        your inputs will successfully create a semidirect product, then
         it is beneficial, for the sake of time efficiency, to set the
-        ``check`` parameter to false::
+        ``check`` parameter to ``False``.  ::
 
             sage: C2 = CyclicPermutationGroup(2)
             sage: C2000 = CyclicPermutationGroup(500)
@@ -2058,16 +2058,34 @@ class PermutationGroup_generic(group.Group):
             sage: D4 = DihedralGroup(4)
             sage: alpha = PermutationGroupMorphism(C3,C3,[C3("(1,3,2)")])
             sage: alpha1 = PermutationGroupMorphism(C3,C3,[C3("(1,2,3)")])
-            sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,2)], [alpha,alpha1]]);s
-            (<type 'exceptions.ValueError'>, 'the inputted generator list must generate the calling group, [(1, 2, 3, 4), (1, 2)] does not generate Dihedral group of order 8 as a permutation group')
-            sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,3)], [alpha]]);s
-            (<type 'exceptions.ValueError'>, 'the list of generators and the list of morphisms they map to must be of equal length')
+
+            sage: s = D4.semidirect_product('junk', [[(1,2,3,4),(1,2)], [alpha, alpha1]])
+            Traceback (most recent call last):
+            ...
+            TypeError: junk is not a permutation group
+
+            sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,2)], [alpha, alpha1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the generator list must generate the calling group, [(1, 2, 3, 4), (1, 2)]
+            does not generate Dihedral group of order 8 as a permutation group
+
+            sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,3)], [alpha]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the list of generators and the list of morphisms must be of equal length
+
             sage: alpha2 = PermutationGroupMorphism(C3, D4, [D4("()")])
-            sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,3)], [alpha, alpha2]]);s
-            (<type 'exceptions.ValueError'>, 'an element of the automorphism list is not an endomorphism (and is therefore not an automorphism)')
+            sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,3)], [alpha, alpha2]])
+            Traceback (most recent call last):
+            ...
+            ValueError: an element of the automorphism list is not an endomorphism (and is therefore not an automorphism)
+
             sage: alpha3 = PermutationGroupMorphism(C3,C3,[C3("()")])
-            sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,3)], [alpha, alpha3]]);s
-            (<type 'exceptions.ValueError'>, 'an element of the automorphism list is not an injection (and is therefore not an automorphism)')
+            sage: s = D4.semidirect_product(C3, [[(1,2,3,4),(1,3)], [alpha, alpha3]])
+            Traceback (most recent call last):
+            ...
+            ValueError: an element of the automorphism list is not an injection (and is therefore not an automorphism)
 
         REFERENCES:
 
@@ -2079,30 +2097,35 @@ class PermutationGroup_generic(group.Group):
 
         """
         if check == True:
-
+            from sage.categories.finite_permutation_groups import FinitePermutationGroups
+            if N not in FinitePermutationGroups():
+                raise TypeError("{0} is not a permutation group".format(N))
             if not PermutationGroup(gens = mapping[0]) == self:
-                return ValueError, 'the inputted generator list must generate the calling group, %s does not generate %s'%(mapping[0], self._repr_())
-
+                msg = 'the generator list must generate the calling group, {0} does not generate {1}'
+                raise ValueError(msg.format(mapping[0], self._repr_()))
             if len(mapping[0]) != len(mapping[1]):
-                return ValueError, 'the list of generators and the list of morphisms they map to must be of equal length'
-
+                msg = 'the list of generators and the list of morphisms must be of equal length'
+                raise ValueError(msg)
             if not all([a.is_endomorphism() for a in mapping[1]]):
-                return ValueError, 'an element of the automorphism list is not an endomorphism (and is therefore not an automorphism)'
-
+                msg = 'an element of the automorphism list is not an endomorphism (and is therefore not an automorphism)'
+                raise ValueError(msg)
             if not all([a.kernel().order() == 1 for a in mapping[1]]):
-                return ValueError, 'an element of the automorphism list is not an injection (and is therefore not an automorphism)'
+                msg = 'an element of the automorphism list is not an injection (and is therefore not an automorphism)'
+                raise ValueError(msg)
 
-        # create a parrallel list of the automorphisms of N in gap
+        # create a parallel list of the automorphisms of N in GAP
+        gap.eval('N := Group(' + str(N.gens()) + ')')
+        gens_string = ",".join([str(x) for x in N.gens()])
+        homomorphism_cmd = 'alpha := GroupHomomorphismByImages(N, N, [{0}],[{1}])'
         gap.eval('morphisms := []')
         for alpha in mapping[1]:
-            gap.eval('N := Group(' + str(N.gens()) + ')')
-            images = [str(alpha(n)) for n in N.gens()]
-            gap.eval('alpha := GroupHomomorphismByImages(N,N,[' + ",".join([str(x) for x in N.gens()]) + '],[' + ",".join(images) + '])')
+            images_string = ",".join([str(alpha(n)) for n in N.gens()])
+            gap.eval(homomorphism_cmd.format(gens_string, images_string))
             gap.eval('Add(morphisms, alpha)')
         # create the necessary homomorphism from self into the
-        # automorphism group of N in gap
-        gap.eval('H := Group(' + str(mapping[0]) + ')')
-        gap.eval('phi := GroupHomomorphismByImages(H, AutomorphismGroup(N),' + str(mapping[0]) + ',morphisms)')
+        # automorphism group of N in GAP
+        gap.eval('H := Group({0})'.format(mapping[0]))
+        gap.eval('phi := GroupHomomorphismByImages(H, AutomorphismGroup(N),{},morphisms)'.format(mapping[0]))
         gap.eval('sdp := SemidirectProduct(H, phi, N)')
         return PermutationGroup(gap_group = 'sdp')
 

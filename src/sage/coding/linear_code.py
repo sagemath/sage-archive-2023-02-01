@@ -163,6 +163,8 @@ AUTHORS:
 
 - Niles Johnson (2010-08): :trac:`#3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
+- Thomas Feulner (2012-11): :trac:`13723`: deprecation of ``hamming_weight()``
+
 TESTS::
 
     sage: MS = MatrixSpace(GF(2),4,7)
@@ -226,10 +228,17 @@ def hamming_weight(v):
     EXAMPLES::
 
         sage: hamming_weight(vector(GF(2),[0,0,1]))
+        doctest:1: DeprecationWarning: The global function hamming_weight(v) is
+        deprecated, instead use v.hamming_weight().
+        See http://trac.sagemath.org/13723 for details.
         1
         sage: hamming_weight(vector(GF(2),[0,0,0]))
         0
     """
+    from sage.misc.superseded import deprecation
+    deprecation(13723, "The global function hamming_weight(v) is deprecated, " +
+                "instead use v.hamming_weight().")
+
     return len(v.nonzero_positions())
 
 def code2leon(C):
@@ -824,8 +833,10 @@ class LinearCode(module.Module_old):
         EXAMPLES::
 
             sage: C = HammingCode(3,GF(2))
-            sage: [list(c) for c in C if hamming_weight(c) < 4]
-             [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1, 1], [0, 1, 0, 0, 1, 0, 1], [0, 0, 1, 0, 1, 1, 0], [1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 1, 0, 0, 1]]
+            sage: [list(c) for c in C if c.hamming_weight() < 4]
+            [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1, 1], [0, 1, 0, 0, 1, 0, 1],
+            [0, 0, 1, 0, 1, 1, 0], [1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0],
+            [0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 1, 0, 0, 1]]
         """
         n = self.length()
         k = self.dimension()
@@ -924,7 +935,7 @@ class LinearCode(module.Module_old):
             sage: C.assmus_mattson_designs(6)
             0
             sage: X = range(24)                           #  example 2
-            sage: blocks = [c.support() for c in C if hamming_weight(c)==8]; len(blocks)  # long time computation
+            sage: blocks = [c.support() for c in C if c.hamming_weight()==8]; len(blocks)  # long time computation
             759
 
         REFERENCE:
@@ -1965,7 +1976,7 @@ class LinearCode(module.Module_old):
             #print "Running Guava's MinimumWeight ...\n"
             return ZZ(d)
         Gstr = "%s*Z(%s)^0"%(gapG, q)
-        self.__distance = hamming_weight(min_wt_vec_gap(Gstr,n,k,F))
+        self.__distance = min_wt_vec_gap(Gstr,n,k,F).hamming_weight()
         return self.__distance
 
     def module_composition_factors(self, gp):
@@ -2134,7 +2145,7 @@ class LinearCode(module.Module_old):
                 from sage.matrix.constructor import matrix
                 weights = {}
                 for c in self:
-                    wt = hamming_weight(c)
+                    wt = c.hamming_weight()
                     if wt not in weights:
                         weights[wt] = [c]
                     else:

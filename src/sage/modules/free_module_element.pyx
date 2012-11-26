@@ -7,6 +7,9 @@ AUTHORS:
 
 - Josh Kantor
 
+- Thomas Feulner (2012-11): Added :meth:`FreeModuleElement.hamming_weight` and
+  :meth:`FreeModuleElement_generic_sparse.hamming_weight`
+
 TODO: Change to use a get_unsafe / set_unsafe, etc., structure
 exactly like with matrices, since we'll have to define a bunch of
 special purpose implementations of vectors easily and
@@ -2993,7 +2996,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def nonzero_positions(self):
         """
-        Return the sorted list of integers i such that self[i] != 0.
+        Return the sorted list of integers ``i`` such that ``self[i] != 0``.
 
         EXAMPLES::
 
@@ -3007,7 +3010,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def support(self):   # do not override.
         """
-        Return the integers i such that self[i] != 0.
+        Return the integers ``i`` such that ``self[i] != 0``.
         This is the same as the ``nonzero_positions`` function.
 
         EXAMPLES::
@@ -3016,6 +3019,21 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             [0, 2, 6]
         """
         return self.nonzero_positions()
+
+    cpdef int hamming_weight(self):
+        """
+        Return the number of positions ``i`` such that ``self[i] != 0``.
+
+        EXAMPLES::
+
+            sage: vector([-1,0,3,0,0,0,0.01]).hamming_weight()
+            3
+        """
+        cdef int res=0
+        for x in iter(self.list()):
+            if not x.is_zero():
+                res += 1
+        return res
 
     def _latex_(self):
         r"""
@@ -4386,7 +4404,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def nonzero_positions(self):
         """
-        Returns the list of numbers i such that self[i] != 0.
+        Returns the list of numbers ``i`` such that ``self[i] != 0``.
 
         EXAMPLES::
 
@@ -4401,6 +4419,20 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         K.sort()
         return K
 
+    cpdef int hamming_weight(self):
+        """
+        Returns the number of positions ``i`` such that ``self[i] != 0``.
+
+        EXAMPLES::
+
+            sage: v = vector({1: 1, 3: -2})
+            sage: w = vector({1: 4, 3: 2})
+            sage: v+w
+            (0, 5, 0, 0)
+            sage: (v+w).hamming_weight()
+            1
+        """
+        return len(self._entries)
 
     def _numerical_approx(self, prec=None, digits=None):
         """

@@ -20,7 +20,6 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.coding.linear_code import hamming_weight
 from sage.misc.decorators import rename_keyword
 
 def syndrome(C, v):
@@ -41,11 +40,11 @@ def syndrome(C, v):
 
     """
     V = C.ambient_space()
-    if not(type(v)==list):
+    if not isinstance(v, list):
         v = v.list()
     v = V(v)
-    coset = [[c+v,hamming_weight(c+v)] for c in C]
-    coset.sort(lambda x,y: x[1]-y[1])
+    coset = [[c + v, (c + v).hamming_weight()] for c in C]
+    coset.sort(lambda x, y: x[1] - y[1])
     return [x[0] for x in coset]
 
 def coset_leader(C, v):
@@ -66,17 +65,17 @@ def coset_leader(C, v):
         True
 
     """
-    coset = [[c+v, hamming_weight(c+v)] for c in C]
+    coset = [[c + v, (c + v).hamming_weight()] for c in C]
     wts = [x[1] for x in coset]
     min_wt = min(wts)
-    s = C[0]                # initializing
-    w = hamming_weight(v)   # initializing
+    s = C[0]  # initializing
+    w = v.hamming_weight()  # initializing
     for x in coset:
-        if x[1]==min_wt:
+        if x[1] == min_wt:
             w = x[1]
             s = x[0]
             break
-    return s,w
+    return s, w
 
 @rename_keyword(deprecation=6094, method="algorithm")
 def decode(C, v, algorithm="syndrome"):
@@ -110,12 +109,12 @@ def decode(C, v, algorithm="syndrome"):
         (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     """
     V = C.ambient_space()
-    if not(type(v)==list):
+    if not isinstance(v, list):
         v = v.list()
     v = V(v)
-    if algorithm=="nearest neighbor":
-        diffs = [[c-v,hamming_weight(c-v)] for c in C]
-        diffs.sort(lambda x,y:  x[1]-y[1])
-        return diffs[0][0]+v
-    if algorithm=="syndrome":
-        return -V(syndrome(C, v)[0])+v
+    if algorithm == "nearest neighbor":
+        diffs = [[c - v, (c - v).hamming_weight()] for c in C]
+        diffs.sort(lambda x, y:  x[1] - y[1])
+        return diffs[0][0] + v
+    if algorithm == "syndrome":
+        return -V(syndrome(C, v)[0]) + v

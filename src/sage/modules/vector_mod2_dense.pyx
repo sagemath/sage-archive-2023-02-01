@@ -5,6 +5,8 @@ AUTHOR:
 
 - Martin Albrecht (2009-12): initial implementation
 
+- Thomas Feulner (2012-11): added :meth:`Vector_mod2_dense.hamming_weight`
+
 EXAMPLES::
 
     sage: VS = GF(2)^3
@@ -28,7 +30,6 @@ include '../ext/stdsage.pxi'
 
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.rings.integer cimport Integer
-
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
 cimport free_module_element
@@ -351,6 +352,22 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         if self._degree:
             mzd_add(z._entries, self._entries, (<Vector_mod2_dense>right)._entries)
         return z
+
+    cpdef int hamming_weight(self):
+        """
+        Return the number of positions ``i`` such that ``self[i] != 0``.
+
+        EXAMPLES::
+
+            sage: vector(GF(2), [1,1,0]).hamming_weight()
+            2
+        """
+        cdef int i
+        cdef int res = 0
+        for i from 0 <= i < self._entries.width:
+            res += Integer(self._entries.rows[0][i]).popcount()
+        return res
+
 
     cpdef Element _dot_product_(self, Vector right):
         """

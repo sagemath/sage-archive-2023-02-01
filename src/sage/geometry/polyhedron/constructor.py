@@ -389,15 +389,9 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         return [ [base_ring(x) for x in lst] for lst in lstlst]
     Hrep = Vrep = None
     if got_Hrep:
-        if convert:
-            Hrep = [convert_base_ring(ieqs), convert_base_ring(eqns)]
-        else:
-            Hrep = [ieqs, eqns]
+        Hrep = [ieqs, eqns]
     if got_Vrep:
-        if convert:
-            Vrep = [convert_base_ring(vertices), convert_base_ring(rays), convert_base_ring(lines)]
-        else:
-            Vrep = [vertices, rays, lines]
+        Vrep = [vertices, rays, lines]
 
     # finally, construct the Polyhedron
-    return parent.element_class(parent, Vrep, Hrep)
+    return parent(Vrep, Hrep, convert=convert)

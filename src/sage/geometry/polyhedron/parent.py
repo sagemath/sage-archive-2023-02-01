@@ -231,7 +231,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
     @cached_method
     def zero_element(self):
         r"""
-        Returns the polyhedron consisting of the origin, which is the
+        Return the polyhedron consisting of the origin, which is the
         neutral element for Minkowski addition.
 
         EXAMPLES::
@@ -244,6 +244,36 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         """
         Vrep = [[[self.base_ring().zero()]*self.ambient_dim()], [], []]
         return self.element_class(self, Vrep, None)
+
+    def empty(self):
+        """
+        Return the empty polyhedron.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra
+            sage: P = Polyhedra(QQ, 4)
+            sage: P.empty()
+            The empty polyhedron in QQ^4
+            sage: P.empty().is_empty()
+            True
+        """
+        return self(None, None)
+
+    def universe(self):
+        """
+        Return the entire ambient space as polyhedron.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra
+            sage: P = Polyhedra(QQ, 4)
+            sage: P.universe()
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 1 vertex and 4 lines
+            sage: P.universe().is_universe()
+            True
+        """
+        return self(None, [[[1]+[0]*self.ambient_dim()], []], convert=True)
 
     @cached_method
     def Vrepresentation_space(self):
@@ -350,7 +380,11 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
         - ``Hrep`` -- a list `[ieqs, eqns]`` or ``None``.
 
-        - ``**kwds`` -- optional keywords that are passed to the
+        - ``convert`` -- boolean keyword argument (default:
+          ``True``). Whether to convert the cooordinates into the base
+          ring.
+
+        - ``**kwds`` -- optional remaining keywords that are passed to the
           polyhedron constructor.
 
         EXAMPLES::
@@ -365,8 +399,15 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
         """
         nargs = len(args)
+        convert = kwds.pop('convert', True)
         if nargs==2:
             Vrep, Hrep = args
+            def convert_base_ring(lstlst):
+                return [ [self.base_ring()(x) for x in lst] for lst in lstlst]
+            if convert and Hrep:
+                Hrep = map(convert_base_ring, Hrep)
+            if convert and Vrep:
+                Vrep = map(convert_base_ring, Vrep)
             return self.element_class(self, Vrep, Hrep, **kwds)
         if nargs==1 and is_Polyhedron(args[0]):
             polyhedron = args[0]

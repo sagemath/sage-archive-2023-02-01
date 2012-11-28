@@ -1155,10 +1155,15 @@ class IntegerVectors_nnondescents(CombinatorialClass):
              sage: IntegerVectors(4, [2]).list()
              [[4, 0], [3, 1], [2, 2]]
              sage: IntegerVectors(4, [2,2]).list()
-              [[4, 0, 0, 0],
+             [[4, 0, 0, 0],
+              [3, 1, 0, 0],
+              [2, 2, 0, 0],
               [3, 0, 1, 0],
+              [2, 1, 1, 0],
               [2, 0, 2, 0],
               [2, 0, 1, 1],
+              [1, 1, 2, 0],
+              [1, 1, 1, 1],
               [1, 0, 3, 0],
               [1, 0, 2, 1],
               [0, 0, 4, 0],
@@ -1190,7 +1195,7 @@ class IntegerVectors_nnondescents(CombinatorialClass):
              [[0, 0, 0, 0, 0]]
          """
         for iv in IntegerVectors(self.n, len(self.comp)):
-            blocks = [ IntegerVectors(iv[i], self.comp[i], max_slope=0).__iter__() for i in range(len(self.comp))]
+            blocks = [ IntegerVectors(iv[i], self.comp[i], max_slope=0).list() for i in range(len(self.comp))]
             for parts in cartesian_product.CartesianProduct(*blocks):
                 res = []
                 for part in parts:

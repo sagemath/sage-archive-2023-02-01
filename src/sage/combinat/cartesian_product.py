@@ -16,6 +16,7 @@ Cartesian Products
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from inspect import isgenerator
 import sage.misc.prandom as rnd
 import __builtin__
 from combinat import CombinatorialClass
@@ -33,22 +34,34 @@ def CartesianProduct(*iters):
         sage: cp.list()
         [[1, 3], [1, 4], [2, 3], [2, 4]]
 
-    Note that if you have a generator-type object that is returned by a
-    function, then you should use IterableFunctionCall class defined in
-    sage.combinat.misc.
-
-    ::
+    Note that you must not use a generator-type object that is
+    returned by a function (using "yield"). They cannot be copied or
+    rewound (you cannot jump back to the beginning), but this is
+    necessary to construct the cartesian product::
 
         sage: def a(n): yield 1*n; yield 2*n
         sage: def b(): yield 'a'; yield 'b'
         sage: CartesianProduct(a(3), b()).list()
-        [[3, 'a'], [3, 'b']]
+        Traceback (most recent call last):
+        ...
+        ValueError: generators are not allowed, see the
+        documentation (type "CartesianProduct?") for a workaround
+
+    You either create a list of all values or you use
+    :class:`sage.combinat.misc.IterableFunctionCall` to make a
+    (copy-able) iterator::
+
         sage: from sage.combinat.misc import IterableFunctionCall
         sage: CartesianProduct(IterableFunctionCall(a, 3), IterableFunctionCall(b)).list()
         [[3, 'a'], [3, 'b'], [6, 'a'], [6, 'b']]
 
-    See the documentation for IterableFunctionCall for more information.
+    See the documentation for
+    :class:`~sage.combinat.misc.IterableFunctionCall` for more
+    information.
     """
+    if any(isgenerator(i) for i in iters):
+        raise ValueError('generators are not allowed, see the documentation '+
+                         '(type "CartesianProduct?") for a workaround')
     return CartesianProduct_iters(*iters)
 
 class CartesianProduct_iters(CombinatorialClass):

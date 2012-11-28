@@ -320,9 +320,10 @@ class CHomP:
                     if verbose:
                         print "raw generators: %s" % g
                     if g:
-                        module = CombinatorialFreeModule(base_ring, original_complex.n_cells(dim))
-                        module._repr_option_bracket = True
-                        module._prefix = ""
+                        module = CombinatorialFreeModule(base_ring,
+                                                         original_complex.n_cells(dim),
+                                                         prefix="",
+                                                         bracket=True)
                         basis = module.basis()
                         output = []
                         for x in g:
@@ -336,9 +337,10 @@ class CHomP:
                     if verbose:
                         print "raw generators: %s" % gens
                     if g:
-                        module = CombinatorialFreeModule(base_ring, complex.n_cells(dim))
-                        module._repr_option_bracket = False
-                        module._prefix = ""
+                        module = CombinatorialFreeModule(base_ring,
+                                                         complex.n_cells(dim),
+                                                         prefix="",
+                                                         bracket=False)
                         basis = module.basis()
                         output = []
                         for x in g:

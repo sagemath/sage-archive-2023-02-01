@@ -544,6 +544,9 @@ class CartanTypeFactory(SageObject):
         if hasattr(t, "cartan_type"):
             return  t.cartan_type()
 
+        if len(t) == 1: # trac #13774
+            t = t[0]
+
         if type(t)==str:
             if "x" in t:
                 import type_reducible

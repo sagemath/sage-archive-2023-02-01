@@ -883,6 +883,9 @@ class Graph(GenericGraph):
           sage: g = Graph([(1,2,"Peace"),(7,-9,"and"),(77,2, "Love")])
           sage: g
           Graph on 5 vertices
+          sage: g = Graph([(0, 2, '0'), (0, 2, '1'), (3, 3, '2')])
+          sage: g.loops()
+          [(3, 3, '2')]
 
     #. A NetworkX MultiGraph::
 

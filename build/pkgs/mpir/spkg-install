@@ -181,7 +181,9 @@ case "$UNAME" in
         fi
         ;; # Linux
     CYGWIN)
-        # Nothing special performed (yet).
+        # For the moment, Cygwin is only 32-bits
+        # and configure gets lost if the hardware is 64 bits
+        ABI=32
         ;;
     *) # e.g. AIX or HP-UX
         echo >&2 "Warning: Your platform ($UNAME) isn't yet explicitly supported" \
@@ -222,9 +224,16 @@ if [ "$SAGE_BUILD_TOOLCHAIN" = yes ]; then
     MPIR_CONFIGURE="--disable-cxx --disable-static $MPIR_CONFIGURE"
     SAGE_FAT_BINARY=no
 else
-    # Also build the static library to be used by e.g. ECM:
-    echo "Building MPIR with the C++ interface and (also) static libraries."
-    MPIR_CONFIGURE="--enable-cxx --enable-static $MPIR_CONFIGURE"
+    # Also build the static library to be used by e.g. ECM
+    # unless we are on Cygwin where we can only build a shared
+    # or a static library but not both
+    if [ "$UNAME" = "CYGWIN" ]; then
+        echo "Building MPIR with the C++ interface."
+        MPIR_CONFIGURE="--enable-cxx --disable-static $MPIR_CONFIGURE"
+    else
+        echo "Building MPIR with the C++ interface and (also) static libraries."
+        MPIR_CONFIGURE="--enable-cxx --enable-static $MPIR_CONFIGURE"
+    fi
 fi
 # (Further options to 'configure' are added below.)
 

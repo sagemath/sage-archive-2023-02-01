@@ -54,6 +54,11 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-2.4.0.p7 (Karl-Dieter Crisman, Jean-Pierre Flori, 1 August 2012) ===
+ * Trac #12115: let MPIR build on Cygwin.
+ * Only build the shared version of the library on Cygwin.
+ * Export ABI=32 on Cygwin.
+
 === mpir-2.4.0.p6 (Jeroen Demeyer, 28 May 2012) ===
  * Trac #12751: Apply the ia64 workaround for gcc-4.7.0 *only* on
    gcc-4.7.0 and not on other gcc-4.7.x versions.

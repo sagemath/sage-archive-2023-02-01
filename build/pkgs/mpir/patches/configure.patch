@@ -1,7 +1,7 @@
 diff -dru src/acinclude.m4 b/acinclude.m4
---- src/acinclude.m4	2011-04-27 03:43:23.000000000 -0700
-+++ b/acinclude.m4	2012-05-27 21:43:11.000000000 -0700
-@@ -515,31 +515,45 @@
+--- src/acinclude.m4	2011-07-27 00:59:54.000000000 -0700
++++ b/acinclude.m4	2012-06-19 12:53:56.000000000 -0700
+@@ -508,31 +508,45 @@
  int cmov () { return (n >= 0 ? n : 0); }
  ])
  
@@ -58,9 +58,9 @@ diff -dru src/acinclude.m4 b/acinclude.m4
  
  # __builtin_alloca is not available everywhere, check it exists before
 diff -dru src/configure.in b/configure.in
---- src/configure.in	2011-05-27 23:09:15.000000000 -0700
-+++ b/configure.in	2012-05-18 14:59:37.000000000 -0700
-@@ -2009,16 +2009,6 @@
+--- src/configure.in	2012-03-08 23:21:29.000000000 -0800
++++ b/configure.in	2012-06-19 12:53:56.000000000 -0700
+@@ -1919,16 +1919,6 @@
    fi
  fi
  
@@ -78,9 +78,9 @@ diff -dru src/configure.in b/configure.in
  
  # Generate an error here if attempting to build both shared and static when
 diff -dru src/yasm/Makefile.in b/yasm/Makefile.in
---- src/yasm/Makefile.in	2011-06-13 22:35:39.000000000 -0700
-+++ b/yasm/Makefile.in	2012-05-18 14:35:01.000000000 -0700
-@@ -3868,7 +3868,8 @@
+--- src/yasm/Makefile.in	2012-03-10 23:16:35.000000000 -0800
++++ b/yasm/Makefile.in	2012-06-19 12:53:56.000000000 -0700
+@@ -3747,7 +3747,8 @@
  check-am: all-am
  	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
  	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
@@ -90,7 +90,7 @@ diff -dru src/yasm/Makefile.in b/yasm/Makefile.in
  all-am: Makefile $(LIBRARIES) $(PROGRAMS) $(MANS) $(HEADERS) config.h \
  		all-local
  installdirs: installdirs-recursive
-@@ -3876,7 +3877,8 @@
+@@ -3755,7 +3756,8 @@
  	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man7dir)" "$(DESTDIR)$(includedir)" "$(DESTDIR)$(modincludedir)" "$(DESTDIR)$(includedir)"; do \
  	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
  	done
@@ -101,9 +101,9 @@ diff -dru src/yasm/Makefile.in b/yasm/Makefile.in
  install-data: install-data-recursive
  uninstall: uninstall-recursive
 diff -dru src/configure b/configure
---- src/configure	2011-06-13 22:34:01.000000000 -0700
-+++ b/configure	2012-05-27 21:54:57.000000000 -0700
-@@ -2071,52 +2071,6 @@
+--- src/configure	2012-06-19 12:53:56.000000000 -0700
++++ b/configure	2012-03-10 01:07:26.000000000 -0800
+@@ -2069,52 +2069,6 @@
  
  } # ac_fn_cxx_try_link
  
@@ -156,7 +156,7 @@ diff -dru src/configure b/configure
  # ac_fn_c_check_decl LINENO SYMBOL VAR INCLUDES
  # ---------------------------------------------
  # Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
-@@ -5363,11 +5317,13 @@
+@@ -5313,11 +5267,13 @@
     on AIX 4.3 under "-maix64 -mpowerpc64 -mcpu=630".  The -mcpu=630
     option causes gcc to incorrectly select the 32-bit libgcc.a, not
     the 64-bit one, and consequently it misses out on the __fixunsdfdi
@@ -174,7 +174,7 @@ diff -dru src/configure b/configure
  EOF
    echo "Test compile: double -> ulong conversion" >&5
    gmp_compile="$cc $cflags $cppflags conftest.c >&5"
-@@ -5411,7 +5367,6 @@
+@@ -5361,7 +5317,6 @@
  
  
  
@@ -182,7 +182,7 @@ diff -dru src/configure b/configure
  if test "$gmp_prog_cc_works" = yes; then
    # remove anything that might look like compiler output to our "||" expression
    rm -f conftest* a.out b.out a.exe a_out.exe
-@@ -5419,10 +5374,10 @@
+@@ -5369,10 +5324,10 @@
  /* The following provokes an error from hppa gcc 2.95 under -mpa-risc-2-0 if
     the assembler doesn't know hppa 2.0 instructions.  fneg is a 2.0
     instruction, and a negation like this comes out using it.  */
@@ -196,7 +196,7 @@ diff -dru src/configure b/configure
  EOF
    echo "Test compile: double negation" >&5
    gmp_compile="$cc $cflags $cppflags conftest.c >&5"
-@@ -5466,7 +5421,6 @@
+@@ -5416,7 +5371,6 @@
  
  
  
@@ -204,7 +204,7 @@ diff -dru src/configure b/configure
  if test "$gmp_prog_cc_works" = yes; then
    # remove anything that might look like compiler output to our "||" expression
    rm -f conftest* a.out b.out a.exe a_out.exe
-@@ -5475,10 +5429,10 @@
+@@ -5425,10 +5379,10 @@
     (cvtsd2ss) which will provoke an error if the assembler doesn't recognise
     those instructions.  Not sure how much of the gmp code will come out
     wanting sse2, but it's easiest to reject an option we know is bad.  */
@@ -218,7 +218,7 @@ diff -dru src/configure b/configure
  EOF
    echo "Test compile: double -> float conversion" >&5
    gmp_compile="$cc $cflags $cppflags conftest.c >&5"
-@@ -5522,6 +5476,59 @@
+@@ -5472,6 +5426,59 @@
  
  
  
@@ -278,7 +278,7 @@ diff -dru src/configure b/configure
  
  # __builtin_alloca is not available everywhere, check it exists before
  # seeing that it works
-@@ -6644,11 +6651,13 @@
+@@ -6574,11 +6581,13 @@
     on AIX 4.3 under "-maix64 -mpowerpc64 -mcpu=630".  The -mcpu=630
     option causes gcc to incorrectly select the 32-bit libgcc.a, not
     the 64-bit one, and consequently it misses out on the __fixunsdfdi
@@ -296,7 +296,7 @@ diff -dru src/configure b/configure
  EOF
    echo "Test compile: double -> ulong conversion" >&5
    gmp_compile="$cc $cflags $cppflags $flag conftest.c >&5"
-@@ -6692,7 +6701,6 @@
+@@ -6622,7 +6631,6 @@
  
  
  
@@ -304,7 +304,7 @@ diff -dru src/configure b/configure
  if test "$gmp_prog_cc_works" = yes; then
    # remove anything that might look like compiler output to our "||" expression
    rm -f conftest* a.out b.out a.exe a_out.exe
-@@ -6700,10 +6708,10 @@
+@@ -6630,10 +6638,10 @@
  /* The following provokes an error from hppa gcc 2.95 under -mpa-risc-2-0 if
     the assembler doesn't know hppa 2.0 instructions.  fneg is a 2.0
     instruction, and a negation like this comes out using it.  */
@@ -318,7 +318,7 @@ diff -dru src/configure b/configure
  EOF
    echo "Test compile: double negation" >&5
    gmp_compile="$cc $cflags $cppflags $flag conftest.c >&5"
-@@ -6747,7 +6755,6 @@
+@@ -6677,7 +6685,6 @@
  
  
  
@@ -326,7 +326,7 @@ diff -dru src/configure b/configure
  if test "$gmp_prog_cc_works" = yes; then
    # remove anything that might look like compiler output to our "||" expression
    rm -f conftest* a.out b.out a.exe a_out.exe
-@@ -6756,10 +6763,10 @@
+@@ -6686,10 +6693,10 @@
     (cvtsd2ss) which will provoke an error if the assembler doesn't recognise
     those instructions.  Not sure how much of the gmp code will come out
     wanting sse2, but it's easiest to reject an option we know is bad.  */
@@ -340,7 +340,7 @@ diff -dru src/configure b/configure
  EOF
    echo "Test compile: double -> float conversion" >&5
    gmp_compile="$cc $cflags $cppflags $flag conftest.c >&5"
-@@ -6803,6 +6810,59 @@
+@@ -6733,6 +6740,59 @@
  
  
  
@@ -400,7 +400,7 @@ diff -dru src/configure b/configure
  
  # __builtin_alloca is not available everywhere, check it exists before
  # seeing that it works
-@@ -11761,16 +11821,6 @@
+@@ -11691,16 +11751,6 @@
    fi
  fi
  
@@ -417,7 +417,7 @@ diff -dru src/configure b/configure
  case `pwd` in
    *\ * | *\	*)
      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
-@@ -14654,7 +14704,6 @@
+@@ -14584,7 +14634,6 @@
  
  
  
@@ -425,7 +425,7 @@ diff -dru src/configure b/configure
  # Set options
  
  
-@@ -21800,2717 +21849,6 @@
+@@ -21738,2721 +21787,6 @@
  
  
  
@@ -2827,10 +2827,14 @@ diff -dru src/configure b/configure
 -  # before this can be enabled.
 -  hardcode_into_libs=yes
 -
+-  # Add ABI-specific directories to the system library path.
+-  sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib"
+-
 -  # Append ld.so.conf contents to the search path
 -  if test -f /etc/ld.so.conf; then
 -    lt_ld_extra=`awk '/^include / { system(sprintf("cd /etc; cat %s 2>/dev/null", \$2)); skip = 1; } { if (!skip) print \$0; skip = 0; }' < /etc/ld.so.conf | $SED -e 's/#.*//;/^[	 ]*hwcap[	 ]/d;s/[:,	]/ /g;s/=[^=]*$//;s/=[^= ]* / /g;s/"//g;/^$/d' | tr '\n' ' '`
--    sys_lib_dlsearch_path_spec="/lib /usr/lib $lt_ld_extra"
+-    sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec $lt_ld_extra"
+-
 -  fi
 -
 -  # We used to test for /lib/ld.so.1 and disable shared libraries on
@@ -3143,7 +3147,7 @@ diff -dru src/configure b/configure
  
  
  
-@@ -29562,103 +26900,54 @@
+@@ -29344,103 +26678,54 @@
  postdeps='`$ECHO "$postdeps" | $SED "$delay_single_quote_subst"`'
  compiler_lib_search_path='`$ECHO "$compiler_lib_search_path" | $SED "$delay_single_quote_subst"`'
  LD_CXX='`$ECHO "$LD_CXX" | $SED "$delay_single_quote_subst"`'
@@ -3247,7 +3251,7 @@ diff -dru src/configure b/configure
  
  LTCC='$LTCC'
  LTCFLAGS='$LTCFLAGS'
-@@ -29746,57 +27035,31 @@
+@@ -29528,57 +26813,31 @@
  postdeps \
  compiler_lib_search_path \
  LD_CXX \
@@ -3306,7 +3310,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED \\"\\\$sed_quote_subst\\"\\\`\\\\\\""
-@@ -29828,27 +27091,16 @@
+@@ -29610,27 +26869,16 @@
  sys_lib_search_path_spec \
  sys_lib_dlsearch_path_spec \
  reload_cmds_CXX \
@@ -3335,7 +3339,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED -e \\"\\\$double_quote_subst\\" -e \\"\\\$sed_quote_subst\\" -e \\"\\\$delay_variable_subst\\"\\\`\\\\\\""
-@@ -29881,8 +27133,6 @@
+@@ -29663,8 +26911,6 @@
  
  
  
@@ -3344,7 +3348,7 @@ diff -dru src/configure b/configure
  _ACEOF
  
  cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
-@@ -30594,7 +27844,7 @@
+@@ -30376,7 +27622,7 @@
  
  
  # The names of the tagged configurations supported by this script.
@@ -3353,7 +3357,7 @@ diff -dru src/configure b/configure
  
  # ### BEGIN LIBTOOL CONFIG
  
-@@ -31348,163 +28598,6 @@
+@@ -31130,163 +28376,6 @@
  # ### END LIBTOOL TAG CONFIG: CXX
  _LT_EOF
  
@@ -3517,7 +3521,7 @@ diff -dru src/configure b/configure
   ;;
  
    esac
-@@ -32583,103 +29676,54 @@
+@@ -32365,103 +29454,54 @@
  postdeps='`$ECHO "$postdeps" | $SED "$delay_single_quote_subst"`'
  compiler_lib_search_path='`$ECHO "$compiler_lib_search_path" | $SED "$delay_single_quote_subst"`'
  LD_CXX='`$ECHO "$LD_CXX" | $SED "$delay_single_quote_subst"`'
@@ -3621,7 +3625,7 @@ diff -dru src/configure b/configure
  
  LTCC='$LTCC'
  LTCFLAGS='$LTCFLAGS'
-@@ -32767,57 +29811,31 @@
+@@ -32549,57 +29589,31 @@
  postdeps \
  compiler_lib_search_path \
  LD_CXX \
@@ -3680,7 +3684,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED \\"\\\$sed_quote_subst\\"\\\`\\\\\\""
-@@ -32849,27 +29867,16 @@
+@@ -32631,27 +29645,16 @@
  sys_lib_search_path_spec \
  sys_lib_dlsearch_path_spec \
  reload_cmds_CXX \
@@ -3709,7 +3713,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED -e \\"\\\$double_quote_subst\\" -e \\"\\\$sed_quote_subst\\" -e \\"\\\$delay_variable_subst\\"\\\`\\\\\\""
-@@ -32899,8 +29906,6 @@
+@@ -32681,8 +29684,6 @@
  
  
  
@@ -3718,7 +3722,7 @@ diff -dru src/configure b/configure
  ac_aux_dir='$ac_aux_dir'
  
  
-@@ -33617,7 +30622,7 @@
+@@ -33399,7 +30400,7 @@
  
  
  # The names of the tagged configurations supported by this script.
@@ -3727,7 +3731,7 @@ diff -dru src/configure b/configure
  
  # ### BEGIN LIBTOOL CONFIG
  
-@@ -34371,163 +31376,6 @@
+@@ -34153,163 +31154,6 @@
  # ### END LIBTOOL TAG CONFIG: CXX
  _LT_EOF
  
@@ -3891,7 +3895,7 @@ diff -dru src/configure b/configure
   ;;
  
    esac
-@@ -35610,103 +32458,54 @@
+@@ -35392,103 +32236,54 @@
  postdeps='`$ECHO "$postdeps" | $SED "$delay_single_quote_subst"`'
  compiler_lib_search_path='`$ECHO "$compiler_lib_search_path" | $SED "$delay_single_quote_subst"`'
  LD_CXX='`$ECHO "$LD_CXX" | $SED "$delay_single_quote_subst"`'
@@ -3995,7 +3999,7 @@ diff -dru src/configure b/configure
  
  LTCC='$LTCC'
  LTCFLAGS='$LTCFLAGS'
-@@ -35794,57 +32593,31 @@
+@@ -35576,57 +32371,31 @@
  postdeps \
  compiler_lib_search_path \
  LD_CXX \
@@ -4054,7 +4058,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED \\"\\\$sed_quote_subst\\"\\\`\\\\\\""
-@@ -35876,27 +32649,16 @@
+@@ -35658,27 +32427,16 @@
  sys_lib_search_path_spec \
  sys_lib_dlsearch_path_spec \
  reload_cmds_CXX \
@@ -4083,7 +4087,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED -e \\"\\\$double_quote_subst\\" -e \\"\\\$sed_quote_subst\\" -e \\"\\\$delay_variable_subst\\"\\\`\\\\\\""
-@@ -35926,8 +32688,6 @@
+@@ -35708,8 +32466,6 @@
  
  
  
@@ -4092,7 +4096,7 @@ diff -dru src/configure b/configure
  ac_aux_dir='$ac_aux_dir'
  ac_aux_dir='$ac_aux_dir'
  
-@@ -36646,7 +33406,7 @@
+@@ -36428,7 +33184,7 @@
  
  
  # The names of the tagged configurations supported by this script.
@@ -4101,7 +4105,7 @@ diff -dru src/configure b/configure
  
  # ### BEGIN LIBTOOL CONFIG
  
-@@ -37400,163 +34160,6 @@
+@@ -37182,163 +33938,6 @@
  # ### END LIBTOOL TAG CONFIG: CXX
  _LT_EOF
  

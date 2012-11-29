@@ -111,6 +111,14 @@ case "$UNAME" in
             ABI=32
         fi;;
     Darwin)
+        # In some cases (see SAGE_ROOT/spkg/bin/sage-env), on Darwin,
+        # CC might be set to clang, but MPIR doesn't seem to build
+        # with clang.
+        CLANG=`command -v clang`
+        GCC=`command -v gcc`
+        if [ -n "$CC" ] && [ "$CC" = "$CLANG" ] && [ -n "$GCC" ] ; then
+            export CC="$GCC"
+        fi
         if [ "$SAGE64" = yes ]; then
             # Note that we do not support 64-bit builds on MacOS X PPC at all,
             # so we don't special-case on the architecture here.

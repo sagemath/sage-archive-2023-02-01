@@ -214,54 +214,6 @@ diff -ru src/mpn/ia64/xor_n.asm src.patched/mpn/ia64/xor_n.asm
  
  ifdef(`OPERATION_and_n',
  `	define(`func',`mpn_and_n')
-diff -ru src/mpn/m68k/add_n.asm src.patched/mpn/m68k/add_n.asm
---- src/mpn/m68k/add_n.asm	2010-12-31 08:23:57.000000000 +0100
-+++ src.patched/mpn/m68k/add_n.asm	2012-04-07 14:27:53.028268643 +0200
-@@ -25,7 +25,7 @@
- C         cycles/limb
- C 68040:      6
- 
--define(OPERATION_add_n,1)
-+define(`OPERATION_add_n',1)
- 
- ifdef(`OPERATION_add_n',`
-   define(M4_inst,       addxl)
-diff -ru src/mpn/m68k/mc68020/addmul_1.asm src.patched/mpn/m68k/mc68020/addmul_1.asm
---- src/mpn/m68k/mc68020/addmul_1.asm	2010-12-30 08:34:14.000000000 +0100
-+++ src.patched/mpn/m68k/mc68020/addmul_1.asm	2012-04-07 14:27:53.008279908 +0200
-@@ -25,7 +25,7 @@
- C         cycles/limb
- C 68040:     25
- 
--define(OPERATION_addmul_1,1)
-+define(`OPERATION_addmul_1',1)
- 
- ifdef(`OPERATION_addmul_1',`
-   define(M4_inst,       addl)
-diff -ru src/mpn/m68k/mc68020/submul_1.asm src.patched/mpn/m68k/mc68020/submul_1.asm
---- src/mpn/m68k/mc68020/submul_1.asm	2010-12-30 08:34:34.000000000 +0100
-+++ src.patched/mpn/m68k/mc68020/submul_1.asm	2012-04-07 14:27:53.008279908 +0200
-@@ -25,7 +25,7 @@
- C         cycles/limb
- C 68040:     25
- 
--define(OPERATION_submul_1,1)
-+define(`OPERATION_submul_1',1)
- 
- ifdef(`OPERATION_addmul_1',`
-   define(M4_inst,       addl)
-diff -ru src/mpn/m68k/sub_n.asm src.patched/mpn/m68k/sub_n.asm
---- src/mpn/m68k/sub_n.asm	2010-12-31 08:24:06.000000000 +0100
-+++ src.patched/mpn/m68k/sub_n.asm	2012-04-07 14:27:52.988268768 +0200
-@@ -25,7 +25,7 @@
- C         cycles/limb
- C 68040:      6
- 
--define(OPERATION_sub_n,1)
-+define(`OPERATION_sub_n',1)
- 
- ifdef(`OPERATION_add_n',`
-   define(M4_inst,       addxl)
 diff -ru src/mpn/powerpc32/vmx/and_n.asm src.patched/mpn/powerpc32/vmx/and_n.asm
 --- src/mpn/powerpc32/vmx/and_n.asm	2010-12-31 08:16:01.000000000 +0100
 +++ src.patched/mpn/powerpc32/vmx/and_n.asm	2012-04-07 14:27:52.968280448 +0200

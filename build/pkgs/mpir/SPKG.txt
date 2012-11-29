@@ -40,8 +40,6 @@ See http://www.mpir.org
  * gmp-h.in.patch: a trivial patch adding some #includes such that MPIR
    would compile on SunOS with Sun CC.  The changes in this patch only
    take effect if the preprocessor variable `__SUNPRO_CC` is defined.
- * We apply a simple patch to upstream yasm's re2c code, to avoid a potential
-   race condition when building yasm in parallel.  (Cf. #11844.)
  * quote_asm.patch: replace things of the form "define(OPERATION_foo,1)" by
    "define(`OPERATION_foo',1)".  This gives proper quoting for use with m4,
    otherwise the define might expand to "define(,1)".  Some versions of m4
@@ -53,6 +51,11 @@ See http://www.mpir.org
    of autoconf, automake and libtool as the original files).
 
 == Changelog ==
+
+=== mpir-2.5.2.p0 (John Palmieri, 3 October 2012) ===
+ * Trac #13137: Update to MPIR 2.5.2.
+ * Remove the patch 'patches/yasm__tools__re2c__code.c.patch'.
+ * Do not use clang, which fails to compile MPIR, on OS X.
 
 === mpir-2.4.0.p7 (Karl-Dieter Crisman, Jean-Pierre Flori, 1 August 2012) ===
  * Trac #12115: let MPIR build on Cygwin.

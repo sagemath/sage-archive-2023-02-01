@@ -14,6 +14,18 @@ cd src/
 # Apply patches (if any):
 ###############################################################################
 
+# Before applying patches, we manually move two wrongly named files,
+# rather than doing this with diff/patch which lacks the ability of properly
+# detecting filename changes. See Trac #13137.
+# This fix can (and will have to) be removed once integrated upstream.
+echo "Renaming *,asm files to *.asm..."
+mv mpn/x86/p6/addmul_1,asm mpn/x86/p6/addmul_1.asm
+mv mpn/x86/p6/submul_1,asm mpn/x86/p6/submul_1.asm
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: moving *,asm files failed."
+    exit 1
+fi
+
 echo "Applying patches to upstream sources..."
 for patch in ../patches/*.patch; do
     patch -p1 <"$patch"
@@ -27,36 +39,6 @@ done
 # Previous MPIR installations are only removed after a *successful* (re)build,
 # before installing the new one. (Done below.)
 ###############################################################################
-
-###############################################################################
-# Helper functions:
-###############################################################################
-
-remove_32_bit_assembly_code() # MacOS X 10.4 and 10.5 on Intel (x86) only.
-{
-    # We could actually do this by using 'patch', at the expense of
-    # a larger Mercurial repository, and the need to rebase the patches
-    # whenever these files change, so better just delete them with 'rm'.
-    echo "Deleting assembly files which depend on PIC assembly" \
-        "working on 32-bit MacOS X on Intel hardware..."
-    saved=`pwd`
-    cd "$CUR/src/"
-    rm mpn/x86/dive_1.asm
-    rm mpn/x86/diveby3.asm
-    rm mpn/x86/pentium4/sse2/dive_1.asm
-    rm mpn/x86/pentium4/sse2/mode1o.asm
-    rm mpn/x86/pentium4/sse2/diveby3.asm
-    rm mpn/x86/pentium4/mmx/popham.asm
-    rm mpn/x86/pentium4/mmx/rshift.asm
-    rm mpn/x86/p6/mode1o.asm
-    rm mpn/x86/p6/dive_1.asm
-    rm mpn/x86/pentium/hamdist.asm
-    rm mpn/x86/pentium/mod_1.asm
-    rm mpn/x86/pentium/popcount.asm
-    rm mpn/x86/pentium/mode1o.asm
-    rm mpn/x86/pentium/dive_1.asm
-    cd "$saved"
-}
 
 ###############################################################################
 # Set up environment variables:
@@ -133,10 +115,6 @@ case "$UNAME" in
                 echo "Building a 32-bit version of MPIR, which is the only supported option."
                 ABI=32
                 case "`uname -m`" in
-                    i[3456]86)
-                        # Remove x86 assembly code that breaks PIC on MacOS X:
-                        remove_32_bit_assembly_code
-                        ;;
                     ppc|ppc64|[Pp]ower*) # Apple's 'uname' returns strange strings
                         # The Darwin assembler rejects code using an
                         # extended instruction set by default (cf. #8664):
@@ -151,11 +129,6 @@ case "$UNAME" in
         fi
         ;; # Darwin
     Linux)
-        # Work around (erroneously) set "executable stack" attributes,
-        # causing runtime errors on Fedora 14 and other SELinux-enabled
-        # systems:
-        required_ldflags="$required_ldflags -Wl,-z,noexecstack"
-
         # MPIR fails to build on 32-bit operating systems running on
         # 64-bit CPUs if CFLAGS happen to contain '-m32' and ABI is
         # *not* set, so we set it here if necessary:

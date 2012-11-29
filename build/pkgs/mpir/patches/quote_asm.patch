@@ -646,6 +646,30 @@ diff -ru src/mpn/x86/nehalem/popcount.asm src.patched/mpn/x86/nehalem/popcount.a
  
  ifdef(`OPERATION_popcount',,
  `ifdef(`OPERATION_hamdist',,
+diff -ru src/mpn/x86/p6/addmul_1.asm src.patched/mpn/x86/p6/addmul_1.asm
+--- src/mpn/x86/p6/addmul_1.asm	2012-10-03 22:07:16.000000000 +0200
++++ src.patched/mpn/x86/p6/addmul_1.asm	2012-11-29 13:27:59.761725414 +0100
+@@ -46,7 +46,7 @@
+ 
+ deflit(UNROLL_COUNT, 16)
+ 
+-define(OPERATION_addmul_1,1)
++define(`OPERATION_addmul_1',1)
+ 
+ ifdef(`OPERATION_addmul_1', `
+ 	define(M4_inst,        addl)
+diff -ru src/mpn/x86/p6/submul_1.asm src.patched/mpn/x86/p6/submul_1.asm
+--- src/mpn/x86/p6/submul_1.asm	2012-10-03 22:07:16.000000000 +0200
++++ src.patched/mpn/x86/p6/submul_1.asm	2012-11-29 13:27:59.681725417 +0100
+@@ -46,7 +46,7 @@
+ 
+ deflit(UNROLL_COUNT, 16)
+ 
+-define(OPERATION_submul_1,1)
++define(`OPERATION_submul_1',1)
+ 
+ ifdef(`OPERATION_addmul_1', `
+ 	define(M4_inst,        addl)
 diff -ru src/mpn/x86/pentium/add_n.asm src.patched/mpn/x86/pentium/add_n.asm
 --- src/mpn/x86/pentium/add_n.asm	2010-12-31 08:32:53.000000000 +0100
 +++ src.patched/mpn/x86/pentium/add_n.asm	2012-04-07 14:27:56.318273599 +0200

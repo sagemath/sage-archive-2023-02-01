@@ -1,7 +1,7 @@
 diff -dru src/acinclude.m4 b/acinclude.m4
 --- src/acinclude.m4	2011-07-27 00:59:54.000000000 -0700
 +++ b/acinclude.m4	2012-06-19 12:53:56.000000000 -0700
-@@ -508,31 +508,45 @@
+@@ -519,31 +519,45 @@
  int cmov () { return (n >= 0 ? n : 0); }
  ])
  
@@ -60,7 +60,7 @@ diff -dru src/acinclude.m4 b/acinclude.m4
 diff -dru src/configure.in b/configure.in
 --- src/configure.in	2012-03-08 23:21:29.000000000 -0800
 +++ b/configure.in	2012-06-19 12:53:56.000000000 -0700
-@@ -1919,16 +1919,6 @@
+@@ -1920,16 +1920,6 @@
    fi
  fi
  
@@ -3147,7 +3147,7 @@ diff -dru src/configure b/configure
  
  
  
-@@ -29344,103 +26678,54 @@
+@@ -29345,103 +26679,54 @@
  postdeps='`$ECHO "$postdeps" | $SED "$delay_single_quote_subst"`'
  compiler_lib_search_path='`$ECHO "$compiler_lib_search_path" | $SED "$delay_single_quote_subst"`'
  LD_CXX='`$ECHO "$LD_CXX" | $SED "$delay_single_quote_subst"`'
@@ -3251,7 +3251,7 @@ diff -dru src/configure b/configure
  
  LTCC='$LTCC'
  LTCFLAGS='$LTCFLAGS'
-@@ -29528,57 +26813,31 @@
+@@ -29529,57 +26814,31 @@
  postdeps \
  compiler_lib_search_path \
  LD_CXX \
@@ -3310,7 +3310,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED \\"\\\$sed_quote_subst\\"\\\`\\\\\\""
-@@ -29610,27 +26869,16 @@
+@@ -29611,27 +26870,16 @@
  sys_lib_search_path_spec \
  sys_lib_dlsearch_path_spec \
  reload_cmds_CXX \
@@ -3339,7 +3339,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED -e \\"\\\$double_quote_subst\\" -e \\"\\\$sed_quote_subst\\" -e \\"\\\$delay_variable_subst\\"\\\`\\\\\\""
-@@ -29663,8 +26911,6 @@
+@@ -29664,8 +26912,6 @@
  
  
  
@@ -3348,7 +3348,7 @@ diff -dru src/configure b/configure
  _ACEOF
  
  cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
-@@ -30376,7 +27622,7 @@
+@@ -30379,7 +27625,7 @@
  
  
  # The names of the tagged configurations supported by this script.
@@ -3357,7 +3357,7 @@ diff -dru src/configure b/configure
  
  # ### BEGIN LIBTOOL CONFIG
  
-@@ -31130,163 +28376,6 @@
+@@ -31133,163 +28379,6 @@
  # ### END LIBTOOL TAG CONFIG: CXX
  _LT_EOF
  
@@ -3521,7 +3521,7 @@ diff -dru src/configure b/configure
   ;;
  
    esac
-@@ -32365,103 +29454,54 @@
+@@ -32368,103 +29457,54 @@
  postdeps='`$ECHO "$postdeps" | $SED "$delay_single_quote_subst"`'
  compiler_lib_search_path='`$ECHO "$compiler_lib_search_path" | $SED "$delay_single_quote_subst"`'
  LD_CXX='`$ECHO "$LD_CXX" | $SED "$delay_single_quote_subst"`'
@@ -3625,7 +3625,7 @@ diff -dru src/configure b/configure
  
  LTCC='$LTCC'
  LTCFLAGS='$LTCFLAGS'
-@@ -32549,57 +29589,31 @@
+@@ -32552,57 +29592,31 @@
  postdeps \
  compiler_lib_search_path \
  LD_CXX \
@@ -3684,7 +3684,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED \\"\\\$sed_quote_subst\\"\\\`\\\\\\""
-@@ -32631,27 +29645,16 @@
+@@ -32634,27 +29648,16 @@
  sys_lib_search_path_spec \
  sys_lib_dlsearch_path_spec \
  reload_cmds_CXX \
@@ -3713,7 +3713,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED -e \\"\\\$double_quote_subst\\" -e \\"\\\$sed_quote_subst\\" -e \\"\\\$delay_variable_subst\\"\\\`\\\\\\""
-@@ -32681,8 +29684,6 @@
+@@ -32684,8 +29687,6 @@
  
  
  
@@ -3722,7 +3722,7 @@ diff -dru src/configure b/configure
  ac_aux_dir='$ac_aux_dir'
  
  
-@@ -33399,7 +30400,7 @@
+@@ -33404,7 +30405,7 @@
  
  
  # The names of the tagged configurations supported by this script.
@@ -3731,7 +3731,7 @@ diff -dru src/configure b/configure
  
  # ### BEGIN LIBTOOL CONFIG
  
-@@ -34153,163 +31154,6 @@
+@@ -34158,163 +31159,6 @@
  # ### END LIBTOOL TAG CONFIG: CXX
  _LT_EOF
  
@@ -3895,7 +3895,7 @@ diff -dru src/configure b/configure
   ;;
  
    esac
-@@ -35392,103 +32236,54 @@
+@@ -35397,103 +32241,54 @@
  postdeps='`$ECHO "$postdeps" | $SED "$delay_single_quote_subst"`'
  compiler_lib_search_path='`$ECHO "$compiler_lib_search_path" | $SED "$delay_single_quote_subst"`'
  LD_CXX='`$ECHO "$LD_CXX" | $SED "$delay_single_quote_subst"`'
@@ -3999,7 +3999,7 @@ diff -dru src/configure b/configure
  
  LTCC='$LTCC'
  LTCFLAGS='$LTCFLAGS'
-@@ -35576,57 +32371,31 @@
+@@ -35581,57 +32376,31 @@
  postdeps \
  compiler_lib_search_path \
  LD_CXX \
@@ -4058,7 +4058,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED \\"\\\$sed_quote_subst\\"\\\`\\\\\\""
-@@ -35658,27 +32427,16 @@
+@@ -35663,27 +32432,16 @@
  sys_lib_search_path_spec \
  sys_lib_dlsearch_path_spec \
  reload_cmds_CXX \
@@ -4087,7 +4087,7 @@ diff -dru src/configure b/configure
      case \`eval \\\\\$ECHO \\\\""\\\\\$\$var"\\\\"\` in
      *[\\\\\\\`\\"\\\$]*)
        eval "lt_\$var=\\\\\\"\\\`\\\$ECHO \\"\\\$\$var\\" | \\\$SED -e \\"\\\$double_quote_subst\\" -e \\"\\\$sed_quote_subst\\" -e \\"\\\$delay_variable_subst\\"\\\`\\\\\\""
-@@ -35708,8 +32466,6 @@
+@@ -35713,8 +32471,6 @@
  
  
  
@@ -4096,7 +4096,7 @@ diff -dru src/configure b/configure
  ac_aux_dir='$ac_aux_dir'
  ac_aux_dir='$ac_aux_dir'
  
-@@ -36428,7 +33184,7 @@
+@@ -36435,7 +33191,7 @@
  
  
  # The names of the tagged configurations supported by this script.
@@ -4105,7 +4105,7 @@ diff -dru src/configure b/configure
  
  # ### BEGIN LIBTOOL CONFIG
  
-@@ -37182,163 +33938,6 @@
+@@ -37189,163 +33945,6 @@
  # ### END LIBTOOL TAG CONFIG: CXX
  _LT_EOF
  

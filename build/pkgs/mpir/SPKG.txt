@@ -27,10 +27,7 @@ See http://www.mpir.org
    - Perhaps also modify CXXFLAGS (and/or CPPFLAGS).
    - We currently don't use anything of GMP's/MPIR's CC setting, and matching
      with the current compiler (`$CC`) is perhaps suboptimal.
- * Make sure the patches still apply; also, putting "-Wl,-z,noexecstack"
-   into LDFLAGS might not be necessary for later versions.
- * Perhaps make sure we still delete the correct files on 32-bit MacOS X
-   on Intel hardware (x86) to not break PIC there.
+ * Make sure the patches still apply.
  * Remove some files / directories not needed for Sage from upstream:
      rm -rf src/build.vc*             # Microsoft Visual C build files
      rm -rf src/yasm/Mkfiles/{dj,vc*} # DJGPP, Microsoft Visual C
@@ -49,8 +46,15 @@ See http://www.mpir.org
  * configure.patch: add some extra run-time configure tests, remove
    mentions of Fortran. Re-generated configure (using the same versions
    of autoconf, automake and libtool as the original files).
+ * apple.patch: make sure 32 bits Apple Darwin use the correct asm directories.
 
 == Changelog ==
+
+=== mpir-2.6.0.p0 (Jean-Pierre Flori, 25 November 2012) ===
+ * Trac #13137: Update to MPIR 2.6.0.
+ * Modify spkg-install to rename *,asm files to *.asm files.
+ * Remove -Wl,-z,noexecstack fix which has been integrated upstream.
+ * Remove old code about 32 bits Apple Darwin and use upstream fix.
 
 === mpir-2.5.2.p0 (John Palmieri, 3 October 2012) ===
  * Trac #13137: Update to MPIR 2.5.2.

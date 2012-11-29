@@ -347,7 +347,7 @@ a guide.
        REFERENCES:
 
        .. [Nat2000] M.B. Nathanson. Elementary Methods in Number Theory.
-         Springer, 2000.
+          Springer, 2000.
 
    You can also number the steps in your algorithm using the hash-dot
    symbol. This way, the actual numbering of the steps are
@@ -376,13 +376,13 @@ a guide.
 
         #. The plaintext is `m = m_1 m_2 \cdots m_t`.
 
--  A NOTES block for special notes (optional). Include information
-   such as purpose etc. A NOTES block should start with
+-  A NOTE block for special notes (optional). Include information
+   such as purpose etc. A NOTE block should start with
    ``.. NOTE::``. You can also use the lower-case version
    ``.. note::``, but do not mix lower-case with upper-case. However,
    you are encouraged to use the upper-case version ``.. NOTE::``. If
    you want to put anything within the NOTES block, you should
-   indent it at least 4 spaces (no tabs). Here's an example of a NOTES
+   indent it at least 4 spaces (no tabs). Here's an example of a NOTE
    block::
 
        .. NOTE::
@@ -418,10 +418,10 @@ a guide.
       .. TODO::
 
           Improve further function ``have_fresh_beers`` using algorithm
-	  ``buy_a_better_fridge``::
+    	  ``buy_a_better_fridge``::
 
-	      sage: have_fresh_beers('Bière de l'Yvette') # todo: not implemented
-	      Enjoy !
+    	      sage: have_fresh_beers('Bière de l'Yvette') # todo: not implemented
+    	      Enjoy !
 
 - A REFERENCES block to list books or papers (optional). This block serves
   a similar purpose to a list of references in a research paper, or a
@@ -431,7 +431,18 @@ a guide.
   citations is described at
   http://sphinx.pocoo.org/rest.html#citations. See below for an example.
   Sage also add specific markup for links to sage trac tickets and
-  Wikipedia. See :ref:`chapter-sage_manuals_links`.
+  Wikipedia. See :ref:`chapter-sage_manuals_links`. Here's an example of a
+  REFERENCES block::
+
+    This docstring is referencing [SC]_. Just remember that references
+    are global, so we can also reference to [Nat2000]_ in the ALGORITHM
+    block, even if it is in a separate file. However we would not
+    include the reference here since it would cause a conflict.
+
+    REFERENCES:
+
+    .. [SC] Conventions for coding in sage.
+       http://www.sagemath.org/doc/developer/conventions.html.
 
 -  An AUTHORS block (optional, but encouraged for important
    functions, so users can see from the docstring who wrote it and
@@ -446,17 +457,20 @@ indentation::
 
         INPUT:
 
-         - ``x`` -- integer (default: 1) the description of the
-	   argument x goes here.  If it contains multiple lines, all
-	   the lines after the first need to be indented.
+        - ``x`` -- integer (default: 1) the description of the
+          argument ``x`` goes here.  If it contains multiple lines, all
+          the lines after the first need to begin at the same indentation
+          as the backtick.
 
-         - ``y`` -- integer (default: 2) the ...
+        - ``y`` -- integer (default: 2) the ...
 
         OUTPUT:
 
-        integer -- the ...
+        The point as a tuple.
 
-	.. SEEALSO:: :func:`line`
+	    .. SEEALSO::
+
+            :func:`line`
 
         EXAMPLES:
 
@@ -482,16 +496,17 @@ indentation::
             ...
             TypeError: unable to convert x (=r) to an integer
 
-        NOTES:
+        .. NOTE::
 
-        This function uses the algorithm of [BCDT]_ to determine
-        whether an elliptic curve E over Q is modular.
+            This function uses the algorithm of [BCDT]_ to determine
+            whether an elliptic curve `E` over `Q` is modular.
 
         ...
 
         REFERENCES:
 
-        .. [BCDT] Breuil, Conrad, Diamond, Taylor, "Modularity ...."
+        .. [BCDT] Breuil, Conrad, Diamond, Taylor,
+           "Modularity ...."
 
         AUTHORS:
 
@@ -509,18 +524,18 @@ docstring would look like this::
         Return the point `(x^5,y)`.
 
         :param x: the description of the argument x goes here.
-	   If it contains multiple lines, all the lines after the
-	   first need to be indented.
+        If it contains multiple lines, all the lines after the
+        first need to be indented.
 
-	:type x: integer; default 1
+    	:type x: integer; default 1
 
-	:param y: the ...
+    	:param y: the ...
 
-	:type y: integer; default 2
+    	:type y: integer; default 2
 
-	:returns: the ...
+    	:returns: the ...
 
-	:rtype: integer, the return type
+    	:rtype: integer, the return type
 
 You are strongly encouraged to:
 
@@ -549,7 +564,7 @@ You are strongly encouraged to:
            \leq
            e \sum_{i=1}^{\infty} a_i
 
-   .. note::
+   .. NOTE::
 
       In ReST documentation, you use backticks \` to mark LaTeX code
       to be typeset.  In Sage docstrings, unofficially you may use
@@ -607,7 +622,7 @@ You are strongly encouraged to:
    someone uses the system, which is unacceptable. Note that new
    functions without doctests will not be accepted for inclusion in Sage.
 
-.. warning::
+.. WARNING::
 
    Functions whose names start with an underscore do not currently
    appear in the reference manual, so avoid putting crucial
@@ -628,8 +643,8 @@ You are strongly encouraged to:
 
         - ``S`` -- a string monoid over some alphabet
 
-        - ``m`` -- integer `> 0`; the block length of matrices that specify
-          block permutations
+        - ``m`` -- a positive integer; the block length of matrices that
+          specify block permutations
 
         OUTPUT:
 
@@ -859,7 +874,7 @@ mind:
   ``optional - pkg1 pkg2`` and executed by ``sage -t
   --only-optional=pkg1,pkg2 f.py``.
 
-  .. note::
+  .. NOTE::
 
       Any text after ``optional`` is interpreted as a list of package
       names, separated by spaces, although the words "needs" and
@@ -874,7 +889,7 @@ mind:
 - If you are documenting a known bug in Sage, mark it as ``known bug``
   or ``optional: bug``.  For example::
 
-     The following should yield 4.  See trac ticket #2::
+     The following should yield 4.  See :trac:`2`. ::
 
         sage: 2+2 # optional: bug
 	5

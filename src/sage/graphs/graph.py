@@ -1093,8 +1093,7 @@ class Graph(GenericGraph):
                         # are multiple edges, we update the whole
                         # dictionary so that data[u][v] is a list
 
-                        if (multiedges is None and
-                            (u in data[v])):
+                        if (multiedges is None and (u in data[v])):
                             multiedges = True
                             for uu, dd in data.iteritems():
                                 for vv, ddd in dd.iteritems():
@@ -1118,7 +1117,9 @@ class Graph(GenericGraph):
                                 data[v][u] = []
 
                             data[u][v].append(l)
-                            data[v][u].append(l)
+
+                            if u != v:
+                                data[v][u].append(l)
 
                         else:
                             data[u][v] = l

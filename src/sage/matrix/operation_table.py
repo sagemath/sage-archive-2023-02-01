@@ -33,29 +33,28 @@ class OperationTable(SageObject):
         :func:`operator.add` and :func:`operator.mul`. This may also
         be a function defined with ``lambda`` or ``def.``
 
-    - ``names`` - (default: ``letters``)  The type of names
+    - ``names`` - (default: ``'letters'``)  The type of names
       used, values are:
 
-      * ``letters`` - lowercase ASCII letters are used
+      * ``'letters'`` - lowercase ASCII letters are used
         for a base 26 representation of the elements'
         positions in the list given by
         :meth:`~sage.matrix.operation_table.OperationTable.column_keys`,
         padded to a common width with leading 'a's.
-      * ``digits`` - base 10 representation of the
+      * ``'digits'`` - base 10 representation of the
         elements' positions in the list given by
         :meth:`~sage.matrix.operation_table.OperationTable.column_keys`,
         padded to a common width with leading zeros.
-      * ``elements`` - the string representations
+      * ``'elements'`` - the string representations
         of the elements themselves.
       * a list - a list of strings, where the length
         of the list equals the number of elements.
 
     - ``elements`` - (default: ``None``)  A list of
-      elements of ``S``.  This may be used to impose an
-      alternate ordering on the elements of ``S``, perhaps
+      elements of ``S``, in forms that can be coerced into the structure.
+      This may be used to impose an alternate ordering on the elements of ``S``, perhaps
       when this is used in the context of a particular structure.
-      The default is to use whatever ordering the
-      ``S.list()`` method returns.
+      The default is to use whatever ordering the ``S.list()`` method returns.
       ``elements`` can also be a subset which is closed under
       the operation, useful perhaps when the set is infinite.
 
@@ -291,8 +290,7 @@ class OperationTable(SageObject):
 
     The value of ``elements`` must be a subset of the algebraic
     structure, in forms that can be coerced into the structure.
-    Here we demonstrate the proper use first, followed by
-    several improper uses::
+    Here we demonstrate the proper use first::
 
         sage: from sage.matrix.operation_table import OperationTable
         sage: H=CyclicPermutationGroup(4)
@@ -301,9 +299,25 @@ class OperationTable(SageObject):
         sage: elts = ['()', '(1,3)(2,4)']
         sage: OperationTable(H, operator.mul, elements=elts)
         *  a b
-        +----
+         +----
         a| a b
         b| b a
+
+    This can be rewritten so as to pass the actual elements of the group ``H``,
+    using a simple ``for`` loop::
+
+        sage: L = H.list()    #list of elements of the group H
+        sage: elts = [L[i] for i in {0, 2}]
+        sage: elts
+        [(), (1,3)(2,4)]
+        sage: OperationTable(H, operator.mul, elements=elts)
+        *  a b
+         +----
+        a| a b
+        b| b a
+
+    Here are a couple of improper uses ::
+
         sage: elts.append(5)
         sage: OperationTable(H, operator.mul, elements=elts)
         Traceback (most recent call last):
@@ -626,7 +640,7 @@ class OperationTable(SageObject):
             sage: T=OperationTable(R, operation=operator.add)
             sage: print(T._repr_())
             +  a b c d e
-            +----------
+             +----------
             a| a b c d e
             b| b c d e a
             c| c d e a b
@@ -765,15 +779,15 @@ class OperationTable(SageObject):
 
         - ``names`` - the type of names used, values are:
 
-          * ``letters`` - lowercase ASCII letters are used
+          * ``'letters'`` - lowercase ASCII letters are used
             for a base 26 representation of the elements'
             positions in the list given by :meth:`list`,
             padded to a common width with leading 'a's.
-          * ``digits`` - base 10 representation of the
+          * ``'digits'`` - base 10 representation of the
             elements' positions in the list given by
             :meth:`list`, padded to a common width
             with leading zeros.
-          * ``elements`` - the string representations
+          * ``'elements'`` - the string representations
             of the elements themselves.
           * a list - a list of strings, where the length
             of the list equals the number of elements.
@@ -796,7 +810,7 @@ class OperationTable(SageObject):
             sage: T=OperationTable(D, operator.mul)
             sage: T
             *  a b c d
-            +--------
+             +--------
             a| a b c d
             b| b a d c
             c| c d a b
@@ -806,7 +820,7 @@ class OperationTable(SageObject):
             sage: T.change_names('digits')
             sage: T
             *  0 1 2 3
-            +--------
+             +--------
             0| 0 1 2 3
             1| 1 0 3 2
             2| 2 3 0 1
@@ -826,7 +840,7 @@ class OperationTable(SageObject):
             sage: T.change_names(['w', 'x', 'y', 'z'])
             sage: T
             *  w x y z
-            +--------
+             +--------
             w| w x y z
             x| x w z y
             y| y z w x

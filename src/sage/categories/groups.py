@@ -144,22 +144,22 @@ class Groups(Category_singleton):
 
             - ``names`` - the type of names used, values are:
 
-              * ``letters`` - lowercase ASCII letters are used
+              * ``'letters'`` - lowercase ASCII letters are used
                 for a base 26 representation of the elements'
                 positions in the list given by :meth:`list`,
                 padded to a common width with leading 'a's.
-              * ``digits`` - base 10 representation of the
+              * ``'digits'`` - base 10 representation of the
                 elements' positions in the list given by
                 :meth:`~sage.matrix.operation_table.OperationTable.column_keys`,
                 padded to a common width with leading zeros.
-              * ``elements`` - the string representations
+              * ``'elements'`` - the string representations
                 of the elements themselves.
               * a list - a list of strings, where the length
                 of the list equals the number of elements.
 
             - ``elements`` - default = ``None``.  A list of
-              elements of the set.  This may be used to impose an
-              alternate ordering on the elements, perhaps
+              elements of the group, in forms that can be coerced into the structure.
+              This may be used to impose an alternate ordering on the elements, perhaps
               when this is used in the context of a particular structure.
               The default is to use whatever ordering is provided by the
               the group, which is reported by the
@@ -185,7 +185,7 @@ class Groups(Category_singleton):
                 ((), (5,6,7), (5,7,6)...(1,4,2,3)(5,7))
                 sage: T
                 *  a b c d e f g h i j k l
-                +------------------------
+                 +------------------------
                 a| a b c d e f g h i j k l
                 b| b c a e f d i g h l j k
                 c| c a b f d e h i g k l j
@@ -217,7 +217,7 @@ class Groups(Category_singleton):
                 sage: A=AbelianGroup([2,3])
                 sage: A.cayley_table()
                 *  a b c d e f
-                +------------
+                 +------------
                 a| a b c d e f
                 b| b c a e f d
                 c| c a b f d e

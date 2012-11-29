@@ -120,28 +120,26 @@ class AdditiveMagmas(Category_singleton):
 
             - ``names`` - the type of names used
 
-              * ``letters`` - lowercase ASCII letters are used
+              * ``'letters'`` - lowercase ASCII letters are used
                 for a base 26 representation of the elements'
                 positions in the list given by
                 :meth:`~sage.matrix.operation_table.OperationTable.column_keys`,
                 padded to a common width with leading 'a's.
-              * ``digits`` - base 10 representation of the
+              * ``'digits'`` - base 10 representation of the
                 elements' positions in the list given by
                 :meth:`~sage.matrix.operation_table.OperationTable.column_keys`,
                 padded to a common width with leading zeros.
-              * ``elements`` - the string representations
+              * ``'elements'`` - the string representations
                 of the elements themselves.
               * a list - a list of strings, where the length
                 of the list equals the number of elements.
             - ``elements`` - default = ``None``.  A list of
-              elements of the set.  This may be used to impose an
-              alternate ordering on the elements, perhaps
+              elements of the additive magma, in forms that can be coerced into the structure.
+              This may be used to impose an alternate ordering on the elements, perhaps
               when this is used in the context of a particular structure.
-              The default is to use whatever ordering the
-              ``S.list``
-              method returns.  Or the ``elements`` can be a subset
-              which is closed under the operation. In particular,
-              this can be used when the base set is infinite.
+              The default is to use whatever ordering the ``S.list`` method returns.
+              Or the ``elements`` can be a subset which is closed under the operation. In
+              particular, this can be used when the base set is infinite.
 
             OUTPUT:
             The addition table as an object of the class

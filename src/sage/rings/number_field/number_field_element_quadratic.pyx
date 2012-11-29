@@ -386,6 +386,14 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: z3._lift_cyclotomic_element(cf6)
             zeta6 - 1
 
+        Verify embeddings are respected::
+
+            sage: cf6c = CyclotomicField(6, embedding=CDF(exp(-pi*I/3))) ; z6c = cf6c.0
+            sage: cf3(z6c)
+            -zeta3
+            sage: cf6c(z3)
+            -zeta6
+
         AUTHOR:
 
         - Joel B. Mohler (original version)
@@ -417,10 +425,18 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             ## - CyclotomicField(6) and CyclotomicField(6)
             ## - CyclotomicField(4) and CyclotomicField(4)
             ## In all cases, conversion of elements is trivial!
+            if n == <int>new_parent._n():
+                conjugate = rel != 1
+            else:
+                # n = 3, new_n = 6
+                conjugate = rel == 4
             x2 = <NumberFieldElement_quadratic>(self._new())
             x2._parent = new_parent
             mpz_set(x2.a, self.a)
-            mpz_set(x2.b, self.b)
+            if conjugate:
+                mpz_neg(x2.b, self.b)
+            else:
+                mpz_set(x2.b, self.b)
             mpz_set(x2.denom, self.denom)
             x2.D = self.D
             return x2

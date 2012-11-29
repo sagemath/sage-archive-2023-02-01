@@ -408,7 +408,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         sage: W.<a> = NumberField(x^2 + 1); W
         Number Field in a with defining polynomial x^2 + 1 over its base field
 
-    The following has been fixed in trac ticket #8800::
+    The following has been fixed in :trac:`8800`::
 
         sage: P.<x> = QQ[]
         sage: K.<a> = NumberField(x^3-5,embedding=0)
@@ -3377,14 +3377,14 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.S_units([])[0].multiplicative_order()
             6
 
-        An example in a relative extension (see trac #8722)::
+        An example in a relative extension (see :trac:`8722`)::
 
             sage: L.<a,b> = NumberField([x^2 + 1, x^2 - 5])
             sage: p = L.ideal((-1/2*b - 1/2)*a + 1/2*b - 1/2)
             sage: W = L.S_units([p]); [x.norm() for x in W]
             [9, 1, 1]
 
-        Our generators should have the correct parent (trac #9367)::
+        Our generators should have the correct parent (:trac:`9367`)::
 
             sage: _.<x> = QQ[]
             sage: L.<alpha> = NumberField(x^3 + x + 1)
@@ -5573,7 +5573,7 @@ class NumberField_absolute(NumberField_generic):
 
         TESTS:
 
-        The following was fixed in trac ticket #8800::
+        The following was fixed in :trac:`8800`::
 
             sage: P.<x> = QQ[]
             sage: K.<a> = NumberField(x^3-5,embedding=0)
@@ -5584,7 +5584,7 @@ class NumberField_absolute(NumberField_generic):
 
         AUTHORS:
 
-        - Jeroen Demeyer (2011-09-30): Trac ticket #11869
+        - Jeroen Demeyer (2011-09-30): :trac:`11869`
 
         """
         # Special case for x in QQ.  This is common, so should be fast.
@@ -5816,7 +5816,7 @@ class NumberField_absolute(NumberField_generic):
               Defn: zeta3 -> 1/2*a - 1/2
 
         Two embedded number fields with mutual coercions (testing against a
-        bug that was fixed in trac ticket #8800)::
+        bug that was fixed in :trac:`8800`)::
 
             sage: K.<r4> = NumberField(x^4-2)
             sage: L1.<r2_1> = NumberField(x^2-2, embedding = r4**2)
@@ -5829,7 +5829,7 @@ class NumberField_absolute(NumberField_generic):
             True
 
         Coercion of an order (testing against a bug that was fixed in
-        trac ticket #8800)::
+        :trac:`8800`)::
 
             sage: K.has_coerce_map_from(L1)
             True
@@ -6321,7 +6321,7 @@ class NumberField_absolute(NumberField_generic):
 
         TESTS:
 
-        We verify that trac #2480 is fixed::
+        We verify that :trac:`2480` is fixed::
 
             sage: K.<a> = NumberField(x^4 + 4*x^2 + 2)
             sage: B = K.integral_basis()
@@ -7738,7 +7738,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         TESTS:
 
-        We check that the bug reported on Trac #8938 is fixed::
+        We check that the bug reported on :trac:`8938` is fixed::
 
             sage: C5.<z> = CyclotomicField(5)
             sage: P.<s, t> = C5[]
@@ -7760,9 +7760,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         `\Q(\zeta_m)` iff `n'|m`, where `n'` is the odd part of `n` if `4 \not
         | n` and `n'=n` otherwise.
 
-        The morphism is consistant with the chosen embedding into `\CC`. In
-        particular, if `n|m` then the resulting morphism is defined by `\zeta_n
-        \mapsto \zeta_m^(m/n)`.
+        The morphism is consistant with the chosen embedding into `\CC`.
 
         If `K` is not a cyclotomic field, the normal coercion rules for number
         fields are used.
@@ -7818,8 +7816,41 @@ class NumberField_cyclotomic(NumberField_absolute):
               From: Cyclotomic Field of order 2 and degree 1
               To:   Cyclotomic Field of order 1 and degree 1
               Defn: zeta2 -> -1
+
+        Check that custom embeddings are respected (:trac:`13765`)::
+
+            sage: z105 = CDF(exp(2*pi*I/105))
+            sage: Ka.<a> = CyclotomicField(105, embedding=z105^11)
+            sage: Kb.<b> = CyclotomicField(35, embedding=z105^6)
+            sage: Ka.coerce_map_from(Kb)
+            Generic morphism:
+              From: Cyclotomic Field of order 35 and degree 24
+              To:   Cyclotomic Field of order 105 and degree 48
+              Defn: b -> -a^44 - a^42 + a^39 + a^37 + a^35 - a^29 - a^27 - a^25 + a^24 - a^23 + a^22 - a^21 + a^20 + a^18 + a^16 - a^12 - a^10 - a^8 - a^6 + a^5 + a^3 + a
+            sage: CC(b)
+            0.936234870639737 + 0.351374824081343*I
+            sage: CC(-a^44 - a^42 + a^39 + a^37 + a^35 - a^29 - a^27 - a^25 + a^24 - a^23 + a^22 - a^21 + a^20 + a^18 + a^16 - a^12 - a^10 - a^8 - a^6 + a^5 + a^3 + a)
+            0.936234870639731 + 0.351374824081341*I
+
+            sage: z15 = CDF(exp(2*pi*I/15))
+            sage: CyclotomicField(15).coerce_map_from(CyclotomicField(6, embedding=-z15^5))
+            Generic morphism:
+              From: Cyclotomic Field of order 6 and degree 2
+              To:   Cyclotomic Field of order 15 and degree 8
+              Defn: zeta6 -> -zeta15^5
+
+            sage: CyclotomicField(15, embedding=z15^4).coerce_map_from(CyclotomicField(6, embedding=-z15^5))
+            Generic morphism:
+              From: Cyclotomic Field of order 6 and degree 2
+              To:   Cyclotomic Field of order 15 and degree 8
+              Defn: zeta6 -> -zeta15^5
         """
         if isinstance(K, NumberField_cyclotomic):
+            if (self.coerce_embedding() is None or K.coerce_embedding() is None):
+                return None
+            ambient_field = self.coerce_embedding().codomain()
+            if not ambient_field.has_coerce_map_from(K.coerce_embedding().codomain()):
+                return None
             Kn = K.__n
             n = self.__n
             if Kn.divides(n):
@@ -7828,14 +7859,77 @@ class NumberField_cyclotomic(NumberField_absolute):
                 # see #12632
                 return number_field_morphisms.NumberFieldEmbedding(K, self, -self.gen())
             if Kn % 4 == 2 and (Kn//2).divides(n):
-                e1 = (~mod(2, Kn//2)).lift()
-                e2 = 2*n // Kn
-                return number_field_morphisms.NumberFieldEmbedding(K, self, -self.gen() ** (e1*e2))
+                e = self._log_gen(ambient_field(-K.gen()))
+                return number_field_morphisms.NumberFieldEmbedding(K, self, -self.gen() ** e)
             else:
                 return None
         else:
             return NumberField_absolute._coerce_map_from_(self, K)
 
+    def _log_gen(self, x):
+        """
+        Returns an integer `e` such that `self.gen()^e == x`, or `None`
+        if no such integer exists. This is primarily used to construct
+        embedding-respecting coercions.
+
+        If `x` is complex, the result is either an integer `e` such
+        that the absolute value of `self.gen()^e-x` is small or
+        `None` if no such `e` is found.
+
+        EXAMPLES::
+
+            sage: K.<a> = CyclotomicField(5)
+            sage: K._log_gen(CDF(a))
+            1
+            sage: K._log_gen(CDF(a^4))
+            4
+
+            sage: zeta105 = CC(exp(2*pi*i/105))
+            sage: K.<a> = CyclotomicField(105, embedding=zeta105^13)
+            sage: zeta105^13, CC(a)
+            (0.712376096951345 + 0.701797902883992*I, 0.712376096951345 + 0.701797902883991*I)
+            sage: K._log_gen(zeta105^26)
+            2
+            sage: K._log_gen(zeta105)
+            97
+            sage: zeta105, CC(a^97)
+            (0.998210129767735 + 0.0598041539450342*I, 0.998210129767736 + 0.0598041539450313*I)
+            sage: K._log_gen(zeta105^3)
+            81
+            sage: zeta105^3, CC(a)^81
+            (0.983929588598630 + 0.178556894798637*I, 0.983929588598631 + 0.178556894798635*I)
+
+            sage: K.<a> = CyclotomicField(5, embedding=None)
+            sage: K._log_gen(CDF(.5, -.8)) is None
+            True
+
+            sage: zeta5 = cyclotomic_polynomial(5).change_ring(Qp(11)).roots()[0][0]
+            sage: zeta5 ^ 5
+            1 + O(11^20)
+            sage: K.<a> = CyclotomicField(5, embedding=zeta5^2)
+            sage: K._log_gen(zeta5)
+            3
+        """
+        if not x.parent().has_coerce_map_from(self):
+            return None
+        if CDF.has_coerce_map_from(x.parent()):
+            x = CDF(x)
+        gen = x.parent().coerce(self.gen())
+        n = self._n()
+        two_pi = 2*RDF.pi()
+        if x.parent() is CDF:
+            # Let zeta = e^(2*pi*i/n)
+            a = (n * x.arg() / two_pi).round()         # x = zeta^a
+            b = (n * gen.arg() / two_pi).round()      # gen = zeta^b
+            e = mod(a/b, n).lift()          # e is the expected result
+            if abs(gen**e-x) < 1/n:        # a sanity check
+                return e
+        else:
+            gen_pow_e = 1
+            for e in range(n):
+                if gen_pow_e == x:
+                    return e
+                gen_pow_e *= gen
 
     def _element_constructor_(self, x):
         """

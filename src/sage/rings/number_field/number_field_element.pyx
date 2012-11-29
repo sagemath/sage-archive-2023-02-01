@@ -439,7 +439,10 @@ cdef class NumberFieldElement(FieldElement):
         ## degree 2 is handled differently, because elements are
         ## represented differently
         if new_parent.degree() == 2:
-            return new_parent._element_class(new_parent, self)
+            if rel == 1:
+                return new_parent._element_class(new_parent, self)
+            else:
+                return self.polynomial()(new_parent.gen()**rel)
 
         cdef NumberFieldElement x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
         x._parent = <ParentWithBase>new_parent

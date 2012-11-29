@@ -443,15 +443,34 @@ cdef class CyclotomicFieldEmbedding(NumberFieldEmbedding):
             Traceback (most recent call last):
             ...
             TypeError: The zeta_order of the new field must be a multiple of the zeta_order of the original.
+
+        Check that :trac:`13765` is fixed::
+
+            sage: z3=(CC(-1)^(1/3))^2
+            sage: Ka.<a>=CyclotomicField(3,embedding=z3)
+            sage: Kb.<b>=CyclotomicField(3,embedding=z3^2)
+            sage: CyclotomicFieldEmbedding(Ka, Kb)
+            Generic morphism:
+              From: Cyclotomic Field of order 3 and degree 2
+              To:   Cyclotomic Field of order 3 and degree 2
+              Defn: a -> -b - 1
+            sage: Ka(b)
+            -a - 1
+            sage: a + b
+            -1
+            sage: b + a
+            -1
         """
         Morphism.__init__(self, K, L)
         from number_field import NumberField_cyclotomic
         if not isinstance(K, NumberField_cyclotomic) or not isinstance(L, NumberField_cyclotomic):
             raise TypeError, "CyclotomicFieldEmbedding only valid for cyclotomic fields."
-        if not K._n().divides(L._n()):
+        Kn = K._n()
+        Ln = L._n()
+        if not Kn.divides(Ln):
             raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
-        self.ratio = int(L._n() // K._n())
-        self._gen_image = self(K.gen())
+        self.ratio = L._log_gen(K.coerce_embedding()(K.gen()))
+        self._gen_image = L.gen() ** self.ratio
 
     cpdef Element _call_(self, x):
         """

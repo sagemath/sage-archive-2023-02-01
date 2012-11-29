@@ -162,12 +162,15 @@ class Magmas(Category_singleton):
               * a list - a list of strings, where the length
                 of the list equals the number of elements.
             - ``elements`` - default = ``None``.  A list of
-              elements of the magma, in forms that can be coerced into the structure.
-              This may be used to impose an alternate ordering on the elements, perhaps
-              when this is used in the context of a particular structure.
-              The default is to use whatever ordering the ``S.list`` method returns.
-              Or the ``elements`` can be a subset which is closed under the operation. In
-              particular, this can be used when the base set is infinite.
+              elements of the magma, in forms that can be
+              coerced into the structure, eg. their string
+              representations. This may be used to impose an
+              alternate ordering on the elements, perhaps when
+              this is used in the context of a particular structure.
+              The default is to use whatever ordering the ``S.list``
+              method returns. Or the ``elements`` can be a subset
+              which is closed under the operation. In particular,
+              this can be used when the base set is infinite.
 
             OUTPUT:
             The multiplication table as an object of the class

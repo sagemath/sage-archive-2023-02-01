@@ -50,13 +50,14 @@ class OperationTable(SageObject):
       * a list - a list of strings, where the length
         of the list equals the number of elements.
 
-    - ``elements`` - (default: ``None``)  A list of
-      elements of ``S``, in forms that can be coerced into the structure.
-      This may be used to impose an alternate ordering on the elements of ``S``, perhaps
-      when this is used in the context of a particular structure.
-      The default is to use whatever ordering the ``S.list()`` method returns.
-      ``elements`` can also be a subset which is closed under
-      the operation, useful perhaps when the set is infinite.
+    - ``elements`` - (default: ``None``)  A list of elements of ``S``,
+      in forms that can be coerced into the structure, eg. their
+      string representations. This may be used to impose an alternate
+      ordering on the elements of `S``, perhaps when this is used in
+      the context of a particular structure. The default is to use
+      whatever ordering the ``S.list()`` method returns. `elements``
+      can also be a subset which is closed under the operation, useful
+      perhaps when the set is infinite.
 
     OUTPUT:
     An object with methods that abstracts multiplication tables,
@@ -303,8 +304,8 @@ class OperationTable(SageObject):
         a| a b
         b| b a
 
-    This can be rewritten so as to pass the actual elements of the group ``H``,
-    using a simple ``for`` loop::
+    This can be rewritten so as to pass the actual elements of the
+    group ``H``, using a simple ``for`` loop::
 
         sage: L = H.list()    #list of elements of the group H
         sage: elts = [L[i] for i in {0, 2}]

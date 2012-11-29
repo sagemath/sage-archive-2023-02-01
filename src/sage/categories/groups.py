@@ -158,9 +158,11 @@ class Groups(Category_singleton):
                 of the list equals the number of elements.
 
             - ``elements`` - default = ``None``.  A list of
-              elements of the group, in forms that can be coerced into the structure.
-              This may be used to impose an alternate ordering on the elements, perhaps
-              when this is used in the context of a particular structure.
+              elements of the group, in forms that can be
+              coerced into the structure, eg. their string
+              representations. This may be used to impose an
+              alternate ordering on the elements, perhaps when
+              this is used in the context of a particular structure.
               The default is to use whatever ordering is provided by the
               the group, which is reported by the
               :meth:`~sage.matrix.operation_table.OperationTable.column_keys`

@@ -357,6 +357,9 @@ class SageInputSplitter(IPythonInputSplitter):
                     buf[-1].rstrip().endswith((':', ',')) or buf[-1].lstrip().startswith('@')):
                     for f in self.transforms:
                         line = f(line, line_number)
+                else:
+                    for f in self.always_transform:
+                        line = f(line, line_number)
                 out = push(line)
         finally:
             if changed_input_mode:
@@ -483,10 +486,12 @@ from sage.misc.interpreter import sage_prompt
         from sage.misc.interpreter import (SagePromptDedenter, SagePromptTransformer,
                                            MagicTransformer, SagePreparseTransformer)
 
+        p = SagePreparseTransformer()
         self.shell.input_splitter.transforms = [SagePromptDedenter(),
                                                 SagePromptTransformer(),
                                                 MagicTransformer(),
-                                                SagePreparseTransformer()] + self.shell.input_splitter.transforms
+                                                p] + self.shell.input_splitter.transforms
+        self.shell.input_splitter.always_transform = [p]
 
         preparser(True)
 

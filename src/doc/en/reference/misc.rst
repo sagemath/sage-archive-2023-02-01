@@ -11,6 +11,7 @@ Miscellaneous
    sage/misc/cachefunc
    sage/misc/c3
    sage/misc/decorators
+   sage/misc/lazy_list
    sage/misc/classgraph
    sage/misc/dev_tools
    sage/misc/profiler

@@ -1113,6 +1113,9 @@ ext_modules = [
     Extension('sage.misc.lazy_import',
               sources = ['sage/misc/lazy_import.pyx']),
 
+    Extension('sage.misc.lazy_list',
+              sources = ['sage/misc/lazy_list.pyx']),
+
     Extension('sage.misc.misc_c',
               sources = ['sage/misc/misc_c.pyx']),
 

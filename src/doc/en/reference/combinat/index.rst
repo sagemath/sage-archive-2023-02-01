@@ -69,4 +69,5 @@ Combinatorics
 
    ../sage/combinat/dict_addition
    ../sage/combinat/misc
+   ../sage/combinat/combinatorial_map
 

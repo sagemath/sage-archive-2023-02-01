@@ -45,6 +45,7 @@ REFERENCES:
 #*****************************************************************************
 
 from combinat import CombinatorialClass, CombinatorialObject, catalan_number, InfiniteAbstractCombinatorialClass
+from sage.combinat.combinatorial_map import combinatorial_map
 from backtrack import GenericBacktracker
 
 from sage.structure.parent import Parent
@@ -1309,6 +1310,7 @@ class DyckWord_class(CombinatorialObject):
                 rise_comp.append(i)
         return Composition(rise_comp)
 
+    @combinatorial_map(name='to two-row standard tableau')
     def to_standard_tableau(self):
         r"""
         Returns a standard tableau of shape `(a,b)` where

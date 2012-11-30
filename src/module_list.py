@@ -1213,6 +1213,9 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.modules.finite_submodule_iter',
+              sources = ['sage/modules/finite_submodule_iter.pyx']),
+
     Extension('sage.modules.free_module_element',
               sources = ['sage/modules/free_module_element.pyx'],
               depends = numpy_depends),

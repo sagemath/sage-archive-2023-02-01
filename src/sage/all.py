@@ -233,8 +233,6 @@ def quit_sage(verbose=True):
     import sage.libs.flint.flint
     sage.libs.flint.flint.free_flint_stack()
 
-    pari._unsafe_deallocate_pari_stack()
-
     # stop the twisted reactor
     try:
        from twisted.internet import reactor

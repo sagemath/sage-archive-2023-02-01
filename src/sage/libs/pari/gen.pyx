@@ -9197,7 +9197,21 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pariOut.flush = sage_flush
         sig_off()
 
-    def _unsafe_deallocate_pari_stack(self):
+    def __dealloc__(self):
+        """
+        Deallocation of the Pari instance.
+
+        NOTE:
+
+        Usually this deallocation happens only when Sage quits.
+        We do not provide a direct test, since usually there
+        is only one Pari instance, and when artificially creating
+        another instance, C-data are shared.
+
+        The fact that Sage does not crash when quitting is an
+        indirect doctest. See the discussion at :trac:`13741`.
+
+        """
         if bot:
             sage_free(<void*>bot)
         global top, bot

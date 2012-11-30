@@ -5818,7 +5818,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def echelon_coordinate_vector(self, v, check=True):
         """
-        Write `v` in terms of the user basis for self.
+        Write `v` in terms of the echelonized basis for self.
 
         INPUT:
 

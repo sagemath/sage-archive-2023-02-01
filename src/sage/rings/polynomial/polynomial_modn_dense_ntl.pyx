@@ -29,7 +29,7 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial, Polynomial_g
 
 from sage.libs.all import pari, pari_gen
 
-from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, zero_ZZX, ZZ_p, ZZ_pX ##, set_modulus
+from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, zero_ZZX, ZZ_p, ZZ_pX
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod import IntegerMod_abstract
@@ -145,8 +145,6 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
         self.__poly = ZZ_pX(x, parent.modulus())
 
-##    def _ntl_set_modulus(self):
-##        self.parent()._ntl_set_modulus()
 
     def __reduce__(self):
         return make_element, (self.parent(), (self.list(), False, self.is_gen()))
@@ -212,12 +210,11 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         n = int(n)
         if n < 0:
             raise IndexError("n must be >= 0")
-##        self._ntl_set_modulus()
         self.__poly[n] = int(value)
 
     def _pow(self, n):
         n = int(n)
-##        self._ntl_set_modulus()
+
         if self.degree() <= 0:
             return self.parent()(self[0]**n)
         if n < 0:
@@ -225,7 +222,6 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         return self.parent()(self.__poly**n, construct=True)
 
     cpdef ModuleElement _add_(self, ModuleElement right):
-##        self._ntl_set_modulus()
         return self.parent()(self.__poly + (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
     cpdef RingElement _mul_(self, RingElement right):
@@ -236,19 +232,16 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             sage: (x - 2)*(x^2 - 8*x + 16)
             x^3 + 90*x^2 + 32*x + 68
         """
-##        self._ntl_set_modulus()
         return self.parent()(self.__poly * (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
     cpdef ModuleElement _rmul_(self, RingElement c):
         try:
-##            self._ntl_set_modulus()
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
         except RuntimeError as msg: # should this really be a TypeError
             raise TypeError(msg)
 
     cpdef ModuleElement _lmul_(self, RingElement c):
         try:
-##            self._ntl_set_modulus()
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
         except RuntimeError as msg: # should this really be a TypeError
             raise TypeError(msg)
@@ -295,23 +288,16 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         """
         if n == 0 or self.degree() < 0:
             return self
-##        self._ntl_set_modulus()
         return self.parent()(self.__poly.left_shift(n),
                              construct=True)
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
-##        self._ntl_set_modulus()
         return self.parent()(self.__poly - (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
     def __floordiv__(self, right):
         q, _ = self.quo_rem(right)
         return q
 
-##     def __copy__(self):
-##         self.parent()._ntl_set_modulus()
-##         f = self.parent()()
-##         f.__poly = self.__poly.copy()
-##         return f
 
     def degree(self, gen=None):
         """
@@ -363,14 +349,12 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         """
         if self.is_gen():
             raise TypeError("Cannot change the value of the generator.")
-##        self._ntl_set_modulus()
         self.__poly = ZZ_pX(v, self.parent().modulus())
 
     # Polynomial_singular_repr stuff, copied due to lack of multiple inheritance
-
     def _singular_(self, singular=singular_default, have_ring=False, force=False):
         if not have_ring:
-            self.parent()._singular_(singular,force=force).set_ring() #this is expensive
+            self.parent()._singular_(singular,force=force).set_ring() # this is expensive
         if self.__singular is not None:
             try:
                 self.__singular._check_valid()
@@ -382,7 +366,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
     def _singular_init_(self, singular=singular_default, have_ring=False, force=False):
         if not have_ring:
-            self.parent()._singular_(singular,force=force).set_ring() #this is expensive
+            self.parent()._singular_(singular,force=force).set_ring() # this is expensive
         self.__singular = singular(str(self))
         return self.__singular
 
@@ -623,9 +607,6 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
                 return
 
         Polynomial_dense_mod_n.__init__(self, parent, v, check=check, is_gen=is_gen, construct=construct)
-#        if check:
-#            R = parent.base_ring()
-#            v = [a if isinstance(a, (int, long, Integer, IntegerMod_abstract)) else R(a) for a in v]
         v = [a for a in self.__poly.list()]
         self.__poly = None # this will eventually go away
         cdef ntl_zz_pX ntl = ntl_zz_pX(v, parent.modulus()) # let it handle the hard work
@@ -1166,7 +1147,6 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if len(args) != 1 or len(kwds) != 0:
             return Polynomial.__call__(self, *args, **kwds)
         arg = args[0]
-#        cdef zz_p_c x
         cdef ntl_zz_p fx = ntl_zz_p(0, self.c), x = None
         if PY_TYPE_CHECK(arg, int):
             x = ntl_zz_p(arg, self.c)
@@ -1208,14 +1188,6 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             self.c.restore_c()
         ZZ_pX_destruct(&self.x)
 
-#     def ntl_set_directly(self, v):
-#         # TODO: Get rid of this
-#         Polynomial_dense_mod_n.ntl_set_directly(self, v)
-#         # verbatim from __init__
-#         cdef ntl_ZZ_pX ntl = self.__poly
-#         self.__poly = None # this will eventually go away
-#         self.x = ntl.x
-#         self.c = ntl.c
 
     cdef Polynomial_dense_modn_ntl_ZZ _new(self):
         cdef Polynomial_dense_modn_ntl_ZZ y = <Polynomial_dense_modn_ntl_ZZ>PY_NEW(Polynomial_dense_modn_ntl_ZZ)
@@ -1223,21 +1195,6 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         y._parent = self._parent
         return y
 
-#    def int_list(self):
-#        """
-#        Returns the coefficients of self as efficiently as possible as a
-#        list of python ints.
-#
-#        EXAMPLES:
-#            sage: R.<x> = Integers(100)[]
-#            sage: f = x^3 + 5
-#            sage: f.int_list()
-#            [5, 0, 0, 1]
-#            sage: [type(a) for a in f.int_list()]
-#            [<type 'long'>, <type 'long'>, <type 'long'>, <type 'long'>]
-#        """
-#        cdef long i
-#        return [ zz_p_rep(zz_pX_GetCoeff(self.x, i)) for i from 0 <= i <= zz_pX_deg(self.x) ]
 
     def list(self):
         return [self._parent._base(self[n]) for n from 0 <= n <= self.degree()]
@@ -1277,10 +1234,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
         self.c.restore_c()
         cdef Integer z
-#        cdef ZZ_c rep = ZZ_p_rep(ZZ_pX_coeff(self.x, n))
-#        print ZZ_to_int(&rep)
-#        ZZ_to_mpz(&z.value, &rep) # does this work?
-# TODO, make this faster
+
+        # TODO, make this faster
         cdef ntl_ZZ_p ntl = ntl_ZZ_p(0, self.c)
         ntl.x = ZZ_pX_coeff(self.x, n)
         return R(ntl._integer_())
@@ -1828,7 +1783,6 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
             sage: r.parent() is GF(19)
             True
         """
-##        self.parent()._ntl_set_modulus()
         other = self.parent()._coerce_(other)
         return self.base_ring()(str(self.ntl_ZZ_pX().resultant(other.ntl_ZZ_pX())))
 
@@ -1841,13 +1795,4 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
             sage: f.discriminant()
             12
         """
-##        self.parent()._ntl_set_modulus()
         return self.base_ring()(str(self.ntl_ZZ_pX().discriminant()))
-
-    # PARI is way better than NTL for poly factor for certain degrees, and is called
-    # by default in the base class.
-    #def factor(self, verbose=False):
-    #    M = self.monic()
-    #    self.parent()._ntl_set_modulus()
-    #    F = [(self.parent()(f, construct=True), n) for f, n in M.ntl_ZZ_pX().factor(verbose)]
-    #    return factorization.Factorization(F)

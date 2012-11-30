@@ -126,7 +126,7 @@ cdef class FiniteZZsubmodule_iterator:
         self._basis_length = len(basis)
         self._count = 0
 
-        if coset_rep == None:
+        if coset_rep is None:
             self._coset_rep = self._basis.parent().zero()
         else:
             self._coset_rep = self._basis.parent()(coset_rep)

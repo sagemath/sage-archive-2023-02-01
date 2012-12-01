@@ -1,5 +1,10 @@
 """
 Logarithmic functions
+
+AUTHORS:
+
+- Yoora Yi Tenen (2012-11-16): Add documentation for :meth:`log()` (:trac:`12113`)
+
 """
 from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
 from sage.symbolic.pynac import symbol_table
@@ -235,15 +240,24 @@ def log(x, base=None):
 
         sage: log(e^2)
         2
-        sage: log(1024, 2); RDF(log(1024, 2))
+
+    To change the base of the logarithm, add a second parameter::
+
+        sage: log(1000,10)
+        3
+
+    You can use :class:`RDF<sage.rings.real_double.RealDoubleField_class>`,
+    :class:`~sage.rings.real_mpfr.RealField` or ``n`` to get a numerical real
+    approximation::
+
+        sage: log(1024, 2)
         10
+        sage: RDF(log(1024, 2))
         10.0
-        sage: log(10, 4); RDF(log(10, 4))
+        sage: log(10, 4)
         log(10)/log(4)
+        sage: RDF(log(10, 4))
         1.66096404744
-
-    ::
-
         sage: log(10, 2)
         log(10)/log(2)
         sage: n(log(10, 2))

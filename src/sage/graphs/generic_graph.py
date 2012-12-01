@@ -12,6 +12,7 @@ can be applied on both. Here is what it can do:
     :delim: |
 
     :meth:`~GenericGraph.networkx_graph` | Creates a new NetworkX graph from the Sage graph
+    :meth:`~GenericGraph.to_dictionary` | Creates a dictionary encoding the graph.
     :meth:`~GenericGraph.adjacency_matrix` | Returns the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.incidence_matrix` | Returns an incidence matrix of the (di)graph
     :meth:`~GenericGraph.weighted_adjacency_matrix` | Returns the weighted adjacency matrix of the graph
@@ -851,6 +852,165 @@ class GenericGraph(GenericGraph_pyx):
                     except (TypeError, ValueError, NetworkXError):
                         N.add_edge(u,v,weight=l)
             return N
+
+    def to_dictionary(self, edge_labels=False, multiple_edges=False):
+        r"""
+        Returns the graph as a dictionary.
+
+        INPUT:
+
+        - ``edge_labels`` (boolean) -- whether to include edge labels in the
+          output.
+
+        - ``multiple_edges`` (boolean) -- whether to include multiple edges in
+          the output.
+
+        OUTPUT:
+
+        The output depends on the input:
+
+        * If ``edge_labels == False`` and ``multiple_edges == False``, the
+          output is a dictionary associating to each vertex the list of its
+          neighbors.
+
+        * If ``edge_labels == False`` and ``multiple_edges == True``, the output
+          is a dictionary the same as previously with one difference : the
+          neighbors are listed with multiplicity.
+
+        * If ``edge_labels == True`` and ``multiple_edges == False``, the output
+          is a dictionary associating to each vertex `u` [a dictionary
+          associating to each vertex `v` incident to `u` the label of edge
+          `(u,v)`].
+
+        * If ``edge_labels == True`` and ``multiple_edges == True``, the output
+          is a dictionary associating to each vertex `u` [a dictionary
+          associating to each vertex `v` incident to `u` [the list of labels of
+          all edges between `u` and `v`]].
+
+        .. NOTE::
+
+          When used on directed graphs, the explanations above can be understood
+          by replacing the word "neigbours" by "out-neighbors"
+
+        EXAMPLES::
+
+            sage: graphs.PetersenGraph().to_dictionary()
+            {0: [1, 4, 5], 1: [0, 2, 6],
+             2: [1, 3, 7], 3: [8, 2, 4],
+             4: [0, 9, 3], 5: [0, 8, 7],
+             6: [8, 1, 9], 7: [9, 2, 5],
+             8: [3, 5, 6], 9: [4, 6, 7]}
+            sage: graphs.PetersenGraph().to_dictionary(multiple_edges=True)
+            {0: [1, 4, 5], 1: [0, 2, 6],
+             2: [1, 3, 7], 3: [2, 4, 8],
+             4: [0, 3, 9], 5: [0, 7, 8],
+             6: [1, 8, 9], 7: [2, 5, 9],
+             8: [3, 5, 6], 9: [4, 6, 7]}
+            sage: graphs.PetersenGraph().to_dictionary(edge_labels=True)
+            {0: {1: None, 4: None, 5: None},
+             1: {0: None, 2: None, 6: None},
+             2: {1: None, 3: None, 7: None},
+             3: {8: None, 2: None, 4: None},
+             4: {0: None, 9: None, 3: None},
+             5: {0: None, 8: None, 7: None},
+             6: {8: None, 1: None, 9: None},
+             7: {9: None, 2: None, 5: None},
+             8: {3: None, 5: None, 6: None},
+             9: {4: None, 6: None, 7: None}}
+            sage: graphs.PetersenGraph().to_dictionary(edge_labels=True,multiple_edges=True)
+            {0: {1: [None], 4: [None], 5: [None]},
+             1: {0: [None], 2: [None], 6: [None]},
+             2: {1: [None], 3: [None], 7: [None]},
+             3: {8: [None], 2: [None], 4: [None]},
+             4: {0: [None], 9: [None], 3: [None]},
+             5: {0: [None], 8: [None], 7: [None]},
+             6: {8: [None], 1: [None], 9: [None]},
+             7: {9: [None], 2: [None], 5: [None]},
+             8: {3: [None], 5: [None], 6: [None]},
+             9: {4: [None], 6: [None], 7: [None]}}
+        """
+
+        # Returning the resuls as a dictionary of lists
+        #
+        # dictionary :
+        # {vertex : [list of (out-)neighbors]}
+
+        if not edge_labels and not multiple_edges:
+            d = {}
+
+            if self.is_directed():
+                for u in self:
+                    d[u]=self.neighbors_out(u)
+            else:
+                for u in self:
+                    d[u]=self.neighbors(u)
+
+
+        # Returning the result as a dictionary of lists
+        #
+        # dictionary :
+        # {vertex : [list of (out-)neighbors, with multiplicity]}
+        elif not edge_labels and multiple_edges:
+            d={v:[] for v in self}
+
+            if self.is_directed():
+                for u,v in self.edge_iterator(labels = False):
+                    d[u].append(v)
+
+            else:
+                for u,v in self.edge_iterator(labels = False):
+                    d[u].append(v)
+                    d[v].append(u)
+
+        # Returning the result as a dictionary of dictionaries
+        #
+        # Each vertex is associated with the dictionary associating to each of
+        # its neighbors the corresponding edge label.
+        #
+        # dictionary :
+        # {v : dictionary                          }
+        #      {neighbor u of v : label of edge u,v}
+
+        elif edge_labels and not multiple_edges:
+            d={v:{} for v in self}
+
+            if self.is_directed():
+                for u,v,l in self.edge_iterator():
+                    d[u][v] = l
+
+            else:
+                for u,v,l in self.edge_iterator():
+                    d[u][v] = l
+                    d[v][u] = l
+
+        # Returning the result as a dictionary of dictionaries
+        #
+        # Each vertex is associated with the dictionary associating to each of
+        # its neighbors the list of edge labels between the two vertices
+        #
+        # dictionary :
+        # {v : dictionary                                          }
+        #      {neighbor u of v : [labels of edges between u and v]}
+
+        elif edge_labels and multiple_edges:
+            d={v:{} for v in self}
+
+            if self.is_directed():
+                for u,v,l in self.edge_iterator():
+                    if not v in d[u]:
+                        d[u][v] = []
+                    d[u][v].append(l)
+
+            else:
+                for u,v,l in self.edge_iterator():
+                    if not v in d[u]:
+                        d[u][v] = []
+                        d[v][u] = []
+
+                    d[u][v].append(l)
+                    d[v][u].append(l)
+
+        return d
 
     def adjacency_matrix(self, sparse=None, boundary_first=False):
         """

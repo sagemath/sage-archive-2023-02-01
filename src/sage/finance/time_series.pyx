@@ -1978,10 +1978,15 @@ cdef class TimeSeries:
 
             sage: v = finance.TimeSeries([1..50])
             sage: v.plot_histogram(bins=10)
+
+        ::
+
+            sage: v.plot_histogram(bins=3,normalize=False,aspect_ratio=1)
         """
         from sage.plot.all import polygon
         counts, intervals = self.histogram(bins, normalize=normalize)
         s = 0
+        kwds.setdefault('aspect_ratio','automatic')
         for i, (x0,x1) in enumerate(intervals):
             s += polygon([(x0,0), (x0,counts[i]), (x1,counts[i]), (x1,0)], **kwds)
         if len(intervals) > 0:

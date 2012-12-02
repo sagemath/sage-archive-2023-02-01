@@ -16,3 +16,6 @@ $MAKE || die "Error building Normaliz."
 
 cp -pf normaliz "$SAGE_LOCAL/bin/" || die "Error installing Normaliz."
 
+cd ../Singular
+cp -pf normaliz.lib "$SAGE_LOCAL/share/singular/" || die "Error installing normaliz.lib for Singular."
+

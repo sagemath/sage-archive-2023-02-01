@@ -432,6 +432,22 @@ class Polynomial_generic_sparse(Polynomial):
         output.__normalize()
         return output
 
+    def _neg_(self):
+        r"""
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(Integers(), sparse=True)
+            sage: a = x^10000000; a
+            x^10000000
+            sage: -a
+            -x^10000000
+        """
+        output = { }
+        for (index, coeff) in self.__coeffs.iteritems():
+            output[index] = -coeff
+        output = self.parent()(output, check=False)
+        return output
+
     def _mul_(self, right):
         r"""
         EXAMPLES::

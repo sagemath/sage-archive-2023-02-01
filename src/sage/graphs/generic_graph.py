@@ -12945,6 +12945,14 @@ class GenericGraph(GenericGraph_pyx):
         """
         Returns the line graph of the (di)graph.
 
+        INPUT:
+
+        - ``labels`` (boolean) -- whether edge labels should be taken in
+          consideration. If ``labels=True``, the vertices of the line graph will
+          be triples ``(u,v,label)``, and pairs of vertices otherwise.
+
+          This is set to ``True`` by default.
+
         The line graph of an undirected graph G is an undirected graph H
         such that the vertices of H are the edges of G and two vertices e
         and f of H are adjacent if e and f share a common vertex in G. In
@@ -12955,6 +12963,13 @@ class GenericGraph(GenericGraph_pyx):
         of H are adjacent if e and f share a common vertex in G and the
         terminal vertex of e is the initial vertex of f. In other words, an
         edge in H represents a (directed) path of length 2 in G.
+
+        .. NOTE::
+
+            As a :class:`Graph` object only accepts hashable objects as vertices
+            (and as the vertices of the line graph are the edges of the graph),
+            this code will fail if edge labels are not hashable. You can also
+            set the argument ``labels=False`` to ignore labels.
 
         EXAMPLES::
 
@@ -12993,6 +13008,17 @@ class GenericGraph(GenericGraph_pyx):
              ((1, 2, None), (2, 4, None), None),
              ((1, 3, None), (3, 4, None), None),
              ((2, 3, None), (3, 4, None), None)]
+
+        Tests:
+
+        :trac:`13787`::
+
+            sage: g=graphs.KneserGraph(7,1)
+            sage: C = graphs.CompleteGraph(7)
+            sage: C.is_isomorphic(g)
+            True
+            sage: C.line_graph().is_isomorphic(g.line_graph())
+            True
         """
         if self._directed:
             from sage.graphs.digraph import DiGraph
@@ -13006,23 +13032,52 @@ class GenericGraph(GenericGraph_pyx):
         else:
             from sage.graphs.all import Graph
             G=Graph()
-            # We must sort the edges' endpoints so that (1,2,None) is
-            # seen as the same edge as (2,1,None).
-            if labels:
-                elist=[(min(i[0:2]),max(i[0:2]),i[2] if i[2] != {} else None)
-                       for i in self.edge_iterator()]
-            else:
-                elist=[(min(i),max(i))
-                       for i in self.edge_iterator(labels=False)]
-            G.add_vertices(elist)
-            for v in self:
-                if labels:
-                    elist=[(min(i[0:2]),max(i[0:2]),i[2] if i[2] != {} else None)
-                           for i in self.edge_iterator(v)]
+
+            # We must sort the edges' endpoints so that (1,2,None) is seen as
+            # the same edge as (2,1,None).
+            #
+            # We do so by comparing hashes, just in case all the natural order
+            # (<) on vertices would not be a total order (for instance when
+            # vertices are sets). If two adjacent vertices have the same hash,
+            # then we store the pair in the dictionary of conflicts
+
+            conflicts = {}
+
+            # 1) List of vertices in the line graph
+            elist = []
+            for e in self.edge_iterator(labels = labels):
+                if hash(e[0]) < hash(e[1]):
+                    elist.append(e)
+                elif hash(e[0]) > hash(e[1]):
+                    elist.append((e[1],e[0])+e[2:])
                 else:
-                    elist=[(min(i),max(i))
-                           for i in self.edge_iterator(v, labels=False)]
-                G.add_edges([(e, f) for e in elist for f in elist])
+                    # Settle the conflict arbitrarily
+                    conflicts[e] = e
+                    conflicts[(e[1],e[0])+e[2:]] = e
+                    elist.append(e)
+
+            G.add_vertices(elist)
+
+            # 2) adjacencies in the line graph
+            for v in self:
+                elist = []
+
+                # Add the edge to the list, according to hashes, as previously
+                for e in self.edge_iterator(v, labels=labels):
+                    if hash(e[0]) < hash(e[1]):
+                        elist.append(e)
+                    elif hash(e[0]) > hash(e[1]):
+                        elist.append((e[1],e[0])+e[2:])
+                    else:
+                        elist.append(conflicts[e])
+
+                # Alls pairs of elements in elist are pairs of the
+                # graph
+                while elist:
+                    x = elist.pop()
+                    for y in elist:
+                        G.add_edge(x,y)
+
             return G
 
     def to_simple(self):

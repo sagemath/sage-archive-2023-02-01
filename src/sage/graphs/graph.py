@@ -4966,7 +4966,7 @@ class Graph(GenericGraph):
             sage: (graphs.FruchtGraph()).cores(with_labels=True)
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 3, 11: 3}
             sage: a=random_matrix(ZZ,20,x=2,sparse=True, density=.1)
-            sage: b=DiGraph(20)
+            sage: b=Graph(20)
             sage: b.add_edges(a.nonzero_positions())
             sage: cores=b.cores(with_labels=True); cores
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 2, 5: 2, 6: 3, 7: 1, 8: 3, 9: 3, 10: 3, 11: 3, 12: 3, 13: 3, 14: 2, 15: 3, 16: 3, 17: 3, 18: 3, 19: 3}

@@ -224,7 +224,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.connected_components_subgraphs` | Returns a list of connected components as graph objects.
     :meth:`~GenericGraph.connected_component_containing_vertex` | Returns a list of the vertices connected to vertex.
     :meth:`~GenericGraph.blocks_and_cut_vertices` | Computes the blocks and cut vertices of the graph.
-    :meth=`~GenericGraph.is_cut_edge` | Returns True if the input edge is a cut-edge or a bridge.
+    :meth:=`~GenericGraph.is_cut_edge` | Returns True if the input edge is a cut-edge or a bridge.
     :meth:`~GenericGraph.is_cut_vertex` | Returns True if the input vertex is a cut-vertex.
     :meth:`~GenericGraph.edge_cut` | Returns a minimum edge cut between vertices `s` and `t`
     :meth:`~GenericGraph.vertex_cut` | Returns a minimum vertex cut between non-adjacent vertices `s` and `t`

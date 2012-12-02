@@ -115,7 +115,7 @@ class FinitePosets(Category):
 
                 sage: D = Poset((divisors(30), attrcall("divides")))
                 sage: B = Poset(([frozenset(s) for s in Subsets([2,3,5])], attrcall("issubset")))
-                sage: def f(b): return D(prod(b.element))
+                sage: def f(b): return D(prod(b))
                 sage: B.is_poset_isomorphism(f, D)
                 True
 
@@ -123,21 +123,21 @@ class FinitePosets(Category):
             of divisors of 30, ordered by usual comparison::
 
                 sage: P = Poset((divisors(30), operator.le))
-                sage: def f(b): return P(prod(b.element))
+                sage: def f(b): return P(prod(b))
                 sage: B.is_poset_isomorphism(f, P)
                 False
 
             A non surjective case::
 
                 sage: B = Poset(([frozenset(s) for s in Subsets([2,3])], attrcall("issubset")))
-                sage: def f(b): return D(prod(b.element))
+                sage: def f(b): return D(prod(b))
                 sage: B.is_poset_isomorphism(f, D)
                 False
 
             A non injective case::
 
                 sage: B = Poset(([frozenset(s) for s in Subsets([2,3,5,6])], attrcall("issubset")))
-                sage: def f(b): return D(gcd(prod(b.element), 30))
+                sage: def f(b): return D(gcd(prod(b), 30))
                 sage: B.is_poset_isomorphism(f, D)
                 False
 
@@ -180,7 +180,7 @@ class FinitePosets(Category):
 
                 sage: D = Poset((divisors(30), attrcall("divides")))
                 sage: B = Poset(([frozenset(s) for s in Subsets([2,3,5,6])], attrcall("issubset")))
-                sage: def f(b): return D(gcd(prod(b.element), 30))
+                sage: def f(b): return D(gcd(prod(b), 30))
                 sage: B.is_poset_morphism(f, D)
                 True
 
@@ -192,7 +192,7 @@ class FinitePosets(Category):
             of 30, ordered by usual comparison::
 
                 sage: P = Poset((divisors(30), operator.le))
-                sage: def f(b): return P(gcd(prod(b.element), 30))
+                sage: def f(b): return P(gcd(prod(b), 30))
                 sage: B.is_poset_morphism(f, P)
                 True
 
@@ -206,7 +206,7 @@ class FinitePosets(Category):
 
                 sage: P = Posets.ChainPoset(2)
                 sage: Q = Posets.AntichainPoset(2)
-                sage: f = lambda x: 1-x.element
+                sage: f = lambda x: 1-x
                 sage: P.is_poset_morphism(f, P)
                 False
                 sage: P.is_poset_morphism(f, Q)
@@ -338,7 +338,7 @@ class FinitePosets(Category):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: P.panyushev_orbits()
-                [[set([3]), set([]), set([1, 2])], [set([2]), set([1])]]
+                [[set([2]), set([1])], [set([]), set([1, 2]), set([3])]]
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning the orbits.

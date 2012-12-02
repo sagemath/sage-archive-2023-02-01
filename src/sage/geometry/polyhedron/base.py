@@ -239,7 +239,7 @@ class Polyhedron_base(Element):
 
         face_lattice = self.face_lattice()
         for face in face_lattice:
-            Hrep = face.element.ambient_Hrepresentation()
+            Hrep = face.ambient_Hrepresentation()
             if len(Hrep) == 2:
                 set_adjacent(Hrep[0], Hrep[1])
         return M
@@ -2391,7 +2391,7 @@ class Polyhedron_base(Element):
             sage: list(_)
             [<>, <0>, <1>, <2>, <3>, <0,1>, <0,2>, <2,3>, <1,3>, <0,1,2,3>]
             sage: poset_element = _[6]
-            sage: a_face = poset_element.element
+            sage: a_face = poset_element
             sage: a_face
             <0,2>
             sage: a_face.dim()
@@ -2416,7 +2416,7 @@ class Polyhedron_base(Element):
         face in the face lattice::
 
             sage: line = Polyhedron(vertices=[(0,)], lines=[(1,)])
-            sage: [ fl.element.dim() for fl in line.face_lattice() ]
+            sage: [ fl.dim() for fl in line.face_lattice() ]
             [-1, 1]
 
         TESTS::

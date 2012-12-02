@@ -110,7 +110,7 @@ class FiniteLatticePosets(Category):
 
                 sage: D = LatticePoset((divisors(60), attrcall("divides")))
                 sage: B = LatticePoset((Subsets([2,2,3]), attrcall("issubset")))
-                sage: def f(b): return D(5*prod(b.element))
+                sage: def f(b): return D(5*prod(b))
                 sage: B.is_lattice_morphism(f, D)
                 True
 

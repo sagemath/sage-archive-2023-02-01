@@ -53,7 +53,7 @@ class Posets(Category):
     Unless the poset is a facade (see :class:`Sets.Facades`), one can
     compare directly its elements using the usual Python operators::
 
-        sage: D = Poset((divisors(30), attrcall("divides")))
+        sage: D = Poset((divisors(30), attrcall("divides")), facade = False)
         sage: D(3) <= D(6)
         True
         sage: D(3) <= D(3)

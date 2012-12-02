@@ -1434,10 +1434,10 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = WeylGroup(["B",3])
                 sage: P = W.bruhat_poset() # This is built from bruhat_lower_covers
-                sage: Q = Poset((W, attrcall("bruhat_le")))                         # long time (10s)
-                sage: all( u.bruhat_le(v) == (P(u) <= P(v)) for u in W for v in W ) # long time  (7s)
+                sage: Q = Poset((W, attrcall("bruhat_le")))                             # long time (10s)
+                sage: all( u.bruhat_le(v) == P.is_lequal(u,v) for u in W for v in W ) # long time  (7s)
                 True
-                sage: all((P(u) <= P(v)) == (Q(u) <= Q(v)) for u in W for v in W)   # long time  (9s)
+                sage: all( P.is_lequal(u,v) == Q.is_lequal(u,v) for u in W for v in W)       # long time  (9s)
                 True
 
             """

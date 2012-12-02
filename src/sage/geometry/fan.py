@@ -156,26 +156,10 @@ the fan. In this case check out
     sage: cone
     2-d cone of Rational polyhedral fan in 3-d lattice N
     sage: L.hasse_diagram().neighbors(cone)
-    [3-d cone of Rational polyhedral fan in 3-d lattice N,
+    [1-d cone of Rational polyhedral fan in 3-d lattice N,
      3-d cone of Rational polyhedral fan in 3-d lattice N,
      1-d cone of Rational polyhedral fan in 3-d lattice N,
-     1-d cone of Rational polyhedral fan in 3-d lattice N]
-
-Note, that while ``cone`` above seems to be a "cone", it is not::
-
-    sage: cone.rays()
-    Traceback (most recent call last):
-    ...
-    AttributeError: 'FinitePoset_with_category.element_class' object
-    has no attribute 'rays'
-
-To get your hands on the "real" cone, you need to do one more step::
-
-    sage: cone = cone.element
-    sage: cone.rays()
-    N(1, 0, 0),
-    N(0, 1, 0)
-    in 3-d lattice N
+     3-d cone of Rational polyhedral fan in 3-d lattice N]
 
 You can check how "good" a fan is::
 
@@ -1313,7 +1297,6 @@ class RationalPolyhedralFan(IntegralRayCollection,
                 L_cone = Cone(cone.rays(), lattice=self.lattice(),
                               check=False, normalize=False).face_lattice()
                 for f in L_cone:
-                    f = f.element
                     f_rays = tuple(cone.ambient_ray_indices()[ray]
                                    for ray in f.ambient_ray_indices())
                     face_to_rays[f] = f_rays
@@ -1327,11 +1310,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
                         index_to_cones.append([i])
                 # Add all relations between faces of cone to L
                 for f,g in L_cone.cover_relations_iterator():
-                    L.add_edge(rays_to_index[face_to_rays[f.element]],
-                               rays_to_index[face_to_rays[g.element]])
+                    L.add_edge(rays_to_index[face_to_rays[f]],
+                               rays_to_index[face_to_rays[g]])
                 # Add the inclusion of cone into the fan itself
                 L.add_edge(
-                        rays_to_index[face_to_rays[L_cone.top().element]], 0)
+                        rays_to_index[face_to_rays[L_cone.top()]], 0)
 
             # Enumeration of graph vertices must be a linear extension of the
             # poset
@@ -1891,7 +1874,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         largest face, you should be a little bit careful with this last
         element::
 
-            sage: for face in L: print face.element.ambient_ray_indices()
+            sage: for face in L: print face.ambient_ray_indices()
             Traceback (most recent call last):
             ...
             AttributeError: 'RationalPolyhedralFan'
@@ -1902,7 +1885,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         For example, you can do ::
 
             sage: for l in L.level_sets()[:-1]:
-            ...       print [f.element.ambient_ray_indices() for f in l]
+            ...       print [f.ambient_ray_indices() for f in l]
             [()]
             [(0,), (1,), (2,)]
             [(0, 1)]
@@ -1914,7 +1897,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
             sage: L = fan.cone_lattice()
             sage: for l in L.level_sets()[:-1]:
-            ...       print [f.element.ambient_ray_indices() for f in l]
+            ...       print [f.ambient_ray_indices() for f in l]
             [()]
             [(0,), (1,), (2,), (3,)]
             [(0, 1), (1, 2), (0, 3), (2, 3)]
@@ -2002,7 +1985,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             (2-d cone of Rational polyhedral fan in 2-d lattice N,)
 
         You cannot specify both dimension and codimension, even if they
-        "agree"::
+        'agree'::
 
             sage: fan(dim=1, codim=1)
             Traceback (most recent call last):
@@ -2020,8 +2003,8 @@ class RationalPolyhedralFan(IntegralRayCollection,
             ()
         """
         if "_cones" not in self.__dict__:
-            levels = [(e.element for e in level) # Generators
-                      for level in self.cone_lattice().level_sets()]
+            levels = map(iter,self.cone_lattice().level_sets()) # generators
+
             levels.pop() # The very last level is this FAN, not cone.
             # It seems that there is no reason to believe that the order of
             # faces in level sets has anything to do with the order of

@@ -1805,7 +1805,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     adjacent.update(L.open_interval(facet,  superface))
             if adjacent:
                 adjacent.remove(L(self))
-            return self._sort_faces(iter(adjacent))
+            return self._sort_faces(adjacent)
         elif self.dim() == self._ambient.dim():
             # Special treatment relevant for fans
             for facet in facets:
@@ -2106,15 +2106,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
              1-d face of 2-d cone in 2-d lattice N]
             [2-d cone in 2-d lattice N]
 
-        Now you can look at the rays of this face... ::
+        For a particular face you can look at its actual rays... ::
 
             sage: face = L.level_sets()[1][0]
             sage: face.rays()
             N(1, 0)
             in 2-d lattice N
 
-        ... or you can see indices of the rays of the orginal cone that
-        correspond to the above ray::
+        ... or you can see the index of the ray of the original cone that
+        corresponds to the above one::
 
             sage: face.ambient_ray_indices()
             (0,)
@@ -2405,8 +2405,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     "dimension and codimension cannot be specified together!")
         dim = self.dim() - codim if codim is not None else dim
         if "_faces" not in self.__dict__:
-            self._faces = tuple(self._sort_faces(iter(level))
-                                for level in self.face_lattice().level_sets())
+            self._faces = tuple(map(self._sort_faces,
+                                    self.face_lattice().level_sets()))
             # To avoid duplication and ensure order consistency
             if len(self._faces) > 1:
                 self._facets = self._faces[-2]
@@ -2572,7 +2572,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         if "_facets" not in self.__dict__:
             L = self._ambient._face_lattice_function()
             H = L.hasse_diagram()
-            self._facets = self._sort_faces(tuple(H.neighbors_in(L(self))))
+            self._facets = self._sort_faces(H.neighbors_in(L(self)))
         return self._facets
 
     def intersection(self, other):

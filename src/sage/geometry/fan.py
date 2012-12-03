@@ -1985,7 +1985,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             (2-d cone of Rational polyhedral fan in 2-d lattice N,)
 
         You cannot specify both dimension and codimension, even if they
-        'agree'::
+        "agree"::
 
             sage: fan(dim=1, codim=1)
             Traceback (most recent call last):
@@ -2003,8 +2003,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             ()
         """
         if "_cones" not in self.__dict__:
-            levels = map(iter,self.cone_lattice().level_sets()) # generators
-
+            levels = self.cone_lattice().level_sets()
             levels.pop() # The very last level is this FAN, not cone.
             # It seems that there is no reason to believe that the order of
             # faces in level sets has anything to do with the order of

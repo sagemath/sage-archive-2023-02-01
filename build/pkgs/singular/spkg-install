@@ -97,7 +97,7 @@ apply_patches()
     fi
 
     if [ "x$SINGULAR_XALLOC" = "xyes" ]; then
-	rm -r $(SRC)/omalloc/*
+	rm -r ../src/omalloc/*
 	mv conditional/singular_xalloc.patch . || return $?
     fi
 

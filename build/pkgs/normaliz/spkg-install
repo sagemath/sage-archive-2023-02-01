@@ -9,6 +9,7 @@ die () {
 
 cd src
 patch -p1 < ../patches/00-remove-static-option.patch || die "Error: Couldn't apply patch."
+patch -p1 < ../patches/01-adjust-size-of-input-matrix-fix.patch || die "Error: Couldn't apply patch."
 
 export CXXFLAGS="-I$SAGE_LOCAL/include $CXXFLAGS"
 cd source

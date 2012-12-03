@@ -30,9 +30,11 @@ For more details see http://www.mathematik.uni-osnabrueck.de/normaliz/
 
  * 00-remove-static-option.patch ensures MacOS compatibility.
 
+ * 01-adjust-size-of-input-matrix-fix.patch fixes regression in 2.8 Singular interface (provided by Christof Söger from upstream).
+
 == Changelog ==
 
-=== normaliz-2.8 (Andrey Novoseltsev, October 21 2012) ===
+=== normaliz-2.8 (Andrey Novoseltsev, December 2 2012) ===
 
  * Initial release. See Sage Trac #13234.
 

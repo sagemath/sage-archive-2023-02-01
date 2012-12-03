@@ -96,6 +96,11 @@ apply_patches()
         mv conditional/sage_debug.patch . || return $?
     fi
 
+    if [ "x$SINGULAR_XALLOC" = "xyes" ]; then
+	rm -r $(SRC)/omalloc/*
+	mv conditional/singular_xalloc.patch . || return $?
+    fi
+
     # Apply all patches
     cd "$SRC" || return $?
     for patch in ../patches/*.patch; do

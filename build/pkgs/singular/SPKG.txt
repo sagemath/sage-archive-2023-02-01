@@ -49,6 +49,13 @@ Several patches are applied.
    https://github.com/alexanderdreyer/SingularSources/commit/7902222
  * slibdir.patch: set default slibdir to ${datarootdir}/singular
    instead of ${prefix}/LIB, see #13344.
+ * singular_15435.patch: Backport of
+   http://www.singular.uni-kl.de:8002/trac/changeset/15435
+   See also http://www.singular.uni-kl.de:8002/trac/ticket/463
+   and http://trac.sagemath.org/sage_trac/ticket/13731.
+ * singular_part_of_changeset_baadc0f7.patch: Backport a small part
+   of https://github.com/Singular/Sources/commit/9ece45a2420dc43ff03a48c40423a3009c235fdd
+   that fixes one memory corruption (writing out of bound).
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*
@@ -69,11 +76,27 @@ Other notes
    FLINT 2.x.  If a sufficiently recent version of FLINT is ever added
    to Sage, we should make Singular use it
    (configure --with-flint="$SAGE_LOCAL").
+ * If the environment variable SINGULAR_XALLOC is set to "yes", then
+   omalloc will be replaced by xalloc. The resulting Singular executable
+   and libsingular library will be slower than with omalloc, but allow
+   for easier debugging of memory corruptions.
 
 == ChangeLog ==
 
+=== singular-3-1-5.p2 (Simon King, 03 December 2012) ===
+ * Trac #13731
+ * Optionally replace omalloc with xalloc (a thin compatibility layer
+   on top of malloc) so that debugging of memory corruptions becomes
+   easier.
+ * Include two upstream fixes for memory corruptions.
+
 === singular-3-1-5.p1 (Simon King, 29 August 2012) ===
  * Trac #13237: add patch install_table.patch
+    - singular_15435.patch
+    - singular_part_of_changeset_baadc0f7.patch
+ * If SINGULAR_XALLOC is "yes", then omalloc is replaced
+   by xalloc (a thin compatibility layer on top of malloc),
+   so that debugging of memory corruptions becomes easier.
 
 === singular-3-1-5.p0 (Jeroen Demeyer, Alexander Dreyer, 10 August 2012) ===
  * Trac #13237: Upgrade to version 3-1-5.

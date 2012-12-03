@@ -34,6 +34,10 @@ For more details see http://www.mathematik.uni-osnabrueck.de/normaliz/
 
 == Changelog ==
 
+=== normaliz-2.8.p0 (Dima Pasechnik, December 2 2012) ===
+
+ * Bumped up the version due to a nontrivial patch to singular.lib
+
 === normaliz-2.8 (Andrey Novoseltsev, December 2 2012) ===
 
  * Initial release. See Sage Trac #13234.

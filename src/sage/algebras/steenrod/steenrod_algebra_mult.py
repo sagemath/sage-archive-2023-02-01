@@ -894,8 +894,14 @@ def make_mono_admissible(mono, p=2):
         {(5, 1): 1}
         sage: make_mono_admissible((0, 2, 0, 1, 0), p=7)
         {(0, 3, 0): 3}
+
+    Test the fix from :trac:`13796`::
+
+        sage: SteenrodAlgebra(p=2, basis='adem').Q(2) * (Sq(6) * Sq(2)) # indirect doctest
+        Sq^10 Sq^4 Sq^1 + Sq^10 Sq^5 + Sq^12 Sq^3 + Sq^13 Sq^2
     """
     from sage.rings.all import GF
+    F = GF(p)
     if len(mono) == 1:
         return {mono: 1}
     if p==2 and len(mono) == 2:

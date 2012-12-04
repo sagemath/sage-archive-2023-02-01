@@ -60,8 +60,17 @@ http://www.python.org/community/
  * sys_path_security.patch: ensure that the current working directory
    or the script directory is prepended to sys.path only if there is no
    security risk in doing so.
+ * io-issue_14437.patch: Fixes Python issue #14437 (building _io on Cygwin)
+ * ncurses-issue_9665.patch: Fixes Python issue #9665 (by patching configure
+   and configure.in after running autotools)
+ * ncurses-issue_14438.patch: Fixes Python issue #14438 (ncurses)
 
 == Changelog ==
+
+=== python-2.7.3.p3 (Jean-Pierre Flori, Karl-Dieter Crisman, 4 December 2012) ===
+ * Trac #13319: let Python build on Cygwin.
+ * Includes fixes from Python issues #9665, #14437, #14438.
+ * Jeroen's autotools was run in order to update the configure script.
 
 === python-2.7.3.p2 (Jeroen Demeyer, 29 October 2012) ===
  * Trac #13631: Keep in mind umask when checking security of "python -c"

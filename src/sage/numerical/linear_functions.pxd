@@ -20,6 +20,7 @@ cdef class LinearFunction(ModuleElement):
     cdef _richcmp(left, right, int op)
     cpdef is_zero(self)
     cpdef equals(LinearFunction left, LinearFunction right)
+    cdef int _cmp_c_impl(left, Element right) except -2
 
 cdef class LinearConstraintsParent_class(Parent):
     cdef LinearFunctionsParent_class _LF

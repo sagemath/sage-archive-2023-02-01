@@ -78,6 +78,10 @@ include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 
+cdef extern from "limits.h":
+    long LONG_MAX
+
+
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, Element
 from sage.misc.cachefunc import cached_function
@@ -807,9 +811,9 @@ cdef class LinearFunction(ModuleElement):
 
     def __hash__(self):
         r"""
-        Defines a ``__hash__`` function
+        Return a hash.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: f = p({2 : 5, 3 : 2})
@@ -818,8 +822,47 @@ cdef class LinearFunction(ModuleElement):
             sage: d = {}
             sage: d[f] = 3
         """
-        return id(self)
+        # see _cmp_c_impl() if you want to change the hash function
+        return id(self) % LONG_MAX
 
+    def __cmp__(left, right):
+        """
+        Part of the comparison framework.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: f = p({2 : 5, 3 : 2})
+            sage: cmp(f, f)
+            0
+        """
+        return (<Element>left)._cmp(right)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        """
+        Implement comparison of two linear functions.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: f = p({2 : 5, 3 : 2})
+            sage: cmp(f, f)
+            0
+            sage: abs(cmp(f, f+0))     # since we are comparing by id()
+            1
+            sage: abs(cmp(f, f+1))
+            1
+            sage: len(set([f, f]))
+            1
+            sage: len(set([f, f+0]))
+            2
+            sage: len(set([f, f+1]))
+            2
+        """
+        # Note: if you want to implement smarter comparison, you also
+        # need to change __hash__(). The comparison function must
+        # satisfy cmp(x,y)==0 => hash(x)==hash(y)
+        return cmp(id(left), id(right))
 
 #*****************************************************************************
 #

@@ -437,6 +437,12 @@ def milnor_multiplication_odd(m1,m2,p):
         sage: A.P(36,6)*A.P(27,9,81)
         2 P(13,21,83) + P(14,24,82) + P(17,20,83) + P(25,18,83) + P(26,21,82) + P(36,15,80,1) + P(49,12,83) + 2 P(50,15,82) + 2 P(53,11,83) + 2 P(63,15,81)
 
+    Associativity once failed because of a sign error::
+
+        sage: a,b,c = A.Q_exp(0,1), A.P(3), A.Q_exp(1,1)
+        sage: (a*b)*c == a*(b*c)
+        True
+
     This uses the same algorithm Monks does in his Maple package to
     iterate through the possible matrices: see
     http://mathweb.scranton.edu/monks/software/Steenrod/steen.html.
@@ -473,7 +479,7 @@ def milnor_multiplication_odd(m1,m2,p):
                         ind = len(q_mono.intersection(range(k+i,1+max(q_mono))))
                     else:
                         ind = 0
-                    coeff = (-1)**ind
+                    coeff = (-1)**ind * old_answer[mono]
                     lst = list(mono[0])
                     if ind == 0:
                         lst.append(k+i)

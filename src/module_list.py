@@ -123,20 +123,23 @@ ext_modules = [
 
     Extension('sage.algebras.letterplace.free_algebra_letterplace',
               sources = ['sage/algebras/letterplace/free_algebra_letterplace.pyx'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC +'singular/'],
+              include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     Extension('sage.algebras.letterplace.free_algebra_element_letterplace',
               sources = ['sage/algebras/letterplace/free_algebra_element_letterplace.pyx'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC +'singular/'],
+              include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     Extension('sage.algebras.letterplace.letterplace_ideal',
               sources = ['sage/algebras/letterplace/letterplace_ideal.pyx'],
+              libraries = singular_libs,
               language="c++",
-              include_dirs = [SAGE_INC +'singular/'],
+              include_dirs = [SAGE_INC + 'singular', SAGE_INC + 'factory'],
               depends = singular_depends),
 
     Extension('sage.algebras.quatalg.quaternion_algebra_cython',

@@ -22,6 +22,10 @@ Website: http://perso.ens-lyon.fr/damien.stehle/english.html
 
 == Changelog ==
 
+=== libfplll-3.0.12.p3 (Simon King, 6 December 2011) ===
+ * #13804: Disable parallel build and install on Cygwin.
+ * Clean up spkg-install and spkg-check.
+
 === libfplll-3.0.12.p2 (Simon King, 10th December 2011) ===
  * #12131: Use --libdir, to make the package work on openSUSE.
 
@@ -38,7 +42,6 @@ Website: http://perso.ens-lyon.fr/damien.stehle/english.html
    on Solaris 10 on SPARC and OpenSolaris on x64.
  * #7738 Removed Michael Abshoff as a package maintainer, as he no longer works
    on the Sage project.
-
 
 === libfplll-3.0.12.p0 (Michael Abshoff, May 20th, 2009) ===
  * Patch dpe.h with a Solaris specific compile workaround.

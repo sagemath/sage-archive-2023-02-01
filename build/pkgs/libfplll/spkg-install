@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+    echo "SAGE_LOCAL undefined ... exiting";
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
-echo "Patching dpe.h"
-cp patches/dpe.h src/src/
-
 cd src
+
+echo "Applying patches to upstream sources..."
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: '$patch' failed to apply."
+        exit 1
+    fi
+done
 
 INCLUDES="-I$SAGE_LOCAL/include/"
 
@@ -22,20 +28,26 @@ CPPFLAGS="$INCLUDES"
 # such as those from IBM on AIX and HP on HP-UX use different flags.
 
 if [ -z $CFLAG64 ] ; then
-   CFLAG64=-m64
+    CFLAG64=-m64
 fi
 
 if [ -z $CXXFLAG64 ] ; then
-   CXXFLAG64=-m64
+    CXXFLAG64=-m64
 fi
 
 if [ "x$SAGE64" = xyes ]; then
-   echo "Building a 64-bit version of libfplll"
-   CFLAGS="$CFLAGS $CFLAG64"
-   CXXFLAGS="$CXXFLAGS $CXXFLAG64"
-   CPPFLAGS="$CPPFLAGS $CFLAG64"
-   CC="$CC $CFLAG64"
-   CXX="$CXX $CXXFLAG64"
+    echo "Building a 64-bit version of libfplll"
+    CFLAGS="$CFLAGS $CFLAG64"
+    CXXFLAGS="$CXXFLAGS $CXXFLAG64"
+    CPPFLAGS="$CPPFLAGS $CFLAG64"
+    CC="$CC $CFLAG64"
+    CXX="$CXX $CXXFLAG64"
+fi
+
+if [ "$UNAME" = "CYGWIN" ]; then
+    echo "Disable parallel building on Cygwin"
+    MAKE="$MAKE -j1"
+    export MAKE
 fi
 
 export CFLAGS
@@ -44,30 +56,23 @@ export CPPFLAGS
 export CC
 export CXX
 
+echo "Now configuring libfplll..."
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --includedir="$SAGE_LOCAL/include/fplll"
-
-
 if [ $? -ne 0 ]; then
     echo "Error configuring libfplll"
     exit 1
 fi
 
+echo "Now building libfplll..."
 $MAKE
 if [ $? -ne 0 ]; then
     echo "Error building libfplll"
     exit 1
 fi
 
+echo "Now installing libfplll..."
 $MAKE install
 if [ $? -ne 0 ]; then
     echo "Error installing libfplll"
     exit 1
 fi
-
-# run make check target for now - should be turned off
-make check
-if [ $? -ne 0 ]; then
-    echo "Error running check target for libfplll"
-    exit 1
-fi
-

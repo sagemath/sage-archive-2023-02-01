@@ -447,7 +447,7 @@ def matrix_plot(mat, **options):
         sage: matrix_plot([[sin(x), cos(x)], [1, 0]])
         Traceback (most recent call last):
         ...
-        ValueError: can not convert entries to floating point numbers
+        TypeError: mat must be a Matrix or a two dimensional array
 
     Test that sparse matrices also work with subdivisions::
 

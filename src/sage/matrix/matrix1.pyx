@@ -492,7 +492,7 @@ cdef class Matrix(matrix0.Matrix):
 
             sage: import numpy
             sage: sorted(numpy.typecodes.items())
-            [('All', '?bhilqpBHILQPfdgFDGSUVO'), ('AllFloat', 'fdgFDG'), ('AllInteger', 'bBhHiIlLqQpP'), ('Character', 'c'), ('Complex', 'FDG'), ('Float', 'fdg'), ('Integer', 'bhilqp'), ('UnsignedInteger', 'BHILQP')]
+            [('All', '?bhilqpBHILQPefdgFDGSUVOMm'), ('AllFloat', 'efdgFDG'), ('AllInteger', 'bBhHiIlLqQpP'), ('Character', 'c'), ('Complex', 'FDG'), ('Datetime', 'Mm'), ('Float', 'efdg'), ('Integer', 'bhilqp'), ('UnsignedInteger', 'BHILQP')]
 
         Alternatively, numpy automatically calls this function (via
         the magic :meth:`__array__` method) to convert Sage matrices

@@ -769,7 +769,7 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
             sage: [x for x in a.f(6)]            # indirect doctest
             [0, 1, 2, 3, 4, 5]
         """
-        if self.inst:
+        if self.inst is not None:
             args = (self.inst,) + args
         if self.name:
             if isinstance(self.name,str):

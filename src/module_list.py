@@ -256,6 +256,9 @@ ext_modules = [
     Extension('sage.combinat.enumeration_mod_permgroup',
               sources=['sage/combinat/enumeration_mod_permgroup.pyx']),
 
+    Extension('sage.combinat.q_bernoulli',
+              sources = ['sage/combinat/q_bernoulli.pyx']),
+
     ################################
     ##
     ## sage.crypto

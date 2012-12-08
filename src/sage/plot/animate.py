@@ -378,7 +378,7 @@ www.ffmpeg.org, or use 'convert' to produce gifs instead."""
                 raise OSError, msg
         else:
             if not savefile:
-                savefile = sage.misc.misc.graphics_filename(ext='gif')
+                savefile = sage.misc.temporary_file.graphics_filename(ext='gif')
             if not savefile.endswith('.gif'):
                 savefile += '.gif'
             savefile = os.path.abspath(savefile)
@@ -554,7 +554,7 @@ please install it and try again."""
             if not savefile:
                 if output_format is None:
                     output_format = 'mpg'
-                savefile = sage.misc.misc.graphics_filename(ext=output_format)
+                savefile = sage.misc.temporary_file.graphics_filename(ext=output_format)
             else:
                 if output_format is None:
                     suffix = os.path.splitext(savefile)[1]

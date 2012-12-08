@@ -85,7 +85,6 @@ cimport matrix_dense
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.misc.misc import verbose, get_verbose
-from sage.misc.temporary_file import graphics_filename
 
 import sage.rings.all as rings
 
@@ -585,6 +584,13 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
            direction of the resulting image. If None or a maxsize larger than
            max(self.nrows(),self.ncols()) is given the image will have the
            same pixelsize as the matrix dimensions (default: 512)
+
+        EXAMPLES::
+
+            sage: M = Matrix(GF(7), [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
+            [0 0 0 1 0 0 0 0]
+            [0 1 0 0 0 0 1 0]
+            sage: M.visualize_structure()
         """
         import gd
         import os
@@ -637,7 +643,10 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                 setPixel( (x,y), colorExact((r-delta,g-delta,b-delta)) )
 
         if filename is None:
-            filename = sage.misc.misc.graphics_filename()
+            filename = sage.misc.temporary_file.graphics_filename()
+            if sage.plot.plot.DOCTEST_MODE:
+                import os
+                filename = os.path.join(sage.misc.temporary_file.tmp_dir(), filename)
 
         im.writePng(filename)
 

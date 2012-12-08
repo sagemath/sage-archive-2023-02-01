@@ -1251,7 +1251,9 @@ class Graphics(SageObject):
                         # Legend options
                         legend_options={}, show_legend=None,
                         # Ticks options
-                        ticks=None, tick_formatter=None, ticks_integer=False)
+                        ticks=None, tick_formatter=None, ticks_integer=False,
+                        # Text options
+                        typeset='default')
 
     @suboptions('legend',
                 back_color=(0.9, 0.9, 0.9), borderpad=0.6,
@@ -1401,7 +1403,10 @@ class Graphics(SageObject):
           - If one of the entries is the string ``"latex"``, then the
             formatting will be nice typesetting of the ticks.  This is
             intended to be used when the tick locator for at least one of
-            the axes is a list including some symbolic elements.  See examples.
+            the axes is a list including some symbolic elements. This uses
+            matplotlib's internal LaTeX rendering engine. If you want to
+            use an external LaTeX compiler, then set the keyword option
+            ``typeset``.  See examples.
 
         - ``title`` - (default: None) The title for the plot
 
@@ -1465,6 +1470,22 @@ class Graphics(SageObject):
               do use noninteger ``base`` for the logarithm, then provide
               your own tick formatter using the option ``tick_formatter``.
 
+        - ``typeset`` -- (default: ``"default"``) string. The type of
+          font rendering that should be used for the text. The possible
+          values are
+
+          - ``"default"`` -- Uses matplotlib's internal text rendering
+            engine called Mathtext ( see
+            http://matplotlib.org/users/mathtext.html ). If you have
+            modified the default matplotlib settings, for instance via
+            a matplotlibrc file, then this option will not change any of
+            those settings.
+          - ``"latex"`` -- LaTeX is used for rendering the fonts. This
+            requires LaTeX, dvipng and Ghostscript to be installed.
+          - ``"type1"`` -- Type 1 fonts are used by matplotlib in the text
+            in the figure.  This requires LaTeX, dvipng and Ghostscript to
+            be installed.
+
         EXAMPLES::
 
             sage: c = circle((1,1), 1, color='red')
@@ -1491,6 +1512,18 @@ class Graphics(SageObject):
         plot below the title is placed on the bottom left of the figure.::
 
             sage: plot(sin, -4, 4, title='Plot sin(x)', title_pos=(0.05,-0.05))
+
+        If you want all the text to be rendered by using an external LaTeX
+        installation then set the ``typeset`` to ``"latex"``. This
+        requires that LaTeX, dvipng and Ghostscript be installed::
+
+            sage: plot(x, typeset='latex') # optional - latex
+
+        If you want all the text in your plot to use Type 1 fonts, then
+        set the ``typeset`` option to ``"type1"``. This requires that
+        LaTeX, dvipng and Ghostscript be installed::
+
+            sage: plot(x, typeset='type1') # optional - latex
 
         You can turn on the drawing of a frame around the plots::
 
@@ -2087,7 +2120,8 @@ class Graphics(SageObject):
                    show_legend=None, legend_options={},
                    axes_pad=0.02, ticks_integer=None,
                    tick_formatter=None, ticks=None, title=None,
-                   title_pos=None, base=None, scale=None):
+                   title_pos=None, base=None, scale=None,
+                   typeset='default'):
         r"""
         Return a matplotlib figure object representing the graphic
 
@@ -2135,6 +2169,14 @@ class Graphics(SageObject):
         the following plot (see :trac:`10512`)::
 
             sage: plot(sin(x^2), (x, -3, 3), title='Plot of sin(x^2)', axes_labels=['x','y'],frame=True)
+
+        ``typeset`` must not be set to an arbitrary string::
+
+            sage: plot(x, typeset='garbage')
+            Traceback (most recent call last):
+            ...
+            ValueError: typeset must be set to one of 'default', 'latex', or
+            'type1'; got 'garbage'.
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
@@ -2169,6 +2211,18 @@ class Graphics(SageObject):
 
         from matplotlib.figure import Figure
         from matplotlib import rcParams
+        if typeset == 'type1': # Requires LaTeX, dvipng, gs to be installed.
+            rcParams['ps.useafm'] = True
+            rcParams['pdf.use14corefonts'] = True
+            rcParams['text.usetex'] = True
+        elif typeset == 'latex': # Requires LaTeX, dvipng, gs to be installed.
+            rcParams['ps.useafm'] = False
+            rcParams['pdf.use14corefonts'] = False
+            rcParams['text.usetex'] = True
+        elif typeset != 'default': # We won't change (maybe user-set) defaults
+            raise ValueError("typeset must be set to one of 'default', 'latex',"
+                             " or 'type1'; got '{}'.".format(typeset))
+
         self.fontsize(fontsize)
         self.axes_labels(l=axes_labels)
 
@@ -2665,6 +2719,9 @@ class Graphics(SageObject):
         elif ext in ['', '.sobj']:
             SageObject.save(self, filename)
         else:
+            from matplotlib import rcParams
+            rc_backup = (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
+                         rcParams['text.usetex']) # save the rcParams
             figure = self.matplotlib(**options)
             # You can output in PNG, PS, EPS, PDF, or SVG format, depending
             # on the file extension.
@@ -2687,6 +2744,10 @@ class Graphics(SageObject):
             else:
                 figure.savefig(filename, dpi=dpi,
                            transparent=transparent)
+
+            # Restore the rcParams to the original, possibly user-set values
+            (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
+                                           rcParams['text.usetex']) = rc_backup
 
     def description(self):
         r"""

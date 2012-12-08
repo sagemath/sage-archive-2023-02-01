@@ -1009,6 +1009,12 @@ def plot(funcs, *args, **kwds):
 
         sage: plot(x**2, (x,0,3), ticks=[[1,2.5],[0.5,1,2]], tick_formatter=[["$x_1$","$x_2$"],["$y_1$","$y_2$","$y_3$"]])
 
+    You can force Type 1 fonts in your figures by providing the relevant
+    option as shown below. This also requires that LaTeX, dvipng and
+    Ghostscript be installed::
+
+        sage: plot(x, typeset='type1') # optional - latex
+
     A example with excluded values::
 
         sage: plot(floor(x), (x, 1, 10), exclude = [1..10])

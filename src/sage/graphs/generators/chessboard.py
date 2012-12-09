@@ -203,7 +203,7 @@ def ChessboardGraphGenerator(self, dim_list,
                         G.add_edge( uu, tuple(v) )
 
                     # Anti-diagonal
-                    for k in xrange(min(i, m-j-1, bishop_radius+1)):
+                    for k in xrange(min(i, m-j-1, bishop_radius)):
                         v[dx] = i-k-1
                         v[dy] = j+k+1
                         G.add_edge( uu, tuple(v) )
@@ -216,7 +216,7 @@ def ChessboardGraphGenerator(self, dim_list,
                             v[dx] = i+knight_y
                             v[dy] = j+knight_x
                             G.add_edge( uu, tuple(v) )
-                        if j > 0:
+                        if j-knight_x >= 0:
                             v[dx] = i+knight_y
                             v[dy] = j-knight_x
                             G.add_edge( uu, tuple(v) )
@@ -225,7 +225,7 @@ def ChessboardGraphGenerator(self, dim_list,
                             v[dx] = i+knight_x
                             v[dy] = j+knight_y
                             G.add_edge( uu, tuple(v) )
-                        if i > 0:
+                        if i-knight_x >= 0:
                             v[dx] = i-knight_x
                             v[dy] = j+knight_y
                             G.add_edge( uu, tuple(v) )
@@ -284,6 +284,18 @@ def QueenGraph(self, dim_list, radius=None, relabel=False):
         sage: H = graphs.KingGraph( [5, 3, 4] )
         sage: G.is_isomorphic( H )
         True
+
+    The Queen Graph can be obtained from the Rook Graph and the Bishop Graph::
+
+        sage: for d in xrange(3,12):   # long time
+        ...       for r in xrange(1,d+1):
+        ...           G = graphs.QueenGraph([d,d],radius=r)
+        ...           H = graphs.RookGraph([d,d],radius=r)
+        ...           B = graphs.BishopGraph([d,d],radius=r)
+        ...           H.add_edges(B.edges())
+        ...           if not G.is_isomorphic(H):
+        ...              print "that's not good!"
+
     """
     G, dimstr = self.ChessboardGraphGenerator(dim_list,
                                               rook=True, rook_radius=radius,
@@ -507,6 +519,17 @@ def BishopGraph(self, dim_list, radius=None, relabel=False):
         sage: G = graphs.BishopGraph( [3, 4] )
         sage: G.is_connected()
         False
+
+    The Bishop Graph can be obtained from Knight Graphs::
+
+        sage: for d in xrange(3,12):   # long time
+        ...       H = Graph()
+        ...       for r in xrange(1,d+1):
+        ...           B = graphs.BishopGraph([d,d],radius=r)
+        ...           H.add_edges( graphs.KnightGraph([d,d],one=r,two=r).edges() )
+        ...           if not B.is_isomorphic(H):
+        ...              print "that's not good!"
+
     """
     G, dimstr = self.ChessboardGraphGenerator(dim_list,
                                               rook=False, knight=False,

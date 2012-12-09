@@ -204,7 +204,7 @@ cdef class stopped_lazy_list_iterator(object):
 
     def __iter__(self):
         r"""
-        Returns ``self`` since this is an iterator.
+        Return ``self`` since this is an iterator.
 
         TESTS::
 
@@ -220,7 +220,7 @@ cdef class stopped_lazy_list_iterator(object):
 
     def __next__(self):
         r"""
-        Returns the current object and go to the next state.
+        Return the current object and go to the next state.
 
         TESTS::
 
@@ -279,7 +279,9 @@ cdef class lazy_list(object):
 
     .. NOTE::
 
-        lazy list interprets the constant (size_t)-1 s infinity
+        - :class:`lazy_list` interprets the constant ``(size_t)-1`` as infinity
+        - all entry indices are stictly less than ``stop`` so that
+          :class:`lazy_list` agrees with ``range(start, stop)``
     """
     def __init__(self, iterator, cache=None, start=None, stop=None, step=None):
         r"""
@@ -295,6 +297,8 @@ cdef class lazy_list(object):
         """
         from sage.misc.misc import is_iterator
         if not is_iterator(iterator):
+            if isinstance(iterator, (list, tuple)) and stop is None:
+                stop = len(iterator)
             iterator = iter(iterator)
         self.iterator = iterator
 
@@ -363,29 +367,37 @@ cdef class lazy_list(object):
         r"""
         Return the list made of the elements of ``self``.
 
+        .. NOTE::
+
+            If the iterator is sufficiently large, this will build a list
+            of length ``size_t``.
+
         EXAMPLES::
 
             sage: from sage.misc.lazy_list import lazy_list
             sage: P = lazy_list(iter(Primes()))
             sage: P[2:143:5].list()
             [5, 19, 41, 61, 83, 107, 137, 163, 191, 223, 241, 271, 307, 337, 367, 397, 431, 457, 487, 521, 563, 593, 617, 647, 677, 719, 751, 787, 823]
-            sage: P.list()
-            Traceback (most recent call last):
-            ...
-            ValueError: stop is too large!!
-
             sage: P = lazy_list(iter([1,2,3]))
             sage: P.list()
-            Traceback (most recent call last):
-            ...
-            ValueError: stop is too large!!
+            [1, 2, 3]
             sage: P[:100000].list()
             [1, 2, 3]
             sage: P[1:7:2].list()
             [2]
+
+        TESTS:
+
+        Check that the cache is immutable::
+
+            sage: lazy = lazy_list(iter(Primes()))[:5]
+            sage: l = lazy.list(); l
+            [2, 3, 5, 7, 11]
+            sage: l[0] = -1; l
+            [-1, 3, 5, 7, 11]
+            sage: lazy.list()
+            [2, 3, 5, 7, 11]
         """
-        if self.stop == PY_SSIZE_T_MAX:
-            raise ValueError("stop is too large!!")
         try:
             self.update_cache_up_to(self.stop-1)
         except StopIteration:
@@ -394,7 +406,7 @@ cdef class lazy_list(object):
 
     def info(self):
         r"""
-        Print informations about ``self`` on standard output.
+        Print information about ``self`` on standard output.
 
         EXAMPLES::
 
@@ -403,14 +415,14 @@ cdef class lazy_list(object):
             sage: P.info()
             cache length 0
             start        10
-            stop         2147483650
+            stop         2147483647
             step         4
             sage: P[0]
             31
             sage: P.info()
             cache length 11
             start        10
-            stop         2147483650
+            stop         2147483647
             step         4
         """
         print "cache length", len(self.cache)
@@ -437,6 +449,10 @@ cdef class lazy_list(object):
             sage: r[:3]
             lazy list [0, 1, 2]
             sage: r[:4]
+            lazy list [0, 1, 2, ...]
+            sage: lazy_list([0,1])
+            lazy list [0, 1]
+            sage: lazy_list([0,1,2,3])
             lazy list [0, 1, 2, ...]
         """
         cdef Py_ssize_t num_elts = 1 + (self.stop-self.start-1) / self.step
@@ -498,7 +514,7 @@ cdef class lazy_list(object):
 
     def _fit(self, n):
         r"""
-        Readjust ``self.stop`` if the iterator stops before ``n``.
+        Re-adjust ``self.stop`` if the iterator stops before ``n``.
 
         After a call to ``self._fit(n)`` and if *after the call* ``n`` is
         less than ``self.stop`` then you may safely call

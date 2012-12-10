@@ -295,19 +295,19 @@ cdef class lazy_list(object):
             sage: loads(dumps(f))
             lazy list [0, 1, 2, ...]
         """
-        from sage.misc.misc import is_iterator
-        if not is_iterator(iterator):
-            if isinstance(iterator, (list, tuple)) and stop is None:
-                stop = len(iterator)
-            iterator = iter(iterator)
-        self.iterator = iterator
-
         if start is None:
             start = 0
         if stop is None:
             stop = PY_SSIZE_T_MAX
         if step is None:
             step = 1
+
+        from sage.misc.misc import is_iterator
+        if not is_iterator(iterator):
+            if isinstance(iterator, (list, tuple)):
+                stop = min(stop,len(iterator))
+            iterator = iter(iterator)
+        self.iterator = iterator
 
         if cache is None or stop <= start:
             cache = []
@@ -370,7 +370,8 @@ cdef class lazy_list(object):
         .. NOTE::
 
             If the iterator is sufficiently large, this will build a list
-            of length ``size_t``.
+            of length ``(size_t)-1`` which should be beyond the capacity of
+            your RAM!
 
         EXAMPLES::
 
@@ -411,18 +412,18 @@ cdef class lazy_list(object):
         EXAMPLES::
 
             sage: from sage.misc.lazy_list import lazy_list
-            sage: P = lazy_list(iter(Primes()))[10:2147483647:4]
+            sage: P = lazy_list(iter(Primes()))[10:21474838:4]
             sage: P.info()
             cache length 0
             start        10
-            stop         2147483647
+            stop         21474838
             step         4
             sage: P[0]
             31
             sage: P.info()
             cache length 11
             start        10
-            stop         2147483647
+            stop         21474838
             step         4
         """
         print "cache length", len(self.cache)
@@ -507,6 +508,17 @@ cdef class lazy_list(object):
 
         If the iterator stops, the function silently return 0 (no error are
         raised). Otherwise it returns 1.
+
+        .. TODO::
+
+            This method should be implemented in such way that it does not raise
+            StopIteration (using PyIter_Next from sage/ext/python_iterator.pxi).
+            The fact that the iterator stops before than expected may be encoded
+            in the returned value of the function:
+
+            * 0 : function succeded
+            * 1 : iterator stopped before stop was reached
+            * -1 : an error occurred
         """
         while PyList_GET_SIZE(self.cache) <= i:
             PyList_Append(self.cache, self.iterator.next())
@@ -516,16 +528,20 @@ cdef class lazy_list(object):
         r"""
         Re-adjust ``self.stop`` if the iterator stops before ``n``.
 
-        After a call to ``self._fit(n)`` and if *after the call* ``n`` is
-        less than ``self.stop`` then you may safely call
-        ``self.cache[self.start + n*self.step]``. In other words,
-        ``self._fit(n)` ensure that either the lazy list is completely expanded
-        in memory or that you may have access to the ``n``-th item.
+        After a call to ``self._fit(n)`` and if *after the call* ``n`` is less
+        than ``self.stop`` then you may safely call ``self.cache[n]``. In other
+        words, ``self._fit(n)` ensure that either the lazy list is completely
+        expanded in memory or that you may have access to the ``n``-th item.
 
         EXAMPLES::
 
             sage: from sage.misc.lazy_list import lazy_list
             sage: l = lazy_list([0,1,2,-34,3,2,-5,12,1,4,-18,5,-12])[2::3]
+            sage: l.info()
+            cache length 0
+            start        2
+            stop         14
+            step         3
             sage: l
             lazy list [2, 2, 1, ...]
             sage: l._fit(13)

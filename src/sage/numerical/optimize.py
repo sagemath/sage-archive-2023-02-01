@@ -91,7 +91,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
                     return s, "No extra data"
                 else:
                     return s
-            raise RuntimeError, "f appears to have no zero on the interval"
+            raise RuntimeError("f appears to have no zero on the interval")
         # If we found such an s, then we just instead find
         # a root between left and s or s and right.
         a = s   # arbitrary choice -- maybe should try both and take one that works?
@@ -105,7 +105,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
                     return s, "No extra data"
                 else:
                     return s
-            raise RuntimeError, "f appears to have no zero on the interval"
+            raise RuntimeError("f appears to have no zero on the interval")
         a = s
 
     import scipy.optimize
@@ -262,7 +262,7 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
 
        - ``'powell'``
 
-       - ``'bfgs'`` -- (broyden-fletcher-goldfarb-shannon) requires
+       - ``'bfgs'`` -- (Broyden-Fletcher-Goldfarb-Shanno) requires
          ``gradient``
 
        - ``'cg'`` -- (conjugate-gradient) requires gradient
@@ -631,12 +631,12 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
         try:
             data = numpy.array(data, dtype = float)
         except (ValueError, TypeError):
-            raise TypeError, "data has to be a list of lists, a matrix, or a numpy array"
+            raise TypeError("data has to be a list of lists, a matrix, or a numpy array")
     elif data.dtype == object:
-        raise ValueError, "the entries of data have to be of type float"
+        raise ValueError("the entries of data have to be of type float")
 
     if data.ndim != 2:
-        raise ValueError, "data has to be a two dimensional table of floating point numbers"
+        raise ValueError("data has to be a two dimensional table of floating point numbers")
 
     from sage.symbolic.expression import Expression
 
@@ -649,11 +649,11 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
                 parameters.remove(v)
 
     if data.shape[1] != len(variables) + 1:
-        raise ValueError, "each row of data needs %d entries, only %d entries given" % (len(variables) + 1, data.shape[1])
+        raise ValueError("each row of data needs %d entries, only %d entries given" % (len(variables) + 1, data.shape[1]))
 
     if parameters is None or len(parameters) == 0 or \
        variables is None or len(variables) == 0:
-        raise ValueError, "no variables given"
+        raise ValueError("no variables given")
 
     if initial_guess == None:
         initial_guess = len(parameters) * [1]
@@ -662,12 +662,12 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
         try:
             initial_guess = numpy.array(initial_guess, dtype = float)
         except (ValueError, TypeError):
-            raise TypeError, "initial_guess has to be a list, tuple, or numpy array"
+            raise TypeError("initial_guess has to be a list, tuple, or numpy array")
     elif initial_guess.dtype == object:
-        raise ValueError, "the entries of initial_guess have to be of type float"
+        raise ValueError("the entries of initial_guess have to be of type float")
 
     if len(initial_guess) != len(parameters):
-        raise ValueError, "length of initial_guess does not coincide with the number of parameters"
+        raise ValueError("length of initial_guess does not coincide with the number of parameters")
 
     if isinstance(model, Expression):
         var_list = variables + parameters

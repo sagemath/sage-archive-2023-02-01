@@ -12,6 +12,7 @@ AUTHORS:
 - Sebastien Labbe (2009-02-03): words next generation
 - Sebastien Labbe (2009-11-20): allowing the choice of the
   datatype of the image. Doc improvements.
+- Stepan Starosta (2012-11-09): growing letters
 
 EXAMPLES:
 
@@ -84,17 +85,18 @@ Many other functionalities...::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import itertools
+from sage.misc.superseded import deprecated_function_alias
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+from sage.sets.set import Set
+from sage.rings.all import QQ
 from sage.rings.infinity import Infinity
-from sage.matrix.constructor import Matrix
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer import Integer
+from sage.modules.free_module_element import vector
+from sage.matrix.constructor import Matrix
 from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.words import Words_all, Words
-from sage.sets.set import Set
-from sage.misc.superseded import deprecated_function_alias
-from sage.modules.free_module_element import vector
 
 class CallableDict(dict):
     r"""
@@ -1010,15 +1012,15 @@ class WordMorphism(SageObject):
 
             sage: fibo = WordMorphism('a->ab,b->a')
             sage: tm = WordMorphism('a->ab,b->ba')
-            sage: Mfibo = matrix(fibo); Mfibo
+            sage: Mfibo = matrix(fibo); Mfibo     # indirect doctest
             [1 1]
             [1 0]
             sage: Mtm = matrix(tm); Mtm
             [1 1]
             [1 1]
-            sage: Mtm * Mfibo == matrix(tm*fibo)
+            sage: Mtm * Mfibo == matrix(tm*fibo)   # indirect doctest
             True
-            sage: Mfibo * Mtm == matrix(fibo*tm)
+            sage: Mfibo * Mtm == matrix(fibo*tm)   # indirect doctest
             True
             sage: Mfibo.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
@@ -2749,3 +2751,153 @@ class WordMorphism(SageObject):
 
         return G
 
+    def is_growing(self, letter=None):
+        r"""
+        Return ``True`` if ``letter`` is a growing letter.
+
+        A letter `a` is *growing* for the morphism `s` if the length of the
+        iterates of `| s^n(a) |` tend to infinity as `n` goes to infinity.
+
+        INPUT:
+
+        - ``letter`` -- ``None`` or a letter in the domain of ``self``
+
+        .. NOTE::
+
+            If letter is ``None``, this returns ``True`` if ``self`` is
+            everywhere growing, i.e., all letters are growing letters (see
+            [CassNic10]_), and that ``self`` **must** be an endomorphism.
+
+        EXAMPLES::
+
+            sage: WordMorphism('0->01,1->1').is_growing('0')
+            True
+            sage: WordMorphism('0->01,1->1').is_growing('1')
+            False
+            sage: WordMorphism('0->01,1->10').is_growing()
+            True
+            sage: WordMorphism('0->1,1->2,2->01').is_growing()
+            True
+            sage: WordMorphism('0->01,1->1').is_growing()
+            False
+
+        The domain needs to be equal to the codomain::
+
+            sage: WordMorphism('0->01,1->0,2->1',codomain=Words('012')).is_growing()
+            True
+
+        Test of erasing morphisms::
+
+            sage: WordMorphism('0->01,1->').is_growing('0')
+            False
+            sage: m = WordMorphism('a->bc,b->bcc,c->',codomain=Words('abc'))
+            sage: m.is_growing('a')
+            False
+            sage: m.is_growing('b')
+            False
+            sage: m.is_growing('c')
+            False
+
+        REFERENCES:
+
+        ..  [CassNic10] Cassaigne J., Nicolas F. Factor complexity.
+            Combinatorics, automata and number theory, 163--247, Encyclopedia
+            Math. Appl., 135, Cambridge Univ. Press, Cambridge, 2010.
+        """
+        if self.is_primitive():
+            return True
+        if letter is None:
+            I = range(self.domain().alphabet().cardinality())
+        else:
+            if not letter in self.domain().alphabet():
+                raise TypeError, "letter (=%s) is not in the domain of self"%letter
+            I = [self.domain().alphabet().rank(letter)]
+
+        last_coef = 0
+        coefs = self.incidence_matrix().charpoly().coeffs()
+        while coefs[last_coef] == 0:
+            last_coef += 1
+        V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)
+        basis = V.ambient_vector_space().basis()
+
+        return not any(basis[i] in V for i in I)
+
+    def growing_letters(self):
+        r"""
+        Returns the list of growing letters.
+
+        See :meth:`.is_growing` for more information.
+
+        EXAMPLES::
+
+            sage: WordMorphism('0->01,1->10').growing_letters()
+            ['0', '1']
+            sage: WordMorphism('0->01,1->1').growing_letters()
+            ['0']
+            sage: WordMorphism('0->01,1->0,2->1',codomain=Words('012')).growing_letters()
+            ['0', '1', '2']
+        """
+        if self.is_primitive():
+            return self.domain().alphabet().list()
+        last_coef = 0
+        coefs = self.incidence_matrix().charpoly().coeffs()
+        while coefs[last_coef] == 0:
+            last_coef += 1
+        V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)
+        basis = V.ambient_vector_space().basis()
+        A = self.domain().alphabet()
+
+        return list(A.unrank(i) for i in range(A.cardinality()) if basis[i] not in V)
+
+    def abelian_rotation_subspace(self):
+        r"""
+        Returns the subspace on which the incidence matrix of ``self`` acts by
+        roots of unity.
+
+        EXAMPLES::
+
+            sage: WordMorphism('0->1,1->0').abelian_rotation_subspace()
+            Vector space of degree 2 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 0]
+            [0 1]
+            sage: WordMorphism('0->01,1->10').abelian_rotation_subspace()
+            Vector space of degree 2 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+            sage: WordMorphism('0->01,1->1').abelian_rotation_subspace()
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [0 1]
+            sage: WordMorphism('1->122,2->211').abelian_rotation_subspace()
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -1]
+            sage: WordMorphism('0->1,1->102,2->3,3->4,4->2').abelian_rotation_subspace()
+            Vector space of degree 5 and dimension 3 over Rational Field
+            Basis matrix:
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+
+        The domain needs to be equal to the codomain::
+
+            sage: WordMorphism('0->1,1->',codomain=Words('01')).abelian_rotation_subspace()
+            Vector space of degree 2 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+        """
+        if not self.domain() == self.codomain():
+            raise TypeError("self (=%s) is not an endomorphism"%self)
+
+        if self.domain().alphabet().cardinality() == Infinity:
+            raise ValueError("the alphabet is infinite")
+
+        M = self.incidence_matrix()
+        p = M.charpoly().factor()
+        basis = []
+        for factor in p:
+            if factor[0].is_cyclotomic():
+                basis.extend((factor[0])(M).right_kernel().basis())
+
+        return M._column_ambient_module().change_ring(QQ).subspace(basis)

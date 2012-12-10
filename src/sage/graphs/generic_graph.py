@@ -5573,7 +5573,7 @@ class GenericGraph(GenericGraph_pyx):
             True
 
         If we pick `1/2` instead of `2` as a cost for these new edges, they
-        clearly become the optimal solution
+        clearly become the optimal solution::
 
             sage: for u,v in cycle.edges(labels = None):
             ...      g.set_edge_label(u,v,1/2)

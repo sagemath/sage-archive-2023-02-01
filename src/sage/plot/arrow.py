@@ -383,7 +383,7 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
       in 3D plotting.
 
     - ``linestyle`` - The style of the line, which is one of 'dashed',
-      'dotted', 'solid', 'dashdot'.
+      'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.', respectively.
 
     - ``width`` - (default: 2) the width of the arrow shaft, in points
 
@@ -419,6 +419,7 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
     Use a dashed line instead of a solid one for the arrow::
 
         sage: arrow2d((1, 1), (3, 3), linestyle='dashed')
+        sage: arrow2d((1, 1), (3, 3), linestyle='--')
 
     A pretty circle of arrows::
 
@@ -444,9 +445,15 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
         sage: arrow2d((-2, 2), (7,1), frame=True)
         sage: arrow2d((-2, 2), (7,1)).show(frame=True)
     """
+    # Allow the usual linestyles used in the plot() command
+    dict_line = {':': 'dotted', '-': 'solid', '--': 'dashed', '-.': 'dashdot'}
+    if options['linestyle'] in dict_line:
+        options['linestyle'] = dict_line[options['linestyle']]
+
     from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
+
     if headpoint is not None and tailpoint is not None:
         xtail, ytail = tailpoint
         xhead, yhead = headpoint

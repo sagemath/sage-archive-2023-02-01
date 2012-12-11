@@ -1064,12 +1064,7 @@ class SimplicialComplexExamples():
 
     def SumComplex(self, n, A):
         r"""
-        The sum complexes of Linial, Meshulam, and Rosenthal.
-
-        INPUT:
-
-        - ``n``, a positive integer
-        - ``A``, a subset of `\ZZ/(n)`
+        The sum complexes of Linial, Meshulam, and Rosenthal [LMR2010]_.
 
         If `k+1` is the cardinality of `A`, then this returns a
         `k`-dimensional simplicial complex `X_A` with vertices
@@ -1090,12 +1085,18 @@ class SimplicialComplexExamples():
         4-dimensional complex on 13 vertices with `H_3` having a
         cyclic summand of order
 
-        .. math::
+        .. MATH::
 
-            706565607945 = 3 \times 5 \times 53 \times 79 \times 131
-            \times 157 \times 547.
+            706565607945 = 3 \cdot 5 \cdot 53 \cdot 79 \cdot 131
+            \cdot 157 \cdot 547.
 
         See the examples.
+
+        INPUT:
+
+        - ``n`` -- a positive integer
+
+        - ``A`` -- a subset of `\ZZ/(n)`
 
         REFERENCES:
 
@@ -1106,54 +1107,69 @@ class SimplicialComplexExamples():
 
         EXAMPLES::
 
-            sage: simplicial_complexes.SumComplex(10, [0,1,2,3,6]).homology()
+            sage: S = simplicial_complexes.SumComplex(10, [0,1,2,3,6]); S
+            Simplicial complex with 10 vertices and 126 facets
+            sage: S.homology()
             {0: 0, 1: 0, 2: 0, 3: C2728, 4: 0}
             sage: factor(2728)
             2^3 * 11 * 31
 
-            sage: simplicial_complexes.SumComplex(11, [0, 1, 3]).homology(1)
+            sage: S = simplicial_complexes.SumComplex(11, [0, 1, 3]); S
+            Simplicial complex with 11 vertices and 45 facets
+            sage: S.homology(1)
             C23
-            sage: simplicial_complexes.SumComplex(11, [0,1,2,3,4,7]).homology() # long time
+            sage: S = simplicial_complexes.SumComplex(11, [0,1,2,3,4,7]); S
+            Simplicial complex with 11 vertices and 252 facets
+            sage: S.homology() # long time
             {0: 0, 1: 0, 2: 0, 3: 0, 4: C645679, 5: 0}
             sage: factor(645679)
             23 * 67 * 419
 
-            sage: simplicial_complexes.SumComplex(13, [0, 1, 3]).homology(1)
+            sage: S = simplicial_complexes.SumComplex(13, [0, 1, 3]); S
+            Simplicial complex with 13 vertices and 66 facets
+            sage: S.homology(1)
             C159
             sage: factor(159)
             3 * 53
-            sage: simplicial_complexes.SumComplex(13, [0,1,2,5]).homology() # long time
+            sage: S = simplicial_complexes.SumComplex(13, [0,1,2,5]); S
+            Simplicial complex with 13 vertices and 220 facets
+            sage: S.homology() # long time
             {0: 0, 1: 0, 2: C146989209, 3: 0}
             sage: factor(1648910295)
             3^2 * 5 * 53 * 521 * 1327
-            sage: simplicial_complexes.SumComplex(13, [0,1,2,3,5]).homology() # long time
+            sage: S = simplicial_complexes.SumComplex(13, [0,1,2,3,5]); S
+            Simplicial complex with 13 vertices and 495 facets
+            sage: S.homology() # long time
             {0: 0, 1: 0, 2: 0, 3: C3 x C237 x C706565607945, 4: 0}
             sage: factor(706565607945)
             3 * 5 * 53 * 79 * 131 * 157 * 547
 
-            sage: simplicial_complexes.SumComplex(17, [0, 1, 4]).homology(1)
+            sage: S = simplicial_complexes.SumComplex(17, [0, 1, 4]); S
+            Simplicial complex with 17 vertices and 120 facets
+            sage: S.homology(1)
             C140183
             sage: factor(140183)
             103 * 1361
-            sage: simplicial_complexes.SumComplex(19, [0, 1, 4]).homology(1)
+            sage: S = simplicial_complexes.SumComplex(19, [0, 1, 4]); S
+            Simplicial complex with 19 vertices and 153 facets
+            sage: S.homology(1)
             C5670599
             sage: factor(5670599)
             11 * 191 * 2699
-            sage: simplicial_complexes.SumComplex(31, [0, 1, 4]).homology(1) # long time
+            sage: S = simplicial_complexes.SumComplex(31, [0, 1, 4]); S
+            Simplicial complex with 31 vertices and 435 facets
+            sage: S.homology(1) # long time
             C5 x C5 x C5 x C5 x C26951480558170926865
             sage: factor(26951480558170926865)
             5 * 311 * 683 * 1117 * 11657 * 1948909
         """
         from sage.rings.all import Integers
-        from sage.sets.set import Set
-        from sage.homology.all import SimplicialComplex
         Zn = Integers(n)
         A = frozenset([Zn(x) for x in A])
-        k = len(A) - 1
         facets = []
-        for f in Set(Zn).subsets(k+1):
+        for f in Set(Zn).subsets(len(A)):
             if sum(f) in A:
                 facets.append(tuple(f))
-        return SimplicialComplex(facets)
+        return SimplicialComplex(facets, is_mutable=False)
 
 simplicial_complexes = SimplicialComplexExamples()

@@ -78,6 +78,7 @@ sig_on_count = sage.ext.c_lib._sig_on_reset
 
 from time                import sleep
 
+import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
 
 from sage.misc.sh import sh
@@ -154,7 +155,7 @@ from sage.parallel.all   import *
 from sage.ext.fast_callable  import fast_callable
 from sage.ext.fast_eval      import fast_float
 
-from sage.sandpiles.all import *
+sage.misc.lazy_import.lazy_import('sage.sandpiles.all', '*', globals())
 
 from sage.tensor.all     import *
 
@@ -284,7 +285,6 @@ sage.structure.sage_object.register_unpickle_override('sage.categories.category_
 #sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', '', )
 
 # Cache the contents of star imports.
-import sage.misc.lazy_import
 sage.misc.lazy_import.save_cache_file()
 
 

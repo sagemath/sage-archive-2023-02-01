@@ -81,6 +81,9 @@ cdef class PolyDict:
 
             sage: PolyDict({(2,3):0, (1,2):3, (2,1):4}, remove_zero=True)
             PolyDict with representation {(1, 2): 3, (2, 1): 4}
+
+            sage: PolyDict({(0,0):RIF(-1,1)}, remove_zero=True)
+            PolyDict with representation {(0, 0): 0.?}
         """
         if not isinstance(pdict, dict):
             if isinstance(pdict, list):
@@ -507,6 +510,11 @@ cdef class PolyDict:
 
             sage: Integers(2)['x,y'].gens()
             (x, y)
+
+        We make sure that intervals are correctly represented. ::
+            sage: f = PolyDict({(2,3):RIF(1/2,3/2), (1,2):RIF(-1,1)})
+            sage: f.poly_repr(['x','y'])
+            '1.?*x^2*y^3 + 0.?*x*y^2'
         """
         n = len(vars)
         poly = ""
@@ -660,6 +668,8 @@ cdef class PolyDict:
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.scalar_rmult(-2)
             PolyDict with representation {(1, 2): -6, (2, 3): -4, (2, 1): -8}
+            sage: f.scalar_rmult(RIF(-1,1))
+            PolyDict with representation {(1, 2): 0.?e1, (2, 3): 0.?e1, (2, 1): 0.?e1}
         """
         v = {}
         # if s is 0, then all the products will be zero
@@ -682,6 +692,8 @@ cdef class PolyDict:
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.scalar_lmult(-2)
             PolyDict with representation {(1, 2): -6, (2, 3): -4, (2, 1): -8}
+            sage: f.scalar_lmult(RIF(-1,1))
+            PolyDict with representation {(1, 2): 0.?e1, (2, 3): 0.?e1, (2, 1): 0.?e1}
         """
         v = {}
         # if s is 0, then all the products will be zero

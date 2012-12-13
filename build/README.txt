@@ -17,7 +17,7 @@ installation of Sage packages for you. For more information on the
 structure of .spkg files, please refer to the Sage Developer's Guide
 in your local installation of Sage at
 
-SAGE_ROOT/sage/doc/output/html/en/developer/index.html
+SAGE_ROOT/devel/sage/doc/output/html/en/developer/index.html
 
 If you cannot locate that file in your local installation of Sage, you
 might want to consider (re)building the standard Sage documentation

@@ -207,3 +207,5 @@ class logstr(str):
          delim = '~'
         return r"""\verb%s%s%s"""%(delim, self.replace('\n\n','\n').replace('\n','; '), delim)
 
+
+import messaging

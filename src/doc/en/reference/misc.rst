@@ -47,6 +47,7 @@ Miscellaneous
    sage/misc/sage_unittest
    sage/misc/randstate
    sage/misc/cython
+   sage/misc/messaging
    sage/misc/viewer
 
 LaTeX

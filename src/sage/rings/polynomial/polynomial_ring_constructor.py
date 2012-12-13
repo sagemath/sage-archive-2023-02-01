@@ -366,6 +366,18 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: PolynomialRing(ZZ, name=t) == PolynomialRing(ZZ, name='t')
         True
 
+    We verify that polynomials with interval coefficients from
+    :trac:`7712` and :trac:`13760` are fixed::
+
+        sage: P.<y,z> = PolynomialRing(RealIntervalField(2))
+        sage: Q.<x> = PolynomialRing(P)
+        sage: C = (y-x)^3
+        sage: C(y/2)
+        1.?*y^3
+        sage: R.<x,y> = PolynomialRing(RIF,2)
+        sage: RIF(-2,1)*x
+        0.?e1*x
+
     """
     import sage.rings.polynomial.polynomial_ring as m
 

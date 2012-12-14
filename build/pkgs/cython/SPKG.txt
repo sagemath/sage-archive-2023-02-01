@@ -31,6 +31,9 @@ Apache License, Version 2.0
 
 == Changelog ==
 
+=== cython-0.17.3 (Volker Braun, 14 December 2012) ===
+ * Upgrade Cython 0.17.3
+
 === cython-0.17.2 (Volker Braun, 21 November 2012) ===
  * Upgrade Cython 0.17.2
 

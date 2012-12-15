@@ -55,6 +55,9 @@ Website: http://ecls.sourceforge.net/
    source, leads to problems with some strings in the Sage-Maxima-ECL
    interface.
  * Note: the way we configure Sage, CXX and CXXFLAGS are unused.
+ * Note: for the time being, ECL is built single threaded library as it
+   seems to interact badly with the pexpect interface and Sage's signal
+   handling when built multithreaded.
  * Do NOT quote SAGE_LOCAL when setting CPPFLAGS and/or LDFLAGS,
    in spkg-install as this caused the build to break. See
    http://trac.sagemath.org/sage_trac/ticket/10187#comment:117
@@ -64,6 +67,23 @@ Website: http://ecls.sourceforge.net/
    the src/src/gc directory, too.
 
 == Changelog ==
+
+=== ecl-12.12.1.p0 (Jean-Pierre Flori, 15 December 2012) ===
+ * #13324: upgrade to upstream version 12.12.1.
+ * Remove patches (cygwin.patch, signal.patch) which have been integrated
+   upstream.
+ * Add upstream patch (infloop.patch) to avoid infinite loops when compiling
+   lisp to C.
+
+=== ecl-12.7.1.p0 (Jean-Pierre Flori, 27 November 2012) ===
+ * #13324: upgrade to upstream version 12.7.1.
+ * Add a patch (cygwin.patch) to let ECL build on Cygwin (integrated upstream).
+ * Add a patch (signal.patch) to correctly handle signals
+   (integrated upstream).
+ * Remove patches (libraries.d.patch, scale_exponent.patch) which have been
+   integrated upstream.
+ * Ensure the library is built single threaded by passing --disable-threads
+   to configure.
 
 === ecl-11.1.2.cvs20111120.p2 (Julien Puydt, 27 May 2012) ===
  * #12586: Added a patch from Juan Jose Garcia-Ripoll (upstream) fixing

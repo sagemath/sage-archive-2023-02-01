@@ -18,6 +18,9 @@ AUTHORS:
 
 - Fredrik Johansson (2010-07): fast implementation of ``stirling_number2``
 
+- Punarbasu Purkayastha (2012-12): deprecate arrangements, combinations,
+  combinations_iterator, and clean up very old deprecated methods.
+
 This module implements some combinatorial functions, as listed
 below. For a more detailed description, see the relevant
 docstrings.
@@ -968,25 +971,6 @@ class CombinatorialClass(Parent):
         """
         raise AttributeError, "__len__ has been removed; use .cardinality() instead"
 
-    def count(self):
-        """
-        Deprecated ! Please use ``.cardinality`` instead.
-
-
-        TEST::
-
-            sage: class C(CombinatorialClass):
-            ...     def __iter__(self):
-            ...          return iter([1,2,3])
-            ...
-            sage: C().count() #indirect doctest
-            doctest:1: DeprecationWarning: The usage of count for combinatorial classes is deprecated. Please use cardinality
-            See http://trac.sagemath.org/5719 for details.
-            3
-        """
-        deprecation(5719, "The usage of count for combinatorial classes is deprecated. Please use cardinality")
-        return self.cardinality()
-
     def is_finite(self):
         """
         Returns whether self is finite or not.
@@ -1147,8 +1131,9 @@ class CombinatorialClass(Parent):
         """
         # assert not isinstance(self, Parent) # Raises an alert if we override the proper definition from Parent
         if hasattr(self, "object_class"):
-            from sage.misc.superseded import deprecation
-            deprecation(5891, "Using object_class for specifying the class of the elements of a combinatorial class is deprecated. Please use Element instead")
+            deprecation(5891, "Using object_class for specifying the class "
+                        "of the elements of a combinatorial class is "
+                        "deprecated. Please use Element instead.")
         return self.Element
 
     def _element_constructor_(self, x):
@@ -1292,25 +1277,6 @@ class CombinatorialClass(Parent):
         """
         for x in self.list():
             yield x
-
-    def iterator(self):
-        """
-        Iterator is deprecated for combinatorial classes.
-
-        EXAMPLES::
-
-            sage: p5 = Partitions(3)
-            sage: it = p5.iterator()
-            doctest:...: DeprecationWarning: The usage of iterator for combinatorial classes is deprecated. Please use the class itself
-            See http://trac.sagemath.org/5308 for details.
-            sage: [i for i in it]
-            [[3], [2, 1], [1, 1, 1]]
-            sage: [i for i in p5]
-            [[3], [2, 1], [1, 1, 1]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(5308, "The usage of iterator for combinatorial classes is deprecated. Please use the class itself")
-        return self.__iter__()
 
     def __iter__(self):
         """
@@ -1967,20 +1933,29 @@ def combinations(mset,k):
     r"""
     A combination of a multiset (a list of objects which may contain
     the same object several times) mset is an unordered selection
-    without repetitions and is represented by a sorted sublist of mset.
-    Returns the set of all combinations of the multiset mset with k
+    without repetitions and is represented by a sorted sublist of ``mset``.
+    Returns the set of all combinations of the multiset ``mset`` with ``k``
     elements.
 
-    .. warning::
+    INPUT:
 
-       Wraps GAP's Combinations. Hence mset must be a list of objects
-       that have string representations that can be interpreted by the
-       GAP interpreter. If mset consists of at all complicated Sage
-       objects, this function does *not* do what you expect. A proper
-       function should be written! (TODO!)
+    - ``mset`` -- (list) the multiset presented as a list of objects.
+
+    - ``k`` -- (integer) the size of each set.
+
+    .. NOTE::
+
+        This function is deprecated in favor of
+        :func:`sage.combinat.combination.Combinations`. Use
+        ``Combinations(mset, k).list()`` directly to get the list of
+        combinations of ``mset``.
 
     EXAMPLES::
 
+        sage: combinations([1,2,3], 2)
+        doctest:...: DeprecationWarning: Use Combinations(mset,k).list()
+        instead. See http://trac.sagemath.org/13821 for details.
+        [[1, 2], [1, 3], [2, 3]]
         sage: mset = [1,1,2,3,4,4,5]
         sage: combinations(mset,2)
         [[1, 1],
@@ -1997,25 +1972,44 @@ def combinations(mset,k):
          [4, 5]]
          sage: mset = ["d","a","v","i","d"]
          sage: combinations(mset,3)
-         ['add', 'adi', 'adv', 'aiv', 'ddi', 'ddv', 'div']
+         [['d', 'd', 'a'],
+         ['d', 'd', 'v'],
+         ['d', 'd', 'i'],
+         ['d', 'a', 'v'],
+         ['d', 'a', 'i'],
+         ['d', 'v', 'i'],
+         ['a', 'v', 'i']]
 
-    .. note::
+    It is possible to take combinations of Sage objects::
 
-       For large lists, this raises a string error.
+        sage: combinations([vector([1,1]), vector([2,2]), vector([3,3])], 2)
+        [[(1, 1), (2, 2)], [(1, 1), (3, 3)], [(2, 2), (3, 3)]]
     """
-    ans=gap.eval("Combinations(%s,%s)"%(mset,ZZ(k))).replace("\n","")
-    return eval(ans)
+    from sage.combinat.combination import Combinations
+    deprecation(13821, 'Use Combinations(mset,k).list() instead.')
+    return Combinations(mset, k).list()
 
-def combinations_iterator(mset,n=None):
+def combinations_iterator(mset, k=None):
     """
-    Posted by Raymond Hettinger, 2006/03/23, to the Python Cookbook:
-    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124
+    An iterator for combinations of the elements of a multiset ``mset``.
 
-    Much faster than combinations.
+    INPUT:
+
+    - ``mset`` -- (list) the multiset presented as a list of objects.
+
+    - ``k`` -- (integer, default: None) the size of each set.
+
+    .. NOTE::
+
+        This function is deprecated in favor of
+        :func:`sage.combinat.combination.Combinations`. Use
+        ``Combinations(mset, k)`` instead.
 
     EXAMPLES::
 
         sage: X = combinations_iterator([1,2,3,4,5],3)
+        doctest:...: DeprecationWarning: Use Combinations(mset,k) instead.
+        See http://trac.sagemath.org/13821 for details.
         sage: [x for x in X]
         [[1, 2, 3],
          [1, 2, 4],
@@ -2028,18 +2022,12 @@ def combinations_iterator(mset,n=None):
          [2, 4, 5],
          [3, 4, 5]]
     """
-    items = mset
-    if n is None:
-        n = len(items)
-    for i in range(len(items)):
-        v = items[i:i+1]
-        if n == 1:
-            yield v
-        else:
-            rest = items[i+1:]
-            for c in combinations_iterator(rest, n-1):
-                yield v + c
-
+    # It is not possible to use deprecated_function_alias since it leads to
+    # a circular import of combinat from combination and
+    # combination.Combinations from combinat.
+    from sage.combinat.combination import Combinations
+    deprecation(13821, 'Use Combinations(mset,k) instead.')
+    return Combinations(mset, k)
 
 def number_of_combinations(mset,k):
     """
@@ -2061,25 +2049,32 @@ def number_of_combinations(mset,k):
 
 def arrangements(mset,k):
     r"""
-    An arrangement of mset is an ordered selection without repetitions
+    An arrangement of ``mset`` is an ordered selection without repetitions
     and is represented by a list that contains only elements from mset,
     but maybe in a different order.
 
     ``arrangements`` returns the set of arrangements of the
-    multiset mset that contain k elements.
+    multiset ``mset`` that contain ``k`` elements.
 
-    IMPLEMENTATION: Wraps GAP's Arrangements.
+    INPUT:
 
-    .. warning::
+    - ``mset`` -- (list) the multiset presented as a list of objects.
 
-       Wraps GAP - hence mset must be a list of objects that have
-       string representations that can be interpreted by the GAP
-       interpreter. If mset consists of at all complicated Sage
-       objects, this function does *not* do what you expect. A proper
-       function should be written! (TODO!)
+    - ``k`` -- (integer) the size of each set.
+
+    .. NOTE::
+
+        This function is deprecated in favor of
+        :func:`sage.combinat.permutation.Arrangements`. Use
+        ``Arrangements(mset, k).list()`` directly to get the list of
+        arrangements of ``mset``.
 
     EXAMPLES::
 
+        sage: arrangements([1,2,3], 2)
+        doctest:...: DeprecationWarning: Use Arrangements(mset,k).list()
+        instead. See http://trac.sagemath.org/13821 for details.
+        [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
         sage: mset = [1,1,2,3,4,4,5]
         sage: arrangements(mset,2)
         [[1, 1],
@@ -2105,12 +2100,15 @@ def arrangements(mset,k):
          [5, 3],
          [5, 4]]
          sage: arrangements( ["c","a","t"], 2 )
-         ['ac', 'at', 'ca', 'ct', 'ta', 'tc']
+         [['c', 'a'], ['c', 't'], ['a', 'c'],
+          ['a', 't'], ['t', 'c'], ['t', 'a']]
          sage: arrangements( ["c","a","t"], 3 )
-         ['act', 'atc', 'cat', 'cta', 'tac', 'tca']
+         [['c', 'a', 't'], ['c', 't', 'a'], ['a', 'c', 't'],
+          ['a', 't', 'c'], ['t', 'c', 'a'], ['t', 'a', 'c']]
     """
-    ans=gap.eval("Arrangements(%s,%s)"%(mset,k))
-    return eval(ans)
+    from sage.combinat.permutation import Arrangements
+    deprecation(13821, 'Use Arrangements(mset,k).list() instead.')
+    return Arrangements(mset, k).list()
 
 def number_of_arrangements(mset,k):
     """

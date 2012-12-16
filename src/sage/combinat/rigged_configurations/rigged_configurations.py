@@ -138,15 +138,15 @@ If on the other hand we also want to specify the riggings, this can be achieved 
     0[ ][ ]0
     <BLANKLINE>
 
-To obtain the Kirillov-Reshetikhin (KR) tableau under the bijection between rigged configurations and KR
+To obtain the Kirillov-Reshetikhin (KR) tableaux under the bijection between rigged configurations and KR
 tableaux, we can type the following. This example was checked against Reiho Sakamoto's Mathematica program
 on rigged configurations::
 
-    sage: output = elt.to_Kirillov_Reshetikhin_tableaux(); output
+    sage: output = elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); output
     [[1, 1, 1], [2, 3, 3], [3, 4, -5]] (X) [[1, 1], [2, 2], [3, 3], [5, -6], [6, -5]] (X) [[1, 1, 2], [2, 2, 3], [3, 3, 7], [4, 4, -7]] (X) [[1, 1, 1], [2, 2, 2]] (X) [[1, 1, 1, 3], [2, 2, 3, 4], [3, 3, 4, 5], [4, 4, 5, 6]] (X) [[1], [2], [3]] (X) [[1, 1, 1, 1]] (X) [[1, 1], [2, 2]]
-    sage: elt.to_Kirillov_Reshetikhin_tableaux().to_rigged_configuration() == elt
+    sage: elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux().to_rigged_configuration() == elt
     True
-    sage: output.to_rigged_configuration().to_Kirillov_Reshetikhin_tableaux() == output
+    sage: output.to_rigged_configuration().to_tensor_product_of_Kirillov_Reshetikhin_tableaux() == output
     True
 
 TESTS::
@@ -169,33 +169,33 @@ TESTS::
 
 REFERENCES:
 
-    .. [HKOTT2002] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
-       Paths, Crystals and Fermionic Formulae
-       Prog.Math.Phys. 23 (2002) 205-272
+.. [HKOTT2002] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
+   Paths, Crystals and Fermionic Formulae
+   Prog.Math.Phys. 23 (2002) 205-272
 
-    .. [CrysStructSchilling06] Anne Schilling.
-       Crystal structure on rigged configurations.
-       International Mathematics Research Notices.
-       Volume 2006. 2006. Article ID 97376. Pages 1-27.
+.. [CrysStructSchilling06] Anne Schilling.
+   Crystal structure on rigged configurations.
+   International Mathematics Research Notices.
+   Volume 2006. 2006. Article ID 97376. Pages 1-27.
 
-    .. [RigConBijection] Masato Okado, Anne Schilling, Mark Shimozono.
-       A crystal to rigged configuration bijection for non-exceptional affine
-       algebras.
-       Algebraic Combinatorics and Quantum Groups.
-       Edited by N. Jing. World Scientific. 2003. Pages 85-124.
+.. [RigConBijection] Masato Okado, Anne Schilling, Mark Shimozono.
+   A crystal to rigged configuration bijection for non-exceptional affine
+   algebras.
+   Algebraic Combinatorics and Quantum Groups.
+   Edited by N. Jing. World Scientific. 2003. Pages 85-124.
 
-    .. [BijectionDn] Anne Schilling.
-       A bijection between type `D_n^{(1)}` crystals and rigged configurations.
-       J. Algebra. 285. 2005. 292-334
+.. [BijectionDn] Anne Schilling.
+   A bijection between type `D_n^{(1)}` crystals and rigged configurations.
+   J. Algebra. 285. 2005. 292-334
 
-    .. [BijectionLRT] Anatol N. Kirillov, Anne Schilling, Mark Shimozono.
-       A bijection between Littlewood-Richardson tableaux and rigged
-       configurations.
-       Selecta Mathematica (N.S.). 8. 2002. 67-135.
+.. [BijectionLRT] Anatol N. Kirillov, Anne Schilling, Mark Shimozono.
+   A bijection between Littlewood-Richardson tableaux and rigged
+   configurations.
+   Selecta Mathematica (N.S.). 8. 2002. 67-135.
 
-    .. [AffineRigConDn] Masato Okado, Reiho Sakamoto, Anne Schilling.
-       Affine crystal structure on rigged configurations of type `D_n^{(1)}`.
-       J. Algebraic Combinatorics, to appear, doi:10.1007/s10801-012-0383-z (arXiv:1109.3523)
+.. [AffineRigConDn] Masato Okado, Reiho Sakamoto, Anne Schilling.
+   Affine crystal structure on rigged configurations of type `D_n^{(1)}`.
+   J. Algebraic Combinatorics, to appear, doi:10.1007/s10801-012-0383-z (arXiv:1109.3523)
 """
 
 #*****************************************************************************
@@ -248,10 +248,10 @@ class AbstractRiggedConfigurations(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: RC = HighestWeightRiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2], [1, 1]]) # indirect doc-test
+            sage: RC = HighestWeightRiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2], [1, 1]]) # indirect doctest
             sage: RC
             Highest weight rigged configurations of type ['A', 3, 1] and factors ((3, 2), (1, 2), (1, 1))
-            sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2], [1, 1]]) # indirect doc-test
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2], [1, 1]]) # indirect doctest
             sage: RC
             Rigged configurations of type ['A', 3, 1] and factors ((3, 2), (1, 2), (1, 1))
         """
@@ -405,7 +405,7 @@ class AbstractRiggedConfigurations(UniqueRepresentation, Parent):
                     values[-1].extend(block)
         return values
 
-    def _element_constructor_(self, *rigged_partitions, **options):
+    def _element_constructor_(self, *lst, **options):
         """
         Construct a RiggedConfigurationElement.
 
@@ -427,7 +427,22 @@ class AbstractRiggedConfigurations(UniqueRepresentation, Parent):
             (/)
             <BLANKLINE>
         """
-        return self.element_class(self, *rigged_partitions, **options)
+        from sage.combinat.rigged_configurations.tensor_product_kr_tableaux_element import TensorProductOfKirillovReshetikhinTableauxElement
+        if isinstance(lst[0], TensorProductOfKirillovReshetikhinTableauxElement):
+            if self != lst[0].parent().rigged_configurations():
+                raise ValueError("Incorrect bijection image.")
+            return lst[0].to_rigged_configuration()
+
+        from sage.combinat.crystals.tensor_product import TensorProductOfCrystalsElement
+        if isinstance(lst[0], TensorProductOfCrystalsElement):
+            lst = lst[0]
+        from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinGenericCrystalElement
+        if isinstance(lst[0], KirillovReshetikhinGenericCrystalElement):
+            KRT = self.tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            krt_elt = KRT(*[x.to_Kirillov_Reshetikhin_tableau() for x in lst])
+            return krt_elt.to_rigged_configuration()
+
+        return self.element_class(self, *lst, **options)
 
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
@@ -494,6 +509,18 @@ class AbstractRiggedConfigurations(UniqueRepresentation, Parent):
         #return KleberTree(self._cartan_type.classical(), self.dims)
         return KleberTree(self._cartan_type, self.dims)
 
+    def tensor_product_of_Kirillov_Reshetikhin_tableaux(self):
+        """
+        Return the corresponding tensor product of Kirillov-Reshetikhin
+        tableaux.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2]])
+            sage: RC.tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and tableau shape(s) [[2, 2, 2], [2]]
+        """
+        return self._bijection_class(self._affine_ct, self.dims)
 
 class HighestWeightRiggedConfigurations(AbstractRiggedConfigurations):
     r"""
@@ -720,16 +747,26 @@ class RiggedConfigurations(AbstractRiggedConfigurations):
     tableaux, we can type the following. This example was checked against Reiho Sakamoto's Mathematica program
     on rigged configurations::
 
-        sage: output = elt.to_Kirillov_Reshetikhin_tableaux(); output
+        sage: output = elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); output
         [[1, 1, 1], [2, 3, 3], [3, 4, -5]] (X) [[1, 1], [2, 2], [3, 3], [5, -6], [6, -5]] (X)
         [[1, 1, 2], [2, 2, 3], [3, 3, 7], [4, 4, -7]] (X) [[1, 1, 1], [2, 2, 2]] (X)
         [[1, 1, 1, 3], [2, 2, 3, 4], [3, 3, 4, 5], [4, 4, 5, 6]] (X) [[1], [2], [3]] (X) [[1, 1, 1, 1]] (X) [[1, 1], [2, 2]]
-        sage: elt.to_Kirillov_Reshetikhin_tableaux().to_rigged_configuration() == elt
+        sage: elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux().to_rigged_configuration() == elt
         True
-        sage: output.to_rigged_configuration().to_Kirillov_Reshetikhin_tableaux() == output
+        sage: output.to_rigged_configuration().to_tensor_product_of_Kirillov_Reshetikhin_tableaux() == output
+        True
+
+    We can also convert between rigged configurations and tensor products of
+    Kirillov-Reshetikhin crystals::
+
+        sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
+        sage: elt = RC(partition_list=[[1],[1,1],[1],[1]])
+        sage: tp_krc = elt.to_tensor_product_of_Kirillov_Reshetikhin_crystals(); tp_krc
+        [[]]
+        sage: ret = RC(tp_krc)
+        sage: ret == elt
         True
     """
-
     @staticmethod
     def __classcall_private__(cls, cartan_type, B):
         r"""
@@ -821,5 +858,18 @@ class RiggedConfigurations(AbstractRiggedConfigurations):
         # lazy_attribute does not inherit
         return [x for x in self._highest_weight_iter()]
 
-RiggedConfigurations.Element = RiggedConfigurationElement
+    def tensor_product_of_Kirillov_Reshetikhin_crystals(self):
+        """
+        Return the corresponding tensor product of Kirillov-Reshetikhin
+        crystals.
 
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[3,1],[2,2]])
+            sage: RC.tensor_product_of_Kirillov_Reshetikhin_crystals()
+            Full tensor product of the crystals [Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(3,1),
+            Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(2,2)]
+        """
+        return self._bijection_class(self._affine_ct, self.dims).tensor_product_of_Kirillov_Reshetikhin_crystals()
+
+RiggedConfigurations.Element = RiggedConfigurationElement

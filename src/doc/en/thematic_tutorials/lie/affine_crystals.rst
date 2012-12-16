@@ -56,7 +56,7 @@ One can change between the classical and affine crystal using the methods ``lift
 
     sage: K = KirillovReshetikhinCrystal(['A',3,1],2,1)
     sage: b = K(rows=[[1],[3]]); type(b)
-    <class 'sage.combinat.crystals.affine.KR_type_A_with_category.element_class'>
+    <class 'sage.combinat.crystals.kirillov_reshetikhin.KR_type_A_with_category.element_class'>
     sage: b.lift()
     [[1], [3]]
     sage: type(b.lift())
@@ -66,7 +66,7 @@ One can change between the classical and affine crystal using the methods ``lift
     sage: K.retract(b)
     [[1], [3]]
     sage: type(K.retract(b))
-    <class 'sage.combinat.crystals.affine.KR_type_A_with_category.element_class'>
+    <class 'sage.combinat.crystals.kirillov_reshetikhin.KR_type_A_with_category.element_class'>
 
 The `0`-arrows are obtained using the analogue of `\sigma`, called the promotion operator `\mathrm{pr}`, on the
 level of crystals via:

@@ -199,9 +199,9 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         """
         return self.element_class(classical_elt, parent = self)
 
-    def __call__(self, *value, **options):
+    def _element_constructor_(self, *value, **options):
         r"""
-        Coerces value into self.
+        Coerces ``value`` into ``self``.
 
         EXAMPLES:
 
@@ -210,7 +210,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
             sage: pr = attrcall("promotion")
             sage: pr_inverse = attrcall("promotion_inverse")
             sage: A=AffineCrystalFromClassicalAndPromotion(['A',n,1],C,pr,pr_inverse,1)
-            sage: b=A(rows=[[1]])
+            sage: b=A(rows=[[1]]) # indirect doctest
             sage: b
             [[1]]
             sage: b.parent()

@@ -114,8 +114,27 @@ class RiggedConfigurationElement(ClonableArray):
         <BLANKLINE>
         0[ ]0
         <BLANKLINE>
-    """
 
+    We can go between
+    :class:`tensor products of KR tableaux<TensorProductOfKirillovReshetikhinTableaux>`
+    and tensor products of
+    :mod:`KR crystals <sage.combinat.crystals.kirillov_reshetikhin>`::
+
+        sage: RC = RiggedConfigurations(['D', 4, 1], [[1,1], [2,1]])
+        sage: rc_elt = RC(partition_list=[[1], [1,1], [1], [1]])
+        sage: tp_krt = rc_elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); tp_krt
+        [[-2]] (X) [[1], [2]]
+        sage: tp_krc = rc_elt.to_tensor_product_of_Kirillov_Reshetikhin_crystals(); tp_krc
+        [[[-2]], [[1], [2]]]
+        sage: tp_krc == tp_krt.to_tensor_product_of_Kirillov_Reshetikhin_crystals()
+        True
+        sage: RC(tp_krc) == rc_elt
+        True
+        sage: RC(tp_krt) == rc_elt
+        True
+        sage: tp_krt.to_rigged_configuration() == rc_elt
+        True
+    """
     def __init__(self, parent, *rigged_partitions, **options):
         r"""
         Construct a rigged configuration element.
@@ -345,7 +364,7 @@ class RiggedConfigurationElement(ClonableArray):
             for i, vac_num in enumerate(partition.vacancy_numbers):
                 assert vac_num >= partition.rigging[i], "rigging can be at most the vacancy number"
 
-    def to_Kirillov_Reshetikhin_tableaux(self, display_steps=False, display_all=False, **options):
+    def to_tensor_product_of_Kirillov_Reshetikhin_tableaux(self, display_steps=False, display_all=False, **options):
         r"""
         Perform the bijection from this rigged configuration to a tensor
         product of Kirillov-Reshetikhin tableaux given in [RigConBijection]_
@@ -354,25 +373,45 @@ class RiggedConfigurationElement(ClonableArray):
 
         INPUT:
 
-        - ``display_steps`` -- (default: False) Boolean which indicates if we want to output each step in the algorithm.
-        - ``display_all``   -- (default: False) Boolean which indicates if we to output from each step, `tj`, and the column splittings.
+        - ``display_steps`` -- (default: ``False``) Boolean which indicates
+          if we want to output each step in the algorithm
 
         OUTPUT:
 
-        - The KR tableaux corresponding to this rigged configuration.
+        - The tensor product of KR tableaux element corresponding to this
+          rigged configuration.
 
         EXAMPLES::
 
-            sage: RC = HighestWeightRiggedConfigurations(['A', 4, 1], [[2, 2]])
-            sage: RC(partition_list=[[2], [2,2], [2], [2]]).to_Kirillov_Reshetikhin_tableaux()
+            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
+            sage: RC(partition_list=[[2], [2,2], [2], [2]]).to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
             [[3, 3], [5, 5]]
-            sage: RC = HighestWeightRiggedConfigurations(['D', 4, 1], [[2, 2]])
-            sage: RC(partition_list=[[2], [2,2], [1], [1]]).to_Kirillov_Reshetikhin_tableaux()
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
+            sage: elt = RC(partition_list=[[2], [2,2], [1], [1]])
+            sage: tp_krt = elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); tp_krt
             [[2, 3], [3, -2]]
+
+        This is invertible by calling
+        :meth:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux_element.TensorProductOfKirillovReshetikhinTableauxElement.to_rigged_configuration()`::
+
+            sage: ret = tp_krt.to_rigged_configuration(); ret
+            <BLANKLINE>
+            0[ ][ ]0
+            <BLANKLINE>
+            -2[ ][ ]-2
+            -2[ ][ ]-2
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            sage: elt == ret
+            True
         """
         #Letters = CrystalOfLetters(self.parent()._cartan_type.classical())
         Letters = CrystalOfLetters(self.parent()._cartan_type)
         n = self.parent()._cartan_type.n
+        type = self.parent()._cartan_type.letter
 
         # Pass in a copy of our partitions since the bijection is destructive to it.
         bijection = RCToKRTBijection(self)
@@ -444,6 +483,45 @@ class RiggedConfigurationElement(ClonableArray):
         #return self.parent()._bijection_class(self.parent()._cartan_type,
         return self.parent()._bijection_class(self.parent()._affine_ct,
           self.parent().dims)(pathlist=ret_crystal_path)
+
+    def to_tensor_product_of_Kirillov_Reshetikhin_crystals(self, display_steps=False):
+        r"""
+        Return the corresponding tensor product of Kirillov-Reshetikhin
+        crystals.
+
+        This is a composition of the map to a tensor product of KR tableaux,
+        and then to a tensor product of KR crystals.
+
+        INPUT:
+
+        - ``display_steps`` -- (default: ``False``) Boolean which indicates
+          if we want to output each step in the algorithm
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
+            sage: elt = RC(partition_list=[[2], [2,2], [1], [1]])
+            sage: krc = elt.to_tensor_product_of_Kirillov_Reshetikhin_crystals(); krc
+            [[[2, 3], [3, -2]]]
+
+        We can recover the rigged configuration::
+
+            sage: ret = RC(krc); ret
+            <BLANKLINE>
+            0[ ][ ]0
+            <BLANKLINE>
+            -2[ ][ ]-2
+            -2[ ][ ]-2
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            sage: elt == ret
+            True
+        """
+        kr_tab = self.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(display_steps)
+        return kr_tab.to_tensor_product_of_Kirillov_Reshetikhin_crystals()
 
     def nu(self):
         r"""

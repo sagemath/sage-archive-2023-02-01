@@ -1,17 +1,16 @@
 r"""
-A specific tensor product of Kirillov-Reshetikhin tableaux
+An element of a tensor product of Kirillov-Reshetikhin tableaux
 
-A tensor product of :class:`KirillovReshetikhinTableauxElement`.
+A tensor product of
+:class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableauxElement`.
 
 AUTHORS:
 
 - Travis Scrimshaw (2010-09-26): Initial version
 
-.. TODO:: A proper is_highest_weight() function without needing to change the index set.
-
 EXAMPLES:
 
-Type `A_n` examples::
+Type `A_n^{(1)}` examples::
 
     sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[1,1], [2,1], [1,1], [2,1], [2,1], [2,1]])
     sage: T = KRT(pathlist=[[2], [4,1], [3], [4,2], [3,1], [2,1]])
@@ -41,7 +40,7 @@ Type `A_n` examples::
     0[ ]0
     <BLANKLINE>
 
-Type `D_n` examples::
+Type `D_n^{(1)}` examples::
 
     sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[1,1], [1,1], [1,1], [1,1]])
     sage: T = KRT(pathlist=[[-1], [-1], [1], [1]])
@@ -77,7 +76,7 @@ Type `D_n` examples::
     <BLANKLINE>
     1[ ]0
     <BLANKLINE>
-    sage: T.to_rigged_configuration().to_Kirillov_Reshetikhin_tableaux()
+    sage: T.to_rigged_configuration().to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
     [[2], [3]] (X) [[1]] (X) [[-1]] (X) [[1]]
 """
 
@@ -107,9 +106,6 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfCrystalsE
     For more on tensor product of Kirillov-Reshetikhin tableaux, see
     :class:`TensorProductOfKirillovReshetikhinTableaux`.
     """
-
-    # Functions
-
     def __init__(self, parent, *path, **options):
         r"""
         Construct a TensorProductOfKirillovReshetikhinTableauxElement.
@@ -147,7 +143,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfCrystalsE
 
     def _repr_(self):
         """
-        Return the string representation for self.
+        Return the string representation for ``self``.
 
         EXAMPLES::
 
@@ -163,7 +159,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfCrystalsE
 
     def e(self, i):
         r"""
-        Return the action of `e_i` on self.
+        Return the action of `e_i` on ``self``.
 
         EXAMPLES::
 
@@ -173,7 +169,6 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfCrystalsE
             sage: T.e(2)
             [[2], [4]]
         """
-
         if i != 0:
             return TensorProductOfCrystalsElement.e(self, i)
 
@@ -181,7 +176,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfCrystalsE
 
     def f(self, i):
         r"""
-        Return the action of `f_i` on self.
+        Return the action of `f_i` on ``self``.
 
         EXAMPLES::
 
@@ -198,17 +193,19 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfCrystalsE
 
     def to_rigged_configuration(self, display_steps=False):
         r"""
-        Perform the bijection from this to a
-        :class:`RiggedConfiguration` which is described
-        in [RigConBijection]_, [BijectionLRT]_, and [BijectionDn]_.
+        Perform the bijection from ``self`` to a
+        :class:`rigged configuration<sage.combinat.rigged_configurations.rigged_configuration_element.RiggedConfigurationElement>`
+        which is described in [RigConBijection]_, [BijectionLRT]_, and
+        [BijectionDn]_.
 
         INPUT:
 
-        - ``display_steps`` -- (default: False) Boolean which indicates if we want to output each step in the algorithm.
+        - ``display_steps`` -- (default: ``False``) Boolean which indicates
+          if we want to output each step in the algorithm.
 
         OUTPUT:
 
-        The rigged configuration corresponding to self.
+        The rigged configuration corresponding to ``self``.
 
         EXAMPLES::
 
@@ -279,6 +276,34 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfCrystalsE
 
         bijection.ret_rig_con.set_immutable() # Return it to immutable
         return(bijection.ret_rig_con)
+
+    def to_tensor_product_of_Kirillov_Reshetikhin_crystals(self):
+        """
+        Return a tensor product of Kirillov-Reshetikhin crystals corresponding
+        to ``self``.
+
+        This works by performing the filling map on each individual factor.
+        For more on the filling map, see :class:`KirillovReshetikhinTableaux`.
+
+        EXAMPLES::
+
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[1,1],[2,2]])
+            sage: elt = KRT(pathlist=[[-1],[-1,2,-1,1]]); elt
+            [[-1]] (X) [[2, 1], [-1, -1]]
+            sage: tp_krc = elt.to_tensor_product_of_Kirillov_Reshetikhin_crystals(); tp_krc
+            [[[-1]], [[2], [-1]]]
+
+        We can recover the original tensor product of KR tableaux::
+
+            sage: KRT(tp_krc)
+            [[-1]] (X) [[2, 1], [-1, -1]]
+            sage: ret = KRT(*tp_krc); ret
+            [[-1]] (X) [[2, 1], [-1, -1]]
+            sage: ret == elt
+            True
+        """
+        TP = self.parent().tensor_product_of_Kirillov_Reshetikhin_crystals()
+        return TP(*[x.to_Kirillov_Reshetikhin_crystal() for x in self])
 
 #    FIXME
 #    def is_highest_weight(self, **options):

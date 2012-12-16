@@ -282,8 +282,6 @@ class RiggedPartition(Partition_class):
         maxPos = -1
         for i, vacNum in enumerate(self.vacancy_numbers):
             if self._list[i] <= max_width and vacNum == self.rigging[i]:
-              # and vacNum > maxSingular:
-                # maxSingular = vacNum
                 maxPos = i
                 break
 

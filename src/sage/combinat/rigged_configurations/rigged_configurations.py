@@ -446,13 +446,14 @@ class AbstractRiggedConfigurations(UniqueRepresentation, Parent):
 
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
-        Calculate the vacancy number of the `i`-th row of the `a`-th partition.
+        Calculate the vacancy number of the `i`-th row of the `a`-th rigged
+        partition.
 
         INPUT:
 
         - ``partitions`` -- The list of rigged partitions we are using
-        - ``a``          -- The tableau index
-        - ``i``          -- The row index of the `a`-th tableau
+        - ``a``          -- The rigged partition index
+        - ``i``          -- The row index of the `a`-th rigged partition
 
         TESTS::
 
@@ -470,16 +471,22 @@ class AbstractRiggedConfigurations(UniqueRepresentation, Parent):
                 if len(tableau) == a + 1:
                     vac_num += min(row_len, len(tableau[0]))
         elif "L" in options:
-            for i in range(len(options["L"][a])):
-                vac_num += min(i, row_len) * options["L"][a][i]
+            L = options["L"]
+            if L.has_key(a):
+                for kvp in L[a].items():
+                    vac_num += min(kvp[0], row_len) * kvp[1]
+        elif "dims" in options:
+            for dim in options["dims"]:
+                if dim[0] == a + 1:
+                    vac_num += min(dim[1], row_len)
         else:
             for dim in self.dims:
                 if dim[0] == a + 1:
                     vac_num += min(dim[1], row_len)
 
-        #for i, value in enumerate(self._cartan_type.classical().cartan_matrix().row(a)):
-        for i, value in enumerate(self._cartan_type.cartan_matrix().row(a)):
-            vac_num -= value * partitions[i].get_num_cells_to_column(row_len)
+        #for j, value in enumerate(self._cartan_type.classical().cartan_matrix().row(a)):
+        for j, value in enumerate(self._cartan_type.cartan_matrix().row(a)):
+            vac_num -= value * partitions[j].get_num_cells_to_column(row_len)
 
         return vac_num
 
@@ -766,6 +773,18 @@ class RiggedConfigurations(AbstractRiggedConfigurations):
         sage: ret = RC(tp_krc)
         sage: ret == elt
         True
+
+    ::
+
+        sage: RC = RiggedConfigurations(['D', 4, 1], [[4,1], [3,3]])
+        sage: KR1 = KirillovReshetikhinCrystal(['D', 4, 1], 4, 1)
+        sage: KR2 = KirillovReshetikhinCrystal(['D', 4, 1], 3, 3)
+        sage: T = TensorProductOfCrystals(KR1, KR2)
+        sage: t = T[1]; t
+        [[++++, []], [+++-, [[1], [2], [4], [-4]]]]
+        sage: ret = RC(t)
+        sage: ret.to_tensor_product_of_Kirillov_Reshetikhin_crystals()
+        [[++++, []], [+++-, [[1], [2], [4], [-4]]]]
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, B):
@@ -816,6 +835,12 @@ class RiggedConfigurations(AbstractRiggedConfigurations):
             sage: RC
             Rigged configurations of type ['A', 3, 1] and factors ((3, 2), (1, 2), (1, 1))
             sage: TestSuite(RC).run()  # long time (4s on sage.math, 2012)
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[2,2]])
+            sage: TestSuite(RC).run() # long time
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[3,1]])
+            sage: TestSuite(RC).run() # long time
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[4,3]])
+            sage: TestSuite(RC).run() # long time
         """
         from tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux # For circular imports
         AbstractRiggedConfigurations.__init__(self, cartan_type, B, TensorProductOfKirillovReshetikhinTableaux)
@@ -858,6 +883,28 @@ class RiggedConfigurations(AbstractRiggedConfigurations):
         # lazy_attribute does not inherit
         return [x for x in self._highest_weight_iter()]
 
+    def _test_bijection(self, **options):
+        r"""
+        Test function to make sure that the bijection between rigged
+        configurations and Kirillov-Reshetikhin tableaux is correct.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A', 4, 1], [[3,2],[4,1]])
+            sage: RC._test_bijection()
+        """
+        tester = self._tester(**options)
+        rejects = []
+        for x in self:
+            y = x.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            z = y.to_rigged_configuration()
+            if z != x:
+                rejects.append((x, z))
+
+        tester.assertTrue(len(rejects) == 0, "Bijection is not correct: %s"%rejects)
+        if len(rejects) != 0:
+            return rejects
+
     def tensor_product_of_Kirillov_Reshetikhin_crystals(self):
         """
         Return the corresponding tensor product of Kirillov-Reshetikhin
@@ -873,3 +920,15 @@ class RiggedConfigurations(AbstractRiggedConfigurations):
         return self._bijection_class(self._affine_ct, self.dims).tensor_product_of_Kirillov_Reshetikhin_crystals()
 
 RiggedConfigurations.Element = RiggedConfigurationElement
+
+# For experimentation purposes only.
+# I'm keeping this for when we implement the R-matrix in general
+#def R_matrix_test(n, L1, L2):
+#    RC = HighestWeightRiggedConfigurations(['D', n, 1], [L1, L2])
+#    RC2 = HighestWeightRiggedConfigurations(['D', n, 1], [L2, L1])
+#    ret_list = []
+#    for x in RC:
+#        x2 = RC2(*x)
+#        ret_list.append([x.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(),
+#                         x2.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()])
+#    return ret_list

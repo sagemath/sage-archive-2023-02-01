@@ -55,26 +55,10 @@ class KRTToRCBijectionAbstract:
         EXAMPLES::
 
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
-            sage: from sage.combinat.rigged_configurations.bij_abstract_class import KRTToRCBijectionAbstract
-            sage: bijection = KRTToRCBijectionAbstract(KRT(pathlist=[[4,3]]))
-            sage: bijection.cur_path
-            []
-            sage: bijection.ret_rig_con
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
+            sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
+            sage: bijection = KRTToRCBijectionTypeA(KRT(pathlist=[[4,3]]))
             sage: TestSuite(bijection).run()
         """
-        # L = [[0]] * crystalPath.parent().cartan_type().n
-        # for dim in crystalPath.parent().dims:
-        #     L[dim[0]-1][0] += 1
-
         self.ret_rig_con = krt.parent()._bijection_class(
           krt.parent().affine_ct,
           krt.parent().dims)(partition_list=[[]] *
@@ -85,7 +69,9 @@ class KRTToRCBijectionAbstract:
         #   be placed in an unstable state.
         # The user will (and should) never know about this temporary mutable state.
         self.ret_rig_con._set_mutable()
+        self.cur_dims = []
         self.cur_path = []
+        # self.L = {}
 
     def __eq__(self, rhs):
         r"""
@@ -106,7 +92,7 @@ class KRTToRCBijectionAbstract:
         return isinstance(rhs, KRTToRCBijectionAbstract)
 
     @abstract_method
-    def next_state(self, val, tableau_height):
+    def next_state(self, val):
         r"""
         Build the next state in the bijection.
 
@@ -120,7 +106,10 @@ class KRTToRCBijectionAbstract:
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
             sage: bijection = KRTToRCBijectionTypeA(KRT(pathlist=[[4,3]]))
-            sage: bijection.next_state(3, 0)
+            sage: bijection.cur_path.insert(0, [])
+            sage: bijection.cur_dims.insert(0, [0, 1])
+            sage: bijection.cur_path[0].insert(0, [3])
+            sage: bijection.next_state(3)
             sage: bijection.ret_rig_con
             <BLANKLINE>
             -1[ ]-1
@@ -160,14 +149,14 @@ class KRTToRCBijectionAbstract:
         # Setup the first block
         blockLen = self.ret_rig_con[a][0]
         vac_num = self.ret_rig_con.parent()._calc_vacancy_number(self.ret_rig_con.nu(),
-                                                                 a, 0, B=self.cur_path)
+                                                                 a, 0, dims=self.cur_dims)
 
         for i, row_len in enumerate(self.ret_rig_con[a]):
             # If we've gone to a different sized block, then update the
             #   values which change when moving to a new block size
             if blockLen != row_len:
                 vac_num = self.ret_rig_con.parent()._calc_vacancy_number(self.ret_rig_con.nu(),
-                                                                         a, i, B=self.cur_path)
+                                                                         a, i, dims=self.cur_dims)
                 blockLen = row_len
             self.ret_rig_con[a].vacancy_numbers[i] = vac_num
 
@@ -252,17 +241,25 @@ class RCToKRTBijectionAbstract:
         #self.rigged_con = deepcopy(RC_element)
         self.rigged_con = RC_element.__copy__()
 
-        # Build an empty path for the vacancy numbers
-        self.rem_path = []
-        for dim in self.rigged_con.parent().dims:
-            self.rem_path.append([])
-            for i in range(dim[0]):
-                self.rem_path[-1].append([None] * dim[1])
+        # Make a (deep) copy of the dimensions for the bijection
+        self.cur_dims = [list(x[:]) for x in self.rigged_con.parent().dims]
 
         # Note that this implementation of the bijection is destructive to cur_partitions,
         #   therefore we will make a (deep) copy of the partitions.
         # TODO: Convert from cur_partitions to rigged_con
         self.cur_partitions = deepcopy(list(self.rigged_con)[:])
+
+        # Compute the current L matrix
+#        self.L = {}
+#        for dim in self.rigged_con.parent().dims:
+#            if self.L.has_key(dim[0]):
+#                row = self.L[dim[0]]
+#                if row.has_key(dim[1]):
+#                    row[dim[1]] += 1
+#                else:
+#                    row[dim[1]] = 1
+#            else:
+#                self.L[dim[0]] = {dim[1]:1}
 
     def __eq__(self, rhs):
         r"""
@@ -283,7 +280,7 @@ class RCToKRTBijectionAbstract:
         return isinstance(rhs, RCToKRTBijectionAbstract)
 
     @abstract_method
-    def next_state(self):
+    def next_state(self, height):
         """
         Build the next state in the bijection.
 
@@ -292,8 +289,7 @@ class RCToKRTBijectionAbstract:
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import RCToKRTBijectionTypeA
             sage: bijection = RCToKRTBijectionTypeA(RC(partition_list=[[1],[1],[1],[1]]))
-            sage: bijection.tj(1)
-            sage: bijection.next_state()
+            sage: bijection.next_state(0)
             5
             sage: bijection.cur_partitions
             [(/)
@@ -328,37 +324,17 @@ class RCToKRTBijectionAbstract:
         # Setup the first block
         blockLen = partition[0]
         vacNum = self.rigged_con.parent()._calc_vacancy_number(self.cur_partitions,
-                                                               a, 0, B=self.rem_path)
+                                                               a, 0, dims=self.cur_dims)
 
         for i, rowLen in enumerate(self.cur_partitions[a]):
             # If we've gone to a different sized block, then update the
             #   values which change when moving to a new block size
             if blockLen != rowLen:
                 vacNum = self.rigged_con.parent()._calc_vacancy_number(self.cur_partitions,
-                                                                       a, i, B=self.rem_path)
+                                                                       a, i, dims=self.cur_dims)
                 blockLen = rowLen
 
             partition.vacancy_numbers[i] = vacNum
-
-    @abstract_method
-    def tj(self, k):
-        r"""
-        Perform the map `tj` to "move" our path to one with a leading box of
-        height 1.
-
-        TESTS::
-
-            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
-            sage: from sage.combinat.rigged_configurations.bij_type_A import RCToKRTBijectionTypeA
-            sage: bijection = RCToKRTBijectionTypeA(RC(partition_list=[[1],[1],[1],[1]]))
-            sage: bijection.tj(1)
-            sage: bijection.cur_partitions
-            [-1[ ]-1
-            , 1[ ]1
-            , 0[ ]0
-            , -1[ ]-1
-            ]
-        """
 
     def _find_singular_string(self, partition, last_size):
         r"""

@@ -505,13 +505,41 @@ class TensorProductOfKirillovReshetikhinTableaux(AbstractTensorProductOfKRTablea
 
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1],[2,2]]); KRT
             Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and tableau shape(s) [[1, 1, 1], [2, 2]]
-            sage: TestSuite(KRT).run()
+            sage: TestSuite(KRT).run() # long time
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
+            sage: TestSuite(KRT).run() # long time
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[3,1]])
+            sage: TestSuite(KRT).run() # long time
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[4,3]])
+            sage: TestSuite(KRT).run() # long time
         """
         from rigged_configurations import RiggedConfigurations
         AbstractTensorProductOfKRTableaux.__init__(self, cartan_type, B, RiggedConfigurations)
         self.rename("Tensor product of Kirillov-Reshetikhin tableaux of type %s and tableau shape(s) %s" % (\
           cartan_type, list([rectDims[1]] * rectDims[0] for rectDims in B)))
         self.module_generators = HighestWeightTensorProductOfKirillovReshetikhinTableaux(cartan_type, B)
+
+    def _test_bijection(self, **options):
+        r"""
+        Test function to make sure that the bijection between rigged
+        configurations and Kirillov-Reshetikhin tableaux is correct.
+
+        EXAMPLES::
+
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[3,2],[4,1]])
+            sage: KRT._test_bijection()
+        """
+        tester = self._tester(**options)
+        rejects = []
+        for x in self:
+            y = x.to_rigged_configuration()
+            z = y.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            if z != x:
+                rejects.append((x, z))
+
+        tester.assertTrue(len(rejects) == 0, "Bijection is not correct: %s"%rejects)
+        if len(rejects) != 0:
+            return rejects
 
     def tensor_product_of_Kirillov_Reshetikhin_crystals(self):
         """

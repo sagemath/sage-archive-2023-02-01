@@ -38,7 +38,10 @@ def KRTToRCBijection(krt_elt):
         sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
         sage: from sage.combinat.rigged_configurations.bijection import KRTToRCBijection
         sage: bijection = KRTToRCBijection(KRT(pathlist=[[4,3]]))
-        sage: bijection.next_state(3, 0)
+        sage: bijection.cur_path.insert(0, [])
+        sage: bijection.cur_dims.insert(0, [0, 1])
+        sage: bijection.cur_path[0].insert(0, [3])
+        sage: bijection.next_state(3)
         sage: bijection.ret_rig_con
         <BLANKLINE>
         -1[ ]-1
@@ -67,8 +70,7 @@ def RCToKRTBijection(rigged_configuration_elt):
         sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
         sage: from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
         sage: bijection = RCToKRTBijection(RC(partition_list=[[1],[1],[1],[1]]))
-        sage: bijection.tj(1)
-        sage: bijection.next_state()
+        sage: bijection.next_state(0)
         5
         sage: bijection.cur_partitions
         [(/)

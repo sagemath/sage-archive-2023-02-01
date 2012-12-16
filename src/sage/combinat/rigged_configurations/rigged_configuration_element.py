@@ -364,7 +364,7 @@ class RiggedConfigurationElement(ClonableArray):
             for i, vac_num in enumerate(partition.vacancy_numbers):
                 assert vac_num >= partition.rigging[i], "rigging can be at most the vacancy number"
 
-    def to_tensor_product_of_Kirillov_Reshetikhin_tableaux(self, display_steps=False, display_all=False, **options):
+    def to_tensor_product_of_Kirillov_Reshetikhin_tableaux(self, display_steps=False, **options):
         r"""
         Perform the bijection from this rigged configuration to a tensor
         product of Kirillov-Reshetikhin tableaux given in [RigConBijection]_
@@ -422,58 +422,74 @@ class RiggedConfigurationElement(ClonableArray):
         #   bijection has been performed.
         ret_crystal_path = []
 
-        for tableau in self.parent().dims:
+        for dim in self.parent().dims:
             ret_crystal_path.append([])
 
-            split_column = False
-            while len(bijection.rem_path[0]) > 0 or split_column:
-                # If we have finished a splited column
-                if len(bijection.rem_path[0]) == 0:
-                    bijection.rem_path.pop(0)
-                    split_column = False
-
-                if display_steps or display_all:
-                    print "===================="
-                    print repr(self.parent()(*bijection.cur_partitions))
-                    print "--------------------"
-                    print ret_crystal_path
-                    print "--------------------\n"
-
-                # Build the next state
-                # Check to see if we need to split off a column
-                if len(bijection.rem_path[0][0]) > 1:
-                    for row in bijection.rem_path[0]:
-                        row.pop()
-                    bijection.rem_path.insert(0, [[None]] * len(bijection.rem_path[0]))
+            # Iterate over each column
+            for dummy_var in range(dim[1]):
+                # Split off a new column if necessary
+                if bijection.cur_dims[0][1] > 1:
+                    bijection.cur_dims[0][1] -= 1
+                    bijection.cur_dims.insert(0, [dim[0], 1])
 
                     # Perform the corresponding splitting map on rigged configurations
-                    # All it does is update the vacancy numbers
+                    # All it does is update the vacancy numbers on the RC side
                     for a in range(n):
                         bijection._update_vacancy_numbers(a)
-                    split_column = True
 
-                    if display_all:
-                        print "Split column:"
+                # Check to see if we are a spinor
+                if type == 'D' and dim[0] >= n - 1:
+                    if display_steps:
+                        print "===================="
                         print repr(self.parent()(*bijection.cur_partitions))
+                        print "--------------------"
+                        print ret_crystal_path
+                        print "--------------------\n"
+                        print "Applied doubling map"
+                    bijection.doubling_map()
+                    if dim[0] == n - 1:
+                        if display_steps:
+                            print "===================="
+                            print repr(self.parent()(*bijection.cur_partitions))
+                            print "--------------------"
+                            print ret_crystal_path
+                            print "--------------------\n"
+                        b = bijection.next_state(n)
+                        if b == n:
+                            b = -n
+                        ret_crystal_path[-1].append(Letters(b)) # Append the rank
+
+                while bijection.cur_dims[0][0] > 0:
+                    if display_steps:
+                        print "===================="
+                        print repr(self.parent()(*bijection.cur_partitions))
+                        print "--------------------"
+                        print ret_crystal_path
                         print "--------------------\n"
 
-                bijection.rem_path[0].pop()
+                    bijection.cur_dims[0][0] -= 1 # This takes care of the indexing
+                    b = bijection.next_state(bijection.cur_dims[0][0])
 
-                # Check to see if we needed to pull off a box
-                if len(bijection.rem_path[0]) > 0:
-                    bijection.tj(len(bijection.rem_path[0]) + 1)
+                    # Corrections for spinor
+                    if type == 'D' and dim[0] == n and b == -n \
+                      and bijection.cur_dims[0][0] == n - 1:
+                        b = -(n-1)
 
-                if display_all:
-                    print "tj:"
-                    print repr(self.parent()(*bijection.cur_partitions))
-                    print "--------------------\n"
+                    # Make sure we have a crystal letter
+                    ret_crystal_path[-1].append(Letters(b)) # Append the rank
 
-                b = bijection.next_state()
+                bijection.cur_dims.pop(0) # Pop off the leading column
 
-                # Make sure we have a crystal letter
-                ret_crystal_path[-1].append(Letters(b)) # Append the rank
-
-            bijection.rem_path.pop(0)
+                # Check to see if we were a spinor
+                if type == 'D' and dim[0] >= n-1:
+                    if display_steps:
+                        print "===================="
+                        print repr(self.parent()(*bijection.cur_partitions))
+                        print "--------------------"
+                        print ret_crystal_path
+                        print "--------------------\n"
+                        print "Applied halving map"
+                    bijection.halving_map()
 
         # If you're curious about this, see the note in AbstractTensorProductOfKRTableaux._highest_weight_iter().
         # You should never call this option.

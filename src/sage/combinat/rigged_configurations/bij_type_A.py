@@ -1,8 +1,9 @@
 r"""
-Specific implementations of the bijection classes for type `A_n^{(1)}`.
+Bijection classes for type `A_n^{(1)}`
 
 Part of the (internal) classes which run the bijection between rigged
-configurations and KR tableaux of type `A_n^{(1)}`.
+configurations and tensor products of Kirillov-Reshetikhin tableaux of
+type `A_n^{(1)}`.
 
 AUTHORS:
 
@@ -39,7 +40,7 @@ class KRTToRCBijectionTypeA(KRTToRCBijectionAbstract):
     Specific implementation of the bijection from KR tableaux to rigged configurations for type `A_n^{(1)}`.
     """
 
-    def next_state(self, val, tableau_height):
+    def next_state(self, val):
         r"""
         Build the next state for type `A_n^{(1)}`
 
@@ -48,7 +49,10 @@ class KRTToRCBijectionTypeA(KRTToRCBijectionAbstract):
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
             sage: bijection = KRTToRCBijectionTypeA(KRT(pathlist=[[4,3]]))
-            sage: bijection.next_state(3, 0)
+            sage: bijection.cur_path.insert(0, [])
+            sage: bijection.cur_dims.insert(0, [0, 1])
+            sage: bijection.cur_path[0].insert(0, [3])
+            sage: bijection.next_state(3)
             sage: bijection.ret_rig_con
             <BLANKLINE>
             -1[ ]-1
@@ -60,6 +64,7 @@ class KRTToRCBijectionTypeA(KRTToRCBijectionAbstract):
             (/)
             <BLANKLINE>
         """
+        tableau_height = len(self.cur_path[0]) - 1
 
         # Note first we subtract off for the n = max value (in the path) - 1,
         #   then we remove 1 to match the indices between math and programming.
@@ -107,7 +112,7 @@ class RCToKRTBijectionTypeA(RCToKRTBijectionAbstract):
     Specific implementation of the bijection from rigged configurations to tensor products of KR tableaux for type `A_n^{(1)}`.
     """
 
-    def next_state(self):
+    def next_state(self, height):
         r"""
         Build the next state for type `A_n^{(1)}`.
 
@@ -116,8 +121,7 @@ class RCToKRTBijectionTypeA(RCToKRTBijectionAbstract):
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import RCToKRTBijectionTypeA
             sage: bijection = RCToKRTBijectionTypeA(RC(partition_list=[[1],[1],[1],[1]]))
-            sage: bijection.tj(1)
-            sage: bijection.next_state()
+            sage: bijection.next_state(0)
             5
             sage: bijection.cur_partitions
             [(/)
@@ -131,9 +135,9 @@ class RCToKRTBijectionTypeA(RCToKRTBijectionAbstract):
         b = None
 
         # Calculate the rank and ell values
-
         last_size = 0
-        for a, partition in enumerate(self.cur_partitions):
+        a = height
+        for partition in self.cur_partitions[height:]:
             ell[a] = self._find_singular_string(partition, last_size)
 
             if ell[a] is None:
@@ -141,6 +145,7 @@ class RCToKRTBijectionTypeA(RCToKRTBijectionAbstract):
                 break
             else:
                 last_size = partition[ell[a]]
+            a += 1
 
         if b is None:
             b = n + 1
@@ -161,40 +166,3 @@ class RCToKRTBijectionTypeA(RCToKRTBijectionAbstract):
             self.cur_partitions[n - 1].rigging[row_num] = self.cur_partitions[n - 1].vacancy_numbers[row_num]
 
         return(b)
-
-    def tj(self, k):
-        r"""
-        The map `tj` for crystals of type `A_n^{(1)}`.
-
-        INPUT:
-
-        - ``k`` -- The height of the crystal `B^{k,1}`.
-
-        EXAMPLES::
-
-            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
-            sage: from sage.combinat.rigged_configurations.bij_type_A import RCToKRTBijectionTypeA
-            sage: bijection = RCToKRTBijectionTypeA(RC(partition_list=[[1],[1],[1],[1]]))
-            sage: bijection.tj(1)
-            sage: bijection.cur_partitions
-            [-1[ ]-1
-            , 1[ ]1
-            , 0[ ]0
-            , -1[ ]-1
-            ]
-        """
-
-        for a in range(0, k - 1):
-            self.cur_partitions[a]._list.append(1)
-            if len(self.cur_partitions[a]) > 1 and self.cur_partitions[a][-2] == 1:
-                self.cur_partitions[a].vacancy_numbers.append(self.cur_partitions[a].vacancy_numbers[-1])
-                self.cur_partitions[a].rigging.append(self.cur_partitions[a].vacancy_numbers[-1])
-            else:
-                self.cur_partitions[a].vacancy_numbers.append(\
-                  self.rigged_con.parent()._calc_vacancy_number(self.cur_partitions, a, 0, B=self.rem_path))
-                # Since we've (technically) changed the path, but we don't actually do it to simplify
-                #   the structure of the code.
-                if a == 0 or a == k - 2:
-                    self.cur_partitions[a].vacancy_numbers[-1] += 1
-                self.cur_partitions[a].rigging.append(self.cur_partitions[a].vacancy_numbers[-1])
-

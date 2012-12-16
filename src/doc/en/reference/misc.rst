@@ -31,12 +31,6 @@ Miscellaneous
    sage/misc/preparser
    sage/misc/functional
    sage/misc/html
-   sage/misc/latex
-   sage/misc/latex_macros
-   other/sagetex
-   sage/misc/lazy_attribute
-   sage/misc/lazy_format
-   sage/misc/lazy_import
    sage/misc/log
    sage/misc/persist
    sage/misc/unknown
@@ -54,3 +48,23 @@ Miscellaneous
    sage/misc/randstate
    sage/misc/cython
    sage/misc/viewer
+
+LaTeX
+-----
+
+.. toctree::
+   :maxdepth: 2
+
+   other/sagetex
+   sage/misc/latex
+   sage/misc/latex_macros
+
+Lazyness
+--------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/misc/lazy_attribute
+   sage/misc/lazy_format
+   sage/misc/lazy_import

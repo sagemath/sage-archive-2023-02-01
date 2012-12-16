@@ -20,6 +20,9 @@ lines like these to your :file:`SAGE_STARTUP_FILE` (which is
 
     from sage.misc.viewer import viewer
     viewer.pdf_viewer('open -a /Applications/Adobe\ Reader.app')
+
+Functions and classes
+---------------------
 """
 
 VIEWERS = ['browser', 'dvi_viewer', 'pdf_viewer', 'png_viewer']
@@ -371,7 +374,7 @@ def pdf_viewer():
 
 def png_viewer():
     """
-    Return the program used to display a png file.  By default, the
+    Return the program used to display a png file. By default, the
     program used depends on the platform and other factors, like
     settings of certain environment variables.  To use a different
     program, call ``viewer.png_viewer('PROG')``, where 'PROG' is the

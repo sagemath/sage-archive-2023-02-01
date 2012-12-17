@@ -26,6 +26,7 @@ programming language.
 Downloaded from http://abel.ee.ucla.edu/cvxopt/
 
 == License ==
+
 GPLv3 or later. Includes parts under GPLv2,
 GNU Lesser General Public License, v2.1.  See src/LICENSE for more details.
 (Sage-compatible)
@@ -53,8 +54,11 @@ GNU Lesser General Public License, v2.1.  See src/LICENSE for more details.
 
 == Changelog ==
 
+=== cvxopt-1.1.5.p0 (Jean-Pierre Flori, 5 December 2012) ===
+ * #13799: add back linking dependencies removed by #13160 and needed on Cygwin.
+
 === cvxopt-1.1.5 (François Bissey, 25 June 2012) ===
- * update to 1.1.5, drop dense.c patch as it is not needed anymore.
+ * #13160: update to 1.1.5, drop dense.c patch as it is not needed anymore.
  * rewrite and simplify the patch for setup.py. Keep the necessary linking minimal.
  * First attempt at doc building
 

@@ -250,7 +250,7 @@ class PolyhedronFace(SageObject):
 
             sage: square = polytopes.n_cube(2)
             sage: f = square.face_lattice()[5:9]
-            sage: matrix(4,4, lambda i,j: cmp(f[i].element, f[j].element))
+            sage: matrix(4,4, lambda i,j: cmp(f[i], f[j]))
             [ 0 -1 -1 -1]
             [ 1  0 -1 -1]
             [ 1  1  0  1]
@@ -286,7 +286,7 @@ class PolyhedronFace(SageObject):
 
             sage: square = polytopes.n_cube(2)
             sage: for fl in square.face_lattice():
-            ...       print fl.element.ambient_Hrepresentation()
+            ...       print fl.ambient_Hrepresentation()
             ...
             (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0,
              An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)
@@ -328,7 +328,7 @@ class PolyhedronFace(SageObject):
 
             sage: square = polytopes.n_cube(2)
             sage: for fl in square.face_lattice():
-            ...       print fl.element.ambient_Vrepresentation()
+            ...       print fl.ambient_Vrepresentation()
             ...
             ()
             (A vertex at (-1, -1),)
@@ -361,7 +361,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: p = polytopes.cross_polytope(4)
-            sage: face = p.face_lattice()[10].element
+            sage: face = p.face_lattice()[10]
             sage: face
             <0,2>
             sage: face.ambient_Hrepresentation()
@@ -388,7 +388,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: p = polytopes.cross_polytope(4)
-            sage: face = p.face_lattice()[10].element
+            sage: face = p.face_lattice()[10]
             sage: face
             <0,2>
             sage: face.ambient_Vrepresentation()
@@ -423,7 +423,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: fl = polytopes.dodecahedron().face_lattice()
-            sage: [ x.element.dim() for x in fl ]
+            sage: [ x.dim() for x in fl ]
             [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
               1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
               1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3]
@@ -446,7 +446,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: square = polytopes.n_cube(2)
-            sage: a_face = list( square.face_lattice() )[8].element
+            sage: a_face = list( square.face_lattice() )[8]
             sage: a_face.__repr__()
             '<1,3>'
         """

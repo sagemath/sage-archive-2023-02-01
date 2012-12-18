@@ -2580,7 +2580,7 @@ class Polyhedron_base(Element):
         index = len(fl) - 1 - codim
         if index>=len(fl) or index<1:
             return tuple()
-        return tuple(face.element for face in fl[index])
+        return tuple(fl[index])
 
     @cached_method
     def f_vector(self):

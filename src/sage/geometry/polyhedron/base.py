@@ -1442,6 +1442,10 @@ class Polyhedron_base(Element):
         """
         Return the dimension of the polyhedron.
 
+        OUTPUT:
+
+        -1 if the polyhedron is empty, otherwise a non-negative integer.
+
         EXAMPLES::
 
             sage: simplex = Polyhedron(vertices = [[1,0,0,0],[0,0,0,1],[0,1,0,0],[0,0,1,0]])
@@ -1449,8 +1453,21 @@ class Polyhedron_base(Element):
             3
             sage: simplex.ambient_dim()
             4
+
+        The empty set is a special case (Trac #12193)::
+
+            sage: P1=Polyhedron(vertices=[[1,0,0],[0,1,0],[0,0,1]])
+            sage: P2=Polyhedron(vertices=[[2,0,0],[0,2,0],[0,0,2]])
+            sage: P12 = P1.intersection(P2)
+            sage: P12
+            The empty polyhedron in ZZ^3
+            sage: P12.dim()
+            -1
         """
-        return self.ambient_dim() - self.n_equations()
+        if self.n_Vrepresentation() == 0:
+            return -1   # the empty set
+        else:
+            return self.ambient_dim() - self.n_equations()
 
     @cached_method
     def vertex_adjacency_matrix(self):

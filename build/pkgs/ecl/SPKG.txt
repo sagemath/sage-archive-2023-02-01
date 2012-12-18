@@ -68,6 +68,11 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-12.12.1.p1 (Jean-Pierre Flori, 18 December 2012) ===
+ * #9167: Resolve ecl.dll conflict on Cygwin.
+ * Add a patch (implib.patch) to follow usual naming scheme for dlls on Cygwin
+   and generate an import library.
+
 === ecl-12.12.1.p0 (Jean-Pierre Flori, 15 December 2012) ===
  * #13324: upgrade to upstream version 12.12.1.
  * Remove patches (cygwin.patch, signal.patch) which have been integrated

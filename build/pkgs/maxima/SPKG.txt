@@ -40,6 +40,9 @@ COPYING.
 
 == Changelog ==
 
+=== maxima-5.26.0.p1 (Dima Pasechnik, February 28th 2012) ===
+ * ASDF has changed in ECL, and so we need to reflect this in spkg-install
+
 === maxima-5.26.0.p0 (Dima Pasechnik, February 28th 2012) ===
  * upgrading to version 5.26.0 to take care of #10682.
  * added patch/comm.patch to fix Maxima bug #3484414.

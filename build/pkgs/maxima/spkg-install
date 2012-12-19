@@ -110,7 +110,7 @@ check_error "Failed to build Maxima as an ECL library."
 ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
 echo
 echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
-cp -f maxima.fasb "$ECLLIB/maxima.fas"
+cp -f maxima.system.fasb "$ECLLIB/maxima.fas"
 check_error "Failed to install '`pwd`/maxima.fasb' as '$ECLLIB/maxima.fas'."
 
 

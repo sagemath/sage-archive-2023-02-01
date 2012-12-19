@@ -15,7 +15,9 @@ The basic command syntax is as follows::
     ...
     ======================================================================
 """
-from sage.all import *
+from constructor import random_matrix, Matrix
+from sage.rings.all import ZZ, QQ, GF
+from sage.misc.misc import alarm, cputime
 
 verbose = False
 
@@ -42,6 +44,7 @@ def report(F, title, systems = ['sage', 'magma'], **kwds):
         ...
         ======================================================================
     """
+    import os
     if len(systems) > 2:
         raise NotImplementedError, "at most two systems ('sage' or 'magma')"
     print '='*70
@@ -1139,6 +1142,7 @@ def nullspace_RR(n=300, min=0, max=10, system='sage'):
         sage: tm = b.nullspace_RR(100, system='magma')  # optional - magma
     """
     if system == 'sage':
+        from sage.rings.real_mpfr import RR
         A = random_matrix(ZZ, n+1, n, x=min, y=max+1).change_ring(RR)
         t = cputime()
         v = A.kernel()
@@ -1178,6 +1182,7 @@ def nullspace_RDF(n=300, min=0, max=10, system='sage'):
         sage: tm = b.nullspace_RDF(100, system='magma')  # optional - magma
     """
     if system == 'sage':
+        from sage.rings.real_double import RDF
         A = random_matrix(ZZ, n+1, n, x=min, y=max+1).change_ring(RDF)
         t = cputime()
         v = A.kernel()

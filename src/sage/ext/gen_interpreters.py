@@ -4143,9 +4143,7 @@ modules = [
 
     Extension('sage.ext.interpreters.wrapper_cdf',
               sources = ['sage/ext/interpreters/wrapper_cdf.pyx',
-                         'sage/ext/interpreters/interp_cdf.c'],
-              libraries = (['mc', 'md'] if 'CYGWIN' in os.uname()[0] else []),
-              ),
+                         'sage/ext/interpreters/interp_cdf.c'],),
 
     Extension('sage.ext.interpreters.wrapper_rr',
               sources = ['sage/ext/interpreters/wrapper_rr.pyx',

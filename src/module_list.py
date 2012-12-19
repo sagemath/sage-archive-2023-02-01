@@ -1368,9 +1368,7 @@ ext_modules = [
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
               extra_compile_args=["-std=c99",  "-D_XPG6"],
-              libraries = (['gsl', BLAS, BLAS2, 'pari', 'gmp'] +
-                           uname_specific('CYGWIN', ['mc', 'md'], []) +
-                           ['m'])),
+              libraries = (['gsl', BLAS, BLAS2, 'pari', 'gmp', 'm'])),
 
     Extension('sage.rings.complex_interval',
               sources = ['sage/rings/complex_interval.pyx'],

@@ -1,5 +1,5 @@
 """
-Abstract base class for generators of MPolynomialSystems.
+Abstract base class for generators of polynomial systems.
 
 AUTHOR:
     Martin Albrecht <malb@informatik.uni-bremen.de>
@@ -9,7 +9,7 @@ from sage.structure.sage_object import SageObject
 
 class MPolynomialSystemGenerator(SageObject):
     """
-    Abstract base class for generators of MPolynomialSystems.
+    Abstract base class for generators of polynomial systems.
     """
 
     def __getattr__(self, attr):
@@ -163,7 +163,7 @@ class MPolynomialSystemGenerator(SageObject):
     def polynomial_system(self, P=None, K=None):
         """
         Return a tuple F,s for plaintext P and key K where F is an
-        MPolynomialSystem and s a dictionary which maps key variables
+        polynomial system and s a dictionary which maps key variables
         to their solutions.
 
         INPUT:

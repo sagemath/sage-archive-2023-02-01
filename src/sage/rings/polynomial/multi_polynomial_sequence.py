@@ -1,5 +1,5 @@
 """
-Polynomial Sequences.
+Polynomial Sequences
 
 We call a finite list of polynomials a ``Polynomial Sequence``.
 
@@ -146,6 +146,13 @@ TEST::
    would be called ``Ideal`` but an ideal is a very distinct object
    from its generators and thus this is not an ideal in Sage.
 
+.. [BPW06] J. Buchmann, A. Pychkine, R.-P. Weinmann
+   *Block Ciphers Sensitive to Groebner Basis Attacks*
+   in Topics in Cryptology -- CT RSA'06; LNCS 3860; pp. 313--331; Springer Verlag 2006;
+   pre-print available at http://eprint.iacr.org/2005/200
+
+Classes
+-------
 """
 
 from types import GeneratorType
@@ -966,6 +973,13 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
             This is called "massaging" in [CBJ07]_.
 
+        REFERENCES:
+
+        .. [CBJ07] Gregory V. Bard, and Nicolas T. Courtois, and Chris Jefferson.
+           *Efficient Methods for Conversion and Solution of Sparse Systems of Low-Degree
+           Multivariate Polynomials over GF(2) via SAT-Solvers*.
+           Cryptology ePrint Archive: Report 2007/024. available at
+           http://eprint.iacr.org/2007/024
         """
         from polybori.ll import ll_encode
         from polybori.ll import ll_red_nf_redsb
@@ -1112,6 +1126,7 @@ class PolynomialSequence_gf2e(PolynomialSequence_generic):
         J += FieldIdeal(J.ring())
         return PolynomialSequence(J)
 
-
-
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialSystem_generic", PolynomialSequence_generic)
+register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialRoundSystem_generic", PolynomialSequence_generic)
 

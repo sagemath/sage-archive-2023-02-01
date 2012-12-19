@@ -110,7 +110,8 @@ def coefficient_matrix(polys):
 
   .. note::
 
-    This function may be merged with :meth:`sage.crypto.mq.MPolynomialSystem_generic.coefficient_matrix()` in
+    This function may be merged with
+    :meth:`sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic.coefficient_matrix()` in
     the future.
   """
   from sage.matrix.constructor import matrix

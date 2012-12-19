@@ -24,7 +24,6 @@ Cryptography
    sage/crypto/boolean_function
 
    sage/crypto/mq/sr
-   sage/crypto/mq/mpolynomialsystem
    sage/crypto/mq/sbox
 
    sage/crypto/lattice

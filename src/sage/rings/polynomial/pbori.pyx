@@ -1123,6 +1123,12 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             Traceback (most recent call last):
             ...
             ValueError: Cannot generate random polynomial with 5 terms using 2 variables
+
+        We test that :trac:`13845` is fixed::
+
+            sage: n = 10
+            sage: B = BooleanPolynomialRing(n, 'x')
+            sage: r = B.random_element(terms=(n/2)**2)
         """
         from sage.rings.integer import Integer
         from sage.rings.arith import binomial
@@ -1138,12 +1144,16 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 terms = 2
             elif nvars == 1:
                 terms = 1
+        else:
+            terms = Integer(terms)
 
         if degree is None:
             if nvars > 1:
                 degree = 2
             else:
                 degree = 1
+        else:
+            degree = Integer(degree)
 
         if degree > nvars:
             raise ValueError, "Given degree should be less than or equal to number of variables (%s)"%(nvars)

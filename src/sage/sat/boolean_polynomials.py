@@ -1,9 +1,16 @@
 """
-SAT Functions for Boolean Polynomials.
+SAT Functions for Boolean Polynomials
+
+These highlevel functions support solving and learning from Boolean polynomial systems. In this
+context, "learning" means the construction of new polynomials in the ideal spanned by the original
+polynomials.
 
 AUTHOR:
 
 - Martin Albrecht (2012): initial version
+
+Functions
+^^^^^^^^^
 """
 ##############################################################################
 #  Copyright (C) 2012 Martin Albrecht <martinralbrecht@googlemail.com>
@@ -35,11 +42,11 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
 
     - ``converter`` - an ANF to CNF converter class or object.  If
       ``converter`` is ``None`` then
-      :cls:`sage.sat.converters.polybori.CNFEncoder` is used to
+      :class:`sage.sat.converters.polybori.CNFEncoder` is used to
       construct a new converter. (default: ``None``)
 
     - ``solver`` - a SAT-solver class or object. If ``solver`` is
-      ``None`` then cls:`sage.sat.solvers.cryptominisat.CryptoMiniSat`
+      ``None`` then :class:`sage.sat.solvers.cryptominisat.CryptoMiniSat`
       is used to construct a new converter.  (default: ``None``)
 
     - ``target_variables`` - a list of variables. The elements of the list are
@@ -51,7 +58,7 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
       (default: ``None``)
 
     - ``**kwds`` - parameters can be passed to the converter and the
-       solver by prefixing them with 'c_' and 's_' respectively. For
+       solver by prefixing them with ``c_`` and ``s_`` respectively. For
        example, to increase CryptoMiniSat's verbosity level, pass
        ``s_verbosity=1``.
 
@@ -77,7 +84,7 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     This time we pass a few options through to the converter and the solver::
 
         sage: s = solve_sat(F, s_verbosity=1, c_max_vars_sparse=4, c_cutting_number=8) # optional - cryptominisat
-        sage: F.subs(s[0])                                                           # optional - cryptominisat
+        sage: F.subs(s[0])                                                             # optional - cryptominisat
         Polynomial Sequence with 36 Polynomials in 0 Variables
 
     We construct a very simple system with three solutions and ask for a specific number of solutions::
@@ -116,7 +123,7 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
         sage: solve_sat(F,n=infinity,target_variables=[a,b])              # optional - cryptominisat
         [{b: 0, a: 0}, {b: 1, a: 1}]
 
-    .. note::
+    .. NOTE::
 
        Although supported, passing converter and solver objects
        instead of classes is discouraged because these objects are
@@ -213,25 +220,23 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
 
     - ``F`` - a sequence of Boolean polynomials
 
-    - ``converter`` - an ANF to CNF converter class or object.  If
-      ``converter`` is ``None`` then
-      :cls:`sage.sat.converters.polybori.CNFEncoder` is used to
-      construct a new converter. (default: ``None``)
+    - ``converter`` - an ANF to CNF converter class or object.  If ``converter`` is ``None`` then
+      :class:`sage.sat.converters.polybori.CNFEncoder` is used to construct a new
+      converter. (default: ``None``)
 
-    - ``solver`` - a SAT-solver class or object. If ``solver`` is
-      ``None`` then cls:`sage.sat.solvers.cryptominisat.CryptoMiniSat`
-      is used to construct a new converter.  (default: ``None``)
+    - ``solver`` - a SAT-solver class or object. If ``solver`` is ``None`` then
+      :class:`sage.sat.solvers.cryptominisat.CryptoMiniSat` is used to construct a new converter.
+      (default: ``None``)
 
-    - ``max_learnt_length`` - only clauses of length <=
-      ``max_length_learnt`` are considered and converted to
-      polynomials. (default: ``3``)
+    - ``max_learnt_length`` - only clauses of length <= ``max_length_learnt`` are considered and
+      converted to polynomials. (default: ``3``)
 
-    - ``interreduction`` - inter-reduce the resulting polynomials
-      (default: ``False``)
+    - ``interreduction`` - inter-reduce the resulting polynomials (default: ``False``)
 
-    - ``**kwds`` - parameters can be passed to the converter and the
-       solver by prefixing them with 'c_' and 's_' respectively. For
-       example, to increase CryptoMiniSat's verbosity level, pass
+    .. NOTE::
+
+       More parameters can be passed to the converter and the solver by prefixing them with ``c_`` and
+       ``s_`` respectively. For example, to increase CryptoMiniSat's verbosity level, pass
        ``s_verbosity=1``.
 
     OUTPUT:
@@ -259,10 +264,10 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
        sage: F,s = sr.polynomial_system()                 # optional - cryptominisat
        sage: from sage.sat.boolean_polynomials import learn as learn_sat # optional - cryptominisat
        sage: H = learn_sat(F, s_maxrestarts=20, interreduction=True)     # optional - cryptominisat
-       sage: H[-1]                                        # optional - cryptominisat
+       sage: H[-1]                                        # optional - cryptominisat, output random
        k001200*s031*x011201 + k001200*x011201
 
-    .. note::
+    .. NOTE::
 
        This function is meant to be called with some parameter such
        that the SAT-solver is interrupted. For CryptoMiniSat this is

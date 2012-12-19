@@ -1,22 +1,23 @@
 """
-SAT-Solvers via DIMACS Files.
+SAT-Solvers via DIMACS Files
 
-Sage supports calling SAT solvers using the popular DIMACS
-format. This module implements infrastructure to make it easy to add
-new such interfaces and some example interfaces.
+Sage supports calling SAT solvers using the popular DIMACS format. This module implements
+infrastructure to make it easy to add new such interfaces and some example interfaces.
 
-Currently, RSat and Glucose are included.
+Currently, interfaces to **RSat** [RS]_ and **Glucose** [GL]_ are included by default.
 
 .. note::
 
-    Our SAT solver interfaces are 1-based, i.e., literals start at
-    1. This is consistent with the popular DIMACS format for SAT
-    solving but not with Pythion's 0-based convention. However, this
+    Our SAT solver interfaces are 1-based, i.e., literals start at 1. This is consistent with the
+    popular DIMACS format for SAT solving but not with Pythion's 0-based convention. However, this
     also allows to construct clauses using simple integers.
 
 AUTHORS:
 
 - Martin Albrecht (2012): first version
+
+Classes and Methods
+-------------------
 """
 ##############################################################################
 #  Copyright (C) 2012 Martin Albrecht <martinralbrecht@googlemail.com>
@@ -38,7 +39,10 @@ class DIMACS(SatSolver):
     .. note::
 
         Usually, users won't have to use this class directly but some
-        class which inherits from thsi class.
+        class which inherits from this class.
+
+    .. automethod:: __init__
+    .. automethod:: __call__
     """
 
     command = ""

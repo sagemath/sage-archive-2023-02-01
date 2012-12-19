@@ -54,8 +54,8 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
      - ``.__classget__`` for customizing the binding behavior in
        ``foo.cls`` (analogue of ``.__get__``).
 
-    See the documentation of :meth:`.__call__` and of :meth:`.__get__`
-    and :meth:`.__contains__` for the description of the respective
+    See the documentation of :meth:`__call__` and of :meth:`__get__`
+    and :meth:`__contains__` for the description of the respective
     protocols.
 
     .. warning:: for technical reasons, ``__classcall__``,

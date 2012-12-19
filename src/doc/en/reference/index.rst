@@ -58,6 +58,7 @@ Enjoy Sage!
    libs
    cryptography
    logic
+   sat
    combinat/index
    numerical
    probability

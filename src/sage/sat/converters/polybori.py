@@ -1,5 +1,10 @@
 """
-ANF to CNF Converter.
+An ANF to CNF Converter using a Dense/Sparse Strategy
+
+This converter is based on two converters. The first one, by Martin Albrecht, was based on [CB07]_,
+this is the basis of the "dense" part of the converter. It was later improved by Mate Soos. The
+second one, by Michael Brickenstein, uses a reduced truth table based approach and forms the
+"sparse" part of the converter.
 
 AUTHORS:
 
@@ -7,6 +12,15 @@ AUTHORS:
 - Michael Brickenstein - (2009) 'cnf.py' for PolyBoRi
 - Mate Soos - (2010) improved version of 'anf2cnf.py'
 - Martin Albrecht - (2012) unified and added to Sage
+
+REFERENCES:
+
+.. [CB07] Nicolas Courtois, Gregory V. Bard: Algebraic Cryptanalysis of the Data Encryption
+   Standard, In 11-th IMA Conference, Cirencester, UK, 18-20 December 2007, Springer LNCS 4887. See
+   also http://eprint.iacr.org/2006/402/.
+
+Classes and Methods
+-------------------
 """
 
 ##############################################################################
@@ -29,34 +43,31 @@ from sage.sat.converters import ANF2CNFConverter
 
 class CNFEncoder(ANF2CNFConverter):
     """
-    ANF to CNF Converter.
+    ANF to CNF Converter using a Dense/Sparse Strategy. This converter distinguishes two classes of
+    polynomials.
+
+    1. Sparse polynomials are those with at most ``max_vars_sparse`` variables. Those are converted
+    using reduced truth-tables based on PolyBoRi's internal representation.
+
+    2. Polynomials with more variables are converted by introducing new variables for monomials and
+    by converting these linearised polynomials.
+
+    Linearised polynomials are converted either by splitting XOR chains -- into chunks of length
+    ``cutting_number`` -- or by constructing XOR clauses if the underlying solver supports it. This
+    behaviour is disabled by passing ``use_xor_clauses=False``.
+
+    .. automethod:: __init__
+    .. automethod:: __call__
     """
     def __init__(self, solver, ring, max_vars_sparse=6, use_xor_clauses=None, cutting_number=6, random_seed=16):
         """
         Construct ANF to CNF converter over ``ring`` passing clauses to ``solver``.
 
-        This converter distinguishes two classes of
-        polynomials.
-
-        1. Sparse polynomials are those with at most ``max_vars_sparse``
-        variables. Those are converted using reduced truth-tables
-        based on PolyBoRi's internal representation.
-
-        2. Polynomials with more variables are converted by
-        introducing new variables for monomials and by converting
-        these linearised polynomials.
-
-        Linearised polynomials are converted either by splitting XOR
-        chains -- into chunks of length ``cutting_number`` -- or by
-        constructing XOR clauses if the underlying solver supports
-        it. This behaviour is disabled by passing
-        ``use_xor_clauses=False``.
-
         INPUT:
 
         - ``solver`` - a SAT-solver instance
 
-        - ``ring`` - a :cls:`BooleanPolynomialRing`
+        - ``ring`` - a :class:`sage.rins.polynomial.pbori.BooleanPolynomialRing`
 
         - ``max_vars_sparse`` - maximum number of variables for direct conversion
 
@@ -108,11 +119,9 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e.phi
             [None, a, b, c, a*b]
 
-        .. note::
+        .. NOTE::
 
-            This constructer generates SAT variables for each Boolean
-            polynomial variable.
-
+            This constructer generates SAT variables for each Boolean polynomial variable.
         """
         self.random_generator = Random(random_seed)
         self.one_set = ring.one().set()
@@ -250,7 +259,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         INPUT:
 
-        - ``f`` - a :cls:`BooleanPolynomial`
+        - ``f`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
 
 
         EXAMPLE::
@@ -296,7 +305,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         INPUT:
 
-        - ``f`` - a :cls:`BooleanPolynomial`
+        - ``f`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
 
         EXAMPLE::
 
@@ -434,6 +443,8 @@ class CNFEncoder(ANF2CNFConverter):
 
     def split_xor(self, monomial_list, equal_zero):
         """
+        Split XOR chains into subchains.
+
         INPUT:
 
         - ``monomial_list`` - a list of monomials
@@ -478,12 +489,12 @@ class CNFEncoder(ANF2CNFConverter):
 
     def clauses(self, f):
         """
-        Convert ``f`` using the sparse strategy if f.nvariables() is
+        Convert ``f`` using the sparse strategy if ``f.nvariables()`` is
         at most ``max_vars_sparse`` and the dense strategy otherwise.
 
         INPUT:
 
-        - ``f`` - a :cls:`BooleanPolynomial`
+        - ``f`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
 
         EXAMPLE::
 
@@ -534,7 +545,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         INPUT:
 
-        - ``F`` - an iterable of Boolean polynomials
+        - ``F`` - an iterable of :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
 
         OUTPUT: An inverse map int -> variable
 
@@ -576,7 +587,7 @@ class CNFEncoder(ANF2CNFConverter):
 
     def to_polynomial(self, c):
         """
-        Convert clause to :cls:`BooleanPolynomial`
+        Convert clause to :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
 
         INPUT:
 

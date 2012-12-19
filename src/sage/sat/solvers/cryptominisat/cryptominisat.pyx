@@ -354,13 +354,13 @@ cdef class CryptoMiniSat(SatSolver):
             sage: F,s = sr.polynomial_system()                        # optional - cryptominisat
             sage: cms = CryptoMiniSat()                               # optional - cryptominisat
             sage: phi = CNFEncoder(cms, F.ring())(F)                  # optional - cryptominisat
-            sage: cms( range(1,80) )                                  # optional - cryptominisat
+            sage: cms( range(1,120) )                                 # optional - cryptominisat
             False
 
         This guess was wrong and we need to flip one of the following variables::
 
-            sage: cms.conflict_clause()                                    # optional - cryptominisat
-            (-72, -71, -70, -69)
+            sage: cms.conflict_clause()                               # optional - cryptominisat
+            (-119, -118, -117, -116, -114, -113, -112, -110, -109, -100, -98, -97, -96, -94, -93, -92, -91, -76, -75, -71, -70, -69)
         """
         cdef Lit l
         r = []
@@ -387,7 +387,7 @@ cdef class CryptoMiniSat(SatSolver):
             sage: cms = CryptoMiniSat(maxrestarts=10,verbosity=0)     # optional - cryptominisat
             sage: phi = CNFEncoder(cms, F.ring())(F)                  # optional - cryptominisat
             sage: cms()                                               # optional - cryptominisat
-            sage: sorted(cms.learnt_clauses())[0]                     # optional - cryptominisat
+            sage: sorted(cms.learnt_clauses())[0]                     # optional - cryptominisat, output random
             (-592, -578, -68, 588, 94, 579, 584, 583)
 
 

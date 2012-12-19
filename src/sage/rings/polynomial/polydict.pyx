@@ -512,6 +512,7 @@ cdef class PolyDict:
             (x, y)
 
         We make sure that intervals are correctly represented. ::
+
             sage: f = PolyDict({(2,3):RIF(1/2,3/2), (1,2):RIF(-1,1)})
             sage: f.poly_repr(['x','y'])
             '1.?*x^2*y^3 + 0.?*x*y^2'

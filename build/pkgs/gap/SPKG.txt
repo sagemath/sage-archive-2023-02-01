@@ -56,6 +56,9 @@ update GAP, please also update and use the spkg-src script.
 
 == Changelog ==
 
+=== gap-4.5.7.p1 (Volker Braun, 20 December 2012) ===
+ * #13211: Fix gap/latest symlink creation.
+
 === gap-4.5.7.p0 (Jeroen Demeyer, 20 December 2012) ===
  * #13211: update to version 4.5.7.
  * Add spkg-src script to download and clean up the src files.

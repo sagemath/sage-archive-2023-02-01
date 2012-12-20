@@ -138,6 +138,7 @@ fi
 
 echo "Creating symlink to new GAP installation..."
 cd "$SAGE_LOCAL/gap"
+rm -f latest
 ln -sf "$GAP_DIR" latest
 
 echo "Copying GAP startup script..."

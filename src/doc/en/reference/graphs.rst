@@ -64,4 +64,4 @@ Libraries of algorithms
    sage/graphs/distances_all_pairs
    sage/graphs/graph_latex
    sage/graphs/graph_list
-
+   sage/graphs/hyperbolicity

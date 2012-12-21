@@ -1,13 +1,6 @@
-# HG changeset patch
-# User Simon King <simon.king@uni-jena.de>
-# Date 1354189511 -3600
-# Node ID 16081b90915b00b49c62089d51dc2f30e5b4327f
-# Parent  6f7df27014a3c42decbda471871aae6012bc7d6d
-See Sage trac #13731: Create a Singular spkg using xalloc instead of omalloc.
-
-diff --git a/kernel/kutil.cc b/kernel/kutil.cc
---- a/kernel/kutil.cc
-+++ b/kernel/kutil.cc
+diff -ruN a/kernel/kutil.cc b/kernel/kutil.cc
+--- a/kernel/kutil.cc	2012-02-22 16:00:05.000000000 +0100
++++ b/kernel/kutil.cc	2012-12-21 11:08:42.117513571 +0100
 @@ -666,7 +666,9 @@
            return dReportError("pNext(%c[%d].max) != NULL", TN, i);
  
@@ -18,9 +11,9 @@ diff --git a/kernel/kutil.cc b/kernel/kutil.cc
  #if KDEBUG > 0
          if (! sloppy_max)
          {
-diff --git a/kernel/pDebug.cc b/kernel/pDebug.cc
---- a/kernel/pDebug.cc
-+++ b/kernel/pDebug.cc
+diff -ruN a/kernel/pDebug.cc b/kernel/pDebug.cc
+--- a/kernel/pDebug.cc	2012-07-10 12:00:15.000000000 +0200
++++ b/kernel/pDebug.cc	2012-12-21 11:08:42.127513707 +0100
 @@ -72,6 +72,7 @@
  {
    if (p != NULL)
@@ -59,9 +52,9 @@ diff --git a/kernel/pDebug.cc b/kernel/pDebug.cc
      #endif
      // number/coef check
      pPolyAssumeReturnMsg(p->coef != NULL || (n_GetChar(r) >= 2), "NULL coef",p,r);
-diff --git a/kernel/pInline1.h b/kernel/pInline1.h
---- a/kernel/pInline1.h
-+++ b/kernel/pInline1.h
+diff -ruN a/kernel/pInline1.h b/kernel/pInline1.h
+--- a/kernel/pInline1.h	2012-07-10 12:00:15.000000000 +0200
++++ b/kernel/pInline1.h	2012-12-21 11:08:42.127513707 +0100
 @@ -94,7 +94,9 @@
  PINLINE1 poly p_Init(const ring r, omBin bin)
  {
@@ -82,9 +75,9 @@ diff --git a/kernel/pInline1.h b/kernel/pInline1.h
    poly new_p = p_New(r);
    p_MemCopy_LengthGeneral(new_p->exp, p->exp, r->ExpL_Size);
    pSetCoeff0(new_p, pGetCoeff(p));
-diff --git a/kernel/pInline2.h b/kernel/pInline2.h
---- a/kernel/pInline2.h
-+++ b/kernel/pInline2.h
+diff -ruN a/kernel/pInline2.h b/kernel/pInline2.h
+--- a/kernel/pInline2.h	2012-07-10 12:00:15.000000000 +0200
++++ b/kernel/pInline2.h	2012-12-21 11:08:42.127513707 +0100
 @@ -296,7 +296,9 @@
  PINLINE2 poly p_New(ring r, omBin bin)
  {
@@ -105,9 +98,9 @@ diff --git a/kernel/pInline2.h b/kernel/pInline2.h
    return r->p_Procs->p_ShallowCopyDelete(p, r, bin);
  }
  
-diff --git a/kernel/pShallowCopyDelete.cc b/kernel/pShallowCopyDelete.cc
---- a/kernel/pShallowCopyDelete.cc
-+++ b/kernel/pShallowCopyDelete.cc
+diff -ruN a/kernel/pShallowCopyDelete.cc b/kernel/pShallowCopyDelete.cc
+--- a/kernel/pShallowCopyDelete.cc	2012-07-10 12:00:15.000000000 +0200
++++ b/kernel/pShallowCopyDelete.cc	2012-12-21 11:08:42.127513707 +0100
 @@ -18,7 +18,9 @@
    p_CheckPolyRing(s_p, s_r);
    p_CheckRing(d_r);
@@ -118,17 +111,48 @@ diff --git a/kernel/pShallowCopyDelete.cc b/kernel/pShallowCopyDelete.cc
    assume(s_r->N == d_r->N);
  
    spolyrec dp;
-diff --git a/omalloc/Makefile b/omalloc/Makefile
-new file mode 100644
---- /dev/null
-+++ b/omalloc/Makefile
-@@ -0,0 +1,37 @@
+diff -ruN a/omalloc/Makefile.in b/omalloc/Makefile.in
+--- a/omalloc/Makefile.in	1970-01-01 01:00:00.000000000 +0100
++++ b/omalloc/Makefile.in	2012-12-21 11:17:12.767512898 +0100
+@@ -0,0 +1,69 @@
 +#################################################################
 +###
 +### Makefile for xalloc
 +###
 +#################################################################
 +
++##
++## various paths
++##
++top_srcdir	= @top_srcdir@
++srcdir		= @srcdir@
++prefix		= @prefix@
++exec_prefix	= @exec_prefix@
++
++# header file is installed here
++includedir	= @includedir@
++# library is installed here
++libdir 		= @libdir@
++
++##
++## various programs
++##
++@SET_MAKE@
++CC		= @CC@
++AR		= @AR@
++RANLIB		= @RANLIB@
++PERL		= @PERL@
++LN_S		= @LN_S@
++INSTALL		= @INSTALL@
++INSTALL_PROGRAM	= @INSTALL_PROGRAM@
++INSTALL_DATA	= @INSTALL_DATA@
++MKINSTALLDIRS   = ./mkinstalldirs
++##
++## compiler and linker options
++##
++CFLAGS		= @CFLAGS@
++CPPFLAGS	= @CPPFLAGS@
++DEFS		= @DEFS@
 +
 +# normal C source files
 +CSOURCES=omFindExec.c
@@ -150,20 +174,19 @@ new file mode 100644
 +	$(RANLIB) $@
 +
 +install: libomalloc.a
-+	install omalloc.h $(SAGE_LOCAL)/include/
-+	install mylimits.h $(SAGE_LOCAL)/include/
-+	install libomalloc.a $(SAGE_LOCAL)/lib/
++	$(INSTALL_DATA) omalloc.h $(includedir)
++	$(INSTALL_DATA) mylimits.h $(includedir)
++	$(INSTALL_DATA) libomalloc.a $(libdir)
 +
 +install-nolns: install
 +
 +install-libsingular: install
 +
 +clean:
-+	rm *.o *.a
-diff --git a/omalloc/mylimits.h b/omalloc/mylimits.h
-new file mode 100644
---- /dev/null
-+++ b/omalloc/mylimits.h
++	rm -f *.o *.a
+diff -ruN a/omalloc/mylimits.h b/omalloc/mylimits.h
+--- a/omalloc/mylimits.h	1970-01-01 01:00:00.000000000 +0100
++++ b/omalloc/mylimits.h	2012-12-21 11:08:42.137513466 +0100
 @@ -0,0 +1,15 @@
 +/* -*-c++-*- */
 +/*******************************************************************
@@ -180,10 +203,9 @@ new file mode 100644
 +*/
 +
 +#include <limits.h>
-diff --git a/omalloc/omFindExec.c b/omalloc/omFindExec.c
-new file mode 100755
---- /dev/null
-+++ b/omalloc/omFindExec.c
+diff -ruN a/omalloc/omFindExec.c b/omalloc/omFindExec.c
+--- a/omalloc/omFindExec.c	1970-01-01 01:00:00.000000000 +0100
++++ b/omalloc/omFindExec.c	2012-12-21 11:08:42.137513466 +0100
 @@ -0,0 +1,226 @@
 +/*******************************************************************
 + *  File:    omFindExec.c
@@ -411,10 +433,20 @@ new file mode 100755
 +struct omInfo_s om_Info; /* dummy */
 +struct omOpts_s om_Opts; /* dummy */
 +
-diff --git a/omalloc/omalloc.h b/omalloc/omalloc.h
-new file mode 100644
---- /dev/null
-+++ b/omalloc/omalloc.h
+diff -ruN a/omalloc/omGetPageSize.h b/omalloc/omGetPageSize.h
+--- a/omalloc/omGetPageSize.h	1970-01-01 01:00:00.000000000 +0100
++++ b/omalloc/omGetPageSize.h	2012-12-21 11:27:51.537512976 +0100
+@@ -0,0 +1,2 @@
++/* Dummy value for configure */
++#define omalloc_getpagesize 4096
+diff -ruN a/omalloc/om_Alloc.c b/omalloc/om_Alloc.c
+--- a/omalloc/om_Alloc.c	1970-01-01 01:00:00.000000000 +0100
++++ b/omalloc/om_Alloc.c	2012-12-21 11:23:30.467512481 +0100
+@@ -0,0 +1 @@
++/* Stub file to please configure */
+diff -ruN a/omalloc/omalloc.h b/omalloc/omalloc.h
+--- a/omalloc/omalloc.h	1970-01-01 01:00:00.000000000 +0100
++++ b/omalloc/omalloc.h	2012-12-21 11:08:42.137513466 +0100
 @@ -0,0 +1,223 @@
 +#ifndef XMEMORY_H
 +#define XMEMORY_H

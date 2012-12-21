@@ -97,8 +97,11 @@ apply_patches()
     fi
 
     if [ "x$SINGULAR_XALLOC" = "xyes" ]; then
-	rm -r ../src/omalloc/*
-	mv conditional/singular_xalloc.patch . || return $?
+        # Remove old omalloc files, except for configure
+        mv ../src/omalloc/configure configure_omalloc
+        rm -r ../src/omalloc/*
+        mv configure_omalloc ../src/omalloc/configure
+        mv conditional/singular_xalloc.patch . || return $?
     fi
 
     # Apply all patches

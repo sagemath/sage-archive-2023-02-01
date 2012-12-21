@@ -40,10 +40,8 @@ export CFLAGS
 
 if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
     DISABLE_SSE2="--disable-sse2"
-    ENABLE_CACHETUNE=""
 else
     DISABLE_SSE2=""
-    ENABLE_CACHETUNE="--enable-cachetune"
 fi
 
 # otherwise we might run into problems with old headers
@@ -56,7 +54,7 @@ fi
 
 cd $ROOT_DIR/src/
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $ENABLE_DEBUG $DISABLE_SSE2 $ENABLE_CACHETUNE
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $ENABLE_DEBUG $DISABLE_SSE2
 
 if [ $? -ne 0 ]; then
     echo "Error configuring libm4ri"

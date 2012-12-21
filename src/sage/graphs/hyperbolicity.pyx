@@ -498,7 +498,8 @@ cdef tuple __hyperbolicity__(int N,
     - ``h_UB`` -- is an integer equal to the proven upper bound for `h`. When
       ``h == h_UB``, the returned solution is optimal.
     """
-    cdef int i, j, l, l1, l2, x, y, h, hh, h_UB, a, b, c, d, S1, S2, S3
+    cdef int i, j, l, l1, l2, h, hh, h_UB, a, b, c, d, S1, S2, S3
+    cdef uint32_t x, y
     cdef dict distr = {}
     cdef list certificate = []
 
@@ -889,7 +890,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
 
     cdef unsigned short * _distances_
     cdef unsigned short ** distances
-    cdef int i, j, k, iN, N, hyp, hyp_UB, hh, hh_UB, D
+    cdef int i, j, k, N, hyp, hyp_UB, hh, hh_UB, D
     cdef dict distr = {}
     cdef list certificate = []
     cdef list certif
@@ -932,8 +933,11 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
             # in the range [0..N-1].
             mymap = H.relabel( return_map=True )
 
-            # We compute the distances and store the results in a 2D array, and the diameter
+            # We compute the distances and store the results in a 2D array, and
+            # the diameter
             _distances_ = c_distances_all_pairs(H)
+            if _distances_ == NULL:
+                raise MemoryError
             distances = <unsigned short **>sage_malloc(sizeof(unsigned short *)*N)
             if distances == NULL:
                 sage_free(_distances_)
@@ -948,15 +952,18 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
 
             # We call the cython function for computing the hyperbolicity with
             # the required parameters.
-            if algorithm == 'cuts' or algorithm == 'cuts+':
+            if algorithm == 'cuts':
+                hh, certif, hh_UB = __hyperbolicity__(N, distances, D, hyp, approximation_factor, 2*additive_gap, [], verbose)
 
-                if algorithm == 'cuts+':
-                    # We compute the elimination ordering of simplicial vertices of H
-                    elim = elimination_ordering_of_simplicial_vertices(H, max(2,floor(N**(1/2.0))), verbose)
+            elif algorithm == 'cuts+':
+                # We compute the elimination ordering of simplicial vertices of H
+                elim = elimination_ordering_of_simplicial_vertices(H, max(2,floor(N**(1/2.0))), verbose)
+                if len(elim)==N and hyp>=2:
+                    # We know that this component has hyperbolicity <=1 and so
+                    # that we cannot improve current lower bound.
+                    hh = hyp
                 else:
-                    elim = []
-
-                hh, certif, hh_UB = __hyperbolicity__(N, distances, D, hyp, approximation_factor, 2*additive_gap, elim, verbose)
+                    hh, certif, hh_UB = __hyperbolicity__(N, distances, D, hyp, approximation_factor, 2*additive_gap, elim, verbose)
 
             elif algorithm == 'basic':
                 hh, certif = __hyperbolicity_basic_algorithm__(N, distances, verbose)

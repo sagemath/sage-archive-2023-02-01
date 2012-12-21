@@ -304,7 +304,7 @@ def elimination_ordering_of_simplicial_vertices(G, max_degree=4, verbose=False):
 
     An elimination ordering of simplicial vertices is an elimination ordering of
     the vertices of the graphs such that the induced subgraph of their neighbors
-    is a clique. More precisely, as long as the graph as a vertex ``u`` such
+    is a clique. More precisely, as long as the graph has a vertex ``u`` such
     that the induced subgraph of its neighbors is a clique, we remove ``u`` from
     the graph, add it to the elimination ordering (list of vertices), and
     repeat. This method is inspired from the decomposition of a graph by
@@ -343,7 +343,7 @@ def elimination_ordering_of_simplicial_vertices(G, max_degree=4, verbose=False):
         ...
         ValueError: The parameter max_degree must be > 0.
 
-    Giving a graph build from a bipartite graph plus an edge::
+    Giving a graph built from a bipartite graph plus an edge::
 
         sage: G = graphs.CompleteBipartiteGraph(2,10)
         sage: G.add_edge(0,1)
@@ -433,15 +433,13 @@ cdef _order_pairs_according_elimination_ordering(elim, int N, pair *pairs, uint3
                 if j<jmax:
                     _invert_cells(pairs, j, jmax)
 
-                if jmax>0:
-                    jmax -= 1
+                jmax -= 1
 
             else: # This pair is at a correct position.
                 j += 1
 
         # We record the position of the first pair of vertices in elim
         last_pair[0] = jmax+1
-
 
 cdef tuple __hyperbolicity__(int N,
                              unsigned short **  distances,
@@ -504,34 +502,76 @@ cdef tuple __hyperbolicity__(int N,
     cdef dict distr = {}
     cdef list certificate = []
 
-    # We count the number of pairs of vertices at distance l for every l
+    # ==> Allocates and fills nb_pairs_of_length
+    #
+    # nb_pairs_of_length[d] is the number of pairs of vertices at distance d
     cdef uint32_t * nb_pairs_of_length = <uint32_t *>sage_calloc(D+1,sizeof(uint32_t))
+    if nb_pairs_of_length == NULL:
+        sage_free(nb_pairs_of_length)
+        raise MemoryError
+
     for 0 <= i < N:
         for i+1 <= j < N:
             nb_pairs_of_length[ distances[i][j] ] += 1
 
-    # We organize the pairs by length in an array of pairs
+    # ==> Allocates pairs_of_length
+    #
+    # pairs_of_length[d] is the list of pairs of vertices at distance d
     cdef pair ** pairs_of_length = <pair **>sage_malloc(sizeof(pair *)*(D+1))
+    if pairs_of_length == NULL:
+        sage_free(nb_pairs_of_length)
+        raise MemoryError
+
+    # ==> Allocates cpt_pairs
+    #
+    # (temporary variable used to fill pairs_of_length)
     cdef uint32_t * cpt_pairs = <uint32_t *>sage_calloc(D+1,sizeof(uint32_t))
+    if cpt_pairs == NULL:
+        sage_free(nb_pairs_of_length)
+        sage_free(pairs_of_length)
+        raise MemoryError
+
+    # ==> Allocates pairs_of_length[d] for all d
     for 1 <= i <= D:
         pairs_of_length[i] = <pair *>sage_malloc(sizeof(pair)*nb_pairs_of_length[i])
-        # cpt_pairs[i] = 0
+
+        if nb_pairs_of_length[i] > 0 and pairs_of_length[i] == NULL:
+            while i>0:
+                i -= 1
+                sage_free(pairs_of_length[i])
+            sage_free(nb_pairs_of_length)
+            sage_free(pairs_of_length)
+            sage_free(cpt_pairs)
+            raise MemoryError
+
+    # ==> Fills pairs_of_length[d] for all d
     for 0 <= i < N:
         for i+1 <= j < N:
             l = distances[i][j]
             pairs_of_length[ l ][ cpt_pairs[ l ] ].s = i
             pairs_of_length[ l ][ cpt_pairs[ l ] ].t = j
             cpt_pairs[ l ] += 1
+
     sage_free(cpt_pairs)
 
     if verbose:
         print "Current 2 connected component has %d vertices and diameter %d" %(N,D)
         print "Paths length distribution:", [ (l, nb_pairs_of_length[l]) for l in range(1, D+1) ]
 
+    # ==> Allocates last_pair
+    #
     # We improve the ordering of the pairs according the elimination
     # ordering. We store in last_pair[l] the index of the last pair of length l
     # to consider when the lower bound on the hyperbolicity >=1.
     cdef uint32_t * last_pair = <uint32_t *>sage_malloc(sizeof(uint32_t)*(D+1))
+    if last_pair == NULL:
+        for 1 <= i <= D:
+            sage_free(pairs_of_length[i])
+        sage_free(nb_pairs_of_length)
+        sage_free(pairs_of_length)
+        sage_free(cpt_pairs)
+        raise MemoryError
+
     for 1 <= l <= D:
         _order_pairs_according_elimination_ordering(elim, N, pairs_of_length[l], nb_pairs_of_length[l], last_pair+l)
 
@@ -556,6 +596,9 @@ cdef tuple __hyperbolicity__(int N,
     for S1, l1, l2 in triples:
 
         # If we cannot improve further, we stop
+        #
+        # See the module's documentation for an proof that this cut is
+        # valid. Remember that the triples are sorted in a specific order.
         if l2 <= h:
             h_UB = h
             break
@@ -564,29 +607,40 @@ cdef tuple __hyperbolicity__(int N,
             h_UB = l2
 
             if verbose:
-                print "New upper bound:",ZZ(l2)/2
+                print "New upper bound:",ZZ(h_UB)/2
 
             # Termination if required approximation is found
             if certificate and ( (h_UB <= h*approximation_factor) or (h_UB-h <= additive_gap) ):
                 break
 
         pairs_of_length_l1 = pairs_of_length[l1]
-        nb_pairs_of_length_l1 = last_pair[l1] if h>=1 else nb_pairs_of_length[l1]
+
+        # We only need test the pairs after last_pair[l1] if we do not have a
+        # proof that h>=2.
+        nb_pairs_of_length_l1 = last_pair[l1] if h>=2 else nb_pairs_of_length[l1]
         x = 0
         while x < nb_pairs_of_length_l1:
             a = pairs_of_length_l1[x].s
             b = pairs_of_length_l1[x].t
 
+            # If we cannot improve further, we stop
+            #
+            # See the module's documentation for an proof that this cut is
+            # valid.
             if l2 <= h:
-                # We cut current exploration if lower bound cannot be improved
                 break
+
+            # We do not want to test pairs of pairs twice if l1 == l2
             elif l1 == l2:
                 y = x+1
             else:
                 y = 0
 
             pairs_of_length_l2 = pairs_of_length[l2]
-            nb_pairs_of_length_l2 = last_pair[l2] if h>=1 else nb_pairs_of_length[l2]
+
+            # We only need test the pairs after last_pair[l2] if we do not have
+            # a proof that h>=2.
+            nb_pairs_of_length_l2 = last_pair[l2] if h>=2 else nb_pairs_of_length[l2]
             while y < nb_pairs_of_length_l2:
                 c = pairs_of_length_l2[y].s
                 d = pairs_of_length_l2[y].t
@@ -614,7 +668,7 @@ cdef tuple __hyperbolicity__(int N,
                     # search space
                     h = hh
                     certificate = [a, b, c, d]
-                    if h>=1:
+                    if h>=2:
                         nb_pairs_of_length_l2 = last_pair[l2]
                         nb_pairs_of_length_l1 = last_pair[l1]
                         if x >= nb_pairs_of_length_l1:
@@ -626,14 +680,18 @@ cdef tuple __hyperbolicity__(int N,
                 # We go for the next pair c-d
                 y += 1
                 # We cut current exploration if we know we can not improve lower bound
+                #
+                # See the module's documentation for an proof that this cut is
+                # valid.
                 if l2 <= h:
                     h_UB = h
                     break
+
             # We go for the next pair a-b
             x += 1
 
 
-    # We now release the memory
+    # We now free the memory
     sage_free(nb_pairs_of_length)
     for 1 <= i <= D:
         sage_free(pairs_of_length[i])
@@ -646,8 +704,6 @@ cdef tuple __hyperbolicity__(int N,
     else:
         return (h, certificate, h_UB)
 
-
-
 def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0, verbose = False):
     r"""
     Return the hyperbolicity of the graph or an approximation of this value.
@@ -659,6 +715,9 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
     `S_2`, and `S_3`. We have `hyp(a, b, c, d) = |M_1 - M_2|`, and the
     hyperbolicity of the graph is the maximum over all possible 4-tuples `(a, b,
     c, d)` divided by 2. The worst case time complexity is in `O( n^4 )`.
+
+    See the documentation of :mod:`sage.graphs.hyperbolicity` for more
+    information.
 
     INPUT:
 
@@ -685,13 +744,13 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
       soon as the ratio between the upper bound and the best found solution is
       less than the approximation factor. When the approximation factor is 1.0,
       the problem is solved optimaly. This parameter is used only when the
-      chosen algorithm is ``'cuts'``.
+      chosen algorithm is ``'cuts'`` or ``'cuts+'``.
 
     - ``additive_gap`` -- (default: 0.0) When sets to a positive number, the
       function stop computations as soon as the difference between the upper
       bound and the best found solution is less than additive gap. When the gap
       is 0.0, the problem is solved optimaly. This parameter is used only when
-      the chosen algorithm is ``'cuts'``.
+      the chosen algorithm is ``'cuts'`` or ``'cuts+'``.
 
     - ``verbose`` -- (default: ``False``) is a boolean set to True to display
       some information during execution: new upper and lower bounds, etc.
@@ -822,12 +881,11 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
     elif G.num_verts() == G.num_edges() + 1:
         # G is a tree
         # Any set of 4 vertices is a valid certificate
-        return 0, [G.vertices()[x] for x in range(4)], 0
+        return 0, G.vertices()[:4], 0
 
     elif G.is_clique():
         # Any set of 4 vertices is a valid certificate
-        return 0, [G.vertices()[z] for z in xrange(4)], 0
-
+        return 0, G.vertices()[:4], 0
 
     cdef unsigned short * _distances_
     cdef unsigned short ** distances
@@ -874,12 +932,13 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
             # in the range [0..N-1].
             mymap = H.relabel( return_map=True )
 
-            # We compute the distances and store the results in a 2D array
-            # Although it seems irrelevant to use a 2D array instead of a 1D
-            # array, it seems to be faster in practice. We also compute the
-            # diameter.
+            # We compute the distances and store the results in a 2D array, and the diameter
             _distances_ = c_distances_all_pairs(H)
             distances = <unsigned short **>sage_malloc(sizeof(unsigned short *)*N)
+            if distances == NULL:
+                sage_free(_distances_)
+                raise MemoryError
+
             D = 0
             for 0 <= i < N:
                 distances[i] = _distances_+i*N
@@ -962,6 +1021,8 @@ cdef dict __hyperbolicity_distribution__(int N, unsigned short ** distances):
     cdef int i
 
     cdef uint64_t * hdistr = <uint64_t *>sage_calloc(N+1,sizeof(uint64_t))
+    if hdistr == NULL:
+        raise MemoryError
 
     # We now compute the hyperbolicity of each 4-tuple
     cdef int a, b, c, d
@@ -973,7 +1034,7 @@ cdef dict __hyperbolicity_distribution__(int N, unsigned short ** distances):
 
     # We prepare the dictionnary of hyperbolicity distribution to return
     Nchoose4 = binomial(N,4)
-    cdef dict hdict = dict( [ (ZZ(i)/2, ZZ(hdistr[i])/Nchoose4) for 0 <= i <= N if hdistr[i] > 0 ] )
+    cdef dict hdict = {ZZ(i)/2: (ZZ(hdistr[i])/Nchoose4) for 0 <= i <= N if hdistr[i] > 0}
 
     sage_free(hdistr)
 
@@ -1017,9 +1078,14 @@ cdef dict __hyperbolicity_sampling__(int N, unsigned short ** distances, uint64_
     cdef int i, a, b, c, d
     cdef uint64_t j
 
+    if N < 4:
+        raise ValueError("N must be at least 4")
+
     # We initialize the table of hyperbolicity. We use an array of unsigned long
     # int instead of a dictionnary since it is much faster.
     cdef uint64_t * hdistr = <uint64_t *>sage_calloc(N+1,sizeof(uint64_t))
+    if hdistr == NULL:
+        raise MemoryError
 
     # We now compute the hyperbolicity of each quadruple
     for 0 <= j < sampling_size:
@@ -1135,6 +1201,10 @@ def hyperbolicity_distribution(G, algorithm='sampling', sampling_size=10**6):
     H = G.relabel( inplace = False )
     _distances_ = c_distances_all_pairs(H)
     distances = <unsigned short **>sage_malloc(sizeof(unsigned short *)*N)
+    if distances == NULL:
+        sage_free(_distances_)
+        raise MemoryError
+
     for 0 <= i < N:
         distances[i] = _distances_+i*N
 

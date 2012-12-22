@@ -11547,7 +11547,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Prior to Trac #12243, the girth computation assumed
+        Prior to :trac:`12243`, the girth computation assumed
         vertices were integers (and failed).  The example below
         tests the computation for graphs with vertices that are
         not integers.  In this example the vertices are sets.  ::
@@ -11615,7 +11615,6 @@ class GenericGraph(GenericGraph_pyx):
                         else:
                             if u in thisList:
                                 best = depth*2-1
-                                thislList = set()
                                 break
                             if u in nextList:
                                 best = depth*2

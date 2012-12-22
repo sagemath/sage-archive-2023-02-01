@@ -33,7 +33,6 @@ include "../ext/interrupt.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sequence import Sequence
-from sage.combinat.combinat import combinations_iterator
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose
 from sage.misc.temporary_file import graphics_filename
@@ -964,12 +963,12 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.minors(2)
             [x0*x1*x2 + 16*x0*x1 - x0*x2, 5*x0*x1^2 + x0*x1*x2 - x1*x2, 5*x0*x1 + x0*x2 - x1*x2 - 16*x1]
         """
-        from sage.combinat.combinat import combinations_iterator
+        from sage.combinat.combination import Combinations
         all_rows = range(self.nrows())
         all_cols = range(self.ncols())
         m = []
-        for rows in combinations_iterator(all_rows,k):
-            for cols in combinations_iterator(all_cols,k):
+        for rows in Combinations(all_rows,k):
+            for cols in Combinations(all_cols,k):
                 m.append(self.matrix_from_rows_and_columns(rows,cols).determinant())
         return m
 

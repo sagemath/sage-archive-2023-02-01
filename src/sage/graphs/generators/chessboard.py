@@ -169,8 +169,8 @@ def ChessboardGraphGenerator(dim_list,
     from itertools import product
     V = map(list,list(product(*map(range,dim))))
 
-    from sage.combinat.combinat import combinations
-    combin = combinations(range(nb_dim),2)
+    from sage.combinat.combination import Combinations
+    combin = Combinations(range(nb_dim),2)
 
     from sage.graphs.graph import Graph
     G = Graph()

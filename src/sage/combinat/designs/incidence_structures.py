@@ -514,7 +514,8 @@ class IncidenceStructure(object):
             (True, [2, 8, 2, 2])
         """
         from sage.combinat.designs.incidence_structures import coordinatewise_product
-        from sage.combinat.combinat import unordered_tuples, combinations
+        from sage.combinat.combinat import unordered_tuples
+        from sage.combinat.combination import Combinations
         A = self.incidence_matrix()
         v = len(self.points())
         b = len(self.blocks())
@@ -532,7 +533,7 @@ class IncidenceStructure(object):
         lambdas = []
         for t in range(2,min(v,11)):
             #print t
-            L1 = combinations(range(v),t)
+            L1 = Combinations(range(v),t)
             L2 = [[rowsA[i] for i in L] for L in L1]
             #print t,len(L2)
             lmbda = VS(coordinatewise_product(L2[0])).hamming_weight()

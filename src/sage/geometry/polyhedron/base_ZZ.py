@@ -227,7 +227,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: list( P.fibration_generator(2) )
             [A 2-dimensional polyhedron in ZZ^4 defined as the convex hull of 3 vertices]
         """
-        from sage.combinat.combinat import combinations_iterator
+        from sage.combinat.combination import Combinations
         if not self.is_compact():
             raise ValueError('Only polytopes (compact polyhedra) are allowed.')
 
@@ -236,7 +236,7 @@ class Polyhedron_ZZ(Polyhedron_base):
         fibers = set()
         parent = self.parent()
 
-        for points in combinations_iterator(nonzero_points, dim):
+        for points in Combinations(nonzero_points, dim):
                 plane = parent.element_class(parent, [origin,[],points], None)
                 if plane.dim() != dim:
                     continue

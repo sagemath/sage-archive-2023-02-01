@@ -10,7 +10,7 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.interfaces.singular import singular
-from sage.combinat.combinat import CombinatorialClass, combinations
+from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.set_partition import SetPartitions
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.plot.colors import rainbow
@@ -5215,13 +5215,14 @@ def partition_sandpile(S,p):
         ------------------------------
         total:     1     6     8     3
     """
+    from sage.combinat.combination import Combinations
     g = Graph()
     g.add_vertices([tuple(i) for i in p])
-    for u,v in combinations(range(len(g.vertices())),2):
-        for i in g.vertices()[u]:
-            for j in g.vertices()[v]:
+    for u,v in Combinations(g.vertices(), 2):
+        for i in u:
+            for j in v:
                 if (i,j,1) in S.edges():
-                    g.add_edge((g.vertices()[u],g.vertices()[v]))
+                    g.add_edge((u, v))
                     break
     for i in g.vertices():
         if S.sink() in i:

@@ -11906,11 +11906,11 @@ class GenericGraph(GenericGraph_pyx):
 
         else:
             if algorithm=='iter':
-                from sage.combinat.combinat import combinations_iterator
+                from sage.combinat.combination import Combinations
                 tr = 0
                 ggnx = self.networkx_graph()
                 for u in ggnx.nodes_iter():
-                    tr += sum(ggnx.has_edge(v,w) for v,w in combinations_iterator(ggnx.neighbors(u),2))
+                    tr += sum(ggnx.has_edge(v,w) for v,w in Combinations(ggnx.neighbors(u),2))
                 return tr/3
 
             elif algorithm=='matrix':

@@ -441,10 +441,12 @@ If this all works, you can then make calls like:
             # something complicated breaking the terminal interface.
             # See Trac #12221.
             pexpect_env = dict(os.environ)
-            try:
-                del pexpect_env["TERM"]
-            except KeyError:
-                pass
+            pexpect_del_vars = ['TERM', 'COLUMNS']
+            for i in pexpect_del_vars:
+                try:
+                    del pexpect_env[i]
+                except KeyError:
+                    pass
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile, env=pexpect_env)
             if self._do_cleaner():
                 cleaner.cleaner(self._expect.pid, cmd)

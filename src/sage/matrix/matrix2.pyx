@@ -9715,7 +9715,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: D.cyclic_subspace(v)
             Traceback (most recent call last):
             ...
-            TypeError: matrix entries must be from an exact field, not Real Double Field
+            TypeError: matrix entries must be from an exact ring, not Real Double Field
 
             sage: E = matrix(Integers(6), 4, 4, range(16))
             sage: E.cyclic_subspace(v)
@@ -9741,8 +9741,8 @@ cdef class Matrix(matrix1.Matrix):
         if not is_Vector(v):
             raise TypeError('first input should be a vector, not {0}'.format(v))
         if not (var is None  or isinstance(var, basestring)):
+            generator = False
             try:
-                generator = False
                 generator = var.is_gen()
             except AttributeError:
                 pass
@@ -9757,7 +9757,13 @@ cdef class Matrix(matrix1.Matrix):
         if v.degree() != n:
             raise TypeError('vector must have degree equal to the size of the matrix, not {0}'.format(v.degree()))
         if not (R.is_field() and R.is_exact()):
-            raise TypeError('matrix entries must be from an exact field, not {0}'.format(R))
+            try:
+                fraction_field = R.fraction_field()
+            except TypeError:
+                raise TypeError('matrix entries must be from an exact field, not {0}'.format(R))
+            if fraction_field.is_exact():
+                return self.change_ring(R.fraction_field()).cyclic_subspace(v, var, basis)
+            raise TypeError('matrix entries must be from an exact ring, not {0}'.format(R))
         try:
             v = v.change_ring(R)
         except TypeError:

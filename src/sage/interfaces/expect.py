@@ -437,9 +437,10 @@ If this all works, you can then make calls like:
                 c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &'%self._server
                 os.system(c)
 
-            # Unset $TERM for the children to reduce the chances they do
-            # something complicated breaking the terminal interface.
-            # See Trac #12221.
+            # Unset some environment variables for the children to
+            # reduce the chances they do something complicated breaking
+            # the terminal interface.
+            # See Trac #12221 and #13859.
             pexpect_env = dict(os.environ)
             pexpect_del_vars = ['TERM', 'COLUMNS']
             for i in pexpect_del_vars:

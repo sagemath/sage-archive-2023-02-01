@@ -132,9 +132,13 @@ def find_local_maximum(f, a, b, tol=1.48e-08, maxfun=500):
         (0.561096338191..., 0.8603335890...)
         sage: find_local_maximum(f, 0, 5, tol=0.1, maxfun=10)
         (0.561090323458..., 0.857926501456...)
-        sage: find_local_maximum(fast_float(8*e^(-x)*sin(x) - 1, x), 0, 7)
+        sage: find_local_maximum(8*e^(-x)*sin(x) - 1, 0, 7)
         (1.579175535558..., 0.7853981...)
     """
+    try:
+        return f.find_local_maximum(a=a, b=b, tol=tol, maxfun=maxfun)
+    except AttributeError:
+        pass
     minval, x = find_local_minimum(lambda z: -f(z), a=a, b=b, tol=tol, maxfun=maxfun)
     return -minval, x
 

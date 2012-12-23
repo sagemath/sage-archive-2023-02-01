@@ -110,9 +110,15 @@ check_error "Failed to build Maxima as an ECL library."
 ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
 echo
 echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
-cp -f maxima.system.fasb "$ECLLIB/maxima.fas"
-check_error "Failed to install '`pwd`/maxima.fasb' as '$ECLLIB/maxima.fas'."
-
+if [[ -f "maxima.system.fasb" ]]; then
+    echo "New ASDF encountered"
+    cp -f maxima.system.fasb "$ECLLIB/maxima.fas"
+    check_error "Failed to install '`pwd`/maxima.system.fasb' as '$ECLLIB/maxima.fas'."
+else
+    echo "Old ASDF encountered"
+    cp -f maxima.fasb "$ECLLIB/maxima.fas"
+    check_error "Failed to install '`pwd`/maxima.fasb' as '$ECLLIB/maxima.fas'."
+fi
 
 if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]] ; then
     # Install a copy of the Maxima HTML documentation locally.

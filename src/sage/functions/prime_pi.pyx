@@ -193,7 +193,7 @@ cdef class PrimePi:
         self.primeCount = len(tempList)
         if self.primeCount > 1:
             self.maxPrime = tempList[self.primeCount - 1]
-        self.primes = <long*> sage_malloc(self.primeCount*sizeof(long))
+        self.primes = <long*> sage_malloc((self.primeCount+1)*sizeof(long))
         for prime in tempList:
             self.primes[i] = prime
             i += 1

@@ -113,11 +113,14 @@ echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
 if [[ -f "maxima.system.fasb" ]]; then
     echo "New ASDF encountered"
     cp -f maxima.system.fasb "$ECLLIB/maxima.fas"
-    check_error "Failed to install '`pwd`/maxima.system.fasb' as '$ECLLIB/maxima.fas'."
-else
+    check_error "Failed to install 'maxima.system.fasb' as '$ECLLIB/maxima.fas'."
+elif [[ -f "maxima.fasb" ]]; then
     echo "Old ASDF encountered"
     cp -f maxima.fasb "$ECLLIB/maxima.fas"
-    check_error "Failed to install '`pwd`/maxima.fasb' as '$ECLLIB/maxima.fas'."
+    check_error "Failed to install 'maxima.fasb' as '$ECLLIB/maxima.fas'."
+else
+    echo >&2 "Error: cannot find an .fasb file to install - exiting..."
+    exit 1
 fi
 
 if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]] ; then

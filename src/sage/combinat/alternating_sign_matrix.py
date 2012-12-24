@@ -111,7 +111,7 @@ class AlternatingSignMatrices(Parent):
         sage: L
         Finite lattice containing 7 elements
         sage: L.category()
-        Category of finite lattice posets
+        Category of facade finite lattice posets
 
     """
     __metaclass__ = ClasscallMetaclass

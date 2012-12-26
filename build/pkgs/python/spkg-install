@@ -38,6 +38,11 @@ export CPPFLAGS
 # Extra flags for ./configure
 EXTRAFLAGS=
 
+if [ "$SAGE_DEBUG" = "yes" ]; then
+    echo "Building Python with pydebug"
+    EXTRAFLAGS="$EXTRAFLAGS --with-pydebug"
+fi
+
 # pymalloc screws with valgrind, so let's disable it
 if [ "$SAGE_VALGRIND" = "yes" ]; then
     echo "Building Python without pymalloc"

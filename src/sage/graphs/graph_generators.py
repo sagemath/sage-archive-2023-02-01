@@ -75,11 +75,12 @@ __doc__ += """
 **Platonic solids**
 """
 
-__append_to_doc(["DodecahedralGraph",
-"HexahedralGraph",
-"IcosahedralGraph",
-"OctahedralGraph",
-"TetrahedralGraph"])
+__append_to_doc(
+    ["DodecahedralGraph",
+     "HexahedralGraph",
+     "IcosahedralGraph",
+     "OctahedralGraph",
+     "TetrahedralGraph"])
 
 __doc__ += """
 **Small Graphs**
@@ -890,164 +891,164 @@ class GraphGenerators():
 ###########################################################################
 
     import sage.graphs.generators.chessboard
-    ChessboardGraphGenerator = sage.graphs.generators.chessboard.ChessboardGraphGenerator
-    BishopGraph = sage.graphs.generators.chessboard.BishopGraph
-    KingGraph = sage.graphs.generators.chessboard.KingGraph
-    KnightGraph = sage.graphs.generators.chessboard.KnightGraph
-    QueenGraph = sage.graphs.generators.chessboard.QueenGraph
-    RookGraph = sage.graphs.generators.chessboard.RookGraph
+    ChessboardGraphGenerator = staticmethod(sage.graphs.generators.chessboard.ChessboardGraphGenerator)
+    BishopGraph              = staticmethod(sage.graphs.generators.chessboard.BishopGraph)
+    KingGraph                = staticmethod(sage.graphs.generators.chessboard.KingGraph)
+    KnightGraph              = staticmethod(sage.graphs.generators.chessboard.KnightGraph)
+    QueenGraph               = staticmethod(sage.graphs.generators.chessboard.QueenGraph)
+    RookGraph                = staticmethod(sage.graphs.generators.chessboard.RookGraph)
 
 ###########################################################################
 # Families
 ###########################################################################
 
     import sage.graphs.generators.families
-    MycielskiGraph = sage.graphs.generators.families.MycielskiGraph
-    MycielskiStep = sage.graphs.generators.families.MycielskiStep
-    KneserGraph = sage.graphs.generators.families.KneserGraph
-    BalancedTree = sage.graphs.generators.families.BalancedTree
-    BubbleSortGraph = sage.graphs.generators.families.BubbleSortGraph
-    CirculantGraph = sage.graphs.generators.families.CirculantGraph
-    CompleteGraph = sage.graphs.generators.families.CompleteGraph
-    CompleteBipartiteGraph = sage.graphs.generators.families.CompleteBipartiteGraph
-    CompleteMultipartiteGraph = sage.graphs.generators.families.CompleteMultipartiteGraph
-    CubeGraph = sage.graphs.generators.families.CubeGraph
-    DorogovtsevGoltsevMendesGraph = sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph
-    FriendshipGraph = sage.graphs.generators.families.FriendshipGraph
-    FuzzyBallGraph = sage.graphs.generators.families.FuzzyBallGraph
-    FibonacciTree = sage.graphs.generators.families.FibonacciTree
-    GeneralizedPetersenGraph = sage.graphs.generators.families.GeneralizedPetersenGraph
-    HyperStarGraph = sage.graphs.generators.families.HyperStarGraph
-    HararyGraph = sage.graphs.generators.families.HararyGraph
-    IntervalGraph = sage.graphs.generators.families.IntervalGraph
-    LCFGraph = sage.graphs.generators.families.LCFGraph
-    NKStarGraph = sage.graphs.generators.families.NKStarGraph
-    NStarGraph = sage.graphs.generators.families.NStarGraph
-    OddGraph = sage.graphs.generators.families.OddGraph
-    PaleyGraph = sage.graphs.generators.families.PaleyGraph
-    PermutationGraph = sage.graphs.generators.families.PermutationGraph
-    HanoiTowerGraph = sage.graphs.generators.families.HanoiTowerGraph
-    line_graph_forbidden_subgraphs = sage.graphs.generators.families.line_graph_forbidden_subgraphs
-    trees = sage.graphs.generators.families.trees
-    RingedTree = sage.graphs.generators.families.RingedTree
+    MycielskiGraph         = staticmethod(sage.graphs.generators.families.MycielskiGraph)
+    MycielskiStep          = staticmethod(sage.graphs.generators.families.MycielskiStep)
+    KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)
+    BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
+    BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
+    CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
+    CompleteGraph          = staticmethod(sage.graphs.generators.families.CompleteGraph)
+    CompleteBipartiteGraph = staticmethod(sage.graphs.generators.families.CompleteBipartiteGraph)
+    CompleteMultipartiteGraph = staticmethod(sage.graphs.generators.families.CompleteMultipartiteGraph)
+    CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
+    DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
+    FriendshipGraph        = staticmethod(sage.graphs.generators.families.FriendshipGraph)
+    FuzzyBallGraph         = staticmethod(sage.graphs.generators.families.FuzzyBallGraph)
+    FibonacciTree          = staticmethod(sage.graphs.generators.families.FibonacciTree)
+    GeneralizedPetersenGraph = staticmethod(sage.graphs.generators.families.GeneralizedPetersenGraph)
+    HyperStarGraph         = staticmethod(sage.graphs.generators.families.HyperStarGraph)
+    HararyGraph            = staticmethod(sage.graphs.generators.families.HararyGraph)
+    IntervalGraph          = staticmethod(sage.graphs.generators.families.IntervalGraph)
+    LCFGraph               = staticmethod(sage.graphs.generators.families.LCFGraph)
+    NKStarGraph            = staticmethod(sage.graphs.generators.families.NKStarGraph)
+    NStarGraph             = staticmethod(sage.graphs.generators.families.NStarGraph)
+    OddGraph               = staticmethod(sage.graphs.generators.families.OddGraph)
+    PaleyGraph             = staticmethod(sage.graphs.generators.families.PaleyGraph)
+    PermutationGraph       = staticmethod(sage.graphs.generators.families.PermutationGraph)
+    HanoiTowerGraph        = staticmethod(sage.graphs.generators.families.HanoiTowerGraph)
+    line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
+    trees                  = staticmethod(sage.graphs.generators.families.trees)
+    RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
 
 ###########################################################################
 # Small Graphs
 ###########################################################################
     import sage.graphs.generators.smallgraphs
-    Balaban10Cage = sage.graphs.generators.smallgraphs.Balaban10Cage
-    Balaban11Cage = sage.graphs.generators.smallgraphs.Balaban11Cage
-    BidiakisCube = sage.graphs.generators.smallgraphs.BidiakisCube
-    BiggsSmithGraph = sage.graphs.generators.smallgraphs.BiggsSmithGraph
-    BrinkmannGraph = sage.graphs.generators.smallgraphs.BrinkmannGraph
-    ChvatalGraph = sage.graphs.generators.smallgraphs.ChvatalGraph
-    ClebschGraph = sage.graphs.generators.smallgraphs.ClebschGraph
-    CoxeterGraph = sage.graphs.generators.smallgraphs.CoxeterGraph
-    DesarguesGraph = sage.graphs.generators.smallgraphs.DesarguesGraph
-    DoubleStarSnark = sage.graphs.generators.smallgraphs.DoubleStarSnark
-    DurerGraph = sage.graphs.generators.smallgraphs.DurerGraph
-    DyckGraph = sage.graphs.generators.smallgraphs.DyckGraph
-    EllinghamHorton54Graph = sage.graphs.generators.smallgraphs.EllinghamHorton54Graph
-    EllinghamHorton78Graph = sage.graphs.generators.smallgraphs.EllinghamHorton78Graph
-    ErreraGraph = sage.graphs.generators.smallgraphs.ErreraGraph
-    FlowerSnark = sage.graphs.generators.smallgraphs.FlowerSnark
-    FosterGraph = sage.graphs.generators.smallgraphs.FosterGraph
-    FranklinGraph = sage.graphs.generators.smallgraphs.FranklinGraph
-    FruchtGraph = sage.graphs.generators.smallgraphs.FruchtGraph
-    GoldnerHararyGraph = sage.graphs.generators.smallgraphs.GoldnerHararyGraph
-    GrayGraph = sage.graphs.generators.smallgraphs.GrayGraph
-    GrotzschGraph = sage.graphs.generators.smallgraphs.GrotzschGraph
-    HallJankoGraph = sage.graphs.generators.smallgraphs.HallJankoGraph
-    HarriesGraph = sage.graphs.generators.smallgraphs.HarriesGraph
-    HarriesWongGraph = sage.graphs.generators.smallgraphs.HarriesWongGraph
-    HeawoodGraph = sage.graphs.generators.smallgraphs.HeawoodGraph
-    HerschelGraph = sage.graphs.generators.smallgraphs.HerschelGraph
-    HigmanSimsGraph = sage.graphs.generators.smallgraphs.HigmanSimsGraph
-    HoffmanGraph = sage.graphs.generators.smallgraphs.HoffmanGraph
-    HoffmanSingletonGraph = sage.graphs.generators.smallgraphs.HoffmanSingletonGraph
-    HoltGraph = sage.graphs.generators.smallgraphs.HoltGraph
-    LjubljanaGraph = sage.graphs.generators.smallgraphs.LjubljanaGraph
-    McGeeGraph = sage.graphs.generators.smallgraphs.McGeeGraph
-    MoebiusKantorGraph = sage.graphs.generators.smallgraphs.MoebiusKantorGraph
-    MoserSpindle = sage.graphs.generators.smallgraphs.MoserSpindle
-    NauruGraph = sage.graphs.generators.smallgraphs.NauruGraph
-    PappusGraph = sage.graphs.generators.smallgraphs.PappusGraph
-    PetersenGraph = sage.graphs.generators.smallgraphs.PetersenGraph
-    ShrikhandeGraph = sage.graphs.generators.smallgraphs.ShrikhandeGraph
-    ThomsenGraph = sage.graphs.generators.smallgraphs.ThomsenGraph
-    Tutte12Cage = sage.graphs.generators.smallgraphs.Tutte12Cage
-    TutteCoxeterGraph = sage.graphs.generators.smallgraphs.TutteCoxeterGraph
-    WagnerGraph = sage.graphs.generators.smallgraphs.WagnerGraph
+    Balaban10Cage            = staticmethod(sage.graphs.generators.smallgraphs.Balaban10Cage)
+    Balaban11Cage            = staticmethod(sage.graphs.generators.smallgraphs.Balaban11Cage)
+    BidiakisCube             = staticmethod(sage.graphs.generators.smallgraphs.BidiakisCube)
+    BiggsSmithGraph          = staticmethod(sage.graphs.generators.smallgraphs.BiggsSmithGraph)
+    BrinkmannGraph           = staticmethod(sage.graphs.generators.smallgraphs.BrinkmannGraph)
+    ChvatalGraph             = staticmethod(sage.graphs.generators.smallgraphs.ChvatalGraph)
+    ClebschGraph             = staticmethod(sage.graphs.generators.smallgraphs.ClebschGraph)
+    CoxeterGraph             = staticmethod(sage.graphs.generators.smallgraphs.CoxeterGraph)
+    DesarguesGraph           = staticmethod(sage.graphs.generators.smallgraphs.DesarguesGraph)
+    DoubleStarSnark          = staticmethod(sage.graphs.generators.smallgraphs.DoubleStarSnark)
+    DurerGraph               = staticmethod(sage.graphs.generators.smallgraphs.DurerGraph)
+    DyckGraph                = staticmethod(sage.graphs.generators.smallgraphs.DyckGraph)
+    EllinghamHorton54Graph   = staticmethod(sage.graphs.generators.smallgraphs.EllinghamHorton54Graph)
+    EllinghamHorton78Graph   = staticmethod(sage.graphs.generators.smallgraphs.EllinghamHorton78Graph)
+    ErreraGraph              = staticmethod(sage.graphs.generators.smallgraphs.ErreraGraph)
+    FlowerSnark              = staticmethod(sage.graphs.generators.smallgraphs.FlowerSnark)
+    FosterGraph              = staticmethod(sage.graphs.generators.smallgraphs.FosterGraph)
+    FranklinGraph            = staticmethod(sage.graphs.generators.smallgraphs.FranklinGraph)
+    FruchtGraph              = staticmethod(sage.graphs.generators.smallgraphs.FruchtGraph)
+    GoldnerHararyGraph       = staticmethod(sage.graphs.generators.smallgraphs.GoldnerHararyGraph)
+    GrayGraph                = staticmethod(sage.graphs.generators.smallgraphs.GrayGraph)
+    GrotzschGraph            = staticmethod(sage.graphs.generators.smallgraphs.GrotzschGraph)
+    HallJankoGraph           = staticmethod(sage.graphs.generators.smallgraphs.HallJankoGraph)
+    HarriesGraph             = staticmethod(sage.graphs.generators.smallgraphs.HarriesGraph)
+    HarriesWongGraph         = staticmethod(sage.graphs.generators.smallgraphs.HarriesWongGraph)
+    HeawoodGraph             = staticmethod(sage.graphs.generators.smallgraphs.HeawoodGraph)
+    HerschelGraph            = staticmethod(sage.graphs.generators.smallgraphs.HerschelGraph)
+    HigmanSimsGraph          = staticmethod(sage.graphs.generators.smallgraphs.HigmanSimsGraph)
+    HoffmanGraph             = staticmethod(sage.graphs.generators.smallgraphs.HoffmanGraph)
+    HoffmanSingletonGraph    = staticmethod(sage.graphs.generators.smallgraphs.HoffmanSingletonGraph)
+    HoltGraph                = staticmethod(sage.graphs.generators.smallgraphs.HoltGraph)
+    LjubljanaGraph           = staticmethod(sage.graphs.generators.smallgraphs.LjubljanaGraph)
+    McGeeGraph               = staticmethod(sage.graphs.generators.smallgraphs.McGeeGraph)
+    MoebiusKantorGraph       = staticmethod(sage.graphs.generators.smallgraphs.MoebiusKantorGraph)
+    MoserSpindle             = staticmethod(sage.graphs.generators.smallgraphs.MoserSpindle)
+    NauruGraph               = staticmethod(sage.graphs.generators.smallgraphs.NauruGraph)
+    PappusGraph              = staticmethod(sage.graphs.generators.smallgraphs.PappusGraph)
+    PetersenGraph            = staticmethod(sage.graphs.generators.smallgraphs.PetersenGraph)
+    ShrikhandeGraph          = staticmethod(sage.graphs.generators.smallgraphs.ShrikhandeGraph)
+    ThomsenGraph             = staticmethod(sage.graphs.generators.smallgraphs.ThomsenGraph)
+    Tutte12Cage              = staticmethod(sage.graphs.generators.smallgraphs.Tutte12Cage)
+    TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
+    WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
 
 
 ###########################################################################
 # Basic Graphs
 ###########################################################################
     import sage.graphs.generators.basic
-    BarbellGraph = sage.graphs.generators.basic.BarbellGraph
-    BuckyBall = sage.graphs.generators.basic.BuckyBall
-    BullGraph = sage.graphs.generators.basic.BullGraph
-    ButterflyGraph = sage.graphs.generators.basic.ButterflyGraph
-    CircularLadderGraph = sage.graphs.generators.basic.CircularLadderGraph
-    ClawGraph = sage.graphs.generators.basic.ClawGraph
-    CycleGraph = sage.graphs.generators.basic.CycleGraph
-    DiamondGraph = sage.graphs.generators.basic.DiamondGraph
-    EmptyGraph = sage.graphs.generators.basic.EmptyGraph
-    Grid2dGraph = sage.graphs.generators.basic.Grid2dGraph
-    GridGraph = sage.graphs.generators.basic.GridGraph
-    HouseGraph = sage.graphs.generators.basic.HouseGraph
-    HouseXGraph = sage.graphs.generators.basic.HouseXGraph
-    KrackhardtKiteGraph = sage.graphs.generators.basic.KrackhardtKiteGraph
-    LadderGraph = sage.graphs.generators.basic.LadderGraph
-    LollipopGraph = sage.graphs.generators.basic.LollipopGraph
-    PathGraph = sage.graphs.generators.basic.PathGraph
-    StarGraph = sage.graphs.generators.basic.StarGraph
-    Toroidal6RegularGrid2dGraph = sage.graphs.generators.basic.Toroidal6RegularGrid2dGraph
-    ToroidalGrid2dGraph = sage.graphs.generators.basic.ToroidalGrid2dGraph
-    WheelGraph = sage.graphs.generators.basic.WheelGraph
+    BarbellGraph             = staticmethod(sage.graphs.generators.basic.BarbellGraph)
+    BuckyBall                = staticmethod(sage.graphs.generators.basic.BuckyBall)
+    BullGraph                = staticmethod(sage.graphs.generators.basic.BullGraph)
+    ButterflyGraph           = staticmethod(sage.graphs.generators.basic.ButterflyGraph)
+    CircularLadderGraph      = staticmethod(sage.graphs.generators.basic.CircularLadderGraph)
+    ClawGraph                = staticmethod(sage.graphs.generators.basic.ClawGraph)
+    CycleGraph               = staticmethod(sage.graphs.generators.basic.CycleGraph)
+    DiamondGraph             = staticmethod(sage.graphs.generators.basic.DiamondGraph)
+    EmptyGraph               = staticmethod(sage.graphs.generators.basic.EmptyGraph)
+    Grid2dGraph              = staticmethod(sage.graphs.generators.basic.Grid2dGraph)
+    GridGraph                = staticmethod(sage.graphs.generators.basic.GridGraph)
+    HouseGraph               = staticmethod(sage.graphs.generators.basic.HouseGraph)
+    HouseXGraph              = staticmethod(sage.graphs.generators.basic.HouseXGraph)
+    KrackhardtKiteGraph      = staticmethod(sage.graphs.generators.basic.KrackhardtKiteGraph)
+    LadderGraph              = staticmethod(sage.graphs.generators.basic.LadderGraph)
+    LollipopGraph            = staticmethod(sage.graphs.generators.basic.LollipopGraph)
+    PathGraph                = staticmethod(sage.graphs.generators.basic.PathGraph)
+    StarGraph                = staticmethod(sage.graphs.generators.basic.StarGraph)
+    Toroidal6RegularGrid2dGraph = staticmethod(sage.graphs.generators.basic.Toroidal6RegularGrid2dGraph)
+    ToroidalGrid2dGraph      = staticmethod(sage.graphs.generators.basic.ToroidalGrid2dGraph)
+    WheelGraph               = staticmethod(sage.graphs.generators.basic.WheelGraph)
 
 ###########################################################################
 # Random Graphs
 ###########################################################################
     import sage.graphs.generators.random
-    RandomBarabasiAlbert = sage.graphs.generators.random.RandomBarabasiAlbert
-    RandomBipartite = sage.graphs.generators.random.RandomBipartite
-    RandomGNM = sage.graphs.generators.random.RandomGNM
-    RandomGNP = sage.graphs.generators.random.RandomGNP
-    RandomHolmeKim = sage.graphs.generators.random.RandomHolmeKim
-    RandomInterval = sage.graphs.generators.random.RandomInterval
-    RandomLobster = sage.graphs.generators.random.RandomLobster
-    RandomNewmanWattsStrogatz = sage.graphs.generators.random.RandomNewmanWattsStrogatz
-    RandomRegular = sage.graphs.generators.random.RandomRegular
-    RandomShell = sage.graphs.generators.random.RandomShell
-    RandomTreePowerlaw = sage.graphs.generators.random.RandomTreePowerlaw
-    RandomTree = sage.graphs.generators.random.RandomTree
+    RandomBarabasiAlbert     = staticmethod(sage.graphs.generators.random.RandomBarabasiAlbert)
+    RandomBipartite          = staticmethod(sage.graphs.generators.random.RandomBipartite)
+    RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
+    RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
+    RandomHolmeKim           = staticmethod(sage.graphs.generators.random.RandomHolmeKim)
+    RandomInterval           = staticmethod(sage.graphs.generators.random.RandomInterval)
+    RandomLobster            = staticmethod(sage.graphs.generators.random.RandomLobster)
+    RandomNewmanWattsStrogatz = staticmethod(sage.graphs.generators.random.RandomNewmanWattsStrogatz)
+    RandomRegular            = staticmethod(sage.graphs.generators.random.RandomRegular)
+    RandomShell              = staticmethod(sage.graphs.generators.random.RandomShell)
+    RandomTreePowerlaw       = staticmethod(sage.graphs.generators.random.RandomTreePowerlaw)
+    RandomTree               = staticmethod(sage.graphs.generators.random.RandomTree)
 
 ###########################################################################
 # Platonic Solids
 ###########################################################################
     import sage.graphs.generators.platonic_solids
-    DodecahedralGraph = sage.graphs.generators.platonic_solids.DodecahedralGraph
-    HexahedralGraph = sage.graphs.generators.platonic_solids.HexahedralGraph
-    IcosahedralGraph = sage.graphs.generators.platonic_solids.IcosahedralGraph
-    OctahedralGraph = sage.graphs.generators.platonic_solids.OctahedralGraph
-    TetrahedralGraph = sage.graphs.generators.platonic_solids.TetrahedralGraph
+    DodecahedralGraph        = staticmethod(sage.graphs.generators.platonic_solids.DodecahedralGraph)
+    HexahedralGraph          = staticmethod(sage.graphs.generators.platonic_solids.HexahedralGraph)
+    IcosahedralGraph         = staticmethod(sage.graphs.generators.platonic_solids.IcosahedralGraph)
+    OctahedralGraph          = staticmethod(sage.graphs.generators.platonic_solids.OctahedralGraph)
+    TetrahedralGraph         = staticmethod(sage.graphs.generators.platonic_solids.TetrahedralGraph)
 
 ###########################################################################
 # World Map
 ###########################################################################
     import sage.graphs.generators.world_map
-    WorldMap = sage.graphs.generators.world_map.WorldMap
+    WorldMap = staticmethod(sage.graphs.generators.world_map.WorldMap)
 
 ###########################################################################
 # Degree Sequence
 ###########################################################################
     import sage.graphs.generators.degree_sequence
-    DegreeSequence = sage.graphs.generators.degree_sequence.DegreeSequence
-    DegreeSequenceBipartite = sage.graphs.generators.degree_sequence.DegreeSequenceBipartite
-    DegreeSequenceConfigurationModel = sage.graphs.generators.degree_sequence.DegreeSequenceConfigurationModel
-    DegreeSequenceTree = sage.graphs.generators.degree_sequence.DegreeSequenceTree
-    DegreeSequenceExpected = sage.graphs.generators.degree_sequence.DegreeSequenceExpected
+    DegreeSequence           = staticmethod(sage.graphs.generators.degree_sequence.DegreeSequence)
+    DegreeSequenceBipartite  = staticmethod(sage.graphs.generators.degree_sequence.DegreeSequenceBipartite)
+    DegreeSequenceConfigurationModel = staticmethod(sage.graphs.generators.degree_sequence.DegreeSequenceConfigurationModel)
+    DegreeSequenceTree       = staticmethod(sage.graphs.generators.degree_sequence.DegreeSequenceTree)
+    DegreeSequenceExpected   = staticmethod(sage.graphs.generators.degree_sequence.DegreeSequenceExpected)
 
 def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=False, implementation='c_graph', sparse=True):
     """

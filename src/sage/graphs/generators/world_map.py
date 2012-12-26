@@ -1,6 +1,7 @@
 r"""
 World Map
-=========
+
+The methods defined here appear in sage.graphs.grah_generators.
 """
 
 ###########################################################################
@@ -18,7 +19,7 @@ from sage.graphs.graph import Graph
 from sage.graphs import graph
 from math import sin, cos, pi
 
-def WorldMap(self):
+def WorldMap():
     """
     Returns the Graph of all the countries, in which two countries are adjacent
     in the graph if they have a common boundary.

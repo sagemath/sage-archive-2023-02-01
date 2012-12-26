@@ -25,7 +25,7 @@ AUTHORS:
 # Chessboard graphs
 ###########################################################################
 
-def ChessboardGraphGenerator(self, dim_list,
+def ChessboardGraphGenerator(dim_list,
                              rook = True,    rook_radius = None,
                              bishop = True,  bishop_radius = None,
                              knight = True, knight_x = 1, knight_y = 2,
@@ -235,7 +235,7 @@ def ChessboardGraphGenerator(self, dim_list,
     return G, dimstr
 
 
-def QueenGraph(self, dim_list, radius=None, relabel=False):
+def QueenGraph(dim_list, radius=None, relabel=False):
     r"""
     Returns the `d`-dimensional Queen Graph with prescribed dimensions.
 
@@ -297,11 +297,11 @@ def QueenGraph(self, dim_list, radius=None, relabel=False):
         ...              print "that's not good!"
 
     """
-    G, dimstr = self.ChessboardGraphGenerator(dim_list,
-                                              rook=True, rook_radius=radius,
-                                              bishop=True, bishop_radius=radius,
-                                              knight=False,
-                                              relabel=relabel)
+    G, dimstr = ChessboardGraphGenerator(dim_list,
+                                         rook=True, rook_radius=radius,
+                                         bishop=True, bishop_radius=radius,
+                                         knight=False,
+                                         relabel=relabel)
     if radius is None:
         G.name(dimstr+"-Queen Graph")
     else:
@@ -309,7 +309,7 @@ def QueenGraph(self, dim_list, radius=None, relabel=False):
     return G
 
 
-def KingGraph(self, dim_list, radius=None, relabel=False):
+def KingGraph(dim_list, radius=None, relabel=False):
     r"""
     Returns the `d`-dimensional King Graph with prescribed dimensions.
 
@@ -359,11 +359,11 @@ def KingGraph(self, dim_list, radius=None, relabel=False):
         sage: G.is_isomorphic( H )
         True
     """
-    G, dimstr = self.ChessboardGraphGenerator(dim_list,
-                                              rook=True, rook_radius=(1 if radius is None else radius),
-                                              bishop=True, bishop_radius=(1 if radius is None else radius),
-                                              knight=False,
-                                              relabel=relabel)
+    G, dimstr = ChessboardGraphGenerator(dim_list,
+                                         rook=True, rook_radius=(1 if radius is None else radius),
+                                         bishop=True, bishop_radius=(1 if radius is None else radius),
+                                         knight=False,
+                                         relabel=relabel)
     if radius is None:
         G.name(dimstr+"-King Graph")
     else:
@@ -371,7 +371,7 @@ def KingGraph(self, dim_list, radius=None, relabel=False):
     return G
 
 
-def KnightGraph(self, dim_list, one=1, two=2, relabel=False):
+def KnightGraph(dim_list, one=1, two=2, relabel=False):
     r"""
     Returns the d-dimensional Knight Graph with prescribed dimensions.
 
@@ -420,10 +420,10 @@ def KnightGraph(self, dim_list, one=1, two=2, relabel=False):
         sage: G.is_hamiltonian()
         True
     """
-    G, dimstr = self.ChessboardGraphGenerator(dim_list,
-                                              rook=False, bishop=False,
-                                              knight=True, knight_x=one, knight_y=two,
-                                              relabel=relabel)
+    G, dimstr = ChessboardGraphGenerator(dim_list,
+                                         rook=False, bishop=False,
+                                         knight=True, knight_x=one, knight_y=two,
+                                         relabel=relabel)
     if one+two == 3:
         G.name(dimstr+"-Knight Graph")
     else:
@@ -431,7 +431,7 @@ def KnightGraph(self, dim_list, one=1, two=2, relabel=False):
     return G
 
 
-def RookGraph(self, dim_list, radius=None, relabel=False):
+def RookGraph(dim_list, radius=None, relabel=False):
     r"""
     Returns the `d`-dimensional Rook's Graph with prescribed dimensions.
 
@@ -475,10 +475,10 @@ def RookGraph(self, dim_list, radius=None, relabel=False):
         sage: G.is_isomorphic( H )
         True
     """
-    G, dimstr = self.ChessboardGraphGenerator(dim_list,
-                                              rook=True, rook_radius=radius,
-                                              bishop=False, knight=False,
-                                              relabel=relabel)
+    G, dimstr = ChessboardGraphGenerator(dim_list,
+                                         rook=True, rook_radius=radius,
+                                         bishop=False, knight=False,
+                                         relabel=relabel)
     if radius is None:
         G.name(dimstr+"-Rook Graph")
     else:
@@ -486,7 +486,7 @@ def RookGraph(self, dim_list, radius=None, relabel=False):
     return G
 
 
-def BishopGraph(self, dim_list, radius=None, relabel=False):
+def BishopGraph(dim_list, radius=None, relabel=False):
     r"""
     Returns the `d`-dimensional Bishop Graph with prescribed dimensions.
 
@@ -531,10 +531,10 @@ def BishopGraph(self, dim_list, radius=None, relabel=False):
         ...              print "that's not good!"
 
     """
-    G, dimstr = self.ChessboardGraphGenerator(dim_list,
-                                              rook=False, knight=False,
-                                              bishop=True, bishop_radius=radius,
-                                              relabel=relabel)
+    G, dimstr = ChessboardGraphGenerator(dim_list,
+                                         rook=False, knight=False,
+                                         bishop=True, bishop_radius=radius,
+                                         relabel=relabel)
     if radius is None:
         G.name(dimstr+"-Bishop Graph")
     else:

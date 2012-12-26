@@ -1,6 +1,7 @@
 r"""
 Degree Sequence
-=========
+
+The methods defined here appear in sage.graphs.grah_generators.
 """
 
 ###########################################################################
@@ -24,7 +25,7 @@ from sage.misc.randstate import current_randstate
 #   Graphs with a given degree sequence
 ################################################################################
 
-def DegreeSequence(self, deg_sequence):
+def DegreeSequence(deg_sequence):
     """
     Returns a graph with the given degree sequence. Raises a NetworkX
     error if the proposed degree sequence cannot be that of a graph.
@@ -72,7 +73,7 @@ def DegreeSequence(self, deg_sequence):
     import networkx
     return graph.Graph(networkx.havel_hakimi_graph([int(i) for i in deg_sequence]))
 
-def DegreeSequenceBipartite(self, s1 ,s2 ):
+def DegreeSequenceBipartite(s1 ,s2 ):
     r"""
     Returns a bipartite graph whose two sets have the given
     degree sequences.
@@ -137,7 +138,7 @@ def DegreeSequenceBipartite(self, s1 ,s2 ):
     else:
         return Graph(BipartiteGraph(m))
 
-def DegreeSequenceConfigurationModel(self, deg_sequence, seed=None):
+def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
     """
     Returns a random pseudograph with the given degree sequence. Raises
     a NetworkX error if the proposed degree sequence cannot be that of
@@ -183,7 +184,7 @@ def DegreeSequenceConfigurationModel(self, deg_sequence, seed=None):
     import networkx
     return graph.Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed=seed), loops=True, multiedges=True, sparse=True)
 
-def DegreeSequenceTree(self, deg_sequence):
+def DegreeSequenceTree(deg_sequence):
     """
     Returns a tree with the given degree sequence. Raises a NetworkX
     error if the proposed degree sequence cannot be that of a tree.
@@ -206,7 +207,7 @@ def DegreeSequenceTree(self, deg_sequence):
     import networkx
     return graph.Graph(networkx.degree_sequence_tree([int(i) for i in deg_sequence]))
 
-def DegreeSequenceExpected(self, deg_sequence, seed=None):
+def DegreeSequenceExpected(deg_sequence, seed=None):
     """
     Returns a random graph with expected given degree sequence. Raises
     a NetworkX error if the proposed degree sequence cannot be that of

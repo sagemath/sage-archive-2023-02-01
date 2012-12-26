@@ -1,16 +1,7 @@
 r"""
 Platonic solids
-==================
 
-Platonic solids
----------------
-
-- :meth:`DodecahedralGraph <GraphGenerators.DodecahedralGraph>`
-- :meth:`HexahedralGraph <GraphGenerators.HexahedralGraph>`
-- :meth:`IcosahedralGraph <GraphGenerators.IcosahedralGraph>`
-- :meth:`OctahedralGraph <GraphGenerators.OctahedralGraph>`
-- :meth:`TetrahedralGraph <GraphGenerators.TetrahedralGraph>`
-
+The methods defined here appear in sage.graphs.grah_generators.
 
 """
 ###########################################################################
@@ -33,7 +24,7 @@ from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 #   Platonic Solids
 ################################################################################
 
-def TetrahedralGraph(self):
+def TetrahedralGraph():
     """
     Returns a tetrahedral graph (with 4 nodes).
 
@@ -87,7 +78,7 @@ def TetrahedralGraph(self):
                          3 : (cos(5.5*pi/3), sin(5.5*pi/3))}
                        )
 
-def HexahedralGraph(self):
+def HexahedralGraph():
     """
     Returns a hexahedral graph (with 8 nodes).
 
@@ -144,7 +135,7 @@ def HexahedralGraph(self):
                           6 : (1.5,1.5)
                           })
 
-def OctahedralGraph(self):
+def OctahedralGraph():
     """
     Returns an Octahedral graph (with 6 nodes).
 
@@ -205,7 +196,7 @@ def OctahedralGraph(self):
 
     return graph.Graph(G, name="Octahedron", pos=pos)
 
-def IcosahedralGraph(self):
+def IcosahedralGraph():
     """
     Returns an Icosahedral graph (with 12 nodes).
 
@@ -266,7 +257,7 @@ def IcosahedralGraph(self):
 
     return graph.Graph(G, name="Icosahedron", pos = pos)
 
-def DodecahedralGraph(self):
+def DodecahedralGraph():
     """
     Returns a Dodecahedral graph (with 20 nodes)
 

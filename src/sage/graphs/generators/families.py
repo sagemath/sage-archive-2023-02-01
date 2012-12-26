@@ -1,9 +1,7 @@
 r"""
 Families of graphs
-==================
 
-This file gathers generators for some families of graphs.
-- :meth:`RingedTree <GraphGenerators.RingedTree>`
+The methods defined here appear in sage.graphs.grah_generators.
 
 AUTHORS:
 
@@ -26,7 +24,7 @@ from sage.graphs.graph import Graph
 from sage.graphs import graph
 from math import sin, cos, pi
 
-def HararyGraph( self, k, n ):
+def HararyGraph( k, n ):
     r"""
     Returns the Harary graph on `n` vertices and connectivity `k`, where
     `2 \leq k < n`.
@@ -70,20 +68,20 @@ def HararyGraph( self, k, n ):
         raise ValueError("Number of vertices n should be greater than k.")
 
     if k%2 == 0:
-        G = self.CirculantGraph( n, range(1,k/2+1) )
+        G = CirculantGraph( n, range(1,k/2+1) )
     else:
         if n%2 == 0:
-            G = self.CirculantGraph( n, range(1,(k-1)/2+1) )
+            G = CirculantGraph( n, range(1,(k-1)/2+1) )
             for i in range(n):
                 G.add_edge( i, (i+n/2)%n )
         else:
-            G = self.HararyGraph( k-1, n )
+            G = HararyGraph( k-1, n )
             for i in range((n-1)/2+1):
                 G.add_edge( i, (i+(n-1)/2)%n )
     G.name('Harary graph {0}, {1}'.format(k,n))
     return G
 
-def DorogovtsevGoltsevMendesGraph(self, n):
+def DorogovtsevGoltsevMendesGraph(n):
     """
     Construct the n-th generation of the Dorogovtsev-Goltsev-Mendes
     graph.
@@ -104,7 +102,7 @@ def DorogovtsevGoltsevMendesGraph(self, n):
     return graph.Graph(networkx.dorogovtsev_goltsev_mendes_graph(n),\
            name="Dorogovtsev-Goltsev-Mendes Graph, %d-th generation"%n)
 
-def IntervalGraph(self,intervals):
+def IntervalGraph(intervals):
     r"""
     Returns the graph corresponding to the given intervals.
 
@@ -182,7 +180,7 @@ def IntervalGraph(self,intervals):
 
     return g
 
-def MycielskiGraph(self, k=1, relabel=True):
+def MycielskiGraph(k=1, relabel=True):
     r"""
     Returns the `k`-th Mycielski Graph.
 
@@ -252,14 +250,14 @@ def MycielskiGraph(self, k=1, relabel=True):
         g.add_edge(0,1)
         return g
 
-    g0 = MycielskiGraph(self,k-1)
-    g = MycielskiStep(self,g0)
+    g0 = MycielskiGraph(k-1)
+    g = MycielskiStep(g0)
     g.name("Mycielski Graph " + str(k))
     if relabel: g.relabel()
 
     return g
 
-def MycielskiStep(self, g):
+def MycielskiStep(g):
     r"""
     Perform one iteration of the Mycielski construction.
 
@@ -300,7 +298,7 @@ def MycielskiStep(self, g):
     return gg
 
 
-def KneserGraph(self,n,k):
+def KneserGraph(n,k):
     r"""
     Returns the Kneser Graph with parameters `n, k`.
 
@@ -356,7 +354,7 @@ def KneserGraph(self,n,k):
 #   Families of Graphs
 ###########################################################################
 
-def BalancedTree(self, r, h):
+def BalancedTree(r, h):
     r"""
     Returns the perfectly balanced tree of height `h \geq 1`,
     whose root has degree `r \geq 2`.
@@ -444,7 +442,7 @@ def BalancedTree(self, r, h):
     import networkx
     return graph.Graph(networkx.balanced_tree(r, h), name="Balanced tree")
 
-def BubbleSortGraph(self, n):
+def BubbleSortGraph(n):
     r"""
     Returns the bubble sort graph `B(n)`.
 
@@ -503,7 +501,8 @@ def BubbleSortGraph(self, n):
         raise ValueError(
             "Invalid number of symbols to permute, n should be >= 1")
     if n == 1:
-        return graph.Graph(self.CompleteGraph(n), name="Bubble sort")
+        from sage.graphs.generators.families import CompleteGraph
+        return graph.Graph(CompleteGraph(n), name="Bubble sort")
     from sage.combinat.permutation import Permutations
     #create set from which to permute
     label_set = [str(i) for i in xrange(1, n + 1)]
@@ -524,7 +523,7 @@ def BubbleSortGraph(self, n):
         d[''.join(v)] = tmp_dict
     return graph.Graph(d, name="Bubble sort")
 
-def CirculantGraph(self, n, adjacency):
+def CirculantGraph(n, adjacency):
     r"""
     Returns a circulant graph with n nodes.
 
@@ -630,7 +629,7 @@ def CirculantGraph(self, n, adjacency):
         G.add_edges([(v,(v-j)%n) for j in adjacency])
     return G
 
-def CompleteGraph(self, n):
+def CompleteGraph(n):
     """
     Returns a complete graph on n nodes.
 
@@ -724,7 +723,7 @@ def CompleteGraph(self, n):
     G = networkx.complete_graph(n)
     return graph.Graph(G, pos=pos_dict, name="Complete graph")
 
-def CompleteBipartiteGraph(self, n1, n2):
+def CompleteBipartiteGraph(n1, n2):
     """
     Returns a Complete Bipartite Graph sized n1+n2, with each of the
     nodes [0,(n1-1)] connected to each of the nodes [n1,(n2-1)] and
@@ -849,7 +848,7 @@ def CompleteBipartiteGraph(self, n1, n2):
     G = networkx.complete_bipartite_graph(n1,n2)
     return Graph(G, pos=pos_dict, name="Complete bipartite graph")
 
-def CompleteMultipartiteGraph(self, l):
+def CompleteMultipartiteGraph(l):
     r"""
     Returns a complete multipartite graph.
 
@@ -873,16 +872,17 @@ def CompleteMultipartiteGraph(self, l):
     """
 
     from sage.graphs.graph import Graph
+    from sage.graphs.generators.families import CompleteGraph
     g = Graph()
     for i in l:
-        g = g + self.CompleteGraph(i)
+        g = g + CompleteGraph(i)
 
     g = g.complement()
     g.name("Multipartite Graph with set sizes "+str(l))
 
     return g
 
-def CubeGraph(self, n):
+def CubeGraph(n):
     r"""
     Returns the hypercube in `n` dimensions.
 
@@ -966,7 +966,7 @@ def CubeGraph(self, n):
 
     return r
 
-def FriendshipGraph(self, n):
+def FriendshipGraph(n):
     r"""
     Returns the friendship graph `F_n`.
 
@@ -1062,7 +1062,8 @@ def FriendshipGraph(self, n):
         raise ValueError("n must be a positive integer")
     # construct the friendship graph
     if n == 1:
-        G = self.CycleGraph(3)
+        from sage.graphs.generators.basic import CycleGraph
+        G = CycleGraph(3)
         G.name("Friendship graph")
         return G
     # build the edge and position dictionaries
@@ -1084,7 +1085,7 @@ def FriendshipGraph(self, n):
     pos_dict.setdefault(N - 1, [0, 0])
     return graph.Graph(edge_dict, pos=pos_dict, name="Friendship graph")
 
-def FuzzyBallGraph(self, partition, q):
+def FuzzyBallGraph(partition, q):
     r"""
     Construct a Fuzzy Ball graph with the integer partition
     ``partition`` and ``q`` extra vertices.
@@ -1126,14 +1127,14 @@ def FuzzyBallGraph(self, partition, q):
     if len(partition)<1:
         raise ValueError, "partition must be a nonempty list of positive integers"
     n=q+sum(partition)
-    g=CompleteGraph(self,n)
+    g=CompleteGraph(n)
     curr_vertex=0
     for e,p in enumerate(partition):
         g.add_edges([(curr_vertex+i, 'a{0}'.format(e+1)) for i in range(p)])
         curr_vertex+=p
     return g
 
-def FibonacciTree(self, n):
+def FibonacciTree(n):
     r"""
     Returns the graph of the Fibonacci Tree `F_{i}` of order `n`.
     `F_{i}` is recursively defined as the a tree with a root vertex
@@ -1190,7 +1191,7 @@ def FibonacciTree(self, n):
 
     return T
 
-def GeneralizedPetersenGraph(self, n,k):
+def GeneralizedPetersenGraph(n,k):
     r"""
     Returns a generalized Petersen graph with `2n` nodes. The variables
     `n`, `k` are integers such that `n>2` and `0<k\leq\lfloor(n-1)`/`2\rfloor`
@@ -1255,7 +1256,7 @@ def GeneralizedPetersenGraph(self, n,k):
         G.add_edge(i+n, n + (i+k) % n)
     return graph.Graph(G, pos=pos_dict, name="Generalized Petersen graph (n="+str(n)+",k="+str(k)+")")
 
-def HyperStarGraph(self,n,k):
+def HyperStarGraph(n,k):
     r"""
     Returns the hyper-star graph HS(n,k).
 
@@ -1310,7 +1311,7 @@ def HyperStarGraph(self,n,k):
 
     return g
 
-def LCFGraph(self, n, shift_list, repeats):
+def LCFGraph(n, shift_list, repeats):
     """
     Returns the cubic graph specified in LCF notation.
 
@@ -1389,7 +1390,7 @@ def LCFGraph(self, n, shift_list, repeats):
     return graph.Graph(networkx.LCF_graph(n, shift_list, repeats),\
                        pos=pos_dict, name="LCF Graph")
 
-def NKStarGraph(self,n,k):
+def NKStarGraph(n,k):
     r"""
     Returns the (n,k)-star graph.
 
@@ -1451,7 +1452,7 @@ def NKStarGraph(self,n,k):
         d["".join(v)] = tmp_dict
     return graph.Graph(d, name="(%d,%d)-star"%(n,k))
 
-def NStarGraph(self,n):
+def NStarGraph(n):
     r"""
     Returns the n-star graph.
 
@@ -1499,7 +1500,7 @@ def NStarGraph(self,n):
         d["".join(v)] = tmp_dict
     return graph.Graph(d, name = "%d-star"%n)
 
-def OddGraph(self,n):
+def OddGraph(n):
     r"""
     Returns the Odd Graph with parameter `n`.
 
@@ -1532,11 +1533,11 @@ def OddGraph(self,n):
 
     if not n>1:
         raise ValueError, "Parameter n should be an integer strictly greater than 1"
-    g = self.KneserGraph(2*n-1,n-1)
+    g = KneserGraph(2*n-1,n-1)
     g.name("Odd Graph with parameter %s" % n)
     return g
 
-def PaleyGraph(self,q):
+def PaleyGraph(q):
     r"""
     Paley graph with `q` vertices
 
@@ -1563,7 +1564,7 @@ def PaleyGraph(self,q):
     loops=False, name = "Paley graph with parameter %d"%q)
     return g
 
-def PermutationGraph(self, second_permutation, first_permutation = None):
+def PermutationGraph(second_permutation, first_permutation = None):
     r"""
     Builds a permutation graph from one (or two) permutations.
 
@@ -1655,7 +1656,7 @@ def PermutationGraph(self, second_permutation, first_permutation = None):
 
     return g
 
-def HanoiTowerGraph(self, pegs, disks, labels=True, positions=True):
+def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
     r"""
     Returns the graph whose vertices are the states of the
     Tower of Hanoi puzzle, with edges representing legal moves between states.
@@ -1907,7 +1908,7 @@ def HanoiTowerGraph(self, pegs, disks, labels=True, positions=True):
 
     return H
 
-def line_graph_forbidden_subgraphs(self):
+def line_graph_forbidden_subgraphs():
     r"""
     Returns the 9 forbidden subgraphs of a line graph.
 
@@ -1932,7 +1933,8 @@ def line_graph_forbidden_subgraphs(self):
 
     """
     from sage.graphs.all import Graph
-    graphs = [self.ClawGraph()]
+    from sage.graphs.generators.basic import ClawGraph
+    graphs = [ClawGraph()]
 
     graphs.append(Graph({
                 0: [1, 2, 3],
@@ -1991,7 +1993,7 @@ def line_graph_forbidden_subgraphs(self):
 
     return graphs
 
-def trees(self, vertices):
+def trees(vertices):
     r"""
     Returns a generator of the distinct trees on a fixed number of vertices.
 
@@ -2039,7 +2041,7 @@ def trees(self, vertices):
     from sage.graphs.trees import TreeIterator
     return iter(TreeIterator(vertices))
 
-def RingedTree(self, k, vertex_labels = True):
+def RingedTree(k, vertex_labels = True):
     r"""
     Return the ringed tree on k-levels.
 

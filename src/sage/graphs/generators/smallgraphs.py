@@ -1,9 +1,8 @@
 r"""
 Small graphs
-==================
 
-Add naury graphs to the list
-Virer GraphGenerators() from the code
+The methods defined here appear in sage.graphs.grah_generators.
+
 """
 
 
@@ -27,7 +26,7 @@ from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 #   Named Graphs
 #######################################################################
 
-def HarriesGraph(self, embedding=1):
+def HarriesGraph(embedding=1):
     r"""
     Returns the Harries Graph.
 
@@ -85,13 +84,13 @@ def HarriesGraph(self, embedding=1):
 
     """
     from sage.graphs.generators.families import LCFGraph
-    g = LCFGraph(self, 70, [-29, -19, -13, 13, 21, -27, 27, 33, -13, 13,
+    g = LCFGraph(70, [-29, -19, -13, 13, 21, -27, 27, 33, -13, 13,
                              19, -21, -33, 29], 5)
     g.name("Harries Graph")
 
     if embedding == 1:
         gpos = g.get_pos()
-        ppos = PetersenGraph(self).get_pos()
+        ppos = PetersenGraph().get_pos()
 
         # The graph's four orbits
         o = [None]*4
@@ -146,7 +145,7 @@ def HarriesGraph(self, embedding=1):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
-def HarriesWongGraph(self, embedding=1):
+def HarriesWongGraph(embedding=1):
     r"""
     Returns the Harries-Wong Graph.
 
@@ -218,7 +217,7 @@ def HarriesWongGraph(self, embedding=1):
          -27, -21, 15, -9, 29, -29, 33, -9, -25]
 
     from sage.graphs.generators.families import LCFGraph
-    g = LCFGraph(self, 70, L, 1)
+    g = LCFGraph(70, L, 1)
     g.name("Harries-Wong graph")
 
     if embedding == 1:
@@ -267,7 +266,7 @@ def HarriesWongGraph(self, embedding=1):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
-def HallJankoGraph(self, from_string=True):
+def HallJankoGraph(from_string=True):
     r"""
     Returns the Hall-Janko graph.
 
@@ -403,7 +402,7 @@ def HallJankoGraph(self, from_string=True):
     g.name("Hall-Janko graph")
     return g
 
-def Balaban10Cage(self, embedding=1):
+def Balaban10Cage(embedding=1):
     r"""
     Returns the Balaban 10-cage.
 
@@ -464,7 +463,7 @@ def Balaban10Cage(self, embedding=1):
           -17, -25, 9, 31, 13, -9, -21, -33, -17, -29, 29]
 
     from sage.graphs.generators.families import LCFGraph
-    g = LCFGraph(self, 70, L, 1)
+    g = LCFGraph(70, L, 1)
     g.name("Balaban 10-cage")
 
     if embedding == 2:
@@ -493,7 +492,7 @@ def Balaban10Cage(self, embedding=1):
 
     return g
 
-def Balaban11Cage(self, embedding = 1):
+def Balaban11Cage(embedding = 1):
     r"""
     Returns the Balaban 11-cage.
 
@@ -650,7 +649,7 @@ def Balaban11Cage(self, embedding = 1):
              42, -26, -36, 16]
 
         from sage.graphs.generators.families import LCFGraph
-        g = LCFGraph(self, 112, L, 1)
+        g = LCFGraph(112, L, 1)
         g.name("Balaban 11-cage")
 
         if embedding == 3:
@@ -691,7 +690,7 @@ def Balaban11Cage(self, embedding = 1):
     else:
         raise ValueError("The value of embedding must be 1, 2, or 3.")
 
-def BidiakisCube(self):
+def BidiakisCube():
     r"""
     Returns the Bidiakis cube.
 
@@ -751,7 +750,7 @@ def BidiakisCube(self):
         11: [-0.5, 0.866025403784439]}
     return graph.Graph(edge_dict, pos=pos_dict, name="Bidiakis cube")
 
-def BiggsSmithGraph(self, embedding=1):
+def BiggsSmithGraph(embedding=1):
     r"""
     Returns the Biggs-Smith graph.
 
@@ -802,7 +801,7 @@ def BiggsSmithGraph(self, embedding=1):
          -24, -14, -21, -8, 44, -31, -38, -28, 37]
 
     from sage.graphs.generators.families import LCFGraph
-    g = LCFGraph(self, 102, L, 1)
+    g = LCFGraph(102, L, 1)
     g.name("Biggs-Smith graph")
 
     if embedding == 1:
@@ -839,7 +838,7 @@ def BiggsSmithGraph(self, embedding=1):
 
     return g
 
-def BrinkmannGraph(self):
+def BrinkmannGraph():
     r"""
     Returns the Brinkmann graph.
 
@@ -928,7 +927,7 @@ def BrinkmannGraph(self):
         20: [-0.433883739117558, 0.900968867902419]}
     return graph.Graph(edge_dict, pos=pos_dict, name="Brinkmann graph")
 
-def DoubleStarSnark(self):
+def DoubleStarSnark():
     r"""
     Returns the double star snark.
 
@@ -990,7 +989,7 @@ def DoubleStarSnark(self):
 
     return g
 
-def ChvatalGraph(self):
+def ChvatalGraph():
     r"""
     Returns the Chvatal graph.
 
@@ -1033,7 +1032,7 @@ def ChvatalGraph(self):
 
     return graph.Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
 
-def ClebschGraph(self):
+def ClebschGraph():
     r"""
     Return the Clebsch graph.
 
@@ -1067,7 +1066,7 @@ def ClebschGraph(self):
 
     return g
 
-def CoxeterGraph(self):
+def CoxeterGraph():
     r"""
     Return the Coxeter graph.
 
@@ -1105,7 +1104,7 @@ def CoxeterGraph(self):
 
     return g
 
-def DesarguesGraph(self):
+def DesarguesGraph():
     """
     Returns the Desargues graph.
 
@@ -1125,11 +1124,11 @@ def DesarguesGraph(self):
       1994.
     """
     from sage.graphs.generators.families import GeneralizedPetersenGraph
-    G = GeneralizedPetersenGraph(self,10,3)
+    G = GeneralizedPetersenGraph(10,3)
     G.name("Desargues Graph")
     return G
 
-def DurerGraph(self):
+def DurerGraph():
     r"""
     Returns the Dürer graph.
 
@@ -1191,7 +1190,7 @@ def DurerGraph(self):
         11: [0.5, -0.866025403784439]}
     return graph.Graph(edge_dict, pos=pos_dict, name="Durer graph")
 
-def DyckGraph(self):
+def DyckGraph():
     """
     Returns the Dyck graph.
 
@@ -1284,7 +1283,7 @@ def DyckGraph(self):
 
     return graph.Graph(edge_dict, pos=pos_dict, name="Dyck graph")
 
-def EllinghamHorton54Graph(self):
+def EllinghamHorton54Graph():
     r"""
     Returns the Ellingham-Horton 54-graph.
 
@@ -1319,9 +1318,9 @@ def EllinghamHorton54Graph(self):
 
         sage: g.show() # long time
     """
-    from sage.graphs.graph_generators import GraphGenerators
-    up = GraphGenerators().CycleGraph(16)
-    low = 2*GraphGenerators().CycleGraph(6)
+    from sage.graphs.generators.basic import CycleGraph
+    up = CycleGraph(16)
+    low = 2*CycleGraph(6)
 
     for v in range(6):
         low.add_edge(v, v + 12)
@@ -1373,7 +1372,7 @@ def EllinghamHorton54Graph(self):
 
     return g
 
-def EllinghamHorton78Graph(self):
+def EllinghamHorton78Graph():
     r"""
     Returns the Ellingham-Horton 78-graph.
 
@@ -1453,7 +1452,7 @@ def EllinghamHorton78Graph(self):
 
     return g
 
-def ErreraGraph(self):
+def ErreraGraph():
     r"""
     Returns the Errera graph.
 
@@ -1521,7 +1520,7 @@ def ErreraGraph(self):
         14: [16]}
     return graph.Graph(edge_dict, name="Errera graph")
 
-def FlowerSnark(self):
+def FlowerSnark():
     """
     Returns a Flower Snark.
 
@@ -1566,7 +1565,7 @@ def FlowerSnark(self):
                         12:[13,19],13:[14],15:[19],16:[15,17],18:[17,19]}, \
                         pos=pos_dict, name="Flower Snark")
 
-def FosterGraph(self):
+def FosterGraph():
     """
     Returns the Foster graph.
 
@@ -1590,12 +1589,12 @@ def FosterGraph(self):
         True
     """
     from sage.graphs.generators.families import LCFGraph
-    g= LCFGraph(self, 90, [17, -9, 37, -37, 9, -17], 15)
+    g= LCFGraph(90, [17, -9, 37, -37, 9, -17], 15)
     g.name("Foster Graph")
     return g
 
 
-def FranklinGraph(self):
+def FranklinGraph():
     r"""
     Returns the Franklin graph.
 
@@ -1665,7 +1664,7 @@ def FranklinGraph(self):
         11: [0.5, -0.866025403784439]}
     return graph.Graph(edge_dict, pos=pos_dict, name="Franklin graph")
 
-def FruchtGraph(self):
+def FruchtGraph():
     """
     Returns a Frucht Graph.
 
@@ -1708,7 +1707,7 @@ def FruchtGraph(self):
     G = networkx.frucht_graph()
     return graph.Graph(G, pos=pos_dict, name="Frucht graph")
 
-def GoldnerHararyGraph(self):
+def GoldnerHararyGraph():
     r"""
     Return the Goldner-Harary graph.
 
@@ -1777,7 +1776,7 @@ def GoldnerHararyGraph(self):
 
     return graph.Graph(edge_dict, pos = pos, name="Goldner-Harary graph")
 
-def GrayGraph(self, embedding=1):
+def GrayGraph(embedding=1):
     r"""
     Returns the Gray graph.
 
@@ -1812,7 +1811,7 @@ def GrayGraph(self, embedding=1):
     """
 
     from sage.graphs.generators.families import LCFGraph
-    g = LCFGraph(self, 54, [-25,7,-7,13,-13,25], 9)
+    g = LCFGraph(54, [-25,7,-7,13,-13,25], 9)
     g.name("Gray graph")
 
     if embedding == 1:
@@ -1825,7 +1824,7 @@ def GrayGraph(self, embedding=1):
 
     return g
 
-def GrotzschGraph(self):
+def GrotzschGraph():
     r"""
     Returns the Grötzsch graph.
 
@@ -1907,7 +1906,7 @@ def GrotzschGraph(self):
     g.name("Grotzsch graph")
     return g
 
-def HeawoodGraph(self):
+def HeawoodGraph():
     """
     Returns a Heawood graph.
 
@@ -1947,7 +1946,7 @@ def HeawoodGraph(self):
     G = networkx.heawood_graph()
     return graph.Graph(G, pos=pos_dict, name="Heawood graph")
 
-def HerschelGraph(self):
+def HerschelGraph():
     r"""
     Returns the Herschel graph.
 
@@ -2016,7 +2015,7 @@ def HerschelGraph(self):
         10: [0, 0]}
     return graph.Graph(edge_dict, pos=pos_dict, name="Herschel graph")
 
-def HigmanSimsGraph(self, relabel=True):
+def HigmanSimsGraph(relabel=True):
     r"""
     The Higman-Sims graph is a remarkable strongly regular
     graph of degree 22 on 100 vertices.  For example, it can
@@ -2182,7 +2181,7 @@ def HigmanSimsGraph(self, relabel=True):
     HS.set_pos(pos_dict)
     return HS
 
-def HoffmanSingletonGraph(self):
+def HoffmanSingletonGraph():
     r"""
     Returns the Hoffman-Singleton graph.
 
@@ -2275,7 +2274,7 @@ def HoffmanSingletonGraph(self):
     H.set_pos(pos_dict)
     return H
 
-def HoffmanGraph(self):
+def HoffmanGraph():
     r"""
     Returns the Hoffman Graph.
 
@@ -2319,7 +2318,7 @@ def HoffmanGraph(self):
 
     return g
 
-def HoltGraph(self):
+def HoltGraph():
     r"""
     Returns the Holt graph (also called the Doyle graph)
 
@@ -2362,7 +2361,7 @@ def HoltGraph(self):
 
     return g
 
-def LjubljanaGraph(self, embedding=1):
+def LjubljanaGraph(embedding=1):
     r"""
     Returns the Ljubljana Graph.
 
@@ -2407,14 +2406,14 @@ def LjubljanaGraph(self, embedding=1):
          -39, 33, -9, -51, 51, -47, -33, 19, 51, -21, 29, 21, -31, -39]
 
     from sage.graphs.generators.families import LCFGraph
-    g = LCFGraph(self, 112, L, 2)
+    g = LCFGraph(112, L, 2)
     g.name("Ljubljana graph")
 
     if embedding == 1:
         return g
 
     elif embedding == 2:
-        dh = HeawoodGraph(self).get_pos()
+        dh = HeawoodGraph().get_pos()
 
         # Correspondence between the vertices of the Heawood Graph and
         # 8-sets of the Ljubljana Graph.
@@ -2448,7 +2447,7 @@ def LjubljanaGraph(self, embedding=1):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
-def McGeeGraph(self, embedding=2):
+def McGeeGraph(embedding=2):
     r"""
     Returns the McGee Graph.
 
@@ -2488,7 +2487,7 @@ def McGeeGraph(self, embedding=2):
          -39, 33, -9, -51, 51, -47, -33, 19, 51, -21, 29, 21, -31, -39]
 
     from sage.graphs.generators.families import LCFGraph
-    g = LCFGraph(self, 24, [12, 7, -7], 8)
+    g = LCFGraph(24, [12, 7, -7], 8)
     g.name('McGee graph')
 
     if embedding == 1:
@@ -2509,7 +2508,7 @@ def McGeeGraph(self, embedding=2):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
-def MoebiusKantorGraph(self):
+def MoebiusKantorGraph():
     """
     Returns a Moebius-Kantor Graph.
 
@@ -2537,11 +2536,11 @@ def MoebiusKantorGraph(self):
         sage: (graphs.MoebiusKantorGraph()).show() # long time
     """
     from sage.graphs.generators.families import GeneralizedPetersenGraph
-    G=GeneralizedPetersenGraph(self,8,3)
+    G=GeneralizedPetersenGraph(8,3)
     G.name("Moebius-Kantor Graph")
     return G
 
-def MoserSpindle(self):
+def MoserSpindle():
     r"""
     Returns the Moser spindle.
 
@@ -2598,7 +2597,7 @@ def MoserSpindle(self):
     return graph.Graph(edge_dict, pos=pos_dict, name="Moser spindle")
 
 
-def NauruGraph(self, embedding=2):
+def NauruGraph(embedding=2):
     """
     Returns the Nauru Graph.
 
@@ -2636,18 +2635,18 @@ def NauruGraph(self, embedding=2):
 
     if embedding == 1:
         from sage.graphs.generators.families import LCFGraph
-        g = LCFGraph(self, 24, [5, -9, 7, -7, 9, -5], 4)
+        g = LCFGraph(24, [5, -9, 7, -7, 9, -5], 4)
         g.name('Nauru Graph')
         return g
     elif embedding == 2:
         from sage.graphs.generators.families import GeneralizedPetersenGraph
-        g = GeneralizedPetersenGraph(self, 12, 5)
+        g = GeneralizedPetersenGraph(12, 5)
         g.name("Nauru Graph")
         return g
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
-def PappusGraph(self):
+def PappusGraph():
     """
     Returns the Pappus graph, a graph on 18 vertices.
 
@@ -2675,7 +2674,7 @@ def PappusGraph(self):
                         10:[15,17],11:[12,16],12:[15],13:[16],14:[17]},\
                        pos=pos_dict, name="Pappus Graph")
 
-def PetersenGraph(self):
+def PetersenGraph():
     """
     The Petersen Graph is a named graph that consists of 10 vertices
     and 15 edges, usually drawn as a five-point star embedded in a
@@ -2696,11 +2695,11 @@ def PetersenGraph(self):
         sage: petersen_database.show() # long time
     """
     from sage.graphs.generators.families import GeneralizedPetersenGraph
-    P=GeneralizedPetersenGraph(self, 5,2)
+    P=GeneralizedPetersenGraph(5,2)
     P.name("Petersen graph")
     return P
 
-def ShrikhandeGraph(self):
+def ShrikhandeGraph():
     """
     Returns the Shrikhande graph.
 
@@ -2790,7 +2789,7 @@ def ShrikhandeGraph(self):
 
     return graph.Graph(edge_dict, pos=pos_dict, name="Shrikhande graph")
 
-def ThomsenGraph(self):
+def ThomsenGraph():
     """
     Returns the Thomsen Graph.
 
@@ -2813,7 +2812,7 @@ def ThomsenGraph(self):
     G = networkx.complete_bipartite_graph(3,3)
     return graph.Graph(G, pos=pos_dict, name="Thomsen graph")
 
-def Tutte12Cage(self):
+def Tutte12Cage():
     r"""
     Returns Tutte's 12-Cage.
 
@@ -2837,11 +2836,11 @@ def Tutte12Cage(self):
          -21, -57, 59, -17]
 
     from sage.graphs.generators.families import LCFGraph
-    g = LCFGraph(self, 126, L, 7)
+    g = LCFGraph(126, L, 7)
     g.name("Tutte 12-Cage")
     return g
 
-def TutteCoxeterGraph(self, embedding=2):
+def TutteCoxeterGraph(embedding=2):
     r"""
     Returns the Tutte-Coxeter graph.
 
@@ -2876,7 +2875,7 @@ def TutteCoxeterGraph(self, embedding=2):
     """
 
     from sage.graphs.generators.families import LCFGraph
-    g = LCFGraph(self, 30, [-13, -9, 7, -7, 9, 13], 5)
+    g = LCFGraph(30, [-13, -9, 7, -7, 9, 13], 5)
     g.name("Tutte-Coxeter graph")
 
     if embedding == 1:
@@ -2904,7 +2903,7 @@ def TutteCoxeterGraph(self, embedding=2):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
-def WagnerGraph(self):
+def WagnerGraph():
     """
     Returns the Wagner Graph.
 
@@ -2925,7 +2924,7 @@ def WagnerGraph(self):
         sage: g.show()
     """
     from sage.graphs.generators.families import LCFGraph
-    g = LCFGraph(self, 8, [4], 8)
+    g = LCFGraph(8, [4], 8)
     g.name("Wagner Graph")
     return g
 

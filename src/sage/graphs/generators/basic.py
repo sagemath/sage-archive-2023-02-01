@@ -1,6 +1,7 @@
 r"""
 Basic Graphs
-==================
+
+The methods defined here appear in sage.graphs.grah_generators.
 
 """
 ###########################################################################
@@ -23,7 +24,7 @@ from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 #   Basic Structures
 #######################################################################
 
-def BarbellGraph(self, n1, n2):
+def BarbellGraph(n1, n2):
     r"""
     Returns a barbell graph with ``2*n1 + n2`` nodes. The argument ``n1``
     must be greater than or equal to 2.
@@ -167,7 +168,7 @@ def BarbellGraph(self, n1, n2):
     return graph.Graph(G, pos=pos_dict, name="Barbell graph")
 
 
-def BuckyBall(self):
+def BuckyBall():
     r"""
     Create the Bucky Ball graph.
 
@@ -286,7 +287,7 @@ def BuckyBall(self):
 
     return g
 
-def BullGraph(self):
+def BullGraph():
     r"""
     Returns a bull graph with 5 nodes.
 
@@ -359,7 +360,7 @@ def BullGraph(self):
     G = networkx.bull_graph()
     return graph.Graph(G, pos=pos_dict, name="Bull graph")
 
-def ButterflyGraph(self):
+def ButterflyGraph():
     r"""
     Returns the butterfly graph.
 
@@ -417,7 +418,7 @@ def ButterflyGraph(self):
         4: [0, 0]}
     return graph.Graph(edge_dict, pos=pos_dict, name="Butterfly graph")
 
-def CircularLadderGraph(self, n):
+def CircularLadderGraph(n):
     """
     Returns a circular ladder graph with 2\*n nodes.
 
@@ -475,7 +476,7 @@ def CircularLadderGraph(self, n):
     G = networkx.circular_ladder_graph(n)
     return graph.Graph(G, pos=pos_dict, name="Circular Ladder graph")
 
-def ClawGraph(self):
+def ClawGraph():
     """
     Returns a claw graph.
 
@@ -503,7 +504,7 @@ def ClawGraph(self):
     G = networkx.complete_bipartite_graph(1,3)
     return graph.Graph(G, pos=pos_dict, name="Claw graph")
 
-def CycleGraph(self, n):
+def CycleGraph(n):
     r"""
     Returns a cycle graph with n nodes.
 
@@ -582,7 +583,7 @@ def CycleGraph(self, n):
     G = networkx.cycle_graph(n)
     return graph.Graph(G, pos=pos_dict, name="Cycle graph")
 
-def DiamondGraph(self):
+def DiamondGraph():
     """
     Returns a diamond graph with 4 nodes.
 
@@ -609,7 +610,7 @@ def DiamondGraph(self):
     G = networkx.diamond_graph()
     return graph.Graph(G, pos=pos_dict, name="Diamond Graph")
 
-def EmptyGraph(self):
+def EmptyGraph():
     """
     Returns an empty graph (0 nodes and 0 edges).
 
@@ -648,7 +649,7 @@ def EmptyGraph(self):
     """
     return graph.Graph(sparse=True)
 
-def ToroidalGrid2dGraph(self,n1,n2):
+def ToroidalGrid2dGraph(n1, n2):
     r"""
     Returns a toroidal 2-dimensional grid graph with `n_1n_2` nodes (`n_1`
     rows and `n_2` columns).
@@ -672,7 +673,7 @@ def ToroidalGrid2dGraph(self,n1,n2):
         True
     """
 
-    g = self.Grid2dGraph(n1,n2)
+    g = Grid2dGraph(n1,n2)
 
     g.add_edges([((i,0),(i,n2-1)) for i in range(n1)] + [((0,i),(n1-1,i)) for i in range(n2)])
 
@@ -691,7 +692,7 @@ def ToroidalGrid2dGraph(self,n1,n2):
 
     return g
 
-def Toroidal6RegularGrid2dGraph(self, n1, n2):
+def Toroidal6RegularGrid2dGraph(n1, n2):
     r"""
     Returns a toroidal 6-regular grid.
 
@@ -739,14 +740,14 @@ def Toroidal6RegularGrid2dGraph(self, n1, n2):
     if n1 <= 3 or n2 <= 3:
         raise ValueError("Parameters n1 and n2 must be integers larger than 3 !")
 
-    g = self.ToroidalGrid2dGraph(n1,n2)
+    g = ToroidalGrid2dGraph(n1,n2)
     for u,v in g:
         g.add_edge((u,v),((u+1)%n1,(v+1)%n2))
 
     g.name("Toroidal Hexagonal Grid graph on "+str(n1)+"x"+str(n2)+" elements")
     return g
 
-def Grid2dGraph(self, n1, n2):
+def Grid2dGraph(n1, n2):
     r"""
     Returns a `2`-dimensional grid graph with `n_1n_2` nodes (`n_1` rows and
     `n_2` columns).
@@ -798,7 +799,7 @@ def Grid2dGraph(self, n1, n2):
     G = networkx.grid_2d_graph(n1,n2)
     return graph.Graph(G, pos=pos_dict, name="2D Grid Graph")
 
-def GridGraph(self, dim_list):
+def GridGraph(dim_list):
     """
     Returns an n-dimensional grid graph.
 
@@ -833,7 +834,7 @@ def GridGraph(self, dim_list):
 
 
 
-def HouseGraph(self):
+def HouseGraph():
     """
     Returns a house graph with 5 nodes.
 
@@ -863,7 +864,7 @@ def HouseGraph(self):
     G = networkx.house_graph()
     return graph.Graph(G, pos=pos_dict, name="House Graph")
 
-def HouseXGraph(self):
+def HouseXGraph():
     """
     Returns a house X graph with 5 nodes.
 
@@ -894,7 +895,7 @@ def HouseXGraph(self):
     G = networkx.house_x_graph()
     return graph.Graph(G, pos=pos_dict, name="House Graph")
 
-def KrackhardtKiteGraph(self):
+def KrackhardtKiteGraph():
     """
     Returns a Krackhardt kite graph with 10 nodes.
 
@@ -938,7 +939,7 @@ def KrackhardtKiteGraph(self):
     G = networkx.krackhardt_kite_graph()
     return graph.Graph(G, pos=pos_dict, name="Krackhardt Kite Graph")
 
-def LadderGraph(self, n):
+def LadderGraph(n):
     """
     Returns a ladder graph with 2\*n nodes.
 
@@ -989,7 +990,7 @@ def LadderGraph(self, n):
     G = networkx.ladder_graph(n)
     return graph.Graph(G, pos=pos_dict, name="Ladder graph")
 
-def LollipopGraph(self, n1, n2):
+def LollipopGraph(n1, n2):
     """
     Returns a lollipop graph with n1+n2 nodes.
 
@@ -1047,7 +1048,7 @@ def LollipopGraph(self, n1, n2):
     G = networkx.lollipop_graph(n1,n2)
     return graph.Graph(G, pos=pos_dict, name="Lollipop Graph")
 
-def PathGraph(self, n, pos=None):
+def PathGraph(n, pos=None):
     """
     Returns a path graph with n nodes. Pos argument takes a string
     which is either 'circle' or 'line', (otherwise the default is
@@ -1144,7 +1145,7 @@ def PathGraph(self, n, pos=None):
     G = networkx.path_graph(n)
     return graph.Graph(G, pos=pos_dict, name="Path Graph")
 
-def StarGraph(self, n):
+def StarGraph(n):
     """
     Returns a star graph with n+1 nodes.
 
@@ -1229,7 +1230,7 @@ def StarGraph(self, n):
     G = networkx.star_graph(n)
     return graph.Graph(G, pos=pos_dict, name="Star graph")
 
-def WheelGraph(self, n):
+def WheelGraph(n):
     """
     Returns a Wheel graph with n nodes.
 

@@ -11,7 +11,6 @@ AUTHORS:
 
 """
 
-
 ###########################################################################
 #
 #           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
@@ -26,6 +25,162 @@ AUTHORS:
 from sage.graphs.graph import Graph
 from sage.graphs import graph
 from math import sin, cos, pi
+
+def HararyGraph( self, k, n ):
+    r"""
+    Returns the Harary graph on `n` vertices and connectivity `k`, where
+    `2 \leq k < n`.
+
+    A `k`-connected graph `G` on `n` vertices requires the minimum degree
+    `\delta(G)\geq k`, so the minimum number of edges `G` should have is
+    `\lceil kn/2\rceil`. Harary graphs achieve this lower bound, that is,
+    Harary graphs are minimal `k`-connected graphs on `n` vertices.
+
+    The construction provided uses the method CirculantGraph.  For more
+    details, see the book D. B. West, Introduction to Graph Theory, 2nd
+    Edition, Prentice Hall, 2001, p. 150--151; or the `MathWorld article on
+    Harary graphs <http://mathworld.wolfram.com/HararyGraph.html>`_.
+
+    EXAMPLES:
+
+    Harary graphs `H_{k,n}`::
+
+        sage: h = graphs.HararyGraph(5,9); h
+        Harary graph 5, 9: Graph on 9 vertices
+        sage: h.order()
+        9
+        sage: h.size()
+        23
+        sage: h.vertex_connectivity()
+        5
+
+    TESTS:
+
+    Connectivity of some Harary graphs::
+
+        sage: n=10
+        sage: for k in range(2,n):
+        ...       g = graphs.HararyGraph(k,n)
+        ...       if k != g.vertex_connectivity():
+        ...          print "Connectivity of Harary graphs not satisfied."
+    """
+    if k < 2:
+        raise ValueError("Connectivity parameter k should be at least 2.")
+    if k >= n:
+        raise ValueError("Number of vertices n should be greater than k.")
+
+    if k%2 == 0:
+        G = self.CirculantGraph( n, range(1,k/2+1) )
+    else:
+        if n%2 == 0:
+            G = self.CirculantGraph( n, range(1,(k-1)/2+1) )
+            for i in range(n):
+                G.add_edge( i, (i+n/2)%n )
+        else:
+            G = self.HararyGraph( k-1, n )
+            for i in range((n-1)/2+1):
+                G.add_edge( i, (i+(n-1)/2)%n )
+    G.name('Harary graph {0}, {1}'.format(k,n))
+    return G
+
+def DorogovtsevGoltsevMendesGraph(self, n):
+    """
+    Construct the n-th generation of the Dorogovtsev-Goltsev-Mendes
+    graph.
+
+    EXAMPLE::
+
+        sage: G = graphs.DorogovtsevGoltsevMendesGraph(8)
+        sage: G.size()
+        6561
+
+    REFERENCE:
+
+    - [1] Dorogovtsev, S. N., Goltsev, A. V., and Mendes, J.
+      F. F., Pseudofractal scale-free web, Phys. Rev. E 066122
+      (2002).
+    """
+    import networkx
+    return graph.Graph(networkx.dorogovtsev_goltsev_mendes_graph(n),\
+           name="Dorogovtsev-Goltsev-Mendes Graph, %d-th generation"%n)
+
+def IntervalGraph(self,intervals):
+    r"""
+    Returns the graph corresponding to the given intervals.
+
+    An interval graph is built from a list `(a_i,b_i)_{1\leq i \leq n}`
+    of intervals : to each interval of the list is associated one
+    vertex, two vertices being adjacent if the two corresponding
+    (closed) intervals intersect.
+
+    INPUT:
+
+    - ``intervals`` -- the list of pairs `(a_i,b_i)`
+      defining the graph.
+
+    .. NOTE::
+
+        * The vertices are named 0, 1, 2, and so on. The
+          intervals used to create the graph are saved with the
+          graph and can be recovered using ``get_vertex()`` or
+          ``get_vertices()``.
+
+        * The intervals `(a_i,b_i)` need not verify `a_i<b_i`.
+
+    EXAMPLE:
+
+    The following line creates the sequence of intervals
+    `(i, i+2)` for i in `[0, ..., 8]`::
+
+        sage: intervals = [(i,i+2) for i in range(9)]
+
+    In the corresponding graph... ::
+
+        sage: g = graphs.IntervalGraph(intervals)
+        sage: g.get_vertex(3)
+        (3, 5)
+        sage: neigh = g.neighbors(3)
+        sage: for v in neigh: print g.get_vertex(v)
+        (1, 3)
+        (2, 4)
+        (4, 6)
+        (5, 7)
+
+    The is_interval() method verifies that this graph is an interval
+    graph. ::
+
+        sage: g.is_interval()
+        True
+
+    The intervals in the list need not be distinct. ::
+
+        sage: intervals = [ (1,2), (1,2), (1,2), (2,3), (3,4) ]
+        sage: g = graphs.IntervalGraph(intervals)
+        sage: g.clique_maximum()
+        [0, 1, 2, 3]
+        sage: g.get_vertices()
+        {0: (1, 2), 1: (1, 2), 2: (1, 2), 3: (2, 3), 4: (3, 4)}
+
+    """
+
+    n = len(intervals)
+    g = graph.Graph(n)
+
+    edges = []
+
+    for i in range(n-1):
+        I = intervals[i]
+        for j in range(i+1,n):
+            J = intervals[j]
+            if max(I) < min(J) or max(J) < min(I): continue
+            edges.append((i,j))
+
+    g.add_edges(edges)
+
+    rep = dict( zip(range(n),intervals) )
+    g.set_vertices(rep)
+
+    return g
 
 def MycielskiGraph(self, k=1, relabel=True):
     r"""
@@ -1936,8 +2091,8 @@ def RingedTree(self, k, vertex_labels = True):
     if k<1:
         raise ValueError('The number of levels must be >= 1.')
 
-    from sage.graphs.graph_generators import _circle_embedding
-    from sage.graphs.graph_generators import GraphGenerators
+    from sage.graphs.graph_plot import _circle_embedding
+    from sage.graphs.graph_plot import GraphGenerators
 
     # Creating the Balanced tree, which contains most edges already
     g = GraphGenerators().BalancedTree(2,k-1)

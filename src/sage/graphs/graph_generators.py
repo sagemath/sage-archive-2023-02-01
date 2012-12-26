@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 r"""
 Common graphs
 
@@ -72,7 +71,6 @@ Basic structures
 - :meth:`HouseXGraph <GraphGenerators.HouseXGraph>`
 - :meth:`KrackhardtKiteGraph <GraphGenerators.KrackhardtKiteGraph>`
 - :meth:`LadderGraph <GraphGenerators.LadderGraph>`
-- :meth:`LCFGraph <GraphGenerators.LCFGraph>`
 - :meth:`LollipopGraph <GraphGenerators.LollipopGraph>`
 - :meth:`PathGraph <GraphGenerators.PathGraph>`
 - :meth:`StarGraph <GraphGenerators.StarGraph>`
@@ -128,6 +126,7 @@ Named Graphs
 - :meth:`McGeeGraph <GraphGenerators.McGeeGraph>`
 - :meth:`MoebiusKantorGraph <GraphGenerators.MoebiusKantorGraph>`
 - :meth:`MoserSpindle <GraphGenerators.MoserSpindle>`
+- :meth:`NauruGraph <GraphGenerators.NauruGraph>`
 - :meth:`PappusGraph <GraphGenerators.PappusGraph>`
 - :meth:`PetersenGraph <GraphGenerators.PetersenGraph>`
 - :meth:`ShrikhandeGraph <GraphGenerators.ShrikhandeGraph>`
@@ -152,6 +151,7 @@ Families of graphs
 - :meth:`GeneralizedPetersenGraph <GraphGenerators.GeneralizedPetersenGraph>`
 - :meth:`HanoiTowerGraph <GraphGenerators.HanoiTowerGraph>`
 - :meth:`HyperStarGraph <GraphGenerators.HyperStarGraph>`
+- :meth:`IntervalGraph <GraphGenerators.IntervalGraph>`
 - :meth:`KneserGraph <GraphGenerators.KneserGraph>`
 - :meth:`LCFGraph <GraphGenerators.LCFGraph>`
 - :meth:`MycielskiGraph <GraphGenerators.MycielskiGraph>`
@@ -539,111 +539,6 @@ class GraphGenerators():
       of Algorithms*, Volume 26, Issue 2, February 1998, pages 306-324.
     """
 
-################################################################################
-#   Pseudofractal Graphs
-################################################################################
-
-    def DorogovtsevGoltsevMendesGraph(self, n):
-        """
-        Construct the n-th generation of the Dorogovtsev-Goltsev-Mendes
-        graph.
-
-        EXAMPLE::
-
-            sage: G = graphs.DorogovtsevGoltsevMendesGraph(8)
-            sage: G.size()
-            6561
-
-        REFERENCE:
-
-        - [1] Dorogovtsev, S. N., Goltsev, A. V., and Mendes, J.
-          F. F., Pseudofractal scale-free web, Phys. Rev. E 066122
-          (2002).
-        """
-        import networkx
-        return graph.Graph(networkx.dorogovtsev_goltsev_mendes_graph(n),\
-               name="Dorogovtsev-Goltsev-Mendes Graph, %d-th generation"%n)
-
-    def IntervalGraph(self,intervals):
-        r"""
-        Returns the graph corresponding to the given intervals.
-
-        An interval graph is built from a list `(a_i,b_i)_{1\leq i \leq n}`
-        of intervals : to each interval of the list is associated one
-        vertex, two vertices being adjacent if the two corresponding
-        (closed) intervals intersect.
-
-        INPUT:
-
-        - ``intervals`` -- the list of pairs `(a_i,b_i)`
-          defining the graph.
-
-        .. NOTE::
-
-            * The vertices are named 0, 1, 2, and so on. The
-              intervals used to create the graph are saved with the
-              graph and can be recovered using ``get_vertex()`` or
-              ``get_vertices()``.
-
-            * The intervals `(a_i,b_i)` need not verify `a_i<b_i`.
-
-        EXAMPLE:
-
-        The following line creates the sequence of intervals
-        `(i, i+2)` for i in `[0, ..., 8]`::
-
-            sage: intervals = [(i,i+2) for i in range(9)]
-
-        In the corresponding graph... ::
-
-            sage: g = graphs.IntervalGraph(intervals)
-            sage: g.get_vertex(3)
-            (3, 5)
-            sage: neigh = g.neighbors(3)
-            sage: for v in neigh: print g.get_vertex(v)
-            (1, 3)
-            (2, 4)
-            (4, 6)
-            (5, 7)
-
-        The is_interval() method verifies that this graph is an interval
-        graph. ::
-
-            sage: g.is_interval()
-            True
-
-        The intervals in the list need not be distinct. ::
-
-            sage: intervals = [ (1,2), (1,2), (1,2), (2,3), (3,4) ]
-            sage: g = graphs.IntervalGraph(intervals)
-            sage: g.clique_maximum()
-            [0, 1, 2, 3]
-            sage: g.get_vertices()
-            {0: (1, 2), 1: (1, 2), 2: (1, 2), 3: (2, 3), 4: (3, 4)}
-
-        """
-
-        n = len(intervals)
-        g = graph.Graph(n)
-
-        edges = []
-
-        for i in range(n-1):
-            I = intervals[i]
-            for j in range(i+1,n):
-                J = intervals[j]
-                if max(I) < min(J) or max(J) < min(I): continue
-                edges.append((i,j))
-
-        g.add_edges(edges)
-
-        rep = dict( zip(range(n),intervals) )
-        g.set_vertices(rep)
-
-        return g
-
-
-
 ###########################################################################
 #   Graph Iterators
 ###########################################################################
@@ -1006,11 +901,14 @@ class GraphGenerators():
     CompleteBipartiteGraph = sage.graphs.generators.families.CompleteBipartiteGraph
     CompleteMultipartiteGraph = sage.graphs.generators.families.CompleteMultipartiteGraph
     CubeGraph = sage.graphs.generators.families.CubeGraph
+    DorogovtsevGoltsevMendesGraph = sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph
     FriendshipGraph = sage.graphs.generators.families.FriendshipGraph
     FuzzyBallGraph = sage.graphs.generators.families.FuzzyBallGraph
     FibonacciTree = sage.graphs.generators.families.FibonacciTree
     GeneralizedPetersenGraph = sage.graphs.generators.families.GeneralizedPetersenGraph
     HyperStarGraph = sage.graphs.generators.families.HyperStarGraph
+    HararyGraph = sage.graphs.generators.families.HararyGraph
+    IntervalGraph = sage.graphs.generators.families.IntervalGraph
     LCFGraph = sage.graphs.generators.families.LCFGraph
     NKStarGraph = sage.graphs.generators.families.NKStarGraph
     NStarGraph = sage.graphs.generators.families.NStarGraph
@@ -1050,7 +948,6 @@ class GraphGenerators():
     GrotzschGraph = sage.graphs.generators.smallgraphs.GrotzschGraph
     HallJankoGraph = sage.graphs.generators.smallgraphs.HallJankoGraph
     HarriesGraph = sage.graphs.generators.smallgraphs.HarriesGraph
-    HararyGraph = sage.graphs.generators.smallgraphs.HararyGraph
     HarriesWongGraph = sage.graphs.generators.smallgraphs.HarriesWongGraph
     HeawoodGraph = sage.graphs.generators.smallgraphs.HeawoodGraph
     HerschelGraph = sage.graphs.generators.smallgraphs.HerschelGraph
@@ -1547,73 +1444,3 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
 
 # Easy access to the graph generators from the command line:
 graphs = GraphGenerators()
-
-
-####################
-# Helper functions #
-####################
-
-def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
-    r"""
-    Set some vertices on a circle in the embedding of a graph G.
-
-    This method modifies the graph's embedding so that the vertices
-    listed in ``vertices`` appear in this ordering on a circle of given
-    radius and center. The ``shift`` parameter is actually a rotation of
-    the circle. A value of ``shift=1`` will replace in the drawing the
-    `i`-th element of the list by the `(i-1)`-th. Non-integer values are
-    admissible, and a value of `\alpha` corresponds to a rotation of the
-    circle by an angle of `\alpha 2\pi/n` (where `n` is the number of
-    vertices set on the circle).
-
-    EXAMPLE::
-
-        sage: from sage.graphs.graph_generators import _circle_embedding
-        sage: g = graphs.CycleGraph(5)
-        sage: _circle_embedding(g, [0, 2, 4, 1, 3], radius=2, shift=.5)
-        sage: g.show()
-    """
-    c_x, c_y = center
-    n = len(vertices)
-    d = g.get_pos()
-    if d is None:
-        d = {}
-
-    for i,v in enumerate(vertices):
-        i += shift
-        v_x = c_x + radius * cos(2*i*pi / n)
-        v_y = c_y + radius * sin(2*i*pi / n)
-        d[v] = (v_x, v_y)
-
-    g.set_pos(d)
-
-def _line_embedding(g, vertices, first=(0, 0), last=(0, 1)):
-    r"""
-    Sets some vertices on a line in the embedding of a graph G.
-
-    This method modifies the graph's embedding so that the vertices of
-    ``vertices`` appear on a line, where the position of ``vertices[0]``
-    is the pair ``first`` and the position of ``vertices[-1]`` is
-    ``last``. The vertices are evenly spaced.
-
-    EXAMPLE::
-
-        sage: from sage.graphs.graph_generators import _line_embedding
-        sage: g = graphs.PathGraph(5)
-        sage: _line_embedding(g, [0, 2, 4, 1, 3], first=(-1, -1), last=(1, 1))
-        sage: g.show()
-    """
-    n = len(vertices) - 1.
-
-    fx, fy = first
-    dx = (last[0] - first[0])/n
-    dy = (last[1] - first[1])/n
-
-    d = g.get_pos()
-    if d is None:
-        d = {}
-
-    for v in vertices:
-        d[v] = (fx, fy)
-        fx += dx
-        fy += dy

@@ -501,7 +501,7 @@ def BubbleSortGraph(n):
         raise ValueError(
             "Invalid number of symbols to permute, n should be >= 1")
     if n == 1:
-        from sage.graphs.generators.families import CompleteGraph
+        from sage.graphs.generators.basic import CompleteGraph
         return graph.Graph(CompleteGraph(n), name="Bubble sort")
     from sage.combinat.permutation import Permutations
     #create set from which to permute
@@ -628,259 +628,6 @@ def CirculantGraph(n, adjacency):
         G.add_edges([(v,(v+j)%n) for j in adjacency])
         G.add_edges([(v,(v-j)%n) for j in adjacency])
     return G
-
-def CompleteGraph(n):
-    """
-    Returns a complete graph on n nodes.
-
-    A Complete Graph is a graph in which all nodes are connected to all
-    other nodes.
-
-    This constructor is dependent on vertices numbered 0 through n-1 in
-    NetworkX complete_graph()
-
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, each complete
-    graph will be displayed with the first (0) node at the top, with
-    the rest following in a counterclockwise manner.
-
-    In the complete graph, there is a big difference visually in using
-    the spring-layout algorithm vs. the position dictionary used in
-    this constructor. The position dictionary flattens the graph,
-    making it clear which nodes an edge is connected to. But the
-    complete graph offers a good example of how the spring-layout
-    works. The edges push outward (everything is connected), causing
-    the graph to appear as a 3-dimensional pointy ball. (See examples
-    below).
-
-    EXAMPLES: We view many Complete graphs with a Sage Graphics Array,
-    first with this constructor (i.e., the position dictionary
-    filled)::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(9):
-        ...    k = graphs.CompleteGraph(i+3)
-        ...    g.append(k)
-        ...
-        sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-
-    We compare to plotting with the spring-layout algorithm::
-
-        sage: import networkx
-        sage: g = []
-        sage: j = []
-        sage: for i in range(9):
-        ...    spr = networkx.complete_graph(i+3)
-        ...    k = Graph(spr)
-        ...    g.append(k)
-        ...
-        sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-
-    Compare the constructors (results will vary)
-
-    ::
-
-        sage: import networkx
-        sage: t = cputime()
-        sage: n = networkx.complete_graph(389); spring389 = Graph(n)
-        sage: cputime(t)           # random
-        0.59203700000000126
-        sage: t = cputime()
-        sage: posdict389 = graphs.CompleteGraph(389)
-        sage: cputime(t)           # random
-        0.6680419999999998
-
-    We compare plotting::
-
-        sage: import networkx
-        sage: n = networkx.complete_graph(23)
-        sage: spring23 = Graph(n)
-        sage: posdict23 = graphs.CompleteGraph(23)
-        sage: spring23.show() # long time
-        sage: posdict23.show() # long time
-    """
-    pos_dict = {}
-    for i in range(n):
-        x = float(cos((pi/2) + ((2*pi)/n)*i))
-        y = float(sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.complete_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Complete graph")
-
-def CompleteBipartiteGraph(n1, n2):
-    """
-    Returns a Complete Bipartite Graph sized n1+n2, with each of the
-    nodes [0,(n1-1)] connected to each of the nodes [n1,(n2-1)] and
-    vice versa.
-
-    A Complete Bipartite Graph is a graph with its vertices partitioned
-    into two groups, V1 and V2. Each v in V1 is connected to every v in
-    V2, and vice versa.
-
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, each complete
-    bipartite graph will be displayed with the first n1 nodes on the
-    top row (at y=1) from left to right. The remaining n2 nodes appear
-    at y=0, also from left to right. The shorter row (partition with
-    fewer nodes) is stretched to the same length as the longer row,
-    unless the shorter row has 1 node; in which case it is centered.
-    The x values in the plot are in domain [0,maxn1,n2].
-
-    In the Complete Bipartite graph, there is a visual difference in
-    using the spring-layout algorithm vs. the position dictionary used
-    in this constructor. The position dictionary flattens the graph and
-    separates the partitioned nodes, making it clear which nodes an
-    edge is connected to. The Complete Bipartite graph plotted with the
-    spring-layout algorithm tends to center the nodes in n1 (see
-    spring_med in examples below), thus overlapping its nodes and
-    edges, making it typically hard to decipher.
-
-    Filling the position dictionary in advance adds O(n) to the
-    constructor. Feel free to race the constructors below in the
-    examples section. The much larger difference is the time added by
-    the spring-layout algorithm when plotting. (Also shown in the
-    example below). The spring model is typically described as
-    `O(n^3)`, as appears to be the case in the NetworkX source
-    code.
-
-    EXAMPLES: Two ways of constructing the complete bipartite graph,
-    using different layout algorithms::
-
-        sage: import networkx
-        sage: n = networkx.complete_bipartite_graph(389,157); spring_big = Graph(n)   # long time
-        sage: posdict_big = graphs.CompleteBipartiteGraph(389,157)                    # long time
-
-    Compare the plotting::
-
-        sage: n = networkx.complete_bipartite_graph(11,17)
-        sage: spring_med = Graph(n)
-        sage: posdict_med = graphs.CompleteBipartiteGraph(11,17)
-
-    Notice here how the spring-layout tends to center the nodes of n1
-
-    ::
-
-        sage: spring_med.show() # long time
-        sage: posdict_med.show() # long time
-
-    View many complete bipartite graphs with a Sage Graphics Array,
-    with this constructor (i.e., the position dictionary filled)::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(9):
-        ...    k = graphs.CompleteBipartiteGraph(i+1,4)
-        ...    g.append(k)
-        ...
-        sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-
-    We compare to plotting with the spring-layout algorithm::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(9):
-        ...    spr = networkx.complete_bipartite_graph(i+1,4)
-        ...    k = Graph(spr)
-        ...    g.append(k)
-        ...
-        sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-
-    Trac ticket #12155::
-
-        sage: graphs.CompleteBipartiteGraph(5,6).complement()
-        complement(Complete bipartite graph): Graph on 11 vertices
-    """
-    pos_dict = {}
-    c1 = 1 # scaling factor for top row
-    c2 = 1 # scaling factor for bottom row
-    c3 = 0 # pad to center if top row has 1 node
-    c4 = 0 # pad to center if bottom row has 1 node
-    if n1 > n2:
-        if n2 == 1:
-            c4 = (n1-1)/2
-        else:
-            c2 = ((n1-1)/(n2-1))
-    elif n2 > n1:
-        if n1 == 1:
-            c3 = (n2-1)/2
-        else:
-            c1 = ((n2-1)/(n1-1))
-    for i in range(n1):
-        x = c1*i + c3
-        y = 1
-        pos_dict[i] = (x,y)
-    for i in range(n1+n2)[n1:]:
-        x = c2*(i-n1) + c4
-        y = 0
-        pos_dict[i] = (x,y)
-    import networkx
-    from sage.graphs.graph import Graph
-    G = networkx.complete_bipartite_graph(n1,n2)
-    return Graph(G, pos=pos_dict, name="Complete bipartite graph")
-
-def CompleteMultipartiteGraph(l):
-    r"""
-    Returns a complete multipartite graph.
-
-    INPUT:
-
-    - ``l`` -- a list of integers : the respective sizes
-      of the components.
-
-    EXAMPLE:
-
-    A complete tripartite graph with sets of sizes
-    `5, 6, 8`::
-
-        sage: g = graphs.CompleteMultipartiteGraph([5, 6, 8]); g
-        Multipartite Graph with set sizes [5, 6, 8]: Graph on 19 vertices
-
-    It clearly has a chromatic number of 3::
-
-        sage: g.chromatic_number()
-        3
-    """
-
-    from sage.graphs.graph import Graph
-    from sage.graphs.generators.families import CompleteGraph
-    g = Graph()
-    for i in l:
-        g = g + CompleteGraph(i)
-
-    g = g.complement()
-    g.name("Multipartite Graph with set sizes "+str(l))
-
-    return g
 
 def CubeGraph(n):
     r"""
@@ -1124,6 +871,7 @@ def FuzzyBallGraph(partition, q):
         sage: set([g.laplacian_matrix(normalized=True).charpoly() for g in g_list])  # long time (7s on sage.math, 2011)
         set([x^8 - 8*x^7 + 4079/150*x^6 - 68689/1350*x^5 + 610783/10800*x^4 - 120877/3240*x^3 + 1351/100*x^2 - 931/450*x])
     """
+    from sage.graphs.generators.basic import CompleteGraph
     if len(partition)<1:
         raise ValueError, "partition must be a nonempty list of positive integers"
     n=q+sum(partition)
@@ -2094,10 +1842,9 @@ def RingedTree(k, vertex_labels = True):
         raise ValueError('The number of levels must be >= 1.')
 
     from sage.graphs.graph_plot import _circle_embedding
-    from sage.graphs.graph_plot import GraphGenerators
 
     # Creating the Balanced tree, which contains most edges already
-    g = GraphGenerators().BalancedTree(2,k-1)
+    g = BalancedTree(2,k-1)
     g.name('Ringed Tree on '+str(k)+' levels')
 
     # We consider edges layer by layer

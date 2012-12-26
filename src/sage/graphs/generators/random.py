@@ -114,7 +114,7 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
     if seed is None:
         seed = current_randstate().long_seed()
     if p == 1:
-        from sage.graphs.generators.families import CompleteGraph
+        from sage.graphs.generators.basic import CompleteGraph
         return CompleteGraph(n)
 
     if method == 'networkx':

@@ -55,6 +55,9 @@ __append_to_doc(
      "CircularLadderGraph",
      "ClawGraph",
      "CycleGraph",
+     "CompleteBipartiteGraph",
+     "CompleteGraph",
+     "CompleteMultipartiteGraph",
      "DiamondGraph",
      "EmptyGraph",
      "Grid2dGraph",
@@ -140,8 +143,6 @@ __append_to_doc(
     ["BalancedTree",
      "BubbleSortGraph",
      "CirculantGraph",
-     "CompleteBipartiteGraph",
-     "CompleteGraph",
      "CubeGraph",
      "FibonacciTree",
      "FriendshipGraph",
@@ -909,9 +910,6 @@ class GraphGenerators():
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
-    CompleteGraph          = staticmethod(sage.graphs.generators.families.CompleteGraph)
-    CompleteBipartiteGraph = staticmethod(sage.graphs.generators.families.CompleteBipartiteGraph)
-    CompleteMultipartiteGraph = staticmethod(sage.graphs.generators.families.CompleteMultipartiteGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
     FriendshipGraph        = staticmethod(sage.graphs.generators.families.FriendshipGraph)
@@ -992,6 +990,9 @@ class GraphGenerators():
     CircularLadderGraph      = staticmethod(sage.graphs.generators.basic.CircularLadderGraph)
     ClawGraph                = staticmethod(sage.graphs.generators.basic.ClawGraph)
     CycleGraph               = staticmethod(sage.graphs.generators.basic.CycleGraph)
+    CompleteGraph            = staticmethod(sage.graphs.generators.basic.CompleteGraph)
+    CompleteBipartiteGraph   = staticmethod(sage.graphs.generators.basic.CompleteBipartiteGraph)
+    CompleteMultipartiteGraph= staticmethod(sage.graphs.generators.basic.CompleteMultipartiteGraph)
     DiamondGraph             = staticmethod(sage.graphs.generators.basic.DiamondGraph)
     EmptyGraph               = staticmethod(sage.graphs.generators.basic.EmptyGraph)
     Grid2dGraph              = staticmethod(sage.graphs.generators.basic.Grid2dGraph)

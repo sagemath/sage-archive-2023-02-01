@@ -1,5 +1,29 @@
 """
 Graph Plotting
+
+All graphs have an associated Sage graphics object, which you can display::
+
+    sage: G = graphs.WheelGraph(15)
+    sage: P = G.plot()
+    sage: P.show() # long time
+
+If you create a graph in Sage using the ``Graph`` command, then plot that graph,
+the positioning of nodes is determined using the spring-layout algorithm. For
+the special graph constructors, which you get using ``graphs.[tab]``, the
+positions are preset. For example, consider the Petersen graph with default node
+positioning vs. the Petersen graph constructed by this database::
+
+    sage: petersen_spring = Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9], 5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]})
+    sage: petersen_spring.show() # long time
+    sage: petersen_database = graphs.PetersenGraph()
+    sage: petersen_database.show() # long time
+
+For all the constructors in this database (except the octahedral, dodecahedral,
+random and empty graphs), the position dictionary is filled in, instead of using
+the spring-layout algorithm.
+
+Functions and methods
+---------------------
 """
 
 #*****************************************************************************

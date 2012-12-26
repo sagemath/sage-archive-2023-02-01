@@ -2,214 +2,221 @@
 r"""
 Common graphs
 
-Usage
-=====
+All graphs in Sage can be built through the ``graphs`` object : in order to
+build a complete graph on `15` elements, one can do::
 
-To see a list of all graph constructors, type "graphs." and then
-press the tab key. The documentation for each constructor includes
-information about each graph, which provides a useful reference.
+    sage: g = graphs.CompleteGraph(15)
 
+More interestingly, one can get the list of all graphs that Sage knows how to
+buid by typing ``graphs.`` in Sage, then hitting tab.
+"""
 
-Plotting
-========
+# This method appends a list of methods to the doc as a 3xN table.
 
-All graphs (i.e., networks) have an associated Sage
-graphics object, which you can display::
+# Here's the point :
+#
+# we just have to insert the method's name in this file to add it to
+# the tab, and in exchange the doc contains a table of width 3 with
+# all methods listed, so that the reading order is Column1, then
+# Column2, then Column3. Doing this by hand is hell with Sphinx when
+# you need to insert a new method inside of the list !
 
-    sage: G = graphs.WheelGraph(15)
-    sage: P = G.plot()
-    sage: P.show() # long time
+def __append_to_doc(methods):
+    global __doc__
+    __doc__ += ("\n.. csv-table::\n"
+    "    :class: contentstable\n"
+    "    :widths: 33, 33, 33\n"
+    "    :delim: |\n\n")
 
-If you create a graph in Sage using the ``Graph``
-command, then plot that graph, the positioning of nodes is
-determined using the spring-layout algorithm. For the special graph
-constructors, which you get using ``graphs.[tab]``, the
-positions are preset. For example, consider the Petersen graph with
-default node positioning vs. the Petersen graph constructed by this
-database::
+    h = (len(methods)+2)//3
+    # Reorders the list of methods for horizontal reading, the only one Sphinx understands
+    reordered_methods = [0]*3*h
+    for i, m in enumerate(methods):
+        reordered_methods[3*(i%h)+(i//h)] = m
+    methods = reordered_methods
 
-    sage: petersen_spring = Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9], 5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]})
-    sage: petersen_spring.show() # long time
-    sage: petersen_database = graphs.PetersenGraph()
-    sage: petersen_database.show() # long time
+    # Adding the list to the __doc__ string
+    wrap_name = lambda x : ":meth:`"+str(x)+" <GraphGenerators."+str(x)+">`" if x else ""
+    while methods:
+        a = methods.pop(0)
+        b = methods.pop(0)
+        c = methods.pop(0)
+        __doc__ += "    "+wrap_name(a)+" | "+wrap_name(b)+" | "+wrap_name(c)+"\n"
 
-For all the constructors in this database (except the octahedral,
-dodecahedral, random and empty graphs), the position dictionary is
-filled in, instead of using the spring-layout algorithm.
+__doc__ += """
+**Basic structures**
+"""
 
-For further visual examples and explanation, see the docstrings
-below, particularly for
-:meth:`CycleGraph <GraphGenerators.CycleGraph>`,
-:meth:`StarGraph <GraphGenerators.StarGraph>`,
-:meth:`WheelGraph <GraphGenerators.WheelGraph>`,
-:meth:`CompleteGraph <GraphGenerators.CompleteGraph>`, and
-:meth:`CompleteBipartiteGraph <GraphGenerators.CompleteBipartiteGraph>`.
+__append_to_doc(
+    ["BarbellGraph",
+     "BuckyBall",
+     "BullGraph",
+     "ButterflyGraph",
+     "CircularLadderGraph",
+     "ClawGraph",
+     "CycleGraph",
+     "DiamondGraph",
+     "EmptyGraph",
+     "Grid2dGraph",
+     "GridGraph",
+     "HouseGraph",
+     "HouseXGraph",
+     "KrackhardtKiteGraph",
+     "LadderGraph",
+     "LollipopGraph",
+     "PathGraph",
+     "StarGraph",
+     "ToroidalGrid2dGraph",
+     "Toroidal6RegularGrid2dGraph",
+     "WheelGraph"]
+    )
 
-.. _organization:
+__doc__ += """
+**Platonic solids**
+"""
 
-Organization
-============
+__append_to_doc(["DodecahedralGraph",
+"HexahedralGraph",
+"IcosahedralGraph",
+"OctahedralGraph",
+"TetrahedralGraph"])
 
-The constructors available in this database are
-organized as follows.
+__doc__ += """
+**Small Graphs**
+"""
 
-Basic structures
-----------------
+__append_to_doc(
+    ["Balaban10Cage",
+     "Balaban11Cage",
+     "BidiakisCube",
+     "BiggsSmithGraph",
+     "BrinkmannGraph",
+     "ChvatalGraph",
+     "ClebschGraph",
+     "CoxeterGraph",
+     "DoubleStarSnark",
+     "DesarguesGraph",
+     "DurerGraph",
+     "DyckGraph",
+     "EllinghamHorton54Graph",
+     "EllinghamHorton78Graph",
+     "ErreraGraph",
+     "FlowerSnark",
+     "FosterGraph",
+     "FranklinGraph",
+     "FruchtGraph",
+     "GoldnerHararyGraph",
+     "GrayGraph",
+     "GrotzschGraph",
+     "HallJankoGraph",
+     "HararyGraph",
+     "HarriesGraph",
+     "HarriesWongGraph",
+     "HeawoodGraph",
+     "HerschelGraph",
+     "HigmanSimsGraph",
+     "HoffmanSingletonGraph",
+     "HoffmanGraph",
+     "HoltGraph",
+     "LjubljanaGraph",
+     "McGeeGraph",
+     "MoebiusKantorGraph",
+     "MoserSpindle",
+     "NauruGraph",
+     "PappusGraph",
+     "PetersenGraph",
+     "ShrikhandeGraph",
+     "ThomsenGraph",
+     "Tutte12Cage",
+     "TutteCoxeterGraph",
+     "WagnerGraph"])
 
-- :meth:`BarbellGraph <GraphGenerators.BarbellGraph>`
-- :meth:`BuckyBall <GraphGenerators.BuckyBall>`
-- :meth:`BullGraph <GraphGenerators.BullGraph>`
-- :meth:`ButterflyGraph <GraphGenerators.ButterflyGraph>`
-- :meth:`CircularLadderGraph <GraphGenerators.CircularLadderGraph>`
-- :meth:`ClawGraph <GraphGenerators.ClawGraph>`
-- :meth:`CycleGraph <GraphGenerators.CycleGraph>`
-- :meth:`DiamondGraph <GraphGenerators.DiamondGraph>`
-- :meth:`EmptyGraph <GraphGenerators.EmptyGraph>`
-- :meth:`Grid2dGraph <GraphGenerators.Grid2dGraph>`
-- :meth:`GridGraph <GraphGenerators.GridGraph>`
-- :meth:`HouseGraph <GraphGenerators.HouseGraph>`
-- :meth:`HouseXGraph <GraphGenerators.HouseXGraph>`
-- :meth:`KrackhardtKiteGraph <GraphGenerators.KrackhardtKiteGraph>`
-- :meth:`LadderGraph <GraphGenerators.LadderGraph>`
-- :meth:`LollipopGraph <GraphGenerators.LollipopGraph>`
-- :meth:`PathGraph <GraphGenerators.PathGraph>`
-- :meth:`StarGraph <GraphGenerators.StarGraph>`
-- :meth:`ToroidalGrid2dGraph <GraphGenerators.ToroidalGrid2dGraph>`
-- :meth:`Toroidal6RegularGrid2dGraph <GraphGenerators.Toroidal6RegularGrid2dGraph>`
-- :meth:`WheelGraph <GraphGenerators.WheelGraph>`
+__doc__ += """
+**Families of graphs**
+"""
 
-Platonic solids
----------------
+__append_to_doc(
+    ["BalancedTree",
+     "BubbleSortGraph",
+     "CirculantGraph",
+     "CompleteBipartiteGraph",
+     "CompleteGraph",
+     "CubeGraph",
+     "FibonacciTree",
+     "FriendshipGraph",
+     "FuzzyBallGraph",
+     "GeneralizedPetersenGraph",
+     "HanoiTowerGraph",
+     "HyperStarGraph",
+     "IntervalGraph",
+     "KneserGraph",
+     "LCFGraph",
+     "MycielskiGraph",
+     "MycielskiStep",
+     "NKStarGraph",
+     "NStarGraph",
+     "OddGraph",
+     "PaleyGraph",
+     "RingedTree",
+     "line_graph_forbidden_subgraphs",
+     "PermutationGraph",
+     "trees"])
 
-- :meth:`DodecahedralGraph <GraphGenerators.DodecahedralGraph>`
-- :meth:`HexahedralGraph <GraphGenerators.HexahedralGraph>`
-- :meth:`IcosahedralGraph <GraphGenerators.IcosahedralGraph>`
-- :meth:`OctahedralGraph <GraphGenerators.OctahedralGraph>`
-- :meth:`TetrahedralGraph <GraphGenerators.TetrahedralGraph>`
+__doc__ += """
+**Chessboard graphs**
+"""
 
-Named Graphs
-------------
+__append_to_doc(
+    ["BishopGraph",
+     "KingGraph",
+     "KnightGraph",
+     "QueenGraph",
+     "RookGraph"])
 
-- :meth:`Balaban10Cage <GraphGenerators.Balaban10Cage>`
-- :meth:`Balaban11Cage <GraphGenerators.Balaban11Cage>`
-- :meth:`BidiakisCube <GraphGenerators.BidiakisCube>`
-- :meth:`BiggsSmithGraph <GraphGenerators.BiggsSmithGraph>`
-- :meth:`BrinkmannGraph <GraphGenerators.BrinkmannGraph>`
-- :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
-- :meth:`ClebschGraph <GraphGenerators.ClebschGraph>`
-- :meth:`CoxeterGraph <GraphGenerators.CoxeterGraph>`
-- :meth:`DoubleStarSnark <GraphGenerators.DoubleStarSnark>`
-- :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
-- :meth:`DurerGraph <GraphGenerators.DurerGraph>`
-- :meth:`DyckGraph <GraphGenerators.DyckGraph>`
-- :meth:`EllinghamHorton54Graph <GraphGenerators.EllinghamHorton54Graph>`
-- :meth:`EllinghamHorton78Graph <GraphGenerators.EllinghamHorton78Graph>`
-- :meth:`ErreraGraph <GraphGenerators.ErreraGraph>`
-- :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
-- :meth:`FosterGraph <GraphGenerators.FosterGraph>`
-- :meth:`FranklinGraph <GraphGenerators.FranklinGraph>`
-- :meth:`FruchtGraph <GraphGenerators.FruchtGraph>`
-- :meth:`GoldnerHararyGraph <GraphGenerators.GoldnerHararyGraph>`
-- :meth:`GrayGraph <GraphGenerators.GrayGraph>`
-- :meth:`GrotzschGraph <GraphGenerators.GrotzschGraph>`
-- :meth:`HallJankoGraph <GraphGenerators.HallJankoGraph>`
-- :meth:`HararyGraph <GraphGenerators.HararyGraph>`
-- :meth:`HarriesGraph <GraphGenerators.HarriesGraph>`
-- :meth:`HarriesWongGraph <GraphGenerators.HarriesWongGraph>`
-- :meth:`HeawoodGraph <GraphGenerators.HeawoodGraph>`
-- :meth:`HerschelGraph <GraphGenerators.HerschelGraph>`
-- :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
-- :meth:`HoffmanSingletonGraph <GraphGenerators.HoffmanSingletonGraph>`
-- :meth:`HoffmanGraph <GraphGenerators.HoffmanGraph>`
-- :meth:`HoltGraph <GraphGenerators.HoltGraph>`
-- :meth:`LjubljanaGraph <GraphGenerators.LjubljanaGraph>`
-- :meth:`McGeeGraph <GraphGenerators.McGeeGraph>`
-- :meth:`MoebiusKantorGraph <GraphGenerators.MoebiusKantorGraph>`
-- :meth:`MoserSpindle <GraphGenerators.MoserSpindle>`
-- :meth:`NauruGraph <GraphGenerators.NauruGraph>`
-- :meth:`PappusGraph <GraphGenerators.PappusGraph>`
-- :meth:`PetersenGraph <GraphGenerators.PetersenGraph>`
-- :meth:`ShrikhandeGraph <GraphGenerators.ShrikhandeGraph>`
-- :meth:`ThomsenGraph <GraphGenerators.ThomsenGraph>`
-- :meth:`Tutte12Cage <GraphGenerators.Tutte12Cage>`
-- :meth:`TutteCoxeterGraph <GraphGenerators.TutteCoxeterGraph>`
-- :meth:`WagnerGraph <GraphGenerators.WagnerGraph>`
+__doc__ += """
+**Pseudofractal graphs**
+"""
 
+__append_to_doc(["DorogovtsevGoltsevMendesGraph"])
 
-Families of graphs
-------------------
+__doc__ += """
+**Random graphs**
+"""
 
-- :meth:`BalancedTree <GraphGenerators.BalancedTree>`
-- :meth:`BubbleSortGraph <GraphGenerators.BubbleSortGraph>`
-- :meth:`CirculantGraph <GraphGenerators.CirculantGraph>`
-- :meth:`CompleteBipartiteGraph <GraphGenerators.CompleteBipartiteGraph>`
-- :meth:`CompleteGraph <GraphGenerators.CompleteGraph>`
-- :meth:`CubeGraph <GraphGenerators.CubeGraph>`
-- :meth:`FibonacciTree <GraphGenerators.FibonacciTree>`
-- :meth:`FriendshipGraph <GraphGenerators.FriendshipGraph>`
-- :meth:`FuzzyBallGraph <GraphGenerators.FuzzyBallGraph>`
-- :meth:`GeneralizedPetersenGraph <GraphGenerators.GeneralizedPetersenGraph>`
-- :meth:`HanoiTowerGraph <GraphGenerators.HanoiTowerGraph>`
-- :meth:`HyperStarGraph <GraphGenerators.HyperStarGraph>`
-- :meth:`IntervalGraph <GraphGenerators.IntervalGraph>`
-- :meth:`KneserGraph <GraphGenerators.KneserGraph>`
-- :meth:`LCFGraph <GraphGenerators.LCFGraph>`
-- :meth:`MycielskiGraph <GraphGenerators.MycielskiGraph>`
-- :meth:`MycielskiStep <GraphGenerators.MycielskiStep>`
-- :meth:`NKStarGraph <GraphGenerators.NKStarGraph>`
-- :meth:`NStarGraph <GraphGenerators.NStarGraph>`
-- :meth:`OddGraph <GraphGenerators.OddGraph>`
-- :meth:`PaleyGraph <GraphGenerators.PaleyGraph>`
-- :meth:`RingedTree <GraphGenerators.RingedTree>`
-- :meth:`line_graph_forbidden_subgraphs <GraphGenerators.line_graph_forbidden_subgraphs>`
-- :meth:`PermutationGraph <GraphGenerators.PermutationGraph>`
-- :meth:`trees <GraphGenerators.trees>`
+__append_to_doc(
+    ["RandomBarabasiAlbert",
+     "RandomBipartite",
+     "RandomGNM",
+     "RandomGNP",
+     "RandomHolmeKim",
+     "RandomInterval",
+     "RandomLobster",
+     "RandomNewmanWattsStrogatz",
+     "RandomRegular",
+     "RandomShell",
+     "RandomTree",
+     "RandomTreePowerlaw"])
 
-Chessboard graphs :
+__doc__ += """
+**Graphs with a given degree sequence**
+"""
 
-- :meth:`BishopGraph <GraphGenerators.BishopGraph>`
-- :meth:`KingGraph <GraphGenerators.KingGraph>`
-- :meth:`KnightGraph <GraphGenerators.KnightGraph>`
-- :meth:`QueenGraph <GraphGenerators.QueenGraph>`
-- :meth:`RookGraph <GraphGenerators.RookGraph>`
+__append_to_doc(
+    ["DegreeSequence",
+     "DegreeSequenceBipartite",
+     "DegreeSequenceConfigurationModel",
+     "DegreeSequenceExpected",
+     "DegreeSequenceTree"])
 
-Pseudofractal graphs
---------------------
+__doc__ += """
+**Miscellaneous**
+"""
 
-- :meth:`DorogovtsevGoltsevMendesGraph <GraphGenerators.DorogovtsevGoltsevMendesGraph>`
+__append_to_doc(
+    ["WorldMap"]
+    )
 
-Random graphs
--------------
-
-- :meth:`RandomBarabasiAlbert <GraphGenerators.RandomBarabasiAlbert>`
-- :meth:`RandomBipartite <GraphGenerators.RandomBipartite>`
-- :meth:`RandomGNM <GraphGenerators.RandomGNM>`
-- :meth:`RandomGNP <GraphGenerators.RandomGNP>`
-- :meth:`RandomHolmeKim <GraphGenerators.RandomHolmeKim>`
-- :meth:`RandomInterval <GraphGenerators.RandomInterval>`
-- :meth:`RandomLobster <GraphGenerators.RandomLobster>`
-- :meth:`RandomNewmanWattsStrogatz <GraphGenerators.RandomNewmanWattsStrogatz>`
-- :meth:`RandomRegular <GraphGenerators.RandomRegular>`
-- :meth:`RandomShell <GraphGenerators.RandomShell>`
-- :meth:`RandomTree <GraphGenerators.RandomTree>`
-- :meth:`RandomTreePowerlaw <GraphGenerators.RandomTreePowerlaw>`
-
-
-Graphs with a given degree sequence
------------------------------------
-
-- :meth:`DegreeSequence <GraphGenerators.DegreeSequence>`
-- :meth:`DegreeSequenceBipartite <GraphGenerators.DegreeSequenceBipartite>`
-- :meth:`DegreeSequenceConfigurationModel <GraphGenerators.DegreeSequenceConfigurationModel>`
-- :meth:`DegreeSequenceExpected <GraphGenerators.DegreeSequenceExpected>`
-- :meth:`DegreeSequenceTree <GraphGenerators.DegreeSequenceTree>`
-
-
-Miscellaneous
--------------
-
-- :meth:`WorldMap <GraphGenerators.WorldMap>`
-
+__doc__ += """
 
 AUTHORS:
 
@@ -256,6 +263,9 @@ AUTHORS:
 
 - David Coudert (2012-08-02): added chessboard graphs: Queen, King,
   Knight, Bishop, and Rook graphs
+
+Functions and methods
+---------------------
 """
 
 ###########################################################################
@@ -277,9 +287,10 @@ from sage.misc.randstate import current_randstate
 
 class GraphGenerators():
     r"""
-    A class consisting of constructors for several common graphs, as
-    well as orderly generation of isomorphism class representatives. See the
-    section :ref:`organization` for a list of supported constructors.
+    A class consisting of constructors for several common graphs, as well as
+    orderly generation of isomorphism class representatives. See the
+    :mod:`module's help <sage.graphs.graph_generators>` for a list of supported
+    constructors.
 
     A list of all graphs and graph structures (other than isomorphism class
     representatives) in this database is available via tab completion. Type

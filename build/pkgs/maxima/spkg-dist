@@ -7,6 +7,8 @@ def cmd(x):
     if os.system(x):
         print "(Failed.)"
 
+cmd('rm "src/doc/info/figures/*.pdf"')
+
 for X in ['de', 'de.utf8', 'es', 'es.utf8', 'pt', 'pt.utf8', 'pt_BR', 'pt_BR.utf8']:
     cmd('rm -rf "src/doc/info/%s/"*'%X)
     open('src/doc/info/%s/Makefile.in'%X,'w').write('all:\n\tls\n\n')

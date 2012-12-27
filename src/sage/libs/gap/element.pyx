@@ -1322,6 +1322,9 @@ cdef class GapElement_Function(GapElement):
             ...           print 'because Sum needs a list as argument'
             ...       except ValueError:
             ...           pass
+
+            sage: libgap_exec = libgap.eval("Exec")
+            sage: libgap_exec('echo hello from the shell > /dev/null')
         """
         cdef libGAP_Obj result = NULL
         cdef libGAP_Obj arg_list

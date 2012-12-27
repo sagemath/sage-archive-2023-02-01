@@ -60,6 +60,7 @@ from tableau import Tableau, SemistandardTableau, StandardTableau, \
 from skew_tableau import SkewTableau, StandardSkewTableaux, SemistandardSkewTableaux
 from ribbon import Ribbon, StandardRibbons
 from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableau, SemistandardMultiSkewTableaux
+from tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
 
 #Words
 from words.all import *

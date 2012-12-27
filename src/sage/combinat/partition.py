@@ -11,7 +11,7 @@ the top is the `i^{th}` part of the partition.
 
 The coordinate system related to a partition applies from the top
 to the bottom and from left to right. So, the corners of the
-partition are [[0,4], [1,2], [2,0]].
+partition `[5, 3, 1]` are `[[0,4], [1,2], [2,0]]`.
 
 AUTHORS:
 
@@ -59,9 +59,6 @@ by one to save memory.  Note that when we do something like
 ``for part in Partitions(4)`` this iterator is used in the background::
 
     sage: g = iter(Partitions(4))
-
-::
-
     sage: g.next()
     [4]
     sage: g.next()
@@ -255,10 +252,10 @@ def Partition(mu=None, **keyword):
     integers. This function returns a Sage partition object which can
     be specified in one of the following ways::
 
-      * a list (the default)
-      * using exponential notation
-      * by Frobenius coordinates
-      * specifying the core and the quotient
+    - a list (the default)
+    - using exponential notation
+    - by Frobenius coordinates
+    - specifying the core and the quotient
 
     See the examples below.
 
@@ -309,10 +306,7 @@ def from_frobenius_coordinates(frobenius_coordinates):
     """
     Returns a partition from a couple of sequences of Frobenius coordinates
 
-    .. note::
-
-       This function is for internal use only;
-       use Partition(frobenius_coordinates=*) instead.
+    This function is for internal use only; use Partition(frobenius_coordinates=*) instead.
 
     EXAMPLES::
 
@@ -387,7 +381,7 @@ def from_exp(exp):
     """
     Returns a partition from its list of multiplicities.
 
-    .. note::
+    .. NOTE::
 
        This function is for internal use only;
        use Partition(exp=*) instead.
@@ -408,7 +402,7 @@ def from_core_and_quotient(core, quotient):
 
     Algorithm from mupad-combinat.
 
-    .. note::
+    .. NOTE::
 
        This function is for internal use only;
        use Partition(core=*, quotient=*) instead.
@@ -520,7 +514,6 @@ class Partition_class(CombinatorialObject):
 
     """
 
-
     def _repr_(self, compact=False):
         r"""
         Partitions are represented as the underlying list. There is an optional
@@ -541,7 +534,6 @@ class Partition_class(CombinatorialObject):
         else:
             return '[%s]' % ', '.join('%s'%m for m in self)
 
-
     def level(self):
         """
         Returns the level of ``self``, which is always 1.
@@ -555,7 +547,6 @@ class Partition_class(CombinatorialObject):
             1
         """
         return 1
-
 
     def components(self):
         """
@@ -572,14 +563,14 @@ class Partition_class(CombinatorialObject):
         return [ self ]
 
 
-    def Young_subgroup(self):
+    def young_subgroup(self):
         """
         Return the corresponding Young, or parabolic, subgroup of the symmetric
         group.
 
         EXAMPLE::
 
-            sage: Partition([4,2]).Young_subgroup()
+            sage: Partition([4,2]).young_subgroup()
             Permutation Group with generators [(), (5,6), (3,4), (2,3), (1,2)]
         """
         gens=[]
@@ -591,14 +582,14 @@ class Partition_class(CombinatorialObject):
         return PermutationGroup( gens )
 
 
-    def Young_subgroup_generators(self):
+    def young_subgroup_generators(self):
         """
         Return an indexing set for the generators of the corresponding Young
         subgroup.
 
         EXAMPLE::
 
-            sage: Partition([4,2]).Young_subgroup_generators()
+            sage: Partition([4,2]).young_subgroup_generators()
             [1, 2, 3, 5]
         """
         gens=[]
@@ -867,6 +858,17 @@ class Partition_class(CombinatorialObject):
         - http://en.wikipedia.org/wiki/Zolotarev's_lemma
         """
         return (-1)**(self.size()-self.length())
+
+    def standard_tableaux(self):
+        """
+        Return the :class:`standard tableaux<StandardTableaux>` of this shape.
+
+        EXAMPLE::
+
+            sage: Partition([3,2,2,1]).standard_tableaux()
+            Standard tableaux of shape [3, 2, 2, 1]
+        """
+        return tableau.StandardTableaux(self)
 
     def up(self):
         r"""
@@ -1184,6 +1186,207 @@ class Partition_class(CombinatorialObject):
         perm = permutation.Permutation(word)
         return perm.robinson_schensted()[1]
 
+
+    def initial_tableau(self):
+        r"""
+        Return the :class:`standard tableau<StandardTableau>` which has the
+        numbers `1, 2, \ldots, n` where `n` is the :meth:`size` of ``self``
+        entered in order from left to right along the rows of each component,
+        where the components are ordered from left to right.
+
+        EXAMPLES::
+
+            sage: Partition([3,2,2]).initial_tableau()
+            [[1, 2, 3], [4, 5], [6, 7]]
+        """
+        mu=self._list # for some reason the next line doesn't work with self?
+        tab=[range(1+sum(mu[:i]),1+sum(mu[:(i+1)])) for i in range(len(mu))]
+        return tableau.StandardTableau(tab)
+
+
+    def garnir_tableau(self,*cell):
+        r"""
+        Return the Garnir tableau of shape ``self`` corresponding to the cell
+        ``cell``. If ``cell`` `= (a,c)` then `(a+1,c)` must belong to the
+        diagram of the :class:`PartitionTuple`.
+
+        The Garnir tableau play an important role in integral and
+        non-semisimple representation theory because they determine the
+        "straightening" rules for the Specht modules over an arbitrary ring.
+
+        The Garnir tableau are the "first" non-standard tableaux which arise
+        when you act by simple transpositions. If `(a,c)` is a cell in the
+        Young diagram of a partition, which is not at the bottom of its
+        column, then the corresponding Garnir tableau has the integers
+        `1, 2, \ldots, n` entered in order from left to right along the rows
+        of the diagram up to the cell `(a,c-1)`, then along the cells
+        `(a+1,1)` to `(a+1,c)`, then `(a,c)` until the end of row `a` and
+        then continuing from left to right in the remaining positions. The
+        examples below probably make this clearer!
+
+        .. NOTE::
+
+            The function also sets ``g._garnir_cell``, where ``g`` is the
+            resulting Garnir tableau, equal to ``cell`` which is used by
+            some other functions.
+
+        EXAMPLES::
+
+            sage: g=Partition([5,3,3,2]).garnir_tableau((0,2)); g.pp()
+              1  2  6  7  8
+              3  4  5
+              9 10 11
+             12 13
+            sage: g.is_row_strict(); g.is_column_strict()
+            True
+            False
+
+            sage: Partition([5,3,3,2]).garnir_tableau(0,2).pp()
+              1  2  6  7  8
+              3  4  5
+              9 10 11
+             12 13
+            sage: Partition([5,3,3,2]).garnir_tableau(2,1).pp()
+              1  2  3  4  5
+              6  7  8
+              9 12 13
+             10 11
+            sage: Partition([5,3,3,2]).garnir_tableau(2,2).pp()
+            Traceback (most recent call last):
+            ...
+            ValueError: (row+1, col) must be inside the diagram
+
+        .. SEEALSO::
+
+            - :meth:`top_garnir_tableau`
+        """
+        try:
+            (row,col)=cell
+        except ValueError:
+            (row,col)=cell[0]
+
+        if row+1>=len(self) or col>=self[row+1]:
+            raise ValueError, '(row+1, col) must be inside the diagram'
+        g=tableau.Tableau(self.initial_tableau().to_list())
+        a=g[row][col]
+        g[row][col:]=range(a+col+1,g[row+1][col]+1)
+        g[row+1][:col+1]=range(a,a+col+1)
+        g._garnir_cell=cell
+        return g
+
+    def top_garnir_tableau(self,e,cell):
+        r"""
+        Return the most dominant *standard* tableau which dominates the
+        corresponding Garnir tableau and has the same ``e``-residue.
+
+        The Garnir tableau play an important role in integral and non-semisimple
+        representation theory because they determine the "straightening" rules
+        for the Specht modules. The *top Garnir tableaux* arise in the graded
+        representation theory of the symmetric groups and higher level Hecke
+        algebras. They were introduced in [KMR]_.
+
+        If the Garnir node is ``cell=(r,c)`` and `m` and `M` are the entries in the
+        cells ``(r,c)`` and ``(r+1,c)``, respectively, in the initial tableau then
+        the top ``e``-Garnir tableau is obtained by inserting the numbers
+        `m, m+1, \ldots, M` in order from left to right first in the cells in
+        row ``r+1`` which are not in the ``e``-Garnir belt, then in the cell
+        in rows ``r`` and ``r+1`` which are in the Garnir belt and then, finally,
+        in the remaining cells in row ``r`` which are not in the Garnir belt.
+        All other entries in the tableau remain unchanged.
+
+        If ``e = 0``, or if there are no ``e``-bricks in either row ``r`` or
+        ``r+1``, then the top Garnir tableau is the corresponding Garnir tableau.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,3,2]).top_garnir_tableau(2,(0,2)).pp()
+               1  2  4  5  8
+               3  6  7  9
+              10 11 12
+              13 14
+            sage: Partition([5,4,3,2]).top_garnir_tableau(3,(0,2)).pp()
+               1  2  3  4  5
+               6  7  8  9
+              10 11 12
+              13 14
+            sage: Partition([5,4,3,2]).top_garnir_tableau(4,(0,2)).pp()
+               1  2  6  7  8
+               3  4  5  9
+              10 11 12
+              13 14
+            sage: Partition([5,4,3,2]).top_garnir_tableau(0,(0,2)).pp()
+               1  2  6  7  8
+               3  4  5  9
+              10 11 12
+              13 14
+
+        TESTS::
+
+            sage: Partition([5,4,3,2]).top_garnir_tableau(0,(3,2)).pp()
+            Traceback (most recent call last):
+            ...
+            ValueError: (4,2)=(row+1,col) must be inside the diagram
+
+        REFERENCE:
+
+        - [KMR]_
+        """
+        (row,col)=cell
+        if row+1>=len(self) or col>=self[row+1]:
+            raise ValueError, '(%s,%s)=(row+1,col) must be inside the diagram' %(row+1,col)
+
+        g=self.garnir_tableau(cell)   # start with the Garnir tableau and modify
+
+        if e==0: return g             # no more dominant tableau of the same residue
+
+        a=e*int((self[row]-col)/e)    # number of cells in the e-bricks in row `row`
+        b=e*int((col+1)/e)            # number of cells in the e-bricks in row `row+1`
+
+        if a==0 or b==0: return g
+
+        t=g.to_list()
+        m=g[row+1][0]                 # smallest  number in 0-Garnir belt
+        # now we will put the number m,m+1,...,t[row+1][col] in order into t
+        t[row][col:a+col]=[m+col-b+1+i for i in range(a)]
+        t[row+1][col-b+1:col+1]=[m+a+col-b+1+i for i in range(b)]
+        return tableau.StandardTableau(t)
+
+    def young_subgroup(self):
+        """
+        Return the corresponding Young, or parabolic, subgroup of the symmetric
+        group.
+
+        EXAMPLES::
+
+            sage: Partition([4,2]).young_subgroup()
+            Permutation Group with generators [(), (5,6), (3,4), (2,3), (1,2)]
+        """
+        gens=[]
+        m=0
+        for row in self:
+            gens.extend([ (c,c+1) for c in range(m+1,m+row)])
+            m+=row
+        gens.append( range(1,self.size()+1) )  # to ensure we get a subgroup of Sym_n
+        return PermutationGroup( gens )
+
+    def young_subgroup_generators(self):
+        """
+        Return an indexing set for the generators of the corresponding Young
+        subgroup.
+
+        EXAMPLES::
+
+            sage: Partition([4,2]).young_subgroup_generators()
+            [1, 2, 3, 5]
+        """
+        gens=[]
+        m=0
+        for row in self:
+            gens.extend([c for c in range(m+1,m+row)])
+            m+=row
+        return gens
+
+
     def arm_length(self, i, j):
         r"""
         Returns the length of the arm of cell (i,j) in partition p.
@@ -1215,6 +1418,7 @@ class Partition_class(CombinatorialObject):
             return p[i]-(j+1)
         else:
             raise ValueError, "The cell is not in the diagram"
+
 
     def arm_lengths(self, flat=False):
         """
@@ -1268,6 +1472,7 @@ class Partition_class(CombinatorialObject):
             return [ (i, x) for x in range(j+1, p[i]) ]
         else:
             raise ValueError, "The cell is not in the diagram"
+
 
     def leg_length(self, i, j):
         """
@@ -1525,8 +1730,6 @@ class Partition_class(CombinatorialObject):
         .. math::
 
              h_*^\kappa(i,j) = \kappa_j^\prime-i+\alpha(\kappa_i - j+1).
-
-
 
         EXAMPLES::
 
@@ -1859,7 +2062,7 @@ class Partition_class(CombinatorialObject):
 
         return map(tuple, lcors)
 
-    removable_cells = corners            # for compatibility with partition tuples
+    removable_cells = corners              # for compatibility with partition tuples
 
     def outside_corners(self):
         """
@@ -1890,7 +2093,6 @@ class Partition_class(CombinatorialObject):
         return res
 
     addable_cells=outside_corners        # for compatibility with partition tuples
-
 
     def rim(self):
         r"""
@@ -2911,7 +3113,7 @@ def OrderedPartitions(n, k=None):
     specified, then only the ordered partitions of length k are
     returned.
 
-    .. note::
+    .. NOTE::
 
        It is recommended that you use Compositions instead as
        OrderedPartitions wraps GAP. See also ordered_partitions.
@@ -4064,7 +4266,7 @@ class Partitions_parts_in(CombinatorialClass):
 
     def cardinality(self):
         r"""
-        Return the number of partitions with parts in `S`. Wraps GAP's
+        Return the number of partitions with parts in ``self``. Wraps GAP's
         ``NrRestrictedPartitions``.
 
         EXAMPLES::

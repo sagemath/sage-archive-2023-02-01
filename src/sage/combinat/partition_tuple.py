@@ -256,6 +256,8 @@ from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
+import tableau_tuple
+
 #--------------------------------------------------
 # Partition tuple - element class
 #--------------------------------------------------
@@ -378,7 +380,7 @@ class PartitionTuple(CombinatorialObject,Element):
         sage: TestSuite( PartitionTuple([4,3,2]) ).run()
         sage: TestSuite( PartitionTuple([[4,3,2],[],[],[3,2,1]]) ).run()
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`PartitionTuples`
         - :class:`Partitions`
@@ -498,6 +500,7 @@ class PartitionTuple(CombinatorialObject,Element):
     # override default string representation which is str(self._list)
     __str__=lambda self: self._repr_()
 
+
     def components(self):
         r"""
         Return a list containing the shape of this partition.
@@ -524,6 +527,7 @@ class PartitionTuple(CombinatorialObject,Element):
             **
         """
         return [ t for t in self ]
+
 
     def diagram(self):
         r"""
@@ -553,6 +557,7 @@ class PartitionTuple(CombinatorialObject,Element):
 
     ferrers_diagram = diagram
 
+
     def pp(self):
         r"""
         Pretty prints this partition tuple.
@@ -567,6 +572,7 @@ class PartitionTuple(CombinatorialObject,Element):
         """
         print self.diagram()
 
+
     def size(self):
         """
         Return the size of a partition tuple.
@@ -579,6 +585,20 @@ class PartitionTuple(CombinatorialObject,Element):
             7
         """
         return sum(mu.size() for mu in self)
+
+
+    def standard_tableaux(self):
+        """
+        Return the :class:`standard tableau tuples<StandardTableauTuples>` of
+        this shape.
+
+        EXAMPLE::
+
+            sage: PartitionTuple([[],[3,2,2,1],[2,2,1],[3]]).standard_tableaux()
+            Standard tableau tuples of shape ([], [3, 2, 2, 1], [2, 2, 1], [3])
+        """
+        return tableau_tuple.StandardTableauTuples(shape=self)
+
 
     def up(self):
         r"""
@@ -760,6 +780,176 @@ class PartitionTuple(CombinatorialObject,Element):
                 if musum>ssum: return False
             level+=1
         return True
+
+    def initial_tableau(self):
+        r"""
+        Return the :class:`StandardTableauTuple` which has the numbers
+        `1, 2, \ldots, n`, where `n` is the :meth:`size` of ``self``,
+        entered in order from left to right along the rows of each component,
+        where the components are ordered from left to right.
+
+        EXAMPLE::
+
+            sage: PartitionTuple([ [2,1],[3,2] ]).initial_tableau()
+            ([[1, 2], [3]], [[4, 5, 6], [7, 8]])
+        """
+        return tableau_tuple.StandardTableauTuples(self).first()
+
+    def garnir_tableau(self, *cell):
+        r"""
+        Return the Garnir tableau of shape ``self`` corresponding to the cell
+        ``cell``.
+
+        If ``cell`` `= (k,a,c)` then `(k,a+1,c)` must belong to the diagram of
+        the :class:`PartitionTuple`. If this is not the case when we return
+        ``False``.
+
+        .. NOTE::
+
+            The function also sets ``g._garnir_cell`` equal to ``cell``
+            which is used by some other functions.
+
+        The Garnir tableaux play an important role in integral and
+        non-semisimple representation theory because they determine the
+        "straightening" rules for the Specht modules over an arbitrary ring.
+
+        The Garnir tableau are the "first" non-standard tableaux which arise
+        when you act by simple transpositions. If `(k,a,c)` is a cell in the
+        Young diagram of a partition, which is not at the bottom of its
+        column, then the corresponding Garnir tableau has the integers
+        `1, 2, \ldots, n` entered in order from left to right along the rows
+        of the diagram up to the cell `(k,a,c-1)`, then along the cells
+        `(k,a+1,1)` to `(k,a+1,c)`, then `(k,a,c)` until the end of row `a`
+        and then continuing from left to right in the remaining positions.
+        The examples below probably make this clearer!
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[5,3],[2,2],[4,3]]).garnir_tableau((0,0,2)).pp()
+                 1  2  6  7  8     9 10    13 14 15 16
+                 3  4  5          11 12    17 18 19
+            sage: PartitionTuple([[5,3,3],[2,2],[4,3]]).garnir_tableau((0,0,2)).pp()
+                 1  2  6  7  8    12 13    16 17 18 19
+                 3  4  5          14 15    20 21 22
+                 9 10 11
+            sage: PartitionTuple([[5,3,3],[2,2],[4,3]]).garnir_tableau((0,1,2)).pp()
+                 1  2  3  4  5    12 13    16 17 18 19
+                 6  7 11          14 15    20 21 22
+                 8  9 10
+            sage: PartitionTuple([[5,3,3],[2,2],[4,3]]).garnir_tableau((1,0,0)).pp()
+                 1  2  3  4  5    13 14    16 17 18 19
+                 6  7  8          12 15    20 21 22
+                 9 10 11
+            sage: PartitionTuple([[5,3,3],[2,2],[4,3]]).garnir_tableau((1,0,1)).pp()
+                 1  2  3  4  5    12 15    16 17 18 19
+                 6  7  8          13 14    20 21 22
+                 9 10 11
+            sage: PartitionTuple([[5,3,3],[2,2],[4,3]]).garnir_tableau((2,0,1)).pp()
+                 1  2  3  4  5    12 13    16 19 20 21
+                 6  7  8          14 15    17 18 22
+                 9 10 11
+            sage: PartitionTuple([[5,3,3],[2,2],[4,3]]).garnir_tableau((2,1,1)).pp()
+            Traceback (most recent call last):
+            ...
+            ValueError: (comp, row+1, col) must be inside the diagram
+
+        .. SEEALSO::
+
+            - :meth:`top_garnir_tableau`
+        """
+        try:
+            (comp, row,col)=cell
+        except ValueError:
+            (comp, row,col)=cell[0]
+
+        if comp>=len(self) or row+1>=len(self[comp]) or col>=self[comp][row+1]:
+            raise ValueError, '(comp, row+1, col) must be inside the diagram'
+        g=tableau_tuple.TableauTuple(self.initial_tableau().to_list())
+        a=g[comp][row][col]
+        g[comp][row][col:]=range(a+col+1,g[comp][row+1][col]+1)
+        g[comp][row+1][:col+1]=range(a,a+col+1)
+        g._garnir_cell=(comp,row,col)
+        return g
+
+    def top_garnir_tableau(self,e,cell):
+        r"""
+        Return the most dominant *standard* tableau which dominates the
+        corresponding Garnir tableau and has the same residue that has shape
+        ``self`` and is determined by ``e`` and ``cell``.
+
+        The Garnir tableau play an important role in integral and
+        non-semisimple representation theory because they determine the
+        "straightening" rules for the Specht modules over an arbitrary ring.
+        The *top Garnir tableaux* arise in the graded representation theory of
+        the symmetric groups and higher level Hecke algebras. They were
+        introduced in [KMR]_.
+
+        If the Garnir node is ``cell=(k,r,c)`` and `m` and `M` are the entries
+        in the cells ``(k,r,c)`` and ``(k,r+1,c)``, respectively, in the
+        initial tableau then the top ``e``-Garnir tableau is obtained by
+        inserting the numbers `m, m+1, \ldots, M` in order from left to right
+        first in the cells in row `r+1` which are not in the ``e``-Garnir
+        belt, then in the cell in rows ``r`` and ``r+1`` which are in the
+        Garnir belt and then, finally, in the remaining cells in row ``r``
+        which are not in the Garnir belt. All other entries in the tableau
+        remain unchanged.
+
+        If ``e = 0``, or if there are no ``e``-bricks in either row ``r`` or
+        ``r+1``, then the top Garnir tableau is the corresponding Garnir
+        tableau.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[3,3,2],[5,4,3,2]]).top_garnir_tableau(2,(1,0,2)).pp()
+                1  2  3     9 10 12 13 16
+                4  5  6    11 14 15 17
+                7  8       18 19 20
+                           21 22
+            sage: PartitionTuple([[3,3,2],[5,4,3,2]]).top_garnir_tableau(2,(1,0,1)).pp()
+                1  2  3     9 10 11 12 13
+                4  5  6    14 15 16 17
+                7  8       18 19 20
+                           21 22
+            sage: PartitionTuple([[3,3,2],[5,4,3,2]]).top_garnir_tableau(3,(1,0,1)).pp()
+                1  2  3     9 12 13 14 15
+                4  5  6    10 11 16 17
+                7  8       18 19 20
+                           21 22
+
+            sage: PartitionTuple([[3,3,2],[5,4,3,2]]).top_garnir_tableau(3,(3,0,1)).pp()
+            Traceback (most recent call last):
+            ...
+            ValueError: (comp, row+1, col) must be inside the diagram
+
+        .. SEEALSO::
+
+            - :meth:`~sage.combinat.partition.Partition_tuple.garnir_tableau`
+
+        REFERENCE:
+
+        .. [KMR] A. Kleshchev, A. Mathas, and A. Ram, Universal Specht modules
+           for cyclotomic Hecke algebras, Proc. LMS (to appear).
+
+        """
+        (comp,row,col)=cell
+        if comp>=len(self) or row+1>=len(self[comp]) or col>=self[comp][row+1]:
+            raise ValueError, '(comp, row+1, col) must be inside the diagram'
+
+        g=self.garnir_tableau(cell)
+
+        if e==0: return      # no more dominant tableau of the same residue
+
+        a=e*int((self[comp][row]-col)/e)    # number of cells in the e-bricks in row `row`
+        b=e*int((col+1)/e)            # number of cells in the e-bricks in row `row+1`
+
+        if a==0 or b==0: return self.garnir_tableau(cell)
+
+        t=g.to_list()
+        m=t[comp][row+1][0]            # smallest number of 0-Garnir belt
+        # now we will put the number m,m+1,...,t[row+1][col] in order into t
+        t[comp][row][col:a+col]=[m+col-b+1+i for i in range(a)]
+        t[comp][row+1][col-b+1:col+1]=[m+a+col-b+1+i for i in range(b)]
+        return tableau_tuple.StandardTableauTuple(t)
 
     def arm_length(self, k,r,c):
         """
@@ -1221,6 +1411,7 @@ class PartitionTuples_all(PartitionTuples):
         """
         super(PartitionTuples_all, self).__init__(category=InfiniteEnumeratedSets())
 
+
     def _repr_(self):
         r"""
         Return a string represention of ``self``.
@@ -1231,6 +1422,7 @@ class PartitionTuples_all(PartitionTuples):
             Partition tuples
         """
         return 'Partition tuples'
+
 
     def __contains__(self,mu):
         r"""
@@ -1593,6 +1785,7 @@ class PartitionTuples_level_size(PartitionTuples):
         for iv in IntegerVectors(self.size(),self.level()):
             for cp in CartesianProduct(*[p[i] for i in iv]):
                 yield self._element_constructor_(cp)
+
 
     def _an_element_(self):
         """

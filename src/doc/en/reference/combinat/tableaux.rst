@@ -8,3 +8,4 @@ Tableaux and Tableaux-like Objects
    ../sage/combinat/skew_tableau
    ../sage/combinat/ribbon
    ../sage/combinat/ribbon_tableau
+   ../sage/combinat/tableau_tuple

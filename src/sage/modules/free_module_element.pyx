@@ -2503,15 +2503,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         self[i] = x
 
 
-    def normalize(self):
+    def monic(self):
         """
         Return this vector divided through by the first nonzero entry of
         this vector.
 
         EXAMPLES::
 
-            sage: v = vector(QQ,[0,4/3,5,1,2])
-            sage: v.normalize()
+            sage: v = vector(QQ, [0, 4/3, 5, 1, 2])
+            sage: v.monic()
             (0, 1, 15/4, 3/4, 3/2)
         """
         cdef Py_ssize_t i
@@ -2519,6 +2519,51 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             if self[i] != 0:
                 return (~self[i]) * self
         return self
+
+    def normalize(self):
+        """
+        This function is deprecated. For division by the p-norm use
+        'normalized', and for division by the first nonzero entry use
+        'monic' (previously the purpose of this function).
+
+        EXAMPLES::
+
+            sage: v = vector(QQ, [0, 4/3, 5, 1, 2])
+            sage: v.normalize()
+            doctest:...: DeprecationWarning: 'normalize' is deprecated...
+            (0, 1, 15/4, 3/4, 3/2)
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(13393, "'normalize' is deprecated. For division by the \
+p-norm use 'normalized', and for division by the first nonzero entry use \
+'monic'.")
+        return self.monic()
+
+    def normalized(self, p=sage.rings.integer.Integer(2)):
+        """
+        Return the input vector divided by the p-norm.
+
+        INPUT:
+
+        * "p" - default: 2 - p value for the norm
+
+        EXAMPLES::
+
+            sage: v = vector(QQ, [4, 1, 3, 2])
+            sage: v.normalized()
+            (2/15*sqrt(30), 1/30*sqrt(30), 1/10*sqrt(30), 1/15*sqrt(30))
+            sage: sum(v.normalized(1))
+            1
+
+        Note that normalizing the vector may change the base ring::
+
+            sage: v.base_ring() == v.normalized().base_ring()
+            False
+            sage: u = vector(RDF, [-3, 4, 6, 9])
+            sage: u.base_ring() == u.normalized().base_ring()
+            True
+        """
+        return self / self.norm(p)
 
     def conjugate(self):
         r"""
@@ -2577,7 +2622,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: I*(x - x.conjugate()) in RDF^n
             True
 
-        The parent of the conjugate is the same as that of the orginal vector.
+        The parent of the conjugate is the same as that of the original vector.
         We test this by building a specialized vector space with a non-standard
         inner product, and constructing a test vector in this space. ::
 

@@ -349,11 +349,6 @@ def KneserGraph(n,k):
 
     return g
 
-
-###########################################################################
-#   Families of Graphs
-###########################################################################
-
 def BalancedTree(r, h):
     r"""
     Returns the perfectly balanced tree of height `h \geq 1`,
@@ -712,6 +707,49 @@ def CubeGraph(n):
     r.set_pos(p)
 
     return r
+
+def FoldedCubeGraph(n):
+    r"""
+    Returns the folded cube graph of order `2^{n-1}`.
+
+    The folded cube graph on `2^{n-1}` vertices can be obtained from a cube
+    graph on `2^n` vertices by merging together opposed
+    vertices. Alternatively, it can be obtained from a cube graph on
+    `2^{n-1}` vertices by adding an edge between opposed vertices. This
+    second construction is the one produced by this method.
+
+    For more information on folded cube graphs, see the corresponding
+    :wikipedia:`Wikipedia page <Folded_cube_graph>`.
+
+    EXAMPLES:
+
+    The folded cube graph of order five is the Clebsch graph::
+
+        sage: fc = graphs.FoldedCubeGraph(5)
+        sage: clebsch = graphs.ClebschGraph()
+        sage: fc.is_isomorphic(clebsch)
+        True
+    """
+
+    if n < 1:
+        raise ValueError("The value of n must be at least 2")
+
+    g = CubeGraph(n-1)
+    g.name("Folded Cube Graph")
+
+    # Complementing the binary word
+    def complement(x):
+        x = x.replace('0','a')
+        x = x.replace('1','0')
+        x = x.replace('a','1')
+        return x
+
+    for x in g:
+        if x[0] == '0':
+            g.add_edge(x,complement(x))
+
+    return g
+
 
 def FriendshipGraph(n):
     r"""

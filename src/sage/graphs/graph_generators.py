@@ -145,6 +145,7 @@ __append_to_doc(
      "CirculantGraph",
      "CubeGraph",
      "FibonacciTree",
+     "FoldedCubeGraph",
      "FriendshipGraph",
      "FuzzyBallGraph",
      "GeneralizedPetersenGraph",
@@ -911,6 +912,7 @@ class GraphGenerators():
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
+    FoldedCubeGraph        = staticmethod(sage.graphs.generators.families.FoldedCubeGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
     FriendshipGraph        = staticmethod(sage.graphs.generators.families.FriendshipGraph)
     FuzzyBallGraph         = staticmethod(sage.graphs.generators.families.FuzzyBallGraph)

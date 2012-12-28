@@ -293,9 +293,15 @@ def rgbcolor(c, space='rgb'):
         (0.25, 0.4, 0.9)
         sage: rgbcolor('purple')
         (0.5019607843137255, 0.0, 0.5019607843137255)
+        sage: rgbcolor(u'purple')
+        (0.5019607843137255, 0.0, 0.5019607843137255)
         sage: rgbcolor('#fa0')
         (1.0, 0.6666666666666666, 0.0)
+        sage: rgbcolor(u'#fa0')
+        (1.0, 0.6666666666666666, 0.0)
         sage: rgbcolor('#ffffff')
+        (1.0, 1.0, 1.0)
+        sage: rgbcolor(u'#ffffff')
         (1.0, 1.0, 1.0)
         sage: rgbcolor((1,1/2,1/3))
         (1.0, 0.5, 0.3333333333333333)
@@ -333,7 +339,7 @@ def rgbcolor(c, space='rgb'):
     if isinstance(c, Color):
         return c.rgb()
 
-    if isinstance(c, str):
+    if isinstance(c, basestring):
         if len(c) > 0 and c[0] == '#':
             # Assume an HTML-like color, e.g., #00ffff or #ab0.
             return html_to_float(c)
@@ -1347,6 +1353,8 @@ def get_cmap(cmap):
         sage: from sage.plot.colors import get_cmap
         sage: get_cmap('jet')
         <matplotlib.colors.LinearSegmentedColormap instance at 0x...>
+        sage: get_cmap(u'jet')
+        <matplotlib.colors.LinearSegmentedColormap instance at 0x...>
         sage: get_cmap([(0,0,0), (0.5,0.5,0.5), (1,1,1)])
         <matplotlib.colors.ListedColormap instance at 0x...>
         sage: get_cmap(['green', 'lightblue', 'blue'])
@@ -1371,7 +1379,7 @@ def get_cmap(cmap):
     if isinstance(cmap, Colormap):
         return cmap
 
-    elif isinstance(cmap, str):
+    elif isinstance(cmap, basestring):
         if not cmap in cm.datad.keys():
             raise RuntimeError("Color map %s not known (type import matplotlib.cm; matplotlib.cm.datad.keys() for valid names)" % cmap)
         return cm.__dict__[cmap]

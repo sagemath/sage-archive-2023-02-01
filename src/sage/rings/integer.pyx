@@ -139,6 +139,7 @@ include "../ext/stdsage.pxi"
 include "../ext/python_list.pxi"
 include "../ext/python_number.pxi"
 include "../ext/python_int.pxi"
+include "../ext/python_debug.pxi"
 include "../structure/coerce.pxi"   # for parent_c
 include "../libs/pari/decl.pxi"
 
@@ -5939,15 +5940,6 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
 
         memcpy(new, (<void*>global_dummy_Integer), sizeof_Integer )
 
-        # This line is only needed if Python is compiled in debugging
-        # mode './configure --with-pydebug'. If that is the case a Python
-        # object has a bunch of debugging fields which are initialized
-        # with this macro. For speed reasons, we don't call it if Python
-        # is not compiled in debug mode. So uncomment the following line
-        # if you are debugging Python.
-
-        #PyObject_INIT(new, (<RichPyObject*>global_dummy_Integer).ob_type)
-
         # We take the address 'new' and move mpz_t_offset bytes (chars)
         # to the address of 'value'. We treat that address as a pointer
         # to a mpz_t struct and allocate memory for the _mp_d element of
@@ -5975,6 +5967,14 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
         # fully using the memcpy above.
 
         (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(GMP_LIMB_BITS >> 3)
+
+    # This line is only needed if Python is compiled in debugging mode
+    # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the
+    # case a Python object has a bunch of debugging fields which are
+    # initialized with this macro.
+
+    if_Py_TRACE_REFS_then_PyObject_INIT\
+        (new, (<RichPyObject*>global_dummy_Integer).ob_type)
 
     # The global_dummy_Integer may have a reference count larger than
     # one, but it is expected that newly created objects have a

@@ -43,6 +43,10 @@ cdef extern from "Python.h":
         int ob_refcnt
         RichPyTypeObject* ob_type
 
+        # The following two fields are only present if Py_TRACE_REFS debugging is enabled
+        RichPyObject* _ob_next
+        RichPyObject* _ob_prev
+
     cdef long Py_TPFLAGS_HAVE_GC
 
     # Allocation

@@ -37,6 +37,7 @@ TESTS::
 """
 
 include '../ext/python_float.pxi'
+include "../ext/python_debug.pxi"
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
 include '../ext/random.pxi'
@@ -2411,45 +2412,7 @@ def is_RealDoubleElement(x):
 ########### Based on fast integer creation code   #########
 ######## There is nothing to see here, move along   #######
 
-cdef extern from *:
-
-    ctypedef struct RichPyObject "PyObject"
-
-    # We need a PyTypeObject with elements so we can
-    # get and set tp_new, tp_dealloc, tp_flags, and tp_basicsize
-    ctypedef struct RichPyTypeObject "PyTypeObject":
-
-        # We replace this one
-        PyObject*      (*    tp_new) ( RichPyTypeObject*, PyObject*, PyObject*)
-
-        # Not used, may be useful to determine correct memory management function
-        RichPyObject *(*   tp_alloc) ( RichPyTypeObject*, size_t )
-
-        # We replace this one
-        void           (*tp_dealloc) ( PyObject*)
-
-        # Not used, may be useful to determine correct memory management function
-        void          (*    tp_free) ( PyObject* )
-
-        # We set a flag here to circumvent the memory manager
-        long tp_flags
-
-    cdef long Py_TPFLAGS_HAVE_GC
-
-    # We need a PyObject where we can get/set the refcnt directly
-    # and access the type.
-    ctypedef struct RichPyObject "PyObject":
-        int ob_refcnt
-        RichPyTypeObject* ob_type
-
-    # Allocation
-    RichPyObject* PyObject_MALLOC(int)
-
-    # Useful for debugging, see below
-    void PyObject_INIT(RichPyObject *, RichPyTypeObject *)
-
-    # Free
-    void PyObject_FREE(PyObject*)
+include "../ext/python_rich_object.pxi"
 
 # We use a global element to steal all the references
 # from.  DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
@@ -2519,14 +2482,13 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
 
         memcpy(new, (<void*>global_dummy_element), sizeof(RealDoubleElement) )
 
-        # This line is only needed if Python is compiled in debugging
-        # mode './configure --with-pydebug'. If that is the case a Python
-        # object has a bunch of debugging fields which are initialized
-        # with this macro. For speed reasons, we don't call it if Python
-        # is not compiled in debug mode. So uncomment the following line
-        # if you are debugging Python.
+    # This line is only needed if Python is compiled in debugging mode
+    # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the
+    # case a Python object has a bunch of debugging fields which are
+    # initialized with this macro.
 
-        #PyObject_INIT(new, (<RichPyObject*>global_dummy_element).ob_type)
+    if_Py_TRACE_REFS_then_PyObject_INIT\
+        (new, (<RichPyObject*>global_dummy_element).ob_type)
 
     # The global_dummy_element may have a reference count larger than
     # one, but it is expected that newly created objects have a
@@ -2561,35 +2523,9 @@ cdef void fast_tp_dealloc(PyObject* o):
 
     PyObject_FREE(o)
 
-hook_fast_tp_functions()
+from sage.misc.allocator cimport hook_tp_functions
+hook_tp_functions(global_dummy_element, NULL, <newfunc>&fast_tp_new, NULL, &fast_tp_dealloc, False)
 
-cdef hook_fast_tp_functions():
-    """
-
-    """
-    global global_dummy_element
-
-    cdef long flag
-
-    cdef RichPyObject* o
-    o = <RichPyObject*>global_dummy_element
-
-    # By default every object created in Pyrex is garbage
-    # collected. This means it may have references to other objects
-    # the Garbage collector has to look out for. We remove this flag
-    # as the only reference an Integer has is to the global Integer
-    # ring. As this object is unique we don't need to garbage collect
-    # it as we always have a module level reference to it. If another
-    # attribute is added to the Integer class this flag removal so as
-    # the alloc and free functions may not be used anymore.
-    # This object will still be reference counted.
-    flag = Py_TPFLAGS_HAVE_GC
-    o.ob_type.tp_flags = <long>(o.ob_type.tp_flags & (~flag))
-
-    # Finally replace the functions called when an Integer needs
-    # to be constructed/destructed.
-    o.ob_type.tp_new = &fast_tp_new
-    o.ob_type.tp_dealloc = &fast_tp_dealloc
 
 def time_alloc_list(n):
     cdef int i

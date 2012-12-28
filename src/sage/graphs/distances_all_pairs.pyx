@@ -91,6 +91,9 @@ Breadth First Search per vertex of the (di)graph.
       and ``None``. These case happens when the input is a disconnected graph,
       or a non-strongly-connected digraph.
 
+    - A memory error is raised when data structures allocation failed. This
+      could happen with large graphs on computers with low memory space.
+
     .. WARNING::
 
         The function ``all_pairs_shortest_path_BFS`` has **no reason** to be
@@ -159,10 +162,15 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     # The list of waiting vertices, the beginning and the end of the list
 
     cdef unsigned short * waiting_list = <unsigned short *> sage_malloc(n*sizeof(short))
+    if waiting_list==NULL:
+        raise MemoryError()
     cdef unsigned short waiting_beginning = 0
     cdef unsigned short waiting_end = 0
 
     cdef int * degree = <int *> sage_malloc(n*sizeof(int))
+    if degree==NULL:
+        sage_free(waiting_list)
+        raise MemoryError()
 
     cdef unsigned short source
     cdef unsigned short v, u
@@ -183,7 +191,10 @@ cdef inline all_pairs_shortest_path_BFS(gg,
         c_distances = distances
     else:
         c_distances = <unsigned short *> sage_malloc( n * sizeof(unsigned short *))
-
+        if c_distances==NULL:
+            sage_free(waiting_list)
+            sage_free(degree)
+            raise MemoryError()
     cdef int * outneighbors
     cdef int o_n_size
 
@@ -298,7 +309,12 @@ cdef unsigned short * c_shortest_path_all_pairs(G) except NULL:
 
     cdef int n = G.order()
     cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    if distances==NULL:
+        raise MemoryError()
     cdef unsigned short * predecessors = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    if predecessors==NULL:
+        sage_free(distances)
+        raise MemoryError()
     all_pairs_shortest_path_BFS(G, predecessors, distances, NULL)
 
     sage_free(distances)
@@ -385,6 +401,8 @@ cdef unsigned short * c_distances_all_pairs(G):
 
     cdef int n = G.order()
     cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    if distances==NULL:
+        raise MemoryError()
     all_pairs_shortest_path_BFS(G, NULL, distances, NULL)
 
     return distances
@@ -502,8 +520,13 @@ def distances_and_predecessors_all_pairs(G):
         return {}, {}
 
     cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    if distances==NULL:
+        raise MemoryError()
     cdef unsigned short * c_distances = distances
     cdef unsigned short * predecessor = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    if predecessor==NULL:
+        sage_free(distances)
+        raise MemoryError()
     cdef unsigned short * c_predecessor = predecessor
 
     all_pairs_shortest_path_BFS(G, predecessor, distances, NULL)
@@ -557,7 +580,12 @@ cdef unsigned short * c_eccentricity(G) except NULL:
     cdef int n = G.order()
 
     cdef unsigned short * ecc = <unsigned short *> sage_malloc(n*sizeof(unsigned short *))
+    if ecc==NULL:
+        raise MemoryError()
     cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    if distances==NULL:
+        sage_free(ecc)
+        raise MemoryError()
     all_pairs_shortest_path_BFS(G, NULL, distances, ecc)
     sage_free(distances)
 
@@ -876,7 +904,12 @@ def floyd_warshall(gg, paths = True, distances = False):
 
     # init dist
     t_dist = <unsigned short *> sage_malloc(n*n*sizeof(short))
+    if t_dist==NULL:
+        raise MemoryError()
     dist = <unsigned short **> sage_malloc(n*sizeof(short *))
+    if dist==NULL:
+        sage_free(t_dist)
+        raise MemoryError()
     dist[0] = t_dist
     for 1 <= i< n:
         dist[i] = dist[i-1] + n
@@ -890,7 +923,16 @@ def floyd_warshall(gg, paths = True, distances = False):
     if paths:
         # init prec
         t_prec = <unsigned short *> sage_malloc(n*n*sizeof(short))
+        if t_prec==NULL:
+            sage_free(t_dist)
+            sage_free(dist)
+            raise MemoryError()
         prec = <unsigned short **> sage_malloc(n*sizeof(short *))
+        if prec==NULL:
+            sage_free(t_dist)
+            sage_free(dist)
+            sage_free(t_prec)
+            raise MemoryError()
         prec[0] = t_prec
         for 1 <= i< n:
             prec[i] = prec[i-1] + n

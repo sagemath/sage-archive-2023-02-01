@@ -936,8 +936,6 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
             # We compute the distances and store the results in a 2D array, and
             # the diameter
             _distances_ = c_distances_all_pairs(H)
-            if _distances_ == NULL:
-                raise MemoryError
             distances = <unsigned short **>sage_malloc(sizeof(unsigned short *)*N)
             if distances == NULL:
                 sage_free(_distances_)

@@ -447,7 +447,7 @@ diff -ruN a/omalloc/om_Alloc.c b/omalloc/om_Alloc.c
 diff -ruN a/omalloc/omalloc.h b/omalloc/omalloc.h
 --- a/omalloc/omalloc.h	1970-01-01 01:00:00.000000000 +0100
 +++ b/omalloc/omalloc.h	2012-12-21 11:08:42.137513466 +0100
-@@ -0,0 +1,223 @@
+@@ -0,0 +1,230 @@
 +#ifndef XMEMORY_H
 +#define XMEMORY_H
 +/****************************************
@@ -647,6 +647,13 @@ diff -ruN a/omalloc/omalloc.h b/omalloc/omalloc.h
 +#define omTestBinAddrSize(A,B,C)                 (omError_NoError)
 +#define omInitRet_2_Info(argv0)                  ((void) 0)
 +#define omMergeStickyBinIntoBin(A,B)             ((void) 0)
++#define omIsTrackAddr(addr)             0
++#define omIsTrackAddrPage(page)         0
++#define omIsNormalBinPageAddr(addr)     omIsBinPageAddr(addr)
++#define omIsBinAddrTrackAddr(addr)      0
++#define omFreeKeptAddr()            ((void)0)
++#define omPrintUsedAddrs(fd,m)      ((void)0)
++#define omPrintUsedTrackAddrs(fd,m) ((void)0)
 +
 +enum omError_e
 +{

@@ -76,12 +76,16 @@ Other notes
    FLINT 2.x.  If a sufficiently recent version of FLINT is ever added
    to Sage, we should make Singular use it
    (configure --with-flint="$SAGE_LOCAL").
- * If the environment variable SINGULAR_XALLOC is set to "yes", then
+ * If the environment variable SINGULAR_DEBUG is set to "yes", then
    omalloc will be replaced by xalloc. The resulting Singular executable
    and libsingular library will be slower than with omalloc, but allow
    for easier debugging of memory corruptions.
 
 == ChangeLog ==
+
+=== singular-3-1-5.p3 (Volker Braun, 28 December 2012) ===
+ * Trac #13876: Rename SINGULAR_XALLOC to SAGE_DEBUG
+ * Build fixes for the Sage library with SAGE_DEBUG=yes
 
 === singular-3-1-5.p2 (Simon King, 03 December 2012) ===
  * Trac #13731

@@ -94,9 +94,6 @@ apply_patches()
 
     if [ "x$SAGE_DEBUG" = "xyes" ]; then
         mv conditional/sage_debug.patch . || return $?
-    fi
-
-    if [ "x$SINGULAR_XALLOC" = "xyes" ]; then
         # Remove old omalloc files, except for configure
         mv ../src/omalloc/configure configure_omalloc
         rm -r ../src/omalloc/*

@@ -738,8 +738,13 @@ def compile_command0(p):
             outfile += ".c"
             cplus = ''
 
+        if os.environ.get('SAGE_DEBUG', None)=='no':
+            debug = ''
+        else:
+            debug = '--gdb'
+
         # call cython, abort if it failed
-        cmd = "python `which cython` %s --old-style-globals --embed-positions --directive cdivision=True,autotestdict=False,fast_getattr=True -I%s -o %s %s"%(cplus, os.getcwd(), outfile, f)
+        cmd = "cython %s %s --old-style-globals --embed-positions --directive cdivision=True,autotestdict=False,fast_getattr=True -I%s -o %s %s"%(debug, cplus, os.getcwd(), outfile, f)
         r = run_command(cmd)
         if r:
             return r

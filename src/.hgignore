@@ -39,6 +39,7 @@ MANIFEST
 PKG-INFO
 build
 dist
+cython_debug
 sage/.*\.c$
 sage/.*\.cpp$
 c_lib/.*\.lo$

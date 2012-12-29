@@ -194,6 +194,9 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
     return r, pivots
 
 cdef inline linbox_echelonize_efd(celement modulus, celement* entries, Py_ssize_t nrows, Py_ssize_t ncols):
+    if nrows == 0 or ncols == 0:
+        return 0,[]
+
     cdef ModField *F = new ModField(<long>modulus)
     cdef EchelonFormDomain *EF = new EchelonFormDomain(F[0])
     cdef BlasMatrix *A = new BlasMatrix(F[0], <uint64_t>nrows, <uint64_t>ncols)

@@ -63,6 +63,7 @@ cdef class dancing_linksWrapper:
             sage: x = make_dlxwrapper(dumps(rows))
             sage: loads(x.__reduce__()[1][0])
             [[0, 1, 2], [1, 2]]
+
         """
         pass
 
@@ -71,7 +72,8 @@ cdef class dancing_linksWrapper:
     def __cinit__(self, rows):
         self.rows = PyList_New(len(rows))
         dancing_links_construct(&self.x)
-        self.add_rows(rows)
+        if rows:
+            self.add_rows(rows)
 
     def __dealloc__(self):
         self.x.freemem()
@@ -174,7 +176,18 @@ cdef class dancing_linksWrapper:
             sage: x = dlx_solver(rows)
             sage: print x.search()
             1
+
+        The following example would crash in Sage's debug version
+        from :trac:`13864` prior to the fix from :trac:`13822`::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: x = dlx_solver([])          # indirect doctest
+            sage: x.get_solution()
+            []
+
         """
+        if not rows:
+            return
 
         cdef vector_int v
         cdef vector_vector_int vv

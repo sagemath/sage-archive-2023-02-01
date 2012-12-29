@@ -1188,7 +1188,7 @@ def _sage_getdoc_unformatted(obj):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import _sage_getdoc_unformatted
-        sage: _sage_getdoc_unformatted(identity_matrix)[5:44]
+        sage: _sage_getdoc_unformatted(identity_matrix)[87:126]
         'Return the `n \\times n` identity matrix'
 
     TESTS:
@@ -1245,8 +1245,8 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getdoc
-        sage: sage_getdoc(identity_matrix)[3:39]
-        'Return the n x n identity matrix ove'
+        sage: sage_getdoc(identity_matrix)[87:124]
+        'Return the n x n identity matrix over'
         sage: def f(a,b,c,d=1): return a+b+c+d
         ...
         sage: import functools
@@ -1298,9 +1298,9 @@ def sage_getsource(obj, is_binary=False):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getsource
-        sage: sage_getsource(identity_matrix, True)[4:45]
+        sage: sage_getsource(identity_matrix, True)[19:60]
         'identity_matrix(ring, n=0, sparse=False):'
-        sage: sage_getsource(identity_matrix, False)[4:45]
+        sage: sage_getsource(identity_matrix, False)[19:60]
         'identity_matrix(ring, n=0, sparse=False):'
 
     AUTHORS:
@@ -1446,9 +1446,9 @@ def sage_getsourcelines(obj, is_binary=False):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix, True)[1]
-        34
-        sage: sage_getsourcelines(matrix, False)[0][0][4:]
-        'matrix(*args, **kwds):\n'
+        731
+        sage: sage_getsourcelines(matrix, False)[0][0][6:]
+        'MatrixFactory(object):\n'
 
     TESTS::
 

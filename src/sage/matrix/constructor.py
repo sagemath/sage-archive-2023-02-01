@@ -748,6 +748,15 @@ class MatrixFactory(object):
     __call__ = staticmethod(_matrix_constructor)
 
     def _sage_src_(self):
+        """
+        For introspection of the global matrix object.
+
+        TESTS::
+
+            sage: from sage.misc.sageinspect import sage_getsource
+            sage: sage_getsource(matrix) == sage_getsource(sage.matrix.constructor._matrix_constructor)
+            True
+        """
         from sage.misc.sageinspect import sage_getsource
         return sage_getsource(_matrix_constructor)
 

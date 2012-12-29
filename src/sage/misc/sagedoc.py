@@ -479,6 +479,9 @@ def format(s, embedded=False):
         <BLANKLINE>
         Definition: identity_matrix(ring, n=0, sparse=False)
         <BLANKLINE>
+        This function is available as identity_matrix(...) and
+        matrix.identity(...).
+        <BLANKLINE>
            Return the n x n identity matrix over the given ring.
         ...
 
@@ -1172,7 +1175,7 @@ def my_getsource(obj, is_binary):
 
         sage: from sage.misc.sagedoc import my_getsource
         sage: s = my_getsource(identity_matrix, True)
-        sage: s[:19]
+        sage: s[15:34]
         'def identity_matrix'
     """
     try:

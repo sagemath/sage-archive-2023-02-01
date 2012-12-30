@@ -27,6 +27,7 @@ All of these examples are accessible by typing
 You can get a list by typing ``simplicial_complexes.`` and hitting the
 TAB key::
 
+   simplicial_complexes.BarnetteSphere
    simplicial_complexes.ChessboardComplex
    simplicial_complexes.ComplexProjectivePlane
    simplicial_complexes.K3Surface
@@ -158,6 +159,7 @@ class SimplicialComplexExamples():
     Here are the available examples; you can also type
     ``simplicial_complexes.``  and hit tab to get a list:
 
+    - :meth:`BarnetteSphere`
     - :meth:`ChessboardComplex`
     - :meth:`ComplexProjectivePlane`
     - :meth:`K3Surface`
@@ -814,6 +816,59 @@ class SimplicialComplexExamples():
                 (6, 7, 11, 14, 16), (1, 4, 9, 11, 16), (1, 4, 12, 15, 16),
                 (1, 2, 4, 7, 15), (2, 3, 7, 8, 16), (1, 4, 5, 6, 10)],
              is_mutable=False)
+
+    def BarnetteSphere(self):
+        r"""
+        Returns Barnette's triangulation of the 3-sphere.
+
+        This is a pure simplicial complex of dimension 3 with 8
+        vertices and 19 facets, which is a non-polytopal triangulation
+        of the 3-sphere. It was constructed by Barnette in
+        [B1970]_. The construction here uses the labeling from De
+        Loera, Rambau and Santos [DLRS2010]_. Another reference is chapter
+        III.4 of Ewald [E1996]_.
+
+        EXAMPLES::
+
+            sage: BS = simplicial_complexes.BarnetteSphere() ; BS
+            Simplicial complex with vertex set (1, 2, 3, 4, 5, 6, 7, 8) and 19 facets
+            sage: BS.f_vector()
+            [1, 8, 27, 38, 19]
+
+        TESTS:
+
+        Checks that this is indeed the same Barnette Sphere as the one
+        given on page 87 of [E1996]_.::
+
+            sage: BS2 = SimplicialComplex([[1,2,3,4],[3,4,5,6],[1,2,5,6],
+            ...                            [1,2,4,7],[1,3,4,7],[3,4,6,7],
+            ...                            [3,5,6,7],[1,2,5,7],[2,5,6,7],
+            ...                            [2,4,6,7],[1,2,3,8],[2,3,4,8],
+            ...                            [3,4,5,8],[4,5,6,8],[1,2,6,8],
+            ...                            [1,5,6,8],[1,3,5,8],[2,4,6,8],
+            ...                            [1,3,5,7]])
+            sage: BS.is_isomorphic(BS2)
+            True
+
+        REFERENCES:
+
+        .. [B1970] Barnette, "Diagrams and Schlegel diagrams", in
+           Combinatorial Structures and Their Applications, Proc. Calgary
+           Internat. Conference 1969, New York, 1970, Gordon and Breach.
+
+        .. [DLRS2010] De Loera, Rambau and Santos, "Triangulations:
+           Structures for Algorithms and Applications", Algorithms and
+           Computation in Mathematics, Volume 25, Springer, 2011.
+
+        .. [E1996] Ewald, "Combinatorial Convexity and Algebraic Geometry",
+           vol. 168 of Graduate Texts in Mathematics, Springer, 1996
+
+        """
+        return SimplicialComplex([
+                (1,2,4,5),(2,3,5,6),(1,3,4,6),(1,2,3,7),(4,5,6,7),(1,2,4,7),
+                (2,4,5,7),(2,3,5,7),(3,5,6,7),(3,1,6,7),(1,6,4,7),(1,2,3,8),
+                (4,5,6,8),(1,2,5,8),(1,4,5,8),(2,3,6,8),(2,5,6,8),(3,1,4,8),
+                (3,6,4,8)])
 
     ###############################################################
     # examples from graph theory:

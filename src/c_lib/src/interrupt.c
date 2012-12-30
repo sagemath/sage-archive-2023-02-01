@@ -322,11 +322,57 @@ void print_backtrace()
 #endif
 }
 
+void print_enhanced_backtrace()
+{
+    /* Flush all buffers before forking */
+    fflush(stdout);
+    fflush(stderr);
+
+    pid_t parent_pid = getpid();
+    pid_t pid = fork();
+
+    if (pid < 0)
+    {
+        /* Failed to fork: no problem, just ignore */
+        perror("fork");
+        return;
+    }
+
+    if (pid == 0) { /* child */
+        /* We deliberately put these variables on the stack to avoid
+         * malloc() calls, the heap might be messed up! */
+        char path[1024];
+        char pid_str[32];
+        char* argv[5];
+
+        snprintf(path, sizeof(path), "%s/bin/sage-CSI", getenv("SAGE_LOCAL"));
+        snprintf(pid_str, sizeof(pid_str), "%i", parent_pid);
+
+        argv[0] = "sage-CSI";
+        argv[1] = "--no-color";
+        argv[2] = "--pid";
+        argv[3] = pid_str;
+        argv[4] = NULL;
+        execv(path, argv);
+        perror("Failed to execute sage-CSI");
+        exit(2);
+    }
+    /* Wait for sage-CSI to finish */
+    waitpid(pid, NULL, 0);
+}
+
 
 void sigdie(int sig, const char* s)
 {
+    fprintf(stderr,
+        "------------------------------------------------------------------------\n");
     print_backtrace();
-    fprintf(stderr, "\n"
+
+    fprintf(stderr,
+        "------------------------------------------------------------------------\n");
+    print_enhanced_backtrace();
+
+    fprintf(stderr,
         "------------------------------------------------------------------------\n"
         "%s\n"
         "This probably occurred because a *compiled* component of Sage has a bug\n"

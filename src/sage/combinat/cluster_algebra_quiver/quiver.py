@@ -453,7 +453,6 @@ class ClusterQuiver(SageObject):
             'edge_colors': color_dict,
             'vertex_colors': vertex_color_dict,
             'edge_labels' : True,
-            'scaling_term' : 0.1
         }
         if circular:
             pp = _graphs_concentric_circles( n, m )

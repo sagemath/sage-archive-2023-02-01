@@ -1310,7 +1310,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         return list(self.linear_extension())
 
     def plot(self, label_elements=True, element_labels=None,
-             label_font_size=12,label_font_color='black',
              vertex_size=300, vertex_colors=None,
              layout = 'acyclic',
              **kwds):
@@ -1370,15 +1369,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         if label_elements and element_labels is not None:
             graph = graph.relabel(dict((self(element),label) for (element,label) in element_labels.items()), inplace = False)
         return graph.plot(vertex_labels=label_elements,
-                          label_font_size=label_font_size,
-                          label_font_color=label_font_color,
                           vertex_size=vertex_size,
                           vertex_colors=vertex_colors,
                           layout = layout,
                           **kwds)
 
     def show(self, label_elements=True, element_labels=None,
-            label_font_size=12,label_font_color='black',
             vertex_size=300, vertex_colors=None, layout='acyclic', **kwds):
         """
         Shows the Graphics object corresponding the Hasse diagram of the
@@ -1403,7 +1399,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: D.show(element_labels=elm_labs)
         """
         self.plot(label_elements=label_elements, element_labels=element_labels,
-            label_font_size=label_font_size,label_font_color=label_font_color,
             vertex_size=vertex_size, vertex_colors=vertex_colors, layout=layout).show(**kwds)
 
     def level_sets(self):

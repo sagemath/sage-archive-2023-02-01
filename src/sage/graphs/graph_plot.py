@@ -1,6 +1,8 @@
 """
 Graph Plotting
 
+*(For LaTeX drawings of graphs, see the* :mod:`~sage.graphs.graph_latex` *module.)*
+
 All graphs have an associated Sage graphics object, which you can display::
 
     sage: G = graphs.WheelGraph(15)
@@ -22,8 +24,113 @@ For all the constructors in this database (except the octahedral, dodecahedral,
 random and empty graphs), the position dictionary is filled in, instead of using
 the spring-layout algorithm.
 
-Functions and methods
----------------------
+**Plot options**
+
+Here is the list of options accepted by :meth:`GenericGraph.plot
+<sage.graphs.generic_graph.GenericGraph.plot>` and the constructor of
+:class:`GraphPlot`.
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+"""
+
+layout_options =   {
+                    'layout': 'A layout algorithm -- one of : "acyclic", "circular" (plots the graph with vertices evenly distributed on a circle), "ranked", "graphviz", "planar", "spring" (traditional spring layout, using the graph\'s current positions as initial positions), or "tree" (the tree will be plotted in levels, depending on minimum distance for the root).',
+                    'iterations': 'The number of times to execute the spring layout algorithm.',
+                    'heights': 'A dictionary mapping heights to the list of vertices at this height.',
+                    'spring': 'Use spring layout to finalize the current layout.',
+                    'tree_root': 'A vertex designation for drawing trees. a vertex of the tree to be used as the root for the ``layout="tree"`` option. If no root is specified, then one is chosen at random. Ignored unless ``layout=\'tree\'``',
+                    'tree_orientation': 'The direction of tree branches -- "up" or "down".',
+                    'save_pos': 'Whether or not to save the computed position for the graph.',
+                    'dim': 'The dimension of the layout -- 2 or 3.',
+                    'prog': 'Which graphviz layout program to use -- one of "circo", "dot", "fdp", "neato", or "twopi".',
+                    'by_component': 'Whether to do the spring layout by connected component -- a boolean.',
+                    }
+
+graphplot_options = layout_options.copy()
+
+graphplot_options.update(
+                   {'pos': 'The position dictionary of vertices',
+                    'vertex_labels': 'Whether or not to draw vertex labels.',
+                    'vertex_colors': 'Dictionary of vertex coloring : each key is a color recognizable by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed, it looks invisible on the resulting plot (it doesn\'t get drawn).',
+                    'vertex_size': 'The size to draw the vertices.',
+                    'vertex_shape': 'The shape to draw the vertices, Currently unavailable for Multi-edged DiGraphs.',
+                    'edge_labels': 'Whether or not to draw edge labels.',
+                    'edge_style': 'The linestyle of the edges-- one of "solid", "dashed", "dotted", dashdot". This currently only works for directed graphs, since we pass off the undirected graph to networkx',
+                    'edge_color': 'The default color for edges.',
+                    'edge_colors': 'a dictionary specifying edge colors: each key is a color recognized by matplotlib, and each entry is a list of edges.',
+                    'color_by_label': 'Whether or not to color the edges by their label values.',
+                    'partition': 'A partition of the vertex set.  If specified, plot will show each cell in a different color. vertex_colors takes precedence.',
+                    'loop_size': 'The radius of the smallest loop.',
+                    'dist': 'The distance between multiedges.',
+                    'max_dist': 'The max distance range to allow multiedges.',
+                    'talk': 'Whether to display the vertices in talk mode (larger and white)',
+                    'graph_border': 'Whether or not to draw a frame around the graph.'})
+
+for key, value in graphplot_options.iteritems():
+    __doc__ += "    ``"+str(key)+"`` | "+str(value)+"\n"
+
+
+__doc__ += """
+**Default options**
+
+This module defines two dictionaries containing default options for the
+:meth:`GenericGraph.plot` and :meth:`GenericGraph.show` methods. These two
+dictionaries are ``sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS`` and
+``sage.graphs.graph_plot.DEFAULT_PLOT_OPTIONS``.
+
+Obviously, these values are overruled when arguments are given explicitely.
+
+Here is how to define the default size of a graph drawing to be ``[6,6]``. The
+first two calls to :meth:`~sage.graphs.generic_graph.show` use this option,
+while the third does not (a value for ``figsize`` is explicitely given)::
+
+    sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [6,6]
+    sage: graphs.PetersenGraph().show() # long time
+    sage: graphs.ChvatalGraph().show()  # long time
+    sage: graphs.PetersenGraph().show(figsize=[4,4]) # long time
+
+We can now reset the default to its initial value, and now display graphs as
+previously::
+
+    sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [4,4]
+    sage: graphs.PetersenGraph().show() # long time
+    sage: graphs.ChvatalGraph().show()  # long time
+
+.. NOTE::
+
+    * While ``DEFAULT_PLOT_OPTIONS`` affects both ``G.show()`` and ``G.plot()``,
+      settings from ``DEFAULT_SHOW_OPTIONS`` only affects ``G.show()``.
+
+    * In order to define a default value permanently, you can add a couple of
+      lines to :doc:`Sage's startup scripts <../../startup>`. Example ::
+
+       sage: import sage.graphs.graph_plot
+       sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [4,4]
+
+**Index of methods and functions**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`GraphPlot.set_pos` | Sets the position plotting parameters for this GraphPlot.
+    :meth:`GraphPlot.set_vertices` | Sets the vertex plotting parameters for this GraphPlot.
+    :meth:`GraphPlot.set_edges` | Sets the edge (or arrow) plotting parameters for the GraphPlot object.
+    :meth:`GraphPlot.show` | Shows the (Di)Graph associated with this GraphPlot object.
+    :meth:`GraphPlot.plot` | Returns a graphics object representing the (di)graph.
+    :meth:`GraphPlot.layout_tree` | Compute a nice layout of a tree.
+    :meth:`~sage.graphs.graph_plot._circle_embedding` | Sets some vertices on a circle in the embedding of a graph G.
+    :meth:`~sage.graphs.graph_plot._line_embedding` | Sets some vertices on a line in the embedding of a graph G.
+
+Methods and classes
+-------------------
+.. autofunction:: _circle_embedding
+.. autofunction:: _line_embedding
 """
 
 #*****************************************************************************
@@ -46,37 +153,29 @@ from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text
 from sage.misc.decorators import options
 from math import sqrt, cos, sin, atan, pi
 
-layout_options =   {
-                    'layout': 'A layout algorithm -- one of "acyclic", "circular", "ranked", "graphviz", "planar", "spring", or "tree".',
-                    'iterations': 'The number of times to execute the spring layout algorithm.',
-                    'heights': 'A dictionary mapping heights to the list of vertices at this height.',
-                    'spring': 'Use spring layout to finalize the current layout.',
-                    'tree_root': 'A vertex designation for drawing trees.',
-                    'tree_orientation': 'The direction of tree branches -- "up" or "down".',
-                    'save_pos': 'Whether or not to save the computed position for the graph.',
-                    'dim': 'The dimension of the layout -- 2 or 3.',
-                    'prog': 'Which graphviz layout program to use -- one of "circo", "dot", "fdp", "neato", or "twopi".',
-                    'by_component': 'Whether to do the spring layout by connected component -- a boolean.',
-                    }
+DEFAULT_SHOW_OPTIONS = {
+    "figsize"             : [4,4]
+    }
 
-graphplot_options = layout_options.copy()
-graphplot_options.update(
-                   {'pos': 'The position dictionary of vertices',
-                    'vertex_labels': 'Whether or not to draw vertex labels.',
-                    'vertex_colors': 'Dictionary of vertex coloring.',
-                    'vertex_size': 'The size to draw the vertices.',
-                    'vertex_shape': 'The shape to draw the vertices, Currently unavailable for Multi-edged DiGraphs.',
-                    'edge_labels': 'Whether or not to draw edge labels.',
-                    'edge_style': 'The linestyle of the edges-- one of "solid", "dashed", "dotted", dashdot".',
-                    'edge_color': 'The default color for edges.',
-                    'edge_colors': 'Dictionary of edge coloring.',
-                    'color_by_label': 'Whether or not to color the edges by their label values.',
-                    'partition': 'A partition of the vertex set.  (Draws each cell of vertices in a different color).',
-                    'loop_size': 'The radius of the smallest loop.',
-                    'dist': 'The distance between multiedges.',
-                    'max_dist': 'The max distance range to allow multiedges.',
-                    'talk': 'Whether to display the vertices in talk mode (larger and white)',
-                    'graph_border': 'Whether or not to draw a frame around the graph.'})
+DEFAULT_PLOT_OPTIONS = {
+    "vertex_size"         : 200,
+    "vertex_labels"       : True,
+    "layout"              : None,
+    "edge_style"          : 'solid',
+    "edge_color"          : 'black',
+    "edge_colors"         : None,
+    "edge_labels"         : False,
+    "iterations"          : 50,
+    "tree_orientation"    : 'down',
+    "heights"             : None,
+    "graph_border"        : False,
+    "talk"                : False,
+    "color_by_label"      : False,
+    "partition"           : None,
+    "dist"                : .075,
+    "max_dist"            : 1.5,
+    "loop_size"           : .075
+    }
 
 class GraphPlot(SageObject):
     def __init__(self, graph, options):
@@ -114,7 +213,31 @@ class GraphPlot(SageObject):
 
             sage: g = graphs.CompleteGraph(2); g.show()
 
+        Wrong input::
+
+            sage: graphs.PetersenGraph().plot(kujhfuhf="23")
+            doctest:...: DeprecationWarning: You provided kujhfuhf as an
+            argument to a function which has always silently ignored its
+            inputs. This method may soon be updated so that the method raises an
+            exception instead of this warning, which will break your code : to
+            be on the safe side, update it !
+            ...
         """
+        # Setting the default values if needed
+        for k,value in DEFAULT_PLOT_OPTIONS.iteritems():
+            if k not in options:
+                options[k] = value
+
+        for opt in options:
+            if not opt in graphplot_options:
+                from sage.misc.superseded import deprecation
+                deprecation(13891, ("You provided "+str(opt)+" as an argument to a "
+                                    "function which has always silently ignored "
+                                    "its inputs. This method may soon be updated "
+                                    "so that the method raises an exception "
+                                    "instead of this warning, which will break "
+                                    "your code : to be on the safe side, update it !"))
+
         self._plot_components = {}
         self._nodelist = graph.vertices()
         self._graph = graph
@@ -126,6 +249,7 @@ class GraphPlot(SageObject):
             self._arcdigraph = True
         else:
             self._arcdigraph = False
+
         self.set_vertices()
         self.set_edges()
 
@@ -307,6 +431,7 @@ class GraphPlot(SageObject):
     def set_edges(self, **edge_options):
         """
         Sets the edge (or arrow) plotting parameters for the ``GraphPlot`` object.
+
         This function is called by the constructor but can also be called to make
         updates to the vertex options of an existing ``GraphPlot`` object.  Note
         that the changes are cumulative.
@@ -354,7 +479,6 @@ class GraphPlot(SageObject):
             ...           v0, v1 = map(int, s.split())
             ...           vn = vector(((x-(vx[v0]+vx[v1])/2.),y-(vy[v0]+vy[v1])/2.)).norm()
             ...           assert vn < tol
-
 
         """
         for arg in edge_options:
@@ -564,9 +688,18 @@ class GraphPlot(SageObject):
         """
         Shows the (Di)Graph associated with this ``GraphPlot`` object.
 
-        For syntax and lengthy documentation, see :meth:`GraphPlot.plot`.
-        Any options not used by plot will be passed on to the
-        :meth:`~sage.plot.plot.Graphics.show` method.
+        INPUT:
+
+        This method accepts all parameters of
+        :meth:`sage.plot.graphics.Graphics.show`.
+
+        .. NOTE::
+
+            - See :mod:`the module's documentation <sage.graphs.graph_plot>` for
+              information on default values of this method.
+
+            - Any options not used by plot will be passed on to the
+              :meth:`~sage.plot.plot.Graphics.show` method.
 
         EXAMPLE::
 
@@ -574,6 +707,11 @@ class GraphPlot(SageObject):
             sage: P = C.graphplot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()
         """
+        # Setting the default values if needed
+        for k,value in DEFAULT_SHOW_OPTIONS.iteritems():
+            if k not in kwds:
+                kwds[k] = value
+
         self.plot().show(**kwds)
 
     def plot(self, **kwds):
@@ -582,106 +720,13 @@ class GraphPlot(SageObject):
 
         INPUT:
 
-        - ``pos`` -- an optional positioning dictionar
+        The options accepted by this method are to be found in the documentation
+        of module :mod:`sage.graphs.graph_plot`.
 
-        - ``layout`` -- what kind of layout to use, takes precedence over ``pos``
+        .. NOTE::
 
-          - 'circular' -- plots the graph with vertices evenly distributed
-            on a circle
-
-          - 'spring' -- uses the traditional spring layout, using the
-            graph's current positions as initial positions
-
-          - 'tree' -- the (di)graph must be a tree. One can specify the root
-            of the tree using the keyword ``tree_root``, otherwise a root
-            will be selected at random. Then the tree will be plotted in
-            levels, depending on minimum distance for the root.
-
-        - ``vertex_labels`` -- whether to print vertex labels
-
-        - ``edge_labels`` -- whether to print edge labels. By default, ``False``,
-          but if ``True``, the result of ``str(l)`` is printed on the edge for
-          each label l. Labels equal to None are not printed (to set edge
-          labels, see :meth:`~sage.graphs.generic_graph.GenericGraph.set_edge_label`).
-
-        - ``vertex_size`` -- size of vertices displayed
-
-        - ``vertex_shape`` -- the shape to draw the vertices (Not available for
-          multiedge digraphs.
-
-        - ``graph_border`` -- whether to include a box around the graph
-
-        - ``vertex_colors`` -- optional dictionary to specify vertex colors: each
-          key is a color recognizable by matplotlib, and each corresponding
-          entry is a list of vertices. If a vertex is not listed, it looks
-          invisible on the resulting plot (it doesn't get drawn).
-
-        - ``edge_colors`` -- a dictionary specifying edge colors: each key is a
-          color recognized by matplotlib, and each entry is a list of edges.
-
-        - ``partition`` -- a partition of the vertex set. if specified, plot will
-          show each cell in a different color. vertex_colors takes precedence.
-
-        - ``talk`` -- if ``True``, prints large vertices with white backgrounds
-          so that labels are legible on slides
-
-        - ``iterations`` -- how many iterations of the spring layout algorithm to
-          go through, if applicable
-
-        - ``color_by_label`` -- if ``True``, color edges by their labels
-
-        - ``heights`` -- if specified, this is a dictionary from a set of
-          floating point heights to a set of vertices
-
-        - ``edge_style`` -- keyword arguments passed into the
-          edge-drawing routine.  This currently only works for
-          directed graphs, since we pass off the undirected graph to
-          networkx
-
-        - ``tree_root`` -- a vertex of the tree to be used as the root for
-          the ``layout="tree"`` option. If no root is specified, then one
-          is chosen at random. Ignored unless ``layout='tree'``.
-
-        - ``tree_orientation`` -- "up" or "down" (default is "down").
-          If "up" (resp., "down"), then the root of the tree will
-          appear on the bottom (resp., top) and the tree will grow
-          upwards (resp. downwards). Ignored unless ``layout='tree'``.
-
-        - ``save_pos`` -- save position computed during plotting
-
-        EXAMPLES:
-
-        Let's list all possible options::
-
-            sage: from sage.graphs.graph_plot import graphplot_options
-            sage: list(sorted(graphplot_options.iteritems()))
-            [('by_component', 'Whether to do the spring layout by connected component -- a boolean.'),
-             ('color_by_label', 'Whether or not to color the edges by their label values.'),
-             ('dim', 'The dimension of the layout -- 2 or 3.'),
-             ('dist', 'The distance between multiedges.'),
-             ('edge_color', 'The default color for edges.'),
-             ('edge_colors', 'Dictionary of edge coloring.'),
-             ('edge_labels', 'Whether or not to draw edge labels.'),
-             ('edge_style', 'The linestyle of the edges-- one of "solid", "dashed", "dotted", dashdot".'),
-             ('graph_border', 'Whether or not to draw a frame around the graph.'),
-             ('heights', 'A dictionary mapping heights to the list of vertices at this height.'),
-             ('iterations', 'The number of times to execute the spring layout algorithm.'),
-             ('layout', 'A layout algorithm -- one of "acyclic", "circular", "ranked", "graphviz", "planar", "spring", or "tree".'),
-             ('loop_size', 'The radius of the smallest loop.'),
-             ('max_dist', 'The max distance range to allow multiedges.'),
-             ('partition', 'A partition of the vertex set.  (Draws each cell of vertices in a different color).'),
-             ('pos', 'The position dictionary of vertices'),
-             ('prog', 'Which graphviz layout program to use -- one of "circo", "dot", "fdp", "neato", or "twopi".'),
-             ('save_pos', 'Whether or not to save the computed position for the graph.'),
-             ('spring', 'Use spring layout to finalize the current layout.'),
-             ('talk', 'Whether to display the vertices in talk mode (larger and white)'),
-             ('tree_orientation', 'The direction of tree branches -- "up" or "down".'),
-             ('tree_root', 'A vertex designation for drawing trees.'),
-             ('vertex_colors', 'Dictionary of vertex coloring.'),
-             ('vertex_labels', 'Whether or not to draw vertex labels.'),
-             ('vertex_shape', 'The shape to draw the vertices, Currently unavailable for Multi-edged DiGraphs.'),
-             ('vertex_size', 'The size to draw the vertices.')]
-
+            See :mod:`the module's documentation <sage.graphs.graph_plot>` for
+            information on default values of this method.
 
         We can specify some pretty precise plotting of familiar graphs::
 
@@ -719,7 +764,6 @@ class GraphPlot(SageObject):
             sage: for u,v,l in D.edges():
             ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: D.graphplot(edge_labels=True, layout='circular').show()
-
 
         This example shows off the coloring of edges::
 
@@ -817,7 +861,21 @@ class GraphPlot(SageObject):
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed').plot()
+
+        Wrong input (any input) :trac:`13891`::
+
+            sage: graphs.PetersenGraph().graphplot().plot(aertataert=346345345)
+            doctest:...: DeprecationWarning: This method takes no argument ! You may want to give it as an argument to graphplot instead.
+            See http://trac.sagemath.org/13891 for details.
+            <BLANKLINE>
         """
+        # This method takes NO input
+        # This has been added in early 2013. Remove it before my death, please.
+        if kwds:
+            from sage.misc.superseded import deprecation
+            deprecation(13891, "This method takes no argument ! You may want "
+                               "to give it as an argument to graphplot instead.")
+
         G = Graphics()
         for comp in self._plot_components.values():
             if not isinstance(comp, list):
@@ -825,6 +883,7 @@ class GraphPlot(SageObject):
             else:
                 for item in comp:
                     G += item
+
         G.set_axes_range(*(self._graph._layout_bounding_box(self._pos)))
         if self._options['graph_border']:
             xmin = G.xmin()
@@ -856,7 +915,6 @@ class GraphPlot(SageObject):
               their parent
             - ``orientation="top"`` -- children are placed above
               their parent
-
 
         EXAMPLES::
 
@@ -950,7 +1008,7 @@ class GraphPlot(SageObject):
 
 def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
     r"""
-    Set some vertices on a circle in the embedding of a graph G.
+    Sets some vertices on a circle in the embedding of a graph G.
 
     This method modifies the graph's embedding so that the vertices
     listed in ``vertices`` appear in this ordering on a circle of given

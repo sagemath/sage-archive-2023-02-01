@@ -37,6 +37,9 @@ reference implementation for Gröbner basis computation.
  * libz         (accomplished because Python and libpng depend on it)
 
 == Patches ==
+ * 0001_PolyEntryVector_throw_instead_assert.patch
+   upstream patch from http://bitbucket.org/brickenstein/polybori/commits/56692984
+   that changes unecessary assertion to exception.
 
 All previously contributed patches were merged upstream.
 
@@ -46,6 +49,9 @@ All previously contributed patches were merged upstream.
                sets local prefix and install paths to Sage directories
 
 == Changelog ==
+
+===  polybori-0.8.2.p0 (Alexander Dreyer, 30 December 2012) ===
+ * Changing unnecessary assertion to exception (Sage Trac #13883)
 
 ===  polybori-0.8.2 (Alexander Dreyer, 26 June 2012) ===
  * Updating sources to PolyBoRi's release 0.8.2 (Sage Trac #13124)

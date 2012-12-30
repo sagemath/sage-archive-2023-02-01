@@ -1,9 +1,10 @@
+"""
+Fortran compiler
+"""
 import __builtin__
 import os
 
-from sage.misc.temporary_file import tmp_filename
-
-count=0
+from sage.misc.temporary_file import tmp_dir
 
 
 class InlineFortran:
@@ -34,74 +35,76 @@ class InlineFortran:
 
         TESTS::
 
+            sage: os.chdir(SAGE_ROOT)
             sage: fortran.eval("SYNTAX ERROR !@#$")
             Traceback (most recent call last):
             ...
             RuntimeError: failed to compile Fortran code:...
+            sage: os.getcwd() == SAGE_ROOT
+            True
         """
         if len(x.splitlines()) == 1 and os.path.exists(x):
             filename = x
             x = open(x).read()
             if filename.lower().endswith('.f90'):
                 x = '!f90\n' + x
-        global count
 
         from numpy import f2py
-        old_import_path=os.sys.path
-        cwd=os.getcwd()
-        os.sys.path.append(cwd)
 
-        #name = tmp_dir() + '/fortran_module_%d'%count
-        name = 'fortran_module_%d'%count
-        if os.path.exists(name):
-            os.unlink(name)
-        s_lib_path=""
-        s_lib=""
-        for s in self.library_paths:
-            s_lib_path=s_lib_path+"-L"+s+" "
+        # Create everything in a temporary directory
+        mytmpdir = tmp_dir()
 
-        for s in self.libraries:
-            s_lib=s_lib +"-l"+s + " "
-
-        # if the first line has !f90 as a comment gfortran will treat it as
-        # fortran 90 code
-        if x.startswith('!f90'):
-            fname = tmp_filename(ext='.f90')
-        else:
-            fname = tmp_filename(ext='.f')
-
-        log = tmp_filename()
-        extra_args = '--quiet --f77exec=sage-inline-fortran --f90exec=sage-inline-fortran %s %s >"%s" 2>&1'%(
-            s_lib_path, s_lib, log)
-
-        f2py.compile(x, name, extra_args = extra_args, source_fn=fname)
-
-        log_string = open(log).read()
-
-        os.unlink(log)
-        os.unlink(fname)
-
-        # f2py.compile() doesn't raise any exception if it fails.
-        # So we manually check whether the compiled file exists.
-        # NOTE: the .so extension is used, even on OS X where .dylib
-        # would be expected.
-        soname = name + '.so'
-        if not os.path.isfile(soname):
-            raise RuntimeError("failed to compile Fortran code:\n" + log_string)
-
-        if self.verbose:
-            print log_string
-
-        count += 1
         try:
-            m=__builtin__.__import__(name)
-        except ImportError:
-            if not self.verbose:
+            old_cwd = os.getcwd()
+            os.chdir(mytmpdir)
+
+            old_import_path = os.sys.path
+            os.sys.path.append(mytmpdir)
+
+            name = "fortran_module"  # Python module name
+            # if the first line has !f90 as a comment, gfortran will
+            # treat it as Fortran 90 code
+            if x.startswith('!f90'):
+                fortran_file = name + '.f90'
+            else:
+                fortran_file = name + '.f'
+
+            s_lib_path = ""
+            s_lib = ""
+            for s in self.library_paths:
+                s_lib_path = s_lib_path + "-L%s "
+
+            for s in self.libraries:
+                s_lib = s_lib + "-l%s "%s
+
+            log = name + ".log"
+            extra_args = '--quiet --f77exec=sage-inline-fortran --f90exec=sage-inline-fortran %s %s >"%s" 2>&1'%(
+                s_lib_path, s_lib, log)
+
+            f2py.compile(x, name, extra_args = extra_args, source_fn=fortran_file)
+            log_string = open(log).read()
+
+            # f2py.compile() doesn't raise any exception if it fails.
+            # So we manually check whether the compiled file exists.
+            # NOTE: the .so extension is used, even on OS X where .dylib
+            # might be expected.
+            soname = name + '.so'
+            if not os.path.isfile(soname):
+                raise RuntimeError("failed to compile Fortran code:\n" + log_string)
+
+            if self.verbose:
                 print log_string
-            return
+
+            m = __builtin__.__import__(name)
         finally:
-            os.sys.path=old_import_path
-            os.unlink(soname)
+            os.sys.path = old_import_path
+            os.chdir(old_cwd)
+            try:
+                import shutil
+                shutil.rmtree(mytmpdir)
+            except OSError:
+                # This can fail for example over NFS
+                pass
 
         for k, x in m.__dict__.iteritems():
             if k[0] != '_':

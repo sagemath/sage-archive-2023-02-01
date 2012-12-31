@@ -719,11 +719,16 @@ def integral(x, *args, **kwds):
         2
 
     Another symbolic integral, from :trac:`11238`, that used to return
-    zero incorrectly::
+    zero incorrectly; with maxima 5.26.0 one gets 1/2*sqrt(pi)*e^(1/4),
+    whereas with 5.29.1 the expression is less pleasant, but still
+    has the same value::
 
         sage: f = exp(-x) * sinh(sqrt(x))
-        sage: integrate(f, x, 0, Infinity)
+        sage: t = integrate(f, x, 0, Infinity); t            # long time
+        -1/4*((erf(1) - 1)*sqrt(pi) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) + 1/4*((erf(1) - 1)*sqrt(pi) + sqrt(pi) + 2*e^(-1) - 2)*e^(1/4)
+        sage: t.simplify_exp()  # long time
         1/2*sqrt(pi)*e^(1/4)
+
 
     """
     if hasattr(x, 'integral'):

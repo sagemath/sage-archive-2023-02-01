@@ -139,7 +139,7 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 # display2d -- no ascii art output
 # keepfloat -- don't automatically convert floats to rationals
 init_code = ['display2d : false', 'domain : complex', 'keepfloat : true',
-            'load(to_poly_solver)', 'load(simplify_sum)',
+            'load(to_poly_solve)', 'load(simplify_sum)',
             'load(abs_integrate)']
 
 # Turn off the prompt labels, since computing them *very

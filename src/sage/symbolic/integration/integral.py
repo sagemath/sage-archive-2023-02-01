@@ -670,6 +670,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: integral(1/x^2, x, -infinity, -1, algorithm='sympy')
         1
 
+    Check that :trac:`11737` is fixed::
+
+        sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
+        0.285736646322858
+
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

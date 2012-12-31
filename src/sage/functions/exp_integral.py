@@ -1071,8 +1071,8 @@ class Function_sinh_integral(BuiltinFunction):
         -cosh(1/2) + 1/2*sinh_integral(1/2) + 1
         sage: integrate(sinh_integral(x), x, 0, 1/2).n() # correct
         0.125872409703453
-        sage: integrate(sinh_integral(x), x, 0, 0.5).n() # incorrect!
-        0.125872409703453 + 1.57079632679490*I
+        sage: integrate(sinh_integral(x), x, 0, 0.5).n() # fixed in maxima 5.29.1
+        0.125872409703453
 
     ALGORITHM:
 

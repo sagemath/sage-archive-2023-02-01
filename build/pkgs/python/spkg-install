@@ -28,12 +28,9 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-# We are setting LDFLAGS and CPPFLAGS so that we pick up Sage's readline
+# We are setting LDFLAGS so that we pick up Sage's readline
 LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 export LDFLAGS
-
-CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
-export CPPFLAGS
 
 # Extra flags for ./configure
 EXTRAFLAGS=
@@ -41,7 +38,6 @@ EXTRAFLAGS=
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building Python with pydebug"
     EXTRAFLAGS="$EXTRAFLAGS --with-pydebug"
-    CPPFLAGS="$CPPFLAGS -g -O0"
 fi
 
 # pymalloc screws with valgrind, so let's disable it

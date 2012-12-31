@@ -1805,6 +1805,8 @@ class Polyhedron_base(Element):
         """
         Test for simplicity of a polytope.
 
+        See :wikipedia:`Simple_polytope`
+
         EXAMPLES::
 
             sage: p = Polyhedron([[0,0,0],[1,0,0],[0,1,0],[0,0,1]])
@@ -1814,9 +1816,6 @@ class Polyhedron_base(Element):
             sage: p.is_simple()
             False
 
-        REFERENCES:
-
-            http://en.wikipedia.org/wiki/Simple_polytope
         """
         if not self.is_compact(): return False
 
@@ -1825,6 +1824,43 @@ class Polyhedron_base(Element):
             if len(adj) != self.dim():
                 return False
         return True
+
+    def is_simplicial(self):
+        """
+        Tests if the polytope is simplicial
+
+        A polytope is simplicial if every facet is a simplex.
+
+        See :wikipedia:`Simplicial_polytope`
+
+        EXAMPLES::
+
+            sage: p = polytopes.n_cube(3)
+            sage: p.is_simplicial()
+            False
+            sage: q = polytopes.n_simplex(5)
+            sage: q.is_simplicial()
+            True
+            sage: p = Polyhedron([[0,0,0],[1,0,0],[0,1,0],[0,0,1]])
+            sage: p.is_simplicial()
+            True
+            sage: q = Polyhedron([[1,1,1],[-1,1,1],[1,-1,1],[-1,-1,1],[1,1,-1]])
+            sage: q.is_simplicial()
+            False
+
+        The method is not implemented for unbounded polyhedra::
+
+            sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
+            sage: p.is_simplicial()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: This function is implemented for polytopes only.
+        """
+        if not(self.is_compact()):
+            raise NotImplementedError("This function is implemented for polytopes only.")
+        d = self.dim()
+        return all(len([vertex for vertex in face.incident()]) == d
+                   for face in self.Hrepresentation())
 
     @cached_method
     def gale_transform(self):

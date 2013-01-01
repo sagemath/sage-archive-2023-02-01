@@ -1313,6 +1313,18 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: b^(71*7381) == (b^71)^7381
             True
 
+        We define ``0^0`` to be unity, :trac:`13897`::
+
+            sage: K.<a> = GF(3^10)
+            sage: K(0)^0
+            1
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: K.<a> = GF(3^10)
+            sage: type(K(0)^0) == type(K(0))
+            True
+
         ALGORITHM:
 
         Givaro objects are stored as integers `i` such that ``self`` `= a^i`,
@@ -1337,8 +1349,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             return self
 
         elif exp == 0:
-            if (cache.objectptr).isZero(self.element):
-                raise ArithmeticError, "0^0 is undefined."
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
 
         elif (cache.objectptr).isZero(self.element):

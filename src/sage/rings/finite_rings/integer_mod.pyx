@@ -1922,16 +1922,39 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: R = Integers(p)
             sage: R(9876)^(p-1)
             1
-            sage: R(0)^0
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: 0^0 is undefined.
             sage: mod(3, 10^100)^-2
             8888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888889
             sage: mod(2, 10^100)^-2
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Inverse does not exist.
+
+        TESTS:
+
+        We define ``0^0`` to be unity, :trac:`13894`::
+
+            sage: p = next_prime(11^10)
+            sage: R = Integers(p)
+            sage: R(0)^0
+            1
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: type(R(0)^0) == type(R(0))
+            True
+
+        When the modulus is ``1``, the only element in the ring is
+        ``0`` (and it is equivalent to ``1``), so we return that
+        instead::
+
+            sage: from sage.rings.finite_rings.integer_mod \
+            ...       import IntegerMod_gmp
+            sage: zero = IntegerMod_gmp(Integers(1),0)
+            sage: type(zero)
+            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
+            sage: zero^0
+            0
+
         """
         cdef IntegerMod_gmp x = self._new_c()
         try:
@@ -2414,10 +2437,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: R = Integers(389)
             sage: R(7)^388
             1
-            sage: R(0)^0
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: 0^0 is undefined.
 
             sage: mod(3, 100)^-1
             67
@@ -2432,6 +2451,28 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Inverse does not exist.
+
+        TESTS:
+
+        We define ``0^0`` to be unity, :trac:`13894`::
+
+            sage: R = Integers(100)
+            sage: R(0)^0
+            1
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: type(R(0)^0) == type(R(0))
+            True
+
+        When the modulus is ``1``, the only element in the ring is
+        ``0`` (and it is equivalent to ``1``), so we return that
+        instead::
+
+            sage: R = Integers(1)
+            sage: R(0)^0
+            0
+
         """
         cdef long long_exp
         cdef int_fast32_t res
@@ -2452,7 +2493,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
                 sig_off()
 
         if long_exp == 0 and self.ivalue == 0:
-            raise ArithmeticError, "0^0 is undefined."
+            # Return 0 if the modulus is 1, otherwise return 1.
+            return self._new_c(self.__modulus.int32 != 1)
         cdef bint invert = False
         if long_exp < 0:
             invert = True
@@ -3232,10 +3274,6 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: R = Integers(p)
             sage: R(1234)^(p-1)
             1
-            sage: R(0)^0
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: 0^0 is undefined.
             sage: R = Integers(17^5)
             sage: R(17)^5
             0
@@ -3257,6 +3295,31 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
             sage: type(R(0))
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
+
+        We define ``0^0`` to be unity, :trac:`13894`::
+
+            sage: p = next_prime(10^5)
+            sage: R = Integers(p)
+            sage: R(0)^0
+            1
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: type(R(0)^0) == type(R(0))
+            True
+
+        When the modulus is ``1``, the only element in the ring is
+        ``0`` (and it is equivalent to ``1``), so we return that
+        instead::
+
+            sage: from sage.rings.finite_rings.integer_mod \
+            ...       import IntegerMod_int64
+            sage: zero = IntegerMod_int64(Integers(1),0)
+            sage: type(zero)
+            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
+            sage: zero^0
+            0
+
         """
         cdef long long_exp
         cdef int_fast64_t res
@@ -3281,7 +3344,8 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
                 sig_off()
 
         if long_exp == 0 and self.ivalue == 0:
-            raise ArithmeticError, "0^0 is undefined."
+            # Return 0 if the modulus is 1, otherwise return 1.
+            return self._new_c(self.__modulus.int64 != 1)
         cdef bint invert = False
         if long_exp < 0:
             invert = True
@@ -3366,8 +3430,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 cdef mpz_pow_helper(mpz_t res, mpz_t base, object exp, mpz_t modulus):
     cdef bint invert = False
     cdef long long_exp
-    if mpz_sgn(base) == 0 and not exp:
-        raise ArithmeticError, "0^0 is undefined."
+
     if PyInt_CheckExact(exp):
         long_exp = PyInt_AS_LONG(exp)
         if long_exp < 0:

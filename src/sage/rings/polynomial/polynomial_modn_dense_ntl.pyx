@@ -825,6 +825,19 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: R.<x> = Integers(101)[]
             sage: (x-1)^(-5)
             1/(x^5 + 96*x^4 + 10*x^3 + 91*x^2 + 5*x + 100)
+
+        We define ``0^0`` to be unity, :trac:`13895`::
+
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='NTL')
+            sage: R(0)^0
+            1
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='NTL')
+            sage: type(R(0)^0) == type(R(0))
+            True
+
         """
         cdef bint recip = 0, do_sig
         cdef long e = ee
@@ -833,9 +846,9 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         elif e < 0:
             recip = 1
             e = -e
-        if not self:
-            if e == 0:
-                raise ArithmeticError("0^0 is undefined.")
+        if self == 0 and e == 0:
+            return self.parent(1)
+
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         cdef zz_pX_Modulus_c *mod
 
@@ -1375,6 +1388,19 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: R.<x> = Integers(10^30)[]
             sage: (x+1)^5
             x^5 + 5*x^4 + 10*x^3 + 10*x^2 + 5*x + 1
+
+        We define ``0^0`` to be unity, :trac:`13895`::
+
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='NTL')
+            sage: R(0)^0
+            1
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation='NTL')
+            sage: type(R(0)^0) == type(R(0))
+            True
+
         """
         cdef bint recip = 0, do_sig
         cdef long e = ee
@@ -1383,9 +1409,8 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         elif e < 0:
             recip = 1 # delay because powering frac field elements is slow
             e = -e
-        if not self:
-            if e == 0:
-                raise ArithmeticError("0^0 is undefined.")
+        if self == 0 and e == 0:
+            return self.parent(1)
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
         cdef ZZ_pX_Modulus_c *mod
 

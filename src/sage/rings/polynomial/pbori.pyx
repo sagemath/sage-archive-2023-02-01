@@ -1615,57 +1615,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         for elt in blocks:
             self._pbring.ordering().appendBlock(elt)
 
-    def _change_ordering(self, int order):
-        r"""
-        Change the ordering of this boolean polynomial ring. Do NOT call
-        this method, unless you know very well what you are doing.
-
-        INPUT:
-
-
-        -  ``order`` - an integer (0 = order = 4)
-
-
-        EXAMPLE::
-
-            sage: B.<x,y,z> = BooleanPolynomialRing(3,order='deglex')
-            sage: y*z > x
-            True
-
-        Now we call the internal method and change the ordering to 'lex'::
-
-            sage: B._change_ordering(0)
-            sage: y*z > x
-            False
-
-        However, this change is not - and should not be - picked up by the
-        public interface.
-
-        ::
-
-            sage: B.term_order()
-            Degree lexicographic term order
-
-       Resetting ordering
-
-        ::
-
-            sage: B._change_ordering(1)
-            sage: y*z > x
-            True
-
-        .. warning::
-
-           Do not use this method. It is provided for compatibility
-           reasons with PolyBoRi but parents are supposed to be
-           immutable in Sage.
-        """
-        if order < 0 or order > 4:
-            raise ValueError, "order value %s is not supported"%(order)
-        self._pbring.changeOrdering(<ordercodes>order)
-
-
-
     def one(self):
         """
         EXAMPLES::

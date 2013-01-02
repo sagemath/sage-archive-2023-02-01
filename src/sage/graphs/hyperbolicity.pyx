@@ -368,7 +368,7 @@ def elimination_ordering_of_simplicial_vertices(G, max_degree=4, verbose=False):
     for u,v in G.edge_iterator(labels=None):
         ggnx.add_edge(u,v)
 
-    from sage.combinat.combinat import combinations_iterator
+    from sage.combinat.combination import Combinations
     cdef list elim = []
     cdef set L = set()
 
@@ -383,7 +383,7 @@ def elimination_ordering_of_simplicial_vertices(G, max_degree=4, verbose=False):
         # update the list of vertices of degree at most max_degree.
         u = L.pop()
         X = ggnx.neighbors(u)
-        if all(ggnx.has_edge(v,w) for v,w in combinations_iterator(X,2)):
+        if all(ggnx.has_edge(v,w) for v,w in Combinations(X,2).list()):
             elim.append(u)
             ggnx.remove_node(u)
             for v,d in ggnx.degree_iter(X):
@@ -803,7 +803,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
     Comparison of results::
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity
-        sage: for i in xrange(10): # long test
+        sage: for i in xrange(10): # long time
         ...       G = graphs.RandomBarabasiAlbert(100,2)
         ...       d1,_,_ = hyperbolicity(G,algorithm='basic')
         ...       d2,_,_ = hyperbolicity(G,algorithm='cuts')

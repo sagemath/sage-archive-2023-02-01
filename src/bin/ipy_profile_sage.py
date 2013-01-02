@@ -19,7 +19,6 @@ if 'SAGE_CLEAN' not in os.environ:
     if not os.environ.has_key('SAGE_IMPORTALL') or os.environ['SAGE_IMPORTALL'] != "no":
         _ip.ex('from sage.all_cmdline import *')
 
-
     startup_file = os.environ.get('SAGE_STARTUP_FILE', '')
     if os.path.exists(startup_file):
         _ip.options.autoexec.append('load %s'%startup_file)

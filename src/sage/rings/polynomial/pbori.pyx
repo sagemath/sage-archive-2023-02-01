@@ -6547,15 +6547,23 @@ cdef class FGLMStrategy:
             sage: x > y > z
             True
             sage: old_ring  = B
-            sage: B._change_ordering(dp_asc)
-            sage: x > y > z
-            False
-            sage: z > y > x
-            True
             sage: new_ring = B.clone(ordering=lp)
+            sage: new_ring.gen(0) > new_ring.gen(1) > new_ring.gen(2)
+            True
+            sage: new_ring.gen(2) > new_ring.gen(1) > new_ring.gen(0)
+            False
             sage: ideal = BooleanPolynomialVector([x+z, y+z])
             sage: FGLMStrategy(old_ring, new_ring, ideal)
             <sage.rings.polynomial.pbori.FGLMStrategy object at 0x...>
+
+        Check that :trac:`13883` is fixed:
+
+            sage: nonreduced = BooleanPolynomialVector([x+z, x+y])
+            sage: FGLMStrategy(old_ring, new_ring, nonreduced) # optional - debug
+            Traceback (most recent call last):
+            ...
+            RuntimeError...
+
         """
         cdef BooleanPolynomialRing _from_ring, _to_ring
 
@@ -6572,9 +6580,10 @@ cdef class FGLMStrategy:
             _to_ring = <BooleanPolynomialRing>to_ring.ring
         else:
             raise TypeError("to_ring has wrong type %s"%(type(to_ring),))
-
+        sig_on()
         self._strat = PBFglmStrategy_Constructor(_from_ring._pbring, _to_ring._pbring, vec._vec)
         self._parent = to_ring
+        sig_off()
 
     def __dealloc__(self):
         pass # destruction by c++ destructor

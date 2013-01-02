@@ -552,12 +552,12 @@ representation in some character. This may be found by the method
 
 ::
 
-	sage: A2=WeylCharacterRing("A2",style="coroots")
-	sage: ad = A2(1,1)
-	sage: [ad.symmetric_power(k).invariant_degree() for k in [0..6]]
-	[1, 0, 1, 1, 1, 1, 2]
-	sage: [ad.exterior_power(k).invariant_degree() for k in [0..6]]
-	[1, 0, 0, 1, 0, 1, 0]
+    sage: A2=WeylCharacterRing("A2",style="coroots")
+    sage: ad = A2(1,1)
+    sage: [ad.symmetric_power(k).invariant_degree() for k in [0..6]]
+    [1, 0, 1, 1, 1, 1, 2]
+    sage: [ad.exterior_power(k).invariant_degree() for k in [0..6]]
+    [1, 0, 0, 1, 0, 1, 0]
 
 If we want the multiplicity of some other representation, we may
 obtain that using the method ``multiplicity``::
@@ -566,6 +566,6 @@ obtain that using the method ``multiplicity``::
 
 ::
 
-	sage: (ad^3).multiplicity(ad)
-	8
+    sage: (ad^3).multiplicity(ad)
+    8
 

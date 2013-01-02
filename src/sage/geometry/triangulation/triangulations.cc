@@ -16,7 +16,7 @@ triangulations::triangulations(const flips& all_flips)
 
 // find the correct position for t in the hash
 void triangulations::find_hash_position(const compact_simplices& t,
-					hash_value& pos, bool& is_new) const
+                                        hash_value& pos, bool& is_new) const
 {
   hash_value freespace;
   const hash_value initial_guess = t.hash_function() % hash_max;
@@ -27,7 +27,7 @@ void triangulations::find_hash_position(const compact_simplices& t,
       // found empty place in hash
       is_new=true;
       if (i>5)
-	need_resize = true;
+        need_resize = true;
       return;
     }
     else if ((*this)[hash_list[pos]]==t) {
@@ -68,7 +68,7 @@ void triangulations::add_triang_if_new(const compact_simplices & new_triang)
 void triangulations::add_neighbours(const simplices & s)
 {
   for (flips::const_iterator
-	 f=bistellar_flips.begin(); f!=bistellar_flips.end(); ++f) {
+         f=bistellar_flips.begin(); f!=bistellar_flips.end(); ++f) {
     goodcircuit goody(s,*f);
     if (goody.is_good()) {
       goody.do_flip(s,*f);
@@ -133,9 +133,9 @@ triangulations_ptr init_triangulations
       PyObject* py_simplex = PySequence_GetItem(py_flip_pos,j);
       vertices simplex;
       for (int k=0; k<PySequence_Size(py_simplex); k++) {
-	PyObject* py_vertex = PySequence_GetItem(py_simplex,k);
-	simplex.insert(simplex.begin(), PyInt_AS_LONG(py_vertex));
-	Py_DECREF(py_vertex);
+        PyObject* py_vertex = PySequence_GetItem(py_simplex,k);
+        simplex.insert(simplex.begin(), PyInt_AS_LONG(py_vertex));
+        Py_DECREF(py_vertex);
       }
       pos.push_back(simplex);
       Py_DECREF(py_simplex);
@@ -146,9 +146,9 @@ triangulations_ptr init_triangulations
       PyObject* py_simplex = PySequence_GetItem(py_flip_neg,j);
       vertices simplex;
       for (int k=0; k<PySequence_Size(py_simplex); k++) {
-	PyObject* py_vertex = PySequence_GetItem(py_simplex,k);
-	simplex.insert(simplex.begin(), PyInt_AS_LONG(py_vertex));
-	Py_DECREF(py_vertex);
+        PyObject* py_vertex = PySequence_GetItem(py_simplex,k);
+        simplex.insert(simplex.begin(), PyInt_AS_LONG(py_vertex));
+        Py_DECREF(py_vertex);
       }
       neg.push_back(simplex);
       Py_DECREF(py_simplex);

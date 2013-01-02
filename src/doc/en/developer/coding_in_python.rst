@@ -139,7 +139,7 @@ Here is an example of the ``_latex_`` and ``_repr_`` functions for the
             sage: float(pi)
             3.1415926535897931
         """
-	...
+        ...
         def _repr_(self):
             return "pi"
 
@@ -496,28 +496,28 @@ module in the Sage library::
 
     class Foo(SageObject):
         def terrible_idea(self):
-	    return 1
+            return 1
         def bad_name(self):
-	    return 1
+            return 1
         def f(self, weird_keyword=True):
-	    return 1
+            return 1
 
 You note that the ``terrible_idea()`` method does not make any sense,
 and should be removed altogether. You open the trac ticket number 3333
 (say), and replace the code with::
 
         def terrible_idea(self):
-	    from sage.misc.superseded import deprecation
-	    deprecation(3333, 'You can just call f() instead')
-	    return 1
+            from sage.misc.superseded import deprecation
+            deprecation(3333, 'You can just call f() instead')
+            return 1
 
 Later, you come up with a much better name for the second method. You
 open the trac ticket number 4444, and replace it with::
 
         def much_better_name(self):
-	    return 1
+            return 1
 
-	bad_name = deprecated_function_alias(4444, much_better_name)
+        bad_name = deprecated_function_alias(4444, much_better_name)
 
 Finally, you like the ``f()`` method name but you don't like the
 ``weird_keyword`` name. You fix this by opening the trac ticket 5555,
@@ -525,7 +525,7 @@ and replacing it with::
 
         @rename_keyword(deprecation=5555, weird_keyword='nice_keyword')
         def f(self, nice_keyword=True):
-	    return 1
+            return 1
 
 Now, any user that still relies on the deprecated functionality will
 be informed that this is about to change, yet the deprecated commands
@@ -538,17 +538,17 @@ this::
     sage: class Foo(SageObject):
     ...
     ...     def terrible_idea(self):
-    ... 	    deprecation(3333, 'You can just call f() instead')
-    ... 	    return 1
+    ...         deprecation(3333, 'You can just call f() instead')
+    ...         return 1
     ...
     ...     def much_better_name(self):
-    ... 	    return 1
+    ...         return 1
     ...
     ...     bad_name = deprecated_function_alias(4444, much_better_name)
     ...
     ...     @rename_keyword(deprecation=5555, weird_keyword='nice_keyword')
     ...     def f(self, nice_keyword=True):
-    ... 	    return 1
+    ...         return 1
 
     sage: foo = Foo()
     sage: foo.terrible_idea()
@@ -565,7 +565,6 @@ this::
     doctest:...: DeprecationWarning: use the option 'nice_keyword' instead of 'weird_keyword'
     See http://trac.sagemath.org/5555 for details.
     1
-
 
 Editing existing files
 ======================

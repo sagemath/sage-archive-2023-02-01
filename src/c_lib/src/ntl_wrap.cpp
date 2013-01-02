@@ -8,13 +8,13 @@ using namespace std;
 #include <NTL/tools.h>
 
 void del_charstar(char* a) {
-  delete[] a;
+    delete[] a;
 }
 
 
 void setup_NTL_error_callback(void (*function)(const char*, void*), void* context)
 {
-   NTL::SetErrorCallbackFunction(function, context);
+    NTL::SetErrorCallbackFunction(function, context);
 }
 
 
@@ -24,16 +24,16 @@ void setup_NTL_error_callback(void (*function)(const char*, void*), void* contex
    AUTHOR: David Harvey (2008-06-08) */
 int ZZ_to_int(const ZZ* x)
 {
-  return to_int(*x);
+    return to_int(*x);
 }
 
 /* Returns a *new* ZZ object.
    AUTHOR: David Harvey (2008-06-08) */
 struct ZZ* int_to_ZZ(int value)
 {
-  ZZ* output = new ZZ();
-  conv(*output, value);
-  return output;
+    ZZ* output = new ZZ();
+    conv(*output, value);
+    return output;
 }
 
 /* Copies the ZZ into the mpz_t
@@ -83,7 +83,7 @@ void mpz_to_ZZ(struct ZZ* output, const mpz_t *x)
    AUTHOR: David Harvey (2008-06-08) */
 void ZZ_set_from_int(ZZ* x, int value)
 {
-  conv(*x, value);
+    conv(*x, value);
 }
 
 long ZZ_remove(struct ZZ &dest, const struct ZZ &src, const struct ZZ &f)
@@ -153,59 +153,59 @@ long ZZ_remove(struct ZZ &dest, const struct ZZ &src, const struct ZZ &f)
    AUTHOR: David Harvey (2008-06-08) */
 int ZZ_p_to_int(const ZZ_p& x )
 {
-  return ZZ_to_int(&rep(x));
+    return ZZ_to_int(&rep(x));
 }
 
 /* Returns a *new* ZZ_p object.
    AUTHOR: David Harvey (2008-06-08) */
 ZZ_p int_to_ZZ_p(int value)
 {
-  ZZ_p r;
-  r = value;
-  return r;
+    ZZ_p r;
+    r = value;
+    return r;
 }
 
 /* Sets given ZZ_p to value
    AUTHOR: David Harvey (2008-06-08) */
 void ZZ_p_set_from_int(ZZ_p* x, int value)
 {
-  conv(*x, value);
+    conv(*x, value);
 }
 
 void ZZ_p_modulus(struct ZZ* mod, const struct ZZ_p* x)
 {
-	(*mod) = x->modulus();
+    (*mod) = x->modulus();
 }
 
 struct ZZ_p* ZZ_p_pow(const struct ZZ_p* x, long e)
 {
-  ZZ_p *z = new ZZ_p();
-  power(*z, *x, e);
-  return z;
+    ZZ_p *z = new ZZ_p();
+    power(*z, *x, e);
+    return z;
 }
 
 void ntl_ZZ_set_modulus(ZZ* x)
 {
-  ZZ_p::init(*x);
+    ZZ_p::init(*x);
 }
 
 ZZ_p* ZZ_p_inv(ZZ_p* x)
 {
-  ZZ_p *z = new ZZ_p();
-  inv(*z, *x);
-  return z;
+    ZZ_p *z = new ZZ_p();
+    inv(*z, *x);
+    return z;
 }
 
 ZZ_p* ZZ_p_random(void)
 {
-  ZZ_p *z = new ZZ_p();
-  random(*z);
-  return z;
+    ZZ_p *z = new ZZ_p();
+    random(*z);
+    return z;
 }
 
 struct ZZ_p* ZZ_p_neg(struct ZZ_p* x)
 {
-  return new ZZ_p(-(*x));
+    return new ZZ_p(-(*x));
 }
 
 
@@ -216,23 +216,23 @@ struct ZZ_p* ZZ_p_neg(struct ZZ_p* x)
 
 char* ZZX_repr(struct ZZX* x)
 {
-  ostringstream instore;
-  instore << (*x);
-  int n = strlen(instore.str().data());
-  char* buf = new char[n+1];
-  strcpy(buf, instore.str().data());
-  return buf;
+    ostringstream instore;
+    instore << (*x);
+    int n = strlen(instore.str().data());
+    char* buf = new char[n+1];
+    strcpy(buf, instore.str().data());
+    return buf;
 }
 
 struct ZZX* ZZX_copy(struct ZZX* x) {
-  return new ZZX(*x);
+    return new ZZX(*x);
 }
 
 /* Sets ith coefficient of x to value.
    AUTHOR: David Harvey (2006-06-08) */
 void ZZX_setitem_from_int(struct ZZX* x, long i, int value)
 {
-  SetCoeff(*x, i, value);
+    SetCoeff(*x, i, value);
 }
 
 /* Returns ith coefficient of x.
@@ -240,7 +240,7 @@ void ZZX_setitem_from_int(struct ZZX* x, long i, int value)
    AUTHOR: David Harvey (2006-06-08) */
 int ZZX_getitem_as_int(struct ZZX* x, long i)
 {
-  return ZZ_to_int(&coeff(*x, i));
+    return ZZ_to_int(&coeff(*x, i));
 }
 
 /* Copies ith coefficient of x to output.
@@ -254,264 +254,264 @@ void ZZX_getitem_as_mpz(mpz_t* output, struct ZZX* x, long i)
 
 struct ZZX* ZZX_div(struct ZZX* x, struct ZZX* y, int* divisible)
 {
-  struct ZZX* z = new ZZX();
-  *divisible = divide(*z, *x, *y);
-  return z;
+    struct ZZX* z = new ZZX();
+    *divisible = divide(*z, *x, *y);
+    return z;
 }
 
 
 
 void ZZX_quo_rem(struct ZZX* x, struct ZZX* other, struct ZZX** r, struct ZZX** q)
 {
-  struct ZZX *qq = new ZZX(), *rr = new ZZX();
-  DivRem(*qq, *rr, *x, *other);
-  *r = rr; *q = qq;
+    struct ZZX *qq = new ZZX(), *rr = new ZZX();
+    DivRem(*qq, *rr, *x, *other);
+    *r = rr; *q = qq;
 }
 
 
 struct ZZX* ZZX_square(struct ZZX* x)
 {
-  struct ZZX* s = new ZZX();
-  sqr(*s, *x);
-  return s;
+    struct ZZX* s = new ZZX();
+    sqr(*s, *x);
+    return s;
 }
 
 
 int ZZX_is_monic(struct ZZX* x)
 {
-  return IsOne(LeadCoeff(*x));
+    return IsOne(LeadCoeff(*x));
 }
 
 
 struct ZZX* ZZX_neg(struct ZZX* x)
 {
-  struct ZZX* y = new ZZX();
-  *y = -*x;
-  return y;
+    struct ZZX* y = new ZZX();
+    *y = -*x;
+    return y;
 }
 
 
 struct ZZX* ZZX_left_shift(struct ZZX* x, long n)
 {
-  struct ZZX* y = new ZZX();
-  LeftShift(*y, *x, n);
-  return y;
+    struct ZZX* y = new ZZX();
+    LeftShift(*y, *x, n);
+    return y;
 }
 
 
 struct ZZX* ZZX_right_shift(struct ZZX* x, long n)
 {
-  struct ZZX* y = new ZZX();
-  RightShift(*y, *x, n);
-  return y;
+    struct ZZX* y = new ZZX();
+    RightShift(*y, *x, n);
+    return y;
 }
 
 struct ZZX* ZZX_primitive_part(struct ZZX* x)
 {
-  struct ZZX* p = new ZZX();
-  PrimitivePart(*p, *x);
-  return p;
+    struct ZZX* p = new ZZX();
+    PrimitivePart(*p, *x);
+    return p;
 }
 
 
 void ZZX_pseudo_quo_rem(struct ZZX* x, struct ZZX* y, struct ZZX** r, struct ZZX** q)
 {
-  *r = new ZZX();
-  *q = new ZZX();
-  PseudoDivRem(**q, **r, *x, *y);
+    *r = new ZZX();
+    *q = new ZZX();
+    PseudoDivRem(**q, **r, *x, *y);
 }
 
 
 struct ZZX* ZZX_gcd(struct ZZX* x, struct ZZX* y)
 {
-  struct ZZX* g = new ZZX();
-  GCD(*g, *x, *y);
-  return g;
+    struct ZZX* g = new ZZX();
+    GCD(*g, *x, *y);
+    return g;
 }
 
 
-void ZZX_xgcd(struct ZZX* x, struct ZZX* y, struct ZZ** r, struct ZZX** s, \
-	      struct ZZX** t, int proof)
+void ZZX_xgcd(struct ZZX* x, struct ZZX* y, struct ZZ** r, struct ZZX** s,
+          struct ZZX** t, int proof)
 {
-  *r = new ZZ();
-  *s = new ZZX();
-  *t = new ZZX();
-  XGCD(**r, **s, **t, *x, *y, proof);
+    *r = new ZZ();
+    *s = new ZZX();
+    *t = new ZZX();
+    XGCD(**r, **s, **t, *x, *y, proof);
 }
 
 
 long ZZX_degree(struct ZZX* x)
 {
-  return deg(*x);
+    return deg(*x);
 }
 
 void ZZX_set_x(struct ZZX* x)
 {
-  SetX(*x);
+    SetX(*x);
 }
 
 
 int ZZX_is_x(struct ZZX* x)
 {
-  return IsX(*x);
+    return IsX(*x);
 }
 
 
 struct ZZX* ZZX_derivative(struct ZZX* x)
 {
-  ZZX* d = new ZZX();
-  diff(*d, *x);
-  return d;
+    ZZX* d = new ZZX();
+    diff(*d, *x);
+    return d;
 }
 
 
 struct ZZX* ZZX_reverse(struct ZZX* x)
 {
-  ZZX* r = new ZZX();
-  reverse(*r, *x);
-  return r;
+    ZZX* r = new ZZX();
+    reverse(*r, *x);
+    return r;
 }
 
 struct ZZX* ZZX_reverse_hi(struct ZZX* x, int hi)
 {
-  ZZX* r = new ZZX();
-  reverse(*r, *x, hi);
-  return r;
+    ZZX* r = new ZZX();
+    reverse(*r, *x, hi);
+    return r;
 }
 
 
 struct ZZX* ZZX_truncate(struct ZZX* x, long m)
 {
-  ZZX* t = new ZZX();
-  trunc(*t, *x, m);
-  return t;
+    ZZX* t = new ZZX();
+    trunc(*t, *x, m);
+    return t;
 }
 
 
 struct ZZX* ZZX_multiply_and_truncate(struct ZZX* x, struct ZZX* y, long m)
 {
-  ZZX* t = new ZZX();
-  MulTrunc(*t, *x, *y, m);
-  return t;
+    ZZX* t = new ZZX();
+    MulTrunc(*t, *x, *y, m);
+    return t;
 }
 
 
 struct ZZX* ZZX_square_and_truncate(struct ZZX* x, long m)
 {
-  ZZX* t = new ZZX();
-  SqrTrunc(*t, *x, m);
-  return t;
+    ZZX* t = new ZZX();
+    SqrTrunc(*t, *x, m);
+    return t;
 }
 
 
 struct ZZX* ZZX_invert_and_truncate(struct ZZX* x, long m)
 {
-  ZZX* t = new ZZX();
-  InvTrunc(*t, *x, m);
-  return t;
+    ZZX* t = new ZZX();
+    InvTrunc(*t, *x, m);
+    return t;
 }
 
 
 struct ZZX* ZZX_multiply_mod(struct ZZX* x, struct ZZX* y,  struct ZZX* modulus)
 {
-  ZZX* p = new ZZX();
-  MulMod(*p, *x, *y, *modulus);
-  return p;
+    ZZX* p = new ZZX();
+    MulMod(*p, *x, *y, *modulus);
+    return p;
 }
 
 
 struct ZZ* ZZX_trace_mod(struct ZZX* x, struct ZZX* y)
 {
-  ZZ* p = new ZZ();
-  TraceMod(*p, *x, *y);
-  return p;
+    ZZ* p = new ZZ();
+    TraceMod(*p, *x, *y);
+    return p;
 }
 
 
 char* ZZX_trace_list(struct ZZX* x)
 {
-  vec_ZZ v;
-  TraceVec(v, *x);
-  ostringstream instore;
-  instore << v;
-  int n = strlen(instore.str().data());
-  char* buf = new char[n+1];
-  strcpy(buf, instore.str().data());
-  return buf;
+    vec_ZZ v;
+    TraceVec(v, *x);
+    ostringstream instore;
+    instore << v;
+    int n = strlen(instore.str().data());
+    char* buf = new char[n+1];
+    strcpy(buf, instore.str().data());
+    return buf;
 }
 
 
 struct ZZ* ZZX_resultant(struct ZZX* x, struct ZZX* y, int proof)
 {
-  ZZ* res = new ZZ();
-  resultant(*res, *x, *y, proof);
-  return res;
+    ZZ* res = new ZZ();
+    resultant(*res, *x, *y, proof);
+    return res;
 }
 
 
 struct ZZ* ZZX_norm_mod(struct ZZX* x, struct ZZX* y, int proof)
 {
-  ZZ* res = new ZZ();
-  NormMod(*res, *x, *y, proof);
-  return res;
+    ZZ* res = new ZZ();
+    NormMod(*res, *x, *y, proof);
+    return res;
 }
 
 
 struct ZZ* ZZX_discriminant(struct ZZX* x, int proof)
 {
-  ZZ* d = new ZZ();
-  discriminant(*d, *x, proof);
-  return d;
+    ZZ* d = new ZZ();
+    discriminant(*d, *x, proof);
+    return d;
 }
 
 
 struct ZZX* ZZX_charpoly_mod(struct ZZX* x, struct ZZX* y, int proof)
 {
-  ZZX* f = new ZZX();
-  CharPolyMod(*f, *x, *y, proof);
-  return f;
+    ZZX* f = new ZZX();
+    CharPolyMod(*f, *x, *y, proof);
+    return f;
 }
 
 
 struct ZZX* ZZX_minpoly_mod(struct ZZX* x, struct ZZX* y)
 {
-  ZZX* f = new ZZX();
-  MinPolyMod(*f, *x, *y);
-  return f;
+    ZZX* f = new ZZX();
+    MinPolyMod(*f, *x, *y);
+    return f;
 }
 
 
 void ZZX_clear(struct ZZX* x)
 {
-  clear(*x);
+    clear(*x);
 }
 
 
 void ZZX_preallocate_space(struct ZZX* x, long n)
 {
-  x->SetMaxLength(n);
+    x->SetMaxLength(n);
 }
 
 /*
 EXTERN struct ZZ* ZZX_polyeval(struct ZZX* f, struct ZZ* a)
 {
-  ZZ* b = new ZZ();
-  *b = PolyEval(*f, *a);
-  return b;
+    ZZ* b = new ZZ();
+    *b = PolyEval(*f, *a);
+    return b;
 }
 */
 
 void ZZX_squarefree_decomposition(struct ZZX*** v, long** e, long* n, struct ZZX* x)
 {
-  vec_pair_ZZX_long factors;
-  SquareFreeDecomp(factors, *x);
-  *n = factors.length();
-  *v = (ZZX**) malloc(sizeof(ZZX*) * (*n));
-  *e = (long*) malloc(sizeof(long) * (*n));
-  for (long i = 0; i < (*n); i++) {
-    (*v)[i] = new ZZX(factors[i].a);
-    (*e)[i] = factors[i].b;
-  }
+    vec_pair_ZZX_long factors;
+    SquareFreeDecomp(factors, *x);
+    *n = factors.length();
+    *v = (ZZX**) malloc(sizeof(ZZX*) * (*n));
+    *e = (long*) malloc(sizeof(long) * (*n));
+    for (long i = 0; i < (*n); i++) {
+        (*v)[i] = new ZZX(factors[i].a);
+        (*e)[i] = factors[i].b;
+    }
 }
 
 ///////////////////////////////////////////////
@@ -753,14 +753,14 @@ void ZZX_squarefree_decomposition(struct ZZX*** v, long** e, long* n, struct ZZX
 
 char* ZZ_pX_trace_list(struct ZZ_pX* x)
 {
-  vec_ZZ_p v;
-  TraceVec(v, *x);
-  ostringstream instore;
-  instore << v;
-  int n = strlen(instore.str().data());
-  char* buf = new char[n+1];
-  strcpy(buf, instore.str().data());
-  return buf;
+    vec_ZZ_p v;
+    TraceVec(v, *x);
+    ostringstream instore;
+    instore << v;
+    int n = strlen(instore.str().data());
+    char* buf = new char[n+1];
+    strcpy(buf, instore.str().data());
+    return buf;
 }
 
 
@@ -810,38 +810,35 @@ char* ZZ_pX_trace_list(struct ZZ_pX* x)
 
 void ZZ_pX_factor(struct ZZ_pX*** v, long** e, long* n, struct ZZ_pX* x, long verbose)
 {
-  long i;
-  vec_pair_ZZ_pX_long factors;
-  berlekamp(factors, *x, verbose);
-  *n = factors.length();
-  *v = (ZZ_pX**) malloc(sizeof(ZZ_pX*) * (*n));
-  *e = (long*) malloc(sizeof(long)*(*n));
-  for (i=0; i<(*n); i++) {
-    (*v)[i] = new ZZ_pX(factors[i].a);
-    (*e)[i] = factors[i].b;
-  }
+    long i;
+    vec_pair_ZZ_pX_long factors;
+    berlekamp(factors, *x, verbose);
+    *n = factors.length();
+    *v = (ZZ_pX**) malloc(sizeof(ZZ_pX*) * (*n));
+    *e = (long*) malloc(sizeof(long)*(*n));
+    for (i=0; i<(*n); i++) {
+        (*v)[i] = new ZZ_pX(factors[i].a);
+        (*e)[i] = factors[i].b;
+    }
 }
 
 void ZZ_pX_linear_roots(struct ZZ_p*** v, long* n, struct ZZ_pX* f)
 {
-  long i;
-  // printf("1\n");
-  vec_ZZ_p w;
-  FindRoots(w, *f);
-  // printf("2\n");
-  *n = w.length();
-  //   printf("3 %d\n",*n);
-  (*v) = (ZZ_p**) malloc(sizeof(ZZ_p*)*(*n));
-  for (i=0; i<(*n); i++) {
-    (*v)[i] = new ZZ_p(w[i]);
-  }
+    long i;
+    vec_ZZ_p w;
+    FindRoots(w, *f);
+    *n = w.length();
+    (*v) = (ZZ_p**) malloc(sizeof(ZZ_p*)*(*n));
+    for (i=0; i<(*n); i++) {
+        (*v)[i] = new ZZ_p(w[i]);
+    }
 }
 
 /////////// ZZ_pE //////////////
 
 struct ZZ_pX ZZ_pE_to_ZZ_pX(struct ZZ_pE x)
 {
-  return ZZ_pX(rep(x));
+    return ZZ_pX(rep(x));
 }
 
 
@@ -849,70 +846,70 @@ struct ZZ_pX ZZ_pE_to_ZZ_pX(struct ZZ_pE x)
 //////// mat_ZZ //////////
 
 void mat_ZZ_SetDims(struct mat_ZZ* mZZ, long nrows, long ncols){
-  mZZ->SetDims(nrows, ncols);
+    mZZ->SetDims(nrows, ncols);
 }
 
 struct mat_ZZ* mat_ZZ_pow(const struct mat_ZZ* x, long e)
 {
-  mat_ZZ *z = new mat_ZZ();
-  power(*z, *x, e);
-  return z;
+    mat_ZZ *z = new mat_ZZ();
+    power(*z, *x, e);
+    return z;
 }
 
 long mat_ZZ_nrows(const struct mat_ZZ* x)
 {
-  return x->NumRows();
+    return x->NumRows();
 }
 
 
 long mat_ZZ_ncols(const struct mat_ZZ* x)
 {
-  return x->NumCols();
+    return x->NumCols();
 }
 
 void mat_ZZ_setitem(struct mat_ZZ* x, int i, int j, const struct ZZ* z)
 {
-  (*x)[i][j] = *z;
+    (*x)[i][j] = *z;
 
 }
 
 struct ZZ* mat_ZZ_getitem(const struct mat_ZZ* x, int i, int j)
 {
-  return new ZZ((*x)(i,j));
+    return new ZZ((*x)(i,j));
 }
 
 struct ZZ* mat_ZZ_determinant(const struct mat_ZZ* x, long deterministic)
 {
-  ZZ* d = new ZZ();
-  determinant(*d, *x, deterministic);
-  return d;
+    ZZ* d = new ZZ();
+    determinant(*d, *x, deterministic);
+    return d;
 }
 
 struct mat_ZZ* mat_ZZ_HNF(const struct mat_ZZ* A, const struct ZZ* D)
 {
-  struct mat_ZZ* W = new mat_ZZ();
-  HNF(*W, *A, *D);
-  return W;
+    struct mat_ZZ* W = new mat_ZZ();
+    HNF(*W, *A, *D);
+    return W;
 }
 
 long mat_ZZ_LLL(struct ZZ **det, struct mat_ZZ *x, long a, long b, long verbose)
 {
-  *det = new ZZ();
-  return LLL(**det,*x,a,b,verbose);
+    *det = new ZZ();
+    return LLL(**det,*x,a,b,verbose);
 }
 
 long mat_ZZ_LLL_U(struct ZZ **det, struct mat_ZZ *x, struct mat_ZZ *U, long a, long b, long verbose)
 {
-  *det = new ZZ();
-  return LLL(**det,*x,*U,a,b,verbose);
+    *det = new ZZ();
+    return LLL(**det,*x,*U,a,b,verbose);
 }
 
 
 struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A)
 {
-  ZZX* f = new ZZX();
-  CharPoly(*f, *A);
-  return f;
+    ZZX* f = new ZZX();
+    CharPoly(*f, *A);
+    return f;
 }
 
 /**
@@ -921,24 +918,24 @@ struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A)
 
 GF2EContext* GF2EContext_construct(void *mem, const GF2X *p)
 {
-  return new(mem) GF2EContext(*p);
+    return new(mem) GF2EContext(*p);
 }
 
 
 GF2EContext* GF2EContext_new(const GF2X *p)
 {
-  return new GF2EContext(*p);
+    return new GF2EContext(*p);
 }
 
 
 void mat_GF2E_setitem(struct mat_GF2E* x, int i, int j, const struct GF2E* z)
 {
-  (*x)[i][j] = *z;
+    (*x)[i][j] = *z;
 }
 
 void mat_GF2_setitem(struct mat_GF2* x, int i, int j, const struct GF2* z)
 {
-  (*x)[i][j] = *z;
+    (*x)[i][j] = *z;
 }
 
 /**
@@ -947,17 +944,17 @@ void mat_GF2_setitem(struct mat_GF2* x, int i, int j, const struct GF2* z)
 
 ZZ_pContext* ZZ_pContext_new(ZZ *p)
 {
-	return new ZZ_pContext(*p);
+    return new ZZ_pContext(*p);
 }
 
 ZZ_pContext* ZZ_pContext_construct(void *mem, ZZ *p)
 {
-	return new(mem) ZZ_pContext(*p);
+    return new(mem) ZZ_pContext(*p);
 }
 
 void ZZ_pContext_restore(ZZ_pContext *ctx)
 {
-	ctx->restore();
+    ctx->restore();
 }
 
 // Functions for using ZZ_pX's for p-adic extensions
@@ -1196,17 +1193,17 @@ void ZZ_pX_InvMod_newton_ram(struct ZZ_pX &x, const struct ZZ_pX &a, const struc
 
 ZZ_pEContext* ZZ_pEContext_new(ZZ_pX *f)
 {
-	return new ZZ_pEContext(*f);
+    return new ZZ_pEContext(*f);
 }
 
 ZZ_pEContext* ZZ_pEContext_construct(void *mem, ZZ_pX *f)
 {
-	return new(mem) ZZ_pEContext(*f);
+    return new(mem) ZZ_pEContext(*f);
 }
 
 void ZZ_pEContext_restore(ZZ_pEContext *ctx)
 {
-	ctx->restore();
+    ctx->restore();
 }
 
 /**
@@ -1215,15 +1212,15 @@ void ZZ_pEContext_restore(ZZ_pEContext *ctx)
 
 zz_pContext* zz_pContext_new(long p)
 {
-	return new zz_pContext(p);
+    return new zz_pContext(p);
 }
 
 zz_pContext* zz_pContext_construct(void *mem, long p)
 {
-	return new(mem) zz_pContext(p);
+    return new(mem) zz_pContext(p);
 }
 
 void zz_pContext_restore(zz_pContext *ctx)
 {
-	ctx->restore();
+    ctx->restore();
 }

@@ -66,31 +66,31 @@ void test(int n, long int ppm, int *C)
   for(i=0; i<n; i++)
     {
       if(VERBEUX)
-	{
-	  printf("Ajacence de %i: ",i+1);
-	  for(a=G.G[i]; a!=NULL; a=a->suiv)
-	    printf("%i ",1+a->s);
-	}
+        {
+          printf("Ajacence de %i: ",i+1);
+          for(a=G.G[i]; a!=NULL; a=a->suiv)
+            printf("%i ",1+a->s);
+        }
       for(j=i+1;j<n;j++)
-	{
-	if( (random()%1000000L) < ppm )
-	  {
-	    // ajoute j a l'adjacence de i
-	    a=(adj *)malloc(sizeof(adj));
-	    a->s=j;
-	    a->suiv=G.G[i];
-	    G.G[i]=a;
-	    // et reciproquement
-	    a=(adj *)malloc(sizeof(adj));
-	    a->s=i;
-	    a->suiv=G.G[j];
-	    G.G[j]=a;
-	    if(VERBEUX)
-	      printf("%i ",j+1);
-	  }
-	}
+        {
+        if( (random()%1000000L) < ppm )
+          {
+            // ajoute j a l'adjacence de i
+            a=(adj *)malloc(sizeof(adj));
+            a->s=j;
+            a->suiv=G.G[i];
+            G.G[i]=a;
+            // et reciproquement
+            a=(adj *)malloc(sizeof(adj));
+            a->s=i;
+            a->suiv=G.G[j];
+            G.G[j]=a;
+            if(VERBEUX)
+              printf("%i ",j+1);
+          }
+        }
       if(VERBEUX)
-	printf("\n");
+        printf("\n");
     }
 
   // appel de la fonction de decomposition
@@ -113,7 +113,7 @@ void test(int n, long int ppm, int *C)
       printf("Niveau %i: %i modules (S-P-Pr= %i - %i - %i) et %i feuilles\n",i,
        C[4*i]+C[4*i+1]+C[4*i+2], C[4*i], C[4*i+1], C[4*i+2],C[4*i+3]);
       if(i<NIV-1 && C[4*i+4]+C[4*i+5]+C[4*i+6]+C[4*i+7]==0)
-	break;
+        break;
     }
   printf("\n");
 }
@@ -127,11 +127,11 @@ int main(int narg, char **arg)
   if(narg!=3)
     {
       printf("Decomposition modulaire de graphes \"aleatoires\" \n"
-	     "Donnez en argument:\n"
-	     "le nombre de sommets du graphe\n"
-	     "puis la proportion d'aretes en en millioniemes \n"
-	     "(generateur aleatoire tres primaire)\n"
-	     "Exemple : %s 100 20000\n",arg[0]);
+             "Donnez en argument:\n"
+             "le nombre de sommets du graphe\n"
+             "puis la proportion d'aretes en en millioniemes \n"
+             "(generateur aleatoire tres primaire)\n"
+             "Exemple : %s 100 20000\n",arg[0]);
       exit(0);
     }
   n=atoi(arg[1]);

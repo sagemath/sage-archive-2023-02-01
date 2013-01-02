@@ -63,14 +63,14 @@ ex g_function_eval3(unsigned serial, const ex& arg1, const ex& arg2,
 
 bool relational_to_bool(const ex& e) {
     if (ex_to<relational>(e))
-	return 1;
+        return 1;
     else
-	return 0;
+        return 0;
 }
 
 bool g_is_a_terminating_series(const ex& e) {
     if (is_a<pseries>(e)) {
-	return (ex_to<pseries>(e)).is_terminating();
+        return (ex_to<pseries>(e)).is_terminating();
     }
     return false;
 }
@@ -83,21 +83,21 @@ relational::operators relational_operator(const ex& e) {
 relational::operators switch_operator(relational::operators o) {
     switch(o) {
     case relational::less:
-	return relational::greater;
+        return relational::greater;
     case relational::less_or_equal:
-	return relational::greater_or_equal;
+        return relational::greater_or_equal;
     case relational::greater:
-	return relational::less;
+        return relational::less;
     case relational::greater_or_equal:
-	return relational::less_or_equal;
+        return relational::less_or_equal;
     default:
-	return o;
+        return o;
     }
 }
 
 bool is_negative(ex x) {
     if (is_a<numeric>(x)) {
-	return (ex_to<numeric>(x)).is_negative();
+        return (ex_to<numeric>(x)).is_negative();
     }
     return false;
 }

@@ -418,10 +418,10 @@ a guide.
       .. TODO::
 
           Improve further function ``have_fresh_beers`` using algorithm
-    	  ``buy_a_better_fridge``::
+          ``buy_a_better_fridge``::
 
-    	      sage: have_fresh_beers('Bière de l'Yvette') # todo: not implemented
-    	      Enjoy !
+              sage: have_fresh_beers('Bière de l'Yvette') # todo: not implemented
+              Enjoy !
 
 - A REFERENCES block to list books or papers (optional). This block serves
   a similar purpose to a list of references in a research paper, or a
@@ -468,7 +468,7 @@ indentation::
 
         The point as a tuple.
 
-	    .. SEEALSO::
+        .. SEEALSO::
 
             :func:`line`
 
@@ -527,15 +527,15 @@ docstring would look like this::
         If it contains multiple lines, all the lines after the
         first need to be indented.
 
-    	:type x: integer; default 1
+        :type x: integer; default 1
 
-    	:param y: the ...
+        :param y: the ...
 
-    	:type y: integer; default 2
+        :type y: integer; default 2
 
-    	:returns: the ...
+        :returns: the ...
 
-    	:rtype: integer, the return type
+        :rtype: integer, the return type
 
 You are strongly encouraged to:
 
@@ -624,56 +624,54 @@ You are strongly encouraged to:
 
 .. WARNING::
 
-   Functions whose names start with an underscore do not currently
-   appear in the reference manual, so avoid putting crucial
-   documentation in their docstrings. In particular, if you are
-   defining a class, you might put a long informative docstring after
-   the class definition, not for the ``__init__`` method. For example,
-   from the file ``SAGE_ROOT/devel/sage/sage/crypto/classical.py``:
+    Functions whose names start with an underscore do not currently
+    appear in the reference manual, so avoid putting crucial
+    documentation in their docstrings. In particular, if you are
+    defining a class, you might put a long informative docstring after
+    the class definition, not for the ``__init__`` method. For example,
+    from the file ``SAGE_ROOT/devel/sage/sage/crypto/classical.py``::
 
-   ::
+        class HillCryptosystem(SymmetricKeyCryptosystem):
+            """
+            Create a Hill cryptosystem defined by the `m` x `m` matrix space
+            over `\mathbf{Z} / N \mathbf{Z}`, where `N` is the alphabet size of
+            the string monoid ``S``.
 
-    class HillCryptosystem(SymmetricKeyCryptosystem):
+            INPUT:
+
+            - ``S`` -- a string monoid over some alphabet
+
+            - ``m`` -- a positive integer; the block length of matrices that
+              specify block permutations
+
+            OUTPUT:
+
+            - A Hill cryptosystem of block length ``m`` over the alphabet ``S``.
+
+            EXAMPLES::
+
+                sage: S = AlphabeticStrings()
+                sage: E = HillCryptosystem(S,3)
+                sage: E
+                Hill cryptosystem on Free alphabetic string monoid on A-Z of block length 3
         """
-        Create a Hill cryptosystem defined by the `m` x `m` matrix space
-        over `\mathbf{Z} / N \mathbf{Z}`, where `N` is the alphabet size of
-        the string monoid ``S``.
 
-        INPUT:
-
-        - ``S`` -- a string monoid over some alphabet
-
-        - ``m`` -- a positive integer; the block length of matrices that
-          specify block permutations
-
-        OUTPUT:
-
-        - A Hill cryptosystem of block length ``m`` over the alphabet ``S``.
-
-        EXAMPLES::
-
-            sage: S = AlphabeticStrings()
-            sage: E = HillCryptosystem(S,3)
-            sage: E
-            Hill cryptosystem on Free alphabetic string monoid on A-Z of block length 3
-	"""
-
-   and so on, while the ``__init__`` method starts like this::
+    and so on, while the ``__init__`` method starts like this::
 
         def __init__(self, S, m):
             """
             See ``HillCryptosystem`` for full documentation.
 
-	    EXAMPLES::
-	    ...
-	    """
+        EXAMPLES::
+        ...
+        """
 
-   Note also that the first docstring is printed if users type
-   "HillCryptosystem?" at the "sage:" prompt.
+    Note also that the first docstring is printed if users type
+    "HillCryptosystem?" at the "sage:" prompt.
 
-   (Before Sage 3.4, the reference manual used to include methods
-   starting with underscores, so you will probably find many examples
-   in the code which don't follow this advice...)
+    (Before Sage 3.4, the reference manual used to include methods
+    starting with underscores, so you will probably find many examples
+    in the code which don't follow this advice...)
 
 
 Automatic testing
@@ -892,7 +890,7 @@ mind:
      The following should yield 4.  See :trac:`2`. ::
 
         sage: 2+2 # optional: bug
-	5
+        5
 
   Then the doctest will be skipped by default, but could be revealed
   by running ``sage -t --only-optional=bug ...``.  (A doctest marked

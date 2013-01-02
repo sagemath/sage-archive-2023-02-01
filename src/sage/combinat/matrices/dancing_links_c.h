@@ -35,9 +35,9 @@ using namespace std;
 template <class T>
 string to_string(T x)
 {
-	std::ostringstream stream_out;
-	stream_out << x;
-	return stream_out.str();
+    std::ostringstream stream_out;
+    stream_out << x;
+    return stream_out.str();
 }
 
 typedef struct node_struct {

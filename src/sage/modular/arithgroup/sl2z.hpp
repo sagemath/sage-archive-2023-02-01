@@ -51,7 +51,7 @@ public:
 
 inline
 SL2Z::SL2Z(const SL2Z::ElementType& a_, const SL2Z::ElementType& b_,
-	   const SL2Z::ElementType& c_, const SL2Z::ElementType& d_) {
+           const SL2Z::ElementType& c_, const SL2Z::ElementType& d_) {
   M[0][0] = a_;
   M[0][1] = b_;
   M[1][0] = c_;
@@ -84,17 +84,17 @@ SL2Z SL2Z::operator-() const {
 inline
 SL2Z SL2Z::operator*=(const SL2Z& x) {
   return SL2Z(M[0][0]*x.M[0][0] + M[0][1]*x.M[1][0],
-	      M[0][0]*x.M[0][1] + M[0][1]*x.M[1][1],
-	      M[1][0]*x.M[0][0] + M[1][1]*x.M[1][0],
-	      M[1][0]*x.M[0][1] + M[1][1]*x.M[1][1]);
+              M[0][0]*x.M[0][1] + M[0][1]*x.M[1][1],
+              M[1][0]*x.M[0][0] + M[1][1]*x.M[1][0],
+              M[1][0]*x.M[0][1] + M[1][1]*x.M[1][1]);
 }
 
 inline
 SL2Z SL2Z::operator/=(const SL2Z& x) {
   return SL2Z( M[0][0]*x.M[1][1] - M[0][1]*x.M[1][0],
-	      -M[0][0]*x.M[0][1] + M[0][1]*x.M[0][0],
-	       M[1][0]*x.M[1][1] - M[1][1]*x.M[1][0],
-	      -M[1][0]*x.M[0][1] + M[1][1]*x.M[0][0]);
+              -M[0][0]*x.M[0][1] + M[0][1]*x.M[0][0],
+               M[1][0]*x.M[1][1] - M[1][1]*x.M[1][0],
+              -M[1][0]*x.M[0][1] + M[1][1]*x.M[0][0]);
 }
 
 inline
@@ -110,25 +110,25 @@ SL2Z SL2Z::mod(const size_t n) const {
 inline
 SL2Z operator*(const SL2Z& x, const SL2Z& y) {
   return SL2Z(x.M[0][0]*y.M[0][0] + x.M[0][1]*y.M[1][0],
-	      x.M[0][0]*y.M[0][1] + x.M[0][1]*y.M[1][1],
-	      x.M[1][0]*y.M[0][0] + x.M[1][1]*y.M[1][0],
-	      x.M[1][0]*y.M[0][1] + x.M[1][1]*y.M[1][1]);
+              x.M[0][0]*y.M[0][1] + x.M[0][1]*y.M[1][1],
+              x.M[1][0]*y.M[0][0] + x.M[1][1]*y.M[1][0],
+              x.M[1][0]*y.M[0][1] + x.M[1][1]*y.M[1][1]);
 }
 
 inline
 SL2Z operator/(const SL2Z& x, const SL2Z& y) {
   return SL2Z( x.M[0][0]*y.M[1][1] - x.M[0][1]*y.M[1][0],
-	      -x.M[0][0]*y.M[0][1] + x.M[0][1]*y.M[0][0],
-	       x.M[1][0]*y.M[1][1] - x.M[1][1]*y.M[1][0],
-	      -x.M[1][0]*y.M[0][1] + x.M[1][1]*y.M[0][0]);
+              -x.M[0][0]*y.M[0][1] + x.M[0][1]*y.M[0][0],
+               x.M[1][0]*y.M[1][1] - x.M[1][1]*y.M[1][0],
+              -x.M[1][0]*y.M[0][1] + x.M[1][1]*y.M[0][0]);
 }
 
 inline
 bool operator==(const SL2Z& x, const SL2Z& y) {
   return (x.M[0][0] == y.M[0][0] and
-	  x.M[0][1] == y.M[0][1] and
-	  x.M[1][0] == y.M[1][0] and
-	  x.M[1][1] == y.M[1][1]);
+          x.M[0][1] == y.M[0][1] and
+          x.M[1][0] == y.M[1][0] and
+          x.M[1][1] == y.M[1][1]);
 }
 
 inline
@@ -156,15 +156,15 @@ std::istream& operator>>(std::istream& is, SL2Z& x) {
     if( c == ',' ) {
       is >> x.M[0][1] >> c;
       if( c == ';' ) {
-	is >> x.M[1][0] >> c;
-	if( c == ',' ) {
-	  is >> x.M[1][1] >> c;
-	  if( c != ']' ) is.clear(std::ios_base::badbit);
-	} else {
-	  is.clear(std::ios_base::badbit);
-	}
+        is >> x.M[1][0] >> c;
+        if( c == ',' ) {
+          is >> x.M[1][1] >> c;
+          if( c != ']' ) is.clear(std::ios_base::badbit);
+        } else {
+          is.clear(std::ios_base::badbit);
+        }
       } else {
-	is.clear(std::ios_base::badbit);
+        is.clear(std::ios_base::badbit);
       }
     } else {
       is.clear(std::ios_base::badbit);

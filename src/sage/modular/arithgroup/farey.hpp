@@ -53,8 +53,8 @@ public:
   }
   bool is_member(const SL2Z& V) const {
     return ((V.a()-1) % p == 0 &&
-	    V.c() % p == 0 &&
-	    (V.d()-1) % p == 0);
+            V.c() % p == 0 &&
+            (V.d()-1) % p == 0);
   }
 };
 
@@ -65,9 +65,9 @@ public:
   }
   bool is_member(const SL2Z& V) const {
     return ((V.a()-1) % p == 0 &&
-	    V.b() % p == 0 &&
-	    V.c() % p == 0 &&
-	    (V.d()-1) % p == 0);
+            V.b() % p == 0 &&
+            V.c() % p == 0 &&
+            (V.d()-1) % p == 0);
   }
 };
 

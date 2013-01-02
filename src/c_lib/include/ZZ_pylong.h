@@ -15,8 +15,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************/
 
-/*  Author:  Joel B. Mohler <joel@kiwistrawberry.us>
-			 2007-06-17                                                      */
+/*  Author:  Joel B. Mohler <joel@kiwistrawberry.us> (2007-06-17) */
 
 #ifndef ZZ_PYLONG_H
 #define ZZ_PYLONG_H

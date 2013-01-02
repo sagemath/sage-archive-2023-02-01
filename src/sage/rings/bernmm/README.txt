@@ -1,6 +1,6 @@
 
 bernmm: an implementation of the algorithm described in "A multimodular
-	algorithm for computing Bernoulli numbers", by David Harvey, 2008.
+        algorithm for computing Bernoulli numbers", by David Harvey, 2008.
 
 version 1.1
 

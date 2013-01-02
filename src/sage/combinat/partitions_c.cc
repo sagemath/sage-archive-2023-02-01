@@ -1253,18 +1253,18 @@ long GCD(long a, long b)
 // mentioned in the introduction, and then some variable names
 // were changed. The function is not currently used, however.
 void cospi (mpfr_t res,
-		mpfr_t x)
+        mpfr_t x)
 {
-//	mpfr_t t, tt, half, fourth;
+//    mpfr_t t, tt, half, fourth;
 
-//	mpfr_init2 (t, prec);
-//	mpfr_init2 (tt, prec);
-//	mpfr_init2 (half, prec);
-//	mpfr_init2 (fourth, prec);
+//    mpfr_init2 (t, prec);
+//    mpfr_init2 (tt, prec);
+//    mpfr_init2 (half, prec);
+//    mpfr_init2 (fourth, prec);
 
-//	mpfr_set_ui (half, 1, r);
-//	mpfr_div_2ui (half, half, 1, r);
-//	mpfr_div_2ui (fourth, half, 1, r);
+//    mpfr_set_ui (half, 1, r);
+//    mpfr_div_2ui (half, half, 1, r);
+//    mpfr_div_2ui (fourth, half, 1, r);
 
         // NOTE: switched t to tempc2
         //       and tt to tempc1
@@ -1273,56 +1273,56 @@ void cospi (mpfr_t res,
         mp_rnd_t r = round_mode;
 
 
-	mpfr_div_2ui (tempc1, x, 1, r);
-	mpfr_floor (tempc1, tempc1);
-	mpfr_mul_2ui (tempc1, tempc1, 1, r);
-	mpfr_sub (tempc2, x, tempc1, r);
-	if (mpfr_cmp_ui (tempc2, 1) > 0)
-		mpfr_sub_ui (tempc2, tempc2, 2, r);
-	mpfr_abs (tempc1, tempc2, r);
-	if (mpfr_cmp (tempc1, half) > 0)
-	{
-		mpfr_ui_sub (tempc2, 1, tempc1, r);
-		mpfr_abs (tempc1, tempc2, r);
-		if (mpfr_cmp (tempc1, fourth) > 0)
-		{
-			if (mpfr_sgn (tempc2) > 0)
-				mpfr_sub (tempc2, half, tempc2, r);
-			else
-				mpfr_add (tempc2, tempc2, half, r);
-			mpfr_mul (tempc2, tempc2, mp_pi, r);
-			mpfr_sin (tempc2, tempc2, r);
-		}
-		else
-		{
-			mpfr_mul (tempc2, tempc2, mp_pi, r);
-			mpfr_cos (tempc2, tempc2, r);
-		}
-		mpfr_neg (res, tempc2, r);
-	}
-	else
-	{
-		mpfr_abs (tempc1, tempc2, r);
-		if (mpfr_cmp (tempc1, fourth) > 0)
-		{
-			if (mpfr_sgn (tempc2) > 0)
-				mpfr_sub (tempc2, half, tempc2, r);
-			else
-				mpfr_add (tempc2, tempc2, half, r);
-			mpfr_mul (tempc2, tempc2, mp_pi, r);
-			mpfr_sin (res, tempc2, r);
-		}
-		else
-		{
-			mpfr_mul (tempc2, tempc2, mp_pi, r);
-			mpfr_cos (res, tempc2, r);
-		}
-	}
+    mpfr_div_2ui (tempc1, x, 1, r);
+    mpfr_floor (tempc1, tempc1);
+    mpfr_mul_2ui (tempc1, tempc1, 1, r);
+    mpfr_sub (tempc2, x, tempc1, r);
+    if (mpfr_cmp_ui (tempc2, 1) > 0)
+        mpfr_sub_ui (tempc2, tempc2, 2, r);
+    mpfr_abs (tempc1, tempc2, r);
+    if (mpfr_cmp (tempc1, half) > 0)
+    {
+        mpfr_ui_sub (tempc2, 1, tempc1, r);
+        mpfr_abs (tempc1, tempc2, r);
+        if (mpfr_cmp (tempc1, fourth) > 0)
+        {
+            if (mpfr_sgn (tempc2) > 0)
+                mpfr_sub (tempc2, half, tempc2, r);
+            else
+                mpfr_add (tempc2, tempc2, half, r);
+            mpfr_mul (tempc2, tempc2, mp_pi, r);
+            mpfr_sin (tempc2, tempc2, r);
+        }
+        else
+        {
+            mpfr_mul (tempc2, tempc2, mp_pi, r);
+            mpfr_cos (tempc2, tempc2, r);
+        }
+        mpfr_neg (res, tempc2, r);
+    }
+    else
+    {
+        mpfr_abs (tempc1, tempc2, r);
+        if (mpfr_cmp (tempc1, fourth) > 0)
+        {
+            if (mpfr_sgn (tempc2) > 0)
+                mpfr_sub (tempc2, half, tempc2, r);
+            else
+                mpfr_add (tempc2, tempc2, half, r);
+            mpfr_mul (tempc2, tempc2, mp_pi, r);
+            mpfr_sin (res, tempc2, r);
+        }
+        else
+        {
+            mpfr_mul (tempc2, tempc2, mp_pi, r);
+            mpfr_cos (res, tempc2, r);
+        }
+    }
 
-//	mpfr_clear (half);
-//	mpfr_clear (fourth);
-//	mpfr_clear (t);
-//	mpfr_clear (tt);
+//    mpfr_clear (half);
+//    mpfr_clear (fourth);
+//    mpfr_clear (t);
+//    mpfr_clear (tt);
 }
 
 /* answer must have already been mpz_init'd. */

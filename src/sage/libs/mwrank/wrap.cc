@@ -72,8 +72,8 @@ char* bigint_to_str(bigint* x)
 //////// Curvedata //////////
 
 struct Curvedata* Curvedata_new(const struct bigint* a1, const struct bigint* a2,
-				const struct bigint* a3, const struct bigint* a4,
-				const struct bigint* a6, int min_on_init)
+                                const struct bigint* a3, const struct bigint* a4,
+                                const struct bigint* a6, int min_on_init)
 {
   return new Curvedata(*a1, *a2, *a3, *a4, *a6, min_on_init);
 }
@@ -246,10 +246,10 @@ void mw_search(struct mw* m, char* h_lim, int moduli_option, int verb)
 
 //////// two_descent //////////
 
-struct two_descent* two_descent_new(struct Curvedata* curve,  \
-				    int verb, int sel,
-				    long firstlim, long secondlim,
-				    long n_aux, int second_descent)
+struct two_descent* two_descent_new(struct Curvedata* curve,
+                                    int verb, int sel,
+                                    long firstlim, long secondlim,
+                                    long n_aux, int second_descent)
 {
   return new two_descent(curve, verb, sel, firstlim, secondlim, n_aux, second_descent);
 }

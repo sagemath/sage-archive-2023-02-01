@@ -46,8 +46,8 @@ struct Curvedata;
 #endif
 
 EXTERN struct Curvedata* Curvedata_new(const struct bigint* a1, const struct bigint* a2,
-				       const struct bigint* a3, const struct bigint* a4,
-				       const struct bigint* a6, int min_on_init);
+                                       const struct bigint* a3, const struct bigint* a4,
+                                       const struct bigint* a6, int min_on_init);
 
 EXTERN void Curvedata_del(struct Curvedata* curve);
 
@@ -98,10 +98,10 @@ EXTERN void mw_search(struct mw* m, char* h_lim, int moduli_option, int verb);
 struct two_descent;
 #endif
 
-EXTERN struct two_descent* two_descent_new(struct Curvedata* curve,  \
-				    int verb, int sel,
-				    long firstlim, long secondlim,
-				    long n_aux, int second_descent);
+EXTERN struct two_descent* two_descent_new(struct Curvedata* curve,
+                                    int verb, int sel,
+                                    long firstlim, long secondlim,
+                                    long n_aux, int second_descent);
 
 EXTERN void two_descent_del(struct two_descent* t);
 

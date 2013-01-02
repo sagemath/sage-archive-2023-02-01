@@ -7,8 +7,7 @@
 #                   http://www.gnu.org/licenses/
 #*****************************************************************************/
 
-/*  Author:  Joel B. Mohler <joel@kiwistrawberry.us>
-			 2007-06-17                                                      */
+/*  Author:  Joel B. Mohler <joel@kiwistrawberry.us> (2007-06-17) */
 
 #include "ZZ_pylong.h"
 #include "ntl_wrap.h"

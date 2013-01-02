@@ -230,7 +230,7 @@ bool simplices::starshaped(const vertex origin) const
 {
   bool result = true;
   for (std::vector<vertices>::const_iterator
-	 vi=v.begin(); vi!=v.end(); vi++) {
+         vi=v.begin(); vi!=v.end(); vi++) {
     result=result && (find(vi->begin(),vi->end(),origin)!=vi->end());
   }
   return(result);
@@ -241,7 +241,7 @@ bool simplices::fine() const
 {
   vertices support;
   for (std::vector<vertices>::const_iterator
-	 vi=v.begin(); vi!=v.end(); vi++) {
+         vi=v.begin(); vi!=v.end(); vi++) {
     support.insert(vi->begin(), vi->end());
   }
   return support.full_set();
@@ -252,7 +252,7 @@ std::ostream & operator << (std::ostream & out, const simplices & s)
 {
   out << "[" << s.v.front();
   for (std::vector<vertices>::const_iterator
-	 si=s.v.begin()+1; si!=s.v.end(); si++)
+         si=s.v.begin()+1; si!=s.v.end(); si++)
     out << ", " << *si;
   out << "]";
   return(out);
@@ -342,9 +342,9 @@ goodcircuit::goodcircuit(const simplices & s, const flip & f)
     bool found_match=false;
     for (std::vector<vertices>::const_iterator i=v.begin(); i!=v.end(); ++i) {
       if (includes( (*i).begin(), (*i).end(),
-		    deltaplus[n].begin(), deltaplus[n].end() )) {
-	found_match=true;
-	supported[n].push_back(*i);
+                    deltaplus[n].begin(), deltaplus[n].end() )) {
+        found_match=true;
+        supported[n].push_back(*i);
       }
     }
     good=good && found_match;
@@ -355,13 +355,13 @@ goodcircuit::goodcircuit(const simplices & s, const flip & f)
   for (size_t n=0; n<deltaplus.size(); n++) {
     std::set<vertices,vertices_order> l;
     for (std::vector<vertices>::const_iterator i=supported[n].begin();
-    	 i!=supported[n].end(); ++i) {
+             i!=supported[n].end(); ++i) {
       vertices one_simplex;
       std::insert_iterator<vertices>
-	ins(one_simplex,one_simplex.begin());
+        ins(one_simplex,one_simplex.begin());
       set_difference( (*i).begin(), (*i).end(),
- 		      deltaplus[n].begin(), deltaplus[n].end(),
- 		      ins );
+                       deltaplus[n].begin(), deltaplus[n].end(),
+                       ins );
       l.insert(l.begin(),one_simplex);
     }
     link.push_back(l);
@@ -392,27 +392,27 @@ void goodcircuit::do_flip(const simplices & s, const flip & f)
   for (std::set<vertices,vertices_order>::const_iterator i=use_link.begin();
        i!=use_link.end(); ++i)
     for (std::vector<vertices>::const_iterator j=deltaplus.begin();
-	 j!=deltaplus.end(); ++j) {
+         j!=deltaplus.end(); ++j) {
       vertices one_simplex;
       set_union( (*j).begin(), (*j).end(),
-		 (*i).begin(), (*i).end(),
-		 inserter(one_simplex,one_simplex.begin()) );
+                 (*i).begin(), (*i).end(),
+                 inserter(one_simplex,one_simplex.begin()) );
       to_remove.insert(to_remove.begin(),one_simplex);
     }
   set_difference( tri.begin(), tri.end(),
-		  to_remove.begin(), to_remove.end(),
-		  inserter(bistellarneighbor,bistellarneighbor.begin()),
-		  vertices_order() );
+                  to_remove.begin(), to_remove.end(),
+                  inserter(bistellarneighbor,bistellarneighbor.begin()),
+                  vertices_order() );
 
   // now add the flip of the supported simplices
   for (std::set<vertices,vertices_order>::const_iterator i=use_link.begin();
        i!=use_link.end(); ++i)
     for (std::vector<vertices>::const_iterator j=deltaminus.begin();
-	 j!=deltaminus.end(); j++) {
+         j!=deltaminus.end(); j++) {
       vertices one_simplex;
       set_union( (*j).begin(), (*j).end(),
-		 (*i).begin(), (*i).end(),
-		 inserter(one_simplex,one_simplex.begin()) );
+                 (*i).begin(), (*i).end(),
+                 inserter(one_simplex,one_simplex.begin()) );
       bistellarneighbor.insert( bistellarneighbor.begin(), one_simplex );
     }
 }

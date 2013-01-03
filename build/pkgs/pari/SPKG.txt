@@ -69,18 +69,22 @@ of doubt, have a look at the file spkg-src.
 
 == Changelog ==
 
+=== pari-2.5.3.p1 (Jeroen Demeyer, 3 January 2013) ===
+ * Trac #13902: add a patch (backported from upstream PARI 2.6.0)
+   for integer determinants.
+
 === pari-2.5.3.p0 (Jeroen Demeyer, 5 October 2012) ===
- * Ticket #13534: upgrade to version 2.5.3
+ * Trac #13534: upgrade to version 2.5.3
  * Remove upstreamed patch rootpol.patch
 
 === pari-2.5.2.p2 (Jean-Pierre Flori, 30 September 2012) ===
- * Ticket #13333: add upstream patch to copy libpari.dll.a on Cygwin.
+ * Trac #13333: add upstream patch to copy libpari.dll.a on Cygwin.
 
 === pari-2.5.2.p1 (Paul Zimmermann, 28 August 2012) ===
- * Ticket #13314: add upstream patch rootpol.patch for rootpol().
+ * Trac #13314: add upstream patch rootpol.patch for rootpol().
 
 === pari-2.5.2.p0 (Jeroen Demeyer, 1 August 2012) ===
- * Ticket #13320: upgrade to version 2.5.2
+ * Trac #13320: upgrade to version 2.5.2
  * Rename spkg-make to spkg-src
  * Remove various upstreamed patches:
     - pari_1302.patch
@@ -88,30 +92,30 @@ of doubt, have a look at the file spkg-src.
     - reorder_init_opts.patch
 
 === pari-2.5.1.p3 (Jeroen Demeyer, 20 March 2012) ===
- * Ticket #12638: add upstream patch pari_1304.patch for issquarefree(0),
+ * Trac #12638: add upstream patch pari_1304.patch for issquarefree(0),
    see http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1304
 
 === pari-2.5.1.p2 (Jeroen Demeyer, 13 March 2012) ===
- * Ticket #12638: add upstream patch pari_1302.patch for ispower(),
+ * Trac #12638: add upstream patch pari_1302.patch for ispower(),
    see http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1302
  * Apply all patches at -p1 level instead of -p0 (just like most other
    Sage packages).
 
 === pari-2.5.1.p1 (Jeroen Demeyer, 7 March 2012) ===
- * Ticket #12638: add patch GCC_PR49330.patch to work around a bug
+ * Trac #12638: add patch GCC_PR49330.patch to work around a bug
    in gcc-4.6.3 on OS X 10.4 PPC.
 
 === pari-2.5.1.p0 (Jeroen Demeyer, 11 February 2012) ===
- * Ticket #12363: upgrade to PARI 2.5.1.
+ * Trac #12363: upgrade to PARI 2.5.1.
  * Use git instead of svn in spkg-make to obtain the PARI sources.
  * Remove upstreamed patch osx_13318_13330.patch.
 
 === pari-2.5.0.p3 (Jeroen Demeyer, 20 December 2011) ===
- * Ticket #12158: add reorder_init_opts.patch such that warnings
+ * Trac #12158: add reorder_init_opts.patch such that warnings
    during pari_init_opts() do not cause segfaults.
 
 === pari-2.5.0.p2 (Jeroen Demeyer, 26 July 2011) ===
- * Ticket #11130: update to PARI stable version 2.5.0, which is
+ * Trac #11130: update to PARI stable version 2.5.0, which is
    equal to svn version 13228.
  * Moving to this upstream version fixes #10195, #10767, #11604.
  * Remove all previous upstream patches.
@@ -120,13 +124,12 @@ of doubt, have a look at the file spkg-src.
    Mac OS X.
 
 === pari-2.4.3.alpha.p7 (Leif Leonhardy, July 16th, 2011) ===
- * #11605: Fix typo in spkg-install and add `exit 1` (again) in case
-   the build fails.
+ * Trac #11605: Fix typo in spkg-install and add `exit 1` (again) in
+   case the build fails.
  * Quote some more variables and filenames in messages.
 
 === pari-2.4.3.alpha.p6 (Dima Pasechnik, 22 April, 2011) ===
- * made a proper check for libpari.dll on Cygwin, as described in
-   trac #10240
+ * Trac #10240: made a proper check for libpari.dll on Cygwin.
 
 === pari-2.4.3.alpha.p5 (Jeroen Demeyer, January 23th, 2011) ===
  * Avoid parallel "make install" because of race conditions.
@@ -134,7 +137,7 @@ of doubt, have a look at the file spkg-src.
    conditions in "make install".
 
 === pari-2.4.3.alpha.p4 (Jeroen Demeyer, January 11th, 2011) ===
- * Ticket #10430 (fixing also #9620, #10279, #10369, #10559)
+ * Trac #10430 (fixing also #9620, #10279, #10369, #10559)
  * Use `patch` to apply patches (at -p0 level because this is how svn
    gives the diffs).
  * Apply patches for PARI bugs 1084, 1132, 1141, 1143, 1144.

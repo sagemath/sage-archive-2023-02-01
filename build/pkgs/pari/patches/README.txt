@@ -43,3 +43,7 @@ C files:
   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49330
   This bug manifests itself as a Bus Error on OS X 10.4 PPC with
   gcc-4.6.3.
+* trac_13902_determinant.patch: patch backported from upstream git
+  repository based on commits
+  - 28ea998bc661f5bbde18b6d6b0f50111a10ae16c
+  - 249432f7088bfa114ed5cd3a5d64ef51ee968e35

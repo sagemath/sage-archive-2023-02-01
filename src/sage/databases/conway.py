@@ -2,52 +2,10 @@
 Frank Luebeck's tables of Conway polynomials over finite fields
 """
 
-
-## On 3/29/07, David Joyner <wdjoyner@gmail.com> wrote:
-## > I guessed what you would do to create the *.bz2 file
-## > and I think it turned out to be right. (You did things the simplest way,
-## > as far as I can see.) The file is posted at
-## > http://sage.math.washington.edu/home/wdj/patches/conway_table.py.bz2
-## > I think what you did was (a) take the data file from
-## > http://www.math.rwth-aachen.de/~Frank.Luebeck/data/ConwayPol/CPimport.txt
-## > (b) renamed the file conway_table.py
-## > (c) used an editor to make a few changes to the first few and last
-## > few lines of the data file,
-## > (d) packed it using bzip2.
-## >
-## > I did this and placed the *bz2 file in the correct directory
-## > (as determined by conway.py). Here's a test
-## >
-## > sage: R = PolynomialRing(GF(2),"x")
-## > sage: R(ConwayPolynomials()[2][3])
-## > x^3 + x + 1
-## >
-## > If I am reading conway.py correctly then this test shows that the
-## > file I created is what you want.
-## >
-## > If you agree, then I will add the new data (you forwarded by
-## > separate emails) to it.
-## >
-## > Please let me know if this is reasonable.
-
-## Yes, you did exactly the right thing, which I verified as follows:
-
-## (1) delete SAGE_SHARE/conway_polynomials/*
-## (2) put your conway_polynomial.py.bz2 file in a new directory
-##      /home/was/s/data/src/conway/
-## (3) Start Sage:
-## sage: c = ConwayPolynomials(read_only=False)
-## sage: c._init()       # builds database
-## sage: c.polynomial(3,10)
-## [2, 1, 0, 0, 2, 2, 2, 0, 0, 0, 1]
-## (4) restart and test:
-## sage: conway_polynomial(3,10)
-## x^10 + 2*x^6 + 2*x^5 + 2*x^4 + x + 2
-
-
 #*****************************************************************************
 #
 #       Sage: Copyright (C) 2005 William Stein <wstein@gmail.com>
+#             Copyright (C) 2013 R. Andrew Ohana <andrew.ohana@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -61,56 +19,101 @@ Frank Luebeck's tables of Conway polynomials over finite fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os
+import collections, os
+from sage.misc.misc import SAGE_SHARE
 
-import sage.databases.db   # very important that this be fully qualified
-_CONWAYDATA = os.path.join(sage.misc.misc.SAGE_SHARE,'conway_polynomials')
+_CONWAYDATA = os.path.join(SAGE_SHARE, 'conway_polynomials',
+        'conway_polynomials.sobj')
+_conwaydict = None
 
+class DictInMapping(collections.Mapping):
+    def __init__(self, dict):
+        """
+        Places dict into a non-mutable mapping.
 
-class ConwayPolynomials(sage.databases.db.Database):
-    def __init__(self, read_only=True):
+        TESTS::
+
+            sage: from sage.databases.conway import DictInMapping
+            sage: d = {}
+            sage: m = DictInMapping(d); m
+            {}
+            sage: d[0] = 1; m
+            {0: 1}
+            sage: m[2] = 3
+            Traceback (most recent call last):
+            ...
+            TypeError: 'DictInMapping' object does not support item assignment
+        """
+        self._store = dict
+
+    def __getitem__(self, key):
+        """
+        TESTS::
+
+            sage: from sage.databases.conway import DictInMapping
+            sage: DictInMapping({'foo': 'bar'})['foo']
+            'bar'
+        """
+        return self._store[key]
+
+    def __len__(self):
+        """
+        TESTS::
+
+            sage: from sage.databases.conway import DictInMapping
+            sage: d = {}
+            sage: m = DictInMapping(d); len(m)
+            0
+            sage: d['foo'] = 'bar'; len(m)
+            1
+        """
+        return len(self._store)
+
+    def __iter__(self):
+        """
+        TESTS::
+
+            sage: from sage.databases.conway import DictInMapping
+            sage: iter(DictInMapping({'foo': 'bar'})).next()
+            'foo'
+        """
+        return iter(self._store)
+
+    def __repr__(self):
+        """
+        TESTS::
+
+            sage: from sage.databases.conway import DictInMapping
+            sage: DictInMapping({'foo': 'bar'})
+            {'foo': 'bar'}
+        """
+        return repr(self._store)
+
+class ConwayPolynomials(collections.Mapping):
+    def __init__(self):
         """
         Initialize the database.
-
-        INPUT:
-
-        -  ``read_only`` - bool (default: True), if True, then
-           the database is read_only and changes cannot be committed to
-           disk.
 
         TESTS::
 
             sage: c = ConwayPolynomials()
             sage: c
             Frank Luebeck's database of Conway polynomials
-            sage: c.read_only
-            True
         """
-        sage.databases.db.Database.__init__(self,
-             name="conway_polynomials", read_only=read_only)
-
-    def _init(self):
-        if not os.path.exists(_CONWAYDATA):
-            raise RuntimeError, "In order to initialize the database, the directory must exist."%_CONWAYDATA
-        os.chdir(_CONWAYDATA)
-        if os.system("bunzip2 -k conway_table.py.bz2"):
-            raise RuntimeError, "error decompressing table"
-        from conway_table import conway_polynomials
-        for X in conway_polynomials:
-            (p, n, v) = tuple(X)
-            if not self.has_key(p):
-                self[p] = {}
-            self[p][n] = v
-            self[p] = self[p]  # so database knows it was changed
-        os.unlink("conway_table.pyc")
-        os.unlink("conway_table.py")
-        self.commit()
+        global _conwaydict
+        if _conwaydict is None:
+            if not os.path.exists(_CONWAYDATA):
+                raise RuntimeError('In order to initialize the database, '
+                        + '%s must exist.'%_CONWAYDATA)
+            from sage.structure.sage_object import load
+            _conwaydict = load(_CONWAYDATA)
+        self._store = _conwaydict
 
     def __repr__(self):
         """
         Return a description of this database.
 
-        TESTS:
+        TESTS::
 
             sage: c = ConwayPolynomials()
             sage: c.__repr__()
@@ -118,6 +121,67 @@ class ConwayPolynomials(sage.databases.db.Database):
         """
         return "Frank Luebeck's database of Conway polynomials"
 
+    def __getitem__(self, key):
+        """
+        If key is a pair of integers ``p,n``, return the Conway
+        polynomial of degree ``n`` over ``GF(p)``.
+
+        If key is an integer ``p``, return a non-mutable mapping
+        whose keys are the degrees of the polynomial values.
+
+        TESTS::
+
+            sage: c = ConwayPolynomials()
+            sage: c[60859]
+            {1: (60856, 1), 2: (3, 60854, 1),
+                    3: (60856, 8, 0, 1), 4: (3, 32881, 3, 0, 1)}
+            sage: c[60869, 3]
+            (60867, 2, 0, 1)
+        """
+        try:
+            return DictInMapping(self._store[key])
+        except KeyError, err:
+            try:
+                if isinstance(key, (tuple, list)):
+                    if len(key) == 2:
+                        return self._store[key[0]][key[1]]
+            except KeyError:
+                pass
+            raise err
+
+    def __len__(self):
+        """
+        Return the number of polynomials in this database.
+
+        TESTS::
+
+            sage: c = ConwayPolynomials()
+            sage: len(c)
+            35352
+        """
+        try:
+            return self._len
+        except AttributeError:
+            pass
+        self._len = sum(len(a) for a in self._store.itervalues())
+        return self._len
+
+    def __iter__(self):
+        """
+        Return an iterator over the keys of this database.
+
+        TESTS::
+
+            sage: c = ConwayPolynomials()
+            sage: itr = iter(c)
+            sage: itr.next()
+            (65537, 4)
+            sage: itr.next()
+            (2, 1)
+        """
+        for a,b in self._store.iteritems():
+            for c in b:
+                yield a,c
 
     def polynomial(self, p, n):
         """
@@ -145,16 +209,16 @@ class ConwayPolynomials(sage.databases.db.Database):
 
             sage: c = ConwayPolynomials()
             sage: c.polynomial(3, 21)
-            [1, 2, 0, 2, 0, 1, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            (1, 2, 0, 2, 0, 1, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
             sage: c.polynomial(97, 128)
             Traceback (most recent call last):
             ...
             RuntimeError: Conway polynomial over F_97 of degree 128 not in database.
         """
         try:
-            return self[int(p)][int(n)]
+            return self[p,n]
         except KeyError:
-            raise RuntimeError, "Conway polynomial over F_%s of degree %s not in database."%(p,n)
+            raise RuntimeError("Conway polynomial over F_%s of degree %s not in database."%(p,n))
 
     def has_polynomial(self, p, n):
         """
@@ -175,7 +239,7 @@ class ConwayPolynomials(sage.databases.db.Database):
             sage: c.has_polynomial(60821, 5)
             False
         """
-        return self.has_key(int(p)) and self[int(p)].has_key(int(n))
+        return (p,n) in self
 
     def primes(self):
         """
@@ -191,7 +255,7 @@ class ConwayPolynomials(sage.databases.db.Database):
             sage: next_prime(10^7) in P
             False
         """
-        return list(self.keys())
+        return self._store.keys()
 
     def degrees(self, p):
         """
@@ -206,9 +270,16 @@ class ConwayPolynomials(sage.databases.db.Database):
             sage: c.degrees(next_prime(10^7))
             []
         """
-        p = int(p)
-        if not p in self.primes():
+        if p not in self._store:
             return []
-        return self[p].keys()
+        return self._store[p].keys()
 
+    def __reduce__(self):
+        """
+        TESTS::
 
+            sage: c = ConwayPolynomials()
+            sage: loads(dumps(c)) == c
+            True
+        """
+        return (ConwayPolynomials, ())

@@ -31,10 +31,13 @@ Apache License, Version 2.0
 
 == Changelog ==
 
-=== cython-0.17.3 (Volker Braun, 14 December 2012) ===
+=== cython-0.17.4 (Robert Bradshaw, 4 January 2013, #13896) ===
+ * Upgrade Cython 0.17.4
+
+=== cython-0.17.3 (Volker Braun, 14 December 2012, #13832) ===
  * Upgrade Cython 0.17.3
 
-=== cython-0.17.2 (Volker Braun, 21 November 2012) ===
+=== cython-0.17.2 (Volker Braun, 21 November 2012, #13740) ===
  * Upgrade Cython 0.17.2
 
 === cython-0.17pre (Robert Bradshaw, 25 June 2012, #13029) ===

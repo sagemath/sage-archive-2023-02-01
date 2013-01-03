@@ -129,12 +129,12 @@ def var(*args, **kwds):
     else:
         name = args
     G = globals()  # this is the reason the code must be in Cython.
-    if kwds.has_key('ns'):
+    if 'ns' in kwds:
         if kwds['ns']:
             from sage.misc.superseded import deprecation
             deprecation(6559, "The new (Pynac) symbolics are now the only symbolics; please do not use keyword 'ns' any longer.")
         else:
-            raise NotImplementedError, "The new (Pynac) symbolics are now the only symbolics; please do not use keyword `ns` any longer."
+            raise NotImplementedError("The new (Pynac) symbolics are now the only symbolics; please do not use keyword `ns` any longer.")
         kwds.pop('ns')
     v = SR.var(name, **kwds)
     if isinstance(v, tuple):
@@ -261,7 +261,7 @@ def clear_vars():
     G = globals()
     from sage.symbolic.ring import is_SymbolicVariable
     for i in range(65,65+26) + range(97,97+26):
-        if G.has_key(chr(i)) and is_SymbolicVariable(G[chr(i)]):
+        if chr(i) in G and is_SymbolicVariable(G[chr(i)]):
             # We check to see if there is a corresponding pyobject
             # associated with the expression.  This will work for
             # constants which we want to keep, but will fail for

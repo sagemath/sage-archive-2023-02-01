@@ -409,7 +409,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     if is_SymbolicEquation(de):
         de = de.lhs() - de.rhs()
     if is_SymbolicVariable(dvar):
-        raise ValueError, "You have to declare dependent variable as a function, eg. y=function('y',x)"
+        raise ValueError("You have to declare dependent variable as a function, eg. y=function('y',x)")
     # for backwards compatibility
     if isinstance(dvar, list):
         dvar, ivar = dvar
@@ -417,7 +417,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         ivars = de.variables()
         ivars = [t for t in ivars if t is not dvar]
         if len(ivars) != 1:
-            raise ValueError, "Unable to determine independent variable, please specify."
+            raise ValueError("Unable to determine independent variable, please specify.")
         ivar = ivars[0]
     def sanitize_var(exprs):
         return exprs.replace("'"+dvar_str+"("+ivar_str+")",dvar_str)
@@ -442,9 +442,9 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
             # (TEMP:contrib_ode(x*('diff(y,x,1))^2-(x*y+1)*'diff(y,x,1)+y,y,x), if TEMP=false then TEMP else substitute(y=y(x),TEMP))
             soln = P(cmd)
             if str(soln).strip() == 'false':
-                raise NotImplementedError, "Maxima was unable to solve this ODE."
+                raise NotImplementedError("Maxima was unable to solve this ODE.")
         else:
-            raise NotImplementedError, "Maxima was unable to solve this ODE. Consider to set option contrib_ode to True."
+            raise NotImplementedError("Maxima was unable to solve this ODE. Consider to set option contrib_ode to True.")
 
     if show_method:
         maxima_method=P("method")
@@ -453,7 +453,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         if not is_SymbolicEquation(soln.sage()):
             if not show_method:
                 maxima_method=P("method")
-            raise NotImplementedError, "Unable to use initial condition for this equation (%s)."%(str(maxima_method).strip())
+            raise NotImplementedError("Unable to use initial condition for this equation (%s)."%(str(maxima_method).strip()))
         if len(ics) == 2:
             tempic=(ivar==ics[0])._maxima_().str()
             tempic=tempic+","+(dvar==ics[1])._maxima_().str()
@@ -480,7 +480,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
             # (TEMP:ic2(ode2('diff(y,x,2)+2*'diff(y,x,1)+y-cos(x),y,x),x=0,y=3,'diff(y,x)=1),substitute(y=y(x),TEMP))
             soln=P(cmd)
             if str(soln).strip() == 'false':
-                raise NotImplementedError, "Maxima was unable to solve this IVP. Remove the initial condition to get the general solution."
+                raise NotImplementedError("Maxima was unable to solve this IVP. Remove the initial condition to get the general solution.")
         if len(ics) == 4:
             #fixed bc2 command from Maxima - we have to ensure that %k1, %k2 do not depend on variables, should be removed when fixed in Maxima
             P("bc2_sage(soln,xa,ya,xb,yb):=block([programmode:true,backsubst:true,singsolve:true,temp,%k1,%k2,TEMP_k], \
@@ -496,7 +496,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
             # (TEMP:bc2(ode2('diff(y,x,2)+2*'diff(y,x,1)+y-cos(x),y,x),x=0,y=3,x=%pi/2,y=2),substitute(y=y(x),TEMP))
             soln=P(cmd)
             if str(soln).strip() == 'false':
-                raise NotImplementedError, "Maxima was unable to solve this BVP. Remove the initial condition to get the general solution."
+                raise NotImplementedError("Maxima was unable to solve this BVP. Remove the initial condition to get the general solution.")
 
     soln=soln.sage()
     if is_SymbolicEquation(soln) and soln.lhs() == dvar:
@@ -647,7 +647,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
     if is_SymbolicEquation(de):
         de = de.lhs() - de.rhs()
     if is_SymbolicVariable(dvar):
-        raise ValueError, "You have to declare dependent variable as a function, eg. y=function('y',x)"
+        raise ValueError("You have to declare dependent variable as a function, eg. y=function('y',x)")
     # for backwards compatibility
     if isinstance(dvar, list):
         dvar, ivar = dvar
@@ -655,7 +655,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
         ivars = de.variables()
         ivars = [t for t in ivars if t != dvar]
         if len(ivars) != 1:
-            raise ValueError, "Unable to determine independent variable, please specify."
+            raise ValueError("Unable to determine independent variable, please specify.")
         ivar = ivars[0]
     ## verbatim copy from desolve - end
 
@@ -666,7 +666,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
     cmd = sanitize_var("desolve("+de0.str()+","+str(dvar)+")")
     soln=P(cmd).rhs()
     if str(soln).strip() == 'false':
-        raise NotImplementedError, "Maxima was unable to solve this ODE."
+        raise NotImplementedError("Maxima was unable to solve this ODE.")
     soln=soln.sage()
     if ics!=None:
         d = len(ics)
@@ -739,7 +739,7 @@ def desolve_system(des, vars, ics=None, ivar=None):
     if ivar is None:
         ivars = ivars - set(vars)
         if len(ivars) != 1:
-            raise ValueError, "Unable to determine independent variable, please specify."
+            raise ValueError("Unable to determine independent variable, please specify.")
         ivar = list(ivars)[0]
     dvars = [v._maxima_() for v in vars]
     if ics is not None:
@@ -748,7 +748,7 @@ def desolve_system(des, vars, ics=None, ivar=None):
             dvar.atvalue(ivar==ivar_ic, ic)
     soln = dvars[0].parent().desolve(des, dvars)
     if str(soln).strip() == 'false':
-        raise NotImplementedError, "Maxima was unable to solve this system."
+        raise NotImplementedError("Maxima was unable to solve this system.")
     soln = list(soln)
     for i, sol in enumerate(soln):
         soln[i] = sol.sage()
@@ -918,13 +918,13 @@ def eulers_method(f,x0,y0,h,x1,algorithm="table"):
     - David Joyner
     """
     if algorithm=="table":
-        print "%10s %20s %25s"%("x","y","h*f(x,y)")
+        print("%10s %20s %25s"%("x","y","h*f(x,y)"))
     n=int((1.0)*(x1-x0)/h)
     x00=x0; y00=y0
     soln = [[x00,y00]]
     for i in range(n+1):
         if algorithm=="table":
-            print "%10r %20r %20r"%(x00,y00,h*f(x00,y00))
+            print("%10r %20r %20r"%(x00,y00,h*f(x00,y00)))
         y00 = y00+h*f(x00,y00)
         x00=x00+h
         soln.append([x00,y00])
@@ -1012,13 +1012,13 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,algorithm="table"):
     - David Joyner
     """
     if algorithm=="table":
-        print "%10s %20s %25s %20s %20s"%("t", "x","h*f(t,x,y)","y", "h*g(t,x,y)")
+        print("%10s %20s %25s %20s %20s"%("t", "x","h*f(t,x,y)","y", "h*g(t,x,y)"))
     n=int((1.0)*(t1-t0)/h)
     t00 = t0; x00 = x0; y00 = y0
     soln = [[t00,x00,y00]]
     for i in range(n+1):
         if algorithm=="table":
-            print "%10r %20r %25r %20r %20r"%(t00,x00,h*f(t00,x00,y00),y00,h*g(t00,x00,y00))
+            print("%10r %20r %25r %20r %20r"%(t00,x00,h*f(t00,x00,y00),y00,h*g(t00,x00,y00)))
         x01 = x00 + h*f(t00,x00,y00)
         y00 = y00 + h*g(t00,x00,y00)
         x00 = x01
@@ -1191,13 +1191,13 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
     - Robert Marik (10-2009)
     """
     if ics is None:
-        raise ValueError, "No initial conditions, specify with ics=[x0,y0]."
+        raise ValueError("No initial conditions, specify with ics=[x0,y0].")
 
     if ivar is None:
         ivars = de.variables()
         ivars = [t for t in ivars if t != dvar]
         if len(ivars) != 1:
-            raise ValueError, "Unable to determine independent variable, please specify."
+            raise ValueError("Unable to determine independent variable, please specify.")
         ivar = ivars[0]
 
     if not is_SymbolicVariable(dvar):
@@ -1210,7 +1210,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
         # consider to add warning if the solution is not unique
         de=solve(de,diff(dvar,ivar),solution_dict=True)
         if len(de) != 1:
-            raise NotImplementedError, "Sorry, cannot find explicit formula for right-hand side of the ODE."
+            raise NotImplementedError("Sorry, cannot find explicit formula for right-hand side of the ODE.")
         de=de[0][diff(dvar,ivar)].subs(dvar==dummy_dvar)
     else:
         dummy_dvar=dvar
@@ -1254,8 +1254,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
             if t<YMIN:YMIN=t
         return plot_slope_field(de,(ivar,XMIN,XMAX),(dummy_dvar,YMIN,YMAX))+R
 
-    raise ValueError, "Option output should be 'list', 'plot' or 'slope_field'."
-
+    raise ValueError("Option output should be 'list', 'plot' or 'slope_field'.")
 
 def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1):
     r"""
@@ -1317,7 +1316,7 @@ def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1
     """
 
     if ics is None:
-        raise ValueError, "No initial conditions, specify with ics=[x0,y01,y02,...]."
+        raise ValueError("No initial conditions, specify with ics=[x0,y01,y02,...].")
 
     ivars = set([])
 
@@ -1326,7 +1325,7 @@ def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1
     if ivar is None:
         ivars = ivars - set(vars)
         if len(ivars) != 1:
-            raise ValueError, "Unable to determine independent variable, please specify."
+            raise ValueError("Unable to determine independent variable, please specify.")
         ivar = list(ivars)[0]
 
     dess = [de._maxima_().str() for de in des]
@@ -1514,7 +1513,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
                 safe_names = [ 't_' + str(dvars) ]
             ivar = map(var, safe_names)
         else:
-            raise ValueError, "Unable to determine independent variable, please specify."
+            raise ValueError("Unable to determine independent variable, please specify.")
 
     # one-dimensional systems:
     if is_SymbolicVariable(dvars):
@@ -1549,6 +1548,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
                 v = list(y[:])
                 v.append(t)
                 return [[element(*v) for element in row] for row in J]
+
 
     sol=odeint(func, ics, times, args=args, Dfun=Dfun, rtol=rtol, atol=atol,
         tcrit=tcrit, h0=h0, hmax=hmax, hmin=hmin, ixpr=ixpr, mxstep=mxstep,

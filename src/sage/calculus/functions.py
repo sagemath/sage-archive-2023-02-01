@@ -76,7 +76,7 @@ def wronskian(*args):
     - Dan Drake (2008-03-12)
     """
     if len(args) == 0:
-        raise TypeError, 'wronskian() takes at least one argument (0 given)'
+        raise TypeError('wronskian() takes at least one argument (0 given)')
     elif len(args) == 1:
         # a 1x1 Wronskian is just its argument
         return args[0]

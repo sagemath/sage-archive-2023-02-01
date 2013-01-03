@@ -1182,7 +1182,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         TESTS:
 
-        This shows that the issue at trac ticket 7077 is fixed::
+        This shows that the issue at :trac:`7077` is fixed::
 
             sage: x,y,z=polygens(QQ,'x,y,z')
             sage: (x^2).variables()
@@ -1703,6 +1703,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             y13*y15
             sage: f = y13*y15 + y9 - y12; f.reduce(J)
             y13*y15 - 2*y12
+
+        Make sure the remainder returns the correct type, fixing :trac:`13903`::
+
+            sage: R.<y1,y2>=PolynomialRing(Qp(5),2, order='lex')
+            sage: G=[y1^2 + y2^2, y1*y2 + y2^2, y2^3]
+            sage: type((y2^3).reduce(G))
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
         """
         from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
@@ -1724,7 +1731,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         lI = len(I)
         I = list(I)
-        r = 0
+        r = P(0)
         p = self
 
         while p != 0:

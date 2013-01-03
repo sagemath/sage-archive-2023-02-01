@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <sys/select.h>
 #include <sys/wait.h>
+#include "interrupt.h"
 
 void ms_sleep(long ms)
 {
@@ -51,6 +52,9 @@ void signal_pid_after_delay(int signum, pid_t killpid, long ms, long interval, i
 
         /* New process group to prevent us getting the signals. */
         setpgid(0,0);
+
+        /* Unblock SIGINT (to fix a warning when testing sig_block()) */
+        _signals.block_sigint = 0;
 
         /* Make sure SIGTERM simply terminates the process */
         signal(SIGTERM, SIG_DFL);

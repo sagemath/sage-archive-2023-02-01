@@ -698,15 +698,17 @@ def test_sig_block(long delay = DEFAULT_DELAY):
 
     try:
         sig_on()
+        sig_block()
+        signal_after_delay(SIGINT, delay)
+        ms_sleep(delay * 2)  # We get signaled during this sleep
+        v = 42
+        sig_unblock()        # Here, the interrupt will be handled
+        sig_off()
     except KeyboardInterrupt:
         return v
 
-    sig_block()
-    signal_after_delay(SIGINT, delay)
-    ms_sleep(delay * 2)  # We get signaled during this sleep
-    v = 42
-    sig_unblock()        # Here, the interrupt will be handled
-    return 1             # Never reached
+    # Never reached
+    return 1
 
 def test_sig_block_outside_sig_on(long delay = DEFAULT_DELAY):
     """

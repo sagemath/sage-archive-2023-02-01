@@ -184,7 +184,7 @@ static inline int _sig_on_prejmp(const char* message, const char* file, int line
 {
     _signals.s = message;
 #if ENABLE_DEBUG_INTERRUPT
-    fprintf(stderr, "sig_on (counter = %i) at %s:%i\n", _signals.sig_on_count+1, file, line);
+    fprintf(stderr, "sig_on (count = %i) at %s:%i\n", _signals.sig_on_count+1, file, line);
     fflush(stderr);
 #endif
     if (_signals.sig_on_count > 0)
@@ -241,7 +241,7 @@ void _sig_off_warning(const char* file, int line);
 static inline void _sig_off_(const char* file, int line)
 {
 #if ENABLE_DEBUG_INTERRUPT
-    fprintf(stderr, "sig_off (counter = %i) at %s:%i\n", _signals.sig_on_count, file, line);
+    fprintf(stderr, "sig_off (count = %i) at %s:%i\n", _signals.sig_on_count, file, line);
     fflush(stderr);
 #endif
     if (unlikely(_signals.sig_on_count <= 0))
@@ -311,11 +311,25 @@ static inline int sig_check()
  */
 static inline void sig_block()
 {
+#if ENABLE_DEBUG_INTERRUPT
+    if (_signals.block_sigint != 0)
+    {
+        fprintf(stderr, "\n*** WARNING *** sig_block() with sig_on_count = %i, block_sigint = %i\n", _signals.sig_on_count, _signals.block_sigint);
+        print_backtrace();
+    }
+#endif
     _signals.block_sigint = 1;
 }
 
 static inline void sig_unblock()
 {
+#if ENABLE_DEBUG_INTERRUPT
+    if (_signals.block_sigint != 1)
+    {
+        fprintf(stderr, "\n*** WARNING *** sig_unblock() with sig_on_count = %i, block_sigint = %i\n", _signals.sig_on_count, _signals.block_sigint);
+        print_backtrace();
+    }
+#endif
     _signals.block_sigint = 0;
 
     if (unlikely(_signals.interrupt_received) && _signals.sig_on_count > 0)

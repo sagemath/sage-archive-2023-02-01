@@ -1,30 +1,31 @@
 r"""
 This file contains doctests for the Chapter "k-Schur function primer"
-for the book "k-Schur functions and affine Schubert calculus" for code
-written by Anne Schilling and Mike Zabrocki, 2012
+for the book "k-Schur functions and affine Schubert calculus"
+by Thomas Lam, Luc Lapointe, Jennifer Morse, Anne Schilling, Mark Shimozono,
+and Mike Zabrocki. The code was written by Anne Schilling and Mike Zabrocki, 2012.
 """
 
 """
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 178::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 190::
 
     sage: P = Partitions(4); P
     Partitions of the integer 4
     sage: P.list()
     [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 185::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 197::
 
     sage: la=Partition([2,2]); mu=Partition([3,1])
     sage: mu.dominates(la)
     True
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 191::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 203::
 
     sage: ord = lambda x,y: y.dominates(x)
     sage: P = Poset([Partitions(6), ord], facade=True)
     sage: H = P.hasse_diagram()
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 202::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 214::
 
     sage: la=Partition([4,3,3,3,2,2,1])
     sage: la.conjugate()
@@ -32,24 +33,24 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 202::
     sage: la.k_split(4)
     [[4], [3, 3], [3, 2], [2, 1]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 210::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 222::
 
     sage: p = SkewPartition([[2,1],[1]])
     sage: p.is_connected()
     False
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 484::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 515::
 
     sage: la = Partition([4,3,3,3,2,2,1])
     sage: kappa = la.k_skew(4); kappa
     [[12, 8, 5, 5, 2, 2, 1], [8, 5, 2, 2]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 490::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 521::
 
     sage: kappa.row_lengths()
     [4, 3, 3, 3, 2, 2, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 495::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 526::
 
     sage: tau = Core([12,8,5,5,2,2,1],5)
     sage: mu = tau.to_bounded_partition(); mu
@@ -57,19 +58,19 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 495::
     sage: mu.to_core(4)
     [12, 8, 5, 5, 2, 2, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 503::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 534::
 
     sage: Cores(3,6).list()
     [[6, 4, 2], [5, 3, 1, 1], [4, 2, 2, 1, 1], [3, 3, 2, 2, 1, 1]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 572::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 579::
 
     sage: W = WeylGroup(['A',4,1])
     sage: S = W.simple_reflections()
     sage: [s.reduced_word() for s in S]
     [[0], [1], [2], [3], [4]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 580::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 587::
 
     sage: w = W.an_element(); w
     [ 2  0  0  1 -2]
@@ -83,7 +84,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 580::
     sage: w.is_affine_grassmannian()
     True
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 651::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 649::
 
     sage: c = Core([7,3,1],5)
     sage: c.affine_symmetric_group_simple_action(2)
@@ -91,7 +92,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 651::
     sage: c.affine_symmetric_group_simple_action(0)
     [7, 3, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 661::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 659::
 
     sage: k=4; length=3
     sage: W = WeylGroup(['A',k,1])
@@ -103,7 +104,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 661::
     sage: [c.to_grassmannian().reduced_word() for c in C]
     [[2, 1, 0], [4, 1, 0], [3, 4, 0]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 725::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 728::
 
     sage: la = Partition([4,3,3,3,2,2,1])
     sage: c = la.to_core(4); c
@@ -113,13 +114,13 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 725::
     sage: c.to_grassmannian() == w
     True
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 769::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 937::
 
     sage: la = Partition([4,3,3,3,2,2,1])
     sage: la.k_conjugate(4)
     [3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1080::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1242::
 
     sage: c = Core([3,1,1],3)
     sage: c.weak_covers()
@@ -127,7 +128,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1080::
     sage: c.strong_covers()
     [[5, 3, 1], [4, 2, 1, 1], [3, 2, 2, 1, 1]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1088::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1250::
 
     sage: kappa = Core([4,1],4)
     sage: tau = Core([2,1],4)
@@ -136,7 +137,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1088::
     sage: tau.strong_le(kappa)
     True
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1097::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1259::
 
     sage: C = sum(([c for c in Cores(4,m)] for m in range(7)),[])
     sage: ord = lambda x,y: x.weak_le(y)
@@ -144,26 +145,26 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1097::
     sage: H = P.hasse_diagram()
     sage: view(H)        #optional
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1262::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1468::
 
     sage: Sym = SymmetricFunctions(QQ)
     sage: h = Sym.homogeneous()
     sage: m = Sym.monomial()
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1268::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1474::
 
     sage: f = h[3,1]+h[2,2]
     sage: m(f)
     10*m[1, 1, 1, 1] + 7*m[2, 1, 1] + 5*m[2, 2] + 4*m[3, 1] + 2*m[4]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1275::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1481::
 
     sage: f.scalar(h[2,1,1])
     7
     sage: m(f).coefficient([2,1,1])
     7
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1283::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1489::
 
     sage: p = Sym.power()
     sage: e = Sym.elementary()
@@ -172,7 +173,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1283::
     sage: sum( (-1)**(i-1)*p[i]*e[4-i] for i in range(1,4) ) - p[4]
     1/6*p[1, 1, 1, 1] - p[2, 1, 1] + 1/2*p[2, 2] + 4/3*p[3, 1] - p[4]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1366::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1574::
 
     sage: Sym = SymmetricFunctions(QQ)
     sage: s = Sym.schur()
@@ -183,7 +184,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1366::
     sage: h(s[1,1,1])
     h[1, 1, 1] - 2*h[2, 1] + h[3]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1377::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1585::
 
     sage: p = Sym.power()
     sage: s = Sym.schur()
@@ -194,14 +195,14 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1377::
     sage: p(s[3])
     1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1388::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1596::
 
     sage: s[2,1].scalar(s[1,1,1])
     0
     sage: s[2,1].scalar(s[2,1])
     1
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1571::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1817::
 
   sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
   sage: Qp = Sym.hall_littlewood().Qp()
@@ -211,20 +212,20 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1571::
   sage: s(Qp[1,1,1])
   s[1, 1, 1] + (t^2+t)*s[2, 1] + t^3*s[3]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1584::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1830::
 
   sage: t = Qp.t
   sage: s[2,1].scalar(s[3].theta_qt(t,0))
   t^2 - t
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1590::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1836::
 
   sage: s(Qp([1,1])).hl_creation_operator([3])
   s[3, 1, 1] + t*s[3, 2] + (t^2+t)*s[4, 1] + t^3*s[5]
   sage: s(Qp([3,1,1]))
   s[3, 1, 1] + t*s[3, 2] + (t^2+t)*s[4, 1] + t^3*s[5]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1619::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1865::
 
   sage: Sym = SymmetricFunctions(FractionField(QQ['q,t']))
   sage: Mac = Sym.macdonald()
@@ -236,7 +237,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1619::
   H [2, 1] = q*s[1, 1, 1] + (q*t+1)*s[2, 1] + t*s[3]
   H [1, 1, 1] = s[1, 1, 1] + (t^2+t)*s[2, 1] + t^3*s[3]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1632::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1878::
 
   sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
   sage: Mac = Sym.macdonald(q=0)
@@ -251,7 +252,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1632::
   sage: s(Qp[1, 1, 1])
   s[1, 1, 1] + (t^2+t)*s[2, 1] + t^3*s[3]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1647::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 1893::
 
   sage: Sym = SymmetricFunctions(FractionField(QQ['q']))
   sage: Mac = Sym.macdonald(t=0)
@@ -263,12 +264,53 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1647::
   H [2, 1] = q*s[1, 1, 1] + s[2, 1]
   H [1, 1, 1] = s[1, 1, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1852::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 2070::
+
+    sage: t = Tableau([[1,1,1,2,3,7],[2,2,3,5],[3,4],[4,5],[6]])
+    sage: t.charge()
+    9
+
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 2264::
+
+    sage: la = Partition([2,2])
+    sage: la.k_conjugate(2).conjugate()
+    [4]
+    sage: la = Partition([2,1,1])
+    sage: la.k_conjugate(2).conjugate()
+    [3, 1]
+    sage: la = Partition([1,1,1,1])
+    sage: la.k_conjugate(2).conjugate()
+    [2, 2]
+
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 2276::
+
+    sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
+    sage: ks = Sym.kschur(2)
+    sage: ks[2,2].omega_t_inverse()
+    1/t^2*ks2[1, 1, 1, 1]
+    sage: ks[2,1,1].omega_t_inverse()
+    1/t*ks2[2, 1, 1]
+    sage: ks[1,1,1,1].omega_t_inverse()
+    1/t^2*ks2[2, 2]
+
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 2287::
+
+    sage: Sym = SymmetricFunctions(FractionField(QQ['q,t']))
+    sage: H = Sym.macdonald().H()
+    sage: ks = Sym.kschur(2)
+    sage: ks(H[2,2])
+    q^2*ks2[1, 1, 1, 1] + (q*t+q)*ks2[2, 1, 1] + ks2[2, 2]
+    sage: ks(H[2,1,1])
+    q*ks2[1, 1, 1, 1] + (q*t^2+1)*ks2[2, 1, 1] + t*ks2[2, 2]
+    sage: ks(H[1,1,1,1])
+    ks2[1, 1, 1, 1] + (t^3+t^2)*ks2[2, 1, 1] + t^4*ks2[2, 2]
+
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 2571::
 
     sage: SemistandardTableaux([5,2],[4,2,1]).list()
     [[[1, 1, 1, 1, 2], [2, 3]], [[1, 1, 1, 1, 3], [2, 2]]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1857::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 2576::
 
     sage: P = Partitions(4)
     sage: P.list()
@@ -285,30 +327,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 1857::
     [0 0 0 1 3]
     [0 0 0 0 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1966::
-
-    sage: Sym = SymmetricFunctions(QQ)
-    sage: ks4 = Sym.kschur(4,t=1)
-    sage: h = Sym.homogeneous()
-    sage: ks4(h[4,3,1])
-    ks4[4, 3, 1] + ks4[4, 4]
-
-    sage: ks6 = Sym.kschur(6,t=1)
-    sage: ks6(h[4,3,1])
-    ks6[4, 3, 1] + ks6[4, 4] + ks6[5, 2, 1] + 2*ks6[5, 3]
-      + ks6[6, 1, 1] + ks6[6, 2]
-
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 1980::
-
-    sage: Sym = SymmetricFunctions(QQ)
-    sage: ks = Sym.kschur(3,t=1)
-    sage: ks.realization_of()
-    3-bounded Symmetric Functions over Rational Field with t=1
-    sage: s = Sym.schur()
-    sage: s.realization_of()
-    Symmetric Functions over Rational Field
-
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2077::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 2868::
 
     sage: Sym = SymmetricFunctions(QQ)
     sage: ks = Sym.kschur(3,t=1)
@@ -328,7 +347,24 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 2077::
     h[1, 1, 1, 1, 1, 1, 1] - 4*h[2, 1, 1, 1, 1, 1] + 4*h[2, 2, 1, 1, 1]
         + 2*h[3, 1, 1, 1, 1] - 4*h[3, 2, 1, 1] + h[3, 3, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2153::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 3019::
+
+    sage: ks6 = Sym.kschur(6,t=1)
+    sage: ks6(h[4,3,1])
+    ks6[4, 3, 1] + ks6[4, 4] + ks6[5, 2, 1] + 2*ks6[5, 3]
+      + ks6[6, 1, 1] + ks6[6, 2]
+
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 3042::
+
+    sage: Sym = SymmetricFunctions(QQ)
+    sage: ks = Sym.kschur(3,t=1)
+    sage: ks.realization_of()
+    3-bounded Symmetric Functions over Rational Field with t=1
+    sage: s = Sym.schur()
+    sage: s.realization_of()
+    Symmetric Functions over Rational Field
+
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 3185::
 
     sage: mu = Partition([3,2,1])
     sage: c = mu.to_core(3)
@@ -340,58 +376,56 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 2153::
     [[2, 0, 3, 2, 1, 0], [0, 2, 3, 2, 1, 0], [0, 3, 2, 3, 1, 0],
      [0, 3, 2, 1, 3, 0]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2202::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 3197::
 
     sage: Sym = SymmetricFunctions(QQ)
-    sage: ks = Sym.kschur(3,t=1)
+    sage: Q3 = Sym.kBoundedQuotient(3,t=1)
+    sage: F3 = Q3.affineSchur()
+    sage: m = Q3.kmonomial()
+    sage: m(F3([3,2,1]))
+    4*m3[1, 1, 1, 1, 1, 1] + 3*m3[2, 1, 1, 1, 1] + 2*m3[2, 2, 1, 1]
+        + m3[2, 2, 2] + 2*m3[3, 1, 1, 1] + m3[3, 2, 1]
+
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 3244::
+
+    sage: Sym = SymmetricFunctions(QQ)
+    sage: Q3 = Sym.kBoundedQuotient(3,t=1)
+    sage: F3 = Q3.affineSchur()
     sage: h = Sym.homogeneous()
+    sage: f = F3[3,2,1]*h[1]; f
+    F3[3, 1, 1, 1, 1] + 3*F3[3, 2, 1, 1] + F3[3, 2, 2] + 2*F3[3, 3, 1]
+
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 3255::
+
     sage: c = Partition([3,2,1]).to_core(3)
-    sage: f = c.to_grassmannian().stanley_symmetric_function()*h([1]); f
-    28*m[1, 1, 1, 1, 1, 1, 1] + 19*m[2, 1, 1, 1, 1, 1] + 12*m[2, 2, 1, 1, 1]
-    + 7*m[2, 2, 2, 1] + 11*m[3, 1, 1, 1, 1] + 6*m[3, 2, 1, 1] + 3*m[3, 2, 2]
-    + 2*m[3, 3, 1] + 2*m[4, 1, 1, 1] + m[4, 2, 1]
-    sage: for la in Partitions(7, max_part=3):
-    ...    print la, f.scalar( ks(la) )
-    [3, 3, 1] 2
-    [3, 2, 2] 1
-    [3, 2, 1, 1] 3
-    [3, 1, 1, 1, 1] 1
-    [2, 2, 2, 1] 0
-    [2, 2, 1, 1, 1] 0
-    [2, 1, 1, 1, 1, 1] 0
-    [1, 1, 1, 1, 1, 1, 1] 0
-
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2225::
-
-    sage: S = [la for la in Partitions(7, max_part=3) if f.scalar(ks(la))>0]
-    sage: for p in S:
+    sage: for p in f.support():
     ...     print p, SkewPartition([p.to_core(3).to_partition(),c.to_partition()])
     ...
-    [3, 3, 1] [[7, 4, 1], [5, 2, 1]]
-    [3, 2, 2] [[5, 2, 2], [5, 2, 1]]
-    [3, 2, 1, 1] [[6, 3, 1, 1], [5, 2, 1]]
     [3, 1, 1, 1, 1] [[5, 2, 1, 1, 1], [5, 2, 1]]
+    [3, 2, 1, 1] [[6, 3, 1, 1], [5, 2, 1]]
+    [3, 2, 2] [[5, 2, 2], [5, 2, 1]]
+    [3, 3, 1] [[7, 4, 1], [5, 2, 1]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2533::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 3727::
 
   sage: W = WeylGroup(['A',3,1])
   sage: [w.reduced_word() for w in W.pieri_factors()]
   [[], [0], [1], [2], [3], [1, 0], [2, 0], [0, 3], [2, 1], [3, 1], [3, 2],
    [2, 1, 0], [1, 0, 3], [0, 3, 2], [3, 2, 1]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2541::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 3735::
 
   sage: A = NilCoxeterAlgebra(WeylGroup(['A',3,1]), prefix = 'A')
   sage: A.homogeneous_noncommutative_variables([2])
   A1*A0 + A2*A0 + A0*A3 + A3*A2 + A3*A1 + A2*A1
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2548::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 3742::
 
   sage: A.k_schur_noncommutative_variables([2,2])
   A0*A3*A1*A0 + A3*A1*A2*A0 + A1*A2*A0*A1 + A3*A2*A0*A3 + A2*A0*A3*A1
   + A2*A3*A1*A2
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2555::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 3749::
 
   sage: Sym = SymmetricFunctions(ZZ)
   sage: ks = Sym.kschur(5,t=1)
@@ -399,54 +433,13 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 2555::
   ks5[2, 2, 1, 1] + ks5[2, 2, 2] + ks5[3, 1, 1, 1] + 2*ks5[3, 2, 1]
   + ks5[3, 3] + ks5[4, 2]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2683::
-
-    sage: la = Partition([2,2])
-    sage: la.k_conjugate(2).conjugate()
-    [4]
-    sage: la = Partition([2,1,1])
-    sage: la.k_conjugate(2).conjugate()
-    [3, 1]
-    sage: la = Partition([1,1,1,1])
-    sage: la.k_conjugate(2).conjugate()
-    [2, 2]
-
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2695::
-
-    sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
-    sage: ks = Sym.kschur(2)
-    sage: ks[2,2].omega_t_inverse()
-    1/t^2*ks2[1, 1, 1, 1]
-    sage: ks[2,1,1].omega_t_inverse()
-    1/t*ks2[2, 1, 1]
-    sage: ks[1,1,1,1].omega_t_inverse()
-    1/t^2*ks2[2, 2]
-
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2706::
-
-    sage: Sym = SymmetricFunctions(FractionField(QQ['q,t']))
-    sage: H = Sym.macdonald().H()
-    sage: ks = Sym.kschur(2)
-    sage: ks(H[2,2])
-    q^2*ks2[1, 1, 1, 1] + (q*t+q)*ks2[2, 1, 1] + ks2[2, 2]
-    sage: ks(H[2,1,1])
-    q*ks2[1, 1, 1, 1] + (q*t^2+1)*ks2[2, 1, 1] + t*ks2[2, 2]
-    sage: ks(H[1,1,1,1])
-    ks2[1, 1, 1, 1] + (t^3+t^2)*ks2[2, 1, 1] + t^4*ks2[2, 2]
-
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 2858::
-
-    sage: t = Tableau([[1,1,1,2,3,7],[2,2,3,5],[3,4],[4,5],[6]])
-    sage: t.charge()
-    9
-
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 3064::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 4034::
 
     sage: la = Partition([3,2,1,1])
     sage: la.k_atom(4)
     [[[1, 1, 1], [2, 2], [3], [4]], [[1, 1, 1, 4], [2, 2], [3]]]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 3163::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 4133::
 
     sage: s = SymmetricFunctions(QQ['t']).schur()
     sage: G1 = s[1]
@@ -457,7 +450,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 3163::
      + (2*t^2+t)*s[4, 2, 1] + t^2*s[4, 3] + (t^3+t^2)*s[5, 1, 1]
      + 2*t^3*s[5, 2] + t^4*s[6, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 3529::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 4746::
 
     sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
     sage: ks4 = Sym.kschur(4)
@@ -472,7 +465,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 3529::
     sage: ks4([3, 1, 1]).hl_creation_operator([4])
     ks4[4, 3, 1, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 3596::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 4813::
 
     sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
     sage: ks3 = Sym.kschur(3)
@@ -494,12 +487,12 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 3596::
     sage: ks3(s(ks3([3,2])).omega().map_coefficients(invert))
     1/t^2*ks3[1, 1, 1, 1, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 3618::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 4835::
 
     sage: ks3[3,2].omega_t_inverse()
     1/t^2*ks3[1, 1, 1, 1, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 3786::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 5010::
 
     sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
     sage: ks3 = Sym.kschur(3)
@@ -508,7 +501,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 3786::
     + ks3[1, 1] # ks3[2] + ks3[2] # ks3[1, 1] + (t+1)*ks3[2] # ks3[2]
     + ks3[2, 1] # ks3[1] + (t+1)*ks3[3] # ks3[1]  + ks3[3, 1] # ks3[]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 3820::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 5044::
 
     sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
     sage: ks2 = Sym.kschur(2)
@@ -520,7 +513,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 3820::
     ks5[2, 2, 1] + ks5[3, 1, 1] + (t+1)*ks5[3, 2] + (t+1)*ks5[4, 1]
       + t*ks5[5]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 3875::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 5102::
 
     sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
     sage: ks3 = Sym.kschur(3)
@@ -543,7 +536,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 3875::
      + t^2*ks5[5, 3, 3, 1, 1, 1, 1] + t^3*ks5[5, 3, 3, 2, 1, 1]
      + t^4*ks5[5, 4, 3, 1, 1, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 3942::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 5174::
 
     sage: Sym = SymmetricFunctions(FractionField(QQ['q,t']))
     sage: H = Sym.macdonald().H()
@@ -559,74 +552,52 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 3942::
      + (q^2*t^2+q^2*t+q*t+q)*ks3[2, 2, 1]
      + (q^2*t^2+q*t^2+1)*ks3[3, 1, 1] + t*ks3[3, 2]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 4047::
-
-    sage: la = Partition([2,1])
-    sage: w = la.to_core(3).to_grassmannian()
-    sage: f = w.stanley_symmetric_function(); f
-    2*m[1, 1, 1] + m[2, 1]
-
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 4055::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 5279::
 
     sage: Sym = SymmetricFunctions(QQ)
+    sage: Q3 = Sym.kBoundedQuotient(3,t=1)
+    sage: F = Q3.affineSchur()
     sage: p = Sym.power()
-    sage: ks3 = Sym.kschur(3,1)
-    sage: for mu in Partitions(5, max_part=3):
-    ...    print mu, (f*p[2]).scalar( ks3(mu) )
-    [3, 2] 1
-    [3, 1, 1] 1
-    [2, 2, 1] 0
-    [2, 1, 1, 1] -1
-    [1, 1, 1, 1, 1] -1
+    sage: F[2,1]*p[2]
+    -F3[1, 1, 1, 1, 1] - F3[2, 1, 1, 1] + F3[3, 1, 1] + F3[3, 2]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 4153::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 5391::
 
     sage: R = QQ[I]; z4 = R.zeta(4)
     sage: Sym = SymmetricFunctions(R)
     sage: ks3z = Sym.kschur(3,t=z4)
     sage: ks3 = Sym.kschur(3,t=1)
     sage: p = Sym.p()
-    sage: p(ks3z[2, 2, 2, 2, 2, 2, 2, 2])
+    sage: p(ks3z[2, 2, 2, 2, 2, 2, 2, 2])     # long time (17s on sage.math, 2013)
     1/12*p[4, 4, 4, 4] + 1/4*p[8, 8] + (-1/3)*p[12, 4]
     sage: p(ks3[2,2])
     1/12*p[1, 1, 1, 1] + 1/4*p[2, 2] + (-1/3)*p[3, 1]
     sage: p(ks3[2,2]).plethysm(p[4])
     1/12*p[4, 4, 4, 4] + 1/4*p[8, 8] + (-1/3)*p[12, 4]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 4167::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 5405::
 
-    sage: ks3z[3, 3, 3, 3]*ks3z[2, 1]
+    sage: ks3z[3, 3, 3, 3]*ks3z[2, 1]   # long time (10s on sage.math, 2013)
     ks3[3, 3, 3, 3, 2, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 4328::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 5565::
 
     sage: Sym = SymmetricFunctions(QQ['t'].fraction_field())
-    sage: HLQp = Sym.hall_littlewood().Qp()
-    sage: HLP = Sym.hall_littlewood().P()
-    sage: def dual_k_schur(k, la):
-    ...     ks = Sym.kschur(k)
-    ...     return sum( ks(HLQp(mu)).coefficient(la)*HLP(mu)
-    ...         for mu in Partitions(add(la), max_part=k) )
-    sage: ks3 = Sym.kschur(3)
-    sage: f = dual_k_schur(3,[2,1,1])*dual_k_schur(3,[3,2,1])
-    sage: for mu in Partitions(10,max_part=3):
-    ...     print mu, f.scalar(ks3(mu))
-    [3, 3, 3, 1] t^5 + 3*t^4 + 3*t^3 + 4*t^2 + 2*t + 1
-    [3, 3, 2, 2] t^4 + t^3 + 3*t^2 + 2*t + 1
-    [3, 3, 2, 1, 1] 2*t^5 + 3*t^4 + 5*t^3 + 6*t^2 + 4*t + 2
-    [3, 3, 1, 1, 1, 1] t^5 + t^4 + 4*t^3 + 4*t^2 + 3*t + 1
-    [3, 2, 2, 2, 1] t^4 + 3*t^3 + 4*t^2 + 3*t + 1
-    [3, 2, 2, 1, 1, 1] 2*t^2 + t + 1
-    [3, 2, 1, 1, 1, 1, 1] 2*t^5 + 3*t^4 + 4*t^3 + 3*t^2 + t
-    [3, 1, 1, 1, 1, 1, 1, 1] t^5 + 2*t^4 + t^3
-    [2, 2, 2, 2, 2] t^5 + 2*t^4 + 2*t^3 + t^2
-    [2, 2, 2, 2, 1, 1] t^3 + t^2
-    [2, 2, 2, 1, 1, 1, 1] t^4 + t^3 + t^2
-    [2, 2, 1, 1, 1, 1, 1, 1] 0
-    [2, 1, 1, 1, 1, 1, 1, 1, 1] t^7 + t^6
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1] 0
+    sage: Q3 = Sym.kBoundedQuotient(3)
+    sage: dks = Q3.dual_k_Schur()
+    sage: dks[2,1,1]*dks[3,2,1]          # long time (25.7s, 2013)
+    (t^7+t^6)*dks3[2, 1, 1, 1, 1, 1, 1, 1, 1] + (t^4+t^3+t^2)*dks3[2, 2, 2,
+    1, 1, 1, 1] + (t^3+t^2)*dks3[2, 2, 2, 2, 1, 1] +
+    (t^5+2*t^4+2*t^3+t^2)*dks3[2, 2, 2, 2, 2] + (t^5+2*t^4+t^3)*dks3[3, 1,
+    1, 1, 1, 1, 1, 1] + (2*t^5+3*t^4+4*t^3+3*t^2+t)*dks3[3, 2, 1, 1, 1, 1,
+    1] + (2*t^2+t+1)*dks3[3, 2, 2, 1, 1, 1] +
+    (t^4+3*t^3+4*t^2+3*t+1)*dks3[3, 2, 2, 2, 1] +
+    (t^5+t^4+4*t^3+4*t^2+3*t+1)*dks3[3, 3, 1, 1, 1, 1] +
+    (2*t^5+3*t^4+5*t^3+6*t^2+4*t+2)*dks3[3, 3, 2, 1, 1] +
+    (t^4+t^3+3*t^2+2*t+1)*dks3[3, 3, 2, 2] +
+    (t^5+3*t^4+3*t^3+4*t^2+2*t+1)*dks3[3, 3, 3, 1]
 
-Sage example in ./kschurnotes/notes-mike-anne.tex, line 4433::
+Sage example in ./kschurnotes/notes-mike-anne.tex, line 5692::
 
     sage: ks2 = SymmetricFunctions(QQ['t']).kschur(2)
     sage: HLQp = SymmetricFunctions(QQ['t']).hall_littlewood().Qp()
@@ -634,3 +605,4 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 4433::
     ks2[1, 1, 1] + (-t+1)*ks2[2, 1]
 
 """
+

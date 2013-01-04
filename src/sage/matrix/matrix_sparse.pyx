@@ -444,6 +444,32 @@ cdef class Matrix_sparse(matrix.Matrix):
         self.cache('charpoly', f)
         return f
 
+    def determinant(self, **kwds):
+        """
+        Return the determinant of this matrix.
+
+        .. NOTE::
+
+            the generic sparse determinant implementation in Sage is
+            to just compute the determinant of the corresponding dense
+            matrix, so this could use a lot of memory. In particular,
+            for this matrix, the determinant will be computed using a
+            dense algorithm.
+
+        EXAMPLES::
+
+            sage: A = matrix(ZZ, 4, range(16), sparse=True)
+            sage: B = A + identity_matrix(ZZ, 4, sparse=True)
+            sage: B.det()
+            -49
+        """
+        d = self.fetch('det')
+        if d is not None:
+            return d
+        d = self.dense_matrix().determinant(**kwds)
+        self.cache('det', d)
+        return d
+
     def _elementwise_product(self, right):
         r"""
         Returns the elementwise product of two sparse

@@ -999,7 +999,14 @@ fi
 if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
     shift
     sage_setup
-    gdb -x "$SAGE_ROOT/local/bin/sage-gdb-commands" -args python "$SAGE_ROOT/local/bin/sage-ipython" "$@" -i
+    if [ "$SAGE_DEBUG" = "no" ]; then
+        gdb -x "$SAGE_ROOT/local/bin/sage-gdb-commands" \
+            -args python "$SAGE_ROOT/local/bin/sage-ipython" "$@" -i
+    else
+        cygdb "$SAGE_ROOT/devel/sage" "$SAGE_ROOT/devel/sage/sage" \
+            -x "$SAGE_ROOT/local/bin/sage-gdb-commands" \
+            -args python "$SAGE_ROOT/local/bin/sage-ipython" "$@" -i
+    fi
     exit $?
 fi
 

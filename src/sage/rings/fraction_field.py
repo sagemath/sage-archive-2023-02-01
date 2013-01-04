@@ -259,6 +259,23 @@ class FractionField_generic(field.Field):
             sage: F = FractionField(S)
             sage: F(1/a)
             (a^4 - 3*a^3 + 2424*a^2 + 2)/232
+
+        Some corner cases have been known to fail in the past (:trac:`5917`)::
+
+            sage: F1 = FractionField( QQ['a'] )
+            sage: R12 = F1['x','y']
+            sage: R12('a')
+            a
+            sage: F1(R12(F1('a')))
+            a
+
+            sage: F2 = FractionField( QQ['a','b'] )
+            sage: R22 = F2['x','y']
+            sage: R22('a')
+            a
+            sage: F2(R22(F2('a')))
+            a
+
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ

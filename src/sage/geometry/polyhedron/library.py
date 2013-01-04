@@ -1,5 +1,12 @@
-"""
+r"""
 Library of commonly used, famous, or interesting polytopes
+
+REFERENCES:
+
+..  [Fetter2012]
+    Hans L. Fetter,
+    "A Polyhedron Full of Surprises",
+    Mathematics Magazine 85 (2012), no. 5, 334-342.
 """
 
 ########################################################################
@@ -380,6 +387,36 @@ class Polytopes():
             60
         """
         return self.buckyball().polar()
+
+    def Kirkman_icosahedron(self):
+        """
+        A non-uniform icosahedron with interesting properties.
+
+        See [Fetter2012]_ for details.
+
+        OUTPUT:
+
+        The Kirkman icosahedron, a 3-dimensional polyhedron
+        with 20 vertices, 20 faces, and 38 edges.
+
+        EXAMPLES::
+
+            sage: KI = polytopes.Kirkman_icosahedron()
+            sage: KI.f_vector()
+            (1, 20, 38, 20, 1)
+            sage: vertices = KI.vertices()
+            sage: edges = [[vector(edge[0]),vector(edge[1])] for edge in KI.bounded_edges()]
+            sage: edge_lengths = [norm(edge[0]-edge[1]) for edge in edges]
+            sage: union(edge_lengths)
+            [7, 8, 9, 11, 12, 14, 16]
+        """
+        vertices = [[-12, -4, 0], [-12, 4, 0], [-9, -6, -6],
+                    [-9, -6, 6], [-9, 6, -6], [-9, 6, 6], [-6, 0, -12],
+                    [-6, 0, 12], [0, -12, -8], [0, -12, 8], [0, 12, -8],
+                    [0, 12, 8], [6, 0, -12], [6, 0, 12], [9, -6, -6],
+                    [9, -6, 6], [9, 6, -6], [9, 6, 6], [12, -4, 0],
+                    [12, 4, 0]]
+        return Polyhedron(vertices=vertices)
 
 
     def twenty_four_cell(self):

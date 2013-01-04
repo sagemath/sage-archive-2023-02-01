@@ -4987,12 +4987,26 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
              b211*b212 + b211 + b212 + 1, c111 + 1, c112 + 1]
 
 
-        The following example shows whether boolean constants are handled correctly.
+        The following example shows whether boolean constants are handled correctly::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: I = Ideal([x*z + y*z + z, x*y + x*z + x + y*z + y + z])
             sage: I.groebner_basis()
             [x, y, z]
+
+        Check that this no longer crash (:trac:`12792`)::
+
+            sage: names = [ "s{0}s{1}".format(i,j) for i in range(4) for j in range(8)]
+            sage: R = BooleanPolynomialRing( 32, names)
+            sage: R.inject_variables()
+            Defining s0s0, ...
+            sage: problem = [s1s0*s1s1, s0s0*s0s1 + s0s0 + s0s1 + s2s0 + s3s0*s3s1 + s3s0 + s3s1,
+            ...              s1s1 + s2s0 + s3s0 + s3s1 + 1, s0s0*s0s1 + s1s1 + s3s0*s3s1 + s3s0,
+            ...              s0s1 + s1s0 + s1s1 + s3s0, s0s0*s0s1 + s0s0 + s0s1 + s1s1 + s2s0 + s3s1,
+            ...              s0s1 + s1s0, s0s0*s0s1 + s0s0 + s0s1 + s1s0 + s2s0 + s3s1,
+            ...              s0s0 + s2s0 + s3s0*s3s1 + s3s0 + 1, s0s0 + s1s1]
+            sage: ideal(problem).groebner_basis()
+            [1]
 
         """
         try:

@@ -1,9 +1,0 @@
-12a13
-> #include <cstdio>
-254a256,261
-> /*
->   This function is not present in vanilla NTL 5.4.2.
->   See tools.c for documentation.
->  */
-> void SetErrorCallbackFunction(void (*func)(const char *s, void *context), void *context);
-> 

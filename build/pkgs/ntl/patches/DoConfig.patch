@@ -1,11 +1,36 @@
-93,96c93,97
-<    if ($arg =~ '-h|help|-help|--help') {
-<       system("more ../doc/config.txt");
-<       exit;
-<    }
----
-> # Disable the help dialog since building NTL with gmp in a directory containing "-h" will trigger it
-> #   if ($arg =~ '-h|help|-help|--help') {
-> #      system("more ../doc/config.txt");
-> #      exit;
-> #   }
+--- src.orig/src/DoConfig	2012-08-07 12:15:52.820361339 +0200
++++ src/src/DoConfig	2012-08-07 12:17:12.828358360 +0200
+@@ -21,11 +21,12 @@
+ 'RANLIB'      => 'ranlib',
+ 'LIBTOOL'     => 'libtool',
+ 
+-'LDFLAGS'     => '',
+-'LDFLAGS_CXX' => '$(LDFLAGS)',
+-'LDLIBS'      => '-lm',
+-'LDLIBS_CXX'  => '$(LDLIBS)',
+-'CPPFLAGS'    => '',
++'LDFLAGS'            => '',
++'LDFLAGS_CXX'        => '$(LDFLAGS)',
++'LDLIBS'             => '-lm -lstdc++',
++'LDLIBS_CXX'         => '$(LDLIBS)',
++'CPPFLAGS'           => '',
++'LIBTOOL_LINK_FLAGS' => '',
+ 
+ 'DEF_PREFIX'  => '/usr/local',
+ 
+@@ -90,10 +91,11 @@
+ 
+ foreach $arg (@ARGV) {
+ 
+-   if ($arg =~ '-h|help|-help|--help') {
+-      system("more ../doc/config.txt");
+-      exit;
+-   }
++# Disable the help dialog since building NTL with gmp in a directory containing "-h" will trigger it
++#   if ($arg =~ '-h|help|-help|--help') {
++#      system("more ../doc/config.txt");
++#      exit;
++#   }
+ 
+    if (($name, $val) = ($arg =~ /(.*?)=(.*)/)) {
+ 

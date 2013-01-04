@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-################################################################
+###############################################################################
 #
 #  NTL sage install script
 #
@@ -9,150 +9,116 @@
 #
 #  AUTHORS: William Stein (original version)
 #           David Kirkby (2005-12-13); <david.kirkby@onetel.net>
+#           Jean-Pierre Flori (2012-08-07) <jean-pierre.flori@ssi.gouv.fr>
 #
-################################################################
+###############################################################################
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
-
-
-if [ $UNAME = "Darwin" ]; then
-   echo "Setting SHAREDFLAGS to '-fno-common'"
-   export SHAREDFLAGS="-fno-common"
+    echo >&2 "SAGE_LOCAL undefined ... exiting";
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 CUR=`pwd`
 
-cd src/
-
-do_make()
+ntl_libtool()
 {
-    $MAKE $1
+    echo "Generating libtool."
+
+    cd "$CUR/libtool"
+
+    ./configure
+
     if [ $? -ne 0 ]; then
-        echo "Failed building $1 of NTL"
+        echo >&2 "Error generating libtool."
         exit 1
     fi
 }
 
-do_tune()
+ntl_patch()
 {
-    do_make setup1
-    do_make setup2
-    do_make setup3
-    do_make setup4
+    echo "Applying patches to NTL."
+
+    cd "$CUR/src"
+
+    # Apply all patches
+    for patch in ../patches/*.patch; do
+        patch -p1 < "$patch"
+        if [ $? -ne 0 ]; then
+            echo >&2 "Error applying '$patch'."
+            exit 1
+        fi
+    done
 }
 
-build()
+ntl_configure()
 {
-     if [ "$SAGE_LOCAL" = "" ]; then
-         echo "SAGE_LOCAL environment variable must be set."
-         exit 1
-     fi
+    echo "Configuring NTL."
 
-     cd src
-     cp ../../patches/tools.h ../include/NTL/tools.h
-     cp ../../patches/tools.c ../src/tools.c
-     cp ../../patches/new.h ../include/NTL/new.h
-     cp ../../patches/mfile ../src/mfile
-     cp ../../patches/DoConfig DoConfig
+    cd "$CUR/src/src"
 
-     # Run the configure script, setting CC, CXX, CFLAGS etc as need. This
-     # ensures that they get written by DoConfig into 'makefile'.
-     CFLAGS="-O2 -g $CFLAGS"
-     CXXFLAGS="-O2 -g $CXXFLAGS"
+    # Run the configure script, setting CC, CXX, CFLAGS etc as needed.
+    # This ensures that they get written by DoConfig into 'makefile'.
+    CFLAGS="-O2 -g $CFLAGS"
+    CXXFLAGS="-O2 -g $CXXFLAGS"
 
-     if [ "x$SAGE64" = xyes ]; then
-         CFLAGS=" -m64 $CFLAGS"
-         CXXFLAGS=" -m64 $CXXFLAGS"
-     fi
-
-     echo "starting configuration"
-
-     ./configure PREFIX="$SAGE_LOCAL" CC="$CC" CFLAGS="$CFLAGS $SHAREDFLAGS" CXX="$CXX" \
-                 CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS" \
-                 GMP_PREFIX="$SAGE_LOCAL" NTL_GMP_LIP=on NTL_STD_CXX=on
-
-    if [ $? -ne 0 ]; then
-        echo "Unable to configure NTL build."
-        exit 1
+    if [ "$SAGE64" = "yes" ]; then
+        CFLAGS=" -m64 $CFLAGS"
+        CXXFLAGS=" -m64 $CXXFLAGS"
     fi
-
-
-    echo "Building and install NTL"
-
-    echo "GMP include"
-    echo $GMP_INCDIR
-    echo $GMP_PREFIX
-    echo $SAGE_LOCAL
-
-    # Do performance tuning steps.
-    do_tune
 
     if [ $UNAME = "Darwin" ]; then
-        # OS X
-	if [ "$SAGE64" = "yes" ]; then
-            $MAKE libntl.dylib64
-        else
-            $MAKE libntl.dylib
-        fi
-
-        if [ ! -f libntl.dylib ]; then
-            echo "Failed to build NTL dylib."
-            exit 1
-        fi
-        cp libntl.dylib "$SAGE_LOCAL/lib/"
-    elif [ $UNAME = "CYGWIN" ]; then
-        # Cygwin
-        if [ "$CYGPKG" = "yes" ]; then
-            if [ -f /lib/libgmp.dll.a ]; then
-                ln -s /lib/libgmp.dll.a libgmp.a
-            else
-                # Added by William Stein on 2006-02-06 so that
-                # can build even if gmp is not built locally
-                # i.e., even if using a system-wide gmp.
-                # (though it has to be in /usr/lib, which is
-                # where it is for cygwin).
-                ln  -s /usr/lib/*gmp* .
-                ln  -s libgmp.dll.a libgmp.a
-            fi
-        else
-   	    ln -s "$SAGE_LOCAL/lib/libgmp.a" .
-        fi
-	$MAKE libntl.dll
-        if [ ! -f libntl.dll ]; then
-            echo "Error creating ntl shared library."
-            exit 1
-        fi
-	cp libntl.dll "$SAGE_LOCAL/lib/libntl.dll.a"
-	cp libntl.dll "$SAGE_LOCAL/bin/libntl.dll.a"
-        if [ ! -f "$SAGE_LOCAL/bin/libntl.dll.a" ]; then
-            exit 1   # CRUCIAL that we have the dynamic link library
-        fi
-    else
-        # Linux or other .so system.
-        $MAKE libntl.so
-        if [ ! -f libntl.so ]; then
-            echo "Error creating ntl shared library."
-            exit 1
-        fi
-        cp libntl-5.5.2.so "$SAGE_LOCAL/lib/"
-        rm "$SAGE_LOCAL/lib/libntl.so"
-	CUR2=`pwd`
-        cd $SAGE_LOCAL/lib; ln -s libntl-5.5.2.so libntl.so
-        cd $CUR2
+        echo "Setting SHAREDFLAGS to '-fno-common'"
+        SHAREDFLAGS="-fno-common"
     fi
 
-    do_make ntl.a
-    do_make install
+    if [ $UNAME = "CYGWIN" ]; then
+        LIBTOOL_LINK_FLAGS="-no-undefined"
+    fi
+
+    ./configure DEF_PREFIX="$SAGE_LOCAL" SHARED=on \
+        CC="$CC" CFLAGS="$CFLAGS $SHAREDFLAGS" \
+        CXX="$CXX" CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" \
+        LDFLAGS="$LDFLAGS" LIBTOOL_LINK_FLAGS="$LIBTOOL_LINK_FLAGS" \
+        NTL_GMP_LIP=on NTL_STD_CXX=on \
+        LIBTOOL=../../libtool/libtool
+
+    if [ $? -ne 0 ]; then
+        echo >&2 "Unable to configure NTL."
+        exit 1
+    fi
 }
 
-build
+ntl_build()
+{
+    echo "Tuning and building NTL."
 
-if [ $? -eq 0 -a -d "$SAGE_LOCAL/include/NTL" -a -f "$SAGE_LOCAL/lib/libntl.a" ];  then
-    exit 0
-else
-    exit 1
-fi
+    cd "$CUR/src/src"
+
+    $MAKE
+
+    if [ $? -ne 0 ]; then
+        echo >&2 "Unable to tune and build NTL."
+        exit 1
+    fi
+}
+
+ntl_install()
+{
+    echo "Installing NTL."
+
+    cd "$CUR/src/src"
+
+    $MAKE install
+
+    if [ $? -ne 0 ]; then
+        echo >&2 "Unable to tune and build NTL."
+        exit 1
+    fi
+}
+
+ntl_libtool
+ntl_patch
+ntl_configure
+ntl_build
+ntl_install

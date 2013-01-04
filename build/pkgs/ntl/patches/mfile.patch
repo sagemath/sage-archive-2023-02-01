@@ -1,40 +1,21 @@
-317,318c317,318
-< COMPILE = $(CC) $(NTL_INCLUDE) $(CPPFLAGS) $(CFLAGS) -c
-< COMPILE_CXX = $(CXX) $(NTL_INCLUDE) $(CPPFLAGS) $(CXXFLAGS) -c
----
-> COMPILE = $(CC) $(NTL_INCLUDE) $(CPPFLAGS) $(CFLAGS) $(FPICFLAG) -c
-> COMPILE_CXX = $(CXX) $(NTL_INCLUDE) $(CPPFLAGS) $(CXXFLAGS) $(FPICFLAG) -c
-463c463
-< clobber:	
----
-> clobber: clean
-466,468c466,467
-< 	sh RemoveProg $(PROGS) MakeDesc TestGetTime gen_lip_gmp_aux gen_gmp_aux
-< 	rm -f *.o
-< 	rm -rf small
----
-> 	sh RemoveProg $(PROGS)                                                                                              
-> 	rm libntl*.so*                                                                                                      
-551a551,572
-> shobj: $(OBJ)
-> 
-> libntl.dylib:
-> 	- rm -f $(OBJ) # clean, preserving tuning parameters
-> 	make shobj
-> 	$(LINK_CXX) -fPIC -dynamiclib -undefined dynamic_lookup -o libntl.dylib $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
-> 
-> libntl.dylib64:
-> 	- rm -f $(OBJ) # clean, preserving tuning parameters
-> 	make shobj
-> 	$(LINK_CXX) -fPIC -m64 -dynamiclib -undefined dynamic_lookup -o libntl.dylib $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
-> 
-> libntl.dll:
-> 	- rm -f $(OBJ) # clean, preserving tuning parameters
-> 	make shobj
-> 	$(LINK_CXX) -fPIC -shared -o libntl.dll $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
-> 
-> libntl.so: DIRNAME
-> 	- rm -f $(OBJ) # clean, preserving tuning parameters
-> 	make FPICFLAG=-fPIC shobj
-> 	$(LINK_CXX) -fPIC -shared -o lib`cat DIRNAME`.so $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
-> 	ln -s lib`cat DIRNAME`.so libntl.so
+--- src.orig/src/mfile	2012-08-06 11:54:53.485534200 +0200
++++ src/src/mfile	2012-08-06 11:59:46.819241900 +0200
+@@ -68,6 +68,9 @@
+ LIBTOOL=@{LIBTOOL}
+ # libtool command
+ 
++LIBTOOL_LINK_FLAGS=@{LIBTOOL_LINK_FLAGS}
++# flags to pass to libtool when linking
++
+ DEF_PREFIX=@{DEF_PREFIX}
+ 
+ PREFIX=@{PREFIX}
+@@ -370,7 +373,7 @@
+ ntl.a:	$(OBJ) 
+ @{LSTAT}	$(AR) $(ARFLAGS) ntl.a $(OBJ) #LSTAT
+ @{LSTAT}	- $(RANLIB) ntl.a #LSTAT
+-@{LSHAR}	$(LIBTOOL) --mode=link $(LINK_CXX) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS_CXX) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
++@{LSHAR}	$(LIBTOOL) --mode=link $(LINK_CXX) $(LIBTOOL_LINK_FLAGS) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS_CXX) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
+ 
+ @{LSTAT}LCOMP= #LSTAT
+ @{LSHAR}LCOMP=$(LIBTOOL) --mode=compile #LSHAR

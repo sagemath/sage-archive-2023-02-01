@@ -136,7 +136,6 @@ prime conductor::
 
 import bz2, os
 
-import sage.databases.db   # very important that this be fully qualified
 from sage.misc.misc import SAGE_SHARE
 
 class SteinWatkinsIsogenyClass:

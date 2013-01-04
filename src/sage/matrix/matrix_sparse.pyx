@@ -984,18 +984,18 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         EXAMPLES::
 
-        sage: v = FreeModule(ZZ, 3)([1, 2, 3])
-        sage: m = matrix(QQ, 3, 4, range(12), sparse=True)
-        sage: v * m
-        (32, 38, 44, 50)
+            sage: v = FreeModule(ZZ, 3)([1, 2, 3])
+            sage: m = matrix(QQ, 3, 4, range(12), sparse=True)
+            sage: v * m
+            (32, 38, 44, 50)
 
         TESTS::
 
-        sage: (v * m).is_sparse()
-        True
-        sage: (v * m).parent() is m.row(0).parent()
-        True
-        """
+            sage: (v * m).is_sparse()
+            True
+            sage: (v * m).parent() is m.row(0).parent()
+            True
+            """
         cdef int i, j
         from sage.modules.free_module import FreeModule
         if self.nrows() != v.degree():
@@ -1017,17 +1017,36 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         EXAMPLES::
 
-        sage: v = FreeModule(ZZ, 3)([1, 2, 3])
-        sage: m = matrix(QQ, 4, 3, range(12), sparse=True)
-        sage: m * v
-        (8, 26, 44, 62)
+            sage: v = FreeModule(ZZ, 3)([1, 2, 3])
+            sage: m = matrix(QQ, 4, 3, range(12), sparse=True)
+            sage: m * v
+            (8, 26, 44, 62)
 
         TESTS::
 
-        sage: (m * v).is_sparse()
-        True
-        sage: (m * v).parent() is m.column(0).parent()
-        True
+            sage: (m * v).is_sparse()
+            True
+            sage: (m * v).parent() is m.column(0).parent()
+            True
+
+        Check that the bug in :trac:`13854` has been fixed::
+
+            sage: A.<x,y> = FreeAlgebra(QQ, 2)
+            sage: P.<x,y> = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
+            sage: M = Matrix([[x]], sparse=True)
+            sage: w = vector([y])
+            doctest:...: UserWarning: You are constructing a free module
+            over a noncommutative ring. Sage does not have a concept
+            of left/right and both sided modules, so be careful.
+            It's also not guaranteed that all multiplications are
+            done from the right side.
+            doctest:...: UserWarning: You are constructing a free module
+            over a noncommutative ring. Sage does not have a concept
+            of left/right and both sided modules, so be careful.
+            It's also not guaranteed that all multiplications are
+            done from the right side.
+            sage: M*w
+            (x*y)
         """
         cdef int i, j
         from sage.modules.free_module import FreeModule
@@ -1035,7 +1054,7 @@ cdef class Matrix_sparse(matrix.Matrix):
             raise ArithmeticError, "number of columns of matrix must equal degree of vector"
         s = FreeModule(v.base_ring(), self.nrows(), sparse=v.is_sparse()).zero_vector()
         for (i, j), a in self._dict().iteritems():
-            s[i] += v[j] * a
+            s[i] += a * v[j]
         return s
 
 ##     def _echelon_in_place_classical(self):

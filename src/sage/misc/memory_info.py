@@ -77,7 +77,65 @@ def MemoryInfo():
     return memory_info_instance
 
 
-class MemoryInfo_proc(SageObject):
+class MemoryInfo_base(SageObject):
+    """
+    Base class for memory info objects.
+    """
+
+    def rlimit_address_space(self):
+        """
+        Return ``RLIMIT_AS``.
+
+        OUTPUT:
+
+        Integer. The limit in bytes or `-1` if no limit is set or cannot
+        be found out.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: mem = MemoryInfo()
+            sage: mem.rlimit_address_space() in ZZ
+            True
+        """
+        import resource
+        try:
+            return resource.getrlimit(resource.RLIMIT_AS)[1]
+        except resource.error:
+            return -1
+
+    def virtual_memory_limit(self):
+        """
+        Return the upper limit for virtual memory usage
+
+        This is the value set by ``ulimit -v`` at the command line or
+        a practical limit if no limit is set.
+
+        OUTPUT:
+
+        Integer. The virtual memory limit in bytes.
+
+        EXAMPLES::
+
+            sage: from sage.misc.memory_info import MemoryInfo
+            sage: mem = MemoryInfo()
+            sage: mem.virtual_memory_limit() > 0
+            True
+        """
+        limit = self.rlimit_address_space()
+        if limit >=0:
+            return limit
+        else:
+            avail = self.total_swap() + self.total_ram()
+            import platform
+            if platform.architecture()[0] == '32bit':
+                # 2GB is likely the single-process address space limit
+                return min(avail, 2 * 1024**3)
+            else:
+                return avail
+
+
+class MemoryInfo_proc(MemoryInfo_base):
     """
     Provide information from ``/proc/`` pseudo-filesystem on most UNIXes
 
@@ -114,9 +172,9 @@ class MemoryInfo_proc(SageObject):
             sage: info   # random output
             {'available_ram': 1749782528,
              'total_swap': 15728635904,
-             'available_swap': 15340572672,
+             'free_swap': 15340572672,
              'total_ram': 16708194304}
-            sage: keys = set(['available_ram', 'total_swap', 'available_swap', 'total_ram'])
+            sage: keys = set(['available_ram', 'total_swap', 'free_swap', 'total_ram'])
             sage: (info is None) or keys.issubset(info.keys())
             True
         """
@@ -132,11 +190,11 @@ class MemoryInfo_proc(SageObject):
             if line[0].startswith('SwapTotal') and line[2] == 'kB':
                 result['total_swap'] = int(line[1]) * kb
             if line[0].startswith('SwapFree') and line[2] == 'kB':
-                result['available_swap'] = int(line[1]) * kb
+                result['free_swap'] = int(line[1]) * kb
             if line[0].startswith('Committed_AS') and line[2] == 'kB':
                 result['Committed_AS'] = int(line[1]) * kb
         meminfo.close()
-        required = set(['available_ram', 'total_swap', 'available_swap', 'total_ram'])
+        required = set(['available_ram', 'total_swap', 'free_swap', 'total_ram'])
         if not required.issubset(result.keys()):
             raise OSError('failed to parse /proc/meminfo correctly')
         return result
@@ -184,7 +242,7 @@ class MemoryInfo_proc(SageObject):
         EXAMPLES::
 
             sage: from sage.misc.memory_info import MemoryInfo
-            sage: MemoryInfo().total_swap() > 0
+            sage: MemoryInfo().total_swap() >= 0
             True
         """
         return self._parse_proc_meminfo()['total_swap']
@@ -195,22 +253,23 @@ class MemoryInfo_proc(SageObject):
 
         OUTPUT:
 
-        Integer. The free swap size in bytes.
+        Integer. The free swap size in bytes, excluding reserved swap
+        space. Can be negative if the system is overcommitting memory.
 
         EXAMPLES::
 
             sage: from sage.misc.memory_info import MemoryInfo
-            sage: MemoryInfo().available_swap() > 0
+            sage: MemoryInfo().available_swap() in ZZ
             True
         """
         info = self._parse_proc_meminfo()
         try:
             return info['total_swap'] - info['Committed_AS']
         except KeyError:
-            return info['available_swap']
+            return info['free_swap']
 
 
-class MemoryInfo_OSX(SageObject):
+class MemoryInfo_OSX(MemoryInfo_base):
     """
     Memory info on OSX
 
@@ -320,7 +379,7 @@ class MemoryInfo_OSX(SageObject):
         EXAMPLES::
 
             sage: from sage.misc.memory_info import MemoryInfo
-            sage: MemoryInfo().total_swap() > 0
+            sage: MemoryInfo().total_swap() >= 0
             True
         """
         return 2*self.total_ram()
@@ -339,13 +398,13 @@ class MemoryInfo_OSX(SageObject):
         EXAMPLES::
 
             sage: from sage.misc.memory_info import MemoryInfo
-            sage: MemoryInfo().available_swap() > 0
+            sage: MemoryInfo().available_swap() in ZZ
             True
         """
         return 2*self.available_ram()
 
 
-class MemoryInfo_guess(SageObject):
+class MemoryInfo_guess(MemoryInfo_base):
     """
     Guess memory as a fallback.
 
@@ -401,7 +460,7 @@ class MemoryInfo_guess(SageObject):
         EXAMPLES::
 
             sage: from sage.misc.memory_info import MemoryInfo
-            sage: MemoryInfo().total_swap() > 0
+            sage: MemoryInfo().total_swap() >= 0
             True
         """
         GB = 1024 * 1024 * 1024
@@ -418,9 +477,7 @@ class MemoryInfo_guess(SageObject):
         EXAMPLES::
 
             sage: from sage.misc.memory_info import MemoryInfo
-            sage: MemoryInfo().available_swap() > 0
+            sage: MemoryInfo().available_swap() in ZZ
             True
         """
         return self.total_swap()
-
-

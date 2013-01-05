@@ -23,6 +23,9 @@ languages, with different characters to be handled properly.
 
 == Changelog ==
 
+=== iconv-1.13.1.p4 (Jean-Pierre Flori, 5 January 2013) ===
+ * #13912: let iconv build on Cygwin without additional prereqs.
+
 === iconv-1.13.1.p3 (David Kirkby, August 10th, 2010) ===
  * Use '$MAKE' instead of 'make' in spkg-install and spkg-check to enable
    parallel builds, and allow the user to specify a different 'make' program.

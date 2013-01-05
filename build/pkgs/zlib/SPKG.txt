@@ -25,6 +25,9 @@ Free, Not to Mention Unencumbered by Patents)
 
  * None
 
+=== zlib-1.2.6.p0 (Jean-Pierre Flori, 5 January 2013) ===
+ * Trac #13914: Install shared objects on Cygwin.
+
 === zlib-1.2.6 (Jeroen Demeyer, Leif Leonhardy, 11 April 2012) ===
  * Trac #12800: Upgrade to zlib-1.2.6
  * Remove patches/Makefile.in.patch which is no longer needed

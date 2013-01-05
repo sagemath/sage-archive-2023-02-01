@@ -27,10 +27,14 @@ if [ "$UNAME" = CYGWIN ]; then
     export INCLUDE_PATH="$SAGE_LOCAL/include"
     export LIBRARY_PATH="$SAGE_LOCAL/lib"
     cp -f win32/Makefile.gcc Makefile
+
     if [ $? -ne 0 ]; then
         echo >&2 "Error copying over zlib's Makefile for Cygwin."
         exit 1
     fi
+
+    # We want to install shared objects
+    sed -i 's/SHARED_MODE=0/SHARED_MODE=1/' Makefile
 else
     if [ "$SAGE64" = yes ]; then
         ./configure --64 --shared --prefix="$SAGE_LOCAL" --includedir="$SAGE_LOCAL/include"

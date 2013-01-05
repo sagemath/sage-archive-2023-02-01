@@ -26,7 +26,7 @@ David Kirkby. david.kirkby@onetel.net
 Main web site: http://savannah.gnu.org/projects/patch/
 Bug database at http://savannah.gnu.org/bugs/?group=patch
 Submit bugs at http://savannah.gnu.org/bugs/?func=additem&group=patch
-Mailing lists bug-patch@gnu.org and
+Mailing lists bug-patch@gnu.org
 
 == Dependencies ==
 
@@ -45,6 +45,9 @@ fixed at some point, a spkg-check file should be added.
 
 == Changelog ==
 
+=== patch-2.5.9.p3 (Jean-Pierre Flori, 5 January 2013) ===
+ * #13844: Install manifest file on Cygwin for Windows 7.
+
 === patch-2.5.9.p2 (Jeroen Demeyer, 16 August 2011) ===
  * #11232: Make all files in src/ owner-writable.
 
@@ -61,4 +64,3 @@ fixed at some point, a spkg-check file should be added.
 
 === patch-2.5.9 (David Kirkby, Jeroen Demeyer, 16th november 2010)  ===
  * Initial version.
-

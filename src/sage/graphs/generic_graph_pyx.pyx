@@ -490,6 +490,14 @@ cdef class SubgraphSearch:
             sage: g = graphs.PetersenGraph()
             sage: g.subgraph_search(graphs.CycleGraph(5))
             Subgraph of (Petersen graph): Graph on 5 vertices
+
+        TESTS::
+
+            sage: from sage.graphs.generic_graph_pyx import SubgraphSearch
+            sage: SubgraphSearch(Graph(5),Graph(1))
+            Traceback (most recent call last):
+            ...
+            ValueError: Searched graph should have at least 2 vertices.
         """
         if H.order() <= 1:
             raise ValueError("Searched graph should have at least 2 vertices.")

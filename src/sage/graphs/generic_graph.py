@@ -10033,6 +10033,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: k3.subgraph_search(p3, induced=True) is None
             True
 
+        TESTS:
+
+        Inside of a small graph (:trac:`13906`)::
+
+            sage: Graph(5).subgraph_search(Graph(1))
+            Graph on 1 vertex
         """
         from sage.graphs.generic_graph_pyx import SubgraphSearch
         from sage.graphs.graph_generators import GraphGenerators
@@ -10124,6 +10130,13 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.subgraph_search_count(graphs.EmptyGraph())
             1
+
+        TESTS:
+
+        Inside of a small graph (:trac:`13906`)::
+
+            sage: Graph(5).subgraph_search_count(Graph(1))
+            5
         """
         from sage.graphs.generic_graph_pyx import SubgraphSearch
 
@@ -10188,6 +10201,13 @@ class GenericGraph(GenericGraph_pyx):
             [2, 3, 4]
             [3, 2, 1]
             [4, 3, 2]
+
+        TESTS:
+
+        Inside of a small graph (:trac:`13906`)::
+
+            sage: list(Graph(5).subgraph_search_iterator(Graph(1)))
+            [Graph on 1 vertex, Graph on 1 vertex, Graph on 1 vertex, Graph on 1 vertex, Graph on 1 vertex]
         """
 
         if G.order() == 0:

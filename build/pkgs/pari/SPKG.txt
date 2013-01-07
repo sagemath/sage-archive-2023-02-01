@@ -69,6 +69,15 @@ of doubt, have a look at the file spkg-src.
 
 == Changelog ==
 
+=== pari-2.5.3.p2 (Jeroen Demeyer, 7 January 2013) ===
+ * Trac #13921: KERNELCFLAGS.patch: when SAGE_DEBUG=yes, compile mp.c
+   with -O1 (and without -funroll-loops) to avoid a segmentation fault
+   on some OS X systems.
+ * Rename PARI_EXTRA_OPTS to PARI_CONFIGURE (consistent with other
+   packages).
+ * Trac #13863: galoisanalysis_p4.patch: fix a segmentation fault
+   under Electric Fence.
+
 === pari-2.5.3.p1 (Jeroen Demeyer, 3 January 2013) ===
  * Trac #13902: add a patch (backported from upstream PARI 2.6.0)
    for integer determinants.

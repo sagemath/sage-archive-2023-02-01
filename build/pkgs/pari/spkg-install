@@ -55,47 +55,45 @@ set_environment()
         CC="$CC $CFLAG64" && export CC
     fi
 
-    # On my systems PARI does *not* build correctly with these set! (and
-    # they are set by sage-env).  It builds, but doesn't run.  Something
-    # about missing _start symbol.
+    # PARI does not build correctly with LD set (which is set by
+    # sage-env).  PARI actually needs LD set to a compiler to do the
+    # linking, not to the linker directly.
     unset LD
-    unset AR
-    unset AS
 
     # Let the user pass extra parameters to PARI's "Configure", e.g.
     # to specify desired graphics support (which is disabled by default):
-    if [ -z "$PARI_EXTRA_OPTS" ]; then
+    if [ -z "$PARI_CONFIGURE" ]; then
         echo "============================================================"
         echo "Configuring PARI/GP without graphics support (for plotting)."
         echo "If you need it, pass the appropriate option(s) to PARI by"
-        echo "setting and exporting \$PARI_EXTRA_OPTS prior to building"
+        echo "setting and exporting \$PARI_CONFIGURE prior to building"
         echo "Sage (or at least before you build/install the PARI spkg),"
         echo "e.g. by typing at the shell prompt:"
-        echo "    export PARI_EXTRA_OPTS=\"--graphic=auto\""
+        echo "    export PARI_CONFIGURE=\"--graphic=auto\""
         echo "or"
-        echo "    export PARI_EXTRA_OPTS=\"--with-fltk\""
+        echo "    export PARI_CONFIGURE=\"--with-fltk\""
         echo "Note that PARI doesn't treat it as an error if the requested"
         echo "graphics library or the corresponding header files are not"
         echo "found; it will then simply disable graphics support."
         echo "Please consult the PARI documentation for further details."
         echo "============================================================"
 
-        PARI_EXTRA_OPTS="--graphic=none"
+        PARI_CONFIGURE="--graphic=none"
     else
         echo "============================================================"
         echo "Configuring PARI/GP with additional user-specified options:"
-        echo "    PARI_EXTRA_OPTS=\"$PARI_EXTRA_OPTS\""
+        echo "    PARI_CONFIGURE=\"$PARI_CONFIGURE\""
 
         # Do NOT add "--graphic=none" if the user provided one of these:
         #     "--with-fltk[=...]", "--with-qt[=...]"
         # Comment by leif: This misbehavoir seems to have been fixed in
         #                  PARI 2.4.3; the following doesn't hurt though:
-        if ! (echo "$PARI_EXTRA_OPTS" | egrep -- "--with-fltk|--with-qt") \
+        if ! (echo "$PARI_CONFIGURE" | egrep -- "--with-fltk|--with-qt") \
               >/dev/null;
         then
             echo "To avoid unexpected behavior, we prepend \"--graphic=none\":"
-            PARI_EXTRA_OPTS="--graphic=none $PARI_EXTRA_OPTS"
-            echo "    \"$PARI_EXTRA_OPTS\""
+            PARI_CONFIGURE="--graphic=none $PARI_CONFIGURE"
+            echo "    \"$PARI_CONFIGURE\""
             echo "(Disabling graphics can be overridden by user settings.)"
         fi
         echo "============================================================"
@@ -114,7 +112,7 @@ set_environment()
         echo 'fails, or PARI/GP does not work properly once built. We recommend to'
         echo 'build this package with SAGE_CHECK="yes".'
         echo
-        PARI_EXTRA_OPTS="$PARI_EXTRA_OPTS --tune"
+        PARI_CONFIGURE="$PARI_CONFIGURE --tune"
     else
         echo
         echo 'To minimize Sage build time and to ensure the best reliability, PARI/GP'
@@ -165,10 +163,10 @@ build()
     # less system-dependent.  Since Sage assumes the existence of bash
     # anyway, it doesn't hurt either. -- jdemeyer
     #
-    # Note that "--graphic=none" is (usually) added to PARI_EXTRA_OPTS:
-    bash ./Configure $PARI_EXTRA_OPTS --prefix="$SAGE_LOCAL" \
+    # Note that "--graphic=none" is (usually) added to PARI_CONFIGURE:
+    bash ./Configure --prefix="$SAGE_LOCAL" \
         --with-readline="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
-        --kernel=gmp
+        --kernel=gmp $PARI_CONFIGURE
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error: Configuring PARI with readline and GMP kernel failed."

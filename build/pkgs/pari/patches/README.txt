@@ -28,6 +28,10 @@ Patches to configuration files:
 * perl_path.patch: jdemeyer: change first line of all perl scripts
   to "#!/usr/bin/env perl" (#10559).
 * cygwin_dll_a.patch: jpflori: copy libpari.dll.a on Cygwin (#13333).
+* KERNELCFLAGS.patch: when SAGE_DEBUG=yes, compile kernel files with
+  -O1 instead of -funroll-loops; -O0 gives a segmentation fault on some
+  OS X systems when doing factor(10356613*10694706299664611221)
+  (#13921).
 
 C files:
 * src/kernel/gmp/mp.c:
@@ -47,3 +51,4 @@ C files:
   repository based on commits
   - 28ea998bc661f5bbde18b6d6b0f50111a10ae16c
   - 249432f7088bfa114ed5cd3a5d64ef51ee968e35
+* galoisanalysis_p4.patch: fix segmentation fault under Electric Fence.

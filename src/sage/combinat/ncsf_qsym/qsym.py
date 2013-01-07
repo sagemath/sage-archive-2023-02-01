@@ -1170,11 +1170,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: QSym = QuasiSymmetricFunctions(QQ)
                 sage: dI = QSym.dI()
-                sage: dI([1,3,2])*dI([1])
+                sage: dI([1,3,2])*dI([1])  # long time (6s on sage.math, 2013)
                 dI[1, 1, 3, 2] + dI[2, 3, 2]
                 sage: dI([1,3])*dI([1,1])
                 dI[1, 1, 1, 3] + dI[1, 1, 4] + dI[1, 2, 3] - dI[1, 3, 2] - dI[1, 4, 1] - dI[1, 5] + dI[2, 3, 1] + dI[2, 4]
-                sage: dI([3,1])*dI([2,1])
+                sage: dI([3,1])*dI([2,1])  # long time (7s on sage.math, 2013)
                 dI[1, 1, 5] - dI[1, 4, 1, 1] - dI[1, 4, 2] - 2*dI[1, 5, 1] - dI[1, 6] - dI[2, 4, 1] - dI[2, 5] - dI[3, 1, 3] + dI[3, 2, 1, 1] + dI[3, 2, 2] + dI[3, 3, 1] + dI[4, 1, 1, 1] + 2*dI[4, 2, 1] + dI[4, 3] + dI[5, 1, 1] + dI[5, 2]
                 sage: F = QSym.F()
                 sage: dI(F[1,3,1])

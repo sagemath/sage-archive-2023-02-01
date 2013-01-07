@@ -1165,9 +1165,9 @@ class DualkSchurFunctions(CombinatorialFreeModule):
             sage: dks4 = DualkSchurFunctions(Sym.kBoundedQuotient(4))
             sage: dks4
             4-Bounded Quotient of Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the dual 4-Schur basis
-            sage: TestSuite(dks4).run()
+            sage: TestSuite(dks4).run()  # long time (7s on sage.math, 2013)
             sage: dks4 = DualkSchurFunctions(Sym.kBoundedQuotient(4,t=1))
-            sage: TestSuite(dks4).run()
+            sage: TestSuite(dks4).run()  # long time (7s on sage.math, 2013)
         """
         CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
             kBoundedRing.indices(),
@@ -1301,7 +1301,7 @@ class AffineSchurFunctions(CombinatorialFreeModule):
             sage: F = AffineSchurFunctions(SymmetricFunctions(QQ['t']).kBoundedQuotient(4,t=1))
             sage: F
             4-Bounded Quotient of Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1 in the 4-bounded affine Schur basis
-            sage: TestSuite(F).run()
+            sage: TestSuite(F).run()  # long time (5s on sage.math, 2013)
         """
         CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
             kBoundedRing.indices(),

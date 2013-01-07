@@ -237,9 +237,9 @@ cdef class FiniteFieldsubspace_iterator(FiniteZZsubmodule_iterator):
         sage: len(list(iter))
         1024
         sage: X = random_matrix(GF(4, 'a'), 7, 100).row_space()
-        sage: s = list(X) # takes 5.78s on a Core2 6400 2.13GHz
-        sage: t = list(FiniteFieldsubspace_iterator(X.basis())) # takes 0.31s
-        sage: sorted(t) == sorted(s)
+        sage: s = list(X)  # long time (5s on sage.math, 2013)
+        sage: t = list(FiniteFieldsubspace_iterator(X.basis()))  # takes 0.31s
+        sage: sorted(t) == sorted(s)  # long time
         True
     """
 

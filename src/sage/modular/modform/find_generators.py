@@ -756,8 +756,8 @@ class ModularFormsRing(SageObject):
         module) and slowly (using modular symbols), and verify that the answers
         are the same. ::
 
-            sage: A=R.cuspidal_submodule_q_expansion_basis(80, prec=30)
-            sage: B=R.modular_forms_of_weight(80).cuspidal_submodule().q_expansion_basis(prec=30) # long time (20s)
+            sage: A = R.cuspidal_submodule_q_expansion_basis(80, prec=30)  # long time (1s on sage.math, 2013)
+            sage: B = R.modular_forms_of_weight(80).cuspidal_submodule().q_expansion_basis(prec=30)  # long time (19s on sage.math, 2013)
             sage: A == B # long time
             True
         """

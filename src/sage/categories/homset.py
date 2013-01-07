@@ -115,7 +115,7 @@ def Hom(X, Y, category=None):
     Here, we test against a memory leak that has been fixed at :trac:`11521` by
     using a weak cache::
 
-        sage: for p in prime_range(10^5):
+        sage: for p in prime_range(10^3):
         ...    K = GF(p)
         ...    a = K(0)
         sage: import gc
@@ -124,7 +124,7 @@ def Hom(X, Y, category=None):
         sage: from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn as FF
         sage: L = [x for x in gc.get_objects() if isinstance(x, FF)]
         sage: len(L), L[0], L[len(L)-1]
-        (2, Finite Field of size 2, Finite Field of size 99991)
+        (2, Finite Field of size 2, Finite Field of size 997)
 
     To illustrate the choice of the category, we consider the
     following parents as running examples::

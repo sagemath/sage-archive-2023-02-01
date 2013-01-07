@@ -903,7 +903,7 @@ class K_kSchur(CombinatorialFreeModule):
             -2*Kks3[2, 1] + Kks3[2, 1, 1] + Kks3[2, 2]
             sage: g([])
             Kks3[]
-            sage: TestSuite(g).run()
+            sage: TestSuite(g).run()  # long time (11s on sage.math, 2013)
             sage: h = SymmetricFunctions(QQ).h()
             sage: g(h[1,1])
             -Kks3[1] + Kks3[1, 1] + Kks3[2]

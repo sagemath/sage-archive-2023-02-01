@@ -242,9 +242,9 @@ cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate 
 # The real field is in Cython, so mpfi elements will have access to
 # their parent via direct C calls, which will be faster.
 
-RealIntervalField_cache = {}
+cdef public dict RealIntervalField_cache = {}
 
-def RealIntervalField(prec=53, sci_not=False):
+cpdef RealIntervalField_class RealIntervalField(prec=53, sci_not=False):
     r"""
     Construct a RealIntervalField_class, with caching.
 
@@ -2826,7 +2826,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         # First, we try using approximate arithmetic of slightly higher
         # precision.
         cdef RealIntervalFieldElement highprec
-        highprec = RealIntervalField_class(int(self.prec() * 1.2))(self)
+        highprec = RealIntervalField(int(self.prec() * 1.2))(self)
 
         cdef Rational try1 = highprec._simplest_rational_helper()
 

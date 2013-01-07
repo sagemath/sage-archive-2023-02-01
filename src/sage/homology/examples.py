@@ -28,6 +28,7 @@ You can get a list by typing ``simplicial_complexes.`` and hitting the
 TAB key::
 
    simplicial_complexes.BarnetteSphere
+   simplicial_complexes.BrucknerGrunbaumSphere
    simplicial_complexes.ChessboardComplex
    simplicial_complexes.ComplexProjectivePlane
    simplicial_complexes.K3Surface
@@ -160,6 +161,7 @@ class SimplicialComplexExamples():
     ``simplicial_complexes.``  and hit tab to get a list:
 
     - :meth:`BarnetteSphere`
+    - :meth:`BrucknerGrunbaumSphere`
     - :meth:`ChessboardComplex`
     - :meth:`ComplexProjectivePlane`
     - :meth:`K3Surface`
@@ -869,6 +871,41 @@ class SimplicialComplexExamples():
                 (2,4,5,7),(2,3,5,7),(3,5,6,7),(3,1,6,7),(1,6,4,7),(1,2,3,8),
                 (4,5,6,8),(1,2,5,8),(1,4,5,8),(2,3,6,8),(2,5,6,8),(3,1,4,8),
                 (3,6,4,8)])
+
+    def BrucknerGrunbaumSphere(self):
+        r"""
+        Returns Bruckner and Grunbaum's triangulation of the 3-sphere.
+
+        This is a pure simplicial complex of dimension 3 with 8
+        vertices and 20 facets, which is a non-polytopal triangulation
+        of the 3-sphere. It appeared first in [Br1910]_ and was studied in
+        [GrS1967]_.
+
+        It is defined here as the link of any vertex in the unique minimal
+        triangulation of the complex projective plane, see chapter 4 of
+        [Ku1995]_.
+
+        EXAMPLES::
+
+            sage: BGS = simplicial_complexes.BrucknerGrunbaumSphere() ; BGS
+            Simplicial complex with vertex set (1, 2, 3, 4, 5, 6, 7, 8) and 20 facets
+            sage: BGS.f_vector()
+            [1, 8, 28, 40, 20]
+
+        REFERENCES:
+
+        .. [Br1910] Bruckner, "Uber die Ableitung der allgemeinen
+           Polytope und die nach Isomorphismus verschiedenen Typen der
+           allgemeinen Achtzelle (Oktatope)", Verhand. Konik. Akad. Wetenschap,
+           Erste Sectie, 10 (1910)
+
+        .. [GrS1967] Grunbaum and Sreedharan, "An enumeration of simplicial
+           4-polytopes with 8 vertices", J. Comb. Th. 2, 437-465 (1967)
+
+        .. [Ku1995] Kuhnel, "Tight Polyhedral Submanifolds and Tight Triangulations"
+           Lecture Notes in Mathematics Volume 1612, 1995
+        """
+        return simplicial_complexes.ComplexProjectivePlane().link([9])
 
     ###############################################################
     # examples from graph theory:

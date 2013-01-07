@@ -55,7 +55,7 @@ if [ "$SAGE_CHECK" = yes ]; then
     # Enable internal checks in GCC.  These checks do not affect the
     # binaries produced by GCC, but they do increase the compile time
     # of everything compiled with GCC.
-    CONFIGURE_FLAGS="$CONFIGURE_FLAGS --enable-checking=yes"
+    GCC_CONFIGURE="$GCC_CONFIGURE --enable-checking=yes"
 fi
 
 # Use conservative CFLAGS for stage 1 and for the "build" executables
@@ -85,7 +85,8 @@ fi
     --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL" --with-mpc="$SAGE_LOCAL" \
     --with-system-zlib \
     --disable-multilib \
-    $CONFIGURE_FLAGS "$CONFIGURE_AS" "$CONFIGURE_LD"
+    --disable-nls \
+    $GCC_CONFIGURE "$CONFIGURE_AS" "$CONFIGURE_LD"
 
 $MAKE
 

@@ -25,12 +25,18 @@ http://gcc.gnu.org/
 
 == Special Update/Build Instructions ==
 
-* Removed the huge src/MD5SUMS file to save space.
-
-* Removed the src/zlib directory, since Sage already ships with zlib.
-  We build GCC with --with-system-zlib, so we don't need src/zlib.
+* Lots of stuff can be removed, run ./spkg-src to do this automatically
+  (after downloading the sources).
 
 == Changelog ==
+
+=== gcc-4.7.2.p0 (Jeroen Demeyer, 8 January 2013) ===
+ * Trac #13913: add spkg-src script to remove lots of unneeded things
+   from the sources and run it.
+ * Rename $CONFIGURE_FLAGS to $GCC_CONFIGURE to be consistent with
+   other packages.
+ * Disable Native Language Support and remove the corresponding source
+   files.
 
 === gcc-4.7.2 (Jeroen Demeyer, 30 September 2012) ===
  * #13150: Upgrade to version 4.7.2 of GCC (as optional package).

@@ -2,19 +2,18 @@ r"""
 Small graphs
 
 The methods defined here appear in sage.graphs.grah_generators.
-
 """
-
-
-###########################################################################
-#
+#*****************************************************************************
 #           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
 #                              and Emily A. Kirkman
 #           Copyright (C) 2009 Michael C. Yurko <myurko@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-###########################################################################
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -277,7 +276,7 @@ def HallJankoGraph(from_string=True):
     a 100-point permutation representation of the Janko group `J_2`,
     as described in version 3 of the ATLAS of Finite Group
     representations, in particular on the page `ATLAS: J2
-    — Permutation representation on 100 points
+    -- Permutation representation on 100 points
     <http://brauer.maths.qmul.ac.uk/Atlas/v3/permrep/J2G1-p100B0>`_.
 
     INPUT:

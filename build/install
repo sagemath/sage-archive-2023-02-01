@@ -442,7 +442,6 @@ TACHYON=`newest_version tachyon`
 TERMCAP=`newest_version termcap`
 ZLIB=`newest_version zlib`
 ZNPOLY=`newest_version zn_poly`
-ZODB=`newest_version zodb3`
 
 EOF
 

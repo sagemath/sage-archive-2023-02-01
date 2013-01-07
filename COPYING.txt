@@ -94,7 +94,6 @@ twisted                              Custom (Modified BSD)
 twistedweb2                          MIT Free Software licence
 weave                                SciPy License (=Modified BSD)
 zlib                                 Custom (Modified BSD)
-zodb3                                ZPL
 
 
 CONTACT INFO:
@@ -1522,51 +1521,3 @@ Copyright (C) 1995-2004 Jean-loup Gailly and Mark Adler
 
 
 ================================================================================
-
-zodb3
-:
-(http://www.zope.org/Wikis/ZODB/)
-Zope Public License
-
-This is GPL compatible according to
-   http://www.fsf.org/licensing/licenses/index_html#GPLCompatibleLicenses
-
-Zope is made available under the Zope Public License. This license seeks
-to allow free use of Zope and its source given a few conditions for use.
-
-Our goals are to allow Zope to flourish as an open source project while
-making sure that we get some credit for having originally developed Zope.
-
-The 2.1 version of the license is reusable. It supports having a consistent
-license for Zope and third-party products without requiring 3rd-party
-developers to assign copyright to Zope Corporation.
-
-It is important that add-on products for Zope be released under the ZPL.
-Why? Two reasons:
-
-* The ZPL is a flexible license that supports both commercial and
-  non-commercial use of the software.
-* If Zope add-on products are released under the ZPL, then users of
-  Zope and the add-on products only have one license to worry about.
-  Keeping track of many different licenses is a burden to users.
-
-Software can be released under multiple licenses. For example, software
-can be released under both the ZPL and the GPL.
-
-We will update the Zope software to use ZPL 2.1. This does not change the
-rules for contributing to the Zope software repository. Contributions to the
-Zope repository will still be owned by "Zope Corporation and Contributors".
-
-To use the ZPL 2.1 license, just include the license with your software
-and also include a separate copyright statement (sample).
-
-We have updated to the 2.1 version. The license though, like Zope itself,
-is a work-in-progress. We would love to hear your ideas on the license.
-Please send your comments on the license to legal@zope.com.
-
-This license has received OSD branding. Zope Corporation is working to
-stay true to the spirit of the Open Source Definition and its stated
-rationales. This license has been confirmed as GPL compatible by the FSF.
-
-================================================================================
-

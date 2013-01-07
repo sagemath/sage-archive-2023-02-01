@@ -117,8 +117,7 @@ all-sage: \
      $(INST)/$(TACHYON) \
      $(INST)/$(TERMCAP) \
      $(INST)/$(ZLIB) \
-     $(INST)/$(ZNPOLY) \
-     $(INST)/$(ZODB)
+     $(INST)/$(ZNPOLY)
 
 # TOOLCHAIN consists of dependencies determined by spkg/install
 toolchain: $(TOOLCHAIN)
@@ -445,9 +444,6 @@ $(INST)/$(JINJA2): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS) \
 $(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PYGMENTS) 2>&1" "tee -a $(SAGE_LOGS)/$(PYGMENTS).log"
 
-$(INST)/$(ZODB): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
-	+$(PIPE) "$(SAGE_SPKG) $(ZODB) 2>&1" "tee -a $(SAGE_LOGS)/$(ZODB).log"
-
 # List all *build-time* dependencies of the Sage library.  These are,
 # on the one hand, programs needed for the build/install process of the
 # Sage library (e.g. SAGE_SCRIPTS, SCONS, MERCURIAL, JINJA2), and on the
@@ -544,7 +540,6 @@ $(INST)/$(CEPHES):
 # setuptools forgets to update easy-install.pth during parallel
 # builds, so we build the relevant packages serially.
 
-$(INST)/$(SQLALCHEMY): $(INST)/$(ZODB)
 $(INST)/$(PYGMENTS): $(INST)/$(SQLALCHEMY)
 $(INST)/$(JINJA2): $(INST)/$(PYGMENTS)
 $(INST)/$(SPHINX): $(INST)/$(JINJA2)

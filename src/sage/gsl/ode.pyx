@@ -183,12 +183,28 @@ class ode_solver(object):
     system uses params can be supplied to ``ode_solve`` or by
     assignment.
 
-    ``t_span`` is the time interval on which to solve the ode.  If
-    ``t_span`` is a tuple with just two time values then the user must
-    specify num_points, and the system will be evaluated at num_points
-    equally spaced points between ``t_span[0]`` and ``t_span[1]``. If
-    ``t_span`` is a tuple with more than two values than the values of
-    y_i at points in time listed in ``t_span`` will be returned.
+    ``t_span`` is the time interval on which to solve the ode.  There
+    are two ways to specify ``t_span``:
+
+    * If ``num_points`` is not specified then the sequence ``t_span``
+      is used as the time points for the solution.  Note that the
+      first element ``t_span[0]`` is the initial time, where the
+      initial condition ``y_0`` is the specified solution, and
+      subsequent elements are the ones where the solution is computed.
+
+    * If ``num_points`` is specified and ``t_span`` is a sequence with
+      just 2 elements, then these are the starting and ending times,
+      and the solution will be computed at ``num_points`` equally
+      spaced points between ``t_span[0]`` and ``t_span[1]``.  The
+      initial condition is also included in the output so that
+      ``num_points``\ +1 total points are returned.  E.g. if ``t_span
+      = [0.0, 1.0]`` and ``num_points = 10``, then solution is
+      returned at the 11 time points ``[0.0, 0.1, 0.2, 0.3, 0.4, 0.5,
+      0.6, 0.7, 0.8, 0.9, 1.0]``\ .
+
+    (Note that if ``num_points`` is specified and ``t_span`` is not
+    length 2 then ``t_span`` are used as the time points and
+    ``num_points`` is ignored.)
 
     Error is estimated via the expression ``D_i =
     error_abs*s_i+error_rel*(a|y_i|+a_dydt*h*|y_i'|)``.  The user can
@@ -219,7 +235,7 @@ class ode_solver(object):
         ...      return[y[1],-y[0]-params[0]*y[1]*(y[0]**2-1.0)]
 
         sage: def j_1(t,y,params):
-        ...      return [ [0.0, 1.0],[-2.0*params[0]*y[0]*y[1]-1.0,-params[0]*(y[0]*y[0]-1.0)] ]
+        ...      return [ [0.0, 1.0],[-2.0*params[0]*y[0]*y[1]-1.0,-params[0]*(y[0]*y[0]-1.0)], [0.0, 0.0] ]
 
         sage: T=ode_solver()
         sage: T.algorithm="rk8pd"
@@ -528,12 +544,12 @@ class ode_solver(object):
                 t = t_end
                 t_end= t+delta
 
-        elif len(self.t_span) > 2:
+        else:
             n = len(self.t_span)
             result.append((self.t_span[0],self.y_0))
             t=self.t_span[0]
-            t_end=self.t_span[1]
-            for i from 0<i<n-1:
+            for i from 0<i<n:
+                t_end=self.t_span[i]
                 while (t < t_end):
                     try:
                         sig_on()
@@ -553,8 +569,7 @@ class ode_solver(object):
                     v[j]=<double> y[j]
                 result.append( (t,copy.copy(v)) )
 
-                t=t_span[i]
-                t_end=t_span[i+1]
+                t=self.t_span[i]
 
 
         gsl_odeiv_evolve_free (e)

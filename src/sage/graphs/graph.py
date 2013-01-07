@@ -1002,6 +1002,14 @@ class Graph(GenericGraph):
             sage: Graph(3) == Graph(3,format='int')
             True
 
+        Problem with weighted adjacency matrix (:trac:`13919`)::
+
+            sage: B = {0:{1:2,2:5,3:4},1:{2:2,4:7},2:{3:1,4:4,5:3},3:{5:4},4:{5:1,6:5},5:{6:7}}
+            sage: grafo3 = Graph(B,weighted=True)
+            sage: matad = grafo3.weighted_adjacency_matrix()
+            sage: grafo4 = Graph(matad,format = "adjacency_matrix", weighted=True)
+            sage: grafo4.shortest_path(0,6,by_weight=True)
+            [0, 1, 2, 5, 4, 6]
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1230,8 +1238,13 @@ class Graph(GenericGraph):
                     weighted = True
                     if multiedges is None: multiedges = False
                     break
-            if multiedges is None: multiedges = (sorted(entries) != [0,1])
-            if weighted is None: weighted = False
+
+            if weighted is None:
+                weighted = False
+
+            if multiedges is None:
+                multiedges = ((not weighted) and sorted(entries) != [0,1])
+
             for i in xrange(data.nrows()):
                 if data[i,i] != 0:
                     if loops is None: loops = True

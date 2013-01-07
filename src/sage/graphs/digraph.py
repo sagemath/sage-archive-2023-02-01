@@ -384,12 +384,12 @@ class DiGraph(GenericGraph):
 
     TESTS::
 
-            sage: DiGraph({0:[1,2,3], 2:[4]}).edges()
-            [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
-            sage: DiGraph({0:(1,2,3), 2:(4,)}).edges()
-            [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
-            sage: DiGraph({0:Set([1,2,3]), 2:Set([4])}).edges()
-            [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
+        sage: DiGraph({0:[1,2,3], 2:[4]}).edges()
+        [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
+        sage: DiGraph({0:(1,2,3), 2:(4,)}).edges()
+        [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
+        sage: DiGraph({0:Set([1,2,3]), 2:Set([4])}).edges()
+        [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
 
     """
     _directed = True
@@ -454,6 +454,15 @@ class DiGraph(GenericGraph):
             sage: DiGraph({})
             Digraph on 0 vertices
             sage: # not "Multi-digraph on 0 vertices"
+
+        Problem with weighted adjacency matrix (:trac:`13919`)::
+
+            sage: B = {0:{1:2,2:5,3:4},1:{2:2,4:7},2:{3:1,4:4,5:3},3:{5:4},4:{5:1,6:5},5:{4:1,6:7,5:1}}
+            sage: grafo3 = DiGraph(B,weighted=True)
+            sage: matad = grafo3.weighted_adjacency_matrix()
+            sage: grafo4 = DiGraph(matad,format = "adjacency_matrix", weighted=True)
+            sage: grafo4.shortest_path(0,6,by_weight=True)
+            [0, 1, 2, 5, 4, 6]
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -631,8 +640,13 @@ class DiGraph(GenericGraph):
                     weighted = True
                     if multiedges is None: multiedges = False
                     break
-            if multiedges is None: multiedges = (sorted(entries) != [0,1])
-            if weighted is None: weighted = False
+
+            if weighted is None:
+                weighted = False
+
+            if multiedges is None:
+                multiedges = ((not weighted) and sorted(entries) != [0,1])
+
             for i in xrange(data.nrows()):
                 if data[i,i] != 0:
                     if loops is None: loops = True

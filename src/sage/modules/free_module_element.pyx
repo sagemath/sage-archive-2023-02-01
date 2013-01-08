@@ -4206,12 +4206,25 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w = vector([1,2/3,pi], sparse=True)
             sage: w == v
             True
+
+        Check that the bug in :trac:`13929` has been fixed::
+
+            sage: V = FreeModule( GF(3), 2, sparse=True)
+            sage: a = V([0,1])
+            sage: b = V([1,0])
+            sage: cmp(a, b)
+            -1
         """
+
         a = left._entries.items()
         a.sort()
-        b = (<FreeModuleElement_generic_dense>right)._entries.items()
+        b = (< FreeModuleElement_generic_sparse > right)._entries.items()
         b.sort()
-        return cmp(a,b)
+
+        a = [(-x,y) for x, y in a]
+        b = [(-x,y) for x, y in b]
+
+        return cmp(a, b)
 
     # see sage/structure/element.pyx
     def __richcmp__(left, right, int op):

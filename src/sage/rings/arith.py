@@ -1598,12 +1598,7 @@ def gcd(a, b=None, **kwargs):
             try:
                 return ZZ(a).gcd(ZZ(b))
             except TypeError:
-                pass
-            try:
-                return QQ(a).gcd(QQ(b))
-            except TypeError:
-                pass
-            raise TypeError("unable to find gcd")
+                raise TypeError("unable to find gcd")
         return GCD(b, **kwargs)
 
     from sage.structure.sequence import Sequence
@@ -1750,12 +1745,7 @@ def lcm(a, b=None):
             try:
                 return ZZ(a).lcm(ZZ(b))
             except TypeError:
-                pass
-            try:
-                return QQ(a).lcm(QQ(b))
-            except TypeError:
-                pass
-            raise TypeError("unable to find lcm")
+                raise TypeError("unable to find lcm")
         return LCM(b)
 
     from sage.structure.sequence import Sequence

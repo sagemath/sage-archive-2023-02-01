@@ -356,14 +356,6 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         """
         return Category.join([getattr(cat, cls._functor_category)(*args) for cat in category._super_categories])
 
-    def is_subcategory(self, C):
-        """
-        .. todo:: doctests + explain why this method is needed
-        """
-        if C is self:
-            return True
-        return any(X.is_subcategory(C) for X in self._super_categories)
-
     def __init__(self, category, *args):
         """
         TESTS::

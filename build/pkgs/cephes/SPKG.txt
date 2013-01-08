@@ -23,5 +23,8 @@ Download: http://www.moshier.net/cephes-math-28.tar.gz
 
 == Changelog ==
 
+=== cephes-2.8.p0 (Peter Jeremy, Jean-Pierre Flori, 19 December 2012) ===
+ * #9543: Only patch and build Cephes on FreeBSD.
+
 === cephes-2.8 (Mike Hansen, April 26th, 2010) ===
  * Initial version

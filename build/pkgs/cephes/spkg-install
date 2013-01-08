@@ -1,81 +1,39 @@
 #!/usr/bin/env bash
 
-if [ "$UNAME" != "CYGWIN" ]; then
-    echo "We do not install the cephes library on any operating system except Cygwin."
+if [[ -z "$SAGE_LOCAL" ]]; then
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+if [ "$UNAME" != "FreeBSD" ]; then
+    echo "We only install the cephes library on FreeBSD."
     exit 0
 fi
 
 CUR=`pwd`
+cd src
 
-function patch {
-    cd "$CUR"
-    cp patches/complex.h src/
-}
+# Apply patches:
+echo "Applying patches (if any)..."
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Patch '$patch' failed to apply."
+        exit 1
+    fi
+done
 
-function make_complex_h {
-    cd "$CUR"
-    cp src/complex.h "$SAGE_LOCAL"/include
-}
+echo "Building Cephes..."
+$MAKE
+if [ $? -ne 0 ]; then
+   echo >&2 "Error - Failed to build Cephes ... exiting"
+   exit 1
+fi
 
-function make_single {
-    cd "$CUR"
-    cd src/single
-    make
-
-    cp libmf.a "$SAGE_LOCAL"/lib/
-    cp protos.h "$SAGE_LOCAL"/include/cephes_single.h
-
-    cd "$CUR"
-}
-
-function make_double {
-    cd "$CUR"
-    cp patches/double/makefile  src/double
-
-    cd src/double
-
-    make
-
-    cp libmd.a "$SAGE_LOCAL"/lib/
-
-    cd "$CUR"
-}
-
-function make_ldouble {
-    cd "$CUR"
-    cp patches/ldouble/makefile  src/ldouble
-
-    cd src/ldouble
-    make
-
-    cp libml.a "$SAGE_LOCAL"/lib/
-    cp protos.h "$SAGE_LOCAL"/include/cephes_ldouble.h
-
-    cd "$CUR"
-}
-
-function make_c9x_complex {
-    cd "$CUR"
-
-    cp patches/c9x-complex/*.c src/c9x-complex/
-    cp patches/c9x-complex/makefile src/c9x-complex/
-
-    cd src/c9x-complex/
-
-    make
-
-    cp libmc.a "$SAGE_LOCAL"/lib/
-
-    cd "$CUR"
-}
-
-function build {
-    make_complex_h
-    make_single
-    make_double
-    make_ldouble
-    make_c9x_complex
-}
-
-patch
-build
+echo "Installing Cephes..."
+$MAKE install
+if [ $? -ne 0 ]; then
+   echo >&2 "Error - Failed to build Cephes ... exiting"
+   exit 1
+fi

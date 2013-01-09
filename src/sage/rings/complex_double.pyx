@@ -448,6 +448,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return 53
 
+    precision=prec
+
     def to_prec(self, prec):
         """
         Returns the complex field to the specified precision. As doubles

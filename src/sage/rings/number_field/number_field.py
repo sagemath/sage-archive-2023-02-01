@@ -9349,7 +9349,7 @@ def refine_embedding(e, prec=None):
         return e
 
     # We first compute all the embeddings at the new precision:
-    if sage.rings.real_mpfr.is_RealField(RC):
+    if sage.rings.real_mpfr.is_RealField(RC) or RC is RDF:
         if prec==sage.rings.infinity.Infinity:
             elist = K.embeddings(sage.rings.qqbar.AA)
         else:

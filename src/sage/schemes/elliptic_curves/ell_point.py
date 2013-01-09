@@ -2526,9 +2526,9 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: Q.height()
             0.0511114082399688
             sage: Q.height(precision=100)
-            0.051111408239968840235886099755
+            0.051111408239968840235886099757
 
-        An example to show that the bug at \#5252 is fixed::
+        An example to show that the bug at :trac:`5252` is fixed::
 
             sage: E = EllipticCurve([1, -1, 1, -2063758701246626370773726978, 32838647793306133075103747085833809114881])
             sage: P = E([-30987785091199, 258909576181697016447])
@@ -2541,7 +2541,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.height(precision=500)
             25.8603170675461907438688407407351103230988729038444162155771710417835725129551130570889813281792157278507639909972112856019190236125362914195452321720
 
-        An example to show that the bug at \#8319 is fixed (correct height when the curve is not minimal)::
+        An example to show that the bug at :trac:`8319` is fixed (correct height when the curve is not minimal)::
 
             sage: E = EllipticCurve([-5580472329446114952805505804593498080000,-157339733785368110382973689903536054787700497223306368000000])
             sage: xP = 204885147732879546487576840131729064308289385547094673627174585676211859152978311600/23625501907057948132262217188983681204856907657753178415430361
@@ -2554,6 +2554,22 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: Q.height()-4*P.height() # long time
             0.000000000000000
 
+        An example to show that the bug at :trac:`12509` is fixed (precision issues)::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2-x-1)
+            sage: v = [0, a + 1, 1, 28665*a - 46382, 2797026*a - 4525688]
+            sage: E = EllipticCurve(v)
+            sage: P = E([72*a - 509/5,  -682/25*a - 434/25])
+            sage: P.height()
+            1.38877711688727
+            sage: (2*P).height()/P.height()
+            4.00000000000000
+            sage: (2*P).height(precision=100)/P.height(precision=100)
+            4.0000000000000000000000000000
+            sage: (2*P).height(precision=1000)/P.height(precision=1000)
+            4.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
         """
         if self.has_finite_order():
             return rings.QQ(0)
@@ -2563,7 +2579,9 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         try:
             height = self.__height
-            if height.prec() >= precision:
+            if height.prec() == precision:
+                return height
+            if height.prec() > precision:
                 return rings.RealField(precision)(height)
         except AttributeError:
             pass
@@ -2576,8 +2594,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             h = Emin.pari_curve(prec=precision).ellheight(P, precision=precision)
             height = rings.RealField(precision)(h)
         else:
-            from sage.misc.stopgap import stopgap
-            stopgap("Computation of heights on elliptic curves over fields other than Q can return very imprecise results.", 12509)
             height = (self.nonarchimedian_local_height(prec=precision)
                         + self.archimedian_local_height(prec=precision))
 
@@ -2632,6 +2648,19 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             (-9/4 : 27/8*i - 4 : 1)
             sage: Q.archimedian_local_height(K.places()[0]) / 2
             0.654445619529600
+
+        TESTS::
+
+        See :trac:`12509`::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2-x-1)
+            sage: v = [0, a + 1, 1, 28665*a - 46382, 2797026*a - 4525688]
+            sage: E = EllipticCurve(v)
+            sage: P = E([72*a - 509/5,  -682/25*a - 434/25])
+            sage: P.archimedian_local_height()
+            -0.2206607955468278492183362746930
+
         """
         if self.has_finite_order():
             return QQ(0)
@@ -2645,31 +2674,37 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 return 2 - int(v.im_gens()[0] in rings.RR)
             return sum(local_degree(v) * self.archimedian_local_height(v, prec) for v in K.places(prec=prec)) / K.degree()
 
+        from sage.rings.number_field.number_field import refine_embedding
+        vv = refine_embedding(v) # doubles precision
         if prec is None:
-            prec  = v.codomain().prec()
+            prec  = vv.codomain().prec()
         E = self.curve()
-        b2, b4, b6, b8 = [v(b) for b in E.b_invariants()]
+        b2, b4, b6, b8 = [vv(b) for b in E.b_invariants()]
         H = max(4, abs(b2), 2*abs(b4), 2*abs(b6), abs(b8))
-        nterms = int(math.ceil(0.5*prec + 0.5 + 3*math.log(7+4*math.log(H)/3)/4 + math.log(max(1, ~abs(v(E.discriminant()))))/3))
+        # The following comes from Silvermn Theorem 4.2.  Silverman
+        # uses decimal precision d, so his term (5/3)d =
+        # (5/3)*(log(2)/log(10))*prec = 0.5017*prec, which we round
+        # up.  The rest of the expression was wrongly transcribed in
+        # Sage versions <5.6 (see #12509).
+        nterms = int(math.ceil(0.51*prec + 0.5 + 3*math.log(7+(4*math.log(H)+math.log(max(1, ~abs(v(E.discriminant())))))/3)/4))
         b2p = b2 - 12
         b4p = b4 - b2 + 6
         b6p = b6 - 2*b4 + b2 - 4
         b8p = b8 - 3*b6 + 3*b4 - b2 + 3
 
-        t = rings.polygen(v.codomain())
-        fw = 4*t + b2 * t**2 + 2*b4 * t**3 + b6 * t**4
-        fz = 1 - b4 * t**2 - 2*b6 * t**3 - b8 * t**4
-        fwp = 4*t + b2p * t**2 + 2*b4p * t**3 + b6p * t**4
-        fzp = 1 - b4p * t**2 - 2*b6p * t**3 - b8p * t**4
+        fz = lambda T: 1 - T**2 * (b4 + T*(2*b6 + T*b8))
+        fzp = lambda T: 1 - T**2 * (b4p + T*(2*b6p + T*b8p))
+        fw = lambda T: T*(4 + T*(b2 + T*(2*b4 + T*b6)))
+        fwp = lambda T: T*(4 + T*(b2p + T*(2*b4p + T*b6p)))
 
-        x = v(self[0])
+        x = vv(self[0])
         if abs(x) >= .5:
             t = 1/x
             beta = True
         else:
             t = 1/(x+1)
             beta = False
-        lam = -abs(t).log()
+        lam = -t.abs().log()
         mu = 0
         four_to_n = rings.QQ(1)
 
@@ -2678,24 +2713,24 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 w = fw(t)
                 z = fz(t)
                 if abs(w) <= 2 * abs(z):
-                    mu += four_to_n * abs(z).log()
+                    mu += four_to_n * z.abs().log()
                     t = w/z
                 else:
-                    mu += four_to_n * abs(z+w).log()
+                    mu += four_to_n * (z+w).abs().log()
                     t = w/(z+w)
                     beta = not beta
             else:
                 w = fwp(t)
                 z = fzp(t)
                 if abs(w) <= 2 * abs(z):
-                    mu += four_to_n * abs(z).log()
+                    mu += four_to_n * z.abs().log()
                     t = w/z
                 else:
-                    mu += four_to_n * abs(z-w).log()
+                    mu += four_to_n * (z-w).abs().log()
                     t = w/(z-w)
                     beta = not beta
             four_to_n >>= 2
-        return lam + mu/4
+        return rings.RealField(v.codomain().prec())(lam + mu/4)
 
     def nonarchimedian_local_height(self, v=None, prec=None, weighted=False, is_minimal=None):
         """

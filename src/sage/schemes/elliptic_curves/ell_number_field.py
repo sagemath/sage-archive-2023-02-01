@@ -351,7 +351,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<t> = NumberField(x^2+47)
             sage: EK = E.base_extend(K)
             sage: EK.height_pairing_matrix([EK(P),EK(Q)])
-            [0.686667083305586 0.268478098806726]
+            [0.686667083305587 0.268478098806726]
             [0.268478098806726 0.327000773651605]
 
         ::

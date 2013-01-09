@@ -21,7 +21,22 @@ Website: http://www.moshier.net/
 
 Download: http://www.moshier.net/cephes-math-28.tar.gz
 
+== Note ==
+
+FreeBSD's math library does not have all the mathematics functions described in
+Sections 7.3 and 7.12 of the C99 standard:
+http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1124.pdf
+Specifically many of the complex and long double functions are missing in
+FreeBSD.
+
+Cephes provides those functions that are missing from FreeBSD.
+The Makefiles have been modified so that it only adds the functions missing
+from the version of FreeBSD in which compilation is taking place.
+
 == Changelog ==
+
+=== cephes-2.8.p1 (Jean-Pierre Flori, 9 January 2013) ===
+ * #9543: Add a note about the need for Cephes on FreeBSD.
 
 === cephes-2.8.p0 (Peter Jeremy, Jean-Pierre Flori, 19 December 2012) ===
  * #9543: Only patch and build Cephes on FreeBSD.

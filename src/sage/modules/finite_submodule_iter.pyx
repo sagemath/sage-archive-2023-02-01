@@ -311,7 +311,7 @@ cdef class FiniteFieldsubspace_projPoint_iterator:
 
     Prove that the option ``normalize == True`` will only return normalized vectors.
 
-        sage: all([ x.normalize() == x for x in FiniteFieldsubspace_projPoint_iterator(A, True) ])
+        sage: all([ x.monic() == x for x in FiniteFieldsubspace_projPoint_iterator(A, True) ])
         True
 
     TESTS::

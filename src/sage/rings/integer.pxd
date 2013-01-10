@@ -30,5 +30,7 @@ cdef class Integer(EuclideanDomainElement):
 
     cdef _reduce_set(self, s) # do not use, since integers are immutable.
 
+cdef Integer smallInteger(long value)
+
 cdef class int_to_Z(Morphism):
     pass

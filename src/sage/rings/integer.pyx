@@ -2783,6 +2783,25 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_abs(x.value, self.value)
         return x
 
+    def sign(self):
+        """
+        Returns the sign of this integer, which is -1, 0, or 1
+        depending on whether this number is negative, zero, or positive
+        respectively.
+
+        OUTPUT: Integer
+
+        EXAMPLES::
+
+            sage: 500.sign()
+            1
+            sage: 0.sign()
+            0
+            sage: (-10^43).sign()
+            -1
+        """
+        return smallInteger(mpz_sgn(self.value))
+
     def __mod__(x, y):
         r"""
          Returns x modulo y.
@@ -5648,7 +5667,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
 ONE = Integer(1)
-Py_INCREF(ONE)
+cdef long small_pool_min = -1
+cdef long small_pool_max = 1
+cdef list small_pool = [Integer(k) for k in range(small_pool_min, small_pool_max+1)]
+cdef inline Integer smallInteger(long value):
+    cdef Integer z
+    if small_pool_min <= value <= small_pool_max:
+        return <Integer>small_pool[value - small_pool_min]
+    else:
+        z = PY_NEW(Integer)
+        mpz_set_si(z.value, value)
+        return z
 
 cpdef LCM_list(v):
     """

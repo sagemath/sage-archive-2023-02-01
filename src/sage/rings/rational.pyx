@@ -2435,6 +2435,25 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_abs(x.value, self.value)
         return x
 
+    def sign(self):
+        """
+        Returns the sign of this rational number, which is -1, 0, or 1
+        depending on whether this number is negative, zero, or positive
+        respectively.
+
+        OUTPUT: Integer
+
+        EXAMPLES::
+
+            sage: (2/3).sign()
+            1
+            sage: (0/3).sign()
+            0
+            sage: (-1/6).sign()
+            -1
+        """
+        return integer.smallInteger(mpq_sgn(self.value))
+
     def mod_ui(Rational self, unsigned long int n):
         """
         Return the remainder upon division of self by the unsigned long

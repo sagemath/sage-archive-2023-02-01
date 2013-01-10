@@ -33,12 +33,26 @@ COPYING.
 
  * Make sure the patches still apply cleanly.
 
- * Run the `spkg-dist` script after updating to a newer upstream
+ * Run the `spkg-src` script after updating to a newer upstream
    release. It removes a large amount of unused documentation and
    disables the associated Makefiles, reducing the size of the SPKG
    greatly.
 
 == Changelog ==
+
+=== maxima-5.29.1.p1 (Jean-Pierre Flori, Dima Pasechnik, 29 December 2012) ===
+ * #13364: update Maxima to version 5.29.1.
+ * added the patch from Maxima bug tracker (bug 2520) to avoid
+   infinite recursion happening at integrate(abs(sin(x)),0,2*pi), leading
+   to a segfault
+ * added the patch from  Maxima bug tracker (bug 2526) to fix
+   integrate(sqrt(x + sqrt(x)),x)
+ * added the patch undoing the change
+   https://sf.net/p/maxima/code/ci/f5e9b0f7eb122c4e48ea9df144dd57221e5ea0ca
+   which caused extra '?' printed around some words (e.g. integer)
+   in Maxima dialogs. The issue this change addresses does not pop up for us.
+ * rename spkg-dist to spkg-src
+ * Remove comm.patch which has been integrated upstream.
 
 === maxima-5.26.0.p1 (Dima Pasechnik, Dec 23rd 2012) ===
  * ASDF has changed in newer ECL, and so we need to reflect this in spkg-install

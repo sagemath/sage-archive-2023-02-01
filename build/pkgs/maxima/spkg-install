@@ -38,14 +38,15 @@ echo "Now configuring Maxima..."
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-ecl
 check_error "Failed to configure Maxima."
 
+
 # Touching html and info files to avoid to regenerate them.
 # This must be done after configuration since the timestamps need
 # to be later than include-maxima.texi which is generated at
 # configuration time:
-for i in doc/info/*.html ; do
-    touch "${i}"
-done
-touch doc/info/maxima.info*
+echo
+echo "Now touching documentation files..."
+touch `find doc/info -name \*.info\* -o -name \*.html`
+check_error "Failed to touch documentation files."
 
 
 echo
@@ -110,18 +111,20 @@ check_error "Failed to build Maxima as an ECL library."
 ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
 echo
 echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
+PWD=`pwd`
 if [[ -f "maxima.system.fasb" ]]; then
     echo "New ASDF encountered"
     cp -f maxima.system.fasb "$ECLLIB/maxima.fas"
-    check_error "Failed to install 'maxima.system.fasb' as '$ECLLIB/maxima.fas'."
+    check_error "Failed to install '$PWD/maxima.system.fasb' as '$ECLLIB/maxima.fas'."
 elif [[ -f "maxima.fasb" ]]; then
     echo "Old ASDF encountered"
     cp -f maxima.fasb "$ECLLIB/maxima.fas"
-    check_error "Failed to install 'maxima.fasb' as '$ECLLIB/maxima.fas'."
+    check_error "Failed to install '$PWD/maxima.fasb' as '$ECLLIB/maxima.fas'."
 else
     echo >&2 "Error: cannot find an .fasb file to install - exiting..."
     exit 1
 fi
+
 
 if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]] ; then
     # Install a copy of the Maxima HTML documentation locally.

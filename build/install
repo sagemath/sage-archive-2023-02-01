@@ -200,9 +200,12 @@ else
         # $CC points to some version of GCC, find out which version.
         GCCVERSION=`$CC -dumpversion`
         case $GCCVERSION in
-            [0-3].*|4.[0-3].*)
+            [0-3].*|4.[0-3]|4.[0-3].*)
                 # Install our own GCC if the system-provided one is older than gcc-4.4.
-                # (admittedly, this is a pretty arbitrary choice -- Jeroen Demeyer)
+                # * gcc-4.2.4 compiles a slow IML:
+                # https://groups.google.com/forum/?fromgroups#!topic/sage-devel/Ux3t0dW2FSI
+                # * gcc-4.3 might have trouble building ATLAS:
+                # https://groups.google.com/forum/?fromgroups#!topic/sage-devel/KCeFqQ_w2FE
                 echo >&2 "Installing GCC because you have $CC version $GCCVERSION, which is quite old."
                 need_to_install_gcc=yes;;
             4.6.[01])

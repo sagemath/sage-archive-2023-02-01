@@ -47,7 +47,7 @@ cdef class Function(SageObject):
     subclasses :class:`BuiltinFunction` or :class:`SymbolicFunction`.
     """
     def __init__(self, name, nargs, latex_name=None, conversions=None,
-            evalf_params_first=True):
+            evalf_params_first=True, alt_name=None):
         """
         This is an abstract base class. It's not possible to test it directly.
 
@@ -84,6 +84,7 @@ cdef class Function(SageObject):
             ValueError: eval_func parameter must be callable
         """
         self._name = name
+        self._alt_name = alt_name
         self._nargs = nargs
         self._latex_name = latex_name
         self._evalf_params_first = evalf_params_first
@@ -269,7 +270,7 @@ cdef class Function(SageObject):
             return cmp(self._serial, (<Function>other)._serial)
         return False
 
-    def __call__(self, *args, coerce=True, hold=False):
+    def __call__(self, *args, bint coerce=True, bint hold=False):
         """
         Evaluates this function at the given arguments.
 
@@ -719,9 +720,35 @@ cdef class GinacFunction(BuiltinFunction):
 
         g_foptions_assign(g_registered_functions().index(self._serial), opt)
 
-    def __call__(self, *args, coerce=True, hold=False,
-            dont_call_method_on_arg=False):
+
+cdef class BuiltinFunction(Function):
+    """
+    This is the base class for symbolic functions defined in Sage.
+
+    If a function is provided by the Sage library, we don't need to pickle
+    the custom methods, since we can just initialize the same library function
+    again. This allows us to use Cython for custom methods.
+
+    We assume that each subclass of this class will define one symbolic
+    function. Make sure you use subclasses and not just call the initializer
+    of this class.
+    """
+    def __init__(self, name, nargs=1, latex_name=None, conversions=None,
+            evalf_params_first=True, alt_name=None):
         """
+        TESTS::
+
+            sage: from sage.functions.trig import Function_cot
+            sage: c = Function_cot() # indirect doctest
+            sage: c(pi/2)
+            0
+        """
+        Function.__init__(self, name, nargs, latex_name, conversions,
+                evalf_params_first, alt_name = alt_name)
+
+    def __call__(self, *args, bint coerce=True, bint hold=False,
+            bint dont_call_method_on_arg=False):
+        r"""
         Evaluate this function on the given arguments and return the result.
 
         EXAMPLES::
@@ -730,22 +757,41 @@ cdef class GinacFunction(BuiltinFunction):
             e^5
             sage: gamma(15)
             87178291200
-        """
-        # we want to convert the result to the original parent if the input
-        # is not exact, so we store the parent here
-        org_parent = parent_c(args[0])
 
+        TESTS::
+
+            sage: from sage.symbolic.function import BuiltinFunction
+            sage: class A:
+            ...       def foo(self):
+            ...           return 'foo'
+            sage: foo = BuiltinFunction(name='foo')
+            sage: foo(A())
+            'foo'
+            sage: bar = BuiltinFunction(name='bar', alt_name='foo')
+            sage: bar(A())
+            'foo'
+        """
         # if there is only one argument, and the argument has an attribute
         # with the same name as this function, try to call it to get the result
         # The argument dont_call_method_on_arg is used to prevent infinite loops
         # when .exp(), .log(), etc. methods call this symbolic function on
         # themselves
-        if len(args) == 1 and not hold and not dont_call_method_on_arg and \
-                hasattr(args[0], self._name):
-            return getattr(args[0], self._name)()
+        if len(args) == 1 and not hold and not dont_call_method_on_arg:
+            arg = args[0]
+            method = getattr(arg, self._name, None)
+            if method is not None:
+                return method()
+            elif self._alt_name is not None:
+                method = getattr(arg, self._alt_name, None)
+                if method is not None:
+                    return method()
 
-        res = super(GinacFunction, self).__call__(*args, coerce=coerce,
-                hold=hold)
+        res = super(BuiltinFunction, self).__call__(
+                        *args, coerce=coerce, hold=hold)
+
+        # we want to convert the result to the original parent if the input
+        # is not exact, so we store the parent here
+        org_parent = parent_c(args[0])
 
         # convert the result back to the original parent previously stored
         # otherwise we end up with
@@ -775,32 +821,6 @@ cdef class GinacFunction(BuiltinFunction):
                     pass
 
         return res
-
-
-cdef class BuiltinFunction(Function):
-    """
-    This is the base class for symbolic functions defined in Sage.
-
-    If a function is provided by the Sage library, we don't need to pickle
-    the custom methods, since we can just initialize the same library function
-    again. This allows us to use Cython for custom methods.
-
-    We assume that each subclass of this class will define one symbolic
-    function. Make sure you use subclasses and not just call the initializer
-    of this class.
-    """
-    def __init__(self, name, nargs=1, latex_name=None, conversions=None,
-            evalf_params_first=True):
-        """
-        TESTS::
-
-            sage: from sage.functions.trig import Function_cot
-            sage: c = Function_cot() # indirect doctest
-            sage: c(pi/2)
-            0
-        """
-        Function.__init__(self, name, nargs, latex_name, conversions,
-                evalf_params_first)
 
     cdef _is_registered(self):
         """

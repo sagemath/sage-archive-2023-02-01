@@ -469,10 +469,27 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             True
             sage: R(3)^1000
             1 + 4*11^2 + 3*11^3 + 7*11^4 + O(11^5)
+
+        TESTS:
+
+        We define ``0^0`` to be unity, :trac:`13941`::
+
+            sage: R = ZpCA(11, 5)
+            sage: R(0)^0
+            1 + O(11^5)
+            sage: R(0)^0 == R(1)
+            True
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: R = ZpCA(11, 5)
+            sage: type(R(0)^0) == type(R(1))
+            True
+
         """
         # p-adic exponents and correct precisions!!!
-        if not self and not right:
-            raise ArithmeticError, "0^0 is undefined."
+        if (self == 0) and (right == 0):
+            return self.parent(1)
         cdef Integer new, absprec
         cdef long val
         new = Integer(right) #Need to make sure that this works for p-adic exponents

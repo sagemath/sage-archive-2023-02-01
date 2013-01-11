@@ -12,7 +12,7 @@ AUTHORS:
 /*****************************************************************************
  *       Copyright (C) 2006 William Stein <wstein@gmail.com>
  *                     2006 Martin Albrecht <malb@informatik.uni-bremen.de>
- *                     2010 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+ *                     2010-2013 Jeroen Demeyer <jdemeyer@cage.ugent.be>
  *
  *  Distributed under the terms of the GNU General Public License (GPL)
  *  as published by the Free Software Foundation; either version 2 of
@@ -93,19 +93,15 @@ void sage_interrupt_handler(int sig)
 
     if (_signals.sig_on_count > 0)
     {
-        if (_signals.block_sigint)
+        if (!_signals.block_sigint)
         {
-            /* SIGINT is blocked, so simply set _signals.interrupt_received. */
-            _signals.interrupt_received = 1;
-            return;
+            /* Actually raise an exception so Python can see it */
+            sig_raise_exception(sig);
+
+            /* Jump back to sig_on() (the first one if there is a stack) */
+            reset_CPU();
+            siglongjmp(_signals.env, sig);
         }
-
-        /* Raise KeyboardInterrupt */
-        PyErr_SetNone(PyExc_KeyboardInterrupt);
-
-        /* Jump back to sig_on() (the first one if there is a stack) */
-        reset_CPU();
-        siglongjmp(_signals.env, sig);
     }
     else
     {
@@ -115,19 +111,12 @@ void sage_interrupt_handler(int sig)
          * raise an exception here because of Python's "global
          * interpreter lock" -- Jeroen Demeyer */
         PyErr_SetInterrupt();
-        _signals.interrupt_received = 1;
     }
+
+    /* If we are here, we cannot handle the interrupt immediately, so
+     * we set interrupt_received for later use. */
+    _signals.interrupt_received = 1;
 }
-
-/* Call sage_interrupt_handler() "by hand". */
-void call_sage_interrupt_handler(int sig)
-{
-    /* Block SIGINT, SIGALRM */
-    sigprocmask(SIG_BLOCK, &sigmask_with_sigint, NULL);
-    sage_interrupt_handler(sig);
-}
-
-
 
 /* Handler for SIGILL, SIGABRT, SIGFPE, SIGBUS, SIGSEGV */
 void sage_signal_handler(int sig)
@@ -138,26 +127,13 @@ void sage_signal_handler(int sig)
     if (inside == 0 && _signals.sig_on_count > 0)
     {
         /* We are inside sig_on(), so we can handle the signal! */
+#if ENABLE_DEBUG_INTERRUPT
+        fprintf(stderr, "\n*** SIG %i *** inside sig_on\n", sig);
+        print_backtrace();
+#endif
 
-        /* Message to be printed in the Python exception */
-        const char* msg = _signals.s;
-
-        if (!msg)
-        {
-            /* Default: a message depending on which signal we got */
-            switch(sig)
-            {
-                case SIGILL:  msg = "Illegal instruction"; break;
-                case SIGABRT: msg = "Aborted"; break;
-                case SIGFPE:  msg = "Floating point exception"; break;
-                case SIGBUS:  msg = "Bus error"; break;
-                case SIGSEGV: msg = "Segmentation fault"; break;
-                default: msg = "";
-            }
-        }
-
-        /* Raise RuntimeError */
-        PyErr_SetString(PyExc_RuntimeError, msg);
+        /* Actually raise an exception so Python can see it */
+        sig_raise_exception(sig);
 
         /* Jump back to sig_on() (the first one if there is a stack) */
         reset_CPU();
@@ -201,8 +177,50 @@ void sage_signal_handler(int sig)
     }
 }
 
-/* Check whether we received an interrupt before sig_on().
- * Return 0 if there was an interrupt, 1 otherwise. */
+
+void sig_raise_exception(int sig)
+{
+#if ENABLE_DEBUG_INTERRUPT
+    fprintf(stderr, "sig_raise_exception(sig=%i)\nPyErr_Occurred() = %p\nRaising Python exception...\n",
+        sig, PyErr_Occurred());
+    fflush(stderr);
+#endif
+
+    /* String to be printed in the Python exception */
+    const char* msg = _signals.s;
+
+    switch(sig)
+    {
+        case SIGINT:
+            PyErr_SetNone(PyExc_KeyboardInterrupt);
+            break;
+        case SIGILL:
+            if (!msg) msg = "Illegal instruction";
+            PyErr_SetString(PyExc_RuntimeError, msg);
+            break;
+        case SIGABRT:
+            if (!msg) msg = "Aborted";
+            PyErr_SetString(PyExc_RuntimeError, msg);
+            break;
+        case SIGFPE:
+            if (!msg) msg = "Floating point exception";
+            PyErr_SetString(PyExc_RuntimeError, msg);
+            break;
+        case SIGBUS:
+            if (!msg) msg = "Bus error";
+            PyErr_SetString(PyExc_RuntimeError, msg);
+            break;
+        case SIGSEGV:
+            if (!msg) msg = "Segmentation fault";
+            PyErr_SetString(PyExc_RuntimeError, msg);
+            break;
+        default:
+            PyErr_SetString(PyExc_SystemError, "Unknown signal");
+    }
+}
+
+
+/* Handle an interrupt before sig_on(). */
 int _sig_on_interrupt_received()
 {
     _signals.interrupt_received = 0;
@@ -219,6 +237,7 @@ void _sig_on_recover()
 {
     _signals.block_sigint = 0;
     _signals.sig_on_count = 0;
+
     /* Reset signal mask */
     sigprocmask(SIG_SETMASK, &default_sigmask, NULL);
     _signals.inside_signal_handler = 0;

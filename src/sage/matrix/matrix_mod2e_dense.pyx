@@ -410,9 +410,9 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
-        _sig_on
+        sig_on()
         ans._entries = mzed_mul_naive(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
-        _sig_off
+        sig_off()
         return ans
 
     cdef Matrix _matrix_times_matrix_(self, Matrix right):
@@ -453,9 +453,9 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
-        _sig_on
+        sig_on()
         ans._entries = mzed_mul(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
-        _sig_off
+        sig_off()
         return ans
 
     cpdef Matrix_mod2e_dense _multiply_newton_john(Matrix_mod2e_dense self, Matrix_mod2e_dense right):
@@ -515,9 +515,9 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
 
-        _sig_on
+        sig_on()
         ans._entries = mzed_mul_newton_john(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
-        _sig_off
+        sig_off()
         return ans
 
     cpdef Matrix_mod2e_dense _multiply_karatsuba(Matrix_mod2e_dense self, Matrix_mod2e_dense right):
@@ -570,9 +570,9 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
 
-        _sig_on
+        sig_on()
         ans._entries = mzed_mul_karatsuba(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
-        _sig_off
+        sig_off()
         return ans
 
     cpdef Matrix_mod2e_dense _multiply_strassen(Matrix_mod2e_dense self, Matrix_mod2e_dense right, cutoff=0):
@@ -624,9 +624,9 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         if cutoff == 0:
             cutoff = _mzed_strassen_cutoff(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
 
-        _sig_on
+        sig_on()
         ans._entries = mzed_mul_strassen(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries, cutoff)
-        _sig_off
+        sig_off()
         return ans
 
     cpdef ModuleElement _lmul_(self, RingElement right):
@@ -834,32 +834,32 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
 
         if _density == 1:
             if nonzero == False:
-                _sig_on
+                sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):
                         tmp = self.cc.objectptr.random(generator, tmp)
                         mzed_write_elem_log(self._entries, i, j, tmp, <M4RIE__FiniteField*>self.cc.objectptr)
-                _sig_off
+                sig_off()
             else:
-                _sig_on
+                sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):
                         tmp = self.cc.objectptr.random(generator,tmp)
                         while self.cc.objectptr.isZero(tmp):
                             tmp = self.cc.objectptr.random(generator,tmp)
                         mzed_write_elem_log(self._entries, i, j, tmp, <M4RIE__FiniteField*>self.cc.objectptr)
-                _sig_off
+                sig_off()
         else:
             if nonzero == False:
-                _sig_on
+                sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):
                         if rstate.c_rand_double() <= _density:
                             tmp = self.cc.objectptr.random(generator, tmp)
                             mzed_write_elem_log(self._entries, i, j, tmp, <M4RIE__FiniteField*>self.cc.objectptr)
-                _sig_off
+                sig_off()
             else:
-                _sig_on
+                sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):
                         if rstate.c_rand_double() <= _density:
@@ -867,7 +867,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
                             while self.cc.objectptr.isZero(tmp):
                                 tmp = self.cc.objectptr.random(generator,tmp)
                             mzed_write_elem_log(self._entries, i, j, tmp, <M4RIE__FiniteField*>self.cc.objectptr)
-                _sig_off
+                sig_off()
 
     def echelonize(self, algorithm='heuristic', reduced=True, **kwds):
         """
@@ -936,24 +936,24 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         self.clear_cache()
 
         if algorithm == 'naive':
-            _sig_on
+            sig_on()
             r =  mzed_echelonize_naive(self._entries, full)
-            _sig_off
+            sig_off()
 
         elif algorithm == 'newton_john':
-            _sig_on
+            sig_on()
             r =  mzed_echelonize_newton_john(self._entries, full)
-            _sig_off
+            sig_off()
 
         elif algorithm == 'ple':
-            _sig_on
+            sig_on()
             r =  mzed_echelonize_ple(self._entries, full)
-            _sig_off
+            sig_off()
 
         elif algorithm == 'heuristic':
-            _sig_on
+            sig_on()
             r =  mzed_echelonize(self._entries, full)
-            _sig_off
+            sig_off()
 
         elif algorithm == 'builtin':
             self._echelon_in_place_classical()

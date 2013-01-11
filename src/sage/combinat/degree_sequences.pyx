@@ -442,7 +442,7 @@ cdef void enum(int k, int M):
         add_seq()
         return
 
-    _sig_on
+    sig_on()
 
     #############################################
     # Creating vertices of Vertices of degree M #
@@ -544,4 +544,4 @@ cdef void enum(int k, int M):
     for 1 <= i < N:
         seq[i] = seq[i+1]
 
-    _sig_off
+    sig_off()

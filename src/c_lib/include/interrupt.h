@@ -15,7 +15,7 @@ AUTHORS:
 /*****************************************************************************
  *       Copyright (C) 2006 William Stein <wstein@gmail.com>
  *                     2006 Martin Albrecht <malb@informatik.uni-bremen.de>
- *                     2010 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+ *                     2010-2013 Jeroen Demeyer <jdemeyer@cage.ugent.be>
  *
  *  Distributed under the terms of the GNU General Public License (GPL)
  *  as published by the Free Software Foundation; either version 2 of
@@ -75,17 +75,19 @@ void sigdie(int sig, const char* s);
 void sage_interrupt_handler(int sig);    /* SIGINT */
 void sage_signal_handler(int sig);       /* Other signals */
 
-/* Wrapper to call sage_interrupt_handler() "by hand". */
-void call_sage_interrupt_handler(int sig);
 
 /*
- * Setup the signal handlers for SIGINT, SIGILL, SIGABRT, SIGFPE
- * SIGBUS, SIGSEGV. It is safe to call this more than once.
+ * Setup the signal handlers. It is safe to call this more than once.
  *
  * We do not handle SIGALRM since there is code to deal with
  * alarms in sage/misc/misc.py
  */
 void setup_sage_signal_handler(void);
+
+/* This function communicates signals to Python by raising an exception.
+ * It may only be called synchronously with the Global Interpreter Lock
+ * held. */
+void sig_raise_exception(int sig);
 
 
 /**********************************************************************
@@ -111,8 +113,9 @@ struct sage_signals_t
      * needed to check for signals raised within the signal handler. */
     volatile sig_atomic_t inside_signal_handler;
 
-    /* Non-zero if we currently are in a function which blocks SIGINT,
-     * zero normally.  See sig_block(), sig_unblock(). */
+    /* Non-zero if we currently are in a function such as malloc()
+     * which blocks interrupts, zero normally.
+     * See sig_block(), sig_unblock(). */
     volatile sig_atomic_t block_sigint;
 
     /* A jump buffer holding where to siglongjmp() after a signal has

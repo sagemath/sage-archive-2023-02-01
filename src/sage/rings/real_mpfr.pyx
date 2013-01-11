@@ -3664,7 +3664,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             base = <RealNumber>self
             rounding_mode = (<RealField_class>base._parent).rnd
             x = base._new()
-            _sig_on
+            sig_on()
             if PY_TYPE_CHECK(exponent, int):
                 mpfr_pow_si(x.value, base.value, exponent, rounding_mode)
             elif PY_TYPE_CHECK(exponent, Integer):
@@ -3672,9 +3672,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             elif PY_TYPE_CHECK(exponent, RealNumber):
                 mpfr_pow(x.value, base.value, (<RealNumber>exponent).value, rounding_mode)
             else:
-                _sig_off
+                sig_off()
                 return bin_op(self, exponent, operator.pow)
-            _sig_off
+            sig_off()
             if mpfr_nan_p(x.value):
                 return base._complex_number_() ** exponent
             return x

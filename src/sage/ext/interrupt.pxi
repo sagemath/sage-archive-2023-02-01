@@ -15,8 +15,9 @@ cdef extern from 'interrupt.h':
 
     ctypedef struct sage_signals_t:
         int sig_on_count
-        int sigint_received
+        int interrupt_received
         int inside_signal_handler
+        int block_sigint
         char* s
 
     sage_signals_t _signals

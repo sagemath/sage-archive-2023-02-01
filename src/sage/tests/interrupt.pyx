@@ -67,32 +67,30 @@ cdef void dereference_null_pointer():
 ########################################################################
 # Python helper functions                                              #
 ########################################################################
-def raise_KeyboardInterrupt():
+class return_exception:
     """
-    Raise a KeyboardInterrupt.
-
-    TESTS::
-
-        sage: from sage.tests.interrupt import raise_KeyboardInterrupt
-    """
-    raise KeyboardInterrupt, "raise test"
-
-def try_sigint(f):
-    """
-    Calls the Python function ``f`` and catch any KeyboardInterrupts.
-    This function is needed because the doctest program stops whenever
-    it sees a KeyboardInterrupt.
+    Decorator class which makes a function *return* an exception which
+    is raised, to simplify doctests raising exceptions.  This can be
+    used to work around a bug in the doctesting script where a
+    ``KeyboardInterrupt`` always causes the doctester to stop, even if
+    the expected output of a doctest is a ``KeyboardInterrupt``.
 
     EXAMPLES::
 
-        sage: from sage.tests.interrupt import *
-        sage: try_sigint(raise_KeyboardInterrupt)
-        KeyboardInterrupt: raise test
+        sage: from sage.tests.interrupt import return_exception
+        sage: @return_exception
+        ... def raise_interrupt():
+        ...     raise KeyboardInterrupt("just testing")
+        sage: raise_interrupt()
+        KeyboardInterrupt('just testing',)
     """
-    try:
-        f()
-    except KeyboardInterrupt, err:
-        print "KeyboardInterrupt:", err
+    def __init__ (self, func):
+        self.func = func
+    def __call__ (self, *args):
+        try:
+            return self.func(*args)
+        except BaseException as e:
+            return e
 
 def interrupt_after_delay(ms_delay = 500):
     """
@@ -134,13 +132,14 @@ def test_sig_off():
     sig_on()
     sig_off()
 
+@return_exception
 def test_sig_on(long delay = DEFAULT_DELAY):
     """
     TESTS::
 
         sage: from sage.tests.interrupt import *
-        sage: try_sigint(test_sig_on)
-        KeyboardInterrupt:
+        sage: test_sig_on()
+        KeyboardInterrupt()
     """
     signal_after_delay(SIGINT, delay)
     sig_on()
@@ -164,13 +163,14 @@ cdef c_test_sig_on_cython():
     sig_on()
     infinite_loop()
 
+@return_exception
 def test_sig_on_cython(long delay = DEFAULT_DELAY):
     """
     TESTS::
 
         sage: from sage.tests.interrupt import *
-        sage: try_sigint(test_sig_on_cython)
-        KeyboardInterrupt:
+        sage: test_sig_on_cython()
+        KeyboardInterrupt()
     """
     signal_after_delay(SIGINT, delay)
     c_test_sig_on_cython()
@@ -179,13 +179,14 @@ cdef int c_test_sig_on_cython_except() except 42:
     sig_on()
     infinite_loop()
 
+@return_exception
 def test_sig_on_cython_except(long delay = DEFAULT_DELAY):
     """
     TESTS::
 
         sage: from sage.tests.interrupt import *
-        sage: try_sigint(test_sig_on_cython_except)
-        KeyboardInterrupt:
+        sage: test_sig_on_cython_except()
+        KeyboardInterrupt()
     """
     signal_after_delay(SIGINT, delay)
     c_test_sig_on_cython_except()
@@ -194,36 +195,39 @@ cdef void c_test_sig_on_cython_except_all() except *:
     sig_on()
     infinite_loop()
 
+@return_exception
 def test_sig_on_cython_except_all(long delay = DEFAULT_DELAY):
     """
     TESTS::
 
         sage: from sage.tests.interrupt import *
-        sage: try_sigint(test_sig_on_cython_except_all)
-        KeyboardInterrupt:
+        sage: test_sig_on_cython_except_all()
+        KeyboardInterrupt()
     """
     signal_after_delay(SIGINT, delay)
     c_test_sig_on_cython_except_all()
 
+@return_exception
 def test_sig_check(long delay = DEFAULT_DELAY):
     """
     TESTS::
 
         sage: from sage.tests.interrupt import *
-        sage: try_sigint(test_sig_check)
-        KeyboardInterrupt:
+        sage: test_sig_check()
+        KeyboardInterrupt()
     """
     signal_after_delay(SIGINT, delay)
     while True:
         sig_check()
 
+@return_exception
 def test_sig_check_inside_sig_on(long delay = DEFAULT_DELAY):
     """
     TESTS::
 
         sage: from sage.tests.interrupt import *
-        sage: try_sigint(test_sig_check_inside_sig_on)
-        KeyboardInterrupt:
+        sage: test_sig_check_inside_sig_on()
+        KeyboardInterrupt()
     """
     signal_after_delay(SIGINT, delay)
     sig_on()
@@ -247,13 +251,14 @@ def test_sig_retry():
     sig_off()
     return v
 
+@return_exception
 def test_sig_retry_and_signal(long delay = DEFAULT_DELAY):
     """
     TESTS::
 
         sage: from sage.tests.interrupt import *
-        sage: try_sigint(test_sig_retry_and_signal)
-        KeyboardInterrupt:
+        sage: test_sig_retry_and_signal()
+        KeyboardInterrupt()
     """
     cdef volatile_int v = 0
 
@@ -317,14 +322,14 @@ def test_sig_str_no_except(long delay = DEFAULT_DELAY):
     signal_after_delay(SIGABRT, delay)
     infinite_loop()
 
-
+@return_exception
 def test_sig_check_no_except(long delay = DEFAULT_DELAY):
     """
     TESTS::
 
         sage: from sage.tests.interrupt import *
-        sage: try_sigint(test_sig_check_no_except)
-        KeyboardInterrupt:
+        sage: test_sig_check_no_except()
+        KeyboardInterrupt()
     """
     signal_after_delay(SIGINT, delay)
     while True:
@@ -346,13 +351,14 @@ def test_old_sig_off():
     _sig_on
     _sig_off
 
+@return_exception
 def test_old_sig_on(long delay = DEFAULT_DELAY):
     """
     TESTS::
 
         sage: from sage.tests.interrupt import *
-        sage: try_sigint(test_old_sig_on)
-        KeyboardInterrupt:
+        sage: test_old_sig_on()
+        KeyboardInterrupt()
     """
     signal_after_delay(SIGINT, delay)
     _sig_on
@@ -550,13 +556,14 @@ def test_bad_str(long delay = DEFAULT_DELAY):
 ########################################################################
 # Test various usage scenarios for sig_on()/sig_off()                  #
 ########################################################################
+@return_exception
 def test_sig_on_cython_after_delay(long delay = DEFAULT_DELAY):
     """
     TESTS::
 
         sage: from sage.tests.interrupt import *
-        sage: try_sigint(test_sig_on_cython_after_delay)
-        KeyboardInterrupt:
+        sage: test_sig_on_cython_after_delay()
+        KeyboardInterrupt()
     """
     signal_after_delay(SIGINT, delay)
     ms_sleep(delay * 2)  # We get signaled during this sleep
@@ -753,3 +760,33 @@ def test_signal_during_malloc(long delay = DEFAULT_DELAY):
     except KeyboardInterrupt:
         pass
 
+
+########################################################################
+# Benchmarking functions                                               #
+########################################################################
+def sig_on_bench():
+    """
+    Call ``sig_on()`` and ``sig_off()`` 1 million times.
+
+    TESTS::
+
+        sage: from sage.tests.interrupt import *
+        sage: sig_on_bench()
+    """
+    cdef int i
+    for i in range(1000000):
+        sig_on()
+        sig_off()
+
+def sig_check_bench():
+    """
+    Call ``sig_check()`` 1 million times.
+
+    TESTS::
+
+        sage: from sage.tests.interrupt import *
+        sage: sig_check_bench()
+    """
+    cdef int i
+    for i in range(1000000):
+        sig_check()

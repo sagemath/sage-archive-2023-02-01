@@ -421,12 +421,13 @@ def vertex_separation(G, verbose = False):
         print "Memory allocation"
         g.print_adjacency_matrix()
 
-    _sig_on
+    sig_on()
 
     cdef unsigned int mem = 1 << g.n
     cdef int8_t * neighborhoods = <int8_t *> sage_malloc(mem)
 
     if neighborhoods == NULL:
+        sig_off()
         raise MemoryError("Error allocating memory. I just tried to allocate "+str(mem>>10)+"MB, could that be too much ?")
 
     memset(neighborhoods, <int8_t> -1, mem)
@@ -451,8 +452,7 @@ def vertex_separation(G, verbose = False):
         order[i] = vertices[j]
 
     sage_free(neighborhoods)
-
-    _sig_off
+    sig_off()
 
     return k, order
 

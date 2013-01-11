@@ -37,6 +37,7 @@ TAB key::
    simplicial_complexes.MooreSpace
    simplicial_complexes.NotIConnectedGraphs
    simplicial_complexes.PoincareHomologyThreeSphere
+   simplicial_complexes.PseudoQuaternionicProjectivePlane
    simplicial_complexes.RandomComplex
    simplicial_complexes.RealProjectivePlane
    simplicial_complexes.RealProjectiveSpace
@@ -170,6 +171,7 @@ class SimplicialComplexExamples():
     - :meth:`MooreSpace`
     - :meth:`NotIConnectedGraphs`
     - :meth:`PoincareHomologyThreeSphere`
+    - :meth:`PseudoQuaternionicProjectivePlane`
     - :meth:`RandomComplex`
     - :meth:`RealProjectivePlane`
     - :meth:`RealProjectiveSpace`
@@ -435,6 +437,65 @@ class SimplicialComplexExamples():
              [8, 9, 3, 1, 6], [9, 7, 1, 2, 4], [7, 8, 2, 3, 5],
              [9, 7, 2, 3, 6], [7, 8, 3, 1, 4], [8, 9, 1, 2, 5]],
             is_mutable=False)
+
+    def PseudoQuaternionicProjectivePlane(self):
+        r"""
+        Returns a pure simplicial complex of dimension 8 with 490 facets.
+
+        .. WARNING::
+
+            This is expected to be a triangulation of the projective plane
+            `HP^2` over the ring of quaternions, but this has not been
+            proved yet.
+
+        This simplicial complex has the same homology as `HP^2`. Its
+        automorphism group is isomorphic to the alternating group `A_5`
+        and acts transitively on vertices.
+
+        This is defined here using the description in [BrK92]_. This
+        article deals with three different triangulations. This procedure
+        returns the only one which has a transitive group of
+        automorphisms.
+
+        EXAMPLES::
+
+            sage: HP2 = simplicial_complexes.PseudoQuaternionicProjectivePlane() ; HP2
+            Simplicial complex with 15 vertices and 490 facets
+            sage: HP2.f_vector()
+            [1, 15, 105, 455, 1365, 3003, 4515, 4230, 2205, 490]
+
+        Checking its automorphism group::
+
+            sage: HP2.automorphism_group().is_isomorphic(AlternatingGroup(5))
+            True
+
+        REFERENCES:
+
+        .. [BrK92] Brehm U., Kuhnel W., "15-vertex triangulations of an
+                   8-manifold", Math. Annalen 294 (1992), no. 1, 167-193.
+        """
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+        P = [(1,2,3,4,5),(6,7,8,9,10),(11,12,13,14,15)]
+        S = [(1,6,11),(2,15,14),(3,13,8),(4,7,5),(9,12,10)]
+        start_list = [
+            (1,2,3,6,8,11,13,14,15),    # A
+            (1,3,6,8,9,10,11,12,13),    # B
+            (1,2,6,9,10,11,12,14,15),   # C
+            (1,2,3,4,7,9,12,14,15),     # D
+            (1,2,4,7,9,10,12,13,14),    # E
+            (1,2,6,8,9,10,11,14,15),    # F
+            (1,2,3,4,5,6,9,11,13),      # G
+            (1,3,5,6,8,9,10,11,12),     # H
+            (1,3,5,6,7,8,9,10,11),      # I
+            (1,2,3,4,5,7,10,12,15),     # J
+            (1,2,3,7,8,10,12,13,14),    # K
+            (2,5,6,7,8,9,10,13,14),     # M
+
+            (3,4,6,7,11,12,13,14,15),   # L
+            (3,4,6,7,10,12,13,14,15)]   # N
+        return SimplicialComplex([ [g(index) for index in tuple]
+                for tuple in start_list
+                for g in PermutationGroup([P,S]) ])
 
     def PoincareHomologyThreeSphere(self):
         """

@@ -128,7 +128,9 @@ for testflag in "$@"; do
     fi
 done
 
-rm -f $outfile*
+# Some OS X systems create a directory with debug info,
+# so we really need -r here (#13945).
+rm -rf $outfile*
 
 echo $NEWCFLAGS
 exit $status

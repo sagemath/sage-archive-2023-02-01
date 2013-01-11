@@ -479,9 +479,10 @@ class MaximaFunction(BuiltinFunction):
 
             sage: t = jacobi('sn',1.2+2*I*elliptic_kc(1-.5),.5)
             sage: t._maxima_init_(maxima)
-            '0.88771548861927996 - 1.7919528880467190e-15*%i'
-            sage: t.n()
+            '0.88771548861927...*%i'
+            sage: t.n() # abs tol 1e-13
             0.887715488619280 - 1.79195288804672e-15*I
+
         """
         args_maxima = []
         for a in args:

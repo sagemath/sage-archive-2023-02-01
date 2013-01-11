@@ -1,7 +1,8 @@
 r"""
 Lisp Interface
 
-EXAMPLES:
+EXAMPLES::
+
     sage: lisp.eval('(* 4 5)')
     '20'
     sage: a = lisp(3); b = lisp(5)
@@ -23,7 +24,8 @@ EXAMPLES:
     '8'
 
 One can define functions and the interface supports object-oriented
-notation for calling them:
+notation for calling them::
+
     sage: lisp.eval('(defun factorial (n) (if (= n 1) 1 (* n (factorial (- n 1)))))')
     'FACTORIAL'
     sage: lisp('(factorial 10)')
@@ -61,7 +63,8 @@ class Lisp(Expect):
                  server=None,
                  server_tmpdir=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp == loads(dumps(lisp))
             True
         """
@@ -103,12 +106,15 @@ class Lisp(Expect):
 
     def eval(self, code, strip=True, **kwds):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp.eval('(+ 2 2)')
             '4'
 
         TEST:
-            # Verify that it works when input == output
+
+        Verify that it works when input == output::
+
             sage: lisp.eval('2')
             '2'
         """
@@ -138,7 +144,8 @@ class Lisp(Expect):
 
     def _an_element_impl(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp._an_element_impl()
             0
         """
@@ -148,13 +155,16 @@ class Lisp(Expect):
         """
         Set the variable var to the given value.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp.set('x', '2')
             sage: lisp.get('x')
             '2'
 
-       TEST:
-            # it must also be possible to eval the variable by name
+        TEST:
+
+        It must also be possible to eval the variable by name::
+
             sage: lisp.eval('x')
             '2'
         """
@@ -165,7 +175,8 @@ class Lisp(Expect):
 
     def get(self, var):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp.set('x', '2')
             sage: lisp.get('x')
             '2'
@@ -175,7 +186,8 @@ class Lisp(Expect):
 
     def _start(self, *args, **kwds):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: l = Lisp()
             sage: l.is_running()
             False
@@ -193,14 +205,15 @@ class Lisp(Expect):
             E = self._expect
         r = random.randrange(2147483647)
         s = str(r+1)
-        cmd = "(+ 1 %s)\n"%r
+        cmd = "(+ 1 %s)"%r
         E.sendline(cmd)
         E.expect(s)
         E.expect(self._prompt)
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp
             Lisp Interpreter
         """
@@ -208,16 +221,17 @@ class Lisp(Expect):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp.__reduce__()
             (<function reduce_load_Lisp at 0x...>, ())
-
         """
         return reduce_load_Lisp, tuple([])
 
     def _function_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp._function_class()
             <class 'sage.interfaces.lisp.LispFunction'>
          """
@@ -225,7 +239,8 @@ class Lisp(Expect):
 
     def _quit_string(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp._quit_string()
             '(quit);'
 
@@ -239,7 +254,8 @@ class Lisp(Expect):
 
     def _read_in_file_command(self, filename):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp._read_in_file_command(tmp_filename())
             Traceback (most recent call last):
             ...
@@ -249,7 +265,8 @@ class Lisp(Expect):
 
     def trait_names(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp.trait_names()
             Traceback (most recent call last):
             ...
@@ -260,7 +277,8 @@ class Lisp(Expect):
 
     def kill(self, var):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp.kill('x')
             Traceback (most recent call last):
             ...
@@ -272,7 +290,8 @@ class Lisp(Expect):
         """
         Spawn a new Lisp command-line session.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp.console() #not tested
             ECL (Embeddable Common-Lisp) ...
             Copyright (C) 1984 Taiichi Yuasa and Masami Hagiya
@@ -285,15 +304,14 @@ class Lisp(Expect):
         """
         lisp_console()
 
-
     def version(self):
         """
         Returns the version of Lisp being used.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp.version()
             'Version information is given by lisp.console().'
-
         """
 #        import subprocess
 #        p = subprocess.Popen('ecl --version', shell=True, stdin=subprocess.PIPE,
@@ -303,16 +321,17 @@ class Lisp(Expect):
 
     def _object_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp._object_class()
             <class 'sage.interfaces.lisp.LispElement'>
-
         """
         return LispElement
 
     def _function_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp._function_class()
             <class 'sage.interfaces.lisp.LispFunction'>
         """
@@ -320,7 +339,8 @@ class Lisp(Expect):
 
     def _function_element_class(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp._function_element_class()
             <class 'sage.interfaces.lisp.LispFunctionElement'>
         """
@@ -328,7 +348,8 @@ class Lisp(Expect):
 
     def _true_symbol(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp._true_symbol()
             'T'
         """
@@ -336,7 +357,8 @@ class Lisp(Expect):
 
     def _false_symbol(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp._false_symbol()
             'NIL'
         """
@@ -348,7 +370,8 @@ class Lisp(Expect):
         equality testing in Lisp does not use infix notation and cannot be
         done the same way as in the other interfaces.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp._equality_symbol()
             Traceback (most recent call last):
             ...
@@ -359,7 +382,8 @@ class Lisp(Expect):
 
     def help(self, command):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp.help('setq')
             Traceback (most recent call last):
             ...
@@ -372,7 +396,8 @@ class Lisp(Expect):
         Calls the Lisp function with given args and kwds.
         For Lisp functions, the kwds are ignored.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp.function_call('sin', ['2'])
             0.9092974
             sage: lisp.sin(2)
@@ -385,7 +410,8 @@ class Lisp(Expect):
 class LispElement(ExpectElement):
     def __cmp__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: one = lisp(1); two = lisp(2)
             sage: one == one
             True
@@ -414,7 +440,8 @@ class LispElement(ExpectElement):
 
     def bool(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp(2).bool()
             True
             sage: lisp(0).bool()
@@ -426,7 +453,8 @@ class LispElement(ExpectElement):
 
     def _add_(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = lisp(1); b = lisp(2)
             sage: a + b
             3
@@ -436,7 +464,8 @@ class LispElement(ExpectElement):
 
     def _sub_(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = lisp(1); b = lisp(2)
             sage: a - b
             -1
@@ -446,7 +475,8 @@ class LispElement(ExpectElement):
 
     def _mul_(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = lisp(1); b = lisp(2)
             sage: a * b
             2
@@ -456,7 +486,8 @@ class LispElement(ExpectElement):
 
     def _div_(self, right):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = lisp(1); b = lisp(2)
             sage: a / b
             1/2
@@ -466,7 +497,8 @@ class LispElement(ExpectElement):
 
     def __pow__(self, n):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = lisp(3)
             sage: a^3
             27
@@ -476,7 +508,8 @@ class LispElement(ExpectElement):
 class LispFunctionElement(FunctionElement):
     def _sage_doc_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: two = lisp(2)
             sage: two.sin._sage_doc_()
             Traceback (most recent call last):
@@ -490,7 +523,8 @@ class LispFunctionElement(FunctionElement):
 class LispFunction(ExpectFunction):
     def _sage_doc_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: lisp.sin._sage_doc_()
             Traceback (most recent call last):
             ...
@@ -500,10 +534,10 @@ class LispFunction(ExpectFunction):
         return M.help(self._name)
 
 
-
 def is_LispElement(x):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.lisp import is_LispElement
         sage: is_LispElement(lisp(2))
         True
@@ -517,7 +551,8 @@ lisp = Lisp()
 
 def reduce_load_Lisp():
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.interfaces.lisp import reduce_load_Lisp
         sage: reduce_load_Lisp()
         Lisp Interpreter
@@ -529,7 +564,8 @@ def lisp_console():
     """
     Spawn a new Lisp command-line session.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: lisp.console() #not tested
         ECL (Embeddable Common-Lisp) ...
         Copyright (C) 1984 Taiichi Yuasa and Masami Hagiya
@@ -541,5 +577,3 @@ def lisp_console():
         ...
     """
     os.system('ecl')
-
-

@@ -2892,6 +2892,109 @@ class SimplicialComplex(GenericCellComplex):
         import sage.categories.all
         return sage.categories.all.SimplicialComplexes()
 
+    def is_isomorphic(self,other, certify = False):
+        r"""
+        Checks whether two simplicial complexes are isomorphic
+
+        INPUT:
+
+        - ``certify`` - if ``True``, then output is ``(a,b)``, where ``a``
+          is a boolean and ``b`` is either a map or ``None``.
+
+        This is done by creating two graphs and checking whether they
+        are isomorphic.
+
+        EXAMPLES::
+
+            sage: Z1 = SimplicialComplex([[0,1],[1,2],[2,3,4],[4,5]])
+            sage: Z2 = SimplicialComplex([['a','b'],['b','c'],['c','d','e'],['e','f']])
+            sage: Z3 = SimplicialComplex([[1,2,3]])
+            sage: Z1.is_isomorphic(Z2)
+            True
+            sage: Z1.is_isomorphic(Z2, certify=True)
+            (True, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f'})
+            sage: Z3.is_isomorphic(Z2)
+            False
+        """
+        g1 = Graph()
+        g2 = Graph()
+        g1.add_edges((v,f) for f in self.facets() for v in f)
+        g2.add_edges((v,f) for f in other.facets() for v in f)
+        g1.add_edges(("fake_vertex",v,"special_edge") for v in self.vertices())
+        g2.add_edges(("fake_vertex",v,"special_edge") for v in other.vertices())
+        if not certify:
+            return g1.is_isomorphic(g2)
+        isisom, tr = g1.is_isomorphic(g2, certify = True)
+
+        if isisom:
+            for f in self.facets():
+                tr.pop(f)
+            tr.pop("fake_vertex")
+
+        return isisom,tr
+
+    def automorphism_group(self,translation=False):
+        r"""
+        Returns the automorphism group of the simplicial complex
+
+        This is done by creating a bipartite graph, whose vertices are
+        vertices and facets of the simplicial complex, and computing
+        its automorphism group.
+
+        INPUT:
+
+        - ``translation`` (boolean, default: ``False``) whether to return
+          a dictionary associating the vertices of the simplicial
+          complex to elements of the set on which the group acts
+
+        OUTPUT:
+
+        - a permutation group if ``translation`` is ``False``
+        - a permutation group and a dictionary if ``translation`` is ``True``
+
+        .. NOTE::
+
+            The group is returned as a permutation group acting on
+            integers from ``1`` to the number of vertices. The bijection
+            with vertices is provided if ``translation`` is ``True``.
+
+        EXAMPLES::
+
+            sage: S = simplicial_complexes.Simplex(3)
+            sage: S.automorphism_group().is_isomorphic(SymmetricGroup(4))
+            True
+
+            sage: P = simplicial_complexes.RealProjectivePlane()
+            sage: P.automorphism_group().is_isomorphic(AlternatingGroup(5))
+            True
+
+            sage: Z = SimplicialComplex([[1,2],[2,3,'a']])
+            sage: Z.automorphism_group().is_isomorphic(CyclicPermutationGroup(2))
+            True
+            sage: group, dict = Z.automorphism_group(translation=True)
+            sage: Set([dict[s] for s in Z.vertices()])
+            {1, 2, 3, 4}
+        """
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+        from sage.combinat.permutation import Permutation
+        G = Graph()
+        G.add_vertices(self.vertices())
+        G.add_edges((f.tuple(),v) for f in self.facets() for v in f)
+        groupe, simpl_to_gap = G.automorphism_group(translation=True,
+                                           partition=[list(self.vertices()),
+                                                      [f.tuple() for f in self.facets()]])
+        gap_to_simpl = {x_gap:x for x,x_gap in simpl_to_gap.iteritems()} # reverse dictionary
+        gap_to_range = {simpl_to_gap[x]:(i+1) for i,x in enumerate(self.vertices())}
+        permgroup = PermutationGroup([
+                    Permutation([tuple([gap_to_range[x] for x in c])
+                                 for c in g.cycle_tuples()
+                                 if not isinstance(gap_to_simpl[c[0]],tuple)])
+                    for g in groupe.gens()])
+        if translation:
+            return permgroup, {f:gap_to_range[simpl_to_gap[f]] for f in self.vertices()}
+        else:
+            return permgroup
+
     def _Hom_(self, other, category=None):
         """
         Return the set of simplicial maps between simplicial complexes

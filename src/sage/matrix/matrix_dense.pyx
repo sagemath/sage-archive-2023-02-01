@@ -66,7 +66,7 @@ cdef class Matrix_dense(matrix.Matrix):
         x = self.fetch('hash')
         if not x is None: return x
 
-        if not self._mutability._is_immutable:
+        if not self._is_immutable:
             raise TypeError, "mutable matrices are unhashable"
 
         v = self._list()

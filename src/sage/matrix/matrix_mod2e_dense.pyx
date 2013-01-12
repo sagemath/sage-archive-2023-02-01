@@ -1575,8 +1575,8 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         if self._entries.finite_field.degree > 4:
             raise NotImplementedError("Cling is only implemented for degree <= 4.")
 
-        if self._mutability._is_immutable:
-            raise TypeError("Mutable matrices cannot be modified.")
+        if self._is_immutable:
+            raise TypeError("Immutable matrices cannot be modified.")
 
         if len(C) != self._entries.finite_field.degree:
             raise ValueError("The number of input matrices must be equal to the degree of the base field.")

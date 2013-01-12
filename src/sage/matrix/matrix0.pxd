@@ -18,7 +18,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef public object _cache
     cdef public object _subdivisions
     cdef public object _base_ring
-    cdef sage.structure.mutability.Mutability _mutability
+    cdef bint _is_immutable
 
     cdef bint _will_use_strassen(self, Matrix right) except -2
     cdef bint _will_use_strassen_echelon(self) except -2

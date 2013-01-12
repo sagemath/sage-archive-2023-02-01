@@ -337,7 +337,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             0
 
         """
-        if not self._mutability._is_immutable:
+        if not self._is_immutable:
             raise TypeError("mutable matrices are unhashable")
 
         x = self.fetch('hash')

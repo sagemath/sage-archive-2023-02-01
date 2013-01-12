@@ -344,7 +344,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         mpz_set(x.b, self.b)
         mpz_set(x.c ,self.c)
         mpz_set(x.d, self.d)
-        x._mutability = Mutability(False)
+        x._is_immutable = False
         x._base_ring = self._base_ring
         if self._subdivisions is not None:
             x.subdivide(*self.subdivisions())

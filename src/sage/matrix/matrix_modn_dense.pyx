@@ -608,7 +608,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         x = self.fetch('hash')
         if not x is None: return x
 
-        if not self._mutability._is_immutable:
+        if not self._is_immutable:
             raise TypeError, "mutable matrices are unhashable"
 
         cdef Py_ssize_t i

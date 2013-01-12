@@ -60,7 +60,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         if not is_Ring(ring):
             raise TypeError, "input must be a ring"
         if ring is self._base_ring:
-            if self._mutability._is_immutable:
+            if self._is_immutable:
                 return self
             return self.__copy__()
 
@@ -135,7 +135,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         x = self.fetch('hash')
         if not x is None: return x
 
-        if not self._mutability._is_immutable:
+        if not self._is_immutable:
             raise TypeError, "mutable matrices are unhashable"
 
         v = self._dict()

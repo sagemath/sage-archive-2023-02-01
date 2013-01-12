@@ -720,7 +720,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A.__hash__()
             -18
         """
-        if self._mutability._is_immutable:
+        if self._is_immutable:
             return self._hash()
         else:
             raise TypeError, "mutable matrices are unhashable"

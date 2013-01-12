@@ -19,7 +19,7 @@ cd src/
 # detecting filename changes. See Trac #13137.
 # This fix can (and will have to) be removed once integrated upstream.
 echo "Renaming *,asm files to *.asm..."
-mv mpn/x86/p6/addmul_1,asm mpn/x86/p6/addmul_1.asm
+mv mpn/x86/p6/addmul_1,asm mpn/x86/p6/addmul_1.asm &&
 mv mpn/x86/p6/submul_1,asm mpn/x86/p6/submul_1.asm
 if [ $? -ne 0 ]; then
     echo >&2 "Error: moving *,asm files failed."
@@ -202,15 +202,15 @@ if [ "$SAGE_BUILD_TOOLCHAIN" = yes ]; then
     echo "Building a reduced version of MPIR to bootstrap GCC."
     echo "MPIR will later get rebuilt (with the C++ interface and static libraries"
     echo "enabled) using the new compiler."
-    MPIR_CONFIGURE="--disable-cxx --disable-static $MPIR_CONFIGURE"
+    MPIR_CONFIGURE="$MPIR_CONFIGURE --disable-cxx --disable-static"
     SAGE_FAT_BINARY=no
 else
     # Also build the static library to be used by e.g. ECM
     # unless we are on Cygwin where we can only build a shared
-    # or a static library but not both
+    # or a static library but not both:
     if [ "$UNAME" = "CYGWIN" ]; then
-        echo "Building MPIR with the C++ interface."
-        MPIR_CONFIGURE="--enable-cxx --disable-static $MPIR_CONFIGURE"
+        echo "Building MPIR with the C++ interface and (only) shared libraries."
+        MPIR_CONFIGURE="--enable-cxx $MPIR_CONFIGURE --disable-static"
     else
         echo "Building MPIR with the C++ interface and (also) static libraries."
         MPIR_CONFIGURE="--enable-cxx --enable-static $MPIR_CONFIGURE"

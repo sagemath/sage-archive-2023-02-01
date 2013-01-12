@@ -50,11 +50,11 @@ See http://www.mpir.org
 
 == Changelog ==
 
-=== mpir-2.6.0.p0 (Jean-Pierre Flori, 25 November 2012) ===
+=== mpir-2.6.0.p0 (Jean-Pierre Flori, 12 January 2013) ===
  * Trac #13137: Update to MPIR 2.6.0.
  * Modify spkg-install to rename *,asm files to *.asm files.
  * Remove -Wl,-z,noexecstack fix which has been integrated upstream.
- * Remove old code about 32 bits Apple Darwin and use upstream fix.
+ * Remove old code about 32 bits Apple Darwin and use slightly modified upstream fix.
 
 === mpir-2.5.2.p0 (John Palmieri, 3 October 2012) ===
  * Trac #13137: Update to MPIR 2.5.2.

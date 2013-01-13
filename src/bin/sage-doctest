@@ -608,7 +608,9 @@ def check_with_tolerance(expected, actual, epsilon, rel_or_abs=None):
     s += test_code(os.path.abspath(file_name))
 
     # Allow for "sage:" instead of the traditional Python ">>>".
-    s = s.replace("sage:",">>>").replace('_sage"','')
+    prompt_re = re.compile(r'(\n[ \t]*)sage:', re.MULTILINE)
+    s = prompt_re.sub(r'\1>>>', s)
+    s = s.replace('_sage"','')
 
     return s
 

@@ -3,60 +3,13 @@
 """
 Sage IPython startup script.
 """
-
-import os
-import sys
+from sage.misc.interpreter import SageTerminalApp
 
 # Make sure we're using the Sage profile if one isn't specified.
-if '-p' not in sys.argv:
-    sys.argv.extend(['-p', 'sage'])
+import sys
+if '--profile' not in sys.argv:
+    sys.argv.extend(['--profile', 'sage'])
 
-
-# Import the Sage module before starting IPython, to ensure we import
-# Sage from the correct directory (in site-packages).
-#
-# IPython adds the current working directory to sys.path.  If the
-# current working directory is $SAGE_ROOT/devel/sage, sage would be
-# imported from $SAGE_ROOT/devel/sage/sage, which is bad for example
-# because it does not contain the Cython modules.  Importing sage before
-# IPython changes sys.path avoids these problems.
-import sage
-
-
-__SAGE_AUTOINJECT__ = True
-
-import IPython
-from IPython.CrashHandler import CrashHandler
-
-ipy_sage = IPython.Shell.start()
-
-sageCH = CrashHandler(ipy_sage.IP, 'Sage', 'sage-support',
-                      'sage-support@googlegroups.com',
-                      'http://trac.sagemath.org/sage_trac',
-                      'Sage_crash_report.txt',
-                      show_crash_traceback=False)
-
-ipy_sage.IP.set_crash_handler(sageCH)
-
-import new
-import os
-
-old_system = ipy_sage.IP.system
-
-
-
-sage_commands = os.listdir(os.environ['SAGE_ROOT']+"/local/bin/")
-DARWIN_SYSTEM = os.uname()[0]=='Darwin'
-
-def sage_system(self, cmd):
-    if cmd in sage_commands:
-        old_system(cmd)
-    else:
-        libraries = 'LD_LIBRARY_PATH=$$SAGE_ORIG_LD_LIBRARY_PATH;'
-        if DARWIN_SYSTEM:
-            libraries += 'DYLD_LIBRARY_PATH=$$SAGE_ORIG_DYLD_LIBRARY_PATH;'
-        old_system(libraries+cmd)
-
-ipy_sage.IP.system = new.instancemethod(sage_system, ipy_sage.IP, IPython.iplib.InteractiveShell)
-
-ipy_sage.mainloop(sys_exit=1, banner='')
+app = SageTerminalApp.instance()
+app.initialize()
+app.start()

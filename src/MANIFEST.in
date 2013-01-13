@@ -12,6 +12,7 @@ include sage/graphs/graph_decompositions/rankwidth_c/README
 include sage/schemes/hyperelliptic_curves/hypellfrob/README
 graft   sage/server/notebook/templates
 include sage/tests/french_book/README
+graft   sage/libs/gap/test
 
 recursive-include doc *.rst *.inc
 graft   doc/common/static

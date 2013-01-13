@@ -193,7 +193,7 @@ cdef int init_short_digraph(short_digraph g, G) except -1:
 
     cdef list vertices = G.vertices()
     cdef dict v_to_id = {}
-    cdef ushort i,j
+    cdef int i,j
 
     cdef int n_edges = G.size() if isdigraph else 2*G.size()
 
@@ -204,7 +204,7 @@ cdef int init_short_digraph(short_digraph g, G) except -1:
     if g.edges == NULL:
         raise ValueError("Problem while allocating memory (edges)")
 
-    g.neighbors = <ushort **> sage_malloc((g.n+1)*sizeof(ushort *))
+    g.neighbors = <ushort **> sage_malloc((1+<int>g.n)*sizeof(ushort *))
     if g.neighbors == NULL:
         raise ValueError("Problem while allocating memory (neighbors)")
 
@@ -213,7 +213,7 @@ cdef int init_short_digraph(short_digraph g, G) except -1:
     g.neighbors[0] = g.edges
 
     cdef CGraph cg = <CGraph> G._backend
-    for i in range(1,g.n+1):
+    for i in range(1,(<int>g.n)+1):
         g.neighbors[i] = g.neighbors[i-1] + <int> (cg.out_degree(vertices[i-1]) if isdigraph else G.degree(vertices[i-1]))
 
     for u,v in G.edge_iterator(labels = False):

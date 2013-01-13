@@ -129,6 +129,7 @@ Functions
 
 include "../misc/bitset_pxd.pxi"
 include "../misc/bitset.pxi"
+from libc.stdint cimport uint64_t
 from sage.graphs.base.c_graph cimport CGraph
 from sage.graphs.base.c_graph cimport vertex_label
 from sage.graphs.base.c_graph cimport get_vertex
@@ -143,6 +144,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     """
     See the module's documentation.
     """
+
     from sage.rings.infinity import Infinity
 
     cdef CGraph cg = <CGraph> gg._backend._cg
@@ -161,7 +163,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
 
     # The list of waiting vertices, the beginning and the end of the list
 
-    cdef unsigned short * waiting_list = <unsigned short *> sage_malloc(n*sizeof(short))
+    cdef unsigned short * waiting_list = <unsigned short *> sage_malloc(n*sizeof(unsigned short))
     if waiting_list==NULL:
         raise MemoryError()
     cdef unsigned short waiting_beginning = 0
@@ -190,13 +192,11 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     if distances != NULL:
         c_distances = distances
     else:
-        c_distances = <unsigned short *> sage_malloc( n * sizeof(unsigned short *))
+        c_distances = <unsigned short *> sage_malloc( n * sizeof(unsigned short))
         if c_distances==NULL:
             sage_free(waiting_list)
             sage_free(degree)
             raise MemoryError()
-    cdef int * outneighbors
-    cdef int o_n_size
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors
@@ -307,11 +307,11 @@ cdef unsigned short * c_shortest_path_all_pairs(G) except NULL:
     jump from `P[u,v]` to `v` as it is one of its outneighbors.
     """
 
-    cdef int n = G.order()
-    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    cdef unsigned int n = G.order()
+    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
     if distances==NULL:
         raise MemoryError()
-    cdef unsigned short * predecessors = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    cdef unsigned short * predecessors = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
     if predecessors==NULL:
         sage_free(distances)
         raise MemoryError()
@@ -399,8 +399,8 @@ cdef unsigned short * c_distances_all_pairs(G):
     its index in the list ``G.vertices()``.
     """
 
-    cdef int n = G.order()
-    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    cdef unsigned int n = G.order()
+    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
     if distances==NULL:
         raise MemoryError()
     all_pairs_shortest_path_BFS(G, NULL, distances, NULL)
@@ -514,16 +514,16 @@ def distances_and_predecessors_all_pairs(G):
     """
 
     from sage.rings.infinity import Infinity
-    cdef int n = G.order()
+    cdef unsigned int n = G.order()
 
     if n == 0:
         return {}, {}
 
-    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
     if distances==NULL:
         raise MemoryError()
     cdef unsigned short * c_distances = distances
-    cdef unsigned short * predecessor = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    cdef unsigned short * predecessor = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
     if predecessor==NULL:
         sage_free(distances)
         raise MemoryError()
@@ -577,12 +577,12 @@ cdef unsigned short * c_eccentricity(G) except NULL:
     The array returned is of length n, and its ith component is the eccentricity
     of the ith vertex in ``G.vertices()``.
     """
-    cdef int n = G.order()
+    cdef unsigned int n = G.order()
 
-    cdef unsigned short * ecc = <unsigned short *> sage_malloc(n*sizeof(unsigned short *))
+    cdef unsigned short * ecc = <unsigned short *> sage_malloc(n*sizeof(unsigned short))
     if ecc==NULL:
         raise MemoryError()
-    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short *))
+    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
     if distances==NULL:
         sage_free(ecc)
         raise MemoryError()
@@ -672,14 +672,15 @@ def wiener_index(G):
         from sage.rings.infinity import Infinity
         return +Infinity
 
+    from sage.rings.integer import Integer
     cdef unsigned short * distances = c_distances_all_pairs(G)
-    cdef int NN = G.order()*G.order()
-    cdef int s = 0
-    cdef int i
+    cdef unsigned int NN = G.order()*G.order()
+    cdef unsigned int i
+    cdef uint64_t s = 0
     for 0 <= i < NN:
         s += distances[i]
     sage_free(distances)
-    return s/2
+    return Integer(s)/2
 
 ##########################
 # Distances distribution #
@@ -753,10 +754,10 @@ def distances_distribution(G):
     from sage.rings.integer import Integer
 
     cdef unsigned short * distances = c_distances_all_pairs(G)
-    cdef int NN = G.order()*G.order()
+    cdef unsigned int NN = G.order()*G.order()
     cdef dict count = {}
     cdef dict distr = {}
-    cdef int i
+    cdef unsigned int i
     NNN = Integer(NN-G.order())
 
     # We count the number of pairs at equal distances
@@ -886,7 +887,7 @@ def floyd_warshall(gg, paths = True, distances = False):
         else:
             return {}
 
-    cdef int n = max(gverts) + 1
+    cdef unsigned int n = max(gverts) + 1
 
     if n >= <unsigned short> -1:
         raise ValueError("The graph backend contains more than "+str(<unsigned short> -1)+" nodes")
@@ -903,10 +904,10 @@ def floyd_warshall(gg, paths = True, distances = False):
     cdef int w_int
 
     # init dist
-    t_dist = <unsigned short *> sage_malloc(n*n*sizeof(short))
+    t_dist = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
     if t_dist==NULL:
         raise MemoryError()
-    dist = <unsigned short **> sage_malloc(n*sizeof(short *))
+    dist = <unsigned short **> sage_malloc(n*sizeof(unsigned short *))
     if dist==NULL:
         sage_free(t_dist)
         raise MemoryError()
@@ -922,12 +923,12 @@ def floyd_warshall(gg, paths = True, distances = False):
 
     if paths:
         # init prec
-        t_prec = <unsigned short *> sage_malloc(n*n*sizeof(short))
+        t_prec = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
         if t_prec==NULL:
             sage_free(t_dist)
             sage_free(dist)
             raise MemoryError()
-        prec = <unsigned short **> sage_malloc(n*sizeof(short *))
+        prec = <unsigned short **> sage_malloc(n*sizeof(unsigned short *))
         if prec==NULL:
             sage_free(t_dist)
             sage_free(dist)

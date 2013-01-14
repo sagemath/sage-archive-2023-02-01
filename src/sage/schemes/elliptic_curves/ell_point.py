@@ -8,10 +8,7 @@ curves defined over general fields.  The derived classes
 ``EllipticCurvePoint_number_field`` and
 ``EllipticCurvePoint_finite_field`` provide further support for point
 on curves defined over number fields (including the rational field
-`\QQ`) and over finite fields.  Although there is no special
-class for points over `\QQ`, there is currently greater
-functionality implemented over `\QQ` than over other number
-fields.
+`\QQ`) and over finite fields.
 
 The class ``EllipticCurvePoint``, which is based on
 ``SchemeMorphism_point_projective_ring``, currently has little extra
@@ -1974,9 +1971,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
     A point on an elliptic curve over a number field.
 
     Most of the functionality is derived from the parent class
-    ``EllipticCurvePoint_field``.  In addition we have support for the
-    order of a point, and heights (currently only implemented over
-    `\QQ`).
+    ``EllipticCurvePoint_field``.  In addition we have support for
+    orders, heights, reduction modulo primes, and elliptic logarithms.
 
     EXAMPLES::
 
@@ -2672,16 +2668,16 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 Computes [ K_v : Q_v ]
                 """
                 return 2 - int(v.im_gens()[0] in rings.RR)
-            return sum(local_degree(v) * self.archimedian_local_height(v, prec) for v in K.places(prec=prec)) / K.degree()
+            return sum(local_degree(v) * self.archimedian_local_height(v, prec) for v in K.places()) / K.degree()
 
         from sage.rings.number_field.number_field import refine_embedding
-        vv = refine_embedding(v) # doubles precision
         if prec is None:
-            prec  = vv.codomain().prec()
+            prec  = v.codomain().prec()
+        vv = refine_embedding(v, 2*prec)  # prec(vv) = max(2*prec, prec(v))
         E = self.curve()
         b2, b4, b6, b8 = [vv(b) for b in E.b_invariants()]
         H = max(4, abs(b2), 2*abs(b4), 2*abs(b6), abs(b8))
-        # The following comes from Silvermn Theorem 4.2.  Silverman
+        # The following comes from Silverman Theorem 4.2.  Silverman
         # uses decimal precision d, so his term (5/3)d =
         # (5/3)*(log(2)/log(10))*prec = 0.5017*prec, which we round
         # up.  The rest of the expression was wrongly transcribed in
@@ -2730,7 +2726,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                     t = w/(z-w)
                     beta = not beta
             four_to_n >>= 2
-        return rings.RealField(v.codomain().prec())(lam + mu/4)
+        return rings.RealField(prec)(lam + mu/4)
 
     def nonarchimedian_local_height(self, v=None, prec=None, weighted=False, is_minimal=None):
         """

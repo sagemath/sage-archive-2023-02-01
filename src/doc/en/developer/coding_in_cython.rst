@@ -54,6 +54,14 @@ There are several ways to create and build Cython code in Sage.
       to use in the notebook. Also, the output cell has a link to the C
       program that was compiled to create the ``.so`` file.
 
+   #. A ``cpdef`` or ``def`` function, say ``testfunction``, defined in
+      a ``%cython`` cell in a worksheet can be imported and made available
+      in a different ``%cython`` cell within the same worksheet by
+      importing it as shown below::
+
+          %cython
+          from __main__ import testfunction
+
 #. Create an ``.spyx`` file and attach or load it from the command
    line. This is similar to creating a ``%cython`` cell in the
    notebook but works completely from the command line (and not from

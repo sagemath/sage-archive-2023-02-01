@@ -184,7 +184,7 @@ class SteinWatkinsAllData:
         num = int(num)
         self.num = num
         if num < 0:
-            raise RuntimeError, "num (=%s) must be a nonnegative integer"%num
+            raise RuntimeError("num (=%s) must be a nonnegative integer"%num)
         name = str(num)
         name = '0'*(3-len(name)) + name
         self._file = os.path.join(SAGE_SHARE, 'stein-watkins-ecdb', 'a.%s.bz2'%name)
@@ -218,7 +218,7 @@ class SteinWatkinsAllData:
         try:
             file = bz2.BZ2File(self._file, 'r')
         except IOError:
-            raise IOError, "The Stein-Watkins data file %s must be installed."%self._file
+            raise IOError("The Stein-Watkins data file %s must be installed."%self._file)
         C = None
         for L in file:
             if len(L) == 0:
@@ -313,7 +313,7 @@ class SteinWatkinsPrimeData(SteinWatkinsAllData):
         num = int(num)
         self.num = num
         if num < 0:
-            raise RuntimeError, "num (=%s) must be a nonnegative integer"%num
+            raise RuntimeError("num (=%s) must be a nonnegative integer"%num)
         name = str(num)
         name = '0'*(2-len(name)) + name
         self._file = os.path.join(SAGE_SHARE,'stein-watkins-ecdb','p.%s.bz2'%name)

@@ -59,9 +59,7 @@ def database_install(name):
     i = name.find('.')
     if i != -1:
         name = name[:i]
-        print "Truncating database name to '%s'"%name
+        print("Truncating database name to '%s'"%name)
     D = GenericDatabaseInstaller(name)
     D.install()
-
-
 

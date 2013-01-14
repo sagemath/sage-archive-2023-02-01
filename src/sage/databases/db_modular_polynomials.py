@@ -28,7 +28,7 @@ dblocation = os.path.join(sage.misc.misc.SAGE_SHARE,'kohel')
 def _dbz_to_integer_list(name):
     file = os.path.join(dblocation, name)
     if not os.path.exists(file):
-        raise RuntimeError, "Modular polynomial database file %s not available"%file
+        raise RuntimeError("Modular polynomial database file %s not available"%file)
     data = bz2.decompress(open(file).read())
     data = "[[" + data.replace("\n","],[").replace(" ",",")[:-2] + "]"
     return eval(data)
@@ -79,18 +79,17 @@ class ModularPolynomialDatabase:
         if self.model in ("Atk","Eta"):
             level = Integer(level)
             if not level.is_prime():
-                raise TypeError, "Argument level (= %s) must be prime."%level
+                raise TypeError("Argument level (= %s) must be prime."%level)
         elif self.model in ("AtkCrr","EtaCrr"):
             N = Integer(level[0])
             if not N in (2,3,5,7,13):
-                raise TypeError, "Argument level (= %s) must be prime."%N
+                raise TypeError("Argument level (= %s) must be prime."%N)
         modpol = self._dbpath(level)
         try:
             coeff_list = _dbz_to_integer_list(modpol)
-        except RuntimeError, msg:
-            print msg
-            raise RuntimeError, \
-                  "No database entry for modular polynomial of level %s"%level
+        except RuntimeError as msg:
+            print(msg)
+            raise RuntimeError("No database entry for modular polynomial of level %s"%level)
         if self.model == "Cls":
             P = PolynomialRing(IntegerRing(),2,"j")
         else:

@@ -140,7 +140,7 @@ class ConwayPolynomials(collections.Mapping):
         """
         try:
             return DictInMapping(self._store[key])
-        except KeyError, err:
+        except KeyError as err:
             try:
                 if isinstance(key, (tuple, list)):
                     if len(key) == 2:

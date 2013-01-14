@@ -257,19 +257,19 @@ class SloaneEncyclopediaClass:
         """
         ### See if the encyclopedia already exists
         if not overwrite and os.path.exists(self.__file__):
-            raise IOError, "Sloane encyclopedia is already installed"
+            raise IOError("Sloane encyclopedia is already installed")
 
         tm = verbose("Downloading stripped version of Sloane encyclopedia")
         try:
             fname, _ = urllib.urlretrieve(oeis_url);
-        except IOError, msg:
-            raise IOError, "%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, oeis_url)
+        except IOError as msg:
+            raise IOError("%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, oeis_url))
 
         if not names_url is None:
             try:
                 nname, _ = urllib.urlretrieve(names_url);
-            except IOError, msg:
-                raise IOError, "%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, names_url)
+            except IOError as msg:
+                raise IOError("%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, names_url))
         else:
             nname = None
         verbose("Finished downloading", tm)
@@ -296,7 +296,7 @@ class SloaneEncyclopediaClass:
           old encyclopedia.
         """
         if not overwrite and os.path.exists(self.__file__):
-            raise IOError, "Sloane encyclopedia is already installed"
+            raise IOError("Sloane encyclopedia is already installed")
 
         copy_gz_file(stripped_file, self.__file__)
 
@@ -323,7 +323,7 @@ class SloaneEncyclopediaClass:
         try:
             file_seq = bz2.BZ2File(self.__file__, 'r')
         except IOError:
-            raise IOError, "The Sloane Encyclopedia database must be installed.  Use e.g. 'SloaneEncyclopedia.install()' to download and install it."
+            raise IOError("The Sloane Encyclopedia database must be installed.  Use e.g. 'SloaneEncyclopedia.install()' to download and install it.")
 
         self.__data__ = {}
 
@@ -352,8 +352,8 @@ class SloaneEncyclopediaClass:
             self.__loaded_names__ = True
         except KeyError:
             ### Some sequence in the names file isn't in the database
-            raise KeyError, "Sloane OEIS sequence and name files do not match.  Try reinstalling, e.g. SloaneEncyclopedia.install(overwrite=True)."
-        except IOError, msg:
+            raise KeyError("Sloane OEIS sequence and name files do not match.  Try reinstalling, e.g. SloaneEncyclopedia.install(overwrite=True).")
+        except IOError as msg:
             ### The names database is not installed
             self.__loaded_names__ = False
 
@@ -379,7 +379,7 @@ class SloaneEncyclopediaClass:
         """
         self.load()
         if not self.__loaded_names__:
-            raise IOError, "The Sloane OEIS names file is not installed.  Try reinstalling, e.g. SloaneEncyclopedia.install(overwrite=True)."
+            raise IOError("The Sloane OEIS names file is not installed.  Try reinstalling, e.g. SloaneEncyclopedia.install(overwrite=True).")
 
         if not N in self.__data__: # sequence N does not exist
             return ''
@@ -417,8 +417,8 @@ def copy_gz_file(gz_source, bz_destination):
         gz_input = gzip.open(gz_source, 'r')
         db_text = gz_input.read()
         gz_input.close()
-    except IOError, msg:
-        raise IOError, "Error reading gzipped input file:\n%s"%msg
+    except IOError as msg:
+        raise IOError("Error reading gzipped input file:\n%s"%msg)
 
     # Write the bzipped output
     try:
@@ -426,9 +426,8 @@ def copy_gz_file(gz_source, bz_destination):
         bz2_output = bz2.BZ2File(bz_destination, 'w')
         bz2_output.write(db_text)
         bz2_output.close()
-    except IOError, msg:
-        raise IOError, "Error writing bzipped output file:\n%s"%msg
-
+    except IOError as msg:
+        raise IOError("Error writing bzipped output file:\n%s"%msg)
 
 def parse_sequence(text):
     entry = re.compile(r'%(?P<letter>[A-Za-z]) A(?P<num>\d{6}) (?P<body>.*)$')
@@ -498,10 +497,10 @@ def sloane_sequence(number, verbose = True):
         try:
             number = str(ZZ(number))
         except TypeError:
-            raise TypeError, "input must be an integer or string that specifies the id of the Sloane sequence to download"
+            raise TypeError("input must be an integer or string that specifies the id of the Sloane sequence to download")
     results = sloane_find('id:A%s'%number, verbose = verbose)
     if len(results) == 0:
-        raise ValueError, "sequence '%s' not found"%number
+        raise ValueError("sequence '%s' not found"%number)
     return results[0]
 
 def sloane_find(list, nresults = 30, verbose=True):
@@ -551,16 +550,15 @@ def sloane_find(list, nresults = 30, verbose=True):
                                   'fmt': 2,
                                   'sort': 0});
 
-
     try:
         if verbose:
-            print "Searching Sloane's online database..."
+            print("Searching Sloane's online database...")
         url = "http://oeis.org/classic/"
         f = urllib.urlopen(url+'?'+urlparams);
         s = f.read()
         f.close()
-    except IOError, msg:
-        raise IOError, "%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, url)
+    except IOError as msg:
+        raise IOError("%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, url))
 
     t = s.lower()
     i = t.find("<pre>")

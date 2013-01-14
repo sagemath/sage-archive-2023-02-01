@@ -47,6 +47,8 @@ while the full version has the layout::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import print_function
+
 import os
 from sage.misc.prandom import randint
 
@@ -119,20 +121,20 @@ def build(name, data_tgz, largest_conductor=0, mini=False, decompress=True):
         raise RuntimeError('Please (re)move %s before building '%db_path \
                 + 'database')
     if not os.path.exists(data_tgz):
-        raise IOError, "The data file is not at %s"%data_tgz
+        raise IOError("The data file is not at %s"%data_tgz)
     t = walltime()
 
     if decompress:
         cmd = "tar zxvf %s"%data_tgz
         n = os.system(cmd)
         if n:
-            raise RuntimeError, "Error extracting tarball."
+            raise RuntimeError("Error extracting tarball.")
     if mini:
         c = MiniCremonaDatabase(name,False,True)
     else:
         c = LargeCremonaDatabase(name,False,True)
     c._init_from_ftpdata('ecdata', largest_conductor)
-    print "Total time: ", walltime(t)
+    print("Total time: ", walltime(t))
 
 def is_optimal_id(id):
     """
@@ -229,7 +231,7 @@ def cremona_letter_code(n):
         n = -1
 
     if n<0:
-        raise ValueError, "Cremona letter codes are only defined for non-negative integers"
+        raise ValueError("Cremona letter codes are only defined for non-negative integers")
 
     if n == 0:
         return "a"
@@ -526,8 +528,7 @@ def cremona_to_lmfdb(cremona_label, CDB=None):
     sorted_letters = [iso[1] for iso in isos]
     lmfdb_iso = cremona_letter_code(sorted_letters.index(cremona_iso))
     if len(cremona_number) > 0:
-        iso_class = [(curve[0],str(i+1)) for i,curve in enumerate(classes[class_to_int(cremona_iso)])]
-        iso_class.sort()
+        iso_class = sorted([(curve[0],str(i+1)) for i,curve in enumerate(classes[class_to_int(cremona_iso)])])
         sorted_numbers = [curve[1] for curve in iso_class]
         lmfdb_number = str(sorted_numbers.index(cremona_number)+1)
         return N + '.' + lmfdb_iso + lmfdb_number
@@ -578,8 +579,7 @@ def lmfdb_to_cremona(lmfdb_label, CDB=None):
     isos.sort()
     cremona_iso = isos[class_to_int(lmfdb_iso)][1]
     if len(lmfdb_number) > 0:
-        iso_class = [(curve[0],i+1) for i,curve in enumerate(classes[class_to_int(cremona_iso)])]
-        iso_class.sort()
+        iso_class = sorted([(curve[0],i+1) for i,curve in enumerate(classes[class_to_int(cremona_iso)])])
         cremona_number = str(iso_class[int(lmfdb_number)-1][1])
         return N + cremona_iso + cremona_number
     else:
@@ -1237,7 +1237,7 @@ class MiniCremonaDatabase(SQLDatabase):
         EXAMPLES::
 
             sage: d = sage.databases.cremona.MiniCremonaDatabase(name='cremona', read_only=False, rebuild=True)   # not tested
-            sage: d._init_from_ftpdata('.')                                                                       # not tested
+            sage: d._init_from_ftpdata('.')     # not tested
         """
         if self.__read_only__:
             raise RuntimeError("The database must not be read_only.")
@@ -1247,7 +1247,7 @@ class MiniCremonaDatabase(SQLDatabase):
                 + "' does not exist.")
 
         if largest_conductor:
-            print "largest conductor =", largest_conductor
+            print("largest conductor =", largest_conductor)
             self.__largest_conductor__ =  largest_conductor
 
         num_curves, num_iso_classes = self._init_allcurves(ftpdata, largest_conductor)
@@ -1282,13 +1282,12 @@ class MiniCremonaDatabase(SQLDatabase):
        EXAMPLES::
 
             sage: d = sage.databases.cremona.MiniCremonaDatabase(name='cremona', read_only=False, rebuild=True)   # not tested
-            sage: d._init_allcurves('.', 11)                                                                      # not tested
+            sage: d._init_allcurves('.', 11)    # not tested
             (3, 1)
         """
         if self.__read_only__:
             raise RuntimeError("The database must not be read_only.")
-        files = os.listdir(ftpdata)
-        files.sort()
+        files = sorted(os.listdir(ftpdata))
         name = 'allcurves'
         num_curves = 0
         num_iso_classes = 0
@@ -1296,7 +1295,7 @@ class MiniCremonaDatabase(SQLDatabase):
         for F in files:
             if not F[:len(name)] == name:
                 continue
-            print "Inserting", F
+            print("Inserting", F)
             class_data = []
             curve_data = []
             for L in file(ftpdata + "/" + F).readlines():
@@ -1313,8 +1312,8 @@ class MiniCremonaDatabase(SQLDatabase):
                 + 'VALUES (?,?,?)', class_data)
             con.executemany('INSERT INTO t_curve (curve,class,eqn,tors) ' \
                 + 'VALUES (?,?,?,?)', curve_data)
-            print "Committing..."
-            print "num_iso_classes =", num_iso_classes
+            print("Committing...")
+            print("num_iso_classes =", num_iso_classes)
             self.commit()
             if largest_conductor and int(N) > largest_conductor: break
         return num_curves, num_iso_classes
@@ -1336,8 +1335,8 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
 
         TESTS::
 
-            sage: c = CremonaDatabase('cremona')                      # optional - database_cremona_ellcurve
-            sage: c.name                                              # optional - database_cremona_ellcurve
+            sage: c = CremonaDatabase('cremona')    # optional - database_cremona_ellcurve
+            sage: c.name                            # optional - database_cremona_ellcurve
             'cremona'
         """
         self.name = name
@@ -1461,18 +1460,17 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
         EXAMPLES::
 
             sage: d = sage.databases.cremona.LargeCremonaDatabase(name='cremona', read_only=False, rebuild=True)   # not tested
-            sage: d._init_degphi('.')                                                                              # not tested
+            sage: d._init_degphi('.')           # not tested
         """
         if self.__read_only__:
-            raise RuntimeError, "The database must not be read_only."
-        files = os.listdir(ftpdata)
-        files.sort()
+            raise RuntimeError("The database must not be read_only.")
+        files = sorted(os.listdir(ftpdata))
         name = "degphi"
         con = self.get_connection()
         for F in files:
             if not F[:len(name)] == name:
                 continue
-            print "Inserting", F
+            print("Inserting", F)
             class_data = []
             for L in file(ftpdata + "/" + F).readlines():
                 N, iso, num, degree, primes, curve = L.split()
@@ -1480,7 +1478,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
                 class_data.append((degree,N+iso))
             con.executemany('UPDATE t_class SET deg=? WHERE class=?', \
                 class_data)
-            print "Committing..."
+            print("Committing...")
             self.commit()
             if largest_conductor and int(N) > largest_conductor: break
 
@@ -1495,18 +1493,17 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
         EXAMPLES::
 
             sage: d = sage.databases.cremona.LargeCremonaDatabase(name='cremona', read_only=False, rebuild=True)   # not tested
-            sage: d._init_allbsd('.')                                                                              # not tested
+            sage: d._init_allbsd('.')           # not tested
         """
         if self.__read_only__:
-            raise RuntimeError, "The database must not be read_only."
-        files = os.listdir(ftpdata)
-        files.sort()
+            raise RuntimeError("The database must not be read_only.")
+        files = sorted(os.listdir(ftpdata))
         name = "allbsd"
         con = self.get_connection()
         for F in files:
             if not F[:len(name)] == name:
                 continue
-            print "Inserting", F
+            print("Inserting", F)
             curve_data = []
             class_data = []
             for L in file(ftpdata + "/" + F).readlines():
@@ -1519,7 +1516,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             con.executemany("UPDATE t_class SET L=? WHERE class=?", class_data)
             con.executemany("UPDATE t_curve SET cp=?,om=?,reg=?,sha=? WHERE " \
                     + "curve=?", curve_data)
-            print "Committing..."
+            print("Committing...")
             self.commit()
             if largest_conductor and int(N) > largest_conductor: break
 
@@ -1534,18 +1531,17 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
         EXAMPLES::
 
             sage: d = sage.databases.cremona.LargeCremonaDatabase(name='cremona', read_only=False, rebuild=True)   # not tested
-            sage: d._init_allgens('.')                                                                             # not tested
+            sage: d._init_allgens('.')          # not tested
         """
         if self.__read_only__:
-            raise RuntimeError, "The database must not be read_only."
-        files = os.listdir(ftpdata)
-        files.sort()
+            raise RuntimeError("The database must not be read_only.")
+        files = sorted(os.listdir(ftpdata))
         name = "allgens"
         con = self.get_connection()
         for F in files:
             if not F[:len(name)] == name:
                 continue
-            print "Inserting", F
+            print("Inserting", F)
             curve_data = []
             for L in file(ftpdata + "/" + F).readlines():
                 v = L.split()
@@ -1554,7 +1550,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
                 curve_data.append((gens,''.join(v[:3])))
             con.executemany("UPDATE t_curve SET gens=? WHERE curve=?", \
                 curve_data)
-            print "Committing..."
+            print("Committing...")
             if largest_conductor and int(v[0]) > largest_conductor: break
 
 _db = None

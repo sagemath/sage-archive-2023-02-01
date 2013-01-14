@@ -174,7 +174,7 @@ def verify_column(col_dict):
     d['primary_key'] = col_dict.get('primary_key', False)
     d['index'] = col_dict.get('index', False) or d['primary_key']
     d['unique'] = col_dict.get('unique', False) or d['primary_key']
-    if not col_dict.has_key('sql'):
+    if 'sql' not in col_dict:
         raise ValueError("SQL type must be declared, e.g. {'sql':'REAL'}.")
     if verify_type(col_dict['sql']):
         d['sql'] = col_dict['sql']
@@ -327,23 +327,23 @@ def _create_print_table(cur, col_titles, **kwds):
     fcol_index = []
     pcol_index = []
 
-    if kwds.has_key('format_cols'):
+    if 'format_cols' in kwds:
         fcol_map = []
         for col in kwds['format_cols']:
             fcol_map.append(kwds['format_cols'][col])
             fcol_index.append(col_titles.index(col))
-    if kwds.has_key('plot_cols'):
+    if 'plot_cols' in kwds:
         pcol_map = []
         for col in kwds['plot_cols']:
             pcol_map.append(kwds['plot_cols'][col])
             pcol_index.append(col_titles.index(col))
 
-    max_field_size = kwds['max_field_size'] if kwds.has_key('max_field_size') \
+    max_field_size = kwds['max_field_size'] if 'max_field_size' in kwds \
                     else 20
-    id_col_index = col_titles.index(kwds['id_col']) if kwds.has_key('id_col') \
+    id_col_index = col_titles.index(kwds['id_col']) if 'id_col' in kwds \
                    else None
 
-    if kwds.has_key('relabel_cols'):
+    if 'relabel_cols' in kwds:
         relabel_cols = kwds['relabel_cols']
         for i in range(len(col_titles)):
             try:
@@ -386,7 +386,7 @@ def _create_print_table(cur, col_titles, **kwds):
         return ' '.join(cur_str)
 
     from sage.server.support import EMBEDDED_MODE
-    if EMBEDDED_MODE or (kwds.has_key('html_table') and kwds['html_table']):
+    if EMBEDDED_MODE or ('html_table' in kwds and kwds['html_table']):
         # Notebook Version
         ret = '<html><!--notruncate-->\n'
         ret += '  <table bgcolor=lightgrey cellpadding=0>\n'
@@ -448,25 +448,25 @@ class SQLQuery(SageObject):
             return
         for x in args:
             if isinstance(x,dict):
-                if not kwds.has_key('query_dict'):
+                if 'query_dict' not in kwds:
                     kwds['query_dict'] = x
             elif isinstance(x, str):
-                if not kwds.has_key('query_string'):
+                if 'query_string' not in kwds:
                     kwds['query_string'] = x
             elif isinstance(x, tuple):
-                if not kwds.has_key('param_tuple'):
+                if 'param_tuple' not in kwds:
                     kwds['param_tuple'] = x
-        if total_args > 2 or not (kwds.has_key('query_dict') or \
-              kwds.has_key('query_string')) or (kwds.has_key('query_dict') and\
-              (kwds.has_key('param_tuple') or kwds.has_key('query_string'))):
+        if total_args > 2 or not ('query_dict' in kwds or \
+              'query_string' in kwds) or ('query_dict' in kwds and\
+              ('param_tuple' in kwds or 'query_string' in kwds)):
             raise ValueError('Query must be constructed with either a ' \
                 + 'dictionary or a string and tuple')
 
-        if kwds.has_key('query_dict'):
+        if 'query_dict' in kwds:
               query_dict = kwds['query_dict']
         else:
               self.__query_string__ = kwds['query_string']
-              if kwds.has_key('param_tuple'):
+              if 'param_tuple' in kwds:
                   self.__param_tuple__ = tuple((str(x) for x in kwds['param_tuple']))
               else:
                   self.__param_tuple__ = tuple()
@@ -474,15 +474,15 @@ class SQLQuery(SageObject):
 
         if query_dict:
             skel = database.__skeleton__
-            if not skel.has_key(query_dict['table_name']):
+            if query_dict['table_name'] not in skel:
                 raise ValueError("Database has no table" \
                     + str(query_dict['table_name']) + ".")
             table_name = query_dict['table_name']
             if query_dict['display_cols'] is not None:
                 for column in query_dict['display_cols']:
-                    if not skel[table_name].has_key(column):
+                    if column not in skel[table_name]:
                         raise ValueError("Table has no column %s."%column)
-            if not skel[table_name].has_key(query_dict['expression'][0]):
+            if query_dict['expression'][0] not in skel[table_name]:
                 raise ValueError("Table has no column " \
                     + str(query_dict['expression'][0]) + ".")
 
@@ -666,8 +666,8 @@ class SQLQuery(SageObject):
         except StandardError:
             raise RuntimeError('Failure to fetch query.')
 
-        print _create_print_table(cur, [des[0] for des in cur.description], \
-                                  **kwds)
+        print(_create_print_table(cur, [des[0] for des in cur.description], \
+                                  **kwds))
 
     def __copy__(self):
         """
@@ -1074,9 +1074,9 @@ class SQLDatabase(SageObject):
                             self.add_column(table, column, \
                                 skeleton[table][column])
                         else:
-                            print('Column attributes were ignored for table ' \
-                                '%s, column %s -- column is '%(table, column) \
-                                + 'already in table.')
+                            print('Column attributes were ignored for ' \
+                                'table {}, column {} -- column is ' \
+                                'already in table.'.format(table, column))
         elif skeleton is not None:
             raise RuntimeError('Cannot update skeleton of a read only ' \
                 + 'database.')
@@ -1283,8 +1283,8 @@ class SQLDatabase(SageObject):
             cur.execute('SELECT * FROM ' + table_name)
         except StandardError:
             raise RuntimeError('Failure to fetch data.')
-        print _create_print_table(cur, [des[0] for des in cur.description], \
-                **kwds)
+        print(_create_print_table(cur, [des[0] for des in cur.description], \
+                **kwds))
 
     def get_cursor(self, ignore_warning=None):
         """
@@ -1408,7 +1408,7 @@ class SQLDatabase(SageObject):
         """
         if self.__read_only__:
             raise RuntimeError('Cannot add table to a read only database.')
-        if self.__skeleton__.has_key(table_name):
+        if table_name in self.__skeleton__:
             raise ValueError('Database already has a table named' \
                 + '%s.'%table_name)
         if table_name.find(' ') != -1:
@@ -1506,9 +1506,9 @@ class SQLDatabase(SageObject):
             raise ValueError("Column names cannot contain 'sqlite'.")
         if col_name.upper() in sqlite_keywords:
             raise ValueError("Column names cannot be SQLite keywords.")
-        if not self.__skeleton__.has_key(table_name):
+        if table_name not in self.__skeleton__:
             raise ValueError("Database has no table %s."%table_name)
-        if self.__skeleton__[table_name].has_key(col_name):
+        if col_name in self.__skeleton__[table_name]:
             raise ValueError("Table %s already has column %s."%(table_name,col_name))
 
         # Update the skeleton:
@@ -1516,11 +1516,11 @@ class SQLDatabase(SageObject):
 
         try:
             self._rebuild_table(table_name, col_name, default)
-        except sqlite.Error, e:
+        except sqlite.Error as e:
             # delete added column from skeleton
             self.__skeleton__[table_name].pop(col_name)
 
-            print 'A sqlite error occurred: ', e.args[0]
+            print('A sqlite error occurred: ', e.args[0])
 
     def _rebuild_table(self, table_name, col_name=None, default=''):
         """
@@ -1670,9 +1670,9 @@ class SQLDatabase(SageObject):
         if self.__read_only__:
             raise RuntimeError('Cannot drop columns in a read only database.')
         # Check input:
-        if not self.__skeleton__.has_key(table_name):
+        if table_name not in self.__skeleton__:
             raise ValueError("Database has no table %s."%table_name)
-        if not self.__skeleton__[table_name].has_key(col_name):
+        if col_name not in self.__skeleton__[table_name]:
             raise ValueError("Table %s has no column %s."%(table_name,col_name))
 
         # Update the skeleton:
@@ -1704,9 +1704,9 @@ class SQLDatabase(SageObject):
         if self.__read_only__:
             raise RuntimeError('Cannot rename tables in a read only database.')
         # Check input:
-        if not self.__skeleton__.has_key(table_name):
+        if table_name not in self.__skeleton__:
             raise ValueError('Database has no table %s.'%table_name)
-        if self.__skeleton__.has_key(new_name):
+        if new_name in self.__skeleton__:
             raise ValueError('Database already has table %s.'%new_name)
 
         self.__connection__.execute('ALTER TABLE %s RENAME TO '%table_name \
@@ -1737,7 +1737,7 @@ class SQLDatabase(SageObject):
         if self.__read_only__:
             raise RuntimeError('Cannot drop tables from a read only ' \
                 + 'database.')
-        if not self.__skeleton__.has_key(table_name):
+        if table_name not in self.__skeleton__:
             raise ValueError("Database has no table %s."%table_name)
 
         self.__connection__.execute('DROP TABLE ' + table_name)
@@ -1765,7 +1765,7 @@ class SQLDatabase(SageObject):
         """
         if self.__read_only__:
             raise RuntimeError('Cannot remove data from a read only database.')
-        if not self.__skeleton__.has_key(table_name):
+        if table_name not in self.__skeleton__:
             raise ValueError("Database has no table %s."%table_name)
         self.__connection__.execute('DELETE FROM ' + table_name)
 
@@ -1793,9 +1793,9 @@ class SQLDatabase(SageObject):
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
-        if not self.__skeleton__.has_key(table_name):
+        if table_name not in self.__skeleton__:
             raise ValueError("Database has no table %s."%table_name)
-        if not self.__skeleton__[table_name].has_key(col_name):
+        if col_name not in self.__skeleton__[table_name]:
             raise ValueError("Table %s has no column %s."%(table_name,col_name))
 
         if unique:
@@ -1829,9 +1829,9 @@ class SQLDatabase(SageObject):
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
-        if not self.__skeleton__.has_key(table_name):
+        if table_name not in self.__skeleton__:
             raise ValueError("Database has no table %s."%table_name)
-        if not self.__skeleton__[table_name].has_key(index_name):
+        if index_name not in self.__skeleton__[table_name]:
             raise ValueError("Table %s has no column %s."%(table,index_name))
         if not self.__skeleton__[table_name][index_name]['index']:
             return # silently
@@ -1865,9 +1865,9 @@ class SQLDatabase(SageObject):
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database')
-        if not self.__skeleton__.has_key(table_name):
+        if table_name not in self.__skeleton__:
             raise ValueError("Database has no table %s."%table_name)
-        if not self.__skeleton__[table_name].has_key(col_name):
+        if col_name not in self.__skeleton__[table_name]:
             raise ValueError("Table %s has no column %s."%(table_name, col_name))
 
         # Update the skeleton:
@@ -1898,9 +1898,9 @@ class SQLDatabase(SageObject):
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
-        if not self.__skeleton__.has_key(table_name):
+        if table_name not in self.__skeleton__:
             raise ValueError("Database has no table %s."%table_name)
-        if not self.__skeleton__[table_name].has_key(col_name):
+        if col_name not in self.__skeleton__[table_name]:
             raise ValueError("Table %s has no column %s."%(table_name, col_name))
         if self.__skeleton__[table_name][col_name]['primary_key']:
             raise ValueError("Primary keys must be unique.")
@@ -1936,9 +1936,9 @@ class SQLDatabase(SageObject):
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
-        if not self.__skeleton__.has_key(table_name):
+        if table_name not in self.__skeleton__:
             raise ValueError("Database has no table %s."%table_name)
-        if not self.__skeleton__[table_name].has_key(col_name):
+        if col_name not in self.__skeleton__[table_name]:
             raise ValueError("Table %s has no column %s."%(table_name, col_name))
 
         # Update the skeleton:
@@ -1975,9 +1975,9 @@ class SQLDatabase(SageObject):
         """
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
-        if not self.__skeleton__.has_key(table_name):
+        if table_name not in self.__skeleton__:
             raise ValueError("Database has no table %s."%table_name)
-        if not self.__skeleton__[table_name].has_key(col_name):
+        if col_name not in self.__skeleton__[table_name]:
             raise ValueError("Table %s has no column %s."%(table_name,col_name))
         if not self.__skeleton__[table_name][col_name]['primary_key']:
             return # silently

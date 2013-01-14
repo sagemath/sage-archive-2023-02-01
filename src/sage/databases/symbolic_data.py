@@ -206,4 +206,4 @@ class SymbolicData:
             self.__ideals = [s.replace('.', '__') for s in __ideals]
             return self.__ideals
         except OSError:
-            raise AttributeError, "Could not find symbolic data, you should perhaps install the optional package"
+            raise AttributeError("Could not find symbolic data, you should perhaps install the optional package")

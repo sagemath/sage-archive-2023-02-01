@@ -85,26 +85,24 @@ class JonesDatabase:
         return "John Jones's table of number fields with bounded ramification and degree <= 6"
 
     def _load(self, path, filename):
-        print filename
+        print(filename)
         i = 0
         while filename[i].isalpha():
             i += 1
         j = len(filename)-1
         while filename[j].isalpha() or filename[j] in [".", "_"]:
             j -= 1
-        S = [eval(z) for z in filename[i:j+1].split("-")]
-        S.sort()
+        S = sorted([eval(z) for z in filename[i:j+1].split("-")])
         data = open(path + "/" + filename).read()
         data = data.replace("^","**")
         x = PolynomialRing(RationalField(), 'x').gen()
         v = eval(data)
         s = tuple(S)
-        if self.root.has_key(s):
+        if s in self.root:
             self.root[s] += v
             self.root[s].sort()
         else:
             self.root[s] = v
-
 
     def _init(self, path):
         """
@@ -137,11 +135,11 @@ class JonesDatabase:
         self.root = {}
         self.root[tuple([])] = [x-1]
         if not os.path.exists(path):
-            raise IOError, "Path %s does not exist."%path
+            raise IOError("Path %s does not exist."%path)
         for X in os.listdir(path):
             if X[-4:] == "solo":
                 Z = path + "/" + X
-                print X
+                print(X)
                 for Y in os.listdir(Z):
                     if Y[-3:] == ".gp":
                         self._load(Z, Y)
@@ -185,8 +183,7 @@ class JonesDatabase:
         Z = []
         for X in powerset(S):
             Z += self.ramified_at(X, d=d, var=var)
-        Z = [(k.degree(), k.discriminant().abs(), k.discriminant() > 0, k) for k in Z]
-        Z.sort()
+        Z = sorted([(k.degree(), k.discriminant().abs(), k.discriminant() > 0, k) for k in Z])
         return [z[-1] for z in Z]
 
     def __getitem__(self, S):
@@ -219,16 +216,16 @@ class JonesDatabase:
             if os.path.exists(JONESDATA+ "/jones.sobj"):
                 self.root = load(JONESDATA+ "/jones.sobj")
             else:
-                raise RuntimeError, "You must install the Jones database optional package."
+                raise RuntimeError("You must install the Jones database optional package.")
         try:
             S = list(S)
         except TypeError:
             S = [S]
         if not all([p.is_prime() for p in S]):
-            raise ValueError, "S must be a list of primes"
+            raise ValueError("S must be a list of primes")
         S.sort()
         s = tuple(S)
-        if not self.root.has_key(s):
+        if s not in self.root:
             return []
         return [NumberField(f, var, check=False) for f in self.root[s]]
 

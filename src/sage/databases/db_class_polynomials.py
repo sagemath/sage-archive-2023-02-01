@@ -29,7 +29,7 @@ level_length = 3
 def _dbz_to_integers(name):
     file = '%s/%s'%(dblocation, name)
     if not os.path.exists(file):
-        raise RuntimeError, "Class polynomial database file %s not available"%file
+        raise RuntimeError("Class polynomial database file %s not available"%file)
     data = bz2.decompress(open(file).read())
     data = "[" + data.replace("\n",",") + "]"
     return eval(data)
@@ -48,7 +48,7 @@ class ClassPolynomialDatabase:
             NotImplementedError: Level (= 2) > 1 not yet implemented.
         """
         if level != 1:
-            raise NotImplementedError, "Level (= %s) > 1 not yet implemented."%level
+            raise NotImplementedError("Level (= %s) > 1 not yet implemented."%level)
         n1 = 5000*((abs(disc)-1)//5000)
         s1 = _pad_int_str(n1+1,disc_length)
         s2 = _pad_int_str(n1+5000,disc_length)
@@ -60,10 +60,9 @@ class ClassPolynomialDatabase:
         classpol = self._dbpath(disc,level)
         try:
             coeff_list = _dbz_to_integers(classpol)
-        except RuntimeError, msg:
-            print msg
-            raise RuntimeError, \
-                  "No database entry for class polynomial of discriminant %s"%disc
+        except RuntimeError as msg:
+            print(msg)
+            raise RuntimeError("No database entry for class polynomial of discriminant %s"%disc)
         P = PolynomialRing(IntegerRing(),names=var)
         return P(list(coeff_list))
 

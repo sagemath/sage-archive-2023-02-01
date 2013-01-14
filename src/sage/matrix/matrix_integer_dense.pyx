@@ -212,7 +212,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            This is for internal use only, or if you really know what
            you're doing.
         """
-        matrix_dense.Matrix_dense.__init__(self, parent)
+        self._parent = parent
+        self._base_ring = ZZ
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
         self._pivots = None

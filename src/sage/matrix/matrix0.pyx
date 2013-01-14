@@ -98,6 +98,17 @@ cdef class Matrix(sage.structure.element.Matrix):
     """
     def __init__(self, parent):
         """
+        The initialization routine of the Matrix base class ensures that it sets
+        the attributes self._parent, self._base_ring, self._nrows, self._ncols.
+        It sets the latter ones by accessing the relevant information on parent,
+        which is often slower than what a more specific subclass can do.
+
+        Subclasses of Matrix can safely skip calling Matrix.__init__ provided they
+        take care of initializing these attributes themselves.
+
+        The private attributes self._is_immutable and self._cache are implicitly
+        initialized to valid values upon memory allocation.
+
         EXAMPLES::
 
             sage: import sage.matrix.matrix0
@@ -109,8 +120,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         self._base_ring = parent.base_ring()
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
-        self._is_immutable = False
-        self._cache = None
 
     def copy(self):
         """

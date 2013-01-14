@@ -129,12 +129,16 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
     # x * def _unpickle
     ########################################################################
 
-    def __cinit__(self):
+    def __cinit__(self, parent, entries,copy, coerce):
         mpz_init(self.a)
         mpz_init(self.b)
         mpz_init(self.c)
         mpz_init(self.d)
         self._entries = &self.a
+        self._parent = parent
+        self._base_ring = ZZ
+        self._nrows = 2
+        self._ncols = 2
 
     def __init__(self, parent, entries, copy, coerce):
         """
@@ -156,8 +160,6 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
             TypeError: cannot construct an element of
             Space of 2x2 integer matrices from [11, 3]!
         """
-        matrix.Matrix.__init__(self, parent)
-
         cdef Py_ssize_t i, n
 
         if entries is None:

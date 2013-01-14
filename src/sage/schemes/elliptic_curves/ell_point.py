@@ -2645,6 +2645,15 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: Q.archimedian_local_height(K.places()[0]) / 2
             0.654445619529600
 
+        Local heights of torsion points can be non-zero (unlike the
+        global height)::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve([0, 0, 0, K(1), 0])
+            sage: P = E(i, 0)
+            sage: P.archimedian_local_height()
+            0.346573590279973
+
         TESTS:
 
         See :trac:`12509`::
@@ -2658,9 +2667,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             -0.2206607955468278492183362746930
 
         """
-        if self.has_finite_order():
-            return QQ(0)
-
         if v is None:
             K = self.curve().base_ring()
             def local_degree(v):
@@ -2779,6 +2785,15 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: Q.nonarchimedian_local_height()
             1/2*log(16)
 
+        Local heights of torsion points can be non-zero (unlike the
+        global height)::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve([0, 0, 0, K(1), 0])
+            sage: P = E(i, 0)
+            sage: P.nonarchimedian_local_height()
+            -1/2*log(2)
+
         TESTS::
 
             sage: Q.nonarchimedian_local_height(prec=100)
@@ -2799,9 +2814,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.nonarchimedian_local_height()
             0
         """
-        if self.has_finite_order():
-            return rings.QQ(0)
-
         if prec:
             log = lambda x: rings.RealField(prec)(x).log()
         else:

@@ -188,8 +188,9 @@ $(INST)/$(ELLIPTIC_CURVES): $(INST)/$(PYTHON) \
 	+$(PIPE) "$(SAGE_SPKG) $(ELLIPTIC_CURVES) 2>&1" "tee -a $(SAGE_LOGS)/$(ELLIPTIC_CURVES).log"
 
 # CONWAY depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
-# to be set in sage-env.
-$(INST)/$(CONWAY): $(INST)/$(SAGE_ROOT_REPO)
+# to be set in sage-env.  It also depends on SAGERUNTIME because it
+# runs Sage code to generate a Sage object (.sobj).
+$(INST)/$(CONWAY): $(INST)/$(SAGE_ROOT_REPO) $(SAGERUNTIME)
 	+$(PIPE) "$(SAGE_SPKG) $(CONWAY) 2>&1" "tee -a $(SAGE_LOGS)/$(CONWAY).log"
 
 # GRAPHS depends on SAGE_ROOT_REPO because it needs SAGE_SHARE

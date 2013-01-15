@@ -3,12 +3,30 @@ Interrupt and signal handling for Sage.
 
 For documentation about how to use these, see the Developer's Guide.
 
+This code distinguishes between two kinds of signals:
+
+(1) interrupt-like signals: SIGINT, SIGHUP.  The word
+"interrupt" refers to any of these signals.  These need not be handled
+immediately, we might handle them at a suitable later time, outside of
+sig_block() and with the Python GIL acquired.  SIGINT raises a
+KeyboardInterrupt (as usual in Python), while SIGHUP raises
+SystemExit, causing Python to exit.  The latter signals also redirect
+stdin from /dev/null, to cause interactive sessions to exit also.
+
+(2) critical signals: SIGILL, SIGABRT, SIGFPE, SIGBUS, SIGSEGV.
+These are critical because they cannot be ignored.  If they happen
+outside of sig_on(), we can only exit Sage with the dreaded
+"unhandled SIG..." message.  Inside of sig_on(), they can be handled
+and raise a RuntimeError.
+
 
 AUTHORS:
 
 - William Stein, Martin Albrecht (2006): initial version
 
 - Jeroen Demeyer (2010-10-03): almost complete rewrite (#9678)
+
+- Jeroen Demeyer (2013-01-11): handle SIGHUP also (#13908)
 
 */
 
@@ -23,7 +41,9 @@ AUTHORS:
  *                  http://www.gnu.org/licenses/
  ****************************************************************************/
 
-/* Whether or not to enable interrupt debugging (0: disable, 1: enable) */
+/* Whether or not to compile debug routines for the interrupt handling
+ * code (0: disable, 1: enable).  Enabling will make the code slower.
+ * The debug level itself needs to be set in c_lib/src/interrupt.c */
 #define ENABLE_DEBUG_INTERRUPT 0
 
 
@@ -54,6 +74,10 @@ extern "C" {
 #define unlikely(x) (x)
 #endif
 
+/* Interrupt debug level */
+#if ENABLE_DEBUG_INTERRUPT
+extern int sage_interrupt_debug_level;
+#endif
 
 
 /* Print a C backtrace if supported by libc */
@@ -64,17 +88,17 @@ void sigdie(int sig, const char* s);
 
 
 /*
- * The signal handlers for Sage, one for SIGINT and one for other
- * signals.
- * Inside sig_on() (i.e. when _signals.sig_on_count is positive), this
- * raises an exception and jumps back to sig_on().
+ * The signal handlers for Sage, one for interrupt-like signals
+ * (SIGINT, SIGHUP) and one for critical signals like SIGSEGV.
+ *
+ * Inside sig_on() (i.e. when _signals.sig_on_count is positive), these
+ * handlers raise an exception and jump back to sig_on().
  * Outside of sig_on(), sage_interrupt_handler() sets Python's
  * interrupt flag using PyErr_SetInterrupt(); sage_signal_handler()
  * terminates Sage.
  */
-void sage_interrupt_handler(int sig);    /* SIGINT */
-void sage_signal_handler(int sig);       /* Other signals */
-
+void sage_interrupt_handler(int sig);
+void sage_signal_handler(int sig);
 
 /*
  * Setup the signal handlers. It is safe to call this more than once.
@@ -101,10 +125,12 @@ struct sage_signals_t
      * If this is strictly positive, we are inside a sig_on(). */
     volatile sig_atomic_t sig_on_count;
 
-    /* If this is nonzero, check for interrupts using PyErr_Occured()
-     * during sig_on() and sig_unblock(). This value is increased
-     * whenever an interrupt happens outside of sig_on() or inside
-     * sig_block(). */
+    /* If this is nonzero, it is a signal number of a non-critical
+     * signal (e.g. SIGINT) which happened during a time when it could
+     * not be handled.  This may be set when an interrupt occurs either
+     * outside of sig_on() or inside sig_block().  To avoid race
+     * conditions, this value may only be changed when all
+     * interrupt-like signals are masked. */
     volatile sig_atomic_t interrupt_received;
 
     /* Are we currently handling a signal inside sage_signal_handler()?
@@ -175,10 +201,9 @@ extern struct sage_signals_t _signals;
  */
 #define _sig_on_(message) ( unlikely(_sig_on_prejmp(message, __FILE__, __LINE__)) || _sig_on_postjmp(sigsetjmp(_signals.env,0)) )
 
-/* This will be called during _sig_on_postjmp() when a SIGINT was
- * received *before* the call to sig_on().
- * Return 0 if there was an interrupt, 1 otherwise. */
-int _sig_on_interrupt_received(void);
+/* This will be called during _sig_on_postjmp() when an interrupt was
+ * received *before* the call to sig_on(). */
+void _sig_on_interrupt_received(void);
 
 /*
  * Set message, return 0 if we need to sigsetjmp(), return 1 otherwise.
@@ -187,8 +212,11 @@ static inline int _sig_on_prejmp(const char* message, const char* file, int line
 {
     _signals.s = message;
 #if ENABLE_DEBUG_INTERRUPT
-    fprintf(stderr, "sig_on (count = %i) at %s:%i\n", _signals.sig_on_count+1, file, line);
-    fflush(stderr);
+    if (sage_interrupt_debug_level >= 4)
+    {
+        fprintf(stderr, "sig_on (count = %i) at %s:%i\n", _signals.sig_on_count+1, file, line);
+        fflush(stderr);
+    }
 #endif
     if (_signals.sig_on_count > 0)
     {
@@ -229,7 +257,10 @@ static inline int _sig_on_postjmp(int jmpret)
      * volatile, we can safely evaluate _signals.interrupt_received here
      * without race conditions. */
     if (unlikely(_signals.interrupt_received))
-        return _sig_on_interrupt_received();
+    {
+        _sig_on_interrupt_received();
+        return 0;
+    }
 
     return 1;
 }
@@ -244,8 +275,11 @@ void _sig_off_warning(const char* file, int line);
 static inline void _sig_off_(const char* file, int line)
 {
 #if ENABLE_DEBUG_INTERRUPT
-    fprintf(stderr, "sig_off (count = %i) at %s:%i\n", _signals.sig_on_count, file, line);
-    fflush(stderr);
+    if (sage_interrupt_debug_level >= 4)
+    {
+        fprintf(stderr, "sig_off (count = %i) at %s:%i\n", _signals.sig_on_count, file, line);
+        fflush(stderr);
+    }
 #endif
     if (unlikely(_signals.sig_on_count <= 0))
     {
@@ -284,7 +318,10 @@ static inline void _sig_off_(const char* file, int line)
 static inline int sig_check()
 {
     if (unlikely(_signals.interrupt_received) && _signals.sig_on_count == 0)
-        return _sig_on_interrupt_received();
+    {
+        _sig_on_interrupt_received();
+        return 0;
+    }
 
     return 1;
 }
@@ -336,7 +373,7 @@ static inline void sig_unblock()
     _signals.block_sigint = 0;
 
     if (unlikely(_signals.interrupt_received) && _signals.sig_on_count > 0)
-        kill(getpid(), SIGINT);  /* Re-raise the interrupt */
+        kill(getpid(), _signals.interrupt_received);  /* Re-raise the signal */
 }
 
 

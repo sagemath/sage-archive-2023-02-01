@@ -787,3 +787,85 @@ def sig_check_bench():
     cdef int i
     for i in range(1000000):
         sig_check()
+
+
+########################################################################
+# Test SIGHUP                                                          #
+########################################################################
+@return_exception
+def test_sighup(long delay = DEFAULT_DELAY):
+    """
+    Test a basic SIGHUP signal, which would normally exit Sage by
+    raising ``SystemExit``.
+
+    TESTS::
+
+        sage: from sage.tests.interrupt import *
+        sage: test_sighup()
+        SystemExit()
+    """
+    signal_after_delay(SIGHUP, delay)
+    while True:
+        sig_check()
+
+@return_exception
+def test_sigterm_and_sigint(long delay = DEFAULT_DELAY):
+    """
+    Test a SIGHUP and a SIGINT arriving at essentially the same time.
+    The SIGINT should be ignored and we should get a ``SystemExit``.
+
+    TESTS::
+
+        sage: from sage.tests.interrupt import *
+        sage: test_sigterm_and_sigint()
+        SystemExit()
+    """
+    sig_on()
+    sig_block()
+    signal_after_delay(SIGHUP, delay)
+    signal_after_delay(SIGINT, delay)
+    # 3 sleeps to ensure both signals arrive
+    ms_sleep(delay)
+    ms_sleep(delay)
+    ms_sleep(delay)
+    sig_unblock()
+    sig_off()
+
+def test_graceful_exit():
+    r"""
+    TESTS:
+
+    Start a Sage subprocess, spawn a child PARI/GP process and kill the
+    Sage process.  The PARI/GP process should exit by itself. ::
+
+        sage: from subprocess import *
+        sage: from signal import *
+        sage: P = Popen(['sage-ipython'], stdin=PIPE, stdout=PIPE, stderr=PIPE)  # long time
+        sage: P.stdin.write('from sage.tests.interrupt import *\n')  # long time
+        sage: P.stdin.write('test_graceful_exit()\n')  # long time
+
+    Now read from the child until we read ``"GO"``.  This ensures that
+    the child Sage process has properly started before we terminate it::
+
+        sage: while "GO" not in P.stdout.readline(): pass  # long time
+        sage: os.kill(P.pid, SIGHUP)  # long time
+        sage: P.stdout.read()  # long time
+        '...Exiting spawned PARI/GP interpreter process...'
+        sage: P.wait()  # long time
+        0
+    """
+    # This code is executed in the subprocess
+    import os, sys
+    from sage.interfaces.gp import gp
+
+    # Keep PARI/GP busy
+    gp(0)  # Ensure PARI/GP is started
+    gp._expect.sendline("factor(2^1000-3);")
+
+    # Print something to synchronize with the parent
+    print("GO")
+    sys.stdout.flush()
+
+    # Wait to be killed...
+    sig_on()
+    infinite_loop()

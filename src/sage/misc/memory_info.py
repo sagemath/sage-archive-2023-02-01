@@ -286,6 +286,46 @@ class MemoryInfo_OSX(MemoryInfo_base):
         except (IOError, ValueError, subprocess.CalledProcessError, KeyError):
             raise OSError('failed to parse OSX "top" output')
 
+    def _parse_top_output(self, meminfo):
+        """
+        Pick total and available memory out of the "top" output
+
+        INPUT:
+
+        - ``meminfo`` -- output of "top"
+
+        OUTPUT:
+
+        See :meth:`_parse_top`.
+
+        TESTS:
+
+            sage: from sage.misc.memory_info import MemoryInfo_OSX
+            sage: m = MemoryInfo_OSX.__new__(MemoryInfo_OSX)
+            sage: osx_ppc = 'PhysMem:  64.7M wired, 87.3M active,  14.1M inactive,  29.3M used,  21.8M free'
+            sage: m._parse_top_output(osx_ppc)
+            {'available_ram': 22858956, 'total_ram': 53582232}
+
+            sage: osx_x86 = 'PhysMem: 8861M wired, 3574M active, 678M inactive, 13G used, 19G free.'
+            sage: m._parse_top_output(osx_x86)
+            {'available_ram': 20401094656L, 'total_ram': 34359738368L}    # 32-bit
+            {'available_ram': 20401094656, 'total_ram': 34359738368}      # 64-bit
+        """
+        units = { 'K': 1024, 'M':1024**2, 'G':1024**3 }
+        for line in meminfo.splitlines():
+            if not line.startswith('PhysMem:'):
+                continue
+            line = line.split()
+            if not line[-1].startswith('free') or not line[-3].startswith('used'):
+                raise OSError('failed to parse PhysMem: line in "top" output')
+            used_ram = line[-4]
+            free_ram = line[-2]
+            used_ram = int( float(used_ram[:-1]) * units[used_ram[-1]])
+            free_ram = int( float(free_ram[:-1]) * units[free_ram[-1]])
+            return { 'total_ram': used_ram + free_ram,
+                     'available_ram': free_ram }
+        raise OSError('failed to parse "top" output, no PhysMem: section')
+
     def _parse_top(self):
         """
         Parse ``top`` output
@@ -312,26 +352,12 @@ class MemoryInfo_OSX(MemoryInfo_base):
         import time
         if (time.time()-self._age) < self._maxage:
             return self._parse_top_cache
-        units = { 'K': 1024, 'M':1024**2, 'G':1024**3 }
-        result = dict()
         meminfo = subprocess.check_output(['top', '-l', '1'],
                                           stderr=subprocess.STDOUT)
-        for line in meminfo.splitlines():
-            if not line.startswith('PhysMem:'):
-                continue
-            line = line.split()
-            if not line[-1].startswith('free') or not line[-3].startswith('used'):
-                raise OSError('failed to parse PhysMem: line in "top" output')
-            used_ram = line[-4]
-            free_ram = line[-2]
-            used_ram = int(used_ram[:-1]) * units[used_ram[-1]]
-            free_ram = int(free_ram[:-1]) * units[free_ram[-1]]
-            result = { 'total_ram': used_ram + free_ram,
-                       'available_ram': free_ram }
-            self._age = time.time()
-            self._parse_top_cache = result
-            return result
-        raise OSError('failed to parse "top" output, no PhysMem: section')
+        result = self._parse_top_output(meminfo)
+        self._age = time.time()
+        self._parse_top_cache = result
+        return result
 
     def total_ram(self):
         """

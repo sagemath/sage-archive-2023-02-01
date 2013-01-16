@@ -15,9 +15,9 @@ amounts to the following functions :
 
 Author:
 
-- Nathann Cohen (01-2013), while listening to Nina Simone *"I wish I
-  knew how it would feel to be free"*. Crazy good song. And *"Prendre
-  ta douleur"*, too.
+- Nathann Cohen (01-2013), :meth:`root_graph` method and module documentation.
+  Written while listening to Nina Simone *"I wish I knew how it would feel to be
+  free"*. Crazy good song. And *"Prendre ta douleur"*, too.
 
 Definition
 -----------
@@ -138,6 +138,195 @@ This decomposition turns out to be very easy to implement :-)
 Functions
 ---------
 """
+
+def is_line_graph(g, certificate = False):
+    r"""
+    Tests wether the graph is a line graph.
+
+    INPUT:
+
+    - ``certificate`` (boolean) -- whether to return a certificate when the
+      graph is *not* a line graph. When ``certificate`` is set to ``True``, and
+      if the graph is not a line graph, the method returns a subgraph isomorphic
+      to one of the 9 forbidden induced subgraphs of a line graph (instead of
+      the usual ``False``)
+
+    .. TODO::
+
+        This methods sequentially tests each of the forbidden subgraphs, which
+        is a very slow method. There exist much better algorithms, including
+        those which are actually able to return a graph whose line graph is
+        isomorphic to the given graph.
+
+    EXAMPLES:
+
+    A complete graph is always the line graph of a star::
+
+        sage: graphs.CompleteGraph(5).is_line_graph()
+        True
+
+    The Petersen Graph not being claw-free, it is not a line
+    graph:
+
+        sage: graphs.PetersenGraph().is_line_graph()
+        False
+
+    This is indeed the subgraph returned::
+
+        sage: C = graphs.PetersenGraph().is_line_graph(certificate = True)
+        sage: C.is_isomorphic(graphs.ClawGraph())
+        True
+    """
+    from sage.graphs.graph_generators import graphs
+
+    for fg in graphs.line_graph_forbidden_subgraphs():
+        h = g.subgraph_search(fg, induced = True)
+        if h is not None:
+            if certificate:
+                return h
+            else:
+                return False
+
+    return True
+
+def line_graph(self, labels=True):
+    """
+    Returns the line graph of the (di)graph.
+
+    INPUT:
+
+    - ``labels`` (boolean) -- whether edge labels should be taken in
+      consideration. If ``labels=True``, the vertices of the line graph will be
+      triples ``(u,v,label)``, and pairs of vertices otherwise.
+
+      This is set to ``True`` by default.
+
+    The line graph of an undirected graph G is an undirected graph H such that
+    the vertices of H are the edges of G and two vertices e and f of H are
+    adjacent if e and f share a common vertex in G. In other words, an edge in H
+    represents a path of length 2 in G.
+
+    The line graph of a directed graph G is a directed graph H such that the
+    vertices of H are the edges of G and two vertices e and f of H are adjacent
+    if e and f share a common vertex in G and the terminal vertex of e is the
+    initial vertex of f. In other words, an edge in H represents a (directed)
+    path of length 2 in G.
+
+    .. NOTE::
+
+        As a :class:`Graph` object only accepts hashable objects as vertices
+        (and as the vertices of the line graph are the edges of the graph), this
+        code will fail if edge labels are not hashable. You can also set the
+        argument ``labels=False`` to ignore labels.
+
+    EXAMPLES::
+
+        sage: g = graphs.CompleteGraph(4)
+        sage: h = g.line_graph()
+        sage: h.vertices()
+        [(0, 1, None),
+        (0, 2, None),
+        (0, 3, None),
+        (1, 2, None),
+        (1, 3, None),
+        (2, 3, None)]
+        sage: h.am()
+        [0 1 1 1 1 0]
+        [1 0 1 1 0 1]
+        [1 1 0 0 1 1]
+        [1 1 0 0 1 1]
+        [1 0 1 1 0 1]
+        [0 1 1 1 1 0]
+        sage: h2 = g.line_graph(labels=False)
+        sage: h2.vertices()
+        [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+        sage: h2.am() == h.am()
+        True
+        sage: g = DiGraph([[1..4],lambda i,j: i<j])
+        sage: h = g.line_graph()
+        sage: h.vertices()
+        [(1, 2, None),
+        (1, 3, None),
+        (1, 4, None),
+        (2, 3, None),
+        (2, 4, None),
+        (3, 4, None)]
+        sage: h.edges()
+        [((1, 2, None), (2, 3, None), None),
+         ((1, 2, None), (2, 4, None), None),
+         ((1, 3, None), (3, 4, None), None),
+         ((2, 3, None), (3, 4, None), None)]
+
+    Tests:
+
+    :trac:`13787`::
+
+        sage: g = graphs.KneserGraph(7,1)
+        sage: C = graphs.CompleteGraph(7)
+        sage: C.is_isomorphic(g)
+        True
+        sage: C.line_graph().is_isomorphic(g.line_graph())
+        True
+    """
+    if self._directed:
+        from sage.graphs.digraph import DiGraph
+        G=DiGraph()
+        G.add_vertices(self.edges(labels=labels))
+        for v in self:
+            # Connect appropriate incident edges of the vertex v
+            G.add_edges([(e,f) for e in self.incoming_edge_iterator(v, labels=labels) \
+                         for f in self.outgoing_edge_iterator(v, labels=labels)])
+        return G
+    else:
+        from sage.graphs.all import Graph
+        G=Graph()
+
+        # We must sort the edges' endpoints so that (1,2,None) is seen as
+        # the same edge as (2,1,None).
+        #
+        # We do so by comparing hashes, just in case all the natural order
+        # (<) on vertices would not be a total order (for instance when
+        # vertices are sets). If two adjacent vertices have the same hash,
+        # then we store the pair in the dictionary of conflicts
+
+        conflicts = {}
+
+        # 1) List of vertices in the line graph
+        elist = []
+        for e in self.edge_iterator(labels = labels):
+            if hash(e[0]) < hash(e[1]):
+                elist.append(e)
+            elif hash(e[0]) > hash(e[1]):
+                elist.append((e[1],e[0])+e[2:])
+            else:
+                # Settle the conflict arbitrarily
+                conflicts[e] = e
+                conflicts[(e[1],e[0])+e[2:]] = e
+                elist.append(e)
+
+        G.add_vertices(elist)
+
+        # 2) adjacencies in the line graph
+        for v in self:
+            elist = []
+
+            # Add the edge to the list, according to hashes, as previously
+            for e in self.edge_iterator(v, labels=labels):
+                if hash(e[0]) < hash(e[1]):
+                    elist.append(e)
+                elif hash(e[0]) > hash(e[1]):
+                    elist.append((e[1],e[0])+e[2:])
+                else:
+                    elist.append(conflicts[e])
+
+            # Alls pairs of elements in elist are edges of the
+            # line graph
+            while elist:
+                x = elist.pop()
+                for y in elist:
+                    G.add_edge(x,y)
+
+        return G
 
 def root_graph(g, verbose = False):
     r"""

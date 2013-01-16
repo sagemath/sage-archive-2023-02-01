@@ -2053,57 +2053,6 @@ class Graph(GenericGraph):
 
         return True
 
-    def is_line_graph(self, certificate = False):
-        r"""
-        Tests wether the graph is a line graph.
-
-        INPUT:
-
-        - ``certificate`` (boolean) -- whether to return a certificate
-          when the graph is *not* a line graph. When ``certificate``
-          is set to ``True``, and if the graph is not a line graph,
-          the method returns a subgraph isomorphic to one of the 9
-          forbidden induced subgraphs of a line graph (instead of the
-          usual ``False``)
-
-        .. TODO::
-
-            This methods sequentially tests each of the forbidden subgraphs,
-            which is a very slow method. There exist much better algorithms,
-            including those which are actually able to return a graph whose line
-            graph is isomorphic to the given graph.
-
-        EXAMPLES:
-
-        A complete graph is always the line graph of a star::
-
-            sage: graphs.CompleteGraph(5).is_line_graph()
-            True
-
-        The Petersen Graph not being claw-free, it is not a line
-        graph:
-
-            sage: graphs.PetersenGraph().is_line_graph()
-            False
-
-        This is indeed the subgraph returned::
-
-            sage: C = graphs.PetersenGraph().is_line_graph(certificate = True)
-            sage: C.is_isomorphic(graphs.ClawGraph())
-            True
-        """
-        from sage.graphs.graph_generators import graphs
-
-        for g in graphs.line_graph_forbidden_subgraphs():
-            h = self.subgraph_search(g, induced = True)
-            if h is not None:
-                if certificate:
-                    return h
-                else:
-                    return False
-
-        return True
-
     def is_bipartite(self, certificate = False):
         """
         Returns ``True`` if graph `G` is bipartite, ``False`` if not.
@@ -6055,6 +6004,10 @@ Graph.cliques_maximum = types.MethodType(sage.graphs.cliquer.all_max_clique, Non
 
 import sage.graphs.graph_decompositions.graph_products
 Graph.is_cartesian_product = types.MethodType(sage.graphs.graph_decompositions.graph_products.is_cartesian_product, None, Graph)
+
+# From Python modules
+import sage.graphs.line_graph
+Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 
 def compare_edges(x, y):
     """

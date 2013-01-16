@@ -1,7 +1,7 @@
 r"""
 Line graphs
 
-This modules gather everything which is related to line graphs. Right now, this
+This module gather everything which is related to line graphs. Right now, this
 amounts to the following functions :
 
 .. csv-table::
@@ -116,7 +116,7 @@ This decomposition turns out to be very easy to implement :-)
     Even though the root graph is *NOT UNIQUE* for the triangle, this method
     returns `K_{1,3}` (and not `K_3`) in this case. Pay *very close* attention
     to that, for this answer is not theoretically correct : there is no unique
-    answer in this case, and we deal with this case by returning one of the two
+    answer in this case, and we deal with it by returning one of the two
     possible answers.
 
 .. [Whitney32] Congruent graphs and the connectivity of graphs,
@@ -145,18 +145,41 @@ def is_line_graph(g, certificate = False):
 
     INPUT:
 
-    - ``certificate`` (boolean) -- whether to return a certificate when the
-      graph is *not* a line graph. When ``certificate`` is set to ``True``, and
-      if the graph is not a line graph, the method returns a subgraph isomorphic
-      to one of the 9 forbidden induced subgraphs of a line graph (instead of
-      the usual ``False``)
+    - ``certificate`` (boolean) -- whether to return a certificate along with
+      the boolean result. Here is what happens when ``certificate = True``:
+
+      - If the graph is not a line graph, the method returns a pair ``(b,
+        subgraph)`` where ``b`` is ``False`` and ``subgraph`` is a subgraph
+        isomorphic to one of the 9 forbidden induced subgraphs of a line graph.
+
+      - If the graph is a line graph, the method returns a triple ``(b,R,isom)``
+        where ``b`` is ``True``, ``R`` is a graph whose line graph is the graph
+        given as input, and ``isom`` is a map associating an edge of ``R`` to
+        each vertex of the graph.
 
     .. TODO::
 
-        This methods sequentially tests each of the forbidden subgraphs, which
-        is a very slow method. There exist much better algorithms, including
-        those which are actually able to return a graph whose line graph is
-        isomorphic to the given graph.
+        This method sequentially tests each of the forbidden subgraphs in order
+        to know whether the graph is a line graph, which is a very slow
+        method. It could eventually be replaced by :meth:`root_graph` when this
+        method will not require an exponential time to run on general graphs
+        anymore (see its documentation for more information on this problem)...
+        and if it can be improved to return negative certificates !
+
+    .. NOTE::
+
+        This method wastes a bit of time when the input graph is not
+        connected. If you have performance in mind, it is probably better to
+        only feed it with connected graphs only.
+
+    .. SEEALSO::
+
+        - The :mod:`line_graph <sage.graphs.line_graph>` module.
+
+        - :meth:`~sage.graphs.graph_generators.GraphGenerators.line_graph_forbidden_subgraphs`
+          -- the forbidden subgraphs of a line graph.
+
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.line_graph`
 
     EXAMPLES:
 
@@ -173,8 +196,33 @@ def is_line_graph(g, certificate = False):
 
     This is indeed the subgraph returned::
 
-        sage: C = graphs.PetersenGraph().is_line_graph(certificate = True)
+        sage: C = graphs.PetersenGraph().is_line_graph(certificate = True)[1]
         sage: C.is_isomorphic(graphs.ClawGraph())
+        True
+
+    The house graph is a line graph::
+
+        sage: g = graphs.HouseGraph()
+        sage: g.is_line_graph()
+        True
+
+    But what is the graph whose line graph is the house ?::
+
+        sage: is_line, R, isom = g.is_line_graph(certificate = True)
+        sage: R.sparse6_string()
+        ':DaHI~'
+        sage: R.show()
+        sage: isom
+        {0: (0, 1), 1: (0, 2), 2: (1, 3), 3: (2, 3), 4: (3, 4)}
+
+    TESTS:
+
+    Disconnected graphs::
+
+        sage: g = 2*graphs.CycleGraph(3)
+        sage: gl = g.line_graph().relabel(inplace = False)
+        sage: new_g = gl.is_line_graph(certificate = True)[1]
+        sage: g.line_graph().is_isomorphic(gl)
         True
     """
     from sage.graphs.graph_generators import graphs
@@ -183,11 +231,26 @@ def is_line_graph(g, certificate = False):
         h = g.subgraph_search(fg, induced = True)
         if h is not None:
             if certificate:
-                return h
+                return (False,h)
             else:
                 return False
 
-    return True
+    if not certificate:
+        return True
+
+    if g.is_connected():
+        R, isom = root_graph(g)
+    else:
+        from sage.graphs.graph import Graph
+        R = Graph()
+
+        for gg in g.connected_components_subgraphs():
+            RR, _ = root_graph(gg)
+            R = R + RR
+
+        _, isom = g.is_isomorphic(R.line_graph(labels = False), certify = True)
+
+    return (True, R, isom)
 
 def line_graph(self, labels=True):
     """
@@ -218,6 +281,15 @@ def line_graph(self, labels=True):
         (and as the vertices of the line graph are the edges of the graph), this
         code will fail if edge labels are not hashable. You can also set the
         argument ``labels=False`` to ignore labels.
+
+    .. SEEALSO::
+
+        - The :mod:`line_graph <sage.graphs.line_graph>` module.
+
+        - :meth:`~sage.graphs.graph_generators.GraphGenerators.line_graph_forbidden_subgraphs`
+          -- the forbidden subgraphs of a line graph.
+
+        - :meth:`~Graph.is_line_graph` -- tests whether a graph is a line graph.
 
     EXAMPLES::
 
@@ -357,7 +429,7 @@ def root_graph(g, verbose = False):
           cliques, and that can take a while for general graphs. As soon as
           there is a way to iterate over maximal cliques without first building
           the (long) list of them this implementation can be updated, and will
-          deal reasonably with non-line grph too !
+          deal reasonably with non-line graphs too !
 
     TESTS:
 

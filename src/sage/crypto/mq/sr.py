@@ -1671,9 +1671,9 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: sr = mq.SR(2, 1, 1, 4)
             sage: sr.block_order()
             Block term order with blocks:
-            (Degree reverse lexicographic term order of length 16,
-             Degree reverse lexicographic term order of length 16,
-             Degree reverse lexicographic term order of length 4)
+            (Degree lexicographic term order of length 16,
+             Degree lexicographic term order of length 16,
+             Degree lexicographic term order of length 4)
 
         ::
 
@@ -1682,11 +1682,11 @@ class SR_generic(MPolynomialSystemGenerator):
             Polynomial Ring
               Base Ring : Finite Field in a of size 2^4
                    Size : 36 Variables
-               Block  0 : Ordering : degrevlex
+               Block  0 : Ordering : deglex
                           Names    : k200, k201, k202, k203, x200, x201, x202, x203, w200, w201, w202, w203, s100, s101, s102, s103
-               Block  1 : Ordering : degrevlex
+               Block  1 : Ordering : deglex
                           Names    : k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003
-               Block  2 : Ordering : degrevlex
+               Block  2 : Ordering : deglex
                           Names    : k000, k001, k002, k003
         """
         r = self.r
@@ -1696,9 +1696,9 @@ class SR_generic(MPolynomialSystemGenerator):
 
         T = None
         for _n in range(n):
-            T = TermOrder('degrevlex', r*e + 3*r*c*e ) + T
+            T = TermOrder('deglex', r*e + 3*r*c*e ) + T
 
-        T += TermOrder('degrevlex', r*c*e)
+        T += TermOrder('deglex', r*c*e)
 
         return T
 
@@ -1738,11 +1738,11 @@ class SR_generic(MPolynomialSystemGenerator):
             Polynomial Ring
               Base Ring : Finite Field in a of size 2^4
                    Size : 36 Variables
-               Block  0 : Ordering : degrevlex
+               Block  0 : Ordering : deglex
                           Names    : k200, k201, k202, k203, x200, x201, x202, x203, w200, w201, w202, w203, s100, s101, s102, s103
-               Block  1 : Ordering : degrevlex
+               Block  1 : Ordering : deglex
                           Names    : k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003
-               Block  2 : Ordering : degrevlex
+               Block  2 : Ordering : deglex
                           Names    : k000, k001, k002, k003
         """
         r = self.r

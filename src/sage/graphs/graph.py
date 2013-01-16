@@ -2066,14 +2066,12 @@ class Graph(GenericGraph):
           forbidden induced subgraphs of a line graph (instead of the
           usual ``False``)
 
+        .. TODO::
 
-        TODO:
-
-        This methods sequentially tests each of the forbidden
-        subgraphs, which is a very slow method. There exist much
-        better algorithms, including those which are actually able to
-        return a graph whose line graph is isomorphic to the given
-        graph.
+            This methods sequentially tests each of the forbidden subgraphs,
+            which is a very slow method. There exist much better algorithms,
+            including those which are actually able to return a graph whose line
+            graph is isomorphic to the given graph.
 
         EXAMPLES:
 

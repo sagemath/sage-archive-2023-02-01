@@ -384,9 +384,9 @@ class PolynomialSequence_generic(Sequence_generic):
             Polynomial Ring
              Base Ring : Finite Field of size 2
                   Size : 20 Variables
-              Block  0 : Ordering : degrevlex
+              Block  0 : Ordering : deglex
                          Names    : k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003
-              Block  1 : Ordering : degrevlex
+              Block  1 : Ordering : deglex
                          Names    : k000, k001, k002, k003
         """
         return self._ring

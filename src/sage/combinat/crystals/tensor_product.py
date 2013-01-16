@@ -1123,6 +1123,24 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
             sage: t = T()
             sage: t._list
             [0]
+
+        TESTS:
+
+        Integer types that are not a Sage ``Integer`` (such as a Python ``int``
+        and typically arise from compiled code) were not converted into a
+        letter. This caused certain functions to fail. This is fixed in
+        :trac:`13204`::
+
+            sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
+            sage: t = T(list=[int(3),1,4,2])
+            sage: type(t[0])
+            <class 'sage.combinat.crystals.letters.ClassicalCrystalOfLetters_with_category.element_class'>
+            sage: t = T(list=[3,int(1),4,2])
+            sage: type(t[1])
+            <class 'sage.combinat.crystals.letters.ClassicalCrystalOfLetters_with_category.element_class'>
+            sage: C = KirillovReshetikhinCrystal(['A',int(3),1], 1,1)
+            sage: C[0].e(0)
+            [[4]]
         """
         if len(args) == 1:
             if isinstance(args[0], Tableau):
@@ -1144,9 +1162,7 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
                 list+=col
         else:
             list = [i for i in args]
-        if list != [] and type(list[0]) is Integer:
-            list=[parent.letters(x) for x in list]
-        TensorProductOfCrystalsElement.__init__(self, parent, list)
+        TensorProductOfCrystalsElement.__init__(self, parent, map(parent.letters, list))
 
     def _repr_(self):
         """

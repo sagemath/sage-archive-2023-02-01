@@ -49,12 +49,14 @@ update GAP, please also update and use the spkg-src script.
    Since the (pre-)built HTML documentation is currently included, I've
    commented out some lines in that part of `spkg-install`. -leif
 
- * Upon upgrading, check whether the build still fails when `CC` or `CXX`
-   contain spaces (or multiple words, as e.g. with `CC="ccache gcc"`).
-   Otherwise unsetting `CC` and `CXX` can be removed, which is an odd work-
-   around anyway.
-
 == Changelog ==
+
+=== gap-4.5.7.p2 (Jeroen Demeyer, 17 January 2013) ===
+ * #13963: do not touch gap_stamp (which isn't used anyway).
+ * Use -O2 -g as default CFLAGS and never override user-set flags.
+ * Remove unsetting of CC and CXX which doesn't seem to be needed
+   anymore.
+ * Use autoconf tracing to determine the GAP version number.
 
 === gap-4.5.7.p1 (Volker Braun, 20 December 2012) ===
  * #13211: Fix gap/latest symlink creation.

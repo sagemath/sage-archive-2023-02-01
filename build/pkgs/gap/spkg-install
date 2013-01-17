@@ -12,27 +12,8 @@ if [[ -z "$SAGE_LOCAL" ]]; then
     exit 1
 fi
 
-# Only unset CC and CXX if they contain spaces, which is what (is said to)
-# currently would break the build:
-# (Note that CC and CXX are always defined, since sage-env provides
-# defaults in case they're not.)
-if [[ "`echo $CC | wc -w`" -ne 1 ]]; then
-    echo >&2 "WARNING: \$CC (=$CC) contains multiple words,"
-    echo >&2 "  which currently breaks GAP's build scripts."
-    echo >&2 "  To work around this, we therefore unset it!"
-    echo >&2 "  (This may lead to other errors of course.)"
-    unset CC
-fi
-if [[ "`echo $CXX | wc -w`" -ne 1 ]]; then
-    echo >&2 "WARNING: \$CXX (=$CXX) contains multiple words,"
-    echo >&2 "  which currently breaks GAP's build scripts."
-    echo >&2 "  To work around this, we therefore unset it!"
-    echo >&2 "  (This may lead to other errors of course.)"
-    unset CXX
-fi
-
-# be sure to update this to the
-VERSION=`grep AC_INIT $SPKG_ROOT/src/cnf/configure.in | cut -d '[' -f 3 | cut -d ']' -f 1`
+# Read gap-version, which was written by spkg-src
+VERSION=`cat gap-version`
 GAP_DIR="gap-$VERSION"
 INSTALL_DIR="$SAGE_LOCAL/gap/$GAP_DIR"
 
@@ -50,16 +31,16 @@ if [[ "$SAGE64" = yes ]]; then
     echo "Building a 64-bit version of GAP (with '$CFLAG64')."
 fi
 
-# Indicate that GAP has somehow been updated, which invalidates all workspaces:
-touch "$SAGE_LOCAL/bin/gap_stamp"
+# Workaround for MPIR missing macro issue
+export CPPFLAGS="$CPPFLAGS -D__GMP_MP_RELEASE=50002"
 
-# workaround for MPIR missing macro issue
-CFLAGS="$CFLAGS -D__GMP_MP_RELEASE=50002"
-
-# enable debug info if possible
+# Enable debug info if requested.
 # Note that -g3 allows you to use preprocessor macros in gdb which are widely used
-if [ "$SAGE_DEBUG" == "yes" ] ; then
-    export CFLAGS="$CFLAGS -O0 -g3 -DDEBUG_MASTERPOINTERS -DDEBUG_GLOBAL_BAGS -DDEBUG_FUNCTIONS_BAGS"
+if [ "$SAGE_DEBUG" = yes ] ; then
+    export CFLAGS="-O0 -g3 -DDEBUG_MASTERPOINTERS -DDEBUG_GLOBAL_BAGS -DDEBUG_FUNCTIONS_BAGS $CFLAGS"
+else
+    # Default flags
+    export CFLAGS="-O2 -g $CFLAGS"
 fi
 
 # Apply fixes to upstream source
@@ -139,7 +120,7 @@ fi
 echo "Creating symlink to new GAP installation..."
 cd "$SAGE_LOCAL/gap"
 rm -f latest
-ln -sf "$GAP_DIR" latest
+ln -s "$GAP_DIR" latest
 
 echo "Copying GAP startup script..."
 rm -f "$SAGE_LOCAL/bin/gap"

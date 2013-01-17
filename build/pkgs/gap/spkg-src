@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+SPKG_ROOT=`pwd`
+
 set -e
 shopt -s extglob
 
@@ -41,3 +43,8 @@ cd ..
 rm -r bin/*
 cd extern
 rm -r !(Makefile.in)
+
+# Write version to gap-version
+cd "$SPKG_ROOT"
+autoconf --trace='AC_INIT:$2' src/cnf/configure.in >gap-version
+rm -rf autom4te.cache

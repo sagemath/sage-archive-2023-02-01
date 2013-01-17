@@ -97,6 +97,7 @@ This came up in some subtle bug once::
 cimport element
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
+from cpython cimport PyType_Check
 from sage.structure.debug_options import debug
 from sage.structure.sage_object import SageObject
 from sage.structure.misc import (dir_with_other_class, getattr_from_other_class,
@@ -525,7 +526,7 @@ cdef class Parent(category_object.CategoryObject):
 
         This may change ``self``'s class!
 
-        EXAMPLES:
+        EXAMPLES::
 
         Let us create a parent in the category of rings::
 
@@ -3037,6 +3038,24 @@ cpdef Parent Set_PythonType(theType):
         return theSet
 
 cdef class Set_PythonType_class(Set_generic):
+    r"""
+    The set of Python objects of a given type.
+
+    EXAMPLES::
+
+        sage: S = sage.structure.parent.Set_PythonType(int)
+        sage: S
+        Set of Python objects of type 'int'
+        sage: int('1') in S
+        True
+        sage: Integer('1') in S
+        False
+
+        sage: sage.structure.parent.Set_PythonType(2)
+        Traceback (most recent call last):
+        ...
+        TypeError: must be intialized with a type, not Integer
+    """
 
     cdef _type
 
@@ -3048,8 +3067,22 @@ cdef class Set_PythonType_class(Set_generic):
             sage: S.category()
             Category of sets
         """
+        if not PyType_Check(theType):
+            raise TypeError("must be intialized with a type, not %s"%type(theType).__name__)
         Set_generic.__init__(self, element_constructor=theType, category=Sets())
         self._type = theType
+
+    def __reduce__(self):
+        r"""
+        Pickling support
+
+        TESTS::
+
+            sage: S = sage.structure.parent.Set_PythonType(object)
+            sage: loads(dumps(S))
+            Set of Python objects of type 'object'
+        """
+        return Set_PythonType, (self._type,)
 
     def __call__(self, x):
         """

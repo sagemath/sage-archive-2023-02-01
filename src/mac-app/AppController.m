@@ -153,7 +153,11 @@
         if (status == 0) {
             // Parse the output
             NSData *data = [[taskPipe fileHandleForReading] readDataToEndOfFile];
-            const int p = [[NSString stringWithUTF8String:[data bytes]] intValue];
+            NSString* s = [[NSString alloc] initWithBytes:[data bytes]
+                                                   length:[data length]
+                                                 encoding:NSUTF8StringEncoding];
+            const int p = [s intValue];
+            [s release];
             [self serverStartedWithPort:p];
         } else {
             // We failed, so tell the user

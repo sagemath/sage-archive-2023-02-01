@@ -163,6 +163,8 @@ cdef extern from "pb_wrap.h":
         double (* sizeDouble)()
         PBSetIter (* begin)()
         PBSetIter (* end)()
+        bint (* isZero)()
+        bint (* isOne)()
 
     PBSet pb_include_divisors "include_divisors" (PBSet p)
     PBSet pb_minimal_elements "minimal_elements" (PBSet p)

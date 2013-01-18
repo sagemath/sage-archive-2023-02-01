@@ -3246,9 +3246,14 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._pbpoly.deg()
 
-    def degree(self):
+    def degree(self, x=None):
         r"""
-        Return the total degree of ``self``.
+        Return the maximal degree of this polynomial in ``x``, where
+        ``x`` must be one of the generators for the parent of this
+        polynomial.
+
+        If x is not specified (or is ``None``), return the total
+        degree, which is the maximum degree of any monomial.
 
         EXAMPLES::
 
@@ -3265,7 +3270,15 @@ cdef class BooleanPolynomial(MPolynomial):
 
             sage: (x*y + x + y + 1).degree()
             2
+
+            sage: (x*y + x + y + 1).degree(x)
+            1
         """
+        if x != None:
+            if self._pbpoly.set().multiplesOf((<BooleanPolynomial>x)._pbpoly.firstTerm()).isZero():
+                return 0
+            else:
+                return 1
         return self._pbpoly.deg()
 
     def lm(BooleanPolynomial self):
@@ -5381,7 +5394,7 @@ cdef class BooleSet:
             sage: BS.empty()
             True
         """
-        return self._pbset.size() == 0
+        return self._pbset.isZero()
 
     def navigation(self):
         """

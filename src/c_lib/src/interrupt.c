@@ -368,9 +368,12 @@ void sigdie(int sig, const char* s)
         "------------------------------------------------------------------------\n");
     print_backtrace();
 
+#ifndef __APPLE__
+    /* See http://trac.sagemath.org/13889 for how Apple screwed this up */
     fprintf(stderr,
         "------------------------------------------------------------------------\n");
     print_enhanced_backtrace();
+#endif
 
     fprintf(stderr,
         "------------------------------------------------------------------------\n"

@@ -186,9 +186,12 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         except ValueError:
             raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
 
-    def remove_var(self, *var):
+    def remove_var(self, *var, order=None):
         """
         Remove a variable or sequence of variables from self.
+
+        If ``order`` is not specified, then the subring inherits the
+        term order of the original ring, if possible.
 
         EXAMPLES::
 
@@ -204,6 +207,27 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
             sage: P.remove_var(y,z,x,w)
             Integer Ring
+
+        If possible, the term order is kept:
+
+             sage: R.<x,y,z,w> = PolynomialRing(ZZ, order='deglex')
+             sage: R.remove_var(y).term_order()
+             Degree lexicographic term order
+
+             sage: R.<x,y,z,w> = PolynomialRing(ZZ, order='lex')
+             sage: R.remove_var(y).term_order()
+             Lexicographic term order
+
+        Be careful with block orders when removing variables::
+
+            sage: R.<x,y,z,u,v> = PolynomialRing(ZZ, order='deglex(2),lex(3)')
+            sage: R.remove_var(x,y,z)
+            Traceback (most recent call last):
+            ...
+            ValueError: impossible to use the original term order (most likely because it was a block order). Please specify the term order for the subring
+            sage: R.remove_var(x,y,z, order='degrevlex')
+            Multivariate Polynomial Ring in u, v over Integer Ring
+
         """
         vars = list(self.variable_names())
         for v in var:
@@ -211,7 +235,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         if len(vars) == 0:
             return self.base_ring()
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        return PolynomialRing(self.base_ring(), vars)
+        if order is None:
+            try:
+                return PolynomialRing(self.base_ring(), vars,  order=self.term_order())
+            except ValueError:
+                raise ValueError("impossible to use the original term order (most likely because it was a block order). Please specify the term order for the subring")
+        else:
+            return PolynomialRing(self.base_ring(), vars, order=order)
 
     def univariate_ring(self, x):
         """

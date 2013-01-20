@@ -1028,6 +1028,62 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         self._gens_dict = v
         return v
 
+    def remove_var(self, *var, order=None):
+        """
+        Remove a variable or sequence of variables from this ring.
+
+        If ``order`` is not specified, then the subring inherits the
+        term order of the original ring, if possible.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z,w> = BooleanPolynomialRing()
+            sage: R.remove_var(z)
+            Boolean PolynomialRing in x, y, w
+            sage: R.remove_var(z,x)
+            Boolean PolynomialRing in y, w
+            sage: R.remove_var(y,z,x)
+            Boolean PolynomialRing in w
+
+        Removing all variables results in the base ring::
+
+            sage: R.remove_var(y,z,x,w)
+            Finite Field of size 2
+
+        If possible, the term order is kept:
+
+             sage: R.<x,y,z,w> = BooleanPolynomialRing(order='deglex')
+             sage: R.remove_var(y).term_order()
+             Degree lexicographic term order
+
+             sage: R.<x,y,z,w> = BooleanPolynomialRing(order='lex')
+             sage: R.remove_var(y).term_order()
+             Lexicographic term order
+
+        Be careful with block orders when removing variables::
+
+            sage: R.<x,y,z,u,v> = BooleanPolynomialRing(order='deglex(2),deglex(3)')
+            sage: R.remove_var(x,y,z)
+            Traceback (most recent call last):
+            ...
+            ValueError: impossible to use the original term order (most likely because it was a block order). Please specify the term order for the subring
+            sage: R.remove_var(x,y,z, order='deglex')
+            Boolean PolynomialRing in u, v
+
+        """
+        vars = list(self.variable_names())
+        for v in var:
+            vars.remove(str(v))
+        if len(vars) == 0:
+            return self.base_ring()
+        if order is None:
+            try:
+                return BooleanPolynomialRing(names=vars, order=self.term_order())
+            except ValueError:
+                raise ValueError("impossible to use the original term order (most likely because it was a block order). Please specify the term order for the subring")
+        else:
+            return BooleanPolynomialRing(names=vars, order=order)
+
     def ideal(self, *gens, **kwds):
         """
         Create an ideal in this ring.

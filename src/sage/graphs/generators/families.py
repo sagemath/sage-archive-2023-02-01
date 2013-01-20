@@ -299,6 +299,58 @@ def MycielskiStep(g):
     return gg
 
 
+def JohnsonGraph(n, k):
+    r"""
+    Returns the Johnson graph with parameters `n, k`.
+
+    Johnson graphs are a special class of undirected
+    graphs defined from systems of sets. The vertices
+    of the Johnson graph `J(n,k)` are the `k`-element subsets
+    of an `n`-element set; two vertices are adjacent when they
+    meet in a `(k-1)`-element set.
+    (Wikipedia)
+
+    EXAMPLES:
+
+    The Johnson graph is a Hamiltonian graph.  ::
+
+        sage: g = graphs.JohnsonGraph(7, 3)
+        sage: g.is_hamiltonian()
+        True
+
+    Every Johnson graph is vertex transitive.  ::
+
+        sage: g = graphs.JohnsonGraph(6, 4)
+        sage: g.is_vertex_transitive()
+        True
+
+    The complement of the Johnson graph `J(n,2)`
+    is isomorphic to the Knesser Graph `K(n,2)`.
+    In paritcular the complement of `J(5,2)` is
+    isomorphic to the Petersen graph.  ::
+
+        sage: g = graphs.JohnsonGraph(5,2)
+        sage: g.complement().is_isomorphic(graphs.PetersenGraph())
+        True
+    """
+
+    g=graph.Graph(name="Johnson graph with parameters "+str(n)+","+str(k))
+    from sage.combinat.subset import Set, Subsets
+
+    S = Set(range(n))
+    g.add_vertices(Subsets(S, k))
+
+    for sub in Subsets(S, k-1):
+        elem_left = S - sub
+        for i in elem_left:
+            for j in elem_left:
+                if j <= i:
+                    continue
+                g.add_edge(sub+Set([i]),sub+Set([j]))
+
+    return g
+
+
 def KneserGraph(n,k):
     r"""
     Returns the Kneser Graph with parameters `n, k`.

@@ -152,6 +152,7 @@ __append_to_doc(
      "HanoiTowerGraph",
      "HyperStarGraph",
      "IntervalGraph",
+     "JohnsonGraph",
      "KneserGraph",
      "LCFGraph",
      "MycielskiGraph",
@@ -905,6 +906,7 @@ class GraphGenerators():
 ###########################################################################
 
     import sage.graphs.generators.families
+    JohnsonGraph           = staticmethod(sage.graphs.generators.families.JohnsonGraph)
     MycielskiGraph         = staticmethod(sage.graphs.generators.families.MycielskiGraph)
     MycielskiStep          = staticmethod(sage.graphs.generators.families.MycielskiStep)
     KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)

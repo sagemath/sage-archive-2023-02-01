@@ -4332,15 +4332,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: h.parent() is R
             True
 
+        Check that :trac:`13672` is fixed::
+
+            sage: R.<t> = GF(2)[]
+            sage: S.<x> = R[]
+            sage: f = (t^2 + t)*x + t^2 + t
+            sage: g = (t + 1)*x + t^2
+            sage: f.resultant(g)
+            t^4 + t
         """
-        variable = self.parent().gen()
-        if str(variable)<>'x' and self.parent()._mpoly_base_ring()<>self.parent().base_ring():
-          bigring = sage.rings.polynomial.multi_polynomial.PolynomialRing(self.parent()._mpoly_base_ring(),list(self.parent().variable_names_recursive()))
-          newself = bigring(self)
-          newother = bigring(other)
-          return self.parent().base_ring()(newself.resultant(newother,bigring(variable)))
-        # The 0 flag tells PARI to use exact arithmetic
-        res = self._pari_().polresultant(other._pari_(), variable._pari_(), 0)
+        variable = self.variable_name()
+        if variable != 'x' and self.parent()._mpoly_base_ring() != self.parent().base_ring():
+            bigring = sage.rings.polynomial.multi_polynomial.PolynomialRing(self.parent()._mpoly_base_ring(),list(self.parent().variable_names_recursive()))
+            newself = bigring(self)
+            newother = bigring(other)
+            return self.parent().base_ring()(newself.resultant(newother,bigring(self.parent().gen())))
+        # Main variable is "x": we can use PARI to compute the resultant
+        res = self._pari_with_name().polresultant(other._pari_with_name(), variable)
         return self.parent().base_ring()(res)
 
     def discriminant(self):
@@ -4422,7 +4430,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.discriminant()
             1
 
-        The following examples show that #11782 has been fixed::
+        Check that :trac:`13672` is fixed::
+
+            sage: R.<t> = GF(5)[]
+            sage: S.<x> = R[]
+            sage: f = x^10 + 2*x^6 + 2*x^5 + x + 2
+            sage: (f-t).discriminant()
+            4*t^5
+
+        The following examples show that :trac:`11782` has been fixed::
 
             sage: ZZ.quo(81)[x](3*x^2 + 3*x + 3).discriminant()
             54

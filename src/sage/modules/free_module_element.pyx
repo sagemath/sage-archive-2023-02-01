@@ -2212,6 +2212,12 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             Traceback (most recent call last):
             ...
             ArithmeticError: degrees (2 and 3) must be the same
+
+        Check that vectors with different base rings play out nicely (:trac:`3103`)::
+
+            sage: vector(CDF, [2, 2]) * vector(ZZ, [1, 3])
+            8.0
+
         """
         if not PY_TYPE_CHECK(right, FreeModuleElement):
             raise TypeError("right must be a free module element")

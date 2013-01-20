@@ -2365,18 +2365,18 @@ class MPolynomialIdeal_singular_repr(
     @require_field
     def variety(self, ring=None):
         r"""
-        Return the variety of ``self``.
+        Return the variety of this ideal.
 
         Given a zero-dimensional ideal `I` (== ``self``) of a
-        polynomial ring P whose order is lexicographic, return the
-        variety of I as a list of dictionaries with (variable, value)
+        polynomial ring `P` whose order is lexicographic, return the
+        variety of `I` as a list of dictionaries with ``(variable, value)``
         pairs. By default, the variety of the ideal over its
         coefficient field `K` is returned; ``ring`` can be specified
         to find the variety over a different ring.
 
         These dictionaries have cardinality equal to the number of
-        variables in P and represent assignments of values to these
-        variables such that all polynomials in I vanish.
+        variables in `P` and represent assignments of values to these
+        variables such that all polynomials in `I` vanish.
 
         If ``ring`` is specified, then a triangular decomposition of
         ``self`` is found over the original coefficient field `K`;
@@ -2387,10 +2387,10 @@ class MPolynomialIdeal_singular_repr(
         ``QQbar`` (to compute the whole real or complex variety of the
         ideal).
 
-        Note that with ``ring``=``RR`` or ``CC``, computation is done
+        Note that with ``ring=RR`` or ``CC``, computation is done
         numerically and potentially inaccurately; in particular, the
         number of points in the real variety may be miscomputed. With
-        ``ring``=``AA`` or ``QQbar``, computation is done exactly
+        ``ring=AA`` or ``QQbar``, computation is done exactly
         (which may be much slower, of course).
 
         INPUT:
@@ -2502,17 +2502,13 @@ class MPolynomialIdeal_singular_repr(
             sage: P.<x, y> = PolynomialRing(K, 2, order='lex')
             sage: I = Ideal([ x^8 + y + 2, y^6 + x*y^5 + x^2 ])
 
-        Testing the robustness of the Singular interface
-
-        ::
+        Testing the robustness of the Singular interface::
 
             sage: T = I.triangular_decomposition('singular:triangLfak')
             sage: I.variety()
             [{y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}, {y: w^2 + 2*w, x: 2*w + 2}]
 
-        Testing that a bug is indeed fixed.
-
-        ::
+        Testing that a bug is indeed fixed ::
 
             sage: R = PolynomialRing(GF(2), 30, ['x%d'%(i+1) for i in range(30)], order='lex')
             sage: R.inject_variables()
@@ -2551,7 +2547,7 @@ class MPolynomialIdeal_singular_repr(
             {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
             {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
 
-        Check that the issue at trac 7425 is fixed::
+        Check that the issue at :trac:`7425` is fixed::
 
             sage: R.<x, y, z> = QQ[]
             sage: I = R.ideal([x^2-y^3*z, x+y*z])
@@ -2562,7 +2558,7 @@ class MPolynomialIdeal_singular_repr(
             ...
             ValueError: The dimension of the ideal is 1, but it should be 0
 
-        Check that the issue at trac 7425 is fixed::
+        Check that the issue at :trac:`7425` is fixed::
 
             sage: S.<t>=PolynomialRing(QQ)
             sage: F.<q>=QQ.extension(t^4+1)
@@ -2570,6 +2566,13 @@ class MPolynomialIdeal_singular_repr(
             sage: I=R.ideal(x,y^4+1)
             sage: I.variety()
             [...{y: -q^3, x: 0}...]
+
+        Check that computing the variety of the ``[1]`` ideal is allowed (:trac:`13977`)::
+
+            sage: R.<x,y> = QQ[]
+            sage: I = R.ideal(1)
+            sage: I.variety()
+            []
 
         ALGORITHM:
 
@@ -2602,8 +2605,10 @@ class MPolynomialIdeal_singular_repr(
             return V
 
         d = self.dimension()
-        if d <> 0:
+        if d > 0:
             raise ValueError, "The dimension of the ideal is %s, but it should be 0"%d
+        if d == -1:
+            return []
 
         import sage.rings.complex_field as CCmod
         if isinstance(self.base_ring(), CCmod.ComplexField_class):

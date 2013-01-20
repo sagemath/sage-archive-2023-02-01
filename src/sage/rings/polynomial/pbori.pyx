@@ -5075,39 +5075,56 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
     def variety(self, **kwds):
         r"""
-        Return the variety of ``self``.
+        Return the variety associated to this boolean ideal.
 
-        EXAMPLE::
+        EXAMPLE:
 
-            sage: R.<x,y,z> = BooleanPolynomialRing()    # Test a simple example
-            sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
-            sage: I.variety()
-            [{y: 1, z: 0, x: 0}, {y: 1, z: 1, x: 1}]
+            A Simple example::
 
-            sage: R = BooleanPolynomialRing(6, ['x%d'%(i+1) for i in range(6)], order='lex')
-            sage: R.inject_variables()
-            Defining...
-            sage: polys = [\
-                   x1*x2 + x1*x4 + x1*x5 + x1*x6 + x1 + x2 + x3*x4 + x3*x5 + x3 + x4*x5 + x4*x6 + x4 + x5 + x6, \
-                   x1*x2 + x1*x3 + x1*x4 + x1*x6 + x2*x3 + x2*x6 + x2 + x3*x4 + x5*x6, \
-                   x1*x3 + x1*x4 + x1*x6 + x1 + x2*x5 + x2*x6 + x3*x4 + x3 + x4*x6 + x4 + x5*x6 + x5 + x6, \
-                   x1*x2 + x1*x3 + x1*x4 + x1*x5 + x2 + x3*x5 + x3*x6 + x3 + x5 + x6, \
-                   x1*x2 + x1*x4 + x1*x5 + x1*x6 + x2*x3 + x2*x4 + x2*x5 + x3*x5 + x5*x6 + x5 + x6, \
-                   x1*x2 + x1*x6 + x2*x4 + x2*x5 + x2*x6 + x3*x6 + x4*x6 + x5*x6 + x5]
-            sage: I = R.ideal( polys )
-            sage: V1 = I.variety()
+                sage: R.<x,y,z> = BooleanPolynomialRing()
+                sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
+                sage: I.variety()
+                [{y: 1, z: 0, x: 0}, {y: 1, z: 1, x: 1}]
 
-            sage: R = PolynomialRing(GF(2), 6, ['x%d'%(i+1) for i in range(6)], order='lex')
-            sage: I = R.ideal( polys )
-            sage: V2 = (I + sage.rings.ideal.FieldIdeal(R)).variety()
-            sage: V1 == V2
-            True
+        TESTS:
+
+            BooleanIdeal and regular (quotient) Ideal should coincide::
+
+                 sage: R = BooleanPolynomialRing(6, ['x%d'%(i+1) for i in range(6)], order='lex')
+                 sage: R.inject_variables()
+                 Defining...
+                 sage: polys = [\
+                        x1*x2 + x1*x4 + x1*x5 + x1*x6 + x1 + x2 + x3*x4 + x3*x5 + x3 + x4*x5 + x4*x6 + x4 + x5 + x6, \
+                        x1*x2 + x1*x3 + x1*x4 + x1*x6 + x2*x3 + x2*x6 + x2 + x3*x4 + x5*x6, \
+                        x1*x3 + x1*x4 + x1*x6 + x1 + x2*x5 + x2*x6 + x3*x4 + x3 + x4*x6 + x4 + x5*x6 + x5 + x6, \
+                        x1*x2 + x1*x3 + x1*x4 + x1*x5 + x2 + x3*x5 + x3*x6 + x3 + x5 + x6, \
+                        x1*x2 + x1*x4 + x1*x5 + x1*x6 + x2*x3 + x2*x4 + x2*x5 + x3*x5 + x5*x6 + x5 + x6, \
+                        x1*x2 + x1*x6 + x2*x4 + x2*x5 + x2*x6 + x3*x6 + x4*x6 + x5*x6 + x5]
+                 sage: I = R.ideal( polys )
+                 sage: I.variety()
+                 [{x6: 0, x5: 0, x4: 0, x2: 0, x3: 0, x1: 0}, {x6: 1, x5: 0, x4: 0, x2: 1, x3: 1, x1: 1}]
+
+                 sage: R = PolynomialRing(GF(2), 6, ['x%d'%(i+1) for i in range(6)], order='lex')
+                 sage: I = R.ideal( polys )
+                 sage: (I + sage.rings.ideal.FieldIdeal(R)).variety()
+                 [{x2: 0, x5: 0, x4: 0, x1: 0, x6: 0, x3: 0}, {x2: 1, x5: 0, x4: 0, x1: 1, x6: 1, x3: 1}]
+
+
+            Check that :trac:`13976` is fixed::
+
+                sage: R.<x,y,z> = BooleanPolynomialRing()
+                sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
+                sage: sols = I.variety()
+                sage: sols[0][y]
+                1
+
         """
-        R = GF(2)[ self.ring().gens() ]
+        R_bool = self.ring()
+        R = R_bool.cover_ring()
         I = R.ideal( [ R( f ) for f in self.groebner_basis() ] )
         J = FieldIdeal(R)
-        return (I+J).variety(**kwds)
-
+        solutions = (I+J).variety(**kwds)
+        return [ { R_bool(var):val for var,val in s.iteritems() } for s in solutions ]
 
 
     def reduce(self, f):

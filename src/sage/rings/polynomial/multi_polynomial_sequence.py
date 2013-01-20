@@ -159,7 +159,7 @@ from types import GeneratorType
 
 from sage.structure.sequence import Sequence_generic
 
-
+from sage.rings.infinity import Infinity
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.quotient_ring import is_QuotientRing
 from sage.rings.quotient_ring_element import QuotientRingElement
@@ -928,7 +928,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
     """
     Polynomial Sequences over `\mathbb{F}_2`.
     """
-    def eliminate_linear_variables(self, maxlength=3, skip=lambda lm,tail: False, return_reductors=False):
+    def eliminate_linear_variables(self, maxlength=Infinity, skip=None, return_reductors=False):
         """
         Return a new system where linear leading variables are
         eliminated if the tail of the polynomial has length at most
@@ -937,16 +937,38 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         INPUT:
 
         - ``maxlength`` - an optional upper bound on the number of
-          monomials by which a variable is replaced.
+          monomials by which a variable is replaced. If
+          ``maxlength==+Infinity`` then no condition is checked.
+          (default: +Infinity).
 
         - ``skip`` - an optional callable to skip eliminations. It
           must accept two parameters and return either ``True`` or
           ``False``. The two parameters are the leading term and the
-          tail of a polynomial (default: ``lambda lm,tail: False``).
+          tail of a polynomial (default: ``None``).
 
         - ``return_reductors`` - if ``True`` the list of polynomials
           with linear leading terms which were used for reduction is
           also returned (default: ``False``).
+
+        OUTPUT:
+
+        When ``return_reductors==True``, then a pair of sequences of
+        boolean polynomials are returned, along with the promises that:
+
+          1. The union of the two sequences spans the
+             same boolean ideal as the argument of the method
+
+          2. The second sequence only contains linear polynomials, and
+             it forms a reduced groebner basis (they all have pairwise
+             distinct leading variables, and the leading variable of a
+             polynomial does not occur anywhere in other polynomials).
+
+          3. The leading variables of the second sequence do not occur
+             anywhere in the first sequence (these variables have been
+             eliminated).
+
+        When ``return_reductors==False``, only the first sequence is
+        returned.
 
         EXAMPLE::
 
@@ -965,11 +987,29 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: F = Sequence([a + b + d, a + b + c])
             sage: F,R = F.eliminate_linear_variables(return_reductors=True)
             sage: F
-            [c + d]
+            []
             sage: R
-            [a + b + d]
+            [a + b + d, c + d]
 
-        .. note::
+        TESTS:
+
+        The function should really dispose of linear equations (:trac:`13968`)::
+
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: S = Sequence([x+y+z+1, y+z])
+            sage: S.eliminate_linear_variables(return_reductors=True)
+            ([], [x + 1, y + z])
+
+
+        The function should take care of linear variables created by previous
+        substitution of linear variables ::
+
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: S = Sequence([x*y*z+x*y+z*y+x*z, x+y+z+1, x+y])
+            sage: S.eliminate_linear_variables(return_reductors=True)
+            ([], [x + y, z + 1])
+
+        .. NOTE::
 
             This is called "massaging" in [CBJ07]_.
 
@@ -981,10 +1021,9 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
            Cryptology ePrint Archive: Report 2007/024. available at
            http://eprint.iacr.org/2007/024
         """
-        from polybori.ll import ll_encode
-        from polybori.ll import ll_red_nf_redsb
+        from polybori import gauss_on_polys
+        from polybori.ll import eliminate,ll_encode,ll_red_nf_redsb
         from sage.rings.polynomial.pbori import BooleanPolynomialRing
-        from sage.misc.misc import get_verbose
 
         R = self.ring()
 
@@ -992,58 +1031,52 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             raise NotImplementedError("Only BooleanPolynomialRing's are supported.")
 
         F = self
+        reductors = []
 
-        elim = []
+        if skip is None and maxlength==Infinity:
+            # faster solution based on polybori.ll.eliminate
+            while True:
+                (this_step_reductors, _, higher) = eliminate(F)
+                if this_step_reductors == []:
+                   break
+                reductors.extend( this_step_reductors )
+                F = higher
+        else:
+            # slower, more flexible solution
+            if skip is None:
+                skip = lambda lm,tail: False
 
-        while True:
-            linear = []
-            higher = []
+            while True:
+                linear = []
+                higher = []
 
-            for f in F:
-                if f.degree() == 1 and len(f) <= maxlength + 1:
-                    flm = f.lex_lead()
-                    if skip(flm, f-flm):
-                        higher.append(f)
-                        continue
-                    lex_lead = map(lambda x: x.lex_lead(), linear)
-                    if not flm in lex_lead:
+                for f in F:
+                    if f.degree() == 1 and len(f) <= maxlength + 1:
+                        flm = f.lex_lead()
+                        if skip(flm, f-flm):
+                            higher.append(f)
+                            continue
                         linear.append(f)
                     else:
                         higher.append(f)
-                else:
-                    higher.append(f)
 
-            if not linear:
-                break
-            if not higher:
-                higher = linear
-                break
+                if not linear:
+                    break
 
-            assert len(set(linear)) == len(linear)
+                linear = gauss_on_polys(linear)
+                rb = ll_encode(linear)
+                reductors.extend(linear)
 
-            rb = ll_encode(linear)
-
-            elim.extend(linear)
-
-            F = []
-
-            for f in linear:
-                f = ll_red_nf_redsb(f, rb)
-                if f:
-                    F.append(f)
-
-            for f in higher:
-                f = ll_red_nf_redsb(f, rb)
-                if f:
-                    F.append(f)
-            if get_verbose() > 0:
-                print ".",
-        if get_verbose() > 0:
-            print
+                F = []
+                for f in higher:
+                    f = ll_red_nf_redsb(f, rb)
+                    if f != 0:
+                        F.append(f)
 
         ret = PolynomialSequence(R, higher)
         if return_reductors:
-            return ret, PolynomialSequence(R, elim)
+            reduced_reductors = gauss_on_polys(reductors)
+            return ret, PolynomialSequence(R, reduced_reductors)
         else:
             return ret
 

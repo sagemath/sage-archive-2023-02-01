@@ -64,6 +64,9 @@ http://www.python.org/community/
  * ncurses-issue_9665.patch: Fixes Python issue #9665 (by patching configure
    and configure.in after running autotools)
  * ncurses-issue_14438.patch: Fixes Python issue #14438 (ncurses)
+ * disable_print_refs_debug.patch: Remove some unused debug output
+   that breaks doctests
+
 
 == Changelog ==
 

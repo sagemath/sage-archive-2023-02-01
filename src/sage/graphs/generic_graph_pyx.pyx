@@ -482,7 +482,8 @@ cdef class SubgraphSearch:
         Constructor
 
         This constructor only checks there is no inconsistency in the
-        input : `G` and `H` are both graphs or both digraphs.
+        input : `G` and `H` are both graphs or both digraphs and that `H`
+        has order at least 2.
 
         EXAMPLE::
 
@@ -490,6 +491,9 @@ cdef class SubgraphSearch:
             sage: g.subgraph_search(graphs.CycleGraph(5))
             Subgraph of (Petersen graph): Graph on 5 vertices
         """
+        if H.order() <= 1:
+            raise ValueError("Searched graph should have at least 2 vertices.")
+
         if sum([G.is_directed(), H.is_directed()]) == 1:
             raise ValueError("One graph can not be directed while the other is not.")
 

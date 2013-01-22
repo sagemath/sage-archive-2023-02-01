@@ -6,6 +6,13 @@ description = """
     without any user interaction. The target process is frozen while
     this script runs and resumes when it is finished."""
 
+# A backtrace is saved in the directory $SAGE_CRASH_LOGS, which is
+# $DOT_SAGE/crash_logs by default.  Any backtraces older than
+# $SAGE_CRASH_DAYS (default: 7 if SAGE_CRASH_LOGS unset, -1 if
+# set) are automatically deleted, but with a negative value they are
+# never deleted.
+
+
 import sys
 import os
 import subprocess
@@ -92,24 +99,39 @@ def mkdir_p(path):
         else:
             raise
 
-def prune_old_logs(directory):
+def prune_old_logs(directory, days):
     """
-    Delete all files in ``directory`` that are older than one week.
+    Delete all files in ``directory`` that are older than a given
+    number of days.
     """
     for filename in os.listdir(directory):
         filename = os.path.join(directory, filename)
-        mtime = datetime.fromtimestamp(os.path.getmtime(filename))
+        mtime = datetime.utcfromtimestamp(os.path.getmtime(filename))
         age = datetime.utcnow() - mtime
-        if age.days > 7:
+        if age.days >= days:
             try:
                 os.unlink(filename)
             except OSError:
                 pass
 
 def save_backtrace(output):
-    bt_dir = os.path.join(os.environ['DOT_SAGE'], 'crash_logs')
+    try:
+        bt_dir = os.environ['SAGE_CRASH_LOGS']
+        # Don't delete all files in this directory, in case the user
+        # set SAGE_CRASH_LOGS to a stupic value.
+        bt_days = -1
+    except KeyError:
+        bt_dir = os.path.join(os.environ['DOT_SAGE'], 'crash_logs')
+        bt_days = 7
+
+    try:
+        bt_days = int(os.environ['SAGE_CRASH_DAYS'])
+    except KeyError:
+        pass
+
     mkdir_p(bt_dir)
-    prune_old_logs(bt_dir)
+    if bt_days >= 0:
+        prune_old_logs(bt_dir, bt_days)
     f, filename = tempfile.mkstemp(dir=bt_dir, prefix='sage_crash_', suffix='.log')
     os.write(f, output)
     os.close(f)
@@ -137,7 +159,7 @@ if __name__ == '__main__':
         print 'There is no process with pid {0}.'.format(args.pid)
         sys.exit(1)
 
-    print 'Attaching to process id {0}.'.format(args.pid)
+    print 'Attaching gdb to process id {0}.'.format(args.pid)
     trace = run_gdb(args.pid, not args.nocolor)
     print trace
 

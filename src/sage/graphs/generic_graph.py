@@ -2921,11 +2921,15 @@ class GenericGraph(GenericGraph_pyx):
             2
 
         """
+
+        if self.order() == 0:
+            return 0
+
         if self.is_directed() == False:
             M=self.kirchhoff_matrix()
             M.subdivide(1,1)
             M2 = M.subdivision(1,1)
-            return abs(M2.determinant())
+            return M2.determinant()
         else:
             if root_vertex == None:
                 root_vertex=self.vertex_iterator().next()

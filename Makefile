@@ -30,10 +30,10 @@ ssl: all
 build-serial: SAGE_PARALLEL_SPKG_BUILD = no
 build-serial: build
 
-# Start Sage if the file local/lib/sage-started.txt does not exist
-# (i.e. when we just installed Sage for the first time)
+# Start Sage if the file local/etc/sage-started.txt does not exist
+# (i.e. when we just installed Sage for the first time).
 start: build
-	[ -f local/lib/sage-started.txt ] || local/bin/sage-starts
+	[ -f local/etc/sage-started.txt ] || local/bin/sage-starts
 
 # You can choose to have the built HTML version of the documentation link to
 # the PDF version. To do so, you need to build both the HTML and PDF versions.

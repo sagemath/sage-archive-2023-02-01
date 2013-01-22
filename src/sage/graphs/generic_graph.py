@@ -16300,15 +16300,19 @@ class GenericGraph(GenericGraph_pyx):
         """
         if partition is None:
             partition = [self.vertices()]
+
+        for p in partition:
+            if len(p) == 0:
+                continue
+            d = self.degree(p[0])
+            if not all(self.degree(x) == d for x in p):
+                return False
+
         new_partition = self.automorphism_group(partition,
                           verbosity=verbosity, edge_labels=edge_labels,
                           order=False, return_group=False, orbits=True)
-        for cell in partition:
-            for new_cell in new_partition:
-                if cell[0] in new_cell:
-                    if any([c not in new_cell for c in cell[1:]]):
-                        return False
-        return True
+
+        return (len(partition) == len(new_partition))
 
     def is_hamiltonian(self):
         r"""

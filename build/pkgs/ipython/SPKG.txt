@@ -45,10 +45,14 @@ ipython-user@scipy.org
    probably not be needed with IPython 0.14, since the input splitter will need
    to be rewritten.
 
+ * ipython-history-backport.patch: Backport of improvements to
+   IPython/core/history.py
+
 == Changelog ==
 
-=== ipython-0.13.1 (Jason Grout, Oct 23, 2012) ===
+=== ipython-0.13.1 (Jason Grout, Volker Braun, Jan 22, 2013) ===
  * Upgrade to 0.13.1
+ * Add backport of history fixes (to catch invalid databases)
 
 === ipython-0.13 (Jason Grout, June 30, 2012) ===
  * Upgrade to 0.13

@@ -184,24 +184,26 @@ cdef initialize():
     # Define argv and environ variables, which we will pass in to
     # initialize GAP. Note that we must pass define the memory pool
     # size!
-    cdef char* argv[8]
+    cdef char* argv[12]
     argv[0] = "sage"
     argv[1] = "-l"
     s = gap_root()
     argv[2] = s
 
-    from sage.interfaces.gap import get_gap_memory_pool_size
-    memory_pool = str(get_gap_memory_pool_size())
+    from sage.interfaces.gap import _get_gap_memory_pool_size_MB
+    memory_pool = _get_gap_memory_pool_size_MB()
     argv[3] = "-o"
     argv[4] = memory_pool
+    argv[5] = "-s"
+    argv[6] = memory_pool
 
-    argv[5] = "-m"
-    argv[6] = "64m"
+    argv[7] = "-m"
+    argv[8] = "64m"
 
-    argv[7] = "-q"    # no prompt!
-    argv[8] = "-T"    # no debug loop
-    argv[9] = NULL
-    cdef int argc = 9
+    argv[9] = "-q"    # no prompt!
+    argv[10] = "-T"    # no debug loop
+    argv[11] = NULL
+    cdef int argc = 11   # argv[argc] must be NULL
 
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler

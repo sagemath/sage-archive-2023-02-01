@@ -17,3 +17,8 @@ else:
 #Note that this needs to have the doctrees dir
 ALLSPHINXOPTS   = SPHINXOPTS + " " + PAPEROPTS + " "
 WEBSITESPHINXOPTS = ""
+
+# Minimize GAP/libGAP RAM usage in the builder, docbuild already uses too much
+from sage.interfaces.gap import set_gap_memory_pool_size
+set_gap_memory_pool_size(0)  # will be rounded up to 1M
+

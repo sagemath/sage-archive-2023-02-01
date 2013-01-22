@@ -616,4 +616,7 @@ def setup(app):
         app.connect('builder-inited', set_intersphinx_mappings)
         app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
         app.connect('builder-inited', nitpick_patch_config)
+        # Minimize GAP/libGAP RAM usage when we build the docs
+        from sage.interfaces.gap import set_gap_memory_pool_size
+        set_gap_memory_pool_size(0)  # will be rounded up to 1M
 

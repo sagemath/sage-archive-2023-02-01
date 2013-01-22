@@ -112,13 +112,17 @@ cdef class TripleDictEraser:
             sage: len(T)    # indirect doctest
             0
         """
+        cdef TripleDict D = self.D
+        cdef list buckets = self.D.buckets
+        if buckets is None:
+            return
         # r is a (weak) reference (typically to a parent), and it knows the
         # stored key of the unique triple r() had been part of.
         # We remove that unique triple from self.D
         cdef size_t k1,k2,k3
         k1,k2,k3 = r.key
         cdef size_t h = (k1 + 13*k2 ^ 503*k3)
-        cdef list bucket = <object>PyList_GET_ITEM(self.D.buckets, h % PyList_GET_SIZE(self.D.buckets))
+        cdef list bucket = <object>PyList_GET_ITEM(buckets, h % PyList_GET_SIZE(buckets))
         cdef int i
         for i from 0 <= i < PyList_GET_SIZE(bucket) by 4:
             if <size_t><object>PyList_GET_ITEM(bucket, i)==k1 and \

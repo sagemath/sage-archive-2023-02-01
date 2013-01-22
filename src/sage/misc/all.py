@@ -6,7 +6,7 @@ from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange
                   random_sublist, mul, walltime, generic_cmp,
                   repr_lincomb,
                   pad_zeros, attrcall,
-                  DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
+                  DOT_SAGE, SAGE_ROOT, SAGE_LOCAL, SAGE_URL, SAGE_DB, SAGE_TMP,
                   is_32_bit, is_64_bit, newton_method_sizes, compose,
                   self_compose, nest)
 

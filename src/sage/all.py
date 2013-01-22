@@ -279,6 +279,7 @@ sage.misc.lazy_import.save_cache_file()
 
 
 # Write a file indicating that Sage was started up successfully.
+# This is called by the sage-starts script.
 def _write_started_file():
     """
     Write a ``sage-started.txt`` file if it does not exist.  The
@@ -291,11 +292,13 @@ def _write_started_file():
 
     Check that the file exists when Sage is running::
 
-        sage: started_file = os.path.join(SAGE_ROOT, 'local', 'lib', 'sage-started.txt')
+        sage: started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
         sage: os.path.isfile(started_file)
         True
     """
-    started_file = os.path.join(SAGE_ROOT, 'local', 'lib', 'sage-started.txt')
+    from sage.misc.all import SAGE_LOCAL
+
+    started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
     # Do nothing if the file already exists
     if os.path.isfile(started_file):
         return
@@ -307,8 +310,6 @@ def _write_started_file():
     O = open(started_file, 'w')
     O.write("Sage %s was started at %s\n"%(sage.version.version, t))
     O.close()
-
-_write_started_file()
 
 
 # Set a new random number seed as the very last thing

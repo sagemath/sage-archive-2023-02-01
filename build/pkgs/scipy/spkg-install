@@ -16,20 +16,14 @@ if [ "$UNAME" = "Darwin" ]; then
     unset ATLAS
     unset BLAS
     unset LAPACK
-    export LDFLAGS="-bundle -undefined dynamic_lookup"
+    export LDFLAGS="-bundle -undefined dynamic_lookup $LDFLAGS"
 else
-    ATLAS="$SAGE_LOCAL"
-    export ATLAS
-    BLAS="$SAGE_LOCAL"
-    export BLAS
-    LAPACK="$SAGE_LOCAL"
-    export LAPACK
-    export LDFLAGS="-shared"
+    export ATLAS="$SAGE_LOCAL"
+    export BLAS="$SAGE_LOCAL"
+    export LAPACK="$SAGE_LOCAL"
+    export LDFLAGS="-shared $LDFLAGS"
 fi
-export FC="$SAGE_LOCAL/bin/sage_fortran"
-export F77="$SAGE_LOCAL/bin/sage_fortran"
-export F90="$SAGE_LOCAL/bin/sage_fortran"
-export F95="$SAGE_LOCAL/bin/sage_fortran"
+
 
 # This avoids problems on some systems -- until we officially
 # support umfpack (which we will likely do, since cvxopt I think includes it):
@@ -45,13 +39,14 @@ rm -rf "$SAGE_LOCAL"/lib/python/site-packages/scipy
 cd src/
 
 # Apply patches (if any):
-# for patch in ../patches/*.patch; do
-#     patch -p1 <"$patch"
-#     if [ $? -ne 0 ]; then
-#         echo >&2 "Error applying '$patch'."
-#         exit 1
-#     fi
-# done
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
 # Build:
 python setup.py build

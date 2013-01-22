@@ -2389,7 +2389,6 @@ class Graph(GenericGraph):
         return Infinity
 
     def is_edge_transitive(self):
-
         """
         Returns true if self is an edge transitive graph.
 
@@ -2493,7 +2492,7 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-            The Petersen Graph is not half-transitive::
+        The Petersen Graph is not half-transitive::
 
             sage: P = graphs.PetersenGraph()
             sage: P.is_half_transitive()
@@ -2532,23 +2531,23 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-            The Petersen graph is not semi-symmetric::
+        The Petersen graph is not semi-symmetric::
 
-                sage: P = graphs.PetersenGraph()
-                sage: P.is_semi_symmetric()
-                False
+            sage: P = graphs.PetersenGraph()
+            sage: P.is_semi_symmetric()
+            False
 
-            The Gray graph is the smallest possible semi-symmetric graph::
+        The Gray graph is the smallest possible semi-symmetric graph::
 
-                sage: G = graphs.GrayGraph()
-                sage: G.is_semi_symmetric()
-                True
+            sage: G = graphs.GrayGraph()
+            sage: G.is_semi_symmetric()
+            True
 
-            Another well known semi-symmetric graph is the Ljubljana graph::
+        Another well known semi-symmetric graph is the Ljubljana graph::
 
-                sage: L = graphs.LjubljanaGraph()
-                sage: L.is_semi_symmetric()
-                True
+            sage: L = graphs.LjubljanaGraph()
+            sage: L.is_semi_symmetric()
+            True
         """
         # A semi-symmetric graph is always bipartite
         if  not self.is_bipartite() :

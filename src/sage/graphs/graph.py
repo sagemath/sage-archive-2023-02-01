@@ -53,6 +53,10 @@ graphs.
     :meth:`~Graph.is_weakly_chordal` | Tests whether ``self`` is weakly chordal.
     :meth:`~Graph.is_strongly_regular` | Tests whether ``self`` is strongly regular.
     :meth:`~Graph.odd_girth` | Returns the odd girth of ``self``.
+    :meth:`~Graph.is_edge_transitive` | Returns true if self is edge-transitive.
+    :meth:`~Graph.is_arc_transitive` | Returns true if self is arc-transitive.
+    :meth:`~Graph.is_half_transitive` | Returns true if self is a half-transitive graph.
+    :meth:`~Graph.is_semi_symmetric` | Returns true if self is a semi-symmetric graph.
 
 
 **Connectivity and orientations:**
@@ -2383,6 +2387,176 @@ class Graph(GenericGraph):
         from sage.rings.infinity import Infinity
 
         return Infinity
+
+    def is_edge_transitive(self):
+
+        """
+        Returns true if self is an edge transitive graph.
+
+        A graph is edge-transitive if its automorphism group acts transitively
+        on its edge set.
+
+        Equivalently, if there exists for any pair of edges `uv,u'v'\in E(G)` an
+        automorphism `\phi` of `G` such that `\phi(uv)=u'v'` (note this does not
+        necessarily mean that `\phi(u)=u'` and `\phi(v)=v'`).
+
+        See :wikipedia:`the wikipedia article on edge-transitive graphs
+        <Edge-transitive_graph>` for more information.
+
+        .. SEEALSO::
+
+          - :meth:`~Graph.is_arc_transitive`
+          - :meth:`~Graph.is_half_transitive`
+          - :meth:`~Graph.is_semi_symmetric`
+
+        EXAMPLES::
+
+            sage: P = graphs.PetersenGraph()
+            sage: P.is_edge_transitive()
+            True
+            sage: C = graphs.CubeGraph(3)
+            sage: C.is_edge_transitive()
+            True
+            sage: G = graphs.GrayGraph()
+            sage: G.is_edge_transitive()
+            True
+            sage: P = graphs.PathGraph(4)
+            sage: P.is_edge_transitive()
+            False
+        """
+        from sage.interfaces.gap import gap
+
+        if self.size() == 0:
+            return True
+
+        A,T = self.automorphism_group(translation=True)
+        e = self.edge_iterator(labels=False).next()
+        e = [T[e[0]], T[e[1]]]
+        return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnSets);") == self.size()
+
+    def is_arc_transitive(self):
+        """
+        Returns true if self is an arc-transitive graph
+
+        A graph is arc-transitive if its automorphism group acts transitively on
+        its pairs of adjacent vertices.
+
+        Equivalently, if there exists for any pair of edges `uv,u'v'\in E(G)` an
+        automorphism `\phi_1` of `G` such that `\phi_1(u)=u'` and
+        `\phi_1(v)=v'`, as well as another automorphism `\phi_2` of `G` such
+        that `\phi_2(u)=v'` and `\phi_2(v)=u'`
+
+        See :wikipedia:`the wikipedia article on arc-transitive graphs
+        <arc-transitive_graph>` for more information.
+
+        .. SEEALSO::
+
+          - :meth:`~Graph.is_edge_transitive`
+          - :meth:`~Graph.is_half_transitive`
+          - :meth:`~Graph.is_semi_symmetric`
+
+        EXAMPLES::
+
+            sage: P = graphs.PetersenGraph()
+            sage: P.is_arc_transitive()
+            True
+            sage: G = graphs.GrayGraph()
+            sage: G.is_arc_transitive()
+            False
+        """
+
+        from sage.interfaces.gap import gap
+
+        if self.size() == 0:
+            return True
+
+        A,T = self.automorphism_group(translation=True)
+        e = self.edge_iterator(labels=False).next()
+        e = [T[e[0]], T[e[1]]]
+        return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnTuples);") == 2*self.size()
+
+    def is_half_transitive(self):
+        """
+        Returns true if self is a half-transitive graph.
+
+        A graph is is half-transitive if it is both vertex and edge transitive
+        but not arc-transitive.
+
+        See :wikipedia:`the wikipedia article on half-transitive graphs
+        <half-transitive_graph>` for more information.
+
+        .. SEEALSO::
+
+          - :meth:`~Graph.is_edge_transitive`
+          - :meth:`~Graph.is_arc_transitive`
+          - :meth:`~Graph.is_semi_symmetric`
+
+        EXAMPLES:
+
+            The Petersen Graph is not half-transitive::
+
+            sage: P = graphs.PetersenGraph()
+            sage: P.is_half_transitive()
+            False
+
+        The smallest half-transitive graph is the Holt Graph::
+
+            sage: H = graphs.HoltGraph()
+            sage: H.is_half_transitive()
+            True
+        """
+
+        # A half-transitive graph always has only vertices of even degree
+        if not all(d%2 == 0 for d in self.degree_iterator()):
+            return False
+
+        return (self.is_edge_transitive() and
+                self.is_vertex_transitive() and
+                not self.is_arc_transitive())
+
+    def is_semi_symmetric(self):
+        """
+        Returns true if self is semi-symmetric.
+
+        A graph is semi-symmetric if it is regular, edge-transitve but not
+        vertex-transitive.
+
+        See :wikipedia:`the wikipedia article on semi-symmetric graphs
+        <Semi-symmetric_graph>` for more information.
+
+        .. SEEALSO::
+
+          - :meth:`~Graph.is_edge_transitive`
+          - :meth:`~Graph.is_arc_transitive`
+          - :meth:`~Graph.is_half-transitive`
+
+        EXAMPLES:
+
+            The Petersen graph is not semi-symmetric::
+
+                sage: P = graphs.PetersenGraph()
+                sage: P.is_semi_symmetric()
+                False
+
+            The Gray graph is the smallest possible semi-symmetric graph::
+
+                sage: G = graphs.GrayGraph()
+                sage: G.is_semi_symmetric()
+                True
+
+            Another well known semi-symmetric graph is the Ljubljana graph::
+
+                sage: L = graphs.LjubljanaGraph()
+                sage: L.is_semi_symmetric()
+                True
+        """
+        # A semi-symmetric graph is always bipartite
+        if  not self.is_bipartite() :
+            return False
+
+        return (self.is_regular() and
+                self.is_edge_transitive() and not
+                self.is_vertex_transitive())
 
     def degree_constrained_subgraph(self, bounds=None, solver=None, verbose=0):
         r"""

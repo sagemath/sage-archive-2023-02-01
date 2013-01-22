@@ -16,6 +16,7 @@ Root Systems
    ../sage/combinat/root_system/weight_space
    ../sage/combinat/root_system/ambient_space
 
+   ../sage/combinat/root_system/coxeter_group
    ../sage/combinat/root_system/weyl_group
 
    ../sage/combinat/root_system/weyl_characters

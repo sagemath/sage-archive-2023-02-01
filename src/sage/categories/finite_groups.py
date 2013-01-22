@@ -97,13 +97,19 @@ class FiniteGroups(Category):
             compatibility only. Finite groups should override this
             method instead of :meth:`.order`.
 
-            EXAMPLES::
+            EXAMPLES:
 
-                sage: G = DihedralGroup(6)
+            We need to use a finite group which uses this default
+            implementation of cardinality::
+
+                sage: R.<x> = PolynomialRing(QQ)
+                sage: f = x^4 - 17*x^3 - 2*x + 1
+                sage: G = f.galois_group(pari_group=True); G
+                PARI group [24, -1, 5, "S4"] of degree 4
                 sage: G.cardinality.__module__
                 'sage.categories.finite_groups'
                 sage: G.cardinality()
-                12
+                24
             """
             try:
                 o = self.order

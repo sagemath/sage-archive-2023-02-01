@@ -685,6 +685,7 @@ class GAP3Element(GapElement_generic):
         super(GAP3Element, self).__init__(parent, value, is_name, name)
 
         # check for a GAP record; if so then change the class
+        parent._synchronize()
         if parent.eval("IsRec(%s)" % self._name) == "true":
             self.__class__ = GAP3Record
 

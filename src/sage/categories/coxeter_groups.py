@@ -698,7 +698,7 @@ class CoxeterGroups(Category_singleton):
                 assert side == 'left'
                 return self.has_left_descent(i)  != positive
 
-        @abstract_method(optional = True)
+#        @abstract_method(optional = True)
         def has_right_descent(self, i):
             """
             Returns whether ``i`` is a right descent of self.
@@ -716,6 +716,7 @@ class CoxeterGroups(Category_singleton):
                 sage: w.has_right_descent(2)
                 True
             """
+            return (~self).has_left_descent(i)
 
         def has_left_descent(self, i):
             """

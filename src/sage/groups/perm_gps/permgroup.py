@@ -1416,6 +1416,8 @@ class PermutationGroup_generic(group.Group):
           return subgroup_order
         return Integer(self._gap_().Size())
 
+    cardinality = order
+
     def random_element(self):
         """
         Return a random element of this group.

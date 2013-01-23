@@ -15655,7 +15655,7 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Automorphism and isomorphism
 
-    def relabel(self, perm=None, inplace=True, return_map=False):
+    def relabel(self, perm=None, inplace=True, return_map=False, check_input = True, complete_partial_function = True):
         r"""
         Relabels the vertices of ``self``
 
@@ -15667,6 +15667,14 @@ class GenericGraph(GenericGraph_pyx):
          - ``inplace`` -- a boolean (default: ``True``)
 
          - ``return_map`` -- a boolean (default: ``False``)
+
+         - ``check_input`` (boolean) -- whether to test input for
+           correctness. *This can potentially be very time-consuming !*.
+
+         - ``complete_partial_function`` (boolean) -- whether to automatically
+           complete the permutation if some elements of the graph are not
+           associated with any new name. In this case, those elements are not
+           relabeled *This can potentially be very time-consuming !*.
 
         If ``perm`` is a function ``f``, then each vertex ``v`` is
         relabeled to ``f(v)``.
@@ -15694,7 +15702,6 @@ class GenericGraph(GenericGraph_pyx):
 
         If ``return_map`` is ``True`` a dictionary representing the
         relabelling map is returned (incompatible with ``inplace==False``).
-
 
         EXAMPLES::
 
@@ -15813,6 +15820,19 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
+        if not inplace:
+            from copy import copy
+            G = copy(self)
+            perm2 = G.relabel(perm,
+                              return_map= return_map,
+                              check_input = check_input,
+                              complete_partial_function = complete_partial_function)
+
+            if return_map:
+                return G, perm2
+            else:
+                return G
+
         # If perm is not a dictionary, we build one !
 
         if perm is None:
@@ -15821,6 +15841,9 @@ class GenericGraph(GenericGraph_pyx):
             for v in verts:
                 perm[v] = i
                 i += 1
+
+            complete_partial_function = False
+            check_input = False
 
         elif isinstance(perm, dict):
 
@@ -15844,31 +15867,30 @@ class GenericGraph(GenericGraph_pyx):
 
         elif callable(perm):
             perm = dict( [ i, perm(i) ] for i in self.vertices() )
+            complete_partial_function = False
 
         else:
             raise TypeError("Type of perm is not supported for relabeling.")
 
-        if not inplace:
-            from copy import copy
-            G = copy(self)
-            G.relabel(perm)
-            if return_map:
-                return G, perm
-            return G
+        # Whether to complete the relabeling function if some vertices do not
+        # appear in the permutation.
+        if complete_partial_function:
+            for v in self:
+                if v not in perm:
+                    perm[v] = v
 
-        keys = perm.keys()
-        verts = self.vertices()
-        if len(set(perm.values())) < len(keys):
-            raise NotImplementedError, "Non injective relabeling"
-        for v in verts:
-            if v not in keys:
-                perm[v] = v
-        for v in perm.iterkeys():
-            if v in verts:
-                try:
-                    hash(perm[v])
-                except TypeError:
-                    raise ValueError("perm dictionary must be of the format {a:a1, b:b1, ...} where a,b,... are vertices and a1,b1,... are hashable")
+        # Whether to check input
+        if check_input:
+            if len(set(perm.values())) < len(perm):
+                raise NotImplementedError, "Non injective relabeling"
+
+            for v in perm.iterkeys():
+                if v in self:
+                    try:
+                        hash(perm[v])
+                    except TypeError:
+                        raise ValueError("perm dictionary must be of the format {a:a1, b:b1, ...} where a,b,... are vertices and a1,b1,... are hashable")
+
         self._backend.relabel(perm, self._directed)
 
         attributes_to_update = ('_pos', '_assoc', '_embedding')

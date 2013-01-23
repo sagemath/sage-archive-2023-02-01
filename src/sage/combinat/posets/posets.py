@@ -1408,7 +1408,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def plot(self, label_elements=True, element_labels=None,
              vertex_size=300, vertex_colors=None,
-             layout='acyclic',
+             layout='acyclic', cover_labels=None,
              **kwds):
         """
         Returns a Graphic object for the Hasse diagram of the poset.
@@ -1422,9 +1422,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``label_elements`` (default: ``True``) - whether to display element labels
+        - ``label_elements`` (default: ``True``) - whether to display
+          element labels
 
-        - ``element_labels`` (default: ``None``) - a dictionary of element labels
+        - ``element_labels`` (default: ``None``) - a dictionary of
+          element labels
+
+        - ``cover_labels`` (default: ``None``) - a dictionary, list or function
+          representing labels of the covers of ``self``
 
         EXAMPLES::
 
@@ -1453,6 +1458,18 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.plot()
             Graphics object consisting of 12 graphics primitives
 
+        The keyword ``cover_labels`` can be used to decorate edges::
+
+            sage: P = posets.ChainPoset(3)
+            sage: P.plot(cover_labels=lambda a, b: a + b)
+            ?
+            sage: P = Poset({0: [1,2]})
+            sage: P.plot(cover_labels={(0,1): 'here', (0,2): 'there'})
+            ?
+            sage: P = Poset({2: [1], 0: [1]})
+            sage: P.plot(cover_labels=[(2,1,'a'), (0,1,'b')])
+            ?
+
         TESTS:
 
         We check that ``label_elements`` and ``element_labels`` are honored::
@@ -1469,7 +1486,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             ['a', 'b', 'c', 'd', 'e']
             sage: get_plot_labels(P2.plot(element_labels=element_labels))
             ['a', 'b', 'c', 'd', 'e']
-
         """
         from collections import defaultdict
         graph = self.hasse_diagram()
@@ -1490,7 +1506,24 @@ class FinitePoset(UniqueRepresentation, Parent):
             if rank_function: # use the rank function to set the heights
                 for i in self:
                     heights[rank_function(i)].append(i)
+
+        if cover_labels is not None:
+            if callable(cover_labels):
+                for (v, w) in graph.edges(labels=False):
+                    graph.set_edge_label(v, w, cover_labels(v, w))
+            elif isinstance(cover_labels, dict):
+                for (v, w) in cover_labels:
+                    graph.set_edge_label(self(v), self(w),
+                                         cover_labels[(v, w)])
+            else:
+                for (v, w, l) in cover_labels:
+                    graph.set_edge_label(self(v), self(w), l)
+            cover_labels = True
+        else:
+            cover_labels = False
+
         return graph.plot(vertex_labels=label_elements,
+                          edge_labels=cover_labels,
                           vertex_size=vertex_size,
                           vertex_colors=vertex_colors,
                           layout=layout,
@@ -1498,18 +1531,22 @@ class FinitePoset(UniqueRepresentation, Parent):
                           **kwds)
 
     def show(self, label_elements=True, element_labels=None,
-            vertex_size=300, vertex_colors=None, layout='acyclic', **kwds):
+            vertex_size=300, vertex_colors=None, layout='acyclic',
+             cover_labels=None, **kwds):
         """
         Shows the Graphics object corresponding the Hasse diagram of the
         poset. Optionally, it is labelled.
 
         INPUT:
 
-        -  ``label_elements`` - whether to display element
+        -  ``label_elements`` (default: ``True``) - whether to display element
            labels
 
-        -  ``element_labels`` - a dictionary of element
+        -  ``element_labels`` (default: ``None``) - a dictionary of element
            labels
+
+        - ``cover_labels`` (default: ``None``) - a dict/list/function
+          representing labels of the covers of ``self``
 
         EXAMPLES::
 
@@ -1521,7 +1558,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: D.show(element_labels=elm_labs)
         """
         self.plot(label_elements=label_elements, element_labels=element_labels,
-            vertex_size=vertex_size, vertex_colors=vertex_colors, layout=layout).show(**kwds)
+                  vertex_size=vertex_size, vertex_colors=vertex_colors,
+                  layout=layout, cover_labels=cover_labels).show(**kwds)
 
     @combinatorial_map(name="to graph")
     def to_graph(self):

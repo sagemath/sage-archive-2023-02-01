@@ -3,8 +3,10 @@
 # Compile Fortran code within Sage,
 # see devel/sage/sage/misc/inline_fortran.py
 
+[ -n "$FC" ] || FC=gfortran
+
 if [ "$UNAME" = "Darwin" ]; then
-    exec sage_fortran -bundle -undefined dynamic_lookup "$@"
+    exec $FC -bundle -undefined dynamic_lookup "$@"
 else
-    exec sage_fortran -shared "$@"
+    exec $FC -shared "$@"
 fi

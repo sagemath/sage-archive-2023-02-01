@@ -56,6 +56,13 @@ def CyclicSievingPolynomial( L, cyc_act=None, order=None, get_order=False):
         q^6 + 2*q^4 + q^2 + 2
         sage: CyclicSievingPolynomial([4,2])
         q^3 + 2*q^2 + q + 2
+
+    TESTS:
+
+    We check that :trac:`13997` is handled::
+
+        sage: CyclicSievingPolynomial( S42, cyc_act, order=8, get_order=True )
+        [q^6 + 2*q^4 + q^2 + 2, 8]
     """
 
     if cyc_act:
@@ -81,9 +88,9 @@ def CyclicSievingPolynomial( L, cyc_act=None, order=None, get_order=False):
 
     if order:
         if order.mod(n) != 0:
-            raise ValueError, "The given order is not valid as it is not a multiple of the order of the given cyclic action"
-        else:
-            m = ZZ(order/n)
+            raise ValueError("The given order is not valid as it is not a multiple of the order of the given cyclic action")
+    else:
+        order = n
 
     for i in range(n):
         if i == 0:
@@ -92,11 +99,10 @@ def CyclicSievingPolynomial( L, cyc_act=None, order=None, get_order=False):
             j = sum( orbit_sizes[ l ] for l in keys if ZZ(i).mod(n/l) == 0 )
         p += j*q**i
 
-    if order:
-        p = p(q**m)
+    p = p(q**ZZ(order/n))
 
     if get_order:
-        return [p,n]
+        return [p,order]
     else:
         return p
 
@@ -162,13 +168,14 @@ def orbit_decomposition( L, cyc_act ):
         sage: cyc_act([1,4])
         {1, 2}
         sage: orbit_decomposition( S42, cyc_act )
-        [[{1, 2}, {2, 3}, {3, 4}, {1, 4}], [{1, 3}, {2, 4}]]
+        [[{2, 4}, {1, 3}], [{1, 2}, {2, 3}, {3, 4}, {1, 4}]]
     """
     orbits = []
-    L_prime = copy( L )
-    while L_prime <> []:
-        orbit = []
-        obj = L_prime[0]
+    L_prime = set(L)
+    while L_prime != set():
+        obj = L_prime.pop()
+        orbit = [obj]
+        obj = cyc_act( obj )
         while obj in L_prime:
             orbit.append( obj )
             L_prime.remove( obj )

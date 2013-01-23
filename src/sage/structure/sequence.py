@@ -911,6 +911,19 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: S._Sequence__universe = 'foobar'
             sage: S.universe()
             'foobar'
+
+        We test that :trac:`13998` is fixed::
+
+            sage: S = Sequence([])
+            sage: S.set_immutable()
+            sage: del S._Sequence_generic__hash
+            sage: hash(S)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'Sequence_generic' object has no attribute '_Sequence_generic__hash'
+            sage: S._Sequence__hash = 34
+            sage: hash(S)
+            34
         """
         if name == "_Sequence_generic__cr" and hasattr(self,"_Sequence__cr"):
             self.__cr = self._Sequence__cr
@@ -924,6 +937,9 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         elif name == "_Sequence_generic__universe" and hasattr(self,"_Sequence__universe"):
             self.__universe = self._Sequence__universe
             return self.__universe
+        elif name == "_Sequence_generic__hash" and hasattr(self,"_Sequence__hash"):
+            self.__hash = self._Sequence__hash
+            return self.__hash
         else:
             raise AttributeError("'Sequence_generic' object has no attribute '%s'"%name)
 seq = Sequence

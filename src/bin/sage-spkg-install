@@ -17,7 +17,7 @@ if [ -d "$TARGET"/.hg ]; then
    hg update
 else
     # Initial install.  Just copy all the files over.
-    cp -pR sage-*  *doctest.py .hg* ipy_profile_sage.py "$TARGET"
+    cp -pR sage-*  *doctest.py .hg* "$TARGET"
 fi
 
 # Create an appropriate hgrc file for the target

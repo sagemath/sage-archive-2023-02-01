@@ -113,7 +113,7 @@ rm -rf "$SCRIPTS"
 mkdir "$SCRIPTS"
 rm sage-*~
 
-cp -pr sage-* .hg* ipy_profile_sage.py "$SCRIPTS"/
+cp -pr sage-* .hg* "$SCRIPTS"/
 cp -p "$SAGE_ROOT"/local/bin/sage-spkg-install "$SCRIPTS"/spkg-install
 cp -p "$SAGE_ROOT"/local/bin/ncadoctest.py "$SCRIPTS"/
 cp -p "$SAGE_ROOT"/local/bin/sagedoctest.py "$SCRIPTS"/

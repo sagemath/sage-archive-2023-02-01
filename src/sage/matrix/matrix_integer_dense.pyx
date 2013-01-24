@@ -84,6 +84,10 @@ include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
 include "../ext/random.pxi"
 
+cdef extern from "math.h":
+    double log(double x)
+    double ldexp(double x, int exp)
+
 ctypedef unsigned int uint
 
 from sage.ext.multi_modular import MultiModularBasis
@@ -1181,6 +1185,48 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         sig_off()
 
         return 0   # no error occurred.
+
+    cpdef double _log_avg_sq1(self) except -1.0:
+        """
+        Return the logarithm of the average of `x^2 + 1`, where `x`
+        ranges over the matrix entries.
+
+        This is used to determine which determinant algorithm to use.
+
+        TESTS::
+
+            sage: M = random_matrix(ZZ,100)
+            sage: L1 = M._log_avg_sq1()
+            sage: L2 = log(RR(sum([i*i+1 for i in M.list()])/10000))
+            sage: abs(L1 - L2) < 1e-13
+            True
+            sage: matrix(ZZ,10)._log_avg_sq1()
+            0.0
+        """
+        cdef Py_ssize_t i
+        cdef Py_ssize_t N = self._nrows * self._ncols
+
+        # wsq * 4^wsq_e = sum of entries squared plus number of entries
+        cdef double wsq = N
+        cdef long wsq_e = 0
+
+        cdef double d
+        cdef long e
+
+        sig_on()
+        for i in range(N):
+            d = mpz_get_d_2exp(&e, self._entries[i])
+            if (e > wsq_e):
+                wsq = ldexp(wsq, 2*(wsq_e - e))
+                wsq_e = e
+            elif (e < wsq_e):
+                d = ldexp(d, e - wsq_e)
+            wsq += d*d
+        sig_off()
+
+        # Compute log(wsq * 4^wsq_e / N) =
+        # log(wsq * 4^wsq_e / N) = log(wsq/N) + wsq_e * log(4)
+        return log(wsq/N) + wsq_e * log(4.0)
 
     def _multiply_multi_modular(left, Matrix_integer_dense right):
         """
@@ -3200,8 +3246,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``algorithm``
 
-          - ``'default'`` -- use 'pari' when number of rows less than 50;
-                             otherwise, use 'padic'
+          - ``'default'`` -- automatically determine which algorithm
+                             to use depending on the matrix.
 
           - ``'padic'`` -  uses a p-adic / multimodular
             algorithm that relies on code in IML and linbox
@@ -3209,7 +3255,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
           - ``'linbox'`` - calls linbox det (you *must* set
             proof=False to use this!)
 
-          -  ``'ntl'`` - calls NTL's det function
+          - ``'ntl'`` - calls NTL's det function
 
           - ``'pari'`` - uses PARI
 
@@ -3303,7 +3349,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if not self.is_square():
             raise ValueError("self must be a square matrix")
 
-        cdef long n = self.nrows()
+        cdef Py_ssize_t n = self.nrows()
 
         cdef Integer det4x4
         if n <= 4:
@@ -3315,13 +3361,28 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 four_dim_det(det4x4.value, self._entries)
                 return det4x4
 
+        proof = get_proof_flag(proof, "linear_algebra")
+
+        cdef double difficulty
         if algorithm == 'default':
-            if n <= 50 and self.height().ndigits() <= 100:
+            # These heuristics are by Jeroen Demeyer (#14007).  There
+            # is no mathematics behind this, it was experimentally
+            # observed to work well.  I tried various estimates for
+            # the "difficulty" of a matrix, and this one worked best.
+            # I tested matrices with entries uniformly distributed in
+            # [0,n] as well as random_matrix(ZZ,s).
+            #
+            # linbox works sometimes better for large matrices with
+            # mostly small entries, but it is never much faster than
+            # padic (and it only works with proof=False), so we never
+            # default to using linbox.
+            difficulty = (self._log_avg_sq1() + 2.0) * (n * n)
+            if difficulty <= 800:
                 algorithm = 'pari'
+            elif n <= 48 or (proof and n <= 72) or (proof and n <= 400 and difficulty <= 600000):
+                algorithm = 'ntl'
             else:
                 algorithm = 'padic'
-
-        proof = get_proof_flag(proof, "linear_algebra")
 
         if algorithm == 'padic':
             import matrix_integer_dense_hnf

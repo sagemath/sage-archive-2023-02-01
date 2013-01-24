@@ -380,8 +380,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
     def _pari_init_(self):
         return 'Mod(%s,%s)'%(str(self), self.__modulus.sageInteger)
 
-    def pari(self):
-        return pari(self._pari_init_()) # TODO: is this called implicitly anywhere?
+    def _pari_(self):
+        return self.lift()._pari_().Mod(self.__modulus.sageInteger)
 
     def _gap_init_(self):
         r"""
@@ -714,6 +714,37 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         return self
 
+    def centerlift(self):
+        r"""
+        Lift ``self`` to an integer `i` such that `n/2 < i <= n/2`
+        (where `n` denotes the modulus).
+
+        EXAMPLES::
+
+            sage: Mod(0,5).centerlift()
+            0
+            sage: Mod(1,5).centerlift()
+            1
+            sage: Mod(2,5).centerlift()
+            2
+            sage: Mod(3,5).centerlift()
+            -2
+            sage: Mod(4,5).centerlift()
+            -1
+            sage: Mod(50,100).centerlift()
+            50
+            sage: Mod(51,100).centerlift()
+            -49
+            sage: Mod(-1,3^100).centerlift()
+            -1
+        """
+        n = self.modulus()
+        x = self.lift()
+        if 2*x <= n:
+            return x
+        else:
+            return x - n
+
     cpdef bint is_one(self):
         raise NotImplementedError
 
@@ -770,7 +801,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             if e == 1:
                 return lift.jacobi(p) != -1
             elif p == 2:
-                return self.pari().issquare() # TODO: implement directly
+                return self._pari_().issquare() # TODO: implement directly
             elif self % p == 0:
                 val = lift.valuation(p)
                 return val >= e or (val % 2 == 0 and (lift // p**val).jacobi(p) != -1)
@@ -779,7 +810,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         else:
             for p, e in moduli:
                 if p == 2:
-                    if e > 1 and not self.pari().issquare(): # TODO: implement directly
+                    if e > 1 and not self._pari_().issquare(): # TODO: implement directly
                         return 0
                 elif e > 1 and lift % p == 0:
                     val = lift.valuation(p)
@@ -1421,7 +1452,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ArithmeticError: multiplicative order of 0 not defined since it is not a unit modulo 5
         """
         try:
-            return sage.rings.integer.Integer(self.pari().order())  # pari's "order" is by default multiplicative
+            return sage.rings.integer.Integer(self._pari_().order())  # pari's "order" is by default multiplicative
         except PariError:
             raise ArithmeticError, "multiplicative order of %s not defined since it is not a unit modulo %s"%(
                 self, self.__modulus.sageInteger)
@@ -2495,7 +2526,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             if e == 1:
                 return jacobi_int(self.ivalue, p) != -1
             elif p == 2:
-                return self.pari().issquare() # TODO: implement directly
+                return self._pari_().issquare() # TODO: implement directly
             elif self.ivalue % p == 0:
                 val = self.lift().valuation(sage_p)
                 return val >= e or (val % 2 == 0 and jacobi_int(self.ivalue / int(sage_p**val), p) != -1)
@@ -2505,7 +2536,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             for sage_p, e in moduli:
                 p = sage_p
                 if p == 2:
-                    if e > 1 and not self.pari().issquare(): # TODO: implement directly
+                    if e > 1 and not self._pari_().issquare(): # TODO: implement directly
                         return 0
                 elif e > 1 and self.ivalue % p == 0:
                     val = self.lift().valuation(sage_p)

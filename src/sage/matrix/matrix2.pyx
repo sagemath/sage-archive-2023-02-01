@@ -1034,7 +1034,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.det() - B.det()
             0
 
-        We verify that trac 5569 is resolved (otherwise the following will hang for hours)::
+        We verify that :trac:`5569` is resolved (otherwise the following
+        would hang for hours)::
 
             sage: d = random_matrix(GF(next_prime(10^20)),50).det()
             sage: d = random_matrix(Integers(10^50),50).det()
@@ -1117,12 +1118,19 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('det', d)
             return d
 
-        # As of Sage 3.4, computing determinants directly in Z/nZ for
-        # n composite is too slow, so we lift to Z and compute there.
-        if is_IntegerModRing(R):
-            from matrix_modn_dense import is_Matrix_modn_dense
-            if not (is_Matrix_modn_dense(self) and R.characteristic().is_prime()):
-                return R(self.lift().det())
+        # Special case for Z/nZ or GF(p):
+        if is_IntegerModRing(R) and self.is_dense():
+            import sys
+            # If the characteristic is prime and smaller than a machine
+            # word, use PARI.
+            ch = R.characteristic()
+            if ch.is_prime() and ch < (2*sys.maxint):
+                d = R(self._pari_().matdet())
+            else:
+                # Lift to ZZ and compute there.
+                d = R(self.apply_map(lambda x : x.centerlift()).det())
+            self.cache('det', d)
+            return d
 
         # N.B.  The following comment should be obsolete now that the generic
         # code to compute the determinant has been replaced by generic

@@ -15,6 +15,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef mpz_t **_matrix
     cdef object _pivots
     cdef int mpz_height(self, mpz_t height) except -1
+    cpdef double _log_avg_sq1(self) except -1.0
     cdef _mod_int_c(self, mod_int modulus)
     cdef _mod_two(self)
 

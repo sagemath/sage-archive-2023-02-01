@@ -104,6 +104,24 @@ rationalen Zahlen (``QQ``), oder als Matrix über den reellen Zahlen
     [ 1.00000000000000 0.000000000000000]
     [0.000000000000000  1.00000000000000]
 
+Um Eigenwerte und Eigenvektoren mit reellen oder komplexen Gleitkommazahlen zu
+berechnen sollte die Matrix über ``RDF`` (Real Double Field = Körper der
+reellen Gleitkommazahlen mit doppelter Genauigkeit) oder ``CDF`` (Complex Double
+Field = Körper der komplexen Gleitkommazahlen mit doppelter Genauigkeit)
+definiert werden. Falls kein Koeffizientenring angegeben wird und die
+Matrixeinträge relle oder komplexe Gleitkommazahlen sind dann werden
+standardmässig die Körper ``RR`` oder ``CC`` verwendet, welche allerdings nicht
+alle der folgenden Berechnungen unterstützen::
+
+    sage: ARDF = matrix(RDF, [[1.2, 2], [2, 3]])
+    sage: ARDF.eigenvalues()
+    [-0.0931712199461, 4.29317121995]
+    sage: ACDF = matrix(CDF, [[1.2, I], [2, 3]])
+    sage: ACDF.eigenvectors_right()
+    [(0.881845698329 - 0.820914065343*I, [(0.750560818381, -0.616145932705 + 0.238794153033*I)], 1),
+    (3.31815430167 + 0.820914065343*I, [(0.145594698293 + 0.37566908585*I, 0.915245825866)], 1)]
+
+
 Matrizenräume
 -------------
 

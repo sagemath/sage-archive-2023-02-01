@@ -470,6 +470,7 @@ REFERENCES:
 from sage.combinat.free_module import CombinatorialFreeModule, \
     CombinatorialFreeModuleElement
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_method
 from sage.categories.all import ModulesWithBasis, tensor, Hom
 
 ######################################################
@@ -2770,6 +2771,57 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         if p == 2:
             return 2**sum(self._profile)
         return p**sum(self._profile[0]) * 2**len([a for a in self._profile[1] if a == 2])
+
+    @cached_method
+    def top_class(self):
+        r"""
+        Highest dimensional basis element. This is only defined if the algebra is finite.
+
+        EXAMPLES::
+
+            sage: SteenrodAlgebra(2,profile=(3,2,1)).top_class()
+            Sq(7,3,1)
+            sage: SteenrodAlgebra(3,profile=((2,2,1),(1,2,2,2,2))).top_class()
+            Q_1 Q_2 Q_3 Q_4 P(8,8,2)
+
+        TESTS::
+
+            sage: SteenrodAlgebra(2,profile=(3,2,1),basis='pst').top_class()
+            P^0_1 P^0_2 P^1_1 P^0_3 P^1_2 P^2_1
+            sage: SteenrodAlgebra(5,profile=((0,),(2,1,2,2))).top_class()
+            Q_0 Q_2 Q_3
+            sage: SteenrodAlgebra(5).top_class()
+            Traceback (most recent call last):
+            ...
+            ValueError: the algebra is not finite dimensional
+
+        Currently, we create the top class in the Milnor basis version and transform
+        this result back into the requested basis. This approach is easy to implement
+        but far from optimal for the 'pst' basis.  Occasionally, it also gives an awkward
+        leading coefficient::
+
+            sage: SteenrodAlgebra(3,profile=((2,1),(1,2,2)),basis='pst').top_class()
+            2 Q_1 Q_2 (P^0_1)^2 (P^0_2)^2 (P^1_1)^2
+
+        TESTS::
+
+            sage: A=SteenrodAlgebra(2,profile=(3,2,1),basis='pst')
+            sage: A.top_class().parent() is A
+            True
+        """
+        if not self.is_finite():
+            raise ValueError, "the algebra is not finite dimensional"
+        p = self.prime()
+        # we create the top class in the Milnor basis version
+        AM = SteenrodAlgebra(basis='milnor', p=p)
+        if p==2:
+            ans = AM.monomial(tuple((1<<k)-1 for k in self._profile))
+        else:
+            rp,ep = self._profile
+            e = [k for k in range(0,len(ep)) if ep[k]==2]
+            r = [p**k-1 for k in rp]
+            ans = AM.monomial((tuple(e),tuple(r)))
+        return self(ans.change_basis(self.basis_name()))
 
     def order(self):
         r"""

@@ -561,40 +561,75 @@ class HasseDiagram(DiGraph):
             sage: Q = Poset([[1,2],[4],[3],[4],[]])
             sage: Q.rank_function() is None
             True
+
+        test for ticket :trac:`14006`::
+
+            sage: H = Poset()._hasse_diagram
+            sage: s = dumps(H)
+            sage: f = H.rank_function()
+            sage: s = dumps(H)
         """
-        if not hasattr(self, "_rank_function"):
-            rank_fcn = {}  # rank_fcn will be the dictionary whose i-th entry
-                           # is the rank of vertex i for every i.
-            not_found = set(self.vertices())
-            while not_found:
-                y = not_found.pop()
-                rank_fcn[y] = ZZ.zero()  # We set some vertex to have rank 0
-                component = set([y])
-                queue = set([y])
-                while queue:  # look at the neighbors of y and set the ranks;
-                              # then look at the neighbors of the neighbors ...
-                    y = queue.pop()
-                    for x in self.neighbors_out(y):
-                        if x not in rank_fcn:
-                            rank_fcn[x] = rank_fcn[y] + 1
-                            queue.add(x)
-                            component.add(x)
-                    for x in self.neighbors_in(y):
-                        if x not in rank_fcn:
-                            rank_fcn[x] = rank_fcn[y] - 1
-                            queue.add(x)
-                            component.add(x)
-                        elif rank_fcn[x] != rank_fcn[y] - 1:
-                            return None
-                # Normalize the ranks of vertices in the connected component
-                # so that smallest is 0:
-                m = min(rank_fcn[j] for j in component)
-                for j in component:
-                    rank_fcn[j] -= m
-                not_found.difference_update(component)
-            # now, all ranks are set.
-            self._rank_function = rank_fcn.__getitem__  # turn dict into a fcn
-        return self._rank_function
+        if(self._rank_dict is None):
+            return None
+        return self._rank_dict.__getitem__ #the rank function is just the getitem of the dict
+
+    @lazy_attribute
+    def _rank_dict(self):
+        r"""
+        Builds the rank dictionnary of the poset, if it exists, i.e.
+        a dictionary ``d`` where ``d[object] = self.rank_function()(object)
+
+        A *rank function* of a poset `P` is a function `r`
+        that maps elements of `P` to integers and satisfies:
+        `r(x) = r(y) + 1` if `x` covers `y`. The function `r`
+        is normalized such that its smallest value is `0`.
+        When `P` has several components, this is done for each
+        component separately.
+
+        EXAMPLES::
+
+            sage: H = Poset()._hasse_diagram
+            sage: H._rank_dict
+            {}
+            sage: H = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])._hasse_diagram
+            sage: H._rank_dict
+            {0: 0, 1: 1, 2: 1, 3: 2, 4: 2, 5: 1, 6: 2, 7: 3}
+            sage: H = Poset(([1,2,3,4,5],[[1,2],[2,3],[3,4],[1,5],[5,4]]))._hasse_diagram
+            sage: H._rank_dict is None
+            True
+
+        """
+        rank_fcn = {}  # rank_fcn will be the dictionary whose i-th entry
+                       # is the rank of vertex i for every i.
+        not_found = set(self.vertices())
+        while not_found:
+            y = not_found.pop()
+            rank_fcn[y] = ZZ.zero()  # We set some vertex to have rank 0
+            component = set([y])
+            queue = set([y])
+            while queue:  # look at the neighbors of y and set the ranks;
+                          # then look at the neighbors of the neighbors ...
+                y = queue.pop()
+                for x in self.neighbors_out(y):
+                    if x not in rank_fcn:
+                        rank_fcn[x] = rank_fcn[y] + 1
+                        queue.add(x)
+                        component.add(x)
+                for x in self.neighbors_in(y):
+                    if x not in rank_fcn:
+                        rank_fcn[x] = rank_fcn[y] - 1
+                        queue.add(x)
+                        component.add(x)
+                    elif rank_fcn[x] != rank_fcn[y] - 1:
+                        return None
+            # Normalize the ranks of vertices in the connected component
+            # so that smallest is 0:
+            m = min(rank_fcn[j] for j in component)
+            for j in component:
+                rank_fcn[j] -= m
+            not_found.difference_update(component)
+        #now, all ranks are set.
+        return rank_fcn
 
     def rank(self,element=None):
         r"""

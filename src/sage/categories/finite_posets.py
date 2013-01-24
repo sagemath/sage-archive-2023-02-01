@@ -883,7 +883,7 @@ class FinitePosets(Category):
                     next = self.order_ideal_toggles(next, vs)
                     yield element_constructor(next)
 
-        def order_ideals_lattice(self, as_ideals=True):
+        def order_ideals_lattice(self, as_ideals=True, facade=False):
             r"""
             Return the lattice of order ideals of a poset ``self``,
             ordered by inclusion.
@@ -940,7 +940,8 @@ class FinitePosets(Category):
                 from sage.misc.misc import attrcall
                 from sage.sets.set import Set
                 ideals = [Set( self.order_ideal(antichain) ) for antichain in self.antichains()]
-                return LatticePoset((ideals,attrcall("issubset")))
+                return LatticePoset((ideals,attrcall("issubset")),
+                                    facade=facade)
             else:
                 from sage.misc.cachefunc import cached_function
                 antichains = [tuple(a) for a in self.antichains()]
@@ -949,7 +950,7 @@ class FinitePosets(Category):
                     return any(self.is_lequal(xa,xb) for xa in a)
                 def cmp(a,b):
                     return all(is_above(a,xb) for xb in b)
-                return LatticePoset((antichains,cmp))
+                return LatticePoset((antichains,cmp), facade=facade)
 
         @abstract_method(optional = True)
         def antichains(self):

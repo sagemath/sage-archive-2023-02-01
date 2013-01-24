@@ -702,6 +702,57 @@ class RootLatticeRealizations(Category_over_base_ring):
                         rels.append((root,root_cover))
             return Poset((pos_roots,rels),cover_relations=True,facade=facade)
 
+        def nonnesting_partition_lattice(self,facade=False):
+            r"""
+            Return the lattice of nonnesting partitions
+
+            EXAMPLES::
+            """
+            return self.root_poset(facade=facade).order_ideals_lattice(facade=facade)
+
+        def generalized_nonnesting_partition_lattice(self,m,facade=False):
+            r"""
+            Return the lattice of m-nonnesting partitions
+            
+            EXAMPLES::
+            """
+            from sage.combinat.multichoose_nk import MultichooseNK
+            Phi_plus = self.positive_roots()
+            L = self.nonnesting_partition_lattice(facade=True)
+            chains = [chain for chain in L.chains().list() if len(chain) <= m]
+            multichains = []
+            for chain in chains:
+                for multilist in MultichooseNK(len(chain), m):
+                    if len(set(multilist)) == len(chain):
+                        multichains.append(tuple([chain[i] for i in multilist]))
+            def is_saturated_chain(chain):
+                for i in range(1, m + 1):
+                    for j in range(1, m - i + 1):
+                        for alpha in chain[i - 1]:
+                            for beta in chain[j - 1]:
+                                gamma = alpha + beta
+                                if gamma in Phi_plus and gamma not in chain[i+j-1]:
+                                    return False
+                cochain = [[beta for beta in Phi_plus if beta not in ideal]
+                           for ideal in chain]
+                for i in range(1, m + 1):
+                    for j in range(1, m + 1):
+                        for alpha in cochain[i - 1]:
+                            for beta in cochain[j - 1]:
+                                gamma = alpha + beta
+                                if gamma in Phi_plus and gamma not in cochain[min(m-1,i+j-1)]:
+                                    return False
+                return True
+
+            def is_componentwise_subset(chain1, chain2):
+                return all(chain1[i].issubset(chain2[i])
+                           for i in range(len(chain1)))
+            from sage.combinat.posets.lattices import LatticePoset
+            saturated_chains = [multichain for multichain in multichains
+                                if is_saturated_chain(multichain)]
+            return LatticePoset((saturated_chains, is_componentwise_subset),
+                                facade=facade)
+
         def almost_positive_roots(self):
             r"""
             Returns the almost positive roots of ``self``

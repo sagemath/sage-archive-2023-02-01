@@ -12,10 +12,10 @@ Base class for polyhedra over `\ZZ`
 
 
 
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import ZZ, QQ, gcd
 from sage.misc.all import cached_method
 from sage.matrix.constructor import matrix
-
+from sage.modules.free_module_element import vector
 from constructor import Polyhedron
 from base import Polyhedron_base
 
@@ -248,4 +248,181 @@ class Polyhedron_ZZ(Polyhedron_base):
                     yield fiber
                     fibers.update([fiber_vertices])
                 plane.delete()
+
+    def find_translation(self, translated_polyhedron):
+        """
+        Return the translation vector to ``translated_polyhedron``.
+
+        INPUT:
+
+        - ``translated_polyhedron`` -- a polyhedron.
+
+        OUTPUT:
+
+        A `\ZZ`-vector that translates ``self`` to
+        ``translated_polyhedron``. A ``ValueError`` is raised if
+        ``translated_polyhedron`` is not a translation of ``self``,
+        this can be used to check that two polyhedra are not
+        translates of each other.
+
+        EXAMPLES::
+
+            sage: X = polytopes.n_cube(3)
+            sage: X.find_translation(X + vector([2,3,5]))
+            (2, 3, 5)
+            sage: X.find_translation(2*X)
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron is not a translation of self
+        """
+        no_translation_exception = ValueError('polyhedron is not a translation of self')
+        if ( set(self.rays()) != set(translated_polyhedron.rays()) or
+             set(self.lines()) != set(translated_polyhedron.lines()) or
+             self.n_vertices() != translated_polyhedron.n_vertices() ):
+            raise no_translation_exception
+        sorted_vertices = sorted(map(vector, self.vertices()))
+        sorted_translated_vertices = sorted(map(vector, translated_polyhedron.vertices()))
+        v = sorted_translated_vertices[0] - sorted_vertices[0]
+        if any(vertex+v != translated_vertex
+               for vertex, translated_vertex in zip(sorted_vertices, sorted_translated_vertices)):
+            raise no_translation_exception
+        return v
+
+    def _subpoly_parallel_facets(self):
+        """
+        Generator for all lattice sub-polyhedra with parallel facets.
+
+        In a sub-polyhedron `Y\subset X` not all edges of `Y` need to
+        be parallel to `X`. This method iterates over all
+        sub-polyhedra where they are parallel, up to an overall
+        translation of the sub-polyhedron. Degenerate sub-polyhedra of
+        dimension strictly smaller are included.
+
+        OUTPUT:
+
+        A generator yielding `\ZZ`-polyhedra. By construction, each
+        facet of the returned polyhedron is parallel to one of the
+        facets of ``self``.
+
+        EXAMPLES::
+
+            sage: X = Polyhedron(vertices=[(0,0), (0,1), (1,0), (1,1)])
+            sage: X._subpoly_parallel_facets()
+            <generator object _subpoly_parallel_facets at 0x...>
+            sage: for p in X._subpoly_parallel_facets():
+            ...       print p.Vrepresentation()
+            (A vertex at (0, 0),)
+            (A vertex at (0, -1), A vertex at (0, 0))
+            (A vertex at (-1, 0), A vertex at (0, 0))
+            (A vertex at (-1, -1), A vertex at (-1, 0), A vertex at (0, -1), A vertex at (0, 0))
+
+        TESTS::
+
+            sage: X = Polyhedron(vertices=[(0,), (3,)])
+            sage: [ p.vertices() for p in X._subpoly_parallel_facets() ]
+            [(A vertex at (0),),
+             (A vertex at (-1), A vertex at (0)),
+             (A vertex at (-2), A vertex at (0)),
+             (A vertex at (-3), A vertex at (0))]
+            sage: list( Polyhedron(vertices=[[0,0]])._subpoly_parallel_facets() )
+            [A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex]
+            sage: list( Polyhedron()._subpoly_parallel_facets() )
+            [The empty polyhedron in ZZ^0]
+        """
+        if self.dim()>2 or not self.is_compact():
+            raise NotImplementedError('only implemented for bounded polygons')
+        from sage.geometry.polyhedron.plot import cyclic_sort_vertices_2d
+        vertices = cyclic_sort_vertices_2d(self.vertices())
+        n = len(vertices)
+        if n==1:  # single point
+            yield self
+            return
+        edge_vectors = []
+        for i in range(0,n):
+            v = vertices[(i+1) % n].vector() - vertices[i].vector()
+            d = gcd(list(v))
+            v_prim = (v/d).change_ring(ZZ)
+            edge_vectors.append([ v_prim*i for i in range(d+1) ])
+        origin = self.ambient_space().zero()
+        parent = self.parent()
+        from sage.combinat.cartesian_product import CartesianProduct
+        for edges in CartesianProduct(*edge_vectors):
+            v = []
+            point = origin
+            for e in edges:
+                point += e
+                v.append(point)
+            if point!=origin:   # does not close up, not a subpolygon
+                continue
+            yield parent([v, [], []], None)
+
+    @cached_method
+    def Minkowski_decompositions(self):
+        """
+        Return all Minkowski sums that add up to the polyhedron.
+
+        OUTPUT:
+
+        A tuple consisting of pairs `(X,Y)` of `\ZZ`-polyhedra that
+        add up to ``self``. All pairs up to exchange of the summands
+        are returned, that is, `(Y,X)` is not included if `(X,Y)`
+        already is.
+
+        EXAMPLES::
+
+            sage: square = Polyhedron(vertices=[(0,0),(1,0),(0,1),(1,1)])
+            sage: square.Minkowski_decompositions()
+            ((A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex,
+              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices),
+             (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
+              A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices))
+
+        Example from http://cgi.di.uoa.gr/~amantzaf/geo/_ ::
+
+            sage: Q = Polyhedron(vertices=[(4,0), (6,0), (0,3), (4,3)])
+            sage: R = Polyhedron(vertices=[(0,0), (5,0), (8,4), (3,2)])
+            sage: (Q+R).Minkowski_decompositions()
+            ((A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex,
+              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 7 vertices),
+             (A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices,
+              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices),
+             (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
+              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 7 vertices),
+             (A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 5 vertices,
+              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices),
+             (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
+              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 7 vertices),
+             (A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 5 vertices,
+              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices),
+             (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
+              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 7 vertices),
+             (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
+              A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 6 vertices))
+
+           sage: [ len(square.dilation(i).Minkowski_decompositions())
+           ...     for i in range(6) ]
+           [1, 2, 5, 8, 13, 18]
+           sage: [ ceil((i^2+2*i-1)/2)+1 for i in range(10) ]
+           [1, 2, 5, 8, 13, 18, 25, 32, 41, 50]
+        """
+        if self.dim()>2 or not self.is_compact():
+            raise NotImplementedError('only implemented for bounded polygons')
+        summands = []
+        def is_known_summand(poly):
+            for summand in summands:
+                try:
+                    poly.find_translation(summand)
+                    return True
+                except ValueError:
+                    pass
+        decompositions = []
+        for X in self._subpoly_parallel_facets():
+            if is_known_summand(X):
+                continue
+            Y = self - X
+            if X+Y != self:
+                continue
+            decompositions.append((X,Y))
+            summands += [X, Y]
+        return tuple(decompositions)
 

@@ -2313,7 +2313,7 @@ class Polyhedron_base(Element):
         new_vertices = [x.vector()+displacement for x in self.vertex_generator()]
         new_rays = self.rays()
         new_lines = self.lines()
-        new_ring = self.parent()._coerce_base_ring(displacement.base_ring())
+        new_ring = self.parent()._coerce_base_ring(displacement)
         return Polyhedron(vertices=new_vertices, rays=new_rays, lines=new_lines, base_ring=new_ring)
 
     @coerce_binop
@@ -2399,7 +2399,7 @@ class Polyhedron_base(Element):
         new_lines = self.lines()
         return Polyhedron(vertices=new_vertices,
                           rays=new_rays, lines=new_lines,
-                          base_ring=self.parent()._coerce_base_ring(scalar.parent()))
+                          base_ring=self.parent()._coerce_base_ring(scalar))
 
     def _acted_upon_(self, actor, self_on_left):
         """
@@ -2905,7 +2905,7 @@ class Polyhedron_base(Element):
         assert self.is_compact(), "Not a polytope."
 
         verts = [list(v.vector() - self.center()) for v in self.vertex_generator()]
-        base_ring = self.parent()._coerce_base_ring(self.center().parent().base_ring())
+        base_ring = self.parent()._coerce_base_ring(self.center().parent())
         return Polyhedron(ieqs=[[1] + list(v) for v in verts], base_ring=base_ring)
 
     def pyramid(self):

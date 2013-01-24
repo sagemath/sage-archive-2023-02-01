@@ -160,3 +160,6 @@ from residue_field import ResidueField
 from misc import composite_field
 
 import tests
+
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.rings.invariant_theory', 'invariant_theory')

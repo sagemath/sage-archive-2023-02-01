@@ -17,3 +17,4 @@ General Rings, Ideals, and Morphisms
    sage/rings/fraction_field_element
    sage/rings/quotient_ring
    sage/rings/quotient_ring_element
+   sage/rings/invariant_theory

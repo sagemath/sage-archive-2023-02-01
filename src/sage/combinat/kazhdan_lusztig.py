@@ -76,14 +76,14 @@ class KazhdanLusztigPolynomial(SageObject):
         if y == 1:
             y = self._one
         if x == y:
-            return 1
+            return self._base_ring.one()
         if not x.bruhat_le(y):
-            return 0
+            return self._base_ring.zero()
         if y.length() == 0:
             if x.length() == 0:
-                return 1
+                return self._base_ring.one()
             else:
-                return 0
+                return self._base_ring.zero()
         s = self._coxeter_group.simple_reflection(y.first_descent(side="left"))
         if (s*x).length() < x.length():
             ret = self.R(s*x,s*y)
@@ -117,14 +117,14 @@ class KazhdanLusztigPolynomial(SageObject):
         if y == 1:
             y = self._one
         if x == y:
-            return 1
+            return self._base_ring.one()
         if not x.bruhat_le(y):
-            return 0
+            return self._base_ring.zero()
         if y.length() == 0:
             if x.length() == 0:
-                return 1
+                return self._base_ring.one()
             else:
-                return 0
+                return self._base_ring.zero()
         p = sum(-self.R(x,t)*self.P(t,y) for t in self._coxeter_group.bruhat_interval(x,y) if t != x)
         tr = floor((y.length()-x.length()+1)/2)
         try:

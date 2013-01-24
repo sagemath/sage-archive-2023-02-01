@@ -490,7 +490,6 @@ def unguarded_dereference_null_pointer():
         want to run Sage under gdb with 'sage -gdb' to debug this.
         Sage will now terminate.
         ------------------------------------------------------------------------
-        ...
     """
     dereference_null_pointer()
 
@@ -524,7 +523,6 @@ def unguarded_abort():
         want to run Sage under gdb with 'sage -gdb' to debug this.
         Sage will now terminate.
         ------------------------------------------------------------------------
-        ...
     """
     abort()
 
@@ -545,7 +543,6 @@ def test_bad_str(long delay = DEFAULT_DELAY):
         want to run Sage under gdb with 'sage -gdb' to debug this.
         Sage will now terminate.
         ------------------------------------------------------------------------
-        ...
     """
     cdef char* s = <char*>(16)
     sig_str(s)

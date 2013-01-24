@@ -171,7 +171,7 @@ def test_executable(args, input="", timeout=50.0, cwd=None):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--advanced"])
-        sage: out.find("run with no output prompts") >= 0
+        sage: out.find("search through the Sage documentation") >= 0
         True
         sage: err
         ''

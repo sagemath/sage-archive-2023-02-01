@@ -7117,6 +7117,8 @@ cdef class Matrix(matrix1.Matrix):
             True
             sage: P.change_ring(GF(3)).is_unitary()
             True
+            sage: P.change_ring(GF(3)).is_unitary()
+            True
 
         A square matrix far from unitary. ::
 

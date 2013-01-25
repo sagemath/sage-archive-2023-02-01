@@ -34,6 +34,9 @@ Groups
    sage/groups/matrix_gps/orthogonal
    sage/groups/matrix_gps/symplectic
    sage/groups/matrix_gps/unitary
+   sage/groups/affine_gps/affine_group
+   sage/groups/affine_gps/euclidean_group
+   sage/groups/affine_gps/group_element
    sage/groups/misc_gps/misc_groups
 
    sage/groups/conjugacy_classes

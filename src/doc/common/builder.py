@@ -330,8 +330,8 @@ class WebsiteBuilder(DocBuilder):
     def html(self):
         """
         After we've finished building the website index page, we copy
-        everything one directory up.  Then, we walk the reference manual,
-        and add html files the
+        everything one directory up.  Then we call
+        :meth:`create_html_redirects`.
         """
         DocBuilder.html(self)
         html_output_dir = self._output_dir('html')
@@ -343,10 +343,13 @@ class WebsiteBuilder(DocBuilder):
 
     def create_html_redirects(self):
         """
-        Writes a number of small HTML files of files which used to
-        exist before splitting the reference manual into multiple
-        documents.  These just redirect to the correct file after the
-        splitting.
+        Writes a number of small HTML files; these are files which
+        used to contain the main content of the reference manual
+        before before splitting the manual into multiple
+        documents. After the split, those files have moved, so in each
+        old location, write a file which redirects to the new version.
+        (This is so old URLs to pieces of the reference manual still
+        open the correct files.)
         """
         # The simple html template which will cause a redirect to the
         # correct file

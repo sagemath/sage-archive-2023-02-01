@@ -138,15 +138,14 @@ class Sage(Expect):
             True
         """
         if python:
-            if server:
-                command = "sage -python -u"
-            else:
-                command = "sage -python -u"
+            command = "python -u"
             prompt = ">>>"
             if init_code is None:
                 init_code = ['from sage.all import *', 'import cPickle']
         else:
-            command = "sage"
+            # Disable the IPython history (implemented as SQLite database)
+            # to avoid problems with locking.
+            command = "sage-ipython --HistoryManager.hist_file=:memory:"
             prompt = "sage: "
             if init_code is None:
                 init_code = ['import cPickle', '%colors NoColor']

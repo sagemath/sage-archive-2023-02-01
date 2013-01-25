@@ -33,8 +33,6 @@ latex_documents = [
    u'The Sage Development Team', 'manual'),
 ]
 
-
-
 html_additional_pages = {
     'index': 'index.html',
 }

@@ -229,6 +229,13 @@ def init_subdoc(app):
         app.info(bold("Compiling the master document"))
         app.connect('env-updated', merge_environment)
         app.connect('html-collect-pages', merge_js_index)
+        if app.config.multidocs_subdoc_list:
+            # Master file with indexes computed by merging indexes:
+            # Monkey patch index fetching to silence warning about broken index
+            def load_indexer(docnames):
+                app.builder.info(bold('Skipping loading of indexes'), nonl=1)
+            app.builder.load_indexer = load_indexer
+
     else:
         app.info(bold("Compiling a sub-document"))
         app.connect('env-updated', fetch_citation)

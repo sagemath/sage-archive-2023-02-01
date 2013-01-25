@@ -125,6 +125,9 @@ extlinks = {
     'trac': ('http://trac.sagemath.org/%s', 'trac ticket #'),
     'wikipedia': ('http://en.wikipedia.org/wiki/%s', 'Wikipedia article ')}
 
+# By default document are not master.
+multidocs_is_master = True
+
 # Options for HTML output
 # -----------------------
 

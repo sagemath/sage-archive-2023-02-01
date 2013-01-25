@@ -368,11 +368,6 @@ def test_executable(args, input="", timeout=50.0, cwd=None):
         sage: ret
         42
 
-    When testing IPython, use Sage's ipython directory, to avoid
-    incompatibilities for config files among different versions of
-    IPython. ::
-
-        sage: os.environ['IPYTHONDIR'] = os.path.join(os.environ['DOT_SAGE'], 'ipython')
         sage: (out, err, ret) = test_executable(["sage", "--ipython"], "\n3**33\n")
         sage: out.find("5559060566555523") >= 0
         True
@@ -449,8 +444,8 @@ def test_executable(args, input="", timeout=50.0, cwd=None):
         sage: ret
         0
 
-    Check that ``sage-make_relative`` did its job.  We test it on the
-    ``ipython`` script::
+    Check that ``sage-location`` did its job in making Python scripts
+    relative.  We test it on the ``ipython`` script::
 
         sage: open(os.path.join(SAGE_ROOT, "local", "bin", "ipython")).readline()
         '#!/usr/bin/env python\n'

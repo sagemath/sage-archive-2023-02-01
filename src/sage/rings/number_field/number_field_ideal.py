@@ -206,7 +206,7 @@ class NumberFieldIdeal(Ideal_generic):
         return self._hash
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 23)
@@ -299,6 +299,39 @@ class NumberFieldIdeal(Ideal_generic):
         # We can now assume that both have the same parent,
         # even if originally cmp(,) was called.
         return cmp(self.pari_hnf(), other.pari_hnf())
+
+    def _mul_(self, other):
+        """
+        Returns the product of self and other.
+
+        This is implemented by just calling pari to do the multiplication.
+
+        EXAMPLES::
+
+            sage: K.<I>=QQ[i]
+            sage: A = K.ideal([5, 2 + I])
+            sage: B = K.ideal([13, 5 + 12*I])
+            sage: A*B
+            Fractional ideal (-4*I + 7)
+            sage: (K.ideal(3 + I) * K.ideal(7 + I)).gens()
+            (10*I + 20,)
+
+        TESTS:
+
+        Make sure that :trac:`13958` is fixed::
+
+            sage: I = QuadraticField(-5).ideal(2).factor()[0][0]
+            sage: I = I * I * I; I.ngens() == 2
+            True
+            sage: I = I^301; I.ngens() == 2
+            True
+        """
+        if self.ngens() == 1 and other.ngens() == 1:
+            return self.ring().ideal(self.gen(0) * other.gen(0))
+
+        K=self.ring()
+        K_pari=K.pari_nf()
+        return K.ideal(K_pari.idealmul(self._pari_(), other._pari_()))
 
     def coordinates(self, x):
         r"""

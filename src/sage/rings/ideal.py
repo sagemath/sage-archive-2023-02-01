@@ -910,11 +910,17 @@ class Ideal_generic(MonoidElement):
 
     def __mul__(self, other):
         """
+        This method just makes sure that self and other are Ideals in the same
+        ring and then calls :meth:`_mul_`. If you want to change the behaviour
+        of ideal multiplication in a subclass of :class:`Ideal_generic` please
+        overwrite :meth:`_mul_` and not :meth:`__mul__`.
+
+
         EXAMPLE::
 
             sage: P.<x,y,z> = QQ[]
-            sage: I = [x*y+y*z,x^2+x*y-y*x-y^2]*P
-            sage: I*2    # indirect doctest
+            sage: I = [x*y + y*z, x^2 + x*y - y*x - y^2] * P
+            sage: I * 2    # indirect doctest
             Ideal (2*x*y + 2*y*z, 2*x^2 - 2*y^2) of Multivariate Polynomial Ring in x, y, z over Rational Field
 
         """
@@ -925,6 +931,29 @@ class Ideal_generic(MonoidElement):
             except (TypeError,ArithmeticError,ValueError):
                 pass
             other = self.ring().ideal(other)
+        return self._mul_(other)
+
+    def _mul_(self, other):
+        """
+        This is a very general implementation of Ideal multiplication.
+
+        This method assumes that `self` and `other` are Ideals of the same ring.
+
+        The number of generators of `self*other` will be
+        `self.ngens()*other.ngens()`. So if used repeatedly this method
+        will create an ideal with a uselessly large amount of generators.
+        Therefore it is advisable to overwrite this method with a method that
+        takes advantage of the structure of the ring your working in.
+
+        Example::
+
+            sage: P.<x,y,z> = QQ[]
+            sage: I=P.ideal([x*y, x*z, x^2])
+            sage: J=P.ideal([x^2, x*y])
+            sage: I._mul_(J)
+            Ideal (x^3*y, x^2*y^2, x^3*z, x^2*y*z, x^4, x^3*y) of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+        """
         return self.ring().ideal([z for z in [x*y for x in self.gens() for y in other.gens()] if z])
 
     def __rmul__(self, other):

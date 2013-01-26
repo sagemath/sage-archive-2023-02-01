@@ -77,9 +77,42 @@ The same holds for the group elements::
     sage: type(_)    # note that the above output is not a Sage integer
     <type 'sage.libs.gap.element.GapElement_Integer'>
 
-Caution: some methods are not granted to finish, since they try to give an
-answer to problems that are, in general, undecideable. In those cases, the
-process is finished when the available memory is exhausted.
+You can use call syntax to replace the generators with a set of
+arbitrary ring elements. For example, take the free abelian group
+obtained by modding out the commutator subgroup of the free group::
+
+    sage: G = FreeGroup(2)
+    sage: G_ab = G / [G([1, 2, -1, -2])];  G_ab
+    Finitely presented group < x0, x1 | x0*x1*x0^-1*x1^-1 >
+    sage: a,b = G_ab.gens()
+    sage: g =  a * b
+    sage: M1 = matrix([[1,0],[0,2]])
+    sage: M2 = matrix([[0,1],[1,0]])
+    sage: g(3, 5)
+    15
+    sage: g(M1, M1)
+    [1 0]
+    [0 4]
+    sage: M1*M2 == M2*M1   # matrices do not commute
+    False
+    sage: g(M1, M2)
+    Traceback (most recent call last):
+    ...
+    ValueError: the values do not satisfy all relations of the group
+
+
+.. warning::
+
+    Some methods are not guaranteed to finish since the word problem
+    for finitely presented groups is, in general, undecidable. In
+    those cases the process may run unil the available memory is
+    exhausted.
+
+REFERENCES:
+
+- http://en.wikipedia.org/wiki/Presentation_of_a_group
+
+- http://en.wikipedia.org/wiki/Word_problem_for_groups
 
 AUTHOR:
 
@@ -250,6 +283,56 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
         """
         tl = self.gap().UnderlyingElement().TietzeWordAbstractWord()
         return tuple(tl.sage())
+
+    def __call__(self, *values, **kwds):
+        """
+        Replace the generators of the free group with ``values``.
+
+        INPUT:
+
+        - ``*values`` -- a list/tuple/iterable of the same length as
+          the number of generators.
+
+        - ``check=True`` -- boolean keyword (default:
+          ``True``). Whether to verify that ``values`` satisfy the
+          relations in the finitely presented group.
+
+        OUTPUT:
+
+        The product of ``values`` in the order and with exponents
+        specified by ``self``.
+
+        EXAMPLES::
+
+            sage: G.<a,b> = FreeGroup()
+            sage: H = G / [a/b];  H
+            Finitely presented group < a, b | a*b^-1 >
+            sage: H.simplified()
+            Finitely presented group < a |  >
+
+        `b` can be eliminated using the relation `a=b`. Any values
+        that you plug into a word must satisfy this relation::
+
+            sage: A, B = H.gens()
+            sage: w = A^2 * B
+            sage: w(2,2)
+            8
+            sage: w(3,3)
+            27
+            sage: w(1,2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the values do not satisfy all relations of the group
+            sage: w(1, 2, check=False)    # result depends on presentation of the group element
+            2
+        """
+        values = list(values)
+        if kwds.get('check', True):
+            for rel in self.parent().relations():
+                rel = rel(values)
+                if rel != 1:
+                    raise ValueError('the values do not satisfy all relations of the group')
+        return super(FinitelyPresentedGroupElement, self).__call__(values)
 
 
 def wrap_FpGroup(libgap_fpgroup):

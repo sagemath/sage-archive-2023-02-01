@@ -31,6 +31,19 @@ EXAMPLES::
     sage: G([1,1,2,-1,-3,2])
     a^2*b*a^-1*c^-1*b
 
+You can use call syntax to replace the generators with a set of
+arbitrary ring elements::
+
+    sage: g =  a * b / c * b^2
+    sage: g(1,2,3)
+    8/3
+    sage: M1 = identity_matrix(2)
+    sage: M2 = matrix([[1,1],[0,1]])
+    sage: M3 = matrix([[0,1],[1,0]])
+    sage: g([M1, M2, M3])
+    [1 3]
+    [1 2]
+
 AUTHORS:
 
 - Miguel Angel Marco Buzunariz
@@ -242,6 +255,88 @@ class FreeGroupElement(ElementLibGAP):
                 p = R(self.parent()(l+[b]))
                 a -= p
         return a
+
+    @cached_method
+    def syllables(self):
+        r"""
+        Return the syllables of the word.
+
+        Consider a free group element `g = x_1^{n_1} x_2^{n_2} \cdots
+        x_k^{n_k}`. The uniquely-determined subwords `x_i^{e_i}`
+        consisting only of powers of a single generator are called the
+        syllables of `g`.
+
+        OUTPUT:
+
+        The tuple of syllables. Each syllable is given as a pair
+        `(x_i, e_i)` consisting of a generator and a non-zero integer.
+
+        EXAMPLES::
+
+            sage: G.<a,b> = FreeGroup()
+            sage: w = a^2 * b^-1 * a^3
+            sage: w.syllables()
+            ((a, 2), (b, -1), (a, 3))
+        """
+        g = self.gap().UnderlyingElement()
+        k = g.NumberSyllables().sage()
+        gen = self.parent().gen
+        exponent_syllable  = libgap.eval('ExponentSyllable')
+        generator_syllable = libgap.eval('GeneratorSyllable')
+        result = []
+        gen = self.parent().gen
+        for i in range(k):
+            exponent  = exponent_syllable(g, i+1).sage()
+            generator = gen(generator_syllable(g, i+1).sage() - 1)
+            result.append( (generator, exponent) )
+        return tuple(result)
+
+    def __call__(self, *values):
+        """
+        Replace the generators of the free group.
+
+        INPUT:
+
+        - ``*values`` -- a sequence of values, or a
+          list/tuple/iterable of the same length as the number of
+          generators.
+
+        OUTPUT:
+
+        The product of ``values`` in the order and with exponents
+        specified by ``self``.
+
+        EXAMPLES::
+
+            sage: G.<a,b> = FreeGroup()
+            sage: w = a^2 * b^-1 * a^3
+            sage: w(1, 2)
+            1/2
+            sage: w(2, 1)
+            32
+            sage: w.subs(b=1, a=2)   # indirect doctest
+            32
+
+        TESTS::
+
+            sage: w([1, 2])
+            1/2
+            sage: w((1, 2))
+            1/2
+            sage: w(i+1 for i in range(2))
+            1/2
+        """
+        if len(values) == 1:
+            try:
+                values = list(values[0])
+            except TypeError:
+                pass
+        G = self.parent()
+        if len(values) != G.ngens():
+            raise ValueError('number of values has to match the number of generators')
+        replace = dict(zip(G.gens(), values))
+        from sage.misc.all import prod
+        return prod( replace[gen] ** power for gen, power in self.syllables() )
 
 
 def FreeGroup(n=None, names='x'):

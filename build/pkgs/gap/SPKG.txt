@@ -33,6 +33,7 @@ Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
 == Dependencies ==
 
  * Readline
+ * MPIR
 
 == Special Update/Build Instructions ==
 
@@ -50,6 +51,10 @@ update GAP, please also update and use the spkg-src script.
    commented out some lines in that part of `spkg-install`. -leif
 
 == Changelog ==
+
+=== gap-4.5.7.p3 (Jean-Pierre Flori, 26 January 2013) ===
+ * #13954: Let gap build on top of a shared version of MPIR.
+ * Cleanup old Cygwin fixes now unnecessary.
 
 === gap-4.5.7.p2 (Jeroen Demeyer, 17 January 2013) ===
  * #13963: do not touch gap_stamp (which isn't used anyway).

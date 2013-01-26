@@ -67,34 +67,6 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# On Cygwin installations the GAP build creates a file 'gap.exe',
-# and then tries to strip the file 'gap'.
-# This broke the build on old Cygwin installations.
-# On newer Cygwins, 'gap' is automatically "translated" to 'gap.exe'.
-if [[ "$UNAME" = CYGWIN ]]; then
-    echo "Creating a dummy 'gap.exe' in 'bin/i686-pc-cygwin-gcc'..."
-    cd "$SPKG_ROOT/src"
-    mkdir -p bin/i686-pc-cygwin-gcc &&
-    cd bin/i686-pc-cygwin-gcc &&
-    touch gap.exe
-    if [[ $? -ne 0 ]]; then
-        # Something really went wrong.
-        echo >&2 "Error creating a dummy gap.exe file."
-        exit 1
-    fi
-    # Check if 'gap' is automatically "translated" to 'gap.exe'.
-    # If not, create a symbolic link from 'gap' to 'gap.exe'.
-    if [[ ! -f gap ]]; then
-        echo "Creating a symbolic link from 'gap' to 'gap.exe'..."
-        ln -s gap.exe gap
-        if [[ $? -ne 0 ]]; then
-            # Something really went wrong.
-            echo >&2 "Error creating the symbolic link."
-            exit 1
-        fi
-    fi
-fi
-
 echo "Building GAP..."
 cd "$SPKG_ROOT/src"
 $MAKE -j1
@@ -125,11 +97,7 @@ ln -s "$GAP_DIR" latest
 echo "Copying GAP startup script..."
 rm -f "$SAGE_LOCAL/bin/gap"
 cd "$SPKG_ROOT"
-if [[ "$UNAME" = CYGWIN ]]; then
-    cp patches/gap_cygwin "$SAGE_LOCAL/bin/gap"
-else
-    cp src/bin/gap.sh "$SAGE_LOCAL/bin/gap"
-fi
+cp src/bin/gap.sh "$SAGE_LOCAL/bin/gap"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error copying customized GAP startup script."
     exit 1
@@ -149,4 +117,3 @@ if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
         exit 1
     fi
 fi
-

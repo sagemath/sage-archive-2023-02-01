@@ -303,12 +303,11 @@ def JohnsonGraph(n, k):
     r"""
     Returns the Johnson graph with parameters `n, k`.
 
-    Johnson graphs are a special class of undirected
-    graphs defined from systems of sets. The vertices
-    of the Johnson graph `J(n,k)` are the `k`-element subsets
-    of an `n`-element set; two vertices are adjacent when they
-    meet in a `(k-1)`-element set.
-    (Wikipedia)
+    Johnson graphs are a special class of undirected graphs defined from systems
+    of sets. The vertices of the Johnson graph `J(n,k)` are the `k`-element
+    subsets of an `n`-element set; two vertices are adjacent when they meet in a
+    `(k-1)`-element set. For more information about Johnson graphs, see the
+    corresponding :wikipedia:`Wikipedia page <Johnson_graph>`.
 
     EXAMPLES:
 
@@ -324,10 +323,9 @@ def JohnsonGraph(n, k):
         sage: g.is_vertex_transitive()
         True
 
-    The complement of the Johnson graph `J(n,2)`
-    is isomorphic to the Knesser Graph `K(n,2)`.
-    In paritcular the complement of `J(5,2)` is
-    isomorphic to the Petersen graph.  ::
+    The complement of the Johnson graph `J(n,2)` is isomorphic to the Knesser
+    Graph `K(n,2)`.  In paritcular the complement of `J(5,2)` is isomorphic to
+    the Petersen graph.  ::
 
         sage: g = graphs.JohnsonGraph(5,2)
         sage: g.complement().is_isomorphic(graphs.PetersenGraph())

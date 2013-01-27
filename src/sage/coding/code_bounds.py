@@ -100,11 +100,17 @@ questions" is equivalent to determining `A_2(n,d)`! Using
 Sage, you can determine the best known estimates for this number in
 2 ways:
 
-(1) Indirectly, using best_known_linear_code_www(n, k, F),
+1. Indirectly, using best_known_linear_code_www(n, k, F),
     which connects to the website http://www.codetables.de by Markus Grassl;
 
-(2) codesize_upper_bound(n,d,q), dimension_upper_bound(n,d,q),
+2. codesize_upper_bound(n,d,q), dimension_upper_bound(n,d,q),
     and best_known_linear_code(n, k, F).
+
+The output of :func:`best_known_linear_code`,
+:func:`best_known_linear_code_www`, or :func:`dimension_upper_bound` would
+give only special solutions to the GAME because the bounds are applicable
+to only linear codes. The output of :func:`codesize_upper_bound` would give
+the best possible solution, that may belong to a linear or nonlinear code.
 
 This module implements:
 

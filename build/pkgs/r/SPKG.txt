@@ -11,7 +11,7 @@ much code written for S runs unaltered under R.
 (taken from http://www.r-project.org/)
 
 == License ==
- * GPL 2 (2.14.0 release)
+ * GPL 2 (2.15.2 release)
 
 == SPKG Maintainers ==
 
@@ -36,10 +36,15 @@ much code written for S runs unaltered under R.
      The corresponding patch to m4/clibs.m4 is not included, as
      autoconf-2.68 gives errors, even on the clean upstream sources.
    - R.sh.in: Set R_HOME_DIR to "${SAGE_LOCAL}/lib/R/" when running R.
-   - install_parallel.patch: fix parallel installation, see
-     https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=15041
 
 == Changelog ==
+=== r-2.15.2.p0 (Emmanuel Charpentier, 25 January 2013) ===
+  * "monkey see-monkey do" upgrade to current upstream
+  * simple drop of curent source in src
+  * removed patches/install_parallel.patch : patch complained
+    about a "reversed (or previously applied) patch detected!".
+  * re-enables installation of upstream source packages
+    (ticket #14008).
 
 === r-2.14.0.p6 (Jeroen Demeyer, 10 September 2012) ===
  * #13443: some clean up of spkg-install.

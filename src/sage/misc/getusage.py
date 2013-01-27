@@ -53,6 +53,8 @@ def top():
         cmd = 'top -l 1 |grep "^ *%s "' % pid
     elif U == 'sunos':
         cmd = '/usr/bin/prstat -n 100000 1 1  | grep "^ *%s "' % pid
+    elif U[:6] == 'cygwin':
+        cmd = 'top -b -n 1 -p %s' % pid
     else:
         raise NotImplementedError("top not implemented on platform %s" % U)
 
@@ -109,7 +111,7 @@ def get_memory_usage(t=None):
           ``top`` is not used on OS X.
     """
     U = os.uname()[0].lower()
-    if U == 'linux':
+    if U == 'linux' or U[:6] == 'cygwin':
         m = linux_memory_usage()
     elif U == 'darwin':
         try:

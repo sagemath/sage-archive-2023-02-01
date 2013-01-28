@@ -188,6 +188,12 @@ cdef object numpy_object_interface = {'typestr': '|O'}
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
 
+def init_mpz_globals():
+    init_mpz_globals_c()
+
+def clear_mpz_globals():
+    clear_mpz_globals_c()
+
 cdef int set_mpz(Integer self, mpz_t value):
     mpz_set(self.value, value)
 

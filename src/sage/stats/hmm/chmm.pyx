@@ -30,7 +30,6 @@ from sage.misc.flatten  import flatten
 from sage.matrix.all import is_Matrix
 
 cdef double sqrt2pi = sqrt(2*math.pi)
-cdef double NaN = 1.0/0.0
 
 from sage.finance.time_series cimport TimeSeries
 from sage.stats.intlist cimport IntList

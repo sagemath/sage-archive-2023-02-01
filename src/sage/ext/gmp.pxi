@@ -30,12 +30,6 @@ cdef extern from "gmp_globals.h":
     void init_mpz_globals_c "init_mpz_globals"()
     void clear_mpz_globals_c "clear_mpz_globals"()
 
-def init_mpz_globals():
-    init_mpz_globals_c()
-
-def clear_mpz_globals():
-    clear_mpz_globals_c()
-
 ########################################################
 
 cdef object mpz_to_str(mpz_t x):
@@ -242,10 +236,6 @@ cdef int mpz_randrange(mpz_t val, int n1, int n2) except -1:
     mpz_set_si(rand_n1, n1)
     mpz_urandomm(val, rand_state, rand_n)
     mpz_add(val, val, rand_n1)
-
-def gmp_randrange(int n1, int n2):
-    mpz_randrange(rand_val, n1, n2)
-    return int(mpz_to_str(rand_val))
 
 
 

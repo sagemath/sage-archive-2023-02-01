@@ -239,9 +239,9 @@ $(INST)/$(FPLLL): $(INST)/$(MPIR) $(INST)/$(MPFR)
 $(INST)/$(PARI): $(INST)/$(READLINE) $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(PARI) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI).log"
 
-$(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(SCONS) \
-		     $(INST)/$(BOOST_CROPPED) $(INST)/$(M4RI) \
-		     $(INST)/$(GD)
+$(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(IPYTHON) \
+         $(INST)/$(SCONS) $(INST)/$(BOOST_CROPPED) \
+         $(INST)/$(M4RI) $(INST)/$(GD)
 	+$(PIPE) "$(SAGE_SPKG) $(POLYBORI) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYBORI).log"
 
 # POLYTOPES_DB depends on SAGE_ROOT_REPO because it needs SAGE_SHARE

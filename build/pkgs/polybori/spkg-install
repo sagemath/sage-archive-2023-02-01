@@ -35,7 +35,7 @@ prepare_polybori()
 
 build_polybori()
 {
-    ${SCONS} prepare-devel ${MAKEOPTS}
+    ${SCONS} prepare-install ${MAKEOPTS}
     if [ $? -ne 0 ]; then
         echo "Error building PolyBoRi."
         exit 1
@@ -44,7 +44,7 @@ build_polybori()
 
 install_polybori()
 {
-    ${SCONS} devel-install install "PREFIX=${SAGE_LOCAL}" \
+    ${SCONS} install install-headers "PREFIX=${SAGE_LOCAL}" \
         "INSTALLDIR=${SAGE_LOCAL}/share/polybori" \
         "CONFFILE=${SAGE_LOCAL}/share/polybori/flags.conf"
     if [ $? -ne 0 ]; then
@@ -68,13 +68,13 @@ cd ${WORKDIR}
 prepare_polybori
 echo "Starting build..."
 
-echo "Removing old PolyBoRi install..."
-clean_polybori
-echo "Done removing old PolyBoRi install."
-
 echo "Running build_polybori..."
 build_polybori
 echo "Done build_polybori."
+
+echo "Removing old PolyBoRi install..."
+clean_polybori
+echo "Done removing old PolyBoRi install."
 
 echo "Installing PolyBoRi..."
 install_polybori

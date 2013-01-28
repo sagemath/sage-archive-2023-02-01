@@ -49,6 +49,8 @@ LIBPATH=[os.environ['SAGE_LOCAL']+"/lib"]
 PYPREFIX=os.environ['PYTHONHOME']
 PBP=os.environ['PYTHONHOME']+'/bin/python'
 
+M4RIURL=""
+
 HAVE_DOXYGEN=False
 HAVE_PYDOC=False
 HAVE_L2H=False

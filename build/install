@@ -70,6 +70,10 @@ if [ "$SAGE_UPGRADING" = yes ]; then
             done
         done
     fi
+
+    # The old sage-make_relative script is troublesome (#13407 and #14027).
+    # We simply delete it, its role is taken over by sage-location.
+    rm -f "$SAGE_LOCAL/bin/sage-make_relative"
 fi
 
 ###############################################################################

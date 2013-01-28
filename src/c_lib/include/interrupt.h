@@ -13,11 +13,12 @@ KeyboardInterrupt (as usual in Python), while SIGHUP raises
 SystemExit, causing Python to exit.  The latter signals also redirect
 stdin from /dev/null, to cause interactive sessions to exit also.
 
-(2) critical signals: SIGILL, SIGABRT, SIGFPE, SIGBUS, SIGSEGV.
+(2) critical signals: SIGQUIT, SIGILL, SIGABRT, SIGFPE, SIGBUS, SIGSEGV.
 These are critical because they cannot be ignored.  If they happen
 outside of sig_on(), we can only exit Sage with the dreaded
 "unhandled SIG..." message.  Inside of sig_on(), they can be handled
-and raise a RuntimeError.
+and raise a RuntimeError.  SIGQUIT will never be handled and always
+causes Sage to exit.
 
 
 AUTHORS:
@@ -27,6 +28,8 @@ AUTHORS:
 - Jeroen Demeyer (2010-10-03): almost complete rewrite (#9678)
 
 - Jeroen Demeyer (2013-01-11): handle SIGHUP also (#13908)
+
+- Jeroen Demeyer (2013-01-28): handle SIGQUIT also (#14029)
 
 */
 

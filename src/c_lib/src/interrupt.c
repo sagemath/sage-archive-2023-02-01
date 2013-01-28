@@ -9,6 +9,8 @@ AUTHORS:
 
 - Jeroen Demeyer (2013-01-11): handle SIGHUP also (#13908)
 
+- Jeroen Demeyer (2013-01-28): handle SIGQUIT also (#14029)
+
 */
 
 /*****************************************************************************
@@ -135,13 +137,13 @@ void sage_interrupt_handler(int sig)
         _signals.interrupt_received = sig;
 }
 
-/* Handler for SIGILL, SIGABRT, SIGFPE, SIGBUS, SIGSEGV */
+/* Handler for SIGQUIT, SIGILL, SIGABRT, SIGFPE, SIGBUS, SIGSEGV */
 void sage_signal_handler(int sig)
 {
     sig_atomic_t inside = _signals.inside_signal_handler;
     _signals.inside_signal_handler = 1;
 
-    if (inside == 0 && _signals.sig_on_count > 0)
+    if (inside == 0 && _signals.sig_on_count > 0 && sig != SIGQUIT)
     {
         /* We are inside sig_on(), so we can handle the signal! */
 #if ENABLE_DEBUG_INTERRUPT
@@ -168,6 +170,7 @@ void sage_signal_handler(int sig)
          * them in case something goes wrong as of now. */
         signal(SIGHUP, SIG_DFL);
         signal(SIGINT, SIG_DFL);
+        signal(SIGQUIT, SIG_DFL);
         signal(SIGILL, SIG_DFL);
         signal(SIGABRT, SIG_DFL);
         signal(SIGFPE, SIG_DFL);
@@ -181,6 +184,9 @@ void sage_signal_handler(int sig)
         /* Quit Sage with an appropriate message. */
         switch(sig)
         {
+            case SIGQUIT:
+                sigdie(sig, NULL);
+                break;  /* This will not be reached */
             case SIGILL:
                 sigdie(sig, "Unhandled SIGILL: An illegal instruction occurred in Sage.");
                 break;  /* This will not be reached */
@@ -328,6 +334,7 @@ void setup_sage_signal_handler()
     /* Allow signals during signal handling, we have code to deal with
      * this case. */
     sa.sa_flags |= SA_NODEFER;
+    if (sigaction(SIGQUIT, &sa, NULL)) {perror("sigaction"); exit(1);}
     if (sigaction(SIGILL, &sa, NULL)) {perror("sigaction"); exit(1);}
     if (sigaction(SIGABRT, &sa, NULL)) {perror("sigaction"); exit(1);}
     if (sigaction(SIGFPE, &sa, NULL)) {perror("sigaction"); exit(1);}
@@ -355,6 +362,13 @@ void setup_sage_signal_handler()
 }
 
 
+static void print_sep()
+{
+    fprintf(stderr,
+        "------------------------------------------------------------------------\n");
+    fflush(stderr);
+}
+
 void print_backtrace()
 {
     void* backtracebuffer[1024];
@@ -362,6 +376,7 @@ void print_backtrace()
 #ifdef HAVE_BACKTRACE
     int btsize = backtrace(backtracebuffer, 1024);
     backtrace_symbols_fd(backtracebuffer, btsize, 2);
+    print_sep();
 #endif
 }
 
@@ -402,13 +417,14 @@ void print_enhanced_backtrace()
     }
     /* Wait for sage-CSI to finish */
     waitpid(pid, NULL, 0);
+
+    print_sep();
 }
 
 
 void sigdie(int sig, const char* s)
 {
-    fprintf(stderr,
-        "------------------------------------------------------------------------\n");
+    print_sep();
     print_backtrace();
 
 #if ENABLE_DEBUG_INTERRUPT
@@ -418,22 +434,18 @@ void sigdie(int sig, const char* s)
 #else
 #ifndef __APPLE__
     /* See http://trac.sagemath.org/13889 for how Apple screwed this up */
-    fprintf(stderr,
-        "------------------------------------------------------------------------\n");
     print_enhanced_backtrace();
 #endif
 #endif
 
-    fprintf(stderr,
-        "------------------------------------------------------------------------\n"
-        "%s\n"
-        "This probably occurred because a *compiled* component of Sage has a bug\n"
-        "in it and is not properly wrapped with sig_on(), sig_off(). You might\n"
-        "want to run Sage under gdb with 'sage -gdb' to debug this.\n"
-        "Sage will now terminate.\n"
-        "------------------------------------------------------------------------\n",
-        s);
-    fflush(stderr);
+    if (s) {
+        fprintf(stderr,
+            "%s\n"
+            "This probably occurred because a *compiled* component of Sage has a bug\n"
+            "in it and is not properly wrapped with sig_on(), sig_off().\n"
+            "Sage will now terminate.\n", s);
+        print_sep();
+    }
 
     /* Suicide with signal ``sig`` */
     kill(getpid(), sig);

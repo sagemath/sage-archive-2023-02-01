@@ -33,6 +33,9 @@ BSD terms. See http://www.scipy.org/License_Compatibility
 
 == Changelog ==
 
+=== scipy-0.11.0.p1 (François Bissey, 28 January 2013) ===
+ * #14022: add "-fPIC" to fortran flags.
+
 === scipy-0.11.0.p0 (Jeroen Demeyer, 22 January 2013) ===
  * #13985: default_dir.patch: gracefully handle the case that $HOME is
    not writable.

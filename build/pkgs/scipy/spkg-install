@@ -24,6 +24,9 @@ else
     export LDFLAGS="-shared $LDFLAGS"
 fi
 
+# Make sure that the fortran objects are compiled with -fPIC
+export FFLAGS="$FFLAGS -fPIC"
+export FCFLAGS="$FCFLAGS -fPIC"
 
 # This avoids problems on some systems -- until we officially
 # support umfpack (which we will likely do, since cvxopt I think includes it):

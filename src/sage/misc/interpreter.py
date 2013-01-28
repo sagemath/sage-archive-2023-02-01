@@ -600,7 +600,6 @@ def get_test_shell():
         <sage.misc.interpreter.SageInteractiveShell object at 0x...>
     """
     app = SageTerminalApp.instance(config=DEFAULT_SAGE_CONFIG)
-    app.test_shell = True
     if app.shell is None:
         app.initialize()
     return app.shell

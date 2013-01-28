@@ -397,8 +397,6 @@ from sage.misc.interpreter import sage_prompt
         # about a bad memory access in the pari_close() function.
         #self.set_quit_hook()
 
-        self.print_branch()
-
         # These are things I'm not sure that we need to do anymore
         #self.deprecated()
 
@@ -429,14 +427,6 @@ from sage.misc.interpreter import sage_prompt
             sage.all.quit_sage()
         self.shell.set_hook('shutdown_hook', quit)
 
-    def print_branch(self):
-        """
-        Print the branch we are on currently
-        """
-        from sage.misc.misc import branch_current_hg_notice, branch_current_hg
-        branch = branch_current_hg_notice(branch_current_hg())
-        if branch and not self.shell.test_shell:
-            print branch
 
     def init_environment(self):
         """

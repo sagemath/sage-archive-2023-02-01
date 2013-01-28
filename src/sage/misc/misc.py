@@ -2074,9 +2074,9 @@ def branch_current_hg():
 
 def branch_current_hg_notice(branch):
     r"""
-    Return a string describing the current branch and that the library
-    is being loaded.  This function is called in the
-    ``SAGE_ROOT/local/bin/ipy_profile_sage.py`` script.
+    Return a string describing the current branch.
+
+    Also, indicate that the library is being loaded.
 
     INPUT:
 

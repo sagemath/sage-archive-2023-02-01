@@ -10,31 +10,34 @@ from copy import copy
 from sage.misc.misc import verbose, cputime
 from sage.matrix.constructor import random_matrix, matrix, matrix, identity_matrix
 
-from sage.rings.all import ZZ, previous_prime, next_prime, CRT_list, RR
-import math
+from sage.rings.all import ZZ, Integer, previous_prime, next_prime, CRT_list, RR
 
 def max_det_prime(n):
     """
-    Return the largest prime so that it is reasonably efficiency to
+    Return the largest prime so that it is reasonably efficienct to
     compute modulo that prime with n x n matrices in LinBox.
 
     INPUT:
-        n -- a positive integer
+
+    - ``n`` -- a positive integer
 
     OUTPUT:
-        a prime number
 
-    EXAMPLES:
+    a prime number
+
+    EXAMPLES::
+
         sage: from sage.matrix.matrix_integer_dense_hnf import max_det_prime
         sage: max_det_prime(10000)
-        524309
+        8388593
         sage: max_det_prime(1000)
-        2097169
+        8388593
         sage: max_det_prime(10)
-        16777259
+        8388593
     """
-    k = int(26 - math.ceil(math.log(n)*0.7213475205))
-    return next_prime(2**k)
+    # See #14032: LinBox now uses a constant bound of 2^23.
+    # This is the largest prime less than that bound.
+    return Integer(8388593)
 
 def det_from_modp_and_divisor(A, d, p, z_mod, moduli, z_so_far=ZZ(1), N_so_far=ZZ(1)):
     """
@@ -83,21 +86,24 @@ def det_given_divisor(A, d, proof=True, stabilize=2):
     Given a divisor d of the determinant of A, compute the
     determinant of A.
 
-    INPUT:
-        A -- a square integer matrix
-        d -- a nonzero integer that is assumed to divide the determinant of A
-        proof -- bool (default True) compute det modulo enough primes
-                 so that the determinant is computed provably correctly
-                 (via the Hadamard bound).  It would be VERY hard for
-                 det to fail even with proof=False.
-        stabilize -- int (default: 2) if proof = False, then compute det
-                 mod p until stabilize successive modulo det computations
-                 stabilize.
+    INPUT::
+
+    - ``A`` -- a square integer matrix
+    - ``d`` -- a nonzero integer that is assumed to divide the determinant of A
+    - ``proof`` -- bool (default: True) compute det modulo enough primes
+      so that the determinant is computed provably correctly (via the
+      Hadamard bound).  It would be VERY hard for ``det()`` to fail even
+      with proof=False.
+    - ``stabilize`` -- int (default: 2) if proof = False, then compute
+      the determinant modulo `p` until ``stabilize`` successive modulo
+      determinant computations stabilize.
 
     OUTPUT:
-        integer -- determinant
 
-    EXAMPLES:
+    integer -- determinant
+
+    EXAMPLES::
+
         sage: import sage.matrix.matrix_integer_dense_hnf as matrix_integer_dense_hnf
         sage: a = matrix(ZZ,3,[-1, -1, -1, -20, 4, 1, -1, 1, 2])
         sage: matrix_integer_dense_hnf.det_given_divisor(a, 3)
@@ -109,30 +115,33 @@ def det_given_divisor(A, d, proof=True, stabilize=2):
         sage: a.det()
         -30
 
-    Here we illustrate proof=False giving a wrong answer:
+    Here we illustrate proof=False giving a wrong answer::
+
         sage: p = matrix_integer_dense_hnf.max_det_prime(2)
         sage: q = previous_prime(p)
         sage: a = matrix(ZZ, 2, [p, 0, 0, q])
         sage: p * q
-        1125899772623531
+        70368442188091
         sage: matrix_integer_dense_hnf.det_given_divisor(a, 1, proof=False, stabilize=2)
         0
 
     This still works, because we don't work modulo primes that divide
-    the determinant bound, which is found using a p-adic algorithm.
+    the determinant bound, which is found using a p-adic algorithm::
+
         sage: a.det(proof=False, stabilize=2)
-        1125899772623531
+        70368442188091
 
+    3 primes is enough::
 
-    3 primes is enough:
         sage: matrix_integer_dense_hnf.det_given_divisor(a, 1, proof=False, stabilize=3)
-        1125899772623531
+        70368442188091
         sage: matrix_integer_dense_hnf.det_given_divisor(a, 1, proof=False, stabilize=5)
-        1125899772623531
+        70368442188091
         sage: matrix_integer_dense_hnf.det_given_divisor(a, 1, proof=True)
-        1125899772623531
+        70368442188091
 
-    TESTS:
+    TESTS::
+
         sage: m = diagonal_matrix(ZZ, 68, [2]*66 + [1,1])
         sage: m.det()
         73786976294838206464
@@ -178,12 +187,16 @@ def det_padic(A, proof=True, stabilize=2):
     algorithm.
 
     INPUTS:
-        A -- a square matrix
-        proof -- boolean
-        stabilize (default: 2) -- if proof False, number of successive primes so that
-                     CRT det must stabilize.
 
-    EXAMPLES:
+    - ``A`` -- a square matrix
+
+    - ``proof`` -- boolean
+
+    - ``stabilize`` (default: 2) -- if proof False, number of successive primes so that
+      CRT det must stabilize.
+
+    EXAMPLES::
+
         sage: import sage.matrix.matrix_integer_dense_hnf as h
         sage: a = matrix(ZZ, 3, [1..9])
         sage: h.det_padic(a)

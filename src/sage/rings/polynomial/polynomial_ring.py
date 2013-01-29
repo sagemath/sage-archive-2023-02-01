@@ -121,6 +121,14 @@ TESTS::
     sage: x+z
     z + x
 
+Check that :trac:`5562` has been fixed::
+
+    sage: R.<u> = PolynomialRing(RDF, 1, 'u')
+    sage: v1 = vector([u])
+    sage: v2 = vector([CDF(2)])
+    sage: v1 * v2
+    2.0*u
+
 These may change over time::
 
     sage: type(ZZ['x'].0)

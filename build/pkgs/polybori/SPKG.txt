@@ -46,7 +46,7 @@ All previously contributed patches were merged upstream.
 
 == Changelog ==
 
-===  polybori-0.8.3rc2 (Alexander Dreyer, 28 January 2013) ===
+===  polybori-0.8.3 (Alexander Dreyer, 30 January 2013) ===
  * Updating sources to PolyBoRi's release 0.8.3 (Sage Trac #13989)
 
 ===  polybori-0.8.2.p0 (Alexander Dreyer, 30 December 2012) ===

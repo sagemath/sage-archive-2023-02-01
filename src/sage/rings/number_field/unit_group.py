@@ -136,7 +136,8 @@ class UnitGroup(AbelianGroupWithValues_class):
         sage: u = UK.an_element();  u
         u0*u1
         sage: u.value()
-        -1/4*a^3 - 7/4*a^2 - 17/4*a - 19/4
+        -1/4*a^3 + 7/4*a^2 - 17/4*a + 19/4     # 32-bit
+        -1/4*a^3 - 7/4*a^2 - 17/4*a - 19/4     # 64-bit
 
         sage: x = polygen(QQ)
         sage: K.<a> = NumberField(x^4 + 23)

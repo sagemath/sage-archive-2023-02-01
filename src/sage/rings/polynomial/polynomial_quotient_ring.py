@@ -972,7 +972,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: S.S_class_group([K.ideal(2, a+1)])
             []
             sage: S.S_class_group([K.ideal(a)])
-            [((2, -a + 1, 1/2*xbar + 1/2, -1/2*a*xbar + 1/2*a + 1), 6, 1/2*xbar - 3/2)] # 32-bit
+            [((2, -a + 1, 1/2*xbar + 1/2, -1/2*a*xbar + 1/2*a + 1), 6, -1/2*xbar + 3/2)] # 32-bit
             [((2, -a + 1, 1/2*xbar + 1/2, -1/2*a*xbar + 1/2*a + 1), 6, -1/2*xbar + 3/2)] # 64-bit
 
         Now we take an example over a nontrivial base with two factors, each

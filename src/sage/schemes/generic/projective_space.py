@@ -459,7 +459,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             raise TypeError('Unable to find a common ring for all elements')
         try:
             i = pt.index(1)
-        except:
+        except StandardError:
             raise TypeError('At least one component of pt=%s must be equal '
                             'to 1'%pt)
         pt = pt[:i] + pt[i+1:]

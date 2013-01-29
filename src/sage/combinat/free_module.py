@@ -1260,7 +1260,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         R = self.base_ring()
         try:
             x = x + self.monomial(I.an_element())
-        except:
+        except StandardError:
             pass
         try:
             g = iter(self.basis().keys())

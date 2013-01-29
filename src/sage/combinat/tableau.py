@@ -933,10 +933,10 @@ class Tableau(CombinatorialObject, Element):
         # attempt to return a tableau of the same type
         try:
             return self.parent()( res )
-        except:
+        except StandardError:
             try:
                 return self.parent().Element( res )
-            except:
+            except StandardError:
                 return Tableau(res)
 
     def to_chain(self):
@@ -1669,10 +1669,10 @@ class Tableau(CombinatorialObject, Element):
         # attempt to return a tableau of the same type as self
         try:
             return self.parent()(tab)
-        except:
+        except StandardError:
             try:
                 return self.parent().Element(tab)
-            except:
+            except StandardError:
                 return Tableau(tab)
 
 
@@ -1987,7 +1987,7 @@ class Tableau(CombinatorialObject, Element):
         w=w*permutation.Permutation( (self.size(),) )   #need to ensure that it belongs to Sym_size
         try:
             return self.parent()([[w[entry-1] for entry in row] for row in self])
-        except:
+        except StandardError:
             return Tableau([[w[entry-1] for entry in row] for row in self])
 
 

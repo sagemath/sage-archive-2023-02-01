@@ -1182,9 +1182,14 @@ class SingularElement(ExpectElement):
         if not is_name:
             try:
                 self._name = parent._create( value, type)
-            except (RuntimeError, TypeError, KeyboardInterrupt), x:
+            # Convert RuntimeError to TypeError for
+            # coercion to work properly.
+            except RuntimeError, x:
                 self._session_number = -1
                 raise TypeError, x
+            except BaseException:
+                self._session_number = -1
+                raise
         else:
             self._name = value
         self._session_number = parent._session_number

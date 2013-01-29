@@ -332,7 +332,7 @@ cdef class lazy_list(object):
         if not isinstance(step, (int,long)):
             try:
                 step = step.__index__()
-            except:
+            except StandardError:
                 raise TypeError("step must be None or integer")
         if step <= 0:
             raise ValueError("step must be positive")

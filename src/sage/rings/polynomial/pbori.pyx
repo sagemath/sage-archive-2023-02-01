@@ -984,7 +984,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         except StandardError:
             try:    # last chance: try Sage's conversions over GF(2), Trac #13284
                 return self._coerce_c_impl(self.cover_ring()(other))
-            except:
+            except StandardError:
                 raise TypeError, "cannot convert %s to BooleanPolynomial"%(type(other))
 
         i = i % 2

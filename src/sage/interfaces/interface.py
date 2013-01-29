@@ -148,11 +148,9 @@ class Interface(ParentWithBase):
 
         try:
             pass
-        except KeyboardInterrupt:
-            # DO NOT CATCH KeyboardInterrupt, as it is being caught
-            # by _eval_line
-            # In particular, do NOT call self._keyboard_interrupt()
-            raise
+        # DO NOT CATCH KeyboardInterrupt, as it is being caught
+        # by _eval_line
+        # In particular, do NOT call self._keyboard_interrupt()
         except TypeError, s:
             raise TypeError, 'error evaluating "%s":\n%s'%(code,s)
 
@@ -624,7 +622,7 @@ class InterfaceElement(RingElement):
         else:
             try:
                 self._name = parent._create(value, name=name)
-            except (TypeError, KeyboardInterrupt, RuntimeError, ValueError), x:
+            except (TypeError, RuntimeError, ValueError), x:
                 raise TypeError, x
 
     def _latex_(self):

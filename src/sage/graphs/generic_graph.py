@@ -4111,7 +4111,7 @@ class GenericGraph(GenericGraph_pyx):
             if v is None:
                 try:
                     u, v, label = u
-                except:
+                except ValueError:
                     u, v = u
                     label = None
 

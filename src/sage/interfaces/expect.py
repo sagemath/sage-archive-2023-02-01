@@ -1197,11 +1197,9 @@ If this all works, you can then make calls like:
                                         for L in code.split('\n') if L != ''])
                 else:
                     return self._eval_line(code, allow_use_file=allow_use_file, **kwds)
-        except KeyboardInterrupt:
-            # DO NOT CATCH KeyboardInterrupt, as it is being caught
-            # by _eval_line
-            # In particular, do NOT call self._keyboard_interrupt()
-            raise
+        # DO NOT CATCH KeyboardInterrupt, as it is being caught
+        # by _eval_line
+        # In particular, do NOT call self._keyboard_interrupt()
         except TypeError, s:
             raise TypeError, 'error evaluating "%s":\n%s'%(code,s)
 
@@ -1280,9 +1278,14 @@ class ExpectElement(InterfaceElement):
         else:
             try:
                 self._name = parent._create(value, name=name)
-            except (TypeError, KeyboardInterrupt, RuntimeError, ValueError), x:
+            # Convert ValueError and RuntimeError to TypeError for
+            # coercion to work properly.
+            except (RuntimeError, ValueError), x:
                 self._session_number = -1
                 raise TypeError, x
+            except BaseException:
+                self._session_number = -1
+                raise
         self._session_number = parent._session_number
 
     def __hash__(self):

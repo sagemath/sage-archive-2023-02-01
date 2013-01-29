@@ -1983,7 +1983,7 @@ def _is_mutation_type( data ):
     try:
         QuiverMutationType( data )
         return True
-    except:
+    except StandardError:
         return False
 
 def _mutation_type_error( data ):

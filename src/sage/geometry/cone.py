@@ -210,7 +210,7 @@ from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
     is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import matrix, identity_matrix
+from sage.matrix.all import column_matrix, matrix, identity_matrix
 from sage.misc.all import cached_method, flatten, latex, prod
 from sage.misc.superseded import deprecation
 from sage.modules.all import span, vector
@@ -490,20 +490,25 @@ def _Cone_from_PPL(cone, lattice, original_rays=None):
     rays = []
     lines = []
     for g in cone.minimized_generators():
-        ray = lattice(g.coefficients())
-        ray.set_immutable()
         if g.is_ray():
-            rays.append(ray)
+            rays.append(g)
         if g.is_line():
-            lines.append(ray)
-            negative_ray = -ray
-            negative_ray.set_immutable()
-            lines.append(negative_ray)
+            lines.append(g)
     if (original_rays is not None and not lines and
         len(rays) == len(original_rays)):
         return ConvexRationalPolyhedralCone(original_rays, lattice, PPL=cone)
     else:
-        return ConvexRationalPolyhedralCone(rays + lines, lattice, PPL=cone)
+        rays = [ray.coefficients() for ray in rays]
+        for line in lines:
+            rays.append(line.coefficients())
+            rays.append(-vector(ZZ, rays[-1]))
+        try:
+            for i, ray in enumerate(rays):
+                rays[i] = lattice(ray)
+                rays[i].set_immutable()
+        except TypeError:
+            rays = normalize_rays(rays, lattice)
+        return ConvexRationalPolyhedralCone(rays, lattice, PPL=cone)
 
 
 def normalize_rays(rays, lattice):
@@ -559,13 +564,26 @@ def normalize_rays(rays, lattice):
             ray_parent = parent(rays[0])
             lattice = (ray_parent if is_ToricLattice(ray_parent)
                                   else ToricLattice(len(rays[0])))
+        if lattice.base_ring() is not ZZ:
+            raise TypeError("lattice must be a free module over ZZ")
         # Are we dealing with a quotient lattice?
         try:
             if not lattice.is_torsion_free():
                 raise ValueError("cannot normalize rays of torsion quotients!")
         except AttributeError:
             pass
-        V = lattice.base_extend(QQ)
+        V = None
+        try:
+            if lattice.is_ambient():
+                # Handle the most common case efficiently.
+                V = lattice.base_extend(QQ)
+                length = lambda ray: integral_length(ray)
+        except AttributeError:
+            pass
+        if V is None:
+            # Use a more general, but slower way.
+            V = lattice.vector_space_span_of_basis(lattice.basis())
+            length = lambda ray: integral_length(V.coordinate_vector(ray))
         for n, ray in enumerate(rays):
             try:
                 if isinstance(ray, (list, tuple, V._element_class)):
@@ -577,7 +595,7 @@ def normalize_rays(rays, lattice):
             if ray.is_zero():
                 ray = lattice(0)
             else:
-                ray = lattice(ray / integral_length(ray))
+                ray = lattice(ray / length(ray))
             ray.set_immutable()
             rays[n] = ray
     return rays
@@ -3165,7 +3183,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
     def _split_ambient_lattice(self):
         r"""
         Compute a decomposition of the ``N``-lattice into `N_\sigma`
-        and its complement `N(\sigma)`.
+        and its complement isomorphic to `N(\sigma)`.
 
         You should not call this function directly, but call
         :meth:`sublattice` and :meth:`sublattice_complement` instead.
@@ -3178,15 +3196,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Sublattice <N(1, 2)>
             sage: c._sublattice_complement
             Sublattice <N(0, 1)>
-            sage: c._orthogonal_sublattice
-            Sublattice <M(-2, 1)>
-            sage: c._orthogonal_sublattice_complement
-            Sublattice <M(1, 0)>
-            sage: N = c.lattice()
-            sage: n = N(27,31)
-            sage: (N(0) + c._sublattice.gen(0) * (c._orthogonal_sublattice_complement.gen(0)*n)
-            ...         + c._sublattice_complement.gen(0) * (c._orthogonal_sublattice.gen(0)*n))
-            N(27, 31)
 
         Degenerate cases::
 
@@ -3194,8 +3203,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: C2_Z2._split_ambient_lattice()
             sage: C2_Z2._sublattice
             Sublattice <N(1, 0), N(0, 1)>
-            sage: C2_Z2._orthogonal_sublattice
-            Sublattice <>
 
         Trivial cone::
 
@@ -3205,32 +3212,18 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Sublattice <>
             sage: trivial_cone._sublattice_complement
             Sublattice <N(1, 0, 0), N(0, 1, 0), N(0, 0, 1)>
-            sage: trivial_cone._orthogonal_sublattice
-            Sublattice <M(1, 0, 0), M(0, 1, 0), M(0, 0, 1)>
-            sage: trivial_cone._orthogonal_sublattice_complement
-            Sublattice <>
         """
-        Nsigma = self.rays().basis().matrix().transpose()
-        r = Nsigma.ncols()
-        D, U, V = Nsigma.smith_form()  # D = U*N*V <=> N = Uinv*D*Vinv
-        Uinv = U.inverse()
-        n = Uinv.ncols()
-
         N = self.lattice()
-        # basis for the spanned lattice
-        basis = [ Uinv.column(i) for i in range(0,r) ]
-        self._sublattice = N.submodule_with_basis(basis)
-        # basis for a complement to the spanned lattice
-        basis = [ Uinv.column(i) for i in range(r,n) ]
-        self._sublattice_complement = N.submodule_with_basis(basis)
-
-        M = self.dual_lattice()
-        # basis for the dual spanned lattice
-        basis = [U.row(i) for i in range(r, n)]
-        self._orthogonal_sublattice = M.submodule_with_basis(basis)
-        # basis for a complement to the dual spanned lattice
-        basis = [U.row(i) for i in range(r)]
-        self._orthogonal_sublattice_complement = M.submodule_with_basis(basis)
+        n = N.dimension()
+        basis = self.rays().basis()
+        r = len(basis)
+        Nsigma = column_matrix(ZZ, r, n, [N.coordinates(v) for v in basis])
+        D, U, V = Nsigma.smith_form()  # D = U*N*V <=> N = Uinv*D*Vinv
+        basis = (N.basis_matrix().transpose() * U.inverse()).columns()
+        # spanned lattice N_sigma
+        self._sublattice = N.submodule_with_basis(basis[:r])
+        # complement to the spanned lattice, isomorphic to N(sigma)
+        self._sublattice_complement = N.submodule_with_basis(basis[r:])
 
     def sublattice(self, *args, **kwds):
         r"""
@@ -3443,10 +3436,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: c12.sublattice()
             Sublattice <N(1, 1, 1), N(0, 1, 0)>
             sage: c12.orthogonal_sublattice()
-            Sublattice <M(-1, 0, 1)>
+            Sublattice <M(1, 0, -1)>
         """
         if "_orthogonal_sublattice" not in self.__dict__:
-            self._split_ambient_lattice()
+            try:
+                self._orthogonal_sublattice = self.sublattice_quotient().dual()
+            except AttributeError:
+                # Non-toric quotient? Just make ZZ^n then.
+                self._orthogonal_sublattice = ZZ**(self.lattice().dimension() -
+                                                  self.sublattice().dimension())
         if args or kwds:
             return self._orthogonal_sublattice(*args, **kwds)
         else:
@@ -3593,12 +3591,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Sublattice <M(0, 0, 3, -1)>
             sage: sigma = rho.facets()[2]
             sage: sigma.orthogonal_sublattice()
-            Sublattice <M(0, 1, 1, 0), M(0, 3, 0, 1)>
+            Sublattice <M(0, 1, 1, 0), M(0, 0, 3, -1)>
             sage: sigma.is_face_of(rho)
             True
             sage: Q = sigma.relative_orthogonal_quotient(rho); Q
             1-d lattice, quotient
-            of Sublattice <M(0, 1, 1, 0), M(0, 3, 0, 1)>
+            of Sublattice <M(0, 1, 1, 0), M(0, 0, 3, -1)>
             by Sublattice <M(0, 0, 3, -1)>
             sage: Q.gens()
             (M[0, 1, 1, 0],)
@@ -3608,11 +3606,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: rho = Cone([[1,-1,1,3],[-1,-1,1,3]])
             sage: sigma = rho.facets()[0]
             sage: sigma.orthogonal_sublattice()
-            Sublattice <M(0, 1, 1, 0), M(1, 1, 0, 0), M(0, 3, 0, 1)>
+            Sublattice <M(1, 0, 2, -1), M(0, 1, 1, 0), M(0, 0, 3, -1)>
             sage: rho.orthogonal_sublattice()
-            Sublattice <M(0, 1, 1, 0), M(0, 3, 0, 1)>
+            Sublattice <M(0, 1, 1, 0), M(0, 0, 3, -1)>
             sage: sigma.relative_orthogonal_quotient(rho).gens()
-            (M[-1, -1, 0, 0],)
+            (M[-1, 0, -2, 1],)
 
         Sign choice in the codimension one case::
 

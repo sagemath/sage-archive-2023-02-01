@@ -1106,7 +1106,7 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
                 raise ValueError("only dual lattices of saturated sublattices "
                                  "can be constructed! Got %s." % self)
             self._dual = (self.ambient_module().dual() /
-                          self.basis_matrix().right_kernel())
+                          self.basis_matrix().transpose().integer_kernel())
             self._dual._dual = self
         return self._dual
 
@@ -1607,6 +1607,28 @@ class ToricLattice_quotient(FGP_Module_class):
         """
         return sum(self.invariants()) == 0
 
+    def dual(self):
+        r"""
+        Return the lattice dual to ``self``.
+
+        OUTPUT:
+
+        - a :class:`toric lattice quotient <ToricLattice_quotient>`.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([(1, -1, -1)])
+            sage: Q = N / Ns
+            sage: Q.dual()
+            Sublattice <M(1, 0, 1), M(0, 1, -1)>
+        """
+        if "_dual" not in self.__dict__:
+            self._dual = self.V().dual().submodule(
+                    self.W().basis_matrix().transpose().integer_kernel().gens())
+            self._dual._dual = self
+        return self._dual
+
     def rank(self):
         r"""
         Return the rank of ``self``.
@@ -1632,6 +1654,8 @@ class ToricLattice_quotient(FGP_Module_class):
             2
         """
         return self.V().rank() - self.W().rank()
+
+    dimension = rank
 
     def coordinate_vector(self, x, reduce=False):
         """
@@ -1666,6 +1690,3 @@ class ToricLattice_quotient(FGP_Module_class):
             return -coordinates
         else:
             return coordinates
-
-
-

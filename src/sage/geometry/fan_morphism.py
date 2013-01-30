@@ -82,10 +82,10 @@ from sage.categories.all import Hom
 from sage.geometry.cone import Cone
 from sage.geometry.fan import Fan, is_Fan, discard_faces
 from sage.matrix.all import matrix, is_Matrix
-from sage.misc.all import cached_method, latex, walltime
+from sage.misc.all import cached_method, latex, prod, walltime
 from sage.modules.free_module_morphism import (FreeModuleMorphism,
                                                is_FreeModuleMorphism)
-from sage.rings.all import ZZ, is_Infinite
+from sage.rings.all import Infinity, ZZ, is_Infinite
 
 
 class FanMorphism(FreeModuleMorphism):
@@ -943,13 +943,32 @@ class FanMorphism(FreeModuleMorphism):
         return self._image_cone[cone]
 
     @cached_method
-    def index(self):
+    def index(self, cone=None):
         r"""
         Return the index of ``self`` as a map between lattices.
 
+        INPUT:
+
+        - ``cone`` -- (default: ``None``) a :class:`cone
+          <sage.geometry.cone.ConvexRationalPolyhedralCone>` of the
+          :meth:`codomain_fan` of ``self``.
+
         OUTPUT:
 
-        - an integer or infinity.
+        - an integer, infinity, or ``None``.
+
+        If no cone was specified, this function computes the index of the
+        image of ``self`` in the codomain. If a cone `\sigma` was given, the
+        index of ``self`` over `\sigma` is computed in the sense of
+        Definition 2.1.7 of [HLY]: if `\sigma'` is any cone of the
+        :meth:`domain_fan` of ``self`` whose relative interior is mapped to the
+        relative interior of `\sigma`, it is the index of the image of
+        `N'(\sigma')` in `N(\sigma)`, where `N'` and `N` are domain and codomain
+        lattices respectively. While that definition was formulated for the case
+        of the finite index only, we extend it to the infinite one as well and
+        return ``None`` if there is no `\sigma'` at all. See examples below for
+        situations when such things happen. Note also that the index of ``self``
+        is the same as index over the trivial cone.
 
         EXAMPLES::
 
@@ -964,8 +983,71 @@ class FanMorphism(FreeModuleMorphism):
             sage: xi = FanMorphism(matrix([[1, 0]]), Sigma_p, Sigma)
             sage: xi.index()
             +Infinity
+
+        Infinite index in the last example indicates that the image has positive
+        codimension in the codomain. Let's look at the rays of our fans::
+
+            sage: Sigma_p.rays()
+            N( 1),
+            N(-1)
+            in 1-d lattice N
+            sage: Sigma.rays()
+            N( 1,  1),
+            N( 0,  1),
+            N(-1, -1),
+            N( 1,  0)
+            in 2-d lattice N
+            sage: xi.restrict_to_image().codomain_fan().rays()
+            N( 1, 0),
+            N(-1, 0)
+            in Sublattice <N(1, 0)>
+
+        We see that one of the rays of the fan of ``P1`` is mapped to a ray,
+        while the other one to the interior of some 2-d cone. Both rays
+        correspond to single points on ``P1``, yet one is mapped to the
+        distinguished point of a torus invariant curve of ``dP8`` (with the
+        rest of this curve being uncovered) and the other to a fixed point
+        of ``dP8`` (thus completely covering this torus orbit in ``dP8``).
+
+        We should therefore expect the following behaviour: all indices over
+        1-d cones are ``None``, except for one which is infinite, and all
+        indices over 2-d cones are ``None``, except for one which is 1::
+
+            sage: [xi.index(cone) for cone in Sigma(1)]
+            [None, None, None, +Infinity]
+            sage: [xi.index(cone) for cone in Sigma(2)]
+            [None, 1, None, None]
+
+        TESTS::
+
+            sage: Sigma = toric_varieties.dP8().fan()
+            sage: Sigma_p = toric_varieties.Cube_nonpolyhedral().fan()
+            sage: m = matrix([[2,6,10], [7,11,13]])
+            sage: zeta = FanMorphism(m, Sigma, Sigma_p, subdivide=True)
+            sage: [zeta.index(cone) for cone in flatten(Sigma_p.cones())]
+            [+Infinity, None, None, None, None, None, None, None, None, None,
+             4, 4, None, 4, None, None, 2, None, 4, None, 4, 1, 1, 1, 1, 1, 1]
+            sage: zeta = zeta.restrict_to_image()
+            sage: Sigma_p = zeta.codomain_fan()
+            sage: [zeta.index(cone) for cone in flatten(Sigma_p.cones())]
+            [4, 4, 1, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1]
+            sage: zeta.index() == zeta.index(Sigma_p(0)[0])
+            True
         """
-        return self.matrix().image().index_in(self.codomain())
+        if cone is None:
+            try:
+                return self.matrix().image().index_in(self.codomain())
+            except ArithmeticError:
+                cone = Cone([], lattice=self.codomain())
+        cone = self._codomain_fan.embed(cone)
+        PPCs = self.primitive_preimage_cones(cone)
+        if not PPCs:
+            return None
+        Q = cone.sublattice_quotient()
+        S = Q.submodule([self(g)
+                         for g in PPCs[0].sublattice_complement().gens()])
+        i = prod((Q/S).invariants())
+        return i if i > 0 else Infinity
 
     @cached_method
     def is_bundle(self):

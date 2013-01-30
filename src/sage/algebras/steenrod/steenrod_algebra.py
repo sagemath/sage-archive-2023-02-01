@@ -561,9 +561,12 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         """
         from sage.rings.arith import is_prime
         from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
+        from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+        from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
         from sage.rings.infinity import Infinity
         from sage.sets.family import Family
         from sage.sets.non_negative_integers import NonNegativeIntegers
+        from sage.sets.set_from_iterator import EnumeratedSetFromIterator
         from functools import partial
         from steenrod_algebra_bases import steenrod_algebra_basis
         from sage.rings.all import GF
@@ -576,7 +579,6 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         base_ring = GF(p)
         self._profile = profile
         self._truncation_type = truncation_type
-        NN = NonNegativeIntegers()
         if ((p==2 and ((len(profile) > 0 and profile[0] < Infinity)))
             or (p>2 and profile != ((), ()) and len(profile[0]) > 0
                 and profile[0][0] < Infinity)
@@ -584,21 +586,63 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             if basis != 'milnor' and basis.find('pst') == -1:
                 raise NotImplementedError("For sub-Hopf algebras of the Steenrod algebra, only the Milnor basis and the pst bases are implemented.")
         self._basis_name = basis
+        basis_category = FiniteEnumeratedSets() if self.is_finite() else InfiniteEnumeratedSets()
+        basis_set = EnumeratedSetFromIterator(self._basis_key_iterator,
+                                              category=basis_category,
+                                              name = "basis key family of %s" % self,
+                                              cache = False)
+
         self._basis_fcn = partial(steenrod_algebra_basis,
                                   p=p,
                                   basis=basis,
                                   profile=profile,
                                   truncation_type=truncation_type)
-        # name the basis function so different Steenrod algebras have
-        # different basis functions... (see __eq__ for LazyFamily?)
-        self._basis_fcn.func_name = "basis_%s_%s_%s_%s" % (p, basis, profile, truncation_type)
+
         CombinatorialFreeModule.__init__(self,
                                          base_ring,
-                                         Family(NN, self._basis_fcn),
+                                         basis_set,
                                          prefix=self._basis_name,
                                          element_class=self.Element,
                                          category = GradedHopfAlgebrasWithBasis(base_ring),
                                          scalar_mult = ' ')
+
+    def _basis_key_iterator(self):
+        """
+        An iterator for the basis keys of the Steenrod algebra.
+
+        EXAMPLES::
+
+            sage: A = SteenrodAlgebra(3,basis='adem')
+            sage: for (idx,key) in zip((1,..,10),A._basis_key_iterator()):
+            ...     print "> %2d %-20s %s" % (idx,key,A.monomial(key))
+            >  1 ()                   1
+            >  2 (1,)                 beta
+            >  3 (0, 1, 0)            P^1
+            >  4 (1, 1, 0)            beta P^1
+            >  5 (0, 1, 1)            P^1 beta
+            >  6 (1, 1, 1)            beta P^1 beta
+            >  7 (0, 2, 0)            P^2
+            >  8 (1, 2, 0)            beta P^2
+            >  9 (0, 2, 1)            P^2 beta
+            > 10 (1, 2, 1)            beta P^2 beta
+        """
+        from steenrod_algebra_bases import steenrod_algebra_basis
+        from sage.sets.integer_range import IntegerRange
+        from sage.rings.integer import Integer
+        from sage.rings.infinity import Infinity
+        from functools import partial
+        import itertools
+        if self.is_finite():
+            maxdim = self.top_class().degree()
+            I = IntegerRange(Integer(0),Integer(maxdim+1))
+        else:
+            I = IntegerRange(Integer(0),Infinity)
+        basfnc = partial(steenrod_algebra_basis,
+                         p=self.prime(),
+                         basis=self._basis_name,
+                         profile=self._profile,
+                         truncation_type=self._truncation_type)
+        return itertools.chain.from_iterable(basfnc(dim) for dim in I)
 
     def prime(self):
         r"""
@@ -611,7 +655,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: SteenrodAlgebra(p=7).prime()
             7
         """
-        return self.base_ring().characteristic()
+        return self._prime
 
     def basis_name(self):
         r"""
@@ -1316,11 +1360,11 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             from sage.categories.tensor import tensor
             A = SteenrodAlgebra(p=p, basis=algorithm)
             x = A(self._change_basis_on_basis(t, algorithm)).coproduct(algorithm=algorithm)
-            result = self.tensor_square().zero()
+            result = []
             for (a,b), coeff in x:
-                result += coeff * tensor((A._change_basis_on_basis(a, basis),
-                                          A._change_basis_on_basis(b, basis)))
-            return result
+                result.append((tensor((A._change_basis_on_basis(a, basis),
+                                       A._change_basis_on_basis(b, basis))),coeff))
+            return self.tensor_square().linear_combination(result)
 
     def coproduct(self, x, algorithm='milnor'):
         r"""
@@ -2104,7 +2148,21 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         This doesn't print in a very helpful way, unfortunately::
 
             sage: A7.basis()
-            Lazy family (Term map from Lazy family (<functools.partial object at ...>(i))_{i in Non negative integers} to mod 7 Steenrod algebra, milnor basis(i))_{i in Lazy family (<functools.partial object at ...>(i))_{i in Non negative integers}}
+            Lazy family (Term map from basis key family of mod 7 Steenrod algebra, milnor basis to mod 7 Steenrod algebra, milnor basis(i))_{i in basis key family of mod 7 Steenrod algebra, milnor basis}
+            sage: for (idx,a) in zip((1,..,9),A7.basis()):
+            ...      print idx, a
+            1 1
+            2 Q_0
+            3 P(1)
+            4 Q_1
+            5 Q_0 P(1)
+            6 Q_0 Q_1
+            7 P(2)
+            8 Q_1 P(1)
+            9 Q_0 P(2)
+            sage: D = SteenrodAlgebra(p=3, profile=([1], [2,2]))
+            sage: sorted(D.basis())
+            [1, P(1), P(2), Q_0, Q_0 P(1), Q_0 P(2), Q_0 Q_1, Q_0 Q_1 P(1), Q_0 Q_1 P(2), Q_1, Q_1 P(1), Q_1 P(2)]
         """
         from sage.sets.family import Family
         if d is None:

@@ -172,7 +172,7 @@ from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing
 
 # singular functions
 from sage.libs.singular.decl cimport (
-    errorreported,
+    errorreported, libfac_interruptflag,
     p_ISet, rChangeCurrRing, p_Copy, p_Init, p_SetCoeff, p_Setm, p_SetExp, p_Add_q,
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
     omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
@@ -4086,8 +4086,23 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ValueError: polynomial is not in the ideal
             sage: f.lift(I)
             [1, x2]
+
+        TESTS:
+
+        Check that :trac:`13714` is fixed::
+
+            sage: R.<x1,x2> = QQ[]
+            sage: I = R.ideal(x2**2 + x1 - 2, x1**2 - 1)
+            sage: R.one().lift(I)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial is not in the ideal
+            sage: foo = I.complete_primary_decomposition() # indirect doctest
+            sage: foo[0][0]
+            Ideal (x2 - 1, x1 - 1) of Multivariate Polynomial Ring in x1, x2 over Rational Field
+
         """
-        global errorreported
+        global errorreported, libfac_interruptflag
         if not self._parent._base.is_field():
             raise NotImplementedError, "Lifting of multivariate polynomials over non-fields is not implemented."
 
@@ -4121,9 +4136,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if r!=currRing: rChangeCurrRing(r)  # idLift
         res = idLift(_I, fI, NULL, 0, 0, 0)
-        if errorreported != 0:
+        if errorreported != 0 or libfac_interruptflag != 0:
             errorcode = errorreported
             errorreported = 0
+            libfac_interruptflag = 0
             if errorcode == 1:
                 raise ValueError("polynomial is not in the ideal")
             raise RuntimeError

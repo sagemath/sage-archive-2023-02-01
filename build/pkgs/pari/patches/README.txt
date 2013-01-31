@@ -52,3 +52,8 @@ C files:
   - 28ea998bc661f5bbde18b6d6b0f50111a10ae16c
   - 249432f7088bfa114ed5cd3a5d64ef51ee968e35
 * galoisanalysis_p4.patch: fix segmentation fault under Electric Fence.
+* polred.patch: Fix polred(), add polredbest() based on upstream commits
+  - 2d00a24fbb1ffe8eba35b9a04763e36eef8a5f7b
+  - a3596c56f9439144a0dbed4c47bd6ff9485e3fc8
+  - 1a00ca416de4daebccaab2be1a4b8a061a9f2fde
+  - ad550d9bbfee8113087407c3262bffc27a020c98

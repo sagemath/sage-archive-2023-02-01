@@ -69,6 +69,10 @@ of doubt, have a look at the file spkg-src.
 
 == Changelog ==
 
+=== pari-2.5.3.p3 (Jeroen Demeyer, 31 January 2013) ===
+ * Trac #13054: polred.patch: fix polred() bug.
+ * Trac #6743: remove Cygwin-specific hacks from spkg-install.
+
 === pari-2.5.3.p2 (Jeroen Demeyer, 7 January 2013) ===
  * Trac #13921: KERNELCFLAGS.patch: when SAGE_DEBUG=yes, compile mp.c
    with -O1 (and without -funroll-loops) to avoid a segmentation fault

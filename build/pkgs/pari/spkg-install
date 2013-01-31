@@ -144,14 +144,6 @@ set_environment()
     unset dfltlibdir dfltmandir dfltsysdatadir dfltobjdir
     # The following get set because we pass the respective parameters:
     # prefix kernel with_gmp with_readline
-
-    # Make flags for building (not installing) PARI/GP
-    if [ "$UNAME" = "CYGWIN" ]; then
-        # There are weird bugs in PARI's build process on Windows XP
-        # under Cygwin.
-        # Passing in these extra flags gets around the bug.
-        PARI_MAKEFLAGS="$PARI_MAKEFLAGS 'GMPINCLUDE=-I$SAGE_LOCAL/include' EXTRADLLDFLAGS=-lgmp"
-    fi
 }
 
 
@@ -197,13 +189,6 @@ install()
         exit 1
     fi
 
-    # On Cygwin, we need the dll for PARI to be in the same
-    # directory as the gp binary, or it doesn't find it.
-    # Note that just using a symlink doesn't work.
-    if [ "$UNAME" = "CYGWIN" ]; then
-        cd "$SAGE_LOCAL"/bin/
-        cp -f "$SAGE_LOCAL"/lib/*pari*.dll .
-    fi
     cd "$CUR"
 
     if [ "$UNAME" = "Darwin" ]; then

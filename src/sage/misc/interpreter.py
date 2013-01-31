@@ -189,7 +189,8 @@ class SageInteractiveShell(TerminalInteractiveShell):
             sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) == 0
             True
         """
-        path = os.path.join(os.environ['SAGE_LOCAL'],'bin',cmd.split(' |\n\t;&',1)[0])
+        path = os.path.join(os.environ['SAGE_LOCAL'],'bin',
+                            re.split('[ |\n\t;&]', cmd)[0])
         if not os.access(path, os.X_OK):
             libraries = 'LD_LIBRARY_PATH="$SAGE_ORIG_LD_LIBRARY_PATH";export LD_LIBRARY_PATH;'
             if os.uname()[0]=='Darwin':

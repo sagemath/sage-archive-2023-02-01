@@ -615,17 +615,17 @@ cdef class CoercionModel_cache_maps(CoercionModel):
     def common_parent(self, *args):
         """
         Computes a common parent for all the inputs. It's essentially
-        an n-ary canonical coercion except it can operate on Parents
+        an `n`-ary canonical coercion except it can operate on parents
         rather than just elements.
 
         INPUT:
 
-            args -- a set of elements and/or parents
+        - ``args`` -- a set of elements and/or parents
 
         OUTPUT:
 
-            A Parent into which each input should coerce, or raises a
-            TypeError if no such Parent can be found.
+        A :class:`Parent` into which each input should coerce, or raises a
+        ``TypeError`` if no such :class:`Parent` can be found.
 
         EXAMPLES::
 

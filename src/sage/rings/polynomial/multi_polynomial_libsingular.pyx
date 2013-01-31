@@ -4650,7 +4650,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         TESTS:
 
-        Verify that trac #9220 is fixed.
+        Verify that :trac:`9220` is fixed.
 
             sage: R=QQ['x']
             sage: S=QQ['x','y']

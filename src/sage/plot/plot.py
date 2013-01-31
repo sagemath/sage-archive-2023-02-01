@@ -633,6 +633,10 @@ def plot(funcs, *args, **kwds):
 
     - ``xmax`` - ending x value
 
+    - ``ymin`` - starting y value in the rendered figure
+
+    - ``ymax`` - ending y value in the rendered figure
+
     - ``color`` - an RGB tuple (r,g,b) with each of r,g,b between 0 and 1,
       or a color name as a string (e.g., 'purple'), or an HTML color
       such as '#aaff0b'.
@@ -651,6 +655,16 @@ def plot(funcs, *args, **kwds):
           tick labeling and formatting is not ideal. Hence, in case you do
           use noninteger ``base`` for the logarithm, then provide your own
           tick formatter using the option ``tick_formatter``.
+
+        - If you want to limit the plot along the horizontal axis in the
+          final rendered figure, then pass the ``xmin`` and ``xmax``
+          keywords to the :meth:`~sage.plot.graphics.Graphics.show` method.
+          To limit the plot along the vertical axis, ``ymin`` and ``ymax``
+          keywords can be provided to either this ``plot`` command or to
+          the ``show`` command.
+
+        - For the other keyword options that the ``plot`` function can
+          take, refer to the method :meth:`~sage.plot.graphics.Graphics.show`.
 
     APPEARANCE OPTIONS:
 

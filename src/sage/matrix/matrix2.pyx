@@ -5097,13 +5097,12 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: e.as_number_field_element()
-            (Number Field in a with defining polynomial y^4 - 2*y^3 - 507*y^2 + 4988*y - 8744,
-            -a + 8,
+            (Number Field in a with defining polynomial y^4 - 2*y^3 - 507*y^2 - 3972*y - 4264,
+            a + 7,
             Ring morphism:
-            From: Number Field in a with defining polynomial y^4 - 2*y^3 - 507*y^2 + 4988*y - 8744
-            To:   Algebraic Real Field
-            Defn: a |--> 16.35066086057957?)
-
+              From: Number Field in a with defining polynomial y^4 - 2*y^3 - 507*y^2 - 3972*y - 4264
+              To:   Algebraic Real Field
+              Defn: a |--> -15.35066086057957?)
 
         Notice the effect of the extend option.
 

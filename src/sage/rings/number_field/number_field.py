@@ -6080,7 +6080,7 @@ class NumberField_absolute(NumberField_generic):
             sage: L[0][0]
             Number Field in b0 with defining polynomial x - 1
             sage: L[1][0]
-            Number Field in b1 with defining polynomial x^2 - x + 1
+            Number Field in b1 with defining polynomial x^2 - 3*x + 3
             sage: [z[0] for z in L]          # random -- since algorithm is random
             [Number Field in b0 with defining polynomial x - 1,
              Number Field in b1 with defining polynomial x^2 - x + 1,

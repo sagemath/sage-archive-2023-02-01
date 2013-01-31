@@ -8007,6 +8007,10 @@ cdef class gen(sage.structure.element.RingElement):
         sig_on()
         return self.new_gen(polredabs0(self.g, flag))
 
+    def polredbest(self, flag=0):
+        sig_on()
+        return self.new_gen(polredbest(self.g, flag))
+
     def polresultant(self, y, var=-1, flag=0):
         t0GEN(y)
         sig_on()

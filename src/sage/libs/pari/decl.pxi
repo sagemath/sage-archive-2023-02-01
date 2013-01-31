@@ -595,6 +595,7 @@ cdef extern from 'pari/pari.h':
     GEN     polredabs0(GEN x, long flag)
     GEN     polredabs2(GEN x)
     GEN     polredabsall(GEN x, long flun)
+    GEN     polredbest(GEN x, long flag)
     GEN     qflll0(GEN x, long flag)
     GEN     qflllgram0(GEN x, long flag)
     GEN     smallpolred(GEN x)

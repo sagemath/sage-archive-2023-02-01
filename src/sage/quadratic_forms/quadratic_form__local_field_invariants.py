@@ -68,16 +68,18 @@ def rational_diagonal_form(self, return_matrix=False):
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
         sage: Q.rational_diagonal_form(return_matrix=True)
-        (Quadratic form in 4 variables over Rational Field with coefficients:
+        (
+        Quadratic form in 4 variables over Rational Field with coefficients:
         [ 1 0 0 0 ]
         [ * 3 0 0 ]
         [ * * 5 0 ]
-        [ * * * 7 ]
-        ,
-         [1 0 0 0]
+        [ * * * 7 ]                                                          ,
+        <BLANKLINE>
+        [1 0 0 0]
         [0 1 0 0]
         [0 0 1 0]
-        [0 0 0 1])
+        [0 0 0 1]
+        )
 
     ::
 
@@ -89,17 +91,18 @@ def rational_diagonal_form(self, return_matrix=False):
         [ * * 1 0 ]
         [ * * * 18 ]
         sage: Q1.rational_diagonal_form(return_matrix=True)
-        (Quadratic form in 4 variables over Rational Field with coefficients:
+        (
+        Quadratic form in 4 variables over Rational Field with coefficients:
         [ 1 0 0 0 ]
         [ * 3/4 0 0 ]
         [ * * 1 0 ]
-        [ * * * 18 ]
-        ,
-         [   1 -1/2    0    0]
+        [ * * * 18 ]                                                         ,
+        <BLANKLINE>
+        [   1 -1/2    0    0]
         [   0    1    0    0]
         [   0    0    1    0]
-        [   0    0    0    1])
-
+        [   0    0    0    1]
+        )
     """
     n = self.dim()
     Q = copy.deepcopy(self)

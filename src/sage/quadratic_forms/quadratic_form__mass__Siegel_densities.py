@@ -155,10 +155,8 @@ def Pall_mass_density_at_odd_prime(self, p):
         [(0, Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 1 0 0 ]
         [ * 1 0 ]
-        [ * * 1 ]
-        )] [(0, 3, 8)] [8/9] 8/9
+        [ * * 1 ])] [(0, 3, 8)] [8/9] 8/9
         8/9
-
     """
     ## Check that p is a positive prime -- unnecessary since it's done implicitly in the next step. =)
     if p<=2:

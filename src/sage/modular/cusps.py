@@ -656,8 +656,11 @@ class Cusp(Element):
             Infinity
             sage: z = Cusp(1,0)
             sage: x.is_gamma0_equiv(z, 3, 'matrix')
-            (True, [-1  1]
-            [-3  2])
+            (
+                  [-1  1]
+            True, [-3  2]
+            )
+
 
         ALGORITHM: See Proposition 2.2.3 of Cremona's book 'Algorithms for
         Modular Elliptic Curves', or Prop 2.27 of Stein's Ph.D. thesis.

@@ -674,11 +674,15 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
             sage: P._ringlist()
-            [0, ['x', 'y', 'z'], [['lp', (1, 1, 1)], ['C', (0,)]], [0], [ 0 -1  1]
-            [ 0  0  1]
-            [ 0  0  0], [0 0 0]
+            [
+                                                                       [ 0 -1  1]
+                                                                       [ 0  0  1]
+            0, ['x', 'y', 'z'], [['lp', (1, 1, 1)], ['C', (0,)]], [0], [ 0  0  0],
+            <BLANKLINE>
             [0 0 0]
-            [0 0 0]]
+            [0 0 0]
+            [0 0 0]
+            ]
         """
         cdef ring* _ring = self._ring
         if(_ring != currRing): rChangeCurrRing(_ring)
@@ -2769,12 +2773,15 @@ cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
         sage: ring = singular_function("ring")
 
         sage: L = ringlist(H, ring=H); L
-        [0, ['x', 'y', 'z'], [['dp', (1, 1, 1)], ['C', (0,)]], [0], [0 1 1]
-        [0 0 1]
-        [0 0 0], [ 0 -1  0]
+        [
+                                                                   [0 1 1]
+                                                                   [0 0 1]
+        0, ['x', 'y', 'z'], [['dp', (1, 1, 1)], ['C', (0,)]], [0], [0 0 0],
+        <BLANKLINE>
+        [ 0 -1  0]
         [ 0  0  0]
-        [ 0  0  0]]
-
+        [ 0  0  0]
+        ]
         sage: len(L)
         6
 
@@ -2784,7 +2791,8 @@ cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
         sage: from sage.rings.polynomial.plural import new_NRing
         sage: R = new_NRing(W, H.base_ring())
         sage: R # indirect doctest
-        Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - 1}
+        Noncommutative Multivariate Polynomial Ring in x, y, z over
+        Rational Field, nc-relations: {y*x: x*y - 1}
     """
 
     assert( not rw.is_commutative() )
@@ -2838,12 +2846,15 @@ def new_Ring(RingWrap rw, base_ring):
         sage: ring = singular_function("ring")
 
         sage: L = ringlist(H, ring=H); L
-        [0, ['x', 'y', 'z'], [['dp', (1, 1, 1)], ['C', (0,)]], [0], [0 1 1]
-        [0 0 1]
-        [0 0 0], [ 0 -1  0]
+        [
+                                                                   [0 1 1]
+                                                                   [0 0 1]
+        0, ['x', 'y', 'z'], [['dp', (1, 1, 1)], ['C', (0,)]], [0], [0 0 0],
+        <BLANKLINE>
+        [ 0 -1  0]
         [ 0  0  0]
-        [ 0  0  0]]
-
+        [ 0  0  0]
+        ]
         sage: len(L)
         6
 

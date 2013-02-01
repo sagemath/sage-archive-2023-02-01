@@ -314,39 +314,26 @@ def jordan_blocks_by_scale_and_unimodular(self, p, safe_flag=True):
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,9,5,7])
         sage: Q.jordan_blocks_by_scale_and_unimodular(3)
-        [(0,
-        Quadratic form in 3 variables over Integer Ring with coefficients:
+        [(0, Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 1 0 0 ]
         [ * 5 0 ]
-        [ * * 7 ]
-        ),
-        (2,
-        Quadratic form in 1 variables over Integer Ring with coefficients:
-        [ 1 ]
-        )]
+        [ * * 7 ]), (2, Quadratic form in 1 variables over Integer Ring with coefficients:
+        [ 1 ])]
 
     ::
 
         sage: Q2 = QuadraticForm(ZZ, 2, [1,1,1])
         sage: Q2.jordan_blocks_by_scale_and_unimodular(2)
-        [(-1,
-          Quadratic form in 2 variables over Integer Ring with coefficients:
+        [(-1, Quadratic form in 2 variables over Integer Ring with coefficients:
         [ 2 2 ]
-        [ * 2 ]
-        )]
+        [ * 2 ])]
         sage: Q = Q2 + Q2.scale_by_factor(2)
         sage: Q.jordan_blocks_by_scale_and_unimodular(2)
-        [(-1,
-          Quadratic form in 2 variables over Integer Ring with coefficients:
+        [(-1, Quadratic form in 2 variables over Integer Ring with coefficients:
         [ 2 2 ]
-        [ * 2 ]
-        ),
-         (0,
-          Quadratic form in 2 variables over Integer Ring with coefficients:
+        [ * 2 ]), (0, Quadratic form in 2 variables over Integer Ring with coefficients:
         [ 2 2 ]
-        [ * 2 ]
-        )]
-
+        [ * 2 ])]
     """
     ## Try to use the cached result
     try:
@@ -443,23 +430,15 @@ def jordan_blocks_in_unimodular_list_by_scale_power(self, p):
         sage: Q.scale_by_factor(2).jordan_blocks_in_unimodular_list_by_scale_power(2)
         [Quadratic form in 2 variables over Integer Ring with coefficients:
         [ 0 2 ]
-        [ * 0 ]
-        ,
-        Quadratic form in 0 variables over Integer Ring with coefficients:
-        ,
-        Quadratic form in 1 variables over Integer Ring with coefficients:
-        [ 345 ]
-        ]
+        [ * 0 ], Quadratic form in 0 variables over Integer Ring with coefficients:
+        , Quadratic form in 1 variables over Integer Ring with coefficients:
+        [ 345 ]]
 
         sage: Q.jordan_blocks_in_unimodular_list_by_scale_power(3)
         [Quadratic form in 2 variables over Integer Ring with coefficients:
         [ 2 0 ]
-        [ * 10 ]
-        ,
-         Quadratic form in 1 variables over Integer Ring with coefficients:
-        [ 2 ]
-        ]
-
+        [ * 10 ], Quadratic form in 1 variables over Integer Ring with coefficients:
+        [ 2 ]]
     """
     ## Sanity Check
     if self.base_ring() != ZZ:

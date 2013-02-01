@@ -35,6 +35,7 @@ from sage.rings.arith import GCD, LCM
 from sage.rings.principal_ideal_domain import is_PrincipalIdealDomain
 from sage.rings.ring import is_Ring
 from sage.matrix.matrix import is_Matrix
+from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.modules.free_module_element import vector
@@ -79,7 +80,7 @@ def is_QuadraticForm(Q):
 
 
 
-class QuadraticForm():
+class QuadraticForm(SageObject):
     r"""
     The ``QuadraticForm`` class represents a quadratic form in n variables with
     coefficients in the ring R.
@@ -507,7 +508,7 @@ class QuadraticForm():
         return self.matrix()._pari_()
 
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Give a text representation for the quadratic form given as an upper-triangular matrix of coefficients.
 
@@ -522,13 +523,15 @@ class QuadraticForm():
         n = self.dim()
         out_str = "Quadratic form in " + str(n) + " variables over " + str(self.base_ring()) + " with coefficients: \n"
         for i in range(n):
+            if i > 0:
+                out_str += '\n'
             out_str += "[ "
             for j in range(n):
                 if (i > j):
                     out_str += "* "
                 else:
                     out_str += str(self[i,j]) + " "
-            out_str += "]\n"
+            out_str += "]"
         return out_str
 
 

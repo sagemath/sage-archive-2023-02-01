@@ -486,7 +486,7 @@ cdef class PowerSeries(AlgebraElement):
             else:
                 return "O(%s^%s)"%(self._parent.variable_name(),self.prec())
 
-        atomic_repr = self._parent.base_ring().is_atomic_repr()
+        atomic_repr = self._parent.base_ring()._repr_option('element_is_atomic')
         X = self._parent.variable_name()
 
         s = " "
@@ -568,7 +568,7 @@ cdef class PowerSeries(AlgebraElement):
         v = self.list()
         m = len(v)
         X = self._parent.latex_variable_names()[0]
-        atomic_repr = self._parent.base_ring().is_atomic_repr()
+        atomic_repr = self._parent.base_ring()._repr_option('element_is_atomic')
         first = True
         for n in xrange(m):
             x = v[n]

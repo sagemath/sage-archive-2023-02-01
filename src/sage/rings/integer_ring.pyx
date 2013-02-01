@@ -751,18 +751,20 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return True
 
-    def is_atomic_repr(self):
+    def _repr_option(self, key):
         """
-        Return ``True``, since elements of the integers do not have to be
-        printed with parentheses around them, when they are coefficients,
-        e.g., in a polynomial.
+        Metadata about the :meth:`_repr_` output.
+
+        See :meth:`sage.structure.parent._repr_option` for details.
 
         EXAMPLE::
 
-            sage: ZZ.is_atomic_repr()
+            sage: ZZ._repr_option('element_is_atomic')
             True
         """
-        return True
+        if key == 'element_is_atomic':
+            return True
+        return super(IntegerRing_class, self)._repr_option(key)
 
     def is_field(self, proof = True):
         """

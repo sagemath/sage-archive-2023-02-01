@@ -163,7 +163,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef list L = []
         cdef FreeAlgebra_letterplace P = self._parent
         cdef int ngens = P.__ngens
-        if P._base.is_atomic_repr():
+        if P._base._repr_option('element_is_atomic'):
             for E,c in zip(self._poly.exponents(),self._poly.coefficients()):
                 monstr = P.exponents_to_string(E)
                 if monstr:
@@ -240,7 +240,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef FreeAlgebra_letterplace P = self._parent
         cdef int ngens = P.__ngens
         from sage.all import latex
-        if P._base.is_atomic_repr():
+        if P._base._repr_option('element_is_atomic'):
             for E,c in zip(self._poly.exponents(),self._poly.coefficients()):
                 monstr = P.exponents_to_latex(E)
                 if monstr:

@@ -702,6 +702,21 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
         """
         return "Algebraic Real Field"
 
+    def _repr_option(self, key):
+        """
+        Metadata about the :meth:`_repr_` output.
+
+        See :meth:`sage.structure.parent._repr_option` for details.
+
+        EXAMPLES::
+
+            sage: AA._repr_option('element_is_atomic')
+            True
+        """
+        if key == 'element_is_atomic':
+            return True
+        return super(AlgebraicRealField, self)._repr_option(key)
+
     # Is there a standard representation for this?
     def _latex_(self):
         r"""
@@ -853,18 +868,6 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
         """
         return 1
 
-    def is_atomic_repr(self):
-        r"""
-        Check whether elements of this field have atomic string
-        representations. Returns True.
-
-        EXAMPLE::
-
-            sage: AA.is_atomic_repr()
-            True
-        """
-        return True
-
     def zeta(self, n=2):
         r"""
         Return an `n`-th root of unity in this field. This will raise a
@@ -988,6 +991,11 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
             Category of fields
             sage: QQbar.base_ring()
             Algebraic Real Field
+
+        TESTS::
+
+            sage: QQbar._repr_option('element_is_atomic')
+            False
         """
         AlgebraicField_common.__init__(self, AA, ('I',), normalize=False)
 
@@ -1167,17 +1175,6 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
             1
         """
         return 1
-
-    def is_atomic_repr(self):
-        r"""
-        Check whether elements of this field have atomic string representations. Returns False.
-
-        EXAMPLE::
-
-            sage: QQbar.is_atomic_repr()
-            False
-        """
-        return False
 
     def zeta(self, n=4):
         r"""

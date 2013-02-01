@@ -761,7 +761,7 @@ cdef class Element(sage_object.SageObject):
             sage: n = x+1; n._is_atomic()
             False
         """
-        if self._parent.is_atomic_repr():
+        if self._parent._repr_option('element_is_atomic'):
             return True
         s = str(self)
         return s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1

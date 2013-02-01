@@ -400,9 +400,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             cmpfn = self.parent().term_order().compare_tuples
         except AttributeError:
             cmpfn = None
-
+        atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self.element().poly_repr(self.parent().variable_names(),
-                                        atomic_coefficients=self.parent().base_ring().is_atomic_repr(),cmpfn=cmpfn )
+                                        atomic_coefficients=atomic, cmpfn=cmpfn )
 
     def _latex_(self):
         r"""
@@ -420,9 +420,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             cmpfn = self.parent().term_order().compare_tuples
         except AttributeError:
             cmpfn = None
-
+        atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self.element().latex(self.parent().latex_variable_names(),
-                                    atomic_coefficients=self.parent().base_ring().is_atomic_repr(), cmpfn=cmpfn)
+                                    atomic_coefficients=atomic, cmpfn=cmpfn)
 
     def _repr_with_changed_varnames(self, varnames):
         """
@@ -437,9 +437,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             cmpfn = self.parent().term_order().compare_tuples
         except AttributeError:
             cmpfn = None
-
+        atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self.element().poly_repr(varnames,
-                                        atomic_coefficients=self.parent().base_ring().is_atomic_repr(), cmpfn=cmpfn)
+                                        atomic_coefficients=atomic, cmpfn=cmpfn)
 
     def degrees(self):
         r"""
@@ -781,9 +781,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             except AttributeError:
                 pass
             return self.__exponents
-        #return self.element().poly_repr(self.parent().variable_names(),
-                                        #atomic_coefficients=self.parent().base_ring().is_atomic_repr(),cmpfn=cmpfn )
-        #return [m.element().dict().keys()[0] for m in self.monomials()]
 
     def is_unit(self):
         """

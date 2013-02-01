@@ -233,6 +233,21 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return "Rational Field"
 
+    def _repr_option(self, key):
+        """
+        Metadata about the :meth:`_repr_` output.
+
+        See :meth:`sage.structure.parent._repr_option` for details.
+
+        EXAMPLES::
+
+            sage: QQ._repr_option('element_is_atomic')
+            True
+        """
+        if key == 'element_is_atomic':
+            return True
+        return super(RationalField, self)._repr_option(key)
+
     def _latex_(self):
         r"""
         Return a latex representation of ``self``.
@@ -717,19 +732,6 @@ class RationalField(_uniq, number_field_base.NumberField):
         EXAMPLES::
 
             sage: QQ.is_prime_field()
-            True
-        """
-        return True
-
-    def is_atomic_repr(self):
-        r"""
-        Return ``True``, since elements of `\QQ` do not have to be printed
-        with parentheses around them, when they are coefficients, e.g., in a
-        polynomial.
-
-        EXAMPLES::
-
-            sage: QQ.is_atomic_repr()
             True
         """
         return True

@@ -96,21 +96,6 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
 #        import sage.categories.all
 #        return sage.categories.all.Groups()
 
-    def is_atomic_repr(self):
-        """
-        True if the elements of this group have atomic string
-        representations. For example, integers are atomic but polynomials
-        are not.
-
-        EXAMPLES::
-
-            sage: from sage.groups.old import Group
-            sage: G = Group()
-            sage: G.is_atomic_repr()
-            False
-        """
-        return False
-
     def is_abelian(self):
         """
         Return True if this group is abelian.

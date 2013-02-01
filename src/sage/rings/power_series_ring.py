@@ -989,13 +989,6 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             return False
         return True
 
-    def is_atomic_repr(self):
-        """
-        Return False since power objects do not appear atomically, i.e.,
-        they have plus and spaces.
-        """
-        return False
-
     def is_field(self, proof = True):
         """
         Return False since the ring of power series over any ring is never

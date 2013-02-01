@@ -576,19 +576,6 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         else:
             return (max-min)*z + min*self(1,1)
 
-    def is_atomic_repr(self):
-        """
-        Return ``False``, to signify that elements of this field print
-        with sums, so parenthesis are required, e.g., in coefficients
-        of polynomials.
-
-        EXAMPLES::
-
-            sage: MPComplexField(42).is_atomic_repr()
-            False
-        """
-        return False
-
     cpdef bint is_exact(self): # except -2: # I don't know what this is for - TCS
         """
         Returns whether or not this field is exact, which is always ``False``.
@@ -777,6 +764,11 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             '11. + 11.*I'
             sage: MPComplexField(2, rnd="RNDNZ")(w).str(2)
             '10. + 11.*I'
+
+        TESTS::
+
+            sage: MPComplexField(42)._repr_option('element_is_atomic')
+            False
         """
         self.init = 0
         if parent is None:

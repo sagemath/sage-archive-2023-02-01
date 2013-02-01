@@ -290,6 +290,7 @@ cdef class Parent(category_object.CategoryObject):
         .. automethod:: _convert_map_from_
         .. automethod:: _get_action_
         .. automethod:: _an_element_
+        .. automethod:: _repr_option
         """
         # TODO: in the long run, we want to get rid of the element_constructor = argument
         # (element_constructor would always be set by inheritance)
@@ -790,6 +791,68 @@ cdef class Parent(category_object.CategoryObject):
                                            element_constructor = d['_element_constructor'],
                                            init_no_parent=not d['_element_init_pass_parent'],
                                            unpickling=True)
+
+    def _repr_option(self, key):
+        """
+        Metadata about the :meth:`_repr_` output.
+
+        INPUT:
+
+        - ``key`` -- string. A key for different metadata informations
+          that can be inquired about.
+
+        Valid ``key`` arguments are:
+
+        - ``'ascii_art'``: The :meth:`_repr_` output is multi-line
+          ascii art and each line must be printed starting at the same
+          column, or the meaning is lost.
+
+        - ``'element_ascii_art'``: same but for the output of the
+          elements. Used in :mod:`sage.misc.displayhook`.
+
+        - ``'element_is_atomic'``: the elements print atomically, that
+          is, parenthesis are not required when *printing* out any of
+          `x - y`, `x + y`, `x^y` and `x/y`.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: ZZ._repr_option('ascii_art')
+            False
+            sage: MatrixSpace(ZZ, 2)._repr_option('element_ascii_art')
+            True
+        """
+        if not isinstance(key, basestring):
+            raise ValueError('key must be a string')
+        defaults = {
+            'ascii_art': False,
+            'element_ascii_art': False,
+            'element_is_atomic': False,
+            }
+        return defaults[key]
+
+    def is_atomic_repr(self):
+        """
+        The old way to signal atomic string reps.
+
+        True if the elements have atomic string representations, in the
+        sense that they print if they print at s, then -s means the
+        negative of s. For example, integers are atomic but polynomials are
+        not.
+
+        EXAMPLES::
+
+            sage: Parent().is_atomic_repr()
+            doctest:...: DeprecationWarning: Use _repr_option to return metadata about string rep
+            See http://trac.sagemath.org/14040 for details.
+            False
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(14040, 'Use _repr_option to return metadata about string rep')
+        return False
 
     def __call__(self, x=0, *args, **kwds):
         """

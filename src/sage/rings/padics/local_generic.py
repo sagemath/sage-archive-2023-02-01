@@ -38,6 +38,11 @@ class LocalGeneric(CommutativeRing):
             sage: K = Qp(7)
             sage: TestSuite(K).run()
 
+        TESTS::
+
+            sage: R = Zp(5, 5, 'fixed-mod')
+            sage: R._repr_option('element_is_atomic')
+            False
         """
         self._prec = prec
         self.Element = element_class
@@ -183,27 +188,6 @@ class LocalGeneric(CommutativeRing):
             initial precision to which elements are computed.
         """
         return self._prec
-
-    def is_atomic_repr(self):
-        r"""
-        Return False, since we want `p`-adics to be printed with
-        parentheses around them when they are coefficients, e.g., in a
-        polynomial.
-
-        INPUT:
-
-        - ``self`` -- a `p`-adic ring
-
-        OUTPUT:
-
-        - boolean -- whether ``self``'s representation is atomic, i.e., ``False``
-
-        EXAMPLES::
-
-            sage: R = Zp(5, 5, 'fixed-mod'); R.is_atomic_repr()
-            False
-            """
-        return False
 
     def is_exact(self):
         r"""

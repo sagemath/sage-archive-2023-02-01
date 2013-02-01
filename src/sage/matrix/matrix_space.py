@@ -649,6 +649,22 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         return "Full MatrixSpace of %s by %s %s matrices over %s"%(
                     self.__nrows, self.__ncols, s, self.base_ring())
 
+    def _repr_option(self, key):
+        """
+        Metadata about the :meth:`_repr_` output.
+
+        See :meth:`sage.structure.parent._repr_option` for details.
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(ZZ,2,4,true)
+            sage: MS._repr_option('element_ascii_art')
+            True
+        """
+        if key == 'element_ascii_art':
+            return self.__nrows > 1
+        return super(MatrixSpace, self)._repr_option(key)
+
     def _latex_(self):
         r"""
         Returns the latex representation of a MatrixSpace

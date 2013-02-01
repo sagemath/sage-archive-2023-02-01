@@ -257,7 +257,7 @@ class Polynomial_generic_sparse(Polynomial):
         m = self.degree() + 1
         if name is None:
             name = self.parent().variable_name()
-        atomic_repr = self.parent().base_ring().is_atomic_repr()
+        atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
         coeffs = list(self.__coeffs.iteritems())
         coeffs.sort()
         for (n, x) in reversed(coeffs):

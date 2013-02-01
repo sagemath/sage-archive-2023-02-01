@@ -139,6 +139,14 @@ cdef class Ring(ParentWithGens):
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of algebras over mod 2 Steenrod algebra, milnor basis
 
+     TESTS::
+
+         sage: Zp(7)._repr_option('element_is_atomic')
+         False
+         sage: QQ._repr_option('element_is_atomic')
+         True
+         sage: CDF._repr_option('element_is_atomic')
+         False
      """
     def __init__(self, base, names=None, normalize=True, category = None):
         # Unfortunately, ParentWithGens inherits from sage.structure.parent_old.Parent.
@@ -841,23 +849,6 @@ cdef class Ring(ParentWithGens):
         return self._one_element
 
     one = one_element # Transitional
-
-    def is_atomic_repr(self):
-        """
-        True if the elements have atomic string representations, in the sense
-        that they print if they print at s, then -s means the negative of s.
-        For example, integers are atomic but polynomials are not.
-
-        EXAMPLES::
-
-            sage: Zp(7).is_atomic_repr()
-            False
-            sage: QQ.is_atomic_repr()
-            True
-            sage: CDF.is_atomic_repr()
-            False
-        """
-        return False
 
     def is_zero(self):
         """

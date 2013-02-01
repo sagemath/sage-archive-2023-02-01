@@ -60,16 +60,6 @@ cdef class Module_old(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
             return E
 
 
-    def is_atomic_repr(self):
-        """
-        True if the elements have atomic string representations, in the
-        sense that they print if they print at s, then -s means the
-        negative of s. For example, integers are atomic but polynomials are
-        not.
-        """
-        return False
-
-
 
 
 
@@ -151,31 +141,6 @@ cdef class Module(sage.structure.parent.Parent):
         """
         from sage.categories.all import End
         return End(self)
-
-
-    def is_atomic_repr(self):
-        """
-        Whether the elements have atomic string representations.
-
-        OUTPUT:
-
-        Boolean. ``True`` if the elements have atomic string
-        representations, in the sense that they print if they print
-        ``s``, then ``-s`` means the negative of ``s``. For example,
-        integers are atomic but polynomials are not.
-
-        EXAMPLES::
-
-            sage: from sage.modules.module import Module
-            sage: M = Module(ZZ)
-            sage: M.is_atomic_repr()
-            False
-            sage: ZZ.is_atomic_repr()
-            True
-        """
-        return False
-
-
 
 
 def is_Module(x):

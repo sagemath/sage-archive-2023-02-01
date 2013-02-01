@@ -811,16 +811,16 @@ class Factorization(SageObject):
         cr = self._cr()
         if len(self) == 0:
             return repr(self.__unit)
-        try:
-            atomic = ((isinstance(self.__x[0][0], (int, long)) or \
-                       self.universe().is_atomic_repr()))
-        except AttributeError:
-            atomic = False
         s = ''
         mul =  ' * '
         if cr:
             mul += '\n'
         x = self.__x[0][0]
+        try:
+            atomic = (isinstance(x, (int, long)) or
+                      self.universe()._repr_option('element_is_atomic'))
+        except AttributeError:
+            atomic = False
         if hasattr(x, 'parent'):
             one = x.parent()(1)
         else:
@@ -862,8 +862,8 @@ class Factorization(SageObject):
         if len(self) == 0:
             return self.__unit._latex_()
         try:
-            atomic = ((isinstance(self.__x[0][0], (int, long)) or \
-                       self.universe().is_atomic_repr()))
+            atomic = (isinstance(self.__x[0][0], (int, long)) or
+                      self.universe()._repr_option('element_is_atomic'))
         except AttributeError:
             atomic = False
         s = ''

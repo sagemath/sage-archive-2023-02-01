@@ -193,6 +193,21 @@ cdef class RealDoubleField_class(Field):
         """
         return "Real Double Field"
 
+    def _repr_option(self, key):
+        """
+        Metadata about the :meth:`_repr_` output.
+
+        See :meth:`sage.structure.parent._repr_option` for details.
+
+        EXAMPLES::
+
+            sage: RDF._repr_option('element_is_atomic')
+            True
+        """
+        if key == 'element_is_atomic':
+            return True
+        return super(RealDoubleField_class, self)._repr_option(key)
+
     def __cmp__(self, x):
         """
         Compare ``self`` to ``x``.
@@ -374,19 +389,6 @@ cdef class RealDoubleField_class(Field):
             1
         """
         return 1
-
-    def is_atomic_repr(self):
-        """
-        Return ``True``, to signify that elements of this field print without
-        sums, so parenthesis aren't required, e.g., in coefficients of
-        polynomials.
-
-        EXAMPLES::
-
-            sage: RDF.is_atomic_repr()
-            True
-        """
-        return True
 
     def is_finite(self):
         """

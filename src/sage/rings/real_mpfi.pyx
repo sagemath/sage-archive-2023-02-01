@@ -849,18 +849,20 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             return False
         return s == im_gens[0]
 
-    def is_atomic_repr(self):
+    def _repr_option(self, key):
         """
-        Return ``True``, to signify that elements of this field print without
-        sums, so parenthesis aren't required, e.g., in coefficients of
-        polynomials.
+        Metadata about the :meth:`_repr_` output.
+
+        See :meth:`sage.structure.parent._repr_option` for details.
 
         EXAMPLES::
 
-            sage: RealIntervalField(10).is_atomic_repr()
+            sage: RealIntervalField(10)._repr_option('element_is_atomic')
             True
         """
-        return True
+        if key == 'element_is_atomic':
+            return True
+        return super(RealIntervalField_class, self)._repr_option(key)
 
     def is_finite(self):
         """

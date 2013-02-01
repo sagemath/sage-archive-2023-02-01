@@ -58,6 +58,9 @@ cdef class Group(Parent):
             ...
             ValueError: Category of commutative additive groups is not a subcategory of Category of groups
 
+            sage: G._repr_option('element_is_atomic')
+            False
+
         Check for #8119::
 
             sage: G = SymmetricGroup(2)
@@ -100,21 +103,6 @@ cdef class Group(Parent):
         except TypeError:
             return False
         return True
-
-    def is_atomic_repr(self):
-        """
-        True if the elements of this group have atomic string
-        representations. For example, integers are atomic but polynomials
-        are not.
-
-        EXAMPLES::
-
-            sage: from sage.groups.group import Group
-            sage: G = Group()
-            sage: G.is_atomic_repr()
-            False
-        """
-        return False
 
     def is_abelian(self):
         """

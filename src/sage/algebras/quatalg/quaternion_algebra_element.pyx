@@ -336,7 +336,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: str(i+j+k-3/4)                            # indirect doctest
             '-3/4 + i + j + k'
         """
-        cdef bint atomic = self._parent._base.is_atomic_repr()
+        cdef bint atomic = self._parent._base._repr_option('element_is_atomic')
         v = []
         i,j,k = self._parent.variable_names()
         if x:

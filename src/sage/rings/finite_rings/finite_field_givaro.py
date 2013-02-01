@@ -188,20 +188,24 @@ class FiniteField_givaro(FiniteField):
         """
         return Integer(self._cache.exponent())
 
-    def is_atomic_repr(self):
+    def _repr_option(self, key):
         """
-        Return whether elements of ``self`` are printed using an atomic
-        representation.
+        Metadata about the :meth:`_repr_` output.
+
+        See :meth:`sage.structure.parent._repr_option` for details.
 
         EXAMPLES::
 
-            sage: GF(3^4,'a').is_atomic_repr()
+            sage: GF(23**3, 'a', repr='log')._repr_option('element_is_atomic')
+            True
+            sage: GF(23**3, 'a', repr='int')._repr_option('element_is_atomic')
+            True
+            sage: GF(23**3, 'a', repr='poly')._repr_option('element_is_atomic')
             False
         """
-        if self._cache.repr==0: #modulus
-            return False
-        else:
-            return True
+        if key == 'element_is_atomic':
+            return self._cache.repr != 0   # 0 means repr='poly'
+        return super(FiniteField_givaro, self)._repr_option(key)
 
     def random_element(self, *args, **kwds):
         """

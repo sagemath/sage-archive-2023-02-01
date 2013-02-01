@@ -238,7 +238,7 @@ cdef class LaurentSeries(AlgebraElement):
         valuation = self.__n
         m = len(v)
         X = self._parent.variable_name()
-        atomic_repr = self._parent.base_ring().is_atomic_repr()
+        atomic_repr = self._parent.base_ring()._repr_option('element_is_atomic')
         first = True
         for n in xrange(m):
             x = v[n]
@@ -301,7 +301,7 @@ cdef class LaurentSeries(AlgebraElement):
         valuation = self.__n
         m = len(v)
         X = self._parent.latex_variable_names()[0]
-        atomic_repr = self._parent.base_ring().is_atomic_repr()
+        atomic_repr = self._parent.base_ring()._repr_option('element_is_atomic')
         first = True
         for n in xrange(m):
             x = v[n]

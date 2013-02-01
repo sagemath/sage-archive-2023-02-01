@@ -76,7 +76,7 @@ class Polynomial_padic_flat(Polynomial_generic_dense):
         n = m = self.degree()
         if name is None:
             name = self.parent().variable_name()
-        #atomic_repr = self.parent().base_ring().is_atomic_repr()
+        #atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
         coeffs = self.list()
         for x in reversed(coeffs):
             if x != 0:

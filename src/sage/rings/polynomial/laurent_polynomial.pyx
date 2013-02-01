@@ -151,13 +151,13 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         self._prod = PolyDict(self._dict(), force_etuples = False)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
             sage: L.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = x^2 + x*y/2 + 2*y^-1
-            sage: f.__repr__()
+            sage: f._repr_()
             'x^2 + 1/2*x*y + 2*y^-1'
         """
         if self._prod is None:
@@ -166,7 +166,9 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             cmpfn = self.parent().term_order().compare_tuples
         except AttributeError:
             cmpfn = None
-        return self._prod.poly_repr(self.parent().variable_names(), atomic_coefficients = self.parent().base_ring().is_atomic_repr(), cmpfn = cmpfn)
+        atomic = self.parent().base_ring()._repr_option('element_is_atomic')
+        return self._prod.poly_repr(self.parent().variable_names(),
+                                    atomic_coefficients=atomic, cmpfn=cmpfn)
 
     def _latex_(self):
         """
@@ -185,7 +187,9 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             cmpfn = self.parent().term_order().compare_tuples
         except AttributeError:
             cmpfn = None
-        return self._prod.latex(self.parent().variable_names(), atomic_coefficients = self.parent().base_ring().is_atomic_repr(), cmpfn = cmpfn)
+        atomic = self.parent().base_ring()._repr_option('element_is_atomic')
+        return self._prod.latex(self.parent().variable_names(),
+                                atomic_coefficients=atomic, cmpfn=cmpfn)
 
     def __pow__(LaurentPolynomial_mpair self, n, m):
         """

@@ -125,6 +125,13 @@ class FiniteField_ntl_gf2e(FiniteField):
             False
 
             sage: TestSuite(k).run()
+
+            sage: k.<a> = GF(2^64)
+            sage: k._repr_option('element_is_atomic')
+            False
+            sage: P.<x> = PolynomialRing(k)
+            sage: (a+1)*x # indirect doctest
+            (a + 1)*x
         """
         late_import()
         q = Integer(q)
@@ -187,22 +194,6 @@ class FiniteField_ntl_gf2e(FiniteField):
             64
         """
         return self._cache.degree()
-
-    def is_atomic_repr(self):
-        """
-        Return whether elements of ``self`` are printed using an atomic
-        representation.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^64)
-            sage: k.is_atomic_repr()
-            False
-            sage: P.<x> = PolynomialRing(k)
-            sage: (a+1)*x # indirect doctest
-            (a + 1)*x
-        """
-        return False
 
     def _element_constructor_(self, e):
         """

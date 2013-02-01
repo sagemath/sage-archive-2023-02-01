@@ -117,7 +117,16 @@ def _tall_list_row(running_lines, last_row=False):
 
 def format_obj(obj):
     """
-    Return a string if we want to print it in a special way; otherwise, return None.
+    This function is used internally by the displayhook.
+
+    We attempt to keep ascii art of list/tuple members intact as we
+    print them. See :meth:`sage.structure.parent._repr_option` for
+    details.
+
+    OUTPUT:
+
+    Return a string if we want to print it in a special way;
+    otherwise, return None.
 
     EXAMPLES::
 
@@ -134,15 +143,17 @@ def format_obj(obj):
                 [matrix([[1], [2]]), matrix([[3], [4]])])
         '[\n[1]  [3]\n[2], [4]\n]'
     """
-    # We only apply the special formatting to lists (or tuples) where the first
-    # element is a matrix, or an ArithmeticSubgroupElement (a thin wrapper
-    # around a matrix). This should cover most cases.
-    if isinstance(obj, (tuple, list)):
-        from sage.matrix.matrix import is_Matrix
-        from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
-        if len(obj) > 0 and (is_Matrix(obj[0]) or isinstance(obj[0], ArithmeticSubgroupElement)):
-            return _check_tall_list_and_format(obj)
-    return None
+    ascii_art = False
+    if isinstance(obj, (tuple, list)) and len(obj) > 0:
+        for o in obj:
+            try:
+                ascii_art = ascii_art or o.parent()._repr_option('element_ascii_art')
+            except (AttributeError, TypeError):
+                pass
+    if ascii_art:
+        return _check_tall_list_and_format(obj)
+    else:
+        return None
 
 class DisplayHook(object):
     """

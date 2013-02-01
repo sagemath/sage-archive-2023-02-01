@@ -407,7 +407,7 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
     poly = ""
     cdef long e,j
     cdef int n = r.N
-    cdef int atomic_repr = base.is_atomic_repr()
+    cdef int atomic_repr = base._repr_option('element_is_atomic')
     while p:
 
         # First determine the multinomial:

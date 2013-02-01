@@ -99,9 +99,6 @@ class PariRing(UniqueRepresentation, ring.Ring):
             return x
         return self.element_class(x, parent=self)
 
-    def is_atomic_repr(self):
-        return False
-
     def is_field(self, proof = True):
         return False
 

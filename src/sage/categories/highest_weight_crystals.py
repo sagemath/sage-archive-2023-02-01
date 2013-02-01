@@ -9,7 +9,6 @@ Highest Weight Crystals
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 

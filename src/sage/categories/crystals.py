@@ -8,10 +8,8 @@ Crystals
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_method
 from sage.misc.cachefunc import CachedFunction
 from sage.misc.abstract_method import abstract_method
-from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.latex import latex
@@ -1133,7 +1131,6 @@ class Crystals(Category_singleton):
                 (-2, -1, -1)
             """
             if self.e(i) is None: return None
-            A=self.cartan_type().cartan_matrix()
             b=self.stembridgeDelta_depth(i,j)
             c=self.stembridgeDelta_rise(i,j)
             dd=self.cartan_type().dynkin_diagram()
@@ -1171,7 +1168,6 @@ class Crystals(Category_singleton):
             """
             tester = self._tester(**options)
             goodness=True
-            A=self.cartan_type().cartan_matrix()
             if index_set is None: index_set=self.index_set()
 
             for (i,j) in Subsets(index_set, 2):
@@ -1187,8 +1183,8 @@ class Crystals(Category_singleton):
                     if self.stembridgeDelta_depth(i,j)==0:
                         #check E_i E_j(x)= E_j E_i(x)
                         if self.e(i).e(j)!=self.e(j).e(i) or self.e(i).e(j).stembridgeDel_rise(j, i)!=0:
-                            if complete:
-                                print 'Warning: Failed axiom P5 at: vector ', self, 'i,j=', i, j, 'Stembridge triple:', stembridgeTriple(x,i,j)
+                            if verbose:
+                                print 'Warning: Failed axiom P5 at: vector ', self, 'i,j=', i, j, 'Stembridge triple:', self.stembridgeTriple(i,j)
                                 goodness=False
                             else:
                                 tester.fail()
@@ -1200,7 +1196,7 @@ class Crystals(Category_singleton):
                         b=y2.stembridgeDel_rise(i, j)
                         if y1!=y2 or a!=-1 or b!=-1:
                             if verbose:
-                                print 'Warning: Failed axiom P6 at: vector ', x, 'i,j=', i, j, 'Stembridge triple:', stembridgeTriple(x,i,j)
+                                print 'Warning: Failed axiom P6 at: vector ', self, 'i,j=', i, j, 'Stembridge triple:', self.stembridgeTriple(i,j)
                                 goodness=False
                             else:
                                 tester.fail()

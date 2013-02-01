@@ -3,6 +3,8 @@
     multi documentation in Sphinx
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    This is a slightly hacked-up version of the Sphinx-multidoc plugin
+
     The goal of this extension is to manage a multi documentation in Sphinx.
     To be able to compile Sage's huge documentation in parallel, the
     documentation is cut into a bunch of independent documentations called
@@ -18,7 +20,7 @@
     - the javascript index;
     - the citations.
 """
-import cPickle, os, sys
+import cPickle, os, sys, shutil
 import sphinx
 from sphinx.util.console import bold
 
@@ -69,7 +71,8 @@ def merge_environment(app, env):
             env.all_docs.update(newalldoc)
             # needed by env.check_consistency (sphinx.environement, line 1734)
             for ind in newalldoc:
-                env.metadata[ind] = {}
+                # treat subdocument source as orphaned file and don't complain
+                env.metadata[ind] = {'orphan'}
             # merge the citations
             newcite = {}
             for ind, (path, tag) in docenv.citations.iteritems():
@@ -255,8 +258,12 @@ def init_subdoc(app):
             app.builder.info(bold('linking _static directory.'))
             static_dir = os.path.join(app.builder.outdir, '_static')
             master_static_dir = os.path.join('..', '_static')
-            if not os.path.isdir(static_dir):
-                os.symlink(master_static_dir, static_dir)
+            if os.path.exists(static_dir):
+                if os.path.isdir(static_dir) and not os.path.islink(static_dir):
+                    shutil.rmtree(static_dir)
+                else:
+                    os.unlink(static_dir)
+            os.symlink(master_static_dir, static_dir)
 
         app.builder.copy_static_files = link_static_files
 

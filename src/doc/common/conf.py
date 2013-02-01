@@ -110,12 +110,27 @@ intersphinx_mapping = {
 
 def set_intersphinx_mappings(app):
     """
-    Add reference's objects.inv to intersphinx if not compiling reference
+    Add precompiled inventory (the objects.inv)
     """
+    refpath = get_doc_abspath('output/html/en/reference')
+    invpath = get_doc_abspath('output/inventory/en/reference')
+    if app.config.multidoc_first_pass == 1 or \
+            not (os.path.exists(refpath) and os.path.exists(invpath)):
+        app.config.intersphinx_mapping = {}
+        return
     app.config.intersphinx_mapping = intersphinx_mapping
-    refpath = 'output/html/en/reference/'
-    if not app.srcdir.endswith('reference'):
-        app.config.intersphinx_mapping[get_doc_abspath(refpath)] = get_doc_abspath(refpath+'objects.inv')
+
+    def add(subdoc=''):
+        src = os.path.join(refpath, subdoc) if subdoc else refpath
+        dst = os.path.join(invpath, subdoc, 'objects.inv')
+        app.config.intersphinx_mapping[src] = dst
+
+    add()
+    for directory in os.listdir(os.path.join(invpath)):
+        if os.path.isdir(os.path.join(invpath, directory)):
+            add(directory)
+
+
 pythonversion = sys.version.split(' ')[0]
 # Python and Sage trac ticket shortcuts. For example, :trac:`7549` .
 
@@ -625,7 +640,4 @@ def setup(app):
         app.connect('builder-inited', set_intersphinx_mappings)
         app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
         app.connect('builder-inited', nitpick_patch_config)
-        # Minimize GAP/libGAP RAM usage when we build the docs
-        from sage.interfaces.gap import set_gap_memory_pool_size
-        set_gap_memory_pool_size(0)  # will be rounded up to 1M
 

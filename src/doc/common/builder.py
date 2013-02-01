@@ -1,4 +1,16 @@
 #!/usr/bin/env python
+"""
+The documentation builder
+
+It is the starting point for building documentation, and is
+responsible to figure out what to build and with which options. The
+actual documentation build for each individual document is then done
+in a subprocess call to sphinx, see :func:`builder_helper`.
+
+* The builder can be configured in build_options.py
+* The sphinx subprocesses are configured in conf.py
+"""
+
 import glob, logging, optparse, os, shutil, subprocess, sys, textwrap
 
 #We remove the current directory from sys.path right away
@@ -17,52 +29,6 @@ from sage.misc.misc import sage_makedirs as mkdir
 # from build_options.py.
 execfile(os.path.join(os.getenv('SAGE_ROOT'), 'devel', 'sage', 'doc', 'common' , 'build_options.py'))
 
-##########################################
-#          Utility Functions             #
-##########################################
-def copytree(src, dst, symlinks=False, ignore_errors=False):
-    """
-    Recursively copy a directory tree using copy2().
-
-    The destination directory must not already exist.
-    If exception(s) occur, an Error is raised with a list of reasons.
-
-    If the optional symlinks flag is true, symbolic links in the
-    source tree result in symbolic links in the destination tree; if
-    it is false, the contents of the files pointed to by symbolic
-    links are copied.
-
-    XXX Consider this example code rather than the ultimate tool.
-
-    """
-    names = os.listdir(src)
-    mkdir(dst)
-    errors = []
-    for name in names:
-        srcname = os.path.join(src, name)
-        dstname = os.path.join(dst, name)
-        try:
-            if symlinks and os.path.islink(srcname):
-                linkto = os.readlink(srcname)
-                os.symlink(linkto, dstname)
-            elif os.path.isdir(srcname):
-                copytree(srcname, dstname, symlinks)
-            else:
-                shutil.copy2(srcname, dstname)
-            # XXX What about devices, sockets etc.?
-        except (IOError, os.error) as why:
-            errors.append((srcname, dstname, str(why)))
-        # catch the Error from the recursive copytree so that we can
-        # continue with other files
-        except shutil.Error as err:
-            errors.extend(err.args[0])
-    try:
-        shutil.copystat(src, dst)
-    except OSError as why:
-        errors.extend((src, dst, str(why)))
-    if errors and not ignore_errors:
-        raise shutil.Error(errors)
-
 
 ##########################################
 #      Parallel Building Ref Manual      #
@@ -73,6 +39,8 @@ def build_ref_doc(args):
     format = args[2]
     kwds = args[3]
     args = args[4:]
+    if format == 'inventory':  # you must not use the inventory to build the inventory
+        kwds['use_multidoc_inventory'] = False
     getattr(ReferenceSubBuilder(doc, lang), format)(*args, **kwds)
 
 ##########################################
@@ -84,7 +52,7 @@ def builder_helper(type):
     Returns a function which builds the documentation for
     output type type.
     """
-    def f(self):
+    def f(self, *args, **kwds):
         output_dir = self._output_dir(type)
         os.chdir(self.dir)
 
@@ -94,14 +62,20 @@ def builder_helper(type):
             # WEBSITESPHINXOPTS is either empty or " -A hide_pdf_links=1 "
             options += WEBSITESPHINXOPTS
 
-        build_command = 'sphinx-build'
+        if kwds.get('use_multidoc_inventory', True):
+            options += ' -D multidoc_first_pass=0'
+        else:
+            options += ' -D multidoc_first_pass=1'
+
+        build_command = 'python '+os.path.join(SAGE_DOC, 'common', 'custom-sphinx-build.py')
         build_command += ' -b %s -d %s %s %s %s'%(type, self._doctrees_dir(),
                                                   options, self.dir,
                                                   output_dir)
-        logger.warning(build_command)
+        logger.debug(build_command)
         subprocess.call(build_command, shell=True)
 
-        logger.warning("Build finished.  The built documents can be found in %s", output_dir)
+        logger.info("Build finished and can be found in %s",
+                    output_dir.replace(SAGE_DOC+'/', ''))
 
     f.is_output_format = True
     return f
@@ -144,8 +118,6 @@ class DocBuilder(object):
             sage: b._output_dir('html')
             '.../devel/sage/doc/output/html/en/tutorial'
         """
-        if type == "inventory": # put inventories in the html tree
-            type = "html"
         d = os.path.join(SAGE_DOC, "output", type, self.lang, self.name)
         mkdir(d)
         return d
@@ -266,19 +238,16 @@ class AllBuilder(object):
         docs = self.get_all_documents()
         refs = [x for x in docs if x.endswith('reference')]
         others = [x for x in docs if not x.endswith('reference')]
+
         # Build the reference manual twice to resolve references.  That is,
         # build once with the inventory builder to construct the intersphinx
         # inventory files, and then build the second time for real.  So the
         # first build should be as fast as possible;
         logger.warning("\nBuilding reference manual, first pass.\n")
-        global ALLSPHINXOPTS
-        ALLSPHINXOPTS += ' -Q -D multidoc_first_pass=1'
         for document in refs:
             getattr(get_builder(document), 'inventory')(*args, **kwds)
+
         logger.warning("Building reference manual, second pass.\n")
-        ALLSPHINXOPTS = ALLSPHINXOPTS.replace(
-            'multidoc_first_pass=1', 'multidoc_first_pass=0')
-        ALLSPHINXOPTS = ALLSPHINXOPTS.replace('-Q', '-q') + ' '
         for document in refs:
             getattr(get_builder(document), name)(*args, **kwds)
 
@@ -286,10 +255,9 @@ class AllBuilder(object):
         from multiprocessing import Pool
         pool = Pool(NUM_THREADS)
         L = [(doc, name, kwds) + args for doc in others]
-        # map_async, with get to provide a timeout, handles
-        # KeyboardInterrupt correctly. apply_async does not, so don't
-        # use it.
-        pool.map_async(build_other_doc, L).get(99999)
+        # map_async handles KeyboardInterrupt correctly. Plain map and
+        # apply_async does not, so don't use it.
+        pool.map_async(build_other_doc, L, 1).get(99999)
         pool.close()
         pool.join()
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
@@ -335,10 +303,14 @@ class WebsiteBuilder(DocBuilder):
         """
         DocBuilder.html(self)
         html_output_dir = self._output_dir('html')
-        copytree(html_output_dir,
-                 os.path.realpath(os.path.join(html_output_dir, '..')),
-                 ignore_errors=False)
-
+        for f in os.listdir(html_output_dir):
+            src = os.path.join(html_output_dir, f)
+            dst = os.path.join(html_output_dir, '..', f)
+            if os.path.isdir(src):
+                shutil.rmtree(dst, ignore_errors=True)
+                shutil.copytree(src, dst)
+            else:
+                shutil.copy2(src, dst)
         self.create_html_redirects()
 
     def create_html_redirects(self):
@@ -458,8 +430,6 @@ class ReferenceBuilder(AllBuilder):
             sage: b._output_dir('html')
             '.../devel/sage/doc/output/html/en/reference'
         """
-        if type == "inventory": # put inventories in the html tree
-            type = "html"
         d = os.path.join(SAGE_DOC, "output", type, lang, self.name)
         mkdir(d)
         return d
@@ -477,9 +447,8 @@ class ReferenceBuilder(AllBuilder):
             from multiprocessing import Pool
             pool = Pool(NUM_THREADS)
             L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
-            # (See comment in AllBuilder._wrapper about using map_async
-            # instead of apply_async.)
-            pool.map_async(build_ref_doc, L).get(99999)
+            # (See comment in AllBuilder._wrapper about using map instead of apply.)
+            pool.map_async(build_ref_doc, L, 1).get(99999)
             pool.close()
             pool.join()
             # The html refman must be build at the end to ensure correct
@@ -596,21 +565,26 @@ for a webpage listing all of the documents.''' % (output_dir,
         We add a component name if it's a subdirectory of the manual's
         directory and contains a file named 'index.rst'.
 
+        We return the largest component (most subdirectory entries)
+        first since they will take the longest to build.
+
         EXAMPLES::
 
             sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
             sage: b = builder.ReferenceBuilder('reference')
             sage: refdir = os.path.join(os.environ['SAGE_DOC'], 'en', b.name)
-            sage: b.get_all_documents(refdir)
+            sage: sorted(b.get_all_documents(refdir))
             ['reference/algebras', 'reference/arithgroup', ..., 'reference/tensor']
         """
         documents = []
 
         for doc in os.listdir(refdir):
-            if os.path.exists(os.path.join(refdir, doc, 'index.rst')):
-                documents.append(os.path.join(self.name, doc))
+            directory = os.path.join(refdir, doc)
+            if os.path.exists(os.path.join(directory, 'index.rst')):
+                n = len(os.listdir(directory))
+                documents.append((-n, os.path.join(self.name, doc)))
 
-        return sorted(documents)
+        return [ doc[1] for doc in sorted(documents) ]
 
 
 class ReferenceSubBuilder(DocBuilder):
@@ -677,7 +651,7 @@ class ReferenceSubBuilder(DocBuilder):
         _sage = os.path.join(self.dir, '_sage')
         if os.path.exists(_sage):
             logger.info("Copying over custom .rst files from %s ...", _sage)
-            copytree(_sage, os.path.join(self.dir, 'sage'))
+            shutil.copytree(_sage, os.path.join(self.dir, 'sage'))
 
         getattr(DocBuilder, build_type)(self, *args, **kwds)
 
@@ -1412,7 +1386,6 @@ if __name__ == '__main__':
         WEBSITESPHINXOPTS = " -A hide_pdf_links=1 "
     if options.warn_links:
         ALLSPHINXOPTS += "-n "
-
 
     # Make sure common/static exists.
     mkdir(os.path.join(SAGE_DOC, 'common', 'static'))

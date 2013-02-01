@@ -117,6 +117,13 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         [1 2]
         [3 4]
         sage: TestSuite(m).run()
+
+    We check that #13949 is fixed::
+
+        sage: x = MS([1,2,3,4])
+        sage: y = MS([4,5,6,7])
+        sage: z = x * y
+        sage: z.set_immutable()
     """
     ########################################################################
     # LEVEL 1 functionality

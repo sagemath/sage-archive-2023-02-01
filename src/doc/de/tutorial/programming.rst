@@ -41,7 +41,7 @@ indem Sie den ``attach``-Befehl verwenden:
     8
 
 Wenn Sie nun ``beispiel.sage`` verändern und eine Leerzeile in Sage eingeben
-(d.h. ``return`` drüchen) wird der Inhalt von ``beispiel.sage``
+(d.h. ``return`` drücken) wird der Inhalt von ``beispiel.sage``
 automatisch in Sage neu geladen.
 
 Insbesondere lädt der ``attach``-Befehl eine Datei jedesmal, wenn
